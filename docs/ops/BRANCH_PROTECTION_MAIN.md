@@ -1,3 +1,7 @@
+---
+title: "Branch Protection — main"
+---
+
 # Branch protection — `main` (OpenSSF Scorecard: Branch-Protection)
 
 Owner action. Apply via Settings → Branches → Add rule, or:

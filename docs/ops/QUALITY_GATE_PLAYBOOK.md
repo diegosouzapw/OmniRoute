@@ -1,3 +1,7 @@
+---
+title: "Quality Gate Playbook"
+---
+
 # Quality-Gate System — Avaliação Crítica, Catálogo e Playbook de Replicação
 
 > **O que é este documento.** Uma avaliação crítica do sistema de quality-gates do OmniRoute,

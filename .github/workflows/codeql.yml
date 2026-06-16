@@ -1,11 +1,13 @@
 name: CodeQL
+# OWNER ACTION REQUIRED before enabling auto-triggers: advanced CodeQL conflicts with
+# GitHub "default setup" — the analyze step fails with "CodeQL analyses from advanced
+# configurations cannot be processed when the default setup is enabled". Switch repo
+# Settings → Code security → CodeQL from Default to Advanced, THEN restore the
+# push/pull_request/schedule triggers below. Until then this only runs on manual dispatch
+# so it never produces a red check on PRs. (The codeqlAlerts ratchet keeps working via the
+# default setup's alerts in the meantime.)
 on:
-  push:
-    branches: ["main", "release/**"]
-  pull_request:
-    branches: ["main", "release/**"]
-  schedule:
-    - cron: "31 2 * * 1"
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:

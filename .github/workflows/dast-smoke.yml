@@ -7,6 +7,9 @@ permissions:
 jobs:
   dast-smoke:
     runs-on: ubuntu-latest
+    # ADVISORY while this new gate matures (repo convention: advisory -> blocking).
+    # Flip to blocking (remove continue-on-error) once it's proven stable across a few PRs.
+    continue-on-error: true
     timeout-minutes: 12
     env:
       JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
