@@ -19,8 +19,13 @@ const read = (rel: string) => readFile(path.join(root, rel), "utf8");
 // ─── P0: GitLab Duo ───────────────────────────────────────────────────────────
 
 test("P0: gitlab-duo is registered in providerRegistry", async () => {
-  const src = await read("open-sse/config/providerRegistry.ts");
-  assert.match(src, /["']gitlab-duo["']\s*:/, "gitlab-duo must be a key in REGISTRY");
+  // The provider registry was modularized into per-provider plugin files (#3993),
+  // so a text grep of providerRegistry.ts (now a thin re-export barrel) no longer
+  // finds the literal key. Assert registration at runtime instead, preserving the
+  // test's intent ("gitlab-duo is registered").
+  const { REGISTRY, getRegistryEntry } = await import("../../open-sse/config/providerRegistry.ts");
+  assert.ok("gitlab-duo" in REGISTRY, "gitlab-duo must be a key in REGISTRY");
+  assert.ok(getRegistryEntry("gitlab-duo"), "getRegistryEntry('gitlab-duo') must be non-null");
 });
 
 test("P0: refreshGitLabDuoToken exists and handles invalid_grant as unrecoverable", async () => {
