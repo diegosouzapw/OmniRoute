@@ -12,7 +12,7 @@ export interface FeatureFlagDefinition {
 }
 
 export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
-  // ──────────────── Security (9) ────────────────
+  // ──────────────── Security (7) ────────────────
   {
     key: "REQUIRE_API_KEY",
     label: "Require API Key",
@@ -93,18 +93,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     requiresRestart: false,
     warningLevel: "info",
   },
-  {
-    key: "ALLOW_API_KEY_REVEAL",
-    label: "API Key Reveal",
-    description:
-      "Allow authenticated dashboard users to reveal stored API keys instead of only seeing masked values.",
-    descriptionI18nKey: "featureFlagAllowApiKeyRevealDescription",
-    category: "security",
-    defaultValue: "false",
-    type: "boolean",
-    requiresRestart: false,
-    warningLevel: "danger",
-  },
+
   // ──────────────── Network (7) ────────────────
   {
     key: "ENABLE_TLS_FINGERPRINT",
