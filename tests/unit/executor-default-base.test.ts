@@ -107,6 +107,40 @@ test("DefaultExecutor.buildUrl uses full chat endpoints for hosted OpenAI-compat
   assert.equal(crof.buildUrl("gpt-4.1", true), "https://crof.ai/v1/chat/completions");
 });
 
+test("DefaultExecutor.buildUrl honors a custom providerSpecificData.baseUrl for the built-in openai provider", () => {
+  const openai = new DefaultExecutor("openai");
+
+  // No override → hardcoded OpenAI endpoint (unchanged behavior).
+  assert.equal(
+    openai.buildUrl("gpt-4o", true),
+    "https://api.openai.com/v1/chat/completions"
+  );
+
+  // Custom base URL (e.g. a proxy/gateway) must be used instead of api.openai.com.
+  assert.equal(
+    openai.buildUrl("gpt-4o", true, 0, {
+      providerSpecificData: { baseUrl: "https://api.contactboxtools.me/v1" },
+    }),
+    "https://api.contactboxtools.me/v1/chat/completions"
+  );
+
+  // Trailing slash is normalized.
+  assert.equal(
+    openai.buildUrl("gpt-4o", true, 0, {
+      providerSpecificData: { baseUrl: "https://proxy.example/v1/" },
+    }),
+    "https://proxy.example/v1/chat/completions"
+  );
+
+  // A base URL already pointing at the chat endpoint is kept as-is.
+  assert.equal(
+    openai.buildUrl("gpt-4o", true, 0, {
+      providerSpecificData: { baseUrl: "https://proxy.example/v1/chat/completions" },
+    }),
+    "https://proxy.example/v1/chat/completions"
+  );
+});
+
 test("DefaultExecutor.buildUrl handles openai-compatible and anthropic-compatible providers", () => {
   const openAICompat = new DefaultExecutor("openai-compatible-test");
   const openAIResponsesCompat = new DefaultExecutor("openai-compatible-responses-test");

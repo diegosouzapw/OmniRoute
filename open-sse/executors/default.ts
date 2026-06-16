@@ -303,6 +303,21 @@ export class DefaultExecutor extends BaseExecutor {
         return `https://${resourceUrl || "portal.qwen.ai"}/v1/chat/completions`;
       }
       default: {
+        // Honor a user-supplied custom base URL (providerSpecificData.baseUrl) for
+        // OpenAI-format providers (e.g. the built-in "openai" provider pointed at a
+        // proxy/gateway). Without this, a configured custom base URL was silently
+        // ignored and requests always hit the hardcoded this.config.baseUrl
+        // (https://api.openai.com/v1/...). Scoped to openai-format providers so
+        // non-OpenAI default-branch providers keep their existing behavior.
+        const customBaseUrl =
+          typeof credentials?.providerSpecificData?.baseUrl === "string" &&
+          credentials.providerSpecificData.baseUrl.trim()
+            ? (credentials.providerSpecificData.baseUrl as string)
+            : null;
+        const isOpenAIFormat = !this.config.format || this.config.format === "openai";
+        if (customBaseUrl && isOpenAIFormat) {
+          return normalizeOpenAIChatUrl(customBaseUrl);
+        }
         const url = this.config.baseUrl;
         const entry = getRegistryEntry(this.provider);
         return entry?.urlSuffix ? `${url}${entry.urlSuffix}` : url;
