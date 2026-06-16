@@ -108,27 +108,53 @@ let idleTimer: NodeJS.Timeout | null = null;
 /**
  * Resolve the worker entry file across dev and prod.
  *
- * In dev, `onnxWorker.ts` sits next to this file and runs via the tsx loader. In a
- * production standalone bundle this module is collapsed into a `.next` chunk, so
- * `import.meta.url`-relative resolution fails — the worker is instead esbuild'd to
- * `dist/open-sse/.../onnxWorker.js` (see scripts/build/prepublish.ts) and resolved
- * via `process.cwd()` candidates. Mirrors the candidate-list pattern in
- * `engines/rtk/filterLoader.ts::getFiltersDir`. First existing candidate wins; a
- * `.ts` choice gets the tsx loader, a `.js` choice runs natively.
+ * Dev: `onnxWorker.ts` sits next to this file and runs via the tsx loader.
+ *
+ * Prod: this module is collapsed into a `.next` chunk and the worker is esbuild'd to
+ * `<appRoot>/open-sse/services/compression/engines/llmlingua/onnxWorker.js`
+ * (scripts/build/prepublish.ts) + kept by the pack-artifact allowlist. The process
+ * `cwd` is NOT the app root (pm2 starts it from `/root`), so cwd-relative resolution
+ * is unreliable — we instead WALK UP from this module's location (`import.meta.url`,
+ * which in the standalone bundle is a real `<appRoot>/.next/...` path) until we find
+ * an ancestor that actually contains the worker at its known relative path. cwd
+ * candidates remain as a last-resort fallback. First existing candidate wins; a `.ts`
+ * choice gets the tsx loader, a `.js` choice runs natively.
  */
 function resolveWorkerFile(): { workerFile: string; execArgv: string[] } {
   const moduleDir = path.dirname(fileURLToPath(import.meta.url));
-  const rel = ["open-sse", "services", "compression", "engines", "llmlingua", "onnxWorker.js"];
-  const candidates = [
-    path.join(moduleDir, "onnxWorker.ts"), // dev (tsx): sibling source
-    path.join(moduleDir, "onnxWorker.js"), // compiled sibling, if present
-    path.join(process.cwd(), ...rel), // prod standalone: esbuild'd into dist/
-    path.join(process.cwd(), "app", ...rel), // VPS legacy `app/` layout
-  ];
-  const workerFile =
-    candidates.find((c, i) => candidates.indexOf(c) === i && fs.existsSync(c)) ?? candidates[0];
-  const execArgv = workerFile.endsWith(".ts") ? ["--import", "tsx/esm"] : [];
-  return { workerFile, execArgv };
+  const rel = path.join(
+    "open-sse",
+    "services",
+    "compression",
+    "engines",
+    "llmlingua",
+    "onnxWorker.js"
+  );
+
+  // 1. Dev: sibling source/compiled file next to this module.
+  const devTs = path.join(moduleDir, "onnxWorker.ts");
+  if (fs.existsSync(devTs)) return { workerFile: devTs, execArgv: ["--import", "tsx/esm"] };
+  const devJs = path.join(moduleDir, "onnxWorker.js");
+  if (fs.existsSync(devJs)) return { workerFile: devJs, execArgv: [] };
+
+  // 2. Prod: walk up from the bundled module location, then cwd, looking for the
+  //    esbuild'd worker at <root>/open-sse/.../onnxWorker.js.
+  const roots: string[] = [];
+  let dir = moduleDir;
+  for (let i = 0; i < 12; i++) {
+    roots.push(dir);
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  roots.push(process.cwd(), path.join(process.cwd(), "app"));
+  for (const root of roots) {
+    const candidate = path.join(root, rel);
+    if (fs.existsSync(candidate)) return { workerFile: candidate, execArgv: [] };
+  }
+
+  // 3. Nothing found — return the sibling .js path; the spawn will fail-open.
+  return { workerFile: devJs, execArgv: [] };
 }
 
 /** Reset the idle eviction timer; terminates the worker after the idle window. */
