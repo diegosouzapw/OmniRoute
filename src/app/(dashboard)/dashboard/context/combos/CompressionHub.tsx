@@ -17,6 +17,7 @@ type CompressionMode = "off" | "lite" | "standard" | "aggressive" | "ultra" | "r
 interface CompressionSettings {
   enabled: boolean;
   defaultMode: CompressionMode;
+  contextEditing?: { enabled: boolean };
   [key: string]: unknown;
 }
 
@@ -122,7 +123,7 @@ export default function CompressionHub() {
       if (settingsData) {
         setSettings(settingsData as CompressionSettings);
       } else {
-        setSettings({ enabled: false, defaultMode: "off" });
+        setSettings({ enabled: false, defaultMode: "off", contextEditing: { enabled: false } });
       }
       if (enginesData?.engines) {
         setEngines(
@@ -531,6 +532,35 @@ export default function CompressionHub() {
           </ul>
         </div>
       )}
+
+      {/* ── Compressão delegada ao provedor ── */}
+      <div className="flex flex-col gap-3">
+        <h2 className="text-sm font-semibold text-text-main">Compressão delegada ao provedor</h2>
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-bg p-4">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-text-main">Context Editing (Claude)</p>
+            <p className="text-xs text-text-muted">
+              Deixa o próprio provedor limpar blocos antigos de tool-use no servidor, sem reescrever
+              a mensagem.
+            </p>
+          </div>
+          <Toggle
+            checked={!!settings?.contextEditing?.enabled}
+            onChange={() =>
+              saveSettings({ contextEditing: { enabled: !settings?.contextEditing?.enabled } })
+            }
+            ariaLabel="Context Editing"
+          />
+        </div>
+        <div className="flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-xs text-amber-500">
+          <span className="material-symbols-outlined text-[16px]">info</span>
+          <span>
+            Hoje disponível apenas para Claude (Anthropic). É um modo delegado: o próprio provedor
+            limpa blocos antigos de tool-use no servidor — não reescrevemos a mensagem. Não afeta
+            outros provedores.
+          </span>
+        </div>
+      </div>
     </section>
   );
 }
