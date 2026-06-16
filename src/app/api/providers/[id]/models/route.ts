@@ -143,6 +143,11 @@ const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   "nous-research",
   "poe",
   "siliconflow",
+  // #3976: these carry a real modelsUrl but were not classified by any live-fetch
+  // branch, so their hardcoded registry catalog was served instead of the live
+  // `<baseUrl>/models` list. Live fetch falls back to the local catalog on error.
+  "llm7",
+  "byteplus",
 ]);
 
 function isNamedOpenAIStyleProvider(provider: string): boolean {

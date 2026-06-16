@@ -110,6 +110,35 @@ test("remaining percentage helpers reflect remaining quota and stale resets refi
   assert.equal(providerLimitUtils.calculatePercentage(parsed[0].used, parsed[0].total), 100);
 });
 
+test("percentage-only quotas hide redundant usage counts while counted quotas keep them", () => {
+  const codex = providerLimitUtils.parseQuotaData("codex", {
+    quotas: {
+      session: { used: 7, total: 100, remainingPercentage: 93 },
+      weekly: { used: 28, total: 100, remainingPercentage: 72 },
+    },
+  });
+
+  assert.equal(codex.length, 2);
+  assert.equal(codex[0].isPercentageOnly, true);
+  assert.equal(providerLimitUtils.shouldShowQuotaUsageCount(codex[0]), false);
+  assert.equal(providerLimitUtils.shouldShowQuotaUsageCount(codex[1]), false);
+
+  const counted = providerLimitUtils.parseQuotaData("kimi-coding", {
+    quotas: {
+      Weekly: {
+        used: 28,
+        total: 100,
+        remaining: 72,
+        remainingPercentage: 72,
+      },
+    },
+  });
+
+  assert.equal(counted.length, 1);
+  assert.equal(counted[0].isPercentageOnly, undefined);
+  assert.equal(providerLimitUtils.shouldShowQuotaUsageCount(counted[0]), true);
+});
+
 test("quota labels normalize session and weekly windows while preserving readable titles", () => {
   assert.equal(providerLimitUtils.formatQuotaLabel("session"), "Session");
   assert.equal(providerLimitUtils.formatQuotaLabel("session (5h)"), "Session");

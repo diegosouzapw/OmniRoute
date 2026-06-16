@@ -10,6 +10,7 @@ import {
   seedAntigravityVersionCache,
 } from "../../open-sse/services/antigravityVersion.ts";
 import { clearAntigravityProjectCache } from "../../open-sse/services/antigravityProjectBootstrap.ts";
+import { runWithCapture } from "../../open-sse/utils/providerRequestLogging.ts";
 
 type AntigravityTransformResult = Exclude<
   Awaited<ReturnType<AntigravityExecutor["transformRequest"]>>,
@@ -818,12 +819,18 @@ test("AntigravityExecutor.execute tags pre-response stalls with a fallbackable t
 test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
+  let fetchStarted = false;
+  let fetchBody: Record<string, unknown> | null = null;
+  let prepared: unknown = null;
+  let preparedBeforeFetch = false;
   seedAntigravityVersionCache("2026.04.17-test");
   setCliCompatProviders(["antigravity"]);
 
   globalThis.fetch = async (_url, init) => {
+    fetchStarted = true;
     const headers = init?.headers as Record<string, string>;
     const parsedBody = JSON.parse(String(init?.body));
+    fetchBody = parsedBody;
 
     assert.equal(headers["User-Agent"], antigravityUserAgent("2026.04.17-test"));
     assert.equal(headers["x-client-name"], "antigravity");
@@ -849,17 +856,33 @@ test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async (
   };
 
   try {
+    const requestCapture = {
+      capture(request) {
+        preparedBeforeFetch = !fetchStarted;
+        prepared = request.body;
+      },
+      body(fallback) {
+        return prepared ?? fallback;
+      },
+      latest() {
+        return null;
+      },
+    };
     const result = await withEnv("ANTIGRAVITY_CREDITS", "always", () =>
-      executor.execute({
-        model: "antigravity/gemini-2.5-flash",
-        body: { request: { contents: [] } },
-        stream: false,
-        credentials: { accessToken: "token", projectId: "project-1" },
-        log: { debug() {}, warn() {}, info() {} },
-      })
+      runWithCapture(requestCapture, () =>
+        executor.execute({
+          model: "antigravity/gemini-2.5-flash",
+          body: { request: { contents: [] } },
+          stream: false,
+          credentials: { accessToken: "token", projectId: "project-1" },
+          log: { debug() {}, warn() {}, info() {} },
+        })
+      )
     );
 
     assert.equal(result.response.status, 200);
+    assert.equal(preparedBeforeFetch, true);
+    assert.deepEqual(prepared, fetchBody);
   } finally {
     setCliCompatProviders([]);
     globalThis.fetch = originalFetch;

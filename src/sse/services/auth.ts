@@ -21,6 +21,7 @@ import {
   isAccountUnavailable,
   getUnavailableUntil,
   getEarliestRateLimitedUntil,
+  cooldownUntilMs,
   formatRetryAfter,
   checkFallbackError,
   isModelLocked,
@@ -497,7 +498,9 @@ export function evaluateQuotaLimitPolicy(
 
 function parseFutureDateMs(value: string | null): number | null {
   if (!value) return null;
-  const ms = new Date(value).getTime();
+  // Tolerate numeric-epoch strings (e.g. "1781696905131.0") as well as ISO
+  // strings — the rate_limited_until TEXT column can hold either (#3954).
+  const ms = cooldownUntilMs(value);
   if (!Number.isFinite(ms) || ms <= Date.now()) return null;
   return ms;
 }

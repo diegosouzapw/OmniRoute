@@ -1,0 +1,113 @@
+{
+  "language": "id",
+  "category": "context",
+  "rules": [
+    {
+      "name": "id_explanatory_prefix",
+      "pattern": "\\b(?:fungsi\\s+ini\\s+nampaknya\\s+menangani|kode\\s+ini\\s+tampaknya|kelas\\s+ini|modul\\s+ini\\s+adalah)\\b",
+      "replacement": "Fungsi:",
+      "replacementMap": {
+        "fungsi ini nampaknya menangani": "Fungsi:",
+        "kode ini tampaknya": "Kode:",
+        "kelas ini": "Kelas:",
+        "modul ini adalah": "Modul:"
+      },
+      "context": "all",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_question_to_directive",
+      "pattern": "\\b(?:bisa\\s+jelaskan\\s+kenapa|bisa\\s+tunjukkan\\s+bagaimana|bisa\\s+beritahu\\s+saya|tolong\\s+beritahu\\s+ke|tolong\\s+jelasin\\s+kenapa|tolong\\s+infoin|kasih\\s+tau\\s+gimana|tunjukkan\\s+cara\\s+bagaimana|tunjukkan\\s+cara)\\b",
+      "replacement": "Jelaskan kenapa ",
+      "replacementMap": {
+        "bisa jelaskan kenapa": "Jelaskan kenapa ",
+        "bisa tunjukkan bagaimana": "Tunjukkan bagaimana ",
+        "bisa beritahu saya": "Beritahu saya ",
+        "tolong beritahu ke": "Beritahu ",
+        "tolong jelasin kenapa": "Jelaskan kenapa ",
+        "tolong infoin": "Info ",
+        "kasih tau gimana": "Tunjukkan bagaimana ",
+        "tunjukkan cara bagaimana": "Tunjukkan cara ",
+        "tunjukkan cara": "Tunjukkan cara "
+      },
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_context_setup",
+      "pattern": "\\b(?:saya\\s+punya\\s+kode\\s+berikut|berikut\\s+adalah\\s+kode\\s+saya|berikut\\s+kodenya|ini\\s+kodenya|kode\\s+di\\s+bawah\\s+ini|ini\\s+filenya|berikut\\s+isi\\s+filenya|berikut\\s+isi\\s+berkasnya|berikut\\s+kodenya)\\b\\s*[:.]?\\s*",
+      "replacement": "Kode:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite",
+      "replacementMap": {
+        "saya punya kode berikut": "Kode:",
+        "berikut adalah kode saya": "Kode:",
+        "berikut kodenya": "Kode:",
+        "ini kodenya": "Kode:",
+        "kode di bawah ini": "Kode:",
+        "ini filenya": "File:",
+        "berikut isi filenya": "File:",
+        "berikut isi berkasnya": "File:"
+      }
+    },
+    {
+      "name": "id_intent_clarification",
+      "pattern": "\\b(?:apa\\s+yang\\s+sedang\\s+saya\\s+coba\\s+lakukan\\s+adalah|tujuan\\s+saya\\s+adalah\\s+untuk|yang\\s+saya\\s+butuhkan\\s+adalah|saya\\s+menargetkan\\s+untuk|gw\\s+mau|gua\\s+mau|saya\\s+pengen|aku\\s+ingin)\\b\\s*",
+      "replacement": "Tujuan:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_background_removal",
+      "pattern": "\\b(?:seperti\\s+yang\\s+anda\\s+ketahui|seperti\\s+yang\\s+kita\\s+diskusikan\\s+sebelumnya)\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_meta_commentary",
+      "pattern": "^(?:catat\\s+bahwa|perlu\\s+diingat\\s+bahwa|ingat\\s+bahwa)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_purpose_statement",
+      "pattern": "\\b(?:dengan\\s+tujuan\\s+untuk|dalam\\s+upaya\\s+untuk|untuk\\s+setiap)\\b",
+      "replacement": "untuk",
+      "replacementMap": {
+        "dengan tujuan untuk": "untuk",
+        "dalam upaya untuk": "untuk",
+        "untuk setiap": "per"
+      },
+      "context": "all",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_conversational_connectors",
+      "pattern": "\\b(?:pertama-tama|kedua|selanjutnya|lalu|kemudian|di\\s+samping\\s+itu|oleh\\s+karena\\s+itu|maka\\s+dari\\s+itu|dengan\\s+kata\\s+lain|sebagai\\s+catatan)\\b",
+      "replacementMap": {
+        "pertama-tama": "1.",
+        "kedua": "2.",
+        "selanjutnya": "lalu",
+        "lalu": ">",
+        "kemudian": ">",
+        "di samping itu": "juga",
+        "oleh karena itu": "jadi",
+        "maka dari itu": "jadi",
+        "dengan kata lain": "artinya",
+        "sebagai catatan": "catatan:"
+      },
+      "context": "all",
+      "category": "context",
+      "minIntensity": "lite"
+    }
+  ]
+}
