@@ -225,6 +225,10 @@ Models:
 
 ### 🆓 FREE Providers
 
+No-auth free providers have a switch beside **No authentication required** on their provider page.
+Turning it off disables that provider, removes it from Providers configured/compact views, and
+removes its models from `/v1/models`.
+
 #### Qoder (8 FREE models)
 
 ```bash
@@ -560,7 +564,7 @@ post_install() {
 | `NEXT_PUBLIC_CLOUD_URL`                 | `https://omniroute.dev`              | Cloud sync endpoint base URL (replaces legacy `CLOUD_URL`)                                                |
 | `API_KEY_SECRET`                        | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                                                                        |
 | `REQUIRE_API_KEY`                       | `false`                              | Enforce Bearer API key on `/v1/*`                                                                         |
-| `ALLOW_API_KEY_REVEAL`                  | `false`                              | Allow Api Manager to copy full API keys on demand                                                         |
+| `ALLOW_API_KEY_REVEAL`                  | `false`                              | Allow authenticated dashboard users to reveal full stored API key values on demand                        |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`                                 | Server-side refresh cadence for cached Provider Limits data; UI refresh buttons still trigger manual sync |
 | `DISABLE_SQLITE_AUTO_BACKUP`            | `false`                              | Disable automatic SQLite snapshots before writes/import/restore; manual backups still work                |
 | `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |

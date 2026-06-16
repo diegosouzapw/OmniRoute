@@ -9,8 +9,10 @@ import {
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import { getStaticModelsForProvider, type LocalCatalogModel } from "@/lib/providers/staticModels";
+import { isProviderBlockedByIdOrAlias } from "@/shared/utils/noAuthProviders";
 import {
   getProviderConnectionById,
+  getSettings,
   getModelIsHidden,
   resolveProxyForProvider,
 } from "@/lib/localDb";
@@ -718,19 +720,15 @@ export async function GET(
     const connection = await getProviderConnectionById(id);
 
     if (!connection) {
-      // #3047 — no-auth providers (e.g. OpenCode Free) have no connection rows,
-      // so the "Import from /models" button had no connection id to fetch from
-      // and silently no-op'd. When the route is called with a no-auth provider
-      // id, serve that provider's registry/static model catalog so the import
-      // flow can populate the custom model list.
+      // #3047 — no-auth providers have no connection rows; serve their catalog by provider id.
       const isNoAuthProvider =
         (NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean }>)[id]?.noAuth === true;
       if (isNoAuthProvider) {
-        // #3611 — if the registry entry has a modelsUrl, attempt a live fetch so
-        // the model picker shows the current catalog instead of the stale
-        // hardcoded list (opencode provider had 9 hardcoded models while the live
-        // endpoint exposes many more). No auth header is added because noAuth
-        // providers are genuinely public. Fall through to local_catalog on any error.
+        if (isProviderBlockedByIdOrAlias(id, (await getSettings()).blockedProviders)) {
+          return NextResponse.json({ error: "Provider is disabled" }, { status: 403 });
+        }
+
+        // #3611 — prefer the live public modelsUrl when present; fall back to local_catalog.
         const noAuthRegistryEntry = getRegistryEntry(id);
         const noAuthModelsUrl =
           typeof noAuthRegistryEntry?.modelsUrl === "string" &&

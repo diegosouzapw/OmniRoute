@@ -1477,3 +1477,25 @@ test("v1 models catalog includes noAuth provider models when no DB connections e
     "catalog must not return opencode/* noAuth aliases because opencode/ routes to opencode-zen"
   );
 });
+
+test("v1 models catalog hides disabled noAuth provider models", async () => {
+  await settingsDb.updateSettings({ blockedProviders: ["opencode", "duckduckgo-web"] });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const ids: string[] = body.data.map((item: any) => item.id);
+
+  assert.equal(response.status, 200);
+  assert.equal(
+    ids.some((id) => id.startsWith("oc/")),
+    false,
+    "OpenCode no-auth models must be hidden while no-auth providers are disabled"
+  );
+  assert.equal(
+    ids.some((id) => id.startsWith("ddgw/")),
+    false,
+    "DuckDuckGo no-auth models must be hidden while no-auth providers are disabled"
+  );
+});
