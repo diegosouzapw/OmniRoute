@@ -23,7 +23,6 @@ export type StorageBackupHealth = {
 
 type DatabaseBackupRetentionCardProps = {
   title: string;
-  className?: string;
   storageHealth: StorageBackupHealth;
   backupCleanupOptions: BackupCleanupOptions;
   setBackupCleanupOptions: Dispatch<SetStateAction<BackupCleanupOptions>>;
@@ -61,7 +60,6 @@ function StatusAlert({ status }: { status: BackupRetentionStatus }) {
 
 export default function DatabaseBackupRetentionCard({
   title,
-  className = "mb-4",
   storageHealth,
   backupCleanupOptions,
   setBackupCleanupOptions,
@@ -74,7 +72,7 @@ export default function DatabaseBackupRetentionCard({
   onCleanupBackups,
 }: DatabaseBackupRetentionCardProps) {
   return (
-    <div className={`p-3 rounded-lg bg-bg border border-border ${className}`}>
+    <div className="p-3 rounded-lg bg-bg border border-border mb-4">
       <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
         <div>
           <p className="text-sm font-medium text-text-main">{title}</p>
