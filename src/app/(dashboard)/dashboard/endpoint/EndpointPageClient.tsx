@@ -7,11 +7,9 @@ import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useDisplayBaseUrl } from "@/shared/hooks";
 import { AI_PROVIDERS, getProviderByAlias } from "@/shared/constants/providers";
 import { getProviderDisplayName } from "@/lib/display/names";
-import { SHOW_TOKEN_SAVER_ON_ENDPOINT_KEY } from "@/shared/constants/homeWidgets";
 import { useTranslations } from "next-intl";
 import A2ADashboardPage from "./components/A2ADashboard";
 import McpDashboardPage from "./components/MCPDashboard";
-import TokenSaverCard from "./components/TokenSaverCard";
 import NotionSourceCard from "./components/NotionSourceCard";
 import VscodeTokenAliasCard from "./VscodeTokenAliasCard";
 
@@ -187,7 +185,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   const [ngrokNotice, setNgrokNotice] = useState<TunnelNotice | null>(null);
   const [ngrokToken, setNgrokToken] = useState("");
   const [showNgrokTunnel, setShowNgrokTunnel] = useState(true);
-  const [showTokenSaverOnEndpoint, setShowTokenSaverOnEndpoint] = useState(true);
   const [expandedTunnel, setExpandedTunnel] = useState<string | null>(null);
   const [lanUrls, setLanUrls] = useState<string[]>([]);
   const [tailscaleIpUrl, setTailscaleIpUrl] = useState<string | null>(null);
@@ -498,7 +495,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
         setShowCloudflaredTunnel(tunnelVisibility.showCloudflaredTunnel);
         setShowTailscaleFunnel(tunnelVisibility.showTailscaleFunnel);
         setShowNgrokTunnel(tunnelVisibility.showNgrokTunnel);
-        setShowTokenSaverOnEndpoint(data[SHOW_TOKEN_SAVER_ON_ENDPOINT_KEY] !== false);
         if (data.ngrokAuthToken) setNgrokToken(data.ngrokAuthToken);
 
         if (!tunnelVisibility.showCloudflaredTunnel) {
@@ -1754,8 +1750,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
           )}
         </div>
       </Card>
-
-      {showTokenSaverOnEndpoint && <TokenSaverCard />}
 
       <Card>
         <div className="flex items-center justify-between mb-5">

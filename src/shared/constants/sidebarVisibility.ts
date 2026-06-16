@@ -32,7 +32,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   // OmniProxy > Integrations
   "api-endpoints",
   "webhooks",
-  // OmniProxy > Proxy
+  // OmniProxy — proxy
   "proxy",
   "mitm-proxy",
   "1proxy",
@@ -405,20 +405,12 @@ const INTEGRATIONS_GROUP: SidebarItemGroup = {
   ],
 };
 
-const PROXY_GROUP: SidebarItemGroup = {
-  type: "group",
+const PROXY_ITEM: SidebarItemDefinition = {
   id: "proxy",
-  titleKey: "proxyGroup",
-  titleFallback: "Proxy",
-  items: [
-    {
-      id: "proxy",
-      href: "/dashboard/system/proxy",
-      i18nKey: "proxy",
-      subtitleKey: "proxySubtitle",
-      icon: "dns",
-    },
-  ],
+  href: "/dashboard/system/proxy",
+  i18nKey: "proxy",
+  subtitleKey: "proxySubtitle",
+  icon: "dns",
 };
 
 const ANALYTICS_ITEMS: readonly SidebarItemDefinition[] = [
@@ -635,20 +627,12 @@ const DEVTOOLS_ITEMS: readonly SidebarItemDefinition[] = [
   },
 ];
 
-const MCP_GROUP: SidebarItemGroup = {
-  type: "group",
+const MCP_ITEM: SidebarItemDefinition = {
   id: "mcp",
-  titleKey: "mcp",
-  titleFallback: "MCP Server",
-  items: [
-    {
-      id: "mcp",
-      href: "/dashboard/mcp",
-      i18nKey: "mcp",
-      subtitleKey: "mcpSubtitle",
-      icon: "hub",
-    },
-  ],
+  href: "/dashboard/mcp",
+  i18nKey: "mcp",
+  subtitleKey: "mcpSubtitle",
+  icon: "hub",
 };
 
 const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
@@ -673,7 +657,7 @@ const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
     subtitleKey: "omniSkillsSubtitle",
     icon: "auto_fix_high",
   },
-  MCP_GROUP,
+  MCP_ITEM,
   {
     id: "a2a",
     href: "/dashboard/a2a",
@@ -864,7 +848,7 @@ export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
       COMPRESSION_CONTEXT_GROUP,
       TOOLS_GROUP,
       INTEGRATIONS_GROUP,
-      PROXY_GROUP,
+      PROXY_ITEM,
     ],
     defaultPinned: true,
   },

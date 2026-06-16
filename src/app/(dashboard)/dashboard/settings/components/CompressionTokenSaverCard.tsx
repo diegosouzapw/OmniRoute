@@ -1,20 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { Card, Toggle } from "@/shared/components";
-import { useNotificationStore } from "@/store/notificationStore";
+import { Toggle } from "@/shared/components";
 
 type CavemanIntensity = "lite" | "full" | "ultra";
 type RtkIntensity = "minimal" | "standard" | "aggressive";
 
-interface CompressionConfig {
+export interface CompressionTokenSaverConfig {
   enabled: boolean;
   cavemanConfig?: { enabled: boolean; intensity: CavemanIntensity };
   cavemanOutputMode?: { enabled: boolean; intensity: CavemanIntensity };
   rtkConfig?: { enabled: boolean; intensity: RtkIntensity };
 }
+
+export type CompressionTokenSaverPatch = Partial<CompressionTokenSaverConfig>;
 
 const CAVEMAN_LEVELS: { value: CavemanIntensity; label: string }[] = [
   { value: "lite", label: "Lite" },
@@ -53,7 +54,7 @@ function SegmentedLevel<T extends string>({
             type="button"
             onClick={() => !disabled && onChange(lvl.value)}
             disabled={disabled}
-            className={`px-2.5 py-0.5 text-[11px] font-medium rounded transition-colors ${
+            className={`rounded px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
               active ? "bg-primary text-white" : "text-text-muted hover:text-text-primary"
             } ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
           >
@@ -72,6 +73,7 @@ function EngineRow({
   badge,
   enabled,
   masterEnabled,
+  saving,
   onToggle,
   level,
 }: {
@@ -81,85 +83,52 @@ function EngineRow({
   badge: string;
   enabled: boolean;
   masterEnabled: boolean;
+  saving: boolean;
   onToggle: (v: boolean) => void;
-  level: React.ReactNode;
+  level: ReactNode;
 }) {
   const effective = masterEnabled && enabled;
   return (
     <div
-      className={`flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between py-3 ${
+      className={`flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between ${
         masterEnabled ? "" : "opacity-60"
       }`}
     >
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 text-sm font-medium text-text-main">
           {title}
           <Link
             href={href}
-            className="text-[10px] uppercase tracking-wider rounded px-1.5 py-0.5 bg-bg-subtle border border-border text-text-muted hover:text-primary hover:border-primary/40"
+            className="rounded border border-border bg-bg-subtle px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-text-muted hover:border-primary/40 hover:text-primary"
           >
             {badge}
           </Link>
         </div>
-        <p className="text-xs text-text-muted mt-0.5">{description}</p>
+        <p className="mt-0.5 text-xs text-text-muted">{description}</p>
       </div>
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex shrink-0 items-center gap-2">
         {level}
-        <Toggle size="sm" checked={effective} onChange={onToggle} disabled={!masterEnabled} />
+        <Toggle
+          size="sm"
+          checked={effective}
+          onChange={onToggle}
+          disabled={!masterEnabled || saving}
+        />
       </div>
     </div>
   );
 }
 
-export default function TokenSaverCard() {
-  const t = useTranslations("endpoint");
-  const notify = useNotificationStore();
-  const [config, setConfig] = useState<CompressionConfig | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    fetch("/api/settings/compression")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data) setConfig(data);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  const save = useCallback(
-    async (patch: Partial<CompressionConfig>) => {
-      if (!config) return;
-      const next = { ...config, ...patch };
-      setConfig(next);
-      setSaving(true);
-      try {
-        const res = await fetch("/api/settings/compression", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(patch),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const updated = await res.json();
-        setConfig(updated);
-      } catch (err) {
-        notify.error(err instanceof Error ? err.message : "Failed to save");
-      } finally {
-        setSaving(false);
-      }
-    },
-    [config, notify]
-  );
-
-  if (loading || !config) {
-    return (
-      <Card>
-        <div className="h-32 animate-pulse rounded-md bg-bg-subtle/40" />
-      </Card>
-    );
-  }
-
+export default function CompressionTokenSaverCard({
+  config,
+  saving,
+  onSave,
+}: {
+  config: CompressionTokenSaverConfig;
+  saving: boolean;
+  onSave: (patch: CompressionTokenSaverPatch) => void | Promise<void>;
+}) {
+  const t = useTranslations("settings");
   const masterEnabled = config.enabled;
   const rtk = config.rtkConfig ?? { enabled: true, intensity: "standard" as RtkIntensity };
   const cavemanOut = config.cavemanOutputMode ?? {
@@ -172,38 +141,44 @@ export default function TokenSaverCard() {
   };
 
   return (
-    <Card>
-      <div className="flex items-start justify-between mb-1">
-        <div className="flex-1 min-w-0">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <span className="material-symbols-outlined text-[22px] text-amber-500">bolt</span>
-            Token Saver
+    <section className="rounded-lg border border-border/70 bg-surface/40 p-4">
+      <div className="mb-1 flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <h4 className="flex items-center gap-2 text-base font-semibold text-text-main">
+            <span className="material-symbols-outlined text-[21px] text-amber-500">bolt</span>
+            {t("tokenSaverTitle")}
             {saving && (
               <span className="material-symbols-outlined text-[16px] animate-spin text-text-muted">
                 sync
               </span>
             )}
-          </h2>
-          <p className="text-sm text-text-muted mt-1">{t("tokenSaverSubtitle")}</p>
+          </h4>
+          <p className="mt-1 text-sm text-text-muted">{t("tokenSaverSubtitle")}</p>
         </div>
-        <Toggle size="md" checked={masterEnabled} onChange={(v) => save({ enabled: v })} />
+        <Toggle
+          size="md"
+          checked={masterEnabled}
+          onChange={(checked) => onSave({ enabled: checked })}
+          disabled={saving}
+        />
       </div>
 
-      <div className="divide-y divide-border mt-4">
+      <div className="mt-4 divide-y divide-border">
         <EngineRow
           title={t("tokenSaverToolOutput")}
           badge="RTK"
           href="/dashboard/context/rtk"
-          description="git/grep/ls/tree/logs cleaner → 60-90% fewer input tokens"
+          description={t("tokenSaverToolOutputDesc")}
           enabled={rtk.enabled}
           masterEnabled={masterEnabled}
-          onToggle={(v) => save({ rtkConfig: { ...rtk, enabled: v } })}
+          saving={saving}
+          onToggle={(enabled) => onSave({ rtkConfig: { ...rtk, enabled } })}
           level={
             <SegmentedLevel
               levels={RTK_LEVELS}
               value={rtk.intensity}
-              onChange={(intensity) => save({ rtkConfig: { ...rtk, intensity } })}
-              disabled={!masterEnabled || !rtk.enabled}
+              onChange={(intensity) => onSave({ rtkConfig: { ...rtk, intensity } })}
+              disabled={saving || !masterEnabled || !rtk.enabled}
             />
           }
         />
@@ -211,16 +186,17 @@ export default function TokenSaverCard() {
           title={t("tokenSaverLlmOutput")}
           badge="Caveman"
           href="/dashboard/context/caveman"
-          description="Terse-style system prompt → ~65% fewer output tokens (up to 87%)"
+          description={t("tokenSaverLlmOutputDesc")}
           enabled={cavemanOut.enabled}
           masterEnabled={masterEnabled}
-          onToggle={(v) => save({ cavemanOutputMode: { ...cavemanOut, enabled: v } })}
+          saving={saving}
+          onToggle={(enabled) => onSave({ cavemanOutputMode: { ...cavemanOut, enabled } })}
           level={
             <SegmentedLevel
               levels={CAVEMAN_LEVELS}
               value={cavemanOut.intensity}
-              onChange={(intensity) => save({ cavemanOutputMode: { ...cavemanOut, intensity } })}
-              disabled={!masterEnabled || !cavemanOut.enabled}
+              onChange={(intensity) => onSave({ cavemanOutputMode: { ...cavemanOut, intensity } })}
+              disabled={saving || !masterEnabled || !cavemanOut.enabled}
             />
           }
         />
@@ -228,25 +204,26 @@ export default function TokenSaverCard() {
           title={t("tokenSaverInputCompression")}
           badge="Caveman"
           href="/dashboard/context/caveman"
-          description="Rewrite chat history → ~50% fewer input tokens"
+          description={t("tokenSaverInputCompressionDesc")}
           enabled={cavemanIn.enabled}
           masterEnabled={masterEnabled}
-          onToggle={(v) => save({ cavemanConfig: { ...cavemanIn, enabled: v } })}
+          saving={saving}
+          onToggle={(enabled) => onSave({ cavemanConfig: { ...cavemanIn, enabled } })}
           level={
             <SegmentedLevel
               levels={CAVEMAN_LEVELS}
               value={cavemanIn.intensity}
-              onChange={(intensity) => save({ cavemanConfig: { ...cavemanIn, intensity } })}
-              disabled={!masterEnabled || !cavemanIn.enabled}
+              onChange={(intensity) => onSave({ cavemanConfig: { ...cavemanIn, intensity } })}
+              disabled={saving || !masterEnabled || !cavemanIn.enabled}
             />
           }
         />
       </div>
 
-      <div className="mt-4 pt-3 border-t border-border flex items-start gap-2 text-xs text-text-muted">
-        <span className="material-symbols-outlined text-[16px] mt-px">info</span>
+      <div className="mt-4 flex items-start gap-2 border-t border-border pt-3 text-xs text-text-muted">
+        <span className="material-symbols-outlined mt-px text-[16px]">info</span>
         <p>
-          Fine-tune each engine on{" "}
+          {t("tokenSaverFineTunePrefix")}{" "}
           <Link href="/dashboard/context/caveman" className="text-primary hover:underline">
             Caveman
           </Link>{" "}
@@ -254,13 +231,13 @@ export default function TokenSaverCard() {
           <Link href="/dashboard/context/rtk" className="text-primary hover:underline">
             RTK
           </Link>
-          , or combine engines per request on{" "}
+          , {t("tokenSaverFineTuneSuffix")}{" "}
           <Link href="/dashboard/context/combos" className="text-primary hover:underline">
             Engine Combos
           </Link>
           .
         </p>
       </div>
-    </Card>
+    </section>
   );
 }

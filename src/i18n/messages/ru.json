@@ -4803,8 +4803,6 @@
     "homeQuickStartDesc": "Показывать панель быстрого старта на главной странице.",
     "homeProviderTopology": "Топология провайдеров",
     "homeProviderTopologyDesc": "Показывать топологию провайдеров на главной странице.",
-    "endpointTokenSaver": "Token Saver",
-    "endpointTokenSaverDesc": "Показывать панель Token Saver на странице Endpoint.",
     "sidebarVisibilityToggle": "Показывать элементы боковой панели",
     "enableCache": "Включить кеш",
     "cacheTTL": "Срок жизни кэша",

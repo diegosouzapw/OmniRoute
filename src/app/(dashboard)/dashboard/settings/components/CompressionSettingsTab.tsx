@@ -3,9 +3,14 @@
 import { useState, useEffect } from "react";
 import { Card, Button } from "@/shared/components";
 import { useTranslations } from "next-intl";
+import CompressionTokenSaverCard, {
+  type CompressionTokenSaverConfig,
+  type CompressionTokenSaverPatch,
+} from "./CompressionTokenSaverCard";
 
 type CompressionMode = "off" | "lite" | "standard" | "aggressive" | "ultra" | "rtk" | "stacked";
 type CavemanIntensity = "lite" | "full" | "ultra";
+type RtkIntensity = "minimal" | "standard" | "aggressive";
 
 interface CavemanConfig {
   enabled: boolean;
@@ -20,6 +25,11 @@ interface CavemanOutputModeConfig {
   enabled: boolean;
   intensity: CavemanIntensity;
   autoClarity: boolean;
+}
+
+interface RtkConfig {
+  enabled: boolean;
+  intensity: RtkIntensity;
 }
 
 interface AggressiveConfig {
@@ -50,8 +60,7 @@ interface UltraConfig {
   maxTokensPerMessage: number;
 }
 
-interface CompressionConfig {
-  enabled: boolean;
+interface CompressionConfig extends CompressionTokenSaverConfig {
   defaultMode: CompressionMode;
   autoTriggerMode?: CompressionMode;
   autoTriggerTokens: number;
@@ -61,6 +70,7 @@ interface CompressionConfig {
   comboOverrides: Record<string, CompressionMode>;
   cavemanConfig?: CavemanConfig;
   cavemanOutputMode?: CavemanOutputModeConfig;
+  rtkConfig?: RtkConfig;
   aggressive?: AggressiveConfig;
   ultra?: UltraConfig;
 }
@@ -147,6 +157,10 @@ export default function CompressionSettingsTab() {
       intensity: "full",
       autoClarity: true,
     },
+    rtkConfig: {
+      enabled: true,
+      intensity: "standard",
+    },
     aggressive: {
       thresholds: { fullSummary: 5, moderate: 3, light: 2, verbatim: 2 },
       toolStrategies: {
@@ -213,6 +227,48 @@ export default function CompressionSettingsTab() {
     }
   };
 
+  const saveTokenSaver = async (updates: CompressionTokenSaverPatch) => {
+    const nextUpdates: Partial<CompressionConfig> = {};
+
+    if (typeof updates.enabled === "boolean") {
+      nextUpdates.enabled = updates.enabled;
+    }
+
+    if (updates.cavemanConfig) {
+      nextUpdates.cavemanConfig = {
+        ...(config.cavemanConfig ?? {
+          enabled: true,
+          compressRoles: ["user"],
+          skipRules: [],
+          minMessageLength: 50,
+          preservePatterns: [],
+          intensity: "full",
+        }),
+        ...updates.cavemanConfig,
+      };
+    }
+
+    if (updates.cavemanOutputMode) {
+      nextUpdates.cavemanOutputMode = {
+        ...(config.cavemanOutputMode ?? {
+          enabled: false,
+          intensity: "full",
+          autoClarity: true,
+        }),
+        ...updates.cavemanOutputMode,
+      };
+    }
+
+    if (updates.rtkConfig) {
+      nextUpdates.rtkConfig = {
+        ...(config.rtkConfig ?? { enabled: true, intensity: "standard" }),
+        ...updates.rtkConfig,
+      };
+    }
+
+    await save(nextUpdates);
+  };
+
   const toggleCavemanRole = (role: "user" | "assistant" | "system") => {
     const currentRoles = config.cavemanConfig?.compressRoles ?? ["user"];
     const newRoles = currentRoles.includes(role)
@@ -266,21 +322,7 @@ export default function CompressionSettingsTab() {
       </div>
 
       <div className="space-y-6">
-        <label className="flex items-center justify-between">
-          <span className="text-sm text-text-muted">{t("enabled")}</span>
-          <button
-            onClick={() => save({ enabled: !config.enabled })}
-            className={`relative w-10 h-5 rounded-full transition-colors ${
-              config.enabled ? "bg-green-500" : "bg-border"
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                config.enabled ? "left-5" : "left-0.5"
-              }`}
-            />
-          </button>
-        </label>
+        <CompressionTokenSaverCard config={config} saving={saving} onSave={saveTokenSaver} />
 
         {config.enabled && (
           <div className="space-y-3">

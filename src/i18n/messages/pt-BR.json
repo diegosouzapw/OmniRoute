@@ -6799,8 +6799,6 @@
     "homeQuickStartDesc": "Mostrar o painel de início rápido na página inicial.",
     "homeProviderTopology": "Topologia dos provedores",
     "homeProviderTopologyDesc": "Mostrar a topologia dos provedores na página inicial.",
-    "endpointTokenSaver": "Token Saver",
-    "endpointTokenSaverDesc": "Mostrar o painel Token Saver na página Endpoint.",
     "proxyGlobalConfigTab": "Configuração Global",
     "proxyPoolTab": "Pool de Proxy",
     "freePoolTab": "Pool Gratuito",
