@@ -40,6 +40,7 @@ const ROOT = join(__dirname, "..", "..");
 const NPX_BIN = process.platform === "win32" ? "npx.cmd" : "npx";
 
 const DIST_DIR = join(ROOT, "dist");
+const METHOD_GUARD_REQUIRE = 'require("./http-method-guard.cjs").installHttpMethodGuard();\n';
 
 function walkFiles(dir: string, rootDir: string = dir, files: string[] = []): string[] {
   let entries: string[] = [];
@@ -152,6 +153,20 @@ assembleStandalone({
   copyNatives: true,
 });
 console.log("  ✅ Standalone bundle assembled to dist/");
+
+const distServer = join(DIST_DIR, "server.js");
+const methodGuardSrc = join(ROOT, "scripts", "dev", "http-method-guard.cjs");
+const methodGuardDest = join(DIST_DIR, "http-method-guard.cjs");
+if (existsSync(methodGuardSrc)) {
+  cpSync(methodGuardSrc, methodGuardDest);
+}
+if (existsSync(distServer)) {
+  const serverSource = readFileSync(distServer, "utf8");
+  if (!serverSource.includes("installHttpMethodGuard")) {
+    writeFileSync(distServer, METHOD_GUARD_REQUIRE + serverSource);
+    console.log("  ✅ Patched dist/server.js with HTTP method guard.");
+  }
+}
 
 // ── Step 8: Compile + copy MITM cert utilities ─────────────
 const mitmSrc = join(ROOT, "src", "mitm");

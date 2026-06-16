@@ -126,6 +126,11 @@ const EXTRA_MODULE_ENTRIES = [
     dest: ["peer-stamp.mjs"],
   },
   {
+    label: "HTTP method guard (server-ws.mjs dependency)",
+    src: ["scripts", "dev", "http-method-guard.cjs"],
+    dest: ["http-method-guard.cjs"],
+  },
+  {
     label: "responses-ws-proxy (server-ws.mjs dependency)",
     src: ["scripts", "dev", "responses-ws-proxy.mjs"],
     dest: ["responses-ws-proxy.mjs"],
