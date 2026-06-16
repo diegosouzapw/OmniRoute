@@ -21,7 +21,6 @@ import { accessScheduleSchema } from "./misc.ts";
 export const createKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
   noLog: z.boolean().optional(),
-  allowUsageCommand: z.boolean().optional(),
   scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
 });
 
@@ -29,23 +28,38 @@ export const createSyncTokenSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(200),
 });
 
-export const setBudgetSchema = z.object({
-  apiKeyId: z.string().trim().min(1, "apiKeyId is required"),
-  // #3537: a limit of 0 means "no limit for this period" (checkBudget only enforces when
-  // activeLimitUsd > 0). The dashboard sends 0 for unfilled fields, so 0 must be accepted —
-  // `.positive()` (rejects 0) used to 400 any save that left a field blank. Negatives are
-  // still rejected by `.min(0)`.
-  dailyLimitUsd: z.coerce.number().min(0, "dailyLimitUsd must be zero or greater").optional(),
-  weeklyLimitUsd: z.coerce.number().min(0, "weeklyLimitUsd must be zero or greater").optional(),
-  monthlyLimitUsd: z.coerce.number().min(0, "monthlyLimitUsd must be zero or greater").optional(),
-  warningThreshold: z.coerce.number().min(0).max(1).optional(),
-  resetInterval: z.enum(["daily", "weekly", "monthly"]).optional(),
-  resetTime: z
-    .string()
-    .trim()
-    .regex(/^\d{2}:\d{2}$/, "resetTime must be in HH:MM format")
-    .optional(),
-});
+export const setBudgetSchema = z
+  .object({
+    apiKeyId: z.string().trim().min(1, "apiKeyId is required"),
+    dailyLimitUsd: z.coerce.number().positive("dailyLimitUsd must be greater than zero").optional(),
+    weeklyLimitUsd: z.coerce
+      .number()
+      .positive("weeklyLimitUsd must be greater than zero")
+      .optional(),
+    monthlyLimitUsd: z.coerce
+      .number()
+      .positive("monthlyLimitUsd must be greater than zero")
+      .optional(),
+    warningThreshold: z.coerce.number().min(0).max(1).optional(),
+    resetInterval: z.enum(["daily", "weekly", "monthly"]).optional(),
+    resetTime: z
+      .string()
+      .trim()
+      .regex(/^\d{2}:\d{2}$/, "resetTime must be in HH:MM format")
+      .optional(),
+  })
+  .superRefine((value, ctx) => {
+    const hasAnyLimit = [value.dailyLimitUsd, value.weeklyLimitUsd, value.monthlyLimitUsd].some(
+      (entry) => typeof entry === "number" && Number.isFinite(entry) && entry > 0
+    );
+    if (!hasAnyLimit) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "At least one budget limit must be provided",
+        path: ["dailyLimitUsd"],
+      });
+    }
+  });
 
 export const setTokenLimitSchema = z
   .object({
@@ -103,7 +117,6 @@ export const updateKeyPermissionsSchema = z
     allowedEndpoints: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
     streamDefaultMode: z.enum(["legacy", "json"]).optional(),
     disableNonPublicModels: z.boolean().optional(),
-    allowUsageCommand: z.boolean().optional(),
   })
   .superRefine((value, ctx) => {
     if (
@@ -122,9 +135,7 @@ export const updateKeyPermissionsSchema = z
       value.rateLimits === undefined &&
       value.scopes === undefined &&
       value.allowedEndpoints === undefined &&
-      value.streamDefaultMode === undefined &&
-      value.disableNonPublicModels === undefined &&
-      value.allowUsageCommand === undefined
+      value.streamDefaultMode === undefined
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
