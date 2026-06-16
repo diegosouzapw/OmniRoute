@@ -12,9 +12,9 @@ export default function SettingsRoutingPage() {
   return (
     <div className="space-y-6">
       <p className="text-sm text-text-muted">{t("routingSettingsIntro")}</p>
+      <ComboDefaultsTab />
       <RoutingTab />
       <ModelRoutingSection />
-      <ComboDefaultsTab />
       <ModelAliasesUnified />
       <BackgroundDegradationTab />
     </div>

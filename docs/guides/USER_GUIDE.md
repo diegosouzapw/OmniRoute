@@ -893,6 +893,11 @@ The settings page is organized into **7 tabs** for easy navigation:
 | **Resilience** | Request queue, connection cooldown, provider breaker config, and wait-for-cooldown behavior                                                              |
 | **Advanced**   | Global proxy configuration (HTTP/SOCKS5), per-provider proxy overrides                                                                                   |
 
+General no longer duplicates read-only logging and cache notes. Database retention and
+optimization settings are persisted through `/api/settings/database`; manual cache clearing uses
+`DELETE /api/cache`. Request and proxy log row caps are controlled by
+`CALL_LOGS_TABLE_MAX_ROWS` and `PROXY_LOGS_TABLE_MAX_ROWS`.
+
 ---
 
 ### Costs & Budget Management
