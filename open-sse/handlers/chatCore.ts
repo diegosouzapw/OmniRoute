@@ -2705,7 +2705,7 @@ export async function handleChatCore({
             compressionAnalyticsRecorded = true;
             compressionAnalyticsWritePromise = (async () => {
               try {
-                const { insertCompressionAnalyticsRow } =
+                const { insertCompressionAnalyticsRow, insertCompressionEngineBreakdown } =
                   await import("../../src/lib/db/compressionAnalytics.ts");
                 const { calculateCost } = await import("../../src/lib/usage/costCalculator.ts");
                 const tokensSaved = Math.max(
@@ -2746,6 +2746,23 @@ export async function handleChatCore({
                     ? rtkPointers.reduce((total, pointer) => total + pointer.bytes, 0)
                     : null,
                 });
+                // Persist the per-engine breakdown of a stacked run so per-engine
+                // analytics (getPerEngineAnalytics) is accurate historically, not just
+                // in the live `compression.completed` event.
+                const engineBreakdown = result.stats.engineBreakdown ?? [];
+                if (engineBreakdown.length > 0) {
+                  insertCompressionEngineBreakdown(
+                    engineBreakdown.map((b) => ({
+                      timestamp: new Date().toISOString(),
+                      request_id: skillRequestId,
+                      engine: b.engine,
+                      original_tokens: b.originalTokens,
+                      compressed_tokens: b.compressedTokens,
+                      tokens_saved: Math.max(0, b.originalTokens - b.compressedTokens),
+                      duration_ms: b.durationMs ?? null,
+                    }))
+                  );
+                }
               } catch (err) {
                 log?.debug?.(
                   "COMPRESSION",
