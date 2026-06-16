@@ -20,15 +20,40 @@ test("playground compare: prompt input + rAF throttle + user message in request"
   assert.ok(src.includes("requestAnimationFrame"), "throttles stream updates via rAF");
   assert.ok(/role:\s*"user"/.test(src), "request body includes a user message");
   assert.ok(src.includes("setPrompt"), "has a prompt input control");
+  assert.ok(src.includes("createColumnId"), "uses a browser-compatible column id helper");
+  assert.ok(!src.includes("id: crypto.randomUUID()"), "does not call randomUUID inline");
+});
+
+test("playground compare: tab is not lazy-loaded behind a click-time chunk", () => {
+  const src = read("src/app/(dashboard)/dashboard/playground/PlaygroundStudio.tsx");
+  assert.ok(
+    src.includes('import CompareTab from "./components/tabs/CompareTab"'),
+    "CompareTab is statically imported"
+  );
+  assert.ok(
+    !src.includes('dynamic(() => import("./components/tabs/CompareTab")'),
+    "CompareTab is not loaded with next/dynamic"
+  );
 });
 
 test("playground build: wizard with 3 modes reusing editors; BuildTab keeps handlers", () => {
-  const wiz = read("src/app/(dashboard)/dashboard/playground/components/tabs/build/BuildWizard.tsx");
-  assert.ok(wiz.includes('"tools"') && wiz.includes('"json"') && wiz.includes('"both"'), "three modes");
-  assert.ok(wiz.includes("ToolsBuilder") && wiz.includes("StructuredOutputEditor"), "reuses both editors");
+  const wiz = read(
+    "src/app/(dashboard)/dashboard/playground/components/tabs/build/BuildWizard.tsx"
+  );
+  assert.ok(
+    wiz.includes('"tools"') && wiz.includes('"json"') && wiz.includes('"both"'),
+    "three modes"
+  );
+  assert.ok(
+    wiz.includes("ToolsBuilder") && wiz.includes("StructuredOutputEditor"),
+    "reuses both editors"
+  );
   const tab = read("src/app/(dashboard)/dashboard/playground/components/tabs/BuildTab.tsx");
   assert.ok(tab.includes("<BuildWizard"), "BuildTab mounts BuildWizard");
-  assert.ok(tab.includes("runRequest") && tab.includes("sendToolResult"), "BuildTab preserves run/tool handlers");
+  assert.ok(
+    tab.includes("runRequest") && tab.includes("sendToolResult"),
+    "BuildTab preserves run/tool handlers"
+  );
 });
 
 test("playground build i18n: playground.build keys present with en/pt parity", () => {
