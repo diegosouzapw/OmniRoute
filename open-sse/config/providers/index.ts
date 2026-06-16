@@ -1,8 +1,6 @@
 import type { RegistryEntry } from "./shared.ts";
 
 import { aimlapiProvider } from "./registry/aimlapi/index.ts";
-import { byteplusProvider } from "./registry/byteplus/index.ts";
-import { mimocodeProvider } from "./registry/mimocode/index.ts";
 import { ollama_cloudProvider } from "./registry/ollama-cloud/index.ts";
 import { syntheticProvider } from "./registry/synthetic/index.ts";
 import { ideogramProvider } from "./registry/ideogram/index.ts";
@@ -322,6 +320,4 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   codex: codexProvider,
   venice: veniceProvider,
   kiro: kiroProvider,
-  byteplus: byteplusProvider,
-  mimocode: mimocodeProvider,
 };
