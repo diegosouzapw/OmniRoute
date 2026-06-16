@@ -5010,6 +5010,7 @@
     "searchProvider": "Provedor de Busca",
     "searchProviderDesc": "Este provedor é usado para busca web via POST /v1/search. Nenhuma configuração de modelo é necessária depois que uma chave de API estiver conectada.",
     "searchProviders": "Buscar provedores...",
+    "searchByModel": "Buscar por modelo...",
     "searchProvidersHeading": "Provedores de Busca",
     "searxngBaseUrlHint": "Obrigatório: cole a URL base da sua instância SearXNG. O app usará /search e request format=json. URLs locais/privadas exigem OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true para validação no dashboard.",
     "searxngInfo": "SearXNG é self-hosted. Configure aqui a URL base da instância. A chave de API é opcional e pode ficar em branco para instâncias públicas ou sem autenticação. A validação de URLs locais/privadas exige OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true.",

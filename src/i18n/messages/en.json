@@ -4570,6 +4570,7 @@
     "searchProvider": "Search Provider",
     "searchProviderDesc": "Search Provider Desc",
     "searchProviders": "Search Providers",
+    "searchByModel": "Search by model…",
     "searchProvidersHeading": "Search Providers Heading",
     "searxngBaseUrlHint": "Searxng Base Url Hint",
     "searxngInfo": "Searxng Info",
