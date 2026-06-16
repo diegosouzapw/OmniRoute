@@ -2388,6 +2388,10 @@ export async function handleChatCore({
   let cavemanOutputModeApplied = false;
   let cavemanOutputModeIntensity: string | null = null;
   let preCompressionBody: typeof body | null = null;
+  // Delegated Context Editing (Claude only): captured at the canonical compression
+  // settings read below, then threaded to executor.execute() further down. Lives at
+  // function scope because the read happens inside the per-message compression block.
+  let contextEditingEnabled = false;
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {
     let estimatedTokens = estimateTokens(allMessages);
     let promptCompressionEnabled = false;
@@ -2397,6 +2401,7 @@ export async function handleChatCore({
       const { getCompressionSettings } = await import("../../src/lib/db/compression.ts");
       compressionSettings = await getCompressionSettings();
       promptCompressionEnabled = compressionSettings.enabled;
+      contextEditingEnabled = compressionSettings.contextEditing?.enabled === true;
     } catch (err) {
       log?.warn?.(
         "COMPRESSION",
@@ -3921,6 +3926,7 @@ export async function handleChatCore({
                       ),
                       onCredentialsRefreshed,
                       skipUpstreamRetry,
+                      contextEditing: { enabled: contextEditingEnabled },
                     })
                   ),
               });
@@ -4466,6 +4472,7 @@ export async function handleChatCore({
             clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
             onCredentialsRefreshed,
             skipUpstreamRetry: isCombo,
+            contextEditing: { enabled: contextEditingEnabled },
           })
         );
 
