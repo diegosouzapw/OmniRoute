@@ -163,6 +163,12 @@ function cleanResponse(text: string, strip = true): string {
 
 // ─── SSE types ──────────────────────────────────────────────────────────────
 
+interface PplxDiffPatch {
+  op?: string;
+  path?: string;
+  value?: unknown;
+}
+
 interface PplxBlock {
   intended_usage?: string;
   markdown_block?: {
@@ -170,6 +176,13 @@ interface PplxBlock {
     chunks?: string[];
     progress?: string;
     chunk_starting_offset?: number;
+  };
+  // Schematized API (use_schematized_api) streams block updates as RFC-6902
+  // JSON-patch diffs against a target field (e.g. markdown_block) instead of
+  // sending the whole block each frame. `field` names the block being patched.
+  diff_block?: {
+    field?: string;
+    patches?: PplxDiffPatch[];
   };
   web_result_block?: {
     web_results?: Array<{ url?: string; name?: string; snippet?: string }>;
@@ -395,6 +408,40 @@ interface ContentChunk {
   done?: boolean;
 }
 
+// The schematized API delivers the answer text in blocks whose `intended_usage`
+// is either the aggregate `ask_text` or per-segment `ask_text_<n>_markdown`
+// (older builds used names merely containing "markdown"). All converge on the
+// same answer, so we lock onto a single primary usage to avoid double-counting.
+function isAnswerTextUsage(usage: string): boolean {
+  return usage === "ask_text" || /^ask_text_\d+_markdown$/.test(usage) || usage.includes("markdown");
+}
+
+// Reconstructed state for one answer-text block, built up from diff patches
+// (streaming) or a materialized markdown_block (final COMPLETED frame).
+interface MarkdownAccumulator {
+  chunks: string[];
+}
+
+// Apply a markdown_block diff_block patch set. Perplexity sends an initial
+// `{op:"replace", path:"", value:{chunks:[...]}}` then incremental
+// `{op:"add", path:"/chunks/<n>", value:"..."}` frames. We only need the
+// chunks array; joining it yields the cumulative answer text.
+function applyMarkdownDiff(acc: MarkdownAccumulator, patches: PplxDiffPatch[]): void {
+  for (const patch of patches) {
+    const path = patch.path ?? "";
+    if (path === "") {
+      const value = (patch.value ?? {}) as { chunks?: unknown };
+      acc.chunks = Array.isArray(value.chunks) ? value.chunks.map((c) => String(c)) : [];
+      continue;
+    }
+    const chunkMatch = /^\/chunks\/(\d+)$/.exec(path);
+    if (chunkMatch && typeof patch.value === "string") {
+      const idx = Number.parseInt(chunkMatch[1], 10);
+      acc.chunks[idx] = patch.value;
+    }
+  }
+}
+
 async function* extractContent(
   eventStream: ReadableStream<Uint8Array>,
   signal?: AbortSignal | null
@@ -403,6 +450,9 @@ async function* extractContent(
   let backendUuid: string | null = null;
   let seenLen = 0;
   const seenThinking = new Set<string>();
+  // Per-usage reconstructed answer-text blocks + the locked primary usage.
+  const mdState = new Map<string, MarkdownAccumulator>();
+  let primaryUsage: string | null = null;
 
   for await (const event of readPplxSseEvents(eventStream, signal)) {
     if (event.error_code || event.error_message) {
@@ -452,31 +502,52 @@ async function* extractContent(
         }
       }
 
-      // Content: markdown blocks
-      if (!usage.includes("markdown")) continue;
-      const mb = block.markdown_block;
-      if (!mb) continue;
-      const chunks = mb.chunks ?? [];
-      if (chunks.length === 0) continue;
+      // Content: answer-text blocks (schematized diff frames OR materialized
+      // markdown_block on the final COMPLETED frame).
+      if (!isAnswerTextUsage(usage)) continue;
+      let acc = mdState.get(usage);
+      if (!acc) {
+        acc = { chunks: [] };
+        mdState.set(usage, acc);
+      }
 
-      if (mb.progress === "DONE") {
-        fullAnswer = chunks.join("");
-      } else {
-        const chunkText = chunks.join("");
-        const cumulative = fullAnswer + chunkText;
-        if (cumulative.length > seenLen) {
-          const delta = cumulative.slice(seenLen);
-          fullAnswer = cumulative;
-          seenLen = cumulative.length;
-          yield { delta, answer: fullAnswer, backendUuid: backendUuid ?? undefined };
+      if (block.diff_block && Array.isArray(block.diff_block.patches)) {
+        applyMarkdownDiff(acc, block.diff_block.patches);
+      } else if (block.markdown_block) {
+        const mb = block.markdown_block;
+        if (Array.isArray(mb.chunks) && mb.chunks.length > 0) {
+          acc.chunks = mb.chunks.map((c) => String(c));
+        } else if (typeof mb.answer === "string" && mb.answer.length > 0) {
+          acc.chunks = [mb.answer];
         }
+      }
+
+      // Prefer the aggregate `ask_text` block; otherwise lock the first seen.
+      if (usage === "ask_text") {
+        primaryUsage = "ask_text";
+      } else if (!primaryUsage) {
+        primaryUsage = usage;
       }
     }
 
-    // Fallback: text field
-    if (blocks.length === 0 && event.text) {
+    // Emit at most one content delta per event, from the locked primary usage.
+    if (primaryUsage) {
+      const currentAnswer = (mdState.get(primaryUsage)?.chunks ?? []).join("");
+      if (currentAnswer.length > seenLen) {
+        const delta = currentAnswer.slice(seenLen);
+        fullAnswer = currentAnswer;
+        seenLen = currentAnswer.length;
+        yield { delta, answer: fullAnswer, backendUuid: backendUuid ?? undefined };
+      }
+    }
+
+    // Legacy fallback: a plain non-JSON `text` field with no structured blocks.
+    // The schematized API's `text` field is a JSON step-blob (not user-facing),
+    // so only use it when there are no answer-text blocks at all.
+    if (!primaryUsage && blocks.length === 0 && event.text) {
       const t = event.text.trim();
-      if (t.length > seenLen) {
+      const looksLikeJson = t.startsWith("{") || t.startsWith("[");
+      if (!looksLikeJson && t.length > seenLen) {
         const delta = t.slice(seenLen);
         fullAnswer = t;
         seenLen = t.length;
@@ -484,7 +555,10 @@ async function* extractContent(
       }
     }
 
-    if (event.final || event.status === "COMPLETED") break;
+    // Only stop on the terminal COMPLETED frame. A `final:true` flag can appear
+    // on a still-PENDING frame BEFORE the COMPLETED frame that materializes the
+    // full markdown_block — breaking on `final` there drops the answer.
+    if (event.status === "COMPLETED") break;
   }
 
   yield { delta: "", answer: fullAnswer, backendUuid: backendUuid ?? undefined, done: true };

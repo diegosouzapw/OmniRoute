@@ -242,9 +242,11 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
       <div className="flex flex-col gap-2 rounded-lg border border-border bg-surface p-4">
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-0.5">
-            <span className="text-sm font-medium text-text">Ativar camada</span>
+            <span className="text-sm font-medium text-text">Enable layer</span>
             <span className="text-xs text-text-muted">
-              {enabled ? "Esta camada está ativa no pipeline padrão." : "Esta camada está inativa."}
+              {enabled
+                ? "This layer is active in the default pipeline."
+                : "This layer is inactive."}
             </span>
           </div>
           <input
@@ -253,13 +255,12 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
             checked={enabled}
             onChange={handleToggle}
             className="h-4 w-4 accent-primary cursor-pointer"
-            aria-label="Ativar camada"
+            aria-label="Enable layer"
           />
         </div>
         {toggleError && <p className="text-xs text-destructive">{toggleError}</p>}
         <p className="text-xs text-text-muted" data-testid="stacked-mode-notice">
-          As camadas ativadas rodam quando a compressão está no modo &quot;stacked&quot;. Configure
-          em{" "}
+          Enabled layers run when compression is in &quot;stacked&quot; mode. Configure it in{" "}
           <a href="/dashboard/context/settings" className="underline hover:text-text">
             Compression Settings
           </a>
@@ -269,7 +270,7 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
 
       {/* ── Config form ── */}
       <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4">
-        <h2 className="text-sm font-semibold text-text">Configuração</h2>
+        <h2 className="text-sm font-semibold text-text">Configuration</h2>
         <EngineConfigForm
           schema={engine.configSchema}
           value={configState}
@@ -281,7 +282,7 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
             disabled={saving}
             className="px-4 py-1.5 rounded bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50"
           >
-            {saving ? "Salvando…" : "Salvar"}
+            {saving ? "Saving..." : "Save"}
           </button>
           {saveError && <p className="text-xs text-destructive">{saveError}</p>}
         </div>
@@ -302,20 +303,20 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
             disabled={previewLoading}
             className="px-4 py-1.5 rounded bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50"
           >
-            {previewLoading ? "Processando…" : "Preview"}
+            {previewLoading ? "Processing..." : "Preview"}
           </button>
         </div>
         {previewError && <p className="text-xs text-destructive">{previewError}</p>}
         {preview && (
           <div className="flex gap-4 text-sm pt-1">
             <span className="text-text-muted">
-              Tokens originais: <strong className="text-text">{preview.originalTokens}</strong>
+              Original tokens: <strong className="text-text">{preview.originalTokens}</strong>
             </span>
             <span className="text-text-muted">
-              Tokens comprimidos: <strong className="text-text">{preview.compressedTokens}</strong>
+              Compressed tokens: <strong className="text-text">{preview.compressedTokens}</strong>
             </span>
             <span className="text-text-muted">
-              Economia: <strong className="text-primary">{preview.savingsPct.toFixed(1)}%</strong>
+              Savings: <strong className="text-primary">{preview.savingsPct.toFixed(1)}%</strong>
             </span>
           </div>
         )}
@@ -323,17 +324,20 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
 
       {/* ── Analytics strip ── */}
       <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4">
-        <h2 className="text-sm font-semibold text-text">Últimos 7 dias</h2>
+        <h2 className="text-sm font-semibold text-text">Last 7 days</h2>
         {analytics && analytics.runs === 0 ? (
-          <p className="text-sm text-text-muted">Sem dados ainda / No data yet</p>
+          <p className="text-sm text-text-muted">No data yet</p>
         ) : analytics ? (
           <div className="grid grid-cols-3 gap-3">
-            <StatCard label="Execuções" value={analytics.runs.toLocaleString()} />
-            <StatCard label="Tokens economizados" value={analytics.tokensSaved.toLocaleString()} />
-            <StatCard label="Economia média" value={`${analytics.avgSavingsPercent.toFixed(1)}%`} />
+            <StatCard label="Runs" value={analytics.runs.toLocaleString()} />
+            <StatCard label="Tokens saved" value={analytics.tokensSaved.toLocaleString()} />
+            <StatCard
+              label="Average savings"
+              value={`${analytics.avgSavingsPercent.toFixed(1)}%`}
+            />
           </div>
         ) : (
-          <p className="text-sm text-text-muted">Sem dados ainda / No data yet</p>
+          <p className="text-sm text-text-muted">No data yet</p>
         )}
       </div>
     </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, Button, Badge, Toggle } from "@/shared/components";
 import { useLocale, useTranslations } from "next-intl";
+import DatabaseBackupRetentionCard from "./DatabaseBackupRetentionCard";
 
 const rowCountFormatter = new Intl.NumberFormat("en-US");
 
@@ -28,8 +29,12 @@ export default function SystemStorageTab() {
   const [clearCacheStatus, setClearCacheStatus] = useState({ type: "", message: "" });
   const [purgeLogsLoading, setPurgeLogsLoading] = useState(false);
   const [purgeLogsStatus, setPurgeLogsStatus] = useState({ type: "", message: "" });
+  const [manualVacuumLoading, setManualVacuumLoading] = useState(false);
+  const [manualVacuumStatus, setManualVacuumStatus] = useState({ type: "", message: "" });
   const [cleanupBackupsLoading, setCleanupBackupsLoading] = useState(false);
   const [cleanupBackupsStatus, setCleanupBackupsStatus] = useState({ type: "", message: "" });
+  const [saveBackupRetentionLoading, setSaveBackupRetentionLoading] = useState(false);
+  const [backupRetentionStatus, setBackupRetentionStatus] = useState({ type: "", message: "" });
   const [purgeQuotaSnapshotsLoading, setPurgeQuotaSnapshotsLoading] = useState(false);
   const [purgeQuotaSnapshotsStatus, setPurgeQuotaSnapshotsStatus] = useState({
     type: "",
@@ -154,6 +159,35 @@ export default function SystemStorageTab() {
     }
   };
 
+  const handleSaveBackupRetention = async () => {
+    setSaveBackupRetentionLoading(true);
+    setBackupRetentionStatus({ type: "", message: "" });
+    try {
+      const res = await fetch("/api/db-backups", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(backupCleanupOptions),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setBackupRetentionStatus({
+          type: "success",
+          message: "Backup retention saved.",
+        });
+        await loadStorageHealth();
+      } else {
+        setBackupRetentionStatus({
+          type: "error",
+          message: data.error || "Failed to save backup retention",
+        });
+      }
+    } catch {
+      setBackupRetentionStatus({ type: "error", message: t("errorOccurred") });
+    } finally {
+      setSaveBackupRetentionLoading(false);
+    }
+  };
+
   const handleCleanupBackups = async () => {
     setCleanupBackupsLoading(true);
     setCleanupBackupsStatus({ type: "", message: "" });
@@ -181,6 +215,81 @@ export default function SystemStorageTab() {
       setCleanupBackupsStatus({ type: "error", message: t("errorOccurred") });
     } finally {
       setCleanupBackupsLoading(false);
+    }
+  };
+
+  const handleClearCache = async () => {
+    setClearCacheLoading(true);
+    setClearCacheStatus({ type: "", message: "" });
+    try {
+      const res = await fetch("/api/cache", { method: "DELETE" });
+      const data = await res.json().catch(() => null);
+      if (res.ok) {
+        setClearCacheStatus({
+          type: "success",
+          message: t("cacheCleared") || "Cache cleared successfully",
+        });
+      } else {
+        setClearCacheStatus({
+          type: "error",
+          message: data?.error || t("clearCacheFailed") || "Failed to clear cache",
+        });
+      }
+    } catch {
+      setClearCacheStatus({ type: "error", message: t("errorOccurred") });
+    } finally {
+      setClearCacheLoading(false);
+    }
+  };
+
+  const handlePurgeExpiredLogs = async () => {
+    setPurgeLogsLoading(true);
+    setPurgeLogsStatus({ type: "", message: "" });
+    try {
+      const res = await fetch("/api/settings/purge-logs", { method: "POST" });
+      const data = await res.json().catch(() => null);
+      if (res.ok) {
+        const deleted = data?.deleted ?? 0;
+        setPurgeLogsStatus({
+          type: "success",
+          message: t("logsDeleted", { count: deleted }) || `Purged ${deleted} expired log(s)`,
+        });
+      } else {
+        setPurgeLogsStatus({
+          type: "error",
+          message: data?.error || t("purgeLogsFailed") || "Failed to purge logs",
+        });
+      }
+    } catch {
+      setPurgeLogsStatus({ type: "error", message: t("errorOccurred") });
+    } finally {
+      setPurgeLogsLoading(false);
+    }
+  };
+
+  const handleManualVacuum = async () => {
+    setManualVacuumLoading(true);
+    setManualVacuumStatus({ type: "", message: "" });
+    try {
+      const res = await fetch("/api/settings/database/vacuum", { method: "POST" });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.success !== false) {
+        setManualVacuumStatus({
+          type: "success",
+          message: data?.message || "VACUUM completed",
+        });
+        await loadDatabaseSettings();
+        await loadStorageHealth();
+      } else {
+        setManualVacuumStatus({
+          type: "error",
+          message: data?.error || "VACUUM failed",
+        });
+      }
+    } catch {
+      setManualVacuumStatus({ type: "error", message: t("errorOccurred") });
+    } finally {
+      setManualVacuumLoading(false);
     }
   };
 
@@ -547,98 +656,6 @@ export default function SystemStorageTab() {
         </div>
       </div>
 
-      {/* Logs Settings Section */}
-      <div className="p-3 rounded-lg bg-bg border border-border mb-4">
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div>
-            <p className="text-sm font-medium text-text-main">{t("logsSettingsTitle")}</p>
-            <p className="text-xs text-text-muted">
-              Configure detailed logging and call log pipeline settings
-            </p>
-          </div>
-        </div>
-        <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div className="flex items-center justify-between">
-            <label className="text-sm">
-              <span className="font-medium">{t("detailedLogsLabel")}</span>
-              <p className="text-xs text-text-muted">{t("detailedLogsDesc")}</p>
-            </label>
-          </div>
-          <div className="flex items-center justify-between">
-            <label className="text-sm">
-              <span className="font-medium">{t("callLogPipelineLabel")}</span>
-              <p className="text-xs text-text-muted">{t("callLogPipelineDesc")}</p>
-            </label>
-          </div>
-          <div className="flex items-center justify-between">
-            <label className="text-sm">
-              <span className="font-medium">{t("maxDetailSizeLabel")}</span>
-              <p className="text-xs text-text-muted">{t("maxDetailSizeDesc")}</p>
-            </label>
-          </div>
-          <div className="flex items-center justify-between">
-            <label className="text-sm">
-              <span className="font-medium">{t("ringBufferSizeLabel")}</span>
-              <p className="text-xs text-text-muted">{t("ringBufferSizeDesc")}</p>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      {/* Cache Settings Section */}
-      <div className="p-3 rounded-lg bg-bg border border-border mb-4">
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div>
-            <p className="text-sm font-medium text-text-main">{t("cacheSettings")}</p>
-            <p className="text-xs text-text-muted">
-              Configure semantic and prompt caching behavior
-            </p>
-          </div>
-        </div>
-        <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div className="flex items-center justify-between">
-            <label className="text-sm">
-              <span className="font-medium">{t("semanticCacheEnabledLabel")}</span>
-              <p className="text-xs text-text-muted">
-                Enable semantic caching for similar requests
-              </p>
-            </label>
-          </div>
-          <div className="flex items-center justify-between">
-            <label className="text-sm">
-              <span className="font-medium">{t("semanticCacheMaxSizeLabel")}</span>
-              <p className="text-xs text-text-muted">{t("semanticCacheMaxSizeDesc")}</p>
-            </label>
-          </div>
-          <div className="flex items-center justify-between">
-            <label className="text-sm">
-              <span className="font-medium">{t("semanticCacheTTLLabel")}</span>
-              <p className="text-xs text-text-muted">
-                Time-to-live for semantic cache entries (ms)
-              </p>
-            </label>
-          </div>
-          <div className="flex items-center justify-between">
-            <label className="text-sm">
-              <span className="font-medium">{t("promptCacheEnabledLabel")}</span>
-              <p className="text-xs text-text-muted">{t("promptCacheEnabledDesc")}</p>
-            </label>
-          </div>
-          <div className="flex items-center justify-between">
-            <label className="text-sm">
-              <span className="font-medium">{t("promptCacheStrategyLabel")}</span>
-              <p className="text-xs text-text-muted">{t("promptCacheStrategyDesc")}</p>
-            </label>
-          </div>
-          <div className="flex items-center justify-between">
-            <label className="text-sm">
-              <span className="font-medium">{t("alwaysPreserveClientCacheLabel")}</span>
-              <p className="text-xs text-text-muted">{t("alwaysPreserveClientCacheDesc")}</p>
-            </label>
-          </div>
-        </div>
-      </div>
-
       <div className="p-3 rounded-lg bg-bg border border-border mb-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
@@ -663,96 +680,19 @@ export default function SystemStorageTab() {
         </div>
       </div>
 
-      <div className="p-3 rounded-lg bg-bg border border-border mb-4">
-        <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
-          <div>
-            <p className="text-sm font-medium text-text-main">
-              {t("storageDatabaseBackupRetention")}
-            </p>
-            <p className="text-xs text-text-muted">
-              Automatic SQLite backups are stored in <code>db_backups</code>. Configure how many
-              snapshots to keep and optionally delete backups older than N days.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="default" size="sm">
-              {storageHealth.backupCount || 0} backups
-            </Badge>
-            <Badge variant="default" size="sm">
-              Max {storageHealth.backupRetention.maxFiles}
-            </Badge>
-            <Badge variant="default" size="sm">
-              {storageHealth.backupRetention.days > 0
-                ? `${storageHealth.backupRetention.days}d retention`
-                : "Age retention off"}
-            </Badge>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-end gap-3">
-          <label className="flex flex-col gap-1 text-xs text-text-muted">
-            Keep latest backups
-            <input
-              type="number"
-              min={1}
-              max={200}
-              value={backupCleanupOptions.keepLatest}
-              onChange={(e) => {
-                const parsed = Number.parseInt(e.target.value || "1", 10);
-                setBackupCleanupOptions((prev) => ({
-                  ...prev,
-                  keepLatest: Number.isFinite(parsed) ? Math.max(1, parsed) : 1,
-                }));
-              }}
-              className="h-9 w-32 rounded-lg border border-border bg-background px-3 text-sm text-text-main"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-xs text-text-muted">
-            Delete older than days
-            <input
-              type="number"
-              min={0}
-              max={3650}
-              value={backupCleanupOptions.retentionDays}
-              onChange={(e) => {
-                const parsed = Number.parseInt(e.target.value || "0", 10);
-                setBackupCleanupOptions((prev) => ({
-                  ...prev,
-                  retentionDays: Number.isFinite(parsed) ? Math.max(0, parsed) : 0,
-                }));
-              }}
-              className="h-9 w-32 rounded-lg border border-border bg-background px-3 text-sm text-text-main"
-            />
-          </label>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleCleanupBackups}
-            loading={cleanupBackupsLoading}
-          >
-            <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
-              auto_delete
-            </span>
-            Clean old backups
-          </Button>
-        </div>
-        {cleanupBackupsStatus.message && (
-          <div
-            className={`mt-3 p-3 rounded-lg text-sm ${
-              cleanupBackupsStatus.type === "success"
-                ? "bg-green-500/10 text-green-500 border border-green-500/20"
-                : "bg-red-500/10 text-red-500 border border-red-500/20"
-            }`}
-            role="alert"
-          >
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
-                {cleanupBackupsStatus.type === "success" ? "check_circle" : "error"}
-              </span>
-              {cleanupBackupsStatus.message}
-            </div>
-          </div>
-        )}
-      </div>
+      <DatabaseBackupRetentionCard
+        title={t("storageDatabaseBackupRetention")}
+        storageHealth={storageHealth}
+        backupCleanupOptions={backupCleanupOptions}
+        setBackupCleanupOptions={setBackupCleanupOptions}
+        saveBackupRetentionLoading={saveBackupRetentionLoading}
+        backupRetentionStatus={backupRetentionStatus}
+        setBackupRetentionStatus={setBackupRetentionStatus}
+        cleanupBackupsLoading={cleanupBackupsLoading}
+        cleanupBackupsStatus={cleanupBackupsStatus}
+        onSaveRetention={handleSaveBackupRetention}
+        onCleanupBackups={handleCleanupBackups}
+      />
 
       {/* Export / Import */}
       <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -933,111 +873,62 @@ export default function SystemStorageTab() {
           </span>
           <p className="font-medium">{t("maintenance") || "Maintenance"}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 mb-3">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             loading={clearCacheLoading}
-            onClick={async () => {
-              setClearCacheLoading(true);
-              setClearCacheStatus({ type: "", message: "" });
-              try {
-                const res = await fetch("/api/cache", { method: "DELETE" });
-                const data = await res.json();
-                if (res.ok) {
-                  setClearCacheStatus({
-                    type: "success",
-                    message: t("cacheCleared") || "Cache cleared successfully",
-                  });
-                } else {
-                  setClearCacheStatus({
-                    type: "error",
-                    message: data.error || t("clearCacheFailed") || "Failed to clear cache",
-                  });
-                }
-              } catch {
-                setClearCacheStatus({ type: "error", message: t("errorOccurred") });
-              } finally {
-                setClearCacheLoading(false);
-              }
-            }}
+            onClick={handleClearCache}
           >
             <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
               delete_sweep
             </span>
             {t("clearCache") || "Clear Cache"}
           </Button>
-          {clearCacheStatus.message && (
-            <div
-              className={`p-3 rounded-lg text-sm ${
-                clearCacheStatus.type === "success"
-                  ? "bg-green-500/10 text-green-500 border border-green-500/20"
-                  : "bg-red-500/10 text-red-500 border border-red-500/20"
-              }`}
-              role="alert"
-            >
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
-                  {clearCacheStatus.type === "success" ? "check_circle" : "error"}
-                </span>
-                {clearCacheStatus.message}
-              </div>
-            </div>
-          )}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             loading={purgeLogsLoading}
-            onClick={async () => {
-              setPurgeLogsLoading(true);
-              setPurgeLogsStatus({ type: "", message: "" });
-              try {
-                const res = await fetch("/api/settings/purge-logs", { method: "POST" });
-                const data = await res.json();
-                if (res.ok) {
-                  setPurgeLogsStatus({
-                    type: "success",
-                    message:
-                      t("logsDeleted", { count: data.deleted }) ||
-                      `Purged ${data.deleted} expired log(s)`,
-                  });
-                } else {
-                  setPurgeLogsStatus({
-                    type: "error",
-                    message: data.error || t("purgeLogsFailed") || "Failed to purge logs",
-                  });
-                }
-              } catch {
-                setPurgeLogsStatus({ type: "error", message: t("errorOccurred") });
-              } finally {
-                setPurgeLogsLoading(false);
-              }
-            }}
+            onClick={handlePurgeExpiredLogs}
           >
             <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
               auto_delete
             </span>
             {t("purgeExpiredLogs") || "Purge Expired Logs"}
           </Button>
-          {purgeLogsStatus.message && (
-            <div
-              className={`p-3 rounded-lg text-sm ${
-                purgeLogsStatus.type === "success"
-                  ? "bg-green-500/10 text-green-500 border border-green-500/20"
-                  : "bg-red-500/10 text-red-500 border border-red-500/20"
-              }`}
-              role="alert"
-            >
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
-                  {purgeLogsStatus.type === "success" ? "check_circle" : "error"}
-                </span>
-                {purgeLogsStatus.message}
+          <Button
+            variant="outline"
+            size="sm"
+            loading={manualVacuumLoading}
+            onClick={handleManualVacuum}
+          >
+            <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+              cleaning_services
+            </span>
+            Manual VACUUM
+          </Button>
+        </div>
+        <div className="mt-3 flex flex-col gap-2">
+          {[clearCacheStatus, purgeLogsStatus, manualVacuumStatus]
+            .filter((status) => status.message)
+            .map((status, index) => (
+              <div
+                key={`${status.type}-${index}`}
+                className={`p-3 rounded-lg text-sm ${
+                  status.type === "success"
+                    ? "bg-green-500/10 text-green-500 border border-green-500/20"
+                    : "bg-red-500/10 text-red-500 border border-red-500/20"
+                }`}
+                role="alert"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                    {status.type === "success" ? "check_circle" : "error"}
+                  </span>
+                  {status.message}
+                </div>
               </div>
-            </div>
-          )}
+            ))}
         </div>
       </div>
 

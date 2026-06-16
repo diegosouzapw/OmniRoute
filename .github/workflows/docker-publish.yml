@@ -44,6 +44,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || '' }}
           # Need full tag history for semver comparison when deciding :latest.
           fetch-depth: 0
@@ -144,6 +145,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || '' }}
           fetch-depth: 0
 
@@ -243,6 +245,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || '' }}
           fetch-depth: 0
 
@@ -339,7 +342,9 @@ jobs:
           output-file: sbom-image.cdx.json
           artifact-name: sbom-image.cdx.json
 
-      - name: Trivy image scan (advisory)
+      # Visibility scan: reports HIGH + CRITICAL into the SARIF (Security tab) but
+      # never blocks (exit-code 0). The blocking gate below narrows to CRITICAL.
+      - name: Trivy image scan (SARIF, advisory)
         if: needs.prepare.outputs.version != 'main'
         continue-on-error: true
         uses: aquasecurity/trivy-action@v0.36.0
@@ -349,6 +354,25 @@ jobs:
           output: trivy-results.sarif
           severity: HIGH,CRITICAL
           exit-code: "0"
+
+      # BLOCKING gate (v3.8.27 cycle-end): fail the release on a CRITICAL CVE in the
+      # published image. Narrowed to severity CRITICAL (HIGH stays visible in the
+      # SARIF step above, not blocking). ignore-unfixed:true so an unfixable base-image
+      # CVE with no upstream patch does not red the release (reduces false-blocks);
+      # a fixable CRITICAL still blocks. Per docs/security/SUPPLY_CHAIN.md. NB: Trivy
+      # scans against a CVE DB that grows continuously — a newly-disclosed CRITICAL on
+      # an unchanged base image can red this gate; the fix is to rebuild on a patched
+      # base, bump the dep, or add a justified .trivyignore entry (see the CVE-variance
+      # note in docs/security/SUPPLY_CHAIN.md).
+      - name: Trivy CRITICAL gate (blocking)
+        if: needs.prepare.outputs.version != 'main'
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.GHCR_IMAGE_NAME }}:${{ env.VERSION }}
+          format: table
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
 
       - name: Upload Trivy SARIF to Security tab
         if: needs.prepare.outputs.version != 'main'

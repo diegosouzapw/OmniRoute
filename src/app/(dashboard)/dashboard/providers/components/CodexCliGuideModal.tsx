@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import ReactMarkdown, { type Components } from "react-markdown";
 import { Modal, Button } from "@/shared/components";
 
@@ -118,9 +119,13 @@ interface CodexCliGuideModalProps {
 }
 
 export default function CodexCliGuideModal({ isOpen, onClose }: CodexCliGuideModalProps) {
+  const t = useTranslations("providers");
+  const tc = useTranslations("common");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const text = (key: string, fallback: string) =>
+    typeof t.has === "function" && t.has(key as never) ? t(key as never) : fallback;
 
   useEffect(() => {
     if (!isOpen || content) return;
@@ -148,14 +153,16 @@ export default function CodexCliGuideModal({ isOpen, onClose }: CodexCliGuideMod
   }, [isOpen, content]);
 
   return (
-    <Modal isOpen={isOpen} title="Codex CLI — Guia de Configuração" onClose={onClose}>
+    <Modal isOpen={isOpen} title={text("codexCliGuideTitle", "Codex CLI Guide")} onClose={onClose}>
       <div className="max-h-[70vh] overflow-y-auto pr-1">
         {loading && (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
             <span className="material-symbols-outlined animate-spin text-[28px] text-text-muted/50">
               sync
             </span>
-            <p className="text-sm text-text-muted">Carregando guia…</p>
+            <p className="text-sm text-text-muted">
+              {text("codexCliGuideLoading", "Loading guide...")}
+            </p>
           </div>
         )}
         {error && (
@@ -163,7 +170,9 @@ export default function CodexCliGuideModal({ isOpen, onClose }: CodexCliGuideMod
             <span className="material-symbols-outlined text-[40px] text-red-500/50">
               error_outline
             </span>
-            <p className="text-sm">Não foi possível carregar o guia.</p>
+            <p className="text-sm">
+              {text("codexCliGuideLoadFailed", "Could not load the guide.")}
+            </p>
             <Button
               variant="secondary"
               size="sm"
@@ -172,7 +181,7 @@ export default function CodexCliGuideModal({ isOpen, onClose }: CodexCliGuideMod
                 setError(false);
               }}
             >
-              Tentar novamente
+              {tc("retry")}
             </Button>
           </div>
         )}

@@ -33,6 +33,8 @@ jobs:
         node: ["22", "24"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
@@ -48,6 +50,8 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: "22"

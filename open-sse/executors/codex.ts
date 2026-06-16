@@ -28,6 +28,7 @@ import { getAccessToken } from "../services/tokenRefresh.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
+import * as prl from "../utils/providerRequestLogging.ts";
 import { createRequire } from "module";
 
 // ─── wreq-js lazy loader ───────────────────────────────────────────────────
@@ -1000,6 +1001,7 @@ export class CodexExecutor extends BaseExecutor {
             finishStream({ reason: "upstream_closed", closeSocket: false });
           };
           if (!closed) {
+            await prl.captureCurrentProviderBody(url, headers, bodyString, nextInput.log);
             ws.send(bodyString);
           }
         } catch (error) {

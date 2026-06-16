@@ -85,7 +85,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "batch",
   "batch-files",
   // Configuration
-  "settings",
   "settings-general",
   "settings-appearance",
   "settings-ai",
@@ -756,13 +755,6 @@ const BATCH_GROUP: SidebarItemGroup = {
 
 const CONFIGURATION_ITEMS: readonly SidebarItemDefinition[] = [
   {
-    id: "settings",
-    href: "/dashboard/settings",
-    i18nKey: "settings",
-    subtitleKey: "settingsSubtitle",
-    icon: "settings",
-  },
-  {
     id: "settings-general",
     href: "/dashboard/settings/general",
     i18nKey: "settingsGeneral",
@@ -955,7 +947,7 @@ const MINIMAL_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
   "costs",
   "logs",
   "health",
-  "settings",
+  "settings-general",
   "settings-sidebar",
   "docs",
   "changelog",
@@ -988,7 +980,7 @@ const DEVELOPER_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
   "skills",
   "mcp",
   "a2a",
-  "settings",
+  "settings-general",
   "settings-routing",
   "settings-resilience",
   "settings-sidebar",
@@ -1019,7 +1011,6 @@ const ADMIN_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
   "audit",
   "audit-mcp",
   "audit-a2a",
-  "settings",
   "settings-general",
   "settings-routing",
   "settings-resilience",

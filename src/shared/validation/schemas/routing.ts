@@ -38,6 +38,12 @@ export const updateModelAliasSchema = z.object({
   alias: z.string().trim().min(1, "Alias is required").max(200),
 });
 
+export const intelligenceSyncRequestSchema = z
+  .object({
+    dryRun: z.boolean().optional(),
+  })
+  .strict();
+
 export const taskRoutingModelMapSchema = z
   .object({
     coding: z.string().max(200).optional(),

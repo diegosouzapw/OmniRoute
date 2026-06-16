@@ -121,6 +121,52 @@ test("updatePendingRequest keeps pending detail API view in sync", () => {
   });
 });
 
+test("updatePendingRequestById updates and finalizes the exact overlapping request", () => {
+  usageHistory.clearPendingRequests();
+  const firstId = usageHistory.trackPendingRequest("claude-sonnet-4-6", "cc-test", "conn-1", true, {
+    providerRequest: { request: "first", reasoning_effort: "xhigh" },
+  });
+  const secondId = usageHistory.trackPendingRequest(
+    "claude-sonnet-4-6",
+    "cc-test",
+    "conn-1",
+    true,
+    {
+      providerRequest: { request: "second", reasoning_effort: "xhigh" },
+    }
+  );
+  assert.ok(firstId);
+  assert.ok(secondId);
+
+  const updated = usageHistory.updatePendingRequestById(firstId, {
+    providerRequest: { request: "first", reasoning_effort: "high" },
+    stage: "sending_to_provider",
+  });
+  assert.equal(updated, true);
+
+  const modelKey = "claude-sonnet-4-6 (cc-test)";
+  const details = usageHistory.getPendingRequests().details["conn-1"]?.[modelKey];
+  assert.equal(details?.length, 2);
+  assert.deepEqual(details?.[0]?.providerRequest, {
+    request: "first",
+    reasoning_effort: "high",
+  });
+  assert.deepEqual(details?.[1]?.providerRequest, {
+    request: "second",
+    reasoning_effort: "xhigh",
+  });
+
+  const completed = usageHistory.finalizePendingRequestById(firstId, {
+    clientResponse: { ok: true },
+  });
+  assert.equal(completed, true);
+  assert.deepEqual(usageHistory.getCompletedDetails().get(firstId)?.providerRequest, {
+    request: "first",
+    reasoning_effort: "high",
+  });
+  assert.equal(usageHistory.getPendingById().has(secondId), true);
+});
+
 test("updatePendingRequestStreamChunks stores empty streamChunks object (not null)", () => {
   usageHistory.clearPendingRequests();
   usageHistory.trackPendingRequest("gpt-4", "openai", "conn-1", true);

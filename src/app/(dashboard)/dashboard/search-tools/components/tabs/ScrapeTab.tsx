@@ -41,7 +41,8 @@ export default function ScrapeTab({ configState, onMetrics }: ScrapeTabProps) {
       url: url.trim(),
       format: configState.fetchFormat,
       full_page: configState.fullPage,
-      provider: configState.provider && configState.provider !== "auto" ? configState.provider : undefined,
+      provider:
+        configState.provider && configState.provider !== "auto" ? configState.provider : undefined,
     });
   };
 
@@ -97,17 +98,20 @@ export default function ScrapeTab({ configState, onMetrics }: ScrapeTabProps) {
         {/* Options summary */}
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-text-muted">
           <span>
-            Formato:{" "}
-            <span className="text-text-main font-medium">{configState.fetchFormat}</span>
+            Format: <span className="text-text-main font-medium">{configState.fetchFormat}</span>
           </span>
           <span>
             Full page:{" "}
-            <span className="text-text-main font-medium">{configState.fullPage ? "Sim" : "Não"}</span>
+            <span className="text-text-main font-medium">
+              {configState.fullPage ? "Yes" : "No"}
+            </span>
           </span>
           <span>
             Provider:{" "}
             <span className="text-text-main font-medium">
-              {configState.provider === "auto" || !configState.provider ? "auto" : configState.provider}
+              {configState.provider === "auto" || !configState.provider
+                ? "auto"
+                : configState.provider}
             </span>
           </span>
         </div>
@@ -125,10 +129,7 @@ export default function ScrapeTab({ configState, onMetrics }: ScrapeTabProps) {
 
       {/* Loading spinner */}
       {loading && (
-        <div
-          className="flex items-center justify-center py-12"
-          data-testid="scrape-loading"
-        >
+        <div className="flex items-center justify-center py-12" data-testid="scrape-loading">
           <span
             className="material-symbols-outlined text-[32px] text-primary animate-spin"
             aria-hidden="true"
@@ -139,9 +140,7 @@ export default function ScrapeTab({ configState, onMetrics }: ScrapeTabProps) {
       )}
 
       {/* Result */}
-      {result && !loading && (
-        <ScrapeResult result={result} latencyMs={latencyMs} />
-      )}
+      {result && !loading && <ScrapeResult result={result} latencyMs={latencyMs} />}
 
       {/* Empty state — no result yet */}
       {!result && !loading && !error && (
@@ -152,9 +151,7 @@ export default function ScrapeTab({ configState, onMetrics }: ScrapeTabProps) {
           <span className="text-3xl mb-3" aria-hidden="true">
             📄
           </span>
-          <p className="text-sm text-text-muted mb-1">
-            Digite uma URL para extrair o conteúdo
-          </p>
+          <p className="text-sm text-text-muted mb-1">Digite uma URL para extrair o conteúdo</p>
           <p className="text-xs text-text-muted">
             Providers disponíveis: Firecrawl, Jina Reader, Tavily.{" "}
             <Link href="/dashboard/providers" className="text-accent hover:underline">
