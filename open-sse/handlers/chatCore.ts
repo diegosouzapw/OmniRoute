@@ -445,24 +445,6 @@ function extractMemoryTextFromRequestBody(
   return "";
 }
 
-async function forwardDashboardEventToLiveWs(event: string, payload: unknown): Promise<void> {
-  const port = process.env.LIVE_WS_PORT || "20129";
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 1_500);
-  try {
-    await fetch(`http://127.0.0.1:${port}/__omniroute_event`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ event, payload, timestamp: Date.now() }),
-      signal: controller.signal,
-    });
-  } catch {
-    // Best-effort sidecar bridge; do not affect the chat hot path.
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
 async function maybeSyncClaudeExtraUsageState({
   provider,
   connectionId,
@@ -2388,10 +2370,6 @@ export async function handleChatCore({
   let cavemanOutputModeApplied = false;
   let cavemanOutputModeIntensity: string | null = null;
   let preCompressionBody: typeof body | null = null;
-  // Delegated Context Editing (Claude only): captured at the canonical compression
-  // settings read below, then threaded to executor.execute() further down. Lives at
-  // function scope because the read happens inside the per-message compression block.
-  let contextEditingEnabled = false;
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {
     let estimatedTokens = estimateTokens(allMessages);
     let promptCompressionEnabled = false;
@@ -2401,7 +2379,6 @@ export async function handleChatCore({
       const { getCompressionSettings } = await import("../../src/lib/db/compression.ts");
       compressionSettings = await getCompressionSettings();
       promptCompressionEnabled = compressionSettings.enabled;
-      contextEditingEnabled = compressionSettings.contextEditing?.enabled === true;
     } catch (err) {
       log?.warn?.(
         "COMPRESSION",
@@ -2677,7 +2654,7 @@ export async function handleChatCore({
           // Guard: only emit when compression actually ran and produced stats.
           if (result.compressed && result.stats) {
             try {
-              const compressionCompletedPayload = {
+              emit("compression.completed", {
                 requestId: traceId,
                 comboId: result.stats.compressionComboId ?? null,
                 mode,
@@ -2688,12 +2665,7 @@ export async function handleChatCore({
                 validationWarnings: result.stats.validationWarnings,
                 fallbackApplied: result.stats.fallbackApplied,
                 timestamp: Date.now(),
-              };
-              emit("compression.completed", compressionCompletedPayload);
-              void forwardDashboardEventToLiveWs(
-                "compression.completed",
-                compressionCompletedPayload
-              );
+              });
             } catch (_emitErr) {
               // never propagate into the hot path — but log like the sibling
               // fire-and-forget blocks so a throwing event bus isn't fully silent.
@@ -2710,7 +2682,7 @@ export async function handleChatCore({
             compressionAnalyticsRecorded = true;
             compressionAnalyticsWritePromise = (async () => {
               try {
-                const { insertCompressionAnalyticsRow, insertCompressionEngineBreakdown } =
+                const { insertCompressionAnalyticsRow } =
                   await import("../../src/lib/db/compressionAnalytics.ts");
                 const { calculateCost } = await import("../../src/lib/usage/costCalculator.ts");
                 const tokensSaved = Math.max(
@@ -2751,23 +2723,6 @@ export async function handleChatCore({
                     ? rtkPointers.reduce((total, pointer) => total + pointer.bytes, 0)
                     : null,
                 });
-                // Persist the per-engine breakdown of a stacked run so per-engine
-                // analytics (getPerEngineAnalytics) is accurate historically, not just
-                // in the live `compression.completed` event.
-                const engineBreakdown = result.stats.engineBreakdown ?? [];
-                if (engineBreakdown.length > 0) {
-                  insertCompressionEngineBreakdown(
-                    engineBreakdown.map((b) => ({
-                      timestamp: new Date().toISOString(),
-                      request_id: skillRequestId,
-                      engine: b.engine,
-                      original_tokens: b.originalTokens,
-                      compressed_tokens: b.compressedTokens,
-                      tokens_saved: Math.max(0, b.originalTokens - b.compressedTokens),
-                      duration_ms: b.durationMs ?? null,
-                    }))
-                  );
-                }
               } catch (err) {
                 log?.debug?.(
                   "COMPRESSION",
@@ -3926,7 +3881,6 @@ export async function handleChatCore({
                       ),
                       onCredentialsRefreshed,
                       skipUpstreamRetry,
-                      contextEditing: { enabled: contextEditingEnabled },
                     })
                   ),
               });
@@ -4472,7 +4426,6 @@ export async function handleChatCore({
             clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
             onCredentialsRefreshed,
             skipUpstreamRetry: isCombo,
-            contextEditing: { enabled: contextEditingEnabled },
           })
         );
 
