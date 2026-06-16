@@ -9,6 +9,8 @@
 // here are hardcoded (pt-BR), exactly like `EngineConfigPage`.
 
 import { useCallback, useEffect, useState } from "react";
+import type { EngineConfigField } from "@omniroute/open-sse/services/compression/engines/types";
+import { EngineConfigForm } from "@/shared/components/compression/EngineConfigForm";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -28,6 +30,7 @@ interface EngineEntry {
   stackable: boolean;
   stackPriority: number;
   metadata: { stable?: boolean; description?: string; [key: string]: unknown };
+  configSchema: EngineConfigField[];
 }
 
 interface PipelineStep {
@@ -53,6 +56,10 @@ const MODES: { value: CompressionMode; label: string; hint: string }[] = [
   { value: "rtk", label: "RTK", hint: "Filtros de tool output" },
   { value: "stacked", label: "Stacked", hint: "Roda as camadas abaixo em sequência" },
 ];
+
+// Engines with a rich bespoke page (analytics, language packs, filter catalog, live
+// preview): the gear links there. Every other engine is configured inline in the Hub.
+const BESPOKE_PAGE_ENGINES = new Set(["caveman", "rtk"]);
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -91,6 +98,19 @@ function Toggle({
   );
 }
 
+function EngineBadges({ engine }: { engine: EngineEntry | undefined }) {
+  if (!engine) return null;
+  return (
+    <>
+      {engine.metadata?.stable === false && (
+        <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-500">
+          experimental
+        </span>
+      )}
+    </>
+  );
+}
+
 // ── Main component ──────────────────────────────────────────────────────────────
 
 export default function CompressionHub() {
@@ -100,6 +120,12 @@ export default function CompressionHub() {
   const [loading, setLoading] = useState(true);
   const [explainerOpen, setExplainerOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Inline per-engine config (replaces the old per-engine menu pages for generic engines)
+  const [configEngineId, setConfigEngineId] = useState<string | null>(null);
+  const [draftConfig, setDraftConfig] = useState<Record<string, unknown>>({});
+  const [savingConfig, setSavingConfig] = useState(false);
+  const [configError, setConfigError] = useState<string | null>(null);
 
   // ── Initial load (parallel) ──────────────────────────────────────────────────
   useEffect(() => {
@@ -185,6 +211,7 @@ export default function CompressionHub() {
       let optimistic: PipelineStep[];
       if (enabledNow) {
         optimistic = combo.pipeline.filter((s) => s.engine !== engineId);
+        if (configEngineId === engineId) setConfigEngineId(null);
       } else {
         const priorityOf = (eid: string) =>
           engines.find((e) => e.id === eid)?.stackPriority ?? 50;
@@ -218,13 +245,10 @@ export default function CompressionHub() {
         setError("Falha ao atualizar a camada.");
       }
     },
-    [combo, engines]
+    [combo, engines, configEngineId]
   );
 
   // ── Reorder an active layer ───────────────────────────────────────────────────
-  // Persisted via the [id] route so the custom order survives (the `/default` route
-  // re-sorts by stackPriority). Only callable with ≥2 active steps, so the route's
-  // `pipeline.min(1)` guard is always satisfied.
   const moveStep = useCallback(
     async (index: number, direction: -1 | 1) => {
       if (!combo) return;
@@ -253,6 +277,50 @@ export default function CompressionHub() {
     [combo]
   );
 
+  // ── Inline config (open / save) ───────────────────────────────────────────────
+  const openInlineConfig = useCallback(
+    (engineId: string) => {
+      const engine = engines.find((e) => e.id === engineId);
+      const step = combo?.pipeline.find((s) => s.engine === engineId);
+      const defaults: Record<string, unknown> = {};
+      for (const f of engine?.configSchema ?? []) defaults[f.key] = f.defaultValue;
+      setDraftConfig({ ...defaults, ...(step?.config ?? {}) });
+      setConfigError(null);
+      setConfigEngineId(engineId);
+    },
+    [engines, combo]
+  );
+
+  const saveInlineConfig = useCallback(
+    async (engineId: string) => {
+      setSavingConfig(true);
+      setConfigError(null);
+      try {
+        const res = await fetch("/api/context/combos/default", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          // enabled:true — configuring implies the layer stays active (config only
+          // persists on an active pipeline step).
+          body: JSON.stringify({ engineId, enabled: true, config: draftConfig }),
+        });
+        if (!res.ok) {
+          setConfigError("Falha ao salvar a configuração.");
+          return;
+        }
+        const updated = await res.json();
+        if (combo && Array.isArray(updated?.pipeline)) {
+          setCombo({ ...combo, pipeline: updated.pipeline });
+        }
+        setConfigEngineId(null);
+      } catch {
+        setConfigError("Falha ao salvar a configuração.");
+      } finally {
+        setSavingConfig(false);
+      }
+    },
+    [draftConfig, combo]
+  );
+
   // ── Derived state ─────────────────────────────────────────────────────────────
   if (loading) {
     return (
@@ -269,6 +337,78 @@ export default function CompressionHub() {
   const activeSteps = combo?.pipeline ?? [];
   const inactiveEngines = engines.filter((e) => !enabledIds.has(e.id));
   const engineById = (id: string) => engines.find((e) => e.id === id);
+
+  // Gear control: bespoke engines link to their page; generic engines open inline config.
+  function GearControl({ engineId, active }: { engineId: string; active: boolean }) {
+    if (BESPOKE_PAGE_ENGINES.has(engineId)) {
+      return (
+        <a
+          href={enginePagePath(engineId)}
+          title="Abrir página de configuração"
+          className="shrink-0 rounded-lg border border-border px-2 py-1.5 text-text-muted hover:bg-surface hover:text-text-main"
+        >
+          <span className="material-symbols-outlined text-[18px]">settings</span>
+        </a>
+      );
+    }
+    if (!active) return null; // config only persists on an active layer
+    const open = configEngineId === engineId;
+    return (
+      <button
+        type="button"
+        title="Configurar camada"
+        aria-label="Configurar camada"
+        aria-expanded={open}
+        onClick={() => (open ? setConfigEngineId(null) : openInlineConfig(engineId))}
+        className={`shrink-0 rounded-lg border px-2 py-1.5 hover:bg-surface ${
+          open
+            ? "border-primary/60 text-primary"
+            : "border-border text-text-muted hover:text-text-main"
+        }`}
+      >
+        <span className="material-symbols-outlined text-[18px]">settings</span>
+      </button>
+    );
+  }
+
+  function InlineConfigPanel({ engineId }: { engineId: string }) {
+    if (configEngineId !== engineId) return null;
+    const engine = engineById(engineId);
+    const schema = engine?.configSchema ?? [];
+    return (
+      <div className="mt-3 flex flex-col gap-3 rounded-lg border border-primary/30 bg-surface p-3">
+        {schema.length === 0 ? (
+          <p className="text-xs text-text-muted">Esta camada não tem parâmetros configuráveis.</p>
+        ) : (
+          <EngineConfigForm schema={schema} value={draftConfig} onChange={setDraftConfig} />
+        )}
+        {configError && <p className="text-xs text-danger">{configError}</p>}
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => saveInlineConfig(engineId)}
+            disabled={savingConfig}
+            className="rounded-lg bg-primary px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+          >
+            {savingConfig ? "Salvando…" : "Salvar"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfigEngineId(null)}
+            className="rounded-lg border border-border px-3 py-1.5 text-sm text-text-main"
+          >
+            Cancelar
+          </button>
+          <a
+            href={enginePagePath(engineId)}
+            className="text-xs text-primary underline hover:text-text-main"
+          >
+            Pré-visualizar + analytics →
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <section className="flex flex-col gap-5 rounded-xl border border-primary/30 bg-surface p-5">
@@ -322,8 +462,9 @@ export default function CompressionHub() {
               (ex.: Session Dedup → RTK → Caveman).
             </li>
             <li>
-              <strong className="text-text-main">Configuração</strong>: cada camada tem liga/desliga e
-              parâmetros próprios (botão ⚙).
+              <strong className="text-text-main">Configuração</strong>: cada camada ativa tem o botão
+              ⚙ para liga/desliga e parâmetros, configuráveis aqui mesmo (Caveman e RTK abrem a
+              página completa).
             </li>
             <li>
               <strong className="text-text-main">Combos nomeados</strong>: salve diferentes pipelines
@@ -421,67 +562,64 @@ export default function CompressionHub() {
           <ul className="flex flex-col gap-2">
             {activeSteps.map((step, index) => {
               const engine = engineById(step.engine);
+              const experimental = engine?.metadata?.stable === false;
               return (
                 <li
                   key={step.engine}
-                  className="flex items-center gap-3 rounded-lg border border-border bg-bg p-3"
+                  className="flex flex-col rounded-lg border border-border bg-bg p-3"
                 >
-                  <div className="flex flex-col">
-                    <button
-                      type="button"
-                      onClick={() => moveStep(index, -1)}
-                      disabled={index === 0}
-                      aria-label="Mover para cima"
-                      className="text-text-muted hover:text-text-main disabled:opacity-30"
+                  <div className="flex items-center gap-3">
+                    <div className="flex flex-col">
+                      <button
+                        type="button"
+                        onClick={() => moveStep(index, -1)}
+                        disabled={index === 0}
+                        aria-label="Mover para cima"
+                        className="text-text-muted hover:text-text-main disabled:opacity-30"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">arrow_upward</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveStep(index, 1)}
+                        disabled={index === activeSteps.length - 1}
+                        aria-label="Mover para baixo"
+                        className="text-text-muted hover:text-text-main disabled:opacity-30"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">arrow_downward</span>
+                      </button>
+                    </div>
+                    <span className="w-5 text-center text-xs font-mono text-text-muted">
+                      {index + 1}
+                    </span>
+                    <span
+                      className="material-symbols-outlined text-[20px] text-primary"
+                      aria-hidden="true"
                     >
-                      <span className="material-symbols-outlined text-[18px]">arrow_upward</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => moveStep(index, 1)}
-                      disabled={index === activeSteps.length - 1}
-                      aria-label="Mover para baixo"
-                      className="text-text-muted hover:text-text-main disabled:opacity-30"
-                    >
-                      <span className="material-symbols-outlined text-[18px]">arrow_downward</span>
-                    </button>
-                  </div>
-                  <span className="w-5 text-center text-xs font-mono text-text-muted">
-                    {index + 1}
-                  </span>
-                  <span
-                    className="material-symbols-outlined text-[20px] text-primary"
-                    aria-hidden="true"
-                  >
-                    {engine?.icon ?? "compress"}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-medium text-text-main">
-                        {engine?.name ?? step.engine}
-                      </p>
-                      {engine && engine.metadata?.stable === false && (
-                        <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-500">
-                          beta
-                        </span>
+                      {engine?.icon ?? "compress"}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-medium text-text-main">
+                          {engine?.name ?? step.engine}
+                        </p>
+                        <EngineBadges engine={engine} />
+                      </div>
+                      <p className="truncate text-xs text-text-muted">{engine?.description ?? ""}</p>
+                      {experimental && (
+                        <p className="text-[11px] text-amber-500">
+                          Em desenvolvimento — pode não comprimir ainda.
+                        </p>
                       )}
                     </div>
-                    <p className="truncate text-xs text-text-muted">
-                      {engine?.description ?? ""}
-                    </p>
+                    <GearControl engineId={step.engine} active />
+                    <Toggle
+                      checked
+                      onChange={() => toggleEngine(step.engine)}
+                      ariaLabel={`Desligar ${engine?.name ?? step.engine}`}
+                    />
                   </div>
-                  <a
-                    href={enginePagePath(step.engine)}
-                    title="Configurar camada"
-                    className="shrink-0 rounded-lg border border-border px-2 py-1.5 text-text-muted hover:bg-surface hover:text-text-main"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">settings</span>
-                  </a>
-                  <Toggle
-                    checked
-                    onChange={() => toggleEngine(step.engine)}
-                    ariaLabel={`Desligar ${engine?.name ?? step.engine}`}
-                  />
+                  <InlineConfigPanel engineId={step.engine} />
                 </li>
               );
             })}
@@ -494,45 +632,43 @@ export default function CompressionHub() {
         <div className="flex flex-col gap-2">
           <h2 className="text-sm font-semibold text-text-main">Camadas disponíveis</h2>
           <ul className="flex flex-col gap-2">
-            {inactiveEngines.map((engine) => (
-              <li
-                key={engine.id}
-                className="flex items-center gap-3 rounded-lg border border-border bg-bg p-3 opacity-90"
-              >
-                <span
-                  className="material-symbols-outlined text-[20px] text-text-muted"
-                  aria-hidden="true"
+            {inactiveEngines.map((engine) => {
+              const experimental = engine.metadata?.stable === false;
+              return (
+                <li
+                  key={engine.id}
+                  className="flex items-center gap-3 rounded-lg border border-border bg-bg p-3 opacity-90"
                 >
-                  {engine.icon}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate text-sm font-medium text-text-main">{engine.name}</p>
-                    {engine.metadata?.stable === false && (
-                      <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-500">
-                        beta
+                  <span
+                    className="material-symbols-outlined text-[20px] text-text-muted"
+                    aria-hidden="true"
+                  >
+                    {engine.icon}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-sm font-medium text-text-main">{engine.name}</p>
+                      <EngineBadges engine={engine} />
+                      <span className="rounded bg-border/50 px-1.5 py-0.5 text-[10px] text-text-muted">
+                        prio {engine.stackPriority}
                       </span>
+                    </div>
+                    <p className="truncate text-xs text-text-muted">{engine.description}</p>
+                    {experimental && (
+                      <p className="text-[11px] text-amber-500">
+                        Em desenvolvimento — pode não comprimir ainda.
+                      </p>
                     )}
-                    <span className="rounded bg-border/50 px-1.5 py-0.5 text-[10px] text-text-muted">
-                      prio {engine.stackPriority}
-                    </span>
                   </div>
-                  <p className="truncate text-xs text-text-muted">{engine.description}</p>
-                </div>
-                <a
-                  href={enginePagePath(engine.id)}
-                  title="Configurar camada"
-                  className="shrink-0 rounded-lg border border-border px-2 py-1.5 text-text-muted hover:bg-surface hover:text-text-main"
-                >
-                  <span className="material-symbols-outlined text-[18px]">settings</span>
-                </a>
-                <Toggle
-                  checked={false}
-                  onChange={() => toggleEngine(engine.id)}
-                  ariaLabel={`Ligar ${engine.name}`}
-                />
-              </li>
-            ))}
+                  <GearControl engineId={engine.id} active={false} />
+                  <Toggle
+                    checked={false}
+                    onChange={() => toggleEngine(engine.id)}
+                    ariaLabel={`Ligar ${engine.name}`}
+                  />
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}

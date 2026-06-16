@@ -151,6 +151,117 @@ describe("CompressionHub", () => {
   });
 });
 
+describe("CompressionHub inline config", () => {
+  function setupInlineMock(putSpy?: (body: unknown) => void) {
+    const json = (body: unknown, status = 200) =>
+      new Response(JSON.stringify(body), {
+        status,
+        headers: { "Content-Type": "application/json" },
+      });
+    const engines = {
+      engines: [
+        {
+          id: "session-dedup",
+          name: "Session Dedup",
+          description: "Cross-turn dedup",
+          icon: "content_copy",
+          stackable: true,
+          stackPriority: 3,
+          metadata: { stable: true },
+          configSchema: [
+            { key: "minRows", type: "number", label: "Min rows", defaultValue: 3, min: 1, max: 99 },
+          ],
+        },
+        {
+          id: "llmlingua",
+          name: "LLMLingua-2",
+          description: "Semantic pruning",
+          icon: "psychology",
+          stackable: true,
+          stackPriority: 35,
+          metadata: { stable: false },
+          configSchema: [],
+        },
+      ],
+    };
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input.toString();
+        if (url.includes("/api/settings/compression"))
+          return json({ enabled: true, defaultMode: "stacked" });
+        if (url.includes("/api/compression/engines")) return json(engines);
+        if (url.includes("/api/context/combos/default")) {
+          if (init?.method === "PUT") {
+            putSpy?.(JSON.parse(String(init.body)));
+            return json({ id: "default-caveman", pipeline: [{ engine: "session-dedup" }] });
+          }
+          return json({
+            id: "default-caveman",
+            name: "Standard Savings",
+            pipeline: [{ engine: "session-dedup" }],
+          });
+        }
+        return json({}, 404);
+      }
+    );
+  }
+
+  it("expands an inline config form when the gear of an active generic engine is clicked", async () => {
+    const puts: unknown[] = [];
+    setupInlineMock((b) => puts.push(b));
+    const { default: CompressionHub } =
+      await import("../../../src/app/(dashboard)/dashboard/context/combos/CompressionHub");
+
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<CompressionHub />);
+    });
+    await flush();
+
+    // Form not shown until the gear is clicked
+    expect(container.textContent ?? "").not.toContain("Min rows");
+
+    const gear = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="Configurar camada"]'
+    );
+    expect(gear).toBeTruthy();
+    await act(async () => {
+      gear!.click();
+    });
+    await flush();
+
+    const text = container.textContent ?? "";
+    expect(text).toContain("Min rows"); // inline form field
+    expect(text).toContain("Salvar"); // save button
+
+    // Saving persists via PUT /default with enabled:true + config
+    const save = [...container.querySelectorAll("button")].find((b) => b.textContent === "Salvar");
+    await act(async () => {
+      save!.click();
+    });
+    await flush();
+    expect(puts.length).toBe(1);
+    expect((puts[0] as { engineId: string }).engineId).toBe("session-dedup");
+    expect((puts[0] as { enabled: boolean }).enabled).toBe(true);
+  });
+
+  it("flags experimental (stable:false) engines as in-development", async () => {
+    setupInlineMock();
+    const { default: CompressionHub } =
+      await import("../../../src/app/(dashboard)/dashboard/context/combos/CompressionHub");
+
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<CompressionHub />);
+    });
+    await flush();
+
+    const text = container.textContent ?? "";
+    expect(text).toContain("experimental");
+    expect(text).toContain("Em desenvolvimento");
+  });
+});
+
 describe("CompressionCombosPageClient", () => {
   it("renders the Hub on top and the named-combos manager below", async () => {
     setupFetchMock({ enabled: true, mode: "stacked", pipeline: [{ engine: "rtk" }] });

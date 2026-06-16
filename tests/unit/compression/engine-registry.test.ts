@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   aggressiveEngine,
   cavemanEngine,
+  liteEngine,
   ultraEngine,
 } from "../../../open-sse/services/compression/engines/cavemanAdapter.ts";
 import { rtkEngine as realRtkEngine } from "../../../open-sse/services/compression/engines/rtk/index.ts";
@@ -74,6 +75,15 @@ describe("compression engine registry contract", () => {
     assert.ok(rtkSchema.some((field) => field.key === "applyToCodeBlocks"));
     assert.ok(aggressiveSchema.some((field) => field.key === "maxTokensPerMessage"));
     assert.ok(ultraSchema.some((field) => field.key === "compressionRate"));
+
+    // Lite exposes its OWN minimal schema (preserveSystemPrompt), NOT the aggressive
+    // summarizer/threshold fields it previously leaked.
+    const liteSchema = liteEngine.getConfigSchema();
+    assert.ok(liteSchema.some((field) => field.key === "preserveSystemPrompt"));
+    assert.ok(!liteSchema.some((field) => field.key === "maxTokensPerMessage"));
+    assert.ok(!liteSchema.some((field) => field.key === "summarizerEnabled"));
+    assert.equal(liteEngine.validateConfig({ preserveSystemPrompt: true }).valid, true);
+    assert.equal(liteEngine.validateConfig({ preserveSystemPrompt: "yes" }).valid, false);
     assert.equal(cavemanEngine.validateConfig({ intensity: "full" }).valid, true);
     assert.equal(cavemanEngine.validateConfig({ intensity: "bad" }).valid, false);
     assert.equal(realRtkEngine.validateConfig({ maxLinesPerResult: 20 }).valid, true);
