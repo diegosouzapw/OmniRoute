@@ -25,6 +25,12 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci
+      - name: Restore Stryker incremental cache
+        uses: actions/cache@v4
+        with:
+          path: reports/mutation/stryker-incremental.json
+          key: stryker-incremental-${{ github.run_id }}
+          restore-keys: stryker-incremental-
       - name: Run Stryker (advisory)
         id: stryker
         continue-on-error: true
