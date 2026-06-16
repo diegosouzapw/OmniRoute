@@ -14,7 +14,8 @@
  */
 
 import { WebSocketServer, WebSocket } from "ws";
-import { createServer } from "http";
+import { jwtVerify } from "jose";
+import { createServer, type IncomingMessage, type ServerResponse } from "http";
 import { randomUUID } from "crypto";
 
 // ── Types ─────────────────────────────────────────────────────────────────
@@ -38,6 +39,8 @@ const HEARTBEAT_INTERVAL_MS = 15_000;
 const HEARTBEAT_TIMEOUT_MS = 35_000;
 const MAX_CLIENTS = 500;
 const MAX_EVENTS_PER_SECOND = 100;
+const MAX_PENDING_MESSAGES_PER_CLIENT = 32;
+const MAX_PENDING_MESSAGE_BYTES = 16_384;
 
 /**
  * Origins allowed to open a WebSocket. Defaults to the loopback dashboard
@@ -91,6 +94,20 @@ const BACKLOG_MAX = 500;
 
 // ── Auth ──────────────────────────────────────────────────────────────────
 
+function toWebHeaders(headers: import("http").IncomingMessage["headers"]): Headers {
+  const webHeaders = new Headers();
+
+  for (const [name, value] of Object.entries(headers)) {
+    if (typeof value === "string") {
+      webHeaders.set(name, value);
+    } else if (Array.isArray(value)) {
+      webHeaders.set(name, name.toLowerCase() === "cookie" ? value.join("; ") : value.join(", "));
+    }
+  }
+
+  return webHeaders;
+}
+
 async function authorizeConnection(request: import("http").IncomingMessage): Promise<WsAuthResult> {
   const sessionId = randomUUID().slice(0, 8);
 
@@ -99,16 +116,25 @@ async function authorizeConnection(request: import("http").IncomingMessage): Pro
   // headers — a single screenshot of the URL bar exposes the API key.
   const token = extractBearerToken(request) || extractAltTokenHeader(request);
 
+  // Browser WebSocket clients cannot set custom Authorization headers. When
+  // LiveWS is exposed same-origin through a reverse proxy, accept the existing
+  // dashboard session cookie before falling back to API-key authentication. Keep
+  // the check local to this sidecar so it does not import Next.js-only modules.
   if (!token) {
+    if (await isDashboardCookieAuthenticated(request)) {
+      return { authorized: true, sessionId };
+    }
     return { authorized: false, sessionId, error: "Missing token" };
   }
 
   try {
-    // Validate API key via the existing auth system
-    const { extractApiKey, isValidApiKey } = await import("../services/auth");
-    const apiKey = extractApiKey({ headers: { authorization: `Bearer ${token}` } } as any);
+    // Validate API key via the existing auth system.
+    const { extractApiKey, isValidApiKey } = await import("../../sse/services/auth.ts");
+    const apiKey = extractApiKey({ headers: { authorization: `Bearer ${token}` } } as any, {
+      allowUrl: false,
+    });
 
-    if (!apiKey || !isValidApiKey(apiKey)) {
+    if (!apiKey || !(await isValidApiKey(apiKey))) {
       return { authorized: false, sessionId, error: "Invalid API key" };
     }
 
@@ -122,6 +148,36 @@ function extractAltTokenHeader(request: import("http").IncomingMessage): string 
   const raw = request.headers["x-live-ws-token"];
   if (Array.isArray(raw)) return raw[0] || null;
   return typeof raw === "string" ? raw : null;
+}
+
+export function getCookieValueFromHeader(
+  headers: import("http").IncomingHttpHeaders,
+  name: string
+): string | null {
+  const raw = headers.cookie;
+  const cookieHeader = Array.isArray(raw) ? raw.join("; ") : raw;
+  if (!cookieHeader) return null;
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  // NOTE: \\s (not \s) — this is a plain template literal, so \s would collapse to a
+  // literal "s" and the pattern would only match auth_token when it is the FIRST cookie.
+  // Browsers serialize the Cookie header as "a=1; b=2", so the leading-cookie case
+  // (auth_token preceded by another cookie) must match too (#4004 same-origin proxy auth).
+  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${escaped}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+async function isDashboardCookieAuthenticated(
+  request: import("http").IncomingMessage
+): Promise<boolean> {
+  const token = getCookieValueFromHeader(request.headers, "auth_token");
+  if (!token || !process.env.JWT_SECRET) return false;
+  try {
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    await jwtVerify(token, secret);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function extractBearerToken(request: import("http").IncomingMessage): string | null {
@@ -202,35 +258,148 @@ function sendTo(ws: WebSocket, msg: WsServerMessage | Record<string, unknown>): 
 
 // ── Event Bus → WebSocket Bridge ──────────────────────────────────────────
 
+function publishDashboardEvent(
+  event: DashboardEventName,
+  payload: unknown,
+  timestamp = Date.now()
+): boolean {
+  const channel = getChannelForEvent(event);
+  if (!channel) return false;
+
+  // Store in backlog so clients that subscribe just after a run still receive it.
+  eventHistoryBacklog.push({ event, payload, timestamp });
+  if (eventHistoryBacklog.length > BACKLOG_MAX) {
+    eventHistoryBacklog.shift();
+  }
+
+  const msg: WsEventMessage = {
+    type: "event",
+    channel,
+    event,
+    data: payload,
+  };
+
+  for (const [clientId, client] of clients) {
+    if (client.ws.readyState !== WebSocket.OPEN) {
+      clients.delete(clientId);
+      continue;
+    }
+    if (client.subscribedChannels.has(channel)) {
+      sendTo(client.ws, msg);
+    }
+  }
+
+  return true;
+}
+
 function subscribeToEventBus(): () => void {
   return onAny((event: DashboardEventName, payload: unknown) => {
-    const channel = getChannelForEvent(event);
-    if (!channel) return;
+    publishDashboardEvent(event, payload);
+  });
+}
 
-    // Store in backlog
-    eventHistoryBacklog.push({ event, payload, timestamp: Date.now() });
-    if (eventHistoryBacklog.length > BACKLOG_MAX) {
-      eventHistoryBacklog.shift();
-    }
+function isLoopbackRequest(req: IncomingMessage): boolean {
+  const addr = req.socket.remoteAddress;
+  return addr === "127.0.0.1" || addr === "::1" || addr === "::ffff:127.0.0.1";
+}
 
-    // Forward to subscribed clients
-    const msg: WsEventMessage = {
-      type: "event",
-      channel,
-      event,
-      data: payload,
-    };
+function handleInternalEventRequest(req: IncomingMessage, res: ServerResponse): void {
+  if (req.method !== "POST" || req.url !== "/__omniroute_event") {
+    res.writeHead(404).end();
+    return;
+  }
+  if (!isLoopbackRequest(req)) {
+    res.writeHead(403, { "content-type": "application/json" }).end(JSON.stringify({ ok: false }));
+    return;
+  }
 
-    for (const [clientId, client] of clients) {
-      if (client.ws.readyState !== WebSocket.OPEN) {
-        clients.delete(clientId);
-        continue;
-      }
-      if (client.subscribedChannels.has(channel)) {
-        sendTo(client.ws, msg);
-      }
+  let body = "";
+  req.setEncoding("utf8");
+  req.on("data", (chunk) => {
+    body += chunk;
+    if (body.length > 1_000_000) {
+      req.destroy(new Error("Internal event payload too large"));
     }
   });
+  req.on("error", () => {
+    if (!res.headersSent) res.writeHead(400).end();
+  });
+  req.on("end", () => {
+    try {
+      const parsed = JSON.parse(body || "{}");
+      const event = parsed.event as DashboardEventName;
+      if (!Object.values(CHANNEL_EVENTS).some((events) => events.includes(event))) {
+        res
+          .writeHead(400, { "content-type": "application/json" })
+          .end(JSON.stringify({ ok: false }));
+        return;
+      }
+      const ok = publishDashboardEvent(
+        event,
+        parsed.payload,
+        Number(parsed.timestamp) || Date.now()
+      );
+      res
+        .writeHead(ok ? 202 : 400, { "content-type": "application/json" })
+        .end(JSON.stringify({ ok }));
+    } catch {
+      res.writeHead(400, { "content-type": "application/json" }).end(JSON.stringify({ ok: false }));
+    }
+  });
+}
+
+async function seedLatestCompressionRunFromDb(): Promise<void> {
+  try {
+    const { getLatestCompressionAnalyticsRun } = await import("@/lib/db/compressionAnalytics");
+    const row = getLatestCompressionAnalyticsRun();
+    if (!row) return;
+
+    const originalTokens = Number(row.original_tokens) || 0;
+    const compressedTokens = Number(row.compressed_tokens) || 0;
+    const savingsPercent =
+      originalTokens > 0
+        ? Math.round(((originalTokens - compressedTokens) / originalTokens) * 100)
+        : 0;
+    const timestamp = Number.isFinite(Date.parse(row.timestamp))
+      ? Date.parse(row.timestamp)
+      : Date.now();
+
+    publishDashboardEvent(
+      "compression.completed",
+      {
+        requestId: row.request_id || `analytics-${row.id}`,
+        comboId: row.compression_combo_id || row.combo_id || null,
+        mode: row.mode,
+        originalTokens,
+        compressedTokens,
+        savingsPercent,
+        engineBreakdown: [
+          {
+            engine: row.engine || row.mode || "compression",
+            originalTokens,
+            compressedTokens,
+            savingsPercent,
+            techniquesUsed: [],
+            rulesApplied: [],
+            durationMs: row.duration_ms ?? undefined,
+          },
+        ],
+        validationWarnings: [],
+        fallbackApplied: Boolean(row.validation_fallback),
+        timestamp,
+      },
+      timestamp
+    );
+    console.log(
+      "[LiveWS] Seeded latest compression run from analytics: %s",
+      row.request_id || row.id
+    );
+  } catch (err) {
+    console.warn(
+      "[LiveWS] Could not seed compression analytics backlog: %s",
+      err instanceof Error ? err.message : String(err)
+    );
+  }
 }
 
 // ── Heartbeat ─────────────────────────────────────────────────────────────
@@ -270,13 +439,39 @@ export async function startLiveDashboardServer(
   port = DEFAULT_PORT,
   host = DEFAULT_HOST
 ): Promise<import("http").Server> {
-  const server = createServer();
+  const server = createServer((req, res) => {
+    handleInternalEventRequest(req, res);
+  });
   const wss = new WebSocketServer({ server });
 
   // Subscribe to EventBus
   const unsubscribe = subscribeToEventBus();
+  await seedLatestCompressionRunFromDb();
 
   wss.on("connection", async (ws, request) => {
+    const pendingMessages: string[] = [];
+    let activeClientId: string | null = null;
+
+    // Clients can send the subscribe frame immediately after the WS open event,
+    // while dashboard cookie/API-key auth is still resolving. Queue those early
+    // messages so the first subscribe is not dropped.
+    ws.on("message", (data) => {
+      const raw = data.toString();
+      if (!activeClientId) {
+        if (
+          pendingMessages.length >= MAX_PENDING_MESSAGES_PER_CLIENT ||
+          raw.length > MAX_PENDING_MESSAGE_BYTES
+        ) {
+          sendTo(ws, { type: "error", code: "RATE_LIMITED", message: "Too many early messages" });
+          ws.close(4008, "Too many early messages");
+          return;
+        }
+        pendingMessages.push(raw);
+        return;
+      }
+      handleMessage(activeClientId, raw);
+    });
+
     // Origin check — browsers always send Origin on the WS upgrade; reject
     // unknown origins to stop drive-by cross-origin WebSocket from a victim
     // page. Non-browser clients (CLI / MCP) omit Origin and are accepted
@@ -305,6 +500,7 @@ export async function startLiveDashboardServer(
     }
 
     const clientId = auth.sessionId;
+    activeClientId = clientId;
     const client: ClientState = {
       ws,
       sessionId: clientId,
@@ -327,10 +523,10 @@ export async function startLiveDashboardServer(
       clients.size
     );
 
-    // Handle messages
-    ws.on("message", (data) => {
-      handleMessage(clientId, data.toString());
-    });
+    // Replay any subscribe/ping frames sent while auth was still pending.
+    for (const raw of pendingMessages.splice(0)) {
+      handleMessage(clientId, raw);
+    }
 
     // Handle close
     ws.on("close", () => {

@@ -440,3 +440,32 @@ export function getCompressionAnalyticsSummary(since?: string): CompressionAnaly
     },
   };
 }
+
+export interface LatestCompressionAnalyticsRun {
+  id: number;
+  timestamp: string;
+  combo_id: string | null;
+  compression_combo_id: string | null;
+  mode: string;
+  original_tokens: number;
+  compressed_tokens: number;
+  tokens_saved: number;
+  duration_ms: number | null;
+  request_id: string | null;
+  engine: string | null;
+  validation_fallback: number | null;
+}
+
+export function getLatestCompressionAnalyticsRun(): LatestCompressionAnalyticsRun | undefined {
+  const db = getDbInstance();
+  return db
+    .prepare(
+      `SELECT id, timestamp, combo_id, compression_combo_id, mode,
+              original_tokens, compressed_tokens, tokens_saved, duration_ms,
+              request_id, engine, validation_fallback
+         FROM compression_analytics
+        ORDER BY timestamp DESC, id DESC
+        LIMIT 1`
+    )
+    .get() as LatestCompressionAnalyticsRun | undefined;
+}
