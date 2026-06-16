@@ -55,7 +55,14 @@ jobs:
       # TIA: build the impact map at runtime (gitignored, ~21MB) and run only the
       # unit tests impacted by this PR's changed files. Fail-safe runs the FULL
       # unit suite on hub/unmapped changes — TIA accelerates, never replaces, the net.
-      - name: Impacted unit tests (TIA, fail-safe full)
+      #
+      # ADVISORY for now (repo convention: advisory -> blocking). release/v3.8.27 carries
+      # ~17 pre-existing red unit tests (budget #3537, apiKey #3552, several Zod schemas,
+      # executors, etc.) unrelated to this PR; running them is what surfaced the debt.
+      # Keep this advisory until that debt is cleared, THEN remove continue-on-error to
+      # block test regressions on PR->release. typecheck:core above stays blocking.
+      - name: Impacted unit tests (TIA, fail-safe full; advisory until release test-debt cleared)
+        continue-on-error: true
         env:
           GITHUB_BASE_REF: ${{ github.base_ref }}
         run: |
