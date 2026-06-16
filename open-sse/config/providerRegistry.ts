@@ -189,7 +189,8 @@ function ensureUnsupportedParamsPopulated(): void {
   if (_unsupportedParamsPopulated) return;
   _unsupportedParamsPopulated = true;
   for (const entry of Object.values(REGISTRY)) {
-    for (const model of entry.models) {
+    // Some entries (e.g. the `mimocode` proxy) legitimately have no model catalogue.
+    for (const model of entry.models ?? []) {
       if (model.unsupportedParams && !_unsupportedParamsMap.has(model.id)) {
         _unsupportedParamsMap.set(model.id, model.unsupportedParams);
       }
@@ -207,7 +208,7 @@ export function getUnsupportedParams(provider: string, modelId: string): readonl
   ensureUnsupportedParamsPopulated();
   // 1. Check current provider's registry (exact match)
   const entry = getRegistryEntry(provider);
-  const modelEntry = entry?.models.find((m) => m.id === modelId);
+  const modelEntry = entry?.models?.find((m) => m.id === modelId);
   if (modelEntry?.unsupportedParams) return modelEntry.unsupportedParams;
 
   // 2. O(1) lookup in precomputed map (handles cross-provider routing)
