@@ -244,6 +244,7 @@
     "react-reconciler": "^0.33.0",
     "recharts": "^3.8.1",
     "selfsigned": "^5.5.0",
+    "socks": "^2.8.7",
     "sql.js": "^1.14.1",
     "sqlite-vec": "^0.1.9",
     "tsx": "^4.22.3",
