@@ -3608,7 +3608,13 @@ export async function handleComboChat({
     );
     const selectedTarget =
       orderedTargets.find((target) => target.executionKey === selectedExecutionKey) || null;
-    const rest = orderedTargets.filter((target) => target.executionKey !== selectedExecutionKey);
+    // #3959: shuffle the fallback remainder too. Previously `rest` kept fixed
+    // priority order, so after a failing deck pick the chain always fell through
+    // to the same top-priority model — a persistently-failing model was retried
+    // on essentially every request and fallback load never spread across peers.
+    const rest = fisherYatesShuffle(
+      orderedTargets.filter((target) => target.executionKey !== selectedExecutionKey)
+    );
     orderedTargets = [selectedTarget, ...rest].filter(
       (target): target is ResolvedComboTarget => target !== null
     );

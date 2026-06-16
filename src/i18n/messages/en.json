@@ -1110,7 +1110,8 @@
     "dragReorderSection": "Drag to reorder section",
     "dragReorderItem": "Drag to reorder",
     "cannotHide": "This item cannot be hidden",
-    "alwaysVisible": "Always visible"
+    "alwaysVisible": "Always visible",
+    "groupSeparatorLabel": "Separator"
   },
   "webhooks": {
     "title": "Webhooks",
@@ -4586,6 +4587,7 @@
     "searchProvider": "Search Provider",
     "searchProviderDesc": "Search Provider Desc",
     "searchProviders": "Search Providers",
+    "searchByModel": "Search by model…",
     "searchProvidersHeading": "Search Providers Heading",
     "searxngBaseUrlHint": "Searxng Base Url Hint",
     "searxngInfo": "Searxng Info",

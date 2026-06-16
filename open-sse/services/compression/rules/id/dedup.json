@@ -1,0 +1,38 @@
+{
+  "language": "id",
+  "category": "dedup",
+  "rules": [
+    {
+      "name": "id_repeated_context",
+      "pattern": "\\b(?:seperti\\s+yang\\s+kita\\s+diskusikan\\s+tadi|seperti\\s+yang\\s+disebutkan\\s+taraf\\s+awal|seperti\\s+dijelaskan\\s+sebelumnya|seperti\\s+saya\\s+katakan\\s+tadi|sebelumnya\\s+sudah\\s+saya\\s+jelaskan|seperti\\s+yang\\s+saya\\s+sebutkan\\s+tadi|seperti\\s+yang\\s+sudah\\s+dibahas|seperti\\s+yang\\s+dibilang\\s+sebelumnya)\\b[,.]?\\s*",
+      "replacement": "Sama seperti di atas. ",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_repeated_question",
+      "pattern": "\\b(?:pertanyaan\\s+yang\\s+sama\\s+seperti\\s+sebelumnya|saya\\s+tanya\\s+ini\\s+tadi|ini\\s+pertanyaan\\s+yang\\s+sama)\\b[,.]?\\s*",
+      "replacement": "[pertanyaan sama] ",
+      "context": "user",
+      "category": "dedup",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_reestablished_context",
+      "pattern": "\\b(?:kembali\\s+ke\\s+kode\\s+di\\s+atas|merujuk\\s+kembali\\s+ke|kembali\\s+ke|kembali\\s+ke\\s+pembahasan|kembali\\s+ke\\s+topik|balik\\s+lagi\\s+ke|kembali\\s+membahas)\\b\\s*",
+      "replacement": "Re: ",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_summary_replacement",
+      "pattern": "\\b(?:untuk\\s+meringkas\\s+apa\\s+yang\\s+kita\\s+bahas|ringkasan\\s+dari\\s+diskusi\\s+kita|singkatnya|singkat\\s+cerita|kesimpulannya|intisarinya)\\b[,.]?\\s*",
+      "replacement": "Summary: ",
+      "context": "assistant",
+      "category": "dedup",
+      "minIntensity": "lite"
+    }
+  ]
+}
