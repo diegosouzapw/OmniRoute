@@ -109,6 +109,14 @@ describe("cloakThirdPartyToolNames", () => {
     assert.equal(needsThirdPartyCloak("mixture_of_agents"), true);
   });
 
+  it("needsThirdPartyCloak leaves mcp__ namespace untouched (#4861)", () => {
+    // Genuine Claude Code MCP names Anthropic accepts natively; cloaking them
+    // caused round-trip "Tool reference 'mcp__…' not found" 400s on claude OAuth.
+    assert.equal(needsThirdPartyCloak("mcp__filesystem__read_file"), false);
+    assert.equal(needsThirdPartyCloak("mcp__github__create_issue"), false);
+    assert.equal(needsThirdPartyCloak("mcp__server"), false);
+  });
+
   it("preserves the reserved name of a versioned Anthropic server tool", () => {
     const body: AnyRecord = {
       tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 5 }],

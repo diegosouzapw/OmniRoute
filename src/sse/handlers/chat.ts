@@ -1013,7 +1013,7 @@ async function handleSingleModelChat(
             );
       preselectedCredentials = null;
 
-      if (!credentials || "allRateLimited" in credentials) {
+      if (!credentials || "allRateLimited" in credentials || !credentials.connectionId) {
         if (credentials?.allRateLimited) {
           const retryDecision = getCooldownAwareRetryDecision({
             retryAfter: credentials.retryAfter,

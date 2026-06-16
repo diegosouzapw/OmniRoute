@@ -194,6 +194,12 @@ function toPascalCaseToolName(name: string): string {
 export function needsThirdPartyCloak(name: string): boolean {
   if (!name) return false;
   if (CLAUDE_BUILTIN_TOOL_NAMES.has(name)) return false;
+  // `mcp__<server>__<tool>` names are genuine Claude Code MCP tool names that
+  // Anthropic accepts natively. Cloaking them to PascalCase is unnecessary and,
+  // via round-trip asymmetry (a history tool_use keeping the original name while
+  // tools[] is cloaked), produces "Tool reference 'mcp__…' not found in available
+  // tools" 400s on the native claude OAuth path. Leave the MCP namespace alone.
+  if (name.startsWith("mcp__")) return false;
   return /[a-z]/.test(name.charAt(0)) || name.includes("_") || name.includes("-");
 }
 
