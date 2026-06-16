@@ -201,18 +201,21 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
       })
     );
 
-    // Collect descriptions maintaining original order
-    const descriptions = results.map((result, i) => {
+    // Collect descriptions maintaining original order. A failed describe yields
+    // `null` so the original image is preserved downstream (#4012) — replacing it
+    // with an "(unavailable)" stub silently destroyed images for vision-capable
+    // upstreams whose capability OmniRoute couldn't prove from the registry.
+    const descriptions: (string | null)[] = results.map((result, i) => {
       if (result.status === "fulfilled") {
         return result.value;
       }
       const message =
         result.reason instanceof Error ? result.reason.message : String(result.reason);
       logger?.warn?.("VISION-BRIDGE", `Failed to get description for image ${i + 1}: ${message}`);
-      return `[Image ${i + 1}]: (unavailable)`;
+      return null;
     });
 
-    // 12. Replace image parts with text descriptions
+    // 12. Replace image parts with text descriptions (null → keep original image)
     const modifiedBody = replaceImageParts(
       body as Parameters<typeof replaceImageParts>[0],
       descriptions
@@ -224,7 +227,8 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
       modifiedPayload: modifiedBody,
       meta: {
         imagesProcessed: descriptions.length,
-        descriptions,
+        // Keep meta observability stable: report a human label for failures.
+        descriptions: descriptions.map((d, i) => d ?? `[Image ${i + 1}]: (unavailable)`),
         processingTimeMs: processingTime,
         visionModel: config.model,
       },
