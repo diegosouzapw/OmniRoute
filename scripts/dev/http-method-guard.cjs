@@ -2,12 +2,11 @@
 
 const http = require("node:http");
 
-const DEFAULT_TRACE_ALLOW = "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS";
-const TRACE_ALLOW_RULES = [
-  [/^\/api\/auth\/login\/?$/, "POST"],
-  [/^\/api\/auth\/logout\/?$/, "POST"],
-  [/^\/api\/keys\/?$/, "GET, POST"],
-  [/^\/api\/keys\/[^/]+\/?$/, "GET, PATCH, DELETE"],
+const HIGH_RISK_METHOD_RULES = [
+  [/^\/api\/auth\/login\/?$/, ["POST"]],
+  [/^\/api\/auth\/logout\/?$/, ["POST"]],
+  [/^\/api\/keys\/?$/, ["GET", "POST"]],
+  [/^\/api\/keys\/[^/]+\/?$/, ["GET", "PATCH", "DELETE"]],
 ];
 
 let installed = false;
@@ -21,26 +20,33 @@ function getPathname(req) {
   }
 }
 
-function getAllowHeader(pathname) {
-  for (const [pattern, allow] of TRACE_ALLOW_RULES) {
-    if (pattern.test(pathname)) return allow;
+function getAllowedMethods(pathname) {
+  for (const [pattern, methods] of HIGH_RISK_METHOD_RULES) {
+    if (pattern.test(pathname)) return methods;
   }
-  return DEFAULT_TRACE_ALLOW;
+  return null;
 }
 
-function maybeHandleDisallowedTrace(req, res) {
-  if (req?.method !== "TRACE") return false;
+function getAllowHeader(pathname) {
+  const methods = getAllowedMethods(pathname);
+  return methods ? methods.join(", ") : null;
+}
 
-  const allow = getAllowHeader(getPathname(req));
+function maybeHandleDisallowedMethod(req, res) {
+  const method = typeof req?.method === "string" ? req.method.toUpperCase() : "";
+  const pathname = getPathname(req);
+  const methods = getAllowedMethods(pathname);
+  if (!methods || method === "OPTIONS" || methods.includes(method)) return false;
+
   res.statusCode = 405;
-  res.setHeader("Allow", allow);
+  res.setHeader("Allow", methods.join(", "));
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.end(
     JSON.stringify({
       error: {
         code: "METHOD_NOT_ALLOWED",
-        message: "TRACE is not allowed",
+        message: `${method || "Method"} is not allowed`,
       },
     })
   );
@@ -49,7 +55,7 @@ function maybeHandleDisallowedTrace(req, res) {
 
 function wrapRequestListenerWithMethodGuard(listener) {
   return function methodGuardRequestHandler(req, res) {
-    if (maybeHandleDisallowedTrace(req, res)) return;
+    if (maybeHandleDisallowedMethod(req, res)) return;
     return listener.call(this, req, res);
   };
 }
@@ -70,7 +76,7 @@ function installHttpMethodGuard() {
 
 module.exports = {
   getAllowHeader,
-  maybeHandleDisallowedTrace,
+  maybeHandleDisallowedMethod,
   wrapRequestListenerWithMethodGuard,
   installHttpMethodGuard,
 };

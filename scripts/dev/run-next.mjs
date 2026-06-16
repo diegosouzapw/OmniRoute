@@ -13,7 +13,7 @@ import methodGuard from "./http-method-guard.cjs";
 import { ensureNativeSqlite } from "./ensure-native-sqlite.mjs";
 import { randomUUID } from "node:crypto";
 
-const { maybeHandleDisallowedTrace } = methodGuard;
+const { maybeHandleDisallowedMethod } = methodGuard;
 
 // Pre-read DATA_DIR from local .env before bootstrap resolves paths
 if (!process.env.DATA_DIR) {
@@ -86,7 +86,7 @@ async function start() {
   });
 
   const server = http.createServer((req, res) => {
-    if (maybeHandleDisallowedTrace(req, res)) return;
+    if (maybeHandleDisallowedMethod(req, res)) return;
     // Stamp the real TCP peer IP before Next sees the request, so the authz
     // middleware can decide LOCAL_ONLY locality without trusting the Host header.
     stampPeerIp(req);
