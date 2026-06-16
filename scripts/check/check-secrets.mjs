@@ -10,13 +10,18 @@
 //   secretFindings=N      — número de findings do gitleaks
 //   secretFindings=SKIP reason=binary-absent   — gitleaks não está no PATH
 //
-// Esta versão é ADVISORY (sai 0 sempre). O ratchet (direction:down) é gerenciado
-// pelo motor quality-baseline.json no CI (Task 7.18 INT).
+// Por default é ADVISORY (sai 0 sempre). Passe --ratchet para tornar BLOQUEANTE:
+// lê metrics.secretFindings.value de config/quality/quality-baseline.json, compara
+// a contagem MEDIDA e SAI 1 SE — E SOMENTE SE — a medida for MAIOR que o baseline
+// (regressão real, direction:down). Qualquer SKIP gracioso (binário ausente, nenhum
+// dir de fonte) SAI 0 mesmo com --ratchet — falta de infraestrutura nunca bloqueia,
+// só uma regressão medida bloqueia.
 //
 // Uso:
 //   node scripts/check/check-secrets.mjs
-//   node scripts/check/check-secrets.mjs --json    # imprime JSON bruto do gitleaks
-//   node scripts/check/check-secrets.mjs --quiet   # suprime logs de diagnóstico
+//   node scripts/check/check-secrets.mjs --json     # imprime JSON bruto do gitleaks
+//   node scripts/check/check-secrets.mjs --quiet    # suprime logs de diagnóstico
+//   node scripts/check/check-secrets.mjs --ratchet   # falha (exit 1) numa regressão
 
 import fs from "node:fs";
 import { execFileSync, spawnSync } from "node:child_process";
@@ -26,7 +31,9 @@ import { pathToFileURL } from "node:url";
 const ROOT = process.cwd();
 const QUIET = process.argv.includes("--quiet");
 const PRINT_JSON = process.argv.includes("--json");
+const RATCHET = process.argv.includes("--ratchet");
 const GITLEAKS_CONFIG = path.join(ROOT, ".gitleaks.toml");
+const BASELINE_PATH = path.join(ROOT, "config/quality/quality-baseline.json");
 
 // Source directories to scan for secrets. We deliberately scope to the
 // production/source trees instead of scanning the whole working dir:
@@ -106,6 +113,46 @@ export function parseGitleaksJson(gitleaksJson) {
 }
 
 // ---------------------------------------------------------------------------
+// Ratchet (direction:down) — exported for tests
+// ---------------------------------------------------------------------------
+
+/**
+ * Avalia a contagem MEDIDA de secrets contra o baseline.
+ * Direction: down (a contagem só pode CAIR — mais secrets = regressão).
+ *
+ * @param {number} current  - Contagem de findings medida agora.
+ * @param {number} baseline - Contagem congelada em quality-baseline.json.
+ * @returns {{ regressed: boolean, improved: boolean }}
+ */
+export function evaluateSecretsRatchet(current, baseline) {
+  return {
+    regressed: current > baseline,
+    improved: current < baseline,
+  };
+}
+
+/**
+ * Lê metrics.secretFindings.value do quality-baseline.json.
+ * Retorna null se o arquivo ou a métrica estiverem ausentes (sem baseline não há
+ * ratchet possível — o caller trata como SKIP gracioso, exit 0).
+ *
+ * @param {string} baselinePath
+ * @returns {number|null}
+ */
+export function readBaselineSecretsValue(baselinePath = BASELINE_PATH) {
+  if (!fs.existsSync(baselinePath)) return null;
+  let baselineJson;
+  try {
+    baselineJson = JSON.parse(fs.readFileSync(baselinePath, "utf8"));
+  } catch {
+    return null;
+  }
+  const metric = baselineJson?.metrics?.secretFindings;
+  if (!metric || typeof metric.value !== "number") return null;
+  return metric.value;
+}
+
+// ---------------------------------------------------------------------------
 // Binary detection
 // ---------------------------------------------------------------------------
 
@@ -156,7 +203,7 @@ function main() {
       process.stderr.write(
         "[check-secrets] SKIP — gitleaks não encontrado no PATH.\n" +
           "[check-secrets] Instale via: https://github.com/gitleaks/gitleaks\n" +
-          "[check-secrets] ADVISORY — este gate sai 0 (ratchet entra no CI da Fase 7 INT).\n"
+          "[check-secrets] SKIP gracioso — sai 0 mesmo com --ratchet (binário ausente nunca bloqueia).\n"
       );
     }
     process.exitCode = 0;
@@ -271,12 +318,57 @@ function main() {
     } else {
       process.stderr.write("[check-secrets] Nenhum finding detectado.\n");
     }
-    process.stderr.write(
-      "[check-secrets] ADVISORY — esta versão não falha pela contagem (ratchet entra no CI).\n"
-    );
   }
 
-  // Sai 0 sempre nesta versão (advisory)
+  // Medição bem-sucedida → aplica o ratchet (bloqueante só com --ratchet).
+  applyRatchet(findingCount);
+}
+
+/**
+ * Aplica o ratchet (direction:down) sobre a contagem medida vs o baseline.
+ * Sem --ratchet: advisory (exit 0). Com --ratchet: exit 1 numa regressão real
+ * (medida > baseline). Baseline ausente → SKIP gracioso (exit 0).
+ *
+ * @param {number} findingCount - Contagem MEDIDA (medição bem-sucedida).
+ */
+function applyRatchet(findingCount) {
+  if (!RATCHET) {
+    if (!QUIET) {
+      process.stderr.write(
+        "[check-secrets] ADVISORY — não falha pela contagem (passe --ratchet para bloquear regressão).\n"
+      );
+    }
+    process.exitCode = 0;
+    return;
+  }
+
+  const baselineValue = readBaselineSecretsValue(BASELINE_PATH);
+  if (baselineValue === null) {
+    if (!QUIET) {
+      process.stderr.write(
+        "[check-secrets] baseline ausente (metrics.secretFindings) — SKIP gracioso, sai 0.\n"
+      );
+    }
+    process.exitCode = 0;
+    return;
+  }
+
+  const { regressed } = evaluateSecretsRatchet(findingCount, baselineValue);
+  if (regressed) {
+    process.stderr.write(
+      `[check-secrets] REGRESSÃO — ${findingCount} secret findings > baseline ${baselineValue}\n` +
+        "  → Remova o novo secret (ou allowliste em .gitleaks.toml se for falso-positivo legítimo),\n" +
+        "    depois re-baseline metrics.secretFindings em config/quality/quality-baseline.json.\n"
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  if (!QUIET) {
+    process.stderr.write(
+      `[check-secrets] OK — sem regressão (${findingCount} findings, baseline ${baselineValue}).\n`
+    );
+  }
   process.exitCode = 0;
 }
 

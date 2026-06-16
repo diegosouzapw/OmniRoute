@@ -3,12 +3,21 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-// @ts-expect-error — .mjs helper has no type declarations; runtime shape is known.
 import {
   parseSizeLimitResults,
   measureViaFileStat,
   runSizeLimit,
+  evaluateBundleSizeRatchet,
+  readBaselineBundleSizeValue,
+  // @ts-expect-error — .mjs helper has no type declarations; runtime shape is known.
 } from "../../../scripts/check/check-bundle-size.mjs";
+
+type RatchetVerdict = { regressed: boolean; improved: boolean };
+const evaluateSize = evaluateBundleSizeRatchet as (
+  current: number,
+  baseline: number
+) => RatchetVerdict;
+const readSizeBaseline = readBaselineBundleSizeValue as (p?: string) => number | null;
 
 // ---------------------------------------------------------------------------
 // parseSizeLimitResults
@@ -123,7 +132,10 @@ test("measureViaFileStat: soma múltiplos arquivos existentes", () => {
 });
 
 test("measureViaFileStat: config ausente retorna allMissing=true e total=0", () => {
-  const { total, entries, allMissing } = measureViaFileStat("/tmp/nonexistent/.size-limit.json", "/tmp");
+  const { total, entries, allMissing } = measureViaFileStat(
+    "/tmp/nonexistent/.size-limit.json",
+    "/tmp"
+  );
   assert.equal(total, 0);
   assert.equal(allMissing, true);
   assert.deepEqual(entries, []);
@@ -142,4 +154,76 @@ test("runSizeLimit: lança com code SL_NO_BIN quando binário não existe", () =
       return true;
     }
   );
+});
+
+// ---------------------------------------------------------------------------
+// evaluateBundleSizeRatchet — ratchet direction:down (Etapa 2: flip to blocking)
+// Regression when measured > baseline; baseline=5601 (gzip via @size-limit/file).
+// ---------------------------------------------------------------------------
+
+test("evaluateBundleSizeRatchet: medido == baseline passa (5601 vs 5601)", () => {
+  const r = evaluateSize(5601, 5601);
+  assert.equal(r.regressed, false);
+  assert.equal(r.improved, false);
+});
+
+test("evaluateBundleSizeRatchet: um byte a mais que o baseline é regressão", () => {
+  const r = evaluateSize(5602, 5601);
+  assert.equal(r.regressed, true, "any size increase must block");
+  assert.equal(r.improved, false);
+});
+
+test("evaluateBundleSizeRatchet: menor que o baseline é melhoria", () => {
+  const r = evaluateSize(5000, 5601);
+  assert.equal(r.regressed, false);
+  assert.equal(r.improved, true);
+});
+
+test("evaluateBundleSizeRatchet: comparação inteira estrita — qualquer aumento regride", () => {
+  assert.equal(evaluateSize(5602, 5601).regressed, true);
+  assert.equal(evaluateSize(5601, 5601).regressed, false);
+  assert.equal(evaluateSize(5600, 5601).regressed, false);
+});
+
+// ---------------------------------------------------------------------------
+// readBaselineBundleSizeValue — leitura tolerante do quality-baseline.json
+// ---------------------------------------------------------------------------
+
+function withTmpBundleBaseline(content: string | null, fn: (p: string) => void) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "bundle-baseline-"));
+  const p = path.join(dir, "quality-baseline.json");
+  if (content !== null) fs.writeFileSync(p, content);
+  try {
+    fn(p);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+test("readBaselineBundleSizeValue: lê metrics.bundleSize.value", () => {
+  withTmpBundleBaseline(JSON.stringify({ metrics: { bundleSize: { value: 5601 } } }), (p) => {
+    assert.equal(readSizeBaseline(p), 5601);
+  });
+});
+
+test("readBaselineBundleSizeValue: arquivo ausente retorna null (SKIP gracioso)", () => {
+  assert.equal(readSizeBaseline("/tmp/does-not-exist-77777/quality-baseline.json"), null);
+});
+
+test("readBaselineBundleSizeValue: métrica ausente retorna null", () => {
+  withTmpBundleBaseline(JSON.stringify({ metrics: {} }), (p) => {
+    assert.equal(readSizeBaseline(p), null);
+  });
+});
+
+test("readBaselineBundleSizeValue: value não-numérico retorna null", () => {
+  withTmpBundleBaseline(JSON.stringify({ metrics: { bundleSize: { value: "5601" } } }), (p) => {
+    assert.equal(readSizeBaseline(p), null);
+  });
+});
+
+test("readBaselineBundleSizeValue: JSON inválido retorna null (não lança)", () => {
+  withTmpBundleBaseline("not json at all", (p) => {
+    assert.equal(readSizeBaseline(p), null);
+  });
 });

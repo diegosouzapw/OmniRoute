@@ -136,16 +136,20 @@ jobs:
           path: .artifacts/quality-ratchet.md
           if-no-files-found: warn
 
-  # Phase 7 extended quality gates — ADVISORY (continue-on-error). The npm-based
-  # ratchets that remain here (circular-deps/bundle-size) run for real. The external
-  # scans (vuln/secrets/workflows) install via GitHub release downloads and skip
-  # gracefully if a binary is still absent. The CodeQL ratchet was PROMOTED to a
-  # blocking step in the quality-gate job (v3.8.26) — no longer runs here.
+  # Phase 7/8 extended quality gates — MIXED (Etapa 2, v3.8.26). The job no longer
+  # carries a job-level continue-on-error: the three ratchet-blocking steps below
+  # (Secret scan / Workflow lint / Bundle size, all passing --ratchet) FAIL the job
+  # on a measured regression vs config/quality/quality-baseline.json. The remaining
+  # steps stay ADVISORY via step-level continue-on-error (scanner install,
+  # vuln/osv ratchet, OpenAPI/oasdiff breaking-change, circular-deps/dpdm): they
+  # depend on external binaries/state that may legitimately self-skip, so they must
+  # never block. The blocking gates themselves SKIP (exit 0) when their binary/plugin
+  # is absent — only a measured regression on the SAME metric the baseline froze
+  # blocks. The CodeQL ratchet was PROMOTED to the quality-gate job (v3.8.26).
   # SonarQube needs SONAR_TOKEN/SONAR_HOST_URL secrets.
   quality-extended:
-    name: Quality Gates (Extended, advisory)
+    name: Quality Gates (Extended)
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       # fetch-depth: 0 — the OpenAPI breaking-change gate (oasdiff) reads the base
       # spec via `git show <base_ref>:docs/reference/openapi.yaml`; a shallow clone
@@ -160,10 +164,15 @@ jobs:
       - run: npm ci
       # Dead-code, cognitive-complexity, type-coverage foram promovidos ao job
       # quality-gate (bloqueante) na Fase 7 INT — não rodam aqui para evitar duplo custo.
-      - name: Circular deps (dpdm)
+      - name: Circular deps (dpdm; advisory)
+        continue-on-error: true
         run: npm run check:circular-deps
-      - name: Bundle size
-        run: npm run check:bundle-size
+      # BLOCKING ratchet (Etapa 2): bundleSize must not regress vs the baseline
+      # (gzip via @size-limit/file, installed by `npm ci`). --ratchet exits 1 on a
+      # measured regression; it SKIPs (exit 0) when the size-limit plugin/build is
+      # absent (a non-comparable measurement never blocks).
+      - name: Bundle size (ratchet, blocking)
+        run: npm run check:bundle-size -- --ratchet
       # CodeQL ratchet foi PROMOVIDO a BLOQUEANTE no job quality-gate (v3.8.26) —
       # não roda aqui para evitar duplo run/duplo report.
       # Install the advisory security scanners so the gates below actually run
@@ -213,18 +222,27 @@ jobs:
           "$HOME/.local/bin/osv-scanner" --version || true
           "$HOME/.local/bin/oasdiff" --version || true
           zizmor --version || true
-      - name: Secret scan (gitleaks; skips if absent)
-        run: npm run check:secrets
-      - name: Vulnerability ratchet (osv-scanner; skips if absent)
+      # BLOCKING ratchet (Etapa 2): secretFindings must not regress vs the baseline.
+      # --ratchet exits 1 on a measured regression; it SKIPs (exit 0) when gitleaks
+      # is absent (a missing binary never blocks).
+      - name: Secret scan (gitleaks, ratchet, blocking)
+        run: npm run check:secrets -- --ratchet
+      - name: Vulnerability ratchet (osv-scanner; advisory, skips if absent)
+        continue-on-error: true
         run: npm run check:vuln-ratchet
-      - name: Workflow lint (actionlint+zizmor; skips if absent)
-        run: npm run check:workflows
+      # BLOCKING ratchet (Etapa 2): zizmorFindings must not regress vs the baseline.
+      # ONLY zizmor is ratcheted — actionlint findings are reported, not blocking.
+      # --ratchet exits 1 on a measured zizmor regression; it SKIPs (exit 0) when
+      # zizmor is absent (a missing binary never blocks).
+      - name: Workflow lint (actionlint+zizmor, ratchet, blocking)
+        run: npm run check:workflows -- --ratchet
       # OpenAPI breaking-change detection (oasdiff). Diffs the PR's public API
       # contract (docs/reference/openapi.yaml) against the base branch's spec.
       # ADVISORY: reports `openapiBreaking=N` and self-skips when oasdiff is absent
       # or the base spec can't be resolved. BASE_REF is read by the script from the
       # env (never interpolated into a shell body) — workflow-injection-safe.
       - name: OpenAPI breaking-change (oasdiff; advisory)
+        continue-on-error: true
         env:
           BASE_REF: ${{ github.base_ref }}
         run: npm run check:openapi-breaking
