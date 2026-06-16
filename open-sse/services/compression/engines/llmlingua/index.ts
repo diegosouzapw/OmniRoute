@@ -7,7 +7,9 @@
  * ## Design
  *
  * ### Backend abstraction
- * `LlmlinguaBackend` is a simple `(text: string) => Promise<string>` contract.
+ * `LlmlinguaBackend` is a `(text: string, opts?: LlmlinguaBackendOptions) =>
+ * Promise<string>` contract (the opts carry model selection / compression rate /
+ * offline model-path override; single-arg fakes remain assignable).
  * Tests inject a fake backend via `setLlmlinguaBackend()`. Production code uses
  * `workerBackend` from `./worker.ts` (a stub today — see that file for the L1
  * VPS-validation follow-up before the real ONNX model is wired).
@@ -42,7 +44,7 @@
  * for the exact spec.
  */
 
-import { createCompressionStats } from "../../stats.ts";
+import { createCompressionStats, estimateCompressionTokens } from "../../stats.ts";
 import { extractPreservedBlocks } from "../../preservation.ts";
 import type {
   CompressionEngine,
@@ -52,14 +54,22 @@ import type {
 } from "../types.ts";
 import type { CompressionResult } from "../../types.ts";
 import { workerBackend } from "./worker.ts";
+import { LLMLINGUA_MODELS, DEFAULT_LLMLINGUA_MODEL } from "./constants.ts";
 
 // ─── backend abstraction ──────────────────────────────────────────────────────
 
+/** Options the real backend needs (model selection + compression rate + offline override). */
+export interface LlmlinguaBackendOptions {
+  model?: string;
+  compressionRate?: number;
+  modelPath?: string;
+}
+
 /**
- * A backend takes a prose text segment and returns a compressed version.
+ * A backend takes a prose text segment (+ optional config) and returns a compressed version.
  * Any rejection or error MUST be caught by the caller; the engine fail-opens.
  */
-export type LlmlinguaBackend = (text: string) => Promise<string>;
+export type LlmlinguaBackend = (text: string, opts?: LlmlinguaBackendOptions) => Promise<string>;
 
 /** Module-level injectable backend (null = use default production backend). */
 let _backend: LlmlinguaBackend | null = null;
@@ -140,11 +150,12 @@ type MessageLike = {
  */
 async function compressProseText(
   text: string,
-  backend: LlmlinguaBackend
+  backend: LlmlinguaBackend,
+  opts?: LlmlinguaBackendOptions
 ): Promise<{ text: string; didCompress: boolean }> {
   if (!text.trim()) return { text, didCompress: false };
   try {
-    const compressed = await backend(text);
+    const compressed = await backend(text, opts);
     // Accept only if it actually gets shorter (reject no-ops or expansions)
     if (typeof compressed === "string" && compressed.length < text.length) {
       return { text: compressed, didCompress: true };
@@ -165,7 +176,8 @@ async function compressProseText(
  */
 async function compressMessageText(
   text: string,
-  backend: LlmlinguaBackend
+  backend: LlmlinguaBackend,
+  opts?: LlmlinguaBackendOptions
 ): Promise<{ text: string; didCompress: boolean }> {
   const segments = splitProseAndPreserved(text);
   let anyCompressed = false;
@@ -176,7 +188,7 @@ async function compressMessageText(
       // Never send preserved content (code, math, etc.) to the backend
       parts.push(seg.text);
     } else {
-      const { text: out, didCompress } = await compressProseText(seg.text, backend);
+      const { text: out, didCompress } = await compressProseText(seg.text, backend, opts);
       parts.push(out);
       if (didCompress) anyCompressed = true;
     }
@@ -191,7 +203,8 @@ async function compressMessageText(
  */
 async function processMessages(
   messages: MessageLike[],
-  backend: LlmlinguaBackend
+  backend: LlmlinguaBackend,
+  opts?: LlmlinguaBackendOptions
 ): Promise<{ messages: MessageLike[]; compressedCount: number }> {
   let compressedCount = 0;
   const result: MessageLike[] = [];
@@ -205,7 +218,7 @@ async function processMessages(
 
     try {
       if (typeof msg.content === "string") {
-        const { text, didCompress } = await compressMessageText(msg.content, backend);
+        const { text, didCompress } = await compressMessageText(msg.content, backend, opts);
         if (didCompress) {
           compressedCount++;
           result.push({ ...msg, content: text });
@@ -219,7 +232,8 @@ async function processMessages(
           if (part["type"] === "text" && typeof part["text"] === "string") {
             const { text, didCompress } = await compressMessageText(
               part["text"] as string,
-              backend
+              backend,
+              opts
             );
             if (didCompress) {
               changed = true;
@@ -248,19 +262,65 @@ async function processMessages(
 // ─── config schema ────────────────────────────────────────────────────────────
 
 const LLMLINGUA_SCHEMA: EngineConfigField[] = [
+  { key: "enabled", type: "boolean", label: "Enabled", defaultValue: true },
   {
-    key: "enabled",
-    type: "boolean",
-    label: "Enabled",
-    defaultValue: true,
+    key: "model",
+    type: "select",
+    label: "Model",
+    defaultValue: DEFAULT_LLMLINGUA_MODEL,
+    options: Object.values(LLMLINGUA_MODELS).map((m) => ({ value: m.id, label: m.label })),
   },
+  {
+    key: "minTokens",
+    type: "number",
+    label: "Min tokens (floor)",
+    defaultValue: 2000,
+    min: 0,
+    max: 100000,
+  },
+  {
+    key: "compressionRate",
+    type: "number",
+    label: "Compression rate (keep ratio)",
+    defaultValue: 0.5,
+    min: 0.1,
+    max: 0.9,
+  },
+  { key: "modelPath", type: "string", label: "Model path (offline override)", defaultValue: "" },
 ];
 
 function validateLlmlinguaConfig(config: Record<string, unknown>): EngineValidationResult {
   const errors: string[] = [];
+
   if (config["enabled"] !== undefined && typeof config["enabled"] !== "boolean") {
     errors.push("enabled must be a boolean");
   }
+
+  if (config["model"] !== undefined) {
+    const model = config["model"];
+    if (typeof model !== "string" || !(model in LLMLINGUA_MODELS)) {
+      errors.push("model must be one of: " + Object.keys(LLMLINGUA_MODELS).join(", "));
+    }
+  }
+
+  if (config["minTokens"] !== undefined) {
+    const minTokens = config["minTokens"];
+    if (typeof minTokens !== "number" || Number.isNaN(minTokens) || minTokens < 0) {
+      errors.push("minTokens must be a number >= 0");
+    }
+  }
+
+  if (config["compressionRate"] !== undefined) {
+    const rate = config["compressionRate"];
+    if (typeof rate !== "number" || Number.isNaN(rate) || rate < 0.1 || rate > 0.9) {
+      errors.push("compressionRate must be a number between 0.1 and 0.9");
+    }
+  }
+
+  if (config["modelPath"] !== undefined && typeof config["modelPath"] !== "string") {
+    errors.push("modelPath must be a string");
+  }
+
   return { valid: errors.length === 0, errors };
 }
 
@@ -334,12 +394,41 @@ export const llmlinguaEngine: CompressionEngine = {
       return { body, compressed: false, stats: null };
     }
 
+    // minTokens floor: skip the model entirely on small prompts (avoid paying
+    // model latency when there is little to gain). 0 disables the floor.
+    const minTokens =
+      typeof stepConfig["minTokens"] === "number" ? (stepConfig["minTokens"] as number) : 2000;
+    if (minTokens > 0) {
+      const nonSystemText = (messages as MessageLike[])
+        .filter((m) => m.role !== "system")
+        .map((m) => (typeof m.content === "string" ? m.content : JSON.stringify(m.content ?? "")))
+        .join("\n");
+      if (estimateCompressionTokens(nonSystemText) < minTokens) {
+        // Below the floor — skip compression for this small prompt.
+        return { body, compressed: false, stats: null };
+      }
+    }
+
+    // Backend options threaded from stepConfig (model selection / rate / offline override).
+    const backendOpts: LlmlinguaBackendOptions = {
+      model: typeof stepConfig["model"] === "string" ? (stepConfig["model"] as string) : undefined,
+      compressionRate:
+        typeof stepConfig["compressionRate"] === "number"
+          ? (stepConfig["compressionRate"] as number)
+          : undefined,
+      modelPath:
+        typeof stepConfig["modelPath"] === "string" && stepConfig["modelPath"]
+          ? (stepConfig["modelPath"] as string)
+          : undefined,
+    };
+
     try {
       const backend = resolveBackend();
       const start = performance.now();
       const { messages: newMessages, compressedCount } = await processMessages(
         messages as MessageLike[],
-        backend
+        backend,
+        backendOpts
       );
 
       if (compressedCount === 0) {
