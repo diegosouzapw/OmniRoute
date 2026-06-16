@@ -34,7 +34,7 @@
     "open-sse/executors/duckduckgo-web.ts": 917,
     "open-sse/executors/grok-web.ts": 1871,
     "open-sse/executors/muse-spark-web.ts": 1284,
-    "open-sse/executors/perplexity-web.ts": 939,
+    "open-sse/executors/perplexity-web.ts": 1013,
     "open-sse/handlers/audioSpeech.ts": 965,
     "open-sse/handlers/chatCore.ts": 5830,
     "open-sse/handlers/imageGeneration.ts": 3777,
@@ -154,5 +154,6 @@
   "_rebaseline_2026_06_14_r3_3848_compression": "PR #3848 own growth: chatCore.ts 5808→5811 (+3 = compression engine pipeline hooks). Also carries inherited release/v3.8.25 drift not touched by this PR: models/route.ts 2487→2489 (+2, post-#3836/prettier). Updating the frozen values restores Fast Quality Gates on the current base.",
   "_rebaseline_2026_06_14_3861_gitlab_duo": "PR #3861 own growth: oauth/[provider]/[action]/route.ts 903→916 (+13 = gitlab-duo authorize guard mirroring the existing qoder guard — returns a clear 'register an OAuth app + set GITLAB_DUO_OAUTH_CLIENT_ID' message instead of letting buildAuthUrl's throw become an opaque 500). Cohesive with the qoder branch right above it; not separately extractable.",
   "_rebaseline_2026_06_15_3941_provider_request_capture": "PR #3941 own growth: chatCore.ts 5823->5830 (+7 by check-file-size counting = run executor attempts inside the unified provider request capture scope), antigravity.ts 1649->1664 (+15) and codex.ts 1439->1447 (+8) = bridge hand-written upstream transports that bypass normal fetch/BaseExecutor capture. Cohesive logging-fidelity refactor; not extractable without hiding the actual dispatch boundary.",
-  "_rebaseline_2026_06_16_3958_qwen_body_check": "PR #3958 own growth: validation.ts 4407->4428 (+21 = validateQwenWebProvider now parses the /api/v2/user 200 body and requires a real user object, since Qwen returns HTTP 200 even for invalid tokens — fixes the validation false-positive, #3931). Cohesive with the existing qwen-web validation branch; not separately extractable."
+  "_rebaseline_2026_06_16_3958_qwen_body_check": "PR #3958 own growth: validation.ts 4407->4428 (+21 = validateQwenWebProvider now parses the /api/v2/user 200 body and requires a real user object, since Qwen returns HTTP 200 even for invalid tokens — fixes the validation false-positive, #3931). Cohesive with the existing qwen-web validation branch; not separately extractable.",
+  "_rebaseline_2026_06_16_4001_perplexity_diff_block": "PR #4001 own growth: perplexity-web.ts 939->1013 (+74 = parse the schematized API's RFC-6902 diff_block JSON-patch frames — applyMarkdownDiff + isAnswerTextUsage primary-usage lock + stop only on COMPLETED, not on a still-PENDING final flag — so streamed answers aren't empty, #3938 follow-up). Cohesive single-executor SSE-parsing logic; not separately extractable."
 }
