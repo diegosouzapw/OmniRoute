@@ -868,7 +868,7 @@
     "issues": "Problemer",
     "endpoints": "Endpoints",
     "endpointsSubtitle": "Dine AI-forbindelses-URL'er",
-    "apiManager": "API Key Manager",
+    "apiManager": "API Keys",
     "apiManagerSubtitle": "Administrer API-nøgler og adgang",
     "embeddedServices": "Integrerede tjenester",
     "embeddedServicesSubtitle": "Administrer lokale proxytjenester",

@@ -5,12 +5,6 @@ import { Card, Button, Badge, Toggle } from "@/shared/components";
 import { useLocale, useTranslations } from "next-intl";
 import DatabaseBackupRetentionCard from "./DatabaseBackupRetentionCard";
 
-const rowCountFormatter = new Intl.NumberFormat("en-US");
-
-function formatRows(rows: number | null | undefined) {
-  return typeof rows === "number" ? rowCountFormatter.format(rows) : "100K";
-}
-
 export default function SystemStorageTab() {
   const [backups, setBackups] = useState([]);
   const [backupsLoading, setBackupsLoading] = useState(false);
@@ -79,9 +73,6 @@ export default function SystemStorageTab() {
   const [dbSettingsSaving, setDbSettingsSaving] = useState(false);
   const [dbStatsRefreshing, setDbStatsRefreshing] = useState(false);
   const [debugMode, setDebugMode] = useState(true);
-  const [usageTokenBuffer, setUsageTokenBuffer] = useState<number | null>(null);
-  const [bufferInput, setBufferInput] = useState("");
-  const [bufferSaving, setBufferSaving] = useState(false);
   const [generalLoading, setGeneralLoading] = useState(true);
 
   const loadBackups = async () => {
@@ -369,9 +360,6 @@ export default function SystemStorageTab() {
       if (res.ok) {
         const data = await res.json();
         setDebugMode(data.debugMode === true);
-        const buf = typeof data.usageTokenBuffer === "number" ? data.usageTokenBuffer : 2000;
-        setUsageTokenBuffer(buf);
-        setBufferInput(String(buf));
       }
     } catch {
       // ignore
@@ -395,26 +383,6 @@ export default function SystemStorageTab() {
     } catch (err) {
       setDebugMode(previousValue);
       console.error("Failed to update debugMode:", err);
-    }
-  };
-
-  const updateUsageTokenBuffer = async () => {
-    const val = parseInt(bufferInput, 10);
-    if (isNaN(val) || val < 0 || val > 50000) return;
-    setBufferSaving(true);
-    try {
-      const res = await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usageTokenBuffer: val }),
-      });
-      if (res.ok) {
-        setUsageTokenBuffer(val);
-      }
-    } catch (err) {
-      console.error("Failed to update usageTokenBuffer:", err);
-    } finally {
-      setBufferSaving(false);
     }
   };
 
@@ -639,7 +607,7 @@ export default function SystemStorageTab() {
       </div>
 
       {/* Storage info grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-1 gap-3 mb-4">
         <div className="p-3 rounded-lg bg-bg border border-border">
           <p className="text-[11px] text-text-muted uppercase tracking-wide mb-1">
             {t("databasePath")}
@@ -648,37 +616,192 @@ export default function SystemStorageTab() {
             {storageHealth.dbPath || "~/.omniroute/storage.sqlite"}
           </p>
         </div>
-        <div className="p-3 rounded-lg bg-bg border border-border">
-          <p className="text-[11px] text-text-muted uppercase tracking-wide mb-1">
-            {t("databaseSize")}
-          </p>
-          <p className="text-sm font-mono text-text-main">{formatBytes(storageHealth.sizeBytes)}</p>
-        </div>
       </div>
 
-      <div className="p-3 rounded-lg bg-bg border border-border mb-4">
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div>
-            <p className="text-sm font-medium text-text-main">{t("logRetentionPolicyTitle")}</p>
-            <p className="text-xs text-text-muted">
-              Request logs retain up to <code>CALL_LOGS_TABLE_MAX_ROWS</code> rows (default:
-              100,000). Proxy logs retain up to <code>PROXY_LOGS_TABLE_MAX_ROWS</code> rows. Older
-              entries auto-deleted.
-            </p>
+      {/* Retention and cleanup */}
+      {!dbSettingsLoading && dbSettings && (
+        <div className="mb-4 p-4 rounded-lg border border-border bg-bg">
+          <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
+            <div>
+              <h4 className="text-sm font-semibold flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                  schedule
+                </span>
+                {t("storageRetentionCleanup")}
+              </h4>
+              <p className="mt-1 text-xs text-text-muted">{t("storageRetentionCleanupDesc")}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="default" size="sm">
+                {t("retentionCallDays", { count: storageHealth.retentionDays.call })}
+              </Badge>
+              <Badge variant="default" size="sm">
+                {t("retentionAppDays", { count: storageHealth.retentionDays.app })}
+              </Badge>
+              <Badge variant="default" size="sm">
+                {t("retentionRows", {
+                  count: (storageHealth.tableMaxRows?.callLogs ?? 100000).toLocaleString(),
+                })}
+              </Badge>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="default" size="sm">
-              Call {storageHealth.retentionDays.call}d
-            </Badge>
-            <Badge variant="default" size="sm">
-              App {storageHealth.retentionDays.app}d
-            </Badge>
-            <Badge variant="default" size="sm">
-              {formatRows(storageHealth.tableMaxRows?.callLogs)} rows
-            </Badge>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-text-muted mb-1">
+                {t("retentionQuotaSnapshots")}
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="365"
+                value={dbSettings.retention.quotaSnapshots}
+                onChange={(e) =>
+                  setDbSettings({
+                    ...dbSettings,
+                    retention: {
+                      ...dbSettings.retention,
+                      quotaSnapshots: parseInt(e.target.value) || 7,
+                    },
+                  })
+                }
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-text-muted mb-1">
+                {t("retentionCompressionAnalytics")}
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="365"
+                value={dbSettings.retention.compressionAnalytics}
+                onChange={(e) =>
+                  setDbSettings({
+                    ...dbSettings,
+                    retention: {
+                      ...dbSettings.retention,
+                      compressionAnalytics: parseInt(e.target.value) || 30,
+                    },
+                  })
+                }
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-text-muted mb-1">{t("retentionMcpAudit")}</label>
+              <input
+                type="number"
+                min="1"
+                max="365"
+                value={dbSettings.retention.mcpAudit}
+                onChange={(e) =>
+                  setDbSettings({
+                    ...dbSettings,
+                    retention: {
+                      ...dbSettings.retention,
+                      mcpAudit: parseInt(e.target.value) || 30,
+                    },
+                  })
+                }
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-text-muted mb-1">
+                {t("retentionA2aEvents")}
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="365"
+                value={dbSettings.retention.a2aEvents}
+                onChange={(e) =>
+                  setDbSettings({
+                    ...dbSettings,
+                    retention: {
+                      ...dbSettings.retention,
+                      a2aEvents: parseInt(e.target.value) || 30,
+                    },
+                  })
+                }
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-text-muted mb-1">{t("retentionCallLogs")}</label>
+              <input
+                type="number"
+                min="1"
+                max="365"
+                value={dbSettings.retention.callLogs}
+                onChange={(e) =>
+                  setDbSettings({
+                    ...dbSettings,
+                    retention: {
+                      ...dbSettings.retention,
+                      callLogs: parseInt(e.target.value) || 30,
+                    },
+                  })
+                }
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-text-muted mb-1">
+                {t("retentionUsageHistory")}
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="365"
+                value={dbSettings.retention.usageHistory}
+                onChange={(e) =>
+                  setDbSettings({
+                    ...dbSettings,
+                    retention: {
+                      ...dbSettings.retention,
+                      usageHistory: parseInt(e.target.value) || 30,
+                    },
+                  })
+                }
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-text-muted mb-1">
+                {t("retentionMemoryEntries")}
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="365"
+                value={dbSettings.retention.memoryEntries}
+                onChange={(e) =>
+                  setDbSettings({
+                    ...dbSettings,
+                    retention: {
+                      ...dbSettings.retention,
+                      memoryEntries: parseInt(e.target.value) || 30,
+                    },
+                  })
+                }
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+          </div>
+          <div className="mt-3">
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={saveDatabaseSettings}
+              loading={dbSettingsSaving}
+            >
+              {t("saveRetentionSettings")}
+            </Button>
           </div>
         </div>
-      </div>
+      )}
 
       <DatabaseBackupRetentionCard
         title={t("storageDatabaseBackupRetention")}
@@ -873,7 +996,7 @@ export default function SystemStorageTab() {
           </span>
           <p className="font-medium">{t("maintenance") || "Maintenance"}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 border-t border-border/50 pt-3">
           <Button
             variant="outline"
             size="sm"
@@ -945,12 +1068,10 @@ export default function SystemStorageTab() {
               </span>
               <p className="font-medium">{t("storagePurgeData")}</p>
             </div>
-            <p className="text-xs text-text-muted">
-              Immediately delete all records (no retention check). Use with caution.
-            </p>
+            <p className="text-xs text-text-muted">{t("storagePurgeDataDesc")}</p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 border-t border-border/50 pt-3">
           <Button
             variant="outline"
             size="sm"
@@ -1271,174 +1392,7 @@ export default function SystemStorageTab() {
         )}
       </div>
 
-      {/* Task 23: Retention Policy Settings */}
-      {!dbSettingsLoading && dbSettings && (
-        <div className="mt-6 p-4 rounded-lg border border-border bg-bg">
-          <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
-              schedule
-            </span>
-            Retention Policy Settings
-          </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-text-muted mb-1">
-                {t("retentionQuotaSnapshots")}
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="365"
-                value={dbSettings.retention.quotaSnapshots}
-                onChange={(e) =>
-                  setDbSettings({
-                    ...dbSettings,
-                    retention: {
-                      ...dbSettings.retention,
-                      quotaSnapshots: parseInt(e.target.value) || 7,
-                    },
-                  })
-                }
-                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-text-muted mb-1">
-                Compression Analytics (days)
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="365"
-                value={dbSettings.retention.compressionAnalytics}
-                onChange={(e) =>
-                  setDbSettings({
-                    ...dbSettings,
-                    retention: {
-                      ...dbSettings.retention,
-                      compressionAnalytics: parseInt(e.target.value) || 30,
-                    },
-                  })
-                }
-                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-text-muted mb-1">{t("retentionMcpAudit")}</label>
-              <input
-                type="number"
-                min="1"
-                max="365"
-                value={dbSettings.retention.mcpAudit}
-                onChange={(e) =>
-                  setDbSettings({
-                    ...dbSettings,
-                    retention: {
-                      ...dbSettings.retention,
-                      mcpAudit: parseInt(e.target.value) || 30,
-                    },
-                  })
-                }
-                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-text-muted mb-1">
-                {t("retentionA2aEvents")}
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="365"
-                value={dbSettings.retention.a2aEvents}
-                onChange={(e) =>
-                  setDbSettings({
-                    ...dbSettings,
-                    retention: {
-                      ...dbSettings.retention,
-                      a2aEvents: parseInt(e.target.value) || 30,
-                    },
-                  })
-                }
-                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-text-muted mb-1">{t("retentionCallLogs")}</label>
-              <input
-                type="number"
-                min="1"
-                max="365"
-                value={dbSettings.retention.callLogs}
-                onChange={(e) =>
-                  setDbSettings({
-                    ...dbSettings,
-                    retention: {
-                      ...dbSettings.retention,
-                      callLogs: parseInt(e.target.value) || 30,
-                    },
-                  })
-                }
-                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-text-muted mb-1">
-                {t("retentionUsageHistory")}
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="365"
-                value={dbSettings.retention.usageHistory}
-                onChange={(e) =>
-                  setDbSettings({
-                    ...dbSettings,
-                    retention: {
-                      ...dbSettings.retention,
-                      usageHistory: parseInt(e.target.value) || 30,
-                    },
-                  })
-                }
-                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-text-muted mb-1">
-                {t("retentionMemoryEntries")}
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="365"
-                value={dbSettings.retention.memoryEntries}
-                onChange={(e) =>
-                  setDbSettings({
-                    ...dbSettings,
-                    retention: {
-                      ...dbSettings.retention,
-                      memoryEntries: parseInt(e.target.value) || 30,
-                    },
-                  })
-                }
-                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-          </div>
-          <div className="mt-3">
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={saveDatabaseSettings}
-              loading={dbSettingsSaving}
-            >
-              Save Retention Settings
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Task 24: Compression/Aggregation Settings */}
+      {/* Compression and aggregation */}
       {!dbSettingsLoading && dbSettings && (
         <div className="mt-6 p-4 rounded-lg border border-border bg-bg">
           <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
@@ -1522,7 +1476,7 @@ export default function SystemStorageTab() {
         </div>
       )}
 
-      {/* Task 25: Optimization Settings */}
+      {/* Database optimization */}
       {!dbSettingsLoading && dbSettings && (
         <div className="mt-6 p-4 rounded-lg border border-border bg-bg">
           <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
@@ -1673,7 +1627,7 @@ export default function SystemStorageTab() {
         </div>
       )}
 
-      {/* Task 26: Database Stats Display */}
+      {/* Database statistics */}
       {!dbSettingsLoading && dbSettings && dbSettings.stats && (
         <div className="mt-6 p-4 rounded-lg border border-border bg-bg">
           <div className="flex items-center justify-between mb-3">
@@ -1759,54 +1713,6 @@ export default function SystemStorageTab() {
             </div>
           </div>
           <Toggle checked={debugMode} onChange={updateDebugMode} disabled={generalLoading} />
-        </div>
-      </div>
-
-      {/* Usage Token Buffer */}
-      <div className="mt-4 pt-3 border-t border-border/50">
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <span
-              className="material-symbols-outlined text-[18px] text-text-muted"
-              aria-hidden="true"
-            >
-              pin
-            </span>
-            <div>
-              <p className="font-medium">{t("storageUsageTokenBuffer")}</p>
-              <p className="text-sm text-text-muted mt-1">
-                Extra tokens added to reported usage to account for system prompt overhead. Set to 0
-                to report raw provider token counts. Default: 2000.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <input
-              type="number"
-              min={0}
-              max={50000}
-              value={bufferInput}
-              onChange={(e) => setBufferInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") updateUsageTokenBuffer();
-              }}
-              className="w-32 px-3 py-1.5 rounded bg-surface-2 border border-border text-sm text-text-primary"
-              disabled={generalLoading}
-            />
-            <Button
-              size="sm"
-              variant="primary"
-              onClick={updateUsageTokenBuffer}
-              disabled={
-                bufferSaving || generalLoading || parseInt(bufferInput, 10) === usageTokenBuffer
-              }
-            >
-              {bufferSaving ? tc("saving") : tc("save")}
-            </Button>
-            {usageTokenBuffer !== null && parseInt(bufferInput, 10) !== usageTokenBuffer && (
-              <span className="text-xs text-text-muted">Current: {usageTokenBuffer}</span>
-            )}
-          </div>
         </div>
       </div>
     </Card>

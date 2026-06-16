@@ -40,7 +40,7 @@ The v3.7.x → v3.8.0 cycle added zero-config auto routing, new providers, OAuth
 - 🔒 **MITM dynamic Linux cert detection** — works across Debian/Ubuntu, Fedora/RHEL, Arch, and other distros
 - 💻 **CLI enhancement suite** — 20+ commands including `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
 - 🔍 **Qdrant embedding model discovery** — automatic vector-store model probe
-- 🔑 **API Manager / Bearer keys with `manage` scope** — perform admin operations programmatically via API
+- 🔑 **API Keys / Bearer keys with `manage` scope** — perform admin operations programmatically via API
 - 🏥 **Combo target health analytics** + **structured combo builder** — per-target health & UI builder for assembling `(provider, model, connection)` steps
 - 🤝 **GitLab Duo OAuth provider** — login with GitLab credentials
 - 🧠 **Reasoning Replay Cache** — hybrid in-memory + SQLite persistence of reasoning traces

@@ -868,7 +868,7 @@
     "issues": "Issues",
     "endpoints": "Endpoints",
     "endpointsSubtitle": "URL های اتصال هوش مصنوعی شما",
-    "apiManager": "API Key Manager",
+    "apiManager": "API Keys",
     "apiManagerSubtitle": "کلیدهای API و دسترسی را مدیریت کنید",
     "embeddedServices": "سرویس‌های جاسازی‌شده",
     "embeddedServicesSubtitle": "مدیریت سرویس‌های پروکسی محلی",

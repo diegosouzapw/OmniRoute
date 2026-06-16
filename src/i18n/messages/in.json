@@ -868,7 +868,7 @@
     "issues": "Issues",
     "endpoints": "Endpoints",
     "endpointsSubtitle": "URL koneksi AI Anda",
-    "apiManager": "API Key Manager",
+    "apiManager": "API Keys",
     "apiManagerSubtitle": "Kelola kunci dan akses API",
     "embeddedServices": "Layanan Tertanam",
     "embeddedServicesSubtitle": "Kelola layanan proxy lokal",

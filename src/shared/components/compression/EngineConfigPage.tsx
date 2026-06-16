@@ -112,7 +112,7 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
       let currentConfig: Record<string, unknown> = {};
       const step = comboData?.pipeline?.find((s) => s.engine === engineId);
       if (step) {
-        currentEnabled = true;
+        currentEnabled = step.config?.enabled !== false;
         currentConfig = step.config ?? {};
       }
 
@@ -125,7 +125,7 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
         for (const field of foundEngine?.configSchema ?? []) {
           defaults[field.key] = field.defaultValue;
         }
-        setConfigState({ ...defaults, ...currentConfig });
+        setConfigState({ ...defaults, ...currentConfig, enabled: currentEnabled });
         setLoading(false);
       }
     }
@@ -140,32 +140,40 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
 
   async function handleToggle() {
     const next = !enabled;
+    const nextConfig = { ...configState, enabled: next };
     setEnabled(next);
+    setConfigState(nextConfig);
     setToggleError(null);
     try {
       const res = await fetch("/api/context/combos/default", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ engineId, enabled: next }),
+        body: JSON.stringify({ engineId, enabled: next, config: nextConfig }),
       });
       if (!res.ok) {
         setToggleError("Failed to update engine state.");
         setEnabled(!next); // revert
+        setConfigState(configState);
       }
     } catch {
       setToggleError("Failed to update engine state.");
       setEnabled(!next); // revert
+      setConfigState(configState);
     }
   }
 
   async function handleSave() {
+    const nextEnabled = typeof configState.enabled === "boolean" ? configState.enabled : enabled;
+    const nextConfig = { ...configState, enabled: nextEnabled };
+    setEnabled(nextEnabled);
+    setConfigState(nextConfig);
     setSaving(true);
     setSaveError(null);
     try {
       const res = await fetch("/api/context/combos/default", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ engineId, enabled, config: configState }),
+        body: JSON.stringify({ engineId, enabled: nextEnabled, config: nextConfig }),
       });
       if (!res.ok) {
         setSaveError("Failed to save configuration.");
@@ -220,6 +228,7 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
   }
 
   const subtitle = engine.metadata?.description ?? engine.description;
+  const visibleConfigSchema = engine.configSchema.filter((field) => field.key !== "enabled");
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-3xl">
@@ -271,11 +280,15 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
       {/* ── Config form ── */}
       <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4">
         <h2 className="text-sm font-semibold text-text">Configuration</h2>
-        <EngineConfigForm
-          schema={engine.configSchema}
-          value={configState}
-          onChange={setConfigState}
-        />
+        {visibleConfigSchema.length > 0 ? (
+          <EngineConfigForm
+            schema={visibleConfigSchema}
+            value={configState}
+            onChange={setConfigState}
+          />
+        ) : (
+          <p className="text-sm text-text-muted">No additional configuration.</p>
+        )}
         <div className="flex items-center gap-3 pt-1">
           <button
             onClick={handleSave}

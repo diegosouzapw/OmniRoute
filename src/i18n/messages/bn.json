@@ -868,7 +868,7 @@
     "issues": "Issues",
     "endpoints": "Endpoints",
     "endpointsSubtitle": "আপনার AI কানেকশন ইউআরএল",
-    "apiManager": "API Key Manager",
+    "apiManager": "API Keys",
     "apiManagerSubtitle": "API কী এবং অ্যাক্সেস পরিচালনা করুন",
     "embeddedServices": "এমবেডেড সার্ভিস",
     "embeddedServicesSubtitle": "স্থানীয় প্রক্সি সার্ভিস পরিচালনা করুন",

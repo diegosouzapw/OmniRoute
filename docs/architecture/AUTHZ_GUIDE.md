@@ -177,7 +177,7 @@ Client API key enforcement uses `isRequireApiKeyEnabled()` in `src/shared/utils/
 
 ## Breaking Change — v3.8.0
 
-The `/api/v1/agents/tasks/*` and `/api/resilience/model-cooldowns` endpoints **now require management auth** (commit `588a0333`). Clients previously sending a normal API key without the `manage` scope receive `403`. Migration: either issue the key the `manage` scope in the API Manager dashboard, or use a logged-in dashboard session.
+The `/api/v1/agents/tasks/*` and `/api/resilience/model-cooldowns` endpoints **now require management auth** (commit `588a0333`). Clients previously sending a normal API key without the `manage` scope receive `403`. Migration: either issue the key the `manage` scope in the API Keys dashboard, or use a logged-in dashboard session.
 
 ## Behaviour Change — v3.8.2
 

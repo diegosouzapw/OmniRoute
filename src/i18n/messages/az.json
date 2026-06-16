@@ -868,7 +868,7 @@
     "issues": "Issues",
     "endpoints": "Endpoints",
     "endpointsSubtitle": "AI bağlantı URL-ləriniz",
-    "apiManager": "API Manager",
+    "apiManager": "API Keys",
     "apiManagerSubtitle": "API açarlarını və girişi idarə edin",
     "embeddedServices": "Daxili Xidmətlər",
     "embeddedServicesSubtitle": "Lokal proksi xidmətlərini idarə edin",

@@ -868,7 +868,7 @@
     "issues": "Problémy",
     "endpoints": "Koncové body",
     "endpointsSubtitle": "Vaše webové adresy pripojenia AI",
-    "apiManager": "API Key Manager",
+    "apiManager": "API Keys",
     "apiManagerSubtitle": "Spravujte kľúče API a prístup",
     "embeddedServices": "Zabudované Služby",
     "embeddedServicesSubtitle": "Spravovať lokálne proxy služby",

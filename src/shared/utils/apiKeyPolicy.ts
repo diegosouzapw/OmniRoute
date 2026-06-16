@@ -32,7 +32,7 @@ import { resolveQuotaKeyScope } from "@/lib/quota/quotaKey";
 import { isQuotaModelName, parseQuotaModelName } from "@/lib/quota/quotaModelNaming";
 
 // Default to no per-key request cap. API keys can still opt into explicit
-// limits via Settings/API Manager, while provider/account quota controls remain
+// limits via Settings/API Keys, while provider/account quota controls remain
 // responsible for upstream 429 handling and fallback.
 // Exported so tests can lock in the "no implicit caps" contract from #2289.
 export const DEFAULT_RATE_LIMITS: RateLimitRule[] = [];

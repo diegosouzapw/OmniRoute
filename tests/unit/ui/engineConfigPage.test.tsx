@@ -58,6 +58,12 @@ const ENGINE_PAYLOAD = {
       metadata: { description: "Headroom metadata description" },
       configSchema: [
         {
+          key: "enabled",
+          type: "boolean",
+          label: "Enabled",
+          defaultValue: true,
+        },
+        {
           key: "minRows",
           type: "number",
           label: "Min rows",
@@ -174,6 +180,25 @@ describe("EngineConfigPage", () => {
     expect(container.textContent).toContain("Min rows");
   });
 
+  it("uses the layer switch as the only rendered Enabled control", async () => {
+    setupFetchMock();
+    const { EngineConfigPage } =
+      await import("../../../src/shared/components/compression/EngineConfigPage");
+
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<EngineConfigPage engineId="headroom" />);
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const enableCheckboxes = container.querySelectorAll("input[type='checkbox']");
+    expect(enableCheckboxes.length).toBe(1);
+    expect(container.textContent).toContain("Enable layer");
+  });
+
   it("shows empty-state text when analytics returns runs=0", async () => {
     setupFetchMock();
     const { EngineConfigPage } =
@@ -261,10 +286,11 @@ describe("EngineConfigPage", () => {
       await Promise.resolve();
     });
 
-    // Click "Salvar" — engine is disabled (COMBO_PAYLOAD pipeline is empty)
-    const saveBtn = container.querySelector("button") as HTMLButtonElement | null;
+    // Click "Save" — engine is disabled (COMBO_PAYLOAD pipeline is empty)
     const allButtons = Array.from(container.querySelectorAll("button"));
-    const salvarBtn = allButtons.find((b) => b.textContent?.includes("Salvar"));
+    const salvarBtn = allButtons.find(
+      (b) => b.textContent?.includes("Save") || b.textContent?.includes("Salvar")
+    );
     if (salvarBtn) {
       await act(async () => {
         salvarBtn.click();

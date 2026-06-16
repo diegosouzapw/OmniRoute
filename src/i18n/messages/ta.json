@@ -868,7 +868,7 @@
     "issues": "Issues",
     "endpoints": "Endpoints",
     "endpointsSubtitle": "உங்கள் AI இணைப்பு URLகள்",
-    "apiManager": "API Key Manager",
+    "apiManager": "API Keys",
     "apiManagerSubtitle": "API விசைகள் மற்றும் அணுகலை நிர்வகிக்கவும்",
     "embeddedServices": "உட்பொதிக்கப்பட்ட சேவைகள்",
     "embeddedServicesSubtitle": "உள்ளூர் proxy சேவைகளை நிர்வகிக்கவும்",
