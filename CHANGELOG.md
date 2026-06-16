@@ -6,6 +6,10 @@
 
 ## [3.8.27] — TBD
 
+### ✨ New Features
+
+- **feat(combos): advertise combo capabilities (multimodal / reasoning / caching) on the import surfaces** — importing a combo package into a client (LobeHub / OpenCode / VS Code, via `/v1/combos` and the VS Code combo catalog) no longer requires manually enabling multimodal/image-input, reasoning, and caching afterwards. `projectCombo` now attaches a registry-derived `capabilities` block, gated conservatively: `multimodal`/`reasoning` are advertised only when **every** concrete model step proves the capability (an unprovable nested combo-ref drops them, since the strategy may route to any member), and `caching` reflects the combo's explicit Context-Cache-Protection setting (no surprise prompt-cache cost). The public `/v1/combos` default projection (#2300) is unchanged unless the caller opts in. ([#3979](https://github.com/diegosouzapw/OmniRoute/issues/3979) — thanks @xenstar)
+
 ### 🔒 Security & Hardening
 
 - **fix(security): eliminate a polynomial ReDoS in the combo `<omniModel>` tag regex** — `comboAgentMiddleware`'s cache-tag pattern wrapped the tag in an unbounded newline run (`(?:\n|\r)*`), making `.test()` / `.replace()` run in O(n²) on inputs with many newlines (CodeQL `js/polynomial-redos`). The detection pattern now matches only the core `<omniModel>…</omniModel>` and the global strip pattern bounds the surrounding newline runs, keeping it linear; detection / extraction / multi-tag stripping behavior is unchanged. ([#3982](https://github.com/diegosouzapw/OmniRoute/pull/3982) — thanks @diegosouzapw)
