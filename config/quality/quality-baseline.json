@@ -135,7 +135,8 @@
       "direction": "down",
       "dedicatedGate": true,
       "_note": "oasdiff breaking-change gate (Fase 9 Onda 0). Blocks any breaking change vs base spec."
-    }
+    },
+    "semgrepFindings": { "value": 0, "direction": "down", "dedicatedGate": true, "_note": "semgrep owasp/secrets findings. ADVISORY until first CI value is frozen, then flip blocking (Fase 9)." }
   },
   "_coverage_note": "Pisos anti-flake ~2pt abaixo do real do CI mergeado MEDIDO COM os 135 testes religados (run 27247237268: statements 78.4 / lines 78.4 / functions 83.84 / branches 75.73). O religamento da 6A.1 HONESTIFICOU a regua: os ~82.5 anteriores eram inflados porque modulos nunca importados ficavam fora do denominador do c8. Apertar via --require-tighten na Fase 6A (2026-06-16).",
   "_eslint_rebaseline_2026_06_09": "Baseline 3482 foi congelado na branch das Fases 0-6 (base ~v3.8.17) ANTES da v3.8.18 sair; a tag v3.8.18 publicada ja media 3501 (delta nasceu no fim daquele ciclo, antes do job quality-gate existir no ci.yml). O ciclo v3.8.19 esta NEUTRO (tag 3501 == HEAD 3501). Re-baseline para o estado real da main publicada; reduzir os ~19 (any em codigo do ciclo v3.8.18) e ligar --require-tighten ficam para a Fase 6A (2026-06-16).",
