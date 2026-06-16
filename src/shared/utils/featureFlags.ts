@@ -79,3 +79,15 @@ export function isModelCatalogNamesEnabled(): boolean {
 export function isArenaEloSyncEnabled(): boolean {
   return isFeatureFlagEnabled("ARENA_ELO_SYNC_ENABLED");
 }
+
+export function isControlPlaneProxyDirectFallbackEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK, defaulting to disabled:",
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
+}

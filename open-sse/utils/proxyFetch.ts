@@ -12,7 +12,10 @@ import {
 } from "./proxyDispatcher.ts";
 import tlsClient from "./tlsClient.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
-import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import {
+  isControlPlaneProxyDirectFallbackEnabled,
+  isFeatureFlagEnabled,
+} from "@/shared/utils/featureFlags";
 import { findWorkingProxy } from "./proxyFallback.ts";
 
 function isTlsFingerprintEnabled() {
@@ -216,12 +219,10 @@ export async function runWithProxyContext(
 
   const resolvedProxyUrl = effectiveProxyConfig ? proxyConfigToUrl(effectiveProxyConfig) : null;
 
-  // When set, a proxy that fails the reachability/family pre-checks degrades to a
-  // DIRECT connection instead of throwing. Use for control-plane operations (OAuth,
-  // connection tests, token refresh) where reaching the upstream matters more than
-  // egress-IP pinning — a dead pinned proxy must not surface as a generic 500. Data
-  // plane (chat) keeps the strict behaviour so per-account IP isolation is preserved.
-  const directFallbackOnUnreachable = opts?.directFallbackOnUnreachable === true;
+  // The caller must opt in, and the runtime feature flag must also be enabled.
+  // This fallback changes egress IP, so upgrades must not silently turn it on.
+  const directFallbackOnUnreachable =
+    opts?.directFallbackOnUnreachable === true && isControlPlaneProxyDirectFallbackEnabled();
   // Run fn with the proxy context cleared so the request egresses directly.
   const runDirect = () => proxyContext.run(null, fn);
 
@@ -288,12 +289,15 @@ export async function runWithProxyContext(
 
 /**
  * Like {@link runWithProxyContext}, but if the assigned proxy is unreachable or fails
- * its pre-checks the request degrades to a DIRECT connection instead of throwing.
+ * its pre-checks the request can degrade to a DIRECT connection instead of throwing.
  *
  * For control-plane flows — OAuth code/token exchange, connection tests, token refresh —
  * where a dead pinned proxy must not block reaching the upstream (it otherwise surfaces
  * as a generic "Internal server error"). Data-plane chat keeps strict pinning via
  * runWithProxyContext so per-account egress-IP isolation is preserved.
+ *
+ * This remains disabled unless OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK is enabled
+ * from Feature Flags or the environment.
  */
 export async function runWithProxyContextOrDirect(proxyConfig, fn) {
   return runWithProxyContext(proxyConfig, fn, { directFallbackOnUnreachable: true });
