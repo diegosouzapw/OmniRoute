@@ -15,6 +15,7 @@
   "_rebaseline_2026_06_15_3929_vertex_media": "PR #3929 own growth: audioSpeech.ts 952->965 (+13) and videoGeneration.ts 1026->1078 (+52) = vertex/* media branches (Gemini TTS, Veo predictLongRunning poll) wired into the speech/video handlers; new logic lives in open-sse/executors/vertexMedia.ts (341, under cap). Cohesive media-provider feature.",
   "_rebaseline_2026_06_15_3879_redact_thinking": "PR #3879 + #3921 reconcile: AddApiKeyModal.tsx 843->845 (+2 = merging #3879's CcCompatibleRequestDefaultsFields (context1m + opt-in redact-thinking toggle) into #3921's preset-input block in the cc-compatible settings group). Cohesive UI; not extractable.",
   "_rebaseline_2026_06_15_3890_cache_preserve": "Issue #3890 own growth: chatCore.ts 5815->5823 (+8 = wire resolveCacheAwareConfig() into the compression apply step so the system prompt is never compressed in a caching context — honors the cache-aware skipSystemPrompt flag that selectCompressionStrategy could not carry). Cohesive cache-preservation guard at the existing compression chokepoint; not extractable.",
+  "_rebaseline_2026_06_16_3974_toolsearch_beta": "Issue #3974 own growth: base.ts 1218->1222 (+4 = wrap selectBetaFlags() with mergeClientAnthropicBeta() at the ccHeaders anthropic-beta callsite, plus a 3-line comment, so the client's allowlisted tool-search beta survives). The shared helper + allowlist live in anthropicHeaders.ts (small file, well under cap); default.ts also gains the merge. Cohesive one-callsite fix; not extractable.",
   "_rebaseline_2026_06_16_3959_strict_random_shuffle": "Issue #3959 own growth: combo.ts 5277->5283 (+6 = shuffle the strict-random fallback remainder via fisherYatesShuffle, plus a 4-line comment, so a failing deck pick no longer always falls through to the same fixed top-priority model). Cohesive one-spot routing fix; structural shrink of combo.ts tracked in #3501.",
   "_rebaseline_2026_06_16_3972_logs_autorefresh": "Issue #3972 own growth: RequestLoggerV2.tsx 1282->1287 (+5 = the auto-refresh interval now reads the live document.visibilityState each tick instead of a stale mount-time ref, plus a 3-line comment explaining the hidden-tab trap). Cohesive one-spot fix; structural shrink of this component tracked in #3501.",
   "_rebaseline_2026_06_16_3976_llm7_byteplus_models": "Issue #3976 own growth: models/route.ts 2489->2494 (+5 = add llm7 + byteplus to NAMED_OPENAI_STYLE_PROVIDERS with an explanatory comment so the import route does a live <baseUrl>/models fetch instead of serving the stale hardcoded registry catalog). Structural shrink of this route tracked in #3789.",
@@ -24,7 +25,7 @@
   "frozen": {
     "open-sse/config/providerRegistry.ts": 4731,
     "open-sse/executors/antigravity.ts": 1664,
-    "open-sse/executors/base.ts": 1218,
+    "open-sse/executors/base.ts": 1222,
     "open-sse/executors/chatgpt-web.ts": 2870,
     "open-sse/executors/claude-web.ts": 1057,
     "open-sse/executors/codex.ts": 1447,
