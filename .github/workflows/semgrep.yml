@@ -12,7 +12,7 @@ jobs:
     container:
       image: semgrep/semgrep
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Run semgrep (advisory)
@@ -21,7 +21,7 @@ jobs:
           semgrep scan --config p/owasp-top-ten --config p/secrets \
             --sarif --output semgrep.sarif --metrics off || true
           python -c "import json; d=json.load(open('semgrep.sarif')); print('semgrepFindings=%d' % len(d['runs'][0]['results']))" || echo "semgrepFindings=SKIP"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: semgrep-sarif
