@@ -179,13 +179,21 @@ export default function CompressionHub() {
   const toggleEngine = useCallback(
     async (engineId: string) => {
       if (!combo) return;
-      const enabledNow = combo.pipeline.some((s) => s.engine === engineId);
+      const existingIndex = combo.pipeline.findIndex((s) => s.engine === engineId);
+      const existingStep = existingIndex >= 0 ? combo.pipeline[existingIndex] : null;
+      const enabledNow = Boolean(existingStep && existingStep.config?.enabled !== false);
       const prev = combo;
 
       // Optimistic update (mirrors the server's insert-at-priority / remove logic).
       let optimistic: PipelineStep[];
       if (enabledNow) {
         optimistic = combo.pipeline.filter((s) => s.engine !== engineId);
+      } else if (existingStep) {
+        optimistic = combo.pipeline.map((step, index) =>
+          index === existingIndex
+            ? { ...step, config: { ...(step.config ?? {}), enabled: true } }
+            : step
+        );
       } else {
         const priorityOf = (eid: string) => engines.find((e) => e.id === eid)?.stackPriority ?? 50;
         optimistic = [...combo.pipeline];
@@ -200,7 +208,11 @@ export default function CompressionHub() {
         const res = await fetch("/api/context/combos/default", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ engineId, enabled: !enabledNow }),
+          body: JSON.stringify({
+            engineId,
+            enabled: !enabledNow,
+            config: { ...(existingStep?.config ?? {}), enabled: !enabledNow },
+          }),
         });
         if (!res.ok) {
           setCombo(prev);

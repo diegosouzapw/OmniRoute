@@ -283,8 +283,6 @@ export default function SecurityTab() {
         </div>
       </Card>
 
-      <IPFilterSection />
-
       {/* API Endpoint Protection */}
       <Card>
         <div className="flex items-center gap-3 mb-4">
@@ -457,6 +455,7 @@ export default function SecurityTab() {
         </div>
       </Card>
 
+      <IPFilterSection />
       <AuthzSection />
       <SessionInfoCard />
     </div>
