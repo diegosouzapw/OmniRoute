@@ -335,8 +335,8 @@ export const llmlinguaEngine: CompressionEngine = {
     "Async semantic token pruning via LLMLingua-2 (ONNX/worker-thread backend). " +
     "Compresses prose in non-system messages; fenced code blocks and other preserved " +
     "constructs are never altered. Fail-opens on any backend error. Production backend: " +
-    "vendored @atjsh/llmlingua-2 (MobileBERT 99 MB) in a worker thread — see " +
-    "./worker.ts for the L1 follow-up spec (VPS validation required per Hard Rule #18).",
+    "@atjsh/llmlingua-2 (TinyBERT 57 MB default, BERT-base optional) in a worker thread; " +
+    "model lazy-downloaded to DATA_DIR. Optional deps — fail-opens if not installed.",
   icon: "brain",
   targets: ["messages"],
   stackable: true,
@@ -354,7 +354,10 @@ export const llmlinguaEngine: CompressionEngine = {
     inputScope: "messages",
     targetLatencyMs: 200,
     supportsPreview: false,
-    stable: false,
+    // Promoted to stable after VPS validation (2026-06-16): the deployed worker
+    // compressed real prose (209→107 ch, ok=true), and the bundle's walk-up
+    // resolution + optional-deps gate were confirmed against the live install.
+    stable: true,
   },
 
   /**

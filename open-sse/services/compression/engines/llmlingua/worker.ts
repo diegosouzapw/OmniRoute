@@ -46,26 +46,26 @@ import type { LlmlinguaBackend } from "./index.ts";
 /** One-time model-load budget on the first call for a given model (tinybert ~2s, bert-base ~27s). */
 const FIRST_CALL_TIMEOUT_MS = 60000;
 
-/** The four optional peer deps the real backend needs. */
-const REQUIRED_DEPS = [
-  "@atjsh/llmlingua-2",
-  "@huggingface/transformers",
-  "@tensorflow/tfjs",
-  "js-tiktoken",
-] as const;
+/**
+ * Gate probe: `@atjsh/llmlingua-2` is the entry package that declares the others
+ * (`@huggingface/transformers`, `@tensorflow/tfjs`, `js-tiktoken`) as peers. We probe
+ * ONLY it because the peers are ESM-only — e.g. `@huggingface/transformers@3.5.2`'s
+ * `exports` has no `require`/`default` condition, so `require.resolve()` throws
+ * `MODULE_NOT_FOUND` for it even when it is installed and `import()`-able (verified on
+ * the VPS). Gating on all four would therefore always fail-open. The worker still
+ * fail-opens if a peer is genuinely missing at `import()` time.
+ */
+const GATE_DEP = "@atjsh/llmlingua-2";
 
 // ─── optional-deps gate (memoized) ──────────────────────────────────────────────
 
 let _depsAvailable: boolean | null = null;
 
-/** Lazily (and once) check whether all four optional deps resolve. */
+/** Lazily (and once) check whether the optional LLMLingua dependency stack is installed. */
 function depsAvailable(): boolean {
   if (_depsAvailable !== null) return _depsAvailable;
   try {
-    const require = createRequire(import.meta.url);
-    for (const dep of REQUIRED_DEPS) {
-      require.resolve(dep);
-    }
+    createRequire(import.meta.url).resolve(GATE_DEP);
     _depsAvailable = true;
   } catch {
     _depsAvailable = false;
