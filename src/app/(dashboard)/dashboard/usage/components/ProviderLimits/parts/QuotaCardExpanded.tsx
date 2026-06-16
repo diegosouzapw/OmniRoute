@@ -43,14 +43,22 @@ function QuotaDetailRow({ q }: { q: any }) {
       maximumFractionDigits: 2,
     });
     return (
-      <div className="flex items-center justify-between gap-2 py-1">
-        <span className="text-[12px] font-medium text-text-main flex items-center gap-1.5">
-          <span className="material-symbols-outlined text-[14px]" style={{ color: colors.text }}>
-            paid
+      <div className="flex min-h-[34px] items-center justify-between gap-2 py-1">
+        <span className="flex min-w-0 flex-1 items-center gap-1.5 text-[12px] font-medium leading-none text-text-main">
+          <span className="inline-flex size-6 shrink-0 items-center justify-center">
+            <span
+              className="material-symbols-outlined text-[15px] leading-none"
+              style={{ color: colors.text }}
+            >
+              paid
+            </span>
           </span>
-          {formatQuotaLabel(q.name) || "Credits"}
+          <span className="truncate leading-none">{formatQuotaLabel(q.name) || "Credits"}</span>
         </span>
-        <span className="text-[12px] font-bold tabular-nums" style={{ color: colors.text }}>
+        <span
+          className="inline-flex h-6 shrink-0 items-center text-[12px] font-bold leading-none tabular-nums"
+          style={{ color: colors.text }}
+        >
           {sym}
           {amount}
         </span>
