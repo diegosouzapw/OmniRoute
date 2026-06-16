@@ -6,7 +6,9 @@
 
 ## [3.8.27] — TBD
 
-_Cycle open — entries are added here as PRs merge into `release/v3.8.27`._
+### 🔒 Security & Hardening
+
+- **fix(security): eliminate a polynomial ReDoS in the combo `<omniModel>` tag regex** — `comboAgentMiddleware`'s cache-tag pattern wrapped the tag in an unbounded newline run (`(?:\n|\r)*`), making `.test()` / `.replace()` run in O(n²) on inputs with many newlines (CodeQL `js/polynomial-redos`). The detection pattern now matches only the core `<omniModel>…</omniModel>` and the global strip pattern bounds the surrounding newline runs, keeping it linear; detection / extraction / multi-tag stripping behavior is unchanged. ([#3982](https://github.com/diegosouzapw/OmniRoute/pull/3982) — thanks @diegosouzapw)
 
 ---
 
