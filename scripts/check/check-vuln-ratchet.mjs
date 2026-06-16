@@ -6,14 +6,28 @@
 //   vulnCount=N         — total de vulnerabilidades encontradas (todos os severities)
 //   vulnCount=SKIP reason=binary-absent   — osv-scanner não está no PATH
 //
-// Esta versão é ADVISORY (sai 0 sempre). O ratchet (direction:down) é gerenciado
-// pelo motor quality-baseline.json no CI (Task 7.2 INT).
+// Por default é ADVISORY (sai 0 sempre). Passe --ratchet para tornar BLOQUEANTE:
+// lê metrics.vulnCount.value de config/quality/quality-baseline.json, compara a
+// contagem MEDIDA e SAI 1 SE — E SOMENTE SE — a medida for MAIOR que o baseline
+// (regressão real, direction:down). Qualquer SKIP gracioso (binário ausente,
+// osv.dev/rede inacessível, erro de parse) SAI 0 mesmo com --ratchet — uma falha
+// de MEDIÇÃO nunca bloqueia, só uma regressão medida bloqueia.
+//
+// NB (variância de CVE): osv mede contra um banco de CVEs que cresce de forma
+// contínua. Um PR que NÃO toca dependências pode subitamente medir vulnCount >
+// baseline porque um novo CVE foi divulgado nas deps existentes — isso é o
+// comportamento ESPERADO de um gate de CVE bloqueante, não uma regressão de
+// produto. O remédio é (a) bumpar a dep afetada (preferível) ou, se não houver
+// fix, (b) re-baseline metrics.vulnCount com justificativa + issue de tracking.
+// Ver docs/security/SUPPLY_CHAIN.md → "Variância de CVE".
 //
 // Uso:
 //   node scripts/check/check-vuln-ratchet.mjs
-//   node scripts/check/check-vuln-ratchet.mjs --json   # imprime JSON bruto do osv-scanner
-//   node scripts/check/check-vuln-ratchet.mjs --quiet  # suprime logs de diagnóstico
+//   node scripts/check/check-vuln-ratchet.mjs --json    # imprime JSON bruto do osv-scanner
+//   node scripts/check/check-vuln-ratchet.mjs --quiet   # suprime logs de diagnóstico
+//   node scripts/check/check-vuln-ratchet.mjs --ratchet  # falha (exit 1) numa regressão
 
+import fs from "node:fs";
 import { execFileSync, spawnSync } from "node:child_process";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -21,6 +35,8 @@ import { pathToFileURL } from "node:url";
 const ROOT = process.cwd();
 const QUIET = process.argv.includes("--quiet");
 const PRINT_JSON = process.argv.includes("--json");
+const RATCHET = process.argv.includes("--ratchet");
+const BASELINE_PATH = path.join(ROOT, "config/quality/quality-baseline.json");
 
 // ---------------------------------------------------------------------------
 // Pure parsing function (exported for tests)
@@ -114,6 +130,46 @@ export function extractSeverity(vuln) {
 }
 
 // ---------------------------------------------------------------------------
+// Ratchet (direction:down) — exported for tests
+// ---------------------------------------------------------------------------
+
+/**
+ * Avalia a contagem MEDIDA de vulnerabilidades contra o baseline.
+ * Direction: down (a contagem só pode CAIR — mais vulns = regressão).
+ *
+ * @param {number} current  - Contagem de vulnerabilidades medida agora.
+ * @param {number} baseline - Contagem congelada em quality-baseline.json.
+ * @returns {{ regressed: boolean, improved: boolean }}
+ */
+export function evaluateVulnRatchet(current, baseline) {
+  return {
+    regressed: current > baseline,
+    improved: current < baseline,
+  };
+}
+
+/**
+ * Lê metrics.vulnCount.value do quality-baseline.json.
+ * Retorna null se o arquivo ou a métrica estiverem ausentes (sem baseline não há
+ * ratchet possível — o caller trata como SKIP gracioso, exit 0).
+ *
+ * @param {string} baselinePath
+ * @returns {number|null}
+ */
+export function readBaselineVulnValue(baselinePath = BASELINE_PATH) {
+  if (!fs.existsSync(baselinePath)) return null;
+  let baselineJson;
+  try {
+    baselineJson = JSON.parse(fs.readFileSync(baselinePath, "utf8"));
+  } catch {
+    return null;
+  }
+  const metric = baselineJson?.metrics?.vulnCount;
+  if (!metric || typeof metric.value !== "number") return null;
+  return metric.value;
+}
+
+// ---------------------------------------------------------------------------
 // Binary detection
 // ---------------------------------------------------------------------------
 
@@ -159,8 +215,13 @@ export function findOsvScanner() {
  * Executa o osv-scanner sobre o lockfile/diretório.
  * Usa execFileSync sem shell interpolation (Hard Rule #13).
  *
+ * Em uma falha de MEDIÇÃO (osv-scanner não produziu JSON — rede/osv.dev
+ * inacessível, timeout, JSON inválido) retorna { skip: true, reason } em vez de
+ * abortar o processo: o caller traduz isso num SKIP gracioso (exit 0 mesmo com
+ * --ratchet). Uma falha de medição NUNCA bloqueia; só uma regressão MEDIDA bloqueia.
+ *
  * @param {string} osvBin - Caminho para o binário osv-scanner
- * @returns {object} JSON parseado do output
+ * @returns {{ json: object } | { skip: true, reason: string }}
  */
 function runOsvScanner(osvBin) {
   const args = [
@@ -186,16 +247,16 @@ function runOsvScanner(osvBin) {
     stdout = err.stdout ? String(err.stdout) : "";
     if (!stdout.trim()) {
       process.stderr.write(`[vuln-ratchet] ERRO ao executar osv-scanner: ${err.message}\n`);
-      process.exit(2);
+      return { skip: true, reason: "osv-error" };
     }
   }
 
   try {
-    return JSON.parse(stdout);
+    return { json: JSON.parse(stdout) };
   } catch (parseErr) {
     process.stderr.write(`[vuln-ratchet] ERRO ao parsear JSON do osv-scanner: ${parseErr.message}\n`);
     process.stderr.write(`[vuln-ratchet] stdout (primeiros 500 chars): ${stdout.slice(0, 500)}\n`);
-    process.exit(2);
+    return { skip: true, reason: "parse-error" };
   }
 }
 
@@ -208,19 +269,36 @@ function main() {
 
   if (!osvBin) {
     // Skip gracioso: binário ausente — esperado em ambientes sem osv-scanner instalado.
+    // SKIP sai 0 MESMO com --ratchet (binário ausente nunca bloqueia).
     console.log("vulnCount=SKIP reason=binary-absent");
     if (!QUIET) {
       process.stderr.write(
         "[vuln-ratchet] SKIP — osv-scanner não encontrado no PATH.\n" +
         "[vuln-ratchet] Instale via: https://google.github.io/osv-scanner/\n" +
-        "[vuln-ratchet] ADVISORY — este gate sai 0 (ratchet entra no CI da Fase 7 INT).\n"
+        "[vuln-ratchet] SKIP gracioso — sai 0 mesmo com --ratchet (binário ausente nunca bloqueia).\n"
       );
     }
     process.exitCode = 0;
     return;
   }
 
-  const osvJson = runOsvScanner(osvBin);
+  const osvResult = runOsvScanner(osvBin);
+
+  // Falha de MEDIÇÃO (rede/osv.dev inacessível, timeout, JSON inválido) → SKIP
+  // gracioso, sai 0 mesmo com --ratchet (uma falha de medição nunca bloqueia).
+  if (osvResult.skip) {
+    console.log(`vulnCount=SKIP reason=${osvResult.reason}`);
+    if (!QUIET) {
+      process.stderr.write(
+        `[vuln-ratchet] SKIP — osv-scanner não produziu uma medição (${osvResult.reason}).\n` +
+        "[vuln-ratchet] SKIP gracioso — sai 0 mesmo com --ratchet (falha de medição nunca bloqueia).\n"
+      );
+    }
+    process.exitCode = 0;
+    return;
+  }
+
+  const osvJson = osvResult.json;
 
   if (PRINT_JSON) {
     process.stdout.write(JSON.stringify(osvJson, null, 2) + "\n");
@@ -239,12 +317,58 @@ function main() {
     process.stderr.write(
       `[vuln-ratchet] Total de vulnerabilidades: ${vulnCount} (${severitySummary})\n`
     );
-    process.stderr.write(
-      "[vuln-ratchet] ADVISORY — esta versão não falha pela contagem (ratchet entra no CI).\n"
-    );
   }
 
-  // Sai 0 sempre nesta versão (advisory)
+  // Medição bem-sucedida → aplica o ratchet (bloqueante só com --ratchet).
+  applyRatchet(vulnCount);
+}
+
+/**
+ * Aplica o ratchet (direction:down) sobre a contagem medida vs o baseline.
+ * Sem --ratchet: advisory (exit 0). Com --ratchet: exit 1 numa regressão real
+ * (medida > baseline). Baseline ausente → SKIP gracioso (exit 0).
+ *
+ * @param {number} vulnCount - Contagem MEDIDA (medição bem-sucedida).
+ */
+function applyRatchet(vulnCount) {
+  if (!RATCHET) {
+    if (!QUIET) {
+      process.stderr.write(
+        "[vuln-ratchet] ADVISORY — não falha pela contagem (passe --ratchet para bloquear regressão).\n"
+      );
+    }
+    process.exitCode = 0;
+    return;
+  }
+
+  const baselineValue = readBaselineVulnValue(BASELINE_PATH);
+  if (baselineValue === null) {
+    if (!QUIET) {
+      process.stderr.write(
+        "[vuln-ratchet] baseline ausente (metrics.vulnCount) — SKIP gracioso, sai 0.\n"
+      );
+    }
+    process.exitCode = 0;
+    return;
+  }
+
+  const { regressed } = evaluateVulnRatchet(vulnCount, baselineValue);
+  if (regressed) {
+    process.stderr.write(
+      `[vuln-ratchet] REGRESSÃO — ${vulnCount} vulnerabilidades > baseline ${baselineValue}\n` +
+        "  → Bumpe a(s) dep(s) afetada(s) (preferível). Se não houver fix, re-baseline\n" +
+        "    metrics.vulnCount em config/quality/quality-baseline.json com justificativa\n" +
+        "    + issue de tracking. Ver docs/security/SUPPLY_CHAIN.md → 'Variância de CVE'.\n"
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  if (!QUIET) {
+    process.stderr.write(
+      `[vuln-ratchet] OK — sem regressão (${vulnCount} vulns, baseline ${baselineValue}).\n`
+    );
+  }
   process.exitCode = 0;
 }
 

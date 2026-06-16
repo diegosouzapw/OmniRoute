@@ -11,19 +11,38 @@
 //   codeqlAlerts=SKIP reason=no-auth         — `gh` presente mas sem autenticação
 //   codeqlAlerts=SKIP reason=api-error:<code>  — erro da API GitHub
 //
-// Esta versão é ADVISORY (sai 0 sempre). O ratchet (direction:down) é gerenciado
-// pelo motor quality-baseline.json no CI (Task 7.3 INT).
+// RATCHET BLOQUEANTE (default): lê metrics.codeqlAlerts.value de
+// config/quality/quality-baseline.json e SAI 1 SE — E SOMENTE SE — a contagem
+// MEDIDA for MAIOR que o baseline (regressão real, mais alertas CodeQL abertos).
+// Qualquer falha de MEDIÇÃO (gh ausente / sem auth / sem repo / erro de API) é um
+// SKIP gracioso que SAI 0 — nunca bloqueia o build por falta de infraestrutura.
+// Direction: down (a contagem só pode CAIR). Suporta --update para ratchetar.
 //
 // Uso:
 //   node scripts/check/check-codeql-ratchet.mjs
-//   node scripts/check/check-codeql-ratchet.mjs --json   # imprime array de alertas
-//   node scripts/check/check-codeql-ratchet.mjs --quiet  # suprime logs de diagnóstico
+//   node scripts/check/check-codeql-ratchet.mjs --json    # imprime array de alertas
+//   node scripts/check/check-codeql-ratchet.mjs --quiet   # suprime logs de diagnóstico
+//   node scripts/check/check-codeql-ratchet.mjs --update  # ratcheta o baseline (queda)
+//   node scripts/check/check-codeql-ratchet.mjs --advisory  # nunca falha (modo coletor)
 
 import { execFileSync, spawnSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 const QUIET = process.argv.includes("--quiet");
 const PRINT_JSON = process.argv.includes("--json");
+const UPDATE = process.argv.includes("--update");
+// --advisory: nunca falha pela contagem (modo coletor legado). Sem esta flag o
+// gate é BLOQUEANTE: sai 1 numa regressão real (medida > baseline).
+const ADVISORY = process.argv.includes("--advisory");
+
+const ROOT = process.cwd();
+const BASELINE_PATH = path.resolve(
+  process.argv.includes("--baseline")
+    ? process.argv[process.argv.indexOf("--baseline") + 1]
+    : path.join(ROOT, "config/quality/quality-baseline.json")
+);
 
 // ---------------------------------------------------------------------------
 // Pure parsing function (exported for tests)
@@ -88,6 +107,23 @@ export function parseCodeQLAlerts(alerts) {
   return { alertCount, bySeverity, byRule };
 }
 
+/**
+ * Avalia a contagem MEDIDA de alertas CodeQL contra o baseline.
+ * Direction: down (a contagem só pode CAIR — mais alertas = regressão).
+ *
+ * Exported for unit testing — espelha evaluateDeadCode em check-dead-code.mjs.
+ *
+ * @param {number} current  - Contagem de alertas medida agora.
+ * @param {number} baseline - Contagem congelada em quality-baseline.json.
+ * @returns {{ regressed: boolean, improved: boolean }}
+ */
+export function evaluateCodeqlRatchet(current, baseline) {
+  return {
+    regressed: current > baseline,
+    improved: current < baseline,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Repository detection
 // ---------------------------------------------------------------------------
@@ -101,10 +137,14 @@ export function parseCodeQLAlerts(alerts) {
  */
 export function detectRepo(ghBin) {
   try {
-    const stdout = execFileSync(ghBin, ["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"], {
-      encoding: "utf8",
-      timeout: 15_000,
-    });
+    const stdout = execFileSync(
+      ghBin,
+      ["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"],
+      {
+        encoding: "utf8",
+        timeout: 15_000,
+      }
+    );
     return stdout.trim() || null;
   } catch {
     return null;
@@ -184,7 +224,11 @@ function fetchCodeQLAlerts(ghBin, repo) {
       const errMsg = String(err.stderr ?? err.message ?? "");
 
       // Sem autenticação
-      if (errMsg.includes("authentication") || errMsg.includes("401") || errMsg.includes("not logged")) {
+      if (
+        errMsg.includes("authentication") ||
+        errMsg.includes("401") ||
+        errMsg.includes("not logged")
+      ) {
         return { error: "no-auth", message: errMsg };
       }
 
@@ -198,8 +242,10 @@ function fetchCodeQLAlerts(ghBin, repo) {
     try {
       page_alerts = JSON.parse(stdout);
     } catch (parseErr) {
-      process.stderr.write(`[codeql-ratchet] ERRO ao parsear resposta da API: ${parseErr.message}\n`);
-      process.exit(2);
+      // A malformed (but HTTP-200) API response is a MEASUREMENT failure, not a
+      // regression. A blocking gate must never red on it — return the same
+      // {error,message} shape the caller already maps to a graceful SKIP (exit 0).
+      return { error: "parse-error", message: String(parseErr.message ?? parseErr) };
     }
 
     // A API retorna null quando não há mais páginas (ou array vazio)
@@ -217,6 +263,81 @@ function fetchCodeQLAlerts(ghBin, repo) {
 }
 
 // ---------------------------------------------------------------------------
+// Baseline
+// ---------------------------------------------------------------------------
+
+/**
+ * Lê metrics.codeqlAlerts.value do quality-baseline.json.
+ * Retorna null se o arquivo ou a métrica estiverem ausentes (modo coletor puro:
+ * sem baseline não há ratchet, só emissão da contagem).
+ *
+ * @returns {number|null}
+ */
+function readBaselineCodeqlValue() {
+  if (!fs.existsSync(BASELINE_PATH)) return null;
+  let baselineJson;
+  try {
+    baselineJson = JSON.parse(fs.readFileSync(BASELINE_PATH, "utf8"));
+  } catch {
+    return null;
+  }
+  const metric = baselineJson?.metrics?.codeqlAlerts;
+  if (!metric || typeof metric.value !== "number") return null;
+  return metric.value;
+}
+
+/**
+ * Aplica o ratchet (direction:down) sobre a contagem medida vs o baseline.
+ * Define process.exitCode = 1 numa regressão real (medida > baseline) salvo
+ * --advisory. Ratcheta o baseline com --update quando a contagem cai.
+ *
+ * Exported for unit testing (drives o efeito em process.exitCode).
+ *
+ * @param {number} alertCount - Contagem MEDIDA (medição bem-sucedida).
+ */
+export function applyRatchet(alertCount) {
+  const baselineValue = readBaselineCodeqlValue();
+
+  // Sem baseline → modo coletor puro (emite a contagem, não falha).
+  if (baselineValue === null) {
+    if (!QUIET) {
+      process.stderr.write(
+        "[codeql-ratchet] baseline ausente (metrics.codeqlAlerts) — modo coletor, sem ratchet.\n"
+      );
+    }
+    process.exitCode = 0;
+    return;
+  }
+
+  const { regressed, improved } = evaluateCodeqlRatchet(alertCount, baselineValue);
+
+  if (UPDATE && improved) {
+    const baselineJson = JSON.parse(fs.readFileSync(BASELINE_PATH, "utf8"));
+    baselineJson.metrics.codeqlAlerts.value = alertCount;
+    fs.writeFileSync(BASELINE_PATH, JSON.stringify(baselineJson, null, 2) + "\n");
+    console.log(`[codeql-ratchet] baseline ratcheado: ${alertCount} (era ${baselineValue})`);
+  }
+
+  if (regressed && !ADVISORY) {
+    process.stderr.write(
+      `[codeql-ratchet] REGRESSÃO — ${alertCount} alertas CodeQL abertos > baseline ${baselineValue}\n` +
+        "  → Corrija os novos alertas em Security → Code scanning, ou rode\n" +
+        "    'node scripts/check/check-codeql-ratchet.mjs --update' se a contagem caiu legitimamente.\n"
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  if (!QUIET) {
+    const verdict = regressed ? "ADVISORY — regressão ignorada (--advisory)" : "OK — sem regressão";
+    process.stderr.write(
+      `[codeql-ratchet] ${verdict} — ${alertCount} alertas (baseline ${baselineValue})\n`
+    );
+  }
+  process.exitCode = 0;
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -228,8 +349,8 @@ function main() {
     if (!QUIET) {
       process.stderr.write(
         "[codeql-ratchet] SKIP — `gh` CLI não encontrado no PATH.\n" +
-        "[codeql-ratchet] Instale via: https://cli.github.com/\n" +
-        "[codeql-ratchet] ADVISORY — este gate sai 0 (ratchet entra no CI da Fase 7 INT).\n"
+          "[codeql-ratchet] Instale via: https://cli.github.com/\n" +
+          "[codeql-ratchet] ADVISORY — este gate sai 0 (ratchet entra no CI da Fase 7 INT).\n"
       );
     }
     process.exitCode = 0;
@@ -243,7 +364,7 @@ function main() {
     if (!QUIET) {
       process.stderr.write(
         "[codeql-ratchet] SKIP — não foi possível detectar o repositório GitHub.\n" +
-        "[codeql-ratchet] Execute dentro de um repositório GitHub com `gh` autenticado.\n"
+          "[codeql-ratchet] Execute dentro de um repositório GitHub com `gh` autenticado.\n"
       );
     }
     process.exitCode = 0;
@@ -262,7 +383,9 @@ function main() {
     const { error, message } = result;
     console.log(`codeqlAlerts=SKIP reason=${error}`);
     if (!QUIET) {
-      process.stderr.write(`[codeql-ratchet] SKIP — erro ao consultar API GitHub: ${message.slice(0, 200)}\n`);
+      process.stderr.write(
+        `[codeql-ratchet] SKIP — erro ao consultar API GitHub: ${message.slice(0, 200)}\n`
+      );
     }
     process.exitCode = 0;
     return;
@@ -279,14 +402,16 @@ function main() {
   console.log(`codeqlAlerts=${alertCount}`);
 
   if (!QUIET) {
-    const severitySummary = Object.entries(bySeverity)
-      .map(([k, v]) => `${k}=${v}`)
-      .join(", ") || "nenhum";
-    const topRules = Object.entries(byRule)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 5)
-      .map(([r, n]) => `${r}(${n})`)
-      .join(", ") || "nenhum";
+    const severitySummary =
+      Object.entries(bySeverity)
+        .map(([k, v]) => `${k}=${v}`)
+        .join(", ") || "nenhum";
+    const topRules =
+      Object.entries(byRule)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5)
+        .map(([r, n]) => `${r}(${n})`)
+        .join(", ") || "nenhum";
 
     process.stderr.write(
       `[codeql-ratchet] Alertas CodeQL abertos (não-dismissed): ${alertCount}\n`
@@ -295,13 +420,11 @@ function main() {
       process.stderr.write(`[codeql-ratchet]   Por severidade: ${severitySummary}\n`);
       process.stderr.write(`[codeql-ratchet]   Top regras: ${topRules}\n`);
     }
-    process.stderr.write(
-      "[codeql-ratchet] ADVISORY — esta versão não falha pela contagem (ratchet entra no CI).\n"
-    );
   }
 
-  // Sai 0 sempre nesta versão (advisory)
-  process.exitCode = 0;
+  // Medição bem-sucedida → aplica o ratchet (bloqueante salvo --advisory).
+  // Qualquer falha de MEDIÇÃO acima já retornou com exit 0 (skip gracioso).
+  applyRatchet(alertCount);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || "").href) main();

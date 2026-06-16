@@ -128,7 +128,7 @@ export default function ProviderSummaryCard({
       label: "Cloud Agent",
       stat: summaryStats.cloudagent,
     },
-  ];
+  ].filter((category) => category.key !== "no-auth" || category.stat.total > 0);
 
   return (
     <Card padding="sm">

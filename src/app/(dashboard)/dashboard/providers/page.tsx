@@ -165,6 +165,7 @@ export default function ProvidersPage() {
   const [connections, setConnections] = useState<any[]>([]);
   const [providerNodes, setProviderNodes] = useState<any[]>([]);
   const [ccCompatibleProviderEnabled, setCcCompatibleProviderEnabled] = useState(false);
+  const [blockedProviders, setBlockedProviders] = useState<string[]>([]);
   const [expirations, setExpirations] = useState<any>(null);
   const [codexGlobalServiceMode, setCodexGlobalServiceMode] =
     useState<CodexGlobalServiceMode>("none");
@@ -242,6 +243,9 @@ export default function ProvidersPage() {
           setCcCompatibleProviderEnabled(nodesData.ccCompatibleProviderEnabled === true);
         }
         if (expirationsRes.ok && expirationsData) setExpirations(expirationsData);
+        if (settingsData && Array.isArray(settingsData.blockedProviders)) {
+          setBlockedProviders(settingsData.blockedProviders);
+        }
         setCodexGlobalServiceMode(getCodexGlobalServiceMode(settingsData));
       } catch (error) {
         console.log("Error fetching data:", error);
@@ -522,7 +526,12 @@ export default function ProvidersPage() {
     modelSearchQuery
   );
 
-  const noAuthEntriesAll = buildStaticProviderEntries("no-auth", getProviderStats);
+  const blockedProviderSet = new Set(blockedProviders);
+  const rawNoAuthEntriesAll = buildStaticProviderEntries("no-auth", getProviderStats);
+  const noAuthEntriesAll = rawNoAuthEntriesAll.filter(({ providerId, provider }) => {
+    const alias = typeof provider.alias === "string" ? provider.alias : null;
+    return !blockedProviderSet.has(providerId) && !(alias && blockedProviderSet.has(alias));
+  });
   const noAuthEntries = filterConfiguredProviderEntries(
     noAuthEntriesAll,
     effectiveShowConfiguredOnly,
@@ -1263,7 +1272,7 @@ export default function ProvidersPage() {
           )}
 
           {/* No Auth Providers */}
-          {showSection("noauth") && noAuthEntries.length > 0 && (
+          {showSection("noauth") && !showFreeOnly && noAuthEntriesAll.length > 0 && (
             <div className="flex flex-col gap-4">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">

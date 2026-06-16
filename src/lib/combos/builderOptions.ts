@@ -5,6 +5,7 @@ import {
   getModelIsHidden,
   getProviderConnections,
   getProviderNodes,
+  getSettings,
 } from "@/lib/localDb";
 import { getAccountDisplayName, getProviderDisplayName } from "@/lib/display/names";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
@@ -361,13 +362,20 @@ function normalizeSyncedModels(raw: unknown): SyncedModelLike[] {
 
 export async function getComboBuilderOptions(): Promise<ComboBuilderOptionsPayload> {
   getSyncedCapabilities();
-  const [connections, providerNodes, customModelsMap, syncedModelsMap, combos] = await Promise.all([
-    getProviderConnections(),
-    getProviderNodes(),
-    getAllCustomModels(),
-    getAllSyncedAvailableModels(),
-    getCombos(),
-  ]);
+  const [connections, providerNodes, customModelsMap, syncedModelsMap, combos, settings] =
+    await Promise.all([
+      getProviderConnections(),
+      getProviderNodes(),
+      getAllCustomModels(),
+      getAllSyncedAvailableModels(),
+      getCombos(),
+      getSettings().catch(() => ({}) as Record<string, unknown>),
+    ]);
+  const blockedProviders = new Set(
+    Array.isArray((settings as Record<string, unknown>).blockedProviders)
+      ? ((settings as Record<string, unknown>).blockedProviders as string[])
+      : []
+  );
 
   const providerNodeMap = new Map<string, ProviderNodeLike>();
   for (const providerNode of providerNodes as ProviderNodeLike[]) {
@@ -516,9 +524,14 @@ export async function getComboBuilderOptions(): Promise<ComboBuilderOptionsPaylo
   }
 
   // No-auth providers have no rows in provider_connections, so they are never included in the
-  // connectionsByProvider loop above. Add them here so they appear in the combo builder picker.
+  // connectionsByProvider loop above. Add them unless the provider is explicitly blocked.
   for (const noAuthProvider of Object.values(NOAUTH_PROVIDERS)) {
     const providerId = noAuthProvider.id;
+    if (
+      blockedProviders.has(providerId) ||
+      (typeof noAuthProvider.alias === "string" && blockedProviders.has(noAuthProvider.alias))
+    )
+      continue;
     // Skip if already covered (defensive: shouldn't happen for true no-auth providers)
     if (connectionsByProvider.has(providerId)) continue;
 

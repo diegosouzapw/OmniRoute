@@ -43,30 +43,68 @@ test("ensureOpenAIStoreSessionFallback injects session_id only when no stable ca
   assert.equal(withExplicitSession.session_id, "existing-session");
 });
 
-test("normalizeProviderSpecificData keeps only boolean CC-compatible 1M request defaults", () => {
+test("normalizeProviderSpecificData keeps only boolean CC-compatible request defaults", () => {
   const normalized = normalizeProviderSpecificData("anthropic-compatible-cc-demo", {
     baseUrl: "https://proxy.example.com/v1/messages?beta=true",
     requestDefaults: {
       context1m: true,
+      redactThinking: true,
       customFlag: "keep-me",
     },
   });
 
   assert.deepEqual(getClaudeCodeCompatibleRequestDefaults(normalized), {
     context1m: true,
+    redactThinking: true,
   });
   assert.deepEqual(normalized?.requestDefaults, {
     context1m: true,
+    redactThinking: true,
     customFlag: "keep-me",
   });
 
   const stripped = normalizeProviderSpecificData("anthropic-compatible-cc-demo", {
     requestDefaults: {
       context1m: "yes",
+      redactThinking: "yes",
       customFlag: "keep-me",
     },
   });
   assert.deepEqual(stripped?.requestDefaults, {
     customFlag: "keep-me",
   });
+});
+
+test("normalizeProviderSpecificData trims OpenRouter preset and clears empty values", () => {
+  const normalized = normalizeProviderSpecificData("openrouter", {
+    preset: "  email-copywriter  ",
+    tag: "primary",
+  });
+
+  assert.equal(normalized?.preset, "email-copywriter");
+  assert.equal(normalized?.tag, "primary");
+
+  const stripped = normalizeProviderSpecificData("openrouter", {
+    preset: "   ",
+    tag: "primary",
+  });
+
+  assert.equal(stripped?.preset, undefined);
+  assert.equal(stripped?.tag, "primary");
+
+  const oversized = normalizeProviderSpecificData("openrouter", {
+    preset: "x".repeat(201),
+    tag: "primary",
+  });
+
+  assert.equal(oversized?.preset, undefined);
+  assert.equal(oversized?.tag, "primary");
+
+  const ignored = normalizeProviderSpecificData("openai", {
+    preset: "email-copywriter",
+    tag: "primary",
+  });
+
+  assert.equal(ignored?.preset, undefined);
+  assert.equal(ignored?.tag, "primary");
 });

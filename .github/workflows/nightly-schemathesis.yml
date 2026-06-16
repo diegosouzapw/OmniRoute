@@ -1,0 +1,72 @@
+name: Nightly Schemathesis
+on:
+  schedule:
+    - cron: "23 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  schemathesis:
+    name: Schemathesis — OpenAPI contract fuzz (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with: { node-version: "24", cache: npm }
+      - run: npm ci
+      - name: Build CLI bundle
+        env: { JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation }
+        run: npm run build:cli
+      - name: Start OmniRoute (background)
+        env:
+          JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
+          PORT: "20128"
+        run: |
+          node dist/server.js > server.log 2>&1 &
+          echo $! > server.pid
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:20128/api/monitoring/health >/dev/null; then echo "server up"; break; fi
+            sleep 2
+          done
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Install schemathesis
+        run: pip install schemathesis
+      - name: Schemathesis contract fuzz (advisory)
+        # Advisory gate: never fails the job. `continue-on-error` covers a crash of the
+        # step itself; `|| true` covers schemathesis exiting non-zero when it finds spec
+        # violations / upstream 500s — both are expected here (most /v1 endpoints proxy an
+        # upstream that has no provider configured in CI). The point of the nightly is to
+        # PROVE the contract is fuzzable and surface regressions, not to gate the build.
+        continue-on-error: true
+        run: |
+          schemathesis run docs/reference/openapi.yaml \
+            --url http://localhost:20128 \
+            --max-examples 20 \
+            --workers 4 \
+            --checks all \
+            --max-response-time 30 \
+            --request-timeout 30 \
+            --suppress-health-check all \
+            --report junit \
+            --report-junit-path schemathesis-report/junit.xml \
+            --no-color \
+            || true
+      - name: Stop server
+        if: always()
+        run: kill "$(cat server.pid)" || true
+      - name: Upload schemathesis report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: schemathesis-report
+          path: |
+            schemathesis-report/
+            server.log
+          if-no-files-found: warn
+          retention-days: 14

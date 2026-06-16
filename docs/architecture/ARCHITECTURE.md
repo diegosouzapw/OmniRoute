@@ -17,7 +17,7 @@ It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic acr
 
 Core capabilities:
 
-- OpenAI-compatible API surface for CLI/tools (177 providers, 60 executors)
+- OpenAI-compatible API surface for CLI/tools (226 providers, 60 executors)
 - Request/response translation across provider formats
 - Model combo fallback (multi-model sequence)
 - Structured combo steps (`provider + model + connection`) with runtime ordering by `compositeTiers`
@@ -58,7 +58,7 @@ Core capabilities:
 - Compliance audit logging with opt-out per API key
 - Eval framework for LLM quality assurance
 - Health dashboard with real-time provider circuit breaker status
-- MCP Server (37 tools) with 3 transports (stdio/SSE/Streamable HTTP)
+- MCP Server (87 tools) with 3 transports (stdio/SSE/Streamable HTTP)
 - A2A Server (JSON-RPC 2.0 + SSE) with skills and task lifecycle
 - Memory system (extraction, injection, retrieval, summarization)
 - Skills system (registry, executor, sandbox, built-in skills)
@@ -932,7 +932,7 @@ All other providers (including custom compatible nodes) use the `DefaultExecutor
 
 ## Provider Compatibility Matrix
 
-> **Note:** The matrix below is a representative sample of the 177 registered providers in
+> **Note:** The matrix below is a representative sample of the 226 registered providers in
 > OmniRoute v3.8.0. For the canonical and continuously-updated list, refer to
 > [`docs/reference/PROVIDER_REFERENCE.md`](../reference/PROVIDER_REFERENCE.md) (auto-generated) or the source of
 > truth at `src/shared/constants/providers.ts` (Zod-validated at load).

@@ -2,7 +2,14 @@
 
 // Phase 1t.5 extraction — Issue #3501
 // Pure composition of all modal elements rendered by ProviderDetailPageClient.
-import { ConfirmModal, OAuthModal, KiroOAuthWrapper, CursorAuthModal, TraeAuthModal, ProxyConfigModal } from "@/shared/components";
+import {
+  ConfirmModal,
+  OAuthModal,
+  KiroOAuthWrapper,
+  CursorAuthModal,
+  TraeAuthModal,
+  ProxyConfigModal,
+} from "@/shared/components";
 import RiskNoticeModal from "../../components/RiskNoticeModal";
 import CodexCliGuideModal from "../../components/CodexCliGuideModal";
 import SiliconFlowEndpointModal from "./SiliconFlowEndpointModal";
@@ -13,18 +20,9 @@ import ExternalLinkModal from "./ExternalLinkModal";
 import BatchTestResultsModal from "./BatchTestResultsModal";
 import ImportProgressModal from "./ImportProgressModal";
 import { AdaptaTutorialModal } from "./AdaptaTutorialModal";
-import {
-  ImportCodexAuthModal,
-  ApplyCodexAuthModal,
-} from "./modals/ImportCodexAuthModal";
-import {
-  ImportClaudeAuthModal,
-  ApplyClaudeAuthModal,
-} from "./modals/ImportClaudeAuthModal";
-import {
-  ImportGeminiAuthModal,
-  ApplyGeminiAuthModal,
-} from "./modals/ImportGeminiAuthModal";
+import { ImportCodexAuthModal, ApplyCodexAuthModal } from "./modals/ImportCodexAuthModal";
+import { ImportClaudeAuthModal, ApplyClaudeAuthModal } from "./modals/ImportClaudeAuthModal";
+import { ImportGeminiAuthModal, ApplyGeminiAuthModal } from "./modals/ImportGeminiAuthModal";
 import { type ConnectionRowConnection } from "./ConnectionRow";
 import { type BatchTestResults } from "../hooks/useProviderConnections";
 import { type ImportProgress } from "../hooks/useModelImportHandlers";
@@ -97,7 +95,7 @@ interface ProviderModalsPanelProps {
   // Edit connection
   showEditModal: boolean;
   setShowEditModal: (open: boolean) => void;
-  selectedConnection: { id: string } | null;
+  selectedConnection: ConnectionRowConnection | null;
   handleUpdateConnection: (data: any) => Promise<string | null>;
   // Edit compatible node
   showEditNodeModal: boolean;
@@ -316,6 +314,7 @@ export default function ProviderModalsPanel({
         <EditConnectionModal
           isOpen={showEditModal}
           connection={selectedConnection}
+          providerId={providerId}
           onSave={handleUpdateConnection}
           onClose={() => setShowEditModal(false)}
         />

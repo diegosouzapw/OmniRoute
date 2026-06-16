@@ -6,21 +6,34 @@
 //   - parseGitleaksJson() — parses gitleaks findings array
 import test from "node:test";
 import assert from "node:assert/strict";
-// @ts-expect-error — .mjs helper has no type declarations; runtime shape is known.
-import { parseGitleaksJson } from "../../../scripts/check/check-secrets.mjs";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import {
+  parseGitleaksJson,
+  evaluateSecretsRatchet,
+  readBaselineSecretsValue,
+  // @ts-expect-error — .mjs helper has no type declarations; runtime shape is known.
+} from "../../../scripts/check/check-secrets.mjs";
+
+type RatchetVerdict = { regressed: boolean; improved: boolean };
+const evaluate = evaluateSecretsRatchet as (current: number, baseline: number) => RatchetVerdict;
+const readBaseline = readBaselineSecretsValue as (p?: string) => number | null;
 
 // ---------------------------------------------------------------------------
 // Fixtures — synthetic gitleaks --report-format json output
 // ---------------------------------------------------------------------------
 
 /** Helper to build a minimal gitleaks finding. */
-function makeFinding(overrides: {
-  ruleId?: string;
-  file?: string;
-  description?: string;
-  startLine?: number;
-  secret?: string;
-} = {}) {
+function makeFinding(
+  overrides: {
+    ruleId?: string;
+    file?: string;
+    description?: string;
+    startLine?: number;
+    secret?: string;
+  } = {}
+) {
   return {
     Description: overrides.description ?? "GitHub Personal Access Token",
     StartLine: overrides.startLine ?? 42,
@@ -178,11 +191,9 @@ test("parseGitleaksJson: suporta campo file (camelCase) como fallback", () => {
 // ---------------------------------------------------------------------------
 
 test("parseGitleaksJson: entradas null dentro do array são ignoradas", () => {
-  const findings = [
-    makeFinding(),
-    null,
-    makeFinding({ ruleId: "aws-access-key" }),
-  ] as (ReturnType<typeof makeFinding> | null)[];
+  const findings = [makeFinding(), null, makeFinding({ ruleId: "aws-access-key" })] as (ReturnType<
+    typeof makeFinding
+  > | null)[];
   const result = parseGitleaksJson(findings as unknown as ReturnType<typeof makeFinding>[]);
   assert.equal(result.findingCount, 2, "null entries should be skipped");
 });
@@ -239,4 +250,82 @@ test("parseGitleaksJson: findingCount == soma de todos os byFile values", () => 
   const result = parseGitleaksJson(findings);
   const sumByFile = Object.values(result.byFile).reduce((s, n) => s + n, 0);
   assert.equal(result.findingCount, sumByFile, "findingCount must equal sum of byFile counts");
+});
+
+// ---------------------------------------------------------------------------
+// evaluateSecretsRatchet — ratchet direction:down (Etapa 2: flip to blocking)
+// Regression when measured > baseline; baseline=3 → 4+ findings block, 3 passes.
+// ---------------------------------------------------------------------------
+
+test("evaluateSecretsRatchet: medida == baseline passa (3 vs 3)", () => {
+  const r = evaluate(3, 3);
+  assert.equal(r.regressed, false);
+  assert.equal(r.improved, false);
+});
+
+test("evaluateSecretsRatchet: uma a mais que o baseline é regressão (4 vs 3)", () => {
+  const r = evaluate(4, 3);
+  assert.equal(r.regressed, true, "a single new secret finding must block");
+  assert.equal(r.improved, false);
+});
+
+test("evaluateSecretsRatchet: menos que o baseline é melhoria", () => {
+  const r = evaluate(1, 3);
+  assert.equal(r.regressed, false);
+  assert.equal(r.improved, true);
+});
+
+test("evaluateSecretsRatchet: zero contra baseline não-zero é melhoria máxima", () => {
+  const r = evaluate(0, 5);
+  assert.equal(r.regressed, false);
+  assert.equal(r.improved, true);
+});
+
+test("evaluateSecretsRatchet: comparação inteira estrita — qualquer aumento regride", () => {
+  assert.equal(evaluate(6, 5).regressed, true);
+  assert.equal(evaluate(5, 5).regressed, false);
+  assert.equal(evaluate(4, 5).regressed, false);
+});
+
+// ---------------------------------------------------------------------------
+// readBaselineSecretsValue — leitura tolerante do quality-baseline.json
+// ---------------------------------------------------------------------------
+
+function withTmpBaseline(content: string | null, fn: (p: string) => void) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "secrets-baseline-"));
+  const p = path.join(dir, "quality-baseline.json");
+  if (content !== null) fs.writeFileSync(p, content);
+  try {
+    fn(p);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+test("readBaselineSecretsValue: lê metrics.secretFindings.value", () => {
+  withTmpBaseline(JSON.stringify({ metrics: { secretFindings: { value: 3 } } }), (p) => {
+    assert.equal(readBaseline(p), 3);
+  });
+});
+
+test("readBaselineSecretsValue: arquivo ausente retorna null (SKIP gracioso)", () => {
+  assert.equal(readBaseline("/tmp/does-not-exist-99999/quality-baseline.json"), null);
+});
+
+test("readBaselineSecretsValue: métrica ausente retorna null", () => {
+  withTmpBaseline(JSON.stringify({ metrics: {} }), (p) => {
+    assert.equal(readBaseline(p), null);
+  });
+});
+
+test("readBaselineSecretsValue: value não-numérico retorna null", () => {
+  withTmpBaseline(JSON.stringify({ metrics: { secretFindings: { value: "3" } } }), (p) => {
+    assert.equal(readBaseline(p), null);
+  });
+});
+
+test("readBaselineSecretsValue: JSON inválido retorna null (não lança)", () => {
+  withTmpBaseline("{ not valid json", (p) => {
+    assert.equal(readBaseline(p), null);
+  });
 });

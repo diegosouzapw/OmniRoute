@@ -34,6 +34,7 @@ import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
 import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { applySystemTransformPipeline, PROVIDER_CLAUDE } from "../services/systemTransforms.ts";
+import * as prl from "../utils/providerRequestLogging.ts";
 import {
   fixToolPairs,
   fixToolAdjacency,
@@ -1144,7 +1145,7 @@ export class BaseExecutor {
         }
 
         mergeUpstreamExtraHeaders(finalHeaders, upstreamExtraHeaders);
-
+        const serializedBody = prl.parseBody(bodyString);
         const fetchOptions: RequestInit = {
           method: "POST",
           headers: finalHeaders,
@@ -1190,7 +1191,7 @@ export class BaseExecutor {
           continue;
         }
 
-        return { response, url, headers: finalHeaders, transformedBody };
+        return { response, url, headers: finalHeaders, transformedBody: serializedBody };
       } catch (error) {
         // Distinguish timeout errors from other abort errors
         const err = error instanceof Error ? error : new Error(String(error));

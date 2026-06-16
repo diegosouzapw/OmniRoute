@@ -1,15 +1,9 @@
 "use client";
 
-// Issue #3501 Phase 1c — extracted from the god-component.
-// ~787-LOC modal for adding a new API key / credential to a provider.
-
 import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Badge, Input, Modal, Toggle } from "@/shared/components";
-import {
-  providerAllowsOptionalApiKey,
-  supportsBulkApiKey,
-} from "@/shared/constants/providers";
+import { providerAllowsOptionalApiKey, supportsBulkApiKey } from "@/shared/constants/providers";
 import { parseBulkApiKeys } from "@/shared/utils/bulkApiKeyParser";
 import {
   isBaseUrlConfigurableProvider,
@@ -30,7 +24,10 @@ import {
   type CommandCodeAuthFlowState,
 } from "../../providerPageHelpers";
 import { getWebSessionCredentialRequirement } from "../../webSessionCredentials";
+import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
+import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
+import { assignCcCompatibleRequestDefaults } from "./ccCompatibleRequestDefaults";
 
 export interface AddApiKeyModalProps {
   isOpen: boolean;
@@ -76,6 +73,7 @@ export default function AddApiKeyModal({
   const defaultRegion = isBedrock ? "eu-west-2" : "us-central1";
   const isGlm = isGlmProvider(provider);
   const isQoder = provider === "qoder";
+  const openRouterPreset = useOpenRouterPresetControl(provider, t);
   const isCloudflare = provider === "cloudflare-ai";
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
@@ -98,7 +96,6 @@ export default function AddApiKeyModal({
         error: "Connection failed",
       }[commandCodeAuthState.phase]
     : null;
-
   const [formData, setFormData] = useState({
     name: "",
     apiKey: "",
@@ -114,6 +111,7 @@ export default function AddApiKeyModal({
     accountId: "",
     consoleApiKey: "",
     ccCompatibleContext1m: false,
+    ccCompatibleRedactThinking: false,
     passthroughModels: false,
   });
   const [validating, setValidating] = useState(false);
@@ -123,7 +121,6 @@ export default function AddApiKeyModal({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [copiedCommandCodeField, setCopiedCommandCodeField] = useState<string | null>(null);
   const wasOpenRef = useRef(false);
-
   useEffect(() => {
     const wasOpen = wasOpenRef.current;
     wasOpenRef.current = isOpen;
@@ -133,7 +130,6 @@ export default function AddApiKeyModal({
       baseUrl: initialBaseUrl || defaultBaseUrl,
     }));
   }, [defaultBaseUrl, initialBaseUrl, isOpen]);
-
   const bulkSupported = supportsBulkApiKey(provider);
   const [mode, setMode] = useState<"single" | "bulk">("single");
   const [bulkText, setBulkText] = useState("");
@@ -208,7 +204,6 @@ export default function AddApiKeyModal({
       setValidating(false);
     }
   };
-
   const copyCommandCodeValue = async (value: string | undefined, key: string) => {
     if (!value) return;
     try {
@@ -278,7 +273,6 @@ export default function AddApiKeyModal({
 
       if (!isValid) {
         if (apiKeyOptional && !credentialInput) {
-          // Bypass validation block for local/optional providers when no key is provided
           console.debug("Validation failed but apiKey is optional; proceeding to save.");
         } else {
           setSaveError(validationError || credentialValidationFailedMessage);
@@ -290,6 +284,7 @@ export default function AddApiKeyModal({
       if (formData.customUserAgent.trim()) {
         providerSpecificData.customUserAgent = formData.customUserAgent.trim();
       }
+      openRouterPreset.applyTo(providerSpecificData);
       if (formData.routingTags.trim()) {
         providerSpecificData.tags = parseRoutingTagsInput(formData.routingTags);
       }
@@ -314,9 +309,7 @@ export default function AddApiKeyModal({
       } else if (isCloudflare && formData.accountId.trim()) {
         providerSpecificData.accountId = formData.accountId.trim();
       }
-      if (isCcCompatible && formData.ccCompatibleContext1m) {
-        providerSpecificData.requestDefaults = { context1m: true };
-      }
+      if (isCcCompatible) assignCcCompatibleRequestDefaults(providerSpecificData, formData);
 
       const payload = {
         name: formData.name,
@@ -347,15 +340,18 @@ export default function AddApiKeyModal({
     setSaveError(null);
 
     try {
-      let providerSpecificData: Record<string, unknown> | undefined;
+      const bulkProviderSpecificData: Record<string, unknown> = {};
       if (usesBaseUrl) {
         const checked = normalizeAndValidateHttpBaseUrl(formData.baseUrl, defaultBaseUrl);
         if (checked.error) {
           setSaveError(checked.error);
           return;
         }
-        providerSpecificData = { baseUrl: checked.value };
+        bulkProviderSpecificData.baseUrl = checked.value;
       }
+      openRouterPreset.applyTo(bulkProviderSpecificData);
+      const providerSpecificData =
+        Object.keys(bulkProviderSpecificData).length > 0 ? bulkProviderSpecificData : undefined;
 
       const res = await fetch("/api/providers/bulk", {
         method: "POST",
@@ -432,6 +428,7 @@ export default function AddApiKeyModal({
         {bulkSupported && mode === "bulk" && (
           <div className="flex flex-col gap-3">
             <p className="text-xs text-text-muted">{t("bulkAddFormatHint")}</p>
+            {openRouterPreset.input}
             <textarea
               className="w-full rounded border border-border bg-background p-2 text-sm font-mono resize-y min-h-[140px] focus:outline-none focus:ring-1 focus:ring-primary"
               placeholder={"name1|sk-key1\nname2|sk-key2\nsk-key-only-auto-named"}
@@ -675,16 +672,21 @@ export default function AddApiKeyModal({
                 {saveError}
               </div>
             )}
-            {isCcCompatible && (
+            {(isCcCompatible || openRouterPreset.input) && (
               <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
-                <Toggle
-                  checked={formData.ccCompatibleContext1m}
-                  onChange={(checked) =>
-                    setFormData({ ...formData, ccCompatibleContext1m: checked })
-                  }
-                  label={t("ccCompatibleContext1mLabel")}
-                  description={t("ccCompatibleContext1mDescription")}
-                />
+                {isCcCompatible && (
+                  <CcCompatibleRequestDefaultsFields
+                    context1m={formData.ccCompatibleContext1m}
+                    redactThinking={formData.ccCompatibleRedactThinking}
+                    onContext1mChange={(checked) =>
+                      setFormData({ ...formData, ccCompatibleContext1m: checked })
+                    }
+                    onRedactThinkingChange={(checked) =>
+                      setFormData({ ...formData, ccCompatibleRedactThinking: checked })
+                    }
+                  />
+                )}
+                {openRouterPreset.input}
               </div>
             )}
             {isCompatible && !isCcCompatible && (

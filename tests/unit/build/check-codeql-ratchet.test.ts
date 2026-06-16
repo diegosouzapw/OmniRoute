@@ -8,22 +8,30 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 // @ts-expect-error — .mjs helper has no type declarations; runtime shape is known.
-import { parseCodeQLAlerts } from "../../../scripts/check/check-codeql-ratchet.mjs";
+import {
+  parseCodeQLAlerts,
+  evaluateCodeqlRatchet,
+} from "../../../scripts/check/check-codeql-ratchet.mjs";
+
+type RatchetVerdict = { regressed: boolean; improved: boolean };
+const evaluate = evaluateCodeqlRatchet as (current: number, baseline: number) => RatchetVerdict;
 
 // ---------------------------------------------------------------------------
 // Fixtures — synthetic GitHub code-scanning/alerts API responses
 // ---------------------------------------------------------------------------
 
 /** Helper to build a minimal alert object. */
-function makeAlert(overrides: {
-  number?: number;
-  state?: "open" | "dismissed" | "fixed";
-  tool?: string;
-  ruleId?: string;
-  severity?: string;
-  securitySeverity?: string;
-  dismissedReason?: string | null;
-} = {}) {
+function makeAlert(
+  overrides: {
+    number?: number;
+    state?: "open" | "dismissed" | "fixed";
+    tool?: string;
+    ruleId?: string;
+    severity?: string;
+    securitySeverity?: string;
+    dismissedReason?: string | null;
+  } = {}
+) {
   return {
     number: overrides.number ?? 1,
     state: overrides.state ?? "open",
@@ -92,17 +100,13 @@ test("parseCodeQLAlerts: array vazio retorna alertCount=0", () => {
 // ---------------------------------------------------------------------------
 
 test("parseCodeQLAlerts: alerta dismissed NÃO conta (Hard Rule #14)", () => {
-  const alerts = [
-    makeAlert({ state: "dismissed", dismissedReason: "false positive" }),
-  ];
+  const alerts = [makeAlert({ state: "dismissed", dismissedReason: "false positive" })];
   const result = parseCodeQLAlerts(alerts);
   assert.equal(result.alertCount, 0, "dismissed alert must not be counted");
 });
 
 test("parseCodeQLAlerts: alerta dismissed com razão 'used in tests' NÃO conta", () => {
-  const alerts = [
-    makeAlert({ state: "dismissed", dismissedReason: "used in tests" }),
-  ];
+  const alerts = [makeAlert({ state: "dismissed", dismissedReason: "used in tests" })];
   const result = parseCodeQLAlerts(alerts);
   assert.equal(result.alertCount, 0);
 });
@@ -122,9 +126,7 @@ test("parseCodeQLAlerts: alerta dismissed independente da razão NÃO conta", ()
 // ---------------------------------------------------------------------------
 
 test("parseCodeQLAlerts: alerta fixed NÃO conta", () => {
-  const alerts = [
-    makeAlert({ state: "fixed" as "open" | "dismissed" | "fixed" }),
-  ];
+  const alerts = [makeAlert({ state: "fixed" as "open" | "dismissed" | "fixed" })];
   const result = parseCodeQLAlerts(alerts);
   assert.equal(result.alertCount, 0, "fixed alerts are not open, must not count");
 });
@@ -276,9 +278,50 @@ test("parseCodeQLAlerts: alerta sem rule retorna byRule com 'unknown'", () => {
 test("parseCodeQLAlerts: dismissed com mesmo ruleId que open — dismissed não aparece em byRule", () => {
   const alerts = [
     makeAlert({ number: 1, state: "open", ruleId: "js/sql-injection" }),
-    makeAlert({ number: 2, state: "dismissed", ruleId: "js/sql-injection", dismissedReason: "false positive" }),
+    makeAlert({
+      number: 2,
+      state: "dismissed",
+      ruleId: "js/sql-injection",
+      dismissedReason: "false positive",
+    }),
   ];
   const result = parseCodeQLAlerts(alerts);
   assert.equal(result.alertCount, 1);
   assert.equal(result.byRule["js/sql-injection"], 1, "only the open alert should appear in byRule");
+});
+
+// ---------------------------------------------------------------------------
+// evaluateCodeqlRatchet — ratchet direction:down (Task 7.3 promote to blocking)
+// Mirror of evaluateDeadCode: regression when measured > baseline; the baseline
+// is 0 (clean), so ANY open CodeQL alert is a regression that blocks.
+// ---------------------------------------------------------------------------
+
+test("evaluateCodeqlRatchet: equal to baseline passes (0 vs 0 — clean)", () => {
+  const r = evaluate(0, 0);
+  assert.equal(r.regressed, false);
+  assert.equal(r.improved, false);
+});
+
+test("evaluateCodeqlRatchet: one more alert than baseline 0 is a regression", () => {
+  const r = evaluate(1, 0);
+  assert.equal(r.regressed, true, "a single new open CodeQL alert must block");
+  assert.equal(r.improved, false);
+});
+
+test("evaluateCodeqlRatchet: fewer alerts than a non-zero baseline is an improvement", () => {
+  const r = evaluate(2, 5);
+  assert.equal(r.regressed, false);
+  assert.equal(r.improved, true);
+});
+
+test("evaluateCodeqlRatchet: zero alerts against a non-zero baseline is a maximum improvement", () => {
+  const r = evaluate(0, 5);
+  assert.equal(r.regressed, false);
+  assert.equal(r.improved, true);
+});
+
+test("evaluateCodeqlRatchet: strict integer comparison — any increase regresses", () => {
+  assert.equal(evaluate(6, 5).regressed, true);
+  assert.equal(evaluate(5, 5).regressed, false);
+  assert.equal(evaluate(4, 5).regressed, false);
 });

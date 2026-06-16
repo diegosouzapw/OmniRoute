@@ -399,6 +399,44 @@ test("pipeWithDisconnect clears pending requests when the upstream stream errors
   assert.equal(pending.details[connectionId], undefined);
 });
 
+test("pipeWithDisconnect lets controller onError own pending cleanup", async () => {
+  clearPendingRequests();
+  const provider = "openai";
+  const model = "gpt-stream-error-owned";
+  const connectionId = "conn-stream-error-owned";
+  const modelKey = `${model} (${provider})`;
+  let errorEvent = null;
+
+  trackPendingRequest(model, provider, connectionId, true);
+
+  const source = new ReadableStream({
+    start(controller) {
+      controller.error(Object.assign(new Error("terminated"), { statusCode: 502 }));
+    },
+  });
+  const stream = pipeWithDisconnect(
+    new Response(source),
+    new TransformStream(),
+    createStreamController({
+      provider,
+      model,
+      connectionId,
+      onError(event) {
+        errorEvent = event;
+        return true;
+      },
+    })
+  );
+
+  const text = await readStreamText(stream);
+  const pending = getPendingRequests();
+
+  assert.match(text, /"message":"terminated"/);
+  assert.equal(errorEvent?.statusCode, 502);
+  assert.equal(pending.byModel[modelKey], 1);
+  assert.equal(pending.byAccount[connectionId][modelKey], 1);
+});
+
 test("pipeWithDisconnect does not double-clear transform errors already accounted for", async () => {
   clearPendingRequests();
   const provider = "openai";

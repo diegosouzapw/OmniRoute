@@ -17,6 +17,7 @@
 
 import { getVideoProvider, parseVideoModel } from "../config/videoRegistry.ts";
 import { kieExecutor } from "../executors/kie.ts";
+import { vertexGenerateVideo } from "../executors/vertexMedia.ts";
 import { getExecutor } from "../executors/index.ts";
 import { isJsonObject, parseKieResultJson } from "../utils/kieTask.ts";
 import {
@@ -54,6 +55,10 @@ export async function handleVideoGeneration({ body, credentials, log }) {
       status: 400,
       error: `Unknown video provider: ${provider}`,
     };
+  }
+
+  if (providerConfig.format === "vertex-veo") {
+    return handleVertexVeoGeneration({ model, body, credentials, log });
   }
 
   if (providerConfig.format === "comfyui") {
@@ -96,6 +101,53 @@ export async function handleVideoGeneration({ body, credentials, log }) {
     status: 400,
     error: `Unsupported video format: ${providerConfig.format}`,
   };
+}
+
+/**
+ * Veo video generation via Vertex AI (predictLongRunning → poll → MP4).
+ * Uses the Vertex chat credentials (Service Account JSON or Express key).
+ */
+async function handleVertexVeoGeneration({ model, body, credentials, log }) {
+  try {
+    const aspectRatio =
+      typeof body.aspect_ratio === "string"
+        ? body.aspect_ratio
+        : typeof body.aspectRatio === "string"
+          ? body.aspectRatio
+          : typeof body.size === "string"
+            ? body.size
+            : undefined;
+    const durationSeconds =
+      typeof body.duration === "number"
+        ? body.duration
+        : typeof body.durationSeconds === "number"
+          ? body.durationSeconds
+          : undefined;
+
+    const result = await vertexGenerateVideo(credentials, {
+      model,
+      prompt: String(body.prompt ?? ""),
+      aspectRatio,
+      durationSeconds,
+      negativePrompt: typeof body.negative_prompt === "string" ? body.negative_prompt : undefined,
+    });
+
+    const item = result.base64
+      ? { b64_json: result.base64, format: result.format }
+      : { url: result.url, format: result.format };
+
+    return {
+      success: true,
+      data: { created: Math.floor(Date.now() / 1000), data: [item] },
+    };
+  } catch (err: any) {
+    log?.error?.("VIDEO", `Vertex Veo generation failed: ${err?.message}`);
+    return {
+      success: false,
+      status: typeof err?.status === "number" ? err.status : 502,
+      error: sanitizeErrorMessage(err?.message || "Vertex Veo generation failed"),
+    };
+  }
 }
 
 /**

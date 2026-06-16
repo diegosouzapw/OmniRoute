@@ -1362,3 +1362,57 @@ test("config: providerTag is idempotent — second hook call doesn't double-suff
     .omniroute;
   assert.equal(entryB.models["claude-sonnet-4-6"].name, "Claude - Claude Sonnet 4.6");
 });
+
+// ────────────────────────────────────────────────────────────────────────────
+// T-NN: nested combo-ref resolution in the static catalog
+// (mirrors the dynamic-catalog fix in combos.test.ts)
+// ────────────────────────────────────────────────────────────────────────────
+
+test("buildStaticProviderEntry: nested combo-ref context is the bottleneck across the graph", () => {
+  const resolved = resolveOmniRoutePluginOptions({ providerId: "omniroute" });
+  const rawModels: OmniRouteRawModelEntry[] = [
+    {
+      id: "raw-big",
+      context_length: 200_000,
+      max_output_tokens: 64_000,
+      capabilities: { tool_calling: true, reasoning: true, vision: false, temperature: true },
+      input_modalities: ["text"],
+      output_modalities: ["text"],
+    },
+    {
+      id: "raw-tiny",
+      context_length: 8_000,
+      max_output_tokens: 4_000,
+      capabilities: { tool_calling: false, reasoning: false, vision: false, temperature: true },
+      input_modalities: ["text"],
+      output_modalities: ["text"],
+    },
+  ];
+  const rawCombos: OmniRouteRawCombo[] = [
+    {
+      id: "tiny-combo",
+      name: "TinyCombo",
+      models: [{ id: "m1", kind: "model", model: "raw-tiny", weight: 100 }],
+    },
+    {
+      id: "parent",
+      name: "Parent",
+      models: [
+        { id: "p1", kind: "model", model: "raw-big", weight: 50 },
+        { id: "p2", kind: "combo-ref", comboName: "TinyCombo", weight: 50 },
+      ],
+    },
+  ];
+  const block = buildStaticProviderEntry(
+    rawModels,
+    rawCombos,
+    resolved,
+    "https://or.example/v1",
+    "sk-test"
+  );
+  // Pre-fix: Parent would advertise 200_000 (only raw-big counted).
+  // Post-fix: Parent should advertise 8_000 (TinyCombo bottleneck).
+  const parent = block.models["combo/parent"];
+  assert.ok(parent, "Parent combo must be in the static catalog");
+  assert.equal(parent.limit?.context, 8_000);
+});

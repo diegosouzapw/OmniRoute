@@ -32,6 +32,8 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -70,8 +72,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: test-coverage
     if: ${{ always() && needs.test-coverage.result == 'success' }}
+    # security-events: read lets the CodeQL ratchet read open code-scanning alerts
+    # via `gh api .../code-scanning/alerts`. contents: read keeps checkout working.
+    permissions:
+      contents: read
+      security-events: read
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -88,6 +97,15 @@ jobs:
       # coverage mergeado). Tamanho de arquivo e duplicação têm gates dedicados.
       - name: Ratchet check
         run: node scripts/quality/check-quality-ratchet.mjs --summary .artifacts/quality-ratchet.md
+      # Fase 6A.5: require-tighten — BLOQUEANTE (promovido de advisory no fim do ciclo
+      # v3.8.27). Falha quando uma métrica MELHOROU sem o baseline ter sido apertado no
+      # mesmo PR (força capturar ganhos permanentes). As métricas coverage.* carregam
+      # tightenSlack para o gap anti-flake (CI mergeado > baseline) não disparar falso-
+      # positivo. Verificado limpo (exit 0) no tip de release/v3.8.27 com a cobertura
+      # mergeada == baseline (ver a nota _require_tighten_flip_blocking em
+      # config/quality/quality-baseline.json).
+      - name: Require-tighten (blocking)
+        run: node scripts/quality/check-quality-ratchet.mjs --require-tighten
       # Catraca de duplicação (jscpd@4 sobre src+open-sse). Roda neste job (paralelo)
       # para não pesar no caminho crítico do lint.
       - name: Duplication ratchet
@@ -103,6 +121,14 @@ jobs:
         run: npm run check:cognitive-complexity
       - name: Type coverage ratchet
         run: npm run check:type-coverage
+      # CodeQL alerts ratchet — BLOQUEANTE (promovido de advisory na v3.8.26).
+      # Lê metrics.codeqlAlerts.value de quality-baseline.json e sai 1 SOMENTE numa
+      # regressão real (alertas abertos > baseline). Falha de medição (gh/auth/api)
+      # é skip gracioso com exit 0 — security-events:read no job-level permissions.
+      - name: CodeQL alerts ratchet (blocking)
+        run: npm run check:codeql-ratchet
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Append summary
         if: always()
         run: cat .artifacts/quality-ratchet.md >> "$GITHUB_STEP_SUMMARY"
@@ -114,17 +140,28 @@ jobs:
           path: .artifacts/quality-ratchet.md
           if-no-files-found: warn
 
-  # Phase 7 extended quality gates — ADVISORY (continue-on-error). The 5 npm-based
-  # ratchets (dead-code/cognitive-complexity/type-coverage/circular-deps/bundle-size)
-  # run for real. The external scans (vuln/secrets/workflows) skip gracefully until the
-  # owner adds install steps for osv-scanner/gitleaks/actionlint/zizmor; CodeQL ratchet
-  # works via the runner's gh token. SonarQube needs SONAR_TOKEN/SONAR_HOST_URL secrets.
+  # Phase 7/8 extended quality gates — MIXED (Etapa 2, v3.8.26). The job no longer
+  # carries a job-level continue-on-error: the three ratchet-blocking steps below
+  # (Secret scan / Workflow lint / Bundle size, all passing --ratchet) FAIL the job
+  # on a measured regression vs config/quality/quality-baseline.json. The remaining
+  # steps stay ADVISORY via step-level continue-on-error (scanner install,
+  # vuln/osv ratchet, OpenAPI/oasdiff breaking-change, circular-deps/dpdm): they
+  # depend on external binaries/state that may legitimately self-skip, so they must
+  # never block. The blocking gates themselves SKIP (exit 0) when their binary/plugin
+  # is absent — only a measured regression on the SAME metric the baseline froze
+  # blocks. The CodeQL ratchet was PROMOTED to the quality-gate job (v3.8.26).
+  # SonarQube needs SONAR_TOKEN/SONAR_HOST_URL secrets.
   quality-extended:
-    name: Quality Gates (Extended, advisory)
+    name: Quality Gates (Extended)
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
+      # fetch-depth: 0 — the OpenAPI breaking-change gate (oasdiff) reads the base
+      # spec via `git show <base_ref>:docs/reference/openapi.yaml`; a shallow clone
+      # would lack the base ref and the gate would self-skip (base-unresolved).
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -132,40 +169,101 @@ jobs:
       - run: npm ci
       # Dead-code, cognitive-complexity, type-coverage foram promovidos ao job
       # quality-gate (bloqueante) na Fase 7 INT — não rodam aqui para evitar duplo custo.
-      - name: Circular deps (dpdm)
+      - name: Circular deps (dpdm; advisory)
+        continue-on-error: true
         run: npm run check:circular-deps
-      - name: Bundle size
-        run: npm run check:bundle-size
-      - name: CodeQL alerts ratchet
-        run: npm run check:codeql-ratchet
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      # Fase 7 INT: install the advisory security scanners so the gates below
-      # actually run (they self-skip when the binaries are absent). go install
-      # uses documented module paths (no fragile version-pinned URLs); zizmor is
-      # a PyPI package. Whole job is continue-on-error, so an install hiccup never
-      # blocks the build. Exercised at the next release→main run.
+      # BLOCKING ratchet (Etapa 2): bundleSize must not regress vs the baseline
+      # (gzip via @size-limit/file, installed by `npm ci`). --ratchet exits 1 on a
+      # measured regression; it SKIPs (exit 0) when the size-limit plugin/build is
+      # absent (a non-comparable measurement never blocks).
+      - name: Bundle size (ratchet, blocking)
+        run: npm run check:bundle-size -- --ratchet
+      # CodeQL ratchet foi PROMOVIDO a BLOQUEANTE no job quality-gate (v3.8.26) —
+      # não roda aqui para evitar duplo run/duplo report.
+      # Install the advisory security scanners so the gates below actually run
+      # (they self-skip when the binaries are absent). Robustness lessons baked in:
+      #   • `go install …/gitleaks/v8@latest` produces a binary WITHOUT the version
+      #     ldflags gitleaks needs (and often fails) — avoided.
+      #   • `curl …api.github.com/…/releases/latest` is UNAUTHENTICATED and
+      #     rate-limited to 60 req/hr/IP; when throttled it returns an empty body,
+      #     so the asset URL resolves to nothing and the install silently no-ops —
+      #     every gate then self-skips and the metric is never produced. We instead
+      #     use `gh release download`, which is preinstalled on GitHub runners and
+      #     authenticated via GITHUB_TOKEN (5000 req/hr) — robust under load.
+      #   • actionlint keeps its official download script; zizmor stays on pipx.
+      # We `set +e` (no single failure aborts the step), ALWAYS export $GITHUB_PATH
+      # at the end, and print diagnostics so the next CI run proves exactly what
+      # installed. The job is continue-on-error too, so an install hiccup never
+      # blocks the build.
       - name: Install advisory security scanners (gitleaks/osv/actionlint/zizmor)
         continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          go install github.com/rhysd/actionlint/cmd/actionlint@latest
-          go install github.com/gitleaks/gitleaks/v8@latest
-          go install github.com/google/osv-scanner/v2/cmd/osv-scanner@latest
-          echo "$HOME/go/bin" >> "$GITHUB_PATH"
+          set +e
+          mkdir -p "$HOME/.local/bin"
+          # gitleaks — download latest linux x64 tarball via gh (authed), extract binary
+          rm -rf /tmp/gl && mkdir -p /tmp/gl
+          gh release download --repo gitleaks/gitleaks --pattern '*linux_x64.tar.gz' --dir /tmp/gl
+          tar -xzf /tmp/gl/*linux_x64.tar.gz -C "$HOME/.local/bin" gitleaks
+          # osv-scanner — download latest linux amd64 bare binary via gh (authed)
+          rm -rf /tmp/osv && mkdir -p /tmp/osv
+          gh release download --repo google/osv-scanner --pattern '*linux_amd64' --dir /tmp/osv
+          install -m 0755 /tmp/osv/*linux_amd64 "$HOME/.local/bin/osv-scanner"
+          # actionlint — official download script
+          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) latest "$HOME/.local/bin"
+          # zizmor — PyPI (pipx preferred, pip --user fallback); lands in ~/.local/bin
           pipx install zizmor || pip install --user zizmor
+          # oasdiff — download latest linux amd64 tarball via gh (authed), extract binary
+          rm -rf /tmp/oasd && mkdir -p /tmp/oasd
+          gh release download --repo oasdiff/oasdiff --pattern '*linux_amd64.tar.gz' --dir /tmp/oasd
+          tar -xzf /tmp/oasd/*linux_amd64.tar.gz -C "$HOME/.local/bin" oasdiff
+          # ALWAYS export the bin dir (even if any step above failed)
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-      - name: Secret scan (gitleaks; skips if absent)
-        run: npm run check:secrets
-      - name: Vulnerability ratchet (osv-scanner; skips if absent)
-        run: npm run check:vuln-ratchet
-      - name: Workflow lint (actionlint+zizmor; skips if absent)
-        run: npm run check:workflows
+          # diagnostics — prove what installed on the next CI run
+          ls -la "$HOME/.local/bin"
+          "$HOME/.local/bin/gitleaks" version || true
+          "$HOME/.local/bin/actionlint" -version || true
+          "$HOME/.local/bin/osv-scanner" --version || true
+          "$HOME/.local/bin/oasdiff" --version || true
+          zizmor --version || true
+      # BLOCKING ratchet (Etapa 2): secretFindings must not regress vs the baseline.
+      # --ratchet exits 1 on a measured regression; it SKIPs (exit 0) when gitleaks
+      # is absent (a missing binary never blocks).
+      - name: Secret scan (gitleaks, ratchet, blocking)
+        run: npm run check:secrets -- --ratchet
+      # BLOCKING ratchet (v3.8.27 cycle-end): vulnCount must not regress vs the
+      # baseline. --ratchet exits 1 on a measured regression (measured > baseline);
+      # it SKIPs (exit 0) when osv-scanner is absent or osv.dev is unreachable (a
+      # missing/failed measurement never blocks). See the CVE-variance note in
+      # docs/security/SUPPLY_CHAIN.md — a newly-disclosed CVE on an unchanged dep can
+      # red this gate; the fix is to bump the dep or re-baseline metrics.vulnCount.
+      - name: Vulnerability ratchet (osv-scanner, ratchet, blocking)
+        run: npm run check:vuln-ratchet -- --ratchet
+      # BLOCKING ratchet (Etapa 2): zizmorFindings must not regress vs the baseline.
+      # ONLY zizmor is ratcheted — actionlint findings are reported, not blocking.
+      # --ratchet exits 1 on a measured zizmor regression; it SKIPs (exit 0) when
+      # zizmor is absent (a missing binary never blocks).
+      - name: Workflow lint (actionlint+zizmor, ratchet, blocking)
+        run: npm run check:workflows -- --ratchet
+      # OpenAPI breaking-change detection (oasdiff). Diffs the PR's public API
+      # contract (docs/reference/openapi.yaml) against the base branch's spec.
+      # ADVISORY: reports `openapiBreaking=N` and self-skips when oasdiff is absent
+      # or the base spec can't be resolved. BASE_REF is read by the script from the
+      # env (never interpolated into a shell body) — workflow-injection-safe.
+      - name: OpenAPI breaking-change (oasdiff; advisory)
+        continue-on-error: true
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: npm run check:openapi-breaking
 
   docs-sync-strict:
     name: Docs Sync (Strict)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -188,11 +286,39 @@ jobs:
       - name: i18n translation drift (warn)
         run: node scripts/i18n/check-translation-drift.mjs --warn
 
+  docs-lint:
+    name: Docs Lint (prose — advisory)
+    runs-on: ubuntu-latest
+    # Advisory (warning-first): prose/markdown style must not block merges while the
+    # existing doc corpus is brought up to style. Promote to blocking once it converges.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - name: markdownlint (docs + root, advisory)
+        run: npx --yes markdownlint-cli2 "docs/**/*.md" "*.md" "!docs/i18n" "!docs/research" || true
+      - name: Vale prose lint (Microsoft style, advisory)
+        # Non-fatal: a Vale/reviewdog setup error must not turn this advisory job red.
+        continue-on-error: true
+        uses: errata-ai/vale-action@reviewdog
+        with:
+          files: docs
+          fail_on_error: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   i18n-ui-coverage:
     name: i18n UI Coverage
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -207,6 +333,8 @@ jobs:
       langs: ${{ steps.langs.outputs.langs }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - id: langs
         run: |
           LANG_DIR="src/i18n/messages"
@@ -224,13 +352,21 @@ jobs:
     needs: i18n-matrix
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
       - name: Validate ${{ matrix.lang }}
+        env:
+          # Pass the matrix value via env (never interpolate ${{ ... }} straight
+          # into the run: script body) so the shell receives a variable, not
+          # inlined text — zizmor template-injection mitigation. Named MATRIX_LANG
+          # to avoid clobbering the POSIX `LANG` locale variable.
+          MATRIX_LANG: ${{ matrix.lang }}
         run: |
-          python3 scripts/i18n/validate_translation.py quick -l '${{ matrix.lang }}' > result.txt
+          python3 scripts/i18n/validate_translation.py quick -l "$MATRIX_LANG" > result.txt
 
       - name: Upload result
         if: always()
@@ -246,6 +382,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
@@ -274,6 +411,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -305,6 +444,8 @@ jobs:
       JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -328,6 +469,8 @@ jobs:
       CSC_IDENTITY_AUTO_DISCOVERY: "false"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -361,6 +504,8 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -380,6 +525,8 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -409,6 +556,8 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_24_VERSION }}
@@ -433,6 +582,8 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_26_VERSION }}
@@ -457,6 +608,8 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -499,6 +652,8 @@ jobs:
       API_KEY_SECRET: ci-test-api-key-secret-long
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -511,10 +666,11 @@ jobs:
           path: coverage-shards/
           merge-multiple: true
       - name: Merge + report + gate
-        # Merging 8 shards of raw v8 coverage is memory-heavy; the default Node
-        # heap OOMs (exit 134). Raise it for the c8 merge/report step.
+        # Merging 8 shards of raw v8 coverage is memory-heavy; the 6 GB heap can
+        # still OOM on large PR runs. Keep this job focused on the gate and
+        # JSON summary that downstream ratchets consume.
         env:
-          NODE_OPTIONS: --max-old-space-size=6144
+          NODE_OPTIONS: --max-old-space-size=8192
         run: |
           mkdir -p coverage
           if [ ! -d coverage-shards ] || ! find coverage-shards -maxdepth 1 -type f -name '*.json' | grep -q .; then
@@ -532,9 +688,7 @@ jobs:
             --temp-directory coverage-shards \
             --reports-dir coverage \
             --reporter=text-summary \
-            --reporter=html \
             --reporter=json-summary \
-            --reporter=lcov \
             --exclude=tests/** \
             --exclude=**/*.test.* \
             --check-coverage \
@@ -563,7 +717,6 @@ jobs:
           name: coverage-report
           path: |
             coverage/coverage-summary.json
-            coverage/lcov.info
             coverage/coverage-report.md
           if-no-files-found: warn
 
@@ -578,6 +731,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: actions/download-artifact@v8
         with:
@@ -696,6 +850,8 @@ jobs:
       OMNIROUTE_PLAYWRIGHT_SKIP_BUILD: "1"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -737,6 +893,8 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -755,6 +913,8 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
