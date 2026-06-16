@@ -1724,6 +1724,39 @@ paths:
           description: Authentication required
 
   /api/keys/{id}:
+    get:
+      tags: [API Keys]
+      summary: Get API key
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: API key metadata
+        "401":
+          description: Authentication required
+        "404":
+          description: Key not found
+    patch:
+      tags: [API Keys]
+      summary: Update API key
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: API key settings updated
+        "400":
+          description: Invalid update request
+        "401":
+          description: Authentication required
+        "404":
+          description: Key not found
     delete:
       tags: [API Keys]
       summary: Delete API key
@@ -1734,6 +1767,8 @@ paths:
           description: Key deleted
         "401":
           description: Authentication required
+        "404":
+          description: Key not found
 
   /api/combos:
     get:
@@ -3458,6 +3493,10 @@ paths:
           description: Invalid login request
         "401":
           description: Invalid password
+        "403":
+          description: Password setup required
+        "429":
+          description: Too many failed attempts
 
   /api/auth/logout:
     post:
