@@ -57,6 +57,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          persist-credentials: false
           # Need full tag history to compare against highest semver when
           # deciding whether this release should claim dist-tag `latest`.
           fetch-depth: 0
@@ -202,6 +203,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
