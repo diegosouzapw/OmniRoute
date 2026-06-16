@@ -1,6 +1,6 @@
 {
   "name": "omniroute-desktop",
-  "version": "3.8.28",
+  "version": "3.8.27",
   "description": "OmniRoute Desktop Application",
   "main": "main.js",
   "author": {
@@ -33,9 +33,7 @@
   },
   "overrides": {
     "@xmldom/xmldom": "^0.9.10",
-    "plist": "^4.0.0",
-    "form-data": "^4.0.6",
-    "js-yaml": "^4.2.0"
+    "plist": "^4.0.0"
   },
   "build": {
     "appId": "online.omniroute.desktop",
