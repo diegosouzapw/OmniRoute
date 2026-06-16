@@ -101,6 +101,7 @@
     "recharts",
     "selfsigned",
     "size-limit",
+    "socks",
     "sql.js",
     "sqlite-vec",
     "tailwindcss",
