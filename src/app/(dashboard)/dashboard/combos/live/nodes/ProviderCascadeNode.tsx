@@ -4,7 +4,7 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { StatusDot } from "@/shared/components/flow/StatusDot";
 import { FLOW_EDGE_COLORS } from "@/shared/components/flow/edgeStyles";
-import type { TargetState, FailKind } from "../comboFlowModel";
+import type { TargetState, FailKind, CbState } from "../comboFlowModel";
 
 // ── State → visual mapping ────────────────────────────────────────────────
 
@@ -43,6 +43,24 @@ const FAIL_KIND_LABELS: Record<FailKind, string> = {
   other: "error",
 };
 
+// Non-healthy circuit-breaker states → badge colour (U1b). OPEN is the hard
+// stop (red); HALF_OPEN/DEGRADED are recovering/partial (amber).
+const CB_BADGE_COLORS: Partial<Record<CbState, string>> = {
+  OPEN: FLOW_EDGE_COLORS.error,
+  HALF_OPEN: FLOW_EDGE_COLORS.last,
+  DEGRADED: FLOW_EDGE_COLORS.last,
+};
+
+/** "CB: OPEN · 41s" — the retry hint is omitted when unknown/elapsed. */
+function formatCbBadge(cbState: CbState, retryAfterMs?: number): string {
+  if (typeof retryAfterMs !== "number" || !Number.isFinite(retryAfterMs) || retryAfterMs <= 0) {
+    return `CB: ${cbState}`;
+  }
+  const seconds = Math.round(retryAfterMs / 1000);
+  const hint = seconds >= 60 ? `${Math.floor(seconds / 60)}m${seconds % 60}s` : `${seconds}s`;
+  return `CB: ${cbState} · ${hint}`;
+}
+
 // ── Node data shape ───────────────────────────────────────────────────────
 
 export interface ProviderCascadeNodeData {
@@ -54,6 +72,9 @@ export interface ProviderCascadeNodeData {
   error?: string;
   failKind?: FailKind;
   targetIndex: number;
+  /** Real circuit-breaker state for this provider (U1b); only set when non-healthy. */
+  cbState?: CbState;
+  cbRetryAfterMs?: number;
   [key: string]: unknown;
 }
 
@@ -71,7 +92,7 @@ export interface ProviderCascadeNodeData {
  * Has Left (target) and Right (source) Handles for the cascade flow.
  */
 export function ProviderCascadeNode({ data }: NodeProps) {
-  const { provider, model, state, latencyMs, failKind, targetIndex } =
+  const { provider, model, state, latencyMs, failKind, targetIndex, cbState, cbRetryAfterMs } =
     data as ProviderCascadeNodeData;
 
   const borderColor = getStateBorderColor(state as TargetState);
@@ -145,6 +166,23 @@ export function ProviderCascadeNode({ data }: NodeProps) {
             data-testid="fail-kind-badge"
           >
             {FAIL_KIND_LABELS[failKind as FailKind]}
+          </span>
+        </div>
+      )}
+
+      {/* Footer: real circuit-breaker state (U1b) — independent of target state,
+          since a provider's breaker can be OPEN while this target is skipped. */}
+      {cbState && CB_BADGE_COLORS[cbState] && (
+        <div className="px-2.5 pb-2">
+          <span
+            className="text-[9px] font-semibold px-1.5 py-0.5 rounded"
+            style={{
+              backgroundColor: `${CB_BADGE_COLORS[cbState]}20`,
+              color: CB_BADGE_COLORS[cbState],
+            }}
+            data-testid="cb-state-badge"
+          >
+            {formatCbBadge(cbState, cbRetryAfterMs)}
           </span>
         </div>
       )}
