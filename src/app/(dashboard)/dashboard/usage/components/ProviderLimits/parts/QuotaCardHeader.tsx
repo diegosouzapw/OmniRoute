@@ -15,11 +15,6 @@ interface Props {
   resolvedPlan: string | null;
   emailsVisible: boolean;
   hasStaleData: boolean;
-  /** Disabled when loading. */
-  refreshing: boolean;
-  onRefresh: () => void;
-  onOpenCutoff: () => void;
-  hasCutoffOverrides: boolean;
   /** Toggle the connection's active state (routing on/off). */
   onToggleActive: (nextActive: boolean) => void;
   /** True while the active-state PUT is in flight. */
@@ -34,10 +29,6 @@ export default function QuotaCardHeader({
   resolvedPlan,
   emailsVisible,
   hasStaleData,
-  refreshing,
-  onRefresh,
-  onOpenCutoff,
-  hasCutoffOverrides,
   onToggleActive,
   togglingActive,
 }: Props) {
@@ -142,36 +133,6 @@ export default function QuotaCardHeader({
         >
           <span className="material-symbols-outlined text-[14px]">
             {isActive ? "toggle_on" : "toggle_off"}
-          </span>
-        </button>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onOpenCutoff();
-          }}
-          title={t("quotaCutoffsButtonHelp")}
-          className={`p-1 rounded-md cursor-pointer transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04] ${
-            hasCutoffOverrides ? "text-primary" : "text-text-muted"
-          }`}
-        >
-          <span className="material-symbols-outlined text-[14px]">tune</span>
-        </button>
-        <button
-          type="button"
-          disabled={refreshing}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (refreshing) return;
-            onRefresh();
-          }}
-          title={t("refreshQuota")}
-          className="p-1 rounded-md text-text-muted cursor-pointer transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <span
-            className={`material-symbols-outlined text-[14px] ${refreshing ? "animate-spin" : ""}`}
-          >
-            refresh
           </span>
         </button>
       </div>

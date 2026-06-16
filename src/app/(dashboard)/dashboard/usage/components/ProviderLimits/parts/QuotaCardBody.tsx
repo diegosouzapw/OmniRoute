@@ -1,8 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { calculatePercentage, formatQuotaLabel, getBarColor, topQuotas } from "../utils";
+import { formatQuotaLabel, getBarColor, getQuotaRemainingPercentage, topQuotas } from "../utils";
 import QuotaMiniBar from "../QuotaMiniBar";
+import { translateUsageOrFallback } from "../i18nFallback";
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
@@ -53,11 +54,8 @@ function QuotaRow({ q }: { q: any }) {
     );
   }
 
-  const pctRaw = q.unlimited
-    ? 100
-    : (q.remainingPercentage ?? calculatePercentage(q.used, q.total));
+  const pctRaw = getQuotaRemainingPercentage(q);
   const pct = Math.round(pctRaw);
-  const usedPct = Math.max(0, Math.min(100, 100 - pct));
   const colors = getBarColor(pct);
   const label = q.displayName || formatQuotaLabel(q.name);
 
@@ -69,7 +67,7 @@ function QuotaRow({ q }: { q: any }) {
           className="text-[11px] font-bold tabular-nums shrink-0"
           style={{ color: colors.text }}
         >
-          {q.unlimited ? "∞" : t("percentUsed", { pct: usedPct })}
+          {q.unlimited ? "∞" : translateUsageOrFallback(t, "percentLeft", `${pct}% left`, { pct })}
         </span>
       </div>
       {!q.unlimited && <QuotaMiniBar percent={pct} />}
