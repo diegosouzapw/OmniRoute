@@ -462,7 +462,7 @@ export default function ProxyLogger() {
                     <tr
                       key={log.id}
                       onClick={() => setSelectedLog(selectedLog?.id === log.id ? null : log)}
-                      className={`cursor-pointer hover:bg-primary/5 transition-colors ${isError ? "bg-red-500/5" : ""}`}
+                      className={`cursor-pointer hover:bg-sky-500/10 dark:hover:bg-sky-400/10 transition-colors ${isError ? "bg-red-500/5" : ""}`}
                     >
                       {visibleColumns.status && (
                         <td className="px-3 py-2">
