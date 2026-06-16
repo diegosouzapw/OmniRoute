@@ -119,9 +119,6 @@ export const proxyRegistryFieldsSchema = z
     notes: z.string().trim().max(1000).nullable().optional(),
     status: z.enum(["active", "inactive"]).optional().default("active"),
     source: z.enum(["manual", "oneproxy", "dashboard-custom", "vercel-relay"]).optional(),
-    // Address-family egress policy (#3777): "auto" keeps the prior dual-stack behavior;
-    // "ipv4"/"ipv6" pin the connection to that family (no v4 leak under an IPv6-only proxy).
-    family: z.enum(["auto", "ipv4", "ipv6"]).optional().default("auto"),
   })
   .strict();
 
