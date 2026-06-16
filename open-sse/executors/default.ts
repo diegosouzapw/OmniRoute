@@ -14,6 +14,7 @@ import {
 } from "../services/claudeCodeCompatible.ts";
 import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
+import { mergeClientAnthropicBeta } from "../config/anthropicHeaders.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import {
   detectFormat,
@@ -513,6 +514,17 @@ export class DefaultExecutor extends BaseExecutor {
         if (value) {
           headers[headerName] = value;
         }
+      }
+
+      // #3974: merge the client's negotiated anthropic-beta (allowlisted) into the
+      // outbound set. The registry's static ANTHROPIC_BETA_CLAUDE_OAUTH lacks
+      // tool-search-tool-2025-10-19, so deferred-tool requests were rejected with
+      // 400 "Tool reference not found". Allowlist-merge preserves it without
+      // forwarding betas the backend rejects.
+      const clientBeta = clientHeaders["anthropic-beta"] ?? clientHeaders["Anthropic-Beta"] ?? null;
+      const betaKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
+      if (betaKey && clientBeta) {
+        headers[betaKey] = mergeClientAnthropicBeta(headers[betaKey], clientBeta);
       }
     }
 

@@ -283,7 +283,12 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (!selectedLog && shouldAutoRefresh(recording, limit, PAGE_SIZE)) {
         intervalRef.current = setInterval(() => {
-          if (visibleRef.current) fetchLogs(false);
+          // #3972: read live visibility each tick, not a mount-time ref. A tab
+          // mounted while "hidden" with no later `visibilitychange` left the ref
+          // false forever, so auto-refresh never ran (only the manual button did).
+          if (typeof document === "undefined" || document.visibilityState === "visible") {
+            fetchLogs(false);
+          }
         }, refreshIntervalSec * 1000);
       }
       return () => {
