@@ -7,6 +7,7 @@ import { SUPPORTED_BATCH_ENDPOINTS } from "@/shared/constants/batchEndpoints";
 import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/constants/bodySize";
 import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
 import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
+import { HIDEABLE_SIDEBAR_GROUP_IDS } from "@/shared/constants/sidebarGroupVisibility";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 import {
   isForbiddenUpstreamHeaderName,
@@ -507,6 +508,7 @@ export const updateSettingsSchema = z.object({
   showTokenSaverOnEndpoint: z.boolean().optional(),
   bruteForceProtection: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
+  hiddenSidebarGroupLabels: z.array(z.enum(HIDEABLE_SIDEBAR_GROUP_IDS)).optional(),
   comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
   codexServiceTier: z
     .object({

@@ -1110,7 +1110,8 @@
     "dragReorderSection": "Drag to reorder section",
     "dragReorderItem": "Drag to reorder",
     "cannotHide": "This item cannot be hidden",
-    "alwaysVisible": "Always visible"
+    "alwaysVisible": "Always visible",
+    "groupSeparatorLabel": "Separator"
   },
   "webhooks": {
     "title": "Webhooks",
