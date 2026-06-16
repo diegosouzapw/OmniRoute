@@ -5831,7 +5831,7 @@
     "claudeFastModeModelCheckbox": "Enable Fast Mode for {model}",
     "claudeFastModeSaveError": "Failed to update Claude Fast Mode setting",
     "authz": {
-      "title": "Authz Inventory",
+      "title": "Authorization Inventory",
       "description": "5-tier route classification with live bypass policy. Read shows the full taxonomy; mutations re-prompt for the management password.",
       "loading": "Loading inventory…",
       "loadError": "Failed to load authz inventory",

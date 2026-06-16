@@ -5397,7 +5397,7 @@
     "claudeFastModeModelCheckbox": "{model}க்கு வேகமான பயன்முறையை இயக்கு",
     "claudeFastModeSaveError": "Claude Fast Mode அமைப்பைப் புதுப்பிக்க முடியவில்லை",
     "authz": {
-      "title": "__MISSING__:Authz Inventory",
+      "title": "__MISSING__:Authorization Inventory",
       "description": "__MISSING__:5-tier route classification with live bypass policy. Read shows the full taxonomy; mutations re-prompt for the management password.",
       "loading": "__MISSING__:Loading inventory…",
       "loadError": "__MISSING__:Failed to load authz inventory",

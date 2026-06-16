@@ -5397,7 +5397,7 @@
     "claudeFastModeModelCheckbox": "{model} కోసం ఫాస్ట్ మోడ్‌ని ప్రారంభించండి",
     "claudeFastModeSaveError": "క్లాడ్ ఫాస్ట్ మోడ్ సెట్టింగ్‌ని అప్‌డేట్ చేయడంలో విఫలమైంది",
     "authz": {
-      "title": "__MISSING__:Authz Inventory",
+      "title": "__MISSING__:Authorization Inventory",
       "description": "__MISSING__:5-tier route classification with live bypass policy. Read shows the full taxonomy; mutations re-prompt for the management password.",
       "loading": "__MISSING__:Loading inventory…",
       "loadError": "__MISSING__:Failed to load authz inventory",
