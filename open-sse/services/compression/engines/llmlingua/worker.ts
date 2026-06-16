@@ -34,6 +34,7 @@ import { Worker } from "node:worker_threads";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import fs from "node:fs";
 
 import {
   LLMLINGUA_WORKER_TIMEOUT_MS,
@@ -85,6 +86,8 @@ interface PendingEntry {
   timer: NodeJS.Timeout;
   /** Stored so error/exit/reset handlers can fail-open with the ORIGINAL text. */
   originalText: string;
+  /** Resolved model id — used to mark the model warm ONLY on a genuine success. */
+  modelKey: string;
 }
 
 interface QueueItem {
@@ -102,12 +105,29 @@ let busy = false;
 const warmedModels = new Set<string>();
 let idleTimer: NodeJS.Timeout | null = null;
 
-/** Resolve the worker file path: dev `.ts` (via tsx), prod `.js`. */
+/**
+ * Resolve the worker entry file across dev and prod.
+ *
+ * In dev, `onnxWorker.ts` sits next to this file and runs via the tsx loader. In a
+ * production standalone bundle this module is collapsed into a `.next` chunk, so
+ * `import.meta.url`-relative resolution fails — the worker is instead esbuild'd to
+ * `dist/open-sse/.../onnxWorker.js` (see scripts/build/prepublish.ts) and resolved
+ * via `process.cwd()` candidates. Mirrors the candidate-list pattern in
+ * `engines/rtk/filterLoader.ts::getFiltersDir`. First existing candidate wins; a
+ * `.ts` choice gets the tsx loader, a `.js` choice runs natively.
+ */
 function resolveWorkerFile(): { workerFile: string; execArgv: string[] } {
-  const here = fileURLToPath(import.meta.url); // .../worker.ts (dev) | .../worker.js (prod)
-  const isTs = here.endsWith(".ts");
-  const workerFile = path.join(path.dirname(here), isTs ? "onnxWorker.ts" : "onnxWorker.js");
-  const execArgv = isTs ? ["--import", "tsx/esm"] : [];
+  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+  const rel = ["open-sse", "services", "compression", "engines", "llmlingua", "onnxWorker.js"];
+  const candidates = [
+    path.join(moduleDir, "onnxWorker.ts"), // dev (tsx): sibling source
+    path.join(moduleDir, "onnxWorker.js"), // compiled sibling, if present
+    path.join(process.cwd(), ...rel), // prod standalone: esbuild'd into dist/
+    path.join(process.cwd(), "app", ...rel), // VPS legacy `app/` layout
+  ];
+  const workerFile =
+    candidates.find((c, i) => candidates.indexOf(c) === i && fs.existsSync(c)) ?? candidates[0];
+  const execArgv = workerFile.endsWith(".ts") ? ["--import", "tsx/esm"] : [];
   return { workerFile, execArgv };
 }
 
@@ -158,6 +178,10 @@ function ensureWorker(): Worker {
     if (entry) {
       clearTimeout(entry.timer);
       pending.delete(reply.id);
+      // Only a genuine success warms the model so later calls use the short timeout.
+      // A timeout/error/fail-open MUST NOT warm it (else a still-loading model would
+      // be starved of its one-time load budget on the next call).
+      if (reply.ok) warmedModels.add(entry.modelKey);
       // ok:false already carries the ORIGINAL text → resolving with it IS fail-open.
       entry.resolve(reply.text);
     }
@@ -227,13 +251,12 @@ function pump(): void {
   if (typeof timer.unref === "function") timer.unref();
 
   pending.set(id, {
-    resolve: (out: string) => {
-      // On a successful reply the worker marks this model warm for next time.
-      warmedModels.add(modelKey);
-      item.resolve(out);
-    },
+    // Warming is decided by the reply handler (success only) — not here, so a
+    // timeout/error fail-open never marks the model warm.
+    resolve: item.resolve,
     timer,
     originalText: item.text,
+    modelKey,
   });
 
   try {

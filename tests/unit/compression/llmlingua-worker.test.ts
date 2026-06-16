@@ -42,6 +42,14 @@ after(() => {
 });
 
 test("deps absent → fail-open, no spawn, returns original text fast", async () => {
+  if (depsResolve()) {
+    // Premise of this test is that the optional deps are NOT installed (the CI
+    // default). When they ARE present (e.g. a local integration setup), the backend
+    // legitimately spawns the worker and compresses, so this assertion no longer
+    // applies — the real path is covered by the gated test below.
+    console.log("skip: optional deps present — fail-open-when-absent test N/A");
+    return;
+  }
   const input = "hello world this is some prose";
 
   const start = Date.now();
