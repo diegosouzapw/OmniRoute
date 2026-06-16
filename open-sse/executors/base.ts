@@ -1,5 +1,6 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { mergeClientAnthropicBeta } from "../config/anthropicHeaders.ts";
+import { applyContextEditingToBody } from "../config/contextEditing.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
@@ -134,6 +135,10 @@ export type ExecuteInput = {
   ) => Promise<void> | void;
   /** When true, skip the intra-URL 429 retry in execute() so the caller handles fallback. */
   skipUpstreamRetry?: boolean;
+  /** Delegated Context Editing (Claude only): when enabled, attach the
+   * `context_management.clear_tool_uses` strategy so the provider clears stale
+   * tool-use blocks server-side. Honored only on the genuine `claude` path. */
+  contextEditing?: { enabled: boolean } | null;
 };
 
 export type CountTokensInput = {
@@ -653,6 +658,7 @@ export class BaseExecutor {
       clientHeaders,
       skipUpstreamRetry = false,
       onCredentialsRefreshed,
+      contextEditing,
     } = input;
     const fallbackCount = this.getFallbackCount();
     let lastError: unknown = null;
@@ -1132,6 +1138,22 @@ export class BaseExecutor {
         // before fingerprinting and CCH signing serialize the body.
         if (this.provider === "claude" || isClaudeCodeCompatible(this.provider)) {
           enforceThinkingTemperature(transformedBody as Record<string, unknown>);
+        }
+
+        // Delegated Context Editing (opt-in, genuine Claude API only): attach the
+        // clear_tool_uses strategy so the provider clears stale tool-use blocks
+        // server-side. Runs at this same chokepoint, composing with the
+        // clear_thinking edit the fingerprint path may have already set. Scoped to
+        // `claude` (real Anthropic key/OAuth) — Claude-compatible relays are left
+        // out for now since they may not pass the beta (#N1 follow-up).
+        if (this.provider === "claude" && contextEditing?.enabled) {
+          applyContextEditingToBody(transformedBody as Record<string, unknown>, {
+            enabled: true,
+          });
+          log?.debug?.(
+            "CONTEXT_EDITING",
+            "Delegated context editing on — attached clear_tool_uses to the Claude request"
+          );
         }
 
         let bodyString = JSON.stringify(transformedBody);
