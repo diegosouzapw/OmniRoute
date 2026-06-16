@@ -5007,6 +5007,39 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ValidationErrorResponse"
+    BadRequest:
+      description: The request was malformed or failed validation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorResponse"
+          example:
+            error:
+              message: Invalid request
+              type: invalid_request_error
+            requestId: 8c2b1d44-7a3e-4c91-9b0f-1e2d3c4b5a60
+    NotFound:
+      description: The requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorResponse"
+          example:
+            error:
+              message: Resource not found
+              type: not_found_error
+            requestId: 4d5e6f70-1a2b-3c4d-5e6f-7a8b9c0d1e2f
+    InternalError:
+      description: An unexpected server error occurred
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorResponse"
+          example:
+            error:
+              message: Internal server error
+              type: api_error
+            requestId: 0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d
 
   schemas:
     PlaygroundPreset:

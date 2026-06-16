@@ -121,6 +121,7 @@
     "check:provider-consistency": "node --import tsx scripts/check/check-provider-consistency.ts",
     "check:fetch-targets": "node scripts/check/check-fetch-targets.mjs",
     "check:openapi-routes": "node scripts/check/check-openapi-routes.mjs",
+    "check:openapi-breaking": "node scripts/check/check-openapi-breaking.mjs",
     "check:deps": "node scripts/check/check-deps.mjs",
     "check:file-size": "node scripts/check/check-file-size.mjs",
     "check:duplication": "node scripts/check/check-duplication.mjs",

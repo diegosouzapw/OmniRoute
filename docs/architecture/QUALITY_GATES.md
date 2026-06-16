@@ -54,6 +54,21 @@ Runs after `test-coverage`. Blocks merge on failure.
 | `check:duplication` | Code duplication (jscpd@4) does not exceed baseline in `quality-baseline.json`                             | Yes                       |
 | `check:complexity`  | File-level cyclomatic complexity does not exceed the cap                                                   | Yes                       |
 
+### Job: `quality-extended`
+
+Entire job is advisory (`continue-on-error: true`). The npm-based ratchets run for
+real; the external scanners install via `gh release download` and self-skip (exit 0)
+when a binary is still absent.
+
+| Script                   | Validates                                                                                                                            | Blocking     |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | ------------ |
+| `check:circular-deps`    | No circular dependencies (dpdm)                                                                                                       | **Advisory** |
+| `check:bundle-size`      | Bundle size does not exceed the cap                                                                                                   | **Advisory** |
+| `check:secrets`          | Secret scanning (gitleaks) — skips if binary absent                                                                                   | **Advisory** |
+| `check:vuln-ratchet`     | Dependency vulnerabilities (osv-scanner) do not regress — skips if binary absent                                                      | **Advisory** |
+| `check:workflows`        | Workflow lint (actionlint + zizmor) — skips if binaries absent                                                                        | **Advisory** |
+| `check:openapi-breaking` | Breaking changes to the public API contract (`openapi.yaml`) vs the base branch (oasdiff) — emits `openapiBreaking=N`; skips if oasdiff absent or base spec unresolvable | **Advisory** |
+
 ### Job: `docs-sync-strict`
 
 Runs on every PR to `main`. Blocks merge on failure.

@@ -147,7 +147,12 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
+      # fetch-depth: 0 — the OpenAPI breaking-change gate (oasdiff) reads the base
+      # spec via `git show <base_ref>:docs/reference/openapi.yaml`; a shallow clone
+      # would lack the base ref and the gate would self-skip (base-unresolved).
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -195,6 +200,10 @@ jobs:
           bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) latest "$HOME/.local/bin"
           # zizmor — PyPI (pipx preferred, pip --user fallback); lands in ~/.local/bin
           pipx install zizmor || pip install --user zizmor
+          # oasdiff — download latest linux amd64 tarball via gh (authed), extract binary
+          rm -rf /tmp/oasd && mkdir -p /tmp/oasd
+          gh release download --repo oasdiff/oasdiff --pattern '*linux_amd64.tar.gz' --dir /tmp/oasd
+          tar -xzf /tmp/oasd/*linux_amd64.tar.gz -C "$HOME/.local/bin" oasdiff
           # ALWAYS export the bin dir (even if any step above failed)
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           # diagnostics — prove what installed on the next CI run
@@ -202,6 +211,7 @@ jobs:
           "$HOME/.local/bin/gitleaks" version || true
           "$HOME/.local/bin/actionlint" -version || true
           "$HOME/.local/bin/osv-scanner" --version || true
+          "$HOME/.local/bin/oasdiff" --version || true
           zizmor --version || true
       - name: Secret scan (gitleaks; skips if absent)
         run: npm run check:secrets
@@ -209,6 +219,15 @@ jobs:
         run: npm run check:vuln-ratchet
       - name: Workflow lint (actionlint+zizmor; skips if absent)
         run: npm run check:workflows
+      # OpenAPI breaking-change detection (oasdiff). Diffs the PR's public API
+      # contract (docs/reference/openapi.yaml) against the base branch's spec.
+      # ADVISORY: reports `openapiBreaking=N` and self-skips when oasdiff is absent
+      # or the base spec can't be resolved. BASE_REF is read by the script from the
+      # env (never interpolated into a shell body) — workflow-injection-safe.
+      - name: OpenAPI breaking-change (oasdiff; advisory)
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: npm run check:openapi-breaking
 
   docs-sync-strict:
     name: Docs Sync (Strict)
