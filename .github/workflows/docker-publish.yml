@@ -347,7 +347,7 @@ jobs:
       - name: Trivy image scan (SARIF, advisory)
         if: needs.prepare.outputs.version != 'main'
         continue-on-error: true
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.GHCR_IMAGE_NAME }}:${{ env.VERSION }}
           format: sarif
@@ -366,7 +366,7 @@ jobs:
       # note in docs/security/SUPPLY_CHAIN.md).
       - name: Trivy CRITICAL gate (blocking)
         if: needs.prepare.outputs.version != 'main'
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.GHCR_IMAGE_NAME }}:${{ env.VERSION }}
           format: table
