@@ -1,6 +1,7 @@
 {
   "_comment": "Allowlist anti-slopsquatting (check-deps.mjs). Toda dep nova exige adicao EXPLICITA aqui apos verificar que e legitima.",
   "allowed": [
+    "@atjsh/llmlingua-2",
     "@aws-sdk/client-bedrock-runtime",
     "@cyclonedx/cyclonedx-npm",
     "@dnd-kit/core",
@@ -18,6 +19,7 @@
     "@stryker-mutator/tap-runner",
     "@swc/helpers",
     "@tailwindcss/postcss",
+    "@tensorflow/tfjs",
     "@testing-library/jest-dom",
     "@testing-library/react",
     "@types/bcryptjs",
@@ -64,6 +66,7 @@
     "ink-text-input",
     "ioredis",
     "jose",
+    "js-tiktoken",
     "js-yaml",
     "jscpd",
     "jsdom",
