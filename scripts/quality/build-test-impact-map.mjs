@@ -53,15 +53,8 @@ function sourceDepsOf(entry) {
   return sources;
 }
 
-// Mirror EXACTLY the `npm run test:unit` glob — the curated set of node:test files.
-// The TIA step runs the selected subset via `node --test`, so it must NOT include
-// vitest files (`.test.tsx`, `open-sse/**/__tests__`, `tests/unit/autoCombo`), nor
-// e2e/integration tests, which can't run under node:test (they 99-false-failed before).
 const testFiles = globSync(
-  [
-    "tests/unit/*.test.ts",
-    "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts",
-  ],
+  ["tests/**/*.test.{ts,tsx,mts}", "src/**/*.test.{ts,tsx}", "open-sse/**/*.test.{ts,tsx}"],
   { cwd: ROOT, absolute: true }
 );
 const map = {};
