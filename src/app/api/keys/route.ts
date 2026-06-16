@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { methodNotAllowed } from "@/app/api/_utils/methodNotAllowed";
 import { getApiKeys, createApiKey, isCloudEnabled, updateApiKeyPermissions } from "@/lib/localDb";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
@@ -23,12 +22,6 @@ function parsePagination(request: Request) {
   const offset = Number.isInteger(parsedOffset) && parsedOffset > 0 ? parsedOffset : 0;
 
   return { limit, offset };
-}
-
-const ALLOWED_METHODS = ["GET", "POST"];
-
-export function TRACE() {
-  return methodNotAllowed(ALLOWED_METHODS);
 }
 
 // GET /api/keys - List API keys

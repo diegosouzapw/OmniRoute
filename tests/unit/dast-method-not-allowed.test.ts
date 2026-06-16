@@ -1,31 +1,39 @@
-import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { createRequire } from "node:module";
+import test from "node:test";
 
-const testDataDir = mkdtempSync(join(tmpdir(), "omniroute-dast-methods-"));
-process.env.DATA_DIR = testDataDir;
-process.env.SQLITE_FILE = join(testDataDir, "storage.sqlite");
-process.env.JWT_SECRET = "dast-method-not-allowed-jwt-secret";
+const require = createRequire(import.meta.url);
+const { maybeHandleDisallowedTrace } = require("../../scripts/dev/http-method-guard.cjs");
 
-const loginRoute = await import("../../src/app/api/auth/login/route.ts");
-const logoutRoute = await import("../../src/app/api/auth/logout/route.ts");
-const keysRoute = await import("../../src/app/api/keys/route.ts");
-const keyDetailRoute = await import("../../src/app/api/keys/[id]/route.ts");
+test("raw HTTP guard rejects high-risk TRACE requests before Next.js handles them", () => {
+  const cases: Array<{
+    label: string;
+    url: string;
+    allow: string;
+  }> = [
+    { label: "login", url: "/api/auth/login", allow: "POST" },
+    { label: "logout", url: "/api/auth/logout", allow: "POST" },
+    { label: "keys", url: "/api/keys", allow: "GET, POST" },
+    { label: "key detail", url: "/api/keys/0", allow: "GET, PATCH, DELETE" },
+  ];
 
-async function assertTraceMethodNotAllowed(
-  route: { TRACE: () => Response | Promise<Response> },
-  allow: string
-) {
-  const response = await route.TRACE();
-  assert.equal(response.status, 405);
-  assert.equal(response.headers.get("allow"), allow);
-}
+  for (const testCase of cases) {
+    let body = "";
+    const headers = new Map<string, string>();
+    const response = {
+      statusCode: 200,
+      setHeader(name: string, value: string) {
+        headers.set(name.toLowerCase(), value);
+      },
+      end(chunk: string) {
+        body += chunk;
+      },
+    };
 
-test("high-risk dashboard API routes return 405 for TRACE", async () => {
-  await assertTraceMethodNotAllowed(loginRoute, "POST");
-  await assertTraceMethodNotAllowed(logoutRoute, "POST");
-  await assertTraceMethodNotAllowed(keysRoute, "GET, POST");
-  await assertTraceMethodNotAllowed(keyDetailRoute, "GET, PATCH, DELETE");
+    const handled = maybeHandleDisallowedTrace({ method: "TRACE", url: testCase.url }, response);
+    assert.equal(handled, true, testCase.label);
+    assert.equal(response.statusCode, 405, testCase.label);
+    assert.equal(headers.get("allow"), testCase.allow, testCase.label);
+    assert.match(body, /METHOD_NOT_ALLOWED/, testCase.label);
+  }
 });
