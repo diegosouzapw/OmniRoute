@@ -268,7 +268,11 @@ jobs:
     name: Publish to npm
     needs: [validate, release]
     permissions:
-      contents: read
+      # Must be `write`, not `read`: this job calls the reusable npm-publish.yml whose
+      # `publish` job needs `contents: write` (gh release upload — attach the SBOM, #3874).
+      # A reusable workflow's job cannot request more permission than the caller grants,
+      # so a `read` here makes GitHub reject the run at startup (startup_failure).
+      contents: write
       id-token: write # npm provenance (forwarded to the reusable workflow)
       packages: write # publish to npm.pkg.github.com
     uses: ./.github/workflows/npm-publish.yml
