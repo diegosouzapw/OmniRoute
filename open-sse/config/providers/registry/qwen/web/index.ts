@@ -7,17 +7,18 @@ export const qwen_webProvider: RegistryEntry = {
   alias: "qwen-web",
   format: "openai",
   executor: "qwen-web",
-  baseUrl: "https://chat.qwen.ai/api/chat/completions",
+  // v2 API (the legacy /api/chat/completions endpoint was retired upstream).
+  // Restored after the registry modularization (#3993) regressed this to v1 with
+  // a retired catalog. Source of truth: pre-#3993 providerRegistry.ts (commit 1ed01dd90^).
+  baseUrl: "https://chat.qwen.ai/api/v2/chat/completions",
   authType: "apikey",
   authHeader: "bearer",
+  // Current upstream catalog (GET https://chat.qwen.ai/api/models). Legacy
+  // ids (qwen-plus, qwen3-max, ...) still resolve via the executor's
+  // MODEL_ALIASES map for backward compatibility.
   models: [
-    { id: "qwen-plus", name: "Qwen Plus" },
-    { id: "qwen-max", name: "Qwen Max" },
-    { id: "qwen-turbo", name: "Qwen Turbo" },
-    { id: "qwen3-plus", name: "Qwen3 Plus" },
-    { id: "qwen3-max", name: "Qwen3 Max" },
-    { id: "qwen3-flash", name: "Qwen3 Flash" },
-    { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
-    { id: "qwen3-coder-flash", name: "Qwen3 Coder Flash" },
+    { id: "qwen3.7-max", name: "Qwen3.7 Max" },
+    { id: "qwen3.7-plus", name: "Qwen3.7 Plus" },
+    { id: "qwen3.6-plus", name: "Qwen3.6 Plus" },
   ],
 };
