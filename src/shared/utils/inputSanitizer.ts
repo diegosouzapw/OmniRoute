@@ -26,7 +26,7 @@ const INJECTION_PATTERNS = [
   {
     name: "system_prompt_leak",
     pattern:
-      /\b(reveal|show|display|print|output|repeat)\s+(your\s+)?(system\s+prompt|instructions?|initial\s+prompt|hidden\s+prompt)/i,
+      /\b(reveals?|shows?|displays?|prints?|outputs?|repeats?)\s+((your|the)\s+)?(system\s+prompt|instructions?|initial\s+prompt|hidden\s+prompt)/i,
     severity: "high",
   },
   {
