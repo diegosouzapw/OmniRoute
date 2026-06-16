@@ -23,6 +23,7 @@
   "_rebaseline_2026_06_16_3960_engine_breakdown": "PR #3960 capture own growth: chatCore.ts 5851->5868 (+17 = persist result.stats.engineBreakdown into the new compression_engine_breakdown table after a stacked compression run, so getPerEngineAnalytics is accurate historically and not live-only). Cohesive analytics-persistence at the existing compression chokepoint; structural shrink of chatCore.ts tracked in #3501.",
   "_rebaseline_2026_06_15_3938_perplexity_v218": "PR #3938 own growth: perplexity-web.ts 868->939 (+71 = rebuild buildPplxRequestBody to mirror the current www.perplexity.ai schematized request body — version 2.18, use_schematized_api + the full supported_block_use_cases list, dsl_query, shared requestId for frontend_uuid/client_search_results_cache_key, last_backend_uuid only on follow-ups — plus the x-perplexity-request-* / x-request-id headers replacing the stale X-App-ApiVersion pair that triggered HTTP 400). Cohesive upstream-schema sync in a single executor; not extractable.",
   "_rebaseline_2026_06_16_4021_context_editing": "PR #4021 own growth: base.ts 1222->1244 (+22 = inject delegated Context Editing at the single Claude pre-serialization chokepoint — applyContextEditingToBody() call gated to the genuine `claude` provider, the contextEditing field on ExecuteInput, its destructure, and a debug log) and chatCore.ts 5868->5875 (+7 = capture contextEditing.enabled at the canonical compression-settings read into a function-scoped flag, threaded to the two executor.execute() callsites). The reusable edit-builder + strategy constants live in the new small open-sse/config/contextEditing.ts (well under cap). Cohesive opt-in feature at the existing dispatch chokepoint; not extractable without hiding the Claude body-finalization boundary.",
+  "_rebaseline_2026_06_16_4033_compression_token_saver_ui": "PR #4033 net -46 LOC overall: CompressionSettingsTab.tsx 932->974 (+42 over frozen after relocating Token Saver from Endpoint/Appearance into Compression Settings). This is a deliberate UI ownership redistribution, not aggregate code growth; keeping the control with the compression settings makes the module boundary clearer.",
   "cap": 800,
   "frozen": {
     "open-sse/config/providerRegistry.ts": 4731,
@@ -84,7 +85,7 @@
     "src/app/(dashboard)/dashboard/providers/page.tsx": 1925,
     "src/app/(dashboard)/dashboard/runtime/RuntimePageClient.tsx": 1198,
     "src/app/(dashboard)/dashboard/settings/components/AppearanceTab.tsx": 819,
-    "src/app/(dashboard)/dashboard/settings/components/CompressionSettingsTab.tsx": 932,
+    "src/app/(dashboard)/dashboard/settings/components/CompressionSettingsTab.tsx": 974,
     "src/app/(dashboard)/dashboard/settings/components/MemorySkillsTab.tsx": 880,
     "src/app/(dashboard)/dashboard/settings/components/PricingTab.tsx": 1012,
     "src/app/(dashboard)/dashboard/settings/components/ProxyRegistryManager.tsx": 1089,
