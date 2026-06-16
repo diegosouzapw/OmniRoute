@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import test from "node:test";
 
@@ -71,4 +72,25 @@ test("raw HTTP guard allows documented methods through", () => {
     maybeHandleDisallowedMethod({ method: "QUERY", url: "/api/health/ping" }, response),
     false
   );
+});
+
+test("OpenAPI documents high-risk route auth and setup responses", () => {
+  const spec = readFileSync("docs/reference/openapi.yaml", "utf8");
+  const apiKeyDetailStart = spec.indexOf("  /api/keys/{id}:");
+  const apiKeyDetailEnd = spec.indexOf("\n  /api/combos:", apiKeyDetailStart);
+  const apiKeyDetail = spec.slice(apiKeyDetailStart, apiKeyDetailEnd);
+
+  assert.match(apiKeyDetail, /\n    get:/);
+  assert.match(apiKeyDetail, /\n    patch:/);
+  assert.match(apiKeyDetail, /\n    delete:/);
+  assert.match(apiKeyDetail, /"401":\n\s+description: Authentication required/);
+  assert.match(apiKeyDetail, /"404":\n\s+description: Key not found/);
+
+  const loginStart = spec.indexOf("  /api/auth/login:");
+  const loginEnd = spec.indexOf("\n  /api/auth/logout:", loginStart);
+  const login = spec.slice(loginStart, loginEnd);
+  assert.match(login, /"400":\n\s+description: Invalid login request/);
+  assert.match(login, /"401":\n\s+description: Invalid password/);
+  assert.match(login, /"403":\n\s+description: Password setup required/);
+  assert.match(login, /"429":\n\s+description: Too many failed attempts/);
 });
