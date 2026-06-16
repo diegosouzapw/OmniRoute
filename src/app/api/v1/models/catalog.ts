@@ -32,6 +32,12 @@ import { getSyncedCapability } from "@/lib/modelsDevSync";
 import { getModelSpec } from "@/shared/constants/modelSpecs";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
 import { isModelCatalogNamesEnabled } from "@/shared/utils/featureFlags";
+import {
+  isNoAuthProviderBlocked,
+  isNoAuthProviderKey,
+  isNoAuthRawProviderPrefix,
+  normalizeBlockedProviderSet,
+} from "@/shared/utils/noAuthProviders";
 import { parseModel } from "@omniroute/open-sse/services/model";
 import { getTokenLimit } from "@omniroute/open-sse/services/contextManager";
 import { extractApiKey } from "@/sse/services/auth";
@@ -347,9 +353,7 @@ export async function getUnifiedModelsResponse(
       aliasOrProviderId;
 
     // Issue #96: Allow blocking specific providers from the models list
-    const blockedProviders: Set<string> = new Set(
-      Array.isArray(settings.blockedProviders) ? settings.blockedProviders : []
-    );
+    const blockedProviders = normalizeBlockedProviderSet(settings.blockedProviders);
 
     // Get active provider connections
     let connections = [];
@@ -412,9 +416,9 @@ export async function getUnifiedModelsResponse(
       registerConnectionKey(conn.provider, conn);
     }
 
-    // noAuth providers never create DB connection rows, so they are always active.
-    // Add their IDs and aliases unconditionally so the catalog gate does not filter them. (#2798)
+    // noAuth providers have no DB rows; settings.blockedProviders disables them.
     for (const p of Object.values(NOAUTH_PROVIDERS)) {
+      if (isNoAuthProviderBlocked(blockedProviders, p.id, "alias" in p ? p.alias : null)) continue;
       activeAliases.add(p.id);
       if ("alias" in p && typeof p.alias === "string") activeAliases.add(p.alias);
     }
@@ -437,10 +441,9 @@ export async function getUnifiedModelsResponse(
       const providerId = aliasToProviderId[providerKey] || providerKey;
       const alias = providerIdToAlias[providerId] || providerKey;
       // noAuth providers have no connection rows — treat every model as eligible. (#2798)
-      const isNoAuth = Object.values(NOAUTH_PROVIDERS).some(
-        (p) => p.id === providerId || p.id === providerKey || ("alias" in p && p.alias === alias)
-      );
-      if (isNoAuth) return true;
+      const isNoAuth = isNoAuthProviderKey(providerId, providerKey, alias);
+      if (isNoAuth && !isNoAuthProviderBlocked(blockedProviders, providerId, providerKey, alias))
+        return true;
       return hasEligibleConnectionForModel(
         getConnectionsForProvider(providerKey, providerId, alias),
         modelId
@@ -729,10 +732,14 @@ export async function getUnifiedModelsResponse(
       const providerId = aliasToProviderId[alias] || alias;
       const canonicalProviderId = resolveCanonicalProviderId(alias, providerId);
 
-      // Skip blocked providers (Issue #96)
-      if (blockedProviders.has(alias) || blockedProviders.has(canonicalProviderId)) continue;
+      if (
+        isNoAuthProviderBlocked(blockedProviders, canonicalProviderId, alias) ||
+        blockedProviders.has(alias) ||
+        blockedProviders.has(canonicalProviderId)
+      )
+        continue;
+      if (isNoAuthRawProviderPrefix(canonicalProviderId, alias)) continue;
 
-      // Only include models from providers with active connections
       if (!activeAliases.has(alias) && !activeAliases.has(canonicalProviderId)) {
         continue;
       }
@@ -764,6 +771,7 @@ export async function getUnifiedModelsResponse(
         // This improves compatibility for clients that expect full provider names.
         if (
           canonicalProviderId !== alias &&
+          !isNoAuthProviderKey(canonicalProviderId) &&
           prefixRoutesToProvider(canonicalProviderId, canonicalProviderId)
         ) {
           const providerIdModel = `${canonicalProviderId}/${model.id}`;
@@ -1179,18 +1187,11 @@ export async function getUnifiedModelsResponse(
           if (!modelId) continue;
           if (model.isHidden === true) continue;
           if (getModelIsHidden(canonicalProviderId, modelId)) continue;
-          // noAuth providers (e.g. theoldllm) never create DB connection rows, so the
-          // eligibility gate would drop every imported/custom model for them (#3200).
-          // Mirror providerSupportsModel's noAuth bypass (#2798) — keep the gate for
-          // auth providers (preserving parentProviderType for compatible UUID nodes).
-          const isNoAuthProvider = Object.values(NOAUTH_PROVIDERS).some(
-            (p) =>
-              p.id === canonicalProviderId ||
-              p.id === providerId ||
-              ("alias" in p && p.alias === alias)
-          );
+          // noAuth providers have no connection rows; keep auth providers gated. (#2798/#3200)
+          const isNoAuthProvider = isNoAuthProviderKey(canonicalProviderId, providerId, alias);
           if (
-            !isNoAuthProvider &&
+            (!isNoAuthProvider ||
+              isNoAuthProviderBlocked(blockedProviders, canonicalProviderId, providerId, alias)) &&
             !hasEligibleConnectionForModel(
               getConnectionsForProvider(alias, canonicalProviderId, providerId, parentProviderType),
               modelId
@@ -1248,8 +1249,7 @@ export async function getUnifiedModelsResponse(
             ...(visionFields || {}),
           });
 
-          // Only add provider-prefixed version if different from alias
-          if (canonicalProviderId !== alias && !prefix) {
+          if (canonicalProviderId !== alias && !prefix && !isNoAuthProvider) {
             const providerPrefixedId = `${canonicalProviderId}/${modelId}`;
             if (models.some((m) => m.id === providerPrefixedId)) continue;
             const providerVisionFields =

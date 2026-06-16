@@ -5,8 +5,8 @@
 // IMPORTANT (hydration): this component deliberately does NOT use `useTranslations`.
 // The previous combos redesign failed to hydrate on the production build; the only
 // structural difference from the engine pages (which hydrate fine) was a page-level
-// `useTranslations("contextCombos")`. To stay on the proven-good path, all strings
-// here are hardcoded (pt-BR), exactly like `EngineConfigPage`.
+// `useTranslations("contextCombos")`. To stay on the proven-good path, strings here
+// remain literal English text, exactly like `EngineConfigPage`.
 
 import { useCallback, useEffect, useState } from "react";
 
@@ -45,13 +45,13 @@ interface DefaultCombo {
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const MODES: { value: CompressionMode; label: string; hint: string }[] = [
-  { value: "off", label: "Off", hint: "Sem compressão" },
-  { value: "lite", label: "Lite", hint: "Limpeza rápida" },
-  { value: "standard", label: "Standard", hint: "Caveman padrão" },
-  { value: "aggressive", label: "Aggressive", hint: "Resumo + aging" },
-  { value: "ultra", label: "Ultra", hint: "Poda heurística" },
-  { value: "rtk", label: "RTK", hint: "Filtros de tool output" },
-  { value: "stacked", label: "Stacked", hint: "Roda as camadas abaixo em sequência" },
+  { value: "off", label: "Off", hint: "No compression" },
+  { value: "lite", label: "Lite", hint: "Fast cleanup" },
+  { value: "standard", label: "Standard", hint: "Standard Caveman" },
+  { value: "aggressive", label: "Aggressive", hint: "Summary plus aging" },
+  { value: "ultra", label: "Ultra", hint: "Heuristic pruning" },
+  { value: "rtk", label: "RTK", hint: "Tool output filters" },
+  { value: "stacked", label: "Stacked", hint: "Run the layers below in sequence" },
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -161,11 +161,11 @@ export default function CompressionHub() {
         });
         if (!res.ok) {
           setSettings(settings); // revert
-          setError("Falha ao salvar as configurações.");
+          setError("Failed to save settings.");
         }
       } catch {
         setSettings(settings);
-        setError("Falha ao salvar as configurações.");
+        setError("Failed to save settings.");
       }
     },
     [settings]
@@ -186,12 +186,9 @@ export default function CompressionHub() {
       if (enabledNow) {
         optimistic = combo.pipeline.filter((s) => s.engine !== engineId);
       } else {
-        const priorityOf = (eid: string) =>
-          engines.find((e) => e.id === eid)?.stackPriority ?? 50;
+        const priorityOf = (eid: string) => engines.find((e) => e.id === eid)?.stackPriority ?? 50;
         optimistic = [...combo.pipeline];
-        let insertAt = optimistic.findIndex(
-          (s) => priorityOf(s.engine) > priorityOf(engineId)
-        );
+        let insertAt = optimistic.findIndex((s) => priorityOf(s.engine) > priorityOf(engineId));
         if (insertAt < 0) insertAt = optimistic.length;
         optimistic.splice(insertAt, 0, { engine: engineId });
       }
@@ -206,7 +203,7 @@ export default function CompressionHub() {
         });
         if (!res.ok) {
           setCombo(prev);
-          setError("Falha ao atualizar a camada.");
+          setError("Failed to update layer.");
           return;
         }
         const updated = await res.json();
@@ -215,7 +212,7 @@ export default function CompressionHub() {
         }
       } catch {
         setCombo(prev);
-        setError("Falha ao atualizar a camada.");
+        setError("Failed to update layer.");
       }
     },
     [combo, engines]
@@ -243,11 +240,11 @@ export default function CompressionHub() {
         });
         if (!res.ok) {
           setCombo(prev);
-          setError("Falha ao reordenar o pipeline.");
+          setError("Failed to reorder pipeline.");
         }
       } catch {
         setCombo(prev);
-        setError("Falha ao reordenar o pipeline.");
+        setError("Failed to reorder pipeline.");
       }
     },
     [combo]
@@ -257,7 +254,7 @@ export default function CompressionHub() {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-10 text-sm text-text-muted">
-        Carregando…
+        Loading...
       </div>
     );
   }
@@ -281,7 +278,7 @@ export default function CompressionHub() {
           <div>
             <h1 className="text-xl font-bold text-text-main">Compression Hub</h1>
             <p className="text-sm text-text-muted">
-              Ligue, configure e ordene as camadas de compressão num só lugar.
+              Enable, configure, and order compression layers in one place.
             </p>
           </div>
         </div>
@@ -290,7 +287,7 @@ export default function CompressionHub() {
           onClick={() => setExplainerOpen((v) => !v)}
           className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs text-text-main hover:bg-bg"
         >
-          {explainerOpen ? "Ocultar explicação" : "Como funciona?"}
+          {explainerOpen ? "Hide explanation" : "How it works"}
         </button>
       </div>
 
@@ -302,32 +299,32 @@ export default function CompressionHub() {
       {explainerOpen && (
         <div className="rounded-lg border border-border bg-bg p-4 text-sm text-text-muted">
           <p className="mb-2">
-            A compressão reduz <strong className="text-text-main">tokens e custo</strong> reescrevendo
-            o histórico antes de enviar ao provider, preservando o sentido.
+            Compression reduces <strong className="text-text-main">tokens and cost</strong> by
+            rewriting history before it is sent to the provider while preserving meaning.
           </p>
           <ol className="ml-4 list-decimal space-y-1.5">
             <li>
-              <strong className="text-text-main">Token Saver (master)</strong>: precisa estar ligado.
-              Desligado, nada é comprimido.
+              <strong className="text-text-main">Token Saver (master)</strong>: must be enabled.
+              When it is off, nothing is compressed.
             </li>
             <li>
-              <strong className="text-text-main">Modo</strong>: define a estratégia. Os modos simples
-              (Lite/Standard/Aggressive/Ultra/RTK) rodam uma única técnica. O modo{" "}
-              <strong className="text-text-main">Stacked</strong> roda várias camadas em sequência — é
-              o que usa a lista de camadas abaixo.
+              <strong className="text-text-main">Mode</strong>: defines the strategy. Simple modes
+              (Lite/Standard/Aggressive/Ultra/RTK) run one technique.{" "}
+              <strong className="text-text-main">Stacked</strong> runs multiple layers in sequence
+              and uses the layer list below.
             </li>
             <li>
-              <strong className="text-text-main">Camadas (pipeline)</strong>: no modo Stacked, cada
-              camada ativa roda na ordem definida, passando o texto já comprimido para a próxima
-              (ex.: Session Dedup → RTK → Caveman).
+              <strong className="text-text-main">Layers (pipeline)</strong>: in Stacked mode, each
+              active layer runs in order and passes the compressed text to the next one (for
+              example: Session Dedup → RTK → Caveman).
             </li>
             <li>
-              <strong className="text-text-main">Configuração</strong>: cada camada tem liga/desliga e
-              parâmetros próprios (botão ⚙).
+              <strong className="text-text-main">Configuration</strong>: each layer has its own
+              enable switch and parameters (the settings button).
             </li>
             <li>
-              <strong className="text-text-main">Combos nomeados</strong>: salve diferentes pipelines
-              e atribua a combos de roteamento específicos (seção abaixo).
+              <strong className="text-text-main">Named combos</strong>: save different pipelines and
+              assign them to specific routing combos in the section below.
             </li>
           </ol>
         </div>
@@ -338,18 +335,18 @@ export default function CompressionHub() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-text-main">Token Saver</p>
-            <p className="text-xs text-text-muted">Chave geral da compressão.</p>
+            <p className="text-xs text-text-muted">Master switch for compression.</p>
           </div>
           <Toggle
             checked={enabled}
             onChange={() => saveSettings({ enabled: !enabled })}
-            ariaLabel="Ligar/desligar Token Saver"
+            ariaLabel="Toggle Token Saver"
           />
         </div>
 
         {/* Mode selector */}
         <div className="flex flex-col gap-2">
-          <p className="text-xs font-medium text-text-muted">Modo</p>
+          <p className="text-xs font-medium text-text-muted">Mode</p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
             {MODES.map((m) => (
               <button
@@ -377,19 +374,19 @@ export default function CompressionHub() {
         {pipelineActive ? (
           <div className="flex items-center gap-2 rounded-lg border border-green-500/40 bg-green-500/5 px-3 py-2 text-xs text-green-500">
             <span className="material-symbols-outlined text-[16px]">check_circle</span>
-            Pipeline de camadas ativo — as camadas abaixo rodam em cada requisição.
+            Layer pipeline is active. The layers below run on each request.
           </div>
         ) : (
           <div className="flex flex-wrap items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-xs text-amber-500">
             <span className="material-symbols-outlined text-[16px]">info</span>
-            <span>As camadas abaixo só rodam no modo Stacked com o Token Saver ligado.</span>
+            <span>The layers below only run in Stacked mode with Token Saver enabled.</span>
             {!enabled && (
               <button
                 type="button"
                 onClick={() => saveSettings({ enabled: true })}
                 className="rounded border border-amber-500/50 px-2 py-0.5 font-medium hover:bg-amber-500/10"
               >
-                Ligar Token Saver
+                Enable Token Saver
               </button>
             )}
             {enabled && mode !== "stacked" && (
@@ -398,7 +395,7 @@ export default function CompressionHub() {
                 onClick={() => saveSettings({ defaultMode: "stacked" })}
                 className="rounded border border-amber-500/50 px-2 py-0.5 font-medium hover:bg-amber-500/10"
               >
-                Usar modo Stacked
+                Use Stacked mode
               </button>
             )}
           </div>
@@ -409,13 +406,13 @@ export default function CompressionHub() {
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-text-main">
-            Pipeline ativo <span className="text-text-muted">(ordem de execução)</span>
+            Active pipeline <span className="text-text-muted">(execution order)</span>
           </h2>
-          <span className="text-xs text-text-muted">{activeSteps.length} camada(s)</span>
+          <span className="text-xs text-text-muted">{activeSteps.length} layer(s)</span>
         </div>
         {activeSteps.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-xs text-text-muted">
-            Nenhuma camada ativa. Ligue uma camada abaixo para montar o pipeline.
+            No active layers. Enable a layer below to build the pipeline.
           </p>
         ) : (
           <ul className="flex flex-col gap-2">
@@ -431,7 +428,7 @@ export default function CompressionHub() {
                       type="button"
                       onClick={() => moveStep(index, -1)}
                       disabled={index === 0}
-                      aria-label="Mover para cima"
+                      aria-label="Move up"
                       className="text-text-muted hover:text-text-main disabled:opacity-30"
                     >
                       <span className="material-symbols-outlined text-[18px]">arrow_upward</span>
@@ -440,7 +437,7 @@ export default function CompressionHub() {
                       type="button"
                       onClick={() => moveStep(index, 1)}
                       disabled={index === activeSteps.length - 1}
-                      aria-label="Mover para baixo"
+                      aria-label="Move down"
                       className="text-text-muted hover:text-text-main disabled:opacity-30"
                     >
                       <span className="material-symbols-outlined text-[18px]">arrow_downward</span>
@@ -466,13 +463,11 @@ export default function CompressionHub() {
                         </span>
                       )}
                     </div>
-                    <p className="truncate text-xs text-text-muted">
-                      {engine?.description ?? ""}
-                    </p>
+                    <p className="truncate text-xs text-text-muted">{engine?.description ?? ""}</p>
                   </div>
                   <a
                     href={enginePagePath(step.engine)}
-                    title="Configurar camada"
+                    title="Configure layer"
                     className="shrink-0 rounded-lg border border-border px-2 py-1.5 text-text-muted hover:bg-surface hover:text-text-main"
                   >
                     <span className="material-symbols-outlined text-[18px]">settings</span>
@@ -480,7 +475,7 @@ export default function CompressionHub() {
                   <Toggle
                     checked
                     onChange={() => toggleEngine(step.engine)}
-                    ariaLabel={`Desligar ${engine?.name ?? step.engine}`}
+                    ariaLabel={`Disable ${engine?.name ?? step.engine}`}
                   />
                 </li>
               );
@@ -492,7 +487,7 @@ export default function CompressionHub() {
       {/* ── Inactive layers ── */}
       {inactiveEngines.length > 0 && (
         <div className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold text-text-main">Camadas disponíveis</h2>
+          <h2 className="text-sm font-semibold text-text-main">Available layers</h2>
           <ul className="flex flex-col gap-2">
             {inactiveEngines.map((engine) => (
               <li
@@ -521,7 +516,7 @@ export default function CompressionHub() {
                 </div>
                 <a
                   href={enginePagePath(engine.id)}
-                  title="Configurar camada"
+                  title="Configure layer"
                   className="shrink-0 rounded-lg border border-border px-2 py-1.5 text-text-muted hover:bg-surface hover:text-text-main"
                 >
                   <span className="material-symbols-outlined text-[18px]">settings</span>
@@ -529,7 +524,7 @@ export default function CompressionHub() {
                 <Toggle
                   checked={false}
                   onChange={() => toggleEngine(engine.id)}
-                  ariaLabel={`Ligar ${engine.name}`}
+                  ariaLabel={`Enable ${engine.name}`}
                 />
               </li>
             ))}

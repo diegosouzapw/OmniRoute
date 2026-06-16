@@ -3,6 +3,7 @@ import { MODE_PACKS } from "./modePacks";
 import { DEFAULT_WEIGHTS, ScoringWeights } from "./scoring";
 import { AutoVariant } from "./autoPrefix";
 import { getProviderConnections } from "@/lib/db/providers";
+import { getSettings } from "@/lib/db/settings";
 import { getProviderRegistry } from "./providerRegistryAccessor";
 import type { ConnectionFields } from "@/lib/db/encryption";
 import { NOAUTH_PROVIDERS } from "@/shared/constants/providers";
@@ -123,7 +124,10 @@ function getFirstRegistryModelId(providerInfo: { models?: Array<{ id?: string }>
     : undefined;
 }
 
-function getNoAuthCandidates(excludedProviders: Set<string>): VirtualAutoComboCandidate[] {
+function getNoAuthCandidates(
+  excludedProviders: Set<string>,
+  blockedProviders: Set<string>
+): VirtualAutoComboCandidate[] {
   const registry = getProviderRegistry();
   const candidates: VirtualAutoComboCandidate[] = [];
 
@@ -132,6 +136,11 @@ function getNoAuthCandidates(excludedProviders: Set<string>): VirtualAutoComboCa
 
     const providerId = providerDef.id;
     if (!providerId || excludedProviders.has(providerId)) continue;
+    if (
+      blockedProviders.has(providerId) ||
+      (typeof providerDef.alias === "string" && blockedProviders.has(providerDef.alias))
+    )
+      continue;
 
     const providerInfo = registry[providerId];
     const modelId = getFirstRegistryModelId(providerInfo);
@@ -206,7 +215,13 @@ export function computeAdvertisedLimits(candidates: Array<{ provider: string; mo
 export async function createVirtualAutoCombo(
   variant: AutoVariant | undefined
 ): Promise<VirtualAutoCombo> {
-  const connections = (await getProviderConnections({ isActive: true })) as VirtualFactoryConn[];
+  const [connections, settings] = await Promise.all([
+    getProviderConnections({ isActive: true }) as Promise<VirtualFactoryConn[]>,
+    getSettings().catch(() => ({}) as Record<string, unknown>),
+  ]);
+  const blockedProviders = new Set(
+    Array.isArray(settings.blockedProviders) ? (settings.blockedProviders as string[]) : []
+  );
 
   const validConnections = connections.filter(hasUsableConnectionCredential);
 
@@ -232,7 +247,7 @@ export async function createVirtualAutoCombo(
   }
 
   candidatePool.push(
-    ...getNoAuthCandidates(new Set(validConnections.map((conn) => conn.provider)))
+    ...getNoAuthCandidates(new Set(validConnections.map((conn) => conn.provider)), blockedProviders)
   );
 
   if (candidatePool.length === 0) {

@@ -21,6 +21,7 @@ import {
   isAccountUnavailable,
   getUnavailableUntil,
   getEarliestRateLimitedUntil,
+  cooldownUntilMs,
   formatRetryAfter,
   checkFallbackError,
   isModelLocked,
@@ -52,6 +53,7 @@ import {
   WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
+import { isNoAuthProviderBlockedBySettings } from "./noAuthProviderSettings";
 import * as log from "../utils/logger";
 import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
 
@@ -496,7 +498,9 @@ export function evaluateQuotaLimitPolicy(
 
 function parseFutureDateMs(value: string | null): number | null {
   if (!value) return null;
-  const ms = new Date(value).getTime();
+  // Tolerate numeric-epoch strings (e.g. "1781696905131.0") as well as ISO
+  // strings — the rate_limited_until TEXT column can hold either (#3954).
+  const ms = cooldownUntilMs(value);
   if (!Number.isFinite(ms) || ms <= Date.now()) return null;
   return ms;
 }
@@ -773,18 +777,16 @@ function providerCanUseSyntheticNoAuthFallback(providerId: string): boolean {
   const providerDef = getProviderById(providerId) as
     | AnonymousFallbackProviderDefinition
     | undefined;
+  const noAuthProviderDef = (
+    NOAUTH_PROVIDERS as Record<string, AnonymousFallbackProviderDefinition | undefined>
+  )[providerId];
+  const webCookieProviderDef = (
+    WEB_COOKIE_PROVIDERS as Record<string, AnonymousFallbackProviderDefinition | undefined>
+  )[providerId];
   return (
     providerDef?.anonymousFallback === true ||
-    Boolean(
-      (NOAUTH_PROVIDERS as Record<string, AnonymousFallbackProviderDefinition | undefined>)[
-        providerId
-      ]?.noAuth
-    ) ||
-    Boolean(
-      (WEB_COOKIE_PROVIDERS as Record<string, AnonymousFallbackProviderDefinition | undefined>)[
-        providerId
-      ]?.noAuth
-    )
+    noAuthProviderDef?.noAuth === true ||
+    webCookieProviderDef?.noAuth === true
   );
 }
 
@@ -960,6 +962,7 @@ export async function getProviderCredentials(
       WEB_COOKIE_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>,
     ];
     if (providerMaps.some((map) => map[resolvedId]?.noAuth)) {
+      if (await isNoAuthProviderBlockedBySettings(resolvedId)) return null;
       // #3061: there is only one synthetic "noauth" connection for a no-auth
       // provider. If the caller already tried and excluded it (account-fallback
       // after a persistent upstream error), do NOT hand it back — that would let
