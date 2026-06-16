@@ -10,6 +10,10 @@
 
 - **fix(security): eliminate a polynomial ReDoS in the combo `<omniModel>` tag regex** — `comboAgentMiddleware`'s cache-tag pattern wrapped the tag in an unbounded newline run (`(?:\n|\r)*`), making `.test()` / `.replace()` run in O(n²) on inputs with many newlines (CodeQL `js/polynomial-redos`). The detection pattern now matches only the core `<omniModel>…</omniModel>` and the global strip pattern bounds the surrounding newline runs, keeping it linear; detection / extraction / multi-tag stripping behavior is unchanged. ([#3982](https://github.com/diegosouzapw/OmniRoute/pull/3982) — thanks @diegosouzapw)
 
+### 🐛 Fixed
+
+- **fix(kiro): preserve `finish_reason: "tool_calls"` on the Kiro streaming path** — streaming tool-call requests through the Kiro (Responses API) provider had their terminal `finish_reason` reported as `"stop"` instead of `"tool_calls"`, so agent clients (Hermes) treated the tool-call turn as a finished turn, never ran the tool, and the next request failed with HTTP 400 on the incomplete tool state. `convertKiroToOpenAI`'s terminal `messageStopEvent`/`done` branch hardcoded `finish_reason: "stop"` regardless of whether the stream had emitted `toolUseEvent`s. The translator now records `state.sawToolUse` when a tool-use chunk is emitted and reports `finish_reason: "tool_calls"` on the terminal chunk (and in `state.finishReason`) whenever the stream produced tool calls. The non-streaming path was already correct. ([#3980](https://github.com/diegosouzapw/OmniRoute/issues/3980) — thanks @lordavadon2)
+
 ---
 
 ## [3.8.26] — 2026-06-15
