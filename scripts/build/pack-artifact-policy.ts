@@ -36,6 +36,9 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   "BUILD_SHA",
   "docs/reference/openapi.yaml",
   "open-sse/mcp-server/server.js",
+  // LLMLingua ONNX worker — esbuild'd standalone .js spawned via worker_threads
+  // (the Next.js bundler can't trace the computed Worker path). Kept like the MCP server.
+  "open-sse/services/compression/engines/llmlingua/onnxWorker.js",
   "package.json",
   "peer-stamp.mjs",
   "responses-ws-proxy.mjs",
