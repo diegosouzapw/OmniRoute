@@ -17,7 +17,13 @@ import type { DashboardChannel, DashboardEventName } from "@/lib/events/types";
 // ── Config ────────────────────────────────────────────────────────────────
 
 const WS_RECONNECT_DELAYS = [1000, 2000, 4000, 8000, 16000, 30000];
-const DEFAULT_WS_URL = `ws://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:20129`;
+function getDefaultWsUrl(): string {
+  if (typeof window === "undefined") return "ws://localhost:20129";
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${protocol}//${window.location.host}/live-ws`;
+}
+
+const DEFAULT_WS_URL = getDefaultWsUrl();
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
