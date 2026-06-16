@@ -137,8 +137,11 @@ test(
         .setExpirationTime("5m")
         .sign(new TextEncoder().encode(jwtSecret));
 
+      // Send auth_token preceded by another cookie (the real browser case: "a=1; auth_token=…").
+      // Guards #4004's cookie-parse regex: a literal-"s" bug (\s vs \\s) only matched auth_token
+      // when it was the FIRST cookie, silently breaking same-origin reverse-proxy auth otherwise.
       await expectLiveWsOpen({
-        Cookie: `auth_token=${dashboardToken}`,
+        Cookie: `omni_pref=dark; auth_token=${dashboardToken}`,
         Origin: origin,
       });
     } finally {

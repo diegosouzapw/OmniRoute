@@ -150,7 +150,7 @@ function extractAltTokenHeader(request: import("http").IncomingMessage): string 
   return typeof raw === "string" ? raw : null;
 }
 
-function getCookieValueFromHeader(
+export function getCookieValueFromHeader(
   headers: import("http").IncomingHttpHeaders,
   name: string
 ): string | null {
@@ -158,7 +158,11 @@ function getCookieValueFromHeader(
   const cookieHeader = Array.isArray(raw) ? raw.join("; ") : raw;
   if (!cookieHeader) return null;
   const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const match = cookieHeader.match(new RegExp(`(?:^|;\s*)${escaped}=([^;]*)`));
+  // NOTE: \\s (not \s) — this is a plain template literal, so \s would collapse to a
+  // literal "s" and the pattern would only match auth_token when it is the FIRST cookie.
+  // Browsers serialize the Cookie header as "a=1; b=2", so the leading-cookie case
+  // (auth_token preceded by another cookie) must match too (#4004 same-origin proxy auth).
+  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${escaped}=([^;]*)`));
   return match ? decodeURIComponent(match[1]) : null;
 }
 
