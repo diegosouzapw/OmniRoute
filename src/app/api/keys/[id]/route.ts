@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { methodNotAllowed } from "@/app/api/_utils/methodNotAllowed";
 import {
   deleteApiKey,
   getApiKeyById,
@@ -11,6 +12,12 @@ import { updateKeyPermissionsSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import * as log from "@/sse/utils/logger";
+
+const ALLOWED_METHODS = ["GET", "PATCH", "DELETE"];
+
+export function TRACE() {
+  return methodNotAllowed(ALLOWED_METHODS);
+}
 
 // GET /api/keys/[id] - Get single API key
 export async function GET(request, { params }) {

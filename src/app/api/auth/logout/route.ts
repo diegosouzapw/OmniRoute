@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
+import { methodNotAllowed } from "@/app/api/_utils/methodNotAllowed";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
 import { cookies } from "next/headers";
 
 export const logoutRouteInternals = {
   getCookieStore: cookies,
 };
+
+const ALLOWED_METHODS = ["POST"];
+
+export function TRACE() {
+  return methodNotAllowed(ALLOWED_METHODS);
+}
 
 export async function POST(request) {
   const auditContext = getAuditRequestContext(request);
