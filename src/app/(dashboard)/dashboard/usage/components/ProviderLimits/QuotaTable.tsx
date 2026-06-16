@@ -1,6 +1,6 @@
 "use client";
 
-import { formatResetTime, calculatePercentage } from "./utils";
+import { calculatePercentage, formatResetTime, shouldShowQuotaUsageCount } from "./utils";
 import { useLocale, useTranslations } from "next-intl";
 
 /**
@@ -131,8 +131,11 @@ export default function QuotaTable({ quotas = [] }) {
                     {/* Numbers */}
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-text-muted">
-                        {quota.used.toLocaleString()} /{" "}
-                        {quota.total > 0 ? quota.total.toLocaleString() : "∞"}
+                        {shouldShowQuotaUsageCount(quota)
+                          ? `${quota.used.toLocaleString()} / ${
+                              quota.total > 0 ? quota.total.toLocaleString() : "∞"
+                            }`
+                          : null}
                       </span>
                       <span className={`font-medium ${colors.text}`}>{remaining}%</span>
                     </div>

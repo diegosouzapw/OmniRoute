@@ -24,6 +24,12 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "eslint-config-next"
         update-types: ["version-update:semver-major"]
+      # jscpd v5 is a Rust rewrite (native binary, no Node.js programmatic API).
+      # scripts/check/check-duplication.mjs is deliberately pinned to jscpd@4 (it
+      # parses jscpd-report.json against a frozen baseline). A v5 major would break
+      # the duplication gate — migrate the gate intentionally, not via dependabot.
+      - dependency-name: "jscpd"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"

@@ -39,6 +39,14 @@ import {
   readSavedRefreshIntervalSec,
   writeSavedRefreshIntervalSec,
 } from "./requestLoggerPreferences";
+import {
+  LOG_TABLE_CLASS,
+  LOG_TABLE_HEAD_CLASS,
+  LOG_TABLE_HEADER_BG_STYLE,
+  LOG_TABLE_HEADER_CELL_CLASS,
+  LOG_TABLE_HEADER_CELL_RIGHT_CLASS,
+  LOG_TABLE_ROW_CLASS,
+} from "./logTableStyles";
 
 // Number of call-log rows fetched per page. The viewer grows its window by this
 // amount on "Load more" / infinite scroll so users can browse past the first
@@ -283,7 +291,12 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (!selectedLog && shouldAutoRefresh(recording, limit, PAGE_SIZE)) {
         intervalRef.current = setInterval(() => {
-          if (visibleRef.current) fetchLogs(false);
+          // #3972: read live visibility each tick, not a mount-time ref. A tab
+          // mounted while "hidden" with no later `visibilitychange` left the ref
+          // false forever, so auto-refresh never ran (only the manual button did).
+          if (typeof document === "undefined" || document.visibilityState === "visible") {
+            fetchLogs(false);
+          }
         }, refreshIntervalSec * 1000);
       }
       return () => {
@@ -930,79 +943,47 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
             ) : sortedLogs.length === 0 ? (
               <div className="p-8 text-center text-text-muted">{t("noMatchingLogs")}</div>
             ) : (
-              <table className="w-full text-left border-collapse text-xs">
-                <thead
-                  className="sticky top-0 z-10"
-                  style={{ backgroundColor: "var(--color-bg, #fff)" }}
-                >
-                  <tr
-                    className="border-b border-border"
-                    style={{ backgroundColor: "var(--color-bg, #fff)" }}
-                  >
+              <table className={LOG_TABLE_CLASS}>
+                <thead className={LOG_TABLE_HEAD_CLASS} style={LOG_TABLE_HEADER_BG_STYLE}>
+                  <tr className={LOG_TABLE_ROW_CLASS} style={LOG_TABLE_HEADER_BG_STYLE}>
                     {visibleColumns.status && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                        {t("columns.status")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.status")}</th>
                     )}
                     {visibleColumns.cacheSource && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                        {t("columns.cacheSource")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.cacheSource")}</th>
                     )}
                     {visibleColumns.model && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                        {t("columns.model")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.model")}</th>
                     )}
                     {visibleColumns.requestedModel && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                        {t("columns.requested")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.requested")}</th>
                     )}
                     {visibleColumns.provider && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                        {t("columns.provider")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.provider")}</th>
                     )}
                     {visibleColumns.protocol && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                        {t("columns.protocol")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.protocol")}</th>
                     )}
                     {visibleColumns.account && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                        {t("columns.account")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.account")}</th>
                     )}
                     {visibleColumns.apiKey && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                        {t("columns.apiKey")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.apiKey")}</th>
                     )}
                     {visibleColumns.combo && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                        {t("columns.combo")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.combo")}</th>
                     )}
                     {visibleColumns.tokens && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px] text-right">
-                        {t("columns.tokens")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_RIGHT_CLASS}>{t("columns.tokens")}</th>
                     )}
                     {visibleColumns.tps && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px] text-right">
-                        {t("columns.tps")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_RIGHT_CLASS}>{t("columns.tps")}</th>
                     )}
                     {visibleColumns.duration && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px] text-right">
-                        {t("columns.duration")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_RIGHT_CLASS}>{t("columns.duration")}</th>
                     )}
                     {visibleColumns.time && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px] text-right">
-                        {t("columns.time")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_RIGHT_CLASS}>{t("columns.time")}</th>
                     )}
                   </tr>
                 </thead>

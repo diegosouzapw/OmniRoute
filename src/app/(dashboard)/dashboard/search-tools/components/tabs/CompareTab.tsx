@@ -35,16 +35,12 @@ function computeOverlap(urlsA: string[], urlsB: string[]): string {
 
 function getBestIndex(values: number[], higherIsBetter = false): number {
   if (values.length === 0) return -1;
-  return higherIsBetter
-    ? values.indexOf(Math.max(...values))
-    : values.indexOf(Math.min(...values));
+  return higherIsBetter ? values.indexOf(Math.max(...values)) : values.indexOf(Math.min(...values));
 }
 
 function getWorstIndex(values: number[], higherIsBetter = false): number {
   if (values.length === 0) return -1;
-  return higherIsBetter
-    ? values.indexOf(Math.min(...values))
-    : values.indexOf(Math.max(...values));
+  return higherIsBetter ? values.indexOf(Math.min(...values)) : values.indexOf(Math.max(...values));
 }
 
 /** Build a map of url → count across all compare results to find overlaps */
@@ -61,7 +57,7 @@ function buildUrlCountMap(allResults: CompareResult[]): Map<string, number> {
 export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
   const t = useTranslations("search");
   const activeSearchProviders = providers.filter(
-    (p) => p.kind === "search" && p.status === "configured",
+    (p) => p.kind === "search" && p.status === "configured"
   );
 
   const [query, setQuery] = useState("");
@@ -143,7 +139,7 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
             error: err instanceof Error ? err.message : "Failed",
           } as CompareResult;
         }
-      }),
+      })
     );
 
     const resolved = settled.map((s) =>
@@ -158,7 +154,7 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
             urls: [],
             results: [],
             error: "Request failed",
-          } as CompareResult),
+          } as CompareResult)
     );
     setResults(resolved);
     setLoading(false);
@@ -188,15 +184,14 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
         className="flex flex-col items-center justify-center flex-1 py-16 text-center"
         data-testid="compare-no-providers"
       >
-        <span className="text-3xl mb-3" aria-hidden="true">⚖</span>
+        <span className="text-3xl mb-3" aria-hidden="true">
+          ⚖
+        </span>
         <p className="text-sm text-text-muted mb-2">
-          Nenhum provider de search ativo — configure em Providers →
+          No active search provider. Configure one in Providers.
         </p>
-        <Link
-          href="/dashboard/providers"
-          className="text-accent text-sm hover:underline"
-        >
-          Configurar providers
+        <Link href="/dashboard/providers" className="text-accent text-sm hover:underline">
+          Configure providers
         </Link>
       </div>
     );
@@ -405,8 +400,7 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
                         {cr.provider.replace("-search", "")}
                       </span>
                       {": "}
-                      {cr.error ? "—" : computeOverlap(baseUrls, cr.urls)}{" "}
-                      in common
+                      {cr.error ? "—" : computeOverlap(baseUrls, cr.urls)} in common
                     </span>
                   );
                 })}
@@ -422,7 +416,9 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
           className="flex flex-col items-center justify-center flex-1 py-12 text-center"
           data-testid="compare-empty-state"
         >
-          <span className="text-3xl mb-3" aria-hidden="true">⚖</span>
+          <span className="text-3xl mb-3" aria-hidden="true">
+            ⚖
+          </span>
           <p className="text-sm text-text-muted mb-1">
             Select providers and enter a query to compare
           </p>

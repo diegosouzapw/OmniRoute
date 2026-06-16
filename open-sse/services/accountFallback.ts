@@ -1577,11 +1577,30 @@ export function checkFallbackError(
 // ─── Account State Management ───────────────────────────────────────────────
 
 /**
+ * Normalize a stored cooldown timestamp to epoch milliseconds.
+ *
+ * `rate_limited_until` is a TEXT column, but some write paths persist a raw
+ * epoch NUMBER (e.g. `setConnectionRateLimitUntil` on the Antigravity full-quota
+ * path). SQLite TEXT affinity coerces it to a numeric string like
+ * "1781696905131.0", which `new Date(...)` cannot parse (→ NaN). Accept numeric
+ * epoch strings/numbers as well as ISO strings and Date objects (#3954).
+ */
+export function cooldownUntilMs(value: string | number | Date | null | undefined): number {
+  if (value === null || value === undefined || value === "") return NaN;
+  if (value instanceof Date) return value.getTime();
+  if (typeof value === "number") return value;
+  const raw = value.trim();
+  if (/^\d+(\.\d+)?$/.test(raw)) return Number(raw);
+  return new Date(raw).getTime();
+}
+
+/**
  * Check if account is currently unavailable (cooldown not expired)
  */
 export function isAccountUnavailable(unavailableUntil: string | Date | null | undefined): boolean {
   if (!unavailableUntil) return false;
-  return new Date(unavailableUntil).getTime() > Date.now();
+  const ms = cooldownUntilMs(unavailableUntil);
+  return Number.isFinite(ms) && ms > Date.now();
 }
 
 /**
@@ -1601,8 +1620,8 @@ export function getEarliestRateLimitedUntil(
   const now = Date.now();
   for (const acc of accounts) {
     if (!acc.rateLimitedUntil) continue;
-    const until = new Date(acc.rateLimitedUntil).getTime();
-    if (until <= now) continue;
+    const until = cooldownUntilMs(acc.rateLimitedUntil);
+    if (!Number.isFinite(until) || until <= now) continue;
     if (!earliest || until < earliest) earliest = until;
   }
   if (!earliest) return null;
@@ -1640,8 +1659,8 @@ export function filterAvailableAccounts<T extends AccountState>(
   return accounts.filter((acc) => {
     if (excludeId && acc.id === excludeId) return false;
     if (acc.rateLimitedUntil) {
-      const until = new Date(acc.rateLimitedUntil).getTime();
-      if (until > now) return false;
+      const until = cooldownUntilMs(acc.rateLimitedUntil);
+      if (Number.isFinite(until) && until > now) return false;
     }
     return true;
   });

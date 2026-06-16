@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OmniRoute API
-  version: 3.8.26
+  version: 3.8.27
   description: |
     OmniRoute is a local-first AI API proxy router. It provides an OpenAI-compatible
     endpoint that routes requests to multiple AI providers with load balancing,
@@ -3496,6 +3496,27 @@ paths:
       responses:
         "200":
           description: Backup created
+    patch:
+      tags: [System]
+      summary: Save database backup retention settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                keepLatest:
+                  type: integer
+                  minimum: 1
+                  maximum: 200
+                retentionDays:
+                  type: integer
+                  minimum: 0
+                  maximum: 3650
+      responses:
+        "200":
+          description: Backup retention settings saved
 
   /api/storage/health:
     get:

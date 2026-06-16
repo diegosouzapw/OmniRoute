@@ -20,6 +20,12 @@ import { Card, Toggle } from "@/shared/components";
 import { cn } from "@/shared/utils/cn";
 import { useTranslations } from "next-intl";
 import {
+  HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY,
+  HIDEABLE_SIDEBAR_GROUP_IDS,
+  normalizeHiddenSidebarGroupLabels,
+  type HideableSidebarGroupId,
+} from "@/shared/constants/sidebarGroupVisibility";
+import {
   HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
   SIDEBAR_SECTION_ORDER_KEY,
   SIDEBAR_ITEM_ORDER_KEY,
@@ -29,7 +35,6 @@ import {
   SIDEBAR_PRESETS,
   applySectionOrder,
   applyItemOrder,
-  getSectionItems,
   normalizeHiddenSidebarItems,
   type HideableSidebarItemId,
   type SidebarSectionId,
@@ -46,8 +51,10 @@ import {
 interface SortableSectionProps {
   section: SidebarSectionDefinition & { title: string };
   hiddenSet: Set<HideableSidebarItemId>;
+  hiddenGroupLabelsSet: Set<HideableSidebarGroupId>;
   itemOrder: string[];
   onToggleItem: (id: HideableSidebarItemId) => void;
+  onToggleGroupLabel: (id: HideableSidebarGroupId) => void;
   onItemReorder: (sectionId: SidebarSectionId, newOrder: string[]) => void;
   getLabel: (key: string, fallback: string) => string;
 }
@@ -55,8 +62,10 @@ interface SortableSectionProps {
 function SortableSection({
   section,
   hiddenSet,
+  hiddenGroupLabelsSet,
   itemOrder,
   onToggleItem,
+  onToggleGroupLabel,
   onItemReorder,
   getLabel,
 }: SortableSectionProps) {
@@ -140,7 +149,9 @@ function SortableSection({
                       <GroupRow
                         group={group}
                         hiddenSet={hiddenSet}
+                        hiddenGroupLabelsSet={hiddenGroupLabelsSet}
                         onToggleItem={onToggleItem}
+                        onToggleGroupLabel={onToggleGroupLabel}
                         getLabel={getLabel}
                       />
                     </SortableChildRow>
@@ -237,33 +248,59 @@ function ItemRow({ item, hiddenSet, onToggleItem, getLabel }: ItemRowProps) {
 interface GroupRowProps {
   group: SidebarItemGroup;
   hiddenSet: Set<HideableSidebarItemId>;
+  hiddenGroupLabelsSet: Set<HideableSidebarGroupId>;
   onToggleItem: (id: HideableSidebarItemId) => void;
+  onToggleGroupLabel: (id: HideableSidebarGroupId) => void;
   getLabel: (key: string, fallback: string) => string;
 }
 
-function GroupRow({ group, hiddenSet, onToggleItem, getLabel }: GroupRowProps) {
+function GroupRow({
+  group,
+  hiddenSet,
+  hiddenGroupLabelsSet,
+  onToggleItem,
+  onToggleGroupLabel,
+  getLabel,
+}: GroupRowProps) {
   const [open, setOpen] = useState(true);
+  const groupId = group.id as HideableSidebarGroupId;
+  const canToggleSeparator = HIDEABLE_SIDEBAR_GROUP_IDS.includes(groupId);
+  const separatorVisible = !hiddenGroupLabelsSet.has(groupId);
+  const separatorLabel = getLabel("groupSeparatorLabel", "Separator");
+
   return (
     <div className="w-full">
-      <button
-        onClick={() => setOpen((p) => !p)}
-        className="flex items-center gap-2 px-4 py-2.5 w-full text-left hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-      >
-        <span
-          className={cn(
-            "material-symbols-outlined text-[12px] text-text-muted/40 transition-transform",
-            open && "rotate-90"
-          )}
+      <div className="flex items-center gap-2 px-4 py-2.5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+        <button
+          onClick={() => setOpen((p) => !p)}
+          className="flex min-w-0 flex-1 items-center gap-2 text-left"
         >
-          chevron_right
-        </span>
-        <span className="text-[10px] font-semibold uppercase tracking-widest text-text-muted/50">
-          {getLabel(group.titleKey, group.titleFallback)}
-        </span>
-        <span className="ml-auto text-xs text-text-muted/40">
+          <span
+            className={cn(
+              "material-symbols-outlined text-[12px] text-text-muted/40 transition-transform",
+              open && "rotate-90"
+            )}
+          >
+            chevron_right
+          </span>
+          <span className="truncate text-[10px] font-semibold uppercase tracking-widest text-text-muted/50">
+            {getLabel(group.titleKey, group.titleFallback)}
+          </span>
+        </button>
+        <span className="text-xs text-text-muted/40">
           {group.items.filter((i) => !hiddenSet.has(i.id)).length}/{group.items.length}
         </span>
-      </button>
+        {canToggleSeparator && (
+          <div className="flex items-center gap-2 border-l border-border/60 pl-3">
+            <span className="text-[10px] font-medium text-text-muted/50">{separatorLabel}</span>
+            <Toggle
+              size="sm"
+              checked={separatorVisible}
+              onChange={() => onToggleGroupLabel(groupId)}
+            />
+          </div>
+        )}
+      </div>
       {open && (
         <div className="divide-y divide-border/50 pl-2">
           {group.items.map((item) => (
@@ -306,6 +343,9 @@ export default function SidebarTab() {
 
   const [loading, setLoading] = useState(true);
   const [hiddenSidebarItems, setHiddenSidebarItems] = useState<HideableSidebarItemId[]>([]);
+  const [hiddenSidebarGroupLabels, setHiddenSidebarGroupLabels] = useState<
+    HideableSidebarGroupId[]
+  >([]);
   const [sectionOrder, setSectionOrder] = useState<SidebarSectionId[]>([]);
   const [itemOrder, setItemOrder] = useState<SidebarItemOrder>({});
   const [activePreset, setActivePreset] = useState<SidebarPresetId | null>(null);
@@ -318,6 +358,9 @@ export default function SidebarTab() {
       .then((data) => {
         setHiddenSidebarItems(
           normalizeHiddenSidebarItems(data?.[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY])
+        );
+        setHiddenSidebarGroupLabels(
+          normalizeHiddenSidebarGroupLabels(data?.[HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY])
         );
         setSectionOrder(
           Array.isArray(data?.[SIDEBAR_SECTION_ORDER_KEY]) ? data[SIDEBAR_SECTION_ORDER_KEY] : []
@@ -364,6 +407,16 @@ export default function SidebarTab() {
   };
 
   const hiddenSet = new Set(hiddenSidebarItems);
+  const hiddenGroupLabelsSet = new Set(hiddenSidebarGroupLabels);
+
+  const toggleGroupLabel = (id: HideableSidebarGroupId) => {
+    const next = hiddenSidebarGroupLabels.includes(id)
+      ? hiddenSidebarGroupLabels.filter((x) => x !== id)
+      : [...hiddenSidebarGroupLabels, id];
+    setHiddenSidebarGroupLabels(next);
+    setActivePreset(null);
+    patch({ [HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY]: next, [SIDEBAR_PRESET_KEY]: null });
+  };
 
   const visibleSections = SIDEBAR_SECTIONS.filter((s) => s.visibility !== "debug" || showDebug).map(
     (s) => ({ ...s, title: getLabel(s.titleKey, s.titleFallback) })
@@ -400,12 +453,14 @@ export default function SidebarTab() {
     // Ensure protected items are never hidden, even if a preset includes them
     const safeHidden = preset.hiddenItems.filter((id) => !PROTECTED_ITEM_IDS.has(id));
     setHiddenSidebarItems(safeHidden);
+    setHiddenSidebarGroupLabels([]);
     setSectionOrder([]);
     setItemOrder({});
     setActivePreset(presetId);
     setConfirmPreset(null);
     patch({
       [HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]: safeHidden,
+      [HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY]: [],
       [SIDEBAR_SECTION_ORDER_KEY]: [],
       [SIDEBAR_ITEM_ORDER_KEY]: {},
       [SIDEBAR_PRESET_KEY]: presetId,
@@ -493,6 +548,7 @@ export default function SidebarTab() {
                     if (
                       activePreset !== null ||
                       hiddenSidebarItems.length > 0 ||
+                      hiddenSidebarGroupLabels.length > 0 ||
                       sectionOrder.length > 0
                     ) {
                       setConfirmPreset(preset.id);
@@ -593,8 +649,10 @@ export default function SidebarTab() {
                     key={section.id}
                     section={section}
                     hiddenSet={hiddenSet}
+                    hiddenGroupLabelsSet={hiddenGroupLabelsSet}
                     itemOrder={itemOrder[section.id as SidebarSectionId] ?? []}
                     onToggleItem={toggleItem}
+                    onToggleGroupLabel={toggleGroupLabel}
                     onItemReorder={handleItemReorder}
                     getLabel={getLabel}
                   />
