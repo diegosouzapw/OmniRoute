@@ -50,6 +50,13 @@ export interface TargetNodeModel {
   cbState?: CbState;
   /** Milliseconds until the breaker allows a probe again (when cbState is set). */
   cbRetryAfterMs?: number;
+  /** Connections for this provider currently in cooldown (U1b Slice 2).
+   * Only set when at least one connection is cooling down. */
+  cooldownCount?: number;
+  /** Total connections configured for this provider (set with cooldownCount). */
+  cooldownTotal?: number;
+  /** Milliseconds until the first cooling connection recovers (the soonest). */
+  cooldownRetryAfterMs?: number;
 }
 
 export interface ComboRunModel {
@@ -307,6 +314,9 @@ export function comboRunToFlow(run: ComboRunModel): { nodes: Node[]; edges: Edge
         targetIndex: t.targetIndex,
         cbState: t.cbState,
         cbRetryAfterMs: t.cbRetryAfterMs,
+        cooldownCount: t.cooldownCount,
+        cooldownTotal: t.cooldownTotal,
+        cooldownRetryAfterMs: t.cooldownRetryAfterMs,
       },
     });
 
@@ -408,6 +418,79 @@ export function enrichRunWithBreakers(
     if (target.cbState !== undefined || target.cbRetryAfterMs !== undefined) {
       changed = true;
       const { cbState: _cbState, cbRetryAfterMs: _cbRetryAfterMs, ...rest } = target;
+      return rest;
+    }
+    return target;
+  });
+
+  return changed ? { ...run, targets } : run;
+}
+
+// ── enrichRunWithConnectionCooldown (U1b Slice 2) ─────────────────────────────
+
+/**
+ * Per-provider connection-cooldown summary, as exposed by GET /api/monitoring/health
+ * (`connectionHealth[provider]`). Only providers with at least one cooling connection
+ * appear in the map. Only the fields the cascade badge consumes.
+ */
+export interface ConnectionCooldownSnapshot {
+  coolingDown?: number;
+  total?: number;
+  soonestRetryAfterMs?: number;
+}
+
+/**
+ * Overlay real per-provider connection-cooldown state onto a combo run's targets
+ * (U1b Slice 2). Returns a new run (pure) only when something changed; otherwise the
+ * same reference. Composes with {@link enrichRunWithBreakers} — it only touches the
+ * `cooldown*` fields, leaving `cbState`/`cbRetryAfterMs` intact.
+ *
+ * A badge is attached only when the provider has ≥1 connection cooling down; a zero,
+ * unknown, or absent summary clears any stale cooldown fields so the cascade reflects
+ * recovery. Provider lookup is by `target.provider`.
+ *
+ * @param run              current combo run model (or null)
+ * @param connectionHealth `connectionHealth` map from /api/monitoring/health
+ */
+export function enrichRunWithConnectionCooldown(
+  run: ComboRunModel | null,
+  connectionHealth: Record<string, ConnectionCooldownSnapshot> | null | undefined
+): ComboRunModel | null {
+  if (!run) return null;
+  if (!connectionHealth) return run;
+
+  let changed = false;
+  const targets = run.targets.map((target) => {
+    const snapshot = connectionHealth[target.provider];
+    const coolingDown = typeof snapshot?.coolingDown === "number" ? snapshot.coolingDown : 0;
+
+    if (coolingDown > 0) {
+      const total = typeof snapshot?.total === "number" ? snapshot.total : coolingDown;
+      const retryAfterMs = snapshot?.soonestRetryAfterMs;
+      if (
+        target.cooldownCount === coolingDown &&
+        target.cooldownTotal === total &&
+        target.cooldownRetryAfterMs === retryAfterMs
+      ) {
+        return target;
+      }
+      changed = true;
+      return {
+        ...target,
+        cooldownCount: coolingDown,
+        cooldownTotal: total,
+        cooldownRetryAfterMs: retryAfterMs,
+      };
+    }
+
+    // No cooldown → strip any stale cooldown badge.
+    if (
+      target.cooldownCount !== undefined ||
+      target.cooldownTotal !== undefined ||
+      target.cooldownRetryAfterMs !== undefined
+    ) {
+      changed = true;
+      const { cooldownCount: _c, cooldownTotal: _t, cooldownRetryAfterMs: _r, ...rest } = target;
       return rest;
     }
     return target;
