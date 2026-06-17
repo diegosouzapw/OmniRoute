@@ -52,10 +52,10 @@ import {
   WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
+import { isNoAuthProviderBlockedBySettings } from "../noAuthProviderSettings";
 import * as log from "../utils/logger";
 import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
 import crypto from "node:crypto";
-
 
 /**
  * Sentinel connection id used for the synthetic credentials of no-auth /
@@ -129,8 +129,13 @@ export function providerCanUseSyntheticNoAuthFallback(providerId: string): boole
   );
 }
 
-export function maybeSyntheticNoAuthFallback(providerId: string, excludedConnectionIds: Set<string>) {
+export async function maybeSyntheticNoAuthFallback(
+  providerId: string,
+  excludedConnectionIds: Set<string>
+) {
   if (!providerCanUseSyntheticNoAuthFallback(providerId)) return null;
+  // #3953: skip synthetic fallback when provider is blocked by settings
+  if (await isNoAuthProviderBlockedBySettings(providerId)) return null;
   if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) return null;
   return buildSyntheticNoAuthCredentials();
 }
