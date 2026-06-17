@@ -266,7 +266,7 @@
     "wreq-js": "^2.3.1"
   },
   "devDependencies": {
-    "@cyclonedx/cyclonedx-npm": "4.2.1",
+    "@cyclonedx/cyclonedx-npm": "5.0.0",
     "@playwright/test": "^1.60.0",
     "@size-limit/file": "^12.1.0",
     "@stryker-mutator/core": "^9.6.1",
@@ -288,7 +288,7 @@
     "cross-env": "^10.1.0",
     "dpdm": "^4.2.0",
     "eslint": "^9.39.4",
-    "eslint-config-next": "16.2.7",
+    "eslint-config-next": "16.2.9",
     "eslint-plugin-sonarjs": "^4.0.3",
     "fast-check": "^4.8.0",
     "glob": "^13.0.6",
