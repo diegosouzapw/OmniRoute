@@ -43,6 +43,8 @@ export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
     providerId === "veoaifree-web" ||
     providerId === "hackclub" ||
     providerId === "huggingchat" ||
+    providerId === "huggingchat-web" ||
+    providerId === "phind-web" ||
     providerId === "gitlawb" ||
     providerId === "gitlawb-gmi" ||
     isLocalProvider(providerId) ||

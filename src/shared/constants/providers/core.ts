@@ -42,9 +42,14 @@ let _ALIAS_TO_ID: Record<string, string> | null = null;
 function getOrCreateAliasToId(): Record<string, string> {
   if (!_ALIAS_TO_ID) {
     _ALIAS_TO_ID = {};
+    // First-one-wins: earlier sections in _PROVIDER_SECTIONS take priority on
+    // alias conflicts, consistent with getProviderByAlias / getProviderById.
     for (const section of _PROVIDER_SECTIONS) {
       for (const p of Object.values(section)) {
-        if ((p as any).alias) _ALIAS_TO_ID[(p as any).alias] = (p as any).id;
+        const alias = (p as any).alias;
+        if (alias && !(alias in _ALIAS_TO_ID)) {
+          _ALIAS_TO_ID[alias] = (p as any).id;
+        }
       }
     }
   }
@@ -56,7 +61,10 @@ let _ID_TO_ALIAS: Record<string, string> | null = null;
 function getOrCreateIdToAlias(): Record<string, string> {
   if (!_ID_TO_ALIAS) {
     _ID_TO_ALIAS = {};
-    for (const section of _PROVIDER_SECTIONS) {
+    // Iterate sections backwards so earlier sections win on id conflicts
+    // via last-write: the result matches getProviderById's first-one-wins.
+    for (let i = _PROVIDER_SECTIONS.length - 1; i >= 0; i--) {
+      const section = _PROVIDER_SECTIONS[i];
       for (const p of Object.values(section)) {
         _ID_TO_ALIAS[(p as any).id] = (p as any).alias || (p as any).id;
       }

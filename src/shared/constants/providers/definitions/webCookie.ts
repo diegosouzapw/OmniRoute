@@ -169,10 +169,10 @@ export const WEB_COOKIE_PROVIDERS = {
       "Paste your session cookie from lmarena.ai (DevTools → Application → Cookies). Optional — works with free tier for basic comparisons.",
     riskNoticeVariant: "webCookie",
   },
-  huggingchat: {
-    id: "huggingchat",
-    // "hc" belongs to the hackclub provider; huggingchat uses its own id as alias.
-    alias: "huggingchat",
+  "huggingchat-web": {
+    id: "huggingchat-web",
+    // "hc" belongs to the hackclub provider; use "hc-web" to stay distinct.
+    alias: "hc-web",
     name: "HuggingChat (Free)",
     icon: "auto_awesome",
     color: "#FFD21E",
@@ -184,9 +184,9 @@ export const WEB_COOKIE_PROVIDERS = {
       "Paste your hf-chat cookie value from huggingface.co/chat (DevTools → Application → Cookies → hf-chat). Optional — works without auth for basic use.",
     riskNoticeVariant: "webCookie",
   },
-  phind: {
-    id: "phind",
-    alias: "ph",
+  "phind-web": {
+    id: "phind-web",
+    alias: "ph-web",
     name: "Phind (Free)",
     icon: "auto_awesome",
     color: "#000000",
