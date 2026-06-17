@@ -1,3 +1,10 @@
+// Integration test (relocated from tests/unit/cli): it spawns the real
+// start-ws-server.mjs subprocess, which boots a full WebSocket server + SQLite
+// and eagerly warms the SSE auth module (~7s under tsx). Running it in the unit
+// suite under --test-concurrency=20 made it flaky/red because the heavy subprocess
+// boot contended for CPU; it belongs in the serial (--test-concurrency=1)
+// integration runner. It still guards #4004's same-origin cookie-parse fix on
+// every PR via the integration CI job.
 import assert from "node:assert/strict";
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { SignJWT } from "jose";
@@ -34,9 +41,12 @@ function waitForStartup(
   getOutput: () => string
 ): Promise<void> {
   return new Promise((resolve, reject) => {
+    // Startup eagerly warms the SSE auth module (see liveServer.ts), which takes
+    // several seconds under tsx, so "listening" can appear ~7s after spawn. 30s
+    // leaves headroom for a loaded CI runner.
     const timeout = setTimeout(() => {
       reject(new Error(`LiveWS startup timed out. Output:\n${getOutput()}`));
-    }, 8_000);
+    }, 30_000);
 
     const onData = () => {
       const output = getOutput();
@@ -69,7 +79,7 @@ function waitForStartup(
 
 test(
   "LiveWS startup script boots on current Node and accepts API-key WebSocket clients",
-  { timeout: 15_000 },
+  { timeout: 45_000 },
   async () => {
     const port = await getFreePort();
     const apiKey = "test-live-ws-key";

@@ -56,13 +56,14 @@ jobs:
       # unit tests impacted by this PR's changed files. Fail-safe runs the FULL
       # unit suite on hub/unmapped changes — TIA accelerates, never replaces, the net.
       #
-      # ADVISORY for now (repo convention: advisory -> blocking). release/v3.8.27 carries
-      # ~17 pre-existing red unit tests (budget #3537, apiKey #3552, several Zod schemas,
-      # executors, etc.) unrelated to this PR; running them is what surfaced the debt.
-      # Keep this advisory until that debt is cleared, THEN remove continue-on-error to
-      # block test regressions on PR->release. typecheck:core above stays blocking.
-      - name: Impacted unit tests (TIA, fail-safe full; advisory until release test-debt cleared)
-        continue-on-error: true
+      # BLOCKING (flipped 2026-06-17). The pre-existing release unit test-debt that kept
+      # this advisory was cleared: #4030 (16 Zod/registry reds, lossless restore) and
+      # #4063 (the last red — the LiveWS boot test — root-caused as a real event-loop
+      # stall in the WS sidecar, fixed + relocated to the integration suite). A full
+      # ci.yml run on release/v3.8.28 then showed all 8 unit shards green, so PR->release
+      # now blocks on unit-test regressions in the impacted set (typecheck:core already
+      # blocked above). Fail-safe still runs the FULL unit suite on hub/unmapped changes.
+      - name: Impacted unit tests (TIA, fail-safe full; blocking)
         env:
           GITHUB_BASE_REF: ${{ github.base_ref }}
         run: |
@@ -70,9 +71,14 @@ jobs:
           node scripts/quality/build-test-impact-map.mjs
           SEL="$(node scripts/quality/select-impacted-tests.mjs)"
           if [ -z "$SEL" ]; then echo "No source/test changes — skipping unit tests"; exit 0; fi
+          # CI runners are 4-vCPU; run at --test-concurrency=4 (matching the ci.yml unit
+          # job) rather than test:unit's local-tuned concurrency=20. Oversubscribing the
+          # runner makes timing-sensitive tests (db-backup, upstream-timeout, ...) flake,
+          # which must not happen on a blocking gate. DATA_DIR isolation keeps the parallel
+          # run race-free regardless of concurrency.
           if echo "$SEL" | grep -q "__RUN_ALL__"; then
-            echo "Fail-safe: running FULL unit suite"; npm run test:unit; exit $?
+            echo "Fail-safe: running FULL unit suite (CI concurrency)"; npm run test:unit:ci; exit $?
           fi
           echo "Running impacted tests:"; echo "$SEL"
           mapfile -t FILES <<< "$SEL"
-          node --import tsx --import ./open-sse/utils/setupPolyfill.ts --test --test-force-exit --test-concurrency=8 "${FILES[@]}"
+          node --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 "${FILES[@]}"

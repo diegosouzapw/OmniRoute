@@ -108,6 +108,24 @@ function toWebHeaders(headers: import("http").IncomingMessage["headers"]): Heade
   return webHeaders;
 }
 
+// Auth-module warmer. The SSE auth graph is large (hundreds of transitive
+// modules); a cold dynamic import takes several seconds and runs synchronously
+// enough to stall the single-threaded event loop. Loading it lazily inside the
+// connection handler meant the FIRST API-key WebSocket connection blocked the
+// loop long enough that any connection arriving in that window (e.g. a
+// same-origin cookie client) could not complete its handshake and timed out.
+// Memoize the import and warm it once during startup (before listen) so
+// connection handling never pays that cost. Kept as a dynamic import (not a
+// top-level static one) to preserve the sidecar's decoupling from the SSE auth
+// graph at module-load time.
+let authModulePromise: Promise<typeof import("../../sse/services/auth.ts")> | null = null;
+function loadAuthModule(): Promise<typeof import("../../sse/services/auth.ts")> {
+  if (!authModulePromise) {
+    authModulePromise = import("../../sse/services/auth.ts");
+  }
+  return authModulePromise;
+}
+
 async function authorizeConnection(request: import("http").IncomingMessage): Promise<WsAuthResult> {
   const sessionId = randomUUID().slice(0, 8);
 
@@ -128,8 +146,8 @@ async function authorizeConnection(request: import("http").IncomingMessage): Pro
   }
 
   try {
-    // Validate API key via the existing auth system.
-    const { extractApiKey, isValidApiKey } = await import("../../sse/services/auth.ts");
+    // Validate API key via the existing auth system (warmed at startup).
+    const { extractApiKey, isValidApiKey } = await loadAuthModule();
     const apiKey = extractApiKey({ headers: { authorization: `Bearer ${token}` } } as any, {
       allowUrl: false,
     });
@@ -439,6 +457,14 @@ export async function startLiveDashboardServer(
   port = DEFAULT_PORT,
   host = DEFAULT_HOST
 ): Promise<import("http").Server> {
+  if (!process.env.JWT_SECRET) {
+    console.warn(
+      "  \x1b[33m⚠ Warning: JWT_SECRET is not set in the environment.\x1b[0m\n" +
+        "    Dashboard cookie-based WebSocket authentication will fail.\n" +
+        "    Please ensure JWT_SECRET is configured in your .env file."
+    );
+  }
+
   const server = createServer((req, res) => {
     handleInternalEventRequest(req, res);
   });
@@ -447,6 +473,12 @@ export async function startLiveDashboardServer(
   // Subscribe to EventBus
   const unsubscribe = subscribeToEventBus();
   await seedLatestCompressionRunFromDb();
+
+  // Warm the auth module before accepting clients so the first API-key connection
+  // does not block the event loop on a cold import — which would starve concurrent
+  // WebSocket handshakes (see loadAuthModule). A failed warm is non-fatal: the
+  // handler retries the import lazily.
+  await loadAuthModule().catch(() => {});
 
   wss.on("connection", async (ws, request) => {
     const pendingMessages: string[] = [];

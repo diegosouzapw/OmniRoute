@@ -202,18 +202,18 @@ describe("ProviderCascadeNode", () => {
         {...makeNodeProps({ state: "idle", cbState: "HALF_OPEN", cbRetryAfterMs: 5000 })}
       />
     );
-    expect(
-      container.querySelector("[data-testid='cb-state-badge']")?.textContent
-    ).toContain("CB: HALF_OPEN");
+    expect(container.querySelector("[data-testid='cb-state-badge']")?.textContent).toContain(
+      "CB: HALF_OPEN"
+    );
   });
 
   it("omits the retry hint when cbRetryAfterMs is absent", () => {
     const container = mount(
       <ProviderCascadeNode {...makeNodeProps({ state: "skipped", cbState: "DEGRADED" })} />
     );
-    expect(
-      container.querySelector("[data-testid='cb-state-badge']")?.textContent?.trim()
-    ).toBe("CB: DEGRADED");
+    expect(container.querySelector("[data-testid='cb-state-badge']")?.textContent?.trim()).toBe(
+      "CB: DEGRADED"
+    );
   });
 
   it("does NOT show the CB badge when cbState is absent", () => {
@@ -221,5 +221,78 @@ describe("ProviderCascadeNode", () => {
       <ProviderCascadeNode {...makeNodeProps({ state: "failed", failKind: "other" })} />
     );
     expect(container.querySelector("[data-testid='cb-state-badge']")).toBeNull();
+  });
+
+  // ── U1b Slice 2: connection-cooldown badge ───────────────────────────────
+
+  it("shows the cooldown badge with count/total + retry hint when connections are cooling", () => {
+    const container = mount(
+      <ProviderCascadeNode
+        {...makeNodeProps({
+          state: "idle",
+          cooldownCount: 2,
+          cooldownTotal: 3,
+          cooldownRetryAfterMs: 28000,
+        })}
+      />
+    );
+    const badge = container.querySelector("[data-testid='cooldown-badge']");
+    expect(badge).toBeTruthy();
+    expect(badge?.textContent).toContain("cooldown 2/3");
+    expect(badge?.textContent).toContain("28s");
+  });
+
+  it("shows the cooldown badge independent of target state (succeeded target)", () => {
+    const container = mount(
+      <ProviderCascadeNode
+        {...makeNodeProps({ state: "succeeded", cooldownCount: 1, cooldownTotal: 4 })}
+      />
+    );
+    expect(container.querySelector("[data-testid='cooldown-badge']")?.textContent).toContain(
+      "cooldown 1/4"
+    );
+  });
+
+  it("omits the retry hint when cooldownRetryAfterMs is absent", () => {
+    const container = mount(
+      <ProviderCascadeNode
+        {...makeNodeProps({ state: "idle", cooldownCount: 1, cooldownTotal: 2 })}
+      />
+    );
+    expect(container.querySelector("[data-testid='cooldown-badge']")?.textContent?.trim()).toBe(
+      "cooldown 1/2"
+    );
+  });
+
+  it("does NOT show the cooldown badge when cooldownCount is absent or zero", () => {
+    const absent = mount(<ProviderCascadeNode {...makeNodeProps({ state: "idle" })} />);
+    expect(absent.querySelector("[data-testid='cooldown-badge']")).toBeNull();
+    const zero = mount(
+      <ProviderCascadeNode
+        {...makeNodeProps({ state: "idle", cooldownCount: 0, cooldownTotal: 3 })}
+      />
+    );
+    expect(zero.querySelector("[data-testid='cooldown-badge']")).toBeNull();
+  });
+
+  it("shows both the CB badge and the cooldown badge together", () => {
+    const container = mount(
+      <ProviderCascadeNode
+        {...makeNodeProps({
+          state: "skipped",
+          cbState: "OPEN",
+          cbRetryAfterMs: 41000,
+          cooldownCount: 1,
+          cooldownTotal: 2,
+          cooldownRetryAfterMs: 9000,
+        })}
+      />
+    );
+    expect(container.querySelector("[data-testid='cb-state-badge']")?.textContent).toContain(
+      "CB: OPEN"
+    );
+    expect(container.querySelector("[data-testid='cooldown-badge']")?.textContent).toContain(
+      "cooldown 1/2"
+    );
   });
 });

@@ -55,6 +55,7 @@ import { registerRuntime } from "./runtime.mjs";
 import { registerTray } from "./tray.mjs";
 import { registerAutostart } from "./autostart.mjs";
 import { registerRepl } from "./repl.mjs";
+import { registerLaunch } from "./launch.mjs";
 import { registerApiCommands } from "../api-commands/registry.mjs";
 import { registerPlugin } from "./plugin.mjs";
 
@@ -117,6 +118,7 @@ export function registerCommands(program) {
   registerTray(program);
   registerAutostart(program);
   registerRepl(program);
+  registerLaunch(program);
   registerApiCommands(program);
   registerPlugin(program);
 }

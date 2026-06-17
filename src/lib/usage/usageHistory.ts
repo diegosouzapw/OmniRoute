@@ -215,6 +215,83 @@ const pendingRequests: {
  */
 const pendingById = new Map<string, PendingRequestDetail>();
 
+/**
+ * Orphaned-pending-request reaper.
+ *
+ * Pending details are normally removed when a request finalizes (clean completion,
+ * tracked error, client cancel). But a request that never finalizes cleanly — an
+ * upstream/fetch error thrown before the finalize call, a client disconnect, or a
+ * process-level timeout — leaves its detail in `pendingById` (and `pendingRequests.details`)
+ * forever, each retaining truncated request/response payload previews. Under real proxy
+ * traffic a steady fraction of requests terminate abnormally, so this grows monotonically
+ * (previously only an admin reset via clearPendingRequests() could free it).
+ *
+ * The reaper drops entries whose `startedAt` is older than MAX_PENDING_REQUEST_AGE_MS — far
+ * longer than any genuine request — so only truly-orphaned entries are evicted; a live
+ * request always finalizes long before that. MAX_PENDING_DETAILS is a hard backstop.
+ */
+const MAX_PENDING_REQUEST_AGE_MS = 15 * 60 * 1000;
+const MAX_PENDING_DETAILS = 5000;
+const PENDING_SWEEP_INTERVAL_MS = 5 * 60 * 1000;
+let _pendingSweepTimer: ReturnType<typeof setInterval> | null = null;
+
+function ensurePendingSweepTimer(): void {
+  if (_pendingSweepTimer || typeof setInterval !== "function") return;
+  _pendingSweepTimer = setInterval(() => {
+    try {
+      sweepStalePendingRequests();
+    } catch {
+      /* never let the reaper throw on the timer thread */
+    }
+  }, PENDING_SWEEP_INTERVAL_MS);
+  // Don't keep the process alive just for the reaper.
+  (_pendingSweepTimer as { unref?: () => void })?.unref?.();
+}
+
+/**
+ * Evicts orphaned pending-request details older than `maxAgeMs` and enforces a hard size
+ * cap. Mirrors the normal removal path (decrement counters + cleanup detail buckets) so the
+ * dashboard's pending counts self-heal. Exported for deterministic testing.
+ * @returns number of entries removed.
+ */
+export function sweepStalePendingRequests(
+  now: number = Date.now(),
+  maxAgeMs: number = MAX_PENDING_REQUEST_AGE_MS
+): number {
+  let removed = 0;
+
+  const remove = (detail: PendingRequestDetail): void => {
+    const modelKey = detail.provider ? `${detail.model} (${detail.provider})` : detail.model;
+    pendingById.delete(detail.id);
+    if (detail.connectionId && isSafeKey(modelKey)) {
+      const bucket = pendingRequests.details[detail.connectionId]?.[modelKey];
+      if (bucket) {
+        const index = bucket.findIndex((entry) => entry.id === detail.id);
+        if (index >= 0) bucket.splice(index, 1);
+      }
+      cleanupPendingDetails(detail.connectionId, modelKey);
+      decrementPendingCounters(modelKey, detail.connectionId);
+    }
+    removed++;
+  };
+
+  for (const detail of pendingById.values()) {
+    if (now - detail.startedAt > maxAgeMs) remove(detail);
+  }
+
+  // Hard backstop: if entries are still piling up faster than they age out, drop the oldest
+  // beyond the cap.
+  if (pendingById.size > MAX_PENDING_DETAILS) {
+    const overflow = pendingById.size - MAX_PENDING_DETAILS;
+    const oldest = [...pendingById.values()]
+      .sort((a, b) => a.startedAt - b.startedAt)
+      .slice(0, overflow);
+    for (const detail of oldest) remove(detail);
+  }
+
+  return removed;
+}
+
 /** Prototype-pollution denylist — prevents crafted model/provider names from mutating Object.prototype. */
 const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
 function isSafeKey(key: string): boolean {
@@ -234,6 +311,9 @@ export function trackPendingRequest(
   const modelKey = provider ? `${model} (${provider})` : model;
   if (!isSafeKey(modelKey)) return;
   const normalizedMetadata = normalizePendingMetadata(metadata);
+
+  // Ensure the orphaned-pending reaper is running once pending tracking is in use.
+  if (started) ensurePendingSweepTimer();
 
   // Use hasOwnProperty guard to prevent prototype pollution via crafted keys
   if (!Object.hasOwn(pendingRequests.byModel, modelKey)) {
