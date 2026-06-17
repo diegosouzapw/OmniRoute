@@ -135,6 +135,13 @@ function sanitizeErrorMessage(message) {
 
 const bypassShim = require("./_internal/bypass.cjs");
 
+// Routing-decision log verbosity (Gap 15). MITM_VERBOSE=0 silences the
+// per-request decision lines; default 1 preserves the previous behavior.
+const VERBOSE = bypassShim.parseVerboseLevel(process.env.MITM_VERBOSE);
+function vlog(level, msg) {
+  if (VERBOSE >= level) console.log(msg);
+}
+
 const BYPASS_JSON_FILE = path.join(DATA_DIR, "mitm", "bypass.json");
 let _userBypassPatterns = []; // array of glob strings, lowercased
 
@@ -337,6 +344,19 @@ async function passthrough(req, res, bodyBuffer) {
   const targetHost = getTargetHost(req);
   const targetIP = await resolveTargetIP(targetHost);
 
+  // Defense-in-depth loop guard (Gap 14). The x-omniroute-source header is the
+  // primary guard; this is a structural backstop for when it is stripped: if
+  // the upstream resolves to ourselves (loopback on our own listen port),
+  // forwarding would re-enter this server forever. Refuse instead of looping.
+  if (bypassShim.isSelfLoopDestination(targetIP, 443, LOCAL_PORT)) {
+    console.error(
+      `❌ Loop guard: ${targetHost} resolves to self (${targetIP}:${LOCAL_PORT}) — refusing to forward`
+    );
+    if (!res.headersSent) res.writeHead(508);
+    res.end("Loop Detected");
+    return;
+  }
+
   // TLS validation is enabled by default. Set MITM_DISABLE_TLS_VERIFY=1 only
   // in controlled local environments where the target uses a self-signed cert.
   const rejectUnauthorized = process.env.MITM_DISABLE_TLS_VERIFY !== "1";
@@ -439,31 +459,31 @@ const server = https.createServer(sslOptions, async (req, res) => {
   const host = String(req.headers.host || "").split(":")[0].toLowerCase();
   const model = bodyBuffer.length > 0 ? extractModel(bodyBuffer) : null;
 
-  console.log(`[MITM] ${req.method} ${host}${req.url} | body: ${bodyBuffer.length}B | model: ${model || "N/A"}`);
+  vlog(1, `[MITM] ${req.method} ${host}${req.url} | body: ${bodyBuffer.length}B | model: ${model || "N/A"}`);
 
   if (bodyBuffer.length > 0) saveRequestLog(req.url, bodyBuffer);
 
   if (req.headers["x-omniroute-source"] === "omniroute") {
-    console.log(`[MITM] → PASSTHROUGH (OmniRoute source loop)`);
+    vlog(1, `[MITM] → PASSTHROUGH (OmniRoute source loop)`);
     return passthrough(req, res, bodyBuffer);
   }
 
   if (!TARGET_HOSTS.has(host)) {
-    console.log(`[MITM] → PASSTHROUGH (host ${host} not in target list)`);
+    vlog(1, `[MITM] → PASSTHROUGH (host ${host} not in target list)`);
     return passthrough(req, res, bodyBuffer);
   }
 
   const isChatRequest = CHAT_URL_PATTERNS.some((p) => req.url.includes(p));
 
   if (!isChatRequest) {
-    console.log(`[MITM] → PASSTHROUGH (URL ${req.url} does not match chat patterns)`);
+    vlog(1, `[MITM] → PASSTHROUGH (URL ${req.url} does not match chat patterns)`);
     return passthrough(req, res, bodyBuffer);
   }
 
   const mappedModel = getMappedModel(model);
 
   if (!mappedModel) {
-    console.log(`[MITM] → PASSTHROUGH (model "${model}" has no MITM alias mapping)`);
+    vlog(1, `[MITM] → PASSTHROUGH (model "${model}" has no MITM alias mapping)`);
     return passthrough(req, res, bodyBuffer);
   }
 
@@ -471,7 +491,7 @@ const server = https.createServer(sslOptions, async (req, res) => {
   stats.lastInterceptAt = new Date().toISOString();
   writeStats();
 
-  console.log(`[MITM] INTERCEPTED ${model} → ${mappedModel}`);
+  vlog(1, `[MITM] INTERCEPTED ${model} → ${mappedModel}`);
   return intercept(req, res, bodyBuffer, mappedModel);
 });
 
@@ -585,7 +605,7 @@ server.on("connect", (req, clientSocket, head) => {
   if (decision === "bypass") {
     // Privacy: bypass hosts are never logged with body/headers and never
     // TLS-decrypted. Only the hostname appears in console output.
-    console.log(`[MITM] CONNECT ${connectHost}:${connectPort} → BYPASS (TCP tunnel)`);
+    vlog(1, `[MITM] CONNECT ${connectHost}:${connectPort} → BYPASS (TCP tunnel)`);
     rawTcpForward(clientSocket, head, connectHost, connectPort, "bypass");
     return;
   }
@@ -595,7 +615,8 @@ server.on("connect", (req, clientSocket, head) => {
     // https.createServer request handler can decrypt and route. We write the
     // 200 response ourselves and then `emit("connection")` so the TLS layer
     // picks the socket up.
-    console.log(
+    vlog(
+      1,
       `[MITM] CONNECT ${connectHost}:${connectPort} → TARGET (TLS terminate locally)`
     );
     clientSocket.write("HTTP/1.1 200 Connection Established\r\n\r\n");
@@ -605,7 +626,8 @@ server.on("connect", (req, clientSocket, head) => {
   }
 
   // decision === "passthrough"
-  console.log(
+  vlog(
+    1,
     `[MITM] CONNECT ${connectHost}:${connectPort} → PASSTHROUGH (TCP tunnel)`
   );
   rawTcpForward(clientSocket, head, connectHost, connectPort, "passthrough");
