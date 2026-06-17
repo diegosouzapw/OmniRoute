@@ -5,7 +5,7 @@ import type {
   ComboRetryAfter,
 } from "./types.ts";
 import type { CompressionMode } from "../compression/types.ts";
-import type { MessageLike, UniversalHandoffConfig, ContextRelayConfig } from "../contextHandoff.ts";
+import type { MessageLike, UniversalHandoffConfig, ContextRelayConfig } from "../../contextHandoff.ts";
 
 import {
   checkFallbackError,
@@ -14,41 +14,41 @@ import {
   recordProviderFailure,
   isProviderFailureCode,
   isProviderExhaustedReason,
-} from "../accountFallback.ts";
+} from "../../accountFallback.ts";
 
 import { RateLimitReason } from "../../config/constants.ts";
 import { errorResponse } from "../../utils/error.ts";
-import { getComboMetrics } from "../comboMetrics.ts";
+import { getComboMetrics } from "../../comboMetrics.ts";
 import {
   maybeGenerateHandoff,
   maybeGenerateUniversalHandoff,
   injectUniversalHandoffBody,
   SKIP_UNIVERSAL_HANDOFF_FLAG,
-} from "../contextHandoff.ts";
+} from "../../contextHandoff.ts";
 import {
   recordSessionModelUsage,
   getLastSessionModel,
   getHandoff,
 } from "../../../src/lib/db/contextHandoffs.ts";
-import { fetchCodexQuota } from "../codexQuotaFetcher.ts";
+import { fetchCodexQuota } from "../../codexQuotaFetcher.ts";
 import { getCircuitBreaker } from "../../../src/shared/utils/circuitBreaker";
 import { emit } from "../../../src/lib/events/eventBus";
 import { notifyWebhookEvent } from "../../../src/lib/events/webhooks";
-import { getSessionConnection } from "../sessionManager.ts";
+import { getSessionConnection } from "../../sessionManager.ts";
 import {
   recordProviderCooldown,
   recordProviderSuccess,
   isProviderInCooldown,
-} from "../providerCooldownTracker.ts";
+} from "../../providerCooldownTracker.ts";
 import { MAX_GLOBAL_ATTEMPTS, MAX_FALLBACK_WAIT_MS } from "./constants.ts";
-import { supportsReasoning } from "../modelCapabilities.ts";
+import { supportsReasoning } from "../../modelCapabilities.ts";
 import {
   validateResponseQuality,
   toRecordedTarget,
   isStreamReadinessFailureErrorBody,
   isTokenLimitBreachErrorBody,
 } from "./utils.ts";
-import { recordComboRequest } from "../comboMetrics.ts";
+import { recordComboRequest } from "../../comboMetrics.ts";
 
 /**
  * Factory for the executeTarget function.

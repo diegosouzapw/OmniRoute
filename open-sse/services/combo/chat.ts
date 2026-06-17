@@ -18,9 +18,9 @@ import type { ExecutionContext } from "./chat/types.ts";
 import type { ComboRoutingResult } from "./chat/routing.ts";
 import { handleComboRouting } from "./chat/routing.ts";
 import { runExecutionLoop } from "./chat/handler.ts";
-import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
-import { resolveResilienceSettings } from "../../src/lib/resilience/settings";
-import { SKIP_UNIVERSAL_HANDOFF_FLAG } from "./contextHandoff.ts";
+import { resolveComboConfig, getDefaultComboConfig } from "../comboConfig.ts";
+import { resolveResilienceSettings } from "../../../src/lib/resilience/settings";
+import { SKIP_UNIVERSAL_HANDOFF_FLAG } from "../contextHandoff.ts";
 
 // Re-export all sub-modules so downstream callers can import from either path
 export type {
