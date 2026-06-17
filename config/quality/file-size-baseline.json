@@ -1,5 +1,6 @@
 {
   "_comment": "Catraca de tamanho (check-file-size.mjs). frozen so pode encolher; arquivos novos <= cap. --update ratcheta.",
+  "_rebaseline_2026_06_17_4096_field_downgrade": "PR #4096 own growth: base.ts 1292->1334 (+42 = generic 400 field-downgrade retry at the executor fetch loop — on an upstream 400 that names an unsupported field, strip it via providerFieldStrips and retry once, plus Groq field stripping wiring). The strip table lives in the new open-sse/config/providerFieldStrips.ts (<cap). Cohesive resilience logic at the existing fetch chokepoint; not extractable.",
   "_rebaseline_2026_06_17_4070_orcarouter": "PR #4070 own growth: providers.ts 3147->3159 (+12 = the OrcaRouter catalog entry, a single Zod-validated provider record { id/alias/name/icon/color/textIcon/passthroughModels/website/apiHint } in the providers map — pure data, the standard per-provider addition; bumps the catalog 226->227). Cohesive catalog growth, not extractable.",
   "_rebaseline_2026_06_17_4058_auto_catalog": "PR #4058 own growth: chat.ts 1432->1458 (+26 = built-in auto/* catalog recognition gating in handleChat: recognizedBuiltInAuto + per-id variant resolution + the 'unknown built-in auto combo' 400 short-circuit). The duplicated AUTO_TEMPLATE_VARIANTS/VALID_AUTO_VARIANTS maps were extracted on review to open-sse/services/autoCombo/builtinCatalog.ts (60 LOC, <cap), imported by BOTH chat.ts and chatHelpers.ts (chatHelpers.ts stays <800 via the same extraction). Remaining growth is genuine routing logic, not the data block; cohesive fix.",
   "_rebaseline_v3.8.25": "Drift consciente do ciclo v3.8.24->v3.8.25 (features #3799-#3806: free-provider-rankings, plugins menu, proxy IP-family selector). 3 arquivos cresceram por feature legitima, nao por regressao de qualidade: ProxyRegistryManager.tsx 1072->1089, sidebarVisibility.ts 990->1006, schemas.ts 2519->2522. Encolher fica como debt para um refactor dedicado.",
@@ -33,7 +34,7 @@
   "frozen": {
     "open-sse/config/providerRegistry.ts": 4731,
     "open-sse/executors/antigravity.ts": 1664,
-    "open-sse/executors/base.ts": 1292,
+    "open-sse/executors/base.ts": 1334,
     "open-sse/executors/chatgpt-web.ts": 2870,
     "open-sse/executors/claude-web.ts": 1057,
     "open-sse/executors/codex.ts": 1447,
