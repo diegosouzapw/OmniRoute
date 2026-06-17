@@ -7,9 +7,11 @@ import {
   comboRunToFlow,
   reduceComboEvent,
   enrichRunWithBreakers,
+  enrichRunWithConnectionCooldown,
   type ComboRunModel,
   type ComboEventInput,
   type ProviderBreakerSnapshot,
+  type ConnectionCooldownSnapshot,
 } from "./comboFlowModel";
 import { aggregateComboEventsToSets } from "./fleetAggregation";
 import { StrategyNode } from "./nodes/StrategyNode";
@@ -188,6 +190,13 @@ export interface ComboLiveStudioProps {
    * absent → no breaker badges (graceful).
    */
   providerHealth?: Record<string, ProviderBreakerSnapshot> | null;
+  /**
+   * Per-provider connection-cooldown snapshot (`connectionHealth` from
+   * GET /api/monitoring/health). When supplied, the cascade overlays the REAL
+   * cooldown state (cooldown 2/3 · 28s) onto each target — U1b Slice 2. Optional;
+   * absent → no cooldown badges (graceful).
+   */
+  connectionHealth?: Record<string, ConnectionCooldownSnapshot> | null;
 }
 
 // ── Main component ────────────────────────────────────────────────────────
@@ -213,6 +222,7 @@ export function ComboLiveStudio({
   combos: combosProp,
   isConnected = true,
   providerHealth,
+  connectionHealth,
 }: ComboLiveStudioProps) {
   const [mode, setMode] = useState<"single" | "fleet">("single");
   const [selectedCombo, setSelectedCombo] = useState<string>("");
@@ -245,8 +255,13 @@ export function ComboLiveStudio({
               null
             );
     }
-    return enrichRunWithBreakers(baseRun, providerHealth);
-  }, [runProp, selectedCombo, comboEvents, providerHealth]);
+    // Compose overlays: breaker state first, then connection cooldown. Both are
+    // pure no-ops when their health map is absent, and they touch disjoint fields.
+    return enrichRunWithConnectionCooldown(
+      enrichRunWithBreakers(baseRun, providerHealth),
+      connectionHealth
+    );
+  }, [runProp, selectedCombo, comboEvents, providerHealth, connectionHealth]);
 
   // Build ReactFlow graph from the current run
   const { nodes, edges } = useMemo(() => {

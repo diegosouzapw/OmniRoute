@@ -1,5 +1,6 @@
 import { BaseGuardrail, type GuardrailContext, type GuardrailResult } from "./base";
 import { extractMessageContents, sanitizeRequest } from "@/shared/utils/inputSanitizer";
+import { getFeatureFlagOverride } from "@/lib/db/featureFlags";
 
 type Detection = {
   match: string;
@@ -127,7 +128,20 @@ function emitGuardrailLog(
 }
 
 function getMode(options: PromptInjectionGuardrailOptions) {
+  // A dashboard-set DB override for INJECTION_GUARD_MODE wins over env vars, so the
+  // Feature Flags UI actually controls this guard (DB > ENV > default, matching
+  // resolveFeatureFlag). Read DB-only here to preserve the existing env fallback
+  // chain and "warn" default when no override is set — i.e. behavior is unchanged
+  // for every deployment that has not explicitly set the flag. Fail-safe: any DB
+  // read error falls back to the env-based behavior.
+  let dbOverride: string | undefined;
+  try {
+    dbOverride = getFeatureFlagOverride("INJECTION_GUARD_MODE");
+  } catch {
+    dbOverride = undefined;
+  }
   return (options.mode ||
+    dbOverride ||
     process.env.INJECTION_GUARD_MODE ||
     process.env.INPUT_SANITIZER_MODE ||
     "warn") as "block" | "warn" | "log";

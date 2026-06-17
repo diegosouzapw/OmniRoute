@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### ✨ New Features
+
+- **feat(providers): add OrcaRouter (OpenAI-compatible routing gateway)** — OrcaRouter is now registered as an API-key provider. Its adaptive router is exposed as `orcarouter/auto` (smart routing across 150+ upstream models), alongside a curated flagship set (GPT-5.5, Gemini 3.5 Flash, Claude Opus 4.8, Grok 4.3, DeepSeek V4 Pro, MiniMax M2.7, Qwen3.7 Max). `passthroughModels` is enabled so any OrcaRouter model id works. OpenAI-compatible endpoint (`https://api.orcarouter.ai/v1`), Bearer (`sk-orca-…`) auth — no custom executor or translator required.
+
+---
+
+## [3.8.28] — TBD
+
+_In development — bullets added per PR; finalized at release._
+
+### 🐛 Fixed
+
+- **fix(ws): start the LiveWS sidecar with `cwd` at the package root (global/systemd installs)** — the standalone LiveWS launcher (`scripts/start-ws-server.mjs`) re-spawns itself with `node --import tsx <self>` but did not set `cwd`. When the WebSocket sidecar was launched from outside the package directory — a global npm/homebrew install, or a `systemd`/`launchd` unit started from `$HOME` — Node could not resolve the `tsx` package (`ERR_MODULE_NOT_FOUND: Cannot find package 'tsx'`), and even from the package directory `tsx` could not resolve the tsconfig `@/*` path aliases (e.g. `@/types/databaseSettings`), so the sidecar never booted. The spawn now pins `cwd` to the package root (the directory above `scripts/`, where `package.json` + `tsconfig.json` live), which resolves both `tsx` discovery and the `@/*` aliases regardless of launch directory. ([#4055](https://github.com/diegosouzapw/OmniRoute/issues/4055) — thanks @Rahulsharma0810)
+- **fix(dashboard): Logs page auto-refresh now works in embedded/proxied dashboards** — the Request Logger gated each auto-refresh tick on a static `document.visibilityState === "visible"` read. Hosts that report a permanent non-`"visible"` state without ever firing a `visibilitychange` event (Docker dashboard wrappers, embedded webviews) froze auto-refresh entirely — only the manual Refresh button worked, a regression from 3.8.24's unconditional polling. The pause is now event-driven and fail-open: polling starts enabled and only pauses after a real `visibilitychange` → hidden transition (still preserving the backgrounded-tab optimization for normal browser tabs). ([#4054](https://github.com/diegosouzapw/OmniRoute/issues/4054) — thanks @tjengbudi)
+- **fix(docker): raise the build-stage Node heap to stop the production-build OOM** — the Docker `builder` stage ran `npm run build` with V8's default heap ceiling (~2 GB). After #4052 forced the heavier webpack engine (Turbopack panics on this Next.js version), the production optimization pass exceeded that ceiling and the build died with `FATAL ERROR: … JavaScript heap out of memory` at `[builder] npm run build`. The builder stage now sets `NODE_OPTIONS=--max-old-space-size` (default 4096 MB, overridable via `--build-arg OMNIROUTE_BUILD_MEMORY_MB=…`) before the build; the value propagates to the spawned `next build`. Build-only — the runtime heap (`OMNIROUTE_MEMORY_MB` on the runner stage) is unchanged. ([#4076](https://github.com/diegosouzapw/OmniRoute/issues/4076) — thanks @kamenkadmitry)
+
 ---
 
 ## [3.8.27] — 2026-06-17

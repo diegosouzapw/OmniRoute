@@ -64,12 +64,24 @@ process.env.OMNIROUTE_WS_BRIDGE_SECRET ||= randomUUID();
 // server (read by the authz middleware in the same process). See peer-stamp.mjs.
 ensurePeerStampToken();
 
+// Next 16 picks Turbopack by default in dev. Passing `turbopack: false` to the
+// programmatic next() entry is *not* enough on its own:
+//   - parseBundlerArgs (node_modules/next/dist/lib/bundler.js) sees no positive
+//     bundler flag and falls back to `process.env.TURBOPACK = 'auto'`.
+//   - next-dev-server.js then reads `process.env.TURBOPACK` directly and
+//     starts Turbopack regardless of the option we passed.
+// Force webpack by both passing `webpack: true` and clearing the env var.
+// Mirrors the workaround PR #4052 applied for the production Docker build.
+if (!useTurbopack) {
+  delete process.env.TURBOPACK;
+}
 const nextApp = next({
   dev,
   dir: process.cwd(),
   hostname,
   port: dashboardPort,
   turbopack: useTurbopack,
+  webpack: !useTurbopack,
 });
 
 async function start() {

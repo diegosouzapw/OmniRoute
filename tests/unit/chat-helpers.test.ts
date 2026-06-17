@@ -9,6 +9,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const combosDb = await import("../../src/lib/db/combos.ts");
 const {
   resolveModelOrError,
   checkPipelineGates,
@@ -37,6 +38,7 @@ async function seedConnection(provider, overrides = {}) {
     isActive: overrides.isActive ?? true,
     testStatus: overrides.testStatus || "active",
     providerSpecificData: overrides.providerSpecificData || {},
+    defaultModel: overrides.defaultModel,
   });
 }
 
@@ -47,6 +49,63 @@ test.beforeEach(async () => {
 test.after(async () => {
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+});
+
+test("resolveModelOrError resolves built-in auto catalog ids without persisted combo rows", async () => {
+  await seedConnection("openai", { defaultModel: "gpt-4o-mini" });
+
+  const result = await resolveModelOrError(
+    "auto/best-coding",
+    { messages: [{ role: "user", content: "echo hi" }] },
+    "/v1/chat/completions"
+  );
+
+  assert.equal(result.error, undefined);
+  assert.ok(result.combo);
+  assert.equal(result.combo.id, "auto/best-coding");
+  assert.equal(result.combo.name, "auto/best-coding");
+  assert.equal(result.provider, "auto");
+  assert.equal(result.model, "best-coding");
+  assert.ok(Array.isArray(result.combo.models));
+  assert.ok(result.combo.models.length > 0);
+  assert.equal(result.combo.models[0].providerId, "openai");
+});
+
+test("resolveModelOrError rejects unknown built-in auto catalog ids", async () => {
+  await seedConnection("openai", { defaultModel: "gpt-4o-mini" });
+
+  const result = await resolveModelOrError(
+    "auto/not-a-real-template",
+    { messages: [{ role: "user", content: "echo hi" }] },
+    "/v1/chat/completions"
+  );
+
+  assert.ok(result.error);
+  assert.equal(result.error.status, 400);
+  const json = (await result.error.json()) as any;
+  assert.match(json.error.message, /Unknown built-in auto combo/i);
+});
+
+test("resolveModelOrError preserves persisted fuzzy auto combos before virtual catalog ids", async () => {
+  await combosDb.createCombo({
+    id: "persisted-auto-best-legacy",
+    name: "auto/best-legacy",
+    strategy: "priority",
+    models: [{ providerId: "openai", model: "gpt-4o-mini" }],
+  });
+
+  const result = await resolveModelOrError(
+    "auto/legacy",
+    { messages: [{ role: "user", content: "echo hi" }] },
+    "/v1/chat/completions"
+  );
+
+  assert.equal(result.error, undefined);
+  assert.ok(result.combo);
+  assert.equal(result.combo.id, "persisted-auto-best-legacy");
+  assert.equal(result.combo.name, "auto/best-legacy");
+  assert.equal(result.provider, "auto");
+  assert.equal(result.model, "legacy");
 });
 
 test("resolveModelOrError rejects ambiguous aliases without a provider prefix", async () => {
