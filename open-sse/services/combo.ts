@@ -1623,7 +1623,13 @@ function getTargetCompatibilityFailures(
     failures.push("tools");
   }
 
-  if (requirements.requiresVision && capabilities.supportsVision === false) {
+  // For a request that carries an image, only route to a target whose vision
+  // support is *confirmed* (`=== true`). Treat `false` AND `null` (unknown) as
+  // incompatible: an unknown-capability model receiving the image is exactly how
+  // a text-only model (e.g. ministral) ended up answering "image not provided".
+  // The caller keeps all targets when none qualify, so combos with no
+  // confirmed-vision member still behave as before.
+  if (requirements.requiresVision && capabilities.supportsVision !== true) {
     failures.push("vision");
   }
 
@@ -1652,7 +1658,7 @@ function getTargetCompatibilityFailures(
   return failures;
 }
 
-function filterTargetsByRequestCompatibility(
+export function filterTargetsByRequestCompatibility(
   targets: ResolvedComboTarget[],
   body: Record<string, unknown>,
   log: ComboLogger,

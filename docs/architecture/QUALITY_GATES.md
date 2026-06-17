@@ -253,20 +253,23 @@ currently orphaned.
 
 ### Merge / dedup (mechanical, lower risk)
 
-- **CVE scanning** — `audit:deps` (npm audit) overlaps `check:vuln-ratchet` (osv-scanner) and Dependabot. Make osv canonical; keep only the `electron/` npm-audit slice if osv misses it.
-- **Complexity** — `check:complexity` (core ESLint) and `check:cognitive-complexity` (sonarjs) spawn two full ESLint passes over `src` + `open-sse`. Merge into one config/one tree-walk emitting both metrics.
-- **Cycle detection** — `check:cycles` (custom 5-subtree AST) is dominated by `check:circular-deps` (dpdm: path-aliases + transitive). Promote dpdm to blocking, drop `check:cycles`.
-- **`/api` anti-hallucination** — `check:openapi-routes` (spec→route) and `check:docs-symbols` (prose→route) share resolution logic; collapse to one gate with two inputs.
-- **`check:docs-sync` runs twice** — standalone in the `lint` job and again inside `check:docs-all` (`docs-sync-strict`). Drop the standalone invocation.
-- **`check:node-runtime` runs in 11 jobs** — each is a separate runner with `setup-node` already pinning the version; keep it where it gates tsx-loading gates, drop the rest.
+Each candidate was validated against the live gate state on 2026-06-17 (trust-but-verify);
+several "obvious" merges turned out to hide debt and are **not** clean drop-ins.
+
+- **`check:docs-sync` runs twice** — standalone in the `lint` job and again inside `check:docs-all` (`docs-sync-strict`) and the husky pre-commit hook. ✅ **DONE** — standalone `lint` invocation removed.
+- **CVE scanning** — ❌ **NOT a clean merge.** `audit:deps` hard-fails on any high/critical CVE; `check:vuln-ratchet` (osv) only fails on a *regression* vs baseline (currently 1 MODERATE). Different semantics — dropping `audit:deps` would lose the absolute high/critical gate. Keep both.
+- **Cycle detection** — ❌ **NOT a clean merge.** `check:circular-deps` (dpdm) reports **91 cycles** (that is why it is advisory); it cannot be promoted to blocking without first resolving them, and it has a broader scope than the green, curated `check:cycles`. Keep `check:cycles` blocking; resolving the 91 dpdm cycles is its own backlog.
+- **Complexity** — ⏳ valid but real surgery. `check:complexity` (core ESLint) + `check:cognitive-complexity` (sonarjs) are two ESLint passes over `src` + `open-sse`; merging into one config emitting both metrics needs careful ratchet re-wiring. Deferred.
+- **`/api` anti-hallucination** — ⏳ valid but script surgery. `check:openapi-routes` (spec→route) + `check:docs-symbols` (prose→route) share resolution logic; collapsing them is a non-trivial script change. Deferred.
+- **`check:node-runtime` runs in 11 jobs** — ⚠️ **low ROI.** Each is a separate runner and the check is <1s; total savings ~10s, against losing a cheap per-job guard. Not worth the churn.
 
 ### Flip / decide (operator policy)
 
+- `check:openapi-security-tiers` (advisory) — ❌ **NOT cleanly flippable.** It exits 0 but warns that several `traffic-inspector` routes under `LOCAL_ONLY_API_PREFIXES` lack the `x-loopback-only: true` annotation. Enforcing it requires adding those annotations to `openapi.yaml` first.
 - `typecheck:noimplicit:core` (advisory) — largely subsumed by the blocking `check:type-coverage` ratchet. Flip to a ratchet or drop the redundant second `tsc` pass.
 - `test:vitest:ui` (advisory, 14 parked fails) — fix-and-block or delete; don't leave rotting.
 - `check:secrets` (gitleaks, blocking ratchet frozen at 3 documented false-positives) — allowlist the 3 to reach 0, or demote to advisory. Overlaps GitHub native secret-scanning + `check:public-creds`.
-- `check:openapi-security-tiers` (advisory) — block (the tier↔routeGuard invariant matters) or drop.
-- `check:pr-evidence` (blocking, greps PR-body prose) — high false-positive risk; consider advisory.
+- `check:pr-evidence` (blocking, greps PR-body prose) — high false-positive risk; weakens Hard Rule #18 enforcement if dropped, so this is a genuine policy call.
 - `semgrep` (advisory standalone) — overlaps CodeQL for the OWASP families; wire its baseline to a ratchet or drop.
 
 ---

@@ -62,7 +62,7 @@ jobs:
         run: kill "$(cat server.pid)" || true
       - name: Upload schemathesis report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: schemathesis-report
           path: |

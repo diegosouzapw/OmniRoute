@@ -3,6 +3,8 @@ import path from "node:path";
 import os from "node:os";
 import crypto from "node:crypto";
 
+import type { CommandSample } from "./discover.ts";
+
 export type RtkRawOutputRetention = "never" | "failures" | "always";
 
 export interface RtkRawOutputPointer {
@@ -90,6 +92,27 @@ export function maybePersistRtkRawOutput(
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(filePath, redaction.text);
 
+  // Sidecar metadata: the .log filename only carries a lossy command SLUG, so persist
+  // the FULL command (and timestamp/flags) next to it. Keeps the .log pure output (the
+  // raw-output recovery route still returns it verbatim) while letting the RTK
+  // learn/discover sample source recover the exact command. Best-effort: a sidecar
+  // write failure never fails the capture.
+  try {
+    const metaPath = filePath.replace(/\.log$/, ".meta.json");
+    fs.writeFileSync(
+      metaPath,
+      JSON.stringify({
+        command: options.command ?? null,
+        timestamp: now,
+        failure,
+        redacted: redaction.redacted,
+        bytes: Buffer.byteLength(redaction.text, "utf8"),
+      })
+    );
+  } catch {
+    // Sidecar is an optimisation for learn/discover; the .log (with slug) still works.
+  }
+
   return {
     id,
     path: filePath,
@@ -109,4 +132,65 @@ export function readRtkRawOutput(pointerId: string): string | null {
   const fullPath = path.join(dir, entry);
   if (!fullPath.startsWith(dir)) return null;
   return fs.readFileSync(fullPath, "utf8");
+}
+
+/** Recover the command for a `.log` from its filename slug (legacy, sidecar-less captures). */
+function commandFromSlug(fileName: string): string {
+  // `<timestamp>-<slug>-<id>.log` → strip the leading timestamp and the trailing id.
+  const slug = fileName
+    .replace(/^\d+-/, "")
+    .replace(/-[0-9a-f]{24}\.log$/i, "")
+    .replace(/\.log$/i, "");
+  return slug.replace(/_+/g, " ").trim();
+}
+
+/**
+ * Read the opt-in RTK raw-output store (`DATA_DIR/rtk/raw-output/*.log`) into
+ * `CommandSample[]` for the pure miners `discoverRepeatedNoise()` / `suggestFilter()`.
+ *
+ * The command comes from the `.meta.json` sidecar when present (exact), else from the
+ * filename slug (lossy, for legacy captures). Empty/unreadable entries are skipped.
+ * Returns the most-recent-first samples, capped at `opts.limit` (default 500) to bound
+ * memory. No throw: a corrupt entry is dropped, not propagated.
+ */
+export function listRtkCommandSamples(opts: { limit?: number } = {}): CommandSample[] {
+  const dir = path.join(dataDir(), "rtk", "raw-output");
+  if (!fs.existsSync(dir)) return [];
+  const limit = Math.max(1, Math.floor(opts.limit ?? 500));
+
+  let logs: string[];
+  try {
+    logs = fs.readdirSync(dir).filter((f) => f.endsWith(".log"));
+  } catch {
+    return [];
+  }
+  // Newest first: the filename is timestamp-prefixed, so a reverse lexical sort works.
+  logs.sort((a, b) => (a < b ? 1 : a > b ? -1 : 0));
+
+  const samples: CommandSample[] = [];
+  for (const fileName of logs) {
+    if (samples.length >= limit) break;
+    const fullPath = path.join(dir, fileName);
+    if (!fullPath.startsWith(dir)) continue;
+    let output: string;
+    try {
+      output = fs.readFileSync(fullPath, "utf8");
+    } catch {
+      continue;
+    }
+    if (output.trim().length === 0) continue;
+
+    let command = "";
+    try {
+      const metaRaw = fs.readFileSync(fullPath.replace(/\.log$/, ".meta.json"), "utf8");
+      const meta = JSON.parse(metaRaw) as { command?: unknown };
+      if (typeof meta.command === "string" && meta.command.trim()) command = meta.command.trim();
+    } catch {
+      // No/!invalid sidecar → fall back to the filename slug below.
+    }
+    if (!command) command = commandFromSlug(fileName) || "tool-output";
+
+    samples.push({ command, output });
+  }
+  return samples;
 }
