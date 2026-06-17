@@ -5115,6 +5115,29 @@ export async function handleChatCore({
     if (usage && typeof usage === "object") {
       attachCompressionUsageReceiptAfterAnalytics(usage as Record<string, unknown>, "provider");
     }
+
+    // Context Editing telemetry: when the delegated server-side clear actually ran,
+    // record the provider's cleared-token receipt under engine "context-editing" so
+    // it surfaces in compression analytics. Best-effort, Claude-only, non-streaming.
+    if (contextEditingEnabled && provider === "claude") {
+      void (async () => {
+        try {
+          const { extractContextEditingTelemetry } = await import("../config/contextEditing.ts");
+          const tele = extractContextEditingTelemetry(responseBody);
+          if (tele) {
+            const { recordContextEditingTelemetry } =
+              await import("../../src/lib/db/compressionAnalytics.ts");
+            recordContextEditingTelemetry(skillRequestId, tele, provider);
+            log?.debug?.(
+              "CONTEXT_EDITING",
+              `cleared ${tele.clearedInputTokens} input tokens / ${tele.clearedToolUses} tool uses (${tele.editCount} edits)`
+            );
+          }
+        } catch {
+          // Telemetry is best-effort and must never affect the response.
+        }
+      })();
+    }
     appendRequestLog({ model, provider, connectionId, tokens: usage, status: "200 OK" }).catch(
       () => {}
     );
