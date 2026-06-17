@@ -86,6 +86,18 @@
   --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.015);
   --shadow-warm: 0 2px 12px -2px rgba(229, 77, 94, 0.12);
   --shadow-elevated: 0 12px 28px -4px rgba(20, 20, 40, 0.06);
+
+  /* Graph-paper wallpaper grid — shared visual identity with the marketing site
+     (_mono_repo/omnirouteSite/css). Light theme values. Rendered by body::before. */
+  --grid-line: rgba(0, 0, 0, 0.045);
+  --grid-size: 46px;
+  --section-alt: rgba(0, 0, 0, 0.022);
+
+  /* Identity tokens mirrored from the site. Definitions only in this phase —
+     components are repointed to them in a later phase. */
+  --surface-2: #f5f5fa;
+  --radius: 14px;
+  --grad-brand: linear-gradient(135deg, var(--color-primary), var(--color-accent-light));
 }
 
 .dark {
@@ -125,6 +137,11 @@
   --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
   --shadow-warm: 0 2px 12px -2px rgba(229, 77, 94, 0.15);
   --shadow-elevated: 0 12px 28px -4px rgba(0, 0, 0, 0.3);
+
+  /* Graph-paper wallpaper grid — dark theme values. */
+  --grid-line: rgba(255, 255, 255, 0.035);
+  --section-alt: rgba(255, 255, 255, 0.018);
+  --surface-2: #1c2230;
 }
 
 @theme inline {
@@ -176,6 +193,9 @@
   /* Font - macOS system fonts */
   --font-sans:
     -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+
+  /* Nested surface (enables bg-surface-2 — consumed in a later phase) */
+  --color-surface-2: var(--surface-2);
 }
 
 /* ── Focus Indicators (U-3) ── */
@@ -209,6 +229,21 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Graph-paper wallpaper grid — one fixed, full-viewport layer behind every screen
+   (dashboard, auth, error pages). A z-index:-1 ::before paints above body's own
+   background but below all in-flow content, so it shows through any transparent
+   wrapper without lowering text contrast. Mirrors the marketing site exactly. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
 }
 
 body.electron-macos {

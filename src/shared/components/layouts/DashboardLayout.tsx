@@ -59,7 +59,9 @@ export default function DashboardLayout({ children }) {
   };
 
   return (
-    <div className="flex h-dvh min-h-0 w-full overflow-hidden bg-bg">
+    // No bg-bg here: the body grid wallpaper (globals.css body::before) shows through
+    // this transparent wrapper into the content area. body's --color-bg is the base fill.
+    <div className="flex h-dvh min-h-0 w-full overflow-hidden">
       <Suspense fallback={null}>
         <NavigationProgress />
       </Suspense>
