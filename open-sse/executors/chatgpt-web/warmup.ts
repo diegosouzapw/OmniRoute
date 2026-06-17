@@ -28,7 +28,7 @@ export const WARMUP_TTL_MS = 60_000;
 
 export const WARMUP_CACHE_MAX = 200;
 
-async function runSessionWarmup(
+export async function runSessionWarmup(
   accessToken: string,
   accountId: string | null,
   sessionId: string,

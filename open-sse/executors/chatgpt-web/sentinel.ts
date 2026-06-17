@@ -46,7 +46,7 @@ export interface ChatRequirements {
   };
 }
 
-async function prepareChatRequirements(
+export async function prepareChatRequirements(
   accessToken: string,
   accountId: string | null,
   sessionId: string,
@@ -152,7 +152,7 @@ export let dplCache: DplInfo | null = null;
 
 export const DPL_TTL_MS = 60 * 60 * 1000;
 
-async function fetchDpl(
+export async function fetchDpl(
   cookie: string,
   signal: AbortSignal | null | undefined
 ): Promise<{ dpl: string; scriptSrc: string }> {
@@ -292,7 +292,7 @@ export interface PowOptions {
   log?: { warn?: (tag: string, msg: string) => void } | null;
 }
 
-async function solvePow(opts: PowOptions): Promise<string> {
+export async function solvePow(opts: PowOptions): Promise<string> {
   const cfg = [...opts.config];
   for (let i = 0; i < opts.maxIter; i++) {
     if (i > 0 && i % POW_YIELD_EVERY === 0) await yieldToEventLoop();
@@ -314,7 +314,7 @@ async function solvePow(opts: PowOptions): Promise<string> {
   return `${opts.prefix}${b64}`;
 }
 
-async function buildPrepareToken(
+export async function buildPrepareToken(
   config: unknown[],
   log?: { warn?: (tag: string, msg: string) => void } | null
 ): Promise<string> {
@@ -329,7 +329,7 @@ async function buildPrepareToken(
   });
 }
 
-async function solveProofOfWork(
+export async function solveProofOfWork(
   seed: string,
   difficulty: string,
   config: unknown[],

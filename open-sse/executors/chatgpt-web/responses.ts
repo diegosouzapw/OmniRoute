@@ -314,7 +314,7 @@ export function buildStreamingResponse(
   );
 }
 
-async function buildNonStreamingResponse(
+export async function buildNonStreamingResponse(
   eventStream: ReadableStream<Uint8Array>,
   model: string,
   cid: string,

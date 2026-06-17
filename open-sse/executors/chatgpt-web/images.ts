@@ -42,7 +42,7 @@ export function imageMarkdown(urls: string[]): string {
   return "\n\n" + urls.map((u) => `![image](${u})`).join("\n\n");
 }
 
-async function resolveImagePointers(
+export async function resolveImagePointers(
   pointers: ImagePointerRef[] | undefined,
   conversationId: string | null,
   resolver: ImageResolver | null,
@@ -453,7 +453,7 @@ export function configuredAsyncImageTimeoutMs(): number {
   return Math.floor(raw);
 }
 
-async function pollForAsyncImage(
+export async function pollForAsyncImage(
   conversationId: string,
   ctx: ResolverContext,
   opts: { timeoutMs?: number } = {}
