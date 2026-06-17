@@ -1,5 +1,6 @@
 {
   "_comment": "Catraca de tamanho (check-file-size.mjs). frozen so pode encolher; arquivos novos <= cap. --update ratcheta.",
+  "_rebaseline_2026_06_17_4058_auto_catalog": "PR #4058 own growth: chat.ts 1432->1458 (+26 = built-in auto/* catalog recognition gating in handleChat: recognizedBuiltInAuto + per-id variant resolution + the 'unknown built-in auto combo' 400 short-circuit). The duplicated AUTO_TEMPLATE_VARIANTS/VALID_AUTO_VARIANTS maps were extracted on review to open-sse/services/autoCombo/builtinCatalog.ts (60 LOC, <cap), imported by BOTH chat.ts and chatHelpers.ts (chatHelpers.ts stays <800 via the same extraction). Remaining growth is genuine routing logic, not the data block; cohesive fix.",
   "_rebaseline_v3.8.25": "Drift consciente do ciclo v3.8.24->v3.8.25 (features #3799-#3806: free-provider-rankings, plugins menu, proxy IP-family selector). 3 arquivos cresceram por feature legitima, nao por regressao de qualidade: ProxyRegistryManager.tsx 1072->1089, sidebarVisibility.ts 990->1006, schemas.ts 2519->2522. Encolher fica como debt para um refactor dedicado.",
   "_rebaseline_2026_06_15_3860_compression_ui": "PR #3860 own growth: sidebarVisibility.ts 1006->1100 (+94 = Compression Hub menu entries: Hub + per-engine Lite/Aggressive/Ultra pages + combos editor) and chatCore.ts 5812->5815 (+3 = compression UI config wiring). Cohesive feature growth, not a quality regression.",
   "_rebaseline_2026_06_15_3885_glm_5_2": "PR #3885 own growth: pricing.ts 1508->1529 (+21 = GLM-5.2 pricing rows for glm-5.2 + effort aliases glm-5.2-high/-max, same $1.2/$5 schedule as glm-5.1; pure data). Also adds glm-5.2 specs to glmProvider.ts/modelSpecs.ts (modelSpecs.ts stays under cap). Cohesive model registration; not extractable.",
@@ -26,6 +27,7 @@
   "_rebaseline_2026_06_16_4033_compression_token_saver_ui": "PR #4033 net -46 LOC overall: CompressionSettingsTab.tsx 932->974 (+42 over frozen after relocating Token Saver from Endpoint/Appearance into Compression Settings). This is a deliberate UI ownership redistribution, not aggregate code growth; keeping the control with the compression settings makes the module boundary clearer.",
   "_rebaseline_2026_06_17_4034_usage_command": "PR #4034 own growth: apiKeys.ts 1633->1661 (+28 = the allow_usage_command additive column — fallback definition, parseAllowUsageCommand, prepared-statement SELECT column, and the metadata/create/update wiring, mirroring the existing disable_non_public_models accessor pattern) and chat.ts 1425->1432 (+7 = the handleInternalUsageCommand intercept hook at the existing post-auth chokepoint in handleChat). The reusable command logic lives in the new src/lib/usage/internalUsageCommand.ts (well under cap). Cohesive opt-in feature at the established column/dispatch boundaries; not extractable without splitting the api-keys domain module.",
   "_rebaseline_2026_06_17_ctx_editing_relays": "Context Editing relay coverage + 400-fallback (F4.2/F4.3) own growth: base.ts 1244->1292 (+48 at the existing dispatch chokepoint: extend the injection gate to anthropic-compatible-cc-* relays with an expanded comment documenting the claude-web / generic-anthropic-compatible exclusions; the contextEditingDisabled loop flag; and the 400-fallback block that, when an upstream rejects context_management with a 400, strips the param, re-serializes + re-signs (CCH), and retries the same URL once). Both edits sit on the per-URL request-build/fetch path and cannot be extracted without splitting the executor's fetch loop. No new file warranted — the logic is a few lines tightly coupled to the in-loop transformedBody/bodyString/response locals.",
+  "_rebaseline_2026_06_17_ctx_editing_telemetry": "Context Editing telemetry (F4.1) own growth: chatCore.ts 5875->5898 (+23 = a best-effort, Claude-only, non-streaming block at the existing non-streaming response handler that extracts the provider's server-side context-editing receipt from responseBody and records it under engine \"context-editing\"). The pure extractor (extractContextEditingTelemetry) lives in the existing small open-sse/config/contextEditing.ts and the DB writer (recordContextEditingTelemetry) in src/lib/db/compressionAnalytics.ts — both under cap. Cohesive at the response-handling chokepoint next to the existing attachCompressionUsageReceipt call; not extractable without hiding the receipt-recording boundary.",
   "cap": 800,
   "frozen": {
     "open-sse/config/providerRegistry.ts": 4731,
@@ -41,7 +43,7 @@
     "open-sse/executors/muse-spark-web.ts": 1284,
     "open-sse/executors/perplexity-web.ts": 1013,
     "open-sse/handlers/audioSpeech.ts": 965,
-    "open-sse/handlers/chatCore.ts": 5875,
+    "open-sse/handlers/chatCore.ts": 5898,
     "open-sse/handlers/imageGeneration.ts": 3777,
     "open-sse/handlers/responseSanitizer.ts": 1103,
     "open-sse/handlers/search.ts": 1442,
@@ -128,7 +130,7 @@
     "src/shared/constants/sidebarVisibility.ts": 1100,
     "src/shared/services/cliRuntime.ts": 1090,
     "src/shared/validation/schemas.ts": 2523,
-    "src/sse/handlers/chat.ts": 1432,
+    "src/sse/handlers/chat.ts": 1458,
     "src/sse/services/auth.ts": 2219
   },
   "_rebaseline_2026_06_09": "Re-baseline consciente pre-release v3.8.19: 9 arquivos cresceram durante o ciclo (features mergeadas: RequestLoggerV2 +281 request-logger rework, stream +101, combo +73, chatCore +45, catalog +32 fable-5/catalog-flag, callLogs +4, accountFallback +2, usageHistory novo 840) + core.ts +7 (fix resetAllDbModuleState, PR 3536). A catraca segue valendo destes valores — proximo crescimento falha. Decisao: encolher (esp. RequestLoggerV2/chatCore) e a issue #3501 ficam para o ciclo seguinte.",

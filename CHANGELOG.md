@@ -8,6 +8,10 @@
 
 _In development — bullets added per PR; finalized at release._
 
+### 🐛 Fixed
+
+- **fix(ws): start the LiveWS sidecar with `cwd` at the package root (global/systemd installs)** — the standalone LiveWS launcher (`scripts/start-ws-server.mjs`) re-spawns itself with `node --import tsx <self>` but did not set `cwd`. When the WebSocket sidecar was launched from outside the package directory — a global npm/homebrew install, or a `systemd`/`launchd` unit started from `$HOME` — Node could not resolve the `tsx` package (`ERR_MODULE_NOT_FOUND: Cannot find package 'tsx'`), and even from the package directory `tsx` could not resolve the tsconfig `@/*` path aliases (e.g. `@/types/databaseSettings`), so the sidecar never booted. The spawn now pins `cwd` to the package root (the directory above `scripts/`, where `package.json` + `tsconfig.json` live), which resolves both `tsx` discovery and the `@/*` aliases regardless of launch directory. ([#4055](https://github.com/diegosouzapw/OmniRoute/issues/4055) — thanks @Rahulsharma0810)
+
 ---
 
 ## [3.8.27] — 2026-06-17

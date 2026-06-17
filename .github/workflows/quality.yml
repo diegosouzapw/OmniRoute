@@ -56,13 +56,14 @@ jobs:
       # unit tests impacted by this PR's changed files. Fail-safe runs the FULL
       # unit suite on hub/unmapped changes — TIA accelerates, never replaces, the net.
       #
-      # ADVISORY for now (repo convention: advisory -> blocking). release/v3.8.27 carries
-      # ~17 pre-existing red unit tests (budget #3537, apiKey #3552, several Zod schemas,
-      # executors, etc.) unrelated to this PR; running them is what surfaced the debt.
-      # Keep this advisory until that debt is cleared, THEN remove continue-on-error to
-      # block test regressions on PR->release. typecheck:core above stays blocking.
-      - name: Impacted unit tests (TIA, fail-safe full; advisory until release test-debt cleared)
-        continue-on-error: true
+      # BLOCKING (flipped 2026-06-17). The pre-existing release unit test-debt that kept
+      # this advisory was cleared: #4030 (16 Zod/registry reds, lossless restore) and
+      # #4063 (the last red — the LiveWS boot test — root-caused as a real event-loop
+      # stall in the WS sidecar, fixed + relocated to the integration suite). A full
+      # ci.yml run on release/v3.8.28 then showed all 8 unit shards green, so PR->release
+      # now blocks on unit-test regressions in the impacted set (typecheck:core already
+      # blocked above). Fail-safe still runs the FULL unit suite on hub/unmapped changes.
+      - name: Impacted unit tests (TIA, fail-safe full; blocking)
         env:
           GITHUB_BASE_REF: ${{ github.base_ref }}
         run: |
