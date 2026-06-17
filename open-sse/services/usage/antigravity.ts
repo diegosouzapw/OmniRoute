@@ -52,7 +52,6 @@ import {
   AntigravityUsageOptions,
   JsonRecord,
 } from "./types.ts";
-import { _geminiCliSubCache, GEMINI_CLI_CACHE_TTL_MS } from "./gemini.ts";
 import { ANTIGRAVITY_CONFIG } from "./constants.ts";
 import { toRecord, getFieldValue, toNumber, parseResetTime } from "./utils.ts";
 
@@ -81,16 +80,14 @@ const _antigravityCreditProbeCache = new Map<string, { data: number | null; fetc
 const _antigravityCreditProbeInflight = new Map<string, Promise<number | null>>();
 
 // ── Proactive TTL purging for module-level caches ──────────────────────────
-// All 4 data caches only evict on read (passive TTL). This interval proactively
-// purges stale entries so keys accessed once and never again don't leak memory.
-// The 2 inflight Maps (availableModelsInflight, creditProbeInflight) self-clean
-// when the Promise resolves/rejects, so they are NOT touched here.
+// All 3 antigravity data caches only evict on read (passive TTL). This interval
+// proactively purges stale entries so keys accessed once and never again don't
+// leak memory. The 2 inflight Maps (availableModelsInflight, creditProbeInflight)
+// self-clean when the Promise resolves/rejects, so they are NOT touched here.
+// The gemini CLI cache (_geminiCliSubCache) is owned by gemini.ts and purged there.
 const _usageCacheCleanupTimer = setInterval(
   () => {
     const now = Date.now();
-    for (const [key, entry] of _geminiCliSubCache) {
-      if (now - entry.fetchedAt > GEMINI_CLI_CACHE_TTL_MS) _geminiCliSubCache.delete(key);
-    }
     for (const [key, entry] of _antigravitySubCache) {
       if (now - entry.fetchedAt > ANTIGRAVITY_CACHE_TTL_MS) _antigravitySubCache.delete(key);
     }

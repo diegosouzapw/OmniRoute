@@ -122,6 +122,9 @@ export async function getUsageForProvider(
   connection: UsageProviderConnection,
   options: { forceRefresh?: boolean } = {}
 ) {
+  if (!connection) {
+    return { message: "Connection not available." };
+  }
   const { id, provider, accessToken, apiKey, providerSpecificData, projectId, email } = connection;
 
   switch (provider) {

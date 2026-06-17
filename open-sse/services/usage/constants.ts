@@ -47,10 +47,10 @@ export const ANTIGRAVITY_CONFIG = {
   loadProjectApiUrl: "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:loadCodeAssist",
   tokenUrl: "https://oauth2.googleapis.com/token",
   get clientId() {
-    return PROVIDERS.antigravity.clientId;
+    return PROVIDERS.antigravity?.clientId;
   },
   get clientSecret() {
-    return PROVIDERS.antigravity.clientSecret;
+    return PROVIDERS.antigravity?.clientSecret;
   },
   get userAgent() {
     return antigravityUserAgent();

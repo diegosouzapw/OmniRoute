@@ -20,6 +20,23 @@ export const GEMINI_CLI_CACHE_TTL_MS = 5 * 60 * 1000;
 
 // 5 minutes
 
+// ── Proactive TTL purging for the gemini CLI cache ───────────────────────────
+// The cache only evicts on read (passive TTL). This interval proactively purges
+// stale entries so keys accessed once and never again don't leak memory. Owned
+// locally to avoid a circular dependency on antigravity.ts.
+const _geminiCliCacheCleanupTimer = setInterval(
+  () => {
+    const now = Date.now();
+    for (const [key, entry] of _geminiCliSubCache) {
+      if (now - entry.fetchedAt > GEMINI_CLI_CACHE_TTL_MS) _geminiCliSubCache.delete(key);
+    }
+  },
+  5 * 60 * 1000
+);
+
+// every 5 minutes
+_geminiCliCacheCleanupTimer.unref?.();
+
 /**
  * Gemini CLI Usage — fetch per-model quota from Cloud Code Assist API.
  * Gemini CLI and Antigravity share the same upstream (cloudcode-pa.googleapis.com),
