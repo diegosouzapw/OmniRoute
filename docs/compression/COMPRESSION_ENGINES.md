@@ -1,7 +1,7 @@
 ---
 title: "Compression Engines"
 version: 3.8.2
-lastUpdated: 2026-05-13
+lastUpdated: 2026-06-17
 ---
 
 # Compression Engines
@@ -85,6 +85,81 @@ Operational details for custom filters, trust, verify, and raw-output recovery l
 
 RTK upstream reports `60-90%` savings for command-output compression. Its README example shows a
 30-minute Claude Code session going from `~118,000` tokens to `~23,900`, or `79.7%` saved.
+
+## LLMLingua-2 (Semantic Pruning)
+
+LLMLingua-2 mode performs **semantic token pruning** on prose using a small ONNX token
+classifier, complementing the rule-based Caveman and RTK engines:
+
+- compresses prose in non-system messages only; fenced code blocks and other preserved
+  constructs are never altered
+- runs the `@atjsh/llmlingua-2` backend (ONNX via `@huggingface/transformers`) in a
+  worker thread, so model inference never blocks the request event loop
+- is **stackable** (`stackPriority` 35): in a stacked pipeline it runs after the
+  structural engines (CCR, session-dedup, headroom, Caveman) but before `ultra`, since
+  semantic pruning is most effective on already-structurally-compressed text — e.g.
+  `rtk -> caveman -> llmlingua`
+- **fail-opens on any error** (missing optional deps, worker spawn, model load, inference,
+  or timeout) → the original text is returned unchanged, never an error
+
+Engine location: `open-sse/services/compression/engines/llmlingua/`. The dashboard surface
+is `Dashboard -> Context & Cache -> LLMLingua`.
+
+### Models
+
+The default model is **TinyBERT** (`atjsh/llmlingua-2-js-tinybert-meetingbank`, ~57 MB,
+fast). A higher-accuracy **BERT-base** model (`Arcoldd/llmlingua4j-bert-base-onnx`,
+~710 MB) is available via the engine config `model` field. `@huggingface/transformers`
+downloads the selected model lazily from the HuggingFace Hub into
+`${DATA_DIR}/models/llmlingua` on the first call (`modelStore.ts`); a `modelPath` config
+override points it at a local copy instead (offline / air-gapped installs).
+
+### Optional dependencies & on-demand install
+
+The LLMLingua runtime stack is **optional**. Three packages are declared as
+`optionalDependencies` in `package.json` and kept **external** by the production build
+(`scripts/build/prepublish.ts` does not bundle them):
+
+| Package              | Version (pin) | Notes                                          |
+| -------------------- | ------------- | ---------------------------------------------- |
+| `@atjsh/llmlingua-2` | `2.0.3`       | Entry package; declares the others as peers    |
+| `@tensorflow/tfjs`   | `4.22.0`      | Heaviest dep — dominates the ~800 MB footprint |
+| `js-tiktoken`        | `^1.0.20`     | Tokenizer                                      |
+
+`@huggingface/transformers` is pinned at `3.5.2` as a **regular** dependency (shared with
+the local embeddings path), so it always ships — only the three packages above are
+prunable. A standard `npm install` (dev) installs them automatically.
+
+**Why on-demand:** the npm-published package, the standalone bundle, and the Docker image
+ship **without** these deps to stay slim. When they are absent, the worker's dependency
+gate (a `@atjsh/llmlingua-2` resolve probe in `worker.ts`) fails and the engine
+**fail-opens silently** — selecting LLMLingua becomes a no-op (text returned unchanged, no
+error logged). To activate it in a pruned environment, install the optional stack:
+
+```bash
+# pin to the versions declared in package.json optionalDependencies
+npm install @atjsh/llmlingua-2@2.0.3 @tensorflow/tfjs@4.22.0 js-tiktoken
+```
+
+Roughly **~800 MB** total: the TensorFlow.js + transformers runtimes dominate; the
+TinyBERT model adds ~57 MB downloaded at first use (not via npm).
+
+Per environment:
+
+- **Dev / `npm install`** — installed automatically unless you passed `--omit=optional`
+  (or `--no-optional`). No action needed.
+- **Global npm (`npm i -g omniroute`) / standalone** — run the install command above inside
+  the installed package directory, or reinstall without omitting optional deps.
+- **Docker** — add the install command in a derived image layer; the published image
+  ships slim by design.
+- **VPS (PM2)** — install into the app's `node_modules`, then restart the process so the
+  worker re-probes the gate.
+
+**Verify it is active:** with LLMLingua selected, real prose actually shrinks (the engine
+stops fail-opening), and the first request triggers the model download into
+`${DATA_DIR}/models/llmlingua`. The gate intentionally probes only `@atjsh/llmlingua-2` —
+the other peers are ESM-only and `require.resolve` throws on them even when present — so
+the worker still fail-opens if any peer is genuinely missing at `import()` time.
 
 ## Stacked Pipelines
 

@@ -154,6 +154,41 @@ export function insertCompressionAnalyticsRow(row: CompressionAnalyticsRow): voi
   );
 }
 
+/**
+ * Record one Anthropic server-side Context Editing receipt as a
+ * `compression_analytics` row under engine `"context-editing"`.
+ *
+ * The provider cleared `clearedInputTokens` of stale tool-use/thinking context from
+ * its own window, so that maps to `tokens_saved` (original = cleared, compressed = 0).
+ * Unlike the local engines there is no separate usage receipt to attach, so the
+ * `request_id` is suffixed (`<id>::context-editing`): it stays traceable to the
+ * originating request while staying collision-free with the exact-match
+ * `attachCompressionUsageReceipt` UPDATE, which would otherwise latch onto this row.
+ *
+ * Best-effort: a zero/absent receipt is a no-op (context editing did not fire).
+ */
+export function recordContextEditingTelemetry(
+  requestId: string | null | undefined,
+  telemetry:
+    | { clearedInputTokens?: number; clearedToolUses?: number; editCount?: number }
+    | null
+    | undefined,
+  provider: string | null = "claude"
+): void {
+  const cleared = telemetry?.clearedInputTokens ?? 0;
+  if (!Number.isFinite(cleared) || cleared <= 0) return;
+  insertCompressionAnalyticsRow({
+    timestamp: new Date().toISOString(),
+    provider,
+    mode: "context-editing",
+    engine: "context-editing",
+    original_tokens: cleared,
+    compressed_tokens: 0,
+    tokens_saved: cleared,
+    request_id: requestId ? `${requestId}::context-editing` : null,
+  });
+}
+
 let breakdownTableEnsuredForDb: unknown = null;
 
 function ensureCompressionEngineBreakdownTable(): void {

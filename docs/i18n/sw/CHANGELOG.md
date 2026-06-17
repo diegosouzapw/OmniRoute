@@ -4,6 +4,12 @@
 
 ---
 
+## [3.8.28] — TBD
+
+_See English CHANGELOG for v3.8.28 details._
+
+---
+
 ## [3.8.27] — 2026-06-17
 
 ### ✨ New Features

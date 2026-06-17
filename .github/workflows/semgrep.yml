@@ -21,7 +21,7 @@ jobs:
           semgrep scan --config p/owasp-top-ten --config p/secrets \
             --sarif --output semgrep.sarif --metrics off || true
           python -c "import json; d=json.load(open('semgrep.sarif')); print('semgrepFindings=%d' % len(d['runs'][0]['results']))" || echo "semgrepFindings=SKIP"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: semgrep-sarif

@@ -119,9 +119,52 @@ function parseBypassJson(raw) {
   }
 }
 
+/**
+ * True if `ip` is an IPv4 or IPv6 loopback address. (Gap 14 helper.)
+ * @param {string} ip
+ * @returns {boolean}
+ */
+function isLoopbackIp(ip) {
+  if (typeof ip !== "string") return false;
+  if (ip === "::1" || ip === "::ffff:127.0.0.1") return true;
+  return /^127\./.test(ip);
+}
+
+/**
+ * Defense-in-depth loop guard (Gap 14). The primary guard is the
+ * x-omniroute-source header; this is a structural backstop. If a forwarded
+ * request's resolved upstream is a loopback address on the MITM server's own
+ * listen port, dialing it would re-enter this same server — an infinite loop /
+ * fd storm. Callers should refuse instead of dialing themselves.
+ *
+ * @param {string} targetIp - resolved upstream IP
+ * @param {number} destPort - the port we would dial upstream
+ * @param {number} localPort - this MITM server's own listen port
+ * @returns {boolean}
+ */
+function isSelfLoopDestination(targetIp, destPort, localPort) {
+  return isLoopbackIp(targetIp) && Number(destPort) === Number(localPort);
+}
+
+/**
+ * Parse the MITM_VERBOSE env var into a routing-decision log level (Gap 15).
+ * Default 1 (log decisions) preserves existing behavior; 0 silences; higher
+ * levels are reserved for finer detail. Garbage falls back to the default.
+ *
+ * @param {string|undefined} envValue
+ * @returns {number}
+ */
+function parseVerboseLevel(envValue) {
+  const n = Number.parseInt(envValue, 10);
+  return Number.isInteger(n) && n >= 0 ? n : 1;
+}
+
 module.exports = {
   DEFAULT_BYPASS_PATTERNS,
   bypassGlobMatch,
   routeBypass,
   parseBypassJson,
+  isLoopbackIp,
+  isSelfLoopDestination,
+  parseVerboseLevel,
 };

@@ -1,4 +1,5 @@
 import http from "node:http";
+import net from "node:net";
 import { randomUUID } from "node:crypto";
 import { createResponsesWsProxy } from "./responses-ws-proxy.mjs";
 import { ensurePeerStampToken, wrapRequestListenerWithPeerStamp } from "./peer-stamp.mjs";
@@ -36,9 +37,36 @@ function getProxy(server) {
   return proxy;
 }
 
+function proxyLiveWs(req, socket, head) {
+  const targetPort = parseInt(process.env.LIVE_WS_PORT || "20129", 10);
+  const targetSocket = net.connect(targetPort, "127.0.0.1", () => {
+    let rawRequest = `${req.method} ${req.url} HTTP/${req.httpVersion}\r\n`;
+    for (const [key, val] of Object.entries(req.headers)) {
+      if (Array.isArray(val)) {
+        for (const v of val) rawRequest += `${key}: ${v}\r\n`;
+      } else {
+        rawRequest += `${key}: ${val}\r\n`;
+      }
+    }
+    rawRequest += "\r\n";
+    targetSocket.write(rawRequest);
+    if (head && head.length > 0) targetSocket.write(head);
+    targetSocket.pipe(socket);
+    socket.pipe(targetSocket);
+  });
+
+  targetSocket.on("error", () => !socket.destroyed && socket.destroy());
+  socket.on("error", () => !targetSocket.destroyed && targetSocket.destroy());
+}
+
 function wrapUpgradeListener(server, listener) {
   return async function responsesWsAwareUpgrade(req, socket, head) {
     try {
+      const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
+      if (url.pathname === "/live-ws" || url.pathname.startsWith("/live-ws")) {
+        proxyLiveWs(req, socket, head);
+        return;
+      }
       const handled = await getProxy(server).handleUpgrade(req, socket, head);
       if (handled) return;
       return listener.call(this, req, socket, head);
