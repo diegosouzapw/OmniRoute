@@ -31,6 +31,10 @@ Runs on every PR to `main`. Blocks merge on failure.
 | `check:provider-consistency`   | Every provider in `providers.ts` has a matching entry in `providerRegistry.ts` (and vice-versa, within the allowlist)                                              | Yes                                      |
 | `check:fetch-targets`          | Every `fetch("/api/...")` in client-side `src/` resolves to a real `route.ts`                                                                                      | Yes                                      |
 | `check:deps`                   | All `npm install`-able deps across every `package.json` in the repo are in `dependency-allowlist.json`; new unpinned or slopsquatted packages flagged              | Yes                                      |
+| `audit:deps`                   | `npm audit` (root + electron) — no high/critical advisories (overlaps osv `check:vuln-ratchet`; see Rationalization Backlog)                                        | Yes                                      |
+| `check:lockfile`               | `package-lock.json` integrity — https registry, integrity hashes, no host overrides                                                                                | Yes                                      |
+| `check:licenses`               | SPDX license allowlist for production dependencies                                                                                                                 | Yes                                      |
+| `check:tracked-artifacts`      | No build artifacts / committed `node_modules` symlinks (also runs in husky pre-push)                                                                               | Yes                                      |
 | `check:file-size`              | No source file exceeds the per-extension cap (ratchet: frozen large files in `frozen` list)                                                                        | Yes                                      |
 | `check:error-helper`           | Error responses in executors/handlers use `buildErrorBody()` / `sanitizeErrorMessage()` (Hard Rule #12)                                                            | Yes                                      |
 | `check:migration-numbering`    | Migration SQL files are sequentially numbered, no gaps or duplicates                                                                                               | Yes                                      |
@@ -52,7 +56,11 @@ Runs after `test-coverage`. Blocks merge on failure.
 | `quality:collect`   | Emits `quality-metrics.json` (ESLint warning count, coverage from merged shard report)                     | Yes (upstream of ratchet) |
 | `quality:ratchet`   | Each metric in `quality-baseline.json` has not regressed (ESLint warnings ≤ baseline; coverage ≥ baseline) | Yes                       |
 | `check:duplication` | Code duplication (jscpd@4) does not exceed baseline in `quality-baseline.json`                             | Yes                       |
-| `check:complexity`  | File-level cyclomatic complexity does not exceed the cap                                                   | Yes                       |
+| `check:complexity`  | File-level cyclomatic complexity does not exceed the cap (core ESLint `complexity` + `max-lines-per-function`)         | Yes                       |
+| `check:cognitive-complexity` | Cognitive complexity ratchet (`eslint-plugin-sonarjs`) — separate ESLint pass; mergeable with `check:complexity` (see Backlog) | Yes              |
+| `check:dead-code`   | Unused exports / files ratchet (knip) does not regress vs baseline                                         | Yes                       |
+| `check:type-coverage` | Percent-typed ratchet (`type-coverage`) does not regress; largely subsumes `typecheck:noimplicit:core`   | Yes                       |
+| `check:codeql-ratchet` | Open CodeQL alert count does not regress (reads via `gh api`; graceful-skip without token)              | Yes                       |
 
 ### Job: `quality-extended`
 
@@ -111,6 +119,7 @@ Runs on pull requests only.
 | ---------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------- |
 | `check:pr-test-policy` | PRs that change production code in `src/`, `open-sse/`, `electron/`, or `bin/` must include or update tests (Hard Rule #8) | Yes      |
 | `check:test-masking`   | Changed test files do not reduce net assert count or add `assert.ok(true)` tautologies                                     | Yes      |
+| `check:pr-evidence`    | PR body cites test/VPS evidence for the change (mechanizes Hard Rule #18 by grepping PR prose — fragile, see Backlog)      | Yes      |
 
 ### Job: `test-vitest`
 
@@ -223,6 +232,42 @@ diagnostics **before** writing code — a compile-before-claim companion to
 `typecheck:core` that cuts "invented symbol" errors at the source. It is intentionally
 not auto-loaded (you pick and verify the MCP↔LSP bridge); a broken entry only logs a
 connection error and never breaks sessions.
+
+---
+
+## Rationalization Backlog (ROI review — Fase 9 Onda 3)
+
+This inventory was reconciled against `ci.yml` on 2026-06-17 (the prior version omitted
+`audit:deps`, `check:tracked-artifacts`, `check:lockfile`, `check:licenses`,
+`check:dead-code`, `check:cognitive-complexity`, `check:type-coverage`,
+`check:codeql-ratchet`, `check:pr-evidence`). An ROI review of the reconciled set
+identified the following rationalization candidates. **The merges are mechanical CI
+changes; the flips/drops are policy decisions reserved for the operator.** Nothing below
+is applied yet.
+
+**Also undocumented above** (advisory, low signal): the `docs-lint` job
+(markdownlint + Vale, whole job `continue-on-error`) and the standalone scanner workflows
+`semgrep.yml` / `codeql.yml` / `scorecard.yml`. `semgrepFindings: 0` is in
+`quality-baseline.json` but is not wired to a blocking ratchet in `ci.yml` — the metric is
+currently orphaned.
+
+### Merge / dedup (mechanical, lower risk)
+
+- **CVE scanning** — `audit:deps` (npm audit) overlaps `check:vuln-ratchet` (osv-scanner) and Dependabot. Make osv canonical; keep only the `electron/` npm-audit slice if osv misses it.
+- **Complexity** — `check:complexity` (core ESLint) and `check:cognitive-complexity` (sonarjs) spawn two full ESLint passes over `src` + `open-sse`. Merge into one config/one tree-walk emitting both metrics.
+- **Cycle detection** — `check:cycles` (custom 5-subtree AST) is dominated by `check:circular-deps` (dpdm: path-aliases + transitive). Promote dpdm to blocking, drop `check:cycles`.
+- **`/api` anti-hallucination** — `check:openapi-routes` (spec→route) and `check:docs-symbols` (prose→route) share resolution logic; collapse to one gate with two inputs.
+- **`check:docs-sync` runs twice** — standalone in the `lint` job and again inside `check:docs-all` (`docs-sync-strict`). Drop the standalone invocation.
+- **`check:node-runtime` runs in 11 jobs** — each is a separate runner with `setup-node` already pinning the version; keep it where it gates tsx-loading gates, drop the rest.
+
+### Flip / decide (operator policy)
+
+- `typecheck:noimplicit:core` (advisory) — largely subsumed by the blocking `check:type-coverage` ratchet. Flip to a ratchet or drop the redundant second `tsc` pass.
+- `test:vitest:ui` (advisory, 14 parked fails) — fix-and-block or delete; don't leave rotting.
+- `check:secrets` (gitleaks, blocking ratchet frozen at 3 documented false-positives) — allowlist the 3 to reach 0, or demote to advisory. Overlaps GitHub native secret-scanning + `check:public-creds`.
+- `check:openapi-security-tiers` (advisory) — block (the tier↔routeGuard invariant matters) or drop.
+- `check:pr-evidence` (blocking, greps PR-body prose) — high false-positive risk; consider advisory.
+- `semgrep` (advisory standalone) — overlaps CodeQL for the OWASP families; wire its baseline to a ratchet or drop.
 
 ---
 
