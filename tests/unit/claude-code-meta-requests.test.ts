@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { extractCommandPrefix } from "../../open-sse/utils/claudeCodeMetaRequests.ts";
+import { extractFilepathsFromCommand } from "../../open-sse/utils/claudeCodeMetaRequests.ts";
 
 test("extractCommandPrefix returns two-word prefix for known multi-verb tools", () => {
   assert.equal(extractCommandPrefix("git commit -m 'x'"), "git commit");
@@ -21,4 +22,18 @@ test("extractCommandPrefix detects command injection", () => {
   assert.equal(extractCommandPrefix("ls; rm -rf /"), "command_injection_detected");
   assert.equal(extractCommandPrefix("echo $(whoami)"), "command_injection_detected");
   assert.equal(extractCommandPrefix("cat `id`"), "command_injection_detected");
+});
+
+test("extractFilepathsFromCommand returns read files for read commands", () => {
+  assert.deepEqual(extractFilepathsFromCommand("cat src/a.ts src/b.ts", ""), ["src/a.ts", "src/b.ts"]);
+  assert.deepEqual(extractFilepathsFromCommand("head -n5 README.md", ""), ["README.md"]);
+});
+
+test("extractFilepathsFromCommand returns empty for listing commands", () => {
+  assert.deepEqual(extractFilepathsFromCommand("ls -la src/", ""), []);
+  assert.deepEqual(extractFilepathsFromCommand("find . -name '*.ts'", ""), []);
+});
+
+test("extractFilepathsFromCommand skips the grep pattern arg", () => {
+  assert.deepEqual(extractFilepathsFromCommand("grep -n foo src/a.ts", ""), ["src/a.ts"]);
 });
