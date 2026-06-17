@@ -34,6 +34,11 @@ const LOCAL_PORT =
   Number.isInteger(parsedLocalPort) && parsedLocalPort > 0 && parsedLocalPort <= 65535
     ? parsedLocalPort
     : 443;
+// Idle timeout for sockets/tunnels. Mirrors ProxyBridge's 60s relay timeout so
+// hung/half-open connections cannot accumulate and exhaust fds. (Gap 10.)
+const parsedIdleTimeout = Number.parseInt(process.env.MITM_IDLE_TIMEOUT_MS || "60000", 10);
+const MITM_IDLE_TIMEOUT_MS =
+  Number.isInteger(parsedIdleTimeout) && parsedIdleTimeout > 0 ? parsedIdleTimeout : 60000;
 const ROUTER_BASE_URL = (
   process.env.OMNIROUTE_BASE_URL ||
   process.env.BASE_URL ||
@@ -513,6 +518,14 @@ function rawTcpForward(clientSocket, head, host, port, label) {
     if (head && head.length > 0) targetSocket.write(head);
     targetSocket.pipe(clientSocket);
     clientSocket.pipe(targetSocket);
+    // Reap a half-open/hung tunnel after the idle timeout so neither side leaks
+    // an fd when the upstream never sends FIN/RST (Gap 10).
+    const destroyBoth = () => {
+      clientSocket.destroy();
+      targetSocket.destroy();
+    };
+    clientSocket.setTimeout(MITM_IDLE_TIMEOUT_MS, destroyBoth);
+    targetSocket.setTimeout(MITM_IDLE_TIMEOUT_MS, destroyBoth);
   });
 
   // Best-effort cleanup; never crash the proxy on tunnel errors.
@@ -598,6 +611,12 @@ server.on("connect", (req, clientSocket, head) => {
   rawTcpForward(clientSocket, head, connectHost, connectPort, "passthrough");
 });
 
+// Bound full-request / header / keep-alive lifetimes so a slow or hung client
+// cannot pin a connection indefinitely (Gap 10).
+server.requestTimeout = MITM_IDLE_TIMEOUT_MS * 5; // hard cap on a full request
+server.headersTimeout = MITM_IDLE_TIMEOUT_MS; // time allowed to send headers
+server.keepAliveTimeout = MITM_IDLE_TIMEOUT_MS; // idle keep-alive window
+
 server.listen(LOCAL_PORT, () => {
   stats.startedAt = new Date().toISOString();
   writeStats();
@@ -609,6 +628,8 @@ server.on("connection", (socket) => {
   // already-counted socket into the TLS layer via emit("connection") above.
   if (socket.__mitmCounted) return;
   socket.__mitmCounted = true;
+  // Reap idle sockets so hung connections cannot exhaust fds (Gap 10).
+  socket.setTimeout(MITM_IDLE_TIMEOUT_MS, () => socket.destroy());
   stats.activeConnections++;
   writeStats();
   socket.on("close", () => {
