@@ -161,6 +161,7 @@ export async function markAccountUnavailable(
     const connectionPassthroughModels = connProviderSpecificData.passthroughModels as
       | boolean
       | undefined;
+    const disableCooling = connProviderSpecificData.disableCooling === true;
 
     const isPerModelQuotaProvider = hasPerModelQuota(provider, model, connectionPassthroughModels);
     if (
@@ -362,7 +363,7 @@ export async function markAccountUnavailable(
       await updateProviderConnection(connectionId, {
         ...baseUpdate,
       });
-    } else if (cooldownMs > 0) {
+    } else if (cooldownMs > 0 && !disableCooling) {
       await updateProviderConnection(connectionId, {
         ...baseUpdate,
         rateLimitedUntil: getUnavailableUntil(cooldownMs),
