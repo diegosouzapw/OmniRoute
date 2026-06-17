@@ -2,7 +2,7 @@ import { BaseExecutor, type ExecuteInput, type ProviderCredentials } from "../ba
 import { OMNIROUTE_VERSION } from "@/shared/constants/version.ts";
 import { getProxyForAccount } from "../../utils/proxyFallback.ts";
 import { HttpsProxyAgent } from "https-proxy-agent";
-import crypto from "node:crypto";
+import crypto, { randomUUID } from "node:crypto";
 import { createHash } from "node:crypto";
 import { saveCallLog } from "@/lib/usage/callLogArtifacts.ts";
 import { streamWithTimeout } from "../../utils/stream.ts";

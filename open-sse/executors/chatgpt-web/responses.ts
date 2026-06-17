@@ -15,7 +15,7 @@ import {
 } from "../../services/chatgptImageCache.ts";
 
 import { ImagePointerRef, ImageResolver, imageMarkdown, resolveImagePointers } from "./images.ts";
-import { sseChunk } from "./sse.ts";
+import { sseChunk, extractContent } from "./sse.ts";
 import { cleanChatGptText } from "./utils.ts";
 
 export function buildStreamingResponse(

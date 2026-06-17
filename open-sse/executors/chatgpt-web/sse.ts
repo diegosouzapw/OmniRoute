@@ -153,7 +153,7 @@ export function extractImagePointers(parts: unknown[]): string[] {
   return out;
 }
 
-async function* extractContent(
+export async function* extractContent(
   eventStream: ReadableStream<Uint8Array>,
   signal?: AbortSignal | null
 ): AsyncGenerator<ContentChunk> {
