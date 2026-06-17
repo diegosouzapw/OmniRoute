@@ -210,12 +210,62 @@ function getSyncedCapabilityForResolved(
   return canonical && canonical !== model ? getSyncedCapability(provider, canonical) : null;
 }
 
+/**
+ * High-precision vision model-id fragments, used ONLY as a last-resort fallback
+ * in resolveVisionCapability when there is no synced/registry/spec capability
+ * data (e.g. Mistral Pixtral, which ships no models.dev `attachment` flag and no
+ * registry `supportsVision`). Intentionally conservative: a false positive would
+ * let an image request route to a text-only model — the exact bug this guards
+ * against — so only unambiguously multimodal families are listed. Missing an
+ * exotic vision model is safe: it resolves to `null` and combo routing keeps it
+ * via the "no confirmed-vision target" fallback.
+ */
+const VISION_MODEL_ID_FRAGMENTS = [
+  "pixtral",
+  "llava",
+  "bakllava",
+  "qwen-vl",
+  "qwen2-vl",
+  "qwen2.5-vl",
+  "qwen3-vl",
+  "qvq",
+  "internvl",
+  "minicpm-v",
+  "moondream",
+  "mimo-vl",
+  "kimi-vl",
+  "glm-4v",
+  "glm-4.5v",
+  "glm-4.6v",
+  "gpt-4o",
+  "gpt-4.1",
+  "gpt-4-turbo",
+  "gpt-4-vision",
+  "gemini-1.5",
+  "gemini-2",
+  "gemini-exp",
+  "claude-3",
+  "claude-opus-4",
+  "claude-sonnet-4",
+  "claude-haiku-4",
+  "mistral-medium-3",
+  "-vision",
+  "multimodal",
+];
+
+function modelIdLikelyVision(modelId: string | null | undefined): boolean {
+  if (!modelId) return false;
+  const normalized = modelId.toLowerCase();
+  return VISION_MODEL_ID_FRAGMENTS.some((fragment) => normalized.includes(fragment));
+}
+
 function resolveVisionCapability(
   spec: ModelSpec | undefined,
   registryModel: { supportsVision?: boolean } | null,
   synced: SyncedCapabilities,
   modalitiesInput: string[],
-  modalitiesOutput: string[]
+  modalitiesOutput: string[],
+  modelId?: string
 ): boolean | null {
   const allModalities = [...modalitiesInput, ...modalitiesOutput].map((entry) =>
     String(entry).toLowerCase()
@@ -235,6 +285,11 @@ function resolveVisionCapability(
 
   if (typeof registryModel?.supportsVision === "boolean") return registryModel.supportsVision;
   if (typeof spec?.supportsVision === "boolean") return spec.supportsVision;
+
+  // Last resort: no capability data at all. Positively confirm known multimodal
+  // families by model id so image requests can be routed to them; everything
+  // else stays `null` (unknown).
+  if (modelIdLikelyVision(modelId)) return true;
 
   return null;
 }
@@ -291,7 +346,8 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
       registryModel,
       synced,
       modalitiesInput,
-      modalitiesOutput
+      modalitiesOutput,
+      lookupKey
     ),
     supportsMaxTokens: heuristicMaxTokens(lookupKey),
     attachment: synced?.attachment ?? null,
