@@ -1,1 +1,1 @@
-export * from "./combo/index.ts";
+export * from "./combo/index";
