@@ -30,6 +30,14 @@ updates:
       # the duplication gate — migrate the gate intentionally, not via dependabot.
       - dependency-name: "jscpd"
         update-types: ["version-update:semver-major"]
+      # @huggingface/transformers is HARD-PINNED at 3.5.2 (exact, no caret) — FROZEN.
+      # It is load-bearing for the LLMLingua ONNX compression engine (open-sse/services/
+      # compression/engines/llmlingua/ — worker.ts pins @huggingface/transformers@3.5.2)
+      # and for local memory embeddings (src/lib/memory/embedding/transformersLocal.ts),
+      # and was VPS-validated at 3.5.2 (#4014). 4.x breaks both, and even 3.x minors must
+      # be re-validated on the VPS — so freeze ALL auto-bumps (no update-types = ignore
+      # every version). Migrate it intentionally, not via dependabot (#4050).
+      - dependency-name: "@huggingface/transformers"
 
   - package-ecosystem: "github-actions"
     directory: "/"
