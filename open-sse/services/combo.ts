@@ -3234,13 +3234,16 @@ export async function handleComboChat({
       ...(target ?? {}),
       modelAbortSignal: timeoutController.signal,
     };
-    if (target?.modelAbortSignal) {
-      if (target.modelAbortSignal.aborted) {
+    const parentHedgeSignal = target?.modelAbortSignal ?? null;
+    let onParentHedgeAbort: (() => void) | null = null;
+    if (parentHedgeSignal) {
+      if (parentHedgeSignal.aborted) {
         timeoutController.abort(new Error("hedge-cancelled"));
       } else {
-        target.modelAbortSignal.addEventListener("abort", () => {
+        onParentHedgeAbort = () => {
           timeoutController.abort(new Error("hedge-cancelled"));
-        });
+        };
+        parentHedgeSignal.addEventListener("abort", onParentHedgeAbort, { once: true });
       }
     }
     try {
@@ -3258,6 +3261,12 @@ export async function handleComboChat({
       ]);
     } finally {
       clearTimeout(timeoutId);
+      // Detach our listener from the SHARED parent hedge signal. Without this, every target
+      // attempt left a listener on the long-lived parent signal for the whole request, so a
+      // request that tries many combo targets accumulated listeners on one signal.
+      if (parentHedgeSignal && onParentHedgeAbort) {
+        parentHedgeSignal.removeEventListener("abort", onParentHedgeAbort);
+      }
     }
   };
 
