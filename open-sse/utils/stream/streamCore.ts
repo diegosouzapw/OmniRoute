@@ -1,24 +1,44 @@
-import { convertOpenAIToResponsesToolCall } from "../handlers/responseTranslator.ts";
 import { translateResponse, initState } from "../../translator/index.ts";
-import { v4 as uuidv4 } from "uuid";
 import { FORMATS } from "../../translator/formats.ts";
-import { generateSessionId } from "../../services/sessionManager.ts";
+import {
+  generateSessionId,
+  consumeToolFinishTime,
+  markToolFinish,
+} from "../../services/sessionManager.ts";
 import { trackPendingRequest, appendRequestLog } from "@/lib/usage/usageHistory.ts";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { buildOmniRouteSseMetadataComment } from "@/domain/omnirouteResponseMeta";
-import { createStructuredSSECollector } from "../streamPayloadCollector.ts";
+import {
+  createStructuredSSECollector,
+  buildStreamSummaryFromEvents,
+} from "../streamPayloadCollector.ts";
 import {
   STREAM_IDLE_TIMEOUT_MS,
-  FETCH_BODY_TIMEOUT_MS,
   HTTP_STATUS,
 } from "../../config/constants.ts";
-import { parseSSELine } from "../streamHelpers.ts";
+import {
+  parseSSELine,
+  formatSSE,
+  hasValuableContent,
+  fixInvalidId,
+  unwrapGeminiChunk,
+} from "../streamHelpers.ts";
 import { recordToolLatency } from "../../services/toolLatencyTracker.ts";
-import { processBufferedPassthroughLine } from "../passthroughTailProcessor.ts";
+import {
+  sanitizeStreamingChunk,
+  extractThinkingFromContent,
+  OMIT_STREAMING_CHUNK_MARKER,
+} from "../handlers/responseSanitizer.ts";
+import {
+  hasValidUsage,
+  estimateUsage,
+  filterUsageForFormat,
+  addBufferToUsage,
+  logUsage,
+} from "../usageTracking.ts";
 import { normalizeStreamFailurePayload } from "./errors.ts";
 import { buildErrorBody } from "../error.ts";
 import { SSEStreamContext } from "./types.ts";
-
 import {
   parseTextualToolCallFromContent,
   containsTextualToolCallCandidate,
@@ -63,8 +83,6 @@ import {
   ToolCall,
   UsageTokenRecord,
 } from "./types.ts";
-import { normalizeStreamFailurePayload } from "./errors.ts";
-import { buildErrorBody } from "../error.ts";
 
 // Module-level helpers extracted from createSSEStream closures to keep
 // cyclomatic complexity of individual functions under the 15-node gate.
@@ -1411,9 +1429,9 @@ export function createSSEStream(options: StreamOptions = {}) {
             controller.enqueue(ctx.encoder.encode(output));
             if (failurePayload) {
               if (ctx.onFailure) {
-                try {
-                  void ctx.onFailure(failurePayload);
-                } catch {}
+                Promise.resolve(ctx.onFailure(failurePayload)).catch((err) => {
+                  console.error("[STREAM] Error in onFailure callback:", err);
+                });
               }
               ctx.clearIdleTimer();
               trackPendingRequest(ctx.model, ctx.provider, ctx.connectionId, false);
@@ -1883,7 +1901,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                     includeEvents: false,
                   }),
                 });
-              } catch {}
+              } catch (err) {
+                console.error("[STREAM] Error in onComplete callback:", err);
+              }
             }
             return;
           }
@@ -1943,14 +1963,16 @@ export function createSSEStream(options: StreamOptions = {}) {
             const err = ctx.state.upstreamError;
             trackPendingRequest(ctx.model, ctx.provider, ctx.connectionId, false);
             if (ctx.onFailure) {
-              try {
-                void ctx.onFailure({
+              Promise.resolve(
+                ctx.onFailure({
                   status: err.status,
                   message: err.message,
                   code: err.code,
                   type: err.type,
-                });
-              } catch {}
+                })
+              ).catch((err) => {
+                console.error("[STREAM] Error in onFailure callback:", err);
+              });
             }
 
             const errorBody = buildErrorBody(err.status, err.message);
@@ -2137,7 +2159,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                   includeEvents: false,
                 }),
               });
-            } catch {}
+            } catch (err) {
+              console.error("[STREAM] Error in onComplete callback:", err);
+            }
           }
         } catch (error) {
           console.log(
