@@ -422,6 +422,8 @@ function startHeartbeat(server: WebSocketServer): void {
       sendTo(client.ws, { type: "pong" } as WsServerMessage);
     }
   }, HEARTBEAT_INTERVAL_MS);
+  // Don't keep the process alive solely for the heartbeat (it is also cleared on close).
+  (interval as { unref?: () => void })?.unref?.();
 
   server.on("close", () => clearInterval(interval));
 }
