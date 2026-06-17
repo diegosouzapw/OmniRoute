@@ -1604,7 +1604,14 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // clients (e.g. LobeChat) may skip content when reasoning_content
                   // is present, causing the first content token to be lost.
                   if (delta?.reasoning_content && delta?.content) {
-                    const reasoningChunk = JSON.parse(JSON.stringify(parsed));
+                    // Per-chunk clone on the streaming hot path: a JSON.parse(JSON.stringify())
+                    // round-trip re-serializes and re-parses the entire chunk just to drop two
+                    // fields. structuredClone is a native, much faster deep clone with identical
+                    // semantics for this JSON-derived object (falls back on older runtimes).
+                    const reasoningChunk =
+                      typeof structuredClone === "function"
+                        ? structuredClone(parsed)
+                        : JSON.parse(JSON.stringify(parsed));
                     const rDelta = reasoningChunk.choices[0].delta;
                     delete rDelta.content;
                     reasoningChunk.choices[0].finish_reason = null;

@@ -11,11 +11,16 @@ jobs:
   stryker:
     name: Stryker mutation testing (8 critical modules — advisory)
     runs-on: ubuntu-latest
-    # Mutation testing is expensive (~200-500 mutants, 30-90 min). It runs only
+    # Mutation testing is expensive (~15k mutants across 8 modules). It runs only
     # on the nightly schedule / manual dispatch, never on PRs. The score is NOT
     # yet enforced as a ratchet (wired in a later INT phase) — for now the job
     # just produces the HTML/JSON report and uploads it as an artifact.
-    timeout-minutes: 120
+    #
+    # Runs at stryker concurrency=4 (was 1) now that ./tests/_setup/isolateDataDir.ts
+    # gives each test process its own DATA_DIR — at concurrency=1 the full phase did
+    # not finish inside the timeout (the cancelled 2026-06-16/17 runs). 180 min leaves
+    # headroom for the first cold run before the incremental cache is seeded.
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v6
         with:
@@ -26,7 +31,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Restore Stryker incremental cache
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: reports/mutation/stryker-incremental.json
           key: stryker-incremental-${{ github.run_id }}
@@ -37,7 +42,7 @@ jobs:
         run: npx stryker run
       - name: Upload mutation report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mutation-report
           path: reports/mutation/

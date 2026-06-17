@@ -1,6 +1,7 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { mergeClientAnthropicBeta } from "../config/anthropicHeaders.ts";
 import { applyContextEditingToBody } from "../config/contextEditing.ts";
+import { findOffendingField, stripGroqUnsupportedFields } from "../config/providerFieldStrips.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
@@ -755,6 +756,15 @@ export class BaseExecutor {
       }
     }
 
+    // Set by the Context Editing 400-fallback below: once an upstream rejects the
+    // `context_management` param, suppress its re-injection on every later
+    // retry/fallback URL (each iteration rebuilds a fresh `transformedBody`).
+    let contextEditingDisabled = false;
+    // Tracks which request fields have already been stripped via the generic 400
+    // field-downgrade below, so each known field is stripped at most once across
+    // all fallback URLs (bounded retry loop).
+    const strippedFields = new Set<string>();
+
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
       const url = this.buildUrl(model, stream, urlIndex, activeCredentials);
       const headers = this.buildHeaders(activeCredentials, stream, clientHeaders, model);
@@ -779,12 +789,17 @@ export class BaseExecutor {
         stream,
         activeCredentials
       );
-      const transformedBody = sanitizeReasoningEffortForProvider(
+      let transformedBody = sanitizeReasoningEffortForProvider(
         rawTransformedBody,
         this.provider,
         model,
         log
       );
+      if (this.provider === "groq") {
+        transformedBody = stripGroqUnsupportedFields(
+          transformedBody as Record<string, unknown>
+        ) as typeof transformedBody;
+      }
 
       try {
         // Only enforce the timeout while waiting for the initial fetch() response.
@@ -1140,13 +1155,23 @@ export class BaseExecutor {
           enforceThinkingTemperature(transformedBody as Record<string, unknown>);
         }
 
-        // Delegated Context Editing (opt-in, genuine Claude API only): attach the
-        // clear_tool_uses strategy so the provider clears stale tool-use blocks
-        // server-side. Runs at this same chokepoint, composing with the
-        // clear_thinking edit the fingerprint path may have already set. Scoped to
-        // `claude` (real Anthropic key/OAuth) — Claude-compatible relays are left
-        // out for now since they may not pass the beta (#N1 follow-up).
-        if (this.provider === "claude" && contextEditing?.enabled) {
+        // Delegated Context Editing (opt-in): attach the clear_tool_uses strategy so
+        // the provider clears stale tool-use blocks server-side. Runs at this same
+        // chokepoint, composing with the clear_thinking edit the fingerprint path may
+        // have already set. Scoped to genuine `claude` (real Anthropic key/OAuth) and
+        // `anthropic-compatible-cc-*` relays — the latter advertise Claude Code
+        // compatibility, so they are the relays most likely to accept the beta. A
+        // rejecting upstream is caught by the 400-fallback below. Deliberately
+        // EXCLUDED: `claude-web` (a browser relay with a `create_conversation_params`
+        // request shape that never sees `context_management`) and generic
+        // `anthropic-compatible-*` (third-party endpoints with uncertain beta support).
+        // `contextEditingDisabled` (set by the 400-fallback) suppresses re-injection
+        // when a fresh `transformedBody` is built for a retry/fallback URL.
+        if (
+          (this.provider === "claude" || isClaudeCodeCompatible(this.provider)) &&
+          contextEditing?.enabled &&
+          !contextEditingDisabled
+        ) {
           applyContextEditingToBody(transformedBody as Record<string, unknown>, {
             enabled: true,
           });
@@ -1189,6 +1214,71 @@ export class BaseExecutor {
           if (timeoutId) {
             clearTimeout(timeoutId);
             timeoutId = null;
+          }
+        }
+
+        // Context Editing 400-fallback: a Claude-compatible relay may advertise the
+        // context-management beta but reject the `context_management` param with a 400.
+        // Strip it from this body and retry the same URL once so the request degrades
+        // gracefully instead of failing. Genuine Claude carries the beta in
+        // ANTHROPIC_BETA_BASE and will not hit this. The 400 response is read via a
+        // clone so the original stays intact for the non-matching path.
+        if (
+          response.status === HTTP_STATUS.BAD_REQUEST &&
+          contextEditing?.enabled &&
+          !contextEditingDisabled &&
+          transformedBody &&
+          typeof transformedBody === "object" &&
+          (transformedBody as Record<string, unknown>).context_management !== undefined
+        ) {
+          const errText = await response
+            .clone()
+            .text()
+            .catch(() => "");
+          if (/context[_-]management|context editing/i.test(errText)) {
+            contextEditingDisabled = true;
+            delete (transformedBody as Record<string, unknown>).context_management;
+            let retryBody = JSON.stringify(transformedBody);
+            if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
+              retryBody = await signRequestBody(retryBody);
+            }
+            log?.debug?.(
+              "CONTEXT_EDITING",
+              `Upstream 400 rejected context_management on ${url} — retrying without it`
+            );
+            response = await fetch(url, { ...fetchOptions, body: retryBody });
+          }
+        }
+
+        // Generic reactive 400 field-downgrade (FCC NIM-style): if an upstream 400s
+        // naming a known-unsupported field, strip just that field and retry once.
+        // Each known field is stripped at most once across fallback URLs (bounded loop).
+        if (
+          response.status === HTTP_STATUS.BAD_REQUEST &&
+          transformedBody &&
+          typeof transformedBody === "object"
+        ) {
+          const errText = await response
+            .clone()
+            .text()
+            .catch(() => "");
+          const offending = findOffendingField(errText);
+          if (
+            offending &&
+            !strippedFields.has(offending) &&
+            (transformedBody as Record<string, unknown>)[offending] !== undefined
+          ) {
+            strippedFields.add(offending);
+            delete (transformedBody as Record<string, unknown>)[offending];
+            let retryBody = JSON.stringify(transformedBody);
+            if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
+              retryBody = await signRequestBody(retryBody);
+            }
+            log?.debug?.(
+              "FIELD_400",
+              `Upstream 400 rejected ${offending} on ${url} — retrying without it`
+            );
+            response = await fetch(url, { ...fetchOptions, body: retryBody });
           }
         }
 

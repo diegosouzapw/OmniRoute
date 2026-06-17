@@ -59,7 +59,8 @@ jobs:
       - run: npm run check:tracked-artifacts
       - run: npm run check:lockfile
       - run: npm run check:licenses
-      - run: npm run check:docs-sync
+      # check:docs-sync is run by the docs-sync-strict job (via check:docs-all) and the
+      # husky pre-commit hook; the standalone copy here was redundant (ROI dedup).
       - run: npm run typecheck:core
       # typecheck:noimplicit:core is a forward-looking gate (noImplicitAny).
       # Run informationally for now — many pre-existing call sites still need
@@ -513,7 +514,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
-      - run: node --max-old-space-size=4096 --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
+      - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
 
   test-vitest:
     name: Vitest (MCP / autoCombo / UI components)
@@ -566,7 +567,7 @@ jobs:
       - run: npm ci
       - run: npm run check:node-runtime
       - run: npm run build
-      - run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
+      - run: node --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
 
   node-26-compat:
     name: Node 26 Compatibility (${{ matrix.shard }}/2)
@@ -592,7 +593,7 @@ jobs:
       - run: npm ci
       - run: npm run check:node-runtime
       - run: npm run build
-      - run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
+      - run: node --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
 
   test-coverage-shard:
     name: Coverage Shard (${{ matrix.shard }}/8)
@@ -632,7 +633,7 @@ jobs:
             --reporter=json \
             --exclude=tests/** \
             --exclude=**/*.test.* \
-            node --max-old-space-size=4096 --import tsx --test --test-force-exit --test-concurrency=4 \
+            node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 \
               --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
       - name: Upload raw shard coverage
         if: always()
@@ -860,7 +861,7 @@ jobs:
       - run: npm ci
       - run: npm run check:node-runtime
       - name: Cache Playwright browsers
-        uses: actions/cache@v5
+        uses: actions/cache@v5.0.5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -902,7 +903,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
-      - run: node --import tsx --test --test-force-exit --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
+      - run: node --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
 
   test-security:
     name: Security Tests

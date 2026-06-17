@@ -662,6 +662,18 @@ export const APIKEY_PROVIDERS = {
     hasFree: true,
     freeNote: "Free models at $0/token with :free suffix - 20 RPM / 200 RPD",
   },
+  orcarouter: {
+    id: "orcarouter",
+    alias: "orcarouter",
+    name: "OrcaRouter",
+    icon: "router",
+    color: "#0891B2",
+    textIcon: "ORC",
+    passthroughModels: true,
+    website: "https://www.orcarouter.ai",
+    apiHint:
+      "Create an API key (starts with sk-orca-) at https://www.orcarouter.ai, then paste it as a Bearer token. OpenAI-compatible endpoint at https://api.orcarouter.ai/v1.",
+  },
   "api-airforce": {
     id: "api-airforce",
     alias: "af",
@@ -1185,6 +1197,16 @@ export const APIKEY_PROVIDERS = {
     textIcon: "ZA",
     website: "https://open.bigmodel.cn",
     apiHint: "API key from https://open.bigmodel.cn/usercenter/apikeys",
+  },
+  wafer: {
+    id: "wafer",
+    alias: "wafer",
+    name: "Wafer AI",
+    icon: "layers",
+    color: "#6366F1",
+    textIcon: "WF",
+    website: "https://wafer.ai",
+    apiHint: "API key from https://wafer.ai",
   },
   "opencode-zen": {
     id: "opencode-zen",

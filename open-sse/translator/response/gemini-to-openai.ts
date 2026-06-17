@@ -49,6 +49,22 @@ const REASONING_TAG_OPEN_REGEX =
   /<(think|thinking|thought|internal_thought)(?=\s|>|\r?\n)(?:\s[^>]*)?(?:>|\r?\n)/i;
 const REASONING_TAG_OPEN_PREFIXES = ["<think", "<thinking", "<thought", "<internal_thought"];
 
+// Close-tag matchers are needed for every text delta of a streamed reasoning response.
+// Building `new RegExp("</tag>", "i")` on each delta recompiles the pattern thousands of
+// times over a long stream (pure CPU waste on the token hot path). The tag name comes from
+// the fixed REASONING_TAG_OPEN_REGEX capture group, so the cache is naturally bounded to a
+// handful of entries. The regexes are non-global, so reuse across calls is safe (no shared
+// lastIndex state).
+const reasoningCloseTagRegexCache = new Map<string, RegExp>();
+function getReasoningCloseTagRegex(tagName: string): RegExp {
+  let regex = reasoningCloseTagRegexCache.get(tagName);
+  if (!regex) {
+    regex = new RegExp(`</${tagName}>`, "i");
+    reasoningCloseTagRegexCache.set(tagName, regex);
+  }
+  return regex;
+}
+
 function isIgnorableReasoningTagPrefix(value: string): boolean {
   return /^(?:\s|§\d+§)*$/.test(value);
 }
@@ -102,7 +118,7 @@ function consumeTextualReasoningTags(
   while (remaining) {
     if (state.activeTextualReasoningTag) {
       const bufferedReasoning = `${state.textualReasoningContentBuffer || ""}${remaining}`;
-      const closeRegex = new RegExp(`</${state.activeTextualReasoningTag}>`, "i");
+      const closeRegex = getReasoningCloseTagRegex(state.activeTextualReasoningTag);
       const closeMatch = closeRegex.exec(bufferedReasoning);
       if (!closeMatch || closeMatch.index < 0) {
         const partialCloseStart = getTrailingReasoningCloseTagPrefixStart(
@@ -152,7 +168,7 @@ function consumeTextualReasoningTags(
     const tagName = openMatch[1];
     const bodyStart = openMatch.index + openMatch[0].length;
     const afterOpen = remaining.slice(bodyStart);
-    const closeRegex = new RegExp(`</${tagName}>`, "i");
+    const closeRegex = getReasoningCloseTagRegex(tagName);
     const closeMatch = closeRegex.exec(afterOpen);
     if (!closeMatch || closeMatch.index < 0) {
       state.activeTextualReasoningTag = tagName;

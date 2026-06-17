@@ -99,6 +99,7 @@ import { uncloseaiProvider } from "./registry/uncloseai/index.ts";
 import { nscaleProvider } from "./registry/nscale/index.ts";
 import { chatgpt_webProvider } from "./registry/chatgpt-web/index.ts";
 import { openrouterProvider } from "./registry/openrouter/index.ts";
+import { orcarouterProvider } from "./registry/orcarouter/index.ts";
 import { glhfProvider } from "./registry/glhf/index.ts";
 import { copilot_webProvider } from "./registry/copilot-web/index.ts";
 import { stepfunProvider } from "./registry/stepfun/index.ts";
@@ -124,6 +125,7 @@ import { nanogptProvider } from "./registry/nanogpt/index.ts";
 import { scalewayProvider } from "./registry/scaleway/index.ts";
 import { agentrouterProvider } from "./registry/agentrouter/index.ts";
 import { zaiProvider } from "./registry/zai/index.ts";
+import { waferProvider } from "./registry/wafer/index.ts";
 import { huggingchatProvider } from "./registry/huggingchat/index.ts";
 import { galadrielProvider } from "./registry/galadriel/index.ts";
 import { qianfanProvider } from "./registry/qianfan/index.ts";
@@ -260,6 +262,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   nscale: nscaleProvider,
   "chatgpt-web": chatgpt_webProvider,
   openrouter: openrouterProvider,
+  orcarouter: orcarouterProvider,
   glhf: glhfProvider,
   "copilot-web": copilot_webProvider,
   stepfun: stepfunProvider,
@@ -324,4 +327,5 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   kiro: kiroProvider,
   byteplus: byteplusProvider,
   mimocode: mimocodeProvider,
+  wafer: waferProvider,
 };

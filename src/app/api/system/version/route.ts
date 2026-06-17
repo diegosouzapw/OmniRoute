@@ -17,22 +17,11 @@ import {
   PROJECT_ROOT,
 } from "@/lib/system/autoUpdate";
 import { NEWS_JSON_URL, parseActiveNewsPayload } from "@/shared/utils/releaseNotes";
+import { isNewer, resolveLatestVersion } from "@/lib/system/versionCheck";
 
 const execFileAsync = promisify(execFile);
 
 export const dynamic = "force-dynamic";
-
-async function getLatestNpmVersion(): Promise<string | null> {
-  try {
-    const { stdout } = await execFileAsync("npm", ["info", "omniroute", "version", "--json"], {
-      timeout: 10000,
-    });
-    const parsed = JSON.parse(stdout.trim());
-    return typeof parsed === "string" ? parsed : null;
-  } catch {
-    return null;
-  }
-}
 
 function getCurrentVersion(): string {
   try {
@@ -40,16 +29,6 @@ function getCurrentVersion(): string {
   } catch {
     return "unknown";
   }
-}
-
-function isNewer(a: string | null, b: string): boolean {
-  if (!a) return false;
-  const parse = (v: string) => v.split(".").map(Number);
-  const [aMaj, aMin, aPat] = parse(a);
-  const [bMaj, bMin, bPat] = parse(b);
-  if (aMaj !== bMaj) return aMaj > bMaj;
-  if (aMin !== bMin) return aMin > bMin;
-  return aPat > bPat;
 }
 
 async function getNews() {
@@ -72,7 +51,7 @@ export async function GET(req: NextRequest) {
   const config = getAutoUpdateConfig();
 
   const [latest, news, validation] = await Promise.all([
-    getLatestNpmVersion(),
+    resolveLatestVersion(),
     getNews(),
     validateAutoUpdateRuntime(config),
   ]);
@@ -96,7 +75,7 @@ export async function POST(req: NextRequest) {
   }
 
   const current = getCurrentVersion();
-  const latest = await getLatestNpmVersion();
+  const latest = await resolveLatestVersion();
 
   if (!latest) {
     return NextResponse.json(
