@@ -1,1 +1,1 @@
-export * from "./providers/index.ts";
+export * from "./providers/index";
