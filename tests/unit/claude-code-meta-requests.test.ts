@@ -37,3 +37,17 @@ test("extractFilepathsFromCommand returns empty for listing commands", () => {
 test("extractFilepathsFromCommand skips the grep pattern arg", () => {
   assert.deepEqual(extractFilepathsFromCommand("grep -n foo src/a.ts", ""), ["src/a.ts"]);
 });
+
+test("extractCommandPrefix stays conservative when a flag precedes the subcommand", () => {
+  // -C takes a path arg; we don't parse flag-args, so fall back to the head
+  // (never emit a wrong two-word prefix like "git -C" or "git /x").
+  assert.equal(extractCommandPrefix("git -C /x commit"), "git");
+});
+
+test("extractFilepathsFromCommand handles grep -e pattern then file", () => {
+  assert.deepEqual(extractFilepathsFromCommand("grep -e pattern a.ts", ""), ["a.ts"]);
+});
+
+test("extractFilepathsFromCommand handles grep -f patternfile then file", () => {
+  assert.deepEqual(extractFilepathsFromCommand("grep -f pats.txt a.ts", ""), ["a.ts"]);
+});

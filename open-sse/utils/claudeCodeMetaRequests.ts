@@ -38,7 +38,10 @@ export function extractCommandPrefix(command: string): string {
   while (tokens.length && ENV_ASSIGNMENT_RE.test(tokens[0])) tokens = tokens.slice(1);
   if (!tokens.length) return "";
   const head = tokens[0];
-  if (TWO_WORD_TOOLS.has(head) && tokens.length > 1) {
+  // Only form a two-word prefix when the second token is an actual subcommand,
+  // not a flag. We intentionally do not parse flag-arguments (e.g. `git -C <path>`);
+  // for those we fall back to the single-word head (conservative, never wrong).
+  if (TWO_WORD_TOOLS.has(head) && tokens.length > 1 && !tokens[1].startsWith("-")) {
     return `${head} ${tokens[1]}`;
   }
   return head;
@@ -63,7 +66,11 @@ export function extractFilepathsFromCommand(command: string, _output = ""): stri
     for (let i = 1; i < tokens.length; i++) {
       const tok = tokens[i];
       if (tok.startsWith("-")) {
-        if (GREP_ARG_FLAGS.has(tok)) i++; // skip this flag's argument
+        if (GREP_ARG_FLAGS.has(tok)) {
+          i++; // skip this flag's argument
+          // -e/-f supply the pattern itself, so the positional pattern is already consumed.
+          if (tok === "-e" || tok === "-f") patternConsumed = true;
+        }
         continue;
       }
       if (!patternConsumed) { patternConsumed = true; continue; } // first non-flag = pattern
