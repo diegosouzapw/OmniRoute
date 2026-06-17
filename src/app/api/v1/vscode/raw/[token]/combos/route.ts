@@ -23,7 +23,8 @@ export async function GET(request: Request) {
 	try {
 		const combos = await getCombos();
 		const data = (Array.isArray(combos) ? combos : [])
-			.map((combo) => projectCombo(combo as Record<string, unknown>))
+			// #3979: advertise resolved capabilities so importing clients enable them
+			.map((combo) => projectCombo(combo as Record<string, unknown>, { includeCapabilities: true }))
 			.filter((combo): combo is PublicCombo => combo !== null);
 
 		return new Response(JSON.stringify({ object: "list", data, combos: data }), {

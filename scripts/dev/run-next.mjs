@@ -9,8 +9,11 @@ import { resolveRuntimePorts, withRuntimePortEnv } from "../build/runtime-env.mj
 import { createOmnirouteWsBridge } from "./v1-ws-bridge.mjs";
 import { createResponsesWsProxy } from "./responses-ws-proxy.mjs";
 import { ensurePeerStampToken, stampPeerIp } from "./peer-stamp.mjs";
+import methodGuard from "./http-method-guard.cjs";
 import { ensureNativeSqlite } from "./ensure-native-sqlite.mjs";
 import { randomUUID } from "node:crypto";
+
+const { maybeHandleDisallowedMethod } = methodGuard;
 
 // Pre-read DATA_DIR from local .env before bootstrap resolves paths
 if (!process.env.DATA_DIR) {
@@ -83,6 +86,7 @@ async function start() {
   });
 
   const server = http.createServer((req, res) => {
+    if (maybeHandleDisallowedMethod(req, res)) return;
     // Stamp the real TCP peer IP before Next sees the request, so the authz
     // middleware can decide LOCAL_ONLY locality without trusting the Host header.
     stampPeerIp(req);

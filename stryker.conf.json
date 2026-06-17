@@ -36,6 +36,8 @@
     "Direction: up (score can only improve; ratchet blocks drops — wired in a later INT phase)."
   ],
   "packageManager": "npm",
+  "incremental": true,
+  "incrementalFile": "reports/mutation/stryker-incremental.json",
   "testRunner": "tap",
   "plugins": ["@stryker-mutator/tap-runner"],
   "tap": {

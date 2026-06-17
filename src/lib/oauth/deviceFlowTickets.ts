@@ -1,5 +1,5 @@
 /**
- * Single-use, short-lived tickets for the public "Adicionar Externo" Codex link.
+ * Single-use, short-lived tickets for the public external Codex connection link.
  *
  * The dashboard generates a ticket and shares a public URL
  * (`/connect/codex/{token}`). A third party opens it and completes the Codex
@@ -100,9 +100,10 @@ export function releaseDeviceFlowTicket(token: string): void {
  * Status for the dashboard poll. Returns "expired" when the ticket is gone
  * (missing or past its TTL), otherwise the live status + result if completed.
  */
-export function getDeviceFlowTicketStatus(
-  token: string
-): { status: DeviceFlowTicketStatus | "expired"; result: DeviceFlowTicketResult | null } {
+export function getDeviceFlowTicketStatus(token: string): {
+  status: DeviceFlowTicketStatus | "expired";
+  result: DeviceFlowTicketResult | null;
+} {
   const ticket = peekDeviceFlowTicket(token);
   if (!ticket) return { status: "expired", result: null };
   return { status: ticket.status, result: ticket.result ?? null };

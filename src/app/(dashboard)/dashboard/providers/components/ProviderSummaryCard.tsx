@@ -35,11 +35,13 @@ interface ProviderSummaryCardProps {
   activeCategory: string | null;
   disabledConfigured: boolean;
   displayMode: ProviderDisplayMode;
+  modelSearchQuery: string;
   onBatchTest(mode: string): void;
   onCategoryChange(category: string | null, freeOnly: boolean): void;
   onDisplayModeChange(mode: ProviderDisplayMode): void;
   onNewProvider(): void;
   searchQuery: string;
+  setModelSearchQuery(value: string): void;
   setSearchQuery(value: string): void;
   showFreeOnly: boolean;
   summaryStats: ProviderSummaryStats;
@@ -70,11 +72,13 @@ export default function ProviderSummaryCard({
   activeCategory,
   disabledConfigured,
   displayMode,
+  modelSearchQuery,
   onBatchTest,
   onCategoryChange,
   onDisplayModeChange,
   onNewProvider,
   searchQuery,
+  setModelSearchQuery,
   setSearchQuery,
   showFreeOnly,
   summaryStats,
@@ -124,7 +128,7 @@ export default function ProviderSummaryCard({
       label: "Cloud Agent",
       stat: summaryStats.cloudagent,
     },
-  ];
+  ].filter((category) => category.key !== "no-auth" || category.stat.total > 0);
 
   return (
     <Card padding="sm">
@@ -142,6 +146,25 @@ export default function ProviderSummaryCard({
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
+                className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-text-muted hover:text-text-primary transition-colors"
+                aria-label={tc("clear")}
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            )}
+          </div>
+          <div className="relative flex-1 min-w-[160px]">
+            <Input
+              value={modelSearchQuery}
+              onChange={(e) => setModelSearchQuery(e.target.value)}
+              placeholder={t("searchByModel") || "Search by model…"}
+              aria-label={t("searchByModel") || "Search by model"}
+              icon="psychology"
+              inputClassName={modelSearchQuery ? "pr-9" : ""}
+            />
+            {modelSearchQuery && (
+              <button
+                onClick={() => setModelSearchQuery("")}
                 className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-text-muted hover:text-text-primary transition-colors"
                 aria-label={tc("clear")}
               >

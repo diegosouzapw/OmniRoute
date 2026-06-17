@@ -9,8 +9,10 @@ import {
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import { getStaticModelsForProvider, type LocalCatalogModel } from "@/lib/providers/staticModels";
+import { isProviderBlockedByIdOrAlias } from "@/shared/utils/noAuthProviders";
 import {
   getProviderConnectionById,
+  getSettings,
   getModelIsHidden,
   resolveProxyForProvider,
 } from "@/lib/localDb";
@@ -141,6 +143,11 @@ const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   "nous-research",
   "poe",
   "siliconflow",
+  // #3976: these carry a real modelsUrl but were not classified by any live-fetch
+  // branch, so their hardcoded registry catalog was served instead of the live
+  // `<baseUrl>/models` list. Live fetch falls back to the local catalog on error.
+  "llm7",
+  "byteplus",
 ]);
 
 function isNamedOpenAIStyleProvider(provider: string): boolean {
@@ -718,19 +725,15 @@ export async function GET(
     const connection = await getProviderConnectionById(id);
 
     if (!connection) {
-      // #3047 — no-auth providers (e.g. OpenCode Free) have no connection rows,
-      // so the "Import from /models" button had no connection id to fetch from
-      // and silently no-op'd. When the route is called with a no-auth provider
-      // id, serve that provider's registry/static model catalog so the import
-      // flow can populate the custom model list.
+      // #3047 — no-auth providers have no connection rows; serve their catalog by provider id.
       const isNoAuthProvider =
         (NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean }>)[id]?.noAuth === true;
       if (isNoAuthProvider) {
-        // #3611 — if the registry entry has a modelsUrl, attempt a live fetch so
-        // the model picker shows the current catalog instead of the stale
-        // hardcoded list (opencode provider had 9 hardcoded models while the live
-        // endpoint exposes many more). No auth header is added because noAuth
-        // providers are genuinely public. Fall through to local_catalog on any error.
+        if (isProviderBlockedByIdOrAlias(id, (await getSettings()).blockedProviders)) {
+          return NextResponse.json({ error: "Provider is disabled" }, { status: 403 });
+        }
+
+        // #3611 — prefer the live public modelsUrl when present; fall back to local_catalog.
         const noAuthRegistryEntry = getRegistryEntry(id);
         const noAuthModelsUrl =
           typeof noAuthRegistryEntry?.modelsUrl === "string" &&
@@ -2380,6 +2383,26 @@ export async function GET(
 
     // Build request URL
     let url = config.url;
+    // VibeProxy: honor a user-configured custom base URL for the built-in
+    // `openai` provider (e.g. an OpenAI-compatible gateway / proxy). Without
+    // this, model discovery always hit the hardcoded api.openai.com and ignored
+    // the configured endpoint — returning the wrong catalog (or failing auth)
+    // for gateway users, and preventing instant access to gateway-served models.
+    // Falls back to config.url (api.openai.com) when no custom base URL is set.
+    if (provider === "openai") {
+      const customBaseUrl = getProviderBaseUrl(connection.providerSpecificData);
+      if (customBaseUrl) {
+        let base = customBaseUrl.replace(/\/$/, "");
+        if (base.endsWith("/chat/completions")) {
+          base = base.slice(0, -"/chat/completions".length);
+        } else if (base.endsWith("/completions")) {
+          base = base.slice(0, -"/completions".length);
+        } else if (base.endsWith("/v1")) {
+          base = base.slice(0, -"/v1".length);
+        }
+        url = `${base}/v1/models`;
+      }
+    }
     if (provider === "cloudflare-ai") {
       const pData = asRecord(connection.providerSpecificData);
       const accountId =

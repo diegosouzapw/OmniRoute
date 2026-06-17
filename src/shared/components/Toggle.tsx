@@ -73,8 +73,9 @@ export default function Toggle({
         className={cn(
           "relative inline-flex shrink-0 cursor-pointer rounded-full",
           "transition-colors duration-200 ease-in-out",
+          "border shadow-inner",
           "focus:outline-none focus:ring-1 focus:ring-primary/30",
-          checked ? "bg-primary" : "bg-black/10 dark:bg-white/20",
+          checked ? "border-primary bg-primary" : "border-border bg-surface-2 dark:bg-white/20",
           sizes[size].track,
           disabled && "cursor-not-allowed"
         )}

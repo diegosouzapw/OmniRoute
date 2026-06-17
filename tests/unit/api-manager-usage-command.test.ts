@@ -20,7 +20,7 @@ test("api manager exposes allowUsageCommand in create, edit, and list UI", () =>
 });
 
 test("api key routes and schemas accept allowUsageCommand", () => {
-  const schemas = read("src/shared/validation/schemas.ts");
+  const schemas = read("src/shared/validation/schemas/keys.ts");
   const createRoute = read("src/app/api/keys/route.ts");
   const updateRoute = read("src/app/api/keys/[id]/route.ts");
 

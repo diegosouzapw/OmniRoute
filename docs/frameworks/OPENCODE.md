@@ -137,10 +137,10 @@ This deduplication is **the most common breakage** seen in older configs. If you
 
 ## Authentication modes
 
-| OmniRoute setting                           | Recommended `apiKey` value                            |
-| ------------------------------------------- | ----------------------------------------------------- |
-| `REQUIRE_API_KEY=false` (default for local) | `sk_omniroute` (literal placeholder)                  |
-| `REQUIRE_API_KEY=true`                      | A real per-user API key from Dashboard → API Manager. |
+| OmniRoute setting                           | Recommended `apiKey` value                         |
+| ------------------------------------------- | -------------------------------------------------- |
+| `REQUIRE_API_KEY=false` (default for local) | `sk_omniroute` (literal placeholder)               |
+| `REQUIRE_API_KEY=true`                      | A real per-user API key from Dashboard → API Keys. |
 
 For Anthropic-style clients that send `x-api-key` + `anthropic-version`, OmniRoute's `extractApiKey` also honours the key from `x-api-key`. OpenCode uses the OpenAI surface, so it'll always send `Authorization: Bearer ${apiKey}` — no Anthropic special-case applies here.
 

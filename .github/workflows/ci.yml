@@ -32,6 +32,8 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -77,6 +79,8 @@ jobs:
       security-events: read
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -93,14 +97,14 @@ jobs:
       # coverage mergeado). Tamanho de arquivo e duplicação têm gates dedicados.
       - name: Ratchet check
         run: node scripts/quality/check-quality-ratchet.mjs --summary .artifacts/quality-ratchet.md
-      # Fase 6A.5: require-tighten — ADVISORY por enquanto (continue-on-error). Reporta
-      # quando uma métrica MELHOROU sem o baseline ter sido apertado no mesmo PR (força
-      # capturar ganhos permanentes). As métricas coverage.* carregam tightenSlack para
-      # o gap anti-flake (CI mergeado > baseline) não disparar falso-positivo. Promover a
-      # BLOQUEANTE no fim do ciclo removendo o `continue-on-error` (ver a nota
-      # _require_tighten_advisory em config/quality/quality-baseline.json).
-      - name: Require-tighten (advisory — flip to blocking at cycle-end)
-        continue-on-error: true
+      # Fase 6A.5: require-tighten — BLOQUEANTE (promovido de advisory no fim do ciclo
+      # v3.8.27). Falha quando uma métrica MELHOROU sem o baseline ter sido apertado no
+      # mesmo PR (força capturar ganhos permanentes). As métricas coverage.* carregam
+      # tightenSlack para o gap anti-flake (CI mergeado > baseline) não disparar falso-
+      # positivo. Verificado limpo (exit 0) no tip de release/v3.8.27 com a cobertura
+      # mergeada == baseline (ver a nota _require_tighten_flip_blocking em
+      # config/quality/quality-baseline.json).
+      - name: Require-tighten (blocking)
         run: node scripts/quality/check-quality-ratchet.mjs --require-tighten
       # Catraca de duplicação (jscpd@4 sobre src+open-sse). Roda neste job (paralelo)
       # para não pesar no caminho crítico do lint.
@@ -156,6 +160,7 @@ jobs:
       # would lack the base ref and the gate would self-skip (base-unresolved).
       - uses: actions/checkout@v6
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
@@ -227,9 +232,14 @@ jobs:
       # is absent (a missing binary never blocks).
       - name: Secret scan (gitleaks, ratchet, blocking)
         run: npm run check:secrets -- --ratchet
-      - name: Vulnerability ratchet (osv-scanner; advisory, skips if absent)
-        continue-on-error: true
-        run: npm run check:vuln-ratchet
+      # BLOCKING ratchet (v3.8.27 cycle-end): vulnCount must not regress vs the
+      # baseline. --ratchet exits 1 on a measured regression (measured > baseline);
+      # it SKIPs (exit 0) when osv-scanner is absent or osv.dev is unreachable (a
+      # missing/failed measurement never blocks). See the CVE-variance note in
+      # docs/security/SUPPLY_CHAIN.md — a newly-disclosed CVE on an unchanged dep can
+      # red this gate; the fix is to bump the dep or re-baseline metrics.vulnCount.
+      - name: Vulnerability ratchet (osv-scanner, ratchet, blocking)
+        run: npm run check:vuln-ratchet -- --ratchet
       # BLOCKING ratchet (Etapa 2): zizmorFindings must not regress vs the baseline.
       # ONLY zizmor is ratcheted — actionlint findings are reported, not blocking.
       # --ratchet exits 1 on a measured zizmor regression; it SKIPs (exit 0) when
@@ -238,20 +248,23 @@ jobs:
         run: npm run check:workflows -- --ratchet
       # OpenAPI breaking-change detection (oasdiff). Diffs the PR's public API
       # contract (docs/reference/openapi.yaml) against the base branch's spec.
-      # ADVISORY: reports `openapiBreaking=N` and self-skips when oasdiff is absent
-      # or the base spec can't be resolved. BASE_REF is read by the script from the
-      # env (never interpolated into a shell body) — workflow-injection-safe.
-      - name: OpenAPI breaking-change (oasdiff; advisory)
-        continue-on-error: true
+      # BLOCKING ratchet (Fase 9 Onda 0): reads metrics.openapiBreaking.value and
+      # exits 1 ONLY on a measured regression (count > baseline). It SKIPs (exit 0)
+      # when oasdiff is absent or the base spec can't be resolved — a missing
+      # measurement never blocks. BASE_REF is read by the script from the env
+      # (never interpolated into a shell body) — workflow-injection-safe.
+      - name: OpenAPI breaking-change (oasdiff, ratchet, blocking)
         env:
           BASE_REF: ${{ github.base_ref }}
-        run: npm run check:openapi-breaking
+        run: npm run check:openapi-breaking -- --ratchet
 
   docs-sync-strict:
     name: Docs Sync (Strict)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -282,6 +295,8 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -303,6 +318,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -317,6 +334,8 @@ jobs:
       langs: ${{ steps.langs.outputs.langs }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - id: langs
         run: |
           LANG_DIR="src/i18n/messages"
@@ -334,6 +353,8 @@ jobs:
     needs: i18n-matrix
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
@@ -362,6 +383,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
@@ -390,6 +412,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -421,6 +445,8 @@ jobs:
       JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -444,6 +470,8 @@ jobs:
       CSC_IDENTITY_AUTO_DISCOVERY: "false"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -477,6 +505,8 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -496,6 +526,8 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -525,6 +557,8 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_24_VERSION }}
@@ -549,6 +583,8 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_26_VERSION }}
@@ -573,6 +609,8 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -615,6 +653,8 @@ jobs:
       API_KEY_SECRET: ci-test-api-key-secret-long
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -692,6 +732,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: actions/download-artifact@v8
         with:
@@ -810,6 +851,8 @@ jobs:
       OMNIROUTE_PLAYWRIGHT_SKIP_BUILD: "1"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -851,6 +894,8 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -869,6 +914,8 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}

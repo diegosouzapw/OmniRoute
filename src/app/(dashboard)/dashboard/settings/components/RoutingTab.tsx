@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Button, Card, Collapsible, Input, Select, Toggle } from "@/shared/components";
 import { useTranslations } from "next-intl";
 import { useNotificationStore } from "@/store/notificationStore";
-import FallbackChainsEditor from "./FallbackChainsEditor";
 import {
   CLI_COMPAT_PROVIDER_DISPLAY,
   CLI_COMPAT_TOGGLE_IDS,
@@ -895,242 +894,90 @@ export default function RoutingTab() {
       <Card>
         <div className="flex items-start justify-between gap-4">
           <div className="flex gap-3">
-            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 h-fit">
+            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500 h-fit">
               <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-                network_ping
+                auto_awesome
               </span>
             </div>
             <div>
-              <h3 className="text-lg font-semibold">
-                {t("adaptiveVolumeRouting") || "Adaptive Volume Routing"}
-              </h3>
-              <p className="text-sm text-text-muted mt-1">
-                {t("adaptiveVolumeRoutingDesc") ||
-                  "Automatically adjusts traffic volume between providers based on real-time latency and error rates."}
-              </p>
+              <h3 className="text-lg font-semibold">{t("routingZeroConfigTitle")}</h3>
+              <p className="text-sm text-text-muted mt-1">{t("routingZeroConfigDesc")}</p>
             </div>
           </div>
           <div className="pt-1">
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={!!settings.adaptiveVolumeRouting}
-                onChange={(e) => updateSetting({ adaptiveVolumeRouting: e.target.checked })}
-                disabled={loading}
-              />
-              <div className="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-            </label>
-          </div>
-        </div>
-      </Card>
-
-      <Card>
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex gap-3">
-            <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500 h-fit">
-              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-                verified
-              </span>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold">
-                {t("lkgpToggleTitle") || "Last Known Good Provider (LKGP)"}
-              </h3>
-              <p className="text-sm text-text-muted mt-1">
-                {t("lkgpToggleDesc") ||
-                  "When enabled, the router remembers which provider last served a successful response and tries it first on subsequent requests."}
-              </p>
-            </div>
-          </div>
-          <div className="pt-1">
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={settings.lkgpEnabled !== false}
-                onChange={(e) => updateSetting({ lkgpEnabled: e.target.checked })}
-                disabled={loading}
-              />
-              <div className="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-            </label>
-          </div>
-        </div>
-        <div className="mt-3 pt-3 border-t border-border/30 flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            loading={lkgpCacheLoading}
-            onClick={async () => {
-              setLkgpCacheLoading(true);
-              setLkgpCacheStatus({ type: "", message: "" });
-              try {
-                const res = await fetch("/api/settings/lkgp-cache", { method: "DELETE" });
-                const data = await res.json();
-                if (res.ok) {
-                  setLkgpCacheStatus({
-                    type: "success",
-                    message: t("lkgpCacheCleared") || "LKGP cache cleared successfully",
-                  });
-                } else {
-                  setLkgpCacheStatus({
-                    type: "error",
-                    message:
-                      data.error || t("lkgpCacheClearFailed") || "Failed to clear LKGP cache",
-                  });
-                }
-              } catch {
-                setLkgpCacheStatus({
-                  type: "error",
-                  message: t("errorOccurred") || "An error occurred",
-                });
-              } finally {
-                setLkgpCacheLoading(false);
-              }
-            }}
-          >
-            <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
-              delete_sweep
-            </span>
-            {t("clearLkgpCache") || "Clear LKGP Cache"}
-          </Button>
-          {lkgpCacheStatus.message && (
-            <span
-              className={`text-xs ${lkgpCacheStatus.type === "success" ? "text-green-500" : "text-red-500"}`}
-            >
-              {lkgpCacheStatus.message}
-            </span>
-          )}
-        </div>
-      </Card>
-
-      <FallbackChainsEditor />
-
-      <Card>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-sky-500/10 text-sky-500">
-            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-              fingerprint
-            </span>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold">{t("routingAntigravitySignatureTitle")}</h3>
-            <p className="text-sm text-text-muted">{t("routingAntigravitySignatureDesc")}</p>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          {[
-            {
-              value: "enabled",
-              label: t("routingAntigravitySignatureEnabledLabel"),
-              desc: t("routingAntigravitySignatureEnabledDesc"),
-            },
-            {
-              value: "bypass",
-              label: t("routingAntigravitySignatureBypassLabel"),
-              desc: t("routingAntigravitySignatureBypassDesc"),
-            },
-            {
-              value: "bypass-strict",
-              label: t("routingAntigravitySignatureBypassStrictLabel"),
-              desc: t("routingAntigravitySignatureBypassStrictDesc"),
-            },
-          ].map((option) => (
-            <button
-              key={option.value}
-              onClick={() => updateSetting({ antigravitySignatureCacheMode: option.value })}
+            <Toggle
+              checked={settings.autoRoutingEnabled !== false}
+              onChange={(checked) => updateSetting({ autoRoutingEnabled: checked })}
               disabled={loading}
-              className={`w-full flex flex-col items-start gap-1 p-3 rounded-lg border text-left transition-all ${
-                settings.antigravitySignatureCacheMode === option.value
-                  ? "border-sky-500/50 bg-sky-500/5 ring-1 ring-sky-500/20"
-                  : "border-border/50 hover:border-border hover:bg-surface/30"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <span
-                  className={`material-symbols-outlined text-[16px] ${
-                    settings.antigravitySignatureCacheMode === option.value
-                      ? "text-sky-400"
-                      : "text-text-muted"
-                  }`}
-                >
-                  {settings.antigravitySignatureCacheMode === option.value
-                    ? "check_circle"
-                    : "radio_button_unchecked"}
-                </span>
-                <span
-                  className={`text-sm font-medium ${settings.antigravitySignatureCacheMode === option.value ? "text-sky-400" : ""}`}
-                >
-                  {option.label}
-                </span>
-              </div>
-              <p className="text-xs text-text-muted ml-7">{option.desc}</p>
-            </button>
-          ))}
-        </div>
-      </Card>
-
-      <Card>
-        <div className="flex items-start gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500 h-fit">
-            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-              security
-            </span>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold">{t("cliFingerprint")}</h3>
-            <p className="text-sm text-text-muted mt-1">{t("cliFingerprintDesc")}</p>
+              ariaLabel={t("routingZeroConfigTitle")}
+            />
           </div>
         </div>
-
-        <div className="mb-5">
-          <h4 className="text-sm font-semibold mb-2">{t("routingHeaderFingerprintTitle")}</h4>
-          <p className="text-xs text-text-muted mb-2">
-            {t("cliFingerprintEnabled", { count: cliCompatProviderSet.size })}
-          </p>
-          <div className="grid gap-3 md:grid-cols-2">
-            {CLI_COMPAT_TOGGLE_IDS.map((providerId) => {
-              const normalizedProviderId = normalizeCliCompatProviderId(providerId);
-              const providerDisplay = CLI_COMPAT_PROVIDER_DISPLAY[providerId];
-              const checked = cliCompatProviderSet.has(normalizedProviderId);
-              const label = providerDisplay?.name || providerId;
-              const description = providerDisplay?.description || providerId;
-              const titleText = checked
-                ? t("disableFingerprintTitle", { provider: label })
-                : t("enableFingerprintTitle", { provider: label });
-
-              return (
-                <button
-                  key={providerId}
-                  type="button"
-                  onClick={() => toggleCliCompatProvider(providerId, !checked)}
-                  disabled={loading}
-                  aria-pressed={checked}
-                  title={titleText}
-                  className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-all ${
-                    checked
-                      ? "border-indigo-500/50 bg-indigo-500/5 ring-1 ring-indigo-500/20"
-                      : "border-border/50 hover:border-border hover:bg-surface/30"
-                  } ${loading ? "cursor-not-allowed opacity-60" : ""}`}
-                >
+        <div className="mt-4 pt-4 border-t border-border/30">
+          <label className="block text-sm font-medium mb-2">{t("routingDefaultAutoVariant")}</label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {[
+              {
+                value: "lkgp",
+                label: t("routingDefaultAutoVariantLKGP"),
+                desc: t("routingDefaultAutoVariantLKGPDesc"),
+              },
+              {
+                value: "coding",
+                label: t("routingDefaultAutoVariantCoding"),
+                desc: t("routingDefaultAutoVariantCodingDesc"),
+              },
+              {
+                value: "fast",
+                label: t("routingDefaultAutoVariantFast"),
+                desc: t("routingDefaultAutoVariantFastDesc"),
+              },
+              {
+                value: "cheap",
+                label: t("routingDefaultAutoVariantCheap"),
+                desc: t("routingDefaultAutoVariantCheapDesc"),
+              },
+              {
+                value: "offline",
+                label: t("routingDefaultAutoVariantOffline"),
+                desc: t("routingDefaultAutoVariantOfflineDesc"),
+              },
+              {
+                value: "smart",
+                label: t("routingDefaultAutoVariantSmart"),
+                desc: t("routingDefaultAutoVariantSmartDesc"),
+              },
+            ].map((option) => (
+              <button
+                key={option.value}
+                onClick={() => updateSetting({ autoRoutingDefaultVariant: option.value })}
+                disabled={loading}
+                className={`p-2 rounded-lg border text-left transition-all ${
+                  settings.autoRoutingDefaultVariant === option.value
+                    ? "border-indigo-500/50 bg-indigo-500/5 ring-1 ring-indigo-500/20"
+                    : "border-border/50 hover:border-border hover:bg-surface/30"
+                }`}
+              >
+                <div className="flex items-center gap-1">
                   <span
-                    className={`material-symbols-outlined mt-0.5 text-[18px] ${checked ? "text-indigo-400" : "text-text-muted"}`}
-                    aria-hidden="true"
+                    className={`material-symbols-outlined text-[14px] ${
+                      settings.autoRoutingDefaultVariant === option.value
+                        ? "text-indigo-400"
+                        : "text-text-muted"
+                    }`}
                   >
-                    {checked ? "check_circle" : "radio_button_unchecked"}
+                    {settings.autoRoutingDefaultVariant === option.value
+                      ? "check_circle"
+                      : "radio_button_unchecked"}
                   </span>
-                  <span className="min-w-0 flex-1">
-                    <span
-                      className={`block text-sm font-medium ${checked ? "text-indigo-400" : ""}`}
-                    >
-                      {label}
-                    </span>
-                    <span className="mt-1 block text-xs text-text-muted">{description}</span>
+                  <span
+                    className={`text-xs font-medium ${settings.autoRoutingDefaultVariant === option.value ? "text-indigo-400" : ""}`}
+                  >
+                    {option.label}
                   </span>
-                </button>
-              );
-            })}
+                </div>
+              </button>
+            ))}
           </div>
         </div>
       </Card>
@@ -1416,6 +1263,70 @@ export default function RoutingTab() {
       </Card>
 
       <Card>
+        <div className="flex items-start gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500 h-fit">
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+              security
+            </span>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">{t("cliFingerprint")}</h3>
+            <p className="text-sm text-text-muted mt-1">{t("cliFingerprintDesc")}</p>
+          </div>
+        </div>
+
+        <div className="mb-5">
+          <h4 className="text-sm font-semibold mb-2">{t("routingHeaderFingerprintTitle")}</h4>
+          <p className="text-xs text-text-muted mb-2">
+            {t("cliFingerprintEnabled", { count: cliCompatProviderSet.size })}
+          </p>
+          <div className="grid gap-3 md:grid-cols-2">
+            {CLI_COMPAT_TOGGLE_IDS.map((providerId) => {
+              const normalizedProviderId = normalizeCliCompatProviderId(providerId);
+              const providerDisplay = CLI_COMPAT_PROVIDER_DISPLAY[providerId];
+              const checked = cliCompatProviderSet.has(normalizedProviderId);
+              const label = providerDisplay?.name || providerId;
+              const description = providerDisplay?.description || providerId;
+              const titleText = checked
+                ? t("disableFingerprintTitle", { provider: label })
+                : t("enableFingerprintTitle", { provider: label });
+
+              return (
+                <button
+                  key={providerId}
+                  type="button"
+                  onClick={() => toggleCliCompatProvider(providerId, !checked)}
+                  disabled={loading}
+                  aria-pressed={checked}
+                  title={titleText}
+                  className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-all ${
+                    checked
+                      ? "border-indigo-500/50 bg-indigo-500/5 ring-1 ring-indigo-500/20"
+                      : "border-border/50 hover:border-border hover:bg-surface/30"
+                  } ${loading ? "cursor-not-allowed opacity-60" : ""}`}
+                >
+                  <span
+                    className={`material-symbols-outlined mt-0.5 text-[18px] ${checked ? "text-indigo-400" : "text-text-muted"}`}
+                    aria-hidden="true"
+                  >
+                    {checked ? "check_circle" : "radio_button_unchecked"}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span
+                      className={`block text-sm font-medium ${checked ? "text-indigo-400" : ""}`}
+                    >
+                      {label}
+                    </span>
+                    <span className="mt-1 block text-xs text-text-muted">{description}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </Card>
+
+      <Card>
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-lg bg-green-500/10 text-green-500">
             <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
@@ -1481,96 +1392,170 @@ export default function RoutingTab() {
       </Card>
 
       <Card>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-sky-500/10 text-sky-500">
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+              fingerprint
+            </span>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">{t("routingAntigravitySignatureTitle")}</h3>
+            <p className="text-sm text-text-muted">{t("routingAntigravitySignatureDesc")}</p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {[
+            {
+              value: "enabled",
+              label: t("routingAntigravitySignatureEnabledLabel"),
+              desc: t("routingAntigravitySignatureEnabledDesc"),
+            },
+            {
+              value: "bypass",
+              label: t("routingAntigravitySignatureBypassLabel"),
+              desc: t("routingAntigravitySignatureBypassDesc"),
+            },
+            {
+              value: "bypass-strict",
+              label: t("routingAntigravitySignatureBypassStrictLabel"),
+              desc: t("routingAntigravitySignatureBypassStrictDesc"),
+            },
+          ].map((option) => (
+            <button
+              key={option.value}
+              onClick={() => updateSetting({ antigravitySignatureCacheMode: option.value })}
+              disabled={loading}
+              className={`w-full flex flex-col items-start gap-1 p-3 rounded-lg border text-left transition-all ${
+                settings.antigravitySignatureCacheMode === option.value
+                  ? "border-sky-500/50 bg-sky-500/5 ring-1 ring-sky-500/20"
+                  : "border-border/50 hover:border-border hover:bg-surface/30"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className={`material-symbols-outlined text-[16px] ${
+                    settings.antigravitySignatureCacheMode === option.value
+                      ? "text-sky-400"
+                      : "text-text-muted"
+                  }`}
+                >
+                  {settings.antigravitySignatureCacheMode === option.value
+                    ? "check_circle"
+                    : "radio_button_unchecked"}
+                </span>
+                <span
+                  className={`text-sm font-medium ${settings.antigravitySignatureCacheMode === option.value ? "text-sky-400" : ""}`}
+                >
+                  {option.label}
+                </span>
+              </div>
+              <p className="text-xs text-text-muted ml-7">{option.desc}</p>
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      <Card>
         <div className="flex items-start justify-between gap-4">
           <div className="flex gap-3">
-            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500 h-fit">
+            <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500 h-fit">
               <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-                auto_awesome
+                verified
               </span>
             </div>
             <div>
-              <h3 className="text-lg font-semibold">{t("routingZeroConfigTitle")}</h3>
-              <p className="text-sm text-text-muted mt-1">{t("routingZeroConfigDesc")}</p>
+              <h3 className="text-lg font-semibold">
+                {t("lkgpToggleTitle") || "Last Known Good Provider (LKGP)"}
+              </h3>
+              <p className="text-sm text-text-muted mt-1">
+                {t("lkgpToggleDesc") ||
+                  "When enabled, the router remembers which provider last served a successful response and tries it first on subsequent requests."}
+              </p>
             </div>
           </div>
           <div className="pt-1">
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={settings.autoRoutingEnabled !== false}
-                onChange={(e) => updateSetting({ autoRoutingEnabled: e.target.checked })}
-                disabled={loading}
-              />
-              <div className="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-            </label>
+            <Toggle
+              checked={settings.lkgpEnabled !== false}
+              onChange={(checked) => updateSetting({ lkgpEnabled: checked })}
+              disabled={loading}
+              ariaLabel={t("lkgpToggleTitle")}
+            />
           </div>
         </div>
-        <div className="mt-4 pt-4 border-t border-border/30">
-          <label className="block text-sm font-medium mb-2">{t("routingDefaultAutoVariant")}</label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {[
-              {
-                value: "lkgp",
-                label: t("routingDefaultAutoVariantLKGP"),
-                desc: t("routingDefaultAutoVariantLKGPDesc"),
-              },
-              {
-                value: "coding",
-                label: t("routingDefaultAutoVariantCoding"),
-                desc: t("routingDefaultAutoVariantCodingDesc"),
-              },
-              {
-                value: "fast",
-                label: t("routingDefaultAutoVariantFast"),
-                desc: t("routingDefaultAutoVariantFastDesc"),
-              },
-              {
-                value: "cheap",
-                label: t("routingDefaultAutoVariantCheap"),
-                desc: t("routingDefaultAutoVariantCheapDesc"),
-              },
-              {
-                value: "offline",
-                label: t("routingDefaultAutoVariantOffline"),
-                desc: t("routingDefaultAutoVariantOfflineDesc"),
-              },
-              {
-                value: "smart",
-                label: t("routingDefaultAutoVariantSmart"),
-                desc: t("routingDefaultAutoVariantSmartDesc"),
-              },
-            ].map((option) => (
-              <button
-                key={option.value}
-                onClick={() => updateSetting({ autoRoutingDefaultVariant: option.value })}
-                disabled={loading}
-                className={`p-2 rounded-lg border text-left transition-all ${
-                  settings.autoRoutingDefaultVariant === option.value
-                    ? "border-indigo-500/50 bg-indigo-500/5 ring-1 ring-indigo-500/20"
-                    : "border-border/50 hover:border-border hover:bg-surface/30"
-                }`}
-              >
-                <div className="flex items-center gap-1">
-                  <span
-                    className={`material-symbols-outlined text-[14px] ${
-                      settings.autoRoutingDefaultVariant === option.value
-                        ? "text-indigo-400"
-                        : "text-text-muted"
-                    }`}
-                  >
-                    {settings.autoRoutingDefaultVariant === option.value
-                      ? "check_circle"
-                      : "radio_button_unchecked"}
-                  </span>
-                  <span
-                    className={`text-xs font-medium ${settings.autoRoutingDefaultVariant === option.value ? "text-indigo-400" : ""}`}
-                  >
-                    {option.label}
-                  </span>
-                </div>
-              </button>
-            ))}
+        <div className="mt-3 pt-3 border-t border-border/30 flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            loading={lkgpCacheLoading}
+            onClick={async () => {
+              setLkgpCacheLoading(true);
+              setLkgpCacheStatus({ type: "", message: "" });
+              try {
+                const res = await fetch("/api/settings/lkgp-cache", { method: "DELETE" });
+                const data = await res.json();
+                if (res.ok) {
+                  setLkgpCacheStatus({
+                    type: "success",
+                    message: t("lkgpCacheCleared") || "LKGP cache cleared successfully",
+                  });
+                } else {
+                  setLkgpCacheStatus({
+                    type: "error",
+                    message:
+                      data.error || t("lkgpCacheClearFailed") || "Failed to clear LKGP cache",
+                  });
+                }
+              } catch {
+                setLkgpCacheStatus({
+                  type: "error",
+                  message: t("errorOccurred") || "An error occurred",
+                });
+              } finally {
+                setLkgpCacheLoading(false);
+              }
+            }}
+          >
+            <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+              delete_sweep
+            </span>
+            {t("clearLkgpCache") || "Clear LKGP Cache"}
+          </Button>
+          {lkgpCacheStatus.message && (
+            <span
+              className={`text-xs ${lkgpCacheStatus.type === "success" ? "text-green-500" : "text-red-500"}`}
+            >
+              {lkgpCacheStatus.message}
+            </span>
+          )}
+        </div>
+      </Card>
+
+      <Card>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex gap-3">
+            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 h-fit">
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                network_ping
+              </span>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">
+                {t("adaptiveVolumeRouting") || "Adaptive Volume Routing"}
+              </h3>
+              <p className="text-sm text-text-muted mt-1">
+                {t("adaptiveVolumeRoutingDesc") ||
+                  "Automatically adjusts traffic volume between providers based on real-time latency and error rates."}
+              </p>
+            </div>
+          </div>
+          <div className="pt-1">
+            <Toggle
+              checked={!!settings.adaptiveVolumeRouting}
+              onChange={(checked) => updateSetting({ adaptiveVolumeRouting: checked })}
+              disabled={loading}
+              ariaLabel={t("adaptiveVolumeRouting")}
+            />
           </div>
         </div>
       </Card>

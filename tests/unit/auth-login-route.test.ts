@@ -45,6 +45,24 @@ test.after(() => {
   }
 });
 
+test("auth login route returns 400 for malformed JSON bodies", async () => {
+  const response = await loginRoute.POST(
+    new Request("http://localhost/api/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "a��",
+    })
+  );
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {
+    error: {
+      message: "Invalid request",
+      details: [{ field: "body", message: "Invalid JSON body" }],
+    },
+  });
+});
+
 test("auth login route returns needsSetup when no management password is configured", async () => {
   const response = await loginRoute.POST(
     new Request("http://localhost/api/auth/login", {

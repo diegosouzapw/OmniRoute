@@ -1,0 +1,29 @@
+name: semgrep
+on:
+  pull_request:
+    branches: ["main", "release/**"]
+  push:
+    branches: ["main"]
+permissions:
+  contents: read
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run semgrep (advisory)
+        continue-on-error: true
+        run: |
+          semgrep scan --config p/owasp-top-ten --config p/secrets \
+            --sarif --output semgrep.sarif --metrics off || true
+          python -c "import json; d=json.load(open('semgrep.sarif')); print('semgrepFindings=%d' % len(d['runs'][0]['results']))" || echo "semgrepFindings=SKIP"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: semgrep-sarif
+          path: semgrep.sarif
+          retention-days: 14

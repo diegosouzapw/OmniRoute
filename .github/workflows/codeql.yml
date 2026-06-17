@@ -1,0 +1,31 @@
+name: CodeQL
+# OWNER ACTION REQUIRED before enabling auto-triggers: advanced CodeQL conflicts with
+# GitHub "default setup" — the analyze step fails with "CodeQL analyses from advanced
+# configurations cannot be processed when the default setup is enabled". Switch repo
+# Settings → Code security → CodeQL from Default to Advanced, THEN restore the
+# push/pull_request/schedule triggers below. Until then this only runs on manual dispatch
+# so it never produces a red check on PRs. (The codeqlAlerts ratchet keeps working via the
+# default setup's alerts in the meantime.)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  analyze:
+    name: Analyze (javascript-typescript)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript-typescript"

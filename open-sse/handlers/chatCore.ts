@@ -29,6 +29,7 @@ import {
   runWithOnPersist,
 } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
+import { createPreparedRequestLogger, runWithCapture } from "../utils/providerRequestLogging.ts";
 import { applyResponsesPreviousResponseIdPolicy } from "../utils/responsesStatePolicy.ts";
 import {
   getModelTargetFormat,
@@ -98,11 +99,10 @@ import { handleBypassRequest } from "../utils/bypassHandler.ts";
 import {
   saveRequestUsage,
   trackPendingRequest,
-  updatePendingRequest,
-  finalizePendingRequest,
   appendRequestLog,
   saveCallLog,
 } from "@/lib/usageDb";
+import { finalizePendingScope, updatePendingScope } from "@/lib/usage/pendingRequestScope";
 import {
   formatUsageLog,
   getLoggedInputTokens,
@@ -443,6 +443,24 @@ function extractMemoryTextFromRequestBody(
   }
 
   return "";
+}
+
+async function forwardDashboardEventToLiveWs(event: string, payload: unknown): Promise<void> {
+  const port = process.env.LIVE_WS_PORT || "20129";
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 1_500);
+  try {
+    await fetch(`http://127.0.0.1:${port}/__omniroute_event`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ event, payload, timestamp: Date.now() }),
+      signal: controller.signal,
+    });
+  } catch {
+    // Best-effort sidecar bridge; do not affect the chat hot path.
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 async function maybeSyncClaudeExtraUsageState({
@@ -2311,7 +2329,8 @@ export async function handleChatCore({
     provider: provider || undefined,
     connectionId: connectionId || credentials?.connectionId || undefined,
   });
-
+  const pendingScope = { id: pendingRequestId, model, provider, connectionId: pendingConnId };
+  const providerRequestCapture = createPreparedRequestLogger(reqLogger, pendingScope);
   // 0. Log client raw request (before format conversion)
   if (clientRawRequest) {
     reqLogger.logClientRawRequest(
@@ -2369,6 +2388,10 @@ export async function handleChatCore({
   let cavemanOutputModeApplied = false;
   let cavemanOutputModeIntensity: string | null = null;
   let preCompressionBody: typeof body | null = null;
+  // Delegated Context Editing (Claude only): captured at the canonical compression
+  // settings read below, then threaded to executor.execute() further down. Lives at
+  // function scope because the read happens inside the per-message compression block.
+  let contextEditingEnabled = false;
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {
     let estimatedTokens = estimateTokens(allMessages);
     let promptCompressionEnabled = false;
@@ -2378,6 +2401,7 @@ export async function handleChatCore({
       const { getCompressionSettings } = await import("../../src/lib/db/compression.ts");
       compressionSettings = await getCompressionSettings();
       promptCompressionEnabled = compressionSettings.enabled;
+      contextEditingEnabled = compressionSettings.contextEditing?.enabled === true;
     } catch (err) {
       log?.warn?.(
         "COMPRESSION",
@@ -2653,7 +2677,7 @@ export async function handleChatCore({
           // Guard: only emit when compression actually ran and produced stats.
           if (result.compressed && result.stats) {
             try {
-              emit("compression.completed", {
+              const compressionCompletedPayload = {
                 requestId: traceId,
                 comboId: result.stats.compressionComboId ?? null,
                 mode,
@@ -2664,7 +2688,12 @@ export async function handleChatCore({
                 validationWarnings: result.stats.validationWarnings,
                 fallbackApplied: result.stats.fallbackApplied,
                 timestamp: Date.now(),
-              });
+              };
+              emit("compression.completed", compressionCompletedPayload);
+              void forwardDashboardEventToLiveWs(
+                "compression.completed",
+                compressionCompletedPayload
+              );
             } catch (_emitErr) {
               // never propagate into the hot path — but log like the sibling
               // fire-and-forget blocks so a throwing event bus isn't fully silent.
@@ -2681,7 +2710,7 @@ export async function handleChatCore({
             compressionAnalyticsRecorded = true;
             compressionAnalyticsWritePromise = (async () => {
               try {
-                const { insertCompressionAnalyticsRow } =
+                const { insertCompressionAnalyticsRow, insertCompressionEngineBreakdown } =
                   await import("../../src/lib/db/compressionAnalytics.ts");
                 const { calculateCost } = await import("../../src/lib/usage/costCalculator.ts");
                 const tokensSaved = Math.max(
@@ -2722,6 +2751,23 @@ export async function handleChatCore({
                     ? rtkPointers.reduce((total, pointer) => total + pointer.bytes, 0)
                     : null,
                 });
+                // Persist the per-engine breakdown of a stacked run so per-engine
+                // analytics (getPerEngineAnalytics) is accurate historically, not just
+                // in the live `compression.completed` event.
+                const engineBreakdown = result.stats.engineBreakdown ?? [];
+                if (engineBreakdown.length > 0) {
+                  insertCompressionEngineBreakdown(
+                    engineBreakdown.map((b) => ({
+                      timestamp: new Date().toISOString(),
+                      request_id: skillRequestId,
+                      engine: b.engine,
+                      original_tokens: b.originalTokens,
+                      compressed_tokens: b.compressedTokens,
+                      tokens_saved: Math.max(0, b.originalTokens - b.compressedTokens),
+                      duration_ms: b.durationMs ?? null,
+                    }))
+                  );
+                }
               } catch (err) {
                 log?.debug?.(
                   "COMPRESSION",
@@ -3795,7 +3841,7 @@ export async function handleChatCore({
         }
       }
 
-      updatePendingRequest(model, provider, connectionId, {
+      updatePendingScope(pendingScope, {
         providerRequest: bodyToSend,
         stage: "payload_prepared",
       });
@@ -3805,7 +3851,7 @@ export async function handleChatCore({
         max: accountSemaphoreMaxConcurrency,
       });
       if (accountSemaphoreKey && accountSemaphoreMaxConcurrency != null) {
-        updatePendingRequest(model, provider, connectionId, {
+        updatePendingScope(pendingScope, {
           stage: "waiting_account_slot",
         });
       }
@@ -3817,7 +3863,7 @@ export async function handleChatCore({
             })
           : () => {};
       trace("post_semaphore");
-      updatePendingRequest(model, provider, connectionId, {
+      updatePendingScope(pendingScope, {
         stage: "waiting_rate_limit",
       });
 
@@ -3829,7 +3875,7 @@ export async function handleChatCore({
           modelToCall,
           async () => {
             trace("inside_rate_limit");
-            updatePendingRequest(model, provider, connectionId, {
+            updatePendingScope(pendingScope, {
               stage: "rate_limit_slot_acquired",
             });
             let attempts = 0;
@@ -3853,7 +3899,7 @@ export async function handleChatCore({
 
             while (attempts < maxAttempts) {
               trace("pre_executor", { attempt: attempts });
-              updatePendingRequest(model, provider, connectionId, {
+              updatePendingScope(pendingScope, {
                 stage: "sending_to_provider",
               });
               const execCreds = getExecutionCredentials();
@@ -3864,19 +3910,25 @@ export async function handleChatCore({
                 signal: streamController.signal,
                 log,
                 execute: (signal) =>
-                  executor.execute({
-                    model: modelToCall,
-                    body: bodyToSend,
-                    stream: upstreamStream,
-                    credentials: execCreds,
-                    signal,
-                    log,
-                    extendedContext,
-                    upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
-                    clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
-                    onCredentialsRefreshed,
-                    skipUpstreamRetry,
-                  }),
+                  runWithCapture(providerRequestCapture, () =>
+                    executor.execute({
+                      model: modelToCall,
+                      body: bodyToSend,
+                      stream: upstreamStream,
+                      credentials: execCreds,
+                      signal,
+                      log,
+                      extendedContext,
+                      upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
+                      clientHeaders: buildExecutorClientHeaders(
+                        clientRawRequest?.headers,
+                        userAgent
+                      ),
+                      onCredentialsRefreshed,
+                      skipUpstreamRetry,
+                      contextEditing: { enabled: contextEditingEnabled },
+                    })
+                  ),
               });
               const res = normalizeExecutorResult(rawExecutorResult);
               trace("post_executor", { status: res?.response?.status });
@@ -3886,7 +3938,7 @@ export async function handleChatCore({
                 incrementRequestCount(modelToCall);
               }
 
-              updatePendingRequest(model, provider, connectionId, {
+              updatePendingScope(pendingScope, {
                 stage: "provider_response_started",
               });
 
@@ -4117,10 +4169,9 @@ export async function handleChatCore({
         }
       : translatedBody;
 
-  updatePendingRequest(model, provider, connectionId, {
+  updatePendingScope(pendingScope, {
     providerRequest: registeredProviderRequest,
   });
-
   // T5: track which models we've tried for intra-family fallback
   const triedModels = new Set<string>([effectiveModel]);
   let currentModel = effectiveModel;
@@ -4183,7 +4234,7 @@ export async function handleChatCore({
     providerResponse = result.response;
     providerUrl = result.url;
     providerHeaders = result.headers;
-    finalBody = result.transformedBody;
+    finalBody = providerRequestCapture.body(result.transformedBody);
     effectiveServiceTier = resolveEffectiveServiceTier(finalBody);
     claudePromptCacheLogMeta = buildClaudePromptCacheLogMeta(
       targetFormat,
@@ -4194,12 +4245,11 @@ export async function handleChatCore({
 
     // Log target request (final request to provider)
     reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
-    updatePendingRequest(model, provider, connectionId, {
+    updatePendingScope(pendingScope, {
       providerRequest: finalBody,
       providerUrl,
       stage: "provider_response_started",
     });
-
     // Update rate limiter from response headers (learn limits dynamically)
     updateFromHeaders(
       provider,
@@ -4409,27 +4459,30 @@ export async function handleChatCore({
       // stay aligned if this block ever runs after a path that mutates body.model (e.g. fallback).
       try {
         const retryModelId = String(translatedBody.model || effectiveModel);
-        const retryResult = await executor.execute({
-          model: retryModelId,
-          body: translatedBody,
-          stream: upstreamStream,
-          credentials: getExecutionCredentials(),
-          signal: streamController.signal,
-          log,
-          extendedContext,
-          upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
-          clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
-          onCredentialsRefreshed,
-          skipUpstreamRetry: isCombo,
-        });
+        const retryResult = await runWithCapture(providerRequestCapture, () =>
+          executor.execute({
+            model: retryModelId,
+            body: translatedBody,
+            stream: upstreamStream,
+            credentials: getExecutionCredentials(),
+            signal: streamController.signal,
+            log,
+            extendedContext,
+            upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
+            clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
+            onCredentialsRefreshed,
+            skipUpstreamRetry: isCombo,
+            contextEditing: { enabled: contextEditingEnabled },
+          })
+        );
 
         if (retryResult.response.ok) {
           providerResponse = retryResult.response;
           providerUrl = retryResult.url;
           providerHeaders = new Headers(retryResult.headers || {});
-          finalBody = retryResult.transformedBody;
+          finalBody = providerRequestCapture.body(retryResult.transformedBody);
           reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
-          updatePendingRequest(model, provider, connectionId, {
+          updatePendingScope(pendingScope, {
             providerRequest: finalBody,
             providerUrl,
             stage: "provider_response_started",
@@ -4689,9 +4742,9 @@ export async function handleChatCore({
             providerResponse = fallbackResult.response;
             providerUrl = fallbackResult.url;
             providerHeaders = fallbackResult.headers;
-            finalBody = fallbackResult.transformedBody;
+            finalBody = providerRequestCapture.body(fallbackResult.transformedBody);
             reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
-            updatePendingRequest(model, provider, connectionId, {
+            updatePendingScope(pendingScope, {
               providerRequest: finalBody,
               providerUrl,
               stage: "provider_response_started",
@@ -4776,9 +4829,9 @@ export async function handleChatCore({
             providerResponse = fallbackResult.response;
             providerUrl = fallbackResult.url;
             providerHeaders = fallbackResult.headers;
-            finalBody = fallbackResult.transformedBody;
+            finalBody = providerRequestCapture.body(fallbackResult.transformedBody);
             reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
-            updatePendingRequest(model, provider, connectionId, {
+            updatePendingScope(pendingScope, {
               providerRequest: finalBody,
               providerUrl,
               stage: "provider_response_started",
@@ -4999,7 +5052,7 @@ export async function handleChatCore({
               responseBody = fallbackRaw ? JSON.parse(fallbackRaw) : {};
               providerUrl = fallbackResult.url;
               providerHeaders = fallbackResult.headers;
-              finalBody = fallbackResult.transformedBody;
+              finalBody = providerRequestCapture.body(fallbackResult.transformedBody);
               reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
               log?.info?.(
                 "EMPTY_CONTENT_FALLBACK",
@@ -5264,7 +5317,7 @@ export async function handleChatCore({
         "GUARDRAIL",
         `Response blocked by ${postCallGuardrails.guardrail || "guardrail"}: ${guardrailMessage}`
       );
-      finalizePendingRequest(model, provider, connectionId, {
+      finalizePendingScope(pendingScope, {
         providerResponse: responseBody,
         clientResponse: translatedResponse,
       });
@@ -5349,7 +5402,7 @@ export async function handleChatCore({
       }
     }
 
-    finalizePendingRequest(model, provider, connectionId, {
+    finalizePendingScope(pendingScope, {
       providerResponse: responseBody,
       clientResponse: translatedResponse,
     });

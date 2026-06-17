@@ -1,4 +1,6 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { mergeClientAnthropicBeta } from "../config/anthropicHeaders.ts";
+import { applyContextEditingToBody } from "../config/contextEditing.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
@@ -34,6 +36,7 @@ import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
 import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { applySystemTransformPipeline, PROVIDER_CLAUDE } from "../services/systemTransforms.ts";
+import * as prl from "../utils/providerRequestLogging.ts";
 import {
   fixToolPairs,
   fixToolAdjacency,
@@ -132,6 +135,10 @@ export type ExecuteInput = {
   ) => Promise<void> | void;
   /** When true, skip the intra-URL 429 retry in execute() so the caller handles fallback. */
   skipUpstreamRetry?: boolean;
+  /** Delegated Context Editing (Claude only): when enabled, attach the
+   * `context_management.clear_tool_uses` strategy so the provider clears stale
+   * tool-use blocks server-side. Honored only on the genuine `claude` path. */
+  contextEditing?: { enabled: boolean } | null;
 };
 
 export type CountTokensInput = {
@@ -651,6 +658,7 @@ export class BaseExecutor {
       clientHeaders,
       skipUpstreamRetry = false,
       onCredentialsRefreshed,
+      contextEditing,
     } = input;
     const fallbackCount = this.getFallbackCount();
     let lastError: unknown = null;
@@ -1038,7 +1046,13 @@ export class BaseExecutor {
           const ccHeaders: Record<string, string> = {
             Accept: "application/json",
             "anthropic-version": "2023-06-01",
-            "anthropic-beta": selectBetaFlags(tb, null, clientAnthropicBeta),
+            // #3974: merge the client's allowlisted betas (e.g. tool-search-tool)
+            // on top of the shape-derived set so deferred-tool requests are not
+            // rejected; selectBetaFlags still gates thinking/effort per #3415.
+            "anthropic-beta": mergeClientAnthropicBeta(
+              selectBetaFlags(tb, null, clientAnthropicBeta),
+              clientAnthropicBeta
+            ),
             "anthropic-dangerous-direct-browser-access": "true",
             "x-app": "cli",
             "User-Agent": `claude-cli/${CLAUDE_CODE_VERSION} (external, cli)`,
@@ -1126,6 +1140,22 @@ export class BaseExecutor {
           enforceThinkingTemperature(transformedBody as Record<string, unknown>);
         }
 
+        // Delegated Context Editing (opt-in, genuine Claude API only): attach the
+        // clear_tool_uses strategy so the provider clears stale tool-use blocks
+        // server-side. Runs at this same chokepoint, composing with the
+        // clear_thinking edit the fingerprint path may have already set. Scoped to
+        // `claude` (real Anthropic key/OAuth) — Claude-compatible relays are left
+        // out for now since they may not pass the beta (#N1 follow-up).
+        if (this.provider === "claude" && contextEditing?.enabled) {
+          applyContextEditingToBody(transformedBody as Record<string, unknown>, {
+            enabled: true,
+          });
+          log?.debug?.(
+            "CONTEXT_EDITING",
+            "Delegated context editing on — attached clear_tool_uses to the Claude request"
+          );
+        }
+
         let bodyString = JSON.stringify(transformedBody);
 
         const shouldFingerprint =
@@ -1144,7 +1174,7 @@ export class BaseExecutor {
         }
 
         mergeUpstreamExtraHeaders(finalHeaders, upstreamExtraHeaders);
-
+        const serializedBody = prl.parseBody(bodyString);
         const fetchOptions: RequestInit = {
           method: "POST",
           headers: finalHeaders,
@@ -1190,7 +1220,7 @@ export class BaseExecutor {
           continue;
         }
 
-        return { response, url, headers: finalHeaders, transformedBody };
+        return { response, url, headers: finalHeaders, transformedBody: serializedBody };
       } catch (error) {
         // Distinguish timeout errors from other abort errors
         const err = error instanceof Error ? error : new Error(String(error));

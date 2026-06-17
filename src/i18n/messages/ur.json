@@ -868,7 +868,7 @@
     "issues": "Issues",
     "endpoints": "Endpoints",
     "endpointsSubtitle": "آپ کے AI کنکشن کے URLs",
-    "apiManager": "API Key Manager",
+    "apiManager": "API Keys",
     "apiManagerSubtitle": "API کیز اور رسائی کا نظم کریں۔",
     "embeddedServices": "ایمبیڈڈ سروسز",
     "embeddedServicesSubtitle": "مقامی پراکسی سروسز کا انتظام کریں",
@@ -5397,7 +5397,7 @@
     "claudeFastModeModelCheckbox": "{model} کے لیے فاسٹ موڈ کو فعال کریں",
     "claudeFastModeSaveError": "کلاڈ فاسٹ موڈ کی ترتیب کو اپ ڈیٹ کرنے میں ناکام",
     "authz": {
-      "title": "__MISSING__:Authz Inventory",
+      "title": "__MISSING__:Authorization Inventory",
       "description": "__MISSING__:5-tier route classification with live bypass policy. Read shows the full taxonomy; mutations re-prompt for the management password.",
       "loading": "__MISSING__:Loading inventory…",
       "loadError": "__MISSING__:Failed to load authz inventory",

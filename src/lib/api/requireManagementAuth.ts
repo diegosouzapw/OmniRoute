@@ -60,7 +60,7 @@ export async function requireManagementAuth(request: Request): Promise<Response 
 
     return createErrorResponse({
       status: 403,
-      message: "API key lacks 'manage' scope. Enable it in the API Manager dashboard.",
+      message: "API key lacks 'manage' scope. Enable it in the API Keys dashboard.",
       type: "invalid_request",
     });
   }

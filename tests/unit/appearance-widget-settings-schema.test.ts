@@ -8,7 +8,6 @@ test("appearance widget visibility settings are accepted by the settings PATCH s
     pinProviderQuotaToHome: true,
     showQuickStartOnHome: false,
     showProviderTopologyOnHome: true,
-    showTokenSaverOnEndpoint: false,
   });
 
   assert.equal(validation.success, true);
@@ -16,7 +15,6 @@ test("appearance widget visibility settings are accepted by the settings PATCH s
   assert.equal(validation.data.pinProviderQuotaToHome, true);
   assert.equal(validation.data.showQuickStartOnHome, false);
   assert.equal(validation.data.showProviderTopologyOnHome, true);
-  assert.equal(validation.data.showTokenSaverOnEndpoint, false);
 });
 
 test("appearance widget visibility settings default to undefined when not provided", () => {
@@ -27,13 +25,12 @@ test("appearance widget visibility settings default to undefined when not provid
   assert.equal(validation.data.pinProviderQuotaToHome, undefined);
   assert.equal(validation.data.showQuickStartOnHome, undefined);
   assert.equal(validation.data.showProviderTopologyOnHome, undefined);
-  assert.equal(validation.data.showTokenSaverOnEndpoint, undefined);
 });
 
 test("appearance widget visibility settings reject non-boolean values", () => {
   const validation = updateSettingsSchema.safeParse({
     pinProviderQuotaToHome: "yes",
-    showTokenSaverOnEndpoint: "no",
+    showQuickStartOnHome: "no",
   });
 
   assert.equal(validation.success, false);

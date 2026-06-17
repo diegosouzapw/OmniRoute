@@ -29,6 +29,41 @@ export const ANTHROPIC_BETA_CLAUDE_OAUTH = [
   ...ANTHROPIC_BETA_BASE.slice(3),
 ].join(",");
 
+/**
+ * Client-negotiated `anthropic-beta` values that are safe to forward to the
+ * claude.ai backend on top of OmniRoute's own set. Kept to betas the backend
+ * actually accepts and that OmniRoute does not otherwise emit — so a blind
+ * passthrough cannot reintroduce the over-sending fingerprint/rejection bugs
+ * (#3415, #2454). Currently: deferred-tool negotiation (#3974).
+ */
+export const FORWARDABLE_CLIENT_BETAS = Object.freeze(["tool-search-tool-2025-10-19"]);
+
+/**
+ * Union an `anthropic-beta` comma-list with the allowlisted client-negotiated
+ * betas, preserving base order and appending only NEW tokens (deduped,
+ * case-insensitive). The client beta is added only if it is on `allow`, so this
+ * never forces betas the client did not request nor leaks betas the backend
+ * rejects. See #3974 (tool-search-tool dropped on the Claude OAuth path).
+ */
+export function mergeClientAnthropicBeta(
+  base: string,
+  clientBeta: string | null | undefined,
+  allow: readonly string[] = FORWARDABLE_CLIENT_BETAS
+): string {
+  const baseList = base.split(",").map((s) => s.trim()).filter(Boolean);
+  if (typeof clientBeta !== "string" || !clientBeta.trim()) return baseList.join(",");
+  const seen = new Set(baseList.map((s) => s.toLowerCase()));
+  const allowSet = new Set(allow.map((s) => s.toLowerCase()));
+  for (const token of clientBeta.split(",").map((s) => s.trim()).filter(Boolean)) {
+    const lower = token.toLowerCase();
+    if (allowSet.has(lower) && !seen.has(lower)) {
+      baseList.push(token);
+      seen.add(lower);
+    }
+  }
+  return baseList.join(",");
+}
+
 export const CLAUDE_CLI_VERSION = "2.1.158";
 export const CLAUDE_CLI_USER_AGENT = `claude-cli/${CLAUDE_CLI_VERSION} (external, cli)`;
 export const CLAUDE_CLI_STAINLESS_PACKAGE_VERSION = "0.94.0";

@@ -202,6 +202,7 @@ export {
   getDbBackupMaxFiles,
   setDbBackupMaxFiles,
   getDbBackupRetentionDays,
+  setDbBackupRetentionDays,
   listDbBackups,
   restoreDbBackup,
   // Export-All / Import helpers (#3500 slice 5)

@@ -34,6 +34,9 @@ export type TargetState = "idle" | "attempting" | "failed" | "succeeded" | "skip
 
 export type FailKind = "rate-limit" | "circuit-open" | "cooldown" | "other";
 
+/** Provider-level circuit-breaker state, as reported by the resilience runtime. */
+export type CbState = "OPEN" | "HALF_OPEN" | "DEGRADED" | "CLOSED";
+
 export interface TargetNodeModel {
   targetIndex: number;
   provider: string;
@@ -42,6 +45,11 @@ export interface TargetNodeModel {
   latencyMs?: number;
   error?: string;
   failKind?: FailKind;
+  /** Real circuit-breaker state for this target's provider (U1b enrichment).
+   * Only set when the breaker is non-healthy (OPEN/HALF_OPEN/DEGRADED). */
+  cbState?: CbState;
+  /** Milliseconds until the breaker allows a probe again (when cbState is set). */
+  cbRetryAfterMs?: number;
 }
 
 export interface ComboRunModel {
@@ -297,6 +305,8 @@ export function comboRunToFlow(run: ComboRunModel): { nodes: Node[]; edges: Edge
         error: t.error,
         failKind: t.failKind,
         targetIndex: t.targetIndex,
+        cbState: t.cbState,
+        cbRetryAfterMs: t.cbRetryAfterMs,
       },
     });
 
@@ -340,4 +350,68 @@ export function comboRunToFlow(run: ComboRunModel): { nodes: Node[]; edges: Edge
   });
 
   return { nodes, edges };
+}
+
+// ── enrichRunWithBreakers (U1b) ───────────────────────────────────────────
+
+/**
+ * Per-provider circuit-breaker snapshot, as exposed by GET /api/monitoring/health
+ * (`providerHealth[provider]` / `providerBreakers[]`). Only the fields the cascade
+ * badge consumes.
+ */
+export interface ProviderBreakerSnapshot {
+  state?: string;
+  retryAfterMs?: number;
+}
+
+function normalizeCbState(state: string | undefined): CbState | undefined {
+  if (typeof state !== "string") return undefined;
+  const up = state.toUpperCase();
+  if (up === "OPEN" || up === "HALF_OPEN" || up === "DEGRADED" || up === "CLOSED") {
+    return up;
+  }
+  return undefined;
+}
+
+/**
+ * Overlay real circuit-breaker state onto a combo run's targets (U1b). Returns a
+ * new run (pure) only when something changed; otherwise the same reference.
+ *
+ * A badge is attached only when the breaker is non-healthy (OPEN/HALF_OPEN/
+ * DEGRADED); a CLOSED, unknown, or absent breaker clears any stale `cbState` so
+ * the cascade reflects recovery. Provider lookup is by `target.provider`.
+ *
+ * @param run            current combo run model (or null)
+ * @param providerHealth `providerHealth` map from /api/monitoring/health
+ */
+export function enrichRunWithBreakers(
+  run: ComboRunModel | null,
+  providerHealth: Record<string, ProviderBreakerSnapshot> | null | undefined
+): ComboRunModel | null {
+  if (!run) return null;
+  if (!providerHealth) return run;
+
+  let changed = false;
+  const targets = run.targets.map((target) => {
+    const snapshot = providerHealth[target.provider];
+    const cbState = normalizeCbState(snapshot?.state);
+
+    if (cbState && cbState !== "CLOSED") {
+      if (target.cbState === cbState && target.cbRetryAfterMs === snapshot?.retryAfterMs) {
+        return target;
+      }
+      changed = true;
+      return { ...target, cbState, cbRetryAfterMs: snapshot?.retryAfterMs };
+    }
+
+    // Healthy / unknown / absent → strip any stale breaker badge.
+    if (target.cbState !== undefined || target.cbRetryAfterMs !== undefined) {
+      changed = true;
+      const { cbState: _cbState, cbRetryAfterMs: _cbRetryAfterMs, ...rest } = target;
+      return rest;
+    }
+    return target;
+  });
+
+  return changed ? { ...run, targets } : run;
 }

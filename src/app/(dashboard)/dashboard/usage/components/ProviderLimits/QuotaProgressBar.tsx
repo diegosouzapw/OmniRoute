@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 import { formatResetTime } from "./utils";
+import { translateUsageOrFallback } from "./i18nFallback";
 
 // Calculate color based on remaining percentage
 const getColorClasses = (remainingPercentage) => {
@@ -73,6 +74,7 @@ export default function QuotaProgressBar({
   unlimited = false,
   resetTime = null,
   staleAfterReset = false,
+  showUsageCount = true,
 }) {
   const t = useTranslations("usage");
   const colors = getColorClasses(percentage);
@@ -81,7 +83,7 @@ export default function QuotaProgressBar({
 
   // percentage is already remaining percentage (from ProviderLimitCard)
   const remaining = percentage;
-  const usedPercentage = Math.max(0, Math.min(100, 100 - remaining));
+  const remainingPercentage = Math.round(Math.max(0, Math.min(100, remaining)));
 
   return (
     <div className="space-y-2">
@@ -91,7 +93,9 @@ export default function QuotaProgressBar({
         <div className="flex items-center gap-1.5">
           <span className="text-xs">{colors.emoji}</span>
           <span className={cn("font-medium", colors.text)}>
-            {t("percentUsed", { pct: usedPercentage })}
+            {translateUsageOrFallback(t, "percentLeft", `${remainingPercentage}% left`, {
+              pct: remainingPercentage,
+            })}
           </span>
         </div>
       </div>
@@ -109,7 +113,7 @@ export default function QuotaProgressBar({
       {/* Usage details and countdown */}
       <div className="flex items-center justify-between text-xs text-text-muted">
         <span>
-          {used.toLocaleString()} / {total.toLocaleString()} requests
+          {showUsageCount ? `${used.toLocaleString()} / ${total.toLocaleString()} requests` : null}
         </span>
         {staleAfterReset ? (
           <div className="flex items-center gap-1">

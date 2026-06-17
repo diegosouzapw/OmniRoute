@@ -49,6 +49,10 @@ docs/new-features/
 
 # dependencies
 node_modules/
+# Also ignore a root node_modules SYMLINK (worktree setups symlink it from the main
+# checkout). The trailing-slash pattern above only matches a directory, so without this
+# a symlink named node_modules could be staged by `git add -A` and committed.
+/node_modules
 *.map
 .DS_Store
 
@@ -157,6 +161,9 @@ typescript
 
 # Superpowers plans/specs (internal tooling, not project code)
 docs/superpowers/
+
+# TIA test-impact map — generated at runtime in CI (build-test-impact-map.mjs), never committed (~21MB)
+config/quality/test-impact-map.json
 
 # GitNexus local index
 .gitnexus

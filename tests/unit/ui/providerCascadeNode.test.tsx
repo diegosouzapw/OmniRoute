@@ -181,4 +181,45 @@ describe("ProviderCascadeNode", () => {
       "claude-3-opus"
     );
   });
+
+  // ── U1b: real circuit-breaker badge ──────────────────────────────────────
+
+  it("shows the circuit-breaker badge with retry hint when cbState is OPEN", () => {
+    const container = mount(
+      <ProviderCascadeNode
+        {...makeNodeProps({ state: "skipped", cbState: "OPEN", cbRetryAfterMs: 41000 })}
+      />
+    );
+    const badge = container.querySelector("[data-testid='cb-state-badge']");
+    expect(badge).toBeTruthy();
+    expect(badge?.textContent).toContain("CB: OPEN");
+    expect(badge?.textContent).toContain("41s");
+  });
+
+  it("shows the CB badge independent of target state (idle target, HALF_OPEN breaker)", () => {
+    const container = mount(
+      <ProviderCascadeNode
+        {...makeNodeProps({ state: "idle", cbState: "HALF_OPEN", cbRetryAfterMs: 5000 })}
+      />
+    );
+    expect(
+      container.querySelector("[data-testid='cb-state-badge']")?.textContent
+    ).toContain("CB: HALF_OPEN");
+  });
+
+  it("omits the retry hint when cbRetryAfterMs is absent", () => {
+    const container = mount(
+      <ProviderCascadeNode {...makeNodeProps({ state: "skipped", cbState: "DEGRADED" })} />
+    );
+    expect(
+      container.querySelector("[data-testid='cb-state-badge']")?.textContent?.trim()
+    ).toBe("CB: DEGRADED");
+  });
+
+  it("does NOT show the CB badge when cbState is absent", () => {
+    const container = mount(
+      <ProviderCascadeNode {...makeNodeProps({ state: "failed", failKind: "other" })} />
+    );
+    expect(container.querySelector("[data-testid='cb-state-badge']")).toBeNull();
+  });
 });

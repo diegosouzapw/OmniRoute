@@ -31,6 +31,13 @@ const INITIAL_METRICS: StreamMetrics = {
   costUsd: null,
 };
 
+function createColumnId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `compare-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 /**
  * ColumnMetricsTracker — plain (non-React) imperative object for tracking per-column stream metrics.
  * Uses simple mutable state (no React hooks) so it can be stored in a ref and called safely
@@ -91,7 +98,7 @@ class ColumnMetricsTracker {
 export default function CompareTab({ configState }: CompareTabProps) {
   const [columns, setColumns] = useState<ColumnState[]>(() => [
     {
-      id: crypto.randomUUID(),
+      id: createColumnId(),
       model: configState.model,
       status: "idle",
       metrics: INITIAL_METRICS,
@@ -161,7 +168,7 @@ export default function CompareTab({ configState }: CompareTabProps) {
   function addColumn() {
     if (columns.length >= MAX_COLUMNS) return;
     const model = newModel.trim() || configState.model;
-    const id = crypto.randomUUID();
+    const id = createColumnId();
     setColumns((prev) => [
       ...prev,
       { id, model, status: "idle", metrics: INITIAL_METRICS, response: "" },
@@ -266,8 +273,7 @@ export default function CompareTab({ configState }: CompareTabProps) {
             continue;
           }
 
-          const choices =
-            (parsed["choices"] as Array<Record<string, unknown>> | undefined) ?? [];
+          const choices = (parsed["choices"] as Array<Record<string, unknown>> | undefined) ?? [];
           const delta = choices[0]?.["delta"] as Record<string, unknown> | undefined;
           const content = delta?.["content"];
 

@@ -257,7 +257,14 @@ export const DEFAULT_PRICING = {
       reasoning: 9.0,
       cache_creation: 1.5,
     },
+    // gpt-5.4 reasoning-effort variants share the gpt-5.4 tier (registry exposes
+    // -xhigh/-high/-medium/-low; without these rows they resolved to $0).
+    "gpt-5.4-xhigh": GPT_5_3_CODEX_PRICING,
+    "gpt-5.4-high": GPT_5_3_CODEX_PRICING,
+    "gpt-5.4-medium": GPT_5_3_CODEX_PRICING,
+    "gpt-5.4-low": GPT_5_3_CODEX_PRICING,
     // GPT 5.3 Codex family (all same pricing tier)
+    "gpt-5.3-codex-spark": GPT_5_3_CODEX_PRICING,
     "gpt-5.3-codex": GPT_5_3_CODEX_PRICING,
     "gpt-5.3-codex-xhigh": GPT_5_3_CODEX_PRICING,
     "gpt-5.3-codex-high": GPT_5_3_CODEX_PRICING,
@@ -645,7 +652,45 @@ export const DEFAULT_PRICING = {
   // OpenAI
   openai: {
     "gpt-5.5": GPT_5_5_PRICING,
+    // gpt-5.4 family (public API tier; mirrors the codex 5.4 tier for the
+    // base/mini, with a lower nano tier). Without these rows the openai
+    // provider's gpt-5.4* models resolved to $0.
+    "gpt-5.4": {
+      input: 5.0,
+      output: 20.0,
+      cached: 2.5,
+      reasoning: 30.0,
+      cache_creation: 5.0,
+    },
+    "gpt-5.4-mini": {
+      input: 1.5,
+      output: 6.0,
+      cached: 0.75,
+      reasoning: 9.0,
+      cache_creation: 1.5,
+    },
+    "gpt-5.4-nano": {
+      input: 0.4,
+      output: 1.6,
+      cached: 0.2,
+      reasoning: 2.4,
+      cache_creation: 0.4,
+    },
+    "gpt-4.1": {
+      input: 2.0,
+      output: 8.0,
+      cached: 0.5,
+      reasoning: 12.0,
+      cache_creation: 2.0,
+    },
     "gpt-4o": {
+      input: 2.5,
+      output: 10.0,
+      cached: 1.25,
+      reasoning: 15.0,
+      cache_creation: 2.5,
+    },
+    "gpt-4o-2024-11-20": {
       input: 2.5,
       output: 10.0,
       cached: 1.25,
@@ -658,6 +703,13 @@ export const DEFAULT_PRICING = {
       cached: 0.075,
       reasoning: 0.9,
       cache_creation: 0.15,
+    },
+    o3: {
+      input: 2.0,
+      output: 8.0,
+      cached: 0.5,
+      reasoning: 12.0,
+      cache_creation: 2.0,
     },
     "gpt-4-turbo": {
       input: 10.0,

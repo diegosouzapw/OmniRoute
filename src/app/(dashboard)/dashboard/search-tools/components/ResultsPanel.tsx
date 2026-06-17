@@ -220,14 +220,16 @@ export default function ResultsPanel({
           className="flex flex-col items-center justify-center py-20 text-center"
           data-testid="no-providers-cta"
         >
-          <span className="text-2xl mb-3" aria-hidden="true">🔌</span>
-          <p className="text-sm text-text-muted mb-2">Nenhum provider de search ativo</p>
+          <span className="text-2xl mb-3" aria-hidden="true">
+            🔌
+          </span>
+          <p className="text-sm text-text-muted mb-2">No active search provider</p>
           <Link
             href="/dashboard/providers"
             className="text-accent text-sm hover:underline font-medium"
             data-testid="configure-providers-link"
           >
-            Configurar mais providers →
+            Configure more providers →
           </Link>
         </div>
       )}
