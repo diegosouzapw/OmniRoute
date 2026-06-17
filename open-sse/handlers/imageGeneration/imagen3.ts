@@ -61,7 +61,7 @@ export async function handleImagen3ImageGeneration({
   log,
 }: Imagen3ImageGenArgs) {
   const startTime = Date.now();
-  const token = credentials.apiKey || credentials.accessToken;
+  const token = credentials?.apiKey || credentials?.accessToken;
   const aspectRatio = mapImageSize(body.size);
 
   const upstreamBody = {

@@ -126,13 +126,48 @@ export async function handleCodexImageGeneration({
   }
 
   const fetchOneImage = async () => {
-    let response: Response;
     try {
-      response = await fetch(providerConfig.baseUrl, {
+      const response = await fetch(providerConfig.baseUrl, {
         method: "POST",
         headers,
         body: JSON.stringify(upstreamBody),
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        if (log)
+          log.error("IMAGE", `${provider} error ${response.status}: ${errorText.slice(0, 200)}`);
+        return {
+          ok: false as const,
+          error: {
+            provider,
+            model,
+            status: response.status,
+            startTime,
+            error: errorText,
+            requestBody: upstreamBody,
+          },
+        };
+      }
+
+      const rawSSE = await response.text();
+      const items = extractImageGenerationCalls(rawSSE);
+      if (items.length === 0) {
+        return {
+          ok: false as const,
+          error: {
+            provider,
+            model,
+            status: 502,
+            startTime,
+            error:
+              "Codex completed without producing an image_generation_call — the model may have declined the tool",
+            requestBody: upstreamBody,
+          },
+        };
+      }
+
+      return { ok: true as const, items };
     } catch (err) {
       if (log) log.error("IMAGE", `${provider} fetch error: ${(err as Error).message}`);
       return {
@@ -147,42 +182,6 @@ export async function handleCodexImageGeneration({
         },
       };
     }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      if (log)
-        log.error("IMAGE", `${provider} error ${response.status}: ${errorText.slice(0, 200)}`);
-      return {
-        ok: false as const,
-        error: {
-          provider,
-          model,
-          status: response.status,
-          startTime,
-          error: errorText,
-          requestBody: upstreamBody,
-        },
-      };
-    }
-
-    const rawSSE = await response.text();
-    const items = extractImageGenerationCalls(rawSSE);
-    if (items.length === 0) {
-      return {
-        ok: false as const,
-        error: {
-          provider,
-          model,
-          status: 502,
-          startTime,
-          error:
-            "Codex completed without producing an image_generation_call — the model may have declined the tool",
-          requestBody: upstreamBody,
-        },
-      };
-    }
-
-    return { ok: true as const, items };
   };
 
   const imageResults = await Promise.all(

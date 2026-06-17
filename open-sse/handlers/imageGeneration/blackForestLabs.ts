@@ -68,7 +68,7 @@ export async function handleBlackForestLabsImageGeneration({
   log,
 }) {
   const startTime = Date.now();
-  const token = credentials.apiKey || credentials.accessToken;
+  const token = credentials?.apiKey || credentials?.accessToken;
   const endpoint = BFL_MODEL_ENDPOINTS[model];
 
   if (!endpoint) {
@@ -147,9 +147,9 @@ export async function handleBlackForestLabsImageGeneration({
     }
 
     const initialPayload = await response.json();
-    const finalPayload = initialPayload.polling_url
+    const finalPayload = initialPayload?.polling_url
       ? await pollBlackForestLabsResult({
-          pollingUrl: initialPayload.polling_url,
+          pollingUrl: initialPayload?.polling_url,
           token,
           body,
           log,

@@ -52,7 +52,7 @@ export async function handleFalAIImageGeneration({
   log,
 }) {
   const startTime = Date.now();
-  const token = credentials.apiKey || credentials.accessToken;
+  const token = credentials?.apiKey || credentials?.accessToken;
   const { imageUrl, imageUrls } = extractImageInputs(body);
   const upstreamBody: Record<string, unknown> = {
     prompt: body.prompt,
@@ -129,7 +129,7 @@ export async function handleFalAIImageGeneration({
       startTime,
       requestBody: upstreamBody,
       responseBody: { images_count: images.length },
-      created: payload.created,
+      created: payload?.created,
       images,
     });
   } catch (err) {

@@ -104,7 +104,7 @@ export async function handleOpenAIImageGeneration({
     "Content-Type": "application/json",
   };
 
-  const token = credentials.apiKey || credentials.accessToken;
+  const token = credentials?.apiKey || credentials?.accessToken;
   if (providerConfig.authHeader === "bearer") {
     headers["Authorization"] = `Bearer ${token}`;
   } else if (providerConfig.authHeader === "x-api-key") {

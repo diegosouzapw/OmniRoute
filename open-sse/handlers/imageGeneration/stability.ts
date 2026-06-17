@@ -70,7 +70,7 @@ export async function handleStabilityAIImageGeneration({
   log,
 }) {
   const startTime = Date.now();
-  const token = credentials.apiKey || credentials.accessToken;
+  const token = credentials?.apiKey || credentials?.accessToken;
   const endpoint = STABILITY_GENERATION_ENDPOINTS[model] || STABILITY_EDIT_ENDPOINTS[model];
 
   if (!endpoint) {
@@ -236,7 +236,7 @@ export async function handleStabilityAIImageGeneration({
       startTime,
       requestBody: upstreamBody,
       responseBody: { images_count: images.length },
-      created: payload.created,
+      created: payload?.created,
       images,
     });
   } catch (err) {

@@ -50,7 +50,7 @@ export async function handleRecraftImageGeneration({
   log,
 }) {
   const startTime = Date.now();
-  const token = credentials.apiKey || credentials.accessToken;
+  const token = credentials?.apiKey || credentials?.accessToken;
   const upstreamBody: Record<string, unknown> = {
     model,
     prompt: body.prompt,
@@ -101,7 +101,7 @@ export async function handleRecraftImageGeneration({
       startTime,
       requestBody: upstreamBody,
       responseBody: { images_count: images.length },
-      created: payload.created,
+      created: payload?.created,
       images,
     });
   } catch (err) {
@@ -127,7 +127,7 @@ export async function handleTopazImageGeneration({
   log,
 }) {
   const startTime = Date.now();
-  const token = credentials.apiKey || credentials.accessToken;
+  const token = credentials?.apiKey || credentials?.accessToken;
   const { imageUrl } = extractImageInputs(body);
 
   if (!imageUrl) {
@@ -229,7 +229,7 @@ export async function handleHyperbolicImageGeneration({
   log,
 }) {
   const startTime = Date.now();
-  const token = credentials.apiKey || credentials.accessToken;
+  const token = credentials?.apiKey || credentials?.accessToken;
 
   const [width, height] = (body.size || "1024x1024").split("x").map(Number);
 
@@ -329,7 +329,7 @@ export async function handleNanoBananaImageGeneration({
   log,
 }) {
   const startTime = Date.now();
-  const token = credentials.apiKey || credentials.accessToken;
+  const token = credentials?.apiKey || credentials?.accessToken;
 
   // Route to pro URL for "nanobanana-pro" model
   const isPro = model === "nanobanana-pro";
@@ -900,7 +900,8 @@ export async function handleHaiperImageGeneration({
       }).catch(() => {});
       return { success: false, status: res.status, error: errorText };
     }
-    const { job_id } = await res.json();
+    const json = await res.json();
+    const job_id = json?.job_id;
     const deadline = Date.now() + 300000;
     while (Date.now() < deadline) {
       await sleep(5000);
@@ -1020,7 +1021,8 @@ export async function handleLeonardoImageGeneration({
       }).catch(() => {});
       return { success: false, status: res.status, error: errorText };
     }
-    const { sdGenerationJob } = await res.json();
+    const json = await res.json();
+    const sdGenerationJob = json?.sdGenerationJob;
     const genId = sdGenerationJob?.generationId;
     if (!genId) {
       saveCallLog({
