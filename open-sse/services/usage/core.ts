@@ -76,6 +76,7 @@ import { getNanoGptUsage } from "./nanogpt.ts";
 import { getDeepseekUsage } from "./deepseek.ts";
 import { getOpencodeUsage } from "./opencode.ts";
 import { getXiaomiMimoUsage } from "./xiaomi.ts";
+import { getVertexUsage } from "./vertex.ts";
 
 /**
  * Single source of truth for which providers have a `getUsageForProvider`
@@ -111,6 +112,8 @@ export const USAGE_FETCHER_PROVIDERS = [
   "opencode",
   "opencode-zen",
   "xiaomi-mimo",
+  "vertex",
+  "vertex-partner",
 ] as const;
 
 /**
@@ -181,6 +184,9 @@ export async function getUsageForProvider(
     case "opencode":
     case "opencode-zen":
       return await getOpencodeUsage(id || "", apiKey || "");
+    case "vertex":
+    case "vertex-partner":
+      return await getVertexUsage(id || "", provider);
     case "xiaomi-mimo":
       return await getXiaomiMimoUsage(id || "");
     default:

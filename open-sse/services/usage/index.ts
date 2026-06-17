@@ -21,4 +21,5 @@ export * from "./kiro.ts";
 export * from "./kimi.ts";
 export * from "./qwen.ts";
 export * from "./qoder.ts";
+export * from "./vertex.ts";
 export * from "./core.ts";

@@ -60,11 +60,63 @@ export function buildKiroUsageResult(
 }
 
 /**
+ * Discover the Kiro profile ARN when not persisted (via ListAvailableProfiles). Accounts from
+ * AWS IAM Identity Center logins and kiro-cli imports frequently don't persist a profileArn, which
+ * previously caused the quota card to show nothing ("0 used"). Discover it on demand from
+ * ListAvailableProfiles (region-matched) so usage still resolves for those accounts.
+ * Exported for testing.
+ */
+export async function discoverKiroProfileArn(
+  accessToken: string,
+  usageBaseUrl: string,
+  region: string
+): Promise<string | undefined> {
+  try {
+    const response = await fetch(usageBaseUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/x-amz-json-1.0",
+        "x-amz-target": "AmazonCodeWhispererService.ListAvailableProfiles",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ maxResults: 10 }),
+      // Don't let a hung profile lookup block the usage/quota refresh indefinitely.
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!response.ok) return undefined;
+
+    const data = toRecord(await response.json());
+    const profiles = Array.isArray(data.profiles) ? data.profiles : [];
+    const normalizedRegion = region.toLowerCase();
+    const matched =
+      profiles.find((profile: unknown) => {
+        const arn = toRecord(profile).arn;
+        return typeof arn === "string" && arn.toLowerCase().includes(`:${normalizedRegion}:`);
+      }) || profiles[0];
+    const arn = toRecord(matched).arn;
+    return typeof arn === "string" && arn.length > 0 ? arn : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Kiro (AWS CodeWhisperer) Usage
  */
 export async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRecord) {
   try {
-    const profileArn = providerSpecificData?.profileArn;
+    let profileArn = providerSpecificData?.profileArn;
+    const region = providerSpecificData?.region || "us-east-1";
+    const usageBaseUrl = CODEWHISPERER_BASE_URL;
+
+    // IAM Identity Center logins and kiro-cli imports frequently don't persist a profileArn, which
+    // previously caused the quota card to show nothing ("0 used"). Discover it on demand from
+    // ListAvailableProfiles (region-matched) so usage still resolves for those accounts.
+    if (!profileArn && accessToken) {
+      profileArn = await discoverKiroProfileArn(accessToken, usageBaseUrl, String(region));
+    }
+
     if (!profileArn) {
       return { message: "Kiro connected. Profile ARN not available for quota tracking." };
     }
