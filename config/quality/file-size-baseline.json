@@ -1,6 +1,7 @@
 {
   "_comment": "Catraca de tamanho (check-file-size.mjs). frozen so pode encolher; arquivos novos <= cap. --update ratcheta.",
   "_rebaseline_2026_06_17_4071_vision_routing": "PR #4071 own growth: combo.ts 5283->5289 (+6 = vision-aware routing fix in getTargetCompatibilityFailures — image requests now require supportsVision===true, treating null/unknown as incompatible, with an explanatory comment block; plus exporting filterTargetsByRequestCompatibility for the regression test). The accompanying capability heuristic lives in src/lib/modelCapabilities.ts (419 LOC, <cap). Cohesive bug fix at the existing compatibility-filter chokepoint; not extractable.",
+  "_rebaseline_2026_06_17_4070_orcarouter": "PR #4070 own growth: providers.ts 3147->3159 (+12 = the OrcaRouter catalog entry, a single Zod-validated provider record { id/alias/name/icon/color/textIcon/passthroughModels/website/apiHint } in the providers map — pure data, the standard per-provider addition; bumps the catalog 226->227). Cohesive catalog growth, not extractable.",
   "_rebaseline_2026_06_17_4058_auto_catalog": "PR #4058 own growth: chat.ts 1432->1458 (+26 = built-in auto/* catalog recognition gating in handleChat: recognizedBuiltInAuto + per-id variant resolution + the 'unknown built-in auto combo' 400 short-circuit). The duplicated AUTO_TEMPLATE_VARIANTS/VALID_AUTO_VARIANTS maps were extracted on review to open-sse/services/autoCombo/builtinCatalog.ts (60 LOC, <cap), imported by BOTH chat.ts and chatHelpers.ts (chatHelpers.ts stays <800 via the same extraction). Remaining growth is genuine routing logic, not the data block; cohesive fix.",
   "_rebaseline_v3.8.25": "Drift consciente do ciclo v3.8.24->v3.8.25 (features #3799-#3806: free-provider-rankings, plugins menu, proxy IP-family selector). 3 arquivos cresceram por feature legitima, nao por regressao de qualidade: ProxyRegistryManager.tsx 1072->1089, sidebarVisibility.ts 990->1006, schemas.ts 2519->2522. Encolher fica como debt para um refactor dedicado.",
   "_rebaseline_2026_06_15_3860_compression_ui": "PR #3860 own growth: sidebarVisibility.ts 1006->1100 (+94 = Compression Hub menu entries: Hub + per-engine Lite/Aggressive/Ultra pages + combos editor) and chatCore.ts 5812->5815 (+3 = compression UI config wiring). Cohesive feature growth, not a quality regression.",
@@ -127,7 +128,7 @@
     "src/shared/components/analytics/charts.tsx": 1558,
     "src/shared/constants/cliTools.ts": 875,
     "src/shared/constants/pricing.ts": 1581,
-    "src/shared/constants/providers.ts": 3147,
+    "src/shared/constants/providers.ts": 3159,
     "src/shared/constants/sidebarVisibility.ts": 1100,
     "src/shared/services/cliRuntime.ts": 1090,
     "src/shared/validation/schemas.ts": 2523,

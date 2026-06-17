@@ -6,7 +6,7 @@
 
 # 🚀 OmniRoute — The Free AI Gateway
 
-### Never stop coding. Connect every AI tool to **226 providers** — **50+ free** — through one endpoint.
+### Never stop coding. Connect every AI tool to **227 providers** — **50+ free** — through one endpoint.
 
 **Plug Claude Code, Codex, Cursor, Cline, Copilot & Antigravity into FREE Claude / GPT / Gemini. Auto-fallback.**
 <br/>
@@ -19,8 +19,8 @@
 
 <br/>
 
-[![226 AI Providers](https://img.shields.io/badge/226-AI_Providers-6C5CE7?style=for-the-badge)](#-226-ai-providers--50-free)
-[![50+ Free](https://img.shields.io/badge/50%2B-Free_Tiers-00B894?style=for-the-badge)](#-226-ai-providers--50-free)
+[![227 AI Providers](https://img.shields.io/badge/227-AI_Providers-6C5CE7?style=for-the-badge)](#-227-ai-providers--50-free)
+[![50+ Free](https://img.shields.io/badge/50%2B-Free_Tiers-00B894?style=for-the-badge)](#-227-ai-providers--50-free)
 [![1.9B+ Free Tokens/mo](https://img.shields.io/badge/1.9B%2B-Free_Tokens%2Fmo-00B894?style=for-the-badge)](docs/reference/FREE_TIERS.md)
 [![Token Savings](https://img.shields.io/badge/up_to_95%25-Token_Savings-E17055?style=for-the-badge)](#%EF%B8%8F-save-1595-tokens--automatically)
 [![15 Strategies](https://img.shields.io/badge/15-Routing_Strategies-0984E3?style=for-the-badge)](#-combos--the-flagship)
@@ -59,7 +59,7 @@
 
 <br/>
 
-[**🚀 Quick Start**](#-quick-start) • [**🎯 Combos**](#-combos--the-flagship) • [**🌐 Providers**](#-226-ai-providers--50-free) • [**🔌 CLI & MCP**](#-full-cli--a2a--mcp) • [**🗜️ Compression**](#%EF%B8%8F-save-1595-tokens--automatically) • [**🌍 Website**](https://omniroute.online)
+[**🚀 Quick Start**](#-quick-start) • [**🎯 Combos**](#-combos--the-flagship) • [**🌐 Providers**](#-227-ai-providers--50-free) • [**🔌 CLI & MCP**](#-full-cli--a2a--mcp) • [**🗜️ Compression**](#%EF%B8%8F-save-1595-tokens--automatically) • [**🌍 Website**](https://omniroute.online)
 
 [💥 The Promise](#-the-promise) • [🤔 Why](#-why-omniroute) • [🏆 What Sets Apart](#-what-sets-omniroute-apart) • [🤖 Compatible CLIs](#-compatible-clis--coding-agents) • [🖥️ Where It Runs](#%EF%B8%8F-where-omniroute-runs--anywhere) • [🔒 Private](#-private--local-first) • [🎬 In Action](#-omniroute-in-action) • [📚 Explore More](#-explore-more) • [📧 Support](#-support--community)
 
@@ -136,11 +136,11 @@
 
 </div>
 
-> One endpoint. **226 providers.** Never stop building — and let OmniRoute pick the cheapest one that works.
+> One endpoint. **227 providers.** Never stop building — and let OmniRoute pick the cheapest one that works.
 
 <table>
   <tr>
-    <td width="33%" valign="top"><b>🚫 Never hit limits</b><br/><sub>Auto-fallback across 226 providers in milliseconds. Quota out? Next provider takes over — zero downtime.</sub></td>
+    <td width="33%" valign="top"><b>🚫 Never hit limits</b><br/><sub>Auto-fallback across 227 providers in milliseconds. Quota out? Next provider takes over — zero downtime.</sub></td>
     <td width="33%" valign="top"><b>💸 Save up to 95% tokens</b><br/><sub>RTK + Caveman stacked compression cuts 15–95% of eligible tokens (~89% avg on tool-heavy sessions).</sub></td>
     <td width="33%" valign="top"><b>🆓 $0 to start</b><br/><sub>50+ providers with a free tier, 11 free <i>forever</i> (Kiro, Qoder, Pollinations, LongCat…). No card needed.</sub></td>
   </tr>
@@ -263,7 +263,7 @@ Result: 4 layers of fallback = zero downtime
 
 | Feature                                | OmniRoute                                                   | Other routers |
 | -------------------------------------- | ----------------------------------------------------------- | ------------- |
-| 🌐 Providers                           | **226**                                                     | 20–100        |
+| 🌐 Providers                           | **227**                                                     | 20–100        |
 | 🆓 Free providers                      | **50+ (11 free forever)**                                   | 1–5           |
 | 🔀 Routing strategies                  | **15** (priority, weighted, cost-optimized, context-relay…) | 1–3           |
 | 🗜️ Token compression                   | **RTK + Caveman stacked (15–95%)**                          | None / 20–40% |
@@ -319,11 +319,11 @@ Result: 4 layers of fallback = zero downtime
 
 <div align="center">
 
-# 🌐 226 AI Providers — 50+ Free
+# 🌐 227 AI Providers — 50+ Free
 
 </div>
 
-> The most complete catalog of any open-source router: **226 providers**, **50+ with a free tier**, **11 free forever**.
+> The most complete catalog of any open-source router: **227 providers**, **50+ with a free tier**, **11 free forever**.
 
 <div align="center">
 
@@ -445,17 +445,17 @@ claude mcp add-server omniroute --type http --url http://localhost:20128/api/mcp
 
 Engines run in pipeline order; each is independently toggleable and configurable per combo:
 
-| #   | Engine            | What it does                                                              |
-| --- | ----------------- | ------------------------------------------------------------------------ |
-| 1   | **Session-Dedup** | Drops content repeated across turns (content-addressed, cross-turn)      |
-| 2   | **CCR**           | Archives large blocks behind retrieve markers, fetched on demand         |
-| 3   | **RTK**           | Smart tool-result filtering, dedup & truncation (command-aware)          |
-| 4   | **Headroom**      | Lossless tabular compaction of homogeneous JSON arrays (~30%+)           |
-| 5   | **Caveman**       | Rule-based prose compression (~65–75% on output)                         |
-| 6   | **LLMLingua-2**   | ML semantic pruning via MobileBERT ONNX — code-safe, async               |
-| 7   | **Lite**          | Whitespace + image-URL trimming (latency-light baseline)                 |
-| 8   | **Aggressive**    | Summarization + progressive aging of old turns                          |
-| 9   | **Ultra**         | Heuristic token pruning with an optional small-model (SLM) tier          |
+| #   | Engine            | What it does                                                        |
+| --- | ----------------- | ------------------------------------------------------------------- |
+| 1   | **Session-Dedup** | Drops content repeated across turns (content-addressed, cross-turn) |
+| 2   | **CCR**           | Archives large blocks behind retrieve markers, fetched on demand    |
+| 3   | **RTK**           | Smart tool-result filtering, dedup & truncation (command-aware)     |
+| 4   | **Headroom**      | Lossless tabular compaction of homogeneous JSON arrays (~30%+)      |
+| 5   | **Caveman**       | Rule-based prose compression (~65–75% on output)                    |
+| 6   | **LLMLingua-2**   | ML semantic pruning via MobileBERT ONNX — code-safe, async          |
+| 7   | **Lite**          | Whitespace + image-URL trimming (latency-light baseline)            |
+| 8   | **Aggressive**    | Summarization + progressive aging of old turns                      |
+| 9   | **Ultra**         | Heuristic token pruning with an optional small-model (SLM) tier     |
 
 Code blocks, URLs and structured data are **always preserved** byte-perfect. **One-click presets** combine the engines:
 
@@ -751,7 +751,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 **Will I be charged by OmniRoute?** No — it's free, open-source software on your machine. You only pay paid providers directly. OmniRoute has no billing system.
 **Are FREE providers really unlimited?** Yes — Kiro, Qoder, Pollinations, LongCat, Cloudflare. No catch.
 **Will compression hurt quality?** No — it only compresses the **input**; code, URLs, JSON are always protected.
-**Does it work where AI is blocked?** Yes — 3-level proxy + 1proxy marketplace reach all 226 providers.
+**Does it work where AI is blocked?** Yes — 3-level proxy + 1proxy marketplace reach all 227 providers.
 
 📖 [User Guide](docs/guides/USER_GUIDE.md) · [API Reference](docs/reference/API_REFERENCE.md) · [Environment Config](docs/reference/ENVIRONMENT.md)
 

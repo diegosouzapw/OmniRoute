@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### ✨ New Features
+
+- **feat(providers): add OrcaRouter (OpenAI-compatible routing gateway)** — OrcaRouter is now registered as an API-key provider. Its adaptive router is exposed as `orcarouter/auto` (smart routing across 150+ upstream models), alongside a curated flagship set (GPT-5.5, Gemini 3.5 Flash, Claude Opus 4.8, Grok 4.3, DeepSeek V4 Pro, MiniMax M2.7, Qwen3.7 Max). `passthroughModels` is enabled so any OrcaRouter model id works. OpenAI-compatible endpoint (`https://api.orcarouter.ai/v1`), Bearer (`sk-orca-…`) auth — no custom executor or translator required.
+
 ---
 
 ## [3.8.28] — TBD

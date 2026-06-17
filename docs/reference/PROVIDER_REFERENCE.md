@@ -1,16 +1,16 @@
 ---
 title: "Provider Reference"
-version: 3.8.25
-lastUpdated: 2026-06-15
+version: 3.8.27
+lastUpdated: 2026-06-17
 ---
 
 # Provider Reference
 
 > **Auto-generated** from `src/shared/constants/providers.ts` — do not edit by hand.
 > Regenerate with: `npm run gen:provider-reference`
-> **Last generated:** 2026-06-15
+> **Last generated:** 2026-06-17
 
-Total providers: **226**. See category breakdown below.
+Total providers: **227**. See category breakdown below.
 
 ## Categories
 
@@ -82,7 +82,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `v0-vercel-web`   | `v0`          | v0 Vercel Web (Code Gen)     | Web cookie | [link](https://v0.dev)                 | Paste your session cookie from v0.dev (DevTools → Application → Cookies)                                                                                                                                                                                                                          |
 | `venice-web`      | `ven`         | Venice Web (Privacy)         | Web cookie | [link](https://venice.ai)              | Paste your session cookie from venice.ai (DevTools → Application → Cookies)                                                                                                                                                                                                                       |
 
-## API Key Providers (paid / paid-with-free-credits) (152)
+## API Key Providers (paid / paid-with-free-credits) (153)
 
 | ID                    | Alias          | Name                            | Tags                  | Website                                                                                                  | Notes                                                                                                                                                                                             |
 | --------------------- | -------------- | ------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -193,6 +193,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `opencode-go`         | `opencode-go`  | OpenCode Go                     | API key               | [link](https://opencode.ai/go)                                                                           | —                                                                                                                                                                                                 |
 | `opencode-zen`        | `opencode-zen` | OpenCode Zen                    | API key               | [link](https://opencode.ai/zen)                                                                          | —                                                                                                                                                                                                 |
 | `openrouter`          | `openrouter`   | OpenRouter                      | API key, aggregator   | [link](https://openrouter.ai)                                                                            | Free models at $0/token with :free suffix - 20 RPM / 200 RPD                                                                                                                                      |
+| `orcarouter`          | `orcarouter`   | OrcaRouter                      | API key               | [link](https://www.orcarouter.ai)                                                                        | —                                                                                                                                                                                                 |
 | `ovhcloud`            | `ovh`          | OVHcloud AI                     | API key               | [link](https://www.ovhcloud.com)                                                                         | —                                                                                                                                                                                                 |
 | `perplexity`          | `pplx`         | Perplexity                      | API key               | [link](https://www.perplexity.ai)                                                                        | —                                                                                                                                                                                                 |
 | `phind`               | `phind`        | Phind                           | API key               | [link](https://phind.com)                                                                                | Get API key at phind.com                                                                                                                                                                          |

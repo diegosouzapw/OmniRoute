@@ -11,11 +11,16 @@ jobs:
   stryker:
     name: Stryker mutation testing (8 critical modules — advisory)
     runs-on: ubuntu-latest
-    # Mutation testing is expensive (~200-500 mutants, 30-90 min). It runs only
+    # Mutation testing is expensive (~15k mutants across 8 modules). It runs only
     # on the nightly schedule / manual dispatch, never on PRs. The score is NOT
     # yet enforced as a ratchet (wired in a later INT phase) — for now the job
     # just produces the HTML/JSON report and uploads it as an artifact.
-    timeout-minutes: 120
+    #
+    # Runs at stryker concurrency=4 (was 1) now that ./tests/_setup/isolateDataDir.ts
+    # gives each test process its own DATA_DIR — at concurrency=1 the full phase did
+    # not finish inside the timeout (the cancelled 2026-06-16/17 runs). 180 min leaves
+    # headroom for the first cold run before the incremental cache is seeded.
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v6
         with:
