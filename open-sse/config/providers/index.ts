@@ -167,6 +167,11 @@ import { lmarenaProvider } from "./registry/lmarena/index.ts";
 import { poe_webProvider } from "./registry/poe-web/index.ts";
 import { venice_webProvider } from "./registry/venice-web/index.ts";
 import { v0_vercel_webProvider } from "./registry/v0-vercel-web/index.ts";
+import { mistral_webProvider } from "./registry/mistral-web/index.ts";
+import { you_webProvider } from "./registry/you-web/index.ts";
+import { pi_webProvider } from "./registry/pi-web/index.ts";
+import { character_webProvider } from "./registry/character-web/index.ts";
+import { llm7Provider } from "./registry/llm7/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -336,4 +341,13 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "poe-web": poe_webProvider,
   "venice-web": venice_webProvider,
   "v0-vercel-web": v0_vercel_webProvider,
+  "mistral-web": mistral_webProvider,
+  mw: mistral_webProvider, // Alias
+  "you-web": you_webProvider,
+  yw: you_webProvider, // Alias
+  "pi-web": pi_webProvider,
+  pi: pi_webProvider, // Alias
+  "character-web": character_webProvider,
+  cai: character_webProvider, // Alias
+  llm7: llm7Provider,
 };

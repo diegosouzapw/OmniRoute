@@ -31,6 +31,9 @@ import { WindsurfExecutor } from "./windsurf.ts";
 import { DevinCliExecutor } from "./devin-cli.ts";
 import { DeepSeekWebExecutor } from "./deepseek-web.ts";
 import { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";
+import { PiWebExecutor } from "./pi-web.ts";
+import { CharacterWebExecutor } from "./character-web.ts";
+import { Llm7Executor } from "./llm7.ts";
 import { AdaptaWebExecutor } from "./adapta-web.ts";
 import { ClaudeWebWithAutoRefresh } from "./claude-web-with-auto-refresh.ts";
 import { CopilotWebExecutor } from "./copilot-web.ts";
@@ -47,11 +50,13 @@ import { V0VercelWebExecutor } from "./v0-vercel-web.ts";
 import { KimiWebExecutor } from "./kimi-web.ts";
 import { DoubaoWebExecutor } from "./doubao-web.ts";
 import { QwenWebExecutor } from "./qwen-web.ts";
-import { KimiExecutor } from "./kimi.ts"
+import { KimiExecutor } from "./kimi.ts";
 import { TheOldLlmExecutor } from "./theoldllm.ts";
 import { ChipotleExecutor } from "./chipotle.ts";
 import { LMArenaExecutor } from "./lmarena.ts";
 import { MimocodeExecutor } from "./mimocode.ts";
+import { MistralWebExecutor } from "./mistral-web.ts";
+import { YouWebExecutor } from "./you-web.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -137,6 +142,7 @@ const executors = {
   kimi: new KimiWebExecutor(), // Alias
   "kimi-coding-apikey": new KimiExecutor(), // Alias
   "kimi-coding": new KimiExecutor(), // Alias
+  llm7: new Llm7Executor(),
   "doubao-web": new DoubaoWebExecutor(),
   db: new DoubaoWebExecutor(), // Alias
   "qwen-web": new QwenWebExecutor(),
@@ -149,6 +155,14 @@ const executors = {
   lma: new LMArenaExecutor(), // Alias
   mimocode: new MimocodeExecutor(),
   mcode: new MimocodeExecutor(), // Alias
+  "mistral-web": new MistralWebExecutor(),
+  mw: new MistralWebExecutor(), // Alias
+  "you-web": new YouWebExecutor(),
+  yw: new YouWebExecutor(), // Alias
+  "pi-web": new PiWebExecutor(),
+  pi: new PiWebExecutor(), // Alias
+  "character-web": new CharacterWebExecutor(),
+  cai: new CharacterWebExecutor(), // Alias
 };
 
 const defaultCache = new Map();
@@ -209,3 +223,7 @@ export { TheOldLlmExecutor } from "./theoldllm.ts";
 export { ChipotleExecutor } from "./chipotle.ts";
 export { LMArenaExecutor } from "./lmarena.ts";
 export { MimocodeExecutor } from "./mimocode.ts";
+export { YouWebExecutor } from "./you-web.ts";
+export { MistralWebExecutor } from "./mistral-web.ts";
+export { PiWebExecutor } from "./pi-web.ts";
+export { CharacterWebExecutor } from "./character-web.ts";
