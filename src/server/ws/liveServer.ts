@@ -457,6 +457,14 @@ export async function startLiveDashboardServer(
   port = DEFAULT_PORT,
   host = DEFAULT_HOST
 ): Promise<import("http").Server> {
+  if (!process.env.JWT_SECRET) {
+    console.warn(
+      "  \\x1b[33m⚠ Warning: JWT_SECRET is not set in the environment.\\x1b[0m\\n" +
+        "    Dashboard cookie-based WebSocket authentication will fail.\\n" +
+        "    Please ensure JWT_SECRET is configured in your .env file."
+    );
+  }
+
   const server = createServer((req, res) => {
     handleInternalEventRequest(req, res);
   });
