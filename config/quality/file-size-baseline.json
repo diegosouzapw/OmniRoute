@@ -60,7 +60,7 @@
     "open-sse/services/batchProcessor.ts": 828,
     "open-sse/services/browserBackedChat.ts": 850,
     "open-sse/services/claudeCodeCompatible.ts": 1202,
-    "open-sse/services/combo.ts": 5289,
+    "open-sse/services/combo.ts": 5298,
     "open-sse/services/rateLimitManager.ts": 1017,
     "open-sse/services/tokenRefresh.ts": 1997,
     "open-sse/services/usage.ts": 3408,
@@ -169,5 +169,6 @@
   "_rebaseline_2026_06_16_4001_perplexity_diff_block": "PR #4001 own growth: perplexity-web.ts 939->1013 (+74 = parse the schematized API's RFC-6902 diff_block JSON-patch frames — applyMarkdownDiff + isAnswerTextUsage primary-usage lock + stop only on COMPLETED, not on a still-PENDING final flag — so streamed answers aren't empty, #3938 follow-up). Cohesive single-executor SSE-parsing logic; not separately extractable.",
   "_rebaseline_2026_06_16_4005_openai_dynamic_models": "PR #4005 own growth: models/route.ts 2494->2512 (+18 = openai model-discovery derives {customBaseUrl}/v1/models from providerSpecificData.baseUrl, SSRF-guarded via safeOutboundFetch+public-only) and pricing.ts 1529->1581 (+52 = pure-data pricing rows closing $0 gaps for registry-exposed ids: openai gpt-5.4/-mini/-nano, gpt-4.1, gpt-4o-2024-11-20, o3 + codex(cx) gpt-5.4-{xhigh,high,medium,low}, gpt-5.3-codex-spark). Cohesive; pricing is data, route change mirrors the anthropic-compat discovery path.",
   "_rebaseline_2026_06_16_4004_livews_bridge": "PR #4004 own growth: chatCore.ts 5830->5851 (+21 = forwardDashboardEventToLiveWs — a best-effort, non-blocking, timeout-bounded POST that bridges compression.completed events from the main process to the LiveWS sidecar so the dashboard updates under a reverse proxy). Cohesive fire-and-forget beacon at the existing compression emit site; not extractable. Structural shrink of chatCore.ts tracked in #3501.",
-  "_rebaseline_2026_06_17_4107_pending_reaper": "PR #4107 own growth: usageHistory.ts 854->934 (+80 = orphaned-pending-request reaper — sweepStalePendingRequests() evicts pending details older than 15min + a hard 5000 cap, plus an unref'd 5min sweep timer wired lazily into trackPendingRequest). Fixes an unbounded memory leak where abnormally-terminated requests left payload previews in pendingById forever. Cohesive with the existing pending-request bookkeeping (mirrors the normal removal path: decrement counters + cleanup buckets); not extractable."
+  "_rebaseline_2026_06_17_4107_pending_reaper": "PR #4107 own growth: usageHistory.ts 854->934 (+80 = orphaned-pending-request reaper — sweepStalePendingRequests() evicts pending details older than 15min + a hard 5000 cap, plus an unref'd 5min sweep timer wired lazily into trackPendingRequest). Fixes an unbounded memory leak where abnormally-terminated requests left payload previews in pendingById forever. Cohesive with the existing pending-request bookkeeping (mirrors the normal removal path: decrement counters + cleanup buckets); not extractable.",
+  "_rebaseline_2026_06_17_4116_combo_hedge_listener": "combo.ts: +9 lines from #4116 (detach per-target listener from shared hedge abort signal to fix a listener leak). Behavior-preserving cleanup; 5289 -> 5298."
 }
