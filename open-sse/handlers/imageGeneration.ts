@@ -1,1 +1,1 @@
-export * from "./imageGeneration/index.ts";
+export * from "./imageGeneration/index";
