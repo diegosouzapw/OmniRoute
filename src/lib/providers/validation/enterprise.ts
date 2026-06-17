@@ -325,7 +325,7 @@ export async function validateAzureOpenAIProvider({ apiKey, providerSpecificData
         return { valid: false, error: `Provider unavailable (${response.status})` };
       }
     } catch (error) {
-      return toValidationErrorResult(error);
+      continue;
     }
   }
 

@@ -518,7 +518,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
 
   if (SPECIALTY_VALIDATORS[provider]) {
     try {
-      return await SPECIALTY_VALIDATORS[provider]({ apiKey, providerSpecificData });
+      return await SPECIALTY_VALIDATORS[provider]({ apiKey, providerSpecificData, isLocal });
     } catch (error: any) {
       return toValidationErrorResult(error);
     }

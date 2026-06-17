@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import crypto from "node:crypto";
 
 import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 
