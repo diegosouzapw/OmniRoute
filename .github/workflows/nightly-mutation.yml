@@ -37,7 +37,7 @@ jobs:
         run: npx stryker run
       - name: Upload mutation report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mutation-report
           path: reports/mutation/
