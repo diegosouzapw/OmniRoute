@@ -51,14 +51,29 @@ const CB_BADGE_COLORS: Partial<Record<CbState, string>> = {
   DEGRADED: FLOW_EDGE_COLORS.last,
 };
 
-/** "CB: OPEN · 41s" — the retry hint is omitted when unknown/elapsed. */
-function formatCbBadge(cbState: CbState, retryAfterMs?: number): string {
+/** Connection-cooldown badge colour (U1b Slice 2) — amber: a partial/recovering state. */
+const COOLDOWN_BADGE_COLOR = FLOW_EDGE_COLORS.last;
+
+/** Format a relative duration as "28s" or "1m05s"; "" when unknown/elapsed. */
+function formatRetryHint(retryAfterMs?: number): string {
   if (typeof retryAfterMs !== "number" || !Number.isFinite(retryAfterMs) || retryAfterMs <= 0) {
-    return `CB: ${cbState}`;
+    return "";
   }
   const seconds = Math.round(retryAfterMs / 1000);
-  const hint = seconds >= 60 ? `${Math.floor(seconds / 60)}m${seconds % 60}s` : `${seconds}s`;
-  return `CB: ${cbState} · ${hint}`;
+  return seconds >= 60 ? `${Math.floor(seconds / 60)}m${seconds % 60}s` : `${seconds}s`;
+}
+
+/** "CB: OPEN · 41s" — the retry hint is omitted when unknown/elapsed. */
+function formatCbBadge(cbState: CbState, retryAfterMs?: number): string {
+  const hint = formatRetryHint(retryAfterMs);
+  return hint ? `CB: ${cbState} · ${hint}` : `CB: ${cbState}`;
+}
+
+/** "cooldown 2/3 · 28s" — N of M connections cooling down; retry hint omitted when unknown. */
+function formatCooldownBadge(count: number, total?: number, retryAfterMs?: number): string {
+  const ratio = typeof total === "number" && total > 0 ? `${count}/${total}` : `${count}`;
+  const hint = formatRetryHint(retryAfterMs);
+  return hint ? `cooldown ${ratio} · ${hint}` : `cooldown ${ratio}`;
 }
 
 // ── Node data shape ───────────────────────────────────────────────────────
@@ -75,6 +90,10 @@ export interface ProviderCascadeNodeData {
   /** Real circuit-breaker state for this provider (U1b); only set when non-healthy. */
   cbState?: CbState;
   cbRetryAfterMs?: number;
+  /** Connection-cooldown summary for this provider (U1b Slice 2); set when ≥1 cooling. */
+  cooldownCount?: number;
+  cooldownTotal?: number;
+  cooldownRetryAfterMs?: number;
   [key: string]: unknown;
 }
 
@@ -92,8 +111,19 @@ export interface ProviderCascadeNodeData {
  * Has Left (target) and Right (source) Handles for the cascade flow.
  */
 export function ProviderCascadeNode({ data }: NodeProps) {
-  const { provider, model, state, latencyMs, failKind, targetIndex, cbState, cbRetryAfterMs } =
-    data as ProviderCascadeNodeData;
+  const {
+    provider,
+    model,
+    state,
+    latencyMs,
+    failKind,
+    targetIndex,
+    cbState,
+    cbRetryAfterMs,
+    cooldownCount,
+    cooldownTotal,
+    cooldownRetryAfterMs,
+  } = data as ProviderCascadeNodeData;
 
   const borderColor = getStateBorderColor(state as TargetState);
   const glow = getStateGlow(state as TargetState);
@@ -183,6 +213,24 @@ export function ProviderCascadeNode({ data }: NodeProps) {
             data-testid="cb-state-badge"
           >
             {formatCbBadge(cbState, cbRetryAfterMs)}
+          </span>
+        </div>
+      )}
+
+      {/* Footer: real connection-cooldown state (U1b Slice 2) — N of M connections
+          for this provider are in cooldown. Independent of target state and of the
+          provider breaker (a key can be cooling while the provider breaker is closed). */}
+      {typeof cooldownCount === "number" && cooldownCount > 0 && (
+        <div className="px-2.5 pb-2">
+          <span
+            className="text-[9px] font-semibold px-1.5 py-0.5 rounded"
+            style={{
+              backgroundColor: `${COOLDOWN_BADGE_COLOR}20`,
+              color: COOLDOWN_BADGE_COLOR,
+            }}
+            data-testid="cooldown-badge"
+          >
+            {formatCooldownBadge(cooldownCount, cooldownTotal, cooldownRetryAfterMs)}
           </span>
         </div>
       )}

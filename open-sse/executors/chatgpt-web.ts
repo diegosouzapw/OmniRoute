@@ -16,6 +16,7 @@
  */
 
 import { BaseExecutor, type ExecuteInput, type ProviderCredentials } from "./base.ts";
+import { describeChatGptWebHttpError } from "./chatgptWebErrors.ts";
 import { createHash, randomUUID, randomBytes } from "node:crypto";
 import {
   tlsFetchChatGpt,
@@ -2742,16 +2743,9 @@ export class ChatGptWebExecutor extends BaseExecutor {
       // upstream message is much more useful than our wrapper. Goes through
       // the executor logger so it respects the application's log config.
       log?.warn?.("CGPT-WEB", `conv ${status}: ${(response.text || "").slice(0, 400)}`);
-      let errMsg = `ChatGPT returned HTTP ${status}`;
+      const errMsg = describeChatGptWebHttpError(status);
       if (status === 401 || status === 403) {
-        errMsg =
-          "ChatGPT auth failed — session may have expired. Re-paste your __Secure-next-auth.session-token.";
         tokenCache.delete(cookieKey(cookie));
-      } else if (status === 404) {
-        errMsg =
-          "ChatGPT returned 404 — usually the model is no longer available on this account or the chat-requirements-token expired. Retry will start a fresh conversation.";
-      } else if (status === 429) {
-        errMsg = "ChatGPT rate limited. Wait a moment and retry.";
       }
       log?.warn?.("CGPT-WEB", errMsg);
       return {

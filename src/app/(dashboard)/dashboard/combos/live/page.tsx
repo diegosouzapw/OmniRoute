@@ -17,7 +17,7 @@ import { useProviderBreakerHealth } from "@/hooks/useProviderBreakerHealth";
  */
 export default function ComboLiveStudioPage() {
   const { comboEvents, activeCombos, isConnected } = useLiveComboStatus();
-  const providerHealth = useProviderBreakerHealth();
+  const { providerHealth, connectionHealth } = useProviderBreakerHealth();
 
   return (
     <div className="p-4 h-[calc(100dvh-6rem)] min-h-[480px]">
@@ -26,6 +26,7 @@ export default function ComboLiveStudioPage() {
         combos={[...activeCombos]}
         isConnected={isConnected}
         providerHealth={providerHealth}
+        connectionHealth={connectionHealth}
       />
     </div>
   );

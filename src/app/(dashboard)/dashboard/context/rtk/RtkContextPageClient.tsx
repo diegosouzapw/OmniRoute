@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { SegmentedControl, Collapsible } from "@/shared/components";
+import RtkLearnDiscoverCard from "./RtkLearnDiscoverCard";
 
 type RtkFilter = {
   id: string;
@@ -383,6 +384,8 @@ export default function RtkContextPageClient() {
           ))}
         </div>
       </Collapsible>
+
+      <RtkLearnDiscoverCard />
     </div>
   );
 }

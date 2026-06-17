@@ -604,4 +604,12 @@ export {
   detectCommandType,
 } from "./commandDetector.ts";
 export { runRtkFilterTests } from "./verify.ts";
-export { maybePersistRtkRawOutput, readRtkRawOutput, redactRtkRawOutput } from "./rawOutput.ts";
+export {
+  maybePersistRtkRawOutput,
+  readRtkRawOutput,
+  redactRtkRawOutput,
+  listRtkCommandSamples,
+} from "./rawOutput.ts";
+// RTK learn/discover: the sample-source adapter (rawOutput) feeds these pure miners.
+export { discoverRepeatedNoise, type NoiseCandidate, type CommandSample } from "./discover.ts";
+export { suggestFilter, commandToId, type SuggestedFilter } from "./learn.ts";

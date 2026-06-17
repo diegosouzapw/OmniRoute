@@ -1,40 +1,59 @@
 ---
 title: "Free Tiers & Free-Token Budget"
-version: 3.8.12
-lastUpdated: 2026-06-05
+version: 3.8.28
+lastUpdated: 2026-06-17
 ---
 
 # Free Tiers & Free-Token Budget
 
 > **For Users**: Looking for a simple guide? See the [Free Tiers Guide](../getting-started/FREE-TIERS-GUIDE.md) for step-by-step instructions on getting free AI.
 
-> **Last researched:** 2026-06-05 — per-provider web research of current free-tier quotas + ToS (98 providers).
-> **Source of truth (catalog):** `src/shared/constants/providers.ts` (`hasFree: true` + `freeNote`). The token-budget numbers below come from live web research and are an **approximation** — see [Methodology & caveats](#methodology--caveats).
+> **Last researched:** 2026-06-17 — per-provider web research (official docs + last-7-days news, 50-agent pass with adversarial verification) refreshing every free-tier quota + ToS.
+> **Source of truth (catalog):** `open-sse/config/freeModelCatalog.ts` (per-MODEL budgets, pool-deduped). The token-budget numbers below come from live web research and are an **approximation** — see [Methodology & caveats](#methodology--caveats).
 
 ## TL;DR — how much free inference does OmniRoute actually aggregate?
 
 | Metric | Tokens / month | Meaning |
 |---|---|---|
-| **Documented recurring grant (steady)** | **~1.94B** | 50 provider free-tier **pools** (per-model catalog), each shared pool counted **once**. The live source behind `/api/free-tier/summary` and the dashboard's Free-Tier Budget page. **Use this number.** |
-| **+ first month with signup credits** | **~2.53B** | Steady + one-time signup credits (DeepSeek 5M, Together, Jina, …), deduped per account. **First month only** — does not recur. |
-| Theoretical ceiling (all rate limits, 24/7) | ~10.87B | Sum of every provider rate limit extrapolated to non-stop use. **Not a guarantee** — do not headline this. |
+| **Documented recurring grant (steady)** | **~1.54B** | Free-tier **pools** (per-model catalog), each shared pool counted **once**. The live source behind `/api/free-tier/summary` and the dashboard's Free-Tier Budget page. **Use this number.** |
+| **+ first month with signup credits** | **~2.15B** | Steady + one-time signup credits (Together $25, Z.AI 20M, DeepSeek 5M, …), deduped per account. **First month only** — does not recur. |
+| **+ permanently free, no published cap** | *un-quantifiable* | `siliconflow`, `glm-cn` (GLM-4-Flash), `tencent`, `baidu`, `kilo-gateway`, `opencode-zen` — real recurring access, rate/concurrency-limited, **no token cap to count**. Listed, never summed (counting them at `RPM×24/7` is the inflation we reject). |
+| **+ deposit-unlock boost** | **+~24M** | A one-time **$10** OpenRouter top-up raises its free pool from 50 → 1000 req/day. Reported separately so it never inflates the steady number. |
+| Theoretical ceiling (all rate limits, 24/7) | ~10B | Sum of every provider rate limit extrapolated to non-stop use. **Not a guarantee** — do not headline this. |
 
-**Honest headline:** *OmniRoute aggregates **over 1.9B documented free tokens per month** (up to ~2.5B in your first month with signup credits) across 50+ free-tier pools — and RTK + Caveman compression (15–95% token savings) stretches that further.*
+**Honest headline:** *OmniRoute aggregates **~1.5B documented free tokens per month** (up to ~2.1B in your first month with signup credits) across 40+ free-tier pools — plus a long tail of permanently-free, no-cap providers — and RTK + Caveman compression (15–95% token savings) stretches that further.*
 
-> The earlier **~1.54B** figure was a conservative per-PROVIDER estimate (22 hand-picked providers). The **~1.94B** above is the per-MODEL catalog (530 models / 50 pools, `open-sse/config/freeModelCatalog.ts`) — now the canonical source. Both use pool deduplication; the per-model catalog is simply more complete.
+> **Why this dropped from the previous ~1.94B.** The 2026-06-17 refresh is an honesty correction, not a loss: `gemini` is now pool-deduped (was inflated by counting each Flash variant separately, 462M → 60M), `cloudflare-ai` corrected to its real 10k-Neurons/day (122M → 30M), `doubao` reclassified as a one-time signup credit (not recurring), and shut-down tiers removed (`github-models` closed to new signups, `chutes`/`phind`/`kluster`/`glhf` discontinued). Partly offset by `llm7` (correct 5M/day → 150M) and new free providers (Kilo, OpenCode Zen, Z.AI GLM-Flash).
 
-Biggest **documented** contributors: `mistral` 1.00B, `longcat` 150M, `cloudflare-ai` 122M, `gemini` 60M, `doubao` 60M, `cerebras` 30M.
+Biggest **documented** contributors: `mistral` 1.00B, `llm7` 150M, `longcat` 150M (LongCat-2.0), `groq` 117M, `gemini` 60M, `cerebras` 30M, `cloudflare-ai` 30M, `sambanova` 30M.
 
-> ⚠️ The theoretical ceiling (~10.87B) is inflated by rate-limit-only providers with **no published token cap** (`tencent`, `siliconflow`, `nvidia`, `baidu`, `publicai`, `sparkdesk`) whose figures are `RPM/TPM × 24/7 × 30d` — a theoretical maximum no single account will sustain. They are **excluded** from the defensible number. This is the same inflation that makes competitors' multi-billion claims unreliable.
+> ⚠️ The theoretical ceiling (~10B) is inflated by rate-limit-only providers with **no published token cap** (`tencent`, `siliconflow`, `nvidia`, `baidu`, `glm-cn`, `sparkdesk`) whose figures would be `RPM/TPM × 24/7 × 30d` — a theoretical maximum no single account will sustain. They are **excluded** from the defensible number (shown in the "permanently free, no cap" row instead). This is the same inflation that makes competitors' multi-billion claims unreliable.
+
+---
+
+## 2026-06-17 refresh — what changed since 2026-06-05
+
+A 50-agent web-research pass (official docs + last-7-days news, adversarially verified) refreshed the whole catalog. Highlights:
+
+- **Removed (discontinued / shut down in 2026):** `chutes` (free tier ended 2026-03), `phind` (company shut down 2026-01), `kluster` (sunset 2026-06-09 → MITO), `glhf` (beta ended), `gitlawb` (free model revoked 2026-05-24), `aimlapi` / `theoldllm` / `featherless-ai` (no current free tier).
+- **GitHub Models** — closed to **new** customers on 2026-06-16; existing accounts keep API/playground access, so it stays in the catalog with a note (not removed).
+- **Gemini** — `2.0 Flash` / `2.0 Flash-Lite` shut down 2026-06-01 and `2.5 Pro` left the free tier (2026-04); free tier is now **Flash-family only** (2.5/3/3.1/3.5 Flash + Gemma). The catalog now **pools** the Flash family (was inflated by counting each variant separately: 462M → 60M).
+- **Corrected numbers:** `cloudflare-ai` 122M → **30M** (real 10k-Neurons/day), `doubao` reclassified as a one-time signup credit (not recurring), `llm7` 4M → **150M** (documented 5M tokens/day), `together` "-Free" endpoints discontinued → only the **$25** signup credit remains, `longcat` retired 6 legacy models → **LongCat-2.0-Preview** only.
+- **New free providers discovered:** ⭐ **Kilo Code** (`kilo-gateway` — rotating "Auto Free" set: NVIDIA Nemotron 3 family, StepFun, Poolside, Nex-N2-Pro), ⭐ **OpenCode Zen** (`opencode-zen` — 6 rotating free coding models), ⭐ **Z.AI / Zhipu** (`glm-cn` — GLM-4-Flash / 4.5-Flash / 4.7-Flash permanently free + 20M signup bonus), and `arcee-ai` Trinity Large Preview.
+- **New honest tiers** (see Methodology): a *permanently-free-but-uncapped* category (real recurring access, no token cap to count) and a *deposit-unlock boost* (OpenRouter $10 → +24M/mo), both surfaced **separately** so they never inflate the headline.
+
+> The detailed per-provider table further down is the **2026-06-05 snapshot**; the deltas above supersede it. The live, canonical source is the per-model catalog `open-sse/config/freeModelCatalog.ts`.
 
 ---
 
 ## Methodology & caveats
 
-- Numbers are **upper-bound estimates** from each provider's documented free-tier limits as of **2026-06-05**, gathered by web research (confidence tagged per row). Free tiers change constantly — re-verify before relying on a figure.
-- `estMonthlyFreeTokens` = recurring monthly tokens only. **One-time signup credits do not recur** and count as 0 (29 providers are signup-credit-only). Discontinued tiers (6) are also 0.
-- Daily token cap → `monthly = daily × 30`. Only RPD documented → `RPD × ~800 output tokens × 30`. Only RPM/TPM (no daily cap) → treated as **theoretical**, excluded from the defensible total.
-- **A note on terms.** ~19 providers have personal-use or proxy clauses worth a glance before you lean on them (see the [provider-terms table](#tos-attention-table)). Their access is real — we simply don't fold the **un-quantifiable** OAuth/keyless ones (e.g. `gemini-cli`, `agy`, `amazon-q` — they share quota already counted under the base provider) into the headline. None of this is legal advice; you decide.
+- Numbers are **upper-bound estimates** from each provider's documented free-tier limits as of **2026-06-17**, gathered by web research (confidence tagged per row). Free tiers change constantly — re-verify before relying on a figure.
+- `estMonthlyFreeTokens` = recurring monthly tokens only. **One-time signup credits do not recur** and count as 0. Discontinued tiers are also 0.
+- Daily token cap → `monthly = daily × 30`. Only RPD documented → `RPD × ~800 output tokens × 30`. Only RPM/TPM (no daily cap) → **uncapped** (see below).
+- **Permanently free, but no published token cap** (`siliconflow`, `glm-cn`, `tencent`, `baidu`, `kilo-gateway`, `opencode-zen`): these are real recurring free access, rate/concurrency-limited. We classify them `recurring-uncapped` and **never sum them** — multiplying `RPM × 24/7 × 30d` would produce a fantasy ceiling (the inflation we reject). They are listed so you know they exist.
+- **Deposit-unlock boost:** a one-time small top-up that permanently raises a free quota (OpenRouter: $10 → 1000 req/day ≈ +24M/mo). Reported as a separate figure, kept out of the steady headline.
+- **A note on terms.** Some providers have personal-use or proxy clauses worth a glance before you lean on them (see the [provider-terms table](#tos-attention-table)). Their access is real — we simply don't fold the **un-quantifiable** OAuth/keyless ones (e.g. `gemini-cli`, `agy`, `amazon-q` — they share quota already counted under the base provider) into the headline. None of this is legal advice; you decide.
 
 ---
 

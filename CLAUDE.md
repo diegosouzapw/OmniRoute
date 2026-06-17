@@ -35,7 +35,7 @@ For full test matrix, see `CONTRIBUTING.md` → "Running Tests". For deep archit
 
 ## Project at a Glance
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 226 LLM providers, auto-fallback.
+**OmniRoute** — unified AI proxy/router. One endpoint, 227 LLM providers, auto-fallback.
 
 | Layer         | Location                | Purpose                                                                                                                                |
 | ------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
@@ -433,13 +433,14 @@ own dedicated branch, and you MUST confirm the base branch with the operator bef
 
    In Claude Code prefer the native `EnterWorktree` tool (create the worktree with the command
    above, then call `EnterWorktree` with its `path`).
+
 3. **Work, commit, push, open the PR — all from inside the worktree.** Never `git checkout` a
    different branch inside a worktree another session might share.
 4. **Tear down only your own** worktree + branch when done, from the main checkout:
    `git worktree remove .worktrees/<dir>` then `git branch -D <task>`. Never blanket-delete
    `fix/*`/`feat/*` — other sessions keep their own; delete only the branches you created, by name.
 5. **Never touch another session's worktree, branch, or uncommitted changes.** If `git worktree
-   list` shows worktrees you didn't create, leave them alone. End every session with the main
+list` shows worktrees you didn't create, leave them alone. End every session with the main
    checkout back on the branch it started on (the active `release/vX.Y.Z`, never `main`).
 
 ---

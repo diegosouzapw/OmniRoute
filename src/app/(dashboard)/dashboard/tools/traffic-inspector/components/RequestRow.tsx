@@ -69,6 +69,14 @@ export function RequestRow({ request, selected, onClick, onSameContext, style }:
           <span className="shrink-0">
             <AgentEmoji agentId={request.agent} />
           </span>
+          {request.processName && (
+            <span
+              className="text-text-muted shrink-0 font-mono opacity-70 truncate max-w-[120px]"
+              title={request.pid ? `PID ${request.pid}` : undefined}
+            >
+              ⚙ {request.processName}
+            </span>
+          )}
         </div>
         <div className="text-xs text-text-muted truncate font-mono mt-0.5">
           {request.host}
