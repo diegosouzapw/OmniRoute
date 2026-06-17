@@ -1198,6 +1198,16 @@ export const APIKEY_PROVIDERS = {
     website: "https://open.bigmodel.cn",
     apiHint: "API key from https://open.bigmodel.cn/usercenter/apikeys",
   },
+  wafer: {
+    id: "wafer",
+    alias: "wafer",
+    name: "Wafer AI",
+    icon: "layers",
+    color: "#6366F1",
+    textIcon: "WF",
+    website: "https://wafer.ai",
+    apiHint: "API key from https://wafer.ai",
+  },
   "opencode-zen": {
     id: "opencode-zen",
     alias: "opencode-zen",
