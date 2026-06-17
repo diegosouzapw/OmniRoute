@@ -2,7 +2,7 @@ import { spawn, type ChildProcess } from "child_process";
 import path from "path";
 import fs from "fs";
 import { resolveMitmDataDir } from "./dataDir.ts";
-import { addDNSEntry, addDNSEntries, removeDNSEntry } from "./dns/dnsConfig.ts";
+import { addDNSEntry, addDNSEntries, removeDNSEntry, removeDNSEntries } from "./dns/dnsConfig.ts";
 import { generateCert } from "./cert/generate.ts";
 import { installCert } from "./cert/install.ts";
 import { ALL_TARGETS } from "./targets/index.ts";
@@ -180,6 +180,27 @@ function isProcessAlive(pid: number): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Enumerate every hostname OmniRoute may have written to /etc/hosts during
+ * startMitm(): the full agent-target registry plus all custom hosts. Removal
+ * via removeDNSEntries() is idempotent (absent entries are skipped), so this
+ * set is intentionally over-inclusive — a host that was never spoofed costs
+ * nothing to "remove", but a host we forget to list leaks machine-wide.
+ * (Gap 8 — clean-stop DNS leak.)
+ */
+export function collectManagedHosts(): string[] {
+  const hosts = new Set<string>();
+  for (const target of ALL_TARGETS) {
+    for (const h of target.hosts) hosts.add(h);
+  }
+  try {
+    for (const ch of listCustomHosts()) hosts.add(ch.host);
+  } catch (err) {
+    log.error({ err }, "collectManagedHosts: failed to read custom hosts (continuing)");
+  }
+  return [...hosts];
 }
 
 /**
@@ -457,9 +478,20 @@ export async function stopMitm(sudoPassword: string): Promise<{ running: false; 
     serverPid = null;
   }
 
-  // 2. Remove DNS entry
-  log.info("Removing DNS entry...");
+  // 2. Remove DNS entries — Antigravity defaults PLUS every agent + custom host
+  //    that startMitm() may have spoofed. removeDNSEntries is idempotent, so
+  //    over-inclusion is safe; under-inclusion leaks /etc/hosts lines that
+  //    hijack resolution machine-wide after stop (Gap 8).
+  log.info("Removing DNS entries...");
   await removeDNSEntry(sudoPassword);
+  try {
+    const managed = collectManagedHosts();
+    if (managed.length > 0) {
+      await removeDNSEntries(managed, sudoPassword);
+    }
+  } catch (err) {
+    log.error({ err }, "Failed to remove managed DNS entries during stop (continuing)");
+  }
 
   // 3. Clean up
   clearCachedPassword(); // Clear password from memory when proxy stops
