@@ -46,6 +46,17 @@ RUN --mount=type=cache,target=/root/.npm \
 # See docs/ops/QUALITY_GATE_PLAYBOOK.md Parte 6.
 ENV OMNIROUTE_USE_TURBOPACK=0
 
+# Raise the V8 heap ceiling for the build. The webpack production optimization
+# pass (forced above since Turbopack panics) needs more than V8's default ceiling
+# (~2 GB) for a codebase this size; a memory-constrained Docker build otherwise
+# dies with "FATAL ERROR: ... JavaScript heap out of memory" at `[builder] npm run
+# build` (#4076). NODE_OPTIONS propagates to the spawned `next build` child
+# (build-next-isolated.mjs → resolveNextBuildEnv spreads process.env). Build-only;
+# the runtime heap is set separately on the runner stage (OMNIROUTE_MEMORY_MB).
+# Override for hosts with more/less RAM: `--build-arg OMNIROUTE_BUILD_MEMORY_MB=6144`.
+ARG OMNIROUTE_BUILD_MEMORY_MB=4096
+ENV NODE_OPTIONS="--max-old-space-size=${OMNIROUTE_BUILD_MEMORY_MB}"
+
 COPY . ./
 RUN --mount=type=cache,target=/app/.build/next/cache \
   mkdir -p /app/data && npm run build

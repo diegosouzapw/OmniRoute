@@ -6016,7 +6016,21 @@
     "searchFilters": "Search filters...",
     "tooltipDedup": "How aggressively to remove repeated lines.",
     "tooltipMaxChars": "Maximum characters per output block.",
-    "tooltipMaxLines": "Maximum lines to keep from command output. Excess is truncated."
+    "tooltipMaxLines": "Maximum lines to keep from command output. Excess is truncated.",
+    "learnDiscoverTitle": "Learn & Discover filters",
+    "learnDiscoverDesc": "Mine your captured command output (Raw Output retention must be on) to suggest new RTK filters. Suggestions only — you review and save them.",
+    "discoverHeading": "Discover repeated noise",
+    "discoverButton": "Scan samples",
+    "discoverScanning": "Scanning…",
+    "discoverEmpty": "No repeated noise found. Enable Raw Output retention and run a few commands first.",
+    "discoverSamples": "{count} sample(s) scanned",
+    "discoverHits": "{hits}× across samples",
+    "learnHeading": "Learn a filter for a command",
+    "learnCommandPlaceholder": "e.g. npm install",
+    "learnButton": "Suggest filter",
+    "learnEmpty": "No suggestion yet. Type a command you have run and scan.",
+    "learnSamplesUsed": "Learned from {count} matching sample(s)",
+    "suggestionError": "Could not load suggestions. Check management auth and try again."
   },
   "contextCombos": {
     "title": "Compression Combos",

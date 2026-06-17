@@ -95,9 +95,9 @@ afterEach(async () => {
   setVisibility("visible");
 });
 
-describe("RequestLoggerV2 auto-refresh (#3972)", () => {
+describe("RequestLoggerV2 auto-refresh (#3972 + #4054)", () => {
   it("keeps polling on the interval when the tab becomes visible without a visibilitychange event", async () => {
-    // Mounts while the document reports "hidden" → resolveInitialVisibility() = false.
+    // Mounts while the document reports "hidden", no visibilitychange ever fires.
     setVisibility("hidden");
 
     await act(async () => {
@@ -123,7 +123,14 @@ describe("RequestLoggerV2 auto-refresh (#3972)", () => {
     expect(callLogsRequests).toBeGreaterThan(afterMount);
   });
 
-  it("does not poll while the tab stays hidden (preserves the hidden-tab optimization)", async () => {
+  it("keeps polling when visibilityState is pinned 'hidden' but no visibilitychange ever fires (#4054)", async () => {
+    // Embedded / proxied dashboard host (e.g. a Docker wrapper or webview) that
+    // reports a permanent non-"visible" state and NEVER dispatches a
+    // `visibilitychange` event. 3.8.24 polled unconditionally; the static-visibility
+    // gate added since then froze auto-refresh in these hosts — only the manual
+    // Refresh button worked, exactly as reported in #4054. The gate must be
+    // fail-open: a host that never signals a *real* background transition keeps
+    // polling.
     setVisibility("hidden");
 
     await act(async () => {
@@ -133,12 +140,40 @@ describe("RequestLoggerV2 auto-refresh (#3972)", () => {
       await vi.advanceTimersByTimeAsync(0);
     });
     const afterMount = callLogsRequests;
+    expect(afterMount).toBeGreaterThanOrEqual(1);
 
-    // Stays hidden across two ticks → must not poll.
+    // visibilityState stays "hidden", NO visibilitychange event is dispatched.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(DEFAULT_REFRESH_INTERVAL_SEC * 1000);
+    });
+
+    expect(callLogsRequests).toBeGreaterThan(afterMount);
+  });
+
+  it("pauses polling after a real visibilitychange → hidden (preserves the backgrounded-tab optimization)", async () => {
+    // The perf guard is now keyed on the *event*, not the static value: a genuine
+    // background transition fires `visibilitychange`, and only then do we pause.
+    setVisibility("visible");
+
+    await act(async () => {
+      root.render(<RequestLoggerV2 />);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    // Real background transition: the state flips AND the browser fires the event.
+    setVisibility("hidden");
+    await act(async () => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    const afterHidden = callLogsRequests;
+
+    // Stays backgrounded across two ticks → must not poll.
     await act(async () => {
       await vi.advanceTimersByTimeAsync(DEFAULT_REFRESH_INTERVAL_SEC * 2000);
     });
 
-    expect(callLogsRequests).toBe(afterMount);
+    expect(callLogsRequests).toBe(afterHidden);
   });
 });

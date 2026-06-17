@@ -3,6 +3,9 @@ import assert from "node:assert/strict";
 
 const { ChatGptWebExecutor, __derivePublicBaseUrlForTesting, __resetChatGptWebCachesForTesting } =
   await import("../../open-sse/executors/chatgpt-web.ts");
+const { describeChatGptWebHttpError } = await import(
+  "../../open-sse/executors/chatgptWebErrors.ts"
+);
 const { getExecutor, hasSpecializedExecutor } = await import("../../open-sse/executors/index.ts");
 const { __setTlsFetchOverrideForTesting, looksLikeSse, TlsClientUnavailableError } =
   await import("../../open-sse/services/chatgptTlsClient.ts");
@@ -2771,4 +2774,35 @@ test("Image cache: deleting an entry decrements the byte counter", async () => {
     0,
     "bytes credited back on TTL evict"
   );
+});
+
+// ─── describeChatGptWebHttpError ─────────────────────────────────────────────
+
+test("describeChatGptWebHttpError maps 413 to a payload-too-large message with guidance", () => {
+  const msg = describeChatGptWebHttpError(413);
+  // Must NOT be the cryptic generic — should explain it's a size limit and how to recover.
+  assert.notEqual(
+    msg,
+    "ChatGPT returned HTTP 413",
+    "413 should get a tailored message, not the generic fallback"
+  );
+  assert.match(msg, /413/, "message keeps the status code");
+  assert.match(msg, /too large|payload|size limit/i, "message explains it's a size/payload limit");
+  assert.match(
+    msg,
+    /context|compress/i,
+    "message points the user at reducing context / compression"
+  );
+});
+
+test("describeChatGptWebHttpError preserves the existing 401/403/404/429 mappings", () => {
+  assert.match(describeChatGptWebHttpError(401), /session may have expired/i);
+  assert.match(describeChatGptWebHttpError(403), /session may have expired/i);
+  assert.match(describeChatGptWebHttpError(404), /no longer available|fresh conversation/i);
+  assert.match(describeChatGptWebHttpError(429), /rate limited/i);
+});
+
+test("describeChatGptWebHttpError falls back to the generic message for unmapped statuses", () => {
+  assert.equal(describeChatGptWebHttpError(500), "ChatGPT returned HTTP 500");
+  assert.equal(describeChatGptWebHttpError(502), "ChatGPT returned HTTP 502");
 });

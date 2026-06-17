@@ -1255,5 +1255,11 @@
     "search": "Buscar plugins disponíveis no npm",
     "update": "Atualizar plugin(s) instalado(s)",
     "scaffold": "Gerar boilerplate de novo plugin"
+  },
+  "launch": {
+    "description": "Inicia o Claude Code apontando para o proxy local do OmniRoute",
+    "token": "Chave de API que o cliente Claude deve enviar (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute não está rodando na porta {port}. Inicie com 'omniroute serve'.",
+    "notFound": "O CLI 'claude' não foi encontrado no PATH."
   }
 }
