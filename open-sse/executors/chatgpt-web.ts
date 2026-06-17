@@ -1,1 +1,1 @@
-export * from "./chatgpt-web/index.ts";
+export * from "./chatgpt-web/index";
