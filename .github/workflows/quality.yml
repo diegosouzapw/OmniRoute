@@ -76,4 +76,4 @@ jobs:
           fi
           echo "Running impacted tests:"; echo "$SEL"
           mapfile -t FILES <<< "$SEL"
-          node --import tsx --import ./open-sse/utils/setupPolyfill.ts --test --test-force-exit --test-concurrency=8 "${FILES[@]}"
+          node --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=8 "${FILES[@]}"
