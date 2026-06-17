@@ -25,6 +25,7 @@
   "_rebaseline_2026_06_16_4021_context_editing": "PR #4021 own growth: base.ts 1222->1244 (+22 = inject delegated Context Editing at the single Claude pre-serialization chokepoint — applyContextEditingToBody() call gated to the genuine `claude` provider, the contextEditing field on ExecuteInput, its destructure, and a debug log) and chatCore.ts 5868->5875 (+7 = capture contextEditing.enabled at the canonical compression-settings read into a function-scoped flag, threaded to the two executor.execute() callsites). The reusable edit-builder + strategy constants live in the new small open-sse/config/contextEditing.ts (well under cap). Cohesive opt-in feature at the existing dispatch chokepoint; not extractable without hiding the Claude body-finalization boundary.",
   "_rebaseline_2026_06_16_4033_compression_token_saver_ui": "PR #4033 net -46 LOC overall: CompressionSettingsTab.tsx 932->974 (+42 over frozen after relocating Token Saver from Endpoint/Appearance into Compression Settings). This is a deliberate UI ownership redistribution, not aggregate code growth; keeping the control with the compression settings makes the module boundary clearer.",
   "_rebaseline_2026_06_17_4034_usage_command": "PR #4034 own growth: apiKeys.ts 1633->1661 (+28 = the allow_usage_command additive column — fallback definition, parseAllowUsageCommand, prepared-statement SELECT column, and the metadata/create/update wiring, mirroring the existing disable_non_public_models accessor pattern) and chat.ts 1425->1432 (+7 = the handleInternalUsageCommand intercept hook at the existing post-auth chokepoint in handleChat). The reusable command logic lives in the new src/lib/usage/internalUsageCommand.ts (well under cap). Cohesive opt-in feature at the established column/dispatch boundaries; not extractable without splitting the api-keys domain module.",
+  "_rebaseline_2026_06_17_ctx_editing_telemetry": "Context Editing telemetry (F4.1) own growth: chatCore.ts 5875->5898 (+23 = a best-effort, Claude-only, non-streaming block at the existing non-streaming response handler that extracts the provider's server-side context-editing receipt from responseBody and records it under engine \"context-editing\"). The pure extractor (extractContextEditingTelemetry) lives in the existing small open-sse/config/contextEditing.ts and the DB writer (recordContextEditingTelemetry) in src/lib/db/compressionAnalytics.ts — both under cap. Cohesive at the response-handling chokepoint next to the existing attachCompressionUsageReceipt call; not extractable without hiding the receipt-recording boundary.",
   "cap": 800,
   "frozen": {
     "open-sse/config/providerRegistry.ts": 4731,
@@ -40,7 +41,7 @@
     "open-sse/executors/muse-spark-web.ts": 1284,
     "open-sse/executors/perplexity-web.ts": 1013,
     "open-sse/handlers/audioSpeech.ts": 965,
-    "open-sse/handlers/chatCore.ts": 5875,
+    "open-sse/handlers/chatCore.ts": 5898,
     "open-sse/handlers/imageGeneration.ts": 3777,
     "open-sse/handlers/responseSanitizer.ts": 1103,
     "open-sse/handlers/search.ts": 1442,
