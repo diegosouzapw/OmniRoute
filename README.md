@@ -15,13 +15,13 @@
 
 <br/>
 
-**~1.9B+ documented free tokens/month** — up to **~2.5B in your first month** with signup credits — aggregated across the free tiers, and the compression above stretches every one further. ([how we count →](docs/reference/FREE_TIERS.md#tldr--how-much-free-inference-does-omniroute-actually-aggregate))
+**~1.5B documented free tokens/month** — up to **~2.1B in your first month** with signup credits — aggregated across the free tiers, plus a long tail of permanently-free, no-cap providers, and the compression above stretches every one further. ([how we count →](docs/reference/FREE_TIERS.md#tldr--how-much-free-inference-does-omniroute-actually-aggregate))
 
 <br/>
 
 [![227 AI Providers](https://img.shields.io/badge/227-AI_Providers-6C5CE7?style=for-the-badge)](#-227-ai-providers--50-free)
 [![50+ Free](https://img.shields.io/badge/50%2B-Free_Tiers-00B894?style=for-the-badge)](#-227-ai-providers--50-free)
-[![1.9B+ Free Tokens/mo](https://img.shields.io/badge/1.9B%2B-Free_Tokens%2Fmo-00B894?style=for-the-badge)](docs/reference/FREE_TIERS.md)
+[![1.5B Free Tokens/mo](https://img.shields.io/badge/1.5B-Free_Tokens%2Fmo-00B894?style=for-the-badge)](docs/reference/FREE_TIERS.md)
 [![Token Savings](https://img.shields.io/badge/up_to_95%25-Token_Savings-E17055?style=for-the-badge)](#%EF%B8%8F-save-1595-tokens--automatically)
 [![15 Strategies](https://img.shields.io/badge/15-Routing_Strategies-0984E3?style=for-the-badge)](#-combos--the-flagship)
 [![$0 to start](https://img.shields.io/badge/%240-To_Start-FDCB6E?style=for-the-badge&logoColor=black)](#-quick-start)
@@ -114,14 +114,15 @@
 
 <div align="center">
 
-# 💰 ~1.9B Free Tokens / Month
+# 💰 ~1.5B Free Tokens / Month
 
 </div>
 
-> Stacking free tiers by hand is painful — dozens of SDKs, dozens of rate limits, and no idea how much you actually have. OmniRoute aggregates the **documented** free tiers of **50+ provider pools / 530 models** into one honest number and shows it live on the dashboard (`/dashboard/free-tiers`).
+> Stacking free tiers by hand is painful — dozens of SDKs, dozens of rate limits, and no idea how much you actually have. OmniRoute aggregates the **documented** free tiers of **40+ provider pools / 500+ models** into one honest number and shows it live on the dashboard (`/dashboard/free-tiers`).
 
-- **~1.9B free tokens / month** (steady) — and **up to ~2.5B in your first month** with signup credits.
-- **Pool-deduped, honest** — we count each shared free pool **once**, so the headline isn't inflated by rate-limit ceilings the way multi-billion competitor claims are. (The naïve per-model sum would read ~8B; we don't publish that.)
+- **~1.5B free tokens / month** (steady) — and **up to ~2.1B in your first month** with signup credits.
+- **Pool-deduped, honest** — we count each shared free pool **once**, so the headline isn't inflated by rate-limit ceilings the way multi-billion competitor claims are. (Counting every rate limit 24/7 would read ~10B; we don't publish that.)
+- **Plus the un-countable** — permanently-free, no-token-cap providers (SiliconFlow, Z.AI GLM-Flash, Kilo, OpenCode Zen…) and a **$10 OpenRouter top-up** that unlocks **+24M/mo**, both surfaced separately so they never inflate the headline.
 - **Per-model breakdown**, **live used / remaining** for the current month, and a transparent **terms flag** per provider.
 
 ![Free-Tier Budget card (preview mockup)](docs/screenshots/free-tier-budget-card.svg)

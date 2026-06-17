@@ -4,7 +4,7 @@
  * LOCAL_ONLY: registered in routeGuard.ts
  */
 import { z } from "zod";
-import { installCert, checkCertInstalled } from "@/mitm/cert/install";
+import { installCert, uninstallCert, checkCertInstalled } from "@/mitm/cert/install";
 import { resolveMitmDataDir } from "@/mitm/dataDir";
 import { getCachedPassword } from "@/mitm/manager";
 import path from "path";
@@ -49,6 +49,35 @@ export async function POST(request: Request): Promise<Response> {
       });
     }
     await installCert(sudoPassword, crtPath);
+    const trusted = await checkCertInstalled(crtPath);
+    return Response.json({ ok: true, trusted });
+  } catch (err) {
+    const msg = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
+    return createErrorResponse({ status: 500, message: msg });
+  }
+}
+
+/**
+ * DELETE /api/tools/agent-bridge/cert — untrust (uninstall) the MITM root CA.
+ *
+ * OmniRoute keeps the CA installed across normal stop/start to avoid repeated
+ * sudo prompts (same as mitmproxy/Charles), so removal is an explicit action.
+ * Idempotent: removing an absent cert reports success. (Gap 9 — a persistent
+ * always-trusted MITM root CA whose key lives on disk is an attack surface.)
+ */
+export async function DELETE(request: Request): Promise<Response> {
+  const raw = await request.json().catch(() => ({}));
+  const parsed = CertTrustBodySchema.safeParse(raw);
+  const sudoPassword =
+    (parsed.success ? parsed.data.sudoPassword : undefined) ?? getCachedPassword() ?? "";
+
+  try {
+    const crtPath = certPath();
+    if (!fs.existsSync(crtPath)) {
+      // No cert on disk → nothing to untrust. Idempotent success.
+      return Response.json({ ok: true, trusted: false });
+    }
+    await uninstallCert(sudoPassword, crtPath);
     const trusted = await checkCertInstalled(crtPath);
     return Response.json({ ok: true, trusted });
   } catch (err) {

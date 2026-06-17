@@ -29,6 +29,8 @@ export interface InterceptedRequest {
   annotation?: string;
   sessionId?: string;
   note?: string;
+  pid?: number;                          // originating process id (Linux only)
+  processName?: string;                  // originating process name (Linux only)
 }
 
 export const InterceptedRequestSchema = z.object({
@@ -57,6 +59,8 @@ export const InterceptedRequestSchema = z.object({
   annotation: z.string().optional(),
   sessionId: z.string().uuid().optional(),
   note: z.string().optional(),
+  pid: z.number().int().nonnegative().optional(),
+  processName: z.string().optional(),
 });
 
 export type NormalizedBlock =

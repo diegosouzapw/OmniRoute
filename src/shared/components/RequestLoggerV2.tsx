@@ -28,11 +28,7 @@ import {
 } from "@/shared/utils/formatting";
 import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
-import {
-  computeLogsSignature,
-  resolveInitialVisibility,
-  shouldAutoRefresh,
-} from "./requestLoggerSignature";
+import { computeLogsSignature, shouldAutoRefresh } from "./requestLoggerSignature";
 import {
   DEFAULT_REFRESH_INTERVAL_SEC,
   clampRefreshIntervalSec,
@@ -153,7 +149,12 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
     const scrollContainerRef = useRef(null);
     const loadMoreSentinelRef = useRef(null);
     const [providerNodes, setProviderNodes] = useState([]);
-    const visibleRef = useRef(resolveInitialVisibility());
+    // #4054: fail-open. The auto-refresh pause is event-driven — we start assuming
+    // the tab is visible (poll) and only flip to paused on a real `visibilitychange`
+    // → hidden transition. Seeding from a static `document.visibilityState` read froze
+    // polling forever in embedded/proxied hosts that report a permanent non-"visible"
+    // state without ever dispatching the event (Docker dashboard wrappers, webviews).
+    const visibleRef = useRef(true);
 
     // Column visibility with localStorage persistence
     const [visibleColumns, setVisibleColumns] = useState(() => {
@@ -291,10 +292,13 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (!selectedLog && shouldAutoRefresh(recording, limit, PAGE_SIZE)) {
         intervalRef.current = setInterval(() => {
-          // #3972: read live visibility each tick, not a mount-time ref. A tab
-          // mounted while "hidden" with no later `visibilitychange` left the ref
-          // false forever, so auto-refresh never ran (only the manual button did).
-          if (typeof document === "undefined" || document.visibilityState === "visible") {
+          // #3972/#4054: gate on the event-tracked `visibleRef` (fail-open), not a
+          // static `document.visibilityState` read. A real browser tab that goes to
+          // the background fires `visibilitychange` → `visibleRef=false` → we pause
+          // (perf). An embedded/proxied host that misreports a permanent "hidden"
+          // state never fires the event, so `visibleRef` stays `true` and polling
+          // keeps working instead of freezing forever.
+          if (visibleRef.current) {
             fetchLogs(false);
           }
         }, refreshIntervalSec * 1000);
