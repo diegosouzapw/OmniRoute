@@ -161,7 +161,7 @@ export function selectWeightedTarget<T extends { weight?: number }>(targets: T[]
     if (random <= 0) return target;
   }
 
-  return targets.at(-1);
+  return targets[targets.length - 1];
 }
 
 export function orderTargetsForWeightedFallback<T extends { executionKey: string; weight: number }>(

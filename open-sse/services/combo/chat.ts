@@ -328,13 +328,14 @@ export async function handleComboChat({
       ...(target ?? {}),
       modelAbortSignal: timeoutController.signal,
     };
+    const abortListener = () => {
+      timeoutController.abort(new Error("hedge-cancelled"));
+    };
     if (target?.modelAbortSignal) {
       if (target.modelAbortSignal.aborted) {
         timeoutController.abort(new Error("hedge-cancelled"));
       } else {
-        target.modelAbortSignal.addEventListener("abort", () => {
-          timeoutController.abort(new Error("hedge-cancelled"));
-        });
+        target.modelAbortSignal.addEventListener("abort", abortListener);
       }
     }
     try {
@@ -352,6 +353,9 @@ export async function handleComboChat({
       ]);
     } finally {
       clearTimeout(timeoutId);
+      if (target?.modelAbortSignal) {
+        target.modelAbortSignal.removeEventListener("abort", abortListener);
+      }
     }
   };
 

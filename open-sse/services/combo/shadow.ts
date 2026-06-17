@@ -168,7 +168,7 @@ export function scheduleShadowRouting(
             }),
             shadowConfig.timeoutMs
           );
-          await drainShadowResponse(response.clone());
+          await drainShadowResponse(response);
           recordComboShadowRequest(combo.name, target.modelStr, {
             success: response.ok,
             latencyMs: Date.now() - startedAt,
