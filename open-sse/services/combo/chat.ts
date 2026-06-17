@@ -205,6 +205,7 @@ import {
 } from "./state.ts";
 import { dedupeTargetsByExecutionKey } from "./dag.ts";
 import { scheduleShadowRouting, resolveShadowTargets } from "./shadow.ts";
+import { handleSingleModelWithTimeout as handleSingleModelWithTimeoutImpl } from "./chat/timeout";
 
 /**
  * Handle combo chat with fallback.
@@ -291,73 +292,19 @@ export async function handleComboChat({
   // (b) abort the inner request so its upstream fetch is cancelled and downstream
   // cooldown/breaker/usage mutations stop — preventing "ghost" state mutations
   // that diverge from the routing decision the operator sees.
-  const handleSingleModelWithTimeout = async (
+  const handleSingleModelWithTimeout = (
     b: Record<string, unknown>,
     modelStr: string,
     target?: SingleModelTarget
-  ): Promise<Response> => {
-    if (comboTargetTimeoutMs <= 0) {
-      return handleSingleModel(b, modelStr, target).catch((err) =>
-        errorResponse(502, err?.message ?? "Upstream model error")
-      );
-    }
-
-    const timeoutController = new AbortController();
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
-    let timedOut = false;
-    const timeoutPromise = new Promise<Response>((resolve) => {
-      timeoutId = setTimeout(() => {
-        timedOut = true;
-        log.warn(
-          "COMBO",
-          `Model ${modelStr} exceeded ${comboTargetTimeoutMs}ms timeout — falling back`
-        );
-        // Abort the inner request so its upstream fetch is cancelled and
-        // downstream cooldown/breaker/usage mutations don't continue mutating
-        // state behind the routing decision's back.
-        timeoutController.abort(new Error("combo-per-model-timeout"));
-        resolve(
-          new Response(JSON.stringify({ error: { message: `Model ${modelStr} timed out` } }), {
-            status: 524,
-            headers: { "Content-Type": "application/json" },
-          })
-        );
-      }, comboTargetTimeoutMs);
-    });
-    const targetWithSignal = {
-      ...(target ?? {}),
-      modelAbortSignal: timeoutController.signal,
-    };
-    const abortListener = () => {
-      timeoutController.abort(new Error("hedge-cancelled"));
-    };
-    if (target?.modelAbortSignal) {
-      if (target.modelAbortSignal.aborted) {
-        timeoutController.abort(new Error("hedge-cancelled"));
-      } else {
-        target.modelAbortSignal.addEventListener("abort", abortListener);
-      }
-    }
-    try {
-      return await Promise.race([
-        handleSingleModel(b, modelStr, targetWithSignal).catch((err) => {
-          if (timedOut) {
-            // Inner call rejected because we aborted it. The synthetic 524 from
-            // timeoutPromise already wins the race; return an empty response so
-            // the loser branch resolves cleanly without leaking err.message.
-            return new Response(null, { status: 599 });
-          }
-          return errorResponse(502, err?.message ?? "Upstream model error");
-        }),
-        timeoutPromise,
-      ]);
-    } finally {
-      clearTimeout(timeoutId);
-      if (target?.modelAbortSignal) {
-        target.modelAbortSignal.removeEventListener("abort", abortListener);
-      }
-    }
-  };
+  ): Promise<Response> =>
+    handleSingleModelWithTimeoutImpl(
+      handleSingleModel,
+      comboTargetTimeoutMs,
+      log,
+      b,
+      modelStr,
+      target
+    );
 
   // Route to pinned model if context caching specifies one (Fix #679)
   if (pinnedModel) {
