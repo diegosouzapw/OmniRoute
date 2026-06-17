@@ -1,7 +1,7 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { mergeClientAnthropicBeta } from "../config/anthropicHeaders.ts";
 import { applyContextEditingToBody } from "../config/contextEditing.ts";
-import { findOffendingField } from "../config/providerFieldStrips.ts";
+import { findOffendingField, stripGroqUnsupportedFields } from "../config/providerFieldStrips.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
@@ -789,12 +789,17 @@ export class BaseExecutor {
         stream,
         activeCredentials
       );
-      const transformedBody = sanitizeReasoningEffortForProvider(
+      let transformedBody = sanitizeReasoningEffortForProvider(
         rawTransformedBody,
         this.provider,
         model,
         log
       );
+      if (this.provider === "groq") {
+        transformedBody = stripGroqUnsupportedFields(
+          transformedBody as Record<string, unknown>
+        ) as typeof transformedBody;
+      }
 
       try {
         // Only enforce the timeout while waiting for the initial fetch() response.
