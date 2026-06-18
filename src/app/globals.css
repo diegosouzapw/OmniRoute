@@ -92,7 +92,7 @@
      Opacity tuned up from the site's 0.045 so the wallpaper is actually visible on
      the dense dashboard (cards/chrome cover most of the viewport). */
   --grid-line: rgba(0, 0, 0, 0.07);
-  --grid-size: 46px;
+  --grid-size: 32px;
   --section-alt: rgba(0, 0, 0, 0.022);
 
   /* Identity tokens mirrored from the site. Definitions only in this phase —
