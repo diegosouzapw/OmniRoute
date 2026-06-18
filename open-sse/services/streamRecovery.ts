@@ -235,8 +235,7 @@ export function createRecoverableStream(
     async pull(controller) {
       // One pull may read several chunks while the opening window is still held; it
       // only returns after producing output, closing, or erroring.
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
+      for (;;) {
         let result: ReadableStreamReadResult<Uint8Array>;
         try {
           result = await reader.read();
