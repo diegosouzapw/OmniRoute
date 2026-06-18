@@ -13,10 +13,11 @@ const dashboardLayout = fs.readFileSync(
 );
 
 test("globals.css defines the grid wallpaper tokens for both themes", () => {
-  // light
-  assert.match(globalsCss, /--grid-line:\s*rgba\(0,\s*0,\s*0,\s*0\.045\)/);
+  // light (opacity tuned up from the site's 0.045 so the grid is visible on the
+  // dense dashboard — see the token comment in globals.css)
+  assert.match(globalsCss, /--grid-line:\s*rgba\(0,\s*0,\s*0,\s*0\.07\)/);
   // dark
-  assert.match(globalsCss, /--grid-line:\s*rgba\(255,\s*255,\s*255,\s*0\.035\)/);
+  assert.match(globalsCss, /--grid-line:\s*rgba\(255,\s*255,\s*255,\s*0\.06\)/);
   // size + alternating-section overlay
   assert.match(globalsCss, /--grid-size:\s*46px/);
   assert.match(globalsCss, /--section-alt:\s*rgba\(0,\s*0,\s*0,\s*0\.022\)/);
@@ -160,4 +161,25 @@ test("Checkbox + Textarea primitives exist and are exported", () => {
     "checkbox uses the brand accent token"
   );
   assert.ok(textarea.includes("rounded-control"), "textarea uses the control radius");
+});
+
+// ── C6: form controls share one accent focus ring (separate from the red error state) ──
+
+test("form controls focus on the accent ring, not the red primary", () => {
+  // The global :focus-visible ring already uses --color-accent. Align the form
+  // controls to it so keyboard focus is one consistent violet everywhere and the
+  // red focus ring no longer collides with the red error state.
+  assert.match(globalsCss, /--focus-ring:.*var\(--color-accent\)/);
+  for (const name of ["Input", "Select", "Textarea", "Toggle", "Checkbox"]) {
+    const src = read(`../../src/shared/components/${name}.tsx`);
+    assert.ok(/ring-accent\/30/.test(src), `${name} uses the accent focus ring`);
+    assert.ok(
+      !/(?:focus|focus-visible):ring-primary\/30/.test(src),
+      `${name} no longer uses the red primary focus ring`
+    );
+    // the red error ring stays intact where the control has an error state
+    if (src.includes("error")) {
+      assert.ok(src.includes("ring-red-500/20"), `${name} keeps the red error ring`);
+    }
+  }
 });

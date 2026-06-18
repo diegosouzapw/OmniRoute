@@ -1,6 +1,6 @@
 # OmniRoute — Design System & Visual Identity
 
-> **Status:** standardization plan. **Phases 1–3 are implemented in this PR** (grid, primitives, status-color centralization, mono token, and the DataTable token migration). The DataTable migration is **faithful** — dark stays byte-identical (the new `--table-*` dark values equal the old hardcoded rgba); light is fixed (it was buggy always-dark via dead `var()` fallbacks). **⚠️ Wants a visual pass before merge** (light-theme tables + the secondary-text shift `#888`→`--color-text-muted`). Phase 4 still pending; note several remaining "hardcoded" hex are _intentional_ (always-dark console terminal, ReactFlow SVG strokes) and must NOT be swept.
+> **Status:** standardization plan. **Phases 1–3 are implemented in this PR** (grid, primitives, status-color centralization, mono token, and the DataTable token migration). The DataTable migration is **faithful** — dark stays byte-identical (the new `--table-*` dark values equal the old hardcoded rgba); light is fixed (it was buggy always-dark via dead `var()` fallbacks). **⚠️ Wants a visual pass before merge** (light-theme tables + the secondary-text shift `#888`→`--color-text-muted`). **Phase 4 is now largely done too** (C6 focus-ring → accent, C7 Checkbox/Textarea primitives, C9 `cn()`→tailwind-merge); only the selective C8 hex-sweep remains. Note several remaining "hardcoded" hex are _intentional_ (always-dark console terminal, ReactFlow SVG strokes) and must NOT be swept.
 > **Date:** 2026-06-16 · **Scope:** unify the OmniRoute dashboard (`src/`) with the marketing site (`_mono_repo/omnirouteSite/`) into **one visual identity** — same graph-paper grid background, same color tokens, standardized components.
 
 ---
@@ -97,14 +97,15 @@ body::before {
 
 ```css
 :root {
-  /* light */
-  --grid-line: rgba(0, 0, 0, 0.045);
+  /* light — grid opacity tuned up from the site's 0.045 so the wallpaper is
+     actually visible on the dense dashboard (cards/chrome cover most of the viewport) */
+  --grid-line: rgba(0, 0, 0, 0.07);
   --grid-size: 46px;
   --section-alt: rgba(0, 0, 0, 0.022);
 }
 .dark {
-  /* dark */
-  --grid-line: rgba(255, 255, 255, 0.035);
+  /* dark — tuned up from 0.035 for the same reason */
+  --grid-line: rgba(255, 255, 255, 0.06);
   --section-alt: rgba(255, 255, 255, 0.018);
 }
 ```
@@ -161,7 +162,7 @@ Custom components (no shadcn/Radix), Tailwind v4, semantic tokens **mostly** ado
 | C3  | **Tables**                             | `DataTable.tsx:122-176`, `logTableStyles.ts`, `globals.css:405-414`                                                      | 100% inline hardcoded rgba + non-existent vars; migrate to tokens, retire divergent styles                          | 3     |
 | C4  | **Centralize status colors**           | `flow/edgeStyles.ts`, `TokenHealthBadge.tsx`, `DegradationBadge.tsx`, `ProviderCascadeNode.tsx`, `Badge.tsx` + 5 helpers | 6+ copies of the same hex → one module off `--color-success/warning/error`                                          | 3     |
 | C5  | **Card border**                        | `Card.tsx:39`                                                                                                            | `border-white/5` → brand `/8`                                                                                       | 2     |
-| C6  | **Focus ring reconcile**               | `globals.css:183` vs component `ring-primary/30`                                                                         | global indigo vs component red → pick one                                                                           | 4     |
+| C6  | **Focus ring reconcile** ✅ DONE       | `globals.css` `--focus-ring` (accent) vs form controls' `ring-primary/30`                                                | unified on **accent (violet)** to match the global ring + disambiguate from the red error ring; error stays red     | 4     |
 | C7  | **Add `Checkbox` + `Textarea`**        | raw `<input>`/`<textarea>` w/ inline `accentColor:#6366f1`                                                               | token-driven primitives                                                                                             | 4     |
 | C8  | **Hardcoded-hex sweep**                | `ConsoleLogViewer.tsx:240`, `ComboLiveStudio.tsx:306`, Modal dots, ~14 chart files                                       | literals → tokens                                                                                                   | 4     |
 | C9  | **`cn()` → clsx + tailwind-merge**     | `src/shared/utils/cn.ts`                                                                                                 | conflicting classes stack; needed for C1 overrides                                                                  | 2     |
@@ -175,7 +176,7 @@ Custom components (no shadcn/Radix), Tailwind v4, semantic tokens **mostly** ado
 - **Phase 1 — Grid + identity tokens (THIS PR).** `globals.css` grid + `--surface-2`/`--grad-brand`/`--radius` tokens; `body::before` wallpaper; remove the `bg-bg` blocker; static guard test. Low risk, reversible in one commit.
 - **Phase 2 — Primitives (C1, C2, C5) — DONE in this PR.** Semantic radius utilities `rounded-card` (14px) / `rounded-control` (9px) added via `@theme` (custom names, so the default `rounded-sm/md/lg/xl` stay untouched — no 400-file blast); Card/Modal → 14px, Button/Input/Select → 9px; Button primary → `--grad-brand` (red→violet) + new `accent` variant; Card borders → the `border-border` token (0.08). **Deferred:** `cn()`→tailwind-merge (C9) needs new deps; the ad-hoc `rounded-lg` sweep (326 files) is left as-is since the primitives carry the bulk of the surface.
 - **Phase 3 — Status colors + tables (C3, C4) — DONE in this PR.** ✅ **C4** (`src/shared/constants/statusColors.ts` — `STATUS_HEX` single source; `flow/edgeStyles.ts` + `TokenHealthBadge` repointed, faithful/same hex). ✅ **`--font-mono`** token. ✅ **C3 (DataTable)** — replaced every inline rgba + the dead `var(--bg-table-header)` / `var(--text-secondary)` fallbacks with a `--table-*` token set (`--table-header-bg/-row-zebra/-row-hover/-cell-border/-row-selected`) whose **dark values exactly equal the old hardcoded rgba** (dark byte-identical) and whose light values fix the previously-always-dark light theme. Header border → `--color-border`, secondary text → `--color-text-muted`. **Wants a visual pass before merge.** (Not touched: `logTableStyles.ts` and the legacy Ant `.ant-table` rules — separate, lower priority.)
-- **Phase 4 — Cleanup (C7, C9 done; C6, C8 pending).** ✅ **C9** `cn()` → `twMerge(clsx(...))` (clsx + tailwind-merge added as deps) — a caller's `className` now correctly _replaces_ a primitive's conflicting class instead of stacking. ✅ **C7** new `Checkbox` + `Textarea` primitives (token-driven, exported from the barrel; additive — adoption of the 32 raw checkboxes / 41 raw textareas can follow incrementally). ⏳ **C6** focus-ring reconcile (global indigo vs component red — taste, wants a visual pass). ⏳ **C8 hex-sweep is NOT a blind find/replace** — confirmed offenders that are _intentional_ and must stay: `ConsoleLogViewer.tsx:240` (always-dark terminal), `TokenHealthBadge` popover, ReactFlow SVG strokes. Only migrate hex genuinely meant to be theme-aware.
+- **Phase 4 — Cleanup (C6, C7, C9 done; C8 pending).** ✅ **C9** `cn()` → `twMerge(clsx(...))` (clsx + tailwind-merge added as deps) — a caller's `className` now correctly _replaces_ a primitive's conflicting class instead of stacking. ✅ **C7** new `Checkbox` + `Textarea` primitives (token-driven, exported from the barrel; additive — adoption of the 32 raw checkboxes / 41 raw textareas can follow incrementally). ✅ **C6** focus-ring reconcile — the form controls (`Input`/`Select`/`Textarea`/`Toggle`/`Checkbox`) now focus on the **accent (violet)** ring to match the global `--focus-ring` and to stop colliding with the red error ring; the red error state is unchanged. ⏳ **C8 hex-sweep is NOT a blind find/replace** — confirmed offenders that are _intentional_ and must stay: `ConsoleLogViewer.tsx:240` (always-dark terminal), `TokenHealthBadge` popover, ReactFlow SVG strokes. Only migrate hex genuinely meant to be theme-aware.
 
 Each phase: `npm run lint` + `npm run typecheck:core` + a visual pass.
 
