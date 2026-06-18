@@ -24,6 +24,8 @@ export interface TransparentAddon {
   createTransparentListener(ip: string, port: number): number;
   /** setsockopt(SO_MARK) on an fd — anti-loop: mark the proxy's own upstream conns. */
   setSocketMark(fd: number, mark: number): void;
+  /** socket()+SO_MARK+non-blocking connect(); returns fd. Anti-loop forward path. */
+  connectMarked(ip: string, port: number, mark: number): number;
 }
 
 /** Candidate locations for the built/prebuilt addon, relative to this module. */
@@ -47,7 +49,8 @@ export function loadTransparentAddon(
       if (
         mod &&
         typeof mod.createTransparentListener === "function" &&
-        typeof mod.setSocketMark === "function"
+        typeof mod.setSocketMark === "function" &&
+        typeof mod.connectMarked === "function"
       ) {
         return mod as TransparentAddon;
       }
@@ -92,4 +95,18 @@ export function setSocketMark(fd: number, mark: number): void {
     throw new Error("TPROXY transparent-socket addon is not available (setSocketMark).");
   }
   cached.setSocketMark(fd, mark);
+}
+
+/**
+ * Create a socket with SO_MARK set BEFORE a non-blocking connect (so the SYN
+ * carries the mark) and return its fd for Node to adopt via `new net.Socket({
+ * fd })`. This is the forward-path anti-loop: the proxy's upstream SYN is
+ * excluded by the OUTPUT rule, so the forward does not re-enter TPROXY. Throws
+ * when the addon is unavailable.
+ */
+export function connectMarked(ip: string, port: number, mark: number): number {
+  if (!cached) {
+    throw new Error("TPROXY transparent-socket addon is not available (connectMarked).");
+  }
+  return cached.connectMarked(ip, port, mark);
 }

@@ -32,19 +32,33 @@ test("loadTransparentAddon returns null when the prebuilt addon is absent (requi
 });
 
 test("loadTransparentAddon returns the addon when present and well-shaped", () => {
-  const fake = { createTransparentListener: () => 42, setSocketMark: () => {} };
+  const fake = { createTransparentListener: () => 42, setSocketMark: () => {}, connectMarked: () => 7 };
   const addon = loadTransparentAddon(() => fake, () => "linux");
   assert.equal(addon, fake);
   assert.equal(addon?.createTransparentListener("0.0.0.0", 1), 42);
 });
 
 test("loadTransparentAddon rejects a module missing createTransparentListener", () => {
-  const addon = loadTransparentAddon(() => ({ setSocketMark: () => {} }), () => "linux");
+  const addon = loadTransparentAddon(
+    () => ({ setSocketMark: () => {}, connectMarked: () => 7 }),
+    () => "linux"
+  );
   assert.equal(addon, null);
 });
 
 test("loadTransparentAddon rejects a module missing setSocketMark (anti-loop primitive)", () => {
-  const addon = loadTransparentAddon(() => ({ createTransparentListener: () => 1 }), () => "linux");
+  const addon = loadTransparentAddon(
+    () => ({ createTransparentListener: () => 1, connectMarked: () => 7 }),
+    () => "linux"
+  );
+  assert.equal(addon, null);
+});
+
+test("loadTransparentAddon rejects a module missing connectMarked (forward anti-loop)", () => {
+  const addon = loadTransparentAddon(
+    () => ({ createTransparentListener: () => 1, setSocketMark: () => {} }),
+    () => "linux"
+  );
   assert.equal(addon, null);
 });
 
