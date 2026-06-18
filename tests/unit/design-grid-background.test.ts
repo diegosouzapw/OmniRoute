@@ -6,10 +6,7 @@ import fs from "node:fs";
 // These lock in the cross-product design contract so an accidental edit can't silently
 // remove the grid or re-introduce the opaque wrapper that hides it. See design.md.
 
-const globalsCss = fs.readFileSync(
-  new URL("../../src/app/globals.css", import.meta.url),
-  "utf8"
-);
+const globalsCss = fs.readFileSync(new URL("../../src/app/globals.css", import.meta.url), "utf8");
 const dashboardLayout = fs.readFileSync(
   new URL("../../src/shared/components/layouts/DashboardLayout.tsx", import.meta.url),
   "utf8"
@@ -33,14 +30,8 @@ test("globals.css renders the grid via a body::before fixed layer", () => {
   assert.match(before, /position:\s*fixed/);
   assert.match(before, /z-index:\s*-1/);
   assert.match(before, /pointer-events:\s*none/);
-  assert.match(
-    before,
-    /linear-gradient\(to right,\s*var\(--grid-line\) 1px, transparent 1px\)/
-  );
-  assert.match(
-    before,
-    /linear-gradient\(to bottom,\s*var\(--grid-line\) 1px, transparent 1px\)/
-  );
+  assert.match(before, /linear-gradient\(to right,\s*var\(--grid-line\) 1px, transparent 1px\)/);
+  assert.match(before, /linear-gradient\(to bottom,\s*var\(--grid-line\) 1px, transparent 1px\)/);
   assert.match(before, /background-size:\s*var\(--grid-size\) var\(--grid-size\)/);
 });
 
@@ -112,7 +103,10 @@ test("status colors come from one canonical module", () => {
 
   const edges = read("../../src/shared/components/flow/edgeStyles.ts");
   const badge = read("../../src/shared/components/TokenHealthBadge.tsx");
-  assert.ok(edges.includes('from "@/shared/constants/statusColors"'), "edgeStyles imports the module");
+  assert.ok(
+    edges.includes('from "@/shared/constants/statusColors"'),
+    "edgeStyles imports the module"
+  );
   assert.ok(edges.includes("STATUS_HEX.success"), "edgeStyles uses STATUS_HEX, not a literal");
   assert.ok(!edges.includes('"#22c55e"'), "edgeStyles no longer hardcodes the success hex");
   assert.ok(badge.includes("STATUS_HEX.success"), "TokenHealthBadge uses STATUS_HEX");
@@ -144,4 +138,26 @@ test("DataTable is theme-aware via --table-* tokens (dark = the exact old values
     !dt.includes("--text-secondary") && !dt.includes("--bg-table-header"),
     "the dead var fallbacks are gone"
   );
+});
+
+// ── Phase 4 (safe additives): cn() merge + Checkbox / Textarea primitives ──
+
+test("cn() dedupes conflicting Tailwind classes via tailwind-merge", () => {
+  const cnSrc = read("../../src/shared/utils/cn.ts");
+  assert.match(cnSrc, /from "tailwind-merge"/);
+  assert.match(cnSrc, /from "clsx"/);
+  assert.match(cnSrc, /twMerge\(clsx\(/);
+});
+
+test("Checkbox + Textarea primitives exist and are exported", () => {
+  const barrel = read("../../src/shared/components/index.tsx");
+  assert.ok(barrel.includes('export { default as Checkbox } from "./Checkbox"'));
+  assert.ok(barrel.includes('export { default as Textarea } from "./Textarea"'));
+  const checkbox = read("../../src/shared/components/Checkbox.tsx");
+  const textarea = read("../../src/shared/components/Textarea.tsx");
+  assert.ok(
+    checkbox.includes("accent-[var(--color-accent)]"),
+    "checkbox uses the brand accent token"
+  );
+  assert.ok(textarea.includes("rounded-control"), "textarea uses the control radius");
 });
