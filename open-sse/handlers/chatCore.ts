@@ -4082,9 +4082,9 @@ export async function handleChatCore({
                 let streamRecoveryEnabled = false;
                 if (okStatus) {
                   try {
-                    streamRecoveryEnabled = resolveResilienceSettings(
-                      cachedSettings ?? (await getCachedSettings())
-                    ).streamRecovery.enabled;
+                    // Reuse the request-consolidated settings read (see line ~2076) — no
+                    // second DB/cache hit. Default OFF when the setting is absent.
+                    streamRecoveryEnabled = resolveResilienceSettings(settings).streamRecovery.enabled;
                   } catch {
                     streamRecoveryEnabled = false;
                   }

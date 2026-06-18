@@ -254,3 +254,23 @@ test("createRecoverableStream finalizes on client cancel", async () => {
   await reader.cancel("client gone");
   assert.equal(finalizeCount, 1);
 });
+
+test("createRecoverableStream does not spend an upstream re-open after a client cancel", async () => {
+  let reopened = 0;
+  let finalizeCount = 0;
+  const attempt1 = makeStream(["data: a\n\n"], "close");
+  const rs = createRecoverableStream(
+    attempt1,
+    async () => {
+      reopened++;
+      return makeStream(["data: t\n\n"], "close");
+    },
+    { finalize: () => finalizeCount++, now: () => 0 }
+  );
+
+  const reader = rs.getReader();
+  await reader.cancel("client gone");
+  await new Promise((r) => setTimeout(r, 10)); // let any in-flight pull settle
+  assert.equal(reopened, 0, "a client cancel must never trigger a transparent re-open");
+  assert.equal(finalizeCount, 1);
+});

@@ -189,12 +189,12 @@ export function createRecoverableStream(
   options: RecoverableStreamOptions
 ): ReadableStream<Uint8Array> {
   const maxRetries = options.maxEarlyRetries ?? STREAM_RECOVERY.EARLY_RETRY_MAX;
-  const makeHoldback = () => new HoldbackBuffer({ now: options.now });
 
   let reader: ReadableStreamDefaultReader<Uint8Array> = initialStream.getReader();
-  let holdback = makeHoldback();
+  let holdback = new HoldbackBuffer({ now: options.now });
   let retries = 0;
   let finalized = false;
+  let cancelled = false;
 
   const runFinalize = () => {
     if (finalized) return;
@@ -205,7 +205,8 @@ export function createRecoverableStream(
   // Drop the dead reader + held window and acquire a fresh upstream. Returns whether a
   // new stream is now in place (false = give up and fall back to best-effort partial).
   const tryReopen = async (error: unknown): Promise<boolean> => {
-    if (retries >= maxRetries) return false;
+    // A client cancel during the holdback window must NOT spend an upstream request.
+    if (cancelled || retries >= maxRetries) return false;
     retries += 1;
     options.onRetry?.(retries, error);
     try {
@@ -223,7 +224,7 @@ export function createRecoverableStream(
     // fails/exhausts, the caller falls back to flushing those held bytes.
     if (!next) return false;
     reader = next.getReader();
-    holdback = makeHoldback();
+    holdback.discard(); // reuse the (still-uncommitted) buffer for the new attempt
     return true;
   };
 
@@ -240,6 +241,7 @@ export function createRecoverableStream(
         try {
           result = await reader.read();
         } catch (error) {
+          if (cancelled) return; // torn down while awaiting — don't touch the controller
           if (holdback.committed) {
             runFinalize();
             controller.error(error);
@@ -255,6 +257,7 @@ export function createRecoverableStream(
           return;
         }
 
+        if (cancelled) return; // torn down while awaiting — don't touch the controller
         const { done, value } = result;
         if (done) {
           if (holdback.committed) {
@@ -294,6 +297,7 @@ export function createRecoverableStream(
     },
 
     async cancel(reason) {
+      cancelled = true;
       runFinalize();
       try {
         await reader.cancel(reason);
