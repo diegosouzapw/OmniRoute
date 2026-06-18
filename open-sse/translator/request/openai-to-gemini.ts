@@ -318,10 +318,10 @@ function openaiToGeminiBase(
     if (
       modelLower.includes("gemini") &&
       !modelLower.includes("gemini-1") &&
-      !modelLower.includes("gemini-2.0")
+      (!modelLower.includes("gemini-2.0") || modelLower.includes("thinking"))
     ) {
       result.generationConfig.thinkingConfig = {
-        thinkingBudget: getDefaultThinkingBudget(model) || 24576,
+        thinkingBudget: getDefaultThinkingBudget(model) || capThinkingBudget(model, 24576),
         includeThoughts: true,
       };
     }
