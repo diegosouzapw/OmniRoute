@@ -1,5 +1,6 @@
 {
   "_comment": "Catraca de tamanho (check-file-size.mjs). frozen so pode encolher; arquivos novos <= cap. --update ratcheta.",
+  "_rebaseline_2026_06_18_8_2_sliding_window": "Fase 8.2 own growth: rateLimitManager.ts 1017->1022 (+5 = one import + one `await awaitProviderDefaultSlot(...)` call + a 2-line comment at the existing withRateLimit chokepoint). All sliding-window logic was extracted to the new open-sse/services/providerDefaultRateLimit.ts + open-sse/services/slidingWindowLimiter.ts (both <cap), NOT inlined. Thin wiring only; not further shrinkable.",
   "_rebaseline_2026_06_17_4098_wafer": "PR #4098 own growth: providers.ts 3159->3169 (+10 = Wafer AI catalog entry, a single Zod-validated provider record in the providers map — pure data, standard per-provider addition; bumps catalog 227->228). Cohesive catalog growth; not extractable.",
   "_rebaseline_2026_06_17_4096_field_downgrade": "PR #4096 own growth: base.ts 1292->1334 (+42 = generic 400 field-downgrade retry at the executor fetch loop — on an upstream 400 that names an unsupported field, strip it via providerFieldStrips and retry once, plus Groq field stripping wiring). The strip table lives in the new open-sse/config/providerFieldStrips.ts (<cap). Cohesive resilience logic at the existing fetch chokepoint; not extractable.",
   "_rebaseline_2026_06_17_4071_vision_routing": "PR #4071 own growth: combo.ts 5283->5289 (+6 = vision-aware routing fix in getTargetCompatibilityFailures — image requests now require supportsVision===true, treating null/unknown as incompatible, with an explanatory comment block; plus exporting filterTargetsByRequestCompatibility for the regression test). The accompanying capability heuristic lives in src/lib/modelCapabilities.ts (419 LOC, <cap). Cohesive bug fix at the existing compatibility-filter chokepoint; not extractable.",
@@ -63,7 +64,7 @@
     "open-sse/services/browserBackedChat.ts": 850,
     "open-sse/services/claudeCodeCompatible.ts": 1202,
     "open-sse/services/combo.ts": 5298,
-    "open-sse/services/rateLimitManager.ts": 1017,
+    "open-sse/services/rateLimitManager.ts": 1022,
     "open-sse/services/tokenRefresh.ts": 1997,
     "open-sse/services/usage.ts": 3408,
     "open-sse/translator/request/openai-to-gemini.ts": 844,

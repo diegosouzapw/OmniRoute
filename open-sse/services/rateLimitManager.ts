@@ -12,6 +12,7 @@ import Bottleneck from "bottleneck";
 import { parseRetryAfterFromBody } from "./accountFallback.ts";
 import { getProviderCategory } from "../config/providerRegistry.ts";
 import { getCodexRateLimitKey } from "../executors/codex.ts";
+import { awaitProviderDefaultSlot } from "./providerDefaultRateLimit.ts";
 import {
   DEFAULT_RESILIENCE_SETTINGS,
   resolveResilienceSettings,
@@ -531,6 +532,10 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
     err.name = "AbortError";
     throw err;
   }
+
+  // Proactive sliding-window fallback for header-less providers with a declared cap
+  // (Fase 8.2). No-op unless PROVIDER_DEFAULT_RATE_LIMITS has an entry for `provider`.
+  await awaitProviderDefaultSlot(provider, connectionId, signal, currentRequestQueueSettings.maxWaitMs);
 
   const limiter = getLimiter(provider, connectionId, model);
   const maxWaitMs = currentRequestQueueSettings.maxWaitMs;
