@@ -9,17 +9,20 @@ permissions:
 
 jobs:
   stryker:
-    name: Stryker mutation testing (8 critical modules — advisory)
+    name: Stryker mutation testing (6 critical modules — advisory)
     runs-on: ubuntu-latest
-    # Mutation testing is expensive (~15k mutants across 8 modules). It runs only
+    # Mutation testing is expensive (~5k mutants across 6 modules). It runs only
     # on the nightly schedule / manual dispatch, never on PRs. The score is NOT
     # yet enforced as a ratchet (wired in a later INT phase) — for now the job
     # just produces the HTML/JSON report and uploads it as an artifact.
     #
     # Runs at stryker concurrency=4 (was 1) now that ./tests/_setup/isolateDataDir.ts
-    # gives each test process its own DATA_DIR — at concurrency=1 the full phase did
-    # not finish inside the timeout (the cancelled 2026-06-16/17 runs). 180 min leaves
-    # headroom for the first cold run before the incremental cache is seeded.
+    # gives each test process its own DATA_DIR. The full 8-module set still TIMED OUT
+    # at the 180min cap (run 27705123780 = exactly 180min), because the two god-files
+    # chatCore.ts/combo.ts dominate ~2/3 of the mutants; they were removed from
+    # stryker.conf.json `mutate` until the Onda 3 split (see _mutate_godfiles_excluded_comment
+    # there). The remaining 6 modules fit the budget. 180min leaves cold-run headroom
+    # before the incremental cache is seeded.
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v6
