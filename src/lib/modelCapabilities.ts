@@ -5,6 +5,7 @@ import {
 import { parseModel, resolveCanonicalProviderModel } from "@omniroute/open-sse/services/model.ts";
 import { MODEL_SPECS, getModelSpec, type ModelSpec } from "@/shared/constants/modelSpecs";
 import { getSyncedCapability } from "@/lib/modelsDevSync";
+import { isVisionModelId } from "@/shared/constants/visionModels";
 
 const TOOL_CALLING_UNSUPPORTED_PATTERNS: string[] = [];
 const REASONING_UNSUPPORTED_PATTERNS = [
@@ -211,52 +212,16 @@ function getSyncedCapabilityForResolved(
 }
 
 /**
- * High-precision vision model-id fragments, used ONLY as a last-resort fallback
- * in resolveVisionCapability when there is no synced/registry/spec capability
- * data (e.g. Mistral Pixtral, which ships no models.dev `attachment` flag and no
- * registry `supportsVision`). Intentionally conservative: a false positive would
- * let an image request route to a text-only model — the exact bug this guards
- * against — so only unambiguously multimodal families are listed. Missing an
- * exotic vision model is safe: it resolves to `null` and combo routing keeps it
- * via the "no confirmed-vision target" fallback.
+ * Last-resort vision fallback in resolveVisionCapability when there is no
+ * synced/registry/spec capability data (e.g. Mistral Pixtral, which ships no
+ * models.dev `attachment` flag and no registry `supportsVision`). Delegates to
+ * the single shared source (`@/shared/constants/visionModels`, #4072) so routing,
+ * the `/v1/models` listing and lite compression can never disagree on whether a
+ * model is vision-capable. The list is intentionally conservative — a false
+ * positive would let an image request route to a text-only model.
  */
-const VISION_MODEL_ID_FRAGMENTS = [
-  "pixtral",
-  "llava",
-  "bakllava",
-  "qwen-vl",
-  "qwen2-vl",
-  "qwen2.5-vl",
-  "qwen3-vl",
-  "qvq",
-  "internvl",
-  "minicpm-v",
-  "moondream",
-  "mimo-vl",
-  "kimi-vl",
-  "glm-4v",
-  "glm-4.5v",
-  "glm-4.6v",
-  "gpt-4o",
-  "gpt-4.1",
-  "gpt-4-turbo",
-  "gpt-4-vision",
-  "gemini-1.5",
-  "gemini-2",
-  "gemini-exp",
-  "claude-3",
-  "claude-opus-4",
-  "claude-sonnet-4",
-  "claude-haiku-4",
-  "mistral-medium-3",
-  "-vision",
-  "multimodal",
-];
-
-function modelIdLikelyVision(modelId: string | null | undefined): boolean {
-  if (!modelId) return false;
-  const normalized = modelId.toLowerCase();
-  return VISION_MODEL_ID_FRAGMENTS.some((fragment) => normalized.includes(fragment));
+export function modelIdLikelyVision(modelId: string | null | undefined): boolean {
+  return isVisionModelId(modelId);
 }
 
 function resolveVisionCapability(

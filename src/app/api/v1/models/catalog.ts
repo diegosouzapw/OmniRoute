@@ -1,5 +1,6 @@
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { AI_PROVIDERS, NOAUTH_PROVIDERS } from "@/shared/constants/providers";
+import { isVisionModelId } from "@/shared/constants/visionModels";
 import {
   getProviderConnections,
   getCombos,
@@ -124,37 +125,10 @@ function minKnownNumber(values: Array<number | undefined>): number | undefined {
   return Math.min(...knownValues);
 }
 
-const VISION_MODEL_KEYWORDS = [
-  "gpt-4o",
-  "gpt-4.1",
-  "gpt-4-vision",
-  "gpt-4-turbo",
-  "claude-3",
-  "claude-3.5",
-  "claude-3-5",
-  "claude-4",
-  "claude-opus",
-  "claude-sonnet",
-  "claude-haiku",
-  "gemini",
-  "gemma",
-  "llava",
-  "bakllava",
-  "pixtral",
-  "mistral-pixtral",
-  "qwen-vl",
-  "qvq",
-  "glm-4.6v",
-  "glm-4.5v",
-  "vision",
-  "multimodal",
-  "kimi",
-];
-function isVisionModelId(modelId: string): boolean {
-  const normalized = String(modelId || "").toLowerCase();
-  if (!normalized) return false;
-  return VISION_MODEL_KEYWORDS.some((keyword) => normalized.includes(keyword));
-}
+// Vision detection is centralized in `@/shared/constants/visionModels` (#4072) so
+// this listing path, the routing fallback, and lite compression share one verdict.
+// Re-exported for callers/tests that imported it from here.
+export { isVisionModelId };
 
 function getVisionCapabilityFields(modelId: string) {
   if (!isVisionModelId(modelId)) return null;
