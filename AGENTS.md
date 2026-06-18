@@ -843,6 +843,49 @@ a broken import. Keep it fork-only.
 
 ---
 
+## Recent Changes (L5-111 Bifrost model catalog cache, B4 of v8.1, 2026-06-18)
+
+Implements **B4** of the v8.1 Bifrost Tier-1 router rollout
+([`PLAN.md` § 2.5.2](../../plans/2026-06-17-v7-dag-stable.md),
+[`docs/adr/0031-bifrost-tier1-router.md`](docs/adr/0031-bifrost-tier1-router.md)).
+Adds a stale-tolerant local cache for Bifrost's `/v1/models` response,
+backed by SQLite (migration 100). Eliminates the implicit
+"ask Bifrost on every dispatch" pattern.
+
+### New files (L5-111)
+
+| File | Lines | Purpose |
+|---|---|---|
+| `src/lib/db/migrations/100_bifrost_models.sql` | 57 | Schema: `bifrost_models` + `bifrost_models_meta` tables, indexes on `(provider)` and `(expires_at)`. |
+| `src/lib/db/bifrostModels.ts` | 508 | CRUD: `getBifrostModel`, `listBifrostModelsForProvider`, `refreshBifrostModels`, `purgeExpiredBifrostModels`, `purgeBifrostModelsByProvider`, `getBifrostModelMeta`, `listBifrostModelMeta`, `recordBifrostFetch`. Custom `BifrostCacheError`. |
+| `tests/unit/bifrost-models-db.test.ts` | 464 | Node test runner; 25 cases across 6 describe blocks. |
+
+### Cache contract
+
+- **TTL:** default 1 hour, overridable per refresh (`ttlSeconds`).
+- **Stale-tolerant reads:** `getBifrostModel(provider, id)` returns `null` for expired rows; pass `includeExpired=true` to bypass.
+- **Partial-success:** fetcher returning some unparseable entries still upserts the parseable ones (status: `partial`). Set `allowPartial=false` to reject.
+- **Error observability:** every fetch records `bifrost_models_meta.last_status` ∈ {`ok`, `error`, `partial`} with `last_error` for `error`.
+- **Hard cap:** responses > 5,000 entries are rejected (defense against runaway providers).
+
+### Wiring (next session, B5+)
+
+The bifrost executor (`open-sse/executors/bifrost.ts`) currently
+hits Bifrost's `/v1/models` directly. Wiring it to read from this
+cache is B5+ work. Until then, the cache is populated by:
+- `refreshBifrostModels(provider, fetcher)` — operator-called on schedule.
+- Future: a cron in `src/lib/jobs/` that calls `refreshBifrostModels`
+  for all 24 providers once an hour.
+
+### Fork-only policy (extended for L5-111)
+
+`src/lib/db/bifrostModels.ts` and migration `100_bifrost_models.sql`
+are **KP-only**. They depend on the bifrostProviderMap and the
+fork-only executor. Do not upstream unless `diegosouzapw/OmniRoute`
+adopts the same Tier-1 Bifrost strategy.
+
+---
+
 ## Cross-references
 
 - [`SPEC.md`](SPEC.md) — v8 spec (v3.9.0 in flight)
