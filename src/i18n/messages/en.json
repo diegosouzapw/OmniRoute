@@ -8529,6 +8529,8 @@
     "httpProxyModeDesc": "Use HTTP_PROXY environment variable",
     "systemWideMode": "System-wide",
     "systemWideModeDesc": "Intercept all system traffic (advanced)",
+    "tproxyMode": "TPROXY Decrypt",
+    "tproxyModeUnavailable": "TPROXY decrypt requires Linux + root + the native addon",
     "filterBarTitle": "Filters",
     "profileLlmOnly": "LLM only",
     "profileCustom": "Custom",
