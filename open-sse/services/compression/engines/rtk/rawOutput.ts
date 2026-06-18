@@ -89,8 +89,14 @@ export function maybePersistRtkRawOutput(
   const id = safeId(`${now}:${commandSlug}:${raw.length}:${redaction.text}`);
   const dir = path.join(dataDir(), "rtk", "raw-output");
   const filePath = path.join(dir, `${now}-${commandSlug || "tool-output"}-${id}.log`);
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(filePath, redaction.text);
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(filePath, redaction.text);
+  } catch {
+    // Best-effort capture: a disk error (ENOSPC / EACCES / read-only DATA_DIR) must NEVER
+    // fail the compression pipeline. Skip the capture, exactly like retention "never".
+    return null;
+  }
 
   // Sidecar metadata: the .log filename only carries a lossy command SLUG, so persist
   // the FULL command (and timestamp/flags) next to it. Keeps the .log pure output (the
