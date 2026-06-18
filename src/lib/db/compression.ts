@@ -172,6 +172,16 @@ function normalizeRtkConfig(value: unknown): RtkConfig {
       1024,
       10_000_000
     ),
+    enableGrouping:
+      typeof record.enableGrouping === "boolean"
+        ? record.enableGrouping
+        : (DEFAULT_RTK_CONFIG.enableGrouping ?? false),
+    groupingThreshold: boundedInt(
+      record.groupingThreshold,
+      DEFAULT_RTK_CONFIG.groupingThreshold ?? 3,
+      2,
+      100
+    ),
   };
 }
 

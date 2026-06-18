@@ -230,6 +230,8 @@ export const DEFAULT_RTK_CONFIG: RtkConfig = {
   trustProjectFilters: false,
   rawOutputRetention: "never",
   rawOutputMaxBytes: 1_048_576,
+  enableGrouping: false,
+  groupingThreshold: 3,
 };
 
 export const DEFAULT_COMPRESSION_LANGUAGE_CONFIG: CompressionLanguageConfig = {
