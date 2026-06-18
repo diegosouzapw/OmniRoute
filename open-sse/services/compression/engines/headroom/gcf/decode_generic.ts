@@ -564,7 +564,13 @@ function parseAttachment(
       const sf = sharedSchemas.get(name)!;
       const countStr = afterName.slice(1, closeBracket);
       let count = -1;
-      if (countStr !== "?") count = parseInt(countStr, 10);
+      if (countStr !== "?") {
+        try {
+          count = parseCount(countStr);
+        } catch {
+          count = -1;
+        }
+      }
       if (count === 0) return [name, [], 1, null];
 
       const nextIdx = lineIdx + 1;

@@ -230,13 +230,14 @@ export function decodeTabular(text: string): Record<string, unknown>[] {
   if (text.startsWith(GCF_FENCE_OPEN + "\n") || text.startsWith("GCF ")) {
     // GCF format: strip fence if present, decode via GCF decoder.
     let inner = text;
-    if (inner.startsWith(GCF_FENCE_OPEN + "\n")) {
+    const hadFence = inner.startsWith(GCF_FENCE_OPEN + "\n");
+    if (hadFence) {
       inner = inner.slice(GCF_FENCE_OPEN.length + 1);
-    }
-    if (inner.endsWith("\n" + GCF_FENCE_CLOSE)) {
-      inner = inner.slice(0, inner.length - GCF_FENCE_CLOSE.length - 1);
-    } else if (inner.endsWith(GCF_FENCE_CLOSE)) {
-      inner = inner.slice(0, inner.length - GCF_FENCE_CLOSE.length);
+      if (inner.endsWith("\n" + GCF_FENCE_CLOSE)) {
+        inner = inner.slice(0, inner.length - GCF_FENCE_CLOSE.length - 1);
+      } else if (inner.endsWith(GCF_FENCE_CLOSE)) {
+        inner = inner.slice(0, inner.length - GCF_FENCE_CLOSE.length);
+      }
     }
     const result = decodeGeneric(inner);
     // decodeGeneric returns the decoded value; for arrays, return directly.
