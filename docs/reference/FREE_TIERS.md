@@ -35,7 +35,7 @@ Biggest **documented** contributors: `mistral` 1.00B, `llm7` 150M, `longcat` 150
 
 A 50-agent web-research pass (official docs + last-7-days news, adversarially verified) refreshed the whole catalog. Highlights:
 
-- **Removed (discontinued / shut down in 2026):** `chutes` (free tier ended 2026-03), `phind` (company shut down 2026-01), `kluster` (sunset 2026-06-09 → MITO), `glhf` (beta ended), `gitlawb` (free model revoked 2026-05-24), `aimlapi` / `theoldllm` / `featherless-ai` (no current free tier).
+- **Removed / no free tier (2026):** `chutes` (free tier ended 2026-03), `phind` (company shut down 2026-01), `kluster` (sunset 2026-06-09 → MITO), `glhf` (beta ended), `gitlawb` + `gitlawb-gmi` (MiMo free revoked 2026-05-24, Nemotron promo ended 2026-06 — re-verified 2026-06-18), `aimlapi` (free tier paused — re-verified 2026-06-18), `yi` (Yi-Light retired, pay-as-you-go — re-verified 2026-06-18), `theoldllm` / `featherless-ai` (no current free tier). `iflytek` / `sparkdesk` stay listed but carry a ToS-caution note (Spark Lite is free; the ToS restricts proxy/relay use).
 - **GitHub Models** — closed to **new** customers on 2026-06-16; existing accounts keep API/playground access, so it stays in the catalog with a note (not removed).
 - **Gemini** — `2.0 Flash` / `2.0 Flash-Lite` shut down 2026-06-01 and `2.5 Pro` left the free tier (2026-04); free tier is now **Flash-family only** (2.5/3/3.1/3.5 Flash + Gemma). The catalog now **pools** the Flash family (was inflated by counting each variant separately: 462M → 60M).
 - **Corrected numbers:** `cloudflare-ai` 122M → **30M** (real 10k-Neurons/day), `doubao` reclassified as a one-time signup credit (not recurring), `llm7` 4M → **150M** (documented 5M tokens/day), `together` "-Free" endpoints discontinued → only the **$25** signup credit remains, `longcat` retired 6 legacy models → **LongCat-2.0-Preview** only.
@@ -230,7 +230,6 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 | `freemodel-dev` | keyless | — | — | unknown | 4 |
 | `friendliai` | keyless | — | — | avoid | 2 |
 | `gemini-cli` | keyless | — | — | avoid | 9 |
-| `gitlawb-gmi` | keyless | — | — | ambiguous | 40 |
 | `hackclub` | keyless | — | — | caution | 3 |
 | `iflytek` | keyless | — | — | avoid | 1 |
 | `inference-net` | keyless | — | — | caution | 3 |
@@ -251,7 +250,6 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 | `stepfun` | keyless | — | — | ok | 1 |
 | `t3-web` | keyless | — | — | avoid | 23 |
 | `uncloseai` | keyless | — | — | caution | 3 |
-| `yi` | keyless | — | — | unknown | 1 |
 
 ---
 
