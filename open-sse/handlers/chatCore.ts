@@ -12,6 +12,29 @@ import {
   buildClaudePromptCacheLogMeta,
 } from "./chatCore/executorHelpers.ts";
 import {
+  shouldUseNativeCodexPassthrough,
+  redactPassthroughThinkingSignatures,
+  isClaudeCodeSemanticPassthroughRequest,
+} from "./chatCore/passthroughHelpers.ts";
+import {
+  buildStreamingResponseHeaders,
+  materializeDeduplicatedExecutionResult,
+  stripStaleForwardingHeaders,
+} from "./chatCore/responseHeaders.ts";
+import {
+  forwardDashboardEventToLiveWs,
+  maybeSyncClaudeExtraUsageState,
+} from "./chatCore/telemetryHelpers.ts";
+// Re-export the previously inline-defined helpers so existing importers of these
+// symbols from chatCore.ts (tests, sibling modules) keep resolving after the split.
+export {
+  shouldUseNativeCodexPassthrough,
+  redactPassthroughThinkingSignatures,
+  isClaudeCodeSemanticPassthroughRequest,
+  buildStreamingResponseHeaders,
+  stripStaleForwardingHeaders,
+};
+import {
   extractMemoryTextFromResponse,
   extractMemoryTextFromRequestBody,
   resolveMemoryOwnerId,
@@ -264,181 +287,6 @@ import { incrementRequestCount } from "../services/geminiRateLimitTracker.ts";
 
 import { isSmallEnoughForSemanticCache } from "../utils/estimateSize.ts";
 
-async function forwardDashboardEventToLiveWs(event: string, payload: unknown): Promise<void> {
-  const port = process.env.LIVE_WS_PORT || "20129";
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 1_500);
-  try {
-    await fetch(`http://127.0.0.1:${port}/__omniroute_event`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ event, payload, timestamp: Date.now() }),
-      signal: controller.signal,
-    });
-  } catch {
-    // Best-effort sidecar bridge; do not affect the chat hot path.
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-async function maybeSyncClaudeExtraUsageState({
-  provider,
-  connectionId,
-  providerSpecificData,
-  log,
-}: {
-  provider: string | null | undefined;
-  connectionId: string | null | undefined;
-  providerSpecificData: unknown;
-  log?: { debug?: (...args: unknown[]) => void; warn?: (...args: unknown[]) => void } | null;
-}) {
-  if (!connectionId || !isClaudeExtraUsageBlockEnabled(provider, providerSpecificData)) {
-    return;
-  }
-
-  try {
-    await fetchLiveProviderLimits(connectionId);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    log?.debug?.("CLAUDE_USAGE", `Failed to sync Claude extra-usage state: ${message}`);
-  }
-}
-
-export function shouldUseNativeCodexPassthrough({
-  provider,
-  sourceFormat,
-  endpointPath,
-}: {
-  provider?: string | null;
-  sourceFormat?: string | null;
-  endpointPath?: string | null;
-}): boolean {
-  if (provider !== "codex") return false;
-  if (sourceFormat !== FORMATS.OPENAI_RESPONSES) return false;
-  let normalizedEndpoint = String(endpointPath || "");
-  while (normalizedEndpoint.endsWith("/")) normalizedEndpoint = normalizedEndpoint.slice(0, -1);
-  const segments = normalizedEndpoint.split("/");
-  return segments.includes("responses");
-}
-
-/**
- * Pass `thinking` / `redacted_thinking` blocks through UNCHANGED.
- *
- * This used to rewrite every assistant thinking block to `redacted_thinking`
- * carrying a synthetic signature, on the assumption that a thinking signature is
- * bound to the auth token that produced it and would be rejected after a token /
- * model switch with 400 "Invalid signature in thinking block" (issue #2454).
- *
- * That rewrite is the actual cause of a different, far more common failure on the
- * Anthropic-native Claude OAuth passthrough:
- *
- *   400 messages.N.content.M: `thinking` or `redacted_thinking` blocks in the
- *   latest assistant message cannot be modified. These blocks must remain as
- *   they were in the original response.
- *
- * The Messages API validates submitted thinking blocks against the original
- * response and rejects ANY modification — so converting them to
- * `redacted_thinking` makes every multi-turn request with thinking fail (most
- * visible on long Claude Code tool-loops). The thinking-block signature is
- * validated server-side by Anthropic and stays valid when the blocks are replayed,
- * including under a different OAuth token — verified by preserving the blocks
- * across a mid-conversation account switch with zero "Invalid signature"
- * responses. The redaction is therefore both unnecessary and the cause of the
- * regression, so the blocks are now returned verbatim. The `signature` parameter
- * is kept for call-site compatibility.
- */
-export function redactPassthroughThinkingSignatures(
-  messages: unknown,
-  _signature: string
-): unknown {
-  return messages;
-}
-
-export function isClaudeCodeSemanticPassthroughRequest({
-  provider,
-  sourceFormat,
-  targetFormat,
-  headers,
-  userAgent,
-}: {
-  provider?: string | null;
-  sourceFormat?: string | null;
-  targetFormat?: string | null;
-  headers?: Record<string, unknown> | Headers | null;
-  userAgent?: string | null;
-}): boolean {
-  const isDirectClaudeCodeProvider =
-    provider === "claude" || isClaudeCodeCompatibleProvider(provider);
-  if (!isDirectClaudeCodeProvider) return false;
-  if (sourceFormat !== FORMATS.CLAUDE) return false;
-  if (targetFormat !== FORMATS.CLAUDE) return false;
-
-  const headerUserAgent = getHeaderValueCaseInsensitive(headers, "user-agent");
-  const ua = `${userAgent || ""} ${headerUserAgent || ""}`.toLowerCase();
-  if (ua.includes("claude-code") || ua.includes("claude-cli")) return true;
-
-  const appHeader = getHeaderValueCaseInsensitive(headers, "x-app");
-  if (typeof appHeader === "string" && appHeader.trim().toLowerCase() === "cli") return true;
-
-  const sessionId = getHeaderValueCaseInsensitive(headers, "x-claude-code-session-id");
-  return typeof sessionId === "string" && sessionId.trim().length > 0;
-}
-
-const STREAMING_RESPONSE_HEADER_DENYLIST = new Set([
-  "content-type",
-  "content-encoding",
-  "content-length",
-  "transfer-encoding",
-]);
-
-export function buildStreamingResponseHeaders(
-  providerHeaders: Headers,
-  meta: Parameters<typeof buildOmniRouteResponseMetaHeaders>[0]
-): Record<string, string> {
-  const forwardedHeaders: [string, string][] = [];
-  providerHeaders.forEach((value, key) => {
-    if (!STREAMING_RESPONSE_HEADER_DENYLIST.has(key.toLowerCase())) {
-      forwardedHeaders.push([key, value]);
-    }
-  });
-
-  return {
-    ...Object.fromEntries(forwardedHeaders),
-    "Content-Type": "text/event-stream",
-    "Cache-Control": "no-cache, no-transform",
-    Connection: "keep-alive",
-    "X-Accel-Buffering": "no",
-    [OMNIROUTE_RESPONSE_HEADERS.cache]: "MISS",
-    ...buildOmniRouteResponseMetaHeaders(meta),
-  };
-}
-
-function materializeDeduplicatedExecutionResult<T extends Record<string, unknown>>(result: T): T {
-  const snapshot =
-    result && typeof result === "object"
-      ? ((result as Record<string, unknown>)._dedupSnapshot as
-          | {
-              status: number;
-              statusText: string;
-              headers: [string, string][];
-              payload: string;
-            }
-          | undefined)
-      : undefined;
-
-  if (!snapshot) return result;
-
-  return {
-    ...result,
-    response: new Response(snapshot.payload, {
-      status: snapshot.status,
-      statusText: snapshot.statusText,
-      headers: snapshot.headers,
-    }),
-  } as T;
-}
-
 function getSkillsProviderForFormat(format: string): "openai" | "anthropic" | "google" | "other" {
   switch (format) {
     case FORMATS.CLAUDE:
@@ -459,34 +307,6 @@ function getSkillsModelIdForFormat(format: string): string {
     default:
       return "openai";
   }
-}
-
-/**
- * Strip hop-by-hop headers that describe the upstream wire encoding.
- *
- * `readNonStreamingResponseBody` reads (and, for compressed responses, also
- * decompresses via fetch's auto-decoder) the full upstream body into a JS
- * string before we re-emit it to the client. Once that happens, the original
- * `Content-Encoding`, `Content-Length`, and `Transfer-Encoding` all describe
- * a payload that no longer exists:
- *
- *   - `Content-Length` is the *compressed* byte count, so clients honoring it
- *     read only the first N bytes of the decompressed JSON and surface
- *     "Unterminated string in JSON at position …" parse failures (observed
- *     on gzipped Gemini responses).
- *   - `Content-Encoding` advertises a compression we have already undone.
- *   - `Transfer-Encoding` is hop-by-hop per RFC 7230 §6.1 and must not be
- *     forwarded across a buffering proxy — its presence alongside a
- *     re-emitted body is undefined behavior.
- *
- * Deleting all three lets the response framework set a fresh, correct
- * `Content-Length` (or fall back to `Transfer-Encoding: chunked`) for the
- * payload we are actually sending.
- */
-export function stripStaleForwardingHeaders(headers: Headers): void {
-  headers.delete("content-encoding");
-  headers.delete("content-length");
-  headers.delete("transfer-encoding");
 }
 
 async function readNonStreamingResponseBody(

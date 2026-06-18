@@ -14,7 +14,11 @@
  */
 
 import { describe, test, expect } from "vitest";
-import { normalizeQdrantConfig } from "../qdrant";
+import {
+  normalizeQdrantConfig,
+  buildQuantizationConfig,
+  searchQuantizationParams,
+} from "../qdrant";
 
 describe("normalizeQdrantConfig — defaults & disabled state", () => {
   test("returns disabled config when settings are empty (no Qdrant configured)", () => {
@@ -73,5 +77,34 @@ describe("normalizeQdrantConfig — defaults & disabled state", () => {
       });
       expect(cfg.enabled).toBe(false);
     }
+  });
+});
+
+describe("Qdrant scalar quantization wiring (Q1 / F4.4)", () => {
+  test("defaults quantization to 'none' when the setting is missing", () => {
+    expect(normalizeQdrantConfig({}).quantization).toBe("none");
+  });
+
+  test("reads valid int8 / binary modes; invalid or non-string values fall back to none", () => {
+    expect(normalizeQdrantConfig({ qdrantQuantization: "int8" }).quantization).toBe("int8");
+    expect(normalizeQdrantConfig({ qdrantQuantization: "binary" }).quantization).toBe("binary");
+    expect(normalizeQdrantConfig({ qdrantQuantization: "none" }).quantization).toBe("none");
+    expect(normalizeQdrantConfig({ qdrantQuantization: "bogus" }).quantization).toBe("none");
+    expect(normalizeQdrantConfig({ qdrantQuantization: 5 as unknown }).quantization).toBe("none");
+  });
+
+  test("buildQuantizationConfig: none → undefined (body unchanged), int8 → scalar, binary → binary", () => {
+    // none must stay undefined so the create body is byte-identical to today (no behavioral change).
+    expect(buildQuantizationConfig("none")).toBeUndefined();
+    expect(buildQuantizationConfig("int8")).toEqual({
+      scalar: { type: "int8", always_ram: true, quantile: 0.99 },
+    });
+    expect(buildQuantizationConfig("binary")).toEqual({ binary: { always_ram: true } });
+  });
+
+  test("searchQuantizationParams: rescore enabled only for a quantized collection", () => {
+    expect(searchQuantizationParams("none")).toBeUndefined();
+    expect(searchQuantizationParams("int8")).toEqual({ quantization: { rescore: true } });
+    expect(searchQuantizationParams("binary")).toEqual({ quantization: { rescore: true } });
   });
 });

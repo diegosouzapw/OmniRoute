@@ -20,7 +20,10 @@ import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
 import { CODEX_NATIVE_UNPREFIXED_MODELS } from "@omniroute/open-sse/services/model";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo";
-import { AUTO_TEMPLATE_VARIANTS } from "@omniroute/open-sse/services/autoCombo/builtinCatalog";
+import {
+  AUTO_TEMPLATE_VARIANTS,
+  createBuiltinAutoCombo,
+} from "@omniroute/open-sse/services/autoCombo/builtinCatalog";
 import { getAllSyncedAvailableModels, type SyncedAvailableModel } from "@/lib/db/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { getOpenRouterCatalog } from "@/lib/catalog/openrouterCatalog";
@@ -656,14 +659,16 @@ export async function getUnifiedModelsResponse(
     const listedIds = new Set<string>();
 
     // #4164: advertise the built-in zero-setup `auto/*` combos at the very top.
-    // They resolve on demand (createBuiltinAutoCombo) so they have no fixed
-    // targets/metadata to derive — emit a minimal combo-owned entry. The dashboard
-    // already shows these; clients that build their picker from /v1/models (e.g.
-    // Hermes) need them here too.
+    // #4189: enrich each with the combo's advertised context/output limits (computed
+    // by createBuiltinAutoCombo from its candidate pool) + baseline capabilities, so
+    // OpenAI-compatible clients that build their picker from /v1/models (e.g. Hermes)
+    // receive token metadata before the first request instead of a bare entry. If the
+    // combo cannot be materialized (e.g. no eligible connections yet) the minimal
+    // #4164 entry is emitted instead, so the id is never dropped.
     for (const autoId of Object.keys(AUTO_TEMPLATE_VARIANTS)) {
       if (listedIds.has(autoId)) continue;
       listedIds.add(autoId);
-      models.push({
+      const baseAutoEntry = {
         id: autoId,
         object: "model",
         created: timestamp,
@@ -671,7 +676,28 @@ export async function getUnifiedModelsResponse(
         permission: [],
         root: autoId,
         parent: null,
-      });
+      };
+      try {
+        const suffix = autoId.replace(/^auto\/?/, "");
+        const virtualCombo = await createBuiltinAutoCombo(autoId, suffix);
+        const contextLength = virtualCombo.advertisedContextLength || 128000;
+        const maxOutputTokens = virtualCombo.advertisedMaxOutputTokens || 8192;
+        models.push({
+          ...baseAutoEntry,
+          context_length: contextLength,
+          max_input_tokens: contextLength,
+          max_output_tokens: maxOutputTokens,
+          capabilities: {
+            tool_calling: true,
+            reasoning: true,
+            thinking: true,
+            temperature: true,
+          },
+        });
+      } catch (err) {
+        console.log(`[catalog] Could not materialize built-in auto model ${autoId}:`, err);
+        models.push(baseAutoEntry);
+      }
     }
 
     // Add combos first (they appear at the top) — only active ones

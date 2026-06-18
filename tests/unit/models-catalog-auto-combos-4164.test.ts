@@ -83,3 +83,46 @@ test("#4164 no duplicate auto/* ids even if a persisted combo shadows one", asyn
   const autoIds = body.data.map((m) => m.id).filter((id) => id.startsWith("auto/"));
   assert.equal(autoIds.length, new Set(autoIds).size, "auto/* ids must be unique");
 });
+
+test("#4189 every auto/* entry exposes token limits + baseline capabilities", async () => {
+  // #4164 emitted a bare auto/* entry (no token metadata). #4189 enriches each with
+  // the combo's advertised context/output limits + baseline capabilities so
+  // OpenAI-compatible clients that build their picker from /v1/models get a context
+  // window before the first request. Without the fix these fields are absent.
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  assert.equal(response.status, 200);
+  const body = (await response.json()) as {
+    data: Array<{
+      id: string;
+      context_length?: number;
+      max_input_tokens?: number;
+      max_output_tokens?: number;
+      capabilities?: Record<string, boolean>;
+    }>;
+  };
+
+  const autoEntries = body.data.filter((m) => m.id.startsWith("auto/"));
+  assert.ok(autoEntries.length > 0, "sanity: at least one auto/* entry is listed");
+
+  for (const entry of autoEntries) {
+    assert.equal(
+      typeof entry.context_length,
+      "number",
+      `${entry.id} must expose a numeric context_length`
+    );
+    assert.ok((entry.context_length ?? 0) > 0, `${entry.id} context_length must be positive`);
+    assert.equal(typeof entry.max_input_tokens, "number", `${entry.id} must expose max_input_tokens`);
+    assert.equal(
+      typeof entry.max_output_tokens,
+      "number",
+      `${entry.id} must expose max_output_tokens`
+    );
+    assert.ok((entry.max_output_tokens ?? 0) > 0, `${entry.id} max_output_tokens must be positive`);
+    assert.ok(
+      entry.capabilities && typeof entry.capabilities === "object",
+      `${entry.id} must expose a capabilities map`
+    );
+  }
+});

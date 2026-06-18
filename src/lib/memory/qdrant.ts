@@ -3,6 +3,16 @@ import { createEmbeddingResponse } from "@/lib/embeddings/service";
 
 type JsonRecord = Record<string, unknown>;
 
+/**
+ * Vector quantization mode for the memory collection (F4.4 / Q1).
+ * - `none`: float32 vectors (default, unchanged behavior).
+ * - `int8`: scalar int8 quantization (~4× less vector RAM, rescore preserves quality).
+ * - `binary`: binary quantization (up to ~32× less, lossier — opt-in for scale).
+ */
+export type QdrantQuantization = "none" | "int8" | "binary";
+
+const QDRANT_QUANTIZATION_MODES: readonly QdrantQuantization[] = ["none", "int8", "binary"];
+
 export type QdrantConfig = {
   enabled: boolean;
   host: string;
@@ -10,7 +20,40 @@ export type QdrantConfig = {
   apiKey: string | null;
   collection: string;
   embeddingModel: string;
+  quantization: QdrantQuantization;
 };
+
+/**
+ * Build the Qdrant `quantization_config` block for collection creation.
+ * Returns `undefined` for `none` so the create body stays byte-identical to the
+ * pre-quantization behavior (no silent change for existing deployments).
+ * Reference: Qdrant scalar/binary quantization + rescore docs.
+ */
+export function buildQuantizationConfig(
+  quantization: QdrantQuantization
+): Record<string, unknown> | undefined {
+  switch (quantization) {
+    case "int8":
+      return { scalar: { type: "int8", always_ram: true, quantile: 0.99 } };
+    case "binary":
+      return { binary: { always_ram: true } };
+    case "none":
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Build the Qdrant search `params` block. When the collection is quantized we
+ * request `rescore: true` so the original vectors refine the quantized shortlist
+ * (preserves recall). Returns `undefined` for `none` (no `params` sent).
+ */
+export function searchQuantizationParams(
+  quantization: QdrantQuantization
+): Record<string, unknown> | undefined {
+  if (quantization === "none") return undefined;
+  return { quantization: { rescore: true } };
+}
 
 export function normalizeQdrantConfig(settings: Record<string, unknown>): QdrantConfig {
   const host = typeof settings.qdrantHost === "string" ? settings.qdrantHost.trim() : "";
@@ -35,8 +78,14 @@ export function normalizeQdrantConfig(settings: Record<string, unknown>): Qdrant
       ? settings.qdrantEmbeddingModel.trim()
       : "openai/text-embedding-3-small";
   const enabled = settings.qdrantEnabled === true;
+  const quantizationRaw = settings.qdrantQuantization;
+  const quantization: QdrantQuantization =
+    typeof quantizationRaw === "string" &&
+    (QDRANT_QUANTIZATION_MODES as readonly string[]).includes(quantizationRaw)
+      ? (quantizationRaw as QdrantQuantization)
+      : "none";
 
-  return { enabled, host, port, apiKey, collection, embeddingModel };
+  return { enabled, host, port, apiKey, collection, embeddingModel, quantization };
 }
 
 export async function getQdrantConfig(): Promise<QdrantConfig> {
@@ -104,10 +153,15 @@ async function ensureCollection(cfg: QdrantConfig, vectorSize: number): Promise<
   });
   if (getRes.ok) return;
 
+  // Quantization only applies to NEW collections — an existing collection is left
+  // untouched (the GET above returns early). Switching modes on a populated
+  // collection is a destructive recreate+reindex that must be an explicit UI action.
+  const quantizationConfig = buildQuantizationConfig(cfg.quantization);
   const createRes = await qdrantFetch(cfg, `/collections/${encodeURIComponent(cfg.collection)}`, {
     method: "PUT",
     body: JSON.stringify({
       vectors: { size: vectorSize, distance: "Cosine" },
+      ...(quantizationConfig ? { quantization_config: quantizationConfig } : {}),
     }),
   });
   if (!createRes.ok) {
@@ -247,6 +301,7 @@ export async function searchSemanticMemory(
     await ensureCollection(cfg, vector.length);
     const vectorName = await getCollectionVectorName(cfg);
 
+    const searchParams = searchQuantizationParams(cfg.quantization);
     const res = await qdrantFetch(
       cfg,
       `/collections/${encodeURIComponent(cfg.collection)}/points/search`,
@@ -255,6 +310,7 @@ export async function searchSemanticMemory(
         body: JSON.stringify({
           vector: vectorName ? { name: vectorName, vector } : vector,
           limit: Math.max(1, Math.min(20, topK)),
+          ...(searchParams ? { params: searchParams } : {}),
           filter: {
             must: [
               { key: "kind", match: { value: "omniroute_memory" } },
