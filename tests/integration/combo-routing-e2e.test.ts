@@ -99,14 +99,29 @@ test("round-robin combo cycles through three providers", async () => {
     return buildGeminiResponse("Gemini round-robin");
   };
 
-  const first = await handleChat(buildRequest({ body: buildOpenAIChatBody("router-rr") }));
-  const second = await handleChat(buildRequest({ body: buildOpenAIChatBody("router-rr") }));
-  const third = await handleChat(buildRequest({ body: buildOpenAIChatBody("router-rr") }));
+  // `stickyRoundRobinLimit` defaults to 3 (src/lib/db/settings.ts), so a combo using the
+  // round-robin strategy serves 3 consecutive requests per target before advancing to the
+  // next one — batched rotation, not one-request-per-target. Nine requests therefore cover
+  // a full cycle: openai x3 -> claude x3 -> gemini x3.
+  const responses = [];
+  for (let i = 0; i < 9; i++) {
+    responses.push(await handleChat(buildRequest({ body: buildOpenAIChatBody("router-rr") })));
+  }
 
-  assert.equal(first.status, 200);
-  assert.equal(second.status, 200);
-  assert.equal(third.status, 200);
-  assert.deepEqual(seenProviders, ["openai", "claude", "gemini"]);
+  for (const response of responses) {
+    assert.equal(response.status, 200);
+  }
+  assert.deepEqual(seenProviders, [
+    "openai",
+    "openai",
+    "openai",
+    "claude",
+    "claude",
+    "claude",
+    "gemini",
+    "gemini",
+    "gemini",
+  ]);
 });
 
 test("priority combo sticks to the primary model while healthy", async () => {
@@ -382,19 +397,23 @@ test("strategy updates take effect for later requests on the same combo name", a
     strategy: "round-robin",
     config: { maxRetries: 0, retryDelayMs: 0 },
   });
-  const second = await handleChat(
-    buildRequest({
-      body: buildOpenAIChatBody("router-dynamic", "Route dynamic second"),
-    })
-  );
-  const third = await handleChat(
-    buildRequest({
-      body: buildOpenAIChatBody("router-dynamic", "Route dynamic third"),
-    })
-  );
+  // After the strategy flips to round-robin the new behavior must take effect. With the
+  // default stickyRoundRobinLimit of 3 the round-robin batch serves openai three times
+  // before advancing, so the 4th post-update request rotates to claude — a provider the
+  // previous "priority" strategy would never have reached. That rotation is the proof the
+  // updated strategy is live.
+  const postUpdate = [];
+  for (let i = 0; i < 4; i++) {
+    postUpdate.push(
+      await handleChat(
+        buildRequest({ body: buildOpenAIChatBody("router-dynamic", `Route dynamic ${i}`) })
+      )
+    );
+  }
 
   assert.equal(initial.status, 200);
-  assert.equal(second.status, 200);
-  assert.equal(third.status, 200);
-  assert.deepEqual(seenProviders, ["openai", "openai", "claude"]);
+  for (const response of postUpdate) {
+    assert.equal(response.status, 200);
+  }
+  assert.deepEqual(seenProviders, ["openai", "openai", "openai", "openai", "claude"]);
 });
