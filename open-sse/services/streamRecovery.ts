@@ -163,6 +163,111 @@ export function hasTerminalMarker(bytes: Uint8Array): boolean {
   return text.includes(OPENAI_DONE_MARKER) || text.includes(ANTHROPIC_STOP_MARKER);
 }
 
+// ──────────────── Mid-stream continuation primitives (Fase 4.4) ────────────────
+//
+// When a stream truncates AFTER the holdback has committed (bytes already reached the
+// client), an early-retry is unsafe (it would replay text the client already saw). For
+// plain-text OpenAI-compatible streams we can instead RE-REQUEST with the partial answer
+// as an assistant prefill and stitch only the missing suffix. These helpers are pure and
+// fully unit-testable; the wiring lives in `createRecoverableStream` (continuation opts).
+
+export interface OpenAiSseScan {
+  /** Concatenated assistant text seen across `choices[].delta.content`. */
+  text: string;
+  /** True if any `choices[].delta.tool_calls` appeared — NEVER continue those. */
+  sawToolCall: boolean;
+  /** True if a terminal marker (`[DONE]` or a non-null `finish_reason`) appeared. */
+  terminal: boolean;
+  /** True if at least one OpenAI-shaped `choices[].delta` was parsed (format gate). */
+  parsedOpenAi: boolean;
+}
+
+/**
+ * Scan a slice of OpenAI-compatible SSE for the assistant text, tool-call presence, and
+ * a terminal marker. Non-OpenAI bodies (e.g. Anthropic `content_block_delta` events) parse
+ * to `parsedOpenAi:false` with empty text, so the caller falls back to current behavior.
+ */
+export function scanOpenAiSseText(sse: string): OpenAiSseScan {
+  let text = "";
+  let sawToolCall = false;
+  let terminal = false;
+  let parsedOpenAi = false;
+  if (typeof sse !== "string" || sse.length === 0) {
+    return { text, sawToolCall, terminal, parsedOpenAi };
+  }
+  for (const line of sse.split("\n")) {
+    const trimmed = line.trimStart();
+    if (!trimmed.startsWith("data:")) continue;
+    const payload = trimmed.slice(5).trim();
+    if (!payload) continue;
+    if (payload === "[DONE]") {
+      terminal = true;
+      continue;
+    }
+    let json: unknown;
+    try {
+      json = JSON.parse(payload);
+    } catch {
+      continue;
+    }
+    const choices = (json as { choices?: unknown })?.choices;
+    if (!Array.isArray(choices)) continue;
+    for (const choice of choices) {
+      const delta = (choice as { delta?: unknown })?.delta;
+      if (delta && typeof delta === "object") {
+        parsedOpenAi = true;
+        const content = (delta as { content?: unknown }).content;
+        if (typeof content === "string") text += content;
+        const toolCalls = (delta as { tool_calls?: unknown }).tool_calls;
+        if (Array.isArray(toolCalls) && toolCalls.length > 0) sawToolCall = true;
+      }
+      const finishReason = (choice as { finish_reason?: unknown })?.finish_reason;
+      if (finishReason != null) terminal = true;
+    }
+  }
+  return { text, sawToolCall, terminal, parsedOpenAi };
+}
+
+export interface ContinuableBody {
+  messages?: unknown;
+  stream?: unknown;
+  [key: string]: unknown;
+}
+
+/**
+ * Build a re-request body that continues from `assistantSoFar` by appending it as an
+ * assistant turn. Returns null when the body has no `messages` array or the partial text
+ * is empty (nothing to continue from). Does not mutate the original.
+ */
+export function makeContinuationBody(
+  body: ContinuableBody,
+  assistantSoFar: string
+): (ContinuableBody & { messages: unknown[] }) | null {
+  if (!body || typeof body !== "object") return null;
+  if (!Array.isArray(body.messages) || body.messages.length === 0) return null;
+  if (typeof assistantSoFar !== "string" || assistantSoFar.length === 0) return null;
+  return {
+    ...body,
+    messages: [...body.messages, { role: "assistant", content: assistantSoFar }],
+    stream: true,
+  };
+}
+
+/**
+ * Make the continuation append-only: strip the longest leading run of `continuation`
+ * that duplicates a trailing run of `emitted` (a model re-emitting the last few tokens it
+ * already produced). Bounded to a 512-char seam so it stays O(n) on large outputs.
+ */
+export function trimContinuationOverlap(emitted: string, continuation: string): string {
+  if (!continuation) return "";
+  if (!emitted) return continuation;
+  const max = Math.min(emitted.length, continuation.length, 512);
+  for (let k = max; k > 0; k--) {
+    if (emitted.endsWith(continuation.slice(0, k))) return continuation.slice(k);
+  }
+  return continuation;
+}
+
 export interface RecoverableStreamOptions {
   /** Released exactly once when the wrapped stream closes, errors, or is cancelled. */
   finalize: () => void;
@@ -172,6 +277,18 @@ export interface RecoverableStreamOptions {
   now?: () => number;
   /** Observability hook fired on each early-retry attempt. */
   onRetry?: (attempt: number, error: unknown) => void;
+  /**
+   * Mid-stream continuation (Fase 4.4): re-request with the already-sent text as an
+   * assistant prefill and return a fresh stream whose text is the missing suffix. Called
+   * only after a POST-commit truncation of a plain-text OpenAI-compatible stream (never
+   * with a tool call in flight). When omitted, a post-commit truncation behaves exactly
+   * as in #4131 (error/close passthrough).
+   */
+  continueStream?: (assistantSoFar: string) => Promise<ReadableStream<Uint8Array> | null>;
+  /** Max continuation re-requests after commit (default STREAM_RECOVERY.EARLY_RETRY_MAX). */
+  maxContinuations?: number;
+  /** Observability hook fired on each continuation attempt. */
+  onContinue?: (attempt: number, assistantSoFar: string) => void;
 }
 
 /**
@@ -228,8 +345,113 @@ export function createRecoverableStream(
     return true;
   };
 
+  // ── Mid-stream continuation state (no-op unless options.continueStream is set) ──
+  const continueEnabled = typeof options.continueStream === "function";
+  const maxContinuations = options.maxContinuations ?? STREAM_RECOVERY.EARLY_RETRY_MAX;
+  const encoder = new TextEncoder();
+  const trackDecoder = new TextDecoder();
+  let continuations = 0;
+  let emittedTail = ""; // raw SSE not yet scanned (awaiting an event boundary)
+  let emittedText = ""; // assistant text already delivered to the client
+  let emittedTerminal = false;
+  let emittedToolCall = false;
+  let emittedParsedOpenAi = false;
+
+  // Enqueue to the client and, when continuation is enabled, fold the chunk into the
+  // running scan so a later continuation can be prefilled with exactly what was sent.
+  const emit = (
+    controller: ReadableStreamDefaultController<Uint8Array>,
+    chunk: Uint8Array
+  ): void => {
+    controller.enqueue(chunk);
+    if (!continueEnabled) return;
+    emittedTail += trackDecoder.decode(chunk, { stream: true });
+    const boundary = emittedTail.lastIndexOf("\n\n");
+    if (boundary < 0) return;
+    const complete = emittedTail.slice(0, boundary + 2);
+    emittedTail = emittedTail.slice(boundary + 2);
+    const scan = scanOpenAiSseText(complete);
+    emittedText += scan.text;
+    if (scan.terminal) emittedTerminal = true;
+    if (scan.sawToolCall) emittedToolCall = true;
+    if (scan.parsedOpenAi) emittedParsedOpenAi = true;
+  };
+
   const flushHeld = (controller: ReadableStreamDefaultController<Uint8Array>) => {
-    for (const chunk of holdback.flush()) controller.enqueue(chunk);
+    for (const chunk of holdback.flush()) emit(controller, chunk);
+  };
+
+  // A post-commit truncation is continuable only for a plain-text OpenAI-compatible
+  // stream that has not finished and has no tool call in flight.
+  const canContinue = () =>
+    continueEnabled &&
+    continuations < maxContinuations &&
+    emittedParsedOpenAi &&
+    !emittedToolCall &&
+    !emittedTerminal &&
+    emittedText.length > 0;
+
+  const emitCleanTerminal = (controller: ReadableStreamDefaultController<Uint8Array>) => {
+    controller.enqueue(
+      encoder.encode('data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n')
+    );
+    controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+  };
+
+  // Re-request from the partial text and stitch the missing suffix into the client stream.
+  // Returns true once the recovered stream has been terminated (caller closes); false to
+  // fall back to the unchanged #4131 error/close behavior.
+  const tryContinue = async (
+    controller: ReadableStreamDefaultController<Uint8Array>
+  ): Promise<boolean> => {
+    if (!canContinue()) return false;
+    continuations += 1;
+    options.onContinue?.(continuations, emittedText);
+
+    let contStream: ReadableStream<Uint8Array> | null = null;
+    try {
+      contStream = await options.continueStream!(emittedText);
+    } catch {
+      contStream = null;
+    }
+    if (!contStream) return false;
+
+    // Drain the continuation fully (recovery favors correctness over token-by-token
+    // streaming of the recovered tail), then emit only the de-duplicated suffix.
+    const contReader = contStream.getReader();
+    const contDecoder = new TextDecoder();
+    let raw = "";
+    for (;;) {
+      let r: ReadableStreamReadResult<Uint8Array>;
+      try {
+        r = await contReader.read();
+      } catch {
+        break; // the continuation itself truncated — emit what we have, maybe continue again
+      }
+      if (r.done) break;
+      if (r.value) raw += contDecoder.decode(r.value, { stream: true });
+    }
+
+    const scan = scanOpenAiSseText(raw);
+    const suffix = trimContinuationOverlap(emittedText, scan.text);
+    if (suffix) {
+      emit(
+        controller,
+        encoder.encode(
+          `data: ${JSON.stringify({ choices: [{ index: 0, delta: { content: suffix } }] })}\n\n`
+        )
+      );
+    }
+    // A clean finish, or a tool call we cannot safely stitch, ends the recovered stream.
+    if (scan.terminal || scan.sawToolCall) {
+      emitCleanTerminal(controller);
+      return true;
+    }
+    // The continuation truncated too — try again (bounded), else close cleanly so the
+    // client never hangs waiting on a partial response.
+    if (await tryContinue(controller)) return true;
+    emitCleanTerminal(controller);
+    return true;
   };
 
   return new ReadableStream<Uint8Array>({
@@ -243,6 +465,13 @@ export function createRecoverableStream(
         } catch (error) {
           if (cancelled) return; // torn down while awaiting — don't touch the controller
           if (holdback.committed) {
+            // Post-commit: an early-retry is unsafe (text already sent). Try mid-stream
+            // continuation for a retryable cut; otherwise propagate as before.
+            if (isRetryableStreamError(error) && (await tryContinue(controller))) {
+              runFinalize();
+              controller.close();
+              return;
+            }
             runFinalize();
             controller.error(error);
             return;
@@ -261,6 +490,13 @@ export function createRecoverableStream(
         const { done, value } = result;
         if (done) {
           if (holdback.committed) {
+            // Graceful end after commit: if it lacks a terminal marker it is a silent
+            // truncation — try to continue; otherwise (clean finish) just close.
+            if (!emittedTerminal && (await tryContinue(controller))) {
+              runFinalize();
+              controller.close();
+              return;
+            }
             runFinalize();
             controller.close();
             return;
@@ -284,12 +520,12 @@ export function createRecoverableStream(
         if (value === undefined) continue;
 
         if (holdback.committed) {
-          controller.enqueue(value);
+          emit(controller, value);
           return;
         }
         const emitted = holdback.push(value);
         if (emitted.length > 0) {
-          for (const chunk of emitted) controller.enqueue(chunk);
+          for (const chunk of emitted) emit(controller, chunk);
           return;
         }
         // Still holding the opening window — read more without yielding.

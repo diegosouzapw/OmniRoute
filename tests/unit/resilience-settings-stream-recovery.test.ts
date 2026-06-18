@@ -41,3 +41,27 @@ test("mergeResilienceSettings toggles streamRecovery and preserves it when omitt
   const preserved = mergeResilienceSettings(enabled, { requestQueue: {} });
   assert.equal(preserved.streamRecovery.enabled, true);
 });
+
+test("continueMidStream is OFF by default and independent of enabled", () => {
+  assert.equal(DEFAULT_RESILIENCE_SETTINGS.streamRecovery.continueMidStream, false);
+  assert.equal(resolveResilienceSettings({}).streamRecovery.continueMidStream, false);
+
+  // Early-retry can be on while mid-stream continuation stays off (different risk).
+  const onlyEarly = resolveResilienceSettings({
+    resilienceSettings: { streamRecovery: { enabled: true } },
+  });
+  assert.equal(onlyEarly.streamRecovery.enabled, true);
+  assert.equal(onlyEarly.streamRecovery.continueMidStream, false);
+
+  const both = resolveResilienceSettings({
+    resilienceSettings: { streamRecovery: { enabled: true, continueMidStream: true } },
+  });
+  assert.equal(both.streamRecovery.continueMidStream, true);
+});
+
+test("continueMidStream ignores a non-boolean value", () => {
+  const resolved = resolveResilienceSettings({
+    resilienceSettings: { streamRecovery: { continueMidStream: "yes" } },
+  });
+  assert.equal(resolved.streamRecovery.continueMidStream, false);
+});

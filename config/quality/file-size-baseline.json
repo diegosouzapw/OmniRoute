@@ -1,6 +1,7 @@
 {
   "_comment": "Catraca de tamanho (check-file-size.mjs). frozen so pode encolher; arquivos novos <= cap. --update ratcheta.",
   "_rebaseline_2026_06_18_8_1_no_thinking_alias": "Fase 8.1 own growth: catalog.ts 1435->1440 (+5 = appendNoThinkingVariants(finalModels) call + comment at the existing finalModels chokepoint) and chat.ts 1458->1471 (+13 = applyNoThinkingAlias(body) call + comment right after body.model is read, before model resolution). All real logic lives in the new open-sse/utils/noThinkingAlias.ts (<cap); both edits are thin wiring of tested helpers at the single correct integration point in each file. Not extractable.",
+  "_rebaseline_2026_06_18_4_4_midstream": "Fase 4.4 own growth: chatCore.ts 5980->6009 (+29 at the existing streaming-return chokepoint = capture streamRecovery.continueMidStream alongside .enabled; refactor the early-retry reopen thunk into a shared runUpstreamStream(body) helper — net DRY — and add the gated continueStream(assistantSoFar) thunk that re-runs the upstream with makeContinuationBody(bodyToSend, …), plus the onContinue log). All continuation logic (scanOpenAiSseText, makeContinuationBody, trimContinuationOverlap, the createRecoverableStream continuation path) lives in open-sse/services/streamRecovery.ts (<cap). Closes over the same per-attempt executor locals as the existing reopen; not extractable without hiding the dispatch boundary. Opt-in (default OFF).",
   "_rebaseline_2026_06_17_4098_wafer": "PR #4098 own growth: providers.ts 3159->3169 (+10 = Wafer AI catalog entry, a single Zod-validated provider record in the providers map — pure data, standard per-provider addition; bumps catalog 227->228). Cohesive catalog growth; not extractable.",
   "_rebaseline_2026_06_17_4096_field_downgrade": "PR #4096 own growth: base.ts 1292->1334 (+42 = generic 400 field-downgrade retry at the executor fetch loop — on an upstream 400 that names an unsupported field, strip it via providerFieldStrips and retry once, plus Groq field stripping wiring). The strip table lives in the new open-sse/config/providerFieldStrips.ts (<cap). Cohesive resilience logic at the existing fetch chokepoint; not extractable.",
   "_rebaseline_2026_06_17_4071_vision_routing": "PR #4071 own growth: combo.ts 5283->5289 (+6 = vision-aware routing fix in getTargetCompatibilityFailures — image requests now require supportsVision===true, treating null/unknown as incompatible, with an explanatory comment block; plus exporting filterTargetsByRequestCompatibility for the regression test). The accompanying capability heuristic lives in src/lib/modelCapabilities.ts (419 LOC, <cap). Cohesive bug fix at the existing compatibility-filter chokepoint; not extractable.",
@@ -50,7 +51,7 @@
     "open-sse/executors/muse-spark-web.ts": 1284,
     "open-sse/executors/perplexity-web.ts": 1013,
     "open-sse/handlers/audioSpeech.ts": 965,
-    "open-sse/handlers/chatCore.ts": 5980,
+    "open-sse/handlers/chatCore.ts": 6009,
     "open-sse/handlers/imageGeneration.ts": 3777,
     "open-sse/handlers/responseSanitizer.ts": 1103,
     "open-sse/handlers/search.ts": 1546,

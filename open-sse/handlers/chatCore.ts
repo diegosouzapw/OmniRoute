@@ -69,7 +69,7 @@ import {
   ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
   STREAM_RECOVERY,
 } from "../config/constants.ts";
-import { createRecoverableStream } from "../services/streamRecovery.ts";
+import { createRecoverableStream, makeContinuationBody } from "../services/streamRecovery.ts";
 import { resolveResilienceSettings } from "@/lib/resilience/settings";
 import {
   classifyProviderError,
@@ -4080,20 +4080,28 @@ export async function handleChatCore({
                 // resilience settings; the default path is byte-for-byte unchanged.
                 const okStatus = res.response.status >= 200 && res.response.status < 300;
                 let streamRecoveryEnabled = false;
+                let continueMidStreamEnabled = false;
                 if (okStatus) {
                   try {
                     // Reuse the request-consolidated settings read (see line ~2076) — no
                     // second DB/cache hit. Default OFF when the setting is absent.
-                    streamRecoveryEnabled = resolveResilienceSettings(settings).streamRecovery.enabled;
+                    const sr = resolveResilienceSettings(settings).streamRecovery;
+                    streamRecoveryEnabled = sr.enabled;
+                    continueMidStreamEnabled = sr.continueMidStream === true;
                   } catch {
                     streamRecoveryEnabled = false;
+                    continueMidStreamEnabled = false;
                   }
                 }
 
                 let clientBody: ReadableStream<Uint8Array>;
                 if (streamRecoveryEnabled) {
-                  // Re-open the SAME upstream (same account + body) for a transparent retry.
-                  const reopenStream = async (): Promise<ReadableStream<Uint8Array> | null> => {
+                  // Run the SAME upstream (same account/creds) with a given body and return
+                  // its 2xx stream, or null. Used both by the early-retry re-open (same body)
+                  // and the mid-stream continuation (assistant-prefilled body).
+                  const runUpstreamStream = async (
+                    body: unknown
+                  ): Promise<ReadableStream<Uint8Array> | null> => {
                     try {
                       const retryRaw = await executeWithUpstreamStartTimeout({
                         executor,
@@ -4105,7 +4113,7 @@ export async function handleChatCore({
                           runWithCapture(providerRequestCapture, () =>
                             executor.execute({
                               model: modelToCall,
-                              body: bodyToSend,
+                              body,
                               stream: upstreamStream,
                               credentials: execCreds,
                               signal,
@@ -4135,9 +4143,24 @@ export async function handleChatCore({
                     }
                   };
 
+                  // Mid-stream continuation (Fase 4.4): re-request with the partial text as an
+                  // assistant prefill. Gated by its own setting and only for OpenAI-compatible
+                  // bodies (makeContinuationBody returns null otherwise).
+                  const continueStream = continueMidStreamEnabled
+                    ? (assistantSoFar: string) => {
+                        const continuationBody = makeContinuationBody(
+                          bodyToSend as Record<string, unknown>,
+                          assistantSoFar
+                        );
+                        return continuationBody
+                          ? runUpstreamStream(continuationBody)
+                          : Promise.resolve(null);
+                      }
+                    : undefined;
+
                   clientBody = createRecoverableStream(
                     originalBody as ReadableStream<Uint8Array>,
-                    reopenStream,
+                    () => runUpstreamStream(bodyToSend),
                     {
                       finalize: acquireAccountSemaphoreRelease,
                       onRetry: (attempt, err) =>
@@ -4146,6 +4169,12 @@ export async function handleChatCore({
                           `transparent early-retry ${attempt}/${STREAM_RECOVERY.EARLY_RETRY_MAX} after ${
                             (err as { name?: string })?.name || "truncation"
                           }`
+                        ),
+                      continueStream,
+                      onContinue: (attempt) =>
+                        log?.warn?.(
+                          "STREAM_RECOVERY",
+                          `mid-stream continuation attempt ${attempt}/${STREAM_RECOVERY.EARLY_RETRY_MAX}`
                         ),
                     }
                   );

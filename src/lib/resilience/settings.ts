@@ -100,6 +100,15 @@ export interface StreamRecoverySettings {
    * Default seeds from the STREAM_RECOVERY_ENABLED env var.
    */
   enabled: boolean;
+  /**
+   * Opt-in mid-stream continuation (Fase 4.4): when an upstream stream truncates AFTER
+   * bytes already reached the client, re-request with the partial text as an assistant
+   * prefill and stitch the missing suffix (plain-text OpenAI-compatible streams only;
+   * never with a tool call in flight). OFF by default because the recovered tail arrives
+   * as one burst rather than token-by-token. Default seeds from
+   * STREAM_RECOVERY_MIDSTREAM_ENABLED.
+   */
+  continueMidStream: boolean;
 }
 
 export interface ResilienceSettings {
@@ -221,6 +230,10 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
     // streaming request, so it must be explicitly enabled by the operator.
     enabled: ["true", "1", "on"].includes(
       (process.env.STREAM_RECOVERY_ENABLED || "").trim().toLowerCase()
+    ),
+    // Opt-in (default OFF): mid-stream continuation re-requests after a post-commit cut.
+    continueMidStream: ["true", "1", "on"].includes(
+      (process.env.STREAM_RECOVERY_MIDSTREAM_ENABLED || "").trim().toLowerCase()
     ),
   },
 };
@@ -462,7 +475,10 @@ function normalizeStreamRecoverySettings(
   fallback: StreamRecoverySettings
 ): StreamRecoverySettings {
   const record = asRecord(next);
-  return { enabled: toBoolean(record.enabled, fallback.enabled) };
+  return {
+    enabled: toBoolean(record.enabled, fallback.enabled),
+    continueMidStream: toBoolean(record.continueMidStream, fallback.continueMidStream),
+  };
 }
 
 function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
