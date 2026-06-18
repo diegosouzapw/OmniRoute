@@ -32,6 +32,7 @@
   "_rebaseline_2026_06_17_4034_usage_command": "PR #4034 own growth: apiKeys.ts 1633->1661 (+28 = the allow_usage_command additive column — fallback definition, parseAllowUsageCommand, prepared-statement SELECT column, and the metadata/create/update wiring, mirroring the existing disable_non_public_models accessor pattern) and chat.ts 1425->1432 (+7 = the handleInternalUsageCommand intercept hook at the existing post-auth chokepoint in handleChat). The reusable command logic lives in the new src/lib/usage/internalUsageCommand.ts (well under cap). Cohesive opt-in feature at the established column/dispatch boundaries; not extractable without splitting the api-keys domain module.",
   "_rebaseline_2026_06_17_ctx_editing_relays": "Context Editing relay coverage + 400-fallback (F4.2/F4.3) own growth: base.ts 1244->1292 (+48 at the existing dispatch chokepoint: extend the injection gate to anthropic-compatible-cc-* relays with an expanded comment documenting the claude-web / generic-anthropic-compatible exclusions; the contextEditingDisabled loop flag; and the 400-fallback block that, when an upstream rejects context_management with a 400, strips the param, re-serializes + re-signs (CCH), and retries the same URL once). Both edits sit on the per-URL request-build/fetch path and cannot be extracted without splitting the executor's fetch loop. No new file warranted — the logic is a few lines tightly coupled to the in-loop transformedBody/bodyString/response locals.",
   "_rebaseline_2026_06_17_ctx_editing_telemetry": "Context Editing telemetry (F4.1) own growth: chatCore.ts 5875->5898 (+23 = a best-effort, Claude-only, non-streaming block at the existing non-streaming response handler that extracts the provider's server-side context-editing receipt from responseBody and records it under engine \"context-editing\"). The pure extractor (extractContextEditingTelemetry) lives in the existing small open-sse/config/contextEditing.ts and the DB writer (recordContextEditingTelemetry) in src/lib/db/compressionAnalytics.ts — both under cap. Cohesive at the response-handling chokepoint next to the existing attachCompressionUsageReceipt call; not extractable without hiding the receipt-recording boundary.",
+  "_rebaseline_2026_06_17_duckduckgo_free": "Free web search (free-claude-code port, Fase 6) own growth: handlers/search.ts 1442->1546 (+104 = tryDuckDuckGoFreeProvider, a dedicated provider path mirroring the existing tryZaiMCPProvider special-case: the lite endpoint returns HTML, not the JSON the generic tryProvider()/normalizeResponse() flow expects, so it cannot reuse that path). The reusable parser + guarded fetch (parseDuckDuckGoLite, freeWebSearch) live in the new small open-sse/services/freeWebSearch.ts (well under cap). Cohesive at the per-provider dispatch chokepoint; not extractable without hiding the provider boundary.",
   "cap": 800,
   "frozen": {
     "open-sse/config/providerRegistry.ts": 4731,
@@ -50,7 +51,7 @@
     "open-sse/handlers/chatCore.ts": 5898,
     "open-sse/handlers/imageGeneration.ts": 3777,
     "open-sse/handlers/responseSanitizer.ts": 1103,
-    "open-sse/handlers/search.ts": 1442,
+    "open-sse/handlers/search.ts": 1546,
     "open-sse/handlers/sseParser.ts": 812,
     "open-sse/handlers/videoGeneration.ts": 1078,
     "open-sse/mcp-server/schemas/tools.ts": 1437,

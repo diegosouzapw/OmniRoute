@@ -1290,14 +1290,17 @@ async function tryDuckDuckGoFreeProvider(
   params: Omit<SearchRequestParams, "token">,
   startTime: number,
   globalStartTime: number,
-  log?: any
+  log?: {
+    info?: (tag: string, message: string) => void;
+    error?: (tag: string, message: string) => void;
+  } | null
 ): Promise<SearchHandlerResult> {
   const { query, searchType, maxResults } = params;
   const remainingGlobal = GLOBAL_TIMEOUT_MS - (Date.now() - globalStartTime);
   const timeout = Math.min(config.timeoutMs, Math.max(remainingGlobal, 1000));
 
   if (log) {
-    log.info("SEARCH", `${config.id} | query: "${query.slice(0, 80)}" | type: ${searchType}`);
+    log.info?.("SEARCH", `${config.id} | query: "${query.slice(0, 80)}" | type: ${searchType}`);
   }
 
   const requestBody = {
@@ -1347,11 +1350,11 @@ async function tryDuckDuckGoFreeProvider(
         errors: [],
       },
     };
-  } catch (err: any) {
+  } catch (err) {
     const duration = Date.now() - startTime;
     const message = sanitizeErrorMessage(err);
     if (log) {
-      log.error("SEARCH", `${config.id} error: ${message}`);
+      log.error?.("SEARCH", `${config.id} error: ${message}`);
     }
 
     saveCallLog({
