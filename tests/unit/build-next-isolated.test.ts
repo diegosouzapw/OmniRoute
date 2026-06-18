@@ -107,6 +107,36 @@ test("resolveNextBuildEnv forces stable build worker mode unless already provide
   assert.equal(preservedEnv.NODE_ENV, "production");
 });
 
+// Escalated bug (WhatsApp BR, cmqiuhd7600): a local `npm run build` stalls/OOMs
+// during the webpack production pass ("Compiling instrumentation" bundles the whole
+// server graph). #4076/#4104 raised the heap only in the Docker builder stage; the
+// local/native path (build-next-isolated.mjs → resolveNextBuildEnv) was left on V8's
+// default ~2 GB ceiling, so memory-constrained npm-global installs hit the same OOM.
+test("resolveNextBuildEnv raises the Node heap for memory-constrained local builds", () => {
+  const env = resolveNextBuildEnv({ NODE_ENV: "production" });
+  const match = (env.NODE_OPTIONS ?? "").match(/--max-old-space-size=(\d+)/);
+  assert.ok(
+    match,
+    "local build must set NODE_OPTIONS --max-old-space-size to avoid the webpack-pass OOM"
+  );
+  assert.ok(
+    Number(match[1]) >= 4096,
+    `build heap default must be >= 4096 MB (the V8 default ~2 GB OOMed); got ${match[1]}`
+  );
+});
+
+test("resolveNextBuildEnv does not clobber an existing --max-old-space-size (Docker)", () => {
+  const env = resolveNextBuildEnv({ NODE_OPTIONS: "--max-old-space-size=8192" });
+  const occurrences = (env.NODE_OPTIONS.match(/--max-old-space-size=/g) || []).length;
+  assert.equal(occurrences, 1, "must not duplicate the heap flag when one is already set");
+  assert.match(env.NODE_OPTIONS, /--max-old-space-size=8192/);
+});
+
+test("resolveNextBuildEnv honors the OMNIROUTE_BUILD_MEMORY_MB override", () => {
+  const env = resolveNextBuildEnv({ OMNIROUTE_BUILD_MEMORY_MB: "6144" });
+  assert.match(env.NODE_OPTIONS, /--max-old-space-size=6144/);
+});
+
 test("getTransientBuildPaths leaves _tasks in place by default", () => {
   const paths = getTransientBuildPaths("/repo", {});
 
