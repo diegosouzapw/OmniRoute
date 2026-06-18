@@ -51,7 +51,7 @@ Every brand color and surface already matches the site **by value** (only the na
 
 | Gap                     | Site has                                                                       | Dashboard                                                | Action                 |
 | ----------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------- | ---------------------- |
-| **Grid wallpaper**      | `body::before` graph-paper, `--grid-line`, `--grid-size 46px`, `--section-alt` | **✅ added (Phase 1)**                                   | **Part A**             |
+| **Grid wallpaper**      | `body::before` graph-paper, `--grid-line`, `--grid-size 32px`, `--section-alt` | **✅ added (Phase 1)**                                   | **Part A**             |
 | **Radius scale**        | `--radius 14px`, `--radius-sm 9px`                                             | `--radius 14px` added; `-sm` + component repoint pending | **Part B / Phase 2**   |
 | **Brand gradient**      | `--grad-brand 135deg primary→accent-3`                                         | **✅ token added (Phase 1)**; consumed in Phase 2        | **Part B**             |
 | **Nested surface**      | `--surface-2 #1c2230`                                                          | **✅ added (Phase 1)**                                   | **Part B**             |
@@ -100,7 +100,7 @@ body::before {
   /* light — grid opacity tuned up from the site's 0.045 so the wallpaper is
      actually visible on the dense dashboard (cards/chrome cover most of the viewport) */
   --grid-line: rgba(0, 0, 0, 0.07);
-  --grid-size: 46px;
+  --grid-size: 32px;
   --section-alt: rgba(0, 0, 0, 0.022);
 }
 .dark {
@@ -185,7 +185,7 @@ Each phase: `npm run lint` + `npm run typecheck:core` + a visual pass.
 ## 8. Open decisions (recommendations)
 
 - **D1 — Button primary:** keep red→red or switch to **red→violet `--grad-brand`**? Rec: **red→violet** (Phase 2).
-- **D2 — Grid line color:** **neutral** (site style) — chosen — vs brand-red. Size **46px**.
+- **D2 — Grid line color:** **neutral** (site style) — chosen — vs brand-red. Size **32px** (shrunk ~30% from the original 46px on owner feedback — 46px cells read too large on the dashboard layout).
 - **D3 — Chrome vibrancy:** sidebar/header **solid** — chosen.
 - **D4 — Auth/login grid:** soften `login/page.tsx` wrappers (Phase 2). Rec: yes.
 - **D5 — Landing page:** leave animated splash as-is. Chosen.

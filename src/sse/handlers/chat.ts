@@ -16,6 +16,7 @@ import {
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { getModelInfo, getComboForModel } from "../services/model";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
 import { injectHandoffIntoBody } from "@omniroute/open-sse/services/contextHandoff.ts";
@@ -226,6 +227,18 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
 
   // Log request endpoint and model
   const url = new URL(request.url);
+
+  // No-thinking gateway alias (Fase 8.1): `claude-3-omniroute-no-thinking/<provider>/<model>`
+  // resolves back to the real model with reasoning suppressed in place, before any
+  // model resolution / combo routing sees it. Claude/Messages path forces
+  // `thinking:{type:"disabled"}`; OpenAI path drops the reasoning fields.
+  const noThinking = applyNoThinkingAlias(body, {
+    claudeFormat: url.pathname.includes("/messages"),
+  });
+  if (noThinking.applied) {
+    log.debug("NO_THINKING", `Resolved no-thinking alias → ${noThinking.realModel}`);
+  }
+
   let modelStr = body.model;
 
   // Count messages (support both messages[] and input[] formats)

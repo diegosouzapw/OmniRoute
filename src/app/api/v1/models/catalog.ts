@@ -8,6 +8,7 @@ import {
   getProviderNodes,
   getModelIsHidden,
 } from "@/lib/localDb";
+import { appendNoThinkingVariants } from "@omniroute/open-sse/utils/noThinkingAlias";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry";
 import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry";
 import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry";
@@ -1353,6 +1354,10 @@ export async function getUnifiedModelsResponse(
         finalModels = filtered;
       }
     }
+
+    // Advertise no-thinking gateway variants (Fase 8.1). Derived from the already
+    // key-filtered list, so a variant only appears when its real model is permitted.
+    finalModels = appendNoThinkingVariants(finalModels);
 
     const getDefaultContextFallback = (model: any): number | undefined => {
       if (typeof model.context_length === "number") return undefined;

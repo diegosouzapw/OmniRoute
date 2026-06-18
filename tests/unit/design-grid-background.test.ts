@@ -18,8 +18,8 @@ test("globals.css defines the grid wallpaper tokens for both themes", () => {
   assert.match(globalsCss, /--grid-line:\s*rgba\(0,\s*0,\s*0,\s*0\.07\)/);
   // dark
   assert.match(globalsCss, /--grid-line:\s*rgba\(255,\s*255,\s*255,\s*0\.06\)/);
-  // size + alternating-section overlay
-  assert.match(globalsCss, /--grid-size:\s*46px/);
+  // size (shrunk ~30% from 46px for a tighter grid) + alternating-section overlay
+  assert.match(globalsCss, /--grid-size:\s*32px/);
   assert.match(globalsCss, /--section-alt:\s*rgba\(0,\s*0,\s*0,\s*0\.022\)/);
   assert.match(globalsCss, /--section-alt:\s*rgba\(255,\s*255,\s*255,\s*0\.018\)/);
 });
