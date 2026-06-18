@@ -14,6 +14,7 @@ import {
   normalizeAntigravityClientProfileSetting,
 } from "@/shared/constants/antigravityClientProfile";
 import { parseExtraApiKeys } from "@/shared/utils/parseApiKeys";
+import { providerHasFreeModels } from "@/shared/utils/freeModels";
 import { maskEmail } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -70,6 +71,8 @@ export interface EditConnectionModalProps {
   connection: EditConnectionModalConnection | null;
   providerId: string;
   onSave: (data: unknown) => Promise<void | unknown>;
+  /** Triggered after a successful save when the "import only free models" flag changed. */
+  onResyncModels?: (connectionId: string) => void | Promise<void>;
   onClose: () => void;
 }
 
@@ -80,11 +83,13 @@ export default function EditConnectionModal({
   connection,
   providerId,
   onSave,
+  onResyncModels,
   onClose,
 }: EditConnectionModalProps) {
   const t = useTranslations("providers");
   const notify = useNotificationStore();
   const provider = connection?.provider || providerId;
+  const showFreeModelsToggle = providerHasFreeModels(provider);
   const [formData, setFormData] = useState({
     name: "",
     priority: 1,
@@ -120,6 +125,7 @@ export default function EditConnectionModal({
         : false,
     passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
     disableCooling: connection?.providerSpecificData?.disableCooling === true,
+    importFreeModelsOnly: connection?.providerSpecificData?.importFreeModelsOnly === true,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -276,6 +282,7 @@ export default function EditConnectionModal({
         ),
         passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
         disableCooling: connection?.providerSpecificData?.disableCooling === true,
+        importFreeModelsOnly: connection?.providerSpecificData?.importFreeModelsOnly === true,
       });
       const existing = connection.providerSpecificData?.extraApiKeys;
       setExtraApiKeys(Array.isArray(existing) ? existing : []);
@@ -550,9 +557,24 @@ export default function EditConnectionModal({
       if (updates.providerSpecificData) {
         updates.providerSpecificData.disableCooling = formData.disableCooling ? true : undefined;
       }
+      const freeOnlyChanged =
+        showFreeModelsToggle &&
+        formData.importFreeModelsOnly !==
+          (connection.providerSpecificData?.importFreeModelsOnly === true);
+      if (showFreeModelsToggle && updates.providerSpecificData) {
+        // Store an explicit boolean (not undefined): the PUT route merges
+        // { ...existing, ...incoming }, so an undefined/omitted key would keep the
+        // previously-saved `true` and unchecking would never take effect.
+        updates.providerSpecificData.importFreeModelsOnly = formData.importFreeModelsOnly === true;
+      }
       const error = (await onSave(updates)) as void | unknown;
       if (error) {
         setSaveError(typeof error === "string" ? error : t("failedSaveConnection"));
+        return;
+      }
+      // Re-sync so the available model list reflects the new free-only choice.
+      if (freeOnlyChanged && onResyncModels && connection.id) {
+        await onResyncModels(connection.id);
       }
     } finally {
       setSaving(false);
@@ -658,6 +680,16 @@ export default function EditConnectionModal({
           </div>
         )}
         <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
+          {showFreeModelsToggle && (
+            <Toggle
+              checked={formData.importFreeModelsOnly}
+              onChange={(checked) =>
+                setFormData({ ...formData, importFreeModelsOnly: checked })
+              }
+              label={t("importFreeModelsOnlyLabel")}
+              description={t("importFreeModelsOnlyHint")}
+            />
+          )}
           <Toggle
             checked={formData.disableCooling}
             onChange={(checked) => setFormData({ ...formData, disableCooling: checked })}
