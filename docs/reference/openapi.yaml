@@ -1104,6 +1104,42 @@ paths:
         "502":
           description: All upstream providers failed
 
+  /api/v1/ws:
+    get:
+      tags: [Chat]
+      summary: Chat completion over WebSocket (handshake + upgrade)
+      description: >-
+        OpenAI-compatible chat over a WebSocket connection. `GET` with
+        `?handshake=1` returns the connection descriptor (auth path, message
+        protocol and live-event channels) as JSON; a plain `GET` without an
+        Upgrade returns `426 Upgrade Required`. After upgrading, the client
+        exchanges JSON frames — `{type:"request", id, payload:{model, messages}}`
+        to start a completion and `{type:"cancel", id}` to abort it. A separate
+        live channel (default port `LIVE_WS_PORT=20129`, path `/live`) streams
+        dashboard events on the `requests`, `combo` and `credentials` topics with
+        a 15s heartbeat. Requires an API key.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: handshake
+          in: query
+          description: Set to `1` to receive the JSON connection descriptor instead of upgrading.
+          required: false
+          schema:
+            type: string
+            enum: ["1"]
+      responses:
+        "101":
+          description: WebSocket upgrade successful
+        "200":
+          description: Handshake descriptor (auth path, message protocol, live channels)
+        "401":
+          description: WebSocket auth required (no credential supplied)
+        "403":
+          description: Invalid WebSocket credential
+        "426":
+          description: Upgrade Required — connect via WebSocket or use `?handshake=1`
+
   /api/v1/providers/{provider}/chat/completions:
     post:
       tags: [Chat]
