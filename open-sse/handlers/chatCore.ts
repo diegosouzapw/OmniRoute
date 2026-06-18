@@ -130,6 +130,7 @@ import { logAuditEvent } from "@/lib/compliance";
 import { emit } from "@/lib/events/eventBus";
 import { extractProviderWarnings } from "@/lib/compliance/providerAudit";
 import { adaptBodyForCompression } from "../services/compression/bodyAdapter.ts";
+import { ensureEngineBreakdown } from "../services/compression/engineBreakdown.ts";
 import { handleBypassRequest } from "../utils/bypassHandler.ts";
 import {
   saveRequestUsage,
@@ -1738,7 +1739,9 @@ export async function handleChatCore({
                 originalTokens: result.stats.originalTokens,
                 compressedTokens: result.stats.compressedTokens,
                 savingsPercent: result.stats.savingsPercent,
-                engineBreakdown: result.stats.engineBreakdown ?? [],
+                // Single-engine modes leave engineBreakdown empty; synthesize a 1-entry
+                // breakdown so the studio shows a real engine node instead of an empty pipeline.
+                engineBreakdown: ensureEngineBreakdown(result.stats),
                 validationWarnings: result.stats.validationWarnings,
                 fallbackApplied: result.stats.fallbackApplied,
                 timestamp: Date.now(),
