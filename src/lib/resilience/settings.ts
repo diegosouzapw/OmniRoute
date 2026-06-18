@@ -90,6 +90,18 @@ export interface QuotaPreflightSettings {
   providerWindowDefaults: Record<string, Record<string, number>>;
 }
 
+export interface StreamRecoverySettings {
+  /**
+   * Opt-in transparent recovery of truncated upstream streams (free-claude-code port).
+   * When enabled, the opening SSE window is briefly held (see STREAM_RECOVERY in
+   * open-sse/config/constants.ts) so an early cutoff can be retried before any byte
+   * reaches the client. OFF by default because holding the window adds up to
+   * STREAM_RECOVERY.HOLDBACK_MS of time-to-first-token latency on every stream.
+   * Default seeds from the STREAM_RECOVERY_ENABLED env var.
+   */
+  enabled: boolean;
+}
+
 export interface ResilienceSettings {
   requestQueue: RequestQueueSettings;
   connectionCooldown: Record<AuthCategory, ConnectionCooldownProfileSettings>;
@@ -97,6 +109,7 @@ export interface ResilienceSettings {
   waitForCooldown: WaitForCooldownSettings;
   providerCooldown: ProviderCooldownSettings;
   quotaPreflight: QuotaPreflightSettings;
+  streamRecovery: StreamRecoverySettings;
 }
 
 export interface ResilienceSettingsPatch {
@@ -106,6 +119,7 @@ export interface ResilienceSettingsPatch {
   waitForCooldown?: Partial<WaitForCooldownSettings>;
   providerCooldown?: Partial<ProviderCooldownSettings>;
   quotaPreflight?: Partial<QuotaPreflightSettings>;
+  streamRecovery?: Partial<StreamRecoverySettings>;
 }
 
 function asRecord(value: unknown): JsonRecord {
@@ -200,6 +214,14 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
     defaultThresholdPercent: 2,
     warnThresholdPercent: 20,
     providerWindowDefaults: {},
+  },
+  streamRecovery: {
+    // Opt-in (default OFF): the holdback that powers transparent early-retry adds
+    // up to STREAM_RECOVERY.HOLDBACK_MS of time-to-first-token latency on every
+    // streaming request, so it must be explicitly enabled by the operator.
+    enabled: ["true", "1", "on"].includes(
+      (process.env.STREAM_RECOVERY_ENABLED || "").trim().toLowerCase()
+    ),
   },
 };
 
@@ -435,6 +457,14 @@ function normalizeProviderCooldownSettings(
   return { enabled, minRetryCooldownMs, maxRetryCooldownMs };
 }
 
+function normalizeStreamRecoverySettings(
+  next: unknown,
+  fallback: StreamRecoverySettings
+): StreamRecoverySettings {
+  const record = asRecord(next);
+  return { enabled: toBoolean(record.enabled, fallback.enabled) };
+}
+
 function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
   const profiles = asRecord(settings.providerProfiles);
   const defaults = asRecord(settings.rateLimitDefaults);
@@ -521,6 +551,7 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
     },
     providerCooldown: DEFAULT_RESILIENCE_SETTINGS.providerCooldown,
     quotaPreflight: DEFAULT_RESILIENCE_SETTINGS.quotaPreflight,
+    streamRecovery: DEFAULT_RESILIENCE_SETTINGS.streamRecovery,
   };
 }
 
@@ -565,6 +596,10 @@ export function resolveResilienceSettings(
       current.quotaPreflight,
       fallback.quotaPreflight
     ),
+    streamRecovery: normalizeStreamRecoverySettings(
+      current.streamRecovery,
+      fallback.streamRecovery
+    ),
   };
 }
 
@@ -603,6 +638,10 @@ export function mergeResilienceSettings(
       current.providerCooldown
     ),
     quotaPreflight: normalizeQuotaPreflightSettings(updates.quotaPreflight, current.quotaPreflight),
+    streamRecovery: normalizeStreamRecoverySettings(
+      updates.streamRecovery,
+      current.streamRecovery
+    ),
   };
 }
 
