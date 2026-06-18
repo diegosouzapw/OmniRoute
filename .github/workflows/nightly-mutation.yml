@@ -22,9 +22,10 @@ jobs:
     #   - Onda 3 / Fase 9 T5 re-add: combo.ts was split into 11 leaves; the 8 well-covered
     #     combo/* leaves are back in `mutate` (covered by the 24 combo-*.test.ts), grouped into
     #     2 batches (d=heavy, e=light). After #4204 (D7b) merged, the reset-aware quota pair
-    #     quotaScoring/quotaStrategies was added as batch f. chatCore/* leaves remain a follow-up
-    #     (covering-test audit) — see _mutate_godfiles_excluded_comment in stryker.conf.json.
-    # 6 PARALLEL batches, each overriding the mutate set via `--mutate` (Stryker 9 CLI:
+    #     quotaScoring/quotaStrategies was added as batch f. A covering-test audit then added the
+    #     6 chatCore/* leaves with direct unit coverage as batch g; the other 9 chatCore leaves
+    #     remain a follow-up — see _mutate_godfiles_excluded_comment in stryker.conf.json.
+    # 7 PARALLEL batches, each overriding the mutate set via `--mutate` (Stryker 9 CLI:
     # `-m, --mutate <comma-list>`; the conf's `mutate[]` remains the local-run default/union).
     # Each batch targets <180min; full coverage every night in parallel (~180min wall-clock).
     # The `incremental` cache (per-batch key) makes runs after the first cold one much cheaper,
@@ -47,6 +48,8 @@ jobs:
             mutate: "open-sse/services/combo/shadowRouting.ts,open-sse/services/combo/targetSorters.ts,open-sse/services/combo/comboPredicates.ts,open-sse/services/combo/rrState.ts,open-sse/services/combo/comboData.ts"
           - name: f
             mutate: "open-sse/services/combo/quotaScoring.ts,open-sse/services/combo/quotaStrategies.ts"
+          - name: g
+            mutate: "open-sse/handlers/chatCore/comboContextCache.ts,open-sse/handlers/chatCore/idempotency.ts,open-sse/handlers/chatCore/passthroughHelpers.ts,open-sse/handlers/chatCore/responseHeaders.ts,open-sse/handlers/chatCore/sanitization.ts,open-sse/handlers/chatCore/upstreamTimeouts.ts"
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v6
