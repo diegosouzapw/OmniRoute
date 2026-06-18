@@ -123,3 +123,34 @@ test("vscode request sanitizer rewrites JSON body and keeps auth headers", async
   assert.equal(sanitizedRequest.headers.get("x-api-key"), "test-key");
   assert.equal("editorContext" in body, false);
 });
+
+test("vscode sanitizer preserves ordinary prose mentioning credentials/secrets/kubeconfig", () => {
+  // Regression: the sensitive-path keyword patterns (credentials/secrets/kubeconfig)
+  // must NOT redact free-form chat text. They only flag sensitive *file paths* at the
+  // object level — applying them to prose corrupted legitimate coding prompts.
+  const prose =
+    "How do I store API credentials and secrets in production, and edit the kubeconfig?";
+  const payload = {
+    messages: [{ role: "user", content: prose }],
+  };
+  const result = sanitizeVscodeRequestBody(payload);
+
+  assert.equal(result.changed, false);
+  const sanitizedBody = result.body as TestPayload;
+  assert.equal(sanitizedBody.messages?.[0].content, prose);
+  assert.equal(sanitizedBody.messages?.[0].content.includes("[REDACTED"), false);
+  assert.deepEqual(result.audit.redactedSensitivePaths, []);
+});
+
+test("vscode sanitizer still redacts sensitive file paths referenced in object content", () => {
+  // The object-level path+content redaction must keep working after the text-scan
+  // narrowing — a structured attachment whose path matches a keyword pattern is redacted.
+  const result = sanitizeVscodeRequestBody({
+    attachments: [{ filePath: "/home/user/.aws/credentials", content: "aws_secret_access_key=..." }],
+  });
+
+  assert.equal(result.changed, true);
+  const sanitizedBody = result.body as TestPayload;
+  assert.equal(sanitizedBody.attachments?.[0].content, "[REDACTED SENSITIVE CONTEXT]");
+  assert.deepEqual(result.audit.redactedSensitivePaths, ["/home/user/.aws/credentials"]);
+});

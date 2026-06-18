@@ -213,6 +213,12 @@ OmniRoute provides a two-layer defense: request-side injection scanning and resp
 | `PII_RESPONSE_SANITIZATION`      | `false`  | `src/lib/piiSanitizer.ts` | Scan LLM responses for leaked PII before returning to client.           |
 | `PII_RESPONSE_SANITIZATION_MODE` | `redact` | `src/lib/piiSanitizer.ts` | `redact` = mask PII, `warn` = log only, `block` = drop entire response. |
 
+### VS Code Tokenized-Route Context Sanitizer
+
+| Variable                            | Default | Source File                                  | Description                                                                                                                                                                                                                                                  |
+| ----------------------------------- | ------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `OMNIROUTE_VSCODE_SANITIZE_CONTEXT` | `1`     | `src/app/api/v1/vscode/contextSanitizer.ts` | Strips implicit active-editor context (`editorContext`, `activeEditor`, `currentFile`, `selection`, `openTabs`…) from `/v1/vscode/[token]/*` requests and redacts content of explicitly-attached sensitive files. Secure-by-default; set to `0` to disable. |
+
 ### Scenarios
 
 | Scenario                  | Configuration                                                                                                                |

@@ -29,7 +29,9 @@ const FILE_PATH_KEYS = ["filePath", "filepath", "path", "uri", "url"];
 const CONTENT_KEYS = ["content", "contents", "text", "value", "data"];
 const SENSITIVE_CONTEXT_REPLACEMENT = "[REDACTED SENSITIVE CONTEXT]";
 
-const SENSITIVE_PATH_PATTERNS = [
+// Path/extension patterns anchored to path separators or file extensions, so
+// they only match actual file references. Safe to apply to free-form text.
+const SENSITIVE_FILENAME_PATTERNS = [
   /(^|[\\/])\.env(\.|$)/i,
   /(^|[\\/])\.netrc$/i,
   /(^|[\\/])\.npmrc$/i,
@@ -42,10 +44,20 @@ const SENSITIVE_PATH_PATTERNS = [
   /\.p12$/i,
   /\.pem$/i,
   /\.pfx$/i,
-  /credentials/i,
-  /kubeconfig/i,
-  /secrets?/i,
 ];
+
+// Bare-word patterns. They correctly flag a sensitive *path segment* (e.g.
+// `~/.aws/credentials`) at the object level, but the same words appear in
+// legitimate prose ("how do I store API credentials?"). They must therefore be
+// used ONLY for structured path detection, never to scrub free-form text.
+const SENSITIVE_KEYWORD_PATTERNS = [/credentials/i, /kubeconfig/i, /secrets?/i];
+
+// Object-level path detection (file path + content pairs) uses the full set.
+const SENSITIVE_PATH_PATTERNS = [...SENSITIVE_FILENAME_PATTERNS, ...SENSITIVE_KEYWORD_PATTERNS];
+
+// Free-form text scanning uses only the anchored filename patterns, so ordinary
+// chat content mentioning words like "credentials" or "secrets" is preserved.
+const SENSITIVE_TEXT_PATTERNS = SENSITIVE_FILENAME_PATTERNS;
 
 const IMPLICIT_TEXT_BLOCK_PATTERN =
   /(^|\n)(active editor|current file|current selection|editor context|open tabs|selected text|visible editors):[\s\S]*?(?=\n\n(?:[A-Z][A-Za-z0-9 _-]{1,60}:|User request:|Request:)|$)/gi;
@@ -155,7 +167,7 @@ function sanitizeString(
   });
 
   if (!FILE_PATH_KEYS.includes(parentKey)) {
-    for (const pattern of SENSITIVE_PATH_PATTERNS) {
+    for (const pattern of SENSITIVE_TEXT_PATTERNS) {
       if (pattern.test(sanitized)) {
         sanitized = sanitized.replace(pattern, SENSITIVE_CONTEXT_REPLACEMENT);
         changed = true;
