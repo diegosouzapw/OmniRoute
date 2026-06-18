@@ -18,6 +18,10 @@ import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
 import { CODEX_NATIVE_UNPREFIXED_MODELS } from "@omniroute/open-sse/services/model";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo";
+import {
+  AUTO_TEMPLATE_VARIANTS,
+  createBuiltinAutoCombo,
+} from "@omniroute/open-sse/services/autoCombo/builtinCatalog";
 import { getAllSyncedAvailableModels, type SyncedAvailableModel } from "@/lib/db/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { getOpenRouterCatalog } from "@/lib/catalog/openrouterCatalog";
@@ -70,15 +74,6 @@ const FALLBACK_ALIAS_TO_PROVIDER = {
 type ComboCatalogTarget = {
   modelStr?: string;
   provider?: string | null;
-};
-
-type ComboTargetCatalogMetadata = {
-  contextLength?: number;
-  maxInputTokens?: number;
-  maxOutputTokens?: number;
-  inputModalities?: string[];
-  outputModalities?: string[];
-  capabilities: Record<string, boolean>;
 };
 
 function isPositiveFiniteNumber(value: unknown): value is number {
@@ -606,7 +601,7 @@ export async function getUnifiedModelsResponse(
       };
     };
 
-    const buildComboCatalogMetadata = (
+    const buildComboCatalogMetadata = async (
       combo: Parameters<typeof resolveNestedComboTargets>[0],
       allCombos: Parameters<typeof resolveNestedComboTargets>[1]
     ) => {
@@ -616,14 +611,18 @@ export async function getUnifiedModelsResponse(
 
       const baseMetadata = explicitContextLength ? { context_length: explicitContextLength } : {};
       const targets = resolveNestedComboTargets(combo, allCombos) as ComboCatalogTarget[];
-      if (targets.length === 0) return baseMetadata;
+      if (targets.length === 0) {
+        return baseMetadata;
+      }
 
       const targetMetadata = targets.map((target) => getComboTargetCatalogMetadata(target));
 
       const knownMetadata = targetMetadata.filter(
         (metadata): metadata is ComboTargetCatalogMetadata => metadata !== null
       );
-      if (knownMetadata.length === 0) return baseMetadata;
+      if (knownMetadata.length === 0) {
+        return baseMetadata;
+      }
       const contextLength =
         explicitContextLength ??
         minKnownNumber(knownMetadata.map((metadata) => metadata.contextLength));
@@ -697,9 +696,9 @@ export async function getUnifiedModelsResponse(
         continue;
       }
 
-      const comboMetadata = buildComboCatalogMetadata(combo, combos);
+      const comboMetadata = await buildComboCatalogMetadata(combo, combos);
 
-      models.push({
+      const comboModel = {
         id: combo.name,
         object: "model",
         created: timestamp,
@@ -708,7 +707,44 @@ export async function getUnifiedModelsResponse(
         root: combo.name,
         parent: null,
         ...comboMetadata,
-      });
+      };
+      models.push(comboModel);
+    }
+
+    // Add built-in virtual auto-combos to /v1/models so OpenAI-compatible
+    // clients receive context metadata before the first request.
+    for (const autoModelId of Object.keys(AUTO_TEMPLATE_VARIANTS)) {
+      if (models.some((model) => model.id === autoModelId)) continue;
+      try {
+        const suffix = autoModelId.replace(/^auto\/?/, "");
+        const virtualCombo = await createBuiltinAutoCombo(autoModelId, suffix);
+        const virtualTargets = (virtualCombo.models || []).map((model) => ({
+          modelStr: model.model,
+          provider: model.providerId,
+        }));
+        const contextLength = virtualCombo.advertisedContextLength || 128000;
+        const maxOutputTokens = virtualCombo.advertisedMaxOutputTokens || 8192;
+        models.push({
+          id: autoModelId,
+          object: "model",
+          created: timestamp,
+          owned_by: "auto",
+          permission: [],
+          root: autoModelId,
+          parent: null,
+          context_length: contextLength,
+          max_input_tokens: contextLength,
+          max_output_tokens: maxOutputTokens,
+          capabilities: {
+            tool_calling: true,
+            reasoning: true,
+            thinking: true,
+            temperature: true,
+          },
+        });
+      } catch (err) {
+        console.log(`[catalog] Could not materialize built-in auto model ${autoModelId}:`, err);
+      }
     }
 
     // Resolve synced available models (from auto-sync) — used to skip static
