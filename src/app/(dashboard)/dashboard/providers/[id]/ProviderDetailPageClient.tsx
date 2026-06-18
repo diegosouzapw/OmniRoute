@@ -740,6 +740,7 @@ export default function ProviderDetailPageClient() {
         setShowEditModal={setShowEditModal}
         selectedConnection={selectedConnection}
         handleUpdateConnection={handleUpdateConnection}
+        handleCompatibleImportWithProgress={handleCompatibleImportWithProgress}
         showEditNodeModal={showEditNodeModal}
         setShowEditNodeModal={setShowEditNodeModal}
         providerNode={providerNode}
