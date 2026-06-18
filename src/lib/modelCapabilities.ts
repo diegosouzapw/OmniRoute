@@ -192,6 +192,17 @@ function getStaticSpecCanonicalModelId(modelId: string | null, rawModel: string 
   return null;
 }
 
+/**
+ * Strip a trailing `-latest` alias suffix from a model id (#4073). Returns the
+ * short id (`pixtral-12b-latest` → `pixtral-12b`) or `null` when there is no
+ * `-latest` suffix to drop. Used only as a last-resort synced-lookup fallback.
+ */
+function stripLatestAlias(modelId: string | null): string | null {
+  if (!modelId) return null;
+  const stripped = modelId.replace(/-latest$/i, "");
+  return stripped && stripped !== modelId ? stripped : null;
+}
+
 function getSyncedCapabilityForResolved(
   provider: string | null,
   model: string | null,
@@ -208,7 +219,27 @@ function getSyncedCapabilityForResolved(
   }
 
   const canonical = getStaticSpecCanonicalModelId(model, rawModel);
-  return canonical && canonical !== model ? getSyncedCapability(provider, canonical) : null;
+  if (canonical && canonical !== model) {
+    const byCanonical = getSyncedCapability(provider, canonical);
+    if (byCanonical) return byCanonical;
+  }
+
+  // #4073: models.dev catalogs some `-latest` aliases under their short id
+  // (e.g. Mistral `pixtral-12b-latest` is stored as `pixtral-12b`). When every
+  // exact lookup above misses, retry once with a trailing `-latest` stripped so
+  // the synced metadata (`attachment` / image modalities) still wins over the
+  // last-resort #4071 model-id heuristic. Only fires as a fallback, so models
+  // whose `-latest` id IS stored verbatim (e.g. `pixtral-large-latest`) keep
+  // resolving directly above.
+  for (const candidate of [model, rawModel]) {
+    const base = stripLatestAlias(candidate);
+    if (base && base !== model && base !== rawModel) {
+      const byAlias = getSyncedCapability(provider, base);
+      if (byAlias) return byAlias;
+    }
+  }
+
+  return null;
 }
 
 /**
