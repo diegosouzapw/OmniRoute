@@ -1,6 +1,6 @@
 # OmniRoute — Design System & Visual Identity
 
-> **Status:** standardization plan. **Phases 1–2 (grid wallpaper + identity tokens + primitive radius/gradient/border) are implemented in this PR**; Phases 3–4 are planned follow-ups (one PR each).
+> **Status:** standardization plan. **Phases 1–2 + the safe slice of Phase 3 (status-color centralization + mono token) are implemented in this PR.** The rest of Phase 3 (DataTable migration) and Phase 4 need a **visual pass on the running app**: several "hardcoded" hex are *intentional* (always-dark console terminal, ReactFlow SVG strokes, table-header fallbacks) and a blind token-sweep would break them in light theme.
 > **Date:** 2026-06-16 · **Scope:** unify the OmniRoute dashboard (`src/`) with the marketing site (`_mono_repo/omnirouteSite/`) into **one visual identity** — same graph-paper grid background, same color tokens, standardized components.
 
 ---
@@ -172,8 +172,8 @@ Custom components (no shadcn/Radix), Tailwind v4, semantic tokens **mostly** ado
 
 - **Phase 1 — Grid + identity tokens (THIS PR).** `globals.css` grid + `--surface-2`/`--grad-brand`/`--radius` tokens; `body::before` wallpaper; remove the `bg-bg` blocker; static guard test. Low risk, reversible in one commit.
 - **Phase 2 — Primitives (C1, C2, C5) — DONE in this PR.** Semantic radius utilities `rounded-card` (14px) / `rounded-control` (9px) added via `@theme` (custom names, so the default `rounded-sm/md/lg/xl` stay untouched — no 400-file blast); Card/Modal → 14px, Button/Input/Select → 9px; Button primary → `--grad-brand` (red→violet) + new `accent` variant; Card borders → the `border-border` token (0.08). **Deferred:** `cn()`→tailwind-merge (C9) needs new deps; the ad-hoc `rounded-lg` sweep (326 files) is left as-is since the primitives carry the bulk of the surface.
-- **Phase 3 — Tables + status colors (C3, C4).** Largest consistency win; data-heavy screens; isolated PR with before/after screenshots.
-- **Phase 4 — Cleanup (C6, C7, C8, `--font-mono`).**
+- **Phase 3 — Status colors + tables (C3, C4).** ✅ **C4 done** (`src/shared/constants/statusColors.ts` — `STATUS_HEX` single source; `flow/edgeStyles.ts` + `TokenHealthBadge` repointed, faithful/same hex). ✅ **`--font-mono` token added.** ⏳ **C3 (DataTable) deferred** — `DataTable.tsx` inline rgba + `var(--bg-table-header, rgba(15,15,25,0.95))` / `var(--text-secondary,#888)` fallbacks are effectively *always-dark*; migrating to theme tokens flips them in light mode, so it needs a visual pass (isolated PR with before/after).
+- **Phase 4 — Cleanup (C6, C7, C8).** ⚠️ **C8 hex-sweep is NOT a blind find/replace** — confirmed offenders that are *intentional* and must stay: `ConsoleLogViewer.tsx:240` (always-dark terminal `bg-[#161b22]` + traffic dots), `TokenHealthBadge` popover (`rgba(15,15,25,0.95)`). Only migrate hex that is genuinely meant to be theme-aware. C6 focus-ring + C7 Checkbox/Textarea are additive but want a visual pass.
 
 Each phase: `npm run lint` + `npm run typecheck:core` + a visual pass.
 

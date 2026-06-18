@@ -194,6 +194,8 @@
   /* Font - macOS system fonts */
   --font-sans:
     -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+  /* Monospace stack (parity with the site) — code blocks, IDs, endpoints, terminals */
+  --font-mono: ui-monospace, "JetBrains Mono", "Fira Code", "SF Mono", monospace;
 
   /* Nested surface (enables bg-surface-2) */
   --color-surface-2: var(--surface-2);

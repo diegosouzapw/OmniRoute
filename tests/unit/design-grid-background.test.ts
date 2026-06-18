@@ -101,3 +101,24 @@ test("Card / Modal / Input / Select adopt the radius scale and border token", ()
   assert.ok(input.includes("rounded-control"), "input uses rounded-control (9px)");
   assert.ok(select.includes("rounded-control"), "select uses rounded-control (9px)");
 });
+
+// ── Phase 3 (partial): status hex centralized + mono font token ──
+
+test("status colors come from one canonical module", () => {
+  const mod = read("../../src/shared/constants/statusColors.ts");
+  assert.match(mod, /success:\s*"#22c55e"/);
+  assert.match(mod, /warning:\s*"#f59e0b"/);
+  assert.match(mod, /error:\s*"#ef4444"/);
+
+  const edges = read("../../src/shared/components/flow/edgeStyles.ts");
+  const badge = read("../../src/shared/components/TokenHealthBadge.tsx");
+  assert.ok(edges.includes('from "@/shared/constants/statusColors"'), "edgeStyles imports the module");
+  assert.ok(edges.includes("STATUS_HEX.success"), "edgeStyles uses STATUS_HEX, not a literal");
+  assert.ok(!edges.includes('"#22c55e"'), "edgeStyles no longer hardcodes the success hex");
+  assert.ok(badge.includes("STATUS_HEX.success"), "TokenHealthBadge uses STATUS_HEX");
+  assert.ok(!badge.includes('"#22c55e"'), "TokenHealthBadge no longer hardcodes the success hex");
+});
+
+test("globals.css defines a monospace token (site parity)", () => {
+  assert.match(globalsCss, /--font-mono:\s*ui-monospace/);
+});

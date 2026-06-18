@@ -4,10 +4,12 @@
  * the Compression Studio (Tela A) so all three flow graphs speak the same
  * color language: green = active, red = error, amber = last-used, muted = idle.
  */
+import { STATUS_HEX } from "@/shared/constants/statusColors";
+
 export const FLOW_EDGE_COLORS = {
-  active: "#22c55e",
-  error: "#ef4444",
-  last: "#f59e0b",
+  active: STATUS_HEX.success,
+  error: STATUS_HEX.error,
+  last: STATUS_HEX.warning,
   idle: "var(--color-border)",
 } as const;
 
