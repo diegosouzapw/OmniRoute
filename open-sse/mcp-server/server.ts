@@ -88,6 +88,7 @@ import { compressMcpRegistryMetadata } from "./descriptionCompressor.ts";
 import { smartFilterText } from "../services/compression/engines/mcpAccessibility/index.ts";
 import {
   DEFAULT_MCP_ACCESSIBILITY_CONFIG,
+  clampMcpAccessibilityConfig,
   type McpAccessibilityConfig,
 } from "../services/compression/engines/mcpAccessibility/constants.ts";
 import { getDbInstance } from "../../src/lib/db/core.ts";
@@ -137,9 +138,9 @@ function readMcpAccessibilityConfig(): McpAccessibilityConfig {
       .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
       .get("compression", "mcpAccessibility") as { value?: string } | undefined;
     if (!row?.value) return { ...DEFAULT_MCP_ACCESSIBILITY_CONFIG };
-    const parsed = JSON.parse(row.value);
-    if (!parsed || typeof parsed !== "object") return { ...DEFAULT_MCP_ACCESSIBILITY_CONFIG };
-    return { ...DEFAULT_MCP_ACCESSIBILITY_CONFIG, ...parsed };
+    // clampMcpAccessibilityConfig bounds every field (and folds in the non-object guard), so a
+    // persisted out-of-range maxTextChars can't make smartFilterText truncate the whole text.
+    return clampMcpAccessibilityConfig(JSON.parse(row.value));
   } catch {
     return { ...DEFAULT_MCP_ACCESSIBILITY_CONFIG };
   }

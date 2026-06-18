@@ -11,6 +11,7 @@ import {
   DEFAULT_MCP_ACCESSIBILITY_CONFIG,
   DEFAULT_RTK_CONFIG,
   DEFAULT_ULTRA_CONFIG,
+  clampMcpAccessibilityConfig,
   type AggressiveConfig,
   type CavemanConfig,
   type CavemanOutputModeConfig,
@@ -509,32 +510,10 @@ export function getDefaultRtkConfig(): RtkConfig {
 }
 
 function normalizeMcpAccessibilityConfig(value: unknown): McpAccessibilityConfig {
-  const record = toRecord(value);
-  return {
-    ...DEFAULT_MCP_ACCESSIBILITY_CONFIG,
-    ...record,
-    enabled: record.enabled !== false,
-    maxTextChars:
-      typeof record.maxTextChars === "number" && record.maxTextChars > 0
-        ? Math.floor(record.maxTextChars)
-        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.maxTextChars,
-    collapseThreshold:
-      typeof record.collapseThreshold === "number" && record.collapseThreshold > 0
-        ? Math.floor(record.collapseThreshold)
-        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.collapseThreshold,
-    collapseKeepHead:
-      typeof record.collapseKeepHead === "number" && record.collapseKeepHead >= 0
-        ? Math.floor(record.collapseKeepHead)
-        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.collapseKeepHead,
-    collapseKeepTail:
-      typeof record.collapseKeepTail === "number" && record.collapseKeepTail >= 0
-        ? Math.floor(record.collapseKeepTail)
-        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.collapseKeepTail,
-    minLengthToProcess:
-      typeof record.minLengthToProcess === "number" && record.minLengthToProcess > 0
-        ? Math.floor(record.minLengthToProcess)
-        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.minLengthToProcess,
-  };
+  // clampMcpAccessibilityConfig (engine layer) owns the numeric floors so the DB normalizer and
+  // the live MCP-server read path agree — in particular it floors maxTextChars to a sane minimum
+  // (a value below the tail reservation would make smartFilterText truncate the whole text away).
+  return clampMcpAccessibilityConfig(value);
 }
 
 export async function getMcpAccessibilityConfig(): Promise<McpAccessibilityConfig> {
