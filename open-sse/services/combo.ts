@@ -15,7 +15,6 @@ import {
   isModelLocked,
   recordModelLockoutFailure,
   recordProviderFailure,
-  isProviderFailureCode,
   isProviderExhaustedReason,
   type ProviderProfile,
 } from "./accountFallback.ts";
@@ -135,123 +134,30 @@ import {
   validateResponseQuality,
   toRetryAfterDisplayValue,
 } from "./combo/validateQuality.ts";
+import {
+  TRANSIENT_FOR_SEMAPHORE,
+  MAX_COMBO_DEPTH,
+  MAX_FALLBACK_WAIT_MS,
+  MAX_GLOBAL_ATTEMPTS,
+  isAllAccountsRateLimitedResponse,
+  isProviderCircuitOpenResult,
+  clampComboDepth,
+  shouldSkipForPredictedTtft,
+  shouldRecordProviderBreakerFailure,
+  resolveDelayMs,
+  comboModelNotFoundResponse,
+  getTargetProvider,
+  isStreamReadinessFailureErrorBody,
+  isTokenLimitBreachErrorBody,
+  toRecordedTarget,
+} from "./combo/comboPredicates.ts";
 
 // Backward-compatible re-exports — these were public from combo.ts before the
 // types extraction (Quality Gate v2 / Fase 9). Keep the external surface stable.
 export { RESET_WINDOW_NAMES };
 export type { SingleModelTarget, ResolvedComboTarget };
 export { validateResponseQuality };
-
-// Status codes that should mark round-robin target semaphores as cooling down.
-const TRANSIENT_FOR_SEMAPHORE = [429, 502, 503, 504];
-// Patterns that signal all accounts for a provider are rate-limited / exhausted.
-// Used to detect 503 responses from handleNoCredentials so combo can fallback.
-const ALL_ACCOUNTS_RATE_LIMITED_PATTERNS = [/unavailable/i, /service temporarily unavailable/i];
-
-function isAllAccountsRateLimitedResponse(
-  status: number,
-  contentType: string | null,
-  errorText: string
-): boolean {
-  if (status !== 503) return false;
-  if (!contentType?.includes("application/json")) return false;
-  return ALL_ACCOUNTS_RATE_LIMITED_PATTERNS.some((p) => p.test(errorText));
-}
-
-// #1731v2 guard: a provider circuit-breaker-open response (503 + `X-OmniRoute-Provider-Breaker`
-// header / `provider_circuit_open` error code, see providerCircuitOpenResponse) is an OmniRoute
-// resilience signal, NOT a per-connection upstream failure. It must keep being treated as an
-// ordinary target failure (try the next target, including same-provider ones) — so it must NOT
-// poison exhaustedConnections/exhaustedProviders, otherwise remaining same-provider targets get
-// wrongly skipped while the breaker is open.
-function isProviderCircuitOpenResult(
-  result: { headers?: Headers | null; status?: number },
-  errorText: string
-): boolean {
-  const breakerHeader = result.headers?.get?.("x-omniroute-provider-breaker");
-  if (typeof breakerHeader === "string" && breakerHeader.toLowerCase() === "open") return true;
-  return /provider_circuit_open/i.test(errorText);
-}
-
-const MAX_COMBO_DEPTH = 3;
-// Absolute safety ceiling for operator-configured nesting depth. config.maxComboDepth
-// can raise the default (3) up to this cap, or lower it, but never above — runaway
-// nested-combo expansion is a real DoS/perf risk.
-const MAX_COMBO_DEPTH_HARD_CAP = 10;
-const MAX_FALLBACK_WAIT_MS = 5000;
-const MAX_GLOBAL_ATTEMPTS = 30;
-
-/**
- * Clamp an operator-configured combo nesting depth (config.maxComboDepth) to a
- * safe integer in [1, MAX_COMBO_DEPTH_HARD_CAP]. Anything non-numeric, < 1, or
- * NaN falls back to the default MAX_COMBO_DEPTH so a bad config never disables
- * nesting or blows past the safety ceiling.
- */
-export function clampComboDepth(value: unknown): number {
-  const n = Math.floor(Number(value));
-  if (!Number.isFinite(n) || n < 1) return MAX_COMBO_DEPTH;
-  return Math.min(n, MAX_COMBO_DEPTH_HARD_CAP);
-}
-
-/** Minimum recorded requests before the predictive-TTFT breaker trusts the average. */
-const PREDICTIVE_TTFT_MIN_SAMPLES = 5;
-
-/**
- * Predictive-TTFT circuit-breaker decision: skip a target whose recent average
- * latency — measured over a statistically meaningful sample — exceeds the
- * configured ceiling, so the combo fails over before paying a slow first byte.
- * Returns false when disabled (ceiling <= 0), when there is no metric, or when
- * the sample is too small to trust.
- */
-export function shouldSkipForPredictedTtft(
-  metric: { requests?: number; avgLatencyMs?: number } | null | undefined,
-  predictiveTtftMs: number
-): boolean {
-  if (!metric || !(predictiveTtftMs > 0)) return false;
-  return (
-    (metric.requests ?? 0) >= PREDICTIVE_TTFT_MIN_SAMPLES &&
-    (metric.avgLatencyMs ?? 0) > predictiveTtftMs
-  );
-}
-
-/**
- * Decide whether a failed combo target should record a whole-provider circuit-breaker
- * failure (#1731 / #2743 gap-d). This is the consumer side of `skipProviderBreaker`:
- *
- * - Stream-readiness failures (pre-flight zombie/ping probes) never count as provider
- *   failures — they are a connection-readiness signal, not an upstream outage.
- * - Only provider-level failure codes (408/429/5xx — see `isProviderFailureCode`) count.
- * - When the next combo target is on the SAME provider, don't trip the provider breaker:
- *   a different model on that provider may still succeed.
- * - G-02 / #2743: when the fallback result carries `skipProviderBreaker` (an embedded
- *   service supervisor outage signalled via `X-Omni-Fallback-Hint: connection_cooldown`)
- *   apply connection cooldown ONLY — never trip the whole-provider breaker.
- *
- * Pure predicate so the breaker decision is unit-testable without the full combo harness.
- */
-export function shouldRecordProviderBreakerFailure(args: {
-  isStreamReadinessFailure: boolean;
-  status: number;
-  sameProviderNext: boolean;
-  skipProviderBreaker?: boolean;
-}): boolean {
-  return (
-    !args.isStreamReadinessFailure &&
-    isProviderFailureCode(args.status) &&
-    !args.sameProviderNext &&
-    !args.skipProviderBreaker
-  );
-}
-
-function resolveDelayMs(value: unknown, fallback: number): number {
-  const numericValue = Number(value);
-  if (!Number.isFinite(numericValue) || numericValue < 0) return fallback;
-  return numericValue;
-}
-
-function comboModelNotFoundResponse(message: string) {
-  return errorResponse(404, message);
-}
+export { clampComboDepth, shouldSkipForPredictedTtft, shouldRecordProviderBreakerFailure };
 
 // Bootstrap defaults from ClawRouter benchmark (used when no local latency history exists yet)
 const DEFAULT_MODEL_P95_MS: Record<string, number> = {
@@ -466,44 +372,6 @@ function recordStickyRoundRobinSuccess(
   }
 
   rrStickyTargets.set(comboName, { executionKey: target.executionKey, successCount });
-}
-
-function getTargetProvider(modelStr: string, providerId?: string | null): string {
-  const parsed = parseModel(modelStr);
-  return providerId || parsed.provider || parsed.providerAlias || "unknown";
-}
-
-function isStreamReadinessFailureErrorBody(errorBody: unknown): boolean {
-  if (!errorBody || typeof errorBody !== "object") return false;
-  const error = (errorBody as Record<string, unknown>).error;
-  if (!error || typeof error !== "object") return false;
-  const code = (error as Record<string, unknown>).code;
-  return code === "STREAM_READINESS_TIMEOUT" || code === "STREAM_EARLY_EOF";
-}
-
-/**
- * A local per-API-key token-limit breach surfaces as a 429 tagged with
- * errorCode "TOKEN_LIMIT_EXCEEDED" (see chatCore.ts Tier 2 early return). This
- * is NOT an upstream rate limit, so the combo loop must not cool the shared
- * account/provider, must not add it to transientRateLimitedProviders, and must
- * not retry it transiently — it propagates to the client as a terminal 429.
- */
-function isTokenLimitBreachErrorBody(errorBody: unknown): boolean {
-  if (!errorBody || typeof errorBody !== "object") return false;
-  const error = (errorBody as Record<string, unknown>).error;
-  if (!error || typeof error !== "object") return false;
-  return (error as Record<string, unknown>).code === "TOKEN_LIMIT_EXCEEDED";
-}
-
-function toRecordedTarget(target: ResolvedComboTarget) {
-  return {
-    executionKey: target.executionKey,
-    stepId: target.stepId,
-    provider: target.provider,
-    providerId: target.providerId,
-    connectionId: target.connectionId,
-    label: target.label,
-  };
 }
 
 function normalizeShadowRoutingConfig(config: Record<string, unknown>): ShadowRoutingConfig {
