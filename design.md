@@ -1,6 +1,6 @@
 # OmniRoute — Design System & Visual Identity
 
-> **Status:** standardization plan. **Phases 1–3 are implemented in this PR** (grid, primitives, status-color centralization, mono token, and the DataTable token migration). The DataTable migration is **faithful** — dark stays byte-identical (the new `--table-*` dark values equal the old hardcoded rgba); light is fixed (it was buggy always-dark via dead `var()` fallbacks). **⚠️ Wants a visual pass before merge** (light-theme tables + the secondary-text shift `#888`→`--color-text-muted`). **Phase 4 is now largely done too** (C6 focus-ring → accent, C7 Checkbox/Textarea primitives, C9 `cn()`→tailwind-merge); only the selective C8 hex-sweep remains. Note several remaining "hardcoded" hex are _intentional_ (always-dark console terminal, ReactFlow SVG strokes) and must NOT be swept.
+> **Status:** standardization plan. **Phases 1–3 are implemented in this PR** (grid, primitives, status-color centralization, mono token, and the DataTable token migration). The DataTable migration is **faithful** — dark stays byte-identical (the new `--table-*` dark values equal the old hardcoded rgba); light is fixed (it was buggy always-dark via dead `var()` fallbacks). **⚠️ Wants a visual pass before merge** (light-theme tables + the secondary-text shift `#888`→`--color-text-muted`). **Phase 4 is now largely done too** (C6 focus-ring → accent, C7 Checkbox/Textarea primitives, C9 `cn()`→tailwind-merge); only the selective C8 hex-sweep remains. Note several remaining "hardcoded" hex are _intentional_ (always-dark console terminal, ReactFlow SVG strokes) and must NOT be swept. **Phase 5 (D4 + D8): the grid now reaches every standalone screen** (login/auth/error/legal/status/onboarding — their opaque `bg-bg` full-screen wrappers were hiding it) **and the dashboard content shell is fluid up to 4K** (`max-w-7xl` → `max-w-[3840px]`) so it follows the viewport on large monitors instead of centering with wide side gutters.
 > **Date:** 2026-06-16 · **Scope:** unify the OmniRoute dashboard (`src/`) with the marketing site (`_mono_repo/omnirouteSite/`) into **one visual identity** — same graph-paper grid background, same color tokens, standardized components.
 
 ---
@@ -127,7 +127,7 @@ The grid is global by construction (it covers the panel, `auth`/`login`, error p
 
 ### 4.6 Login / auth / error pages
 
-These render directly under `<body>` (no panel chrome) and their wrappers are mostly transparent — the global grid appears behind them automatically. Exception: `login/page.tsx:124,139` uses opaque `bg-bg` wrappers; softening them (D4) is a small Phase 2 follow-up.
+These render directly under `<body>` (no panel chrome), so the global grid should appear behind them automatically. **Phase 5 — DONE:** the standalone full-screen wrappers were in fact opaque (`min-h-screen … bg-bg`, where `bg-bg` is the same solid fill as `<body>`), which hid the grid on every non-dashboard screen — not just login. All of them are now transparent so the shared wallpaper shows through: `login`, `forgot-password`, `callback`, `maintenance`, `offline`, `status`, `terms`, `privacy`, `onboarding`, and `ErrorPageScaffold` (covers `400`/`401`). This closes **D4** (extended from login-only to every standalone screen). Guarded by `tests/unit/design-grid-background.test.ts`.
 
 ### 4.7 Landing page
 
@@ -187,10 +187,11 @@ Each phase: `npm run lint` + `npm run typecheck:core` + a visual pass.
 - **D1 — Button primary:** keep red→red or switch to **red→violet `--grad-brand`**? Rec: **red→violet** (Phase 2).
 - **D2 — Grid line color:** **neutral** (site style) — chosen — vs brand-red. Size **32px** (shrunk ~30% from the original 46px on owner feedback — 46px cells read too large on the dashboard layout).
 - **D3 — Chrome vibrancy:** sidebar/header **solid** — chosen.
-- **D4 — Auth/login grid:** soften `login/page.tsx` wrappers (Phase 2). Rec: yes.
+- **D4 — Auth/login grid:** ✅ **DONE (Phase 5)** — opaque `bg-bg` removed from every standalone full-screen wrapper (not just login), so the grid shows on all screens. See §4.6.
 - **D5 — Landing page:** leave animated splash as-is. Chosen.
 - **D6 — Radius 14/9 product-wide:** Rec: yes (Phase 2).
 - **D7 — Phase 1 ships first:** Chosen.
+- **D8 — Layout width (Phase 5):** the dashboard content shell was capped at `max-w-7xl` (1280px), centering with wide empty side gutters on large monitors. ✅ **DONE** — raised to a fluid `max-w-[3840px]` (true 4K): content now follows the viewport up to ~4K and only centers beyond it (`DashboardLayout.tsx`). Deliberately-narrow pages stay narrow by design (`ProviderOnboardingWizard` max-w-5xl, `Rtk`/`CavemanContextPageClient` max-w-6xl).
 
 ---
 

@@ -183,3 +183,42 @@ test("form controls focus on the accent ring, not the red primary", () => {
     }
   }
 });
+
+// ── Phase 5: the grid reaches every standalone screen + the shell is fluid up to 4K ──
+
+test("standalone full-screen pages stay transparent so the grid shows through", () => {
+  // Same contract as the DashboardLayout shell: a full-viewport wrapper must not paint
+  // an opaque bg-bg over the body::before grid. These are the auth / error / legal /
+  // status / onboarding screens that render outside the dashboard layout — the ones the
+  // first grid phase missed. (?![\w-]) keeps bg-bg-alt / bg-bg-main from matching.
+  const pages = [
+    "../../src/app/login/page.tsx",
+    "../../src/app/forgot-password/page.tsx",
+    "../../src/app/callback/page.tsx",
+    "../../src/app/maintenance/page.tsx",
+    "../../src/app/offline/page.tsx",
+    "../../src/app/status/page.tsx",
+    "../../src/app/terms/page.tsx",
+    "../../src/app/privacy/page.tsx",
+    "../../src/app/(dashboard)/dashboard/onboarding/page.tsx",
+    "../../src/shared/components/ErrorPageScaffold.tsx",
+  ];
+  for (const p of pages) {
+    const src = read(p);
+    assert.ok(
+      !/min-h-screen[^"]*\bbg-bg(?![\w-])/.test(src) &&
+        !/\bbg-bg(?![\w-])[^"]*min-h-screen/.test(src),
+      `${p} must not paint bg-bg on a min-h-screen wrapper (it would hide the grid)`
+    );
+  }
+});
+
+test("DashboardLayout content shell is fluid up to ~4K before centering", () => {
+  // The inner content wrapper grows with the viewport up to a 4K cap (3840px) instead
+  // of the old max-w-7xl (1280px) that left wide side gutters on large monitors.
+  assert.ok(
+    dashboardLayout.includes("max-w-[3840px] mx-auto"),
+    "content wrapper caps at 3840px (4K) and centers only beyond that"
+  );
+  assert.ok(!dashboardLayout.includes("max-w-7xl"), "the old 1280px max-w-7xl cap is gone");
+});
