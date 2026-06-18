@@ -27,28 +27,31 @@ export interface UseCompressionReplayReturn {
 
 const BASE_STEP_MS = 400;
 
-function stepMs(speed: ReplaySpeed): number {
+/** Interval (ms) between frames for a given speed. Exported as a unit-test seam. */
+export function stepMs(speed: ReplaySpeed): number {
   return Math.round(BASE_STEP_MS / speed);
 }
 
 // ── Reducer ───────────────────────────────────────────────────────────────
+// `ReplayState`, `ReplayAction`, `INITIAL_STATE` and `replayReducer` are exported
+// purely as unit-test seams (the state machine is otherwise driven only via the hook).
 
-interface ReplayState {
+export interface ReplayState {
   frameIndex: number; // -1 = not started
   isPlaying: boolean;
   speed: ReplaySpeed;
 }
 
-type ReplayAction =
+export type ReplayAction =
   | { type: "RESET" }
   | { type: "PLAY"; frameIndex?: number }
   | { type: "PAUSE" }
   | { type: "TICK"; totalFrames: number }
   | { type: "SET_SPEED"; speed: ReplaySpeed };
 
-const INITIAL_STATE: ReplayState = { frameIndex: -1, isPlaying: false, speed: 1 };
+export const INITIAL_STATE: ReplayState = { frameIndex: -1, isPlaying: false, speed: 1 };
 
-function replayReducer(state: ReplayState, action: ReplayAction): ReplayState {
+export function replayReducer(state: ReplayState, action: ReplayAction): ReplayState {
   switch (action.type) {
     case "RESET":
       return { ...state, frameIndex: -1, isPlaying: false };
