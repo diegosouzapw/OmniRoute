@@ -148,6 +148,9 @@ const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   // `<baseUrl>/models` list. Live fetch falls back to the local catalog on error.
   "llm7",
   "byteplus",
+  // #4202: zenmux is the same case — its free models (e.g. z-ai/glm-5.2-free,
+  // moonshotai/kimi-k2.7-code-free) live only on the upstream /models list.
+  "zenmux",
 ]);
 
 function isNamedOpenAIStyleProvider(provider: string): boolean {
