@@ -116,6 +116,30 @@ import {
   type ResilienceSettings,
 } from "../../src/lib/resilience/settings";
 import { resolveReasoningBufferedMaxTokens, toPositiveInteger } from "./reasoningTokenBuffer.ts";
+import { RESET_WINDOW_NAMES } from "./combo/types.ts";
+import type {
+  ComboRetryAfter,
+  ComboErrorBody,
+  ComboLike,
+  ComboInput,
+  ComboCollectionLike,
+  ComboLogger,
+  SingleModelTarget,
+  HandleSingleModel,
+  IsModelAvailable,
+  HandleComboChatOptions,
+  HandleRoundRobinOptions,
+  HistoricalLatencyStatsEntry,
+  AutoProviderCandidate,
+  ResolvedComboTarget,
+  ShadowRoutingConfig,
+  ComboRuntimeStep,
+} from "./combo/types.ts";
+
+// Backward-compatible re-exports — these were public from combo.ts before the
+// types extraction (Quality Gate v2 / Fase 9). Keep the external surface stable.
+export { RESET_WINDOW_NAMES };
+export type { SingleModelTarget, ResolvedComboTarget };
 
 // Status codes that should mark round-robin target semaphores as cooling down.
 const TRANSIENT_FOR_SEMAPHORE = [429, 502, 503, 504];
@@ -333,104 +357,12 @@ function _unregisterExecutionCandidates(executionKeys: string[]): void {
   }
 }
 
-const RESET_WINDOW_NAMES = ["weekly", "session", "monthly"] as const;
 type ResetWindowName = (typeof RESET_WINDOW_NAMES)[number];
 type QuotaFetchCacheConfig = {
   quotaCacheTtlMs: number;
   quotaCacheMaxStaleMs: number;
 };
 type ResetWindowConfig = ReturnType<typeof resolveResetWindowConfig>;
-type ComboRetryAfter = string | number | Date;
-type ComboErrorBody = {
-  error?: { code?: string | null; message?: string | null } | string;
-  message?: string | null;
-  retryAfter?: ComboRetryAfter | null;
-} | null;
-
-type ComboLike = {
-  id?: string;
-  name: string;
-  strategy?: string | null;
-  models: unknown[];
-  config?: Record<string, unknown> | null;
-  autoConfig?: Record<string, unknown> | null;
-  context_cache_protection?: boolean | number;
-  system_message?: string | null;
-  [key: string]: unknown;
-};
-
-type ComboInput = ComboLike | Record<string, unknown>;
-
-type ComboCollectionLike = ComboInput[] | { combos?: ComboInput[] } | null | undefined;
-
-type ComboLogger = {
-  info: (...args: unknown[]) => void;
-  warn: (...args: unknown[]) => void;
-  error?: (...args: unknown[]) => void;
-  debug: (...args: unknown[]) => void;
-};
-
-export type SingleModelTarget =
-  | (ResolvedComboTarget & {
-      allowRateLimitedConnection?: boolean;
-      modelAbortSignal?: AbortSignal | null;
-    })
-  | { modelAbortSignal: AbortSignal };
-
-type HandleSingleModel = (
-  body: Record<string, unknown>,
-  modelStr: string,
-  target?: SingleModelTarget
-) => Promise<Response>;
-
-type IsModelAvailable = (
-  modelStr: string,
-  target?: ResolvedComboTarget & { allowRateLimitedConnection?: boolean }
-) => Promise<boolean> | boolean;
-
-type ComboRelayOptions = {
-  sessionId?: string | null;
-  config?: Record<string, unknown> | null;
-  [key: string]: unknown;
-};
-
-type HandleComboChatOptions = {
-  body: Record<string, unknown>;
-  combo: ComboLike;
-  handleSingleModel: HandleSingleModel;
-  isModelAvailable?: IsModelAvailable;
-  log: ComboLogger;
-  settings?: Record<string, unknown> | null;
-  allCombos?: ComboCollectionLike;
-  relayOptions?: ComboRelayOptions | null;
-  signal?: AbortSignal | null;
-  apiKeyAllowedConnections?: string[] | null;
-};
-
-type HandleRoundRobinOptions = Omit<
-  HandleComboChatOptions,
-  "relayOptions" | "apiKeyAllowedConnections"
->;
-
-type HistoricalLatencyStatsEntry = {
-  totalRequests?: number;
-  p95LatencyMs?: number;
-  latencyStdDev?: number;
-  successRate?: number;
-};
-
-type AutoProviderCandidate = ProviderCandidate & {
-  stepId: string;
-  executionKey: string;
-  modelStr: string;
-  /**
-   * When true, this candidate's auto-combo score is multiplied by
-   * QUOTA_SOFT_DEPRIORITIZE_FACTOR (B17 soft-policy penalty).
-   * Set externally when enforceQuotaShare returns deprioritize=true
-   * for the key routed through this target's connectionId.
-   */
-  quotaSoftPenalty?: boolean;
-};
 
 function toRetryAfterDisplayValue(value: ComboRetryAfter): string | Date {
   if (typeof value !== "number") return value;
@@ -439,40 +371,6 @@ function toRetryAfterDisplayValue(value: ComboRetryAfter): string | Date {
   }
   return new Date(value);
 }
-
-export type ResolvedComboTarget = {
-  kind: "model";
-  stepId: string;
-  executionKey: string;
-  modelStr: string;
-  provider: string;
-  providerId: string | null;
-  connectionId: string | null;
-  allowedConnectionIds?: string[] | null;
-  weight: number;
-  label: string | null;
-  failoverBeforeRetry?: unknown;
-  trafficType?: "production" | "shadow";
-};
-
-type ShadowRoutingConfig = {
-  enabled: boolean;
-  targets: unknown[];
-  sampleRate: number;
-  maxTargets: number;
-  timeoutMs: number;
-};
-
-type ComboRuntimeStep =
-  | ResolvedComboTarget
-  | {
-      kind: "combo-ref";
-      stepId: string;
-      executionKey: string;
-      comboName: string;
-      weight: number;
-      label: string | null;
-    };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
