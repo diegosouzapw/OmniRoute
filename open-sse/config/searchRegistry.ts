@@ -24,6 +24,12 @@ export interface SearchProviderConfig {
   maxMaxResults: number;
   timeoutMs: number;
   cacheTTLMs: number;
+  /**
+   * Last-resort provider: excluded from automatic (cost-based) selection so a
+   * cost-0 free provider never overrides a configured paid one. Only used when no
+   * credentialed provider is available, or when requested explicitly by id.
+   */
+  fallbackOnly?: boolean;
 }
 
 export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = {
@@ -218,6 +224,26 @@ export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = {
     timeoutMs: 10_000,
     cacheTTLMs: 5 * 60 * 1000,
   },
+
+  // Free, no-API-key DuckDuckGo lite scraping (free-claude-code port). Last-resort
+  // only (fallbackOnly): never auto-selected over a configured provider; served by
+  // the dedicated HTML path in open-sse/handlers/search.ts (not the generic JSON one).
+  "duckduckgo-free": {
+    id: "duckduckgo-free",
+    name: "DuckDuckGo (free)",
+    baseUrl: "https://lite.duckduckgo.com/lite/",
+    method: "POST",
+    authType: "none",
+    authHeader: "none",
+    costPerQuery: 0,
+    freeMonthlyQuota: 999999,
+    searchTypes: ["web"],
+    defaultMaxResults: 5,
+    maxMaxResults: 25,
+    timeoutMs: 10_000,
+    cacheTTLMs: 5 * 60 * 1000,
+    fallbackOnly: true,
+  },
 };
 
 /**
@@ -278,8 +304,12 @@ export function selectProvider(
     return provider;
   }
 
-  const providers = Object.values(SEARCH_PROVIDERS).filter((provider) =>
-    searchType ? supportsSearchType(provider, searchType) : true
+  // Auto-selection excludes fallbackOnly providers so a free cost-0 provider never
+  // overrides a configured paid one — they are reached only via explicit id or the
+  // route handler's last-resort step.
+  const providers = Object.values(SEARCH_PROVIDERS).filter(
+    (provider) =>
+      !provider.fallbackOnly && (searchType ? supportsSearchType(provider, searchType) : true)
   );
   if (providers.length === 0) return null;
 
