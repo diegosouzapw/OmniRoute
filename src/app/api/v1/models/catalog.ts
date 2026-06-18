@@ -20,6 +20,7 @@ import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
 import { CODEX_NATIVE_UNPREFIXED_MODELS } from "@omniroute/open-sse/services/model";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo";
+import { AUTO_TEMPLATE_VARIANTS } from "@omniroute/open-sse/services/autoCombo/builtinCatalog";
 import { getAllSyncedAvailableModels, type SyncedAvailableModel } from "@/lib/db/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { getOpenRouterCatalog } from "@/lib/catalog/openrouterCatalog";
@@ -652,11 +653,32 @@ export async function getUnifiedModelsResponse(
     // Collect models from active providers (or all if none active)
     const models = [];
     const timestamp = Math.floor(Date.now() / 1000);
+    const listedIds = new Set<string>();
+
+    // #4164: advertise the built-in zero-setup `auto/*` combos at the very top.
+    // They resolve on demand (createBuiltinAutoCombo) so they have no fixed
+    // targets/metadata to derive — emit a minimal combo-owned entry. The dashboard
+    // already shows these; clients that build their picker from /v1/models (e.g.
+    // Hermes) need them here too.
+    for (const autoId of Object.keys(AUTO_TEMPLATE_VARIANTS)) {
+      if (listedIds.has(autoId)) continue;
+      listedIds.add(autoId);
+      models.push({
+        id: autoId,
+        object: "model",
+        created: timestamp,
+        owned_by: "combo",
+        permission: [],
+        root: autoId,
+        parent: null,
+      });
+    }
 
     // Add combos first (they appear at the top) — only active ones
     for (const combo of combos) {
       if (combo.isActive === false || combo.isHidden === true) continue;
       if (typeof combo.name !== "string" || combo.name.length === 0) continue;
+      if (listedIds.has(combo.name)) continue; // #4164: don't shadow a built-in auto/* id
 
       // Skip combos whose any underlying target model is hidden
       const comboTargets = resolveNestedComboTargets(
@@ -674,6 +696,7 @@ export async function getUnifiedModelsResponse(
 
       const comboMetadata = buildComboCatalogMetadata(combo, combos);
 
+      listedIds.add(combo.name);
       models.push({
         id: combo.name,
         object: "model",
