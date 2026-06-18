@@ -14,9 +14,17 @@
  *
  * Each primitive was validated e2e on the VPS (kernel 6.8.0): intercept,
  * anti-loop (the marked SYN was excluded), and Node adoption of the marked fd +
- * pipe (PONG round-tripped). TLS termination / content decryption (reusing the
- * MITM core) is a deliberate follow-up — this layer is a transparent tunnel that
- * surfaces the intercepted connections via `onIntercept`.
+ * pipe (PONG round-tripped).
+ *
+ * Two forwarding modes, chosen per `options.decrypt`:
+ *   - raw tunnel (default): forward to the original destination over the
+ *     bypass-marked socket with a raw bidirectional pipe — bodies stay opaque;
+ *   - decrypt (opt-in): hand the raw socket to the TLS-terminating engine
+ *     (`tlsCapture.ts`, #4179), which decrypts with a per-SNI leaf from the
+ *     dynamic CA (#4173), captures the exchange (source "tproxy"), and forwards
+ *     re-encrypted over the SAME bypass-marked seam. The CA is installed in the
+ *     OS trust store on start (so clients trust the issued leaves) and removed on
+ *     stop, both via injected seams.
  *
  * All effectful seams are injected (`deps`) so the orchestration and the
  * per-connection logic are unit-testable without root.
@@ -29,6 +37,8 @@ import {
   isTransparentSocketAvailable,
 } from "./transparentSocket";
 import { validateTproxyConfig, type TproxyConfig } from "./commands";
+import { createForward, createTlsCaptureServer, type TlsCaptureServer } from "./tlsCapture";
+import type { DynamicCertStore } from "./dynamicCert";
 
 /** Default bypass SO_MARK when `cfg.bypassMark` is unset (anti-loop). */
 const DEFAULT_BYPASS_MARK = 0x539;
@@ -61,11 +71,28 @@ const realDeps: TproxyDeps = {
   createUpstreamSocket: (fd) => new net.Socket({ fd }),
 };
 
+/**
+ * Enables TLS decryption + content capture for intercepted connections (instead
+ * of the raw tunnel). The CA private key never leaves the host; `installCa` is
+ * the only piece that touches the OS trust store and is injected by the caller.
+ */
+export interface TproxyDecryptOptions {
+  /** Dynamic CA that issues per-SNI leaves and exposes its CA cert (#4173). */
+  certStore: Pick<DynamicCertStore, "createSNICallback" | "getCaCertPem">;
+  /** Install the CA cert (PEM) into the OS trust store so clients trust the
+   * issued leaves. Called once on start; omit to manage the trust store yourself. */
+  installCa?: (caPem: string) => Promise<void>;
+  /** Remove the CA from the trust store on stop (symmetric teardown). */
+  uninstallCa?: () => Promise<void>;
+}
+
 export interface TproxyCaptureOptions {
   /** Bind address for the transparent listener. Default "0.0.0.0". */
   listenIp?: string;
   /** Invoked for each intercepted connection (e.g. push metadata to the buffer). */
   onIntercept?: (info: TproxyInterceptInfo) => void;
+  /** Opt into TLS decryption + content capture (source "tproxy"). */
+  decrypt?: TproxyDecryptOptions;
   /** Injectable seams for unit testing. */
   deps?: Partial<TproxyDeps>;
 }
@@ -78,13 +105,16 @@ export interface TproxyCaptureHandle {
 
 /**
  * Handle one intercepted connection: read the original destination, report it,
- * and forward to it over a bypass-marked socket with a raw bidirectional pipe.
+ * and forward it. When `terminate` is provided (decrypt mode), the raw socket is
+ * handed to the TLS-terminating engine; otherwise it is raw-piped to the
+ * destination over a bypass-marked socket.
  */
 export function handleTproxyConnection(
   client: net.Socket,
   cfg: TproxyConfig,
   deps: Pick<TproxyDeps, "connectMarked" | "createUpstreamSocket">,
-  onIntercept?: (info: TproxyInterceptInfo) => void
+  onIntercept?: (info: TproxyInterceptInfo) => void,
+  terminate?: (client: net.Socket, dest: { ip: string; port: number }) => void
 ): void {
   const destIp = normalizeDest(client.localAddress);
   const destPort = client.localPort ?? 0;
@@ -92,6 +122,13 @@ export function handleTproxyConnection(
 
   if (!destIp || destPort <= 0) {
     client.destroy();
+    return;
+  }
+
+  // Decrypt mode: the engine TLS-terminates, captures (source "tproxy"), and
+  // forwards re-encrypted over its own bypass-marked socket (anti-loop).
+  if (terminate) {
+    terminate(client, { ip: destIp, port: destPort });
     return;
   }
 
@@ -131,19 +168,40 @@ export async function startTproxyCapture(
 
   await deps.applyTproxy(cfg);
 
-  let fd: number;
-  try {
-    fd = deps.createListenerFd(options.listenIp ?? "0.0.0.0", cfg.onPort);
-  } catch (err) {
+  // Decrypt mode: stand up the TLS-terminating engine (forwarding over the SAME
+  // bypass-marked seam, anti-loop) and install its CA so clients trust the leaves.
+  // `cleanup` is the symmetric teardown for both the error paths and stop().
+  let engine: TlsCaptureServer | undefined;
+  let uninstallCa: (() => Promise<void>) | undefined;
+  const cleanup = async (): Promise<void> => {
+    await engine?.close().catch(() => {});
+    await uninstallCa?.().catch(() => {});
     await deps.revertTproxy(cfg).catch(() => {});
-    throw err;
-  }
-
-  const server = deps.createServer((client) =>
-    handleTproxyConnection(client, cfg, deps, options.onIntercept)
-  );
+  };
 
   try {
+    if (options.decrypt) {
+      const mark = cfg.bypassMark ?? DEFAULT_BYPASS_MARK;
+      const forward = createForward((ip, port) =>
+        deps.createUpstreamSocket(deps.connectMarked(ip, port, mark))
+      );
+      engine = createTlsCaptureServer(options.decrypt.certStore, { forward });
+      if (options.decrypt.installCa) {
+        await options.decrypt.installCa(await options.decrypt.certStore.getCaCertPem());
+      }
+      uninstallCa = options.decrypt.uninstallCa;
+    }
+
+    const terminate = engine
+      ? (client: net.Socket, dest: { ip: string; port: number }) => engine!.terminate(client, dest)
+      : undefined;
+
+    const fd = deps.createListenerFd(options.listenIp ?? "0.0.0.0", cfg.onPort);
+
+    const server = deps.createServer((client) =>
+      handleTproxyConnection(client, cfg, deps, options.onIntercept, terminate)
+    );
+
     await new Promise<void>((resolve, reject) => {
       const onErr = (e: Error) => reject(e);
       server.once("error", onErr);
@@ -152,17 +210,17 @@ export async function startTproxyCapture(
         resolve();
       });
     });
+
+    return {
+      cfg,
+      server,
+      stop: async () => {
+        await new Promise<void>((resolve) => server.close(() => resolve()));
+        await cleanup();
+      },
+    };
   } catch (err) {
-    await deps.revertTproxy(cfg).catch(() => {});
+    await cleanup();
     throw err;
   }
-
-  return {
-    cfg,
-    server,
-    stop: async () => {
-      await new Promise<void>((resolve) => server.close(() => resolve()));
-      await deps.revertTproxy(cfg).catch(() => {});
-    },
-  };
 }

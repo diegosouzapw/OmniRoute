@@ -128,3 +128,138 @@ test("startTproxyCapture rejects an invalid config and reverts nothing", async (
   );
   assert.deepEqual(order, [], "invalid config must not apply any rules");
 });
+
+test("handleTproxyConnection in decrypt mode hands the socket to terminate (no raw dial)", () => {
+  const client = fakeSocket("::ffff:140.82.112.3", 443);
+  let dialed = false;
+  const terminated: Array<{ ip: string; port: number }> = [];
+  const deps = {
+    connectMarked: () => {
+      dialed = true;
+      return 1;
+    },
+    createUpstreamSocket: () => fakeSocket("", 0),
+  };
+  handleTproxyConnection(client as never, CFG, deps as never, undefined, (_c, dest) =>
+    terminated.push(dest)
+  );
+  assert.deepEqual(terminated, [{ ip: "140.82.112.3", port: 443 }]);
+  assert.equal(dialed, false, "decrypt path must not raw-dial via connectMarked");
+});
+
+test("handleTproxyConnection decrypt mode still drops a connection with no destination", () => {
+  const client = fakeSocket("", 0);
+  let terminateCalled = false;
+  handleTproxyConnection(
+    client as never,
+    CFG,
+    { connectMarked: () => 1, createUpstreamSocket: () => fakeSocket("", 0) } as never,
+    undefined,
+    () => {
+      terminateCalled = true;
+    }
+  );
+  assert.equal(client.destroyed, true);
+  assert.equal(terminateCalled, false, "no destination → never reach the engine");
+});
+
+test("startTproxyCapture decrypt mode installs the CA, wires the engine, stop() uninstalls + reverts", async () => {
+  const order: string[] = [];
+  const server = new EventEmitter() as EventEmitter & {
+    listen: (opts: unknown, cb: () => void) => void;
+    close: (cb: () => void) => void;
+  };
+  server.listen = (_opts, cb) => {
+    order.push("listen");
+    cb();
+  };
+  server.close = (cb) => {
+    order.push("close");
+    cb();
+  };
+  const deps = {
+    applyTproxy: async () => {
+      order.push("apply");
+    },
+    revertTproxy: async () => {
+      order.push("revert");
+    },
+    createListenerFd: () => {
+      order.push("createFd");
+      return 20;
+    },
+    connectMarked: () => 1,
+    createServer: () => server,
+    createUpstreamSocket: () => fakeSocket("", 0),
+  };
+  let installedPem: string | undefined;
+  const certStore = {
+    createSNICallback:
+      () => (_name: string, cb: (e: Error | null, ctx?: unknown) => void) => cb(null, {}),
+    getCaCertPem: async () => "CA-CERT-PEM",
+  };
+  const handle = await startTproxyCapture(CFG, {
+    deps: deps as never,
+    decrypt: {
+      certStore: certStore as never,
+      installCa: async (pem: string) => {
+        installedPem = pem;
+        order.push("installCa");
+      },
+      uninstallCa: async () => {
+        order.push("uninstallCa");
+      },
+    },
+  });
+  assert.equal(installedPem, "CA-CERT-PEM", "the dynamic CA cert PEM is installed in the trust store");
+  assert.deepEqual(order, ["apply", "installCa", "createFd", "listen"]);
+  await handle.stop();
+  assert.deepEqual(order, [
+    "apply",
+    "installCa",
+    "createFd",
+    "listen",
+    "close",
+    "uninstallCa",
+    "revert",
+  ]);
+});
+
+test("startTproxyCapture decrypt mode reverts + uninstalls the CA when the listener fails", async () => {
+  const order: string[] = [];
+  const deps = {
+    applyTproxy: async () => {
+      order.push("apply");
+    },
+    revertTproxy: async () => {
+      order.push("revert");
+    },
+    createListenerFd: () => {
+      throw new Error("EPERM: CAP_NET_ADMIN required");
+    },
+    connectMarked: () => 1,
+    createServer: () => new EventEmitter(),
+    createUpstreamSocket: () => fakeSocket("", 0),
+  };
+  const certStore = {
+    createSNICallback: () => () => {},
+    getCaCertPem: async () => "CA-CERT-PEM",
+  };
+  await assert.rejects(
+    () =>
+      startTproxyCapture(CFG, {
+        deps: deps as never,
+        decrypt: {
+          certStore: certStore as never,
+          installCa: async () => {
+            order.push("installCa");
+          },
+          uninstallCa: async () => {
+            order.push("uninstallCa");
+          },
+        },
+      }),
+    /CAP_NET_ADMIN/
+  );
+  assert.deepEqual(order, ["apply", "installCa", "uninstallCa", "revert"]);
+});
