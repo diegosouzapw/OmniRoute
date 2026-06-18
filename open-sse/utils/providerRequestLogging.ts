@@ -234,7 +234,36 @@ export function createPreparedRequestLogger(
       });
     },
     body(fallback) {
-      return latest?.body ?? fallback;
+      const resolved = latest?.body ?? fallback;
+      // #4091: the captured body is rebuilt from the serialized upstream payload
+      // (the fetch-capture does `JSON.parse(JSON.stringify(...))`), which drops
+      // non-enumerable properties. The native-Claude tool-name cloak stashes its
+      // per-request alias→original map as a NON-ENUMERABLE `_toolNameMap` on the
+      // real (fallback) transformed body; without it the response-side un-cloak
+      // (`mergeResponseToolNameMap` → `remapToolNamesInResponse`) can't restore
+      // MCP / snake_case tool names, so Claude Code receives the cloaked
+      // PascalCase name and rejects every call with "No such tool available".
+      // Re-attach the map onto the resolved (captured) body — kept non-enumerable
+      // so it still never re-serializes into an upstream request.
+      if (
+        resolved !== fallback &&
+        resolved &&
+        typeof resolved === "object" &&
+        fallback &&
+        typeof fallback === "object"
+      ) {
+        const map = (fallback as Record<string, unknown>)._toolNameMap;
+        const target = resolved as Record<string, unknown>;
+        if (map instanceof Map && !(target._toolNameMap instanceof Map)) {
+          Object.defineProperty(target, "_toolNameMap", {
+            value: map,
+            enumerable: false,
+            configurable: true,
+            writable: true,
+          });
+        }
+      }
+      return resolved;
     },
     latest() {
       return latest;

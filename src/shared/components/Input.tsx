@@ -111,9 +111,9 @@ export default function Input({
           }}
           className={cn(
             "w-full py-2 px-3 text-sm text-text-main",
-            "bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-md",
+            "bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-control",
             "placeholder-text-muted/60",
-            "focus:ring-1 focus:ring-primary/30 focus:border-primary/50 focus:outline-none",
+            "focus:ring-1 focus:ring-accent/30 focus:border-accent/50 focus:outline-none",
             "transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed",
             // iOS zoom fix
             "text-[16px] sm:text-sm",

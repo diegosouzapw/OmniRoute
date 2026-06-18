@@ -15,17 +15,12 @@ import {
   isModelLocked,
   recordModelLockoutFailure,
   recordProviderFailure,
-  isProviderFailureCode,
   isProviderExhaustedReason,
   type ProviderProfile,
 } from "./accountFallback.ts";
 import { FETCH_TIMEOUT_MS, RateLimitReason } from "../config/constants.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import { clamp01 } from "../utils/number.ts";
-import {
-  createSSEDataLineNormalizer,
-  isKnownNonClaudeStreamPayload,
-} from "../utils/streamHelpers.ts";
 import {
   recordComboIntent,
   recordComboRequest,
@@ -64,47 +59,21 @@ import { applyComboAgentMiddleware } from "./comboAgentMiddleware.ts";
 import { checkCredentialGate, logCredentialSkip } from "./credentialGate.ts";
 import { emit } from "../../src/lib/events/eventBus";
 import { notifyWebhookEvent } from "../../src/lib/webhookDispatcher";
-import {
-  classifyWithConfig,
-  DEFAULT_INTENT_CONFIG,
-  type IntentClassifierConfig,
-} from "./intentClassifier.ts";
+import { classifyWithConfig } from "./intentClassifier.ts";
 import { selectProvider as selectAutoProvider } from "./autoCombo/engine.ts";
 import { selectWithStrategy, type SlaRoutingPolicy } from "./autoCombo/routerStrategy.ts";
-import { getTaskFitness } from "./autoCombo/taskFitness.ts";
 import { parseAutoPrefix } from "./autoCombo/autoPrefix.ts";
 import { handlePipelineCombo, buildPipelineResponse } from "./autoCombo/pipelineRouter.ts";
-import {
-  calculateFactors,
-  calculateScore,
-  DEFAULT_WEIGHTS,
-  type ProviderCandidate,
-  type ScoringWeights,
-} from "./autoCombo/scoring.ts";
-import { getResolvedModelCapabilities, supportsToolCalling } from "./modelCapabilities.ts";
+import { DEFAULT_WEIGHTS, type ProviderCandidate, type ScoringWeights } from "./autoCombo/scoring.ts";
+import { supportsToolCalling } from "./modelCapabilities.ts";
 import { estimateTokens } from "./contextManager.ts";
-import { getReasoningTokens } from "../../src/lib/usage/tokenAccounting.ts";
 import { getSessionConnection } from "./sessionManager.ts";
 import { orderTargetsByEvalScores } from "./evalRouting.ts";
 import { generateRoutingHints } from "./manifestAdapter";
 import type { RoutingHint } from "./manifestAdapter";
 import { buildComplexityRoutingHint } from "./autoCombo/complexityRouter";
 import type { CompressionMode } from "./compression/types.ts";
-import { getModelContextLimit } from "../../src/lib/modelCapabilities";
 import { getProviderConnections } from "../../src/lib/db/providers";
-import { getProviderModels } from "../config/providerModels.ts";
-import {
-  getComboModelString,
-  getComboStepTarget,
-  getComboStepWeight,
-  normalizeComboStep,
-} from "../../src/lib/combos/steps.ts";
-import {
-  getConnectionRoutingTags,
-  matchesRoutingTags,
-  resolveRequestRoutingTags,
-  type RoutingTagMatchMode,
-} from "../../src/domain/tagRouter.ts";
 import { normalizeRoutingStrategy } from "../../src/shared/constants/routingStrategies.ts";
 import {
   isProviderInCooldown,
@@ -116,134 +85,83 @@ import {
   type ResilienceSettings,
 } from "../../src/lib/resilience/settings";
 import { resolveReasoningBufferedMaxTokens, toPositiveInteger } from "./reasoningTokenBuffer.ts";
+import { RESET_WINDOW_NAMES } from "./combo/types.ts";
+import type {
+  ComboRetryAfter,
+  ComboErrorBody,
+  SingleModelTarget,
+  IsModelAvailable,
+  HandleComboChatOptions,
+  HandleRoundRobinOptions,
+  ResolvedComboTarget,
+  AutoProviderCandidate,
+  HistoricalLatencyStatsEntry,
+} from "./combo/types.ts";
 
-// Status codes that should mark round-robin target semaphores as cooling down.
-const TRANSIENT_FOR_SEMAPHORE = [429, 502, 503, 504];
-// Patterns that signal all accounts for a provider are rate-limited / exhausted.
-// Used to detect 503 responses from handleNoCredentials so combo can fallback.
-const ALL_ACCOUNTS_RATE_LIMITED_PATTERNS = [/unavailable/i, /service temporarily unavailable/i];
+import { validateResponseQuality, toRetryAfterDisplayValue } from "./combo/validateQuality.ts";
+import {
+  TRANSIENT_FOR_SEMAPHORE,
+  MAX_FALLBACK_WAIT_MS,
+  MAX_GLOBAL_ATTEMPTS,
+  isAllAccountsRateLimitedResponse,
+  isProviderCircuitOpenResult,
+  clampComboDepth,
+  shouldSkipForPredictedTtft,
+  shouldRecordProviderBreakerFailure,
+  resolveDelayMs,
+  comboModelNotFoundResponse,
+  isStreamReadinessFailureErrorBody,
+  isTokenLimitBreachErrorBody,
+  toRecordedTarget,
+} from "./combo/comboPredicates.ts";
+import { dedupeTargetsByExecutionKey, isRecord } from "./combo/comboData.ts";
+import { resolveShadowTargets, scheduleShadowRouting } from "./combo/shadowRouting.ts";
+import {
+  sortTargetsByCost,
+  sortTargetsByUsage,
+  orderTargetsByPowerOfTwoChoices,
+} from "./combo/targetSorters.ts";
+import {
+  filterTargetsByRequestCompatibility,
+  getModelContextLimitForModelString,
+  resolveComboTargets,
+  resolveWeightedTargets,
+  sortTargetsByContextSize,
+} from "./combo/comboStructure.ts";
+import {
+  QUOTA_SOFT_DEPRIORITIZE_FACTOR,
+  setCandidateQuotaSoftPenalty,
+  _registerExecutionCandidates,
+  _unregisterExecutionCandidates,
+  extractPromptForIntent,
+  mapIntentToTaskType,
+  getIntentConfig,
+  applyRequestTagRouting,
+  scoreAutoTargets,
+  expandAutoComboCandidatePool,
+  deriveComboSessionKey,
+} from "./combo/autoStrategy.ts";
 
-function isAllAccountsRateLimitedResponse(
-  status: number,
-  contentType: string | null,
-  errorText: string
-): boolean {
-  if (status !== 503) return false;
-  if (!contentType?.includes("application/json")) return false;
-  return ALL_ACCOUNTS_RATE_LIMITED_PATTERNS.some((p) => p.test(errorText));
-}
+// Backward-compatible re-exports — these were public from combo.ts before the
+// types extraction (Quality Gate v2 / Fase 9). Keep the external surface stable.
+export { RESET_WINDOW_NAMES };
+// chatCore.ts's dynamic `import("../services/combo")` reads these two — keep them
+// re-exported from combo.ts after the auto-strategy extraction (combo split D8).
+export { QUOTA_SOFT_DEPRIORITIZE_FACTOR, setCandidateQuotaSoftPenalty };
+export { scoreAutoTargets, expandAutoComboCandidatePool };
+export type { SingleModelTarget, ResolvedComboTarget };
+export { validateResponseQuality };
+export { clampComboDepth, shouldSkipForPredictedTtft, shouldRecordProviderBreakerFailure };
+export { resolveShadowTargets, scheduleShadowRouting };
+export { resolveComboTargets, filterTargetsByRequestCompatibility };
+export {
+  getComboFromData,
+  getComboModelsFromData,
+  resolveNestedComboModels,
+  resolveNestedComboTargets,
+  validateComboDAG,
+} from "./combo/comboStructure.ts";
 
-// #1731v2 guard: a provider circuit-breaker-open response (503 + `X-OmniRoute-Provider-Breaker`
-// header / `provider_circuit_open` error code, see providerCircuitOpenResponse) is an OmniRoute
-// resilience signal, NOT a per-connection upstream failure. It must keep being treated as an
-// ordinary target failure (try the next target, including same-provider ones) — so it must NOT
-// poison exhaustedConnections/exhaustedProviders, otherwise remaining same-provider targets get
-// wrongly skipped while the breaker is open.
-function isProviderCircuitOpenResult(
-  result: { headers?: Headers | null; status?: number },
-  errorText: string
-): boolean {
-  const breakerHeader = result.headers?.get?.("x-omniroute-provider-breaker");
-  if (typeof breakerHeader === "string" && breakerHeader.toLowerCase() === "open") return true;
-  return /provider_circuit_open/i.test(errorText);
-}
-
-const MAX_COMBO_DEPTH = 3;
-// Absolute safety ceiling for operator-configured nesting depth. config.maxComboDepth
-// can raise the default (3) up to this cap, or lower it, but never above — runaway
-// nested-combo expansion is a real DoS/perf risk.
-const MAX_COMBO_DEPTH_HARD_CAP = 10;
-const MAX_FALLBACK_WAIT_MS = 5000;
-const MAX_GLOBAL_ATTEMPTS = 30;
-
-/**
- * Clamp an operator-configured combo nesting depth (config.maxComboDepth) to a
- * safe integer in [1, MAX_COMBO_DEPTH_HARD_CAP]. Anything non-numeric, < 1, or
- * NaN falls back to the default MAX_COMBO_DEPTH so a bad config never disables
- * nesting or blows past the safety ceiling.
- */
-export function clampComboDepth(value: unknown): number {
-  const n = Math.floor(Number(value));
-  if (!Number.isFinite(n) || n < 1) return MAX_COMBO_DEPTH;
-  return Math.min(n, MAX_COMBO_DEPTH_HARD_CAP);
-}
-
-/** Minimum recorded requests before the predictive-TTFT breaker trusts the average. */
-const PREDICTIVE_TTFT_MIN_SAMPLES = 5;
-
-/**
- * Predictive-TTFT circuit-breaker decision: skip a target whose recent average
- * latency — measured over a statistically meaningful sample — exceeds the
- * configured ceiling, so the combo fails over before paying a slow first byte.
- * Returns false when disabled (ceiling <= 0), when there is no metric, or when
- * the sample is too small to trust.
- */
-export function shouldSkipForPredictedTtft(
-  metric: { requests?: number; avgLatencyMs?: number } | null | undefined,
-  predictiveTtftMs: number
-): boolean {
-  if (!metric || !(predictiveTtftMs > 0)) return false;
-  return (
-    (metric.requests ?? 0) >= PREDICTIVE_TTFT_MIN_SAMPLES &&
-    (metric.avgLatencyMs ?? 0) > predictiveTtftMs
-  );
-}
-
-/**
- * Decide whether a failed combo target should record a whole-provider circuit-breaker
- * failure (#1731 / #2743 gap-d). This is the consumer side of `skipProviderBreaker`:
- *
- * - Stream-readiness failures (pre-flight zombie/ping probes) never count as provider
- *   failures — they are a connection-readiness signal, not an upstream outage.
- * - Only provider-level failure codes (408/429/5xx — see `isProviderFailureCode`) count.
- * - When the next combo target is on the SAME provider, don't trip the provider breaker:
- *   a different model on that provider may still succeed.
- * - G-02 / #2743: when the fallback result carries `skipProviderBreaker` (an embedded
- *   service supervisor outage signalled via `X-Omni-Fallback-Hint: connection_cooldown`)
- *   apply connection cooldown ONLY — never trip the whole-provider breaker.
- *
- * Pure predicate so the breaker decision is unit-testable without the full combo harness.
- */
-export function shouldRecordProviderBreakerFailure(args: {
-  isStreamReadinessFailure: boolean;
-  status: number;
-  sameProviderNext: boolean;
-  skipProviderBreaker?: boolean;
-}): boolean {
-  return (
-    !args.isStreamReadinessFailure &&
-    isProviderFailureCode(args.status) &&
-    !args.sameProviderNext &&
-    !args.skipProviderBreaker
-  );
-}
-
-function resolveDelayMs(value: unknown, fallback: number): number {
-  const numericValue = Number(value);
-  if (!Number.isFinite(numericValue) || numericValue < 0) return fallback;
-  return numericValue;
-}
-
-function comboModelNotFoundResponse(message: string) {
-  return errorResponse(404, message);
-}
-
-// Bootstrap defaults from ClawRouter benchmark (used when no local latency history exists yet)
-const DEFAULT_MODEL_P95_MS: Record<string, number> = {
-  "grok-4-fast-non-reasoning": 1143,
-  "grok-4-1-fast-non-reasoning": 1244,
-  "gemini-2.5-flash": 1238,
-  "kimi-k2.5": 1646,
-  "gpt-4o-mini": 2764,
-  "claude-sonnet-4.6": 4000,
-  "claude-opus-4.6": 6000,
-  "deepseek-chat": 2000,
-};
-const MIN_HISTORY_SAMPLES = 10;
-// Assumed fraction of tokens that are output when blending input+output prices
-// for auto-combo cost scoring. 0.4 = 40% output, 60% input.
-// Matches the example in GitHub issue #1812 (e.g. o3-like model: $3 input/$15 output).
-const OUTPUT_TOKEN_RATIO = 0.4;
 const RESET_AWARE_SESSION_WINDOW_MS = 5 * 60 * 60 * 1000;
 const RESET_AWARE_WEEKLY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 const RESET_AWARE_SESSION_REMAINING_WEIGHT = 0.45;
@@ -260,566 +178,12 @@ const RESET_AWARE_DEFAULTS = {
 };
 const RESET_WINDOW_DEFAULT_TIE_BAND_MS = 60_000;
 
-// Quota Share soft-policy deprioritization factor (B17).
-// When a candidate has quotaSoftPenalty === true, its auto-combo score is
-// multiplied by this factor so over-quota-soft keys are de-prioritized
-// without being fully blocked (that is done by "hard" policy).
-// Override via QUOTA_SOFT_DEPRIORITIZE_FACTOR env var (range 0..1, default 0.7).
-export const QUOTA_SOFT_DEPRIORITIZE_FACTOR = Number(
-  process.env.QUOTA_SOFT_DEPRIORITIZE_FACTOR ?? "0.7"
-);
-
-// G2: Module-level registry of active combo execution candidates.
-// Maps executionKey → Map<stepId, candidate mutable ref>.
-// Populated by buildAutoCandidates registrations; cleaned up after each execution.
-// This allows chatCore.ts to mark a candidate's quotaSoftPenalty flag so that
-// subsequent scoring iterations (auto-combo fallback) deprioritize it.
-const _activeExecutionCandidates = new Map<string, Map<string, { quotaSoftPenalty?: boolean }>>();
-
-/**
- * Mark a specific candidate (by comboExecutionKey + stepId) with soft quota penalty.
- * Called from chatCore.ts when enforceQuotaShare returns a "soft deprioritize" decision.
- * The flag is read on subsequent auto-combo scoring iterations (fallback chain)
- * within the same combo execution via scoreAutoTargets → QUOTA_SOFT_DEPRIORITIZE_FACTOR.
- *
- * Guards:
- * - null executionKey or stepId → no-op (non-combo or context not available).
- * - unknown executionKey → no-op (candidate not yet registered or already cleaned up).
- * - Idempotent: calling twice with the same (key, stepId, true) is safe.
- */
-export function setCandidateQuotaSoftPenalty(
-  comboExecutionKey: string | null,
-  comboStepId: string | null,
-  penalty: boolean
-): void {
-  if (!comboExecutionKey || !comboStepId) return;
-  const byStep = _activeExecutionCandidates.get(comboExecutionKey);
-  if (!byStep) return;
-  const candidate = byStep.get(comboStepId);
-  if (candidate) {
-    candidate.quotaSoftPenalty = penalty;
-  }
-}
-
-/**
- * Register candidates for a combo execution so setCandidateQuotaSoftPenalty can
- * locate them by (executionKey, stepId).
- * Each candidate object is stored by reference — mutations via setCandidateQuotaSoftPenalty
- * propagate back to the original candidate array used by scoreAutoTargets.
- * @internal — not exported; only called within combo.ts by buildAutoCandidates callers.
- */
-function _registerExecutionCandidates(
-  candidates: Array<{ executionKey: string; stepId: string; quotaSoftPenalty?: boolean }>
-): void {
-  for (const candidate of candidates) {
-    if (!candidate.executionKey) continue;
-    let byStep = _activeExecutionCandidates.get(candidate.executionKey);
-    if (!byStep) {
-      byStep = new Map();
-      _activeExecutionCandidates.set(candidate.executionKey, byStep);
-    }
-    byStep.set(candidate.stepId, candidate);
-  }
-}
-
-/**
- * Unregister all candidates for a given execution key once the execution completes.
- * Prevents unbounded memory growth.
- * @internal — not exported; called after each handleComboChat iteration.
- */
-function _unregisterExecutionCandidates(executionKeys: string[]): void {
-  for (const key of executionKeys) {
-    _activeExecutionCandidates.delete(key);
-  }
-}
-
-const RESET_WINDOW_NAMES = ["weekly", "session", "monthly"] as const;
 type ResetWindowName = (typeof RESET_WINDOW_NAMES)[number];
 type QuotaFetchCacheConfig = {
   quotaCacheTtlMs: number;
   quotaCacheMaxStaleMs: number;
 };
 type ResetWindowConfig = ReturnType<typeof resolveResetWindowConfig>;
-type ComboRetryAfter = string | number | Date;
-type ComboErrorBody = {
-  error?: { code?: string | null; message?: string | null } | string;
-  message?: string | null;
-  retryAfter?: ComboRetryAfter | null;
-} | null;
-
-type ComboLike = {
-  id?: string;
-  name: string;
-  strategy?: string | null;
-  models: unknown[];
-  config?: Record<string, unknown> | null;
-  autoConfig?: Record<string, unknown> | null;
-  context_cache_protection?: boolean | number;
-  system_message?: string | null;
-  [key: string]: unknown;
-};
-
-type ComboInput = ComboLike | Record<string, unknown>;
-
-type ComboCollectionLike = ComboInput[] | { combos?: ComboInput[] } | null | undefined;
-
-type ComboLogger = {
-  info: (...args: unknown[]) => void;
-  warn: (...args: unknown[]) => void;
-  error?: (...args: unknown[]) => void;
-  debug: (...args: unknown[]) => void;
-};
-
-export type SingleModelTarget =
-  | (ResolvedComboTarget & {
-      allowRateLimitedConnection?: boolean;
-      modelAbortSignal?: AbortSignal | null;
-    })
-  | { modelAbortSignal: AbortSignal };
-
-type HandleSingleModel = (
-  body: Record<string, unknown>,
-  modelStr: string,
-  target?: SingleModelTarget
-) => Promise<Response>;
-
-type IsModelAvailable = (
-  modelStr: string,
-  target?: ResolvedComboTarget & { allowRateLimitedConnection?: boolean }
-) => Promise<boolean> | boolean;
-
-type ComboRelayOptions = {
-  sessionId?: string | null;
-  config?: Record<string, unknown> | null;
-  [key: string]: unknown;
-};
-
-type HandleComboChatOptions = {
-  body: Record<string, unknown>;
-  combo: ComboLike;
-  handleSingleModel: HandleSingleModel;
-  isModelAvailable?: IsModelAvailable;
-  log: ComboLogger;
-  settings?: Record<string, unknown> | null;
-  allCombos?: ComboCollectionLike;
-  relayOptions?: ComboRelayOptions | null;
-  signal?: AbortSignal | null;
-  apiKeyAllowedConnections?: string[] | null;
-};
-
-type HandleRoundRobinOptions = Omit<
-  HandleComboChatOptions,
-  "relayOptions" | "apiKeyAllowedConnections"
->;
-
-type HistoricalLatencyStatsEntry = {
-  totalRequests?: number;
-  p95LatencyMs?: number;
-  latencyStdDev?: number;
-  successRate?: number;
-};
-
-type AutoProviderCandidate = ProviderCandidate & {
-  stepId: string;
-  executionKey: string;
-  modelStr: string;
-  /**
-   * When true, this candidate's auto-combo score is multiplied by
-   * QUOTA_SOFT_DEPRIORITIZE_FACTOR (B17 soft-policy penalty).
-   * Set externally when enforceQuotaShare returns deprioritize=true
-   * for the key routed through this target's connectionId.
-   */
-  quotaSoftPenalty?: boolean;
-};
-
-function toRetryAfterDisplayValue(value: ComboRetryAfter): string | Date {
-  if (typeof value !== "number") return value;
-  if (value > 0 && value < 1_000_000_000) {
-    return new Date(Date.now() + value * 1000);
-  }
-  return new Date(value);
-}
-
-export type ResolvedComboTarget = {
-  kind: "model";
-  stepId: string;
-  executionKey: string;
-  modelStr: string;
-  provider: string;
-  providerId: string | null;
-  connectionId: string | null;
-  allowedConnectionIds?: string[] | null;
-  weight: number;
-  label: string | null;
-  failoverBeforeRetry?: unknown;
-  trafficType?: "production" | "shadow";
-};
-
-type ShadowRoutingConfig = {
-  enabled: boolean;
-  targets: unknown[];
-  sampleRate: number;
-  maxTargets: number;
-  timeoutMs: number;
-};
-
-type ComboRuntimeStep =
-  | ResolvedComboTarget
-  | {
-      kind: "combo-ref";
-      stepId: string;
-      executionKey: string;
-      comboName: string;
-      weight: number;
-      label: string | null;
-    };
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === "object" && !Array.isArray(value);
-}
-
-function toTrimmedString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
-}
-
-function toComboLike(combo: ComboInput): ComboLike {
-  return {
-    ...combo,
-    id: toTrimmedString(combo.id) || undefined,
-    name: toTrimmedString(combo.name) || "",
-    models: Array.isArray(combo.models) ? combo.models : [],
-    config: isRecord(combo.config) ? combo.config : null,
-    autoConfig: isRecord(combo.autoConfig) ? combo.autoConfig : null,
-    context_cache_protection:
-      typeof combo.context_cache_protection === "boolean" ||
-      typeof combo.context_cache_protection === "number"
-        ? combo.context_cache_protection
-        : undefined,
-    system_message: typeof combo.system_message === "string" ? combo.system_message : null,
-  };
-}
-
-function getCombosArray(allCombos: ComboCollectionLike): ComboLike[] {
-  const combos = Array.isArray(allCombos) ? allCombos : allCombos?.combos || [];
-  return combos.map((combo) => toComboLike(combo));
-}
-
-/**
- * Validate that a successful (HTTP 200) non-streaming response actually contains
- * meaningful content. Returns { valid: true } or { valid: false, reason }.
- *
- * Only inspects non-streaming JSON responses — streaming responses are passed through
- * because buffering the full stream would defeat the purpose of streaming.
- *
- * Checks:
- * 1. Body is valid JSON
- * 2. Has at least one choice with non-empty content or tool_calls
- */
-export async function validateResponseQuality(
-  response: Response,
-  isStreaming: boolean,
-  log: { warn?: (...args: unknown[]) => void }
-): Promise<{ valid: boolean; reason?: string; clonedResponse?: Response }> {
-  // Issue #3685: For Claude SSE streaming responses, use a BOUNDED PEEK to
-  // detect the empty-content-block pattern (content_filter stop_reason with
-  // no content_block_* events) WITHOUT de-streaming non-empty responses.
-  //
-  // Parse SSE events incrementally. Stop buffering once a content_block_* event
-  // or a known non-Claude SSE payload appears, replay the buffered prefix, then
-  // pipe the original reader so the rest of the stream keeps flowing normally.
-  // Only fail over when a complete Claude lifecycle ends without content_block.
-  //
-  // Non-text/event-stream streaming responses are not buffered at all.
-  if (isStreaming) {
-    const contentType = response.headers.get("content-type") || "";
-    if (!contentType.includes("text/event-stream")) {
-      return { valid: true };
-    }
-
-    if (!response.body) {
-      return { valid: true };
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-
-    // Raw Uint8Array chunks accumulated so far — used to replay the prefix
-    // in the returned clonedResponse.
-    const bufferedChunks: Uint8Array[] = [];
-    // Decoded text accumulated across chunks for incremental SSE parsing.
-    // Only the tail of the most-recently-processed line window remains here
-    // between iterations (incomplete lines are deferred to the next chunk).
-    let decodedSoFar = "";
-
-    // SSE lifecycle state.
-    let hasMessageStart = false;
-    let hasContentBlock = false;
-    let hasLifecycleEnd = false;
-    const sseLineNormalizer = createSSEDataLineNormalizer();
-    let pendingEventType = "";
-
-    /**
-     * Parse any complete SSE lines from `decodedSoFar`, updating lifecycle
-     * flags in the closure. The last (potentially incomplete) line is kept in
-     * `decodedSoFar` for the next iteration.
-     *
-     * Returns true when a content_block_* event is detected — the caller
-     * should stop peeking and treat the stream as non-empty.
-     */
-    function parseAccumulatedSse(): boolean {
-      const lines = decodedSoFar.split(/\r?\n/);
-      // Retain the potentially-incomplete trailing fragment.
-      decodedSoFar = lines[lines.length - 1];
-
-      for (const line of sseLineNormalizer.normalize(lines.slice(0, -1))) {
-        const trimmed = line.trim();
-
-        if (trimmed.startsWith("event:")) {
-          pendingEventType = trimmed.slice(6).trim();
-          continue;
-        }
-
-        if (!trimmed.startsWith("data:")) {
-          if (!trimmed) pendingEventType = "";
-          continue;
-        }
-
-        const data = trimmed.slice(5).trim();
-        if (!data || data === "[DONE]") continue;
-
-        let parsed: Record<string, unknown>;
-        try {
-          parsed = JSON.parse(data);
-        } catch {
-          continue;
-        }
-
-        const eventType =
-          (typeof parsed.type === "string" ? parsed.type : null) || pendingEventType || "";
-        pendingEventType = "";
-
-        if (isKnownNonClaudeStreamPayload(parsed, eventType)) {
-          return true;
-        }
-
-        switch (eventType) {
-          case "message_start":
-            hasMessageStart = true;
-            break;
-          case "content_block_start":
-          case "content_block_delta":
-          case "content_block_stop":
-            hasContentBlock = true;
-            // Signal caller to stop buffering immediately.
-            return true;
-          case "message_stop":
-            hasLifecycleEnd = true;
-            break;
-          case "message_delta": {
-            const delta = parsed.delta;
-            if (
-              delta &&
-              typeof delta === "object" &&
-              (delta as Record<string, unknown>).stop_reason != null
-            ) {
-              hasLifecycleEnd = true;
-            }
-            break;
-          }
-          default:
-            break;
-        }
-      }
-      return false;
-    }
-
-    /**
-     * Build a Response whose body first replays all bytes in `bufferedChunks`,
-     * then forwards the remainder of `readerToForward` chunk-by-chunk.
-     * Preserves the original response's status, statusText, and headers.
-     */
-    function buildReplayResponse(
-      readerToForward: ReadableStreamDefaultReader<Uint8Array>
-    ): Response {
-      // Snapshot the prefix so mutations after this point don't affect it.
-      const prefix = bufferedChunks.slice();
-      let prefixIdx = 0;
-      const stream = new ReadableStream<Uint8Array>({
-        async pull(controller) {
-          // 1. Drain the buffered prefix one chunk at a time.
-          if (prefixIdx < prefix.length) {
-            controller.enqueue(prefix[prefixIdx++]);
-            return;
-          }
-          // 2. Forward the remainder from the original reader.
-          try {
-            const { done, value } = await readerToForward.read();
-            if (done) {
-              controller.close();
-            } else {
-              controller.enqueue(value);
-            }
-          } catch {
-            controller.close();
-          }
-        },
-      });
-      return new Response(stream, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-      });
-    }
-
-    // Main bounded-peek loop.
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) {
-          // Stream finished — flush the TextDecoder and parse any remaining text.
-          const tail = decoder.decode(undefined, { stream: false });
-          if (tail) decodedSoFar += tail;
-          if (decodedSoFar.trim()) decodedSoFar += "\n\n";
-          parseAccumulatedSse();
-
-          if (hasMessageStart && hasLifecycleEnd && !hasContentBlock) {
-            // Complete Claude lifecycle with zero content blocks → failover.
-            log.warn?.(
-              "COMBO",
-              "Streaming Claude response has complete lifecycle but zero content blocks (content_filter?) — marking as invalid for combo failover"
-            );
-            return { valid: false, reason: "streaming empty content block" };
-          }
-
-          // Incomplete lifecycle or non-Claude stream — replay all buffered
-          // bytes. The reader is exhausted so the forwarding reader will
-          // immediately signal done.
-          const clonedResponse = buildReplayResponse(reader);
-          return { valid: true, clonedResponse };
-        }
-
-        // Accumulate raw bytes for potential replay.
-        bufferedChunks.push(value);
-
-        // Decode incrementally (stream:true keeps multi-byte char state).
-        decodedSoFar += decoder.decode(value, { stream: true });
-        const foundContent = parseAccumulatedSse();
-
-        if (foundContent) {
-          // A content_block_* event was found — stop peeking. Return a
-          // clonedResponse that replays all buffered bytes (the current chunk
-          // is already in bufferedChunks) and then forwards the remainder of
-          // the original reader unchanged.
-          const clonedResponse = buildReplayResponse(reader);
-          return { valid: true, clonedResponse };
-        }
-      }
-    } catch {
-      // If reading the stream fails, pass through — other mechanisms
-      // (stream readiness timeout) will catch truly broken streams.
-      return { valid: true };
-    }
-  }
-
-  const contentType = response.headers.get("content-type") || "";
-  if (!contentType.includes("application/json") && !contentType.includes("text/")) {
-    return { valid: true };
-  }
-
-  let cloned: Response;
-  try {
-    cloned = response.clone();
-  } catch {
-    return { valid: true };
-  }
-
-  let text: string;
-  try {
-    text = await cloned.text();
-  } catch {
-    return { valid: true };
-  }
-
-  if (!text || text.trim().length === 0) {
-    return { valid: false, reason: "empty response body" };
-  }
-
-  let json: Record<string, unknown>;
-  try {
-    json = JSON.parse(text);
-  } catch {
-    if (text.startsWith("data:") || text.startsWith("event:")) return { valid: true };
-    return { valid: false, reason: "response is not valid JSON" };
-  }
-
-  const choices = json?.choices;
-  if (!Array.isArray(choices) || choices.length === 0) {
-    if (json?.output || json?.result || json?.data || json?.response) return { valid: true };
-    if (json?.error) {
-      const err = json.error as Record<string, unknown>;
-      return {
-        valid: false,
-        reason: `upstream error in 200 body: ${err?.message || JSON.stringify(json.error).substring(0, 200)}`,
-      };
-    }
-    return { valid: true };
-  }
-
-  const firstChoice = choices[0];
-  const message = firstChoice?.message || firstChoice?.delta;
-  if (!message) {
-    return { valid: false, reason: "choice has no message object" };
-  }
-
-  const content = message.content;
-  const toolCalls = message.tool_calls;
-  // Issue #2341: Reasoning models (Kimi-K2.5-TEE, GLM-5-TEE, etc.) emit their
-  // output in `reasoning_content` (or `reasoning`) with `content: null`. The
-  // validator used to flag those as empty and trigger a false-positive 502
-  // fallback. Count a non-empty reasoning_content as valid output too.
-  const reasoningContent = message.reasoning_content ?? message.reasoning;
-  const hasReasoningContent =
-    typeof reasoningContent === "string" && reasoningContent.trim().length > 0;
-  const hasContent =
-    (content !== null && content !== undefined && content !== "") || hasReasoningContent;
-  const hasToolCalls = Array.isArray(toolCalls) && toolCalls.length > 0;
-
-  if (!hasContent && !hasToolCalls) {
-    return { valid: false, reason: "empty content and no tool_calls in response" };
-  }
-
-  // Issue #3587: Reasoning models (deepseek-v4-flash, nemotron, etc.) may consume
-  // ALL max_tokens for reasoning_tokens, leaving content empty. When content is
-  // empty but reasoning_content exists, and usage shows reasoning consumed nearly
-  // all completion tokens, treat as invalid so the combo loop retries with more
-  // tokens or falls back to a non-reasoning model.
-  const contentIsEmpty = content === null || content === undefined || content === "";
-  if (contentIsEmpty && hasReasoningContent && !hasToolCalls) {
-    const usage = json?.usage as Record<string, unknown> | undefined;
-    if (usage) {
-      const completionTokens = Number(usage.completion_tokens) || 0;
-      const reasoningTokens = getReasoningTokens(usage);
-      // If reasoning consumed 90%+ of completion tokens, the model ran out of
-      // budget before producing any content output.
-      if (completionTokens > 0 && reasoningTokens >= completionTokens * 0.9) {
-        return {
-          valid: false,
-          reason: `reasoning consumed ${reasoningTokens}/${completionTokens} tokens — no content output`,
-        };
-      }
-    }
-  }
-
-  return {
-    valid: true,
-    clonedResponse: new Response(text, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-    }),
-  };
-}
 
 // In-memory atomic counter per combo for round-robin distribution
 // Resets on server restart (by design — no stale state)
@@ -838,17 +202,6 @@ const resetAwareQuotaCache = new Map<
   string,
   { fetchedAt: number; quota: unknown; refreshPromise: Promise<unknown> | null }
 >();
-
-/**
- * Normalize a model entry to { model, weight }
- * Supports both legacy string format and new object format
- */
-function normalizeModelEntry(entry: unknown): { model: string; weight: number } {
-  return {
-    model: getComboStepTarget(entry) || "",
-    weight: getComboStepWeight(entry),
-  };
-}
 
 function clampStickyRoundRobinTargetLimit(value: unknown): number {
   const numericValue = Number(value);
@@ -892,874 +245,6 @@ function recordStickyRoundRobinSuccess(
   }
 
   rrStickyTargets.set(comboName, { executionKey: target.executionKey, successCount });
-}
-
-function getTargetProvider(modelStr: string, providerId?: string | null): string {
-  const parsed = parseModel(modelStr);
-  return providerId || parsed.provider || parsed.providerAlias || "unknown";
-}
-
-function isStreamReadinessFailureErrorBody(errorBody: unknown): boolean {
-  if (!errorBody || typeof errorBody !== "object") return false;
-  const error = (errorBody as Record<string, unknown>).error;
-  if (!error || typeof error !== "object") return false;
-  const code = (error as Record<string, unknown>).code;
-  return code === "STREAM_READINESS_TIMEOUT" || code === "STREAM_EARLY_EOF";
-}
-
-/**
- * A local per-API-key token-limit breach surfaces as a 429 tagged with
- * errorCode "TOKEN_LIMIT_EXCEEDED" (see chatCore.ts Tier 2 early return). This
- * is NOT an upstream rate limit, so the combo loop must not cool the shared
- * account/provider, must not add it to transientRateLimitedProviders, and must
- * not retry it transiently — it propagates to the client as a terminal 429.
- */
-function isTokenLimitBreachErrorBody(errorBody: unknown): boolean {
-  if (!errorBody || typeof errorBody !== "object") return false;
-  const error = (errorBody as Record<string, unknown>).error;
-  if (!error || typeof error !== "object") return false;
-  return (error as Record<string, unknown>).code === "TOKEN_LIMIT_EXCEEDED";
-}
-
-function toRecordedTarget(target: ResolvedComboTarget) {
-  return {
-    executionKey: target.executionKey,
-    stepId: target.stepId,
-    provider: target.provider,
-    providerId: target.providerId,
-    connectionId: target.connectionId,
-    label: target.label,
-  };
-}
-
-function normalizeShadowRoutingConfig(config: Record<string, unknown>): ShadowRoutingConfig {
-  const raw = isRecord(config.shadowRouting) ? config.shadowRouting : {};
-  const sampleRate = Number(raw.sampleRate ?? 1);
-  const maxTargets = Number(raw.maxTargets ?? 2);
-  const timeoutMs = Number(raw.timeoutMs ?? 30000);
-  return {
-    enabled: raw.enabled === true,
-    targets: Array.isArray(raw.targets) ? raw.targets : [],
-    sampleRate: Number.isFinite(sampleRate) ? Math.max(0, Math.min(1, sampleRate)) : 1,
-    maxTargets: Number.isFinite(maxTargets) ? Math.max(1, Math.min(10, Math.floor(maxTargets))) : 2,
-    timeoutMs: Number.isFinite(timeoutMs)
-      ? Math.max(1000, Math.min(120000, Math.floor(timeoutMs)))
-      : 30000,
-  };
-}
-
-function resolveShadowTargets(
-  combo: ComboLike,
-  config: Record<string, unknown>,
-  allCombos: ComboCollectionLike
-): ResolvedComboTarget[] {
-  const shadowConfig = normalizeShadowRoutingConfig(config);
-  if (!shadowConfig.enabled || shadowConfig.targets.length === 0) return [];
-  if (shadowConfig.sampleRate <= 0 || Math.random() > shadowConfig.sampleRate) return [];
-
-  const shadowCombo: ComboLike = {
-    ...combo,
-    name: `${combo.name}:shadow`,
-    models: shadowConfig.targets,
-  };
-  return resolveNestedComboTargets(shadowCombo, allCombos, new Set([combo.name]), 0, ["shadow"])
-    .slice(0, shadowConfig.maxTargets)
-    .map((target) => ({
-      ...target,
-      trafficType: "shadow" as const,
-    }));
-}
-
-async function drainShadowResponse(response: Response): Promise<void> {
-  try {
-    if (!response.body) return;
-    await response.arrayBuffer();
-  } catch {
-    // Shadow draining is best-effort and must never affect the production response.
-  }
-}
-
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("Shadow route timed out")), timeoutMs);
-    promise.then(
-      (value) => {
-        clearTimeout(timer);
-        resolve(value);
-      },
-      (error) => {
-        clearTimeout(timer);
-        reject(error);
-      }
-    );
-  });
-}
-
-function cloneRequestBodyForShadowRouting(body: Record<string, unknown>): Record<string, unknown> {
-  if (typeof structuredClone === "function") {
-    return structuredClone(body) as Record<string, unknown>;
-  }
-
-  return JSON.parse(JSON.stringify(body)) as Record<string, unknown>;
-}
-
-function scheduleShadowRouting(
-  combo: ComboLike,
-  config: Record<string, unknown>,
-  body: Record<string, unknown>,
-  targets: ResolvedComboTarget[],
-  handleSingleModel: HandleSingleModel,
-  isModelAvailable: IsModelAvailable | undefined,
-  strategy: string,
-  log: ComboLogger
-): void {
-  if (targets.length === 0) return;
-  const shadowConfig = normalizeShadowRoutingConfig(config);
-  let shadowBaseBody: Record<string, unknown>;
-  try {
-    shadowBaseBody = cloneRequestBodyForShadowRouting(body);
-  } catch (error) {
-    log.warn("COMBO", "Shadow routing skipped: failed to clone request body", {
-      error: error instanceof Error ? error.message : String(error),
-    });
-    return;
-  }
-  const run = async () => {
-    await Promise.all(
-      targets.map(async (target) => {
-        const startedAt = Date.now();
-        try {
-          const shadowBody = {
-            ...cloneRequestBodyForShadowRouting(shadowBaseBody),
-            model: target.modelStr,
-            stream: false,
-          };
-          if (isModelAvailable) {
-            const available = await isModelAvailable(target.modelStr, target);
-            if (!available) {
-              recordComboShadowRequest(combo.name, target.modelStr, {
-                success: false,
-                latencyMs: Date.now() - startedAt,
-                target: toRecordedTarget(target),
-              });
-              log.info("COMBO", `Shadow target skipped (unavailable): ${target.modelStr}`);
-              return;
-            }
-          }
-
-          const response = await withTimeout(
-            handleSingleModel(shadowBody, target.modelStr, {
-              ...target,
-              failoverBeforeRetry: true,
-              trafficType: "shadow",
-            }),
-            shadowConfig.timeoutMs
-          );
-          await drainShadowResponse(response.clone());
-          recordComboShadowRequest(combo.name, target.modelStr, {
-            success: response.ok,
-            latencyMs: Date.now() - startedAt,
-            target: toRecordedTarget(target),
-          });
-          log.info(
-            "COMBO",
-            `Shadow target ${target.modelStr} completed with status ${response.status} (${strategy})`
-          );
-        } catch (error) {
-          recordComboShadowRequest(combo.name, target.modelStr, {
-            success: false,
-            latencyMs: Date.now() - startedAt,
-            target: toRecordedTarget(target),
-          });
-          log.warn("COMBO", `Shadow target ${target.modelStr} failed`, {
-            error: error instanceof Error ? error.message : String(error),
-          });
-        }
-      })
-    );
-  };
-
-  setTimeout(() => void run(), 0);
-}
-
-function buildExecutionKey(path: string[], stepId: string): string {
-  return [...path, stepId].join(">");
-}
-
-function normalizeRuntimeStep(
-  entry: unknown,
-  comboName: string,
-  index: number,
-  allCombos: ComboCollectionLike,
-  path: string[] = []
-): ComboRuntimeStep | null {
-  const step = normalizeComboStep(entry, {
-    comboName,
-    index,
-    allCombos,
-  });
-  if (!step) return null;
-
-  const executionKey = buildExecutionKey(path, step.id);
-  const label = typeof step.label === "string" ? step.label : null;
-  const weight = step.weight || 0;
-
-  if (step.kind === "combo-ref") {
-    return {
-      kind: "combo-ref",
-      stepId: step.id,
-      executionKey,
-      comboName: step.comboName,
-      weight,
-      label,
-    };
-  }
-
-  const modelStr = getComboModelString(step);
-  if (!modelStr) return null;
-
-  return {
-    kind: "model",
-    stepId: step.id,
-    executionKey,
-    modelStr,
-    provider: getTargetProvider(modelStr, step.providerId),
-    providerId: step.providerId || null,
-    connectionId: step.connectionId || null,
-    weight,
-    label,
-  } satisfies ResolvedComboTarget;
-}
-
-function getDirectComboTargets(combo: ComboLike): ResolvedComboTarget[] {
-  return getOrderedTopLevelRuntimeSteps(combo, null).filter(
-    (entry): entry is ResolvedComboTarget => entry?.kind === "model"
-  );
-}
-
-function getTopLevelRuntimeSteps(
-  combo: ComboLike,
-  allCombos: ComboCollectionLike,
-  path: string[] = []
-): ComboRuntimeStep[] {
-  return (combo.models || [])
-    .map((entry, index) => normalizeRuntimeStep(entry, combo.name, index, allCombos, path))
-    .filter((entry): entry is ComboRuntimeStep => entry !== null);
-}
-
-function getCompositeTierStepOrder(combo: ComboLike): string[] {
-  const compositeTiers = isRecord(combo?.config) ? combo.config.compositeTiers : null;
-  if (!isRecord(compositeTiers)) return [];
-
-  const defaultTier = toTrimmedString(compositeTiers.defaultTier);
-  const tiers = isRecord(compositeTiers.tiers) ? compositeTiers.tiers : null;
-  if (!defaultTier || !tiers) return [];
-
-  const orderedStepIds: string[] = [];
-  const visitedTiers = new Set<string>();
-  const seenStepIds = new Set<string>();
-  type CompositeTierEntry = readonly [
-    string,
-    { readonly stepId: string; readonly fallbackTier: string | null },
-  ];
-  const tierEntries = new Map(
-    Object.entries(tiers)
-      .map(([tierName, rawTier]) => {
-        if (!isRecord(rawTier)) return null;
-        const normalizedTierName = toTrimmedString(tierName);
-        const stepId = toTrimmedString(rawTier.stepId);
-        const fallbackTier = toTrimmedString(rawTier.fallbackTier);
-        if (!normalizedTierName || !stepId) return null;
-        return [normalizedTierName, { stepId, fallbackTier }] as const;
-      })
-      .filter((entry): entry is CompositeTierEntry => entry !== null)
-  );
-
-  let currentTier: string | null = defaultTier;
-  while (currentTier && tierEntries.has(currentTier) && !visitedTiers.has(currentTier)) {
-    visitedTiers.add(currentTier);
-    const entry = tierEntries.get(currentTier);
-    if (!entry) break;
-    if (!seenStepIds.has(entry.stepId)) {
-      orderedStepIds.push(entry.stepId);
-      seenStepIds.add(entry.stepId);
-    }
-    currentTier = entry.fallbackTier;
-  }
-
-  for (const entry of tierEntries.values()) {
-    if (!seenStepIds.has(entry.stepId)) {
-      orderedStepIds.push(entry.stepId);
-      seenStepIds.add(entry.stepId);
-    }
-  }
-
-  return orderedStepIds;
-}
-
-function hasCompositeTierRuntimeOrder(combo: ComboLike): boolean {
-  return getCompositeTierStepOrder(combo).length > 0;
-}
-
-function orderRuntimeStepsByCompositeTiers(
-  steps: ComboRuntimeStep[],
-  combo: ComboLike
-): ComboRuntimeStep[] {
-  const orderedStepIds = getCompositeTierStepOrder(combo);
-  if (orderedStepIds.length === 0) return steps;
-
-  const byStepId = new Map(steps.map((step) => [step.stepId, step]));
-  const seen = new Set<string>();
-  const ordered: ComboRuntimeStep[] = [];
-
-  for (const stepId of orderedStepIds) {
-    const step = byStepId.get(stepId);
-    if (!step || seen.has(step.stepId)) continue;
-    ordered.push(step);
-    seen.add(step.stepId);
-  }
-
-  for (const step of steps) {
-    if (seen.has(step.stepId)) continue;
-    ordered.push(step);
-    seen.add(step.stepId);
-  }
-
-  return ordered;
-}
-
-function getOrderedTopLevelRuntimeSteps(
-  combo: ComboLike,
-  allCombos: ComboCollectionLike,
-  path: string[] = []
-): ComboRuntimeStep[] {
-  return orderRuntimeStepsByCompositeTiers(getTopLevelRuntimeSteps(combo, allCombos, path), combo);
-}
-
-function expandRuntimeStep(
-  step: ComboRuntimeStep,
-  allCombos: ComboCollectionLike,
-  visited = new Set<string>(),
-  depth = 0,
-  path: string[] = [],
-  maxDepth: number = MAX_COMBO_DEPTH
-): ResolvedComboTarget[] {
-  if (step.kind === "model") return [step];
-  if (depth > maxDepth) return [];
-
-  const combos = getCombosArray(allCombos);
-  const nestedCombo = combos.find((combo) => combo.name === step.comboName);
-  if (!nestedCombo || visited.has(step.comboName)) return [];
-
-  return resolveNestedComboTargets(
-    nestedCombo,
-    combos,
-    new Set(visited),
-    depth + 1,
-    [...path, step.stepId],
-    maxDepth
-  );
-}
-
-export function resolveNestedComboTargets(
-  combo: ComboLike,
-  allCombos: ComboCollectionLike,
-  visited = new Set<string>(),
-  depth = 0,
-  path: string[] = [],
-  maxDepth: number = MAX_COMBO_DEPTH
-): ResolvedComboTarget[] {
-  const directTargets = (combo.models || [])
-    .map((entry, index) => normalizeRuntimeStep(entry, combo.name, index, null, path))
-    .filter((entry): entry is ResolvedComboTarget => entry?.kind === "model");
-
-  if (depth > maxDepth) return directTargets;
-  if (visited.has(combo.name)) return [];
-  visited.add(combo.name);
-
-  const runtimeSteps = getOrderedTopLevelRuntimeSteps(combo, allCombos, path);
-  const resolved: ResolvedComboTarget[] = [];
-
-  for (const step of runtimeSteps) {
-    if (step.kind === "combo-ref") {
-      resolved.push(...expandRuntimeStep(step, allCombos, new Set(visited), depth, path, maxDepth));
-      continue;
-    }
-    resolved.push(step);
-  }
-
-  return resolved;
-}
-
-/**
- * Get combo models from combos data (for open-sse standalone use)
- * @param {string} modelStr - Model string to check
- * @param {Array|Object} combosData - Array of combos or object with combos
- * @returns {Object|null} Full combo object or null if not a combo
- */
-export function getComboFromData(
-  modelStr: string,
-  combosData: ComboCollectionLike
-): ComboLike | null {
-  const combos = getCombosArray(combosData);
-  const combo = combos.find((c) => c.name === modelStr);
-  if (combo?.models && combo.models.length > 0) {
-    return combo;
-  }
-  return null;
-}
-
-/**
- * Legacy: Get combo models as string array (backward compat)
- */
-export function getComboModelsFromData(
-  modelStr: string,
-  combosData: ComboCollectionLike
-): string[] | null {
-  const combo = getComboFromData(modelStr, combosData);
-  if (!combo) return null;
-  return combo.models.map((m) => normalizeModelEntry(m).model);
-}
-
-/**
- * Validate combo DAG — detect circular references and enforce max depth
- * @param {string} comboName - Name of the combo to validate
- * @param {Array} allCombos - All combos in the system
- * @param {Set} [visited] - Set of already visited combo names (for cycle detection)
- * @param {number} [depth] - Current depth level
- * @throws {Error} If circular reference or max depth exceeded
- */
-export function validateComboDAG(
-  comboName: string,
-  allCombos: ComboCollectionLike,
-  visited = new Set<string>(),
-  depth = 0,
-  maxDepth: number = MAX_COMBO_DEPTH
-): void {
-  if (depth > maxDepth) {
-    throw new Error(`Max combo nesting depth (${maxDepth}) exceeded at "${comboName}"`);
-  }
-  if (visited.has(comboName)) {
-    throw new Error(`Circular combo reference detected: ${comboName}`);
-  }
-  visited.add(comboName);
-
-  const combos = getCombosArray(allCombos);
-  const combo = combos.find((c) => c.name === comboName);
-  if (!combo?.models) return;
-
-  for (const entry of combo.models) {
-    const modelName = normalizeModelEntry(entry).model;
-    // Check if this model name is itself a combo (not a provider/model pattern)
-    const nestedCombo = combos.find((c) => c.name === modelName);
-    if (nestedCombo) {
-      validateComboDAG(modelName, combos, new Set(visited), depth + 1, maxDepth);
-    }
-  }
-}
-
-/**
- * Resolve nested combos by expanding inline to a flat model list
- * Respects max depth and detects cycles
- * @param {Object} combo - The combo object
- * @param {Array} allCombos - All combos in the system
- * @param {Set} [visited] - For cycle detection
- * @param {number} [depth] - Current depth
- * @returns {Array} Flat array of model strings
- */
-export function resolveNestedComboModels(
-  combo: ComboLike,
-  allCombos: ComboCollectionLike,
-  visited = new Set<string>(),
-  depth = 0,
-  maxDepth: number = MAX_COMBO_DEPTH
-): string[] {
-  if (depth > maxDepth) return combo.models.map((m) => normalizeModelEntry(m).model);
-  if (visited.has(combo.name)) return []; // cycle safety
-  visited.add(combo.name);
-
-  const combos = getCombosArray(allCombos);
-  const resolved: string[] = [];
-
-  for (const entry of combo.models || []) {
-    const modelName = normalizeModelEntry(entry).model;
-    const nestedCombo = combos.find((c) => c.name === modelName);
-
-    if (nestedCombo) {
-      // Recursively expand the nested combo
-      const nested = resolveNestedComboModels(
-        nestedCombo,
-        combos,
-        new Set(visited),
-        depth + 1,
-        maxDepth
-      );
-      resolved.push(...nested);
-    } else {
-      resolved.push(modelName);
-    }
-  }
-
-  return resolved;
-}
-
-function selectWeightedTarget<T extends { weight?: number }>(targets: T[]) {
-  if (targets.length === 0) return null;
-
-  const totalWeight = targets.reduce((sum, target) => sum + (target.weight || 0), 0);
-  if (totalWeight <= 0) {
-    return targets[Math.floor(Math.random() * targets.length)];
-  }
-
-  let random = Math.random() * totalWeight;
-  for (const target of targets) {
-    random -= target.weight || 0;
-    if (random <= 0) return target;
-  }
-
-  return targets.at(-1);
-}
-
-function orderTargetsForWeightedFallback<T extends { executionKey: string; weight: number }>(
-  targets: T[],
-  selectedExecutionKey: string,
-  preserveExistingOrder = false
-): T[] {
-  const selected = targets.find((target) => target.executionKey === selectedExecutionKey);
-  const rest = targets.filter((target) => target.executionKey !== selectedExecutionKey);
-  if (!preserveExistingOrder) {
-    rest.sort((a, b) => b.weight - a.weight);
-  }
-  return selected ? [selected, ...rest] : rest;
-}
-
-// shuffleArray and getNextModelFromDeck moved to src/shared/utils/shuffleDeck.ts
-// combo.ts now uses the shared, mutex-protected getNextFromDeck with "combo:" namespace.
-
-/**
- * Sort models by pricing (cheapest first) for cost-optimized strategy
- * @param {Array<string>} models - Model strings in "provider/model" format
- * @returns {Promise<Array<string>>} Sorted model strings
- */
-async function sortModelsByCost(models: string[]): Promise<string[]> {
-  try {
-    const { getPricingForModel } = await import("../../src/lib/localDb");
-    const withCost = await Promise.all(
-      models.map(async (modelStr) => {
-        const parsed = parseModel(modelStr);
-        const provider = parsed.provider || parsed.providerAlias || "unknown";
-        const model = parsed.model || modelStr;
-        try {
-          const pricing = await getPricingForModel(provider, model);
-          const cost = Number(pricing?.input);
-          return { modelStr, cost: Number.isFinite(cost) ? cost : Infinity };
-        } catch {
-          return { modelStr, cost: Infinity };
-        }
-      })
-    );
-    withCost.sort((a, b) => a.cost - b.cost);
-    return withCost.map((e) => e.modelStr);
-  } catch {
-    // If pricing lookup fails entirely, return original order
-    return models;
-  }
-}
-
-async function sortTargetsByCost(targets: ResolvedComboTarget[]) {
-  const orderedModels = await sortModelsByCost(targets.map((target) => target.modelStr));
-  const byModel = new Map<string, ResolvedComboTarget[]>();
-  for (const target of targets) {
-    const queue = byModel.get(target.modelStr) || [];
-    queue.push(target);
-    byModel.set(target.modelStr, queue);
-  }
-  return orderedModels
-    .map((modelStr) => {
-      const queue = byModel.get(modelStr);
-      return queue?.shift() || null;
-    })
-    .filter((target): target is ResolvedComboTarget => target !== null);
-}
-
-/**
- * Sort models by usage count (least-used first) for least-used strategy
- * @param {Array<string>} models - Model strings
- * @param {string} comboName - Combo name for metrics lookup
- * @returns {Array<string>} Sorted model strings
- */
-function sortModelsByUsage(models: string[], comboName: string): string[] {
-  const metrics = getComboMetrics(comboName);
-  if (!metrics?.byModel) return models;
-
-  const withUsage = models.map((modelStr) => ({
-    modelStr,
-    requests: metrics.byModel[modelStr]?.requests ?? 0,
-  }));
-  withUsage.sort((a, b) => a.requests - b.requests);
-  return withUsage.map((e) => e.modelStr);
-}
-
-function sortTargetsByUsage(targets: ResolvedComboTarget[], comboName: string) {
-  const orderedModels = sortModelsByUsage(
-    targets.map((target) => target.modelStr),
-    comboName
-  );
-  const byModel = new Map<string, ResolvedComboTarget[]>();
-  for (const target of targets) {
-    const queue = byModel.get(target.modelStr) || [];
-    queue.push(target);
-    byModel.set(target.modelStr, queue);
-  }
-  return orderedModels
-    .map((modelStr) => {
-      const queue = byModel.get(modelStr);
-      return queue?.shift() || null;
-    })
-    .filter((target): target is ResolvedComboTarget => target !== null);
-}
-
-/**
- * Sort models by context window size (largest first) for context-optimized strategy.
- * Uses models.dev synced capabilities to get context limits.
- * @param {Array<string>} models - Model strings in "provider/model" format
- * @returns {Array<string>} Sorted model strings (largest context first)
- */
-function sortModelsByContextSize(models: string[]): string[] {
-  const withContext = models.map((modelStr) => {
-    return { modelStr, context: getModelContextLimitForModelString(modelStr) ?? 0 };
-  });
-  withContext.sort((a, b) => b.context - a.context);
-  return withContext.map((e) => e.modelStr);
-}
-
-function getModelContextLimitForModelString(modelStr: string) {
-  const parsed = parseModel(modelStr);
-  const provider = parsed.provider || parsed.providerAlias || "unknown";
-  const model = parsed.model || modelStr;
-  return getModelContextLimit(provider, model);
-}
-
-type RequestCompatibilityRequirements = {
-  requiresTools: boolean;
-  requiresVision: boolean;
-  requiresStructuredOutput: boolean;
-  estimatedInputTokens: number;
-  requestedOutputTokens: number;
-  requiredContextTokens: number;
-};
-
-function getPositiveTokenCount(value: unknown): number {
-  const count = Number(value);
-  return Number.isFinite(count) && count > 0 ? Math.ceil(count) : 0;
-}
-
-function requestRequiresTools(body: Record<string, unknown>): boolean {
-  if (Array.isArray(body.tools) && body.tools.length > 0) return true;
-  if (Array.isArray(body.functions) && body.functions.length > 0) return true;
-  return false;
-}
-
-function requestRequiresStructuredOutput(body: Record<string, unknown>): boolean {
-  const responseFormat = isRecord(body.response_format) ? body.response_format : null;
-  const type = typeof responseFormat?.type === "string" ? responseFormat.type : null;
-  return type === "json_object" || type === "json_schema";
-}
-
-function estimateRequestInputTokens(body: Record<string, unknown>): number {
-  const estimatePayload: Record<string, unknown> = {};
-  for (const key of ["messages", "input", "tools", "functions", "response_format"]) {
-    if (body[key] !== undefined) estimatePayload[key] = body[key];
-  }
-  return Object.keys(estimatePayload).length > 0 ? estimateTokens(estimatePayload) : 0;
-}
-
-function valueContainsImagePart(value: unknown, depth = 0): boolean {
-  if (depth > 8 || value === null || value === undefined) return false;
-  if (typeof value === "string") return value.startsWith("data:image/");
-  if (Array.isArray(value)) return value.some((entry) => valueContainsImagePart(entry, depth + 1));
-  if (!isRecord(value)) return false;
-
-  const type = typeof value.type === "string" ? value.type.toLowerCase() : null;
-  if (type === "image" || type === "image_url" || type === "input_image") return true;
-  if ("image_url" in value || "input_image" in value) return true;
-
-  const source = isRecord(value.source) ? value.source : null;
-  const mediaType = typeof source?.media_type === "string" ? source.media_type.toLowerCase() : "";
-  if (mediaType.startsWith("image/")) return true;
-
-  return Object.values(value).some((entry) => valueContainsImagePart(entry, depth + 1));
-}
-
-function deriveRequestCompatibilityRequirements(
-  body: Record<string, unknown>
-): RequestCompatibilityRequirements {
-  const estimatedInputTokens = estimateRequestInputTokens(body);
-  const requestedOutputTokens = Math.max(
-    getPositiveTokenCount(body.max_tokens),
-    getPositiveTokenCount(body.max_completion_tokens)
-  );
-  return {
-    requiresTools: requestRequiresTools(body),
-    requiresVision: valueContainsImagePart(body.messages) || valueContainsImagePart(body.input),
-    requiresStructuredOutput: requestRequiresStructuredOutput(body),
-    estimatedInputTokens,
-    requestedOutputTokens,
-    requiredContextTokens: estimatedInputTokens + requestedOutputTokens,
-  };
-}
-
-function getTargetCompatibilityFailures(
-  target: ResolvedComboTarget,
-  requirements: RequestCompatibilityRequirements
-): string[] {
-  const capabilities = getResolvedModelCapabilities(target.modelStr);
-  const failures: string[] = [];
-
-  if (
-    requirements.requiresTools &&
-    (capabilities.supportsTools === false || !capabilities.toolCalling)
-  ) {
-    failures.push("tools");
-  }
-
-  // For a request that carries an image, only route to a target whose vision
-  // support is *confirmed* (`=== true`). Treat `false` AND `null` (unknown) as
-  // incompatible: an unknown-capability model receiving the image is exactly how
-  // a text-only model (e.g. ministral) ended up answering "image not provided".
-  // The caller keeps all targets when none qualify, so combos with no
-  // confirmed-vision member still behave as before.
-  if (requirements.requiresVision && capabilities.supportsVision !== true) {
-    failures.push("vision");
-  }
-
-  if (requirements.requiresStructuredOutput && capabilities.structuredOutput === false) {
-    failures.push("structured_output");
-  }
-
-  if (
-    requirements.requestedOutputTokens > 0 &&
-    Number.isFinite(capabilities.maxOutputTokens) &&
-    capabilities.maxOutputTokens < requirements.requestedOutputTokens
-  ) {
-    failures.push("output_tokens");
-  }
-
-  const contextLimit = capabilities.maxInputTokens ?? capabilities.contextWindow ?? null;
-  if (
-    requirements.requiredContextTokens > 0 &&
-    contextLimit !== null &&
-    contextLimit !== undefined &&
-    contextLimit < requirements.requiredContextTokens
-  ) {
-    failures.push("context_window");
-  }
-
-  return failures;
-}
-
-export function filterTargetsByRequestCompatibility(
-  targets: ResolvedComboTarget[],
-  body: Record<string, unknown>,
-  log: ComboLogger,
-  label = "Context-aware fallback"
-): ResolvedComboTarget[] {
-  if (targets.length === 0) return targets;
-  const requirements = deriveRequestCompatibilityRequirements(body);
-  const needsFiltering =
-    requirements.requiresTools ||
-    requirements.requiresVision ||
-    requirements.requiresStructuredOutput ||
-    requirements.requiredContextTokens > 0;
-  if (!needsFiltering) return targets;
-
-  const rejected: Array<{ target: ResolvedComboTarget; reasons: string[] }> = [];
-  const compatible = targets.filter((target) => {
-    const reasons = getTargetCompatibilityFailures(target, requirements);
-    if (reasons.length === 0) return true;
-    rejected.push({ target, reasons });
-    return false;
-  });
-
-  if (compatible.length === targets.length) return targets;
-  if (compatible.length === 0) {
-    log.warn(
-      "COMBO",
-      `${label}: all ${targets.length} targets were filtered by request requirements; preserving strategy order`
-    );
-    log.debug?.(
-      "COMBO",
-      `${label}: rejected targets ${rejected
-        .map((entry) => `${entry.target.modelStr}(${entry.reasons.join("+")})`)
-        .join(", ")}`
-    );
-    return targets;
-  }
-
-  log.info(
-    "COMBO",
-    `${label}: kept ${compatible.length}/${targets.length} targets for request requirements`
-  );
-  log.debug?.(
-    "COMBO",
-    `${label}: rejected targets ${rejected
-      .map((entry) => `${entry.target.modelStr}(${entry.reasons.join("+")})`)
-      .join(", ")}`
-  );
-  return compatible;
-}
-
-function sortTargetsByContextSize(targets: ResolvedComboTarget[]) {
-  const hasKnownContext = targets.some(
-    (target) => getModelContextLimitForModelString(target.modelStr) != null
-  );
-  if (!hasKnownContext) return targets;
-
-  const orderedModels = sortModelsByContextSize(targets.map((target) => target.modelStr));
-  const byModel = new Map<string, ResolvedComboTarget[]>();
-  for (const target of targets) {
-    const queue = byModel.get(target.modelStr) || [];
-    queue.push(target);
-    byModel.set(target.modelStr, queue);
-  }
-  return orderedModels
-    .map((modelStr) => {
-      const queue = byModel.get(modelStr);
-      return queue?.shift() || null;
-    })
-    .filter((target): target is ResolvedComboTarget => target !== null);
-}
-
-function getP2CTargetScore(
-  target: ResolvedComboTarget,
-  metrics: ReturnType<typeof getComboMetrics>
-): number {
-  const breakerState = getCircuitBreaker(target.provider)?.getStatus?.()?.state;
-  if (breakerState === "OPEN") return -Infinity;
-  const modelMetric = metrics?.byModel?.[target.modelStr] || null;
-  const successRate = Number(modelMetric?.successRate);
-  const avgLatency = Number(modelMetric?.avgLatencyMs);
-  const successScore = Number.isFinite(successRate) ? successRate / 100 : 0.5;
-  const latencyScore =
-    Number.isFinite(avgLatency) && avgLatency > 0 ? 1 / Math.log10(avgLatency + 10) : 0.25;
-  const breakerPenalty = breakerState === "HALF_OPEN" ? 0.25 : 0;
-  return successScore + latencyScore - breakerPenalty;
-}
-
-function orderTargetsByPowerOfTwoChoices(targets: ResolvedComboTarget[], comboName: string) {
-  if (targets.length <= 1) return targets;
-  const metrics = getComboMetrics(comboName);
-  const firstIndex = Math.floor(Math.random() * targets.length);
-  let secondIndex = Math.floor(Math.random() * (targets.length - 1));
-  if (secondIndex >= firstIndex) secondIndex++;
-
-  const first = targets[firstIndex];
-  const second = targets[secondIndex];
-  const selectedIndex =
-    getP2CTargetScore(second, metrics) > getP2CTargetScore(first, metrics)
-      ? secondIndex
-      : firstIndex;
-  return [targets[selectedIndex], ...targets.filter((_, index) => index !== selectedIndex)];
 }
 
 function finiteNumberOrNull(value: unknown): number | null {
@@ -2418,188 +903,22 @@ function calculateResetWindowAffinity(quota: unknown, config: ResetWindowConfig)
   return clamp01(1 - msUntilReset / getResetWindowHorizonMs(config.windows));
 }
 
-async function orderTargetsByResetWindow(
-  targets: ResolvedComboTarget[],
-  comboName: string,
-  configSource: Record<string, unknown> | null | undefined,
-  log: { warn?: (...args: unknown[]) => void },
-  apiKeyAllowedConnectionIds?: string[] | null
-) {
-  if (targets.length === 0) return targets;
-
-  const config = resolveResetWindowConfig(configSource);
-  const connectionCache = new Map<string, Array<Record<string, unknown>>>();
-  const connectionLoadPromises = new Map<string, Promise<Array<Record<string, unknown>>>>();
-  const quotaPromises = new Map<string, Promise<unknown>>();
-  const connectionById = new Map<string, Record<string, unknown>>();
-  const expandedTargets: ResolvedComboTarget[] = [];
-
-  const targetsWithConnections = await Promise.all(
-    targets.map(async (target) => ({
-      connections: await getQuotaAwareConnectionsForTarget(
-        target,
-        connectionCache,
-        connectionLoadPromises,
-        comboName,
-        log
-      ),
-      target,
-    }))
-  );
-
-  for (const { target, connections } of targetsWithConnections) {
-    for (const connection of connections) {
-      if (typeof connection.id === "string") connectionById.set(connection.id, connection);
-    }
-
-    const unrestrictedConnectionIds = getTargetConnectionIds(target, connections);
-    const connectionIds = filterAllowedConnectionIds(
-      unrestrictedConnectionIds,
-      apiKeyAllowedConnectionIds
-    );
-    if (connectionIds.length === 0) {
-      if (
-        unrestrictedConnectionIds.length > 0 &&
-        normalizeConnectionIds(apiKeyAllowedConnectionIds)
-      ) {
-        continue;
-      }
-      expandedTargets.push(target);
-      continue;
-    }
-
-    for (const connectionId of connectionIds) {
-      expandedTargets.push({
-        ...target,
-        connectionId,
-        executionKey:
-          target.connectionId === connectionId
-            ? target.executionKey
-            : `${target.executionKey}@${connectionId}`,
-      });
-    }
-  }
-
-  const scoredTargets = await mapWithConcurrency(
-    expandedTargets,
-    RESET_AWARE_QUOTA_FETCH_CONCURRENCY,
-    async (target, index) => {
-      let quota: unknown = null;
-      const provider = getResetAwareProvider(target);
-      const fetcher = provider ? getQuotaFetcher(provider) : null;
-      if (fetcher && provider && target.connectionId) {
-        const quotaKey = `${provider}:${target.connectionId}`;
-        if (!quotaPromises.has(quotaKey)) {
-          quotaPromises.set(
-            quotaKey,
-            fetchResetAwareQuotaWithCache({
-              provider,
-              connectionId: target.connectionId,
-              connection: connectionById.get(target.connectionId),
-              fetcher,
-              config,
-              log,
-              comboName,
-            })
-          );
-        }
-        quota = await quotaPromises.get(quotaKey)!;
-      }
-
-      return {
-        target,
-        resetMs: getResetWindowTimestampMs(quota, config.windows),
-        index,
-      };
-    }
-  );
-
-  scoredTargets.sort((a, b) => {
-    if (a.resetMs !== b.resetMs) return a.resetMs - b.resetMs;
-    return a.index - b.index;
-  });
-
-  const bestResetMs = scoredTargets[0]?.resetMs ?? Infinity;
-  if (!Number.isFinite(bestResetMs) || config.tieBandMs <= 0) {
-    return scoredTargets.map((entry) => entry.target);
-  }
-
-  const tiedTargets = scoredTargets.filter(
-    (entry) => entry.resetMs - bestResetMs <= config.tieBandMs
-  );
-  if (tiedTargets.length <= 1) return scoredTargets.map((entry) => entry.target);
-
-  const key = `reset-window:${comboName}`;
-  const counter = rrCounters.get(key) || 0;
-  if (!rrCounters.has(key) && rrCounters.size >= MAX_RR_COUNTERS) {
-    const oldest = rrCounters.keys().next().value;
-    if (oldest !== undefined) rrCounters.delete(oldest);
-  }
-  rrCounters.set(key, counter + 1);
-  const startIndex = counter % tiedTargets.length;
-  const orderedTiedTargets = [
-    ...tiedTargets.slice(startIndex),
-    ...tiedTargets.slice(0, startIndex),
-  ];
-  const tiedExecutionKeys = new Set(orderedTiedTargets.map((entry) => entry.target.executionKey));
-
-  return [
-    ...orderedTiedTargets,
-    ...scoredTargets.filter((entry) => !tiedExecutionKeys.has(entry.target.executionKey)),
-  ].map((entry) => entry.target);
-}
-
-function toTextContent(content: unknown): string {
-  if (typeof content === "string") return content;
-  if (!Array.isArray(content)) return "";
-  return content
-    .map((part) => {
-      if (!isRecord(part)) return "";
-      if (typeof part.text === "string") return part.text;
-      return "";
-    })
-    .join("\n");
-}
-
-function extractPromptForIntent(body: Record<string, unknown> | null | undefined): string {
-  if (!body || typeof body !== "object") return "";
-
-  const fromMessages = Array.isArray(body.messages)
-    ? [...body.messages].reverse().find((m) => isRecord(m) && m.role === "user")
-    : null;
-  if (isRecord(fromMessages)) return toTextContent(fromMessages.content);
-
-  if (typeof body.input === "string") return body.input;
-  if (Array.isArray(body.input)) {
-    const text = body.input
-      .map((item) => {
-        if (!isRecord(item)) return "";
-        if (typeof item.content === "string") return item.content;
-        if (typeof item.text === "string") return item.text;
-        return "";
-      })
-      .filter(Boolean)
-      .join("\n");
-    if (text) return text;
-  }
-
-  if (typeof body.prompt === "string") return body.prompt;
-  return "";
-}
-
-function mapIntentToTaskType(intent: string): "coding" | "analysis" | "default" {
-  switch (intent) {
-    case "code":
-      return "coding";
-    case "reasoning":
-      return "analysis";
-    case "simple":
-      return "default";
-    case "medium":
-    default:
-      return "default";
-  }
-}
+// Bootstrap defaults from ClawRouter benchmark (used when no local latency history exists yet)
+const DEFAULT_MODEL_P95_MS: Record<string, number> = {
+  "grok-4-fast-non-reasoning": 1143,
+  "grok-4-1-fast-non-reasoning": 1244,
+  "gemini-2.5-flash": 1238,
+  "kimi-k2.5": 1646,
+  "gpt-4o-mini": 2764,
+  "claude-sonnet-4.6": 4000,
+  "claude-opus-4.6": 6000,
+  "deepseek-chat": 2000,
+};
+const MIN_HISTORY_SAMPLES = 10;
+// Assumed fraction of tokens that are output when blending input+output prices
+// for auto-combo cost scoring. 0.4 = 40% output, 60% input.
+// Matches the example in GitHub issue #1812 (e.g. o3-like model: $3 input/$15 output).
+const OUTPUT_TOKEN_RATIO = 0.4;
 
 function calculateTargetContextAffinity(
   target: ResolvedComboTarget,
@@ -2612,59 +931,12 @@ function calculateTargetContextAffinity(
   return 0.1;
 }
 
-function toStringArray(input: unknown): string[] {
-  if (Array.isArray(input)) {
-    return input.map((v) => (typeof v === "string" ? v.trim() : "")).filter(Boolean);
-  }
-  if (typeof input === "string") {
-    return input
-      .split(",")
-      .map((v) => v.trim())
-      .filter(Boolean);
-  }
-  return [];
-}
-
-function getIntentConfig(
-  settings: Record<string, unknown> | null | undefined,
-  combo: ComboLike
-): IntentClassifierConfig {
-  const resolvedSettings = settings || {};
-  const comboAutoConfig = combo?.autoConfig || {};
-  const comboConfigAuto = isRecord(combo?.config?.auto) ? combo.config.auto : {};
-  const comboIntentConfig =
-    (isRecord(comboAutoConfig.intentConfig) && comboAutoConfig.intentConfig) ||
-    (isRecord(comboConfigAuto.intentConfig) && comboConfigAuto.intentConfig) ||
-    (isRecord(combo?.config?.intentConfig) && combo.config.intentConfig) ||
-    {};
-
-  return {
-    ...DEFAULT_INTENT_CONFIG,
-    ...comboIntentConfig,
-    ...(typeof resolvedSettings.intentDetectionEnabled === "boolean"
-      ? { enabled: resolvedSettings.intentDetectionEnabled }
-      : {}),
-    ...(Number.isFinite(Number(resolvedSettings.intentSimpleMaxWords))
-      ? { simpleMaxWords: Number(resolvedSettings.intentSimpleMaxWords) }
-      : {}),
-    ...(toStringArray(resolvedSettings.intentExtraCodeKeywords).length > 0
-      ? { extraCodeKeywords: toStringArray(resolvedSettings.intentExtraCodeKeywords) }
-      : {}),
-    ...(toStringArray(resolvedSettings.intentExtraReasoningKeywords).length > 0
-      ? { extraReasoningKeywords: toStringArray(resolvedSettings.intentExtraReasoningKeywords) }
-      : {}),
-    ...(toStringArray(resolvedSettings.intentExtraSimpleKeywords).length > 0
-      ? { extraSimpleKeywords: toStringArray(resolvedSettings.intentExtraSimpleKeywords) }
-      : {}),
-  };
-}
-
 function getBootstrapLatencyMs(modelId: string): number {
   const normalized = String(modelId || "").toLowerCase();
   return DEFAULT_MODEL_P95_MS[normalized] ?? 1500;
 }
 
-async function buildAutoCandidates(
+export async function buildAutoCandidates(
   targets: ResolvedComboTarget[],
   comboName: string,
   sessionId: string | null | undefined = null,
@@ -2839,273 +1111,135 @@ async function buildAutoCandidates(
   return candidates;
 }
 
-function dedupeTargetsByExecutionKey(targets: ResolvedComboTarget[]) {
-  const seen = new Set<string>();
-  return targets.filter((target) => {
-    if (seen.has(target.executionKey)) return false;
-    seen.add(target.executionKey);
-    return true;
-  });
-}
-
-async function applyRequestTagRouting(
+async function orderTargetsByResetWindow(
   targets: ResolvedComboTarget[],
-  body: Record<string, unknown> | null | undefined,
-  log: { info?: (...args: unknown[]) => void; warn?: (...args: unknown[]) => void }
-): Promise<ResolvedComboTarget[]> {
-  const { tags, matchMode } = resolveRequestRoutingTags(body);
-  if (tags.length === 0 || targets.length === 0) {
-    return targets;
-  }
-
-  const providerIds = Array.from(
-    new Set(targets.map((target) => target.providerId || target.provider))
-  ).filter(
-    (providerId): providerId is string => typeof providerId === "string" && providerId.length > 0
-  );
-  const providerConnections = new Map<string, Array<Record<string, unknown>>>();
-
-  await Promise.all(
-    providerIds.map(async (providerId) => {
-      try {
-        const connections = await getProviderConnections({ provider: providerId, isActive: true });
-        providerConnections.set(
-          providerId,
-          Array.isArray(connections) ? (connections as Array<Record<string, unknown>>) : []
-        );
-      } catch (error) {
-        log.warn?.(
-          "COMBO",
-          `Tag routing failed to load connections for provider=${providerId}: ${error instanceof Error ? error.message : String(error)}`
-        );
-        providerConnections.set(providerId, []);
-      }
-    })
-  );
-
-  const filteredTargets = targets.reduce<ResolvedComboTarget[]>((acc, target) => {
-    const providerKey = target.providerId || target.provider;
-    const candidateConnections =
-      providerConnections.get(providerKey)?.filter((connection) => {
-        const connectionId =
-          typeof connection.id === "string" && connection.id.trim().length > 0
-            ? connection.id
-            : null;
-        if (!connectionId) return false;
-        if (target.connectionId) {
-          return connectionId === target.connectionId;
-        }
-        return true;
-      }) || [];
-
-    const matchedConnectionIds = candidateConnections
-      .filter((connection) =>
-        matchesRoutingTags(
-          getConnectionRoutingTags(connection.providerSpecificData),
-          tags,
-          matchMode
-        )
-      )
-      .map((connection) => connection.id)
-      .filter((connectionId): connectionId is string => typeof connectionId === "string");
-
-    if (matchedConnectionIds.length === 0) {
-      return acc;
-    }
-
-    if (target.connectionId) {
-      acc.push(target);
-      return acc;
-    }
-
-    acc.push({
-      ...target,
-      allowedConnectionIds: Array.from(new Set(matchedConnectionIds)),
-    });
-    return acc;
-  }, []);
-
-  if (filteredTargets.length === 0) {
-    log.info?.(
-      "COMBO",
-      `Tag routing matched 0/${targets.length} targets for [${tags.join(", ")}] (${matchMode}); falling back to the full target set`
-    );
-    return targets;
-  }
-
-  log.info?.(
-    "COMBO",
-    `Tag routing matched ${filteredTargets.length}/${targets.length} targets for [${tags.join(", ")}] (${matchMode})`
-  );
-  return filteredTargets;
-}
-
-export function resolveComboTargets(
-  combo: ComboLike,
-  allCombos: ComboCollectionLike,
-  maxDepth: number = MAX_COMBO_DEPTH
-): ResolvedComboTarget[] {
-  return allCombos
-    ? resolveNestedComboTargets(combo, allCombos, new Set<string>(), 0, [], maxDepth)
-    : getDirectComboTargets(combo);
-}
-
-function resolveWeightedTargets(
-  combo: ComboLike,
-  allCombos: ComboCollectionLike
-): {
-  orderedTargets: ResolvedComboTarget[];
-  selectedStep: ComboRuntimeStep | null;
-} {
-  const topLevelSteps = getOrderedTopLevelRuntimeSteps(combo, allCombos);
-  if (topLevelSteps.length === 0) {
-    return { orderedTargets: [], selectedStep: null };
-  }
-
-  const selectedStep = selectWeightedTarget(topLevelSteps);
-  if (!selectedStep) {
-    return { orderedTargets: [], selectedStep: null };
-  }
-
-  const orderedSteps = orderTargetsForWeightedFallback(
-    topLevelSteps,
-    selectedStep.executionKey,
-    hasCompositeTierRuntimeOrder(combo)
-  );
-  const expandedTargets = orderedSteps.flatMap((step) => {
-    if (!step) return [];
-    if (!allCombos) {
-      return step.kind === "model" ? [step] : [];
-    }
-    return expandRuntimeStep(step, allCombos, new Set([combo.name]));
-  });
-
-  return {
-    orderedTargets: dedupeTargetsByExecutionKey(expandedTargets),
-    selectedStep,
-  };
-}
-
-export function scoreAutoTargets(
-  targets: ResolvedComboTarget[],
-  candidates: AutoProviderCandidate[],
-  taskType: string | null,
-  weights: ScoringWeights,
-  manifestHint?: RoutingHint | null
+  comboName: string,
+  configSource: Record<string, unknown> | null | undefined,
+  log: { warn?: (...args: unknown[]) => void },
+  apiKeyAllowedConnectionIds?: string[] | null
 ) {
-  const candidateByExecutionKey = new Map(
-    candidates.map((candidate: ProviderCandidate & { executionKey: string }) => [
-      candidate.executionKey,
-      candidate,
-    ])
+  if (targets.length === 0) return targets;
+
+  const config = resolveResetWindowConfig(configSource);
+  const connectionCache = new Map<string, Array<Record<string, unknown>>>();
+  const connectionLoadPromises = new Map<string, Promise<Array<Record<string, unknown>>>>();
+  const quotaPromises = new Map<string, Promise<unknown>>();
+  const connectionById = new Map<string, Record<string, unknown>>();
+  const expandedTargets: ResolvedComboTarget[] = [];
+
+  const targetsWithConnections = await Promise.all(
+    targets.map(async (target) => ({
+      connections: await getQuotaAwareConnectionsForTarget(
+        target,
+        connectionCache,
+        connectionLoadPromises,
+        comboName,
+        log
+      ),
+      target,
+    }))
   );
-  return targets
-    .map((target) => {
-      const candidate = candidateByExecutionKey.get(target.executionKey);
-      if (!candidate) return null;
-      const factors = calculateFactors(
-        candidate as ProviderCandidate,
-        candidates,
-        taskType ?? "general",
-        getTaskFitness,
-        manifestHint ?? undefined
-      );
-      let score = calculateScore(factors, weights);
-      // B17: Quota Share soft-policy deprioritization
-      if ("quotaSoftPenalty" in candidate && candidate.quotaSoftPenalty === true) {
-        score *= QUOTA_SOFT_DEPRIORITIZE_FACTOR;
+
+  for (const { target, connections } of targetsWithConnections) {
+    for (const connection of connections) {
+      if (typeof connection.id === "string") connectionById.set(connection.id, connection);
+    }
+
+    const unrestrictedConnectionIds = getTargetConnectionIds(target, connections);
+    const connectionIds = filterAllowedConnectionIds(
+      unrestrictedConnectionIds,
+      apiKeyAllowedConnectionIds
+    );
+    if (connectionIds.length === 0) {
+      if (
+        unrestrictedConnectionIds.length > 0 &&
+        normalizeConnectionIds(apiKeyAllowedConnectionIds)
+      ) {
+        continue;
       }
+      expandedTargets.push(target);
+      continue;
+    }
+
+    for (const connectionId of connectionIds) {
+      expandedTargets.push({
+        ...target,
+        connectionId,
+        executionKey:
+          target.connectionId === connectionId
+            ? target.executionKey
+            : `${target.executionKey}@${connectionId}`,
+      });
+    }
+  }
+
+  const scoredTargets = await mapWithConcurrency(
+    expandedTargets,
+    RESET_AWARE_QUOTA_FETCH_CONCURRENCY,
+    async (target, index) => {
+      let quota: unknown = null;
+      const provider = getResetAwareProvider(target);
+      const fetcher = provider ? getQuotaFetcher(provider) : null;
+      if (fetcher && provider && target.connectionId) {
+        const quotaKey = `${provider}:${target.connectionId}`;
+        if (!quotaPromises.has(quotaKey)) {
+          quotaPromises.set(
+            quotaKey,
+            fetchResetAwareQuotaWithCache({
+              provider,
+              connectionId: target.connectionId,
+              connection: connectionById.get(target.connectionId),
+              fetcher,
+              config,
+              log,
+              comboName,
+            })
+          );
+        }
+        quota = await quotaPromises.get(quotaKey)!;
+      }
+
       return {
         target,
-        score,
+        resetMs: getResetWindowTimestampMs(quota, config.windows),
+        index,
       };
-    })
-    .filter((entry): entry is { target: ResolvedComboTarget; score: number } => entry !== null)
-    .sort((a, b) => b.score - a.score);
-}
-
-/**
- * For an auto-combo WITHOUT an explicit `candidatePool`, broaden the eligible
- * targets to every model of every active provider connection so the router has
- * the full pool to score over. Already-present `modelStr`s are not duplicated.
- *
- * Best-effort: if loading active connections or provider models throws, the
- * explicitly-resolved targets are returned unchanged (the combo still runs).
- * Exported for unit testing. Mutates and returns `eligibleTargets`.
- */
-export async function expandAutoComboCandidatePool(
-  eligibleTargets: ResolvedComboTarget[],
-  combo: { autoConfig?: unknown; config?: unknown } | null | undefined
-): Promise<ResolvedComboTarget[]> {
-  const localAutoConfig =
-    (combo?.autoConfig as Record<string, unknown> | undefined) ||
-    (isRecord((combo?.config as Record<string, unknown>)?.auto)
-      ? ((combo?.config as Record<string, unknown>).auto as Record<string, unknown>)
-      : null) ||
-    (combo?.config as Record<string, unknown> | undefined) ||
-    {};
-
-  if (Array.isArray(localAutoConfig?.candidatePool) && localAutoConfig.candidatePool.length > 0)
-    return eligibleTargets;
-
-  try {
-    const allConnections = await getProviderConnections({ isActive: true });
-    const providerIds = [
-      ...new Set(
-        (allConnections as Array<{ provider?: unknown }>)
-          .map((c) => c.provider)
-          .filter((p): p is string => typeof p === "string" && p.length > 0)
-      ),
-    ];
-    for (const providerId of providerIds) {
-      const providerModels = getProviderModels(providerId);
-      for (const model of providerModels) {
-        const modelStr = `${providerId}/${model.id}`;
-        if (!eligibleTargets.some((t) => t.modelStr === modelStr)) {
-          eligibleTargets.push({
-            kind: "model",
-            stepId: modelStr,
-            executionKey: modelStr,
-            provider: providerId,
-            providerId: providerId,
-            modelStr,
-            weight: 1,
-            connectionId: null,
-            label: null,
-          });
-        }
-      }
     }
-  } catch {
-    // Best-effort candidate expansion only: if loading active connections or
-    // provider models fails, fall back to the explicitly-resolved targets
-    // rather than aborting the combo. The push above is the only mutation,
-    // so a throw leaves eligibleTargets exactly as explicit resolution built it.
+  );
+
+  scoredTargets.sort((a, b) => {
+    if (a.resetMs !== b.resetMs) return a.resetMs - b.resetMs;
+    return a.index - b.index;
+  });
+
+  const bestResetMs = scoredTargets[0]?.resetMs ?? Infinity;
+  if (!Number.isFinite(bestResetMs) || config.tieBandMs <= 0) {
+    return scoredTargets.map((entry) => entry.target);
   }
 
-  return eligibleTargets;
-}
+  const tiedTargets = scoredTargets.filter(
+    (entry) => entry.resetMs - bestResetMs <= config.tieBandMs
+  );
+  if (tiedTargets.length <= 1) return scoredTargets.map((entry) => entry.target);
 
-/**
- * Derive a STABLE per-conversation session key for combo context-cache pinning when
- * the client did not provide an explicit session id (#3825).
- *
- * Most OpenAI-compatible clients send no session id, so the server-side pin added by
- * #3399 (gated on `relayOptions?.sessionId`) never engaged → combos rotated every turn,
- * causing upstream prompt-cache misses, cold high-reasoning starts and intermittent
- * 504s. We reuse `extractSessionAffinityKey(body)` (the same conversation fingerprint
- * used for codex failover affinity), which hashes the first user/system message — stable
- * across turns of the same conversation and identical on turn 2 of a continued chat.
- *
- * Returns null when no stable fingerprint is available (e.g. empty body), in which case
- * the caller falls back to NO pinning — preserving prior behavior rather than guessing.
- */
-function deriveComboSessionKey(body: Record<string, unknown>): string | null {
-  try {
-    return extractSessionAffinityKey(body) ?? null;
-  } catch {
-    return null;
+  const key = `reset-window:${comboName}`;
+  const counter = rrCounters.get(key) || 0;
+  if (!rrCounters.has(key) && rrCounters.size >= MAX_RR_COUNTERS) {
+    const oldest = rrCounters.keys().next().value;
+    if (oldest !== undefined) rrCounters.delete(oldest);
   }
+  rrCounters.set(key, counter + 1);
+  const startIndex = counter % tiedTargets.length;
+  const orderedTiedTargets = [
+    ...tiedTargets.slice(startIndex),
+    ...tiedTargets.slice(0, startIndex),
+  ];
+  const tiedExecutionKeys = new Set(orderedTiedTargets.map((entry) => entry.target.executionKey));
+
+  return [
+    ...orderedTiedTargets,
+    ...scoredTargets.filter((entry) => !tiedExecutionKeys.has(entry.target.executionKey)),
+  ].map((entry) => entry.target);
 }
 
 /**

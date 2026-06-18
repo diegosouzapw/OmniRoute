@@ -86,6 +86,31 @@
   --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.015);
   --shadow-warm: 0 2px 12px -2px rgba(229, 77, 94, 0.12);
   --shadow-elevated: 0 12px 28px -4px rgba(20, 20, 40, 0.06);
+
+  /* Graph-paper wallpaper grid — shared visual identity with the marketing site
+     (_mono_repo/omnirouteSite/css). Light theme values. Rendered by body::before.
+     Opacity tuned up from the site's 0.045 so the wallpaper is actually visible on
+     the dense dashboard (cards/chrome cover most of the viewport). */
+  --grid-line: rgba(0, 0, 0, 0.07);
+  --grid-size: 32px;
+  --section-alt: rgba(0, 0, 0, 0.022);
+
+  /* Identity tokens mirrored from the site. Definitions only in this phase —
+     components are repointed to them in a later phase. */
+  --surface-2: #f5f5fa;
+  --radius: 14px;
+  --radius-control: 9px;
+  --grad-brand: linear-gradient(135deg, var(--color-primary), var(--color-accent-light));
+
+  /* Data-table surfaces — theme-aware. The DARK values (in .dark below) exactly mirror
+     the previous hardcoded rgba in DataTable.tsx so dark stays byte-identical; these
+     light values are the fix (the old code was always-dark via dead var fallbacks). */
+  --table-header-bg: rgba(249, 249, 251, 0.95);
+  --table-row-zebra: rgba(0, 0, 0, 0.02);
+  --table-row-hover: rgba(0, 0, 0, 0.04);
+  --table-cell-border: rgba(0, 0, 0, 0.04);
+  /* Selected row — an accent tint that reads on both themes (inherited by .dark). */
+  --table-row-selected: rgba(99, 102, 241, 0.1);
 }
 
 .dark {
@@ -125,6 +150,17 @@
   --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
   --shadow-warm: 0 2px 12px -2px rgba(229, 77, 94, 0.15);
   --shadow-elevated: 0 12px 28px -4px rgba(0, 0, 0, 0.3);
+
+  /* Graph-paper wallpaper grid — dark theme values (tuned up from 0.035 for visibility). */
+  --grid-line: rgba(255, 255, 255, 0.06);
+  --section-alt: rgba(255, 255, 255, 0.018);
+  --surface-2: #1c2230;
+
+  /* Data-table surfaces — dark = the exact old hardcoded values (byte-identical). */
+  --table-header-bg: rgba(15, 15, 25, 0.95);
+  --table-row-zebra: rgba(255, 255, 255, 0.02);
+  --table-row-hover: rgba(255, 255, 255, 0.04);
+  --table-cell-border: rgba(255, 255, 255, 0.04);
 }
 
 @theme inline {
@@ -176,6 +212,16 @@
   /* Font - macOS system fonts */
   --font-sans:
     -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+  /* Monospace stack (parity with the site) — code blocks, IDs, endpoints, terminals */
+  --font-mono: ui-monospace, "JetBrains Mono", "Fira Code", "SF Mono", monospace;
+
+  /* Nested surface (enables bg-surface-2) */
+  --color-surface-2: var(--surface-2);
+
+  /* Semantic radius scale → rounded-card (surfaces, 14px) / rounded-control (controls,
+     9px). Custom names so the default rounded-sm/md/lg/xl utilities stay untouched. */
+  --radius-card: var(--radius);
+  --radius-control: var(--radius-control);
 }
 
 /* ── Focus Indicators (U-3) ── */
@@ -209,6 +255,22 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Graph-paper wallpaper grid — one fixed, full-viewport layer behind every screen
+   (dashboard, auth, error pages). A z-index:-1 ::before paints above body's own
+   background but below all in-flow content, so it shows through any transparent
+   wrapper without lowering text contrast. Mirrors the marketing site exactly. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
 }
 
 body.electron-macos {

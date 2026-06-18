@@ -185,9 +185,18 @@
       "{{testFile}}"
     ]
   },
+  "_mutate_godfiles_excluded_comment": [
+    "2026-06-18 (Onda 2 budget): chatCore.ts (5874 LOC) + combo.ts (5282 LOC) — the two",
+    "god-files — were REMOVED from `mutate`. They dominate ~2/3 of the ~15k mutants, and the",
+    "full 8-module run TIMED OUT at the 180min nightly cap (run 27705123780, concurrency=4 +",
+    "DATA_DIR isolation: started 16:47:33 -> killed 19:47:48 = exactly 180min; the prior 120min",
+    "scheduled run also timed out). #4078 made concurrency safe but the tap-runner re-spawns a",
+    "node process per test file PER MUTANT, so spawn cost dominates and 15k mutants does not fit.",
+    "The 6 smaller modules below fit the budget and produce REAL mutation scores now; the two",
+    "god-files regain mutation coverage after the Onda 3 split into smaller units (re-add them",
+    "here — ideally as the split sub-modules). See project memory: Quality Gate v2 / Fase 9."
+  ],
   "mutate": [
-    "open-sse/handlers/chatCore.ts",
-    "open-sse/services/combo.ts",
     "open-sse/services/accountFallback.ts",
     "src/sse/services/auth.ts",
     "src/server/authz/routeGuard.ts",

@@ -252,3 +252,24 @@ export const CREDENTIAL_HEALTH_CACHE_TTL = (() => {
   }
   return 300_000;
 })();
+
+/**
+ * Stream-recovery tuning (opt-in, see ResilienceSettings.streamRecovery).
+ *
+ * Ported from free-claude-code's always-on recovery (`core/anthropic/stream_recovery.py`).
+ * In OmniRoute the holdback is disabled by default because buffering the opening
+ * window adds up to HOLDBACK_MS of time-to-first-token latency on every stream;
+ * operators opt in via STREAM_RECOVERY_ENABLED / the resilience settings.
+ *
+ * - HOLDBACK_MS: how long the opening SSE window is held so an early truncation
+ *   can be retried transparently before any byte reaches the client.
+ * - BUFFER_MAX_BYTES: hard cap on the held window — commit (flush + passthrough)
+ *   as soon as this many bytes accumulate, regardless of the timer.
+ * - EARLY_RETRY_MAX: max transparent re-opens of the upstream stream while the
+ *   holdback is still uncommitted (free-claude-code uses 5 total attempts = 4 retries).
+ */
+export const STREAM_RECOVERY = {
+  HOLDBACK_MS: 750,
+  BUFFER_MAX_BYTES: 65536,
+  EARLY_RETRY_MAX: 4,
+} as const;

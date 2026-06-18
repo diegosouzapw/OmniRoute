@@ -24,6 +24,7 @@ function buildQdrantSettingsResponse(settings: Record<string, unknown>) {
     port: cfg.port,
     collection: cfg.collection,
     embeddingModel: cfg.embeddingModel,
+    quantization: cfg.quantization,
     hasApiKey,
     apiKeyMasked,
   };
@@ -72,6 +73,7 @@ export async function PUT(request: NextRequest) {
     if (body.port !== undefined) updates.qdrantPort = body.port;
     if (body.collection !== undefined) updates.qdrantCollection = body.collection;
     if (body.embeddingModel !== undefined) updates.qdrantEmbeddingModel = body.embeddingModel;
+    if (body.quantization !== undefined) updates.qdrantQuantization = body.quantization;
     if (body.apiKey !== undefined) {
       // Empty string = remove key
       updates.qdrantApiKey = body.apiKey === "" ? null : body.apiKey;

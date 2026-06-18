@@ -10,12 +10,13 @@ import { useTranslations } from "next-intl";
  */
 
 import { useState, useEffect } from "react";
+import { STATUS_HEX } from "@/shared/constants/statusColors";
 
 const STATUS_MAP = {
-  healthy: { icon: "check_circle", color: "#22c55e", tooltip: "All tokens healthy" },
-  warning: { icon: "warning", color: "#f59e0b", tooltip: "Some tokens need attention" },
-  error: { icon: "error", color: "#ef4444", tooltip: "Token refresh failures detected" },
-  unknown: { icon: "help", color: "#6b7280", tooltip: "Health status unknown" },
+  healthy: { icon: "check_circle", color: STATUS_HEX.success, tooltip: "All tokens healthy" },
+  warning: { icon: "warning", color: STATUS_HEX.warning, tooltip: "Some tokens need attention" },
+  error: { icon: "error", color: STATUS_HEX.error, tooltip: "Token refresh failures detected" },
+  unknown: { icon: "help", color: STATUS_HEX.muted, tooltip: "Health status unknown" },
 };
 
 export default function TokenHealthBadge() {

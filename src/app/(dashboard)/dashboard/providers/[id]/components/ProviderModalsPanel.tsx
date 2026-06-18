@@ -97,6 +97,10 @@ interface ProviderModalsPanelProps {
   setShowEditModal: (open: boolean) => void;
   selectedConnection: ConnectionRowConnection | null;
   handleUpdateConnection: (data: any) => Promise<string | null>;
+  handleCompatibleImportWithProgress: (
+    connectionId: string,
+    mode?: "import" | "sync"
+  ) => Promise<void>;
   // Edit compatible node
   showEditNodeModal: boolean;
   setShowEditNodeModal: (open: boolean) => void;
@@ -186,6 +190,7 @@ export default function ProviderModalsPanel({
   setShowEditModal,
   selectedConnection,
   handleUpdateConnection,
+  handleCompatibleImportWithProgress,
   showEditNodeModal,
   setShowEditNodeModal,
   providerNode,
@@ -316,6 +321,7 @@ export default function ProviderModalsPanel({
           connection={selectedConnection}
           providerId={providerId}
           onSave={handleUpdateConnection}
+          onResyncModels={(id) => handleCompatibleImportWithProgress(id, "sync")}
           onClose={() => setShowEditModal(false)}
         />
       )}

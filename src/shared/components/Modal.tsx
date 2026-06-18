@@ -122,7 +122,7 @@ export default function Modal({
         className={cn(
           "relative w-full bg-surface",
           "border border-black/10 dark:border-white/10",
-          "rounded-xl shadow-2xl",
+          "rounded-card shadow-2xl",
           "animate-in fade-in zoom-in-95 duration-200",
           sizes[size],
           className

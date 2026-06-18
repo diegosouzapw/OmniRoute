@@ -1357,7 +1357,12 @@ test("v1 models catalog includes context_length for individual chat models", asy
     new Request("http://localhost/api/v1/models")
   );
   const body = (await response.json()) as any;
-  const chatModels = body.data.filter((item) => !item.type || item.type === "chat");
+  // Individual chat models only — combos/routers (owned_by "combo", incl. the
+  // built-in auto/* entries from #4164) resolve dynamically and have no fixed
+  // context_length, so they are not "individual chat models" for this check.
+  const chatModels = body.data.filter(
+    (item) => (!item.type || item.type === "chat") && item.owned_by !== "combo"
+  );
 
   assert.equal(response.status, 200);
   assert.ok(chatModels.length > 0, "should have at least one chat model");

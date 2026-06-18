@@ -2,6 +2,36 @@ import { injectMemoryAndSkills } from "./chatCore/memorySkillsInjection.ts";
 import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
+import { cloneBoundedChatLogPayload, truncateForLog } from "./chatCore/logTruncation.ts";
+import { getHeaderValueCaseInsensitive } from "./chatCore/headers.ts";
+import {
+  shouldUseNativeCodexPassthrough,
+  redactPassthroughThinkingSignatures,
+  isClaudeCodeSemanticPassthroughRequest,
+} from "./chatCore/passthroughHelpers.ts";
+import {
+  buildStreamingResponseHeaders,
+  materializeDeduplicatedExecutionResult,
+  stripStaleForwardingHeaders,
+} from "./chatCore/responseHeaders.ts";
+import {
+  forwardDashboardEventToLiveWs,
+  maybeSyncClaudeExtraUsageState,
+} from "./chatCore/telemetryHelpers.ts";
+// Re-export the previously inline-defined helpers so existing importers of these
+// symbols from chatCore.ts (tests, sibling modules) keep resolving after the split.
+export {
+  shouldUseNativeCodexPassthrough,
+  redactPassthroughThinkingSignatures,
+  isClaudeCodeSemanticPassthroughRequest,
+  buildStreamingResponseHeaders,
+  stripStaleForwardingHeaders,
+};
+import {
+  extractMemoryTextFromResponse,
+  extractMemoryTextFromRequestBody,
+  resolveMemoryOwnerId,
+} from "./chatCore/memoryExtraction.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
 import { HEAP_PRESSURE_THRESHOLD_MB } from "../utils/heapPressure.ts";
 import { normalizeHeaders } from "../utils/headers.ts";
@@ -59,7 +89,6 @@ import {
 import {
   COOLDOWN_MS,
   HTTP_STATUS,
-  FETCH_TIMEOUT_MS,
   FETCH_BODY_TIMEOUT_MS,
   MAX_TOOLS_LIMIT,
   PROVIDER_MAX_TOKENS,
@@ -67,7 +96,10 @@ import {
   STREAM_IDLE_TIMEOUT_MS,
   STREAM_READINESS_TIMEOUT_MS,
   ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
+  STREAM_RECOVERY,
 } from "../config/constants.ts";
+import { createRecoverableStream, makeContinuationBody } from "../services/streamRecovery.ts";
+import { resolveResilienceSettings } from "@/lib/resilience/settings";
 import {
   classifyProviderError,
   PROVIDER_ERROR_TYPES,
@@ -86,10 +118,6 @@ import {
 import {
   getCallLogPipelineCaptureStreamChunks,
   getCallLogPipelineMaxSizeBytes,
-  getChatLogTextLimit,
-  getChatLogArrayTailItems,
-  getChatLogMaxDepth,
-  getChatLogMaxObjectKeys,
 } from "@/lib/logEnv";
 import { logAuditEvent } from "@/lib/compliance";
 import { emit } from "@/lib/events/eventBus";
@@ -103,16 +131,29 @@ import {
   saveCallLog,
 } from "@/lib/usageDb";
 import { finalizePendingScope, updatePendingScope } from "@/lib/usage/pendingRequestScope";
-import {
-  formatUsageLog,
-  getLoggedInputTokens,
-  getLoggedOutputTokens,
-  getReasoningTokens,
-} from "@/lib/usage/tokenAccounting";
+import { formatUsageLog } from "@/lib/usage/tokenAccounting";
 import { recordCost } from "@/domain/costRules";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { buildOmniRouteResponseMetaHeaders } from "@/domain/omnirouteResponseMeta";
-import { CLAUDE_OAUTH_TOOL_PREFIX } from "../translator/request/openai-to-claude.ts";
+import {
+  buildClaudePassthroughToolNameMap,
+  restoreClaudePassthroughToolNames,
+  mergeResponseToolNameMap,
+} from "./chatCore/passthroughToolNames.ts";
+import {
+  parseNonStreamingSSEPayload,
+  normalizeNonStreamingEventPayload,
+  shouldTreatBufferedEventResponseAsExpected,
+  appendNonStreamingSseTerminalSignal,
+  type NonStreamingSseTerminalState,
+} from "./chatCore/nonStreamingSse.ts";
+import {
+  createBodyTimeoutError,
+  readStreamChunkWithTimeout,
+  computeBillableTokens,
+  normalizeExecutorResult,
+  executeWithUpstreamStartTimeout,
+} from "./chatCore/upstreamTimeouts.ts";
 import {
   getModelNormalizeToolCallId,
   getModelPreserveOpenAIDeveloperRole,
@@ -161,12 +202,7 @@ import {
 import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
-import {
-  extractSSEErrorMessage,
-  parseSSEToClaudeResponse,
-  parseSSEToOpenAIResponse,
-  parseSSEToResponsesOutput,
-} from "./sseParser.ts";
+import { extractSSEErrorMessage } from "./sseParser.ts";
 import { sanitizeOpenAIResponse, sanitizeResponsesApiResponse } from "./responseSanitizer.ts";
 import {
   withRateLimit,
@@ -237,8 +273,6 @@ import {
 } from "../services/modelscopePolicy.ts";
 import { incrementRequestCount } from "../services/geminiRateLimitTracker.ts";
 
-const MEMORY_EXTRACTION_TEXT_LIMIT = 64 * 1024;
-
 // ── Global memory pressure guard ────────────────────────────────────────
 // Prevents OOM by rejecting new requests when V8 heap exceeds threshold.
 // Self-healing: no counters to leak, no cleanup needed. The threshold
@@ -246,451 +280,7 @@ const MEMORY_EXTRACTION_TEXT_LIMIT = 64 * 1024;
 // it tracks --max-old-space-size across 1GB/2GB/large VPS instead of a fixed
 // 200MB that sat below the app's own ~260MB baseline and rejected every request.
 
-function capMemoryExtractionText(value: string): string {
-  if (value.length <= MEMORY_EXTRACTION_TEXT_LIMIT) return value;
-  return value.slice(-MEMORY_EXTRACTION_TEXT_LIMIT);
-}
-
-function truncateChatLogText(value: string): string {
-  const limit = getChatLogTextLimit();
-  if (value.length <= limit) return value;
-  const head = value.slice(0, Math.floor(limit / 2));
-  const tail = value.slice(-Math.ceil(limit / 2));
-  return `${head}\n[...truncated ${value.length - limit} chars...]\n${tail}`;
-}
-
-function cloneBoundedChatLogPayload(value: unknown, depth = 0): unknown {
-  if (value === null || value === undefined) return value;
-  if (typeof value === "string") return truncateChatLogText(value);
-  if (typeof value !== "object") return value;
-  if (depth >= getChatLogMaxDepth()) return "[MaxDepth]";
-
-  const maxTailItems = getChatLogArrayTailItems();
-
-  if (Array.isArray(value)) {
-    const retained = value.length > maxTailItems ? value.slice(-maxTailItems) : value;
-    const cloned = retained.map((item) => cloneBoundedChatLogPayload(item, depth + 1));
-    if (value.length > maxTailItems) {
-      return [
-        {
-          _omniroute_truncated_array: true,
-          originalLength: value.length,
-          retainedTailItems: maxTailItems,
-        },
-        ...cloned,
-      ];
-    }
-    return cloned;
-  }
-
-  const result: Record<string, unknown> = {};
-  const entries = Object.entries(value as Record<string, unknown>);
-  const maxKeys = getChatLogMaxObjectKeys();
-  for (const [key, item] of maxKeys > 0 ? entries.slice(0, maxKeys) : entries) {
-    result[key] = cloneBoundedChatLogPayload(item, depth + 1);
-  }
-  if (maxKeys > 0 && entries.length > maxKeys) {
-    result._omniroute_truncated_keys = entries.length - maxKeys;
-  }
-  return result;
-}
-
-import { estimateSizeFast, isSmallEnoughForSemanticCache } from "../utils/estimateSize.ts";
-
-const MAX_LOG_BODY_CHARS = 8 * 1024; // 8KB cap for logged request/response bodies
-/**
- * Truncate a large object for logging. If its JSON representation exceeds
- * MAX_LOG_BODY_CHARS, return a lightweight summary instead of the full clone.
- * This prevents persistAttemptLogs from holding multi-MB references to
- * translatedBody across 17 call sites per request.
- */
-function truncateForLog(value: unknown): Record<string, unknown> | null | undefined {
-  if (value === null || value === undefined) return value as null | undefined;
-  if (typeof value !== "object") return value as unknown as Record<string, unknown>;
-  const estimatedSize = estimateSizeFast(value);
-  if (estimatedSize <= MAX_LOG_BODY_CHARS) return value as Record<string, unknown>;
-  // Object is too large — return a summary instead of a deep clone
-  const obj = value as Record<string, unknown>;
-  const summary: Record<string, unknown> = {
-    _truncated: true,
-    _originalBytes: estimatedSize,
-  };
-  if (typeof obj.model === "string") summary.model = obj.model;
-  if (typeof obj.provider === "string") summary.provider = obj.provider;
-  if (Array.isArray(obj.messages)) summary.messageCount = obj.messages.length;
-  if (Array.isArray(obj.contents)) summary.contentCount = obj.contents.length;
-  if (typeof obj.stream === "boolean") summary.stream = obj.stream;
-  return summary;
-}
-
-function extractMemoryTextFromResponse(
-  response: Record<string, unknown> | null | undefined
-): string {
-  if (!response || typeof response !== "object") return "";
-
-  const openAIText = response?.choices?.[0]?.message?.content;
-  if (typeof openAIText === "string") {
-    return capMemoryExtractionText(openAIText.trim());
-  }
-
-  if (Array.isArray(response?.content)) {
-    const contentText = response.content
-      .filter(
-        (part: Record<string, unknown>) => part?.type === "text" && typeof part?.text === "string"
-      )
-      .map((part: Record<string, unknown>) => String(part.text).trim())
-      .filter(Boolean)
-      .join("\n");
-    if (contentText) return capMemoryExtractionText(contentText);
-  }
-
-  if (typeof response?.output_text === "string") {
-    return capMemoryExtractionText(response.output_text.trim());
-  }
-
-  return "";
-}
-
-function extractMemoryTextFromRequestBody(
-  body: Record<string, unknown> | null | undefined
-): string {
-  if (!body || typeof body !== "object") return "";
-
-  const messages = Array.isArray(body.messages) ? body.messages : null;
-  if (messages && messages.length > 0) {
-    for (let i = messages.length - 1; i >= 0; i -= 1) {
-      const msg = messages[i] as Record<string, unknown>;
-      if (msg?.role !== "user") continue;
-
-      if (typeof msg.content === "string" && msg.content.trim().length > 0) {
-        return capMemoryExtractionText(msg.content.trim());
-      }
-
-      if (Array.isArray(msg.content)) {
-        const text = msg.content
-          .map((part: Record<string, unknown>) => {
-            if (typeof part?.text === "string") return part.text.trim();
-            if (part?.type === "input_text" && typeof part?.text === "string")
-              return part.text.trim();
-            return "";
-          })
-          .filter(Boolean)
-          .join("\n")
-          .trim();
-        if (text) return capMemoryExtractionText(text);
-      }
-    }
-  }
-
-  const input = Array.isArray(body.input) ? body.input : null;
-  if (input && input.length > 0) {
-    for (let i = input.length - 1; i >= 0; i -= 1) {
-      const item = input[i] as Record<string, unknown>;
-      const role = typeof item?.role === "string" ? item.role.trim().toLowerCase() : "";
-      const itemType = typeof item?.type === "string" ? item.type.trim().toLowerCase() : "";
-      if (role && role !== "user") continue;
-      if (itemType && itemType !== "message") continue;
-
-      if (typeof item?.content === "string" && item.content.trim()) {
-        return capMemoryExtractionText(item.content.trim());
-      }
-      if (Array.isArray(item?.content)) {
-        const text = item.content
-          .map((part: Record<string, unknown>) => {
-            if (typeof part?.text === "string") return part.text.trim();
-            if (part?.type === "input_text" && typeof part?.text === "string")
-              return part.text.trim();
-            return "";
-          })
-          .filter(Boolean)
-          .join("\n")
-          .trim();
-        if (text) return capMemoryExtractionText(text);
-      }
-    }
-
-    const tailChunks: string[] = [];
-    let tailLength = 0;
-    for (let i = input.length - 1; i >= 0 && tailLength < MEMORY_EXTRACTION_TEXT_LIMIT; i -= 1) {
-      const item = input[i] as Record<string, unknown>;
-      const text = (() => {
-        const role = typeof item?.role === "string" ? item.role.trim().toLowerCase() : "";
-        const itemType = typeof item?.type === "string" ? item.type.trim().toLowerCase() : "";
-        if (role && role !== "user") return "";
-        if (itemType && itemType !== "message") return "";
-
-        if (typeof item?.content === "string") return item.content.trim();
-        if (Array.isArray(item?.content)) {
-          return item.content
-            .map((part: Record<string, unknown>) => {
-              if (typeof part?.text === "string") return part.text.trim();
-              if (part?.type === "input_text" && typeof part?.text === "string")
-                return part.text.trim();
-              return "";
-            })
-            .filter(Boolean)
-            .join("\n")
-            .trim();
-        }
-        return "";
-      })();
-      if (!text) continue;
-      tailChunks.unshift(text);
-      tailLength += text.length + 1;
-    }
-    const chunks = tailChunks.join("\n").trim();
-    if (chunks) return capMemoryExtractionText(chunks);
-  }
-
-  return "";
-}
-
-async function forwardDashboardEventToLiveWs(event: string, payload: unknown): Promise<void> {
-  const port = process.env.LIVE_WS_PORT || "20129";
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 1_500);
-  try {
-    await fetch(`http://127.0.0.1:${port}/__omniroute_event`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ event, payload, timestamp: Date.now() }),
-      signal: controller.signal,
-    });
-  } catch {
-    // Best-effort sidecar bridge; do not affect the chat hot path.
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-async function maybeSyncClaudeExtraUsageState({
-  provider,
-  connectionId,
-  providerSpecificData,
-  log,
-}: {
-  provider: string | null | undefined;
-  connectionId: string | null | undefined;
-  providerSpecificData: unknown;
-  log?: { debug?: (...args: unknown[]) => void; warn?: (...args: unknown[]) => void } | null;
-}) {
-  if (!connectionId || !isClaudeExtraUsageBlockEnabled(provider, providerSpecificData)) {
-    return;
-  }
-
-  try {
-    await fetchLiveProviderLimits(connectionId);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    log?.debug?.("CLAUDE_USAGE", `Failed to sync Claude extra-usage state: ${message}`);
-  }
-}
-
-function resolveMemoryOwnerId(apiKeyInfo: Record<string, unknown> | null): string | null {
-  const rawId = apiKeyInfo?.id;
-  if (typeof rawId === "string" && rawId.trim().length > 0) {
-    return rawId;
-  }
-  return null;
-}
-
-export function shouldUseNativeCodexPassthrough({
-  provider,
-  sourceFormat,
-  endpointPath,
-}: {
-  provider?: string | null;
-  sourceFormat?: string | null;
-  endpointPath?: string | null;
-}): boolean {
-  if (provider !== "codex") return false;
-  if (sourceFormat !== FORMATS.OPENAI_RESPONSES) return false;
-  let normalizedEndpoint = String(endpointPath || "");
-  while (normalizedEndpoint.endsWith("/")) normalizedEndpoint = normalizedEndpoint.slice(0, -1);
-  const segments = normalizedEndpoint.split("/");
-  return segments.includes("responses");
-}
-
-/**
- * Pass `thinking` / `redacted_thinking` blocks through UNCHANGED.
- *
- * This used to rewrite every assistant thinking block to `redacted_thinking`
- * carrying a synthetic signature, on the assumption that a thinking signature is
- * bound to the auth token that produced it and would be rejected after a token /
- * model switch with 400 "Invalid signature in thinking block" (issue #2454).
- *
- * That rewrite is the actual cause of a different, far more common failure on the
- * Anthropic-native Claude OAuth passthrough:
- *
- *   400 messages.N.content.M: `thinking` or `redacted_thinking` blocks in the
- *   latest assistant message cannot be modified. These blocks must remain as
- *   they were in the original response.
- *
- * The Messages API validates submitted thinking blocks against the original
- * response and rejects ANY modification — so converting them to
- * `redacted_thinking` makes every multi-turn request with thinking fail (most
- * visible on long Claude Code tool-loops). The thinking-block signature is
- * validated server-side by Anthropic and stays valid when the blocks are replayed,
- * including under a different OAuth token — verified by preserving the blocks
- * across a mid-conversation account switch with zero "Invalid signature"
- * responses. The redaction is therefore both unnecessary and the cause of the
- * regression, so the blocks are now returned verbatim. The `signature` parameter
- * is kept for call-site compatibility.
- */
-export function redactPassthroughThinkingSignatures(
-  messages: unknown,
-  _signature: string
-): unknown {
-  return messages;
-}
-
-export function isClaudeCodeSemanticPassthroughRequest({
-  provider,
-  sourceFormat,
-  targetFormat,
-  headers,
-  userAgent,
-}: {
-  provider?: string | null;
-  sourceFormat?: string | null;
-  targetFormat?: string | null;
-  headers?: Record<string, unknown> | Headers | null;
-  userAgent?: string | null;
-}): boolean {
-  const isDirectClaudeCodeProvider =
-    provider === "claude" || isClaudeCodeCompatibleProvider(provider);
-  if (!isDirectClaudeCodeProvider) return false;
-  if (sourceFormat !== FORMATS.CLAUDE) return false;
-  if (targetFormat !== FORMATS.CLAUDE) return false;
-
-  const headerUserAgent = getHeaderValueCaseInsensitive(headers, "user-agent");
-  const ua = `${userAgent || ""} ${headerUserAgent || ""}`.toLowerCase();
-  if (ua.includes("claude-code") || ua.includes("claude-cli")) return true;
-
-  const appHeader = getHeaderValueCaseInsensitive(headers, "x-app");
-  if (typeof appHeader === "string" && appHeader.trim().toLowerCase() === "cli") return true;
-
-  const sessionId = getHeaderValueCaseInsensitive(headers, "x-claude-code-session-id");
-  return typeof sessionId === "string" && sessionId.trim().length > 0;
-}
-
-function buildClaudePassthroughToolNameMap(body: Record<string, unknown> | null | undefined) {
-  if (!body || !Array.isArray(body.tools)) return null;
-
-  const toolNameMap = new Map<string, string>();
-  for (const tool of body.tools) {
-    const toolRecord = tool as Record<string, unknown>;
-    const toolData =
-      toolRecord?.type === "function" &&
-      toolRecord.function &&
-      typeof toolRecord.function === "object"
-        ? (toolRecord.function as Record<string, unknown>)
-        : toolRecord;
-    const originalName = typeof toolData?.name === "string" ? toolData.name.trim() : "";
-    if (!originalName) continue;
-    toolNameMap.set(`${CLAUDE_OAUTH_TOOL_PREFIX}${originalName}`, originalName);
-  }
-
-  return toolNameMap.size > 0 ? toolNameMap : null;
-}
-
-function restoreClaudePassthroughToolNames(
-  responseBody: Record<string, unknown>,
-  toolNameMap: Map<string, string> | null
-) {
-  if (!toolNameMap || !Array.isArray(responseBody?.content)) return responseBody;
-
-  let changed = false;
-  const content = responseBody.content.map((block: Record<string, unknown>) => {
-    if (block?.type !== "tool_use" || typeof block?.name !== "string") return block;
-    const restoredName = toolNameMap.get(block.name) ?? block.name;
-    if (restoredName === block.name) return block;
-    changed = true;
-    return {
-      ...block,
-      name: restoredName,
-    };
-  });
-
-  if (!changed) return responseBody;
-  return {
-    ...responseBody,
-    content,
-  };
-}
-
-function mergeResponseToolNameMap(
-  baseToolNameMap: Map<string, string> | null,
-  transformedBody: Record<string, unknown> | null | undefined
-) {
-  const executorToolNameMap =
-    transformedBody && transformedBody._toolNameMap instanceof Map
-      ? (transformedBody._toolNameMap as Map<string, string>)
-      : null;
-
-  if (!executorToolNameMap?.size) return baseToolNameMap;
-  if (!baseToolNameMap?.size) return executorToolNameMap;
-
-  const merged = new Map(baseToolNameMap);
-  for (const [toolName, originalName] of executorToolNameMap.entries()) {
-    merged.set(toolName, originalName);
-  }
-  return merged;
-}
-
-const STREAMING_RESPONSE_HEADER_DENYLIST = new Set([
-  "content-type",
-  "content-encoding",
-  "content-length",
-  "transfer-encoding",
-]);
-
-export function buildStreamingResponseHeaders(
-  providerHeaders: Headers,
-  meta: Parameters<typeof buildOmniRouteResponseMetaHeaders>[0]
-): Record<string, string> {
-  const forwardedHeaders: [string, string][] = [];
-  providerHeaders.forEach((value, key) => {
-    if (!STREAMING_RESPONSE_HEADER_DENYLIST.has(key.toLowerCase())) {
-      forwardedHeaders.push([key, value]);
-    }
-  });
-
-  return {
-    ...Object.fromEntries(forwardedHeaders),
-    "Content-Type": "text/event-stream",
-    "Cache-Control": "no-cache, no-transform",
-    Connection: "keep-alive",
-    "X-Accel-Buffering": "no",
-    [OMNIROUTE_RESPONSE_HEADERS.cache]: "MISS",
-    ...buildOmniRouteResponseMetaHeaders(meta),
-  };
-}
-
-function materializeDeduplicatedExecutionResult<T extends Record<string, unknown>>(result: T): T {
-  const snapshot =
-    result && typeof result === "object"
-      ? ((result as Record<string, unknown>)._dedupSnapshot as
-          | {
-              status: number;
-              statusText: string;
-              headers: [string, string][];
-              payload: string;
-            }
-          | undefined)
-      : undefined;
-
-  if (!snapshot) return result;
-
-  return {
-    ...result,
-    response: new Response(snapshot.payload, {
-      status: snapshot.status,
-      statusText: snapshot.statusText,
-      headers: snapshot.headers,
-    }),
-  } as T;
-}
+import { isSmallEnoughForSemanticCache } from "../utils/estimateSize.ts";
 
 function getSkillsProviderForFormat(format: string): "openai" | "anthropic" | "google" | "other" {
   switch (format) {
@@ -712,320 +302,6 @@ function getSkillsModelIdForFormat(format: string): string {
     default:
       return "openai";
   }
-}
-
-function parseNonStreamingSSEPayload(
-  rawBody: string,
-  preferredFormat: string,
-  fallbackModel: string
-): { body: Record<string, unknown>; format: string } | null {
-  const formatsToTry: string[] = [];
-  const seen = new Set<string>();
-  const queueFormat = (format: string) => {
-    if (!format || seen.has(format)) return;
-    seen.add(format);
-    formatsToTry.push(format);
-  };
-
-  queueFormat(preferredFormat);
-  queueFormat(FORMATS.OPENAI_RESPONSES);
-  queueFormat(FORMATS.CLAUDE);
-  queueFormat(FORMATS.OPENAI);
-
-  for (const format of formatsToTry) {
-    const parsed =
-      format === FORMATS.OPENAI_RESPONSES
-        ? parseSSEToResponsesOutput(rawBody, fallbackModel)
-        : format === FORMATS.CLAUDE
-          ? parseSSEToClaudeResponse(rawBody, fallbackModel)
-          : parseSSEToOpenAIResponse(rawBody, fallbackModel);
-    if (parsed && typeof parsed === "object") {
-      return {
-        body: parsed as Record<string, unknown>,
-        format,
-      };
-    }
-  }
-
-  return null;
-}
-
-function convertNDJSONToSSE(rawBody: string): string {
-  const chunks = String(rawBody || "")
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
-
-  if (chunks.length === 0) return rawBody;
-
-  return `${chunks.map((chunk) => `data: ${chunk}\n`).join("\n")}\n`;
-}
-
-function normalizeNonStreamingEventPayload(rawBody: string, contentType: string): string {
-  if (contentType.includes("application/x-ndjson")) {
-    return convertNDJSONToSSE(rawBody);
-  }
-  return rawBody;
-}
-
-function isTruthyStreamBody(body: unknown): boolean {
-  return !!body && typeof body === "object" && (body as { stream?: unknown }).stream === true;
-}
-
-function isEventStreamAccepted(headers: Record<string, unknown> | Headers | null | undefined) {
-  return (getHeaderValueCaseInsensitive(headers, "accept") || "")
-    .toLowerCase()
-    .includes("text/event-stream");
-}
-
-function shouldTreatBufferedEventResponseAsExpected(
-  upstreamStream: boolean,
-  providerHeaders: Record<string, unknown> | Headers | null | undefined,
-  finalBody: unknown
-): boolean {
-  return upstreamStream || isEventStreamAccepted(providerHeaders) || isTruthyStreamBody(finalBody);
-}
-
-const NON_STREAMING_SSE_TERMINAL_TYPES = new Set([
-  "message_stop",
-  "response.completed",
-  "response.done",
-  "response.cancelled",
-  "response.canceled",
-  "response.failed",
-  "response.incomplete",
-]);
-
-type NonStreamingSseTerminalState = {
-  currentEvent: string;
-  pendingLine: string;
-};
-
-function processNonStreamingSseTerminalLine(
-  state: NonStreamingSseTerminalState,
-  rawLine: string
-): boolean {
-  const trimmed = rawLine.trim();
-  if (!trimmed || trimmed.startsWith(":")) {
-    if (!trimmed) state.currentEvent = "";
-    return false;
-  }
-
-  if (trimmed.startsWith("event:")) {
-    state.currentEvent = trimmed.slice(6).trim();
-    return false;
-  }
-
-  if (!trimmed.startsWith("data:")) return false;
-  const data = trimmed.slice(5).trim();
-  if (data === "[DONE]") return true;
-  if (!data) return false;
-
-  try {
-    const parsed = JSON.parse(data);
-    const eventType =
-      parsed && typeof parsed === "object" && typeof parsed.type === "string"
-        ? parsed.type
-        : state.currentEvent;
-    return NON_STREAMING_SSE_TERMINAL_TYPES.has(eventType);
-  } catch {
-    // Keep reading malformed data so the parser can report a useful upstream error.
-    return false;
-  }
-}
-
-function appendNonStreamingSseTerminalSignal(
-  state: NonStreamingSseTerminalState,
-  chunk: string
-): boolean {
-  const lines = `${state.pendingLine}${chunk}`.split(/\r?\n/);
-  state.pendingLine = lines.pop() ?? "";
-
-  for (const rawLine of lines) {
-    if (processNonStreamingSseTerminalLine(state, rawLine)) return true;
-  }
-
-  return false;
-}
-
-function createBodyTimeoutError(timeoutMs: number): Error {
-  const err = new Error(`Response body read timeout after ${timeoutMs}ms`);
-  err.name = "BodyTimeoutError";
-  return err;
-}
-
-function readStreamChunkWithTimeout(
-  reader: ReadableStreamDefaultReader<Uint8Array>,
-  timeoutMs: number
-): Promise<{ done: boolean; value?: Uint8Array }> {
-  if (timeoutMs <= 0) return reader.read();
-
-  return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => reject(createBodyTimeoutError(timeoutMs)), timeoutMs);
-    reader.read().then(
-      (value) => {
-        clearTimeout(timeout);
-        resolve(value);
-      },
-      (error) => {
-        clearTimeout(timeout);
-        reject(error);
-      }
-    );
-  });
-}
-
-function createUpstreamStartTimeoutError(
-  timeoutMs: number,
-  provider: string,
-  model: string
-): Error {
-  const err = new Error(
-    `Upstream request did not return response headers after ${timeoutMs}ms (${provider}/${model})`
-  );
-  err.name = "TimeoutError";
-  return err;
-}
-
-function createAbortError(signal: AbortSignal): Error {
-  const reason = signal.reason;
-  if (reason instanceof Error) return reason;
-  const err = new Error(typeof reason === "string" ? reason : "The operation was aborted");
-  err.name = "AbortError";
-  return err;
-}
-
-/** Billable token total — mirrors the columns persisted by saveRequestUsage so the
- *  live token-limit counter stays consistent with usage_history seed-on-miss. */
-function computeBillableTokens(usage: unknown): number {
-  // Cache read/creation tokens are a BREAKDOWN already contained inside
-  // getLoggedInputTokens (prompt_tokens / input_tokens). Adding them here would
-  // double-count. Canonical billable total = input + output + reasoning, matching
-  // the columns persisted by saveRequestUsage and seedWindowUsageFromHistory.
-  return getLoggedInputTokens(usage) + getLoggedOutputTokens(usage) + getReasoningTokens(usage);
-}
-
-function getExecutorTimeoutMs(executor: unknown): number {
-  const getTimeoutMs = (executor as { getTimeoutMs?: () => unknown } | null)?.getTimeoutMs;
-  if (typeof getTimeoutMs !== "function") return FETCH_TIMEOUT_MS;
-
-  try {
-    const timeoutMs = getTimeoutMs.call(executor);
-    if (typeof timeoutMs !== "number" || !Number.isFinite(timeoutMs)) return FETCH_TIMEOUT_MS;
-    return Math.max(0, Math.floor(timeoutMs));
-  } catch {
-    return FETCH_TIMEOUT_MS;
-  }
-}
-
-function normalizeExecutorResult(
-  result:
-    | Response
-    | {
-        response: Response;
-        url?: string;
-        headers?: Record<string, string>;
-        transformedBody?: unknown;
-      }
-): { response: Response; url: string; headers: Record<string, string>; transformedBody: unknown } {
-  if (result instanceof Response) {
-    return { response: result, url: "", headers: {}, transformedBody: null };
-  }
-  return {
-    response: result.response,
-    url: result.url || "",
-    headers: result.headers || {},
-    transformedBody: result.transformedBody ?? null,
-  };
-}
-
-async function executeWithUpstreamStartTimeout<T>({
-  executor,
-  provider,
-  model,
-  signal,
-  log,
-  execute,
-}: {
-  executor: unknown;
-  provider: string;
-  model: string;
-  signal: AbortSignal;
-  log?: { warn?: (tag: string, message: string) => void } | null;
-  execute: (signal: AbortSignal) => Promise<T>;
-}): Promise<T> {
-  const timeoutMs = getExecutorTimeoutMs(executor);
-  if (timeoutMs <= 0) return execute(signal);
-  if (signal.aborted) throw createAbortError(signal);
-
-  const timeoutController = new AbortController();
-  const combinedController = new AbortController();
-  const timeoutError = createUpstreamStartTimeoutError(timeoutMs, provider, model);
-
-  let timeoutId: ReturnType<typeof setTimeout> | null = null;
-  let abortListener: (() => void) | null = null;
-  let timeoutAbortListener: (() => void) | null = null;
-
-  const abortCombined = (source: AbortSignal) => {
-    if (combinedController.signal.aborted) return;
-    const reason = source.reason instanceof Error ? source.reason : createAbortError(source);
-    combinedController.abort(reason);
-  };
-
-  abortListener = () => abortCombined(signal);
-  timeoutAbortListener = () => abortCombined(timeoutController.signal);
-  signal.addEventListener("abort", abortListener, { once: true });
-  timeoutController.signal.addEventListener("abort", timeoutAbortListener, { once: true });
-
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(() => {
-      log?.warn?.("TIMEOUT", timeoutError.message);
-      timeoutController.abort(timeoutError);
-      reject(timeoutError);
-    }, timeoutMs);
-  });
-
-  const abortPromise = new Promise<never>((_, reject) => {
-    signal.addEventListener("abort", () => reject(createAbortError(signal)), { once: true });
-  });
-
-  try {
-    return await Promise.race([execute(combinedController.signal), timeoutPromise, abortPromise]);
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId);
-    if (abortListener) signal.removeEventListener("abort", abortListener);
-    if (timeoutAbortListener) {
-      timeoutController.signal.removeEventListener("abort", timeoutAbortListener);
-    }
-  }
-}
-
-/**
- * Strip hop-by-hop headers that describe the upstream wire encoding.
- *
- * `readNonStreamingResponseBody` reads (and, for compressed responses, also
- * decompresses via fetch's auto-decoder) the full upstream body into a JS
- * string before we re-emit it to the client. Once that happens, the original
- * `Content-Encoding`, `Content-Length`, and `Transfer-Encoding` all describe
- * a payload that no longer exists:
- *
- *   - `Content-Length` is the *compressed* byte count, so clients honoring it
- *     read only the first N bytes of the decompressed JSON and surface
- *     "Unterminated string in JSON at position …" parse failures (observed
- *     on gzipped Gemini responses).
- *   - `Content-Encoding` advertises a compression we have already undone.
- *   - `Transfer-Encoding` is hop-by-hop per RFC 7230 §6.1 and must not be
- *     forwarded across a buffering proxy — its presence alongside a
- *     re-emitted body is undefined behavior.
- *
- * Deleting all three lets the response framework set a fresh, correct
- * `Content-Length` (or fall back to `Transfer-Encoding: chunked`) for the
- * payload we are actually sending.
- */
-export function stripStaleForwardingHeaders(headers: Headers): void {
-  headers.delete("content-encoding");
-  headers.delete("content-length");
-  headers.delete("transfer-encoding");
 }
 
 async function readNonStreamingResponseBody(
@@ -1077,23 +353,6 @@ async function readNonStreamingResponseBody(
   }
 
   return rawBody;
-}
-
-function getHeaderValueCaseInsensitive(
-  headers: Record<string, unknown> | Headers | null | undefined,
-  targetName: string
-) {
-  if (!headers || typeof headers !== "object") return null;
-  if (headers instanceof Headers) {
-    return headers.get(targetName);
-  }
-  const lowered = targetName.toLowerCase();
-  for (const [key, value] of Object.entries(headers)) {
-    if (key.toLowerCase() === lowered && typeof value === "string" && value.trim()) {
-      return value.trim();
-    }
-  }
-  return null;
 }
 
 function toFiniteNumberOrNull(value: unknown): number | null {
@@ -4071,17 +3330,125 @@ export async function handleChatCore({
                   return res;
                 }
 
+                // Opt-in transparent stream recovery (free-claude-code port, default OFF).
+                // Only engages for a successful (2xx) stream — an error body must never be
+                // held or replayed. Setting is read once here from the cached resolved
+                // resilience settings; the default path is byte-for-byte unchanged.
+                const okStatus = res.response.status >= 200 && res.response.status < 300;
+                let streamRecoveryEnabled = false;
+                let continueMidStreamEnabled = false;
+                if (okStatus) {
+                  try {
+                    // Reuse the request-consolidated settings read (see line ~2076) — no
+                    // second DB/cache hit. Default OFF when the setting is absent.
+                    const sr = resolveResilienceSettings(settings).streamRecovery;
+                    streamRecoveryEnabled = sr.enabled;
+                    continueMidStreamEnabled = sr.continueMidStream === true;
+                  } catch {
+                    streamRecoveryEnabled = false;
+                    continueMidStreamEnabled = false;
+                  }
+                }
+
+                let clientBody: ReadableStream<Uint8Array>;
+                if (streamRecoveryEnabled) {
+                  // Run the SAME upstream (same account/creds) with a given body and return
+                  // its 2xx stream, or null. Used both by the early-retry re-open (same body)
+                  // and the mid-stream continuation (assistant-prefilled body).
+                  const runUpstreamStream = async (
+                    body: unknown
+                  ): Promise<ReadableStream<Uint8Array> | null> => {
+                    try {
+                      const retryRaw = await executeWithUpstreamStartTimeout({
+                        executor,
+                        provider,
+                        model: modelToCall,
+                        signal: streamController.signal,
+                        log,
+                        execute: (signal) =>
+                          runWithCapture(providerRequestCapture, () =>
+                            executor.execute({
+                              model: modelToCall,
+                              body,
+                              stream: upstreamStream,
+                              credentials: execCreds,
+                              signal,
+                              log,
+                              extendedContext,
+                              upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
+                              clientHeaders: buildExecutorClientHeaders(
+                                clientRawRequest?.headers,
+                                userAgent
+                              ),
+                              onCredentialsRefreshed,
+                              skipUpstreamRetry,
+                              contextEditing: { enabled: contextEditingEnabled },
+                            })
+                          ),
+                      });
+                      const retryRes = normalizeExecutorResult(retryRaw);
+                      const retryOk =
+                        retryRes.response.status >= 200 && retryRes.response.status < 300;
+                      if (retryOk && retryRes.response.body) {
+                        return retryRes.response.body as ReadableStream<Uint8Array>;
+                      }
+                      await retryRes.response.body?.cancel().catch(() => {});
+                      return null;
+                    } catch {
+                      return null;
+                    }
+                  };
+
+                  // Mid-stream continuation (Fase 4.4): re-request with the partial text as an
+                  // assistant prefill. Gated by its own setting and only for OpenAI-compatible
+                  // bodies (makeContinuationBody returns null otherwise).
+                  const continueStream = continueMidStreamEnabled
+                    ? (assistantSoFar: string) => {
+                        const continuationBody = makeContinuationBody(
+                          bodyToSend as Record<string, unknown>,
+                          assistantSoFar
+                        );
+                        return continuationBody
+                          ? runUpstreamStream(continuationBody)
+                          : Promise.resolve(null);
+                      }
+                    : undefined;
+
+                  clientBody = createRecoverableStream(
+                    originalBody as ReadableStream<Uint8Array>,
+                    () => runUpstreamStream(bodyToSend),
+                    {
+                      finalize: acquireAccountSemaphoreRelease,
+                      onRetry: (attempt, err) =>
+                        log?.warn?.(
+                          "STREAM_RECOVERY",
+                          `transparent early-retry ${attempt}/${STREAM_RECOVERY.EARLY_RETRY_MAX} after ${
+                            (err as { name?: string })?.name || "truncation"
+                          }`
+                        ),
+                      continueStream,
+                      onContinue: (attempt) =>
+                        log?.warn?.(
+                          "STREAM_RECOVERY",
+                          `mid-stream continuation attempt ${attempt}/${STREAM_RECOVERY.EARLY_RETRY_MAX}`
+                        ),
+                    }
+                  );
+                } else {
+                  clientBody = wrapReadableStreamWithFinalize(
+                    originalBody,
+                    acquireAccountSemaphoreRelease
+                  );
+                }
+
                 return {
                   ...res,
                   _executionCredentials: execCreds,
-                  response: new Response(
-                    wrapReadableStreamWithFinalize(originalBody, acquireAccountSemaphoreRelease),
-                    {
-                      status: res.response.status,
-                      statusText: res.response.statusText,
-                      headers: res.response.headers,
-                    }
-                  ),
+                  response: new Response(clientBody, {
+                    status: res.response.status,
+                    statusText: res.response.statusText,
+                    headers: res.response.headers,
+                  }),
                   headers: res.response.headers,
                 };
               }

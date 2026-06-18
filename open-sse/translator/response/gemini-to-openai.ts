@@ -300,6 +300,40 @@ export function geminiToOpenAIResponse(chunk, state) {
   const candidate = response.candidates?.[0];
 
   if (!candidate) {
+    // Mid-stream Gemini API error: the stream can emit an error object
+    // `{ "error": { "code": 503, "message": "...", "status": "UNAVAILABLE" } }`
+    // (optionally wrapped in `response`) instead of a candidates payload — typically
+    // after some partial content. Without this branch the chunk has no candidates and
+    // no promptFeedback, so it is dropped (return null) and the stream ends with a
+    // default finish_reason "stop", masking the failure and skipping combo fallback.
+    // Surface it as state.upstreamError so stream.ts errors the stream out (mirrors the
+    // openai-responses translator's normalizeUpstreamFailure path).
+    const errorObj = response.error || chunk.error;
+    if (errorObj && typeof errorObj === "object") {
+      const rawCode = errorObj.code;
+      const rawStatus = errorObj.status;
+      const status =
+        typeof rawCode === "number" && rawCode >= 400 && rawCode <= 599
+          ? rawCode
+          : rawStatus === "RESOURCE_EXHAUSTED"
+            ? 429
+            : 502;
+      const message =
+        typeof errorObj.message === "string" ? errorObj.message : "Gemini upstream failure";
+      state.upstreamError = {
+        status,
+        type: status === 429 ? "rate_limit_error" : "server_error",
+        code:
+          typeof rawStatus === "string" && rawStatus
+            ? rawStatus
+            : status === 429
+              ? "rate_limit_exceeded"
+              : "bad_gateway",
+        message,
+      };
+      return null;
+    }
+
     const promptFeedback = response.promptFeedback || chunk.promptFeedback;
     if (!promptFeedback) return null;
 

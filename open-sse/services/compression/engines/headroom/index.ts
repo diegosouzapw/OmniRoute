@@ -37,6 +37,8 @@ import { crushMessages, DEFAULT_MIN_ROWS } from "./smartcrusher.ts";
 import {
   TABULAR_FENCE_OPEN,
   TABULAR_FENCE_CLOSE,
+  GCF_FENCE_OPEN,
+  GCF_FENCE_CLOSE,
   decodeTabular,
   TABULAR_MARKER_RE,
 } from "./tabular.ts";
@@ -178,10 +180,10 @@ type MessageLike = {
 };
 
 /**
- * Reverse the headroom tabular compaction: find every ```omni-tabular block
- * in message contents and decode it back to the original JSON string.
+ * Reverse the headroom compaction: find every ```gcf-generic or ```omni-tabular
+ * block in message contents and decode it back to the original JSON string.
  *
- * Returns a new body with all tabular blocks expanded.
+ * Returns a new body with all compacted blocks expanded.
  */
 export function reconstructHeadroom(body: Record<string, unknown>): Record<string, unknown> {
   const messages = body["messages"];
@@ -224,36 +226,37 @@ export function reconstructHeadroom(body: Record<string, unknown>): Record<strin
 }
 
 /**
- * Restore all omni-tabular blocks in a text string back to their original JSON.
+ * Restore all GCF (```gcf-generic) and legacy (```omni-tabular) blocks
+ * in a text string back to their original JSON.
  */
 function restoreText(text: string): string {
   // Fast path: no fence marker present
-  if (!text.includes(TABULAR_FENCE_OPEN)) return text;
-
-  const fence = TABULAR_FENCE_OPEN;
-  const closeTag = TABULAR_FENCE_CLOSE;
+  if (!text.includes(TABULAR_FENCE_OPEN) && !text.includes(GCF_FENCE_OPEN)) return text;
 
   let result = text;
-  let offset = 0;
 
-  // Find each occurrence of the tabular fence
-  let searchFrom = 0;
-  while (true) {
-    const fenceStart = result.indexOf(fence, searchFrom);
-    if (fenceStart === -1) break;
+  // Process both fence types: GCF first (new format), then legacy omni-tabular
+  for (const fence of [GCF_FENCE_OPEN, TABULAR_FENCE_OPEN]) {
+    const closeTag = fence === GCF_FENCE_OPEN ? GCF_FENCE_CLOSE : TABULAR_FENCE_CLOSE;
 
-    const contentStart = fenceStart + fence.length + 1; // skip "\n" after fence open
-    const fenceEnd = result.indexOf("\n" + closeTag, contentStart);
-    if (fenceEnd === -1) break;
+    let searchFrom = 0;
+    while (true) {
+      const fenceStart = result.indexOf(fence, searchFrom);
+      if (fenceStart === -1) break;
 
-    const blockContent = result.slice(contentStart, fenceEnd);
-    const decoded = decodeTabular(fence + "\n" + blockContent + "\n" + closeTag);
-    const jsonStr = JSON.stringify(decoded);
+      const contentStart = fenceStart + fence.length + 1; // skip "\n" after fence open
+      const fenceEnd = result.indexOf("\n" + closeTag, contentStart);
+      if (fenceEnd === -1) break;
 
-    const fullFence = result.slice(fenceStart, fenceEnd + closeTag.length + 1); // +1 for the "\n"
-    result = result.slice(0, fenceStart) + jsonStr + result.slice(fenceStart + fullFence.length);
+      const blockContent = result.slice(contentStart, fenceEnd);
+      const decoded = decodeTabular(fence + "\n" + blockContent + "\n" + closeTag);
+      const jsonStr = JSON.stringify(decoded);
 
-    searchFrom = fenceStart + jsonStr.length;
+      const fullFence = result.slice(fenceStart, fenceEnd + closeTag.length + 1); // +1 for the "\n"
+      result = result.slice(0, fenceStart) + jsonStr + result.slice(fenceStart + fullFence.length);
+
+      searchFrom = fenceStart + jsonStr.length;
+    }
   }
 
   return result;

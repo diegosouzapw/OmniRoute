@@ -13,7 +13,7 @@ lastUpdated: 2026-05-13
 > Every variable documented here must also appear in `.env.example`, and
 > every variable in `.env.example` must appear here. `npm run check:env-doc-sync`
 > enforces this on commit and in CI. To omit a variable on purpose, add it to
-> the allowlist inside `scripts/check-env-doc-sync.mjs`.
+> the allowlist inside `scripts/check/check-env-doc-sync.mjs`.
 
 ---
 
@@ -212,6 +212,12 @@ OmniRoute provides a two-layer defense: request-side injection scanning and resp
 | -------------------------------- | -------- | ------------------------- | ----------------------------------------------------------------------- |
 | `PII_RESPONSE_SANITIZATION`      | `false`  | `src/lib/piiSanitizer.ts` | Scan LLM responses for leaked PII before returning to client.           |
 | `PII_RESPONSE_SANITIZATION_MODE` | `redact` | `src/lib/piiSanitizer.ts` | `redact` = mask PII, `warn` = log only, `block` = drop entire response. |
+
+### VS Code Tokenized-Route Context Sanitizer
+
+| Variable                            | Default | Source File                                  | Description                                                                                                                                                                                                                                                  |
+| ----------------------------------- | ------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `OMNIROUTE_VSCODE_SANITIZE_CONTEXT` | `1`     | `src/app/api/v1/vscode/contextSanitizer.ts` | Strips implicit active-editor context (`editorContext`, `activeEditor`, `currentFile`, `selection`, `openTabs`…) from `/v1/vscode/[token]/*` requests and redacts content of explicitly-attached sensitive files. Secure-by-default; set to `0` to disable. |
 
 ### Scenarios
 
@@ -758,6 +764,8 @@ Anthropic-compatible provider instead.
 | `PROVIDER_COOLDOWN_ENABLED`                     | _(unset → off)_  | `open-sse/services/providerCooldownTracker.ts`   | Opt-in global cross-request provider/connection cooldown tracking. OFF by default (overlaps Connection Cooldown / Provider Circuit Breaker). Accepts `true`/`1`/`on` to enable.                         |
 | `PROVIDER_COOLDOWN_MIN_MS`                      | `5000`           | `open-sse/services/providerCooldownTracker.ts`   | Minimum cooldown (ms) before a failed provider/connection is retried. Scaled exponentially with consecutive failures. Only used when `PROVIDER_COOLDOWN_ENABLED`.                                       |
 | `PROVIDER_COOLDOWN_MAX_MS`                      | `300000` (5 min) | `open-sse/services/providerCooldownTracker.ts`   | Maximum cooldown (ms) cap before a failed provider/connection is retried regardless. Only used when `PROVIDER_COOLDOWN_ENABLED`.                                                                        |
+| `STREAM_RECOVERY_ENABLED`                       | _(unset → off)_  | `open-sse/services/streamRecovery.ts`            | Opt-in transparent recovery of truncated upstream streams (free-claude-code port). Holds the opening SSE window so an early cutoff is retried invisibly; OFF by default (adds time-to-first-token latency). Accepts `true`/`1`/`on` to enable. |
+| `STREAM_RECOVERY_MIDSTREAM_ENABLED`             | _(unset → off)_  | `open-sse/services/streamRecovery.ts`            | Opt-in mid-stream continuation (Fase 4.4): after a post-commit truncation, re-request with the partial text as an assistant prefill and stitch the missing suffix (plain-text OpenAI-compatible streams only, never with a tool call in flight). OFF by default — the recovered tail arrives as one burst. Independent of `STREAM_RECOVERY_ENABLED`. Accepts `true`/`1`/`on` to enable. |
 | `HEALTHCHECK_STAGGER_MS`                        | `3000`           | `src/lib/tokenHealthCheck.ts`                    | Stagger interval (ms) between provider token healthchecks at startup.                                                                                                                                   |
 | `REQUEST_RETRY`                                 | `2`              | `src/sse/services/cooldownAwareRetry.ts`         | Number of automatic retries on model-scoped cooldown responses before returning error to client.                                                                                                        |
 | `MAX_RETRY_INTERVAL_SEC`                        | `30`             | `src/sse/services/cooldownAwareRetry.ts`         | Max backoff interval (seconds) between cooldown retries. Capped by this value regardless of upstream `Retry-After`.                                                                                     |
