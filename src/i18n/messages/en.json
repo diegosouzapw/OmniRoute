@@ -8556,6 +8556,7 @@
     "httpProxyTitle": "HTTP Proxy Snippet — port {port}",
     "notRecording": "Not recording",
     "anyStatus": "Any status",
+    "liveOnly": "Live",
     "viewingRecordedSession": "Viewing recorded session",
     "backToLive": "Back to live",
     "untitledSession": "Untitled session",
