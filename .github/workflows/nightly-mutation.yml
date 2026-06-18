@@ -13,17 +13,21 @@ jobs:
     runs-on: ubuntu-latest
     # Mutation testing is expensive. History of the budget:
     #   - Full 8-module set TIMED OUT at the 180min cap (run 27705123780 = exactly 180min).
-    #     The two god-files chatCore.ts/combo.ts dominate ~2/3 of the mutants and were
-    #     removed from stryker.conf.json `mutate` (the Onda 3 split re-adds them).
-    #   - The remaining 6 modules STILL timed out at 180min (run 27732877861 = exactly
-    #     180min): auth.ts and accountFallback.ts are large and the perTest dry-run over
-    #     ~130 covering test files is itself costly.
-    # So the 6 modules are split into 3 PARALLEL batches of 2 (the two big modules in
-    # separate batches), each overriding the mutate set via `--mutate` (Stryker 9 CLI:
+    #     The two god-files chatCore.ts/combo.ts dominated ~2/3 of the mutants and were
+    #     removed from stryker.conf.json `mutate`.
+    #   - The remaining 6 modules in 3 batches: auth.ts and accountFallback.ts are large; the
+    #     a (auth+publicCreds) and b (accountFallback+error) batches still ran near the 180min
+    #     cap (the perTest dry-run over ~130 covering test files is itself costly), so the two
+    #     big modules are now ISOLATED into their own batches (a=auth, b=accountFallback).
+    #   - Onda 3 / Fase 9 T5 re-add: combo.ts was split into 11 leaves; the 8 well-covered
+    #     combo/* leaves are back in `mutate` (covered by the 24 combo-*.test.ts), grouped into
+    #     2 batches (d=heavy, e=light). chatCore/* leaves + quotaScoring/quotaStrategies (#4204)
+    #     are follow-ups — see _mutate_godfiles_excluded_comment in stryker.conf.json.
+    # 5 PARALLEL batches, each overriding the mutate set via `--mutate` (Stryker 9 CLI:
     # `-m, --mutate <comma-list>`; the conf's `mutate[]` remains the local-run default/union).
-    # Each batch is ~1/3 of the mutants and fits 180min; full coverage every night, in
-    # parallel (≈180min wall-clock). Re-merge into fewer batches once the Onda 3 god-file
-    # split shrinks per-module mutant counts.
+    # Each batch targets <180min; full coverage every night in parallel (~180min wall-clock).
+    # The `incremental` cache (per-batch key) makes runs after the first cold one much cheaper,
+    # so the isolated big-module batches recover even if a first cold run nears the cap.
     # Runs at stryker concurrency=4 with per-process DATA_DIR isolation
     # (tests/_setup/isolateDataDir.ts) — see _concurrency_comment in stryker.conf.json.
     strategy:
@@ -31,11 +35,15 @@ jobs:
       matrix:
         batch:
           - name: a
-            mutate: "src/sse/services/auth.ts,open-sse/utils/publicCreds.ts"
+            mutate: "src/sse/services/auth.ts"
           - name: b
-            mutate: "open-sse/services/accountFallback.ts,open-sse/utils/error.ts"
+            mutate: "open-sse/services/accountFallback.ts"
           - name: c
-            mutate: "src/server/authz/routeGuard.ts,src/shared/utils/circuitBreaker.ts"
+            mutate: "src/server/authz/routeGuard.ts,src/shared/utils/circuitBreaker.ts,open-sse/utils/error.ts,open-sse/utils/publicCreds.ts"
+          - name: d
+            mutate: "open-sse/services/combo/comboStructure.ts,open-sse/services/combo/autoStrategy.ts,open-sse/services/combo/validateQuality.ts"
+          - name: e
+            mutate: "open-sse/services/combo/shadowRouting.ts,open-sse/services/combo/targetSorters.ts,open-sse/services/combo/comboPredicates.ts,open-sse/services/combo/rrState.ts,open-sse/services/combo/comboData.ts"
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v6
