@@ -1023,31 +1023,76 @@ gh release create v3.8.2 --title "v3.8.2" --generate-notes
 
 </div>
 
-Special thanks to **[9router](https://github.com/decolua/9router)** by **[decolua](https://github.com/decolua)** — the original project that inspired this fork. OmniRoute builds upon that incredible foundation with additional features, multi-modal APIs, and a full TypeScript rewrite.
+OmniRoute stands on the shoulders of giants. It started as a fork of **[9router](https://github.com/decolua/9router)** and a TypeScript port of the Go project **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** — and from there, every subsystem below was inspired by an open-source project that got there first. Each one shaped a concrete piece of OmniRoute. This is our thank-you to all of them. 🙏
 
-Special thanks to **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** by **[router-for-me](https://github.com/router-for-me)** — the original Go implementation that inspired this JavaScript port.
+> ⭐ star counts as of June 2026 — go give these projects a star.
 
-Special thanks to **[Caveman](https://github.com/JuliusBrussee/caveman)** by **[JuliusBrussee](https://github.com/JuliusBrussee)** (⭐ 51K+) — the viral "why use many token when few token do trick" project whose caveman-speak compression philosophy inspired OmniRoute's standard compression mode and 30+ filler/condensation regex rules.
+### 🧬 Lineage & gateway
 
-Special thanks to **[RTK - Rust Token Killer](https://github.com/rtk-ai/rtk)** by **[RTK AI](https://github.com/rtk-ai)** — the high-performance command-output compression project whose terminal, build, test, git, and tool-output filtering model inspired OmniRoute's RTK engine, JSON filter DSL, raw-output recovery, and stacked RTK → Caveman compression pipeline.
+| Project                                                                         |    ⭐ | How it inspired OmniRoute                                                                                                             |
+| ------------------------------------------------------------------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **[9router](https://github.com/decolua/9router)** · decolua                     | 17.9k | The original project this fork is built on — extended here with multi-modal APIs and a full TypeScript rewrite.                       |
+| **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** · router-for-me | 37.8k | The Go implementation that inspired this JavaScript / TypeScript port.                                                                |
+| **[LiteLLM](https://github.com/BerriAI/litellm)** · BerriAI                     | 50.8k | The AI gateway whose public pricing dataset feeds our cost-tracking sync and whose provider-normalization model informed our routing. |
 
-Special thanks to **[Troglodita](https://github.com/leninejunior/troglodita)** by **[Lenine Júnior](https://github.com/leninejunior)** — the PT-BR token compression project ("por que gastar muitos tokens quando poucos resolve?") whose Portuguese-native rules power OmniRoute's pt-BR language pack: pleonasm reduction, filler removal tuned for Brazilian Portuguese grammar, and technical abbreviations for the dev BR community.
+### 🗜️ Context & token compression — engines
 
-Special thanks to **[headroom](https://github.com/chopratejas/headroom)** by **[chopratejas](https://github.com/chopratejas)** — the reversible context-compression project whose SmartCrusher (per-type routing, reversible block compaction, internal hash cache) directly inspired OmniRoute's `headroom` engine and the `ccr` retrieve-marker pattern.
+| Project                                                                      |    ⭐ | How it inspired OmniRoute                                                                                                                                             |
+| ---------------------------------------------------------------------------- | ----: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **[Caveman](https://github.com/JuliusBrussee/caveman)** · JuliusBrussee      | 74.5k | The viral "why use many token when few token do trick" project — its caveman-speak philosophy powers our standard compression mode and 30+ filler/condensation rules. |
+| **[RTK – Rust Token Killer](https://github.com/rtk-ai/rtk)** · rtk-ai        | 63.6k | High-performance command-output compression — inspired our RTK engine, JSON filter DSL, raw-output recovery and the stacked RTK → Caveman pipeline.                   |
+| **[headroom](https://github.com/chopratejas/headroom)** · chopratejas        | 33.6k | Reversible context-compression (SmartCrusher) — inspired our `headroom` engine and the `ccr` retrieve-marker pattern.                                                 |
+| **[LLMLingua](https://github.com/microsoft/LLMLingua)** · Microsoft          |  6.3k | Prompt-compression research (LLMLingua / LLMLingua-2) — inspired our async, code-safe, fail-open `llmlingua` engine.                                                  |
+| **[llmlingua-2-js](https://github.com/atjsh/llmlingua-2-js)** · atjsh        |    27 | The JS/ONNX port (MobileBERT / XLM-RoBERTa) used as the worker-thread backend for our LLMLingua engine.                                                               |
+| **[Troglodita](https://github.com/leninejunior/troglodita)** · Lenine Júnior |    15 | PT-BR token compression — powers our pt-BR language pack: pleonasm reduction and filler removal tuned for Brazilian-Portuguese grammar.                               |
 
-Special thanks to **[TOON](https://github.com/toon-format/toon)** by **[toon-format](https://github.com/toon-format)** and **[GCF — Graph Compact Format](https://github.com/blackwell-systems/gcf)** by **[Dayna Blackwell / Blackwell Systems](https://github.com/blackwell-systems)** — the compact, schema-aware "JSON for LLMs" notations whose columnar, header-plus-rows model shaped OmniRoute's `headroom`/SmartCrusher tabular stage: a dependency-free, lossless compaction of homogeneous JSON arrays with an explicit `[N rows]` marker.
+### 🧩 Compact formats, token research & code-aware tooling
 
-Special thanks to **[token-optimizer-mcp](https://github.com/ooples/token-optimizer-mcp)** by **[ooples](https://github.com/ooples)** — the Brotli/SQLite cache + per-session context-delta project whose content-addressed delta model inspired OmniRoute's `session-dedup` engine (cross-turn block deduplication with reversible references).
+| Project                                                                                        |    ⭐ | How it inspired OmniRoute                                                                                                            |
+| ---------------------------------------------------------------------------------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **[TOON](https://github.com/toon-format/toon)** · toon-format                                  | 24.6k | Token-Oriented Object Notation — its columnar, header-plus-rows model shaped our tabular compaction stage.                           |
+| **[GCF – Graph Compact Format](https://github.com/blackwell-systems/gcf)** · Blackwell Systems |    11 | Schema-aware "JSON for LLMs" notation — co-inspired our lossless homogeneous-array compaction with `[N rows]` markers.               |
+| **[token-optimizer-mcp](https://github.com/ooples/token-optimizer-mcp)** · ooples              |   409 | Brotli/SQLite cache + per-session context-delta — inspired our `session-dedup` engine.                                               |
+| **[token-savior](https://github.com/Mibayy/token-savior)** · Mibayy                            |   993 | Bash-output compaction + MCP profiles — inspired our compression bail-out discipline and MCP tool-manifest reduction.                |
+| **[token-saver](https://github.com/ppgranger/token-saver)** · ppgranger                        |   103 | Content-aware, per-file-type output compression with failure-aware bail-out — validated our per-type dispatch and minimum-gain skip. |
+| **[token-optimizer](https://github.com/alexgreensh/token-optimizer)** · alexgreensh            |  1.4k | "Find the ghost tokens" — its offload + recoverable-handle pattern informed our CCR offload thinking.                                |
+| **[TokenMizer](https://github.com/Shweta-Mishra-ai/tokenmizer)** · Shweta-Mishra-ai            |     1 | A session-graph + cross-turn line-dedup blueprint that informed our session-dedup design.                                            |
+| **[mcp-compressor](https://github.com/atlassian-labs/mcp-compressor)** · Atlassian Labs        |    80 | MCP tool-schema/description compression — informed our MCP tool-manifest cardinality reduction.                                      |
+| **[RepoMapper](https://github.com/pdavis68/RepoMapper)** · pdavis68                            |   182 | Aider-style repo-map ranking — informed our repo-map / retrieval-ranking exploration.                                                |
+| **[quiet-shell-mcp](https://github.com/mrsimpson/quiet-shell-mcp)** · mrsimpson                |     4 | Declarative shell-output reduction over MCP — validated our declarative bash-output compaction.                                      |
+| **[ts-morph](https://github.com/dsherret/ts-morph)** · David Sherret                           |  6.1k | TypeScript Compiler API toolkit — inspired our parser-based comment removal that preserves string, template and regex literals.      |
 
-Special thanks to **[token-savior](https://github.com/Mibayy/token-savior)** by **[Mibayy](https://github.com/Mibayy)** — the Bash-output compaction + MCP-profiles project whose failure-aware bail-out and tool-profile model inspired OmniRoute's compression bail-out discipline and MCP tool-manifest cardinality reduction.
+### 🧠 Memory & RAG
 
-Special thanks to **[LLMLingua](https://github.com/microsoft/LLMLingua)** by **[Microsoft](https://github.com/microsoft)** — the prompt-compression research (LLMLingua / LLMLingua-2) whose token-level semantic pruning inspired OmniRoute's async `llmlingua` engine (prose-only, code-safe, fail-open), together with the JS/ONNX port **[llmlingua-2-js](https://github.com/atjsh/llmlingua-2-js)** by **[atjsh](https://github.com/atjsh)** (MobileBERT / XLM-RoBERTa ONNX models) as its intended worker-thread backend.
+| Project                                                            |    ⭐ | How it inspired OmniRoute                                                                                           |
+| ------------------------------------------------------------------ | ----: | ------------------------------------------------------------------------------------------------------------------- |
+| **[Mem0](https://github.com/mem0ai/mem0)** · mem0ai                | 58.9k | Universal memory layer — its proxy-as-write/read-boundary model shaped our memory architecture.                     |
+| **[Letta (MemGPT)](https://github.com/letta-ai/letta)** · letta-ai | 23.4k | Stateful agents with tiered memory — inspired our Context Control & Recovery (CCR) tiered model.                    |
+| **[WFGY](https://github.com/onestardao/WFGY)** · onestardao        |  1.8k | The ProblemMap taxonomy of 16 recurring RAG/LLM failure modes — the shared vocabulary in our troubleshooting guide. |
 
-Special thanks to **[ts-morph](https://github.com/dsherret/ts-morph)** by **[David Sherret](https://github.com/dsherret)** — the TypeScript Compiler API toolkit whose AST approach inspired OmniRoute's parser-based code-comment removal, which correctly preserves string, template, and regex literals where naïve regex stripping corrupts them.
+### 🛰️ Traffic inspection, MITM & transparent proxy
 
-Special thanks to **[React Flow / xyflow](https://github.com/xyflow/xyflow)** by **[xyflow](https://github.com/xyflow)** — the node-based graph library that powers OmniRoute's real-time **Compression Studio** and **Combo/Routing Studio** dashboards.
+| Project                                                                           |   ⭐ | How it inspired OmniRoute                                                                                                                                                        |
+| --------------------------------------------------------------------------------- | ---: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **[llm-interceptor](https://github.com/chouzz/llm-interceptor)** · chouzz         |   46 | MITM interception/analysis of coding-assistant ↔ LLM traffic — our Traffic Inspector ports its SSE merge, conversation normalization, host passthrough and secret masking (MIT). |
+| **[ProxyBridge](https://github.com/InterceptSuite/ProxyBridge)** · InterceptSuite | 5.1k | Transparent per-process proxy routing — inspired our crash-safe MITM teardown, socket idle-timeouts, `/proc` process attribution and TPROXY capture.                             |
 
-Special thanks to **[LangGraph](https://github.com/langchain-ai/langgraph)** by **[LangChain](https://github.com/langchain-ai)** — the agent-graph framework whose LangGraph Studio live workflow-graph visualization inspired OmniRoute's Compression and Combo Studios: watching compression engines and combo fallbacks cascade in real time.
+### 📚 Model data, observability & UI
+
+| Project                                                                    |    ⭐ | How it inspired OmniRoute                                                                                                  |
+| -------------------------------------------------------------------------- | ----: | -------------------------------------------------------------------------------------------------------------------------- |
+| **[models.dev](https://github.com/anomalyco/models.dev)** · SST / OpenCode |  5.1k | Open database of AI model specs, pricing and capabilities — synced natively into our model catalog.                        |
+| **[React Flow / xyflow](https://github.com/xyflow/xyflow)** · xyflow       | 37.1k | The node-based graph library powering our real-time Compression Studio and Combo/Routing Studio.                           |
+| **[LangGraph](https://github.com/langchain-ai/langgraph)** · LangChain     | 35.1k | LangGraph Studio's live workflow-graph visualization inspired our Studios' real-time cascade view.                         |
+| **[Langfuse](https://github.com/langfuse/langfuse)** · Langfuse            | 29.3k | Its trace → span → generation observability model shaped our Compression Studio waterfall.                                 |
+| **[Kiali](https://github.com/kiali/kiali)** · Kiali                        |  3.6k | Istio service-mesh observability — inspired our circuit-breaker badges and error-edge visuals in the Routing/Combo Studio. |
+| **[lobe-icons](https://github.com/lobehub/lobe-icons)** · LobeHub          |  2.1k | AI/LLM brand logos that render the provider icons across our dashboard.                                                    |
+
+### 🛡️ Security
+
+| Project                                                                                     |  ⭐ | How it inspired OmniRoute                                                                                                                        |
+| ------------------------------------------------------------------------------------------- | --: | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **[awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)** · tldrsec | 708 | A curated list of secure-by-default libraries that guides our security choices (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). |
 
 ## ❤️ Support
 
