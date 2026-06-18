@@ -43,12 +43,25 @@ function seedConnections(count = 8) {
   }
 }
 
-async function waitForFile(filePath) {
-  for (let attempt = 0; attempt < 20; attempt++) {
-    if (fs.existsSync(filePath)) return;
+// backupDbFile() kicks off db.backup() fire-and-forget — better-sqlite3 creates
+// the destination file when the page copy STARTS, not when it finishes. Waiting
+// on file existence alone races the copy: under load listDbBackups() can open a
+// partially-written backup and read connectionCount as 0 (flake repro: under CPU
+// contention the backup file existed but the seeded rows were not yet copied →
+// connectionCount 0 ≠ 12). Wait for the real completion condition instead — the
+// backup actually contains the seeded connections. The 30s ceiling only bounds
+// the failure case; the green path returns as soon as the data lands (sub-second
+// in practice — the wide ceiling absorbs heavy CI page-copy contention).
+async function waitForBackupEntry(filename, expectedConnectionCount, timeoutMs = 30000) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const entry = (await backupDb.listDbBackups()).find((backup) => backup.id === filename);
+    if (entry && entry.connectionCount === expectedConnectionCount) return entry;
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
-  throw new Error(`Timed out waiting for file: ${filePath}`);
+  throw new Error(
+    `Timed out waiting for backup ${filename} to finish copying ${expectedConnectionCount} connections`
+  );
 }
 
 function makeDbBackupsJsonRequest(method: string, body: unknown): NextRequest {
@@ -75,13 +88,12 @@ test("backupDbFile creates manual backups and listDbBackups returns metadata", a
   assert.ok(result);
 
   const backupPath = path.join(core.DB_BACKUPS_DIR, result.filename);
-  await waitForFile(backupPath);
+  // Wait for the async backup to finish copying the 12 seeded connections, not
+  // merely for the destination file to appear (see waitForBackupEntry).
+  const entry = await waitForBackupEntry(result.filename, 12);
 
-  const backups = await backupDb.listDbBackups();
-
-  assert.equal(backups.length >= 1, true);
-  assert.equal(backups[0].reason, "manual");
-  assert.equal(backups[0].connectionCount, 12);
+  assert.equal(entry.reason, "manual");
+  assert.equal(entry.connectionCount, 12);
   assert.equal(fs.existsSync(backupPath), true);
 });
 
