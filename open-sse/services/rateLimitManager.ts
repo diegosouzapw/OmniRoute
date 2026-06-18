@@ -573,13 +573,26 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
       return await limiter.schedule(scheduleOpts, fn);
     }
   } catch (err) {
-    // Bottleneck throws when a job exceeds its expiration timeout.
-    // Surface as a clear rate-limit timeout so callers can fallback.
+    // Bottleneck's raw `This job timed out after <maxWaitMs> ms.` is
+    // indistinguishable from an upstream gateway timeout, so it leaks into 502
+    // bodies / call-log `last_error` and gets misdiagnosed as a provider outage
+    // (#4165). Rewrite it into a clear, OmniRoute-owned error (knob named,
+    // upstream disclaimed, original kept as `cause`, `code` for classification).
+    // Behavior is unchanged — the job is still dropped so combo can fall back.
     if (err?.message?.includes("This job timed out")) {
       const key = getLimiterKey(provider, connectionId, model);
       logRateLimit(
         `⏰ [RATE-LIMIT] ${key} — job expired after ${Math.ceil((maxWaitMs || 0) / 1000)}s in queue, dropping`
       );
+      const queueErr = new Error(
+        `Request dropped after exceeding the local rate-limit queue budget maxWaitMs (${maxWaitMs}ms) for ` +
+          `${model ? `${provider}/${model}` : provider} — this is OmniRoute's request queue ` +
+          `(resilienceSettings.requestQueue.maxWaitMs), not an upstream timeout. Raise it in ` +
+          `Settings → Resilience if this is queue saturation rather than a slow provider.`,
+        { cause: err }
+      ) as Error & { code?: string };
+      queueErr.code = "RATE_LIMIT_QUEUE_TIMEOUT";
+      throw queueErr;
     }
     throw err;
   }
