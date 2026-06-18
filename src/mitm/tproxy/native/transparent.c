@@ -63,11 +63,35 @@ static napi_value CreateTransparentListener(napi_env env, napi_callback_info inf
   return result;
 }
 
+/*
+ * setSocketMark(fd, mark): set SO_MARK on an existing socket fd. Anti-loop for
+ * the OUTPUT-based TPROXY recipe — the proxy marks its OWN upstream connections
+ * so the mangle OUTPUT rule (`-m mark ! --mark <bypass>`) excludes them and they
+ * are not re-intercepted. Requires CAP_NET_ADMIN. Returns undefined; throws on
+ * failure.
+ */
+static napi_value SetSocketMark(napi_env env, napi_callback_info info) {
+  size_t argc = 2;
+  napi_value argv[2];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+  int32_t fd = -1, mark = 0;
+  napi_get_value_int32(env, argv[0], &fd);
+  napi_get_value_int32(env, argv[1], &mark);
+  if (setsockopt(fd, SOL_SOCKET, SO_MARK, &mark, sizeof(mark)) < 0) {
+    THROW(env, "ESO_MARK", strerror(errno));
+  }
+  return NULL;
+}
+
 static napi_value Init(napi_env env, napi_value exports) {
   napi_value fn;
   napi_create_function(env, "createTransparentListener", NAPI_AUTO_LENGTH,
                        CreateTransparentListener, NULL, &fn);
   napi_set_named_property(env, exports, "createTransparentListener", fn);
+
+  napi_value markFn;
+  napi_create_function(env, "setSocketMark", NAPI_AUTO_LENGTH, SetSocketMark, NULL, &markFn);
+  napi_set_named_property(env, exports, "setSocketMark", markFn);
   return exports;
 }
 

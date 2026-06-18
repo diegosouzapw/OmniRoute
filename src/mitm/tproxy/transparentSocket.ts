@@ -22,6 +22,8 @@ import { platform } from "node:os";
 export interface TransparentAddon {
   /** socket()+SO_REUSEADDR+IP_TRANSPARENT+bind()+listen(); returns the raw fd. */
   createTransparentListener(ip: string, port: number): number;
+  /** setsockopt(SO_MARK) on an fd — anti-loop: mark the proxy's own upstream conns. */
+  setSocketMark(fd: number, mark: number): void;
 }
 
 /** Candidate locations for the built/prebuilt addon, relative to this module. */
@@ -42,7 +44,11 @@ export function loadTransparentAddon(
   for (const path of ADDON_PATHS) {
     try {
       const mod = req(path) as Partial<TransparentAddon> | undefined;
-      if (mod && typeof mod.createTransparentListener === "function") {
+      if (
+        mod &&
+        typeof mod.createTransparentListener === "function" &&
+        typeof mod.setSocketMark === "function"
+      ) {
         return mod as TransparentAddon;
       }
     } catch {
@@ -74,4 +80,16 @@ export function createTransparentListenerFd(ip: string, port: number): number {
     );
   }
   return cached.createTransparentListener(ip, port);
+}
+
+/**
+ * Set SO_MARK on a socket fd (anti-loop). The TPROXY listener marks its OWN
+ * upstream connections with the bypass mark so the mangle OUTPUT rule excludes
+ * them and they are not re-intercepted. Throws when the addon is unavailable.
+ */
+export function setSocketMark(fd: number, mark: number): void {
+  if (!cached) {
+    throw new Error("TPROXY transparent-socket addon is not available (setSocketMark).");
+  }
+  cached.setSocketMark(fd, mark);
 }

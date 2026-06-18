@@ -13,7 +13,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { loadTransparentAddon, isTransparentSocketAvailable, createTransparentListenerFd } =
+const { loadTransparentAddon, isTransparentSocketAvailable, createTransparentListenerFd, setSocketMark } =
   await import("../../src/mitm/tproxy/transparentSocket.ts");
 
 test("loadTransparentAddon returns null on non-Linux (IP_TRANSPARENT is Linux-only)", () => {
@@ -32,14 +32,19 @@ test("loadTransparentAddon returns null when the prebuilt addon is absent (requi
 });
 
 test("loadTransparentAddon returns the addon when present and well-shaped", () => {
-  const fake = { createTransparentListener: () => 42 };
+  const fake = { createTransparentListener: () => 42, setSocketMark: () => {} };
   const addon = loadTransparentAddon(() => fake, () => "linux");
   assert.equal(addon, fake);
   assert.equal(addon?.createTransparentListener("0.0.0.0", 1), 42);
 });
 
 test("loadTransparentAddon rejects a module missing createTransparentListener", () => {
-  const addon = loadTransparentAddon(() => ({ somethingElse: true }), () => "linux");
+  const addon = loadTransparentAddon(() => ({ setSocketMark: () => {} }), () => "linux");
+  assert.equal(addon, null);
+});
+
+test("loadTransparentAddon rejects a module missing setSocketMark (anti-loop primitive)", () => {
+  const addon = loadTransparentAddon(() => ({ createTransparentListener: () => 1 }), () => "linux");
   assert.equal(addon, null);
 });
 
@@ -50,4 +55,8 @@ test("isTransparentSocketAvailable returns a boolean (false in CI — addon not 
 
 test("createTransparentListenerFd throws a clear, actionable error when unavailable", () => {
   assert.throws(() => createTransparentListenerFd("0.0.0.0", 8443), /not available|Linux|build/i);
+});
+
+test("setSocketMark throws when the addon is unavailable", () => {
+  assert.throws(() => setSocketMark(7, 0x539), /not available/i);
 });
