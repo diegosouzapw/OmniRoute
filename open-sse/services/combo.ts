@@ -87,12 +87,7 @@ import type { CompressionMode } from "./compression/types.ts";
 import { getModelContextLimit } from "../../src/lib/modelCapabilities";
 import { getProviderConnections } from "../../src/lib/db/providers";
 import { getProviderModels } from "../config/providerModels.ts";
-import {
-  getComboModelString,
-  getComboStepTarget,
-  getComboStepWeight,
-  normalizeComboStep,
-} from "../../src/lib/combos/steps.ts";
+import { getComboModelString, normalizeComboStep } from "../../src/lib/combos/steps.ts";
 import {
   getConnectionRoutingTags,
   matchesRoutingTags,
@@ -130,10 +125,7 @@ import type {
   ComboRuntimeStep,
 } from "./combo/types.ts";
 
-import {
-  validateResponseQuality,
-  toRetryAfterDisplayValue,
-} from "./combo/validateQuality.ts";
+import { validateResponseQuality, toRetryAfterDisplayValue } from "./combo/validateQuality.ts";
 import {
   TRANSIENT_FOR_SEMAPHORE,
   MAX_COMBO_DEPTH,
@@ -153,6 +145,14 @@ import {
 } from "./combo/comboPredicates.ts";
 import { isRecord } from "./combo/comboData.ts";
 import { resolveShadowTargets, scheduleShadowRouting } from "./combo/shadowRouting.ts";
+import {
+  normalizeModelEntry,
+  selectWeightedTarget,
+  orderTargetsForWeightedFallback,
+  sortTargetsByCost,
+  sortTargetsByUsage,
+  orderTargetsByPowerOfTwoChoices,
+} from "./combo/targetSorters.ts";
 
 // Backward-compatible re-exports — these were public from combo.ts before the
 // types extraction (Quality Gate v2 / Fase 9). Keep the external surface stable.
@@ -317,17 +317,6 @@ const resetAwareQuotaCache = new Map<
   string,
   { fetchedAt: number; quota: unknown; refreshPromise: Promise<unknown> | null }
 >();
-
-/**
- * Normalize a model entry to { model, weight }
- * Supports both legacy string format and new object format
- */
-function normalizeModelEntry(entry: unknown): { model: string; weight: number } {
-  return {
-    model: getComboStepTarget(entry) || "",
-    weight: getComboStepWeight(entry),
-  };
-}
 
 function clampStickyRoundRobinTargetLimit(value: unknown): number {
   const numericValue = Number(value);
@@ -694,122 +683,6 @@ export function resolveNestedComboModels(
   return resolved;
 }
 
-function selectWeightedTarget<T extends { weight?: number }>(targets: T[]) {
-  if (targets.length === 0) return null;
-
-  const totalWeight = targets.reduce((sum, target) => sum + (target.weight || 0), 0);
-  if (totalWeight <= 0) {
-    return targets[Math.floor(Math.random() * targets.length)];
-  }
-
-  let random = Math.random() * totalWeight;
-  for (const target of targets) {
-    random -= target.weight || 0;
-    if (random <= 0) return target;
-  }
-
-  return targets.at(-1);
-}
-
-function orderTargetsForWeightedFallback<T extends { executionKey: string; weight: number }>(
-  targets: T[],
-  selectedExecutionKey: string,
-  preserveExistingOrder = false
-): T[] {
-  const selected = targets.find((target) => target.executionKey === selectedExecutionKey);
-  const rest = targets.filter((target) => target.executionKey !== selectedExecutionKey);
-  if (!preserveExistingOrder) {
-    rest.sort((a, b) => b.weight - a.weight);
-  }
-  return selected ? [selected, ...rest] : rest;
-}
-
-// shuffleArray and getNextModelFromDeck moved to src/shared/utils/shuffleDeck.ts
-// combo.ts now uses the shared, mutex-protected getNextFromDeck with "combo:" namespace.
-
-/**
- * Sort models by pricing (cheapest first) for cost-optimized strategy
- * @param {Array<string>} models - Model strings in "provider/model" format
- * @returns {Promise<Array<string>>} Sorted model strings
- */
-async function sortModelsByCost(models: string[]): Promise<string[]> {
-  try {
-    const { getPricingForModel } = await import("../../src/lib/localDb");
-    const withCost = await Promise.all(
-      models.map(async (modelStr) => {
-        const parsed = parseModel(modelStr);
-        const provider = parsed.provider || parsed.providerAlias || "unknown";
-        const model = parsed.model || modelStr;
-        try {
-          const pricing = await getPricingForModel(provider, model);
-          const cost = Number(pricing?.input);
-          return { modelStr, cost: Number.isFinite(cost) ? cost : Infinity };
-        } catch {
-          return { modelStr, cost: Infinity };
-        }
-      })
-    );
-    withCost.sort((a, b) => a.cost - b.cost);
-    return withCost.map((e) => e.modelStr);
-  } catch {
-    // If pricing lookup fails entirely, return original order
-    return models;
-  }
-}
-
-async function sortTargetsByCost(targets: ResolvedComboTarget[]) {
-  const orderedModels = await sortModelsByCost(targets.map((target) => target.modelStr));
-  const byModel = new Map<string, ResolvedComboTarget[]>();
-  for (const target of targets) {
-    const queue = byModel.get(target.modelStr) || [];
-    queue.push(target);
-    byModel.set(target.modelStr, queue);
-  }
-  return orderedModels
-    .map((modelStr) => {
-      const queue = byModel.get(modelStr);
-      return queue?.shift() || null;
-    })
-    .filter((target): target is ResolvedComboTarget => target !== null);
-}
-
-/**
- * Sort models by usage count (least-used first) for least-used strategy
- * @param {Array<string>} models - Model strings
- * @param {string} comboName - Combo name for metrics lookup
- * @returns {Array<string>} Sorted model strings
- */
-function sortModelsByUsage(models: string[], comboName: string): string[] {
-  const metrics = getComboMetrics(comboName);
-  if (!metrics?.byModel) return models;
-
-  const withUsage = models.map((modelStr) => ({
-    modelStr,
-    requests: metrics.byModel[modelStr]?.requests ?? 0,
-  }));
-  withUsage.sort((a, b) => a.requests - b.requests);
-  return withUsage.map((e) => e.modelStr);
-}
-
-function sortTargetsByUsage(targets: ResolvedComboTarget[], comboName: string) {
-  const orderedModels = sortModelsByUsage(
-    targets.map((target) => target.modelStr),
-    comboName
-  );
-  const byModel = new Map<string, ResolvedComboTarget[]>();
-  for (const target of targets) {
-    const queue = byModel.get(target.modelStr) || [];
-    queue.push(target);
-    byModel.set(target.modelStr, queue);
-  }
-  return orderedModels
-    .map((modelStr) => {
-      const queue = byModel.get(modelStr);
-      return queue?.shift() || null;
-    })
-    .filter((target): target is ResolvedComboTarget => target !== null);
-}
-
 /**
  * Sort models by context window size (largest first) for context-optimized strategy.
  * Uses models.dev synced capabilities to get context limits.
@@ -1019,38 +892,6 @@ function sortTargetsByContextSize(targets: ResolvedComboTarget[]) {
       return queue?.shift() || null;
     })
     .filter((target): target is ResolvedComboTarget => target !== null);
-}
-
-function getP2CTargetScore(
-  target: ResolvedComboTarget,
-  metrics: ReturnType<typeof getComboMetrics>
-): number {
-  const breakerState = getCircuitBreaker(target.provider)?.getStatus?.()?.state;
-  if (breakerState === "OPEN") return -Infinity;
-  const modelMetric = metrics?.byModel?.[target.modelStr] || null;
-  const successRate = Number(modelMetric?.successRate);
-  const avgLatency = Number(modelMetric?.avgLatencyMs);
-  const successScore = Number.isFinite(successRate) ? successRate / 100 : 0.5;
-  const latencyScore =
-    Number.isFinite(avgLatency) && avgLatency > 0 ? 1 / Math.log10(avgLatency + 10) : 0.25;
-  const breakerPenalty = breakerState === "HALF_OPEN" ? 0.25 : 0;
-  return successScore + latencyScore - breakerPenalty;
-}
-
-function orderTargetsByPowerOfTwoChoices(targets: ResolvedComboTarget[], comboName: string) {
-  if (targets.length <= 1) return targets;
-  const metrics = getComboMetrics(comboName);
-  const firstIndex = Math.floor(Math.random() * targets.length);
-  let secondIndex = Math.floor(Math.random() * (targets.length - 1));
-  if (secondIndex >= firstIndex) secondIndex++;
-
-  const first = targets[firstIndex];
-  const second = targets[secondIndex];
-  const selectedIndex =
-    getP2CTargetScore(second, metrics) > getP2CTargetScore(first, metrics)
-      ? secondIndex
-      : firstIndex;
-  return [targets[selectedIndex], ...targets.filter((_, index) => index !== selectedIndex)];
 }
 
 function finiteNumberOrNull(value: unknown): number | null {
