@@ -19,6 +19,18 @@
 > human operator. Bug reports and contributions are still welcome, but please
 > expect AI-generated code, comments, and documentation throughout.
 <!-- AI-DD-META:END -->
+
+## Work State
+
+| Field | Value |
+|---|---|
+| Last commit | 2026-06-18 |
+| Open issues | see github.com/KooshaPari/omniroute/issues |
+| Open PRs | see github.com/KooshaPari/omniroute/pulls |
+| Focus | Multi-provider AI gateway, smart routing, MCP/A2A, governance |
+
+Progress: ████████░░ 80%
+
 > **Work state:** ACTIVE · **Progress:** `███████░░░ 70%`
 > **CANONICAL routing framework for the Phenotype org** (per [ADR-001](docs/ADR-001-canonical-routing.md)) — OpenAI-compatible AI gateway: smart routing, load-balancing, retries, multi-provider fallback. Other routers converge here; consume this surface, do not hand-roll. · updated 2026-06-02
 

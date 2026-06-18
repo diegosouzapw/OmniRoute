@@ -57,6 +57,41 @@ describe("ensureAntigravityProjectAssigned", () => {
     );
   });
 
+  test("onboards to provision a managed project when loadCodeAssist returns none", async () => {
+    const calls: string[] = [];
+
+    const mockFetch = async (url: string, _init?: RequestInit): Promise<Response> => {
+      calls.push(url);
+      if (url.endsWith(":loadCodeAssist")) {
+        // Subscription account: no cloudaicompanionProject yet.
+        return new Response(JSON.stringify({}), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url.endsWith(":onboardUser")) {
+        return new Response(
+          JSON.stringify({ done: true, response: { cloudaicompanionProject: "onboarded-proj" } }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      return new Response("Not Found", { status: 404 });
+    };
+
+    const projectId = await ensureAntigravityProjectAssigned("fake-token-onboard", mockFetch);
+
+    assert.ok(
+      calls.some((u) => u.endsWith(":onboardUser")),
+      ":onboardUser must be called when loadCodeAssist returns no project"
+    );
+    assert.equal(projectId, "onboarded-proj", "provisioned project id must be returned");
+    assert.equal(
+      getAntigravityProjectFromCache("fake-token-onboard"),
+      "onboarded-proj",
+      "onboarded project id must be memoized"
+    );
+  });
+
   test("subsequent calls for the same token skip the network", async () => {
     let networkCalls = 0;
 

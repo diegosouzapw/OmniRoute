@@ -1,0 +1,96 @@
+name: Audit Ratchet
+
+# Phase 7 of docs/audits/SCRIPTS-NOTE.md — quarterly cron + manual trigger
+# that fails when the vendored fleet audit sheet is >90 days old or not
+# well-formed. The full fleet-wide score-diff step (the second job in
+# SCRIPTS-NOTE) is a follow-up: it requires parameterizing score.py to take
+# a --repos-root flag and a runner with access to the full 111-repo fleet.
+# See docs/audits/SCRIPTS-NOTE.md open_questions for the full list.
+
+on:
+  schedule:
+    # 00:00 UTC on day 1 of every 3rd month (Jan/Apr/Jul/Oct). GitHub cron
+    # is UTC; actual fire time may drift ±15-30 min under load — acceptable
+    # for a quarterly ratchet.
+    - cron: '0 0 1 */3 *'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Why are you running this manually?'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+# Static group (no ${{ github.ref }}) so a quarterly run is never cancelled by
+# a branch push; cancel-in-progress:false keeps two manual triggers from
+# clobbering each other mid-run.
+concurrency:
+  group: audit-ratchet
+  cancel-in-progress: false
+
+jobs:
+  audit-ratchet:
+    name: Audit Ratchet
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check audit sheet exists
+        run: |
+          set -euo pipefail
+          SHEET="docs/audits/FLEET-AUDIT-30-PILLAR.md"
+          if [ ! -f "$SHEET" ]; then
+            echo "::error::$SHEET is missing from the working tree."
+            exit 1
+          fi
+
+      - name: Check audit freshness
+        run: |
+          set -euo pipefail
+          SHEET="docs/audits/FLEET-AUDIT-30-PILLAR.md"
+          LAST_COMMIT_EPOCH=$(git log -1 --format=%ct "$SHEET")
+          if [ -z "$LAST_COMMIT_EPOCH" ]; then
+            echo "::error::$SHEET has no git history; cannot determine age."
+            exit 1
+          fi
+          AGE_DAYS=$(( ($(date +%s) - LAST_COMMIT_EPOCH) / 86400 ))
+          echo "Audit last touched: $(git log -1 --format=%cI "$SHEET")"
+          echo "Audit age: ${AGE_DAYS} days"
+          if [ "$AGE_DAYS" -gt 90 ]; then
+            echo "::error::Audit is ${AGE_DAYS} days old (>90). Re-audit required."
+            exit 1
+          fi
+
+      - name: Validate audit sheet structure
+        run: |
+          set -euo pipefail
+          SHEET="docs/audits/FLEET-AUDIT-30-PILLAR.md"
+          # Header + 30 pillar rows (A, X, D, U, UX, AT, T, P, S, Q, E, G,
+          # O, SC, OB, C, DA, RT, RE, AP, DM, EH, CN, PS, CF, PR, RL, AS, AU)
+          # — accept 29-30 in case the spec row count drifts.
+          if ! grep -qF '| Pillar | Sub-pillars | Count |' "$SHEET"; then
+            echo "::error::Audit sheet header is not the canonical Pillar | Sub-pillars | Count layout."
+            exit 1
+          fi
+          N_ROWS=$(grep -cE '^\| \*\*[A-Z]+\*\* ' "$SHEET" || true)
+          if [ "$N_ROWS" -lt 29 ] || [ "$N_ROWS" -gt 30 ]; then
+            echo "::error::Audit sheet has $N_ROWS pillar rows; expected 29-30."
+            exit 1
+          fi
+          echo "Audit sheet structure OK: $N_ROWS pillar rows, header matches."
+
+      - name: Upload audit artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: audit-ratchet-sheet
+          path: docs/audits/
+          if-no-files-found: warn
+          retention-days: 90

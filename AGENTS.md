@@ -434,7 +434,8 @@ handler: async (args) => {...} }`. Zod validates inputs before the handler fires
 
 JSON-RPC 2.0, SSE streaming, Task Manager with TTL cleanup.
 Agent Card at `/.well-known/agent.json`.
-Skills (6): `smartRouting.ts`, `quotaManagement.ts`, `providerDiscovery.ts`, `costAnalysis.ts`, `healthReport.ts`, `listCapabilities.ts`.
+Skills (6): `smartRouting.ts`, `quotaManagement.ts`, `providerDiscovery.ts`,
+`costAnalysis.ts`, `healthReport.ts`, `listCapabilities.ts`.
 
 #### A2A Internals
 
@@ -447,6 +448,20 @@ completed | failed | canceled`. Tasks have TTL and are cleaned up automatically.
   quota; `smartRouting.ts` recommends routing decisions.
 - **Agent Card**: `/.well-known/agent.json` exposes capabilities, skills, and metadata
   for client auto-discovery.
+
+#### A2A skill implementations (status, refreshed 2026-06-18)
+
+| Skill | Status | Notes |
+|---|---|---|
+| `smartRouting.ts` | stub | DEBT-006 (TODO: Implement) |
+| `quotaManagement.ts` | stub | DEBT-006 |
+| `providerDiscovery.ts` | stub | DEBT-006 |
+| `costAnalysis.ts` | **IMPLEMENTED 2026-06-18 (L5-109)** | resolves pricing via `getPricingForModel()`, computes cost via `calculateCostFromTokens()`, accepts canonical/legacy token field names, estimates tokens from message length, emits `proceed` / `switch_model` / `estimate_only` recommendation when `budget_usd` cap exceeded. Tests: `tests/unit/a2a-cost-analysis.test.ts` (8 vitest cases). |
+| `healthReport.ts` | stub | DEBT-006 |
+| `listCapabilities.ts` | stub | DEBT-006 |
+| `agentDispatch.ts` | impl | added in `feat/a2a-agent-dispatch-clean` (L5-109 cherry-pick). Doc: `docs/frameworks/A2A-SERVER.md`. Env: `.env.example`. |
+
+Stub count: 5/7 (DEBT-006, partial close: 1/9 → 2/9 with agentDispatch).
 
 ### ACP Module (`src/lib/acp/`)
 
@@ -593,3 +608,249 @@ Only cherry-pick or reapply the changes intended for the upstream PR.
 - **Pricing data** syncs from LiteLLM via `src/lib/pricingSync.ts`
 - **Memory/Skills** are cross-cutting: affect MCP tools, request pipeline, and A2A skills
 - **⛔ NEVER close a contributor's PR** after using their code — always merge via GitHub so they get credit. See `.agents/workflows/review-prs.md` for full policy.
+
+---
+
+## Recent Changes (L5-109 fork-cleanup, 2026-06-18)
+
+This section tracks changes that landed in the `chore/l5-109-omniroute-fork-cleanup-2026-06-18`
+branch (PR #72). It is **fork-only operational** — DO NOT include in any upstream PR
+to `diegosouzapw/OmniRoute`.
+
+### New top-level files (added this session)
+
+| Path | Purpose |
+|---|---|
+| `STATUS.md` | Per-repo current state per monorepo standard |
+| `worklogs/2026-06-18-L5-109-fork-cleanup.md` | Session worklog (L5-109) |
+| `tests/unit/a2a-cost-analysis.test.ts` | 8 vitest cases for cost-analysis skill |
+
+### New `.github/` files (cherry-picked)
+
+| Path | Source branch | Purpose |
+|---|---|---|
+| `.github/CODEOWNERS` | `chore/codeowners-default-reviewer` | Default reviewer `@KooshaPari/core` |
+| `.github/dependabot.yml` | `chore/codeowners-default-reviewer` | Weekly Dependabot cadence |
+| `.github/workflows/scorecard.yml` | `chore/codeowners-default-reviewer` | OpenSSF Scorecard |
+| `.github/workflows/audit-ratchet.yml` | `chore/audit-ratchet-2026-06-16` | Ratchet 30-pillar audit score |
+
+### Updated `.github/`
+
+- `README.md` (cherry-picked: `6862653cf` from `chore/editorconfig2`)
+- `.editorconfig` (cherry-picked: from `chore/editorconfig`)
+- `.gitignore` (cherry-picked: from `chore/gitignore-hardening`; `.svelte-kit/`, `.turbo/`, `__pycache__/`)
+- `.gitattributes` (cherry-picked: from `chore/editorconfig2`)
+- `.devcontainer/devcontainer.json` (cherry-picked: from `chore/dx-2026-06-08`)
+
+### Updated `docs/`
+
+- `SPEC.md` — full v8/v3.9.0 spec (~180 lines; was 25-line placeholder)
+- `PLAN.md` — 9 v8 work items + 3 v9 items + 3 milestones
+- `ADR.md` — 30 ADRs (was 6-line stub); **ADR-026 introduces Bifrost disambiguation**
+- `docs/ROUTING-CONVERGENCE-STATUS.md` — canonical routing + Bifrost disambiguation
+- `docs/TECH_DEBT.md` — 20 tracked items (4 P1, 7 P2, 9 P3) from real `rg TODO/FIXME/XXX` scan
+- `docs/OKR.md` — already comprehensive; touched in cherry-pick
+- `docs/COST.md` — already comprehensive; touched in cherry-pick
+
+### Updated root config
+
+- `Justfile` — added dev / coverage / typecheck / fmt recipes (cherry-picked from `chore/2nd-hygiene-2026-06-08`)
+- `src/lib/a2a/skills/costAnalysis.ts` — implemented (closes DEBT-006 partial)
+- `src/shared/utils/formatting.ts` — added + tests (cherry-picked from `integration/consolidate`)
+
+### Branch / worktree cleanup
+
+- Deleted 8 dead `worktree-agent-*` worktrees (local + remote)
+- Deleted ~12 stale already-merged remote branches (`chore/4th-hygiene-*`, `chore/citation-*`, `docs/contributing`, etc.)
+- Pruned `origin` refs
+
+### Bifrost disambiguation (ADR-026)
+
+**`Bifrost`** appears in two distinct contexts and they are NOT the same:
+
+1. **OmniRoute Bifrost** — the internal "Bifrost" routing subsystem (a product name within this codebase, used in `docs/ROUTING-CONVERGENCE-STATUS.md` for the canonical routing layer). This is what most of this repo's code/docs mean by "Bifrost".
+2. **`Bifrost` (network protocol)** — an unrelated external agent-network protocol. Not used by OmniRoute. See `ADR.md` § ADR-026 for the full disambiguation block.
+
+When writing docs or ADRs, always use the full qualified form ("OmniRoute Bifrost" or "Bifrost network protocol") on first mention.
+
+### Open DEBT-006 follow-ups
+
+5 a2a skills still stubbed: `smartRouting`, `quotaManagement`, `providerDiscovery`, `healthReport`, `listCapabilities`. Next targets for the Q3-2026 OKR Objective 2 (policy primitives shipped per quarter):
+
+1. `quotaManagement.ts` — pair with `open-sse/services/rateLimitManager.ts`; needs TPM/TPD token-bucket (DEBT-001 dependency).
+2. `smartRouting.ts` — should compose `combo.ts::resolveComboTargets()` output as the recommendation payload.
+3. `providerDiscovery.ts` — read from `src/shared/constants/providers.ts` (single source of truth, Zod-validated at module load).
+4. `healthReport.ts` — should pull from `mcp_audit` table (last 1000 invocations, failure-rate per tool).
+5. `listCapabilities.ts` — derive from `A2A_SKILL_HANDLERS` registry at `src/lib/a2a/taskExecution.ts`.
+
+### Fork-only policy reminder
+
+When sending PRs to `diegosouzapw/OmniRoute`, do **not** include:
+
+- `STATUS.md` (this is a per-repo KP artifact)
+- `worklogs/2026-06-18-L5-109-fork-cleanup.md` (KP session worklog)
+- `.github/CODEOWNERS`, `.github/dependabot.yml`, `.github/workflows/scorecard.yml`, `.github/workflows/audit-ratchet.yml` (KP-specific)
+- `.devcontainer/devcontainer.json` (KP-specific dev environment)
+- `docs/intent/OmniRoute.md`, `docs/boundary/OmniRoute.md` (auto-propagated from `phenotype-registry`)
+- `tests/unit/a2a-cost-analysis.test.ts` (test depends on KP-side pricing catalog)
+- `src/lib/a2a/skills/costAnalysis.ts` (tested against KP pricing catalog; upstream has its own)
+
+The costAnalysis skill implementation is the only candidate that may be safely upstreamed as-is, because it imports from the upstream-maintained `@/shared/constants/pricing` catalog. To upstream it: rebase `chore/l5-109-omniroute-fork-cleanup-2026-06-18` onto `upstream/main` first, then create a PR with only the costAnalysis files.
+
+---
+
+## Recent Changes (L5-110 Bifrost Tier-1 Router, 2026-06-18)
+
+This section tracks the L5-110 changes (ADR-031 decision: adopt Bifrost
+as Tier-1 router) added to the same branch (`chore/l5-109-omniroute-fork-cleanup-2026-06-18`,
+PR #72). It is **fork-only operational** — DO NOT include in any upstream PR
+to `diegosouzapw/OmniRoute` unless the upstream maintainer explicitly
+requests Bifrost integration (in which case, rebase onto `upstream/main`
+first per the fork-only policy).
+
+### Decision summary (ADR-031)
+
+OmniRoute's underlying Tier-1 router infrastructure is migrating from
+TypeScript (`open-sse/executors/`) to Go (`maximhq/bifrost`, MIT, ~6k LOC).
+Rationale, alternatives considered, and the full comparison matrix are in
+[`docs/adr/0031-bifrost-tier1-router.md`](docs/adr/0031-bifrost-tier1-router.md).
+
+**Why Bifrost (selected)** vs LiteLLM, sglang, vllm, portkey, haproxy,
+hand-rolled Rust/Zig/Mojo:
+
+| Candidate | Verdict |
+|---|---|
+| `maximhq/bifrost` (Go, MIT, ~6k LOC, 23+ providers, MCP client, virtual keys, budget mgmt, semantic cache) | **SELECTED** |
+| `BerriAI/litellm` (Python, ~100k LOC, ~400 providers) | rejected (Python perf + over-broad surface) |
+| `portkey-ai/gateway` (TypeScript, ~30k LOC, ~20 providers) | rejected (TS perf ceiling = same as ours) |
+| `sglang-router` / `vllm` (inference-engine routers) | rejected (wrong layer; only useful if self-hosting large models) |
+| `haproxy` / `envoy` / gRPC | rejected (L4/L7; no provider semantics) |
+| Hand-rolled Rust | rejected (6+ months to match Bifrost feature parity) |
+| Hand-rolled Zig | rejected (no ecosystem for HTTP/JSON providers) |
+| Hand-rolled Mojo | rejected (pre-1.0 alpha) |
+
+### New files (L5-110)
+
+| Path | Lines | Purpose |
+|---|---|---|
+| `open-sse/executors/bifrost.ts` | 238 | `BifrostBackendExecutor` — Tier-1 router executor. Forwards requests to Bifrost's `/v1/chat/completions`. Env-gated (`BIFROST_ENABLED=1`). |
+| `open-sse/executors/bifrostProviderMap.ts` | 267 | OmniRoute → Bifrost provider ID translation. 23 first-class Bifrost providers + 50+ OmniRoute aliases/passthroughs + web-cookie unsupported list. |
+| `tests/unit/bifrost-backend.test.ts` | 353 | vitest suite (12 cases): map correctness, env gating, health check, execute() body shape, header forwarding, model override. |
+| `docs/adr/0031-bifrost-tier1-router.md` | MADR format | Full ADR (context, decision, alternatives, consequences). |
+| `docs/frameworks/BIFROST-BACKEND.md` | 229 | Operator-facing usage guide (activation, provider matrix, migration phases). |
+| `worklogs/2026-06-18-L5-110-bifrost-tier1-router.md` | 226 | L5-110 session worklog. |
+
+### Updated files (L5-110)
+
+- `ADR.md` — added ADR-031 entry to the top-level index (with MADR pointer).
+- `SPEC.md` § 3 — Architecture Overview updated to v8.1 (2-tier Bifrost/OmniRoute diagram).
+- `PLAN.md` § 2.5 — added v8.1 Bifrost track (B1–B9, comparison matrix, decision review schedule).
+- `docs/ROUTING-CONVERGENCE-STATUS.md` — added "Tier-1 / Tier-2 Router Split" section with rationale + drop-in swap phases.
+
+### Activation (Phase 1, backwards-compat)
+
+```bash
+# Run Bifrost (Go gateway) somewhere on the network.
+./bifrost --config config.yaml  # listens on 127.0.0.1:8080 by default
+
+# In OmniRoute's environment, opt in to Bifrost-backed routing:
+export BIFROST_ENABLED=1
+export BIFROST_BASE_URL=http://127.0.0.1:8080  # default if unset
+```
+
+When `BIFROST_ENABLED` is unset or `0`, `BifrostBackendExecutor.execute()`
+throws and the caller falls back to the legacy `open-sse/handlers/chatCore.ts`
+path. **Zero behavior change for existing deployments.**
+
+### Per-provider routing (Phase 1)
+
+Two opt-in paths to route a provider through Bifrost:
+
+**Option A**: per-provider `providerSpecificData.bifrostMode = true`
+**Option B**: per-provider `upstream_proxy_config.type = "bifrost"`
+
+When a provider is configured for Bifrost, the corresponding
+`BifrostBackendExecutor` is instantiated and forwards requests to
+`${BIFROST_BASE_URL}/v1/chat/completions` with the following headers:
+
+| Header | Source |
+|---|---|
+| `Content-Type: application/json` | fixed |
+| `X-Bifrost-Provider: <bifrostId>` | from `bifrostProviderMap.resolveBifrostProviderId()` |
+| `X-OmniRoute-Provider: <this.provider>` | from executor instance |
+| `Authorization: Bearer <key>` | from `credentials.apiKey` or `credentials.accessToken` |
+| Any user-supplied `upstreamExtraHeaders` | merged on top |
+
+### Provider support matrix (highlights)
+
+- **First-class APIs** (1:1 Bifrost match): openai, anthropic, gemini,
+  bedrock, cohere, mistral, groq, together, fireworks, openrouter, azure,
+  vertex, perplexity, deepseek, xai, ollama, voyage.
+- **Legacy aliases**: `claude → anthropic`, `gpt → openai`,
+  `palm/palm2/bard → gemini`.
+- **Azure deployment-name override**: `azure-gpt4` strips Azure deployment
+  names to Bifrost's model-id namespace (`gpt-4o-deployment-prod` → `gpt-4o`).
+- **Unsupported** (stay on legacy chatCore): web-cookie providers
+  (`claude-web`, `chatgpt-web`, etc.) and custom CLI executors
+  (`cliproxyapi`, `cursor`, `codex`, `trae`, `qoder`, `kiro`, etc.).
+
+### Future phases (B1–B9, see PLAN.md § 2.5)
+
+| Phase | Item | Status |
+|---|---|---|
+| B1 | Pick canonical Bifrost copy (3 vendored) | 🔄 this turn |
+| B2 | `BifrostBackendExecutor` + provider map | ✅ this PR |
+| B3 | (covered by B2) | ✅ this PR |
+| B4 | `bifrostModels` SQL table + migration | ☐ Q3 2026 |
+| B5 | Virtual-key minting UI + cost tracking | ☐ Q3 2026 |
+| B6 | Traffic shadow (5% → 25% → 100% over 14 days) | ☐ Q3 2026 |
+| B7 | Migration playbook (`docs/operations/bifrost-migration.md`) | ☐ Q3 2026 |
+| B8 | Bifrost MCP client integration | ☐ Q4 2026 |
+| B9 | Kill switch (fallback to chatCore if SLOs fail 7d) | 🔄 spec only |
+
+### Decision review schedule
+
+- **30 days post-B6**: compare p99 latency, error rate, cost between Bifrost
+  and `open-sse/handlers/chatCore.ts`. If Bifrost underperforms by >20% on
+  any axis, revert B6 and re-evaluate.
+- **90 days post-B6**: commit to Bifrost long-term (would require a 1-year
+  SLT agreement with `maximhq`) or fork-and-modify.
+
+### Three "bifrost" referents (now resolved)
+
+| # | Referent | Status (post-ADR-031) |
+|---|---|---|
+| 1 | `KooshaPari/bifrost` repo | NOW ACTIVE: Tier-1 router (vendored `maximhq/bifrost`) |
+| 2 | `bifrost-routing` crate in `phenoRouterMonitor` | Deprecated stub — mark `@deprecated`, remove from fleet inventory |
+| 3 | Internal "bifrost" routing subsystem (mentioned in some docs) | Replace with "Tier-1 router" or "Bifrost" (now precise) |
+
+### Fork-only policy (extended for L5-110)
+
+When sending PRs to `diegosouzapw/OmniRoute`, do **not** include
+(extension of L5-109 policy):
+
+- `open-sse/executors/bifrost.ts` (depends on KP-side `KooshaPari/bifrost` fork)
+- `open-sse/executors/bifrostProviderMap.ts` (KP-specific provider surface)
+- `tests/unit/bifrost-backend.test.ts` (KP-specific test suite)
+- `docs/adr/0031-bifrost-tier1-router.md` (KP-specific ADR)
+- `docs/frameworks/BIFROST-BACKEND.md` (KP-specific operator guide)
+- `worklogs/2026-06-18-L5-110-bifrost-tier1-router.md` (KP session worklog)
+
+The BifrostBackend executor could theoretically be upstreamed if
+`diegosouzapw/OmniRoute` later adopts `maximhq/bifrost`, but for now
+the upstream doesn't depend on Bifrost and shipping this would create
+a broken import. Keep it fork-only.
+
+---
+
+## Cross-references
+
+- [`SPEC.md`](SPEC.md) — v8 spec (v3.9.0 in flight)
+- [`PLAN.md`](PLAN.md) — v8/v9 roadmap
+- [`ADR.md`](ADR.md) — 30 ADRs
+- [`STATUS.md`](STATUS.md) — per-repo current state
+- [`docs/ROUTING-CONVERGENCE-STATUS.md`](docs/ROUTING-CONVERGENCE-STATUS.md) — Bifrost disambiguation + canonical routing
+- [`docs/TECH_DEBT.md`](docs/TECH_DEBT.md) — 20 tracked items
+- [`docs/OKR.md`](docs/OKR.md) — Q3 2026 OKRs
+- [`docs/COST.md`](docs/COST.md) — cost attribution
+- [`worklogs/2026-06-18-L5-109-fork-cleanup.md`](worklogs/2026-06-18-L5-109-fork-cleanup.md) — session worklog

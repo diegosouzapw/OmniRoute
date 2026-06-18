@@ -193,3 +193,5 @@ docs/i18n/
 # Added by cargo
 
 /target
+---
+.audit-branches.py
