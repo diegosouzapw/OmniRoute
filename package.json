@@ -76,6 +76,7 @@
     "build:secure": "OMNIROUTE_BUILD_PROFILE=minimal node scripts/build/build-next-isolated.mjs",
     "build:cli": "node --import tsx scripts/build/prepublish.ts",
     "build:release": "rm -rf .build dist && OMNIROUTE_BUILD_SHA=$(git rev-parse --short HEAD) npm run build && npm run build:cli && node scripts/build/write-build-sha.mjs",
+    "build:native:tproxy": "cd src/mitm/tproxy/native && npx --yes node-gyp rebuild",
     "start": "node scripts/dev/run-next.mjs start",
     "lint": "eslint .",
     "lint:md": "npx --yes markdownlint-cli2 \"docs/**/*.md\" \"*.md\" \"!docs/i18n\" \"!docs/research\"",
