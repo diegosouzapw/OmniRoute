@@ -97,6 +97,7 @@
      components are repointed to them in a later phase. */
   --surface-2: #f5f5fa;
   --radius: 14px;
+  --radius-control: 9px;
   --grad-brand: linear-gradient(135deg, var(--color-primary), var(--color-accent-light));
 }
 
@@ -194,8 +195,13 @@
   --font-sans:
     -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
 
-  /* Nested surface (enables bg-surface-2 — consumed in a later phase) */
+  /* Nested surface (enables bg-surface-2) */
   --color-surface-2: var(--surface-2);
+
+  /* Semantic radius scale → rounded-card (surfaces, 14px) / rounded-control (controls,
+     9px). Custom names so the default rounded-sm/md/lg/xl utilities stay untouched. */
+  --radius-card: var(--radius);
+  --radius-control: var(--radius-control);
 }
 
 /* ── Focus Indicators (U-3) ── */

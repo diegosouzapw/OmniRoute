@@ -63,7 +63,7 @@ export default function Select({
           aria-describedby={describedBy}
           className={cn(
             "w-full py-2 px-3 pe-10 text-sm text-text-main",
-            "bg-surface border border-black/10 dark:border-white/10 rounded-md appearance-none",
+            "bg-surface border border-black/10 dark:border-white/10 rounded-control appearance-none",
             "focus:ring-1 focus:ring-primary/30 focus:border-primary/50 focus:outline-none",
             "transition-all disabled:opacity-50 disabled:cursor-not-allowed",
             "text-[16px] sm:text-sm",

@@ -67,3 +67,37 @@ test("DashboardLayout wrapper stays transparent so the grid shows through", () =
     "DashboardLayout outer wrapper is present and transparent"
   );
 });
+
+// ── Phase 2: primitives adopt the shared radius scale, brand gradient & border token ──
+
+const read = (p: string) => fs.readFileSync(new URL(p, import.meta.url), "utf8");
+
+test("globals.css exposes the semantic radius utilities", () => {
+  assert.match(globalsCss, /--radius-control:\s*9px/); // :root value
+  assert.match(globalsCss, /--radius-card:\s*var\(--radius\)/); // @theme → rounded-card (14px)
+  assert.match(globalsCss, /--radius-control:\s*var\(--radius-control\)/); // @theme → rounded-control
+});
+
+test("Button uses the brand gradient + accent variant + control radius", () => {
+  const button = read("../../src/shared/components/Button.tsx");
+  assert.match(button, /primary:\s*"bg-\[image:var\(--grad-brand\)\]/);
+  assert.match(button, /accent:\s*"bg-accent/);
+  assert.ok(
+    !button.includes("from-primary to-primary-hover"),
+    "the flat red→red gradient is replaced by --grad-brand"
+  );
+  assert.ok(button.includes("rounded-control"), "button sizes use the control radius");
+});
+
+test("Card / Modal / Input / Select adopt the radius scale and border token", () => {
+  const card = read("../../src/shared/components/Card.tsx");
+  const modal = read("../../src/shared/components/Modal.tsx");
+  const input = read("../../src/shared/components/Input.tsx");
+  const select = read("../../src/shared/components/Select.tsx");
+  assert.ok(card.includes("border border-border"), "card uses the --color-border token");
+  assert.ok(card.includes("rounded-card"), "card uses rounded-card (14px)");
+  assert.ok(!card.includes("border-black/5"), "the under-weight /5 border is gone");
+  assert.ok(modal.includes("rounded-card"), "modal uses rounded-card");
+  assert.ok(input.includes("rounded-control"), "input uses rounded-control (9px)");
+  assert.ok(select.includes("rounded-control"), "select uses rounded-control (9px)");
+});

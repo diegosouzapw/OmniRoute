@@ -1,6 +1,6 @@
 # OmniRoute — Design System & Visual Identity
 
-> **Status:** standardization plan. **Phase 1 (grid wallpaper + identity tokens) is implemented in this PR**; Phases 2–4 are planned follow-ups (one PR each).
+> **Status:** standardization plan. **Phases 1–2 (grid wallpaper + identity tokens + primitive radius/gradient/border) are implemented in this PR**; Phases 3–4 are planned follow-ups (one PR each).
 > **Date:** 2026-06-16 · **Scope:** unify the OmniRoute dashboard (`src/`) with the marketing site (`_mono_repo/omnirouteSite/`) into **one visual identity** — same graph-paper grid background, same color tokens, standardized components.
 
 ---
@@ -171,7 +171,7 @@ Custom components (no shadcn/Radix), Tailwind v4, semantic tokens **mostly** ado
 ## 7. Rollout plan
 
 - **Phase 1 — Grid + identity tokens (THIS PR).** `globals.css` grid + `--surface-2`/`--grad-brand`/`--radius` tokens; `body::before` wallpaper; remove the `bg-bg` blocker; static guard test. Low risk, reversible in one commit.
-- **Phase 2 — Radius + Button (C1, C2, C5, C9).** `cn()` upgrade first; wire the radius scale into Tailwind `@theme`; Button gradient + accent variant.
+- **Phase 2 — Primitives (C1, C2, C5) — DONE in this PR.** Semantic radius utilities `rounded-card` (14px) / `rounded-control` (9px) added via `@theme` (custom names, so the default `rounded-sm/md/lg/xl` stay untouched — no 400-file blast); Card/Modal → 14px, Button/Input/Select → 9px; Button primary → `--grad-brand` (red→violet) + new `accent` variant; Card borders → the `border-border` token (0.08). **Deferred:** `cn()`→tailwind-merge (C9) needs new deps; the ad-hoc `rounded-lg` sweep (326 files) is left as-is since the primitives carry the bulk of the surface.
 - **Phase 3 — Tables + status colors (C3, C4).** Largest consistency win; data-heavy screens; isolated PR with before/after screenshots.
 - **Phase 4 — Cleanup (C6, C7, C8, `--font-mono`).**
 
