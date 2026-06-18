@@ -1,4 +1,5 @@
 import type { RegistryEntry } from "../../shared.ts";
+import { KIMI_K27_MODELS } from "../../shared.ts";
 
 export const kimiProvider: RegistryEntry = {
   id: "kimi",
@@ -11,5 +12,6 @@ export const kimiProvider: RegistryEntry = {
   models: [
     { id: "kimi-k2.6", name: "Kimi K2.6" },
     { id: "kimi-k2.5", name: "Kimi K2.5" },
+    ...KIMI_K27_MODELS,
   ],
 };
