@@ -19,6 +19,11 @@ export interface ModelSpec {
   // (upstream returns 400). Used to normalize the request when a combo/route substitutes
   // this model after the client already chose `disabled`. See issue #3554.
   rejectsThinkingDisabled?: boolean;
+  // Explicit operator override for the no-thinking gateway alias (Fase 8.1). When unset,
+  // the catalog auto-advertises a `claude-3-omniroute-no-thinking/…` variant for
+  // Claude-family thinking-capable models that honor `disabled`. Set `true` to force the
+  // variant on for any other model, or `false` to suppress it. See open-sse/utils/noThinkingAlias.ts.
+  noThinkingAlias?: boolean;
 }
 
 const BEDROCK_CLAUDE_ALIASES = (...modelIds: string[]) => [
