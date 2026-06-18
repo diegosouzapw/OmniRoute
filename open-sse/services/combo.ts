@@ -16,6 +16,7 @@ import {
   recordModelLockoutFailure,
   recordProviderFailure,
   isProviderExhaustedReason,
+  hasPerModelQuota,
   type ProviderProfile,
 } from "./accountFallback.ts";
 import { FETCH_TIMEOUT_MS, RateLimitReason } from "../config/constants.ts";
@@ -2521,8 +2522,12 @@ export async function handleComboChat({
           // same-provider targets are skipped immediately. API-key 429s still use
           // the short resilience cooldown, but explicit quota text should stop the
           // combo from trying another target for the same provider in this request.
+          // Passthrough/per-model-quota providers multiplex independent upstream
+          // models behind one provider connection; a quota 429 for one model must
+          // not skip fallback targets for another model on the same provider.
           const providerExhausted =
             Boolean(provider && provider !== "unknown") &&
+            !hasPerModelQuota(provider, rawModel) &&
             (isProviderExhaustedReason(fallbackResult) ||
               classifyErrorText(errorText) === RateLimitReason.QUOTA_EXHAUSTED);
           if (providerExhausted) {
@@ -3269,8 +3274,12 @@ async function handleRoundRobinCombo({
         // same-provider targets are skipped immediately. API-key 429s still use
         // the short resilience cooldown, but explicit quota text should stop the
         // combo from trying another target for the same provider in this request.
+        // Passthrough/per-model-quota providers multiplex independent upstream
+        // models behind one provider connection; a quota 429 for one model must
+        // not skip fallback targets for another model on the same provider.
         const providerExhausted =
           Boolean(provider && provider !== "unknown") &&
+          !hasPerModelQuota(provider, parseModel(modelStr).model || modelStr) &&
           (isProviderExhaustedReason(fallbackResult) ||
             classifyErrorText(errorText) === RateLimitReason.QUOTA_EXHAUSTED ||
             isAllAccountsRateLimited);
