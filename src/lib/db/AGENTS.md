@@ -69,7 +69,7 @@ For authoritative coverage requirements and test execution guidelines, see [`CON
 ### Adding a New Domain Module
 
 1. Create `src/lib/db/[module].ts` with CRUD functions (create, read, update, delete, list)
-2. Export from `src/lib/db/localDb.ts` (add re-export)
+2. Export from `src/lib/localDb.ts` (add re-export)
 3. If new tables required: create migration in `db/migrations/NNN_[description].sql`
 4. Run migration via `migrationRunner.ts` at startup (automatic)
 5. Add unit tests in `tests/unit/db/[module].test.mjs`
