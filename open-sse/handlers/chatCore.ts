@@ -4,6 +4,13 @@ import { checkSemanticCache } from "./chatCore/semanticCache.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
 import { cloneBoundedChatLogPayload, truncateForLog } from "./chatCore/logTruncation.ts";
 import { getHeaderValueCaseInsensitive } from "./chatCore/headers.ts";
+import { getCombosCached, getUpstreamProxyConfigCached } from "./chatCore/comboContextCache.ts";
+export { clearCombosCache, clearUpstreamProxyConfigCache } from "./chatCore/comboContextCache.ts";
+import {
+  resolveAccountSemaphoreKey,
+  resolveAccountSemaphoreMaxConcurrency,
+  buildClaudePromptCacheLogMeta,
+} from "./chatCore/executorHelpers.ts";
 import {
   shouldUseNativeCodexPassthrough,
   redactPassthroughThinkingSignatures,
@@ -158,7 +165,6 @@ import {
   getModelNormalizeToolCallId,
   getModelPreserveOpenAIDeveloperRole,
   getModelUpstreamExtraHeaders,
-  getUpstreamProxyConfig,
 } from "@/lib/localDb";
 import { getProviderCredentials, extractSessionAffinityKey } from "@/sse/services/auth";
 import { deleteSessionAccountAffinity } from "@/lib/db/sessionAccountAffinity";
@@ -212,7 +218,6 @@ import {
 } from "../services/rateLimitManager.ts";
 import {
   acquire as acquireAccountSemaphore,
-  buildAccountSemaphoreKey,
   markBlocked as markAccountSemaphoreBlocked,
 } from "../services/accountSemaphore.ts";
 import { lockModel, lockModelIfPerModelQuota } from "../services/accountFallback.ts";
@@ -355,17 +360,6 @@ async function readNonStreamingResponseBody(
   return rawBody;
 }
 
-function toFiniteNumberOrNull(value: unknown): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-  return null;
-}
-
 function isSemaphoreCapacityError(error: unknown): error is Error & { code: string } {
   return (
     !!error &&
@@ -453,143 +447,6 @@ function wrapReadableStreamWithFinalize<T>(
   });
 }
 
-function resolveAccountSemaphoreAccountKey(
-  connectionId: string | null | undefined,
-  credentials: Record<string, unknown> | null | undefined
-): string | null {
-  if (typeof connectionId === "string" && connectionId.trim().length > 0) {
-    return connectionId;
-  }
-
-  const candidateKeys = [
-    credentials?.connectionId,
-    credentials?.id,
-    credentials?.email,
-    credentials?.name,
-    credentials?.displayName,
-  ];
-
-  for (const candidate of candidateKeys) {
-    if (typeof candidate === "string" && candidate.trim().length > 0) {
-      return candidate.trim();
-    }
-  }
-
-  return null;
-}
-
-function resolveAccountSemaphoreMaxConcurrency(
-  credentials: Record<string, unknown> | null | undefined
-): number | null {
-  return toFiniteNumberOrNull(credentials?.maxConcurrent);
-}
-
-function resolveAccountSemaphoreKey({
-  provider,
-  model,
-  connectionId,
-  credentials,
-}: {
-  provider: string | null | undefined;
-  model: string;
-  connectionId: string | null | undefined;
-  credentials: Record<string, unknown> | null | undefined;
-}): string | null {
-  const accountKey = resolveAccountSemaphoreAccountKey(connectionId, credentials);
-  if (!accountKey || !provider) return null;
-  return buildAccountSemaphoreKey({ provider, accountKey });
-}
-
-function buildClaudePromptCacheLogMeta(
-  targetFormat: string,
-  finalBody: Record<string, unknown> | null | undefined,
-  providerHeaders: Record<string, unknown> | Headers | null | undefined,
-  clientHeaders?: Headers | Record<string, unknown> | null | undefined
-) {
-  if (targetFormat !== FORMATS.CLAUDE || !finalBody || typeof finalBody !== "object") return null;
-
-  const describeCacheControl = (cacheControl: Record<string, unknown> | undefined, extra = {}) => ({
-    type:
-      cacheControl && typeof cacheControl.type === "string" && cacheControl.type.trim()
-        ? cacheControl.type.trim()
-        : "ephemeral",
-    ttl:
-      cacheControl && typeof cacheControl.ttl === "string" && cacheControl.ttl.trim()
-        ? cacheControl.ttl.trim()
-        : null,
-    ...extra,
-  });
-
-  const systemBreakpoints = Array.isArray(finalBody.system)
-    ? finalBody.system.flatMap((block, index) => {
-        if (!block || typeof block !== "object") return [];
-        const text =
-          typeof block.text === "string" && block.text.trim().length > 0 ? block.text.trim() : "";
-        if (text.startsWith("x-anthropic-billing-header:")) {
-          return [];
-        }
-        const cacheControl =
-          block.cache_control && typeof block.cache_control === "object"
-            ? block.cache_control
-            : null;
-        return cacheControl ? [describeCacheControl(cacheControl, { index })] : [];
-      })
-    : [];
-
-  const toolBreakpoints = Array.isArray(finalBody.tools)
-    ? finalBody.tools.flatMap((tool, index) => {
-        if (!tool || typeof tool !== "object") return [];
-        const cacheControl =
-          tool.cache_control && typeof tool.cache_control === "object" ? tool.cache_control : null;
-        const name = typeof tool.name === "string" && tool.name.trim() ? tool.name.trim() : null;
-        return cacheControl ? [describeCacheControl(cacheControl, { index, name })] : [];
-      })
-    : [];
-
-  const messageBreakpoints = Array.isArray(finalBody.messages)
-    ? finalBody.messages.flatMap((message, messageIndex) => {
-        if (!message || typeof message !== "object" || !Array.isArray(message.content)) return [];
-        const role =
-          typeof message.role === "string" && message.role.trim() ? message.role.trim() : "unknown";
-        return message.content.flatMap((block, contentIndex) => {
-          if (!block || typeof block !== "object") return [];
-          const cacheControl =
-            block.cache_control && typeof block.cache_control === "object"
-              ? block.cache_control
-              : null;
-          if (!cacheControl) return [];
-          return [
-            describeCacheControl(cacheControl, {
-              messageIndex,
-              contentIndex,
-              role,
-              blockType:
-                typeof block.type === "string" && block.type.trim() ? block.type.trim() : "unknown",
-            }),
-          ];
-        });
-      })
-    : [];
-
-  const totalBreakpoints =
-    systemBreakpoints.length + toolBreakpoints.length + messageBreakpoints.length;
-  let anthropicBeta = getHeaderValueCaseInsensitive(providerHeaders, "Anthropic-Beta");
-  if (!anthropicBeta) {
-    anthropicBeta = getHeaderValueCaseInsensitive(clientHeaders, "Anthropic-Beta");
-  }
-
-  if (totalBreakpoints === 0 && !anthropicBeta) return null;
-
-  return {
-    applied: totalBreakpoints > 0,
-    totalBreakpoints,
-    anthropicBeta,
-    systemBreakpoints,
-    toolBreakpoints,
-    messageBreakpoints,
-  };
-}
-
 function toPositiveNumber(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : 0;
 }
@@ -665,68 +522,6 @@ function attachLogMeta(
  * @param {boolean} options.isCombo - Whether this request is from a combo
  * @param {string} options.connectionId - Connection ID for settings lookup
  */
-
-/**
- * Module-level cache for upstream proxy config (shared across all requests).
- * 10s TTL prevents per-request DB lookups while staying fresh enough for setting changes.
- */
-const _proxyConfigCache = new Map<string, { mode: string; enabled: boolean; ts: number }>();
-const PROXY_CONFIG_CACHE_TTL = 10_000;
-
-/**
- * Module-level cache for all combos data (shared across all requests).
- * Uses cached promises to prevent thundering herd — all concurrent callers
- * wait for the same underlying DB query while it's in flight.
- */
-let _combosPromise: Promise<unknown[]> | null = null;
-let _combosCacheTs = 0;
-let _combosCacheVersionSnapshot = -1;
-const COMBOS_CACHE_TTL = 10_000;
-
-async function getCombosCached(): Promise<unknown[]> {
-  const now = Date.now();
-  const { getCombos, getCombosCacheVersion } = await import("@/lib/localDb");
-  const version = getCombosCacheVersion();
-  // A combo write (create/update/delete/reorder) bumps the shared version via
-  // invalidateDbCache("combos"); when it no longer matches our snapshot we drop
-  // the cached promise so the nested-combo expansion stops serving removed
-  // targets/models within the 10s TTL window (#3147).
-  if (version !== _combosCacheVersionSnapshot) {
-    clearCombosCache();
-  }
-  if (_combosPromise && now - _combosCacheTs < COMBOS_CACHE_TTL) {
-    return _combosPromise;
-  }
-  _combosCacheTs = now;
-  _combosCacheVersionSnapshot = version;
-  _combosPromise = getCombos();
-  return _combosPromise;
-}
-
-export function clearCombosCache() {
-  _combosPromise = null;
-  _combosCacheTs = 0;
-  _combosCacheVersionSnapshot = -1;
-}
-
-export function clearUpstreamProxyConfigCache(providerId?: string) {
-  if (providerId) {
-    _proxyConfigCache.delete(providerId);
-    return;
-  }
-  _proxyConfigCache.clear();
-}
-
-async function getUpstreamProxyConfigCached(providerId: string) {
-  const cached = _proxyConfigCache.get(providerId);
-  if (cached && Date.now() - cached.ts < PROXY_CONFIG_CACHE_TTL) return cached;
-  const cfg = await getUpstreamProxyConfig(providerId).catch(() => null);
-  const result = cfg
-    ? { mode: cfg.mode, enabled: cfg.enabled, ts: Date.now() }
-    : { mode: "native" as const, enabled: false, ts: Date.now() };
-  _proxyConfigCache.set(providerId, result);
-  return result;
-}
 
 function buildExecutorClientHeaders(
   headers: Headers | Record<string, unknown> | null | undefined,
