@@ -17,6 +17,7 @@ import { spawnSync } from "node:child_process";
 import {
   evaluateOpenapiRatchet,
   readBaselineOpenapiValue,
+  releaseBranchForVersion,
   // @ts-expect-error — .mjs helper has no type declarations; runtime shape is known.
 } from "../../scripts/check/check-openapi-breaking.mjs";
 
@@ -26,10 +27,33 @@ const evaluate = evaluateOpenapiRatchet as (args: {
   baseline: number | null;
 }) => RatchetVerdict;
 const readBaseline = readBaselineOpenapiValue as (p?: string) => number | null;
+const releaseBranch = releaseBranchForVersion as (v: string | null | undefined) => string | null;
 
 const SCRIPT_PATH = fileURLToPath(
   new URL("../../scripts/check/check-openapi-breaking.mjs", import.meta.url)
 );
+
+// ---------------------------------------------------------------------------
+// releaseBranchForVersion — the default base ref derives from the package
+// version so it never goes stale across release cycles (was a hard-coded
+// "origin/release/v3.8.27" that drifted into the v3.8.29 cycle).
+// ---------------------------------------------------------------------------
+
+test("releaseBranchForVersion: a clean semver derives the matching release branch", () => {
+  assert.equal(releaseBranch("3.8.29"), "origin/release/v3.8.29");
+});
+
+test("releaseBranchForVersion: a prerelease/build suffix is ignored", () => {
+  assert.equal(releaseBranch("3.8.29-dev.2"), "origin/release/v3.8.29");
+  assert.equal(releaseBranch("10.0.0+build.7"), "origin/release/v10.0.0");
+});
+
+test("releaseBranchForVersion: a non-semver value yields null (caller falls back)", () => {
+  assert.equal(releaseBranch(""), null);
+  assert.equal(releaseBranch(null), null);
+  assert.equal(releaseBranch(undefined), null);
+  assert.equal(releaseBranch("not-a-version"), null);
+});
 
 // ---------------------------------------------------------------------------
 // evaluateOpenapiRatchet — the three contract cases from the plan

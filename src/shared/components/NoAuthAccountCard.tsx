@@ -300,115 +300,124 @@ export default function NoAuthAccountCard({
         )}
 
         {!loading && allAccountIds.length > 0 && (
-          <div className="space-y-1 relative">
+          <div
+            data-testid="noauth-account-grid"
+            className="grid max-h-72 grid-cols-1 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {allAccountIds.map((id, i) => {
               const proxy = getProxyForFingerprint(accountProxies, id);
               return (
-                <div key={id} className="relative">
-                  <div className="group flex items-center justify-between p-3 rounded-lg hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-bg text-text-muted text-xs font-medium">
-                        {i + 1}
-                      </span>
-                      <span className="font-mono text-xs text-text-muted truncate">
-                        {id.slice(0, 12)}...
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => openProxyConfig(id)}
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-colors"
-                        title={
-                          proxy ? `${proxy.type}://${proxy.host}:${proxy.port}` : "Configure proxy"
-                        }
-                      >
-                        <span
-                          className={`material-symbols-outlined text-[14px] ${proxy ? "text-blue-400" : "text-text-muted"}`}
-                        >
-                          {proxy ? "shield" : "shield"}
-                        </span>
-                        <span className={proxy ? "text-blue-400" : "text-text-muted"}>
-                          {proxy ? `${proxy.type}://${proxy.host}` : "Proxy"}
-                        </span>
-                      </button>
-                      <button
-                        onClick={() => handleRemoveAccount(id)}
-                        className="p-1 hover:bg-red-500/10 rounded text-text-muted hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">delete</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {proxyAccountId === id && (
-                    <div
-                      ref={popoverRef}
-                      className="absolute right-0 top-full z-50 mt-1 w-80 rounded-lg border border-black/10 dark:border-white/10 bg-surface shadow-lg p-4"
+                <div
+                  key={id}
+                  data-account-id={id}
+                  className="group flex items-center gap-2 rounded-lg border border-border bg-bg/40 px-2.5 py-2 transition-colors hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"
+                >
+                  <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-bg text-[10px] font-medium text-text-muted">
+                    {i + 1}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate font-mono text-xs text-text-muted">
+                    {id.slice(0, 10)}…
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => openProxyConfig(id)}
+                    className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded transition-colors hover:bg-black/5 dark:hover:bg-white/5 ${proxy ? "text-blue-400" : "text-text-muted"}`}
+                    title={
+                      proxy
+                        ? `Proxy: ${proxy.type}://${proxy.host}:${proxy.port}`
+                        : "Configure proxy"
+                    }
+                    aria-label={proxy ? `Proxy configured: ${proxy.host}` : "Configure proxy"}
+                  >
+                    <span
+                      className="material-symbols-outlined text-[16px]"
+                      style={proxy ? { fontVariationSettings: "'FILL' 1" } : undefined}
                     >
-                      <p className="text-sm font-medium mb-3">Proxy for Account {i + 1}</p>
-                      <div className="space-y-3">
-                        <div className="flex gap-2">
-                          <select
-                            value={proxyType}
-                            onChange={(e) => setProxyType(e.target.value)}
-                            className="rounded-md border border-black/10 dark:border-white/10 bg-bg px-2.5 py-1.5 text-xs flex-shrink-0"
-                          >
-                            {PROXY_TYPES.map((t) => (
-                              <option key={t.value} value={t.value}>
-                                {t.label}
-                              </option>
-                            ))}
-                          </select>
-                          <input
-                            type="text"
-                            value={proxyHost}
-                            onChange={(e) => setProxyHost(e.target.value)}
-                            placeholder="Host"
-                            className="flex-1 rounded-md border border-black/10 dark:border-white/10 bg-bg px-2.5 py-1.5 text-xs"
-                          />
-                          <input
-                            type="text"
-                            value={proxyPort}
-                            onChange={(e) => setProxyPort(e.target.value)}
-                            placeholder="Port"
-                            className="w-16 rounded-md border border-black/10 dark:border-white/10 bg-bg px-2.5 py-1.5 text-xs"
-                          />
-                        </div>
-                        <input
-                          type="text"
-                          value={proxyUsername}
-                          onChange={(e) => setProxyUsername(e.target.value)}
-                          placeholder="Username (optional)"
-                          className="w-full rounded-md border border-black/10 dark:border-white/10 bg-bg px-2.5 py-1.5 text-xs"
-                        />
-                        <input
-                          type="password"
-                          value={proxyPassword}
-                          onChange={(e) => setProxyPassword(e.target.value)}
-                          placeholder="Password (optional)"
-                          className="w-full rounded-md border border-black/10 dark:border-white/10 bg-bg px-2.5 py-1.5 text-xs"
-                        />
-                        <div className="flex justify-end gap-2 pt-1">
-                          <button
-                            onClick={() => setProxyAccountId(null)}
-                            className="rounded-md px-3 py-1.5 text-xs text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            onClick={handleSaveProxy}
-                            disabled={savingProxy}
-                            className="rounded-md bg-primary/10 px-3 py-1.5 text-xs text-primary hover:bg-primary/20 disabled:opacity-50 transition-colors"
-                          >
-                            {savingProxy ? "Saving..." : "Save"}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                      shield
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveAccount(id)}
+                    className="shrink-0 rounded p-1 text-text-muted opacity-0 transition-colors hover:bg-red-500/10 hover:text-red-500 group-hover:opacity-100"
+                    aria-label="Remove account"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                  </button>
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {proxyAccountId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div
+              ref={popoverRef}
+              className="w-80 max-w-full rounded-lg border border-black/10 bg-surface p-4 shadow-lg dark:border-white/10"
+            >
+              <p className="mb-3 text-sm font-medium">
+                Proxy for Account {allAccountIds.indexOf(proxyAccountId) + 1}
+              </p>
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <select
+                    value={proxyType}
+                    onChange={(e) => setProxyType(e.target.value)}
+                    className="flex-shrink-0 rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
+                  >
+                    {PROXY_TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>
+                        {t.label}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={proxyHost}
+                    onChange={(e) => setProxyHost(e.target.value)}
+                    placeholder="Host"
+                    className="flex-1 rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
+                  />
+                  <input
+                    type="text"
+                    value={proxyPort}
+                    onChange={(e) => setProxyPort(e.target.value)}
+                    placeholder="Port"
+                    className="w-16 rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
+                  />
+                </div>
+                <input
+                  type="text"
+                  value={proxyUsername}
+                  onChange={(e) => setProxyUsername(e.target.value)}
+                  placeholder="Username (optional)"
+                  className="w-full rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
+                />
+                <input
+                  type="password"
+                  value={proxyPassword}
+                  onChange={(e) => setProxyPassword(e.target.value)}
+                  placeholder="Password (optional)"
+                  className="w-full rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
+                />
+                <div className="flex justify-end gap-2 pt-1">
+                  <button
+                    onClick={() => setProxyAccountId(null)}
+                    className="rounded-md px-3 py-1.5 text-xs text-text-muted transition-colors hover:bg-black/5 hover:text-text-main dark:hover:bg-white/5"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveProxy}
+                    disabled={savingProxy}
+                    className="rounded-md bg-primary/10 px-3 py-1.5 text-xs text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
+                  >
+                    {savingProxy ? "Saving..." : "Save"}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
