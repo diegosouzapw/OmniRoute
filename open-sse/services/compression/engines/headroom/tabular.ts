@@ -1,59 +1,87 @@
 /**
- * tabular.ts — dependency-free columnar encoder/decoder for homogeneous JSON arrays.
+ * tabular.ts — GCF-powered encoder + backward-compatible omni-tabular decoder.
  *
- * Format design (lossless, GP5' inspired):
+ * Encoding now uses GCF (Graph Compact Format) generic profile, which handles:
+ *   - Homogeneous AND heterogeneous arrays of objects
+ *   - Mixed-type columns (nullable, number/string mix)
+ *   - Nested objects and arrays (first-class, not JSON-stringified)
+ *   - Tabular layout with inline schemas for repeated structures
  *
- *   ```omni-tabular
- *   [N rows]
- *   __kinds__,s,n,n,b          ← type hints row (hidden metadata)
- *   col1,col2,col3,col4        ← header row
- *   "\"val1\"",42,99,true      ← data rows (strings JSON-encoded to avoid multi-line issues)
- *   ...
- *   ```
+ * Decoding supports BOTH formats for backward compatibility:
+ *   - ```gcf-generic ... ``` (new GCF format)
+ *   - ```omni-tabular ... ``` (legacy format, still decoded correctly)
  *
- * Cell encoding rules (CSV-style, lossless):
- *   - Strings: JSON.stringify-ed (so newlines → \\n, quotes → \\", etc.), then
- *     encodeCell-quoted if the JSON repr contains comma, quote, newline, or leading/trailing space.
- *   - Numbers / booleans / null: written as their unambiguous string representation.
- *   - Objects or arrays (nested): JSON.stringify-ed (same as strings for encoding), then quoted.
- *
- * Decode rules:
- *   - Kind `s`: cell value is a JSON string literal → JSON.parse restores original string.
- *   - Kind `n`: Number(cell).
- *   - Kind `b`: cell === "true".
- *   - Kind `null`: null.
- *   - Kind `j`: JSON.parse restores original object/array.
- *
- * All special characters (newlines, commas, quotes, tabs) inside string/json cells are
- * safely contained inside the JSON representation, which is then CSV-quoted. The line
- * split in the decoder always operates on the outer structure, which is free of raw
- * newlines. This is the key losslessness guarantee.
- *
- * Note: TOON (@toon-format/toon, ~24.6k★) could be a future drop-in encoder here for
- * potentially better compression on heterogeneous shapes; this plain columnar encoder is
- * used instead to avoid npm dependencies (supply-chain safety).
+ * The legacy omni-tabular encoder is preserved as encodeTabularBlockLegacy
+ * for backward-compat decoding and benchmark comparison.
  */
 
+import { encodeGeneric, decodeGeneric } from "./gcf/index.ts";
+
+// ─── fence markers ───────────────────────────────────────────────────────────
+
+/** New GCF fence marker. */
+export const GCF_FENCE_OPEN = "```gcf-generic";
+export const GCF_FENCE_CLOSE = "```";
+
+/** Legacy fence markers (kept for backward-compat decoding). */
 export const TABULAR_FENCE_OPEN = "```omni-tabular";
 export const TABULAR_FENCE_CLOSE = "```";
-export const TABULAR_MARKER_RE = /```omni-tabular\n(\[[\d]+ rows\]\n[\s\S]*?)\n```/g;
+export const TABULAR_MARKER_RE = /```(?:gcf-generic|omni-tabular)\n([\s\S]*?)\n```/g;
 
-/** Cell type hints stored in the second metadata row. */
-type CellKind = "s" | "n" | "b" | "null" | "j"; // string / number / boolean / null / json-object-or-array
+// ─── legacy types (for backward-compat decoder) ─────────────────────────────
+
+type CellKind = "s" | "n" | "b" | "null" | "j";
 
 export function kindOf(val: unknown): CellKind {
   if (val === null) return "null";
   if (typeof val === "number") return "n";
   if (typeof val === "boolean") return "b";
-  if (typeof val === "object") return "j"; // object or array
+  if (typeof val === "object") return "j";
   return "s";
 }
 
+// ─── GCF encoder (replaces old encodeTabularBlock) ───────────────────────────
+
 /**
- * Encode a raw string as a CSV cell.
- * Wraps in `"` and doubles any internal `"` characters (RFC 4180).
- * Used for strings that might contain commas, quotes, or spaces.
+ * Encode an array of objects using GCF generic profile.
+ * Returns the GCF text (without fence markers).
  */
+export function encodeGcfBlock(arr: Record<string, unknown>[]): string {
+  return encodeGeneric(arr);
+}
+
+/**
+ * Wrap a GCF block in the gcf-generic fence.
+ */
+export function wrapGcf(blockContent: string): string {
+  return `${GCF_FENCE_OPEN}\n${blockContent}\n${GCF_FENCE_CLOSE}`;
+}
+
+/**
+ * Public API — encode an array to a fenced GCF string.
+ * This is the new default encoder (replaces encodeTabular for new content).
+ */
+export function encodeTabular(arr: Record<string, unknown>[]): string {
+  return wrapGcf(encodeGcfBlock(arr));
+}
+
+/**
+ * Alias kept for SmartCrusher: encode block content (without fence).
+ * Now delegates to GCF.
+ */
+export function encodeTabularBlock(arr: Record<string, unknown>[]): string {
+  return encodeGcfBlock(arr);
+}
+
+/**
+ * Wrap content in fence markers. Now uses GCF fence.
+ */
+export function wrapTabular(blockContent: string): string {
+  return wrapGcf(blockContent);
+}
+
+// ─── legacy omni-tabular encoder (preserved for tests/benchmarks) ────────────
+
 function encodeCell(raw: string): string {
   const needsQuoting =
     raw.includes(",") ||
@@ -66,12 +94,6 @@ function encodeCell(raw: string): string {
   return '"' + raw.replace(/"/g, '""') + '"';
 }
 
-/**
- * Parse one CSV row (a single line) into cells.
- * Handles RFC 4180 quoting with `""` escaping.
- * Lines are guaranteed to not contain unescaped newlines (all newlines are inside
- * JSON-escaped strings, so the CSV layer never sees a real newline within a cell).
- */
 export function parseCsvRow(line: string): string[] {
   const cells: string[] = [];
   let i = 0;
@@ -79,16 +101,15 @@ export function parseCsvRow(line: string): string[] {
 
   while (i < len) {
     if (line[i] === '"') {
-      // Quoted cell: consume up to the closing unescaped quote
       let cell = "";
-      i++; // skip opening quote
+      i++;
       while (i < len) {
         if (line[i] === '"') {
           if (i + 1 < len && line[i + 1] === '"') {
             cell += '"';
             i += 2;
           } else {
-            i++; // skip closing quote
+            i++;
             break;
           }
         } else {
@@ -96,20 +117,16 @@ export function parseCsvRow(line: string): string[] {
         }
       }
       cells.push(cell);
-      // Skip trailing comma
       if (i < len && line[i] === ",") {
         i++;
-        // Trailing comma at end of line → empty cell
         if (i === len) cells.push("");
       }
     } else {
-      // Unquoted cell: read until comma or end
       const start = i;
       while (i < len && line[i] !== ",") i++;
       cells.push(line.slice(start, i));
       if (i < len) {
-        i++; // skip comma
-        // Trailing comma at end of line → empty cell
+        i++;
         if (i === len) cells.push("");
       }
     }
@@ -119,19 +136,11 @@ export function parseCsvRow(line: string): string[] {
 }
 
 /**
- * Encode a homogeneous array of objects to a compact columnar block (without fence).
- *
- * The block format is:
- *   [N rows]
- *   __kinds__,<kind0>,<kind1>,...
- *   <key0>,<key1>,...
- *   <row0-cell0>,<row0-cell1>,...
- *   ...
+ * Legacy encoder — preserved for backward-compat testing and benchmarks.
  */
-export function encodeTabularBlock(arr: Record<string, unknown>[]): string {
+export function encodeTabularBlockLegacy(arr: Record<string, unknown>[]): string {
   if (arr.length === 0) return "";
 
-  // Collect union of all keys (first-seen order)
   const keysSet = new Set<string>();
   for (const row of arr) {
     for (const k of Object.keys(row)) keysSet.add(k);
@@ -139,7 +148,6 @@ export function encodeTabularBlock(arr: Record<string, unknown>[]): string {
   const keys = Array.from(keysSet);
   const n = arr.length;
 
-  // Determine kinds from first row (homogeneous array → kinds are uniform)
   const kinds: CellKind[] = keys.map((k) => kindOf(arr[0][k]));
 
   const kindsRow = "__kinds__," + kinds.join(",");
@@ -153,10 +161,6 @@ export function encodeTabularBlock(arr: Record<string, unknown>[]): string {
         if (kind === "null") return "null";
         if (kind === "n") return String(val);
         if (kind === "b") return String(val);
-        // kind "s" or "j": JSON.stringify the value, then CSV-quote the result.
-        // JSON.stringify a string gives '"the string with \\n escaped"'
-        // JSON.stringify an object/array gives the full JSON representation.
-        // Both are safe to CSV-quote (no raw newlines in the serialized output).
         return encodeCell(JSON.stringify(val));
       })
       .join(",");
@@ -165,31 +169,28 @@ export function encodeTabularBlock(arr: Record<string, unknown>[]): string {
   return `[${n} rows]\n${kindsRow}\n${headerRow}\n${dataRows.join("\n")}`;
 }
 
+// ─── dual-format decoder ─────────────────────────────────────────────────────
+
 /**
- * Decode a columnar block back to the original array.
- * Input is the raw block content (without the fence markers).
+ * Decode a legacy omni-tabular block back to the original array.
  */
-export function decodeTabularBlock(block: string): Record<string, unknown>[] {
+export function decodeTabularBlockLegacy(block: string): Record<string, unknown>[] {
   const lines = block.split("\n");
   if (lines.length < 3) return [];
 
-  // Line 0: [N rows]
   const countLine = lines[0];
   const countMatch = countLine.match(/^\[(\d+) rows\]$/);
   if (!countMatch) return [];
   const n = parseInt(countMatch[1], 10);
 
-  // Line 1: kinds row
   const kindsLine = lines[1];
   if (!kindsLine.startsWith("__kinds__,")) return [];
   const kindsRaw = parseCsvRow(kindsLine.slice("__kinds__,".length));
   const kinds = kindsRaw as CellKind[];
 
-  // Line 2: header row
   const headerLine = lines[2];
   const keys = parseCsvRow(headerLine);
 
-  // Lines 3..3+n-1: data rows
   const result: Record<string, unknown>[] = [];
   for (let i = 0; i < n; i++) {
     const rowLine = lines[3 + i];
@@ -207,7 +208,6 @@ export function decodeTabularBlock(block: string): Record<string, unknown>[] {
       } else if (kind === "b") {
         obj[key] = cell === "true";
       } else {
-        // kind "s" or "j": cell is a JSON-encoded value → JSON.parse restores it.
         try {
           obj[key] = JSON.parse(cell);
         } catch {
@@ -222,24 +222,30 @@ export function decodeTabularBlock(block: string): Record<string, unknown>[] {
 }
 
 /**
- * Wrap a tabular block content in the omni-tabular fence.
- */
-export function wrapTabular(blockContent: string): string {
-  return `${TABULAR_FENCE_OPEN}\n${blockContent}\n${TABULAR_FENCE_CLOSE}`;
-}
-
-/**
- * Public API — encode an array to a fenced tabular string.
- */
-export function encodeTabular(arr: Record<string, unknown>[]): string {
-  return wrapTabular(encodeTabularBlock(arr));
-}
-
-/**
- * Public API — decode a fenced tabular string back to an array.
+ * Public API — decode a fenced block (either GCF or legacy omni-tabular).
+ * Auto-detects format from the fence marker.
  */
 export function decodeTabular(text: string): Record<string, unknown>[] {
-  // Strip fence markers if present
+  // Detect format from fence marker.
+  if (text.startsWith(GCF_FENCE_OPEN + "\n") || text.startsWith("GCF ")) {
+    // GCF format: strip fence if present, decode via GCF decoder.
+    let inner = text;
+    if (inner.startsWith(GCF_FENCE_OPEN + "\n")) {
+      inner = inner.slice(GCF_FENCE_OPEN.length + 1);
+    }
+    if (inner.endsWith("\n" + GCF_FENCE_CLOSE)) {
+      inner = inner.slice(0, inner.length - GCF_FENCE_CLOSE.length - 1);
+    } else if (inner.endsWith(GCF_FENCE_CLOSE)) {
+      inner = inner.slice(0, inner.length - GCF_FENCE_CLOSE.length);
+    }
+    const result = decodeGeneric(inner);
+    // decodeGeneric returns the decoded value; for arrays, return directly.
+    if (Array.isArray(result)) return result as Record<string, unknown>[];
+    // If it decoded to a single object, wrap it.
+    return [result as Record<string, unknown>];
+  }
+
+  // Legacy omni-tabular format.
   let inner = text;
   if (inner.startsWith(TABULAR_FENCE_OPEN + "\n")) {
     inner = inner.slice(TABULAR_FENCE_OPEN.length + 1);
@@ -249,5 +255,5 @@ export function decodeTabular(text: string): Record<string, unknown>[] {
   } else if (inner.endsWith(TABULAR_FENCE_CLOSE)) {
     inner = inner.slice(0, inner.length - TABULAR_FENCE_CLOSE.length);
   }
-  return decodeTabularBlock(inner);
+  return decodeTabularBlockLegacy(inner);
 }
