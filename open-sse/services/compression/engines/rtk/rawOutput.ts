@@ -19,8 +19,14 @@ const SECRET_PATTERNS: Array<[RegExp, string]> = [
   [/\b(sk-[A-Za-z0-9_-]{16,})\b/g, "[REDACTED_OPENAI_KEY]"],
   [/\b(xox[baprs]-[A-Za-z0-9-]{16,})\b/g, "[REDACTED_SLACK_TOKEN]"],
   [/\b(AKIA[0-9A-Z]{16})\b/g, "[REDACTED_AWS_KEY]"],
-  [/((?:api[_-]?key|token|secret|password)\s*[:=]\s*)("[^"]+"|'[^']+'|[^\s]+)/gi, "$1[REDACTED]"],
-  [/(Authorization:\s*Bearer\s+)[A-Za-z0-9._~+/-]+=*/gi, "$1[REDACTED]"],
+  // key=value / key: value for common credential field names (flat alternation — no nesting,
+  // so no ReDoS). Covers names the bare token/secret/password set misses (private_key, etc).
+  [
+    /((?:api[_-]?key|api[_-]?token|access[_-]?key|access[_-]?token|client[_-]?secret|auth[_-]?token|private[_-]?key|secret[_-]?key|credentials?|token|secret|password)\s*[:=]\s*)("[^"]+"|'[^']+'|[^\s]+)/gi,
+    "$1[REDACTED]",
+  ],
+  // Authorization / Proxy-Authorization with Bearer OR Basic (curl -v emits Basic <base64>).
+  [/((?:Proxy-)?Authorization:\s*(?:Bearer|Basic)\s+)[A-Za-z0-9._~+/-]+=*/gi, "$1[REDACTED]"],
 ];
 
 function dataDir(): string {

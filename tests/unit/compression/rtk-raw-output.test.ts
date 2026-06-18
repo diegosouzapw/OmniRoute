@@ -146,4 +146,22 @@ describe("RTK raw output retention", () => {
     assert.equal(pointer, null);
     fs.rmSync(blocker, { force: true });
   });
+
+  it("redacts Basic/Proxy auth headers and key fields the base patterns miss", () => {
+    const basic = redactRtkRawOutput("> Authorization: Basic dXNlcjpwYXNzd29yZA==");
+    assert.equal(basic.redacted, true);
+    assert.ok(!basic.text.includes("dXNlcjpwYXNzd29yZA=="), "Authorization: Basic base64 redacted");
+
+    const proxy = redactRtkRawOutput("Proxy-Authorization: Basic c2VjcmV0OnBhc3M=");
+    assert.equal(proxy.redacted, true);
+    assert.ok(!proxy.text.includes("c2VjcmV0OnBhc3M="), "Proxy-Authorization redacted");
+
+    const pkey = redactRtkRawOutput("private_key=abc123def456ghi");
+    assert.equal(pkey.redacted, true);
+    assert.ok(!pkey.text.includes("abc123def456ghi"), "private_key value redacted");
+
+    const cred = redactRtkRawOutput("credential: my-credential-value-x");
+    assert.equal(cred.redacted, true);
+    assert.ok(!cred.text.includes("my-credential-value-x"), "credential value redacted");
+  });
 });
