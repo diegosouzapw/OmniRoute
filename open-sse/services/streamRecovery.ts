@@ -88,6 +88,19 @@ export class HoldbackBuffer {
   get hasBuffered(): boolean {
     return this.chunks.length > 0;
   }
+
+  /** Concatenated view of the currently-held (uncommitted) chunks, for inspection. */
+  peekBuffered(): Uint8Array {
+    if (this.chunks.length === 0) return new Uint8Array(0);
+    if (this.chunks.length === 1) return this.chunks[0];
+    const out = new Uint8Array(this.bytes);
+    let offset = 0;
+    for (const chunk of this.chunks) {
+      out.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    return out;
+  }
 }
 
 const RETRYABLE_TRANSPORT_CODES = new Set([
@@ -148,4 +161,146 @@ export function hasTerminalMarker(bytes: Uint8Array): boolean {
   if (!bytes || bytes.byteLength === 0) return false;
   const text = new TextDecoder().decode(bytes);
   return text.includes(OPENAI_DONE_MARKER) || text.includes(ANTHROPIC_STOP_MARKER);
+}
+
+export interface RecoverableStreamOptions {
+  /** Released exactly once when the wrapped stream closes, errors, or is cancelled. */
+  finalize: () => void;
+  /** Max transparent re-opens while the holdback is still uncommitted. */
+  maxEarlyRetries?: number;
+  /** Injectable clock (ms) threaded to the internal holdback buffers (tests). */
+  now?: () => number;
+  /** Observability hook fired on each early-retry attempt. */
+  onRetry?: (attempt: number, error: unknown) => void;
+}
+
+/**
+ * Wrap an upstream SSE body so a truncation that happens *before* any byte reaches the
+ * client is retried transparently. While the holdback is uncommitted the opening window
+ * is buffered; a retryable read error or a graceful end without a terminal marker triggers
+ * a re-open (via `reopen`) up to `maxEarlyRetries` times. Once committed (window elapsed,
+ * byte cap reached, or a terminal marker seen) bytes flow straight through and any later
+ * failure propagates to the client unchanged — we never replay a request the caller has
+ * already started consuming. `finalize` (e.g. semaphore release) runs exactly once.
+ */
+export function createRecoverableStream(
+  initialStream: ReadableStream<Uint8Array>,
+  reopen: () => Promise<ReadableStream<Uint8Array> | null>,
+  options: RecoverableStreamOptions
+): ReadableStream<Uint8Array> {
+  const maxRetries = options.maxEarlyRetries ?? STREAM_RECOVERY.EARLY_RETRY_MAX;
+  const makeHoldback = () => new HoldbackBuffer({ now: options.now });
+
+  let reader: ReadableStreamDefaultReader<Uint8Array> = initialStream.getReader();
+  let holdback = makeHoldback();
+  let retries = 0;
+  let finalized = false;
+
+  const runFinalize = () => {
+    if (finalized) return;
+    finalized = true;
+    options.finalize();
+  };
+
+  // Drop the dead reader + held window and acquire a fresh upstream. Returns whether a
+  // new stream is now in place (false = give up and fall back to best-effort partial).
+  const tryReopen = async (error: unknown): Promise<boolean> => {
+    if (retries >= maxRetries) return false;
+    retries += 1;
+    options.onRetry?.(retries, error);
+    try {
+      await reader.cancel(error);
+    } catch {
+      // dead reader — nothing to cancel
+    }
+    let next: ReadableStream<Uint8Array> | null = null;
+    try {
+      next = await reopen();
+    } catch {
+      next = null;
+    }
+    // Only drop the held window once we actually have a replacement. If reopen
+    // fails/exhausts, the caller falls back to flushing those held bytes.
+    if (!next) return false;
+    reader = next.getReader();
+    holdback = makeHoldback();
+    return true;
+  };
+
+  const flushHeld = (controller: ReadableStreamDefaultController<Uint8Array>) => {
+    for (const chunk of holdback.flush()) controller.enqueue(chunk);
+  };
+
+  return new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      // One pull may read several chunks while the opening window is still held; it
+      // only returns after producing output, closing, or erroring.
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        let result: ReadableStreamReadResult<Uint8Array>;
+        try {
+          result = await reader.read();
+        } catch (error) {
+          if (holdback.committed) {
+            runFinalize();
+            controller.error(error);
+            return;
+          }
+          if (isRetryableStreamError(error) && (await tryReopen(error))) {
+            continue;
+          }
+          // Unrecoverable before commit: emit whatever was held, then close.
+          flushHeld(controller);
+          runFinalize();
+          controller.close();
+          return;
+        }
+
+        const { done, value } = result;
+        if (done) {
+          if (holdback.committed) {
+            runFinalize();
+            controller.close();
+            return;
+          }
+          // Graceful end before commit: clean short stream, or a silent truncation?
+          if (hasTerminalMarker(holdback.peekBuffered())) {
+            flushHeld(controller);
+            runFinalize();
+            controller.close();
+            return;
+          }
+          if (await tryReopen(new TruncatedStreamError())) {
+            continue;
+          }
+          flushHeld(controller);
+          runFinalize();
+          controller.close();
+          return;
+        }
+
+        if (value === undefined) continue;
+
+        if (holdback.committed) {
+          controller.enqueue(value);
+          return;
+        }
+        const emitted = holdback.push(value);
+        if (emitted.length > 0) {
+          for (const chunk of emitted) controller.enqueue(chunk);
+          return;
+        }
+        // Still holding the opening window — read more without yielding.
+      }
+    },
+
+    async cancel(reason) {
+      runFinalize();
+      try {
+        await reader.cancel(reason);
+      } catch {
+        // already closed
+      }
+    },
+  });
 }

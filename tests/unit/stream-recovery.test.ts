@@ -7,9 +7,45 @@ import {
   TruncatedStreamError,
   isRetryableStreamError,
   hasTerminalMarker,
+  createRecoverableStream,
 } from "../../open-sse/services/streamRecovery.ts";
 
 const enc = (s: string) => new TextEncoder().encode(s);
+
+/** Build a mock upstream stream that emits `chunks` then ends via close or error. */
+function makeStream(chunks: string[], end: "close" | Error): ReadableStream<Uint8Array> {
+  let i = 0;
+  return new ReadableStream<Uint8Array>({
+    pull(controller) {
+      if (i < chunks.length) {
+        controller.enqueue(enc(chunks[i++]));
+        return;
+      }
+      if (end instanceof Error) controller.error(end);
+      else controller.close();
+    },
+  });
+}
+
+async function readAll(
+  rs: ReadableStream<Uint8Array>
+): Promise<{ text: string; errored: Error | null }> {
+  const reader = rs.getReader();
+  const dec = new TextDecoder();
+  let text = "";
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) text += dec.decode(value, { stream: true });
+    }
+    return { text, errored: null };
+  } catch (e) {
+    return { text, errored: e as Error };
+  }
+}
+
+const econnreset = () => Object.assign(new Error("socket reset"), { code: "ECONNRESET" });
 
 test("STREAM_RECOVERY constants mirror the free-claude-code values", () => {
   assert.equal(STREAM_RECOVERY.HOLDBACK_MS, 750);
@@ -103,4 +139,118 @@ test("hasTerminalMarker detects OpenAI and Anthropic stream terminators", () => 
   assert.equal(hasTerminalMarker(enc("event: message_stop\ndata: {}\n\n")), true);
   assert.equal(hasTerminalMarker(enc("data: {\"choices\":[]}\n\n")), false);
   assert.equal(hasTerminalMarker(enc("")), false);
+});
+
+test("createRecoverableStream retries an early truncation transparently", async () => {
+  let finalizeCount = 0;
+  let reopened = 0;
+  // Attempt 1 emits 2 held chunks then the socket resets before any commit.
+  const attempt1 = makeStream(["data: a\n\n", "data: b\n\n"], econnreset());
+  const attempt2 = makeStream(["data: x\n\n", "data: [DONE]\n\n"], "close");
+
+  const rs = createRecoverableStream(
+    attempt1,
+    async () => {
+      reopened++;
+      return attempt2;
+    },
+    { finalize: () => finalizeCount++, now: () => 0 } // frozen clock: no time-based commit
+  );
+
+  const { text, errored } = await readAll(rs);
+  assert.equal(errored, null);
+  assert.equal(reopened, 1, "should re-open exactly once");
+  assert.equal(text, "data: x\n\ndata: [DONE]\n\n", "client sees ONLY the recovered attempt");
+  assert.equal(finalizeCount, 1, "finalize runs exactly once");
+});
+
+test("createRecoverableStream emits the held partial and closes when reopen fails", async () => {
+  let finalizeCount = 0;
+  // Graceful end with NO terminal marker = silent truncation; reopen can't recover.
+  const attempt1 = makeStream(["data: partial\n\n"], "close");
+
+  const rs = createRecoverableStream(attempt1, async () => null, {
+    finalize: () => finalizeCount++,
+    now: () => 0,
+  });
+
+  const { text, errored } = await readAll(rs);
+  assert.equal(errored, null);
+  assert.equal(text, "data: partial\n\n", "best-effort: held bytes are still delivered");
+  assert.equal(finalizeCount, 1);
+});
+
+test("createRecoverableStream propagates errors once committed (never replays)", async () => {
+  let reopened = 0;
+  let finalizeCount = 0;
+  const big = "x".repeat(STREAM_RECOVERY.BUFFER_MAX_BYTES + 10); // forces immediate commit
+  const attempt1 = makeStream([big, "data: more\n\n"], econnreset());
+
+  const rs = createRecoverableStream(
+    attempt1,
+    async () => {
+      reopened++;
+      return makeStream(["data: nope\n\n"], "close");
+    },
+    { finalize: () => finalizeCount++, now: () => 0 }
+  );
+
+  const { errored } = await readAll(rs);
+  assert.ok(errored, "a post-commit failure must surface to the client");
+  assert.equal(reopened, 0, "must NOT re-open after the client has already seen bytes");
+  assert.equal(finalizeCount, 1);
+});
+
+test("createRecoverableStream passes a clean short stream straight through", async () => {
+  let reopened = 0;
+  let finalizeCount = 0;
+  const attempt1 = makeStream(["data: hi\n\n", "data: [DONE]\n\n"], "close");
+
+  const rs = createRecoverableStream(
+    attempt1,
+    async () => {
+      reopened++;
+      return null;
+    },
+    { finalize: () => finalizeCount++, now: () => 0 }
+  );
+
+  const { text, errored } = await readAll(rs);
+  assert.equal(errored, null);
+  assert.equal(reopened, 0, "a clean stream must not trigger recovery");
+  assert.equal(text, "data: hi\n\ndata: [DONE]\n\n");
+  assert.equal(finalizeCount, 1);
+});
+
+test("createRecoverableStream stops after maxEarlyRetries", async () => {
+  let reopened = 0;
+  let finalizeCount = 0;
+  const attempt1 = makeStream(["data: t\n\n"], "close"); // truncated (no terminal marker)
+
+  const rs = createRecoverableStream(
+    attempt1,
+    async () => {
+      reopened++;
+      return makeStream(["data: t\n\n"], "close"); // every retry truncates too
+    },
+    { finalize: () => finalizeCount++, now: () => 0, maxEarlyRetries: 2 }
+  );
+
+  const { errored } = await readAll(rs);
+  assert.equal(errored, null);
+  assert.equal(reopened, 2, "should re-open exactly maxEarlyRetries times, then give up");
+  assert.equal(finalizeCount, 1);
+});
+
+test("createRecoverableStream finalizes on client cancel", async () => {
+  let finalizeCount = 0;
+  const attempt1 = makeStream(["data: a\n\n"], "close");
+  const rs = createRecoverableStream(attempt1, async () => null, {
+    finalize: () => finalizeCount++,
+    now: () => 0,
+  });
+
+  const reader = rs.getReader();
+  await reader.cancel("client gone");
+  assert.equal(finalizeCount, 1);
 });
