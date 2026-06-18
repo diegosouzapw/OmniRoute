@@ -9,20 +9,33 @@ permissions:
 
 jobs:
   stryker:
-    name: Stryker mutation testing (6 critical modules — advisory)
+    name: Stryker mutation (batch ${{ matrix.batch.name }} — advisory)
     runs-on: ubuntu-latest
-    # Mutation testing is expensive (~5k mutants across 6 modules). It runs only
-    # on the nightly schedule / manual dispatch, never on PRs. The score is NOT
-    # yet enforced as a ratchet (wired in a later INT phase) — for now the job
-    # just produces the HTML/JSON report and uploads it as an artifact.
-    #
-    # Runs at stryker concurrency=4 (was 1) now that ./tests/_setup/isolateDataDir.ts
-    # gives each test process its own DATA_DIR. The full 8-module set still TIMED OUT
-    # at the 180min cap (run 27705123780 = exactly 180min), because the two god-files
-    # chatCore.ts/combo.ts dominate ~2/3 of the mutants; they were removed from
-    # stryker.conf.json `mutate` until the Onda 3 split (see _mutate_godfiles_excluded_comment
-    # there). The remaining 6 modules fit the budget. 180min leaves cold-run headroom
-    # before the incremental cache is seeded.
+    # Mutation testing is expensive. History of the budget:
+    #   - Full 8-module set TIMED OUT at the 180min cap (run 27705123780 = exactly 180min).
+    #     The two god-files chatCore.ts/combo.ts dominate ~2/3 of the mutants and were
+    #     removed from stryker.conf.json `mutate` (the Onda 3 split re-adds them).
+    #   - The remaining 6 modules STILL timed out at 180min (run 27732877861 = exactly
+    #     180min): auth.ts and accountFallback.ts are large and the perTest dry-run over
+    #     ~130 covering test files is itself costly.
+    # So the 6 modules are split into 3 PARALLEL batches of 2 (the two big modules in
+    # separate batches), each overriding the mutate set via `--mutate` (Stryker 9 CLI:
+    # `-m, --mutate <comma-list>`; the conf's `mutate[]` remains the local-run default/union).
+    # Each batch is ~1/3 of the mutants and fits 180min; full coverage every night, in
+    # parallel (≈180min wall-clock). Re-merge into fewer batches once the Onda 3 god-file
+    # split shrinks per-module mutant counts.
+    # Runs at stryker concurrency=4 with per-process DATA_DIR isolation
+    # (tests/_setup/isolateDataDir.ts) — see _concurrency_comment in stryker.conf.json.
+    strategy:
+      fail-fast: false
+      matrix:
+        batch:
+          - name: a
+            mutate: "src/sse/services/auth.ts,open-sse/utils/publicCreds.ts"
+          - name: b
+            mutate: "open-sse/services/accountFallback.ts,open-sse/utils/error.ts"
+          - name: c
+            mutate: "src/server/authz/routeGuard.ts,src/shared/utils/circuitBreaker.ts"
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v6
@@ -37,17 +50,19 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: reports/mutation/stryker-incremental.json
-          key: stryker-incremental-${{ github.run_id }}
-          restore-keys: stryker-incremental-
+          key: stryker-incremental-${{ matrix.batch.name }}-${{ github.run_id }}
+          restore-keys: stryker-incremental-${{ matrix.batch.name }}-
       - name: Run Stryker (advisory)
         id: stryker
         continue-on-error: true
-        run: npx stryker run
+        env:
+          BATCH_MUTATE: ${{ matrix.batch.mutate }}
+        run: npx stryker run --mutate "$BATCH_MUTATE"
       - name: Upload mutation report
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: mutation-report
+          name: mutation-report-${{ matrix.batch.name }}
           path: reports/mutation/
           if-no-files-found: warn
           retention-days: 14
