@@ -99,6 +99,16 @@
   --radius: 14px;
   --radius-control: 9px;
   --grad-brand: linear-gradient(135deg, var(--color-primary), var(--color-accent-light));
+
+  /* Data-table surfaces — theme-aware. The DARK values (in .dark below) exactly mirror
+     the previous hardcoded rgba in DataTable.tsx so dark stays byte-identical; these
+     light values are the fix (the old code was always-dark via dead var fallbacks). */
+  --table-header-bg: rgba(249, 249, 251, 0.95);
+  --table-row-zebra: rgba(0, 0, 0, 0.02);
+  --table-row-hover: rgba(0, 0, 0, 0.04);
+  --table-cell-border: rgba(0, 0, 0, 0.04);
+  /* Selected row — an accent tint that reads on both themes (inherited by .dark). */
+  --table-row-selected: rgba(99, 102, 241, 0.1);
 }
 
 .dark {
@@ -143,6 +153,12 @@
   --grid-line: rgba(255, 255, 255, 0.035);
   --section-alt: rgba(255, 255, 255, 0.018);
   --surface-2: #1c2230;
+
+  /* Data-table surfaces — dark = the exact old hardcoded values (byte-identical). */
+  --table-header-bg: rgba(15, 15, 25, 0.95);
+  --table-row-zebra: rgba(255, 255, 255, 0.02);
+  --table-row-hover: rgba(255, 255, 255, 0.04);
+  --table-cell-border: rgba(255, 255, 255, 0.04);
 }
 
 @theme inline {

@@ -122,3 +122,26 @@ test("status colors come from one canonical module", () => {
 test("globals.css defines a monospace token (site parity)", () => {
   assert.match(globalsCss, /--font-mono:\s*ui-monospace/);
 });
+
+test("DataTable is theme-aware via --table-* tokens (dark = the exact old values)", () => {
+  // The dark token values must equal the rgba the component used to hardcode, so dark
+  // stays byte-identical while light gets fixed.
+  assert.match(globalsCss, /--table-header-bg:\s*rgba\(15,\s*15,\s*25,\s*0\.95\)/); // dark
+  assert.match(globalsCss, /--table-row-zebra:\s*rgba\(255,\s*255,\s*255,\s*0\.02\)/); // dark
+  assert.match(globalsCss, /--table-row-hover:\s*rgba\(255,\s*255,\s*255,\s*0\.04\)/); // dark
+  assert.match(globalsCss, /--table-cell-border:\s*rgba\(255,\s*255,\s*255,\s*0\.04\)/); // dark
+  assert.match(globalsCss, /--table-header-bg:\s*rgba\(249,\s*249,\s*251,\s*0\.95\)/); // light fix
+
+  const dt = read("../../src/shared/components/DataTable.tsx");
+  assert.ok(dt.includes("var(--table-header-bg)"), "header uses the token");
+  assert.ok(dt.includes("var(--table-row-zebra)"), "zebra uses the token");
+  assert.ok(dt.includes("var(--color-border)"), "header border uses the brand token");
+  assert.ok(
+    !/rgba\(|#[0-9a-fA-F]{3,6}/.test(dt),
+    "DataTable no longer hardcodes any color literal"
+  );
+  assert.ok(
+    !dt.includes("--text-secondary") && !dt.includes("--bg-table-header"),
+    "the dead var fallbacks are gone"
+  );
+});
