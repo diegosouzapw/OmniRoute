@@ -59,23 +59,12 @@ import { applyComboAgentMiddleware } from "./comboAgentMiddleware.ts";
 import { checkCredentialGate, logCredentialSkip } from "./credentialGate.ts";
 import { emit } from "../../src/lib/events/eventBus";
 import { notifyWebhookEvent } from "../../src/lib/webhookDispatcher";
-import {
-  classifyWithConfig,
-  DEFAULT_INTENT_CONFIG,
-  type IntentClassifierConfig,
-} from "./intentClassifier.ts";
+import { classifyWithConfig } from "./intentClassifier.ts";
 import { selectProvider as selectAutoProvider } from "./autoCombo/engine.ts";
 import { selectWithStrategy, type SlaRoutingPolicy } from "./autoCombo/routerStrategy.ts";
-import { getTaskFitness } from "./autoCombo/taskFitness.ts";
 import { parseAutoPrefix } from "./autoCombo/autoPrefix.ts";
 import { handlePipelineCombo, buildPipelineResponse } from "./autoCombo/pipelineRouter.ts";
-import {
-  calculateFactors,
-  calculateScore,
-  DEFAULT_WEIGHTS,
-  type ProviderCandidate,
-  type ScoringWeights,
-} from "./autoCombo/scoring.ts";
+import { DEFAULT_WEIGHTS, type ProviderCandidate, type ScoringWeights } from "./autoCombo/scoring.ts";
 import { supportsToolCalling } from "./modelCapabilities.ts";
 import { estimateTokens } from "./contextManager.ts";
 import { getSessionConnection } from "./sessionManager.ts";
@@ -85,13 +74,6 @@ import type { RoutingHint } from "./manifestAdapter";
 import { buildComplexityRoutingHint } from "./autoCombo/complexityRouter";
 import type { CompressionMode } from "./compression/types.ts";
 import { getProviderConnections } from "../../src/lib/db/providers";
-import { getProviderModels } from "../config/providerModels.ts";
-import {
-  getConnectionRoutingTags,
-  matchesRoutingTags,
-  resolveRequestRoutingTags,
-  type RoutingTagMatchMode,
-} from "../../src/domain/tagRouter.ts";
 import { normalizeRoutingStrategy } from "../../src/shared/constants/routingStrategies.ts";
 import {
   isProviderInCooldown,
@@ -107,14 +89,13 @@ import { RESET_WINDOW_NAMES } from "./combo/types.ts";
 import type {
   ComboRetryAfter,
   ComboErrorBody,
-  ComboLike,
   SingleModelTarget,
   IsModelAvailable,
   HandleComboChatOptions,
   HandleRoundRobinOptions,
-  HistoricalLatencyStatsEntry,
-  AutoProviderCandidate,
   ResolvedComboTarget,
+  AutoProviderCandidate,
+  HistoricalLatencyStatsEntry,
 } from "./combo/types.ts";
 
 import { validateResponseQuality, toRetryAfterDisplayValue } from "./combo/validateQuality.ts";
@@ -147,10 +128,27 @@ import {
   resolveWeightedTargets,
   sortTargetsByContextSize,
 } from "./combo/comboStructure.ts";
+import {
+  QUOTA_SOFT_DEPRIORITIZE_FACTOR,
+  setCandidateQuotaSoftPenalty,
+  _registerExecutionCandidates,
+  _unregisterExecutionCandidates,
+  extractPromptForIntent,
+  mapIntentToTaskType,
+  getIntentConfig,
+  applyRequestTagRouting,
+  scoreAutoTargets,
+  expandAutoComboCandidatePool,
+  deriveComboSessionKey,
+} from "./combo/autoStrategy.ts";
 
 // Backward-compatible re-exports — these were public from combo.ts before the
 // types extraction (Quality Gate v2 / Fase 9). Keep the external surface stable.
 export { RESET_WINDOW_NAMES };
+// chatCore.ts's dynamic `import("../services/combo")` reads these two — keep them
+// re-exported from combo.ts after the auto-strategy extraction (combo split D8).
+export { QUOTA_SOFT_DEPRIORITIZE_FACTOR, setCandidateQuotaSoftPenalty };
+export { scoreAutoTargets, expandAutoComboCandidatePool };
 export type { SingleModelTarget, ResolvedComboTarget };
 export { validateResponseQuality };
 export { clampComboDepth, shouldSkipForPredictedTtft, shouldRecordProviderBreakerFailure };
@@ -164,22 +162,6 @@ export {
   validateComboDAG,
 } from "./combo/comboStructure.ts";
 
-// Bootstrap defaults from ClawRouter benchmark (used when no local latency history exists yet)
-const DEFAULT_MODEL_P95_MS: Record<string, number> = {
-  "grok-4-fast-non-reasoning": 1143,
-  "grok-4-1-fast-non-reasoning": 1244,
-  "gemini-2.5-flash": 1238,
-  "kimi-k2.5": 1646,
-  "gpt-4o-mini": 2764,
-  "claude-sonnet-4.6": 4000,
-  "claude-opus-4.6": 6000,
-  "deepseek-chat": 2000,
-};
-const MIN_HISTORY_SAMPLES = 10;
-// Assumed fraction of tokens that are output when blending input+output prices
-// for auto-combo cost scoring. 0.4 = 40% output, 60% input.
-// Matches the example in GitHub issue #1812 (e.g. o3-like model: $3 input/$15 output).
-const OUTPUT_TOKEN_RATIO = 0.4;
 const RESET_AWARE_SESSION_WINDOW_MS = 5 * 60 * 60 * 1000;
 const RESET_AWARE_WEEKLY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 const RESET_AWARE_SESSION_REMAINING_WEIGHT = 0.45;
@@ -195,79 +177,6 @@ const RESET_AWARE_DEFAULTS = {
   exhaustionGuardPercent: 10,
 };
 const RESET_WINDOW_DEFAULT_TIE_BAND_MS = 60_000;
-
-// Quota Share soft-policy deprioritization factor (B17).
-// When a candidate has quotaSoftPenalty === true, its auto-combo score is
-// multiplied by this factor so over-quota-soft keys are de-prioritized
-// without being fully blocked (that is done by "hard" policy).
-// Override via QUOTA_SOFT_DEPRIORITIZE_FACTOR env var (range 0..1, default 0.7).
-export const QUOTA_SOFT_DEPRIORITIZE_FACTOR = Number(
-  process.env.QUOTA_SOFT_DEPRIORITIZE_FACTOR ?? "0.7"
-);
-
-// G2: Module-level registry of active combo execution candidates.
-// Maps executionKey → Map<stepId, candidate mutable ref>.
-// Populated by buildAutoCandidates registrations; cleaned up after each execution.
-// This allows chatCore.ts to mark a candidate's quotaSoftPenalty flag so that
-// subsequent scoring iterations (auto-combo fallback) deprioritize it.
-const _activeExecutionCandidates = new Map<string, Map<string, { quotaSoftPenalty?: boolean }>>();
-
-/**
- * Mark a specific candidate (by comboExecutionKey + stepId) with soft quota penalty.
- * Called from chatCore.ts when enforceQuotaShare returns a "soft deprioritize" decision.
- * The flag is read on subsequent auto-combo scoring iterations (fallback chain)
- * within the same combo execution via scoreAutoTargets → QUOTA_SOFT_DEPRIORITIZE_FACTOR.
- *
- * Guards:
- * - null executionKey or stepId → no-op (non-combo or context not available).
- * - unknown executionKey → no-op (candidate not yet registered or already cleaned up).
- * - Idempotent: calling twice with the same (key, stepId, true) is safe.
- */
-export function setCandidateQuotaSoftPenalty(
-  comboExecutionKey: string | null,
-  comboStepId: string | null,
-  penalty: boolean
-): void {
-  if (!comboExecutionKey || !comboStepId) return;
-  const byStep = _activeExecutionCandidates.get(comboExecutionKey);
-  if (!byStep) return;
-  const candidate = byStep.get(comboStepId);
-  if (candidate) {
-    candidate.quotaSoftPenalty = penalty;
-  }
-}
-
-/**
- * Register candidates for a combo execution so setCandidateQuotaSoftPenalty can
- * locate them by (executionKey, stepId).
- * Each candidate object is stored by reference — mutations via setCandidateQuotaSoftPenalty
- * propagate back to the original candidate array used by scoreAutoTargets.
- * @internal — not exported; only called within combo.ts by buildAutoCandidates callers.
- */
-function _registerExecutionCandidates(
-  candidates: Array<{ executionKey: string; stepId: string; quotaSoftPenalty?: boolean }>
-): void {
-  for (const candidate of candidates) {
-    if (!candidate.executionKey) continue;
-    let byStep = _activeExecutionCandidates.get(candidate.executionKey);
-    if (!byStep) {
-      byStep = new Map();
-      _activeExecutionCandidates.set(candidate.executionKey, byStep);
-    }
-    byStep.set(candidate.stepId, candidate);
-  }
-}
-
-/**
- * Unregister all candidates for a given execution key once the execution completes.
- * Prevents unbounded memory growth.
- * @internal — not exported; called after each handleComboChat iteration.
- */
-function _unregisterExecutionCandidates(executionKeys: string[]): void {
-  for (const key of executionKeys) {
-    _activeExecutionCandidates.delete(key);
-  }
-}
 
 type ResetWindowName = (typeof RESET_WINDOW_NAMES)[number];
 type QuotaFetchCacheConfig = {
@@ -994,188 +903,22 @@ function calculateResetWindowAffinity(quota: unknown, config: ResetWindowConfig)
   return clamp01(1 - msUntilReset / getResetWindowHorizonMs(config.windows));
 }
 
-async function orderTargetsByResetWindow(
-  targets: ResolvedComboTarget[],
-  comboName: string,
-  configSource: Record<string, unknown> | null | undefined,
-  log: { warn?: (...args: unknown[]) => void },
-  apiKeyAllowedConnectionIds?: string[] | null
-) {
-  if (targets.length === 0) return targets;
-
-  const config = resolveResetWindowConfig(configSource);
-  const connectionCache = new Map<string, Array<Record<string, unknown>>>();
-  const connectionLoadPromises = new Map<string, Promise<Array<Record<string, unknown>>>>();
-  const quotaPromises = new Map<string, Promise<unknown>>();
-  const connectionById = new Map<string, Record<string, unknown>>();
-  const expandedTargets: ResolvedComboTarget[] = [];
-
-  const targetsWithConnections = await Promise.all(
-    targets.map(async (target) => ({
-      connections: await getQuotaAwareConnectionsForTarget(
-        target,
-        connectionCache,
-        connectionLoadPromises,
-        comboName,
-        log
-      ),
-      target,
-    }))
-  );
-
-  for (const { target, connections } of targetsWithConnections) {
-    for (const connection of connections) {
-      if (typeof connection.id === "string") connectionById.set(connection.id, connection);
-    }
-
-    const unrestrictedConnectionIds = getTargetConnectionIds(target, connections);
-    const connectionIds = filterAllowedConnectionIds(
-      unrestrictedConnectionIds,
-      apiKeyAllowedConnectionIds
-    );
-    if (connectionIds.length === 0) {
-      if (
-        unrestrictedConnectionIds.length > 0 &&
-        normalizeConnectionIds(apiKeyAllowedConnectionIds)
-      ) {
-        continue;
-      }
-      expandedTargets.push(target);
-      continue;
-    }
-
-    for (const connectionId of connectionIds) {
-      expandedTargets.push({
-        ...target,
-        connectionId,
-        executionKey:
-          target.connectionId === connectionId
-            ? target.executionKey
-            : `${target.executionKey}@${connectionId}`,
-      });
-    }
-  }
-
-  const scoredTargets = await mapWithConcurrency(
-    expandedTargets,
-    RESET_AWARE_QUOTA_FETCH_CONCURRENCY,
-    async (target, index) => {
-      let quota: unknown = null;
-      const provider = getResetAwareProvider(target);
-      const fetcher = provider ? getQuotaFetcher(provider) : null;
-      if (fetcher && provider && target.connectionId) {
-        const quotaKey = `${provider}:${target.connectionId}`;
-        if (!quotaPromises.has(quotaKey)) {
-          quotaPromises.set(
-            quotaKey,
-            fetchResetAwareQuotaWithCache({
-              provider,
-              connectionId: target.connectionId,
-              connection: connectionById.get(target.connectionId),
-              fetcher,
-              config,
-              log,
-              comboName,
-            })
-          );
-        }
-        quota = await quotaPromises.get(quotaKey)!;
-      }
-
-      return {
-        target,
-        resetMs: getResetWindowTimestampMs(quota, config.windows),
-        index,
-      };
-    }
-  );
-
-  scoredTargets.sort((a, b) => {
-    if (a.resetMs !== b.resetMs) return a.resetMs - b.resetMs;
-    return a.index - b.index;
-  });
-
-  const bestResetMs = scoredTargets[0]?.resetMs ?? Infinity;
-  if (!Number.isFinite(bestResetMs) || config.tieBandMs <= 0) {
-    return scoredTargets.map((entry) => entry.target);
-  }
-
-  const tiedTargets = scoredTargets.filter(
-    (entry) => entry.resetMs - bestResetMs <= config.tieBandMs
-  );
-  if (tiedTargets.length <= 1) return scoredTargets.map((entry) => entry.target);
-
-  const key = `reset-window:${comboName}`;
-  const counter = rrCounters.get(key) || 0;
-  if (!rrCounters.has(key) && rrCounters.size >= MAX_RR_COUNTERS) {
-    const oldest = rrCounters.keys().next().value;
-    if (oldest !== undefined) rrCounters.delete(oldest);
-  }
-  rrCounters.set(key, counter + 1);
-  const startIndex = counter % tiedTargets.length;
-  const orderedTiedTargets = [
-    ...tiedTargets.slice(startIndex),
-    ...tiedTargets.slice(0, startIndex),
-  ];
-  const tiedExecutionKeys = new Set(orderedTiedTargets.map((entry) => entry.target.executionKey));
-
-  return [
-    ...orderedTiedTargets,
-    ...scoredTargets.filter((entry) => !tiedExecutionKeys.has(entry.target.executionKey)),
-  ].map((entry) => entry.target);
-}
-
-function toTextContent(content: unknown): string {
-  if (typeof content === "string") return content;
-  if (!Array.isArray(content)) return "";
-  return content
-    .map((part) => {
-      if (!isRecord(part)) return "";
-      if (typeof part.text === "string") return part.text;
-      return "";
-    })
-    .join("\n");
-}
-
-function extractPromptForIntent(body: Record<string, unknown> | null | undefined): string {
-  if (!body || typeof body !== "object") return "";
-
-  const fromMessages = Array.isArray(body.messages)
-    ? [...body.messages].reverse().find((m) => isRecord(m) && m.role === "user")
-    : null;
-  if (isRecord(fromMessages)) return toTextContent(fromMessages.content);
-
-  if (typeof body.input === "string") return body.input;
-  if (Array.isArray(body.input)) {
-    const text = body.input
-      .map((item) => {
-        if (!isRecord(item)) return "";
-        if (typeof item.content === "string") return item.content;
-        if (typeof item.text === "string") return item.text;
-        return "";
-      })
-      .filter(Boolean)
-      .join("\n");
-    if (text) return text;
-  }
-
-  if (typeof body.prompt === "string") return body.prompt;
-  return "";
-}
-
-function mapIntentToTaskType(intent: string): "coding" | "analysis" | "default" {
-  switch (intent) {
-    case "code":
-      return "coding";
-    case "reasoning":
-      return "analysis";
-    case "simple":
-      return "default";
-    case "medium":
-    default:
-      return "default";
-  }
-}
+// Bootstrap defaults from ClawRouter benchmark (used when no local latency history exists yet)
+const DEFAULT_MODEL_P95_MS: Record<string, number> = {
+  "grok-4-fast-non-reasoning": 1143,
+  "grok-4-1-fast-non-reasoning": 1244,
+  "gemini-2.5-flash": 1238,
+  "kimi-k2.5": 1646,
+  "gpt-4o-mini": 2764,
+  "claude-sonnet-4.6": 4000,
+  "claude-opus-4.6": 6000,
+  "deepseek-chat": 2000,
+};
+const MIN_HISTORY_SAMPLES = 10;
+// Assumed fraction of tokens that are output when blending input+output prices
+// for auto-combo cost scoring. 0.4 = 40% output, 60% input.
+// Matches the example in GitHub issue #1812 (e.g. o3-like model: $3 input/$15 output).
+const OUTPUT_TOKEN_RATIO = 0.4;
 
 function calculateTargetContextAffinity(
   target: ResolvedComboTarget,
@@ -1188,59 +931,12 @@ function calculateTargetContextAffinity(
   return 0.1;
 }
 
-function toStringArray(input: unknown): string[] {
-  if (Array.isArray(input)) {
-    return input.map((v) => (typeof v === "string" ? v.trim() : "")).filter(Boolean);
-  }
-  if (typeof input === "string") {
-    return input
-      .split(",")
-      .map((v) => v.trim())
-      .filter(Boolean);
-  }
-  return [];
-}
-
-function getIntentConfig(
-  settings: Record<string, unknown> | null | undefined,
-  combo: ComboLike
-): IntentClassifierConfig {
-  const resolvedSettings = settings || {};
-  const comboAutoConfig = combo?.autoConfig || {};
-  const comboConfigAuto = isRecord(combo?.config?.auto) ? combo.config.auto : {};
-  const comboIntentConfig =
-    (isRecord(comboAutoConfig.intentConfig) && comboAutoConfig.intentConfig) ||
-    (isRecord(comboConfigAuto.intentConfig) && comboConfigAuto.intentConfig) ||
-    (isRecord(combo?.config?.intentConfig) && combo.config.intentConfig) ||
-    {};
-
-  return {
-    ...DEFAULT_INTENT_CONFIG,
-    ...comboIntentConfig,
-    ...(typeof resolvedSettings.intentDetectionEnabled === "boolean"
-      ? { enabled: resolvedSettings.intentDetectionEnabled }
-      : {}),
-    ...(Number.isFinite(Number(resolvedSettings.intentSimpleMaxWords))
-      ? { simpleMaxWords: Number(resolvedSettings.intentSimpleMaxWords) }
-      : {}),
-    ...(toStringArray(resolvedSettings.intentExtraCodeKeywords).length > 0
-      ? { extraCodeKeywords: toStringArray(resolvedSettings.intentExtraCodeKeywords) }
-      : {}),
-    ...(toStringArray(resolvedSettings.intentExtraReasoningKeywords).length > 0
-      ? { extraReasoningKeywords: toStringArray(resolvedSettings.intentExtraReasoningKeywords) }
-      : {}),
-    ...(toStringArray(resolvedSettings.intentExtraSimpleKeywords).length > 0
-      ? { extraSimpleKeywords: toStringArray(resolvedSettings.intentExtraSimpleKeywords) }
-      : {}),
-  };
-}
-
 function getBootstrapLatencyMs(modelId: string): number {
   const normalized = String(modelId || "").toLowerCase();
   return DEFAULT_MODEL_P95_MS[normalized] ?? 1500;
 }
 
-async function buildAutoCandidates(
+export async function buildAutoCandidates(
   targets: ResolvedComboTarget[],
   comboName: string,
   sessionId: string | null | undefined = null,
@@ -1415,218 +1111,135 @@ async function buildAutoCandidates(
   return candidates;
 }
 
-async function applyRequestTagRouting(
+async function orderTargetsByResetWindow(
   targets: ResolvedComboTarget[],
-  body: Record<string, unknown> | null | undefined,
-  log: { info?: (...args: unknown[]) => void; warn?: (...args: unknown[]) => void }
-): Promise<ResolvedComboTarget[]> {
-  const { tags, matchMode } = resolveRequestRoutingTags(body);
-  if (tags.length === 0 || targets.length === 0) {
-    return targets;
-  }
-
-  const providerIds = Array.from(
-    new Set(targets.map((target) => target.providerId || target.provider))
-  ).filter(
-    (providerId): providerId is string => typeof providerId === "string" && providerId.length > 0
-  );
-  const providerConnections = new Map<string, Array<Record<string, unknown>>>();
-
-  await Promise.all(
-    providerIds.map(async (providerId) => {
-      try {
-        const connections = await getProviderConnections({ provider: providerId, isActive: true });
-        providerConnections.set(
-          providerId,
-          Array.isArray(connections) ? (connections as Array<Record<string, unknown>>) : []
-        );
-      } catch (error) {
-        log.warn?.(
-          "COMBO",
-          `Tag routing failed to load connections for provider=${providerId}: ${error instanceof Error ? error.message : String(error)}`
-        );
-        providerConnections.set(providerId, []);
-      }
-    })
-  );
-
-  const filteredTargets = targets.reduce<ResolvedComboTarget[]>((acc, target) => {
-    const providerKey = target.providerId || target.provider;
-    const candidateConnections =
-      providerConnections.get(providerKey)?.filter((connection) => {
-        const connectionId =
-          typeof connection.id === "string" && connection.id.trim().length > 0
-            ? connection.id
-            : null;
-        if (!connectionId) return false;
-        if (target.connectionId) {
-          return connectionId === target.connectionId;
-        }
-        return true;
-      }) || [];
-
-    const matchedConnectionIds = candidateConnections
-      .filter((connection) =>
-        matchesRoutingTags(
-          getConnectionRoutingTags(connection.providerSpecificData),
-          tags,
-          matchMode
-        )
-      )
-      .map((connection) => connection.id)
-      .filter((connectionId): connectionId is string => typeof connectionId === "string");
-
-    if (matchedConnectionIds.length === 0) {
-      return acc;
-    }
-
-    if (target.connectionId) {
-      acc.push(target);
-      return acc;
-    }
-
-    acc.push({
-      ...target,
-      allowedConnectionIds: Array.from(new Set(matchedConnectionIds)),
-    });
-    return acc;
-  }, []);
-
-  if (filteredTargets.length === 0) {
-    log.info?.(
-      "COMBO",
-      `Tag routing matched 0/${targets.length} targets for [${tags.join(", ")}] (${matchMode}); falling back to the full target set`
-    );
-    return targets;
-  }
-
-  log.info?.(
-    "COMBO",
-    `Tag routing matched ${filteredTargets.length}/${targets.length} targets for [${tags.join(", ")}] (${matchMode})`
-  );
-  return filteredTargets;
-}
-
-export function scoreAutoTargets(
-  targets: ResolvedComboTarget[],
-  candidates: AutoProviderCandidate[],
-  taskType: string | null,
-  weights: ScoringWeights,
-  manifestHint?: RoutingHint | null
+  comboName: string,
+  configSource: Record<string, unknown> | null | undefined,
+  log: { warn?: (...args: unknown[]) => void },
+  apiKeyAllowedConnectionIds?: string[] | null
 ) {
-  const candidateByExecutionKey = new Map(
-    candidates.map((candidate: ProviderCandidate & { executionKey: string }) => [
-      candidate.executionKey,
-      candidate,
-    ])
+  if (targets.length === 0) return targets;
+
+  const config = resolveResetWindowConfig(configSource);
+  const connectionCache = new Map<string, Array<Record<string, unknown>>>();
+  const connectionLoadPromises = new Map<string, Promise<Array<Record<string, unknown>>>>();
+  const quotaPromises = new Map<string, Promise<unknown>>();
+  const connectionById = new Map<string, Record<string, unknown>>();
+  const expandedTargets: ResolvedComboTarget[] = [];
+
+  const targetsWithConnections = await Promise.all(
+    targets.map(async (target) => ({
+      connections: await getQuotaAwareConnectionsForTarget(
+        target,
+        connectionCache,
+        connectionLoadPromises,
+        comboName,
+        log
+      ),
+      target,
+    }))
   );
-  return targets
-    .map((target) => {
-      const candidate = candidateByExecutionKey.get(target.executionKey);
-      if (!candidate) return null;
-      const factors = calculateFactors(
-        candidate as ProviderCandidate,
-        candidates,
-        taskType ?? "general",
-        getTaskFitness,
-        manifestHint ?? undefined
-      );
-      let score = calculateScore(factors, weights);
-      // B17: Quota Share soft-policy deprioritization
-      if ("quotaSoftPenalty" in candidate && candidate.quotaSoftPenalty === true) {
-        score *= QUOTA_SOFT_DEPRIORITIZE_FACTOR;
+
+  for (const { target, connections } of targetsWithConnections) {
+    for (const connection of connections) {
+      if (typeof connection.id === "string") connectionById.set(connection.id, connection);
+    }
+
+    const unrestrictedConnectionIds = getTargetConnectionIds(target, connections);
+    const connectionIds = filterAllowedConnectionIds(
+      unrestrictedConnectionIds,
+      apiKeyAllowedConnectionIds
+    );
+    if (connectionIds.length === 0) {
+      if (
+        unrestrictedConnectionIds.length > 0 &&
+        normalizeConnectionIds(apiKeyAllowedConnectionIds)
+      ) {
+        continue;
       }
+      expandedTargets.push(target);
+      continue;
+    }
+
+    for (const connectionId of connectionIds) {
+      expandedTargets.push({
+        ...target,
+        connectionId,
+        executionKey:
+          target.connectionId === connectionId
+            ? target.executionKey
+            : `${target.executionKey}@${connectionId}`,
+      });
+    }
+  }
+
+  const scoredTargets = await mapWithConcurrency(
+    expandedTargets,
+    RESET_AWARE_QUOTA_FETCH_CONCURRENCY,
+    async (target, index) => {
+      let quota: unknown = null;
+      const provider = getResetAwareProvider(target);
+      const fetcher = provider ? getQuotaFetcher(provider) : null;
+      if (fetcher && provider && target.connectionId) {
+        const quotaKey = `${provider}:${target.connectionId}`;
+        if (!quotaPromises.has(quotaKey)) {
+          quotaPromises.set(
+            quotaKey,
+            fetchResetAwareQuotaWithCache({
+              provider,
+              connectionId: target.connectionId,
+              connection: connectionById.get(target.connectionId),
+              fetcher,
+              config,
+              log,
+              comboName,
+            })
+          );
+        }
+        quota = await quotaPromises.get(quotaKey)!;
+      }
+
       return {
         target,
-        score,
+        resetMs: getResetWindowTimestampMs(quota, config.windows),
+        index,
       };
-    })
-    .filter((entry): entry is { target: ResolvedComboTarget; score: number } => entry !== null)
-    .sort((a, b) => b.score - a.score);
-}
-
-/**
- * For an auto-combo WITHOUT an explicit `candidatePool`, broaden the eligible
- * targets to every model of every active provider connection so the router has
- * the full pool to score over. Already-present `modelStr`s are not duplicated.
- *
- * Best-effort: if loading active connections or provider models throws, the
- * explicitly-resolved targets are returned unchanged (the combo still runs).
- * Exported for unit testing. Mutates and returns `eligibleTargets`.
- */
-export async function expandAutoComboCandidatePool(
-  eligibleTargets: ResolvedComboTarget[],
-  combo: { autoConfig?: unknown; config?: unknown } | null | undefined
-): Promise<ResolvedComboTarget[]> {
-  const localAutoConfig =
-    (combo?.autoConfig as Record<string, unknown> | undefined) ||
-    (isRecord((combo?.config as Record<string, unknown>)?.auto)
-      ? ((combo?.config as Record<string, unknown>).auto as Record<string, unknown>)
-      : null) ||
-    (combo?.config as Record<string, unknown> | undefined) ||
-    {};
-
-  if (Array.isArray(localAutoConfig?.candidatePool) && localAutoConfig.candidatePool.length > 0)
-    return eligibleTargets;
-
-  try {
-    const allConnections = await getProviderConnections({ isActive: true });
-    const providerIds = [
-      ...new Set(
-        (allConnections as Array<{ provider?: unknown }>)
-          .map((c) => c.provider)
-          .filter((p): p is string => typeof p === "string" && p.length > 0)
-      ),
-    ];
-    for (const providerId of providerIds) {
-      const providerModels = getProviderModels(providerId);
-      for (const model of providerModels) {
-        const modelStr = `${providerId}/${model.id}`;
-        if (!eligibleTargets.some((t) => t.modelStr === modelStr)) {
-          eligibleTargets.push({
-            kind: "model",
-            stepId: modelStr,
-            executionKey: modelStr,
-            provider: providerId,
-            providerId: providerId,
-            modelStr,
-            weight: 1,
-            connectionId: null,
-            label: null,
-          });
-        }
-      }
     }
-  } catch {
-    // Best-effort candidate expansion only: if loading active connections or
-    // provider models fails, fall back to the explicitly-resolved targets
-    // rather than aborting the combo. The push above is the only mutation,
-    // so a throw leaves eligibleTargets exactly as explicit resolution built it.
+  );
+
+  scoredTargets.sort((a, b) => {
+    if (a.resetMs !== b.resetMs) return a.resetMs - b.resetMs;
+    return a.index - b.index;
+  });
+
+  const bestResetMs = scoredTargets[0]?.resetMs ?? Infinity;
+  if (!Number.isFinite(bestResetMs) || config.tieBandMs <= 0) {
+    return scoredTargets.map((entry) => entry.target);
   }
 
-  return eligibleTargets;
-}
+  const tiedTargets = scoredTargets.filter(
+    (entry) => entry.resetMs - bestResetMs <= config.tieBandMs
+  );
+  if (tiedTargets.length <= 1) return scoredTargets.map((entry) => entry.target);
 
-/**
- * Derive a STABLE per-conversation session key for combo context-cache pinning when
- * the client did not provide an explicit session id (#3825).
- *
- * Most OpenAI-compatible clients send no session id, so the server-side pin added by
- * #3399 (gated on `relayOptions?.sessionId`) never engaged → combos rotated every turn,
- * causing upstream prompt-cache misses, cold high-reasoning starts and intermittent
- * 504s. We reuse `extractSessionAffinityKey(body)` (the same conversation fingerprint
- * used for codex failover affinity), which hashes the first user/system message — stable
- * across turns of the same conversation and identical on turn 2 of a continued chat.
- *
- * Returns null when no stable fingerprint is available (e.g. empty body), in which case
- * the caller falls back to NO pinning — preserving prior behavior rather than guessing.
- */
-function deriveComboSessionKey(body: Record<string, unknown>): string | null {
-  try {
-    return extractSessionAffinityKey(body) ?? null;
-  } catch {
-    return null;
+  const key = `reset-window:${comboName}`;
+  const counter = rrCounters.get(key) || 0;
+  if (!rrCounters.has(key) && rrCounters.size >= MAX_RR_COUNTERS) {
+    const oldest = rrCounters.keys().next().value;
+    if (oldest !== undefined) rrCounters.delete(oldest);
   }
+  rrCounters.set(key, counter + 1);
+  const startIndex = counter % tiedTargets.length;
+  const orderedTiedTargets = [
+    ...tiedTargets.slice(startIndex),
+    ...tiedTargets.slice(0, startIndex),
+  ];
+  const tiedExecutionKeys = new Set(orderedTiedTargets.map((entry) => entry.target.executionKey));
+
+  return [
+    ...orderedTiedTargets,
+    ...scoredTargets.filter((entry) => !tiedExecutionKeys.has(entry.target.executionKey)),
+  ].map((entry) => entry.target);
 }
 
 /**
