@@ -17,6 +17,7 @@ import pino from "pino";
 import { resolve } from "path";
 import { getLogConfig, initLogRotation } from "@/lib/logRotation";
 import { getAppLogLevel } from "@/lib/logEnv";
+import { redactLogArgs } from "@/shared/utils/logRedaction";
 
 const isDev = process.env.NODE_ENV !== "production";
 
@@ -27,6 +28,13 @@ const baseConfig: pino.LoggerOptions = {
   formatters: {
     level(label: string) {
       return { level: label };
+    },
+  },
+  // Final defense-in-depth redaction net: runs in the main thread (transport-safe) and
+  // scrubs credentials that slip into any log message/object/error. See logRedaction.ts.
+  hooks: {
+    logMethod(inputArgs: unknown[], method: (...args: unknown[]) => void) {
+      return (method as (...a: unknown[]) => void).apply(this, redactLogArgs(inputArgs));
     },
   },
 };
