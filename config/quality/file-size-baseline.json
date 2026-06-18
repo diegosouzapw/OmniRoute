@@ -1,5 +1,6 @@
 {
   "_comment": "Catraca de tamanho (check-file-size.mjs). frozen so pode encolher; arquivos novos <= cap. --update ratcheta.",
+  "_rebaseline_2026_06_18_3931_qwen_web_models": "Issue #3931 (Problem #3) own growth: providers/[id]/models/route.ts 2512->2531 (+19 = one PROVIDER_MODELS_CONFIG entry for `qwen-web` + a 4-line comment). qwen-web was missing from the config map so its model-discovery page returned nothing (the OAuth fallback only fires for provider===qwen). Pure additive config entry pointing at the public chat.qwen.ai/api/v2/models endpoint; standard per-provider addition, not extractable.",
   "_rebaseline_2026_06_18_4165_queue_timeout_msg": "Issue #4165 own growth: rateLimitManager.ts 1022->1035 (+13 at the existing withRateLimit catch chokepoint). Bottleneck's raw `This job timed out after <maxWaitMs> ms.` is rewritten into a clear OmniRoute-owned error (names resilienceSettings.requestQueue.maxWaitMs, disclaims upstream, keeps the original as `cause`, tags code=RATE_LIMIT_QUEUE_TIMEOUT) so queue-saturation 502s stop masquerading as provider outages. The branch already existed (it only logged); this adds the error construction at the same point. Not extractable — closes over provider/model/maxWaitMs locals of the single catch.",
   "_rebaseline_2026_06_18_8_2_sliding_window": "Fase 8.2 own growth: rateLimitManager.ts 1017->1022 (+5 = one import + one `await awaitProviderDefaultSlot(...)` call + a 2-line comment at the existing withRateLimit chokepoint). All sliding-window logic was extracted to the new open-sse/services/providerDefaultRateLimit.ts + open-sse/services/slidingWindowLimiter.ts (both <cap), NOT inlined. Thin wiring only; not further shrinkable.",
   "_rebaseline_2026_06_18_8_1_no_thinking_alias": "Fase 8.1 own growth: catalog.ts 1435->1440 (+5 = appendNoThinkingVariants(finalModels) call + comment at the existing finalModels chokepoint) and chat.ts 1458->1471 (+13 = applyNoThinkingAlias(body) call + comment right after body.model is read, before model resolution). All real logic lives in the new open-sse/utils/noThinkingAlias.ts (<cap); both edits are thin wiring of tested helpers at the single correct integration point in each file. Not extractable.",
@@ -110,7 +111,7 @@
     "src/app/(dashboard)/dashboard/usage/components/EvalsTab.tsx": 2148,
     "src/app/(dashboard)/dashboard/usage/components/ProviderLimits/index.tsx": 1069,
     "src/app/api/oauth/[provider]/[action]/route.ts": 918,
-    "src/app/api/providers/[id]/models/route.ts": 2512,
+    "src/app/api/providers/[id]/models/route.ts": 2531,
     "src/app/api/providers/[id]/test/route.ts": 842,
     "src/app/api/usage/analytics/route.ts": 941,
     "src/app/api/v1/models/catalog.ts": 1440,
