@@ -19,9 +19,14 @@ export function smartFilterText(text: string, config: McpAccessibilityConfig): s
   );
 
   if (out.length > config.maxTextChars) {
-    const headSize = config.maxTextChars - 300;
+    // Clamp to >=0: a maxTextChars below the 300-char tail reservation would make headSize
+    // negative, and slice(0, negative) counts from the END — silently keeping a wrong,
+    // oversized fragment instead of the intended head.
+    const headSize = Math.max(0, config.maxTextChars - 300);
     const head = out.slice(0, headSize);
-    const omitted = text.length - head.length;
+    // Measure omitted against the FILTERED text (out), not the raw input (text), which may
+    // have shrunk via noise removal / collapse above.
+    const omitted = out.length - head.length;
     out =
       `${head}\n\n... [truncated ${omitted} chars by OmniRoute MCP filter. ` +
       `Page is large; ask user to scroll/navigate to a specific section, or click an element with the refs shown above]`;
