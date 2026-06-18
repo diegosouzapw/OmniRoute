@@ -24,10 +24,16 @@ const DDG_USER_AGENT =
 
 // Real lite shape: `<a ... href="URL" class='result-link'>Title</a>` (href usually
 // before class; quotes may be single or double) and `<td class='result-snippet'>…</td>`.
-const ANCHOR_RE = /<a\b([^>]*?class=['"][^'"]*result-link[^'"]*['"][^>]*)>([\s\S]*?)<\/a>/gi;
+// The inner-content captures are HARD-BOUNDED ({0,N}?) and the whole body is truncated
+// (MAX_HTML_BYTES) so adversarial/unclosed HTML can't cause catastrophic backtracking
+// (ReDoS) — real titles/snippets are short. See CLAUDE.md PII learnings §1.
+const ANCHOR_RE =
+  /<a\b([^>]*?class=['"][^'"]*result-link[^'"]*['"][^>]*)>([\s\S]{0,512}?)<\/a>/gi;
 const HREF_RE = /href=['"]([^'"]+)['"]/i;
 const SNIPPET_RE =
-  /<td\b[^>]*?class=['"][^'"]*result-snippet[^'"]*['"][^>]*>([\s\S]*?)<\/td>/gi;
+  /<td\b[^>]*?class=['"][^'"]*result-snippet[^'"]*['"][^>]*>([\s\S]{0,2048}?)<\/td>/gi;
+// Generous cap for the lite endpoint (~50 KB real) — bounds the regex input size.
+const MAX_HTML_BYTES = 256 * 1024;
 
 function decodeEntities(text: string): string {
   return text
@@ -43,19 +49,26 @@ function stripTags(html: string): string {
   return decodeEntities(html.replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim();
 }
 
-/** Resolve a lite result href to a real absolute URL. */
+/**
+ * Resolve a lite result href to a real absolute URL. Returns "" for anything that
+ * is not a plain http(s) URL — the decoded `uddg` value is external data, so we must
+ * never surface a `javascript:`/`data:`/`file:`/internal-IP URL to the caller (LLM
+ * or client); the parser skips empty URLs.
+ */
 function resolveResultUrl(href: string): string {
+  let candidate = href;
   // Older/HTML endpoints wrap the target in a redirect: //duckduckgo.com/l/?uddg=<enc>&…
   const redirect = href.match(/[?&]uddg=([^&]+)/);
   if (redirect) {
     try {
-      return decodeURIComponent(redirect[1]);
+      candidate = decodeURIComponent(redirect[1]);
     } catch {
-      // malformed encoding — fall through to the raw href
+      candidate = href; // malformed encoding — fall back to the raw href
     }
+  } else if (href.startsWith("//")) {
+    candidate = `https:${href}`;
   }
-  if (href.startsWith("//")) return `https:${href}`;
-  return href;
+  return /^https?:\/\//i.test(candidate) ? candidate : "";
 }
 
 /**
@@ -63,8 +76,10 @@ function resolveResultUrl(href: string): string {
  * fully unit-testable. Result link N aligns with snippet N (the lite layout emits
  * them 1:1); a missing snippet yields an empty string rather than a crash.
  */
-export function parseDuckDuckGoLite(html: string): FreeSearchResult[] {
-  if (!html) return [];
+export function parseDuckDuckGoLite(rawHtml: string): FreeSearchResult[] {
+  if (!rawHtml) return [];
+  // Bound the regex input size as the first ReDoS guard.
+  const html = rawHtml.length > MAX_HTML_BYTES ? rawHtml.slice(0, MAX_HTML_BYTES) : rawHtml;
 
   const snippets = [...html.matchAll(SNIPPET_RE)].map((m) => stripTags(m[1]));
   const results: FreeSearchResult[] = [];
@@ -105,7 +120,9 @@ export async function freeWebSearch(
     },
     body: new URLSearchParams({ q: query }).toString(),
     guard: "public-only",
-    allowRedirect: true,
+    // Keep redirects manual: the public-only guard only validates the initial URL,
+    // so following a 3xx could reach an internal host. DDG lite answers POST with 200.
+    allowRedirect: false,
     timeoutMs,
   });
 

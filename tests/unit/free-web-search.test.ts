@@ -68,6 +68,27 @@ test("parseDuckDuckGoLite returns [] when there are no result links", () => {
   assert.deepEqual(parseDuckDuckGoLite(""), []);
 });
 
+test("parseDuckDuckGoLite drops non-http(s) result URLs (javascript:/data:/file:)", () => {
+  const html = `<a href="javascript:alert(1)" class='result-link'>XSS</a>
+    <td class='result-snippet'>bad</td>
+    <a href="https://ok.example.com" class='result-link'>Safe</a>
+    <td class='result-snippet'>good</td>`;
+  const results = parseDuckDuckGoLite(html);
+  assert.equal(results.length, 1, "the javascript: link must be discarded");
+  assert.equal(results[0].url, "https://ok.example.com");
+  assert.doesNotMatch(JSON.stringify(results), /javascript:/);
+});
+
+test("parseDuckDuckGoLite is bounded on adversarial HTML (no catastrophic backtracking)", () => {
+  // Many unclosed result-link anchors + a huge filler tail must return promptly.
+  const pathological =
+    `<a href="https://x.com" class='result-link'>`.repeat(2000) + "x".repeat(2_000_000);
+  const start = Date.now();
+  const results = parseDuckDuckGoLite(pathological);
+  assert.ok(Date.now() - start < 1000, "must not hang on adversarial HTML");
+  assert.ok(Array.isArray(results));
+});
+
 test("parseDuckDuckGoLite tolerates a missing snippet (empty string, not crash)", () => {
   const html = `<a href="https://x.com" class='result-link'>Only a link</a>`;
   const results = parseDuckDuckGoLite(html);
