@@ -8,6 +8,10 @@
 
 _In development — bullets added per PR; finalized at release._
 
+### 🐛 Fixed
+
+- **fix(sse): restore MCP / third-party tool names on the native Claude path (MCP dispatch broken in Claude Code)** — since 3.8.27, every MCP tool call routed through OmniRoute to a native Claude OAuth provider failed client-side with `Error: No such tool available: <PascalCaseName>`: tool schemas arrived fine but the streamed `tool_use.name` reached Claude Code in its cloaked form (e.g. `McpN8nMcpSearchWorkflows` instead of the registered `mcp__n8n-mcp__search_workflows`). The native-Claude tool-name cloak stashes its per-request alias→original map as a **non-enumerable** `_toolNameMap` on the request body; the request-inspector capture added in 3.8.27 rebuilds the captured body from its serialized form (`JSON.parse(JSON.stringify(...))`), which drops non-enumerable properties, so `finalBody._toolNameMap` was empty and the response-side un-cloak silently fell back to the static built-in map — never restoring dynamic MCP / snake_case names. Built-in tools (Bash/Read/…) were unaffected (static map); cross-format paths were unaffected (they attach the map enumerably). The provider-request capture now re-attaches the per-request map (kept non-enumerable, so it still never re-serializes upstream) when the captured copy lost it, restoring MCP tool dispatch. ([#4091](https://github.com/diegosouzapw/OmniRoute/issues/4091) — thanks @pedrotecinf, @NakHalal)
+
 ---
 
 ## [3.8.28] — 2026-06-17
