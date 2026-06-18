@@ -26,14 +26,14 @@ function recorder(failOnIndex = -1) {
   return { calls, run };
 }
 
-test("applyTproxy runs the 3 apply commands in order via the injected runner", async () => {
+test("applyTproxy runs the 4 OUTPUT-based apply commands in order via the injected runner", async () => {
   const r = recorder();
   await applyTproxy(CFG, r.run);
-  assert.equal(r.calls.length, 3);
-  assert.equal(r.calls[0].bin, "iptables");
-  assert.deepEqual(r.calls[0].args.slice(0, 4), ["-t", "mangle", "-A", "PREROUTING"]);
-  assert.deepEqual(r.calls[1], { bin: "ip", args: ["rule", "add", "fwmark", "1", "lookup", "100"] });
-  assert.equal(r.calls[2].args[0], "route");
+  assert.equal(r.calls.length, 4);
+  assert.deepEqual(r.calls[0], { bin: "ip", args: ["rule", "add", "fwmark", "1", "lookup", "100"] });
+  assert.equal(r.calls[1].args[0], "route");
+  assert.deepEqual(r.calls[2].args.slice(0, 4), ["-t", "mangle", "-A", "OUTPUT"]);
+  assert.deepEqual(r.calls[3].args.slice(0, 4), ["-t", "mangle", "-A", "PREROUTING"]);
 });
 
 test("applyTproxy rejects an invalid config before running anything", async () => {
@@ -43,21 +43,20 @@ test("applyTproxy rejects an invalid config before running anything", async () =
 });
 
 test("applyTproxy runs a best-effort full revert when a command fails mid-way", async () => {
-  const r = recorder(1); // fail on the 2nd apply command (ip rule add)
+  const r = recorder(1); // fail on the 2nd apply command (ip route add)
   await assert.rejects(() => applyTproxy(CFG, r.run), /boom/);
-  // apply[0], apply[1]=fail, then the 3 revert commands (best-effort cleanup)
-  assert.equal(r.calls.length, 5);
-  assert.deepEqual(r.calls[2], {
-    bin: "ip",
-    args: ["route", "del", "local", "default", "dev", "lo", "table", "100"],
-  });
-  assert.deepEqual(r.calls[4].args.slice(0, 4), ["-t", "mangle", "-D", "PREROUTING"]);
+  // apply[0], apply[1]=fail, then the 4 revert commands (best-effort cleanup) = 6
+  assert.equal(r.calls.length, 6);
+  // first revert command tears down the PREROUTING rule (reverse order)
+  assert.deepEqual(r.calls[2].args.slice(0, 4), ["-t", "mangle", "-D", "PREROUTING"]);
+  // last revert command removes the ip rule
+  assert.deepEqual(r.calls[5], { bin: "ip", args: ["rule", "del", "fwmark", "1", "lookup", "100"] });
 });
 
-test("revertTproxy runs all 3 reverts best-effort even if one fails (idempotent)", async () => {
+test("revertTproxy runs all 4 reverts best-effort even if one fails (idempotent)", async () => {
   const r = recorder(1); // 2nd revert throws (e.g. rule not present)
   await revertTproxy(CFG, r.run); // must NOT throw
-  assert.equal(r.calls.length, 3, "all three reverts attempted despite the failure");
+  assert.equal(r.calls.length, 4, "all four reverts attempted despite the failure");
 });
 
 test("every command the runner receives has string args (execFile-safe)", async () => {
