@@ -1717,6 +1717,29 @@ export async function handleChatCore({
           model: effectiveModel,
           config: compressionConfig,
           principalId: apiKeyInfo?.id ? String(apiKeyInfo.id) : undefined,
+          // F3.3: stream per-engine progress live (best-effort) before compression.completed.
+          onEngineStep: (s) => {
+            try {
+              const stepPayload = {
+                requestId: traceId,
+                comboId: null,
+                mode,
+                stepIndex: s.stepIndex,
+                totalSteps: s.totalSteps,
+                engine: s.engine,
+                state: s.state,
+                originalTokens: s.originalTokens,
+                compressedTokens: s.compressedTokens,
+                savingsPercent: s.savingsPercent,
+                ...(s.durationMs !== undefined ? { durationMs: s.durationMs } : {}),
+                timestamp: Date.now(),
+              };
+              emit("compression.step", stepPayload);
+              void forwardDashboardEventToLiveWs("compression.step", stepPayload);
+            } catch (_stepErr) {
+              // best-effort live event — never fail the request
+            }
+          },
         });
         if (result.stats) {
           if (result.compressed) {

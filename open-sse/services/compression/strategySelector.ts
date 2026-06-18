@@ -222,6 +222,7 @@ export async function applyCompressionAsync(
     supportsVision?: boolean | null;
     config?: CompressionConfig;
     principalId?: string;
+    onEngineStep?: (step: StackedCompressionStep) => void;
   }
 ): Promise<CompressionResult> {
   if (mode === "stacked") {
@@ -256,6 +257,18 @@ interface BailoutConfig {
   minGainPercent?: number;
 }
 
+/** Per-engine progress emitted mid-pipeline by the stacked loops (F3.3 live streaming). */
+export interface StackedCompressionStep {
+  stepIndex: number;
+  totalSteps: number;
+  engine: string;
+  state: "done" | "skipped";
+  originalTokens: number;
+  compressedTokens: number;
+  savingsPercent: number;
+  durationMs?: number;
+}
+
 interface StackOptions {
   model?: string;
   supportsVision?: boolean | null;
@@ -265,6 +278,30 @@ interface StackOptions {
   bailout?: BailoutConfig;
   /** Authenticated principal id — threaded through to CCR engine for store scoping. */
   principalId?: string;
+  /** F3.3: called once per engine as it completes (live per-engine streaming). */
+  onEngineStep?: (step: StackedCompressionStep) => void;
+}
+
+/** Emit a per-engine step to the live streaming callback (best-effort, no-op when unset). */
+function reportEngineStep(
+  onStep: ((step: StackedCompressionStep) => void) | undefined,
+  stepIndex: number,
+  totalSteps: number,
+  engine: string,
+  result: CompressionResult
+): void {
+  if (!onStep) return;
+  const s = result.stats;
+  onStep({
+    stepIndex,
+    totalSteps,
+    engine,
+    state: result.compressed ? "done" : "skipped",
+    originalTokens: s?.originalTokens ?? 0,
+    compressedTokens: s?.compressedTokens ?? s?.originalTokens ?? 0,
+    savingsPercent: s?.savingsPercent ?? 0,
+    ...(s?.durationMs !== undefined ? { durationMs: s.durationMs } : {}),
+  });
 }
 
 /** Accumulates per-step telemetry across a stacked run (shared sync/async). */
@@ -406,6 +443,9 @@ export function applyStackedCompression(
   const start = performance.now();
 
   const bailout = options?.bailout;
+  const onStep = options?.onEngineStep;
+  const totalSteps = steps.length;
+  let stepIdx = 0;
 
   for (const step of steps) {
     const engine = getCompressionEngine(step.engine);
@@ -438,6 +478,7 @@ export function applyStackedCompression(
         currentBody = result.body;
         compressed = true;
       }
+      reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
     }
   }
 
@@ -471,6 +512,9 @@ export async function applyStackedCompressionAsync(
   const start = performance.now();
 
   const bailout = options?.bailout;
+  const onStep = options?.onEngineStep;
+  const totalSteps = steps.length;
+  let stepIdx = 0;
 
   for (const step of steps) {
     const engine = getCompressionEngine(step.engine);
@@ -507,6 +551,7 @@ export async function applyStackedCompressionAsync(
         currentBody = result.body;
         compressed = true;
       }
+      reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
     }
   }
 
