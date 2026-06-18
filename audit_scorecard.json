@@ -1,0 +1,387 @@
+{
+  "repo": "OmniRoute",
+  "overall": 52,
+  "grade": "D+",
+  "scores": {
+    "L1 Architecture": 0,
+    "L2 Dev Loop": 10,
+    "L3 Agent Loop": 40,
+    "L4 Observability": 65,
+    "L5 Security": 100,
+    "L6 Performance": 25,
+    "L7 Extensibility": 25,
+    "L8 Compliance": 30,
+    "L9 Complexity": 100,
+    "L10 Type Safety": 50,
+    "L11 Dependencies": 40,
+    "L12 Error Handling": 55,
+    "L13 Logging": 55,
+    "L14 Data Layer": 70,
+    "L15 API Surface": 50,
+    "L16 Frontend": 90,
+    "L17 I18n/A11y": 45,
+    "L18 Concurrency": 60,
+    "L19 Memory": 45,
+    "L20 Config": 50,
+    "L21 Testing Depth": 40,
+    "L22 Fuzzing": 35,
+    "L23 Release": 75,
+    "L24 Migration": 50,
+    "L25 Vendor Lockin": 100,
+    "L26 Event Driven": 55,
+    "L27 Infrastructure": 75,
+    "L28 Cost Efficiency": 55,
+    "L29 Monitoring": 30,
+    "L30 Onboarding": 40
+  },
+  "details": {
+    "L1 Architecture": {
+      "details": "No source files found.",
+      "raw": {}
+    },
+    "L2 Dev Loop": {
+      "details": "0 test files, 0 collected, 0 errors.",
+      "raw": {}
+    },
+    "L3 Agent Loop": {
+      "details": "CLI: MISSING. CI: 4 workflows.",
+      "raw": {}
+    },
+    "L4 Observability": {
+      "details": "Docs: 6/8 canonical files.",
+      "raw": {}
+    },
+    "L5 Security": {
+      "details": "Secret-like patterns: 0.",
+      "raw": {}
+    },
+    "L6 Performance": {
+      "details": "Async defs: 0, awaits: 0.",
+      "raw": {}
+    },
+    "L7 Extensibility": {
+      "details": "0 source files. Config: 0 features.",
+      "raw": {}
+    },
+    "L8 Compliance": {
+      "details": "Commits: 20. SSOT: False.",
+      "raw": {}
+    },
+    "L9 Complexity": {
+      "details": "Long funcs: 0, nested blocks: 0, branches: 0.",
+      "raw": {}
+    },
+    "L10 Type Safety": {
+      "details": "Type coverage: 0/0 (0%). Dataclasses: 0.",
+      "raw": {}
+    },
+    "L11 Dependencies": {
+      "details": "Lock: False, Requirements: False.",
+      "raw": {}
+    },
+    "L12 Error Handling": {
+      "details": "Try blocks: 0, bare excepts: 0, custom exceptions: 0, retry: 0.",
+      "raw": {}
+    },
+    "L13 Logging": {
+      "details": "Logger imports: 0, structured: 0.",
+      "raw": {}
+    },
+    "L14 Data Layer": {
+      "details": "ORM: 0, Migrations: 0, Redis: 0, SQLite: 0.",
+      "raw": {}
+    },
+    "L15 API Surface": {
+      "details": "FastAPI: 0, Flask: 0, Endpoints: 0, OpenAPI: 0.",
+      "raw": {}
+    },
+    "L16 Frontend": {
+      "details": "HTML: 9, JS: 30465, CSS: 9, Templates: 0, React: 1206.",
+      "raw": {}
+    },
+    "L17 I18n/A11y": {
+      "details": "Locale files: 0, gettext: 0, aria: 0.",
+      "raw": {}
+    },
+    "L18 Concurrency": {
+      "details": "Threading: 0, MP: 0, Locks: 0, Queue: 0.",
+      "raw": {}
+    },
+    "L19 Memory": {
+      "details": "Context managers: 0, GC: 0, Weakref: 0, Cleanup: 0.",
+      "raw": {}
+    },
+    "L20 Config": {
+      "details": "Env refs: 0, Dotenv: 0, Pydantic: 0, Config files: 243.",
+      "raw": {}
+    },
+    "L21 Testing Depth": {
+      "details": "Parametrize: 0, Fixtures: 0, Mock: 0, Patch: 0.",
+      "raw": {}
+    },
+    "L22 Fuzzing": {
+      "details": "Hypothesis: 0, Fuzzing: 0, Property tests: 0.",
+      "raw": {}
+    },
+    "L23 Release": {
+      "details": "Version file: False, Tags: 287, Semver: 287, Changelog: True.",
+      "raw": {}
+    },
+    "L24 Migration": {
+      "details": "Deprecated: 0, Warnings: 0, Migrations: 0.",
+      "raw": {}
+    },
+    "L25 Vendor Lockin": {
+      "details": "AWS: 0, Azure: 0, GCP: 0, Generic: 0.",
+      "raw": {}
+    },
+    "L26 Event Driven": {
+      "details": "Event bus: 0, Queue: 0, Pubsub: 0, Kafka: 0, Celery: 0.",
+      "raw": {}
+    },
+    "L27 Infrastructure": {
+      "details": "Docker: 1, Compose: 36, K8s: 0, Terraform: 0.",
+      "raw": {}
+    },
+    "L28 Cost Efficiency": {
+      "details": "Batching: 0, N+1: 0, Bulk: 0, Pagination: 0.",
+      "raw": {}
+    },
+    "L29 Monitoring": {
+      "details": "Prometheus: 0, Health: 0, Tracing: 0, Metrics: 0, SLO: 0.",
+      "raw": {}
+    },
+    "L30 Onboarding": {
+      "details": "Makefile: 0, Devcontainer: 0, Setup: 0, README: 1.",
+      "raw": {}
+    }
+  },
+  "raw": {
+    "source": {
+      "total": 0,
+      "over_500": 0,
+      "over_350": 0,
+      "oversized_files": []
+    },
+    "tests": {
+      "total": 0,
+      "unit": 0,
+      "integration": 0,
+      "e2e": 0,
+      "files": []
+    },
+    "collection": {
+      "collected": 0,
+      "errors": 0,
+      "timeout": false,
+      "raw_output": ""
+    },
+    "cli": {
+      "exists": false,
+      "cmd": null,
+      "has_subcommands": false,
+      "help_length": 0
+    },
+    "docs": {
+      "has_docs_dir": true,
+      "files": {
+        "README": true,
+        "ARCHITECTURE": false,
+        "SSOT": false,
+        "CLAUDE": true,
+        "AGENTS": true,
+        "CONTRIBUTING": true,
+        "CHANGELOG": true,
+        "LICENSE": true
+      }
+    },
+    "security": {
+      "hardcoded_api_key": 0,
+      "hardcoded_secret": 0,
+      "hardcoded_password": 0,
+      "hardcoded_token": 0
+    },
+    "benchmarks": {
+      "has_benchmarks": false,
+      "has_contract_smoke": false,
+      "has_context7_smoke": false,
+      "has_check_regression": false
+    },
+    "async": {
+      "async_def": 0,
+      "await": 0,
+      "asyncio_import": 0,
+      "httpx_import": 0,
+      "aiohttp_import": 0
+    },
+    "pyproject": {
+      "exists": false
+    },
+    "git": {
+      "has_git": true,
+      "recent_commits": 20,
+      "has_merge_commits": true
+    },
+    "ci": {
+      "has_github_actions": true,
+      "workflow_files": [
+        "release.yml",
+        "audit.yml",
+        "ci.yml",
+        "scorecard.yml"
+      ],
+      "has_precommit": true
+    },
+    "complexity": {
+      "long_functions": 0,
+      "nested_blocks": 0,
+      "branches": 0
+    },
+    "type_safety": {
+      "annotated_funcs": 0,
+      "total_funcs": 0,
+      "dataclasses": 0,
+      "protocols": 0,
+      "typeddicts": 0,
+      "generics": 0
+    },
+    "dependencies": {
+      "has_lock": false,
+      "has_requirements": false,
+      "has_constraints": false,
+      "dep_count": 0
+    },
+    "error_handling": {
+      "try_blocks": 0,
+      "bare_excepts": 0,
+      "custom_exceptions": 0,
+      "retry_decorators": 0
+    },
+    "logging": {
+      "logger_imports": 0,
+      "structured_logging": 0
+    },
+    "data_layer": {
+      "orm_refs": 0,
+      "migration_files": 0,
+      "redis_refs": 0,
+      "sqlite_refs": 0
+    },
+    "api_surface": {
+      "fastapi": 0,
+      "flask": 0,
+      "endpoints": 0,
+      "openapi": 0
+    },
+    "frontend": {
+      "html_files": 9,
+      "js_files": 30465,
+      "css_files": 9,
+      "templates": 0,
+      "react_components": 1206
+    },
+    "i18n_a11y": {
+      "locale_files": 0,
+      "gettext_refs": 0,
+      "aria_refs": 0
+    },
+    "concurrency": {
+      "threading_refs": 0,
+      "multiprocessing_refs": 0,
+      "lock_refs": 0,
+      "queue_refs": 0
+    },
+    "memory": {
+      "context_managers": 0,
+      "gc_refs": 0,
+      "weakref_refs": 0,
+      "cleanup_refs": 0
+    },
+    "config": {
+      "env_refs": 0,
+      "dotenv_refs": 0,
+      "pydantic_settings": 0,
+      "config_files": 243
+    },
+    "testing_depth": {
+      "parametrize": 0,
+      "fixtures": 0,
+      "mock": 0,
+      "patch": 0
+    },
+    "fuzzing": {
+      "hypothesis": 0,
+      "fuzzing": 0,
+      "property_tests": 0
+    },
+    "release": {
+      "has_version_file": false,
+      "tag_count": 287,
+      "semver_tags": 287,
+      "has_changelog": true
+    },
+    "migration": {
+      "deprecated_decorators": 0,
+      "warning_refs": 0,
+      "migration_scripts": 0
+    },
+    "vendor_lockin": {
+      "aws_refs": 0,
+      "azure_refs": 0,
+      "gcp_refs": 0,
+      "generic_refs": 0
+    },
+    "event_driven": {
+      "event_bus": 0,
+      "queue": 0,
+      "pubsub": 0,
+      "kafka": 0,
+      "celery": 0
+    },
+    "infrastructure": {
+      "dockerfile": 1,
+      "docker_compose": 36,
+      "k8s_manifests": 0,
+      "terraform_files": 0
+    },
+    "cost_efficiency": {
+      "batching_refs": 0,
+      "n_plus_one_refs": 0,
+      "bulk_refs": 0,
+      "pagination_refs": 0
+    },
+    "monitoring": {
+      "prometheus": 0,
+      "health_checks": 0,
+      "tracing": 0,
+      "metrics": 0,
+      "slo": 0
+    },
+    "onboarding": {
+      "makefile": 0,
+      "devcontainer": 0,
+      "setup_scripts": 0,
+      "readme_setup": 1
+    },
+    "all_ast": {
+      "long_functions": 0,
+      "nested_blocks": 0,
+      "branches": 0,
+      "annotated_funcs": 0,
+      "total_funcs": 0,
+      "dataclasses": 0,
+      "protocols": 0,
+      "typeddicts": 0,
+      "generics": 0,
+      "async_def": 0,
+      "await": 0,
+      "asyncio_import": 0,
+      "httpx_import": 0,
+      "aiohttp_import": 0,
+      "try_blocks": 0,
+      "bare_excepts": 0,
+      "custom_exceptions": 0,
+      "retry_decorators": 0
+    }
+  }
+}
