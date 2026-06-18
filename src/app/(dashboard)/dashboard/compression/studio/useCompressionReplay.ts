@@ -167,6 +167,10 @@ export function useCompressionReplay(
 
   const handleSetSpeed = useCallback(
     (s: ReplaySpeed) => {
+      // Update the cadence ref synchronously: startTick() below reads speedRef.current
+      // immediately, but the syncing effect only runs after render — too late for this
+      // in-flight restart. Without this, changing speed mid-play kept the old cadence.
+      speedRef.current = s;
       dispatch({ type: "SET_SPEED", speed: s });
       if (isPlaying) startTick();
     },
