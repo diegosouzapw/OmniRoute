@@ -128,4 +128,22 @@ describe("RTK raw output retention", () => {
     assert.ok(pointer);
     assert.ok(readRtkRawOutput(pointer.id)?.includes("[REDACTED"));
   });
+
+  it("never throws when the raw-output write fails (disk error → null pointer)", () => {
+    // Point DATA_DIR underneath a regular FILE so mkdirSync(recursive) throws ENOTDIR.
+    // maybePersistRtkRawOutput is best-effort capture: a write failure must degrade to a
+    // skipped capture (null), never propagate into the compression pipeline (F5.3).
+    const blocker = path.join(os.tmpdir(), `omniroute-rtk-blocked-${process.pid}-${Date.now()}`);
+    fs.writeFileSync(blocker, "x");
+    process.env.DATA_DIR = path.join(blocker, "nested");
+
+    let pointer: ReturnType<typeof maybePersistRtkRawOutput> | undefined;
+    assert.doesNotThrow(() => {
+      pointer = maybePersistRtkRawOutput("error: boom\n" + "noise\n".repeat(8), {
+        retention: "always",
+      });
+    });
+    assert.equal(pointer, null);
+    fs.rmSync(blocker, { force: true });
+  });
 });
