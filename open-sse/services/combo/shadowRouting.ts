@@ -8,16 +8,14 @@
  * re-exported from combo.ts for backward compatibility and used by
  * handleComboChat / handleRoundRobinCombo (which stay in combo.ts).
  *
- * NOTE: `resolveNestedComboTargets` still lives in combo.ts at this step of the
- * split and is imported back from the barrel. It is only invoked at request time
- * inside `resolveShadowTargets`, never during module init, so the (temporary)
- * import edge is runtime-safe. The later combo/comboStructure.ts extraction
- * (Fase 9 D6) redirects this import to that leaf and removes the edge entirely.
+ * NOTE: `resolveNestedComboTargets` lives in combo/comboStructure.ts (extracted
+ * in the same Fase 9 split). It is only invoked at request time inside
+ * `resolveShadowTargets`, never during module init.
  */
 
 import { recordComboShadowRequest } from "../comboMetrics.ts";
 import { isRecord } from "./comboData.ts";
-import { resolveNestedComboTargets } from "../combo.ts";
+import { resolveNestedComboTargets } from "./comboStructure.ts";
 import { toRecordedTarget } from "./comboPredicates.ts";
 import type {
   ComboLike,
