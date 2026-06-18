@@ -284,21 +284,39 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
           fetchLogs(false);
         }
       };
+      // #4133: re-arm on window focus. Embedded / proxied hosts (Docker dashboard
+      // wrappers, webviews) can fire a one-shot `visibilitychange` → hidden and
+      // then keep reporting "hidden" — or recover without firing the event again —
+      // which left `visibleRef` stuck `false` and froze auto-refresh permanently
+      // (the "still not refreshing on 3.8.28, works on 3.8.24" report). A window
+      // `focus` is a reliable signal the page is actively viewed, so re-arm and
+      // poll. A genuinely backgrounded tab never receives focus, so this does not
+      // defeat the perf pause.
+      const onFocus = () => {
+        visibleRef.current = true;
+        if (!selectedLog && shouldAutoRefresh(recording, limit, PAGE_SIZE)) {
+          fetchLogs(false);
+        }
+      };
       document.addEventListener("visibilitychange", onVisibility);
-      return () => document.removeEventListener("visibilitychange", onVisibility);
+      window.addEventListener("focus", onFocus);
+      return () => {
+        document.removeEventListener("visibilitychange", onVisibility);
+        window.removeEventListener("focus", onFocus);
+      };
     }, [recording, limit, fetchLogs, selectedLog]);
 
     useEffect(() => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (!selectedLog && shouldAutoRefresh(recording, limit, PAGE_SIZE)) {
         intervalRef.current = setInterval(() => {
-          // #3972/#4054: gate on the event-tracked `visibleRef` (fail-open), not a
-          // static `document.visibilityState` read. A real browser tab that goes to
-          // the background fires `visibilitychange` → `visibleRef=false` → we pause
-          // (perf). An embedded/proxied host that misreports a permanent "hidden"
-          // state never fires the event, so `visibleRef` stays `true` and polling
-          // keeps working instead of freezing forever.
-          if (visibleRef.current) {
+          // #3972/#4054/#4133: poll while the page is plausibly viewed — the
+          // event-tracked `visibleRef` (fail-open) OR a *live* `visibilityState`
+          // read. A real background tab has both false → pause (perf); an
+          // embedded host that misreports "hidden" keeps polling instead of
+          // freezing. The window-`focus` re-arm above covers a host pinned
+          // "hidden" while focused.
+          if (visibleRef.current || document.visibilityState === "visible") {
             fetchLogs(false);
           }
         }, refreshIntervalSec * 1000);

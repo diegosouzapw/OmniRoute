@@ -176,4 +176,66 @@ describe("RequestLoggerV2 auto-refresh (#3972 + #4054)", () => {
 
     expect(callLogsRequests).toBe(afterHidden);
   });
+
+  it("#4133 self-heals when visibilityState returns to 'visible' without a visibilitychange event", async () => {
+    // Embedded / proxied host (the #4133 report: 3.8.28 Docker dashboard, "still
+    // not refreshing, works on 3.8.24") that fires a one-shot visibilitychange →
+    // hidden and then silently flips back to "visible" WITHOUT firing the event
+    // again. The post-#4054 code only un-pauses on the event, so `visibleRef`
+    // stayed `false` and polling froze forever. The tick must re-check live
+    // visibility and resume.
+    setVisibility("visible");
+    await act(async () => {
+      root.render(<RequestLoggerV2 />);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    // Real background event → pause.
+    setVisibility("hidden");
+    await act(async () => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    const afterHidden = callLogsRequests;
+
+    // Host silently returns to visible — NO visibilitychange dispatched.
+    setVisibility("visible");
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(DEFAULT_REFRESH_INTERVAL_SEC * 1000);
+    });
+
+    expect(callLogsRequests).toBeGreaterThan(afterHidden);
+  });
+
+  it("#4133 self-heals on window focus even when visibilityState is pinned 'hidden'", async () => {
+    // Worst case: the embedded host fires visibilitychange → hidden AND keeps
+    // reporting visibilityState "hidden" forever (so the live re-check alone can't
+    // help). When the user clicks back into the window a `focus` event fires — a
+    // reliable signal the page is actively viewed — and polling must resume,
+    // while a genuinely backgrounded tab (no focus) stays paused per the test above.
+    setVisibility("visible");
+    await act(async () => {
+      root.render(<RequestLoggerV2 />);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    setVisibility("hidden");
+    await act(async () => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    const afterHidden = callLogsRequests;
+
+    // visibilityState stays "hidden"; the user refocuses the window.
+    await act(async () => {
+      window.dispatchEvent(new Event("focus"));
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(DEFAULT_REFRESH_INTERVAL_SEC * 1000);
+    });
+
+    expect(callLogsRequests).toBeGreaterThan(afterHidden);
+  });
 });
