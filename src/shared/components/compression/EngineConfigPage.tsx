@@ -31,10 +31,24 @@ interface Analytics {
   days: number;
 }
 
+interface PreviewDiffSegment {
+  type?: string;
+  value?: string;
+  text?: string;
+  content?: string;
+  original?: string;
+  compressed?: string;
+  before?: string;
+  after?: string;
+}
+
 interface PreviewResult {
+  original?: string;
+  compressed?: string;
   originalTokens: number;
   compressedTokens: number;
   savingsPct: number;
+  diff?: PreviewDiffSegment[];
 }
 
 // ── Default preview sample ────────────────────────────────────────────────
@@ -51,6 +65,27 @@ function StatCard({ label, value }: { label: string; value: string }) {
     <div className="flex flex-col gap-0.5 rounded-lg border border-border bg-surface p-3">
       <span className="text-xs text-text-muted">{label}</span>
       <span className="text-lg font-semibold text-text">{value}</span>
+    </div>
+  );
+}
+
+function renderDiffSegment(segment: PreviewDiffSegment, index: number) {
+  const label = segment.type ?? "change";
+  const text =
+    segment.value ??
+    segment.text ??
+    segment.content ??
+    [segment.original ?? segment.before, segment.compressed ?? segment.after]
+      .filter(Boolean)
+      .join(" → ") ??
+    "";
+
+  return (
+    <div key={`${label}-${index}`} className="rounded border border-border bg-background p-2">
+      <span className="mr-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-text-muted">
+        {label}
+      </span>
+      <span className="whitespace-pre-wrap break-words text-text">{text}</span>
     </div>
   );
 }
@@ -321,16 +356,46 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
         </div>
         {previewError && <p className="text-xs text-destructive">{previewError}</p>}
         {preview && (
-          <div className="flex gap-4 text-sm pt-1">
-            <span className="text-text-muted">
-              Original tokens: <strong className="text-text">{preview.originalTokens}</strong>
-            </span>
-            <span className="text-text-muted">
-              Compressed tokens: <strong className="text-text">{preview.compressedTokens}</strong>
-            </span>
-            <span className="text-text-muted">
-              Savings: <strong className="text-primary">{preview.savingsPct.toFixed(1)}%</strong>
-            </span>
+          <div className="flex flex-col gap-3 pt-1 text-sm">
+            <div className="flex flex-wrap gap-4">
+              <span className="text-text-muted">
+                Original tokens: <strong className="text-text">{preview.originalTokens}</strong>
+              </span>
+              <span className="text-text-muted">
+                Compressed tokens: <strong className="text-text">{preview.compressedTokens}</strong>
+              </span>
+              <span className="text-text-muted">
+                Savings: <strong className="text-primary">{preview.savingsPct.toFixed(1)}%</strong>
+              </span>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="flex flex-col gap-1">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                  Original
+                </h3>
+                <pre className="max-h-72 overflow-auto rounded border border-border bg-background p-3 whitespace-pre-wrap break-words text-text">
+                  {preview.original ?? ""}
+                </pre>
+              </div>
+              <div className="flex flex-col gap-1">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                  Compressed
+                </h3>
+                <pre className="max-h-72 overflow-auto rounded border border-border bg-background p-3 whitespace-pre-wrap break-words text-text">
+                  {preview.compressed ?? ""}
+                </pre>
+              </div>
+            </div>
+            {preview.diff && preview.diff.length > 0 && (
+              <div className="flex flex-col gap-2" data-testid="compression-preview-diff">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                  Diff
+                </h3>
+                <div className="flex max-h-72 flex-col gap-2 overflow-auto rounded border border-border p-2">
+                  {preview.diff.map(renderDiffSegment)}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -67,7 +67,10 @@ import {
   STREAM_IDLE_TIMEOUT_MS,
   STREAM_READINESS_TIMEOUT_MS,
   ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
+  STREAM_RECOVERY,
 } from "../config/constants.ts";
+import { createRecoverableStream } from "../services/streamRecovery.ts";
+import { resolveResilienceSettings } from "@/lib/resilience/settings";
 import {
   classifyProviderError,
   PROVIDER_ERROR_TYPES,
@@ -4071,17 +4074,96 @@ export async function handleChatCore({
                   return res;
                 }
 
+                // Opt-in transparent stream recovery (free-claude-code port, default OFF).
+                // Only engages for a successful (2xx) stream — an error body must never be
+                // held or replayed. Setting is read once here from the cached resolved
+                // resilience settings; the default path is byte-for-byte unchanged.
+                const okStatus = res.response.status >= 200 && res.response.status < 300;
+                let streamRecoveryEnabled = false;
+                if (okStatus) {
+                  try {
+                    // Reuse the request-consolidated settings read (see line ~2076) — no
+                    // second DB/cache hit. Default OFF when the setting is absent.
+                    streamRecoveryEnabled = resolveResilienceSettings(settings).streamRecovery.enabled;
+                  } catch {
+                    streamRecoveryEnabled = false;
+                  }
+                }
+
+                let clientBody: ReadableStream<Uint8Array>;
+                if (streamRecoveryEnabled) {
+                  // Re-open the SAME upstream (same account + body) for a transparent retry.
+                  const reopenStream = async (): Promise<ReadableStream<Uint8Array> | null> => {
+                    try {
+                      const retryRaw = await executeWithUpstreamStartTimeout({
+                        executor,
+                        provider,
+                        model: modelToCall,
+                        signal: streamController.signal,
+                        log,
+                        execute: (signal) =>
+                          runWithCapture(providerRequestCapture, () =>
+                            executor.execute({
+                              model: modelToCall,
+                              body: bodyToSend,
+                              stream: upstreamStream,
+                              credentials: execCreds,
+                              signal,
+                              log,
+                              extendedContext,
+                              upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
+                              clientHeaders: buildExecutorClientHeaders(
+                                clientRawRequest?.headers,
+                                userAgent
+                              ),
+                              onCredentialsRefreshed,
+                              skipUpstreamRetry,
+                              contextEditing: { enabled: contextEditingEnabled },
+                            })
+                          ),
+                      });
+                      const retryRes = normalizeExecutorResult(retryRaw);
+                      const retryOk =
+                        retryRes.response.status >= 200 && retryRes.response.status < 300;
+                      if (retryOk && retryRes.response.body) {
+                        return retryRes.response.body as ReadableStream<Uint8Array>;
+                      }
+                      await retryRes.response.body?.cancel().catch(() => {});
+                      return null;
+                    } catch {
+                      return null;
+                    }
+                  };
+
+                  clientBody = createRecoverableStream(
+                    originalBody as ReadableStream<Uint8Array>,
+                    reopenStream,
+                    {
+                      finalize: acquireAccountSemaphoreRelease,
+                      onRetry: (attempt, err) =>
+                        log?.warn?.(
+                          "STREAM_RECOVERY",
+                          `transparent early-retry ${attempt}/${STREAM_RECOVERY.EARLY_RETRY_MAX} after ${
+                            (err as { name?: string })?.name || "truncation"
+                          }`
+                        ),
+                    }
+                  );
+                } else {
+                  clientBody = wrapReadableStreamWithFinalize(
+                    originalBody,
+                    acquireAccountSemaphoreRelease
+                  );
+                }
+
                 return {
                   ...res,
                   _executionCredentials: execCreds,
-                  response: new Response(
-                    wrapReadableStreamWithFinalize(originalBody, acquireAccountSemaphoreRelease),
-                    {
-                      status: res.response.status,
-                      statusText: res.response.statusText,
-                      headers: res.response.headers,
-                    }
-                  ),
+                  response: new Response(clientBody, {
+                    status: res.response.status,
+                    statusText: res.response.statusText,
+                    headers: res.response.headers,
+                  }),
                   headers: res.response.headers,
                 };
               }

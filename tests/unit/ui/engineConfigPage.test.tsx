@@ -114,6 +114,19 @@ function setupFetchMock() {
         headers: { "Content-Type": "application/json" },
       });
     }
+    if (url.includes("/api/compression/preview")) {
+      return new Response(
+        JSON.stringify({
+          original: "The original context contains duplicated details and verbose wording.",
+          compressed: "Original context, deduplicated.",
+          originalTokens: 11,
+          compressedTokens: 4,
+          savingsPct: 63.6,
+          diff: [{ type: "removed", text: "duplicated details and verbose wording" }],
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
     return new Response(JSON.stringify({}), { status: 404 });
   });
 }
@@ -197,6 +210,37 @@ describe("EngineConfigPage", () => {
     const enableCheckboxes = container.querySelectorAll("input[type='checkbox']");
     expect(enableCheckboxes.length).toBe(1);
     expect(container.textContent).toContain("Enable layer");
+  });
+
+  it("renders preview original, compressed text, and diff returned by the API", async () => {
+    setupFetchMock();
+    const { EngineConfigPage } =
+      await import("../../../src/shared/components/compression/EngineConfigPage");
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<EngineConfigPage engineId="headroom" />);
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const previewButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Preview"
+    );
+    expect(previewButton).toBeTruthy();
+
+    await act(async () => {
+      previewButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain(
+      "The original context contains duplicated details and verbose wording."
+    );
+    expect(container.textContent).toContain("Original context, deduplicated.");
+    expect(container.textContent).toContain("Diff");
+    expect(container.textContent).toContain("duplicated details and verbose wording");
   });
 
   it("shows empty-state text when analytics returns runs=0", async () => {

@@ -2,7 +2,7 @@
   "_comment": "Catraca de qualidade. 'down' = nao pode aumentar; 'up' = nao pode cair. Atualize via 'npm run quality:ratchet -- --update' (somente quando melhora). Cada valor e um numero REAL medido, nunca um chute. Cobertura entra na Fase 4 a partir de um run de cobertura mergeada no CI.",
   "metrics": {
     "eslintWarnings": {
-      "value": 3769,
+      "value": 3779,
       "direction": "down"
     },
     "eslintErrors": {
@@ -80,12 +80,12 @@
       "tightenSlack": 10
     },
     "openapiCoverage.pct": {
-      "value": 38.3,
+      "value": 37.6,
       "direction": "up",
       "eps": 0.5
     },
     "i18nUiCoverage.pct": {
-      "value": 80.1,
+      "value": 79.1,
       "direction": "up",
       "eps": 0.5
     },
@@ -157,5 +157,6 @@
   "_require_tighten_advisory_2026_06_15": "Fase 6A.5: o gate --require-tighten (falha quando uma metrica melhora sem o baseline ser apertado no mesmo PR) foi finalmente WIRADO no CI — porem como STEP ADVISORY (continue-on-error) no job quality-gate, NAO bloqueante. Motivo: (a) o proprio plano sequencia o aperto para 'o fim do ciclo', e a v3.8.26 acabou de abrir; (b) liga-lo bloqueante durante merges ativos travaria qualquer melhoria de metrica ate re-baseline. Para promover a BLOQUEANTE no fim do ciclo: remover o 'continue-on-error: true' do step 'Require-tighten' no ci.yml. tightenSlack nas metricas coverage.* impede falso-disparo pelo gap anti-flake.",
   "_require_tighten_flip_blocking_2026_06_16_v3827": "Fim do ciclo v3.8.27: o step 'Require-tighten' do job quality-gate (ci.yml) foi PROMOVIDO de ADVISORY para BLOQUEANTE (removido o 'continue-on-error: true', renomeado para 'Require-tighten (blocking)'). Verificado LIMPO (exit 0, '24 metricas, 0 melhoraram') no tip de release/v3.8.27 ANTES do flip: as metricas deterministicas medem == baseline (eslintWarnings 3769, eslintErrors 0) e as coverage.* foram avaliadas contra a cobertura mergeada == baseline (replicando o estado do CI, onde o job baixa o artifact coverage-report antes do collect). tightenSlack nas coverage.* (5 global / 10 por-modulo) absorve a variancia local-vs-CI e impede falso-disparo. Nenhuma metrica melhorou-sem-apertar, logo o flip nao reda o CI verde atual.",
   "_osv_flip_blocking_2026_06_16_v3827": "Fim do ciclo v3.8.27: vulnCount (value 10, direction down, dedicatedGate) PROMOVIDO de ADVISORY para RATCHET BLOQUEANTE. check-vuln-ratchet.mjs ganhou um modo --ratchet (espelhando check-secrets/check-bundle-size/check-workflows da Etapa 2): le metrics.vulnCount.value daqui, compara a contagem MEDIDA pelo osv-scanner e sai 1 SOMENTE numa regressao real (medida > baseline). Sem --ratchet permanece advisory (exit 0). QUALQUER SKIP gracioso (osv-scanner ausente do PATH, osv.dev/rede inacessivel, timeout, JSON invalido) sai 0 MESMO com --ratchet — uma falha de MEDICAO nunca bloqueia, so uma regressao MEDIDA bloqueia. No ci.yml (job quality-extended) o step 'Vulnerability ratchet' passou a rodar 'npm run check:vuln-ratchet -- --ratchet' sem continue-on-error. Verificado no tip de release/v3.8.27: osv mede vulnCount=10 == baseline 10 (exit 0); forcar baseline=9 da exit 1 (10>9); PATH vazio da SKIP binary-absent exit 0. NB de VARIANCIA DE CVE: um CVE recem-divulgado numa dep ja presente pode redar o gate sem mudanca de dependencia — comportamento esperado, remedio = bumpar a dep ou re-baseline vulnCount com justificativa+issue. Ver docs/security/SUPPLY_CHAIN.md -> 'Variancia de CVE'.",
-  "_trivy_flip_blocking_2026_06_16_v3827": "Fim do ciclo v3.8.27: Trivy (scan de CVE da imagem Docker em docker-publish.yml) promovido para BLOQUEANTE em CRITICAL. Abordagem de DOIS PASSOS: o passo SARIF existente (severity HIGH,CRITICAL / exit-code 0 / upload SARIF) fica INTACTO para visibilidade na aba Security; um novo passo 'Trivy CRITICAL gate (blocking)' (severity CRITICAL / ignore-unfixed:true / exit-code 1) falha o release num CVE CRITICO FIXAVEL. ignore-unfixed evita travar por CVE de base-image sem patch upstream (reduz falso-bloqueio). Mesma variancia-de-CVE do osv: um novo CRITICAL fixavel divulgado pode redar; remedio = rebuild sobre base patcheada, bumpar dep, ou .trivyignore com justificativa+issue. Ver docs/security/SUPPLY_CHAIN.md. vulnCount permanece 10 (intocado neste flip — so a postura advisory->bloqueante mudou)."
+  "_trivy_flip_blocking_2026_06_16_v3827": "Fim do ciclo v3.8.27: Trivy (scan de CVE da imagem Docker em docker-publish.yml) promovido para BLOQUEANTE em CRITICAL. Abordagem de DOIS PASSOS: o passo SARIF existente (severity HIGH,CRITICAL / exit-code 0 / upload SARIF) fica INTACTO para visibilidade na aba Security; um novo passo 'Trivy CRITICAL gate (blocking)' (severity CRITICAL / ignore-unfixed:true / exit-code 1) falha o release num CVE CRITICO FIXAVEL. ignore-unfixed evita travar por CVE de base-image sem patch upstream (reduz falso-bloqueio). Mesma variancia-de-CVE do osv: um novo CRITICAL fixavel divulgado pode redar; remedio = rebuild sobre base patcheada, bumpar dep, ou .trivyignore com justificativa+issue. Ver docs/security/SUPPLY_CHAIN.md. vulnCount permanece 10 (intocado neste flip — so a postura advisory->bloqueante mudou).",
+  "_rebaseline_2026_06_18_v3828_cycle_close": "Fim do ciclo v3.8.28 (RELEASED; ciclo v3.8.29 aberto): 3 metricas re-baselineadas para o valor REAL medido no push->main pos-release (run 27725117464, step 'Ratchet check') — eslintWarnings 3769->3779, openapiCoverage.pct 38.3->37.6, i18nUiCoverage.pct 80.1->79.1. Reproduzido localmente em release/v3.8.29 (9f14c1294): identico ao CI. Drift de fim-de-ciclo de features legitimas, NAO hand-cleanable: (a) eslint +10 = 'any' PERMITIDO (warn) em testes do ciclo + 4 react-hooks/exhaustive-deps em RequestLoggerV2.tsx (componente com bugs sutis de refresh #4103/#3972, arriscado mexer em deps de hook sem teste de UI); (b) openapi -0.7 = drop por rotas NOVAS INTERNAS (/api/tools/agent-bridge/* LOCAL_ONLY, spawnam MITM/DNS) — documenta-las no spec PUBLICO seria gaming; (c) i18n -1.0 = 37/41 locales em 79.1% (1741 chaves faltando cada, ~3000 traducoes via 'npm run i18n:run' que exige creds OMNIROUTE_TRANSLATION_API_KEY indisponiveis localmente). Mesmo precedente do _eslint_rebaseline_2026_06_16_v3826_forward_merge. Apertar no fim do ciclo: eslint/openapi via --require-tighten; i18n via i18n:run com creds. Autorizado pelo operador (decisao explicita)."
 }
