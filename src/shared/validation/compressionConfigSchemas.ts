@@ -49,6 +49,8 @@ export const rtkConfigSchema = z
     trustProjectFilters: z.boolean().optional(),
     rawOutputRetention: rtkRawOutputRetentionSchema.optional(),
     rawOutputMaxBytes: z.number().int().min(1024).max(10_000_000).optional(),
+    enableGrouping: z.boolean().optional(),
+    groupingThreshold: z.number().int().min(2).max(100).optional(),
   })
   .strict();
 
