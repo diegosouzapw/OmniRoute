@@ -246,11 +246,11 @@ test("config: with valid auth.json + apiKey + baseURL → mutates input.provider
   assert.deepEqual(claude.modalities?.input, ["text", "image"]);
   assert.deepEqual(claude.modalities?.output, ["text"]);
 
-  // Combo surfaces under `combo/<friendly-name>` namespace + LCD'd
+  // Combo surfaces under bare key + LCD'd
   // (gemini's reasoning=false → combo reasoning=false).
-  const combo = entry.models["combo/claude-tier"];
-  assert.ok(combo, "combo surfaced under combo/ namespace");
-  assert.equal(combo.name, "Combo: Claude Tier");
+  const combo = entry.models["claude-tier"];
+  assert.ok(combo, "combo surfaced under bare key");
+  assert.equal(combo.name, "Claude Tier");
   assert.equal(combo.reasoning, false, "LCD: any member reasoning=false → combo reasoning=false");
   assert.equal(combo.tool_call, true);
   assert.equal(combo.limit?.context, 200_000, "LCD: min(200_000, 1_000_000)");
@@ -788,7 +788,7 @@ test("buildStaticProviderEntry: combo modalities = intersection of members (LCD)
     "https://or.example/v1",
     "sk-test"
   );
-  const combo = block.models["combo/mixed-tier"];
+  const combo = block.models["mixed-tier"];
   assert.ok(combo, "combo emitted under slug key");
   // claude has text+image, text-only has text → intersection drops image.
   assert.deepEqual(combo.modalities?.input, ["text"]);
@@ -899,7 +899,7 @@ test("config: enrichment fetched + name overlaid on raw-model entries", async ()
   assert.equal(entry.models["claude-sonnet-4-6"].name, "Claude Sonnet 4.6");
   assert.equal(entry.models["gemini-3-flash"].name, "Gemini 3 Flash");
   // Combo names still come from /api/combos — enrichment overlay does NOT touch combos.
-  assert.equal(entry.models["combo/claude-tier"].name, "Combo: Claude Tier");
+  assert.equal(entry.models["claude-tier"].name, "Claude Tier");
   assert.equal(enrichmentFetcher.callCount(), 1);
 });
 
@@ -1244,7 +1244,7 @@ test("config: providerTag (default-on) prepends '<provider> - ' to enriched raw-
   assert.equal(entry.models["claude-sonnet-4-6"].name, "Claude - Claude Sonnet 4.6");
   assert.equal(entry.models["gemini-3-flash"].name, "Gemini-cli - Gemini 3 Flash");
   // Combos stay untouched — `Combo: ` prefix already conveys multi-upstream.
-  assert.equal(entry.models["combo/claude-tier"].name, "Combo: Claude Tier");
+  assert.equal(entry.models["claude-tier"].name, "Claude Tier");
 });
 
 test("config: providerTag=false suppresses the suffix", async () => {
@@ -1412,7 +1412,7 @@ test("buildStaticProviderEntry: nested combo-ref context is the bottleneck acros
   );
   // Pre-fix: Parent would advertise 200_000 (only raw-big counted).
   // Post-fix: Parent should advertise 8_000 (TinyCombo bottleneck).
-  const parent = block.models["combo/parent"];
+  const parent = block.models["parent"];
   assert.ok(parent, "Parent combo must be in the static catalog");
   assert.equal(parent.limit?.context, 8_000);
 });

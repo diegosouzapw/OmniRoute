@@ -2248,26 +2248,32 @@ export function slugifyComboName(name: string): string {
 }
 
 /**
- * Build a combo's static-block key (`combo/<slug>`), guaranteeing uniqueness
- * across an entire static catalog. If `<slug>` is already present in `used`,
- * suffixes a short UUID-prefix disambiguator from `combo.id` so the second
- * combo doesn't silently overwrite the first. Mutates `used` in place by
- * recording the chosen key. Returns the final `combo/<...>` key.
+ * Build a combo's static-block key (bare slug like `MASTER`, `MASTER-LIGHT`),
+ * guaranteeing uniqueness across an entire static catalog. If `<slug>` is
+ * already present in `used`, suffixes a short UUID-prefix disambiguator from
+ * `combo.id` so the second combo doesn't silently overwrite the first.
+ * Mutates `used` in place by recording the chosen key. Returns the final
+ * bare key.
  *
- * Falls back to `combo/<id>` when the friendly name slugifies to the empty
+ * NOTE: the key MUST NOT carry a `combo/` namespace prefix — OpenCode
+ * parses model IDs on `/` to extract a provider prefix, and `combo/MASTER`
+ * would be treated as provider=`combo`, model=`MASTER`, causing a
+ * credentials-not-found error. See PR #4184.
+ *
+ * Falls back to bare `<id>` when the friendly name slugifies to the empty
  * string (e.g. a combo named just punctuation).
  */
 export function buildComboKey(combo: OmniRouteRawCombo, used: Set<string>): string {
   const friendlyName = combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
   let slug = slugifyComboName(friendlyName);
   if (slug.length === 0) slug = combo.id;
-  let key = `combo/${slug}`;
+  let key = slug;
   if (used.has(key)) {
     const tail = combo.id.split("-")[0] ?? combo.id;
-    key = `combo/${slug}-${tail}`;
+    key = slug + "-" + tail;
     // Defensive: in the (impossible) event the disambiguated key also
     // collides, append the full id.
-    if (used.has(key)) key = `combo/${slug}-${combo.id}`;
+    if (used.has(key)) key = slug + "-" + combo.id;
   }
   used.add(key);
   return key;
@@ -2801,18 +2807,6 @@ export function createOmniRouteProviderHook(
           // models with curated names).
           applyEnrichment(mapped, rawEnrichment.get(combo.id));
 
-          // `Combo: ` prefix surfaces the combo nature in OC's model picker.
-          // Idempotent guard covers the case where enrichment overwrote
-          // mapped.name with an already-prefixed string. Mirrors the
-          // static-hook Combo:-prefix decoration.
-          if (!mapped.name.startsWith("Combo: ")) {
-            mapped.name = `Combo: ${mapped.name}`;
-          }
-
-          // Optionally decorate combo name with its compression pipeline.
-          // Only fires when features.compressionMetadata: true, OmniRoute
-          // returned at least one default compression combo, AND the
-          // combo has resolvable members — claiming compression on an
           // unroutable combo would mislead the picker.
           if (hasMembers && defaultCompression && defaultCompression.pipeline.length > 0) {
             const tag = formatCompressionPipeline(defaultCompression.pipeline);
@@ -3717,12 +3711,8 @@ export function buildStaticProviderEntry(
       const hasMembers = memberEntries.length > 0;
       const friendlyName =
         combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
-      // `Combo: ` prefix surfaces the combo nature in OC's model picker — the
-      // catalog key (`combo/<slug>`) is already namespaced, but the picker
-      // shows `name`, so prefix the display string too.
-      const prefixedName = `Combo: ${friendlyName}`;
       const displayName =
-        hasMembers && compressionSuffix ? `${prefixedName}${compressionSuffix}` : prefixedName;
+        hasMembers && compressionSuffix ? `${friendlyName} ${compressionSuffix}` : friendlyName;
       const entry: OmniRouteStaticModelEntry = { name: displayName };
 
       if (hasMembers) {
@@ -3790,9 +3780,9 @@ export function buildStaticProviderEntry(
         entry.tool_call = false;
       }
 
-      // Key under `combo/<slug>` (e.g. `combo/claude-primary`) so the
-      // namespace cleanly separates combos from raw provider/model pairs
-      // and so the key is copy/paste-friendly. Slug collisions across
+      // Key under bare slug (e.g. `claude-primary`) — no `combo/` prefix
+      // because OpenCode parses model IDs on `/` and would treat
+      // `combo/MASTER` as provider=`combo`. Slug collisions across
       // combos are disambiguated with a short UUID-prefix suffix; see
       // `buildComboKey` for the policy.
       models[buildComboKey(combo, usedComboKeys)] = entry;

@@ -459,7 +459,7 @@ test("provider hook: compression metadata fetcher called when opted in", async (
   );
   const out = await hook.models!({} as never, { auth: apiAuth("sk") as never });
   assert.equal(called, 1, "compression metadata fetcher called");
-  const combo = out["combo/claude-primary"];
+  const combo = out["claude-primary"];
   assert.ok(combo, "combo entry present");
   assert.match(
     combo.name,
