@@ -11,6 +11,7 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "media-cost-h-test-ap
 
 const core = await import("../../src/lib/db/core.ts");
 const { OMNIROUTE_RESPONSE_HEADERS } = await import("../../src/shared/constants/headers.ts");
+const { saveSyncedPricing } = await import("../../src/lib/pricingSync.ts");
 const rerankHandler = await import("../../open-sse/handlers/rerank.ts");
 const moderationHandler = await import("../../open-sse/handlers/moderations.ts");
 const speechRoute = await import("../../src/app/api/v1/audio/speech/route.ts");
@@ -88,7 +89,64 @@ test("rerank handler success Response carries cost telemetry headers", async () 
     "provider header must reflect the resolved rerank provider"
   );
   const body = (await response.json()) as { results?: unknown[] };
-  assert.ok(Array.isArray(body.results) && body.results.length === 2, "should return rerank results");
+  assert.ok(
+    Array.isArray(body.results) && body.results.length === 2,
+    "should return rerank results"
+  );
+});
+
+test("rerank NVIDIA-format success Response reflects synthesized search unit in cost header", async () => {
+  // NVIDIA-format rerank: transformResponseFromProvider SYNTHESIZES
+  // meta.billed_units.search_units = 1 onto `result`, while the raw upstream
+  // `data` has NO `meta` at all. The handler must read search units from the
+  // transformed `result` (not the raw `data`), otherwise NVIDIA rerank is
+  // always priced at $0 even when pricing exists.
+  saveSyncedPricing({
+    nvidia: {
+      // calculateModalCost("rerank","nvidia","nvidia/nv-rerankqa-mistral-4b-v3")
+      // first looks up the scoped id, then retries with normalizeModelName
+      // (strips the "nvidia/" prefix) → this key resolves on the second try.
+      "nv-rerankqa-mistral-4b-v3": { input: 0, output: 0, search_unit_cost: 0.002 },
+    },
+  });
+
+  globalThis.fetch = (async (url: unknown) => {
+    const stringUrl = String(url);
+    if (stringUrl === "https://integrate.api.nvidia.com/v1/ranking") {
+      // NVIDIA shape — note: NO `meta` block at all.
+      return new Response(
+        JSON.stringify({
+          rankings: [
+            { index: 0, logit: 0.9, text: "doc a" },
+            { index: 1, logit: 0.4, text: "doc b" },
+          ],
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  }) as typeof fetch;
+
+  const response = (await rerankHandler.handleRerank({
+    model: "nvidia/nv-rerankqa-mistral-4b-v3",
+    query: "telemetry rerank nvidia",
+    documents: ["doc a", "doc b"],
+    credentials: { apiKey: "test-key" },
+  })) as Response;
+
+  assertCostTelemetryHeaders(response);
+  assert.equal(
+    response.headers.get(OMNIROUTE_RESPONSE_HEADERS.provider),
+    "nvidia",
+    "provider header must reflect the resolved rerank provider"
+  );
+  // 1 synthesized search unit × $0.002 = $0.002. With the OLD `data?.meta…`
+  // read this would be "0.0000000000" (raw NVIDIA data carries no meta).
+  assert.equal(
+    response.headers.get(OMNIROUTE_RESPONSE_HEADERS.responseCost),
+    "0.0020000000",
+    "NVIDIA rerank cost must reflect the synthesized 1 search unit read from result"
+  );
 });
 
 test("moderation handler success Response carries cost telemetry headers (cost 0)", async () => {

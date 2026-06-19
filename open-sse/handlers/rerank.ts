@@ -135,7 +135,7 @@ export async function handleRerank({
     const data = await res.json();
     const result = transformResponseFromProvider(providerConfig, data);
 
-    const searchUnits = Number(data?.meta?.billed_units?.search_units) || 0;
+    const searchUnits = Number(result?.meta?.billed_units?.search_units) || 0;
     const costUsd = await calculateModalCost("rerank", providerId, modelId, { searchUnits });
 
     saveCallLog({
