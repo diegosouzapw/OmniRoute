@@ -302,16 +302,23 @@ async function resolveModels(
  * 1. Exact `llm_model` match
  * 2. Case-insensitive `llm_model` match
  * 3. `llm_model` contains the requested ID
- * 4. Fallback: first model in list
+ *
+ * Returns `null` when nothing matches. The caller then builds a synthetic entry
+ * carrying the *requested* model name, so the request is sent for the model the
+ * user actually asked for (and Inner.ai can reject it with a meaningful error if
+ * the plan does not expose it). Previously this fell back to `models[0]`, which
+ * silently rerouted every unmatched model to whatever was first in the live list
+ * (typically gpt-4o) — so users saw "only gpt-4o responds" instead of a clear
+ * error. (escalated bug)
  */
-function findModel(models: InnerAiModel[], requestedId: string): InnerAiModel | null {
+export function findModel(models: InnerAiModel[], requestedId: string): InnerAiModel | null {
   if (models.length === 0) return null;
   const lower = requestedId.toLowerCase();
   return (
     models.find((m) => m.llm_model === requestedId) ??
     models.find((m) => m.llm_model.toLowerCase() === lower) ??
     models.find((m) => m.llm_model.toLowerCase().includes(lower)) ??
-    models[0]
+    null
   );
 }
 
