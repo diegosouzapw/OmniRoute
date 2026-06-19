@@ -638,6 +638,7 @@ test("buildStaticProviderEntry: stripped per-model shape matches sibling @omniro
     "cost",
     "limit",
     "modalities",
+    "providerID",
   ]);
   for (const [id, entry] of Object.entries(block.models)) {
     for (const key of Object.keys(entry)) {

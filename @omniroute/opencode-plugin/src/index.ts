@@ -1154,7 +1154,8 @@ const AUTO_COMBO_FALLBACK_OUTPUT = 8_192;
  * applies when the server omits them. Never 0.
  */
 export function mapAutoComboToStaticEntry(
-  autoCombo: OmniRouteRawAutoCombo
+  autoCombo: OmniRouteRawAutoCombo,
+  providerID: string
 ): OmniRouteStaticModelEntry {
   const variant = autoCombo.variant;
   const name = formatAutoComboName(variant, autoCombo.candidateCount);
@@ -1168,6 +1169,7 @@ export function mapAutoComboToStaticEntry(
       : AUTO_COMBO_FALLBACK_OUTPUT;
   return {
     name,
+    providerID,
     attachment: false,
     reasoning: true,
     temperature: true,
@@ -2856,7 +2858,7 @@ export function createOmniRouteProviderHook(
         for (const autoCombo of rawAutoCombos) {
           if (!autoCombo || !autoCombo.id) continue;
           if (autoCombo.isHidden === true) continue;
-          const entry = mapAutoComboToStaticEntry(autoCombo);
+          const entry = mapAutoComboToStaticEntry(autoCombo, resolved.providerId);
           const key = autoComboModelId(autoCombo.variant);
           const mapped: ModelV2 = {
             id: key,
@@ -3340,8 +3342,15 @@ function normaliseModalities(raw: unknown): OmniRouteModalityKind[] {
 }
 
 export interface OmniRouteStaticModelEntry {
+  /** Owning provider id. MUST match the parent `provider.<id>` key so OC's
+   * static-catalog reader resolves credentials via `providerID` instead of
+   * parsing the model key on `/`. Without this, a bare-slug combo key like
+   * `MASTER` is misread as `providerID=MASTER, modelID=""` and the request fails
+   * with "Unable to determine provider". See PR #4184. */
+  providerID: string;
   /** Display label rendered in OC's model picker. Defaults to the model id. */
   name: string;
+
   /** ISO date the model was released. Surfaces in OC's model card when present. */
   release_date?: string;
   /** Model accepts image / file attachments. */
@@ -3539,7 +3548,7 @@ export function buildStaticProviderEntry(
         if (!displayName.startsWith(prefix)) displayName = `${prefix}${displayName}`;
       }
     }
-    const entry: OmniRouteStaticModelEntry = { name: displayName };
+    const entry: OmniRouteStaticModelEntry = { name: displayName, providerID: opts.providerId };
 
     const attachment = caps.attachment ?? caps.vision;
     if (typeof attachment === "boolean") entry.attachment = attachment;
@@ -3713,7 +3722,7 @@ export function buildStaticProviderEntry(
         combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
       const displayName =
         hasMembers && compressionSuffix ? `${friendlyName} ${compressionSuffix}` : friendlyName;
-      const entry: OmniRouteStaticModelEntry = { name: displayName };
+      const entry: OmniRouteStaticModelEntry = { name: displayName, providerID: opts.providerId };
 
       if (hasMembers) {
         // LCD across capabilities — every member must support for the combo
@@ -3816,7 +3825,7 @@ export function buildStaticProviderEntry(
     for (const autoCombo of rawAutoCombos) {
       if (!autoCombo || !autoCombo.id) continue;
       if (autoCombo.isHidden === true) continue;
-      const entry = mapAutoComboToStaticEntry(autoCombo);
+      const entry = mapAutoComboToStaticEntry(autoCombo, opts.providerId);
       // Use the variant as the key: "auto", "auto/coding", etc.
       const key = autoComboModelId(autoCombo.variant);
       if (models[key]) {
