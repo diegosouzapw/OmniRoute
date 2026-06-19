@@ -113,6 +113,12 @@ const LITELLM_PROVIDER_MAP: Record<string, string[]> = {
   cerebras: ["cerebras"],
   nvidia_nim: ["nvidia"],
   siliconflow: ["siliconflow"],
+  "vertex_ai-language_models": ["gemini", "gemini-cli"],
+  "vertex_ai-mistral_models": ["mistral"],
+  gemini: ["gemini", "gemini-cli"],
+  bedrock_converse: ["kiro"],
+  cloudflare: ["cloudflare-ai"],
+  stability: ["stability-ai"],
 };
 
 // ─── Periodic sync state ─────────────────────────────────

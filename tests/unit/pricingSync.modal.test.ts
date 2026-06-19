@@ -34,3 +34,21 @@ test("transformToOmniRoute still ingests chat token pricing (no regression)", ()
   assert.equal(out.openai?.["gpt-4o"]?.input, 2.5);
   assert.equal(out.openai?.["gpt-4o"]?.output, 10);
 });
+test("transformToOmniRoute maps newly-covered providers", () => {
+  const out = transformToOmniRoute({
+    "mistral-large": {
+      mode: "chat",
+      litellm_provider: "mistral",
+      input_cost_per_token: 0.000002,
+      output_cost_per_token: 0.000006,
+    },
+    "grok-2": {
+      mode: "chat",
+      litellm_provider: "xai",
+      input_cost_per_token: 0.000002,
+      output_cost_per_token: 0.00001,
+    },
+  });
+  assert.ok(out.mistral?.["mistral-large"]);
+  assert.ok(out.xai?.["grok-2"]);
+});
