@@ -8,6 +8,10 @@
 
 const JSON_NUMBER_RE = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/;
 const NUMERIC_LIKE_RE = /^[+-]\.?\d|^\.\d|^0\d/;
+// SPEC §2.4: a bracket pair immediately followed by `:` (e.g. `ERR[404]: Not Found`,
+// `[Speaker 1]: Hello`). Bare, on a line-level key=value RHS, the decoder re-parses
+// this as an inline-array header → count_mismatch / wrong value (B-GCF-QUOTE).
+const INLINE_ARRAY_RE = /\[[^\]]*\]:/;
 
 /** Check if a string value must be quoted per Section 2.4. */
 export function needsQuote(s: string): boolean {
@@ -17,6 +21,7 @@ export function needsQuote(s: string): boolean {
   if (NUMERIC_LIKE_RE.test(s)) return true;
   if (s[0] === " " || s[s.length - 1] === " ") return true;
   if (s[0] === "#" || s[0] === "@" || s[0] === ".") return true;
+  if (INLINE_ARRAY_RE.test(s)) return true;
   for (let i = 0; i < s.length; i++) {
     const c = s.charCodeAt(i);
     if (

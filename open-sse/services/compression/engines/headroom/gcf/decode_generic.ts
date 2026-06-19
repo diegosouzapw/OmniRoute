@@ -139,10 +139,13 @@ function parseObjectBody(
       continue;
     }
 
-    // Inline array.
+    // Inline array. The bracket must be in the KEY position: an inline-array header is
+    // `name[...]: …`, never `key=value` whose value happens to contain `[..]:` (e.g. a
+    // quoted `note="ERR[404]: Not Found"`). Guard on no `=` before the bracket so such
+    // values fall through to the key=value branch instead of throwing (B-GCF-QUOTE).
     if (!content.startsWith("@") && !content.startsWith("##")) {
       const bracketIdx = content.indexOf("[");
-      if (bracketIdx > 0) {
+      if (bracketIdx > 0 && !content.slice(0, bracketIdx).includes("=")) {
         const rest = content.slice(bracketIdx);
         const closeIdx = rest.indexOf("]");
         if (closeIdx >= 0) {
