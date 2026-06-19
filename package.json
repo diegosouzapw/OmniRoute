@@ -106,6 +106,7 @@
     "check:env-doc-sync": "node scripts/check/check-env-doc-sync.mjs",
     "check:docs-counts": "node scripts/check/check-docs-counts-sync.mjs",
     "check:deprecated-versions": "node scripts/check/check-deprecated-versions.mjs",
+    "check:compression-budget": "node --import tsx scripts/check/check-compression-budget.ts",
     "check:doc-links": "node scripts/check/check-doc-links.mjs",
     "check:fabricated-docs": "node scripts/check/check-fabricated-docs.mjs --strict",
     "check:docs-all": "npm run check:docs-sync && npm run check:docs-counts && npm run check:env-doc-sync && npm run check:deprecated-versions && npm run check:doc-links && npm run check:fabricated-docs",
