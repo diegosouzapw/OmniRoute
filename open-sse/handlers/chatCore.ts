@@ -3528,6 +3528,7 @@ export async function handleChatCore({
         ? 499
         : error.name === "TimeoutError" || error.name === "BodyTimeoutError"
           ? HTTP_STATUS.GATEWAY_TIMEOUT
+          : (error.status && typeof error.status === "number") ? error.status
           : HTTP_STATUS.BAD_GATEWAY;
     const failureMessage =
       error.name === "AbortError"
@@ -3535,7 +3536,9 @@ export async function handleChatCore({
         : formatProviderError(error, provider, model, failureStatus);
     const upstreamErrorCode = getUpstreamErrorIdentifier(error);
     const upstreamErrorType =
-      upstreamErrorCode === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE ? "upstream_timeout" : undefined;
+      upstreamErrorCode === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE ? "upstream_timeout"
+      : failureStatus === 401 ? "authentication_error"
+      : undefined;
     appendRequestLog({
       model,
       provider,

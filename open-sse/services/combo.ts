@@ -1766,7 +1766,13 @@ export async function handleComboChat({
             if (!lastStatus) lastStatus = result.status;
             if (i > 0) fallbackCount++;
             log.warn("COMBO", `Model ${modelStr} failed with body-specific error, stopping combo`);
-            break; // Break out of the target loop to avoid trying other models
+            // #4279: surface the 400 via the {ok,response} contract so the OUTER
+            // target loop resolves the combo and stops. A bare `break` here only
+            // exits the inner retry loop; executeTarget then returns null, which
+            // the outer loop treats as "this target produced nothing" and advances
+            // to the next model — so the guard failed to stop fallback and a combo
+            // of N body-rejecting targets tried all N. Mirrors the 499 path above.
+            return { ok: false, response: result };
           }
 
           // Trigger shared provider circuit breaker for 5xx errors and connection failures.

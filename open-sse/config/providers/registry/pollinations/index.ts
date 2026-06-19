@@ -10,6 +10,9 @@ export const pollinationsProvider: RegistryEntry = {
   // is gen.pollinations.ai/v1, so route there as the primary endpoint.
   baseUrl: "https://gen.pollinations.ai/v1/chat/completions",
   baseUrls: ["https://gen.pollinations.ai/v1/chat/completions"],
+  // NOTE (2026-06): Pollinations now requires API keys for premium models (claude, gemini, midijourney).
+  // Free keyless models: openai, openai-fast, openai-large, qwen-coder, mistral, deepseek, grok, gemini-flash-lite-3.1, perplexity-fast, perplexity-reasoning.
+  // Get a key at https://enter.pollinations.ai
   authType: "apikey",
   authHeader: "bearer",
   models: [
