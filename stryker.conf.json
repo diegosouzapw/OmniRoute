@@ -77,6 +77,7 @@
       "tests/unit/chatcore-non-streaming-sse.test.ts",
       "tests/unit/chatcore-passthrough-tool-names.test.ts",
       "tests/unit/chatcore-sanitization.test.ts",
+      "tests/unit/chatcore-semantic-cache.test.ts",
       "tests/unit/chatcore-strip-stale-headers.test.ts",
       "tests/unit/chatcore-telemetry-helpers.test.ts",
       "tests/unit/chatcore-translation-paths.test.ts",
@@ -219,17 +220,19 @@
     "A later follow-up added dedicated tests (NO mock.module — unavailable under the tap-runner; used",
     "fetch-override + crafted inputs + temp-DATA_DIR) for telemetryHelpers (both fns, all branches) and",
     "memorySkillsInjection (getSkillsProviderForFormat fully + injectMemoryAndSkills guards/empty-DB",
-    "path) and added them as batch i. 14 of 15 chatCore leaves now mutated.",
+    "path) and added them as batch i.",
+    "",
+    "The FINAL chatCore leaf, semanticCache.ts, was added to batch i once its cache-HIT block had a",
+    "fixture: chatcore-semantic-cache now SEEDS the real cache via setCachedResponse (the in-memory",
+    "store getCachedResponse checks first — no mock.module needed) under the exact signature",
+    "checkSemanticCache rebuilds, so the HIT branch runs end-to-end (status 200 / 'semantic' / 'HIT' /",
+    "the stream + content-type ternaries / the cost fallback / the side-effect calls all get killed).",
+    "ALL 15 chatCore leaves are now mutated.",
     "",
     "STILL EXCLUDED (follow-ups, NOT in `mutate` yet):",
     "  - combo.ts + chatCore.ts barrels: their handleComboChat/handleChatCore CORES were not",
     "    split (out of scope — Fase 3 ChatCoreContext refactor). The barrels are now thin-ish",
     "    but still large; keep excluded until the cores are split.",
-    "  - the LAST chatCore/* leaf, semanticCache.ts: it HAS a dedicated test (chatcore-semantic-cache,",
-    "    covers the guard-false + cache-MISS paths) but the cache-HIT block — the bulk of the logic —",
-    "    needs a populated-cache fixture, so most of its mutants would survive (no clean kill). Kept out",
-    "    of `mutate` until a HIT-path fixture test exists; the test runs in the normal test:unit suite",
-    "    as a regression guard.",
     "See project memory: Quality Gate v2 / Fase 9 (project-combo-split)."
   ],
   "mutate": [
@@ -262,7 +265,8 @@
     "open-sse/handlers/chatCore/passthroughToolNames.ts",
     "open-sse/handlers/chatCore/executorHelpers.ts",
     "open-sse/handlers/chatCore/telemetryHelpers.ts",
-    "open-sse/handlers/chatCore/memorySkillsInjection.ts"
+    "open-sse/handlers/chatCore/memorySkillsInjection.ts",
+    "open-sse/handlers/chatCore/semanticCache.ts"
   ],
   "_ignorePatterns_comment": [
     "ignorePatterns = files NOT copied into the Stryker sandbox. It does NOT scope",
