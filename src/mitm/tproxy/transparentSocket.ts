@@ -18,6 +18,7 @@
  */
 import { createRequire } from "node:module";
 import { platform } from "node:os";
+import path from "node:path";
 
 export interface TransparentAddon {
   /** socket()+SO_REUSEADDR+IP_TRANSPARENT+bind()+listen(); returns the raw fd. */
@@ -28,24 +29,42 @@ export interface TransparentAddon {
   connectMarked(ip: string, port: number, mark: number): number;
 }
 
-/** Candidate locations for the built/prebuilt addon, relative to this module. */
-const ADDON_PATHS = [
-  "./native/build/Release/transparent.node",
-  "./native/prebuilds/transparent.node",
+/** Path of the built/prebuilt addon, relative to `src/mitm/tproxy/`. */
+const ADDON_REL_PATHS = [
+  "native/build/Release/transparent.node",
+  "native/prebuilds/transparent.node",
 ];
 
 /**
+ * Candidate require() specifiers, in priority order:
+ *  - module-relative (`./native/...`) — dev / source runs where this file sits
+ *    next to `native/`;
+ *  - cwd-absolute (`<cwd>/src/mitm/tproxy/native/...`) — the standalone/Docker
+ *    bundle, where this module is compiled into `.next/server/...` (so the
+ *    module-relative path misses) but `assembleStandalone` copies the addon to
+ *    `<standalone-root>/src/mitm/tproxy/native/...` and the server runs with
+ *    cwd = the standalone root.
+ */
+function addonCandidates(cwd: string): string[] {
+  return [
+    ...ADDON_REL_PATHS.map((p) => `./${p}`),
+    ...ADDON_REL_PATHS.map((p) => path.join(cwd, "src", "mitm", "tproxy", p)),
+  ];
+}
+
+/**
  * Attempt to load the native addon. Returns null (never throws) when the host is
- * non-Linux or the addon hasn't been built. `req`/`os` are injectable for tests.
+ * non-Linux or the addon hasn't been built. `req`/`os`/`cwd` are injectable for tests.
  */
 export function loadTransparentAddon(
   req: (path: string) => unknown = createRequire(import.meta.url),
-  os: () => string = platform
+  os: () => string = platform,
+  cwd: () => string = () => process.cwd()
 ): TransparentAddon | null {
   if (os() !== "linux") return null; // IP_TRANSPARENT is a Linux-only socket option
-  for (const path of ADDON_PATHS) {
+  for (const candidate of addonCandidates(cwd())) {
     try {
-      const mod = req(path) as Partial<TransparentAddon> | undefined;
+      const mod = req(candidate) as Partial<TransparentAddon> | undefined;
       if (
         mod &&
         typeof mod.createTransparentListener === "function" &&

@@ -62,6 +62,43 @@ test("loadTransparentAddon rejects a module missing connectMarked (forward anti-
   assert.equal(addon, null);
 });
 
+test("loadTransparentAddon also tries the cwd-relative standalone path", () => {
+  // In the standalone/Docker bundle this module is compiled into .next/server/...
+  // so the module-relative `./native/...` misses; the addon is copied to
+  // <cwd>/src/mitm/tproxy/native/... and the loader must try that absolute path.
+  const tried: string[] = [];
+  const addon = loadTransparentAddon(
+    (p) => {
+      tried.push(p);
+      throw new Error("not here");
+    },
+    () => "linux",
+    () => "/app"
+  );
+  assert.equal(addon, null);
+  assert.ok(
+    tried.some((p) => p === "/app/src/mitm/tproxy/native/build/Release/transparent.node"),
+    `expected a cwd-absolute candidate, got: ${tried.join(", ")}`
+  );
+});
+
+test("loadTransparentAddon loads the addon from the cwd-relative standalone path", () => {
+  const fake = {
+    createTransparentListener: () => 1,
+    setSocketMark: () => {},
+    connectMarked: () => 2,
+  };
+  const addon = loadTransparentAddon(
+    (p) => {
+      if (p.startsWith("/app/")) return fake; // standalone dest; module-relative misses
+      throw new Error("not here");
+    },
+    () => "linux",
+    () => "/app"
+  );
+  assert.equal(addon, fake);
+});
+
 test("isTransparentSocketAvailable returns a boolean (false in CI — addon not built)", () => {
   assert.equal(typeof isTransparentSocketAvailable(), "boolean");
   assert.equal(isTransparentSocketAvailable(), false);

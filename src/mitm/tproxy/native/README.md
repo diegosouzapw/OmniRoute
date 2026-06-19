@@ -26,16 +26,30 @@ validated against the same kernel (see PR #4139).
 npm run build:native:tproxy      # -> build/Release/transparent.node
 ```
 
-`build/` and `prebuilds/` are git-ignored. Distribution via per-platform
-prebuilds (linux-x64 / linux-arm64) is a follow-up — IP_TRANSPARENT is
-Linux-only, so only Linux prebuilds are needed; everywhere else the loader
-returns "unavailable".
+`build/` and `prebuilds/` are git-ignored — the binary is **built, never
+committed**.
 
-## Remaining for the full Epic A (gated follow-ups)
+## Distribution (wired into the production build)
 
-- The TPROXY listener that adopts the fd, terminates TLS, and feeds the capture
-  buffer (reusing the MITM path).
-- `repairMitm()` calling `revertTproxy()` so a crash flushes the mangle rules.
-- The capture-mode route + Traffic Inspector UI tab.
-- A live end-to-end intercept (TPROXY → listener) in a dedicated test
-  environment (needs a routing scenario; risky on a production proxy).
+1. **`scripts/build/build-tproxy-native.mjs`** runs `node-gyp rebuild` during
+   `npm run build` (called from `build-next-isolated.mjs` before the standalone is
+   assembled). Linux-only; a missing toolchain is **non-fatal** (the capture mode
+   degrades gracefully). The Docker builder already ships `python3 make g++`.
+2. **`assembleStandalone.mjs`** (`NATIVE_ASSET_ENTRIES`) copies
+   `build/Release/transparent.node` into the standalone bundle at the same
+   relative path. The source is absent on non-Linux builds → the copy skips it.
+3. **`transparentSocket.ts`** resolves the addon both module-relative (dev/source)
+   and **cwd-relative** (`<cwd>/src/mitm/tproxy/native/...`, where the standalone
+   server runs and step 2 placed it).
+
+IP_TRANSPARENT is Linux-only, so only the linux-x64 path is built; everywhere else
+the loader returns "unavailable" and TPROXY capture mode stays disabled. (Linux
+ARM64 / other arches: build on the target, or add to CI when needed.)
+
+## Epic A status: COMPLETE (validated e2e on the VPS)
+
+The full intercept → TLS-terminate → decrypt → capture (`source:"tproxy"`) →
+re-encrypted forward → upstream round-trip was validated end-to-end on the VPS
+(kernel 6.8.0), including the anti-loop fix (PR #4229). Wired via the capture
+manager (#4208), the local-only route + CA installer (#4211), and the Traffic
+Inspector toggle (#4216).
