@@ -1,12 +1,20 @@
-#!/usr/bin/env sh
-# .husky/pre-push — fast deterministic gates (<10s total)
-# Intentionally excludes test:unit (slow; covered by CI pre-push remote run).
-# Activated: 2026-06-13 (6A.12 — replaced commented-out test:unit stub)
-
-if ! command -v npm >/dev/null 2>&1; then
-  echo "⚠️  npm not found in PATH — skipping pre-push hooks"
-  echo "   Run 'npm run check:any-budget:t11 && npm run check:tracked-artifacts' manually before pushing."
-  exit 0
-fi
-
-npm run check:any-budget:t11 && npm run check:tracked-artifacts
+#!/bin/sh
+# .husky/pre-push — disabled per DEBT-002.
+#
+# The pre-push hook previously invoked npm scripts that referenced a
+# non-existent root package.json (originally `npm test`; later
+# `npm run check:any-budget:t11 && npm run check:tracked-artifacts`),
+# blocking every `git push` with an ENOENT / Missing-script abort and
+# forcing contributors to silence it via `core.hooksPath=/dev/null`.
+#
+# Real fix path (per docs/TECH_DEBT.md DEBT-002):
+#   1) Make the hook workspace-aware via npm/pnpm workspaces, OR
+#   2) Move to lefthook + `cargo make` at the repo root.
+#
+# Until that work lands, the hook is a no-op so commits land cleanly.
+# CI runs the full test matrix on the remote side (see
+# .github/workflows/audit-ratchet.yml).
+#
+# Re-enable when CI runs the full test matrix and root package.json
+# is restored (or the hook is ported to lefthook).
+exit 0
