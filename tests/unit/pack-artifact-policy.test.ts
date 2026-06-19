@@ -99,6 +99,7 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
     "dist/responses-ws-proxy.mjs",
     "dist/server-ws.mjs",
     "dist/webdav-handler.mjs",
+    "scripts/build/colocateOptionals.mjs",
     "scripts/build/native-binary-compat.mjs",
     "src/shared/utils/nodeRuntimeSupport.ts",
   ]);
