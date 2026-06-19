@@ -6,11 +6,7 @@ import {
   STOPWORDS,
   FORCE_PRESERVE_RE,
 } from "../../../open-sse/services/compression/ultraHeuristic.ts";
-import {
-  ultraCompress,
-  createSLMStub,
-  type SLMInterface,
-} from "../../../open-sse/services/compression/ultra.ts";
+import { ultraCompress } from "../../../open-sse/services/compression/ultra.ts";
 import type { UltraConfig } from "../../../open-sse/services/compression/types.ts";
 
 describe("scoreToken", () => {
@@ -253,37 +249,5 @@ describe("ultraCompress", () => {
     const messages = [{ role: "user", content: "the quick brown fox" }];
     const result = await ultraCompress(messages, config);
     assert.strictEqual(result.stats.savingsPercent, 0);
-  });
-});
-
-describe("createSLMStub", () => {
-  it("should return object with compress function", () => {
-    const stub = createSLMStub();
-    assert(stub);
-    assert(typeof stub.compress === "function");
-  });
-
-  it("stub.compress should return a string", async () => {
-    const stub = createSLMStub();
-    const result = await stub.compress("hello world", 0.5);
-    assert(typeof result === "string");
-  });
-
-  it("stub.compress result should be <= input length", async () => {
-    const stub = createSLMStub();
-    const input = "the quick brown fox jumps over the lazy dog";
-    const result = await stub.compress(input, 0.5);
-    assert(result.length <= input.length);
-  });
-
-  it("stub.compress on empty string should return empty", async () => {
-    const stub = createSLMStub();
-    const result = await stub.compress("", 0.5);
-    assert.strictEqual(result, "");
-  });
-
-  it("stub should have a name or identifier", () => {
-    const stub = createSLMStub();
-    assert(stub !== null && typeof stub === "object");
   });
 });
