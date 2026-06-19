@@ -1281,7 +1281,11 @@ export async function handleComboChat({
               const compressionResult = applyCompression(
                 attemptBody,
                 config.fallbackCompressionMode as CompressionMode,
-                { model: modelStr }
+                // Opt into the TV1 bail-out so a throwing fallback engine is SKIPPED rather than
+                // propagating out of executeTarget and being swallowed as a "Speculative task
+                // error" (which silently drops this combo target). minGainPercent:0 keeps the
+                // advance behavior identical to the default path — this only adds skip-on-throw.
+                { model: modelStr, bailout: { enabled: true, minGainPercent: 0 } }
               );
               if (compressionResult.compressed) {
                 log.info(

@@ -97,6 +97,12 @@ export function applyCompression(
     supportsVision?: boolean | null;
     config?: CompressionConfig;
     principalId?: string;
+    /**
+     * Opt into the TV1 stacked bail-out (skip-on-throw + min-gain). Default off keeps the
+     * legacy behavior. The combo proactive-fallback path enables it so a throwing engine is
+     * skipped instead of silently dropping the target. Flows through to applyStackedCompression.
+     */
+    bailout?: BailoutConfig;
   }
 ): CompressionResult {
   if (mode === "off") {
