@@ -1,0 +1,1295 @@
+openapi: 3.0.3
+info:
+  title: OmniRoute v1 API
+  version: 1.0.0
+  description: |
+    Public v1 API surface of OmniRoute (KooshaPari fork).
+
+    OmniRoute is a unified inference gateway that proxies OpenAI-, Anthropic-,
+    and other provider-shaped APIs through a single Bearer-key endpoint, with
+    combo-routing, virtual keys, quota pools, and audit logging on top.
+
+    ## Auth tiers
+
+    - **PUBLIC** — `/api/health`, `/api/version`, `/_next/*`. No auth.
+    - **CLIENT_API** — `/api/v1/*`. Bearer API key required (unless
+      `REQUIRE_API_KEY=false` for local single-user deployments).
+    - **MANAGEMENT** — `/api/settings/*`, `/api/keys/*`, `/api/quota/*`, etc.
+      Dashboard session OR manage-scope API key.
+    - **ALWAYS_PROTECTED** — destructive / irreversible routes. Auth even
+      when `requireLogin=false`.
+
+    See `/api/settings/authz-inventory` for the live classification.
+  contact:
+    name: KooshaPari/core
+    url: https://github.com/KooshaPari/OmniRoute
+  license:
+    name: AGPL-3.0-or-later
+    url: https://www.gnu.org/licenses/agpl-3.0.html
+servers:
+  - url: https://api.omniroute.example
+    description: Production
+  - url: http://localhost:3000
+    description: Local dev
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: inference
+    description: Provider-shaped inference endpoints (chat, embeddings, etc.)
+  - name: files
+    description: File upload + management (OpenAI Files API compatible)
+  - name: batches
+    description: Batch jobs (OpenAI Batches API compatible)
+  - name: agents
+    description: Cloud-agent dispatch (Jules, Devin, Codex Cloud)
+  - name: combos
+    description: Combo-routing metadata (read-only public projection)
+  - name: providers
+    description: Provider registry + per-provider model catalog
+  - name: me
+    description: Authenticated caller introspection
+  - name: vscode
+    description: VSCode-CLI shim (auth-token-scoped passthrough)
+
+paths:
+  /v1/responses:
+    post:
+      tags: [inference]
+      summary: OpenAI Responses-compatible chat/inference
+      description: |
+        Primary inference endpoint. Accepts an OpenAI Responses-style body
+        (`model`, `input` or `messages`, `stream`, `tools`, etc.) and routes
+        it to the resolved upstream combo.
+
+        Supports `stream: true` (SSE / chunked transfer). Translators adapt
+        non-OpenAI providers to the OpenAI Responses shape; see
+        `open-sse/translator/registry.ts`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponsesRequest'
+      responses:
+        '200':
+          description: Streaming or non-streaming response in OpenAI Responses format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponsesResult'
+            text/event-stream:
+              schema:
+                type: string
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /v1/relay/chat/completions:
+    post:
+      tags: [inference]
+      summary: Relay-token authenticated chat completions
+      description: |
+        Serverless-relay entry point. Authenticates via a relay token
+        (not a regular API key), applies a per-(token,IP) rate limit
+        (`RELAY_IP_PER_MINUTE`, default 30 req/min), and proxies to the
+        internal chat pipeline.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+      responses:
+        '200':
+          description: Chat completion in OpenAI format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatCompletionResult'
+            text/event-stream:
+              schema:
+                type: string
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /v1/embeddings:
+    post:
+      tags: [inference]
+      summary: OpenAI-compatible embeddings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmbeddingRequest'
+      responses:
+        '200':
+          description: Embedding vector response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmbeddingResult'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /v1/rerank:
+    post:
+      tags: [inference]
+      summary: Cohere-compatible rerank
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RerankRequest'
+      responses:
+        '200':
+          description: Reranked results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RerankResult'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /v1/moderations:
+    post:
+      tags: [inference]
+      summary: OpenAI-compatible moderation classification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModerationRequest'
+      responses:
+        '200':
+          description: Per-input moderation flags
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModerationResult'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /v1/audio/speech:
+    post:
+      tags: [inference]
+      summary: OpenAI-compatible text-to-speech
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpeechRequest'
+      responses:
+        '200':
+          description: Audio binary (mp3 / opus / aac / flac / wav / pcm)
+          content:
+            audio/mpeg:
+              schema: { type: string, format: binary }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /v1/audio/transcriptions:
+    post:
+      tags: [inference]
+      summary: OpenAI-compatible speech-to-text
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, model]
+              properties:
+                file: { type: string, format: binary }
+                model: { type: string }
+                language: { type: string }
+                prompt: { type: string }
+                response_format: { type: string, enum: [json, text, srt, verbose_json, vtt] }
+      responses:
+        '200':
+          description: Transcription text or verbose JSON
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranscriptionResult'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /v1/images/generations:
+    post:
+      tags: [inference]
+      summary: OpenAI-compatible image generation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImageGenerationRequest'
+      responses:
+        '200':
+          description: Generated image URLs or base64 blobs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageGenerationResult'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /v1/videos/generations:
+    post:
+      tags: [inference]
+      summary: Async video generation job creation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoGenerationRequest'
+      responses:
+        '200':
+          description: Video job handle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoJob'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /v1/music/generations:
+    post:
+      tags: [inference]
+      summary: Music generation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MusicGenerationRequest'
+      responses:
+        '200':
+          description: Generated music asset handle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MusicGenerationResult'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /v1/files:
+    get:
+      tags: [files]
+      summary: List uploaded files
+      responses:
+        '200':
+          description: List of file objects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileList'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [files]
+      summary: Upload a file (multipart)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, purpose]
+              properties:
+                file: { type: string, format: binary }
+                purpose: { type: string }
+      responses:
+        '200':
+          description: The uploaded file object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileObject'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /v1/files/{id}:
+    get:
+      tags: [files]
+      summary: Retrieve a file object
+      parameters:
+        - $ref: '#/components/parameters/FileId'
+      responses:
+        '200':
+          description: The file object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileObject'
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [files]
+      summary: Delete a file
+      parameters:
+        - $ref: '#/components/parameters/FileId'
+      responses:
+        '200': { description: Deletion confirmation }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/files/{id}/content:
+    get:
+      tags: [files]
+      summary: Download file content
+      parameters:
+        - $ref: '#/components/parameters/FileId'
+      responses:
+        '200':
+          description: File binary
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/batches:
+    get:
+      tags: [batches]
+      summary: List batch jobs
+      responses:
+        '200':
+          description: Paginated batch list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchList'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [batches]
+      summary: Create a batch job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchCreate'
+      responses:
+        '200':
+          description: The created batch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchObject'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/batches/{id}:
+    get:
+      tags: [batches]
+      summary: Retrieve a batch job
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: The batch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchObject'
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [batches]
+      summary: Cancel a batch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Cancellation confirmed }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/batches/delete-completed:
+    post:
+      tags: [batches]
+      summary: Bulk-delete all completed batches
+      responses:
+        '200':
+          description: Number of batches deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted: { type: integer }
+
+  /v1/combos:
+    get:
+      tags: [combos]
+      summary: List combo metadata (public projection)
+      description: |
+        API-key safe read of combo metadata. Projects out internal
+        routing details (account/connection ids, weights, internal labels).
+        See `src/app/api/v1/combos/projectCombo.ts` for the projection.
+      responses:
+        '200':
+          description: List of combos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  object: { type: string, enum: [list] }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Combo' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/providers/{provider}/models:
+    get:
+      tags: [providers]
+      summary: List models for a specific upstream provider
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema: { type: string }
+          example: openai
+      responses:
+        '200':
+          description: Provider model catalog
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  provider: { type: string }
+                  models:
+                    type: array
+                    items: { $ref: '#/components/schemas/ModelRef' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/me/status:
+    get:
+      tags: [me]
+      summary: Authenticated caller introspection
+      responses:
+        '200':
+          description: Caller identity, scopes, and quota usage
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeStatus'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/agents/health:
+    get:
+      tags: [agents]
+      summary: Per-provider cloud-agent health check
+      description: |
+        Probes each registered cloud-agent provider (Jules, Devin,
+        Codex Cloud) with a 5-second timeout and reports per-provider
+        connectivity + latency. Requires `requireCloudAgentManagementAuth`.
+      responses:
+        '200':
+          description: Per-provider health snapshot
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  providers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        name: { type: string }
+                        connected: { type: boolean }
+                        latencyMs: { type: integer }
+                        error: { type: string, nullable: true }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /v1/agents/credentials:
+    get:
+      tags: [agents]
+      summary: List stored cloud-agent credentials (metadata only)
+      responses:
+        '200':
+          description: Per-provider credential metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  credentials:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        provider: { type: string }
+                        hasValue: { type: boolean }
+                        updatedAt: { type: string, format: date-time }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/agents/tasks:
+    get:
+      tags: [agents]
+      summary: List cloud-agent tasks
+      responses:
+        '200':
+          description: Task list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items: { $ref: '#/components/schemas/AgentTask' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [agents]
+      summary: Create a cloud-agent task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentTaskCreate'
+      responses:
+        '200':
+          description: Created task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentTask'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /v1/agents/tasks/{id}:
+    get:
+      tags: [agents]
+      summary: Retrieve a cloud-agent task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: The task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentTask'
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [agents]
+      summary: Cancel a cloud-agent task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Cancellation confirmed }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/management/proxies:
+    get:
+      tags: [management]
+      summary: List management proxy entries
+      responses:
+        '200':
+          description: Proxy list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  proxies:
+                    type: array
+                    items: { $ref: '#/components/schemas/ProxyEntry' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/web/fetch:
+    post:
+      tags: [inference]
+      summary: Server-side web fetch (scraped + extracted text)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url: { type: string, format: uri }
+                maxTokens: { type: integer }
+                extractMode: { type: string, enum: [text, markdown, html] }
+      responses:
+        '200':
+          description: Extracted content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url: { type: string, format: uri }
+                  content: { type: string }
+                  tokens: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+
+  /v1/search:
+    post:
+      tags: [inference]
+      summary: Web search (server-side)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query]
+              properties:
+                query: { type: string }
+                topK: { type: integer, default: 10 }
+                recencyDays: { type: integer }
+      responses:
+        '200':
+          description: Search hits
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: { $ref: '#/components/schemas/SearchHit' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/vscode/{token}/v1/chat/completions:
+    post:
+      tags: [vscode]
+      summary: VSCode-CLI shim: chat completions (token-scoped)
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema: { type: string }
+          description: VSCode-CLI auth token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+      responses:
+        '200':
+          description: Chat completion
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatCompletionResult'
+            text/event-stream:
+              schema: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /v1/vscode/{token}/v1/models:
+    get:
+      tags: [vscode]
+      summary: VSCode-CLI shim: list models (token-scoped)
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Models visible to this token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  object: { type: string, enum: [list] }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/ModelRef' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /v1/vscode/{token}/models:
+    get:
+      tags: [vscode]
+      summary: VSCode-CLI shim: list models (legacy path)
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Models visible to this token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/ModelRef' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/vscode/{token}/combos:
+    get:
+      tags: [vscode]
+      summary: VSCode-CLI shim: list combos (token-scoped)
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Combos visible to this token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Combo' }
+
+  /v1/vscode/{token}/chat/completions:
+    post:
+      tags: [vscode]
+      summary: VSCode-CLI shim: chat completions (legacy path)
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+      responses:
+        '200':
+          description: Chat completion
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatCompletionResult'
+            text/event-stream:
+              schema: { type: string }
+
+  /v1/vscode/{token}/responses:
+    post:
+      tags: [vscode]
+      summary: VSCode-CLI shim: Responses API (token-scoped)
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponsesRequest'
+      responses:
+        '200':
+          description: Responses result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponsesResult'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key
+      description: |
+        Send the API key (or relay token) as `Authorization: Bearer <key>`.
+
+  parameters:
+    FileId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string }
+      description: File object id
+
+  responses:
+    BadRequest:
+      description: Malformed request
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: Missing or invalid auth credentials
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Authenticated but not permitted for this resource
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    RateLimited:
+      description: Per-(token,IP) or per-token rate limit exceeded
+      headers:
+        Retry-After:
+          schema: { type: integer }
+          description: Seconds until the next request is allowed
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unprocessable:
+      description: Request was well-formed but semantically invalid
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          properties:
+            message: { type: string }
+            type: { type: string, example: invalid_request }
+            code: { type: string }
+
+    ResponsesRequest:
+      type: object
+      required: [model]
+      properties:
+        model: { type: string, example: gpt-4o }
+        input:
+          oneOf:
+            - type: string
+            - type: array
+              items: { $ref: '#/components/schemas/Message' }
+        messages:
+          type: array
+          items: { $ref: '#/components/schemas/Message' }
+        stream: { type: boolean, default: false }
+        temperature: { type: number, minimum: 0, maximum: 2 }
+        max_tokens: { type: integer }
+        tools:
+          type: array
+          items: { $ref: '#/components/schemas/Tool' }
+
+    ResponsesResult:
+      type: object
+      properties:
+        id: { type: string }
+        object: { type: string, example: response }
+        created: { type: integer }
+        model: { type: string }
+        output:
+          type: array
+          items: { $ref: '#/components/schemas/OutputItem' }
+        usage: { $ref: '#/components/schemas/Usage' }
+
+    Message:
+      type: object
+      required: [role, content]
+      properties:
+        role: { type: string, enum: [system, user, assistant, tool] }
+        content:
+          oneOf:
+            - type: string
+            - type: array
+              items: { type: object }
+        name: { type: string }
+
+    OutputItem:
+      type: object
+      properties:
+        type: { type: string, example: message }
+        role: { type: string, enum: [assistant] }
+        content:
+          type: array
+          items:
+            type: object
+            properties:
+              type: { type: string, example: output_text }
+              text: { type: string }
+
+    Tool:
+      type: object
+      required: [type]
+      properties:
+        type: { type: string, enum: [function, web_search, code_interpreter] }
+        function:
+          type: object
+          properties:
+            name: { type: string }
+            description: { type: string }
+            parameters: { type: object }
+
+    ChatCompletionRequest:
+      type: object
+      required: [model, messages]
+      properties:
+        model: { type: string }
+        messages:
+          type: array
+          items: { $ref: '#/components/schemas/Message' }
+        stream: { type: boolean, default: false }
+        temperature: { type: number }
+        top_p: { type: number }
+        n: { type: integer, default: 1 }
+        max_tokens: { type: integer }
+        stop:
+          oneOf:
+            - type: string
+            - type: array
+              items: { type: string }
+
+    ChatCompletionResult:
+      type: object
+      properties:
+        id: { type: string }
+        object: { type: string, example: chat.completion }
+        created: { type: integer }
+        model: { type: string }
+        choices:
+          type: array
+          items:
+            type: object
+            properties:
+              index: { type: integer }
+              message: { $ref: '#/components/schemas/Message' }
+              finish_reason: { type: string }
+        usage: { $ref: '#/components/schemas/Usage' }
+
+    EmbeddingRequest:
+      type: object
+      required: [input, model]
+      properties:
+        input:
+          oneOf:
+            - type: string
+            - type: array
+              items: { type: string }
+        model: { type: string }
+        encoding_format: { type: string, enum: [float, base64] }
+
+    EmbeddingResult:
+      type: object
+      properties:
+        object: { type: string, example: list }
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              index: { type: integer }
+              object: { type: string, example: embedding }
+              embedding:
+                type: array
+                items: { type: number }
+        model: { type: string }
+        usage: { $ref: '#/components/schemas/Usage' }
+
+    RerankRequest:
+      type: object
+      required: [query, documents, model]
+      properties:
+        query: { type: string }
+        documents:
+          type: array
+          items: { type: string }
+        model: { type: string }
+        top_n: { type: integer }
+        return_documents: { type: boolean, default: true }
+
+    RerankResult:
+      type: object
+      properties:
+        id: { type: string }
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              index: { type: integer }
+              relevance_score: { type: number }
+              document:
+                oneOf:
+                  - type: string
+                  - type: object
+
+    ModerationRequest:
+      type: object
+      required: [input]
+      properties:
+        input:
+          oneOf:
+            - type: string
+            - type: array
+              items: { type: string }
+        model: { type: string, default: omni-moderation-latest }
+
+    ModerationResult:
+      type: object
+      properties:
+        id: { type: string }
+        model: { type: string }
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              flagged: { type: boolean }
+              categories: { type: object, additionalProperties: { type: boolean } }
+              category_scores: { type: object, additionalProperties: { type: number } }
+
+    SpeechRequest:
+      type: object
+      required: [input, voice, model]
+      properties:
+        input: { type: string, maxLength: 4096 }
+        model: { type: string, example: tts-1 }
+        voice: { type: string, example: alloy }
+        response_format: { type: string, enum: [mp3, opus, aac, flac, wav, pcm], default: mp3 }
+        speed: { type: number, minimum: 0.25, maximum: 4.0, default: 1.0 }
+
+    TranscriptionResult:
+      type: object
+      properties:
+        text: { type: string }
+        language: { type: string }
+        duration: { type: number }
+        words:
+          type: array
+          items: { type: object }
+        segments:
+          type: array
+          items: { type: object }
+
+    ImageGenerationRequest:
+      type: object
+      required: [prompt]
+      properties:
+        prompt: { type: string }
+        model: { type: string, default: dall-e-3 }
+        n: { type: integer, default: 1, minimum: 1, maximum: 10 }
+        quality: { type: string, enum: [standard, hd], default: standard }
+        response_format: { type: string, enum: [url, b64_json], default: url }
+        size: { type: string, enum: [256x256, 512x512, 1024x1024, 1792x1024, 1024x1792], default: 1024x1024 }
+        style: { type: string, enum: [vivid, natural] }
+        user: { type: string }
+
+    ImageGenerationResult:
+      type: object
+      properties:
+        created: { type: integer }
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              url: { type: string, format: uri, nullable: true }
+              b64_json: { type: string, nullable: true }
+              revised_prompt: { type: string, nullable: true }
+
+    VideoGenerationRequest:
+      type: object
+      required: [prompt]
+      properties:
+        prompt: { type: string }
+        model: { type: string }
+        size: { type: string, enum: [1280x720, 720x1280, 1024x1792, 1792x1024] }
+        seconds: { type: integer, enum: [5, 6, 8, 10] }
+
+    VideoJob:
+      type: object
+      properties:
+        id: { type: string }
+        status: { type: string, enum: [queued, processing, completed, failed] }
+        url: { type: string, format: uri, nullable: true }
+        error: { type: string, nullable: true }
+
+    MusicGenerationRequest:
+      type: object
+      required: [prompt]
+      properties:
+        prompt: { type: string }
+        model: { type: string }
+        duration_seconds: { type: integer, minimum: 1, maximum: 600 }
+
+    MusicGenerationResult:
+      type: object
+      properties:
+        id: { type: string }
+        url: { type: string, format: uri }
+        duration_seconds: { type: integer }
+
+    FileObject:
+      type: object
+      properties:
+        id: { type: string }
+        object: { type: string, example: file }
+        bytes: { type: integer }
+        created_at: { type: integer }
+        filename: { type: string }
+        purpose: { type: string }
+
+    FileList:
+      type: object
+      properties:
+        object: { type: string, example: list }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/FileObject' }
+
+    BatchCreate:
+      type: object
+      required: [input_file_id, endpoint, completion_window]
+      properties:
+        input_file_id: { type: string }
+        endpoint: { type: string, example: /v1/chat/completions }
+        completion_window: { type: string, enum: [24h] }
+        metadata: { type: object, additionalProperties: { type: string } }
+
+    BatchObject:
+      type: object
+      properties:
+        id: { type: string }
+        object: { type: string, example: batch }
+        endpoint: { type: string }
+        input_file_id: { type: string }
+        completion_window: { type: string }
+        status:
+          type: string
+          enum: [validating, failed, in_progress, finalizing, completed, expired, cancelling, cancelled]
+        output_file_id: { type: string, nullable: true }
+        error_file_id: { type: string, nullable: true }
+        created_at: { type: integer }
+        completed_at: { type: integer, nullable: true }
+        metadata: { type: object, additionalProperties: { type: string } }
+
+    BatchList:
+      type: object
+      properties:
+        object: { type: string, example: list }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/BatchObject' }
+        has_more: { type: boolean }
+
+    Combo:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        providers:
+          type: array
+          items: { type: string }
+        modelCount: { type: integer }
+        enabled: { type: boolean }
+
+    ModelRef:
+      type: object
+      properties:
+        id: { type: string, example: gpt-4o }
+        object: { type: string, example: model }
+        owned_by: { type: string, example: openai }
+        contextWindow: { type: integer }
+        supportsTools: { type: boolean }
+        supportsVision: { type: boolean }
+        inputCostPer1k: { type: number, nullable: true }
+        outputCostPer1k: { type: number, nullable: true }
+
+    MeStatus:
+      type: object
+      properties:
+        keyId: { type: string }
+        name: { type: string, nullable: true }
+        scopes:
+          type: array
+          items: { type: string }
+        quotaUsed: { type: integer }
+        quotaLimit: { type: integer, nullable: true }
+        rateLimitPerMin: { type: integer, nullable: true }
+
+    AgentTask:
+      type: object
+      properties:
+        id: { type: string }
+        provider: { type: string, enum: [jules, devin, codex-cloud] }
+        prompt: { type: string }
+        status:
+          type: string
+          enum: [queued, running, succeeded, failed, cancelled]
+        createdAt: { type: string, format: date-time }
+        completedAt: { type: string, format: date-time, nullable: true }
+        result: { type: object, additionalProperties: true, nullable: true }
+        error: { type: string, nullable: true }
+
+    AgentTaskCreate:
+      type: object
+      required: [provider, prompt]
+      properties:
+        provider: { type: string, enum: [jules, devin, codex-cloud] }
+        prompt: { type: string }
+        context: { type: object, additionalProperties: true }
+        timeoutSeconds: { type: integer, default: 600 }
+
+    ProxyEntry:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        upstream: { type: string }
+        enabled: { type: boolean }
+        provider: { type: string }
+        lastUsedAt: { type: string, format: date-time, nullable: true }
+
+    SearchHit:
+      type: object
+      properties:
+        title: { type: string }
+        url: { type: string, format: uri }
+        snippet: { type: string }
+        publishedAt: { type: string, format: date-time, nullable: true }
+        score: { type: number }
+
+    Usage:
+      type: object
+      properties:
+        prompt_tokens: { type: integer }
+        completion_tokens: { type: integer }
+        total_tokens: { type: integer }
