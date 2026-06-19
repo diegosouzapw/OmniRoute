@@ -2372,6 +2372,50 @@ export const APIKEY_PROVIDERS = {
     apiHint:
       "ZenMux exposes an OpenAI-compatible chat completions endpoint at /api/v1/chat/completions, plus Anthropic Messages (/api/anthropic/v1/messages) and Google Gemini (/api/vertex-ai) protocol surfaces. OmniRoute uses the OpenAI protocol.",
   },
+  openadapter: {
+    id: "openadapter",
+    alias: "oad",
+    name: "OpenAdapter",
+    icon: "hub",
+    color: "#10B981",
+    textIcon: "OD",
+    website: "https://openadapter.dev",
+    hasFree: true,
+    freeNote:
+      "Free tier with a generous quota and no credit card — 15+ open-source models with daily quota. Get your API key at https://dashboard.openadapter.in.",
+    authHint:
+      "Use your OpenAdapter API key in Authorization: Bearer sk-cv-<key>. Fully OpenAI-compatible. API base URL: https://api.openadapter.in/v1.",
+    apiHint:
+      "OpenAdapter exposes an OpenAI-compatible chat completions endpoint at https://api.openadapter.in/v1/chat/completions, aggregating 70+ open-source models (DeepSeek, Qwen, Kimi, MiniMax, GLM, Llama, Mistral, …). OmniRoute uses the OpenAI protocol.",
+  },
+  dit: {
+    id: "dit",
+    alias: "dai",
+    name: "DIT.ai",
+    icon: "hub",
+    color: "#0EA5E9",
+    textIcon: "DT",
+    website: "https://dit.ai",
+    authHint:
+      "Use your dit.ai API key in Authorization: Bearer <key>. Fully OpenAI-compatible — a drop-in replacement, just change the base URL to https://api.dit.ai/v1.",
+    apiHint:
+      "dit.ai (Distributed Intelligence Trade) is an OpenAI-compatible router/gateway with dynamic per-request pricing, exposing /v1/chat/completions at https://api.dit.ai/v1. OmniRoute uses the OpenAI protocol; spend/savings analytics live in the dit.ai dashboard.",
+  },
+  tokenrouter: {
+    id: "tokenrouter",
+    alias: "trk",
+    name: "TokenRouter",
+    icon: "hub",
+    color: "#F59E0B",
+    textIcon: "TK",
+    website: "https://tokenrouter.com",
+    hasFree: true,
+    freeNote: "Free tier includes the MiniMax 3 model. Get your API key at https://tokenrouter.com.",
+    authHint:
+      "Use your TokenRouter API key in Authorization: Bearer <key>. Fully OpenAI-compatible. API base URL: https://api.tokenrouter.com/v1.",
+    apiHint:
+      "TokenRouter exposes an OpenAI-compatible chat completions endpoint at https://api.tokenrouter.com/v1/chat/completions, plus a working /v1/models catalog. OmniRoute uses the OpenAI protocol.",
+  },
 };
 
 // Sub-categories within APIKEY_PROVIDERS (used by dashboard and catalog views).

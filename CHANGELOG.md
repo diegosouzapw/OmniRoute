@@ -10,6 +10,7 @@ _In development — bullets added per PR; finalized at release._
 
 ### ✨ New Features
 
+- **feat(providers): add OpenAdapter, dit.ai and TokenRouter as OpenAI-compatible providers** — three community-requested OpenAI-compatible aggregators now register as standard named OpenAI-style providers with live `/v1/models` discovery (the zenmux pattern), falling back to a seeded catalog when the upstream list is unavailable: **OpenAdapter** (`https://api.openadapter.in/v1`, free tier, 70+ open-source models — [#4239](https://github.com/diegosouzapw/OmniRoute/issues/4239)), **dit.ai** (`https://api.dit.ai/v1`, dynamic-pricing router/gateway — [#4155](https://github.com/diegosouzapw/OmniRoute/issues/4155)), and **TokenRouter** (`https://api.tokenrouter.com/v1`, free MiniMax model — [#3841](https://github.com/diegosouzapw/OmniRoute/issues/3841), thanks @FerLuisxd). No custom executor/translator — default OpenAI passthrough.
 - **feat(api): `x-omniroute-no-memory` request header — per-request opt-out of memory/skills injection** — clients that manage their own context (e.g. their own RAG/memory) can send `x-omniroute-no-memory: true` (mirrors the existing `x-omniroute-no-cache` convention) to skip the gateway injecting up to `memorySettings.maxTokens` (~2k) tokens of memory **and** skills context into that chat request — avoiding the token/cost inflation it otherwise adds on every call. Absent the header, behavior is unchanged. (PRD-2026-06-19-no-memory-header)
 
 ### 🔧 Changed
