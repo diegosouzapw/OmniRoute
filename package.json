@@ -145,6 +145,7 @@
     "check:lockfile": "node scripts/check/check-lockfile.mjs",
     "check:bundle-size": "node scripts/check/check-bundle-size.mjs",
     "check:circular-deps": "node scripts/check/check-circular-deps.mjs",
+    "check:mutation-ratchet": "node scripts/check/check-mutation-ratchet.mjs",
     "check:licenses": "node scripts/check/check-licenses.mjs",
     "check:pr-evidence": "node scripts/check/check-pr-evidence.mjs",
     "check:vuln-ratchet": "node scripts/check/check-vuln-ratchet.mjs",
