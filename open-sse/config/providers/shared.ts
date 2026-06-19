@@ -383,7 +383,7 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   ai21: buildModels(["jamba-large-1.7", "jamba-mini-2"]),
   gigachat: buildModels(["GigaChat-2-Max", "GigaChat-2-Pro", "GigaChat-2-Lite"]),
   venice: buildModels(["venice-latest"]),
-  codestral: buildModels(["codestral-2405", "codestral-latest"]),
+  codestral: buildModels(["codestral-2508", "codestral-2405", "codestral-latest"]),
   upstage: buildModels(["solar-pro3", "solar-mini"]),
   maritalk: buildModels(["sabia-4", "sabia-3.1", "sabiazinho-4", "sabiazinho-3"]),
   "xiaomi-mimo": [

@@ -8,5 +8,10 @@ export const monsterapiProvider: RegistryEntry = {
   baseUrl: "https://api.monsterapi.ai/v1/chat/completions",
   authType: "apikey",
   authHeader: "bearer",
-  models: [{ id: "llama-3-8b-fuse", name: "Llama 3 8B Fuse" }],
+  // Sweep 2026-06-19: + current served Llama tiers (developer.monsterapi.ai).
+  models: [
+    { id: "meta-llama/Meta-Llama-3.1-8B-Instruct", name: "Llama 3.1 8B Instruct" },
+    { id: "meta-llama/Llama-3.3-70B-Instruct", name: "Llama 3.3 70B Instruct" },
+    { id: "llama-3-8b-fuse", name: "Llama 3 8B Fuse" },
+  ],
 };

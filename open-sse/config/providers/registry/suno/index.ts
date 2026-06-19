@@ -9,7 +9,10 @@ export const sunoProvider: RegistryEntry = {
   authType: "cookie",
   authHeader: "cookie",
   models: [
-    { id: "chirp-v3-5", name: "Chirp V3.5" },
+    // Sweep 2026-06-19: Suno's internal codenames for v5 / v5.5.
+    { id: "chirp-fenix", name: "Chirp V5.5" },
+    { id: "chirp-crow", name: "Chirp V5" },
     { id: "chirp-v4", name: "Chirp V4" },
+    { id: "chirp-v3-5", name: "Chirp V3.5" },
   ],
 };

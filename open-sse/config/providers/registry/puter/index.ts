@@ -27,6 +27,7 @@ export const puterProvider: RegistryEntry = {
     { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6 (Puter)" },
     { id: "claude-opus-4-7", name: "Claude Opus 4.7 (Puter)" },
     // Google Gemini — use google/ prefix (confirmed working)
+    { id: "google/gemini-3.5-flash", name: "Gemini 3.5 Flash (Puter)" },
     { id: "google/gemini-3.1-flash-lite-preview", name: "Gemini 3.1 Flash Lite (Puter)" },
     { id: "google/gemini-3-flash", name: "Gemini 3 Flash (Puter)" },
     { id: "google/gemini-3.1-pro-preview", name: "Gemini 3.1 Pro (Puter)" },
