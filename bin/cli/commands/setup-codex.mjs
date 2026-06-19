@@ -24,10 +24,13 @@ import { t } from "../i18n.mjs";
  * Map a model ID (as returned by /v1/models) to a Codex profile configuration.
  * Returns null for models that should not get their own profile (e.g. aliases).
  *
+ * Exported so the Claude Code profile generator (`setup-claude`) reuses the SAME
+ * profile names (glm52, kimi-k27, …) for cross-CLI consistency.
+ *
  * @param {string} modelId
  * @returns {{ name:string, ctx:number, compact:number, effort?:string, summary?:boolean, toolLimit:number }|null}
  */
-function categoriseModel(modelId) {
+export function categoriseModel(modelId) {
   const id = modelId.toLowerCase();
 
   // ── Thinking models (max effort, detailed summary) ────────────────────────

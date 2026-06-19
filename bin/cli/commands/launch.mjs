@@ -1,53 +1,119 @@
 import { spawn } from "node:child_process";
+import { join } from "node:path";
+import os from "node:os";
 import { t } from "../i18n.mjs";
+import { resolveActiveContext } from "../contexts.mjs";
+
+function stripTrailingSlash(value) {
+  let s = String(value);
+  let end = s.length;
+  while (end > 0 && s.charCodeAt(end - 1) === 47) end--;
+  return end === s.length ? s : s.slice(0, end);
+}
 
 /**
- * Build a clean child env for Claude Code pointed at the local proxy.
- * Strips any inherited ANTHROPIC_* (avoids a stale shell token leaking through),
- * then injects the proxy base URL, gateway model discovery, and auto-compact window.
+ * Build a clean child env for Claude Code pointed at OmniRoute.
+ *
+ * Strips inherited ANTHROPIC_* (avoids a stale shell token leaking through), then
+ * injects the base URL, gateway model discovery, and auto-compact window.
+ *
  * @param {Record<string,string>} baseEnv
- * @param {number} port
+ * @param {number|string} baseUrlOrPort  a port (→ http://localhost:<port>) or a full base URL
  * @param {string|undefined} authToken
+ * @param {{ configDir?:string, model?:string }} [opts]
  * @returns {Record<string,string>}
  */
-export function buildClaudeEnv(baseEnv, port, authToken) {
+export function buildClaudeEnv(baseEnv, baseUrlOrPort, authToken, opts = {}) {
   const env = { ...baseEnv };
   for (const key of Object.keys(env)) {
     if (key.startsWith("ANTHROPIC_")) delete env[key];
   }
-  env.ANTHROPIC_BASE_URL = `http://localhost:${port}`;
+
+  // Accept a bare port (number/numeric string → localhost) or a full base URL.
+  // Claude Code wants the ROOT URL (it appends /v1/messages itself) — no /v1 here.
+  let baseUrl;
+  if (typeof baseUrlOrPort === "number" || /^\d+$/.test(String(baseUrlOrPort))) {
+    baseUrl = `http://localhost:${Number(baseUrlOrPort) || 20128}`;
+  } else {
+    baseUrl = stripTrailingSlash(String(baseUrlOrPort)).replace(/\/v1$/, "");
+  }
+
+  env.ANTHROPIC_BASE_URL = baseUrl;
   if (authToken) env.ANTHROPIC_AUTH_TOKEN = authToken;
   env.CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY = "1";
   env.CLAUDE_CODE_AUTO_COMPACT_WINDOW = "190000";
+  // Profile isolation (Claude Code has no native profiles — CLAUDE_CONFIG_DIR is
+  // the idiomatic mechanism: separate settings/credentials/history/cache per dir).
+  if (opts.configDir) env.CLAUDE_CONFIG_DIR = opts.configDir;
+  if (opts.model) env.ANTHROPIC_MODEL = opts.model;
   return env;
 }
 
 /**
- * @param {{port?:string, token?:string}} opts
+ * Resolve the OmniRoute base URL + auth for launch, honouring (in order):
+ * explicit flags → the active context (remote mode) → localhost:<port>.
+ * @param {{port?:string, remote?:string, baseUrl?:string, token?:string, apiKey?:string, context?:string}} opts
+ * @returns {{ baseUrl:string, authToken:string|undefined }}
+ */
+export function resolveLaunchTarget(opts = {}) {
+  const explicit = opts.remote ?? opts.baseUrl;
+  let baseUrl;
+  if (explicit) {
+    baseUrl = stripTrailingSlash(explicit).replace(/\/v1$/, "");
+  } else {
+    let fromCtx;
+    try {
+      const ctx = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT);
+      fromCtx = ctx?.baseUrl;
+    } catch {
+      /* no context */
+    }
+    baseUrl = fromCtx
+      ? stripTrailingSlash(fromCtx).replace(/\/v1$/, "")
+      : `http://localhost:${Number(opts.port ?? process.env.PORT ?? 20128) || 20128}`;
+  }
+
+  let authToken = opts.token ?? opts.apiKey ?? opts["api-key"];
+  if (!authToken) {
+    try {
+      const ctx = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT);
+      authToken = ctx?.accessToken || ctx?.apiKey || undefined;
+    } catch {
+      /* no context auth */
+    }
+  }
+  if (!authToken) authToken = process.env.ANTHROPIC_AUTH_TOKEN ?? process.env.OMNIROUTE_API_KEY;
+  return { baseUrl, authToken };
+}
+
+/**
+ * @param {{port?:string, remote?:string, token?:string, apiKey?:string, profile?:string, claudeHome?:string}} opts
  * @param {string[]} claudeArgs  pass-through args for the claude binary
  * @returns {Promise<number>} exit code
  */
 export async function runLaunchCommand(opts = {}, claudeArgs = []) {
-  const port = Number(opts.port ?? process.env.PORT ?? 20128) || 20128;
+  const { baseUrl, authToken } = resolveLaunchTarget(opts);
 
-  // Health check the proxy before launching.
+  // Health check the (possibly remote) proxy before launching.
   try {
-    const res = await fetch(`http://localhost:${port}/api/monitoring/health`, {
-      signal: AbortSignal.timeout(1500),
+    const res = await fetch(`${baseUrl}/api/monitoring/health`, {
+      signal: AbortSignal.timeout(3000),
     });
     if (!res.ok) throw new Error(`status ${res.status}`);
-  } catch (e) {
+  } catch {
     console.error(
-      (t("launch.notRunning") || "OmniRoute is not running on port {port}. Start it with 'omniroute serve'.").replace(
+      (t("launch.notRunning") || "OmniRoute is not reachable at {port}. Start it with 'omniroute serve'.").replace(
         "{port}",
-        String(port)
+        baseUrl
       )
     );
     return 1;
   }
 
-  const token = opts.token ?? process.env.ANTHROPIC_AUTH_TOKEN ?? undefined;
-  const env = buildClaudeEnv(process.env, port, token);
+  const configDir = opts.profile
+    ? join(opts.claudeHome || join(os.homedir(), ".claude"), "profiles", opts.profile)
+    : undefined;
+  const env = buildClaudeEnv(process.env, baseUrl, authToken, { configDir });
 
   return await new Promise((resolve) => {
     const child = spawn("claude", claudeArgs, { env, stdio: "inherit" });
@@ -67,9 +133,14 @@ export async function runLaunchCommand(opts = {}, claudeArgs = []) {
 export function registerLaunch(program) {
   program
     .command("launch")
-    .description(t("launch.description") || "Launch Claude Code pointed at the local OmniRoute proxy")
+    .description(
+      t("launch.description") || "Launch Claude Code pointed at OmniRoute (local or remote)"
+    )
     .option("--port <port>", t("serve.port") || "Proxy port", "20128")
-    .option("--token <token>", t("launch.token") || "API key the Claude client should send (ANTHROPIC_AUTH_TOKEN)")
+    .option("--remote <url>", "Remote OmniRoute base URL (overrides --port and the active context)")
+    .option("--profile <name>", "Claude Code profile to use (CLAUDE_CONFIG_DIR ~/.claude/profiles/<name>)")
+    .option("--token <token>", t("launch.token") || "Token Claude sends (ANTHROPIC_AUTH_TOKEN)")
+    .option("--api-key <key>", "Alias for --token (OmniRoute access token / API key)")
     .allowUnknownOption(true)
     .allowExcessArguments(true)
     .argument("[claudeArgs...]", "arguments passed through to the claude binary")

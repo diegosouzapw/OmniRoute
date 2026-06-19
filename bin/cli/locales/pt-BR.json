@@ -1257,10 +1257,13 @@
     "scaffold": "Gerar boilerplate de novo plugin"
   },
   "launch": {
-    "description": "Inicia o Claude Code apontando para o proxy local do OmniRoute",
-    "token": "Chave de API que o cliente Claude deve enviar (ANTHROPIC_AUTH_TOKEN)",
-    "notRunning": "OmniRoute não está rodando na porta {port}. Inicie com 'omniroute serve'.",
+    "description": "Inicia o Claude Code apontando para o OmniRoute (local ou remoto, com --profile)",
+    "token": "Token que o cliente Claude deve enviar (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute não está acessível em {port}. Inicie com 'omniroute serve'.",
     "notFound": "O CLI 'claude' não foi encontrado no PATH."
+  },
+  "setupClaude": {
+    "description": "Gera profiles do Claude Code em ~/.claude/profiles a partir do catálogo de modelos do OmniRoute"
   },
   "connect": {
     "description": "Conecta a um servidor OmniRoute remoto e entra no modo remoto"
