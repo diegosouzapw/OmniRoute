@@ -7,6 +7,7 @@ import { createSocksDispatcherWithFamily } from "./socksConnectorWithFamily.ts";
 
 const DISPATCHER_CACHE_KEY = Symbol.for("omniroute.proxyDispatcher.cache");
 const DEFAULT_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.default");
+const RETRY_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.retry");
 const SUPPORTED_PROTOCOLS = new Set(["http:", "https:", "socks5:"]);
 const DEFAULT_PROXY_DISPATCHER_CONNECTIONS = 32;
 const MAX_PROXY_DISPATCHER_CONNECTIONS = 256;
@@ -15,6 +16,7 @@ type DispatcherCache = Map<string, Dispatcher>;
 type GlobalWithDispatcherCache = typeof globalThis & {
   [DISPATCHER_CACHE_KEY]?: DispatcherCache;
   [DEFAULT_DISPATCHER_KEY]?: Dispatcher;
+  [RETRY_DISPATCHER_KEY]?: Dispatcher;
 };
 type SocksDispatcherOptions = {
   type: number;
@@ -50,6 +52,7 @@ export function clearDispatcherCache() {
 
   const globalWithCache = globalThis as GlobalWithDispatcherCache;
   delete globalWithCache[DEFAULT_DISPATCHER_KEY];
+  delete globalWithCache[RETRY_DISPATCHER_KEY];
 }
 
 function getDispatcherOptions() {
@@ -111,6 +114,32 @@ export function getDefaultDispatcher(): Dispatcher {
     globalWithCache[DEFAULT_DISPATCHER_KEY] = new Agent(getDispatcherOptions());
   }
   return globalWithCache[DEFAULT_DISPATCHER_KEY];
+}
+
+/**
+ * Dispatcher for RETRYING a direct request that just failed with a transient
+ * socket error (UND_ERR_SOCKET / "other side closed" / ECONNRESET).
+ *
+ * The default direct dispatcher pools keep-alive sockets for up to
+ * `fetchKeepAliveTimeoutMs` (4 s). Edges such as nvidia / opencode-zen silently
+ * close idle keep-alive sockets within that window, so the next request that
+ * reuses the pooled socket fails — and these failures arrive in bursts (#4252).
+ * Retrying on the SAME pooled dispatcher can grab ANOTHER stale socket, so the
+ * retry uses this no-keep-alive / no-pipelining dispatcher (mirroring the proxy
+ * dispatcher mitigation) to force a fresh socket. Healthy keep-alive reuse on
+ * the first attempt is preserved — only the retry pays the fresh-socket cost.
+ */
+export function getRetryDispatcher(): Dispatcher {
+  const globalWithCache = globalThis as GlobalWithDispatcherCache;
+  if (!globalWithCache[RETRY_DISPATCHER_KEY]) {
+    globalWithCache[RETRY_DISPATCHER_KEY] = new Agent({
+      ...getDispatcherOptions(),
+      keepAliveTimeout: 1,
+      keepAliveMaxTimeout: 1,
+      pipelining: 0,
+    });
+  }
+  return globalWithCache[RETRY_DISPATCHER_KEY];
 }
 
 /**
