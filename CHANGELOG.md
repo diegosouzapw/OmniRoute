@@ -8,6 +8,14 @@
 
 _In development — bullets added per PR; finalized at release._
 
+### ✨ New Features
+
+- **feat(api): `x-omniroute-no-memory` request header — per-request opt-out of memory/skills injection** — clients that manage their own context (e.g. their own RAG/memory) can send `x-omniroute-no-memory: true` (mirrors the existing `x-omniroute-no-cache` convention) to skip the gateway injecting up to `memorySettings.maxTokens` (~2k) tokens of memory **and** skills context into that chat request — avoiding the token/cost inflation it otherwise adds on every call. Absent the header, behavior is unchanged. (PRD-2026-06-19-no-memory-header)
+
+### 🔧 Changed
+
+- **change(memory): memory is now OFF by default** — `DEFAULT_MEMORY_SETTINGS.enabled` now defaults to `false`. Enabling memory injects up to ~2,000 tokens of retrieved context into **every** chat request (and that context is billed), which was a surprising default for new installs and for clients with their own context. Memory is now an explicit opt-in: installs that already enabled it keep it on; installs that never configured it default to off. The Settings → Memory panel now shows a token-cost warning when memory is enabled. (PRD-2026-06-19-no-memory-header)
+
 ### 🐛 Fixed
 
 - **fix(providers): Cloudflare Workers AI model discovery shows model names, not UUIDs** — importing a Cloudflare Workers AI key listed models with internal UUID identifiers (e.g. `429b9e8b-d99e-…`) instead of their usable slugs (`@cf/meta/llama-3.1-8b-instruct`). Cloudflare's `/ai/models/search` returns `{ id: "<uuid>", name: "@cf/…" }`, and discovery was passing the raw objects through — so the UUID `id` became the callable model id. The `cloudflare-ai` discovery now maps each result's `name` → id, surfacing the real `@cf/…` model ids. ([#4259](https://github.com/diegosouzapw/OmniRoute/issues/4259) — thanks @FerLuisxd)

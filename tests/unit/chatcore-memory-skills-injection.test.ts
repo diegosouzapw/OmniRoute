@@ -97,7 +97,8 @@ test("injectMemoryAndSkills with an empty DB resolves settings, finds nothing to
 
   // memorySettings was resolved (defaults) — it is a real object, not null.
   assert.ok(result.memorySettings, "memorySettings resolved from DB defaults");
-  assert.equal(result.memorySettings.enabled, true);
+  // PRD-2026-06-19: memory is now OFF by default (skills still default on).
+  assert.equal(result.memorySettings.enabled, false);
   assert.equal(result.memorySettings.skillsEnabled, true);
   // No skills in the empty registry -> body returned unchanged (same reference).
   assert.equal(result.body, body);

@@ -4881,6 +4881,7 @@
     "memoryDesc": "Persistent cross-session conversational memory",
     "memoryEnabled": "Enable Memory",
     "memoryEnabledDesc": "When enabled, OmniRoute will inject relevant past context.",
+    "memoryTokenCostWarning": "Heads up: with memory enabled, OmniRoute injects up to {tokens} tokens of retrieved context into every chat request — this increases token usage and cost. To skip injection for a specific request, send the \"x-omniroute-no-memory: true\" header.",
     "maxTokens": "Max Tokens",
     "retentionDays": "Retention",
     "recent": "Recent",

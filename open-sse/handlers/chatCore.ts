@@ -3,7 +3,7 @@ import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
 import { cloneBoundedChatLogPayload, truncateForLog } from "./chatCore/logTruncation.ts";
-import { getHeaderValueCaseInsensitive } from "./chatCore/headers.ts";
+import { getHeaderValueCaseInsensitive, isNoMemoryRequested } from "./chatCore/headers.ts";
 import { getCombosCached, getUpstreamProxyConfigCached } from "./chatCore/comboContextCache.ts";
 export { clearCombosCache, clearUpstreamProxyConfigCache } from "./chatCore/comboContextCache.ts";
 import {
@@ -1421,7 +1421,12 @@ export async function handleChatCore({
   }
 
   body = sanitizeChatRequestBody(body, sourceFormat, targetFormat);
-  const memoryOwnerId = resolveMemoryOwnerId(apiKeyInfo as Record<string, unknown> | null);
+  // Per-request opt-out: clients that manage their own context send
+  // `x-omniroute-no-memory: true` to skip memory+skills injection (a null owner
+  // disables both branches in injectMemoryAndSkills). See PRD-2026-06-19-no-memory-header.
+  const memoryOwnerId = isNoMemoryRequested(clientRawRequest?.headers ?? null)
+    ? null
+    : resolveMemoryOwnerId(apiKeyInfo as Record<string, unknown> | null);
   const injectionResult = await injectMemoryAndSkills({
     body,
     memoryOwnerId,
