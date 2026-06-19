@@ -132,3 +132,32 @@ jobs:
           path: reports/mutation/
           if-no-files-found: warn
           retention-days: 14
+
+  # Aggregation gate (T3): each split batch emits a PARTIAL view of a mutated file
+  # (auth.ts lives in a1+a2, accountFallback in b1+b2), so a PER-BATCH ratchet would
+  # only ever see half a file vs the whole-file baseline. This job runs AFTER every
+  # batch, downloads all reports, and ratchets the MERGED per-module scores
+  # (check-mutation-ratchet UNIONS same-file mutants across reports) against the
+  # dedicatedGate `mutationScore.*` floors in quality-baseline.json (seeded ~2pt below
+  # the first full measurement). Blocking: a module dropping below its floor fails the
+  # run. Missing reports (e.g. an artifact-upload flake) are skipped, never failed.
+  mutation-ratchet:
+    name: Mutation score ratchet (blocking)
+    needs: stryker
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - name: Download all mutation reports
+        uses: actions/download-artifact@v8
+        with:
+          pattern: mutation-report-*
+          path: reports/all
+      - name: Ratchet merged per-module mutation scores
+        run: node scripts/check/check-mutation-ratchet.mjs reports/all/*/mutation.json --ratchet

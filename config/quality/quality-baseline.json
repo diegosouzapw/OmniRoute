@@ -141,6 +141,161 @@
       "direction": "down",
       "dedicatedGate": true,
       "_note": "semgrep owasp/secrets findings. ADVISORY until first CI value is frozen, then flip blocking (Fase 9)."
+    },
+    "mutationScore.src/sse/services/auth.ts": {
+      "value": 52.57,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/accountFallback.ts": {
+      "value": 68.38,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.src/server/authz/routeGuard.ts": {
+      "value": 76.08,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.src/shared/utils/circuitBreaker.ts": {
+      "value": 56.94,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/utils/error.ts": {
+      "value": 43.83,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/utils/publicCreds.ts": {
+      "value": 59.76,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/autoStrategy.ts": {
+      "value": 41.33,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/comboStructure.ts": {
+      "value": 57.82,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/validateQuality.ts": {
+      "value": 61.33,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/comboPredicates.ts": {
+      "value": 56.62,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/rrState.ts": {
+      "value": 70.88,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/shadowRouting.ts": {
+      "value": 48,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/targetSorters.ts": {
+      "value": 68.3,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/comboData.ts": {
+      "value": 76.94,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/quotaScoring.ts": {
+      "value": 39.73,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/quotaStrategies.ts": {
+      "value": 50.3,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/passthroughHelpers.ts": {
+      "value": 80.89,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/sanitization.ts": {
+      "value": 70.15,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/upstreamTimeouts.ts": {
+      "value": 33,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/comboContextCache.ts": {
+      "value": 13.62,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/idempotency.ts": {
+      "value": 42.82,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/responseHeaders.ts": {
+      "value": 62.7,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/executorHelpers.ts": {
+      "value": 70.39,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/memoryExtraction.ts": {
+      "value": 62.06,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/nonStreamingSse.ts": {
+      "value": 72.82,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/passthroughToolNames.ts": {
+      "value": 66.42,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/headers.ts": {
+      "value": 94.29,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/logTruncation.ts": {
+      "value": 77.64,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/memorySkillsInjection.ts": {
+      "value": 13.49,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/semanticCache.ts": {
+      "value": 60.16,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/telemetryHelpers.ts": {
+      "value": 83.18,
+      "direction": "up",
+      "dedicatedGate": true
     }
   },
   "_coverage_note": "Pisos anti-flake ~2pt abaixo do real do CI mergeado MEDIDO COM os 135 testes religados (run 27247237268: statements 78.4 / lines 78.4 / functions 83.84 / branches 75.73). O religamento da 6A.1 HONESTIFICOU a regua: os ~82.5 anteriores eram inflados porque modulos nunca importados ficavam fora do denominador do c8. Apertar via --require-tighten na Fase 6A (2026-06-16).",
@@ -164,5 +319,6 @@
   "_osv_flip_blocking_2026_06_16_v3827": "Fim do ciclo v3.8.27: vulnCount (value 10, direction down, dedicatedGate) PROMOVIDO de ADVISORY para RATCHET BLOQUEANTE. check-vuln-ratchet.mjs ganhou um modo --ratchet (espelhando check-secrets/check-bundle-size/check-workflows da Etapa 2): le metrics.vulnCount.value daqui, compara a contagem MEDIDA pelo osv-scanner e sai 1 SOMENTE numa regressao real (medida > baseline). Sem --ratchet permanece advisory (exit 0). QUALQUER SKIP gracioso (osv-scanner ausente do PATH, osv.dev/rede inacessivel, timeout, JSON invalido) sai 0 MESMO com --ratchet — uma falha de MEDICAO nunca bloqueia, so uma regressao MEDIDA bloqueia. No ci.yml (job quality-extended) o step 'Vulnerability ratchet' passou a rodar 'npm run check:vuln-ratchet -- --ratchet' sem continue-on-error. Verificado no tip de release/v3.8.27: osv mede vulnCount=10 == baseline 10 (exit 0); forcar baseline=9 da exit 1 (10>9); PATH vazio da SKIP binary-absent exit 0. NB de VARIANCIA DE CVE: um CVE recem-divulgado numa dep ja presente pode redar o gate sem mudanca de dependencia — comportamento esperado, remedio = bumpar a dep ou re-baseline vulnCount com justificativa+issue. Ver docs/security/SUPPLY_CHAIN.md -> 'Variancia de CVE'.",
   "_trivy_flip_blocking_2026_06_16_v3827": "Fim do ciclo v3.8.27: Trivy (scan de CVE da imagem Docker em docker-publish.yml) promovido para BLOQUEANTE em CRITICAL. Abordagem de DOIS PASSOS: o passo SARIF existente (severity HIGH,CRITICAL / exit-code 0 / upload SARIF) fica INTACTO para visibilidade na aba Security; um novo passo 'Trivy CRITICAL gate (blocking)' (severity CRITICAL / ignore-unfixed:true / exit-code 1) falha o release num CVE CRITICO FIXAVEL. ignore-unfixed evita travar por CVE de base-image sem patch upstream (reduz falso-bloqueio). Mesma variancia-de-CVE do osv: um novo CRITICAL fixavel divulgado pode redar; remedio = rebuild sobre base patcheada, bumpar dep, ou .trivyignore com justificativa+issue. Ver docs/security/SUPPLY_CHAIN.md. vulnCount permanece 10 (intocado neste flip — so a postura advisory->bloqueante mudou).",
   "_rebaseline_2026_06_18_v3828_cycle_close": "Fim do ciclo v3.8.28 (RELEASED; ciclo v3.8.29 aberto): 3 metricas re-baselineadas para o valor REAL medido no push->main pos-release (run 27725117464, step 'Ratchet check') — eslintWarnings 3769->3779, openapiCoverage.pct 38.3->37.6, i18nUiCoverage.pct 80.1->79.1. Reproduzido localmente em release/v3.8.29 (9f14c1294): identico ao CI. Drift de fim-de-ciclo de features legitimas, NAO hand-cleanable: (a) eslint +10 = 'any' PERMITIDO (warn) em testes do ciclo + 4 react-hooks/exhaustive-deps em RequestLoggerV2.tsx (componente com bugs sutis de refresh #4103/#3972, arriscado mexer em deps de hook sem teste de UI); (b) openapi -0.7 = drop por rotas NOVAS INTERNAS (/api/tools/agent-bridge/* LOCAL_ONLY, spawnam MITM/DNS) — documenta-las no spec PUBLICO seria gaming; (c) i18n -1.0 = 37/41 locales em 79.1% (1741 chaves faltando cada, ~3000 traducoes via 'npm run i18n:run' que exige creds OMNIROUTE_TRANSLATION_API_KEY indisponiveis localmente). Mesmo precedente do _eslint_rebaseline_2026_06_16_v3826_forward_merge. Apertar no fim do ciclo: eslint/openapi via --require-tighten; i18n via i18n:run com creds. Autorizado pelo operador (decisao explicita).",
-  "_rebaseline_2026_06_19_v3829_cycle_close": "Release do ciclo v3.8.29: eslintWarnings re-baselineado 3779->3816 para o valor REAL medido em release/v3.8.29 (tip da3...; `npm run lint` local = 3816, identico ao Quality Ratchet do CI no PR #4126). O +37 e drift de fim-de-ciclo de 115 commits de features legitimas — `any` PERMITIDO (warn) em open-sse/ e tests/ do ciclo; os arquivos de reconciliacao deste release nao adicionam warnings (scripts/check/*.mjs sao eslint-ignored, o teste novo de check-fabricated-docs nao usa any). Mesmo precedente de _rebaseline_2026_06_18_v3828_cycle_close. Apertar via --require-tighten no fim do ciclo seguinte. ALÉM disso, o step Require-tighten (blocking) exigiu apertar 2 métricas que MELHORARAM no ciclo (medidas no CI do PR #4126): coverage.auth.lines 69->90 (CI mediu 92.6; piso ~2pt-abaixo-do-real anti-flake, dentro do tightenSlack 10) e openapiCoverage.pct 37.6->38.4 (rotas novas documentadas). Melhorias legitimas travadas no baseline, nao gaming. Autorizado pelo operador (release end-to-end, validado na VPS)."
+  "_rebaseline_2026_06_19_v3829_cycle_close": "Release do ciclo v3.8.29: eslintWarnings re-baselineado 3779->3816 para o valor REAL medido em release/v3.8.29 (tip da3...; `npm run lint` local = 3816, identico ao Quality Ratchet do CI no PR #4126). O +37 e drift de fim-de-ciclo de 115 commits de features legitimas — `any` PERMITIDO (warn) em open-sse/ e tests/ do ciclo; os arquivos de reconciliacao deste release nao adicionam warnings (scripts/check/*.mjs sao eslint-ignored, o teste novo de check-fabricated-docs nao usa any). Mesmo precedente de _rebaseline_2026_06_18_v3828_cycle_close. Apertar via --require-tighten no fim do ciclo seguinte. ALÉM disso, o step Require-tighten (blocking) exigiu apertar 2 métricas que MELHORARAM no ciclo (medidas no CI do PR #4126): coverage.auth.lines 69->90 (CI mediu 92.6; piso ~2pt-abaixo-do-real anti-flake, dentro do tightenSlack 10) e openapiCoverage.pct 37.6->38.4 (rotas novas documentadas). Melhorias legitimas travadas no baseline, nao gaming. Autorizado pelo operador (release end-to-end, validado na VPS).",
+  "_comment_mutationScore": "Per-module COVERED mutation score floors (detected/(detected+survived)), seeded ~2pt below the first full measurement (run 27823984918: split batches a1/a2/b1/b2/c1/c2/d + e/f/g/h/i). direction:up + dedicatedGate:true -> enforced ONLY by check-mutation-ratchet.mjs (the generic check-quality-ratchet skips dedicatedGate metrics), in the nightly-mutation aggregation job."
 }
