@@ -151,6 +151,10 @@ const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   // #4202: zenmux is the same case — its free models (e.g. z-ai/glm-5.2-free,
   // moonshotai/kimi-k2.7-code-free) live only on the upstream /models list.
   "zenmux",
+  // #4249: vercel-ai-gateway carries a real baseUrl (.../v1/chat/completions) but
+  // was unclassified, so import served the 5-entry hardcoded catalog instead of the
+  // live `https://ai-gateway.vercel.sh/v1/models` list. Falls back to local on error.
+  "vercel-ai-gateway",
 ]);
 
 function isNamedOpenAIStyleProvider(provider: string): boolean {
