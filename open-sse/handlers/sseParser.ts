@@ -778,6 +778,24 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
     .map(([, item]) => item)
     .filter((item) => item && typeof item === "object");
   const pickedOutput = Array.isArray(picked.output) ? picked.output : [];
+  // #3948 — A Responses-API terminal snapshot (`response.completed`) can carry a
+  // non-empty `output` that LACKS the assistant message item (e.g. only a
+  // `reasoning` item) even though the streamed `output_text` deltas reconstructed
+  // a full message. Preferring such a textless terminal output drops the
+  // assistant text → empty content on `stream:false` (n8n combo). When the
+  // terminal output has no message item but the reconstructed delta output does,
+  // use the reconstructed output (a superset carrying the message). The terminal
+  // snapshot still wins whenever it already contains the message item.
+  const outputHasMessage = (items: unknown[]) =>
+    items.some((item) => toRecord(item).type === "message");
+  const chosenOutput =
+    pickedOutput.length > 0 &&
+    !outputHasMessage(pickedOutput) &&
+    outputHasMessage(reconstructedOutput)
+      ? reconstructedOutput
+      : pickedOutput.length > 0
+        ? pickedOutput
+        : reconstructedOutput;
   const statusFallback =
     terminalEventType === "response.cancelled"
       ? "cancelled"
@@ -795,7 +813,7 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
     id: picked.id != null ? String(picked.id) : `resp_${Date.now()}`,
     object: picked.object || "response",
     model: picked.model || fallbackModel || "unknown",
-    output: (pickedOutput.length > 0 ? pickedOutput : reconstructedOutput).map((item) => {
+    output: chosenOutput.map((item) => {
       const record = toRecord(item);
       return {
         ...record,
