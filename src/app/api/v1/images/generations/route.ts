@@ -23,6 +23,9 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { getAllCustomModels, resolveProxyForConnection } from "@/lib/localDb";
 import { resolveImageRouteModel } from "@/lib/images/imageRouteModel";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import { calculateModalCost } from "@/lib/usage/costCalculator";
+import { generateRequestId } from "@/shared/utils/requestId";
 
 /**
  * Handle CORS preflight
@@ -133,6 +136,7 @@ async function postHandler(request, context) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
   }
   const body = validation.data;
+  const startTime = Date.now();
 
   // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);
@@ -266,9 +270,22 @@ async function postHandler(request, context) {
 
   if (result.success) {
     await clearRecoveredProviderState(credentials);
-    return new Response(JSON.stringify((result as any).data), {
+    const n = Math.max(
+      Number(body.n) || 1,
+      (result as { data?: { data?: unknown[] } }).data?.data?.length || 0
+    );
+    const costUsd = await calculateModalCost("image", provider, body.model, { n });
+    const headers = new Headers({ "Content-Type": "application/json" });
+    attachOmniRouteMetaHeaders(headers, {
+      provider,
+      model: body.model,
+      costUsd,
+      latencyMs: Date.now() - startTime,
+      requestId: generateRequestId(),
+    });
+    return new Response(JSON.stringify((result as { data: unknown }).data), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers,
     });
   }
 
