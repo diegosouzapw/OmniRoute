@@ -64,6 +64,7 @@ import { registerSetupCline } from "./setup-cline.mjs";
 import { registerSetupKilo } from "./setup-kilo.mjs";
 import { registerSetupContinue } from "./setup-continue.mjs";
 import { registerSetupCursor } from "./setup-cursor.mjs";
+import { registerSetupRoo } from "./setup-roo.mjs";
 import { registerConnect } from "./connect.mjs";
 import { registerTokens } from "./tokens.mjs";
 import { registerConfigure } from "./configure.mjs";
@@ -138,6 +139,7 @@ export function registerCommands(program) {
   registerSetupKilo(program);
   registerSetupContinue(program);
   registerSetupCursor(program);
+  registerSetupRoo(program);
   registerConnect(program);
   registerTokens(program);
   registerConfigure(program);
