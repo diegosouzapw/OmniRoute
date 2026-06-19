@@ -8,6 +8,10 @@
 
 _In development — bullets added per PR; finalized at release._
 
+### 🐛 Fixed
+
+- **fix(providers): Cloudflare Workers AI model discovery shows model names, not UUIDs** — importing a Cloudflare Workers AI key listed models with internal UUID identifiers (e.g. `429b9e8b-d99e-…`) instead of their usable slugs (`@cf/meta/llama-3.1-8b-instruct`). Cloudflare's `/ai/models/search` returns `{ id: "<uuid>", name: "@cf/…" }`, and discovery was passing the raw objects through — so the UUID `id` became the callable model id. The `cloudflare-ai` discovery now maps each result's `name` → id, surfacing the real `@cf/…` model ids. ([#4259](https://github.com/diegosouzapw/OmniRoute/issues/4259) — thanks @FerLuisxd)
+
 ---
 
 ## [3.8.29] — 2026-06-19
