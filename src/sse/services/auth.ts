@@ -535,54 +535,77 @@ function isRetryableModelLockoutReason(reason: unknown): boolean {
     : false;
 }
 
+function pushClampedPercentage(percentages: number[], value: number): void {
+  if (Number.isFinite(value)) {
+    percentages.push(Math.max(0, Math.min(100, value)));
+  }
+}
+
+function isResetAtInPast(resetAt: string | null): boolean {
+  if (!resetAt) return false;
+  const resetMs = new Date(resetAt).getTime();
+  return Number.isFinite(resetMs) && resetMs <= Date.now();
+}
+
+function collectPolicyQuotaHeadroomPercentages(
+  provider: string,
+  connection: ProviderConnectionView,
+  policy: QuotaLimitPolicy,
+  requestedModel: string | null
+): number[] {
+  const percentages: number[] = [];
+  const seenWindows = new Set<string>();
+
+  for (const windowName of policy.windows) {
+    const scopedWindow =
+      provider === "codex" ? toCodexScopedQuotaWindowName(windowName, requestedModel) : windowName;
+    const normalizedWindow = normalizeWindowName(scopedWindow);
+    if (!normalizedWindow || seenWindows.has(normalizedWindow)) continue;
+    seenWindows.add(normalizedWindow);
+
+    const status = getQuotaWindowStatus(connection.id, normalizedWindow, policy.thresholdPercent);
+    if (status) pushClampedPercentage(percentages, status.remainingPercentage);
+  }
+
+  return percentages;
+}
+
+function collectCachedQuotaHeadroomPercentages(
+  provider: string,
+  connection: ProviderConnectionView,
+  requestedModel: string | null
+): number[] {
+  const quotaEntry = getQuotaCache(connection.id) as QuotaCacheView | null;
+  const rawQuotas = quotaEntry?.quotas || {};
+  const codexWindowFilter =
+    provider === "codex" ? getCodexQuotaWindowFilterForModel(requestedModel) : undefined;
+  const percentages: number[] = [];
+
+  for (const [quotaName, quota] of Object.entries(rawQuotas)) {
+    if (codexWindowFilter && !codexWindowFilter(quotaName)) continue;
+    if (!quota || isResetAtInPast(toStringOrNull(quota.resetAt))) continue;
+    pushClampedPercentage(percentages, toNumber(quota.remainingPercentage, Number.NaN));
+  }
+
+  return percentages;
+}
+
 function getConnectionQuotaHeadroomPercent(
   provider: string,
   connection: ProviderConnectionView,
   requestedModel: string | null = null
 ): number | null {
   const policy = resolveQuotaLimitPolicy(provider, connection.providerSpecificData);
-  const percentages: number[] = [];
-  const seenWindows = new Set<string>();
-
-  const collectWindow = (windowName: string) => {
-    const normalizedWindow = normalizeWindowName(
-      provider === "codex" ? toCodexScopedQuotaWindowName(windowName, requestedModel) : windowName
-    );
-    if (!normalizedWindow || seenWindows.has(normalizedWindow)) return;
-    seenWindows.add(normalizedWindow);
-
-    const status = getQuotaWindowStatus(connection.id, normalizedWindow, policy.thresholdPercent);
-    if (!status) return;
-    percentages.push(Math.max(0, Math.min(100, status.remainingPercentage)));
-  };
-
-  for (const windowName of policy.windows) {
-    collectWindow(windowName);
-  }
-
-  if (percentages.length > 0) {
-    return Math.min(...percentages);
-  }
-
-  const quotaEntry = getQuotaCache(connection.id) as QuotaCacheView | null;
-  const rawQuotas = quotaEntry?.quotas || {};
-  const codexWindowFilter =
-    provider === "codex" ? getCodexQuotaWindowFilterForModel(requestedModel) : undefined;
-  for (const [quotaName, quota] of Object.entries(rawQuotas)) {
-    if (codexWindowFilter && !codexWindowFilter(quotaName)) continue;
-    if (!quota) continue;
-    const resetAt = toStringOrNull(quota.resetAt);
-    if (resetAt) {
-      const resetMs = new Date(resetAt).getTime();
-      if (Number.isFinite(resetMs) && resetMs <= Date.now()) {
-        continue;
-      }
-    }
-    const remaining = toNumber(quota.remainingPercentage, Number.NaN);
-    if (Number.isFinite(remaining)) {
-      percentages.push(Math.max(0, Math.min(100, remaining)));
-    }
-  }
+  const policyPercentages = collectPolicyQuotaHeadroomPercentages(
+    provider,
+    connection,
+    policy,
+    requestedModel
+  );
+  const percentages =
+    policyPercentages.length > 0
+      ? policyPercentages
+      : collectCachedQuotaHeadroomPercentages(provider, connection, requestedModel);
 
   return percentages.length > 0 ? Math.min(...percentages) : null;
 }

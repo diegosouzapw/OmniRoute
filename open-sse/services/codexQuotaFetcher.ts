@@ -325,6 +325,37 @@ function findSparkRateLimit(data: Record<string, unknown>): Record<string, unkno
   return null;
 }
 
+function getCodexRateLimitWindows(rateLimit: Record<string, unknown>): {
+  primary: { percentUsed: number; resetAt: string | null } | null;
+  secondary: { percentUsed: number; resetAt: string | null } | null;
+} {
+  return {
+    primary: parseCodexWindow(toRecord(rateLimit["primary_window"] ?? rateLimit["primaryWindow"])),
+    secondary: parseCodexWindow(
+      toRecord(rateLimit["secondary_window"] ?? rateLimit["secondaryWindow"])
+    ),
+  };
+}
+
+function assignCodexWindows(
+  target: Record<string, { percentUsed: number; resetAt: string | null }>,
+  rateLimit: Record<string, unknown>,
+  names: { primary: string; secondary: string }
+): void {
+  const { primary, secondary } = getCodexRateLimitWindows(rateLimit);
+  if (primary) target[names.primary] = primary;
+  if (secondary) target[names.secondary] = secondary;
+}
+
+function getSelectedCodexRateLimit(
+  normalRateLimit: Record<string, unknown>,
+  sparkRateLimit: Record<string, unknown> | null,
+  useSparkWindows: boolean
+): Record<string, unknown> | null {
+  if (useSparkWindows) return sparkRateLimit;
+  return normalRateLimit;
+}
+
 function parseCodexUsageResponse(
   data: unknown,
   requestedModel?: string | null
@@ -332,23 +363,17 @@ function parseCodexUsageResponse(
   const obj = toRecord(data);
   const normalRateLimit = toRecord(obj["rate_limit"] ?? obj["rateLimit"]);
   const sparkRateLimit = findSparkRateLimit(obj);
-  const requestedScope = getCodexModelScope(requestedModel);
-  const useSparkWindows = requestedScope === "spark";
-  if (useSparkWindows && !sparkRateLimit) return null;
-  const selectedRateLimit = useSparkWindows
-    ? (sparkRateLimit as Record<string, unknown>)
-    : normalRateLimit;
-
-  const primaryWindow = toRecord(
-    selectedRateLimit["primary_window"] ?? selectedRateLimit["primaryWindow"]
+  const useSparkWindows = getCodexModelScope(requestedModel) === "spark";
+  const selectedRateLimit = getSelectedCodexRateLimit(
+    normalRateLimit,
+    sparkRateLimit,
+    useSparkWindows
   );
-  const secondaryWindow = toRecord(
-    selectedRateLimit["secondary_window"] ?? selectedRateLimit["secondaryWindow"]
-  );
+  if (!selectedRateLimit) return null;
 
   // Require at least one window to be present for the requested scope.
-  const parsedPrimary = parseCodexWindow(primaryWindow);
-  const parsedSecondary = parseCodexWindow(secondaryWindow);
+  const { primary: parsedPrimary, secondary: parsedSecondary } =
+    getCodexRateLimitWindows(selectedRateLimit);
   if (!parsedPrimary && !parsedSecondary) return null;
 
   const window5h = parsedPrimary ?? { percentUsed: 0, resetAt: null };
@@ -358,37 +383,25 @@ function parseCodexUsageResponse(
     selectedRateLimit["limit_reached"] ?? selectedRateLimit["limitReached"]
   );
 
-  const windows: Record<string, { percentUsed: number; resetAt: string | null }> = {
-    ...(parsedPrimary
-      ? { [useSparkWindows ? CODEX_SPARK_QUOTA_SESSION : CODEX_WINDOW_SESSION]: window5h }
-      : {}),
-    ...(parsedSecondary
-      ? { [useSparkWindows ? CODEX_SPARK_QUOTA_WEEKLY : CODEX_WINDOW_WEEKLY]: window7d }
-      : {}),
-  };
+  const windows: Record<string, { percentUsed: number; resetAt: string | null }> = {};
+  assignCodexWindows(windows, selectedRateLimit, {
+    primary: useSparkWindows ? CODEX_SPARK_QUOTA_SESSION : CODEX_WINDOW_SESSION,
+    secondary: useSparkWindows ? CODEX_SPARK_QUOTA_WEEKLY : CODEX_WINDOW_WEEKLY,
+  });
   const allWindows: Record<string, { percentUsed: number; resetAt: string | null }> = {
     ...windows,
   };
 
-  if (!useSparkWindows && sparkRateLimit) {
-    const sparkPrimary = parseCodexWindow(
-      toRecord(sparkRateLimit["primary_window"] ?? sparkRateLimit["primaryWindow"])
-    );
-    const sparkSecondary = parseCodexWindow(
-      toRecord(sparkRateLimit["secondary_window"] ?? sparkRateLimit["secondaryWindow"])
-    );
-    if (sparkPrimary) allWindows[CODEX_SPARK_QUOTA_SESSION] = sparkPrimary;
-    if (sparkSecondary) allWindows[CODEX_SPARK_QUOTA_WEEKLY] = sparkSecondary;
-  } else if (useSparkWindows) {
-    const normalPrimary = parseCodexWindow(
-      toRecord(normalRateLimit["primary_window"] ?? normalRateLimit["primaryWindow"])
-    );
-    const normalSecondary = parseCodexWindow(
-      toRecord(normalRateLimit["secondary_window"] ?? normalRateLimit["secondaryWindow"])
-    );
-    if (normalPrimary) allWindows[CODEX_WINDOW_SESSION] = normalPrimary;
-    if (normalSecondary) allWindows[CODEX_WINDOW_WEEKLY] = normalSecondary;
+  if (sparkRateLimit) {
+    assignCodexWindows(allWindows, sparkRateLimit, {
+      primary: CODEX_SPARK_QUOTA_SESSION,
+      secondary: CODEX_SPARK_QUOTA_WEEKLY,
+    });
   }
+  assignCodexWindows(allWindows, normalRateLimit, {
+    primary: CODEX_WINDOW_SESSION,
+    secondary: CODEX_WINDOW_WEEKLY,
+  });
 
   return {
     used: Math.round(worstPercentUsed * 100),

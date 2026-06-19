@@ -43,11 +43,14 @@ test("POST rejects an out-of-range config with a 400 invalid_request", async () 
   assert.equal(body.error.type, "invalid_request");
 });
 
-test("POST returns a sanitized 500 when the native addon is unavailable (CI)", async () => {
+test("POST returns a sanitized 500 when the native addon is unavailable or unprivileged", async () => {
   const res = await POST(postReq({}));
   assert.equal(res.status, 500);
   const body = await res.json();
-  assert.match(body.error.message, /native addon|CAP_NET_ADMIN/);
+  assert.match(
+    body.error.message,
+    /native addon|CAP_NET_ADMIN|Operation not permitted|permission/i
+  );
   assert.ok(!body.error.message.includes("at /"), "no stack trace leaked");
 });
 
