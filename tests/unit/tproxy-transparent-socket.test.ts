@@ -117,20 +117,20 @@ test("isTransparentSocketAvailable returns a boolean", () => {
   assert.equal(typeof isTransparentSocketAvailable(), "boolean");
 });
 
-test("createTransparentListenerFd throws a clear, actionable error when unavailable", (t) => {
-  if (isTransparentSocketAvailable()) {
-    t.skip("transparent-socket addon is available in this environment");
-    return;
-  }
-
-  assert.throws(() => createTransparentListenerFd("0.0.0.0", 8443), /not available|Linux|build/i);
+test("createTransparentListenerFd fails clearly without addon or privileges", () => {
+  assert.throws(
+    () => createTransparentListenerFd("0.0.0.0", 8443),
+    (error) =>
+      error instanceof Error &&
+      /not available|Linux|build|Operation not permitted|permission/i.test(error.message)
+  );
 });
 
-test("setSocketMark throws when the addon is unavailable", (t) => {
-  if (isTransparentSocketAvailable()) {
-    t.skip("transparent-socket addon is available in this environment");
-    return;
-  }
-
-  assert.throws(() => setSocketMark(7, 0x539), /not available/i);
+test("setSocketMark fails clearly without addon or a valid privileged fd", () => {
+  assert.throws(
+    () => setSocketMark(-1, 0x539),
+    (error) =>
+      error instanceof Error &&
+      /not available|bad file descriptor|invalid|permission/i.test(error.message)
+  );
 });
