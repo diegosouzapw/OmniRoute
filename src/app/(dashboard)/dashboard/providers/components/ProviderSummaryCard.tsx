@@ -33,6 +33,8 @@ export interface ProviderSummaryStats {
 
 interface ProviderSummaryCardProps {
   activeCategory: string | null;
+  activeServiceKind: string | null;
+  onServiceKindChange(kind: string | null): void;
   disabledConfigured: boolean;
   displayMode: ProviderDisplayMode;
   modelSearchQuery: string;
@@ -68,8 +70,25 @@ function providerText(
   return fallback;
 }
 
+const SERVICE_KIND_CHIPS: Array<{ key: string; icon: string; labelKey: string; fallback: string }> =
+  [
+    { key: "image", icon: "image", labelKey: "serviceKindImage", fallback: "Image" },
+    { key: "video", icon: "videocam", labelKey: "serviceKindVideo", fallback: "Video" },
+    { key: "music", icon: "music_note", labelKey: "serviceKindMusic", fallback: "Music" },
+    { key: "tts", icon: "record_voice_over", labelKey: "serviceKindTts", fallback: "Text→Speech" },
+    { key: "stt", icon: "hearing", labelKey: "serviceKindStt", fallback: "Speech→Text" },
+    {
+      key: "embedding",
+      icon: "scatter_plot",
+      labelKey: "serviceKindEmbedding",
+      fallback: "Embedding",
+    },
+  ];
+
 export default function ProviderSummaryCard({
   activeCategory,
+  activeServiceKind,
+  onServiceKindChange,
   disabledConfigured,
   displayMode,
   modelSearchQuery,
@@ -227,6 +246,38 @@ export default function ProviderSummaryCard({
               </button>
             );
           })}
+        </div>
+
+        <div className="border-t border-border pt-3 flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-medium uppercase tracking-wide text-text-muted mr-1">
+            {providerText(t, "filterByMedia", "Media")}
+          </span>
+          {SERVICE_KIND_CHIPS.map((chip) => {
+            const isActive = activeServiceKind === chip.key;
+            return (
+              <button
+                key={chip.key}
+                onClick={() => onServiceKindChange(isActive ? null : chip.key)}
+                aria-pressed={isActive}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
+                  isActive
+                    ? "bg-primary text-white border-primary"
+                    : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/30"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[14px]">{chip.icon}</span>
+                <span>{providerText(t, chip.labelKey, chip.fallback)}</span>
+              </button>
+            );
+          })}
+          {activeServiceKind && (
+            <button
+              onClick={() => onServiceKindChange(null)}
+              className="text-[11px] text-text-muted hover:text-text-primary underline-offset-2 hover:underline"
+            >
+              {providerText(t, "clearMediaFilter", "Clear")}
+            </button>
+          )}
         </div>
       </div>
     </Card>
