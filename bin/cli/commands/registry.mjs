@@ -56,6 +56,8 @@ import { registerTray } from "./tray.mjs";
 import { registerAutostart } from "./autostart.mjs";
 import { registerRepl } from "./repl.mjs";
 import { registerLaunch } from "./launch.mjs";
+import { registerLaunchCodex } from "./launch-codex.mjs";
+import { registerSetupCodex } from "./setup-codex.mjs";
 import { registerConnect } from "./connect.mjs";
 import { registerTokens } from "./tokens.mjs";
 import { registerConfigure } from "./configure.mjs";
@@ -122,6 +124,8 @@ export function registerCommands(program) {
   registerAutostart(program);
   registerRepl(program);
   registerLaunch(program);
+  registerLaunchCodex(program);
+  registerSetupCodex(program);
   registerConnect(program);
   registerTokens(program);
   registerConfigure(program);

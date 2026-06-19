@@ -1271,5 +1271,11 @@
   },
   "configure": {
     "description": "Pick a provider+model from the active server and write a local CLI config"
+  },
+  "launchCodex": {
+    "description": "Launch Codex CLI pointed at OmniRoute (local or remote VPS)"
+  },
+  "setupCodex": {
+    "description": "Generate ~/.codex profile files from OmniRoute live model catalog"
   }
 }

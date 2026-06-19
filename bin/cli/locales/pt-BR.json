@@ -1270,5 +1270,11 @@
   },
   "configure": {
     "description": "Escolhe um provedor+modelo do servidor ativo e grava uma configuração de CLI local"
+  },
+  "launchCodex": {
+    "description": "Inicia o Codex CLI apontando para o OmniRoute (local ou VPS remoto)"
+  },
+  "setupCodex": {
+    "description": "Gera os arquivos de perfil ~/.codex a partir do catálogo de modelos ao vivo do OmniRoute"
   }
 }
