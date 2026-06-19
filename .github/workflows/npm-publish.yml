@@ -37,10 +37,11 @@ on:
       NPM_TOKEN:
         required: true
 
+# Least-privilege default: read-only at the top level; each publish job grants the
+# id-token (npm provenance) / packages (GitHub Packages) writes it needs (Scorecard
+# TokenPermissions).
 permissions:
   contents: read
-  id-token: write
-  packages: write
 
 env:
   NPM_PUBLISH_NODE_VERSION: "24"
@@ -48,10 +49,15 @@ env:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # gh release upload (attach SBOM to the GitHub Release)
+      id-token: write # npm provenance
+      packages: write # publish to npm.pkg.github.com
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
+          persist-credentials: false
           # Need full tag history to compare against highest semver when
           # deciding whether this release should claim dist-tag `latest`.
           fetch-depth: 0
@@ -141,6 +147,25 @@ jobs:
         if: steps.resolve.outputs.skip != 'true'
         run: npm run check:pack-artifact
 
+      - name: Generate CycloneDX SBOM (npm)
+        if: steps.resolve.outputs.skip != 'true'
+        run: npx @cyclonedx/cyclonedx-npm --ignore-npm-errors --output-format JSON --output-file sbom-npm.cdx.json
+
+      - name: Upload SBOM (npm) as workflow artifact
+        if: steps.resolve.outputs.skip != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom-npm
+          path: sbom-npm.cdx.json
+          if-no-files-found: error
+
+      - name: Attach SBOM to GitHub Release
+        if: steps.resolve.outputs.skip != 'true' && github.event_name == 'release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: gh release upload "$TAG" sbom-npm.cdx.json --clobber
+
       - name: Publish to npm
         if: steps.resolve.outputs.skip != 'true'
         env:
@@ -152,7 +177,7 @@ jobs:
           # Always pass --tag explicitly. Defense in depth: even if VERSION is
           # accidentally an older release, `npm publish --tag historic` will
           # NOT promote it to `@latest`.
-          npm publish --access public --tag "$TAG"
+          npm publish --provenance --access public --tag "$TAG"
           echo "✅ Published omniroute@$VERSION (dist-tag=$TAG)"
 
       - name: Publish to GitHub Packages
@@ -172,9 +197,14 @@ jobs:
 
   publish-opencode-plugin:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # npm provenance
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -208,5 +238,5 @@ jobs:
             echo "⚠️ ${PKG_NAME}@${PKG_VERSION} is already published on npm — skipping."
             exit 0
           fi
-          npm publish --access public --ignore-scripts
+          npm publish --provenance --access public --ignore-scripts
           echo "✅ Published ${PKG_NAME}@${PKG_VERSION}"

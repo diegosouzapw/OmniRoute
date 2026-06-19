@@ -26,7 +26,7 @@ const INJECTION_PATTERNS = [
   {
     name: "system_prompt_leak",
     pattern:
-      /\b(reveal|show|display|print|output|repeat)\s+(your\s+)?(system\s+prompt|instructions?|initial\s+prompt|hidden\s+prompt)/i,
+      /\b(reveals?|shows?|displays?|prints?|outputs?|repeats?)\s+((your|the)\s+)?(system\s+prompt|instructions?|initial\s+prompt|hidden\s+prompt)/i,
     severity: "high",
   },
   {
@@ -143,6 +143,20 @@ function extractMessageContents(body) {
       else if (s.text) contents.push(s.text);
     }
   }
+
+  if (typeof body.input === "string") contents.push(body.input);
+  if (typeof body.prompt === "string") contents.push(body.prompt);
+  else if (Array.isArray(body.prompt))
+    for (const p of body.prompt) {
+      if (typeof p === "string") contents.push(p);
+    }
+  if (typeof body.instructions === "string") contents.push(body.instructions);
+  if (typeof body.query === "string") contents.push(body.query);
+  if (Array.isArray(body.documents))
+    for (const d of body.documents) {
+      if (typeof d === "string") contents.push(d);
+      else if (d && typeof d.text === "string") contents.push(d.text);
+    }
 
   return contents;
 }

@@ -131,7 +131,8 @@ test("getAvailableAgents returns all registered agents", () => {
   assert.strictEqual(agents.includes("jules"), true);
   assert.strictEqual(agents.includes("devin"), true);
   assert.strictEqual(agents.includes("codex-cloud"), true);
-  assert.strictEqual(agents.length, 3);
+  assert.strictEqual(agents.includes("cursor-cloud"), true);
+  assert.strictEqual(agents.length, 4);
 });
 
 test("getAgent returns correct agent for valid providerId", () => {

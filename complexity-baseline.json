@@ -1,5 +1,0 @@
-{
-  "_comment": "Catraca de complexidade (check-complexity.mjs, ESLint core rules complexity>=15 e max-lines-per-function>80 sobre src+open-sse via eslint.complexity.config.mjs). Conta total de violacoes; so pode cair. --update ratcheta.",
-  "count": 1746,
-  "_rebaseline_2026_06_10": "Re-baseline consciente: 1739 foi medido na branch das Fases 0-6 (base ~v3.8.17); a v3.8.18 publicada ja carrega 1746 (provado: o commit-base 5f2722bd6, anterior a qualquer commit do ciclo v3.8.19, mede 1746 — funcoes complexas dos reworks RequestLoggerV2/stream/combo). Mesma familia dos re-baselines de eslintWarnings/file-size. Reducao = Fase 6A (2026-06-16)."
-}

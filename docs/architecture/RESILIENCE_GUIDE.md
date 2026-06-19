@@ -124,6 +124,7 @@ Lists active lockouts with: provider, connection, model, reason, expiresAt. Oper
 - **Reset-aware routing** (v3.8.0) — prioritizes connections by quota reset time.
 - **Background mode degradation** — Responses API `background: true` degraded to sync with warning.
 - **Dynamic tool limit detection** — backs off providers when tool count limits hit.
+- **Emergency fallback** — controlled by `OMNIROUTE_EMERGENCY_FALLBACK`; operators can override it from the Feature Flags page without a restart.
 
 ---
 
@@ -140,6 +141,22 @@ Lists active lockouts with: provider, connection, model, reason, expiresAt. Oper
 ## TLS Fingerprinting & Stealth
 
 Provider-specific stealth (JA3/JA4, CCH, obfuscation) is separately documented — see [STEALTH_GUIDE.md](../security/STEALTH_GUIDE.md).
+
+---
+
+## Resilience testing (Fase 8 · Bloco C)
+
+Além dos unit tests da lógica de resiliência, três testes exercitam o runtime sob
+estresse/falha real (todos integração/nightly — nenhum bloqueia PR):
+
+| Teste | O quê | Rodar |
+|---|---|---|
+| Chaos | Fake-upstream node injeta latência/reset/timeout/503 reais; valida que o circuit breaker abre/recupera e `checkFallbackError` classifica 503 como fallback recuperável. | `RUN_CHAOS_INT=1 npm run test:chaos` |
+| Heap-growth | ~500 streams por `createSSEStream` sob `--expose-gc`; falha se o heap crescer além do teto (guarda OOM #3069). | `npm run test:heap` |
+| k6 soak | Carga sustentada contra `/api/monitoring/health`; thresholds p95/erro. | `k6 run tests/load/k6-soak.js` (nightly) |
+
+Orquestrados por `.github/workflows/nightly-resilience.yml` (cron + dispatch). No
+`test:integration` default, chaos e heap se auto-skipam (sem `RUN_CHAOS_INT`/`--expose-gc`).
 
 ---
 

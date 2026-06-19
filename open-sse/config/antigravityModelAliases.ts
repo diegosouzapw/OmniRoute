@@ -65,9 +65,10 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
     supportsVision: true,
     toolCalling: true,
   },
-  // Gemini 3.1 Pro budget tiers — agy already ships these; #3184 confirmed they work via
-  // the antigravity OAuth provider. The -high/-low suffix is aliased to the plain
-  // gemini-3.1-pro upstream id (see ANTIGRAVITY_MODEL_ALIASES / #3229).
+  // Gemini 3.1 Pro budget tiers — agy ships these and they route directly via the
+  // antigravity OAuth provider. The upstream ACCEPTS the suffixed ids verbatim (wire-
+  // confirmed via `agy --model gemini-3.1-pro-high`: 200 OK on /v1internal:streamGenerateContent).
+  // No alias needed; see #3696 (supersedes the #3229 premise).
   {
     id: "gemini-3.1-pro-high",
     name: "Gemini 3.1 Pro (High)",
@@ -158,10 +159,10 @@ export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
   // (upstream `gemini-3-flash-agent`). It is NOT re-added to the public catalog.
   "gemini-3.5-flash-preview": "gemini-3-flash-agent",
   "gemini-3-pro-preview": "gemini-3.1-pro",
-  // agy catalog exposes -high/-low budget tiers, but the upstream rejects the suffix
-  // for gemini-3.x (#3229) — map them to the plain proven id.
-  "gemini-3.1-pro-high": "gemini-3.1-pro",
-  "gemini-3.1-pro-low": "gemini-3.1-pro",
+  // gemini-3.1-pro-high and gemini-3.1-pro-low are NOT aliased here: wire capture
+  // (#3696) confirmed the upstream accepts the suffixed ids verbatim → pass through.
+  // (The earlier #3229 assumption — "upstream rejects -high/-low for gemini-3.x" —
+  // was refuted by the agy --log-file 200 OK evidence.)
   "gemini-3-pro-image-preview": "gemini-3-pro-image",
   "gemini-2.5-computer-use-preview-10-2025": "rev19-uic3-1p",
   // Legacy Claude display ids → current upstream ids. NOTE: an earlier comment here
@@ -175,6 +176,47 @@ export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
 });
 
 type AntigravityModelAliasMap = Record<string, string>;
+
+/**
+ * #3786 — Per-request upstream-id FALLBACK CHAINS for the Gemini 3.1 Pro family.
+ *
+ * On recent Antigravity versions `gemini-3.1-pro-high` started returning HTTP 400
+ * ("Antigravity upstream error (400)") while `gemini-3.1-pro-low` still works. The upstream
+ * changed the accepted id format for the Pro-high tier and the live id cannot be determined
+ * from static analysis — the two actively-maintained competitor proxies DISAGREE:
+ *   - AntigravityManager → `gemini-3.1-pro-high`
+ *   - CLIProxyAPI        → `gemini-pro-agent` (display: "Gemini 3.1 Pro (High)")
+ *   - older form         → `gemini-3-pro-high`
+ *
+ * Mirroring AntigravityManager's robust approach, the executor retries the next candidate id
+ * on a 400 until one succeeds (2xx) or the chain is exhausted. This is a REQUEST-TIME retry,
+ * NOT a change to the static `resolveAntigravityModelId` map — the #3696 pass-through
+ * invariant (suffixed ids reach the upstream verbatim on the FIRST attempt) is preserved.
+ *
+ * Each chain starts with its own key so the happy path (first id 200) incurs zero extra
+ * calls, and every candidate is listed at most once so the retry loop is bounded.
+ */
+export const ANTIGRAVITY_PRO_FALLBACK_CHAINS: Readonly<Record<string, readonly string[]>> =
+  Object.freeze({
+    "gemini-3.1-pro-high": Object.freeze([
+      "gemini-3.1-pro-high",
+      "gemini-pro-agent",
+      "gemini-3-pro-high",
+    ]),
+    // pro-low currently works but is given a trivially-symmetric chain for resilience if the
+    // upstream renames it the same way it renamed pro-high.
+    "gemini-3.1-pro-low": Object.freeze(["gemini-3.1-pro-low", "gemini-3-pro-low"]),
+  });
+
+/**
+ * Return the ordered upstream-id fallback chain for `modelId` (the requested id first), or
+ * `[]` when the model has no chain (flash, claude, plain pro, etc.). Pure — safe to unit test
+ * and to call on every request (returns `[]` cheaply off the happy path's hot models).
+ */
+export function getAntigravityModelFallbacks(modelId: string): readonly string[] {
+  if (!modelId) return [];
+  return ANTIGRAVITY_PRO_FALLBACK_CHAINS[modelId] ?? [];
+}
 
 export const ANTIGRAVITY_REVERSE_MODEL_ALIASES: AntigravityModelAliasMap = Object.freeze({
   "gemini-3.5-flash-extra-low": "gemini-3.5-flash-low",

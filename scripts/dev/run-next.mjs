@@ -9,8 +9,11 @@ import { resolveRuntimePorts, withRuntimePortEnv } from "../build/runtime-env.mj
 import { createOmnirouteWsBridge } from "./v1-ws-bridge.mjs";
 import { createResponsesWsProxy } from "./responses-ws-proxy.mjs";
 import { ensurePeerStampToken, stampPeerIp } from "./peer-stamp.mjs";
+import methodGuard from "./http-method-guard.cjs";
 import { ensureNativeSqlite } from "./ensure-native-sqlite.mjs";
 import { randomUUID } from "node:crypto";
+
+const { maybeHandleDisallowedMethod } = methodGuard;
 
 // Pre-read DATA_DIR from local .env before bootstrap resolves paths
 if (!process.env.DATA_DIR) {
@@ -61,12 +64,24 @@ process.env.OMNIROUTE_WS_BRIDGE_SECRET ||= randomUUID();
 // server (read by the authz middleware in the same process). See peer-stamp.mjs.
 ensurePeerStampToken();
 
+// Next 16 picks Turbopack by default in dev. Passing `turbopack: false` to the
+// programmatic next() entry is *not* enough on its own:
+//   - parseBundlerArgs (node_modules/next/dist/lib/bundler.js) sees no positive
+//     bundler flag and falls back to `process.env.TURBOPACK = 'auto'`.
+//   - next-dev-server.js then reads `process.env.TURBOPACK` directly and
+//     starts Turbopack regardless of the option we passed.
+// Force webpack by both passing `webpack: true` and clearing the env var.
+// Mirrors the workaround PR #4052 applied for the production Docker build.
+if (!useTurbopack) {
+  delete process.env.TURBOPACK;
+}
 const nextApp = next({
   dev,
   dir: process.cwd(),
   hostname,
   port: dashboardPort,
   turbopack: useTurbopack,
+  webpack: !useTurbopack,
 });
 
 async function start() {
@@ -83,6 +98,7 @@ async function start() {
   });
 
   const server = http.createServer((req, res) => {
+    if (maybeHandleDisallowedMethod(req, res)) return;
     // Stamp the real TCP peer IP before Next sees the request, so the authz
     // middleware can decide LOCAL_ONLY locality without trusting the Host header.
     stampPeerIp(req);

@@ -112,7 +112,7 @@ Breaking changes: add `BREAKING CHANGE:` footer or `!` after the scope (e.g. `fe
 
 - [ ] `npm run i18n:check` exits 0 — translation state (`.i18n-state.json`) in sync with source docs (no drifted sources in strict mode; warn-mode advisory is acceptable for last-minute doc touch-ups, but should be 0 before tagging)
 - [ ] `npm run i18n:check-ui-coverage` exits 0 — every UI locale at or above the 80% coverage floor
-- [ ] `npm run i18n:sync-ui:dry` reports 0 missing keys across all 40 locales
+- [ ] `npm run i18n:sync-ui:dry` reports 0 missing keys across all 42 locales
 - [ ] If source English docs changed, run `npm run i18n:run` (requires `OMNIROUTE_TRANSLATION_API_KEY` in `.env`) before tagging
 - [ ] Translation contributions can be deferred to next release if minor (track in CHANGELOG)
 
@@ -266,6 +266,17 @@ Before shipping any v3.8.x release, verify these additional items:
 - [ ] `omniroute --tray` boots on Windows (PowerShell NotifyIcon, no extra binaries)
 - [ ] `omniroute config tray enable` creates autostart entry; disable removes it
 - [ ] `npm install -g omniroute@<this-version>` runs postinstall without fatal exit
+- [ ] Update path keeps optional deps: `omniroute update --apply` and the auto-updater
+      run `npm install -g … --include=optional` so `optionalDependencies` (better-sqlite3,
+      keytar, tls-client, and the llmlingua SLM stack: `@atjsh/llmlingua-2`,
+      `@tensorflow/tfjs`, `js-tiktoken`) survive an update. The ultra `modelPath` SLM tier
+      additionally needs `@huggingface/transformers@3.5.2` (pinned — llmlingua-2 uses the 3.x
+      tokenizer API) and the tinybert model, auto-downloaded to `${DATA_DIR}/models/llmlingua`
+      on first use. Postinstall (`scripts/build/colocateOptionals.mjs`) then co-locates the SLM
+      optional closure into `dist/node_modules` so the worker resolves a SINGLE
+      `@huggingface/transformers` 3.5.2 instance — the standalone trace bundles only transformers,
+      not the dynamically-imported optionals, so without this the worker would load llmlingua-2
+      against the root's transformers and the SLM tier would silently fail-open.
 - [ ] `omniroute status` works with no `.env` (CLI token path, loopback only)
 - [ ] `curl http://localhost:20128/api/shutdown` returns 401 (always-protected route)
 - [ ] `curl -H "host: evil.com" http://localhost:20128/api/mcp/sse` returns 401 (loopback guard)

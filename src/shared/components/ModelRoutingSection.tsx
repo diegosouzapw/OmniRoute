@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
+import Card from "./Card";
 
 export interface ModelMapping {
   id: string;
@@ -141,13 +142,17 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
   };
 
   return (
-    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-white/[0.02] p-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary text-[18px]">route</span>
+    <Card>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10 text-primary">
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+              route
+            </span>
+          </div>
           <div>
-            <h3 className="text-sm font-semibold">{t("modelRoutingTitle")}</h3>
-            <p className="text-[11px] text-text-muted">{t("modelRoutingDesc")}</p>
+            <h3 className="text-lg font-semibold">{t("modelRoutingTitle")}</h3>
+            <p className="text-sm text-text-muted">{t("modelRoutingDesc")}</p>
           </div>
         </div>
         {!adding && (
@@ -313,6 +318,6 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
           ))}
         </div>
       )}
-    </div>
+    </Card>
   );
 }

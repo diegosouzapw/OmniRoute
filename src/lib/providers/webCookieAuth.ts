@@ -63,6 +63,41 @@ export function buildGrokCookieHeader(rawValue: string): string {
   return parts.join("; ");
 }
 
+/**
+ * Build the `Cookie` header value for chat.qwen.ai (Qwen Web / Tongyi).
+ *
+ * The Qwen v2 API sits behind Alibaba's "baxia" WAF, which requires the full
+ * browser cookie jar from a real logged-in session (`cna`, `ssxmod_itna`,
+ * `ssxmod_itna2`, `token`, `_bl_uid`, `x-ap`, ...). Unlike grok we cannot
+ * reconstruct a canonical subset, so we forward the whole pasted/captured blob
+ * verbatim (minus a leading `Cookie:`/`bearer ` prefix).
+ *
+ * A bare token (no cookie pairs, i.e. no `=`) yields "" — there is no jar to
+ * replay, only a bearer credential (handled by {@link extractQwenToken}).
+ */
+export function buildQwenCookieHeader(rawValue: string): string {
+  const trimmed = stripCookieInputPrefix(rawValue);
+  if (!trimmed || !trimmed.includes("=")) return "";
+  return trimmed;
+}
+
+/**
+ * Extract the Qwen bearer token from whatever the user pasted/captured.
+ *
+ * Qwen stores its auth JWT in localStorage as `token`, and chat.qwen.ai also
+ * mirrors it into a `token` cookie. So:
+ *   - full cookie blob with `token=...`  → that value
+ *   - bare token (no cookie pairs)       → the value itself
+ *   - cookie blob without a `token` pair → "" (token must come from elsewhere)
+ */
+export function extractQwenToken(rawValue: string): string {
+  const trimmed = stripCookieInputPrefix(rawValue);
+  if (!trimmed) return "";
+  if (!trimmed.includes("=")) return trimmed;
+  const match = trimmed.match(/(?:^|;\s*)token=([^;\s]+)/);
+  return match ? match[1] : "";
+}
+
 export function normalizeSessionCookieHeaders(
   rawValues: Array<string | null | undefined>,
   defaultCookieName: string

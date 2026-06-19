@@ -9,8 +9,8 @@ lastUpdated: 2026-05-13
 > **Source of truth:** `src/lib/cloudAgent/` and `src/app/api/v1/agents/tasks/`
 > **Last updated:** 2026-05-13 — v3.8.0
 
-OmniRoute orchestrates third-party cloud-hosted coding agents (Codex Cloud, Devin,
-Jules) as long-running tasks. Each agent is wrapped behind a uniform interface so
+OmniRoute orchestrates third-party cloud-hosted coding agents (Codex Cloud, Cursor,
+Devin, Jules) as long-running tasks. Each agent is wrapped behind a uniform interface so
 clients can submit a prompt + repo URL and receive results without dealing with
 provider-specific APIs.
 
@@ -29,6 +29,7 @@ artifact, and supports follow-up messages and (in some providers) plan approval 
 | `jules`       | `JulesAgent`      | `src/lib/cloudAgent/agents/jules.ts` | `https://jules.googleapis.com/v1alpha`  | Yes           |
 | `devin`       | `DevinAgent`      | `src/lib/cloudAgent/agents/devin.ts` | `https://api.devin.ai/v1`               | Yes           |
 | `codex-cloud` | `CodexCloudAgent` | `src/lib/cloudAgent/agents/codex.ts` | `https://api.openai.com/v1/codex/cloud` | No (auto)     |
+| `cursor-cloud` | `CursorCloudAgent` | `src/lib/cloudAgent/agents/cursor.ts` | `https://api.cursor.com/v0`             | No (auto)     |
 
 Registry: `src/lib/cloudAgent/registry.ts` — exports `getAgent(providerId)`,
 `getAvailableAgents()`, and `isCloudAgentProvider(providerId)`. The registry is a
@@ -120,6 +121,16 @@ export abstract class CloudAgentBase {
 `CodexCloudAgent.approvePlan` intentionally throws — Codex Cloud auto-plans and has
 no approval gate. `CodexCloudAgent.listSources` returns `[]`.
 
+`CursorCloudAgent` drives Cursor's Background / Cloud Agents through its official REST
+API (`api.cursor.com/v0`) with a **user or service-account API key** — the safer,
+first-party alternative to re-using the Cursor IDE's OAuth session (provider `cursor`,
+which carries a ban-risk warning). It is a plain REST adapter (no `@cursor/sdk` native
+dependency). `approvePlan` throws (Cursor agents run autonomously); `listSources` lists
+the repositories reachable by the key. Cursor returns UPPERCASE status enums
+(`CREATING`/`RUNNING`/`FINISHED`/`ERROR`), mapped explicitly to the shared
+`CloudAgentStatus`. `baseUrl` is overridable per-credential so the API version/path can
+be corrected without a code change.
+
 ## Domain Types
 
 Source: `src/lib/cloudAgent/types.ts`
@@ -160,7 +171,7 @@ export interface CloudAgentActivity {
 
 export interface CloudAgentTask {
   id: string; // internal `task_...` id
-  providerId: "jules" | "devin" | "codex-cloud";
+  providerId: "jules" | "devin" | "codex-cloud" | "cursor-cloud";
   externalId?: string; // upstream provider's id
   status: CloudAgentStatus;
   prompt: string; // 1..10000 chars

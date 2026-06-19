@@ -91,6 +91,7 @@ export default function ComboDefaultsTab() {
     retryDelayMs: 2000,
     maxComboDepth: 3,
     trackMetrics: true,
+    reasoningTokenBufferEnabled: true,
     handoffThreshold: 0.85,
     handoffModel: "",
     maxMessagesForSummary: 30,
@@ -248,14 +249,14 @@ export default function ComboDefaultsTab() {
           {translateOrFallback(
             t,
             "routingAdvancedGuideHint1",
-            "Use Fill First for predictable priority, Round Robin for fairness, and P2C for latency resilience."
+            "This strategy is synced to both new combo defaults and global account fallback routing."
           )}
         </p>
         <p className="text-xs text-text-muted">
           {translateOrFallback(
             t,
             "routingAdvancedGuideHint2",
-            "If providers vary in quality or cost, start with Cost Opt for background work and Least Used for balanced wear."
+            "Use Fill First for predictable account priority, Round Robin plus Sticky Limit for account batches, and P2C for latency resilience."
           )}
         </p>
       </div>
@@ -553,6 +554,29 @@ export default function ComboDefaultsTab() {
               checked={comboDefaults.trackMetrics !== false}
               onChange={() =>
                 setComboDefaults((prev) => ({ ...prev, trackMetrics: !prev.trackMetrics }))
+              }
+            />
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="font-medium text-sm">
+                {translateOrFallback(t, "reasoningTokenBuffer", "Reasoning token buffer")}
+              </p>
+              <p className="text-xs text-text-muted">
+                {translateOrFallback(
+                  t,
+                  "reasoningTokenBufferDesc",
+                  "Allow combo routing to add max_tokens headroom only for known reasoning models when the full buffer fits inside a known output cap."
+                )}
+              </p>
+            </div>
+            <Toggle
+              checked={comboDefaults.reasoningTokenBufferEnabled !== false}
+              onChange={() =>
+                setComboDefaults((prev) => ({
+                  ...prev,
+                  reasoningTokenBufferEnabled: prev.reasoningTokenBufferEnabled === false,
+                }))
               }
             />
           </div>

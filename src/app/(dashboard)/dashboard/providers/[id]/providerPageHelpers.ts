@@ -16,6 +16,7 @@ import {
 } from "@/lib/providers/requestDefaults";
 import { type CodexGlobalServiceMode } from "@/lib/providers/codexFastTier";
 import { type WebSessionCredentialRequirement } from "./webSessionCredentials";
+import { CC_COMPATIBLE_DEFAULT_CHAT_PATH } from "./providerDetailConstants";
 
 // ---------------------------------------------------------------------------
 // Types shared between page + modals
@@ -103,6 +104,67 @@ export function providerText(
     );
   }
   return fallback;
+}
+
+/** A single model's outcome from a `/api/models/test-all` response. */
+export interface TestAllModelOutcome {
+  status: "ok" | "error";
+  shouldHide: boolean;
+}
+
+/**
+ * Decide a model's per-row test status (the green/red icon) and whether it should
+ * be auto-hidden, from one `/api/models/test-all` result entry.
+ *
+ * Centralised so both "Test all models" handlers (ProviderDetailPageClient and
+ * PassthroughModelsSection) derive — and then apply — the same per-model status.
+ * Previously test-all only counted ok/error for a toast and never updated
+ * `modelTestStatus`, so the icons stayed blank and users could not tell which
+ * model failed (unlike the single-model ▶ test).
+ *
+ * Auto-hide policy: when `autoHideFailed` is on, only NON-TRANSIENT failures are
+ * hidden. Transient failures (rate-limited, timeout) are surfaced as 'error' on
+ * the row icon but NOT hidden, because:
+ *   - The provider may have been temporarily throttled during a parallel batch
+ *     (a single Test All across 10+ models routinely trips per-account rate
+ *     limits on subscription-tier APIs).
+ *   - The model itself is not broken — a retry seconds later would succeed.
+ *   - Hidden state persists across server restarts and silently removes the
+ *     model from `/v1/models`, so a transient blip turns into a permanent
+ *     catalog gap that the user can only recover from by editing the DB or
+ *     hand-toggling each row.
+ *
+ * Genuine failures (`status:"error"` without a transient flag — e.g. upstream
+ * 400 "invalid model", schema mismatch, auth failure) ARE still auto-hidden,
+ * which is the intended use of the toggle.
+ */
+export function evaluateTestAllEntry(
+  entry: { status?: "ok" | "error"; rateLimited?: boolean; isTimeout?: boolean } | null | undefined,
+  autoHideFailed: boolean
+): TestAllModelOutcome {
+  const ok = entry?.status === "ok";
+  const transient = Boolean(entry?.rateLimited || entry?.isTimeout);
+  return {
+    status: ok ? "ok" : "error",
+    // Hide only persistent failures. Transient (rate-limited, timeout) are
+    // surfaced on the icon but kept visible so a single throttled batch test
+    // does not silently wipe the catalog.
+    shouldHide: !ok && autoHideFailed && !transient,
+  };
+}
+
+/**
+ * "Test all models" result toast. Centralises the i18n variable contract so the
+ * call sites cannot drift from the `testAllResults` template again — the template
+ * is `"{ok} of {total} models working"`, so it MUST receive `ok` and `total`
+ * (passing `{ ok, error }` previously raised next-intl's FORMATTING_ERROR).
+ */
+export function testAllResultsText(
+  t: ProviderMessageTranslator,
+  ok: number,
+  total: number
+): string {
+  return providerText(t, "testAllResults", "{ok} of {total} models working", { ok, total });
 }
 
 export function providerCountText(
@@ -615,12 +677,11 @@ export function getCodexRequestDefaults(providerSpecificData: unknown): {
   };
 }
 
-export function getClaudeCodeCompatibleRequestDefaults(providerSpecificData: unknown): {
-  context1m: boolean;
-} {
+export function getClaudeCodeCompatibleRequestDefaults(providerSpecificData: unknown) {
   const defaults = _getClaudeCodeCompatibleRequestDefaults(providerSpecificData);
   return {
     context1m: defaults.context1m === true,
+    redactThinking: defaults.redactThinking === true,
   };
 }
 
@@ -748,10 +809,7 @@ export function shouldSwitchToVisibleFilter(opts: {
 // ---------------------------------------------------------------------------
 // Error-type label map — shared by ConnectionRow and EditConnectionModal
 // ---------------------------------------------------------------------------
-export const ERROR_TYPE_LABELS: Record<
-  string,
-  { labelKey: string; variant: string }
-> = {
+export const ERROR_TYPE_LABELS: Record<string, { labelKey: string; variant: string }> = {
   runtime_error: { labelKey: "errorTypeRuntime", variant: "warning" },
   upstream_auth_error: { labelKey: "errorTypeUpstreamAuth", variant: "error" },
   account_deactivated: { labelKey: "Account Deactivated", variant: "error" },
@@ -818,4 +876,78 @@ export function formatTimeAgo(dateStr: string): string {
   const days = Math.floor(hours / 24);
   if (days < 30) return `${days}d ago`;
   return new Date(dateStr).toLocaleDateString();
+}
+
+// ---------------------------------------------------------------------------
+// Provider-detail page pure helpers (Phase 1s — extracted from god-component)
+// ---------------------------------------------------------------------------
+
+export function getApiLabel(
+  t: ProviderMessageTranslator,
+  isAnthropicProtocolCompatible: boolean,
+  apiType: string | undefined
+): string {
+  if (isAnthropicProtocolCompatible) return t("messagesApi");
+  switch (apiType) {
+    case "responses":
+      return t("responsesApi");
+    case "embeddings":
+      return t("embeddings");
+    case "audio-transcriptions":
+      return t("audioTranscriptions");
+    case "audio-speech":
+      return t("audioSpeech");
+    case "images-generations":
+      return t("imagesGenerations");
+    default:
+      return t("chatCompletions");
+  }
+}
+
+export function getApiDefaultPath(
+  isCcCompatible: boolean,
+  isAnthropicCompatible: boolean,
+  apiType: string | undefined
+): string {
+  if (isCcCompatible) return CC_COMPATIBLE_DEFAULT_CHAT_PATH;
+  if (isAnthropicCompatible) return "/messages";
+  switch (apiType) {
+    case "responses":
+      return "/responses";
+    case "embeddings":
+      return "/embeddings";
+    case "audio-transcriptions":
+      return "/audio/transcriptions";
+    case "audio-speech":
+      return "/audio/speech";
+    case "images-generations":
+      return "/images/generations";
+    default:
+      return "/chat/completions";
+  }
+}
+
+export function getApiPath(
+  isCcCompatible: boolean,
+  isAnthropicCompatible: boolean,
+  apiType: string | undefined,
+  chatPath: string | undefined
+): string {
+  const defaultPath = getApiDefaultPath(isCcCompatible, isAnthropicCompatible, apiType);
+  return (chatPath || defaultPath).replace(/^\//, "");
+}
+
+export function getHeaderIconProviderId(
+  isOpenAICompatible: boolean,
+  isAnthropicProtocolCompatible: boolean,
+  providerInfoId: string,
+  providerInfoApiType: string | undefined
+): string {
+  if (isOpenAICompatible && providerInfoApiType) {
+    return providerInfoApiType === "responses" ? "oai-r" : "oai-cc";
+  }
+  if (isAnthropicProtocolCompatible) {
+    return "anthropic-m";
+  }
+  return providerInfoId;
 }

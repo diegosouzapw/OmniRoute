@@ -32,7 +32,18 @@ test("SEARCH_PROVIDERS has all 11 providers", () => {
   assert.ok(SEARCH_PROVIDERS["searxng-search"], "searxng should exist");
   assert.ok(SEARCH_PROVIDERS["ollama-search"], "ollama-search should exist");
   assert.ok(SEARCH_PROVIDERS["zai-search"], "zai should exist");
-  assert.equal(Object.keys(SEARCH_PROVIDERS).length, 12);
+  assert.ok(SEARCH_PROVIDERS["duckduckgo-free"], "duckduckgo-free should exist");
+  assert.equal(Object.keys(SEARCH_PROVIDERS).length, 13);
+});
+
+test("duckduckgo-free config is a no-key, fallback-only provider", () => {
+  const d = SEARCH_PROVIDERS["duckduckgo-free"];
+  assert.equal(d.id, "duckduckgo-free");
+  assert.equal(d.method, "POST");
+  assert.equal(d.authType, "none");
+  assert.equal(d.costPerQuery, 0);
+  assert.equal(d.fallbackOnly, true, "must only be used as a last resort");
+  assert.deepEqual(d.searchTypes, ["web"]);
 });
 
 test("serper-search config is correct", () => {
@@ -154,7 +165,8 @@ test("zai-search config is correct", () => {
 
 test("getAllSearchProviders returns flat list", () => {
   const all = getAllSearchProviders();
-  assert.equal(all.length, 12);
+  assert.equal(all.length, 13);
+  assert.ok(all.some((p) => p.id === "duckduckgo-free"));
   assert.ok(all.some((p) => p.id === "serper-search"));
   assert.ok(all.some((p) => p.id === "brave-search"));
   assert.ok(all.some((p) => p.id === "perplexity-search"));
@@ -189,6 +201,22 @@ test("selectProvider without argument returns cheapest provider", () => {
   const config = selectProvider();
   assert.ok(config);
   assert.equal(config.id, "searxng-search");
+});
+
+test("selectProvider auto-selection never returns a fallbackOnly provider", () => {
+  // duckduckgo-free is cost 0 (ties searxng) but must be excluded from auto-select.
+  const auto = selectProvider();
+  assert.ok(auto);
+  assert.notEqual(auto.fallbackOnly, true);
+  const autoWeb = selectProvider(undefined, "web");
+  assert.ok(autoWeb);
+  assert.notEqual(autoWeb.fallbackOnly, true);
+});
+
+test("selectProvider still honors an explicit fallbackOnly provider", () => {
+  const config = selectProvider("duckduckgo-free", "web");
+  assert.ok(config);
+  assert.equal(config.id, "duckduckgo-free");
 });
 
 test("selectProvider filters by search type support", () => {
@@ -364,6 +392,7 @@ test("v1SearchSchema accepts new search providers", async () => {
     "youcom-search",
     "searxng-search",
     "ollama-search",
+    "duckduckgo-free",
   ] as const;
 
   for (const provider of providers) {

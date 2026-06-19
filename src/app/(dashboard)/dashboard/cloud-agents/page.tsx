@@ -61,6 +61,15 @@ const CLOUD_AGENTS = [
     iconBg: "bg-emerald-500/10",
     iconColor: "text-emerald-600",
   },
+  {
+    id: "cursor-cloud",
+    name: "Cursor Cloud",
+    provider: "Cursor",
+    description: "Cursor's Background / Cloud Agents (official API key)",
+    icon: "cloud",
+    iconBg: "bg-slate-500/10",
+    iconColor: "text-slate-600",
+  },
 ];
 
 const STATUS_OPTIONS: { value: TaskStatus | "all"; labelKey: string }[] = [

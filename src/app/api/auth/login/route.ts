@@ -48,7 +48,20 @@ export async function POST(request) {
       );
     }
 
-    const rawBody = await request.json();
+    let rawBody;
+    try {
+      rawBody = await request.json();
+    } catch {
+      return NextResponse.json(
+        {
+          error: {
+            message: "Invalid request",
+            details: [{ field: "body", message: "Invalid JSON body" }],
+          },
+        },
+        { status: 400 }
+      );
+    }
 
     // Zod validation
     const validation = validateBody(loginSchema, rawBody);

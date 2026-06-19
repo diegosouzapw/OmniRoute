@@ -26,7 +26,12 @@ const DEFAULT_COMBO_CONFIG = {
   maxMessagesForSummary: 30,
   maxComboDepth: 3,
   trackMetrics: true,
+  reasoningTokenBufferEnabled: true,
   manifestRouting: false,
+  // Complexity-aware auto routing (2026): when on, the auto router scores
+  // candidates by how well their tier matches the request's classified
+  // difficulty (feeds tierAffinity/specificityMatch). Opt-in — off by default.
+  complexityAwareRouting: false,
   resetAwareSessionWeight: 0.35,
   resetAwareWeeklyWeight: 0.65,
   resetAwareTieBandPercent: 5,

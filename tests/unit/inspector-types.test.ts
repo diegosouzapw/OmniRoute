@@ -39,6 +39,10 @@ test("InterceptedRequestSchema — rejects invalid source enum", () => {
   assert.ok(!InterceptedRequestSchema.safeParse({ ...validInterceptedRequest, source: "invalid-source" }).success);
 });
 
+test("InterceptedRequestSchema — accepts the tproxy source (decrypt capture mode)", () => {
+  assert.ok(InterceptedRequestSchema.safeParse({ ...validInterceptedRequest, source: "tproxy" }).success);
+});
+
 test("InterceptedRequestSchema — rejects negative requestSize", () => {
   assert.ok(!InterceptedRequestSchema.safeParse({ ...validInterceptedRequest, requestSize: -1 }).success);
 });

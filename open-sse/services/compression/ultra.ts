@@ -5,18 +5,6 @@ import { extractTextContent, mapTextContent, type ChatMessageLike } from "./mess
 
 const COMPRESSED_PREFIX = "[COMPRESSED:";
 
-export interface SLMInterface {
-  compress(text: string, rate: number): Promise<string>;
-}
-
-export function createSLMStub(): SLMInterface {
-  return {
-    async compress(text: string, rate: number): Promise<string> {
-      return pruneByScore(text, rate);
-    },
-  };
-}
-
 export interface UltraCompressResult {
   messages: Array<{ role: string; content?: string | unknown[]; [key: string]: unknown }>;
   stats: CompressionStats;

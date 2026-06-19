@@ -23,6 +23,11 @@ coverage/
 .build/**
 .out/**
 
+# Stryker mutation testing — ephemeral sandbox + generated reports (never commit)
+.stryker-tmp/
+reports/mutation/
+stryker-output-*.json
+
 
 # Memory Bank and Cursor rules (local-only AI agent context)
 memory-bank/
@@ -44,6 +49,10 @@ docs/new-features/
 
 # dependencies
 node_modules/
+# Also ignore a root node_modules SYMLINK (worktree setups symlink it from the main
+# checkout). The trailing-slash pattern above only matches a directory, so without this
+# a symlink named node_modules could be staged by `git add -A` and committed.
+/node_modules
 *.map
 .DS_Store
 
@@ -153,6 +162,9 @@ typescript
 # Superpowers plans/specs (internal tooling, not project code)
 docs/superpowers/
 
+# TIA test-impact map — generated at runtime in CI (build-test-impact-map.mjs), never committed (~21MB)
+config/quality/test-impact-map.json
+
 # GitNexus local index
 .gitnexus
 .worktrees
@@ -203,8 +215,11 @@ pr_reviews*.json
 
 # internal setup prompts with personal credentials — never commit
 CODEX-SETUP-PROMPT.md
-# Quality ratchet — métricas efêmeras (baseline é commitado, métricas não)
-quality-metrics.json
+# Quality ratchet — métricas efêmeras (baseline commitado em config/quality/; métricas não)
+config/quality/quality-metrics.json
+
+# Runtime logs (diretório local, nunca versionado)
+/logs/
 -home-diegosouzapw-dev-automações-bots-yt-downloader-20260504 .txt
 -home-diegosouzapw-dev-automações-bots-yt-downloader-20260410 .txt
 docs/prompts/AGENT-OWNERSHIP-PROTOCOL.omniroute.md

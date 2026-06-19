@@ -25,9 +25,10 @@ on:
         type: boolean
         default: false
 
+# Least-privilege default: read-only at the top level; the build and merge jobs that
+# push to GHCR grant packages: write themselves (Scorecard TokenPermissions).
 permissions:
   contents: read
-  packages: write
 
 jobs:
   prepare:
@@ -41,8 +42,9 @@ jobs:
       IMAGE_NAME: diegosouzapw/omniroute
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
+          persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || '' }}
           # Need full tag history for semver comparison when deciding :latest.
           fetch-depth: 0
@@ -123,6 +125,9 @@ jobs:
     needs: prepare
     if: needs.prepare.outputs.skip != 'true'
     runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
@@ -138,8 +143,9 @@ jobs:
       GHCR_IMAGE_NAME: ghcr.io/diegosouzapw/omniroute
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
+          persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || '' }}
           fetch-depth: 0
 
@@ -226,6 +232,10 @@ jobs:
       - build
     if: needs.prepare.outputs.skip != 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
     env:
       IMAGE_NAME: diegosouzapw/omniroute
       GHCR_IMAGE_NAME: ghcr.io/diegosouzapw/omniroute
@@ -233,8 +243,9 @@ jobs:
       PROMOTE_LATEST: ${{ needs.prepare.outputs.promote_latest }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
+          persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || '' }}
           fetch-depth: 0
 
@@ -320,6 +331,56 @@ jobs:
         if: needs.prepare.outputs.version != 'main'
         run: |
           docker buildx imagetools inspect "${IMAGE_NAME}:${VERSION}"
+
+      - name: Generate CycloneDX SBOM (image, advisory)
+        if: needs.prepare.outputs.version != 'main'
+        continue-on-error: true
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.GHCR_IMAGE_NAME }}:${{ env.VERSION }}
+          format: cyclonedx-json
+          output-file: sbom-image.cdx.json
+          artifact-name: sbom-image.cdx.json
+
+      # Visibility scan: reports HIGH + CRITICAL into the SARIF (Security tab) but
+      # never blocks (exit-code 0). The blocking gate below narrows to CRITICAL.
+      - name: Trivy image scan (SARIF, advisory)
+        if: needs.prepare.outputs.version != 'main'
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.GHCR_IMAGE_NAME }}:${{ env.VERSION }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: HIGH,CRITICAL
+          exit-code: "0"
+
+      # BLOCKING gate (v3.8.27 cycle-end): fail the release on a CRITICAL CVE in the
+      # published image. Narrowed to severity CRITICAL (HIGH stays visible in the
+      # SARIF step above, not blocking). ignore-unfixed:true so an unfixable base-image
+      # CVE with no upstream patch does not red the release (reduces false-blocks);
+      # a fixable CRITICAL still blocks. Per docs/security/SUPPLY_CHAIN.md. NB: Trivy
+      # scans against a CVE DB that grows continuously — a newly-disclosed CRITICAL on
+      # an unchanged base image can red this gate; the fix is to rebuild on a patched
+      # base, bump the dep, or add a justified .trivyignore entry (see the CVE-variance
+      # note in docs/security/SUPPLY_CHAIN.md).
+      - name: Trivy CRITICAL gate (blocking)
+        if: needs.prepare.outputs.version != 'main'
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.GHCR_IMAGE_NAME }}:${{ env.VERSION }}
+          format: table
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Upload Trivy SARIF to Security tab
+        if: needs.prepare.outputs.version != 'main'
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy-image
 
       - name: Update Docker Hub description
         # Only refresh README/description when we actually promote :latest

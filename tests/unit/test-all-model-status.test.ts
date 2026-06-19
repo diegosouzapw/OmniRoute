@@ -1,0 +1,63 @@
+// Regression for the "Test all models" status-icon bug:
+// individual ▶ test turns each model's icon green/red (onTestModel sets
+// modelTestStatus), but "Test all models" only showed a toast and left every
+// icon blank — the user could not tell which model passed or failed.
+//
+// Both handleTestAll implementations (ProviderDetailPageClient + PassthroughModelsSection)
+// now route each model's result through evaluateTestAllEntry() and apply the returned
+// status to modelTestStatus. This pure helper captures the status + auto-hide decision
+// so it is testable in the gating node suite (matches the #3610 helper-extraction idiom).
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { evaluateTestAllEntry } from "../../src/app/(dashboard)/dashboard/providers/[id]/providerPageHelpers.ts";
+
+test("ok entry maps to status 'ok' and is never hidden", () => {
+  assert.deepEqual(evaluateTestAllEntry({ status: "ok" }, true), {
+    status: "ok",
+    shouldHide: false,
+  });
+  assert.deepEqual(evaluateTestAllEntry({ status: "ok" }, false), {
+    status: "ok",
+    shouldHide: false,
+  });
+});
+
+test("failed entry maps to status 'error' and hides only when autoHide is on", () => {
+  assert.deepEqual(evaluateTestAllEntry({ status: "error" }, true), {
+    status: "error",
+    shouldHide: true,
+  });
+  assert.deepEqual(evaluateTestAllEntry({ status: "error" }, false), {
+    status: "error",
+    shouldHide: false,
+  });
+});
+
+test("rate-limited / timeout failures show 'error' but are NOT auto-hidden", () => {
+  // Rate-limited and timeout are TRANSIENT — the model itself is fine, the
+  // provider was just throttled during a parallel Test All. Hiding it would
+  // silently remove a working model from /v1/models with no recovery path
+  // short of manual DB edit or per-row eye-toggle. We surface the failure on
+  // the row icon (status: 'error') but keep the model visible.
+  assert.deepEqual(evaluateTestAllEntry({ status: "error", rateLimited: true }, true), {
+    status: "error",
+    shouldHide: false,
+  });
+  assert.deepEqual(evaluateTestAllEntry({ status: "error", isTimeout: true }, true), {
+    status: "error",
+    shouldHide: false,
+  });
+  // Toggle off → still not hidden, of course.
+  assert.deepEqual(evaluateTestAllEntry({ status: "error", rateLimited: true }, false), {
+    status: "error",
+    shouldHide: false,
+  });
+});
+
+test("missing / null / empty entry is treated as a failure", () => {
+  for (const entry of [undefined, null, {}]) {
+    const out = evaluateTestAllEntry(entry, true);
+    assert.equal(out.status, "error", `entry=${JSON.stringify(entry)} → error`);
+    assert.equal(out.shouldHide, true);
+  }
+});

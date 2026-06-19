@@ -17,9 +17,9 @@ export const FETCH_TIMEOUT_MS = upstreamTimeouts.fetchTimeoutMs;
 // idle for this duration. Override with STREAM_IDLE_TIMEOUT_MS env var.
 export const STREAM_IDLE_TIMEOUT_MS = upstreamTimeouts.streamIdleTimeoutMs;
 
-// Timeout for the first useful SSE event. Keep this much shorter than the
-// post-start idle timeout so slow-thinking models can keep streaming after the
-// first token, while dead 200 OK streams fail fast enough for combo fallback.
+// Timeout for the first non-ping SSE event. Inherits REQUEST_TIMEOUT_MS when
+// set, unless STREAM_READINESS_TIMEOUT_MS is specified directly. This must stay
+// conservative for large prompts and slow first-byte reasoning providers.
 export const STREAM_READINESS_TIMEOUT_MS = upstreamTimeouts.streamReadinessTimeoutMs;
 
 // Error code used when an upstream Antigravity request stalls before response
@@ -252,3 +252,24 @@ export const CREDENTIAL_HEALTH_CACHE_TTL = (() => {
   }
   return 300_000;
 })();
+
+/**
+ * Stream-recovery tuning (opt-in, see ResilienceSettings.streamRecovery).
+ *
+ * Ported from free-claude-code's always-on recovery (`core/anthropic/stream_recovery.py`).
+ * In OmniRoute the holdback is disabled by default because buffering the opening
+ * window adds up to HOLDBACK_MS of time-to-first-token latency on every stream;
+ * operators opt in via STREAM_RECOVERY_ENABLED / the resilience settings.
+ *
+ * - HOLDBACK_MS: how long the opening SSE window is held so an early truncation
+ *   can be retried transparently before any byte reaches the client.
+ * - BUFFER_MAX_BYTES: hard cap on the held window — commit (flush + passthrough)
+ *   as soon as this many bytes accumulate, regardless of the timer.
+ * - EARLY_RETRY_MAX: max transparent re-opens of the upstream stream while the
+ *   holdback is still uncommitted (free-claude-code uses 5 total attempts = 4 retries).
+ */
+export const STREAM_RECOVERY = {
+  HOLDBACK_MS: 750,
+  BUFFER_MAX_BYTES: 65536,
+  EARLY_RETRY_MAX: 4,
+} as const;

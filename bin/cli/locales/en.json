@@ -26,7 +26,8 @@
     "testFailed": "Provider test failed: {error}",
     "loginEnabled": "Login: enabled (password updated)",
     "loginDisabled": "Login: disabled",
-    "providerInfo": "Provider: {info}"
+    "providerInfo": "Provider: {info}",
+    "opencode": "Install and configure the bundled @omniroute/opencode-plugin for OpenCode"
   },
   "doctor": {
     "title": "OmniRoute Doctor",
@@ -1255,5 +1256,29 @@
     "search": "Search npm registry for available plugins",
     "update": "Update installed plugin(s)",
     "scaffold": "Scaffold a new plugin boilerplate"
+  },
+  "launch": {
+    "description": "Launch Claude Code pointed at OmniRoute (local or remote, with --profile)",
+    "token": "Token the Claude client should send (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute is not reachable at {port}. Start it with 'omniroute serve'.",
+    "notFound": "The 'claude' CLI was not found in PATH."
+  },
+  "setupClaude": {
+    "description": "Generate ~/.claude/profiles Claude Code profiles from the OmniRoute model catalog"
+  },
+  "connect": {
+    "description": "Connect to a remote OmniRoute server and enter remote mode"
+  },
+  "tokens": {
+    "description": "Manage scoped CLI access tokens (remote mode)"
+  },
+  "configure": {
+    "description": "Pick a provider+model from the active server and write a local CLI config"
+  },
+  "launchCodex": {
+    "description": "Launch Codex CLI pointed at OmniRoute (local or remote VPS)"
+  },
+  "setupCodex": {
+    "description": "Generate ~/.codex profile files from OmniRoute live model catalog"
   }
 }

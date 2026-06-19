@@ -825,8 +825,11 @@ test("provider models route retries Antigravity discovery endpoints before retur
     assert.equal(init.headers.Authorization, "Bearer ag-access");
     assert.match(init.headers["User-Agent"], /^Antigravity\/1\.22\.2 /);
     assert.equal(init.headers["x-goog-api-client"], undefined);
+    // Use a model id that is in the current user-callable Antigravity allowlist, otherwise
+    // filterUserCallableAntigravityModels() drops it and discovery silently yields 0 models
+    // → the route falls back to local_catalog instead of returning the remote (api) list.
     return Response.json({
-      models: [{ id: "gemini-3-flash", displayName: "Gemini 3 Flash" }],
+      models: [{ id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash" }],
     });
   };
 
@@ -847,7 +850,7 @@ test("provider models route retries Antigravity discovery endpoints before retur
     "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
     "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
   ]);
-  assert.deepEqual(body.models, [{ id: "gemini-3-flash-preview", name: "Gemini 3 Flash" }]);
+  assert.deepEqual(body.models, [{ id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" }]);
 });
 
 test("provider models route falls back through all Antigravity discovery endpoints when needed", async () => {

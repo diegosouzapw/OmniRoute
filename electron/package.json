@@ -1,6 +1,6 @@
 {
   "name": "omniroute-desktop",
-  "version": "3.8.22",
+  "version": "3.8.30",
   "description": "OmniRoute Desktop Application",
   "main": "main.js",
   "author": {
@@ -28,12 +28,14 @@
     "electron-updater": "^6.8.9"
   },
   "devDependencies": {
-    "electron": "^42.3.3",
-    "electron-builder": "^26.14.0"
+    "electron": "^42.4.1",
+    "electron-builder": "^26.15.3"
   },
   "overrides": {
     "@xmldom/xmldom": "^0.9.10",
-    "plist": "^4.0.0"
+    "plist": "^4.0.0",
+    "form-data": "^4.0.6",
+    "js-yaml": "^4.2.0"
   },
   "build": {
     "appId": "online.omniroute.desktop",

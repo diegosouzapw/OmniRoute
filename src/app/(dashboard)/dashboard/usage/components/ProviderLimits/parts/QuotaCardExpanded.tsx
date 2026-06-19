@@ -1,7 +1,13 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { calculatePercentage, formatCountdown, formatQuotaLabel, getBarColor } from "../utils";
+import {
+  formatCountdown,
+  formatQuotaLabel,
+  getBarColor,
+  getQuotaRemainingPercentage,
+  shouldShowQuotaUsageCount,
+} from "../utils";
 import QuotaMiniBar from "../QuotaMiniBar";
 import { translateUsageOrFallback, type UsageTranslationValues } from "../i18nFallback";
 
@@ -24,9 +30,11 @@ interface Props {
   onRefresh: () => void;
   onOpenCutoff: () => void;
   canEditCutoff: boolean;
+  hasCutoffOverrides: boolean;
 }
 
 function QuotaDetailRow({ q }: { q: any }) {
+  const t = useTranslations("usage");
   if (q.isCredits) {
     const colors = getBarColor(q.remainingPercentage ?? 0);
     const sym = CURRENCY_SYMBOLS[q.currency] ?? q.currency ?? "";
@@ -35,14 +43,22 @@ function QuotaDetailRow({ q }: { q: any }) {
       maximumFractionDigits: 2,
     });
     return (
-      <div className="flex items-center justify-between gap-2 py-1">
-        <span className="text-[12px] font-medium text-text-main flex items-center gap-1.5">
-          <span className="material-symbols-outlined text-[14px]" style={{ color: colors.text }}>
-            paid
+      <div className="flex min-h-[34px] items-center justify-between gap-2 py-1">
+        <span className="flex min-w-0 flex-1 items-center gap-1.5 text-[12px] font-medium leading-none text-text-main">
+          <span className="inline-flex size-6 shrink-0 items-center justify-center">
+            <span
+              className="material-symbols-outlined text-[15px] leading-none"
+              style={{ color: colors.text }}
+            >
+              paid
+            </span>
           </span>
-          {formatQuotaLabel(q.name) || "Credits"}
+          <span className="truncate leading-none">{formatQuotaLabel(q.name) || "Credits"}</span>
         </span>
-        <span className="text-[12px] font-bold tabular-nums" style={{ color: colors.text }}>
+        <span
+          className="inline-flex h-6 shrink-0 items-center text-[12px] font-bold leading-none tabular-nums"
+          style={{ color: colors.text }}
+        >
           {sym}
           {amount}
         </span>
@@ -50,16 +66,14 @@ function QuotaDetailRow({ q }: { q: any }) {
     );
   }
 
-  const pctRaw = q.unlimited
-    ? 100
-    : (q.remainingPercentage ?? calculatePercentage(q.used, q.total));
+  const pctRaw = getQuotaRemainingPercentage(q);
   const pct = Math.round(pctRaw);
   const colors = getBarColor(pct);
   const cd = formatCountdown(q.resetAt);
   const label = q.displayName || formatQuotaLabel(q.name);
   const usedNum = Number(q.used || 0);
   const totalNum = Number(q.total || 0);
-  const showUsage = totalNum > 0 && !q.unlimited;
+  const showUsage = shouldShowQuotaUsageCount(q);
 
   return (
     <div className="flex flex-col gap-1 py-1" title={q.modelKey || q.name}>
@@ -69,7 +83,7 @@ function QuotaDetailRow({ q }: { q: any }) {
           className="text-[12px] font-bold tabular-nums shrink-0"
           style={{ color: colors.text }}
         >
-          {q.unlimited ? "∞" : `${pct}%`}
+          {q.unlimited ? "∞" : translateUsageOrFallback(t, "percentLeft", `${pct}% left`, { pct })}
         </span>
       </div>
       {!q.unlimited && <QuotaMiniBar percent={pct} size="sm" />}
@@ -100,6 +114,7 @@ export default function QuotaCardExpanded({
   onRefresh,
   onOpenCutoff,
   canEditCutoff,
+  hasCutoffOverrides,
 }: Props) {
   const t = useTranslations("usage");
   const tr = (key: string, fallback: string, values?: UsageTranslationValues) =>
@@ -161,7 +176,9 @@ export default function QuotaCardExpanded({
               e.stopPropagation();
               onOpenCutoff();
             }}
-            className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
+              hasCutoffOverrides ? "border-primary/40 text-primary" : "border-border"
+            }`}
           >
             <span className="material-symbols-outlined text-[12px]">tune</span>
             {tr("editCutoffs", "Edit cutoffs")}

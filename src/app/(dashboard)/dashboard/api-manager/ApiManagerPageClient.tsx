@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, memo, useRef, useId } from "react";
 import { Card, Button, Input, Modal, CardSkeleton } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { getProviderDisplayName } from "@/lib/display/names";
 import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
 import { ENDPOINT_CATEGORIES } from "@/shared/constants/endpointCategories";
@@ -17,18 +17,32 @@ import {
 } from "./apiManagerPageUtils";
 import type { KeyStatus, KeyType } from "./apiManagerPageUtils";
 import { readActiveOnlyPreference, writeActiveOnlyPreference } from "./apiManagerPageStorage";
-import {
-  buildApiKeyCreateScopes,
-  mergeApiKeyPermissionScopes,
-} from "./apiManagerScopes";
-import {
-  SELF_ACCOUNT_QUOTA_SCOPE,
-  SELF_USAGE_SCOPE,
-} from "@/shared/constants/selfServiceScopes";
+import { buildApiKeyCreateScopes, mergeApiKeyPermissionScopes } from "./apiManagerScopes";
+import { SELF_ACCOUNT_QUOTA_SCOPE, SELF_USAGE_SCOPE } from "@/shared/constants/selfServiceScopes";
 
 // Constants for validation
 const MAX_KEY_NAME_LENGTH = 200;
 const MAX_SELECTED_MODELS = 500;
+const CLAUDE_CODE_DEFAULT_MODEL_ID = "cc/*";
+const CLAUDE_CODE_DEFAULT_MODEL_NAME = "Claude Code default";
+const CLAUDE_CODE_DEFAULT_FAMILIES = [
+  { id: "other", label: "other" },
+  { id: "fable", label: "fable" },
+  { id: "opus", label: "opus" },
+  { id: "sonnet", label: "sonnet" },
+  { id: "haiku", label: "haiku" },
+] as const;
+type ClaudeCodeFamilyId = (typeof CLAUDE_CODE_DEFAULT_FAMILIES)[number]["id"];
+type ClaudeCodeBlockableFamilyId = Exclude<ClaudeCodeFamilyId, "other">;
+const CLAUDE_CODE_FAMILY_BLOCK_PATTERNS: Record<ClaudeCodeBlockableFamilyId, string[]> = {
+  fable: ["claude-fable*", "fable"],
+  opus: ["claude-opus*", "opus"],
+  sonnet: ["claude-sonnet*", "sonnet"],
+  haiku: ["claude-haiku*", "haiku"],
+};
+const CLAUDE_CODE_BLOCK_PATTERN_SET = new Set(
+  Object.values(CLAUDE_CODE_FAMILY_BLOCK_PATTERNS).flat()
+);
 
 function toLocalDateTimeInputValue(value: string | null | undefined): string {
   if (!value) return "";
@@ -98,6 +112,7 @@ interface ApiKey {
   name: string;
   key: string;
   allowedModels: string[] | null;
+  blockedModels?: string[] | null;
   allowedCombos: string[] | null;
   allowedConnections: string[] | null;
   noLog?: boolean;
@@ -113,6 +128,7 @@ interface ApiKey {
   allowedEndpoints?: string[];
   streamDefaultMode?: StreamDefaultMode;
   disableNonPublicModels?: boolean;
+  allowUsageCommand?: boolean;
   allowedQuotas?: string[] | null;
   createdAt: string;
 }
@@ -126,12 +142,24 @@ interface ProviderConnection {
 
 interface KeyUsageStats {
   totalRequests: number;
+  totalCost: number;
   lastUsed: string | null;
+}
+
+function formatUsdCost(value: number, locale: string): string {
+  const amount = Number.isFinite(value) ? value : 0;
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: amount > 0 && amount < 1 ? 4 : 2,
+    maximumFractionDigits: amount > 0 && amount < 1 ? 4 : 2,
+  }).format(amount);
 }
 
 interface Model {
   id: string;
   owned_by: string;
+  name?: string;
 }
 
 interface ComboOption {
@@ -143,9 +171,45 @@ interface ComboOption {
 /** Tuple type for models grouped by provider: [providerName, models[]] */
 type ProviderGroup = [provider: string, models: Model[]];
 
+function isClaudeCodeModel(model: Model): boolean {
+  return (
+    model.owned_by === "claude" || model.id.startsWith("cc/") || model.id.startsWith("claude/")
+  );
+}
+
+function withClaudeCodeDefaultModel(models: Model[]): Model[] {
+  if (!models.some(isClaudeCodeModel)) return models;
+  if (models.some((model) => model.id === CLAUDE_CODE_DEFAULT_MODEL_ID)) return models;
+  return [
+    {
+      id: CLAUDE_CODE_DEFAULT_MODEL_ID,
+      name: CLAUDE_CODE_DEFAULT_MODEL_NAME,
+      owned_by: "claude",
+    },
+    ...models,
+  ];
+}
+
+function getBlockedClaudeCodeFamilies(blockedModels: string[]): ClaudeCodeBlockableFamilyId[] {
+  return (Object.keys(CLAUDE_CODE_FAMILY_BLOCK_PATTERNS) as ClaudeCodeBlockableFamilyId[]).filter(
+    (familyId) =>
+      CLAUDE_CODE_FAMILY_BLOCK_PATTERNS[familyId].some((pattern) => blockedModels.includes(pattern))
+  );
+}
+
+function isClaudeCodeFamilyModel(modelId: string, familyId: ClaudeCodeBlockableFamilyId): boolean {
+  const normalized = modelId.toLowerCase();
+  return (
+    normalized === familyId ||
+    normalized.includes(`/${familyId}`) ||
+    normalized.includes(`-${familyId}`)
+  );
+}
+
 export default function ApiManagerPageClient() {
   const t = useTranslations("apiManager");
   const tc = useTranslations("common");
+  const locale = useLocale();
   const newKeyNameInputId = useId();
   const createKeyFormRef = useRef<HTMLDivElement | null>(null);
   const [keys, setKeys] = useState<ApiKey[]>([]);
@@ -158,6 +222,7 @@ export default function ApiManagerPageClient() {
   const [newKeyManageEnabled, setNewKeyManageEnabled] = useState(false);
   const [newKeySelfUsageEnabled, setNewKeySelfUsageEnabled] = useState(true);
   const [newKeyAccountQuotaEnabled, setNewKeyAccountQuotaEnabled] = useState(false);
+  const [newKeyAllowUsageCommand, setNewKeyAllowUsageCommand] = useState(false);
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [editingKey, setEditingKey] = useState<ApiKey | null>(null);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
@@ -339,6 +404,10 @@ export default function ApiManagerPageClient() {
           (sum: number, entry: any) => sum + (Number(entry.requests) || 0),
           0
         );
+        const totalCost = matches.reduce((sum: number, entry: any) => {
+          const cost = Number(entry.cost);
+          return sum + (Number.isFinite(cost) ? cost : 0);
+        }, 0);
 
         // Match call logs by unique ID as well for the lastUsed timestamp
         // Prefer an exact apiKeyId match; fall back to name match for legacy
@@ -350,6 +419,7 @@ export default function ApiManagerPageClient() {
 
         stats[key.id] = {
           totalRequests,
+          totalCost,
           lastUsed,
         };
       }
@@ -422,11 +492,11 @@ export default function ApiManagerPageClient() {
   const isFiltered =
     activeOnly || statusFilter !== null || typeFilter !== null || searchQuery.trim() !== "";
 
-  const isQuotaKey = (k: ApiKey) =>
-    Array.isArray(k.allowedQuotas) && k.allowedQuotas.length > 0;
+  const isQuotaKey = (k: ApiKey) => Array.isArray(k.allowedQuotas) && k.allowedQuotas.length > 0;
 
   const quotaKeys = filteredKeys.filter(isQuotaKey);
   const normalKeys = filteredKeys.filter((k) => !isQuotaKey(k));
+  const permissionModels = useMemo(() => withClaudeCodeDefaultModel(allModels), [allModels]);
 
   const quotaGroupsForKey = (k: ApiKey): string[] => {
     if (!Array.isArray(k.allowedQuotas)) return [];
@@ -474,6 +544,7 @@ export default function ApiManagerPageClient() {
             selfUsageEnabled: newKeySelfUsageEnabled,
             selfAccountQuotaEnabled: newKeyAccountQuotaEnabled,
           }),
+          allowUsageCommand: newKeyAllowUsageCommand,
         }),
       });
       const data = await res.json();
@@ -485,6 +556,7 @@ export default function ApiManagerPageClient() {
         setNewKeyManageEnabled(false);
         setNewKeySelfUsageEnabled(true);
         setNewKeyAccountQuotaEnabled(false);
+        setNewKeyAllowUsageCommand(false);
         setShowAddModal(false);
       } else {
         setCreateError(data.error || t("failedCreateKey"));
@@ -590,7 +662,9 @@ export default function ApiManagerPageClient() {
     scopes: string[],
     allowedEndpoints: string[],
     streamDefaultMode: StreamDefaultMode,
-    disableNonPublicModels: boolean
+    disableNonPublicModels: boolean,
+    allowUsageCommand: boolean,
+    blockedModels: string[]
   ) => {
     if (!editingKey || !editingKey.id) return;
 
@@ -608,6 +682,9 @@ export default function ApiManagerPageClient() {
 
     // Validate each model ID
     const validModels = allowedModels.filter(
+      (id) => typeof id === "string" && id.length > 0 && id.length < 200
+    );
+    const validBlockedModels = blockedModels.filter(
       (id) => typeof id === "string" && id.length > 0 && id.length < 200
     );
 
@@ -638,6 +715,7 @@ export default function ApiManagerPageClient() {
         body: JSON.stringify({
           name: sanitizedName,
           allowedModels: validModels,
+          blockedModels: validBlockedModels,
           allowedCombos: validCombos,
           allowedConnections: validConnections,
           noLog,
@@ -653,6 +731,7 @@ export default function ApiManagerPageClient() {
           allowedEndpoints,
           streamDefaultMode,
           disableNonPublicModels,
+          allowUsageCommand,
         }),
       });
 
@@ -680,14 +759,14 @@ export default function ApiManagerPageClient() {
   // ids like "openai-compatible-chat-<uuid>" into the grouping label)
   const modelsByProvider = useMemo((): ProviderGroup[] => {
     const grouped: Record<string, Model[]> = {};
-    for (const model of allModels) {
+    for (const model of permissionModels) {
       const provider =
         getProviderDisplayName(model.owned_by) || model.owned_by || t("unknownProvider");
       if (!grouped[provider]) grouped[provider] = [];
       grouped[provider].push(model);
     }
     return Object.entries(grouped).sort((a, b) => compareTr(a[0], b[0]));
-  }, [allModels, t]);
+  }, [permissionModels, t]);
 
   // Filter models based on debounced search
   const filteredModelsByProvider = useMemo((): ProviderGroup[] => {
@@ -700,6 +779,7 @@ export default function ApiManagerPageClient() {
           models.filter(
             (m) =>
               matchesSearch(m.id, debouncedSearchModel) ||
+              matchesSearch(m.name || "", debouncedSearchModel) ||
               matchesSearch(provider, debouncedSearchModel)
           ),
         ]
@@ -729,65 +809,6 @@ export default function ApiManagerPageClient() {
           >
             <span className="material-symbols-outlined">close</span>
           </button>
-        </div>
-      )}
-
-      {/* Stats Summary Cards */}
-      {keys.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center size-9 rounded-lg bg-primary/10">
-                <span className="material-symbols-outlined text-primary text-lg">vpn_key</span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{keys.length}</p>
-                <p className="text-xs text-text-muted">{t("totalKeys")}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center size-9 rounded-lg bg-amber-500/10">
-                <span className="material-symbols-outlined text-amber-500 text-lg">lock</span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {
-                    keys.filter((k) => Array.isArray(k.allowedModels) && k.allowedModels.length > 0)
-                      .length
-                  }
-                </p>
-                <p className="text-xs text-text-muted">{t("restricted")}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center size-9 rounded-lg bg-blue-500/10">
-                <span className="material-symbols-outlined text-blue-500 text-lg">bar_chart</span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {Object.values(usageStats).reduce((sum, s) => sum + s.totalRequests, 0)}
-                </p>
-                <p className="text-xs text-text-muted">{t("totalRequests")}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center size-9 rounded-lg bg-emerald-500/10">
-                <span className="material-symbols-outlined text-emerald-500 text-lg">
-                  model_training
-                </span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{allModels.length}</p>
-                <p className="text-xs text-text-muted">{t("modelsAvailable")}</p>
-              </div>
-            </div>
-          </Card>
         </div>
       )}
 
@@ -828,7 +849,6 @@ export default function ApiManagerPageClient() {
                 )}
               </h3>
               <p className="text-xs text-text-muted">
-                {keys.length}{" "}
                 {keys.length === 1
                   ? t("keyRegistered", { count: keys.length })
                   : t("keysRegistered", { count: keys.length })}
@@ -880,8 +900,7 @@ export default function ApiManagerPageClient() {
           (() => {
             const renderKeyRow = (key: ApiKey) => {
               const stats = usageStats[key.id];
-              const isRestricted =
-                Array.isArray(key.allowedModels) && key.allowedModels.length > 0;
+              const isRestricted = Array.isArray(key.allowedModels) && key.allowedModels.length > 0;
               const hasComboRestrictions =
                 Array.isArray(key.allowedCombos) && key.allowedCombos.length > 0;
               const hasConnectionRestrictions =
@@ -893,9 +912,9 @@ export default function ApiManagerPageClient() {
                   ? key.throttleDelayMs
                   : 0;
               const hasThrottle = throttleDelayMs > 0;
-              const hasManageScope =
-                Array.isArray(key.scopes) && key.scopes.includes("manage");
+              const hasManageScope = Array.isArray(key.scopes) && key.scopes.includes("manage");
               const hasJsonStreamDefault = key.streamDefaultMode === "json";
+              const hasLocalUsageCommand = key.allowUsageCommand === true;
               const maxSessions = typeof key.maxSessions === "number" ? key.maxSessions : 0;
               const hasSessionLimit = maxSessions > 0;
               const activeSessions = sessionCounts[key.id] || 0;
@@ -1021,6 +1040,12 @@ export default function ApiManagerPageClient() {
                           {t("streamDefaultBadge")}
                         </span>
                       )}
+                      {hasLocalUsageCommand && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-600 dark:text-slate-300 text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-[12px]">terminal</span>
+                          {t("localUsageCommandBadge")}
+                        </span>
+                      )}
                       {hasSessionLimit && (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[11px] font-medium">
                           <span className="material-symbols-outlined text-[12px]">group</span>
@@ -1072,6 +1097,11 @@ export default function ApiManagerPageClient() {
                       {stats?.totalRequests ?? 0}{" "}
                       <span className="text-text-muted font-normal text-xs">{t("reqs")}</span>
                     </span>
+                    {(stats?.totalRequests ?? 0) > 0 && (
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 tabular-nums">
+                        {formatUsdCost(stats?.totalCost ?? 0, locale)}
+                      </span>
+                    )}
                     {stats?.lastUsed ? (
                       <span className="text-[10px] text-text-muted">
                         {t("lastUsedOn", { date: new Date(stats.lastUsed).toLocaleDateString() })}
@@ -1084,6 +1114,14 @@ export default function ApiManagerPageClient() {
                     {new Date(key.createdAt).toLocaleDateString()}
                   </div>
                   <div className="col-span-2 flex items-center justify-end gap-1">
+                    <a
+                      href={`/dashboard/costs?range=all&apiKeyIds=${encodeURIComponent(key.id)}&groupBy=model`}
+                      className="p-2 hover:bg-emerald-500/10 rounded text-text-muted hover:text-emerald-500 opacity-0 group-hover:opacity-100 transition-all"
+                      title={`View costs for ${key.name}`}
+                      aria-label={`View costs for ${key.name}`}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">payments</span>
+                    </a>
                     <button
                       onClick={() => handleRegenerateKey(key.id)}
                       className="p-2 hover:bg-amber-500/10 rounded text-text-muted hover:text-amber-500 opacity-0 group-hover:opacity-100 transition-all"
@@ -1172,36 +1210,6 @@ export default function ApiManagerPageClient() {
         )}
       </Card>
 
-      {/* Usage Tips Card */}
-      <Card>
-        <div className="flex items-start gap-3">
-          <div className="flex items-center justify-center size-10 rounded-lg bg-blue-500/10 shrink-0">
-            <span className="material-symbols-outlined text-xl text-blue-500">lightbulb</span>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2">{t("usageTips")}</h3>
-            <ul className="text-sm text-text-muted space-y-1.5">
-              <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>{t("tipAuth")}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>{t("tipSecure")}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>{t("tipSeparate")}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>{t("tipRestrict")}</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </Card>
-
       {/* Add Key Modal */}
       <Modal
         isOpen={showAddModal}
@@ -1213,6 +1221,7 @@ export default function ApiManagerPageClient() {
           setNewKeyManageEnabled(false);
           setNewKeySelfUsageEnabled(true);
           setNewKeyAccountQuotaEnabled(false);
+          setNewKeyAllowUsageCommand(false);
           setNameError(null);
           setCreateError(null);
         }}
@@ -1307,6 +1316,26 @@ export default function ApiManagerPageClient() {
                 {newKeyAccountQuotaEnabled ? tc("enabled") : tc("disabled")}
               </button>
             </div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-text-main">{t("localUsageCommand")}</p>
+                <p className="text-xs text-text-muted">{t("localUsageCommandDesc")}</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={newKeyAllowUsageCommand}
+                onClick={() => setNewKeyAllowUsageCommand((prev) => !prev)}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors shrink-0 ${
+                  newKeyAllowUsageCommand
+                    ? "bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30"
+                    : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[14px]">terminal</span>
+                {newKeyAllowUsageCommand ? tc("enabled") : tc("disabled")}
+              </button>
+            </div>
           </div>
           {createError && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30">
@@ -1322,6 +1351,7 @@ export default function ApiManagerPageClient() {
                 setNewKeyManageEnabled(false);
                 setNewKeySelfUsageEnabled(true);
                 setNewKeyAccountQuotaEnabled(false);
+                setNewKeyAllowUsageCommand(false);
                 setNameError(null);
                 setCreateError(null);
               }}
@@ -1385,7 +1415,7 @@ export default function ApiManagerPageClient() {
           }}
           apiKey={editingKey}
           modelsByProvider={filteredModelsByProvider}
-          allModels={allModels}
+          allModels={permissionModels}
           allCombos={allCombos}
           allConnections={allConnections}
           searchModel={searchModel}
@@ -1437,7 +1467,9 @@ const PermissionsModal = memo(function PermissionsModal({
     scopes: string[],
     allowedEndpoints: string[],
     streamDefaultMode: StreamDefaultMode,
-    disableNonPublicModels: boolean
+    disableNonPublicModels: boolean,
+    allowUsageCommand: boolean,
+    blockedModels: string[]
   ) => void;
 }) {
   const t = useTranslations("apiManager");
@@ -1445,12 +1477,20 @@ const PermissionsModal = memo(function PermissionsModal({
 
   // Initialize state from props - component remounts when key prop changes
   const initialModels = Array.isArray(apiKey?.allowedModels) ? apiKey.allowedModels : [];
+  const initialBlockedModels = useMemo(
+    () => (Array.isArray(apiKey?.blockedModels) ? apiKey.blockedModels : []),
+    [apiKey?.blockedModels]
+  );
   const initialCombos = Array.isArray(apiKey?.allowedCombos) ? apiKey.allowedCombos : [];
   const initialConnections = Array.isArray(apiKey?.allowedConnections)
     ? apiKey.allowedConnections
     : [];
   const [keyName, setKeyName] = useState(apiKey?.name ?? "");
   const [selectedModels, setSelectedModels] = useState<string[]>(initialModels);
+  const [blockedClaudeCodeFamilies, setBlockedClaudeCodeFamilies] = useState<
+    ClaudeCodeBlockableFamilyId[]
+  >(() => getBlockedClaudeCodeFamilies(initialBlockedModels));
+  const [claudeCodeFamiliesExpanded, setClaudeCodeFamiliesExpanded] = useState(false);
   const [selectedCombos, setSelectedCombos] = useState<string[]>(initialCombos);
   const [allowAll, setAllowAll] = useState(initialModels.length === 0);
   const [allowAllCombos, setAllowAllCombos] = useState(initialCombos.length === 0);
@@ -1509,6 +1549,14 @@ const PermissionsModal = memo(function PermissionsModal({
   const [disableNonPublicModels, setDisableNonPublicModels] = useState(
     apiKey?.disableNonPublicModels === true
   );
+  const [usageCommandEnabled, setUsageCommandEnabled] = useState(
+    apiKey?.allowUsageCommand === true
+  );
+  const getModelDisplayName = useCallback(
+    (modelId: string) =>
+      modelId === CLAUDE_CODE_DEFAULT_MODEL_ID ? CLAUDE_CODE_DEFAULT_MODEL_NAME : modelId,
+    []
+  );
 
   // Memoize callbacks to prevent child re-renders
   const handleToggleModel = useCallback(
@@ -1517,6 +1565,9 @@ const PermissionsModal = memo(function PermissionsModal({
 
       setSelectedModels((prev) => {
         if (prev.includes(modelId)) {
+          if (modelId === CLAUDE_CODE_DEFAULT_MODEL_ID) {
+            setClaudeCodeFamiliesExpanded(false);
+          }
           return prev.filter((m) => m !== modelId);
         }
         return [...prev, modelId];
@@ -1544,6 +1595,8 @@ const PermissionsModal = memo(function PermissionsModal({
   const handleSelectAll = useCallback(() => {
     setAllowAll(true);
     setSelectedModels([]);
+    setBlockedClaudeCodeFamilies([]);
+    setClaudeCodeFamiliesExpanded(false);
   }, []);
 
   const handleRestrictMode = useCallback(() => {
@@ -1568,10 +1621,21 @@ const PermissionsModal = memo(function PermissionsModal({
   const handleSelectAllModels = useCallback(() => {
     const allModelIds = allModels.map((m) => m.id);
     setSelectedModels(allModelIds);
+    setBlockedClaudeCodeFamilies([]);
+    setClaudeCodeFamiliesExpanded(false);
   }, [allModels]);
 
   const handleDeselectAllModels = useCallback(() => {
     setSelectedModels([]);
+    setBlockedClaudeCodeFamilies([]);
+    setClaudeCodeFamiliesExpanded(false);
+  }, []);
+
+  const handleBlockClaudeCodeFamily = useCallback((familyId: ClaudeCodeBlockableFamilyId) => {
+    setBlockedClaudeCodeFamilies((prev) => (prev.includes(familyId) ? prev : [...prev, familyId]));
+    setSelectedModels((prev) =>
+      prev.filter((modelId) => !isClaudeCodeFamilyModel(modelId, familyId))
+    );
   }, []);
 
   const handleToggleCombo = useCallback(
@@ -1639,6 +1703,16 @@ const PermissionsModal = memo(function PermissionsModal({
           tz: scheduleTz,
         }
       : null;
+    const hasClaudeCodeDefaultSelected =
+      !allowAll && selectedModels.includes(CLAUDE_CODE_DEFAULT_MODEL_ID);
+    const blockedModels = initialBlockedModels.filter(
+      (pattern) => !CLAUDE_CODE_BLOCK_PATTERN_SET.has(pattern)
+    );
+    if (hasClaudeCodeDefaultSelected) {
+      for (const familyId of blockedClaudeCodeFamilies) {
+        blockedModels.push(...CLAUDE_CODE_FAMILY_BLOCK_PATTERNS[familyId]);
+      }
+    }
     onSave(
       keyName,
       allowAll ? [] : selectedModels,
@@ -1660,7 +1734,9 @@ const PermissionsModal = memo(function PermissionsModal({
       }),
       allowAllEndpoints ? [] : selectedEndpoints,
       streamDefaultMode,
-      disableNonPublicModels
+      disableNonPublicModels,
+      usageCommandEnabled,
+      blockedModels
     );
   }, [
     onSave,
@@ -1691,12 +1767,33 @@ const PermissionsModal = memo(function PermissionsModal({
     selectedEndpoints,
     streamDefaultMode,
     disableNonPublicModels,
+    usageCommandEnabled,
+    blockedClaudeCodeFamilies,
+    initialBlockedModels,
     apiKey?.scopes,
     t,
   ]);
 
   const selectedCount = selectedModels.length;
   const totalModels = allModels.length;
+  const hasClaudeCodeDefaultSelected =
+    !allowAll && selectedModels.includes(CLAUDE_CODE_DEFAULT_MODEL_ID);
+  const orderedSelectedModels = useMemo(() => {
+    if (!hasClaudeCodeDefaultSelected) return selectedModels;
+    return [
+      CLAUDE_CODE_DEFAULT_MODEL_ID,
+      ...selectedModels.filter((modelId) => modelId !== CLAUDE_CODE_DEFAULT_MODEL_ID),
+    ];
+  }, [hasClaudeCodeDefaultSelected, selectedModels]);
+  const visibleClaudeCodeFamilies = useMemo(
+    () =>
+      CLAUDE_CODE_DEFAULT_FAMILIES.filter(
+        (family) =>
+          family.id === "other" ||
+          !blockedClaudeCodeFamilies.includes(family.id as ClaudeCodeBlockableFamilyId)
+      ),
+    [blockedClaudeCodeFamilies]
+  );
 
   return (
     <Modal
@@ -2229,6 +2326,21 @@ const PermissionsModal = memo(function PermissionsModal({
             {selfAccountQuotaEnabled ? tc("enabled") : tc("disabled")}
           </button>
           <p className="text-xs text-text-muted">{t("sharedAccountQuotaVisibilityDesc")}</p>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={usageCommandEnabled}
+            onClick={() => setUsageCommandEnabled((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              usageCommandEnabled
+                ? "bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30"
+                : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">terminal</span>
+            {t("localUsageCommand")} - {usageCommandEnabled ? tc("enabled") : tc("disabled")}
+          </button>
+          <p className="text-xs text-text-muted">{t("localUsageCommandDesc")}</p>
         </div>
 
         {/* Disable Non-Public Models Toggle */}
@@ -2277,23 +2389,106 @@ const PermissionsModal = memo(function PermissionsModal({
                 </button>
               </div>
             </div>
-            <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto content-start">
-              {selectedModels.map((modelId) => (
-                <span
-                  key={modelId}
-                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white dark:bg-surface text-text-main text-[10px] rounded border border-border"
-                >
-                  <span className="font-mono truncate max-w-[120px]" title={modelId}>
-                    {modelId}
-                  </span>
-                  <button
-                    onClick={() => handleToggleModel(modelId)}
-                    className="text-text-muted hover:text-red-500 transition-colors"
+            <div className="flex flex-wrap gap-1 max-h-28 overflow-y-auto content-start">
+              {orderedSelectedModels.map((modelId) => {
+                if (modelId === CLAUDE_CODE_DEFAULT_MODEL_ID) {
+                  return (
+                    <div key={modelId} className="flex flex-col gap-1 basis-full">
+                      <span className="inline-flex w-fit items-center gap-0.5 px-1.5 py-0.5 bg-primary/10 text-text-main text-[10px] rounded border border-primary/35">
+                        <button
+                          type="button"
+                          onClick={() => setClaudeCodeFamiliesExpanded((prev) => !prev)}
+                          className="inline-flex items-center gap-1 font-mono text-text-main"
+                          title="Expand Claude Code families"
+                          aria-expanded={claudeCodeFamiliesExpanded}
+                        >
+                          <span className="truncate max-w-[140px]" title={modelId}>
+                            {getModelDisplayName(modelId)}
+                          </span>
+                          <span className="material-symbols-outlined text-[12px] text-primary">
+                            {claudeCodeFamiliesExpanded ? "expand_less" : "expand_more"}
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleModel(modelId)}
+                          className="text-text-muted hover:text-red-500 transition-colors"
+                          title="Remove Claude Code default"
+                        >
+                          <span className="material-symbols-outlined text-[12px]">close</span>
+                        </button>
+                      </span>
+
+                      {claudeCodeFamiliesExpanded && (
+                        <div className="relative ml-2 flex flex-wrap gap-1 pl-5 animate-in fade-in slide-in-from-top-1 duration-150">
+                          <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute left-1.5 top-0 bottom-1 w-px bg-primary/25"
+                          />
+                          <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute left-1.5 top-3 h-px w-3 bg-primary/25"
+                          />
+                          {visibleClaudeCodeFamilies.map((family) => {
+                            const canBlock = family.id !== "other";
+                            return (
+                              <span
+                                key={family.id}
+                                className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] rounded border ${
+                                  canBlock
+                                    ? "bg-white dark:bg-surface text-text-main border-border"
+                                    : "bg-black/5 dark:bg-white/5 text-text-muted border-border"
+                                }`}
+                                title={
+                                  canBlock
+                                    ? `Allow ${family.label} family through Claude Code default`
+                                    : "Catch-all for other Claude Code models"
+                                }
+                              >
+                                <span className="font-mono">{family.label}</span>
+                                {canBlock && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleBlockClaudeCodeFamily(
+                                        family.id as ClaudeCodeBlockableFamilyId
+                                      )
+                                    }
+                                    className="text-text-muted hover:text-red-500 transition-colors"
+                                    title={`Block ${family.label} family`}
+                                  >
+                                    <span className="material-symbols-outlined text-[12px]">
+                                      close
+                                    </span>
+                                  </button>
+                                )}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <span
+                    key={modelId}
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white dark:bg-surface text-text-main text-[10px] rounded border border-border"
                   >
-                    <span className="material-symbols-outlined text-[12px]">close</span>
-                  </button>
-                </span>
-              ))}
+                    <span className="font-mono truncate max-w-[120px]" title={modelId}>
+                      {getModelDisplayName(modelId)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleModel(modelId)}
+                      className="text-text-muted hover:text-red-500 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[12px]">close</span>
+                    </button>
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}
@@ -2405,7 +2600,7 @@ const PermissionsModal = memo(function PermissionsModal({
                                   }`}
                                   title={model.id}
                                 >
-                                  {model.id}
+                                  {getModelDisplayName(model.id)}
                                 </button>
                               );
                             })}

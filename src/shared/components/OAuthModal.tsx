@@ -553,7 +553,11 @@ export default function OAuthModal({
       const isGoogleLoopbackRelay =
         GOOGLE_OAUTH_PROVIDERS.has(provider) && isLoopbackOrigin && hasMatchingState;
 
-      if (event.origin !== window.location.origin && !isLocalhostSamePort && !isGoogleLoopbackRelay) {
+      if (
+        event.origin !== window.location.origin &&
+        !isLocalhostSamePort &&
+        !isGoogleLoopbackRelay
+      ) {
         return;
       }
       if (event.data?.type === "oauth_callback") {
@@ -733,8 +737,8 @@ export default function OAuthModal({
           <div className="flex flex-col gap-3">
             <p className="text-sm text-text-muted">
               {provider === "windsurf"
-                ? "Visit windsurf.com/show-auth-token, copy your Windsurf API key, and paste it below."
-                : "Provide your WINDSURF_API_KEY (obtained via `devin auth login` or windsurf.com/show-auth-token)."}
+                ? 'In the Windsurf / VS Code IDE, run the "Windsurf: Provide Auth Token" command from the command palette (or click the Jupyter "Get Windsurf Authentication Token" button), then copy the shown token and paste it below. Opening windsurf.com/show-auth-token directly only shows a "Redirecting" page — the IDE must initiate the flow.'
+                : 'Provide your WINDSURF_API_KEY (obtained via `devin auth login`, or via the Windsurf IDE "Windsurf: Provide Auth Token" command).'}
             </p>
             <Input
               value={pasteToken}

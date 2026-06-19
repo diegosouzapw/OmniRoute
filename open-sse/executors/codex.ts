@@ -26,8 +26,10 @@ import {
 } from "../config/codexIdentity.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
+import { normalizeCodexVerbosity } from "../services/codexVerbosity.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
+import * as prl from "../utils/providerRequestLogging.ts";
 import { createRequire } from "module";
 
 // ─── wreq-js lazy loader ───────────────────────────────────────────────────
@@ -1000,6 +1002,7 @@ export class CodexExecutor extends BaseExecutor {
             finishStream({ reason: "upstream_closed", closeSocket: false });
           };
           if (!closed) {
+            await prl.captureCurrentProviderBody(url, headers, bodyString, nextInput.log);
             ws.send(bodyString);
           }
         } catch (error) {
@@ -1403,6 +1406,11 @@ export class CodexExecutor extends BaseExecutor {
       return body;
     }
 
+    // GPT-5 verbosity: fold Chat-style `verbosity` / Responses `text.verbosity` into a
+    // single validated `text:{verbosity}` so the allowlist below (which now permits
+    // `text`) lets it reach upstream instead of dropping it silently.
+    normalizeCodexVerbosity(body);
+
     // Issue #2608: Use an allowlist of known Responses API fields instead of a
     // denylist of Chat Completions fields. The denylist approach missed fields
     // like `stop`, `response_format`, `logit_bias`, `function_call`, `functions`,
@@ -1423,6 +1431,8 @@ export class CodexExecutor extends BaseExecutor {
       "previous_response_id",
       "prompt_cache_key",
       "client_metadata",
+      // GPT-5 output verbosity ({ verbosity } — normalized above by normalizeCodexVerbosity).
+      "text",
       // Internal markers used by OmniRoute pipeline
       "_omnirouteResponsesStore",
     ]);

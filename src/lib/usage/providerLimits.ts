@@ -70,6 +70,8 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "nanogpt",
   "deepseek",
   "xiaomi-mimo",
+  "vertex",
+  "vertex-partner",
 ]);
 const DEFAULT_PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES = 70;
 const PROVIDER_LIMITS_AUTO_SYNC_SETTING_KEY = "provider_limits_auto_sync_last_run";
@@ -666,9 +668,15 @@ async function fetchLiveProviderLimitsWithOptions(
   }
 
   if (connection.authType !== "oauth") {
+    // L3: route the API-key usage/quota fetch through the connection's proxy context,
+    // mirroring the OAuth branch below (proxyInfo?.proxy ?? null). Without this, API-key
+    // usage egresses on the host IP, ignoring the connection's assigned proxy.
+    const apiKeyProxy = await resolveProxyForConnection(connectionId);
     const usage = sanitizeUsageQuotasForProvider(
       connection.provider,
-      (await getUsageForProvider(connection as unknown as JsonRecord, options)) as JsonRecord
+      (await runWithProxyContext(apiKeyProxy?.proxy ?? null, () =>
+        getUsageForProvider(connection as unknown as JsonRecord, options)
+      )) as JsonRecord
     );
     if (isRecord(usage.quotas)) {
       setQuotaCache(connectionId, connection.provider, usage.quotas);

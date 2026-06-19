@@ -1,4 +1,5 @@
 import { handleImageGeneration } from "@omniroute/open-sse/handlers/imageGeneration.ts";
+import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import {
   getProviderCredentials,
   clearRecoveredProviderState,
@@ -22,6 +23,9 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { getAllCustomModels, resolveProxyForConnection } from "@/lib/localDb";
 import { resolveImageRouteModel } from "@/lib/images/imageRouteModel";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import { calculateModalCost } from "@/lib/usage/costCalculator";
+import { generateRequestId } from "@/shared/utils/requestId";
 
 /**
  * Handle CORS preflight
@@ -118,7 +122,7 @@ function publicBaseUrlHeaders(headers: Headers): Record<string, string> {
   return out;
 }
 
-export async function POST(request) {
+async function postHandler(request, context) {
   let rawBody;
   try {
     rawBody = await request.json();
@@ -132,6 +136,7 @@ export async function POST(request) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
   }
   const body = validation.data;
+  const startTime = Date.now();
 
   // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);
@@ -265,9 +270,22 @@ export async function POST(request) {
 
   if (result.success) {
     await clearRecoveredProviderState(credentials);
-    return new Response(JSON.stringify((result as any).data), {
+    const n = Math.max(
+      Number(body.n) || 1,
+      (result as { data?: { data?: unknown[] } }).data?.data?.length || 0
+    );
+    const costUsd = await calculateModalCost("image", provider, body.model, { n });
+    const headers = new Headers({ "Content-Type": "application/json" });
+    attachOmniRouteMetaHeaders(headers, {
+      provider,
+      model: body.model,
+      costUsd,
+      latencyMs: Date.now() - startTime,
+      requestId: generateRequestId(),
+    });
+    return new Response(JSON.stringify((result as { data: unknown }).data), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers,
     });
   }
 
@@ -277,3 +295,5 @@ export async function POST(request) {
     headers: { "Content-Type": "application/json" },
   });
 }
+
+export const POST = withInjectionGuard(postHandler);

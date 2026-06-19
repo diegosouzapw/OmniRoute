@@ -392,3 +392,41 @@ test("managementPolicy: allows internal model sync only on the dedicated provide
   const denied = await policy.evaluate(ctx(internalHeaders, "POST", "/api/keys"));
   assert.equal(denied.allow, false);
 });
+
+const INGEST_PATH = "/api/tools/traffic-inspector/internal/ingest";
+
+test("managementPolicy: allows loopback inspector ingest without a dashboard session (D4)", async () => {
+  // Auth is required (password set), and there is NO dashboard cookie / API key.
+  process.env.JWT_SECRET = "test-jwt-secret-for-ingest";
+  process.env.INITIAL_PASSWORD = "initial-pass";
+  await settingsDb.updateSettings({ requireLogin: true });
+
+  const policy = await loadPolicy();
+  // Loopback peer (socket.remoteAddress) + ingest path → exempt from management
+  // auth; the route handler validates the shared-secret ingest token.
+  const out = await policy.evaluate(
+    ctx(new Headers(), "POST", INGEST_PATH, { socket: { remoteAddress: "127.0.0.1" } })
+  );
+
+  assert.equal(out.allow, true);
+  if (out.allow) {
+    assert.equal(out.subject.id, "inspector-ingest");
+    assert.equal(out.subject.label, "inspector-ingest-token");
+  }
+});
+
+test("managementPolicy: rejects remote inspector ingest as LOCAL_ONLY (D4)", async () => {
+  process.env.JWT_SECRET = "test-jwt-secret-for-ingest";
+  process.env.INITIAL_PASSWORD = "initial-pass";
+  await settingsDb.updateSettings({ requireLogin: true });
+
+  const policy = await loadPolicy();
+  // Non-loopback caller hits the LOCAL_ONLY gate before the ingest carve-out —
+  // the loopback exemption must never widen the endpoint to off-box peers.
+  const out = await policy.evaluate(remoteCtx(new Headers(), "POST", INGEST_PATH));
+
+  assert.equal(out.allow, false);
+  if (!out.allow) {
+    assert.equal(out.code, "LOCAL_ONLY");
+  }
+});

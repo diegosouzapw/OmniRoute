@@ -537,7 +537,268 @@ default TTL 5 min).
   - `src/app/api/memory/reindex/route.ts`
   - `src/app/api/settings/memory/route.ts`
   - `src/app/api/settings/qdrant/route.ts` + sub-routes
-  - `src/app/(dashboard)/dashboard/memory/` — Studio UI (page + components +
-    tabs + hooks)
-  - `open-sse/handlers/chatCore.ts` (injection / extraction wiring)
-  - `open-sse/mcp-server/tools/memoryTools.ts`
+   - `src/app/(dashboard)/dashboard/memory/` — Studio UI (page + components +
+     tabs + hooks)
+   - `open-sse/handlers/chatCore.ts` (injection / extraction wiring)
+   - `open-sse/mcp-server/tools/memoryTools.ts`
+
+---
+
+## Choosing an Embedding Provider (v3.8.16+)
+
+OmniRoute's memory engine supports **four embedding sources** (`src/lib/memory/embedding/`). Each has different trade-offs in **latency, cost, model quality, and setup complexity**.
+
+### The Four Providers
+
+| Provider | Source | Latency | Cost | Quality | Setup |
+|----------|--------|---------|------|---------|-------|
+| `transformers` | Local ONNX model (Xenova/all-MiniLM-L6-v2) | ~50-150ms (CPU) | Free | Good | `npm install` only |
+| `static` | Pre-computed vectors (cached) | <1ms | Free | N/A (depends on cache hit) | None |
+| `remote` | OpenAI / Cohere / Voyage API | ~100-300ms | $0.02-0.10/1M tokens | Excellent | API key |
+| `cache` | In-memory LRU layer over any source | <1ms (hit), full latency (miss) | Free | Same as underlying | None |
+
+### Decision Tree
+
+```
+                  What's your deployment context?
+                  │
+      ┌───────────┼───────────┬──────────────┐
+      │           │           │              │
+  DEV/TEST    SMALL PROD   LARGE PROD    EDGE / OFFLINE
+      │           │           │              │
+      ▼           ▼           ▼              ▼
+  transformers transformers remote (Qdrant) transformers
+  (free, no API)            (best quality)   (no internet)
+      │           │           │              │
+      └────────┬──┴───────────┴──────────────┘
+               │
+               ▼
+            ALWAYS add `cache` layer on top
+            (LruCache wraps any provider)
+```
+
+### Database & API Configuration
+
+Memory embedding options are configured via the Settings API/UI, not environment variables. The relevant settings database keys under Settings (`normalizeMemorySettings` in `src/lib/memory/settings.ts`) are:
+
+- `memoryEmbeddingSource`: `"transformers"` (local), `"remote"` (API-based, e.g. OpenAI), `"static"` (external store), or `"auto"`
+- `memoryEmbeddingProviderModel`: Model identifier for remote/static sources (e.g., `"text-embedding-3-small"`)
+- `memoryTransformersEnabled`: `true` | `false`
+- `memoryStaticEnabled`: `true` | `false`
+- `memoryVectorStore`: `"sqlite-vec"`, `"qdrant"`, or `"auto"`
+
+#### Local Model (`transformers`)
+
+Uses transformers.js internally to run local models:
+
+```bash
+# Env vars read in code (src/lib/memory/embedding/index.ts):
+MEMORY_TRANSFORMERS_MODEL=Xenova/all-MiniLM-L6-v2  # HF model repo
+MEMORY_STATIC_MODEL=minishlab/potion-base-8M       # HF static potion model
+MEMORY_STATIC_CACHE_DIR=<DATA_DIR>/embeddings      # Cache directory
+```
+
+#### LRU Embedding Cache
+
+The cache is always on by default and configured via env vars:
+
+```bash
+MEMORY_EMBEDDING_CACHE_MAX=1000                    # Max cached items
+MEMORY_EMBEDDING_CACHE_TTL_MS=300000               # TTL (5 min)
+```
+### Performance Numbers
+
+Benchmark on a typical 4-core x86 server (texts ~100 tokens each):
+
+| Provider | p50 | p95 | p99 | Cost / 1M embeddings |
+|----------|-----|-----|-----|-----------------------|
+| `transformers` (CPU) | 80ms | 180ms | 350ms | Free |
+| `remote` (OpenAI) | 120ms | 220ms | 400ms | ~$0.02 (ada-002) / $0.13 (3-large) |
+| `static` (Qdrant) | 15ms | 30ms | 60ms | Depends on Qdrant hosting |
+| `cache` (hit) | <1ms | <1ms | 2ms | Free |
+
+---
+
+## Fact Extraction Patterns (v3.8.16+)
+
+The `extraction.ts` module (`src/lib/memory/extraction.ts`) uses **regex pattern matching** to extract structured facts from conversation messages. Understanding these patterns helps you tune extraction quality for your use case.
+
+### Default Pattern Categories
+
+| Category | Example pattern | Captures |
+|----------|-----------------|----------|
+| PREFERENCE_PATTERNS | `"I prefer <X>"`, `"I like <X>"`, `"I hate <X>"` | User preferences |
+| DECISION_PATTERNS | `"I'll use <X>"`, `"I decided to <X>"`, `"I went with <X>"` | User decisions (episodic) |
+| PATTERN_PATTERNS | `"I usually <X>"`, `"I always <X>"`, `"I never <X>"` | Persistent behavioral patterns |
+
+### Example Patterns (Simplified)
+```ts
+// From src/lib/memory/extraction.ts
+const PREFERENCE_PATTERNS = [
+  /\bI\s+(?:really\s+)?prefer\s+([^.,\n]+)/gi,
+  /\bI\s+(?:really\s+)?like\s+([^.,\n]+)/gi,
+  /\bI\s+(?:hate|dislike|avoid)\s+([^.,\n]+)/gi
+];
+const DECISION_PATTERNS = [
+  /\bI'?(?:ll|will)\s+use\s+([^.,\n]+)/gi,
+  /\bI\s+(?:have\s+)?decided\s+(?:to\s+)?([^.,\n]+)/gi
+];
+const PATTERN_PATTERNS = [
+  /\bI\s+usually\s+([^.,\n]+)/gi,
+  /\bI\s+always\s+([^.,\n]+)/gi
+];
+```
+
+### What Gets Extracted
+
+When a user says:
+> "I prefer TypeScript. I'll use Postgres for this project. I always commit before pushing. I don't like Python."
+Extraction produces 4 memories:
+| Key | Category | Type | Content |
+|-----|----------|------|---------|
+| `preference:typescript` | preference | factual | "TypeScript" |
+| `decision:postgres_for_this_project` | decision | episodic | "Postgres for this project" |
+| `pattern:commit_before_pushing` | pattern | factual | "commit before pushing" |
+| `preference:python` | preference | factual | "Python" |
+
+### Extraction Limits
+To prevent runaway extraction, the following limits apply:
+
+| Min content length | 3 chars |
+| Max content length | 500 chars |
+
+### When to Disable Extraction
+
+Extraction runs automatically whenever memory is enabled; there is no separate
+extraction-only toggle. To turn it off, disable memory entirely (`enabled: false`
+via `PUT /api/settings/memory`). Consider doing so when:
+- You have high message volume and the extraction cost is non-trivial
+- Your conversations are mostly transient (chat, debugging) with no long-term value
+- You're already capturing context via custom plugins
+
+---
+
+## Hybrid RRF Tuning (v3.8.16+)
+
+The **Reciprocal Rank Fusion (RRF)** algorithm combines FTS5 (keyword) and vector (semantic) results. The `k` parameter controls how much weight is given to lower-ranked results.
+
+### The Formula
+
+For each candidate memory, the RRF score is:
+
+```
+RRF(d) = Σ  1 / (k + rank_i(d))
+```
+
+Where:
+- `k` is the constant (default 60)
+- `rank_i(d)` is the rank of document `d` in the i-th retrieval system (FTS, vector)
+- The sum runs over all retrieval systems
+
+### How `k` Affects Results
+
+| `k` value | Effect | Best for |
+|-----------|--------|----------|
+| `k=0` | Pure rank fusion (no smoothing) | Theoretical baseline |
+| `k=10-30` | Heavily weights top results, low-rank barely contributes | When top-3 results are usually correct |
+| **`k=60`** (default) | Balanced — top-10 results all contribute meaningfully | General-purpose retrieval |
+| `k=100+` | Flatter — even low-rank results can dominate if they appear in multiple systems | When recall > precision is critical |
+
+### Tuning `k` in Practice
+
+```bash
+# Default
+MEMORY_RRF_K=60
+
+# Aggressive precision (small memory, few docs)
+MEMORY_RRF_K=20
+
+# Maximum recall (large memory, varied queries)
+MEMORY_RRF_K=120
+```
+
+**Example with `k=20`:**
+- FTS rank 1 → contribution `1/21 = 0.048`
+- FTS rank 10 → contribution `1/30 = 0.033`
+- Vector rank 1 → contribution `0.048`
+- Combined max: `0.096`
+
+**Example with `k=60`:**
+- FTS rank 1 → contribution `1/61 = 0.016`
+- FTS rank 10 → contribution `1/70 = 0.014`
+- Vector rank 1 → contribution `0.016`
+- Combined max: `0.033`
+
+With higher `k`, the **relative difference** between top-1 and rank-10 is smaller, so the algorithm relies more on **consensus across retrieval systems** than on top-rank confidence.
+
+### When to Change `k`
+
+| Symptom | Try |
+|---------|-----|
+| Top result always wins, but it's wrong | **Lower** k (e.g., 20) — top-rank confidence matters more |
+| Right answer is in top-5 but not top-1 | **Higher** k (e.g., 100) — flatter scoring rewards consensus |
+| Recall is high but precision is low | **Lower** k — sharpen the ranking |
+| Recall is low (missing relevant docs) | **Higher** k — give lower-ranked docs a chance |
+
+### RRF Weighting
+
+The reciprocal rank fusion uses equal weights for semantic vector rank and full-text search rank:
+
+```
+RRF(d) = 1/(k + rank_vector) + 1/(k + rank_fts)
+```
+
+There are no environment variables to adjust individual weights (`MEMORY_RRF_VECTOR_WEIGHT`/`MEMORY_RRF_FTS_WEIGHT` do not exist).
+
+---
+
+## Summarization Strategy (v3.8.16+)
+
+The `summarization.ts` module (`src/lib/memory/summarization.ts`) compresses older memories to keep the active set small while preserving recall.
+
+### When Summarization Triggers
+
+| Trigger | Threshold (default) |
+|---------|---------------------|
+| Manual trigger via API | n/a |
+
+### What Gets Summarized
+
+Two entry points are exported from `summarization.ts`:
+
+- **`summarizeMemories(apiKeyId, sessionId?, maxTokens = 4000)`** — condenses the
+  memories for a session into a single summary text bounded by a token budget.
+- **`summarizeMemoriesOlderThan(apiKeyId, days, dryRun)`** — the age-based
+  compaction used by the API: it selects every memory older than `days`, builds
+  one condensed summary memory from them, and (when `dryRun` is `false`) deletes
+  the originals. Pass `dryRun: true` to preview the candidate set and token total
+  without modifying anything.
+
+There is no tag/key clustering pass or per-memory "core vs summarizable" scoring —
+selection is purely the age cutoff, and the summary text is a condensed,
+type-prefixed line per candidate.
+
+### Triggering Summarization
+
+Summarization is **manual / opt-in** — the `autoSummarize` setting is `false` by
+default, so nothing is compacted automatically. Trigger it via the API:
+
+```bash
+curl -X POST http://localhost:20128/api/memory/summarize \
+  -H "Authorization: Bearer $OMNIROUTE_KEY"
+```
+
+To leave it off, simply keep `autoSummarize` at its default (`false`).
+
+### Summarization Quality Tips
+
+- **Preview first with `dryRun`** — `summarizeMemoriesOlderThan(..., true)` returns
+  the candidate list and total token count so you can confirm what would be merged
+  before deleting the originals.
+- **Run summarization during low-traffic hours** if you have a large memory corpus — the LLM call is the slow part
+
+```bash
+# Cron-style: summarize at 3am daily
+0 3 * * * curl -X POST http://localhost:20128/api/memory/summarize \
+  -H "Authorization: Bearer $OMNIROUTE_KEY"
+```

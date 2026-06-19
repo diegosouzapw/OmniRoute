@@ -9,7 +9,9 @@
  *   2. Imports `maskEmailLikeValue` (or `pickDisplayValue`) from the mask utility
  *   3. References `emailsVisible` in its body
  *
- * Also verifies that QuotaSharePageClient renders <EmailPrivacyToggle and imports the store.
+ * Also verifies the email-privacy control is consolidated into Settings → Appearance
+ * (#3822: the per-page toggle was removed in favor of a single global switch) while
+ * QuotaSharePageClient still consumes the store for masking.
  */
 
 import test from "node:test";
@@ -34,12 +36,21 @@ const poolCardSrc = readSrc(`${quotaShareDir}/components/PoolCard.tsx`);
 const accountQuotaRowSrc = readSrc(`${quotaShareDir}/components/AccountQuotaRow.tsx`);
 const poolWizardSrc = readSrc(`${quotaShareDir}/components/PoolWizard.tsx`);
 
-// ── QuotaSharePageClient ──────────────────────────────────────────────────────
+const settingsDir = "src/app/(dashboard)/dashboard/settings/components";
+const appearanceTabSrc = readSrc(`${settingsDir}/AppearanceTab.tsx`);
+const accountEmailVisibilitySrc = readSrc(`${settingsDir}/AccountEmailVisibilitySetting.tsx`);
 
-test("QuotaSharePageClient imports EmailPrivacyToggle", () => {
+// ── Global consolidation (#3822) ──────────────────────────────────────────────
+
+test("email-privacy control is consolidated into Settings → Appearance (#3822)", () => {
   assert.ok(
-    pageClientSrc.includes('import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle"'),
-    "Expected EmailPrivacyToggle import in QuotaSharePageClient"
+    appearanceTabSrc.includes("AccountEmailVisibilitySetting"),
+    "Expected AppearanceTab to render the global AccountEmailVisibilitySetting"
+  );
+  assert.ok(
+    accountEmailVisibilitySrc.includes("setEmailsVisible") &&
+      accountEmailVisibilitySrc.includes("useEmailPrivacyStore"),
+    "Expected the global setting to drive emailsVisible via the store"
   );
 });
 
@@ -64,10 +75,10 @@ test("QuotaSharePageClient consumes emailsVisible from store", () => {
   );
 });
 
-test("QuotaSharePageClient renders EmailPrivacyToggle in JSX", () => {
+test("QuotaSharePageClient no longer renders a per-page email-privacy toggle (#3822)", () => {
   assert.ok(
-    pageClientSrc.includes("<EmailPrivacyToggle"),
-    "Expected <EmailPrivacyToggle in QuotaSharePageClient JSX"
+    !pageClientSrc.includes("<EmailPrivacyToggle"),
+    "QuotaSharePageClient must not render its own EmailPrivacyToggle — the control is now global in Settings → Appearance"
   );
 });
 
@@ -75,7 +86,8 @@ test("QuotaSharePageClient masks connLabel output with emailsVisible gate", () =
   // connLabel must call maskEmailLikeValue and guard with emailsVisible
   assert.ok(
     pageClientSrc.includes("emailsVisible ? raw : maskEmailLikeValue(raw)") ||
-    pageClientSrc.includes("emailsVisible") && pageClientSrc.includes("maskEmailLikeValue(raw)"),
+      (pageClientSrc.includes("emailsVisible") &&
+        pageClientSrc.includes("maskEmailLikeValue(raw)")),
     "Expected connLabel to mask raw value when emailsVisible is false"
   );
 });
@@ -97,10 +109,7 @@ test("PoolCard imports maskEmailLikeValue", () => {
 });
 
 test("PoolCard consumes emailsVisible from store", () => {
-  assert.ok(
-    poolCardSrc.includes("emailsVisible"),
-    "Expected emailsVisible usage in PoolCard"
-  );
+  assert.ok(poolCardSrc.includes("emailsVisible"), "Expected emailsVisible usage in PoolCard");
 });
 
 test("PoolCard uses displayName instead of raw pool.name in header", () => {
@@ -163,10 +172,7 @@ test("PoolWizard imports maskEmailLikeValue", () => {
 });
 
 test("PoolWizard consumes emailsVisible from store", () => {
-  assert.ok(
-    poolWizardSrc.includes("emailsVisible"),
-    "Expected emailsVisible usage in PoolWizard"
-  );
+  assert.ok(poolWizardSrc.includes("emailsVisible"), "Expected emailsVisible usage in PoolWizard");
 });
 
 test("PoolWizard connLabel masks detail with emailsVisible gate", () => {
@@ -182,9 +188,8 @@ test("PoolWizard connLabel masks detail with emailsVisible gate", () => {
 
 // ── maskEmailLikeValue helper behaviour (regression) ─────────────────────────
 
-const { maskEmailLikeValue, pickDisplayValue } = await import(
-  "../../src/shared/utils/maskEmail.ts"
-);
+const { maskEmailLikeValue, pickDisplayValue } =
+  await import("../../src/shared/utils/maskEmail.ts");
 
 test("maskEmailLikeValue masks email embedded in a pool name", () => {
   const poolName = "codex / gael.martins@example.com";
@@ -205,9 +210,5 @@ test("pickDisplayValue respects emailsVisible toggle for quota labels", () => {
     maskEmailLikeValue(email),
     "when hidden: returns masked value"
   );
-  assert.equal(
-    pickDisplayValue([email], true, ""),
-    email,
-    "when visible: returns raw value"
-  );
+  assert.equal(pickDisplayValue([email], true, ""), email, "when visible: returns raw value");
 });

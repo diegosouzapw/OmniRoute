@@ -142,7 +142,7 @@ export async function runUpdateCommand(opts = {}) {
   }
 
   if (dryRun) {
-    console.log("\n  [DRY RUN] Would run: npm install -g omniroute@latest");
+    console.log("\n  [DRY RUN] Would run: npm install -g omniroute@latest --include=optional");
     if (!skipBackup) console.log("  [DRY RUN] Would create backup in ~/.omniroute/backups/");
     return 0;
   }
@@ -174,7 +174,9 @@ export async function runUpdateCommand(opts = {}) {
   printInfo("Updating OmniRoute...");
   try {
     const { execSync } = await import("child_process");
-    execSync("npm install -g omniroute@latest", { stdio: "inherit" });
+    // --include=optional keeps the optionalDependencies (better-sqlite3, keytar,
+    // tls-client, llmlingua SLM stack) on update so an omit=optional config can't drop them.
+    execSync("npm install -g omniroute@latest --include=optional", { stdio: "inherit" });
     printSuccess(`Updated to version ${latest}`);
     printInfo("Run `omniroute --version` to verify.");
     return 0;

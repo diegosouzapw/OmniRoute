@@ -23,6 +23,7 @@ import {
   setThinkingBudgetConfig,
   ThinkingMode,
 } from "../../open-sse/services/thinkingBudget.ts";
+import { runWithCapture } from "../../open-sse/utils/providerRequestLogging.ts";
 import { CODEX_CHAT_DEFAULT_INSTRUCTIONS } from "../../open-sse/config/codexInstructions.ts";
 
 type MockCodexWebSocket = {
@@ -795,7 +796,7 @@ test("CodexExecutor.transformRequest keeps GPT 5.3 Codex reasoning in Responses 
   assert.equal(sanitized.reasoning_effort, undefined);
 });
 
-test("CodexExecutor.transformRequest keeps GPT 5.4 Mini reasoning downgrade in Responses shape", () => {
+test("CodexExecutor.transformRequest passes GPT 5.4 Mini xhigh reasoning through unchanged in Responses shape (#3756)", () => {
   const executor = new CodexExecutor();
   const transformed = executor.transformRequest(
     "gpt-5.4-mini",
@@ -818,7 +819,10 @@ test("CodexExecutor.transformRequest keeps GPT 5.4 Mini reasoning downgrade in R
   const reasoning = getRecord(sanitized.reasoning);
 
   assert.equal(sanitized.model, "gpt-5.4-mini");
-  assert.equal(reasoning.effort, "high");
+  // #3756: xhigh now passes through by default. gpt-5.4-mini has no
+  // supportsXHighEffort:false flag (and ships a gpt-5.4-mini-xhigh catalog
+  // variant), so the effort is preserved instead of downgraded to "high".
+  assert.equal(reasoning.effort, "xhigh");
   assert.equal(reasoning.summary, "auto");
   assert.equal(sanitized.reasoning_effort, undefined);
 });
@@ -907,6 +911,62 @@ test("CodexExecutor.execute falls back to HTTP when websocket transport is unava
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("CodexExecutor.execute captures the exact websocket request body before send", async () => {
+  const executor = new CodexExecutor();
+  let sent: string | null = null;
+  let sendStarted = false;
+  let prepared: unknown = null;
+  let preparedBeforeSend = false;
+  const ws: MockCodexWebSocket = {
+    send(data) {
+      sendStarted = true;
+      sent = data;
+      queueMicrotask(() => {
+        ws.onmessage?.({
+          data: JSON.stringify({ type: "response.completed", response: { status: "completed" } }),
+        });
+      });
+    },
+    close() {},
+    onmessage: null,
+    onerror: null,
+    onclose: null,
+  };
+  __setCodexWebSocketTransportForTesting(async () => ws);
+
+  const requestCapture = {
+    capture(request) {
+      preparedBeforeSend = !sendStarted;
+      prepared = request.body;
+    },
+    body(fallback) {
+      return prepared ?? fallback;
+    },
+    latest() {
+      return null;
+    },
+  };
+  const result = await runWithCapture(requestCapture, () =>
+    executor.execute({
+      model: "gpt-5.5-xhigh",
+      body: { model: "gpt-5.5-xhigh", input: [{ role: "user", content: "hello" }] },
+      stream: true,
+      credentials: {
+        accessToken: "codex-token",
+        providerSpecificData: { codexTransport: "websocket" },
+      },
+    })
+  );
+  await result.response.text();
+
+  assert.ok(sent);
+  const sentBody = JSON.parse(sent);
+  assert.equal(preparedBeforeSend, true);
+  assert.deepEqual(prepared, sentBody);
+  assert.equal(sentBody.type, "response.create");
+  assert.equal(sentBody.model, "gpt-5.5");
 });
 
 test("CodexExecutor.execute adds CLI-like session identity headers without changing response flow", async () => {

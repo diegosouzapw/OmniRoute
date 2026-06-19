@@ -30,7 +30,7 @@ Common problems and solutions for OmniRoute.
 | "401 Unauthorized" | Your credentials are wrong | Check your API key or re-authenticate with OAuth |
 | "429 Too Many Requests" | Rate limited | Wait 1 minute, or connect more providers |
 
-**Still stuck?** See the [Quick Fixes](#quick-fixes) below, or ask on [Discord](https://discord.gg/hmexnhgE).
+**Still stuck?** See the [Quick Fixes](#quick-fixes) below, or ask on [Discord](https://discord.gg/EkzRkpzKYt).
 
 ---
 
@@ -258,6 +258,9 @@ curl http://localhost:20128/api/monitoring/health
 - Usage: SQLite tables in `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + optional `${DATA_DIR}/call_logs/`
 - Application logs: `<repo>/logs/...` (when `APP_LOG_TO_FILE=true`)
 - Call log artifacts: `${DATA_DIR}/call_logs/YYYY-MM-DD/...` when the call log pipeline is enabled
+
+The Request Logs page's **Clean history** action clears `call_logs`, legacy
+`request_detail_logs`, and the local `${DATA_DIR}/call_logs/` artifact directory.
 
 ---
 

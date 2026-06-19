@@ -4,6 +4,7 @@ const LANGUAGE_HINTS: Record<string, RegExp[]> = {
   de: [/\b(?:ich|datei|fehler|bitte|kannst|konfiguration|danke)\b/i],
   fr: [/\b(?:fichier|erreur|merci|peux|configuration|besoin)\b/i],
   ja: [/[\u3040-\u30ff]/],
+  id: [/\b(?:saya|kamu|anda|dengan|untuk|yang|tidak|bisa|terima\s+kasih|dari)\b/i],
 };
 
 export function detectCompressionLanguage(text: string): string {

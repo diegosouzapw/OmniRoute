@@ -20,7 +20,16 @@ export type CompressionMode =
 export type CavemanIntensity = "lite" | "full" | "ultra";
 export type RtkIntensity = "minimal" | "standard" | "aggressive";
 export type RtkRawOutputRetention = "never" | "failures" | "always";
-export type CompressionEngineId = "lite" | "caveman" | "aggressive" | "ultra" | "rtk";
+export type CompressionEngineId =
+  | "lite"
+  | "caveman"
+  | "aggressive"
+  | "ultra"
+  | "rtk"
+  | "session-dedup"
+  | "headroom"
+  | "ccr"
+  | "llmlingua";
 
 export interface CavemanRule {
   name: string;
@@ -66,6 +75,14 @@ export interface RtkConfig {
   trustProjectFilters: boolean;
   rawOutputRetention: RtkRawOutputRetention;
   rawOutputMaxBytes: number;
+  /** R5: enable grouping of near-equivalent consecutive lines. Default: false. */
+  enableGrouping?: boolean;
+  /** R5: minimum consecutive similar-line run to trigger grouping. Default: 3. */
+  groupingThreshold?: number;
+  /** R1/N3: remove comments from fenced code blocks when stripping code. Default: false. */
+  stripCodeComments?: boolean;
+  /** R1/N3: keep JSDoc/docstring block comments when removing comments. Default: true. */
+  preserveDocstrings?: boolean;
 }
 
 export interface CompressionLanguageConfig {
@@ -73,6 +90,16 @@ export interface CompressionLanguageConfig {
   defaultLanguage: string;
   autoDetect: boolean;
   enabledPacks: string[];
+}
+
+/**
+ * Provider-delegated compression (Anthropic "Context Editing", beta
+ * `context-management-2025-06-27`). Claude/Anthropic only — the provider clears
+ * old tool-use blocks server-side. This config only carries the on/off flag; the
+ * request-time header/body injection is a separate slice.
+ */
+export interface ContextEditingConfig {
+  enabled: boolean;
 }
 
 export interface CompressionPipelineStep {
@@ -98,6 +125,8 @@ export interface CompressionConfig {
   languageConfig?: CompressionLanguageConfig;
   aggressive?: AggressiveConfig;
   ultra?: UltraConfig;
+  /** Provider-delegated context editing (Claude/Anthropic only). */
+  contextEditing?: ContextEditingConfig;
 }
 
 export interface CompressionStats {
@@ -205,6 +234,10 @@ export const DEFAULT_RTK_CONFIG: RtkConfig = {
   trustProjectFilters: false,
   rawOutputRetention: "never",
   rawOutputMaxBytes: 1_048_576,
+  enableGrouping: false,
+  groupingThreshold: 3,
+  stripCodeComments: false,
+  preserveDocstrings: true,
 };
 
 export const DEFAULT_COMPRESSION_LANGUAGE_CONFIG: CompressionLanguageConfig = {
@@ -212,6 +245,10 @@ export const DEFAULT_COMPRESSION_LANGUAGE_CONFIG: CompressionLanguageConfig = {
   defaultLanguage: "en",
   autoDetect: true,
   enabledPacks: ["en"],
+};
+
+export const DEFAULT_CONTEXT_EDITING_CONFIG: ContextEditingConfig = {
+  enabled: false,
 };
 
 /** Aging thresholds for progressive message degradation (Phase 3) */
@@ -309,4 +346,7 @@ export const DEFAULT_ULTRA_CONFIG: UltraConfig = {
 };
 
 export type { McpAccessibilityConfig } from "./engines/mcpAccessibility/constants.ts";
-export { DEFAULT_MCP_ACCESSIBILITY_CONFIG } from "./engines/mcpAccessibility/constants.ts";
+export {
+  DEFAULT_MCP_ACCESSIBILITY_CONFIG,
+  clampMcpAccessibilityConfig,
+} from "./engines/mcpAccessibility/constants.ts";

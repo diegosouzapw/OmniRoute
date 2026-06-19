@@ -93,6 +93,10 @@ export interface ModelVisibilityToolbarProps {
   onVisibilityFilterChange?: (filter: "all" | "visible" | "hidden") => void;
   autoHideFailed?: boolean;
   onAutoHideFailedChange?: (v: boolean) => void;
+  freeFilter?: "all" | "free" | "paid";
+  onFreeFilterChange?: (filter: "all" | "free" | "paid") => void;
+  sortFreeFirst?: boolean;
+  onSortFreeFirstChange?: (v: boolean) => void;
 }
 
 export function ModelVisibilityToolbar({
@@ -112,6 +116,10 @@ export function ModelVisibilityToolbar({
   onVisibilityFilterChange,
   autoHideFailed,
   onAutoHideFailedChange,
+  freeFilter,
+  onFreeFilterChange,
+  sortFreeFirst,
+  onSortFreeFirstChange,
 }: ModelVisibilityToolbarProps) {
   return (
     <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -148,8 +156,51 @@ export function ModelVisibilityToolbar({
           ))}
         </div>
       )}
+      {freeFilter !== undefined && onFreeFilterChange && (
+        <div className="flex items-center gap-1 rounded-lg border border-border bg-sidebar/50 p-0.5">
+          {(["all", "free", "paid"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => onFreeFilterChange(f)}
+              className={`rounded px-2 py-1 text-xs ${
+                freeFilter === f
+                  ? "bg-primary text-primary-foreground"
+                  : "text-text-muted hover:text-text-main"
+              }`}
+            >
+              {f === "all"
+                ? providerText(t, "freeFilterAll", "All")
+                : f === "free"
+                  ? providerText(t, "freeFilterFreeOnly", "Free only")
+                  : providerText(t, "freeFilterPaidOnly", "Paid only")}
+            </button>
+          ))}
+        </div>
+      )}
+      {onSortFreeFirstChange && (
+        <button
+          onClick={() => onSortFreeFirstChange(!sortFreeFirst)}
+          aria-pressed={!!sortFreeFirst}
+          className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[12px] ${
+            sortFreeFirst
+              ? "border-primary bg-primary/10 text-primary"
+              : "border-border bg-transparent text-text-main"
+          }`}
+          title={providerText(t, "sortFreeFirst", "Free first")}
+        >
+          <span className="material-symbols-outlined text-[16px]">sort</span>
+          <span>{providerText(t, "sortFreeFirst", "Free first")}</span>
+        </button>
+      )}
       {onAutoHideFailedChange && (
-        <label className="flex items-center gap-1.5 text-xs text-text-muted">
+        <label
+          className="flex items-center gap-1.5 text-xs text-text-muted"
+          title={providerText(
+            t,
+            "autoHideFailedHint",
+            "When enabled, Test all hides non-transient failures from public catalogs such as /v1/models. Single-model tests never auto-hide."
+          )}
+        >
           <input
             type="checkbox"
             checked={autoHideFailed ?? false}

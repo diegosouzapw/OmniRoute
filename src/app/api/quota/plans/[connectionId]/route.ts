@@ -25,31 +25,12 @@ import {
   deleteProviderPlan,
 } from "@/lib/localDb";
 import { resolvePlan } from "@/lib/quota/planResolver";
+import { resolveConnectionProvider } from "@/lib/quota/connectionProvider";
 import { logAuditEvent, getAuditRequestContext } from "@/lib/compliance/index";
 
 export const dynamic = "force-dynamic";
 
 type RouteParams = { params: Promise<{ connectionId: string }> };
-
-/**
- * Attempt to look up the provider name for a connection.
- * Falls back to "unknown" if the DB lookup fails or returns nothing.
- */
-async function resolveProvider(connectionId: string): Promise<string> {
-  try {
-    // Lazy import — avoids circular deps and keeps module loadable without full DB
-    const { getProviderConnectionById } = await import("@/lib/localDb");
-    if (typeof getProviderConnectionById === "function") {
-      const conn = getProviderConnectionById(connectionId);
-      if (conn && typeof (conn as { provider?: string }).provider === "string") {
-        return (conn as { provider: string }).provider;
-      }
-    }
-  } catch {
-    // DB not available or export not present — fall through
-  }
-  return "unknown";
-}
 
 export async function GET(request: Request, { params }: RouteParams): Promise<Response> {
   const authError = await requireManagementAuth(request);
@@ -65,7 +46,7 @@ export async function GET(request: Request, { params }: RouteParams): Promise<Re
     }
 
     // Resolve via catalog (may return empty plan)
-    const provider = await resolveProvider(connectionId);
+    const provider = await resolveConnectionProvider(connectionId);
     const plan = resolvePlan(connectionId, provider);
     return NextResponse.json({ plan });
   } catch (err) {
@@ -87,7 +68,7 @@ export async function PUT(request: Request, { params }: RouteParams): Promise<Re
     }
 
     // Derive provider for the connection
-    const provider = await resolveProvider(connectionId);
+    const provider = await resolveConnectionProvider(connectionId);
 
     upsertProviderPlan(connectionId, provider, parsed.data.dimensions, "manual");
 
@@ -117,7 +98,7 @@ export async function DELETE(request: Request, { params }: RouteParams): Promise
     const { connectionId } = await params;
 
     const existing = getProviderPlan(connectionId);
-    const provider = existing?.provider ?? (await resolveProvider(connectionId));
+    const provider = existing?.provider ?? (await resolveConnectionProvider(connectionId));
 
     deleteProviderPlan(connectionId);
 

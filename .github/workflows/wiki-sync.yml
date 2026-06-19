@@ -1,0 +1,69 @@
+name: Wiki Sync
+
+# Keeps the GitHub wiki in sync with docs/ on every release that lands on main.
+# The wiki has no native generator and historically drifts (it sat at "212+ providers /
+# 14 strategies / 37 MCP tools" while code was at 226 / 15 / 87, and new docs like
+# SUPPLY_CHAIN never appeared). This runs scripts/docs/sync-wiki.mjs, which:
+#   - ADDS any docs/ page missing from the wiki (curated; internal reports excluded),
+#   - syncs the four cover-page counts on Home.md.
+# It does NOT overwrite existing wiki pages by default: several docs sources still carry
+# stale counts (e.g. ARCHITECTURE.md says "177 providers" while the wiki cover is 226),
+# so blind overwrite would regress the wiki. Full content parity (--update-existing) is
+# gated on regenerating those sources — see docs/ops/DOCUMENTATION_AUDIT_REPORT.md.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "README.md"
+      - "AGENTS.md"
+      - "src/shared/constants/routingStrategies.ts"
+      - "config/i18n.json"
+      - "open-sse/mcp-server/server.ts"
+      - "scripts/docs/sync-wiki.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wiki-sync
+  cancel-in-progress: false
+
+jobs:
+  sync-wiki:
+    name: Sync wiki with docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Clone wiki
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.wiki.git" wiki
+
+      - name: Sync wiki (add missing pages + cover counts)
+        run: node scripts/docs/sync-wiki.mjs --wiki-dir wiki
+
+      - name: Commit & push if changed
+        run: |
+          cd wiki
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "docs(wiki): auto-sync pages + cover counts with docs"
+            git push
+            echo "Wiki updated."
+          else
+            echo "Wiki already in sync — nothing to push."
+          fi

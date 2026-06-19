@@ -111,7 +111,7 @@ export default function CacheEntriesTab() {
         <div className="text-sm text-text-muted text-center py-8">{t("noEntries")}</div>
       ) : (
         <>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto bg-surface">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs text-text-muted border-b border-border/30">

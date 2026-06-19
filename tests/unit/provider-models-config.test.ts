@@ -12,6 +12,7 @@ import {
   isValidModel,
   supportsClaudeMaxEffort,
   supportsXHighEffort,
+  supportsXHighEffortForMaxNormalization,
 } from "../../open-sse/config/providerModels.ts";
 
 test("provider models helpers expose model lists and defaults", () => {
@@ -50,6 +51,25 @@ test("provider models helpers resolve provider IDs through aliases", () => {
 
   assert.deepEqual(getModelsByProviderId(firstProviderId), PROVIDER_MODELS[alias] || []);
   assert.deepEqual(getModelsByProviderId("provider-that-does-not-exist"), []);
+});
+
+test("getProviderModels returns models for both the alias and the raw provider id", () => {
+  // Pick a provider whose alias differs from its id (e.g. "github" → "gh").
+  const aliased = Object.entries(PROVIDER_ID_TO_ALIAS).find(([id, a]) => id !== a) as
+    | [string, string]
+    | undefined;
+  if (!aliased) return; // no aliased providers → trivially satisfied
+
+  const [rawId, alias] = aliased;
+  const byAlias = getProviderModels(alias);
+  const byRawId = getProviderModels(rawId);
+
+  assert.ok(byAlias.length > 0, `expected models under alias "${alias}"`);
+  assert.deepEqual(
+    byRawId,
+    byAlias,
+    `getProviderModels("${rawId}") should return the same models as getProviderModels("${alias}")`
+  );
 });
 
 test("Reka registry exposes preset models", () => {
@@ -106,7 +126,7 @@ test("Claude max effort support excludes Haiku family and non-Claude IDs", () =>
   assert.equal(supportsClaudeMaxEffort("claude-future-5-0"), true);
 });
 
-test("Claude xhigh effort support defaults on for new models and opts out legacy models", () => {
+test("xhigh effort support defaults to pass-through and opts out explicit false models", () => {
   const claudeModels = new Set(getModelsByProviderId("claude").map((model) => model.id));
 
   assert.ok(claudeModels.has("claude-opus-4-8"));
@@ -115,4 +135,62 @@ test("Claude xhigh effort support defaults on for new models and opts out legacy
   assert.equal(supportsXHighEffort("claude", "claude-opus-4-6"), false);
   assert.equal(supportsXHighEffort("claude", "claude-sonnet-4-6"), false);
   assert.equal(supportsXHighEffort("claude", "claude-future-5-0"), true);
+  assert.equal(supportsXHighEffort("anthropic-compatible-test", "claude-opus-4-6"), false);
+  assert.equal(supportsXHighEffort("anthropic-compatible-test", "claude-opus-4-7"), true);
+  assert.equal(supportsXHighEffort("anthropic-compatible-cc-test", "claude-opus-4-6"), false);
+  assert.equal(supportsXHighEffort("anthropic-compatible-cc-test", "claude-opus-4-7"), true);
+  assert.equal(supportsXHighEffort("openrouter", "deepseek/deepseek-v4-pro"), true);
+  assert.equal(supportsXHighEffort("openrouter", "anthropic/claude-opus-4.6"), false);
+  assert.equal(supportsXHighEffort("openrouter", "anthropic/claude-opus-4.7"), true);
+  assert.equal(supportsXHighEffort("openrouter", "anthropic/claude-opus-4.5"), false);
+  assert.equal(supportsXHighEffort("bedrock", "anthropic.claude-opus-4-6"), false);
+  assert.equal(supportsXHighEffort("bedrock", "anthropic.claude-opus-4-7"), true);
+  assert.equal(supportsXHighEffort("github", "claude-opus-4.6"), false);
+  assert.equal(supportsXHighEffort("github", "claude-opus-4.7"), true);
+  assert.equal(supportsXHighEffort("unknown-provider", "vendor/claude-opus-4.6"), false);
+  assert.equal(
+    supportsXHighEffort("openrouter", "anthropic/claude-opus-4.6-thinking-xhigh"),
+    false
+  );
+  assert.equal(supportsXHighEffort("deepseek", "deepseek-v4-pro"), true);
+});
+
+test("max normalization follows xhigh opt-out behavior", () => {
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("openai-compatible-free1", "gemini-3.1-pro-preview"),
+    true
+  );
+  assert.equal(supportsXHighEffortForMaxNormalization("xiaomi-mimo", "mimo-v2.5-pro"), true);
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("anthropic-compatible-cc-test", "claude-opus-4-6"),
+    false
+  );
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("anthropic-compatible-cc-test", "claude-opus-4-7"),
+    true
+  );
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("anthropic-compatible-test", "claude-opus-4-6"),
+    false
+  );
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("anthropic-compatible-test", "claude-opus-4-7"),
+    true
+  );
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("openrouter", "deepseek/deepseek-v4-pro"),
+    true
+  );
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("openrouter", "anthropic/claude-opus-4.6"),
+    false
+  );
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("openrouter", "anthropic/claude-opus-4.7"),
+    true
+  );
+  assert.equal(
+    supportsXHighEffortForMaxNormalization("bedrock", "anthropic.claude-opus-4-6"),
+    false
+  );
 });

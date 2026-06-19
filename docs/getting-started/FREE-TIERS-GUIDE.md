@@ -227,7 +227,7 @@ Let's calculate how much free AI you can get:
 | NVIDIA NIM | ~40 RPM | ~1.7M requests |
 | Cerebras | 1M tokens | 30M tokens |
 
-**Total**: ~1.9B+ free tokens/month (with compression: ~9.5B+ effective tokens)
+**Total**: ~1.6B documented free tokens/month — up to ~2.1B in your first month with signup credits (with compression: ~7.5B+ effective tokens)
 
 ---
 

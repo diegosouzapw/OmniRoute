@@ -97,8 +97,20 @@ test("messages/count_tokens falls back to estimate when model is missing", async
 
   assert.equal(response.status, 200);
   const body = (await response.json()) as any;
-  assert.equal(body.input_tokens, 3);
-  assert.equal(body.source, "estimated");
+  assert.equal(body.input_tokens, 4); // tiktoken: "abcd"=1 + "12345678"=3
+  assert.equal(body.source, "local");
+});
+
+test("count_tokens fallback uses exact tiktoken count with source=local", async () => {
+  const req = new Request("http://localhost/v1/messages/count_tokens", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messages: [{ role: "user", content: "hello world" }] }),
+  });
+  const res = await POST(req);
+  const json = (await res.json()) as any;
+  assert.equal(json.source, "local");
+  assert.equal(json.input_tokens, 2); // exact cl100k_base count, not Math.ceil(11/4)=3
 });
 
 test("messages/count_tokens falls back to estimate when real upstream count fails", async () => {
@@ -121,8 +133,8 @@ test("messages/count_tokens falls back to estimate when real upstream count fail
 
     assert.equal(response.status, 200);
     const body = (await response.json()) as any;
-    assert.equal(body.input_tokens, 1);
-    assert.equal(body.source, "estimated");
+    assert.equal(body.input_tokens, 1); // tiktoken: "abcd"=1
+    assert.equal(body.source, "local");
   } finally {
     globalThis.fetch = originalFetch;
   }

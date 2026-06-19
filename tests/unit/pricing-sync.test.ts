@@ -59,7 +59,10 @@ describe("transformToOmniRoute", () => {
     assert.strictEqual(result["gemini-cli"]["gemini-2.5-flash"].input, 0.3);
   });
 
-  test("skips non-chat models (embedding, image, audio)", () => {
+  test("ingests non-chat models (embedding token + image per-image)", () => {
+    // Phase 2 (cost-telemetry parity): non-chat modes are no longer skipped.
+    // Token-priced modes (embedding) are scaled to $/1M like chat; non-token
+    // modes (image) carry their per-image cost through verbatim as absolute USD.
     const raw = {
       "openai/text-embedding-3-small": {
         input_cost_per_token: 0.00000002,
@@ -67,19 +70,43 @@ describe("transformToOmniRoute", () => {
         litellm_provider: "openai",
         mode: "embedding",
       },
-      "openai/gpt-image-2": {
+      "openai/dall-e-3": {
         input_cost_per_token: 0,
         output_cost_per_token: 0,
+        litellm_provider: "openai",
+        mode: "image_generation",
+        output_cost_per_image: 0.04,
+      },
+    };
+
+    const result = transformToOmniRoute(raw);
+
+    const embedding = result.openai?.["text-embedding-3-small"];
+    assert.ok(embedding, "Should ingest token-priced embedding model");
+    assert.strictEqual(embedding.input, 0.02);
+    assert.strictEqual(embedding.mode, "embedding");
+
+    const image = result.openai?.["dall-e-3"];
+    assert.ok(image, "Should ingest image model with per-image cost");
+    assert.strictEqual(image.output_cost_per_image, 0.04);
+    assert.strictEqual(image.mode, "image_generation");
+  });
+
+  test("skips models with no token AND no non-token pricing", () => {
+    const raw = {
+      "openai/metadata-only": {
         litellm_provider: "openai",
         mode: "image_generation",
       },
     };
 
     const result = transformToOmniRoute(raw);
-
-    // openai key should not exist since all models were filtered
     const openaiModels = result.openai || {};
-    assert.strictEqual(Object.keys(openaiModels).length, 0, "Should skip non-chat models");
+    assert.strictEqual(
+      Object.keys(openaiModels).length,
+      0,
+      "Should skip models carrying no pricing of any kind"
+    );
   });
 
   test("includes cache pricing when available", () => {

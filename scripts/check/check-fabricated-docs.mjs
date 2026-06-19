@@ -60,6 +60,17 @@ const KNOWN_HOOKS = new Set([
   "onActivate",
   "onDeactivate",
   "onUninstall",
+  // Real callbacks wired in code that docs reference (verified present in src/):
+  // onChunk/onFirstChunk — streaming callbacks (src/shared/utils/streamTracker.ts,
+  //   playground ChatTab.tsx); onServerStatus/onPortChanged/onUpdateStatus — Electron
+  //   IPC callbacks (src/shared/hooks/useElectron.ts, HomePageClient.tsx);
+  //   onEmpty — model-metadata registry callback (src/lib/modelMetadataRegistry.ts).
+  "onChunk",
+  "onFirstChunk",
+  "onServerStatus",
+  "onPortChanged",
+  "onUpdateStatus",
+  "onEmpty",
 ]);
 
 // Common false-positives the heuristic would otherwise flag. Add to this
@@ -85,6 +96,21 @@ const ENV_VAR_ALLOWLIST = new Set([
   "OMNIROUTE_URL", // used by ad-hoc tooling, validated elsewhere
   "OMNIROUTE_KEY", // ditto
   "OPENCODE_API_KEY", // ditto
+  // ── External-tool / spawn-injected / ops env vars ────────────────────────
+  // Real environment variables, but they belong to an UPSTREAM CLI/tool, a
+  // docker-compose/electron-build pipeline, or are injected into a spawned
+  // subprocess — never read via `process.env.X` in OmniRoute's own source, so the
+  // code-read index can't see them. Documented (correctly) in the relevant guides.
+  "COPILOT_PROVIDER_BASE_URL", // GitHub Copilot CLI ≥v1.0.19's own env var (AGENTBRIDGE.md)
+  "OPENAI_BASE_URL", // env var OmniRoute passes to downstream CLIs (AGENT_PROTOCOLS_GUIDE.md)
+  "NINEROUTER_API_KEY", // injected into the 9router subprocess at spawn (EMBEDDED-SERVICES.md)
+  "CLAUDE_CODE_MAX_OUTPUT_TOKENS", // Claude Code CLI's own env var (CODEX-CLI-CONFIGURATION.md)
+  "CODEX_HOME", // Codex CLI's own config-home env var (CODEX-CLI-CONFIGURATION.md)
+  "REDIS_PORT", // docker-compose host-port override (DOCKER_GUIDE.md)
+  "AUTO_UPDATE_HOST_REPO_DIR", // docker-compose self-update mount (DOCKER_GUIDE.md)
+  "LINUX_GPG_KEY", // electron AppImage signing key, CI/build only (ELECTRON_GUIDE.md)
+  "BRANCH_LOCK_TOKEN", // release branch-protection ops token (QUALITY_GATE_PLAYBOOK.md)
+  "NEXT_LOCALE", // next-intl locale cookie name (I18N.md)
 ]);
 
 // Common pluralized / column-header all-caps that aren't env vars
@@ -270,6 +296,23 @@ const ENV_VAR_DENYLIST = new Set([
   "PROVIDER_HEALTH_AUTOPILOT_RECOVERY_RETRY_BACKOFF_FLOOR",
   "PROVIDER_HEALTH_AUTOPILOT_RECOVERY_RETRY_BACKOFF_CEILING",
   "PROVIDER_HEALTH_AUTOPILOT_RECOVERY_RETRY_BACKOFF_CAP",
+  // Gate allowlist constant names (JS identifiers, not env vars) — documented in
+  // docs/architecture/QUALITY_GATES.md and docs/research/DISCOVERY_TOOL_DESIGN.md
+  "KNOWN_STALE_DOC_REFS", // export const in check-docs-symbols.mjs
+  "KNOWN_MISSING", // export const in check-fetch-targets.mjs
+  "KNOWN_RAW_SQL", // export const in check-db-rules.mjs
+  // ── Error / Node codes documented in prose (string-literal codes, not env vars) ──
+  "URL_GUARD_BLOCKED", // HTTP 422 guard-violation code (ARCHITECTURE.md)
+  "AUTHZ_NOT_INITIALIZED", // AuthzAssertionError code (AUTHZ_GUIDE.md)
+  "MODULE_NOT_FOUND", // Node runtime error code watched by service supervisor (ELECTRON_GUIDE.md)
+  "ERR_DLOPEN_FAILED", // Node native-module load error code (ELECTRON_GUIDE.md)
+  // ── Code-symbol / naming-convention examples documented in prose ─────────────
+  "UPPER_SNAKE", // the literal naming-convention token in the style guide (CODEBASE_DOCUMENTATION.md)
+  "DEFAULT_TIMEOUT", // example constant name in the UPPER_SNAKE convention row (AGENTS.md)
+  "SIDEBAR_DEFINITIONS", // code constant referenced in prose (MONITORING_SECTIONS.md)
+  "LOCAL_ONLY", // routeGuard classification label (AGENTBRIDGE.md)
+  "SPAWN_CAPABLE", // routeGuard classification label (AGENTBRIDGE.md)
+  "ZEROGRAVITY_SENSITIVE_WORDS", // cross-project constant named in a comparison (STEALTH_GUIDE.md)
 ]);
 
 /** Endpoints that don't follow the standard route.ts pattern. */
@@ -301,6 +344,10 @@ const ENDPOINT_ALLOWLIST = new Set([
   "/api/mcp/stream", // Streamable HTTP MCP transport
   "/api/mcp/sse", // SSE MCP transport
   "/api/health",
+  // Upstream/external provider endpoints documented in provider guides — these are
+  // paths on the UPSTREAM service (Claude.ai web, Blackbox), not OmniRoute routes.
+  "/api/organizations/{orgId}/chat_conversations/{convId}/completion", // claude-web upstream
+  "/api/chat", // Blackbox Web upstream (validated-token target)
 ]);
 
 /** Doc files to skip (auto-generated, vendored, or third-party). */
@@ -308,12 +355,30 @@ const SKIP_DOC_FILES = new Set([
   "docs/reference/PROVIDER_REFERENCE.md", // auto-generated from providers.ts
   "docs/reference/openapi.yaml",
   "docs/i18n", // translations — separate workflow
+  // Point-in-time documentation audit (v3.8.24): intentionally references drift,
+  // counts, and not-yet-existing files as part of documenting them — not living docs.
+  "docs/ops/DOCUMENTATION_AUDIT_REPORT.md",
+  // Design / research / plan docs: by definition describe not-yet-built files and
+  // proposed (not-yet-shipped) endpoints (each carries a `Status: Design`/`Active
+  // research`/`Plano` header). Same rationale as the audit report above — these are
+  // forward-looking specs, not living API docs, so their forward references are
+  // expected, not fabrications.
+  "docs/research", // DISCOVERY_TOOL_DESIGN.md, UNLIMITED_LLM_ACCESS.md, …
+  "docs/superpowers/plans", // dated implementation plans (files described before they exist)
+  // Release notes are historical, point-in-time records: they intentionally describe
+  // modules/paths as they were at that release (e.g. a module later moved or renamed).
+  // Rewriting them to today's layout would falsify history — out of scope for a
+  // living-docs accuracy gate.
+  "docs/releases",
+  // Forward-looking coverage plan: a `- [ ]` checklist of test targets and helper
+  // components to be created. Same rationale as the design/plan docs above.
+  "docs/ops/COVERAGE_PLAN.md",
 ]);
 
 // ── File discovery ─────────────────────────────────────────────────────────
 
-function walkMarkdown(dir, out = []) {
-  const abs = path.join(ROOT, dir);
+function walkMarkdown(dir, out = [], root = ROOT) {
+  const abs = path.join(root, dir);
   if (!fs.existsSync(abs)) return out;
   const stat = fs.statSync(abs);
   if (stat.isFile()) {
@@ -324,17 +389,17 @@ function walkMarkdown(dir, out = []) {
     if (name === "node_modules" || name.startsWith(".")) continue;
     const childAbs = path.join(abs, name);
     const s = fs.statSync(childAbs);
-    if (s.isDirectory()) walkMarkdown(path.relative(ROOT, childAbs), out);
+    if (s.isDirectory()) walkMarkdown(path.relative(root, childAbs), out, root);
     else if (childAbs.endsWith(".md") || childAbs.endsWith(".mdx")) out.push(childAbs);
   }
   return out;
 }
 
-function allScanFiles() {
+function allScanFiles(root = ROOT) {
   const files = [];
-  for (const p of SCAN_PATHS) walkMarkdown(p, files);
+  for (const p of SCAN_PATHS) walkMarkdown(p, files, root);
   return files.filter((f) => {
-    const rel = path.relative(ROOT, f);
+    const rel = path.relative(root, f);
     for (const skip of SKIP_DOC_FILES) {
       if (rel === skip || rel.startsWith(skip + path.sep)) return false;
     }
@@ -344,22 +409,39 @@ function allScanFiles() {
 
 // ── Codebase index ─────────────────────────────────────────────────────────
 
-function buildCodebaseIndex() {
+// Env var helper wrappers used across OmniRoute — envInt(NAME, 5), envBool(NAME),
+// envStr(NAME), … — read the named var from the environment, so a string-literal
+// argument is a genuine env-var read, equivalent to a direct process.env member read.
+// (Comment avoids a literal `process.env.<NAME>` token so the sibling env-doc-sync
+// grep does not mistake this example for a real env-var read.)
+const ENV_HELPER_CALL =
+  /\benv(?:Int|Bool|Str|Num|Float|String|Flag|Raw|List|Json)?\(\s*["'`]([A-Z][A-Z0-9_]+)["'`]/g;
+
+export function buildCodebaseIndex(root = ROOT) {
   // Set of /api/... paths that have a route.ts handler.
   const apiRoutes = new Set();
+  // Set of /api/... prefixes that are an ancestor of (or equal to) a real route.ts.
+  // A documented prefix like /api/cloud/ is valid even without a route.ts at that
+  // exact level, as long as some src/app/api/cloud/**/route.ts exists.
+  const apiPrefixes = new Set();
   // Map of /api/... → methods implemented in route.ts
   const apiMethods = new Map();
 
+  function dynToBrace(seg) {
+    // [id] → {id}, [...path] → {path} — match the doc convention for dynamic segments.
+    return seg.replace(/^\[\.\.\.(.+)\]$/, "{$1}").replace(/^\[(.+)\]$/, "{$1}");
+  }
+
   function walkApiRoutes(dir) {
-    const abs = path.join(ROOT, dir);
+    const abs = path.join(root, dir);
     if (!fs.existsSync(abs)) return;
     for (const name of fs.readdirSync(abs)) {
       const child = path.join(abs, name);
       const s = fs.statSync(child);
-      if (s.isDirectory()) walkApiRoutes(path.relative(ROOT, child));
+      if (s.isDirectory()) walkApiRoutes(path.relative(root, child));
       else if (name === "route.ts" || name === "route.mjs") {
         // Build the route path from the directory hierarchy
-        const rel = path.relative(ROOT, child).replace(/\\/g, "/");
+        const rel = path.relative(root, child).replace(/\\/g, "/");
         const parts = rel.split("/");
         // drop "src/app/api" and "route.ts"
         parts.shift(); // src
@@ -369,6 +451,15 @@ function buildCodebaseIndex() {
         const routePath = "/api/" + parts.join("/");
         apiRoutes.add(routePath);
         apiRoutes.add(routePath + "/"); // trailing slash variant
+
+        // Register every ancestor prefix (and its {brace} dynamic-segment variant)
+        // so documented prefixes-with-subroutes resolve.
+        for (let i = 1; i <= parts.length; i++) {
+          const prefix = "/api/" + parts.slice(0, i).join("/");
+          const bracePrefix = "/api/" + parts.slice(0, i).map(dynToBrace).join("/");
+          apiPrefixes.add(prefix);
+          apiPrefixes.add(bracePrefix);
+        }
 
         // Read the file to find exported HTTP methods
         try {
@@ -389,29 +480,47 @@ function buildCodebaseIndex() {
   }
   walkApiRoutes("src/app/api");
 
-  // Set of env var names that are actually read in code.
+  // Set of env var names that are actually read in code, and the set of
+  // ALL_CAPS code identifiers (export const / enum / object-literal keys). A
+  // documented `UPPER_SNAKE` that resolves to a code identifier (e.g.
+  // LOCAL_ONLY_API_PREFIXES, HALF_OPEN) is NOT a fabricated env var.
   const envVars = new Set();
+  const codeIdentifiers = new Set();
   function walkForEnv(dir) {
-    const abs = path.join(ROOT, dir);
+    const abs = path.join(root, dir);
     if (!fs.existsSync(abs)) return;
     const skipDirs = new Set(["node_modules", ".next", "dist", ".build", "coverage"]);
     for (const name of fs.readdirSync(abs)) {
       if (skipDirs.has(name)) continue;
       const child = path.join(abs, name);
       const s = fs.statSync(child);
-      if (s.isDirectory()) walkForEnv(path.relative(ROOT, child));
+      if (s.isDirectory()) walkForEnv(path.relative(root, child));
       else if (/\.(ts|tsx|js|mjs|cjs)$/.test(name)) {
         try {
           const content = fs.readFileSync(child, "utf8");
           // process.env.X
-          const m1 = content.matchAll(/process\.env\.([A-Z][A-Z0-9_]+)/g);
-          for (const m of m1) envVars.add(m[1]);
+          for (const m of content.matchAll(/process\.env\.([A-Z][A-Z0-9_]+)/g)) envVars.add(m[1]);
+          // process.env["X"] / process.env['X'] (bracket notation)
+          for (const m of content.matchAll(/process\.env\[\s*["'`]([A-Z][A-Z0-9_]+)["'`]\s*\]/g))
+            envVars.add(m[1]);
           // env.X (destructured in some handlers)
-          const m2 = content.matchAll(/\benv\.([A-Z][A-Z0-9_]+)\b/g);
-          for (const m of m2) envVars.add(m[1]);
+          for (const m of content.matchAll(/\benv\.([A-Z][A-Z0-9_]+)\b/g)) envVars.add(m[1]);
+          // env["X"] (bracket on a destructured env binding)
+          for (const m of content.matchAll(/\benv\[\s*["'`]([A-Z][A-Z0-9_]+)["'`]\s*\]/g))
+            envVars.add(m[1]);
+          // envInt("X", …) / envBool("X") / envStr("X") … helper wrappers
+          for (const m of content.matchAll(ENV_HELPER_CALL)) envVars.add(m[1]);
           // import.meta.env.X (Vite-style, unlikely here but cheap)
-          const m3 = content.matchAll(/import\.meta\.env\.([A-Z][A-Z0-9_]+)/g);
-          for (const m of m3) envVars.add(m[1]);
+          for (const m of content.matchAll(/import\.meta\.env\.([A-Z][A-Z0-9_]+)/g))
+            envVars.add(m[1]);
+          // export const / const / let / var / enum NAME — JS identifiers, not env vars.
+          for (const m of content.matchAll(
+            /\b(?:export\s+)?(?:const|let|var|enum)\s+([A-Z][A-Z0-9_]{2,})\b/g
+          ))
+            codeIdentifiers.add(m[1]);
+          // Object-literal / enum members on their own line: `HALF_OPEN: "HALF_OPEN"`.
+          for (const m of content.matchAll(/^[ \t]*([A-Z][A-Z0-9_]{2,})[ \t]*[:=]/gm))
+            codeIdentifiers.add(m[1]);
         } catch {
           /* ignore */
         }
@@ -422,21 +531,49 @@ function buildCodebaseIndex() {
   walkForEnv("open-sse");
   walkForEnv("bin");
   walkForEnv("scripts");
+  // Env vars that are only read by the test harness (e.g. RUN_CHAOS_INT) are still
+  // real env vars and must not be flagged as fabricated.
+  walkForEnv("tests");
+
+  // Env contract maintained by the sibling gate (check-env-doc-sync.mjs): a var
+  // listed in .env.example or docs/reference/ENVIRONMENT.md is, by definition, a
+  // documented OmniRoute env var (including external-CLI / docker / electron vars
+  // that are not read via process.env in our own source).
+  function readEnvContract() {
+    try {
+      const t = fs.readFileSync(path.join(root, ".env.example"), "utf8");
+      for (const line of t.split("\n")) {
+        const m = line.match(/^#?\s*([A-Z][A-Z0-9_]+)\s*=/);
+        if (m) envVars.add(m[1]);
+      }
+    } catch {
+      /* ignore */
+    }
+    try {
+      const t = fs.readFileSync(path.join(root, "docs", "reference", "ENVIRONMENT.md"), "utf8");
+      for (const m of t.matchAll(/`([A-Z][A-Z0-9_]{2,})`/g)) envVars.add(m[1]);
+    } catch {
+      /* ignore */
+    }
+  }
+  readEnvContract();
 
   // Set of `omniroute <subcommand>` strings that exist in bin/
   const cliCommands = new Set();
   function walkCli(dir) {
-    const abs = path.join(ROOT, dir);
+    const abs = path.join(root, dir);
     if (!fs.existsSync(abs)) return;
     for (const name of fs.readdirSync(abs)) {
       const child = path.join(abs, name);
       const s = fs.statSync(child);
-      if (s.isDirectory()) walkCli(path.relative(ROOT, child));
+      if (s.isDirectory()) walkCli(path.relative(root, child));
       else if (/\.(mjs|js|ts)$/.test(name)) {
         try {
           const content = fs.readFileSync(child, "utf8");
-          // Programmatic API: `command('foo', ...)`, `.command('bar')`
-          const m1 = content.matchAll(/\.command\(\s*['"`]([a-z][a-z0-9-]+)['"`]/g);
+          // Programmatic API: `command('foo', ...)`, `.command('bar')`, and
+          // arg-bearing forms `.command('connect <host>')` / `.command('chat [msg]')`
+          // — capture the leading subcommand token regardless of trailing args.
+          const m1 = content.matchAll(/\.command\(\s*['"`]([a-z][a-z0-9-]+)/g);
           for (const m of m1) cliCommands.add(m[1]);
           // Subcommand names: `${name}Cmd`, `name = "foo"`, etc.
           const m2 = content.matchAll(/name:\s*['"`]([a-z][a-z0-9-]+)['"`]/g);
@@ -452,7 +589,7 @@ function buildCodebaseIndex() {
   }
   walkCli("bin");
 
-  return { apiRoutes, apiMethods, envVars, cliCommands };
+  return { apiRoutes, apiPrefixes, apiMethods, envVars, codeIdentifiers, cliCommands };
 }
 
 // ── Doc scanning ───────────────────────────────────────────────────────────
@@ -482,18 +619,44 @@ function lineOf(text, idx) {
   return line;
 }
 
-function scanDocFile(absPath, index) {
-  const rel = path.relative(ROOT, absPath);
+export function scanDocFile(absPath, index, root = ROOT) {
+  const rel = path.relative(root, absPath);
   const text = fs.readFileSync(absPath, "utf8");
   const textNoCode = stripCodeBlocksAndFences(text);
   const findings = [];
 
   // 1) API endpoints
   for (const m of textNoCode.matchAll(COARSE_PATTERNS.apiPath)) {
-    const p = m[0].replace(/[\[\]\{\}]/g, ""); // strip wildcards for lookup
-    const candidate = p.replace(/\/$/, "");
-    if (ENDPOINT_ALLOWLIST.has(candidate) || ENDPOINT_ALLOWLIST.has(candidate + "/")) continue;
-    if (index.apiRoutes.has(candidate) || index.apiRoutes.has(candidate + "/")) continue;
+    // Normalize wildcard segments to {brace} form so [id] / [...path] / {id} all
+    // compare equally against the indexed routes/prefixes.
+    const normalized = m[0].replace(/\[\.\.\.(.+?)\]/g, "{$1}").replace(/\[(.+?)\]/g, "{$1}");
+    const candidate = normalized.replace(/\/$/, "");
+    const stripped = m[0].replace(/[\[\]\{\}]/g, "").replace(/\/$/, ""); // legacy lookup form
+    if (
+      ENDPOINT_ALLOWLIST.has(candidate) ||
+      ENDPOINT_ALLOWLIST.has(candidate + "/") ||
+      ENDPOINT_ALLOWLIST.has(stripped) ||
+      ENDPOINT_ALLOWLIST.has(stripped + "/")
+    )
+      continue;
+    if (
+      index.apiRoutes.has(stripped) ||
+      index.apiRoutes.has(stripped + "/") ||
+      index.apiRoutes.has(candidate) ||
+      index.apiRoutes.has(candidate + "/")
+    )
+      continue;
+    // Prefix-with-subroutes: a documented prefix like /api/cloud/ or /api/services/{name}/
+    // is valid when some src/app/api/<prefix>/**/route.ts exists. Accept when the
+    // documented path is (or is an ancestor of) a real route prefix, or vice-versa.
+    let isPrefix = false;
+    for (const pre of index.apiPrefixes) {
+      if (pre === candidate || pre.startsWith(candidate + "/") || candidate.startsWith(pre + "/")) {
+        isPrefix = true;
+        break;
+      }
+    }
+    if (isPrefix) continue;
     // Allow docs that describe intended-but-not-yet-shipped routes by skipping lines that say "planned" / "TBD" / "future"
     const ln = lineOf(text, m.index);
     const lineText = text.split("\n")[ln - 1] || "";
@@ -517,11 +680,30 @@ function scanDocFile(absPath, index) {
     if (ENV_VAR_ALLOWLIST.has(name)) continue;
     if (!/_/.test(name)) continue; // real env vars have an underscore
     if (index.envVars.has(name)) continue;
+    // Documented ALL_CAPS that resolves to a JS identifier (export const / enum /
+    // object-literal key) is a code symbol, not a fabricated env var.
+    // E.g. LOCAL_ONLY_API_PREFIXES, HALF_OPEN, A2A_SKILL_HANDLERS, MCP_SCOPE_PRESETS.
+    if (index.codeIdentifiers.has(name)) continue;
     if (/^X-[A-Z]/.test(name)) continue;
     if (ENV_VAR_DENYLIST.has(name)) continue;
     const ln = lineOf(text, m.index);
-    const lineText = text.split("\n")[ln - 1] || "";
+    // Use the line as seen in the stripped text (where m.index is valid) for context
+    // checks — fenced-code removal shifts offsets, so text.split()[ln-1] can be wrong.
+    const lineStart = textNoCode.lastIndexOf("\n", m.index) + 1;
+    let lineEnd = textNoCode.indexOf("\n", m.index);
+    if (lineEnd === -1) lineEnd = textNoCode.length;
+    const lineText = textNoCode.slice(lineStart, lineEnd);
     if (/example|placeholder|todo|tbd|\.\.\./i.test(lineText)) continue;
+    // A doc that explicitly states a var does NOT exist / is not implemented is
+    // documenting its absence, not fabricating it. Examples:
+    //   "`MEMORY_RRF_VECTOR_WEIGHT` … do not exist"
+    //   "a `ZED_CONFIG_PATH` environment variable override is not yet implemented"
+    if (
+      /\b(?:do(?:es)?\s+not\s+exist|no\s+such|not\s+a\s+real|isn't\s+a\s+real|never\s+(?:read|exists?)|not\s+(?:yet\s+)?(?:implemented|supported))\b/i.test(
+        lineText
+      )
+    )
+      continue;
     findings.push({
       kind: "env-var",
       value: name,
@@ -574,10 +756,20 @@ function scanDocFile(absPath, index) {
   // 5) File references
   for (const m of textNoCode.matchAll(COARSE_PATTERNS.fileRef)) {
     const ref = m[1].replace(/\\/g, "/");
-    const abs = path.join(ROOT, ref);
+    const abs = path.join(root, ref);
     if (fs.existsSync(abs)) continue;
     // Allow README/AGENTS to mention example files explicitly in a non-verified way
     if (/\{\{|\.\.\./.test(ref)) continue; // templated / placeholder
+    // Tutorial placeholders in the "how to add a …" scenarios are intentional
+    // stand-ins, not real files: src/app/api/your-route/route.ts,
+    // src/lib/db/yourModule.ts, src/lib/guardrails/myGuardrail.ts, etc.
+    if (/(?:^|\/)(?:your-|your[A-Z]|my[A-Z])/.test(ref)) continue;
+    // Skip matches that are only the tail of a longer path, not a repo-root ref:
+    // the fileRef regex anchors on the `src`/`open-sse`/… token, so a leading `/`
+    // means the real reference is `<something>/src/...` — either a relative example
+    // path (`./src/index.ts`, a PII-pattern sample) or a workspace-package path
+    // (`@omniroute/opencode-provider/src/index.ts`). Neither resolves from repo root.
+    if (m.index > 0 && textNoCode[m.index - 1] === "/") continue;
     const ln = lineOf(text, m.index);
     findings.push({
       kind: "file-ref",
@@ -593,12 +785,15 @@ function scanDocFile(absPath, index) {
 // ── Main ───────────────────────────────────────────────────────────────────
 
 export function runFabricatedDocsCheck(opts = {}) {
-  const index = buildCodebaseIndex();
-  const files = allScanFiles();
+  // `root` lets tests run the full pipeline against a fixture tree (with its own
+  // docs/, src/, .env.example) instead of the live repo.
+  const root = opts.root ?? ROOT;
+  const index = opts.index ?? buildCodebaseIndex(root);
+  const files = allScanFiles(root);
 
   const allFindings = [];
   for (const f of files) {
-    const result = scanDocFile(f, index);
+    const result = scanDocFile(f, index, root);
     if (result.findings.length > 0) {
       allFindings.push(result);
     }
@@ -691,6 +886,10 @@ function main() {
 
   console.log(formatHumanReport(result));
   console.log();
+  if (totalFindings === 0) {
+    // Clean run — pass regardless of mode.
+    process.exit(0);
+  }
   if (STRICT) {
     console.error(`✗ ${totalFindings} claim(s) drift from source. Failing (--strict).`);
     process.exit(1);

@@ -5,10 +5,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Card from "@/shared/components/Card";
 import ProviderIcon from "@/shared/components/ProviderIcon";
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
+import ModelCooldownsCard from "./components/ModelCooldownsCard";
 
 type KnownBreakerState = "CLOSED" | "OPEN" | "HALF_OPEN" | "DEGRADED";
 type BreakerState = KnownBreakerState | (string & {});
@@ -614,6 +611,8 @@ export default function RuntimePageClient() {
           active={feedFilter === "lockouts"}
         />
       </div>
+
+      <ModelCooldownsCard />
 
       {/* Row 2 — Resilience layers (left, 2/3) + Live Feed (right, 1/3) */}
       <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-3">

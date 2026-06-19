@@ -269,12 +269,27 @@ function obfuscateWord(word: string): string {
  * list instead of the module-level singleton, so concurrent requests with
  * different op configs do not race.
  */
+// Per-word regex cache: obfuscateWithList runs over the whole request body on every
+// request when obfuscation is enabled, recompiling one RegExp per word each time. The
+// word list is stable per op config, so memoize. Bounded by distinct configured words
+// (with a defensive cap). Global regexes are safe to reuse: String.replace resets lastIndex.
+const _obfuscationRegexCache = new Map<string, RegExp>();
+function getObfuscationRegex(word: string): RegExp {
+  let regex = _obfuscationRegexCache.get(word);
+  if (!regex) {
+    if (_obfuscationRegexCache.size > 2000) _obfuscationRegexCache.clear();
+    regex = new RegExp(escapeRegex(word), "gi");
+    _obfuscationRegexCache.set(word, regex);
+  }
+  return regex;
+}
+
 function obfuscateWithList(text: string, words: string[]): string {
   if (!text || words.length === 0) return text;
   let result = text;
   for (const word of words) {
     if (!word) continue;
-    const regex = new RegExp(escapeRegex(word), "gi");
+    const regex = getObfuscationRegex(word);
     result = result.replace(regex, (match) => obfuscateWord(match));
   }
   return result;

@@ -122,9 +122,10 @@ test("INTENTIONALLY_INTERNAL is exported from check-db-rules.mjs", () => {
   assert.ok(INTENTIONALLY_INTERNAL.size > 0, "INTENTIONALLY_INTERNAL must not be empty");
 });
 
-test("INTENTIONALLY_INTERNAL contains the expected 25 audited modules", () => {
+test("INTENTIONALLY_INTERNAL contains the expected 26 audited modules", () => {
   const expected = [
     "_rowTypes",
+    "accessTokens",
     "cleanup",
     "cliToolState",
     "comboForecast",

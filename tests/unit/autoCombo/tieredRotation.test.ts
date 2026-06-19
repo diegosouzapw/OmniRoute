@@ -4,7 +4,7 @@
  * and that tiered rotation distributes traffic fairly.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { selectProvider, type AutoComboConfig } from "../../../open-sse/services/autoCombo/engine";
 import {
   calculateFactors,
@@ -16,6 +16,15 @@ import {
 } from "../../../open-sse/services/autoCombo/scoring";
 import { getTaskFitness } from "../../../open-sse/services/autoCombo/taskFitness";
 import { resetDiversity } from "../../../open-sse/services/autoCombo/providerDiversity";
+
+// Stub DB calls introduced by PR #3660 (Arena ELO / models.dev intelligence scoring).
+// This file tests rotation logic, not intelligence scoring — the DB shouldn't be
+// initialized during these unit tests, and the stub makes them fast and isolated.
+vi.mock("../../../src/lib/db/modelIntelligence.ts", () => ({
+  getModelIntelligenceBySource: vi.fn(() => null),
+  setUserFitnessOverrideEntry: vi.fn(),
+  deleteUserFitnessOverrideEntry: vi.fn(),
+}));
 
 function makeCandidate(overrides: Partial<ProviderCandidate>): ProviderCandidate {
   return {

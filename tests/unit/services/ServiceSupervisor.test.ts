@@ -131,8 +131,13 @@ test("crash sets state=error and lastError (no auto-restart)", async () => {
     await sup.start();
     assert.equal(sup.getStatus().state, "running");
 
-    // Wait for crash (process exits at 1.5s, health checker detects within 3 intervals)
-    await new Promise((r) => setTimeout(r, 2_500));
+    // Poll for the crash to be detected (process exits at 1.5s, health checker detects it
+    // within ~3 intervals). A fixed sleep flakes under CPU contention because the child's
+    // exit timer and the health-check intervals all slip; poll with a generous deadline.
+    const deadline = Date.now() + 10_000;
+    while (sup.getStatus().state !== "error" && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 100));
+    }
 
     const status = sup.getStatus();
     assert.equal(status.state, "error", "state should be error after crash");

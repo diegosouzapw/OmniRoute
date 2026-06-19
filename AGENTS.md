@@ -3,14 +3,14 @@
 ## Project
 
 Unified AI proxy/router — route any LLM through one endpoint. Multi-provider support
-with **229 provider entries** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
+with **227 provider entries** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
 Cohere, NVIDIA, Cerebras, Pollinations, Puter, Cloudflare AI, HuggingFace, DeepInfra,
 SambaNova, Meta Llama API, Moonshot AI, AI21 Labs, Databricks, Snowflake, and many more)
-with **MCP Server** (69 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
+with **MCP Server** (87 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
 
-> **Live counts (v3.8.16)**: providers 229 · MCP tools 69 · MCP scopes 13 · A2A skills 6 ·
-> open-sse services 111 · routing strategies 15 · auto-combo scoring factors 12 ·
-> DB modules 76 · DB migrations 94 · base tables 17 · search providers 12 ·
+> **Live counts (v3.8.24)**: providers 227 · MCP tools 87 · MCP scopes 30 · A2A skills 6 ·
+> open-sse services 115 · routing strategies 15 · auto-combo scoring factors 9 ·
+> DB modules 83 · DB migrations 97 · base tables 17 · search providers 11 ·
 > i18n locales 42. **Refresh with `npm run check:docs-all`.**
 
 ## Doc Accuracy Discipline (read before writing any doc)
@@ -44,8 +44,8 @@ codebase. Run it locally before pushing docs; it runs in CI via `npm run check:d
 
 ## Stack
 
-- **Runtime**: Next.js 16 (App Router), Node.js `>=20.20.2 <21`, `>=22.22.2 <23`, or `>=24.0.0 <25`, ES Modules (`"type": "module"`)
-- **Language**: TypeScript 5.9 (`src/`) + JavaScript (`open-sse/`, `electron/`)
+- **Runtime**: Next.js 16 (App Router), Node.js `>=22.0.0 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
+- **Language**: TypeScript 6.0 (`src/`) + JavaScript (`open-sse/`, `electron/`)
 - **Database**: better-sqlite3 (SQLite) — `DATA_DIR` configurable, default `~/.omniroute/`
 - **Streaming**: SSE via `open-sse` internal workspace package
 - **Styling**: Tailwind CSS v4
@@ -178,7 +178,7 @@ Always run `prettier --write` on changed files.
 
 ### Data Layer (`src/lib/db/`)
 
-All persistence uses SQLite through **76 domain-specific modules** in `src/lib/db/`. Top modules:
+All persistence uses SQLite through **83 domain-specific modules** in `src/lib/db/`. Top modules:
 
 - Core: `core.ts`, `migrationRunner.ts`, `encryption.ts`, `stateReset.ts`
 - Providers / catalog: `providers.ts`, `models.ts`, `providerLimits.ts`, `compressionAnalytics.ts`
@@ -188,8 +188,8 @@ All persistence uses SQLite through **76 domain-specific modules** in `src/lib/d
 - Storage: `backup.ts`, `cleanup.ts`, `jsonMigration.ts`, `healthCheck.ts`, `databaseSettings.ts`
 - Extension modules: `evals.ts`, `webhooks.ts`, `reasoningCache.ts`, `readCache.ts`, `tierConfig.ts`, `compressionCombos.ts`, `compressionScheduler.ts`, `batches.ts`, `files.ts`, `syncTokens.ts`, `proxies.ts`, `oneproxy.ts`, `upstreamProxy.ts`, `versionManager.ts`, `cliToolState.ts`, `prompts.ts`, `detailedLogs.ts`, `contextHandoffs.ts`, `compression.ts`, `stats.ts`
 
-Live count: `ls src/lib/db/*.ts | wc -l` (currently 76). Drift detection: `npm run check:docs-counts`.
-Schema migrations live in `db/migrations/` (**94 files** as of v3.8.16) and run via `migrationRunner.ts`.
+Live count: `ls src/lib/db/*.ts | wc -l` (currently 83). Drift detection: `npm run check:docs-counts`.
+Schema migrations live in `db/migrations/` (**97 files** as of v3.8.24) and run via `migrationRunner.ts`.
 `src/lib/localDb.ts` is a **re-export layer only** — never add logic there.
 
 #### DB Internals
@@ -198,7 +198,7 @@ Schema migrations live in `db/migrations/` (**94 files** as of v3.8.16) and run 
   journaling. `SCHEMA_SQL` defines **17 base tables** (verify with `grep -c "CREATE TABLE" src/lib/db/core.ts` minus 1 for the bookkeeping `_omniroute_migrations` table). Helpers: `rowToCamel`, `encryptConnectionFields`.
 - **`migrationRunner.ts`**: Applies versioned SQL files from `db/migrations/` inside transactions.
   Tracks applied migrations in `_omniroute_migrations` table.
-- **Migrations**: 94 files (`001_initial_schema.sql` → `094_*.sql`).
+- **Migrations**: 97 files (`001_initial_schema.sql` → `099_*.sql`).
   Each migration is idempotent and runs in a transaction. Live count: `ls src/lib/db/migrations/*.sql | wc -l`.
 - **Domain modules** import `getDbInstance()` from `core.ts` for all CRUD operations.
   Each module owns a specific table/set of tables (e.g., `providers.ts` → `provider_connections`,
@@ -336,7 +336,7 @@ Includes request/response translators with helpers for image handling.
 
 ### Services (`open-sse/services/`)
 
-111 service modules in `open-sse/services/` (top-level only; 171 including sub-dirs like `autoCombo/` and `compression/`). Refresh: `ls open-sse/services/*.ts | wc -l`. Key modules:
+115 service modules in `open-sse/services/` (top-level only; 184 including sub-dirs like `autoCombo/` and `compression/`). Refresh: `ls open-sse/services/*.ts | wc -l`. Key modules:
 `combo.ts` (routing engine), `usage.ts`, `tokenRefresh.ts`,
 `rateLimitManager.ts`, `accountFallback.ts`, `sessionManager.ts`, `wildcardRouter.ts`,
 `autoCombo/`, `intentClassifier.ts`, `taskAwareRouter.ts`, `thinkingBudget.ts`,
@@ -391,7 +391,7 @@ Policy engine modules: `policyEngine.ts`, `comboResolver.ts`, `costRules.ts`,
 
 ### MCP Server (`open-sse/mcp-server/`)
 
-69 tools across 10 tool files (advancedTools: 5, agentSkillTools: 3, compressionTools: 5, gamificationTools: 8, memoryTools: 3, notionTools: 6, obsidianTools: 22, pluginTools: 8, poolTools: 5, skillTools: 4), 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (13 scopes — see `OMNIROUTE_MCP_SCOPES` in `open-sse/mcp-server/README.md:51`), Zod schemas. See [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md).
+**87 tools** total (`TOTAL_MCP_TOOL_COUNT`, `open-sse/mcp-server/server.ts`): a 33-entry base registry (`MCP_TOOLS` in `schemas/tools.ts`, bundling the core / cache / compression / 1proxy / advanced tools) **plus** standalone module sets — memory (3), skill (4), agentSkill (3), gamification (8), plugin (8), notion (6), obsidian (22). 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (30 scopes — see `OMNIROUTE_MCP_SCOPES`), Zod schemas. See [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md).
 
 **Core tools** (20): get_health, list_combos, get_combo_metrics, switch_combo, check_quota,
 route_request, cost_report, list_models_catalog, web_search, simulate_route, set_budget_guard,
@@ -409,6 +409,14 @@ list_compression_combos, compression_combo_stats.
 
 **Skill tools** (4): skills_list, skills_enable, skills_execute, skills_executions.
 
+**Agent-skill tools** (3): A2A skill discovery / invocation bridges.
+
+**Gamification tools** (8): levels, badges, leaderboard, and community-federation queries.
+
+**Plugin tools** (8): plugin marketplace listing, install/enable/disable, and runtime inspection.
+
+**Notion tools** (6) + **Obsidian tools** (22): knowledge-base read/write integrations (the largest tool family — vault search, note CRUD, WebDAV-backed file ops).
+
 #### MCP Internals
 
 - **Tool registration**: Each tool is an object with `{ name, description, inputSchema: ZodSchema,
@@ -417,7 +425,7 @@ handler: async (args) => {...} }`. Zod validates inputs before the handler fires
   `createMcpServer()` wires all tool sets; `startMcpStdio()` launches the stdio transport.
 - **Transports**: stdio (CLI `omniroute --mcp`), SSE (`/api/mcp/sse`), Streamable HTTP
   (`/api/mcp/stream`). All share the same tool/scope engine.
-- **Scopes** (13): Control which tool categories an API key can access. Enforcement happens
+- **Scopes** (30): Control which tool categories an API key can access. Enforcement happens
   before handler dispatch.
 - **Audit**: Every tool invocation is logged to SQLite (`mcp_audit` table) with tool name,
   args, success/failure, API key attribution, and timestamp.
@@ -519,7 +527,6 @@ Cloudflare Quick/Named, ngrok, Tailscale Funnel. See [`docs/ops/TUNNELS_GUIDE.md
 
 ## Subdirectory AGENTS.md Files
 
-- **[`open-sse/AGENTS.md`](open-sse/AGENTS.md)** — Streaming engine, request pipeline, handlers, and executors
 - **[`src/lib/db/AGENTS.md`](src/lib/db/AGENTS.md)** — SQLite persistence, domain modules, migrations
 - **[`open-sse/services/AGENTS.md`](open-sse/services/AGENTS.md)** — Routing engine, combo resolution, strategy selection
 
@@ -527,31 +534,32 @@ Cloudflare Quick/Named, ngrok, Tailscale Funnel. See [`docs/ops/TUNNELS_GUIDE.md
 
 For any non-trivial change, read the matching deep-dive first:
 
-| Area                                  | Doc                                                                                                                                 |
-| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Repo navigation                       | [`docs/architecture/REPOSITORY_MAP.md`](docs/architecture/REPOSITORY_MAP.md)                                                        |
-| Architecture                          | [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)                                                            |
-| Engineering reference                 | [`docs/architecture/CODEBASE_DOCUMENTATION.md`](docs/architecture/CODEBASE_DOCUMENTATION.md)                                        |
-| Auto-Combo (12-factor, 15 strategies) | [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)                                                                          |
-| Resilience (3 layers)                 | [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md)                                                    |
-| Skills                                | [`docs/frameworks/SKILLS.md`](docs/frameworks/SKILLS.md)                                                                            |
-| Memory                                | [`docs/frameworks/MEMORY.md`](docs/frameworks/MEMORY.md)                                                                            |
-| Cloud agents                          | [`docs/frameworks/CLOUD_AGENT.md`](docs/frameworks/CLOUD_AGENT.md)                                                                  |
-| Guardrails                            | [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md)                                                                        |
-| Evals                                 | [`docs/frameworks/EVALS.md`](docs/frameworks/EVALS.md)                                                                              |
-| Compliance                            | [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md)                                                                        |
-| Webhooks                              | [`docs/frameworks/WEBHOOKS.md`](docs/frameworks/WEBHOOKS.md)                                                                        |
-| Authz                                 | [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md)                                                              |
-| Stealth                               | [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md)                                                                  |
-| Reasoning replay                      | [`docs/routing/REASONING_REPLAY.md`](docs/routing/REASONING_REPLAY.md)                                                              |
-| Agent protocols (A2A / ACP / Cloud)   | [`docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`](docs/frameworks/AGENT_PROTOCOLS_GUIDE.md)                                              |
-| MCP server                            | [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md)                                                                    |
-| A2A server                            | [`docs/frameworks/A2A-SERVER.md`](docs/frameworks/A2A-SERVER.md)                                                                    |
-| API reference                         | [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) + [`docs/reference/openapi.yaml`](docs/reference/openapi.yaml) |
-| Provider catalog (auto-generated)     | [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)                                                      |
-| Tunnels                               | [`docs/ops/TUNNELS_GUIDE.md`](docs/ops/TUNNELS_GUIDE.md)                                                                            |
-| Electron desktop                      | [`docs/guides/ELECTRON_GUIDE.md`](docs/guides/ELECTRON_GUIDE.md)                                                                    |
-| Release flow                          | [`docs/ops/RELEASE_CHECKLIST.md`](docs/ops/RELEASE_CHECKLIST.md)                                                                    |
+| Area                                       | Doc                                                                                                                                 |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Repo navigation                            | [`docs/architecture/REPOSITORY_MAP.md`](docs/architecture/REPOSITORY_MAP.md)                                                        |
+| Architecture                               | [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)                                                            |
+| Engineering reference                      | [`docs/architecture/CODEBASE_DOCUMENTATION.md`](docs/architecture/CODEBASE_DOCUMENTATION.md)                                        |
+| Auto-Combo (12-factor, 15 strategies)      | [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)                                                                          |
+| Resilience (3 layers)                      | [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md)                                                    |
+| Skills                                     | [`docs/frameworks/SKILLS.md`](docs/frameworks/SKILLS.md)                                                                            |
+| Memory                                     | [`docs/frameworks/MEMORY.md`](docs/frameworks/MEMORY.md)                                                                            |
+| Cloud agents                               | [`docs/frameworks/CLOUD_AGENT.md`](docs/frameworks/CLOUD_AGENT.md)                                                                  |
+| Guardrails                                 | [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md)                                                                        |
+| Evals                                      | [`docs/frameworks/EVALS.md`](docs/frameworks/EVALS.md)                                                                              |
+| Compliance                                 | [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md)                                                                        |
+| Webhooks                                   | [`docs/frameworks/WEBHOOKS.md`](docs/frameworks/WEBHOOKS.md)                                                                        |
+| Authz                                      | [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md)                                                              |
+| Stealth                                    | [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md)                                                                  |
+| Reasoning replay                           | [`docs/routing/REASONING_REPLAY.md`](docs/routing/REASONING_REPLAY.md)                                                              |
+| Agent protocols (A2A / ACP / Cloud)        | [`docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`](docs/frameworks/AGENT_PROTOCOLS_GUIDE.md)                                              |
+| MCP server                                 | [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md)                                                                    |
+| A2A server                                 | [`docs/frameworks/A2A-SERVER.md`](docs/frameworks/A2A-SERVER.md)                                                                    |
+| API reference                              | [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) + [`docs/reference/openapi.yaml`](docs/reference/openapi.yaml) |
+| Provider catalog (auto-generated)          | [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)                                                      |
+| Tunnels                                    | [`docs/ops/TUNNELS_GUIDE.md`](docs/ops/TUNNELS_GUIDE.md)                                                                            |
+| Electron desktop                           | [`docs/guides/ELECTRON_GUIDE.md`](docs/guides/ELECTRON_GUIDE.md)                                                                    |
+| Release flow                               | [`docs/ops/RELEASE_CHECKLIST.md`](docs/ops/RELEASE_CHECKLIST.md)                                                                    |
+| Quality gates (35 gates, allowlist policy) | [`docs/architecture/QUALITY_GATES.md`](docs/architecture/QUALITY_GATES.md)                                                          |
 
 ---
 

@@ -63,14 +63,17 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { name, noLog, scopes } = validation.data;
+    const { name, noLog, scopes, allowUsageCommand } = validation.data;
 
     // Always get machineId from server
     const machineId = await getConsistentMachineId();
     const normalizedScopes = normalizeSelfServiceScopesForCreate(scopes);
     const apiKey = await createApiKey(name, machineId, normalizedScopes);
-    if (noLog === true) {
-      await updateApiKeyPermissions(apiKey.id, { noLog: true });
+    if (noLog === true || allowUsageCommand === true) {
+      await updateApiKeyPermissions(apiKey.id, {
+        ...(noLog === true && { noLog: true }),
+        ...(allowUsageCommand === true && { allowUsageCommand: true }),
+      });
     }
 
     // Auto sync to Cloud if enabled
@@ -83,6 +86,7 @@ export async function POST(request) {
         id: apiKey.id,
         machineId: apiKey.machineId,
         noLog: noLog === true,
+        allowUsageCommand: allowUsageCommand === true,
         streamDefaultMode: "legacy",
       },
       { status: 201 }

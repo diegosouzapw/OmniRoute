@@ -231,7 +231,7 @@ export default function ProviderCard({
       <Link href={`/dashboard/providers/${providerId}`} className="group flex-1 flex flex-col">
         <Card
           padding="xs"
-          className={`h-full flex flex-col hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${allDisabled ? "opacity-50" : ""} ${provider.deprecated ? "opacity-60" : ""}`}
+          className={`h-full flex flex-col hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/40 transition-colors cursor-pointer ${allDisabled ? "opacity-50" : ""} ${provider.deprecated ? "opacity-60" : ""}`}
         >
           <div className="flex flex-col gap-2 h-full">
             {/* Row 1 — Identity: icon + full name + risk/category indicators */}

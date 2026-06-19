@@ -49,6 +49,26 @@ export const rtkConfigSchema = z
     trustProjectFilters: z.boolean().optional(),
     rawOutputRetention: rtkRawOutputRetentionSchema.optional(),
     rawOutputMaxBytes: z.number().int().min(1024).max(10_000_000).optional(),
+    enableGrouping: z.boolean().optional(),
+    groupingThreshold: z.number().int().min(2).max(100).optional(),
+    stripCodeComments: z.boolean().optional(),
+    preserveDocstrings: z.boolean().optional(),
+  })
+  .strict();
+
+// mcpAccessibility tunes how the MCP server trims oversized tool outputs before returning them.
+// The schema only enforces structural validity (positive integers / booleans); the numeric floors
+// (e.g. maxTextChars below the truncation-tail reserve) are owned by clampMcpAccessibilityConfig
+// on the write path, which folds out-of-range values back to the safe defaults. All fields are
+// optional so the settings sub-route can apply a partial merge over the current config.
+export const mcpAccessibilityConfigSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    maxTextChars: z.number().int().min(1).optional(),
+    collapseThreshold: z.number().int().min(1).optional(),
+    collapseKeepHead: z.number().int().min(0).optional(),
+    collapseKeepTail: z.number().int().min(0).optional(),
+    minLengthToProcess: z.number().int().min(1).optional(),
   })
   .strict();
 
@@ -60,6 +80,15 @@ export const languageConfigSchema = z
     enabledPacks: z.array(z.string().trim().min(1)).optional(),
   })
   .strict();
+
+// Context Editing is a provider-delegated compression mode (Claude/Anthropic only):
+// the provider clears old tool-use blocks server-side. This config only carries the
+// on/off flag; the request-time header/body injection is a separate slice.
+export const contextEditingConfigSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+  })
+  .strip();
 
 export const aggressiveConfigSchema = z
   .object({
@@ -159,6 +188,7 @@ export const compressionSettingsUpdateSchema = z
     languageConfig: languageConfigSchema.optional(),
     aggressive: aggressiveConfigSchema.optional(),
     ultra: ultraConfigSchema.optional(),
+    contextEditing: contextEditingConfigSchema.optional(),
   })
   .strict();
 

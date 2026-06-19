@@ -1,5 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
-import type { CompressionPipelineStep } from "@omniroute/open-sse/services/compression/types.ts";
+import type {
+  CompressionEngineId,
+  CompressionPipelineStep,
+} from "@omniroute/open-sse/services/compression/types.ts";
 
 import { backupDbFile } from "./backup";
 import { getDbInstance, rowToCamel } from "./core";
@@ -53,13 +56,21 @@ function parseJsonArray<T>(value: unknown, fallback: T[]): T[] {
   }
 }
 
+const KNOWN_ENGINE_IDS = [
+  "lite",
+  "caveman",
+  "aggressive",
+  "ultra",
+  "rtk",
+  "headroom",
+  "session-dedup",
+  "ccr",
+  "llmlingua",
+];
+
 function normalizePipeline(value: unknown): CompressionPipelineStep[] {
   return parseJsonArray<CompressionPipelineStep>(value, []).filter((step) => {
-    return (
-      step &&
-      typeof step === "object" &&
-      ["lite", "caveman", "aggressive", "ultra", "rtk"].includes(String(step.engine))
-    );
+    return step && typeof step === "object" && KNOWN_ENGINE_IDS.includes(String(step.engine));
   });
 }
 
@@ -386,6 +397,66 @@ export function unassignRoutingCombo(compressionComboId: string, routingComboId:
     .run(compressionComboId, routingComboId);
   if (result.changes > 0) backupDbFile("pre-write");
   return result.changes > 0;
+}
+
+// Static stackPriority map — mirrors the values defined in each engine file.
+// Using a static map avoids cross-workspace imports (open-sse → src/lib/db) that
+// would introduce a circular dependency detected by check:cycles.
+const ENGINE_STACK_PRIORITY: Record<string, number> = {
+  "session-dedup": 3,
+  ccr: 4,
+  lite: 5,
+  rtk: 10,
+  headroom: 15,
+  caveman: 20,
+  aggressive: 30,
+  llmlingua: 35,
+  ultra: 40,
+};
+
+export function setEngineInDefaultCombo(
+  engineId: string,
+  enabled: boolean,
+  config?: Record<string, unknown>
+): CompressionCombo | null {
+  if (!KNOWN_ENGINE_IDS.includes(engineId)) return null;
+  ensureCompressionComboTables();
+  const existing = getDefaultCompressionCombo();
+  if (!existing) return null;
+
+  let newPipeline = [...existing.pipeline];
+  if (enabled) {
+    const idx = newPipeline.findIndex((s) => s.engine === engineId);
+    if (idx >= 0) {
+      if (config !== undefined) {
+        newPipeline[idx] = { ...newPipeline[idx], config };
+      }
+    } else {
+      newPipeline.push({ engine: engineId as CompressionEngineId, ...(config ? { config } : {}) });
+    }
+    // Sort by stackPriority ascending so the pipeline runs in the correct order.
+    newPipeline.sort((a, b) => {
+      const pa = ENGINE_STACK_PRIORITY[a.engine] ?? 50;
+      const pb = ENGINE_STACK_PRIORITY[b.engine] ?? 50;
+      return pa - pb;
+    });
+  } else {
+    newPipeline = newPipeline.filter((s) => s.engine !== engineId);
+  }
+
+  // Direct UPDATE — preserves empty pipeline (Fix #2) without going through
+  // buildComboPayload which falls back to defaultCompressionComboPipeline() when
+  // the incoming array is empty.
+  const db = getDbInstance();
+  const now = new Date().toISOString();
+  db.prepare("UPDATE compression_combos SET pipeline = ?, updated_at = ? WHERE id = ?").run(
+    JSON.stringify(newPipeline),
+    now,
+    existing.id
+  );
+  backupDbFile("pre-write");
+
+  return getCompressionCombo(existing.id);
 }
 
 export function updateAssignments(compressionComboId: string, routingComboIds: string[]): boolean {

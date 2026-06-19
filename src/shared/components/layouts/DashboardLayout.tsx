@@ -59,7 +59,9 @@ export default function DashboardLayout({ children }) {
   };
 
   return (
-    <div className="flex h-dvh min-h-0 w-full overflow-hidden bg-bg">
+    // No bg-bg here: the body grid wallpaper (globals.css body::before) shows through
+    // this transparent wrapper into the content area. body's --color-bg is the base fill.
+    <div className="flex h-dvh min-h-0 w-full overflow-hidden">
       <Suspense fallback={null}>
         <NavigationProgress />
       </Suspense>
@@ -100,7 +102,10 @@ export default function DashboardLayout({ children }) {
         />
         {!isE2EMode && <MaintenanceBanner />}
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar p-4 sm:p-6 lg:p-10">
-          <div className="max-w-7xl mx-auto w-full h-full min-h-0 flex flex-col">
+          {/* Fluid up to a 4K cap (3840px): content follows the viewport on large
+              monitors and only centers (side gutters) beyond ~4K, instead of the prior
+              1280px cap that left big empty margins on wide screens. */}
+          <div className="max-w-[3840px] mx-auto w-full h-full min-h-0 flex flex-col">
             <Breadcrumbs />
             <div className="flex-1 min-h-0">
               {children}

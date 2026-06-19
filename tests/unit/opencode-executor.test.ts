@@ -410,6 +410,57 @@ describe("OpencodeExecutor", () => {
       assert.equal(headers["Authorization"], undefined);
     });
   });
+
+  // #4022: OpenCode CLI only emits x-opencode-* when the provider id starts with
+  // "opencode". For a custom-named provider (e.g. "omniroute") it instead sends
+  // x-session-affinity / X-Session-Id (both carry the same OpenCode sessionID).
+  // The executor must map that session id onto x-opencode-session so session
+  // continuity to the opencode.ai upstream works regardless of provider name.
+  describe("opencode session-affinity fallback (#4022)", () => {
+    it("maps x-session-affinity to x-opencode-session when no direct x-opencode-session", () => {
+      const headers = zenExecutor.buildHeaders({ apiKey: "test-key" }, true, {
+        "x-session-affinity": "sess-aff",
+      });
+      assert.equal(headers["x-opencode-session"], "sess-aff");
+    });
+
+    it("maps X-Session-Id to x-opencode-session when no direct x-opencode-session", () => {
+      const headers = zenExecutor.buildHeaders({ apiKey: "test-key" }, true, {
+        "X-Session-Id": "sess-id",
+      });
+      assert.equal(headers["x-opencode-session"], "sess-id");
+    });
+
+    it("prefers a direct x-opencode-session over x-session-affinity (regression guard)", () => {
+      const headers = zenExecutor.buildHeaders({ apiKey: "test-key" }, true, {
+        "x-opencode-session": "direct",
+        "x-session-affinity": "affinity",
+        "X-Session-Id": "session-id",
+      });
+      assert.equal(headers["x-opencode-session"], "direct");
+    });
+
+    it("does not set x-opencode-session when neither direct nor affinity is present", () => {
+      const headers = zenExecutor.buildHeaders({ apiKey: "test-key" }, true, {
+        "some-other-header": "val",
+      });
+      assert.equal(headers["x-opencode-session"], undefined);
+    });
+
+    it("matches session-affinity headers case-insensitively", () => {
+      const headers = zenExecutor.buildHeaders({ apiKey: "test-key" }, true, {
+        "X-Session-Affinity": "sess-ci",
+      });
+      assert.equal(headers["x-opencode-session"], "sess-ci");
+    });
+
+    it("opencode-go executor also maps session-affinity to x-opencode-session", () => {
+      const headers = goExecutor.buildHeaders({ apiKey: "test-key" }, true, {
+        "x-session-affinity": "sess-go-aff",
+      });
+      assert.equal(headers["x-opencode-session"], "sess-go-aff");
+    });
+  });
 });
 
 describe("DefaultExecutor", () => {

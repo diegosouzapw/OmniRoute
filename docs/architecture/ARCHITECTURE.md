@@ -17,7 +17,7 @@ It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic acr
 
 Core capabilities:
 
-- OpenAI-compatible API surface for CLI/tools (177 providers, 55 executors)
+- OpenAI-compatible API surface for CLI/tools (226 providers, 60 executors)
 - Request/response translation across provider formats
 - Model combo fallback (multi-model sequence)
 - Structured combo steps (`provider + model + connection`) with runtime ordering by `compositeTiers`
@@ -58,7 +58,7 @@ Core capabilities:
 - Compliance audit logging with opt-out per API key
 - Eval framework for LLM quality assurance
 - Health dashboard with real-time provider circuit breaker status
-- MCP Server (37 tools) with 3 transports (stdio/SSE/Streamable HTTP)
+- MCP Server (87 tools) with 3 transports (stdio/SSE/Streamable HTTP)
 - A2A Server (JSON-RPC 2.0 + SSE) with skills and task lifecycle
 - Memory system (extraction, injection, retrieval, summarization)
 - Skills system (registry, executor, sandbox, built-in skills)
@@ -292,7 +292,7 @@ Services (business logic):
 - Thinking budget management: `open-sse/services/thinkingBudget.ts`
 - Wildcard model routing: `open-sse/services/wildcardRouter.ts`
 - Rate limit management: `open-sse/services/rateLimitManager.ts`
-- Circuit breaker: `open-sse/services/circuitBreaker.ts`
+- Circuit breaker: `src/shared/utils/circuitBreaker.ts`
 - Context handoff: `open-sse/services/contextHandoff.ts` — handoff summary generation and injection for context-relay strategy
 - Compression: `open-sse/services/compression/*` — proactive compression before provider translation;
   includes Caveman rules, RTK filters, stacked pipelines, compression combos, stats, and validation
@@ -308,17 +308,17 @@ Services (business logic):
 
 Domain layer modules:
 
-- Cost rules/budgets: `src/lib/domain/costRules.ts`
-- Fallback policy: `src/lib/domain/fallbackPolicy.ts`
-- Combo resolver: `src/lib/domain/comboResolver.ts`
-- Lockout policy: `src/lib/domain/lockoutPolicy.ts`
+- Cost rules/budgets: `src/domain/costRules.ts`
+- Fallback policy: `src/domain/fallbackPolicy.ts`
+- Combo resolver: `src/domain/comboResolver.ts`
+- Lockout policy: `src/domain/lockoutPolicy.ts`
 - Policy engine: `src/domain/policyEngine.ts` — centralized lockout → budget → fallback evaluation
-- Error codes catalog: `src/lib/domain/errorCodes.ts`
-- Request ID: `src/lib/domain/requestId.ts`
-- Fetch timeout: `src/lib/domain/fetchTimeout.ts`
-- Request telemetry: `src/lib/domain/requestTelemetry.ts`
-- Compliance/audit: `src/lib/domain/compliance/index.ts`
-- Eval runner: `src/lib/domain/evalRunner.ts`
+- Error codes catalog: `src/shared/constants/errorCodes.ts`
+- Request ID: `src/shared/utils/requestId.ts`
+- Fetch timeout: `src/shared/utils/fetchTimeout.ts`
+- Request telemetry: `src/shared/utils/requestTelemetry.ts`
+- Compliance/audit: `src/lib/compliance/index.ts`
+- Eval runner: `src/lib/evals/evalRunner.ts`
 - Domain state persistence: `src/lib/db/domainState.ts` — SQLite CRUD for fallback chains, budgets, cost history, lockout state, circuit breakers
 
 OAuth provider modules (16 individual files under `src/lib/oauth/providers/`):
@@ -932,7 +932,7 @@ All other providers (including custom compatible nodes) use the `DefaultExecutor
 
 ## Provider Compatibility Matrix
 
-> **Note:** The matrix below is a representative sample of the 177 registered providers in
+> **Note:** The matrix below is a representative sample of the 226 registered providers in
 > OmniRoute v3.8.0. For the canonical and continuously-updated list, refer to
 > [`docs/reference/PROVIDER_REFERENCE.md`](../reference/PROVIDER_REFERENCE.md) (auto-generated) or the source of
 > truth at `src/shared/constants/providers.ts` (Zod-validated at load).

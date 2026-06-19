@@ -10,11 +10,7 @@ import { registerDbStateResetter } from "./stateReset";
 import { getKeyGroupsForApiKey, checkKeyModelAccess } from "./apiKeyGroups";
 import { setNoLog } from "../compliance/noLog";
 import { resolveModelAlias } from "@omniroute/open-sse/services/modelDeprecation.ts";
-import {
-  getSyncedAvailableModelsByConnection,
-  getCustomModels,
-  getModelIsHidden,
-} from "./models";
+import { getSyncedAvailableModelsByConnection, getCustomModels, getModelIsHidden } from "./models";
 
 // ──────────────── Performance Optimizations ────────────────
 
@@ -46,6 +42,7 @@ interface ApiKeyMetadata {
   name: string;
   machineId: string | null;
   allowedModels: string[];
+  blockedModels: string[];
   allowedCombos: string[];
   allowedConnections: string[];
   allowedQuotas: string[];
@@ -70,6 +67,7 @@ interface ApiKeyMetadata {
   allowedEndpoints: string[];
   streamDefaultMode: "legacy" | "json";
   disableNonPublicModels: boolean;
+  allowUsageCommand: boolean;
 }
 
 interface ApiKeyRow extends JsonRecord {
@@ -80,6 +78,8 @@ interface ApiKeyRow extends JsonRecord {
   machineId?: unknown;
   allowed_models?: unknown;
   allowedModels?: unknown;
+  blocked_models?: unknown;
+  blockedModels?: unknown;
   allowed_combos?: unknown;
   allowedCombos?: unknown;
   allowed_connections?: unknown;
@@ -99,6 +99,8 @@ interface ApiKeyRow extends JsonRecord {
   proxy_id?: unknown;
   stream_default_mode?: unknown;
   streamDefaultMode?: unknown;
+  allow_usage_command?: unknown;
+  allowUsageCommand?: unknown;
 }
 
 interface StatementLike<TRow = unknown> {
@@ -124,6 +126,7 @@ interface ApiKeysStatements {
 interface ApiKeyView extends JsonRecord {
   id?: string;
   allowedModels: string[];
+  blockedModels: string[];
   allowedCombos: string[];
   allowedConnections: string[];
   allowedQuotas: string[];
@@ -140,6 +143,7 @@ interface ApiKeyView extends JsonRecord {
   allowedEndpoints: string[];
   streamDefaultMode: "legacy" | "json";
   disableNonPublicModels?: boolean;
+  allowUsageCommand?: boolean;
 }
 
 // LRU cache for API key validation (valid keys only)
@@ -149,12 +153,15 @@ const _lastUsedUpdateCache = new Map<string, number>();
 const CACHE_TTL = 60 * 1000; // 1 minute TTL
 const LAST_USED_UPDATE_TTL = 5 * 60 * 1000;
 const MAX_CACHE_SIZE = 1000;
+const CLAUDE_CODE_PROVIDER_PREFIXES = new Set(["cc", "claude"]);
+const CLAUDE_CODE_SHORT_ALIASES = new Set(["sonnet", "opus", "haiku", "fable"]);
 
 // Wildcard scope matching is now handled by `matchesWildcardPattern`
 // (deterministic, no RegExp from dynamic strings).
 
 const API_KEY_COLUMN_FALLBACKS = [
   { name: "allowed_models", definition: "allowed_models TEXT" },
+  { name: "blocked_models", definition: "blocked_models TEXT" },
   { name: "allowed_combos", definition: "allowed_combos TEXT" },
   { name: "no_log", definition: "no_log INTEGER NOT NULL DEFAULT 0" },
   { name: "allowed_connections", definition: "allowed_connections TEXT" },
@@ -178,7 +185,14 @@ const API_KEY_COLUMN_FALLBACKS = [
   { name: "allowed_endpoints", definition: "allowed_endpoints TEXT" },
   { name: "allowed_quotas", definition: "allowed_quotas TEXT NOT NULL DEFAULT '[]'" },
   { name: "stream_default_mode", definition: "stream_default_mode TEXT NOT NULL DEFAULT 'legacy'" },
-  { name: "disable_non_public_models", definition: "disable_non_public_models INTEGER NOT NULL DEFAULT 0" },
+  {
+    name: "disable_non_public_models",
+    definition: "disable_non_public_models INTEGER NOT NULL DEFAULT 0",
+  },
+  {
+    name: "allow_usage_command",
+    definition: "allow_usage_command INTEGER NOT NULL DEFAULT 0",
+  },
 ] as const;
 
 // Cache for model permission checks
@@ -271,6 +285,124 @@ function evictIfNeeded<TKey, TValue>(cache: Map<TKey, TValue>) {
       cache.delete(key);
     }
   }
+}
+
+function isTruthyEnvFlag(value: string | undefined): boolean {
+  return typeof value === "string" && /^(1|true|yes|on)$/i.test(value.trim());
+}
+
+async function preferClaudeCodeForUnprefixedClaudeModels(): Promise<boolean> {
+  try {
+    const { getCachedSettings } = await import("./readCache");
+    const settings = await getCachedSettings();
+    if (typeof settings.preferClaudeCodeForUnprefixedClaudeModels === "boolean") {
+      return settings.preferClaudeCodeForUnprefixedClaudeModels;
+    }
+  } catch {
+    // Standalone DB usage may not have the settings cache ready.
+  }
+  return isTruthyEnvFlag(process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS);
+}
+
+function stripExtendedContextSuffix(modelId: string): string {
+  return modelId.endsWith("[1m]") ? modelId.slice(0, -4) : modelId;
+}
+
+function isPotentialUnprefixedClaudeCodeModel(modelId: string): boolean {
+  const clean = stripExtendedContextSuffix(modelId.trim());
+  return /^claude-/i.test(clean) || CLAUDE_CODE_SHORT_ALIASES.has(clean.toLowerCase());
+}
+
+function addModelCandidate(candidates: Set<string>, modelId: string): void {
+  const clean = modelId.trim();
+  if (!clean) return;
+  candidates.add(clean);
+  candidates.add(stripExtendedContextSuffix(clean));
+}
+
+async function getModelPermissionCandidates(modelId: string): Promise<string[]> {
+  const candidates = new Set<string>();
+  addModelCandidate(candidates, modelId);
+
+  const cleanModelId = stripExtendedContextSuffix(modelId.trim());
+  if (!cleanModelId) return Array.from(candidates);
+
+  if (cleanModelId.includes("/")) {
+    const firstSlash = cleanModelId.indexOf("/");
+    const providerOrAlias = cleanModelId.slice(0, firstSlash);
+    const providerScopedModel = cleanModelId.slice(firstSlash + 1);
+    if (CLAUDE_CODE_PROVIDER_PREFIXES.has(providerOrAlias) && providerScopedModel) {
+      addModelCandidate(candidates, providerScopedModel);
+      addModelCandidate(candidates, `cc/${providerScopedModel}`);
+      addModelCandidate(candidates, `claude/${providerScopedModel}`);
+    }
+    return Array.from(candidates);
+  }
+
+  if (
+    isPotentialUnprefixedClaudeCodeModel(cleanModelId) &&
+    (await preferClaudeCodeForUnprefixedClaudeModels())
+  ) {
+    addModelCandidate(candidates, `cc/${cleanModelId}`);
+    addModelCandidate(candidates, `claude/${cleanModelId}`);
+  }
+
+  return Array.from(candidates);
+}
+
+function modelPatternMatches(pattern: string, candidates: string[]): boolean {
+  for (const candidate of candidates) {
+    if (pattern === candidate) return true;
+    if (pattern.endsWith("/*")) {
+      const prefix = pattern.slice(0, -2);
+      if (candidate.startsWith(prefix + "/") || candidate.startsWith(prefix)) {
+        return true;
+      }
+    }
+    if (pattern.includes("*") && matchesWildcardPattern(pattern, candidate)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function hasClaudeCodeWildcardPermission(
+  allowedModels: string[] | undefined,
+  candidates: string[]
+): boolean {
+  if (!allowedModels || allowedModels.length === 0) return false;
+  return allowedModels.some(
+    (pattern) =>
+      (pattern === "cc/*" || pattern === "claude/*") &&
+      candidates.some((candidate) => modelPatternMatches(pattern, [candidate]))
+  );
+}
+
+async function getPublishedModelLookupTarget(
+  modelId: string
+): Promise<{ providerId: string; modelId: string } | null> {
+  const cleanModelId = stripExtendedContextSuffix(modelId.trim());
+  if (!cleanModelId) return null;
+
+  if (cleanModelId.includes("/")) {
+    const firstSlash = cleanModelId.indexOf("/");
+    const providerOrAlias = cleanModelId.slice(0, firstSlash);
+    const providerScopedModel = cleanModelId.slice(firstSlash + 1);
+    if (!providerScopedModel) return null;
+    const providerId = CLAUDE_CODE_PROVIDER_PREFIXES.has(providerOrAlias)
+      ? "claude"
+      : providerOrAlias;
+    return { providerId, modelId: providerScopedModel };
+  }
+
+  if (
+    isPotentialUnprefixedClaudeCodeModel(cleanModelId) &&
+    (await preferClaudeCodeForUnprefixedClaudeModels())
+  ) {
+    return { providerId: "claude", modelId: cleanModelId };
+  }
+
+  return null;
 }
 
 /**
@@ -378,7 +510,7 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
       "SELECT id, expires_at, revoked_at, is_active, is_banned FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, allowed_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, disable_non_public_models, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
+      "SELECT id, name, machine_id, allowed_models, blocked_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, disable_non_public_models, allow_usage_command, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtInsertKey = db.prepare(
       "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, key_prefix, key_hash, scopes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -414,6 +546,7 @@ export async function getApiKeys() {
   return rows.map((row) => {
     const camelRow = toRecord(rowToCamel(row)) as ApiKeyView;
     camelRow.allowedModels = parseAllowedModels(camelRow.allowedModels);
+    camelRow.blockedModels = parseAllowedModels(camelRow.blockedModels);
     camelRow.allowedCombos = parseAllowedCombos(camelRow.allowedCombos);
     camelRow.allowedConnections = parseAllowedConnections(camelRow.allowedConnections);
     camelRow.allowedQuotas = parseAllowedQuotas((camelRow as JsonRecord).allowedQuotas);
@@ -426,7 +559,10 @@ export async function getApiKeys() {
     camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
     camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
     camelRow.streamDefaultMode = parseStreamDefaultMode((camelRow as JsonRecord).streamDefaultMode);
-    camelRow.disableNonPublicModels = parseDisableNonPublicModels((camelRow as JsonRecord).disableNonPublicModels);
+    camelRow.disableNonPublicModels = parseDisableNonPublicModels(
+      (camelRow as JsonRecord).disableNonPublicModels
+    );
+    camelRow.allowUsageCommand = parseAllowUsageCommand((camelRow as JsonRecord).allowUsageCommand);
     if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
       setNoLog(camelRow.id, camelRow.noLog === true);
     }
@@ -441,6 +577,7 @@ export async function getApiKeyById(id: string) {
   if (!row) return null;
   const camelRow = toRecord(rowToCamel(row)) as ApiKeyView;
   camelRow.allowedModels = parseAllowedModels(camelRow.allowedModels);
+  camelRow.blockedModels = parseAllowedModels(camelRow.blockedModels);
   camelRow.allowedCombos = parseAllowedCombos(camelRow.allowedCombos);
   camelRow.allowedConnections = parseAllowedConnections(camelRow.allowedConnections);
   camelRow.allowedQuotas = parseAllowedQuotas((camelRow as JsonRecord).allowedQuotas);
@@ -453,7 +590,10 @@ export async function getApiKeyById(id: string) {
   camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
   camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
   camelRow.streamDefaultMode = parseStreamDefaultMode((camelRow as JsonRecord).streamDefaultMode);
-  camelRow.disableNonPublicModels = parseDisableNonPublicModels((camelRow as JsonRecord).disableNonPublicModels);
+  camelRow.disableNonPublicModels = parseDisableNonPublicModels(
+    (camelRow as JsonRecord).disableNonPublicModels
+  );
+  camelRow.allowUsageCommand = parseAllowUsageCommand((camelRow as JsonRecord).allowUsageCommand);
   if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
     setNoLog(camelRow.id, camelRow.noLog === true);
   }
@@ -490,6 +630,10 @@ function parseAutoResolve(value: unknown): boolean {
 }
 
 function parseDisableNonPublicModels(value: unknown): boolean {
+  return value === true || value === 1 || value === "1";
+}
+
+function parseAllowUsageCommand(value: unknown): boolean {
   return value === true || value === 1 || value === "1";
 }
 
@@ -636,6 +780,7 @@ export async function createApiKey(name: string, machineId: string, scopes: stri
     allowedCombos: [], // Empty array means no explicit combo restriction
     allowedConnections: [], // Empty array means all connections allowed
     noLog: false,
+    allowUsageCommand: false,
     createdAt: now,
     scopes,
   };
@@ -699,6 +844,7 @@ export async function updateApiKeyPermissions(
     | {
         name?: string;
         allowedModels?: string[];
+        blockedModels?: string[];
         allowedCombos?: string[];
         allowedConnections?: string[];
         allowedQuotas?: string[];
@@ -719,6 +865,7 @@ export async function updateApiKeyPermissions(
         allowedEndpoints?: string[] | null;
         streamDefaultMode?: "legacy" | "json" | null;
         disableNonPublicModels?: boolean;
+        allowUsageCommand?: boolean;
       }
 ) {
   const db = getDbInstance() as ApiKeysDbLike;
@@ -730,6 +877,7 @@ export async function updateApiKeyPermissions(
       : {
           name: update.name,
           allowedModels: update.allowedModels,
+          blockedModels: update.blockedModels,
           allowedCombos: update.allowedCombos,
           allowedConnections: update.allowedConnections,
           allowedQuotas: (update as { allowedQuotas?: string[] }).allowedQuotas,
@@ -751,11 +899,13 @@ export async function updateApiKeyPermissions(
             .streamDefaultMode,
           disableNonPublicModels: (update as { disableNonPublicModels?: boolean })
             .disableNonPublicModels,
+          allowUsageCommand: (update as { allowUsageCommand?: boolean }).allowUsageCommand,
         };
 
   if (
     normalized.name === undefined &&
     normalized.allowedModels === undefined &&
+    normalized.blockedModels === undefined &&
     normalized.allowedCombos === undefined &&
     normalized.allowedConnections === undefined &&
     (normalized as Record<string, unknown>).allowedQuotas === undefined &&
@@ -774,7 +924,8 @@ export async function updateApiKeyPermissions(
     (normalized as Record<string, unknown>).proxyId === undefined &&
     (normalized as Record<string, unknown>).allowedEndpoints === undefined &&
     (normalized as Record<string, unknown>).streamDefaultMode === undefined &&
-    normalized.disableNonPublicModels === undefined
+    normalized.disableNonPublicModels === undefined &&
+    normalized.allowUsageCommand === undefined
   ) {
     return false;
   }
@@ -784,6 +935,7 @@ export async function updateApiKeyPermissions(
     id: string;
     name?: string;
     allowedModels?: string;
+    blockedModels?: string;
     allowedCombos?: string;
     allowedConnections?: string;
     allowedQuotas?: string;
@@ -802,6 +954,7 @@ export async function updateApiKeyPermissions(
     proxyId?: string | null;
     streamDefaultMode?: "legacy" | "json";
     disableNonPublicModels?: number;
+    allowUsageCommand?: number;
   } = { id };
 
   if (normalized.name !== undefined) {
@@ -813,6 +966,12 @@ export async function updateApiKeyPermissions(
     // Empty array means all models are allowed
     updates.push("allowed_models = @allowedModels");
     params.allowedModels = JSON.stringify(normalized.allowedModels || []);
+  }
+
+  if (normalized.blockedModels !== undefined) {
+    // Deny-list patterns always take precedence over allowed_models.
+    updates.push("blocked_models = @blockedModels");
+    params.blockedModels = JSON.stringify(normalized.blockedModels || []);
   }
 
   if (normalized.allowedCombos !== undefined) {
@@ -892,6 +1051,11 @@ export async function updateApiKeyPermissions(
   if (normalized.disableNonPublicModels !== undefined) {
     updates.push("disable_non_public_models = @disableNonPublicModels");
     params.disableNonPublicModels = normalized.disableNonPublicModels ? 1 : 0;
+  }
+
+  if (normalized.allowUsageCommand !== undefined) {
+    updates.push("allow_usage_command = @allowUsageCommand");
+    params.allowUsageCommand = normalized.allowUsageCommand ? 1 : 0;
   }
 
   const maxSessionsUpdate = (normalized as Record<string, unknown>).maxSessions;
@@ -1251,6 +1415,7 @@ export async function getApiKeyMetadata(
       name: "Environment Key",
       machineId: "server-env",
       allowedModels: [],
+      blockedModels: [],
       allowedCombos: [],
       allowedConnections: [],
       allowedQuotas: [],
@@ -1273,6 +1438,7 @@ export async function getApiKeyMetadata(
       allowedEndpoints: [],
       streamDefaultMode: "legacy",
       disableNonPublicModels: false,
+      allowUsageCommand: false,
     };
   }
 
@@ -1306,6 +1472,7 @@ export async function getApiKeyMetadata(
     name: metadataName,
     machineId: metadataMachineId,
     allowedModels: parseAllowedModels(record.allowed_models ?? record.allowedModels),
+    blockedModels: parseAllowedModels(record.blocked_models ?? record.blockedModels),
     allowedCombos: parseAllowedCombos(record.allowed_combos ?? record.allowedCombos),
     allowedConnections: parseAllowedConnections(
       record.allowed_connections ?? record.allowedConnections
@@ -1331,9 +1498,7 @@ export async function getApiKeyMetadata(
     isBanned: parseIsBanned(record.is_banned ?? (record as JsonRecord).isBanned),
     keyHash: (record.key_hash ?? (record as JsonRecord).keyHash) as string | null,
     proxyId:
-      typeof record.proxy_id === "string" && record.proxy_id.trim() !== ""
-        ? record.proxy_id
-        : null,
+      typeof record.proxy_id === "string" && record.proxy_id.trim() !== "" ? record.proxy_id : null,
     allowedEndpoints: parseStringList(
       (record as JsonRecord).allowed_endpoints ?? (record as JsonRecord).allowedEndpoints
     ),
@@ -1341,7 +1506,11 @@ export async function getApiKeyMetadata(
       (record as JsonRecord).stream_default_mode ?? (record as JsonRecord).streamDefaultMode
     ),
     disableNonPublicModels: parseDisableNonPublicModels(
-      (record as JsonRecord).disable_non_public_models ?? (record as JsonRecord).disableNonPublicModels
+      (record as JsonRecord).disable_non_public_models ??
+        (record as JsonRecord).disableNonPublicModels
+    ),
+    allowUsageCommand: parseAllowUsageCommand(
+      (record as JsonRecord).allow_usage_command ?? (record as JsonRecord).allowUsageCommand
     ),
   };
 
@@ -1376,10 +1545,11 @@ export async function isModelAllowedForKey(
   // Create cache key
   const cacheKey = `${key}:${modelId}`;
   const now = Date.now();
+  const usesSettingDependentClaudeRouting = isPotentialUnprefixedClaudeCodeModel(modelId);
 
   // Check permission cache
   const cached = _modelPermissionCache.get(cacheKey);
-  if (cached && now - cached.timestamp < CACHE_TTL) {
+  if (!usesSettingDependentClaudeRouting && cached && now - cached.timestamp < CACHE_TTL) {
     return cached.allowed;
   }
 
@@ -1387,25 +1557,39 @@ export async function isModelAllowedForKey(
   // SECURITY: Key not found in database = deny access (invalid/non-existent key)
   if (!metadata) return false;
 
-  const { allowedModels, disableNonPublicModels } = metadata;
+  const { allowedModels, blockedModels, disableNonPublicModels } = metadata;
+  const modelPermissionCandidates = await getModelPermissionCandidates(modelId);
+
+  // Deny-list patterns win over any allow-list entry. This lets operators keep
+  // broad dynamic scopes like cc/* while excluding expensive families.
+  if (blockedModels?.some((pattern) => modelPatternMatches(pattern, modelPermissionCandidates))) {
+    return false;
+  }
 
   // Check disableNonPublicModels flag
   if (disableNonPublicModels) {
     const resolvedModelId = resolveModelAlias(modelId);
     const effectiveModelId = resolvedModelId || modelId;
-    
-    const providerId = effectiveModelId.split("/")[0];
-    const shortModelId = effectiveModelId.split("/").slice(1).join("/");
-    const syncedModelsByConnection = await getSyncedAvailableModelsByConnection(providerId);
-    const customModels = await getCustomModels(providerId);
-    
-    // Combine synced and custom models
-    const allDiscoveredModels = Object.values(syncedModelsByConnection).flat().concat(customModels);
-    const discovered = allDiscoveredModels.some((m) => m.id === shortModelId);
-    if (!discovered) return false;
-    
-    const isPublic = !getModelIsHidden(providerId, shortModelId);
-    if (!isPublic) return false;
+
+    if (!hasClaudeCodeWildcardPermission(allowedModels, modelPermissionCandidates)) {
+      const lookupTarget = await getPublishedModelLookupTarget(effectiveModelId);
+      const providerId = lookupTarget?.providerId || effectiveModelId.split("/")[0];
+      const shortModelId = lookupTarget?.modelId || effectiveModelId.split("/").slice(1).join("/");
+      if (!providerId || !shortModelId) return false;
+
+      const syncedModelsByConnection = await getSyncedAvailableModelsByConnection(providerId);
+      const customModels = await getCustomModels(providerId);
+
+      // Combine synced and custom models
+      const allDiscoveredModels = Object.values(syncedModelsByConnection)
+        .flat()
+        .concat(customModels);
+      const discovered = allDiscoveredModels.some((m) => m.id === shortModelId);
+      if (!discovered) return false;
+
+      const isPublic = !getModelIsHidden(providerId, shortModelId);
+      if (!isPublic) return false;
+    }
   }
 
   // Empty array means all models allowed
@@ -1418,24 +1602,9 @@ export async function isModelAllowedForKey(
   // Check if model matches each allowed pattern
   // Support exact match and prefix match (e.g., "openai/*" allows all OpenAI models)
   for (const pattern of allowedModels) {
-    if (pattern === modelId) {
+    if (modelPatternMatches(pattern, modelPermissionCandidates)) {
       allowed = true;
       break;
-    }
-    if (pattern.endsWith("/*")) {
-      const prefix = pattern.slice(0, -2); // Remove "/*"
-      if (modelId.startsWith(prefix + "/") || modelId.startsWith(prefix)) {
-        allowed = true;
-        break;
-      }
-    }
-    // Support wildcard patterns via deterministic matcher (no RegExp
-    // compilation from operator input — avoids ReDoS exposure).
-    if (pattern.includes("*")) {
-      if (matchesWildcardPattern(pattern, modelId)) {
-        allowed = true;
-        break;
-      }
     }
   }
 
@@ -1447,8 +1616,10 @@ export async function isModelAllowedForKey(
     }
   }
   // Cache the result
-  evictIfNeeded(_modelPermissionCache);
-  _modelPermissionCache.set(cacheKey, { allowed, timestamp: now });
+  if (!usesSettingDependentClaudeRouting) {
+    evictIfNeeded(_modelPermissionCache);
+    _modelPermissionCache.set(cacheKey, { allowed, timestamp: now });
+  }
 
   return allowed;
 }

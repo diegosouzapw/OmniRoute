@@ -42,11 +42,10 @@ export function clientWantsJsonResponse(acceptHeader: unknown): boolean {
  *
  * Optional `sourceFormat` argument lets callers apply spec-correct defaults
  * when both `stream` and `Accept` are ambiguous. The Anthropic Messages API
- * defaults to non-stream when the body omits `stream`, regardless of Accept
- * header. Without this hint, OmniRoute previously routed Anthropic /v1/messages
- * requests with a curl-default wildcard Accept header through the streaming
- * branch even though upstream returned JSON, producing STREAM_EARLY_EOF /
- * HTTP 502 errors.
+ * and the OpenAI Responses API both default to non-stream when the body omits
+ * `stream`. Without this hint, OmniRoute previously routed those requests with
+ * a curl-default wildcard Accept header through the streaming branch even
+ * though upstream returned JSON, producing STREAM_EARLY_EOF / HTTP 502.
  */
 export function resolveStreamFlag(
   bodyStream: unknown,
@@ -64,11 +63,11 @@ export function resolveStreamFlag(
   const acceptsEventStream =
     typeof acceptHeader === "string" && /text\/event-stream/i.test(acceptHeader);
 
-  // Anthropic Messages API spec: stream defaults to false when body omits it.
-  // Only honor an explicit text/event-stream Accept header as a streaming opt-in
-  // for /v1/messages — otherwise default to non-stream so upstream JSON responses
-  // are surfaced correctly instead of triggering stream_early_eof.
-  if (sourceFormat === "claude") {
+  // Anthropic Messages API and OpenAI Responses API both specify stream=false
+  // when the body omits `stream`. Honor an explicit text/event-stream Accept
+  // header as a streaming opt-in; otherwise default to non-stream so
+  // spec-compliant upstreams that return JSON don't trigger STREAM_EARLY_EOF.
+  if (sourceFormat === "claude" || sourceFormat === "openai-responses") {
     if (acceptsEventStream) return true;
     return false;
   }

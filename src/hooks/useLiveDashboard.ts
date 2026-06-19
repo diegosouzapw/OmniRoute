@@ -17,7 +17,17 @@ import type { DashboardChannel, DashboardEventName } from "@/lib/events/types";
 // ── Config ────────────────────────────────────────────────────────────────
 
 const WS_RECONNECT_DELAYS = [1000, 2000, 4000, 8000, 16000, 30000];
-const DEFAULT_WS_URL = `ws://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:20129`;
+function getDefaultWsUrl(): string {
+  if (typeof window === "undefined") return "ws://localhost:20129";
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const { hostname } = window.location;
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return `${protocol}//${hostname}:20129`;
+  }
+  return `${protocol}//${window.location.host}/live-ws`;
+}
+
+const DEFAULT_WS_URL = getDefaultWsUrl();
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -349,6 +359,8 @@ export interface LiveComboEvent {
   provider: string;
   model: string;
   type: "attempt" | "succeeded" | "failed";
+  /** Routing strategy, carried on the attempt payload (used by the Combo Studio). */
+  strategy?: string;
   latencyMs?: number;
   error?: string;
   timestamp: number;
@@ -374,6 +386,7 @@ export function useLiveComboStatus(options?: UseLiveDashboardOptions) {
         provider: data.provider,
         model: data.model,
         type: "attempt",
+        strategy: data.strategy,
         timestamp: event.timestamp,
       };
     } else if (event.event === "combo.target.succeeded") {

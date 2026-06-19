@@ -17,6 +17,30 @@ export const GLM_ANTHROPIC_DEFAULT_BASE_URLS = Object.freeze({
 
 export const GLM_SHARED_MODELS = Object.freeze([
   {
+    id: "glm-5.2",
+    name: "GLM 5.2",
+    contextLength: 1000000,
+    maxOutputTokens: 131072,
+    toolCalling: true,
+    supportsReasoning: true,
+  },
+  {
+    id: "glm-5.2-high",
+    name: "GLM 5.2 High",
+    contextLength: 1000000,
+    maxOutputTokens: 131072,
+    toolCalling: true,
+    supportsReasoning: true,
+  },
+  {
+    id: "glm-5.2-max",
+    name: "GLM 5.2 Max",
+    contextLength: 1000000,
+    maxOutputTokens: 131072,
+    toolCalling: true,
+    supportsReasoning: true,
+  },
+  {
     id: "glm-5.1",
     name: "GLM 5.1",
     contextLength: 204800,
@@ -112,7 +136,7 @@ export const GLM_QUOTA_URLS = Object.freeze({
 
 export const GLMT_TIMEOUT_MS = 900_000;
 
-export const GLM_TIMEOUT_MS = 900_000;
+export const GLM_TIMEOUT_MS = 3_000_000; // 50 min — aligned with Z.AI Coding Plan FAQ (API_TIMEOUT_MS=3000000)
 
 export const GLM_REQUEST_DEFAULTS = Object.freeze({
   maxTokens: 16_384,

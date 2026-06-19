@@ -1,7 +1,7 @@
 ---
 title: "OmniRoute Documentation"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.24
+lastUpdated: 2026-06-13
 ---
 
 # OmniRoute Documentation
@@ -50,7 +50,7 @@ Simple guides for using OmniRoute — no technical background needed.
 
 Technical documentation for developers and contributors.
 
-## architecture/
+## reference/
 
 Lookup material — API surface, environment variables, CLI flags, provider catalog.
 
@@ -78,7 +78,7 @@ Pluggable subsystems exposed to clients, agents, and operators.
 
 Combo routing, scoring, and replay.
 
-- [AUTO-COMBO.md](routing/AUTO-COMBO.md) — Auto-Combo (9-factor scoring, 14 strategies).
+- [AUTO-COMBO.md](routing/AUTO-COMBO.md) — Auto-Combo (9-factor scoring, 15 strategies).
 - [REASONING_REPLAY.md](routing/REASONING_REPLAY.md) — reasoning replay flow.
 
 ## security/
@@ -118,7 +118,7 @@ Mermaid sources and exported SVG/PNG diagrams referenced from the docs above. Po
 
 ## i18n/
 
-Translated mirrors of the documentation in 40 locales. See [i18n/README.md](i18n/README.md) for the supported language list.
+Translated mirrors of the documentation in 42 locales. See [i18n/README.md](i18n/README.md) for the supported language list.
 
 ## screenshots/
 

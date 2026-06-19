@@ -27,7 +27,9 @@ import {
   looksLikeQuotaExhausted,
   type FailureKind,
 } from "../../src/shared/utils/classify429";
+import { resolveProviderId } from "../../src/shared/constants/providers";
 import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
+import { isRpdExhausted, isRpmExhausted } from "./geminiRateLimitTracker.ts";
 
 export type ProviderProfile = {
   baseCooldownMs: number;
@@ -65,6 +67,9 @@ type ModelFailureState = {
   failureCount: number;
   lastFailureAt: number;
   resetAfterMs: number;
+  /** Cooldown applied on the last failure — extends the escalation window so a
+   *  model that fails again right after its lockout expires keeps escalating. */
+  lastCooldownMs?: number;
 };
 type AccountState = JsonRecord & {
   id?: string | null;
@@ -150,9 +155,6 @@ export const CREDITS_EXHAUSTED_SIGNALS = [
   "credits exhausted",
   "out of credits",
   "payment required",
-  "resource has been exhausted",
-  "resource_exhausted",
-  "check quota",
   "free tier of the model has been exhausted",
 ];
 
@@ -350,8 +352,20 @@ export async function getRuntimeProviderProfile(provider: string | null | undefi
 const modelLockouts = new Map<string, ModelLockoutEntry>();
 const modelFailureState = new Map<string, ModelFailureState>();
 
+// Aliases (e.g. "cx" → "codex") must share lockout state with their canonical
+// provider, otherwise a model locked via one spelling stays routable via the other.
+const canonicalProviderCache = new Map<string, string>();
+function getCanonicalLockProvider(provider: string): string {
+  let canonical = canonicalProviderCache.get(provider);
+  if (!canonical) {
+    canonical = resolveProviderId(provider);
+    canonicalProviderCache.set(provider, canonical);
+  }
+  return canonical;
+}
+
 function getModelLockKey(provider: string, connectionId: string, model: string) {
-  return `${provider}:${connectionId}:${model}`;
+  return `${getCanonicalLockProvider(provider)}:${connectionId}:${model}`;
 }
 
 function getFailureWindowMs(profile: ProviderProfile | null = null, fallbackMs = 30 * 60 * 1000) {
@@ -367,7 +381,9 @@ function cleanupModelLockKey(key: string, now = Date.now()) {
 
   const failure = modelFailureState.get(key);
   if (!failure) return;
-  if (now - failure.lastFailureAt <= failure.resetAfterMs) return;
+  // The escalation window extends past the applied cooldown: a model that fails
+  // again right after its lockout expires must keep escalating, not reset to 1.
+  if (now - failure.lastFailureAt <= failure.resetAfterMs + (failure.lastCooldownMs ?? 0)) return;
   if (modelLockouts.has(key)) return;
   modelFailureState.delete(key);
 }
@@ -468,7 +484,7 @@ export function recordModelLockoutFailure(
   status: number,
   fallbackCooldownMs: number,
   profile: ProviderProfile | null = null,
-  options: { exactCooldownMs?: number | null } = {}
+  options: { exactCooldownMs?: number | null; maxCooldownMs?: number } = {}
 ) {
   ensureCleanupTimer();
   const key = getModelLockKey(provider, connectionId, model);
@@ -483,23 +499,38 @@ export function recordModelLockoutFailure(
 
   const resetAfterMs = getFailureWindowMs(profile);
   const previous = modelFailureState.get(key);
-  const withinWindow = previous && now - previous.lastFailureAt <= previous.resetAfterMs;
+  // Escalation window extends past the previously applied cooldown so a model
+  // that fails again right after its lockout expires keeps escalating.
+  const withinWindow =
+    previous &&
+    now - previous.lastFailureAt <= previous.resetAfterMs + (previous.lastCooldownMs ?? 0);
   const failureCount = withinWindow ? previous.failureCount + 1 : 1;
+
+  const baseCooldownMs = getModelLockBaseCooldown(status, fallbackCooldownMs, profile);
+  // Cap exponential backoff so repeated failures cannot produce absurdly long
+  // lockouts; exact cooldowns (e.g. daily-quota until-midnight) are not capped.
+  const maxCooldownMs =
+    typeof options.maxCooldownMs === "number" && options.maxCooldownMs > 0
+      ? options.maxCooldownMs
+      : BACKOFF_CONFIG.max;
+  const cooldownMs =
+    typeof options.exactCooldownMs === "number" && options.exactCooldownMs > 0
+      ? options.exactCooldownMs
+      : Math.min(
+          getScaledCooldown(
+            baseCooldownMs,
+            failureCount,
+            profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel
+          ),
+          maxCooldownMs
+        );
+
   modelFailureState.set(key, {
     failureCount,
     lastFailureAt: now,
     resetAfterMs,
+    lastCooldownMs: cooldownMs,
   });
-
-  const baseCooldownMs = getModelLockBaseCooldown(status, fallbackCooldownMs, profile);
-  const cooldownMs =
-    typeof options.exactCooldownMs === "number" && options.exactCooldownMs > 0
-      ? options.exactCooldownMs
-      : getScaledCooldown(
-          baseCooldownMs,
-          failureCount,
-          profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel
-        );
 
   lockModel(provider, connectionId, model, reason, cooldownMs, {
     failureCount,
@@ -588,6 +619,36 @@ export function shouldMarkAccountExhaustedFrom429(
     shouldPreserveQuotaSignalsFor429(provider) &&
     !hasPerModelQuota(provider, model, connectionPassthroughModels)
   );
+}
+
+export function classifyLockoutReason(status: number): string {
+  if (status === 429) return "rate_limit";
+  if (status === 403) return "quota_exhausted";
+  return "unknown";
+}
+
+export type DecayResult = { cleared: boolean; newFailureCount: number };
+
+export function decayModelFailureCount(
+  provider: string,
+  connectionId: string,
+  model: string
+): DecayResult {
+  const key = getModelLockKey(provider, connectionId, model);
+  const failure = modelFailureState.get(key);
+  if (!failure) return { cleared: false, newFailureCount: 0 };
+
+  const newFailureCount = Math.floor(failure.failureCount / 2);
+  if (newFailureCount === 0) {
+    modelFailureState.delete(key);
+    return { cleared: true, newFailureCount: 0 };
+  } else {
+    modelFailureState.set(key, {
+      ...failure,
+      failureCount: newFailureCount,
+    });
+    return { cleared: false, newFailureCount };
+  }
 }
 
 /**
@@ -933,8 +994,9 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
   // 2026-05-17T10:00:00Z" or "Please wait until 2026-05-17T10:00:00.000Z").
   // Convert to a future-duration in milliseconds if it parses.
   const isoMatch =
-    /\b(?:try again at|wait until|reset(?:s)? at|available at|retry after)\s+(\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)/i
-      .exec(msg);
+    /\b(?:try again at|wait until|reset(?:s)? at|available at|retry after)\s+(\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)/i.exec(
+      msg
+    );
   if (isoMatch) {
     const parsedTs = Date.parse(isoMatch[1]);
     if (Number.isFinite(parsedTs)) {
@@ -1021,10 +1083,8 @@ export function classifyErrorText(errorText: unknown): RateLimitReasonValue {
   const configuredRule = matchErrorRuleByText(errorText);
   if (configuredRule?.reason) return configuredRule.reason;
   if (lower.includes("rate_limit")) return RateLimitReason.RATE_LIMIT_EXCEEDED;
-  if (
-    lower.includes("resource exhausted") ||
-    lower.includes("high demand")
-  ) return RateLimitReason.MODEL_CAPACITY;
+  if (lower.includes("resource exhausted") || lower.includes("high demand"))
+    return RateLimitReason.MODEL_CAPACITY;
   if (
     lower.includes("unauthorized") ||
     lower.includes("invalid api key") ||
@@ -1414,6 +1474,19 @@ export function checkFallbackError(
     }
   }
 
+  // Gemini-specific: use known published RPM/RPD limits to distinguish 429 types.
+  // Gemini returns the same error body for both, so we use per-model request
+  // counters to decide: if daily count >= RPD → quota_exhausted (midnight lockout);
+  // if minute count >= RPM → rate_limit_exceeded (exponential backoff).
+  if (provider === "gemini" && status === HTTP_STATUS.RATE_LIMITED && _model) {
+    if (isRpdExhausted(_model)) {
+      return buildRetryableFallback(RateLimitReason.QUOTA_EXHAUSTED);
+    }
+    if (isRpmExhausted(_model)) {
+      return buildRetryableFallback(RateLimitReason.RATE_LIMIT_EXCEEDED);
+    }
+  }
+
   const configuredRule =
     isRateLimitStatus && !preserveQuota429
       ? matchErrorRuleByStatus(status)
@@ -1504,11 +1577,30 @@ export function checkFallbackError(
 // ─── Account State Management ───────────────────────────────────────────────
 
 /**
+ * Normalize a stored cooldown timestamp to epoch milliseconds.
+ *
+ * `rate_limited_until` is a TEXT column, but some write paths persist a raw
+ * epoch NUMBER (e.g. `setConnectionRateLimitUntil` on the Antigravity full-quota
+ * path). SQLite TEXT affinity coerces it to a numeric string like
+ * "1781696905131.0", which `new Date(...)` cannot parse (→ NaN). Accept numeric
+ * epoch strings/numbers as well as ISO strings and Date objects (#3954).
+ */
+export function cooldownUntilMs(value: string | number | Date | null | undefined): number {
+  if (value === null || value === undefined || value === "") return NaN;
+  if (value instanceof Date) return value.getTime();
+  if (typeof value === "number") return value;
+  const raw = value.trim();
+  if (/^\d+(\.\d+)?$/.test(raw)) return Number(raw);
+  return new Date(raw).getTime();
+}
+
+/**
  * Check if account is currently unavailable (cooldown not expired)
  */
 export function isAccountUnavailable(unavailableUntil: string | Date | null | undefined): boolean {
   if (!unavailableUntil) return false;
-  return new Date(unavailableUntil).getTime() > Date.now();
+  const ms = cooldownUntilMs(unavailableUntil);
+  return Number.isFinite(ms) && ms > Date.now();
 }
 
 /**
@@ -1528,8 +1620,8 @@ export function getEarliestRateLimitedUntil(
   const now = Date.now();
   for (const acc of accounts) {
     if (!acc.rateLimitedUntil) continue;
-    const until = new Date(acc.rateLimitedUntil).getTime();
-    if (until <= now) continue;
+    const until = cooldownUntilMs(acc.rateLimitedUntil);
+    if (!Number.isFinite(until) || until <= now) continue;
     if (!earliest || until < earliest) earliest = until;
   }
   if (!earliest) return null;
@@ -1567,8 +1659,8 @@ export function filterAvailableAccounts<T extends AccountState>(
   return accounts.filter((acc) => {
     if (excludeId && acc.id === excludeId) return false;
     if (acc.rateLimitedUntil) {
-      const until = new Date(acc.rateLimitedUntil).getTime();
-      if (until > now) return false;
+      const until = cooldownUntilMs(acc.rateLimitedUntil);
+      if (Number.isFinite(until) && until > now) return false;
     }
     return true;
   });

@@ -1,0 +1,84 @@
+name: Quality Gates
+
+on:
+  pull_request:
+    branches: ["release/**"]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CI_NODE_VERSION: "24"
+
+jobs:
+  fast-gates:
+    name: Fast Quality Gates
+    runs-on: ubuntu-latest
+    # tsx gates (known-symbols, route-guard-membership) import modules that open
+    # SQLite on load; provide DB env so a fresh CI DB initializes cleanly.
+    env:
+      JWT_SECRET: ci-lint-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-lint-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run check:provider-consistency
+      - run: npm run check:fetch-targets
+      - run: npm run check:openapi-routes
+      - run: npm run check:docs-symbols
+      - run: npm run check:deps
+      - run: npm run check:file-size
+      - run: npm run check:error-helper
+      - run: npm run check:migration-numbering
+      - run: npm run check:public-creds
+      - run: npm run check:db-rules
+      - run: npm run check:known-symbols
+      - run: npm run check:route-guard-membership
+      - run: npm run check:test-discovery
+      - run: npm run check:any-budget:t11
+      - name: Typecheck (core)
+        run: npm run typecheck:core
+      # TIA: build the impact map at runtime (gitignored, ~21MB) and run only the
+      # unit tests impacted by this PR's changed files. Fail-safe runs the FULL
+      # unit suite on hub/unmapped changes — TIA accelerates, never replaces, the net.
+      #
+      # BLOCKING (flipped 2026-06-17). The pre-existing release unit test-debt that kept
+      # this advisory was cleared: #4030 (16 Zod/registry reds, lossless restore) and
+      # #4063 (the last red — the LiveWS boot test — root-caused as a real event-loop
+      # stall in the WS sidecar, fixed + relocated to the integration suite). A full
+      # ci.yml run on release/v3.8.28 then showed all 8 unit shards green, so PR->release
+      # now blocks on unit-test regressions in the impacted set (typecheck:core already
+      # blocked above). Fail-safe still runs the FULL unit suite on hub/unmapped changes.
+      - name: Impacted unit tests (TIA, fail-safe full; blocking)
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch --no-tags origin "$GITHUB_BASE_REF" || true
+          node scripts/quality/build-test-impact-map.mjs
+          SEL="$(node scripts/quality/select-impacted-tests.mjs)"
+          if [ -z "$SEL" ]; then echo "No source/test changes — skipping unit tests"; exit 0; fi
+          # CI runners are 4-vCPU; run at --test-concurrency=4 (matching the ci.yml unit
+          # job) rather than test:unit's local-tuned concurrency=20. Oversubscribing the
+          # runner makes timing-sensitive tests (db-backup, upstream-timeout, ...) flake,
+          # which must not happen on a blocking gate. DATA_DIR isolation keeps the parallel
+          # run race-free regardless of concurrency.
+          if echo "$SEL" | grep -q "__RUN_ALL__"; then
+            echo "Fail-safe: running FULL unit suite (CI concurrency)"; npm run test:unit:ci; exit $?
+          fi
+          echo "Running impacted tests:"; echo "$SEL"
+          mapfile -t FILES <<< "$SEL"
+          node --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 "${FILES[@]}"

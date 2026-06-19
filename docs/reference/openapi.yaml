@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OmniRoute API
-  version: 3.8.22
+  version: 3.8.30
   description: |
     OmniRoute is a local-first AI API proxy router. It provides an OpenAI-compatible
     endpoint that routes requests to multiple AI providers with load balancing,
@@ -138,7 +138,7 @@ paths:
                     - detailed
                   default: concise
       responses:
-        '200':
+        "200":
           description: Improved prompt(s)
           content:
             application/json:
@@ -153,10 +153,10 @@ paths:
                     type: integer
                   tokensOut:
                     type: integer
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/playground/presets:
     get:
       tags:
@@ -166,7 +166,7 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '200':
+        "200":
           description: Preset list
           content:
             application/json:
@@ -176,9 +176,9 @@ paths:
                   presets:
                     type: array
                     items:
-                      $ref: '#/components/schemas/PlaygroundPreset'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                      $ref: "#/components/schemas/PlaygroundPreset"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
     post:
       tags:
         - Playground
@@ -191,18 +191,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PlaygroundPresetCreate'
+              $ref: "#/components/schemas/PlaygroundPresetCreate"
       responses:
-        '201':
+        "201":
           description: Created preset
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PlaygroundPreset'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/PlaygroundPreset"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/playground/presets/{id}:
     parameters:
       - name: id
@@ -218,15 +218,15 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '200':
+        "200":
           description: Preset found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PlaygroundPreset'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
+                $ref: "#/components/schemas/PlaygroundPreset"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
           description: Preset not found
     put:
       tags:
@@ -239,19 +239,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PlaygroundPresetCreate'
+              $ref: "#/components/schemas/PlaygroundPresetCreate"
       responses:
-        '200':
+        "200":
           description: Updated preset
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PlaygroundPreset'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
+                $ref: "#/components/schemas/PlaygroundPreset"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
           description: Preset not found
     delete:
       tags:
@@ -260,11 +260,11 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '204':
+        "204":
           description: Deleted
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
           description: Preset not found
   # --- Memory Engine (plan 21) ---
   /api/memory:
@@ -315,7 +315,7 @@ paths:
             type: integer
             minimum: 0
       responses:
-        '200':
+        "200":
           description: Paginated list of memories with stats
           content:
             application/json:
@@ -325,7 +325,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/MemoryEntry'
+                      $ref: "#/components/schemas/MemoryEntry"
                   total:
                     type: integer
                   totalPages:
@@ -346,8 +346,8 @@ paths:
                             type: integer
                           misses:
                             type: integer
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
     post:
       tags:
         - Memory
@@ -391,16 +391,16 @@ paths:
                   format: date-time
                   nullable: true
       responses:
-        '201':
+        "201":
           description: Created memory entry
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MemoryEntry'
-        '400':
+                $ref: "#/components/schemas/MemoryEntry"
+        "400":
           description: Validation error
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/memory/{id}:
     parameters:
       - name: id
@@ -416,15 +416,15 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Memory entry
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MemoryEntry'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
+                $ref: "#/components/schemas/MemoryEntry"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
           description: Memory not found
     put:
       tags:
@@ -458,17 +458,17 @@ paths:
                   additionalProperties: true
               additionalProperties: false
       responses:
-        '200':
+        "200":
           description: Updated memory entry
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MemoryEntry'
-        '400':
+                $ref: "#/components/schemas/MemoryEntry"
+        "400":
           description: Validation error
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
           description: Memory not found
     delete:
       tags:
@@ -478,7 +478,7 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Deleted
           content:
             application/json:
@@ -487,9 +487,9 @@ paths:
                 properties:
                   success:
                     type: boolean
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
           description: Memory not found
   /api/memory/health:
     get:
@@ -500,7 +500,7 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Health result
           content:
             application/json:
@@ -514,8 +514,8 @@ paths:
                   error:
                     type: string
                     nullable: true
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/memory/retrieve-preview:
     post:
       tags:
@@ -558,7 +558,7 @@ paths:
                   default: 20
               additionalProperties: false
       responses:
-        '200':
+        "200":
           description: Preview results
           content:
             application/json:
@@ -634,10 +634,10 @@ paths:
                     type: integer
                   budgetMaxTokens:
                     type: integer
-        '400':
+        "400":
           description: Validation error
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/memory/embedding-providers:
     get:
       tags:
@@ -647,7 +647,7 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Provider list
           content:
             application/json:
@@ -670,14 +670,14 @@ paths:
                             properties:
                               id:
                                 type: string
-                                description: 'Format: provider/model'
+                                description: "Format: provider/model"
                               name:
                                 type: string
                               dimensions:
                                 type: integer
                                 nullable: true
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/memory/engine-status:
     get:
       tags:
@@ -687,7 +687,7 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Engine status
           content:
             application/json:
@@ -778,14 +778,14 @@ paths:
                         type: boolean
                       reason:
                         type: string
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/memory/summarize:
     post:
       tags:
         - Memory
       summary: Compact old memories
-      description: 'Manually triggers memory compaction for memories older than `olderThanDays`. Use `dryRun: true` to preview candidates. Corresponds to `MemorySummarizeSchema`.'
+      description: "Manually triggers memory compaction for memories older than `olderThanDays`. Use `dryRun: true` to preview candidates. Corresponds to `MemorySummarizeSchema`."
       security:
         - ManagementSessionAuth: []
       requestBody:
@@ -808,7 +808,7 @@ paths:
                   default: false
               additionalProperties: false
       responses:
-        '200':
+        "200":
           description: Summarization result
           content:
             application/json:
@@ -821,16 +821,16 @@ paths:
                     type: integer
                   dryRun:
                     type: boolean
-        '400':
+        "400":
           description: Validation error
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/memory/reindex:
     post:
       tags:
         - Memory
       summary: Trigger vector reindex
-      description: 'Starts background reindexing of memories with `needs_reindex = 1`. Use `force: true` to regenerate ALL vectors regardless of index status. Corresponds to `MemoryReindexSchema`.'
+      description: "Starts background reindexing of memories with `needs_reindex = 1`. Use `force: true` to regenerate ALL vectors regardless of index status. Corresponds to `MemoryReindexSchema`."
       security:
         - ManagementSessionAuth: []
       requestBody:
@@ -846,7 +846,7 @@ paths:
                   description: When true, marks all memories needs_reindex=1 before running.
               additionalProperties: false
       responses:
-        '200':
+        "200":
           description: Reindex started
           content:
             application/json:
@@ -858,10 +858,10 @@ paths:
                   pending:
                     type: integer
                     description: Memories still pending after this batch
-        '400':
+        "400":
           description: Validation error
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/settings/memory:
     get:
       tags:
@@ -872,20 +872,20 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Extended memory settings
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MemorySettingsExtended'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/MemorySettingsExtended"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
     put:
       tags:
         - Memory
         - Settings
       summary: Update memory settings
-      description: 'Update any subset of the extended memory settings. All fields are optional; only provided fields are updated. Schema: `MemorySettingsExtendedSchema`.'
+      description: "Update any subset of the extended memory settings. All fields are optional; only provided fields are updated. Schema: `MemorySettingsExtendedSchema`."
       security:
         - ManagementSessionAuth: []
       requestBody:
@@ -893,18 +893,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MemorySettingsExtended'
+              $ref: "#/components/schemas/MemorySettingsExtended"
       responses:
-        '200':
+        "200":
           description: Updated memory settings
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MemorySettingsExtended'
-        '400':
+                $ref: "#/components/schemas/MemorySettingsExtended"
+        "400":
           description: Validation error
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/settings/qdrant:
     get:
       tags:
@@ -915,14 +915,14 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Qdrant settings
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/QdrantSettings'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/QdrantSettings"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
     put:
       tags:
         - Memory
@@ -957,16 +957,16 @@ paths:
                   description: Empty string removes the key
               additionalProperties: false
       responses:
-        '200':
+        "200":
           description: Updated Qdrant settings
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/QdrantSettings'
-        '400':
+                $ref: "#/components/schemas/QdrantSettings"
+        "400":
           description: Validation error
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/settings/qdrant/health:
     get:
       tags:
@@ -976,20 +976,20 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Health result
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/QdrantHealthResult'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/QdrantHealthResult"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/settings/qdrant/search:
     post:
       tags:
         - Memory
       summary: Qdrant semantic search test
-      description: 'Performs a test semantic search against the Qdrant collection. Useful for validating that the integration works end-to-end. Schema: `QdrantSearchSchema`.'
+      description: "Performs a test semantic search against the Qdrant collection. Useful for validating that the integration works end-to-end. Schema: `QdrantSearchSchema`."
       security:
         - ManagementSessionAuth: []
       requestBody:
@@ -1011,7 +1011,7 @@ paths:
                   default: 5
               additionalProperties: false
       responses:
-        '200':
+        "200":
           description: Search results
           content:
             application/json:
@@ -1022,11 +1022,11 @@ paths:
                     type: array
                     items:
                       type: object
-        '400':
+        "400":
           description: Validation error
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '503':
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "503":
           description: Qdrant unavailable (structured error, no stack trace)
   /api/settings/qdrant/cleanup:
     post:
@@ -1037,7 +1037,7 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Cleanup result
           content:
             application/json:
@@ -1048,9 +1048,9 @@ paths:
                     type: integer
                   checked:
                     type: integer
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '503':
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "503":
           description: Qdrant unavailable (structured error, no stack trace)
   /api/settings/qdrant/embedding-models:
     get:
@@ -1061,7 +1061,7 @@ paths:
       security:
         - ManagementSessionAuth: []
       responses:
-        '200':
+        "200":
           description: Embedding models list
           content:
             application/json:
@@ -1072,8 +1072,8 @@ paths:
                     type: array
                     items:
                       type: string
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   # ─── Proxy Endpoints ──────────────────────────────────────────
 
   /api/v1/chat/completions:
@@ -1092,6 +1092,48 @@ paths:
       responses:
         "200":
           description: Chat completion response (or SSE stream)
+          headers:
+            X-OmniRoute-Response-Cost:
+              schema:
+                type: string
+              description: Request cost in USD, fixed 10 decimals (e.g. `0.0001234500`; `0.0000000000` for free/unpriced).
+            X-OmniRoute-Tokens-In:
+              schema:
+                type: string
+              description: Input (prompt) token count.
+            X-OmniRoute-Tokens-Out:
+              schema:
+                type: string
+              description: Output (completion) token count.
+            X-OmniRoute-Model:
+              schema:
+                type: string
+              description: Resolved model.
+            X-OmniRoute-Provider:
+              schema:
+                type: string
+              description: Resolved provider alias.
+            X-OmniRoute-Latency-Ms:
+              schema:
+                type: string
+              description: Handler latency in milliseconds.
+            X-OmniRoute-Cache-Hit:
+              schema:
+                type: string
+                enum: ["true", "false"]
+              description: Whether the response was served from cache.
+            X-OmniRoute-Fallback-Attempts:
+              schema:
+                type: string
+              description: Number of fallback attempts (only present when > 0).
+            X-OmniRoute-Request-Id:
+              schema:
+                type: string
+              description: Request correlation id (present when known).
+            X-OmniRoute-Version:
+              schema:
+                type: string
+              description: OmniRoute build version (always present).
           content:
             application/json:
               schema:
@@ -1103,6 +1145,42 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "502":
           description: All upstream providers failed
+
+  /api/v1/ws:
+    get:
+      tags: [Chat]
+      summary: Chat completion over WebSocket (handshake + upgrade)
+      description: >-
+        OpenAI-compatible chat over a WebSocket connection. `GET` with
+        `?handshake=1` returns the connection descriptor (auth path, message
+        protocol and live-event channels) as JSON; a plain `GET` without an
+        Upgrade returns `426 Upgrade Required`. After upgrading, the client
+        exchanges JSON frames — `{type:"request", id, payload:{model, messages}}`
+        to start a completion and `{type:"cancel", id}` to abort it. A separate
+        live channel (default port `LIVE_WS_PORT=20129`, path `/live`) streams
+        dashboard events on the `requests`, `combo` and `credentials` topics with
+        a 15s heartbeat. Requires an API key.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: handshake
+          in: query
+          description: Set to `1` to receive the JSON connection descriptor instead of upgrading.
+          required: false
+          schema:
+            type: string
+            enum: ["1"]
+      responses:
+        "101":
+          description: WebSocket upgrade successful
+        "200":
+          description: Handshake descriptor (auth path, message protocol, live channels)
+        "401":
+          description: WebSocket auth required (no credential supplied)
+        "403":
+          description: Invalid WebSocket credential
+        "426":
+          description: Upgrade Required — connect via WebSocket or use `?handshake=1`
 
   /api/v1/providers/{provider}/chat/completions:
     post:
@@ -1161,7 +1239,11 @@ paths:
               $ref: "#/components/schemas/MessagesRequest"
       responses:
         "200":
-          description: Message response (or SSE stream)
+          description: >-
+            Message response (or SSE stream). Non-streaming success responses
+            carry the `X-OmniRoute-*` cost-telemetry headers (see
+            `POST /api/v1/chat/completions`), including `X-OmniRoute-Request-Id`
+            and `X-OmniRoute-Version`.
         "401":
           $ref: "#/components/responses/Unauthorized"
 
@@ -1196,7 +1278,11 @@ paths:
               type: object
       responses:
         "200":
-          description: Response object or SSE stream
+          description: >-
+            Response object or SSE stream. Non-streaming success responses carry
+            the `X-OmniRoute-*` cost-telemetry headers (see
+            `POST /api/v1/chat/completions`), including `X-OmniRoute-Request-Id`
+            and `X-OmniRoute-Version`.
         "401":
           $ref: "#/components/responses/Unauthorized"
 
@@ -1224,7 +1310,11 @@ paths:
                   type: string
       responses:
         "200":
-          description: Embedding vectors
+          description: >-
+            Embedding vectors. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`); media
+            cost is computed per modality when pricing is available, otherwise
+            `0` (fail-open).
 
   /api/v1/providers/{provider}/embeddings:
     post:
@@ -1274,7 +1364,11 @@ paths:
                   default: 1024x1024
       responses:
         "200":
-          description: Generated images
+          description: >-
+            Generated images. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`); image
+            cost is computed per image when pricing is available, otherwise `0`
+            (fail-open).
 
   /api/v1/providers/{provider}/images/generations:
     post:
@@ -1321,7 +1415,11 @@ paths:
                   type: string
       responses:
         "200":
-          description: Audio data
+          description: >-
+            Audio data. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`); speech
+            cost is computed per character when pricing is available, otherwise
+            `0` (fail-open).
 
   /api/v1/audio/transcriptions:
     post:
@@ -1345,7 +1443,11 @@ paths:
                   type: string
       responses:
         "200":
-          description: Transcription result
+          description: >-
+            Transcription result. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`);
+            transcription cost is computed per second when pricing is available,
+            otherwise `0` (fail-open).
 
   /api/v1/moderations:
     post:
@@ -1370,7 +1472,10 @@ paths:
                         type: string
       responses:
         "200":
-          description: Moderation result
+          description: >-
+            Moderation result. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`);
+            moderations are always cost `0` (free).
 
   /api/v1/rerank:
     post:
@@ -1397,7 +1502,11 @@ paths:
                   type: string
       responses:
         "200":
-          description: Reranked documents
+          description: >-
+            Reranked documents. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`); rerank
+            cost is computed per search-unit when pricing is available,
+            otherwise `0` (fail-open).
 
   /api/v1:
     get:
@@ -1702,6 +1811,8 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/ApiKey"
+        "401":
+          description: Authentication required
     post:
       tags: [API Keys]
       summary: Create API key
@@ -1718,8 +1829,43 @@ paths:
       responses:
         "201":
           description: Created API key (includes full key value)
+        "401":
+          description: Authentication required
 
   /api/keys/{id}:
+    get:
+      tags: [API Keys]
+      summary: Get API key
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: API key metadata
+        "401":
+          description: Authentication required
+        "404":
+          description: Key not found
+    patch:
+      tags: [API Keys]
+      summary: Update API key
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: API key settings updated
+        "400":
+          description: Invalid update request
+        "401":
+          description: Authentication required
+        "404":
+          description: Key not found
     delete:
       tags: [API Keys]
       summary: Delete API key
@@ -1728,6 +1874,10 @@ paths:
       responses:
         "200":
           description: Key deleted
+        "401":
+          description: Authentication required
+        "404":
+          description: Key not found
 
   /api/combos:
     get:
@@ -1803,6 +1953,49 @@ paths:
         "200":
           description: Updated settings
 
+  /api/settings/purge-request-history:
+    post:
+      tags: [Settings]
+      summary: Clear request log history
+      description: Deletes `call_logs`, legacy `request_detail_logs`, and local request artifact files under `DATA_DIR/call_logs`.
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Request history cleared
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: integer
+                  deletedArtifacts:
+                    type: integer
+                  deletedDetailedLogs:
+                    type: integer
+                  errors:
+                    type: integer
+        "401":
+          description: Unauthorized
+        "500":
+          description: Cleanup failed or reported errors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: integer
+                  deletedArtifacts:
+                    type: integer
+                  deletedDetailedLogs:
+                    type: integer
+                  errors:
+                    type: integer
+                  error:
+                    type: object
+
   /api/settings/compression:
     get:
       tags: [Compression]
@@ -1845,6 +2038,52 @@ paths:
       responses:
         "200":
           description: Updated compression settings
+
+  /api/settings/compression/mcp-accessibility:
+    get:
+      tags: [Compression]
+      summary: Get the MCP tool-output accessibility (trimming) config
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Current mcpAccessibility config
+    put:
+      tags: [Compression]
+      summary: Update the MCP tool-output accessibility (trimming) config
+      description: >-
+        Partial-merge update. Numeric floors (e.g. a maxTextChars below the truncation-tail
+        reserve) are folded back to the safe defaults server-side, so the response reflects the
+        effective config.
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                maxTextChars:
+                  type: integer
+                  minimum: 1
+                collapseThreshold:
+                  type: integer
+                  minimum: 1
+                collapseKeepHead:
+                  type: integer
+                  minimum: 0
+                collapseKeepTail:
+                  type: integer
+                  minimum: 0
+                minLengthToProcess:
+                  type: integer
+                  minimum: 1
+      responses:
+        "200":
+          description: Updated mcpAccessibility config (numeric floors applied)
 
   /api/compression/preview:
     post:
@@ -2467,6 +2706,92 @@ paths:
       responses:
         "200":
           description: Translation history entries
+
+  # ─── CLI Remote Mode ───────────────────────────────────────────
+
+  /api/cli/connect:
+    post:
+      tags: [CLI Remote Mode]
+      summary: Exchange the management password for a scoped CLI access token
+      description: >
+        Remote-mode bootstrap. Public (password-gated) route: verifies the
+        management password with brute-force lockout, then mints an `oma_`
+        access token. The plaintext token is returned once.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string }
+                name: { type: string }
+                scope: { type: string, enum: [read, write, admin] }
+                expiresInDays: { type: integer, minimum: 1, maximum: 3650 }
+      responses:
+        "200":
+          description: Token minted (token returned once)
+        "401":
+          description: Invalid password
+        "429":
+          description: Too many failed attempts
+
+  /api/cli/whoami:
+    get:
+      tags: [CLI Remote Mode]
+      summary: Report the current credential (scope, name, expiry)
+      responses:
+        "200":
+          description: Authenticated; access-token details when applicable
+        "401":
+          description: Authentication required
+
+  /api/cli/tokens:
+    get:
+      tags: [CLI Remote Mode]
+      summary: List access tokens (masked) — admin scope
+      responses:
+        "200":
+          description: Masked token list
+        "403":
+          description: Insufficient scope
+    post:
+      tags: [CLI Remote Mode]
+      summary: Create a scoped access token — admin scope
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                scope: { type: string, enum: [read, write, admin] }
+                expiresInDays: { type: integer, minimum: 1, maximum: 3650 }
+      responses:
+        "200":
+          description: Token created (token returned once)
+        "403":
+          description: Insufficient scope
+
+  /api/cli/tokens/{id}:
+    delete:
+      tags: [CLI Remote Mode]
+      summary: Revoke an access token by id or display prefix — admin scope
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Token revoked
+        "403":
+          description: Insufficient scope
+        "404":
+          description: Token not found or already revoked
 
   # ─── CLI Tools ─────────────────────────────────────────────────
 
@@ -3401,11 +3726,18 @@ paths:
               properties:
                 password:
                   type: string
+                  minLength: 1
       responses:
         "200":
           description: JWT token returned
+        "400":
+          description: Invalid login request
         "401":
           description: Invalid password
+        "403":
+          description: Password setup required
+        "429":
+          description: Too many failed attempts
 
   /api/auth/logout:
     post:
@@ -3453,6 +3785,27 @@ paths:
       responses:
         "200":
           description: Backup created
+    patch:
+      tags: [System]
+      summary: Save database backup retention settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                keepLatest:
+                  type: integer
+                  minimum: 1
+                  maximum: 200
+                retentionDays:
+                  type: integer
+                  minimum: 0
+                  maximum: 3650
+      responses:
+        "200":
+          description: Backup retention settings saved
 
   /api/storage/health:
     get:
@@ -4964,6 +5317,39 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ValidationErrorResponse"
+    BadRequest:
+      description: The request was malformed or failed validation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorResponse"
+          example:
+            error:
+              message: Invalid request
+              type: invalid_request_error
+            requestId: 8c2b1d44-7a3e-4c91-9b0f-1e2d3c4b5a60
+    NotFound:
+      description: The requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorResponse"
+          example:
+            error:
+              message: Resource not found
+              type: not_found_error
+            requestId: 4d5e6f70-1a2b-3c4d-5e6f-7a8b9c0d1e2f
+    InternalError:
+      description: An unexpected server error occurred
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorResponse"
+          example:
+            error:
+              message: Internal server error
+              type: api_error
+            requestId: 0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d
 
   schemas:
     PlaygroundPreset:
@@ -5422,7 +5808,20 @@ components:
     InterceptedRequest:
       type: object
       description: A single intercepted HTTP request captured by the Traffic Inspector
-      required: [id, source, timestamp, method, host, path, requestHeaders, requestSize, responseHeaders, responseSize, status]
+      required:
+        [
+          id,
+          source,
+          timestamp,
+          method,
+          host,
+          path,
+          requestHeaders,
+          requestSize,
+          responseHeaders,
+          responseSize,
+          status,
+        ]
       properties:
         id:
           type: string

@@ -34,6 +34,11 @@ const LOCAL_PORT =
   Number.isInteger(parsedLocalPort) && parsedLocalPort > 0 && parsedLocalPort <= 65535
     ? parsedLocalPort
     : 443;
+// Idle timeout for sockets/tunnels. Mirrors ProxyBridge's 60s relay timeout so
+// hung/half-open connections cannot accumulate and exhaust fds. (Gap 10.)
+const parsedIdleTimeout = Number.parseInt(process.env.MITM_IDLE_TIMEOUT_MS || "60000", 10);
+const MITM_IDLE_TIMEOUT_MS =
+  Number.isInteger(parsedIdleTimeout) && parsedIdleTimeout > 0 ? parsedIdleTimeout : 60000;
 const ROUTER_BASE_URL = (
   process.env.OMNIROUTE_BASE_URL ||
   process.env.BASE_URL ||
@@ -129,6 +134,43 @@ function sanitizeErrorMessage(message) {
 // =========================================================================
 
 const bypassShim = require("./_internal/bypass.cjs");
+const ingestShim = require("./_internal/ingest.cjs");
+
+// Inspector capture (D4 fallback). The standalone proxy intercepts AgentBridge
+// traffic inline (no MitmHandlerBase / agentBridgeHook), so it posts captured
+// entries to the local-only ingest endpoint to make them visible in the Traffic
+// Inspector. The token is injected by manager.ts (same value the OmniRoute
+// process uses); absent token → capture is silently skipped.
+const INGEST_TOKEN = process.env.INSPECTOR_INTERNAL_INGEST_TOKEN || "";
+// Cap captured bodies to keep proxy memory bounded (the buffer truncates again).
+const INGEST_MAX_BODY = 65536;
+
+// Flatten Node http headers (plain object, values string|string[]) or a fetch
+// Headers instance into a Record<string,string> for the inspector entry.
+function headersToObject(headers) {
+  const out = {};
+  if (!headers) return out;
+  if (typeof headers.forEach === "function") {
+    // fetch Headers instance: forEach(value, key)
+    headers.forEach((value, key) => {
+      out[String(key)] = String(value);
+    });
+    return out;
+  }
+  for (const key of Object.keys(headers)) {
+    const v = headers[key];
+    if (v == null) continue;
+    out[key] = Array.isArray(v) ? v.join(", ") : String(v);
+  }
+  return out;
+}
+
+// Routing-decision log verbosity (Gap 15). MITM_VERBOSE=0 silences the
+// per-request decision lines; default 1 preserves the previous behavior.
+const VERBOSE = bypassShim.parseVerboseLevel(process.env.MITM_VERBOSE);
+function vlog(level, msg) {
+  if (VERBOSE >= level) console.log(msg);
+}
 
 const BYPASS_JSON_FILE = path.join(DATA_DIR, "mitm", "bypass.json");
 let _userBypassPatterns = []; // array of glob strings, lowercased
@@ -332,6 +374,19 @@ async function passthrough(req, res, bodyBuffer) {
   const targetHost = getTargetHost(req);
   const targetIP = await resolveTargetIP(targetHost);
 
+  // Defense-in-depth loop guard (Gap 14). The x-omniroute-source header is the
+  // primary guard; this is a structural backstop for when it is stripped: if
+  // the upstream resolves to ourselves (loopback on our own listen port),
+  // forwarding would re-enter this server forever. Refuse instead of looping.
+  if (bypassShim.isSelfLoopDestination(targetIP, 443, LOCAL_PORT)) {
+    console.error(
+      `❌ Loop guard: ${targetHost} resolves to self (${targetIP}:${LOCAL_PORT}) — refusing to forward`
+    );
+    if (!res.headersSent) res.writeHead(508);
+    res.end("Loop Detected");
+    return;
+  }
+
   // TLS validation is enabled by default. Set MITM_DISABLE_TLS_VERIFY=1 only
   // in controlled local environments where the target uses a self-signed cert.
   const rejectUnauthorized = process.env.MITM_DISABLE_TLS_VERIFY !== "1";
@@ -362,19 +417,60 @@ async function passthrough(req, res, bodyBuffer) {
   forwardReq.end();
 }
 
-async function intercept(req, res, bodyBuffer, mappedModel) {
+// Build + fire-and-forget the inspector capture entry. NEVER throws — capture
+// must not be able to break proxy traffic. Bodies/headers are sent raw over the
+// token-gated loopback ingest endpoint, which masks secrets server-side.
+function captureToInspector(o) {
+  if (!INGEST_TOKEN) return; // capture disabled (no token wired by manager)
+  try {
+    const entry = ingestShim.buildIngestEntry({
+      method: o.req.method,
+      host: o.req.headers.host || "",
+      path: o.req.url || "/",
+      agentId: o.agentId,
+      sourceModel: o.sourceModel != null ? o.sourceModel : null,
+      mappedModel: o.mappedModel,
+      requestHeaders: headersToObject(o.req.headers),
+      requestBody:
+        o.bodyBuffer && o.bodyBuffer.length > 0
+          ? o.bodyBuffer.toString("utf8").slice(0, INGEST_MAX_BODY)
+          : null,
+      requestSize: o.bodyBuffer ? o.bodyBuffer.length : 0,
+      status: o.status,
+      responseHeaders: o.respHeaders || {},
+      responseBody: o.respBody ? o.respBody : null,
+      responseSize: o.respSize || 0,
+      error: o.error,
+      proxyLatencyMs: o.proxyLatencyMs,
+      upstreamLatencyMs: o.upstreamLatencyMs,
+    });
+    void ingestShim.postIngestEntry(ROUTER_BASE_URL, INGEST_TOKEN, entry);
+  } catch {
+    // capture is best-effort — never break proxy traffic
+  }
+}
+
+async function intercept(req, res, bodyBuffer, mappedModel, sourceModel) {
+  // C2 — Inject AgentBridge correlation headers per master plan §3.5.
+  // The OmniRoute router uses these to distinguish AgentBridge traffic from
+  // other inbound clients and to record the originating IDE agent id.
+  // Resolve agent id from the Host header against the target map; defensive
+  // fallback to "unknown" when the host is somehow not in the map.
+  const reqHost = String(req.headers.host || "").split(":")[0].toLowerCase();
+  const agentId = TARGET_HOST_AGENT.get(reqHost) || "unknown";
+  const startedAt = Date.now();
+  let upstreamStartedAt = startedAt;
+  let captureStatus = "error";
+  let respHeaders = {};
+  let respBody = "";
+  let respSize = 0;
+  let captureError;
+
   try {
     const body = JSON.parse(bodyBuffer.toString());
     body.model = mappedModel;
 
-    // C2 — Inject AgentBridge correlation headers per master plan §3.5.
-    // The OmniRoute router uses these to distinguish AgentBridge traffic from
-    // other inbound clients and to record the originating IDE agent id.
-    // Resolve agent id from the Host header against the target map; defensive
-    // fallback to "unknown" when the host is somehow not in the map.
-    const reqHost = String(req.headers.host || "").split(":")[0].toLowerCase();
-    const agentId = TARGET_HOST_AGENT.get(reqHost) || "unknown";
-
+    upstreamStartedAt = Date.now();
     const response = await fetch(ROUTER_URL, {
       method: "POST",
       headers: {
@@ -386,8 +482,13 @@ async function intercept(req, res, bodyBuffer, mappedModel) {
       body: JSON.stringify(body),
     });
 
+    captureStatus = response.status;
+    respHeaders = headersToObject(response.headers);
+
     if (!response.ok) {
       const errText = await response.text().catch(() => "");
+      respBody = errText.slice(0, INGEST_MAX_BODY);
+      respSize = Buffer.byteLength(errText);
       throw new Error(`OmniRoute ${response.status}: ${errText}`);
     }
 
@@ -407,21 +508,42 @@ async function intercept(req, res, bodyBuffer, mappedModel) {
         res.end();
         break;
       }
-      res.write(decoder.decode(value, { stream: true }));
+      const text = decoder.decode(value, { stream: true });
+      if (respBody.length < INGEST_MAX_BODY) respBody += text;
+      respSize += value ? value.length : 0;
+      res.write(text);
     }
   } catch (error) {
     // Log the raw message locally (server console only) but never expose it
     // in the response body. Hard Rule #12 — sanitize before sending.
+    captureError = sanitizeErrorMessage(error && error.message);
     console.error(`❌ ${error.message}`);
     if (!res.headersSent) res.writeHead(500, { "Content-Type": "application/json" });
     res.end(
       JSON.stringify({
         error: {
-          message: sanitizeErrorMessage(error && error.message),
+          message: captureError,
           type: "mitm_error",
         },
       })
     );
+  } finally {
+    // D4 — make the intercepted (decrypted) request visible in the Traffic
+    // Inspector. Fire-and-forget; failures here never affect the client.
+    captureToInspector({
+      req,
+      bodyBuffer,
+      agentId,
+      sourceModel,
+      mappedModel,
+      status: captureStatus,
+      respHeaders,
+      respBody,
+      respSize,
+      error: captureError,
+      proxyLatencyMs: Math.max(0, upstreamStartedAt - startedAt),
+      upstreamLatencyMs: Math.max(0, Date.now() - upstreamStartedAt),
+    });
   }
 }
 
@@ -434,31 +556,31 @@ const server = https.createServer(sslOptions, async (req, res) => {
   const host = String(req.headers.host || "").split(":")[0].toLowerCase();
   const model = bodyBuffer.length > 0 ? extractModel(bodyBuffer) : null;
 
-  console.log(`[MITM] ${req.method} ${host}${req.url} | body: ${bodyBuffer.length}B | model: ${model || "N/A"}`);
+  vlog(1, `[MITM] ${req.method} ${host}${req.url} | body: ${bodyBuffer.length}B | model: ${model || "N/A"}`);
 
   if (bodyBuffer.length > 0) saveRequestLog(req.url, bodyBuffer);
 
   if (req.headers["x-omniroute-source"] === "omniroute") {
-    console.log(`[MITM] → PASSTHROUGH (OmniRoute source loop)`);
+    vlog(1, `[MITM] → PASSTHROUGH (OmniRoute source loop)`);
     return passthrough(req, res, bodyBuffer);
   }
 
   if (!TARGET_HOSTS.has(host)) {
-    console.log(`[MITM] → PASSTHROUGH (host ${host} not in target list)`);
+    vlog(1, `[MITM] → PASSTHROUGH (host ${host} not in target list)`);
     return passthrough(req, res, bodyBuffer);
   }
 
   const isChatRequest = CHAT_URL_PATTERNS.some((p) => req.url.includes(p));
 
   if (!isChatRequest) {
-    console.log(`[MITM] → PASSTHROUGH (URL ${req.url} does not match chat patterns)`);
+    vlog(1, `[MITM] → PASSTHROUGH (URL ${req.url} does not match chat patterns)`);
     return passthrough(req, res, bodyBuffer);
   }
 
   const mappedModel = getMappedModel(model);
 
   if (!mappedModel) {
-    console.log(`[MITM] → PASSTHROUGH (model "${model}" has no MITM alias mapping)`);
+    vlog(1, `[MITM] → PASSTHROUGH (model "${model}" has no MITM alias mapping)`);
     return passthrough(req, res, bodyBuffer);
   }
 
@@ -466,8 +588,8 @@ const server = https.createServer(sslOptions, async (req, res) => {
   stats.lastInterceptAt = new Date().toISOString();
   writeStats();
 
-  console.log(`[MITM] INTERCEPTED ${model} → ${mappedModel}`);
-  return intercept(req, res, bodyBuffer, mappedModel);
+  vlog(1, `[MITM] INTERCEPTED ${model} → ${mappedModel}`);
+  return intercept(req, res, bodyBuffer, mappedModel, model);
 });
 
 // =========================================================================
@@ -513,6 +635,14 @@ function rawTcpForward(clientSocket, head, host, port, label) {
     if (head && head.length > 0) targetSocket.write(head);
     targetSocket.pipe(clientSocket);
     clientSocket.pipe(targetSocket);
+    // Reap a half-open/hung tunnel after the idle timeout so neither side leaks
+    // an fd when the upstream never sends FIN/RST (Gap 10).
+    const destroyBoth = () => {
+      clientSocket.destroy();
+      targetSocket.destroy();
+    };
+    clientSocket.setTimeout(MITM_IDLE_TIMEOUT_MS, destroyBoth);
+    targetSocket.setTimeout(MITM_IDLE_TIMEOUT_MS, destroyBoth);
   });
 
   // Best-effort cleanup; never crash the proxy on tunnel errors.
@@ -572,7 +702,7 @@ server.on("connect", (req, clientSocket, head) => {
   if (decision === "bypass") {
     // Privacy: bypass hosts are never logged with body/headers and never
     // TLS-decrypted. Only the hostname appears in console output.
-    console.log(`[MITM] CONNECT ${connectHost}:${connectPort} → BYPASS (TCP tunnel)`);
+    vlog(1, `[MITM] CONNECT ${connectHost}:${connectPort} → BYPASS (TCP tunnel)`);
     rawTcpForward(clientSocket, head, connectHost, connectPort, "bypass");
     return;
   }
@@ -582,7 +712,8 @@ server.on("connect", (req, clientSocket, head) => {
     // https.createServer request handler can decrypt and route. We write the
     // 200 response ourselves and then `emit("connection")` so the TLS layer
     // picks the socket up.
-    console.log(
+    vlog(
+      1,
       `[MITM] CONNECT ${connectHost}:${connectPort} → TARGET (TLS terminate locally)`
     );
     clientSocket.write("HTTP/1.1 200 Connection Established\r\n\r\n");
@@ -592,11 +723,18 @@ server.on("connect", (req, clientSocket, head) => {
   }
 
   // decision === "passthrough"
-  console.log(
+  vlog(
+    1,
     `[MITM] CONNECT ${connectHost}:${connectPort} → PASSTHROUGH (TCP tunnel)`
   );
   rawTcpForward(clientSocket, head, connectHost, connectPort, "passthrough");
 });
+
+// Bound full-request / header / keep-alive lifetimes so a slow or hung client
+// cannot pin a connection indefinitely (Gap 10).
+server.requestTimeout = MITM_IDLE_TIMEOUT_MS * 5; // hard cap on a full request
+server.headersTimeout = MITM_IDLE_TIMEOUT_MS; // time allowed to send headers
+server.keepAliveTimeout = MITM_IDLE_TIMEOUT_MS; // idle keep-alive window
 
 server.listen(LOCAL_PORT, () => {
   stats.startedAt = new Date().toISOString();
@@ -609,6 +747,8 @@ server.on("connection", (socket) => {
   // already-counted socket into the TLS layer via emit("connection") above.
   if (socket.__mitmCounted) return;
   socket.__mitmCounted = true;
+  // Reap idle sockets so hung connections cannot exhaust fds (Gap 10).
+  socket.setTimeout(MITM_IDLE_TIMEOUT_MS, () => socket.destroy());
   stats.activeConnections++;
   writeStats();
   socket.on("close", () => {

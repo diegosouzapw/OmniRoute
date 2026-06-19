@@ -22,7 +22,7 @@ export function HeaderTable({ headers }: HeaderTableProps) {
           {masked ? "Show" : "Hide"}
         </button>
       </div>
-      <table className="w-full text-xs font-mono border-collapse">
+      <table className="w-full text-xs font-mono border-collapse bg-surface">
         <thead>
           <tr className="border-b border-border">
             <th className="text-left px-2 py-1 text-text-muted font-medium">Name</th>

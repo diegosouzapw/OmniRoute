@@ -123,7 +123,7 @@ export default function CallbackPage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg">
+    <div className="min-h-screen flex items-center justify-center">
       <div className="text-center p-8 max-w-md">
         {status === "processing" && (
           <>

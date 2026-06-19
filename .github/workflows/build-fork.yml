@@ -7,9 +7,10 @@ on:
       - "v*"
   workflow_dispatch:
 
+# Least-privilege default: read-only at the top level; the build job that pushes to
+# GHCR grants packages: write itself (Scorecard TokenPermissions).
 permissions:
   contents: read
-  packages: write
 
 env:
   IMAGE_NAME: ghcr.io/kang-heewon/omniroute
@@ -19,9 +20,14 @@ jobs:
     name: Build and Push Fork Image
     if: github.repository == 'kang-heewon/OmniRoute'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4

@@ -1,0 +1,104 @@
+# .zizmor.yml — zizmor security audit configuration
+# https://github.com/woodruffw/zizmor
+#
+# zizmor audits GitHub Actions workflows for security anti-patterns:
+#   • Unpinned third-party actions (supply-chain risk)
+#   • Script injection via ${{ github.* }} in run: steps
+#   • pull_request_target misuse (allows untrusted code to reach secrets)
+#   • Excessive permissions / overly broad GITHUB_TOKEN scopes
+#   • Cache poisoning via actions/cache with unguarded keys
+#   • … 20+ additional audits
+#
+# MOTIVATION (2026-03 incident): the trivy-action/LiteLLM supply-chain attack
+# exploited exactly the kind of pull_request_target misconfiguration that zizmor
+# detects statically. OmniRoute's npm/Docker/Electron publish workflows are high-
+# value targets that warrant proactive audit.
+#
+# BASELINE STRATEGY: this file starts with an EMPTY ignores list. As zizmor is
+# first run against the existing workflows, findings will be reviewed:
+#   • True positives → fix the workflow (preferred)
+#   • Accepted risk  → add an entry below with a justification comment
+# This enforces the same stale-enforcement discipline as other allowlists in
+# this project: every ignore requires human sign-off and is subject to review
+# at each release cycle.
+#
+# RATCHET: zizmorFindings metric in quality-baseline.json (direction: down)
+# starts advisory; current baseline is frozen at first green run; new findings
+# must be remediated or explicitly ignored here.
+
+# ── Global settings ──────────────────────────────────────────────────────────
+# Uncomment to pin to a specific minimum severity level.
+# min-severity: low       # low | medium | high | critical (default: low = all)
+
+# ── Per-rule ignores ─────────────────────────────────────────────────────────
+# zizmor ≥1.0 replaced the old top-level `ignores:` list with a `rules:` map
+# keyed by audit id. Per-rule config lives under `rules.<audit-id>.ignore`,
+# where each entry is `filename` or `filename:line` (line optional, column
+# further-optional). See: https://docs.zizmor.sh/configuration/
+#
+# Format:
+#   rules:
+#     <zizmor-audit-id>:          # e.g. "unpinned-uses", "template-injection"
+#       ignore:
+#         - <workflow-filename>            # ignore this audit across the file
+#         - <workflow-filename>:<line>     # or scope to a specific line
+#
+# Example (do not uncomment without real justification):
+#
+#   rules:
+#     unpinned-uses:
+#       # actions/checkout@v6 is pinned at the major-version tag intentionally:
+#       # GitHub-managed first-party action; SHA pinning buys little against a
+#       # GitHub-side compromise and adds significant maintenance burden.
+#       ignore:
+#         - ci.yml
+
+# Every entry below is an explicit, justified ignore (same stale-review
+# discipline as the other allowlists in this project). New ignores require a
+# per-rule entry with a justification comment.
+rules:
+  dangerous-triggers:
+    # deploy-vps.yml uses `on: workflow_run` (after "Publish to Docker Hub").
+    # zizmor flags workflow_run as "almost always used insecurely", but this one
+    # is guarded and not exploitable:
+    #   • The deploy job is gated on `github.event.workflow_run.conclusion ==
+    #     'success'` (deploy-vps.yml job `if:`, L15), so it only runs after a
+    #     successful, trusted upstream run — never on a forked/PR-triggered
+    #     failure.
+    #   • It does NOT checkout or execute untrusted code: the deploy runs over SSH
+    #     using repository secrets; there is no `actions/checkout` of an attacker
+    #     ref in the privileged context.
+    # Accepted risk, re-review at the next release cycle (added 2026-06-15).
+    ignore:
+      - deploy-vps.yml
+
+  cache-poisoning:
+    # zizmor's cache-poisoning audit flags `actions/setup-node` (cache: npm) and
+    # `actions/cache` steps that populate a cache which a later artifact-publishing
+    # job could consume — the attack is: a fork PR seeds a poisoned cache that a
+    # trusted publish run then restores and ships. None of the four entries below
+    # are exploitable in that way:
+    #
+    #   • electron-release.yml / npm-publish.yml — PUBLISH workflows that trigger
+    #     ONLY on trusted events: `push: tags v*` + `workflow_dispatch` (electron)
+    #     and `release: [released]` + `workflow_dispatch` + `workflow_call`
+    #     (npm). They NEVER run on a `pull_request` from a fork, so an untrusted
+    #     ref can never populate the npm/node_modules cache they restore. The
+    #     cache key is `hashFiles('package-lock.json')` / `runner.os-node-…`, a
+    #     first-party, lockfile-pinned key on trusted events.
+    #
+    #   • opencode-plugin-ci.yml / opencode-provider-ci.yml — CI-only workflows
+    #     (lint/test of the two opencode packages). They DO run on `pull_request`,
+    #     but (a) they publish NO artifacts — there is no downstream publish job
+    #     that restores their cache, and (b) GitHub Actions cache is branch-scoped:
+    #     a fork-PR run writes to a PR-isolated cache that base-branch / release
+    #     runs cannot read. The `cache: npm` here only speeds up `npm ci` within
+    #     the same ephemeral CI run.
+    #
+    # Accepted risk (first-party caching on trusted/isolated events), re-review at
+    # the next release cycle (added 2026-06-16).
+    ignore:
+      - electron-release.yml
+      - npm-publish.yml
+      - opencode-plugin-ci.yml
+      - opencode-provider-ci.yml

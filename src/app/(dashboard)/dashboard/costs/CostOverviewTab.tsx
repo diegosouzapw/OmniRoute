@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Card, EmptyState, SegmentedControl, CardSkeleton } from "@/shared/components";
 import {
@@ -30,7 +31,12 @@ import {
   type CostExplorerSortKey,
 } from "./costExplorerUtils";
 
-type CostRange = "7d" | "30d" | "90d" | "all";
+import {
+  parseApiKeyIds,
+  parseCostRange,
+  parseExplorerGroupBy,
+  type CostRange,
+} from "./costExplorerParams";
 
 interface UsageAnalyticsSummary {
   totalCost: number;
@@ -273,8 +279,11 @@ function downloadFile(content: string, filename: string, mimeType: string) {
 export default function CostOverviewTab() {
   const t = useTranslations("costs");
   const locale = useLocale();
+  const searchParams = useSearchParams();
+  const apiKeyIdsParam = searchParams.get("apiKeyIds");
+  const apiKeyFilter = useMemo(() => parseApiKeyIds(apiKeyIdsParam).join(","), [apiKeyIdsParam]);
   const currencyFormatter = useMemo(() => createCurrencyFormatter(locale), [locale]);
-  const [range, setRange] = useState<CostRange>("30d");
+  const [range, setRange] = useState<CostRange>(() => parseCostRange(searchParams.get("range")));
   const [analytics, setAnalytics] = useState<UsageAnalyticsPayload | null>(null);
   const [presetCosts, setPresetCosts] = useState<Record<"1d" | "7d" | "30d", number>>({
     "1d": 0,
@@ -284,7 +293,9 @@ export default function CostOverviewTab() {
   const [loading, setLoading] = useState(true);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [explorerGroupBy, setExplorerGroupBy] = useState<CostExplorerGroupBy>("provider");
+  const [explorerGroupBy, setExplorerGroupBy] = useState<CostExplorerGroupBy>(() =>
+    parseExplorerGroupBy(searchParams.get("groupBy"))
+  );
   const [explorerSearch, setExplorerSearch] = useState("");
   const [explorerSortKey, setExplorerSortKey] = useState<CostExplorerSortKey>("cost");
   const [explorerSortDirection, setExplorerSortDirection] =
@@ -297,9 +308,12 @@ export default function CostOverviewTab() {
       try {
         setLoading(true);
         setSummaryLoading(true);
-        const response = await fetch(
-          `/api/usage/analytics?range=${encodeURIComponent(range)}&presets=1d,7d,30d`
-        );
+        const params = new URLSearchParams({
+          range,
+          presets: "1d,7d,30d",
+        });
+        if (apiKeyFilter) params.set("apiKeyIds", apiKeyFilter);
+        const response = await fetch(`/api/usage/analytics?${params.toString()}`);
         if (!response.ok) {
           throw new Error(t("overviewLoadFailed"));
         }
@@ -330,7 +344,7 @@ export default function CostOverviewTab() {
     return () => {
       active = false;
     };
-  }, [range, t]);
+  }, [apiKeyFilter, range, t]);
 
   const selectedRangeLabel = t(
     RANGE_OPTIONS.find((option) => option.value === range)?.labelKey || "range30d"

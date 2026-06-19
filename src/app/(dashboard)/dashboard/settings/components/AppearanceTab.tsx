@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { Button, Card, Toggle } from "@/shared/components";
 import { useTheme } from "@/shared/hooks/useTheme";
 import useThemeStore, { COLOR_THEMES } from "@/store/themeStore";
@@ -13,10 +12,8 @@ import {
   normalizeComboConfigMode,
   type ComboConfigMode,
 } from "@/shared/constants/comboConfigMode";
-import {
-  PIN_PROVIDER_QUOTA_TO_HOME_KEY,
-  SHOW_TOKEN_SAVER_ON_ENDPOINT_KEY,
-} from "@/shared/constants/homeWidgets";
+import { PIN_PROVIDER_QUOTA_TO_HOME_KEY } from "@/shared/constants/homeWidgets";
+import AccountEmailVisibilitySetting from "./AccountEmailVisibilitySetting";
 
 export default function AppearanceTab() {
   const { theme, setTheme, isDark } = useTheme();
@@ -41,7 +38,6 @@ export default function AppearanceTab() {
   const pinProviderQuotaToHome = settings.pinProviderQuotaToHome === true;
   const showQuickStartOnHome = settings.showQuickStartOnHome !== false;
   const showProviderTopologyOnHome = settings.showProviderTopologyOnHome !== false;
-  const showTokenSaverOnEndpoint = settings[SHOW_TOKEN_SAVER_ON_ENDPOINT_KEY] !== false;
   const autoRefreshProviderQuota = settings.autoRefreshProviderQuota === true;
   const autoRefreshProviderQuotaInterval = Number.isFinite(
     settings.autoRefreshProviderQuotaInterval
@@ -260,80 +256,7 @@ export default function AppearanceTab() {
                   disabled={loading}
                 />
               </div>
-
-              <div className="flex items-start justify-between gap-4 px-4 py-3">
-                <div>
-                  <p className="font-medium">
-                    {getSettingsLabel("endpointTokenSaver", "Token Saver")}
-                  </p>
-                  <p className="text-sm text-text-muted">
-                    {getSettingsLabel(
-                      "endpointTokenSaverDesc",
-                      "Show the Token Saver panel on the Endpoint page."
-                    )}
-                  </p>
-                </div>
-                <Toggle
-                  checked={showTokenSaverOnEndpoint}
-                  onChange={async (checked) => {
-                    await updateSetting(SHOW_TOKEN_SAVER_ON_ENDPOINT_KEY, checked);
-                  }}
-                  disabled={loading}
-                />
-              </div>
             </div>
-          </div>
-        </div>
-
-        <div className="pt-4 border-t border-border">
-          <p className="font-medium mb-1">{t("themeAccent")}</p>
-          <p className="text-sm text-text-muted mb-3">{t("themeAccentDesc")}</p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
-            {presetThemes.map((item) => {
-              const active = colorTheme === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setColorTheme(item.id)}
-                  className={cn(
-                    "flex items-center justify-between gap-2 p-2 rounded-lg border transition-colors",
-                    active
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border hover:bg-surface/50 text-text-main"
-                  )}
-                >
-                  <span className="flex items-center gap-2">
-                    <span
-                      className="size-4 rounded-full border border-black/10 dark:border-white/20"
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <span className="text-sm font-medium">{item.label}</span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              value={customThemeColor}
-              onChange={(e) => setCustomThemeColor(e.target.value)}
-              className="h-10 w-12 rounded border border-border bg-surface cursor-pointer"
-              aria-label={t("themeCustom")}
-            />
-            <input
-              type="text"
-              value={customThemeColor}
-              onChange={(e) => setCustomThemeColor(e.target.value)}
-              placeholder="#3b82f6"
-              maxLength={7}
-              className={`flex-1 h-10 px-3 rounded-lg bg-surface border text-sm text-text-main focus:outline-none ${isValidHex ? "border-border focus:border-primary" : "border-red-400 focus:border-red-500"}`}
-            />
-            <Button onClick={() => setCustomColorTheme(customThemeColor)} disabled={!isValidHex}>
-              {t("themeCreate")}
-            </Button>
           </div>
         </div>
 
@@ -533,26 +456,7 @@ export default function AppearanceTab() {
           </div>
         </div>
 
-        <div className="pt-4 border-t border-border">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="font-medium">{t("sidebarVisibilityToggle")}</p>
-              <p className="text-sm text-text-muted">
-                {getSettingsLabel(
-                  "sidebarCustomizeLink",
-                  "Customize which items appear in the sidebar, their order, and apply role presets."
-                )}
-              </p>
-            </div>
-            <Link
-              href="/dashboard/settings/sidebar"
-              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md border border-border hover:bg-surface/80 hover:border-primary/40 transition-colors text-text-main"
-            >
-              <span className="material-symbols-outlined text-[16px]">view_sidebar</span>
-              {getSettingsLabel("sidebarCustomizeLinkBtn", "Customize")}
-            </Link>
-          </div>
-        </div>
+        <AccountEmailVisibilitySetting />
 
         <div className="pt-4 border-t border-border">
           <div className="flex items-center justify-between">
@@ -565,6 +469,58 @@ export default function AppearanceTab() {
               onChange={() => updateSetting("hideHealthCheckLogs", !settings.hideHealthCheckLogs)}
               disabled={loading}
             />
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-border">
+          <p className="font-medium mb-1">{t("themeAccent")}</p>
+          <p className="text-sm text-text-muted mb-3">{t("themeAccentDesc")}</p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+            {presetThemes.map((item) => {
+              const active = colorTheme === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setColorTheme(item.id)}
+                  className={cn(
+                    "flex items-center justify-between gap-2 p-2 rounded-lg border transition-colors",
+                    active
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border hover:bg-surface/50 text-text-main"
+                  )}
+                >
+                  <span className="flex items-center gap-2">
+                    <span
+                      className="size-4 rounded-full border border-black/10 dark:border-white/20"
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={customThemeColor}
+              onChange={(e) => setCustomThemeColor(e.target.value)}
+              className="h-10 w-12 rounded border border-border bg-surface cursor-pointer"
+              aria-label={t("themeCustom")}
+            />
+            <input
+              type="text"
+              value={customThemeColor}
+              onChange={(e) => setCustomThemeColor(e.target.value)}
+              placeholder="#3b82f6"
+              maxLength={7}
+              className={`flex-1 h-10 px-3 rounded-lg bg-surface border text-sm text-text-main focus:outline-none ${isValidHex ? "border-border focus:border-primary" : "border-red-400 focus:border-red-500"}`}
+            />
+            <Button onClick={() => setCustomColorTheme(customThemeColor)} disabled={!isValidHex}>
+              {t("themeCreate")}
+            </Button>
           </div>
         </div>
 

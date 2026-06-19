@@ -14,17 +14,23 @@
  */
 import React, { useState, useMemo } from "react";
 import { Button } from "@/shared/components";
-import { matchesModelCatalogQuery, normalizeModelCatalogSource } from "@/shared/utils/modelCatalogSearch";
+import {
+  matchesModelCatalogQuery,
+  normalizeModelCatalogSource,
+} from "@/shared/utils/modelCatalogSearch";
 import { useNotificationStore } from "@/store/notificationStore";
 import {
   buildCompatMap,
   providerText,
+  testAllResultsText,
+  evaluateTestAllEntry,
   buildPassthroughTestBody,
   shouldSwitchToVisibleFilter,
   type CompatModelRow,
   type CompatByProtocolMap,
 } from "../providerPageHelpers";
 import { ModelVisibilityToolbar } from "./ModelRow";
+import { sortModelsFreeFirst, isFreeModel } from "@/shared/utils/freeModels";
 import PassthroughModelRow from "./PassthroughModelRow";
 
 // ---------------------------------------------------------------------------
@@ -53,10 +59,7 @@ export interface PassthroughModelsSectionProps {
   effectiveModelNormalize: (alias: string) => boolean;
   effectiveModelPreserveDeveloper: (alias: string) => boolean;
   getUpstreamHeadersRecord: (modelId: string, protocol: string) => Record<string, string>;
-  saveModelCompatFlags: (
-    modelId: string,
-    flags: ModelCompatSavePatchPassthrough
-  ) => Promise<void>;
+  saveModelCompatFlags: (modelId: string, flags: ModelCompatSavePatchPassthrough) => Promise<void>;
   compatSavingModelId?: string;
   isModelHidden: (modelId: string) => boolean;
   onToggleHidden: (modelId: string, hidden: boolean) => Promise<void>;
@@ -65,6 +68,8 @@ export interface PassthroughModelsSectionProps {
   togglingModelId?: string | null;
   onTestModel?: (modelId: string, fullModel: string) => Promise<void>;
   modelTestStatus?: Record<string, "ok" | "error" | null>;
+  /** Report a model's test-all result so the parent updates the green/red icon. */
+  onModelTestStatusChange?: (modelId: string, status: "ok" | "error") => void;
   testingModelId?: string | null;
   providerId: string;
   connectionId: string;
@@ -102,6 +107,7 @@ export default function PassthroughModelsSection({
   togglingModelId,
   onTestModel,
   modelTestStatus,
+  onModelTestStatusChange,
   testingModelId,
   providerId,
   connectionId,
@@ -115,10 +121,13 @@ export default function PassthroughModelsSection({
   const [modelFilter, setModelFilter] = useState("");
   const [testingAll, setTestingAll] = useState(false);
   const [testProgress, setTestProgress] = useState<{ done: number; total: number } | null>(null);
-  const [localAutoHideFailed, setLocalAutoHideFailed] = useState(true);
-  const autoHideFailed = autoHideFailedProp !== undefined ? autoHideFailedProp : localAutoHideFailed;
+  const [localAutoHideFailed, setLocalAutoHideFailed] = useState(false);
+  const autoHideFailed =
+    autoHideFailedProp !== undefined ? autoHideFailedProp : localAutoHideFailed;
   const setAutoHideFailed = onAutoHideFailedChange ?? setLocalAutoHideFailed;
   const [visibilityFilter, setVisibilityFilter] = useState<"all" | "visible" | "hidden">("all");
+  const [freeFilter, setFreeFilter] = useState<"all" | "free" | "paid">("all");
+  const [sortFreeFirst, setSortFreeFirst] = useState(false);
   const notify = useNotificationStore();
   const customModelMap = useMemo(() => buildCompatMap(customModels), [customModels]);
 
@@ -162,22 +171,26 @@ export default function PassthroughModelsSection({
         }).then((r) => r.json());
 
         const entry = result.results?.[model.modelId];
-        if (entry?.status === "ok") {
+        const outcome = evaluateTestAllEntry(entry, autoHideFailed);
+        // Paint the per-model icon green/red, same as the single-model ▶ test.
+        onModelTestStatusChange?.(model.modelId, outcome.status);
+        if (outcome.status === "ok") {
           ok++;
         } else {
           error++;
-          if (autoHideFailed && !entry?.rateLimited && !entry?.isTimeout) {
+          if (outcome.shouldHide) {
             await onToggleHidden(model.modelId, true);
             hiddenCount++;
           }
         }
       } catch (e) {
         error++;
+        onModelTestStatusChange?.(model.modelId, "error");
       }
       setTestProgress((prev) => (prev ? { done: prev.done + 1, total: prev.total } : null));
     }
 
-    notify.info(providerText(t, "testAllResults", "{ok} ok, {error} error", { ok, error }));
+    notify.info(testAllResultsText(t, ok, ok + error));
     if (hiddenCount > 0) {
       notify.info(providerText(t, "testAllFailedHidden", "{count} hidden", { count: hiddenCount }));
       // Bug #3610 fix 3: switch to "visible" filter so hidden models disappear on-screen
@@ -231,7 +244,8 @@ export default function PassthroughModelsSection({
         isFree:
           Boolean((model as any).free) ||
           model.id.endsWith(":free") ||
-          /\bgr[aá]tis\b|\bfree\b/i.test(model.name || ""),
+          /\bgr[aá]tis\b|\bfree\b/i.test(model.name || "") ||
+          isFreeModel(providerId, { id: model.id }),
         isHidden: isModelHidden(model.id),
       });
       seenModelIds.add(model.id);
@@ -262,7 +276,8 @@ export default function PassthroughModelsSection({
         isFree:
           modelId.endsWith(":free") ||
           Boolean((customModel as any)?.free) ||
-          /\bgr[aá]tis\b|\bfree\b/i.test(customModel?.name || alias || ""),
+          /\bgr[aá]tis\b|\bfree\b/i.test(customModel?.name || alias || "") ||
+          isFreeModel(providerId, { id: modelId }),
         isHidden: isModelHidden(modelId),
       });
       seenModelIds.add(modelId);
@@ -276,6 +291,7 @@ export default function PassthroughModelsSection({
     isModelHidden,
     providerAlias,
     providerAliases,
+    providerId,
   ]);
 
   const filteredModels = allModels.filter((model) => {
@@ -293,8 +309,14 @@ export default function PassthroughModelsSection({
           ? !model.isHidden
           : model.isHidden;
 
-    return matchesQuery && matchesVisibility;
+    const matchesFreeFilter =
+      freeFilter === "all" ? true : freeFilter === "free" ? model.isFree : !model.isFree;
+
+    return matchesQuery && matchesVisibility && matchesFreeFilter;
   });
+  const displayModels = sortFreeFirst
+    ? sortModelsFreeFirst(filteredModels, { isFree: (m) => m.isFree, key: (m) => m.modelId })
+    : filteredModels;
   const activeCount = allModels.filter((model) => !model.isHidden).length;
 
   // Generate default alias from modelId (last part after /)
@@ -379,9 +401,13 @@ export default function PassthroughModelsSection({
             onVisibilityFilterChange={setVisibilityFilter}
             autoHideFailed={autoHideFailed}
             onAutoHideFailedChange={setAutoHideFailed}
+            freeFilter={freeFilter}
+            onFreeFilterChange={setFreeFilter}
+            sortFreeFirst={sortFreeFirst}
+            onSortFreeFirstChange={setSortFreeFirst}
           />
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-            {filteredModels.map(({ modelId, fullModel, alias, isHidden, source, isFree }) => (
+            {displayModels.map(({ modelId, fullModel, alias, isHidden, source, isFree }) => (
               <PassthroughModelRow
                 key={fullModel as string}
                 modelId={modelId}

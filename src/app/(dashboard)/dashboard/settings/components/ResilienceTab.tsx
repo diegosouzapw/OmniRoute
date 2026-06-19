@@ -5,7 +5,7 @@ import { Button, Card } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
 import AutoDisableCard from "./AutoDisableCard";
-import ModelCooldownsCard from "./ModelCooldownsCard";
+import ModelLockoutCard from "./ModelLockoutCard";
 
 type RequestQueueSettings = {
   autoEnableApiKeyProviders: boolean;
@@ -801,7 +801,9 @@ function ProviderCooldownCard({
         ) : (
           <>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">{t("resilienceProviderCooldownEnabled")}</div>
+              <div className="text-xs text-text-muted">
+                {t("resilienceProviderCooldownEnabled")}
+              </div>
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {value.enabled ? t("statusEnabled") : t("statusDisabled")}
               </div>
@@ -931,24 +933,7 @@ export default function ResilienceTab() {
 
   return (
     <div className="space-y-6">
-      <ModelCooldownsCard />
       <AutoDisableCard />
-      <Card className="p-6">
-        <div className="flex items-start gap-3">
-          <span className="material-symbols-outlined text-xl text-primary">info</span>
-          <div>
-            <h2 className="text-lg font-bold text-text-main">
-              {tx("resilienceStructureTitle", "Resilience Structure")}
-            </h2>
-            <p className="mt-1 text-sm text-text-muted">
-              {tx(
-                "resilienceStructureDesc",
-                "This page only configures behavior. Live breaker state is shown on the Health page. Combo-specific retry and round-robin slot control remain on combo settings."
-              )}
-            </p>
-          </div>
-        </div>
-      </Card>
 
       <RequestQueueCard
         value={data.requestQueue}
@@ -975,6 +960,7 @@ export default function ResilienceTab() {
         saving={savingSection === "providerCooldown"}
         onSave={(providerCooldown) => savePatch("providerCooldown", { providerCooldown })}
       />
+      <ModelLockoutCard />
     </div>
   );
 }

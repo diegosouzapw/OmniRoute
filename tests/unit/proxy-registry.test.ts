@@ -14,6 +14,7 @@ const proxiesDb = await import("../../src/lib/db/proxies.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const proxiesRoute = await import("../../src/app/api/settings/proxies/route.ts");
+const { createProxyRegistrySchema } = await import("../../src/shared/validation/schemas.ts");
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
@@ -416,6 +417,61 @@ test("connection proxy toggle gates account assignments and invalidates cached r
   assert.equal((enabledResolved.proxy as any).host, "pool-proxy.local");
 });
 
+// #2996: Per-connection proxy 'direct' bypass. A connection with proxyEnabled:false
+// must go DIRECT even when a GLOBAL proxy is configured. The existing toggle test
+// (above) only proves the bypass beats an ACCOUNT-scoped assignment; this guards the
+// exact scenario the issue requests — the per-connection bypass overriding a configured
+// GLOBAL proxy (resolveProxyForConnection step 9, "global" registry level), and that it
+// is a clean two-way toggle (re-enabling returns to the global proxy).
+test("per-connection proxy 'direct' bypass overrides a configured GLOBAL proxy (#2996)", async () => {
+  await resetStorage();
+
+  const globalProxy = await proxiesDb.createProxy({
+    name: "Global Bypass Proxy",
+    type: "http",
+    host: "global-bypass.local",
+    port: 8080,
+  });
+  await proxiesDb.assignProxyToScope("global", null, globalProxy.id);
+
+  // Use a provider name unique to this test so a registry/legacy provider-scoped
+  // assignment left over from another test in the shared process cannot resolve at
+  // step 6/8 and mask the GLOBAL precondition we are asserting (mirrors the hermetic
+  // unique-provider pattern used by the "connection proxy toggle gates" test above).
+  const connection = await providersDb.createProviderConnection({
+    provider: "proxy-global-bypass-2996-provider",
+    authType: "apikey",
+    name: "Global Bypass Account",
+    apiKey: "sk-global-bypass",
+  });
+
+  // No per-connection assignment: the connection should inherit the GLOBAL proxy.
+  const globalResolved = await settingsDb.resolveProxyForConnection((connection as any).id);
+  assert.equal(globalResolved.level, "global");
+  assert.ok(globalResolved.proxy, "expected the global proxy to be resolved before bypass");
+  assert.equal((globalResolved.proxy as any).host, "global-bypass.local");
+
+  // Per-connection Proxy Off must override the configured GLOBAL proxy → direct.
+  const disabled = await providersDb.updateProviderConnection((connection as any).id, {
+    proxyEnabled: false,
+  });
+  assert.equal((disabled as any).proxyEnabled, false);
+
+  const disabledResolved = await settingsDb.resolveProxyForConnection((connection as any).id);
+  assert.equal(disabledResolved.level, "direct");
+  assert.equal(disabledResolved.proxy, null);
+
+  // Re-enabling restores the GLOBAL proxy — proves it is a clean toggle, not one-way.
+  const enabled = await providersDb.updateProviderConnection((connection as any).id, {
+    proxyEnabled: true,
+  });
+  assert.equal((enabled as any).proxyEnabled, true);
+
+  const enabledResolved = await settingsDb.resolveProxyForConnection((connection as any).id);
+  assert.equal(enabledResolved.level, "global");
+  assert.equal((enabledResolved.proxy as any).host, "global-bypass.local");
+});
+
 test("provider connection proxy toggle fields round-trip as booleans", async () => {
   await resetStorage();
 
@@ -478,4 +534,60 @@ test("createProxy persists type:vercel and source:vercel-relay to DB (schema gap
   assert.ok(created?.id, "created proxy should have an id");
   assert.equal(created?.type, "vercel");
   assert.equal(created?.source, "vercel-relay");
+});
+
+test("proxy registry schema accepts the IP family policy and defaults it to auto (#3777)", () => {
+  // The dashboard proxy form (ProxyRegistryManager) now sends `family`. The schema is
+  // .strict(), so an undeclared field would 400 the whole request — this guards the wiring.
+  const explicit = createProxyRegistrySchema.parse({
+    name: "v6-only proxy",
+    type: "socks5",
+    host: "proxy.example.com",
+    port: 1080,
+    family: "ipv6",
+  });
+  assert.equal(explicit.family, "ipv6");
+
+  const defaulted = createProxyRegistrySchema.parse({
+    name: "default family proxy",
+    type: "http",
+    host: "proxy.example.com",
+    port: 8080,
+  });
+  assert.equal(defaulted.family, "auto");
+
+  assert.throws(() =>
+    createProxyRegistrySchema.parse({
+      name: "bad family",
+      type: "http",
+      host: "proxy.example.com",
+      port: 8080,
+      family: "ipv7",
+    })
+  );
+});
+
+test("createProxy persists the IP family and reads it back (#3777)", async () => {
+  await resetStorage();
+
+  const created = await proxiesDb.createProxy({
+    name: "Family RoundTrip",
+    type: "socks5",
+    host: "v6.example.com",
+    port: 1080,
+    family: "ipv6",
+  });
+  assert.equal(created?.family, "ipv6");
+
+  const fetched = await proxiesDb.getProxyById(created.id, { includeSecrets: false });
+  assert.equal(fetched?.family, "ipv6");
+
+  // Omitting family defaults to "auto" (prior dual-stack behavior, no regression).
+  const legacy = await proxiesDb.createProxy({
+    name: "Family Default",
+    type: "http",
+    host: "dual.example.com",
+    port: 8080,
+  });
+  assert.equal(legacy?.family, "auto");
 });

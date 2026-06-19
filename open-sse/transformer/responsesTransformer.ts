@@ -1,3 +1,4 @@
+import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
 import * as fs from "fs";
 import * as path from "path";
 /**
@@ -326,8 +327,22 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
       start(controller) {
         // Periodic keepalive heartbeat to prevent client timeouts (Codex CLI #2544)
         state.keepaliveTimer = setInterval(() => {
-          controller.enqueue(encoder.encode(": keepalive\n\n"));
+          // If the stream has already been torn down (client disconnected, downstream
+          // cancelled), enqueue() throws on the closed/errored controller. Without this
+          // guard the interval keeps firing — and throwing — every keepaliveIntervalMs
+          // forever, leaking one live timer per aborted /v1/responses stream and burning
+          // CPU as these accumulate over time. Self-clear on the first failed enqueue.
+          try {
+            controller.enqueue(encoder.encode(": keepalive\n\n"));
+          } catch {
+            if (state.keepaliveTimer) {
+              clearInterval(state.keepaliveTimer);
+              state.keepaliveTimer = null;
+            }
+          }
         }, keepaliveIntervalMs);
+        // Don't let the keepalive timer keep the event loop (process) alive on its own.
+        (state.keepaliveTimer as { unref?: () => void })?.unref?.();
       },
       transform(chunk, controller) {
         const text = new TextDecoder().decode(chunk);
@@ -527,15 +542,19 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
                     .replace(/"[a-zA-Z0-9_]+":\s*\[\s*\],?/g, "");
                 }
 
-                if (refCallId) {
+                const existingArgs = state.funcArgsBuf[tcIdx] || "";
+                const nextArgs = appendToolCallArgumentDelta(existingArgs, deltaStr);
+                const emittedDelta = nextArgs.slice(existingArgs.length);
+                state.funcArgsBuf[tcIdx] = nextArgs;
+
+                if (refCallId && emittedDelta) {
                   emit(controller, "response.function_call_arguments.delta", {
                     type: "response.function_call_arguments.delta",
                     item_id: `fc_${refCallId}`,
                     output_index: tcIdx,
-                    delta: deltaStr,
+                    delta: emittedDelta,
                   });
                 }
-                state.funcArgsBuf[tcIdx] += deltaStr;
               }
             }
           }
@@ -564,6 +583,16 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
         logger?.logOutput("data: [DONE]");
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         logger?.flush();
+      },
+
+      // flush() only runs when the writable side closes NORMALLY. When the client
+      // disconnects mid-stream the writable side is aborted and flush() never runs, so
+      // the keepalive timer must also be cleared here to avoid leaking it on cancellation.
+      cancel() {
+        if (state.keepaliveTimer) {
+          clearInterval(state.keepaliveTimer);
+          state.keepaliveTimer = null;
+        }
       },
     },
     { highWaterMark: 16384 },

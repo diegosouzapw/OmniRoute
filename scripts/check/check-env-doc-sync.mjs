@@ -69,13 +69,28 @@ const IGNORE_FROM_CODE = new Set([
   "NEXT_DIST_DIR",
   "NEXT_PHASE",
   "NEXT_RUNTIME",
+  // Set/read by Next.js's own dev server (next-dev-server.js) when the turbopack
+  // bundler is active — framework-internal. The OmniRoute-facing knob is
+  // OMNIROUTE_USE_TURBOPACK (scripts/dev/run-next.mjs), which IS documented.
+  "TURBOPACK",
   "NODE_TEST_CONTEXT",
   "VITEST",
   // Instruction snippet shown to users (Traffic Inspector HttpProxySnippetCard) — not OmniRoute config.
   "NODE_TLS_REJECT_UNAUTHORIZED",
+  // Claude Code's own auth env var — read from the CLI environment to detect
+  // existing auth and written into the generated Claude Code settings (so the CLI
+  // points at OmniRoute). A downstream client-tool var, not an OmniRoute server
+  // input (src/shared/services/claudeCliConfig.ts, api/cli-tools/claude-settings).
+  "ANTHROPIC_AUTH_TOKEN",
   // CI providers (set by the runner).
   "GITHUB_BASE_REF",
   "GITHUB_BASE_SHA",
+  // CI passes BASE_REF=${{ github.base_ref }} to the OpenAPI breaking-change gate
+  // (scripts/check/check-openapi-breaking.mjs) — a build/check signal, not OmniRoute runtime config.
+  "BASE_REF",
+  // PR body injected by GitHub Actions into the pr-evidence gate (github.event.pull_request.body);
+  // a CI-only signal, never an OmniRoute runtime config (Phase 7.10).
+  "PR_BODY",
   // CLI machine-id token opt-out (server-side flag; not user-configurable via .env).
   "OMNIROUTE_DISABLE_CLI_TOKEN",
   // update-notifier opt-out for the CLI binary.
@@ -131,6 +146,12 @@ const IGNORE_FROM_CODE = new Set([
   // NVIDIA diagnostic/test helpers used only by ad-hoc scripts.
   "NVIDIA_BASE_URL",
   "NVIDIA_MODEL",
+  // XDG standard data directory — set by OS/desktop session, not OmniRoute config.
+  // Read by setup-open-code.mjs to locate platform-specific OpenCode data dir.
+  "XDG_DATA_HOME",
+  // Test-only override: points setup-open-code.mjs at a fixture plugin dir without
+  // requiring the real bundled plugin to be built.
+  "OMNIROUTE_OPENCODE_PLUGIN_DIR",
 ]);
 
 // Vars documented in ENVIRONMENT.md but intentionally absent from .env.example.

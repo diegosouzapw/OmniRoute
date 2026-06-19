@@ -81,3 +81,71 @@ test("Kiro catalog exposes Claude Opus 4.8 alongside 4.7 with matching pricing",
   const kiroPricing = (DEFAULT_PRICING as Record<string, Record<string, unknown>>).kiro;
   assert.ok(kiroPricing["claude-opus-4.8"], "kiro pricing must include claude-opus-4.8");
 });
+
+test("Every Kiro registry model resolves a non-zero pricing row (no $0.00 usage)", async () => {
+  const { getPricingForModel } = await import("../../src/shared/constants/pricing.ts");
+  const models = getModelsByProviderId("kiro");
+
+  assert.ok(models.length > 0, "kiro must expose models");
+
+  for (const model of models) {
+    const pricing = getPricingForModel("kiro", model.id) as {
+      input?: number;
+      output?: number;
+    } | null;
+    assert.ok(pricing, `kiro pricing must include "${model.id}"`);
+    assert.equal(
+      typeof pricing?.input === "number" && typeof pricing?.output === "number",
+      true,
+      `kiro pricing for "${model.id}" must have numeric input/output`
+    );
+  }
+
+  // Regression guard for the reported issue: Sonnet 4.6 must be priced like Sonnet 4.5.
+  const sonnet46 = getPricingForModel("kiro", "claude-sonnet-4.6") as {
+    input: number;
+    output: number;
+  } | null;
+  assert.ok(sonnet46, "kiro pricing must include claude-sonnet-4.6");
+  assert.equal(sonnet46?.input, 3.0);
+  assert.equal(sonnet46?.output, 15.0);
+});
+
+test("Every OpenAI registry model resolves a non-zero pricing row (alias: openai)", async () => {
+  const { getPricingForModel } = await import("../../src/shared/constants/pricing.ts");
+  const models = getModelsByProviderId("openai");
+  assert.ok(models.length > 0, "openai must expose models");
+
+  for (const model of models) {
+    const pricing = getPricingForModel("openai", model.id) as {
+      input?: number;
+      output?: number;
+    } | null;
+    assert.ok(pricing, `openai pricing must include "${model.id}"`);
+    assert.equal(
+      typeof pricing?.input === "number" && typeof pricing?.output === "number",
+      true,
+      `openai pricing for "${model.id}" must have numeric input/output`
+    );
+  }
+});
+
+test("Every Codex registry model resolves a non-zero pricing row (alias: cx)", async () => {
+  const { getPricingForModel } = await import("../../src/shared/constants/pricing.ts");
+  const models = getModelsByProviderId("codex");
+  assert.ok(models.length > 0, "codex must expose models");
+
+  for (const model of models) {
+    // Codex pricing lives under the "cx" alias (its DEFAULT_PRICING key).
+    const pricing = getPricingForModel("cx", model.id) as {
+      input?: number;
+      output?: number;
+    } | null;
+    assert.ok(pricing, `cx pricing must include codex model "${model.id}"`);
+    assert.equal(
+      typeof pricing?.input === "number" && typeof pricing?.output === "number",
+      true,
+      `cx pricing for "${model.id}" must have numeric input/output`
+    );
+  }
+});

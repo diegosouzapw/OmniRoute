@@ -307,6 +307,26 @@ function openaiToGeminiBase(
     };
   }
 
+  // 3. Default: all modern Gemini models (2.5+) have thinking capability.
+  // If the client didn't explicitly request thinking (via reasoning_effort or
+  // thinking.type), still set includeThoughts so the upstream marks thought
+  // parts with thought:true. Without this, the model's reasoning leaks into
+  // visible content instead of being routed to reasoning_content by the
+  // response translator. (#4170)
+  if (!result.generationConfig.thinkingConfig) {
+    const modelLower = model.toLowerCase();
+    if (
+      modelLower.includes("gemini") &&
+      !modelLower.includes("gemini-1") &&
+      (!modelLower.includes("gemini-2.0") || modelLower.includes("thinking"))
+    ) {
+      result.generationConfig.thinkingConfig = {
+        thinkingBudget: getDefaultThinkingBudget(model) || capThinkingBudget(model, 24576),
+        includeThoughts: true,
+      };
+    }
+  }
+
   // Build tool_call_id -> name map
   const tcID2Name: Record<string, string> = {};
   const messages = body.messages as Array<Record<string, unknown>> | undefined;
@@ -816,7 +836,7 @@ register(
   FORMATS.GEMINI,
   (model, body, stream = false, credentials = null) =>
     openaiToGeminiRequest(model, body, stream, credentials, {
-      signaturelessToolCallMode: "native",
+      signaturelessToolCallMode: "context",
     }),
   null
 );

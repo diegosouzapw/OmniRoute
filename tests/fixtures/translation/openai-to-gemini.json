@@ -1,0 +1,49 @@
+[
+  {
+    "name": "openai-to-gemini/basic-chat",
+    "sourceFormat": "openai",
+    "targetFormat": "gemini",
+    "input": {
+      "model": "gemini-2.5-flash",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hello Gemini!"
+        }
+      ]
+    }
+  },
+  {
+    "name": "openai-to-gemini/with-system",
+    "sourceFormat": "openai",
+    "targetFormat": "gemini",
+    "input": {
+      "model": "gemini-2.5-pro",
+      "messages": [
+        {
+          "role": "system",
+          "content": "You are a helpful assistant."
+        },
+        {
+          "role": "user",
+          "content": "Tell me a joke."
+        }
+      ],
+      "temperature": 0.7
+    }
+  },
+  {
+    "name": "openai-to-gemini/modern-gemini-default-thinking",
+    "sourceFormat": "openai",
+    "targetFormat": "gemini",
+    "input": {
+      "model": "gemini-2.5-flash",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hello Gemini!"
+        }
+      ]
+    }
+  }
+]

@@ -38,12 +38,26 @@ function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+// Per-word regex cache — avoids recompiling one RegExp per word on every request body.
+// Bounded by distinct configured words; global regexes are safe to reuse (String.replace
+// resets lastIndex).
+const _obfuscationRegexCache = new Map<string, RegExp>();
+function getObfuscationRegex(word: string): RegExp {
+  let regex = _obfuscationRegexCache.get(word);
+  if (!regex) {
+    if (_obfuscationRegexCache.size > 2000) _obfuscationRegexCache.clear();
+    regex = new RegExp(escapeRegex(word), "gi");
+    _obfuscationRegexCache.set(word, regex);
+  }
+  return regex;
+}
+
 export function obfuscateSensitiveWords(text: string): string {
   if (!text || words.length === 0) return text;
   let result = text;
   for (const word of words) {
     if (!word) continue;
-    const regex = new RegExp(escapeRegex(word), "gi");
+    const regex = getObfuscationRegex(word);
     result = result.replace(regex, (m) => (m.length <= 1 ? m : m[0] + ZWJ + m.slice(1)));
   }
   return result;

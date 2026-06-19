@@ -1,8 +1,12 @@
 #!/usr/bin/env sh
-#if ! command -v npm >/dev/null 2>&1; then
-#  echo "⚠️  npm not found in PATH — skipping pre-push hooks"
-#  echo "   Run 'npm test' manually before pushing."
-#  exit 0
-#fi
+# .husky/pre-push — fast deterministic gates (<10s total)
+# Intentionally excludes test:unit (slow; covered by CI pre-push remote run).
+# Activated: 2026-06-13 (6A.12 — replaced commented-out test:unit stub)
 
-#npm run test:unit
+if ! command -v npm >/dev/null 2>&1; then
+  echo "⚠️  npm not found in PATH — skipping pre-push hooks"
+  echo "   Run 'npm run check:any-budget:t11 && npm run check:tracked-artifacts' manually before pushing."
+  exit 0
+fi
+
+npm run check:any-budget:t11 && npm run check:tracked-artifacts

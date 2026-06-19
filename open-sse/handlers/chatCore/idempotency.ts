@@ -1,6 +1,6 @@
 import { getIdempotencyKey, checkIdempotency } from "@/lib/idempotencyLayer";
 import { calculateCost } from "@/lib/usage/costCalculator";
-import { buildOmniRouteResponseMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 
 /**
  * Resolve the request's idempotency key once and check the idempotency store. Returns the
@@ -38,24 +38,25 @@ export async function checkIdempotencyCache({
           serviceTier: effectiveServiceTier,
         })
       : 0;
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "X-OmniRoute-Idempotent": "true",
+    };
+    attachOmniRouteMetaHeaders(headers, {
+      provider,
+      model,
+      cacheHit: false,
+      latencyMs: Date.now() - startTime,
+      usage: idempotentUsage,
+      costUsd: idempotentCost,
+    });
     return {
       idempotencyKey,
       hit: {
         success: true,
         response: new Response(JSON.stringify(cachedIdemp.response), {
           status: cachedIdemp.status,
-          headers: {
-            "Content-Type": "application/json",
-            "X-OmniRoute-Idempotent": "true",
-            ...buildOmniRouteResponseMetaHeaders({
-              provider,
-              model,
-              cacheHit: false,
-              latencyMs: Date.now() - startTime,
-              usage: idempotentUsage,
-              costUsd: idempotentCost,
-            }),
-          },
+          headers,
         }),
       },
     };

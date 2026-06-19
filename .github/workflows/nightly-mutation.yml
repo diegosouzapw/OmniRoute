@@ -1,0 +1,134 @@
+name: Nightly Mutation
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stryker:
+    name: Stryker mutation (batch ${{ matrix.batch.name }} — advisory)
+    runs-on: ubuntu-latest
+    # Mutation testing is expensive. History of the budget:
+    #   - Full 8-module set TIMED OUT at the 180min cap (run 27705123780 = exactly 180min).
+    #     The two god-files chatCore.ts/combo.ts dominated ~2/3 of the mutants and were
+    #     removed from stryker.conf.json `mutate`.
+    #   - The remaining 6 modules in 3 batches: auth.ts and accountFallback.ts are large; the
+    #     a (auth+publicCreds) and b (accountFallback+error) batches still ran near the 180min
+    #     cap (the perTest dry-run over ~130 covering test files is itself costly), so the two
+    #     big modules are now ISOLATED into their own batches (a=auth, b=accountFallback).
+    #   - Onda 3 / Fase 9 T5 re-add: combo.ts was split into 11 leaves; the 8 well-covered
+    #     combo/* leaves are back in `mutate` (covered by the 24 combo-*.test.ts), grouped into
+    #     2 batches (d=heavy, e=light). After #4204 (D7b) merged, the reset-aware quota pair
+    #     quotaScoring/quotaStrategies was added as batch f. A covering-test audit then added the
+    #     6 chatCore/* leaves with direct unit coverage as batch g. A follow-up then wrote dedicated
+    #     unit tests for 6 more leaves and added them as batch h. A final follow-up added dedicated
+    #     tests (no mock.module — fetch-override + crafted inputs + temp-DATA_DIR) for telemetryHelpers
+    #     + memorySkillsInjection + semanticCache (its cache-HIT block now has a setCachedResponse
+    #     fixture) as batch i — ALL 15/15 chatCore leaves are now mutated. See
+    #     _mutate_godfiles_excluded_comment in stryker.conf.json.
+    # 9 PARALLEL batches, each overriding the mutate set via `--mutate` (Stryker 9 CLI:
+    # `-m, --mutate <comma-list>`; the conf's `mutate[]` remains the local-run default/union).
+    #   - Cold-seeding budget (per-batch `timeout-minutes: ${{ matrix.batch.timeout || 180 }}`):
+    #     a COLD run must COMPLETE once to write stryker-incremental.json (Stryker writes it only on
+    #     a successful finish); a job cancelled at the cap writes nothing, so the next run is cold
+    #     again — an infinite never-seeds loop. actions/cache is also branch-scoped, so each branch
+    #     (incl. release) must seed its OWN cache via a run with enough headroom. Measured cold runs
+    #     Measured cold totals (run 27801802713, extrapolated from the % at the 180/350 cancel point):
+    #     auth ~375min (2301 mutants — EXCEEDS the 360min job max even isolated), accountFallback
+    #     ~358min (1441), the c security quartet ~348min (1163), d ~197min (1316), g=142, h=132, e=66,
+    #     f=45, i=33. The widely-covered modules blow the budget because the tap-runner re-runs every
+    #     covering test file per mutant (a perTest fixed cost over ~138 test files, times thousands of
+    #     mutants). A flat timeout bump cannot rescue auth (>360min max) — so the three over-budget
+    #     batches are SPLIT so each half fits: auth->a1/a2 and accountFallback->b1/b2 by mutation range
+    #     (`file:startLine-endLine`), the c quartet->c1/c2 by module pair. Splitting also seeds each
+    #     sub-batch's own incremental cache, after which nightlies re-test only changed mutants.
+    # Full coverage every night in parallel; wall-clock = the slowest batch's cold run until seeded.
+    # Runs at stryker concurrency=4 with per-process DATA_DIR isolation
+    # (tests/_setup/isolateDataDir.ts) — see _concurrency_comment in stryker.conf.json.
+    strategy:
+      fail-fast: false
+      matrix:
+        batch:
+          # Per-batch `timeout` (minutes) tiers the cold-seeding budget by measured cost; batches
+          # without the key default to 180. Cold-run profiling (run 27801802713) showed the
+          # widely-covered modules need FAR more than the 180 cap because the tap-runner re-runs every
+          # covering test file per mutant: auth ~375min (2301 mutants, EXCEEDS the 360min GitHub job
+          # max even isolated), accountFallback ~358min, the c security quartet ~348min — none fit a
+          # single job. So auth/accountFallback are split by MUTATION RANGE (`file:startLine-endLine`,
+          # ~half the mutants each) into a1/a2, b1/b2; the c quartet is split by MODULE pair into
+          # c1/c2. d (3 combo modules, ~197min) stays whole. Split-heavy batches get 300min headroom
+          # for their cold seeding run; once each batch completes once and writes
+          # stryker-incremental.json, later runs re-test only changed mutants and finish far faster.
+          # g/h (142/132min cold) keep a 240 buffer; e/f/i (33-66min) keep the 180 default.
+          - name: a1
+            mutate: "src/sse/services/auth.ts:1-1109"
+            timeout: 300
+          - name: a2
+            mutate: "src/sse/services/auth.ts:1110-2218"
+            timeout: 300
+          - name: b1
+            mutate: "open-sse/services/accountFallback.ts:1-863"
+            timeout: 300
+          - name: b2
+            mutate: "open-sse/services/accountFallback.ts:864-1726"
+            timeout: 300
+          - name: c1
+            mutate: "src/server/authz/routeGuard.ts,src/shared/utils/circuitBreaker.ts"
+            timeout: 300
+          - name: c2
+            mutate: "open-sse/utils/error.ts,open-sse/utils/publicCreds.ts"
+            timeout: 300
+          - name: d
+            mutate: "open-sse/services/combo/comboStructure.ts,open-sse/services/combo/autoStrategy.ts,open-sse/services/combo/validateQuality.ts"
+            timeout: 300
+          - name: e
+            mutate: "open-sse/services/combo/shadowRouting.ts,open-sse/services/combo/targetSorters.ts,open-sse/services/combo/comboPredicates.ts,open-sse/services/combo/rrState.ts,open-sse/services/combo/comboData.ts"
+          - name: f
+            mutate: "open-sse/services/combo/quotaScoring.ts,open-sse/services/combo/quotaStrategies.ts"
+          - name: g
+            mutate: "open-sse/handlers/chatCore/comboContextCache.ts,open-sse/handlers/chatCore/idempotency.ts,open-sse/handlers/chatCore/passthroughHelpers.ts,open-sse/handlers/chatCore/responseHeaders.ts,open-sse/handlers/chatCore/sanitization.ts,open-sse/handlers/chatCore/upstreamTimeouts.ts"
+            timeout: 240
+          - name: h
+            mutate: "open-sse/handlers/chatCore/headers.ts,open-sse/handlers/chatCore/logTruncation.ts,open-sse/handlers/chatCore/memoryExtraction.ts,open-sse/handlers/chatCore/nonStreamingSse.ts,open-sse/handlers/chatCore/passthroughToolNames.ts,open-sse/handlers/chatCore/executorHelpers.ts"
+            timeout: 240
+          - name: i
+            mutate: "open-sse/handlers/chatCore/telemetryHelpers.ts,open-sse/handlers/chatCore/memorySkillsInjection.ts,open-sse/handlers/chatCore/semanticCache.ts"
+    # Per-batch budget: split-heavy batches (a1/a2/b1/b2/c1/c2/d) override to 300min, g/h to 240min;
+    # the rest default to 180min. `matrix.batch.timeout` is null for batches without the key -> `|| 180`.
+    # NOTE: a1+a2 both mutate auth.ts (disjoint line ranges) and b1+b2 both mutate accountFallback.ts;
+    # when merging the per-batch mutation.json for radiography/scores, same-file mutants from sibling
+    # ranges must be UNIONED (scripts/check/check-mutation-ratchet.mjs::measureMutationScores and
+    # scripts/quality/mutation-radiography.mjs both merge per file).
+    timeout-minutes: ${{ matrix.batch.timeout || 180 }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - name: Restore Stryker incremental cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: reports/mutation/stryker-incremental.json
+          key: stryker-incremental-${{ matrix.batch.name }}-${{ github.run_id }}
+          restore-keys: stryker-incremental-${{ matrix.batch.name }}-
+      - name: Run Stryker (advisory)
+        id: stryker
+        continue-on-error: true
+        env:
+          BATCH_MUTATE: ${{ matrix.batch.mutate }}
+        run: npx stryker run --mutate "$BATCH_MUTATE"
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutation-report-${{ matrix.batch.name }}
+          path: reports/mutation/
+          if-no-files-found: warn
+          retention-days: 14

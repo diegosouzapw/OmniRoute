@@ -4,7 +4,6 @@ var docs = defineDocs({
   dir: "docs",
   docs: {
     files: [
-      "./getting-started/**/*.md",
       "./architecture/**/*.md",
       "./guides/**/*.md",
       "./reference/**/*.md",

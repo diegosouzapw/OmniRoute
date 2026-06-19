@@ -11,43 +11,56 @@ on:
         required: true
         type: string
 
+# Least-privilege default: read-only at the top level; each job grants the writes it
+# needs (build/release upload assets, publish-npm forwards npm provenance / packages
+# to the reusable workflow) — Scorecard TokenPermissions.
 permissions:
-  contents: write
-  id-token: write
-  packages: write
+  contents: read
 
 jobs:
   validate:
     name: Validate version
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       version: ${{ steps.validate.outputs.version }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Validate version format
         id: validate
+        env:
+          # Pass workflow context via env (never interpolate ${{ ... }} straight
+          # into the run: script body) so the shell receives variables, not
+          # inlined text — zizmor template-injection mitigation. INPUT_VERSION is
+          # the operator-supplied value and is regex-validated below before use.
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          if [[ "${{ github.event_name }}" == "push" ]]; then
+          if [[ "$EVENT_NAME" == "push" ]]; then
             VERSION="${GITHUB_REF#refs/tags/}"
           else
-            VERSION="${{ inputs.version }}"
+            VERSION="$INPUT_VERSION"
           fi
 
           if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Error: Invalid version format. Expected: v1.6.8"
             exit 1
           fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "✓ Valid version: $VERSION"
 
   build:
     name: Build Electron (${{ matrix.platform }})
     needs: validate
     runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: write # electron-builder may publish artifacts with GH_TOKEN
     strategy:
       fail-fast: false
       matrix:
@@ -71,7 +84,9 @@ jobs:
             deb_ext: .deb
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
@@ -79,7 +94,7 @@ jobs:
           cache: npm
 
       - name: Cache node_modules
-        uses: actions/cache@v5
+        uses: actions/cache@v5.0.5
         with:
           path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
@@ -99,7 +114,7 @@ jobs:
           # that cause EPERM errors during Next.js standalone build glob scans.
           # Create a clean temp profile directory to avoid this.
           mkdir -p "$RUNNER_TEMP/home"
-          echo "USERPROFILE=$RUNNER_TEMP/home" >> $GITHUB_ENV
+          echo "USERPROFILE=$RUNNER_TEMP/home" >> "$GITHUB_ENV"
 
       - name: Build Next.js standalone
         env:
@@ -109,8 +124,13 @@ jobs:
 
       - name: Sync version in electron/package.json
         shell: bash
+        env:
+          # Pass the validated version via env (never interpolate ${{ ... }}
+          # straight into the run: script body) — zizmor template-injection
+          # mitigation. Already regex-validated (^v[0-9]+\.[0-9]+\.[0-9]+$) in
+          # the `validate` job, so it cannot carry shell metacharacters.
+          VERSION: ${{ needs.validate.outputs.version }}
         run: |
-          VERSION="${{ needs.validate.outputs.version }}"
           VERSION_NO_V="${VERSION#v}"
           node -e "
             const fs = require('fs');
@@ -192,10 +212,13 @@ jobs:
     name: Create Release
     needs: [validate, build]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # softprops/action-gh-release creates the GitHub Release
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Download all artifacts
@@ -205,14 +228,20 @@ jobs:
           merge-multiple: true
 
       - name: Create source archives
+        env:
+          # Pass the validated version via env (never interpolate ${{ ... }}
+          # straight into the run: script body) — zizmor template-injection
+          # mitigation. Already regex-validated (^v[0-9]+\.[0-9]+\.[0-9]+$) in
+          # the `validate` job, so it cannot carry shell metacharacters.
+          VERSION: ${{ needs.validate.outputs.version }}
         run: |
           # Create source code archives (excluding dev dependencies and build artifacts)
-          export TARBALL="OmniRoute-${{ needs.validate.outputs.version }}.source.tar.gz"
-          export ZIPBALL="OmniRoute-${{ needs.validate.outputs.version }}.source.zip"
+          export TARBALL="OmniRoute-${VERSION}.source.tar.gz"
+          export ZIPBALL="OmniRoute-${VERSION}.source.zip"
 
           # Use git archive for clean source export
-          git archive --format=tar.gz --prefix=OmniRoute-${{ needs.validate.outputs.version }}/ HEAD -o "release-assets/$TARBALL"
-          git archive --format=zip --prefix=OmniRoute-${{ needs.validate.outputs.version }}/ HEAD -o "release-assets/$ZIPBALL"
+          git archive --format=tar.gz --prefix="OmniRoute-${VERSION}/" HEAD -o "release-assets/$TARBALL"
+          git archive --format=zip --prefix="OmniRoute-${VERSION}/" HEAD -o "release-assets/$ZIPBALL"
 
           echo "✓ Created source archives:"
           ls -lh "release-assets/$TARBALL" "release-assets/$ZIPBALL"
@@ -242,6 +271,14 @@ jobs:
   publish-npm:
     name: Publish to npm
     needs: [validate, release]
+    permissions:
+      # Must be `write`, not `read`: this job calls the reusable npm-publish.yml whose
+      # `publish` job needs `contents: write` (gh release upload — attach the SBOM, #3874).
+      # A reusable workflow's job cannot request more permission than the caller grants,
+      # so a `read` here makes GitHub reject the run at startup (startup_failure).
+      contents: write
+      id-token: write # npm provenance (forwarded to the reusable workflow)
+      packages: write # publish to npm.pkg.github.com
     uses: ./.github/workflows/npm-publish.yml
     with:
       version: ${{ needs.validate.outputs.version }}

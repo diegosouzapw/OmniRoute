@@ -1209,7 +1209,27 @@ test("OpenAI -> Gemini request maps reasoning_effort to thinkingConfig", () => {
 
   assert.ok((result as any).generationConfig.thinkingConfig, "expected thinkingConfig");
   assert.equal((result as any).generationConfig.thinkingConfig.includeThoughts, true);
+  // gemini-2.0-flash-thinking carries no registry cap, so the raw 32768 base is
+  // passed through unchanged (capThinkingBudget no-ops without a thinkingBudgetCap).
   assert.equal((result as any).generationConfig.thinkingConfig.thinkingBudget, 32768);
+});
+
+// Regression for #3842: reasoning_effort=high must not exceed a Gemini model's real
+// thinking-budget cap. gemini-2.5-flash's true upstream max is 24576; sending 32768
+// makes the upstream return HTTP 400. The modelSpecs thinkingBudgetCap now clamps it
+// at the capThinkingBudget chokepoint, matching the thinkingLevel=high path (24576).
+test("OpenAI -> Gemini reasoning_effort=high stays within gemini-2.5-flash cap (#3842)", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.5-flash",
+    {
+      messages: [{ role: "user", content: "Solve this complex puzzle" }],
+      reasoning_effort: "high",
+    },
+    false
+  ) as any;
+  const budget = result.generationConfig.thinkingConfig.thinkingBudget;
+  assert.ok(budget <= 24576, `expected <= 24576 (real cap), got ${budget}`);
+  assert.equal(budget, 24576);
 });
 
 test("OpenAI -> Gemini request maps google_search tool", () => {
@@ -1362,11 +1382,17 @@ test("native-mode assistant tool_calls produce functionCall parts, not text labe
   );
 });
 
-// Integration: registered translator (OPENAI -> GEMINI) emits native functionCall/functionResponse
-test("registered OPENAI->GEMINI translator uses native functionCall/functionResponse, not text labels", () => {
+// Integration: registered translator (OPENAI -> GEMINI) uses context-mode for
+// signature-less tool calls (post-#3688 fix: "native" → "context" registration).
+// A signature-less functionCall must be omitted from native parts and represented
+// as context text so the standard Gemini API does not return HTTP 400.
+// For a SIGNED call (signature in store) native parts must still be emitted — see
+// the "keeps native functionCall+thoughtSignature when signature is present" test.
+test("registered OPENAI->GEMINI translator uses context-mode for signature-less tool calls, not text labels or native bare functionCall", () => {
   const translate = getRequestTranslator(FORMATS.OPENAI, FORMATS.GEMINI);
   assert.ok(typeof translate === "function", "registered translator must be a function");
 
+  // No signature in store (cleared by beforeEach) — context-mode fallback applies.
   const result = translate(
     "gemini-2.0-flash",
     {
@@ -1395,15 +1421,18 @@ test("registered OPENAI->GEMINI translator uses native functionCall/functionResp
   ) as any;
 
   const body = JSON.stringify(result);
-  // Native mode: functionCall/functionResponse parts, no text labels
-  assert.ok(
+  // Context mode: signature-less functionCall must NOT appear as a native part.
+  assert.equal(
     body.includes('"functionCall"'),
-    "registered translator must emit native functionCall parts"
+    false,
+    "registered translator must NOT emit bare native functionCall parts for signature-less calls (would trigger HTTP 400)"
   );
-  assert.ok(
+  assert.equal(
     body.includes('"functionResponse"'),
-    "registered translator must emit native functionResponse parts"
+    false,
+    "registered translator must NOT emit native functionResponse for signature-less calls"
   );
+  // Old leaky text labels must never appear.
   assert.equal(
     body.includes("Historical tool-call record only"),
     false,
@@ -1417,6 +1446,133 @@ test("registered OPENAI->GEMINI translator uses native functionCall/functionResp
   assert.equal(
     body.includes("[tool_history_call:"),
     false,
-    "native mode must NOT emit text labels"
+    "text-label format must NOT be used by registered GEMINI translator"
+  );
+  // Context-mode: tool result must appear as <previous_tool_result_context> block.
+  assert.ok(
+    body.includes("previous_tool_result_context"),
+    "signature-less tool result must be represented as context text block"
+  );
+});
+
+// Regression for #3688: standard Gemini (AI Studio) returns HTTP 400
+// "Function call is missing a thought_signature" when a multi-turn conversation
+// includes a functionCall whose signature was not captured (process restart / TTL
+// expiry / never stored). The standard GEMINI registration must use "context" mode
+// so signature-less tool calls are omitted from the native parts and represented as
+// context text, avoiding the 400 while preserving conversational continuity.
+test("registered OPENAI->GEMINI translator falls back to context mode for signatureless tool calls (#3688)", () => {
+  // Signature store is cleared by beforeEach — no stored signature for call_3688.
+  const translate = getRequestTranslator(FORMATS.OPENAI, FORMATS.GEMINI);
+  assert.ok(typeof translate === "function", "registered translator must be a function");
+
+  const result = translate(
+    "gemini-2.5-pro-preview",
+    {
+      messages: [
+        { role: "user", content: "Run a tool" },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "call_3688_missing_sig",
+              type: "function",
+              function: { name: "bash", arguments: '{"cmd":"ls /tmp"}' },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_3688_missing_sig",
+          content: "file-a.txt\nfile-b.txt",
+        },
+        { role: "user", content: "What files did you see?" },
+      ],
+    },
+    false,
+    { _signatureNamespace: "conn-3688-test" }
+  ) as any;
+
+  const body = JSON.stringify(result);
+
+  // (a) NO functionCall part lacking a thoughtSignature must appear.
+  // A functionCall without a thoughtSignature is the exact payload that triggers
+  // Gemini's HTTP 400 "Function call is missing a thought_signature".
+  const modelTurn = result.contents.find(
+    (c: any) => c.role === "model" && c.parts?.some((p: any) => p.functionCall)
+  );
+  assert.equal(
+    modelTurn,
+    undefined,
+    "standard GEMINI translator must NOT emit a functionCall part when thoughtSignature is absent (would trigger HTTP 400)"
+  );
+
+  // (b) The tool call/result must be represented as context/text fallback instead.
+  // In "context" mode the response is wrapped in <previous_tool_result_context> tags.
+  assert.ok(
+    body.includes("previous_tool_result_context"),
+    "signature-less tool result must be represented as a context text block when signature is absent"
+  );
+  assert.ok(
+    body.includes("file-a.txt"),
+    "context text block must contain the tool response content"
+  );
+});
+
+// Happy-path: when thoughtSignature IS present in the store, the registered
+// OPENAI->GEMINI translator must still emit native functionCall + thoughtSignature
+// (no regression on the signed-signature path fixed by #2504).
+test("registered OPENAI->GEMINI translator keeps native functionCall+thoughtSignature when signature is present (#2504 no-regression)", async () => {
+  const { buildGeminiThoughtSignatureKey, storeGeminiThoughtSignature } =
+    await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
+  const ns = "conn-3688-signed-happy";
+  const toolId = "call_3688_signed";
+  storeGeminiThoughtSignature(buildGeminiThoughtSignatureKey(ns, toolId), "SIG_3688_HAPPY_PATH");
+
+  const translate = getRequestTranslator(FORMATS.OPENAI, FORMATS.GEMINI);
+  const result = translate(
+    "gemini-2.5-pro-preview",
+    {
+      messages: [
+        { role: "user", content: "Run a tool" },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: toolId,
+              type: "function",
+              function: { name: "bash", arguments: '{"cmd":"echo hi"}' },
+            },
+          ],
+        },
+        { role: "tool", tool_call_id: toolId, content: "hi" },
+        { role: "user", content: "What did it say?" },
+      ],
+    },
+    false,
+    { _signatureNamespace: ns }
+  ) as any;
+
+  const body = JSON.stringify(result);
+
+  // The functionCall part WITH the thoughtSignature must be present.
+  assert.ok(
+    body.includes("SIG_3688_HAPPY_PATH"),
+    "cached thoughtSignature must be re-attached to the functionCall (happy-path regression check)"
+  );
+  assert.ok(
+    body.includes('"functionCall"'),
+    "signed tool call must be emitted as native functionCall (not context text)"
+  );
+  assert.ok(
+    body.includes('"functionResponse"'),
+    "signed tool response must be emitted as native functionResponse"
+  );
+  assert.equal(
+    body.includes("previous_tool_result_context"),
+    false,
+    "signed tool call must NOT fall back to context text"
   );
 });

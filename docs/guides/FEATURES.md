@@ -40,7 +40,7 @@ The v3.7.x → v3.8.0 cycle added zero-config auto routing, new providers, OAuth
 - 🔒 **MITM dynamic Linux cert detection** — works across Debian/Ubuntu, Fedora/RHEL, Arch, and other distros
 - 💻 **CLI enhancement suite** — 20+ commands including `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
 - 🔍 **Qdrant embedding model discovery** — automatic vector-store model probe
-- 🔑 **API Manager / Bearer keys with `manage` scope** — perform admin operations programmatically via API
+- 🔑 **API Keys / Bearer keys with `manage` scope** — perform admin operations programmatically via API
 - 🏥 **Combo target health analytics** + **structured combo builder** — per-target health & UI builder for assembling `(provider, model, connection)` steps
 - 🤝 **GitLab Duo OAuth provider** — login with GitLab credentials
 - 🧠 **Reasoning Replay Cache** — hybrid in-memory + SQLite persistence of reasoning traces
@@ -52,6 +52,8 @@ The v3.7.x → v3.8.0 cycle added zero-config auto routing, new providers, OAuth
 ## 🔌 Providers
 
 Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
+
+OpenRouter connections can store a per-connection `preset` in Advanced Settings. When set, OmniRoute sends it as the OpenRouter top-level request field, for example `"preset": "email-copywriter"`, unless the client request already supplied its own `preset`.
 
 ![Providers Dashboard](../screenshots/01-providers.png)
 
@@ -113,7 +115,7 @@ Customizable color themes for the entire dashboard. Choose from 7 preset colors 
 Comprehensive settings panel with **7 tabs**:
 
 - **General** — System storage, backup management (export/import database)
-- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls, Endpoint tunnel visibility controls
+- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item and group separator visibility controls, Endpoint tunnel visibility controls
 - **AI** — AI assistant features, default routing presets (Auto Combo `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), reasoning replay cache, and skill/memory toggles
 - **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
 - **Routing** — Model aliases, background task degradation, manifest-aware tier routing (W1–W4), `fallbackDelayMs`, per-session sticky routing
@@ -185,7 +187,7 @@ Comprehensive proxy configuration enforcement across the entire request pipeline
 
 ## 📧 Email Privacy Masking _(v3.5.6+)_
 
-OAuth account emails are now masked in the provider dashboard (e.g. `di*****@g****.com`) to prevent accidental exposure when sharing screenshots or recording demos. The full email address remains accessible via hover tooltip (`title` attribute).
+OAuth account emails are masked by default (e.g. `di*****@g****.com`) to prevent accidental exposure when sharing screenshots or recording demos. Use Settings → Appearance → Account email visibility to reveal or mask full account emails globally across providers, combos, logs, quota, and playground screens.
 
 ---
 

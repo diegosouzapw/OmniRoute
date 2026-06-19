@@ -571,15 +571,14 @@ omniroute setup --add-provider \
 
 Recognized environment variables for non-interactive setup:
 
-| Var                           | Purpose                                      |
-| ----------------------------- | -------------------------------------------- |
-| `OMNIROUTE_SETUP_PASSWORD`    | Admin password (>=8 chars)                   |
-| `OMNIROUTE_PROVIDER`          | Provider id (e.g. `openai`, `anthropic`)     |
-| `OMNIROUTE_PROVIDER_NAME`     | Display name for the connection              |
-| `OMNIROUTE_PROVIDER_BASE_URL` | Optional OpenAI-compatible base URL override |
-| `OMNIROUTE_API_KEY`           | Provider API key                             |
-| `OMNIROUTE_DEFAULT_MODEL`     | Optional default model                       |
-| `DATA_DIR`                    | Override the OmniRoute data directory        |
+| Var                | Purpose                                                            |
+| ------------------ | ----------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | Provider API key (bound to `--api-key` via Commander `.env()`)   |
+| `DATA_DIR`         | Override the OmniRoute data directory                             |
+
+All other non-interactive inputs are passed as flags, not environment variables:
+`--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
+(see the `omniroute setup` options above).
 
 ### Diagnostics
 

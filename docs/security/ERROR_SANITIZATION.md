@@ -129,7 +129,7 @@ When adding a new route or executor, copy the assertion pattern from this file. 
 ## Related controls
 
 - `js/stack-trace-exposure` CodeQL alerts in `.github/security` should always be **either** fixed via these helpers **or** dismissed with a comment citing this doc.
-- The `pino` redaction config (`src/lib/log/redaction.ts` — if present) handles structured log redaction separately. This doc covers only the response-message surface.
+- The `pino` redaction config (`src/shared/utils/logRedaction.ts`) handles structured log redaction separately. This doc covers only the response-message surface.
 - Upstream-header denylist (`src/shared/constants/upstreamHeaders.ts`) covers header leakage — keep both files aligned when adding a new exfiltration concern.
 
 ## Upstream details passthrough

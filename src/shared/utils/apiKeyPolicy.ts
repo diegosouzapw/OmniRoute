@@ -9,12 +9,21 @@
  */
 
 import { extractApiKey } from "@/sse/services/auth";
-import { getApiKeyMetadata, getComboByName, isModelAllowedForKey, getApiKeyById } from "@/lib/localDb";
+import {
+  getApiKeyMetadata,
+  getComboByName,
+  isModelAllowedForKey,
+  getApiKeyById,
+} from "@/lib/localDb";
 import { isDashboardSessionAuthenticated } from "./apiAuth";
 import { resolveComboForModel } from "@/lib/db/modelComboMappings";
 import { checkBudget } from "@/domain/costRules";
 import { checkTokenLimits } from "@omniroute/open-sse/services/tokenLimitCounter.ts";
-import { errorResponse, buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
+import {
+  errorResponse,
+  buildErrorBody,
+  sanitizeErrorMessage,
+} from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { checkRateLimit, RateLimitRule } from "./rateLimiter";
@@ -23,7 +32,7 @@ import { resolveQuotaKeyScope } from "@/lib/quota/quotaKey";
 import { isQuotaModelName, parseQuotaModelName } from "@/lib/quota/quotaModelNaming";
 
 // Default to no per-key request cap. API keys can still opt into explicit
-// limits via Settings/API Manager, while provider/account quota controls remain
+// limits via Settings/API Keys, while provider/account quota controls remain
 // responsible for upstream 429 handling and fallback.
 // Exported so tests can lock in the "no implicit caps" contract from #2289.
 export const DEFAULT_RATE_LIMITS: RateLimitRule[] = [];
@@ -82,6 +91,7 @@ export interface ApiKeyMetadata {
   rateLimits?: RateLimitRule[] | null;
   allowedEndpoints?: string[];
   disableNonPublicModels?: boolean;
+  allowUsageCommand?: boolean;
 }
 
 /**
@@ -170,6 +180,45 @@ function matchesComboAccessRule(comboName: string, requestedModel: string, rule:
     normalizedRule === comboName ||
     rule === requestedModel ||
     `combo/${normalizedRule}` === requestedModel
+  );
+}
+
+function isAnthropicMessagesRequest(request: Request): boolean {
+  if (request.headers.has("anthropic-version")) return true;
+
+  try {
+    const url = new URL(request.url);
+    return url.pathname.endsWith("/v1/messages");
+  } catch {
+    return false;
+  }
+}
+
+function policyErrorResponse(
+  request: Request,
+  statusCode: number,
+  message: string,
+  anthropicMessage = message,
+  anthropicErrorType = "permission_error",
+  anthropicStatusCode = statusCode
+): Response {
+  if (!isAnthropicMessagesRequest(request)) {
+    return errorResponse(statusCode, message);
+  }
+
+  const safeMessage = sanitizeErrorMessage(anthropicMessage);
+  return new Response(
+    JSON.stringify({
+      type: "error",
+      error: {
+        type: anthropicErrorType,
+        message: safeMessage,
+      },
+    }),
+    {
+      status: anthropicStatusCode,
+      headers: { "Content-Type": "application/json" },
+    }
   );
 }
 
@@ -435,7 +484,12 @@ export async function enforceApiKeyPolicy(
   let requestedComboName: string | null = null;
   const isQuotaExclusive =
     Boolean(apiKeyInfo.allowedQuotas) && (apiKeyInfo.allowedQuotas as string[]).length > 0;
-  if (!isQuotaExclusive && modelStr && apiKeyInfo.allowedCombos && apiKeyInfo.allowedCombos.length > 0) {
+  if (
+    !isQuotaExclusive &&
+    modelStr &&
+    apiKeyInfo.allowedCombos &&
+    apiKeyInfo.allowedCombos.length > 0
+  ) {
     try {
       const comboAccess = await isComboAllowedForKey(apiKeyInfo.allowedCombos, modelStr);
       requestedComboName = comboAccess.comboName;
@@ -487,9 +541,13 @@ export async function enforceApiKeyPolicy(
       return {
         apiKey,
         apiKeyInfo,
-        rejection: errorResponse(
+        rejection: policyErrorResponse(
+          request,
           HTTP_STATUS.FORBIDDEN,
-          `Model "${modelStr}" is not allowed for this API key`
+          `Model "${modelStr}" is not allowed for this API key`,
+          `Model "${modelStr}" is not enabled or quota is insufficient. Choose another allowed model.`,
+          "invalid_request_error",
+          HTTP_STATUS.BAD_REQUEST
         ),
       };
     }
@@ -526,9 +584,7 @@ export async function enforceApiKeyPolicy(
       const breach = checkTokenLimits(apiKeyInfo.id, undefined, modelStr ?? undefined);
       if (breach) {
         const scopeLabel =
-          breach.scopeType === "global"
-            ? "account"
-            : `${breach.scopeType} "${breach.scopeValue}"`;
+          breach.scopeType === "global" ? "account" : `${breach.scopeType} "${breach.scopeValue}"`;
         return {
           apiKey,
           apiKeyInfo,
@@ -545,10 +601,7 @@ export async function enforceApiKeyPolicy(
       return {
         apiKey,
         apiKeyInfo,
-        rejection: errorResponse(
-          HTTP_STATUS.SERVICE_UNAVAILABLE,
-          "Token limit policy unavailable"
-        ),
+        rejection: errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "Token limit policy unavailable"),
       };
     }
   }

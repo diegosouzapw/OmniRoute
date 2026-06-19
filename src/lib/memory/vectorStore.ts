@@ -76,10 +76,54 @@ const TOP_K_DEFAULT = Number(process.env["MEMORY_VEC_TOP_K"] ?? 20);
 
 /**
  * Encode a Float32Array as a Buffer of little-endian bytes.
- * sqlite-vec accepts this format for FLOAT[] column values.
+ * sqlite-vec accepts this format for FLOAT[] column values. For int8 tables the
+ * SAME float32 blob is passed and quantized in SQL via vec_quantize_int8.
  */
 function encodeVector(v: Float32Array): Buffer {
   return Buffer.from(v.buffer, v.byteOffset, v.byteLength);
+}
+
+// ──────────────── Quantization (F4.4 / Q2) ────────────────
+
+/** Vector storage quantization mode. Opt-in via MEMORY_VEC_QUANTIZATION=int8. */
+export type VecQuantization = "none" | "int8";
+
+/** Mode requested for a NEWLY (re)created vec table (env opt-in, default none). */
+function requestedVecQuantization(): VecQuantization {
+  return process.env["MEMORY_VEC_QUANTIZATION"] === "int8" ? "int8" : "none";
+}
+
+/**
+ * Mode actually in effect for the EXISTING table, derived from the stored
+ * signature. Reads/writes use this (not the env) so they always match the
+ * on-disk column type — an env change only takes effect on the next reset.
+ */
+function storedVecQuantization(signature: string | null): VecQuantization {
+  return signature && signature.endsWith(":int8") ? "int8" : "none";
+}
+
+/** Append the int8 marker so switching modes is a signature change → reindex. */
+function withQuantizationSignature(base: string, q: VecQuantization): string {
+  return q === "int8" ? `${base}:int8` : base;
+}
+
+/** vec0 column type for the embedding column. */
+function vecColumnType(dim: number, q: VecQuantization): string {
+  return q === "int8" ? `int8[${dim}]` : `FLOAT[${dim}]`;
+}
+
+/**
+ * SQL placeholder for a bound float32 blob. int8 tables quantize it in SQL via
+ * `vec_quantize_int8(?, 'unit')` (embeddings are unit-normalized); float32 tables
+ * bind the raw blob. The bound parameter is ALWAYS the float32 blob either way.
+ */
+function vecValueExpr(q: VecQuantization): string {
+  return q === "int8" ? "vec_quantize_int8(?, 'unit')" : "?";
+}
+
+/** Quantization mode of the live table (from the persisted signature). */
+function liveVecQuantization(): VecQuantization {
+  return storedVecQuantization(getMemoryVecMeta().embeddingSignature);
 }
 
 // ──────────────── Implementation ────────────────
@@ -88,11 +132,19 @@ class VectorStoreImpl implements VectorStore {
   async ensureReady(resolution: EmbeddingResolution): Promise<{ ready: boolean; reason: string }> {
     const db = getDbInstance();
     const meta = getMemoryVecMeta();
+    const requested = requestedVecQuantization();
 
-    // Signature changed (or first time with a known dim) → recreate with new dim.
-    if (resolution.dimensions !== null && resolution.signature !== meta.embeddingSignature) {
-      await this.resetForSignature(resolution.signature, resolution.dimensions);
-      return { ready: true, reason: `vec_memories recreated with dim=${resolution.dimensions}` };
+    // The quantization mode is folded into the signature so flipping it (e.g.
+    // none → int8) is detected as a signature change and triggers a reindex.
+    if (resolution.dimensions !== null) {
+      const effectiveSignature = withQuantizationSignature(resolution.signature, requested);
+      if (effectiveSignature !== meta.embeddingSignature) {
+        await this.resetForSignature(effectiveSignature, resolution.dimensions);
+        return {
+          ready: true,
+          reason: `vec_memories recreated with dim=${resolution.dimensions} (${requested})`,
+        };
+      }
     }
 
     // Already marked loaded → idempotent no-op.
@@ -100,15 +152,17 @@ class VectorStoreImpl implements VectorStore {
       return { ready: true, reason: "vec_memories already ready" };
     }
 
-    // Not yet loaded but we have a dim — create the table now.
+    // Not yet loaded but we have a dim — create the table now. Use the mode of the
+    // EXISTING data (from the stored signature) so the column type matches on-disk.
     if (resolution.dimensions !== null) {
       const dim = meta.activeDim ?? resolution.dimensions;
+      const q = storedVecQuantization(meta.embeddingSignature);
       try {
         db.exec(
-          `CREATE VIRTUAL TABLE IF NOT EXISTS vec_memories USING vec0(embedding FLOAT[${dim}])`,
+          `CREATE VIRTUAL TABLE IF NOT EXISTS vec_memories USING vec0(embedding ${vecColumnType(dim, q)})`,
         );
         setMemoryVecMeta({ vecLoaded: true, activeDim: dim });
-        return { ready: true, reason: `vec_memories created with dim=${dim}` };
+        return { ready: true, reason: `vec_memories created with dim=${dim} (${q})` };
       } catch (err: unknown) {
         const msg = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
         return { ready: false, reason: `failed to create vec_memories: ${msg}` };
@@ -132,8 +186,10 @@ class VectorStoreImpl implements VectorStore {
 
     // vec0 v0.1.9 requires BigInt for explicit rowid insertion — plain numbers are rejected.
     // INSERT OR REPLACE is not supported by vec0 — use DELETE + INSERT for upsert semantics.
+    // int8 tables quantize the float32 blob in SQL (vec_quantize_int8); float32 bind raw.
+    const q = liveVecQuantization();
     db.prepare("DELETE FROM vec_memories WHERE rowid = ?").run(BigInt(row.rowid));
-    db.prepare("INSERT INTO vec_memories(rowid, embedding) VALUES (?, ?)").run(
+    db.prepare(`INSERT INTO vec_memories(rowid, embedding) VALUES (?, ${vecValueExpr(q)})`).run(
       BigInt(row.rowid),
       encodeVector(vector),
     );
@@ -154,12 +210,13 @@ class VectorStoreImpl implements VectorStore {
     const db = getDbInstance();
     const k = topK > 0 ? topK : TOP_K_DEFAULT;
 
+    const q = liveVecQuantization();
     const rows = db
       .prepare(
         `SELECT m.id AS memory_id, v.distance
          FROM vec_memories v
          JOIN memories m ON m.rowid = v.rowid
-         WHERE v.embedding MATCH ?
+         WHERE v.embedding MATCH ${vecValueExpr(q)}
            AND ($apiKeyId IS NULL OR m.api_key_id = $apiKeyId)
            AND k = ?
          ORDER BY v.distance ASC`,
@@ -185,6 +242,7 @@ class VectorStoreImpl implements VectorStore {
     const db = getDbInstance();
     const k = topK > 0 ? topK : TOP_K_DEFAULT;
     const rrfK = RRF_K;
+    const q = liveVecQuantization();
 
     // SQLite does not support FULL OUTER JOIN — use UNION ALL + GROUP BY (RRF recipe).
     // Reference: https://alexgarcia.xyz/blog/2024/sqlite-vec-hybrid-search/
@@ -196,7 +254,7 @@ class VectorStoreImpl implements VectorStore {
                   v.distance AS vec_distance
            FROM vec_memories v
            JOIN memories m ON m.rowid = v.rowid
-           WHERE v.embedding MATCH ?
+           WHERE v.embedding MATCH ${vecValueExpr(q)}
              AND ($apiKeyId IS NULL OR m.api_key_id = $apiKeyId)
              AND k = ?
          ),
@@ -290,10 +348,12 @@ class VectorStoreImpl implements VectorStore {
 
   async resetForSignature(signature: string, dim: number): Promise<void> {
     const db = getDbInstance();
+    // The column type follows the mode encoded in the (effective) signature.
+    const q = storedVecQuantization(signature);
 
     // DROP + CREATE is intentionally destructive — triggers lazy backfill via F5.
     db.exec("DROP TABLE IF EXISTS vec_memories");
-    db.exec(`CREATE VIRTUAL TABLE vec_memories USING vec0(embedding FLOAT[${dim}])`);
+    db.exec(`CREATE VIRTUAL TABLE vec_memories USING vec0(embedding ${vecColumnType(dim, q)})`);
 
     markAllMemoriesNeedReindex();
     setMemoryVecMeta({

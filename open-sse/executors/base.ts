@@ -1,4 +1,7 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { mergeClientAnthropicBeta } from "../config/anthropicHeaders.ts";
+import { applyContextEditingToBody } from "../config/contextEditing.ts";
+import { findOffendingField, stripGroqUnsupportedFields } from "../config/providerFieldStrips.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
@@ -22,14 +25,19 @@ import { signRequestBody } from "../services/claudeCodeCCH.ts";
 import {
   appendAnthropicBetaHeader,
   CONTEXT_1M_BETA_HEADER,
+  enforceThinkingTemperature,
   modelSupportsContext1mBeta,
 } from "../services/claudeCodeCompatible.ts";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
-import { cloakThirdPartyToolNames, remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
+import {
+  cloakThirdPartyToolNames,
+  remapToolNamesInRequest,
+} from "../services/claudeCodeToolRemapper.ts";
 import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
 import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { applySystemTransformPipeline, PROVIDER_CLAUDE } from "../services/systemTransforms.ts";
+import * as prl from "../utils/providerRequestLogging.ts";
 import {
   fixToolPairs,
   fixToolAdjacency,
@@ -128,6 +136,10 @@ export type ExecuteInput = {
   ) => Promise<void> | void;
   /** When true, skip the intra-URL 429 retry in execute() so the caller handles fallback. */
   skipUpstreamRetry?: boolean;
+  /** Delegated Context Editing (Claude only): when enabled, attach the
+   * `context_management.clear_tool_uses` strategy so the provider clears stale
+   * tool-use blocks server-side. Honored only on the genuine `claude` path. */
+  contextEditing?: { enabled: boolean } | null;
 };
 
 export type CountTokensInput = {
@@ -223,12 +235,11 @@ function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
  * Each rejection burns a combo fallback attempt before reaching a working
  * provider. Apply provider-aware sanitation here (after transformRequest, so
  * reintroductions by per-provider transforms are also caught) before fetch.
- * xhigh support is registry-gated: models that genuinely support xhigh pass
- * through unchanged, and Claude models default to xhigh support unless marked
- * as legacy unsupported entries. max support is Claude/CC-compatible only and
+ * xhigh support is opt-out: pass through unchanged unless the registry marks
+ * a model as unsupported. Literal max support is Claude/CC-compatible only and
  * intentionally separate: older Opus/Sonnet models may support max even when
- * they do not support xhigh. For OpenAI-shape providers, normalize max to
- * xhigh when that top tier is allowed; otherwise downgrade to high.
+ * they do not support xhigh. For OpenAI-shape providers, max normalizes to
+ * xhigh by default and falls back to high only for explicit xhigh opt-outs.
  */
 const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
 const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;
@@ -258,12 +269,55 @@ export function sanitizeReasoningEffortForProvider(
   const effortStr = typeof effort === "string" ? effort.toLowerCase() : "";
   const modelStr = model || "";
 
+  const rejecting =
+    (provider === "mistral" && MISTRAL_NO_REASONING_EFFORT_PATTERN.test(modelStr)) ||
+    (provider === "github" && GITHUB_NO_REASONING_EFFORT_PATTERN.test(modelStr));
+  if (rejecting) {
+    log?.info?.(
+      "REASONING_SANITIZE",
+      `${provider}/${modelStr}: removed unsupported reasoning_effort`
+    );
+    const next: Record<string, unknown> = { ...b };
+    delete next.reasoning_effort;
+    if (reasoning) {
+      const r = { ...reasoning };
+      delete r.effort;
+      if (Object.keys(r).length === 0) delete next.reasoning;
+      else next.reasoning = r;
+    }
+    return next;
+  }
+
+  // Native DeepSeek (api.deepseek.com) — V4 thinking mode accepts reasoning_effort
+  // ONLY as {high, max} (its own top tier is literally "max"). OmniRoute's internal
+  // scale is low|medium|high|xhigh where xhigh is the top, so map onto DeepSeek's
+  // vocabulary: xhigh → max (top→top), low|medium → high (below the enum floor).
+  // high/max pass through unchanged. Without this, the claude→openai translator's
+  // xhigh (and max-normalized-to-xhigh below) reaches DeepSeek as an unknown value,
+  // silently dropping the client's requested effort. This is the INVERSE of the
+  // OpenRouter-DeepSeek path, whose normalized API expects xhigh, not max (pi#4055).
+  if (provider === "deepseek") {
+    const mapped =
+      effortStr === "xhigh" ? "max" : effortStr === "low" || effortStr === "medium" ? "high" : null;
+    if (mapped && mapped !== effortStr) {
+      log?.info?.(
+        "REASONING_SANITIZE",
+        `deepseek/${modelStr}: normalized reasoning_effort ${effortStr} → ${mapped}`
+      );
+      const next: Record<string, unknown> = { ...b };
+      if (hasTopLevelReasoningEffort) next.reasoning_effort = mapped;
+      if (reasoning) next.reasoning = { ...reasoning, effort: mapped };
+      return next;
+    }
+    return body;
+  }
+
   const supportsXHigh = supportsXHighEffort(provider, modelStr);
   const shouldDowngradeXHigh = effortStr === "xhigh" && !supportsXHigh;
-  const shouldNormalizeMaxToXHigh =
-    effortStr === "max" && !supportsMaxEffortForProvider(provider, modelStr) && supportsXHigh;
-  const shouldDowngradeMax =
-    effortStr === "max" && !supportsMaxEffortForProvider(provider, modelStr) && !supportsXHigh;
+  const supportsXHighForMax = supportsXHigh;
+  const supportsMax = supportsMaxEffortForProvider(provider, modelStr);
+  const shouldNormalizeMaxToXHigh = effortStr === "max" && !supportsMax && supportsXHighForMax;
+  const shouldDowngradeMax = effortStr === "max" && !supportsMax && !supportsXHighForMax;
 
   if (shouldNormalizeMaxToXHigh) {
     log?.info?.(
@@ -291,25 +345,6 @@ export function sanitizeReasoningEffortForProvider(
     }
     if (reasoning) {
       next.reasoning = { ...reasoning, effort: "high" };
-    }
-    return next;
-  }
-
-  const rejecting =
-    (provider === "mistral" && MISTRAL_NO_REASONING_EFFORT_PATTERN.test(modelStr)) ||
-    (provider === "github" && GITHUB_NO_REASONING_EFFORT_PATTERN.test(modelStr));
-  if (rejecting) {
-    log?.info?.(
-      "REASONING_SANITIZE",
-      `${provider}/${modelStr}: removed unsupported reasoning_effort`
-    );
-    const next: Record<string, unknown> = { ...b };
-    delete next.reasoning_effort;
-    if (reasoning) {
-      const r = { ...reasoning };
-      delete r.effort;
-      if (Object.keys(r).length === 0) delete next.reasoning;
-      else next.reasoning = r;
     }
     return next;
   }
@@ -648,6 +683,7 @@ export class BaseExecutor {
       clientHeaders,
       skipUpstreamRetry = false,
       onCredentialsRefreshed,
+      contextEditing,
     } = input;
     const fallbackCount = this.getFallbackCount();
     let lastError: unknown = null;
@@ -744,6 +780,15 @@ export class BaseExecutor {
       }
     }
 
+    // Set by the Context Editing 400-fallback below: once an upstream rejects the
+    // `context_management` param, suppress its re-injection on every later
+    // retry/fallback URL (each iteration rebuilds a fresh `transformedBody`).
+    let contextEditingDisabled = false;
+    // Tracks which request fields have already been stripped via the generic 400
+    // field-downgrade below, so each known field is stripped at most once across
+    // all fallback URLs (bounded retry loop).
+    const strippedFields = new Set<string>();
+
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
       const url = this.buildUrl(model, stream, urlIndex, activeCredentials);
       const headers = this.buildHeaders(activeCredentials, stream, clientHeaders, model);
@@ -768,12 +813,17 @@ export class BaseExecutor {
         stream,
         activeCredentials
       );
-      const transformedBody = sanitizeReasoningEffortForProvider(
+      let transformedBody = sanitizeReasoningEffortForProvider(
         rawTransformedBody,
         this.provider,
         model,
         log
       );
+      if (this.provider === "groq") {
+        transformedBody = stripGroqUnsupportedFields(
+          transformedBody as Record<string, unknown>
+        ) as typeof transformedBody;
+      }
 
       try {
         // Only enforce the timeout while waiting for the initial fetch() response.
@@ -1035,7 +1085,13 @@ export class BaseExecutor {
           const ccHeaders: Record<string, string> = {
             Accept: "application/json",
             "anthropic-version": "2023-06-01",
-            "anthropic-beta": selectBetaFlags(tb, null, clientAnthropicBeta),
+            // #3974: merge the client's allowlisted betas (e.g. tool-search-tool)
+            // on top of the shape-derived set so deferred-tool requests are not
+            // rejected; selectBetaFlags still gates thinking/effort per #3415.
+            "anthropic-beta": mergeClientAnthropicBeta(
+              selectBetaFlags(tb, null, clientAnthropicBeta),
+              clientAnthropicBeta
+            ),
             "anthropic-dangerous-direct-browser-access": "true",
             "x-app": "cli",
             "User-Agent": `claude-cli/${CLAUDE_CODE_VERSION} (external, cli)`,
@@ -1111,6 +1167,44 @@ export class BaseExecutor {
             tb.messages = stripTrailingAssistantForProvider(stripped, this.provider);
           }
         }
+
+        // Anthropic's extended-thinking contract forbids non-default sampling
+        // params: temperature must be 1 and top_p >= 0.95 (or unset) whenever
+        // thinking is enabled/adaptive. Thinking can be injected by per-model
+        // requestDefaults *after* the translator/constraint passes, so normalize
+        // at this final dispatch point — the single chokepoint every Claude
+        // routing mode (grouped/raw/combo) and the native passthrough share,
+        // before fingerprinting and CCH signing serialize the body.
+        if (this.provider === "claude" || isClaudeCodeCompatible(this.provider)) {
+          enforceThinkingTemperature(transformedBody as Record<string, unknown>);
+        }
+
+        // Delegated Context Editing (opt-in): attach the clear_tool_uses strategy so
+        // the provider clears stale tool-use blocks server-side. Runs at this same
+        // chokepoint, composing with the clear_thinking edit the fingerprint path may
+        // have already set. Scoped to genuine `claude` (real Anthropic key/OAuth) and
+        // `anthropic-compatible-cc-*` relays — the latter advertise Claude Code
+        // compatibility, so they are the relays most likely to accept the beta. A
+        // rejecting upstream is caught by the 400-fallback below. Deliberately
+        // EXCLUDED: `claude-web` (a browser relay with a `create_conversation_params`
+        // request shape that never sees `context_management`) and generic
+        // `anthropic-compatible-*` (third-party endpoints with uncertain beta support).
+        // `contextEditingDisabled` (set by the 400-fallback) suppresses re-injection
+        // when a fresh `transformedBody` is built for a retry/fallback URL.
+        if (
+          (this.provider === "claude" || isClaudeCodeCompatible(this.provider)) &&
+          contextEditing?.enabled &&
+          !contextEditingDisabled
+        ) {
+          applyContextEditingToBody(transformedBody as Record<string, unknown>, {
+            enabled: true,
+          });
+          log?.debug?.(
+            "CONTEXT_EDITING",
+            "Delegated context editing on — attached clear_tool_uses to the Claude request"
+          );
+        }
+
         let bodyString = JSON.stringify(transformedBody);
 
         const shouldFingerprint =
@@ -1129,7 +1223,7 @@ export class BaseExecutor {
         }
 
         mergeUpstreamExtraHeaders(finalHeaders, upstreamExtraHeaders);
-
+        const serializedBody = prl.parseBody(bodyString);
         const fetchOptions: RequestInit = {
           method: "POST",
           headers: finalHeaders,
@@ -1144,6 +1238,71 @@ export class BaseExecutor {
           if (timeoutId) {
             clearTimeout(timeoutId);
             timeoutId = null;
+          }
+        }
+
+        // Context Editing 400-fallback: a Claude-compatible relay may advertise the
+        // context-management beta but reject the `context_management` param with a 400.
+        // Strip it from this body and retry the same URL once so the request degrades
+        // gracefully instead of failing. Genuine Claude carries the beta in
+        // ANTHROPIC_BETA_BASE and will not hit this. The 400 response is read via a
+        // clone so the original stays intact for the non-matching path.
+        if (
+          response.status === HTTP_STATUS.BAD_REQUEST &&
+          contextEditing?.enabled &&
+          !contextEditingDisabled &&
+          transformedBody &&
+          typeof transformedBody === "object" &&
+          (transformedBody as Record<string, unknown>).context_management !== undefined
+        ) {
+          const errText = await response
+            .clone()
+            .text()
+            .catch(() => "");
+          if (/context[_-]management|context editing/i.test(errText)) {
+            contextEditingDisabled = true;
+            delete (transformedBody as Record<string, unknown>).context_management;
+            let retryBody = JSON.stringify(transformedBody);
+            if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
+              retryBody = await signRequestBody(retryBody);
+            }
+            log?.debug?.(
+              "CONTEXT_EDITING",
+              `Upstream 400 rejected context_management on ${url} — retrying without it`
+            );
+            response = await fetch(url, { ...fetchOptions, body: retryBody });
+          }
+        }
+
+        // Generic reactive 400 field-downgrade (FCC NIM-style): if an upstream 400s
+        // naming a known-unsupported field, strip just that field and retry once.
+        // Each known field is stripped at most once across fallback URLs (bounded loop).
+        if (
+          response.status === HTTP_STATUS.BAD_REQUEST &&
+          transformedBody &&
+          typeof transformedBody === "object"
+        ) {
+          const errText = await response
+            .clone()
+            .text()
+            .catch(() => "");
+          const offending = findOffendingField(errText);
+          if (
+            offending &&
+            !strippedFields.has(offending) &&
+            (transformedBody as Record<string, unknown>)[offending] !== undefined
+          ) {
+            strippedFields.add(offending);
+            delete (transformedBody as Record<string, unknown>)[offending];
+            let retryBody = JSON.stringify(transformedBody);
+            if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
+              retryBody = await signRequestBody(retryBody);
+            }
+            log?.debug?.(
+              "FIELD_400",
+              `Upstream 400 rejected ${offending} on ${url} — retrying without it`
+            );
+            response = await fetch(url, { ...fetchOptions, body: retryBody });
           }
         }
 
@@ -1175,7 +1334,7 @@ export class BaseExecutor {
           continue;
         }
 
-        return { response, url, headers: finalHeaders, transformedBody };
+        return { response, url, headers: finalHeaders, transformedBody: serializedBody };
       } catch (error) {
         // Distinguish timeout errors from other abort errors
         const err = error instanceof Error ? error : new Error(String(error));
