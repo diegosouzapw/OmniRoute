@@ -1092,6 +1092,48 @@ paths:
       responses:
         "200":
           description: Chat completion response (or SSE stream)
+          headers:
+            X-OmniRoute-Response-Cost:
+              schema:
+                type: string
+              description: Request cost in USD, fixed 10 decimals (e.g. `0.0001234500`; `0.0000000000` for free/unpriced).
+            X-OmniRoute-Tokens-In:
+              schema:
+                type: string
+              description: Input (prompt) token count.
+            X-OmniRoute-Tokens-Out:
+              schema:
+                type: string
+              description: Output (completion) token count.
+            X-OmniRoute-Model:
+              schema:
+                type: string
+              description: Resolved model.
+            X-OmniRoute-Provider:
+              schema:
+                type: string
+              description: Resolved provider alias.
+            X-OmniRoute-Latency-Ms:
+              schema:
+                type: string
+              description: Handler latency in milliseconds.
+            X-OmniRoute-Cache-Hit:
+              schema:
+                type: string
+                enum: ["true", "false"]
+              description: Whether the response was served from cache.
+            X-OmniRoute-Fallback-Attempts:
+              schema:
+                type: string
+              description: Number of fallback attempts (only present when > 0).
+            X-OmniRoute-Request-Id:
+              schema:
+                type: string
+              description: Request correlation id (present when known).
+            X-OmniRoute-Version:
+              schema:
+                type: string
+              description: OmniRoute build version (always present).
           content:
             application/json:
               schema:
@@ -1197,7 +1239,11 @@ paths:
               $ref: "#/components/schemas/MessagesRequest"
       responses:
         "200":
-          description: Message response (or SSE stream)
+          description: >-
+            Message response (or SSE stream). Non-streaming success responses
+            carry the `X-OmniRoute-*` cost-telemetry headers (see
+            `POST /api/v1/chat/completions`), including `X-OmniRoute-Request-Id`
+            and `X-OmniRoute-Version`.
         "401":
           $ref: "#/components/responses/Unauthorized"
 
@@ -1232,7 +1278,11 @@ paths:
               type: object
       responses:
         "200":
-          description: Response object or SSE stream
+          description: >-
+            Response object or SSE stream. Non-streaming success responses carry
+            the `X-OmniRoute-*` cost-telemetry headers (see
+            `POST /api/v1/chat/completions`), including `X-OmniRoute-Request-Id`
+            and `X-OmniRoute-Version`.
         "401":
           $ref: "#/components/responses/Unauthorized"
 
@@ -1260,7 +1310,11 @@ paths:
                   type: string
       responses:
         "200":
-          description: Embedding vectors
+          description: >-
+            Embedding vectors. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`); media
+            cost is computed per modality when pricing is available, otherwise
+            `0` (fail-open).
 
   /api/v1/providers/{provider}/embeddings:
     post:
@@ -1310,7 +1364,11 @@ paths:
                   default: 1024x1024
       responses:
         "200":
-          description: Generated images
+          description: >-
+            Generated images. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`); image
+            cost is computed per image when pricing is available, otherwise `0`
+            (fail-open).
 
   /api/v1/providers/{provider}/images/generations:
     post:
@@ -1357,7 +1415,11 @@ paths:
                   type: string
       responses:
         "200":
-          description: Audio data
+          description: >-
+            Audio data. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`); speech
+            cost is computed per character when pricing is available, otherwise
+            `0` (fail-open).
 
   /api/v1/audio/transcriptions:
     post:
@@ -1381,7 +1443,11 @@ paths:
                   type: string
       responses:
         "200":
-          description: Transcription result
+          description: >-
+            Transcription result. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`);
+            transcription cost is computed per second when pricing is available,
+            otherwise `0` (fail-open).
 
   /api/v1/moderations:
     post:
@@ -1406,7 +1472,10 @@ paths:
                         type: string
       responses:
         "200":
-          description: Moderation result
+          description: >-
+            Moderation result. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`);
+            moderations are always cost `0` (free).
 
   /api/v1/rerank:
     post:
@@ -1433,7 +1502,11 @@ paths:
                   type: string
       responses:
         "200":
-          description: Reranked documents
+          description: >-
+            Reranked documents. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`); rerank
+            cost is computed per search-unit when pricing is available,
+            otherwise `0` (fail-open).
 
   /api/v1:
     get:
