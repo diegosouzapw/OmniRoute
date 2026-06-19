@@ -20,6 +20,15 @@
   },
   "git.ignoreLimitWarning": true,
 
+  // ─── Git: não adicionar os ~44 repos aninhados (9 worktrees + _references/* +
+  // _mono_repo/* + _ideia/_tasks/.agents) ao Source Control. Era a causa do
+  // "validando muito": um git status + watcher por repo. Só o repo raiz fica. ───
+  "git.autoRepositoryDetection": false,
+  "git.repositoryScanMaxDepth": 0,
+  "git.detectSubmodules": false,
+  "git.autofetch": false,
+  "git.autorefresh": true,
+
   // ─── Performance: não seguir o symlink de node_modules criado pelas worktrees ───
   // As worktrees em .worktrees/ apontam node_modules para o checkout principal;
   // sem isto a busca atravessa o symlink mesmo com node_modules excluído.
