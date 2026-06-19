@@ -4,6 +4,7 @@ import { checkSemanticCache } from "./chatCore/semanticCache.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
 import { cloneBoundedChatLogPayload, truncateForLog } from "./chatCore/logTruncation.ts";
 import { getHeaderValueCaseInsensitive } from "./chatCore/headers.ts";
+import { markCodexScopeRateLimited } from "./chatCore/codexFailover.ts";
 import { getCombosCached, getUpstreamProxyConfigCached } from "./chatCore/comboContextCache.ts";
 export { clearCombosCache, clearUpstreamProxyConfigCache } from "./chatCore/comboContextCache.ts";
 import {
@@ -3112,51 +3113,13 @@ export async function handleChatCore({
                 );
 
                 // Mark only the current Codex model scope as rate-limited.
-                // Spark and normal Codex have independent upstream quota pools; a
-                // Spark 429 must not write the connection-wide `rateLimitedUntil`
-                // field, otherwise later normal Codex requests (for example
-                // gpt-5.5) are incorrectly blocked by auth selection.
                 if (failedConnectionId) {
-                  const rateLimitedUntil = new Date(
-                    Date.now() + (retryAfterMs || 60_000)
-                  ).toISOString();
-                  const failedScope = getCodexModelScope(
-                    modelToCall || model || requestedModel || ""
-                  );
-                  const connection = await getProviderConnectionById(
-                    String(failedConnectionId)
-                  ).catch(() => null);
-                  const existingProviderData =
-                    connection?.providerSpecificData &&
-                    typeof connection.providerSpecificData === "object"
-                      ? connection.providerSpecificData
-                      : credentials?.providerSpecificData &&
-                          typeof credentials.providerSpecificData === "object"
-                        ? credentials.providerSpecificData
-                        : {};
-                  const existingScopeMap =
-                    existingProviderData.codexScopeRateLimitedUntil &&
-                    typeof existingProviderData.codexScopeRateLimitedUntil === "object"
-                      ? (existingProviderData.codexScopeRateLimitedUntil as Record<string, unknown>)
-                      : {};
-                  const nextProviderData = {
-                    ...existingProviderData,
-                    codexScopeRateLimitedUntil: {
-                      ...existingScopeMap,
-                      [failedScope]: rateLimitedUntil,
-                    },
-                  };
-                  updateProviderConnection(String(failedConnectionId), {
-                    providerSpecificData: nextProviderData,
-                    lastError: "429 rate limited — codex account rotation",
-                    errorCode: 429,
-                  }).catch(() => {});
-                  if (
-                    credentials &&
-                    String(credentials.connectionId) === String(failedConnectionId)
-                  ) {
-                    credentials.providerSpecificData = nextProviderData;
-                  }
+                  await markCodexScopeRateLimited({
+                    failedConnectionId: String(failedConnectionId),
+                    model: modelToCall || model || requestedModel || null,
+                    rateLimitedUntil: new Date(Date.now() + (retryAfterMs || 60_000)).toISOString(),
+                    credentials,
+                  });
                   if (!codexExcludedIds.includes(String(failedConnectionId))) {
                     codexExcludedIds.push(String(failedConnectionId));
                   }

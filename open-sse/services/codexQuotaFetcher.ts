@@ -110,9 +110,10 @@ function getQuotaCacheKey(connectionId: string, requestedModel?: string | null):
 
 function deleteQuotaCacheForConnection(connectionId: string): void {
   quotaCache.delete(connectionId);
-  for (const key of quotaCache.keys()) {
-    if (key === connectionId || key.startsWith(`${connectionId}:`)) quotaCache.delete(key);
-  }
+  const scopedKeys = Array.from(quotaCache.keys()).filter((key) =>
+    key.startsWith(`${connectionId}:`)
+  );
+  for (const key of scopedKeys) quotaCache.delete(key);
 }
 
 export function unregisterCodexConnection(connectionId: string): void {
