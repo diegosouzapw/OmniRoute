@@ -266,6 +266,13 @@ Before shipping any v3.8.x release, verify these additional items:
 - [ ] `omniroute --tray` boots on Windows (PowerShell NotifyIcon, no extra binaries)
 - [ ] `omniroute config tray enable` creates autostart entry; disable removes it
 - [ ] `npm install -g omniroute@<this-version>` runs postinstall without fatal exit
+- [ ] Update path keeps optional deps: `omniroute update --apply` and the auto-updater
+      run `npm install -g … --include=optional` so `optionalDependencies` (better-sqlite3,
+      keytar, tls-client, and the llmlingua SLM stack: `@atjsh/llmlingua-2`,
+      `@tensorflow/tfjs`, `js-tiktoken`) survive an update. The ultra `modelPath` SLM tier
+      additionally needs `@huggingface/transformers@3.5.2` (pinned — llmlingua-2 uses the 3.x
+      tokenizer API) and the tinybert model, auto-downloaded to `${DATA_DIR}/models/llmlingua`
+      on first use.
 - [ ] `omniroute status` works with no `.env` (CLI token path, loopback only)
 - [ ] `curl http://localhost:20128/api/shutdown` returns 401 (always-protected route)
 - [ ] `curl -H "host: evil.com" http://localhost:20128/api/mcp/sse` returns 401 (loopback guard)
