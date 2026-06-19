@@ -137,6 +137,29 @@ The written profile references the inference key by env var
 base Codex setup (the `[model_providers.omniroute]` block), see
 [CODEX-CLI-CONFIGURATION.md](./CODEX-CLI-CONFIGURATION.md).
 
+### Per-CLI setup commands
+
+Each supported CLI has a remote-aware setup command (all honour the active
+context, or `--remote <url> --api-key <key>`):
+
+| CLI | Command | What it writes |
+|-----|---------|----------------|
+| Codex | `omniroute setup-codex` | `~/.codex/<name>.config.toml` profiles (per model) |
+| Claude Code | `omniroute setup-claude` | `~/.claude/profiles/<name>/settings.json` (per model) |
+| OpenCode | `omniroute setup-opencode` | `~/.config/opencode/opencode.json` — the `omniroute` openai-compatible provider with every catalog model (run `opencode -m omniroute/<model>`) |
+
+```bash
+# OpenCode (openai-compatible provider, all catalog models, remote VPS)
+omniroute setup-opencode --remote http://192.168.0.15:20128 --api-key oma_live_xxx
+omniroute setup-opencode --only glm,kimi        # keep only matching models
+opencode -m omniroute/glm/glm-5.2 "..."          # export OMNIROUTE_API_KEY first
+```
+
+> OpenCode also has a richer **plugin** integration: `omniroute setup opencode`
+> (now remote-aware via `--remote`) installs `@omniroute/opencode-plugin`.
+> `setup-opencode` is the lightweight openai-compatible alternative. The API key
+> is referenced via `{env:OMNIROUTE_API_KEY}` — never written to disk.
+
 ---
 
 ## Switching back to local

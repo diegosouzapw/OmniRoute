@@ -59,6 +59,7 @@ import { registerLaunch } from "./launch.mjs";
 import { registerLaunchCodex } from "./launch-codex.mjs";
 import { registerSetupCodex } from "./setup-codex.mjs";
 import { registerSetupClaude } from "./setup-claude.mjs";
+import { registerSetupOpencode } from "./setup-opencode.mjs";
 import { registerConnect } from "./connect.mjs";
 import { registerTokens } from "./tokens.mjs";
 import { registerConfigure } from "./configure.mjs";
@@ -128,6 +129,7 @@ export function registerCommands(program) {
   registerLaunchCodex(program);
   registerSetupCodex(program);
   registerSetupClaude(program);
+  registerSetupOpencode(program);
   registerConnect(program);
   registerTokens(program);
   registerConfigure(program);
