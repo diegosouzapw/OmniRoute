@@ -255,6 +255,28 @@ export function modelIdLikelyVision(modelId: string | null | undefined): boolean
   return isVisionModelId(modelId);
 }
 
+/**
+ * Models that upstream catalogs (notably models.dev) mislabel as vision-capable but
+ * are TEXT-ONLY per the vendor's own docs. Listed here so a wrong synced
+ * `attachment:true` cannot route an image request to a blind model (the #4071 failure
+ * mode). Keep this list tiny and doc-backed.
+ *
+ * Xiaomi MiMo: only `mimo-v2.5` and `mimo-v2-omni` accept images; the `*-pro` chat
+ * models are text-only (mimo.mi.com .../image-understanding; hermes-agent#18884).
+ * Anchored to the full id (`$`) and tolerant of a `provider/` prefix so `mimo-v2.5-pro`
+ * never matches the multimodal `mimo-v2.5`, and `mimo-v2-pro` never matches `mimo-v2-omni`.
+ */
+const KNOWN_TEXT_ONLY_DESPITE_SYNC: readonly RegExp[] = [
+  /(?:^|\/)mimo-v2\.5-pro$/i,
+  /(?:^|\/)mimo-v2-pro$/i,
+];
+
+function isKnownTextOnlyDespiteSync(modelId: string | null | undefined): boolean {
+  if (!modelId) return false;
+  const id = String(modelId);
+  return KNOWN_TEXT_ONLY_DESPITE_SYNC.some((pattern) => pattern.test(id));
+}
+
 function resolveVisionCapability(
   spec: ModelSpec | undefined,
   registryModel: { supportsVision?: boolean } | null,
@@ -266,6 +288,11 @@ function resolveVisionCapability(
   const allModalities = [...modalitiesInput, ...modalitiesOutput].map((entry) =>
     String(entry).toLowerCase()
   );
+
+  // Hard override FIRST: a wrong synced `attachment:true` (or image modality) must not
+  // win for models the vendor documents as text-only. Beats every branch below so an
+  // image request can never be routed to a blind model (#4071).
+  if (isKnownTextOnlyDespiteSync(modelId)) return false;
 
   if (typeof synced?.attachment === "boolean") {
     return synced.attachment;

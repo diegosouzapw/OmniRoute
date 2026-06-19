@@ -79,6 +79,7 @@ import {
   stripIncompatibleMessageContent,
 } from "../services/modelStrip.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
+import { normalizeMimoThinking } from "../services/mimoThinking.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
 import { supportsMaxTokens } from "@/lib/modelCapabilities.ts";
 import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
@@ -2534,6 +2535,14 @@ export async function handleChatCore({
   // when the resolved target model rejects it; models that accept `disabled` are untouched.
   if (typeof finalModelToUpstream === "string") {
     translatedBody = normalizeThinkingForModel(translatedBody, finalModelToUpstream);
+  }
+
+  // Xiaomi MiMo controls reasoning ONLY via `thinking:{type:"enabled"|"disabled"}` and
+  // rejects unknown/extra params with a strict "400 Param Incorrect". Map OmniRoute's
+  // OpenAI reasoning signals onto that native shape: reduce any thinking object to
+  // `{type}` and drop `reasoning_effort`/`reasoning`. See services/mimoThinking.ts.
+  if (provider === "xiaomi-mimo") {
+    translatedBody = normalizeMimoThinking(translatedBody);
   }
 
   const previousResponseIdPolicy = applyResponsesPreviousResponseIdPolicy(translatedBody, {

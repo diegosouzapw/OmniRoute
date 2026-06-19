@@ -69,7 +69,7 @@
     "open-sse/executors/muse-spark-web.ts": 1284,
     "open-sse/executors/perplexity-web.ts": 1013,
     "open-sse/handlers/audioSpeech.ts": 965,
-    "open-sse/handlers/chatCore.ts": 5086,
+    "open-sse/handlers/chatCore.ts": 5095,
     "open-sse/handlers/imageGeneration.ts": 3777,
     "open-sse/handlers/responseSanitizer.ts": 1103,
     "open-sse/handlers/search.ts": 1546,
