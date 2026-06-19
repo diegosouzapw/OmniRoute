@@ -284,6 +284,25 @@ Compression exposes five MCP tools:
 | `omniroute_list_compression_combos` | `read:compression`  | List compression combos          |
 | `omniroute_compression_combo_stats` | `read:compression`  | Read combo/engine analytics      |
 
+## Known limitations
+
+- **LLMLingua-2 (SLM) requires co-located optional deps.** The worker only runs in a
+  production build when `@atjsh/llmlingua-2` + peers are co-located into
+  `dist/node_modules` (see `scripts/build/colocateOptionals.mjs`, #4286). Without them the
+  engine fail-opens (returns the original text). Worker resolution no longer depends on
+  `import.meta.url` (it dies in the standalone bundle) — it anchors on the runtime
+  cwd / `argv[1]`.
+- **Caveman language packs `de` / `fr` / `ja` are partial.** They ship `context` +
+  `filler` + `structural` rules but no `dedup` / `ultra` packs, so `ultra` intensity is
+  no stronger than `full` for those languages (they use only their own rules — there is no
+  silent fall-back to the English `dedup`/`ultra` rules, which would mangle foreign text).
+  `en` / `es` / `id` / `pt-BR` are complete. Contributions of `dedup.json` + `ultra.json`
+  for the partial packs are welcome.
+- **Stacked telemetry only lists engines that compressed.** A stacked-pipeline step whose
+  engine ran but produced 0 % savings returns `stats:null` and so does not appear in
+  `engineBreakdown` — indistinguishable from a step that was skipped. Distinguishing
+  "ran, 0 %" from "skipped" would require a breakdown-model change and is deferred.
+
 ## Validation
 
 The focused gates for this area are:

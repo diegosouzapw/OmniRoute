@@ -354,9 +354,13 @@ export const llmlinguaEngine: CompressionEngine = {
     inputScope: "messages",
     targetLatencyMs: 200,
     supportsPreview: false,
-    // Promoted to stable after VPS validation (2026-06-16): the deployed worker
-    // compressed real prose (209→107 ch, ok=true), and the bundle's walk-up
-    // resolution + optional-deps gate were confirmed against the live install.
+    // Stable. The worker model itself was VPS-validated (real prose 209→107 ch, ok=true),
+    // but the EARLIER "walk-up + optional-deps gate confirmed in the bundle" claim was
+    // wrong: the Next standalone bundle (webpack) froze `import.meta.url` to the build path
+    // and stubbed `createRequire`, so in production the gate was always false and the worker
+    // never spawned (it silently fell back to the aggressive summarizer). Fixed in B-SLM —
+    // worker.ts now resolves deps + worker file from runtime anchors (cwd / argv[1]). The
+    // optional deps must also be co-located into dist/node_modules (#4286) to actually run.
     stable: true,
   },
 
