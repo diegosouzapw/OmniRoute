@@ -135,6 +135,7 @@ function sanitizeErrorMessage(message) {
 
 const bypassShim = require("./_internal/bypass.cjs");
 const ingestShim = require("./_internal/ingest.cjs");
+const forwardShim = require("./_internal/forwardTarget.cjs");
 
 // Inspector capture (D4 fallback). The standalone proxy intercepts AgentBridge
 // traffic inline (no MitmHandlerBase / agentBridgeHook), so it posts captured
@@ -470,8 +471,17 @@ async function intercept(req, res, bodyBuffer, mappedModel, sourceModel) {
     const body = JSON.parse(bodyBuffer.toString());
     body.model = mappedModel;
 
+    // Gap B — the Antigravity IDE speaks cloudcode (the Gemini payload wrapped
+    // under `request`) and expects a cloudcode reply. Forward such envelopes to
+    // the antigravity-compatible endpoint (which translates both directions) so
+    // the IDE gets its own format back; plain OpenAI bodies still go to
+    // chat/completions. Without this, cloudcode hits chat/completions and 400s
+    // on the missing `messages` field.
+    const forward = forwardShim.resolveForwardTarget(ROUTER_BASE_URL, body);
+    vlog(1, `[MITM] → forward ${forward.format} ${forward.url}`);
+
     upstreamStartedAt = Date.now();
-    const response = await fetch(ROUTER_URL, {
+    const response = await fetch(forward.url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
