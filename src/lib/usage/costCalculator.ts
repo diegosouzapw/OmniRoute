@@ -159,3 +159,61 @@ export async function calculateCost(
     return 0;
   }
 }
+
+type ModalPricing = Record<string, unknown>;
+
+/** Per-image cost: flat per-image × n. 0 when pricing/usage absent. */
+export function computeImageCost(
+  pricing: ModalPricing | null | undefined,
+  usage: { n?: number }
+): number {
+  if (!pricing) return 0;
+  const perImage = toNumber(pricing.output_cost_per_image ?? pricing.input_cost_per_image, 0);
+  const n = Math.max(0, Math.floor(toNumber(usage.n, 0)));
+  return perImage * n;
+}
+
+/** Audio cost: per-second (transcription) OR per-character (TTS). 0 when no dimension. */
+export function computeAudioCost(
+  pricing: ModalPricing | null | undefined,
+  usage: { seconds?: number; characters?: number }
+): number {
+  if (!pricing) return 0;
+  const seconds = toNumber(usage.seconds, 0);
+  if (seconds > 0) {
+    const perSecond = toNumber(pricing.input_cost_per_second ?? pricing.output_cost_per_second, 0);
+    if (perSecond > 0) return perSecond * seconds;
+  }
+  const characters = toNumber(usage.characters, 0);
+  if (characters > 0) {
+    const perChar = toNumber(pricing.input_cost_per_character ?? pricing.output_cost_per_character, 0);
+    // Round to 10 decimals to drop binary-FP artifacts (e.g. 0.000015 * 1000).
+    if (perChar > 0) return Math.round(perChar * characters * 1e10) / 1e10;
+  }
+  return 0;
+}
+
+/** Rerank cost: per search unit (Cohere-style billed_units.search_units). */
+export function computeRerankCost(
+  pricing: ModalPricing | null | undefined,
+  usage: { searchUnits?: number }
+): number {
+  if (!pricing) return 0;
+  const perUnit = toNumber(pricing.search_unit_cost ?? pricing.input_cost_per_query, 0);
+  const units = Math.max(0, toNumber(usage.searchUnits, 0));
+  return perUnit * units;
+}
+
+/** Video cost: per video-second. */
+export function computeVideoCost(
+  pricing: ModalPricing | null | undefined,
+  usage: { seconds?: number }
+): number {
+  if (!pricing) return 0;
+  const perSecond = toNumber(
+    pricing.output_cost_per_video_per_second ?? pricing.input_cost_per_video_per_second,
+    0
+  );
+  const seconds = toNumber(usage.seconds, 0);
+  return perSecond * seconds;
+}
