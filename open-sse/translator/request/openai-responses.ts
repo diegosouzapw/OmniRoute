@@ -22,6 +22,15 @@ const TOOL_SEARCH_TOOL_TYPES = /^tool_search/;
 // (even text-only ones); it has no Chat Completions equivalent and must be silently dropped (#2950).
 const IMAGE_GENERATION_TOOL_TYPES = /^image_generation/;
 
+// GPT-5 output verbosity: `verbosity` on Chat Completions, `text.verbosity` on the
+// Responses API. Only these three levels are valid upstream; anything else is dropped.
+const VERBOSITY_LEVELS = new Set(["low", "medium", "high"]);
+function normalizeVerbosity(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const level = value.toLowerCase();
+  return VERBOSITY_LEVELS.has(level) ? level : undefined;
+}
+
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
@@ -106,6 +115,13 @@ export function openaiResponsesToOpenAIRequest(
   }
 
   const result: JsonRecord = { ...root };
+
+  // GPT-5 verbosity: Responses `text.verbosity` → Chat Completions top-level `verbosity`.
+  // Chat has no `text` wrapper, so carry the level across and drop the Responses-only
+  // `text` object (a strict Chat endpoint 400s on unknown fields).
+  const responsesVerbosity = normalizeVerbosity(toRecord(result.text).verbosity);
+  if (responsesVerbosity) result.verbosity = responsesVerbosity;
+  delete result.text;
 
   // background: true requests a deferred Responses API run (the upstream
   // returns 202 with response_id and the client polls GET /responses/<id>).
@@ -702,6 +718,11 @@ export function openaiToOpenAIResponsesRequest(
     result.max_output_tokens = root.max_tokens;
   }
   if (root.top_p !== undefined) result.top_p = root.top_p;
+  // GPT-5 verbosity: Chat Completions `verbosity` → Responses `text.verbosity`.
+  const chatVerbosity = normalizeVerbosity(root.verbosity);
+  if (chatVerbosity) {
+    result.text = { ...toRecord(result.text), verbosity: chatVerbosity };
+  }
   if (root.reasoning !== undefined) {
     result.reasoning = root.reasoning;
   } else if (root.reasoning_effort !== undefined) {
