@@ -152,6 +152,7 @@ context, or `--remote <url> --api-key <key>`):
 | Continue | `omniroute setup-continue` | `~/.continue/config.yaml` (VS Code/JetBrains + `cn` CLI) — `provider: openai`, `apiBase` **with** `/v1`, key via `${{ secrets.OMNIROUTE_API_KEY }}` |
 | Cursor | `omniroute setup-cursor` | prints the in-app steps (Settings → Models → Override OpenAI Base URL **with** `/v1` + key + model). Cursor config is opaque SQLite — chat panel only |
 | Roo Code | `omniroute setup-roo` | writes a Roo import JSON (`~/.omniroute/roo-settings.json`) + sets `roo-cline.autoImportSettingsPath` + prints UI steps (OpenAI-compatible, Base URL **with** `/v1`) |
+| Crush | `omniroute setup-crush` | `~/.config/crush/crush.json` — `openai-compat` provider, `base_url` **with** `/v1`, key via `$OMNIROUTE_API_KEY` |
 
 ```bash
 # OpenCode (openai-compatible provider, all catalog models, remote VPS)
