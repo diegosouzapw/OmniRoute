@@ -81,6 +81,7 @@ import {
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { normalizeMimoThinking } from "../services/mimoThinking.ts";
 import { normalizeClaudeAdaptiveThinking } from "../services/claudeAdaptiveThinking.ts";
+import { stripGpt5SamplingWhenReasoning } from "../services/gpt5SamplingGuard.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
 import { supportsMaxTokens } from "@/lib/modelCapabilities.ts";
 import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
@@ -2596,6 +2597,12 @@ export async function handleChatCore({
       log?.warn?.("PARAMS", `Stripped unsupported params for ${model}: ${stripped.join(", ")}`);
     }
   }
+
+  // GPT-5 reasoning models (openai Chat Completions) reject temperature/top_p with a 400
+  // whenever a reasoning effort is active, yet accept them under reasoning_effort=none (the
+  // GPT-5.1+ default). A static unsupportedParams list can't express that, so strip sampling
+  // conditionally here. The codex Responses path is already covered by the executor allowlist.
+  translatedBody = stripGpt5SamplingWhenReasoning(translatedBody, provider, finalModelToUpstream, log);
 
   // Rename max_tokens to max_completion_tokens if not supported (#1961)
   if (!supportsMaxTokens({ provider, model })) {
