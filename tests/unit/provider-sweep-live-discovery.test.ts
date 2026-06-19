@@ -56,6 +56,19 @@ const LIVE_CASES: Array<{ provider: string; liveUrl: string }> = [
   { provider: "nscale", liveUrl: "https://inference.api.nscale.com/v1/models" },
   { provider: "inference-net", liveUrl: "https://api.inference.net/v1/models" },
   { provider: "moonshot", liveUrl: "https://api.moonshot.ai/v1/models" },
+  // GPU-cloud / aggregator marketplaces (sweep cont.).
+  { provider: "crof", liveUrl: "https://crof.ai/v1/models" },
+  { provider: "featherless-ai", liveUrl: "https://api.featherless.ai/v1/models" },
+  { provider: "ovhcloud", liveUrl: "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/models" },
+  { provider: "sambanova", liveUrl: "https://api.sambanova.ai/v1/models" },
+  { provider: "orcarouter", liveUrl: "https://api.orcarouter.ai/v1/models" },
+  { provider: "uncloseai", liveUrl: "https://hermes.ai.unturf.com/v1/models" },
+  { provider: "opencode-go", liveUrl: "https://opencode.ai/zen/go/v1/models" },
+  { provider: "baseten", liveUrl: "https://inference.baseten.co/v1/models" },
+  { provider: "hyperbolic", liveUrl: "https://api.hyperbolic.xyz/v1/models" },
+  { provider: "nebius", liveUrl: "https://api.tokenfactory.nebius.com/v1/models" },
+  { provider: "scaleway", liveUrl: "https://api.scaleway.ai/v1/models" },
+  { provider: "together", liveUrl: "https://api.together.xyz/v1/models" },
 ];
 
 for (const { provider, liveUrl } of LIVE_CASES) {
