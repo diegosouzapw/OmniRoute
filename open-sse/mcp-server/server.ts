@@ -85,6 +85,7 @@ import { gamificationTools } from "./tools/gamificationTools.ts";
 import { notionTools } from "./tools/notionTools.ts";
 import { obsidianTools } from "./tools/obsidianTools.ts";
 import { compressMcpRegistryMetadata } from "./descriptionCompressor.ts";
+import { reduceToolManifest, readMcpToolProfileFromEnv } from "./toolCardinality.ts";
 import { smartFilterText } from "../services/compression/engines/mcpAccessibility/index.ts";
 import {
   DEFAULT_MCP_ACCESSIBILITY_CONFIG,
@@ -797,6 +798,8 @@ export function createMcpServer(): McpServer {
   });
   const mcpDescriptionCompressionEnabled = readMcpDescriptionCompressionEnabled();
   const mcpAccessibilityConfig = readMcpAccessibilityConfig();
+  // F4.3 tool-cardinality: opt-in tool profile (MCP_TOOL_DENY / MCP_TOOL_ALLOW). null = no filter.
+  const toolProfile = readMcpToolProfileFromEnv(process.env);
   const registerTool = server.registerTool.bind(server);
   server.registerTool = ((name: string, config: Record<string, unknown>, handler: unknown) => {
     const metadata = compressMcpRegistryMetadata(config, {
@@ -818,7 +821,14 @@ export function createMcpServer(): McpServer {
           return result;
         }
       : handler;
-    return registerTool(name, metadata, filteredHandler as never);
+    const registered = registerTool(name, metadata, filteredHandler as never);
+    if (toolProfile && reduceToolManifest([{ name, scopes: [] }], toolProfile).length === 0) {
+      // Denied by the cardinality profile: keep the registration valid but disable it so the tool
+      // is not announced in tools/list (token savings). The default profile never reaches here.
+      const disablable = registered as unknown as { disable?: () => void };
+      if (typeof disablable?.disable === "function") disablable.disable();
+    }
+    return registered;
   }) as typeof server.registerTool;
   const registerPrompt = server.registerPrompt.bind(server);
   server.registerPrompt = ((name: string, config: Record<string, unknown>, handler: unknown) => {

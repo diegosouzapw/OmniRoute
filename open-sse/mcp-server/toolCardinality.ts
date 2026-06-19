@@ -222,3 +222,33 @@ export function estimateManifestTokens(
     return sum + nameTokens + descTokens;
   }, 0);
 }
+
+/**
+ * Build an opt-in {@link ToolProfile} from environment variables, or `null` when unset (no
+ * filtering — the default). Used by the MCP server to disable tools it should not announce.
+ *
+ *   MCP_TOOL_DENY  — comma-separated tool names to always drop
+ *   MCP_TOOL_ALLOW — comma-separated tool names to keep exclusively (allow-list mode)
+ *
+ * Scope-based (`allowScopes`) and `maxTools` filtering need the full manifest at registration
+ * and are intentionally not env-exposed here (a tools/list-level hook is a tracked follow-up).
+ */
+export function readMcpToolProfileFromEnv(
+  env: Record<string, string | undefined>
+): ToolProfile | null {
+  const parse = (value: string | undefined): string[] =>
+    value
+      ? value
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [];
+  const denyTools = parse(env["MCP_TOOL_DENY"]);
+  const allowTools = parse(env["MCP_TOOL_ALLOW"]);
+  if (denyTools.length === 0 && allowTools.length === 0) return null;
+  return {
+    name: "env",
+    ...(denyTools.length > 0 ? { denyTools } : {}),
+    ...(allowTools.length > 0 ? { allowTools } : {}),
+  };
+}
