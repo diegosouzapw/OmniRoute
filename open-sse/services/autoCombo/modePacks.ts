@@ -72,6 +72,22 @@ export const MODE_PACKS: Record<string, ScoringWeights> = {
     resetWindowAffinity: 0,
     connectionDensity: 0.05,
   },
+  // #4235 `:reliable` — prioritize healthy, low-variance providers (high availability).
+  // health (circuit-breaker) + stability (latency std-dev) dominate; weights sum to 1.0.
+  "reliability-first": {
+    quota: 0.14,
+    health: 0.37,
+    costInv: 0.04,
+    latencyInv: 0.05,
+    taskFit: 0.1,
+    stability: 0.2,
+    tierPriority: 0.05,
+    tierAffinity: 0,
+    specificityMatch: 0,
+    contextAffinity: 0.0,
+    resetWindowAffinity: 0,
+    connectionDensity: 0.05,
+  },
 };
 
 /**

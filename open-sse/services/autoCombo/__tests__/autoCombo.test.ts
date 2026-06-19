@@ -129,8 +129,16 @@ describe("Self-Healing", () => {
 });
 
 describe("Mode Packs", () => {
-  it("should have 4 mode packs", () => {
-    expect(getModePackNames()).toHaveLength(4);
+  it("should have 5 mode packs", () => {
+    // #4235 Phase B added reliability-first (for the `:reliable` tier).
+    expect(getModePackNames()).toHaveLength(5);
+    expect(getModePackNames()).toContain("reliability-first");
+  });
+
+  it("reliability-first should prioritize health and stability", () => {
+    const pack = MODE_PACKS["reliability-first"];
+    expect(pack.health).toBeGreaterThan(pack.latencyInv);
+    expect(pack.stability).toBeGreaterThan(pack.costInv);
   });
 
   it("all mode pack weights should sum to 1.0", () => {
