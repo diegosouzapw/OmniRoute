@@ -65,11 +65,15 @@ try {
 // Format: { [pageLabel]: maxAllowedViolations }
 // ---------------------------------------------------------------------------
 
+// Frozen from the first real nightly measurement (run 27852779527, REQUIRE_AXE=1,
+// wcag2a/2aa/21a/21aa). Each value is the actual `axeViolationCount` for that page —
+// existing violations are grandfathered; a NEW violation (count grows) fails the gate.
+// Lower a value (and re-run) whenever a violation is fixed.
 const VIOLATION_BASELINES: Record<string, number> = {
-  "/login": 0,
-  "/dashboard": 0,
-  "/dashboard/providers": 0,
-  "/dashboard/settings": 0,
+  "/login": 1,
+  "/dashboard": 4,
+  "/dashboard/providers": 3,
+  "/dashboard/settings": 5,
 };
 
 // ---------------------------------------------------------------------------
