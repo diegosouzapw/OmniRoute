@@ -370,7 +370,9 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   ]),
   volcengine: buildModels([
     "deepseek-v3-2-251201",
+    "doubao-seed-2-0-pro-260215",
     "doubao-seed-2-0-code-preview-260215",
+    "kimi-k2-5-260127",
     "kimi-k2-thinking-251104",
     "glm-4-7-251222",
   ]),
