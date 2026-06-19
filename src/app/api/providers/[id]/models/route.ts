@@ -155,6 +155,16 @@ const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   // was unclassified, so import served the 5-entry hardcoded catalog instead of the
   // live `https://ai-gateway.vercel.sh/v1/models` list. Falls back to local on error.
   "vercel-ai-gateway",
+  // provider-model-sweep (2026-06-19): same class as #3976/#4202/#4249 — keyed
+  // openai-style providers with a real live `<baseUrl>/models` catalog, served
+  // their small hardcoded seed because unclassified. Seed stays as offline fallback.
+  "venice",
+  "deepinfra",
+  "wandb",
+  "pollinations",
+  "nscale",
+  "inference-net",
+  "moonshot",
 ]);
 
 function isNamedOpenAIStyleProvider(provider: string): boolean {
