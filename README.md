@@ -408,6 +408,21 @@ omniroute setup         # guided first-run wizard
 omniroute doctor        # diagnose providers, ports, native deps
 ```
 
+### 🛰️ Remote mode — run the CLI here, OmniRoute on a VPS
+
+OmniRoute on a server? Drive it from your laptop with the **same CLI**. Log in once
+with a scoped access token; every command then targets the remote.
+
+```bash
+omniroute connect 192.168.0.15            # password → scoped token, saved as a context
+omniroute models list                     # ← runs against the REMOTE server
+omniroute configure codex                 # ← picks a remote model, writes a local Codex profile
+omniroute tokens create --name ci --scope read   # mint narrower tokens for other machines
+```
+
+Tokens are scoped `read` / `write` / `admin`; process-spawning routes stay loopback-only.
+<sub>📖 [Remote Mode](docs/guides/REMOTE-MODE.md)</sub>
+
 <div align="center">
 
 `providers` · `oauth` · `keys` · `combo` · `nodes` · `models` · `cache` · `compression` · `cost` · `usage` · `quota` · `health` · `resilience` · `telemetry` · `logs` · `audit` · `mcp` · `a2a` · `cloud` · `memory` · `skills` · `eval` · `tunnel` · `backup` · `sync` · `webhooks` · `policy` · `pricing` · `translator` · `simulate` …
@@ -845,6 +860,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 | [User Guide](docs/guides/USER_GUIDE.md)        | Providers, combos, CLI integration, deployment                                |
 | [Setup Guide](docs/guides/SETUP_GUIDE.md)      | Full install methods, CLI tool configs, protocol setup, timeout tuning        |
 | [CLI Tools Guide](docs/reference/CLI-TOOLS.md) | Per-tool setup for Claude Code, Codex, Cursor, Cline, OpenClaw, Kilo, Copilot |
+| [Remote Mode](docs/guides/REMOTE-MODE.md)      | Drive a remote OmniRoute (VPS) from your laptop CLI via scoped access tokens   |
 | [Quick Start](README.md#-quick-start)          | 3-step install → connect → configure                                          |
 
 ### 🔧 Operations & Deployment

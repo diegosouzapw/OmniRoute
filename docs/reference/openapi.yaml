@@ -2634,6 +2634,92 @@ paths:
         "200":
           description: Translation history entries
 
+  # ─── CLI Remote Mode ───────────────────────────────────────────
+
+  /api/cli/connect:
+    post:
+      tags: [CLI Remote Mode]
+      summary: Exchange the management password for a scoped CLI access token
+      description: >
+        Remote-mode bootstrap. Public (password-gated) route: verifies the
+        management password with brute-force lockout, then mints an `oma_`
+        access token. The plaintext token is returned once.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string }
+                name: { type: string }
+                scope: { type: string, enum: [read, write, admin] }
+                expiresInDays: { type: integer, minimum: 1, maximum: 3650 }
+      responses:
+        "200":
+          description: Token minted (token returned once)
+        "401":
+          description: Invalid password
+        "429":
+          description: Too many failed attempts
+
+  /api/cli/whoami:
+    get:
+      tags: [CLI Remote Mode]
+      summary: Report the current credential (scope, name, expiry)
+      responses:
+        "200":
+          description: Authenticated; access-token details when applicable
+        "401":
+          description: Authentication required
+
+  /api/cli/tokens:
+    get:
+      tags: [CLI Remote Mode]
+      summary: List access tokens (masked) — admin scope
+      responses:
+        "200":
+          description: Masked token list
+        "403":
+          description: Insufficient scope
+    post:
+      tags: [CLI Remote Mode]
+      summary: Create a scoped access token — admin scope
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                scope: { type: string, enum: [read, write, admin] }
+                expiresInDays: { type: integer, minimum: 1, maximum: 3650 }
+      responses:
+        "200":
+          description: Token created (token returned once)
+        "403":
+          description: Insufficient scope
+
+  /api/cli/tokens/{id}:
+    delete:
+      tags: [CLI Remote Mode]
+      summary: Revoke an access token by id or display prefix — admin scope
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Token revoked
+        "403":
+          description: Insufficient scope
+        "404":
+          description: Token not found or already revoked
+
   # ─── CLI Tools ─────────────────────────────────────────────────
 
   /api/cli-tools/backups:

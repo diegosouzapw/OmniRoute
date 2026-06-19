@@ -1262,5 +1262,14 @@
     "token": "API key the Claude client should send (ANTHROPIC_AUTH_TOKEN)",
     "notRunning": "OmniRoute is not running on port {port}. Start it with 'omniroute serve'.",
     "notFound": "The 'claude' CLI was not found in PATH."
+  },
+  "connect": {
+    "description": "Connect to a remote OmniRoute server and enter remote mode"
+  },
+  "tokens": {
+    "description": "Manage scoped CLI access tokens (remote mode)"
+  },
+  "configure": {
+    "description": "Pick a provider+model from the active server and write a local CLI config"
   }
 }

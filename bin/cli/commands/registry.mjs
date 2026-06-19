@@ -56,6 +56,9 @@ import { registerTray } from "./tray.mjs";
 import { registerAutostart } from "./autostart.mjs";
 import { registerRepl } from "./repl.mjs";
 import { registerLaunch } from "./launch.mjs";
+import { registerConnect } from "./connect.mjs";
+import { registerTokens } from "./tokens.mjs";
+import { registerConfigure } from "./configure.mjs";
 import { registerApiCommands } from "../api-commands/registry.mjs";
 import { registerPlugin } from "./plugin.mjs";
 
@@ -119,6 +122,9 @@ export function registerCommands(program) {
   registerAutostart(program);
   registerRepl(program);
   registerLaunch(program);
+  registerConnect(program);
+  registerTokens(program);
+  registerConfigure(program);
   registerApiCommands(program);
   registerPlugin(program);
 }

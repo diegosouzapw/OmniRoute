@@ -92,6 +92,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "settings-resilience",
   "settings-advanced",
   "settings-security",
+  "settings-access-tokens",
   "settings-feature-flags",
   "settings-sidebar",
   // Help
@@ -788,6 +789,14 @@ const CONFIGURATION_ITEMS: readonly SidebarItemDefinition[] = [
     icon: "shield",
   },
   {
+    id: "settings-access-tokens",
+    href: "/dashboard/settings/access-tokens",
+    i18nKey: "settingsAccessTokens",
+    labelFallback: "Access Tokens",
+    subtitleKey: "settingsAccessTokensSubtitle",
+    icon: "key",
+  },
+  {
     id: "settings-feature-flags",
     href: "/dashboard/settings/feature-flags",
     i18nKey: "settingsFeatureFlags",
@@ -999,6 +1008,7 @@ const ADMIN_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
   "settings-routing",
   "settings-resilience",
   "settings-security",
+  "settings-access-tokens",
   "settings-feature-flags",
   "settings-sidebar",
   "docs",
