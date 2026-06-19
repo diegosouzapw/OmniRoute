@@ -1,5 +1,6 @@
 import type { RtkFilterDefinition } from "./filterSchema.ts";
 import { smartTruncate } from "./smartTruncate.ts";
+import { deduplicateRepeatedLines } from "./deduplicator.ts";
 
 export interface LineFilterResult {
   text: string;
@@ -144,6 +145,17 @@ export function applyLineFilter(text: string, filter: RtkFilterDefinition): Line
     if (truncatedLines.join("\n") !== lines.join("\n")) {
       lines = truncatedLines;
       appliedRules.push(`${filter.id}:truncate-line`);
+    }
+  }
+
+  // Per-filter line dedup (opt-in via the filter's `deduplicate` flag): collapse consecutive
+  // duplicate lines before truncation. The engine-wide dedup (config.deduplicateThreshold) is
+  // separate; this lets a single filter force it for its own output.
+  if (filter.deduplicate) {
+    const deduped = deduplicateRepeatedLines(lines.join("\n"));
+    if (deduped.collapsed > 0) {
+      lines = deduped.text.split(/\r?\n/);
+      appliedRules.push(`${filter.id}:deduplicate`);
     }
   }
 
