@@ -8,6 +8,10 @@
 
 _In development — bullets added per PR; finalized at release._
 
+### ✨ New Features
+
+- **feat(routing): advertise the `auto/cheap`, `auto/offline`, `auto/smart` combos (catalog ↔ README sync)** — the README lists `auto/cheap` (cheapest-per-token first), `auto/offline` (most quota/rate-limit headroom first) and `auto/smart` (quality-first + 10% exploration), and they already resolved at request time via `parseAutoPrefix` → `createVirtualAutoCombo`. But they were missing from `AUTO_TEMPLATE_VARIANTS`, so `/v1/models` and the dashboard combos list (which iterate that catalog) never showed them — the catalog drifted from the docs (visible in the issue's screenshots). Added the three entries so they're advertised everywhere alongside the other built-in `auto/*` combos. First slice of #4235 (OpenRouter-style `auto/<category>:<tier>` suffixes + new categories follow). ([#4235](https://github.com/diegosouzapw/OmniRoute/issues/4235) — thanks @MRDGH2821)
+
 ### 🐛 Fixed
 
 - **fix(providers): qwen-web model discovery now lists the live catalog instead of nothing** — the `qwen-web` cookie provider had no entry in `PROVIDER_MODELS_CONFIG`, so its model-discovery page returned an empty/stale local catalog (the OAuth fallback at the top of the route only fires for `provider === "qwen"`, leaving `qwen-web` to fall through to the no-config branch). Added a `qwen-web` entry that fetches the **public** `https://chat.qwen.ai/api/v2/models` endpoint (no auth header) and parses the `{ data: { data: [{ id, name, owned_by }] } }` shape (with a flatter `{ data: [] }` fallback). This is Problem #3 of #3931 (diagnosed by @thezukiru); Problem #1 — validator bare-token false-positive — shipped earlier in #3958, and Problem #2 — empty stream from Qwen WAF bot-detection on the streaming endpoint — remains a separate upstream/stealth concern. ([#3931](https://github.com/diegosouzapw/OmniRoute/issues/3931) — thanks @thezukiru)
