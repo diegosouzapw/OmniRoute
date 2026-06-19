@@ -11,6 +11,8 @@ process.env.DATA_DIR = tmpDir;
 const core = await import("../../src/lib/db/core.ts");
 const { memoryTools } = await import("../../open-sse/mcp-server/tools/memoryTools.ts");
 const memoryStore = await import("../../src/lib/memory/store.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
+const { invalidateMemorySettingsCache } = await import("../../src/lib/memory/settings.ts");
 
 function resetStorage() {
   core.resetDbInstance();
@@ -19,8 +21,14 @@ function resetStorage() {
   core.getDbInstance();
 }
 
-test.beforeEach(() => {
+test.beforeEach(async () => {
   resetStorage();
+  // PRD-2026-06-19: memory is OFF by default now. The memory MCP tools operate
+  // within the memory subsystem (omniroute_memory_search → retrieveMemories, which
+  // returns nothing while memory is disabled), so enable memory explicitly — the
+  // realistic precondition for a client using the memory tools.
+  await settingsDb.updateSettings({ memoryEnabled: true });
+  invalidateMemorySettingsCache();
 });
 
 test.after(() => {
