@@ -114,7 +114,9 @@ test("loadTransparentAddon loads the addon from the cwd-relative standalone path
 });
 
 test("isTransparentSocketAvailable returns a boolean", () => {
-  assert.equal(typeof isTransparentSocketAvailable(), "boolean");
+  const available = isTransparentSocketAvailable();
+  assert.equal(typeof available, "boolean");
+  assert.ok([true, false].includes(available));
 });
 
 test("createTransparentListenerFd fails clearly without addon or privileges", () => {
