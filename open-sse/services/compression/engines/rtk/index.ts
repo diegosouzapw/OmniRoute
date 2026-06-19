@@ -306,7 +306,12 @@ export function processRtkText(
     result = result.replace(
       /```([A-Za-z0-9_+.-]*)\r?\n([\s\S]*?)```/g,
       (match, languageHint: string, code: string) => {
-        const stripped = stripCode(code, normalizeCodeLanguage(languageHint));
+        const stripped = stripCode(code, normalizeCodeLanguage(languageHint), {
+          // Opt-in comment removal (default off = no silent production change). Docstrings/JSDoc
+          // are preserved unless explicitly disabled.
+          removeComments: config.stripCodeComments === true,
+          preserveDocstrings: config.preserveDocstrings !== false,
+        });
         if (stripped.strippedLines <= 0 && stripped.text === code.trim()) return match;
         strippedCodeBlocks++;
         const fenceLanguage = languageHint?.trim() || stripped.language;
