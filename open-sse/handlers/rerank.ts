@@ -8,6 +8,10 @@ import { CORS_HEADERS } from "../utils/cors.ts";
 
 import { getRerankProvider, parseRerankModel, RERANK_PROVIDERS } from "../config/rerankRegistry.ts";
 import { errorResponse } from "../utils/error.ts";
+import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import { calculateModalCost } from "@/lib/usage/costCalculator";
+import { generateRequestId } from "@/shared/utils/requestId";
+import { saveCallLog } from "@/lib/usageDb";
 
 /**
  * Build authorization header for a rerank provider
@@ -79,6 +83,7 @@ export async function handleRerank({
   return_documents,
   credentials,
 }) {
+  const startTime = Date.now();
   if (!model) return errorResponse(400, "model is required");
   if (!query) return errorResponse(400, "query is required");
   if (!documents || !Array.isArray(documents) || documents.length === 0) {
@@ -130,9 +135,29 @@ export async function handleRerank({
     const data = await res.json();
     const result = transformResponseFromProvider(providerConfig, data);
 
-    return Response.json(result, {
-      headers: { ...CORS_HEADERS },
+    const searchUnits = Number(data?.meta?.billed_units?.search_units) || 0;
+    const costUsd = await calculateModalCost("rerank", providerId, modelId, { searchUnits });
+
+    saveCallLog({
+      method: "POST",
+      path: "/v1/rerank",
+      status: 200,
+      model: `${providerId}/${modelId}`,
+      provider: providerId,
+      duration: Date.now() - startTime,
+      tokens: { prompt_tokens: 0, completion_tokens: 0 },
+      responseBody: { results_count: Array.isArray(result?.results) ? result.results.length : 0 },
+    }).catch(() => {});
+
+    const headers = new Headers({ ...CORS_HEADERS, "Content-Type": "application/json" });
+    attachOmniRouteMetaHeaders(headers, {
+      provider: providerId,
+      model: modelId,
+      costUsd,
+      latencyMs: Date.now() - startTime,
+      requestId: generateRequestId(),
     });
+    return new Response(JSON.stringify(result), { status: 200, headers });
   } catch (err) {
     return errorResponse(500, `Rerank request failed: ${err.message}`);
   }
