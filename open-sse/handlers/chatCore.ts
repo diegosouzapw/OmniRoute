@@ -143,7 +143,7 @@ import { finalizePendingScope, updatePendingScope } from "@/lib/usage/pendingReq
 import { formatUsageLog } from "@/lib/usage/tokenAccounting";
 import { recordCost } from "@/domain/costRules";
 import { calculateCost } from "@/lib/usage/costCalculator";
-import { buildOmniRouteResponseMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import {
   buildClaudePassthroughToolNameMap,
   restoreClaudePassthroughToolNames,
@@ -4626,21 +4626,23 @@ export async function handleChatCore({
       providerResponse: responseBody,
       clientResponse: translatedResponse,
     });
+    const responseHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+      [OMNIROUTE_RESPONSE_HEADERS.cache]: "MISS",
+    };
+    attachOmniRouteMetaHeaders(responseHeaders, {
+      provider,
+      model,
+      cacheHit: false,
+      latencyMs: Date.now() - startTime,
+      usage: responseUsage,
+      costUsd: estimatedCost,
+      requestId: skillRequestId,
+    });
     return {
       success: true,
       response: new Response(JSON.stringify(translatedResponse), {
-        headers: {
-          "Content-Type": "application/json",
-          [OMNIROUTE_RESPONSE_HEADERS.cache]: "MISS",
-          ...buildOmniRouteResponseMetaHeaders({
-            provider,
-            model,
-            cacheHit: false,
-            latencyMs: Date.now() - startTime,
-            usage: responseUsage,
-            costUsd: estimatedCost,
-          }),
-        },
+        headers: responseHeaders,
       }),
     };
   }

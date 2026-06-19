@@ -6,7 +6,7 @@ import {
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { trackPendingRequest } from "@/lib/usageDb";
 import { synthesizeOpenAiSseFromJson } from "../../utils/jsonToSse.ts";
-import { buildOmniRouteResponseMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { extractUsageFromResponse } from "../usageExtractor.ts";
 import { OMNIROUTE_RESPONSE_HEADERS } from "@/shared/constants/headers";
 
@@ -70,7 +70,11 @@ export async function checkSemanticCache({
       });
       trackPendingRequest(model, provider, connectionId, false);
       const cachedSse = stream ? synthesizeOpenAiSseFromJson(JSON.stringify(cached)) : "";
-      const cacheHitMetaHeaders = buildOmniRouteResponseMetaHeaders({
+      const headers: Record<string, string> = {
+        "Content-Type": cachedSse ? "text/event-stream" : "application/json",
+        [OMNIROUTE_RESPONSE_HEADERS.cache]: "HIT",
+      };
+      attachOmniRouteMetaHeaders(headers, {
         provider,
         model,
         cacheHit: true,
@@ -81,11 +85,7 @@ export async function checkSemanticCache({
       return {
         success: true,
         response: new Response(cachedSse || JSON.stringify(cached), {
-          headers: {
-            "Content-Type": cachedSse ? "text/event-stream" : "application/json",
-            [OMNIROUTE_RESPONSE_HEADERS.cache]: "HIT",
-            ...cacheHitMetaHeaders,
-          },
+          headers,
         }),
       };
     }
