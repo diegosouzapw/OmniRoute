@@ -24,10 +24,11 @@ jobs:
     #     2 batches (d=heavy, e=light). After #4204 (D7b) merged, the reset-aware quota pair
     #     quotaScoring/quotaStrategies was added as batch f. A covering-test audit then added the
     #     6 chatCore/* leaves with direct unit coverage as batch g. A follow-up then wrote dedicated
-    #     unit tests for 6 more leaves and added them as batch h; the last 3 chatCore leaves
-    #     (memorySkillsInjection/semanticCache/telemetryHelpers) remain a follow-up — see
-    #     _mutate_godfiles_excluded_comment in stryker.conf.json.
-    # 8 PARALLEL batches, each overriding the mutate set via `--mutate` (Stryker 9 CLI:
+    #     unit tests for 6 more leaves and added them as batch h. A final follow-up added dedicated
+    #     tests (no mock.module — fetch-override + crafted inputs + temp-DATA_DIR) for telemetryHelpers
+    #     + memorySkillsInjection as batch i (14/15 chatCore leaves). semanticCache stays out (its
+    #     cache-HIT block needs a fixture) — see _mutate_godfiles_excluded_comment in stryker.conf.json.
+    # 9 PARALLEL batches, each overriding the mutate set via `--mutate` (Stryker 9 CLI:
     # `-m, --mutate <comma-list>`; the conf's `mutate[]` remains the local-run default/union).
     # Each batch targets <180min; full coverage every night in parallel (~180min wall-clock).
     # The `incremental` cache (per-batch key) makes runs after the first cold one much cheaper,
@@ -54,6 +55,8 @@ jobs:
             mutate: "open-sse/handlers/chatCore/comboContextCache.ts,open-sse/handlers/chatCore/idempotency.ts,open-sse/handlers/chatCore/passthroughHelpers.ts,open-sse/handlers/chatCore/responseHeaders.ts,open-sse/handlers/chatCore/sanitization.ts,open-sse/handlers/chatCore/upstreamTimeouts.ts"
           - name: h
             mutate: "open-sse/handlers/chatCore/headers.ts,open-sse/handlers/chatCore/logTruncation.ts,open-sse/handlers/chatCore/memoryExtraction.ts,open-sse/handlers/chatCore/nonStreamingSse.ts,open-sse/handlers/chatCore/passthroughToolNames.ts,open-sse/handlers/chatCore/executorHelpers.ts"
+          - name: i
+            mutate: "open-sse/handlers/chatCore/telemetryHelpers.ts,open-sse/handlers/chatCore/memorySkillsInjection.ts"
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v6
