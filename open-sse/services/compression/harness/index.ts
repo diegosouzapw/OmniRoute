@@ -32,8 +32,11 @@ export {
 export {
   transcriptsToCorpus,
   replayTranscripts,
+  requestBodyToTranscript,
+  requestBodiesToTranscripts,
   type Transcript,
   type TranscriptTurn,
+  type CapturedRequestBody,
 } from "./replay.ts";
 
 export {
