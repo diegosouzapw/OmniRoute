@@ -46,7 +46,7 @@ export interface CloudAgentActivity {
 
 export interface CloudAgentTask {
   id: string;
-  providerId: "jules" | "devin" | "codex-cloud";
+  providerId: "jules" | "devin" | "codex-cloud" | "cursor-cloud";
   externalId?: string;
   status: CloudAgentStatus;
   prompt: string;
@@ -95,7 +95,7 @@ export const CloudAgentTaskOptionsSchema = z.object({
 });
 
 export const CreateCloudAgentTaskSchema = z.object({
-  providerId: z.enum(["jules", "devin", "codex-cloud"]),
+  providerId: z.enum(["jules", "devin", "codex-cloud", "cursor-cloud"]),
   prompt: z.string().min(1).max(10000),
   source: CloudAgentSourceSchema,
   options: CloudAgentTaskOptionsSchema.optional(),
