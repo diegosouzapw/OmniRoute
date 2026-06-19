@@ -440,6 +440,9 @@ export function extractCloudAgentRegistryKeys(registrySource: string): Set<strin
  */
 export const AGENT_FILE_TO_REGISTRY_KEY: Record<string, string> = {
   codex: "codex-cloud",
+  // #4227: file agents/cursor.ts ↔ registry key "cursor-cloud" (distinct from the
+  // OAuth chat provider `cursor`).
+  cursor: "cursor-cloud",
 };
 
 // ───────────────────────────────────────────────────────────────────────────

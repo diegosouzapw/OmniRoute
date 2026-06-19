@@ -151,8 +151,8 @@ export { compressAggressive } from "./aggressive.ts";
 
 export { STOPWORDS, FORCE_PRESERVE_RE, scoreToken, pruneByScore } from "./ultraHeuristic.ts";
 
-export type { SLMInterface, UltraCompressResult } from "./ultra.ts";
-export { createSLMStub, ultraCompress } from "./ultra.ts";
+export type { UltraCompressResult } from "./ultra.ts";
+export { ultraCompress } from "./ultra.ts";
 
 export type { UltraConfig } from "./types.ts";
 export { DEFAULT_ULTRA_CONFIG } from "./types.ts";

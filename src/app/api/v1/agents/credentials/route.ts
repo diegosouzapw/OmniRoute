@@ -12,7 +12,7 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 const logger = pino({ name: "cloud-agents-credentials-api" });
 
 const SaveCredentialSchema = z.object({
-  providerId: z.enum(["jules", "devin", "codex-cloud"]),
+  providerId: z.enum(["jules", "devin", "codex-cloud", "cursor-cloud"]),
   apiKey: z.string().min(1),
   baseUrl: z.string().url().optional(),
 });
