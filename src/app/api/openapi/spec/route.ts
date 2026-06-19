@@ -19,9 +19,13 @@ const OPENAPI_SPEC_CANDIDATES = [
 ];
 
 /**
- * Generate example value from OpenAPI schema
+ * Generate example value from OpenAPI schema.
+ *
+ * Exported for unit testing: the dashboard "Try It" panel pre-fills request
+ * bodies from this. Bounded to depth 3 to prevent infinite recursion on
+ * self-referential `$ref` schemas.
  */
-function generateExampleFromSchema(
+export function generateExampleFromSchema(
   schema: any,
   components: any,
   depth = 0,
