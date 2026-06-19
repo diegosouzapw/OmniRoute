@@ -121,3 +121,31 @@ export function attachOmniRouteMetaHeaders(
     Object.assign(headers, built);
   }
 }
+
+/**
+ * Attach the X-OmniRoute-* meta headers onto an already-built Response, ADDING
+ * (never replacing) headers so the original Content-Type / body stay intact.
+ * Tries to mutate in place; if the Response headers are immutable, clones the
+ * Response carrying over body + status + headers (mirrors
+ * `chatHelpers.ts::withSessionHeader`). Use for opaque handler-built Responses
+ * (audio streams, passthrough proxies) where the body cannot be re-serialized.
+ */
+export function attachOmniRouteMetaToResponse(
+  response: Response,
+  meta: Parameters<typeof buildOmniRouteResponseMetaHeaders>[0]
+): Response {
+  if (!response) return response;
+
+  try {
+    attachOmniRouteMetaHeaders(response.headers, meta);
+    return response;
+  } catch {
+    const cloned = new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+    attachOmniRouteMetaHeaders(cloned.headers, meta);
+    return cloned;
+  }
+}
