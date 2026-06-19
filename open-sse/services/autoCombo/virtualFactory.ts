@@ -11,6 +11,18 @@ import { hasUsableWebSessionCredential } from "@/shared/providers/webSessionCred
 import { defaultLogger as log } from "@omniroute/open-sse/utils/logger";
 import { getTokenLimit } from "../contextManager";
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
+import {
+  buildAutoCandidateFilter,
+  tierToWeightVariant,
+  type AutoCategory,
+  type AutoTier,
+} from "./suffixComposition";
+
+/** #4235 Phase B: optional category/tier overlay for `auto/<category>:<tier>` combos. */
+export interface AutoComboSpec {
+  category?: AutoCategory;
+  tier?: AutoTier;
+}
 
 /** Minimal connection shape needed for virtual auto-combo factory */
 interface VirtualFactoryConn extends ConnectionFields {
@@ -213,7 +225,8 @@ export function computeAdvertisedLimits(candidates: Array<{ provider: string; mo
 }
 
 export async function createVirtualAutoCombo(
-  variant: AutoVariant | undefined
+  variant: AutoVariant | undefined,
+  spec?: AutoComboSpec
 ): Promise<VirtualAutoCombo> {
   const [connections, settings] = await Promise.all([
     getProviderConnections({ isActive: true }) as Promise<VirtualFactoryConn[]>,
@@ -276,6 +289,25 @@ export async function createVirtualAutoCombo(
     };
   }
 
+  // #4235 Phase B: narrow the pool by the `auto/<category>:<tier>` overlay
+  // (vision/reasoning capability, free/premium model tier). Fall back to the full
+  // pool if the filter would empty it — never break routing, just lose the bias.
+  let effectivePool = candidatePool;
+  const candidateFilter = spec ? buildAutoCandidateFilter(spec.category, spec.tier) : null;
+  if (candidateFilter) {
+    const narrowed = candidatePool.filter((c) =>
+      candidateFilter({ provider: c.provider, model: c.model })
+    );
+    if (narrowed.length > 0) {
+      effectivePool = narrowed;
+    } else {
+      log.warn(
+        "AUTO",
+        `auto/${spec?.category ?? ""}${spec?.tier ? `:${spec.tier}` : ""} matched no connected models; using the full pool`
+      );
+    }
+  }
+
   let weights: ScoringWeights = { ...DEFAULT_WEIGHTS };
   let explorationRate = 0.05; // Default exploration rate
   let routerStrategy = "lkgp"; // All auto variants use LKGP
@@ -306,8 +338,26 @@ export async function createVirtualAutoCombo(
       break;
   }
 
-  const providerPool = [...new Set(candidatePool.map((c) => c.provider))];
-  const models = candidatePool.map((candidate, index) => ({
+  // #4235 Phase B: category/tier weight overlay. A non-chat category leans
+  // quality-first; the tier then refines toward latency (fast), cost (cheap/floor)
+  // or availability (reliable). free/pro keep the base weights — their bias is the
+  // candidate filter above (free → free-tier models, pro → premium models).
+  if (spec) {
+    if (spec.category && spec.category !== "chat") {
+      weights = { ...MODE_PACKS["quality-first"] };
+    }
+    const weightVariant = tierToWeightVariant(spec.tier);
+    if (weightVariant === "fast") {
+      weights = { ...MODE_PACKS["ship-fast"] };
+    } else if (weightVariant === "cheap") {
+      weights = { ...MODE_PACKS["cost-saver"] };
+    } else if (weightVariant === "reliability") {
+      weights = { ...MODE_PACKS["reliability-first"] };
+    }
+  }
+
+  const providerPool = [...new Set(effectivePool.map((c) => c.provider))];
+  const models = effectivePool.map((candidate, index) => ({
     id: `virtual-auto-${variant || "default"}-${index + 1}-${candidate.provider}`,
     kind: "model" as const,
     model: candidate.modelStr,
@@ -323,7 +373,7 @@ export async function createVirtualAutoCombo(
     routerStrategy,
   };
 
-  const advertisedLimits = computeAdvertisedLimits(candidatePool);
+  const advertisedLimits = computeAdvertisedLimits(effectivePool);
 
   return {
     id: `virtual-auto-${variant || "default"}`,

@@ -1,12 +1,17 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { NodeTypes } from "@xyflow/react";
 import { FlowCanvas } from "@/shared/components/flow/FlowCanvas";
 import { EngineNode } from "./nodes/EngineNode";
 import { IoNode } from "./nodes/IoNode";
 import { compressionRunToFlow, type CompressionRunModel } from "./compressionFlowModel";
 import { useCompressionReplay, type ReplaySpeed } from "./useCompressionReplay";
+import { WaterfallInspector } from "./WaterfallInspector";
+
+// ── View modes ────────────────────────────────────────────────────────────
+
+type CockpitView = "canvas" | "waterfall";
 
 // ── Static node type map (defined outside to avoid re-creation) ───────────
 
@@ -52,6 +57,36 @@ function SpeedButton({
   );
 }
 
+// ── View toggle ───────────────────────────────────────────────────────────
+
+function ViewButton({
+  label,
+  testId,
+  active,
+  onClick,
+}: {
+  label: string;
+  testId: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      data-testid={testId}
+      aria-pressed={active}
+      className="px-2 py-0.5 rounded text-[11px] border transition-colors"
+      style={{
+        borderColor: active ? "var(--color-primary)" : "var(--color-border)",
+        color: active ? "var(--color-primary)" : "var(--color-text-muted)",
+        background: active ? "var(--color-primary-subtle)" : "transparent",
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
 // ── Empty state ───────────────────────────────────────────────────────────
 
 function EmptyState() {
@@ -93,6 +128,9 @@ export interface CompressionCockpitProps {
  * component WS-free and unit-testable with a static run.
  */
 export function CompressionCockpit({ run: runProp }: CompressionCockpitProps) {
+  // Canvas (A2, ReactFlow) is the default; Waterfall (A1) is a plain-div list view of the same run.
+  const [view, setView] = useState<CockpitView>("canvas");
+
   // Replay drives frame-by-frame animation (cosmetic — sub-ms compression is sync)
   const { currentFrame, isPlaying, isComplete, speed, setSpeed, play, pause, reset } =
     useCompressionReplay(runProp ?? null);
@@ -141,14 +179,29 @@ export function CompressionCockpit({ run: runProp }: CompressionCockpitProps) {
           </span>
         )}
         <span className="text-xs text-muted font-mono opacity-70 truncate">{run.requestId}</span>
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex items-center gap-2">
+          {/* View toggle: ReactFlow canvas (A2) ↔ waterfall list (A1) */}
+          <div className="flex items-center gap-1" role="group" aria-label="Cockpit view">
+            <ViewButton
+              label="Canvas"
+              testId="cockpit-view-canvas"
+              active={view === "canvas"}
+              onClick={() => setView("canvas")}
+            />
+            <ViewButton
+              label="Waterfall"
+              testId="cockpit-view-waterfall"
+              active={view === "waterfall"}
+              onClick={() => setView("waterfall")}
+            />
+          </div>
           <span className="text-[11px] text-muted">
             {fmt(run.originalTokens)} → {fmt(run.compressedTokens)} tok
           </span>
           <span className="text-xs font-bold" style={{ color: "#22c55e" }}>
             −{run.savingsPercent.toFixed(1)}%
           </span>
-          {isComplete && (
+          {isComplete && view === "canvas" && (
             <span className="text-[10px] px-1.5 py-0.5 rounded border border-border text-muted">
               replay done
             </span>
@@ -156,44 +209,52 @@ export function CompressionCockpit({ run: runProp }: CompressionCockpitProps) {
         </div>
       </div>
 
-      {/* ── Canvas ─────────────────────────────────────────────────────── */}
-      <div className="flex-1 min-h-0 rounded-lg overflow-hidden border border-border">
-        <FlowCanvas
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={NODE_TYPES}
-          fitKey={fitKey}
-          className="h-full w-full"
-        />
-      </div>
-
-      {/* ── Replay controls ─────────────────────────────────────────────── */}
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-bg/60 shrink-0">
-        <button
-          onClick={isPlaying ? pause : play}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded border border-border text-xs hover:bg-border/30 transition-colors"
-          aria-label={isPlaying ? "Pause replay" : "Play replay"}
-        >
-          {isPlaying ? "⏸ Pause" : "▷ Replay"}
-        </button>
-        <button
-          onClick={reset}
-          className="px-2 py-1 rounded border border-border text-xs text-muted hover:bg-border/30 transition-colors"
-          aria-label="Reset replay"
-        >
-          ⟳
-        </button>
-        <div className="flex items-center gap-1 ml-2">
-          {SPEEDS.map((s) => (
-            <SpeedButton key={s} s={s} active={speed === s} onClick={() => setSpeed(s)} />
-          ))}
+      {/* ── Body: Canvas (A2) or Waterfall (A1) ──────────────────────────── */}
+      {view === "waterfall" ? (
+        <div className="flex-1 min-h-0 overflow-auto rounded-lg border border-border bg-bg/60 p-3">
+          <WaterfallInspector run={run} />
         </div>
-        {displayRun && currentFrame && (
-          <span className="ml-auto text-[11px] text-muted">
-            step {displayRun?.steps.length ?? 0}/{run.steps.length}
-          </span>
-        )}
-      </div>
+      ) : (
+        <div className="flex-1 min-h-0 rounded-lg overflow-hidden border border-border">
+          <FlowCanvas
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={NODE_TYPES}
+            fitKey={fitKey}
+            className="h-full w-full"
+          />
+        </div>
+      )}
+
+      {/* ── Replay controls (canvas only — the waterfall is static) ──────── */}
+      {view === "canvas" && (
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-bg/60 shrink-0">
+          <button
+            onClick={isPlaying ? pause : play}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded border border-border text-xs hover:bg-border/30 transition-colors"
+            aria-label={isPlaying ? "Pause replay" : "Play replay"}
+          >
+            {isPlaying ? "⏸ Pause" : "▷ Replay"}
+          </button>
+          <button
+            onClick={reset}
+            className="px-2 py-1 rounded border border-border text-xs text-muted hover:bg-border/30 transition-colors"
+            aria-label="Reset replay"
+          >
+            ⟳
+          </button>
+          <div className="flex items-center gap-1 ml-2">
+            {SPEEDS.map((s) => (
+              <SpeedButton key={s} s={s} active={speed === s} onClick={() => setSpeed(s)} />
+            ))}
+          </div>
+          {displayRun && currentFrame && (
+            <span className="ml-auto text-[11px] text-muted">
+              step {displayRun?.steps.length ?? 0}/{run.steps.length}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

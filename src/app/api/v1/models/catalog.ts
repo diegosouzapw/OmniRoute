@@ -22,6 +22,7 @@ import { CODEX_NATIVE_UNPREFIXED_MODELS } from "@omniroute/open-sse/services/mod
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo";
 import {
   AUTO_TEMPLATE_VARIANTS,
+  AUTO_SUFFIX_VARIANTS,
   createBuiltinAutoCombo,
 } from "@omniroute/open-sse/services/autoCombo/builtinCatalog";
 import { getAllSyncedAvailableModels, type SyncedAvailableModel } from "@/lib/db/models";
@@ -665,7 +666,8 @@ export async function getUnifiedModelsResponse(
     // receive token metadata before the first request instead of a bare entry. If the
     // combo cannot be materialized (e.g. no eligible connections yet) the minimal
     // #4164 entry is emitted instead, so the id is never dropped.
-    for (const autoId of Object.keys(AUTO_TEMPLATE_VARIANTS)) {
+    // #4235 Phase B: also advertise the curated `auto/<category>[:<tier>]` combos.
+    for (const autoId of [...Object.keys(AUTO_TEMPLATE_VARIANTS), ...AUTO_SUFFIX_VARIANTS]) {
       if (listedIds.has(autoId)) continue;
       listedIds.add(autoId);
       const baseAutoEntry = {

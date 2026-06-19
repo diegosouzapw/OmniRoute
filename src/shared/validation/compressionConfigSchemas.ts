@@ -54,6 +54,22 @@ export const rtkConfigSchema = z
   })
   .strict();
 
+// mcpAccessibility tunes how the MCP server trims oversized tool outputs before returning them.
+// The schema only enforces structural validity (positive integers / booleans); the numeric floors
+// (e.g. maxTextChars below the truncation-tail reserve) are owned by clampMcpAccessibilityConfig
+// on the write path, which folds out-of-range values back to the safe defaults. All fields are
+// optional so the settings sub-route can apply a partial merge over the current config.
+export const mcpAccessibilityConfigSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    maxTextChars: z.number().int().min(1).optional(),
+    collapseThreshold: z.number().int().min(1).optional(),
+    collapseKeepHead: z.number().int().min(0).optional(),
+    collapseKeepTail: z.number().int().min(0).optional(),
+    minLengthToProcess: z.number().int().min(1).optional(),
+  })
+  .strict();
+
 export const languageConfigSchema = z
   .object({
     enabled: z.boolean().optional(),
