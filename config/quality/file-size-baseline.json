@@ -70,7 +70,7 @@
   "frozen": {
     "open-sse/config/providerRegistry.ts": 4731,
     "open-sse/executors/antigravity.ts": 1664,
-    "open-sse/executors/base.ts": 1358,
+    "open-sse/executors/base.ts": 1387,
     "open-sse/executors/chatgpt-web.ts": 2870,
     "open-sse/executors/claude-web.ts": 1057,
     "open-sse/executors/codex.ts": 1449,
