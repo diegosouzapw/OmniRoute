@@ -3,9 +3,9 @@ import { describe, test } from "node:test";
 import { getAvailableAgents } from "../../src/lib/cloudAgent/registry.ts";
 
 describe("cloud-agent health API — getAvailableAgents", () => {
-  test("returns exactly three agents", () => {
+  test("returns exactly four agents", () => {
     const agents = getAvailableAgents();
-    assert.equal(agents.length, 3);
+    assert.equal(agents.length, 4);
   });
 
   test('includes "jules"', () => {
@@ -20,8 +20,12 @@ describe("cloud-agent health API — getAvailableAgents", () => {
     assert.ok(getAvailableAgents().includes("codex-cloud"));
   });
 
+  test('includes "cursor-cloud"', () => {
+    assert.ok(getAvailableAgents().includes("cursor-cloud"));
+  });
+
   test("returns agents in expected order", () => {
-    assert.deepEqual(getAvailableAgents(), ["jules", "devin", "codex-cloud"]);
+    assert.deepEqual(getAvailableAgents(), ["jules", "devin", "codex-cloud", "cursor-cloud"]);
   });
 });
 
@@ -64,11 +68,13 @@ describe("cloud-agent health API — health check logic", () => {
       jules: "Jules",
       devin: "Devin",
       "codex-cloud": "Codex Cloud",
+      "cursor-cloud": "Cursor Cloud",
     };
 
     assert.equal(PROVIDER_NAMES["jules"], "Jules");
     assert.equal(PROVIDER_NAMES["devin"], "Devin");
     assert.equal(PROVIDER_NAMES["codex-cloud"], "Codex Cloud");
+    assert.equal(PROVIDER_NAMES["cursor-cloud"], "Cursor Cloud");
     assert.equal(PROVIDER_NAMES["nonexistent"], undefined);
   });
 });
