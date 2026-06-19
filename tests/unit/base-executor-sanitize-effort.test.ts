@@ -337,3 +337,102 @@ test("sanitizeReasoningEffortForProvider: non-object body returns unchanged", ()
   const arr: unknown[] = [];
   assert.equal(sanitizeReasoningEffortForProvider(arr, "xiaomi-mimo", "x", null), arr);
 });
+
+// ── Native DeepSeek (api.deepseek.com) ───────────────────────────────────────
+// DeepSeek V4 thinking mode accepts reasoning_effort ONLY as {high, max}. The
+// internal OmniRoute scale (low|medium|high|xhigh, xhigh = top) must be mapped
+// onto DeepSeek's native vocabulary so the client's requested effort is honored
+// instead of silently dropped to the default. This is the INVERSE of the
+// OpenRouter-DeepSeek path, whose normalized API expects xhigh, not max.
+
+test("sanitizeReasoningEffortForProvider: native deepseek maps xhigh → max", () => {
+  const log = makeLog();
+  const body = {
+    model: "deepseek-v4-pro",
+    reasoning_effort: "xhigh",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-pro", log);
+  assert.notEqual(result, body, "must return a new object when mutating");
+  assert.equal((result as any).reasoning_effort, "max");
+  assert.equal((result as any).model, "deepseek-v4-pro", "other fields preserved");
+  assert.ok(
+    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /xhigh → max/.test(m)),
+    "logs the xhigh → max mapping"
+  );
+});
+
+test("sanitizeReasoningEffortForProvider: native deepseek preserves max", () => {
+  const log = makeLog();
+  const body = {
+    model: "deepseek-v4-flash",
+    reasoning_effort: "max",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-flash", log);
+  assert.equal(result, body, "max is DeepSeek's native top tier — passes through unchanged");
+  assert.equal((result as any).reasoning_effort, "max");
+  assert.equal(log.messages.length, 0);
+});
+
+test("sanitizeReasoningEffortForProvider: native deepseek clamps low → high", () => {
+  const body = {
+    model: "deepseek-v4-pro",
+    reasoning_effort: "low",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-pro", null);
+  assert.notEqual(result, body, "must return a new object when mutating");
+  assert.equal((result as any).reasoning_effort, "high", "below the {high, max} floor → high");
+});
+
+test("sanitizeReasoningEffortForProvider: native deepseek clamps medium → high", () => {
+  const body = {
+    model: "deepseek-v4-pro",
+    reasoning_effort: "medium",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-pro", null);
+  assert.equal((result as any).reasoning_effort, "high");
+});
+
+test("sanitizeReasoningEffortForProvider: native deepseek preserves high unchanged", () => {
+  const body = {
+    model: "deepseek-v4-pro",
+    reasoning_effort: "high",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-pro", null);
+  assert.equal(result, body, "high is already valid — passes through unchanged");
+  assert.equal((result as any).reasoning_effort, "high");
+});
+
+test("sanitizeReasoningEffortForProvider: native deepseek maps nested reasoning.effort xhigh → max", () => {
+  const body = {
+    model: "deepseek-v4-pro",
+    reasoning: { effort: "xhigh", summary: "auto" },
+    input: [],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-v4-pro", null);
+  assert.equal((result as any).reasoning.effort, "max");
+  assert.equal((result as any).reasoning.summary, "auto", "other reasoning fields preserved");
+  assert.equal((result as any).reasoning_effort, undefined);
+});
+
+test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek still preserves xhigh (not native)", () => {
+  // Regression guard: the native-deepseek mapping must NOT touch openrouter,
+  // whose normalized API expects xhigh (issue earendil-works/pi#4055).
+  const body = {
+    model: "deepseek/deepseek-v4-pro",
+    reasoning_effort: "xhigh",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "openrouter",
+    "deepseek/deepseek-v4-pro",
+    null
+  );
+  assert.equal(result, body);
+  assert.equal((result as any).reasoning_effort, "xhigh");
+});
