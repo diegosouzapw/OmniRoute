@@ -85,7 +85,7 @@
     "open-sse/handlers/imageGeneration.ts": 3777,
     "open-sse/handlers/responseSanitizer.ts": 1103,
     "open-sse/handlers/search.ts": 1546,
-    "open-sse/handlers/sseParser.ts": 812,
+    "open-sse/handlers/sseParser.ts": 830,
     "open-sse/handlers/videoGeneration.ts": 1078,
     "open-sse/mcp-server/schemas/tools.ts": 1437,
     "open-sse/mcp-server/server.ts": 1468,
