@@ -35,3 +35,15 @@ export {
   type Transcript,
   type TranscriptTurn,
 } from "./replay.ts";
+
+export {
+  BENCHMARK_CORPUS,
+  DEFAULT_BENCHMARK_ENGINES,
+  engineToCompressFn,
+  benchmarkEngines,
+  compareReports,
+  runBenchmarkGate,
+  formatBenchmarkTable,
+  type EngineSummaryRow,
+  type EngineBenchmarkGateRow,
+} from "./benchmark.ts";
