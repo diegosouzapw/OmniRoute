@@ -253,7 +253,7 @@ export function normalizeStackedPipeline(value: unknown): CompressionPipelineSte
       continue;
     }
     pipeline.push({
-      engine,
+      engine: engine as CompressionPipelineStep["engine"],
       ...(typeof record.intensity === "string"
         ? { intensity: record.intensity as CompressionPipelineStep["intensity"] }
         : {}),
