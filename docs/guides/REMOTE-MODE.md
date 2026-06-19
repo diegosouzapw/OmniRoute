@@ -149,6 +149,7 @@ context, or `--remote <url> --api-key <key>`):
 | OpenCode | `omniroute setup-opencode` | `~/.config/opencode/opencode.json` — the `omniroute` openai-compatible provider with every catalog model (run `opencode -m omniroute/<model>`) |
 | Cline | `omniroute setup-cline` | `~/.cline/data/{globalState,secrets}.json` (CLI mode) + prints the VS Code extension settings to paste (OpenAI-compatible, Base URL **without** `/v1`) |
 | Kilo Code | `omniroute setup-kilo` | `~/.local/share/kilo/auth.json` (CLI) + VS Code `kilocode.*` settings — OpenAI-compatible, Base URL **with** `/v1` |
+| Continue | `omniroute setup-continue` | `~/.continue/config.yaml` (VS Code/JetBrains + `cn` CLI) — `provider: openai`, `apiBase` **with** `/v1`, key via `${{ secrets.OMNIROUTE_API_KEY }}` |
 
 ```bash
 # OpenCode (openai-compatible provider, all catalog models, remote VPS)
