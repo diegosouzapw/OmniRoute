@@ -31,8 +31,6 @@
  */
 
 import { Worker } from "node:worker_threads";
-import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
 import fs from "node:fs";
 
@@ -49,27 +47,83 @@ const FIRST_CALL_TIMEOUT_MS = 60000;
 /**
  * Gate probe: `@atjsh/llmlingua-2` is the entry package that declares the others
  * (`@huggingface/transformers`, `@tensorflow/tfjs`, `js-tiktoken`) as peers. We probe
- * ONLY it because the peers are ESM-only — e.g. `@huggingface/transformers@3.5.2`'s
- * `exports` has no `require`/`default` condition, so `require.resolve()` throws
- * `MODULE_NOT_FOUND` for it even when it is installed and `import()`-able (verified on
- * the VPS). Gating on all four would therefore always fail-open. The worker still
- * fail-opens if a peer is genuinely missing at `import()` time.
+ * ONLY it (by manifest existence) because the peers are ESM-only and `require.resolve`
+ * throws for them even when installed; the worker still fail-opens if a peer is
+ * genuinely missing at `import()` time.
+ *
+ * ⚠️ We do NOT use `createRequire(import.meta.url).resolve()` nor any other
+ * `import.meta.url`-based resolution: the Next.js standalone bundle (webpack) replaces
+ * `createRequire(import.meta.url)` with a stub module that ALWAYS throws
+ * `MODULE_NOT_FOUND` and freezes `import.meta.url` to the build-machine path, so such a
+ * gate is always false / mis-anchored in production (B-SLM). We probe the filesystem
+ * from runtime anchors that survive the bundle instead.
  */
-const GATE_DEP = "@atjsh/llmlingua-2";
+const GATE_DEP_REL = path.join("node_modules", "@atjsh", "llmlingua-2", "package.json");
+
+/** Relative path (from an install root) to the esbuild'd / source worker entry. */
+const WORKER_JS_REL = path.join(
+  "open-sse",
+  "services",
+  "compression",
+  "engines",
+  "llmlingua",
+  "onnxWorker.js"
+);
+const WORKER_TS_REL = path.join(
+  "open-sse",
+  "services",
+  "compression",
+  "engines",
+  "llmlingua",
+  "onnxWorker.ts"
+);
+
+const MAX_WALK_UP = 8;
+
+/**
+ * Walk up from each anchor directory (≤ MAX_WALK_UP levels) and return the first
+ * ancestor that actually contains `relPath`, or null. Pure + exported for tests.
+ *
+ * This deliberately avoids `import.meta.url`/`__dirname` (both dead in the standalone
+ * bundle) — see the GATE_DEP_REL comment.
+ */
+export function firstAncestorWith(anchors: string[], relPath: string): string | null {
+  for (const anchor of anchors) {
+    if (!anchor) continue;
+    let dir = path.resolve(anchor);
+    for (let i = 0; i <= MAX_WALK_UP; i++) {
+      if (fs.existsSync(path.join(dir, relPath))) return dir;
+      const parent = path.dirname(dir);
+      if (parent === dir) break;
+      dir = parent;
+    }
+  }
+  return null;
+}
+
+/**
+ * Runtime install-root anchors that SURVIVE the standalone bundle:
+ *  - `process.cwd()` — `dist/server.js` runs `process.chdir(__dirname)` → the dist root.
+ *  - `dirname(process.argv[1])` — the entry script (server.js / bin), walked up.
+ */
+function runtimeAnchors(): string[] {
+  const anchors = [process.cwd()];
+  const argv1 = process.argv[1];
+  if (typeof argv1 === "string" && argv1) anchors.push(path.dirname(argv1));
+  return anchors;
+}
 
 // ─── optional-deps gate (memoized) ──────────────────────────────────────────────
 
 let _depsAvailable: boolean | null = null;
 
-/** Lazily (and once) check whether the optional LLMLingua dependency stack is installed. */
-function depsAvailable(): boolean {
+/**
+ * Lazily (and once) check whether the optional LLMLingua dependency stack is installed,
+ * by probing `node_modules/@atjsh/llmlingua-2/package.json` from the runtime anchors.
+ */
+export function depsAvailable(): boolean {
   if (_depsAvailable !== null) return _depsAvailable;
-  try {
-    createRequire(import.meta.url).resolve(GATE_DEP);
-    _depsAvailable = true;
-  } catch {
-    _depsAvailable = false;
-  }
+  _depsAvailable = firstAncestorWith(runtimeAnchors(), GATE_DEP_REL) !== null;
   return _depsAvailable;
 }
 
@@ -106,55 +160,33 @@ const warmedModels = new Set<string>();
 let idleTimer: NodeJS.Timeout | null = null;
 
 /**
- * Resolve the worker entry file across dev and prod.
+ * Resolve the worker entry file across dev and prod WITHOUT `import.meta.url`.
  *
- * Dev: `onnxWorker.ts` sits next to this file and runs via the tsx loader.
+ * Prod: the worker is esbuild'd to `<distRoot>/open-sse/.../onnxWorker.js`
+ * (scripts/build/prepublish.ts) + kept by the pack-artifact allowlist. The install
+ * root is found by walking up the runtime anchors (cwd / argv[1] dir), since the
+ * bundled module location (`import.meta.url`) is frozen to the build machine.
  *
- * Prod: this module is collapsed into a `.next` chunk and the worker is esbuild'd to
- * `<appRoot>/open-sse/services/compression/engines/llmlingua/onnxWorker.js`
- * (scripts/build/prepublish.ts) + kept by the pack-artifact allowlist. The process
- * `cwd` is NOT the app root (pm2 starts it from `/root`), so cwd-relative resolution
- * is unreliable — we instead WALK UP from this module's location (`import.meta.url`,
- * which in the standalone bundle is a real `<appRoot>/.next/...` path) until we find
- * an ancestor that actually contains the worker at its known relative path. cwd
- * candidates remain as a last-resort fallback. First existing candidate wins; a `.ts`
- * choice gets the tsx loader, a `.js` choice runs natively.
+ * Dev (tsx): the same relative path resolves to the `.ts` source under the project
+ * root (cwd) and runs via the tsx loader.
+ *
+ * First existing candidate wins; a `.js` choice runs natively, a `.ts` choice gets the
+ * tsx loader. Exported for tests.
  */
-function resolveWorkerFile(): { workerFile: string; execArgv: string[] } {
-  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
-  const rel = path.join(
-    "open-sse",
-    "services",
-    "compression",
-    "engines",
-    "llmlingua",
-    "onnxWorker.js"
-  );
+export function resolveWorkerFile(): { workerFile: string; execArgv: string[] } {
+  const anchors = runtimeAnchors();
 
-  // 1. Dev: sibling source/compiled file next to this module.
-  const devTs = path.join(moduleDir, "onnxWorker.ts");
-  if (fs.existsSync(devTs)) return { workerFile: devTs, execArgv: ["--import", "tsx/esm"] };
-  const devJs = path.join(moduleDir, "onnxWorker.js");
-  if (fs.existsSync(devJs)) return { workerFile: devJs, execArgv: [] };
+  // Prod first: the esbuild'd .js under the install root.
+  const jsRoot = firstAncestorWith(anchors, WORKER_JS_REL);
+  if (jsRoot) return { workerFile: path.join(jsRoot, WORKER_JS_REL), execArgv: [] };
 
-  // 2. Prod: walk up from the bundled module location, then cwd, looking for the
-  //    esbuild'd worker at <root>/open-sse/.../onnxWorker.js.
-  const roots: string[] = [];
-  let dir = moduleDir;
-  for (let i = 0; i < 12; i++) {
-    roots.push(dir);
-    const parent = path.dirname(dir);
-    if (parent === dir) break;
-    dir = parent;
-  }
-  roots.push(process.cwd(), path.join(process.cwd(), "app"));
-  for (const root of roots) {
-    const candidate = path.join(root, rel);
-    if (fs.existsSync(candidate)) return { workerFile: candidate, execArgv: [] };
-  }
+  // Dev: the .ts source (tsx loader).
+  const tsRoot = firstAncestorWith(anchors, WORKER_TS_REL);
+  if (tsRoot)
+    return { workerFile: path.join(tsRoot, WORKER_TS_REL), execArgv: ["--import", "tsx/esm"] };
 
-  // 3. Nothing found — return the sibling .js path; the spawn will fail-open.
-  return { workerFile: devJs, execArgv: [] };
+  // Nothing found — return a cwd-relative .js path; the spawn will fail-open.
+  return { workerFile: path.join(process.cwd(), WORKER_JS_REL), execArgv: [] };
 }
 
 /** Reset the idle eviction timer; terminates the worker after the idle window. */
