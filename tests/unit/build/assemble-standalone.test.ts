@@ -71,7 +71,13 @@ test("assembleStandalone copies standalone + static + public + sidecars into out
   fs.mkdirSync(path.join(tmp, "public"), { recursive: true });
   fs.writeFileSync(path.join(tmp, "public", "logo.svg"), "<svg/>");
 
-  assembleStandalone({ distDir, outDir, projectRoot: tmp, sanitizePaths: false, copyNatives: false });
+  assembleStandalone({
+    distDir,
+    outDir,
+    projectRoot: tmp,
+    sanitizePaths: false,
+    copyNatives: false,
+  });
 
   assert.ok(fs.existsSync(path.join(outDir, "server.js")), "server.js copied");
   // Static lands under the distDir path (.build/next/static), where the standalone

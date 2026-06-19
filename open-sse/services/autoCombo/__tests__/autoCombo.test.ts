@@ -5,7 +5,13 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { calculateFactors, calculateScore, DEFAULT_WEIGHTS, validateWeights } from "../scoring";
 import type { ProviderCandidate, ScoringWeights } from "../scoring";
-import { getTaskFitness, getTaskFitnessWithSource, getTaskTypes, getModelsDevTierFitness, invalidateFitnessCache } from "../taskFitness";
+import {
+  getTaskFitness,
+  getTaskFitnessWithSource,
+  getTaskTypes,
+  getModelsDevTierFitness,
+  invalidateFitnessCache,
+} from "../taskFitness";
 import { SelfHealingManager } from "../selfHealing";
 import { MODE_PACKS, getModePack, getModePackNames } from "../modePacks";
 import { getStrategy } from "../routerStrategy";

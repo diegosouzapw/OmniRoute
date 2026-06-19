@@ -285,7 +285,10 @@ test("card-less data tables wrap their table in an opaque surface", () => {
   ];
   for (const [p, needle] of expect) {
     const src = read(p);
-    assert.ok(src.includes(needle), `${p} must include "${needle}" so the table is opaque over the grid`);
+    assert.ok(
+      src.includes(needle),
+      `${p} must include "${needle}" so the table is opaque over the grid`
+    );
   }
 });
 

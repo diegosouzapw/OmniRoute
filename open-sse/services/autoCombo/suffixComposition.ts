@@ -31,7 +31,14 @@ export const AUTO_CATEGORIES: readonly AutoCategory[] = [
   "chat",
   "multimodal",
 ];
-export const AUTO_TIERS: readonly AutoTier[] = ["fast", "cheap", "floor", "free", "reliable", "pro"];
+export const AUTO_TIERS: readonly AutoTier[] = [
+  "fast",
+  "cheap",
+  "floor",
+  "free",
+  "reliable",
+  "pro",
+];
 
 const CATEGORY_SET = new Set<string>(AUTO_CATEGORIES);
 const TIER_SET = new Set<string>(AUTO_TIERS);

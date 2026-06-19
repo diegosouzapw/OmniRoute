@@ -945,10 +945,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
         </div>
 
         {/* Table */}
-        <Card
-          padding="none"
-          className="min-h-[460px] resize-y overflow-auto bg-surface"
-        >
+        <Card padding="none" className="min-h-[460px] resize-y overflow-auto bg-surface">
           <div
             ref={scrollContainerRef}
             className="p-0 overflow-x-auto overflow-y-auto h-full min-h-[460px]"

@@ -40,7 +40,10 @@ test.after(() => {
 test("#4235 Phase A: README-advertised cheap/offline/smart are in the built-in catalog", () => {
   const ids = Object.keys(builtinCatalog.AUTO_TEMPLATE_VARIANTS);
   for (const id of ["auto/cheap", "auto/offline", "auto/smart"]) {
-    assert.ok(ids.includes(id), `expected ${id} in AUTO_TEMPLATE_VARIANTS (advertised in /v1/models)`);
+    assert.ok(
+      ids.includes(id),
+      `expected ${id} in AUTO_TEMPLATE_VARIANTS (advertised in /v1/models)`
+    );
   }
 });
 

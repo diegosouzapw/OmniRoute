@@ -97,7 +97,10 @@ test("unrelated fields are preserved when collapsing thinking", () => {
     output_config: { effort: "high" },
     thinking: { type: "enabled", budget_tokens: 32000 },
   };
-  const result = normalizeClaudeAdaptiveThinking(body, "claude-opus-4-8") as Record<string, unknown>;
+  const result = normalizeClaudeAdaptiveThinking(body, "claude-opus-4-8") as Record<
+    string,
+    unknown
+  >;
   assert.equal(result.model, "claude-opus-4-8");
   assert.deepEqual(result.messages, [{ role: "user", content: "hi" }]);
   assert.deepEqual(result.output_config, { effort: "high" });

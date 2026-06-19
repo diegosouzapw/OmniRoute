@@ -158,8 +158,7 @@ export function handleDecryptedRequest(
 ): void {
   const startedAt = deps.now();
   const socket = req.socket as tls.TLSSocket;
-  const sni =
-    dest.sni ?? (typeof socket.servername === "string" ? socket.servername : undefined);
+  const sni = dest.sni ?? (typeof socket.servername === "string" ? socket.servername : undefined);
   const host = resolveCaptureHost(sni, req.headers.host, dest.ip);
   const path = req.url ?? "/";
 

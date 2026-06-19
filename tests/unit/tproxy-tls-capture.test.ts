@@ -127,7 +127,11 @@ test("decrypts an intercepted HTTPS request and captures it as source 'tproxy'",
   // here). The test upstream uses a self-signed cert, so opt out of verification
   // explicitly (production `realForward` keeps the secure-by-default `true`).
   const forward = createForward((ip, port) => net.connect(port, ip), { rejectUnauthorized: false });
-  const engine = await startEngineListener(certStore, { ip: "127.0.0.1", port: upstream.port }, forward);
+  const engine = await startEngineListener(
+    certStore,
+    { ip: "127.0.0.1", port: upstream.port },
+    forward
+  );
 
   try {
     const body = await tlsRequest(
@@ -181,7 +185,11 @@ test("the forward dials its upstream through connectRaw — the bypass-marked se
     },
     { rejectUnauthorized: false }
   );
-  const engine = await startEngineListener(certStore, { ip: "127.0.0.1", port: upstream.port }, forward);
+  const engine = await startEngineListener(
+    certStore,
+    { ip: "127.0.0.1", port: upstream.port },
+    forward
+  );
 
   try {
     const body = await tlsRequest(

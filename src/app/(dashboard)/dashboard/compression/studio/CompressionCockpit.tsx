@@ -228,32 +228,32 @@ export function CompressionCockpit({ run: runProp }: CompressionCockpitProps) {
 
       {/* ── Replay controls (canvas only — the waterfall is static) ──────── */}
       {view === "canvas" && (
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-bg/60 shrink-0">
-        <button
-          onClick={isPlaying ? pause : play}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded border border-border text-xs hover:bg-border/30 transition-colors"
-          aria-label={isPlaying ? "Pause replay" : "Play replay"}
-        >
-          {isPlaying ? "⏸ Pause" : "▷ Replay"}
-        </button>
-        <button
-          onClick={reset}
-          className="px-2 py-1 rounded border border-border text-xs text-muted hover:bg-border/30 transition-colors"
-          aria-label="Reset replay"
-        >
-          ⟳
-        </button>
-        <div className="flex items-center gap-1 ml-2">
-          {SPEEDS.map((s) => (
-            <SpeedButton key={s} s={s} active={speed === s} onClick={() => setSpeed(s)} />
-          ))}
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-bg/60 shrink-0">
+          <button
+            onClick={isPlaying ? pause : play}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded border border-border text-xs hover:bg-border/30 transition-colors"
+            aria-label={isPlaying ? "Pause replay" : "Play replay"}
+          >
+            {isPlaying ? "⏸ Pause" : "▷ Replay"}
+          </button>
+          <button
+            onClick={reset}
+            className="px-2 py-1 rounded border border-border text-xs text-muted hover:bg-border/30 transition-colors"
+            aria-label="Reset replay"
+          >
+            ⟳
+          </button>
+          <div className="flex items-center gap-1 ml-2">
+            {SPEEDS.map((s) => (
+              <SpeedButton key={s} s={s} active={speed === s} onClick={() => setSpeed(s)} />
+            ))}
+          </div>
+          {displayRun && currentFrame && (
+            <span className="ml-auto text-[11px] text-muted">
+              step {displayRun?.steps.length ?? 0}/{run.steps.length}
+            </span>
+          )}
         </div>
-        {displayRun && currentFrame && (
-          <span className="ml-auto text-[11px] text-muted">
-            step {displayRun?.steps.length ?? 0}/{run.steps.length}
-          </span>
-        )}
-      </div>
       )}
     </div>
   );

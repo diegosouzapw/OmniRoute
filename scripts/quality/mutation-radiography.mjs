@@ -158,20 +158,29 @@ const CLASS_ORDER = ["empty", "redundant", "overlapping", "unique"];
 
 function renderMarkdown(classification) {
   const byClass = { empty: [], redundant: [], overlapping: [], unique: [] };
-  for (const [file, info] of Object.entries(classification)) byClass[info.class].push({ file, ...info });
+  for (const [file, info] of Object.entries(classification))
+    byClass[info.class].push({ file, ...info });
   for (const k of CLASS_ORDER) byClass[k].sort((a, b) => a.file.localeCompare(b.file));
 
   const total = Object.keys(classification).length;
   const lines = [];
   lines.push("# Mutation Radiography");
   lines.push("");
-  lines.push(`Test files classified by mutation-kill contribution (\`killedBy\`). Total: **${total}**.`);
+  lines.push(
+    `Test files classified by mutation-kill contribution (\`killedBy\`). Total: **${total}**.`
+  );
   lines.push("");
   lines.push("| Class | Count | Meaning |");
   lines.push("| --- | --- | --- |");
-  lines.push(`| 🔴 empty | ${byClass.empty.length} | kills no mutant of the mutated modules (R1-prune candidate) |`);
-  lines.push(`| 🟠 redundant | ${byClass.redundant.length} | every kill is shared with another file |`);
-  lines.push(`| 🟡 overlapping | ${byClass.overlapping.length} | kills ≥1 unique but mostly shared |`);
+  lines.push(
+    `| 🔴 empty | ${byClass.empty.length} | kills no mutant of the mutated modules (R1-prune candidate) |`
+  );
+  lines.push(
+    `| 🟠 redundant | ${byClass.redundant.length} | every kill is shared with another file |`
+  );
+  lines.push(
+    `| 🟡 overlapping | ${byClass.overlapping.length} | kills ≥1 unique but mostly shared |`
+  );
   lines.push(`| 🟢 unique | ${byClass.unique.length} | kills ≥1 mutant no other file kills |`);
   lines.push("");
   lines.push(

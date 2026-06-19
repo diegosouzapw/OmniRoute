@@ -21,7 +21,10 @@ import {
   benchmarkEngines,
   runBenchmarkGate,
 } from "../../open-sse/services/compression/harness/benchmark.ts";
-import { tokensPerTask, type BudgetBaseline } from "../../open-sse/services/compression/harness/budgetGate.ts";
+import {
+  tokensPerTask,
+  type BudgetBaseline,
+} from "../../open-sse/services/compression/harness/budgetGate.ts";
 
 const BASELINE_PATH = path.join(
   path.dirname(fileURLToPath(import.meta.url)),

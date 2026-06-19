@@ -19,7 +19,6 @@ function relativeTime(ts: number): string {
   return `${diffDays}d ago`;
 }
 
-
 interface FileRecord {
   id: string;
   filename: string;
@@ -322,11 +321,7 @@ export default function FilesListTab({
                             void handleDeleteFile(file);
                           }}
                           disabled={!canDelete || deletingId === file.id}
-                          title={
-                            canDelete
-                              ? t("filesListDelete")
-                              : "File in use by active batch"
-                          }
+                          title={canDelete ? t("filesListDelete") : "File in use by active batch"}
                           className="p-1.5 rounded text-[var(--color-text-muted)] hover:text-red-400 hover:bg-[var(--color-bg-alt)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                           <span className="material-symbols-outlined text-[16px]">

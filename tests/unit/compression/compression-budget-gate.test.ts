@@ -10,7 +10,10 @@ import {
   benchmarkEngines,
   runBenchmarkGate,
 } from "../../../open-sse/services/compression/harness/benchmark.ts";
-import { tokensPerTask, type BudgetBaseline } from "../../../open-sse/services/compression/harness/budgetGate.ts";
+import {
+  tokensPerTask,
+  type BudgetBaseline,
+} from "../../../open-sse/services/compression/harness/budgetGate.ts";
 
 const BASELINE_PATH = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -39,7 +42,10 @@ describe("compression budget gate (F2.4 / N4 ratchet)", () => {
     const tight: Record<string, BudgetBaseline> = {
       ultra: {
         tasks: Object.fromEntries(
-          Object.entries(tokensPerTask(reports.ultra)).map(([task, n]) => [task, Math.max(1, Math.floor(n / 2))])
+          Object.entries(tokensPerTask(reports.ultra)).map(([task, n]) => [
+            task,
+            Math.max(1, Math.floor(n / 2)),
+          ])
         ),
       },
     };

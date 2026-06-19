@@ -18,12 +18,9 @@ const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../../src/lib/db/core.ts");
-const { getMcpAccessibilityConfig, setMcpAccessibilityConfig } = await import(
-  "../../../src/lib/db/compression.ts"
-);
-const route = await import(
-  "../../../src/app/api/settings/compression/mcp-accessibility/route.ts"
-);
+const { getMcpAccessibilityConfig, setMcpAccessibilityConfig } =
+  await import("../../../src/lib/db/compression.ts");
+const route = await import("../../../src/app/api/settings/compression/mcp-accessibility/route.ts");
 
 function resetDir() {
   core.resetDbInstance();

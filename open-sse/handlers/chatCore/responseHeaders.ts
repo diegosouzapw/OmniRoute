@@ -1,4 +1,7 @@
-import { buildOmniRouteResponseMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import {
+  attachOmniRouteMetaHeaders,
+  buildOmniRouteResponseMetaHeaders,
+} from "@/domain/omnirouteResponseMeta";
 import { OMNIROUTE_RESPONSE_HEADERS } from "@/shared/constants/headers";
 
 const STREAMING_RESPONSE_HEADER_DENYLIST = new Set([
@@ -19,15 +22,16 @@ export function buildStreamingResponseHeaders(
     }
   });
 
-  return {
+  const responseHeaders: Record<string, string> = {
     ...Object.fromEntries(forwardedHeaders),
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache, no-transform",
     Connection: "keep-alive",
     "X-Accel-Buffering": "no",
     [OMNIROUTE_RESPONSE_HEADERS.cache]: "MISS",
-    ...buildOmniRouteResponseMetaHeaders(meta),
   };
+  attachOmniRouteMetaHeaders(responseHeaders, meta);
+  return responseHeaders;
 }
 
 export function materializeDeduplicatedExecutionResult<T extends Record<string, unknown>>(

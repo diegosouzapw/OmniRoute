@@ -73,7 +73,9 @@ export function ModelMappingTable({ agentId, mappings, onSave }: ModelMappingTab
                     className="inline-flex items-center gap-1.5 rounded-lg border border-border/40 bg-card px-2.5 py-1 text-xs hover:bg-surface transition-colors font-mono"
                   >
                     {row.target || (
-                      <span className="text-text-muted italic">{t("selectModel") || "Select…"}</span>
+                      <span className="text-text-muted italic">
+                        {t("selectModel") || "Select…"}
+                      </span>
                     )}
                     <span className="material-symbols-outlined text-[12px] text-text-muted">
                       expand_more

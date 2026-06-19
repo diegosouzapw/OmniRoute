@@ -6,7 +6,9 @@ export const OMNIROUTE_RESPONSE_HEADERS = {
   model: "X-OmniRoute-Model",
   progress: "X-OmniRoute-Progress",
   provider: "X-OmniRoute-Provider",
+  requestId: "X-OmniRoute-Request-Id",
   responseCost: "X-OmniRoute-Response-Cost",
   tokensIn: "X-OmniRoute-Tokens-In",
   tokensOut: "X-OmniRoute-Tokens-Out",
+  version: "X-OmniRoute-Version",
 } as const;
