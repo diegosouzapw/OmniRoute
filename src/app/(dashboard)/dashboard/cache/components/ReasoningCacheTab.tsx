@@ -277,7 +277,7 @@ export default function ReasoningCacheTab() {
       {providerEntries.length > 0 && (
         <div className="rounded-2xl border border-border/30 bg-surface/20 p-5">
           <h3 className="text-sm font-medium text-text-main">{t("reasoningByProvider")}</h3>
-          <div className="mt-3 overflow-x-auto rounded-2xl border border-border/20 bg-surface/35">
+          <div className="mt-3 overflow-x-auto rounded-2xl border border-border/20 bg-surface">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/20 text-left text-[11px] uppercase tracking-[0.12em] text-text-muted">
@@ -330,7 +330,7 @@ export default function ReasoningCacheTab() {
       {modelEntries.length > 0 && (
         <div className="rounded-2xl border border-border/30 bg-surface/20 p-5">
           <h3 className="text-sm font-medium text-text-main">{t("reasoningByModel")}</h3>
-          <div className="mt-3 overflow-x-auto rounded-2xl border border-border/20 bg-surface/35">
+          <div className="mt-3 overflow-x-auto rounded-2xl border border-border/20 bg-surface">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/20 text-left text-[11px] uppercase tracking-[0.12em] text-text-muted">
@@ -376,7 +376,7 @@ export default function ReasoningCacheTab() {
             {t("reasoningNoData")}
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-border/20 bg-surface/35">
+          <div className="overflow-hidden rounded-2xl border border-border/20 bg-surface">
             <div className="grid grid-cols-[minmax(120px,1fr)_100px_minmax(100px,1fr)_80px_80px_60px] gap-3 border-b border-border/20 px-4 py-3 text-[11px] font-medium uppercase tracking-[0.12em] text-text-muted">
               <span>{t("reasoningToolCallId")}</span>
               <span>{t("tableProvider")}</span>

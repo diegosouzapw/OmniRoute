@@ -122,6 +122,8 @@ jobs:
         run: npm run check:cognitive-complexity
       - name: Type coverage ratchet
         run: npm run check:type-coverage
+      - name: Compression budget ratchet (F2.4 / N4)
+        run: npm run check:compression-budget
       # CodeQL alerts ratchet — BLOQUEANTE (promovido de advisory na v3.8.26).
       # Lê metrics.codeqlAlerts.value de quality-baseline.json e sai 1 SOMENTE numa
       # regressão real (alertas abertos > baseline). Falha de medição (gh/auth/api)

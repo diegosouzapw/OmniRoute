@@ -1,0 +1,58 @@
+{
+  "lite": {
+    "tasks": {
+      "prose": 129,
+      "tool-output": 127,
+      "json": 160
+    }
+  },
+  "caveman": {
+    "tasks": {
+      "prose": 129,
+      "tool-output": 127,
+      "json": 160
+    }
+  },
+  "aggressive": {
+    "tasks": {
+      "prose": 129,
+      "tool-output": 127,
+      "json": 160
+    }
+  },
+  "ultra": {
+    "tasks": {
+      "prose": 92,
+      "tool-output": 116,
+      "json": 117
+    }
+  },
+  "rtk": {
+    "tasks": {
+      "prose": 129,
+      "tool-output": 127,
+      "json": 160
+    }
+  },
+  "session-dedup": {
+    "tasks": {
+      "prose": 129,
+      "tool-output": 127,
+      "json": 160
+    }
+  },
+  "headroom": {
+    "tasks": {
+      "prose": 129,
+      "tool-output": 127,
+      "json": 160
+    }
+  },
+  "ccr": {
+    "tasks": {
+      "prose": 129,
+      "tool-output": 56,
+      "json": 14
+    }
+  }
+}

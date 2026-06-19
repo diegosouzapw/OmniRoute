@@ -209,6 +209,25 @@ export async function main() {
         );
       }
 
+      // Best-effort: build the TPROXY native addon (Linux-only, opt-in) BEFORE
+      // assembling, so its transparent.node is present for assembleStandalone's
+      // NATIVE_ASSET_ENTRIES copy. Non-Linux / no-toolchain is non-fatal — the
+      // capture mode degrades gracefully when the addon is absent.
+      try {
+        const { buildTproxyNative } = await import("./build-tproxy-native.mjs");
+        const res = buildTproxyNative(projectRoot);
+        console.log(
+          res.built
+            ? "[build-next-isolated] Built TPROXY native addon (transparent.node)"
+            : `[build-next-isolated] TPROXY native addon skipped: ${res.reason}`
+        );
+      } catch (nativeErr) {
+        console.warn(
+          "[build-next-isolated] Non-fatal error building TPROXY native addon:",
+          nativeErr?.message
+        );
+      }
+
       try {
         console.log(
           "[build-next-isolated] Assembling standalone bundle (static + public + natives + extras)..."

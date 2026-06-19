@@ -222,3 +222,85 @@ test("DashboardLayout content shell is fluid up to ~4K before centering", () => 
   );
   assert.ok(!dashboardLayout.includes("max-w-7xl"), "the old 1280px max-w-7xl cap is gone");
 });
+
+// ── Phase 6: data tables are opaque content surfaces so the grid never bleeds through ──
+//
+// The dashboard content area is intentionally transparent (the body::before grid shows
+// through as a wallpaper). A data table whose nearest ancestor is NOT an opaque surface
+// would let the grid bleed through its transparent even-rows / low-alpha zebra rows.
+// Cards already carry bg-surface; these guards cover the shared table primitives and the
+// tables that render *without* a Card. Tables verified to live inside a <Card>/Modal are
+// intentionally left untouched (bg-surface there would be a redundant no-op).
+
+test("DataTable primitive paints its own opaque surface", () => {
+  const dt = read("../../src/shared/components/DataTable.tsx");
+  assert.ok(
+    dt.includes("var(--color-surface)"),
+    "DataTable scroll container is opaque (its even rows are transparent by design)"
+  );
+});
+
+test("log table cards are opaque (no semi-transparent bg-black tint)", () => {
+  // bg-black/5|20 on a <Card> wins over the Card's own bg-surface via tailwind-merge,
+  // turning the big log tables ~95% transparent — the grid bled straight through them.
+  for (const p of [
+    "../../src/shared/components/ProxyLogger.tsx",
+    "../../src/shared/components/RequestLoggerV2.tsx",
+  ]) {
+    const src = read(p);
+    assert.ok(
+      !src.includes("bg-black/5") && !src.includes("bg-black/20"),
+      `${p} must not tint the table Card with bg-black/5|20 (it drops the Card's opaque surface)`
+    );
+    assert.ok(src.includes("bg-surface"), `${p} table card uses the opaque bg-surface`);
+  }
+});
+
+test("card-less data tables wrap their table in an opaque surface", () => {
+  const expect = [
+    [
+      "../../src/app/(dashboard)/dashboard/batch/BatchListTab.tsx",
+      "rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]",
+    ],
+    [
+      "../../src/app/(dashboard)/dashboard/batch/FilesListTab.tsx",
+      "rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]",
+    ],
+    [
+      "../../src/app/(dashboard)/dashboard/cache/components/CacheEntriesTab.tsx",
+      "overflow-x-auto bg-surface",
+    ],
+    [
+      "../../src/app/(dashboard)/dashboard/settings/components/proxy/FreePoolTab.tsx",
+      "rounded border border-border bg-surface",
+    ],
+    [
+      "../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/ModelMappingTable.tsx",
+      "overflow-hidden bg-surface",
+    ],
+    [
+      "../../src/app/(dashboard)/dashboard/tools/traffic-inspector/components/shared/HeaderTable.tsx",
+      "bg-surface",
+    ],
+  ];
+  for (const [p, needle] of expect) {
+    const src = read(p);
+    assert.ok(
+      src.includes(needle),
+      `${p} must include "${needle}" so the table is opaque over the grid`
+    );
+  }
+});
+
+test("semi-transparent cache table boxes are now opaque", () => {
+  for (const p of [
+    "../../src/app/(dashboard)/dashboard/cache/components/ReasoningCacheTab.tsx",
+    "../../src/app/(dashboard)/dashboard/cache/page.tsx",
+  ]) {
+    const src = read(p);
+    assert.ok(
+      !src.includes("bg-surface/35"),
+      `${p} table box no longer uses the ~35%-opaque bg-surface/35 (the grid bled through it)`
+    );
+  }
+});

@@ -349,15 +349,17 @@ test("OpenAI -> Claude preserves max effort except for Haiku models", () => {
   assert.equal(haiku.max_tokens, 64000);
 });
 
-test("OpenAI -> Claude fits thinking budget within Opus 4.7 output cap (regression)", () => {
+test("OpenAI -> Claude fits thinking budget within a 128k output cap (regression)", () => {
   // Real-world OpenCode scenario: caller asks for max_tokens=32000 with high effort.
   // High effort maps to budget=131072. The previous naive
-  // `budget + 8192 = 139264` exceeded Opus 4.7's 128000 output cap and caused
+  // `budget + 8192 = 139264` exceeded the 128000 output cap and caused
   // HTTP 400 "max_tokens > 128000".
   // fitThinkingToMaxTokens must preserve caller's 32000 response room and
   // shrink budget to (128000 - 32000) = 96000.
+  // Pinned on Opus 4.6 — a model that still uses manual budgets. Opus 4.7+/Fable 5 are
+  // adaptive-only now (no budget_tokens), so their effort path is covered separately below.
   const result = openaiToClaudeRequest(
-    "claude-opus-4-7",
+    "claude-opus-4-6",
     {
       messages: [{ role: "user", content: "Reason about something hard" }],
       max_tokens: 32000,
@@ -374,6 +376,56 @@ test("OpenAI -> Claude fits thinking budget within Opus 4.7 output cap (regressi
     96000,
     "budget must shrink to (cap - caller max_tokens) to preserve response room"
   );
+});
+
+test("OpenAI -> Claude steers adaptive-only models via output_config.effort for EVERY level", () => {
+  // Opus 4.7+/Fable 5 reject a manual `thinking.budget_tokens`/`type:"enabled"` with 400.
+  // reasoning_effort low/medium/high must therefore map to adaptive + output_config.effort
+  // (preserving the requested level), NOT to the budget buckets older models use.
+  for (const effort of ["low", "medium", "high", "xhigh", "max"]) {
+    for (const model of ["claude-opus-4-8", "claude-opus-4-7", "claude-fable-5"]) {
+      const result = openaiToClaudeRequest(
+        model,
+        {
+          messages: [{ role: "user", content: "Reason" }],
+          max_tokens: 4000,
+          reasoning_effort: effort,
+        },
+        false
+      );
+      assert.deepEqual(
+        result.thinking,
+        { type: "adaptive" },
+        `${model} @ ${effort} must use adaptive thinking, never a manual budget`
+      );
+      assert.deepEqual(
+        result.output_config,
+        { effort },
+        `${model} @ ${effort} must carry the effort on output_config`
+      );
+      assert.equal(
+        (result.thinking as Record<string, unknown>).budget_tokens,
+        undefined,
+        `${model} @ ${effort} must NOT emit budget_tokens (hard 400 on adaptive-only models)`
+      );
+    }
+  }
+});
+
+test("OpenAI -> Claude keeps manual budgets for low/medium/high on pre-4.7 models (regression)", () => {
+  // Opus 4.6 still supports manual extended thinking: the budget buckets must be untouched.
+  const result = openaiToClaudeRequest(
+    "claude-opus-4-6",
+    {
+      messages: [{ role: "user", content: "Reason" }],
+      max_tokens: 20000,
+      reasoning_effort: "medium",
+    },
+    false
+  );
+  assert.equal((result.thinking as { type: string }).type, "enabled");
+  assert.equal((result.thinking as { budget_tokens: number }).budget_tokens, 10240);
+  assert.equal(result.output_config, undefined);
 });
 
 test("OpenAI -> Claude can disable OAuth prefixes and Antigravity strips Claude-only prompting", () => {

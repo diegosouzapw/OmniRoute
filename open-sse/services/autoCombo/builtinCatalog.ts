@@ -28,6 +28,12 @@ export const AUTO_TEMPLATE_VARIANTS: Record<string, AutoVariant | undefined> = {
   "auto/coding": "coding",
   "auto/fast": "fast",
   "auto/chat": undefined,
+  // #4235 Phase A: these are valid variants (parseAutoPrefix accepts them) and
+  // the README advertises them, but they were missing from this catalog so
+  // `/v1/models` + the dashboard never listed them. Surface them explicitly.
+  "auto/cheap": "cheap",
+  "auto/offline": "offline",
+  "auto/smart": "smart",
   "auto/claude-opus": "smart",
   "auto/claude-sonnet": "coding",
 };

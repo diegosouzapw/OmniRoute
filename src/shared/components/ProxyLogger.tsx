@@ -390,7 +390,7 @@ export default function ProxyLogger() {
       </div>
 
       {/* Table */}
-      <Card className="overflow-hidden bg-black/5 dark:bg-black/20">
+      <Card className="overflow-hidden bg-surface">
         <div className="p-0 overflow-x-auto max-h-[calc(100vh-320px)] overflow-y-auto">
           {loading && logs.length === 0 ? (
             <div className="p-8 text-center text-text-muted">{t("loadingProxyLogs")}</div>
