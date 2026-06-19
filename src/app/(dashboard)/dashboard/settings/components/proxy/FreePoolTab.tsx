@@ -216,7 +216,7 @@ export default function FreePoolTab() {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded border border-border">
+      <div className="overflow-x-auto rounded border border-border bg-surface">
         <table className="w-full text-sm">
           <thead className="bg-surface-alt text-text-muted text-xs">
             <tr>

@@ -162,7 +162,7 @@ export default function FilesListTab({
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto overflow-y-hidden rounded-xl border border-[var(--color-border)]">
+      <div className="overflow-x-auto overflow-y-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]">
         <table className="w-full text-sm" role="table" aria-label={t("batchFilesListFilesTable")}>
           <thead>
             <tr className="bg-[var(--color-bg-alt)] border-b border-[var(--color-border)]">

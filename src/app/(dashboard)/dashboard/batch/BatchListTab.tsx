@@ -402,7 +402,7 @@ export default function BatchListTab({
       </div>
 
       {/* Table — 9 columns: Status | ID | Endpoint | Model | Progress | Cost | Created | Expires | Actions */}
-      <div className="overflow-x-auto overflow-y-hidden rounded-xl border border-[var(--color-border)]">
+      <div className="overflow-x-auto overflow-y-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]">
         <table className="w-full text-sm" role="table" aria-label={t("batchListBatchesTable")}>
           <thead>
             <tr className="bg-[var(--color-bg-alt)] border-b border-[var(--color-border)]">

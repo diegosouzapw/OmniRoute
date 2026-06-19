@@ -48,7 +48,7 @@ export function ModelMappingTable({ agentId, mappings, onSave }: ModelMappingTab
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="rounded-lg border border-border/40 overflow-hidden">
+      <div className="rounded-lg border border-border/40 overflow-hidden bg-surface">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border/40 bg-surface/60">
