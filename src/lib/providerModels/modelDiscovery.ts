@@ -29,6 +29,35 @@ function firstPositiveNumber(...candidates: unknown[]): number | undefined {
   return undefined;
 }
 
+function modalitiesIncludeImage(value: unknown): boolean {
+  return (
+    Array.isArray(value) &&
+    value.some((entry) => toNonEmptyString(entry)?.toLowerCase() === "image")
+  );
+}
+
+/**
+ * #4264: detect image-input (vision) capability from a discovered model record.
+ * Handles the common upstream shapes: an explicit `supportsVision` flag, the
+ * OpenRouter `architecture.input_modalities` array and string `architecture.modality`
+ * ("text+image->text" — the input side is everything before "->"), and a top-level
+ * `input_modalities` array. Returns false when the upstream exposes no modality info.
+ */
+export function detectVisionInput(record: JsonRecord): boolean {
+  if (record.supportsVision === true) return true;
+
+  const architecture = asRecord(record.architecture);
+  if (modalitiesIncludeImage(architecture.input_modalities)) return true;
+  if (modalitiesIncludeImage(record.input_modalities)) return true;
+
+  const modality = toNonEmptyString(architecture.modality) || toNonEmptyString(record.modality);
+  if (modality) {
+    const [inputPart] = modality.toLowerCase().split("->");
+    if ((inputPart || "").includes("image")) return true;
+  }
+  return false;
+}
+
 export function isAutoFetchModelsEnabled(providerSpecificData: unknown): boolean {
   return asRecord(providerSpecificData).autoFetchModels !== false;
 }
@@ -77,6 +106,14 @@ export function normalizeDiscoveredModels(models: unknown): SyncedAvailableModel
       topProvider.max_completion_tokens
     );
 
+    // #4264: capture image-input (vision) capability at sync time. OpenRouter (and
+    // similar passthrough catalogs) declare it via `architecture.input_modalities`
+    // (e.g. ["text","image"]) or the string `architecture.modality` ("text+image->text");
+    // some providers expose a top-level `input_modalities`. Without this, synced
+    // models reached the catalog with no vision flag and vision-capable models
+    // (which work at request time) showed up as non-vision after import.
+    const supportsVision = detectVisionInput(record);
+
     deduped.set(id, {
       id,
       name,
@@ -89,6 +126,7 @@ export function normalizeDiscoveredModels(models: unknown): SyncedAvailableModel
       ...(typeof outputTokenLimit === "number" ? { outputTokenLimit } : {}),
       ...(typeof record.description === "string" ? { description: record.description } : {}),
       ...(record.supportsThinking === true ? { supportsThinking: true } : {}),
+      ...(supportsVision ? { supportsVision: true } : {}),
     });
   }
 

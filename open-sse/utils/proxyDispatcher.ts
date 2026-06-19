@@ -8,6 +8,8 @@ import { createSocksDispatcherWithFamily } from "./socksConnectorWithFamily.ts";
 const DISPATCHER_CACHE_KEY = Symbol.for("omniroute.proxyDispatcher.cache");
 const DEFAULT_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.default");
 const SUPPORTED_PROTOCOLS = new Set(["http:", "https:", "socks5:"]);
+const DEFAULT_PROXY_DISPATCHER_CONNECTIONS = 32;
+const MAX_PROXY_DISPATCHER_CONNECTIONS = 256;
 
 type DispatcherCache = Map<string, Dispatcher>;
 type GlobalWithDispatcherCache = typeof globalThis & {
@@ -67,14 +69,36 @@ function getDispatcherOptions() {
   };
 }
 
-function getProxyDispatcherOptions() {
+export function getProxyDispatcherConnectionLimit(
+  env: Record<string, string | undefined> = process.env
+): number {
+  const raw = env.OMNIROUTE_PROXY_DISPATCHER_CONNECTIONS;
+  if (raw == null || raw.trim() === "") return DEFAULT_PROXY_DISPATCHER_CONNECTIONS;
+
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    console.warn(
+      `[ProxyDispatcher] Invalid OMNIROUTE_PROXY_DISPATCHER_CONNECTIONS="${raw}". Using default ${DEFAULT_PROXY_DISPATCHER_CONNECTIONS}.`
+    );
+    return DEFAULT_PROXY_DISPATCHER_CONNECTIONS;
+  }
+
+  return Math.min(Math.floor(parsed), MAX_PROXY_DISPATCHER_CONNECTIONS);
+}
+
+function getProxyDispatcherOptions(env: Record<string, string | undefined> = process.env) {
   const options = getDispatcherOptions();
   // Disable keep-alive and pipelining for proxy connections.
   // Cheap proxy servers aggressively drop idle sockets without sending TCP RST,
   // causing "socket hang up" or "Client network socket disconnected" errors
   // on subsequent requests that try to reuse the pooled connection.
+  //
+  // Keep multiple connections available anyway: with pipelining disabled, long
+  // SSE streams such as Codex /v1/responses otherwise bottleneck through the
+  // cached proxy dispatcher under concurrency (#4163).
   return {
     ...options,
+    connections: getProxyDispatcherConnectionLimit(env),
     keepAliveTimeout: 1,
     keepAliveMaxTimeout: 1,
     pipelining: 0,
@@ -300,6 +324,13 @@ function resolveDispatcherFamily(parsed: URL): 4 | 6 | null {
 /** Test-only accessor for the resolved family. */
 export function __resolveDispatcherFamilyForTest(proxyUrl: string): 4 | 6 | null {
   return resolveDispatcherFamily(new URL(proxyUrl));
+}
+
+/** Test-only accessor for proxy dispatcher pool options. */
+export function __getProxyDispatcherOptionsForTest(
+  env: Record<string, string | undefined> = process.env
+) {
+  return getProxyDispatcherOptions(env);
 }
 
 export function createProxyDispatcher(proxyUrl: string): Dispatcher {

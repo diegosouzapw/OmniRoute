@@ -68,17 +68,27 @@ export function mutationScoreForFile(fileData) {
 /**
  * Score por arquivo a partir de um ou mais reports (batches). Arquivos sem mutante
  * coberto (score null) são omitidos.
+ *
+ * ⭐ Sibling batches que fatiam o MESMO arquivo (auth.ts split em a1:1-1109 + a2:1110-2218
+ * por mutation range; accountFallback em b1/b2) carregam fatias DISJUNTAS dos mutantes
+ * daquele arquivo. O score verdadeiro do arquivo precisa de TODAS as fatias juntas, então
+ * unimos `files[<arquivo>].mutants` entre os reports ANTES de pontuar — não sobrescrever
+ * (senão a última fatia venceria e reportaria só metade do arquivo).
  * @param {object|object[]} reportOrReports parsed mutation.json (ou array)
  * @returns {Record<string, number>}
  */
 export function measureMutationScores(reportOrReports) {
   const reports = Array.isArray(reportOrReports) ? reportOrReports : [reportOrReports];
-  const out = {};
+  const mutantsByFile = {};
   for (const report of reports) {
     for (const [file, data] of Object.entries(report?.files || {})) {
-      const score = mutationScoreForFile(data);
-      if (score !== null) out[file] = score;
+      (mutantsByFile[file] ||= []).push(...(data?.mutants || []));
     }
+  }
+  const out = {};
+  for (const [file, mutants] of Object.entries(mutantsByFile)) {
+    const score = mutationScoreForFile({ mutants });
+    if (score !== null) out[file] = score;
   }
   return out;
 }

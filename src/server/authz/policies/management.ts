@@ -90,6 +90,12 @@ function isValidWsBridgeRequest(ctx: PolicyContext): boolean {
   return timingSafeEqual(expectedHash, providedHash);
 }
 
+// Loopback-only inspector ingest endpoint (D4). Token-gated in its own route
+// handler (INSPECTOR_INTERNAL_INGEST_TOKEN); exempt from management auth so the
+// standalone MITM proxy (server.cjs) can post captured traffic without a
+// dashboard cookie. See the carve-out in evaluate() below.
+const INSPECTOR_INGEST_PATH = "/api/tools/traffic-inspector/internal/ingest";
+
 export const managementPolicy: RoutePolicy = {
   routeClass: "MANAGEMENT",
   async evaluate(ctx: PolicyContext): Promise<AuthOutcome> {
@@ -171,6 +177,20 @@ export const managementPolicy: RoutePolicy = {
         }
       }
       return reject(403, "LOCAL_ONLY", "This endpoint requires localhost access");
+    }
+
+    // Inspector ingest (D4): the standalone MITM proxy (server.cjs) posts
+    // captured AgentBridge traffic to this loopback-only endpoint. It carries
+    // its own shared-secret token (validated in the route handler), so it does
+    // not also need a dashboard session / management key. The LOCAL_ONLY gate
+    // above already rejected any non-loopback caller; we additionally require a
+    // strict loopback request here so a LAN peer cannot reach it without auth.
+    if (path === INSPECTOR_INGEST_PATH && isLoopbackRequest(ctx)) {
+      return allow({
+        kind: "management_key",
+        id: "inspector-ingest",
+        label: "inspector-ingest-token",
+      });
     }
 
     if (isInternalModelSyncRequest(ctx)) {

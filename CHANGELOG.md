@@ -4,6 +4,25 @@
 
 ---
 
+## [3.8.30] — TBD
+
+_In development — bullets added per PR; finalized at release._
+
+### ✨ New Features
+
+- **feat(api): `x-omniroute-no-memory` request header — per-request opt-out of memory/skills injection** — clients that manage their own context (e.g. their own RAG/memory) can send `x-omniroute-no-memory: true` (mirrors the existing `x-omniroute-no-cache` convention) to skip the gateway injecting up to `memorySettings.maxTokens` (~2k) tokens of memory **and** skills context into that chat request — avoiding the token/cost inflation it otherwise adds on every call. Absent the header, behavior is unchanged. (PRD-2026-06-19-no-memory-header)
+
+### 🔧 Changed
+
+- **change(memory): memory is now OFF by default** — `DEFAULT_MEMORY_SETTINGS.enabled` now defaults to `false`. Enabling memory injects up to ~2,000 tokens of retrieved context into **every** chat request (and that context is billed), which was a surprising default for new installs and for clients with their own context. Memory is now an explicit opt-in: installs that already enabled it keep it on; installs that never configured it default to off. The Settings → Memory panel now shows a token-cost warning when memory is enabled. (PRD-2026-06-19-no-memory-header)
+
+### 🐛 Fixed
+
+- **fix(models): imported vision-capable models keep their vision capability** — after importing a provider key, vision-capable models (e.g. OpenRouter models whose `architecture` declares image input, and other synced providers) were listed as text-only in `/v1/models` and the dashboard — even though image requests actually worked. Synced model records never captured the vision flag, and the catalog's OpenRouter live-enrichment (which derives vision from `architecture.input_modalities`) is skipped once a provider has synced models. Discovery now captures `supportsVision` at sync time (from `architecture.input_modalities`, the string `architecture.modality`, or a top-level `input_modalities`), mirroring the existing `supportsThinking` capture, and the catalog surfaces `capabilities.vision` for synced models. ([#4264](https://github.com/diegosouzapw/OmniRoute/issues/4264) — thanks @FerLuisxd)
+- **fix(providers): Cloudflare Workers AI model discovery shows model names, not UUIDs** — importing a Cloudflare Workers AI key listed models with internal UUID identifiers (e.g. `429b9e8b-d99e-…`) instead of their usable slugs (`@cf/meta/llama-3.1-8b-instruct`). Cloudflare's `/ai/models/search` returns `{ id: "<uuid>", name: "@cf/…" }`, and discovery was passing the raw objects through — so the UUID `id` became the callable model id. The `cloudflare-ai` discovery now maps each result's `name` → id, surfacing the real `@cf/…` model ids. ([#4259](https://github.com/diegosouzapw/OmniRoute/issues/4259) — thanks @FerLuisxd)
+
+---
+
 ## [3.8.29] — 2026-06-19
 
 ### ✨ New Features

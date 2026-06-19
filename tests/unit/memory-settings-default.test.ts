@@ -7,8 +7,10 @@ describe("memory settings — DEFAULT_MEMORY_SETTINGS.skillsEnabled", () => {
     assert.equal(DEFAULT_MEMORY_SETTINGS.skillsEnabled, true);
   });
 
-  test("enabled defaults to true", () => {
-    assert.equal(DEFAULT_MEMORY_SETTINGS.enabled, true);
+  // PRD-2026-06-19: memory is OFF by default — enabling injects up to maxTokens
+  // (~2k) billed context per chat request, so new installs must opt in explicitly.
+  test("enabled defaults to false", () => {
+    assert.equal(DEFAULT_MEMORY_SETTINGS.enabled, false);
   });
 
   test("maxTokens defaults to 2000", () => {

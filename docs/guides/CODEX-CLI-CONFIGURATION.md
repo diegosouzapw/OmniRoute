@@ -1,7 +1,7 @@
 ---
 title: "Codex CLI — Configuration with OmniRoute"
-version: 3.8.16
-lastUpdated: 2026-06-08
+version: 3.8.29
+lastUpdated: 2026-06-18
 ---
 
 # Codex CLI — Configuration with OmniRoute
@@ -21,7 +21,6 @@ model_provider                 = "omniroute"
 model_reasoning_effort         = "xhigh"
 model_context_window           = 400000
 model_auto_compact_token_limit = 350000
-model_max_output_tokens        = 65536    # max tokens per response (model cap = 128k)
 tool_output_token_limit        = 32768    # history storage cap per tool call
 
 [model_providers.omniroute]
@@ -49,9 +48,9 @@ export OMNIROUTE_API_KEY="<YOUR_KEY>"
 
 ## `wire_api = "responses"` — why it works for all models
 
-Codex CLI deprecated `wire_api = "chat"` (Chat Completions) in February 2026 and now **requires** `wire_api = "responses"` (OpenAI Responses API).
+Codex CLI deprecated `wire_api = "chat"` (Chat Completions) in February 2026 and now **requires** `wire_api = "responses"` (OpenAI Responses API). Setting `wire_api = "chat"` causes an immediate startup crash since v0.138.
 
-DeepSeek and Mistral only expose a Chat Completions endpoint — not the Responses API. If you pointed Codex directly at DeepSeek or Mistral, it would fail with a 404.
+DeepSeek, GLM, Kimi and others only expose a Chat Completions endpoint — not the Responses API. If you pointed Codex directly at them, it would fail.
 
 **OmniRoute solves this transparently:**
 
@@ -60,18 +59,16 @@ Codex CLI
   → wire_api = "responses"
   → POST /v1/responses (OmniRoute)
     → OmniRoute Responses ↔ Chat Completions transformer
-    → POST /chat/completions (DeepSeek / Mistral / any provider)
+    → POST /chat/completions (DeepSeek / Mistral / GLM / Kimi / any provider)
 ```
 
-You never need a separate translation proxy (`codex-relay`, `LiteLLM`, etc.) when using OmniRoute. **All models use `wire_api = "responses"`** — OmniRoute handles the rest.
+You never need a separate translation proxy when using OmniRoute. **All models use `wire_api = "responses"`** — OmniRoute handles the rest.
+
+> **`wire_api` is the default** — the field defaults to `"responses"` and can be omitted entirely from `config.toml`. Only ever set it explicitly if you're documenting intent.
 
 ---
 
 ## Context window and compaction
-
-### Why this matters
-
-If the session history exceeds the model's context window, the Codex CLI either crashes or truncates silently. Different models have very different limits — setting these explicitly prevents surprises.
 
 ### Token configuration fields
 
@@ -79,35 +76,36 @@ If the session history exceeds the model's context window, the Codex CLI either 
 |-------|-------------|
 | `model_context_window` | Total token budget for the active model. Set to the model's advertised limit. |
 | `model_auto_compact_token_limit` | Threshold that triggers automatic history compaction. **Maximum: 90% of `model_context_window`** — values above 90% are silently ignored. |
-| `model_max_output_tokens` | **Maximum tokens per response** (equivalent to Claude's `CLAUDE_CODE_MAX_OUTPUT_TOKENS`). Caps the output sent to the API on every request. Exists in CLI config since mid-2025 (Issue #4138, now fixed). |
 | `tool_output_token_limit` | Cap on tokens stored per tool call output in history. Prevents a single large tool response from filling the window. **This is not the max output** — it is a history storage cap. |
-| `compact_prompt` | Inline override for the system prompt used during compaction. |
-| `experimental_compact_prompt_file` | Load the compaction prompt from a file (experimental). |
+| `compact_prompt` | Inline override for the system prompt used during compaction (v0.138+). |
 
-> **`model_max_output_tokens` vs `tool_output_token_limit`**: these are two different things.
-> - `model_max_output_tokens` = max tokens the model may produce in a single API response.
-> - `tool_output_token_limit` = max tokens stored per tool call in the session history.
+> **Note on `model_max_output_tokens`**: This field is **not part of the Codex CLI config schema** (absent from the Codex Rust codebase). It is silently ignored if set. Do not rely on it — use `tool_output_token_limit` to control how much tool output is stored in history.
 
-### Context windows and output caps by model
+### Context windows by model
 
-| Model | OmniRoute ID | Context window | Max output (model) | `model_max_output_tokens` | `auto_compact` | `tool_output_limit` |
-|-------|-------------|----------------|--------------------|---------------------------|----------------|----------------------|
-| GPT-5.5 | `cx/gpt-5.5` | 1,050,000 (400k reliable) | **128,000** | 65,536 | 350,000 | 32,768 |
-| DeepSeek V4 Pro | `ds/deepseek-v4-pro` | 1,000,000 | **384,000** | 65,536 | 900,000 | 65,536 |
-| Mistral Large Latest | `mistral/mistral-large-latest` | 262,144 (256k) | ~128,000 | 32,768 | 220,000 | 16,384 |
+| Model | OmniRoute ID | Context window | `auto_compact` | `tool_output_limit` |
+|-------|-------------|----------------|----------------|----------------------|
+| GPT-5.5 | `cx/gpt-5.5` | 400k reliable (1M max) | 350,000 | 32,768 |
+| Kimi K2.7 (thinking) | `kmc/kimi-k2.7` | 131,072 | 112,000 | 32,768 |
+| Kimi K2.6 | `kmc/kimi-k2.6` | 131,072 | 112,000 | 32,768 |
+| GLM-5.2 / 5.2-max (thinking) | `glm/glm-5.2` | 131,072 | 112,000 | 32,768 |
+| MiMo V2.5 Pro (thinking) | `opencode-go/mimo-v2.5-pro` | 131,072 | 112,000 | 32,768 |
+| Qwen 3.7 Plus (thinking) | `opencode-go/qwen3.7-plus` | 32,768 | 28,000 | 16,384 |
+| DeepSeek V4 Pro (OllamaCloud) | `ollamacloud/deepseek-v4-pro` | 131,072 | 112,000 | 32,768 |
+| DeepSeek V4 Pro | `ds/deepseek-v4-pro` | 1,000,000 | 900,000 | 65,536 |
+| MiMo V2.5 | `opencode-go/mimo-v2.5` | 131,072 | 112,000 | 32,768 |
+| Gemma 4 31B (OllamaCloud) | `ollamacloud/gemma4:31b` | 32,768 | 28,000 | 16,384 |
+| Nemotron 3 Super (OllamaCloud) | `ollamacloud/nemotron-3-super` | 32,768 | 28,000 | 16,384 |
+| GPT-OSS 20B (OllamaCloud) | `ollamacloud/gpt-oss:20b` | 32,768 | 28,000 | 16,384 |
+| DeepSeek V4 Flash (OllamaCloud) | `ollamacloud/deepseek-v4-flash` | 65,536 | 56,000 | 16,384 |
+| Gemini 3 Flash Preview (OllamaCloud) | `ollamacloud/gemini-3-flash-preview` | 1,000,000 | 850,000 | 32,768 |
+| GLM-5 Turbo | `glm/glm-5-turbo` | 131,072 | 112,000 | 16,384 |
+| GLM-4.7 Flash | `glm/glm-4.7-flash` | 131,072 | 112,000 | 16,384 |
+| Mistral Large Latest | `mistral/mistral-large-latest` | 262,144 | 220,000 | 16,384 |
 
-> **Why not set `model_max_output_tokens` to the model's maximum?**
-> For a coding assistant that writes whole files and long diffs, 64k (65,536) is a practical sweet spot. The model can generate files up to ~50k tokens without hitting the cap. Reserve the higher limits for edge cases — they increase cost on every request regardless of output length.
+> **Compaction formula:** `effective_window = model_context_window - min(tool_output_token_limit, 20000)`. Values above 20k do not change the compaction trigger.
 
-> **Compaction formula:** `effective_window = model_context_window - min(model_max_output_tokens, 20000)`. Values above 20k do not reduce the compaction trigger — the formula caps the output reservation at 20k. So setting `model_max_output_tokens = 65536` does not require lowering `model_auto_compact_token_limit`.
-
-> **Rule of thumb:** set `model_auto_compact_token_limit` to 85–90% of `model_context_window`. Never go above 90% — it is silently ignored.
-
-### How compaction works
-
-When the session history exceeds `model_auto_compact_token_limit`, Codex CLI automatically summarises older turns into a compact form. The session continues without interruption — you lose verbatim history but keep context. This is different from truncation (which loses context).
-
-For models with smaller windows (Mistral 256k), compaction fires earlier and more often. Setting a tighter `tool_output_token_limit` reduces how fast the window fills with tool call results.
+> **Rule of thumb:** set `model_auto_compact_token_limit` to 85–88% of `model_context_window`. Never go above 90% — silently ignored.
 
 ---
 
@@ -122,210 +120,239 @@ All Codex models in OmniRoute use the `cx/` prefix:
 | `cx/gpt-5.4-mini` | GPT-5.4 mini |
 | `cx/gpt-5.1-codex-mini` | GPT-5.1 Codex mini |
 
-Other providers use their own prefix (`ds/`, `mistral/`, etc.) — the prefix matches the OmniRoute provider alias.
-
-> **Never use bare `gpt-5.5` or `codex/gpt-5.5`** — OmniRoute does not recognize those formats for the Codex provider.
+Other providers use their own prefix (`kmc/`, `glm/`, `ds/`, `ollamacloud/`, `opencode-go/`, `mistral/`) — the prefix matches the OmniRoute provider alias.
 
 ---
 
 ## Reasoning Effort
 
-Controls how much the model "thinks" before responding. Higher effort = better quality, higher latency and cost.
+Controls how much the model "thinks" before responding.
 
-### Available values
-
-| Value | Recommended for |
-|-------|-----------------|
+| Value | Use for |
+|-------|---------|
 | `none` | No reasoning — direct response |
-| `low` | Trivial tasks (rename a variable, format code) |
+| `low` | Trivial tasks (rename, format) |
 | `medium` | **Server default** when not specified |
-| `high` | Intermediate tasks (refactoring, debugging) |
+| `high` | Intermediate tasks (refactoring, debug) |
 | `xhigh` | Architecture, deep analysis, complex problems |
 
-> **Note:** `model_reasoning_effort` applies to models that support reasoning (GPT-5.x, DeepSeek V4 Pro). Mistral Large does not expose a reasoning effort parameter — setting it has no effect on Mistral.
-
-### How to configure
-
-**In `config.toml` (global default):**
-```toml
-model_reasoning_effort = "xhigh"
-```
-
-**Per invocation via `-c` (overrides global):**
 ```bash
+# Per invocation override
 codex -c model_reasoning_effort=low "rename variable x to count"
-codex -c model_reasoning_effort=xhigh "design the auth module architecture"
-```
-
-**Combining model and effort:**
-```bash
-codex -m cx/gpt-5.4 -c model_reasoning_effort=medium "refactor the handler"
-```
-
-> **About the default:** If `model_reasoning_effort` is not set, OmniRoute falls back to `"medium"`. Set it explicitly for serious engineering work.
-
----
-
-## Selecting a model via the CLI
-
-### 1. `--model` / `-m` flag — per invocation
-
-```bash
-codex -m cx/gpt-5.5 "analyze the full pipeline"
-codex -m ds/deepseek-v4-pro "deep analysis of this algorithm"
-codex -m mistral/mistral-large-latest "quick review"
-```
-
-**Priority:** CLI flags > profiles > config.toml
-
-### 2. `/model` — interactive switch inside a session
-
-During an open session, type `/model` + Enter to open the model picker.
-
-### 3. `-c key=value` — inline override for any field
-
-```bash
-# Change context window for one run
-codex -m ds/deepseek-v4-pro -c model_context_window=1000000 -c model_auto_compact_token_limit=900000 "task"
+codex -c model_reasoning_effort=xhigh "design the auth module"
 ```
 
 ---
 
-## Profiles — named usage profiles
+## Profiles — named configurations per model/workflow
 
-Profiles let you have named configurations for different workflows. Each profile is a file at `~/.codex/<name>.config.toml` that layers on top of the base `config.toml`.
+Profiles let you switch model + context window with a single flag. Each profile is a flat
+`~/.codex/<name>.config.toml` that overlays on top of the base `config.toml`.
 
-> **Naming rule (Codex CLI v0.137+):** the file must be named `~/.codex/<name>.config.toml` — **no `profile-` prefix**. The CLI resolves `-p chat` to `~/.codex/chat.config.toml`. If the file is not found, the default silently applies with no error.
-
-### How to use
+> **Naming rule (Codex CLI v0.137+):** file must be `~/.codex/<name>.config.toml` — **no `profile-` prefix**.
+> The CLI resolves `-p kimi-k27` → `~/.codex/kimi-k27.config.toml`. If the file is not found, the default applies silently.
 
 ```bash
-codex --profile deepseek "analyze 10k lines of this codebase"
-codex --profile mistral "quick code review"
-codex --profile low "rename variable"
-codex -p chat "explain this function"
+codex --profile kimi-k27 "analyze 10k lines of this codebase"
+codex -p glm52 "architecture review"
+codex --profile deepseek-flash "rename variable"   # fast, cheap
 ```
 
-### All available profiles
+### Effort profiles (same model, different effort)
 
-#### `chat.config.toml` — no reasoning effort (server default = medium)
-```toml
-model          = "cx/gpt-5.5"
-model_provider = "omniroute"
-# No model_reasoning_effort — uses server default (medium)
+```bash
+codex -p low      # cx/gpt-5.5, effort=low
+codex -p medium   # cx/gpt-5.5, effort=medium
+codex -p high     # cx/gpt-5.5, effort=high
+codex -p xhigh    # cx/gpt-5.5, effort=xhigh (default)
+codex -p chat     # cx/gpt-5.5, no effort set (server default)
 ```
 
-#### `low.config.toml` / `medium.config.toml` / `high.config.toml` / `xhigh.config.toml`
-```toml
-model                  = "cx/gpt-5.5"
-model_reasoning_effort = "low"   # or medium / high / xhigh
-model_provider         = "omniroute"
-```
-Context window is inherited from `config.toml` (400k for gpt-5.5).
+### Thinking models (alto pensamento) — xhigh + detailed summary
 
-#### `deepseek.config.toml` — DeepSeek V4 Pro, 1M context
-```toml
-model          = "ds/deepseek-v4-pro"
-model_provider = "omniroute"
+| Profile | Model | Context | Use for |
+|---------|-------|---------|---------|
+| `kimi-k27` | `kmc/kimi-k2.7` | 128k | Best thinking quality (Kimi) |
+| `glm52` | `glm/glm-5.2` | 128k | GLM thinking |
+| `glm52max` | `glm/glm-5.2-max` | 128k | GLM thinking max |
+| `mimo-pro` | `opencode-go/mimo-v2.5-pro` | 128k | MiMo thinking |
+| `qwen37plus` | `opencode-go/qwen3.7-plus` | 32k | Qwen thinking |
 
-model_context_window           = 1000000
-model_auto_compact_token_limit = 900000
-model_max_output_tokens        = 65536    # practical cap; model max = 384k
-tool_output_token_limit        = 65536
-```
+### Good models (bons) — high effort
 
-#### `mistral.config.toml` — Mistral Large Latest, 256k context
-```toml
-model          = "mistral/mistral-large-latest"
-model_provider = "omniroute"
+| Profile | Model | Context | Use for |
+|---------|-------|---------|---------|
+| `kimi-k26` | `kmc/kimi-k2.6` | 128k | General purpose (Kimi) |
+| `deepseek-pro` | `ollamacloud/deepseek-v4-pro` | 128k | DeepSeek Pro via OllamaCloud |
+| `deepseek` | `ds/deepseek-v4-pro` | 1M | DeepSeek Pro direct, huge context |
+| `mimo` | `opencode-go/mimo-v2.5` | 128k | MiMo general |
 
-model_context_window           = 262144
-model_auto_compact_token_limit = 220000
-model_max_output_tokens        = 32768    # ~32k; Mistral Large model max ~128k
-tool_output_token_limit        = 16384
-```
+### Simple models (simples) — no reasoning effort
+
+| Profile | Model | Context | Use for |
+|---------|-------|---------|---------|
+| `gemma4` | `ollamacloud/gemma4:31b` | 32k | Cost-effective, capable |
+| `nemotron` | `ollamacloud/nemotron-3-super` | 32k | NVIDIA Nemotron |
+| `gptoss` | `ollamacloud/gpt-oss:20b` | 32k | Open-source GPT |
+
+### Fast models (rápidos) — low effort
+
+| Profile | Model | Context | Use for |
+|---------|-------|---------|---------|
+| `deepseek-flash` | `ollamacloud/deepseek-v4-flash` | 64k | Quick tasks |
+| `gemini-flash` | `ollamacloud/gemini-3-flash-preview` | 1M | Very fast, huge context |
+| `glm5turbo` | `glm/glm-5-turbo` | 128k | GLM Turbo |
+| `glm47flash` | `glm/glm-4.7-flash` | 128k | GLM Flash |
+| `mistral` | `mistral/mistral-large-latest` | 256k | Mistral Large |
 
 ### Quick decision table
 
-| Task | Profile |
-|------|---------|
-| Rename, format, boilerplate | `--profile low` |
-| Explain, light PR review | `--profile chat` |
-| Debug, moderate refactor | `--profile medium` |
-| New feature, complex tests | `--profile high` |
-| Architecture, system analysis | `--profile xhigh` (default) |
-| Long codebase analysis (needs 1M ctx) | `--profile deepseek` |
-| Quick tasks, cost-conscious | `--profile mistral` |
+| Task | Recommended profile |
+|------|---------------------|
+| Rename, format, boilerplate | `--profile deepseek-flash` or `-p low` |
+| Explain, light review | `-p chat` or `-p gemini-flash` |
+| Debug, moderate refactor | `-p medium` or `-p kimi-k26` |
+| New feature, complex tests | `-p high` or `-p mimo` |
+| Architecture, deep analysis | `-p kimi-k27` or `-p glm52` or `-p xhigh` |
+| Codebase analysis (needs 1M ctx) | `--profile deepseek` or `--profile gemini-flash` |
+| Maximum thinking quality | `-p glm52max` or `-p mimo-pro` |
+| Cost-conscious | `-p gemma4` or `-p gptoss` |
 
 ---
 
-## Multiple models and servers
+## Generating profiles automatically with `omniroute setup-codex`
 
-### Multiple models — same server
+If you run OmniRoute on a VPS, you can auto-generate profile files from the live model catalog:
 
-Change only `model` and `model_provider` (and context window fields if the model differs):
+```bash
+# From a VPS (uses local OmniRoute on port 20128)
+omniroute setup-codex
 
-```toml
-model                         = "ds/deepseek-v4-pro"
-model_provider                = "omniroute"
-model_context_window          = 1000000
-model_auto_compact_token_limit = 900000
+# From any machine — point at your VPS
+omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
+
+# Preview without writing files
+omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
+
+# Only generate GLM and Kimi profiles
+omniroute setup-codex --only glm,kimi
+
+# Write to a custom directory
+omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-### Multiple servers
+The command fetches `/v1/models`, categorises each model (thinking / good / simple / fast) and writes `~/.codex/<name>.config.toml` for each. Idempotent — safe to re-run.
+
+---
+
+## Launching Codex with `omniroute launch-codex`
+
+Health-checks your OmniRoute instance before launching Codex:
+
+```bash
+# Launch against local OmniRoute (default port 20128)
+omniroute launch-codex
+
+# Launch with a specific profile
+omniroute launch-codex --profile kimi-k27
+
+# Launch against a remote VPS
+omniroute launch-codex --remote http://100.x.x.x:20128/v1 --api-key sk-xxx
+
+# Pass extra args to codex
+omniroute launch-codex --profile glm52 -- --yolo "fix this bug"
+```
+
+---
+
+## New Codex CLI features (v0.138–v0.141)
+
+| Version | Feature |
+|---------|---------|
+| v0.138 | Desktop app handoff (`/app`), v2 personal access tokens, `--profile` as the exclusive profile selector (legacy in-file `[profiles]` tables crash on startup) |
+| v0.139 | `web_search = "live"` — native web search from code mode; `oneOf`/`allOf` in MCP tool schemas; `codex doctor` env diagnostics |
+| v0.140 | `/usage` token view in-session; `/import` from Claude Code sessions; `codex delete <SESSION_ID>` subcommand; Amazon Bedrock auth via `aws` object in provider config |
+| v0.141 | E2E encrypted Noise relay for remote executors; SQLite WAL fix; P-521 TLS support |
+
+### New `config.toml` fields (post-v0.137)
 
 ```toml
-model          = "cx/gpt-5.5"
-model_provider = "omniroute-main"
+# Native web search (v0.139)
+web_search = "live"   # "disabled" | "cached" | "live"
 
-[model_providers.omniroute-main]
-name                 = "OmniRoute (Main)"
-base_url             = "http://192.168.0.1:20128/v1"
-env_key              = "OMNIROUTE_API_KEY"
-requires_openai_auth = false
-wire_api             = "responses"
+# Separate developer system prompt (v0.138)
+developer_instructions = "Always prefer functional style."
 
-[model_providers.omniroute-tailscale]
-name                 = "OmniRoute (Tailscale)"
+# Custom compaction prompt
+compact_prompt = "Summarise the above as bullet points."
+
+# Route /review to a cheaper model
+review_model = "glm/glm-5-turbo"
+
+# OpenAI service tier
+service_tier = "fast"   # "fast" | "flex"
+```
+
+### New `[model_providers.<id>]` fields
+
+```toml
+[model_providers.omniroute]
 base_url             = "http://100.x.x.x:20128/v1"
 env_key              = "OMNIROUTE_API_KEY"
 requires_openai_auth = false
-wire_api             = "responses"
 
-[model_providers.omniroute-staging]
-name                 = "OmniRoute (Staging)"
-base_url             = "http://192.168.0.2:20128/v1"
-env_key              = "OMNIROUTE_STAGING_KEY"
-requires_openai_auth = false
-wire_api             = "responses"
+# Static extra headers on every request
+[model_providers.omniroute.http_headers]
+"X-Custom-Header" = "value"
+
+# Headers read from env vars
+[model_providers.omniroute.env_http_headers]
+"X-Trace-Id" = "TRACE_ID"
+
+# Extra URL query params (useful for Azure api-version)
+[model_providers.omniroute.query_params]
+"api-version" = "2024-12-01-preview"
 ```
 
-> All providers use `wire_api = "responses"` — OmniRoute handles translation for each upstream provider internally.
+### Amazon Bedrock auth (v0.140)
+
+```toml
+[model_providers.bedrock]
+base_url = "https://bedrock-runtime.us-east-1.amazonaws.com"
+
+[model_providers.bedrock.aws]
+profile = "default"   # ~/.aws/credentials profile
+region  = "us-east-1"
+```
+
+---
+
+## Multiple servers
+
+```toml
+[model_providers.omniroute-main]
+base_url = "http://192.168.0.1:20128/v1"
+env_key  = "OMNIROUTE_API_KEY"
+
+[model_providers.omniroute-tailscale]
+base_url = "http://100.x.x.x:20128/v1"
+env_key  = "OMNIROUTE_API_KEY"
+```
 
 ---
 
 ## Claude Code — equivalent configuration
 
-Claude Code (Anthropic's CLI) uses a different mechanism for the same concept: environment variables in `~/.bashrc` / `~/.zshrc`.
-
 | Codex CLI (`config.toml`) | Claude Code (env var) | Effect |
 |---------------------------|-----------------------|--------|
-| `model_max_output_tokens = 65536` | `CLAUDE_CODE_MAX_OUTPUT_TOKENS=65536` | Max tokens per response |
-| `model_context_window = 400000` | *(determined by the model — not configurable)* | Context window |
 | `tool_output_token_limit = 32768` | *(not directly exposed)* | Per-tool history cap |
+| `model_context_window = 400000` | *(determined by the model)* | Context window |
+| — | `CLAUDE_CODE_MAX_OUTPUT_TOKENS=65536` | Max tokens per response |
 
 ```bash
-# ~/.bashrc — Claude Code token cap (equivalent to Codex model_max_output_tokens)
+# ~/.bashrc — Claude Code token cap
 export CLAUDE_CODE_MAX_OUTPUT_TOKENS=65536
 ```
-
-> **Why 64k and not 128k?** The Claude 4.x family supports up to 128k output, but for interactive coding sessions 64k covers any file or diff you realistically generate. Setting 128k reserves the full slot on every request, which increases latency and cost even for short responses. Use 128k only for batch/document-generation workflows where you routinely need very long outputs.
-
----
-
-## About `[notice.model_migrations]`
-
-Auto-generated by the Codex CLI to record acknowledged deprecation warnings. **Not an alias system** — safe to ignore.
 
 ---
 
@@ -333,25 +360,39 @@ Auto-generated by the Codex CLI to record acknowledged deprecation warnings. **N
 
 | Flag | Short | Effect |
 |------|-------|--------|
-| `--model <id>` | `-m` | Overrides `model` for the current invocation |
+| `--model <id>` | `-m` | Overrides `model` for this invocation |
 | `--profile <name>` | `-p` | Loads `~/.codex/<name>.config.toml` |
-| `--config key=value` | `-c` | Overrides any config.toml field |
+| `--config key=value` | `-c` | Overrides any config.toml field (repeatable) |
 | `--enable <feature>` | — | Force-enables a feature flag |
 | `--disable <feature>` | — | Force-disables a feature flag |
+| `--search` | — | Enable live web search for this invocation |
+
+New in v0.140:
+```bash
+codex delete <SESSION_ID>          # delete a session
+codex delete <SESSION_ID> --force  # skip confirmation
+codex debug models --bundled       # list bundled model catalog as JSON
+```
 
 Inside an interactive session:
 
 | Command | Effect |
 |---------|--------|
 | `/model` | Opens the model picker |
+| `/usage` | Shows token usage for this session (v0.140) |
+| `/app` | Hands off to the desktop app (v0.138) |
+| `/import` | Import a Claude Code session (v0.140) |
 | `/help` | Lists all slash commands |
 
 ---
 
 ## Troubleshooting
 
+**`Error: wire_api = "chat" is no longer supported`**
+Remove `wire_api = "chat"` from your config. Set `wire_api = "responses"` or omit the field (defaults to `"responses"` since v0.138).
+
 **`Error: model not found`**
-Verify the model exists in OmniRoute with the correct prefix. Open `/dashboard/providers/<provider>` and check available models.
+Verify the model exists in OmniRoute with the correct prefix. Use `omniroute models list` or open `/dashboard/providers/<provider>`.
 
 **`Authentication error`**
 Confirm `OMNIROUTE_API_KEY` is exported: `echo $OMNIROUTE_API_KEY`.
@@ -360,10 +401,10 @@ Confirm `OMNIROUTE_API_KEY` is exported: `echo $OMNIROUTE_API_KEY`.
 Verify OmniRoute is running and the `base_url` host/port is correct for your network (local vs Tailscale vs VPS).
 
 **Session crashes near context limit**
-Set `model_context_window` and `model_auto_compact_token_limit` explicitly for the model you are using. See the context window table above.
+Set `model_context_window` and `model_auto_compact_token_limit` explicitly. See the context window table above.
 
-**Compaction fires too late / history is cut**
-Lower `model_auto_compact_token_limit` to trigger compaction earlier (e.g. 75% of the window). Never set it above 90% — silently ignored.
+**Compaction fires too late**
+Lower `model_auto_compact_token_limit` to 80–85% of the window. Never set above 90%.
 
-**DeepSeek / Mistral returns 404**
-You are likely pointing Codex directly at the provider API. Route through OmniRoute — it translates Responses API → Chat Completions automatically. Confirm `base_url` points to your OmniRoute instance, not directly to `api.deepseek.com` or `api.mistral.ai`.
+**Profile not loading (`-p <name>` silently ignored)**
+Confirm the file exists at `~/.codex/<name>.config.toml` (no `profile-` prefix). Run `ls ~/.codex/*.config.toml`.
