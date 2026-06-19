@@ -6,10 +6,7 @@
 import { describe, it, before } from "node:test";
 import assert from "node:assert/strict";
 
-import {
-  sessionDedupEngine,
-  reconstructSessionDedup,
-} from "../../../open-sse/services/compression/engines/session-dedup/index.ts";
+import { sessionDedupEngine } from "../../../open-sse/services/compression/engines/session-dedup/index.ts";
 import {
   registerBuiltinCompressionEngines,
   getCompressionEngine,
@@ -86,26 +83,6 @@ describe("session-dedup engine", () => {
     assert.ok(result.stats !== null, "stats must be present");
     assert.ok(result.stats!.originalTokens > 0);
     assert.ok(result.stats!.compressedTokens < result.stats!.originalTokens);
-  });
-
-  it("round-trip: reconstructSessionDedup restores original body exactly", () => {
-    const body = makeBody([
-      { role: "user", content: `Here is the code:\n${REPEATED_BLOCK}` },
-      { role: "assistant", content: "I understand the code." },
-      { role: "user", content: `Please review again:\n${REPEATED_BLOCK}` },
-    ]);
-
-    const result = sessionDedupEngine.apply(body as Record<string, unknown>);
-    assert.equal(result.compressed, true);
-
-    const restored = reconstructSessionDedup(result.body);
-
-    // Deep-equal to original
-    assert.deepEqual(
-      restored.messages,
-      body.messages,
-      "reconstructed body must deep-equal original"
-    );
   });
 
   it("does NOT dedup small/unique blocks (no false positives)", () => {

@@ -80,6 +80,7 @@ import {
 } from "../services/modelStrip.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { normalizeMimoThinking } from "../services/mimoThinking.ts";
+import { normalizeClaudeAdaptiveThinking } from "../services/claudeAdaptiveThinking.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
 import { supportsMaxTokens } from "@/lib/modelCapabilities.ts";
 import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
@@ -2535,6 +2536,12 @@ export async function handleChatCore({
   // when the resolved target model rejects it; models that accept `disabled` are untouched.
   if (typeof finalModelToUpstream === "string") {
     translatedBody = normalizeThinkingForModel(translatedBody, finalModelToUpstream);
+    // Claude Opus 4.7+/Fable 5 removed manual extended thinking: `thinking.type:"enabled"`
+    // or any `thinking.budget_tokens` is a hard 400. Collapse any manual thinking that
+    // reached this point (passthrough legacy shape, reasoning_effort buckets, per-model
+    // defaults) to `{type:"adaptive"}` — effort stays on `output_config.effort`. Keyed on
+    // the resolved upstream model, so it covers every routing mode. See claudeAdaptiveThinking.ts.
+    translatedBody = normalizeClaudeAdaptiveThinking(translatedBody, finalModelToUpstream);
   }
 
   // Xiaomi MiMo controls reasoning ONLY via `thinking:{type:"enabled"|"disabled"}` and

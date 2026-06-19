@@ -162,6 +162,45 @@ test("decrypts an intercepted HTTPS request and captures it as source 'tproxy'",
   }
 });
 
+test("the forward dials its upstream through connectRaw — the bypass-marked seam (anti-loop regression)", async () => {
+  // Regression for the bug the VPS e2e caught: `https.request({ createConnection })`
+  // is silently IGNORED whenever an agent is present — and `agent: false` still
+  // installs a fresh default Agent — so the forward opened its OWN unmarked socket.
+  // On a TPROXY host that re-intercepts the proxy's own forward, that loops
+  // infinitely. The fix puts the marked socket on the Agent's createConnection;
+  // this asserts connectRaw (the anti-loop seam) is actually invoked.
+  globalTrafficBuffer.clear();
+  const upstream = await startHttpsUpstream();
+  const certStore = new DynamicCertStore("OmniRoute MITM CA (test)");
+  const caPem = await certStore.getCaCertPem();
+  let connectRawCalls = 0;
+  const forward = createForward(
+    (ip, port) => {
+      connectRawCalls += 1;
+      return net.connect(port, ip);
+    },
+    { rejectUnauthorized: false }
+  );
+  const engine = await startEngineListener(certStore, { ip: "127.0.0.1", port: upstream.port }, forward);
+
+  try {
+    const body = await tlsRequest(
+      engine.port,
+      "api.example.com",
+      caPem,
+      "GET /seam HTTP/1.1\r\nHost: api.example.com\r\nConnection: close\r\n\r\n"
+    );
+    assert.match(body, /decrypted-roundtrip:\/seam/, "client still gets the upstream response");
+    assert.ok(
+      connectRawCalls >= 1,
+      "the forward MUST dial through connectRaw (the bypass-marked seam), not a default socket"
+    );
+  } finally {
+    await engine.close();
+    await upstream.close();
+  }
+});
+
 test("a forward failure is recorded as an error entry and the client gets 502", async () => {
   globalTrafficBuffer.clear();
   const certStore = new DynamicCertStore("OmniRoute MITM CA (test)");

@@ -11,6 +11,13 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { checkSemanticCache } = await import("../../open-sse/handlers/chatCore/semanticCache.ts");
 const core = await import("../../src/lib/db/core.ts");
+// Seeding the real cache (no mock.module under the Stryker tap-runner) lets us drive the
+// HIT branch deterministically: setCachedResponse populates the in-memory cache that
+// getCachedResponse checks first, so the signature checkSemanticCache rebuilds resolves.
+const { generateSignature, setCachedResponse, clearCache } = await import(
+  "../../src/lib/semanticCache.ts"
+);
+const { OMNIROUTE_RESPONSE_HEADERS } = await import("../../src/shared/constants/headers.ts");
 
 test.after(() => {
   core.resetDbInstance();
@@ -124,4 +131,177 @@ test("checkSemanticCache MISS also works for the Responses-API `input` body shap
 
   assert.equal(result, null);
   assert.equal(persistCalls.length, 0);
+});
+
+// ─── HIT path ────────────────────────────────────────────────────────────────
+// The guard-false / miss tests above only exercise the `return null` branches. These
+// seed the real cache so the `if (cached)` block actually runs end-to-end, killing
+// mutants in the HIT body (status 200 / "semantic" / "HIT" / the stream + content-type
+// ternaries / the cost fallback / the side-effect calls).
+
+// Recording (non-throwing) spies — the HIT path DOES invoke log.debug + logConvertedResponse.
+function makeHitArgs(overrides: Record<string, unknown> = {}) {
+  const persistCalls: Record<string, unknown>[] = [];
+  const convertedCalls: unknown[] = [];
+  const debugCalls: unknown[][] = [];
+  const args = {
+    semanticCacheEnabled: true,
+    body: { model: "gpt-4o", messages: [{ role: "user", content: "cached query" }], temperature: 0 },
+    clientRawRequest: { headers: {} },
+    model: "gpt-4o",
+    provider: "openai",
+    stream: false,
+    reqLogger: {
+      logConvertedResponse: (r: unknown) => {
+        convertedCalls.push(r);
+      },
+    },
+    effectiveServiceTier: undefined,
+    connectionId: null as string | null,
+    startTime: Date.now() - 5,
+    log: {
+      debug: (...a: unknown[]) => {
+        debugCalls.push(a);
+      },
+    },
+    persistAttemptLogs: (a: unknown) => {
+      persistCalls.push(a as Record<string, unknown>);
+    },
+    apiKeyId: null as string | null,
+    ...overrides,
+  };
+  return { args, persistCalls, convertedCalls, debugCalls };
+}
+
+// Seed the cache under the EXACT signature checkSemanticCache rebuilds for `args`.
+function seedHit(args: ReturnType<typeof makeHitArgs>["args"], response: unknown) {
+  const signature = generateSignature(
+    args.model,
+    args.body.messages ?? (args.body as Record<string, unknown>).input,
+    args.body.temperature,
+    (args.body as Record<string, unknown>).top_p,
+    args.apiKeyId ?? undefined
+  );
+  setCachedResponse(signature, args.model, response);
+  return signature;
+}
+
+test("checkSemanticCache returns a non-streaming JSON HIT with cache headers + logging side effects", async () => {
+  clearCache();
+  const cached = {
+    id: "chatcmpl-cached-1",
+    choices: [
+      { index: 0, message: { role: "assistant", content: "cached answer" }, finish_reason: "stop" },
+    ],
+    usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+  };
+  const { args, persistCalls, convertedCalls, debugCalls } = makeHitArgs({
+    body: { model: "gpt-4o", messages: [{ role: "user", content: "hit query one" }], temperature: 0 },
+    stream: false,
+  });
+  seedHit(args, cached);
+
+  const result = await checkSemanticCache(args as Parameters<typeof checkSemanticCache>[0]);
+
+  assert.ok(result, "HIT -> non-null result");
+  assert.equal(result.success, true, "HIT result.success is true");
+  const res = result.response as Response;
+  assert.equal(res.headers.get(OMNIROUTE_RESPONSE_HEADERS.cache), "HIT", "X-OmniRoute-Cache: HIT");
+  assert.equal(
+    res.headers.get(OMNIROUTE_RESPONSE_HEADERS.cacheHit),
+    "true",
+    "cacheHit meta header is true"
+  );
+  assert.equal(
+    res.headers.get("Content-Type"),
+    "application/json",
+    "non-streaming HIT -> application/json"
+  );
+  const bodyText = await res.text();
+  assert.equal(bodyText, JSON.stringify(cached), "non-streaming HIT body is the cached JSON");
+
+  assert.equal(persistCalls.length, 1, "persistAttemptLogs runs exactly once on a HIT");
+  const logged = persistCalls[0];
+  assert.equal(logged.status, 200, "persisted status is 200");
+  assert.equal(logged.cacheSource, "semantic", "persisted cacheSource is 'semantic'");
+  assert.deepEqual(logged.responseBody, cached, "persisted responseBody is the cached object");
+  assert.deepEqual(logged.clientResponse, cached, "persisted clientResponse is the cached object");
+  assert.deepEqual(logged.tokens, cached.usage, "persisted tokens come from cached.usage");
+  assert.equal(logged.providerRequest, null);
+  assert.equal(logged.providerResponse, null);
+
+  assert.equal(convertedCalls.length, 1, "logConvertedResponse called once with the cached body");
+  assert.deepEqual(convertedCalls[0], cached);
+  assert.equal(debugCalls.length, 1, "log.debug fires exactly once on a HIT");
+});
+
+test("checkSemanticCache returns a streaming SSE HIT (text/event-stream) when stream=true", async () => {
+  clearCache();
+  const cached = {
+    id: "chatcmpl-cached-stream",
+    choices: [
+      {
+        index: 0,
+        message: { role: "assistant", content: "streamed cached answer" },
+        finish_reason: "stop",
+      },
+    ],
+    usage: { prompt_tokens: 3, completion_tokens: 4, total_tokens: 7 },
+  };
+  const { args, persistCalls } = makeHitArgs({
+    body: { model: "gpt-4o", messages: [{ role: "user", content: "hit query stream" }], temperature: 0 },
+    stream: true,
+  });
+  seedHit(args, cached);
+
+  const result = await checkSemanticCache(args as Parameters<typeof checkSemanticCache>[0]);
+
+  assert.ok(result, "streaming HIT -> non-null result");
+  assert.equal(result.success, true);
+  const res = result.response as Response;
+  assert.equal(
+    res.headers.get("Content-Type"),
+    "text/event-stream",
+    "streaming HIT -> text/event-stream"
+  );
+  assert.equal(res.headers.get(OMNIROUTE_RESPONSE_HEADERS.cache), "HIT");
+  const bodyText = await res.text();
+  assert.ok(bodyText.includes("data: "), "SSE body contains data frames");
+  assert.ok(bodyText.includes("streamed cached answer"), "SSE body carries the cached content");
+  assert.ok(bodyText.trimEnd().endsWith("data: [DONE]"), "SSE body terminates with [DONE]");
+  assert.equal(persistCalls.length, 1, "persistAttemptLogs runs once on a streaming HIT too");
+});
+
+test("checkSemanticCache HITs even when the cached body has no usage (cost falls back to 0)", async () => {
+  clearCache();
+  const cached = {
+    id: "chatcmpl-cached-no-usage",
+    choices: [
+      { index: 0, message: { role: "assistant", content: "no-usage answer" }, finish_reason: "stop" },
+    ],
+  };
+  const { args, persistCalls } = makeHitArgs({
+    body: {
+      model: "gpt-4o",
+      messages: [{ role: "user", content: "hit query no usage" }],
+      temperature: 0,
+    },
+    stream: false,
+  });
+  seedHit(args, cached);
+
+  const result = await checkSemanticCache(args as Parameters<typeof checkSemanticCache>[0]);
+
+  assert.ok(result, "HIT with no usage -> non-null result");
+  assert.equal(result.success, true);
+  const res = result.response as Response;
+  assert.equal(res.headers.get(OMNIROUTE_RESPONSE_HEADERS.cache), "HIT");
+  // cachedUsage resolves to undefined -> cachedCost = 0 -> the zero-cost sentinel header.
+  assert.equal(
+    res.headers.get(OMNIROUTE_RESPONSE_HEADERS.responseCost),
+    "0.0000000000",
+    "no usage -> zero responseCost header"
+  );
+  assert.equal(persistCalls.length, 1);
+  assert.equal(persistCalls[0].tokens, undefined, "no usage -> persisted tokens is undefined");
 });

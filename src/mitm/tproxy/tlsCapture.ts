@@ -308,6 +308,19 @@ export function createForward(
   return (dest, init) =>
     new Promise<ForwardResult>((resolve, reject) => {
       const servername = dest.sni || String(init.headers.host || dest.ip);
+      // The bypass-marked socket MUST live on the Agent's `createConnection`:
+      // `https.request({ createConnection })` is silently IGNORED whenever an
+      // agent is present — and `agent: false` still installs a fresh default
+      // Agent, so the request option never runs and the forward would open its
+      // own UNMARKED socket, breaking the anti-loop (TPROXY would re-intercept
+      // the proxy's own forward → infinite loop). Verified e2e on the VPS.
+      const agent = new https.Agent({ maxSockets: 1, keepAlive: false });
+      (agent as unknown as { createConnection: () => net.Socket }).createConnection = () =>
+        tls.connect({
+          socket: connectRaw(dest.ip, dest.port),
+          servername,
+          rejectUnauthorized,
+        }) as unknown as net.Socket;
       let req: http.ClientRequest;
       try {
         req = https.request(
@@ -319,12 +332,7 @@ export function createForward(
             headers: init.headers,
             servername,
             rejectUnauthorized,
-            // `agent: false` is required so `createConnection` is honored — the
-            // default Agent would ignore it and open its own (unmarked) socket,
-            // breaking the anti-loop SO_MARK on the real forward path.
-            agent: false,
-            createConnection: () =>
-              tls.connect({ socket: connectRaw(dest.ip, dest.port), servername, rejectUnauthorized }),
+            agent,
           },
           (upstream) => {
             const chunks: Buffer[] = [];

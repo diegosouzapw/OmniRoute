@@ -26,8 +26,9 @@ jobs:
     #     6 chatCore/* leaves with direct unit coverage as batch g. A follow-up then wrote dedicated
     #     unit tests for 6 more leaves and added them as batch h. A final follow-up added dedicated
     #     tests (no mock.module — fetch-override + crafted inputs + temp-DATA_DIR) for telemetryHelpers
-    #     + memorySkillsInjection as batch i (14/15 chatCore leaves). semanticCache stays out (its
-    #     cache-HIT block needs a fixture) — see _mutate_godfiles_excluded_comment in stryker.conf.json.
+    #     + memorySkillsInjection + semanticCache (its cache-HIT block now has a setCachedResponse
+    #     fixture) as batch i — ALL 15/15 chatCore leaves are now mutated. See
+    #     _mutate_godfiles_excluded_comment in stryker.conf.json.
     # 9 PARALLEL batches, each overriding the mutate set via `--mutate` (Stryker 9 CLI:
     # `-m, --mutate <comma-list>`; the conf's `mutate[]` remains the local-run default/union).
     # Each batch targets <180min; full coverage every night in parallel (~180min wall-clock).
@@ -56,7 +57,7 @@ jobs:
           - name: h
             mutate: "open-sse/handlers/chatCore/headers.ts,open-sse/handlers/chatCore/logTruncation.ts,open-sse/handlers/chatCore/memoryExtraction.ts,open-sse/handlers/chatCore/nonStreamingSse.ts,open-sse/handlers/chatCore/passthroughToolNames.ts,open-sse/handlers/chatCore/executorHelpers.ts"
           - name: i
-            mutate: "open-sse/handlers/chatCore/telemetryHelpers.ts,open-sse/handlers/chatCore/memorySkillsInjection.ts"
+            mutate: "open-sse/handlers/chatCore/telemetryHelpers.ts,open-sse/handlers/chatCore/memorySkillsInjection.ts,open-sse/handlers/chatCore/semanticCache.ts"
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v6
