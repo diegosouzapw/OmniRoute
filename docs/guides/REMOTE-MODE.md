@@ -147,6 +147,7 @@ context, or `--remote <url> --api-key <key>`):
 | Codex | `omniroute setup-codex` | `~/.codex/<name>.config.toml` profiles (per model) |
 | Claude Code | `omniroute setup-claude` | `~/.claude/profiles/<name>/settings.json` (per model) |
 | OpenCode | `omniroute setup-opencode` | `~/.config/opencode/opencode.json` — the `omniroute` openai-compatible provider with every catalog model (run `opencode -m omniroute/<model>`) |
+| Cline | `omniroute setup-cline` | `~/.cline/data/{globalState,secrets}.json` (CLI mode) + prints the VS Code extension settings to paste (OpenAI-compatible, Base URL **without** `/v1`) |
 
 ```bash
 # OpenCode (openai-compatible provider, all catalog models, remote VPS)
