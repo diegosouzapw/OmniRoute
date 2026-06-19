@@ -1,6 +1,10 @@
 import type { AggressiveConfig, CompressionStats, Summarizer } from "./types.ts";
 import { DEFAULT_AGGRESSIVE_CONFIG } from "./types.ts";
-import { compressToolResult } from "./toolResultCompressor.ts";
+import {
+  compressToolResult,
+  compressAnthropicToolResultBlock,
+  isAnthropicToolResultBlock,
+} from "./toolResultCompressor.ts";
 import { applyAging } from "./progressiveAging.ts";
 import { RuleBasedSummarizer } from "./summarizer.ts";
 import { cavemanCompress } from "./caveman.ts";
@@ -65,15 +69,35 @@ export function compressAggressive(
   try {
     const afterToolResult = currentMessages.map((msg) => {
       if (cfg.preserveSystemPrompt !== false && msg.role === "system") return msg;
-      if (msg.role !== "tool" && msg.role !== "function") return msg;
-      const text = extractTextContent(msg.content);
-      if (!text || COMPRESSED_MARKER_RE.test(text)) return msg;
 
-      const result = compressToolResult(text, cfg.toolStrategies);
-      if (result.strategy === "none" || result.saved <= 0) return msg;
+      // OpenAI-shape: a dedicated tool/function message whose content is the result text.
+      if (msg.role === "tool" || msg.role === "function") {
+        const text = extractTextContent(msg.content);
+        if (!text || COMPRESSED_MARKER_RE.test(text)) return msg;
 
-      toolResultSavings += result.saved;
-      return setContent(msg, result.compressed);
+        const result = compressToolResult(text, cfg.toolStrategies);
+        if (result.strategy === "none" || result.saved <= 0) return msg;
+
+        toolResultSavings += result.saved;
+        return setContent(msg, result.compressed);
+      }
+
+      // Anthropic-shape: `tool_result` content blocks live inside a (typically user)
+      // message's content array. Compress the text inside each block while preserving
+      // the tool_use_id and block structure exactly (B-AGG-ANTHROPIC-TR).
+      if (!Array.isArray(msg.content)) return msg;
+      if (!msg.content.some(isAnthropicToolResultBlock)) return msg;
+
+      let blockSavings = 0;
+      const nextContent = msg.content.map((part) => {
+        if (!isAnthropicToolResultBlock(part)) return part;
+        const { block, saved } = compressAnthropicToolResultBlock(part, cfg.toolStrategies);
+        blockSavings += saved;
+        return block;
+      });
+      if (blockSavings <= 0) return msg;
+      toolResultSavings += blockSavings;
+      return { ...msg, content: nextContent };
     });
     currentMessages = afterToolResult;
   } catch (err) {
