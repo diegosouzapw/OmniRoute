@@ -376,14 +376,17 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "deepseek-v3-2-251201",
     "doubao-seed-2-0-pro-260215",
     "doubao-seed-2-0-code-preview-260215",
+    // Sweep 2026-06-19: kimi-k2-thinking-251104 retired on Ark (volcengine official
+    // notices); replaced by kimi-k2-5-260127.
     "kimi-k2-5-260127",
-    "kimi-k2-thinking-251104",
     "glm-4-7-251222",
   ]),
   ai21: buildModels(["jamba-large-1.7", "jamba-mini-2"]),
   gigachat: buildModels(["GigaChat-2-Max", "GigaChat-2-Pro", "GigaChat-2-Lite"]),
   venice: buildModels(["venice-latest"]),
-  codestral: buildModels(["codestral-2508", "codestral-2405", "codestral-latest"]),
+  // Sweep 2026-06-19: codestral-2405 retired 2025-06-16 (Mistral official docs) — dropped
+  // from the menu; old refs auto-forward via the codestral-2405 deprecation alias.
+  codestral: buildModels(["codestral-2508", "codestral-latest"]),
   upstage: buildModels(["solar-pro3", "solar-mini"]),
   maritalk: buildModels(["sabia-4", "sabia-3.1", "sabiazinho-4", "sabiazinho-3"]),
   "xiaomi-mimo": [
