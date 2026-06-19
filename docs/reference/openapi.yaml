@@ -1966,6 +1966,52 @@ paths:
         "200":
           description: Updated compression settings
 
+  /api/settings/compression/mcp-accessibility:
+    get:
+      tags: [Compression]
+      summary: Get the MCP tool-output accessibility (trimming) config
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Current mcpAccessibility config
+    put:
+      tags: [Compression]
+      summary: Update the MCP tool-output accessibility (trimming) config
+      description: >-
+        Partial-merge update. Numeric floors (e.g. a maxTextChars below the truncation-tail
+        reserve) are folded back to the safe defaults server-side, so the response reflects the
+        effective config.
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                maxTextChars:
+                  type: integer
+                  minimum: 1
+                collapseThreshold:
+                  type: integer
+                  minimum: 1
+                collapseKeepHead:
+                  type: integer
+                  minimum: 0
+                collapseKeepTail:
+                  type: integer
+                  minimum: 0
+                minLengthToProcess:
+                  type: integer
+                  minimum: 1
+      responses:
+        "200":
+          description: Updated mcpAccessibility config (numeric floors applied)
+
   /api/compression/preview:
     post:
       tags: [Compression]

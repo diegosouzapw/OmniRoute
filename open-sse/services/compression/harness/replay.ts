@@ -1,4 +1,5 @@
 import { runCompressionEval, type CompressFn, type EvalCase, type EvalReport } from "./runner.ts";
+import { extractTextContent, type ChatMessageLike } from "../messageContent.ts";
 
 /**
  * Replay-bench over real transcripts (TV3). Instead of synthetic prompts, feed
@@ -35,4 +36,37 @@ export function replayTranscripts(
   compress: CompressFn
 ): Promise<EvalReport> {
   return runCompressionEval(transcriptsToCorpus(transcripts), compress);
+}
+
+/** Shape of a captured request body — only the messages array matters for replay. */
+export interface CapturedRequestBody {
+  messages?: Array<{ role?: unknown; content?: unknown }>;
+}
+
+/**
+ * Build a {@link Transcript} from a captured request body (a call-log / capture-store entry).
+ * Multimodal and tool-result content blocks are flattened to text via extractTextContent, so a
+ * replay corpus can be sourced from real traffic instead of synthetic prompts. A non-object body
+ * or one without a `messages` array yields a transcript with no turns (callers can filter those).
+ */
+export function requestBodyToTranscript(id: string, body: unknown): Transcript {
+  const messages =
+    body && typeof body === "object" && Array.isArray((body as CapturedRequestBody).messages)
+      ? ((body as CapturedRequestBody).messages as Array<{ role?: unknown; content?: unknown }>)
+      : [];
+  const turns: TranscriptTurn[] = messages.map((message) => ({
+    role: typeof message.role === "string" ? message.role : "user",
+    content: extractTextContent(message.content as ChatMessageLike["content"]),
+  }));
+  return { id, turns };
+}
+
+/**
+ * Map a list of captured request bodies (e.g. read from the capture store / call logs) into
+ * transcripts. Pair with {@link replayTranscripts} to benchmark compression over real traffic.
+ */
+export function requestBodiesToTranscripts(
+  entries: Array<{ id: string; body: unknown }>
+): Transcript[] {
+  return entries.map((entry) => requestBodyToTranscript(entry.id, entry.body));
 }

@@ -59,7 +59,7 @@ export function detectCodeLanguage(text: string): CodeLanguage {
  * division without parser context). Bails out entirely when JSX is present so
  * JSX expression-container comments are never corrupted.
  */
-function stripJsTsComments(text: string): string {
+function stripJsTsComments(text: string, preserveDocstrings: boolean): string {
   const source = ts.createSourceFile(
     "snippet.tsx",
     text,
@@ -94,6 +94,9 @@ function stripJsTsComments(text: string): string {
   if (ranges.size === 0) return text;
   let result = text;
   for (const range of [...ranges.values()].sort((a, b) => b.pos - a.pos)) {
+    // Keep JSDoc/docstring block comments (`/** ... */`) when preserveDocstrings is on — they
+    // carry API documentation that is worth more than the bytes they cost.
+    if (preserveDocstrings && text.startsWith("/**", range.pos)) continue;
     result = result.slice(0, range.pos) + result.slice(range.end);
   }
   return result;
@@ -125,7 +128,7 @@ export function stripCode(
     opts.removeComments &&
     (resolvedLanguage === "javascript" || resolvedLanguage === "typescript")
   ) {
-    result = stripJsTsComments(result);
+    result = stripJsTsComments(result, opts.preserveDocstrings);
   }
 
   if (opts.removeEmptyLines) result = result.replace(/^\s*$(?:\r?\n)?/gm, "");

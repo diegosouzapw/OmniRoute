@@ -34,6 +34,11 @@ import {
   AUTO_TEMPLATE_VARIANTS,
   VALID_AUTO_VARIANTS,
 } from "@omniroute/open-sse/services/autoCombo/builtinCatalog.ts";
+import {
+  parseAutoSuffix,
+  type AutoCategory,
+  type AutoTier,
+} from "@omniroute/open-sse/services/autoCombo/suffixComposition.ts";
 import * as log from "../utils/logger";
 import { checkAndRefreshToken } from "../services/tokenRefresh";
 import { createHookContext, runHooks, initPreRequestRegistry } from "@/lib/middleware/registry";
@@ -395,6 +400,8 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
   // If the model ID is "auto" or starts with "auto/", bypass DB combo lookup
   // entirely and generate a virtual auto-combo on-the-fly from connected providers.
   let autoVariant: AutoVariant | undefined;
+  // #4235 Phase B: `auto/<category>:<tier>` overlay (e.g. auto/coding:fast, auto/vision).
+  let autoSpec: { category?: AutoCategory; tier?: AutoTier } | undefined;
   let isAutoRouting = resolvedModelStr === "auto" || resolvedModelStr.startsWith("auto/");
   let recognizedBuiltInAuto = resolvedModelStr === "auto";
   if (Object.prototype.hasOwnProperty.call(AUTO_TEMPLATE_VARIANTS, resolvedModelStr)) {
@@ -402,7 +409,15 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     autoVariant = AUTO_TEMPLATE_VARIANTS[resolvedModelStr];
   } else if (resolvedModelStr.startsWith("auto/")) {
     const suffix = resolvedModelStr.slice(5);
-    recognizedBuiltInAuto = VALID_AUTO_VARIANTS.has(suffix as AutoVariant);
+    if (VALID_AUTO_VARIANTS.has(suffix as AutoVariant)) {
+      recognizedBuiltInAuto = true;
+    } else {
+      const parsedSuffix = parseAutoSuffix(suffix);
+      if (parsedSuffix.valid) {
+        recognizedBuiltInAuto = true;
+        autoSpec = { category: parsedSuffix.category, tier: parsedSuffix.tier };
+      }
+    }
   }
 
   if (isAutoRouting) {
@@ -439,7 +454,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
           "AUTO",
           `Zero-config routing variant: ${autoVariant || "default"} (model=${resolvedModelStr})`
         );
-      } else {
+      } else if (!autoSpec) {
         log.warn("AUTO", `Invalid auto prefix format: ${resolvedModelStr}`);
       }
     } catch (err) {
@@ -477,7 +492,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     try {
       const { createVirtualAutoCombo } =
         await import("@omniroute/open-sse/services/autoCombo/virtualFactory.ts");
-      const virtualCombo = await createVirtualAutoCombo(autoVariant);
+      const virtualCombo = await createVirtualAutoCombo(autoVariant, autoSpec);
       virtualCombo.name = resolvedModelStr;
       virtualCombo.id = resolvedModelStr;
       combo = virtualCombo;

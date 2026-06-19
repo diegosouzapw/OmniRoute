@@ -182,6 +182,14 @@ function normalizeRtkConfig(value: unknown): RtkConfig {
       2,
       100
     ),
+    stripCodeComments:
+      typeof record.stripCodeComments === "boolean"
+        ? record.stripCodeComments
+        : (DEFAULT_RTK_CONFIG.stripCodeComments ?? false),
+    preserveDocstrings:
+      typeof record.preserveDocstrings === "boolean"
+        ? record.preserveDocstrings
+        : (DEFAULT_RTK_CONFIG.preserveDocstrings ?? true),
   };
 }
 
