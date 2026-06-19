@@ -31,34 +31,55 @@ jobs:
     #     _mutate_godfiles_excluded_comment in stryker.conf.json.
     # 9 PARALLEL batches, each overriding the mutate set via `--mutate` (Stryker 9 CLI:
     # `-m, --mutate <comma-list>`; the conf's `mutate[]` remains the local-run default/union).
-    # Each batch targets <180min; full coverage every night in parallel (~180min wall-clock).
-    # The `incremental` cache (per-batch key) makes runs after the first cold one much cheaper,
-    # so the isolated big-module batches recover even if a first cold run nears the cap.
+    #   - Cold-seeding budget (per-batch `timeout-minutes: ${{ matrix.batch.timeout || 180 }}`):
+    #     a COLD run must COMPLETE once to write stryker-incremental.json (Stryker writes it only on
+    #     a successful finish); a job cancelled at the cap writes nothing, so the next run is cold
+    #     again — an infinite never-seeds loop. actions/cache is also branch-scoped, so each branch
+    #     (incl. release) must seed its OWN cache via a run with enough headroom. Measured cold runs
+    #     (run 27801802713): a/b never finished even isolated; c=180min CANCELLED (4 modules),
+    #     d=180min CANCELLED (3 combo modules), g=142min, h=132min, e=66, f=45, i=33. So a/b/c/d get
+    #     350min (job max 360) and g/h a 240min variance buffer; once seeded, later nightlies only
+    #     re-test changed mutants and fit well under the default. NOTE: batch c's old "2 modules ~2h"
+    #     assumption went stale when c grew to 4 modules — keep this budget in sync with the matrix.
+    # Full coverage every night in parallel; wall-clock = the slowest batch's cold run until seeded.
     # Runs at stryker concurrency=4 with per-process DATA_DIR isolation
     # (tests/_setup/isolateDataDir.ts) — see _concurrency_comment in stryker.conf.json.
     strategy:
       fail-fast: false
       matrix:
         batch:
+          # Per-batch `timeout` (minutes) tiers the cold-seeding budget by measured cost — see the
+          # cold-run measurements in the comment above. Batches without the key default to 180.
+          # a/b (large isolated modules) + c/d (4 and 3 modules, observed to exceed 180min cold) get
+          # 350 (GitHub-hosted job max is 360); g/h (142/132min cold — within runner-variance distance
+          # of the 180 cap) get a 240 buffer. e/f/i (33-66min) stay at the 180 default.
           - name: a
             mutate: "src/sse/services/auth.ts"
+            timeout: 350
           - name: b
             mutate: "open-sse/services/accountFallback.ts"
+            timeout: 350
           - name: c
             mutate: "src/server/authz/routeGuard.ts,src/shared/utils/circuitBreaker.ts,open-sse/utils/error.ts,open-sse/utils/publicCreds.ts"
+            timeout: 350
           - name: d
             mutate: "open-sse/services/combo/comboStructure.ts,open-sse/services/combo/autoStrategy.ts,open-sse/services/combo/validateQuality.ts"
+            timeout: 350
           - name: e
             mutate: "open-sse/services/combo/shadowRouting.ts,open-sse/services/combo/targetSorters.ts,open-sse/services/combo/comboPredicates.ts,open-sse/services/combo/rrState.ts,open-sse/services/combo/comboData.ts"
           - name: f
             mutate: "open-sse/services/combo/quotaScoring.ts,open-sse/services/combo/quotaStrategies.ts"
           - name: g
             mutate: "open-sse/handlers/chatCore/comboContextCache.ts,open-sse/handlers/chatCore/idempotency.ts,open-sse/handlers/chatCore/passthroughHelpers.ts,open-sse/handlers/chatCore/responseHeaders.ts,open-sse/handlers/chatCore/sanitization.ts,open-sse/handlers/chatCore/upstreamTimeouts.ts"
+            timeout: 240
           - name: h
             mutate: "open-sse/handlers/chatCore/headers.ts,open-sse/handlers/chatCore/logTruncation.ts,open-sse/handlers/chatCore/memoryExtraction.ts,open-sse/handlers/chatCore/nonStreamingSse.ts,open-sse/handlers/chatCore/passthroughToolNames.ts,open-sse/handlers/chatCore/executorHelpers.ts"
+            timeout: 240
           - name: i
             mutate: "open-sse/handlers/chatCore/telemetryHelpers.ts,open-sse/handlers/chatCore/memorySkillsInjection.ts,open-sse/handlers/chatCore/semanticCache.ts"
-    timeout-minutes: 180
+    # Per-batch budget: a/b/c/d override to 350min, g/h to 240min; the rest default to 180min.
+    # `matrix.batch.timeout` is null for batches without the key -> `|| 180`.
+    timeout-minutes: ${{ matrix.batch.timeout || 180 }}
     steps:
       - uses: actions/checkout@v6
         with:
