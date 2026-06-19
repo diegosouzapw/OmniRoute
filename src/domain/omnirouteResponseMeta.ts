@@ -1,5 +1,6 @@
 import { getProviderAlias } from "@/shared/constants/providers";
 import { OMNIROUTE_RESPONSE_HEADERS } from "@/shared/constants/headers";
+import { APP_CONFIG } from "@/shared/constants/appConfig";
 
 type UsageLike = Record<string, unknown> | null | undefined;
 
@@ -51,6 +52,7 @@ export function buildOmniRouteResponseMetaHeaders({
   latencyMs = 0,
   model = null,
   provider = null,
+  requestId = null,
   usage = null,
 }: {
   cacheHit?: boolean;
@@ -59,6 +61,7 @@ export function buildOmniRouteResponseMetaHeaders({
   latencyMs?: unknown;
   model?: string | null;
   provider?: string | null;
+  requestId?: string | null;
   usage?: UsageLike;
 }): Record<string, string> {
   const tokens = getOmniRouteTokenCounts(usage);
@@ -68,10 +71,15 @@ export function buildOmniRouteResponseMetaHeaders({
     [OMNIROUTE_RESPONSE_HEADERS.responseCost]: formatOmniRouteCost(costUsd),
     [OMNIROUTE_RESPONSE_HEADERS.tokensIn]: String(tokens.input),
     [OMNIROUTE_RESPONSE_HEADERS.tokensOut]: String(tokens.output),
+    [OMNIROUTE_RESPONSE_HEADERS.version]: APP_CONFIG.version,
   };
 
   if (typeof model === "string" && model.trim().length > 0) {
     headers[OMNIROUTE_RESPONSE_HEADERS.model] = model;
+  }
+
+  if (typeof requestId === "string" && requestId.trim().length > 0) {
+    headers[OMNIROUTE_RESPONSE_HEADERS.requestId] = requestId;
   }
 
   if (typeof provider === "string" && provider.trim().length > 0) {
@@ -95,4 +103,21 @@ export function buildOmniRouteSseMetadataComment(
     .map(([name, value]) => `: ${name.toLowerCase()}=${value}`);
 
   return lines.length > 0 ? `${lines.join("\n")}\n` : "";
+}
+
+/**
+ * Single choke-point for attaching the X-OmniRoute-* response meta headers.
+ * Mutates `headers` in place (accepts a Headers instance OR a plain Record).
+ * Use at EVERY non-streaming success return so no route forgets the telemetry.
+ */
+export function attachOmniRouteMetaHeaders(
+  headers: Headers | Record<string, string>,
+  meta: Parameters<typeof buildOmniRouteResponseMetaHeaders>[0]
+): void {
+  const built = buildOmniRouteResponseMetaHeaders(meta);
+  if (headers instanceof Headers) {
+    for (const [name, value] of Object.entries(built)) headers.set(name, value);
+  } else {
+    Object.assign(headers, built);
+  }
 }
