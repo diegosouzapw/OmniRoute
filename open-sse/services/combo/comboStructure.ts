@@ -102,6 +102,13 @@ function normalizeRuntimeStep(
     provider: getTargetProvider(modelStr, step.providerId),
     providerId: step.providerId || null,
     connectionId: step.connectionId || null,
+    // #3266: a per-step account allowlist scopes round-robin/weighted selection
+    // to a subset of the provider's connections. This is the second writer of
+    // `allowedConnectionIds` (tag routing is the first); both feed the existing
+    // credential-selection filter in auth.ts.
+    ...(Array.isArray(step.allowedConnectionIds) && step.allowedConnectionIds.length > 0
+      ? { allowedConnectionIds: step.allowedConnectionIds }
+      : {}),
     weight,
     label,
   } satisfies ResolvedComboTarget;

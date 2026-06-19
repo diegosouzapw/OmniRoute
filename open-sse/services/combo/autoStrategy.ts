@@ -21,16 +21,9 @@
  */
 
 import { isRecord } from "./comboData.ts";
-import type {
-  AutoProviderCandidate,
-  ComboLike,
-  ResolvedComboTarget,
-} from "./types.ts";
+import type { AutoProviderCandidate, ComboLike, ResolvedComboTarget } from "./types.ts";
 import { extractSessionAffinityKey } from "@/sse/services/auth";
-import {
-  DEFAULT_INTENT_CONFIG,
-  type IntentClassifierConfig,
-} from "../intentClassifier.ts";
+import { DEFAULT_INTENT_CONFIG, type IntentClassifierConfig } from "../intentClassifier.ts";
 import { getTaskFitness } from "../autoCombo/taskFitness.ts";
 import {
   calculateFactors,
@@ -289,9 +282,28 @@ export async function applyRequestTagRouting(
       return acc;
     }
 
+    // #3266: when a step already carries an account allowlist, intersect it with
+    // the tag-matched connections (most-restrictive wins). An empty intersection
+    // means no connection satisfies both constraints, so the target is dropped —
+    // the same outcome the `matchedConnectionIds.length === 0` guard above yields.
+    const tagMatched = Array.from(new Set(matchedConnectionIds));
+    const stepAllow = Array.isArray(target.allowedConnectionIds)
+      ? target.allowedConnectionIds.filter(
+          (id): id is string => typeof id === "string" && id.length > 0
+        )
+      : null;
+    const effectiveAllow =
+      stepAllow && stepAllow.length > 0
+        ? tagMatched.filter((id) => stepAllow.includes(id))
+        : tagMatched;
+
+    if (effectiveAllow.length === 0) {
+      return acc;
+    }
+
     acc.push({
       ...target,
-      allowedConnectionIds: Array.from(new Set(matchedConnectionIds)),
+      allowedConnectionIds: effectiveAllow,
     });
     return acc;
   }, []);
