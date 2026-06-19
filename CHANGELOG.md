@@ -11,6 +11,7 @@ _In development — bullets added per PR; finalized at release._
 ### ✨ New Features
 
 - **feat(api): `x-omniroute-no-memory` request header — per-request opt-out of memory/skills injection** — clients that manage their own context (e.g. their own RAG/memory) can send `x-omniroute-no-memory: true` (mirrors the existing `x-omniroute-no-cache` convention) to skip the gateway injecting up to `memorySettings.maxTokens` (~2k) tokens of memory **and** skills context into that chat request — avoiding the token/cost inflation it otherwise adds on every call. Absent the header, behavior is unchanged. (PRD-2026-06-19-no-memory-header)
+- **feat(dashboard): MITM tool card lists the exact hosts-file entries to add manually** — the CLI-tools MITM card's "How it works" section now lists the full set of `127.0.0.1 <host>` lines for the selected tool (sourced from the canonical MITM target registry) instead of a single example domain. Users on locked-down machines — where the automatic, sudo-gated hosts-file edit isn't available — can now copy every required entry by hand. (thanks @mrcyclo)
 
 ### 🔧 Changed
 
