@@ -136,7 +136,7 @@ export const GLM_QUOTA_URLS = Object.freeze({
 
 export const GLMT_TIMEOUT_MS = 900_000;
 
-export const GLM_TIMEOUT_MS = 900_000;
+export const GLM_TIMEOUT_MS = 3_000_000; // 50 min — aligned with Z.AI Coding Plan FAQ (API_TIMEOUT_MS=3000000)
 
 export const GLM_REQUEST_DEFAULTS = Object.freeze({
   maxTokens: 16_384,
