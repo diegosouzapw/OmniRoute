@@ -95,6 +95,7 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "scripts/build/native-binary-compat.mjs",
   "scripts/build/postinstall.mjs",
   "scripts/build/postinstallSupport.mjs",
+  "scripts/build/colocateOptionals.mjs",
   "scripts/build/sync-env.mjs",
   "scripts/dev/responses-ws-proxy.mjs",
   "scripts/dev/sync-env.mjs",
@@ -135,6 +136,7 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "scripts/build/native-binary-compat.mjs",
   "scripts/build/postinstall.mjs",
   "scripts/build/postinstallSupport.mjs",
+  "scripts/build/colocateOptionals.mjs",
   "src/shared/utils/nodeRuntimeSupport.ts",
 ];
 

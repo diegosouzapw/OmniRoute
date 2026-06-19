@@ -1224,6 +1224,35 @@ export class BaseExecutor {
 
         mergeUpstreamExtraHeaders(finalHeaders, upstreamExtraHeaders);
         const serializedBody = prl.parseBody(bodyString);
+        // #4307 — Preserve the non-enumerable tool-name cloak/remap reverse map
+        // (`_toolNameMap`, set on the live `transformedBody` by
+        // remapToolNamesInRequest / cloakThirdPartyToolNames) that the JSON
+        // round-trip above drops. chatCore's response-side un-cloak reads it off
+        // `result.transformedBody` to restore the client's original tool-name
+        // casing (e.g. `read`, not the cloaked `Read`). Without this re-attach the
+        // map is lost and the client receives the cloaked casing — a regression
+        // from #3941's serialized-body capture. Mirrors antigravity.ts's
+        // `attachToolNameMap`; non-enumerable so it never re-serializes upstream.
+        if (
+          transformedBody &&
+          typeof transformedBody === "object" &&
+          serializedBody &&
+          typeof serializedBody === "object"
+        ) {
+          const liveToolNameMap = (transformedBody as Record<string, unknown>)._toolNameMap;
+          if (
+            liveToolNameMap instanceof Map &&
+            liveToolNameMap.size > 0 &&
+            !((serializedBody as Record<string, unknown>)._toolNameMap instanceof Map)
+          ) {
+            Object.defineProperty(serializedBody, "_toolNameMap", {
+              value: liveToolNameMap,
+              enumerable: false,
+              configurable: true,
+              writable: true,
+            });
+          }
+        }
         const fetchOptions: RequestInit = {
           method: "POST",
           headers: finalHeaders,

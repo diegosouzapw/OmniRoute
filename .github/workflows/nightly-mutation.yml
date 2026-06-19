@@ -36,11 +36,15 @@ jobs:
     #     a successful finish); a job cancelled at the cap writes nothing, so the next run is cold
     #     again — an infinite never-seeds loop. actions/cache is also branch-scoped, so each branch
     #     (incl. release) must seed its OWN cache via a run with enough headroom. Measured cold runs
-    #     (run 27801802713): a/b never finished even isolated; c=180min CANCELLED (4 modules),
-    #     d=180min CANCELLED (3 combo modules), g=142min, h=132min, e=66, f=45, i=33. So a/b/c/d get
-    #     350min (job max 360) and g/h a 240min variance buffer; once seeded, later nightlies only
-    #     re-test changed mutants and fit well under the default. NOTE: batch c's old "2 modules ~2h"
-    #     assumption went stale when c grew to 4 modules — keep this budget in sync with the matrix.
+    #     Measured cold totals (run 27801802713, extrapolated from the % at the 180/350 cancel point):
+    #     auth ~375min (2301 mutants — EXCEEDS the 360min job max even isolated), accountFallback
+    #     ~358min (1441), the c security quartet ~348min (1163), d ~197min (1316), g=142, h=132, e=66,
+    #     f=45, i=33. The widely-covered modules blow the budget because the tap-runner re-runs every
+    #     covering test file per mutant (a perTest fixed cost over ~138 test files, times thousands of
+    #     mutants). A flat timeout bump cannot rescue auth (>360min max) — so the three over-budget
+    #     batches are SPLIT so each half fits: auth->a1/a2 and accountFallback->b1/b2 by mutation range
+    #     (`file:startLine-endLine`), the c quartet->c1/c2 by module pair. Splitting also seeds each
+    #     sub-batch's own incremental cache, after which nightlies re-test only changed mutants.
     # Full coverage every night in parallel; wall-clock = the slowest batch's cold run until seeded.
     # Runs at stryker concurrency=4 with per-process DATA_DIR isolation
     # (tests/_setup/isolateDataDir.ts) — see _concurrency_comment in stryker.conf.json.
@@ -48,23 +52,38 @@ jobs:
       fail-fast: false
       matrix:
         batch:
-          # Per-batch `timeout` (minutes) tiers the cold-seeding budget by measured cost — see the
-          # cold-run measurements in the comment above. Batches without the key default to 180.
-          # a/b (large isolated modules) + c/d (4 and 3 modules, observed to exceed 180min cold) get
-          # 350 (GitHub-hosted job max is 360); g/h (142/132min cold — within runner-variance distance
-          # of the 180 cap) get a 240 buffer. e/f/i (33-66min) stay at the 180 default.
-          - name: a
-            mutate: "src/sse/services/auth.ts"
-            timeout: 350
-          - name: b
-            mutate: "open-sse/services/accountFallback.ts"
-            timeout: 350
-          - name: c
-            mutate: "src/server/authz/routeGuard.ts,src/shared/utils/circuitBreaker.ts,open-sse/utils/error.ts,open-sse/utils/publicCreds.ts"
-            timeout: 350
+          # Per-batch `timeout` (minutes) tiers the cold-seeding budget by measured cost; batches
+          # without the key default to 180. Cold-run profiling (run 27801802713) showed the
+          # widely-covered modules need FAR more than the 180 cap because the tap-runner re-runs every
+          # covering test file per mutant: auth ~375min (2301 mutants, EXCEEDS the 360min GitHub job
+          # max even isolated), accountFallback ~358min, the c security quartet ~348min — none fit a
+          # single job. So auth/accountFallback are split by MUTATION RANGE (`file:startLine-endLine`,
+          # ~half the mutants each) into a1/a2, b1/b2; the c quartet is split by MODULE pair into
+          # c1/c2. d (3 combo modules, ~197min) stays whole. Split-heavy batches get 300min headroom
+          # for their cold seeding run; once each batch completes once and writes
+          # stryker-incremental.json, later runs re-test only changed mutants and finish far faster.
+          # g/h (142/132min cold) keep a 240 buffer; e/f/i (33-66min) keep the 180 default.
+          - name: a1
+            mutate: "src/sse/services/auth.ts:1-1109"
+            timeout: 300
+          - name: a2
+            mutate: "src/sse/services/auth.ts:1110-2218"
+            timeout: 300
+          - name: b1
+            mutate: "open-sse/services/accountFallback.ts:1-863"
+            timeout: 300
+          - name: b2
+            mutate: "open-sse/services/accountFallback.ts:864-1726"
+            timeout: 300
+          - name: c1
+            mutate: "src/server/authz/routeGuard.ts,src/shared/utils/circuitBreaker.ts"
+            timeout: 300
+          - name: c2
+            mutate: "open-sse/utils/error.ts,open-sse/utils/publicCreds.ts"
+            timeout: 300
           - name: d
             mutate: "open-sse/services/combo/comboStructure.ts,open-sse/services/combo/autoStrategy.ts,open-sse/services/combo/validateQuality.ts"
-            timeout: 350
+            timeout: 300
           - name: e
             mutate: "open-sse/services/combo/shadowRouting.ts,open-sse/services/combo/targetSorters.ts,open-sse/services/combo/comboPredicates.ts,open-sse/services/combo/rrState.ts,open-sse/services/combo/comboData.ts"
           - name: f
@@ -77,11 +96,15 @@ jobs:
             timeout: 240
           - name: i
             mutate: "open-sse/handlers/chatCore/telemetryHelpers.ts,open-sse/handlers/chatCore/memorySkillsInjection.ts,open-sse/handlers/chatCore/semanticCache.ts"
-    # Per-batch budget: a/b/c/d override to 350min, g/h to 240min; the rest default to 180min.
-    # `matrix.batch.timeout` is null for batches without the key -> `|| 180`.
+    # Per-batch budget: split-heavy batches (a1/a2/b1/b2/c1/c2/d) override to 300min, g/h to 240min;
+    # the rest default to 180min. `matrix.batch.timeout` is null for batches without the key -> `|| 180`.
+    # NOTE: a1+a2 both mutate auth.ts (disjoint line ranges) and b1+b2 both mutate accountFallback.ts;
+    # when merging the per-batch mutation.json for radiography/scores, same-file mutants from sibling
+    # ranges must be UNIONED (scripts/check/check-mutation-ratchet.mjs::measureMutationScores and
+    # scripts/quality/mutation-radiography.mjs both merge per file).
     timeout-minutes: ${{ matrix.batch.timeout || 180 }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: actions/setup-node@v6
@@ -109,3 +132,32 @@ jobs:
           path: reports/mutation/
           if-no-files-found: warn
           retention-days: 14
+
+  # Aggregation gate (T3): each split batch emits a PARTIAL view of a mutated file
+  # (auth.ts lives in a1+a2, accountFallback in b1+b2), so a PER-BATCH ratchet would
+  # only ever see half a file vs the whole-file baseline. This job runs AFTER every
+  # batch, downloads all reports, and ratchets the MERGED per-module scores
+  # (check-mutation-ratchet UNIONS same-file mutants across reports) against the
+  # dedicatedGate `mutationScore.*` floors in quality-baseline.json (seeded ~2pt below
+  # the first full measurement). Blocking: a module dropping below its floor fails the
+  # run. Missing reports (e.g. an artifact-upload flake) are skipped, never failed.
+  mutation-ratchet:
+    name: Mutation score ratchet (blocking)
+    needs: stryker
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - name: Download all mutation reports
+        uses: actions/download-artifact@v8
+        with:
+          pattern: mutation-report-*
+          path: reports/all
+      - name: Ratchet merged per-module mutation scores
+        run: node scripts/check/check-mutation-ratchet.mjs reports/all/*/mutation.json --ratchet

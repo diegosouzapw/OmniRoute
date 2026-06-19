@@ -18,6 +18,8 @@ const QUOTA_LABEL_MAP: Record<string, string> = {
   session: "Session",
   weekly: "Weekly",
   code_review: "Code Review",
+  gpt_5_3_codex_spark_session: "GPT-5.3-Codex-Spark",
+  gpt_5_3_codex_spark_weekly: "GPT-5.3-Codex-Spark Weekly",
   agentic_request: "Agentic",
   agentic_request_freetrial: "Agentic (Trial)",
   credits: "AI Credits",
@@ -308,6 +310,7 @@ export function parseQuotaData(provider, data) {
           Object.entries(data.quotas).forEach(([quotaType, quota]: [string, any]) => {
             normalizedQuotas.push(
               normalizeQuotaEntry(quotaType, quota, {
+                displayName: quota?.displayName,
                 isPercentageOnly: true,
               })
             );

@@ -1273,7 +1273,7 @@ export const APIKEY_PROVIDERS = {
     hasFree: true,
     anonymousFallback: true,
     freeNote:
-      "No API key required for free public endpoint. Optional Spore tier: ~0.01 pollen/hour.",
+      "Free keyless tier: openai, openai-fast, openai-large, qwen-coder, mistral, deepseek, grok, gemini-flash-lite-3.1, perplexity-fast, perplexity-reasoning. Premium models (claude, gemini, midijourney) require a Pollinations API key from enter.pollinations.ai.",
   },
   puter: {
     id: "puter",

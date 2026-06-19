@@ -18,6 +18,8 @@ const { generateSignature, setCachedResponse, clearCache } = await import(
   "../../src/lib/semanticCache.ts"
 );
 const { OMNIROUTE_RESPONSE_HEADERS } = await import("../../src/shared/constants/headers.ts");
+const { calculateCost } = await import("../../src/lib/usage/costCalculator.ts");
+const { formatOmniRouteCost } = await import("../../src/domain/omnirouteResponseMeta.ts");
 
 test.after(() => {
   core.resetDbInstance();
@@ -304,4 +306,89 @@ test("checkSemanticCache HITs even when the cached body has no usage (cost falls
   );
   assert.equal(persistCalls.length, 1);
   assert.equal(persistCalls[0].tokens, undefined, "no usage -> persisted tokens is undefined");
+});
+
+// ─── Cache-HIT cost reporting (PRD-2026-06-19-cache-hit-cost-reporting) ───────
+// A HIT does NOT call upstream, so the INCREMENTAL cost of serving it is ≈0. The
+// X-OmniRoute-Response-Cost must therefore be 0 (so billing consumers don't charge
+// for cache hits), while the original cost is surfaced via X-OmniRoute-Cost-Saved.
+
+test("checkSemanticCache HIT bills 0 incremental cost and reports the original cost in X-OmniRoute-Cost-Saved", async () => {
+  clearCache();
+  const usage = { prompt_tokens: 1000, completion_tokens: 1000, total_tokens: 2000 };
+  const cached = {
+    id: "chatcmpl-cached-cost-saved",
+    choices: [
+      { index: 0, message: { role: "assistant", content: "cached answer" }, finish_reason: "stop" },
+    ],
+    usage,
+  };
+  const { args } = makeHitArgs({
+    body: {
+      model: "gpt-4o",
+      messages: [{ role: "user", content: "hit query cost-saved" }],
+      temperature: 0,
+    },
+    stream: false,
+  });
+  seedHit(args, cached);
+
+  // The original (would-have-been) cost — computed with the SAME calculator the handler
+  // uses, against the same fresh DATA_DIR, so the values match deterministically.
+  const expectedSaved = formatOmniRouteCost(
+    await calculateCost(args.provider, args.model, usage as Record<string, number>)
+  );
+  assert.notEqual(
+    expectedSaved,
+    "0.0000000000",
+    "sanity: gpt-4o must be priced for this regression to be meaningful"
+  );
+
+  const result = await checkSemanticCache(args as Parameters<typeof checkSemanticCache>[0]);
+  assert.ok(result, "HIT -> non-null result");
+  const res = result.response as Response;
+
+  assert.equal(res.headers.get(OMNIROUTE_RESPONSE_HEADERS.cache), "HIT");
+  // Incremental cost billed to the client on a HIT is 0 (no upstream call happened).
+  assert.equal(
+    res.headers.get(OMNIROUTE_RESPONSE_HEADERS.responseCost),
+    "0.0000000000",
+    "cache HIT must bill 0 incremental cost"
+  );
+  // The avoided cost is surfaced for cache analytics.
+  assert.equal(
+    res.headers.get(OMNIROUTE_RESPONSE_HEADERS.costSaved),
+    expectedSaved,
+    "X-OmniRoute-Cost-Saved reflects the original cost the cache avoided"
+  );
+});
+
+test("checkSemanticCache isolates HITs per apiKeyId (no cross-key cache sharing) [#3740 edge]", async () => {
+  clearCache();
+  const cached = {
+    id: "chatcmpl-cached-isolation",
+    choices: [
+      { index: 0, message: { role: "assistant", content: "key A answer" }, finish_reason: "stop" },
+    ],
+    usage: { prompt_tokens: 5, completion_tokens: 5, total_tokens: 10 },
+  };
+  const sharedBody = () => ({
+    model: "gpt-4o",
+    messages: [{ role: "user", content: "isolation probe" }],
+    temperature: 0,
+  });
+
+  // Seed the cache under apiKeyId "keyA".
+  const { args: argsA } = makeHitArgs({ body: sharedBody(), apiKeyId: "keyA" });
+  seedHit(argsA, cached);
+
+  // A different key with an IDENTICAL body must NOT see keyA's entry (namespaced signature).
+  const { args: argsB } = makeHitArgs({ body: sharedBody(), apiKeyId: "keyB" });
+  const missB = await checkSemanticCache(argsB as Parameters<typeof checkSemanticCache>[0]);
+  assert.equal(missB, null, "keyB must NOT resolve keyA's cached entry (per-key isolation)");
+
+  // keyA itself still gets a HIT.
+  const { args: argsA2 } = makeHitArgs({ body: sharedBody(), apiKeyId: "keyA" });
+  const hitA = await checkSemanticCache(argsA2 as Parameters<typeof checkSemanticCache>[0]);
+  assert.ok(hitA, "keyA must resolve its own cached entry");
 });

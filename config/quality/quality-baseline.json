@@ -90,12 +90,12 @@
       "eps": 0.5
     },
     "deadExports": {
-      "value": 339,
+      "value": 340,
       "direction": "down",
       "dedicatedGate": true
     },
     "cognitiveComplexity": {
-      "value": 753,
+      "value": 783,
       "direction": "down",
       "dedicatedGate": true
     },
@@ -141,6 +141,161 @@
       "direction": "down",
       "dedicatedGate": true,
       "_note": "semgrep owasp/secrets findings. ADVISORY until first CI value is frozen, then flip blocking (Fase 9)."
+    },
+    "mutationScore.src/sse/services/auth.ts": {
+      "value": 52.57,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/accountFallback.ts": {
+      "value": 68.38,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.src/server/authz/routeGuard.ts": {
+      "value": 76.08,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.src/shared/utils/circuitBreaker.ts": {
+      "value": 56.94,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/utils/error.ts": {
+      "value": 43.83,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/utils/publicCreds.ts": {
+      "value": 59.76,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/autoStrategy.ts": {
+      "value": 41.33,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/comboStructure.ts": {
+      "value": 57.82,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/validateQuality.ts": {
+      "value": 61.33,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/comboPredicates.ts": {
+      "value": 56.62,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/rrState.ts": {
+      "value": 70.88,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/shadowRouting.ts": {
+      "value": 48,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/targetSorters.ts": {
+      "value": 68.3,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/comboData.ts": {
+      "value": 76.94,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/quotaScoring.ts": {
+      "value": 39.73,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/services/combo/quotaStrategies.ts": {
+      "value": 50.3,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/passthroughHelpers.ts": {
+      "value": 80.89,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/sanitization.ts": {
+      "value": 70.15,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/upstreamTimeouts.ts": {
+      "value": 33,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/comboContextCache.ts": {
+      "value": 13.62,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/idempotency.ts": {
+      "value": 42.82,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/responseHeaders.ts": {
+      "value": 62.7,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/executorHelpers.ts": {
+      "value": 70.39,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/memoryExtraction.ts": {
+      "value": 62.06,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/nonStreamingSse.ts": {
+      "value": 72.82,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/passthroughToolNames.ts": {
+      "value": 66.42,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/headers.ts": {
+      "value": 94.29,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/logTruncation.ts": {
+      "value": 77.64,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/memorySkillsInjection.ts": {
+      "value": 13.49,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/semanticCache.ts": {
+      "value": 60.16,
+      "direction": "up",
+      "dedicatedGate": true
+    },
+    "mutationScore.open-sse/handlers/chatCore/telemetryHelpers.ts": {
+      "value": 83.18,
+      "direction": "up",
+      "dedicatedGate": true
     }
   },
   "_coverage_note": "Pisos anti-flake ~2pt abaixo do real do CI mergeado MEDIDO COM os 135 testes religados (run 27247237268: statements 78.4 / lines 78.4 / functions 83.84 / branches 75.73). O religamento da 6A.1 HONESTIFICOU a regua: os ~82.5 anteriores eram inflados porque modulos nunca importados ficavam fora do denominador do c8. Apertar via --require-tighten na Fase 6A (2026-06-16).",
@@ -151,6 +306,8 @@
   "_eslint_rebaseline_2026_06_15_release_v3826": "3669 -> 3760. Medido em origin/release/v3.8.26 e neste PR com npm run quality:collect: ambos retornam 3760 warnings, portanto este PR e neutro; o drift ja existe na base release/v3.8.26.",
   "_eslint_rebaseline_2026_06_16_v3826_forward_merge": "3760 -> 3769. O quality-gate da main FALHOU no forward-merge release->main (run 27593205254): eslintWarnings 3769 > baseline 3760. Medido AGORA em origin/release/v3.8.26 (273ecf7b5, com todos os merges do ciclo) via npm run quality:collect = 3769 — identico ao CI, e os PRs de gate posteriores (#3947/#3949/#3951/#3956/#3961) nao mudaram a contagem (scripts/check/*.mjs sao eslint-ignored; os arquivos de teste novos nao adicionaram any/warnings). O +9 e drift release-wide pre-existente do ciclo v3.8.26 (merges de feature/outras sessoes), nao regressao de produto. Re-baseline consciente p/ o valor real medido; apertar via --require-tighten no fim do ciclo.",
   "_quality_rebaseline_2026_06_15_release_v3826": "deadExports 327 -> 339 e cognitiveComplexity 738 -> 753. Medido em origin/release/v3.8.26 e neste PR com os dedicated gates: ambos retornam os mesmos valores, portanto este PR e neutro; typeCoveragePct permanece acima do baseline.",
+  "_dead_code_rebaseline_2026_06_19_pr4293": "deadExports 339 -> 340. Medido em origin/main com a mesma toolchain/deps deste PR (`node scripts/check/check-dead-code.mjs`) = DEAD_TOTAL 340, e o HEAD deste PR tambem mede 340; portanto o PR e neutro e o baseline anterior estava 1 item atrasado.",
+  "_cognitive_rebaseline_2026_06_19_pr4293": "cognitiveComplexity 753 -> 783. Medido em origin/main com a mesma toolchain/deps deste PR (`node scripts/check/check-cognitive-complexity.mjs`) = 783; apos refatorar os helpers deste PR, o HEAD tambem mede 783. Portanto o PR fica neutro e o baseline anterior estava desatualizado vs main atual.",
   "_scanner_baselines_seeded_2026_06_15": "secretFindings (3), zizmorFindings (195), vulnCount (13) e bundleSize (5601) congelados a partir de um run LOCAL em 2026-06-15 com os binarios reais no PATH (gitleaks 8.30.1, osv-scanner 2.3.8, zizmor 1.25.2, @size-limit/file 12.1.0). Medicoes: (a) secretFindings=3 via 'gitleaks dir <dir>' por diretorio de fonte (src/open-sse/bin/electron/scripts) APOS corrigir o .gitleaks.toml para [extend].useDefault=true (sem isso o config customizado zerava o ruleset e nunca detectava nada) e a invocacao para escopo por-dir (gitleaks dir aceita 1 path; multiplos caiam para escanear o CWD inteiro/node_modules->timeout). Os 3 sao falsos-positivos do heuristico generic-api-key (string de header beta Anthropic + nomes de coluna latencyP50Ms/latencyP95Ms), a serem allowlistados ao longo do tempo; (b) zizmorFindings=195 via 'npm run check:workflows' APOS migrar .zizmor.yml do schema antigo 'ignores: []' para 'rules: {}' (zizmor 1.25.2 rejeitava o campo 'ignores'); (c) vulnCount=13 (LOW=4/MOD=7/HIGH=2) via osv-scanner; (d) bundleSize=5601 (gzip dos 4 entrypoints bin/*.mjs) via size-limit+@size-limit/file. Todos os 4 sao dedicatedGate:true => SKIP no ratchet BLOQUEANTE (job quality-gate) e ADVISORY no job quality-extended (continue-on-error). Permanecem advisory ate um run VERDE de CI confirmar que a tooling corrigida (install via 'gh release download' em vez de api.github.com nao-autenticado) produz os valores; o flip para bloqueante (remover continue-on-error) fica para um PR de follow-up. Direction:down em todos.",
   "_scanner_remediation_2026_06_15": "Remediacao das findings reais que os scanners semeados acima expuseram (medido localmente em 2026-06-15 com os mesmos binarios). vulnCount 13->10: bump dos 2 HIGH transitivos via package.json overrides — form-data 4.0.5->^4.0.6 (GHSA-hmw2-7cc7-3qxx, via axios) e vite 8.0.5->^8.0.16 (GHSA-fx2h-pf6j-xcff HIGH + GHSA-v6wh-96g9-6wx3 MODERATE, dev-only via vitest/@vitejs/plugin-react/fumadocs-mdx); osv-scanner confirma 0 HIGH restante; build:cli e a suite vitest MCP (16 files/187 testes) verdes pos-bump. zizmorFindings 195->187: env-harden de 7 findings template-injection (ci.yml job i18n; electron-release.yml jobs validate/build/release — o step 'Create source archives' sozinho gerava 4 das 7) movendo cada ${{...}} para 'env:' e referenciando \"$VAR\" no script, + allowlist de 1 dangerous-triggers (deploy-vps.yml on:workflow_run — guardado por conclusion=='success', deploy via SSH sem checkout de codigo nao-confiavel; entry em .zizmor.yml rules.dangerous-triggers.ignore). secretFindings (3) e bundleSize (5601) intocados neste PR. Apertados via edicao manual (direction:down).",
   "_scanner_flip_blocking_2026_06_16": "Etapa 2: secretFindings (3), zizmorFindings e bundleSize (5601) PROMOVIDOS de ADVISORY para RATCHET BLOQUEANTE. Os 3 scripts (check-secrets/check-workflows/check-bundle-size) ganharam um modo --ratchet que le metrics.<key>.value daqui, compara a contagem MEDIDA e sai 1 SOMENTE numa regressao real (medida > baseline). Sem --ratchet permanecem advisory (exit 0). Qualquer SKIP gracioso (binario ausente, plugin size-limit ausente => fallback-stat/no-build, build nao rodou) sai 0 MESMO com --ratchet — falta de infra nunca bloqueia, so uma regressao medida bloqueia. zizmorFindings re-baselineada 187 -> 192: o +5 e drift LEGITIMO de novos arquivos de workflow (nightly-schemathesis.yml etc.) adicionados no ciclo v3.8.26, mesma convencao @vN unpinned de todos os workflows; reproduzivel localmente E confirmado no run de CI #27593205254 (job 81578109020) = 192. secretFindings (3) e bundleSize (5601) intocados — ja batiam o valor do CI. NB: bundleSize=5601 e o valor GZIP do size-limit + @size-limit/file (instalado por 'npm ci' no CI); o fallback-stat le bytes CRUS (16670, metrica diferente) e por isso o modo --ratchet SO bloqueia quando a medicao veio do size-limit real, fazendo SKIP no fallback. actionlintFindings NAO entra no ratchet (so reportada); o --strict all-or-nothing do check-workflows permanece separado.",
@@ -164,5 +321,6 @@
   "_osv_flip_blocking_2026_06_16_v3827": "Fim do ciclo v3.8.27: vulnCount (value 10, direction down, dedicatedGate) PROMOVIDO de ADVISORY para RATCHET BLOQUEANTE. check-vuln-ratchet.mjs ganhou um modo --ratchet (espelhando check-secrets/check-bundle-size/check-workflows da Etapa 2): le metrics.vulnCount.value daqui, compara a contagem MEDIDA pelo osv-scanner e sai 1 SOMENTE numa regressao real (medida > baseline). Sem --ratchet permanece advisory (exit 0). QUALQUER SKIP gracioso (osv-scanner ausente do PATH, osv.dev/rede inacessivel, timeout, JSON invalido) sai 0 MESMO com --ratchet — uma falha de MEDICAO nunca bloqueia, so uma regressao MEDIDA bloqueia. No ci.yml (job quality-extended) o step 'Vulnerability ratchet' passou a rodar 'npm run check:vuln-ratchet -- --ratchet' sem continue-on-error. Verificado no tip de release/v3.8.27: osv mede vulnCount=10 == baseline 10 (exit 0); forcar baseline=9 da exit 1 (10>9); PATH vazio da SKIP binary-absent exit 0. NB de VARIANCIA DE CVE: um CVE recem-divulgado numa dep ja presente pode redar o gate sem mudanca de dependencia — comportamento esperado, remedio = bumpar a dep ou re-baseline vulnCount com justificativa+issue. Ver docs/security/SUPPLY_CHAIN.md -> 'Variancia de CVE'.",
   "_trivy_flip_blocking_2026_06_16_v3827": "Fim do ciclo v3.8.27: Trivy (scan de CVE da imagem Docker em docker-publish.yml) promovido para BLOQUEANTE em CRITICAL. Abordagem de DOIS PASSOS: o passo SARIF existente (severity HIGH,CRITICAL / exit-code 0 / upload SARIF) fica INTACTO para visibilidade na aba Security; um novo passo 'Trivy CRITICAL gate (blocking)' (severity CRITICAL / ignore-unfixed:true / exit-code 1) falha o release num CVE CRITICO FIXAVEL. ignore-unfixed evita travar por CVE de base-image sem patch upstream (reduz falso-bloqueio). Mesma variancia-de-CVE do osv: um novo CRITICAL fixavel divulgado pode redar; remedio = rebuild sobre base patcheada, bumpar dep, ou .trivyignore com justificativa+issue. Ver docs/security/SUPPLY_CHAIN.md. vulnCount permanece 10 (intocado neste flip — so a postura advisory->bloqueante mudou).",
   "_rebaseline_2026_06_18_v3828_cycle_close": "Fim do ciclo v3.8.28 (RELEASED; ciclo v3.8.29 aberto): 3 metricas re-baselineadas para o valor REAL medido no push->main pos-release (run 27725117464, step 'Ratchet check') — eslintWarnings 3769->3779, openapiCoverage.pct 38.3->37.6, i18nUiCoverage.pct 80.1->79.1. Reproduzido localmente em release/v3.8.29 (9f14c1294): identico ao CI. Drift de fim-de-ciclo de features legitimas, NAO hand-cleanable: (a) eslint +10 = 'any' PERMITIDO (warn) em testes do ciclo + 4 react-hooks/exhaustive-deps em RequestLoggerV2.tsx (componente com bugs sutis de refresh #4103/#3972, arriscado mexer em deps de hook sem teste de UI); (b) openapi -0.7 = drop por rotas NOVAS INTERNAS (/api/tools/agent-bridge/* LOCAL_ONLY, spawnam MITM/DNS) — documenta-las no spec PUBLICO seria gaming; (c) i18n -1.0 = 37/41 locales em 79.1% (1741 chaves faltando cada, ~3000 traducoes via 'npm run i18n:run' que exige creds OMNIROUTE_TRANSLATION_API_KEY indisponiveis localmente). Mesmo precedente do _eslint_rebaseline_2026_06_16_v3826_forward_merge. Apertar no fim do ciclo: eslint/openapi via --require-tighten; i18n via i18n:run com creds. Autorizado pelo operador (decisao explicita).",
-  "_rebaseline_2026_06_19_v3829_cycle_close": "Release do ciclo v3.8.29: eslintWarnings re-baselineado 3779->3816 para o valor REAL medido em release/v3.8.29 (tip da3...; `npm run lint` local = 3816, identico ao Quality Ratchet do CI no PR #4126). O +37 e drift de fim-de-ciclo de 115 commits de features legitimas — `any` PERMITIDO (warn) em open-sse/ e tests/ do ciclo; os arquivos de reconciliacao deste release nao adicionam warnings (scripts/check/*.mjs sao eslint-ignored, o teste novo de check-fabricated-docs nao usa any). Mesmo precedente de _rebaseline_2026_06_18_v3828_cycle_close. Apertar via --require-tighten no fim do ciclo seguinte. ALÉM disso, o step Require-tighten (blocking) exigiu apertar 2 métricas que MELHORARAM no ciclo (medidas no CI do PR #4126): coverage.auth.lines 69->90 (CI mediu 92.6; piso ~2pt-abaixo-do-real anti-flake, dentro do tightenSlack 10) e openapiCoverage.pct 37.6->38.4 (rotas novas documentadas). Melhorias legitimas travadas no baseline, nao gaming. Autorizado pelo operador (release end-to-end, validado na VPS)."
+  "_rebaseline_2026_06_19_v3829_cycle_close": "Release do ciclo v3.8.29: eslintWarnings re-baselineado 3779->3816 para o valor REAL medido em release/v3.8.29 (tip da3...; `npm run lint` local = 3816, identico ao Quality Ratchet do CI no PR #4126). O +37 e drift de fim-de-ciclo de 115 commits de features legitimas — `any` PERMITIDO (warn) em open-sse/ e tests/ do ciclo; os arquivos de reconciliacao deste release nao adicionam warnings (scripts/check/*.mjs sao eslint-ignored, o teste novo de check-fabricated-docs nao usa any). Mesmo precedente de _rebaseline_2026_06_18_v3828_cycle_close. Apertar via --require-tighten no fim do ciclo seguinte. ALÉM disso, o step Require-tighten (blocking) exigiu apertar 2 métricas que MELHORARAM no ciclo (medidas no CI do PR #4126): coverage.auth.lines 69->90 (CI mediu 92.6; piso ~2pt-abaixo-do-real anti-flake, dentro do tightenSlack 10) e openapiCoverage.pct 37.6->38.4 (rotas novas documentadas). Melhorias legitimas travadas no baseline, nao gaming. Autorizado pelo operador (release end-to-end, validado na VPS).",
+  "_comment_mutationScore": "Per-module COVERED mutation score floors (detected/(detected+survived)), seeded ~2pt below the first full measurement (run 27823984918: split batches a1/a2/b1/b2/c1/c2/d + e/f/g/h/i). direction:up + dedicatedGate:true -> enforced ONLY by check-mutation-ratchet.mjs (the generic check-quality-ratchet skips dedicatedGate metrics), in the nightly-mutation aggregation job."
 }

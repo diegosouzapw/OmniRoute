@@ -24,6 +24,7 @@
     "bin/cli/runtime/",
     "scripts/postinstall.mjs",
     "scripts/build/postinstallSupport.mjs",
+    "scripts/build/colocateOptionals.mjs",
     "scripts/build/sync-env.mjs",
     "scripts/dev/responses-ws-proxy.mjs",
     "scripts/check/check-supported-node-runtime.ts",
@@ -337,7 +338,7 @@
     ]
   },
   "overrides": {
-    "dompurify": "^3.4.9",
+    "dompurify": "^3.4.11",
     "postcss": "^8.5.14",
     "ip-address": "10.2.0",
     "qs": "^6.15.2",
@@ -346,6 +347,12 @@
     "vite": "^8.0.16",
     "protobufjs": "^7.6.3",
     "@babel/core": "^7.29.6",
-    "hono": "^4.12.25"
+    "hono": "^4.12.25",
+    "jsdom": {
+      "undici": "^7.28.0"
+    },
+    "node-gyp": {
+      "undici": "^6.27.0"
+    }
   }
 }

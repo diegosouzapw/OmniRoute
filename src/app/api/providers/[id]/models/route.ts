@@ -690,7 +690,23 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     headers: { "Content-Type": "application/json" },
     authHeader: "Authorization",
     authPrefix: "Bearer ",
-    parseResponse: (data) => data.result || [],
+    // #4259: Cloudflare's `/ai/models/search` returns `{ id: "<uuid>", name: "@cf/..." }`.
+    // `name` is the usable model slug; `id` is an internal UUID. Map `name`→id so the
+    // dashboard/import surfaces callable model ids (`@cf/...`) instead of UUIDs.
+    parseResponse: (data) =>
+      (data.result || [])
+        .map((model: any) => {
+          const slug = typeof model?.name === "string" ? model.name : "";
+          if (!slug) return null;
+          return {
+            id: slug,
+            name: slug,
+            ...(typeof model?.description === "string" && model.description
+              ? { description: model.description }
+              : {}),
+          };
+        })
+        .filter(Boolean),
   },
   synthetic: {
     url: "https://api.synthetic.new/openai/v1/models",

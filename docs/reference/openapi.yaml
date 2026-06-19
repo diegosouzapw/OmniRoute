@@ -1134,6 +1134,13 @@ paths:
               schema:
                 type: string
               description: OmniRoute build version (always present).
+            X-OmniRoute-Cost-Saved:
+              schema:
+                type: string
+              description: >-
+                On a semantic-cache HIT, the original (would-have-been) cost in USD that
+                the cache avoided (fixed 10 decimals). Present only on cache hits;
+                X-OmniRoute-Response-Cost is 0 for the same response (incremental cost).
           content:
             application/json:
               schema:

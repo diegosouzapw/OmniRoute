@@ -1,4 +1,9 @@
 import { getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
+import {
+  getCodexModelScope,
+  getCodexRateLimitKey,
+  type CodexQuotaScope,
+} from "../config/codexQuotaScopes.ts";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import {
   BaseExecutor,
@@ -100,41 +105,7 @@ function codexWebSocketUnavailableResponse(): Response {
 // Codex has two independent quota pools: "codex" (standard) and "spark" (premium).
 // Exhausting one should NOT block requests to the other.
 // Ref: sub2api PR #1129 (feat(openai): split codex spark rate limiting from codex)
-
-/**
- * Maps model name substrings to their rate-limit scope.
- * Checked in order — first match wins.
- */
-const CODEX_SCOPE_PATTERNS: Array<{ pattern: string; scope: "codex" | "spark" }> = [
-  { pattern: "codex-spark", scope: "spark" },
-  { pattern: "spark", scope: "spark" },
-  { pattern: "codex", scope: "codex" },
-  { pattern: "gpt-5", scope: "codex" }, // gpt-5.2-codex, gpt-5.3-codex, etc.
-];
-
-/**
- * T09: Determine the rate-limit scope for a Codex model.
- * Use this key as the suffix for per-scope rate limit state:
- *   `${accountId}:${getModelScope(model)}`
- *
- * @param model - The Codex model ID (e.g. "gpt-5.3-codex", "codex-spark-mini")
- * @returns "codex" | "spark"
- */
-export function getCodexModelScope(model: string): "codex" | "spark" {
-  const lower = model.toLowerCase();
-  for (const { pattern, scope } of CODEX_SCOPE_PATTERNS) {
-    if (lower.includes(pattern)) return scope;
-  }
-  return "codex"; // default scope
-}
-
-/**
- * T09: Get the scope-keyed rate limit identifier for an account+model combination.
- * Use this as the key for rateLimitState maps to ensure scope isolation.
- */
-export function getCodexRateLimitKey(accountId: string, model: string): string {
-  return `${accountId}:${getCodexModelScope(model)}`;
-}
+export { getCodexModelScope, getCodexRateLimitKey, type CodexQuotaScope };
 
 /**
  * T03: Parsed quota snapshot from Codex response headers.

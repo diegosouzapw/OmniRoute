@@ -60,8 +60,13 @@ test("buildForwardHeaders drops hop-by-hop, keeps auth, and pins host", () => {
 async function startHttpsUpstream(): Promise<{ port: number; close: () => Promise<void> }> {
   const up = await generateMitmCa("test upstream"); // any self-signed key+cert pair
   const server = https.createServer({ key: up.key, cert: up.cert }, (req, res) => {
-    res.writeHead(200, { "content-type": "text/plain" });
-    res.end(`decrypted-roundtrip:${req.url ?? ""}`);
+    const body = `decrypted-roundtrip:${req.url ?? ""}`;
+    res.writeHead(200, {
+      "content-type": "text/plain",
+      "content-length": Buffer.byteLength(body),
+      connection: "close",
+    });
+    res.end(body);
   });
   await new Promise<void>((r) => server.listen(0, "127.0.0.1", () => r()));
   const addr = server.address();
@@ -109,12 +114,28 @@ function tlsRequest(
       client.write(rawRequest);
     });
     const chunks: Buffer[] = [];
-    client.on("data", (c) => chunks.push(c));
-    client.on("end", () => {
+    let settled = false;
+
+    const settle = (callback: () => void) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
       client.destroy();
-      resolve(Buffer.concat(chunks).toString("utf8"));
+      callback();
+    };
+    const resolveWithChunks = () => settle(() => resolve(Buffer.concat(chunks).toString("utf8")));
+    const timeout = setTimeout(
+      () => settle(() => reject(new Error("TLS capture test request timed out"))),
+      5_000
+    );
+
+    client.on("data", (chunk) => {
+      chunks.push(chunk);
+      const body = Buffer.concat(chunks).toString("utf8");
+      if (/decrypted-roundtrip:|502 Bad Gateway/.test(body)) resolveWithChunks();
     });
-    client.once("error", reject);
+    client.on("end", resolveWithChunks);
+    client.once("error", (error) => settle(() => reject(error)));
   });
 }
 

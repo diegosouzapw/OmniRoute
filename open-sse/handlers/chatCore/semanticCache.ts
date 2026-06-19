@@ -74,13 +74,17 @@ export async function checkSemanticCache({
         "Content-Type": cachedSse ? "text/event-stream" : "application/json",
         [OMNIROUTE_RESPONSE_HEADERS.cache]: "HIT",
       };
+      // A cache HIT serves WITHOUT an upstream call, so the incremental cost billed to
+      // the client is 0 (consumers that sum X-OmniRoute-Response-Cost must not charge for
+      // hits). The original/would-have-been cost is surfaced via X-OmniRoute-Cost-Saved.
       attachOmniRouteMetaHeaders(headers, {
         provider,
         model,
         cacheHit: true,
         latencyMs: Date.now() - startTime,
         usage: cachedUsage,
-        costUsd: cachedCost,
+        costUsd: 0,
+        costSavedUsd: cachedCost,
       });
       return {
         success: true,

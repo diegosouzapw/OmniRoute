@@ -118,6 +118,63 @@ test("fetchCodexQuota parses dual-window usage, forwards workspace headers, and 
   invalidateCodexQuotaCache(connectionId);
 });
 
+test("fetchCodexQuota evaluates normal and Spark windows independently by requested model", async () => {
+  const connectionId = `codex-spark-scope-${Date.now()}`;
+  let calls = 0;
+
+  registerCodexConnection(connectionId, {
+    accessToken: "access-token-spark",
+  });
+
+  globalThis.fetch = async () => {
+    calls++;
+    return new Response(
+      JSON.stringify({
+        rate_limit: {
+          primary_window: { used_percent: 20, reset_after_seconds: 60 },
+          secondary_window: { used_percent: 30, reset_after_seconds: 120 },
+        },
+        additional_rate_limits: [
+          {
+            limit_id: "codex_bengalfox",
+            limit_name: "GPT-5.3-Codex-Spark",
+            metered_feature: "gpt_5_3_codex_spark",
+            rate_limit: {
+              primary_window: { used_percent: 100, reset_after_seconds: 300 },
+              secondary_window: { used_percent: 40, reset_after_seconds: 600 },
+            },
+          },
+        ],
+      }),
+      {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }
+    );
+  };
+
+  const normal = await fetchCodexQuota(connectionId, { requestedModel: "gpt-5.3-codex" });
+  const spark = await fetchCodexQuota(connectionId, { requestedModel: "gpt-5.3-codex-spark" });
+
+  assert.equal(calls, 2, "normal and Spark scopes use separate cache entries");
+  assert.equal(normal.percentUsed, 0.3);
+  assert.equal(normal.windows?.session.percentUsed, 0.2);
+  assert.equal(normal.windows?.weekly.percentUsed, 0.3);
+  assert.equal(normal.windows?.gpt_5_3_codex_spark_session, undefined);
+  assert.equal(spark.percentUsed, 1);
+  assert.equal(spark.windows?.gpt_5_3_codex_spark_session.percentUsed, 1);
+  assert.equal(spark.windows?.gpt_5_3_codex_spark_weekly.percentUsed, 0.4);
+  assert.equal(spark.windows?.session, undefined);
+
+  const sparkCached = await fetchCodexQuota(connectionId, {
+    requestedModel: "gpt-5.3-codex-spark",
+  });
+  assert.equal(calls, 2);
+  assert.deepEqual(sparkCached, spark);
+
+  invalidateCodexQuotaCache(connectionId);
+});
+
 test("fetchCodexQuota drops bad credentials after an authorization failure", async () => {
   const connectionId = `codex-auth-${Date.now()}`;
   let calls = 0;

@@ -48,6 +48,7 @@ export function formatOmniRouteCost(costUsd: unknown): string {
 export function buildOmniRouteResponseMetaHeaders({
   cacheHit = false,
   costUsd = 0,
+  costSavedUsd = undefined,
   fallbackAttempts = 0,
   latencyMs = 0,
   model = null,
@@ -57,6 +58,14 @@ export function buildOmniRouteResponseMetaHeaders({
 }: {
   cacheHit?: boolean;
   costUsd?: unknown;
+  /**
+   * Cost the cache AVOIDED. A semantic-cache HIT serves at ≈0 incremental cost
+   * (`costUsd: 0`) but saved the original call's cost — surface it here so billing
+   * consumers don't charge for hits while analytics can still see what was saved.
+   * Emitted as `X-OmniRoute-Cost-Saved` only when provided (omitted on normal
+   * responses); pass `0` to explicitly mark a free-model HIT that saved nothing.
+   */
+  costSavedUsd?: unknown;
   fallbackAttempts?: number;
   latencyMs?: unknown;
   model?: string | null;
@@ -84,6 +93,12 @@ export function buildOmniRouteResponseMetaHeaders({
 
   if (typeof provider === "string" && provider.trim().length > 0) {
     headers[OMNIROUTE_RESPONSE_HEADERS.provider] = getProviderAlias(provider);
+  }
+
+  // Cache-saved cost: emitted only when the caller passes a value (cache HITs), so
+  // non-cache responses keep their existing header shape. `0` is a valid saved cost.
+  if (costSavedUsd != null) {
+    headers[OMNIROUTE_RESPONSE_HEADERS.costSaved] = formatOmniRouteCost(costSavedUsd);
   }
 
   const attempts = toNonNegativeInteger(fallbackAttempts);
