@@ -320,8 +320,12 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   ]),
   publicai: buildModels([
     "swiss-ai/apertus-70b-instruct",
+    "swiss-ai/Apertus-8B-Instruct-2509",
     "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "aisingapore/Gemma-SEA-LION-v4-27B-IT",
     "allenai/Olmo-3-32B-Think",
+    "allenai/Olmo-3-7B-Instruct",
+    "utter-project/EuroLLM-22B-Instruct-2512",
   ]),
   moonshot: [...buildModels(["kimi-k2.6", "kimi-k2.5"]), ...KIMI_K27_MODELS],
   "meta-llama": buildModels([
