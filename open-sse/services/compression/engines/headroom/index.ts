@@ -40,7 +40,6 @@ import {
   GCF_FENCE_OPEN,
   GCF_FENCE_CLOSE,
   decodeTabular,
-  TABULAR_MARKER_RE,
 } from "./tabular.ts";
 
 export { encodeTabular, decodeTabular } from "./tabular.ts";
@@ -182,6 +181,10 @@ type MessageLike = {
 /**
  * Reverse the headroom compaction: find every ```gcf-generic or ```omni-tabular
  * block in message contents and decode it back to the original JSON string.
+ *
+ * No production caller by design — the compact form is sent to the provider as-is. This is
+ * exported as the round-trip ORACLE that proves the GCF/tabular encoder is lossless: the
+ * losslessness regression tests encode via apply() then decode here and assert deep-equal.
  *
  * Returns a new body with all compacted blocks expanded.
  */
