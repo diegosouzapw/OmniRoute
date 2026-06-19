@@ -79,16 +79,40 @@ cache, MCP client.
 
 ### 1. Run Bifrost
 
-```bash
-# From the KooshaPari/bifrost fork (maximhq/bifrost + KP patches).
-# See docs/operations/bifrost-migration.md (post-B7) for full setup.
+Bifrost runs as a **sidecar process** alongside OmniRoute. OmniRoute is
+the *client*; it never invokes the Bifrost binary directly. Operators
+are responsible for the lifecycle of the Bifrost process.
 
+```bash
+# Option A — from source (vendored canonical copy)
+just bifrost-build      # output: dist/bifrost/bifrost
+./dist/bifrost/bifrost --config config.yaml
+# Listens on 127.0.0.1:8080 by default; /health returns 200 OK.
+
+# Option B — from the upstream repo
 git clone https://github.com/KooshaPari/bifrost
 cd bifrost
 go build -o bifrost ./cmd/bifrost
 ./bifrost --config config.yaml
-# Listens on 127.0.0.1:8080 by default; /health returns 200 OK.
+
+# Option C — Docker / k8s sidecar (B7 playbook)
+# See docs/operations/bifrost-migration.md (post-B7) for the full setup.
 ```
+
+`scripts/build-bifrost.sh` is the canonical build entrypoint. It clones
+`KooshaPari/bifrost` shallowly into `vendor/bifrost/`, builds the
+`./cmd/bifrost` binary, and writes the artifact to
+`dist/bifrost/bifrost`. The `vendor/bifrost/` source tree is
+gitignored; only `vendor/bifrost/VENDOR.md` is tracked. See
+[`vendor/bifrost/VENDOR.md`](../vendor/bifrost/VENDOR.md) for the
+update procedure.
+
+**Path resolution:** `BIFROST_BASE_URL` (default `http://127.0.0.1:8080`)
+is the only env var the executor needs. `BIFROST_BINARY` is *not* read
+by the executor — the binary path is the operator's concern. If you
+need a process manager, run Bifrost under systemd, supervisord, k8s
+sidecar, or a launchd plist; the executor will connect to whichever
+socket the operator exposes.
 
 ### 2. Enable Bifrost in OmniRoute
 
@@ -223,6 +247,8 @@ Per ADR-031 § "Decision Review":
 - `open-sse/executors/bifrost.ts` — BifrostBackendExecutor implementation
 - `open-sse/executors/bifrostProviderMap.ts` — provider ID translation
 - `tests/unit/bifrost-backend.test.ts` — vitest suite (12 cases)
+- `scripts/build-bifrost.sh` — builds the Go sidecar binary
+- `vendor/bifrost/VENDOR.md` — vendored canonical source provenance
 
 ---
 
