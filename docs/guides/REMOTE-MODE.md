@@ -156,6 +156,7 @@ context, or `--remote <url> --api-key <key>`):
 | Goose | `omniroute setup-goose` | `~/.config/goose/config.yaml` (`GOOSE_PROVIDER=openai` + `OPENAI_HOST` **without** `/v1` + `GOOSE_MODEL`) + env recipe |
 | Qwen Code | `omniroute setup-qwen` | `~/.qwen/settings.json` — openai `modelProvider`, `baseUrl` **with** `/v1`, key via `envKey` (OMNIROUTE_API_KEY) |
 | Aider | `omniroute setup-aider` | `~/.aider.conf.yml` (`openai-api-base` **without** `/v1` + `model: openai/<id>`) + env recipe (`aider --message --yes`) |
+| Gemini CLI | `omniroute setup-gemini` | **native** Gemini API (not OpenAI-compatible) → `GOOGLE_GEMINI_BASE_URL` (root, SDK appends `/v1beta`) + `GEMINI_API_KEY` + `~/.gemini/settings.json` (`model`). ⚠ a cached Google login can override the base URL — run API-key-only |
 
 ```bash
 # OpenCode (openai-compatible provider, all catalog models, remote VPS)
