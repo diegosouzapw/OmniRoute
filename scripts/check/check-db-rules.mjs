@@ -39,6 +39,7 @@ const HANDLERS_DIR = path.join(cwd, "open-sse/handlers");
 //                        sem investigação — pode ser reserva de schema ou F2 pendente
 export const INTENTIONALLY_INTERNAL = new Set([
   "_rowTypes", // type-only: 5 importers internos em db/ (AgentBridge/Inspector row types)
+  "accessTokens", // intentionally-internal: 4 rotas /api/cli/* (connect, whoami, tokens, tokens/[id]) + server/authz/accessTokenAuth.ts via import direto "@/lib/db/accessTokens" (Rule #2)
   "cleanup", // intentionally-internal: 3 API routes (purge-quota-snapshots, purge-call-logs, purge-detailed-logs)
   "cliToolState", // intentionally-internal: 14+ API routes em /api/cli-tools/*-settings
   "comboForecast", // intentionally-internal: src/lib/usage/comboForecast.ts
