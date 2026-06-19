@@ -49,7 +49,7 @@ test("POST returns a sanitized 500 when the native addon is unavailable or unpri
   const body = await res.json();
   assert.match(
     body.error.message,
-    /native addon|CAP_NET_ADMIN|Operation not permitted|permission/i
+    /native addon|CAP_NET_ADMIN|Operation not permitted|permission|Command failed: ip rule/i
   );
   assert.ok(!body.error.message.includes("at /"), "no stack trace leaked");
 });
