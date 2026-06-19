@@ -217,3 +217,50 @@ export function computeVideoCost(
   const seconds = toNumber(usage.seconds, 0);
   return perSecond * seconds;
 }
+
+export type Modality = "image" | "audio" | "rerank" | "video";
+export type ModalUsage = {
+  n?: number;
+  seconds?: number;
+  characters?: number;
+  searchUnits?: number;
+};
+
+/**
+ * Load pricing for (provider, model) and dispatch to the per-modality cost
+ * function. Like `calculateCost` for tokens: returns 0 (never throws) when
+ * pricing is missing.
+ */
+export async function calculateModalCost(
+  modality: Modality,
+  provider: string,
+  model: string,
+  usage: ModalUsage
+): Promise<number> {
+  if (!provider || !model) return 0;
+  try {
+    const { getPricingForModel } = await import("@/lib/localDb");
+    let pricing = await getPricingForModel(provider, model);
+    if (!pricing) {
+      const normalized = normalizeModelName(model);
+      if (normalized !== model) pricing = await getPricingForModel(provider, normalized);
+    }
+    if (!pricing) return 0;
+    const rec = pricing as Record<string, unknown>;
+    switch (modality) {
+      case "image":
+        return computeImageCost(rec, usage);
+      case "audio":
+        return computeAudioCost(rec, usage);
+      case "rerank":
+        return computeRerankCost(rec, usage);
+      case "video":
+        return computeVideoCost(rec, usage);
+      default:
+        return 0;
+    }
+  } catch (error) {
+    console.error("Error calculating modal cost:", error);
+    return 0;
+  }
+}

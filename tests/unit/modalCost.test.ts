@@ -5,6 +5,7 @@ import {
   computeAudioCost,
   computeRerankCost,
   computeVideoCost,
+  calculateModalCost,
 } from "../../src/lib/usage/costCalculator.ts";
 
 test("computeImageCost: per-image flat × n", () => {
@@ -24,4 +25,8 @@ test("computeRerankCost: per search unit", () => {
 test("computeVideoCost: per video-second", () => {
   assert.equal(computeVideoCost({ output_cost_per_video_per_second: 0.5 }, { seconds: 8 }), 4);
   assert.equal(computeVideoCost({}, { seconds: 8 }), 0);
+});
+test("calculateModalCost returns 0 for unknown pricing (fail-open)", async () => {
+  const cost = await calculateModalCost("image", "no-such-provider", "no-such-model", { n: 2 });
+  assert.equal(cost, 0);
 });
