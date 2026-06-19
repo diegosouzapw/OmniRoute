@@ -12,7 +12,7 @@ import { compressAggressive } from "./aggressive.ts";
 import { ultraCompress } from "./ultra.ts";
 import { createCompressionStats } from "./stats.ts";
 import { registerBuiltinCompressionEngines } from "./engines/index.ts";
-import { getCompressionEngine } from "./engines/registry.ts";
+import { getCompressionEngine, getEngineEntry } from "./engines/registry.ts";
 import { applyRtkCompression } from "./engines/rtk/index.ts";
 import { adaptBodyForCompression } from "./bodyAdapter.ts";
 import {
@@ -456,6 +456,9 @@ export function applyStackedCompression(
   for (const step of steps) {
     const engine = getCompressionEngine(step.engine);
     if (!engine) continue;
+    // Respect the registry enabled flag: a step naming a disabled engine is skipped, so an
+    // operator can turn an engine off (setEngineEnabled) without editing every pipeline.
+    if (getEngineEntry(step.engine)?.enabled === false) continue;
 
     // TV1: when bail-out is ENABLED, wrap apply() and apply skip rules.
     // When DISABLED (default), the code path below is identical to pre-TV1.
@@ -525,6 +528,8 @@ export async function applyStackedCompressionAsync(
   for (const step of steps) {
     const engine = getCompressionEngine(step.engine);
     if (!engine) continue;
+    // Respect the registry enabled flag (same as the sync loop) — keep both in lockstep.
+    if (getEngineEntry(step.engine)?.enabled === false) continue;
     const stepOptions = buildStepOptions(step, options);
 
     // TV1: same bail-out discipline as the sync loop (opt-in, default off).
