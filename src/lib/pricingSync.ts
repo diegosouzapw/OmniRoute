@@ -21,6 +21,20 @@ type PricingEntry = {
   output: number;
   cached?: number;
   cache_creation?: number;
+  mode?: string;
+  // Non-token pricing dimensions (absolute USD, NOT scaled ×1e6).
+  input_cost_per_second?: number;
+  output_cost_per_second?: number;
+  input_cost_per_image?: number;
+  output_cost_per_image?: number;
+  input_cost_per_pixel?: number;
+  output_cost_per_pixel?: number;
+  input_cost_per_character?: number;
+  output_cost_per_character?: number;
+  input_cost_per_video_per_second?: number;
+  output_cost_per_video_per_second?: number;
+  search_unit_cost?: number;
+  ocr_cost_per_page?: number;
 };
 
 type PricingModels = Record<string, PricingEntry>;
@@ -33,6 +47,19 @@ interface LiteLLMModelInfo {
   cache_creation_input_token_cost?: number;
   litellm_provider?: string;
   mode?: string;
+  // Non-token pricing dimensions (absolute USD, NOT scaled ×1e6).
+  input_cost_per_second?: number;
+  output_cost_per_second?: number;
+  input_cost_per_image?: number;
+  output_cost_per_image?: number;
+  input_cost_per_pixel?: number;
+  output_cost_per_pixel?: number;
+  input_cost_per_character?: number;
+  output_cost_per_character?: number;
+  input_cost_per_video_per_second?: number;
+  output_cost_per_video_per_second?: number;
+  search_unit_cost?: number;
+  ocr_cost_per_page?: number;
 }
 
 interface SyncStatus {
@@ -118,18 +145,34 @@ export async function fetchLiteLLMPricing(): Promise<Record<string, LiteLLMModel
 /**
  * Transform LiteLLM raw data → OmniRoute PricingByProvider format.
  *
- * Conversion: cost_per_token × 1_000_000 → $/1M tokens (OmniRoute format)
- * Filters: only chat/completion modes (skip image/audio/embedding)
+ * Conversion: cost_per_token × 1_000_000 → $/1M tokens (OmniRoute format).
+ * Ingests both chat (token) AND non-token modes (image / audio / rerank /
+ * video / embedding). Token pricing is scaled to $/1M; non-token fields
+ * (per-image, per-second, per-character, search-unit, …) are carried through
+ * verbatim as absolute USD.
  */
 export function transformToOmniRoute(raw: Record<string, LiteLLMModelInfo>): PricingByProvider {
   const result: PricingByProvider = {};
 
   for (const [modelKey, info] of Object.entries(raw)) {
-    // Skip non-chat models
-    if (info.mode && !["chat", "completion"].includes(info.mode)) continue;
+    const NON_TOKEN_FIELDS = [
+      "input_cost_per_second",
+      "output_cost_per_second",
+      "input_cost_per_image",
+      "output_cost_per_image",
+      "input_cost_per_pixel",
+      "output_cost_per_pixel",
+      "input_cost_per_character",
+      "output_cost_per_character",
+      "input_cost_per_video_per_second",
+      "output_cost_per_video_per_second",
+      "search_unit_cost",
+      "ocr_cost_per_page",
+    ] as const;
 
-    // Must have at least input pricing
-    if (!info.input_cost_per_token && info.input_cost_per_token !== 0) continue;
+    const hasToken = info.input_cost_per_token != null || info.output_cost_per_token != null;
+    const hasNonToken = NON_TOKEN_FIELDS.some((f) => info[f] != null);
+    if (!hasToken && !hasNonToken) continue;
 
     const inputCost = (info.input_cost_per_token || 0) * 1_000_000;
     const outputCost = (info.output_cost_per_token || 0) * 1_000_000;
@@ -138,6 +181,7 @@ export function transformToOmniRoute(raw: Record<string, LiteLLMModelInfo>): Pri
       input: Math.round(inputCost * 1000) / 1000,
       output: Math.round(outputCost * 1000) / 1000,
     };
+    if (info.mode) entry.mode = info.mode;
 
     if (info.cache_read_input_token_cost != null) {
       entry.cached = Math.round(info.cache_read_input_token_cost * 1_000_000 * 1000) / 1000;
@@ -145,6 +189,11 @@ export function transformToOmniRoute(raw: Record<string, LiteLLMModelInfo>): Pri
     if (info.cache_creation_input_token_cost != null) {
       entry.cache_creation =
         Math.round(info.cache_creation_input_token_cost * 1_000_000 * 1000) / 1000;
+    }
+
+    for (const f of NON_TOKEN_FIELDS) {
+      const v = info[f];
+      if (typeof v === "number" && Number.isFinite(v)) entry[f] = v;
     }
 
     // Extract model name (strip provider prefix from key)
