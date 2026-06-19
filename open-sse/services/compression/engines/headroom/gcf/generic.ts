@@ -5,7 +5,7 @@
  *
  * SPDX-License-Identifier: MIT
  */
-import { formatScalar, formatKey, ATTACHMENT } from "./scalar.ts";
+import { formatScalar, formatKey } from "./scalar.ts";
 
 function indent(depth: number): string {
   return "  ".repeat(depth);

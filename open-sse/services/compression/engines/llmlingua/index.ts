@@ -11,8 +11,8 @@
  * Promise<string>` contract (the opts carry model selection / compression rate /
  * offline model-path override; single-arg fakes remain assignable).
  * Tests inject a fake backend via `setLlmlinguaBackend()`. Production code uses
- * `workerBackend` from `./worker.ts` (a stub today — see that file for the L1
- * VPS-validation follow-up before the real ONNX model is wired).
+ * `workerBackend` from `./worker.ts` — the real MobileBERT ONNX worker-thread backend
+ * (strictly fail-open: missing optional deps or any error return the original text).
  *
  * ### Code-block protection (inviolable)
  * Before any prose segment reaches the backend, `extractPreservedBlocks` from
@@ -37,11 +37,11 @@
  * caveman=20) but before ultra (40). Semantic pruning is most effective after
  * simpler structural compression has already reduced noise.
  *
- * ### Production follow-up (L1 — not yet done)
- * Replace `workerBackend` stub in `./worker.ts` with real `@atjsh/llmlingua-2`
- * (MobileBERT ONNX, 99 MB) in a worker_threads.Worker. Gate by minimum token
- * count (≥2 k estimated). Validate on VPS per Hard Rule #18. See `./worker.ts`
- * for the exact spec.
+ * ### Real backend
+ * `./worker.ts` runs `@atjsh/llmlingua-2` (MobileBERT ONNX) in a worker_threads.Worker,
+ * gated by a minimum token count and strictly fail-open. The optional deps are not
+ * installed by default (CI / most installs), so the engine no-ops there; the real model
+ * is exercised on the VPS behind RUN_LLMLINGUA_INT (Hard Rule #18). See `./worker.ts`.
  */
 
 import { createCompressionStats, estimateCompressionTokens } from "../../stats.ts";

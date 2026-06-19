@@ -137,7 +137,6 @@ export {
   detectCodeLanguage,
   normalizeCodeLanguage,
   stripCode,
-  stripCodeComments,
 } from "./engines/rtk/codeStripper.ts";
 export type { CodeLanguage, CodeStripperOptions } from "./engines/rtk/codeStripper.ts";
 

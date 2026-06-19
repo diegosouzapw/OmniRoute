@@ -140,14 +140,3 @@ export function stripCode(
   const strippedLines = Math.max(0, originalLines - (result ? result.split(/\r?\n/).length : 0));
   return { text: result, strippedLines, language: resolvedLanguage };
 }
-
-export function stripCodeComments(
-  text: string,
-  language = "typescript"
-): {
-  text: string;
-  stripped: boolean;
-} {
-  const result = stripCode(text, normalizeCodeLanguage(language));
-  return { text: result.text, stripped: result.strippedLines > 0 || result.text !== text };
-}

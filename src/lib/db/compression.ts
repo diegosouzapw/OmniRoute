@@ -216,9 +216,7 @@ function normalizeContextEditingConfig(value: unknown): ContextEditingConfig {
   return {
     ...DEFAULT_CONTEXT_EDITING_CONFIG,
     enabled:
-      typeof record.enabled === "boolean"
-        ? record.enabled
-        : DEFAULT_CONTEXT_EDITING_CONFIG.enabled,
+      typeof record.enabled === "boolean" ? record.enabled : DEFAULT_CONTEXT_EDITING_CONFIG.enabled,
   };
 }
 
@@ -501,22 +499,6 @@ export async function updateCompressionSettings(
   compressionSettingsCache = null;
   invalidateDbCache();
   return getCompressionSettings();
-}
-
-export function getDefaultAggressiveConfig(): AggressiveConfig {
-  return {
-    ...DEFAULT_AGGRESSIVE_CONFIG,
-    thresholds: { ...DEFAULT_AGGRESSIVE_CONFIG.thresholds },
-    toolStrategies: { ...DEFAULT_AGGRESSIVE_CONFIG.toolStrategies },
-  };
-}
-
-export function getDefaultUltraConfig(): UltraConfig {
-  return { ...DEFAULT_ULTRA_CONFIG };
-}
-
-export function getDefaultRtkConfig(): RtkConfig {
-  return { ...DEFAULT_RTK_CONFIG };
 }
 
 function normalizeMcpAccessibilityConfig(value: unknown): McpAccessibilityConfig {
