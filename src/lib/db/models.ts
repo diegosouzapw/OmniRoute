@@ -565,6 +565,9 @@ export interface SyncedAvailableModel {
   outputTokenLimit?: number;
   description?: string;
   supportsThinking?: boolean;
+  // #4264: image-input capability captured at sync time (e.g. OpenRouter
+  // `architecture.input_modalities`/`modality`) so the catalog can surface vision.
+  supportsVision?: boolean;
 }
 
 type SyncedAvailableModelInput = Omit<SyncedAvailableModel, "source"> & {
@@ -608,6 +611,7 @@ function normalizeSyncedAvailableModel(model: unknown): SyncedAvailableModel | n
       : {}),
     ...(typeof record.description === "string" ? { description: record.description } : {}),
     ...(record.supportsThinking === true ? { supportsThinking: true } : {}),
+    ...(record.supportsVision === true ? { supportsVision: true } : {}),
   };
 }
 

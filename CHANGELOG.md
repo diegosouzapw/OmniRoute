@@ -8,6 +8,10 @@
 
 _In development — bullets added per PR; finalized at release._
 
+### 🐛 Fixed
+
+- **fix(models): imported vision-capable models keep their vision capability** — after importing a provider key, vision-capable models (e.g. OpenRouter models whose `architecture` declares image input, and other synced providers) were listed as text-only in `/v1/models` and the dashboard — even though image requests actually worked. Synced model records never captured the vision flag, and the catalog's OpenRouter live-enrichment (which derives vision from `architecture.input_modalities`) is skipped once a provider has synced models. Discovery now captures `supportsVision` at sync time (from `architecture.input_modalities`, the string `architecture.modality`, or a top-level `input_modalities`), mirroring the existing `supportsThinking` capture, and the catalog surfaces `capabilities.vision` for synced models. ([#4264](https://github.com/diegosouzapw/OmniRoute/issues/4264) — thanks @FerLuisxd)
+
 ---
 
 ## [3.8.29] — 2026-06-19
