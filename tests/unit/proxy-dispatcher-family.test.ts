@@ -1,6 +1,7 @@
 import { describe, it, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import {
+  __getProxyDispatcherOptionsForTest,
   __getSocksOptionsForTest,
   __resolveDispatcherFamilyForTest,
   proxyConfigToUrl,
@@ -51,5 +52,29 @@ describe("proxyDispatcher family marker does not corrupt port", () => {
     assert.ok(out.includes("203.0.113.7:80"), out);
     assert.ok(!out.includes(":8080"), out);
     assert.ok(out.endsWith("?family=ipv6"), out);
+  });
+});
+
+describe("proxyDispatcher connection pool", () => {
+  it("keeps enough proxy connections for concurrent SSE streams by default", () => {
+    const options = __getProxyDispatcherOptionsForTest({});
+    assert.equal(options.connections, 32);
+    assert.equal(options.pipelining, 0);
+    assert.equal(options.keepAliveTimeout, 1);
+    assert.equal(options.keepAliveMaxTimeout, 1);
+  });
+
+  it("allows operators to force a single proxy connection for diagnostics", () => {
+    const options = __getProxyDispatcherOptionsForTest({
+      OMNIROUTE_PROXY_DISPATCHER_CONNECTIONS: "1",
+    });
+    assert.equal(options.connections, 1);
+  });
+
+  it("caps excessive proxy connection overrides", () => {
+    const options = __getProxyDispatcherOptionsForTest({
+      OMNIROUTE_PROXY_DISPATCHER_CONNECTIONS: "9999",
+    });
+    assert.equal(options.connections, 256);
   });
 });

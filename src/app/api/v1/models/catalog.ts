@@ -897,11 +897,24 @@ export async function getUnifiedModelsResponse(
             ...(endpoints.length > 1 || !endpoints.includes("chat")
               ? { supported_endpoints: endpoints }
               : {}),
+            // #4264: surface the vision flag captured at sync time so imported
+            // image-capable models (e.g. OpenRouter) aren't shown as text-only.
+            ...(sm.supportsVision ? { capabilities: { vision: true } } : {}),
           };
 
           const existingAliasModel = models.find((model) => model.id === aliasId);
           if (existingAliasModel) {
+            // Merge (not clobber) capabilities so syncing a vision flag onto a
+            // registry/combo model that already declares other capabilities keeps both.
+            const mergedCapabilities =
+              sm.supportsVision || existingAliasModel.capabilities
+                ? {
+                    ...(existingAliasModel.capabilities || {}),
+                    ...(sm.supportsVision ? { vision: true } : {}),
+                  }
+                : undefined;
             Object.assign(existingAliasModel, syncedFields);
+            if (mergedCapabilities) existingAliasModel.capabilities = mergedCapabilities;
             continue;
           }
 

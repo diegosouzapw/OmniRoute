@@ -12,9 +12,9 @@ test("buildClaudeEnv strips ANTHROPIC_* and injects proxy vars", () => {
   assert.equal(env.PATH, "/bin", "non-ANTHROPIC vars are preserved");
 });
 
-test("buildClaudeEnv omits the auth token when none is provided", () => {
+test("buildClaudeEnv uses a no-auth sentinel when no token is provided (bypasses Claude's login gate)", () => {
   const env = buildClaudeEnv({ PATH: "/bin" }, 20128, undefined);
-  assert.equal("ANTHROPIC_AUTH_TOKEN" in env, false);
+  assert.equal(env.ANTHROPIC_AUTH_TOKEN, "omniroute-no-auth");
   assert.equal(env.ANTHROPIC_BASE_URL, "http://localhost:20128");
 });
 

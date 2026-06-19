@@ -65,6 +65,27 @@ export default async function RootLayout({ children }) {
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              if (typeof window !== 'undefined') {
+                if (!window.crypto) {
+                  window.crypto = {};
+                }
+                if (!window.crypto.randomUUID) {
+                  window.crypto.randomUUID = function() {
+                    if (window.crypto.getRandomValues) {
+                      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                        const r = window.crypto.getRandomValues(new Uint8Array(1))[0] % 16;
+                        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                      });
+                    }
+                    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                      const r = Math.random() * 16 | 0;
+                      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                      return v.toString(16);
+                    });
+                  };
+                }
+              }
               try {
                 const stored = localStorage.getItem('theme');
                 const parsed = stored ? JSON.parse(stored) : null;

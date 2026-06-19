@@ -32,6 +32,54 @@ type FetchWithDispatcher = (
   init?: FetchWithDispatcherOptions
 ) => Promise<Response>;
 
+/**
+ * Flatten a fetch error's `cause` chain (and any Happy-Eyeballs `AggregateError`
+ * sub-errors) into a single diagnostic line: code/syscall/errno/address:port + a
+ * truncated message. undici/native both reject with a bare `TypeError: fetch failed`
+ * whose real reason hides in `.cause`; surfacing it is what makes dispatcher-failure
+ * bursts (#4252) diagnosable. Never includes a stack trace (Rule #12). Pure + testable.
+ */
+export function describeFetchCause(err: unknown): string {
+  const parts: string[] = [];
+  const seen = new Set<unknown>();
+  let cur: unknown = err;
+  for (let depth = 0; cur && depth < 5 && !seen.has(cur); depth++) {
+    seen.add(cur);
+    const e = cur as Record<string, unknown>;
+    const seg = [
+      typeof e.name === "string" && e.name !== "Error" ? e.name : null,
+      typeof e.message === "string" ? e.message.slice(0, 160) : null,
+      e.code != null ? `code=${String(e.code)}` : null,
+      e.syscall != null ? `syscall=${String(e.syscall)}` : null,
+      e.errno != null ? `errno=${String(e.errno)}` : null,
+      e.address != null
+        ? `address=${String(e.address)}${e.port != null ? `:${String(e.port)}` : ""}`
+        : null,
+    ]
+      .filter(Boolean)
+      .join(" ");
+    if (seg) parts.push(seg);
+    if (Array.isArray(e.errors)) {
+      for (const sub of (e.errors as unknown[]).slice(0, 4)) {
+        const s = (sub ?? {}) as Record<string, unknown>;
+        const subSeg = [
+          s.code != null ? `code=${String(s.code)}` : null,
+          s.syscall != null ? `syscall=${String(s.syscall)}` : null,
+          s.address != null
+            ? `address=${String(s.address)}${s.port != null ? `:${String(s.port)}` : ""}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join(" ");
+        if (subSeg) parts.push(`↳ ${subSeg}`);
+        else if (typeof s.message === "string") parts.push(`↳ ${s.message.slice(0, 80)}`);
+      }
+    }
+    cur = e.cause;
+  }
+  return parts.join(" | ") || String(err);
+}
+
 /** Injectable dependencies for testability (Approach B DI). */
 export type ProxyFetchDeps = {
   undiciFetch?: FetchWithDispatcher;
@@ -424,10 +472,26 @@ async function patchedFetch(
             }
           }
           // Preserve original phrase intact for monitoring: "Undici dispatcher failed, falling back to native fetch"
+          // #4252: append the flattened err.cause (code/syscall/errno/address) — the bare
+          // "fetch failed" message hides what actually broke, making bursts undiagnosable.
           console.warn(
-            `[ProxyFetch] Undici dispatcher failed, falling back to native fetch (after retry): ${msg}`
+            `[ProxyFetch] Undici dispatcher failed, falling back to native fetch (after retry): ${describeFetchCause(dispatcherError)}`
           );
-          return _nativeFallback(input, options);
+          try {
+            return await _nativeFallback(input, options);
+          } catch (nativeError) {
+            // #4252: both the undici dispatcher AND native fetch failed. Surface BOTH
+            // causes (server log) and tag the propagated error so the combo executor sees
+            // a diagnosable failure IMMEDIATELY instead of a bare "fetch failed" — the
+            // latter left jobs sitting until the 30s semaphore queue timeout, which then
+            // tripped the circuit breaker.
+            const detail = `dispatcher=[${describeFetchCause(dispatcherError)}] native=[${describeFetchCause(nativeError)}]`;
+            console.warn(`[ProxyFetch] native fetch fallback ALSO failed: ${detail}`);
+            if (nativeError instanceof Error) {
+              (nativeError as Error & { proxyFetchDetail?: string }).proxyFetchDetail = detail;
+            }
+            throw nativeError;
+          }
         }
         throw dispatcherError;
       }

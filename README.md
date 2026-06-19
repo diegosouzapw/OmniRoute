@@ -861,6 +861,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 | [Setup Guide](docs/guides/SETUP_GUIDE.md)      | Full install methods, CLI tool configs, protocol setup, timeout tuning        |
 | [CLI Tools Guide](docs/reference/CLI-TOOLS.md) | Per-tool setup for Claude Code, Codex, Cursor, Cline, OpenClaw, Kilo, Copilot |
 | [Remote Mode](docs/guides/REMOTE-MODE.md)      | Drive a remote OmniRoute (VPS) from your laptop CLI via scoped access tokens   |
+| [Claude Code Config](docs/guides/CLAUDE-CODE-CONFIGURATION.md) | Point Claude Code at OmniRoute (local/remote) with `launch` + per-model profiles |
 | [Quick Start](README.md#-quick-start)          | 3-step install → connect → configure                                          |
 
 ### 🔧 Operations & Deployment

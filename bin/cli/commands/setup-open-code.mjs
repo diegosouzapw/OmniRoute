@@ -29,6 +29,7 @@ import os from "node:os";
 
 import { printHeading, printInfo, printSuccess, printError } from "../io.mjs";
 import { t } from "../i18n.mjs";
+import { resolveActiveContext } from "../contexts.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -254,7 +255,17 @@ function runOpenCodeAuth(providerId) {
  */
 export async function runSetupOpenCodeCommand(opts = {}) {
   const providerId = opts.providerId || "omniroute";
-  const baseURL = opts.baseURL || opts.baseUrl || "http://localhost:20128";
+  // Remote-aware: explicit --remote/--base-url → active context → localhost.
+  let baseURL = opts.remote || opts.baseURL || opts.baseUrl;
+  if (!baseURL) {
+    try {
+      const ctx = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT);
+      baseURL = ctx?.baseUrl;
+    } catch {
+      /* no context */
+    }
+  }
+  if (!baseURL) baseURL = "http://localhost:20128";
   const displayName = opts.displayName || null;
   const wantsAuth = Boolean(opts.auth);
   const nonInteractive = Boolean(opts.nonInteractive);
@@ -356,8 +367,11 @@ export function registerSetupOpenCode(setupCommand) {
     )
     .option(
       "--base-url <url>",
-      "OmniRoute base URL the plugin should talk to (default: http://localhost:20128)",
-      "http://localhost:20128"
+      "OmniRoute base URL the plugin should talk to (default: active context or http://localhost:20128)"
+    )
+    .option(
+      "--remote <url>",
+      "Remote OmniRoute URL, e.g. http://192.168.0.15:20128 (overrides --base-url and the context)"
     )
     .option("--display-name <name>", "Display name in the OpenCode UI (optional)")
     .option(
@@ -376,6 +390,7 @@ export function registerSetupOpenCode(setupCommand) {
         output: globalOpts.output,
         apiKey: opts.apiKey ?? globalOpts.apiKey,
         baseUrl: opts.baseUrl ?? globalOpts.baseUrl,
+        context: globalOpts.context ?? opts.context,
       };
       const { exitCode } = await runSetupOpenCodeCommand(merged);
       if (exitCode !== 0) process.exit(exitCode);

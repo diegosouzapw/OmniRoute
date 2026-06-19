@@ -494,11 +494,31 @@ export async function startMitm(
     options.port <= 65535
       ? options.port
       : 443;
+  // D4 — resolve the inspector ingest token so the spawned proxy can post
+  // captured AgentBridge traffic to the local-only ingest endpoint. The token
+  // is shared with the OmniRoute process: getIngestTokenForBootstrap() returns
+  // the same value the ingest route validates against (env or auto-generated).
+  // Best-effort — if it cannot be resolved, the proxy simply skips capture.
+  let ingestToken = process.env.INSPECTOR_INTERNAL_INGEST_TOKEN || "";
+  if (!ingestToken) {
+    try {
+      const ingestMod = await import(
+        "@/app/api/tools/traffic-inspector/internal/ingest/route"
+      );
+      if (typeof ingestMod.getIngestTokenForBootstrap === "function") {
+        ingestToken = ingestMod.getIngestTokenForBootstrap();
+      }
+    } catch (err) {
+      log.warn({ err }, "Could not resolve inspector ingest token; capture disabled");
+    }
+  }
+
   serverProcess = spawn(process.execPath, [MITM_SERVER_PATH], {
     env: {
       ...process.env,
       ROUTER_API_KEY: apiKey,
       MITM_LOCAL_PORT: String(port),
+      INSPECTOR_INTERNAL_INGEST_TOKEN: ingestToken,
       NODE_ENV: "production",
     },
     detached: false,
