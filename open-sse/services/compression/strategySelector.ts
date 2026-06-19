@@ -110,7 +110,9 @@ export function applyCompression(
   }
   if (mode === "rtk") {
     return applyRtkCompression(body, {
-      config: options?.config?.rtkConfig,
+      // Selecting the "rtk" mode IS the enable signal — run it even if the per-engine
+      // rtkConfig.enabled flag is off (that flag gates stacked steps). (B-MODE-ENGINE-DECOUPLE)
+      config: { ...(options?.config?.rtkConfig ?? {}), enabled: true },
     });
   }
   const adapter = adaptBodyForCompression(body);
@@ -147,6 +149,9 @@ export function applyCompression(
             ),
           }
         : {}),
+      // Selecting the "standard" mode runs caveman regardless of the per-engine
+      // cavemanConfig.enabled flag (that flag gates stacked steps). (B-MODE-ENGINE-DECOUPLE)
+      enabled: true,
     };
     const result = cavemanCompress(
       compressionBody as Parameters<typeof cavemanCompress>[0],
