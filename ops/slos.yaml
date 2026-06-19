@@ -1,0 +1,208 @@
+# SLO Definitions — OmniRoute
+# Source of truth: docs/PERF_BUDGETS.md
+# Used by: Prometheus (promtool validate), Grafana SLO dashboards, Alertmanager
+# Refresh cadence: quarterly, or on any major infra change
+
+apiVersion: slo.dev/v1
+kind: SLOs
+metadata:
+  name: omniroute
+  owner: observability-circle
+  source: docs/PERF_BUDGETS.md
+  generated: 2026-06-18
+
+slos:
+  # ─────────────────────────────────────────────────────────────────
+  # Top-level availability
+  # ─────────────────────────────────────────────────────────────────
+  - id: availability-cluster
+    name: Cluster-wide availability (2xx+4xx for /v1/* and /api/settings/*)
+    description: |
+      99.9% of requests succeed (2xx or 4xx) over a rolling 30-day window.
+      5xx and connection errors count as failures.
+    sli:
+      spec:
+        ratio:
+          success:
+            metricSource:
+              type: prometheus
+              query: |
+                sum(rate(http_requests_total{service="omniroute",code=~"2..|4.."}[30d]))
+          total:
+            metricSource:
+              type: prometheus
+              query: |
+                sum(rate(http_requests_total{service="omniroute"}[30d]))
+    objectives:
+      - target: 0.999
+          window: 30d
+          description: "P2 page on burn rate > 2x for 1h or > 6x for 5m"
+    alerting:
+      burnRate:
+        - window: 1h
+          threshold: 2
+          severity: warning
+        - window: 5m
+          threshold: 6
+          severity: critical
+
+  # ─────────────────────────────────────────────────────────────────
+  # Aggregate latency
+  # ─────────────────────────────────────────────────────────────────
+  - id: latency-p95-aggregate
+    name: Aggregate p95 latency (all /v1/*)
+    description: |
+      p95 latency across all v1 routes must stay ≤ 1.5 s (rolling 5 min).
+    sli:
+      spec:
+        threshold:
+          metricSource:
+            type: prometheus
+            query: |
+              histogram_quantile(0.95,
+                sum by (le) (rate(http_request_duration_seconds_bucket{service="omniroute",path=~"/api/v1/.*"}[5m]))
+              )
+    objectives:
+      - target: 1.5
+          window: 5m
+          comparison: lte
+          description: "P2 page; breach indicates broad slowdown"
+
+  - id: latency-p99-aggregate
+    name: Aggregate p99 latency (all /v1/*)
+    description: |
+      p99 latency across all v1 routes must stay ≤ 4.0 s (rolling 5 min).
+    sli:
+      spec:
+        threshold:
+          metricSource:
+            type: prometheus
+            query: |
+              histogram_quantile(0.99,
+                sum by (le) (rate(http_request_duration_seconds_bucket{service="omniroute",path=~"/api/v1/.*"}[5m]))
+              )
+    objectives:
+      - target: 4.0
+          window: 5m
+          comparison: lte
+
+  # ─────────────────────────────────────────────────────────────────
+  # Per-endpoint SLOs (selected)
+  # ─────────────────────────────────────────────────────────────────
+
+  - id: responses-ttfb
+    name: POST /v1/responses time-to-first-byte (stream)
+    description: |
+      TTFB ≤ 350 ms (p50), ≤ 900 ms (p95), ≤ 1.8 s (p99).
+      Source: docs/PERF_BUDGETS.md § 2.1.
+    sli:
+      spec:
+        threshold:
+          metricSource:
+            type: prometheus
+            query: |
+              histogram_quantile(0.95,
+                sum by (le) (rate(http_request_duration_seconds_bucket{service="omniroute",path="/api/v1/responses",stream="true"}[5m]))
+              )
+    objectives:
+      - target: 0.9
+          window: 5m
+          comparison: lte
+          description: "p95 TTFB"
+
+  - id: embeddings-latency
+    name: POST /v1/embeddings p95
+    description: |
+      p95 ≤ 700 ms. Source: docs/PERF_BUDGETS.md § 2.1.
+    sli:
+      spec:
+        threshold:
+          metricSource:
+            type: prometheus
+            query: |
+              histogram_quantile(0.95,
+                sum by (le) (rate(http_request_duration_seconds_bucket{service="omniroute",path="/api/v1/embeddings"}[5m]))
+              )
+    objectives:
+      - target: 0.7
+          window: 5m
+          comparison: lte
+
+  - id: health-ping
+    name: GET /api/health/ping p99
+    description: |
+      p99 ≤ 50 ms. Probes should be cheap; breach = infra issue.
+    sli:
+      spec:
+        threshold:
+          metricSource:
+            type: prometheus
+            query: |
+              histogram_quantile(0.99,
+                sum by (le) (rate(http_request_duration_seconds_bucket{service="omniroute",path="/api/health/ping"}[5m]))
+              )
+    objectives:
+      - target: 0.05
+          window: 5m
+          comparison: lte
+
+  - id: ws-connections
+    name: WebSocket concurrent connections (per cluster)
+    description: |
+      Cluster should sustain 300 concurrent WS connections (3 replicas × 100 cap).
+      Breach = capacity headroom is gone.
+    sli:
+      spec:
+        threshold:
+          metricSource:
+            type: prometheus
+            query: |
+              sum(ws_active_connections{service="omniroute"})
+    objectives:
+      - target: 280
+          window: 5m
+          comparison: lt
+          description: "Warn at 280, page on-call at 300 (cap)"
+
+  - id: error-budget-burn-1h
+    name: Error budget burn rate (1h window)
+    description: |
+      30-day error budget is 43.2 minutes at 99.9%. Burn rate > 2x for 1h
+      means we'll exhaust the budget in 15 days.
+    sli:
+      spec:
+        threshold:
+          metricSource:
+            type: prometheus
+            query: |
+              (1 - (
+                sum(rate(http_requests_total{service="omniroute",code=~"2..|4.."}[1h]))
+                /
+                sum(rate(http_requests_total{service="omniroute"}[1h]))
+              )) / (1 - 0.999)
+    objectives:
+      - target: 2
+          window: 1h
+          comparison: gt
+          description: "P2 page when 1h burn rate > 2x"
+
+  - id: error-budget-burn-5m
+    name: Error budget burn rate (5m window)
+    description: |
+      Short-window burn rate for fast feedback. > 6x for 5m = P1.
+    sli:
+      spec:
+        threshold:
+          metricSource:
+            type: prometheus
+            query: |
+              (1 - (
+                sum(rate(http_requests_total{service="omniroute",code=~"2..|4.."}[5m]))
+                /
+                sum(rate(http_requests_total{service="omniroute"}[5m]))
+              )) / (1 - 0.999)
+    objectives:
+      - target: 6
+          window: 5m
+          comparison: gt
+          description: "P1 page when 5m burn rate > 6x"
