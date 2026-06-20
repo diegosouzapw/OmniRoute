@@ -2,12 +2,16 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   selectCompressionStrategy,
+  selectCompressionPlan,
   getEffectiveMode,
   applyCompression,
   checkComboOverride,
   shouldAutoTrigger,
 } from "../../../open-sse/services/compression/strategySelector.ts";
-import type { CompressionConfig } from "../../../open-sse/services/compression/types.ts";
+import {
+  DEFAULT_COMPRESSION_CONFIG,
+  type CompressionConfig,
+} from "../../../open-sse/services/compression/types.ts";
 
 const baseConfig: CompressionConfig = {
   enabled: true,
@@ -17,6 +21,19 @@ const baseConfig: CompressionConfig = {
   preserveSystemPrompt: true,
   comboOverrides: {},
 };
+
+/** Builds a config whose only enabled engines are the ones named (all others off). */
+function engineConfig(
+  engines: CompressionConfig["engines"],
+  overrides: Partial<CompressionConfig> = {}
+): CompressionConfig {
+  return {
+    ...DEFAULT_COMPRESSION_CONFIG,
+    enabled: true,
+    engines,
+    ...overrides,
+  };
+}
 
 describe("checkComboOverride", () => {
   it("returns null when comboId is null", () => {
@@ -102,6 +119,47 @@ describe("getEffectiveMode", () => {
       comboOverrides: { "my-combo": "off" as const },
     };
     assert.equal(getEffectiveMode(config, "my-combo", 500), "off");
+  });
+});
+
+describe("selectCompressionStrategy resolves via the engines map (Task 7)", () => {
+  it("resolves mode rtk when only rtk is enabled in the engines map", () => {
+    const config = engineConfig({ rtk: { enabled: true } });
+    assert.equal(selectCompressionStrategy(config, null, 0), "rtk");
+  });
+
+  it("resolves mode stacked when rtk + caveman are both enabled, exposing the derived pipeline", () => {
+    const config = engineConfig({
+      rtk: { enabled: true },
+      caveman: { enabled: true, level: "full" },
+    });
+    assert.equal(selectCompressionStrategy(config, null, 0), "stacked");
+    const plan = selectCompressionPlan(config, null, 0);
+    assert.equal(plan.mode, "stacked");
+    // stackPriority order: rtk (10) before caveman (20).
+    assert.deepEqual(plan.stackedPipeline, [
+      { engine: "rtk" },
+      { engine: "caveman", intensity: "full" },
+    ]);
+  });
+
+  it("auto-trigger still overrides the derived default", () => {
+    const config = engineConfig(
+      { rtk: { enabled: true } },
+      { autoTriggerTokens: 1000, autoTriggerMode: "aggressive" }
+    );
+    // Below threshold: derived default (rtk) wins.
+    assert.equal(selectCompressionStrategy(config, null, 500), "rtk");
+    // At/above threshold: auto-trigger mode wins.
+    assert.equal(selectCompressionStrategy(config, null, 1500), "aggressive");
+  });
+
+  it("routing-combo override still wins over the derived default", () => {
+    const config = engineConfig(
+      { rtk: { enabled: true } },
+      { comboOverrides: { "my-combo": "off" } }
+    );
+    assert.equal(selectCompressionStrategy(config, "my-combo", 0), "off");
   });
 });
 

@@ -1443,8 +1443,12 @@ export async function handleChatCore({
     // --- Modular Compression Pipeline (Phase 1 Lite + Phase 2 Standard/Caveman + Phase 3 Aggressive) ---
     // Runs BEFORE the existing reactive compressContext() to proactively reduce tokens.
     try {
-      const { selectCompressionStrategy, applyCompressionAsync, resolveCacheAwareConfig } =
-        await import("../services/compression/strategySelector.ts");
+      const {
+        selectCompressionStrategy,
+        selectCompressionPlan,
+        applyCompressionAsync,
+        resolveCacheAwareConfig,
+      } = await import("../services/compression/strategySelector.ts");
       const { trackCompressionStats } = await import("../services/compression/stats.ts");
       let config: CompressionConfig = compressionSettings ?? {
         enabled: false,
@@ -1672,13 +1676,29 @@ export async function handleChatCore({
         }
       }
       const compressionInputBody = body as Record<string, unknown>;
-      const mode = selectCompressionStrategy(
+      const compressionPlan = selectCompressionPlan(
         config,
         compressionComboKey,
         estimatedTokens,
         compressionInputBody,
         { provider, targetFormat, model: effectiveModel }
       );
+      const mode = compressionPlan.mode as CompressionConfig["defaultMode"];
+      // When the per-engine toggle map derives a stacked pipeline (and no named/routing
+      // combo already set config.stackedPipeline), feed that derived pipeline through so
+      // applyCompressionAsync (which reads config.stackedPipeline for stacked mode) runs the
+      // engines the operator actually toggled on instead of the built-in rtk+caveman default.
+      if (
+        mode === "stacked" &&
+        compressionPlan.stackedPipeline.length > 0 &&
+        !compressionComboApplied &&
+        !config.compressionComboId
+      ) {
+        config = {
+          ...config,
+          stackedPipeline: compressionPlan.stackedPipeline as CompressionConfig["stackedPipeline"],
+        };
+      }
       let compressionAnalyticsRecorded = false;
       if (mode !== "off") {
         // #3890: in a caching context, never compress the system prompt (cacheable prefix)
