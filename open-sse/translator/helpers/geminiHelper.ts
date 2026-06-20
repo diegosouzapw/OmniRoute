@@ -102,6 +102,26 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
       if (rec.type === "text") {
         parts.push({ text: rec.text });
       } else {
+        // 0. Handle OpenAI audio input parts → Gemini inlineData (#912).
+        //    Chat Completions shape: {type:"input_audio", input_audio:{data, format}}.
+        //    Some clients use {type:"audio", audio:{data, format}}. Gemini accepts
+        //    audio as inlineData with an `audio/<format>` mime type (wav, mp3, ...).
+        //    Without this branch the part matches no handler below and is silently
+        //    dropped on the OpenAI→Gemini/Antigravity path.
+        if (rec.type === "input_audio" || rec.type === "audio") {
+          const audioObj = toRecord(rec.input_audio || rec.audio);
+          if (typeof audioObj.data === "string") {
+            const fmt = String(audioObj.format || "wav").toLowerCase();
+            parts.push({
+              inlineData: {
+                mimeType: `audio/${fmt}`,
+                data: audioObj.data.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, ""),
+              },
+            });
+            continue;
+          }
+        }
+
         // 1. Handle Gemini native inline_data injected into OpenAI arrays (e.g. Cherry Studio)
         const geminiInline = toRecord(rec.inline_data || rec.inlineData);
         if (geminiInline?.data) {
