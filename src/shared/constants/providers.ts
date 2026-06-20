@@ -501,7 +501,7 @@ export const WEB_COOKIE_PROVIDERS = {
     freeNote:
       "Free model comparison platform — 40+ models (GPT, Claude, Gemini, Llama). No subscription required.",
     authHint:
-      "Paste your session cookie from lmarena.ai (DevTools → Application → Cookies). Optional — works with free tier for basic comparisons.",
+      "Paste the full Cookie header from lmarena.ai (DevTools → Network → request → Cookie). The session is now split across arena-auth-prod-v1.0, .1, … — copy the whole header. Optional — works with free tier for basic comparisons.",
     riskNoticeVariant: "webCookie",
   },
   huggingchat: {
