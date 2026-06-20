@@ -1,7 +1,10 @@
-import { describe, it, beforeEach, afterEach } from "node:test";
+import { describe, it, beforeEach, afterEach, after } from "node:test";
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -105,5 +108,106 @@ describe("Compression Settings API Schema Validation", () => {
       assert.ok(validRoles.includes(role), `Role ${role} should be valid`);
     }
     assert.equal(validRoles.length, 3);
+  });
+});
+
+// ─── Route round-trip: engines map + activeComboId ─────────────────────────
+// Mirrors the mcp-accessibility-config test harness: allocate a temp DATA_DIR,
+// import route + DB modules, tear down in after().
+
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-compression-route-"));
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
+process.env.DATA_DIR = TEST_DATA_DIR;
+
+const core = await import("../../../../src/lib/db/core.ts");
+const route = await import("../../../../src/app/api/settings/compression/route.ts");
+
+function makeRequest(method: string, body?: unknown): Request {
+  return new Request("http://localhost/api/settings/compression", {
+    method,
+    headers: body !== undefined ? { "content-type": "application/json" } : {},
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }) as any;
+}
+
+describe("settings/compression route — engines + activeComboId", () => {
+  beforeEach(() => {
+    core.resetDbInstance();
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  });
+
+  after(() => {
+    core.resetDbInstance();
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
+    else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+  });
+
+  it("PUT engines map persists and GET returns engines + activeComboId", async () => {
+    const putRes = await route.PUT(
+      makeRequest("PUT", { engines: { rtk: { enabled: true, level: "standard" } } })
+    );
+    assert.equal(putRes.status, 200);
+
+    // Fresh DB handle so we read from storage, not from the write-path return value.
+    core.resetDbInstance();
+
+    const getRes = await route.GET(makeRequest("GET"));
+    assert.equal(getRes.status, 200);
+    const body = await getRes.json();
+
+    assert.equal(
+      body.engines?.rtk?.enabled,
+      true,
+      "engines.rtk.enabled should be true after PUT"
+    );
+    assert.equal(
+      body.engines?.rtk?.level,
+      "standard",
+      "engines.rtk.level should be 'standard' after PUT"
+    );
+    // activeComboId is always present (null by default)
+    assert.ok("activeComboId" in body, "GET response must include activeComboId");
+  });
+
+  it("PUT activeComboId persists and is returned by GET", async () => {
+    const putRes = await route.PUT(makeRequest("PUT", { activeComboId: "combo-abc" }));
+    assert.equal(putRes.status, 200);
+
+    core.resetDbInstance();
+
+    const getRes = await route.GET(makeRequest("GET"));
+    assert.equal(getRes.status, 200);
+    const body = await getRes.json();
+    assert.equal(body.activeComboId, "combo-abc");
+  });
+
+  it("PUT activeComboId:null clears the active combo", async () => {
+    // First set it, then clear.
+    await route.PUT(makeRequest("PUT", { activeComboId: "combo-to-clear" }));
+    core.resetDbInstance();
+    await route.PUT(makeRequest("PUT", { activeComboId: null }));
+    core.resetDbInstance();
+
+    const getRes = await route.GET(makeRequest("GET"));
+    assert.equal(getRes.status, 200);
+    const body = await getRes.json();
+    assert.equal(body.activeComboId, null);
+  });
+
+  it("PUT with invalid engines shape is rejected by schema validation (400)", async () => {
+    // engines values must have an `enabled` boolean — passing a string should fail the schema.
+    const putRes = await route.PUT(
+      makeRequest("PUT", { engines: { rtk: { enabled: "yes" } } })
+    );
+    assert.equal(putRes.status, 400);
+    const body = await putRes.json();
+    // Validation failures use { error: { message, details } } via validateBody helper.
+    assert.ok(body.error !== null && typeof body.error === "object", "error should be an object");
+    const errorMessage: string =
+      typeof body.error === "string" ? body.error : (body.error?.message ?? JSON.stringify(body.error));
+    assert.ok(!errorMessage.includes("at /"), "error must not contain a stack trace");
   });
 });

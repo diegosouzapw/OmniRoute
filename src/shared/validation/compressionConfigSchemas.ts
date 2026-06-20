@@ -170,6 +170,11 @@ export const stackedPipelineStepSchema = z.discriminatedUnion("engine", [
     .strict(),
 ]);
 
+export const engineToggleSchema = z.object({
+  enabled: z.boolean(),
+  level: z.string().optional(),
+});
+
 export const compressionSettingsUpdateSchema = z
   .object({
     enabled: z.boolean().optional(),
@@ -189,6 +194,8 @@ export const compressionSettingsUpdateSchema = z
     aggressive: aggressiveConfigSchema.optional(),
     ultra: ultraConfigSchema.optional(),
     contextEditing: contextEditingConfigSchema.optional(),
+    engines: z.record(z.string(), engineToggleSchema).optional(),
+    activeComboId: z.string().nullable().optional(),
   })
   .strict();
 
