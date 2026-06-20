@@ -117,6 +117,20 @@ function isDeepSeekReplayTarget(provider: unknown, model: unknown): boolean {
 /** @param options.preserveDeveloperRole - undefined/true: keep developer for OpenAI format (default); false: map to system */
 /** @param options.preserveCacheControl - When true, preserve client-side cache_control markers (for Claude Code, etc.) */
 // Translate request: source -> openai -> target
+// Client-only assistant "echo" fields that strict OpenAI-compatible upstreams (e.g.
+// Mistral) reject with 422 extra_forbidden when sent back as input history. They carry
+// no value upstream and are dropped on the OpenAI target path (#1649). `audio` is
+// deliberately NOT included: OpenAI audio models reference a prior assistant audio
+// response by id on multi-turn, so stripping it would break that (Mistral never emits
+// audio, so it is never present there).
+const OPENAI_INCOMPATIBLE_ECHO_FIELDS = [
+  "reasoning_content",
+  "reasoning",
+  "refusal",
+  "annotations",
+  "cache_control",
+];
+
 export function translateRequest(
   sourceFormat,
   targetFormat,
@@ -415,8 +429,10 @@ export function translateRequest(
     Array.isArray(result.messages)
   ) {
     for (const msg of result.messages) {
-      if (msg.reasoning_content !== undefined) {
-        delete msg.reasoning_content;
+      for (const field of OPENAI_INCOMPATIBLE_ECHO_FIELDS) {
+        if (msg[field] !== undefined) {
+          delete msg[field];
+        }
       }
     }
   }
