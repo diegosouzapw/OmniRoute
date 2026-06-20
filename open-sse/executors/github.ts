@@ -172,18 +172,24 @@ export class GithubExecutor extends BaseExecutor {
 
   async refreshGitHubToken(refreshToken, log) {
     try {
+      // GitHub Copilot is a public device-flow client: send the public client_id, and
+      // only attach client_secret when one is actually configured — never the literal
+      // "undefined" that new URLSearchParams produces for a missing value (9router#442).
+      const params = new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+        client_id: this.config.clientId,
+      });
+      if (this.config.clientSecret) {
+        params.set("client_secret", this.config.clientSecret);
+      }
       const response = await fetch(OAUTH_ENDPOINTS.github.token, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           Accept: "application/json",
         },
-        body: new URLSearchParams({
-          grant_type: "refresh_token",
-          refresh_token: refreshToken,
-          client_id: this.config.clientId,
-          client_secret: this.config.clientSecret,
-        }),
+        body: params,
       });
       if (!response.ok) return null;
       const tokens = await response.json();

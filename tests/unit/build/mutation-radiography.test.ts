@@ -4,6 +4,7 @@ import {
   classifyTestFiles,
   aggregateRadiography,
   classifyFromCounts,
+  redundancyCandidates,
 } from "../../../scripts/quality/mutation-radiography.mjs";
 
 // ── classifyTestFiles: the plan's canonical fixture ──────────────────────────
@@ -87,6 +88,33 @@ test("classifyFromCounts applies the threshold rules", () => {
   assert.equal(classifyFromCounts(2, 1), "unique"); // shared not > unique
   assert.equal(classifyFromCounts(1, 1), "unique"); // tie -> unique
   assert.equal(classifyFromCounts(1, 5), "overlapping"); // shared > unique
+});
+
+// ── redundancyCandidates (R1): the prune-candidate list = 🔴 empty ∪ 🟠 redundant.
+// A file is a candidate iff it has ZERO unique kills (kills nothing, OR every mutant it
+// kills is also killed by another file). Files with ≥1 unique kill (🟢/🟡) are NEVER
+// candidates. Under a disableBail run killedBy is COMPLETE, so this list is accurate. ──
+test("redundancyCandidates returns empty ∪ redundant files; never a file with a unique kill", () => {
+  const report = {
+    testFiles: {
+      "tests/unit/x.test.ts": { tests: [{ id: "0", name: "tests/unit/x.test.ts" }] },
+      "tests/unit/y.test.ts": { tests: [{ id: "1", name: "tests/unit/y.test.ts" }] },
+      "tests/unit/z.test.ts": { tests: [{ id: "2", name: "tests/unit/z.test.ts" }] },
+    },
+    files: {
+      "src/m.ts": {
+        mutants: [
+          { id: "m1", status: "Killed", killedBy: ["0"] }, // x alone -> unique (KEEP)
+          { id: "m2", status: "Killed", killedBy: ["0", "1"] }, // x+y; y only ever shared
+        ],
+      },
+    },
+  };
+  const r = redundancyCandidates([report]);
+  assert.deepEqual(r.empty, ["tests/unit/z.test.ts"]); // kills nothing
+  assert.deepEqual(r.redundant, ["tests/unit/y.test.ts"]); // kills only shared mutants
+  assert.deepEqual(r.candidates, ["tests/unit/y.test.ts", "tests/unit/z.test.ts"]);
+  assert.ok(!r.candidates.includes("tests/unit/x.test.ts")); // has a unique kill -> safe
 });
 
 // ── aggregateRadiography: merge per-batch reports at the FILE level (ids are

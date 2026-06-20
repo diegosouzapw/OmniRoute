@@ -22,6 +22,7 @@ type UsageSummary = {
 type KiroStreamState = {
   endDetected: boolean;
   finishEmitted: boolean;
+  startEmitted: boolean;
   stopSeen: boolean;
   hasToolCalls: boolean;
   toolCallIndex: number;
@@ -298,6 +299,7 @@ export class KiroExecutor extends BaseExecutor {
     const state: KiroStreamState = {
       endDetected: false,
       finishEmitted: false,
+      startEmitted: false,
       stopSeen: false,
       hasToolCalls: false,
       toolCallIndex: 0,
@@ -323,6 +325,39 @@ export class KiroExecutor extends BaseExecutor {
 
             const event = parseEventFrame(eventData);
             if (!event) continue;
+
+            // Emit a role-only start chunk on the FIRST successfully-parsed AWS
+            // EventStream frame. CodeWhisperer sends framing/metadata events before
+            // the first content token, and on large/agentic contexts the gap before
+            // that first `assistantResponseEvent` can be many seconds. The backend
+            // stream-readiness gate (ensureStreamReadiness) holds the ENTIRE response
+            // from the client until it observes a useful SSE frame, so without an
+            // early frame the client sees a frozen connection for that whole window
+            // (up to STREAM_READINESS_TIMEOUT_MS — 180s as configured by VibeProxy),
+            // then a burst — the "minutes instead of seconds, not streaming" symptom.
+            // A role-only `chat.completion.chunk` is a non-ping structured payload, so
+            // it satisfies hasStreamReadinessSignal and hands the stream off
+            // immediately. Mirrors the early lifecycle frame other executors already
+            // emit (Claude message_start / OpenAI response.created). The downstream
+            // idle timeout still guards genuine post-start stalls.
+            if (!state.startEmitted) {
+              state.startEmitted = true;
+              const startChunk: JsonRecord = {
+                id: responseId,
+                object: "chat.completion.chunk",
+                created,
+                model,
+                choices: [
+                  {
+                    index: 0,
+                    delta: { role: "assistant" },
+                    finish_reason: null,
+                  },
+                ],
+              };
+              chunkIndex++;
+              controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(startChunk)}\n\n`));
+            }
 
             const eventType = event.headers[":event-type"] || "";
 
