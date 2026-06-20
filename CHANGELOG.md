@@ -97,6 +97,7 @@ _In development — bullets added per PR; finalized at release._
 
 ### ✨ New Features
 
+- **feat(translator):** Gemini accepts OpenAI `input_audio` and `audio_url` content parts. (thanks @mugnimaestra)
 - **perf(dashboard): combos UI leaf-split, Next.js config tuning, 1-click Redis & Bifrost sidecar** — delivers four of the five performance/UX tracks from the #3932 thread: the combos dashboard page is split into focused leaf components (smaller bundles, faster reloads), `next.config` is tuned for the standalone build, Redis can be provisioned in one click, and a Bifrost sidecar option is wired in. (The fifth track — chatLogHelpers extraction — was already covered upstream and dropped.) ([#4381](https://github.com/diegosouzapw/OmniRoute/pull/4381) — thanks @KooshaPari)
 
 ### 🐛 Fixed
