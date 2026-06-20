@@ -6,6 +6,7 @@ const {
   getDefaultComboConfig,
   resolveComboTargetTimeoutMs,
   DEFAULT_COMBO_TARGET_TIMEOUT_MS,
+  resolveComboQueueDepth,
 } = await import("../../open-sse/services/comboConfig.ts");
 const { createComboSchema, updateComboDefaultsSchema } =
   await import("../../src/shared/validation/schemas.ts");
@@ -602,4 +603,87 @@ test("resolveComboConfig cascades failoverBeforeRetry, maxSetRetries and setRetr
   assert.equal(result.failoverBeforeRetry, true);
   assert.equal(result.maxSetRetries, 2);
   assert.equal(result.setRetryDelayMs, 3000);
+});
+
+// Issue #3872: combo round-robin always queued ~20 deep before cascading on
+// semaphore saturation because handleRoundRobinCombo never threaded a queue depth
+// into accountSemaphore.acquire (it fell back to the hardcoded DEFAULT_MAX_QUEUE_SIZE
+// of 20). Expose `queueDepth` as combo config so operators can shrink the pre-cascade
+// queue (0 = fail over immediately) for faster failover, while keeping 20 as the
+// backward-compatible default.
+test("getDefaultComboConfig exposes the backward-compatible queueDepth default of 20", () => {
+  assert.equal(getDefaultComboConfig().queueDepth, 20);
+});
+
+test("resolveComboConfig cascades queueDepth from defaults through provider and combo overrides", () => {
+  const fromDefault = resolveComboConfig({ config: {} }, { comboDefaults: {} });
+  assert.equal(fromDefault.queueDepth, 20);
+
+  const cascaded = resolveComboConfig(
+    {
+      config: {
+        queueDepth: 1,
+      },
+    },
+    {
+      comboDefaults: {
+        queueDepth: 10,
+      },
+      providerOverrides: {
+        openai: {
+          queueDepth: 5,
+        },
+      },
+    },
+    "openai"
+  );
+
+  // Most specific (combo.config) wins over provider override and global default.
+  assert.equal(cascaded.queueDepth, 1);
+});
+
+test("resolveComboQueueDepth defaults to 20, honors configured values, and clamps the range", () => {
+  assert.equal(resolveComboQueueDepth(null), 20);
+  assert.equal(resolveComboQueueDepth({}), 20);
+  assert.equal(resolveComboQueueDepth({ queueDepth: 5 }), 5);
+  // 0 is a valid, meaningful value: queue nothing → fail over to the next member immediately.
+  assert.equal(resolveComboQueueDepth({ queueDepth: 0 }), 0);
+  // Invalid / negative inputs fall back to the safe default.
+  assert.equal(resolveComboQueueDepth({ queueDepth: -3 }), 20);
+  assert.equal(resolveComboQueueDepth({ queueDepth: Number.NaN }), 20);
+  // Out-of-range high values are clamped, not trusted.
+  assert.equal(resolveComboQueueDepth({ queueDepth: 99999 }), 100);
+  // Fractional values floor to an integer queue slot count.
+  assert.equal(resolveComboQueueDepth({ queueDepth: 3.9 }), 3);
+});
+
+test("createComboSchema accepts queueDepth, coerces strings, and allows 0 for immediate failover", () => {
+  const parsed = createComboSchema.parse({
+    name: "fast-failover",
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
+    strategy: "round-robin",
+    config: {
+      queueDepth: "0",
+    },
+  });
+
+  assert.equal(parsed.config.queueDepth, 0);
+});
+
+test("createComboSchema rejects queueDepth outside the supported range", () => {
+  const tooHigh = createComboSchema.safeParse({
+    name: "bad-queue-depth-high",
+    models: ["openai/gpt-4"],
+    strategy: "round-robin",
+    config: { queueDepth: 101 },
+  });
+  assert.equal(tooHigh.success, false);
+
+  const negative = createComboSchema.safeParse({
+    name: "bad-queue-depth-negative",
+    models: ["openai/gpt-4"],
+    strategy: "round-robin",
+    config: { queueDepth: -1 },
+  });
+  assert.equal(negative.success, false);
 });

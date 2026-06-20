@@ -133,6 +133,8 @@ export const comboRuntimeConfigSchema = z
     targetTimeoutMs: z.coerce.number().int().min(0).max(MAX_TIMER_TIMEOUT_MS).optional(),
     concurrencyPerModel: z.coerce.number().int().min(1).max(20).optional(),
     queueTimeoutMs: z.coerce.number().int().min(1000).max(120000).optional(),
+    // #3872: pre-cascade semaphore queue depth (round-robin). 0 = fail over immediately.
+    queueDepth: z.coerce.number().int().min(0).max(100).optional(),
     healthCheckEnabled: z.boolean().optional(),
     healthCheckTimeoutMs: z.coerce.number().int().min(100).max(30000).optional(),
     handoffThreshold: z.coerce.number().min(0.5).max(0.94).optional(),

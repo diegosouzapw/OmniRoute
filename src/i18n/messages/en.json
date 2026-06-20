@@ -393,6 +393,7 @@
     "cloudBenefitAccess": "Cloud Benefit Access",
     "maxRetries": "Max Retries",
     "queueTimeout": "Queue Timeout",
+    "queueDepth": "Queue Depth",
     "addProvider": "Add Provider",
     "realtime": "Realtime",
     "totalTranslations": "Total Translations",

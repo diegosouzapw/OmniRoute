@@ -482,6 +482,21 @@ export default function ComboDefaultsTab() {
               }
               className="text-sm"
             />
+            <Input
+              label={t("queueDepth")}
+              type="number"
+              min={0}
+              max={100}
+              value={comboDefaults.queueDepth ?? ""}
+              placeholder="20"
+              onChange={(e) =>
+                setComboDefaults((prev) => ({
+                  ...prev,
+                  queueDepth: parseInt(e.target.value) || 0,
+                }))
+              }
+              className="text-sm"
+            />
           </div>
         )}
 

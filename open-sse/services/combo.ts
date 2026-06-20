@@ -26,6 +26,7 @@ import {
 import {
   resolveComboConfig,
   getDefaultComboConfig,
+  resolveComboQueueDepth,
 } from "./comboConfig.ts";
 import {
   maybeGenerateHandoff,
@@ -1942,6 +1943,9 @@ async function handleRoundRobinCombo({
     : { ...getDefaultComboConfig(), ...(combo.config || {}) };
   const concurrency = config.concurrencyPerModel ?? 3;
   const queueTimeout = config.queueTimeoutMs ?? 30000;
+  // #3872: pre-cascade queue depth — lower values fail over to the next combo member
+  // sooner under concurrency saturation (0 = never queue). Default 20 (backward-compat).
+  const queueDepth = resolveComboQueueDepth(config);
   const maxRetries = config.maxRetries ?? 1;
   const retryDelayMs = resolveDelayMs(config.retryDelayMs, 2000);
   const fallbackDelayMs = resolveDelayMs(config.fallbackDelayMs, 0);
@@ -2084,6 +2088,7 @@ async function handleRoundRobinCombo({
       release = await semaphore.acquire(semaphoreKey, {
         maxConcurrency: concurrency,
         timeoutMs: queueTimeout,
+        maxQueueSize: queueDepth,
       });
     } catch (err) {
       const errCode = isRecord(err) && typeof err.code === "string" ? err.code : null;

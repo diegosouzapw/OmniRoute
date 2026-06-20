@@ -25,6 +25,14 @@ interface ModelGate {
 interface AcquireOptions {
   maxConcurrency?: number;
   timeoutMs?: number;
+  /**
+   * Maximum number of requests allowed to wait in the per-model queue (#3872). When
+   * the queue is already this deep, a new acquire rejects immediately with
+   * `SEMAPHORE_QUEUE_FULL` instead of waiting, so the round-robin combo loop cascades
+   * to the next member right away (0 = never queue → fail over immediately). Omitted /
+   * negative keeps the historical unbounded-queue behavior.
+   */
+  maxQueueSize?: number;
 }
 
 interface RateLimitStatsEntry {
@@ -124,12 +132,13 @@ function createReleaseFn(modelStr: string): () => void {
  * @param {Object} [options]
  * @param {number} [options.maxConcurrency=3] - Max concurrent requests for this model
  * @param {number} [options.timeoutMs=30000] - Max wait time in queue
+ * @param {number} [options.maxQueueSize] - Max queued waiters before SEMAPHORE_QUEUE_FULL (#3872)
  * @returns {Promise<Function>} Release function — MUST be called when done
- * @throws {Error} If queue timeout expires ("SEMAPHORE_TIMEOUT")
+ * @throws {Error} If queue timeout expires ("SEMAPHORE_TIMEOUT") or the queue is full ("SEMAPHORE_QUEUE_FULL")
  */
 export function acquire(
   modelStr: string,
-  { maxConcurrency = 3, timeoutMs = 30000 }: AcquireOptions = {}
+  { maxConcurrency = 3, timeoutMs = 30000, maxQueueSize }: AcquireOptions = {}
 ): Promise<() => void> {
   const gate = getGate(modelStr, maxConcurrency);
 
@@ -137,6 +146,18 @@ export function acquire(
   if (gate.running < gate.max && !isRateLimited(gate)) {
     gate.running++;
     return Promise.resolve(createReleaseFn(modelStr));
+  }
+
+  // #3872: bounded queue — once the queue is full, fail fast so the round-robin combo
+  // cascades to the next member immediately instead of deep-queueing for up to timeoutMs.
+  if (typeof maxQueueSize === "number" && maxQueueSize >= 0 && gate.queue.length >= maxQueueSize) {
+    const err = new Error(`Semaphore queue full (${maxQueueSize}) for ${modelStr}`) as Error & {
+      code?: string;
+    };
+    err.code = "SEMAPHORE_QUEUE_FULL";
+    // Drop a freshly-created idle gate so we don't leak an empty entry.
+    if (gate.running === 0 && gate.queue.length === 0) gates.delete(modelStr);
+    return Promise.reject(err);
   }
 
   // Slow path: enqueue and wait
