@@ -618,11 +618,35 @@ function clampEffort(model: string, requested: string): string {
   return requested;
 }
 
+const CODEX_REASONING_ENCRYPTED_CONTENT_INCLUDE = "reasoning.encrypted_content";
+const CODEX_DEFAULT_REASONING_SUMMARY = "auto";
+
 function normalizeEffortValue(value: unknown): string | undefined {
   if (typeof value !== "string") return undefined;
   const normalized = value.trim().toLowerCase();
   if (normalized === "max") return "xhigh";
   return normalized || undefined;
+}
+
+function ensureCodexReasoningSummary(body: Record<string, unknown>): void {
+  const reasoning =
+    body.reasoning && typeof body.reasoning === "object" && !Array.isArray(body.reasoning)
+      ? (body.reasoning as Record<string, unknown>)
+      : null;
+  if (!reasoning || normalizeEffortValue(reasoning.effort) === "none") return;
+
+  if (!("summary" in reasoning)) {
+    reasoning.summary = CODEX_DEFAULT_REASONING_SUMMARY;
+  }
+
+  if (!Array.isArray(body.include)) {
+    body.include = [CODEX_REASONING_ENCRYPTED_CONTENT_INCLUDE];
+    return;
+  }
+
+  if (!body.include.includes(CODEX_REASONING_ENCRYPTED_CONTENT_INCLUDE)) {
+    body.include = [...body.include, CODEX_REASONING_ENCRYPTED_CONTENT_INCLUDE];
+  }
 }
 
 function consumeResponsesStoreMarker(body: Record<string, unknown>): unknown {
@@ -1321,6 +1345,7 @@ export class CodexExecutor extends BaseExecutor {
         effort: clampEffort(cleanModel, rawEffort),
       };
     }
+    ensureCodexReasoningSummary(body);
     delete body.reasoning_effort;
 
     // Remove unsupported token limit parameters BEFORE the passthrough return.
