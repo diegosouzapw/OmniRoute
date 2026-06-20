@@ -8,6 +8,10 @@
 
 _In development — bullets added per PR; finalized at release._
 
+### ✨ New Features
+
+- **feat(providers): expand the openai and gemini direct registries with first-class variants already known elsewhere** — the `openai` provider entry now exposes `gpt-4.1-mini`, `gpt-4.1-nano`, `o3-mini`, and `o4-mini` (the latter two carry `REASONING_UNSUPPORTED` like `o3`), and the `gemini` entry now exposes `gemini-2.0-flash-lite` and `gemini-3-flash-lite-preview`. These models were already first-class throughout sibling subsystems (cost estimator, task fitness, free-model catalog, multiple aggregator registries) but happened to be missing from the direct openai/gemini namespaces. Embedding/TTS/image-gen models stay in their dedicated registries (`embeddingRegistry.ts`, `audioRegistry.ts`, `imageRegistry.ts`); legacy ids OmniRoute curated out (o1, gpt-4-turbo, …) are not restored. (thanks @East-rayyy)
+
 ### 🐛 Fixed
 
 - **fix(combo): round-robin members fail over faster under concurrency saturation via a configurable queue depth** — when a round-robin combo member was saturated, requests sat in the per-model semaphore's **unbounded** queue and only failed over to the next member after the full `queueTimeoutMs` (default 30s) elapsed — so a burst of agentic requests deep-queued one hot member instead of spilling to healthy ones. The per-model semaphore now accepts a bounded queue depth and emits `SEMAPHORE_QUEUE_FULL` once it is full (the round-robin loop already cascades on that code), so a configured low depth fails over immediately. A new `queueDepth` combo-config knob (global default / provider override / per-combo, default **20** for backward compatibility; **0** = never queue → fail over now) is exposed in Settings → Combo Defaults. ([#3872](https://github.com/diegosouzapw/OmniRoute/issues/3872) — thanks @KooshaPari)
