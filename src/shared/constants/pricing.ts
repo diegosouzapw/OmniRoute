@@ -694,6 +694,20 @@ export const DEFAULT_PRICING = {
       reasoning: 12.0,
       cache_creation: 2.0,
     },
+    "gpt-4.1-mini": {
+      input: 0.4,
+      output: 1.6,
+      cached: 0.1,
+      reasoning: 2.4,
+      cache_creation: 0.4,
+    },
+    "gpt-4.1-nano": {
+      input: 0.1,
+      output: 0.4,
+      cached: 0.025,
+      reasoning: 0.6,
+      cache_creation: 0.1,
+    },
     "gpt-4o": {
       input: 2.5,
       output: 10.0,
@@ -721,6 +735,20 @@ export const DEFAULT_PRICING = {
       cached: 0.5,
       reasoning: 12.0,
       cache_creation: 2.0,
+    },
+    "o3-mini": {
+      input: 1.1,
+      output: 4.4,
+      cached: 0.55,
+      reasoning: 6.6,
+      cache_creation: 1.1,
+    },
+    "o4-mini": {
+      input: 1.1,
+      output: 4.4,
+      cached: 0.275,
+      reasoning: 6.6,
+      cache_creation: 1.1,
     },
     "gpt-4-turbo": {
       input: 10.0,
