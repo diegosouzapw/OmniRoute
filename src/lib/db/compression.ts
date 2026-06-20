@@ -2,8 +2,8 @@ import { backupDbFile } from "./backup";
 import { getDefaultCompressionCombo } from "./compressionCombos";
 import { getDbInstance } from "./core";
 import { invalidateDbCache } from "./readCache";
-import { ENGINE_IDS } from "@omniroute/open-sse/services/compression/engineCatalog.ts";
 import {
+  ENGINE_IDS,
   DEFAULT_AGGRESSIVE_CONFIG,
   DEFAULT_CAVEMAN_CONFIG,
   DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG,
