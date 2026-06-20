@@ -938,7 +938,19 @@ export class BaseExecutor {
             }
           }
 
-          if (headerThinking === "adaptive") {
+          // Anthropic rejects `thinking` (enabled/adaptive) when tool_choice forces a
+          // specific tool ({type:"any"|"tool"}): "Thinking may not be enabled when
+          // tool_choice forces tool use". Treat forced tool_choice as an implicit
+          // `thinking: off` so neither the explicit-adaptive branch nor the default CC
+          // injection below produces the invalid combination (incl. client-sent thinking).
+          const toolChoiceForced =
+            tb.tool_choice === "any" ||
+            (typeof tb.tool_choice === "object" &&
+              tb.tool_choice !== null &&
+              ((tb.tool_choice as Record<string, unknown>).type === "any" ||
+                (tb.tool_choice as Record<string, unknown>).type === "tool"));
+          const effThinking = toolChoiceForced ? "off" : headerThinking;
+          if (effThinking === "adaptive") {
             if (tb.thinking === undefined) {
               tb.thinking = { type: "adaptive" };
               appliedThinking = "adaptive";
@@ -948,11 +960,11 @@ export class BaseExecutor {
                 edits: [{ type: "clear_thinking_20251015", keep: "all" }],
               };
             }
-          } else if (headerThinking === "off") {
+          } else if (effThinking === "off") {
             delete tb.thinking;
             delete tb.context_management;
             appliedThinking = "off";
-          } else if (!headerThinking && !headerEffort) {
+          } else if (!effThinking && !headerEffort) {
             // Default CC logic when no override headers are present
             const isHaiku = typeof tb.model === "string" && tb.model.includes("haiku");
             if (isHaiku) {
