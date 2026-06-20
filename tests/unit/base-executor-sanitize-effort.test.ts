@@ -250,13 +250,25 @@ test("sanitizeReasoningEffortForProvider: mistral/devstral strips reasoning_effo
   );
 });
 
-test("sanitizeReasoningEffortForProvider: github/claude-opus strips reasoning_effort entirely", () => {
+test("sanitizeReasoningEffortForProvider: github/claude-opus-4.6 preserves reasoning_effort (#791)", () => {
+  // Upstream PR decolua/9router#791 (port): Copilot now honors reasoning_effort
+  // on Claude Opus 4.6 and Sonnet 4.6. Older Opus variants and Haiku still strip.
   const body = {
     model: "claude-opus-4-6",
     reasoning_effort: "high",
     messages: [],
   };
   const result = sanitizeReasoningEffortForProvider(body, "github", "claude-opus-4-6", null);
+  assert.equal((result as any).reasoning_effort, "high");
+});
+
+test("sanitizeReasoningEffortForProvider: github/claude-opus-4.7 still strips (#791)", () => {
+  const body = {
+    model: "claude-opus-4.7",
+    reasoning_effort: "high",
+    messages: [],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "github", "claude-opus-4.7", null);
   assert.equal((result as any).reasoning_effort, undefined);
 });
 
@@ -274,6 +286,10 @@ test("sanitizeReasoningEffortForProvider: rejecting providers strip max before n
   );
   assert.equal((mistralResult as any).reasoning_effort, undefined);
 
+  // Pre-#791: github stripped reasoning_effort entirely for every Claude model.
+  // Post-#791: Opus 4.6 keeps reasoning_effort; `max` downgrades to `high`
+  // because github is not Claude/CC-compatible (so supportsMax=false) and
+  // the canonical Claude Opus 4.6 model opts out of xhigh.
   const githubBody = {
     model: "claude-opus-4-6",
     reasoning_effort: "max",
@@ -285,7 +301,22 @@ test("sanitizeReasoningEffortForProvider: rejecting providers strip max before n
     "claude-opus-4-6",
     null
   );
-  assert.equal((githubResult as any).reasoning_effort, undefined);
+  assert.equal((githubResult as any).reasoning_effort, "high");
+
+  // Pre-#791 strip is preserved for github Claude models that DO NOT opt in
+  // (Haiku 4.5, Opus 4.7, older Sonnet, etc.).
+  const githubHaiku = {
+    model: "claude-haiku-4.5",
+    reasoning_effort: "max",
+    messages: [],
+  };
+  const githubHaikuResult = sanitizeReasoningEffortForProvider(
+    githubHaiku,
+    "github",
+    "claude-haiku-4.5",
+    null
+  );
+  assert.equal((githubHaikuResult as any).reasoning_effort, undefined);
 });
 
 test("sanitizeReasoningEffortForProvider: mistral/devstral strips reasoning object when only effort present", () => {

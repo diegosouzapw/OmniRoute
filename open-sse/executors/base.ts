@@ -242,6 +242,18 @@ function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
  * xhigh by default and falls back to high only for explicit xhigh opt-outs.
  */
 const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
+// GitHub Copilot Claude routing is granular (upstream port: decolua/9router#791):
+//   ✅ Pass through — Claude Opus 4.6, Claude Sonnet 4.6. Copilot routes both to
+//      Anthropic's chat/completions surface, which honors reasoning_effort and
+//      emits visible reasoning tokens (verified upstream: 3× token increase
+//      between low/medium/high).
+//   ❌ Strip — Claude Haiku 4.5 and Claude Opus 4.7 (rejected upstream by
+//      Copilot's Claude backend), older Claude variants, all `haiku`-named
+//      models, and the `oswe-*` family (Raptor) which still rejects
+//      reasoning_effort.
+// Order matters: the opt-in check must run BEFORE the broad Claude/haiku/oswe strip.
+const GITHUB_REASONING_EFFORT_OPT_IN_PATTERN =
+  /claude[-_.]?(?:opus|sonnet)[-_.]?4[-_.]6/i;
 const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;
 
 function supportsMaxEffortForProvider(provider: string, model: string): boolean {
@@ -269,9 +281,11 @@ export function sanitizeReasoningEffortForProvider(
   const effortStr = typeof effort === "string" ? effort.toLowerCase() : "";
   const modelStr = model || "";
 
+  const githubOptIn =
+    provider === "github" && GITHUB_REASONING_EFFORT_OPT_IN_PATTERN.test(modelStr);
   const rejecting =
     (provider === "mistral" && MISTRAL_NO_REASONING_EFFORT_PATTERN.test(modelStr)) ||
-    (provider === "github" && GITHUB_NO_REASONING_EFFORT_PATTERN.test(modelStr));
+    (provider === "github" && !githubOptIn && GITHUB_NO_REASONING_EFFORT_PATTERN.test(modelStr));
   if (rejecting) {
     log?.info?.(
       "REASONING_SANITIZE",
