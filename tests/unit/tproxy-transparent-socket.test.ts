@@ -113,15 +113,28 @@ test("loadTransparentAddon loads the addon from the cwd-relative standalone path
   assert.equal(addon, fake);
 });
 
-test("isTransparentSocketAvailable returns a boolean (false in CI — addon not built)", () => {
+// The native addon is built CONDITIONALLY (prebuilds — #4236), so its presence is
+// environment-dependent: absent on a JS-only install, present on runners where the
+// prebuilt .node loads (e.g. the Node-compat CI jobs). These tests must hold in both
+// states: when absent, the helpers throw the actionable "not available" guard; when
+// present, the call reaches the OS and throws a runtime error (no CAP_NET_ADMIN /
+// TPROXY privileges in CI) — still throwing, just not the guard message.
+test("isTransparentSocketAvailable returns a boolean (addon presence is environment-dependent)", () => {
   assert.equal(typeof isTransparentSocketAvailable(), "boolean");
-  assert.equal(isTransparentSocketAvailable(), false);
 });
 
-test("createTransparentListenerFd throws a clear, actionable error when unavailable", () => {
-  assert.throws(() => createTransparentListenerFd("0.0.0.0", 8443), /not available|Linux|build/i);
+test("createTransparentListenerFd throws when unavailable (guard) or when present without privileges (OS error)", () => {
+  if (isTransparentSocketAvailable()) {
+    assert.throws(() => createTransparentListenerFd("0.0.0.0", 8443));
+  } else {
+    assert.throws(() => createTransparentListenerFd("0.0.0.0", 8443), /not available|Linux|build/i);
+  }
 });
 
-test("setSocketMark throws when the addon is unavailable", () => {
-  assert.throws(() => setSocketMark(7, 0x539), /not available/i);
+test("setSocketMark throws when unavailable (guard) or when present without privileges (OS error)", () => {
+  if (isTransparentSocketAvailable()) {
+    assert.throws(() => setSocketMark(7, 0x539));
+  } else {
+    assert.throws(() => setSocketMark(7, 0x539), /not available/i);
+  }
 });

@@ -284,7 +284,11 @@ describe("API Routes — dashboard and tool consumers", () => {
     assert.match(globals, /--color-card:\s+#ffffff/);
     assert.match(globals, /--color-card:\s+#161b22/);
     assert.match(globals, /--color-card:\s+var\(--color-card\)/);
-    assert.match(requestLogger, /bg-black\/5 dark:bg-black\/20/);
+    // #4233 ("opaque tables D9") replaced the bg-black/5 tint — which lost to
+    // bg-surface via tailwind-merge — with the opaque bg-surface theme color.
+    // The intent here (request log surface stays opaque over theme colors) is now
+    // expressed by bg-surface itself.
+    assert.match(requestLogger, /bg-surface/);
     assert.doesNotMatch(requestLogger, /\/api\/logs\/active/);
   });
 
