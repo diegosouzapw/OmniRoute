@@ -71,6 +71,7 @@ import { registerSetupQwen } from "./setup-qwen.mjs";
 import { registerSetupAider } from "./setup-aider.mjs";
 import { registerSetupGemini } from "./setup-gemini.mjs";
 import { registerConnect } from "./connect.mjs";
+import { registerContexts } from "./contexts.mjs";
 import { registerTokens } from "./tokens.mjs";
 import { registerConfigure } from "./configure.mjs";
 import { registerApiCommands } from "../api-commands/registry.mjs";
@@ -151,6 +152,7 @@ export function registerCommands(program) {
   registerSetupAider(program);
   registerSetupGemini(program);
   registerConnect(program);
+  registerContexts(program);
   registerTokens(program);
   registerConfigure(program);
   registerApiCommands(program);

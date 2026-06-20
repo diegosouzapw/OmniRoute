@@ -241,3 +241,21 @@ test("commands/contexts.mjs registers a `current` subcommand", async () => {
   registerContexts(fakeProgram);
   assert.ok(sub.includes("current"), `expected a 'current' subcommand, got: ${sub.join(", ")}`);
 });
+
+test("createProgram wires the remote-mode commands into the real CLI program", async () => {
+  // Regression: contexts.mjs existed and was unit-tested in isolation, but its
+  // registerContexts() was never called by registry.mjs — so `omniroute contexts`
+  // fell through to `serve`, and `connect`'s own advice ("omniroute contexts use
+  // default") was a dead command. Build the REAL program and assert the wiring.
+  const { createProgram } = await import("../../bin/cli/program.mjs");
+  const program = createProgram();
+  const names = program.commands.map((c: any) => c.name());
+  for (const cmd of ["contexts", "connect", "tokens", "configure"]) {
+    assert.ok(names.includes(cmd), `expected top-level '${cmd}' command, got: ${names.join(", ")}`);
+  }
+  const contexts = program.commands.find((c: any) => c.name() === "contexts");
+  const subs = contexts.commands.map((c: any) => c.name());
+  for (const sub of ["list", "use", "current"]) {
+    assert.ok(subs.includes(sub), `expected 'contexts ${sub}' subcommand, got: ${subs.join(", ")}`);
+  }
+});
