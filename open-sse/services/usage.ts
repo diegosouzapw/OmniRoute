@@ -1813,6 +1813,23 @@ const _geminiCliSubCache = new Map<string, SubscriptionCacheEntry>();
 const GEMINI_CLI_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 /**
+ * Normalize a Cloud Code project value into a trimmed string (or null).
+ * The upstream `loadCodeAssist` endpoint returns the project either as a bare
+ * string or as an object of the form `{ id: "..." }`, and stored connection
+ * project ids can carry stray whitespace. Centralized here so the Gemini CLI
+ * usage path matches the executor/oauth normalization already shipped in
+ * `open-sse/executors/gemini-cli.ts` and `src/lib/oauth/services/gemini.ts`.
+ */
+function normalizeCloudCodeProjectId(project: unknown): string | null {
+  if (typeof project === "string") return project.trim() || null;
+  if (project && typeof project === "object") {
+    const candidate = (project as { id?: unknown }).id;
+    if (typeof candidate === "string") return candidate.trim() || null;
+  }
+  return null;
+}
+
+/**
  * Gemini CLI Usage — fetch per-model quota from Cloud Code Assist API.
  * Gemini CLI and Antigravity share the same upstream (cloudcode-pa.googleapis.com),
  * so this follows the same pattern as getAntigravityUsage().
@@ -1827,17 +1844,28 @@ async function getGeminiUsage(
   }
 
   try {
-    const subscriptionInfo = await getGeminiCliSubscriptionInfoCached(accessToken);
-    const projectId =
-      connectionProjectId ||
-      providerSpecificData?.projectId ||
-      toRecord(subscriptionInfo).cloudaicompanionProject ||
-      null;
-
-    const plan = getGeminiCliPlanLabel(subscriptionInfo);
+    // #1271: the OAuth save path stores `projectId` on the connection (not always in
+    // `providerSpecificData`), and `loadCodeAssist` may return the project either as a
+    // bare string or wrapped in `{ id: "..." }`. Normalize both so the quota lookup
+    // reuses the stored project id and skips a redundant `loadCodeAssist` round-trip
+    // when it is already known.
+    let projectId =
+      normalizeCloudCodeProjectId(connectionProjectId) ||
+      normalizeCloudCodeProjectId(providerSpecificData?.projectId);
+    let plan = "Free";
 
     if (!projectId) {
-      return { plan, message: "Gemini CLI project ID not available." };
+      const subscriptionInfo = await getGeminiCliSubscriptionInfoCached(accessToken);
+      projectId = normalizeCloudCodeProjectId(toRecord(subscriptionInfo).cloudaicompanionProject);
+      plan = getGeminiCliPlanLabel(subscriptionInfo);
+    }
+
+    if (!projectId) {
+      return {
+        plan,
+        message:
+          "Gemini CLI project ID not available. Reconnect Gemini CLI, or configure a Google Cloud project with Gemini Code Assist access before checking quota.",
+      };
     }
 
     // Use retrieveUserQuota (same endpoint as Gemini CLI /stats command).
