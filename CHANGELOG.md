@@ -11,6 +11,9 @@ _In development — bullets added per PR; finalized at release._
 ### 🐛 Fixed
 
 - **fix(embeddings): NVIDIA NIM asymmetric embedding models inject the required `input_type`** — NVIDIA NIM asymmetric embedders (e.g. `nvidia/nv-embedqa-e5-v5`) reject requests without an `input_type` parameter with `400 "'input_type' parameter is required"`, but OmniRoute only forwarded `input_type` when the client supplied it — so callers (and OpenAI-style SDKs that don't emit the field) got a hard failure. The embedding registry now carries a model-level default (`input_type: "query"`) for the asymmetric NVIDIA model, and the embeddings handler injects a model's default params into the upstream body **only** when the client didn't already send them — a client-supplied `input_type` (e.g. `"passage"`) is respected unchanged, and symmetric models that carry no default are unaffected. (thanks @hydraromania)
+### 🔒 Security
+
+- **fix(mitm): exact host membership in the MITM hosts test (CodeQL false positive)** — `tests/unit/mitm-tool-hosts.test.ts` checked host membership with `Array.includes(host)`, which CodeQL's `js/incomplete-url-substring-sanitization` heuristic misreads as a `String.includes()` URL-substring sanitization test (HIGH false positive). Switched to `.some((h) => h === host)` — identical semantics, no flagged pattern. ([#4386](https://github.com/diegosouzapw/OmniRoute/pull/4386))
 
 ---
 
