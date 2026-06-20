@@ -2,6 +2,17 @@
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { lookupReasoning, recordReplay } from "../../services/reasoningCache.ts";
 
+// MiniMax exposes a Claude-compatible endpoint but rejects Anthropic's extended
+// `output_config` parameter (used to steer reasoning effort and structured output)
+// with a generic 400 "invalid params" response. Strip the entire field before
+// dispatching Claude-shape requests to these providers. Anthropic Claude and
+// other Claude-compatible upstreams that do accept it are unaffected.
+// Ported from upstream decolua/9router#820 by @hiepau1231.
+const CLAUDE_FORMAT_PROVIDERS_WITHOUT_OUTPUT_CONFIG = new Set<string>([
+  "minimax",
+  "minimax-cn",
+]);
+
 // Placeholder thinking text used as last-resort fallback when:
 //   - Target upstream is a non-Anthropic Claude-shape provider
 //     (kimi-coding, glmt, zai, …) that rejects redacted_thinking blobs
@@ -211,6 +222,13 @@ export function prepareClaudeRequest(
   provider: string | null = null,
   preserveCacheControl = false
 ): ClaudeRequestBody {
+  // 0. Strip Anthropic `output_config` for providers that reject it on their
+  // Claude-compatible endpoints (MiniMax). Must run before any downstream
+  // processing so the field never reaches translateRequest/the executor.
+  if (provider && CLAUDE_FORMAT_PROVIDERS_WITHOUT_OUTPUT_CONFIG.has(provider)) {
+    delete body.output_config;
+  }
+
   // 1. System: remove all cache_control, add only to last block with ttl 1h
   // In passthrough mode, preserve existing cache_control markers
   const supportsPromptCaching =
