@@ -99,7 +99,49 @@ export class GithubExecutor extends BaseExecutor {
       modifiedBody.tools = modifiedBody.tools.slice(0, 128);
     }
 
+    // GitHub Copilot /chat/completions only accepts {type:'text'} or {type:'image_url'}
+    // content parts. Clients like Cursor IDE pass through Anthropic-shape parts
+    // (tool_use, tool_result, thinking) untouched when using Claude models, which makes
+    // the endpoint return: "type has to be either 'image_url' or 'text'" (HTTP 400).
+    // Serialize unknown part types as text, drop empty parts, and collapse to null when
+    // every part is stripped (assistant messages whose only content was tool_calls).
+    // Port from 9router#220 (fixes 9router#219).
+    if (Array.isArray(modifiedBody.messages)) {
+      modifiedBody.messages = modifiedBody.messages.map((msg: any) =>
+        this.sanitizeChatCompletionsMessage(msg)
+      );
+    }
+
     return modifiedBody;
+  }
+
+  private sanitizeChatCompletionsMessage(msg: any): any {
+    if (!msg || typeof msg !== "object") return msg;
+    // String content and missing content (e.g. assistant w/ only tool_calls) pass through.
+    if (typeof msg.content === "string" || msg.content == null) return msg;
+    if (!Array.isArray(msg.content)) return msg;
+
+    const cleanContent = msg.content
+      .map((part: any) => {
+        if (!part || typeof part !== "object") return part;
+        if (part.type === "text") return part;
+        if (part.type === "image_url") return part;
+        // Serialize any unsupported part (tool_use, tool_result, thinking, etc.) as text.
+        // Try common text-carrying fields first; fall back to a JSON dump so nothing is
+        // silently dropped from the model's context.
+        const raw =
+          (typeof part.text === "string" && part.text) ||
+          (typeof part.thinking === "string" && part.thinking) ||
+          (typeof part.content === "string" && part.content) ||
+          (part.content != null && JSON.stringify(part.content)) ||
+          JSON.stringify(part);
+        return { type: "text", text: typeof raw === "string" ? raw : JSON.stringify(raw) };
+      })
+      .filter((part: any) => !(part && part.type === "text" && part.text === ""));
+
+    // If every part stripped to empty (e.g. tool_use with no text), collapse to null so
+    // GitHub does not reject an empty-array body. tool_calls ride alongside content.
+    return { ...msg, content: cleanContent.length > 0 ? cleanContent : null };
   }
 
   async execute(input: ExecuteInput) {

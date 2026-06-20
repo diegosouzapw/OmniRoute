@@ -97,6 +97,102 @@ test("GithubExecutor.transformRequest injects JSON response instructions for Cla
   assert.equal(result.messages[2].reasoning_content, undefined);
 });
 
+test("GithubExecutor.transformRequest sanitizes Anthropic-shape content parts (tool_use, tool_result, thinking) for /chat/completions (port from 9router#220)", () => {
+  // GitHub Copilot /chat/completions only accepts {type:'text'} or {type:'image_url'} content
+  // parts. Clients like Cursor IDE pass through Anthropic-shape parts (tool_use, tool_result,
+  // thinking) untouched when using Claude models, which makes the endpoint return:
+  //   "type has to be either 'image_url' or 'text'" (HTTP 400)
+  // Port: serialize unknown part types as text, drop empty content, and skip assistant
+  // messages whose only content was tool_calls (content collapses to null).
+  const executor = new GithubExecutor();
+  const body = {
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "Search for X" },
+          { type: "image_url", image_url: { url: "data:image/png;base64,AAAA" } },
+        ],
+      },
+      {
+        role: "assistant",
+        content: [
+          { type: "thinking", thinking: "let me search" },
+          { type: "tool_use", id: "call_1", name: "search", input: { q: "X" } },
+        ],
+      },
+      {
+        role: "tool",
+        tool_call_id: "call_1",
+        content: [{ type: "tool_result", tool_use_id: "call_1", content: "result" }],
+      },
+    ],
+  };
+
+  const result = executor.transformRequest("claude-sonnet-4.6", body, true, {});
+
+  // user message keeps text + image_url parts untouched
+  assert.equal(result.messages[0].content[0].type, "text");
+  assert.equal(result.messages[0].content[0].text, "Search for X");
+  assert.equal(result.messages[0].content[1].type, "image_url");
+  assert.equal(result.messages[0].content[1].image_url?.url, "data:image/png;base64,AAAA");
+
+  // assistant: thinking + tool_use serialized to text type — no unknown type leaks to wire
+  for (const part of result.messages[1].content) {
+    assert.ok(part.type === "text" || part.type === "image_url", `unsupported type leaked: ${part.type}`);
+  }
+  assert.ok(result.messages[1].content.some((p: any) => /let me search/.test(p.text)));
+  assert.ok(result.messages[1].content.some((p: any) => /search/.test(p.text) && /"q":"X"/.test(p.text)));
+
+  // tool message: tool_result serialized to text — no unknown type leaks
+  for (const part of result.messages[2].content) {
+    assert.ok(part.type === "text" || part.type === "image_url", `unsupported type leaked: ${part.type}`);
+  }
+});
+
+test("GithubExecutor.transformRequest collapses assistant content to null when every part stripped to empty", () => {
+  // assistant messages whose only content was tool_use (no text) should not ship empty
+  // strings to /chat/completions — GitHub rejects "" parts. Mirror upstream by dropping
+  // empty parts and falling back to null when nothing meaningful remains.
+  const executor = new GithubExecutor();
+  const body = {
+    messages: [
+      {
+        role: "assistant",
+        content: [{ type: "tool_use", id: "call_x", name: "noop", input: {} }],
+        tool_calls: [{ id: "call_x", type: "function", function: { name: "noop", arguments: "{}" } }],
+      },
+    ],
+  };
+
+  const result = executor.transformRequest("claude-sonnet-4.6", body, true, {});
+  // Either null or an array of {text:non-empty} — never an empty-text part.
+  const c = result.messages[0].content;
+  if (Array.isArray(c)) {
+    for (const part of c) {
+      assert.notEqual(part.text, "", "empty text part leaked to wire");
+    }
+  } else {
+    assert.equal(c, null);
+  }
+  // tool_calls must survive — they ride alongside content
+  assert.equal(result.messages[0].tool_calls[0].id, "call_x");
+});
+
+test("GithubExecutor.transformRequest leaves string content and missing content untouched", () => {
+  const executor = new GithubExecutor();
+  const body = {
+    messages: [
+      { role: "user", content: "plain string" },
+      { role: "assistant", tool_calls: [{ id: "c1", type: "function", function: { name: "f", arguments: "{}" } }] },
+    ],
+  };
+  const result = executor.transformRequest("claude-sonnet-4.6", body, true, {});
+  assert.equal(result.messages[0].content, "plain string");
+  assert.equal(result.messages[1].content, undefined);
+  assert.equal(result.messages[1].tool_calls[0].id, "c1");
+});
+
 test("GithubExecutor.buildHeaders prefers Copilot token and sets GitHub-specific headers", () => {
   const executor = new GithubExecutor();
   const headers = executor.buildHeaders(
