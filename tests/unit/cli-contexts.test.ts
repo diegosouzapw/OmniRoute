@@ -92,3 +92,40 @@ test("confirm() declines cleanly on non-interactive stdin (no hung await)", asyn
     else delete (process.stdin as { isTTY?: boolean }).isTTY;
   }
 });
+
+test("registerContexts registers the singular `context` alias", async () => {
+  // The connect output and older docs say `omniroute context current` (singular);
+  // the command is `contexts`. An alias keeps the singular muscle-memory working.
+  const { registerContexts } = await import("../../bin/cli/commands/contexts.mjs");
+  let aliasName: string | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fakeCtx: any = {
+    command() {
+      return this;
+    },
+    alias(a: string) {
+      aliasName = a;
+      return this;
+    },
+    description() {
+      return this;
+    },
+    requiredOption() {
+      return this;
+    },
+    option() {
+      return this;
+    },
+    action() {
+      return this;
+    },
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fakeProgram: any = {
+    command() {
+      return fakeCtx;
+    },
+  };
+  registerContexts(fakeProgram);
+  assert.equal(aliasName, "context");
+});

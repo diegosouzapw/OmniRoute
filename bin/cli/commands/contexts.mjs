@@ -34,6 +34,7 @@ function maskKey(k) {
 export function registerContexts(program) {
   const ctx = program
     .command("contexts")
+    .alias("context") // singular alias — docs/connect output historically said `context current`
     .description(t("config.contexts.description") || "Manage server contexts/profiles");
 
   ctx
