@@ -72,6 +72,7 @@
   "_rebaseline_2026_06_17_duckduckgo_free": "Free web search (free-claude-code port, Fase 6) own growth: handlers/search.ts 1442->1546 (+104 = tryDuckDuckGoFreeProvider, a dedicated provider path mirroring the existing tryZaiMCPProvider special-case: the lite endpoint returns HTML, not the JSON the generic tryProvider()/normalizeResponse() flow expects, so it cannot reuse that path). The reusable parser + guarded fetch (parseDuckDuckGoLite, freeWebSearch) live in the new small open-sse/services/freeWebSearch.ts (well under cap). Cohesive at the per-provider dispatch chokepoint; not extractable without hiding the provider boundary.",
   "_rebaseline_2026_06_18_4228_combo_fallback_bailout": "PR #4228 own growth: combo.ts 2597->2601 (+4 at the existing proactive-fallback applyCompression call in handleComboChat = opt into the TV1 bail-out so a throwing fallback engine is SKIPPED instead of propagating out of executeTarget and being swallowed as a 'Speculative task error' that silently drops the combo target). minGainPercent:0 keeps the advance behavior identical to the default path — this only adds skip-on-throw. The bailout option is threaded through the (non-frozen) strategySelector.ts applyCompression signature down to applyStackedCompression. Cohesive guard at the existing fallback-compression chokepoint; not extractable without hiding the call site.",
   "_rebaseline_2026_06_17_stream_recovery": "Stream recovery wiring (free-claude-code port, Fase 4) own growth: chatCore.ts 5898->5980 (+82 at the existing streaming-return chokepoint: read the resolved streamRecovery.enabled setting once; when ON, a reopenStream() thunk re-executes the SAME upstream — it closes over the ~15 per-attempt executor locals (executor/provider/modelToCall/bodyToSend/upstreamStream/execCreds/extendedContext/headers builders/onCredentialsRefreshed/skipUpstreamRetry/contextEditingEnabled) — and the body is wrapped with createRecoverableStream for transparent early-retry; OFF keeps the byte-identical wrapReadableStreamWithFinalize path). All reusable logic (HoldbackBuffer, createRecoverableStream, isRetryableStreamError, hasTerminalMarker) lives in the new open-sse/services/streamRecovery.ts (well under cap). Not extractable without hiding the per-attempt executor-dispatch boundary; opt-in (default OFF). Structural shrink of chatCore.ts tracked in #3501.",
+  "_rebaseline_2026_06_20_1263_tailscale_authkey": "Re-baseline #1263 (honor TAILSCALE_AUTHKEY for non-interactive tailscale login): tailscaleTunnel.ts 1189->1202 (+13, exported pure tailscaleUpArgs helper + env read + wiring). Cohesive tunnel logic; not extractable.",
   "cap": 800,
   "frozen": {
     "open-sse/config/providerRegistry.ts": 4731,
@@ -161,7 +162,7 @@
     "src/lib/memory/retrieval.ts": 1171,
     "src/lib/modelsDevSync.ts": 934,
     "src/lib/providers/validation.ts": 4428,
-    "src/lib/tailscaleTunnel.ts": 1189,
+    "src/lib/tailscaleTunnel.ts": 1202,
     "src/lib/usage/callLogs.ts": 975,
     "src/lib/usage/providerLimits.ts": 949,
     "src/lib/usage/usageHistory.ts": 934,
