@@ -320,17 +320,28 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   ]),
   publicai: buildModels([
     "swiss-ai/apertus-70b-instruct",
+    "swiss-ai/Apertus-8B-Instruct-2509",
     "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+    "aisingapore/Gemma-SEA-LION-v4-27B-IT",
     "allenai/Olmo-3-32B-Think",
+    "allenai/Olmo-3-7B-Instruct",
+    "utter-project/EuroLLM-22B-Instruct-2512",
   ]),
   moonshot: [...buildModels(["kimi-k2.6", "kimi-k2.5"]), ...KIMI_K27_MODELS],
   "meta-llama": buildModels([
     "Llama-4-Maverick-17B-128E-Instruct-FP8",
     "Llama-4-Scout-17B-16E-Instruct-FP8",
     "Llama-3.3-70B-Instruct",
+    "Llama-3.3-8B-Instruct",
   ]),
   "v0-vercel": buildModels(["v0-1.0-md", "v0-1.5-lg", "v0-1.5-md"]),
-  morph: buildModels(["morph-v3-large", "morph-v3-fast"]),
+  morph: [
+    ...buildModels(["morph-v3-large", "morph-v3-fast"]),
+    { id: "morph-qwen35-397b", name: "Qwen 3.5 397B (Morph)", contextLength: 262144 },
+    { id: "morph-minimax27-230b", name: "MiniMax M2.7 (Morph)", contextLength: 200704 },
+    { id: "morph-qwen36-27b", name: "Qwen 3.6 27B (Morph)", contextLength: 131072 },
+    { id: "morph-dsv4flash", name: "DeepSeek V4 Flash (Morph)", contextLength: 1048576 },
+  ],
   "featherless-ai": buildModels(["featherless-ai/Qwerky-72B", "featherless-ai/Qwerky-QwQ-32B"]),
   friendliai: buildModels(["meta-llama-3.1-70b-instruct", "meta-llama-3.1-8b-instruct"]),
   llamagate: buildModels(["qwen2.5-coder-7b", "deepseek-coder-6.7b", "qwen3-vl-8b"]),
@@ -363,14 +374,19 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   ]),
   volcengine: buildModels([
     "deepseek-v3-2-251201",
+    "doubao-seed-2-0-pro-260215",
     "doubao-seed-2-0-code-preview-260215",
-    "kimi-k2-thinking-251104",
+    // Sweep 2026-06-19: kimi-k2-thinking-251104 retired on Ark (volcengine official
+    // notices); replaced by kimi-k2-5-260127.
+    "kimi-k2-5-260127",
     "glm-4-7-251222",
   ]),
   ai21: buildModels(["jamba-large-1.7", "jamba-mini-2"]),
   gigachat: buildModels(["GigaChat-2-Max", "GigaChat-2-Pro", "GigaChat-2-Lite"]),
   venice: buildModels(["venice-latest"]),
-  codestral: buildModels(["codestral-2405", "codestral-latest"]),
+  // Sweep 2026-06-19: codestral-2405 retired 2025-06-16 (Mistral official docs) — dropped
+  // from the menu; old refs auto-forward via the codestral-2405 deprecation alias.
+  codestral: buildModels(["codestral-2508", "codestral-latest"]),
   upstage: buildModels(["solar-pro3", "solar-mini"]),
   maritalk: buildModels(["sabia-4", "sabia-3.1", "sabiazinho-4", "sabiazinho-3"]),
   "xiaomi-mimo": [

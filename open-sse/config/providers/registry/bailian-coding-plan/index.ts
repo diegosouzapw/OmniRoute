@@ -12,6 +12,11 @@ export const bailian_coding_planProvider: RegistryEntry = {
   authHeader: "x-api-key",
   headers: getAnthropicCompatHeaders(),
   models: [
+    // Sweep 2026-06-19: + current Model Studio coding-plan models (help.aliyun.com).
+    { id: "qwen3.7-plus", name: "Qwen3.7 Plus(vision)", contextLength: 1000000 },
+    { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus", contextLength: 1000000 },
+    { id: "qwen3-coder-next", name: "Qwen3 Coder Next", contextLength: 262144 },
+    { id: "glm-4.7", name: "GLM 4.7", contextLength: 202752 },
     { id: "qwen3.6-plus", name: "Qwen3.6 Plus(vision)" },
     { id: "qwen3.5-plus", name: "Qwen3.5 Plus(vision)" },
     { id: "qwen3-max-2026-01-23", name: "Qwen3 Max" },

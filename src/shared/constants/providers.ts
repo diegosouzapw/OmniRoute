@@ -531,7 +531,11 @@ export const WEB_COOKIE_PROVIDERS = {
     freeNote: "Discontinued 2026 — phind.com shut down (2026-01); no free tier.",
     authHint:
       "Paste your session cookie from phind.com (DevTools → Application → Cookies). Optional — works with free tier.",
-    riskNoticeVariant: "webCookie",
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    deprecated: true,
+    deprecationReason:
+      "Phind shut down its API (2026-01); the /api/chat endpoint no longer serves (sweep 2026-06-19).",
   },
   "poe-web": {
     id: "poe-web",
@@ -1269,7 +1273,7 @@ export const APIKEY_PROVIDERS = {
     hasFree: true,
     anonymousFallback: true,
     freeNote:
-      "No API key required for free public endpoint. Optional Spore tier: ~0.01 pollen/hour.",
+      "Free keyless tier: openai, openai-fast, openai-large, qwen-coder, mistral, deepseek, grok, gemini-flash-lite-3.1, perplexity-fast, perplexity-reasoning. Premium models (claude, gemini, midijourney) require a Pollinations API key from enter.pollinations.ai.",
   },
   puter: {
     id: "puter",
@@ -1554,6 +1558,11 @@ export const APIKEY_PROVIDERS = {
     hasFree: false,
     freeNote: "Discontinued 2026 — kluster.ai sunset (2026-06-09); no free tier.",
     apiHint: "Get API key at https://kluster.ai/dashboard/api-keys",
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    deprecated: true,
+    deprecationReason:
+      "kluster.ai shut down (2026-06-09); api.kluster.ai no longer resolves (sweep 2026-06-19). Use another OpenAI-compatible provider.",
   },
   friendliai: {
     id: "friendliai",
@@ -1592,6 +1601,11 @@ export const APIKEY_PROVIDERS = {
     color: "#F59E0B",
     textIcon: "GA",
     website: "https://galadriel.com",
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    deprecated: true,
+    deprecationReason:
+      "api.galadriel.ai no longer resolves (sweep 2026-06-19); the inference API appears discontinued.",
   },
   databricks: {
     id: "databricks",
@@ -1774,8 +1788,13 @@ export const APIKEY_PROVIDERS = {
     color: "#0F766E",
     textIcon: "PB",
     website: "https://predibase.com",
-    hasFree: true,
+    hasFree: false,
     freeNote: "$25 free trial credits (30-day validity)",
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    deprecated: true,
+    deprecationReason:
+      "serving.app.predibase.com no longer resolves (sweep 2026-06-19); the managed serving API appears discontinued.",
   },
   bytez: {
     id: "bytez",
@@ -1855,6 +1874,11 @@ export const APIKEY_PROVIDERS = {
     hasFree: false,
     freeNote: "Discontinued 2026 — glhf.chat free beta ended; no free tier.",
     passthroughModels: true,
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    deprecated: true,
+    deprecationReason:
+      "glhf.chat shut down (2026); its api.laf.run gateway no longer serves the catalog (sweep 2026-06-19).",
   },
   cablyai: {
     id: "cablyai",
@@ -2230,6 +2254,11 @@ export const APIKEY_PROVIDERS = {
     freeNote: "Free Ling-2.6-flash model (1T-param MoE, 262K context). No credit card required.",
     passthroughModels: true,
     authHint: "Get API key at inclusionai.com",
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    deprecated: true,
+    deprecationReason:
+      "api.inclusionai.tech no longer resolves (sweep 2026-06-19); the inference API appears discontinued.",
   },
   liquid: {
     id: "liquid",

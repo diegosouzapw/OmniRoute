@@ -161,6 +161,32 @@ const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   "openadapter",
   "dit",
   "tokenrouter",
+  // provider-model-sweep (2026-06-19): same class as #3976/#4202/#4249 — keyed
+  // openai-style providers with a real live `<baseUrl>/models` catalog, served
+  // their small hardcoded seed because unclassified. Seed stays as offline fallback.
+  "venice",
+  "deepinfra",
+  "wandb",
+  "pollinations",
+  "nscale",
+  "inference-net",
+  "moonshot",
+  // provider-model-sweep (2026-06-19) cont.: GPU-cloud / aggregator marketplaces
+  // hosting large, volatile OSS catalogs. The sweep confirmed each exposes a live
+  // `<baseUrl>/v1/models` endpoint (200 public or 401/403 = exists + keyed), so live
+  // fetch keeps the catalog fresh; the registry seed remains the offline fallback.
+  "crof",
+  "featherless-ai",
+  "ovhcloud",
+  "sambanova",
+  "orcarouter",
+  "uncloseai",
+  "opencode-go",
+  "baseten",
+  "hyperbolic",
+  "nebius",
+  "scaleway",
+  "together",
 ]);
 
 function isNamedOpenAIStyleProvider(provider: string): boolean {

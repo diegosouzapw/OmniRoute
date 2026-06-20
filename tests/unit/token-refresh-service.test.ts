@@ -689,40 +689,40 @@ test("refreshQoderToken uses basic auth once qoder oauth settings are configured
   assert.match(calls[0].options.headers.Authorization, /^Basic /);
 });
 
-test("refreshGitHubToken exchanges the refresh token with github oauth", async () => {
+test("refreshGitHubToken sends the real public github client_id and no client_secret (port from 9router#442)", async () => {
+  // GitHub Copilot's OAuth app is a public device-flow client: it has a client_id but
+  // NO client_secret. PROVIDERS.github.clientId must be populated from the embedded public
+  // cred so the refresh request actually carries a client_id — a missing one makes GitHub
+  // reject the refresh. The previous test patched a fake clientId/clientSecret onto
+  // PROVIDERS.github, masking the fact that the real config had neither. This uses the real
+  // config and asserts the real client_id is sent and no client_secret leaks out.
   const log = createLog();
   const calls: any[] = [];
 
-  await withPatchedProperties(
-    PROVIDERS.github,
-    {
-      clientId: "github-client",
-      clientSecret: "github-secret",
+  await withMockedFetch(
+    async (url, options = {}) => {
+      calls.push({ url, options });
+      return jsonResponse({
+        access_token: "github-access",
+        refresh_token: "github-refresh-next",
+        expires_in: 3600,
+      });
     },
     async () => {
-      await withMockedFetch(
-        async (url, options = {}) => {
-          calls.push({ url, options });
-          return jsonResponse({
-            access_token: "github-access",
-            refresh_token: "github-refresh-next",
-            expires_in: 3600,
-          });
-        },
-        async () => {
-          const result = await refreshGitHubToken("github-refresh", log);
-          assert.deepEqual(result, {
-            accessToken: "github-access",
-            refreshToken: "github-refresh-next",
-            expiresIn: 3600,
-          });
-        }
-      );
+      const result = await refreshGitHubToken("github-refresh", log);
+      assert.deepEqual(result, {
+        accessToken: "github-access",
+        refreshToken: "github-refresh-next",
+        expiresIn: 3600,
+      });
     }
   );
 
+  const body = bodyToString(calls[0].options.body);
   assert.equal(calls[0].url, OAUTH_ENDPOINTS.github.token);
-  assert.match(bodyToString(calls[0].options.body), /client_id=github-client/);
+  assert.ok(PROVIDERS.github.clientId, "PROVIDERS.github.clientId must be populated from the public cred");
+  assert.match(body, /client_id=Iv1\./, "the real public github client_id must be sent on refresh");
+  assert.ok(!body.includes("client_secret="), "no client_secret for the public github client");
 });
 
 test("refreshCopilotToken returns the short-lived copilot token", async () => {

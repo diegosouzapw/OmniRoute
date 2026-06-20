@@ -19,5 +19,7 @@ export const groqProvider: RegistryEntry = {
     { id: "openai/gpt-oss-120b", name: "GPT-OSS 120B" },
     { id: "openai/gpt-oss-20b", name: "GPT-OSS 20B" },
     { id: "qwen/qwen3-32b", name: "Qwen3 32B" },
+    { id: "qwen/qwen3.6-27b", name: "Qwen3.6 27B" },
+    { id: "openai/gpt-oss-safeguard-20b", name: "GPT-OSS Safeguard 20B" },
   ],
 };
