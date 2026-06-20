@@ -418,6 +418,57 @@ async function passthrough(req, res, bodyBuffer) {
   forwardReq.end();
 }
 
+// TEMP CAPTURE (#4295) — NOT FOR MERGE. Forwards a Cursor AvailableModels request to
+// the real upstream while dumping the full Connect/protobuf request+response (base64)
+// so the AvailableModels wire schema can be reverse-engineered. Mirrors passthrough()
+// but buffers the response instead of piping it.
+async function captureAvailableModels(req, res, bodyBuffer, host) {
+  let targetIP;
+  try {
+    targetIP = await resolveTargetIP(host);
+  } catch (err) {
+    console.error(`[CURSOR-CAPTURE] DNS resolve failed for ${host}: ${err.message}`);
+    if (!res.headersSent) res.writeHead(502);
+    return res.end("Bad Gateway");
+  }
+  console.log(`\n[CURSOR-CAPTURE] ===== ${req.method} ${host}${req.url} =====`);
+  console.log(`[CURSOR-CAPTURE] reqHeaders=${JSON.stringify(req.headers)}`);
+  console.log(`[CURSOR-CAPTURE] reqBody.base64(${bodyBuffer.length}B)=${bodyBuffer.toString("base64")}`);
+  const chunks = [];
+  const forwardReq = https.request(
+    {
+      hostname: targetIP,
+      port: 443,
+      path: req.url,
+      method: req.method,
+      headers: { ...req.headers, host },
+      servername: host,
+      rejectUnauthorized: process.env.MITM_DISABLE_TLS_VERIFY !== "1",
+    },
+    (forwardRes) => {
+      forwardRes.on("data", (c) => chunks.push(c));
+      forwardRes.on("end", () => {
+        const respBody = Buffer.concat(chunks);
+        console.log(`[CURSOR-CAPTURE] respStatus=${forwardRes.statusCode}`);
+        console.log(`[CURSOR-CAPTURE] respHeaders=${JSON.stringify(forwardRes.headers)}`);
+        console.log(
+          `[CURSOR-CAPTURE] respBody.base64(${respBody.length}B)=${respBody.toString("base64")}`
+        );
+        console.log(`[CURSOR-CAPTURE] ===== end =====\n`);
+        if (!res.headersSent) res.writeHead(forwardRes.statusCode, forwardRes.headers);
+        res.end(respBody);
+      });
+    }
+  );
+  forwardReq.on("error", (err) => {
+    console.error(`[CURSOR-CAPTURE] upstream error: ${err.message}`);
+    if (!res.headersSent) res.writeHead(502);
+    res.end("Bad Gateway");
+  });
+  if (bodyBuffer.length > 0) forwardReq.write(bodyBuffer);
+  forwardReq.end();
+}
+
 // Build + fire-and-forget the inspector capture entry. NEVER throws — capture
 // must not be able to break proxy traffic. Bodies/headers are sent raw over the
 // token-gated loopback ingest endpoint, which masks secrets server-side.
@@ -569,6 +620,13 @@ const server = https.createServer(sslOptions, async (req, res) => {
   vlog(1, `[MITM] ${req.method} ${host}${req.url} | body: ${bodyBuffer.length}B | model: ${model || "N/A"}`);
 
   if (bodyBuffer.length > 0) saveRequestLog(req.url, bodyBuffer);
+
+  // TEMP CAPTURE (#4295) — gated by MITM_CAPTURE_CURSOR_MODELS=1. Dumps the Cursor
+  // AvailableModels Connect/protobuf request+response in base64 so the AvailableModels
+  // schema can be reverse-engineered. NOT FOR MERGE — remove after capture.
+  if (process.env.MITM_CAPTURE_CURSOR_MODELS === "1" && req.url.includes("AvailableModels")) {
+    return captureAvailableModels(req, res, bodyBuffer, host);
+  }
 
   if (req.headers["x-omniroute-source"] === "omniroute") {
     vlog(1, `[MITM] → PASSTHROUGH (OmniRoute source loop)`);
