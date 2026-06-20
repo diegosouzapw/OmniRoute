@@ -13,6 +13,18 @@ import { MAX_TIMER_TIMEOUT_MS } from "../../src/shared/utils/runtimeTimeouts.ts"
  */
 export const PRE_SCREEN_CONCURRENCY = 5;
 
+/**
+ * Default per-target timeout for combo fallback when a combo does not set its own
+ * `targetTimeoutMs`. Combos exist to fail over fast, so inheriting the full upstream
+ * request timeout (FETCH_TIMEOUT_MS, 600s by default) made a single hung target stall
+ * the whole combo for up to 10 minutes before falling through to the next model
+ * (escalated cmqlrhd7c). For STREAMING requests this only bounds the time-to-first-headers
+ * — token generation streams after the response resolves, so it is NOT cut short. Operators
+ * can still raise it per-combo via `targetTimeoutMs` (capped at the upstream ceiling), or set
+ * a longer value for slow non-streaming reasoning combos.
+ */
+export const DEFAULT_COMBO_TARGET_TIMEOUT_MS = 120_000;
+
 const DEFAULT_COMBO_CONFIG = {
   strategy: "priority",
   maxRetries: 1,
@@ -111,16 +123,28 @@ function normalizePositiveTimeoutMs(value: unknown): number {
 
 export function resolveComboTargetTimeoutMs(
   config: Record<string, unknown> | null | undefined,
-  upstreamTimeoutMs: number
+  upstreamTimeoutMs: number,
+  defaultTimeoutMs: number = 0
 ): number {
-  const inheritedTimeoutMs = normalizePositiveTimeoutMs(upstreamTimeoutMs);
+  const ceilingTimeoutMs = normalizePositiveTimeoutMs(upstreamTimeoutMs);
   const configuredTimeoutMs = isRecord(config)
     ? normalizePositiveTimeoutMs(config.targetTimeoutMs)
     : 0;
 
-  if (configuredTimeoutMs <= 0) return inheritedTimeoutMs;
-  if (inheritedTimeoutMs <= 0) return configuredTimeoutMs;
-  return Math.min(configuredTimeoutMs, inheritedTimeoutMs);
+  // Explicit per-combo config: honour it, but never extend past the upstream ceiling.
+  if (configuredTimeoutMs > 0) {
+    if (ceilingTimeoutMs <= 0) return configuredTimeoutMs;
+    return Math.min(configuredTimeoutMs, ceilingTimeoutMs);
+  }
+
+  // Unset config: fall back to the saner combo default (when provided) so a hung target
+  // fails over fast instead of inheriting the full upstream timeout. Never exceed the
+  // ceiling. When no default is given OR the upstream timeout is disabled (0 = unbounded),
+  // preserve the legacy "inherit the upstream ceiling" behavior.
+  const fallbackDefaultMs = normalizePositiveTimeoutMs(defaultTimeoutMs);
+  if (ceilingTimeoutMs <= 0) return ceilingTimeoutMs;
+  if (fallbackDefaultMs <= 0) return ceilingTimeoutMs;
+  return Math.min(fallbackDefaultMs, ceilingTimeoutMs);
 }
 
 /**

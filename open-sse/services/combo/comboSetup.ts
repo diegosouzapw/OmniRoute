@@ -20,6 +20,7 @@ import { applyComboAgentMiddleware } from "../comboAgentMiddleware.ts";
 import {
   resolveComboSetupConfig,
   resolveComboTargetTimeoutMs,
+  DEFAULT_COMBO_TARGET_TIMEOUT_MS,
 } from "../comboConfig.ts";
 import { resolveResilienceSettings } from "../../../src/lib/resilience/settings";
 import { FETCH_TIMEOUT_MS } from "../../config/constants.ts";
@@ -112,7 +113,11 @@ export function phaseComboSetup(ctx: ComboContext): ComboSetup {
   // Use config cascade before dispatch so all strategies, pinned context routes,
   // and round-robin targets share the same timeout policy.
   const config = resolveComboSetupConfig(combo, settings);
-  const comboTargetTimeoutMs = resolveComboTargetTimeoutMs(config, FETCH_TIMEOUT_MS);
+  const comboTargetTimeoutMs = resolveComboTargetTimeoutMs(
+    config,
+    FETCH_TIMEOUT_MS,
+    DEFAULT_COMBO_TARGET_TIMEOUT_MS
+  );
   const reasoningTokenBufferEnabled = config.reasoningTokenBufferEnabled !== false;
 
   return {

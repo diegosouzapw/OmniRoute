@@ -1,8 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { resolveComboConfig, getDefaultComboConfig, resolveComboTargetTimeoutMs } =
-  await import("../../open-sse/services/comboConfig.ts");
+const {
+  resolveComboConfig,
+  getDefaultComboConfig,
+  resolveComboTargetTimeoutMs,
+  DEFAULT_COMBO_TARGET_TIMEOUT_MS,
+} = await import("../../open-sse/services/comboConfig.ts");
 const { createComboSchema, updateComboDefaultsSchema } =
   await import("../../src/shared/validation/schemas.ts");
 const { MAX_TIMER_TIMEOUT_MS } = await import("../../src/shared/utils/runtimeTimeouts.ts");
@@ -255,6 +259,24 @@ test("resolveComboTargetTimeoutMs inherits the upstream timeout and only shorten
     MAX_TIMER_TIMEOUT_MS
   );
   assert.equal(resolveComboTargetTimeoutMs({}, 999999999999), MAX_TIMER_TIMEOUT_MS);
+});
+
+test("resolveComboTargetTimeoutMs falls back to the saner combo default when unset", () => {
+  // The combo default is the documented 120s fallback-latency cap.
+  assert.equal(DEFAULT_COMBO_TARGET_TIMEOUT_MS, 120000);
+  // Unset config → use the default (capped at the ceiling), NOT the full upstream ceiling.
+  // This is what shortens a hung-target failover from 600s to 120s (escalated cmqlrhd7c).
+  assert.equal(resolveComboTargetTimeoutMs({}, 600000, 120000), 120000);
+  // Operators can still extend beyond the default, up to the ceiling.
+  assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 300000 }, 600000, 120000), 300000);
+  // Explicit config above the ceiling is still capped at the ceiling.
+  assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 900000 }, 600000, 120000), 600000);
+  // A default larger than the ceiling is clamped to the ceiling.
+  assert.equal(resolveComboTargetTimeoutMs({}, 100000, 120000), 100000);
+  // Backward-compat: omitting the default arg keeps the legacy inherit-the-ceiling behavior.
+  assert.equal(resolveComboTargetTimeoutMs({}, 600000), 600000);
+  // Disabled upstream timeout (0 = unbounded) stays unbounded even with a default present.
+  assert.equal(resolveComboTargetTimeoutMs({}, 0, 120000), 0);
 });
 
 test("combo timeout schema rejects values beyond the safe timer limit", () => {
