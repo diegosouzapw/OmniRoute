@@ -9,7 +9,15 @@ function authLabel(c) {
   return "✗";
 }
 
-async function confirm(msg) {
+export async function confirm(msg) {
+  // Non-interactive stdin (pipe, CI, EOF) cannot answer a [y/N] prompt. Asking
+  // anyway leaves the readline question pending forever — Node then warns about an
+  // "unsettled top-level await" at exit. Decline cleanly instead and point at the
+  // non-interactive escape hatch so scripted callers fail safe rather than hang.
+  if (!process.stdin.isTTY) {
+    process.stderr.write(`${msg} [y/N] (non-interactive stdin — declined; pass --yes to confirm)\n`);
+    return false;
+  }
   const readline = await import("node:readline");
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   const answer = await new Promise((r) => rl.question(`${msg} [y/N] `, r));

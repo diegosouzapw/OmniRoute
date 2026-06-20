@@ -438,6 +438,7 @@ omniroute connect 192.168.0.15            # password → scoped token, saved as 
 omniroute models list                     # ← runs against the REMOTE server
 omniroute configure codex                 # ← picks a remote model, writes a local Codex profile
 omniroute tokens create --name ci --scope read   # mint narrower tokens for other machines
+omniroute contexts use default            # ← switch back to the local server
 ```
 
 Tokens are scoped `read` / `write` / `admin`; process-spawning routes stay loopback-only.

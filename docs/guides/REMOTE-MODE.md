@@ -172,12 +172,60 @@ opencode -m omniroute/glm/glm-5.2 "..."          # export OMNIROUTE_API_KEY firs
 
 ---
 
-## Switching back to local
+## Managing contexts (switch between servers)
+
+A **context** is a saved server (baseUrl + credential + scope). `omniroute connect`
+creates one and makes it active; from then on every command targets it. Manage and
+switch between them with `omniroute contexts`:
 
 ```bash
-omniroute contexts use default     # back to localhost
-omniroute context current          # show active server, auth, scope
-omniroute contexts list            # all contexts
+omniroute contexts list            # all contexts; the active one is marked ●
+omniroute contexts current         # the active server, auth status, scope
+```
+
+```text
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
+  | default | http://localhost:20128    | ✗     |       |
+```
+
+**Switch servers** — every subsequent command follows the active context:
+
+```bash
+omniroute contexts use vps         # → all commands now hit the remote VPS
+omniroute tokens list              #   (runs against the VPS)
+
+omniroute contexts use default     # → back to localhost
+omniroute tokens list              #   (runs against the local server)
+```
+
+**Add a context manually** (instead of `connect`), inspect, or rename:
+
+```bash
+omniroute contexts add staging --url https://staging.example.com:20128 \
+  --access-token oma_live_xxxx --scope write --description "staging box"
+omniroute contexts show staging    # full details for one context
+omniroute contexts rename staging stg
+```
+
+**Remove a context** — prompts for confirmation; pass `--yes` to skip it
+(required for scripts / non-interactive shells, which otherwise decline safely):
+
+```bash
+omniroute contexts remove stg --yes
+```
+
+> `default` (localhost) cannot be removed. Removing the active context falls back
+> to `default`. Tip: removing a context only drops the **local** saved credential —
+> revoke the token on the server with `omniroute tokens revoke <id>` to actually
+> kill access.
+
+**Export / import** contexts (e.g. to move them between machines — secrets included,
+so handle the file carefully):
+
+```bash
+omniroute contexts export --out contexts.json     # default: stdout
+omniroute contexts import contexts.json            # overwrite; --merge to keep existing
 ```
 
 ---
