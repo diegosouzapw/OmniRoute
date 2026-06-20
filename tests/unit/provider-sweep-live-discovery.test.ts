@@ -69,6 +69,11 @@ const LIVE_CASES: Array<{ provider: string; liveUrl: string }> = [
   { provider: "nebius", liveUrl: "https://api.tokenfactory.nebius.com/v1/models" },
   { provider: "scaleway", liveUrl: "https://api.scaleway.ai/v1/models" },
   { provider: "together", liveUrl: "https://api.together.xyz/v1/models" },
+  // escalated cmqlvxg4o: api-airforce carries a real live `https://api.airforce/v1/models`
+  // catalog but was left out of the sweep, so it served its stale hardcoded seed
+  // (grok-3, grok-2-1212, claude-3.7-sonnet …) — models that no longer exist upstream,
+  // so chat failed even though the connection test passed. Same class as the rows above.
+  { provider: "api-airforce", liveUrl: "https://api.airforce/v1/models" },
 ];
 
 for (const { provider, liveUrl } of LIVE_CASES) {
