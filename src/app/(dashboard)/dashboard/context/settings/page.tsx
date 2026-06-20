@@ -1,11 +1,11 @@
 "use client";
 
-import CompressionSettingsTab from "@/app/(dashboard)/dashboard/settings/components/CompressionSettingsTab";
+import CompressionPanel from "./CompressionPanel";
 
 export default function CompressionSettingsPage() {
   return (
     <div className="p-4">
-      <CompressionSettingsTab />
+      <CompressionPanel />
     </div>
   );
 }

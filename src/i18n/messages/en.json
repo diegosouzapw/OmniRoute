@@ -5801,6 +5801,7 @@
     "storageUsageTokenBufferCurrent": "Current: {value}",
     "compressionSettingsAutoTriggerMode": "Auto trigger mode",
     "compressionSettingsMcpDescriptionCompression": "MCP description compression",
+    "mcpAccessibilityTitle": "MCP accessibility output",
     "compressionSettingsCavemanIntensity": "Caveman intensity",
     "compressionSettingsCavemanOutputMode": "Caveman output mode",
     "compressionSettingsOutputIntensity": "Output intensity",
