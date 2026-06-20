@@ -42,10 +42,13 @@ describe("Cache Control Policy", () => {
       // #3088 — Xiaomi MiMo supports prompt caching; cache_control breakpoints
       // sent by Claude Code (via cc-switch) must be preserved, not stripped.
       assert.equal(providerSupportsCaching("xiaomi-mimo"), true);
+      // #3955 — OpenAI / Codex / Azure-OpenAI use automatic prefix caching.
+      assert.equal(providerSupportsCaching("openai"), true);
+      assert.equal(providerSupportsCaching("codex"), true);
+      assert.equal(providerSupportsCaching("azure"), true);
     });
 
     test("rejects non-caching providers", () => {
-      assert.equal(providerSupportsCaching("openai"), false);
       assert.equal(providerSupportsCaching("gemini"), false);
       assert.equal(providerSupportsCaching("unknown"), false);
       assert.equal(providerSupportsCaching(null), false);
@@ -142,11 +145,12 @@ describe("Cache Control Policy", () => {
     });
 
     test("rejects non-caching providers", () => {
+      // gemini has no prompt caching (openai/codex now do, per #3955).
       assert.equal(
         shouldPreserveCacheControl({
           userAgent: "claude-code/0.1.0",
           isCombo: false,
-          targetProvider: "openai",
+          targetProvider: "gemini",
         }),
         false
       );
