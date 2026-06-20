@@ -35,7 +35,14 @@ test("handleSearch fulfills duckduckgo-free via the HTML scraping path (no API k
     });
 
     assert.equal(result.success, true);
-    assert.ok(capturedUrl.includes("lite.duckduckgo.com"), "must hit the DDG lite endpoint");
+    // Compare the parsed hostname exactly (not a substring of the raw URL) so a host like
+    // "lite.duckduckgo.com.evil.test" could never satisfy the assertion — CodeQL
+    // js/incomplete-url-substring-sanitization.
+    assert.equal(
+      new URL(capturedUrl).hostname,
+      "lite.duckduckgo.com",
+      "must hit the DDG lite endpoint"
+    );
     assert.equal(result.data.provider, "duckduckgo-free");
     assert.equal(result.data.usage.search_cost_usd, 0, "free provider has zero cost");
     assert.equal(result.data.results.length, 2);
@@ -51,7 +58,9 @@ test("handleSearch fulfills duckduckgo-free via the HTML scraping path (no API k
 test("handleSearch fails over to duckduckgo-free when the primary provider errors", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = (async (url: string | URL) => {
-    if (String(url).includes("lite.duckduckgo.com")) {
+    // Route by exact parsed hostname rather than a raw-URL substring match — CodeQL
+    // js/incomplete-url-substring-sanitization.
+    if (new URL(String(url)).hostname === "lite.duckduckgo.com") {
       return new Response(DDG_HTML, { status: 200, headers: { "content-type": "text/html" } });
     }
     // Primary (e.g. searxng on localhost) is unreachable.

@@ -27,8 +27,7 @@ const DDG_USER_AGENT =
 // The inner-content captures are HARD-BOUNDED ({0,N}?) and the whole body is truncated
 // (MAX_HTML_BYTES) so adversarial/unclosed HTML can't cause catastrophic backtracking
 // (ReDoS) — real titles/snippets are short. See CLAUDE.md PII learnings §1.
-const ANCHOR_RE =
-  /<a\b([^>]*?class=['"][^'"]*result-link[^'"]*['"][^>]*)>([\s\S]{0,512}?)<\/a>/gi;
+const ANCHOR_RE = /<a\b([^>]*?class=['"][^'"]*result-link[^'"]*['"][^>]*)>([\s\S]{0,512}?)<\/a>/gi;
 const HREF_RE = /href=['"]([^'"]+)['"]/i;
 const SNIPPET_RE =
   /<td\b[^>]*?class=['"][^'"]*result-snippet[^'"]*['"][^>]*>([\s\S]{0,2048}?)<\/td>/gi;
@@ -36,17 +35,37 @@ const SNIPPET_RE =
 const MAX_HTML_BYTES = 256 * 1024;
 
 function decodeEntities(text: string): string {
-  return text
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#0*39;|&#x0*27;|&apos;/gi, "'");
+  return (
+    text
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/&quot;/gi, '"')
+      .replace(/&#0*39;|&#x0*27;|&apos;/gi, "'")
+      // Decode &amp; LAST so an already-escaped entity like "&amp;lt;" survives as the
+      // literal text "&lt;" instead of being double-unescaped into "<" — CodeQL
+      // js/double-escaping. When unescaping, &amp; must resolve after every other entity
+      // it could otherwise re-create.
+      .replace(/&amp;/gi, "&")
+  );
 }
 
 function stripTags(html: string): string {
-  return decodeEntities(html.replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim();
+  // Decode entities FIRST so entity-encoded markup (e.g. "&lt;script&gt;") becomes real
+  // markup, then remove every tag. Looping to a fixpoint plus dropping a leftover
+  // unclosed "<…" guarantees the result can't carry "<script" (or any tag) through to the
+  // caller (LLM/client) — CodeQL js/incomplete-multi-character-sanitization. Bounded:
+  // each pass strictly shrinks the string, and MAX_HTML_BYTES caps the input upstream.
+  let text = decodeEntities(html);
+  let previous: string;
+  do {
+    previous = text;
+    text = text.replace(/<[^>]*>/g, "");
+  } while (text !== previous);
+  // After every well-formed tag is gone, any remaining "<" has no closing ">" — strip the
+  // trailing partial tag start so "<script…" can't survive.
+  text = text.replace(/<[^>]*$/, "");
+  return text.replace(/\s+/g, " ").trim();
 }
 
 /**
