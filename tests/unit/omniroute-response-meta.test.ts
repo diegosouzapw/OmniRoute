@@ -120,3 +120,46 @@ test("buildOmniRouteSseMetadataComment emits comment lines compatible with SSE",
   assert.match(comment, /^: x-omniroute-tokens-out=2/m);
   assert.match(comment, /^: x-omniroute-response-cost=0\.0000000000/m);
 });
+
+test("buildOmniRouteResponseMetaHeaders emits X-OmniRoute-Cost-Saved only when costSavedUsd is provided", () => {
+  // Cache HIT: the incremental cost of serving the hit is 0, but the cache saved the
+  // original (would-have-been) cost — surfaced via the Cost-Saved header for analytics.
+  const hit = buildOmniRouteResponseMetaHeaders({
+    provider: "openai",
+    model: "gpt-4o",
+    cacheHit: true,
+    costUsd: 0,
+    costSavedUsd: 0.0125,
+  });
+  assert.equal(hit[OMNIROUTE_RESPONSE_HEADERS.responseCost], "0.0000000000");
+  assert.equal(hit[OMNIROUTE_RESPONSE_HEADERS.costSaved], "0.0125000000");
+
+  // A normal response (no costSavedUsd) omits the Cost-Saved header entirely.
+  const miss = buildOmniRouteResponseMetaHeaders({
+    provider: "openai",
+    model: "gpt-4o",
+    costUsd: 0.0125,
+  });
+  assert.equal(miss[OMNIROUTE_RESPONSE_HEADERS.costSaved], undefined);
+
+  // A free-model HIT still emits Cost-Saved (= 0) — it explicitly passed costSavedUsd.
+  const freeHit = buildOmniRouteResponseMetaHeaders({
+    cacheHit: true,
+    costUsd: 0,
+    costSavedUsd: 0,
+  });
+  assert.equal(freeHit[OMNIROUTE_RESPONSE_HEADERS.costSaved], "0.0000000000");
+});
+
+test("attachOmniRouteMetaHeaders forwards costSavedUsd onto a Headers bag", () => {
+  const headers = new Headers({ "Content-Type": "application/json" });
+  attachOmniRouteMetaHeaders(headers, {
+    provider: "openai",
+    model: "gpt-4o",
+    cacheHit: true,
+    costUsd: 0,
+    costSavedUsd: 0.0125,
+  });
+  assert.equal(headers.get(OMNIROUTE_RESPONSE_HEADERS.responseCost), "0.0000000000");
+  assert.equal(headers.get(OMNIROUTE_RESPONSE_HEADERS.costSaved), "0.0125000000");
+});
