@@ -8,6 +8,10 @@
 
 _In development — bullets added per PR; finalized at release._
 
+### 🔒 Security
+
+- **fix(mitm): exact host membership in the MITM hosts test (CodeQL false positive)** — `tests/unit/mitm-tool-hosts.test.ts` checked host membership with `Array.includes(host)`, which CodeQL's `js/incomplete-url-substring-sanitization` heuristic misreads as a `String.includes()` URL-substring sanitization test (HIGH false positive). Switched to `.some((h) => h === host)` — identical semantics, no flagged pattern. ([#4386](https://github.com/diegosouzapw/OmniRoute/pull/4386))
+
 ---
 
 ## [3.8.30] — 2026-06-20
