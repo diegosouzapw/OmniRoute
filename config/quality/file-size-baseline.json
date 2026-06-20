@@ -76,6 +76,7 @@
   "_rebaseline_2026_06_20_1330_ai_sdk_image": "Re-baseline #1330 (accept AI SDK-style {type:image, image:data-URL string} parts): openai-to-kiro.ts 798->807 (+9, new image-part branch mirroring the existing image_url handling), crossing the 800 cap. Freeze at 807. Cohesive translator branch; the other two translators (claude 776, gemini 630) stay under cap.",
   "_rebaseline_2026_06_20_1447_disabled_conn_error": "Re-baseline #1447 (show a disabled connection's last error): ConnectionRow.tsx 941->942 (+1), a single import line for the extracted shouldShowConnectionLastError helper. Minimal, not extractable.",
   "_rebaseline_2026_06_20_1449_1444_test_route": "Re-baseline providers test route.ts 842->887: combined growth of sibling fixes #1449 (bound OAuth connection-test probe with a timeout) + #1444 (label a deactivated account distinctly from a revoked token), both at the same connection-test chokepoint. Cohesive route handler; not extractable without hiding the test flow.",
+  "_rebaseline_2026_06_20_1409_1294_models": "Re-baseline src/lib/db/models.ts 1184->1221: combined growth of sibling fixes #1409 (cascade-delete orphaned model aliases when a provider is removed) + #1294 (persist max_input_tokens/max_output_tokens on custom models), both adding CRUD at the existing models domain module. Cohesive db module; not extractable.",
   "cap": 800,
   "frozen": {
     "open-sse/translator/request/openai-to-kiro.ts": 807,
@@ -157,7 +158,7 @@
     "src/lib/db/apiKeys.ts": 1662,
     "src/lib/db/core.ts": 1820,
     "src/lib/db/migrationRunner.ts": 1125,
-    "src/lib/db/models.ts": 1184,
+    "src/lib/db/models.ts": 1221,
     "src/lib/db/providers.ts": 1050,
     "src/lib/db/proxies.ts": 1048,
     "src/lib/db/settings.ts": 1149,
