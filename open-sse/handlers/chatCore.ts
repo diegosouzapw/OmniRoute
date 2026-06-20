@@ -41,7 +41,7 @@ import {
   resolveMemoryOwnerId,
 } from "./chatCore/memoryExtraction.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
-import { HEAP_PRESSURE_THRESHOLD_MB } from "../utils/heapPressure.ts";
+import { checkHeapPressureGuard } from "../utils/heapPressure.ts";
 import { normalizeHeaders } from "../utils/headers.ts";
 import { detectFormatFromEndpoint, getTargetFormat } from "../services/provider.ts";
 import { injectSystemPrompt } from "../services/systemPrompt.ts";
@@ -643,27 +643,8 @@ export async function handleChatCore({
   // cascading OOM when many large-context requests arrive concurrently.
   try {
     const heapUsedMB = process.memoryUsage().heapUsed / (1024 * 1024);
-    if (heapUsedMB > HEAP_PRESSURE_THRESHOLD_MB) {
-      // Internal telemetry only — never expose the heap figure to clients (Hard Rule #12).
-      console.warn(
-        `[chatCore] heap pressure guard tripped: ${Math.round(heapUsedMB)}MB > ${HEAP_PRESSURE_THRESHOLD_MB}MB; returning 503`
-      );
-      return {
-        success: false,
-        status: 503,
-        error: "Service temporarily unavailable due to resource pressure. Retry shortly.",
-        response: new Response(
-          JSON.stringify({
-            error: {
-              message: "Service temporarily unavailable due to resource pressure. Retry shortly.",
-              type: "server_error",
-              code: "heap_pressure",
-            },
-          }),
-          { status: 503, headers: { "Content-Type": "application/json", "Retry-After": "5" } }
-        ),
-      };
-    }
+    const heapGuard = checkHeapPressureGuard(heapUsedMB);
+    if (heapGuard) return heapGuard;
   } catch {
     /* memoryUsage() never throws */
   }
