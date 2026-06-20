@@ -39,8 +39,45 @@ export interface ComboSetup {
   reasoningTokenBufferEnabled: boolean;
 }
 
+/**
+ * Server-side context cache pinning (replaces the <omniModel> tag roundtrip): re-pins the
+ * combo to the model used last for this session via session_model_history — no client-side
+ * tag injection, no visible output pollution. Rewrites ctx.body when a model is pinned.
+ *
+ * #3825: when the client sends no session id (most OpenAI-compatible clients), fall back to a
+ * stable conversation fingerprint derived from the body so the combo still re-pins across
+ * turns. ONLY engaged when context_cache_protection is truthy — when off, behaviour is
+ * unchanged (combos rotate as before, no pin read/write, no <omniModel> tag).
+ *
+ * Extracted from phaseComboSetup to keep that function under the complexity ceiling and to
+ * further the combo god-file decomposition.
+ */
+function resolveContextCachePin(ctx: ComboContext): {
+  effectiveSessionId: string | null;
+  pinnedModel: string | null;
+} {
+  const { combo, relayOptions, log } = ctx;
+  const effectiveSessionId: string | null = combo.context_cache_protection
+    ? (relayOptions?.sessionId ?? deriveComboSessionKey(ctx.body))
+    : null;
+  let pinnedModel: string | null = null;
+  if (
+    combo.context_cache_protection &&
+    effectiveSessionId &&
+    !(ctx.body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
+  ) {
+    const pinned = getLastSessionModel(effectiveSessionId, combo.name);
+    if (pinned) {
+      ctx.body = { ...ctx.body, model: pinned };
+      pinnedModel = pinned;
+      log.info("COMBO", `[#401] Context cache: pinned model=${pinned} (server-side)`);
+    }
+  }
+  return { effectiveSessionId, pinnedModel };
+}
+
 export function phaseComboSetup(ctx: ComboContext): ComboSetup {
-  const { combo, settings, relayOptions, log } = ctx;
+  const { combo, settings, relayOptions } = ctx;
 
   const strategy = normalizeRoutingStrategy(combo.strategy || "priority");
   const relayConfig =
@@ -58,30 +95,8 @@ export function phaseComboSetup(ctx: ComboContext): ComboSetup {
     relayOptions?.universalHandoffConfig as Record<string, unknown> | null | undefined
   );
 
-  // ── Server-side context cache pinning (replaces <omniModel> tag roundtrip) ─
-  // Uses session_model_history — no client-side tag injection, no visible output pollution.
-  //
-  // #3825: when the client sends no session id (most OpenAI-compatible clients), fall
-  // back to a stable conversation fingerprint derived from the body so the combo still
-  // re-pins to the same model across turns. ONLY engaged when context_cache_protection
-  // is truthy — when the toggle is off, behavior is unchanged (combos rotate as before,
-  // no pin read/write, no <omniModel> tag).
-  const effectiveSessionId: string | null = combo.context_cache_protection
-    ? (relayOptions?.sessionId ?? deriveComboSessionKey(ctx.body))
-    : null;
-  let pinnedModel: string | null = null;
-  if (
-    combo.context_cache_protection &&
-    effectiveSessionId &&
-    !(ctx.body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
-  ) {
-    const pinned = getLastSessionModel(effectiveSessionId, combo.name);
-    if (pinned) {
-      ctx.body = { ...ctx.body, model: pinned };
-      pinnedModel = pinned;
-      log.info("COMBO", `[#401] Context cache: pinned model=${pinned} (server-side)`);
-    }
-  }
+  // Server-side context cache pinning (rewrites ctx.body when a model is pinned).
+  const { effectiveSessionId, pinnedModel } = resolveContextCachePin(ctx);
 
   // ── Combo Agent Middleware (#399 + #401) ────────────────────────────────
   // Apply system_message override, tool_filter_regex.
