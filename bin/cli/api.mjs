@@ -58,18 +58,32 @@ export async function buildHeaders(opts) {
   if (opts.body && !headers.has("content-type") && typeof opts.body !== "string") {
     headers.set("content-type", "application/json");
   }
-  // Auth precedence: explicit opts/env → active context. Within a context the
-  // scoped accessToken wins over the legacy apiKey. This routes the active
-  // context's credential to the (possibly remote) server automatically.
-  let auth = opts.apiKey ?? process.env.OMNIROUTE_API_KEY;
+  // Auth precedence: explicit key → active-context credential → ambient env key.
+  //
+  // The active context's scoped token MUST win over the ambient OMNIROUTE_API_KEY:
+  // `omniroute connect <remote>` saves the context's token, but users keep
+  // OMNIROUTE_API_KEY in their shell. The global `--api-key` option is bound to
+  // that env var (.env("OMNIROUTE_API_KEY")), so commands that spread
+  // `optsWithGlobals()` into apiFetch carry opts.apiKey === the env value. If that
+  // echoed value outranked the context, every remote management command would send
+  // the local inference key and fail with "Invalid management token" — defeating
+  // remote mode. So an opts.apiKey that merely mirrors the ambient env var is
+  // treated as ambient (a fallback), NOT as an explicit override; only a DISTINCT
+  // key — a real `--api-key <x>` flag or a command-supplied token like
+  // `connect --key` — counts as explicit and wins. Within a context the scoped
+  // accessToken wins over the legacy apiKey.
+  const ambientKey = process.env.OMNIROUTE_API_KEY || null;
+  const explicitKey = opts.apiKey && opts.apiKey !== ambientKey ? opts.apiKey : null;
+  let auth = explicitKey;
   if (!auth) {
     try {
       const ctx = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT);
       auth = ctx?.accessToken || ctx?.apiKey || null;
     } catch {
-      // No context credential available — continue unauthenticated.
+      // No context credential available — fall through to the ambient fallback.
     }
   }
+  if (!auth) auth = opts.apiKey || ambientKey || null;
   if (auth && !headers.has("authorization")) {
     headers.set("authorization", `Bearer ${auth}`);
   }
