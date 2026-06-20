@@ -14,6 +14,7 @@ _In development — bullets added per PR; finalized at release._
 
 ### 🐛 Fixed
 
+- **fix(embeddings):** forward output dimensions to Gemini for consistent embedding dims. (thanks @nguyenha935)
 - **fix(combo): round-robin members fail over faster under concurrency saturation via a configurable queue depth** — when a round-robin combo member was saturated, requests sat in the per-model semaphore's **unbounded** queue and only failed over to the next member after the full `queueTimeoutMs` (default 30s) elapsed — so a burst of agentic requests deep-queued one hot member instead of spilling to healthy ones. The per-model semaphore now accepts a bounded queue depth and emits `SEMAPHORE_QUEUE_FULL` once it is full (the round-robin loop already cascades on that code), so a configured low depth fails over immediately. A new `queueDepth` combo-config knob (global default / provider override / per-combo, default **20** for backward compatibility; **0** = never queue → fail over now) is exposed in Settings → Combo Defaults. ([#3872](https://github.com/diegosouzapw/OmniRoute/issues/3872) — thanks @KooshaPari)
 
 ---
