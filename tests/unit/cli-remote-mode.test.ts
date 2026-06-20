@@ -220,6 +220,9 @@ test("commands/contexts.mjs registers a `current` subcommand", async () => {
       sub.push(name.split(" ")[0]);
       return this;
     },
+    alias() {
+      return this;
+    },
     description() {
       return this;
     },
