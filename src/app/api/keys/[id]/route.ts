@@ -83,6 +83,9 @@ export async function PATCH(request, { params }) {
       streamDefaultMode,
       disableNonPublicModels,
       allowUsageCommand,
+      usageLimitEnabled,
+      dailyUsageLimitUsd,
+      weeklyUsageLimitUsd,
     } = validation.data;
 
     const payload: Parameters<typeof updateApiKeyPermissions>[1] = {};
@@ -106,6 +109,9 @@ export async function PATCH(request, { params }) {
     if (disableNonPublicModels !== undefined)
       payload.disableNonPublicModels = disableNonPublicModels;
     if (allowUsageCommand !== undefined) payload.allowUsageCommand = allowUsageCommand;
+    if (usageLimitEnabled !== undefined) payload.usageLimitEnabled = usageLimitEnabled;
+    if (dailyUsageLimitUsd !== undefined) payload.dailyUsageLimitUsd = dailyUsageLimitUsd;
+    if (weeklyUsageLimitUsd !== undefined) payload.weeklyUsageLimitUsd = weeklyUsageLimitUsd;
 
     const updated = await updateApiKeyPermissions(id, payload);
     if (!updated) {
@@ -136,6 +142,9 @@ export async function PATCH(request, { params }) {
       ...(streamDefaultMode !== undefined && { streamDefaultMode }),
       ...(disableNonPublicModels !== undefined && { disableNonPublicModels }),
       ...(allowUsageCommand !== undefined && { allowUsageCommand }),
+      ...(usageLimitEnabled !== undefined && { usageLimitEnabled }),
+      ...(dailyUsageLimitUsd !== undefined && { dailyUsageLimitUsd }),
+      ...(weeklyUsageLimitUsd !== undefined && { weeklyUsageLimitUsd }),
     });
   } catch (error) {
     log.error("keys", "Error updating key permissions", error);

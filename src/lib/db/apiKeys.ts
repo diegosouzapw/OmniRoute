@@ -8,6 +8,12 @@ import { getDbInstance, rowToCamel } from "./core";
 import { backupDbFile } from "./backup";
 import { registerDbStateResetter } from "./stateReset";
 import { getKeyGroupsForApiKey, checkKeyModelAccess } from "./apiKeyGroups";
+import { API_KEY_COLUMN_FALLBACKS } from "./apiKeyColumnFallbacks";
+import {
+  appendUsageLimitUpdates,
+  hasUsageLimitUpdate,
+  parseApiKeyUsageLimitFields,
+} from "./apiKeyUsageLimitFields";
 import { setNoLog } from "../compliance/noLog";
 import { resolveModelAlias } from "@omniroute/open-sse/services/modelDeprecation.ts";
 import { getSyncedAvailableModelsByConnection, getCustomModels, getModelIsHidden } from "./models";
@@ -68,6 +74,9 @@ interface ApiKeyMetadata {
   streamDefaultMode: "legacy" | "json";
   disableNonPublicModels: boolean;
   allowUsageCommand: boolean;
+  usageLimitEnabled: boolean;
+  dailyUsageLimitUsd: number | null;
+  weeklyUsageLimitUsd: number | null;
 }
 
 interface ApiKeyRow extends JsonRecord {
@@ -101,6 +110,12 @@ interface ApiKeyRow extends JsonRecord {
   streamDefaultMode?: unknown;
   allow_usage_command?: unknown;
   allowUsageCommand?: unknown;
+  usage_limit_enabled?: unknown;
+  usageLimitEnabled?: unknown;
+  daily_usage_limit_usd?: unknown;
+  dailyUsageLimitUsd?: unknown;
+  weekly_usage_limit_usd?: unknown;
+  weeklyUsageLimitUsd?: unknown;
 }
 
 interface StatementLike<TRow = unknown> {
@@ -144,6 +159,9 @@ interface ApiKeyView extends JsonRecord {
   streamDefaultMode: "legacy" | "json";
   disableNonPublicModels?: boolean;
   allowUsageCommand?: boolean;
+  usageLimitEnabled?: boolean;
+  dailyUsageLimitUsd?: number | null;
+  weeklyUsageLimitUsd?: number | null;
 }
 
 // LRU cache for API key validation (valid keys only)
@@ -158,42 +176,6 @@ const CLAUDE_CODE_SHORT_ALIASES = new Set(["sonnet", "opus", "haiku", "fable"]);
 
 // Wildcard scope matching is now handled by `matchesWildcardPattern`
 // (deterministic, no RegExp from dynamic strings).
-
-const API_KEY_COLUMN_FALLBACKS = [
-  { name: "allowed_models", definition: "allowed_models TEXT" },
-  { name: "blocked_models", definition: "blocked_models TEXT" },
-  { name: "allowed_combos", definition: "allowed_combos TEXT" },
-  { name: "no_log", definition: "no_log INTEGER NOT NULL DEFAULT 0" },
-  { name: "allowed_connections", definition: "allowed_connections TEXT" },
-  { name: "auto_resolve", definition: "auto_resolve INTEGER NOT NULL DEFAULT 0" },
-  { name: "is_active", definition: "is_active INTEGER NOT NULL DEFAULT 1" },
-  { name: "access_schedule", definition: "access_schedule TEXT" },
-  { name: "max_requests_per_day", definition: "max_requests_per_day INTEGER" },
-  { name: "max_requests_per_minute", definition: "max_requests_per_minute INTEGER" },
-  { name: "throttle_delay_ms", definition: "throttle_delay_ms INTEGER" },
-  { name: "max_sessions", definition: "max_sessions INTEGER NOT NULL DEFAULT 0" },
-  { name: "revoked_at", definition: "revoked_at TEXT" },
-  { name: "expires_at", definition: "expires_at TEXT" },
-  { name: "last_used_at", definition: "last_used_at TEXT" },
-  { name: "key_prefix", definition: "key_prefix TEXT" },
-  { name: "ip_allowlist", definition: "ip_allowlist TEXT" },
-  { name: "scopes", definition: "scopes TEXT" },
-  { name: "rate_limits", definition: "rate_limits TEXT" },
-  { name: "is_banned", definition: "is_banned INTEGER NOT NULL DEFAULT 0" },
-  { name: "key_hash", definition: "key_hash TEXT" },
-  { name: "proxy_id", definition: "proxy_id TEXT" },
-  { name: "allowed_endpoints", definition: "allowed_endpoints TEXT" },
-  { name: "allowed_quotas", definition: "allowed_quotas TEXT NOT NULL DEFAULT '[]'" },
-  { name: "stream_default_mode", definition: "stream_default_mode TEXT NOT NULL DEFAULT 'legacy'" },
-  {
-    name: "disable_non_public_models",
-    definition: "disable_non_public_models INTEGER NOT NULL DEFAULT 0",
-  },
-  {
-    name: "allow_usage_command",
-    definition: "allow_usage_command INTEGER NOT NULL DEFAULT 0",
-  },
-] as const;
 
 // Cache for model permission checks
 const _modelPermissionCache = new Map<string, { allowed: boolean; timestamp: number }>();
@@ -510,7 +492,7 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
       "SELECT id, expires_at, revoked_at, is_active, is_banned FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, allowed_models, blocked_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, disable_non_public_models, allow_usage_command, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
+      "SELECT id, name, machine_id, allowed_models, blocked_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, disable_non_public_models, allow_usage_command, usage_limit_enabled, daily_usage_limit_usd, weekly_usage_limit_usd, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtInsertKey = db.prepare(
       "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, key_prefix, key_hash, scopes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -563,6 +545,7 @@ export async function getApiKeys() {
       (camelRow as JsonRecord).disableNonPublicModels
     );
     camelRow.allowUsageCommand = parseAllowUsageCommand((camelRow as JsonRecord).allowUsageCommand);
+    Object.assign(camelRow, parseApiKeyUsageLimitFields(camelRow));
     if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
       setNoLog(camelRow.id, camelRow.noLog === true);
     }
@@ -594,6 +577,7 @@ export async function getApiKeyById(id: string) {
     (camelRow as JsonRecord).disableNonPublicModels
   );
   camelRow.allowUsageCommand = parseAllowUsageCommand((camelRow as JsonRecord).allowUsageCommand);
+  Object.assign(camelRow, parseApiKeyUsageLimitFields(camelRow));
   if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
     setNoLog(camelRow.id, camelRow.noLog === true);
   }
@@ -866,6 +850,9 @@ export async function updateApiKeyPermissions(
         streamDefaultMode?: "legacy" | "json" | null;
         disableNonPublicModels?: boolean;
         allowUsageCommand?: boolean;
+        usageLimitEnabled?: boolean;
+        dailyUsageLimitUsd?: number | null;
+        weeklyUsageLimitUsd?: number | null;
       }
 ) {
   const db = getDbInstance() as ApiKeysDbLike;
@@ -900,6 +887,10 @@ export async function updateApiKeyPermissions(
           disableNonPublicModels: (update as { disableNonPublicModels?: boolean })
             .disableNonPublicModels,
           allowUsageCommand: (update as { allowUsageCommand?: boolean }).allowUsageCommand,
+          usageLimitEnabled: (update as { usageLimitEnabled?: boolean }).usageLimitEnabled,
+          dailyUsageLimitUsd: (update as { dailyUsageLimitUsd?: number | null }).dailyUsageLimitUsd,
+          weeklyUsageLimitUsd: (update as { weeklyUsageLimitUsd?: number | null })
+            .weeklyUsageLimitUsd,
         };
 
   if (
@@ -925,7 +916,8 @@ export async function updateApiKeyPermissions(
     (normalized as Record<string, unknown>).allowedEndpoints === undefined &&
     (normalized as Record<string, unknown>).streamDefaultMode === undefined &&
     normalized.disableNonPublicModels === undefined &&
-    normalized.allowUsageCommand === undefined
+    normalized.allowUsageCommand === undefined &&
+    !hasUsageLimitUpdate(normalized as Record<string, unknown>)
   ) {
     return false;
   }
@@ -955,6 +947,9 @@ export async function updateApiKeyPermissions(
     streamDefaultMode?: "legacy" | "json";
     disableNonPublicModels?: number;
     allowUsageCommand?: number;
+    usageLimitEnabled?: number;
+    dailyUsageLimitUsd?: number | null;
+    weeklyUsageLimitUsd?: number | null;
   } = { id };
 
   if (normalized.name !== undefined) {
@@ -1057,6 +1052,8 @@ export async function updateApiKeyPermissions(
     updates.push("allow_usage_command = @allowUsageCommand");
     params.allowUsageCommand = normalized.allowUsageCommand ? 1 : 0;
   }
+
+  appendUsageLimitUpdates(normalized as Record<string, unknown>, updates, params);
 
   const maxSessionsUpdate = (normalized as Record<string, unknown>).maxSessions;
   if (maxSessionsUpdate !== undefined) {
@@ -1439,6 +1436,9 @@ export async function getApiKeyMetadata(
       streamDefaultMode: "legacy",
       disableNonPublicModels: false,
       allowUsageCommand: false,
+      usageLimitEnabled: false,
+      dailyUsageLimitUsd: null,
+      weeklyUsageLimitUsd: null,
     };
   }
 
@@ -1512,6 +1512,7 @@ export async function getApiKeyMetadata(
     allowUsageCommand: parseAllowUsageCommand(
       (record as JsonRecord).allow_usage_command ?? (record as JsonRecord).allowUsageCommand
     ),
+    ...parseApiKeyUsageLimitFields(record as JsonRecord),
   };
 
   if (!metadata.id) {

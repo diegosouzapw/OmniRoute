@@ -22,6 +22,9 @@ export const createKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
   noLog: z.boolean().optional(),
   allowUsageCommand: z.boolean().optional(),
+  usageLimitEnabled: z.boolean().optional(),
+  dailyUsageLimitUsd: z.coerce.number().min(0).optional().nullable(),
+  weeklyUsageLimitUsd: z.coerce.number().min(0).optional().nullable(),
   scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
 });
 
@@ -104,6 +107,9 @@ export const updateKeyPermissionsSchema = z
     streamDefaultMode: z.enum(["legacy", "json"]).optional(),
     disableNonPublicModels: z.boolean().optional(),
     allowUsageCommand: z.boolean().optional(),
+    usageLimitEnabled: z.boolean().optional(),
+    dailyUsageLimitUsd: z.coerce.number().min(0).optional().nullable(),
+    weeklyUsageLimitUsd: z.coerce.number().min(0).optional().nullable(),
   })
   .superRefine((value, ctx) => {
     if (
@@ -124,7 +130,10 @@ export const updateKeyPermissionsSchema = z
       value.allowedEndpoints === undefined &&
       value.streamDefaultMode === undefined &&
       value.disableNonPublicModels === undefined &&
-      value.allowUsageCommand === undefined
+      value.allowUsageCommand === undefined &&
+      value.usageLimitEnabled === undefined &&
+      value.dailyUsageLimitUsd === undefined &&
+      value.weeklyUsageLimitUsd === undefined
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

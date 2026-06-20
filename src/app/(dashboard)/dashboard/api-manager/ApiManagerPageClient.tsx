@@ -14,11 +14,14 @@ import {
   isRestricted as isKeyRestricted,
   classifyKeyStatus,
   computeApiKeyCounts,
+  formatUsdCost,
+  toLocalDateTimeInputValue,
 } from "./apiManagerPageUtils";
 import type { KeyStatus, KeyType } from "./apiManagerPageUtils";
 import { readActiveOnlyPreference, writeActiveOnlyPreference } from "./apiManagerPageStorage";
 import { buildApiKeyCreateScopes, mergeApiKeyPermissionScopes } from "./apiManagerScopes";
 import { SELF_ACCOUNT_QUOTA_SCOPE, SELF_USAGE_SCOPE } from "@/shared/constants/selfServiceScopes";
+import { UsageLimitSettings } from "./components/UsageLimitSettings";
 
 // Constants for validation
 const MAX_KEY_NAME_LENGTH = 200;
@@ -43,16 +46,6 @@ const CLAUDE_CODE_FAMILY_BLOCK_PATTERNS: Record<ClaudeCodeBlockableFamilyId, str
 const CLAUDE_CODE_BLOCK_PATTERN_SET = new Set(
   Object.values(CLAUDE_CODE_FAMILY_BLOCK_PATTERNS).flat()
 );
-
-function toLocalDateTimeInputValue(value: string | null | undefined): string {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
-    date.getHours()
-  )}:${pad(date.getMinutes())}`;
-}
 
 // Debounce hook for search optimization
 function useDebouncedValue<T>(value: T, delay: number): T {
@@ -129,6 +122,9 @@ interface ApiKey {
   streamDefaultMode?: StreamDefaultMode;
   disableNonPublicModels?: boolean;
   allowUsageCommand?: boolean;
+  usageLimitEnabled?: boolean;
+  dailyUsageLimitUsd?: number | null;
+  weeklyUsageLimitUsd?: number | null;
   allowedQuotas?: string[] | null;
   createdAt: string;
 }
@@ -144,16 +140,6 @@ interface KeyUsageStats {
   totalRequests: number;
   totalCost: number;
   lastUsed: string | null;
-}
-
-function formatUsdCost(value: number, locale: string): string {
-  const amount = Number.isFinite(value) ? value : 0;
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: amount > 0 && amount < 1 ? 4 : 2,
-    maximumFractionDigits: amount > 0 && amount < 1 ? 4 : 2,
-  }).format(amount);
 }
 
 interface Model {
@@ -664,6 +650,9 @@ export default function ApiManagerPageClient() {
     streamDefaultMode: StreamDefaultMode,
     disableNonPublicModels: boolean,
     allowUsageCommand: boolean,
+    usageLimitEnabled: boolean,
+    dailyUsageLimitUsd: number | null,
+    weeklyUsageLimitUsd: number | null,
     blockedModels: string[]
   ) => {
     if (!editingKey || !editingKey.id) return;
@@ -732,6 +721,9 @@ export default function ApiManagerPageClient() {
           streamDefaultMode,
           disableNonPublicModels,
           allowUsageCommand,
+          usageLimitEnabled,
+          dailyUsageLimitUsd,
+          weeklyUsageLimitUsd,
         }),
       });
 
@@ -1044,6 +1036,12 @@ export default function ApiManagerPageClient() {
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-600 dark:text-slate-300 text-[11px] font-medium">
                           <span className="material-symbols-outlined text-[12px]">terminal</span>
                           {t("localUsageCommandBadge")}
+                        </span>
+                      )}
+                      {key.usageLimitEnabled === true && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-[12px]">paid</span>
+                          USD quota
                         </span>
                       )}
                       {hasSessionLimit && (
@@ -1469,6 +1467,9 @@ const PermissionsModal = memo(function PermissionsModal({
     streamDefaultMode: StreamDefaultMode,
     disableNonPublicModels: boolean,
     allowUsageCommand: boolean,
+    usageLimitEnabled: boolean,
+    dailyUsageLimitUsd: number | null,
+    weeklyUsageLimitUsd: number | null,
     blockedModels: string[]
   ) => void;
 }) {
@@ -1551,6 +1552,17 @@ const PermissionsModal = memo(function PermissionsModal({
   );
   const [usageCommandEnabled, setUsageCommandEnabled] = useState(
     apiKey?.allowUsageCommand === true
+  );
+  const [usageLimitEnabled, setUsageLimitEnabled] = useState(apiKey?.usageLimitEnabled === true);
+  const [dailyUsageLimitUsd, setDailyUsageLimitUsd] = useState(
+    typeof apiKey?.dailyUsageLimitUsd === "number" && apiKey.dailyUsageLimitUsd > 0
+      ? String(apiKey.dailyUsageLimitUsd)
+      : ""
+  );
+  const [weeklyUsageLimitUsd, setWeeklyUsageLimitUsd] = useState(
+    typeof apiKey?.weeklyUsageLimitUsd === "number" && apiKey.weeklyUsageLimitUsd > 0
+      ? String(apiKey.weeklyUsageLimitUsd)
+      : ""
   );
   const getModelDisplayName = useCallback(
     (modelId: string) =>
@@ -1670,6 +1682,11 @@ const PermissionsModal = memo(function PermissionsModal({
     [allowAllEndpoints]
   );
 
+  const parseUsdLimitInput = useCallback((value: string): number | null => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }, []);
+
   const handleSave = useCallback(() => {
     // Clear previous inline errors
     setNameError(null);
@@ -1736,6 +1753,9 @@ const PermissionsModal = memo(function PermissionsModal({
       streamDefaultMode,
       disableNonPublicModels,
       usageCommandEnabled,
+      usageLimitEnabled,
+      parseUsdLimitInput(dailyUsageLimitUsd),
+      parseUsdLimitInput(weeklyUsageLimitUsd),
       blockedModels
     );
   }, [
@@ -1768,6 +1788,10 @@ const PermissionsModal = memo(function PermissionsModal({
     streamDefaultMode,
     disableNonPublicModels,
     usageCommandEnabled,
+    usageLimitEnabled,
+    dailyUsageLimitUsd,
+    weeklyUsageLimitUsd,
+    parseUsdLimitInput,
     blockedClaudeCodeFamilies,
     initialBlockedModels,
     apiKey?.scopes,
@@ -2341,6 +2365,16 @@ const PermissionsModal = memo(function PermissionsModal({
             {t("localUsageCommand")} - {usageCommandEnabled ? tc("enabled") : tc("disabled")}
           </button>
           <p className="text-xs text-text-muted">{t("localUsageCommandDesc")}</p>
+          <UsageLimitSettings
+            enabled={usageLimitEnabled}
+            dailyLimitUsd={dailyUsageLimitUsd}
+            weeklyLimitUsd={weeklyUsageLimitUsd}
+            enabledLabel={tc("enabled")}
+            disabledLabel={tc("disabled")}
+            onEnabledChange={setUsageLimitEnabled}
+            onDailyLimitUsdChange={setDailyUsageLimitUsd}
+            onWeeklyLimitUsdChange={setWeeklyUsageLimitUsd}
+          />
         </div>
 
         {/* Disable Non-Public Models Toggle */}

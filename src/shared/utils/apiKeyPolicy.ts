@@ -30,6 +30,7 @@ import { checkRateLimit, RateLimitRule } from "./rateLimiter";
 import { resolveEndpointCategory } from "@/shared/constants/endpointCategories";
 import { resolveQuotaKeyScope } from "@/lib/quota/quotaKey";
 import { isQuotaModelName, parseQuotaModelName } from "@/lib/quota/quotaModelNaming";
+import { buildApiKeyUsageLimitPolicyRejection } from "@/lib/usage/apiKeyUsageLimits";
 
 // Default to no per-key request cap. API keys can still opt into explicit
 // limits via Settings/API Keys, while provider/account quota controls remain
@@ -92,6 +93,9 @@ export interface ApiKeyMetadata {
   allowedEndpoints?: string[];
   disableNonPublicModels?: boolean;
   allowUsageCommand?: boolean;
+  usageLimitEnabled?: boolean;
+  dailyUsageLimitUsd?: number | null;
+  weeklyUsageLimitUsd?: number | null;
 }
 
 /**
@@ -374,6 +378,31 @@ export async function enforceApiKeyPolicy(
         rejection: errorResponse(
           HTTP_STATUS.FORBIDDEN,
           `Access denied outside allowed hours (${from}–${until} ${tz})`
+        ),
+      };
+    }
+  }
+
+  // ── Check 2.1: per-key USD fair usage cap ──
+  if (apiKeyInfo.usageLimitEnabled === true) {
+    try {
+      const usageLimitRejection = await buildApiKeyUsageLimitPolicyRejection(request, {
+        id: apiKeyInfo.id,
+        usageLimitEnabled: apiKeyInfo.usageLimitEnabled,
+        dailyUsageLimitUsd: apiKeyInfo.dailyUsageLimitUsd,
+        weeklyUsageLimitUsd: apiKeyInfo.weeklyUsageLimitUsd,
+      });
+      if (usageLimitRejection) {
+        return { apiKey, apiKeyInfo, rejection: usageLimitRejection };
+      }
+    } catch (error) {
+      log.error("API_POLICY", "API key USD usage limit check failed. Request blocked.", { error });
+      return {
+        apiKey,
+        apiKeyInfo,
+        rejection: errorResponse(
+          HTTP_STATUS.SERVICE_UNAVAILABLE,
+          "API key usage limit unavailable"
         ),
       };
     }

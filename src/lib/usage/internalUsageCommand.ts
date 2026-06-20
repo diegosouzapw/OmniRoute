@@ -1,4 +1,8 @@
 import type { ProviderLimitsCacheEntry } from "@/lib/db/providerLimits";
+import {
+  buildApiKeyUsageLimitText,
+  type ApiKeyUsageLimitStatus,
+} from "@/lib/usage/apiKeyUsageLimits";
 
 export const INTERNAL_USAGE_COMMAND = "@@om-usage";
 export const USAGE_COMMAND_DISABLED_MESSAGE = "Usage command is disabled for this API key.";
@@ -12,6 +16,9 @@ interface UsageCommandApiKeyMetadata {
   name?: string;
   allowedConnections?: string[] | null;
   allowUsageCommand?: boolean;
+  usageLimitEnabled?: boolean;
+  dailyUsageLimitUsd?: number | null;
+  weeklyUsageLimitUsd?: number | null;
 }
 
 interface ProviderConnectionLike {
@@ -35,6 +42,10 @@ export interface InternalUsageCommandDeps {
   getProviderConnections?: (filter?: JsonRecord) => Promise<unknown[]>;
   getProviderLimitsCache?: (connectionId: string) => ProviderLimitsCacheEntry | null;
   getAllProviderLimitsCache?: () => Record<string, ProviderLimitsCacheEntry>;
+  getApiKeyUsageLimitStatus?: (
+    metadata: UsageCommandApiKeyMetadata,
+    deps?: { now?: () => number }
+  ) => Promise<ApiKeyUsageLimitStatus>;
 }
 
 type RequiredDeps = Required<InternalUsageCommandDeps>;
@@ -50,6 +61,9 @@ async function normalizeDeps(deps: InternalUsageCommandDeps = {}): Promise<Requi
     deps.getProviderLimitsCache && deps.getAllProviderLimitsCache
       ? null
       : await import("@/lib/db/providerLimits");
+  const usageLimits = deps.getApiKeyUsageLimitStatus
+    ? null
+    : await import("@/lib/usage/apiKeyUsageLimits");
 
   return {
     now: deps.now ?? Date.now,
@@ -61,6 +75,8 @@ async function normalizeDeps(deps: InternalUsageCommandDeps = {}): Promise<Requi
     getProviderLimitsCache: deps.getProviderLimitsCache ?? providerLimits!.getProviderLimitsCache,
     getAllProviderLimitsCache:
       deps.getAllProviderLimitsCache ?? providerLimits!.getAllProviderLimitsCache,
+    getApiKeyUsageLimitStatus:
+      deps.getApiKeyUsageLimitStatus ?? usageLimits!.getApiKeyUsageLimitStatus,
   };
 }
 
@@ -358,6 +374,12 @@ export async function buildUsageCommandText(
   deps: InternalUsageCommandDeps = {}
 ): Promise<string> {
   const resolvedDeps = await normalizeDeps(deps);
+  if (metadata.usageLimitEnabled === true) {
+    return buildApiKeyUsageLimitText(
+      await resolvedDeps.getApiKeyUsageLimitStatus(metadata, { now: resolvedDeps.now })
+    );
+  }
+
   const snapshot = selectUsageSnapshot(await collectUsageSnapshots(metadata, resolvedDeps));
 
   if (!snapshot) {
