@@ -1,6 +1,8 @@
 import { backupDbFile } from "./backup";
+import { getDefaultCompressionCombo } from "./compressionCombos";
 import { getDbInstance } from "./core";
 import { invalidateDbCache } from "./readCache";
+import { ENGINE_IDS } from "@omniroute/open-sse/services/compression/engineCatalog.ts";
 import {
   DEFAULT_AGGRESSIVE_CONFIG,
   DEFAULT_CAVEMAN_CONFIG,
@@ -20,6 +22,7 @@ import {
   type CompressionConfig,
   type CompressionMode,
   type ContextEditingConfig,
+  type EngineToggle,
   type McpAccessibilityConfig,
   type RtkConfig,
   type UltraConfig,
@@ -377,6 +380,121 @@ function normalizeUltraConfig(value: unknown): UltraConfig {
   };
 }
 
+// Single-mode → engine id mapping. Mirrors deriveDefaultPlan's SINGLE_MODE_OF: a legacy
+// install whose only signal is `defaultMode` should turn on the engine that mode runs, so the
+// derived engines map matches the old behavior. Keep conservative — these are the only modes
+// that map 1:1 to a single engine.
+const SINGLE_MODE_ENGINE: Partial<Record<CompressionMode, string>> = {
+  lite: "lite",
+  standard: "caveman",
+  aggressive: "aggressive",
+  ultra: "ultra",
+  rtk: "rtk",
+};
+
+function normalizeEngineToggle(value: unknown): EngineToggle | null {
+  const record = toRecord(value);
+  if (typeof record.enabled !== "boolean") return null;
+  return {
+    enabled: record.enabled,
+    ...(typeof record.level === "string" ? { level: record.level } : {}),
+  };
+}
+
+// Sanitize an engines map for persistence: keep only known engine ids with a well-formed
+// `{enabled, level?}` toggle. Mirrors the read-path validation so a malformed write can't poison
+// the stored row.
+function sanitizeEnginesForWrite(value: unknown): Record<string, EngineToggle> {
+  const record = toRecord(value);
+  const out: Record<string, EngineToggle> = {};
+  for (const id of ENGINE_IDS) {
+    const toggle = normalizeEngineToggle(record[id]);
+    if (toggle) out[id] = toggle;
+  }
+  return out;
+}
+
+// Read the stored `engines` JSON row, keeping only well-formed `{enabled, level?}` entries for
+// known engine ids. Returns null when no usable row exists so the caller falls back to deriving
+// the map from the legacy fields (B-backfill, migration 102).
+function parseStoredEnginesMap(value: unknown): Record<string, EngineToggle> | null {
+  if (!value || typeof value !== "object") return null;
+  const out: Record<string, EngineToggle> = {};
+  let any = false;
+  for (const id of ENGINE_IDS) {
+    const toggle = normalizeEngineToggle((value as JsonRecord)[id]);
+    if (toggle) {
+      out[id] = toggle;
+      any = true;
+    }
+  }
+  return any ? out : null;
+}
+
+// Derive the per-engine toggle map from the legacy compression fields so existing installs keep
+// their behavior before they ever write an `engines` row. Single-engine modes (caveman/rtk/ultra/
+// aggressive) come from their dedicated config blocks; structural engines (lite/headroom/
+// session-dedup/ccr/llmlingua) come from the default-combo pipeline. `defaultMode` is a last-resort
+// signal that turns on its single-mode engine when nothing else already did.
+function deriveEnginesMap(config: CompressionConfig): Record<string, EngineToggle> {
+  let defaultComboEngines = new Set<string>();
+  try {
+    const combo = getDefaultCompressionCombo();
+    if (combo) {
+      defaultComboEngines = new Set(combo.pipeline.map((step) => step.engine));
+    }
+  } catch {
+    defaultComboEngines = new Set<string>();
+  }
+
+  const engines: Record<string, EngineToggle> = {};
+  for (const id of ENGINE_IDS) {
+    let enabled = false;
+    let level: string | undefined;
+    switch (id) {
+      case "caveman":
+        enabled = config.cavemanConfig?.enabled === true;
+        if (typeof config.cavemanConfig?.intensity === "string") {
+          level = config.cavemanConfig.intensity;
+        }
+        break;
+      case "rtk":
+        enabled = config.rtkConfig?.enabled === true;
+        if (typeof config.rtkConfig?.intensity === "string") {
+          level = config.rtkConfig.intensity;
+        }
+        break;
+      case "ultra":
+        enabled = config.ultra?.enabled === true;
+        break;
+      case "aggressive":
+        enabled = aggressiveEnabled(config.aggressive);
+        break;
+      default:
+        // Structural engines (lite/headroom/session-dedup/ccr/llmlingua): on when present in the
+        // default-combo pipeline.
+        enabled = defaultComboEngines.has(id);
+        break;
+    }
+    engines[id] = { enabled, ...(level !== undefined ? { level } : {}) };
+  }
+
+  // Last-resort defaultMode signal: if the legacy install only set defaultMode (no engine config),
+  // turn on the engine that mode actually ran so the derived default matches the old behavior.
+  const fallbackEngine = SINGLE_MODE_ENGINE[config.defaultMode];
+  if (fallbackEngine && engines[fallbackEngine] && !engines[fallbackEngine].enabled) {
+    engines[fallbackEngine] = { ...engines[fallbackEngine], enabled: true };
+  }
+
+  return engines;
+}
+
+// `aggressive` config doesn't carry a top-level `enabled` flag in its type, but legacy installs may
+// have stored one. Read it defensively for the derived engines map.
+function aggressiveEnabled(value: AggressiveConfig | undefined): boolean {
+  return toRecord(value).enabled === true;
+}
+
 export async function getCompressionSettings(): Promise<CompressionConfig> {
   const db = getDbInstance();
   if (
@@ -400,7 +518,13 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     aggressive: normalizeAggressiveConfig(undefined),
     ultra: normalizeUltraConfig(undefined),
     contextEditing: { ...DEFAULT_CONTEXT_EDITING_CONFIG },
+    engines: {},
+    activeComboId: null,
   };
+
+  // Tracks whether a usable stored `engines` row was found. When absent (pre-migration-102 install)
+  // we derive the engines map from the legacy fields below so behavior is preserved.
+  let storedEngines: Record<string, EngineToggle> | null = null;
 
   for (const row of rows) {
     const record = toRecord(row);
@@ -483,8 +607,25 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "contextEditing":
         config.contextEditing = normalizeContextEditingConfig(parsed);
         break;
+      case "engines":
+        storedEngines = parseStoredEnginesMap(parsed);
+        break;
+      case "activeComboId":
+        config.activeComboId =
+          typeof parsed === "string" && parsed.trim() ? parsed.trim() : null;
+        break;
     }
   }
+
+  // Engines map: prefer the stored row; otherwise derive from the legacy fields (migration 102
+  // backfill on the read path). Always fill EVERY id in ENGINE_IDS so the shape matches
+  // DEFAULT_COMPRESSION_CONFIG.
+  const derived = storedEngines ?? deriveEnginesMap(config);
+  const engines: Record<string, EngineToggle> = {};
+  for (const id of ENGINE_IDS) {
+    engines[id] = derived[id] ?? { enabled: false };
+  }
+  config.engines = engines;
 
   // Store in TTL cache (5s expiry)
   compressionSettingsCache = {
@@ -507,6 +648,12 @@ export async function updateCompressionSettings(
   const tx = db.transaction(() => {
     for (const [key, value] of Object.entries(updates)) {
       if (value === undefined) continue;
+      // Persist the engines map as ONE sanitized JSON row so the read path always gets
+      // well-formed { enabled, level? } toggles for known engine ids.
+      if (key === "engines") {
+        insert.run(NAMESPACE, key, JSON.stringify(sanitizeEnginesForWrite(value)));
+        continue;
+      }
       insert.run(NAMESPACE, key, JSON.stringify(value));
     }
   });
