@@ -177,24 +177,15 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
             });
           }
         } else if (typeof fileData === "string" && /^https?:\/\//i.test(fileData)) {
-          // Remote URLs cannot be passed directly to Gemini's inlineData (which
-          // requires base64). Fetching + encoding would require making this
-          // function async, which is a breaking change for sync callers (#2807).
-          // Until that refactor lands, warn loudly instead of silently dropping
-          // so users can see WHY their vision request failed.
-          // Strip query string before logging to avoid leaking auth tokens
-          // (signed URLs, SAS tokens, etc.) embedded in query parameters.
-          let safeUrl: string;
-          try {
-            const parsed = new URL(fileData);
-            safeUrl = parsed.origin + parsed.pathname;
-          } catch {
-            safeUrl = fileData.split("?")[0];
-          }
-          console.warn(
-            `[geminiHelper] Dropped remote image URL (Gemini inlineData requires base64): ${safeUrl}` +
-              ` - encode the image as a data: URI client-side until #2807 async fetch lands.`
-          );
+          // Remote URLs cannot be embedded as inlineData (which requires base64),
+          // but Gemini's Part schema natively accepts `fileData: { fileUri }` for
+          // HTTP/HTTPS sources — the model fetches the asset itself. Pass the URL
+          // through instead of dropping it (#2807; ported from upstream PR #344).
+          // The MIME type is intentionally `image/*` because we do not block on
+          // a HEAD request to sniff it; Gemini infers the concrete type on fetch.
+          parts.push({
+            fileData: { fileUri: fileData, mimeType: "image/*" },
+          });
         }
       }
     }
