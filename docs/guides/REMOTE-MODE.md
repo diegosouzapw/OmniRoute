@@ -230,6 +230,39 @@ omniroute contexts import contexts.json            # overwrite; --merge to keep 
 
 ---
 
+## Quick end-to-end check
+
+A copy-paste lifecycle to verify a remote setup from scratch — connect, mint a
+scoped token, route a command, switch back, and tear down. Replace
+`192.168.0.15` with your server's host/IP (Tailscale, LAN, or a public
+`https://…` URL).
+
+```bash
+# 1. Connect (password → admin token, saved as a context that becomes active)
+omniroute connect 192.168.0.15                 # or: --key oma_live_xxxx  (no password)
+omniroute contexts current                     # shows the remote server + scope
+
+# 2. Use it — management commands now run against the remote
+omniroute tokens create --name laptop --scope read   # mint a narrower token
+omniroute tokens list                                 # masked list, from the remote
+
+# 3. Switch back and forth
+omniroute contexts use default                 # → local
+omniroute contexts use 192-168-0-15            # → remote again (name from `contexts list`)
+
+# 4. Tear down. NOTE: `contexts remove` only deletes the LOCAL credential —
+#    it does NOT revoke the token on the server. Revoke server-side first if you
+#    want to actually kill access.
+omniroute tokens revoke <id|prefix>            # kills access on the server
+omniroute contexts remove 192-168-0-15 --yes   # drop the local context (even if active → falls back to default), no prompt
+```
+
+> `--yes` makes `contexts remove` non-interactive (required in scripts/CI; without
+> it, a non-interactive shell declines safely instead of hanging). Removing the
+> **active** context falls back to `default` automatically.
+
+---
+
 ## Security notes
 
 - Token plaintext is shown once; only the SHA-256 hash is persisted (same as API keys).
