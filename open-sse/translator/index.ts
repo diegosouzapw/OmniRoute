@@ -426,9 +426,11 @@ export function translateRequest(
 
 // Translate response chunk: target -> openai -> source
 export function translateResponse(targetFormat, sourceFormat, chunk, state) {
-  // If same format, return as-is
+  // If same format, return as-is — but never propagate the null/flush signal as a
+  // literal `[null]`, which leaks an empty `data: null` SSE event between chunks and
+  // crashes strict clients (#1052).
   if (sourceFormat === targetFormat) {
-    return [chunk];
+    return chunk == null ? [] : [chunk];
   }
 
   let results = [chunk];
