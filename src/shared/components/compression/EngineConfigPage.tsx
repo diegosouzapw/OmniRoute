@@ -17,10 +17,20 @@ interface EngineEntry {
   configSchema: EngineConfigField[];
 }
 
-interface ComboStep {
-  engine: string;
-  intensity?: string;
-  config?: Record<string, unknown>;
+// Engines whose detailed config has a dedicated sub-object in the compression
+// settings store. The on/off + level for ALL engines now live in the panel
+// (/dashboard/context/settings, the `engines` map); only these have a place to
+// persist the extra per-engine fields edited on this page. Structural engines
+// (lite, headroom, session-dedup, ccr, llmlingua) have no sub-object yet — their
+// page keeps the detail form + preview but has nothing extra to persist this phase.
+const SETTINGS_SUBOBJECT: Record<string, string> = {
+  aggressive: "aggressive",
+  ultra: "ultra",
+};
+
+interface CompressionSettings {
+  engines?: Record<string, { enabled?: boolean; level?: string }>;
+  [key: string]: unknown;
 }
 
 interface Analytics {
@@ -95,7 +105,6 @@ function renderDiffSegment(segment: PreviewDiffSegment, index: number) {
 export function EngineConfigPage({ engineId }: { engineId: string }) {
   // ── Data state ──────────────────────────────────────────────────────────
   const [engine, setEngine] = useState<EngineEntry | null>(null);
-  const [enabled, setEnabled] = useState(false);
   const [configState, setConfigState] = useState<Record<string, unknown>>({});
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -109,7 +118,6 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
 
   // ── Action state ────────────────────────────────────────────────────────
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [toggleError, setToggleError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   // ── Initial load ────────────────────────────────────────────────────────
@@ -123,13 +131,13 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
       // Fire the three independent reads in parallel — load time is the slowest
       // single request, not their sum. Each resolves to null on failure (fail-soft).
       const asJson = (r: Response) => (r.ok ? r.json() : null);
-      const [enginesData, comboData, analyticsData] = await Promise.all([
+      const [enginesData, settingsData, analyticsData] = await Promise.all([
         fetch("/api/compression/engines")
           .then(asJson)
           .catch(() => null) as Promise<{ engines: EngineEntry[] } | null>,
-        fetch("/api/context/combos/default")
+        fetch("/api/settings/compression")
           .then(asJson)
-          .catch(() => null) as Promise<{ pipeline?: ComboStep[] } | null>,
+          .catch(() => null) as Promise<CompressionSettings | null>,
         fetch(`/api/context/analytics/engine?engineId=${engineId}&days=7`)
           .then(asJson)
           .catch(() => null) as Promise<Analytics | null>,
@@ -142,25 +150,22 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
         setLoadError("Failed to load engine information.");
       }
 
-      // Derive enabled + currentConfig from the default combo (404/null = defaults)
-      let currentEnabled = false;
-      let currentConfig: Record<string, unknown> = {};
-      const step = comboData?.pipeline?.find((s) => s.engine === engineId);
-      if (step) {
-        currentEnabled = step.config?.enabled !== false;
-        currentConfig = step.config ?? {};
-      }
+      // Detailed config lives in the engine's settings sub-object (when it has one);
+      // the on/off + level moved to the panel. 404/null/missing = schema defaults.
+      const subKey = SETTINGS_SUBOBJECT[engineId];
+      const stored = subKey ? settingsData?.[subKey] : undefined;
+      const currentConfig: Record<string, unknown> =
+        stored && typeof stored === "object" ? (stored as Record<string, unknown>) : {};
 
       if (!cancelled) {
         if (analyticsData) setAnalytics(analyticsData);
         setEngine(foundEngine);
-        setEnabled(currentEnabled);
-        // Seed configState from defaultValues then override with currentConfig
+        // Seed configState from defaultValues then override with the stored sub-object.
         const defaults: Record<string, unknown> = {};
         for (const field of foundEngine?.configSchema ?? []) {
           defaults[field.key] = field.defaultValue;
         }
-        setConfigState({ ...defaults, ...currentConfig, enabled: currentEnabled });
+        setConfigState({ ...defaults, ...currentConfig });
         setLoading(false);
       }
     }
@@ -173,42 +178,26 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
 
   // ── Handlers ─────────────────────────────────────────────────────────────
 
-  async function handleToggle() {
-    const next = !enabled;
-    const nextConfig = { ...configState, enabled: next };
-    setEnabled(next);
-    setConfigState(nextConfig);
-    setToggleError(null);
-    try {
-      const res = await fetch("/api/context/combos/default", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ engineId, enabled: next, config: nextConfig }),
-      });
-      if (!res.ok) {
-        setToggleError("Failed to update engine state.");
-        setEnabled(!next); // revert
-        setConfigState(configState);
-      }
-    } catch {
-      setToggleError("Failed to update engine state.");
-      setEnabled(!next); // revert
-      setConfigState(configState);
-    }
-  }
-
+  // Persist the engine's DETAILED config to its settings sub-object. The on/off +
+  // level are owned by the panel (the `engines` map) and are NOT written here — so
+  // this page never touches the deprecated /api/context/combos/default route.
   async function handleSave() {
-    const nextEnabled = typeof configState.enabled === "boolean" ? configState.enabled : enabled;
-    const nextConfig = { ...configState, enabled: nextEnabled };
-    setEnabled(nextEnabled);
-    setConfigState(nextConfig);
+    const subKey = SETTINGS_SUBOBJECT[engineId];
+    if (!subKey) {
+      // Structural engines have no detail store yet — nothing to persist this phase.
+      setSaveError(null);
+      return;
+    }
+    // Strip the `enabled` key — engine on/off is the panel's responsibility.
+    const { enabled: _ignored, ...detail } = configState;
+    void _ignored;
     setSaving(true);
     setSaveError(null);
     try {
-      const res = await fetch("/api/context/combos/default", {
+      const res = await fetch("/api/settings/compression", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ engineId, enabled: nextEnabled, config: nextConfig }),
+        body: JSON.stringify({ [subKey]: detail }),
       });
       if (!res.ok) {
         setSaveError("Failed to save configuration.");
@@ -264,6 +253,8 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
 
   const subtitle = engine.metadata?.description ?? engine.description;
   const visibleConfigSchema = engine.configSchema.filter((field) => field.key !== "enabled");
+  // Only engines with a dedicated settings sub-object can persist their detail here.
+  const persistable = Boolean(SETTINGS_SUBOBJECT[engineId]);
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-3xl">
@@ -289,33 +280,14 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
         </p>
       )}
 
-      {/* ── Enable toggle ── */}
-      <div className="flex flex-col gap-2 rounded-lg border border-border bg-surface p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm font-medium text-text">Enable layer</span>
-            <span className="text-xs text-text-muted">
-              {enabled
-                ? "This layer is active in the default pipeline."
-                : "This layer is inactive."}
-            </span>
-          </div>
-          <input
-            type="checkbox"
-            data-toggle="enable"
-            checked={enabled}
-            onChange={handleToggle}
-            className="h-4 w-4 accent-primary cursor-pointer"
-            aria-label="Enable layer"
-          />
-        </div>
-        {toggleError && <p className="text-xs text-destructive">{toggleError}</p>}
-        <p className="text-xs text-text-muted" data-testid="stacked-mode-notice">
-          Enabled layers run when compression is in &quot;stacked&quot; mode. Configure it in{" "}
+      {/* ── Panel pointer (on/off + level live there now) ── */}
+      <div className="flex flex-col gap-1 rounded-lg border border-border bg-surface p-4">
+        <p className="text-xs text-text-muted" data-testid="panel-pointer-notice">
+          Turn this layer on/off and set its level in{" "}
           <a href="/dashboard/context/settings" className="underline hover:text-text">
             Compression Settings
           </a>
-          .
+          . This page edits its detailed configuration only.
         </p>
       </div>
 
@@ -332,13 +304,20 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
           <p className="text-sm text-text-muted">No additional configuration.</p>
         )}
         <div className="flex items-center gap-3 pt-1">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="px-4 py-1.5 rounded bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50"
-          >
-            {saving ? "Saving..." : "Save"}
-          </button>
+          {persistable ? (
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="px-4 py-1.5 rounded bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50"
+            >
+              {saving ? "Saving..." : "Save"}
+            </button>
+          ) : (
+            <p className="text-xs text-text-muted" data-testid="no-detail-store-notice">
+              This layer is configured by the global settings; there is no per-engine override to
+              save here yet.
+            </p>
+          )}
           {saveError && <p className="text-xs text-destructive">{saveError}</p>}
         </div>
       </div>

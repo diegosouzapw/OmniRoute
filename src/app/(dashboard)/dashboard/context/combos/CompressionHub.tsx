@@ -172,64 +172,10 @@ export default function CompressionHub() {
     [settings]
   );
 
-  // ── Toggle a layer (enable/disable) ───────────────────────────────────────────
-  // Routed through the dedicated `/default` endpoint (setEngineInDefaultCombo): it
-  // accepts an empty pipeline (disabling the last layer) and inserts at the
-  // stackPriority-correct position — the [id] route requires `pipeline.min(1)`.
-  const toggleEngine = useCallback(
-    async (engineId: string) => {
-      if (!combo) return;
-      const existingIndex = combo.pipeline.findIndex((s) => s.engine === engineId);
-      const existingStep = existingIndex >= 0 ? combo.pipeline[existingIndex] : null;
-      const enabledNow = Boolean(existingStep && existingStep.config?.enabled !== false);
-      const prev = combo;
-
-      // Optimistic update (mirrors the server's insert-at-priority / remove logic).
-      let optimistic: PipelineStep[];
-      if (enabledNow) {
-        optimistic = combo.pipeline.filter((s) => s.engine !== engineId);
-      } else if (existingStep) {
-        optimistic = combo.pipeline.map((step, index) =>
-          index === existingIndex
-            ? { ...step, config: { ...(step.config ?? {}), enabled: true } }
-            : step
-        );
-      } else {
-        const priorityOf = (eid: string) => engines.find((e) => e.id === eid)?.stackPriority ?? 50;
-        optimistic = [...combo.pipeline];
-        let insertAt = optimistic.findIndex((s) => priorityOf(s.engine) > priorityOf(engineId));
-        if (insertAt < 0) insertAt = optimistic.length;
-        optimistic.splice(insertAt, 0, { engine: engineId });
-      }
-      setCombo({ ...combo, pipeline: optimistic });
-      setError(null);
-
-      try {
-        const res = await fetch("/api/context/combos/default", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            engineId,
-            enabled: !enabledNow,
-            config: { ...(existingStep?.config ?? {}), enabled: !enabledNow },
-          }),
-        });
-        if (!res.ok) {
-          setCombo(prev);
-          setError("Failed to update layer.");
-          return;
-        }
-        const updated = await res.json();
-        if (Array.isArray(updated?.pipeline)) {
-          setCombo({ ...prev, pipeline: updated.pipeline });
-        }
-      } catch {
-        setCombo(prev);
-        setError("Failed to update layer.");
-      }
-    },
-    [combo, engines]
-  );
+  // Layer enable/disable moved to the single-source panel (/dashboard/context/settings,
+  // the `engines` map). The old per-layer toggle here wrote the now-deprecated
+  // /api/context/combos/default route (a 410 shim) — it has been removed. This Hub keeps
+  // the read-only derived view + the reorder control (which uses the named-combo [id] route).
 
   // ── Reorder an active layer ───────────────────────────────────────────────────
   // Persisted via the [id] route so the custom order survives (the `/default` route
@@ -423,9 +369,16 @@ export default function CompressionHub() {
           </h2>
           <span className="text-xs text-text-muted">{activeSteps.length} layer(s)</span>
         </div>
+        <p className="text-xs text-text-muted">
+          Turn layers on/off and set their level in{" "}
+          <a href="/dashboard/context/settings" className="underline hover:text-text-main">
+            Compression Settings
+          </a>
+          . You can reorder the active layers here.
+        </p>
         {activeSteps.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-xs text-text-muted">
-            No active layers. Enable a layer below to build the pipeline.
+            No active layers. Enable a layer in Compression Settings to build the pipeline.
           </p>
         ) : (
           <ul className="flex flex-col gap-2">
@@ -485,11 +438,6 @@ export default function CompressionHub() {
                   >
                     <span className="material-symbols-outlined text-[18px]">settings</span>
                   </a>
-                  <Toggle
-                    checked
-                    onChange={() => toggleEngine(step.engine)}
-                    ariaLabel={`Disable ${engine?.name ?? step.engine}`}
-                  />
                 </li>
               );
             })}
@@ -534,11 +482,6 @@ export default function CompressionHub() {
                 >
                   <span className="material-symbols-outlined text-[18px]">settings</span>
                 </a>
-                <Toggle
-                  checked={false}
-                  onChange={() => toggleEngine(engine.id)}
-                  ariaLabel={`Enable ${engine.name}`}
-                />
               </li>
             ))}
           </ul>

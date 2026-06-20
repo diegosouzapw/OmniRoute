@@ -84,10 +84,6 @@ export default function CavemanContextPageClient() {
     intensity: "lite",
     autoClarity: true,
   };
-  const inputMode: InputModeConfig = {
-    enabled: settings?.cavemanConfig?.enabled ?? false,
-    intensity: (settings?.cavemanConfig?.intensity as InputModeConfig["intensity"]) ?? "lite",
-  };
   const masterEnabled = settings?.enabled ?? false;
 
   const saveSettings = async (patch: Partial<CompressionSettings>) => {
@@ -106,11 +102,6 @@ export default function CavemanContextPageClient() {
 
   const updateLanguageConfig = (patch: Partial<LanguageConfig>) => {
     saveSettings({ languageConfig: { ...languageConfig, ...patch } });
-  };
-
-  const updateInputMode = (patch: Partial<InputModeConfig>) => {
-    const current = settings?.cavemanConfig ?? {};
-    saveSettings({ cavemanConfig: { ...current, ...inputMode, ...patch } });
   };
 
   const updateOutputMode = (patch: Partial<OutputModeConfig>) => {
@@ -232,34 +223,6 @@ export default function CavemanContextPageClient() {
         </div>
       )}
 
-      <section className="rounded-lg border border-border bg-surface p-4">
-        <h2 className="text-sm font-semibold text-text-main">{t("inputCompressionTitle")}</h2>
-        <p className="mt-1 text-xs text-text-muted">{t("inputCompressionDesc")}</p>
-        <div className="mt-3 flex flex-wrap gap-4 text-sm text-text-main">
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={inputMode.enabled}
-              disabled={saving}
-              onChange={(event) => updateInputMode({ enabled: event.target.checked })}
-            />
-            {t("enabled")}
-          </label>
-          <select
-            value={inputMode.intensity}
-            disabled={saving}
-            onChange={(event) =>
-              updateInputMode({ intensity: event.target.value as InputModeConfig["intensity"] })
-            }
-            className="rounded-lg border border-border bg-bg px-3 py-2 text-sm"
-          >
-            <option value="lite">lite</option>
-            <option value="full">full</option>
-            <option value="ultra">ultra</option>
-          </select>
-        </div>
-      </section>
-
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="rounded-lg border border-border bg-surface p-4">
           <h2 className="text-sm font-semibold text-text-main">{t("analyticsTitle")}</h2>
@@ -282,16 +245,9 @@ export default function CavemanContextPageClient() {
         <div className="rounded-lg border border-border bg-surface p-4">
           <h2 className="text-sm font-semibold text-text-main">{t("outputModeTitle")}</h2>
           <p className="mt-1 text-xs text-text-muted">{t("outputModeDesc")}</p>
+          {/* On/off + intensity for caveman output mode live in the panel
+              (/dashboard/context/settings). This page keeps the detailed knobs only. */}
           <div className="mt-3 flex flex-wrap gap-4 text-sm text-text-main">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={outputMode.enabled}
-                disabled={saving}
-                onChange={(event) => updateOutputMode({ enabled: event.target.checked })}
-              />
-              {t("enabled")}
-            </label>
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -301,18 +257,6 @@ export default function CavemanContextPageClient() {
               />
               {t("autoClarity")}
             </label>
-            <select
-              value={outputMode.intensity}
-              disabled={saving}
-              onChange={(event) =>
-                updateOutputMode({ intensity: event.target.value as OutputModeConfig["intensity"] })
-              }
-              className="rounded-lg border border-border bg-bg px-3 py-2 text-sm"
-            >
-              <option value="lite">lite</option>
-              <option value="full">full</option>
-              <option value="ultra">ultra</option>
-            </select>
           </div>
           <pre className="mt-3 overflow-auto rounded-lg border border-border bg-bg p-3 text-xs text-text-main">
             {previewPrompt}

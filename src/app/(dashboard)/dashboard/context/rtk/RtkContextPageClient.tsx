@@ -188,31 +188,9 @@ export default function RtkContextPageClient() {
 
       {config && (
         <section className="rounded-lg border border-border bg-surface p-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <label className="flex items-center gap-2 text-sm text-text-main">
-              <input
-                type="checkbox"
-                checked={config.enabled}
-                disabled={saving}
-                onChange={(event) => saveConfig({ enabled: event.target.checked })}
-              />
-              {t("enabled")}
-            </label>
-            <label className="flex flex-col gap-1 text-sm text-text-main">
-              {t("intensity")}
-              <select
-                value={config.intensity}
-                disabled={saving}
-                onChange={(event) =>
-                  saveConfig({ intensity: event.target.value as RtkConfig["intensity"] })
-                }
-                className="rounded border border-border bg-bg px-2 py-1 text-sm"
-              >
-                <option value="minimal">{t("intensityMinimal")}</option>
-                <option value="standard">{t("intensityStandard")}</option>
-                <option value="aggressive">{t("intensityAggressive")}</option>
-              </select>
-            </label>
+          {/* On/off + intensity now live in the panel (/dashboard/context/settings). This
+              page edits RTK's detailed configuration only. */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
             <label className="flex flex-col gap-1 text-sm text-text-main">
               {t("maxLines")}
               <input
