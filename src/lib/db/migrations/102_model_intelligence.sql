@@ -1,4 +1,6 @@
--- 097_model_intelligence.sql
+-- 102_model_intelligence.sql
+-- Renumbered from 097 (collided with 097_semantic_cache_expires_index).
+-- Model intelligence scores: per-model task-fitness from arena ELO, models.dev
 -- Model intelligence scores: per-model task-fitness from arena ELO, models.dev
 -- tier rankings, and user overrides. Supports resolution chain (user_override
 -- > arena_elo > models_dev_tier) and auto-expiry for stale synced data.

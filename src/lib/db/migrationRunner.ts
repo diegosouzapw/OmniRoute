@@ -526,23 +526,15 @@ function isSchemaAlreadyApplied(
       // was dropped on integration; this canonical migration creates the table
       // that recordPluginExecution()/getPluginAnalytics() rely on.
       return hasTable(db, "plugin_analytics");
+    case "102":
+      // model_intelligence table (renumbered 097 → 102 to avoid collision with
+      // 097_semantic_cache_expires_index at merge time). DBs that applied the
+      // original 097_model_intelligence under the old number should not re-run
+      // as 102.
+      return hasTable(db, "model_intelligence");
     default:
       return false;
   }
-}
-
-function applyApiKeyLifecycleMigration(db: SqliteAdapter): void {
-  ensureColumn(db, "api_keys", "revoked_at", "ALTER TABLE api_keys ADD COLUMN revoked_at TEXT");
-  ensureColumn(db, "api_keys", "expires_at", "ALTER TABLE api_keys ADD COLUMN expires_at TEXT");
-  ensureColumn(db, "api_keys", "last_used_at", "ALTER TABLE api_keys ADD COLUMN last_used_at TEXT");
-  ensureColumn(db, "api_keys", "key_prefix", "ALTER TABLE api_keys ADD COLUMN key_prefix TEXT");
-  ensureColumn(db, "api_keys", "ip_allowlist", "ALTER TABLE api_keys ADD COLUMN ip_allowlist TEXT");
-  ensureColumn(db, "api_keys", "scopes", "ALTER TABLE api_keys ADD COLUMN scopes TEXT");
-
-  db.exec(`
-    CREATE INDEX IF NOT EXISTS idx_api_keys_revoked_at ON api_keys(revoked_at);
-    CREATE INDEX IF NOT EXISTS idx_api_keys_expires_at ON api_keys(expires_at);
-  `);
 }
 
 function isSearchRequestTypeMigration(migration: { version: string; name: string }): boolean {
