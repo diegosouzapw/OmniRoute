@@ -47,6 +47,20 @@ const INJECTION_PATTERNS = [
   },
 ];
 
+/**
+ * Maximum number of characters scanned for prompt-injection patterns.
+ *
+ * The guard joins every message/system string into one buffer and runs several
+ * regexes over it on every chat request. With no cap that is O(body) CPU on the
+ * hot path — at high concurrency with 300 KB bodies it is a self-inflicted
+ * latency/GC source. Injection directives sit near the top of a prompt, so
+ * scanning hundreds of KB of pasted code / RAG context buys only CPU. We bound
+ * the scan to the first 16 KB (generous: real directives are far shorter) before
+ * the regex loop. The 10 MB body-size cap that protects ingestion lives
+ * elsewhere; this constant only bounds the regex scan. Refs #3932 / #4041.
+ */
+export const MAX_INJECTION_SCAN_BYTES = 16 * 1024;
+
 // ─── PII Patterns ────────────────────────────────────────────────────
 
 /** @type {Array<{name: string, pattern: RegExp, replacement: string}>} */
@@ -168,8 +182,13 @@ function extractMessageContents(body) {
  */
 function detectInjection(text) {
   const detections = [];
+  // Bound the regex scan to the first 16 KB — see MAX_INJECTION_SCAN_BYTES
+  // (hot-path perf, #3932 / #4041). Slice before the loop so each pattern only
+  // ever scans the capped prefix, never the full (possibly hundreds of KB) body.
+  const scanText =
+    text.length > MAX_INJECTION_SCAN_BYTES ? text.slice(0, MAX_INJECTION_SCAN_BYTES) : text;
   for (const rule of INJECTION_PATTERNS) {
-    const match = text.match(rule.pattern);
+    const match = scanText.match(rule.pattern);
     if (match) {
       detections.push({
         pattern: rule.name,
