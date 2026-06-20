@@ -208,7 +208,11 @@ test("handleResponsesCore strips previous_response_id by default and handles emp
   assert.equal(result.success, true);
   assert.equal(call.body.previous_response_id, undefined);
   assert.equal(call.body.metadata, undefined);
-  assert.deepEqual(call.body.messages, []);
+  // Empty input[] now injects a placeholder user message to avoid upstream
+  // "400: at least one message is required" rejections (9router#419).
+  assert.equal(Array.isArray(call.body.messages), true);
+  assert.equal(call.body.messages.length, 1);
+  assert.equal(call.body.messages[0].role, "user");
   assert.equal(call.body.stream, true);
 });
 
