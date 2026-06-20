@@ -91,6 +91,8 @@ const nextConfig = {
     },
   },
   output: "standalone",
+  compress: true,
+  productionBrowserSourceMaps: false,
   // OmniRoute is a proxy for AI APIs — request bodies routinely include
   // multi-MB payloads (vision models, image edits, base64-encoded files,
   // long chat histories with embedded images). Next.js's Server Action
@@ -108,6 +110,20 @@ const nextConfig = {
     // uploads (OpenAI-compatible /v1/files) routinely exceed this. Match the
     // 512 MB server-side cap; tune via env if needed.
     proxyClientMaxBodySize: process.env.NEXT_PROXY_BODY_LIMIT || "512mb",
+    // PR-2 of diegosouzapw/OmniRoute#3932: tree-shake barrel re-exports so
+    // route bundles don't pull in 14 locale files, every lucide-react icon,
+    // or the full date-fns surface when only one helper is used.
+    optimizePackageImports: [
+      "lobehub/icons",
+      "@lobehub/icons",
+      "lucide-react",
+      "date-fns",
+      "lodash",
+      "lodash-es",
+      "material-symbols",
+      "next-intl",
+      "@omniroute/open-sse",
+    ],
   },
   outputFileTracingRoot: projectRoot,
   outputFileTracingIncludes: {
@@ -216,6 +232,27 @@ const nextConfig = {
         mermaid: {
           test: /[\\/]node_modules[\\/]mermaid[\\/]/,
           name: "vendor-mermaid",
+          chunks: "all",
+          priority: 20,
+        },
+        // PR-2 of diegosouzapw/OmniRoute#3932: isolate the heavy long-tail
+        // vendor chunks that only some routes actually need, so dashboard
+        // pages don't pay for the docs bundle (or vice versa).
+        nextIntl: {
+          test: /[\\/]node_modules[\\/]next-intl[\\/]/,
+          name: "vendor-next-intl",
+          chunks: "all",
+          priority: 25,
+        },
+        fumadocs: {
+          test: /[\\/]node_modules[\\/](fumadocs-ui|fumadocs-core|fumadocs-mdx)[\\/]/,
+          name: "vendor-fumadocs",
+          chunks: "all",
+          priority: 20,
+        },
+        comboGraph: {
+          test: /[\\/]node_modules[\\/]@?dagre[\\/]|[\\/]node_modules[\\/]@?elkjs[\\/]/,
+          name: "vendor-combo-graph",
           chunks: "all",
           priority: 20,
         },

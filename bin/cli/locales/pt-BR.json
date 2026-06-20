@@ -299,6 +299,9 @@
     "cleared": "Cache limpo.",
     "clearFailed": "Falha ao limpar cache."
   },
+  "redis": {
+    "description": "Iniciar um contêiner Redis local com um clique (Podman ou Docker) para cache e rastreamento de cotas do OmniRoute"
+  },
   "test": {
     "description": "Testar conexão com um provedor",
     "noServer": "Servidor não está em execução. Inicie com: omniroute serve",

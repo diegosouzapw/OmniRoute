@@ -25,5 +25,8 @@
     "base_url": "OmniRoute sunucusu temel URL'si",
     "context": "Bu komut için sunucu bağlamı/profili",
     "lang": "CLI görüntüleme dilini ayarla (OMNIROUTE_LANG'ı geçersiz kılar)"
+  },
+  "redis": {
+    "description": "OmniRoute önbelleği ve kota takibi için tek tıkla yerel Redis konteyneri (Podman veya Docker) başlatın"
   }
 }

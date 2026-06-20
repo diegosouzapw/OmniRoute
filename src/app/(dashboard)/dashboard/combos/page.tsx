@@ -13,6 +13,7 @@ import Modal from "@/shared/components/Modal";
 import Toggle from "@/shared/components/Toggle";
 import Tooltip from "@/shared/components/Tooltip";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+import { FieldLabelWithHelp, WeightTotalBar } from "./parts";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -1413,23 +1414,6 @@ function StrategyRecommendationsPanel({ strategy, onApply, showNudge }) {
             "Recommendations updated for {strategy}."
           ).replace("{strategy}", strategyLabel)}
         </div>
-      )}
-    </div>
-  );
-}
-
-function FieldLabelWithHelp({ label, help, showHelp = true, htmlFor = undefined }) {
-  return (
-    <div className="flex items-center gap-1 mb-0.5">
-      <label htmlFor={htmlFor} className="text-[10px] text-text-muted">
-        {label}
-      </label>
-      {showHelp && (
-        <Tooltip position="bottom" content={help}>
-          <span className="material-symbols-outlined text-[12px] text-text-muted cursor-help">
-            help
-          </span>
-        </Tooltip>
       )}
     </div>
   );
@@ -4326,59 +4310,5 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
 }
 
 // ─────────────────────────────────────────────
-// Weight Total Bar
-// ─────────────────────────────────────────────
-function WeightTotalBar({ models }) {
-  const total = models.reduce((sum, m) => sum + (m.weight || 0), 0);
-  const isValid = total === 100;
-  const colors = [
-    "bg-blue-500",
-    "bg-emerald-500",
-    "bg-amber-500",
-    "bg-purple-500",
-    "bg-rose-500",
-    "bg-cyan-500",
-    "bg-orange-500",
-    "bg-indigo-500",
-  ];
-
-  return (
-    <div className="mt-1.5">
-      {/* Visual bar */}
-      <div className="h-1.5 rounded-full bg-black/5 dark:bg-white/5 overflow-hidden flex">
-        {models.map((m, i) => {
-          if (!m.weight) return null;
-          return (
-            <div
-              key={i}
-              className={`${colors[i % colors.length]} transition-all duration-300`}
-              style={{ width: `${Math.min(m.weight, 100)}%` }}
-            />
-          );
-        })}
-      </div>
-      <div className="flex items-center justify-between mt-0.5">
-        <div className="flex gap-1">
-          {models.map(
-            (m, i) =>
-              m.weight > 0 && (
-                <span key={i} className="flex items-center gap-0.5 text-[9px] text-text-muted">
-                  <span
-                    className={`inline-block w-1.5 h-1.5 rounded-full ${colors[i % colors.length]}`}
-                  />
-                  {m.weight}%
-                </span>
-              )
-          )}
-        </div>
-        <span
-          className={`text-[10px] font-medium ${
-            isValid ? "text-emerald-500" : total > 100 ? "text-red-500" : "text-amber-500"
-          }`}
-        >
-          {total}%{!isValid && total > 0 && " ≠ 100%"}
-        </span>
-      </div>
-    </div>
-  );
-}
+// WeightTotalBar moved to ./WeightTotalBar.tsx (re-exported via ./parts).
+// PR-1 of diegosouzapw/OmniRoute#3932 — pure presentational component.

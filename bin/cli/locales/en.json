@@ -300,6 +300,9 @@
     "cleared": "Cache cleared.",
     "clearFailed": "Failed to clear cache."
   },
+  "redis": {
+    "description": "Launch a 1-click local Redis container (Podman or Docker) for OmniRoute caching and quota tracking"
+  },
   "test": {
     "description": "Test a provider connection",
     "noServer": "Server not running. Start with: omniroute serve",

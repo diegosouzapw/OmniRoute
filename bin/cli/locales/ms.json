@@ -1,1 +1,5 @@
-{}
+{
+  "redis": {
+    "description": "Lancarkan kontena Redis tempatan dengan satu klik (Podman atau Docker) untuk caching dan penjejakan kuota OmniRoute"
+  }
+}

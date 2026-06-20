@@ -1,1 +1,5 @@
-{}
+{
+  "redis": {
+    "description": "Anzisha kontena la Redis la ndani kwa kubofya mara moja (Podman au Docker) kwa ajili ya kuhifadhi ya OmniRoute na ufuatiliaji wa mgao"
+  }
+}

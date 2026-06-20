@@ -25,5 +25,8 @@
     "base_url": "URL cơ sở của máy chủ OmniRoute",
     "context": "Bối cảnh/hồ sơ máy chủ cho lệnh này",
     "lang": "Đặt ngôn ngữ hiển thị CLI (ghi đè OMNIROUTE_LANG)"
+  },
+  "redis": {
+    "description": "Khởi chạy bộ chứa Redis cục bộ bằng một cú nhấp chuột (Podman hoặc Docker) để lưu bộ đệm và theo dõi hạn ngạch của OmniRoute"
   }
 }
