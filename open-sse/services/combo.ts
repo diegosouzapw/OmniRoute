@@ -119,6 +119,7 @@ import {
   isStreamReadinessFailureErrorBody,
   isTokenLimitBreachErrorBody,
   toRecordedTarget,
+  getExhaustedTargetSkipReason,
 } from "./combo/comboPredicates.ts";
 import { dedupeTargetsByExecutionKey, isRecord } from "./combo/comboData.ts";
 import { resolveShadowTargets, scheduleShadowRouting } from "./combo/shadowRouting.ts";
@@ -1084,24 +1085,14 @@ export async function handleComboChat({
             }
           : { ...target, modelAbortSignal: abortControllers.get(i)!.signal };
 
-        // #1731v2: Skip targets whose provider:connection pair had a connection-level error.
-        if (provider && target.connectionId) {
-          const connKey = `${provider}:${target.connectionId}`;
-          if (exhaustedConnections.has(connKey)) {
-            log.info(
-              "COMBO",
-              `Skipping ${modelStr} — connection ${target.connectionId} for provider ${provider} had connection error (#1731v2)`
-            );
-            if (i > 0) fallbackCount++;
-            return null;
-          }
-        }
-        // #1731: Skip targets from a provider that already signaled full quota exhaustion this request.
-        if (provider && exhaustedProviders.has(provider)) {
-          log.info(
-            "COMBO",
-            `Skipping ${modelStr} — provider ${provider} marked exhausted this request (#1731)`
-          );
+        // #1731 / #1731v2: skip targets already known-exhausted this request (shared predicate).
+        const exhaustedSkip = getExhaustedTargetSkipReason(
+          target,
+          exhaustedProviders,
+          exhaustedConnections
+        );
+        if (exhaustedSkip) {
+          log.info("COMBO", exhaustedSkip);
           if (i > 0) fallbackCount++;
           return null;
         }
@@ -2115,25 +2106,14 @@ async function handleRoundRobinCombo({
       continue;
     }
 
-    // #1731: Skip targets from a provider that already signaled full quota exhaustion
-    // this request.
-    // #1731v2: Skip targets whose provider:connection pair had a connection-level error.
-    if (provider && target.connectionId) {
-      const connKey = `${provider}:${target.connectionId}`;
-      if (exhaustedConnections.has(connKey)) {
-        log.info(
-          "COMBO-RR",
-          `Skipping ${modelStr} — connection ${target.connectionId} for provider ${provider} had connection error (#1731v2)`
-        );
-        if (offset > 0) fallbackCount++;
-        continue;
-      }
-    }
-    if (provider && exhaustedProviders.has(provider)) {
-      log.info(
-        "COMBO-RR",
-        `Skipping ${modelStr} — provider ${provider} marked exhausted this request (#1731)`
-      );
+    // #1731 / #1731v2: skip targets already known-exhausted this request (shared predicate).
+    const exhaustedSkip = getExhaustedTargetSkipReason(
+      target,
+      exhaustedProviders,
+      exhaustedConnections
+    );
+    if (exhaustedSkip) {
+      log.info("COMBO-RR", exhaustedSkip);
       if (offset > 0) fallbackCount++;
       continue;
     }

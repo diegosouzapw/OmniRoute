@@ -45,6 +45,36 @@ export function isProviderCircuitOpenResult(
   return /provider_circuit_open/i.test(errorText);
 }
 
+/**
+ * Skip reason for a combo target already known-exhausted THIS request, or null if it is not.
+ *
+ * De-duplicates the byte-identical #1731 / #1731v2 pre-dispatch skip checks that BOTH combo
+ * dispatchers run per target (handleComboChat's speculative loop and handleRoundRobinCombo's
+ * rotation): a target whose `provider:connectionId` pair already had a connection-level error
+ * (`exhaustedConnections`), or whose provider already signaled full quota exhaustion
+ * (`exhaustedProviders`), is skipped for the rest of the request. Returns the log message the
+ * caller emits with its OWN tag ("COMBO" / "COMBO-RR"); each caller keeps its own control flow
+ * (return null vs continue) and its own fallbackCount bookkeeping.
+ */
+export function getExhaustedTargetSkipReason(
+  target: ResolvedComboTarget,
+  exhaustedProviders: ReadonlySet<string>,
+  exhaustedConnections: ReadonlySet<string>
+): string | null {
+  const { provider, modelStr, connectionId } = target;
+  // #1731v2: skip targets whose provider:connection pair had a connection-level error.
+  if (provider && connectionId) {
+    if (exhaustedConnections.has(`${provider}:${connectionId}`)) {
+      return `Skipping ${modelStr} — connection ${connectionId} for provider ${provider} had connection error (#1731v2)`;
+    }
+  }
+  // #1731: skip targets from a provider that already signaled full quota exhaustion this request.
+  if (provider && exhaustedProviders.has(provider)) {
+    return `Skipping ${modelStr} — provider ${provider} marked exhausted this request (#1731)`;
+  }
+  return null;
+}
+
 export const MAX_COMBO_DEPTH = 3;
 // Absolute safety ceiling for operator-configured nesting depth. config.maxComboDepth
 // can raise the default (3) up to this cap, or lower it, but never above — runaway
