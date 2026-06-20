@@ -1,3 +1,9 @@
+---
+title: "Unified Compression Config Panel — Phase 1 Implementation Plan"
+version: 3.8.32
+lastUpdated: 2026-06-20
+---
+
 # Unified Compression Config Panel — Phase 1 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

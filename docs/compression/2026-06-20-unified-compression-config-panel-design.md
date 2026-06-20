@@ -1,3 +1,9 @@
+---
+title: "Unified Compression Config Panel — Design"
+version: 3.8.32
+lastUpdated: 2026-06-20
+---
+
 # Unified Compression Config Panel — Design
 
 **Status:** approved direction (2026-06-20), pending spec review
@@ -219,7 +225,7 @@ header/active-aware from the start so later phases only wire UI + header parsing
   fall-through); panel reducer (toggle/level edits → config patch).
 - **Component (vitest):** the panel renders all engines, toggles persist, derived pipeline
   preview updates.
-- **Integration:** a config with engines {rtk,caveman} on → `applyCompressionAsync` runs the
+- **Integration:** a config with engines `{rtk,caveman}` on → `applyCompressionAsync` runs the
   derived stacked pipeline; single engine on → single-mode path; equivalence with the old
   defaultMode behavior for the same logical config.
 - Both runners green (`test:unit` + `test:vitest`); typecheck:core clean; lint 0 errors.
