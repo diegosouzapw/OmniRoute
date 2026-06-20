@@ -145,6 +145,13 @@ export interface CompressionConfig {
   engines: Record<string, EngineToggle>;
   /** Active combo preset id, or null if none selected. */
   activeComboId: string | null;
+  /**
+   * Runtime-only (NOT persisted): true when a stored `engines` row exists, i.e. the operator
+   * configured engines via the panel. When false, the `engines` map is a display-only backfill
+   * and dispatch falls back to the legacy `defaultMode`/default-combo path (zero behaviour
+   * change for installs that predate the panel). Set by `getCompressionSettings`.
+   */
+  enginesExplicit?: boolean;
 }
 
 export interface CompressionStats {

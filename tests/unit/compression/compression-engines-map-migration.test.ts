@@ -45,6 +45,8 @@ test("migration backfills engines map from prior defaultMode + default combo", a
   const cfg = await getCompressionSettings();
   assert.equal(cfg.engines.caveman.enabled, true);
   assert.equal(cfg.activeComboId, null);
+  // No stored engines row → backfilled map is display-only; dispatch stays on the legacy path.
+  assert.equal(cfg.enginesExplicit, false);
 });
 
 test("engines map persists round-trip + activeComboId", async () => {
@@ -62,4 +64,6 @@ test("engines map persists round-trip + activeComboId", async () => {
   assert.equal(cfg.engines.rtk.enabled, true);
   assert.equal(cfg.engines.rtk.level, "standard");
   assert.equal(cfg.engines.caveman.level, "full");
+  // A stored engines row exists → the panel configured engines; dispatch trusts the map.
+  assert.equal(cfg.enginesExplicit, true);
 });

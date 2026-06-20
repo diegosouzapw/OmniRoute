@@ -626,6 +626,10 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     engines[id] = derived[id] ?? { enabled: false };
   }
   config.engines = engines;
+  // Runtime-only marker: dispatch trusts the engines map only when it was explicitly stored
+  // (panel-saved). A backfilled map (no stored row) is display-only — dispatch stays on the
+  // legacy defaultMode/default-combo path so existing installs keep their behaviour.
+  config.enginesExplicit = storedEngines !== null;
 
   // Store in TTL cache (5s expiry)
   compressionSettingsCache = {

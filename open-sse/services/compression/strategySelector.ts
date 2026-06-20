@@ -21,7 +21,7 @@ import {
   type CachingDetectionContext,
 } from "./cachingAware.ts";
 import { resolveCompressionPlan } from "./resolveCompressionPlan.ts";
-import type { DerivedPlan } from "./deriveDefaultPlan.ts";
+import { deriveDefaultPlan, type DerivedPlan } from "./deriveDefaultPlan.ts";
 
 export function checkComboOverride(
   config: CompressionConfig,
@@ -77,20 +77,25 @@ function resolveBasePlan(
 }
 
 /**
- * Derived-default step. Prefers the new per-engine toggle map (via
- * {@link resolveCompressionPlan}); when that yields `off` because the engines map is
- * empty/all-off (a legacy config that predates the panel), falls back to the historical
- * `config.defaultMode`. This keeps legacy single-mode configs working byte-for-byte while
- * letting engines-map configs drive the plan.
+ * Derived-default step. The per-engine toggle map drives the default ONLY when it was
+ * EXPLICITLY configured via the panel (a stored `engines` row — `config.enginesExplicit`).
+ * For legacy installs the map is backfilled for DISPLAY only (so the panel shows current
+ * state); dispatch falls back to the historical `config.defaultMode` so behaviour is
+ * byte-for-byte preserved until the operator opts into the panel by saving. This avoids a
+ * silent behaviour change for installs whose backfilled engine flags don't exactly match
+ * their old defaultMode.
  */
 function deriveDefaultPlanFromConfig(
   config: CompressionConfig,
   comboId: string | null
 ): DerivedPlan {
-  const derived = resolveCompressionPlan(config, { comboId, combos: {} });
-  if (derived.mode !== "off") return derived;
+  if (config.enginesExplicit) {
+    // Panel-configured: the engines map (via the resolver, which stays header/active-combo
+    // aware for Phases 2-3) is authoritative — including an explicit "everything off".
+    return resolveCompressionPlan(config, { comboId, combos: {} });
+  }
 
-  // Legacy fallback: no engine toggled on, but defaultMode carries a real mode.
+  // Legacy path: defaultMode carries the effective mode (the engines map is display-only here).
   const legacyMode = config.defaultMode;
   if (legacyMode && legacyMode !== "off") {
     return legacyMode === "stacked"
@@ -98,7 +103,19 @@ function deriveDefaultPlanFromConfig(
       : { mode: legacyMode, stackedPipeline: [] };
   }
 
-  return derived;
+  return { mode: "off", stackedPipeline: [] };
+}
+
+/**
+ * True when the EXPLICITLY-configured engines map (panel-saved) derives a multi-engine
+ * stacked pipeline. chatCore uses this to know the panel's derived pipeline is authoritative
+ * and the legacy default-combo fallback must NOT override it. Returns false for legacy
+ * (non-explicit) installs so their historical default-combo path is preserved untouched.
+ */
+export function enginesMapDerivesStackedPipeline(config: CompressionConfig): boolean {
+  if (!config.enginesExplicit) return false;
+  const plan = deriveDefaultPlan(config.engines ?? {}, config.enabled !== false);
+  return plan.mode === "stacked" && plan.stackedPipeline.length > 0;
 }
 
 export function getEffectiveMode(
@@ -161,6 +178,10 @@ export function resolveCacheAwareConfig(
 ): CompressionConfig {
   if (!body) return config;
   const ctx = detectCachingContext(body, context);
+  // Only `skipSystemPrompt` is consumed here, and it depends solely on `ctx.isCachingProvider`
+  // (NOT on the strategy arg — see getCacheAwareStrategy), so the stored `defaultMode` is a safe
+  // input even though it may be "off" for a panel-configured install. If getCacheAwareStrategy is
+  // ever extended to key `skipSystemPrompt` on the mode, pass the resolved effective mode instead.
   const cacheAware = getCacheAwareStrategy(config.defaultMode, ctx);
   if (cacheAware.skipSystemPrompt && config.preserveSystemPrompt === false) {
     return { ...config, preserveSystemPrompt: true };

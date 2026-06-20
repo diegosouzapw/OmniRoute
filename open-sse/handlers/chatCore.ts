@@ -1446,6 +1446,7 @@ export async function handleChatCore({
       const {
         selectCompressionStrategy,
         selectCompressionPlan,
+        enginesMapDerivesStackedPipeline,
         applyCompressionAsync,
         resolveCacheAwareConfig,
       } = await import("../services/compression/strategySelector.ts");
@@ -1626,7 +1627,12 @@ export async function handleChatCore({
         modeBeforeOutputTransform === "stacked" &&
         !compressionComboApplied &&
         !config.compressionComboId &&
-        isBuiltinStackedPipeline(config.stackedPipeline)
+        isBuiltinStackedPipeline(config.stackedPipeline) &&
+        // Don't let the legacy default combo override a panel-configured engines map: when the
+        // operator's explicit engines derive their own stacked pipeline, that pipeline (applied
+        // below from compressionPlan.stackedPipeline) is authoritative. Legacy/backfilled
+        // installs (enginesExplicit false) still fall through to the seeded default combo.
+        !enginesMapDerivesStackedPipeline(config)
       ) {
         try {
           const { getDefaultCompressionCombo } =

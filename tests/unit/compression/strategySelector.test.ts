@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   selectCompressionStrategy,
   selectCompressionPlan,
+  enginesMapDerivesStackedPipeline,
   getEffectiveMode,
   applyCompression,
   checkComboOverride,
@@ -22,7 +23,12 @@ const baseConfig: CompressionConfig = {
   comboOverrides: {},
 };
 
-/** Builds a config whose only enabled engines are the ones named (all others off). */
+/**
+ * Builds a PANEL-CONFIGURED config whose only enabled engines are the ones named (all others
+ * off). `enginesExplicit: true` models a stored engines row (the operator used the panel), so
+ * the engines map drives dispatch. Pass `enginesExplicit: false` via overrides to model a
+ * legacy/backfilled install where dispatch falls back to defaultMode.
+ */
 function engineConfig(
   engines: CompressionConfig["engines"],
   overrides: Partial<CompressionConfig> = {}
@@ -31,6 +37,7 @@ function engineConfig(
     ...DEFAULT_COMPRESSION_CONFIG,
     enabled: true,
     engines,
+    enginesExplicit: true,
     ...overrides,
   };
 }
@@ -160,6 +167,55 @@ describe("selectCompressionStrategy resolves via the engines map (Task 7)", () =
       { comboOverrides: { "my-combo": "off" } }
     );
     assert.equal(selectCompressionStrategy(config, "my-combo", 0), "off");
+  });
+});
+
+describe("engines map drives dispatch ONLY when explicit (zero behaviour change for legacy)", () => {
+  it("legacy install (enginesExplicit false) ignores the backfilled engines map, uses defaultMode", () => {
+    // A backfilled map with rtk+caveman would derive "stacked", but a legacy install must keep
+    // its historical defaultMode until the operator saves via the panel.
+    const legacy: CompressionConfig = {
+      ...DEFAULT_COMPRESSION_CONFIG,
+      enabled: true,
+      defaultMode: "lite",
+      engines: { rtk: { enabled: true }, caveman: { enabled: true, level: "full" } },
+      enginesExplicit: false,
+    };
+    assert.equal(selectCompressionStrategy(legacy, null, 0), "lite");
+  });
+
+  it("explicit install (enginesExplicit true) uses the engines map over defaultMode", () => {
+    const explicit = engineConfig(
+      { rtk: { enabled: true }, caveman: { enabled: true, level: "full" } },
+      { defaultMode: "lite" }
+    );
+    assert.equal(selectCompressionStrategy(explicit, null, 0), "stacked");
+  });
+});
+
+describe("enginesMapDerivesStackedPipeline", () => {
+  it("true only for an explicit multi-engine stacked map", () => {
+    assert.equal(
+      enginesMapDerivesStackedPipeline(
+        engineConfig({ rtk: { enabled: true }, caveman: { enabled: true, level: "full" } })
+      ),
+      true
+    );
+  });
+  it("false for a single-mode explicit map (not stacked)", () => {
+    assert.equal(enginesMapDerivesStackedPipeline(engineConfig({ rtk: { enabled: true } })), false);
+  });
+  it("false for an empty/all-off explicit map", () => {
+    assert.equal(enginesMapDerivesStackedPipeline(engineConfig({})), false);
+  });
+  it("false for a legacy (non-explicit) install even when the backfilled map is stacked", () => {
+    const legacy: CompressionConfig = {
+      ...DEFAULT_COMPRESSION_CONFIG,
+      enabled: true,
+      engines: { rtk: { enabled: true }, caveman: { enabled: true, level: "full" } },
+      enginesExplicit: false,
+    };
+    assert.equal(enginesMapDerivesStackedPipeline(legacy), false);
   });
 });
 

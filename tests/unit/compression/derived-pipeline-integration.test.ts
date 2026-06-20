@@ -43,6 +43,8 @@ describe("compression derived-pipeline integration (Task 12)", () => {
       enabled: true,
       // Clear the seeded default stackedPipeline so the derived plan is the only source.
       stackedPipeline: [],
+      // Panel-configured: the engines map drives dispatch (a stored engines row exists).
+      enginesExplicit: true,
       engines: {
         ...DEFAULT_COMPRESSION_CONFIG.engines,
         rtk: { enabled: true },
