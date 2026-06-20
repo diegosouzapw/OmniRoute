@@ -10,6 +10,9 @@ export const kieProvider: RegistryEntry = {
   authHeader: "bearer",
   defaultContextLength: 128000,
   models: [
+    // Sweep 2026-06-19: + current flagships the kie proxy surfaces. gemini-3-pro was
+    // skipped (registry already carries the newer gemini-3-1-pro).
+    { id: "claude-opus-4-8", name: "Claude 4.8 Opus" },
     { id: "claude-opus-4-7", name: "Claude 4.7 Opus" },
     { id: "claude-sonnet-4-6", name: "Claude 4.6 Sonnet" },
     { id: "claude-haiku-4-5", name: "Claude 4.5 Haiku" },
@@ -19,5 +22,6 @@ export const kieProvider: RegistryEntry = {
     { id: "gemini-3-1-pro", name: "Gemini 3.1 Pro" },
     { id: "gemini-2-5-pro", name: "Gemini 2.5 Pro" },
     { id: "gemini-3-flash", name: "Gemini 3 Flash" },
+    { id: "gemini-3-5-flash", name: "Gemini 3.5 Flash" },
   ],
 };

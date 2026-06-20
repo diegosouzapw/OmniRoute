@@ -1950,6 +1950,9 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
   const [builderProviderId, setBuilderProviderId] = useState("");
   const [builderModelId, setBuilderModelId] = useState("");
   const [builderConnectionId, setBuilderConnectionId] = useState(COMBO_BUILDER_AUTO_CONNECTION);
+  // #3266: optional account allowlist — scopes an auto-selecting step's round-robin
+  // to a subset of the provider's connections. Empty = whole active pool.
+  const [builderAllowedConnectionIds, setBuilderAllowedConnectionIds] = useState<string[]>([]);
   const [manualModelInput, setManualModelInput] = useState("");
   const [manualModelError, setManualModelError] = useState("");
   const [builderComboRefName, setBuilderComboRefName] = useState("");
@@ -2075,6 +2078,11 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
       ? selectedBuilderConnections.find((connection) => connection.id === builderConnectionId) ||
         null
       : null;
+  // Defensive: only carry allowlist ids that still belong to the selected provider's
+  // connections, so stale ids from a previous provider can never leak into a step.
+  const builderEffectiveAllowedConnectionIds = builderAllowedConnectionIds.filter((id) =>
+    selectedBuilderConnections.some((connection) => connection.id === id)
+  );
   const builderCandidateStep =
     selectedBuilderProvider && selectedBuilderModel
       ? buildPrecisionComboModelStep({
@@ -2083,6 +2091,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
           connectionId:
             builderConnectionId !== COMBO_BUILDER_AUTO_CONNECTION ? builderConnectionId : null,
           connectionLabel: selectedBuilderConnection?.label || null,
+          allowedConnectionIds: builderEffectiveAllowedConnectionIds,
         })
       : null;
   const builderHasDuplicate =
@@ -2250,6 +2259,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     setBuilderProviderId("");
     setBuilderModelId("");
     setBuilderConnectionId(COMBO_BUILDER_AUTO_CONNECTION);
+    setBuilderAllowedConnectionIds([]);
     setManualModelInput("");
     setManualModelError("");
     setBuilderComboRefName("");
@@ -2348,6 +2358,16 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     setBuilderProviderId(nextProviderId);
     setBuilderModelId("");
     setBuilderConnectionId(COMBO_BUILDER_AUTO_CONNECTION);
+    setBuilderAllowedConnectionIds([]);
+    setBuilderError("");
+  };
+
+  const handleBuilderAllowedConnectionToggle = (connectionId: string) => {
+    setBuilderAllowedConnectionIds((prev) =>
+      prev.includes(connectionId)
+        ? prev.filter((id) => id !== connectionId)
+        : [...prev, connectionId]
+    );
     setBuilderError("");
   };
 
@@ -2395,6 +2415,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
       connectionId:
         builderConnectionId !== COMBO_BUILDER_AUTO_CONNECTION ? builderConnectionId : null,
       connectionLabel: selectedBuilderConnection?.label || null,
+      allowedConnectionIds: builderEffectiveAllowedConnectionIds,
     });
 
     if (hasExactModelStepDuplicate(models, nextStep)) {
@@ -2411,6 +2432,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     const nextModels = [...models, nextStep];
     setModels(nextModels);
     setBuilderError("");
+    setBuilderAllowedConnectionIds([]);
     setBuilderConnectionId(
       findNextSuggestedConnectionId(
         nextModels,
@@ -3165,6 +3187,46 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                     </select>
                   </div>
                 </div>
+
+                {builderConnectionId === COMBO_BUILDER_AUTO_CONNECTION &&
+                selectedBuilderConnections.length > 1 ? (
+                  <div className="mt-2 rounded-md border border-black/8 dark:border-white/8 bg-white/70 dark:bg-white/[0.03] px-2.5 py-2">
+                    <label className="text-[10px] font-medium uppercase tracking-wide text-text-muted block mb-1.5">
+                      {getI18nOrFallback(
+                        t,
+                        "builderRestrictAccounts",
+                        "Restrict to accounts (optional)"
+                      )}
+                    </label>
+                    <div className="flex flex-wrap gap-1.5" data-testid="combo-builder-allowlist">
+                      {selectedBuilderConnections.map((connection) => {
+                        const checked = builderAllowedConnectionIds.includes(connection.id);
+                        return (
+                          <button
+                            type="button"
+                            key={connection.id}
+                            onClick={() => handleBuilderAllowedConnectionToggle(connection.id)}
+                            aria-pressed={checked}
+                            className={`text-[11px] px-2 py-1 rounded border transition-colors ${
+                              checked
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-black/10 dark:border-white/10 text-text-muted hover:border-primary/40"
+                            }`}
+                          >
+                            {pickDisplayValue([connection.label], emailsVisible, connection.label)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="text-[10px] text-text-muted mt-1.5">
+                      {getI18nOrFallback(
+                        t,
+                        "builderRestrictAccountsHint",
+                        "Leave empty to use the whole active pool. When selected, round-robin / weighted picks stay within this subset of accounts."
+                      )}
+                    </p>
+                  </div>
+                ) : null}
 
                 {isExpertMode ? (
                   <div className="mt-2 flex flex-wrap items-center gap-2">

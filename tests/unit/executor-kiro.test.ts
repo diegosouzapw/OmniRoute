@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { KiroExecutor } from "../../open-sse/executors/kiro.ts";
+import { hasStreamReadinessSignal } from "../../open-sse/utils/streamReadiness.ts";
 
 const textEncoder = new TextEncoder();
 
@@ -97,6 +98,44 @@ function parseSSEJsonChunks(text) {
     .filter((payload) => payload && payload !== "[DONE]")
     .map((payload) => JSON.parse(payload));
 }
+
+test("KiroExecutor.transformEventStreamToSSE emits an early role-only start chunk that satisfies stream readiness", async () => {
+  const executor = new KiroExecutor();
+  // A corrupted prelude frame must NOT trigger the start chunk; only the first
+  // successfully-parsed frame should. Here the first valid frame is metadata-only
+  // (contextUsageEvent emits no SSE of its own), proving the start chunk is driven
+  // by frame parsing rather than by the first content token.
+  const invalidPreludeFrame = buildEventFrame("assistantResponseEvent", { content: "skip me" });
+  invalidPreludeFrame[8] ^= 0xff;
+
+  const response = buildEventStreamResponse([
+    invalidPreludeFrame,
+    buildEventFrame("contextUsageEvent", { contextUsagePercentage: 5 }),
+    buildEventFrame("assistantResponseEvent", { content: "Answer" }),
+    buildEventFrame("messageStopEvent", {}),
+    buildEventFrame("metricsEvent", { inputTokens: 3, outputTokens: 5 }),
+  ]);
+
+  const transformed = executor.transformEventStreamToSSE(response, "kiro-model");
+  const text = await transformed.text();
+  const chunks = parseSSEJsonChunks(text);
+
+  // The very first emitted chunk is a role-only start frame (no content yet).
+  assert.equal(chunks[0].object, "chat.completion.chunk");
+  assert.equal(chunks[0].choices[0].delta.role, "assistant");
+  assert.equal(chunks[0].choices[0].delta.content, undefined);
+
+  // That first frame alone must release the backend stream-readiness gate so the
+  // client is not held until the first content token (the slow-Kiro regression).
+  const firstFrameText = `data: ${JSON.stringify(chunks[0])}\n\n`;
+  assert.equal(hasStreamReadinessSignal(firstFrameText), true);
+
+  // Content is still delivered, and role is not duplicated on the content delta.
+  const contentChunk = chunks.find((chunk) => chunk.choices?.[0]?.delta?.content === "Answer");
+  assert.ok(contentChunk);
+  assert.equal(contentChunk.choices[0].delta.role, undefined);
+  assert.match(text, /\[DONE\]/);
+});
 
 test("KiroExecutor.buildHeaders includes Kiro-specific auth and metadata", () => {
   const executor = new KiroExecutor();

@@ -8,6 +8,46 @@ function registerModel(provider, model) {
   PROVIDER_MODELS[provider] = [...(PROVIDER_MODELS[provider] || []), model];
 }
 
+test("GithubExecutor.refreshGitHubToken sends the public client_id and omits client_secret (port from 9router#442)", async () => {
+  // GitHub Copilot is a public device-flow OAuth client (client_id, no client_secret).
+  // The previous code sent client_id/client_secret straight from this.config via
+  // new URLSearchParams, so an undefined config produced the literal
+  // "client_id=undefined&client_secret=undefined". The fix populates the real client_id
+  // and only sends client_secret when one actually exists.
+  const executor = new GithubExecutor();
+  const calls: any[] = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async (url: any, options: any = {}) => {
+    calls.push({ url: String(url), options });
+    return {
+      ok: true,
+      json: async () => ({
+        access_token: "gh-access",
+        refresh_token: "gh-next",
+        expires_in: 3600,
+      }),
+    } as any;
+  }) as any;
+
+  try {
+    const result = await executor.refreshGitHubToken("gh-refresh", { info() {}, error() {} });
+    assert.deepEqual(result, {
+      accessToken: "gh-access",
+      refreshToken: "gh-next",
+      expiresIn: 3600,
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  const body = String(calls[0].options.body);
+  assert.match(body, /client_id=Iv1\./, "the real public github client_id must be sent");
+  assert.ok(
+    !body.includes("client_secret="),
+    "client_secret must be omitted (never the literal 'undefined')"
+  );
+});
+
 test("GithubExecutor.buildUrl routes response-format models to /responses", () => {
   const originalModels = [...(PROVIDER_MODELS.gh || [])];
   registerModel("gh", {

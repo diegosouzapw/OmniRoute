@@ -9,12 +9,13 @@ export const longcatProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "Authorization",
   authPrefix: "Bearer",
-  // Free tier: 50M tokens/day (Flash-Lite) + 500K/day (Chat/Thinking) — 100% free while public beta
+  // Sweep 2026-06-19: the LongCat-Flash-* line was officially retired 2026-05-29; the
+  // current docs (longcat.chat/platform/docs) expose only LongCat-2.0-Preview.
   models: [
-    { id: "LongCat-Flash-Lite", name: "LongCat Flash-Lite (50M tok/day 🆓)" },
-    { id: "LongCat-Flash-Chat", name: "LongCat Flash-Chat (500K tok/day 🆓)" },
-    { id: "LongCat-Flash-Thinking", name: "LongCat Flash-Thinking (500K tok/day 🆓)" },
-    { id: "LongCat-Flash-Omni-2603", name: "LongCat Flash-Omni-2603 (500K tok/day 🆓)" },
-    //{ id: "LongCat-2.0-Preview", name: "LongCat 2.0 Preview (10M tok/day 🆓)" },
+    {
+      id: "LongCat-2.0-Preview",
+      name: "LongCat 2.0 Preview (10M tok/day 🆓)",
+      contextLength: 1048576,
+    },
   ],
 };
