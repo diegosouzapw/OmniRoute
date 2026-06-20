@@ -240,10 +240,23 @@ export function resolveOmniRoutePluginOptions(
   opts?: OmniRoutePluginOptions
 ): Required<Pick<OmniRoutePluginOptions, "providerId" | "displayName" | "modelCacheTtl">> &
   Pick<OmniRoutePluginOptions, "baseURL" | "features"> {
-  const providerId = opts?.providerId ?? OMNIROUTE_PROVIDER_KEY;
+  const rawProviderId = opts?.providerId ?? OMNIROUTE_PROVIDER_KEY;
+  // OC 1.17.8+ native-adapter gate (`Ji()` in the bundled client) rejects any
+  // model whose `providerID` is not exactly `"openai"`, `"anthropic"`, or
+  // does not start with `"opencode"`. The plugin is not native so it fails
+  // that gate unless the resolved providerId carries the prefix. Silently
+  // remap so users who configured `providerId: "omniroute"` (the legacy
+  // bare key) keep working — internally every catalog key, ModelV2 field,
+  // and auth hook sees `"opencode-omniroute"`. The TUI picker is unaffected
+  // (it goes through the plugin's `provider.models()` hook, not the gate).
+  const providerId = rawProviderId.startsWith("opencode-")
+    ? rawProviderId
+    : `opencode-${rawProviderId}`;
   const displayName =
     opts?.displayName ??
-    (providerId === OMNIROUTE_PROVIDER_KEY ? "OmniRoute" : `OmniRoute (${providerId})`);
+    (providerId === `opencode-${OMNIROUTE_PROVIDER_KEY}`
+      ? "OmniRoute"
+      : `OmniRoute (${providerId})`);
   const modelCacheTtl =
     typeof opts?.modelCacheTtl === "number" && opts.modelCacheTtl > 0
       ? opts.modelCacheTtl
@@ -409,59 +422,13 @@ export function createOmniRouteAuthHook(opts?: OmniRoutePluginOptions): AuthHook
         ],
       },
     ],
-    loader: async (getAuth, _provider) => {
-      const auth = await getAuth();
-      if (
-        auth &&
-        typeof auth === "object" &&
-        (auth as { type?: unknown }).type === "api" &&
-        typeof (auth as { key?: unknown }).key === "string" &&
-        (auth as { key: string }).key.length > 0
-      ) {
-        const apiKey = (auth as { key: string }).key;
-        // baseURL resolution: plugin opts win, then a credential-attached
-        // baseURL (some auth backends stash it alongside the key), else empty.
-        // Re-cast through `unknown` first: Auth is a discriminated union
-        // (api | oauth | wellknown) and TS refuses a direct narrowing to a
-        // hypothetical `{ baseURL: string }` shape because WellKnownAuth has
-        // no `baseURL`. We've already checked the runtime type via typeof so
-        // the unknown-bridge is a safe assertion, not a lie.
-        const authBaseURL = (auth as unknown as { baseURL?: unknown }).baseURL;
-        const resolvedBaseURL = baseURL ?? (typeof authBaseURL === "string" ? authBaseURL : "");
-        // Without a baseURL the interceptor can't tell which requests to
-        // intercept (it would either gate-keep nothing or, worse, all
-        // outbound traffic). Fall back to apiKey-only and let the SDK use
-        // its default fetch. The /connect flow + plugin opts should make
-        // this branch unreachable in practice.
-        if (!resolvedBaseURL) {
-          return { apiKey };
-        }
-        // Composition: sanitise Gemini tool schemas FIRST (T-06), then inject
-        // Bearer (T-04). Both layers are pure with respect to the other's
-        // concern (body vs headers) so order is logically free; wrapping the
-        // pure body-transform around the header-injecting interceptor reads
-        // cleaner and keeps T-06 testable in isolation against any inner fetch
-        // (real or stub). Each layer is gated by its feature flag; when both
-        // are disabled we fall back to the SDK's default fetch (apiKey only).
-        let composedFetch: typeof fetch | undefined;
-        if (wantFetchInterceptor) {
-          composedFetch = createOmniRouteFetchInterceptor({
-            apiKey,
-            baseURL: resolvedBaseURL,
-          });
-        }
-        if (wantGeminiSanitization) {
-          composedFetch = createGeminiSanitizingFetch(composedFetch ?? fetch);
-        }
-        if (wantDebugLog || debugLogEnabled(providerId)) {
-          composedFetch = createDebugLoggingFetch(composedFetch ?? fetch, providerId, wantDebugLog);
-        }
-        return composedFetch
-          ? { apiKey, baseURL: resolvedBaseURL, fetch: composedFetch }
-          : { apiKey, baseURL: resolvedBaseURL };
-      }
-      return {};
-    },
+    // loader: removed — OC's native auth resolution reads auth.json directly
+    // and supplies the entry to the AI SDK. A custom loader was returning {}
+    // in some OC versions (1.17.x) because getAuth() shape changed across
+    // versions, breaking the "No credentials" path. Letting OC resolve auth
+    // natively works on every version because OC handles its own auth.json
+    // format. Methods below still define the /connect flow for collecting
+    // the API key initially.
   };
 
   return hook;
@@ -479,7 +446,13 @@ export function createOmniRouteAuthHook(opts?: OmniRoutePluginOptions): AuthHook
  * from each plugin tuple invoking the factory with its own opts.
  */
 export const OmniRoutePlugin: Plugin = async (_input, options) => {
-  const resolved = coercePluginOptions(options);
+  // Run validated opts through resolveOmniRoutePluginOptions so that defaults
+  // (providerId, displayName, modelCacheTtl) are filled in even when opencode.json
+  // omits the second tuple entry. Previously the factory used coercePluginOptions()
+  // which returns {} for a missing bag, leaving resolved.modelCacheTtl === undefined
+  // and breaking downstream code paths that read it (cache TTL arithmetic +
+  // the startup breadcrumb).
+  const resolved = resolveOmniRoutePluginOptions(coercePluginOptions(options));
   // T-07: a single per-plugin-instance cache shared between the provider
   // hook (T-03/T-05) and the config-shim hook (T-07). On OC ≥1.14.49 both
   // hooks fire within the same Plugin invocation, so a shared cache keeps
@@ -599,7 +572,7 @@ export type OmniRouteModelsFetcher = (
 export const defaultOmniRouteModelsFetcher: OmniRouteModelsFetcher = async (
   baseURL,
   apiKey,
-  timeoutMs = 10_000
+  timeoutMs = 60_000
 ) => {
   if (!apiKey) throw new Error("@omniroute/opencode-plugin: apiKey required to fetch /v1/models");
   if (!baseURL) throw new Error("@omniroute/opencode-plugin: baseURL required to fetch /v1/models");
@@ -851,7 +824,7 @@ export type OmniRouteCombosFetcher = (
 export const defaultOmniRouteCombosFetcher: OmniRouteCombosFetcher = async (
   baseURL,
   apiKey,
-  timeoutMs = 10_000
+  timeoutMs = 60_000
 ) => {
   if (!apiKey) throw new Error("@omniroute/opencode-plugin: apiKey required to fetch /api/combos");
   if (!baseURL)
@@ -1088,7 +1061,7 @@ export type OmniRouteAutoCombosFetcher = (
 export const defaultOmniRouteAutoCombosFetcher: OmniRouteAutoCombosFetcher = async (
   baseURL,
   apiKey,
-  timeoutMs = 5_000
+  timeoutMs = 30_000
 ) => {
   if (!apiKey || !baseURL) return [];
 
@@ -1161,7 +1134,8 @@ const AUTO_COMBO_FALLBACK_OUTPUT = 8_192;
  * applies when the server omits them. Never 0.
  */
 export function mapAutoComboToStaticEntry(
-  autoCombo: OmniRouteRawAutoCombo
+  autoCombo: OmniRouteRawAutoCombo,
+  providerID: string
 ): OmniRouteStaticModelEntry {
   const variant = autoCombo.variant;
   const name = formatAutoComboName(variant, autoCombo.candidateCount);
@@ -1173,12 +1147,9 @@ export function mapAutoComboToStaticEntry(
     typeof autoCombo.max_output_tokens === "number" && autoCombo.max_output_tokens > 0
       ? autoCombo.max_output_tokens
       : AUTO_COMBO_FALLBACK_OUTPUT;
-  // No `providerID` field on static-catalog entries — OC ignores it on the static
-  // path, and stamping it on auto-combos but not on raw/combo entries was an
-  // internal inconsistency. The dynamic-hook path builds its ModelV2 from the
-  // individual fields below and never read this field either.
   return {
     name,
+    providerID,
     attachment: false,
     reasoning: true,
     temperature: true,
@@ -1279,7 +1250,7 @@ export type OmniRouteEnrichmentFetcher = (
 export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = async (
   baseURL,
   apiKey,
-  timeoutMs = 10_000
+  timeoutMs = 60_000
 ) => {
   const out: OmniRouteEnrichmentMap = new Map();
   if (!baseURL || !apiKey) return out;
@@ -1912,7 +1883,7 @@ export type OmniRouteCompressionMetaFetcher = (
 export const defaultOmniRouteCompressionMetaFetcher: OmniRouteCompressionMetaFetcher = async (
   baseURL,
   apiKey,
-  timeoutMs = 10_000
+  timeoutMs = 60_000
 ) => {
   const empty: OmniRouteCompressionCombo[] = [];
   if (!baseURL || !apiKey) return empty;
@@ -2067,7 +2038,7 @@ export type OmniRouteProvidersFetcher = (
 export const defaultOmniRouteProvidersFetcher: OmniRouteProvidersFetcher = async (
   baseURL,
   apiKey,
-  timeoutMs = 10_000
+  timeoutMs = 60_000
 ) => {
   const empty: OmniRouteProviderConnection[] = [];
   if (!baseURL || !apiKey) return empty;
@@ -2259,22 +2230,21 @@ export function slugifyComboName(name: string): string {
 }
 
 /**
- * Build a combo's static-block key, provider-prefixed as `<providerId>/<slug>`
- * (e.g. `omniroute/MASTER`, `omniroute/MASTER-LIGHT`), guaranteeing uniqueness
- * across an entire static catalog. If `<providerId>/<slug>` is already present in
- * `used`, suffixes a short UUID-prefix disambiguator from `combo.id` so the second
- * combo doesn't silently overwrite the first. Mutates `used` in place by recording
- * the chosen key. Returns the final `<providerId>/<slug>` key.
+ * Build a combo's static-block key (bare slug like `MASTER`, `MASTER-LIGHT`),
+ * guaranteeing uniqueness across an entire static catalog. If `<slug>` is
+ * already present in `used`, suffixes a short UUID-prefix disambiguator from
+ * `combo.id` so the second combo doesn't silently overwrite the first.
+ * Mutates `used` in place by recording the chosen key. Returns the final
+ * bare key.
  *
- * NOTE: the key MUST carry the OWNING provider prefix (`omniroute/…`), never a
- * `combo/` namespace — OpenCode parses model IDs on `/` to extract the provider,
- * so `combo/MASTER` would resolve provider=`combo` (no credentials) and fail with
- * "Unable to determine provider", whereas `omniroute/MASTER` resolves provider=
- * `omniroute` and the openai-compatible adapter strips the prefix and sends the
- * bare slug upstream, which the server resolves via getComboByName. See PR #4184.
+ * NOTE: the key MUST NOT carry a `combo/` namespace prefix — OpenCode
+ * Combo keys published inside the `config.provider.<id>` block. The block
+ * scope already binds the key to the plugin's `providerId`, so we emit bare
+ * slugs (e.g. `master-light`, NOT `opencode-omniroute/master-light` — the
+ * latter would create `opencode-omniroute/opencode-omniroute/master-light`
+ * in OC's parser when the user invokes `--model opencode-omniroute/master-light`).
  *
- * Falls back to `<providerId>/<id>` when the friendly name slugifies to the empty
- * string (e.g. a combo named just punctuation).
+ * Collision disambiguation appends the combo id tail.
  */
 export function buildComboKey(
   combo: OmniRouteRawCombo,
@@ -2284,13 +2254,13 @@ export function buildComboKey(
   const friendlyName = combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
   let slug = slugifyComboName(friendlyName);
   if (slug.length === 0) slug = combo.id;
-  let key = `${providerId}/${slug}`;
+  let key = slug;
   if (used.has(key)) {
     const tail = combo.id.split("-")[0] ?? combo.id;
-    key = `${providerId}/${slug}-${tail}`;
+    key = `${slug}-${tail}`;
     // Defensive: in the (impossible) event the disambiguated key also
     // collides, append the full id.
-    if (used.has(key)) key = `${providerId}/${slug}-${combo.id}`;
+    if (used.has(key)) key = `${slug}-${combo.id}`;
   }
   used.add(key);
   return key;
@@ -2503,7 +2473,7 @@ export function createOmniRouteProviderHook(
         // Models fetch is required (no catalog otherwise → silent provider
         // disappearance). We do NOT wrap this in a try; let the error
         // propagate to OC's UI.
-        rawModels = await fetcher(baseURL, apiKey, 10_000);
+        rawModels = await fetcher(baseURL, apiKey, 60_000);
 
         // T-05: combos fetch is best-effort, gated by features.combos.
         // Soft-fail on any error: emit a console.warn and fall back to a
@@ -2514,7 +2484,7 @@ export function createOmniRouteProviderHook(
         rawCombos = [];
         if (wantCombos) {
           try {
-            rawCombos = await combosFetcher(baseURL, apiKey, 10_000);
+            rawCombos = await combosFetcher(baseURL, apiKey, 60_000);
           } catch (err) {
             console.warn(
               "[omniroute-plugin] combos fetch failed, falling back to models-only catalog",
@@ -2529,7 +2499,7 @@ export function createOmniRouteProviderHook(
         rawAutoCombos = [];
         if (wantAutoCombos) {
           try {
-            rawAutoCombos = await autoCombosFetcher(baseURL, apiKey, 5_000);
+            rawAutoCombos = await autoCombosFetcher(baseURL, apiKey, 30_000);
           } catch {
             // Already handled inside the default fetcher — this catch
             // is belt-and-suspenders for injected stubs.
@@ -2541,7 +2511,7 @@ export function createOmniRouteProviderHook(
         rawEnrichment = new Map();
         if (wantEnrichment) {
           try {
-            rawEnrichment = await enrichmentFetcher(baseURL, apiKey, 10_000);
+            rawEnrichment = await enrichmentFetcher(baseURL, apiKey, 60_000);
           } catch (err) {
             console.warn(
               "[omniroute-plugin] enrichment fetch failed, falling back to raw ids",
@@ -2555,7 +2525,7 @@ export function createOmniRouteProviderHook(
         rawCompressionCombos = [];
         if (wantCompressionMeta) {
           try {
-            rawCompressionCombos = await compressionMetaFetcher(baseURL, apiKey, 10_000);
+            rawCompressionCombos = await compressionMetaFetcher(baseURL, apiKey, 60_000);
           } catch (err) {
             console.warn("[omniroute-plugin] compression-metadata fetch failed", err);
           }
@@ -2569,7 +2539,7 @@ export function createOmniRouteProviderHook(
         rawConnections = [];
         if (wantUsableOnly) {
           try {
-            rawConnections = await providersFetcher(baseURL, apiKey, 10_000);
+            rawConnections = await providersFetcher(baseURL, apiKey, 60_000);
           } catch (err) {
             console.warn(
               "[omniroute-plugin] /api/providers fetch failed; usableOnly filter disabled for this refresh",
@@ -2837,40 +2807,45 @@ export function createOmniRouteProviderHook(
             }
           }
 
-          const comboKey = buildComboKey(combo, usedComboKeys, resolved.providerId);
+          // Bare-slug id (no providerId prefix). OC's --model lookup parses
+          // `opencode-omniroute/master-light` as (providerID=opencode-omniroute,
+          // modelID=master-light) and looks up `models["master-light"]` in the
+          // dynamic catalog. The providerID field on the ModelV2 entry already
+          // carries the provider binding. Storing under the prefixed key would
+          // produce a dict key that the lookup never queries, and a `model.id`
+          // value that the lookup wouldn't match.
+          const bareSlug = (() => {
+            const friendlyName =
+              combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
+            let s = slugifyComboName(friendlyName);
+            if (s.length === 0) s = combo.id;
+            return s;
+          })();
+          mapped.id = bareSlug;
 
-          // Collision policy: combos win. Warn ONCE per (cacheKey, comboKey)
+          // Collision policy: combos win. Warn ONCE per (cacheKey, bareSlug)
           // when overwriting a same-key raw model so the operator can spot
-          // the unusual naming choice without log spam. Suppress the warning
-          // when the collision is the intentional dedup pattern (combo.name
-          // exactly matches an existing raw model's id) — /v1/models
-          // pre-mirrors combos as raw entries and the operator's intent is
-          // always "combo wins" in that case.
-          if (Object.prototype.hasOwnProperty.call(models, comboKey)) {
-            const existing = models[comboKey];
-            // Intentional dedup: `/v1/models` pre-mirrors combos as raw
-            // entries, so the bare combo name appears as the model id in
-            // `rawModels`. After our prefixing the existing entry's id is
-            // `${providerId}/${raw.id}` — the combo name is a substring of
-            // that prefixed id (or, for already-prefixed raw models, the
-            // exact id). Use `endsWith` to avoid matching substrings of
-            // unrelated prefixed ids.
+          // the unusual naming choice without log spam.
+          if (Object.prototype.hasOwnProperty.call(models, bareSlug)) {
+            const existing = models[bareSlug];
             const isIntentionalDedup =
               existing &&
               combo.name &&
               combo.name.trim().length > 0 &&
-              (existing.id === combo.name.trim() || existing.id.endsWith(`/${combo.name.trim()}`));
+              (existing.id === combo.name.trim() ||
+                existing.id === bareSlug ||
+                existing.id.endsWith(`/${combo.name.trim()}`));
             if (!isIntentionalDedup) {
-              const dedupeKey = `${cacheKey}::${comboKey}`;
+              const dedupeKey = `${cacheKey}::${bareSlug}`;
               if (!collisionWarned.has(dedupeKey)) {
                 collisionWarned.add(dedupeKey);
                 console.warn(
-                  `[omniroute-plugin] combo key "${comboKey}" collides with a model id; combo wins.`
+                  `[omniroute-plugin] combo key "${bareSlug}" collides with a model id; combo wins.`
                 );
               }
             }
           }
-          models[comboKey] = mapped;
+          models[bareSlug] = mapped;
 
           // Make this combo's resolved model available to parent combos
           // that reference it via combo-ref. Use the friendly name
@@ -2897,7 +2872,7 @@ export function createOmniRouteProviderHook(
         for (const autoCombo of rawAutoCombos) {
           if (!autoCombo || !autoCombo.id) continue;
           if (autoCombo.isHidden === true) continue;
-          const entry = mapAutoComboToStaticEntry(autoCombo);
+          const entry = mapAutoComboToStaticEntry(autoCombo, resolved.providerId);
           const key = autoComboModelId(autoCombo.variant);
           const mapped: ModelV2 = {
             id: key,
@@ -3775,9 +3750,17 @@ export function buildStaticProviderEntry(
         combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
       const displayName =
         hasMembers && compressionSuffix ? `${friendlyName} ${compressionSuffix}` : friendlyName;
-      // See the raw-model entry comment above — `providerID` on entries is
-      // not part of OC's static-catalog schema; the parent block ID is the
-      // provider and the KEY prefix (`omniroute/<slug>`) is what OC parses.
+      // OC's static-catalog schema doesn't expect `providerID` on individual
+      // entries — the parent block ID is the provider, and OC's SDK parser
+      // rejects the entire provider block if it finds any unknown field that
+      // contradicts the parent-block binding. The combo's KEY already carries
+      // the provider prefix (`opencode-omniroute/<slug>`), so OC can derive
+      // (providerID, modelID) from the key alone. Match the raw-model entry
+      // shape (line 3573) so the static validator treats both consistently.
+      //
+      // Note: the DYNAMIC `provider.models()` hook still emits `providerID`
+      // on every ModelV2 entry — that hook uses a different validator and
+      // DOES consume the field. Only the static block is strict.
       const entry: OmniRouteStaticModelEntry = { name: displayName };
 
       if (hasMembers) {
@@ -3881,7 +3864,7 @@ export function buildStaticProviderEntry(
     for (const autoCombo of rawAutoCombos) {
       if (!autoCombo || !autoCombo.id) continue;
       if (autoCombo.isHidden === true) continue;
-      const entry = mapAutoComboToStaticEntry(autoCombo);
+      const entry = mapAutoComboToStaticEntry(autoCombo, opts.providerId);
       // Use the variant as the key: "auto", "auto/coding", etc.
       const key = autoComboModelId(autoCombo.variant);
       if (models[key]) {
@@ -4398,7 +4381,17 @@ export function createOmniRouteConfigHook(
       authJson = undefined;
     }
 
-    const entry = authJson?.[resolved.providerId] as AuthJsonApiEntry | undefined;
+    // Resolve the auth.json entry: prefer the prefixed (resolved) key for
+    // installs that ran `/connect` after the auto-prefix landed, and fall
+    // back to the legacy bare key (e.g. `omniroute`) for users migrating
+    // from pre-1.18 configs where auth.json was keyed under the un-prefixed
+    // providerId. Both paths stay transparent.
+    const legacyProviderId = resolved.providerId.startsWith("opencode-")
+      ? resolved.providerId.slice("opencode-".length)
+      : resolved.providerId;
+    const entry =
+      (authJson?.[resolved.providerId] as AuthJsonApiEntry | undefined) ??
+      (authJson?.[legacyProviderId] as AuthJsonApiEntry | undefined);
     const apiKey = entry && entry.type === "api" && typeof entry.key === "string" ? entry.key : "";
 
     if (!apiKey) {
@@ -4452,9 +4445,15 @@ export function createOmniRouteConfigHook(
       // fetcher threw (network down / 403 / timeout) AND features.diskCache
       // !== false. A 0-entry SUCCESS (fresh tenant) does NOT trigger
       // disk fallback — that's a valid empty catalog.
+      //
+      // Timeout is 60s (was 10s): the OmniRoute server cold-start is ~16s
+      // for the first authenticated `/v1/models` (Next.js compilation +
+      // 98 SQLite migrations + 771-model catalog build) and a fresh cache
+      // after deploy can hit ~30s on cold hardware. 10s fires too early
+      // and the user sees an empty `omniroute` provider.
       let modelsFetchThrew = false;
       try {
-        rawModels = await fetcher(baseURL, apiKey, 10_000);
+        rawModels = await fetcher(baseURL, apiKey, 60_000);
       } catch (err) {
         logger.warn(
           "[omniroute-plugin] config shim: /v1/models fetch failed; publishing stub provider entry",
@@ -4467,7 +4466,9 @@ export function createOmniRouteConfigHook(
 
       rawCombos = [];
       try {
-        rawCombos = await combosFetcher(baseURL, apiKey, 10_000);
+        // Same rationale as `/v1/models` above: server cold-start can
+        // exceed 10s on first call.
+        rawCombos = await combosFetcher(baseURL, apiKey, 60_000);
       } catch (err) {
         logger.warn(
           "[omniroute-plugin] config shim: /api/combos fetch failed; publishing models-only static catalog",
@@ -4478,7 +4479,7 @@ export function createOmniRouteConfigHook(
       rawAutoCombos = [];
       if (wantAutoCombos) {
         try {
-          rawAutoCombos = await autoCombosFetcher(baseURL, apiKey, 5_000);
+          rawAutoCombos = await autoCombosFetcher(baseURL, apiKey, 30_000);
         } catch {
           // Already handled inside the default fetcher
         }
@@ -4494,7 +4495,7 @@ export function createOmniRouteConfigHook(
       rawEnrichment = new Map();
       if (wantEnrichment) {
         try {
-          rawEnrichment = await enrichmentFetcher(baseURL, apiKey, 10_000);
+          rawEnrichment = await enrichmentFetcher(baseURL, apiKey, 60_000);
         } catch (err) {
           logger.warn(
             "[omniroute-plugin] config shim: /api/pricing/models fetch failed; publishing raw-id static catalog",
@@ -4509,7 +4510,7 @@ export function createOmniRouteConfigHook(
       rawCompressionCombos = [];
       if (wantCompressionMeta) {
         try {
-          rawCompressionCombos = await compressionMetaFetcher(baseURL, apiKey, 10_000);
+          rawCompressionCombos = await compressionMetaFetcher(baseURL, apiKey, 60_000);
         } catch (err) {
           logger.warn(
             "[omniroute-plugin] config shim: /api/context/combos fetch failed; publishing combos without compression suffix",
@@ -4525,7 +4526,7 @@ export function createOmniRouteConfigHook(
       rawConnections = [];
       if (wantUsableOnly) {
         try {
-          rawConnections = await providersFetcher(baseURL, apiKey, 10_000);
+          rawConnections = await providersFetcher(baseURL, apiKey, 60_000);
         } catch (err) {
           logger.warn(
             "[omniroute-plugin] config shim: /api/providers fetch failed; usableOnly filter disabled for this refresh",
