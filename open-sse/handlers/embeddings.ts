@@ -15,6 +15,7 @@
 
 import {
   getEmbeddingProvider,
+  getEmbeddingModelDefaultParams,
   parseEmbeddingModel,
   type EmbeddingProvider,
 } from "../config/embeddingRegistry.ts";
@@ -140,6 +141,19 @@ export async function handleEmbedding({
   for (const [key, value] of Object.entries(body)) {
     if (!KNOWN_FIELDS.has(key) && value !== undefined) {
       upstreamBody[key] = value;
+    }
+  }
+
+  // Inject model-level default params (e.g. NVIDIA NIM asymmetric models require
+  // `input_type`) only for keys the client did not already supply, so a
+  // client-sent value is never overwritten. Symmetric models carry no defaults
+  // and are unaffected. See issue #1378.
+  const defaultParams = getEmbeddingModelDefaultParams(providerConfig, model);
+  if (defaultParams) {
+    for (const [key, value] of Object.entries(defaultParams)) {
+      if (upstreamBody[key] === undefined) {
+        upstreamBody[key] = value;
+      }
     }
   }
 

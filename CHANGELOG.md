@@ -8,6 +8,10 @@
 
 _In development — bullets added per PR; finalized at release._
 
+### 🐛 Fixed
+
+- **fix(embeddings): NVIDIA NIM asymmetric embedding models inject the required `input_type`** — NVIDIA NIM asymmetric embedders (e.g. `nvidia/nv-embedqa-e5-v5`) reject requests without an `input_type` parameter with `400 "'input_type' parameter is required"`, but OmniRoute only forwarded `input_type` when the client supplied it — so callers (and OpenAI-style SDKs that don't emit the field) got a hard failure. The embedding registry now carries a model-level default (`input_type: "query"`) for the asymmetric NVIDIA model, and the embeddings handler injects a model's default params into the upstream body **only** when the client didn't already send them — a client-supplied `input_type` (e.g. `"passage"`) is respected unchanged, and symmetric models that carry no default are unaffected. (thanks @hydraromania)
+
 ---
 
 ## [3.8.30] — 2026-06-20
