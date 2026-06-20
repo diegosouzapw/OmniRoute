@@ -13,6 +13,7 @@
  * `resolveShadowTargets`, never during module init.
  */
 
+import { secureRandomFloat } from "../../../src/shared/utils/secureRandom";
 import { recordComboShadowRequest } from "../comboMetrics.ts";
 import { isRecord } from "./comboData.ts";
 import { resolveNestedComboTargets } from "./comboStructure.ts";
@@ -50,7 +51,7 @@ export function resolveShadowTargets(
 ): ResolvedComboTarget[] {
   const shadowConfig = normalizeShadowRoutingConfig(config);
   if (!shadowConfig.enabled || shadowConfig.targets.length === 0) return [];
-  if (shadowConfig.sampleRate <= 0 || Math.random() > shadowConfig.sampleRate) return [];
+  if (shadowConfig.sampleRate <= 0 || secureRandomFloat() > shadowConfig.sampleRate) return [];
 
   const shadowCombo: ComboLike = {
     ...combo,
