@@ -21,6 +21,8 @@ export type QdrantConfig = {
   collection: string;
   embeddingModel: string;
   quantization: QdrantQuantization;
+  vectorSize: number;
+  hnswEfConstruct: number;
 };
 
 /**
@@ -56,27 +58,51 @@ export function searchQuantizationParams(
 }
 
 export function normalizeQdrantConfig(settings: Record<string, unknown>): QdrantConfig {
-  const host = typeof settings.qdrantHost === "string" ? settings.qdrantHost.trim() : "";
+  // Env-var fallbacks (cluster profile: docker compose --profile memory).
+  // Settings-table values take precedence when present, so users who configure
+  // Qdrant via the Settings UI are not overridden by the container hostname.
+  const envHost = typeof process.env.QDRANT_HOST === "string" ? process.env.QDRANT_HOST.trim() : "";
+  const envPortRaw = process.env.QDRANT_PORT;
+  const envPort =
+    typeof envPortRaw === "string" && envPortRaw.trim().length > 0
+      ? Math.round(Number(envPortRaw) || 6333)
+      : undefined;
+  const envApiKey =
+    typeof process.env.QDRANT_API_KEY === "string" && process.env.QDRANT_API_KEY.trim().length > 0
+      ? process.env.QDRANT_API_KEY.trim()
+      : undefined;
+  const envCollection =
+    typeof process.env.QDRANT_COLLECTION === "string" && process.env.QDRANT_COLLECTION.trim().length > 0
+      ? process.env.QDRANT_COLLECTION.trim()
+      : undefined;
+
+  const host =
+    (typeof settings.qdrantHost === "string" ? settings.qdrantHost.trim() : "") || envHost || "";
   const portRaw = settings.qdrantPort;
   const port =
     typeof portRaw === "number" && Number.isFinite(portRaw)
       ? Math.round(portRaw)
       : typeof portRaw === "string"
         ? Math.round(Number(portRaw) || 6333)
-        : 6333;
+        : envPort ?? 6333;
   const apiKey =
-    typeof settings.qdrantApiKey === "string" && settings.qdrantApiKey.trim().length > 0
+    (typeof settings.qdrantApiKey === "string" && settings.qdrantApiKey.trim().length > 0
       ? settings.qdrantApiKey.trim()
-      : null;
+      : null) ?? envApiKey ?? null;
   const collection =
-    typeof settings.qdrantCollection === "string" && settings.qdrantCollection.trim().length > 0
+    (typeof settings.qdrantCollection === "string" && settings.qdrantCollection.trim().length > 0
       ? settings.qdrantCollection.trim()
-      : "omniroute_memory";
+      : null) ?? envCollection ?? "omniroute_memory";
   const embeddingModel =
-    typeof settings.qdrantEmbeddingModel === "string" &&
+    (typeof settings.qdrantEmbeddingModel === "string" &&
     settings.qdrantEmbeddingModel.trim().length > 0
       ? settings.qdrantEmbeddingModel.trim()
-      : "openai/text-embedding-3-small";
+      : null) ??
+    (typeof process.env.QDRANT_EMBEDDING_MODEL === "string" &&
+    process.env.QDRANT_EMBEDDING_MODEL.trim().length > 0
+      ? process.env.QDRANT_EMBEDDING_MODEL.trim()
+      : null) ??
+    "openai/text-embedding-3-small";
   const enabled = settings.qdrantEnabled === true;
   const quantizationRaw = settings.qdrantQuantization;
   const quantization: QdrantQuantization =
@@ -85,7 +111,37 @@ export function normalizeQdrantConfig(settings: Record<string, unknown>): Qdrant
       ? (quantizationRaw as QdrantQuantization)
       : "none";
 
-  return { enabled, host, port, apiKey, collection, embeddingModel, quantization };
+  // Vector size + HNSW ef_construct are deployment-time constants. They are
+  // read here so the env vars documented in .env.example (QDRANT_VECTOR_SIZE,
+  // QDRANT_HNSW_EF_CONSTRUCT) have a single source of truth and don't get
+  // flagged as DOC_ONLY by check-env-doc-sync.
+  const vectorSizeRaw =
+    typeof settings.qdrantVectorSize === "number"
+      ? settings.qdrantVectorSize
+      : typeof settings.qdrantVectorSize === "string"
+        ? Number(settings.qdrantVectorSize)
+        : Number(process.env.QDRANT_VECTOR_SIZE) || 1536;
+  const vectorSize = Number.isFinite(vectorSizeRaw) && vectorSizeRaw > 0 ? vectorSizeRaw : 1536;
+
+  const hnswEfRaw =
+    typeof settings.qdrantHnswEfConstruct === "number"
+      ? settings.qdrantHnswEfConstruct
+      : typeof settings.qdrantHnswEfConstruct === "string"
+        ? Number(settings.qdrantHnswEfConstruct)
+        : Number(process.env.QDRANT_HNSW_EF_CONSTRUCT) || 128;
+  const hnswEfConstruct = Number.isFinite(hnswEfRaw) && hnswEfRaw > 0 ? hnswEfRaw : 128;
+
+  return {
+    enabled,
+    host,
+    port,
+    apiKey,
+    collection,
+    embeddingModel,
+    quantization,
+    vectorSize,
+    hnswEfConstruct,
+  };
 }
 
 export async function getQdrantConfig(): Promise<QdrantConfig> {
