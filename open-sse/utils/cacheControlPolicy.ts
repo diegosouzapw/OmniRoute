@@ -83,6 +83,15 @@ const CACHING_PROVIDERS = new Set([
   // clients and filterToOpenAIFormat() strips cache_control, so Xiaomi never
   // sees the cache hints and every request is a cache miss.
   "xiaomi-mimo",
+  // #3955 — OpenAI / Codex / Azure-OpenAI use AUTOMATIC prefix caching: the longest
+  // matching prefix of a request is cached upstream WITHOUT any explicit cache_control
+  // markers. They must count as caching providers so the cache-aware compression guard
+  // preserves the cacheable prefix (system prompt / earliest messages) instead of
+  // rewriting it and forcing a cache miss. This also activates the intended
+  // `prompt_cache_key` cache-routing hint for OpenAI in chatCore.
+  "openai",
+  "codex",
+  "azure",
 ]);
 
 /**
