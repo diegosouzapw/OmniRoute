@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import type { ProviderCredentials } from "../../open-sse/executors/base.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-responses-handler-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -13,6 +14,33 @@ const { COMMAND_CODE_VERSION } = await import("../../open-sse/executors/commandC
 
 const originalFetch = globalThis.fetch;
 
+type JsonRecord = Record<string, unknown>;
+type CapturedBody = JsonRecord & {
+  messages?: Array<JsonRecord & { content?: unknown; role?: unknown }>;
+  params?: JsonRecord;
+  tools?: Array<JsonRecord & { function?: JsonRecord }>;
+};
+type CapturedCall = {
+  url: string;
+  method: string;
+  headers: Record<string, string>;
+  body: CapturedBody;
+};
+type ResponseFactory = (call: CapturedCall, calls: CapturedCall[]) => Response | Promise<Response>;
+type InvokeResponsesCoreOptions = {
+  body?: unknown;
+  provider?: string;
+  model?: string;
+  credentials?: ProviderCredentials;
+  responseFactory?: ResponseFactory;
+  signal?: AbortSignal;
+};
+type ErrorPayload = {
+  error?: {
+    message?: string;
+  };
+};
+
 function noopLog() {
   return {
     debug() {},
@@ -22,12 +50,20 @@ function noopLog() {
   };
 }
 
-function toPlainHeaders(headers: any) {
+function toPlainHeaders(headers: HeadersInit | undefined): Record<string, string> {
   if (!headers) return {};
   if (headers instanceof Headers) return Object.fromEntries(headers.entries());
   return Object.fromEntries(
     Object.entries(headers).map(([key, value]) => [key, value == null ? "" : String(value)])
   );
+}
+
+function parseCapturedBody(body: BodyInit | null | undefined): CapturedBody {
+  if (!body) return {};
+  const parsed = JSON.parse(String(body)) as unknown;
+  return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+    ? (parsed as CapturedBody)
+    : {};
 }
 
 function buildOpenAISseResponse(text = "hello") {
@@ -56,7 +92,7 @@ function buildOpenAISseResponse(text = "hello") {
   );
 }
 
-function buildJsonResponse(status: number, payload: any) {
+function buildJsonResponse(status: number, payload: unknown) {
   return new Response(JSON.stringify(payload), {
     status,
     headers: { "Content-Type": "application/json" },
@@ -76,22 +112,15 @@ async function invokeResponsesCore({
   credentials,
   responseFactory,
   signal,
-}: {
-  body?: any;
-  provider?: string;
-  model?: string;
-  credentials?: any;
-  responseFactory?: any;
-  signal?: AbortSignal;
-} = {}) {
-  const calls: any[] = [];
+}: InvokeResponsesCoreOptions = {}) {
+  const calls: CapturedCall[] = [];
 
   globalThis.fetch = async (url, init = {}) => {
     const call = {
       url: String(url),
       method: init.method || "GET",
       headers: toPlainHeaders(init.headers),
-      body: init.body ? JSON.parse(String(init.body)) : null,
+      body: parseCapturedBody(init.body),
     };
     calls.push(call);
     return responseFactory ? responseFactory(call, calls) : buildOpenAISseResponse();
@@ -282,7 +311,7 @@ test("handleResponsesCore propagates upstream failures from chatCore unchanged",
   assert.equal(result.success, false);
   assert.equal(result.status, 401);
 
-  const payload = (await result.response.json()) as any;
+  const payload = (await result.response.json()) as ErrorPayload;
   assert.equal(payload.error.message, "[401]: unauthorized");
 });
 

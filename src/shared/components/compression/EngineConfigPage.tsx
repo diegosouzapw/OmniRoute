@@ -270,7 +270,14 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
       {/* ── Header ── */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
-          {engine.icon && <span className="text-2xl">{engine.icon}</span>}
+          {engine.icon && (
+            <span
+              className="material-symbols-outlined text-[28px] leading-none text-text-muted"
+              aria-hidden="true"
+            >
+              {engine.icon}
+            </span>
+          )}
           <h1 className="text-2xl font-bold text-text">{engine.name}</h1>
         </div>
         {subtitle && <p className="text-sm text-text-muted">{subtitle}</p>}

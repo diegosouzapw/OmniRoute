@@ -1099,7 +1099,7 @@
     "agentBridgeSubtitle": "Intercept IDE agent traffic",
     "trafficInspector": "Traffic Inspector",
     "trafficInspectorSubtitle": "Monitor LLM calls + debug any HTTPS traffic",
-    "cliCode": "CLI Code's",
+    "cliCode": "CLI Code",
     "cliCodeSubtitle": "Code tools pointing to OmniRoute",
     "cliAgents": "CLI Agents",
     "cliAgentsSubtitle": "Autonomous CLI agents",
@@ -1940,6 +1940,8 @@
     "freeQuota": "Free quota/mo",
     "scrapeUrl": "URL to scrape",
     "scrapeUrlPlaceholder": "https://example.com",
+    "scrapeUrlRequired": "URL is required",
+    "scrapeUrlInvalid": "Invalid URL — it must start with http:// or https://",
     "scrapeExtract": "Extract",
     "scrapeExtracting": "Extracting…",
     "scrapeFullPage": "Full page",
@@ -1953,6 +1955,8 @@
     "scrapeMetadata": "Metadata",
     "scrapeProvider": "Provider",
     "scrapeSize": "Size",
+    "scrapeEmptyState": "Enter a URL to extract its content",
+    "scrapeProvidersAvailable": "Available providers: Firecrawl, Jina Reader, Tavily.",
     "compareRun": "Compare",
     "compareRunning": "Comparing…",
     "autoProvider": "Auto (cheapest)",
@@ -3880,6 +3884,33 @@
     "addFirstProvider": "Add your first provider",
     "addFirstProviderDesc": "Connect an AI provider to start routing requests through OmniRoute. You can use free providers, API keys, or OAuth accounts.",
     "learnMore": "Learn more",
+    "adaptaTutorial": {
+      "title": "How to connect Adapta Web",
+      "introPrefix": "Adapta authenticates through Clerk. The token",
+      "introSuffix": "is a long-lived JWT that lets OmniRoute refresh sessions automatically.",
+      "or": "or",
+      "step1Title": "Open Adapta chat",
+      "step1DescPrefix": "Open",
+      "step1DescSuffix": "and sign in with your Gold or Business account.",
+      "step2Title": "Open DevTools",
+      "step2DescPrefix": "Press",
+      "step2DescSuffix": "to open Developer Tools.",
+      "step3Title": "Go to Application → Cookies",
+      "step3DescPrefix": "In the",
+      "step3DescMiddle": "expand",
+      "step3DescSuffix": "and click",
+      "step4Title": "Copy the cookie value for",
+      "step4DescPrefix": "Find the cookie named",
+      "step4DescMiddle": "in the list. Click it and copy the content from the",
+      "step4DescSuffix": "column. It starts with",
+      "step5Title": "Paste it here and save",
+      "step5DescPrefix": "Click",
+      "step5DescMiddle": "paste the",
+      "step5DescSuffix": "value into the API Key field, then save. OmniRoute will refresh the session automatically.",
+      "tipLabel": "Tip:",
+      "tipPrefix": "The",
+      "tipSuffix": "cookie is long-lived, usually for months. You only need to renew it if you sign out or Adapta invalidates the session."
+    },
     "editProvider": "Edit Provider",
     "deleteProvider": "Delete Provider",
     "noProviders": "No providers configured",
@@ -6399,7 +6430,11 @@
     "conceptDiagramExampleHub": "OpenAI",
     "conceptDiagramHubTooltip": "Intermediate hub used by the translator to convert between formats that don't have a direct mapping.",
     "conceptDiagramSourceTooltip": "The API format your app speaks (e.g., Anthropic SDK = claude).",
-    "conceptDiagramTargetTooltip": "The provider where the request will actually be sent."
+    "conceptDiagramTargetTooltip": "The provider where the request will actually be sent.",
+    "compressionEmptyHint": "Fill in the input field on the Translate tab (Simple Controls or Raw JSON) to enable the preview.",
+    "compressionModeLabel": "Compression mode",
+    "compressionPreviewButton": "Preview Compression",
+    "compressionPreviewing": "Previewing…"
   },
   "usage": {
     "title": "Usage",
@@ -8620,7 +8655,7 @@
   "cliCommon": {
     "concept": {
       "code": {
-        "title": "CLI Code's",
+        "title": "CLI Code",
         "phrase": "Code tools you point at OmniRoute",
         "flow": "You → CLI Code → OmniRoute → Provider",
         "seeOther": "See →"
@@ -8640,7 +8675,8 @@
     },
     "comparison": {
       "title": "Understand the 3 CLI types in OmniRoute",
-      "thisPage": "[This page ✓]",
+      "thisPage": "This page",
+      "open": "Open →",
       "code": {
         "title": "Code tool",
         "desc": "Points to Omni",
@@ -8670,9 +8706,11 @@
       "manualConfig": "Manual config",
       "installGuide": "Install guide",
       "endpointLabel": "Endpoint",
+      "baseUrlFull": "Full Base URL",
       "baseUrlPartial": "Partial Base URL",
       "refreshDetection": "Refresh detection",
-      "alsoAcp": "also ACP"
+      "alsoAcp": "also ACP",
+      "connectProviderHint": "Connect a provider in Providers"
     },
     "detail": {
       "back": "Back",
@@ -8747,7 +8785,7 @@
     "versionCommandPlaceholder": "e.g.: myagent --version",
     "spawnArgs": "Spawn arguments",
     "spawnArgsPlaceholder": "e.g.: --quiet, --json",
-    "cliCodeRedirectCta": "Open CLI Code's"
+    "cliCodeRedirectCta": "Open CLI Code"
   },
   "agentSkills": {
     "pageTitle": "Agent Skills",

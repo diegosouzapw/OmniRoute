@@ -64,6 +64,9 @@ export function computeRetention(original: string, compressed: string): Retentio
   if (entities.length === 0) {
     return { total: 0, survived: 0, score: 1, lost: [] };
   }
+  if (compressed === original) {
+    return { total: entities.length, survived: entities.length, score: 1, lost: [] };
+  }
   const lost: string[] = [];
   let survived = 0;
   for (const entity of entities) {

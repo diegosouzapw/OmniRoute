@@ -21,6 +21,74 @@ env:
   CI_NODE_26_VERSION: "26"
 
 jobs:
+  changes:
+    name: Change Classification
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.classify.outputs.code }}
+      docs: ${{ steps.classify.outputs.docs }}
+      i18n: ${{ steps.classify.outputs.i18n }}
+      workflow: ${{ steps.classify.outputs.workflow }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - id: classify
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            {
+              echo "code=true"
+              echo "docs=true"
+              echo "i18n=true"
+              echo "workflow=true"
+            } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          code=false
+          docs=false
+          i18n=false
+          workflow=false
+
+          git diff --name-only "$BASE_SHA" "$HEAD_SHA" > changed-files.txt
+
+          while IFS= read -r file; do
+            case "$file" in
+              .github/workflows/*|.zizmor.yml)
+                workflow=true
+                code=true
+                ;;
+              docs/*|*.md)
+                docs=true
+                ;;
+              src/i18n/*|src/i18n/messages/*|scripts/i18n/*|config/i18n.json)
+                i18n=true
+                code=true
+                ;;
+              src/*|open-sse/*|bin/*|electron/*|tests/*|scripts/*|package.json|package-lock.json|tsconfig*.json|next.config.*|vitest*.config.*|playwright.config.*)
+                code=true
+                ;;
+              db/*|config/*)
+                code=true
+                ;;
+              *)
+                code=true
+                ;;
+            esac
+          done < changed-files.txt
+
+          {
+            echo "code=$code"
+            echo "docs=$docs"
+            echo "i18n=$i18n"
+            echo "workflow=$workflow"
+          } >> "$GITHUB_OUTPUT"
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -38,7 +106,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - run: npm run audit:deps
       - run: npm run lint
@@ -72,7 +140,7 @@ jobs:
     name: Quality Ratchet
     runs-on: ubuntu-latest
     needs: test-coverage
-    if: ${{ always() && needs.test-coverage.result == 'success' }}
+    if: ${{ !cancelled() && needs.test-coverage.result == 'success' }}
     # security-events: read lets the CodeQL ratchet read open code-scanning alerts
     # via `gh api .../code-scanning/alerts`. contents: read keeps checkout working.
     permissions:
@@ -86,7 +154,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
       # Coverage mergeada (coverage-summary.json) p/ o ratchet de cobertura.
       - uses: actions/download-artifact@v8
         with:
@@ -169,7 +237,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
       # Dead-code, cognitive-complexity, type-coverage foram promovidos ao job
       # quality-gate (bloqueante) na Fase 7 INT — não rodam aqui para evitar duplo custo.
       - name: Circular deps (dpdm; advisory)
@@ -272,7 +340,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:docs-all
       # Previously-orphaned contract gates (existed as files, never wired anywhere).
       # All exit 0 today: cli-i18n is a hard gate, openapi-coverage is a ratchet
@@ -327,7 +395,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
       - run: node scripts/i18n/check-ui-keys-coverage.mjs --threshold=65
 
   i18n-matrix:
@@ -413,6 +481,8 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ github.event_name != 'pull_request' || needs.changes.outputs.code == 'true' }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -421,22 +491,30 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
+      - name: Cache Next.js build cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        with:
+          path: .build/next/cache
+          key: nextjs-${{ runner.os }}-node-${{ env.CI_NODE_VERSION }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**/*', 'open-sse/**/*', 'db/**/*', 'next.config.mjs', 'tsconfig*.json', 'postcss.config.*', 'tailwind.config.*') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-node-${{ env.CI_NODE_VERSION }}-${{ hashFiles('package-lock.json') }}-
       - run: npm run build
-      - name: Archive Next.js build for E2E shards
+      - name: Archive Next.js build for downstream jobs
         # Use tar so the archive preserves paths relative to CWD (.build/next/...).
         # upload-artifact path-stripping is ambiguous when exclude patterns are used;
         # an explicit tar avoids the double-nesting issue (.build/next/next/...).
+        # Keep standalone/node_modules intact: package/electron jobs consume the
+        # Next-traced standalone tree and must not replace it with root node_modules.
         run: |
           tar -czf /tmp/e2e-build.tar.gz \
-            --exclude='.build/next/standalone/node_modules' \
             --exclude='.build/next/cache' \
             .build/next
-      - name: Upload Next.js build for E2E shards
+      - name: Upload Next.js build for downstream jobs
         uses: actions/upload-artifact@v7
         with:
-          name: e2e-next-build
+          name: next-build
           path: /tmp/e2e-build.tar.gz
           retention-days: 1
 
@@ -454,10 +532,18 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
-      # build:cli runs a clean build into .build/next and assembles dist/
-      # For release builds prefer: npm run build:release (clean rebuild + HEAD sentinel)
+      - name: Download Next.js build artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: next-build
+          path: /tmp/
+      - name: Extract Next.js build artifact
+        run: |
+          tar -xzf /tmp/e2e-build.tar.gz
+      # build:cli consumes the downloaded .build/next standalone artifact and assembles dist/;
+      # it only rebuilds if the downloaded standalone artifact is missing.
       - run: npm run build:cli
       - name: Assert dist/server.js exists
         run: test -f dist/server.js || (echo "dist/server.js missing — build:cli did not assemble correctly" && exit 1)
@@ -479,9 +565,16 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
-      - run: npm run build
+      - name: Download Next.js build artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: next-build
+          path: /tmp/
+      - name: Extract Next.js build artifact
+        run: |
+          tar -xzf /tmp/e2e-build.tar.gz
       - name: Install Electron dependencies
         working-directory: electron
         run: npm install --no-audit --no-fund
@@ -514,7 +607,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
 
@@ -535,7 +628,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
       # The second test runner (CLAUDE.md: "Both test runners must pass") — was never
       # wired into CI until the 2026-06-09 quality audit (Fase 6A.2).
       - run: npm run test:vitest
@@ -546,14 +639,14 @@ jobs:
         continue-on-error: true
 
   node-24-compat:
-    name: Node 24 Compatibility (${{ matrix.shard }}/2)
+    name: Node 24 Compatibility Tests (${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
     needs: build
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2]
+        shard: [1, 2, 3, 4]
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -566,20 +659,15 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_24_VERSION }}
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
-      - run: npm run build
-      - run: node --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
+      - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/4 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
 
-  node-26-compat:
-    name: Node 26 Compatibility (${{ matrix.shard }}/2)
+  node-26-compat-build:
+    name: Node 26 Compatibility Build
     runs-on: ubuntu-latest
     timeout-minutes: 25
     needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2]
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -592,10 +680,41 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_26_VERSION }}
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
+      - name: Cache Next.js build cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        with:
+          path: .build/next/cache
+          key: nextjs-${{ runner.os }}-node-${{ env.CI_NODE_26_VERSION }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**/*', 'open-sse/**/*', 'db/**/*', 'next.config.mjs', 'tsconfig*.json', 'postcss.config.*', 'tailwind.config.*') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-node-${{ env.CI_NODE_26_VERSION }}-${{ hashFiles('package-lock.json') }}-
       - run: npm run build
-      - run: node --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
+
+  node-26-compat:
+    name: Node 26 Compatibility Tests (${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: node-26-compat-build
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-test-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_26_VERSION }}
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - run: npm run check:node-runtime
+      - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/4 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
 
   test-coverage-shard:
     name: Coverage Shard (${{ matrix.shard }}/8)
@@ -618,7 +737,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Run c8 over shard ${{ matrix.shard }}/8
         run: |
@@ -650,7 +769,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: test-coverage-shard
-    if: ${{ always() && needs.test-coverage-shard.result == 'success' }}
+    if: ${{ !cancelled() && needs.test-coverage-shard.result == 'success' }}
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -662,7 +781,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
       - name: Download all shard coverage
         uses: actions/download-artifact@v8
         with:
@@ -670,14 +789,18 @@ jobs:
           path: coverage-shards/
           merge-multiple: true
       - name: Merge + report + gate
-        # Merging 8 shards of raw v8 coverage is memory-heavy; the 6 GB heap can
-        # still OOM on large PR runs. Keep this job focused on the gate and
-        # JSON summary that downstream ratchets consume.
+        # Merging 8 shards of raw v8 coverage is memory-heavy. `--merge-async`
+        # keeps the V8 coverage merge incremental instead of loading every raw
+        # JSON blob into one in-memory merge, which avoids Node heap OOMs.
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: |
           mkdir -p coverage
-          if [ ! -d coverage-shards ] || ! find coverage-shards -maxdepth 1 -type f -name '*.json' | grep -q .; then
+          first_coverage_file=""
+          if [ -d coverage-shards ]; then
+            first_coverage_file="$(find coverage-shards -maxdepth 1 -type f -name '*.json' -print -quit)"
+          fi
+          if [ -z "$first_coverage_file" ]; then
             echo "::error::No raw coverage shard data was downloaded."
             find . -maxdepth 3 -type f | sort
             exit 1
@@ -691,6 +814,7 @@ jobs:
           npx c8 report \
             --temp-directory coverage-shards \
             --reports-dir coverage \
+            --merge-async \
             --reporter=text-summary \
             --reporter=json-summary \
             --exclude=tests/** \
@@ -728,7 +852,7 @@ jobs:
     name: SonarQube
     runs-on: ubuntu-latest
     needs: test-coverage
-    if: ${{ always() && needs.test-coverage.result == 'success' }}
+    if: ${{ !cancelled() && needs.test-coverage.result == 'success' }}
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
@@ -759,8 +883,9 @@ jobs:
   coverage-pr-comment:
     name: PR Coverage Comment
     runs-on: ubuntu-latest
-    if: ${{ always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false }}
+    if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false && needs.changes.outputs.code == 'true' }}
     needs:
+      - changes
       - pr-test-policy
       - test-coverage
     permissions:
@@ -860,7 +985,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Cache Playwright browsers
         uses: actions/cache@v5.0.5
@@ -872,12 +997,11 @@ jobs:
       - name: Download Next.js build artifact
         uses: actions/download-artifact@v8
         with:
-          name: e2e-next-build
+          name: next-build
           path: /tmp/
-      - name: Extract Next.js build and restore standalone node_modules
+      - name: Extract Next.js build artifact
         run: |
           tar -xzf /tmp/e2e-build.tar.gz
-          cp -r node_modules .build/next/standalone/node_modules
       - run: npx playwright test tests/e2e/*.spec.ts --shard=${{ matrix.shard }}/9
 
   test-integration:
@@ -903,7 +1027,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - run: node --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
 
@@ -923,26 +1047,27 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - run: npm run test:security
 
   ci-summary:
     name: CI Dashboard
     runs-on: ubuntu-latest
-    if: always()
+    if: ${{ !cancelled() }}
     needs:
+      - changes
       - lint
       - docs-sync-strict
       - i18n-ui-coverage
       - i18n
       - pr-test-policy
-
       - build
       - package-artifact
       - electron-package-smoke
       - test-unit
       - node-24-compat
+      - node-26-compat-build
       - node-26-compat
       - test-coverage
       - sonarqube
@@ -979,11 +1104,11 @@ jobs:
           echo "## 🧱 Core Checks" >> "$GITHUB_STEP_SUMMARY"
           echo "| Job | Status |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Change Classification | $(status '${{ needs.changes.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Lint | $(status '${{ needs.lint.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Docs Sync (Strict) | $(status '${{ needs.docs-sync-strict.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| i18n UI Coverage | $(status '${{ needs.i18n-ui-coverage.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| PR Test Policy | $(status '${{ needs.pr-test-policy.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-
           echo "| SonarQube | $(status '${{ needs.sonarqube.result }}') |" >> "$GITHUB_STEP_SUMMARY"
 
           echo "" >> "$GITHUB_STEP_SUMMARY"
@@ -993,14 +1118,15 @@ jobs:
           echo "| Build Matrix | $(status '${{ needs.build.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Package Artifact | $(status '${{ needs.package-artifact.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Electron Package Smoke | $(status '${{ needs.electron-package-smoke.result }}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Node 26 Compatibility Build | $(status '${{ needs.node-26-compat-build.result }}') |" >> "$GITHUB_STEP_SUMMARY"
 
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "## 🧪 Tests" >> "$GITHUB_STEP_SUMMARY"
           echo "| Suite | Status |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Unit | $(status '${{ needs.test-unit.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Node 24 Compatibility | $(status '${{ needs.node-24-compat.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Node 26 Compatibility | $(status '${{ needs.node-26-compat.result }}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Node 24 Compatibility Tests | $(status '${{ needs.node-24-compat.result }}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Node 26 Compatibility Tests | $(status '${{ needs.node-26-compat.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Coverage | $(status '${{ needs.test-coverage.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| PR Coverage Comment | $(status '${{ needs.coverage-pr-comment.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| E2E | $(status '${{ needs.test-e2e.result }}') |" >> "$GITHUB_STEP_SUMMARY"

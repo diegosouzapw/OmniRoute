@@ -3,8 +3,8 @@
  * CRUD operations for agent_bridge_state table.
  */
 
-import { getDbInstance } from "./core";
-import type { AgentBridgeStateRow } from "./_rowTypes";
+import { getDbInstance } from "./core.ts";
+import type { AgentBridgeStateRow } from "./_rowTypes.ts";
 
 // SQLite stores booleans as 0/1 integers
 interface AgentBridgeStateDbRow {
@@ -37,9 +37,9 @@ export function getAllAgentBridgeStates(): AgentBridgeStateRow[] {
 
 export function getAgentBridgeState(agentId: string): AgentBridgeStateRow | null {
   const db = getDbInstance();
-  const row = db
-    .prepare("SELECT * FROM agent_bridge_state WHERE agent_id = ?")
-    .get(agentId) as AgentBridgeStateDbRow | undefined;
+  const row = db.prepare("SELECT * FROM agent_bridge_state WHERE agent_id = ?").get(agentId) as
+    | AgentBridgeStateDbRow
+    | undefined;
   return row ? mapRow(row) : null;
 }
 

@@ -97,6 +97,51 @@ test("memory search filters by type, enforces limit, and reports token totals", 
   assert.ok(result.data.totalTokens > 0);
 });
 
+test("memory search respects a configured zero token budget", async () => {
+  await settingsDb.updateSettings({ memoryEnabled: true, memoryMaxTokens: 0 });
+  invalidateMemorySettingsCache();
+
+  await memoryTools.omniroute_memory_add.handler({
+    apiKeyId: "key-zero-budget",
+    type: "factual",
+    key: "pref:stack",
+    content: "TypeScript and Node.js are used for backend work.",
+  });
+
+  const result = await memoryTools.omniroute_memory_search.handler({
+    apiKeyId: "key-zero-budget",
+    query: "typescript",
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(result.data.count, 0);
+  assert.deepEqual(result.data.memories, []);
+  assert.equal(result.data.totalTokens, 0);
+});
+
+test("memory search keeps globally disabled memory disabled with explicit maxTokens", async () => {
+  await settingsDb.updateSettings({ memoryEnabled: false, memoryMaxTokens: 2000 });
+  invalidateMemorySettingsCache();
+
+  await memoryTools.omniroute_memory_add.handler({
+    apiKeyId: "key-disabled-memory",
+    type: "factual",
+    key: "pref:stack",
+    content: "TypeScript and Node.js are used for backend work.",
+  });
+
+  const result = await memoryTools.omniroute_memory_search.handler({
+    apiKeyId: "key-disabled-memory",
+    query: "typescript",
+    maxTokens: 500,
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(result.data.count, 0);
+  assert.deepEqual(result.data.memories, []);
+  assert.equal(result.data.totalTokens, 0);
+});
+
 test("memory clear deletes only older filtered entries and reports the deleted count", async () => {
   const older = await memoryStore.createMemory({
     apiKeyId: "key-clear",

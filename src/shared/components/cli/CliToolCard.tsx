@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import type { CliCatalogEntry } from "@/shared/schemas/cliCatalog";
 import type { ToolBatchStatus } from "@/shared/types/cliBatchStatus";
 import CliStatusBadge from "@/app/(dashboard)/dashboard/cli-code/components/CliStatusBadge";
@@ -20,6 +21,7 @@ export default function CliToolCard({
   detailHref,
   hasActiveProviders,
 }: CliToolCardProps) {
+  const t = useTranslations("cliCommon");
   const installed = batchStatus?.detection.installed ?? false;
   const configStatus = batchStatus?.config.status ?? null;
   const version = batchStatus?.detection.version ?? "not found";
@@ -83,13 +85,11 @@ export default function CliToolCard({
         <span
           className={cn(
             "inline-flex items-center gap-1 text-[11px] font-medium px-1.5 py-0.5 rounded",
-            installed
-              ? "text-green-600 dark:text-green-400"
-              : "text-zinc-500 dark:text-zinc-400"
+            installed ? "text-green-600 dark:text-green-400" : "text-zinc-500 dark:text-zinc-400"
           )}
         >
           <span aria-hidden="true">{installed ? "✓" : "✗"}</span>
-          {installed ? "Detectado" : "Não detectado"}
+          {installed ? t("card.detected") : t("card.notDetected")}
         </span>
 
         {/* Config status */}
@@ -113,12 +113,12 @@ export default function CliToolCard({
       <div className="flex items-center gap-1.5 flex-wrap">
         {tool.baseUrlSupport === "partial" && (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
-            <span aria-hidden="true">⚠</span> Base URL parcial
+            <span aria-hidden="true">⚠</span> {t("card.baseUrlPartial")}
           </span>
         )}
         {tool.acpSpawnable === true && (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
-            também ACP
+            {t("card.alsoAcp")}
           </span>
         )}
         {showInstallChips && (
@@ -136,14 +136,14 @@ export default function CliToolCard({
       {/* Footer */}
       <div className="mt-auto pt-1 flex items-center justify-between">
         <span className="text-xs text-primary font-medium">
-          {installed ? "Configurar →" : "Como instalar →"}
+          {installed ? t("card.configure") : t("card.howToInstall")}
         </span>
         {!hasActiveProviders && (
           <span
             className="text-[10px] text-text-muted italic"
-            title="Conecte um provider em Providers"
+            title={t("card.connectProviderHint")}
           >
-            Conecte um provider em Providers
+            {t("card.connectProviderHint")}
           </span>
         )}
       </div>

@@ -6,7 +6,7 @@
  * physically absent from the built bundle. See SECURITY.md and
  * docs/security/SOCKET_DEV_FINDINGS.md.
  */
-import { featureDisabledError } from "@/lib/build-profile/featureDisabled";
+import { featureDisabledError } from "../../lib/build-profile/featureDisabled.ts";
 
 const FEATURE = "mitm-cert-install";
 

@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { Modal } from "@/shared/components";
 
 type AdaptaTutorialModalProps = {
@@ -7,13 +8,15 @@ type AdaptaTutorialModalProps = {
 };
 
 export function AdaptaTutorialModal({ isOpen, onClose }: AdaptaTutorialModalProps) {
+  const t = useTranslations("providers.adaptaTutorial");
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Como conectar o Adapta Web" size="md">
+    <Modal isOpen={isOpen} onClose={onClose} title={t("title")} size="md">
       <div className="flex flex-col gap-5 text-sm">
         <p className="text-text-muted">
-          O Adapta usa autenticação via Clerk. O token{" "}
-          <code className="bg-surface-2 px-1 rounded font-mono text-xs">__client</code> é um JWT
-          de longa duração que permite renovar sessões automaticamente.
+          {t("introPrefix")}{" "}
+          <code className="bg-surface-2 px-1 rounded font-mono text-xs">__client</code>{" "}
+          {t("introSuffix")}
         </p>
 
         <ol className="flex flex-col gap-4 list-none">
@@ -22,9 +25,9 @@ export function AdaptaTutorialModal({ isOpen, onClose }: AdaptaTutorialModalProp
               1
             </span>
             <div>
-              <p className="font-medium">Acesse o chat do Adapta</p>
+              <p className="font-medium">{t("step1Title")}</p>
               <p className="text-text-muted mt-0.5">
-                Abra{" "}
+                {t("step1DescPrefix")}{" "}
                 <a
                   href="https://agent.adapta.one/agentic-chat"
                   target="_blank"
@@ -33,7 +36,7 @@ export function AdaptaTutorialModal({ isOpen, onClose }: AdaptaTutorialModalProp
                 >
                   agent.adapta.one/agentic-chat
                 </a>{" "}
-                e faça login com sua conta Gold ou Business.
+                {t("step1DescSuffix")}
               </p>
             </div>
           </li>
@@ -43,15 +46,15 @@ export function AdaptaTutorialModal({ isOpen, onClose }: AdaptaTutorialModalProp
               2
             </span>
             <div>
-              <p className="font-medium">Abra o DevTools</p>
+              <p className="font-medium">{t("step2Title")}</p>
               <p className="text-text-muted mt-0.5">
-                Pressione{" "}
+                {t("step2DescPrefix")}{" "}
                 <kbd className="bg-surface-2 px-1.5 py-0.5 rounded text-xs font-mono">F12</kbd>{" "}
-                ou{" "}
+                {t("or")}{" "}
                 <kbd className="bg-surface-2 px-1.5 py-0.5 rounded text-xs font-mono">
                   Cmd+Option+I
                 </kbd>{" "}
-                para abrir as Ferramentas do Desenvolvedor.
+                {t("step2DescSuffix")}
               </p>
             </div>
           </li>
@@ -61,10 +64,11 @@ export function AdaptaTutorialModal({ isOpen, onClose }: AdaptaTutorialModalProp
               3
             </span>
             <div>
-              <p className="font-medium">Vá em Application → Cookies</p>
+              <p className="font-medium">{t("step3Title")}</p>
               <p className="text-text-muted mt-0.5">
-                Na aba <strong>Application</strong> (Chrome/Edge) ou <strong>Storage</strong>{" "}
-                (Firefox), expanda <strong>Cookies</strong> e clique em{" "}
+                {t("step3DescPrefix")} <strong>Application</strong> (Chrome/Edge) {t("or")}{" "}
+                <strong>Storage</strong> (Firefox), {t("step3DescMiddle")} <strong>Cookies</strong>{" "}
+                {t("step3DescSuffix")}{" "}
                 <code className="bg-surface-2 px-1 rounded font-mono text-xs">
                   .clerk.agent.adapta.one
                 </code>
@@ -79,14 +83,14 @@ export function AdaptaTutorialModal({ isOpen, onClose }: AdaptaTutorialModalProp
             </span>
             <div>
               <p className="font-medium">
-                Copie o valor do cookie{" "}
+                {t("step4Title")}{" "}
                 <code className="bg-surface-2 px-1 rounded font-mono text-xs">__client</code>
               </p>
               <p className="text-text-muted mt-0.5">
-                Localize o cookie chamado{" "}
-                <code className="bg-surface-2 px-1 rounded font-mono text-xs">__client</code> na
-                lista. Clique nele e copie o conteúdo da coluna <strong>Value</strong> — começa
-                com <code className="bg-surface-2 px-1 rounded font-mono text-xs">eyJ…</code>.
+                {t("step4DescPrefix")}{" "}
+                <code className="bg-surface-2 px-1 rounded font-mono text-xs">__client</code>{" "}
+                {t("step4DescMiddle")} <strong>Value</strong> {t("step4DescSuffix")}{" "}
+                <code className="bg-surface-2 px-1 rounded font-mono text-xs">eyJ...</code>.
               </p>
             </div>
           </li>
@@ -96,11 +100,11 @@ export function AdaptaTutorialModal({ isOpen, onClose }: AdaptaTutorialModalProp
               5
             </span>
             <div>
-              <p className="font-medium">Cole aqui e salve</p>
+              <p className="font-medium">{t("step5Title")}</p>
               <p className="text-text-muted mt-0.5">
-                Clique em <strong>Add Connection</strong>, cole o valor do{" "}
-                <code className="bg-surface-2 px-1 rounded font-mono text-xs">__client</code> no
-                campo de API Key e salve. O OmniRoute renovará a sessão automaticamente.
+                {t("step5DescPrefix")} <strong>Add Connection</strong>, {t("step5DescMiddle")}{" "}
+                <code className="bg-surface-2 px-1 rounded font-mono text-xs">__client</code>{" "}
+                {t("step5DescSuffix")}
               </p>
             </div>
           </li>
@@ -110,9 +114,8 @@ export function AdaptaTutorialModal({ isOpen, onClose }: AdaptaTutorialModalProp
           className="rounded-lg p-3 text-xs text-text-muted"
           style={{ backgroundColor: "rgba(110,58,211,0.08)", borderLeft: "3px solid #6E3AD3" }}
         >
-          <strong>Dica:</strong> O cookie <code className="font-mono">__client</code> tem
-          validade longa (meses). Só será necessário renová-lo se você sair da conta ou o Adapta
-          invalidar a sessão.
+          <strong>{t("tipLabel")}</strong> {t("tipPrefix")}{" "}
+          <code className="font-mono">__client</code> {t("tipSuffix")}
         </div>
       </div>
     </Modal>
