@@ -52,29 +52,30 @@ export default function CallbackPage() {
 
     // Method 1: postMessage to opener (popup mode).
     // May be null when Google OAuth's COOP header severs the opener reference.
-    // For remote OmniRoute + local loopback callbacks, the callback page origin
-    // is http://127.0.0.1:<port> while the opener is the public OmniRoute origin.
-    // Use a wildcard fallback only for the opener that initiated this popup; the
-    // parent validates the OAuth state before accepting the callback.
+    //
+    // Only relay {code, state} to a known-trusted target origin. A wildcard "*"
+    // here would leak the OAuth code/state to a hostile opener — e.g. a page
+    // that opened this callback URL in a popup to phish the code. The browser
+    // delivers postMessage only when the opener's origin matches `targetOrigin`,
+    // so iterating over an allowlist lets the same-origin parent and Codex's
+    // fixed loopback helper receive it while silently dropping it for any other
+    // origin. Methods 2 (BroadcastChannel) and 3 (localStorage) cover the
+    // same-origin fallback when the opener was severed by COOP.
+    const trustedTargetOrigins = [
+      window.location.origin, // Same origin (dashboard popup mode).
+      "http://localhost:1455", // Codex helper (fixed loopback port).
+      "http://127.0.0.1:1455", // Same Codex helper, IPv4 literal form.
+    ];
     if (window.opener) {
-      try {
-        // Target this origin specifically — popup mode is only used when isTrueLocalhost,
-        // so the opener is always on the same origin as the callback page.
-        window.opener.postMessage(
-          { type: "oauth_callback", data: callbackData },
-          window.location.origin
-        );
-        sent = true;
-      } catch (e) {
-        console.log("postMessage failed:", e);
-      }
-
-      if (!openerSameOrigin) {
+      for (const origin of trustedTargetOrigins) {
         try {
-          window.opener.postMessage({ type: "oauth_callback", data: callbackData }, "*");
+          window.opener.postMessage(
+            { type: "oauth_callback", data: callbackData },
+            origin
+          );
           sent = true;
         } catch (e) {
-          console.log("cross-origin postMessage failed:", e);
+          console.log("postMessage failed:", e);
         }
       }
     }
