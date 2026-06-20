@@ -126,7 +126,7 @@ export default function OAuthModal({
           }),
         });
 
-        const data = (await parseResponseBody(res)) as Record<string, any>;
+        const data = (await parseResponseBody(res)) as Record<string, unknown>;
         if (!res.ok) {
           const errorObject =
             typeof data.error === "object" && data.error !== null
@@ -189,7 +189,7 @@ export default function OAuthModal({
           connectionId: reauthConnection?.id,
         }),
       });
-      const data = (await parseResponseBody(res)) as Record<string, any>;
+      const data = (await parseResponseBody(res)) as Record<string, unknown>;
       if (!res.ok) {
         const errMsg = getErrorMessage(data, res.status, "Save failed");
         throw new Error(errMsg);
@@ -225,7 +225,7 @@ export default function OAuthModal({
             }),
           });
 
-          const data = (await parseResponseBody(res)) as Record<string, any>;
+          const data = (await parseResponseBody(res)) as Record<string, unknown>;
 
           if (data.success) {
             setStep("success");
@@ -290,7 +290,7 @@ export default function OAuthModal({
         }
 
         const res = await fetch(deviceCodeUrl.toString());
-        const data = (await parseResponseBody(res)) as Record<string, any>;
+        const data = (await parseResponseBody(res)) as Record<string, unknown>;
         if (!res.ok) {
           const errMsg = getErrorMessage(data, res.status, "Request failed");
           throw new Error(errMsg);
@@ -332,7 +332,7 @@ export default function OAuthModal({
         if (isTrueLocalhost) {
           try {
             const serverRes = await fetch(`/api/oauth/${provider}/start-callback-server`);
-            const serverData = (await parseResponseBody(serverRes)) as Record<string, any>;
+            const serverData = (await parseResponseBody(serverRes)) as Record<string, unknown>;
             if (!serverRes.ok)
               throw new Error(
                 getErrorMessage(serverData, serverRes.status, "Failed to start callback server")
@@ -357,7 +357,7 @@ export default function OAuthModal({
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ connectionId: reauthConnection?.id }),
               });
-              const pollData = (await parseResponseBody(pollRes)) as Record<string, any>;
+              const pollData = (await parseResponseBody(pollRes)) as Record<string, unknown>;
 
               if (pollData.success) {
                 setStep("success");
@@ -428,7 +428,7 @@ export default function OAuthModal({
       const res = await fetch(
         `/api/oauth/${provider}/authorize?redirect_uri=${encodeURIComponent(redirectUri)}`
       );
-      const data = (await parseResponseBody(res)) as Record<string, any>;
+      const data = (await parseResponseBody(res)) as Record<string, unknown>;
       if (!res.ok) {
         const errMsg = getErrorMessage(data, res.status, "Authorization failed");
         throw new Error(errMsg);
