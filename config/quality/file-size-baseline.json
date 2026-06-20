@@ -75,6 +75,7 @@
   "_rebaseline_2026_06_20_1263_tailscale_authkey": "Re-baseline #1263 (honor TAILSCALE_AUTHKEY for non-interactive tailscale login): tailscaleTunnel.ts 1189->1202 (+13, exported pure tailscaleUpArgs helper + env read + wiring). Cohesive tunnel logic; not extractable.",
   "_rebaseline_2026_06_20_1330_ai_sdk_image": "Re-baseline #1330 (accept AI SDK-style {type:image, image:data-URL string} parts): openai-to-kiro.ts 798->807 (+9, new image-part branch mirroring the existing image_url handling), crossing the 800 cap. Freeze at 807. Cohesive translator branch; the other two translators (claude 776, gemini 630) stay under cap.",
   "_rebaseline_2026_06_20_1447_disabled_conn_error": "Re-baseline #1447 (show a disabled connection's last error): ConnectionRow.tsx 941->942 (+1), a single import line for the extracted shouldShowConnectionLastError helper. Minimal, not extractable.",
+  "_rebaseline_2026_06_20_1449_1444_test_route": "Re-baseline providers test route.ts 842->887: combined growth of sibling fixes #1449 (bound OAuth connection-test probe with a timeout) + #1444 (label a deactivated account distinctly from a revoked token), both at the same connection-test chokepoint. Cohesive route handler; not extractable without hiding the test flow.",
   "cap": 800,
   "frozen": {
     "open-sse/translator/request/openai-to-kiro.ts": 807,
@@ -149,7 +150,7 @@
     "src/app/(dashboard)/dashboard/usage/components/ProviderLimits/index.tsx": 1069,
     "src/app/api/oauth/[provider]/[action]/route.ts": 918,
     "src/app/api/providers/[id]/models/route.ts": 2586,
-    "src/app/api/providers/[id]/test/route.ts": 842,
+    "src/app/api/providers/[id]/test/route.ts": 887,
     "src/app/api/usage/analytics/route.ts": 941,
     "src/app/api/v1/models/catalog.ts": 1478,
     "src/lib/cloudflaredTunnel.ts": 934,
