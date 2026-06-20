@@ -135,7 +135,19 @@ function makeDiagnosis(
   };
 }
 
-function classifyFailure({
+/**
+ * A provider/account that the upstream has deactivated (vs. a revoked/expired token).
+ * #1444: a Codex account can have a perfectly healthy OAuth refresh while its ChatGPT
+ * account is deactivated, in which case the API returns 401 — mislabeling that as
+ * "Token invalid or revoked" hides the real cause. Mirrors the deactivation phrases the
+ * account-fallback classifier already trusts.
+ */
+function isAccountDeactivatedMessage(text: string): boolean {
+  const n = (text || "").toLowerCase();
+  return n.includes("account_deactivated") || (n.includes("deactivat") && n.includes("account"));
+}
+
+export function classifyFailure({
   error,
   statusCode = null,
   refreshFailed = false,
@@ -156,6 +168,13 @@ function classifyFailure({
 
   if (refreshFailed || normalized.includes("refresh failed")) {
     return makeDiagnosis("token_refresh_failed", "oauth", message, "refresh_failed");
+  }
+
+  // #1444: a deactivated account is distinct from a revoked/expired token — surface it
+  // as account_deactivated (which the dashboard renders as "Account Deactivated") before
+  // the generic 401/403 branch below would mark it "upstream_auth_error".
+  if (isAccountDeactivatedMessage(normalized)) {
+    return makeDiagnosis("account_deactivated", "account", message, "account_deactivated");
   }
 
   if (numericStatus === 401 || numericStatus === 403) {
@@ -566,7 +585,12 @@ export async function testOAuthConnection(
           };
         }
 
-        const error = `API returned ${retryRes.status} after token refresh`;
+        // #1444: a fresh token that still gets a 401 because the account itself was
+        // deactivated must be labeled account_deactivated, not a generic auth error.
+        const retryBody = await retryRes.text().catch(() => "");
+        const error = isAccountDeactivatedMessage(retryBody)
+          ? "Account deactivated by the provider"
+          : `API returned ${retryRes.status} after token refresh`;
         return {
           valid: false,
           error,
@@ -585,8 +609,14 @@ export async function testOAuthConnection(
       };
     }
 
-    const error =
-      res.status === 401
+    // #1444: read a 401/403 body so a deactivated account is labeled distinctly from a
+    // revoked token. (The body is unread here for non-gitlab providers; the guard keeps
+    // it safe if it was already consumed.)
+    const bodyText =
+      res.status === 401 || res.status === 403 ? await res.text().catch(() => "") : "";
+    const error = isAccountDeactivatedMessage(bodyText)
+      ? "Account deactivated by the provider"
+      : res.status === 401
         ? "Token invalid or revoked"
         : res.status === 403
           ? "Access denied"
