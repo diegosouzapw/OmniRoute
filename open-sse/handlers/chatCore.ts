@@ -1,4 +1,5 @@
 import { injectMemoryAndSkills } from "./chatCore/memorySkillsInjection.ts";
+import { resolveChatCoreRequestSetup } from "./chatCore/requestSetup.ts";
 import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
@@ -649,27 +650,12 @@ export async function handleChatCore({
     /* memoryUsage() never throws */
   }
 
-  // apiFormat is an optional custom-model marker injected by getModelInfo for
-  // providers whose models can route to /chat/completions or /responses
-  // (Azure AI Foundry, OCI generic OpenAI). It's not on the base ModelInfo
-  // shape, so we read it via a structural narrowing without `as any`.
-  const apiFormat: string | undefined =
-    modelInfo && typeof modelInfo === "object" && "apiFormat" in modelInfo
-      ? typeof (modelInfo as { apiFormat?: unknown }).apiFormat === "string"
-        ? ((modelInfo as { apiFormat?: string }).apiFormat as string)
-        : undefined
-      : undefined;
-  // #2905: per-model wire-format override for custom models, injected by
-  // getModelInfo. Custom models are not in the static registry, so
-  // getModelTargetFormat() can't see this — use it before the provider default.
-  const customModelTargetFormat: string | undefined =
-    modelInfo && typeof modelInfo === "object" && "targetFormat" in modelInfo
-      ? typeof (modelInfo as { targetFormat?: unknown }).targetFormat === "string"
-        ? ((modelInfo as { targetFormat?: string }).targetFormat as string)
-        : undefined
-      : undefined;
-  const requestedModel =
-    typeof body?.model === "string" && body.model.trim().length > 0 ? body.model : model;
+  // Per-request model-routing metadata (first extracted slice of the request-setup phase).
+  const { apiFormat, customModelTargetFormat, requestedModel } = resolveChatCoreRequestSetup(
+    modelInfo,
+    body,
+    model
+  );
   const isModelScope = () => isModelScopeProvider(provider, credentials?.providerSpecificData);
   const startTime = Date.now();
   // Per-request trace id + checkpoint helper. Lets us see exactly which await
