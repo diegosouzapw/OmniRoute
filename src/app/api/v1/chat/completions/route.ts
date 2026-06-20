@@ -42,12 +42,16 @@ export async function POST(request) {
     }
   }
 
-  // Prompt injection guard — inspect body before forwarding
+  // Prompt injection guard — inspect body before forwarding. Parse the body ONCE here
+  // and thread it to handleChat so the handler does not JSON-parse the (often 270-550 KB)
+  // coding-agent payload a second time — the double parse doubled the body's heap
+  // residency on the hot path and fed the OOM crash-loop (#4380).
+  let parsedBody = null;
   try {
     const cloned = request.clone();
-    const body = await cloned.json().catch(() => null);
-    if (body) {
-      const { blocked, result } = injectionGuard(body);
+    parsedBody = await cloned.json().catch(() => null);
+    if (parsedBody) {
+      const { blocked, result } = injectionGuard(parsedBody);
       if (blocked) {
         return new Response(
           JSON.stringify({
@@ -66,5 +70,5 @@ export async function POST(request) {
     console.error("[SECURITY] Prompt injection guard failed:", error);
   }
 
-  return await handleChat(request);
+  return await handleChat(request, null, parsedBody);
 }

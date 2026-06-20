@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { resolveChatRequestBody } from "./requestBody";
 import {
   getProviderCredentialsWithQuotaPreflight,
   markAccountUnavailable,
@@ -190,7 +191,11 @@ const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
  * Supports: OpenAI, Claude, Gemini, OpenAI Responses API formats
  * Format detection and translation handled by translator
  */
-export async function handleChat(request: any, clientRawRequest: any = null) {
+export async function handleChat(
+  request: any,
+  clientRawRequest: any = null,
+  preParsedBody: any = null
+) {
   // Pipeline: Start request telemetry
   const reqId = generateRequestId();
   const telemetry = new RequestTelemetry(reqId);
@@ -198,7 +203,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
   let body;
   try {
     telemetry.startPhase("parse");
-    body = await request.json();
+    body = await resolveChatRequestBody(request, preParsedBody);
     telemetry.endPhase();
   } catch {
     log.warn("CHAT", "Invalid JSON body");
