@@ -95,3 +95,36 @@ test("parseDuckDuckGoLite tolerates a missing snippet (empty string, not crash)"
   assert.equal(results.length, 1);
   assert.equal(results[0].snippet, "");
 });
+
+test("parseDuckDuckGoLite does not double-unescape entities (CodeQL js/double-escaping)", () => {
+  // A snippet whose author literally wrote "5 &lt; 10" reaches us HTML-escaped as
+  // "5 &amp;lt; 10". Correct single-level decoding must yield the literal "5 &lt; 10",
+  // NOT collapse it into a real "<" ("5 < 10") by unescaping &amp; before &lt;.
+  const html = `<a href="https://e.com" class='result-link'>T</a>
+    <td class='result-snippet'>5 &amp;lt; 10</td>`;
+  const [r] = parseDuckDuckGoLite(html);
+  assert.equal(r.snippet, "5 &lt; 10");
+  assert.doesNotMatch(r.snippet, /5 < 10/, "must not double-unescape &amp;lt; into a real '<'");
+});
+
+test("parseDuckDuckGoLite never emits a live <script> from entity-encoded markup (CodeQL js/incomplete-multi-character-sanitization)", () => {
+  // Entity-encoded markup must not be decoded into a live "<script>" tag AFTER tag
+  // stripping — the result is surfaced to the LLM/client as a search snippet.
+  const html = `<a href="https://e.com" class='result-link'>safe &lt;script&gt;x&lt;/script&gt; title</a>
+    <td class='result-snippet'>ok &lt;script&gt;alert(1)&lt;/script&gt; done</td>`;
+  const [r] = parseDuckDuckGoLite(html);
+  assert.doesNotMatch(r.title, /<script/i, "title must not carry a live <script tag");
+  assert.doesNotMatch(r.snippet, /<script/i, "snippet must not carry a live <script tag");
+  assert.ok(r.title.includes("safe"), "benign title text is preserved");
+  assert.ok(r.snippet.includes("alert(1)"), "benign snippet text is preserved");
+});
+
+test("parseDuckDuckGoLite drops an unclosed entity-encoded tag start (no '<script' leak)", () => {
+  // "&lt;script" with no closing ">" decodes to "<script"; that partial tag must not
+  // survive into the output.
+  const html = `<a href="https://e.com" class='result-link'>safe title</a>
+    <td class='result-snippet'>tail &lt;script foo bar</td>`;
+  const [r] = parseDuckDuckGoLite(html);
+  assert.doesNotMatch(r.snippet, /<script/i);
+  assert.ok(r.snippet.startsWith("tail"));
+});
