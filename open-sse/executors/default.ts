@@ -571,11 +571,31 @@ export class DefaultExecutor extends BaseExecutor {
           withDefaults = withoutStreamOptions;
         }
       } else if (stream && targetFormat === "openai" && requestFormat !== "openai-responses") {
-        if (!credentials?.providerSpecificData?.disableStreamOptions) {
+        // Port of decolua/9router#663 (closes upstream #557): Qwen rejects with
+        // 400 "'stream_options' only set this when you set stream: true" when the
+        // outgoing body carries `stream: false` (Claude Code / Claude-Code-
+        // compatible callers force the executor-level stream flag on via
+        // `upstreamStream = stream || isClaudeCodeCompatible`, but the body keeps
+        // the caller's original `stream: false`). Same upstream also rejects the
+        // injection when `thinking` / `enable_thinking` is set. Skip injection in
+        // those cases instead of unconditionally adding `stream_options`.
+        const defaultsRecord = withDefaults as Record<string, unknown>;
+        const qwenBlocksStreamOptions =
+          this.provider === "qwen" &&
+          (defaultsRecord.stream === false ||
+            Boolean(defaultsRecord.thinking) ||
+            Boolean(defaultsRecord.enable_thinking));
+        if (qwenBlocksStreamOptions) {
+          if (Object.prototype.hasOwnProperty.call(defaultsRecord, "stream_options")) {
+            const withoutStreamOptions = { ...defaultsRecord };
+            delete withoutStreamOptions.stream_options;
+            withDefaults = withoutStreamOptions;
+          }
+        } else if (!credentials?.providerSpecificData?.disableStreamOptions) {
           withDefaults = {
             ...withDefaults,
             stream_options: {
-              ...(((withDefaults as Record<string, unknown>).stream_options as object) || {}),
+              ...((defaultsRecord.stream_options as object) || {}),
               include_usage: true,
             },
           };

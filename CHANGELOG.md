@@ -121,6 +121,7 @@ _In development — bullets added per PR; finalized at release._
 
 - **fix(deps): bump undici to 7.28.0 and dompurify to 3.4.11 (security)** — addresses the undici SOCKS5-TLS / cache advisories and the dompurify advisory. ([#4306](https://github.com/diegosouzapw/OmniRoute/pull/4306))
 - **chore(deps): bump actions/checkout from 4 to 7** — CI checkout-action update. ([#4297](https://github.com/diegosouzapw/OmniRoute/pull/4297))
+- **fix(executors): strip `stream_options` for qwen non-streaming / thinking-mode Claude Code requests** — Claude-Code-compatible providers force the executor-level `stream` flag on via `upstreamStream = stream || isClaudeCodeCompatible` (`open-sse/handlers/chatCore.ts`), but the outgoing body keeps the caller's original `stream: false`. The shared `stream && targetFormat === "openai"` branch in `DefaultExecutor.transformRequest` then injected `stream_options: { include_usage: true }` onto a body that still said `stream: false`, and qwen upstream rejected it with `400 "'stream_options' only set this when you set stream: true"`. Same rejection when the body carries `thinking` / `enable_thinking`. The qwen branch now skips the injection (and strips any client-sent `stream_options`) when the body explicitly says `stream: false` or requests thinking, leaving regular qwen streaming requests with the usage injection intact. (thanks @anuragg-saxenaa)
 
 ---
 
