@@ -408,7 +408,10 @@ export async function addCustomModel(
   // #2905: optional per-model wire format override (e.g. "claude" for an
   // opencode-go custom model). When unset, routing falls back to the provider
   // default format.
-  targetFormat?: string
+  targetFormat?: string,
+  // #1294: optional per-model token limits supplied from the "add custom model"
+  // form. Persisted under the same keys the /v1/models catalog reads back.
+  tokenLimits: { inputTokenLimit?: number; outputTokenLimit?: number } = {}
 ) {
   const db = getDbInstance();
   const row = db
@@ -427,6 +430,12 @@ export async function addCustomModel(
     apiFormat,
     supportedEndpoints,
     ...(targetFormat ? { targetFormat } : {}),
+    ...(tokenLimits.inputTokenLimit != null
+      ? { inputTokenLimit: tokenLimits.inputTokenLimit }
+      : {}),
+    ...(tokenLimits.outputTokenLimit != null
+      ? { outputTokenLimit: tokenLimits.outputTokenLimit }
+      : {}),
   };
   models.push(model);
   db.prepare(
