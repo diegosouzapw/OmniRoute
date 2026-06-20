@@ -331,19 +331,29 @@ function removeUnsupportedKeywords(obj: unknown, keywords: Set<string>): void {
     for (const item of obj) {
       removeUnsupportedKeywords(item, keywords);
     }
-  } else {
-    const record = obj as JsonRecord;
-    // Delete unsupported keys at current level
-    for (const key of Object.keys(record)) {
-      if (keywords.has(key) || key.startsWith("x-")) {
-        delete record[key];
-      }
+    return;
+  }
+
+  const record = obj as JsonRecord;
+  // Delete unsupported *constraint* keywords at the current schema level.
+  for (const key of Object.keys(record)) {
+    if (keywords.has(key) || key.startsWith("x-")) {
+      delete record[key];
     }
-    // Recurse into remaining values
-    for (const value of Object.values(record)) {
-      if (value && typeof value === "object") {
-        removeUnsupportedKeywords(value, keywords);
+  }
+  // Recurse into remaining values. `properties` is a map keyed by arbitrary,
+  // user-defined property NAMES — a tool may legitimately declare a property
+  // called `pattern`, `enum`, `minLength`, etc. Descend into each property's
+  // subschema, but never run keyword-deletion against the property names
+  // themselves, or glob/grep-style tools lose their `pattern` argument (#1368).
+  for (const [key, value] of Object.entries(record)) {
+    if (!value || typeof value !== "object") continue;
+    if (key === "properties" && !Array.isArray(value)) {
+      for (const subSchema of Object.values(value as JsonRecord)) {
+        removeUnsupportedKeywords(subSchema, keywords);
       }
+    } else {
+      removeUnsupportedKeywords(value, keywords);
     }
   }
 }

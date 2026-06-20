@@ -206,12 +206,12 @@ test("updateProviderConnectionSchema accepts http protocol", () => {
 // Import the exported helper function from the route
 const { getStaticModelsForProvider } = await import("../../src/lib/providers/staticModels.ts");
 
-test("getStaticModelsForProvider returns 6 models for bailian-coding-plan", () => {
+test("getStaticModelsForProvider returns 10 models for bailian-coding-plan", () => {
   const models = getStaticModelsForProvider("bailian-coding-plan");
 
   assert.ok(models, "Should return models for bailian-coding-plan");
   assert.ok(Array.isArray(models), "Should return an array");
-  assert.equal(models.length, 6, "Should return exactly 6 models");
+  assert.equal(models.length, 10, "Should return exactly 10 models");
 });
 
 test("getStaticModelsForProvider returns correct model IDs for bailian-coding-plan", () => {
@@ -223,6 +223,10 @@ test("getStaticModelsForProvider returns correct model IDs for bailian-coding-pl
   }
 
   const expectedIds = [
+    "qwen3.7-plus",
+    "qwen3-coder-plus",
+    "qwen3-coder-next",
+    "glm-4.7",
     "qwen3.6-plus",
     "qwen3.5-plus",
     "qwen3-max-2026-01-23",

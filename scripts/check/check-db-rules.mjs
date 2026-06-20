@@ -40,6 +40,8 @@ const HANDLERS_DIR = path.join(cwd, "open-sse/handlers");
 export const INTENTIONALLY_INTERNAL = new Set([
   "_rowTypes", // type-only: 5 importers internos em db/ (AgentBridge/Inspector row types)
   "accessTokens", // intentionally-internal: 4 rotas /api/cli/* (connect, whoami, tokens, tokens/[id]) + server/authz/accessTokenAuth.ts via import direto "@/lib/db/accessTokens" (Rule #2)
+  "apiKeyColumnFallbacks", // db-internal: importado só por db/apiKeys.ts (API_KEY_COLUMN_FALLBACKS — fallbacks de coluna split do apiKeys.ts)
+  "apiKeyUsageLimitFields", // db-internal: importado só por db/apiKeys.ts (helpers de campo de limite de uso split do apiKeys.ts; mig 101)
   "cleanup", // intentionally-internal: 3 API routes (purge-quota-snapshots, purge-call-logs, purge-detailed-logs)
   "cliToolState", // intentionally-internal: 14+ API routes em /api/cli-tools/*-settings
   "comboForecast", // intentionally-internal: src/lib/usage/comboForecast.ts
