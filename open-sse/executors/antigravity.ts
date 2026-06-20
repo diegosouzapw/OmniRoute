@@ -882,11 +882,12 @@ export class AntigravityExecutor extends BaseExecutor {
   }
 
   // Parse retry time from Antigravity error message body
-  // Format: "Your quota will reset after 2h7m23s" or "1h30m" or "45m" or "30s"
+  // Format: "Your quota will reset after 2h7m23s" or "Resets in 160h27m24s" or
+  // "1h30m" or "45m" or "30s". The optional plural ("resets in") must match too (#1308).
   parseRetryFromErrorMessage(errorMessage: unknown): number | null {
     if (!errorMessage || typeof errorMessage !== "string") return null;
 
-    const match = errorMessage.match(/reset (?:after|in) (\d+h)?(\d+m)?(\d+s)?/i);
+    const match = errorMessage.match(/resets? (?:after|in) (\d+h)?(\d+m)?(\d+s)?/i);
     if (!match) return null;
 
     let totalMs = 0;

@@ -14,6 +14,7 @@ import {
   isModelLocked,
   recordModelLockoutFailure,
   recordProviderFailure,
+  selectLockoutCooldownMs,
 } from "./accountFallback.ts";
 import { RateLimitReason } from "../config/constants.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
@@ -1723,9 +1724,9 @@ export async function handleComboChat({
                   mlSettings.baseCooldownMs,
                   profile,
                   {
-                    exactCooldownMs: mlSettings.useExponentialBackoff
-                      ? 0
-                      : mlSettings.baseCooldownMs,
+                    // #1308: honor a long upstream reset (e.g. "Resets in 160h") over
+                    // the short base cooldown / exponential backoff when present.
+                    exactCooldownMs: selectLockoutCooldownMs(cooldownMs, mlSettings),
                   }
                 );
                 lockoutRecorded = true;
@@ -1765,7 +1766,8 @@ export async function handleComboChat({
                 mlSettings.baseCooldownMs,
                 profile,
                 {
-                  exactCooldownMs: mlSettings.useExponentialBackoff ? 0 : mlSettings.baseCooldownMs,
+                  // #1308: honor a long upstream reset over base/exponential cooldown.
+                  exactCooldownMs: selectLockoutCooldownMs(cooldownMs, mlSettings),
                 }
               );
             }
