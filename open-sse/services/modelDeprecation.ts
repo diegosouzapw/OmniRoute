@@ -46,6 +46,8 @@ const BUILT_IN_ALIASES: Record<string, string> = {
   "mistral-large": "mistral-large-latest",
   "mistral-small": "mistral-small-latest",
   codestral: "codestral-latest",
+  // Sweep 2026-06-19: codestral-2405 retired 2025-06-16 — forward to the current stable.
+  "codestral-2405": "codestral-2508",
 
   // Llama short aliases
   "llama-3.3": "llama-3.3-70b-versatile",

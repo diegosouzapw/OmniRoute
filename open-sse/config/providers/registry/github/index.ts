@@ -1,5 +1,9 @@
 import type { RegistryEntry } from "../../shared.ts";
-import { GPT_5_5_CODEX_CAPABILITIES, getGitHubCopilotChatHeaders } from "../../shared.ts";
+import {
+  GPT_5_5_CODEX_CAPABILITIES,
+  getGitHubCopilotChatHeaders,
+  resolvePublicCred,
+} from "../../shared.ts";
 
 export const githubProvider: RegistryEntry = {
   id: "github",
@@ -10,6 +14,14 @@ export const githubProvider: RegistryEntry = {
   responsesBaseUrl: "https://api.githubcopilot.com/responses",
   authType: "oauth",
   authHeader: "bearer",
+  // GitHub Copilot is a public device-flow OAuth client: it has a public client_id but
+  // NO client_secret. Populate clientId so token refresh carries it (9router#442) — without
+  // it, refresh requests omit/garble client_id and GitHub rejects them. Embedded via
+  // resolvePublicCred per Hard Rule #11 (never a string literal).
+  oauth: {
+    clientIdEnv: "GITHUB_OAUTH_CLIENT_ID",
+    clientIdDefault: resolvePublicCred("github_copilot_id"),
+  },
   defaultContextLength: 128000,
   headers: getGitHubCopilotChatHeaders(),
   models: [

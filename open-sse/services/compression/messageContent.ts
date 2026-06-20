@@ -63,12 +63,22 @@ export function replaceTextContent(msg: ChatMessageLike, newText: string): ChatM
     return { ...msg, content: newText };
   }
 
+  // The first text block receives `newText`. Trailing text blocks are normally
+  // already subsumed by `newText` (callers build it from the JOIN of all text
+  // blocks via extractTextContent), so we drop them to avoid duplicating content.
+  // But if a caller's `newText` does NOT contain a trailing block's text, dropping
+  // it would silently lose content the model can no longer see (B-AGG-TEXTDROP) —
+  // so in that case we keep the trailing block instead of returning [].
   let replaced = false;
   const content = msg.content.flatMap((part) => {
     if (!isTextBlock(part)) return [part];
-    if (replaced) return [];
-    replaced = true;
-    return [{ ...part, text: newText }];
+    if (!replaced) {
+      replaced = true;
+      return [{ ...part, text: newText }];
+    }
+    const partText = part.text ?? "";
+    if (partText && !newText.includes(partText)) return [part];
+    return [];
   });
 
   if (!replaced) {

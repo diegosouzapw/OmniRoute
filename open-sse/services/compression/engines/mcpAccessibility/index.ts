@@ -1,16 +1,25 @@
 import { collapseRepeated } from "./collapseRepeated.ts";
 import { MCP_ACCESSIBILITY_TAIL_RESERVE, type McpAccessibilityConfig } from "./constants.ts";
 
-const NOISE_PATTERNS: RegExp[] = [/^\s*-\s*generic:?\s*$/gm, /^\s*-\s*text:\s*""\s*$/gm];
+// Per-line (non-global, anchored) noise matchers. Used to DELETE whole noise lines rather than
+// blank them: `replace(pattern, "")` would leave empty strings behind, and a blank line between two
+// sibling headers breaks collapseRepeated's sibling run (an empty line is neither a sibling header
+// nor an indented child), so collapse would never fire on realistic interleaved trees.
+const NOISE_LINE_PATTERNS: RegExp[] = [/^\s*-\s*generic:?\s*$/, /^\s*-\s*text:\s*""\s*$/];
+
+function isNoiseLine(line: string): boolean {
+  return NOISE_LINE_PATTERNS.some((p) => p.test(line));
+}
 
 export function smartFilterText(text: string, config: McpAccessibilityConfig): string {
   if (typeof text !== "string" || text.length < config.minLengthToProcess) {
     return text;
   }
-  let out = text;
-  for (const pattern of NOISE_PATTERNS) {
-    out = out.replace(pattern, "");
-  }
+  // Drop noise lines entirely (not blank them) so interleaved noise does not split sibling runs.
+  let out = text
+    .split("\n")
+    .filter((line) => !isNoiseLine(line))
+    .join("\n");
   out = collapseRepeated(
     out,
     config.collapseThreshold,

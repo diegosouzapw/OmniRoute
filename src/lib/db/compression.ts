@@ -228,23 +228,32 @@ function normalizeContextEditingConfig(value: unknown): ContextEditingConfig {
   };
 }
 
-function normalizeStackedPipeline(value: unknown): CompressionPipelineStep[] {
+// Engines allowed in the global stackedPipeline setting. MUST stay in sync with the
+// compression-combo KNOWN_ENGINE_IDS (src/lib/db/compressionCombos.ts) — otherwise the
+// global setting silently strips engines the combo path accepts (B-PIPELINE-DIVERGENCE).
+const STACKED_PIPELINE_ENGINE_IDS = new Set([
+  "lite",
+  "caveman",
+  "aggressive",
+  "ultra",
+  "rtk",
+  "headroom",
+  "session-dedup",
+  "ccr",
+  "llmlingua",
+]);
+
+export function normalizeStackedPipeline(value: unknown): CompressionPipelineStep[] {
   const source = Array.isArray(value) ? value : (DEFAULT_COMPRESSION_CONFIG.stackedPipeline ?? []);
   const pipeline: CompressionPipelineStep[] = [];
   for (const entry of source) {
     const record = toRecord(entry);
     const engine = record.engine;
-    if (
-      engine !== "lite" &&
-      engine !== "caveman" &&
-      engine !== "aggressive" &&
-      engine !== "ultra" &&
-      engine !== "rtk"
-    ) {
+    if (typeof engine !== "string" || !STACKED_PIPELINE_ENGINE_IDS.has(engine)) {
       continue;
     }
     pipeline.push({
-      engine,
+      engine: engine as CompressionPipelineStep["engine"],
       ...(typeof record.intensity === "string"
         ? { intensity: record.intensity as CompressionPipelineStep["intensity"] }
         : {}),

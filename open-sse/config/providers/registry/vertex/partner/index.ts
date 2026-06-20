@@ -13,7 +13,10 @@ export const vertex_partnerProvider: RegistryEntry = {
     { id: "DeepSeek-V4-Pro", name: "DeepSeek V4 Pro" },
     { id: "Qwen3.6-35B-A3B", name: "Qwen 3.6 35B A3B" },
     { id: "GLM-5.1-FP8", name: "GLM 5.1" },
+    // Sweep 2026-06-19: + Claude Opus on Vertex (Anthropic partner models).
+    { id: "claude-opus-4-8", name: "Claude Opus 4.8" },
     { id: "claude-opus-4-7", name: "Claude Opus 4.7" },
+    { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
     { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
   ],
 };

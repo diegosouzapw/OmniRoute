@@ -501,7 +501,7 @@ export const WEB_COOKIE_PROVIDERS = {
     freeNote:
       "Free model comparison platform — 40+ models (GPT, Claude, Gemini, Llama). No subscription required.",
     authHint:
-      "Paste your session cookie from lmarena.ai (DevTools → Application → Cookies). Optional — works with free tier for basic comparisons.",
+      "Paste the full Cookie header from lmarena.ai (DevTools → Network → request → Cookie). The session is now split across arena-auth-prod-v1.0, .1, … — copy the whole header. Optional — works with free tier for basic comparisons.",
     riskNoticeVariant: "webCookie",
   },
   huggingchat: {
@@ -531,7 +531,11 @@ export const WEB_COOKIE_PROVIDERS = {
     freeNote: "Discontinued 2026 — phind.com shut down (2026-01); no free tier.",
     authHint:
       "Paste your session cookie from phind.com (DevTools → Application → Cookies). Optional — works with free tier.",
-    riskNoticeVariant: "webCookie",
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    deprecated: true,
+    deprecationReason:
+      "Phind shut down its API (2026-01); the /api/chat endpoint no longer serves (sweep 2026-06-19).",
   },
   "poe-web": {
     id: "poe-web",
@@ -1269,7 +1273,7 @@ export const APIKEY_PROVIDERS = {
     hasFree: true,
     anonymousFallback: true,
     freeNote:
-      "No API key required for free public endpoint. Optional Spore tier: ~0.01 pollen/hour.",
+      "Free keyless tier: openai, openai-fast, openai-large, qwen-coder, mistral, deepseek, grok, gemini-flash-lite-3.1, perplexity-fast, perplexity-reasoning. Premium models (claude, gemini, midijourney) require a Pollinations API key from enter.pollinations.ai.",
   },
   puter: {
     id: "puter",
@@ -1554,6 +1558,11 @@ export const APIKEY_PROVIDERS = {
     hasFree: false,
     freeNote: "Discontinued 2026 — kluster.ai sunset (2026-06-09); no free tier.",
     apiHint: "Get API key at https://kluster.ai/dashboard/api-keys",
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    deprecated: true,
+    deprecationReason:
+      "kluster.ai shut down (2026-06-09); api.kluster.ai no longer resolves (sweep 2026-06-19). Use another OpenAI-compatible provider.",
   },
   friendliai: {
     id: "friendliai",
@@ -1592,6 +1601,11 @@ export const APIKEY_PROVIDERS = {
     color: "#F59E0B",
     textIcon: "GA",
     website: "https://galadriel.com",
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    deprecated: true,
+    deprecationReason:
+      "api.galadriel.ai no longer resolves (sweep 2026-06-19); the inference API appears discontinued.",
   },
   databricks: {
     id: "databricks",
@@ -1774,8 +1788,13 @@ export const APIKEY_PROVIDERS = {
     color: "#0F766E",
     textIcon: "PB",
     website: "https://predibase.com",
-    hasFree: true,
+    hasFree: false,
     freeNote: "$25 free trial credits (30-day validity)",
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    deprecated: true,
+    deprecationReason:
+      "serving.app.predibase.com no longer resolves (sweep 2026-06-19); the managed serving API appears discontinued.",
   },
   bytez: {
     id: "bytez",
@@ -1855,6 +1874,11 @@ export const APIKEY_PROVIDERS = {
     hasFree: false,
     freeNote: "Discontinued 2026 — glhf.chat free beta ended; no free tier.",
     passthroughModels: true,
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    deprecated: true,
+    deprecationReason:
+      "glhf.chat shut down (2026); its api.laf.run gateway no longer serves the catalog (sweep 2026-06-19).",
   },
   cablyai: {
     id: "cablyai",
@@ -2230,6 +2254,11 @@ export const APIKEY_PROVIDERS = {
     freeNote: "Free Ling-2.6-flash model (1T-param MoE, 262K context). No credit card required.",
     passthroughModels: true,
     authHint: "Get API key at inclusionai.com",
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    deprecated: true,
+    deprecationReason:
+      "api.inclusionai.tech no longer resolves (sweep 2026-06-19); the inference API appears discontinued.",
   },
   liquid: {
     id: "liquid",
@@ -2371,6 +2400,50 @@ export const APIKEY_PROVIDERS = {
       "Use your ZenMux API key in Authorization: Bearer <key>. ZenMux is fully OpenAI-compatible. Base URL: https://zenmux.ai/api/v1.",
     apiHint:
       "ZenMux exposes an OpenAI-compatible chat completions endpoint at /api/v1/chat/completions, plus Anthropic Messages (/api/anthropic/v1/messages) and Google Gemini (/api/vertex-ai) protocol surfaces. OmniRoute uses the OpenAI protocol.",
+  },
+  openadapter: {
+    id: "openadapter",
+    alias: "oad",
+    name: "OpenAdapter",
+    icon: "hub",
+    color: "#10B981",
+    textIcon: "OD",
+    website: "https://openadapter.dev",
+    hasFree: true,
+    freeNote:
+      "Free tier with a generous quota and no credit card — 15+ open-source models with daily quota. Get your API key at https://dashboard.openadapter.in.",
+    authHint:
+      "Use your OpenAdapter API key in Authorization: Bearer sk-cv-<key>. Fully OpenAI-compatible. API base URL: https://api.openadapter.in/v1.",
+    apiHint:
+      "OpenAdapter exposes an OpenAI-compatible chat completions endpoint at https://api.openadapter.in/v1/chat/completions, aggregating 70+ open-source models (DeepSeek, Qwen, Kimi, MiniMax, GLM, Llama, Mistral, …). OmniRoute uses the OpenAI protocol.",
+  },
+  dit: {
+    id: "dit",
+    alias: "dai",
+    name: "DIT.ai",
+    icon: "hub",
+    color: "#0EA5E9",
+    textIcon: "DT",
+    website: "https://dit.ai",
+    authHint:
+      "Use your dit.ai API key in Authorization: Bearer <key>. Fully OpenAI-compatible — a drop-in replacement, just change the base URL to https://api.dit.ai/v1.",
+    apiHint:
+      "dit.ai (Distributed Intelligence Trade) is an OpenAI-compatible router/gateway with dynamic per-request pricing, exposing /v1/chat/completions at https://api.dit.ai/v1. OmniRoute uses the OpenAI protocol; spend/savings analytics live in the dit.ai dashboard.",
+  },
+  tokenrouter: {
+    id: "tokenrouter",
+    alias: "trk",
+    name: "TokenRouter",
+    icon: "hub",
+    color: "#F59E0B",
+    textIcon: "TK",
+    website: "https://tokenrouter.com",
+    hasFree: true,
+    freeNote: "Free tier includes the MiniMax 3 model. Get your API key at https://tokenrouter.com.",
+    authHint:
+      "Use your TokenRouter API key in Authorization: Bearer <key>. Fully OpenAI-compatible. API base URL: https://api.tokenrouter.com/v1.",
+    apiHint:
+      "TokenRouter exposes an OpenAI-compatible chat completions endpoint at https://api.tokenrouter.com/v1/chat/completions, plus a working /v1/models catalog. OmniRoute uses the OpenAI protocol.",
   },
 };
 

@@ -155,6 +155,38 @@ const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   // was unclassified, so import served the 5-entry hardcoded catalog instead of the
   // live `https://ai-gateway.vercel.sh/v1/models` list. Falls back to local on error.
   "vercel-ai-gateway",
+  // #4239 / #4155 / #3841: OpenAI-compatible aggregators whose real catalog lives
+  // on the upstream `/v1/models` list — serve it live, fall back to the seeded
+  // registry catalog on error (same case as zenmux).
+  "openadapter",
+  "dit",
+  "tokenrouter",
+  // provider-model-sweep (2026-06-19): same class as #3976/#4202/#4249 — keyed
+  // openai-style providers with a real live `<baseUrl>/models` catalog, served
+  // their small hardcoded seed because unclassified. Seed stays as offline fallback.
+  "venice",
+  "deepinfra",
+  "wandb",
+  "pollinations",
+  "nscale",
+  "inference-net",
+  "moonshot",
+  // provider-model-sweep (2026-06-19) cont.: GPU-cloud / aggregator marketplaces
+  // hosting large, volatile OSS catalogs. The sweep confirmed each exposes a live
+  // `<baseUrl>/v1/models` endpoint (200 public or 401/403 = exists + keyed), so live
+  // fetch keeps the catalog fresh; the registry seed remains the offline fallback.
+  "crof",
+  "featherless-ai",
+  "ovhcloud",
+  "sambanova",
+  "orcarouter",
+  "uncloseai",
+  "opencode-go",
+  "baseten",
+  "hyperbolic",
+  "nebius",
+  "scaleway",
+  "together",
 ]);
 
 function isNamedOpenAIStyleProvider(provider: string): boolean {

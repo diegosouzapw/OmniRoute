@@ -1,4 +1,27 @@
+import { MCP_ACCESSIBILITY_DEFAULTS } from "./constants.ts";
+
 const SIBLING_PATTERN = /^(\s*)-\s*([a-zA-Z]+)\b/;
+
+/**
+ * Extract every `[ref=eNN]` anchor from a blob, preserving order, de-duplicated. These refs are how
+ * an agent clicks elements, so they MUST survive collapse. Uses the shared `preserveRefPattern`.
+ */
+export function extractRefs(text: string): string[] {
+  const seen = new Set<string>();
+  const refs: string[] = [];
+  // Fresh regex per call: the shared pattern carries the global flag (stateful lastIndex).
+  const pattern = new RegExp(
+    MCP_ACCESSIBILITY_DEFAULTS.preserveRefPattern.source,
+    MCP_ACCESSIBILITY_DEFAULTS.preserveRefPattern.flags
+  );
+  for (const m of text.matchAll(pattern)) {
+    if (!seen.has(m[0])) {
+      seen.add(m[0]);
+      refs.push(m[0]);
+    }
+  }
+  return refs;
+}
 
 export function findNthSiblingEnd(
   lines: string[],
@@ -64,6 +87,11 @@ export function collapseRepeated(
         j++;
         continue;
       }
+      // A blank line (noise removal can leave these) must not break a sibling run.
+      if (ln.trim() === "") {
+        j++;
+        continue;
+      }
       break;
     }
     const groupLen = j - i;
@@ -74,6 +102,15 @@ export function collapseRepeated(
       out.push(
         `${indent}... [${groupLen - keepHead - keepTail} similar "${role}" items omitted by OmniRoute MCP filter]`
       );
+      // BUG A invariant: the omitted middle siblings carry [ref=eNN] anchors the agent needs to
+      // click. Extract every ref from the dropped lines and keep them alongside the notice so
+      // extractRefs(input) ⊆ extractRefs(output) always holds.
+      const omittedRefs = extractRefs(lines.slice(headEnd, tailStart).join("\n"));
+      if (omittedRefs.length > 0) {
+        out.push(
+          `${indent}  [refs of omitted "${role}" items (clickable): ${omittedRefs.join(" ")}]`
+        );
+      }
       for (let k = tailStart; k < j; k++) out.push(lines[k]);
     } else {
       for (let k = i; k < j; k++) out.push(lines[k]);

@@ -6,6 +6,7 @@ import {
   buildVercelRelayHeaders,
   createProxyDispatcher,
   getDefaultDispatcher,
+  getRetryDispatcher,
   normalizeProxyUrl,
   proxyConfigToUrl,
   proxyUrlForLogs,
@@ -420,7 +421,12 @@ async function patchedFetch(
       try {
         return await _undiciDirect(input, {
           ...options,
-          dispatcher: getDefaultDispatcher(),
+          // #4252: first attempt uses the pooled keep-alive dispatcher; a retry
+          // (after a transient socket error) uses the no-keep-alive dispatcher so
+          // it opens a FRESH socket instead of grabbing another stale pooled one
+          // — the burst pattern was the retry re-hitting a dead pooled socket and
+          // then falling through to native fetch (which also pools) → 502.
+          dispatcher: attempt === 0 ? getDefaultDispatcher() : getRetryDispatcher(),
         });
       } catch (dispatcherError) {
         const msg =

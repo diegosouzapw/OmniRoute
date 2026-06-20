@@ -106,8 +106,14 @@ export function detectCachingContext(
  * @returns A CacheAwareStrategy object
  */
 export function getCacheAwareStrategy(strategy: string, ctx: CachingContext): CacheAwareStrategy {
-  if (ctx.isCachingProvider && ctx.hasCacheControl) {
-    // Adjust strategy for caching providers with cache control
+  // #3955: a caching provider is enough on its own to protect the cacheable prefix.
+  // OpenAI / Codex (and other automatic-prefix-cache providers) carry NO explicit
+  // `cache_control` markers, yet the upstream still caches the longest matching prefix
+  // (system prompt / earliest messages). Gating on `hasCacheControl` skipped the guard
+  // for those providers, so a prefix-compressing mode rewrote the prefix → guaranteed
+  // cache miss. Treat `isCachingProvider` alone as sufficient; the explicit
+  // `cache_control` path is now a subset of this.
+  if (ctx.isCachingProvider) {
     return {
       strategy: ["aggressive", "ultra"].includes(strategy) ? "standard" : strategy,
       skipSystemPrompt: true,
