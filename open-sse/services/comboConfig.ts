@@ -180,3 +180,15 @@ export function resolveComboConfig(
 export function getDefaultComboConfig() {
   return { ...DEFAULT_COMBO_CONFIG };
 }
+
+/**
+ * Resolve the effective combo config the same way handleComboChat does: cascade via
+ * resolveComboConfig when settings exist, else the defaults merged with the combo's own
+ * config. Encapsulated here so the ternary lives in one place (DRY) and its inferred union
+ * return type is the single source of truth for ComboContext.config (combo/context.ts).
+ */
+export function resolveComboSetupConfig(combo: ComboConfigLike, settings: ComboSettingsLike) {
+  return settings
+    ? resolveComboConfig(combo, settings)
+    : { ...getDefaultComboConfig(), ...((combo?.config as Record<string, unknown>) || {}) };
+}

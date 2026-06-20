@@ -18,7 +18,7 @@ import {
   isProviderExhaustedReason,
   hasPerModelQuota,
 } from "./accountFallback.ts";
-import { FETCH_TIMEOUT_MS, RateLimitReason } from "../config/constants.ts";
+import { RateLimitReason } from "../config/constants.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import {
   recordComboIntent,
@@ -29,14 +29,11 @@ import {
 import {
   resolveComboConfig,
   getDefaultComboConfig,
-  resolveComboTargetTimeoutMs,
 } from "./comboConfig.ts";
 import {
   maybeGenerateHandoff,
-  resolveContextRelayConfig,
   maybeGenerateUniversalHandoff,
   injectUniversalHandoffBody,
-  resolveUniversalHandoffConfig,
   SKIP_UNIVERSAL_HANDOFF_FLAG,
   type MessageLike,
 } from "./contextHandoff.ts";
@@ -53,7 +50,8 @@ import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuffleDeck";
 import { parseModel } from "./model.ts";
-import { applyComboAgentMiddleware } from "./comboAgentMiddleware.ts";
+import { createComboContext } from "./combo/context.ts";
+import { phaseComboSetup } from "./combo/comboSetup.ts";
 import { checkCredentialGate, logCredentialSkip } from "./credentialGate.ts";
 import { emit } from "../../src/lib/events/eventBus";
 import { notifyWebhookEvent } from "../../src/lib/webhookDispatcher";
@@ -76,7 +74,6 @@ import type { RoutingHint } from "./manifestAdapter";
 import { buildComplexityRoutingHint } from "./autoCombo/complexityRouter";
 import type { CompressionMode } from "./compression/types.ts";
 import { getProviderConnections } from "../../src/lib/db/providers";
-import { normalizeRoutingStrategy } from "../../src/shared/constants/routingStrategies.ts";
 import {
   isProviderInCooldown,
   recordProviderCooldown,
@@ -148,7 +145,6 @@ import {
   applyRequestTagRouting,
   scoreAutoTargets,
   expandAutoComboCandidatePool,
-  deriveComboSessionKey,
 } from "./combo/autoStrategy.ts";
 import {
   resolveResetWindowConfig,
@@ -426,67 +422,24 @@ export async function handleComboChat({
   signal,
   apiKeyAllowedConnections = null,
 }: HandleComboChatOptions): Promise<Response> {
-  const strategy = normalizeRoutingStrategy(combo.strategy || "priority");
-  const relayConfig =
-    strategy === "context-relay" ? resolveContextRelayConfig(relayOptions?.config || null) : null;
-
-  const resilienceSettings: ResilienceSettings = settings
-    ? resolveResilienceSettings(settings)
-    : resolveResilienceSettings(null);
-
-  const universalHandoffConfig = resolveUniversalHandoffConfig(
-    (combo.universal_handoff || combo.universalHandoff) as
-      | Record<string, unknown>
-      | null
-      | undefined,
-    relayOptions?.universalHandoffConfig as Record<string, unknown> | null | undefined
-  );
-  // ── Server-side context cache pinning (replaces <omniModel> tag roundtrip) ─
-  // Uses session_model_history — no client-side tag injection, no visible output pollution.
-  //
-  // #3825: when the client sends no session id (most OpenAI-compatible clients), fall
-  // back to a stable conversation fingerprint derived from the body so the combo still
-  // re-pins to the same model across turns. ONLY engaged when context_cache_protection
-  // is truthy — when the toggle is off, behavior is unchanged (combos rotate as before,
-  // no pin read/write, no <omniModel> tag).
-  const effectiveSessionId: string | null = combo.context_cache_protection
-    ? (relayOptions?.sessionId ?? deriveComboSessionKey(body))
-    : null;
-  let pinnedModel: string | null = null;
-  if (
-    combo.context_cache_protection &&
-    effectiveSessionId &&
-    !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
-  ) {
-    const pinned = getLastSessionModel(effectiveSessionId, combo.name);
-    if (pinned) {
-      body = { ...body, model: pinned };
-      pinnedModel = pinned;
-      log.info("COMBO", `[#401] Context cache: pinned model=${pinned} (server-side)`);
-    }
-  }
-
-  // ── Combo Agent Middleware (#399 + #401) ────────────────────────────────
-  // Apply system_message override, tool_filter_regex.
-  // Context cache pinning is handled above via session_model_history.
-  const { body: agentBody } = applyComboAgentMiddleware(
-    body,
-    combo,
-    "" // provider/model not yet known — resolved per-model in loop
-  );
-  body = agentBody;
-  const clientRequestedStream = body?.stream === true;
-  // Context cache pinning is handled above via server-side session_model_history.
-  // No tag injection on response — use handleSingleModel directly.
-  // ─────────────────────────────────────────────────────────────────────────
-
-  // Use config cascade before dispatch so all strategies, pinned context routes,
-  // and round-robin targets share the same timeout policy.
-  const config = settings
-    ? resolveComboConfig(combo, settings)
-    : { ...getDefaultComboConfig(), ...(combo.config || {}) };
-  const comboTargetTimeoutMs = resolveComboTargetTimeoutMs(config, FETCH_TIMEOUT_MS);
-  const reasoningTokenBufferEnabled = config.reasoningTokenBufferEnabled !== false;
+  // Combo setup phase (god-file decomposition fase 1): strategy / relay / resilience /
+  // universal-handoff / context-cache pinning / agent middleware / config cascade / timeout.
+  // phaseComboSetup rewrites ctx.body (pinning + middleware); rebind `body` from it so the
+  // rest of handleComboChat is unchanged. See combo/comboSetup.ts + combo/context.ts.
+  const comboCtx = createComboContext({ body, combo, settings, relayOptions, log });
+  const {
+    strategy,
+    relayConfig,
+    resilienceSettings,
+    universalHandoffConfig,
+    effectiveSessionId,
+    pinnedModel,
+    clientRequestedStream,
+    config,
+    comboTargetTimeoutMs,
+    reasoningTokenBufferEnabled,
+  } = phaseComboSetup(comboCtx);
+  body = comboCtx.body;
 
   // ── Per-model timeout wrapper ────────────────────────────────────────────
   // Combo target timeouts inherit FETCH_TIMEOUT_MS by default. Operators can
