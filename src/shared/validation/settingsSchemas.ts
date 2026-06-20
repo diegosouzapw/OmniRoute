@@ -290,6 +290,8 @@ export const updateSettingsSchema = z.object({
   visionBridgeMaxImages: z.number().int().min(1).max(20).optional(),
   // Missing settings
   lkgpEnabled: z.boolean().optional(),
+  // #1311: echo the requested alias/combo name in the response model field (opt-in)
+  echoRequestedModelName: z.boolean().optional(),
   backgroundDegradation: z.unknown().optional(),
   bruteForceProtection: z.boolean().optional(),
   // Auto-routing settings

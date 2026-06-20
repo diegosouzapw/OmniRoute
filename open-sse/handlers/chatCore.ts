@@ -83,6 +83,7 @@ import {
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { normalizeMimoThinking } from "../services/mimoThinking.ts";
 import { normalizeClaudeAdaptiveThinking } from "../services/claudeAdaptiveThinking.ts";
+import { echoModelInObject, createModelEchoTransform } from "../services/responseModelEcho.ts";
 import { stripGpt5SamplingWhenReasoning } from "../services/gpt5SamplingGuard.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
 import { supportsMaxTokens } from "@/lib/modelCapabilities.ts";
@@ -1097,6 +1098,15 @@ export async function handleChatCore({
   const noLogEnabled = apiKeyInfo?.noLog === true;
   // Consolidate settings reads — fetch once, reuse throughout the request
   const settings = cachedSettings ?? (await getCachedSettings());
+  // #1311 (opt-in): echo the client-requested alias/combo name in the response `model`
+  // field instead of the upstream model, so strict clients (Claude Desktop) that validate
+  // response.model === request.model stop rejecting alias/combo requests with a 401.
+  const echoModel =
+    settings.echoRequestedModelName === true &&
+    typeof requestedModel === "string" &&
+    requestedModel
+      ? requestedModel
+      : null;
   const detailedLoggingEnabled =
     !noLogEnabled &&
     (settings.call_log_pipeline_enabled === true ||
@@ -4663,6 +4673,8 @@ export async function handleChatCore({
       costUsd: estimatedCost,
       requestId: skillRequestId,
     });
+    // #1311: echo the requested alias/combo name in the non-streaming response model.
+    if (echoModel) echoModelInObject(translatedResponse, echoModel);
     return {
       success: true,
       response: new Response(JSON.stringify(translatedResponse), {
@@ -5079,6 +5091,10 @@ export async function handleChatCore({
       shape: shapeForClientFormat(clientResponseFormat),
     })
   );
+  // #1311: echo the requested alias/combo name in each streamed SSE chunk's model field.
+  if (echoModel) {
+    finalStream = finalStream.pipeThrough(createModelEchoTransform(echoModel));
+  }
 
   // ── Gamification event (fire-and-forget) ──
   if (apiKeyInfo?.id) {

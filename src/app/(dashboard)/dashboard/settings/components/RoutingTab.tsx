@@ -1459,6 +1459,35 @@ export default function RoutingTab() {
       <Card>
         <div className="flex items-start justify-between gap-4">
           <div className="flex gap-3">
+            <div className="p-2 rounded-lg bg-sky-500/10 text-sky-500 h-fit">
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                badge
+              </span>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">
+                {t("echoRequestedModelTitle") || "Echo requested model name in responses"}
+              </h3>
+              <p className="text-sm text-text-muted mt-1">
+                {t("echoRequestedModelDesc") ||
+                  "When enabled, the response model field echoes the alias or combo name the client requested instead of the upstream model name."}
+              </p>
+            </div>
+          </div>
+          <div className="pt-1">
+            <Toggle
+              checked={settings.echoRequestedModelName === true}
+              onChange={(checked) => updateSetting({ echoRequestedModelName: checked })}
+              disabled={loading}
+              ariaLabel={t("echoRequestedModelTitle")}
+            />
+          </div>
+        </div>
+      </Card>
+
+      <Card>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex gap-3">
             <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500 h-fit">
               <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
                 verified
