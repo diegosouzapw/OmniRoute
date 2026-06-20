@@ -25,5 +25,8 @@
     "base_url": "Базов URL на сървъра OmniRoute",
     "context": "Контекст/профил на сървъра за тази команда",
     "lang": "Задай език на CLI (замества OMNIROUTE_LANG)"
+  },
+  "redis": {
+    "description": "Стартиране на локален Redis контейнер с едно щракване (Podman или Docker) за кеширане и проследяване на квота в OmniRoute"
   }
 }

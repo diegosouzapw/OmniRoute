@@ -25,5 +25,8 @@
     "base_url": "URL base del server OmniRoute",
     "context": "Contesto/profilo del server per questo comando",
     "lang": "Imposta la lingua di visualizzazione della CLI (sovrascrive OMNIROUTE_LANG)"
+  },
+  "redis": {
+    "description": "Avvia un contenitore Redis locale con un clic (Podman o Docker) per la cache e il tracciamento delle quote di OmniRoute"
   }
 }

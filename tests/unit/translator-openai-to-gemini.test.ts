@@ -62,9 +62,10 @@ test("OpenAI -> Gemini helper converts text, images and files into Gemini parts"
     { type: "file_url", file_url: { url: "not-a-data-url" } },
   ]);
 
-  // Since #4373 remote http(s) image URLs are passed through as a native Gemini
-  // `fileData: { fileUri }` part (Gemini accepts HTTP/HTTPS URLs) instead of being
-  // dropped+warned. Data URLs become inlineData; a non-URL string is still dropped.
+  // Remote http(s) URLs are no longer dropped — they pass through as Gemini
+  // `fileData: { fileUri }` so the model fetches the asset itself (#4373, ported
+  // from upstream PR #344). A non-data, non-http string ("not-a-data-url") is
+  // still dropped (no inlineData/fileData part).
   assert.deepEqual(parts, [
     { text: "Hello" },
     { inlineData: { mimeType: "image/png", data: "abc" } },
@@ -1104,39 +1105,38 @@ test("convertOpenAIContentToParts handles rec.image with nested {url} as base64 
   assert.equal((inline as any).inlineData.mimeType, "image/png");
 });
 
-test("convertOpenAIContentToParts passes remote http(s) image URLs through as fileData (#4373)", () => {
-  // Since #4373 (port of 9router#344) Gemini accepts HTTP/HTTPS image URLs natively
-  // via `fileData: { fileUri }`, so a remote URL is no longer dropped+warned (the old
-  // #2807 sync behavior). It still must not become inlineData (the sync function
-  // cannot fetch+base64-encode it).
+test("convertOpenAIContentToParts passes remote http(s) image_url URLs through as fileData (#4373; was warn-and-drop #2807)", () => {
   const parts = convertOpenAIContentToParts([
     { type: "image_url", image_url: { url: "https://example.com/cat.png" } },
   ]);
-  const inline = parts.find((p) => (p as any).inlineData);
-  assert.equal(inline, undefined, "remote URL must not be encoded into inlineData (sync function)");
-  const file = parts.find((p) => (p as any).fileData) as any;
-  assert.ok(file, `expected a fileData part for the remote URL, got: ${JSON.stringify(parts)}`);
-  assert.equal(file.fileData.fileUri, "https://example.com/cat.png");
-  assert.equal(file.fileData.mimeType, "image/*");
+  // Remote URLs cannot be base64-inlined by this synchronous function, but Gemini's
+  // Part schema accepts `fileData: { fileUri }` for HTTP/HTTPS sources — so the URL
+  // is passed through (the model fetches it) instead of being dropped (#4373).
+  assert.equal(
+    parts.find((p) => (p as any).inlineData),
+    undefined,
+    "remote URL is not base64-inlined (sync function)"
+  );
+  assert.deepEqual(parts, [
+    { fileData: { fileUri: "https://example.com/cat.png", mimeType: "image/*" } },
+  ]);
 });
 
-test("convertOpenAIContentToParts passes rec.image remote http(s) URLs through as fileData (#4373)", () => {
+test("convertOpenAIContentToParts passes remote rec.image http(s) URLs through as fileData (#4373; was warn-and-drop #2807)", () => {
   // rec.image is the alternative content shape emitted by MCP tool wrappers and
-  // LangChain shim layers. Remote URLs in this shape are handled identically: passed
-  // through as a native fileData part rather than dropped (#4373), not inlineData.
+  // LangChain shim layers. Remote URLs in this shape now also pass through as
+  // Gemini `fileData: { fileUri }` (#4373) instead of being dropped.
   const parts = convertOpenAIContentToParts([
     { type: "image", image: { url: "https://example.com/remote.png" } },
   ]);
-  const inline = parts.find((p) => (p as any).inlineData);
   assert.equal(
-    inline,
+    parts.find((p) => (p as any).inlineData),
     undefined,
-    "rec.image remote URL must not produce an inlineData part (sync function cannot fetch)"
+    "rec.image remote URL is not base64-inlined (sync function cannot fetch)"
   );
-  const file = parts.find((p) => (p as any).fileData) as any;
-  assert.ok(file, `expected a fileData part for the rec.image remote URL, got: ${JSON.stringify(parts)}`);
-  assert.equal(file.fileData.fileUri, "https://example.com/remote.png");
-  assert.equal(file.fileData.mimeType, "image/*");
+  assert.deepEqual(parts, [
+    { fileData: { fileUri: "https://example.com/remote.png", mimeType: "image/*" } },
+  ]);
 });
 
 // Regression for #2504: with credentials._signatureNamespace set, a previously-cached

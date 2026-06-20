@@ -101,7 +101,7 @@ test("models: extracts apiKey from ctx.auth (type=api) and calls fetcher with it
   assert.equal(fetcher.callCount(), 1);
   assert.deepEqual(fetcher.callsBy()[0], ["https://or.example.com/v1", "sk-abc"]);
   assert.equal(Object.keys(out).length, 3);
-  assert.ok(out["claude-primary"]);
+  assert.ok(out["omniroute/claude-primary"]);
 });
 
 test("models: returns {} when ctx.auth is null/undefined/wrong-type/empty-key", async () => {
@@ -152,9 +152,11 @@ test("models: maps a sample /v1/models entry to ModelV2 (sanity)", async () => {
     { fetcher, combosFetcher: async () => [] }
   );
   const out = await hook.models!({} as never, { auth: apiAuth("sk-abc") as never });
-  const claude = out["claude-primary"];
+  const claude = out["omniroute/claude-primary"];
   assert.ok(claude, "claude-primary present");
-  assert.equal(claude.id, "claude-primary");
+  // `mapRawModelToModelV2` stamps the provider prefix on the id so OC's
+  // static-catalog reader resolves `(providerID, modelID)` from the key.
+  assert.equal(claude.id, "omniroute/claude-primary");
   assert.equal(claude.name, "claude-primary");
   assert.equal(claude.providerID, "omniroute");
   assert.equal(claude.api.id, "openai-compatible");

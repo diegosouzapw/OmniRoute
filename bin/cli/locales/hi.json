@@ -25,5 +25,8 @@
     "base_url": "OmniRoute सर्वर का बेस URL",
     "context": "इस कमांड के लिए सर्वर संदर्भ/प्रोफ़ाइल",
     "lang": "CLI प्रदर्शन भाषा सेट करें (OMNIROUTE_LANG को ओवरराइड करता है)"
+  },
+  "redis": {
+    "description": "OmniRoute कैशिंग और कोटा ट्रैकिंग के लिए एक क्लिक में स्थानीय Redis कंटेनर (Podman या Docker) लॉन्च करें"
   }
 }

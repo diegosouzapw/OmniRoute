@@ -227,7 +227,7 @@ test("config: with valid auth.json + apiKey + baseURL → mutates input.provider
   // Stripped per-model shape: name + cap flags + modalities + (optional)
   // cost. OC's SDK static schema accepts only `limit.{context,output}` —
   // `limit.input` is NOT in the SDK shape and gets dropped silently.
-  const claude = entry.models["claude-sonnet-4-6"];
+  const claude = entry.models["omniroute/claude-sonnet-4-6"];
   assert.ok(claude, "claude model surfaced");
   assert.equal(claude.name, "claude-sonnet-4-6");
   assert.equal(claude.attachment, true);
@@ -246,11 +246,11 @@ test("config: with valid auth.json + apiKey + baseURL → mutates input.provider
   assert.deepEqual(claude.modalities?.input, ["text", "image"]);
   assert.deepEqual(claude.modalities?.output, ["text"]);
 
-  // Combo surfaces under `combo/<friendly-name>` namespace + LCD'd
+  // Combo surfaces under bare key + LCD'd
   // (gemini's reasoning=false → combo reasoning=false).
-  const combo = entry.models["combo/claude-tier"];
-  assert.ok(combo, "combo surfaced under combo/ namespace");
-  assert.equal(combo.name, "Combo: Claude Tier");
+  const combo = entry.models["omniroute/claude-tier"];
+  assert.ok(combo, "combo surfaced under bare key");
+  assert.equal(combo.name, "Claude Tier");
   assert.equal(combo.reasoning, false, "LCD: any member reasoning=false → combo reasoning=false");
   assert.equal(combo.tool_call, true);
   assert.equal(combo.limit?.context, 200_000, "LCD: min(200_000, 1_000_000)");
@@ -409,8 +409,8 @@ test("config: combos fetcher throws → emit models-only catalog (no combos in m
     .omniroute;
   assert.ok(entry);
   const ids = Object.keys(entry.models).sort();
-  assert.deepEqual(ids, ["claude-sonnet-4-6", "gemini-3-flash"]);
-  assert.equal(entry.models["combo-claude-tier"], undefined, "no combo entry");
+  assert.deepEqual(ids, ["omniroute/claude-sonnet-4-6", "omniroute/gemini-3-flash"]);
+  assert.equal(entry.models["omniroute/claude-tier"], undefined, "no combo entry");
   assert.ok(
     logger.entries.some((e) => String(e[0]).includes("/api/combos fetch failed")),
     "combos-fetch breadcrumb emitted"
@@ -638,6 +638,7 @@ test("buildStaticProviderEntry: stripped per-model shape matches sibling @omniro
     "cost",
     "limit",
     "modalities",
+    "providerID",
   ]);
   for (const [id, entry] of Object.entries(block.models)) {
     for (const key of Object.keys(entry)) {
@@ -653,7 +654,7 @@ test("buildStaticProviderEntry: stripped per-model shape matches sibling @omniro
   }
 
   // Sanity: claude entry has all expected stripped fields.
-  const claude = block.models["claude-sonnet-4-6"];
+  const claude = block.models["omniroute/claude-sonnet-4-6"];
   assert.equal(typeof claude.name, "string");
   assert.equal(typeof claude.attachment, "boolean");
   assert.equal(typeof claude.reasoning, "boolean");
@@ -678,8 +679,8 @@ test("buildStaticProviderEntry: hidden combos are excluded", () => {
     "https://or.example/v1",
     "sk-test"
   );
-  assert.equal(block.models["combo-claude-tier"], undefined);
-  assert.ok(block.models["claude-sonnet-4-6"]);
+  assert.equal(block.models["omniroute/claude-tier"], undefined);
+  assert.ok(block.models["omniroute/claude-sonnet-4-6"]);
 });
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -695,7 +696,7 @@ test("buildStaticProviderEntry: emits modalities.input from raw.input_modalities
     "https://or.example/v1",
     "sk-test"
   );
-  const claude = block.models["claude-sonnet-4-6"];
+  const claude = block.models["omniroute/claude-sonnet-4-6"];
   assert.deepEqual(claude.modalities?.input, ["text", "image"]);
   assert.deepEqual(claude.modalities?.output, ["text"]);
 });
@@ -709,7 +710,7 @@ test("buildStaticProviderEntry: never emits limit.input (OC SDK rejects it)", ()
     "https://or.example/v1",
     "sk-test"
   );
-  const claude = block.models["claude-sonnet-4-6"];
+  const claude = block.models["omniroute/claude-sonnet-4-6"];
   assert.equal((claude.limit as Record<string, unknown>).input, undefined);
   assert.equal(typeof claude.limit?.context, "number");
   assert.equal(typeof claude.limit?.output, "number");
@@ -737,7 +738,7 @@ test("buildStaticProviderEntry: emits cost when enrichment carries pricing", () 
     "sk-test",
     enrichment
   );
-  const claude = block.models["claude-sonnet-4-6"];
+  const claude = block.models["omniroute/claude-sonnet-4-6"];
   assert.equal(claude.cost?.input, 3);
   assert.equal(claude.cost?.output, 15);
   assert.equal(claude.cost?.cache_read, 0.3);
@@ -758,8 +759,8 @@ test("buildStaticProviderEntry: emits release_date when raw carries it; omits wh
     "https://or.example/v1",
     "sk-test"
   );
-  assert.equal(block.models["claude-with-date"].release_date, "2026-02-19");
-  assert.equal(block.models["gemini-3-flash"].release_date, undefined);
+  assert.equal(block.models["omniroute/claude-with-date"].release_date, "2026-02-19");
+  assert.equal(block.models["omniroute/gemini-3-flash"].release_date, undefined);
 });
 
 test("buildStaticProviderEntry: combo modalities = intersection of members (LCD)", () => {
@@ -788,7 +789,7 @@ test("buildStaticProviderEntry: combo modalities = intersection of members (LCD)
     "https://or.example/v1",
     "sk-test"
   );
-  const combo = block.models["combo/mixed-tier"];
+  const combo = block.models["omniroute/mixed-tier"];
   assert.ok(combo, "combo emitted under slug key");
   // claude has text+image, text-only has text → intersection drops image.
   assert.deepEqual(combo.modalities?.input, ["text"]);
@@ -896,10 +897,10 @@ test("config: enrichment fetched + name overlaid on raw-model entries", async ()
   const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
     .omniroute;
   assert.ok(entry);
-  assert.equal(entry.models["claude-sonnet-4-6"].name, "Claude Sonnet 4.6");
-  assert.equal(entry.models["gemini-3-flash"].name, "Gemini 3 Flash");
+  assert.equal(entry.models["omniroute/claude-sonnet-4-6"].name, "Claude Sonnet 4.6");
+  assert.equal(entry.models["omniroute/gemini-3-flash"].name, "Gemini 3 Flash");
   // Combo names still come from /api/combos — enrichment overlay does NOT touch combos.
-  assert.equal(entry.models["combo/claude-tier"].name, "Combo: Claude Tier");
+  assert.equal(entry.models["omniroute/claude-tier"].name, "Claude Tier");
   assert.equal(enrichmentFetcher.callCount(), 1);
 });
 
@@ -927,7 +928,11 @@ test("config: features.enrichment=false skips enrichment fetch + keeps raw-id na
     .omniroute;
   assert.ok(entry);
   assert.equal(enrichmentFetcher.callCount(), 0, "enrichment fetch suppressed by feature flag");
-  assert.equal(entry.models["claude-sonnet-4-6"].name, "claude-sonnet-4-6", "raw id retained");
+  assert.equal(
+    entry.models["omniroute/claude-sonnet-4-6"].name,
+    "claude-sonnet-4-6",
+    "raw id retained"
+  );
 });
 
 test("config: enrichment fetcher throws → soft-fail (warn + raw-id static catalog)", async () => {
@@ -949,7 +954,11 @@ test("config: enrichment fetcher throws → soft-fail (warn + raw-id static cata
   const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
     .omniroute;
   assert.ok(entry, "static block still published on enrichment failure");
-  assert.equal(entry.models["claude-sonnet-4-6"].name, "claude-sonnet-4-6", "raw id retained");
+  assert.equal(
+    entry.models["omniroute/claude-sonnet-4-6"].name,
+    "claude-sonnet-4-6",
+    "raw id retained"
+  );
   assert.equal(enrichmentFetcher.callCount(), 1);
   assert.ok(
     logger.entries.some((e) => String(e[0]).includes("/api/pricing/models fetch failed")),
@@ -1143,9 +1152,12 @@ test("config: diskCache hydrates stale snapshot when /v1/models throws", async (
 
   const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
     .omniroute;
-  assert.ok(entry.models["claude-sonnet-4-6"], "stale snapshot hydrated into static block");
+  assert.ok(
+    entry.models["omniroute/claude-sonnet-4-6"],
+    "stale snapshot hydrated into static block"
+  );
   assert.equal(
-    entry.models["claude-sonnet-4-6"].name,
+    entry.models["omniroute/claude-sonnet-4-6"].name,
     "Claude Sonnet 4.6 (cached)",
     "stale enrichment also reused"
   );
@@ -1192,7 +1204,7 @@ test("config: cached rawEnrichment from earlier provider hook is reused (no refe
 
   const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
     .omniroute;
-  assert.equal(entry.models["claude-sonnet-4-6"].name, "Claude Sonnet 4.6");
+  assert.equal(entry.models["omniroute/claude-sonnet-4-6"].name, "Claude Sonnet 4.6");
 });
 
 // ─────────────────────────────────────────────────────────────────────
@@ -1241,10 +1253,10 @@ test("config: providerTag (default-on) prepends '<provider> - ' to enriched raw-
   const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
     .omniroute;
   assert.ok(entry);
-  assert.equal(entry.models["claude-sonnet-4-6"].name, "Claude - Claude Sonnet 4.6");
-  assert.equal(entry.models["gemini-3-flash"].name, "Gemini-cli - Gemini 3 Flash");
+  assert.equal(entry.models["omniroute/claude-sonnet-4-6"].name, "Claude - Claude Sonnet 4.6");
+  assert.equal(entry.models["omniroute/gemini-3-flash"].name, "Gemini-cli - Gemini 3 Flash");
   // Combos stay untouched — `Combo: ` prefix already conveys multi-upstream.
-  assert.equal(entry.models["combo/claude-tier"].name, "Combo: Claude Tier");
+  assert.equal(entry.models["omniroute/claude-tier"].name, "Claude Tier");
 });
 
 test("config: providerTag=false suppresses the suffix", async () => {
@@ -1270,7 +1282,7 @@ test("config: providerTag=false suppresses the suffix", async () => {
   const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
     .omniroute;
   assert.equal(
-    entry.models["claude-sonnet-4-6"].name,
+    entry.models["omniroute/claude-sonnet-4-6"].name,
     "Claude Sonnet 4.6",
     "enriched name kept, provider tag suppressed"
   );
@@ -1301,7 +1313,7 @@ test("config: providerTag falls back to UPPER(alias) when providerDisplayName mi
 
   const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
     .omniroute;
-  assert.equal(entry.models["claude-sonnet-4-6"].name, "CC - Claude Sonnet 4.6");
+  assert.equal(entry.models["omniroute/claude-sonnet-4-6"].name, "CC - Claude Sonnet 4.6");
 });
 
 test("config: providerTag skipped entirely when neither providerDisplayName nor providerAlias set", async () => {
@@ -1327,7 +1339,7 @@ test("config: providerTag skipped entirely when neither providerDisplayName nor 
 
   const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
     .omniroute;
-  assert.equal(entry.models["claude-sonnet-4-6"].name, "Claude Sonnet 4.6");
+  assert.equal(entry.models["omniroute/claude-sonnet-4-6"].name, "Claude Sonnet 4.6");
 });
 
 test("config: providerTag is idempotent — second hook call doesn't double-suffix", async () => {
@@ -1353,14 +1365,14 @@ test("config: providerTag is idempotent — second hook call doesn't double-suff
   await hook(inputA);
   const entryA = (inputA as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
     .omniroute;
-  assert.equal(entryA.models["claude-sonnet-4-6"].name, "Claude - Claude Sonnet 4.6");
+  assert.equal(entryA.models["omniroute/claude-sonnet-4-6"].name, "Claude - Claude Sonnet 4.6");
 
   // Second invocation (cache hit) — name must still be single-suffixed.
   const inputB = makeInput();
   await hook(inputB);
   const entryB = (inputB as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
     .omniroute;
-  assert.equal(entryB.models["claude-sonnet-4-6"].name, "Claude - Claude Sonnet 4.6");
+  assert.equal(entryB.models["omniroute/claude-sonnet-4-6"].name, "Claude - Claude Sonnet 4.6");
 });
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -1412,7 +1424,7 @@ test("buildStaticProviderEntry: nested combo-ref context is the bottleneck acros
   );
   // Pre-fix: Parent would advertise 200_000 (only raw-big counted).
   // Post-fix: Parent should advertise 8_000 (TinyCombo bottleneck).
-  const parent = block.models["combo/parent"];
+  const parent = block.models["omniroute/parent"];
   assert.ok(parent, "Parent combo must be in the static catalog");
   assert.equal(parent.limit?.context, 8_000);
 });

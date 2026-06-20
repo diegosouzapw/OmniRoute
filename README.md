@@ -287,7 +287,7 @@ Result: 4 layers of fallback = zero downtime
 
 </div>
 
-> Recent highlights from **v3.8.20 → v3.8.30**. Full history in [`CHANGELOG.md`](CHANGELOG.md).
+> Recent highlights from **v3.8.20 → v3.8.31**. Full history in [`CHANGELOG.md`](CHANGELOG.md).
 
 - **🤖 One-command CLI/agent setup** — a dedicated `setup-*` command configures each coding tool to route through OmniRoute (Claude Code, Codex, Cline, Continue, Cursor, Roo Code, Kilo Code, Crush, Goose, Qwen Code, Aider, OpenCode, Gemini CLI); `omniroute launch` / `omniroute launch-codex` are zero-config launchers. → [CLI Integrations](docs/guides/CLI-INTEGRATIONS.md)
 - **🛰️ Remote mode** — drive a remote OmniRoute from any machine with scoped access tokens (`omniroute connect` / `omniroute contexts` / `omniroute tokens`). → [Remote Mode](docs/guides/REMOTE-MODE.md)
@@ -298,6 +298,7 @@ Result: 4 layers of fallback = zero downtime
 - **🧠 Memory you control** — opt-in int8 vector quantization (Qdrant + sqlite-vec), memory off by default, and a per-request `x-omniroute-no-memory` header. → [Memory](docs/frameworks/MEMORY.md)
 - **🛡️ Security** — a prompt-injection guard across every LLM route (backed by a red-team suite), plus a free DuckDuckGo last-resort web search. → [Guardrails](docs/security/GUARDRAILS.md)
 - **🤝 More providers & agents** — Cursor Cloud Agent (a 4th cloud agent), a refreshed 231-provider catalog (OrcaRouter, Wafer AI, OpenAdapter, dit.ai, TokenRouter, …), and Vertex AI media generation (speech / transcription / music / video). → [Providers](docs/reference/PROVIDER_REFERENCE.md)
+- **⚡ Local performance & infra** — a one-click local Redis launcher (`omniroute redis up`, plus a dashboard Redis panel) and an optional Bifrost Go sidecar that offloads the hottest relay path (`BIFROST_BASE_URL`, with automatic fallback to the TypeScript path on timeout). → [Environment](docs/reference/ENVIRONMENT.md)
 
 <br/>
 

@@ -1,1 +1,5 @@
-{}
+{
+  "redis": {
+    "description": "OmniRoute કેચિંગ અને ક્વોટા ટ્રેકિંગ માટે એક ક્લિકમાં સ્થાનિક Redis કન્ટેનર (Podman અથવા Docker) શરૂ કરો"
+  }
+}

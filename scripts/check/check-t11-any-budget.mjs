@@ -49,10 +49,10 @@ const budget = [
   { file: "open-sse/handlers/responseTranslator.ts", maxAny: 0 },
   { file: "open-sse/utils/stream.ts", maxAny: 0 },
   { file: "open-sse/translator/request/openai-responses.ts", maxAny: 0 },
-  // 2 FALSE POSITIVES: the word "any" is the Claude `tool_choice: "any"` API value
-  // in STRING literals (`tb.tool_choice === "any"`, `.type === "any"`). The checker
-  // strips comments but not strings, and there are zero actual TypeScript `any`
-  // types in this file. Budget set to the matched count (same as cursor.ts below).
+  // 2 FALSE POSITIVES: #4389 compares the Anthropic `tool_choice` value against the
+  // STRING literal "any" (`tb.tool_choice === "any"` and `.type === "any"`) to detect
+  // forced tool use. The checker strips comments but not strings, and there are zero
+  // actual TypeScript `any` types in this file. Budget set to the matched count.
   { file: "open-sse/executors/base.ts", maxAny: 2 },
   { file: "open-sse/executors/kiro.ts", maxAny: 0 },
   // 3 FALSE POSITIVES: the word "any" appears in #3104's tool-commit / output-

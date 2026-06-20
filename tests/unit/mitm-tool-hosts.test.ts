@@ -21,10 +21,9 @@ test("MITM_TOOL_HOSTS stays in sync with the canonical MITM target registry", ()
 });
 
 test("getMitmToolHosts returns the hosts for a known tool and [] for unknown ids", () => {
-  // Exact host membership in the returned string[] — `.some(h => h === host)` rather than
-  // `.includes(host)` so CodeQL's js/incomplete-url-substring-sanitization heuristic does not
-  // misread an Array.prototype.includes() membership check as a String.includes() URL-substring
-  // test. Same semantics (the array contains exactly this host), explicit about intent.
+  // Exact array-element membership (getMitmToolHosts returns string[]). Use `.some(===)`
+  // rather than `.includes()` so CodeQL's js/incomplete-url-substring-sanitization does not
+  // misread this Array.includes as a String.includes URL-substring check (false positive).
   assert.ok(getMitmToolHosts("antigravity").some((h) => h === "cloudcode-pa.googleapis.com"));
   assert.deepEqual(getMitmToolHosts("does-not-exist"), []);
 });
