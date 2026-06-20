@@ -82,7 +82,7 @@
     "open-sse/executors/codex.ts": 1449,
     "open-sse/executors/cursor.ts": 1391,
     "open-sse/executors/deepseek-web.ts": 1117,
-    "open-sse/executors/duckduckgo-web.ts": 917,
+    "open-sse/executors/duckduckgo-web.ts": 925,
     "open-sse/executors/grok-web.ts": 1871,
     "open-sse/executors/muse-spark-web.ts": 1284,
     "open-sse/executors/perplexity-web.ts": 1013,

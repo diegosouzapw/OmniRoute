@@ -9,25 +9,33 @@ import { tryBackedChat } from "../services/browserBackedChat.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 
 export const DUCKDUCKGO_BASE = "https://duckduckgo.com";
-const DUCKAI_BASE = "https://duck.ai";
-const AUTH_TOKEN_URL = `${DUCKAI_BASE}/duckchat/v1/auth/token`;
-const COUNTRY_URL = `${DUCKAI_BASE}/country.json`;
-const STATUS_URL = `${DUCKAI_BASE}/duckchat/v1/status`;
-const CHAT_URL = `${DUCKAI_BASE}/duckchat/v1/chat`;
+// #4037: the live DuckDuckGo AI Chat backend is served from duckduckgo.com. The
+// status/chat fetches, Origin, and Referer must all use this host so the request's
+// same-origin triplet (host + Origin + Referer) stays consistent with
+// `Sec-Fetch-Site: same-origin`; pointing them at duck.ai produced an inconsistent
+// triplet the backend rejected with HTTP 400.
+const AUTH_TOKEN_URL = `${DUCKDUCKGO_BASE}/duckchat/v1/auth/token`;
+const COUNTRY_URL = `${DUCKDUCKGO_BASE}/country.json`;
+export const STATUS_URL = `${DUCKDUCKGO_BASE}/duckchat/v1/status`;
+export const CHAT_URL = `${DUCKDUCKGO_BASE}/duckchat/v1/chat`;
 const DEFAULT_FE_VERSION = "serp_20260424_180649_ET-0bdc33b2a02ebf8f235def65d887787f694720a1";
-const FE_VERSION_PATTERN = /serp_\d{8}_\d{6}_[A-Z]{2}-[0-9a-f]{40}/;
+// #4037: the real served x-fe-version token has a 20-hex tail (e.g.
+// `serp_20250401_100419_ET-19d438eb199b2bf7c300`); the previous `{40}` requirement
+// never matched the live token, so the scrape silently fell back to DEFAULT_FE_VERSION.
+// Bounded `{20,40}` keeps the pattern ReDoS-safe.
+export const FE_VERSION_PATTERN = /serp_\d{8}_\d{6}_[A-Z]{2}-[0-9a-f]{20,40}/;
 const DEFAULT_USER_AGENT =
   "Mozilla/5.0 (X11; Linux x86_64) " +
   "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36";
 
-const FAKE_HEADERS: Record<string, string> = {
+export const FAKE_HEADERS: Record<string, string> = {
   Accept: "*/*",
   "Accept-Encoding": "gzip, deflate, br, zstd",
   "Accept-Language": "en-US,en;q=0.9",
   "Cache-Control": "no-cache",
-  Origin: DUCKAI_BASE,
+  Origin: DUCKDUCKGO_BASE,
   Pragma: "no-cache",
-  Referer: `${DUCKAI_BASE}/`,
+  Referer: `${DUCKDUCKGO_BASE}/`,
   Priority: "u=1, i",
   "Sec-Ch-Ua": '"Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"',
   "Sec-Ch-Ua-Mobile": "?0",
@@ -740,8 +748,8 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
     if (this.warmed || signal.aborted) return;
     this.warmed = true;
     this.seedBrowserCookies();
-    const duckAiResponse = await this.warmFetch(
-      `${DUCKAI_BASE}/`,
+    const homepageResponse = await this.warmFetch(
+      `${DUCKDUCKGO_BASE}/`,
       this.buildRequestHeaders({
         Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Sec-Fetch-Dest": "document",
@@ -751,10 +759,10 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
       }),
       signal
     );
-    if (duckAiResponse) {
+    if (homepageResponse) {
       try {
-        const duckAiHtml = await duckAiResponse.clone().text();
-        const feVersion = extractDuckDuckGoFeVersion(duckAiHtml);
+        const homepageHtml = await homepageResponse.clone().text();
+        const feVersion = extractDuckDuckGoFeVersion(homepageHtml);
         if (feVersion) this.feVersion = feVersion;
       } catch (error) {
         void error;
