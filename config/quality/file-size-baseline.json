@@ -169,7 +169,7 @@
     "src/shared/components/RequestLoggerV2.tsx": 1287,
     "src/shared/components/analytics/charts.tsx": 1558,
     "src/shared/constants/cliTools.ts": 875,
-    "src/shared/constants/pricing.ts": 1581,
+    "src/shared/constants/pricing.ts": 1592,
     "src/shared/constants/providers.ts": 3242,
     "src/shared/constants/sidebarVisibility.ts": 1100,
     "src/shared/services/cliRuntime.ts": 1090,
@@ -203,7 +203,7 @@
     "tests/unit/models-catalog-route.test.ts": 1507,
     "tests/unit/oauth-providers-config.test.ts": 855,
     "tests/unit/perplexity-web.test.ts": 959,
-    "tests/unit/provider-models-route.test.ts": 1616,
+    "tests/unit/provider-models-route.test.ts": 1618,
     "tests/unit/provider-validation-specialty.test.ts": 2752,
     "tests/unit/providers-page-utils.test.ts": 1004,
     "tests/unit/reasoning-cache.test.ts": 980,
@@ -255,5 +255,6 @@
   "_rebaseline_2026_06_16_4004_livews_bridge": "PR #4004 own growth: chatCore.ts 5830->5851 (+21 = forwardDashboardEventToLiveWs — a best-effort, non-blocking, timeout-bounded POST that bridges compression.completed events from the main process to the LiveWS sidecar so the dashboard updates under a reverse proxy). Cohesive fire-and-forget beacon at the existing compression emit site; not extractable. Structural shrink of chatCore.ts tracked in #3501.",
   "_rebaseline_2026_06_17_4107_pending_reaper": "PR #4107 own growth: usageHistory.ts 854->934 (+80 = orphaned-pending-request reaper — sweepStalePendingRequests() evicts pending details older than 15min + a hard 5000 cap, plus an unref'd 5min sweep timer wired lazily into trackPendingRequest). Fixes an unbounded memory leak where abnormally-terminated requests left payload previews in pendingById forever. Cohesive with the existing pending-request bookkeeping (mirrors the normal removal path: decrement counters + cleanup buckets); not extractable.",
   "_rebaseline_2026_06_17_4116_combo_hedge_listener": "combo.ts: +9 lines from #4116 (detach per-target listener from shared hedge abort signal to fix a listener leak). Behavior-preserving cleanup; 5289 -> 5298.",
+  "_rebaseline_2026_06_20_4355_gpt5x_pro_pricing": "PR #4355 own growth: pricing.ts 1581->1592 (+11 = pure-data pricing rows for openai gpt-5.5-pro + gpt-5.4-pro, closing the $0 gap that tripped the catalog pricing gate after the #4324 sweep added them to the registry; -pro mirrors its base family tier). provider-models-route.test.ts 1616->1618 (+2 = test-only alignment to the intentional opencode-go discovery behavior: owned_by stamp + T39 two-endpoint fail-path fetchCalls). Both are data/test-only; not extractable.",
   "_rebaseline_2026_06_19_4293_codex_spark_scope": "PR #4293 (isolate Codex Spark quota scope) own growth, MEASURED on the actual merged tree (release/v3.8.30 + #4293). Production: auth.ts 2219->2279 (+60) threads requestedModel into Codex quota-policy/headroom/preflight/P2C scoring so normal Codex and GPT-5.3-Codex-Spark windows are evaluated independently; chatCore.ts 5116->5125 (+9) passes the failing model scope into Codex 429 failover (markCodexScopeRateLimited) instead of a connection-wide rateLimitedUntil write; accountFallback.ts 1727->1731 (+4) scopes Codex model-lock keys to codex vs spark. Heavy parsing/display logic lives in new leaf helpers under the cap (codexQuotaScopes.ts, codexUsageQuotas.ts, codexFailover.ts). Tests: account-fallback-service 1544->1569, executor-codex 1336->1339, sse-auth 1527->1553, usage-service-hardening 1612->1633 (added Spark-scope regression coverage). Cohesive wiring at existing selection/failover lockout boundaries; not extractable."
 }
