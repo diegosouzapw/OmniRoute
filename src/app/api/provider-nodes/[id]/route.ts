@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  deleteModelAliasesForProvider,
   deleteProviderConnectionsByProvider,
   deleteProviderNode,
   getProviderConnections,
@@ -150,6 +151,9 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
 
     await deleteProviderConnectionsByProvider(id);
     await deleteProviderNode(id);
+    // #1409: drop orphaned model-alias rows (key=<alias>, value="<providerId>/<model>")
+    // so re-importing the same provider isn't blocked by stale "already exists" aliases.
+    await deleteModelAliasesForProvider(id);
 
     return NextResponse.json({ success: true });
   } catch (error) {
