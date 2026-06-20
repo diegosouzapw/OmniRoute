@@ -578,6 +578,18 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
           }
         } else if (part.type === "image" && part.source) {
           blocks.push({ type: "image", source: part.source });
+        } else if (part.type === "image" && typeof part.image === "string") {
+          // AI SDK-style image part: { type: "image", image: "data:...;base64,..." } (#1330)
+          const url = part.image;
+          const match = url.match(/^data:([^;]+);base64,(.+)$/);
+          if (match) {
+            blocks.push({
+              type: "image",
+              source: { type: "base64", media_type: match[1], data: match[2] },
+            });
+          } else if (url.trim()) {
+            blocks.push({ type: "image", source: { type: "url", url } });
+          }
         }
       }
     }

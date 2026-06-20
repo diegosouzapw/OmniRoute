@@ -265,6 +265,15 @@ function convertMessages(messages, tools, model) {
             const format = (block.source.media_type || "image/jpeg").split("/")[1] || "jpeg";
             if (block.source.data)
               pendingImages.push({ format, source: { bytes: block.source.data } });
+          } else if (block.type === "image" && typeof block.image === "string") {
+            // AI SDK-style image part: { type: "image", image: "data:...;base64,..." } (#1330)
+            const url = block.image;
+            if (url.startsWith("data:")) {
+              const [header, bytes] = url.split(",", 2);
+              const mediaType = header.split(";")[0].replace("data:", "");
+              const format = mediaType.split("/")[1] || "jpeg";
+              if (bytes) pendingImages.push({ format, source: { bytes } });
+            }
           }
         }
 

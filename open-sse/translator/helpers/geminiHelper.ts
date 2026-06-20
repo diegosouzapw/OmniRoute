@@ -158,6 +158,8 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
         // translation layers as an alternative to `rec.image_url` (#2807).
         const fileData =
           (typeof rec.file_url === "string" ? rec.file_url : undefined) ||
+          // AI SDK-style image part: { type: "image", image: "data:...;base64,..." } (#1330)
+          (typeof rec.image === "string" ? rec.image : undefined) ||
           imageUrl?.url ||
           imageObj?.url ||
           fileUrl?.url ||
