@@ -81,6 +81,7 @@ import { skillRegistry } from "../../src/lib/skills/registry.ts";
 import { skillExecutor } from "../../src/lib/skills/executor.ts";
 import { pluginTools } from "./tools/pluginTools.ts";
 import { compressionTools } from "./tools/compressionTools.ts";
+import { poolTools } from "./tools/poolTools.ts";
 import { gamificationTools } from "./tools/gamificationTools.ts";
 import { notionTools } from "./tools/notionTools.ts";
 import { obsidianTools } from "./tools/obsidianTools.ts";
@@ -114,6 +115,7 @@ const TOTAL_MCP_TOOL_COUNT =
   Object.keys(memoryTools).length +
   Object.keys(skillTools).length +
   Object.keys(agentSkillTools).length +
+  Object.keys(poolTools).length +
   gamificationTools.length +
   pluginTools.length +
   notionTools.length +
@@ -855,6 +857,7 @@ export function createMcpServer(): McpServer {
     ...Object.keys(memoryTools),
     ...Object.keys(skillTools),
     ...Object.keys(compressionTools),
+    ...Object.keys(poolTools),
     ...pluginTools.map((t) => t.name),
     ...gamificationTools.map((t) => t.name),
     ...obsidianTools.map((t) => t.name),
@@ -1289,6 +1292,44 @@ export function createMcpServer(): McpServer {
       )
     );
   });
+
+  // ── Web-Session Pool Tools (#3368 observability) ─
+  // Typed structurally (not `any`) — the shape is pinned by
+  // tests/unit/mcp-tool-collections-shape.test.ts, so the loop can stay strict.
+  Object.values(poolTools).forEach(
+    (toolDef: {
+      name: string;
+      description: string;
+      scopes: readonly string[];
+      inputSchema: { parse: (input: unknown) => unknown };
+      handler: (parsedArgs: unknown) => Promise<unknown>;
+    }) => {
+      server.registerTool(
+        toolDef.name,
+        {
+          description: toolDef.description,
+          // @ts-ignore: dynamic zod access
+          inputSchema: toolDef.inputSchema,
+        },
+        withScopeEnforcement(
+          toolDef.name,
+          async (args) => {
+            try {
+              const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+              const result = await toolDef.handler(parsedArgs);
+              return {
+                content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
+              };
+            } catch (err) {
+              const msg = err instanceof Error ? err.message : String(err);
+              return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+            }
+          },
+          toolDef.scopes
+        )
+      );
+    }
+  );
 
   // ── Gamification Tools ────────────────────────
   gamificationTools.forEach((toolDef) => {

@@ -65,6 +65,13 @@ export const MCP_TOOL_SCOPES: Record<string, readonly McpScope[]> = {
   omniroute_oneproxy_fetch: ["read:proxies"],
   omniroute_oneproxy_rotate: ["read:proxies"],
   omniroute_oneproxy_stats: ["read:proxies"],
+
+  // Web-session pool observability (read) + lifecycle (write)
+  omniroute_pool_status: ["read:health"],
+  omniroute_pool_sessions: ["read:health"],
+  omniroute_pool_health: ["read:health"],
+  omniroute_pool_reset: ["write:resilience"],
+  omniroute_pool_warm: ["write:resilience"],
 } as const;
 
 // ============ Scope Groups ============
