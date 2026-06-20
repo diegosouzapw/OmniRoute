@@ -274,6 +274,7 @@
     "wreq-js": "^2.3.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@cyclonedx/cyclonedx-npm": "5.0.0",
     "@playwright/test": "^1.60.0",
     "@size-limit/file": "^12.1.0",

@@ -35,6 +35,14 @@ function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
 
+// The Responses API rejects call_id values longer than 64 characters (9router#396).
+// Clamp deterministically so a function_call and its matching function_call_output keep
+// the same id and stay paired through the orphaned-output filter below.
+const MAX_CALL_ID_LEN = 64;
+function clampCallId(id: string): string {
+  return id.length > MAX_CALL_ID_LEN ? id.slice(0, MAX_CALL_ID_LEN) : id;
+}
+
 function toArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
@@ -579,7 +587,7 @@ export function openaiToOpenAIResponsesRequest(
           }
           input.push({
             type: "function_call",
-            call_id: toString(toolCall.id).trim() || generateToolCallId(),
+            call_id: clampCallId(toString(toolCall.id).trim() || generateToolCallId()),
             name: fnName,
             arguments: toString(fn.arguments, "{}"),
           });
@@ -593,7 +601,7 @@ export function openaiToOpenAIResponsesRequest(
         if (fnName) {
           input.push({
             type: "function_call",
-            call_id: `call_${fnName}`,
+            call_id: clampCallId(`call_${fnName}`),
             name: fnName,
             arguments: toString(fc.arguments, "{}"),
           });
@@ -605,7 +613,7 @@ export function openaiToOpenAIResponsesRequest(
     if (role === "tool") {
       input.push({
         type: "function_call_output",
-        call_id: toString(msg.tool_call_id),
+        call_id: clampCallId(toString(msg.tool_call_id)),
         output:
           typeof msg.content === "string"
             ? msg.content
@@ -624,7 +632,7 @@ export function openaiToOpenAIResponsesRequest(
     if (role === "function") {
       input.push({
         type: "function_call_output",
-        call_id: `call_${toString(msg.name)}`,
+        call_id: clampCallId(`call_${toString(msg.name)}`),
         output: typeof msg.content === "string" ? msg.content : String(msg.content ?? ""),
       });
     }

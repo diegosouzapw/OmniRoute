@@ -213,7 +213,7 @@
     "tests/unit/token-refresh-service.test.ts": 1322,
     "tests/unit/translator-friendly-test-bench.test.tsx": 848,
     "tests/unit/translator-helper-branches.test.ts": 850,
-    "tests/unit/translator-openai-responses-req.test.ts": 1011,
+    "tests/unit/translator-openai-responses-req.test.ts": 1047,
     "tests/unit/translator-openai-to-gemini.test.ts": 1579,
     "tests/unit/translator-openai-to-kiro.test.ts": 918,
     "tests/unit/translator-resp-gemini-to-openai.test.ts": 1234,

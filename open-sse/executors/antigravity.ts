@@ -962,7 +962,17 @@ export class AntigravityExecutor extends BaseExecutor {
         const msg = err?.message || String(err);
         timedOut = msg.includes("timed out");
         log?.warn?.("SSE_COLLECT", `Error collecting SSE stream: ${msg}`);
-        // Fall through — return whatever was collected so far
+        // Cancel the stream to prevent locking the socket in Undici pool
+        try {
+          reader.releaseLock();
+        } catch (_) {}
+        try {
+          response.body?.cancel().catch(() => {});
+        } catch (_) {}
+      } finally {
+        try {
+          reader.releaseLock();
+        } catch (_) {}
       }
       processAntigravitySSEText(decoder.decode(), partialLine, collected, logger);
       flushAntigravitySSEText(partialLine, collected, logger);
@@ -1537,6 +1547,21 @@ export class AntigravityExecutor extends BaseExecutor {
         // that extracts remainingCredits from the final SSE chunk(s) without
         // consuming the stream. The client receives the unmodified SSE data.
         if (response.body) {
+          // If the downstream client aborts, cancel the upstream fetch body immediately
+          // to release the socket back to the Undici agent pool and prevent memory leaks.
+          if (signal) {
+            const abortHandler = () => {
+              try {
+                response.body?.cancel().catch(() => {});
+              } catch (_) {}
+            };
+            if (signal.aborted) {
+              abortHandler();
+            } else {
+              signal.addEventListener("abort", abortHandler, { once: true });
+            }
+          }
+
           let sseBuffer = "";
           const decoder = new TextDecoder(); // Singleton for correct streaming decode
           const MAX_BUFFER_SIZE = 16 * 1024; // Limit to prevent OOM on large streams

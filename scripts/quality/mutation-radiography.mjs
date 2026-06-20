@@ -137,6 +137,34 @@ export function aggregateRadiography(reports, allTestFiles) {
   return materialize(total, [...universe]);
 }
 
+/**
+ * R1 prune-candidate list: the test files with ZERO unique kills — 🔴 empty (kills no
+ * mutant) ∪ 🟠 redundant (every mutant it kills is also killed by ≥1 other file). Files
+ * with ≥1 unique kill (🟢 unique / 🟡 overlapping) are NEVER candidates — removing one
+ * would drop a mutant's only killer and lower the mutation score.
+ *
+ * IMPORTANT: 🟠 redundant is only ACCURATE when the reports come from a `disableBail:true`
+ * run (killedBy lists EVERY killer). Under the bail-on-first nightly, redundant is
+ * understated — see the module caveat. Pass disableBail reports here (mutation-redundancy.yml).
+ *
+ * @param {object[]} reports parsed mutation.json objects (one per batch)
+ * @param {string[]} [allTestFiles] universe; defaults to the union of testFiles keys
+ * @returns {{ classification: object, empty: string[], redundant: string[], candidates: string[] }}
+ */
+export function redundancyCandidates(reports, allTestFiles) {
+  const classification = aggregateRadiography(reports, allTestFiles);
+  const empty = [];
+  const redundant = [];
+  for (const [file, info] of Object.entries(classification)) {
+    if (info.class === "empty") empty.push(file);
+    else if (info.class === "redundant") redundant.push(file);
+  }
+  empty.sort((a, b) => a.localeCompare(b));
+  redundant.sort((a, b) => a.localeCompare(b));
+  const candidates = [...empty, ...redundant].sort((a, b) => a.localeCompare(b));
+  return { classification, empty, redundant, candidates };
+}
+
 // ── CLI ──────────────────────────────────────────────────────────────────────
 
 function tapTestFilesUniverse() {
@@ -206,18 +234,54 @@ function renderMarkdown(classification) {
   return lines.join("\n");
 }
 
+const FLAGS = new Set(["--no-conf-universe", "--candidates"]);
+
+function renderCandidates({ empty, redundant, candidates }) {
+  const lines = [];
+  lines.push("# R1 — Test-redundancy prune candidates (disableBail)");
+  lines.push("");
+  lines.push(
+    `Test files with ZERO unique kills: **${candidates.length}** ` +
+      `(🔴 empty ${empty.length} + 🟠 redundant ${redundant.length}).`
+  );
+  lines.push("");
+  lines.push(
+    "> Accurate ONLY for a `disableBail:true` run (killedBy lists every killer). " +
+      "These are CANDIDATES, not deletions: exclude security/contract/repro tests " +
+      "(routeGuard, OAuth, error-sanitization, *-repro*/*-regression*/issue-linked) and " +
+      "require human review before removing any (R1 human gate)."
+  );
+  lines.push("");
+  lines.push(`## 🔴 empty — kills no mutant (${empty.length})`);
+  lines.push("");
+  if (empty.length === 0) lines.push("_none_");
+  else for (const f of empty) lines.push(`- ${f}`);
+  lines.push("");
+  lines.push(`## 🟠 redundant — every kill shared with another file (${redundant.length})`);
+  lines.push("");
+  if (redundant.length === 0) lines.push("_none_");
+  else for (const f of redundant) lines.push(`- ${f}`);
+  lines.push("");
+  return lines.join("\n");
+}
+
 function main(argv) {
-  const args = argv.filter((a) => a !== "--no-conf-universe");
+  const wantCandidates = argv.includes("--candidates");
   const useConfUniverse = !argv.includes("--no-conf-universe");
-  const paths = args.slice(2);
+  const paths = argv.slice(2).filter((a) => !FLAGS.has(a));
   if (paths.length === 0) {
     process.stderr.write(
-      "usage: mutation-radiography.mjs <mutation-1.json> [<mutation-2.json> ...] [--no-conf-universe]\n"
+      "usage: mutation-radiography.mjs <mutation-1.json> [<mutation-2.json> ...] " +
+        "[--candidates] [--no-conf-universe]\n"
     );
     process.exit(2);
   }
   const reports = paths.map(loadMutationReport);
   const universe = useConfUniverse ? tapTestFilesUniverse() : null;
+  if (wantCandidates) {
+    process.stdout.write(renderCandidates(redundancyCandidates(reports, universe || undefined)) + "\n");
+    return;
+  }
   const classification = aggregateRadiography(reports, universe || undefined);
   process.stdout.write(renderMarkdown(classification) + "\n");
 }
