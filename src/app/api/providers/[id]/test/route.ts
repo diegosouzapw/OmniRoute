@@ -25,6 +25,10 @@ import {
 import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
 import { removeConnectionHealth } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 
+// Bound the OAuth probe so a hung upstream can't block the connection-test queue
+// forever (#1449). Mirrors the 30s timeout the API-key path uses via validateProviderApiKey.
+const OAUTH_TEST_TIMEOUT_MS = 30_000;
+
 // OAuth provider test endpoints
 const OAUTH_TEST_CONFIG = {
   claude: {
@@ -382,7 +386,10 @@ async function syncToCloudIfEnabled() {
  * Auto-refreshes token if expired
  * @returns {{ valid: boolean, error: string|null, refreshed: boolean, newTokens: object|null }}
  */
-async function testOAuthConnection(connection: any) {
+export async function testOAuthConnection(
+  connection: any,
+  timeoutMs: number = OAUTH_TEST_TIMEOUT_MS
+) {
   const config = OAUTH_TEST_CONFIG[connection.provider];
 
   if (!config) {
@@ -501,6 +508,7 @@ async function testOAuthConnection(connection: any) {
     const res = await fetch(url, {
       method: config.method,
       headers,
+      signal: AbortSignal.timeout(timeoutMs),
     });
 
     if (res.ok) {
@@ -545,6 +553,7 @@ async function testOAuthConnection(connection: any) {
             [config.authHeader]: `${config.authPrefix}${tokens.accessToken}`,
             ...config.extraHeaders,
           },
+          signal: AbortSignal.timeout(timeoutMs),
         });
 
         if (retryRes.ok) {
@@ -591,7 +600,13 @@ async function testOAuthConnection(connection: any) {
       diagnosis: classifyFailure({ error, statusCode: res.status }),
     };
   } catch (err) {
-    const error = toSafeMessage(err?.message, "Connection test failed");
+    // AbortSignal.timeout(...) surfaces as an AbortError/TimeoutError once the probe
+    // exceeds its deadline (#1449). Report it with a clear, actionable message instead
+    // of leaking the raw "The operation was aborted" text.
+    const isTimeout = err?.name === "TimeoutError" || err?.name === "AbortError";
+    const error = isTimeout
+      ? `Test timed out after ${Math.round(timeoutMs / 1000)}s`
+      : toSafeMessage(err?.message, "Connection test failed");
     return {
       valid: false,
       error,
