@@ -3992,6 +3992,33 @@ export async function validateWebCookieProvider({
   }
 }
 
+// Web-cookie providers that ship a per-provider specialty validator below
+// (registered in SPECIALTY_VALIDATORS inside validateProviderApiKey). They
+// must NOT fall into the generic /models web-cookie probe, which would
+// regress per-provider body-check guards (see #3958 for qwen-web).
+//
+// Keep this set in sync with the SPECIALTY_VALIDATORS keys that are also in
+// WEB_COOKIE_PROVIDERS — the test in
+// `tests/unit/web-cookie-specialty-dispatch.test.ts` enforces the invariant.
+const WEB_COOKIE_PROVIDERS_WITH_SPECIALTY_VALIDATOR = new Set<string>([
+  "adapta-web",
+  "blackbox-web",
+  "chatgpt-web",
+  "claude-web",
+  "copilot-web",
+  "deepseek-web",
+  "gemini-web",
+  "grok-web",
+  "inner-ai",
+  "muse-spark-web",
+  "perplexity-web",
+  "qwen-web",
+  "t3-web",
+]);
+
+export const __testing__WEB_COOKIE_PROVIDERS_WITH_SPECIALTY_VALIDATOR =
+  WEB_COOKIE_PROVIDERS_WITH_SPECIALTY_VALIDATOR;
+
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   const requiresApiKey = !providerAllowsOptionalApiKey(provider);
   const isLocal = isLocalProvider(provider);
@@ -4000,8 +4027,19 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     return { valid: false, error: "Provider and API key required", unsupported: false };
   }
 
-  // Web-cookie providers (session-based authentication)
-  if (WEB_COOKIE_PROVIDERS[provider]) {
+  // Web-cookie providers (session-based authentication).
+  //
+  // Skip the generic /models probe when the provider has its own specialty
+  // validator below (in SPECIALTY_VALIDATORS) — the specialty validator hits
+  // the provider's real session endpoint (e.g. qwen-web → /api/v2/user) and
+  // inspects the body for a real user/session marker, which the generic probe
+  // cannot do. Without this guard, the generic dispatch silently returns
+  // `valid:true` on any 200 (regressing the qwen-web body-check fix from #3958
+  // and the equivalent guards for the other web-cookie providers).
+  if (
+    WEB_COOKIE_PROVIDERS[provider] &&
+    !WEB_COOKIE_PROVIDERS_WITH_SPECIALTY_VALIDATOR.has(provider)
+  ) {
     try {
       return await validateWebCookieProvider({ provider, apiKey, providerSpecificData });
     } catch (error: any) {
