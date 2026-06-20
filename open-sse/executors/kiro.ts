@@ -111,6 +111,12 @@ for (let i = 0; i < 256; i++) {
   CRC32_TABLE[i] = c >>> 0;
 }
 
+// Full per-frame message-CRC validation is O(frame bytes) and runs for EVERY frame of
+// every Kiro response on the main thread. The transport is TLS-protected and the 8-byte
+// prelude CRC already guards framing, so the full-message CRC is redundant overhead that
+// contributes to the CPU-runaway on large/long generations. Keep it opt-in for debugging.
+const KIRO_VERIFY_FULL_CRC = process.env.KIRO_VERIFY_FULL_CRC === "true";
+
 function crc32(buf: Uint8Array) {
   let crc = 0xffffffff;
   for (let i = 0; i < buf.length; i++) {
@@ -659,14 +665,19 @@ function parseEventFrame(data: Uint8Array): EventFrame | null {
       return null;
     }
 
-    // Message CRC covers bytes [0..totalLength-5] (everything except the CRC itself)
-    const messageCRC = view.getUint32(data.length - 4, false);
-    const computedMessageCRC = crc32(data.slice(0, data.length - 4));
-    if (messageCRC !== computedMessageCRC) {
-      console.warn(
-        `[Kiro] Message CRC mismatch: expected ${messageCRC}, got ${computedMessageCRC} — skipping corrupted frame`
-      );
-      return null;
+    // Message CRC covers bytes [0..totalLength-5] (everything except the CRC itself).
+    // Skipped by default (O(frame bytes) per frame) — the prelude CRC above already
+    // validates framing and the stream is TLS-protected. Enable KIRO_VERIFY_FULL_CRC=true
+    // to restore full validation for debugging corrupted-stream issues.
+    if (KIRO_VERIFY_FULL_CRC) {
+      const messageCRC = view.getUint32(data.length - 4, false);
+      const computedMessageCRC = crc32(data.slice(0, data.length - 4));
+      if (messageCRC !== computedMessageCRC) {
+        console.warn(
+          `[Kiro] Message CRC mismatch: expected ${messageCRC}, got ${computedMessageCRC} — skipping corrupted frame`
+        );
+        return null;
+      }
     }
     // Parse headers
     const headers: Record<string, string> = {};

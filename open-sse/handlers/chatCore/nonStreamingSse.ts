@@ -113,6 +113,16 @@ function processNonStreamingSseTerminalLine(
   if (data === "[DONE]") return true;
   if (!data) return false;
 
+  // Hot-path optimization: the terminal SSE events we look for (message_stop,
+  // response.completed, …) all carry a top-level "type" field, OR are signalled by a
+  // preceding `event:` line (Claude). OpenAI chat.completion chunks carry neither and
+  // terminate with `[DONE]` (handled above), so parsing every one of them here is pure
+  // waste that compounds into the CPU-runaway on large buffered responses. Skip the
+  // JSON.parse unless the line could actually be a typed terminal.
+  if (!data.includes('"type"')) {
+    return NON_STREAMING_SSE_TERMINAL_TYPES.has(state.currentEvent);
+  }
+
   try {
     const parsed = JSON.parse(data);
     const eventType =

@@ -1333,7 +1333,12 @@ export function getDbInstance(): SqliteDatabase {
 
   const db = openSqliteDatabase(sqliteFile);
   db.pragma("journal_mode = WAL");
-  db.pragma("busy_timeout = 5000");
+  // better-sqlite3 is synchronous, so a contended write parks the Node event loop for up to
+  // busy_timeout ms (a 0-CPU freeze that stacks under load → /health stops responding). The
+  // hot-path writers here (usage_history, call_logs) are best-effort and the WinUI host opens
+  // the same DB, so cap the block at 2s instead of 5s: normal writes complete in <1ms, and a
+  // contended op can no longer freeze the loop past the host watchdog's 6s liveness probe.
+  db.pragma("busy_timeout = 2000");
   db.pragma("synchronous = NORMAL");
   db.pragma("cache_size = -2048");
   db.exec(SCHEMA_SQL);
