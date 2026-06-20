@@ -139,8 +139,8 @@
 | **B5** | Virtual-key minting UI + cost-tracking integration | dashboard | M | ☐ Q3 |
 | **B6** | Drop-in swap: traffic-shadow mode (5% → 25% → 100% over 14 days) | ops | M | ☐ Q3 |
 | **B7** | Migration playbook (`docs/operations/bifrost-migration.md`) | ops | S | ☐ Q3 |
-| **B8** | Bifrost MCP client integration (use Bifrost as upstream MCP source for OmniRoute's MCP-router) | mcp | M | ☐ Q4 |
-| **B9** | Kill switch: keep OmniRoute's `open-sse/` engine as fallback if Bifrost fails SLOs for 7 days | core | S | 🔄 spec only |
+| **B8** | Bifrost MCP client integration (use Bifrost as upstream MCP source for OmniRoute's MCP-router) | mcp | M | ☑ DONE 2026-06-19 (PR #93) |
+| **B9** | Kill switch: keep OmniRoute's `open-sse/` engine as fallback if Bifrost fails SLOs for 7 days | core | M | ☑ DONE 2026-06-19 (PR #94) |
 
 ### 2.5.3 Decision review schedule
 
