@@ -1573,6 +1573,8 @@ export async function getUsageForProvider(
       return await getVertexUsage(id || "", provider);
     case "kimi-coding":
       return await getKimiUsage(accessToken);
+    case "kimi-coding-apikey":
+      return await getKimiUsage(undefined, apiKey);
     case "qwen":
       return await getQwenUsage(accessToken, providerSpecificData);
     case "qoder":
@@ -3186,7 +3188,7 @@ function getKimiPlanName(level: unknown): string {
  * Kimi Coding Usage - Fetch quota from Kimi API
  * Uses the official /v1/usages endpoint with custom X-Msh-* headers
  */
-async function getKimiUsage(accessToken?: string) {
+async function getKimiUsage(accessToken?: string, apiKey?: string) {
   // Generate device info for headers (same as OAuth flow)
   const deviceId = "kimi-usage-" + Date.now();
   const platform = "omniroute";
@@ -3194,16 +3196,28 @@ async function getKimiUsage(accessToken?: string) {
   const deviceModel =
     typeof process !== "undefined" ? `${process.platform} ${process.arch}` : "unknown";
 
-  try {
-    const response = await fetch(KIMI_CONFIG.usageUrl, {
-      method: "GET",
-      headers: {
+  // API key auth takes precedence — Kimi's /usages endpoint accepts the same
+  // API key used for /messages (verified live: responds with
+  // authentication.method = METHOD_API_KEY). OAuth flow falls through to the
+  // Bearer + device-headers shape used by Kimi Coding OAuth.
+  const useApiKey = typeof apiKey === "string" && apiKey.length > 0;
+
+  const authHeaders: Record<string, string> = useApiKey
+    ? { "x-api-key": apiKey as string }
+    : {
         Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
         "X-Msh-Platform": platform,
         "X-Msh-Version": version,
         "X-Msh-Device-Model": deviceModel,
         "X-Msh-Device-Id": deviceId,
+      };
+
+  try {
+    const response = await fetch(KIMI_CONFIG.usageUrl, {
+      method: "GET",
+      headers: {
+        ...authHeaders,
+        "Content-Type": "application/json",
       },
     });
 
