@@ -177,6 +177,10 @@ const DOC_ONLY_ALLOWLIST = new Set([
   "IFLOW_OAUTH_CLIENT_SECRET",
   // Source-code constants accidentally captured by the doc regex.
   "CLI_COMPAT_OMITTED_PROVIDER_IDS",
+  // The stream-recovery tuning object in open-sse/config/constants.ts (`STREAM_RECOVERY.HOLDBACK_MS`
+  // etc.) — documented for reference; the real operator-facing env vars are STREAM_RECOVERY_ENABLED /
+  // STREAM_RECOVERY_MIDSTREAM_ENABLED (both in .env.example). The bare prefix is not an env var.
+  "STREAM_RECOVERY",
   // Sample default values that look like SHOUTY_NAMES (not env vars).
   "CHANGEME",
   // Legacy aliases — present in docs as "would be aliases" but read-only

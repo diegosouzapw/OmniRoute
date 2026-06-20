@@ -1,7 +1,7 @@
 ---
 title: "Resilience Guide"
-version: 3.8.18
-lastUpdated: 2026-06-09
+version: 3.8.31
+lastUpdated: 2026-06-20
 ---
 
 # Resilience Guide
@@ -115,6 +115,47 @@ Lists active lockouts with: provider, connection, model, reason, expiresAt. Oper
 
 - `GET /api/resilience/model-cooldowns` — list active lockouts
 - `DELETE /api/resilience/model-cooldowns` — manual re-enable. Body: `{provider, connection, model}`. Auth: management.
+
+### Lockout settings UI + success-decay recovery (v3.8.23)
+
+Model lockout went from always-on hardcoded behavior to a fully configurable,
+opt-in feature with its own settings card and a self-healing recovery path.
+
+**Settings card:** Settings → Model Lockout
+(`src/app/(dashboard)/dashboard/settings/components/ModelLockoutCard.tsx`).
+This is **distinct** from the read-only `ModelCooldownsCard` above (which only
+*lists* active lockouts) — the new card *configures the parameters*. Defaults
+live in `DEFAULT_MODEL_LOCKOUT_SETTINGS`
+(`src/lib/resilience/modelLockoutSettings.ts`):
+
+| Setting                 | Default                          | Meaning                                                          |
+| ----------------------- | -------------------------------- | --------------------------------------------------------------- |
+| `enabled`               | `false`                          | Master toggle — model lockout is **off by default**.            |
+| `errorCodes`            | `[403, 404, 429, 502, 503, 504]` | Upstream statuses that count as a model-scoped failure.         |
+| `baseCooldownMs`        | `120_000` (120 s)                | Initial lockout duration for the first failure.                 |
+| `maxCooldownMs`         | `1_800_000` (30 min)             | Cap on the escalated cooldown.                                  |
+| `maxBackoffSteps`       | `10`                             | Max exponential-backoff escalation steps.                       |
+| `useExponentialBackoff` | `true`                           | Whether repeated failures escalate the cooldown exponentially.  |
+
+Settings persist through the normal settings store and validate via the
+resilience settings schema; the card clamps `baseCooldownMs`/`maxCooldownMs`
+(with `maxCooldownMs ≥ baseCooldownMs`) and `maxBackoffSteps`.
+
+**Success-decay recovery:** recovery is **not** purely timer expiry. A healthy
+response walks the model's failure count back down so a model that recovered
+mid-window stops escalating (and clears) before its timer would. On a successful
+combo target, `open-sse/services/combo.ts` calls `decayModelFailureCount()`
+(`open-sse/services/accountFallback.ts`), which **halves** the stored
+`failureCount` (`Math.floor(failureCount / 2)`); when it reaches `0` the lockout
+entry is deleted entirely. The counterpart `recordModelLockoutFailure()`
+increments the count (and escalates the cooldown) on failures within the
+escalation window. This success-decay is in addition to plain timer expiry —
+either path can re-enable a model.
+
+**State:** lockouts are held **in-memory** (per-process `Map`s of
+`ModelLockoutEntry` keyed by `provider:connectionId:model`), not persisted to
+the DB — they are lost on restart. The *settings* are persisted; the active
+lockout *state* is ephemeral.
 
 ---
 

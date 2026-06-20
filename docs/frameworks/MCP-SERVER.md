@@ -1,7 +1,7 @@
 ---
 title: "OmniRoute MCP Server Documentation"
-version: 3.8.8
-lastUpdated: 2026-05-30
+version: 3.8.31
+lastUpdated: 2026-06-20
 ---
 
 # OmniRoute MCP Server Documentation
@@ -310,6 +310,8 @@ Wildcard scopes are supported: `read:*` grants all read-scopes, `*` grants full 
 | `OMNIROUTE_MCP_SCOPES`                  | (empty)                            | Comma-separated allowlist of scopes considered "available" by default (used when caller does not provide its own scopes) |
 | `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (unset = on)                       | When set to `0/false/off/no`, disables MCP description compression at registration time                                  |
 | `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (unset = on)                       | Alternate alias for the same toggle as above                                                                             |
+| `MCP_TOOL_DENY`                         | (unset = no filter)                | Comma-separated tool names to drop from `tools/list` (tool-cardinality reduction — see below)                            |
+| `MCP_TOOL_ALLOW`                        | (unset = no filter)                | Comma-separated tool names to keep exclusively (allow-list mode — see below)                                             |
 | `DATA_DIR`                              | `~/.omniroute`                     | Heartbeat file is written to `${DATA_DIR}/runtime/mcp-heartbeat.json`                                                    |
 
 ---
@@ -322,6 +324,33 @@ MCP tool, prompt, and resource registries can compress descriptions at registrat
 - Toggle per-deployment via the `compression.mcpDescriptionCompressionEnabled` value in the `key_value` settings table (default: enabled) — exposed in the UI as **Analytics → MCP description compression**.
 - Toggle process-wide via either `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS=false` or `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION=false`.
 - Realtime stats are surfaced via `omniroute_compression_status` under `analytics.mcpDescriptionCompression` and tagged `source: "mcp_metadata_estimate"` to disambiguate from real provider usage receipts.
+
+---
+
+## Tool Cardinality Reduction (F4.3)
+
+Description compression shrinks each tool's metadata; **tool-cardinality reduction** goes one step further by reducing *how many* tools are announced at all. Advertising fewer tools in the `tools/list` manifest cuts the per-request token cost the client's model pays for the tool catalog ("layer 5" compression). The implementation is a pure, stateless filter in `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), wired into the registration loop in `createMcpServer()` (`open-sse/mcp-server/server.ts`).
+
+**Opt-in, off by default.** The filter only runs when at least one of two environment variables is set; with neither set, all 87 tools are announced unchanged.
+
+| Variable         | Mode                                                                                    |
+| :--------------- | :-------------------------------------------------------------------------------------- |
+| `MCP_TOOL_DENY`  | Blacklist — comma-separated tool names that are always dropped from `tools/list`        |
+| `MCP_TOOL_ALLOW` | Allow-list — comma-separated tool names; only these survive, everything else is dropped |
+
+`deny` takes priority over `allow`. Names are comma-separated, trimmed, and empty entries are ignored. Examples:
+
+```bash
+# Drop two tools from the catalog
+MCP_TOOL_DENY="omniroute_get_health,omniroute_list_combos" omniroute --mcp
+
+# Announce only the routing + quota tools (allow-list mode)
+MCP_TOOL_ALLOW="omniroute_route_request,omniroute_check_quota" omniroute --mcp
+```
+
+**How filtered tools are removed:** registration always succeeds; a tool the profile rejects is then `.disable()`d on the MCP SDK handle, so it never appears in `tools/list` but the wiring stays intact (clean enable/disable, no re-registration). The profile parser is `readMcpToolProfileFromEnv(process.env)`, which returns `null` (no filtering) when both vars are empty.
+
+The richer `ToolProfile` shape behind `reduceToolManifest` also supports scope-intersection filtering (`allowScopes`, with `read:*`-style wildcard matching) and a deterministic `maxTools` cap, but those two knobs need the full manifest at registration time and are **not** exposed through the environment variables today (a `tools/list`-level hook is a tracked follow-up). `estimateManifestTokens()` is available to compare the manifest token cost before and after reduction.
 
 ---
 

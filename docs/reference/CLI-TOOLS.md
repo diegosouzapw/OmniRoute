@@ -1,12 +1,12 @@
 ---
-title: "CLI Tools — OmniRoute v3.8.6"
-version: 3.8.6
-lastUpdated: 2026-05-28
+title: "CLI Tools — OmniRoute"
+version: 3.8.31
+lastUpdated: 2026-06-20
 ---
 
-# CLI Tools — OmniRoute v3.8.6
+# CLI Tools — OmniRoute
 
-Last updated: 2026-05-28
+Last updated: 2026-06-20
 
 OmniRoute integrates with three categories of CLI tools spread across three dedicated dashboard pages:
 
@@ -42,6 +42,33 @@ ACP Agents (reverse spawn flow):
 - Cost tracking across all CLIs in the dashboard
 - Model switching without reconfiguring every tool
 - Works locally and on remote servers (VPS, Docker, Akamai, Cloudflare Tunnel)
+
+---
+
+## Auto-configure with `setup-*`
+
+You do not have to write each tool's config by hand. OmniRoute ships a `setup-*`
+command per supported CLI that reads the **live** model catalog from a running
+OmniRoute (local or remote) and writes the tool's own config on your machine:
+
+```bash
+omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
+omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
+omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
+omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-gemini
+```
+
+Each accepts `--remote <url> --api-key <key>` (configure a local tool against a
+remote OmniRoute), `--dry-run` (preview without writing), and `--port`. Tools
+without model auto-discovery (Cline, Kilo, Roo, Goose, Qwen, Aider, Gemini) take
+`--model <id>` (and `--yes` for non-interactive runs). The launchers
+`omniroute launch` (Claude Code) and `omniroute launch-codex` (Codex) spawn the CLI
+with the right env injected and write no config at all.
+
+> **Full reference:** the master table — what each command writes, every flag,
+> local vs remote, and which tools want a `/v1` suffix — lives in
+> **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)**.
 
 ---
 

@@ -1,13 +1,13 @@
 ---
 title: "Cloud Agents"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.31
+lastUpdated: 2026-06-20
 ---
 
 # Cloud Agents
 
 > **Source of truth:** `src/lib/cloudAgent/` and `src/app/api/v1/agents/tasks/`
-> **Last updated:** 2026-05-13 — v3.8.0
+> **Last updated:** 2026-06-20 — v3.8.31 (frontmatter refresh; 4 agents incl. cursor-cloud)
 
 OmniRoute orchestrates third-party cloud-hosted coding agents (Codex Cloud, Cursor,
 Devin, Jules) as long-running tasks. Each agent is wrapped behind a uniform interface so

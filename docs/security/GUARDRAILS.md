@@ -1,13 +1,13 @@
 ---
 title: "Guardrails"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.31
+lastUpdated: 2026-06-20
 ---
 
 # Guardrails
 
 > **Source of truth:** `src/lib/guardrails/`
-> **Last updated:** 2026-05-13 — v3.8.0
+> **Last updated:** 2026-06-20 — v3.8.31 (injection-guard coverage + 16 KB scan bound + red-team)
 
 Guardrails enforce safety, policy, and content transformations at the boundary
 between OmniRoute and upstream providers. Each guardrail can inspect (and
@@ -108,6 +108,14 @@ threshold, `preCall` returns `{ block: true, message: "Request rejected:
 suspicious content detected" }`. In `warn`/`log` modes the guardrail logs but
 allows the call. The shared helper `evaluatePromptInjection()` is also exported
 for callers that need to evaluate prompts without going through the registry.
+
+**Scan bound (v3.8.20):** the detector only inspects the **first 16 KB** of
+joined prompt text — `MAX_INJECTION_SCAN_BYTES = 16 * 1024` (16 384 bytes) in
+`src/shared/utils/inputSanitizer.ts`. Both `detectInjection()` and
+`evaluatePromptInjection()` `slice(0, MAX_INJECTION_SCAN_BYTES)` before running
+the pattern loop. Injection directives sit near the top of an input, so this
+caps regex CPU/GC on multi-hundred-KB payloads without weakening detection (cf.
+#3932, #4041).
 
 ## Base Contract (`base.ts`)
 
@@ -294,3 +302,20 @@ A extração de texto (`extractMessageContents`) cobre `messages`/`input`/`promp
 o corpus OWASP-LLM em `INJECTION_GUARD_MODE=block`; garak roda probes (skip sem secret).
 `moderations` é incluída por consistência — operadores em block-mode podem isentá-la via
 `resolveDisabledGuardrails`.
+
+The nightly workflow (`.github/workflows/nightly-llm-security.yml`, cron + manual
+dispatch) has two jobs:
+
+- **`promptfoo-guard` (blocking)** — runs `promptfoo eval -c promptfooconfig.yaml`
+  with `INJECTION_GUARD_MODE=block`. Each adversarial case (e.g. "ignore all
+  previous instructions…", DAN-style jailbreaks) asserts the response carries
+  `error.code === "SECURITY_001"`, i.e. the guard actually rejected the request.
+- **`garak` (advisory)** — runs garak `--probes promptinject,dan,leakreplay`
+  against a local OmniRoute instance (`http://localhost:20128/v1`). Gated on a
+  provider secret (`PROMPTFOO_PROVIDER_KEY`); skips gracefully and is suffixed
+  `|| true`, so it reports without failing CI.
+
+Coverage of the guard helper (`createInjectionGuard` / `withInjectionGuard`)
+spans every prompt-bearing `/v1` route; prompt text is pulled from
+`messages`/`input`/`prompt`/`query`+`documents`/`instructions`/`system` by
+`extractMessageContents()` in `src/shared/utils/inputSanitizer.ts`.

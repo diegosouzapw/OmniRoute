@@ -1,12 +1,12 @@
 ---
 title: "Traffic Inspector"
-version: 3.8.6
-lastUpdated: 2026-05-28
+version: 3.8.31
+lastUpdated: 2026-06-20
 ---
 
 # Traffic Inspector
 
-Traffic Inspector is OmniRoute's built-in HTTPS traffic debugger — a Charles Proxy / mitmweb / HTTP Toolkit-like tool that is **LLM-aware** and **agent-aware**. It lives at `/dashboard/tools/traffic-inspector` and receives live traffic from up to 4 simultaneous capture sources.
+Traffic Inspector is OmniRoute's built-in HTTPS traffic debugger — a Charles Proxy / mitmweb / HTTP Toolkit-like tool that is **LLM-aware** and **agent-aware**. It lives at `/dashboard/tools/traffic-inspector` and receives live traffic from up to 5 simultaneous capture sources.
 
 **Dashboard location:** `/dashboard/tools/traffic-inspector`
 **Sidebar group:** Tools (after AgentBridge)
@@ -42,7 +42,7 @@ The `TrafficBuffer` (`src/mitm/inspector/buffer.ts`) is a shared in-memory ring 
 
 ## §2 Capture modes
 
-Traffic Inspector supports **4 simultaneous capture sources**. Each is independently toggleable.
+Traffic Inspector supports **5 simultaneous capture sources**. Each is independently toggleable. The `source` field on every `InterceptedRequest` (`src/mitm/inspector/types.ts`) is one of `"agent-bridge"`, `"custom-host"`, `"http-proxy"`, `"system-proxy"`, or `"tproxy"`.
 
 ### Mode 1 — AgentBridge (default, always on)
 
@@ -99,6 +99,17 @@ export HTTPS_PROXY=http://127.0.0.1:8080
 - Dashboard shows "Reverting system proxy" prompt if user navigates away while active
 - UI shows `⚠ Advanced` badge + explicit confirmation checkbox
 
+### Mode 5 — TPROXY transparent decrypt (Linux, root, opt-in)
+
+**Source:** Kernel TPROXY + policy routing (`src/mitm/tproxy/`)
+**Mechanism:** Marks new local outbound TCP connections to a target port (default `443`) in `mangle OUTPUT`, an `ip rule` reroutes the marked packets to local delivery, and `mangle PREROUTING`'s `TPROXY` target hands them to a transparent (**IP_TRANSPARENT**) listener (default port `8443`). The listener terminates TLS with a leaf certificate issued **per SNI hostname on demand** by a dynamic CA, captures the decrypted exchange, and forwards the request re-encrypted to the original destination.
+**Reach:** **Arbitrary** destination hosts on the target port — no `/etc/hosts` spoof, no `HTTP_PROXY` env, no system-wide proxy mutation. The intercepted process needs no config change, but must trust the dynamic CA.
+**Note:** `source` = `"tproxy"`
+
+**Requirements:** Linux only (**IP_TRANSPARENT** is Linux-only), the **CAP_NET_ADMIN** capability (root), and a native N-API addon that must be built with a C toolchain (`npm run build:native:tproxy`). When unavailable, the dashboard toggle is disabled with the tooltip "TPROXY decrypt requires Linux + root + the native addon". The firewall rules apply/revert transactionally (a crash never leaves a `mangle` rule behind) and flush on reboot. An SO_MARK-based anti-loop keeps the proxy's own re-encrypted forward from being re-intercepted.
+
+This is a substantial subsystem with its own dedicated operator guide — see **[`docs/security/MITM-TPROXY-DECRYPT.md`](../security/MITM-TPROXY-DECRYPT.md)** for the full firewall recipe, the per-SNI dynamic CA + trust-store installer, the local-only route, anti-loop details, and the configuration schema. The toggle is driven by `GET / POST / DELETE /api/tools/agent-bridge/tproxy` (note: the route lives under the AgentBridge prefix, not the Traffic Inspector prefix).
+
 ### Capture mode comparison
 
 | Mode | Setup | Sudo? | Reach | Notes |
@@ -107,6 +118,7 @@ export HTTPS_PROXY=http://127.0.0.1:8080
 | 2. Custom Hosts | Per-host input | Yes (hosts file) | Any app using that host | Persisted in DB |
 | 3. HTTP_PROXY | `export HTTPS_PROXY=...` | No | Apps respecting env | Port 8080, no TLS decrypt by default |
 | 4. System-wide | Toggle + confirm | Yes | All apps on machine | Auto-disable in 30 min |
+| 5. TPROXY decrypt | Toggle (Linux + native addon) | Yes (root + CA install) | Any host on the target port | Decrypts arbitrary hosts; off by default — see [MITM-TPROXY-DECRYPT.md](../security/MITM-TPROXY-DECRYPT.md) |
 
 ---
 
@@ -166,7 +178,8 @@ export HTTPS_PROXY=http://127.0.0.1:8080
 | Host filter | Substring match on `host` field |
 | Agent filter | Dropdown: All / per-agent |
 | Status filter | All / 2xx / 3xx / 4xx / 5xx / error |
-| Source filter | All / agent-bridge / custom-host / http-proxy / system-proxy |
+| Source filter | All / agent-bridge / custom-host / http-proxy / system-proxy / tproxy |
+| **Live** filter | Show only in-flight (open) requests — `liveOnly` toggle (see §4.6) |
 
 ### 3.5 Resizable panels
 
@@ -244,6 +257,47 @@ interface LlmMetadata {
   costEstimateUsd: number | null; // estimated cost based on OmniRoute pricing
 }
 ```
+
+### 4.6 Live in-flight request filter
+
+The request `status` field is `number | "in-flight" | "error"` — an entry is
+pushed as `"in-flight"` the moment the request starts and **updated in place**
+when the response (or error) arrives. The toolbar's **"Live"** toggle
+(`liveOnly`, i18n key `trafficInspector.liveOnly`) restricts the list to entries
+whose `status === "in-flight"`, letting you watch open connections in real time.
+
+The filter is a pure, client-side predicate in
+`src/lib/inspector/matchesTrafficFilter.ts`:
+
+```ts
+if (f.liveOnly && req.status !== "in-flight") return false;
+```
+
+The toggle state lives in `useTrafficFilters` (the inspector dashboard hooks) and
+combines with the other filters (profile, host, agent, source, status, context).
+
+### 4.7 Process attribution (Linux)
+
+On Linux, each intercepted request can be attributed to the **originating local
+process**. Two optional fields are added to `InterceptedRequest`:
+
+```ts
+pid?: number;          // originating process id (Linux only)
+processName?: string;  // originating process name (Linux only)
+```
+
+`src/mitm/inspector/processAttribution.ts` maps the connection's *client*
+ephemeral port to a PID + name by:
+
+1. Reading `/proc/net/tcp` and `/proc/net/tcp6` to find the socket inode for the
+   port (`parseProcNetTcpForInode`, a pure fixture-testable parser).
+2. Scanning `/proc/<pid>/fd/` for a symlink to `socket:[<inode>]`.
+3. Reading the process name from `/proc/<pid>/comm`.
+
+A 1-second TTL cache bounds the procfs scan cost under load. Attribution is
+**best-effort** — any failure resolves to `null` and never blocks capture. On
+macOS/Windows the function returns `null` (stub; `lsof`/`GetExtendedTcpTable`
+support is a follow-up).
 
 ---
 
@@ -396,10 +450,15 @@ Base path: `/api/tools/traffic-inspector/`
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/capture-modes` | State of all 4 capture modes |
+| GET | `/capture-modes` | State of the AgentBridge / custom-hosts / HTTP_PROXY / system-proxy modes + the `tls-intercept` toggle |
 | POST | `/capture-modes/http-proxy` | Start/stop HTTP_PROXY listener (`{action: "start"\|"stop"}`) |
 | POST | `/capture-modes/system-proxy` | Apply/revert system-wide proxy (`{action: "apply"\|"revert"}`) |
-| POST | `/capture-modes/tls-intercept` | Toggle HTTPS body decryption in proxy mode |
+| POST | `/capture-modes/tls-intercept` | Toggle HTTPS body decryption in proxy mode (`{enabled: boolean}`) |
+
+> **TPROXY decrypt** (capture mode 5) is driven by a **separate** route under the
+> AgentBridge prefix — `GET / POST / DELETE /api/tools/agent-bridge/tproxy` — not
+> under `/api/tools/traffic-inspector/`. See
+> [`docs/security/MITM-TPROXY-DECRYPT.md`](../security/MITM-TPROXY-DECRYPT.md).
 
 ### Sessions
 

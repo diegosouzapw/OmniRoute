@@ -63,6 +63,7 @@ Content-Type: application/json
 | Header                   | Direction | Description                                      |
 | ------------------------ | --------- | ------------------------------------------------ |
 | `X-OmniRoute-No-Cache`   | Request   | Set to `true` to bypass cache                    |
+| `x-omniroute-no-memory`  | Request   | Set to `true` to skip memory + skills injection for this request (mirrors no-cache; avoids the per-call token/cost overhead) |
 | `X-OmniRoute-Progress`   | Request   | Set to `true` for progress events                |
 | `X-Session-Id`           | Request   | Sticky session key for external session affinity |
 | `x_session_id`           | Request   | Underscore variant also accepted (direct HTTP)   |

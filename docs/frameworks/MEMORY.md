@@ -1,19 +1,31 @@
 ---
 title: "Memory System"
-version: 3.8.6
-lastUpdated: 2026-05-28
+version: 3.8.31
+lastUpdated: 2026-06-20
 ---
 
 # Memory System
 
 > **Source of truth:** `src/lib/memory/` and `src/app/api/memory/`
-> **Last updated:** 2026-05-28 — v3.8.6 (plan 21 — Memory Engine Redesign)
+> **Last updated:** 2026-06-20 — v3.8.31 (off-by-default + int8 quantization catch-up)
 
 OmniRoute provides persistent conversational memory keyed by API key (and
 optionally session id). Memories are extracted automatically from LLM responses
 via lightweight regex pattern matching and injected back into subsequent
 requests as a leading system message (or first user message for providers that
 reject the system role).
+
+> **Memory is OFF by default (v3.8.30+).** `DEFAULT_MEMORY_SETTINGS.enabled` is
+> now `false` (`src/lib/memory/settings.ts`). Enabling memory injects up to
+> `maxTokens` (~2k) of retrieved context into **every** chat request, which is
+> billed — a surprising cost for new installs and for clients that manage their
+> own context. Opt in explicitly under **Settings → Memory** (the
+> `MemorySkillsTab` shows a token-cost warning callout when memory is enabled).
+> A client can opt a single request out with the `x-omniroute-no-memory`
+> request header (`true`/`1`/`yes`) — see the request-header table in
+> [API_REFERENCE.md](../reference/API_REFERENCE.md). A no-memory request sets
+> `memoryOwnerId = null`, which disables **both** memory and skill injection for
+> that request (`open-sse/handlers/chatCore/headers.ts::isNoMemoryRequested`).
 
 Memory is **scoped per API key**, not per user — every request authenticated
 with the same API key shares the same memory pool, with optional further
@@ -235,6 +247,30 @@ routes under `src/app/api/settings/qdrant/` are all wired as of v3.8.6:
 | `/api/settings/qdrant/cleanup` | `POST` | Remove expired / old points |
 | `/api/settings/qdrant/embedding-models` | `GET` | List available embedding models |
 
+### Vector quantization (int8 — opt-in, both backends)
+
+Both vector backends support **opt-in int8 quantization** to cut the memory
+footprint of stored vectors (~4× smaller than Float32) at a small recall cost.
+Default is **off** on both — vectors stay full-precision unless explicitly
+enabled.
+
+| Backend      | Setting                          | Type                          | Default  | Where read                                          |
+| ------------ | -------------------------------- | ----------------------------- | -------- | --------------------------------------------------- |
+| Qdrant       | `qdrantQuantization` (DB key)    | `"none" \| "int8" \| "binary"` | `"none"` | `src/lib/memory/qdrant.ts::normalizeQdrantConfig()` |
+| sqlite-vec   | `MEMORY_VEC_QUANTIZATION` (env)  | `"none" \| "int8"`             | `"none"` | `src/lib/memory/vectorStore.ts::requestedVecQuantization()` |
+
+- **Qdrant** is configured per-instance via the `qdrantQuantization` setting
+  key (exposed as the `quantization` field on `PUT /api/settings/qdrant`). When
+  `"int8"`, `buildQuantizationConfig()` requests scalar quantization
+  (`always_ram`, quantile `0.99`) and searches enable `rescore: true` so the
+  full-precision vectors refine the int8 candidate set.
+- **sqlite-vec** quantization is **environment-only** (not a DB setting): set
+  `MEMORY_VEC_QUANTIZATION=int8` to store the local vectors as an `int8[dim]`
+  column via `vec_quantize_int8(?, 'unit')`. The chosen mode is folded into the
+  `embedding_signature` (an `:int8` suffix), so switching modes triggers a full
+  reindex of the `vec_memories` table — the same lazy-backfill path used when
+  the embedding model changes.
+
 ## Memory Types
 
 `MemoryType` (`src/lib/memory/types.ts`):
@@ -332,7 +368,7 @@ route after writes.
 
 | DB key                | Type    | Default                                            | UI control                                      |
 | --------------------- | ------- | -------------------------------------------------- | ----------------------------------------------- |
-| `memoryEnabled`       | boolean | `true`                                             | Memory on/off                                   |
+| `memoryEnabled`       | boolean | `false` (off by default since v3.8.30)             | Memory on/off                                   |
 | `memoryMaxTokens`     | integer | `2000` (range `0–16000`)                           | Token budget for injection                      |
 | `memoryRetentionDays` | integer | `30` (range `1–365`)                               | Retention window                                |
 | `memoryStrategy`      | enum    | `"hybrid"` (one of `recent`, `semantic`, `hybrid`) | Retrieval strategy                              |
@@ -373,6 +409,7 @@ Six optional env vars tune the engine's runtime behaviour (documented in `.env.e
 | `MEMORY_STATIC_CACHE_DIR`       | `<DATA_DIR>/embeddings` | Where to store downloaded models     |
 | `MEMORY_VEC_TOP_K`              | `20`    | Default top-K for vector search                    |
 | `MEMORY_RRF_K`                  | `60`    | RRF k constant for hybrid search                   |
+| `MEMORY_VEC_QUANTIZATION`       | `none`  | Set to `int8` to store local sqlite-vec vectors quantized (~4× smaller; opt-in). Mode change forces a reindex. |
 
 ## Summarisation (`summarization.ts`)
 

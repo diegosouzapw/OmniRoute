@@ -1,7 +1,7 @@
 ---
 title: "Environment Variables Reference"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.31
+lastUpdated: 2026-06-20
 ---
 
 # Environment Variables Reference
@@ -766,11 +766,33 @@ Anthropic-compatible provider instead.
 | `PROVIDER_COOLDOWN_ENABLED`                     | _(unset → off)_  | `open-sse/services/providerCooldownTracker.ts`   | Opt-in global cross-request provider/connection cooldown tracking. OFF by default (overlaps Connection Cooldown / Provider Circuit Breaker). Accepts `true`/`1`/`on` to enable.                                                                                                                                                                                                         |
 | `PROVIDER_COOLDOWN_MIN_MS`                      | `5000`           | `open-sse/services/providerCooldownTracker.ts`   | Minimum cooldown (ms) before a failed provider/connection is retried. Scaled exponentially with consecutive failures. Only used when `PROVIDER_COOLDOWN_ENABLED`.                                                                                                                                                                                                                       |
 | `PROVIDER_COOLDOWN_MAX_MS`                      | `300000` (5 min) | `open-sse/services/providerCooldownTracker.ts`   | Maximum cooldown (ms) cap before a failed provider/connection is retried regardless. Only used when `PROVIDER_COOLDOWN_ENABLED`.                                                                                                                                                                                                                                                        |
-| `STREAM_RECOVERY_ENABLED`                       | _(unset → off)_  | `open-sse/services/streamRecovery.ts`            | Opt-in transparent recovery of truncated upstream streams (free-claude-code port). Holds the opening SSE window so an early cutoff is retried invisibly; OFF by default (adds time-to-first-token latency). Accepts `true`/`1`/`on` to enable.                                                                                                                                          |
-| `STREAM_RECOVERY_MIDSTREAM_ENABLED`             | _(unset → off)_  | `open-sse/services/streamRecovery.ts`            | Opt-in mid-stream continuation (Fase 4.4): after a post-commit truncation, re-request with the partial text as an assistant prefill and stitch the missing suffix (plain-text OpenAI-compatible streams only, never with a tool call in flight). OFF by default — the recovered tail arrives as one burst. Independent of `STREAM_RECOVERY_ENABLED`. Accepts `true`/`1`/`on` to enable. |
+| `STREAM_RECOVERY_ENABLED`                       | _(unset → off)_  | `src/lib/resilience/settings.ts` (seed) → `open-sse/services/streamRecovery.ts` (logic) | **What:** transparent recovery of truncated upstream streams (free-claude-code port). Holds the opening SSE window up to `STREAM_RECOVERY.HOLDBACK_MS` (750 ms) so a *pre-commit* cutoff — one that happens before any byte reaches the client — is re-opened and retried invisibly. **When to enable:** flaky/upstreams that frequently 0-byte-truncate at stream start; leave OFF if you cannot afford up to 750 ms of added time-to-first-token on every stream. Accepts `true`/`1`/`on`. Seeds the persisted Resilience setting; the Dashboard setting wins once set. |
+| `STREAM_RECOVERY_MIDSTREAM_ENABLED`             | _(unset → off)_  | `src/lib/resilience/settings.ts` (seed) → `open-sse/services/streamRecovery.ts` (logic) | **What:** mid-stream continuation (Fase 4.4) — after a *post-commit* truncation (bytes already reached the client), re-request with the partial text as an assistant prefill and stitch the missing suffix. Plain-text OpenAI-compatible streams only; never fires with a tool call in flight. **When to enable:** long generations that get cut mid-answer and you accept the recovered tail arriving as one burst rather than token-by-token. Independent of `STREAM_RECOVERY_ENABLED` (different risk profile). Accepts `true`/`1`/`on`. |
 | `HEALTHCHECK_STAGGER_MS`                        | `3000`           | `src/lib/tokenHealthCheck.ts`                    | Stagger interval (ms) between provider token healthchecks at startup.                                                                                                                                                                                                                                                                                                                   |
 | `REQUEST_RETRY`                                 | `2`              | `src/sse/services/cooldownAwareRetry.ts`         | Number of automatic retries on model-scoped cooldown responses before returning error to client.                                                                                                                                                                                                                                                                                        |
 | `MAX_RETRY_INTERVAL_SEC`                        | `30`             | `src/sse/services/cooldownAwareRetry.ts`         | Max backoff interval (seconds) between cooldown retries. Capped by this value regardless of upstream `Retry-After`.                                                                                                                                                                                                                                                                     |
+
+### Stream-recovery tuning constants (not env vars)
+
+The two `STREAM_RECOVERY_*` flags above are the only operator-facing toggles. The
+recovery behavior is otherwise tuned by hardcoded constants in
+`open-sse/config/constants.ts` (`STREAM_RECOVERY`), shown here for reference —
+changing them requires a code edit, not an env var:
+
+- `STREAM_RECOVERY.HOLDBACK_MS = 750` — how long the opening SSE window is held
+  so an early truncation can be retried before any byte is committed to the client.
+- `STREAM_RECOVERY.BUFFER_MAX_BYTES = 65536` — hard cap on the held window; commit
+  (flush + passthrough) as soon as this many bytes accumulate, regardless of the timer.
+- `STREAM_RECOVERY.EARLY_RETRY_MAX = 4` — max transparent re-opens of the upstream
+  stream while the holdback is still uncommitted.
+
+> **Per-provider sliding-window rate limit (no env var):** the FCC-ported
+> per-provider sliding-window rate-limit *fallback* exists in code
+> (`open-sse/services/providerDefaultRateLimit.ts`, wired through
+> `open-sse/services/rateLimitManager.ts`) but ships with an **empty default map**
+> and has **no operator env var** today — it is enabled only via a test hook /
+> code edit. It is intentionally not listed in the table above. The per-`(token, IP)`
+> relay limiter that *does* have a knob is `RELAY_IP_PER_MINUTE` (§3 Network & Ports).
 
 ---
 

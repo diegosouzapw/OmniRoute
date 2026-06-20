@@ -6,7 +6,7 @@
 
 # 🚀 OmniRoute — The Free AI Gateway
 
-### Never stop coding. Connect every AI tool to **227 providers** — **50+ free** — through one endpoint.
+### Never stop coding. Connect every AI tool to **231 providers** — **50+ free** — through one endpoint.
 
 **Plug Claude Code, Codex, Cursor, Cline, Copilot & Antigravity into FREE Claude / GPT / Gemini. Auto-fallback.**
 <br/>
@@ -19,8 +19,8 @@
 
 <br/>
 
-[![227 AI Providers](https://img.shields.io/badge/227-AI_Providers-6C5CE7?style=for-the-badge)](#-227-ai-providers--50-free)
-[![50+ Free](https://img.shields.io/badge/50%2B-Free_Tiers-00B894?style=for-the-badge)](#-227-ai-providers--50-free)
+[![231 AI Providers](https://img.shields.io/badge/231-AI_Providers-6C5CE7?style=for-the-badge)](#-231-ai-providers--50-free)
+[![50+ Free](https://img.shields.io/badge/50%2B-Free_Tiers-00B894?style=for-the-badge)](#-231-ai-providers--50-free)
 [![1.6B Free Tokens/mo](https://img.shields.io/badge/1.6B-Free_Tokens%2Fmo-00B894?style=for-the-badge)](docs/reference/FREE_TIERS.md)
 [![Token Savings](https://img.shields.io/badge/up_to_95%25-Token_Savings-E17055?style=for-the-badge)](#%EF%B8%8F-save-1595-tokens--automatically)
 [![15 Strategies](https://img.shields.io/badge/15-Routing_Strategies-0984E3?style=for-the-badge)](#-combos--the-flagship)
@@ -59,7 +59,7 @@
 
 <br/>
 
-[**🚀 Quick Start**](#-quick-start) • [**🎯 Combos**](#-combos--the-flagship) • [**🌐 Providers**](#-227-ai-providers--50-free) • [**🔌 CLI & MCP**](#-full-cli--a2a--mcp) • [**🗜️ Compression**](#%EF%B8%8F-save-1595-tokens--automatically) • [**🌍 Website**](https://omniroute.online)
+[**🚀 Quick Start**](#-quick-start) • [**🎯 Combos**](#-combos--the-flagship) • [**🌐 Providers**](#-231-ai-providers--50-free) • [**🔌 CLI & MCP**](#-full-cli--a2a--mcp) • [**🗜️ Compression**](#%EF%B8%8F-save-1595-tokens--automatically) • [**🌍 Website**](https://omniroute.online)
 
 [💥 The Promise](#-the-promise) • [🤔 Why](#-why-omniroute) • [🏆 What Sets Apart](#-what-sets-omniroute-apart) • [🤖 Compatible CLIs](#-compatible-clis--coding-agents) • [🖥️ Where It Runs](#%EF%B8%8F-where-omniroute-runs--anywhere) • [🔒 Private](#-private--local-first) • [🎬 In Action](#-omniroute-in-action) • [📚 Explore More](#-explore-more) • [📧 Support](#-support--community)
 
@@ -137,11 +137,11 @@
 
 </div>
 
-> One endpoint. **227 providers.** Never stop building — and let OmniRoute pick the cheapest one that works.
+> One endpoint. **231 providers.** Never stop building — and let OmniRoute pick the cheapest one that works.
 
 <table>
   <tr>
-    <td width="33%" valign="top"><b>🚫 Never hit limits</b><br/><sub>Auto-fallback across 227 providers in milliseconds. Quota out? Next provider takes over — zero downtime.</sub></td>
+    <td width="33%" valign="top"><b>🚫 Never hit limits</b><br/><sub>Auto-fallback across 231 providers in milliseconds. Quota out? Next provider takes over — zero downtime.</sub></td>
     <td width="33%" valign="top"><b>💸 Save up to 95% tokens</b><br/><sub>RTK + Caveman stacked compression cuts 15–95% of eligible tokens (~89% avg on tool-heavy sessions).</sub></td>
     <td width="33%" valign="top"><b>🆓 $0 to start</b><br/><sub>50+ providers with a free tier, 11 free <i>forever</i> (Kiro, Qoder, Pollinations, LongCat…). No card needed.</sub></td>
   </tr>
@@ -264,7 +264,7 @@ Result: 4 layers of fallback = zero downtime
 
 | Feature                                | OmniRoute                                                   | Other routers |
 | -------------------------------------- | ----------------------------------------------------------- | ------------- |
-| 🌐 Providers                           | **227**                                                     | 20–100        |
+| 🌐 Providers                           | **231**                                                     | 20–100        |
 | 🆓 Free providers                      | **50+ (11 free forever)**                                   | 1–5           |
 | 🔀 Routing strategies                  | **15** (priority, weighted, cost-optimized, context-relay…) | 1–3           |
 | 🗜️ Token compression                   | **RTK + Caveman stacked (15–95%)**                          | None / 20–40% |
@@ -278,6 +278,26 @@ Result: 4 layers of fallback = zero downtime
 | 🌍 i18n                                | **42 locales**                                              | 0–4           |
 
 <sub>📊 Detailed comparison vs LiteLLM, OpenRouter & Portkey → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+
+<br/>
+
+<div align="center">
+
+# ✨ What's New
+
+</div>
+
+> Recent highlights from **v3.8.20 → v3.8.30**. Full history in [`CHANGELOG.md`](CHANGELOG.md).
+
+- **🤖 One-command CLI/agent setup** — a dedicated `setup-*` command configures each coding tool to route through OmniRoute (Claude Code, Codex, Cline, Continue, Cursor, Roo Code, Kilo Code, Crush, Goose, Qwen Code, Aider, OpenCode, Gemini CLI); `omniroute launch` / `omniroute launch-codex` are zero-config launchers. → [CLI Integrations](docs/guides/CLI-INTEGRATIONS.md)
+- **🛰️ Remote mode** — drive a remote OmniRoute from any machine with scoped access tokens (`omniroute connect` / `omniroute contexts` / `omniroute tokens`). → [Remote Mode](docs/guides/REMOTE-MODE.md)
+- **🧭 Smarter auto-routing** — OpenRouter-style `auto/<category>:<tier>` combos (e.g. `auto/coding:fast`, `auto/reasoning:pro`), live Arena-ELO + models.dev model intelligence, and per-step account allowlists. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🗜️ Pluggable compression** — an async compression pipeline with Compression Studios, a stable LLMLingua-2 ONNX engine, RTK, and delegated Anthropic Context Editing. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
+- **🕵️ Transparent MITM decrypt (TPROXY)** — capture & translate traffic from CLIs that ignore proxy env vars, with a per-SNI certificate authority and a trust-store installer. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
+- **💸 Cost telemetry everywhere** — `X-OmniRoute-*` cost/usage headers on every endpoint (including media), a non-token cost engine, a cache-HIT `X-OmniRoute-Cost-Saved` header, and per-key USD spend quotas. → [API Reference](docs/reference/API_REFERENCE.md)
+- **🧠 Memory you control** — opt-in int8 vector quantization (Qdrant + sqlite-vec), memory off by default, and a per-request `x-omniroute-no-memory` header. → [Memory](docs/frameworks/MEMORY.md)
+- **🛡️ Security** — a prompt-injection guard across every LLM route (backed by a red-team suite), plus a free DuckDuckGo last-resort web search. → [Guardrails](docs/security/GUARDRAILS.md)
+- **🤝 More providers & agents** — Cursor Cloud Agent (a 4th cloud agent), a refreshed 231-provider catalog (OrcaRouter, Wafer AI, OpenAdapter, dit.ai, TokenRouter, …), and Vertex AI media generation (speech / transcription / music / video). → [Providers](docs/reference/PROVIDER_REFERENCE.md)
 
 <br/>
 
@@ -320,11 +340,11 @@ Result: 4 layers of fallback = zero downtime
 
 <div align="center">
 
-# 🌐 227 AI Providers — 50+ Free
+# 🌐 231 AI Providers — 50+ Free
 
 </div>
 
-> The most complete catalog of any open-source router: **227 providers**, **50+ with a free tier**, **11 free forever**.
+> The most complete catalog of any open-source router: **231 providers**, **50+ with a free tier**, **11 free forever**.
 
 <div align="center">
 
@@ -767,7 +787,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 **Will I be charged by OmniRoute?** No — it's free, open-source software on your machine. You only pay paid providers directly. OmniRoute has no billing system.
 **Are FREE providers really unlimited?** Yes — Kiro, Qoder, Pollinations, LongCat, Cloudflare. No catch.
 **Will compression hurt quality?** No — it only compresses the **input**; code, URLs, JSON are always protected.
-**Does it work where AI is blocked?** Yes — 3-level proxy + 1proxy marketplace reach all 227 providers.
+**Does it work where AI is blocked?** Yes — 3-level proxy + 1proxy marketplace reach all 231 providers.
 
 📖 [User Guide](docs/guides/USER_GUIDE.md) · [API Reference](docs/reference/API_REFERENCE.md) · [Environment Config](docs/reference/ENVIRONMENT.md)
 

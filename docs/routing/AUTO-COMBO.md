@@ -1,7 +1,7 @@
 ---
 title: "OmniRoute Auto-Combo Engine"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.31
+lastUpdated: 2026-06-20
 ---
 
 # OmniRoute Auto-Combo Engine
@@ -25,6 +25,25 @@ lastUpdated: 2026-05-13
 | `auto/offline` | offline | Favors providers with highest quota availability                         |
 | `auto/smart`   | smart   | Quality-first + higher exploration rate (10%) for better model discovery |
 | `auto/lkgp`    | lkgp    | Explicit LKGP (same as default `auto`)                                   |
+
+### Category × Tier Composition (`auto/<category>:<tier>`)
+
+OpenRouter-style suffixes separate **what kind of route** (category) from **how to optimize it** (tier), so you can compose them freely (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`):
+
+- **Categories** (filter the candidate pool by capability): `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` keep vision-capable models; `reasoning` keeps reasoning/thinking models.
+- **Tiers** (pick the scoring weights / pool filter): `fast` (ship-fast) · `cheap` (alias `floor`, cost-saver) · `reliable` (circuit-breaker health + latency stability) · `free` / `pro` (filter the pool by model tier via `classifyTier` — free-tier vs. premium).
+
+| Example                | Resolves to                                                       |
+| ---------------------- | ----------------------------------------------------------------- |
+| `auto/coding:fast`     | coding pool, low-latency weights                                  |
+| `auto/coding:cheap`    | coding pool, cost-optimized (alias `auto/coding:floor`)           |
+| `auto/reasoning:pro`   | reasoning/thinking models only, premium tier                      |
+| `auto/vision`          | vision-capable models (no tier → balanced weights)                |
+| `auto/multimodal:free` | multimodal-capable models, free tier only                         |
+
+Any valid `auto/<category>[:<tier>]` resolves on demand; a curated subset is advertised in `/v1/models` and the dashboard (`AUTO_SUFFIX_VARIANTS` in `open-sse/services/autoCombo/builtinCatalog.ts`). Filtering is **fail-open** — if a constraint matches no connected models, the full pool is used so routing never breaks. The core scorer (`combo.ts`) is unchanged; the category/tier filter is applied in `buildAutoCandidates`.
+
+> **Live model intelligence:** auto-routing fitness is informed by live **Arena ELO** rankings + **models.dev** tier data when the `ARENA_ELO_SYNC_ENABLED` flag is on (falls back to the static fitness map otherwise).
 
 **How to use:**
 

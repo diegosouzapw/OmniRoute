@@ -12,6 +12,10 @@ _In development — bullets added per PR; finalized at release._
 
 - **fix(mitm): exact host membership in the MITM hosts test (CodeQL false positive)** — `tests/unit/mitm-tool-hosts.test.ts` checked host membership with `Array.includes(host)`, which CodeQL's `js/incomplete-url-substring-sanitization` heuristic misreads as a `String.includes()` URL-substring sanitization test (HIGH false positive). Switched to `.some((h) => h === host)` — identical semantics, no flagged pattern. ([#4386](https://github.com/diegosouzapw/OmniRoute/pull/4386))
 
+### 📝 Maintenance
+
+- **docs: one-time feature-documentation catch-up (v3.8.20 → v3.8.30)** — reconciled the docs with every user-facing feature shipped since v3.8.20: a new README **✨ What's New** section; new guides for [CLI integrations](docs/guides/CLI-INTEGRATIONS.md), [MITM TPROXY transparent decrypt](docs/security/MITM-TPROXY-DECRYPT.md) and [delegated Anthropic Context Editing](docs/compression/CONTEXT_EDITING.md); refreshed AUTO-COMBO (`auto/<category>:<tier>` + Arena-ELO), API_REFERENCE (`x-omniroute-no-memory`), MEMORY (int8 quantization, off-by-default), RESILIENCE (model-lockout success-decay), RTK, AGENTBRIDGE, TRAFFIC_INSPECTOR, GUARDRAILS, CLOUD_AGENT, ENVIRONMENT; regenerated PROVIDER_REFERENCE (231 providers) and synced the provider count in README/CLAUDE/AGENTS. Going forward this runs every release (generate-release step 6b). ([#4391](https://github.com/diegosouzapw/OmniRoute/pull/4391))
+
 ---
 
 ## [3.8.30] — 2026-06-20
