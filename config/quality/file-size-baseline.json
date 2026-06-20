@@ -1,5 +1,6 @@
 {
   "_comment": "Catraca de tamanho (check-file-size.mjs). frozen so pode encolher; arquivos novos <= cap. --update ratcheta.",
+  "_rebaseline_2026_06_20_4401_webfetch_validators": "PR #4401 own growth: src/lib/providers/validation.ts 4428->4450 (+22 = two new API-key validators — Firecrawl + Jina Reader — each a cohesive provider validator branch mirroring the existing ones; 401/403->invalid else->valid). Not extractable (it IS the per-provider validator list). Covered by tests/unit/provider-validation-webfetch-4401.test.ts.",
   "_rebaseline_2026_06_20_4380_parse_once": "PR #4380 own growth: src/sse/handlers/chat.ts 1486->1491 (+5 = thread the once-parsed request body from the route guard into handleChat, replacing the duplicate re-parse). The reusable body accessor lives in the new src/sse/handlers/requestBody.ts (<cap). Thin wiring at the single entry chokepoint; not extractable. Covered by tests/unit/chat-request-body-parse-once-4380.test.ts.",
   "_rebaseline_2026_06_19_4313_harvest_x_sweep_reconcile": "RECONCILIACAO ao mergear #4313 (5 harvested features) APOS o provider-sweep #4324: valores MEDIDOS na arvore combinada release(com #4324)+#4313. route.ts 2580->2586 (sweep +19 NAMED_OPENAI_STYLE + #4313 +3 openadapter/dit/tokenrouter = uniao no Set, regioes disjuntas). providers.ts 3198->3242 (sweep 6 dead-provider marks + #4313 3 novas entries APIKEY_PROVIDERS). combos/page.tsx 4350->4385 (#4313 #3266 allowlist UI) e providers/page.tsx 1925->1927 (#4313 #4240 serviceKind state) — intocados pelo sweep, crescimento puro do #4313. Mesmo padrao release-volatil de medir-no-merge dos baselines de complexity/zizmor deste lote.",
   "_rebaseline_2026_06_19_provider_sweep_merge_reconcile": "provider-model-sweep PR merge into release/v3.8.30: the sweep's route.ts growth (NAMED_OPENAI_STYLE_PROVIDERS +19 entries, base 2538->2564) and #4259's cloudflare parseResponse (2538->2554) are disjoint regions that both land, so the merged route.ts frozen value is reconciled to its measured size here. constants/providers.ts carries the sweep's 6 dead-provider deprecation marks on top of release. chatCore.ts stays at #4266's 5128 (sweep does not touch it).",
@@ -168,7 +169,7 @@
     "src/lib/evals/evalRunner.ts": 961,
     "src/lib/memory/retrieval.ts": 1171,
     "src/lib/modelsDevSync.ts": 934,
-    "src/lib/providers/validation.ts": 4428,
+    "src/lib/providers/validation.ts": 4450,
     "src/lib/tailscaleTunnel.ts": 1202,
     "src/lib/usage/callLogs.ts": 975,
     "src/lib/usage/providerLimits.ts": 949,

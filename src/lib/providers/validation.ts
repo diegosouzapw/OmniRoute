@@ -2678,6 +2678,28 @@ const SEARCH_VALIDATOR_CONFIGS: Record<
       },
     };
   },
+  // ── Web-fetch providers (#4401) ──
+  // firecrawl / jina-reader were added as webFetch-kind providers in #2645 with their
+  // own executors but no validator, so the dashboard "Validate" step returned
+  // "Provider validation not supported" and accounts could not be added through the UI.
+  // Probe each provider's real fetch endpoint with the same Bearer auth the executor
+  // uses; validateSearchProvider maps 200/<500 → valid, 401/403 → invalid key,
+  // >=500 → failure (a credit-exhausted / rate-limited key still validates).
+  firecrawl: (apiKey) => ({
+    url: "https://api.firecrawl.dev/v1/scrape",
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ url: "https://example.com", formats: ["markdown"] }),
+    },
+  }),
+  "jina-reader": (apiKey) => ({
+    url: "https://r.jina.ai/https://example.com",
+    init: {
+      method: "GET",
+      headers: { Authorization: `Bearer ${apiKey}` },
+    },
+  }),
 };
 
 // See open-sse/executors/muse-spark-web.ts for the rationale: Meta migrated
