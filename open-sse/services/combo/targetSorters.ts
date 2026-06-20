@@ -8,6 +8,7 @@
  */
 
 import { getCircuitBreaker } from "../../../src/shared/utils/circuitBreaker";
+import { secureRandomFloat, secureRandomInt } from "../../../src/shared/utils/secureRandom";
 import { getComboStepTarget, getComboStepWeight } from "../../../src/lib/combos/steps.ts";
 import { getComboMetrics } from "../comboMetrics.ts";
 import { parseModel } from "../model.ts";
@@ -29,10 +30,10 @@ export function selectWeightedTarget<T extends { weight?: number }>(targets: T[]
 
   const totalWeight = targets.reduce((sum, target) => sum + (target.weight || 0), 0);
   if (totalWeight <= 0) {
-    return targets[Math.floor(Math.random() * targets.length)];
+    return targets[secureRandomInt(targets.length)];
   }
 
-  let random = Math.random() * totalWeight;
+  let random = secureRandomFloat() * totalWeight;
   for (const target of targets) {
     random -= target.weight || 0;
     if (random <= 0) return target;
@@ -159,8 +160,8 @@ function getP2CTargetScore(
 export function orderTargetsByPowerOfTwoChoices(targets: ResolvedComboTarget[], comboName: string) {
   if (targets.length <= 1) return targets;
   const metrics = getComboMetrics(comboName);
-  const firstIndex = Math.floor(Math.random() * targets.length);
-  let secondIndex = Math.floor(Math.random() * (targets.length - 1));
+  const firstIndex = secureRandomInt(targets.length);
+  let secondIndex = secureRandomInt(targets.length - 1);
   if (secondIndex >= firstIndex) secondIndex++;
 
   const first = targets[firstIndex];
