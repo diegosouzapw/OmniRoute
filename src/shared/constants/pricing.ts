@@ -652,10 +652,21 @@ export const DEFAULT_PRICING = {
   // OpenAI
   openai: {
     "gpt-5.5": GPT_5_5_PRICING,
+    // The -pro tier mirrors its base family pricing until OpenAI publishes a
+    // distinct pro rate; without these rows the openai provider's gpt-5.x-pro
+    // models (in the registry) resolved to $0 and tripped the catalog pricing gate.
+    "gpt-5.5-pro": GPT_5_5_PRICING,
     // gpt-5.4 family (public API tier; mirrors the codex 5.4 tier for the
     // base/mini, with a lower nano tier). Without these rows the openai
     // provider's gpt-5.4* models resolved to $0.
     "gpt-5.4": {
+      input: 5.0,
+      output: 20.0,
+      cached: 2.5,
+      reasoning: 30.0,
+      cache_creation: 5.0,
+    },
+    "gpt-5.4-pro": {
       input: 5.0,
       output: 20.0,
       cached: 2.5,
