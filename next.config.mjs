@@ -108,6 +108,17 @@ const nextConfig = {
     // uploads (OpenAI-compatible /v1/files) routinely exceed this. Match the
     // 512 MB server-side cap; tune via env if needed.
     proxyClientMaxBodySize: process.env.NEXT_PROXY_BODY_LIMIT || "512mb",
+    // PR-2: Optimize package imports — tree-shakes barrel files at compile
+    // time for libraries that re-export thousands of symbols. Cuts cold
+    // compile time and shipped bundle size for icon/date/utility libs.
+    optimizePackageImports: [
+      "@lobehub/icons",
+      "lucide-react",
+      "date-fns",
+      "lodash",
+      "material-symbols",
+      "next-intl",
+    ],
   },
   outputFileTracingRoot: projectRoot,
   outputFileTracingIncludes: {
@@ -175,6 +186,10 @@ const nextConfig = {
   ],
   transpilePackages: ["@omniroute/open-sse", "@lobehub/icons", "fumadocs-ui", "fumadocs-core"],
   allowedDevOrigins: ["localhost", "127.0.0.1", "192.168.0.250"],
+  // PR-2: Production perf knobs. Default React Compiler is opt-in but enable
+  // gzip for static assets and skip source maps in prod to speed builds.
+  compress: true,
+  productionBrowserSourceMaps: false,
   typescript: {
     // TODO: Re-enable after fixing all sub-component useTranslations scope issues
     ignoreBuildErrors: true,
@@ -216,6 +231,34 @@ const nextConfig = {
         mermaid: {
           test: /[\\/]node_modules[\\/]mermaid[\\/]/,
           name: "vendor-mermaid",
+          chunks: "all",
+          priority: 20,
+        },
+        // PR-2: next-intl ships large per-locale payload; force a shared
+        // chunk so a single locale download serves every page that imports
+        // useTranslations(). Without this each route tree inlines ~300KB of
+        // ICU message bundles from one of the 14 supported locales.
+        nextIntl: {
+          test: /[\\/]node_modules[\\/]next-intl[\\/]/,
+          name: "vendor-next-intl",
+          chunks: "all",
+          priority: 25,
+        },
+        // PR-2: split the docs surface (fumadocs-ui + fumadocs-mdx) — used
+        // only on /docs/* routes; isolating the chunk means marketing/app
+        // surfaces don't pay for it.
+        fumadocs: {
+          test: /[\\/]node_modules[\\/](fumadocs-ui|fumadocs-core|fumadocs-mdx)[\\/]/,
+          name: "vendor-fumadocs",
+          chunks: "all",
+          priority: 20,
+        },
+        // PR-2: react-flow / dagre / d3 used only by /combos/live (4,322 LOC
+        // route). Isolating ensures other dashboard pages don't pull the d3
+        // selection/zoom graph runtime.
+        comboGraph: {
+          test: /[\\/]node_modules[\\/](d3|dagre|dagre-d3|elkjs|@dagrejs)[\\/]/,
+          name: "vendor-combo-graph",
           chunks: "all",
           priority: 20,
         },
