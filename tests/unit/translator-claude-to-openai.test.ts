@@ -264,6 +264,14 @@ test("Claude -> OpenAI converts tool_result blocks into tool messages and preser
     "gpt-4o",
     {
       messages: [
+        // #4385: a tool_result must be paired with a preceding assistant tool_call,
+        // otherwise it is an orphan that OpenAI-compatible upstreams reject (and that
+        // claudeToOpenAIRequest now filters). Pair it so this test still exercises the
+        // content-extraction mechanics (array [text, image] → "20C") on a valid sequence.
+        {
+          role: "assistant",
+          content: [{ type: "tool_use", id: "tu_1", name: "weather", input: {} }],
+        },
         {
           role: "user",
           content: [
@@ -287,11 +295,15 @@ test("Claude -> OpenAI converts tool_result blocks into tool messages and preser
   );
 
   assert.deepEqual(result.messages[0], {
+    role: "assistant",
+    tool_calls: [{ id: "tu_1", type: "function", function: { name: "weather", arguments: "{}" } }],
+  });
+  assert.deepEqual(result.messages[1], {
     role: "tool",
     tool_call_id: "tu_1",
     content: "20C",
   });
-  assert.deepEqual(result.messages[1], {
+  assert.deepEqual(result.messages[2], {
     role: "user",
     content: "Thanks",
   });
