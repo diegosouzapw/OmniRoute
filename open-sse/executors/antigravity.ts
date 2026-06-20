@@ -763,6 +763,12 @@ export class AntigravityExecutor extends BaseExecutor {
       requestType: _requestType,
       requestId: _requestId,
       request: _request,
+      // #1944: output_config (and the legacy output_format) are Anthropic/Claude-Code-only
+      // fields. Google's Cloud Code envelope rejects unknown top-level fields with a 400
+      // ("Invalid JSON payload received. Unknown name \"output_config\""), which broke every
+      // Claude model served via Antigravity. Drop them so they never reach the envelope.
+      output_config: _outputConfig,
+      output_format: _outputFormat,
       ...passthroughFields
     } = normalizedBody;
 
