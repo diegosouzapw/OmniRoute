@@ -9,6 +9,8 @@
  * Phase 5: 'rtk' and 'stacked' modes (tool-output filters + multi-engine pipeline).
  */
 
+import { ENGINE_IDS } from "./engineCatalog.ts";
+
 export type CompressionMode =
   | "off"
   | "lite"
@@ -108,6 +110,11 @@ export interface CompressionPipelineStep {
   config?: Record<string, unknown>;
 }
 
+export interface EngineToggle {
+  enabled: boolean;
+  level?: string;
+}
+
 export interface CompressionConfig {
   enabled: boolean;
   defaultMode: CompressionMode;
@@ -127,6 +134,10 @@ export interface CompressionConfig {
   ultra?: UltraConfig;
   /** Provider-delegated context editing (Claude/Anthropic only). */
   contextEditing?: ContextEditingConfig;
+  /** Per-engine opt-in toggles for the config panel. */
+  engines: Record<string, EngineToggle>;
+  /** Active combo preset id, or null if none selected. */
+  activeComboId: string | null;
 }
 
 export interface CompressionStats {
@@ -193,6 +204,8 @@ export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
     { engine: "rtk", intensity: "standard" },
     { engine: "caveman", intensity: "full" },
   ],
+  engines: Object.fromEntries(ENGINE_IDS.map((id) => [id, { enabled: false }])),
+  activeComboId: null,
 };
 
 export const DEFAULT_CAVEMAN_CONFIG: CavemanConfig = {
