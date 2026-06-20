@@ -126,9 +126,9 @@ export async function runServe(opts = {}) {
 
   console.log(`  \x1b[2m⏳ Starting server...\x1b[0m\n`);
 
-  const rawMemory = parseInt(process.env.OMNIROUTE_MEMORY_MB || "512", 10);
+  const rawMemory = parseInt(process.env.OMNIROUTE_MEMORY_MB || "1024", 10);
   const memoryLimit =
-    Number.isFinite(rawMemory) && rawMemory >= 64 && rawMemory <= 16384 ? rawMemory : 512;
+    Number.isFinite(rawMemory) && rawMemory >= 64 && rawMemory <= 16384 ? rawMemory : 1024;
 
   const env = {
     ...process.env,
@@ -160,8 +160,9 @@ export async function runServe(opts = {}) {
     apiPort,
     noOpen,
     opts.log === true,
-    opts.maxRestarts ?? 2,
-    useTray
+    opts.maxRestarts ?? 3,
+    useTray,
+    port
   );
 }
 
@@ -236,7 +237,6 @@ function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, 
     }
   }, 15000);
 }
-
 async function runWithSupervisor(
   serverJs,
   env,
@@ -246,7 +246,8 @@ async function runWithSupervisor(
   noOpen,
   showLog,
   maxRestarts,
-  useTray = false
+  useTray = false,
+  port = 20128
 ) {
   if (showLog) process.env.OMNIROUTE_SHOW_LOG = "1";
 
@@ -255,6 +256,7 @@ async function runWithSupervisor(
     env,
     memoryLimit,
     maxRestarts,
+    port,
     onCrashCallback: async (crashLog) => {
       if (detectMitmCrash(crashLog)) {
         try {

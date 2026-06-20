@@ -1416,6 +1416,24 @@ export function getDbInstance(): SqliteDatabase {
   }
 
   startDbHealthCheckScheduler(db);
+
+  // Apply stored auto_vacuum setting at startup (#4437)
+  try {
+    const avRow = db.prepare("SELECT value FROM key_value WHERE key = 'autoVacuumMode'").get() as { value: string } | undefined;
+    if (avRow?.value) {
+      const mode = JSON.parse(avRow.value) as string;
+      const modeMap: Record<string, number> = { NONE: 0, FULL: 1, INCREMENTAL: 2 };
+      const target = modeMap[mode];
+      if (target !== undefined) {
+        const current = db.pragma("auto_vacuum", { simple: true }) as number;
+        if (current !== target) {
+          db.pragma(`auto_vacuum = ${target}`);
+          db.exec("VACUUM");
+          console.log(`[DB] Applied auto_vacuum=${mode} at startup`);
+        }
+      }
+    }
+  } catch (e) { console.error("[DB] auto_vacuum startup failed:", e); }
   // Log the resolved absolute DATA_DIR + SQLITE_FILE once at init so a
   // multi-replica / Docker volume-topology mismatch (each replica opening a
   // different on-disk DB → "phantom"/missing combos & connections) is

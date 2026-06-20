@@ -58,6 +58,18 @@ const MAX_CONCURRENT_REFRESHES = 5;
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
 let tickRunning = false;
 
+// Deduplicate quota snapshot writes (#4438)
+const SNAPSHOT_DEDUP_TTL_MS = 5 * 60 * 1000;
+const _lastSnapshot = new Map<string, { v: number; t: number }>();
+function shouldWriteSnapshot(cid: string, wk: string, pct: number): boolean {
+  const k = `${cid}:${wk}`; const p = _lastSnapshot.get(k); const now = Date.now();
+  if (!p) return true; if (p.v !== pct) return true; if (now - p.t >= SNAPSHOT_DEDUP_TTL_MS) return true; return false;
+}
+function recordSnapshotWritten(cid: string, wk: string, pct: number): void {
+  _lastSnapshot.set(`${cid}:${wk}`, { v: pct, t: Date.now() });
+  if (_lastSnapshot.size > 5000) { const oldest = _lastSnapshot.keys().next().value; if (oldest) _lastSnapshot.delete(oldest); }
+}
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function isExhausted(quotas: Record<string, QuotaInfo>): boolean {
@@ -202,6 +214,7 @@ export function setQuotaCache(
           ? Math.round(((quotaInfo.total - (quotaInfo.used || 0)) / quotaInfo.total) * 100)
           : 0);
       try {
+      if (!shouldWriteSnapshot(connectionId, windowKey, remainingPercentage)) continue;
         saveQuotaSnapshot({
           provider,
           connection_id: connectionId,
@@ -212,6 +225,7 @@ export function setQuotaCache(
           window_duration_ms: entry.windowDurationMs ?? null,
           raw_data: null,
         });
+        recordSnapshotWritten(connectionId, windowKey, remainingPercentage);
       } catch (error) {
         console.error("[quotaCache] Failed to save snapshot:", error);
       }
