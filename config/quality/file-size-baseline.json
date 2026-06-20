@@ -1,5 +1,6 @@
 {
   "_comment": "Catraca de tamanho (check-file-size.mjs). frozen so pode encolher; arquivos novos <= cap. --update ratcheta.",
+  "_rebaseline_2026_06_20_3368_pool_tools": "PR #3368 own growth: open-sse/mcp-server/server.ts 1468->1509 (+41 = register the web-session pool observability tools — poolStatus/poolSessions/poolWarm — at the existing createMcpServer registration chokepoint, with their read:health/write:resilience scope wiring). Reconciled late: the server.ts bump was a separate commit that did not ride along when the feature commit was cherry-picked onto release/v3.8.32 (squash-base-stale rebuild). Thin cohesive registration at the single tool-registration boundary; not extractable. Covered by tests/unit/mcp-pool-tools-3368.test.ts.",
   "_rebaseline_2026_06_20_4401_webfetch_validators": "PR #4401 own growth: src/lib/providers/validation.ts 4428->4450 (+22 = two new API-key validators — Firecrawl + Jina Reader — each a cohesive provider validator branch mirroring the existing ones; 401/403->invalid else->valid). Not extractable (it IS the per-provider validator list). Covered by tests/unit/provider-validation-webfetch-4401.test.ts.",
   "_rebaseline_2026_06_20_4380_parse_once": "PR #4380 own growth: src/sse/handlers/chat.ts 1486->1491 (+5 = thread the once-parsed request body from the route guard into handleChat, replacing the duplicate re-parse). The reusable body accessor lives in the new src/sse/handlers/requestBody.ts (<cap). Thin wiring at the single entry chokepoint; not extractable. Covered by tests/unit/chat-request-body-parse-once-4380.test.ts.",
   "_rebaseline_2026_06_20_escalated_api_airforce_live_discovery": "escalated cmqlvxg4o (WhatsApp): providers/[id]/models/route.ts 2586->2590 (+4 = one NAMED_OPENAI_STYLE_PROVIDERS Set entry `api-airforce` + a 3-line comment). Same fix shape as the provider-sweep rows (#4249/#4202/#3976): api-airforce carries a real live `https://api.airforce/v1/models` catalog but was left out of the sweep, so import served its stale hardcoded seed (grok-3/grok-2-1212/claude-3.7-sonnet …) — models that no longer exist upstream, so chat failed though the connection test still passed. The `<baseUrl>/models` probe (after stripping /chat/completions and a trailing /v1) resolves to https://api.airforce/v1/models; the registry seed stays as the offline fallback so import never breaks. Pure additive Set membership; not extractable (it IS the list). Covered by tests/unit/provider-sweep-live-discovery.test.ts. Structural shrink of this route tracked in #3789.",
@@ -104,7 +105,7 @@
     "open-sse/handlers/sseParser.ts": 830,
     "open-sse/handlers/videoGeneration.ts": 1078,
     "open-sse/mcp-server/schemas/tools.ts": 1437,
-    "open-sse/mcp-server/server.ts": 1468,
+    "open-sse/mcp-server/server.ts": 1509,
     "open-sse/mcp-server/tools/advancedTools.ts": 1118,
     "open-sse/services/accountFallback.ts": 1731,
     "open-sse/services/batchProcessor.ts": 828,
