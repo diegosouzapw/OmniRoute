@@ -917,6 +917,57 @@ Refs: `docs/adr/0031-bifrost-tier1-router.md`, `docs/frameworks/BIFROST-BACKEND.
 
 ---
 
+## Recent Changes (B9 Bifrost kill switch + security, 2026-06-20)
+
+**PR #95** — `feat(bifrost): B9 kill switch + security scanning (close-out of v8.1 track)`.
+Closes the final v8.1 Bifrost track item.
+
+| File | Lines | Purpose |
+|---|---|---|
+| `open-sse/services/bifrostKillSwitch.ts` | 401 | Auto-fallback when Bifrost degrades |
+| `tests/unit/bifrost-kill-switch.test.ts` | 299 | 11 test cases, 6 describe blocks |
+| `.github/workflows/security-scan.yml` | 120 | Trivy + cargo-audit + npm-audit (weekly cron, SARIF) |
+| `.github/workflows/sbom.yml` | 64 | CycloneDX SBOM on every release |
+
+**Public API (`bifrostKillSwitch.ts`):**
+
+- `isKillSwitchActive()` — true if any trip condition is currently active
+- `evaluateKillSwitch()` — runs all trip checks, returns active trips
+- `tripKillSwitch(reason)` / `resetKillSwitch(actor)`
+- `recordBifrostMetric(metric)` — feed the trip-check signals
+
+**Auto-trip thresholds (all overridable via env):**
+
+- p99 latency > 5000ms
+- Error rate > 2%
+- Cost ratio > 2x baseline
+- Consecutive failures >= 10
+- Recent 4xx rate > 5%
+
+State management: trip can be auto-triggered, manually tripped by an operator, or auto-reset when metrics recover. Cooldown prevents flapping.
+
+**Wiring (next session, post-merge):** `bifrost.ts` will call
+`recordBifrostMetric()` after every request, and `isKillSwitchActive()`
+before each request to decide whether to fall back to `chatCore`.
+~10 lines change in `open-sse/executors/bifrost.ts`.
+
+**Supersedes PR #94** — closed because the original branch was based on
+a stale pre-B6 state and contained 18 accidental deletions of
+`chatCore.ts`, `trafficShadow.ts`, `openapi.yaml`, `INCIDENT_RESPONSE.md`,
+etc. The 4 B9 files were preserved from /tmp/b9-backup and re-committed
+on a fresh branch from `origin/main`.
+
+**Extended fork-only policy (B9 additions):**
+
+- ❌ Never push `vendor/bifrost/` source tree (only `VENDOR.md` + `.gitkeep`)
+- ❌ Never push worktrees (`worktree-agent-*`); clean up at session end
+- ❌ Never rebase a branch on a pre-B6 state (always rebase on `origin/main`)
+
+Refs: `docs/adr/0031-bifrost-tier1-router.md`, `PLAN.md` § 2.5.2 (B9),
+`docs/frameworks/BIFROST-BACKEND.md`.
+
+---
+
 ## Cross-references
 
 - [`SPEC.md`](SPEC.md) — v8 spec (v3.9.0 in flight)

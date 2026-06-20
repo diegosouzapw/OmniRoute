@@ -1,0 +1,64 @@
+name: SBOM Generation
+
+on:
+  release:
+    types: [published]
+  push:
+    branches: [main]
+    paths:
+      - package.json
+      - package-lock.json
+  schedule:
+    - cron: "0 8 * * 1"  # Every Monday at 08:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "24"
+
+jobs:
+  sbom:
+    name: Generate SBOM (CycloneDX)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate CycloneDX SBOM
+        run: npm sbom --sbom-format cyclonedx --sbom-type application > omniroute-sbom.cdx.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: omniroute-sbom-cyclonedx
+          path: omniroute-sbom.cdx.json
+          retention-days: 90
+
+      - name: Generate SPDX SBOM
+        run: npm sbom --sbom-format spdx --sbom-type application > omniroute-sbom.spdx.json
+
+      - name: Upload SPDX artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: omniroute-sbom-spdx
+          path: omniroute-sbom.spdx.json
+          retention-days: 90

@@ -1,0 +1,86 @@
+# cargo-deny configuration for OmniRoute.
+# https://embarkstudios.github.io/cargo-deny/
+#
+# NOTE: OmniRoute is currently a 100% TypeScript / Node.js codebase
+# (no Cargo.toml / no Rust crates). This file is dormant config —
+# it documents the dependency-audit policy that will apply if/when
+# Rust code is added (e.g., a native executor or a Bifrost-adjacent
+# service). For Node.js dependency auditing today, use:
+#
+#     npm audit --omit=dev
+#     just audit
+#
+# To run cargo-deny once Rust is present:
+#
+#     cargo install cargo-deny --locked
+#     cargo deny check
+#
+# Sections: advisories, bans, licenses, sources.
+
+[graph]
+# all-features = true
+# no-default-features = false
+
+[output]
+# Human-readable output
+human = "human"
+
+[advisories]
+# Use the configured advisory database.
+db-path = "~/.cargo/advisory-db"
+db-urls = ["https://github.com/rustsec/advisory-db"]
+yanked = "warn"
+ignore = []
+# Confidence threshold: 1=highest, 5=lowest. Warn on low-confidence too.
+confidence-threshold = 0.7
+
+[bans]
+# Multiple versions of the same crate are usually undesirable.
+multiple-versions = "warn"
+wildcards = "deny"
+highlight = "all"
+allow = []
+deny = []
+# Skip tree-level checks for these crates (e.g., proc-macro helpers that
+# intentionally duplicate versions of crates used at the top level).
+skip = []
+skip-tree = []
+
+[licenses]
+# Allow only permissive / copyleft licenses. Adjust as the project grows.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "Unicode-DFS-2016",
+    "Unicode-3.0",
+    "CC0-1.0",
+    "MPL-2.0",
+    "0BSD",
+    "OpenSSL",
+    "MIT-0",
+]
+confidence-threshold = 0.8
+# Unlicensed or unknown licenses should fail CI.
+unlicensed = "deny"
+allow-osi-fsf-free = "either"
+copyleft = "warn"
+# Allow internal/private crates with "private" license tag.
+private = { ignore = false }
+# Don't fail CI for SPDX expression parsing errors; warn instead.
+exceptions = []
+
+[sources]
+# Only allow crates from trusted registries.
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []
+# Block pre-release versions in mainline deps unless explicitly allowed.
+allow-org = {}
+blocked-features = []
+blocked-targets = []

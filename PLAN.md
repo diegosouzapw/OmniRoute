@@ -138,9 +138,9 @@
 | **B4** | `bifrostModels` SQL table + migration (cache Bifrost's model catalog locally) | data | S | ☑ DONE 2026-06-18 |
 | **B5** | Virtual-key minting UI + cost-tracking integration | dashboard | M | ☐ Q3 |
 | **B6** | Drop-in swap: traffic-shadow mode (5% → 25% → 100% over 14 days) | ops | M | ☐ Q3 |
-| **B7** | Migration playbook (`docs/operations/bifrost-migration.md`) | ops | S | ✅ this session |
-| **B8** | Bifrost MCP client integration (use Bifrost as upstream MCP source for OmniRoute's MCP-router) | mcp | M | ☐ *next* |
-| **B9** | Kill switch: keep OmniRoute's `open-sse/` engine as fallback if Bifrost fails SLOs for 7 days | core | S | 🔄 spec only |
+| **B7** | Migration playbook (`docs/operations/bifrost-migration.md`) | ops | S | ✅ PR #91 OPEN 2026-06-19 |
+| **B8** | Bifrost MCP client integration (use Bifrost as upstream MCP source for OmniRoute's MCP-router) | mcp | M | ✅ PR #93 OPEN 2026-06-19 |
+| **B9** | Kill switch: keep OmniRoute's `open-sse/` engine as fallback if Bifrost fails SLOs for 7 days | core | S | ✅ PR #95 OPEN 2026-06-20 |
 
 ### 2.5.3 Decision review schedule
 
