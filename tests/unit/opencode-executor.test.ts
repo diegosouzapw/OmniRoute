@@ -526,6 +526,69 @@ describe("OpencodeExecutor", () => {
       );
     });
   });
+
+  describe("DeepSeek V4 Pro reasoning-effort variants", () => {
+    // #xxxx: opencode/zen upstream only exposes the base id `deepseek-v4-pro`.
+    // The -low/-medium/-high/-max suffixes are operator-facing knobs that the
+    // executor rewrites to base + injects reasoning_effort, mirroring 9router's
+    // opencode-go executor (open-sse/executors/opencode-go.js).
+    function baseBody(model) {
+      return {
+        model,
+        stream: false,
+        messages: [{ role: "user", content: "ok" }],
+        max_tokens: 16,
+      };
+    }
+
+    const levels = ["low", "medium", "high", "max"];
+    for (const level of levels) {
+      it(`maps deepseek-v4-pro-${level} to base id + reasoning_effort=${level}`, () => {
+        const variant = `deepseek-v4-pro-${level}`;
+        const out = zenExecutor.transformRequest(variant, baseBody(variant), false, {
+          apiKey: "test-key",
+        });
+        assert.equal(out.model, "deepseek-v4-pro");
+        assert.equal(out.reasoning_effort, level);
+        // The variant suffix must not bleed into the upstream payload
+        assert.ok(!String(out.model).endsWith(`-${level}`));
+      });
+    }
+
+    it("preserves explicit reasoning_effort over the variant suffix", () => {
+      const body = baseBody("deepseek-v4-pro-high") as Record<string, unknown>;
+      body.reasoning_effort = "max";
+      const out = zenExecutor.transformRequest("deepseek-v4-pro-high", body, false, {
+        apiKey: "test-key",
+      });
+      assert.equal(out.reasoning_effort, "max");
+      assert.equal(out.model, "deepseek-v4-pro");
+    });
+
+    it("leaves the base id (no suffix) untouched", () => {
+      const out = zenExecutor.transformRequest(
+        "deepseek-v4-pro",
+        baseBody("deepseek-v4-pro"),
+        false,
+        { apiKey: "test-key" }
+      );
+      assert.equal(out.model, "deepseek-v4-pro");
+      assert.equal(out.reasoning_effort, undefined);
+    });
+
+    it("does not rewrite unrelated models with matching suffixes", () => {
+      // -max/-high etc. should only fire for deepseek-v4-pro; another model that
+      // happens to end with -high must be left alone.
+      const out = zenExecutor.transformRequest(
+        "some-other-model-high",
+        baseBody("some-other-model-high"),
+        false,
+        { apiKey: "test-key" }
+      );
+      assert.equal(out.model, "some-other-model-high");
+      assert.equal(out.reasoning_effort, undefined);
+    });
+  });
 });
 
 describe("DefaultExecutor", () => {
