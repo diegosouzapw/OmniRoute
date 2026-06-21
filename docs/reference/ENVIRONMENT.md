@@ -468,6 +468,7 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 | `ANTIGRAVITY_USER_AGENT`         | `antigravity/2.0.1 darwin/arm64`              | When Antigravity IDE updates                                  |
 | `KIRO_USER_AGENT`                | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`             | When Kiro IDE updates                                         |
 | `KIRO_OAUTH_CLIENT_ID`           | `kiro-cli`                                    | Override the Kiro social device-code `clientId` (public id)   |
+| `KIRO_VERIFY_FULL_CRC`           | `false`                                       | `executors/kiro.ts`                                           | Set to `1`/`true` to force the Kiro executor to wait for the full `crc32` envelope checksum during the response pump. Off by default — Kiro's response stream emits the checksum *after* the first text delta, so for low-latency `stream: true` requests the executor accepts the early chunk and ignores any later mismatch. Enable only when debugging a Kiro upstream that has been observed sending mismatched `crc32` frames. |
 | `QODER_USER_AGENT`               | `Qoder-Cli`                                   | When Qoder CLI updates                                        |
 | `QWEN_USER_AGENT`                | `QwenCode/0.15.9 (linux; x64)`                | When Qwen Code updates                                        |
 | `CURSOR_USER_AGENT`              | `Cursor/3.3`                                  | When Cursor updates                                           |
