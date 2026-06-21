@@ -468,6 +468,7 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 | `ANTIGRAVITY_USER_AGENT`         | `antigravity/2.0.1 darwin/arm64`              | When Antigravity IDE updates                                  |
 | `KIRO_USER_AGENT`                | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`             | When Kiro IDE updates                                         |
 | `KIRO_OAUTH_CLIENT_ID`           | `kiro-cli`                                    | Override the Kiro social device-code `clientId` (public id)   |
+| `KIRO_VERIFY_FULL_CRC`           | `false`                                       | Enable full per-frame Kiro message CRC validation for debugging corrupted streams. Off by default because it adds O(frame bytes) work on every response frame. |
 | `QODER_USER_AGENT`               | `Qoder-Cli`                                   | When Qoder CLI updates                                        |
 | `QWEN_USER_AGENT`                | `QwenCode/0.15.9 (linux; x64)`                | When Qwen Code updates                                        |
 | `CURSOR_USER_AGENT`              | `Cursor/3.3`                                  | When Cursor updates                                           |
