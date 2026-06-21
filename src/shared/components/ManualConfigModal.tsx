@@ -4,34 +4,22 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import Button from "./Button";
+import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 
 export default function ManualConfigModal({ isOpen, onClose, title, configs = [] }) {
   const t = useTranslations("common");
   const resolvedTitle = title ?? t("manualConfig");
   const [copiedIndex, setCopiedIndex] = useState(null);
+  const { copy } = useCopyToClipboard();
 
-  const copyToClipboard = async (text, index) => {
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(text);
-      } else {
-        const textarea = document.createElement("textarea");
-        textarea.value = text;
-        textarea.style.position = "fixed";
-        textarea.style.left = "-9999px";
-        textarea.style.top = "-9999px";
-        textarea.style.opacity = "0";
-        document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textarea);
-      }
-      setCopiedIndex(index);
-      setTimeout(() => setCopiedIndex(null), 2000);
-    } catch (err) {
-      console.log("Failed to copy:", err);
-    }
+  // Delegates to the shared useCopyToClipboard hook, which transparently
+  // falls back to a hidden textarea + legacy copy command when the
+  // Clipboard API is unavailable (HTTP / non-secure contexts, iframes).
+  const copyConfig = async (text, index) => {
+    const ok = await copy(text, `manualconfig-${index}`);
+    if (!ok) return;
+    setCopiedIndex(index);
+    setTimeout(() => setCopiedIndex(null), 2000);
   };
 
   return (
@@ -44,7 +32,7 @@ export default function ManualConfigModal({ isOpen, onClose, title, configs = []
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => copyToClipboard(config.content, index)}
+                onClick={() => copyConfig(config.content, index)}
               >
                 <span className="material-symbols-outlined text-[14px] mr-1">
                   {copiedIndex === index ? "check" : "content_copy"}

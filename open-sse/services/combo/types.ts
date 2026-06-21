@@ -101,6 +101,10 @@ export type AutoProviderCandidate = ProviderCandidate & {
    * for the key routed through this target's connectionId.
    */
   quotaSoftPenalty?: boolean;
+  /** True when provider-account quota preflight cutoff says this candidate must not be routed. */
+  quotaCutoffBlocked?: boolean;
+  /** Diagnostic reason for quotaCutoffBlocked. */
+  quotaCutoffReason?: string;
 };
 
 export type ResolvedComboTarget = {

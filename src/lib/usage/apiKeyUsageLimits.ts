@@ -4,6 +4,7 @@ import { calculateCost } from "./costCalculator";
 import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 const FORTALEZA_UTC_OFFSET_MS = 3 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 export interface ApiKeyUsageLimitMetadata {
@@ -21,6 +22,7 @@ export interface ApiKeyUsageLimitStatus {
   dailySpentUsd: number;
   weeklySpentUsd: number;
   dailyWindowStartIso: string;
+  dailyResetAtIso: string;
   weeklyWindowStartIso: string;
   weeklyResetAtIso: string | null;
   dailyExceeded: boolean;
@@ -44,6 +46,18 @@ interface UsageCostRow {
   cacheReadTokens: number | null;
   cacheCreationTokens: number | null;
   reasoningTokens: number | null;
+}
+
+interface WeeklyResetCandidate {
+  connectionId: string;
+  resetAtIso: string;
+  observedWindowStartIso: string | null;
+}
+
+interface QuotaSnapshotRow {
+  remainingPercentage: number | null;
+  nextResetAt: string | null;
+  createdAt: string | null;
 }
 
 function toNumber(value: unknown): number {
@@ -70,9 +84,47 @@ function roundUsd(value: number): number {
   return Math.round(value * 1_000_000) / 1_000_000;
 }
 
+function clampPercent(value: number): number {
+  return Math.max(0, Math.min(100, value));
+}
+
 function formatUsd(value: number | null): string {
   if (value === null || !Number.isFinite(value)) return "Not configured";
   return `$${value.toFixed(2)}`;
+}
+
+function getUsagePercent(spentUsd: number, limitUsd: number | null): number | null {
+  if (limitUsd === null || !Number.isFinite(limitUsd) || limitUsd <= 0) return null;
+  return (spentUsd / limitUsd) * 100;
+}
+
+function formatUsagePercent(percent: number | null): string {
+  if (percent === null || !Number.isFinite(percent)) return "Unavailable";
+  return `${Math.round(percent)}%`;
+}
+
+function formatResetIn(resetAt: string | null, now = Date.now()): string {
+  if (!resetAt) return "unknown";
+  const resetMs = Date.parse(resetAt);
+  if (!Number.isFinite(resetMs)) return "unknown";
+
+  const deltaMs = resetMs - now;
+  if (deltaMs <= 0) return "now";
+
+  const minuteMs = 60_000;
+  const hourMs = 60 * minuteMs;
+  const dayMs = 24 * hourMs;
+
+  if (deltaMs < hourMs) return `${Math.max(1, Math.ceil(deltaMs / minuteMs))}m`;
+  if (deltaMs < dayMs) return `${Math.max(1, Math.ceil(deltaMs / hourMs))}h`;
+  return `${Math.max(1, Math.ceil(deltaMs / dayMs))}d`;
+}
+
+function resetDay(value: string | null): string | null {
+  if (!value) return null;
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) return null;
+  return new Date(parsed).toISOString().slice(0, 10);
 }
 
 export function getFortalezaDayStartIso(nowMs = Date.now()): string {
@@ -88,6 +140,10 @@ export function getFortalezaDayStartIso(nowMs = Date.now()): string {
       0
     )
   ).toISOString();
+}
+
+export function getFortalezaDayResetIso(nowMs = Date.now()): string {
+  return new Date(Date.parse(getFortalezaDayStartIso(nowMs)) + DAY_MS).toISOString();
 }
 
 export function getRollingWeekStartIso(nowMs = Date.now()): string {
@@ -144,6 +200,64 @@ function connectionFromValue(value: unknown): { id: string; provider: string } |
   return { id, provider };
 }
 
+function isWeeklyQuotaResetSnapshot(row: QuotaSnapshotRow, targetResetAtIso: string): boolean {
+  const targetDay = resetDay(targetResetAtIso);
+  if (!targetDay) return false;
+  return resetDay(row.nextResetAt) === targetDay;
+}
+
+function getObservedWeeklyWindowStartIso(
+  connectionId: string,
+  targetResetAtIso: string,
+  nowMs: number
+): string | null {
+  if (!connectionId || !targetResetAtIso) return null;
+
+  try {
+    const rows = getDbInstance()
+      .prepare(
+        `
+        SELECT
+          remaining_percentage as remainingPercentage,
+          next_reset_at as nextResetAt,
+          created_at as createdAt
+        FROM quota_snapshots
+        WHERE connection_id = @connectionId
+          AND LOWER(window_key) LIKE '%weekly%'
+          AND LOWER(window_key) NOT LIKE '%sonnet%'
+          AND created_at <= @nowIso
+        ORDER BY created_at ASC, id ASC
+      `
+      )
+      .all({ connectionId, nowIso: new Date(nowMs).toISOString() }) as QuotaSnapshotRow[];
+
+    let observedStartIso: string | null = null;
+    let previousUsedPercent: number | null = null;
+
+    for (const row of rows) {
+      if (!row.createdAt || !isWeeklyQuotaResetSnapshot(row, targetResetAtIso)) continue;
+      const remaining = toNumber(row.remainingPercentage);
+      const usedPercent = clampPercent(100 - remaining);
+
+      if (!observedStartIso) {
+        observedStartIso = row.createdAt;
+      } else if (previousUsedPercent !== null) {
+        const droppedToResetFloor = usedPercent <= 1 && previousUsedPercent > usedPercent;
+        const significantDrop = previousUsedPercent - usedPercent >= 5;
+        if (droppedToResetFloor || significantDrop) {
+          observedStartIso = row.createdAt;
+        }
+      }
+
+      previousUsedPercent = usedPercent;
+    }
+
+    return observedStartIso;
+  } catch {
+    return null;
+  }
+}
+
 async function resolveDeps(deps: ApiKeyUsageLimitDeps): Promise<Required<ApiKeyUsageLimitDeps>> {
   const providers =
     deps.getProviderConnectionById && deps.getProviderConnections
@@ -165,16 +279,16 @@ async function resolveDeps(deps: ApiKeyUsageLimitDeps): Promise<Required<ApiKeyU
   };
 }
 
-async function getProviderWeeklyResetAt(
+async function getProviderWeeklyWindow(
   metadata: ApiKeyUsageLimitMetadata,
   deps: Required<ApiKeyUsageLimitDeps>,
   nowMs: number
-): Promise<string | null> {
+): Promise<{ resetAtIso: string | null; windowStartIso: string | null }> {
   const allowedConnections = Array.isArray(metadata.allowedConnections)
     ? metadata.allowedConnections.filter((id) => typeof id === "string" && id.trim())
     : [];
 
-  const resetCandidates: string[] = [];
+  const resetCandidates: WeeklyResetCandidate[] = [];
   if (allowedConnections.length > 0) {
     for (const connectionId of allowedConnections) {
       const connection = connectionFromValue(await deps.getProviderConnectionById(connectionId));
@@ -183,7 +297,13 @@ async function getProviderWeeklyResetAt(
         deps.getProviderLimitsCache(connection.id)?.quotas,
         nowMs
       );
-      if (resetAt) resetCandidates.push(resetAt);
+      if (resetAt) {
+        resetCandidates.push({
+          connectionId: connection.id,
+          resetAtIso: resetAt,
+          observedWindowStartIso: getObservedWeeklyWindowStartIso(connection.id, resetAt, nowMs),
+        });
+      }
     }
   } else {
     const caches = deps.getAllProviderLimitsCache();
@@ -192,11 +312,24 @@ async function getProviderWeeklyResetAt(
       const connection = connectionFromValue(rawConnection);
       if (!connection || connection.provider.toLowerCase() !== "claude") continue;
       const resetAt = findWeeklyQuotaResetAt(caches[connection.id]?.quotas, nowMs);
-      if (resetAt) resetCandidates.push(resetAt);
+      if (resetAt) {
+        resetCandidates.push({
+          connectionId: connection.id,
+          resetAtIso: resetAt,
+          observedWindowStartIso: getObservedWeeklyWindowStartIso(connection.id, resetAt, nowMs),
+        });
+      }
     }
   }
 
-  return resetCandidates.sort((left, right) => Date.parse(left) - Date.parse(right)).at(0) ?? null;
+  const selected =
+    resetCandidates
+      .sort((left, right) => Date.parse(left.resetAtIso) - Date.parse(right.resetAtIso))
+      .at(0) ?? null;
+  return {
+    resetAtIso: selected?.resetAtIso ?? null,
+    windowStartIso: selected?.observedWindowStartIso ?? null,
+  };
 }
 
 async function getApiKeyUsdSpendSince(apiKeyId: string, sinceIso: string): Promise<number> {
@@ -257,10 +390,14 @@ export async function getApiKeyUsageLimitStatus(
   const resolvedDeps = await resolveDeps(deps);
   const now = resolvedDeps.now();
   const dailyWindowStartIso = getFortalezaDayStartIso(now);
-  const weeklyResetAtIso = await getProviderWeeklyResetAt(metadata, resolvedDeps, now);
-  const weeklyWindowStartIso = weeklyResetAtIso
-    ? new Date(Date.parse(weeklyResetAtIso) - WEEK_MS).toISOString()
-    : getRollingWeekStartIso(now);
+  const dailyResetAtIso = getFortalezaDayResetIso(now);
+  const weeklyWindow = await getProviderWeeklyWindow(metadata, resolvedDeps, now);
+  const weeklyResetAtIso = weeklyWindow.resetAtIso;
+  const weeklyWindowStartIso = weeklyWindow.windowStartIso
+    ? weeklyWindow.windowStartIso
+    : weeklyResetAtIso
+      ? new Date(Date.parse(weeklyResetAtIso) - WEEK_MS).toISOString()
+      : getRollingWeekStartIso(now);
   const dailyLimitUsd = normalizeLimitUsd(metadata.dailyUsageLimitUsd);
   const weeklyLimitUsd = normalizeLimitUsd(metadata.weeklyUsageLimitUsd);
   const enabled = metadata.usageLimitEnabled === true;
@@ -277,6 +414,7 @@ export async function getApiKeyUsageLimitStatus(
     dailySpentUsd,
     weeklySpentUsd,
     dailyWindowStartIso,
+    dailyResetAtIso,
     weeklyWindowStartIso,
     weeklyResetAtIso,
     dailyExceeded: enabled && dailyLimitUsd !== null && dailySpentUsd >= dailyLimitUsd,
@@ -284,26 +422,39 @@ export async function getApiKeyUsageLimitStatus(
   };
 }
 
-export function buildApiKeyUsageLimitText(status: ApiKeyUsageLimitStatus): string {
+export function buildApiKeyUsageLimitText(
+  status: ApiKeyUsageLimitStatus,
+  now = Date.now()
+): string {
   return [
     "Cota diaria",
     formatUsd(status.dailyLimitUsd),
     "Gasto diario",
     formatUsd(status.dailySpentUsd),
+    "Uso diario",
+    formatUsagePercent(getUsagePercent(status.dailySpentUsd, status.dailyLimitUsd)),
+    `Resets in ${formatResetIn(status.dailyResetAtIso, now)}`,
     "",
     "Cota semanal",
     formatUsd(status.weeklyLimitUsd),
     "Gasto semanal",
     formatUsd(status.weeklySpentUsd),
+    "Uso semanal",
+    formatUsagePercent(getUsagePercent(status.weeklySpentUsd, status.weeklyLimitUsd)),
+    `Resets in ${formatResetIn(status.weeklyResetAtIso, now)}`,
   ].join("\n");
 }
 
-function buildUsageLimitExceededMessage(status: ApiKeyUsageLimitStatus): string {
+function buildUsageLimitExceededMessage(status: ApiKeyUsageLimitStatus, now = Date.now()): string {
   if (status.dailyExceeded && status.dailyLimitUsd !== null) {
-    return `This API key reached its daily USD usage quota (${formatUsd(status.dailySpentUsd)} of ${formatUsd(status.dailyLimitUsd)}). Choose another allowed model or wait for quota reset.`;
+    const percent = formatUsagePercent(getUsagePercent(status.dailySpentUsd, status.dailyLimitUsd));
+    return `This API key reached its daily USD usage quota (${formatUsd(status.dailySpentUsd)} of ${formatUsd(status.dailyLimitUsd)}, ${percent}). Resets in ${formatResetIn(status.dailyResetAtIso, now)}. Choose another allowed model after reset.`;
   }
   if (status.weeklyExceeded && status.weeklyLimitUsd !== null) {
-    return `This API key reached its weekly USD usage quota (${formatUsd(status.weeklySpentUsd)} of ${formatUsd(status.weeklyLimitUsd)}). Choose another allowed model or wait for quota reset.`;
+    const percent = formatUsagePercent(
+      getUsagePercent(status.weeklySpentUsd, status.weeklyLimitUsd)
+    );
+    return `This API key reached its weekly USD usage quota (${formatUsd(status.weeklySpentUsd)} of ${formatUsd(status.weeklyLimitUsd)}, ${percent}). Resets in ${formatResetIn(status.weeklyResetAtIso, now)}. Choose another allowed model after reset.`;
   }
   return "This API key reached its USD usage quota. Choose another allowed model or wait for quota reset.";
 }
@@ -319,9 +470,10 @@ function isAnthropicMessagesRequest(request: Request): boolean {
 
 export function buildApiKeyUsageLimitRejection(
   request: Request,
-  status: ApiKeyUsageLimitStatus
+  status: ApiKeyUsageLimitStatus,
+  now = Date.now()
 ): Response {
-  const message = sanitizeErrorMessage(buildUsageLimitExceededMessage(status));
+  const message = sanitizeErrorMessage(buildUsageLimitExceededMessage(status, now));
   if (isAnthropicMessagesRequest(request)) {
     return new Response(
       JSON.stringify({

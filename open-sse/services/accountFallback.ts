@@ -251,6 +251,15 @@ const MALFORMED_REQUEST_PATTERNS = [
   /tool_call.*name.*(?:blank|empty|missing)/i,
 ];
 
+// Parameter validation errors — model-specific constraints (different models = different limits)
+const PARAM_VALIDATION_PATTERNS = [
+  /max_tokens.*illegal/i,
+  /max_tokens.*must be/i,
+  /max_tokens.*range/i,
+  /parameter is illegal/i,
+  /is illegal.*range/i,
+];
+
 /**
  * T06: Returns true if response body indicates the account is permanently deactivated.
  */
@@ -1575,9 +1584,10 @@ export function checkFallbackError(
 
     const isOverflow = CONTEXT_OVERFLOW_PATTERNS.some((p) => p.test(errorStr));
     const isMalformed = MALFORMED_REQUEST_PATTERNS.some((p) => p.test(errorStr));
+    const isParamValidation = PARAM_VALIDATION_PATTERNS.some((p) => p.test(errorStr));
     const isModelAccessDenied = isModelAccessDeniedStructured || matchesModelAccessPattern;
 
-    if (isOverflow || isMalformed || isModelAccessDenied) {
+    if (isOverflow || isMalformed || isParamValidation || isModelAccessDenied) {
       return {
         shouldFallback: true,
         cooldownMs: 0,

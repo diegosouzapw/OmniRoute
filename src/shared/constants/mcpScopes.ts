@@ -41,6 +41,7 @@ export const MCP_TOOL_SCOPES: Record<string, readonly McpScope[]> = {
   omniroute_check_quota: ["read:quota"],
   omniroute_route_request: ["execute:completions"],
   omniroute_web_search: ["execute:search"],
+  omniroute_web_fetch: ["execute:search"],
   omniroute_cost_report: ["read:usage"],
   omniroute_list_models_catalog: ["read:models"],
 

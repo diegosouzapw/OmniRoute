@@ -140,9 +140,23 @@ function convertMessages(messages: unknown): { system: string; messages: unknown
   return { system: system.join("\n\n"), messages: out };
 }
 
-function clampMaxTokens(value: unknown): number {
-  const numeric = numberValue(value) ?? MAX_COMMAND_CODE_TOKENS;
-  return Math.max(1, Math.min(Math.floor(numeric), MAX_COMMAND_CODE_TOKENS));
+function clampMaxTokens(value: unknown, cap: number = MAX_COMMAND_CODE_TOKENS): number {
+  const numeric = numberValue(value) ?? cap;
+  return Math.max(1, Math.min(Math.floor(numeric), cap));
+}
+
+// Resolve the per-model max_tokens cap for a given CommandCode model id.
+// Falls back to MAX_COMMAND_CODE_TOKENS when the model isn't registered or
+// when the registry entry omits maxOutputTokens. Without this, GLM-5.x
+// requests get capped at 200_000 and rejected with "限制数值范围[1,131072]".
+function getModelMaxTokensCap(modelId: string): number {
+  const entry = REGISTRY["command-code"];
+  if (!entry) return MAX_COMMAND_CODE_TOKENS;
+  const model = entry.models?.find((m: { id: string }) => m.id === modelId);
+  const registryCap = (model as { maxOutputTokens?: number } | undefined)?.maxOutputTokens;
+  return typeof registryCap === "number" && registryCap > 0
+    ? registryCap
+    : MAX_COMMAND_CODE_TOKENS;
 }
 
 // Reasoning/thinking fields that payload rules or clients may inject and that
@@ -174,7 +188,10 @@ function buildCommandCodeBody(model: string, body: unknown, stream = false): Jso
     messages: converted.messages,
     tools: convertTools(input.tools),
     system,
-    max_tokens: clampMaxTokens(input.max_tokens ?? input.max_completion_tokens),
+    max_tokens: clampMaxTokens(
+      input.max_tokens ?? input.max_completion_tokens,
+      getModelMaxTokensCap(resolvedModel)
+    ),
     stream: true,
   };
 

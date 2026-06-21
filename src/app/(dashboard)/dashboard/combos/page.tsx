@@ -2526,6 +2526,24 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     setModels(models.filter((_, i) => i !== index));
   };
 
+  // Upstream PR decolua/9router#889 (Fajar Hidayat): clicking a model that is
+  // already in the combo, inside ModelSelectModal, deselects it in place. We
+  // strip every step whose qualified model matches — duplicates with a
+  // different providerId/weight that point at the same model id are all
+  // removed (matches upstream JS semantics which filtered by a single-string
+  // identity).
+  const handleDeselectModel = (model) => {
+    const value =
+      typeof model?.value === "string"
+        ? model.value
+        : typeof model === "string"
+          ? model
+          : "";
+    if (!value) return;
+    setModels(models.filter((m) => m.model !== value));
+    setBuilderError("");
+  };
+
   const handleWeightChange = (index, weight) => {
     const newModels = [...models];
     newModels[index] = {
@@ -4370,11 +4388,13 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
         isOpen={showModelSelect}
         onClose={() => setShowModelSelect(false)}
         onSelect={handleAddModel}
+        onDeselect={handleDeselectModel}
         activeProviders={activeProviders}
         modelAliases={modelAliases}
         title={t("addModelToCombo")}
         selectedModel={null}
         addedModelValues={models.map((m) => m.model)}
+        keepOpenOnSelect
       />
     </>
   );

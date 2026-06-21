@@ -300,7 +300,11 @@ test("handleChat keeps the combo error when the global fallback throws", async (
   assert.match(json.error.message, /primary combo failed/i);
 });
 
-test("handleChat returns 400 when no provider credentials exist", async () => {
+test("handleChat returns 404 when no provider credentials exist", async () => {
+  // Upstream port decolua/9router#336 (Ibrahim Ryan): the no-credentials branch
+  // of handleNoCredentials now surfaces 404 NOT_FOUND so combo routing can fall
+  // through to the next target instead of being killed by the combo 400-hard-stop
+  // guard (open-sse/services/combo.ts, PR #4316 / issue #4279).
   const response = await handleChat(
     buildRequest({
       body: {
@@ -312,8 +316,8 @@ test("handleChat returns 400 when no provider credentials exist", async () => {
   );
   const json = (await response.json()) as any;
 
-  assert.equal(response.status, 400);
-  assert.match(json.error.message, /No credentials for provider: openai/);
+  assert.equal(response.status, 404);
+  assert.match(json.error.message, /No active credentials for provider: openai/);
 });
 
 test("handleChat returns 503 for cooled-down connections and 503 for open circuit breakers", async () => {

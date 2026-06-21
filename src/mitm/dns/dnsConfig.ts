@@ -1,8 +1,10 @@
+import { execFileSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import {
   execFileWithPassword,
   getErrorMessage,
+  isRoot,
   quotePowerShell,
   runElevatedPowerShell,
 } from "../systemCommands.ts";
@@ -19,6 +21,51 @@ const IS_WIN = process.platform === "win32";
 const HOSTS_FILE = IS_WIN
   ? path.join(process.env.SystemRoot || "C:\\Windows", "System32", "drivers", "etc", "hosts")
   : "/etc/hosts";
+
+/**
+ * Return true if `sudo` is available on PATH. Windows always reports `true`
+ * (no sudo concept — UAC handles elevation). Minimal containers without sudo
+ * also report `false`, so callers can fall through to the no-elevation path.
+ */
+export function isSudoAvailable(): boolean {
+  if (IS_WIN) return true;
+  try {
+    // `which sudo` exits 0 when found, non-zero otherwise. Fixed args, no
+    // shell expansion — safe per Hard Rule #13.
+    execFileSync("which", ["sudo"], { stdio: "ignore", windowsHide: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Return true when MITM elevation can proceed without prompting for a sudo
+ * password — i.e. Windows (UAC handles it), root user, no sudo binary
+ * (minimal container), or `sudo -n true` succeeds (passwordless NOPASSWD).
+ */
+export function canRunSudoWithoutPassword(): boolean {
+  if (IS_WIN) return true;
+  if (isRoot()) return true;
+  if (!isSudoAvailable()) return true;
+  try {
+    // `sudo -n true` exits 0 when the user can run sudo without a password
+    // (cached credential or NOPASSWD). Exits non-zero otherwise. Fixed args.
+    execFileSync("sudo", ["-n", "true"], { stdio: "ignore", windowsHide: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Server-side helper for the MITM API: true when a sudo password must be
+ * collected from the user before invoking privileged commands.
+ * False on Windows, root, missing-sudo containers, or NOPASSWD sudoers.
+ */
+export function isSudoPasswordRequired(): boolean {
+  return !IS_WIN && isSudoAvailable() && !canRunSudoWithoutPassword();
+}
 
 /**
  * Build the set of /etc/hosts lines for a given hostname.
