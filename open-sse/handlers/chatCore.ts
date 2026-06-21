@@ -193,10 +193,10 @@ import {
   shouldRequestClaudeFastMode,
 } from "@/lib/providers/claudeFastMode";
 import {
-  getCodexRequestDefaults,
-  normalizeCodexServiceTier,
-  type CodexServiceTier,
-} from "@/lib/providers/requestDefaults";
+  resolveEffectiveServiceTier as resolveEffectiveServiceTierFor,
+  resolveReportedServiceTier as resolveReportedServiceTierFor,
+  type EffectiveServiceTier,
+} from "./chatCore/serviceTier.ts";
 import { cacheReasoningFromAssistantMessage } from "../services/reasoningCache.ts";
 import { sanitizeOpenAITool } from "../services/toolSchemaSanitizer.ts";
 import {
@@ -737,42 +737,15 @@ export async function handleChatCore({
     );
   }
 
-  type EffectiveServiceTier = "standard" | CodexServiceTier;
   let effectiveServiceTier: EffectiveServiceTier = "standard";
-  const resolveEffectiveServiceTier = (requestBody?: unknown): EffectiveServiceTier => {
-    if (provider !== "codex") return "standard";
-    const requestRecord =
-      requestBody && typeof requestBody === "object" && !Array.isArray(requestBody)
-        ? (requestBody as Record<string, unknown>)
-        : {};
-    const rawServiceTier = requestRecord.service_tier;
-    if (typeof rawServiceTier === "string" && rawServiceTier.trim().length > 0) {
-      const normalizedServiceTier = normalizeCodexServiceTier(rawServiceTier);
-      if (normalizedServiceTier) return normalizedServiceTier;
-    }
-    return getCodexRequestDefaults(credentials?.providerSpecificData).serviceTier ?? "standard";
-  };
+  // Codex service-tier resolvers extracted to chatCore/serviceTier.ts (#3501); bind the per-request
+  // provider/credentials once and delegate so the existing call sites stay byte-identical.
+  const resolveEffectiveServiceTier = (requestBody?: unknown): EffectiveServiceTier =>
+    resolveEffectiveServiceTierFor(provider, credentials?.providerSpecificData, requestBody);
   const resolveReportedServiceTier = (
     payload?: unknown,
     maxDepth = 3
-  ): EffectiveServiceTier | null => {
-    if (
-      maxDepth <= 0 ||
-      provider !== "codex" ||
-      !payload ||
-      typeof payload !== "object" ||
-      Array.isArray(payload)
-    ) {
-      return null;
-    }
-    const record = payload as Record<string, unknown>;
-    const rawServiceTier = record.service_tier;
-    if (typeof rawServiceTier === "string" && rawServiceTier.trim().length > 0) {
-      const normalizedServiceTier = normalizeCodexServiceTier(rawServiceTier);
-      if (normalizedServiceTier) return normalizedServiceTier;
-    }
-    return resolveReportedServiceTier(record.response, maxDepth - 1);
-  };
+  ): EffectiveServiceTier | null => resolveReportedServiceTierFor(provider, payload, maxDepth);
   const persistFailureUsage = (statusCode: number, errorCode?: string | null) => {
     saveRequestUsage({
       provider: provider || "unknown",
