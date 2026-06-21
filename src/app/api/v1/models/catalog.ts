@@ -743,6 +743,8 @@ export async function getUnifiedModelsResponse(
       });
     }
 
+    // Resolve synced available models (from auto-sync) — used to skip static
+    // PROVIDER_MODELS entries for providers that have a live, API-fresh list.
     let syncedModelsByProvider: Record<string, SyncedAvailableModel[]> = {};
     try {
       syncedModelsByProvider = await getAllSyncedAvailableModels();
@@ -774,6 +776,8 @@ export async function getUnifiedModelsResponse(
         continue;
       }
 
+      // Skip static models for providers that have synced available models
+      // (auto-sync provides the authoritative, up-to-date list from the API).
       if (providersWithSyncedModels.has(canonicalProviderId)) continue;
 
       for (const model of providerModels) {
@@ -846,6 +850,8 @@ export async function getUnifiedModelsResponse(
     }
 
     try {
+      // Data already loaded above into syncedModelsByProvider; the try block
+      // here protects the for-loop / model processing from unexpected errors.
       for (const [providerId, syncedModels] of Object.entries(syncedModelsByProvider)) {
         if (!Array.isArray(syncedModels) || syncedModels.length === 0) continue;
         if (blockedProviders.has(providerId)) continue;
@@ -869,6 +875,8 @@ export async function getUnifiedModelsResponse(
           if (!providerSupportsModel(canonicalProviderId, sm.id)) continue;
           if (getModelIsHidden(providerId, sm.id)) continue;
 
+          // Strip modelIdPrefix (e.g. "accounts/fireworks/models/") from display ID
+          // so synced model IDs match the short IDs from static registry.
           const registryEntry = REGISTRY[providerId];
           const displayModelId =
             registryEntry?.modelIdPrefix && sm.id.startsWith(registryEntry.modelIdPrefix)
