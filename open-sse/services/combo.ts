@@ -2067,6 +2067,45 @@ async function handleRoundRobinCombo({
       : (settings as Record<string, unknown> | null)?.stickyRoundRobinLimit
   );
   const stickyRoundRobinEnabled = stickyLimit > 1;
+  // Exhaustion-aware sticky: if the currently sticky target is no longer
+  // available (circuit breaker OPEN, provider cooldown, model lockout, or
+  // isModelAvailable returns false), clear the sticky record so the rotation
+  // starts at the counter position instead of probing a dead target.
+  if (stickyRoundRobinEnabled) {
+    const sticky = rrStickyTargets.get(combo.name);
+    if (sticky) {
+      const stickyTarget = filteredTargets.find(
+        (target) => target.executionKey === sticky.executionKey
+      );
+      if (stickyTarget) {
+        const rawModel = parseModel(stickyTarget.modelStr).model || stickyTarget.modelStr;
+        const stickyAvailable =
+          getCircuitBreaker(stickyTarget.provider).getStatus().state !== "OPEN" &&
+          !(
+            resilienceSettings.providerCooldown.enabled &&
+            Boolean(stickyTarget.provider && stickyTarget.provider !== "unknown") &&
+            isProviderInCooldown(
+              stickyTarget.provider,
+              stickyTarget.connectionId ?? undefined,
+              resilienceSettings
+            )
+          ) &&
+          !(
+            stickyTarget.provider &&
+            rawModel &&
+            isModelLocked(stickyTarget.provider, stickyTarget.connectionId || "", rawModel)
+          ) &&
+          (isModelAvailable ? await isModelAvailable(stickyTarget.modelStr, stickyTarget) : true);
+        if (!stickyAvailable) {
+          log.info(
+            "COMBO-RR",
+            `Clearing stale sticky target ${stickyTarget.modelStr} — unavailable`
+          );
+          rrStickyTargets.delete(combo.name);
+        }
+      }
+    }
+  }
   if (
     !rrCounters.has(combo.name) &&
     !rrStickyTargets.has(combo.name) &&

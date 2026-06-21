@@ -13,7 +13,8 @@ const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { handleComboChat, preScreenTargets } = await import("../../open-sse/services/combo.ts");
-const { weightedStickyTargets } = await import("../../open-sse/services/combo/rrState.ts");
+const { weightedStickyTargets, rrStickyTargets } =
+  await import("../../open-sse/services/combo/rrState.ts");
 const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const { resetAllComboMetrics } = await import("../../open-sse/services/comboMetrics.ts");
@@ -71,6 +72,7 @@ test.beforeEach(async () => {
   _resetAllDecks();
   clearSessions();
   weightedStickyTargets.clear();
+  rrStickyTargets.clear();
   await cleanupTestDataDir();
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   await settingsDb.resetAllPricing();
@@ -83,6 +85,7 @@ test.after(async () => {
   resetAllSemaphores();
   _resetAllDecks();
   weightedStickyTargets.clear();
+  rrStickyTargets.clear();
   settingsDb.clearAllLKGP();
   if (ORIGINAL_DATA_DIR === undefined) {
     delete process.env.DATA_DIR;
@@ -519,6 +522,36 @@ test("weighted sticky keeps a top-level step if one nested leaf remains availabl
   assert.equal(result.ok, true);
   assert.deepEqual(calls, ["oc/m3"]);
   assert.equal(weightedStickyTargets.get("weighted-nested-sticky")?.executionKey, step0Key);
+});
+
+test("round-robin sticky clears unavailable sticky target before rotation", async () => {
+  const calls: string[] = [];
+  const step0Key = "rr-sticky-clears-unavailable-model-1-openai-a";
+  rrStickyTargets.set("rr-sticky-clears-unavailable", { executionKey: step0Key, successCount: 1 });
+  const combo = {
+    name: "rr-sticky-clears-unavailable",
+    strategy: "round-robin",
+    models: ["openai/a", "claude/b", "gemini/c"],
+    config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0, stickyRoundRobinLimit: 10 },
+  };
+  const result = await handleComboChat({
+    body: {},
+    combo,
+    handleSingleModel: async (_body: any, modelStr: string) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async (modelStr: string) => modelStr !== "openai/a",
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["claude/b"]);
+  assert.equal(
+    rrStickyTargets.get("rr-sticky-clears-unavailable")?.executionKey,
+    "rr-sticky-clears-unavailable-model-2-claude-b"
+  );
 });
 
 test("strict-random survives a stale deck entry after a target is removed", async () => {
