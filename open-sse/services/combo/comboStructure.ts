@@ -607,21 +607,46 @@ export function resolveComboTargets(
     : getDirectComboTargets(combo);
 }
 
-export function resolveWeightedTargets(
+export function resolveWeightedStepGroups(
   combo: ComboLike,
   allCombos: ComboCollectionLike
+): Array<{ step: ComboRuntimeStep; targets: ResolvedComboTarget[] }> {
+  return getOrderedTopLevelRuntimeSteps(combo, allCombos)
+    .map((step) => ({
+      step,
+      targets: !allCombos
+        ? step.kind === "model"
+          ? [step]
+          : []
+        : expandRuntimeStep(step, allCombos, new Set([combo.name])),
+    }))
+    .filter((group) => group.targets.length > 0);
+}
+
+export function resolveWeightedTargets(
+  combo: ComboLike,
+  allCombos: ComboCollectionLike,
+  preferredExecutionKey: string | null = null,
+  eligibleExecutionKeys: ReadonlySet<string> | null = null,
+  stepGroups?: Array<{ step: ComboRuntimeStep; targets: ResolvedComboTarget[] }>
 ): {
   orderedTargets: ResolvedComboTarget[];
   selectedStep: ComboRuntimeStep | null;
+  orderedSteps: ComboRuntimeStep[];
 } {
-  const topLevelSteps = getOrderedTopLevelRuntimeSteps(combo, allCombos);
+  const topLevelSteps = getOrderedTopLevelRuntimeSteps(combo, allCombos).filter((step) =>
+    eligibleExecutionKeys ? eligibleExecutionKeys.has(step.executionKey) : true
+  );
   if (topLevelSteps.length === 0) {
-    return { orderedTargets: [], selectedStep: null };
+    return { orderedTargets: [], selectedStep: null, orderedSteps: [] };
   }
 
-  const selectedStep = selectWeightedTarget(topLevelSteps);
+  const preferredStep = preferredExecutionKey
+    ? topLevelSteps.find((step) => step.executionKey === preferredExecutionKey) || null
+    : null;
+  const selectedStep = preferredStep || selectWeightedTarget(topLevelSteps);
   if (!selectedStep) {
-    return { orderedTargets: [], selectedStep: null };
+    return { orderedTargets: [], selectedStep: null, orderedSteps: [] };
   }
 
   const orderedSteps = orderTargetsForWeightedFallback(
@@ -629,16 +654,19 @@ export function resolveWeightedTargets(
     selectedStep.executionKey,
     hasCompositeTierRuntimeOrder(combo)
   );
-  const expandedTargets = orderedSteps.flatMap((step) => {
-    if (!step) return [];
-    if (!allCombos) {
-      return step.kind === "model" ? [step] : [];
-    }
-    return expandRuntimeStep(step, allCombos, new Set([combo.name]));
-  });
+  const targetsByStep = new Map(
+    (stepGroups || resolveWeightedStepGroups(combo, allCombos)).map((group) => [
+      group.step.executionKey,
+      group.targets,
+    ])
+  );
+  const expandedTargets = orderedSteps.flatMap(
+    (step) => targetsByStep.get(step.executionKey) || []
+  );
 
   return {
     orderedTargets: dedupeTargetsByExecutionKey(expandedTargets),
     selectedStep,
+    orderedSteps,
   };
 }

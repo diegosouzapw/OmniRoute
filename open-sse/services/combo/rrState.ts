@@ -21,7 +21,8 @@ import type { ResolvedComboTarget } from "./types.ts";
 export const MAX_RR_COUNTERS = 500;
 
 export const rrCounters = new Map<string, number>();
-export const rrStickyTargets = new Map<
+export const rrStickyTargets = new Map<string, { executionKey: string; successCount: number }>();
+export const weightedStickyTargets = new Map<
   string,
   { executionKey: string; successCount: number }
 >();
@@ -31,6 +32,8 @@ export function clampStickyRoundRobinTargetLimit(value: unknown): number {
   if (!Number.isFinite(numericValue)) return 1;
   return Math.min(Math.max(Math.floor(numericValue), 1), 1000);
 }
+
+export const clampStickyWeightedTargetLimit = clampStickyRoundRobinTargetLimit;
 
 export function getStickyRoundRobinStartIndex(
   comboName: string,
@@ -68,4 +71,28 @@ export function recordStickyRoundRobinSuccess(
   }
 
   rrStickyTargets.set(comboName, { executionKey: target.executionKey, successCount });
+}
+
+export function getStickyWeightedExecutionKey(
+  comboName: string,
+  stickyLimit: number
+): string | null {
+  const sticky = weightedStickyTargets.get(comboName);
+  if (!sticky || stickyLimit <= 1 || sticky.successCount >= stickyLimit) return null;
+  return sticky.executionKey;
+}
+
+export function recordStickyWeightedSuccess(
+  comboName: string,
+  executionKey: string,
+  stickyLimit: number
+): void {
+  const sticky = weightedStickyTargets.get(comboName);
+  const successCount = sticky?.executionKey === executionKey ? sticky.successCount + 1 : 1;
+  if (successCount >= stickyLimit) {
+    weightedStickyTargets.delete(comboName);
+    return;
+  }
+
+  weightedStickyTargets.set(comboName, { executionKey, successCount });
 }
