@@ -4000,15 +4000,6 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     return { valid: false, error: "Provider and API key required", unsupported: false };
   }
 
-  // Web-cookie providers (session-based authentication)
-  if (WEB_COOKIE_PROVIDERS[provider]) {
-    try {
-      return await validateWebCookieProvider({ provider, apiKey, providerSpecificData });
-    } catch (error: any) {
-      return toValidationErrorResult(error);
-    }
-  }
-
   if (isOpenAICompatibleProvider(provider)) {
     try {
       return await validateOpenAICompatibleProvider({ apiKey, providerSpecificData });
@@ -4412,6 +4403,19 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
   if (SPECIALTY_VALIDATORS[provider]) {
     try {
       return await SPECIALTY_VALIDATORS[provider]({ apiKey, providerSpecificData });
+    } catch (error: any) {
+      return toValidationErrorResult(error);
+    }
+  }
+
+  // Web-cookie providers WITHOUT a dedicated specialty validator above fall back to the generic
+  // session-ping check (AUTH_007 SESSION_EXPIRED on 401/403). Providers that DO have a rich
+  // per-provider validator (grok-web, chatgpt-web, claude-web, …) are handled by
+  // SPECIALTY_VALIDATORS first and must not be shadowed by this generic probe (issue: the
+  // #4023 dispatch was placed too early and intercepted every web-cookie provider).
+  if (WEB_COOKIE_PROVIDERS[provider]) {
+    try {
+      return await validateWebCookieProvider({ provider, apiKey, providerSpecificData });
     } catch (error: any) {
       return toValidationErrorResult(error);
     }
