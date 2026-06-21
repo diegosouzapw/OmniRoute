@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { UsageAnalytics, CardSkeleton } from "@/shared/components";
 import { cn } from "@/shared/utils/cn";
-import EvalsTab from "../usage/components/EvalsTab";
+import EvalsTab from "../usage/components/evals";
 import ComboHealthTab from "./ComboHealthTab";
 import ProviderUtilizationTab from "./ProviderUtilizationTab";
 import RouteExplainabilityTab from "./RouteExplainabilityTab";

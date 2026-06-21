@@ -15,418 +15,40 @@ import {
 import { useNotificationStore } from "@/store/notificationStore";
 import { matchesSearch } from "@/shared/utils/turkishText";
 
-type EvalTargetType = "suite-default" | "model" | "combo";
+import type {
+  EvalTargetOption,
+  EvalApiKeyOption,
+  EvalSuite,
+  EvalRun,
+  EvalRunSummary,
+  EvalScorecard,
+  EvalSuiteRunState,
+  EvalSuiteDraft,
+  EvalsDashboardPayload,
+  ImportedEvalSuiteFile,
+  RunAllProgress,
+} from "./types";
 
-interface EvalTargetOption {
-  key: string;
-  type: EvalTargetType;
-  id: string | null;
-  label: string;
-  description: string;
-}
+import { STRATEGIES, HISTORY_COLUMNS, NO_COMPARE_TARGET, AUTO_API_KEY } from "./constants";
+import {
+  createEmptySuiteDraft,
+  suiteToDraft,
+  suiteToCloneDraft,
+  normalizeBuilderStrategy,
+  createDraftFromImportedSuite,
+} from "./draft-helpers";
+import {
+  getErrorMessage,
+  getTargetLabel,
+  parseTargetKey,
+  formatTimestamp,
+  getResultExpectedValue,
+  getResultActualValue,
+  getResultDetails,
+} from "./result-helpers";
 
-interface EvalApiKeyOption {
-  id: string;
-  name: string;
-  isActive: boolean;
-}
-
-interface EvalCasePreview {
-  id: string;
-  name: string;
-  model?: string;
-  input?: {
-    messages?: Array<{ role: string; content: string }>;
-  };
-  expected?: {
-    strategy?: string;
-    value?: string;
-  };
-  tags?: string[];
-}
-
-interface EvalSuite {
-  id: string;
-  name: string;
-  description?: string;
-  source?: "built-in" | "custom";
-  caseCount?: number;
-  cases?: EvalCasePreview[];
-  updatedAt?: string;
-}
-
-interface EvalResult {
-  caseId: string;
-  caseName: string;
-  passed: boolean;
-  durationMs: number;
-  error?: string;
-  details?: {
-    expected?: string;
-    actual?: string;
-    actualSnippet?: string;
-    searchTerm?: string;
-    pattern?: string;
-  };
-}
-
-interface EvalRunSummary {
-  total: number;
-  passed: number;
-  failed: number;
-  passRate: number;
-}
-
-interface EvalRun {
-  id: string;
-  runGroupId: string | null;
-  suiteId: string;
-  suiteName: string;
-  target: {
-    type: EvalTargetType;
-    id: string | null;
-    key: string;
-    label: string;
-  };
-  avgLatencyMs: number;
-  summary: EvalRunSummary;
-  results: EvalResult[];
-  outputs: Record<string, string>;
-  createdAt: string;
-}
-
-interface EvalScorecard {
-  suites: number;
-  totalCases: number;
-  totalPassed: number;
-  overallPassRate: number;
-  perSuite: Array<{ id: string; name: string; passRate: number }>;
-}
-
-interface EvalSuiteRunState {
-  runs: EvalRun[];
-  scorecard: EvalScorecard | null;
-}
-
-interface EvalsDashboardPayload {
-  suites: EvalSuite[];
-  recentRuns: EvalRun[];
-  scorecard: EvalScorecard | null;
-  targets: EvalTargetOption[];
-  apiKeys: EvalApiKeyOption[];
-}
-
-type BuilderStrategy = "contains" | "exact" | "regex";
-
-interface EvalCaseDraft {
-  id: string;
-  name: string;
-  model: string;
-  systemPrompt: string;
-  userPrompt: string;
-  strategy: BuilderStrategy;
-  expectedValue: string;
-  tags: string;
-}
-
-interface EvalSuiteDraft {
-  id?: string;
-  name: string;
-  description: string;
-  cases: EvalCaseDraft[];
-}
-
-interface ImportedEvalCase {
-  id?: string;
-  name?: string;
-  model?: string;
-  input?: {
-    messages?: Array<{ role?: string; content?: string }>;
-  };
-  expected?: {
-    strategy?: string;
-    value?: string;
-  };
-  tags?: string[];
-}
-
-interface ImportedEvalSuiteFile {
-  name?: string;
-  description?: string;
-  cases?: ImportedEvalCase[];
-}
-
-interface RunAllProgress {
-  current: number;
-  total: number;
-  suiteName: string;
-  completed: number;
-  failedSuites: number;
-}
-
-const STRATEGIES = [
-  {
-    name: "contains",
-    labelKey: "evalsStrategyContainsLabel",
-    icon: "search",
-    color: "text-sky-400",
-    bg: "bg-sky-500/10",
-    descriptionKey: "evalsStrategyContainsDescription",
-  },
-  {
-    name: "exact",
-    labelKey: "evalsStrategyExactLabel",
-    icon: "check_circle",
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10",
-    descriptionKey: "evalsStrategyExactDescription",
-  },
-  {
-    name: "regex",
-    labelKey: "evalsStrategyRegexLabel",
-    icon: "code",
-    color: "text-amber-400",
-    bg: "bg-amber-500/10",
-    descriptionKey: "evalsStrategyRegexDescription",
-  },
-  {
-    name: "custom",
-    labelKey: "evalsStrategyCustomLabel",
-    icon: "tune",
-    color: "text-violet-400",
-    bg: "bg-violet-500/10",
-    descriptionKey: "evalsStrategyCustomDescription",
-  },
-];
-
-const HISTORY_COLUMNS = [
-  { key: "suiteName", labelKey: "historyColumnSuiteName" },
-  { key: "target", labelKey: "historyColumnTarget" },
-  { key: "passRate", labelKey: "historyColumnPassRate" },
-  { key: "avgLatencyMs", labelKey: "historyColumnAvgLatencyMs" },
-  { key: "createdAt", labelKey: "historyColumnCreatedAt" },
-];
-
-const NO_COMPARE_TARGET = "__none__";
-const AUTO_API_KEY = "__auto__";
-
-function createDraftId() {
-  return `draft-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-function createEmptyCaseDraft(): EvalCaseDraft {
-  return {
-    id: createDraftId(),
-    name: "",
-    model: "",
-    systemPrompt: "",
-    userPrompt: "",
-    strategy: "contains",
-    expectedValue: "",
-    tags: "",
-  };
-}
-
-function createEmptySuiteDraft(): EvalSuiteDraft {
-  return {
-    name: "",
-    description: "",
-    cases: [createEmptyCaseDraft()],
-  };
-}
-
-function normalizeBuilderStrategy(value: unknown): BuilderStrategy {
-  return value === "exact" || value === "regex" ? value : "contains";
-}
-
-function joinPromptMessages(
-  messages: Array<{ role: string; content: string }> | undefined,
-  role: string
-): string {
-  return (messages || [])
-    .filter((message) => message.role === role && typeof message.content === "string")
-    .map((message) => message.content)
-    .join("\n\n");
-}
-
-function suiteToDraft(suite: EvalSuite): EvalSuiteDraft {
-  return {
-    id: suite.id,
-    name: suite.name || "",
-    description: suite.description || "",
-    cases:
-      suite.cases && suite.cases.length > 0
-        ? suite.cases.map((evalCase) => ({
-            id: evalCase.id || createDraftId(),
-            name: evalCase.name || "",
-            model: evalCase.model || "",
-            systemPrompt: joinPromptMessages(evalCase.input?.messages, "system"),
-            userPrompt:
-              joinPromptMessages(evalCase.input?.messages, "user") ||
-              (evalCase.input?.messages || [])
-                .filter((message) => message.role !== "system")
-                .map((message) => message.content)
-                .join("\n\n"),
-            strategy: normalizeBuilderStrategy(evalCase.expected?.strategy),
-            expectedValue: evalCase.expected?.value || "",
-            tags: (evalCase.tags || []).join(", "),
-          }))
-        : [createEmptyCaseDraft()],
-  };
-}
-
-function suiteToCloneDraft(
-  suite: EvalSuite,
-  t: (key: string, values?: Record<string, unknown>) => string
-): EvalSuiteDraft {
-  const draft = suiteToDraft(suite);
-  return {
-    name: `${draft.name || suite.id} ${t("suiteBuilderCloneSuffix")}`.trim(),
-    description: draft.description,
-    cases: draft.cases.map((evalCase) => ({
-      ...evalCase,
-      id: createDraftId(),
-      name: evalCase.name ? `${evalCase.name} ${t("suiteBuilderCloneSuffix")}`.trim() : "",
-    })),
-  };
-}
-
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "";
-}
-
-function getResultExpectedValue(result: EvalResult): string {
-  if (result.details?.expected) return String(result.details.expected);
-  if (result.details?.searchTerm) return String(result.details.searchTerm);
-  if (result.details?.pattern) return String(result.details.pattern);
-  return "—";
-}
-
-function getResultActualValue(result: EvalResult, output?: string): string {
-  const actual = output || result.details?.actual || result.details?.actualSnippet || "";
-  return typeof actual === "string" && actual.trim().length > 0 ? actual : "—";
-}
-
-function createDraftFromImportedSuite(
-  payload: ImportedEvalSuiteFile,
-  fallbackName: string
-): EvalSuiteDraft {
-  const cases = Array.isArray(payload.cases) ? payload.cases : [];
-
-  return {
-    name:
-      typeof payload.name === "string" && payload.name.trim().length > 0
-        ? payload.name.trim()
-        : fallbackName,
-    description: typeof payload.description === "string" ? payload.description : "",
-    cases:
-      cases.length > 0
-        ? cases.map((evalCase, index) => {
-            const importedMessages = evalCase.input?.messages;
-            const messages = Array.isArray(importedMessages)
-              ? importedMessages
-                  .map((message) => ({
-                    role: typeof message.role === "string" ? message.role : "",
-                    content: typeof message.content === "string" ? message.content : "",
-                  }))
-                  .filter((message) => message.role && message.content.trim())
-              : [];
-
-            return {
-              id: createDraftId(),
-              name:
-                typeof evalCase.name === "string" && evalCase.name.trim().length > 0
-                  ? evalCase.name.trim()
-                  : `Case ${index + 1}`,
-              model: typeof evalCase.model === "string" ? evalCase.model : "",
-              systemPrompt: joinPromptMessages(messages, "system"),
-              userPrompt:
-                joinPromptMessages(messages, "user") ||
-                messages
-                  .filter((message) => message.role !== "system")
-                  .map((message) => message.content)
-                  .join("\n\n"),
-              strategy: normalizeBuilderStrategy(evalCase.expected?.strategy),
-              expectedValue:
-                typeof evalCase.expected?.value === "string" ? evalCase.expected.value : "",
-              tags: Array.isArray(evalCase.tags) ? evalCase.tags.join(", ") : "",
-            };
-          })
-        : [createEmptyCaseDraft()],
-  };
-}
-
-function getTargetLabel(
-  target: { type: EvalTargetType; id: string | null },
-  t: (key: string, values?: Record<string, unknown>) => string
-): string {
-  if (target.type === "combo") {
-    return `${t("targetTypeCombo")}: ${target.id || "—"}`;
-  }
-
-  if (target.type === "model") {
-    return `${t("targetTypeModel")}: ${target.id || "—"}`;
-  }
-
-  return t("targetSuiteDefaults");
-}
-
-function parseTargetKey(value: string): { type: EvalTargetType; id: string | null } {
-  const [rawType, ...rawId] = value.split(":");
-  const idValue = rawId.join(":");
-
-  if (rawType === "combo") {
-    return { type: "combo", id: idValue || null };
-  }
-
-  if (rawType === "model") {
-    return { type: "model", id: idValue || null };
-  }
-
-  return { type: "suite-default", id: null };
-}
-
-function formatTimestamp(value: string): string {
-  try {
-    return new Intl.DateTimeFormat(undefined, {
-      dateStyle: "short",
-      timeStyle: "short",
-    }).format(new Date(value));
-  } catch {
-    return value;
-  }
-}
-
-function getResultDetails(
-  result: EvalResult,
-  t: (key: string, values?: Record<string, unknown>) => string
-): string {
-  if (result.error) {
-    return `${t("resultErrorLabel")}: ${result.error}`;
-  }
-
-  if (result.details?.searchTerm) {
-    return t("detailsContains", { term: result.details.searchTerm });
-  }
-
-  if (result.details?.pattern) {
-    return t("detailsRegex", { pattern: result.details.pattern });
-  }
-
-  if (result.details?.expected) {
-    return t("detailsExpected", {
-      expected: String(result.details.expected).slice(0, 60),
-    });
-  }
-
-  if (result.details?.actualSnippet) {
-    return t("actualOutputLabel", {
-      value: String(result.details.actualSnippet).slice(0, 60),
-    });
-  }
-
-  return "—";
-}
+import HeroSection from "./HeroSection";
+import SuiteBuilderModal from "./SuiteBuilderModal";
 
 export default function EvalsTab() {
   const t = useTranslations("usage");
@@ -737,10 +359,10 @@ export default function EvalsTab() {
         isEditing ? t("suiteBuilderUpdated") : t("suiteBuilderCreated"),
         t("notifyEvalTitle", { name: suiteName })
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       notify.error(
         t("notifyEvalRunFailedWithReason", {
-          reason: error?.message || t("notAvailableSymbol"),
+          reason: getErrorMessage(error) || t("notAvailableSymbol"),
         }),
         t("suiteBuilderSaveFailed")
       );
@@ -778,10 +400,10 @@ export default function EvalsTab() {
         t("suiteBuilderDeleted"),
         t("notifyEvalTitle", { name: suite.name || suite.id })
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       notify.error(
         t("notifyEvalRunFailedWithReason", {
-          reason: error?.message || t("notAvailableSymbol"),
+          reason: getErrorMessage(error) || t("notAvailableSymbol"),
         }),
         t("suiteBuilderDeleteFailed")
       );
@@ -976,10 +598,10 @@ export default function EvalsTab() {
           t("notifyEvalTitle", { name: suite.name || suite.id })
         );
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       notify.error(
         t("notifyEvalRunFailedWithReason", {
-          reason: error?.message || t("notAvailableSymbol"),
+          reason: getErrorMessage(error) || t("notAvailableSymbol"),
         }),
         t("notifyEvalTitle", { name: suite.name || suite.id })
       );
@@ -1843,305 +1465,5 @@ export default function EvalsTab() {
         t={t}
       />
     </div>
-  );
-}
-
-function HeroSection({ t }: { t: (key: string, values?: Record<string, unknown>) => string }) {
-  return (
-    <Card className="p-0 overflow-hidden">
-      <div
-        className="p-6"
-        style={{
-          background:
-            "linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(59, 130, 246, 0.05) 50%, rgba(16, 185, 129, 0.05) 100%)",
-        }}
-      >
-        <div className="flex items-start gap-4">
-          <div className="p-3 rounded-xl bg-violet-500/10 text-violet-500">
-            <span className="material-symbols-outlined text-[28px]">science</span>
-          </div>
-          <div className="flex-1">
-            <h2 className="text-xl font-bold text-text-main mb-1">{t("modelEvals")}</h2>
-            <p className="text-sm text-text-muted leading-relaxed max-w-2xl">
-              {t("evalsHeroDescription")}
-            </p>
-            <div className="flex flex-wrap items-center gap-4 mt-4">
-              <div className="flex items-center gap-1.5 text-xs text-text-muted">
-                <span className="material-symbols-outlined text-[16px] text-emerald-400">
-                  verified
-                </span>
-                {t("qualityValidation")}
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-text-muted">
-                <span className="material-symbols-outlined text-[16px] text-sky-400">compare</span>
-                {t("modelComparison")}
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-text-muted">
-                <span className="material-symbols-outlined text-[16px] text-amber-400">
-                  bug_report
-                </span>
-                {t("regressionDetection")}
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-text-muted">
-                <span className="material-symbols-outlined text-[16px] text-violet-400">speed</span>
-                {t("latencyBenchmarks")}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-function SuiteBuilderModal({
-  draft,
-  isOpen,
-  onChange,
-  onClose,
-  onSave,
-  saving,
-  t,
-}: {
-  draft: EvalSuiteDraft;
-  isOpen: boolean;
-  onChange: (next: EvalSuiteDraft) => void;
-  onClose: () => void;
-  onSave: () => void;
-  saving: boolean;
-  t: (key: string, values?: Record<string, unknown>) => string;
-}) {
-  const editableStrategies = STRATEGIES.filter((strategy) => strategy.name !== "custom");
-
-  function updateCase(caseId: string, patch: Partial<EvalCaseDraft>) {
-    onChange({
-      ...draft,
-      cases: draft.cases.map((entry) => (entry.id === caseId ? { ...entry, ...patch } : entry)),
-    });
-  }
-
-  function addCase() {
-    onChange({
-      ...draft,
-      cases: [...draft.cases, createEmptyCaseDraft()],
-    });
-  }
-
-  function removeCase(caseId: string) {
-    if (draft.cases.length <= 1) {
-      onChange({
-        ...draft,
-        cases: [createEmptyCaseDraft()],
-      });
-      return;
-    }
-
-    onChange({
-      ...draft,
-      cases: draft.cases.filter((entry) => entry.id !== caseId),
-    });
-  }
-
-  function duplicateCase(caseId: string) {
-    const source = draft.cases.find((entry) => entry.id === caseId);
-    if (!source) return;
-
-    const sourceIndex = draft.cases.findIndex((entry) => entry.id === caseId);
-    const duplicate = {
-      ...source,
-      id: createDraftId(),
-      name: source.name ? `${source.name} ${t("suiteBuilderCloneSuffix")}`.trim() : "",
-    };
-    const nextCases = [...draft.cases];
-    nextCases.splice(sourceIndex + 1, 0, duplicate);
-    onChange({
-      ...draft,
-      cases: nextCases,
-    });
-  }
-
-  function getExpectedPlaceholder(strategy: BuilderStrategy) {
-    if (strategy === "exact") return t("suiteBuilderCaseExpectedPlaceholderExact");
-    if (strategy === "regex") return t("suiteBuilderCaseExpectedPlaceholderRegex");
-    return t("suiteBuilderCaseExpectedPlaceholderContains");
-  }
-
-  function getExpectedHint(strategy: BuilderStrategy) {
-    if (strategy === "regex") return t("suiteBuilderCaseExpectedHintRegex");
-    return undefined;
-  }
-
-  return (
-    <Modal
-      isOpen={isOpen}
-      title={draft.id ? t("suiteBuilderEditTitle") : t("suiteBuilderCreateTitle")}
-      onClose={onClose}
-    >
-      <div className="flex max-h-[75vh] flex-col gap-4 overflow-y-auto pr-1">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Input
-            label={t("suiteBuilderNameLabel")}
-            value={draft.name}
-            onChange={(event) => onChange({ ...draft, name: event.target.value })}
-            placeholder={t("suiteBuilderNamePlaceholder")}
-          />
-          <Input
-            label={t("suiteBuilderDescriptionLabel")}
-            value={draft.description}
-            onChange={(event) => onChange({ ...draft, description: event.target.value })}
-            placeholder={t("suiteBuilderDescriptionPlaceholder")}
-          />
-        </div>
-
-        <div className="rounded-xl border border-border/20 bg-surface/20 p-4">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h4 className="text-sm font-semibold text-text-main">
-                {t("suiteBuilderCasesTitle")}
-              </h4>
-              <p className="text-xs text-text-muted">{t("suiteBuilderCasesHint")}</p>
-            </div>
-            <Button icon="add" variant="secondary" onClick={addCase}>
-              {t("suiteBuilderAddCase")}
-            </Button>
-          </div>
-        </div>
-
-        {draft.cases.map((draftCase, index) => {
-          const selectedStrategy = editableStrategies.find(
-            (strategy) => strategy.name === draftCase.strategy
-          );
-
-          return (
-            <Card key={draftCase.id} className="p-4">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div>
-                  <h4 className="text-sm font-semibold text-text-main">
-                    {t("suiteBuilderCaseCardTitle", { index: index + 1 })}
-                  </h4>
-                  <p className="text-xs text-text-muted">
-                    {t("suiteBuilderCaseCardHint", { index: index + 1 })}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    icon="content_copy"
-                    onClick={() => duplicateCase(draftCase.id)}
-                  >
-                    {t("suiteBuilderDuplicateCase")}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    icon="delete"
-                    onClick={() => removeCase(draftCase.id)}
-                  >
-                    {t("delete")}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <Input
-                  label={t("suiteBuilderCaseNameLabel")}
-                  value={draftCase.name}
-                  onChange={(event) => updateCase(draftCase.id, { name: event.target.value })}
-                  placeholder={t("suiteBuilderCaseNamePlaceholder")}
-                />
-                <Input
-                  label={t("suiteBuilderCaseModelLabel")}
-                  value={draftCase.model}
-                  onChange={(event) => updateCase(draftCase.id, { model: event.target.value })}
-                  placeholder={t("suiteBuilderCaseModelPlaceholder")}
-                />
-                <Input
-                  label={t("suiteBuilderCaseTagsLabel")}
-                  value={draftCase.tags}
-                  onChange={(event) => updateCase(draftCase.id, { tags: event.target.value })}
-                  placeholder={t("suiteBuilderCaseTagsPlaceholder")}
-                  hint={t("suiteBuilderCaseTagsHint")}
-                />
-                <Select
-                  label={t("suiteBuilderCaseStrategyLabel")}
-                  value={draftCase.strategy}
-                  onChange={(event) =>
-                    updateCase(draftCase.id, { strategy: event.target.value as BuilderStrategy })
-                  }
-                  options={editableStrategies.map((strategy) => ({
-                    value: strategy.name,
-                    label: t(strategy.labelKey),
-                  }))}
-                />
-                {selectedStrategy && (
-                  <div
-                    className={`flex items-start gap-2 rounded-lg px-3 py-2 ${selectedStrategy.bg}`}
-                  >
-                    <span
-                      className={`material-symbols-outlined mt-0.5 text-[18px] ${selectedStrategy.color}`}
-                    >
-                      {selectedStrategy.icon}
-                    </span>
-                    <p className="text-xs leading-relaxed text-text-muted">
-                      {t(selectedStrategy.descriptionKey)}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-4 grid grid-cols-1 gap-4">
-                <label className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-text-main">
-                    {t("suiteBuilderCaseSystemPromptLabel")}
-                  </span>
-                  <textarea
-                    value={draftCase.systemPrompt}
-                    onChange={(event) =>
-                      updateCase(draftCase.id, { systemPrompt: event.target.value })
-                    }
-                    rows={3}
-                    placeholder={t("suiteBuilderCaseSystemPromptPlaceholder")}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-main outline-none focus:border-primary"
-                  />
-                </label>
-                <label className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-text-main">
-                    {t("suiteBuilderCaseUserPromptLabel")}
-                  </span>
-                  <textarea
-                    value={draftCase.userPrompt}
-                    onChange={(event) =>
-                      updateCase(draftCase.id, { userPrompt: event.target.value })
-                    }
-                    rows={4}
-                    placeholder={t("suiteBuilderCaseUserPromptPlaceholder")}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-main outline-none focus:border-primary"
-                  />
-                </label>
-                <Input
-                  label={t("suiteBuilderCaseExpectedLabel")}
-                  value={draftCase.expectedValue}
-                  onChange={(event) =>
-                    updateCase(draftCase.id, { expectedValue: event.target.value })
-                  }
-                  placeholder={getExpectedPlaceholder(draftCase.strategy)}
-                  hint={getExpectedHint(draftCase.strategy)}
-                />
-              </div>
-            </Card>
-          );
-        })}
-
-        <div className="flex gap-2">
-          <Button fullWidth onClick={onSave} disabled={saving}>
-            {saving ? t("saving") : draft.id ? t("save") : t("suiteBuilderCreateAction")}
-          </Button>
-          <Button fullWidth variant="ghost" onClick={onClose} disabled={saving}>
-            {t("cancel")}
-          </Button>
-        </div>
-      </div>
-    </Modal>
   );
 }
