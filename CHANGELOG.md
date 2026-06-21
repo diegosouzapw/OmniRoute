@@ -45,6 +45,7 @@ _In development — bullets added per PR; finalized at release._
 
 ### 🐛 Fixed
 
+- **fix(sse): combo routing now skips a provider whose credentials are all disabled instead of failing the whole request** — when a combo like `antigravity/opus → github/opus` hit a leg whose only configured connections were disabled (or where no connections existed at all), `handleNoCredentials` returned `400 BAD_REQUEST`, which the combo target loop treats as a hard stop (combo's 400-break guard from PR #4316 / issue #4279 prevents infinite fallback loops on body-specific 4xx errors). The combo therefore died on the first leg even when later targets were perfectly healthy. The no-active-credentials branch now returns `404 NOT_FOUND` with `"No active credentials for provider: <p>"` instead — `404` flows through `checkFallbackError` as `shouldFallback: true` (generic-error catch-all path in `open-sse/services/accountFallback.ts`), so the next combo target is tried. The log level for this branch also drops from `error` to `warn` because zero active credentials is an expected operator-driven state, not a server fault. Inspired-by upstream decolua/9router PR #336. (thanks @East-rayyy)
 - **fix(embeddings):** forward output dimensions to Gemini for consistent embedding dims. (thanks @nguyenha935)
 - **fix(translator):** sanitize Read tool args from non-Anthropic models to prevent retry loops. (thanks @GodrezJr2)
 - **fix(usage):** reuse Gemini CLI project ID for quota checks (avoid re-discovery). (thanks @Delcado19)

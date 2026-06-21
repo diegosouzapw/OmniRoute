@@ -247,6 +247,19 @@ test("checkPipelineGates reapplies runtime breaker settings to existing breakers
 });
 
 test("handleNoCredentials reports missing provider credentials and exhausted accounts", async () => {
+  // Ported from upstream decolua/9router#336 (Ibrahim Ryan): when a provider has
+  // zero usable connections (all disabled, or none configured at all), the
+  // historical 400 BAD_REQUEST classified the failure as non-fallbackable, so a
+  // combo like `antigravity/opus → github/opus` died on the first leg with a
+  // hard 400 even though the next combo target was perfectly healthy.
+  //
+  // The combo target loop (open-sse/services/combo.ts) deliberately breaks on
+  // 400 to prevent infinite fallback loops with body-specific 4xx errors
+  // (#4279/PR#4316). 404 NOT_FOUND, by contrast, flows through checkFallbackError
+  // as `shouldFallback: true` (generic-error catch-all path,
+  // open-sse/services/accountFallback.ts:1593-1599) so the next combo target is
+  // tried. We surface "no active credentials" as 404 so combo can skip past a
+  // disabled-credentials provider instead of failing the whole request.
   const missing = handleNoCredentials(null, null, "openai", "gpt-4o-mini", null, null);
   const exhausted = handleNoCredentials(
     null,
@@ -260,8 +273,8 @@ test("handleNoCredentials reports missing provider credentials and exhausted acc
   const missingJson = (await missing.json()) as any;
   const exhaustedJson = (await exhausted.json()) as any;
 
-  assert.equal(missing.status, 400);
-  assert.match(missingJson.error.message, /No credentials for provider: openai/);
+  assert.equal(missing.status, 404);
+  assert.match(missingJson.error.message, /No active credentials for provider: openai/);
   assert.equal(exhausted.status, 500);
   assert.match(exhaustedJson.error.message, /Primary account failed/);
 });
