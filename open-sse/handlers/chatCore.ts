@@ -258,7 +258,7 @@ import {
   getDegradedModel,
   getBackgroundDegradationConfig,
 } from "../services/backgroundTaskDetector.ts";
-import type { CompressionConfig } from "../services/compression/types.ts";
+import type { CompressionConfig, CompressionPipelineStep } from "../services/compression/types.ts";
 import { prepareWebSearchFallbackBody } from "../services/webSearchFallback.ts";
 import {
   resolveExplicitStreamAlias,
@@ -1430,6 +1430,7 @@ export async function handleChatCore({
         selectCompressionStrategy,
         selectCompressionPlan,
         enginesMapDerivesStackedPipeline,
+        activeComboResolves,
         applyCompressionAsync,
         resolveCacheAwareConfig,
       } = await import("../services/compression/strategySelector.ts");
@@ -1599,12 +1600,23 @@ export async function handleChatCore({
           );
         }
       }
+      let namedCombos: Record<string, CompressionPipelineStep[]> = {};
+      try {
+        const { listCompressionCombos } = await import("../../src/lib/db/compressionCombos.ts");
+        namedCombos = Object.fromEntries(listCompressionCombos().map((c) => [c.id, c.pipeline]));
+      } catch (err) {
+        log?.debug?.(
+          "COMPRESSION",
+          "Named combos load skipped: " + (err instanceof Error ? err.message : String(err))
+        );
+      }
       const modeBeforeOutputTransform = selectCompressionStrategy(
         config,
         compressionComboKey,
         estimatedTokens,
         body as Record<string, unknown>,
-        { provider, targetFormat, model: effectiveModel }
+        { provider, targetFormat, model: effectiveModel },
+        namedCombos
       );
       if (
         modeBeforeOutputTransform === "stacked" &&
@@ -1615,7 +1627,9 @@ export async function handleChatCore({
         // operator's explicit engines derive their own stacked pipeline, that pipeline (applied
         // below from compressionPlan.stackedPipeline) is authoritative. Legacy/backfilled
         // installs (enginesExplicit false) still fall through to the seeded default combo.
-        !enginesMapDerivesStackedPipeline(config)
+        !enginesMapDerivesStackedPipeline(config) &&
+        // Never let the legacy seeded default combo shadow the operator's active profile.
+        !activeComboResolves(config, namedCombos)
       ) {
         try {
           const { getDefaultCompressionCombo } =
@@ -1670,7 +1684,8 @@ export async function handleChatCore({
         compressionComboKey,
         estimatedTokens,
         compressionInputBody,
-        { provider, targetFormat, model: effectiveModel }
+        { provider, targetFormat, model: effectiveModel },
+        namedCombos
       );
       const mode = compressionPlan.mode as CompressionConfig["defaultMode"];
       // When the per-engine toggle map derives a stacked pipeline (and no named/routing
