@@ -462,7 +462,7 @@ export const webSearchTool: McpToolDefinition<typeof webSearchInput, typeof webS
 // --- Tool 10: omniroute_web_fetch ---
 export const webFetchInput = z.object({
   url: z
-    .string()
+    .string({ error: "URL is required" })
     .min(1, "URL is required")
     .describe("The URL to fetch content from"),
   provider: z
