@@ -78,8 +78,7 @@ export type CompatModelRow = {
   isHidden?: boolean;
   upstreamHeaders?: Record<string, string>;
   compatByProtocol?: CompatByProtocolMap;
-  /** #2905: per-model upstream wire-format override (e.g. Anthropic Messages). */
-  targetFormat?: string;
+  /** #2905: per-model upstream wire-format override. */ targetFormat?: string;
 };
 
 export type CompatModelMap = Map<string, CompatModelRow>;
