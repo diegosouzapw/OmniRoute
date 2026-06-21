@@ -27,6 +27,19 @@ import { extractApiKey } from "@/sse/services/auth";
 import { getApiKeyMetadata } from "@/lib/db/apiKeys";
 
 /**
+ * Force this route to run dynamically per-request and never be cached/prerendered.
+ * Combined with the `Cache-Control: no-store` response header below, this keeps
+ * persisted settings (e.g. dashboard preferences, debugMode, hidden sidebar
+ * items) visible immediately after refresh or restart instead of falling back
+ * to stale Next.js fetch cache. Ported from upstream decolua/9router#951.
+ */
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+/** Response headers applied to every successful GET/PATCH on /api/settings. */
+const SETTINGS_RESPONSE_HEADERS = { "Cache-Control": "no-store" } as const;
+
+/**
  * Settings keys whose change broadens attack surface. Spec §Security:
  * password re-auth is required when any of these is present in a PATCH body.
  *
@@ -162,19 +175,22 @@ export async function GET(request: Request) {
       // best effort — don't fail GET /api/settings if this lookup fails
     }
 
-    return NextResponse.json({
-      ...safeSettings,
-      hasPassword: hasManagementPasswordConfigured(settings),
-      runtimePorts,
-      apiPort: runtimePorts.apiPort,
-      dashboardPort: runtimePorts.dashboardPort,
-      cloudConfigured: Boolean(cloudUrl),
-      cloudUrl,
-      machineId,
-      ...(cliproxyapiModelMapping !== null
-        ? { cliproxyapi_model_mapping: cliproxyapiModelMapping }
-        : {}),
-    });
+    return NextResponse.json(
+      {
+        ...safeSettings,
+        hasPassword: hasManagementPasswordConfigured(settings),
+        runtimePorts,
+        apiPort: runtimePorts.apiPort,
+        dashboardPort: runtimePorts.dashboardPort,
+        cloudConfigured: Boolean(cloudUrl),
+        cloudUrl,
+        machineId,
+        ...(cliproxyapiModelMapping !== null
+          ? { cliproxyapi_model_mapping: cliproxyapiModelMapping }
+          : {}),
+      },
+      { headers: SETTINGS_RESPONSE_HEADERS }
+    );
   } catch (error) {
     console.log("Error getting settings:", error);
     return NextResponse.json({ error: "Failed to load settings" }, { status: 500 });
@@ -376,7 +392,7 @@ export async function PATCH(request: Request) {
     }
 
     const { password, ...safeSettings } = settings;
-    return NextResponse.json(safeSettings);
+    return NextResponse.json(safeSettings, { headers: SETTINGS_RESPONSE_HEADERS });
   } catch (error) {
     console.log("Error updating settings:", error);
     return NextResponse.json({ error: "Failed to update settings" }, { status: 500 });
