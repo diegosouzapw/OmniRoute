@@ -6,7 +6,7 @@ import { backupDbFile } from "./backup";
 import { DATA_DIR, SQLITE_FILE, getDbInstance } from "./core";
 import { invalidateDbCache } from "./readCache";
 import { getDatabaseStats } from "./stats";
-import { getVacuumSchedulerState } from "./vacuumScheduler";
+import { getState as getVacuumSchedulerState } from "./vacuumScheduler";
 
 const DATABASE_SETTINGS_NAMESPACE = "databaseSettings";
 
