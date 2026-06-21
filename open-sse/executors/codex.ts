@@ -58,39 +58,6 @@ type ResponsesMessageInput = {
   content?: unknown;
 };
 
-const CODEX_RESPONSES_BODY_ORDER = [
-  "model",
-  "stream",
-  "input",
-  "instructions",
-  "store",
-  "reasoning",
-  "prompt_cache_key",
-  "include",
-  "previous_response_id",
-  "client_metadata",
-  "tools",
-  "tool_choice",
-  "service_tier",
-  "text",
-  "_omnirouteResponsesStore",
-];
-
-function orderCodexResponsesBody(body: Record<string, unknown>): Record<string, unknown> {
-  const ordered: Record<string, unknown> = {};
-  for (const key of CODEX_RESPONSES_BODY_ORDER) {
-    if (Object.prototype.hasOwnProperty.call(body, key)) {
-      ordered[key] = body[key];
-    }
-  }
-  for (const key of Object.keys(body)) {
-    if (!Object.prototype.hasOwnProperty.call(ordered, key)) {
-      ordered[key] = body[key];
-    }
-  }
-  return ordered;
-}
-
 let _websocketFn: WebsocketFn | null = null;
 let _wreqChecked = false;
 let _websocketOverride: WebsocketFn | null | undefined;
@@ -1432,7 +1399,7 @@ export class CodexExecutor extends BaseExecutor {
     delete body.conversation_id;
 
     if (nativeCodexPassthrough) {
-      return orderCodexResponsesBody(body);
+      return body;
     }
 
     // GPT-5 verbosity: fold Chat-style `verbosity` / Responses `text.verbosity` into a
@@ -1446,7 +1413,25 @@ export class CodexExecutor extends BaseExecutor {
     // `max_completion_tokens`, and `parallel_tool_calls` — causing gpt-5.5 to
     // reject with "routing_unsupported" (400). An allowlist is future-proof:
     // any unknown field from Chat Completions (or other formats) is stripped.
-    const RESPONSES_API_ALLOWLIST = new Set(CODEX_RESPONSES_BODY_ORDER);
+    const RESPONSES_API_ALLOWLIST = new Set([
+      "model",
+      "input",
+      "instructions",
+      "tools",
+      "tool_choice",
+      "stream",
+      "store",
+      "reasoning",
+      "service_tier",
+      "include",
+      "previous_response_id",
+      "prompt_cache_key",
+      "client_metadata",
+      // GPT-5 output verbosity ({ verbosity } — normalized above by normalizeCodexVerbosity).
+      "text",
+      // Internal markers used by OmniRoute pipeline
+      "_omnirouteResponsesStore",
+    ]);
 
     for (const key of Object.keys(body)) {
       if (!RESPONSES_API_ALLOWLIST.has(key)) {
@@ -1454,6 +1439,6 @@ export class CodexExecutor extends BaseExecutor {
       }
     }
 
-    return orderCodexResponsesBody(body);
+    return body;
   }
 }
