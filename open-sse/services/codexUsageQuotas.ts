@@ -113,6 +113,53 @@ function findCodexSparkRateLimit(data: JsonRecord): JsonRecord {
   return {};
 }
 
+/**
+ * Upstream parity (decolua/9router PR #836): some ChatGPT Codex plans report
+ * the review-window rate limit inside `additional_rate_limits` rather than the
+ * dedicated `code_review_rate_limit` block. Detect that descriptor so the
+ * caller can fall back to it when the dedicated block is empty.
+ */
+function isCodexReviewLimitDescriptor(...values: unknown[]): boolean {
+  return values.some((value) => {
+    if (typeof value !== "string") return false;
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) return false;
+    return (
+      normalized === "code_review" ||
+      normalized === "codex_review" ||
+      normalized === "review" ||
+      normalized.includes("code_review") ||
+      normalized.includes("codex_review") ||
+      normalized.includes("code review")
+    );
+  });
+}
+
+function findCodexReviewRateLimit(data: JsonRecord): JsonRecord {
+  const additionalRateLimits = getFieldValue(
+    data,
+    "additional_rate_limits",
+    "additionalRateLimits"
+  );
+  if (!Array.isArray(additionalRateLimits)) return {};
+
+  for (const entryValue of additionalRateLimits) {
+    const entry = toRecord(entryValue);
+    if (
+      isCodexReviewLimitDescriptor(
+        getFieldValue(entry, "limit_name", "limitName"),
+        getFieldValue(entry, "metered_feature", "meteredFeature"),
+        getFieldValue(entry, "limit_id", "limitId"),
+        entry["id"],
+        entry["name"]
+      )
+    ) {
+      return toRecord(getFieldValue(entry, "rate_limit", "rateLimit"));
+    }
+  }
+  return {};
+}
+
 export function buildCodexUsageQuotas(dataValue: unknown): {
   rateLimit: JsonRecord;
   quotas: Record<string, CodexUsageQuota>;
@@ -128,18 +175,39 @@ export function buildCodexUsageQuotas(dataValue: unknown): {
   if (Object.keys(secondaryWindow).length > 0)
     quotas.weekly = buildPercentageQuota(secondaryWindow);
 
+  // Resolve the code-review rate limit block. ChatGPT Codex exposes the same
+  // information under two different shapes depending on the plan tier
+  // (decolua/9router PR #836):
+  //   1. Dedicated `code_review_rate_limit` block at the top level (preferred).
+  //   2. An entry inside `additional_rate_limits` with a `code_review` /
+  //      `review` descriptor (fallback for plans that bucket every secondary
+  //      limit into the same array).
+  const dedicatedReviewRateLimit = toRecord(
+    getFieldValue(data, "code_review_rate_limit", "codeReviewRateLimit")
+  );
+  const reviewRateLimit =
+    Object.keys(dedicatedReviewRateLimit).length > 0
+      ? dedicatedReviewRateLimit
+      : findCodexReviewRateLimit(data);
+
   const codeReviewWindow = toRecord(
-    getFieldValue(
-      toRecord(getFieldValue(data, "code_review_rate_limit", "codeReviewRateLimit")),
-      "primary_window",
-      "primaryWindow"
-    )
+    getFieldValue(reviewRateLimit, "primary_window", "primaryWindow")
   );
   if (
     getFieldValue(codeReviewWindow, "used_percent", "usedPercent") !== null ||
     getFieldValue(codeReviewWindow, "remaining_count", "remainingCount") !== null
   ) {
     quotas.code_review = buildPercentageQuota(codeReviewWindow);
+  }
+
+  const codeReviewSecondaryWindow = toRecord(
+    getFieldValue(reviewRateLimit, "secondary_window", "secondaryWindow")
+  );
+  if (
+    getFieldValue(codeReviewSecondaryWindow, "used_percent", "usedPercent") !== null ||
+    getFieldValue(codeReviewSecondaryWindow, "remaining_count", "remainingCount") !== null
+  ) {
+    quotas.code_review_weekly = buildPercentageQuota(codeReviewSecondaryWindow);
   }
 
   const sparkRateLimit = findCodexSparkRateLimit(data);
