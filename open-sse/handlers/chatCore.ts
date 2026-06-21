@@ -126,6 +126,16 @@ import { updateProviderConnection, getProviderConnectionById } from "@/lib/db/pr
 import { wasRefreshTokenRotated } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import { connectionHasExtraKeys } from "../services/apiKeyRotator.ts";
 import { recordKeyHealthStatus as recordKeyHealthStatusFor } from "./chatCore/keyHealth.ts";
+import { getSkillsModelIdForFormat } from "./chatCore/skillsFormat.ts";
+import { readNonStreamingResponseBody } from "./chatCore/nonStreamingResponseBody.ts";
+import {
+  isSemaphoreCapacityError,
+  createStreamingErrorResult,
+  getUpstreamErrorIdentifier,
+} from "./chatCore/streamErrorResult.ts";
+import { wrapReadableStreamWithFinalize } from "./chatCore/streamFinalize.ts";
+import { buildCacheUsageLogMeta, attachLogMeta } from "./chatCore/cacheUsageMeta.ts";
+import { buildExecutorClientHeaders } from "./chatCore/executorClientHeaders.ts";
 
 import {
   getCallLogPipelineCaptureStreamChunks,
@@ -278,222 +288,6 @@ import { incrementRequestCount } from "../services/geminiRateLimitTracker.ts";
 
 import { isSmallEnoughForSemanticCache } from "../utils/estimateSize.ts";
 
-function getSkillsProviderForFormat(format: string): "openai" | "anthropic" | "google" | "other" {
-  switch (format) {
-    case FORMATS.CLAUDE:
-      return "anthropic";
-    case FORMATS.GEMINI:
-      return "google";
-    default:
-      return "openai";
-  }
-}
-
-function getSkillsModelIdForFormat(format: string): string {
-  switch (format) {
-    case FORMATS.CLAUDE:
-      return "claude";
-    case FORMATS.GEMINI:
-      return "gemini";
-    default:
-      return "openai";
-  }
-}
-
-async function readNonStreamingResponseBody(
-  response: Response,
-  contentType: string,
-  upstreamStream: boolean
-): Promise<string> {
-  if (
-    !upstreamStream ||
-    !response.body ||
-    (!contentType.includes("text/event-stream") && !contentType.includes("application/x-ndjson"))
-  ) {
-    return withBodyTimeout<string>(response.text());
-  }
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  const terminalState: NonStreamingSseTerminalState = {
-    currentEvent: "",
-    pendingLine: "",
-  };
-  let rawBody = "";
-  const deadline = FETCH_BODY_TIMEOUT_MS > 0 ? Date.now() + FETCH_BODY_TIMEOUT_MS : 0;
-
-  try {
-    while (true) {
-      const timeoutMs = deadline > 0 ? deadline - Date.now() : 0;
-      if (deadline > 0 && timeoutMs <= 0) {
-        throw createBodyTimeoutError(FETCH_BODY_TIMEOUT_MS);
-      }
-
-      const { done, value } = await readStreamChunkWithTimeout(reader, timeoutMs);
-      if (done) break;
-      if (!value) continue;
-
-      const decodedChunk = decoder.decode(value, { stream: true });
-      rawBody += decodedChunk;
-      if (appendNonStreamingSseTerminalSignal(terminalState, decodedChunk)) {
-        await reader.cancel("non-streaming bridge consumed terminal SSE event").catch(() => {});
-        break;
-      }
-    }
-  } catch (error) {
-    await reader.cancel(error).catch(() => {});
-    throw error;
-  } finally {
-    rawBody += decoder.decode();
-    reader.releaseLock();
-  }
-
-  return rawBody;
-}
-
-function isSemaphoreCapacityError(error: unknown): error is Error & { code: string } {
-  return (
-    !!error &&
-    typeof error === "object" &&
-    ((error as { code?: unknown }).code === "SEMAPHORE_TIMEOUT" ||
-      (error as { code?: unknown }).code === "SEMAPHORE_QUEUE_FULL")
-  );
-}
-
-function createStreamingErrorResult(
-  statusCode: number,
-  message: string,
-  code?: string,
-  type?: string
-) {
-  const errorBody = buildErrorBody(statusCode, message);
-  if (code) {
-    errorBody.error.code = code;
-  }
-  if (type) {
-    errorBody.error.type = type;
-  }
-
-  const body = `data: ${JSON.stringify(errorBody)}\n\ndata: [DONE]\n\n`;
-
-  return {
-    success: false as const,
-    status: statusCode,
-    error: message,
-    response: new Response(body, {
-      status: statusCode,
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache, no-transform",
-        Connection: "keep-alive",
-        "X-Accel-Buffering": "no",
-      },
-    }),
-  };
-}
-
-function getUpstreamErrorIdentifier(error: unknown): string | undefined {
-  if (!error || typeof error !== "object") return undefined;
-  const value = (error as { code?: unknown }).code;
-  return typeof value === "string" && value.length > 0 ? value : undefined;
-}
-
-function wrapReadableStreamWithFinalize<T>(
-  readable: ReadableStream<T>,
-  finalize: () => void
-): ReadableStream<T> {
-  const reader = readable.getReader();
-  let finalized = false;
-
-  const runFinalize = () => {
-    if (finalized) return;
-    finalized = true;
-    finalize();
-  };
-
-  return new ReadableStream<T>({
-    async pull(controller) {
-      try {
-        const { done, value } = await reader.read();
-        if (done) {
-          runFinalize();
-          controller.close();
-          return;
-        }
-        controller.enqueue(value);
-      } catch (error) {
-        runFinalize();
-        controller.error(error);
-      }
-    },
-
-    async cancel(reason) {
-      runFinalize();
-      try {
-        await reader.cancel(reason);
-      } catch (error) {
-        // Ignored
-      }
-    },
-  });
-}
-
-function toPositiveNumber(value: unknown) {
-  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : 0;
-}
-
-function buildCacheUsageLogMeta(usage: Record<string, unknown> | null | undefined) {
-  if (!usage || typeof usage !== "object") return null;
-  const promptTokenDetails =
-    usage.prompt_tokens_details && typeof usage.prompt_tokens_details === "object"
-      ? (usage.prompt_tokens_details as Record<string, unknown>)
-      : undefined;
-  const hasCacheFields =
-    "cache_read_input_tokens" in usage ||
-    "cached_tokens" in usage ||
-    "cache_creation_input_tokens" in usage ||
-    (!!promptTokenDetails &&
-      ("cached_tokens" in promptTokenDetails || "cache_creation_tokens" in promptTokenDetails));
-  const cacheReadTokens = toPositiveNumber(
-    usage.cache_read_input_tokens ?? usage.cached_tokens ?? promptTokenDetails?.cached_tokens
-  );
-  const cacheCreationTokens = toPositiveNumber(
-    usage.cache_creation_input_tokens ?? promptTokenDetails?.cache_creation_tokens
-  );
-  if (!hasCacheFields) return null;
-  return {
-    cacheReadTokens,
-    cacheCreationTokens,
-  };
-}
-
-function attachLogMeta(
-  payload: Record<string, unknown> | null | undefined,
-  meta: Record<string, unknown> | null | undefined
-) {
-  if (!meta || typeof meta !== "object") return payload;
-  const compactMeta = Object.fromEntries(
-    Object.entries(meta).filter(([, value]) => value !== null && value !== undefined)
-  );
-  if (Object.keys(compactMeta).length === 0) return payload;
-  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-    return { _omniroute: compactMeta, _payload: payload ?? null };
-  }
-  const existing =
-    payload._omniroute &&
-    typeof payload._omniroute === "object" &&
-    !Array.isArray(payload._omniroute)
-      ? payload._omniroute
-      : {};
-  return {
-    ...payload,
-    _omniroute: {
-      ...existing,
-      ...compactMeta,
-    },
-  };
-}
-
 /**
  * Core chat handler - shared between SSE and Worker
  * Returns { success, response, status, error } for caller to handle fallback
@@ -513,33 +307,6 @@ function attachLogMeta(
  * @param {boolean} options.isCombo - Whether this request is from a combo
  * @param {string} options.connectionId - Connection ID for settings lookup
  */
-
-function buildExecutorClientHeaders(
-  headers: Headers | Record<string, unknown> | null | undefined,
-  userAgent?: string | null
-) {
-  const normalized: Record<string, string> = {};
-
-  if (headers instanceof Headers) {
-    headers.forEach((value, key) => {
-      normalized[key] = value;
-    });
-  } else if (headers && typeof headers === "object") {
-    for (const [key, value] of Object.entries(headers)) {
-      if (typeof value === "string") {
-        normalized[key] = value;
-      }
-    }
-  }
-
-  const normalizedUserAgent = typeof userAgent === "string" ? userAgent.trim() : "";
-  if (normalizedUserAgent && !normalized["user-agent"] && !normalized["User-Agent"]) {
-    normalized["user-agent"] = normalizedUserAgent;
-    normalized["User-Agent"] = normalizedUserAgent;
-  }
-
-  return Object.keys(normalized).length > 0 ? normalized : null;
-}
 
 // extractSystemRoleMessages extracted to chatCore/claudeSystemRole.ts (#3501); re-exported above so
 // existing importers (e.g. tests/unit/system-role-extraction.test.ts) keep resolving it from here.
