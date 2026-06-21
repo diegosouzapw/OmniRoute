@@ -71,11 +71,8 @@ import {
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { createPreparedRequestLogger, runWithCapture } from "../utils/providerRequestLogging.ts";
 import { applyResponsesPreviousResponseIdPolicy } from "../utils/responsesStatePolicy.ts";
-import {
-  getModelTargetFormat,
-  PROVIDER_ID_TO_ALIAS,
-  splitClaudeEffortSuffix,
-} from "../config/providerModels.ts";
+import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
+import { applyClaudeEffortVariant } from "./chatCore/claudeEffortVariant.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../config/defaultThinkingSignature.ts";
 import {
   getStripTypesForProviderModel,
@@ -873,30 +870,18 @@ export async function handleChatCore({
   // it into Claude thinking/effort config. An explicit client-supplied effort always
   // wins; native Claude passthrough is left untouched (it carries its own `thinking`),
   // and non-thinking base models are cleaned up later by normalizeThinkingForModel().
-  if (
-    (provider === "claude" || isClaudeCodeCompatibleProvider(provider)) &&
-    typeof effectiveModel === "string"
-  ) {
-    const { baseModel, effort } = splitClaudeEffortSuffix(effectiveModel);
-    if (effort) {
-      effectiveModel = baseModel;
-      if (body && typeof body === "object" && !Array.isArray(body)) {
-        const claudeBody = body as Record<string, unknown>;
-        claudeBody.model = baseModel;
-        if (sourceFormat !== FORMATS.CLAUDE) {
-          const explicitEffort =
-            claudeBody.reasoning_effort ??
-            (claudeBody.reasoning as Record<string, unknown> | undefined)?.effort ??
-            (claudeBody.output_config as Record<string, unknown> | undefined)?.effort;
-          if (explicitEffort === undefined || explicitEffort === null || explicitEffort === "") {
-            claudeBody.reasoning_effort = effort;
-          }
-        }
-      }
-      log?.info?.(
-        "PARAMS",
-        `Claude effort variant: stripped "-${effort}" → ${baseModel} (reasoning_effort=${effort})`
-      );
+  // Extracted to chatCore/claudeEffortVariant.ts (#3501); mutates body in place and returns the
+  // stripped model + an optional log line, keeping behaviour byte-identical.
+  {
+    const effortVariant = applyClaudeEffortVariant({
+      provider,
+      effectiveModel,
+      body,
+      sourceFormat,
+    });
+    effectiveModel = effortVariant.effectiveModel;
+    if (effortVariant.log) {
+      log?.info?.("PARAMS", effortVariant.log);
     }
   }
 
