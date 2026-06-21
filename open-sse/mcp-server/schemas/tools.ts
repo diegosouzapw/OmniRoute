@@ -483,8 +483,9 @@ export const webFetchInput = z.object({
     .number()
     .int()
     .min(0)
+    .max(2)
     .optional()
-    .describe("Crawl depth for Firecrawl (0 = single page)"),
+    .describe("Crawl depth for Firecrawl (0 = single page, max 2)"),
   wait_for_selector: z
     .string()
     .optional()
