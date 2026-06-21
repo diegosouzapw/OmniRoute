@@ -2445,6 +2445,21 @@ export const APIKEY_PROVIDERS = {
     apiHint:
       "TokenRouter exposes an OpenAI-compatible chat completions endpoint at https://api.tokenrouter.com/v1/chat/completions, plus a working /v1/models catalog. OmniRoute uses the OpenAI protocol.",
   },
+  bazaarlink: {
+    id: "bazaarlink",
+    alias: "bzl",
+    name: "BazaarLink",
+    icon: "storefront",
+    color: "#6366F1",
+    textIcon: "BZ",
+    website: "https://bazaarlink.ai",
+    hasFree: true,
+    freeNote: "Free tier with auto:free routing — zero-cost inference, no credit card required. 4M tokens/day per account for most models.",
+    authHint:
+      "Use your BazaarLink API key (starts with sk-bl-) in Authorization: Bearer <key>. Fully OpenAI-compatible — OpenAI SDK works with base URL https://bazaarlink.ai/api/v1.",
+    apiHint:
+      "Get a free API key at https://bazaarlink.ai — supports auto:free for zero-cost routing. Models use provider/model format e.g. xiaomi/mimo-v2.5-pro.",
+  },
 };
 
 // Sub-categories within APIKEY_PROVIDERS (used by dashboard and catalog views).
