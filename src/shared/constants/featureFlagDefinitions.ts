@@ -326,6 +326,19 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
   {
+    key: "MODELS_CATALOG_PREFIX_MODE",
+    label: "Model Catalog Prefix Mode",
+    description:
+      "Controls how /v1/models lists provider prefixes. 'dual' (default) emits both the alias and canonical provider-id prefix for each model; 'alias' or 'canonical' emit a single low-noise prefix per model. Request parsing still accepts both forms. Per-request override: ?prefix=dual|alias|canonical.",
+    descriptionI18nKey: "settings.featureFlags.modelsCatalogPrefixMode",
+    category: "runtime",
+    defaultValue: "dual",
+    type: "enum",
+    enumValues: ["dual", "alias", "canonical"],
+    requiresRestart: false,
+    warningLevel: "info",
+  },
+  {
     key: "ARENA_ELO_SYNC_ENABLED",
     label: "Arena ELO Sync",
     description: "Enable periodic Arena AI leaderboard ELO sync for model intelligence rankings.",

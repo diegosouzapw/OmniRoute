@@ -38,7 +38,8 @@ import {
 import { getSyncedCapability } from "@/lib/modelsDevSync";
 import { getModelSpec } from "@/shared/constants/modelSpecs";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
-import { isModelCatalogNamesEnabled } from "@/shared/utils/featureFlags";
+import { isModelCatalogNamesEnabled, resolveFeatureFlag } from "@/shared/utils/featureFlags";
+import { normalizeCatalogPrefixes, parsePrefixModeParam } from "./catalogPrefixMode";
 import {
   isNoAuthProviderBlocked,
   isNoAuthProviderKey,
@@ -1396,6 +1397,17 @@ export async function getUnifiedModelsResponse(
     // Advertise no-thinking gateway variants (Fase 8.1). Derived from the already
     // key-filtered list, so a variant only appears when its real model is permitted.
     finalModels = appendNoThinkingVariants(finalModels);
+
+    // #4424 — optional low-noise serialization. `/v1/models` emits each model under both
+    // its alias and canonical provider-id prefix; this collapses those cross-prefix dupes
+    // to a single preferred prefix per model when an operator opts in. Precedence:
+    // per-request `?prefix=` query param > global MODELS_CATALOG_PREFIX_MODE flag > `dual`
+    // (default = today's dual emission, zero behavior change). Request parsing is untouched.
+    const prefixMode =
+      parsePrefixModeParam(new URL(request.url).searchParams.get("prefix")) ??
+      parsePrefixModeParam(resolveFeatureFlag("MODELS_CATALOG_PREFIX_MODE")) ??
+      "dual";
+    finalModels = normalizeCatalogPrefixes(finalModels, prefixMode, { providerIdToAlias });
 
     const getDefaultContextFallback = (model: any): number | undefined => {
       if (typeof model.context_length === "number") return undefined;
