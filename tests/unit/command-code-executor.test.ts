@@ -46,7 +46,7 @@ function commandCodeStream(lines: unknown[], { sse = false } = {}) {
   return new Response(text, { status: 200, headers: { "Content-Type": "application/x-ndjson" } });
 }
 
-function toPlainHeaders(headers: any) {
+function toPlainHeaders(headers: Headers | Record<string, string>) {
   if (headers instanceof Headers) return Object.fromEntries(headers.entries());
   return Object.fromEntries(Object.entries(headers).map(([key, value]) => [key, String(value)]));
 }
@@ -90,8 +90,10 @@ test("getExecutor returns the specialized Command Code executor", () => {
   assert.ok(getExecutor("cmd") instanceof CommandCodeExecutor);
 });
 
+type FetchCall = { url: string; init: Record<string, unknown>; body?: unknown };
+
 test("Command Code executor posts wrapped body and required headers to /alpha/generate", async () => {
-  const calls: any[] = [];
+  const calls: FetchCall[] = [];
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
     return commandCodeStream([{ type: "text-delta", text: "hello" }, { type: "finish" }]);
@@ -142,7 +144,7 @@ test("Command Code executor posts wrapped body and required headers to /alpha/ge
 });
 
 test("Command Code executor passes reasoning/thinking fields through to params (#2986 follow-up)", async () => {
-  const calls: any[] = [];
+  const calls: FetchCall[] = [];
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
     return commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }]);
@@ -172,7 +174,7 @@ test("Command Code executor passes reasoning/thinking fields through to params (
 });
 
 test("Command Code raw NDJSON stream becomes OpenAI chat SSE chunks", async () => {
-  const calls: any[] = [];
+  const calls: FetchCall[] = [];
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init, body: JSON.parse(String(init.body)) });
     return commandCodeStream([
