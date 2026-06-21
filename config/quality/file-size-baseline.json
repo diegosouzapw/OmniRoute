@@ -130,7 +130,7 @@
     "open-sse/services/batchProcessor.ts": 828,
     "open-sse/services/browserBackedChat.ts": 850,
     "open-sse/services/claudeCodeCompatible.ts": 1202,
-    "open-sse/services/combo.ts": 2955,
+    "open-sse/services/combo.ts": 2991,
     "open-sse/services/rateLimitManager.ts": 1035,
     "open-sse/services/tokenRefresh.ts": 1997,
     "open-sse/services/usage.ts": 3450,
@@ -205,7 +205,7 @@
     "src/shared/constants/sidebarVisibility.ts": 1100,
     "src/shared/services/cliRuntime.ts": 1090,
     "src/shared/validation/schemas.ts": 2523,
-    "src/sse/handlers/chat.ts": 1515,
+    "src/sse/handlers/chat.ts": 1516,
     "src/sse/services/auth.ts": 2279
   },
   "testCap": 800,

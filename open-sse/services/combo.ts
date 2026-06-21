@@ -1501,18 +1501,11 @@ export async function handleComboChat({
           return null;
         }
 
-        // Pre-screen may have already determined this target unavailable (e.g.
-        // circuit-breaker OPEN at resolve time).  Skip immediately in that case.
-        // For targets pre-screened as "available" we still call isModelAvailable
-        // below because connection cooldowns (rateLimitedUntil) can change
-        // mid-request after a same-provider failure — the pre-screen snapshot is
-        // stale by the time we reach the 2nd/3rd same-provider target.
-        const preCheckedAvailable = preScreenEntry?.available ?? null;
-        if (preCheckedAvailable === false) {
-          log.info("COMBO", `Skipping ${modelStr} — pre-screen marked unavailable`);
-          if (i > 0) fallbackCount++;
-          return null;
-        }
+        // Pre-screen snapshot is NOT used as a permanent skip — availability
+        // is always re-checked via isModelAvailable below because connection
+        // cooldowns can expire between setTry retries, making a previously
+        // unavailable target available again.  Circuit-breaker-OPEN providers
+        // are already caught by the dedicated breaker check above.
         if (isModelAvailable) {
           const available = await isModelAvailable(modelStr, targetForAttempt);
           if (!available) {
@@ -1690,6 +1683,12 @@ export async function handleComboChat({
 
           // Success — validate response quality before returning
           if (result.ok) {
+            const selectedConnectionId =
+              result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
+              result.headers?.get("x-omniroute-selected-connection-id") ||
+              undefined;
+            const effectiveConnectionId = selectedConnectionId || target.connectionId || "";
+
             const quality = await validateResponseQuality(result, clientRequestedStream, log);
             if (!quality.valid) {
               log.warn(
@@ -1743,11 +1742,7 @@ export async function handleComboChat({
             // Success decay: a healthy response walks the model's lockout failure
             // count back down (and eventually clears an expired lockout entirely).
             if (provider && rawModel) {
-              const dcResult = decayModelFailureCount(
-                provider,
-                target.connectionId || "",
-                rawModel
-              );
+              const dcResult = decayModelFailureCount(provider, effectiveConnectionId, rawModel);
               if (dcResult.cleared) {
                 log.info("COMBO", `Model ${modelStr} fully recovered — lockout cleared`);
               } else if (dcResult.newFailureCount > 0) {
@@ -1781,7 +1776,7 @@ export async function handleComboChat({
 
             // Reset cooldown on success
             if (provider && provider !== "unknown") {
-              recordProviderSuccess(provider, target.connectionId ?? undefined);
+              recordProviderSuccess(provider, effectiveConnectionId || undefined);
             }
             if (strategy === "weighted" && stickyWeightedLimit > 1) {
               const stickySuccessKey = getWeightedStepKeyForTarget(target);
@@ -1798,7 +1793,7 @@ export async function handleComboChat({
                 typeof target.label === "string" && target.label.trim().length > 0
                   ? target.label.trim()
                   : "",
-              accountId: target.connectionId ?? "",
+              accountId: effectiveConnectionId ?? "",
               latencyMs,
               fallbackCount,
             });
@@ -1909,7 +1904,7 @@ export async function handleComboChat({
 
             // Record last known good provider (LKGP) for this combo/model (#919)
             if (provider) {
-              const connId = target.connectionId || undefined;
+              const connId = effectiveConnectionId || undefined;
               void (async () => {
                 try {
                   const { setLKGP } = await import("../../src/lib/localDb");
@@ -2035,10 +2030,17 @@ export async function handleComboChat({
             structuredError
           );
           const { cooldownMs } = fallbackResult;
+          const selectedConnectionId =
+            result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
+            result.headers?.get("x-omniroute-selected-connection-id") ||
+            undefined;
+          const targetWithConnection = selectedConnectionId
+            ? { ...target, connectionId: selectedConnectionId }
+            : target;
 
           // #1731 / #1731v2: classify the upstream error and update the exhaustion sets
           // (shared with handleRoundRobinCombo). Returns whether the provider is fully exhausted.
-          const providerExhausted = applyComboTargetExhaustion(target, {
+          const providerExhausted = applyComboTargetExhaustion(targetWithConnection, {
             result,
             fallbackResult,
             errorText,
@@ -2114,7 +2116,7 @@ export async function handleComboChat({
               skipProviderBreaker: fallbackResult.skipProviderBreaker,
             })
           ) {
-            recordProviderFailure(provider, log, target.connectionId, profile);
+            recordProviderFailure(provider, log, targetWithConnection.connectionId, profile);
           }
 
           // Check if this is a transient error worth retrying on same model.
@@ -2133,7 +2135,7 @@ export async function handleComboChat({
               if (mlSettings.enabled && mlSettings.errorCodes.includes(result.status)) {
                 recordModelLockoutFailure(
                   provider,
-                  target.connectionId || "",
+                  targetWithConnection.connectionId || "",
                   rawModel,
                   classifyLockoutReason(result.status),
                   result.status,
@@ -2176,7 +2178,7 @@ export async function handleComboChat({
             if (mlSettings.enabled && mlSettings.errorCodes.includes(result.status)) {
               recordModelLockoutFailure(
                 provider,
-                target.connectionId || "",
+                targetWithConnection.connectionId || "",
                 rawModel,
                 classifyLockoutReason(result.status),
                 result.status,
@@ -2193,7 +2195,11 @@ export async function handleComboChat({
           log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
 
           if (resilienceSettings.providerCooldown.enabled && provider && provider !== "unknown") {
-            recordProviderCooldown(provider, target.connectionId ?? undefined, resilienceSettings);
+            recordProviderCooldown(
+              provider,
+              targetWithConnection.connectionId ?? undefined,
+              resilienceSettings
+            );
           }
 
           const fallbackWaitMs =
@@ -2676,8 +2682,27 @@ async function handleRoundRobinCombo({
           });
           recordedAttempts++;
 
+          const selectedConnectionId =
+            result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
+            result.headers?.get("x-omniroute-selected-connection-id") ||
+            undefined;
+          const effectiveConnectionId = selectedConnectionId || target.connectionId || "";
+
+          const rawModel = parseModel(modelStr).model || modelStr;
+          if (provider && rawModel) {
+            const dcResult = decayModelFailureCount(provider, effectiveConnectionId, rawModel);
+            if (dcResult.cleared) {
+              log.info("COMBO-RR", `Model ${modelStr} fully recovered — lockout cleared`);
+            } else if (dcResult.newFailureCount > 0) {
+              log.debug?.(
+                "COMBO-RR",
+                `Model ${modelStr} decayed to failureCount=${dcResult.newFailureCount}`
+              );
+            }
+          }
+
           if (provider && provider !== "unknown") {
-            recordProviderSuccess(provider, target.connectionId ?? undefined);
+            recordProviderSuccess(provider, effectiveConnectionId || undefined);
           }
 
           if (stickyRoundRobinEnabled) {
@@ -2685,7 +2710,7 @@ async function handleRoundRobinCombo({
           }
 
           if (provider) {
-            const connId = target.connectionId || undefined;
+            const connId = effectiveConnectionId || undefined;
             void (async () => {
               try {
                 const { setLKGP } = await import("../../src/lib/localDb");
@@ -2810,6 +2835,13 @@ async function handleRoundRobinCombo({
           structuredError
         );
         const { cooldownMs } = fallbackResult;
+        const selectedConnectionId =
+          result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
+          result.headers?.get("x-omniroute-selected-connection-id") ||
+          undefined;
+        const targetWithConnection = selectedConnectionId
+          ? { ...target, connectionId: selectedConnectionId }
+          : target;
 
         const isAllAccountsRateLimited = isAllAccountsRateLimitedResponse(
           result.status,
@@ -2823,7 +2855,7 @@ async function handleRoundRobinCombo({
         // combo from trying another target for the same provider in this request.
         // #1731 / #1731v2: classify the upstream error and update the exhaustion sets
         // (shared with handleComboChat). Returns whether the provider is fully exhausted.
-        const providerExhausted = applyComboTargetExhaustion(target, {
+        const providerExhausted = applyComboTargetExhaustion(targetWithConnection, {
           result,
           fallbackResult,
           errorText,
@@ -2879,7 +2911,11 @@ async function handleRoundRobinCombo({
         log.warn("COMBO-RR", `${modelStr} failed, trying next model`, { status: result.status });
 
         if (resilienceSettings.providerCooldown.enabled && provider && provider !== "unknown") {
-          recordProviderCooldown(provider, target.connectionId ?? undefined, resilienceSettings);
+          recordProviderCooldown(
+            provider,
+            targetWithConnection.connectionId ?? undefined,
+            resilienceSettings
+          );
         }
 
         const fallbackWaitMs =
