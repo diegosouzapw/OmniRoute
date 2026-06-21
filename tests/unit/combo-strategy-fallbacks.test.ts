@@ -597,6 +597,164 @@ test("strict-random survives a stale deck entry after a target is removed", asyn
   assert.deepEqual(calls, ["claude/sonnet"]);
 });
 
+test("nested execute mode treats combo refs as black-box priority targets", async () => {
+  const calls: string[] = [];
+  const outer = {
+    name: "outer-execute-priority",
+    strategy: "priority",
+    models: [{ kind: "combo-ref", comboName: "child-priority" }, "gemini/fallback"],
+    config: { nestedComboMode: "execute", maxRetries: 0, retryDelayMs: 0 },
+  };
+  const child = {
+    name: "child-priority",
+    strategy: "priority",
+    models: ["openai/a", "claude/b"],
+    config: { maxRetries: 0, retryDelayMs: 0 },
+  };
+  const result = await handleComboChat({
+    body: {},
+    combo: outer,
+    handleSingleModel: async (_body: any, modelStr: string) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: [outer, child],
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/a"]);
+});
+
+test("nested execute mode falls back to the next parent target after a child combo fails", async () => {
+  const calls: string[] = [];
+  const outer = {
+    name: "outer-execute-fallback",
+    strategy: "priority",
+    models: [{ kind: "combo-ref", comboName: "child-down" }, "gemini/fallback"],
+    config: { nestedComboMode: "execute", maxRetries: 0, retryDelayMs: 0 },
+  };
+  const child = {
+    name: "child-down",
+    strategy: "priority",
+    models: ["openai/a", "claude/b"],
+    config: { maxRetries: 0, retryDelayMs: 0 },
+  };
+  const result = await handleComboChat({
+    body: {},
+    combo: outer,
+    handleSingleModel: async (_body: any, modelStr: string) => {
+      calls.push(modelStr);
+      return modelStr === "gemini/fallback" ? okResponse() : errorResponse(503);
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: [outer, child],
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/a", "claude/b", "gemini/fallback"]);
+});
+
+test("nested execute mode supports 3-level nesting", async () => {
+  const calls: string[] = [];
+  const a = {
+    name: "level-a",
+    strategy: "priority",
+    models: [{ kind: "combo-ref", comboName: "level-b" }],
+    config: { nestedComboMode: "execute", maxRetries: 0 },
+  };
+  const b = {
+    name: "level-b",
+    strategy: "priority",
+    models: [{ kind: "combo-ref", comboName: "level-c" }],
+    config: { nestedComboMode: "execute", maxRetries: 0 },
+  };
+  const c = {
+    name: "level-c",
+    strategy: "priority",
+    models: ["openai/leaf"],
+    config: { maxRetries: 0 },
+  };
+  const result = await handleComboChat({
+    body: {},
+    combo: a,
+    handleSingleModel: async (_body: any, modelStr: string) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: [a, b, c],
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/leaf"]);
+});
+
+test("nested execute mode fails cleanly on a circular combo reference", async () => {
+  const a = {
+    name: "cycle-a",
+    strategy: "priority",
+    models: [{ kind: "combo-ref", comboName: "cycle-b" }],
+    config: { nestedComboMode: "execute", maxRetries: 0 },
+  };
+  const b = {
+    name: "cycle-b",
+    strategy: "priority",
+    models: [{ kind: "combo-ref", comboName: "cycle-a" }],
+    config: { nestedComboMode: "execute", maxRetries: 0 },
+  };
+  await assert.rejects(
+    async () =>
+      handleComboChat({
+        body: {},
+        combo: a,
+        handleSingleModel: async () => okResponse(),
+        isModelAvailable: async () => true,
+        log: createLog(),
+        settings: null,
+        allCombos: [a, b],
+      }),
+    /[Cc]ircular/
+  );
+});
+
+test("flatten mode (default) expands nested combo refs into leaf targets", async () => {
+  const calls: string[] = [];
+  const outer = {
+    name: "outer-flatten-default",
+    strategy: "priority",
+    models: [{ kind: "combo-ref", comboName: "child-flat" }],
+    config: { maxRetries: 0 },
+  };
+  const child = {
+    name: "child-flat",
+    strategy: "priority",
+    models: ["openai/a", "claude/b"],
+    config: { maxRetries: 0 },
+  };
+  const result = await handleComboChat({
+    body: {},
+    combo: outer,
+    handleSingleModel: async (_body: any, modelStr: string) => {
+      calls.push(modelStr);
+      return modelStr === "openai/a" ? errorResponse(503) : okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: [outer, child],
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/a", "claude/b"]);
+});
+
 test("unknown strategy value normalizes to priority order", async () => {
   const calls: string[] = [];
   const result = await handleComboChat({

@@ -169,6 +169,8 @@ const ADVANCED_FIELD_HELP_FALLBACK = {
     "Number of times to retry the full target set when every target fails. 0 = no set-level retry.",
   setRetryDelayMs:
     "Delay between set-level retry attempts, giving transient issues time to resolve.",
+  nestedComboMode:
+    "How references to other combos are handled. Flatten expands a combo ref into this combo's target list (legacy). Execute treats a combo ref as a black-box target: the parent strategy selects the child combo, then the child runs its own strategy and retries.",
 };
 
 const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
@@ -3862,6 +3864,32 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                       </div>
                     </div>
                   )}
+                  <div className="grid grid-cols-1 gap-2 pt-2 border-t border-black/5 dark:border-white/5">
+                    <div>
+                      <FieldLabelWithHelp
+                        label={getI18nOrFallback(t, "nestedComboMode", "Nested Combo Behavior")}
+                        help={getI18nOrFallback(
+                          t,
+                          "advancedHelp.nestedComboMode",
+                          ADVANCED_FIELD_HELP_FALLBACK.nestedComboMode
+                        )}
+                        showHelp={!isExpertMode}
+                      />
+                      <select
+                        value={config.nestedComboMode ?? "flatten"}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            nestedComboMode: e.target.value === "execute" ? "execute" : "flatten",
+                          })
+                        }
+                        className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-surface-1 focus:border-primary focus:outline-none"
+                      >
+                        <option value="flatten">Flatten nested combos</option>
+                        <option value="execute">Execute nested combos as targets</option>
+                      </select>
+                    </div>
+                  </div>
                   {strategy === "context-relay" && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-2 border-t border-black/5 dark:border-white/5">
                       <div>

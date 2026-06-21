@@ -26,6 +26,7 @@ test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   assert.equal(first.handoffThreshold, 0.85);
   assert.equal(first.maxMessagesForSummary, 30);
   assert.deepEqual(first.handoffProviders, ["codex"]);
+  assert.equal(first.nestedComboMode, "flatten");
   assert.equal(first.failoverBeforeRetry, true);
   assert.equal(first.maxSetRetries, 0);
   assert.equal(first.setRetryDelayMs, 2000);
@@ -531,6 +532,30 @@ test("createComboSchema accepts failoverBeforeRetry, maxSetRetries and setRetryD
   assert.equal(parsed.config.setRetryDelayMs, 1500);
 });
 
+test("createComboSchema accepts nestedComboMode and rejects invalid values", () => {
+  const parsed = createComboSchema.parse({
+    name: "nested-execute",
+    models: [{ kind: "combo-ref", comboName: "child" }],
+    strategy: "priority",
+    config: { nestedComboMode: "execute" },
+  });
+  assert.equal(parsed.config.nestedComboMode, "execute");
+
+  const flatten = createComboSchema.parse({
+    name: "nested-flatten",
+    models: ["openai/gpt-4o-mini"],
+    config: { nestedComboMode: "flatten" },
+  });
+  assert.equal(flatten.config.nestedComboMode, "flatten");
+
+  const invalid = createComboSchema.safeParse({
+    name: "nested-invalid",
+    models: ["openai/gpt-4o-mini"],
+    config: { nestedComboMode: "redirect" },
+  });
+  assert.equal(invalid.success, false);
+});
+
 test("createComboSchema accepts per-combo stickyRoundRobinLimit and rejects out-of-range", () => {
   const parsed = createComboSchema.parse({
     name: "sticky-override",
@@ -616,6 +641,17 @@ test("createComboSchema rejects setRetryDelayMs out of range", () => {
     config: { setRetryDelayMs: -1 },
   });
   assert.equal(negative.success, false);
+});
+
+test("resolveComboConfig cascades nestedComboMode", () => {
+  const result = resolveComboConfig(
+    { config: { nestedComboMode: "execute" } },
+    { comboDefaults: { nestedComboMode: "flatten" } }
+  );
+  assert.equal(result.nestedComboMode, "execute");
+
+  const defaulted = resolveComboConfig({ config: {} }, { comboDefaults: {} });
+  assert.equal(defaulted.nestedComboMode, "flatten");
 });
 
 test("resolveComboConfig cascades failoverBeforeRetry, maxSetRetries and setRetryDelayMs", () => {
