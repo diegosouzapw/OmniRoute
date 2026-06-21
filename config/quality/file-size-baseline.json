@@ -139,7 +139,7 @@
     "open-sse/utils/stream.ts": 2710,
     "src/app/(dashboard)/dashboard/HomePageClient.tsx": 1385,
     "src/app/(dashboard)/dashboard/analytics/ComboHealthTab.tsx": 1020,
-    "src/app/(dashboard)/dashboard/api-manager/ApiManagerPageClient.tsx": 2979,
+    "src/app/(dashboard)/dashboard/api-manager/ApiManagerPageClient.tsx": 2983,
     "src/app/(dashboard)/dashboard/cache/media/MediaPageClient.tsx": 1105,
     "src/app/(dashboard)/dashboard/cache/page.tsx": 841,
     "src/app/(dashboard)/dashboard/cli-code/components/CodexToolCard.tsx": 900,
