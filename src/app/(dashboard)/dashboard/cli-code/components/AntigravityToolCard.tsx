@@ -27,6 +27,10 @@ export default function AntigravityToolCard({
   const [modelMappings, setModelMappings] = useState({});
   const [modalOpen, setModalOpen] = useState(false);
   const [currentEditingAlias, setCurrentEditingAlias] = useState(null);
+  // Model aliases drive the API-Key-compatible / passthrough provider groups in
+  // ModelSelectModal — without them, custom OpenAI/Anthropic-compatible
+  // providers don't surface in the picker even when active.
+  const [modelAliases, setModelAliases] = useState({});
 
   // (#523) Store the key *id* (not the masked string) so the backend can
   // resolve the real secret from DB before writing to config files.
@@ -40,6 +44,7 @@ export default function AntigravityToolCard({
     if (isExpanded && !status) {
       fetchStatus();
       loadSavedMappings();
+      fetchModelAliases();
     }
   }, [isExpanded, status]);
 
@@ -69,6 +74,16 @@ export default function AntigravityToolCard({
     } catch (error) {
       console.log("Error fetching status:", error);
       setStatus({ running: false });
+    }
+  };
+
+  const fetchModelAliases = async () => {
+    try {
+      const res = await fetch("/api/models/alias");
+      const data = await res.json();
+      if (res.ok) setModelAliases(data.aliases || {});
+    } catch (error) {
+      console.log("Error fetching model aliases:", error);
     }
   };
 
@@ -460,6 +475,7 @@ export default function AntigravityToolCard({
         onSelect={handleModelSelect}
         selectedModel={currentEditingAlias ? modelMappings[currentEditingAlias] : null}
         activeProviders={activeProviders}
+        modelAliases={modelAliases}
         title={t("selectModelForAlias", { alias: currentEditingAlias || "" })}
       />
     </Card>
