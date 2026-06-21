@@ -4000,14 +4000,11 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     return { valid: false, error: "Provider and API key required", unsupported: false };
   }
 
-  // Web-cookie providers (session-based authentication)
-  if (WEB_COOKIE_PROVIDERS[provider]) {
-    try {
-      return await validateWebCookieProvider({ provider, apiKey, providerSpecificData });
-    } catch (error: any) {
-      return toValidationErrorResult(error);
-    }
-  }
+  // Web-cookie providers (session-based authentication) are handled AFTER the
+  // provider-specific validators below (#4023 regression fix): a provider that has both a
+  // dedicated validator (e.g. qwen-web #3958, grok-web #3474, chatgpt-web accessToken) and a
+  // WEB_COOKIE_PROVIDERS entry keeps its stricter specific checks. The generic cookie/session
+  // probe is the fallback only for web-cookie providers WITHOUT a dedicated validator.
 
   if (isOpenAICompatibleProvider(provider)) {
     try {
@@ -4412,6 +4409,17 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
   if (SPECIALTY_VALIDATORS[provider]) {
     try {
       return await SPECIALTY_VALIDATORS[provider]({ apiKey, providerSpecificData });
+    } catch (error: any) {
+      return toValidationErrorResult(error);
+    }
+  }
+
+  // Generic web-cookie/session fallback — only for web-cookie providers WITHOUT a dedicated
+  // validator above (e.g. providers added in #4023). Providers with a specific validator are
+  // handled by SPECIALTY_VALIDATORS just above and never reach here.
+  if (WEB_COOKIE_PROVIDERS[provider]) {
+    try {
+      return await validateWebCookieProvider({ provider, apiKey, providerSpecificData });
     } catch (error: any) {
       return toValidationErrorResult(error);
     }
