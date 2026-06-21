@@ -25,9 +25,13 @@ export async function getCurrentVersion() {
   }
 }
 
-async function getLatestVersion() {
+// `--prefer-online` forces npm to revalidate its HTTP cache against the registry.
+// Without it `npm view` can return a stale cached version (e.g. report 3.8.30 as
+// "latest" after 3.8.31 was published), so the updater told users on an old build
+// they were already on the latest version (#4376). `execFn` is injectable for tests.
+export async function getLatestVersion(execFn = execFileAsync) {
   try {
-    const { stdout } = await execFileAsync("npm", ["view", "omniroute", "version"], {
+    const { stdout } = await execFn("npm", ["view", "omniroute", "version", "--prefer-online"], {
       timeout: 15000,
     });
     return stdout.trim();
