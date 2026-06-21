@@ -129,7 +129,16 @@ function buildFallbackTool(tool: JsonRecord, targetFormat?: string | null): Json
   };
 }
 
+// Providers whose endpoint advertises Claude/Anthropic format but does NOT implement
+// Anthropic's typed server tools (web_search_20250305, …). For these the Claude -> Claude
+// bypass below must NOT apply: forwarding the native server tool makes the upstream 400
+// (MiniMax returns `invalid params, function name or parameters is empty (2013)`), so the
+// built-in web-search tool has to be converted to the omniroute_web_search function
+// fallback — which these models accept as a normal function tool (#4481).
+const CLAUDE_FORMAT_PROVIDERS_WITHOUT_SERVER_TOOLS = new Set(["minimax"]);
+
 export function supportsNativeWebSearchFallbackBypass({
+  provider,
   sourceFormat,
   targetFormat,
   nativeCodexPassthrough,
@@ -147,7 +156,11 @@ export function supportsNativeWebSearchFallbackBypass({
   // subscription driven by Claude Code) natively runs web_search_20250305. Forward the
   // native tool untouched instead of rewriting it to omniroute_web_search. Mirrors the
   // Codex/Gemini bypasses so every native-web-search provider is treated symmetrically.
-  if (sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE) return true;
+  if (sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE) {
+    // …except Anthropic-compatible providers that don't actually implement server tools.
+    if (provider && CLAUDE_FORMAT_PROVIDERS_WITHOUT_SERVER_TOOLS.has(provider)) return false;
+    return true;
+  }
   return false;
 }
 
