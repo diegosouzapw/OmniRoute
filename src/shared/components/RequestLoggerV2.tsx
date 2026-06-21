@@ -28,7 +28,11 @@ import {
 } from "@/shared/utils/formatting";
 import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
-import { computeLogsSignature, shouldAutoRefresh } from "./requestLoggerSignature";
+import {
+  computeLogsSignature,
+  shouldAutoRefresh,
+  shouldTriggerInfiniteScroll,
+} from "./requestLoggerSignature";
 import {
   DEFAULT_REFRESH_INTERVAL_SEC,
   clampRefreshIntervalSec,
@@ -148,6 +152,10 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
     const logsSignatureRef = useRef("");
     const scrollContainerRef = useRef(null);
     const loadMoreSentinelRef = useRef(null);
+    // #4269: gates the infinite-scroll observer so a "ghost" loadMore can't fire on
+    // mount (sentinel visible when the first page doesn't fill the viewport), which
+    // grew the window past PAGE_SIZE and permanently paused auto-refresh.
+    const hasScrolledRef = useRef(false);
     const [providerNodes, setProviderNodes] = useState([]);
     // #4054: fail-open. The auto-refresh pause is event-driven — we start assuming
     // the tab is visible (poll) and only flip to paused on a real `visibilitychange`
@@ -330,21 +338,47 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
     // so switching filters doesn't keep fetching a large expanded window.
     useEffect(() => {
       setLimit(PAGE_SIZE);
+      // #4269: a filter change is a fresh first-page view — re-arm the ghost-load-more
+      // guard so auto-refresh resumes until the user scrolls again.
+      hasScrolledRef.current = false;
     }, [search, activeFilter, selectedModel, selectedAccount, selectedProvider, selectedApiKey]);
 
     const loadMore = useCallback(() => {
       setLimit((prev) => prev + PAGE_SIZE);
     }, []);
 
+    // #4269: record the first genuine user scroll of the log list. Until then, the
+    // infinite-scroll observer below must NOT grow the window (see
+    // shouldTriggerInfiniteScroll) — otherwise a sentinel that is already visible on
+    // mount fires a "ghost" loadMore and permanently pauses auto-refresh.
+    useEffect(() => {
+      const root = scrollContainerRef.current;
+      if (!root) return;
+      const onScroll = () => {
+        if (root.scrollTop > 0) hasScrolledRef.current = true;
+      };
+      root.addEventListener("scroll", onScroll, { passive: true });
+      return () => root.removeEventListener("scroll", onScroll);
+    }, []);
+
     // Infinite scroll: grow the window when the sentinel near the bottom of the
-    // scroll container becomes visible.
+    // scroll container becomes visible — but only after a real user scroll (#4269).
     useEffect(() => {
       const sentinel = loadMoreSentinelRef.current;
       const root = scrollContainerRef.current;
       if (!sentinel || !hasMore) return;
       const observer = new IntersectionObserver(
         (entries) => {
-          if (entries[0]?.isIntersecting && !loading) loadMore();
+          if (
+            shouldTriggerInfiniteScroll({
+              isIntersecting: !!entries[0]?.isIntersecting,
+              hasMore,
+              loading,
+              hasScrolled: hasScrolledRef.current,
+            })
+          ) {
+            loadMore();
+          }
         },
         { root, rootMargin: "200px" }
       );
