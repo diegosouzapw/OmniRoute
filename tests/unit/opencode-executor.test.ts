@@ -461,6 +461,71 @@ describe("OpencodeExecutor", () => {
       assert.equal(headers["x-opencode-session"], "sess-go-aff");
     });
   });
+
+  // #4465: custom-named providers reach the session-affinity fallback above, but the
+  // OpenCode CLI never emits x-opencode-request for them (it only emits x-opencode-*
+  // when the provider id starts with "opencode"). Synthesize a request correlation id
+  // so these users are not disadvantaged on the opencode.ai upstream. x-opencode-client
+  // / x-opencode-project are NOT fabricated: their valid values are opencode-internal
+  // and inventing them risks upstream rejection — they stay forward-only.
+  describe("opencode request-id synthesis for custom-named providers (#4465)", () => {
+    it("synthesizes x-opencode-request when only session-affinity is present", () => {
+      const headers = zenExecutor.buildHeaders({ apiKey: "test-key" }, true, {
+        "x-session-affinity": "sess-aff",
+      });
+      assert.equal(headers["x-opencode-session"], "sess-aff");
+      assert.ok(
+        typeof headers["x-opencode-request"] === "string" &&
+          headers["x-opencode-request"].length > 0,
+        "expected a synthesized x-opencode-request id"
+      );
+    });
+
+    it("synthesizes a unique x-opencode-request per call", () => {
+      const a = zenExecutor.buildHeaders({ apiKey: "k" }, true, {
+        "x-session-affinity": "sess-aff",
+      });
+      const b = zenExecutor.buildHeaders({ apiKey: "k" }, true, {
+        "x-session-affinity": "sess-aff",
+      });
+      assert.notEqual(a["x-opencode-request"], b["x-opencode-request"]);
+    });
+
+    it("prefers a client-sent x-opencode-request over the synthesized one", () => {
+      const headers = zenExecutor.buildHeaders({ apiKey: "test-key" }, true, {
+        "x-session-affinity": "sess-aff",
+        "x-opencode-request": "req-real",
+      });
+      assert.equal(headers["x-opencode-request"], "req-real");
+    });
+
+    it("does not fabricate x-opencode-client / x-opencode-project (no client source)", () => {
+      const headers = zenExecutor.buildHeaders({ apiKey: "test-key" }, true, {
+        "x-session-affinity": "sess-aff",
+      });
+      assert.equal(headers["x-opencode-client"], undefined);
+      assert.equal(headers["x-opencode-project"], undefined);
+    });
+
+    it("does not synthesize x-opencode-request on the direct opencode-session path", () => {
+      // opencode CLI (provider id starts with "opencode") sends its own x-opencode-*
+      // set; we must not override/inject when it controls the request id itself.
+      const headers = zenExecutor.buildHeaders({ apiKey: "test-key" }, true, {
+        "x-opencode-session": "direct",
+      });
+      assert.equal(headers["x-opencode-request"], undefined);
+    });
+
+    it("opencode-go executor also synthesizes x-opencode-request on the fallback path", () => {
+      const headers = goExecutor.buildHeaders({ apiKey: "test-key" }, true, {
+        "x-session-affinity": "sess-go-aff",
+      });
+      assert.ok(
+        typeof headers["x-opencode-request"] === "string" &&
+          headers["x-opencode-request"].length > 0
+      );
+    });
+  });
 });
 
 describe("DefaultExecutor", () => {
