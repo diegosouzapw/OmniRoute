@@ -627,7 +627,8 @@ export function resolveWeightedTargets(
   combo: ComboLike,
   allCombos: ComboCollectionLike,
   preferredExecutionKey: string | null = null,
-  eligibleExecutionKeys: ReadonlySet<string> | null = null
+  eligibleExecutionKeys: ReadonlySet<string> | null = null,
+  stepGroups?: Array<{ step: ComboRuntimeStep; targets: ResolvedComboTarget[] }>
 ): {
   orderedTargets: ResolvedComboTarget[];
   selectedStep: ComboRuntimeStep | null;
@@ -654,7 +655,7 @@ export function resolveWeightedTargets(
     hasCompositeTierRuntimeOrder(combo)
   );
   const targetsByStep = new Map(
-    resolveWeightedStepGroups(combo, allCombos).map((group) => [
+    (stepGroups || resolveWeightedStepGroups(combo, allCombos)).map((group) => [
       group.step.executionKey,
       group.targets,
     ])

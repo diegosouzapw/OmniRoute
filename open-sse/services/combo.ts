@@ -92,6 +92,7 @@ import type {
   HandleRoundRobinOptions,
   ResolvedComboTarget,
   AutoProviderCandidate,
+  ComboRuntimeStep,
   HistoricalLatencyStatsEntry,
 } from "./combo/types.ts";
 
@@ -560,7 +561,7 @@ export async function handleComboChat({
 
   const isTargetSelectableForWeighted = async (target: ResolvedComboTarget): Promise<boolean> => {
     const rawModel = parseModel(target.modelStr).model || target.modelStr;
-    if (getCircuitBreaker(target.provider).getStatus().state === "OPEN") return false;
+    if (target.provider && getCircuitBreaker(target.provider).getStatus().state === "OPEN") return false;
     if (
       resilienceSettings.providerCooldown.enabled &&
       Boolean(target.provider && target.provider !== "unknown") &&
@@ -587,9 +588,10 @@ export async function handleComboChat({
     const oldest = weightedStickyTargets.keys().next().value;
     if (oldest !== undefined) weightedStickyTargets.delete(oldest);
   }
+  let stepGroups: Array<{ step: ComboRuntimeStep; targets: ResolvedComboTarget[] }> | undefined;
   const weightedEligibleKeys = new Set<string>();
   if (strategy === "weighted") {
-    const stepGroups = resolveWeightedStepGroups(combo, allCombos);
+    stepGroups = resolveWeightedStepGroups(combo, allCombos);
     for (const group of stepGroups) {
       const availability = await Promise.all(group.targets.map(isTargetSelectableForWeighted));
       if (availability.some(Boolean)) weightedEligibleKeys.add(group.step.executionKey);
@@ -601,17 +603,20 @@ export async function handleComboChat({
     rawStickyWeightedKey && weightedEligibleKeys.has(rawStickyWeightedKey)
       ? rawStickyWeightedKey
       : null;
-  if (rawStickyWeightedKey && !stickyWeightedKey) {
+  if (strategy !== "weighted" || stickyWeightedLimit <= 1) {
+    weightedStickyTargets.delete(combo.name);
+  } else if (rawStickyWeightedKey && !stickyWeightedKey) {
     weightedStickyTargets.delete(combo.name);
   }
   const weightedResolution =
     strategy === "weighted"
-      ? resolveWeightedTargets(combo, allCombos, stickyWeightedKey, weightedEligibleKeys)
+      ? resolveWeightedTargets(combo, allCombos, stickyWeightedKey, weightedEligibleKeys, stepGroups)
       : null;
   const getWeightedStepKeyForTarget = (target: ResolvedComboTarget): string | null => {
     if (!weightedResolution?.orderedSteps) return null;
     const step = weightedResolution.orderedSteps.find((entry) =>
-      target.executionKey.startsWith(entry.executionKey)
+      target.executionKey === entry.executionKey ||
+      target.executionKey.startsWith(entry.executionKey + ">")
     );
     return step?.executionKey || null;
   };
@@ -2080,7 +2085,7 @@ async function handleRoundRobinCombo({
       if (stickyTarget) {
         const rawModel = parseModel(stickyTarget.modelStr).model || stickyTarget.modelStr;
         const stickyAvailable =
-          getCircuitBreaker(stickyTarget.provider).getStatus().state !== "OPEN" &&
+          (!stickyTarget.provider || getCircuitBreaker(stickyTarget.provider).getStatus().state !== "OPEN") &&
           !(
             resilienceSettings.providerCooldown.enabled &&
             Boolean(stickyTarget.provider && stickyTarget.provider !== "unknown") &&
