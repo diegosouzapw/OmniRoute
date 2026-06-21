@@ -1549,6 +1549,11 @@ export async function handleComboChat({
               combo: combo.name,
               provider,
               model: modelStr,
+              account:
+                typeof target.label === "string" && target.label.trim().length > 0
+                  ? target.label.trim()
+                  : "",
+              accountId: target.connectionId ?? "",
               latencyMs,
               fallbackCount,
             });
