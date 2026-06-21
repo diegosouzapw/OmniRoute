@@ -42,6 +42,7 @@ import {
   getHandoff,
 } from "../../src/lib/db/contextHandoffs.ts";
 import { extractSessionAffinityKey } from "@/sse/services/auth";
+import { getHiddenModelsByProvider } from "@/models";
 import { resolveModelLockoutSettings } from "../../src/lib/resilience/modelLockoutSettings";
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
 import { getQuotaFetcher } from "./quotaPreflight.ts";
@@ -230,6 +231,7 @@ export async function buildAutoCandidates(
   sessionId: string | null | undefined = null,
   resetWindowConfig: ResetWindowConfig = resolveResetWindowConfig(null)
 ): Promise<AutoProviderCandidate[]> {
+  const hiddenModelsMap = getHiddenModelsByProvider();
   const metrics = getComboMetrics(comboName);
   const { getPricingForModel } = await import("../../src/lib/localDb");
   const quotaPromises = new Map<string, Promise<unknown>>();
@@ -396,7 +398,11 @@ export async function buildAutoCandidates(
     })
   );
 
-  return candidates;
+  // Filter out candidates whose model is hidden by the user in the dashboard
+  return candidates.filter((c) => {
+    const hiddenModels = hiddenModelsMap.get(c.provider);
+    return !hiddenModels?.has(c.model);
+  });
 }
 
 /**

@@ -64,6 +64,7 @@ export {
   getModelUpstreamExtraHeaders,
   getModelIsHidden,
   setModelIsHidden,
+  getHiddenModelsByProvider,
 
   // Synced Available Models
   getSyncedAvailableModels,
