@@ -34,6 +34,7 @@ import {
   enrichCatalogModelEntry,
   getCanonicalModelMetadata,
   getCatalogDiagnosticsHeaders,
+  disambiguateCatalogModelNames,
 } from "@/lib/modelMetadataRegistry";
 import { getSyncedCapability } from "@/lib/modelsDevSync";
 import { getModelSpec } from "@/shared/constants/modelSpecs";
@@ -42,6 +43,7 @@ import {
   isModelCatalogNamesEnabled,
   getModelsCatalogPrefixMode,
 } from "@/shared/utils/featureFlags";
+import { dedupeExactCatalogIds } from "./catalogDedupe";
 import {
   isNoAuthProviderBlocked,
   isNoAuthProviderKey,
@@ -743,8 +745,6 @@ export async function getUnifiedModelsResponse(
       });
     }
 
-    // Resolve synced available models (from auto-sync) — used to skip static
-    // PROVIDER_MODELS entries for providers that have a live, API-fresh list.
     let syncedModelsByProvider: Record<string, SyncedAvailableModel[]> = {};
     try {
       syncedModelsByProvider = await getAllSyncedAvailableModels();
@@ -776,8 +776,6 @@ export async function getUnifiedModelsResponse(
         continue;
       }
 
-      // Skip static models for providers that have synced available models
-      // (auto-sync provides the authoritative, up-to-date list from the API).
       if (providersWithSyncedModels.has(canonicalProviderId)) continue;
 
       for (const model of providerModels) {
@@ -850,8 +848,6 @@ export async function getUnifiedModelsResponse(
     }
 
     try {
-      // Data already loaded above into syncedModelsByProvider; the try block
-      // here protects the for-loop / model processing from unexpected errors.
       for (const [providerId, syncedModels] of Object.entries(syncedModelsByProvider)) {
         if (!Array.isArray(syncedModels) || syncedModels.length === 0) continue;
         if (blockedProviders.has(providerId)) continue;
@@ -875,8 +871,6 @@ export async function getUnifiedModelsResponse(
           if (!providerSupportsModel(canonicalProviderId, sm.id)) continue;
           if (getModelIsHidden(providerId, sm.id)) continue;
 
-          // Strip modelIdPrefix (e.g. "accounts/fireworks/models/") from display ID
-          // so synced model IDs match the short IDs from static registry.
           const registryEntry = REGISTRY[providerId];
           const displayModelId =
             registryEntry?.modelIdPrefix && sm.id.startsWith(registryEntry.modelIdPrefix)
@@ -1403,7 +1397,16 @@ export async function getUnifiedModelsResponse(
 
     // Advertise no-thinking gateway variants (Fase 8.1). Derived from the already
     // key-filtered list, so a variant only appears when its real model is permitted.
-    finalModels = appendNoThinkingVariants(finalModels);
+    finalModels = appendNoThinkingVariants(
+      finalModels,
+      prefixMode === "canonical" ? aliasToProviderId : undefined
+    );
+
+    // #4424 follow-up — drop exact-duplicate ids that slip through the per-source push
+    // guards (e.g. `codex/gpt-5.5`, `veo-free/seedance` listed twice). Keyed by listing
+    // identity (id, type, subtype) so the intentional same-id audio transcription/speech
+    // pair survives. Independent of MODELS_CATALOG_PREFIX_MODE; runs as the final guard.
+    finalModels = dedupeExactCatalogIds(finalModels);
 
     const getDefaultContextFallback = (model: any): number | undefined => {
       if (typeof model.context_length === "number") return undefined;
@@ -1423,18 +1426,19 @@ export async function getUnifiedModelsResponse(
     };
 
     const includeModelNames = isModelCatalogNamesEnabled();
-    const enrichedModels = finalModels.map((model) => {
-      if (model.owned_by === "combo") {
-        return maybeOmitCatalogModelName(model, includeModelNames);
-      }
-      const enriched = enrichCatalogModelEntry(model);
-      const fallbackContextLength = getDefaultContextFallback(enriched);
-      const listedModel = fallbackContextLength
-        ? { ...enriched, context_length: fallbackContextLength }
-        : enriched;
-      return maybeOmitCatalogModelName(listedModel, includeModelNames);
-    });
-
+    const enrichedModels = disambiguateCatalogModelNames(
+      finalModels.map((model) => {
+        if (model.owned_by === "combo") {
+          return maybeOmitCatalogModelName(model, includeModelNames);
+        }
+        const enriched = enrichCatalogModelEntry(model);
+        const fallbackContextLength = getDefaultContextFallback(enriched);
+        const listedModel = fallbackContextLength
+          ? { ...enriched, context_length: fallbackContextLength }
+          : enriched;
+        return maybeOmitCatalogModelName(listedModel, includeModelNames);
+      })
+    );
     // Codex CLI compatibility: its model-catalog refresh (codex_models_manager) does
     // GET /v1/models?client_version=<v> and decodes a JSON object with a TOP-LEVEL
     // `models` array, so the OpenAI-standard `{object,data}` shape makes it fail with

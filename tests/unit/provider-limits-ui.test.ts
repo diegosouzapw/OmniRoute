@@ -146,6 +146,7 @@ test("quota labels normalize session and weekly windows while preserving readabl
   assert.equal(providerLimitUtils.formatQuotaLabel("weekly (7d)"), "Weekly");
   assert.equal(providerLimitUtils.formatQuotaLabel("weekly sonnet (7d)"), "Weekly Sonnet");
   assert.equal(providerLimitUtils.formatQuotaLabel("code_review"), "Code Review");
+  assert.equal(providerLimitUtils.formatQuotaLabel("code_review_weekly"), "Code Review Weekly");
   assert.equal(providerLimitUtils.formatQuotaLabel("mcp_monthly"), "Monthly");
 });
 

@@ -1,4 +1,4 @@
-import { execFile, spawn } from "child_process";
+import { execFile, execFileSync, spawn } from "child_process";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -11,6 +11,32 @@ export function getErrorMessage(error: unknown): string {
 export function isRoot(): boolean {
   try {
     return !!(process.getuid && process.getuid() === 0);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Probe whether `sudo` is discoverable on PATH.
+ *
+ * Slim Docker images (e.g. `node:24-trixie-slim` used by OmniRoute's runtime
+ * stage) do not ship `sudo`. When the container runs as a non-root user
+ * (`USER node`, UID 1000), `spawn("sudo", ...)` fails with ENOENT and breaks
+ * any MITM operation triggered from inside the container. `execFileWithPassword`
+ * uses this probe to gracefully degrade: if sudo is missing and we are not
+ * root, the underlying command is executed directly (same user, no elevation).
+ *
+ * Returns `false` on Windows — sudo is meaningless there (UAC path is used).
+ *
+ * `execFileSync` is invoked with a fixed-string `command` and `args`,
+ * never user input, and `stdio: "ignore"` so the probe is silent.
+ */
+export function isSudoAvailable(): boolean {
+  if (process.platform === "win32") return false;
+  try {
+    // nosemgrep: javascript.lang.security.detect-child-process.detect-child-process
+    execFileSync("sh", ["-c", "command -v sudo"], { stdio: "ignore" });
+    return true;
   } catch {
     return false;
   }
@@ -39,13 +65,20 @@ export function execFileWithPassword(
   password: string,
   stdinAfterPassword = ""
 ): Promise<string> {
-  // When running as root, skip sudo -S and run the target command directly
+  // When running as root, OR when `sudo` is not installed on the host (slim
+  // Docker images / containerized non-root runtime), skip `sudo -S` and run
+  // the underlying command directly — same user, no elevation. This lets MITM
+  // operations triggered from inside `node:*-slim` containers succeed for any
+  // command that does not actually require root (everything but writing to
+  // /etc/hosts or the system trust store).
   const root = isRoot();
-  const needsPassword = !root || command !== "sudo";
+  const sudoAvailable = isSudoAvailable();
+  const stripSudo = command === "sudo" && (root || !sudoAvailable);
+  const needsPassword = !stripSudo && command === "sudo";
   let finalCommand = command;
   let finalArgs = args;
 
-  if (root && command === "sudo") {
+  if (stripSudo) {
     const realCmdIndex = args.findIndex((arg) => !arg.startsWith("-"));
     if (realCmdIndex !== -1) {
       finalCommand = args[realCmdIndex];
