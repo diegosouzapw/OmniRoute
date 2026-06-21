@@ -157,6 +157,8 @@ const ADVANCED_FIELD_HELP_FALLBACK = {
     "Round-robin combo/model limit: max simultaneous requests sent to each model target. This is separate from any provider account-only cap.",
   queueTimeout:
     "How long a request can wait for a round-robin model slot before timing out. This queue is separate from any account-only concurrency cap.",
+  stickyLimit:
+    "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation).",
   failoverBeforeRetry:
     "When enabled, a 429 from the upstream triggers immediate target failover instead of retrying the same URL first.",
   targetTimeoutMs:
@@ -2699,6 +2701,8 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
       if (config.concurrencyPerModel !== undefined)
         configToSave.concurrencyPerModel = config.concurrencyPerModel;
       if (config.queueTimeoutMs !== undefined) configToSave.queueTimeoutMs = config.queueTimeoutMs;
+      if (config.stickyRoundRobinLimit !== undefined)
+        configToSave.stickyRoundRobinLimit = config.stickyRoundRobinLimit;
     }
     const hasConfigToSave = Object.keys(configToSave).length > 0;
     const hadExistingConfig = Object.keys(sanitizeComboRuntimeConfig(combo?.config)).length > 0;
@@ -3784,6 +3788,33 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                             setConfig({
                               ...config,
                               queueTimeoutMs: e.target.value ? Number(e.target.value) : undefined,
+                            })
+                          }
+                          className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <FieldLabelWithHelp
+                          label={getI18nOrFallback(t, "stickyLimit", "Sticky Limit")}
+                          help={getI18nOrFallback(
+                            t,
+                            "advancedHelp.stickyLimit",
+                            ADVANCED_FIELD_HELP_FALLBACK.stickyLimit
+                          )}
+                          showHelp={!isExpertMode}
+                        />
+                        <input
+                          type="number"
+                          min="0"
+                          max="1000"
+                          value={config.stickyRoundRobinLimit ?? ""}
+                          placeholder={getI18nOrFallback(t, "stickyLimitInherit", "inherit")}
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              stickyRoundRobinLimit: e.target.value
+                                ? Number(e.target.value)
+                                : undefined,
                             })
                           }
                           className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"

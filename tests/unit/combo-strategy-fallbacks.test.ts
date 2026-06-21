@@ -330,6 +330,32 @@ test("round-robin uses existing stickyRoundRobinLimit for combo target batching"
   ]);
 });
 
+test("per-combo stickyRoundRobinLimit overrides the global setting", async () => {
+  const calls: string[] = [];
+  const combo = {
+    name: "rr-per-combo-sticky-override",
+    strategy: "round-robin",
+    models: ["openai/a", "claude/b", "gemini/c"],
+    config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0, stickyRoundRobinLimit: 2 },
+  };
+  for (let i = 0; i < 4; i += 1) {
+    const result = await handleComboChat({
+      body: {},
+      combo,
+      handleSingleModel: async (_body: any, m: string) => {
+        calls.push(m);
+        return okResponse();
+      },
+      isModelAvailable: async () => true,
+      log: createLog(),
+      settings: { stickyRoundRobinLimit: 3 },
+      allCombos: null,
+    });
+    assert.equal(result.ok, true);
+  }
+  assert.deepEqual(calls, ["openai/a", "openai/a", "claude/b", "claude/b"]);
+});
+
 test("round-robin sticky batching fallback success becomes sticky target", async () => {
   const calls: string[] = [];
   const combo = {

@@ -531,6 +531,24 @@ test("createComboSchema accepts failoverBeforeRetry, maxSetRetries and setRetryD
   assert.equal(parsed.config.setRetryDelayMs, 1500);
 });
 
+test("createComboSchema accepts per-combo stickyRoundRobinLimit and rejects out-of-range", () => {
+  const parsed = createComboSchema.parse({
+    name: "sticky-override",
+    models: ["openai/gpt-4o-mini"],
+    strategy: "round-robin",
+    config: { stickyRoundRobinLimit: 2 },
+  });
+  assert.equal(parsed.config.stickyRoundRobinLimit, 2);
+
+  const tooHigh = createComboSchema.safeParse({
+    name: "sticky-too-high",
+    models: ["openai/gpt-4o-mini"],
+    strategy: "round-robin",
+    config: { stickyRoundRobinLimit: 1001 },
+  });
+  assert.equal(tooHigh.success, false);
+});
+
 test("createComboSchema coerces string numbers for maxSetRetries and setRetryDelayMs", () => {
   const parsed = createComboSchema.parse({
     name: "coerce-test",

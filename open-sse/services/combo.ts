@@ -1986,11 +1986,17 @@ async function handleRoundRobinCombo({
     log
   );
 
-  // Sticky batch size at the combo level. Reuses the global `stickyRoundRobinLimit`
-  // setting so a single knob controls sticky batching for both account fallback and
-  // combo targets. Values <= 1 preserve the historical one-request-per-target rotation.
+  // Sticky batch size at the combo level. A per-combo `stickyRoundRobinLimit` (in
+  // combo.config, resolved through the cascade) overrides the global setting so one
+  // combo can batch differently from the default. When the per-combo value is unset,
+  // fall back to the global `stickyRoundRobinLimit` so the existing knob still controls
+  // sticky batching for both account fallback and combo targets. Values <= 1 preserve
+  // the historical one-request-per-target rotation.
+  const perComboStickyLimit = (config as Record<string, unknown>).stickyRoundRobinLimit;
   const stickyLimit = clampStickyRoundRobinTargetLimit(
-    (settings as Record<string, unknown> | null)?.stickyRoundRobinLimit
+    perComboStickyLimit !== undefined && perComboStickyLimit !== null
+      ? perComboStickyLimit
+      : (settings as Record<string, unknown> | null)?.stickyRoundRobinLimit
   );
   const stickyRoundRobinEnabled = stickyLimit > 1;
   if (
