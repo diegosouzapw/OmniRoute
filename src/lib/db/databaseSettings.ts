@@ -240,7 +240,7 @@ export function getDatabaseSettings(): DatabaseSettings {
       databaseSizeBytes: dbStats.totalSize,
       pageCount: dbStats.pageCount,
       freelistCount: getFreelistCount(),
-      lastVacuumAt: vacuumState.lastRunAt,
+      lastVacuumAt: vacuumState.lastRunAt !== null ? new Date(vacuumState.lastRunAt).toISOString() : null,
       lastOptimizationAt: null,
       integrityCheck: getIntegrityCheck(),
     },
