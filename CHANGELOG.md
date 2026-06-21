@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### 🐛 Fixed
+
+- **fix(resilience): upstream retry hints toggle now also governs reset text in error bodies** — quota-reset text such as Antigravity `Resets in 160h...` and subscription quota timestamps no longer bypass the Settings → Resilience "Use upstream retry hints" switch. When the switch is disabled, those responses keep the local cooldown behavior instead of applying the upstream-provided reset window.
+
 ---
 
 ## [3.8.32] — 2026-06-20

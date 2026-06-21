@@ -112,7 +112,7 @@ test("checkFallbackError locks Antigravity quota-reached 429 for the full reset 
     "gemini-3-flash-agent",
     "antigravity",
     null,
-    makeProfile()
+    makeProfile({ useUpstreamRetryHints: true })
   );
 
   assert.equal(result.shouldFallback, true);

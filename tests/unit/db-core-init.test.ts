@@ -415,7 +415,7 @@ test("local sqlite configuration enables WAL and sane pragmas", serial, async ()
       const db = core.getDbInstance();
 
       assert.equal(db.pragma("journal_mode", { simple: true }), "wal");
-      assert.equal(db.pragma("busy_timeout", { simple: true }), 5000);
+      assert.equal(db.pragma("busy_timeout", { simple: true }), 2000);
       assert.equal(db.pragma("synchronous", { simple: true }), 1);
       assert.equal(core.closeDbInstance({ checkpointMode: null }), true);
     });

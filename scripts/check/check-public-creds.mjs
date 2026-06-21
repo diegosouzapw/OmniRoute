@@ -88,8 +88,8 @@ const ENV_KEY_RE = /(clientId|clientSecret|apiKey)Env\s*:/;
 //   TODO(6A.8): Consider tightening CRED_KEY_RE to exclude function-signature contexts — but
 //   that adds complexity; the FP rate is low (1 file). Frozen by file:line:value key.
 export const KNOWN_LITERAL_CREDS = new Set([
-  "open-sse/services/usage.ts:547:minimax", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (moved 543→547 by #3838 usage.ts comment + #4293 Codex Spark extraction)
-  "open-sse/services/usage.ts:547:minimax-cn", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (moved 543→547 by #3838 usage.ts comment + #4293 Codex Spark extraction)
+  "open-sse/services/usage.ts:582:minimax", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (moved 547→582 by #4293 usage extraction)
+  "open-sse/services/usage.ts:582:minimax-cn", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (moved 547→582 by #4293 usage extraction)
 ]);
 
 /**

@@ -37,7 +37,7 @@ function dropFts5Artifacts() {
         "DROP TRIGGER IF EXISTS memory_fts_au;" +
         "DROP TABLE IF EXISTS memory_fts;"
     );
-  } catch (_: any) {
+  } catch {
     /* ignore if already dropped or DB not yet initialized */
   }
 }
@@ -169,6 +169,13 @@ test("later requests inject retrieved memories into upstream messages", async ()
 
 test("memory search ranks query-relevant memories first", async () => {
   const apiKey = await seedApiKey();
+
+  await settingsDb.updateSettings({
+    memoryEnabled: true,
+    memoryMaxTokens: 400,
+    memoryRetentionDays: 30,
+    memoryStrategy: "hybrid",
+  });
 
   await memoryTools.omniroute_memory_add.handler({
     apiKeyId: apiKey.id,
