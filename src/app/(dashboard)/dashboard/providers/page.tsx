@@ -951,8 +951,8 @@ export default function ProvidersPage() {
                       }`}
                       title={t("testAllCompatible")}
                     >
-                      <span className="material-symbols-outlined text-[14px]">
-                        {testingMode === "compatible" ? "sync" : "play_arrow"}
+                      <span className={`material-symbols-outlined text-[14px]${testingMode === "compatible" ? " animate-spin" : ""}`}>
+                        play_arrow
                       </span>
                       {testingMode === "compatible" ? t("testing") : t("testAll")}
                     </button>
@@ -1046,8 +1046,8 @@ export default function ProvidersPage() {
                     title={t("testAllOAuth")}
                     aria-label={t("testAllOAuth")}
                   >
-                    <span className="material-symbols-outlined text-[14px]">
-                      {testingMode === "oauth" ? "sync" : "play_arrow"}
+                    <span className={`material-symbols-outlined text-[14px]${testingMode === "oauth" ? " animate-spin" : ""}`}>
+                      play_arrow
                     </span>
                     {testingMode === "oauth" ? t("testing") : t("testAll")}
                   </button>
@@ -1096,8 +1096,8 @@ export default function ProvidersPage() {
                   title={t("testAll")}
                   aria-label={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "ide" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "ide" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "ide" ? t("testing") : t("testAll")}
                 </button>
@@ -1153,8 +1153,8 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "web-cookie" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "web-cookie" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "web-cookie" ? t("testing") : t("testAll")}
                 </button>
@@ -1197,8 +1197,8 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "free" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "free" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "free" ? t("testing") : t("testAll")}
                 </button>
@@ -1242,8 +1242,8 @@ export default function ProvidersPage() {
                   title={t("testAllApiKey")}
                   aria-label={t("testAllApiKey")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "apikey" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "apikey" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "apikey" ? t("testing") : t("testAll")}
                 </button>
@@ -1294,8 +1294,8 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "no-auth" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "no-auth" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "no-auth" ? t("testing") : t("testAll")}
                 </button>
@@ -1338,8 +1338,8 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "upstream-proxy" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "upstream-proxy" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "upstream-proxy" ? t("testing") : t("testAll")}
                 </button>
@@ -1481,8 +1481,8 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "cloud-agent" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "cloud-agent" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "cloud-agent" ? t("testing") : t("testAll")}
                 </button>
@@ -1529,8 +1529,8 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "local" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "local" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "local" ? t("testing") : t("testAll")}
                 </button>
@@ -1573,8 +1573,8 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "search" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "search" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "search" ? t("testing") : t("testAll")}
                 </button>
@@ -1683,8 +1683,8 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "audio" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "audio" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "audio" ? t("testing") : t("testAll")}
                 </button>
