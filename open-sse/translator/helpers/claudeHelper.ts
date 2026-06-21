@@ -1,6 +1,7 @@
 // Claude helper functions for translator
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { lookupReasoning, recordReplay } from "../../services/reasoningCache.ts";
+import { getModelTargetFormat } from "../../config/providerModels.ts";
 
 // MiniMax exposes a Claude-compatible endpoint but rejects Anthropic's extended
 // `output_config` parameter (used to steer reasoning effort and structured output)
@@ -220,7 +221,8 @@ function markMessageCacheControl(msg: ClaudeMessage, ttl?: string): boolean {
 export function prepareClaudeRequest(
   body: ClaudeRequestBody,
   provider: string | null = null,
-  preserveCacheControl = false
+  preserveCacheControl = false,
+  model: string | null = null
 ): ClaudeRequestBody {
   // 0. Strip Anthropic `output_config` for providers that reject it on their
   // Claude-compatible endpoints (MiniMax). Must run before any downstream
@@ -243,7 +245,13 @@ export function prepareClaudeRequest(
   // We use the same allowlist as prompt-caching: only Anthropic-native
   // upstreams get redacted_thinking. Everything else gets plain thinking blocks
   // backed by reasoningCache (real text) or a placeholder (cache miss).
-  const supportsRedactedThinking = supportsPromptCaching;
+  // Mixed-format providers (e.g. opencode-go) may have some models targeting
+  // Anthropic's Messages API (targetFormat=claude) and others targeting OpenAI.
+  // When the specific model targets Claude format, it's hitting a real Anthropic
+  // endpoint that validates signatures — so it needs redacted_thinking too.
+  const modelTargetsClaude =
+    !!provider && !!model && getModelTargetFormat(provider, model) === "claude";
+  const supportsRedactedThinking = supportsPromptCaching || modelTargetsClaude;
 
   const systemBlocks = body.system;
   if (systemBlocks && Array.isArray(systemBlocks) && !preserveCacheControl) {

@@ -256,7 +256,7 @@ export function translateRequest(
   if (targetFormat === FORMATS.CLAUDE) {
     const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE;
     const preserveCache = isClaudePassthrough || options?.preserveCacheControl === true;
-    result = prepareClaudeRequest(result, provider, preserveCache);
+    result = prepareClaudeRequest(result, provider, preserveCache, model);
   }
 
   // Normalize openai-responses input shape for providers that require list input.
