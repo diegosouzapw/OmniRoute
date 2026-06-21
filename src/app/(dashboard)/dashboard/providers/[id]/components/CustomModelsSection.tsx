@@ -39,6 +39,21 @@ export interface CustomModelsSectionProps {
 }
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Map a targetFormat value to its display label, used for the model row badge. */
+function targetFormatLabel(value: string, t: (key: string) => string): string {
+  if (value === "openai") return t("compatProtocolOpenAI");
+  if (value === "openai-responses") return t("compatProtocolOpenAIResponses");
+  if (value === "claude") return t("compatProtocolClaude");
+  if (value === "gemini") return t("targetFormatGemini");
+  if (value === "gemini-cli") return t("targetFormatGeminiCli");
+  if (value === "antigravity") return t("targetFormatAntigravity");
+  return value;
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -64,6 +79,11 @@ export default function CustomModelsSection({
   const [editingModelId, setEditingModelId] = useState<string | null>(null);
   const [editingApiFormat, setEditingApiFormat] = useState("chat-completions");
   const [editingEndpoints, setEditingEndpoints] = useState<string[]>(["chat"]);
+  // #2905: per-model upstream wire-format override (empty string = no override,
+  // use provider default). Round-trips through the targetFormat field on the
+  // custom model record.
+  const [editingTargetFormat, setEditingTargetFormat] = useState("");
+  const [newTargetFormat, setNewTargetFormat] = useState("");
   const [savingModelId, setSavingModelId] = useState<string | null>(null);
   const [togglingModelId, setTogglingModelId] = useState<string | null>(null);
 
@@ -102,6 +122,7 @@ export default function CustomModelsSection({
           modelName: newModelName.trim() || undefined,
           apiFormat: newApiFormat,
           supportedEndpoints: newEndpoints,
+          ...(newTargetFormat ? { targetFormat: newTargetFormat } : {}),
         }),
       });
       if (res.ok) {
@@ -109,6 +130,7 @@ export default function CustomModelsSection({
         setNewModelName("");
         setNewApiFormat("chat-completions");
         setNewEndpoints(["chat"]);
+        setNewTargetFormat("");
         await fetchCustomModels();
         onModelsChanged?.();
       }
@@ -164,12 +186,14 @@ export default function CustomModelsSection({
         ? model.supportedEndpoints
         : ["chat"]
     );
+    setEditingTargetFormat(model.targetFormat || "");
   };
 
   const cancelEdit = () => {
     setEditingModelId(null);
     setEditingApiFormat("chat-completions");
     setEditingEndpoints(["chat"]);
+    setEditingTargetFormat("");
     setSavingModelId(null);
   };
 
@@ -225,6 +249,10 @@ export default function CustomModelsSection({
           source: model?.source || "manual",
           apiFormat: editingApiFormat,
           supportedEndpoints: editingEndpoints,
+          // #2905: send targetFormat only when set; the API treats the field
+          // as optional. Sending an empty string would fail Zod's enum check,
+          // so we omit it entirely when the user picks "Default (auto)".
+          ...(editingTargetFormat ? { targetFormat: editingTargetFormat } : {}),
         }),
       });
 
@@ -312,6 +340,26 @@ export default function CustomModelsSection({
               <option value="images-generations">{t("imagesGenerations")}</option>
             </select>
           </div>
+          <div className="w-48">
+            <label htmlFor="custom-target-format" className="text-xs text-text-muted mb-1 block">
+              {t("targetFormatLabel")}
+            </label>
+            <select
+              id="custom-target-format"
+              value={newTargetFormat}
+              onChange={(e) => setNewTargetFormat(e.target.value)}
+              title={t("targetFormatHint")}
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+            >
+              <option value="">{t("targetFormatAuto")}</option>
+              <option value="openai">{t("compatProtocolOpenAI")}</option>
+              <option value="openai-responses">{t("compatProtocolOpenAIResponses")}</option>
+              <option value="claude">{t("compatProtocolClaude")}</option>
+              <option value="gemini">{t("targetFormatGemini")}</option>
+              <option value="gemini-cli">{t("targetFormatGeminiCli")}</option>
+              <option value="antigravity">{t("targetFormatAntigravity")}</option>
+            </select>
+          </div>
           <div className="flex-1">
             <span className="text-xs text-text-muted mb-1 block">
               {t("supportedEndpointsLabel")}
@@ -388,6 +436,14 @@ export default function CustomModelsSection({
                         {t("responses")}
                       </span>
                     )}
+                    {model.targetFormat && (
+                      <span
+                        className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-medium"
+                        title={t("targetFormatHint")}
+                      >
+                        {`→ ${targetFormatLabel(model.targetFormat, t)}`}
+                      </span>
+                    )}
                     {model.supportedEndpoints?.includes("embeddings") && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-500/15 text-purple-400 font-medium">
                         {`📐 ${t("supportedEndpointEmbeddings")}`}
@@ -445,11 +501,30 @@ export default function CustomModelsSection({
                             <option value="responses">{t("responsesApi")}</option>
                             <option value="embeddings">{t("embeddings")}</option>
                             <option value="rerank">Rerank</option>
-                            <option value="audio-transcriptions">
-                              {t("audioTranscriptions")}
-                            </option>
+                            <option value="audio-transcriptions">{t("audioTranscriptions")}</option>
                             <option value="audio-speech">{t("audioSpeech")}</option>
                             <option value="images-generations">{t("imagesGenerations")}</option>
+                          </select>
+                        </div>
+                        <div className="w-[11rem] shrink-0 min-w-0">
+                          <label className="text-xs text-text-muted mb-1 block">
+                            {t("targetFormatLabel")}
+                          </label>
+                          <select
+                            value={editingTargetFormat}
+                            onChange={(e) => setEditingTargetFormat(e.target.value)}
+                            title={t("targetFormatHint")}
+                            className="w-full px-2.5 py-2 text-xs border border-border rounded-lg bg-background text-text-main focus:outline-none focus:border-primary"
+                          >
+                            <option value="">{t("targetFormatAuto")}</option>
+                            <option value="openai">{t("compatProtocolOpenAI")}</option>
+                            <option value="openai-responses">
+                              {t("compatProtocolOpenAIResponses")}
+                            </option>
+                            <option value="claude">{t("compatProtocolClaude")}</option>
+                            <option value="gemini">{t("targetFormatGemini")}</option>
+                            <option value="gemini-cli">{t("targetFormatGeminiCli")}</option>
+                            <option value="antigravity">{t("targetFormatAntigravity")}</option>
                           </select>
                         </div>
                         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 overflow-x-auto overflow-y-visible [scrollbar-width:thin]">

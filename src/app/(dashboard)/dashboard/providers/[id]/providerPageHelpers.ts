@@ -78,6 +78,10 @@ export type CompatModelRow = {
   isHidden?: boolean;
   upstreamHeaders?: Record<string, string>;
   compatByProtocol?: CompatByProtocolMap;
+  // #2905: per-model upstream wire-format override (e.g. force an opencode-go
+  // custom model to use the Anthropic Messages shape). Optional — when absent
+  // the model uses the provider's default transport.
+  targetFormat?: string;
 };
 
 export type CompatModelMap = Map<string, CompatModelRow>;
