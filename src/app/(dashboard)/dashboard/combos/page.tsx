@@ -4335,6 +4335,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
         title={t("addModelToCombo")}
         selectedModel={null}
         addedModelValues={models.map((m) => m.model)}
+        keepOpenOnSelect
       />
     </>
   );
