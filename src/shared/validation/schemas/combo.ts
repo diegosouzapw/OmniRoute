@@ -146,6 +146,7 @@ export const comboRuntimeConfigSchema = z
     handoffProviders: z.array(z.string().trim().min(1).max(100)).max(10).optional(),
     maxMessagesForSummary: z.coerce.number().int().min(5).max(100).optional(),
     maxComboDepth: z.coerce.number().int().min(1).max(10).optional(),
+    nestedComboMode: z.enum(["flatten", "execute"]).optional(),
     trackMetrics: z.boolean().optional(),
     reasoningTokenBufferEnabled: z.boolean().optional(),
     compressionMode: compressionModeSchema.optional(),

@@ -614,6 +614,7 @@ export async function handleChat(
           allowedConnectionIds?: string[] | null;
           failoverBeforeRetry?: boolean;
           providerId?: string | null;
+          effectiveComboStrategy?: string | null;
         }
       ) =>
         handleSingleModelChat(
@@ -640,7 +641,7 @@ export async function handleChat(
             cachedSettings: settings,
             providerId: target?.providerId ?? null,
           },
-          combo.strategy,
+          target?.effectiveComboStrategy ?? combo.strategy,
           true
         ),
       isModelAvailable: checkModelAvailable,
@@ -803,6 +804,7 @@ async function handleSingleModelChat(
           failoverBeforeRetry?: boolean;
           allowRateLimitedConnection?: boolean;
           providerId?: string | null;
+          effectiveComboStrategy?: string | null;
         }
       ) =>
         handleSingleModelChat(
@@ -824,7 +826,7 @@ async function handleSingleModelChat(
             allowRateLimitedConnection: target?.allowRateLimitedConnection === true,
             providerId: target?.providerId ?? null,
           },
-          redirectCombo.strategy ?? "priority",
+          target?.effectiveComboStrategy ?? redirectCombo.strategy ?? "priority",
           false
         ),
       isModelAvailable: async () => true,

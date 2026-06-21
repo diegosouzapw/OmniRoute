@@ -138,13 +138,15 @@ export type ShadowRoutingConfig = {
   timeoutMs: number;
 };
 
-export type ComboRuntimeStep =
-  | ResolvedComboTarget
-  | {
-      kind: "combo-ref";
-      stepId: string;
-      executionKey: string;
-      comboName: string;
-      weight: number;
-      label: string | null;
-    };
+export type ResolvedComboRefTarget = {
+  kind: "combo-ref";
+  stepId: string;
+  executionKey: string;
+  comboName: string;
+  weight: number;
+  label: string | null;
+};
+
+export type ResolvedComboUnit = ResolvedComboTarget | ResolvedComboRefTarget;
+
+export type ComboRuntimeStep = ResolvedComboUnit;

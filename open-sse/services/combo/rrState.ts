@@ -13,7 +13,7 @@
  * Pure leaf: this module never imports from the combo barrel.
  */
 
-import type { ResolvedComboTarget } from "./types.ts";
+import type { ResolvedComboUnit } from "./types.ts";
 
 // In-memory atomic counter per combo for round-robin distribution
 // Resets on server restart (by design — no stale state)
@@ -37,7 +37,7 @@ export const clampStickyWeightedTargetLimit = clampStickyRoundRobinTargetLimit;
 
 export function getStickyRoundRobinStartIndex(
   comboName: string,
-  targets: ResolvedComboTarget[],
+  targets: ResolvedComboUnit[],
   stickyLimit: number
 ): { startIndex: number; counter: number } {
   const sticky = rrStickyTargets.get(comboName);
@@ -54,9 +54,9 @@ export function getStickyRoundRobinStartIndex(
 
 export function recordStickyRoundRobinSuccess(
   comboName: string,
-  target: ResolvedComboTarget,
+  target: ResolvedComboUnit,
   stickyLimit: number,
-  targets: ResolvedComboTarget[]
+  targets: ResolvedComboUnit[]
 ): void {
   const sticky = rrStickyTargets.get(comboName);
   const successCount = sticky?.executionKey === target.executionKey ? sticky.successCount + 1 : 1;
