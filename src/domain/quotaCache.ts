@@ -18,6 +18,7 @@ import { getProviderConnectionById, resolveProxyForConnection } from "@/lib/loca
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { safePercentage } from "@/shared/utils/formatting";
 import { saveQuotaSnapshot, cleanupOldSnapshots } from "@/lib/db/quotaSnapshots";
+import { quotaSnapshotChanged, type SnapshotState } from "@/lib/db/quotaSnapshotDedup";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -47,6 +48,11 @@ interface QuotaWindowStatus {
 
 const ACTIVE_TTL_MS = 5 * 60 * 1000; // 5 minutes for active accounts
 const EXHAUSTED_TTL_MS = 5 * 60 * 1000; // 5 minutes for 429-sourced entries (no resetAt)
+
+// #4438: in-memory record of the last snapshot persisted per `${connectionId}:${windowKey}`,
+// so the 60s background refresh only writes a row when the quota actually changed — idle
+// connections otherwise produced hundreds of thousands of duplicate rows/day.
+const lastSnapshotState = new Map<string, SnapshotState>();
 const EXHAUSTED_REFRESH_MS = 5 * 60 * 1000; // 5 minutes: recheck exhausted accounts (aligned with TTL)
 const REFRESH_INTERVAL_MS = 60 * 1000; // Background tick every 1 minute
 export const DEFAULT_QUOTA_THRESHOLD_PERCENT = 99;
@@ -201,6 +207,13 @@ export function setQuotaCache(
         (quotaInfo.total > 0
           ? Math.round(((quotaInfo.total - (quotaInfo.used || 0)) / quotaInfo.total) * 100)
           : 0);
+      // #4438: only persist a snapshot when it differs from the last one for this
+      // connection+window — skips the duplicate rows the 60s refresh wrote for idle
+      // connections whose quota never changes.
+      const snapKey = `${connectionId}:${windowKey}`;
+      const nextSnapshot: SnapshotState = { remainingPercentage, isExhausted: !!entry.exhausted };
+      if (!quotaSnapshotChanged(lastSnapshotState.get(snapKey), nextSnapshot)) continue;
+      lastSnapshotState.set(snapKey, nextSnapshot);
       try {
         saveQuotaSnapshot({
           provider,
