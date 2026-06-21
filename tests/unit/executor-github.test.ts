@@ -426,6 +426,44 @@ test("GithubExecutor.execute preserves complete SSE responses including terminal
   }
 });
 
+test("GithubExecutor.transformRequest strips temperature for gpt-5.4 (port from 9router#612 / closes upstream #536)", () => {
+  // GitHub Copilot's gpt-5.4 family rejects requests carrying `temperature` with HTTP 400:
+  //   "Unsupported parameter: 'temperature' is not supported with this model."
+  // OmniRoute's existing `stripGpt5SamplingWhenReasoning` guard only fires for
+  // provider==="openai" (raw api.openai.com Chat Completions) — Copilot requests run
+  // through GithubExecutor and never hit that guard. Strip temperature here so the
+  // 400 cannot reach the user. Other GitHub Copilot models keep temperature intact.
+  const executor = new GithubExecutor();
+
+  const stripped = executor.transformRequest(
+    "gpt-5.4",
+    { temperature: 0.7, messages: [{ role: "user", content: "hi" }] },
+    true,
+    {}
+  );
+  assert.equal(stripped.temperature, undefined, "temperature must be stripped for gpt-5.4");
+
+  const strippedMini = executor.transformRequest(
+    "gpt-5.4-mini",
+    { temperature: 0.3, messages: [{ role: "user", content: "hi" }] },
+    true,
+    {}
+  );
+  assert.equal(
+    strippedMini.temperature,
+    undefined,
+    "temperature must be stripped for gpt-5.4-mini"
+  );
+
+  const kept = executor.transformRequest(
+    "gpt-4.1",
+    { temperature: 0.7, messages: [{ role: "user", content: "hi" }] },
+    true,
+    {}
+  );
+  assert.equal(kept.temperature, 0.7, "temperature must be preserved for non-gpt-5.4 models");
+});
+
 test("GithubExecutor.transformRequest strips invalid synthetic Responses reasoning ids", () => {
   const executor = new GithubExecutor();
   const result = executor.transformRequest(
