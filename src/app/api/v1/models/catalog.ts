@@ -1397,7 +1397,10 @@ export async function getUnifiedModelsResponse(
 
     // Advertise no-thinking gateway variants (Fase 8.1). Derived from the already
     // key-filtered list, so a variant only appears when its real model is permitted.
-    finalModels = appendNoThinkingVariants(finalModels);
+    finalModels = appendNoThinkingVariants(
+      finalModels,
+      prefixMode === "canonical" ? aliasToProviderId : undefined
+    );
 
     // #4424 follow-up — drop exact-duplicate ids that slip through the per-source push
     // guards (e.g. `codex/gpt-5.5`, `veo-free/seedance` listed twice). Keyed by listing
