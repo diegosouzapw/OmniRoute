@@ -915,18 +915,19 @@ export async function getUnifiedModelsResponse(
             continue;
           }
 
-          models.push({
-            id: aliasId,
-            object: "model",
-            created: timestamp,
-            owned_by: canonicalProviderId,
-            permission: [],
-            root: sm.id,
-            parent: null,
-            ...syncedFields,
-          });
-
-          if (modelType === "audio") {
+          if (includeAlias) {
+            models.push({
+              id: aliasId,
+              object: "model",
+              created: timestamp,
+              owned_by: canonicalProviderId,
+              permission: [],
+              root: sm.id,
+              parent: null,
+              ...syncedFields,
+            });
+          }
+          if (includeAlias && modelType === "audio") {
             models.push({
               id: aliasId,
               object: "model",
@@ -957,7 +958,7 @@ export async function getUnifiedModelsResponse(
                 owned_by: canonicalProviderId,
                 permission: [],
                 root: sm.id,
-                parent: aliasId,
+                parent: includeAlias ? aliasId : null,
                 ...syncedFields,
               });
             }
@@ -1262,28 +1263,30 @@ export async function getUnifiedModelsResponse(
               ? getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId)
               : null;
 
-          models.push({
-            id: aliasId,
-            object: "model",
-            created: timestamp,
-            owned_by: canonicalProviderId,
-            permission: [],
-            root: modelId,
-            parent: null,
-            custom: true,
-            ...(modelType ? { type: modelType } : {}),
-            ...(apiFormat !== "chat-completions" ? { api_format: apiFormat } : {}),
-            ...(endpoints.length > 1 || !endpoints.includes("chat")
-              ? { supported_endpoints: endpoints }
-              : {}),
-            ...(typeof model.inputTokenLimit === "number"
-              ? { context_length: model.inputTokenLimit }
-              : {}),
-            ...(typeof (model as any).outputTokenLimit === "number"
-              ? { max_output_tokens: (model as any).outputTokenLimit }
-              : {}),
-            ...(visionFields || {}),
-          });
+          if (includeAlias) {
+            models.push({
+              id: aliasId,
+              object: "model",
+              created: timestamp,
+              owned_by: canonicalProviderId,
+              permission: [],
+              root: modelId,
+              parent: null,
+              custom: true,
+              ...(modelType ? { type: modelType } : {}),
+              ...(apiFormat !== "chat-completions" ? { api_format: apiFormat } : {}),
+              ...(endpoints.length > 1 || !endpoints.includes("chat")
+                ? { supported_endpoints: endpoints }
+                : {}),
+              ...(typeof model.inputTokenLimit === "number"
+                ? { context_length: model.inputTokenLimit }
+                : {}),
+              ...(typeof (model as any).outputTokenLimit === "number"
+                ? { max_output_tokens: (model as any).outputTokenLimit }
+                : {}),
+              ...(visionFields || {}),
+            });
+          }
 
           if (includeCanonical && canonicalProviderId !== alias && !prefix && !isNoAuthProvider) {
             const providerPrefixedId = `${canonicalProviderId}/${modelId}`;
@@ -1300,7 +1303,7 @@ export async function getUnifiedModelsResponse(
               owned_by: canonicalProviderId,
               permission: [],
               root: modelId,
-              parent: aliasId,
+              parent: includeAlias ? aliasId : null,
               custom: true,
               ...(modelType ? { type: modelType } : {}),
               ...(typeof model.inputTokenLimit === "number"
