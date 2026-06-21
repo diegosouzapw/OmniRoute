@@ -43,6 +43,7 @@ import {
 } from "./codeAssistSubscription.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 
+// Quota / usage upstream URLs (overridable for testing or relays).
 const CROF_USAGE_URL = process.env.OMNIROUTE_CROF_USAGE_URL ?? "https://crof.ai/usage_api/";
 const GEMINI_CLI_USAGE_URL =
   process.env.OMNIROUTE_GEMINI_CLI_USAGE_URL ??
@@ -50,6 +51,7 @@ const GEMINI_CLI_USAGE_URL =
 const CODEWHISPERER_BASE_URL =
   process.env.OMNIROUTE_CODEWHISPERER_BASE_URL ?? "https://codewhisperer.us-east-1.amazonaws.com";
 
+// Antigravity API config (credentials from PROVIDERS via credential loader)
 const ANTIGRAVITY_CONFIG = {
   quotaApiUrls: getAntigravityFetchAvailableModelsUrls(),
   loadProjectApiUrl: "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:loadCodeAssist",
@@ -65,10 +67,12 @@ const ANTIGRAVITY_CONFIG = {
   },
 };
 
+// Codex (OpenAI) API config
 const CODEX_CONFIG = {
   usageUrl: "https://chatgpt.com/backend-api/wham/usage",
 };
 
+// Claude API config
 const CLAUDE_CONFIG = {
   oauthUsageUrl: "https://api.anthropic.com/api/oauth/usage",
   usageUrl: "https://api.anthropic.com/v1/organizations/{org_id}/usage",
@@ -100,6 +104,10 @@ const OPENCODE_GO_QUOTA_TOTALS = {
 const OPENCODE_GO_QUOTA_ORDER = ["session", "weekly", "mcp_monthly"] as const;
 type OpenCodeGoQuotaName = (typeof OPENCODE_GO_QUOTA_ORDER)[number];
 
+// Cursor dashboard usage API config
+// The endpoint that powers https://cursor.com/dashboard/spending. Validates the WorkOS
+// session via the WorkosCursorSessionToken cookie (format: `${userId}::${jwt}`) and
+// rejects requests without a matching Origin/Referer (Invalid origin for state-changing request).
 const CURSOR_USAGE_CONFIG = {
   usageUrl: "https://cursor.com/api/dashboard/get-current-period-usage",
   origin: "https://cursor.com",
@@ -705,12 +713,6 @@ async function getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn
       : "MiniMax connected. Unable to fetch usage.",
   };
 }
-
-// CrofAI surfaces a tiny endpoint with two signals:
-//   GET https://crof.ai/usage_api/  →  { usable_requests: number|null, credits: number }
-// `usable_requests` is the daily request bucket on a subscription plan; `null`
-// for pay-as-you-go. `credits` is the USD credit balance. We surface both as
-// quotas so the Limits & Quotas page can render whichever the account uses.
 async function getCrofUsage(apiKey: string) {
   if (!apiKey) {
     return { message: "CrofAI API key not available. Add a key to view usage." };
