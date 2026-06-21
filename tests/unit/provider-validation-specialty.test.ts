@@ -372,6 +372,14 @@ test("web-cookie provider validators surface auth and subscription failures", as
   __setPplxTlsFetchOverride(async () => {
     return { status: 403, headers: new Headers(), text: null, body: null };
   });
+  __setGrokTlsFetchOverride(async () => {
+    return {
+      status: 401,
+      headers: new Headers(),
+      text: JSON.stringify({ error: "unauthorized" }),
+      body: null,
+    };
+  });
 
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
