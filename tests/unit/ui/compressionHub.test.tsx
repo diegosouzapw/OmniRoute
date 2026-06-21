@@ -134,37 +134,45 @@ describe("CompressionHub", () => {
     expect(text).toContain("Layer pipeline is active");
   });
 
-  it("INVARIANT #1: no per-layer control issues a PUT/POST to /api/context/combos/default", { timeout: 20000 }, async () => {
-    const comboWrites: { method: string }[] = [];
-    const json = (body: unknown, status = 200) =>
+  it("renders the active pipeline when the default-combo response omits an id", async () => {
+    // Regression: the production /api/context/combos/default endpoint returns
+    // { mode, pipeline, derived } (no `id` field). The previous `if (comboData?.id)`
+    // gate in CompressionHub threw the payload away, so the Hub showed "0 layer(s)"
+    // even when the engines map had layers stacked. Render the pipeline as long as
+    // the endpoint returned anything with a pipeline array.
+    const noIdJson = (body: unknown, status = 200) =>
       new Response(JSON.stringify(body), {
         status,
         headers: { "Content-Type": "application/json" },
       });
-    vi.spyOn(globalThis, "fetch").mockImplementation(
-      async (input: RequestInfo | URL, init?: RequestInit) => {
-        const url = input.toString();
-        if (url.includes("/api/context/combos/default")) {
-          if (init?.method === "PUT" || init?.method === "POST") {
-            comboWrites.push({ method: init.method });
-          }
-          return json({ id: "default", name: "Default", pipeline: [{ engine: "rtk" }] });
-        }
-        if (url.includes("/api/settings/compression")) {
-          return json({ enabled: true, defaultMode: "stacked" });
-        }
-        if (url.includes("/api/compression/engines")) {
-          return json(enginePayload());
-        }
-        if (url.includes("/api/context/combos") || url.includes("/api/combos")) {
-          return json({ combos: [] });
-        }
-        if (url.includes("/api/compression/language-packs")) {
-          return json({ packs: [] });
-        }
-        return json({}, 404);
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      if (url.includes("/api/settings/compression")) {
+        return noIdJson({ enabled: true, defaultMode: "stacked" });
       }
-    );
+      if (url.includes("/api/compression/engines")) {
+        return noIdJson(enginePayload());
+      }
+      if (url.includes("/api/context/combos/default")) {
+        // Production shape: no `id` field.
+        return noIdJson({
+          mode: "stacked",
+          pipeline: [
+            { engine: "session-dedup" },
+            { engine: "rtk", intensity: "standard" },
+            { engine: "caveman", intensity: "lite" },
+          ],
+          derived: true,
+        });
+      }
+      if (url.includes("/api/context/combos") || url.includes("/api/combos")) {
+        return noIdJson({ combos: [] });
+      }
+      if (url.includes("/api/compression/language-packs")) {
+        return noIdJson({ packs: [] });
+      }
+      return noIdJson({}, 404);
+    });
 
     const { default: CompressionHub } =
       await import("../../../src/app/(dashboard)/dashboard/context/combos/CompressionHub");
@@ -175,17 +183,71 @@ describe("CompressionHub", () => {
     });
     await flush();
 
-    // Click every on/off switch in the Hub (master + any layer controls that remain).
-    const switches = Array.from(container.querySelectorAll('[role="switch"]'));
-    for (const sw of switches) {
+    const text = container.textContent ?? "";
+    expect(text).toContain("Compression Hub");
+    expect(text).toContain("Layer pipeline is active");
+    // All 3 pipeline steps should render in the active pipeline section.
+    expect(text).toContain("Session Dedup");
+    expect(text).toContain("RTK");
+    expect(text).toContain("Caveman");
+  });
+
+  it(
+    "INVARIANT #1: no per-layer control issues a PUT/POST to /api/context/combos/default",
+    { timeout: 20000 },
+    async () => {
+      const comboWrites: { method: string }[] = [];
+      const json = (body: unknown, status = 200) =>
+        new Response(JSON.stringify(body), {
+          status,
+          headers: { "Content-Type": "application/json" },
+        });
+      vi.spyOn(globalThis, "fetch").mockImplementation(
+        async (input: RequestInfo | URL, init?: RequestInit) => {
+          const url = input.toString();
+          if (url.includes("/api/context/combos/default")) {
+            if (init?.method === "PUT" || init?.method === "POST") {
+              comboWrites.push({ method: init.method });
+            }
+            return json({ id: "default", name: "Default", pipeline: [{ engine: "rtk" }] });
+          }
+          if (url.includes("/api/settings/compression")) {
+            return json({ enabled: true, defaultMode: "stacked" });
+          }
+          if (url.includes("/api/compression/engines")) {
+            return json(enginePayload());
+          }
+          if (url.includes("/api/context/combos") || url.includes("/api/combos")) {
+            return json({ combos: [] });
+          }
+          if (url.includes("/api/compression/language-packs")) {
+            return json({ packs: [] });
+          }
+          return json({}, 404);
+        }
+      );
+
+      const { default: CompressionHub } =
+        await import("../../../src/app/(dashboard)/dashboard/context/combos/CompressionHub");
+
+      let container!: HTMLElement;
       await act(async () => {
-        (sw as HTMLElement).click();
+        container = mountInContainer(<CompressionHub />);
       });
       await flush();
-    }
 
-    expect(comboWrites).toHaveLength(0);
-  });
+      // Click every on/off switch in the Hub (master + any layer controls that remain).
+      const switches = Array.from(container.querySelectorAll('[role="switch"]'));
+      for (const sw of switches) {
+        await act(async () => {
+          (sw as HTMLElement).click();
+        });
+        await flush();
+      }
+
+      expect(comboWrites).toHaveLength(0);
+    }
+  );
 
   it("shows the activation warning when Token Saver is off", async () => {
     setupFetchMock({ enabled: false, mode: "off", pipeline: [] });

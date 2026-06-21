@@ -132,9 +132,9 @@ export default function CompressionHub() {
           )
         );
       }
-      if (comboData?.id) {
+      if (comboData) {
         setCombo({
-          id: String(comboData.id),
+          id: comboData.id != null ? String(comboData.id) : "default",
           name: String(comboData.name ?? "Default"),
           pipeline: Array.isArray(comboData.pipeline) ? comboData.pipeline : [],
         });

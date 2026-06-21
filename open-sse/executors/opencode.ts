@@ -79,7 +79,9 @@ export class OpencodeExecutor extends BaseExecutor {
 
       // Forward OpenCode request metadata headers from client
       const findClientHeader = (name: string) =>
-        Object.entries(clientHeaders).find(([key]) => key.toLowerCase() === name.toLowerCase())?.[1];
+        Object.entries(clientHeaders).find(
+          ([key]) => key.toLowerCase() === name.toLowerCase()
+        )?.[1];
 
       const opencodeHeaderKeys = [
         "x-opencode-session",
@@ -144,6 +146,28 @@ export class OpencodeExecutor extends BaseExecutor {
       modifiedBody.tools.length > 128
     ) {
       modifiedBody.tools = modifiedBody.tools.slice(0, 128);
+    }
+    // #xxxx: DeepSeek V4 Pro reasoning-effort variants. The upstream opencode/zen
+    // exposes the base id `deepseek-v4-pro` only; the -low/-medium/-high/-max
+    // suffixes are operator-facing knobs that map to `reasoning_effort`. Rewrite
+    // body.model to the canonical base id (always — the upstream rejects the
+    // suffixed variants) and inject the chosen effort when the caller did not
+    // already set one (explicit beats derived). Mirrors 9router's opencode-go
+    // executor (open-sse/executors/opencode-go.js).
+    if (modifiedBody && typeof modifiedBody === "object") {
+      const mb = modifiedBody as Record<string, unknown>;
+      const m = String(model || "");
+      const effortLevels = ["low", "medium", "high", "max"] as const;
+      const matchedLevel = effortLevels.find((level) => m.endsWith(`-${level}`));
+      if (matchedLevel) {
+        const base = m.slice(0, -`-${matchedLevel}`.length);
+        if (base.toLowerCase() === "deepseek-v4-pro") {
+          mb.model = "deepseek-v4-pro";
+          if (mb.reasoning_effort === undefined) {
+            mb.reasoning_effort = matchedLevel;
+          }
+        }
+      }
     }
     return modifiedBody;
   }
