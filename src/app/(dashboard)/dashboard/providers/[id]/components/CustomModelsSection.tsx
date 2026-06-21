@@ -21,6 +21,7 @@ import {
   effectivePreserveForProtocol,
   effectiveUpstreamHeadersForProtocol,
   formatProviderModelsErrorResponse,
+  targetFormatBadgeI18nKey,
   type CompatModelRow,
   type CompatByProtocolMap,
 } from "../providerPageHelpers";
@@ -44,13 +45,8 @@ export interface CustomModelsSectionProps {
 
 /** Map a targetFormat value to its display label, used for the model row badge. */
 function targetFormatLabel(value: string, t: (key: string) => string): string {
-  if (value === "openai") return t("compatProtocolOpenAI");
-  if (value === "openai-responses") return t("compatProtocolOpenAIResponses");
-  if (value === "claude") return t("compatProtocolClaude");
-  if (value === "gemini") return t("targetFormatGemini");
-  if (value === "gemini-cli") return t("targetFormatGeminiCli");
-  if (value === "antigravity") return t("targetFormatAntigravity");
-  return value;
+  const key = targetFormatBadgeI18nKey(value);
+  return key ? t(key) : value;
 }
 
 // ---------------------------------------------------------------------------
