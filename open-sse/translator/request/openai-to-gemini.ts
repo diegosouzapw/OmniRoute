@@ -273,19 +273,12 @@ function openaiToGeminiBase(
   if (body.stop !== undefined) {
     result.generationConfig.stopSequences = Array.isArray(body.stop) ? body.stop : [body.stop];
   }
-  const requestedMaxOutputTokens = (body.max_tokens ?? body.max_completion_tokens) as
-    | number
-    | undefined;
-  if (requestedMaxOutputTokens !== undefined) {
-    const maxOutputTokens = capMaxOutputTokens(model, requestedMaxOutputTokens);
-    if (maxOutputTokens !== null) {
-      result.generationConfig.maxOutputTokens = maxOutputTokens;
-    }
-  } else {
-    const maxOutputTokens = capMaxOutputTokens(model);
-    if (maxOutputTokens !== null) {
-      result.generationConfig.maxOutputTokens = maxOutputTokens;
-    }
+  const maxOutputTokens = capMaxOutputTokens(
+    model,
+    (body.max_tokens ?? body.max_completion_tokens) as number | undefined
+  );
+  if (maxOutputTokens !== null) {
+    result.generationConfig.maxOutputTokens = maxOutputTokens;
   }
 
   // Thinking / Reasoning support (Google Gemini 2.0+ Thinking models)
