@@ -490,6 +490,7 @@ export const providerNodeValidateSchema = z.object({
   compatMode: z.enum(["cc"]).optional(),
   chatPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
   modelsPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
+  modelId: z.string().trim().max(200).optional().or(z.literal("")),
 });
 
 export const updateProviderConnectionSchema = z

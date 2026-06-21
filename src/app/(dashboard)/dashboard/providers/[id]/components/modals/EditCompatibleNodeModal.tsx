@@ -41,8 +41,11 @@ export default function EditCompatibleNodeModal({
   });
   const [saving, setSaving] = useState(false);
   const [checkKey, setCheckKey] = useState("");
+  const [checkModelId, setCheckModelId] = useState("");
   const [validating, setValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState(null);
+  const [validationResult, setValidationResult] = useState<
+    null | { valid: boolean; error?: string | null; method?: string | null }
+  >(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
@@ -113,12 +116,17 @@ export default function EditCompatibleNodeModal({
           compatMode: isCcCompatible ? "cc" : undefined,
           chatPath: formData.chatPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_CHAT_PATH : ""),
           modelsPath: isCcCompatible ? "" : formData.modelsPath,
+          modelId: checkModelId.trim() || undefined,
         }),
       });
       const data = await res.json();
-      setValidationResult(data.valid ? "success" : "failed");
+      setValidationResult({
+        valid: !!data.valid,
+        error: data.error ?? null,
+        method: data.method ?? null,
+      });
     } catch {
-      setValidationResult("failed");
+      setValidationResult({ valid: false, error: "Network error" });
     } finally {
       setValidating(false);
     }
@@ -259,10 +267,26 @@ export default function EditCompatibleNodeModal({
             </Button>
           </div>
         </div>
+        <Input
+          label={t("testModelIdLabel")}
+          value={checkModelId}
+          onChange={(e) => setCheckModelId(e.target.value)}
+          placeholder={t("testModelIdPlaceholder")}
+          hint={t("testModelIdHint")}
+        />
         {validationResult && (
-          <Badge variant={validationResult === "success" ? "success" : "error"}>
-            {validationResult === "success" ? t("valid") : t("invalid")}
-          </Badge>
+          <div className="flex flex-col gap-1">
+            <Badge variant={validationResult.valid ? "success" : "error"}>
+              {validationResult.valid ? t("valid") : t("invalid")}
+            </Badge>
+            {validationResult.error && (
+              <span
+                className={`text-sm ${validationResult.valid ? "text-text-muted" : "text-red-500"}`}
+              >
+                {validationResult.error}
+              </span>
+            )}
+          </div>
         )}
         <div className="flex gap-2">
           <Button
