@@ -163,8 +163,14 @@ function buildCommandCodeBody(model: string, body: unknown, stream = false): Jso
   const explicitSystem = typeof input.system === "string" ? input.system : "";
   const system = [converted.system, explicitSystem].filter(Boolean).join("\n\n");
 
+  // Payload rules may rewrite `body.model` (e.g. deepseek-v4-pro-max →
+  // deepseek/deepseek-v4-pro for the command-code provider). Prefer the
+  // rewritten value if present; fall back to the resolved combo model arg.
+  const resolvedModel =
+    typeof input.model === "string" && input.model.trim().length > 0 ? input.model : model;
+
   const params: JsonRecord = {
-    model,
+    model: resolvedModel,
     messages: converted.messages,
     tools: convertTools(input.tools),
     system,

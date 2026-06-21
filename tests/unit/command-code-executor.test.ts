@@ -173,6 +173,34 @@ test("Command Code executor passes reasoning/thinking fields through to params (
   assert.deepEqual(posted.params.extra_body, { enable_thinking: true });
 });
 
+test("Command Code executor honors body.model rewrite from payload rules", async () => {
+  const calls: FetchCall[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+    return commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }]);
+  };
+
+  // Simulate a payload-rule rewrite: combo resolves to "deepseek-v4-pro-max"
+  // (passed as the execute() model arg), but the payload rule overwrites
+  // body.model to "deepseek/deepseek-v4-pro" (the vendor-prefixed form
+  // Command Code's API expects).
+  await getExecutor("command-code").execute({
+    model: "deepseek-v4-pro-max",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: {
+      stream: false,
+      model: "deepseek/deepseek-v4-pro",
+      messages: [{ role: "user", content: "Hi" }],
+      reasoning_effort: "max",
+    },
+  });
+
+  const posted = JSON.parse(String(calls[0].init.body));
+  assert.equal(posted.params.model, "deepseek/deepseek-v4-pro");
+  assert.equal(posted.params.reasoning_effort, "max");
+});
+
 test("Command Code raw NDJSON stream becomes OpenAI chat SSE chunks", async () => {
   const calls: FetchCall[] = [];
   globalThis.fetch = async (url, init = {}) => {
