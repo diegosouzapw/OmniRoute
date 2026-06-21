@@ -52,17 +52,3 @@ export const LANGUAGES: readonly {
 export const RTL_LOCALES: readonly Locale[] = config.rtl as readonly Locale[];
 
 export const LOCALE_COOKIE = "NEXT_LOCALE";
-
-// Convenience helpers --------------------------------------------------------
-
-/** Locales that the docs translation pipeline writes to (excludes the source). */
-export const DOCS_TARGET_LOCALES: readonly Locale[] = LANGUAGES.map((l) => l.code).filter(
-  (code) => !(config.docsExcluded ?? []).includes(code)
-) as readonly Locale[];
-
-/** Lookup by code; falls back to the default locale entry if not found. */
-export function getLanguage(code: string) {
-  return (
-    LANGUAGES.find((l) => l.code === code) ?? LANGUAGES.find((l) => l.code === DEFAULT_LOCALE)!
-  );
-}

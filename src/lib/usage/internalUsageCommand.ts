@@ -376,7 +376,8 @@ export async function buildUsageCommandText(
   const resolvedDeps = await normalizeDeps(deps);
   if (metadata.usageLimitEnabled === true) {
     return buildApiKeyUsageLimitText(
-      await resolvedDeps.getApiKeyUsageLimitStatus(metadata, { now: resolvedDeps.now })
+      await resolvedDeps.getApiKeyUsageLimitStatus(metadata, { now: resolvedDeps.now }),
+      resolvedDeps.now()
     );
   }
 

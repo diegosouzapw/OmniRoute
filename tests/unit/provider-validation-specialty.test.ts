@@ -372,12 +372,12 @@ test("web-cookie provider validators surface auth and subscription failures", as
   __setPplxTlsFetchOverride(async () => {
     return { status: 403, headers: new Headers(), text: null, body: null };
   });
+  __setGrokTlsFetchOverride(async () => {
+    return { status: 401, headers: new Headers(), text: "Unauthorized", body: null };
+  });
 
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
-    if (target.includes("grok.com/rest/app-chat/conversations/new")) {
-      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
-    }
     if (target.includes("app.blackbox.ai/api/auth/session")) {
       const cookie = (init.headers as Record<string, string>)?.Cookie || "";
       if (cookie.includes("expired-cookie")) {

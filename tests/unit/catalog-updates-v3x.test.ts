@@ -149,3 +149,33 @@ test("Every Codex registry model resolves a non-zero pricing row (alias: cx)", a
     );
   }
 });
+
+test("Every Qwen registry model resolves a non-zero pricing row (alias: qw)", async () => {
+  const { getPricingForModel } = await import("../../src/shared/constants/pricing.ts");
+  const models = getModelsByProviderId("qwen");
+  assert.ok(models.length > 0, "qwen must expose models");
+
+  for (const model of models) {
+    // Qwen pricing lives under the "qw" alias (its DEFAULT_PRICING key).
+    const pricing = getPricingForModel("qw", model.id) as {
+      input?: number;
+      output?: number;
+    } | null;
+    assert.ok(pricing, `qw pricing must include qwen model "${model.id}"`);
+    assert.equal(
+      typeof pricing?.input === "number" && typeof pricing?.output === "number",
+      true,
+      `qw pricing for "${model.id}" must have numeric input/output`
+    );
+  }
+
+  // Regression guard: the "coder-model" id (Qwen3.5/3.6 Coder Model, ported from
+  // upstream 9router PR #156) must be priced like the other Qwen coder tier.
+  const coderModel = getPricingForModel("qw", "coder-model") as {
+    input: number;
+    output: number;
+  } | null;
+  assert.ok(coderModel, "qw pricing must include coder-model");
+  assert.equal(typeof coderModel?.input, "number");
+  assert.equal(typeof coderModel?.output, "number");
+});
