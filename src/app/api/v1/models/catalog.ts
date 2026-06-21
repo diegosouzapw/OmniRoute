@@ -38,7 +38,10 @@ import {
 import { getSyncedCapability } from "@/lib/modelsDevSync";
 import { getModelSpec } from "@/shared/constants/modelSpecs";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
-import { isModelCatalogNamesEnabled } from "@/shared/utils/featureFlags";
+import {
+  isModelCatalogNamesEnabled,
+  getModelsCatalogPrefixMode,
+} from "@/shared/utils/featureFlags";
 import {
   isNoAuthProviderBlocked,
   isNoAuthProviderKey,
@@ -323,15 +326,18 @@ export async function getUnifiedModelsResponse(
       ...diagnosticHeaders,
     });
     if (authRejection) return authRejection;
-
     const { aliasToProviderId, providerIdToAlias } = buildAliasMaps();
+    const _qp = new URL(request.url).searchParams.get("prefix");
+    const prefixMode =
+      _qp === "alias" || _qp === "canonical" || _qp === "dual" ? _qp : getModelsCatalogPrefixMode();
+    const includeAlias = prefixMode !== "canonical";
+    const includeCanonical = prefixMode !== "alias";
     const resolveCanonicalProviderId = (aliasOrProviderId: string, fallbackProviderId?: string) =>
       aliasToProviderId[aliasOrProviderId] ||
       (fallbackProviderId ? aliasToProviderId[fallbackProviderId] : undefined) ||
       FALLBACK_ALIAS_TO_PROVIDER[aliasOrProviderId] ||
       fallbackProviderId ||
       aliasOrProviderId;
-
     // Issue #96: Allow blocking specific providers from the models list
     const blockedProviders = normalizeBlockedProviderSet(settings.blockedProviders);
 
@@ -737,8 +743,6 @@ export async function getUnifiedModelsResponse(
       });
     }
 
-    // Resolve synced available models (from auto-sync) — used to skip static
-    // PROVIDER_MODELS entries for providers that have a live, API-fresh list.
     let syncedModelsByProvider: Record<string, SyncedAvailableModel[]> = {};
     try {
       syncedModelsByProvider = await getAllSyncedAvailableModels();
@@ -770,8 +774,6 @@ export async function getUnifiedModelsResponse(
         continue;
       }
 
-      // Skip static models for providers that have synced available models
-      // (auto-sync provides the authoritative, up-to-date list from the API).
       if (providersWithSyncedModels.has(canonicalProviderId)) continue;
 
       for (const model of providerModels) {
@@ -781,21 +783,20 @@ export async function getUnifiedModelsResponse(
 
         const visionFields =
           getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(model.id);
-
-        models.push({
-          id: aliasId,
-          object: "model",
-          created: timestamp,
-          owned_by: canonicalProviderId,
-          permission: [],
-          root: model.id,
-          parent: null,
-          ...(visionFields || {}),
-        });
-
-        // Add provider-id prefix in addition to short alias (ex: kiro/model + kr/model).
-        // This improves compatibility for clients that expect full provider names.
+        if (includeAlias) {
+          models.push({
+            id: aliasId,
+            object: "model",
+            created: timestamp,
+            owned_by: canonicalProviderId,
+            permission: [],
+            root: model.id,
+            parent: null,
+            ...(visionFields || {}),
+          });
+        }
         if (
+          includeCanonical &&
           canonicalProviderId !== alias &&
           !isNoAuthProviderKey(canonicalProviderId) &&
           prefixRoutesToProvider(canonicalProviderId, canonicalProviderId)
@@ -810,7 +811,7 @@ export async function getUnifiedModelsResponse(
             owned_by: canonicalProviderId,
             permission: [],
             root: model.id,
-            parent: aliasId,
+            parent: includeAlias ? aliasId : null,
             ...(providerVisionFields || {}),
           });
         }
@@ -845,8 +846,6 @@ export async function getUnifiedModelsResponse(
     }
 
     try {
-      // Data already loaded above into syncedModelsByProvider; the try block
-      // here protects the for-loop / model processing from unexpected errors.
       for (const [providerId, syncedModels] of Object.entries(syncedModelsByProvider)) {
         if (!Array.isArray(syncedModels) || syncedModels.length === 0) continue;
         if (blockedProviders.has(providerId)) continue;
@@ -870,8 +869,6 @@ export async function getUnifiedModelsResponse(
           if (!providerSupportsModel(canonicalProviderId, sm.id)) continue;
           if (getModelIsHidden(providerId, sm.id)) continue;
 
-          // Strip modelIdPrefix (e.g. "accounts/fireworks/models/") from display ID
-          // so synced model IDs match the short IDs from static registry.
           const registryEntry = REGISTRY[providerId];
           const displayModelId =
             registryEntry?.modelIdPrefix && sm.id.startsWith(registryEntry.modelIdPrefix)
@@ -950,7 +947,7 @@ export async function getUnifiedModelsResponse(
             });
           }
 
-          if (canonicalProviderId !== alias && !prefix) {
+          if (includeCanonical && canonicalProviderId !== alias && !prefix) {
             const providerPrefixedId = `${canonicalProviderId}/${displayModelId}`;
             if (!models.some((model) => model.id === providerPrefixedId)) {
               models.push({
@@ -1288,7 +1285,7 @@ export async function getUnifiedModelsResponse(
             ...(visionFields || {}),
           });
 
-          if (canonicalProviderId !== alias && !prefix && !isNoAuthProvider) {
+          if (includeCanonical && canonicalProviderId !== alias && !prefix && !isNoAuthProvider) {
             const providerPrefixedId = `${canonicalProviderId}/${modelId}`;
             if (models.some((m) => m.id === providerPrefixedId)) continue;
             const providerVisionFields =

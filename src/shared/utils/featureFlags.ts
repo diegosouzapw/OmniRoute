@@ -88,6 +88,14 @@ export function isModelCatalogNamesEnabled(): boolean {
   return isFeatureFlagEnabled("MODEL_CATALOG_INCLUDE_NAMES");
 }
 
+export type ModelsCatalogPrefixMode = "dual" | "alias" | "canonical";
+
+export function getModelsCatalogPrefixMode(): ModelsCatalogPrefixMode {
+  const value = resolveFeatureFlag("MODELS_CATALOG_PREFIX_MODE");
+  if (value === "alias" || value === "canonical") return value;
+  return "dual";
+}
+
 export function isArenaEloSyncEnabled(): boolean {
   return isFeatureFlagEnabled("ARENA_ELO_SYNC_ENABLED");
 }

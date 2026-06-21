@@ -34,13 +34,13 @@ const {
 // Test group 1 — Flag definitions registry
 // ──────────────────────────────────────────────────────
 describe("featureFlagDefinitions", () => {
-  it("has exactly 34 flag definitions", () => {
-    assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, 34);
+  it("has exactly 35 flag definitions", () => {
+    assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, 35);
   });
 
   it("has unique keys for all flags", () => {
     const keys = FEATURE_FLAG_DEFINITIONS.map((d) => d.key);
-    assert.strictEqual(new Set(keys).size, 34);
+    assert.strictEqual(new Set(keys).size, 35);
   });
 
   it("has valid categories for all flags", () => {
@@ -95,6 +95,16 @@ describe("featureFlagDefinitions", () => {
     assert.strictEqual(def.category, "runtime");
     assert.strictEqual(def.type, "boolean");
     assert.strictEqual(def.defaultValue, "true");
+    assert.strictEqual(def.requiresRestart, false);
+  });
+
+  it("defines models catalog prefix mode as a runtime enum flag defaulting to dual", () => {
+    const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "MODELS_CATALOG_PREFIX_MODE");
+    assert.ok(def, "MODELS_CATALOG_PREFIX_MODE should exist");
+    assert.strictEqual(def.category, "runtime");
+    assert.strictEqual(def.type, "enum");
+    assert.deepStrictEqual(def.enumValues, ["dual", "alias", "canonical"]);
+    assert.strictEqual(def.defaultValue, "dual");
     assert.strictEqual(def.requiresRestart, false);
   });
 
@@ -264,9 +274,9 @@ describe("resolveFeatureFlag", () => {
   });
 
   describe("resolveAllFeatureFlags", () => {
-    it("returns all 34 flags", () => {
+    it("returns all 35 flags", () => {
       const all = resolveAllFeatureFlags();
-      assert.strictEqual(all.length, 34);
+      assert.strictEqual(all.length, 35);
     });
 
     it("marks DB-overridden flags with source 'db'", () => {
