@@ -24,4 +24,5 @@ export {
   validateApiKey,
   isCloudEnabled,
   resolveProxyForProvider,
+  getHiddenModelsByProvider,
 } from "@/lib/localDb";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, Button, Input, Toggle } from "@/shared/components";
 import { cn } from "@/shared/utils/cn";
 import {
@@ -102,7 +102,13 @@ export default function ComboDefaultsTab() {
   });
   const [codexSessionAffinityTtlMs, setCodexSessionAffinityTtlMs] = useState(0);
   const [providerOverrides, setProviderOverrides] = useState<any>({});
-  const [newOverrideProvider, setNewOverrideProvider] = useState("");
+  const [availableProviders, setAvailableProviders] = useState<{ id: string; provider: string }[]>(
+    []
+  );
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [highlightedIdx, setHighlightedIdx] = useState(0);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error" | ""; message: string }>({
     type: "",
@@ -129,6 +135,27 @@ export default function ComboDefaultsTab() {
     Promise.all([
       fetch("/api/settings/combo-defaults").then((res) => res.json()),
       fetch("/api/settings").then((res) => res.json()),
+      fetch("/api/providers")
+        .then((res) => res.json())
+        .then((providers: any[]) => {
+          // Filter: include a provider only if at least one of its connections is active.
+          // Disabled providers (all connections inactive) are excluded.
+          const byProvider = new Map<string, any[]>();
+          for (const p of providers) {
+            if (!p.provider) continue;
+            const list = byProvider.get(p.provider) || [];
+            list.push(p);
+            byProvider.set(p.provider, list);
+          }
+          const activeProviders = Array.from(byProvider.entries())
+            .filter(([, conns]) => conns.some((c) => c.isActive !== false))
+            .map(([name]) => name)
+            .sort();
+          setAvailableProviders(activeProviders.map((p) => ({ id: p, provider: p })));
+        })
+        .catch(() => {
+          /* providers fetch is non-critical */
+        }),
     ])
       .then(([comboData, settingsData]) => {
         setComboDefaults((prev) => ({
@@ -151,6 +178,17 @@ export default function ComboDefaultsTab() {
         );
       })
       .catch((err) => console.error("Failed to fetch combo defaults:", err));
+  }, []);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const showStatus = (type: "success" | "error", message: string) => {
@@ -204,19 +242,70 @@ export default function ComboDefaultsTab() {
     }
   };
 
-  const addProviderOverride = () => {
-    const name = newOverrideProvider.trim().toLowerCase();
-    if (!name || providerOverrides[name]) return;
-    setProviderOverrides((prev) => ({ ...prev, [name]: { maxRetries: 1 } }));
-    setNewOverrideProvider("");
+  const addProviderOverride = (name: string) => {
+    const trimmed = name.trim().toLowerCase();
+    if (!trimmed || providerOverrides[trimmed]) return;
+    setProviderOverrides((prev) => ({ ...prev, [trimmed]: { maxRetries: 1 } }));
+    setDropdownOpen(false);
+    setSearchQuery("");
+    setHighlightedIdx(0);
   };
 
-  const removeProviderOverride = (provider) => {
+  const removeProviderOverride = (provider: string) => {
     setProviderOverrides((prev) => {
       const copy = { ...prev };
       delete copy[provider];
       return copy;
     });
+  };
+
+  // Reorder a provider override by rebuilding the object in the new order.
+  // direction: -1 = move up, +1 = move down
+  const moveProviderOverride = (provider: string, direction: -1 | 1) => {
+    setProviderOverrides((prev) => {
+      const keys = Object.keys(prev);
+      const idx = keys.indexOf(provider);
+      if (idx < 0) return prev;
+      const target = idx + direction;
+      if (target < 0 || target >= keys.length) return prev;
+      // Swap positions
+      [keys[idx], keys[target]] = [keys[target], keys[idx]];
+      // Rebuild object in new order
+      const reordered: Record<string, any> = {};
+      for (const k of keys) {
+        reordered[k] = prev[k];
+      }
+      return reordered;
+    });
+  };
+
+  // Filtered provider list — excludes already-added ones, filtered by search query
+  const filteredProviders = availableProviders.filter(
+    (p) =>
+      !providerOverrides[p.provider] && p.provider.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleDropdownKeyDown = (e: React.KeyboardEvent) => {
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setHighlightedIdx((prev) => Math.min(prev + 1, filteredProviders.length - 1));
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setHighlightedIdx((prev) => Math.max(prev - 1, 0));
+        break;
+      case "Enter":
+        e.preventDefault();
+        if (filteredProviders[highlightedIdx]) {
+          addProviderOverride(filteredProviders[highlightedIdx].provider);
+        }
+        break;
+      case "Escape":
+        e.preventDefault();
+        setDropdownOpen(false);
+        break;
+    }
   };
 
   return (
@@ -625,57 +714,122 @@ export default function ComboDefaultsTab() {
           <p className="font-medium text-sm mb-2">{t("providerOverrides")}</p>
           <p className="text-xs text-text-muted mb-3">{t("providerOverridesDesc")}</p>
 
-          {Object.entries(providerOverrides).map(([provider, config]: [string, any]) => (
-            <div
-              key={provider}
-              className="flex items-center gap-2 mb-2 p-2 rounded-lg bg-black/[0.02] dark:bg-white/[0.02]"
-            >
-              <span className="text-xs font-mono font-medium min-w-[80px]">{provider}</span>
-              <Input
-                type="number"
-                min="0"
-                max="5"
-                value={config.maxRetries ?? 1}
-                onChange={(e) =>
-                  setProviderOverrides((prev) => ({
-                    ...prev,
-                    [provider]: { ...prev[provider], maxRetries: parseInt(e.target.value) || 0 },
-                  }))
-                }
-                className="text-xs w-16"
-                aria-label={t("providerMaxRetriesAria", { provider })}
-              />
-              <span className="text-[10px] text-text-muted">{t("retries")}</span>
-              <button
-                onClick={() => removeProviderOverride(provider)}
-                className="ml-auto text-red-400 hover:text-red-500 transition-colors"
-                aria-label={t("removeProviderOverrideAria", { provider })}
+          {Object.entries(providerOverrides).map(
+            ([provider, config]: [string, any], index: number) => (
+              <div
+                key={provider}
+                className="flex items-center gap-1.5 mb-2 p-2 rounded-lg bg-black/[0.02] dark:bg-white/[0.02]"
               >
-                <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
-                  close
-                </span>
-              </button>
-            </div>
-          ))}
+                {/* Reorder arrows (combo-builder pattern) */}
+                <div className="flex flex-col gap-0.5">
+                  <button
+                    onClick={() => moveProviderOverride(provider, -1)}
+                    disabled={index === 0}
+                    className={`p-0.5 rounded ${index === 0 ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
+                    title="Move up"
+                  >
+                    <span className="material-symbols-outlined text-[12px]">arrow_upward</span>
+                  </button>
+                  <button
+                    onClick={() => moveProviderOverride(provider, 1)}
+                    disabled={index === Object.keys(providerOverrides).length - 1}
+                    className={`p-0.5 rounded ${index === Object.keys(providerOverrides).length - 1 ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
+                    title="Move down"
+                  >
+                    <span className="material-symbols-outlined text-[12px]">arrow_downward</span>
+                  </button>
+                </div>
+                <span className="text-xs font-mono font-medium min-w-[80px]">{provider}</span>
+                <Input
+                  type="number"
+                  min="0"
+                  max="5"
+                  value={config.maxRetries ?? 1}
+                  onChange={(e) =>
+                    setProviderOverrides((prev) => ({
+                      ...prev,
+                      [provider]: { ...prev[provider], maxRetries: parseInt(e.target.value) || 0 },
+                    }))
+                  }
+                  className="text-xs w-16"
+                  aria-label={t("providerMaxRetriesAria", { provider })}
+                />
+                <span className="text-[10px] text-text-muted">{t("retries")}</span>
+                <button
+                  onClick={() => removeProviderOverride(provider)}
+                  className="ml-auto text-red-400 hover:text-red-500 transition-colors"
+                  aria-label={t("removeProviderOverrideAria", { provider })}
+                >
+                  <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                    close
+                  </span>
+                </button>
+              </div>
+            )
+          )}
 
-          <div className="flex items-center gap-2 mt-2">
-            <Input
-              type="text"
-              placeholder={t("newProviderNamePlaceholder")}
-              value={newOverrideProvider}
-              onChange={(e) => setNewOverrideProvider(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && addProviderOverride()}
-              className="text-xs flex-1"
-              aria-label={t("newProviderNameAria")}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={addProviderOverride}
-              disabled={!newOverrideProvider.trim()}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="flex items-center gap-2 px-3 py-2 text-xs rounded-lg border border-border/50 bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors w-full mt-2"
             >
-              {tc("add")}
-            </Button>
+              <span className="flex-1 text-left text-text-muted">
+                {t("selectProviderPlaceholder") || "Select provider..."}
+              </span>
+              <span
+                className="material-symbols-outlined text-[16px] transition-transform"
+                style={{ transform: dropdownOpen ? "rotate(180deg)" : "none" }}
+              >
+                expand_more
+              </span>
+            </button>
+
+            {dropdownOpen && (
+              <div className="absolute z-50 mt-1 w-full rounded-lg border border-border/50 bg-white dark:bg-gray-900 shadow-lg overflow-hidden">
+                <div className="p-2 border-b border-border/50">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setHighlightedIdx(0);
+                    }}
+                    className="w-full px-2 py-1.5 text-xs rounded-md border border-border/50 bg-transparent outline-none focus:border-amber-500 transition-colors"
+                    placeholder={t("searchProviderPlaceholder") || "Search providers..."}
+                    aria-label={t("searchProviderAria") || "Search providers"}
+                    onKeyDown={handleDropdownKeyDown}
+                    autoFocus
+                  />
+                </div>
+                <ul role="listbox" className="max-h-48 overflow-auto py-1">
+                  {filteredProviders.length === 0 ? (
+                    <li className="px-3 py-2 text-xs text-text-muted text-center">
+                      {availableProviders.filter((p) => !providerOverrides[p.provider]).length === 0
+                        ? "All providers added"
+                        : "No providers found"}
+                    </li>
+                  ) : (
+                    filteredProviders.map((p, idx) => (
+                      <li
+                        key={p.provider}
+                        role="option"
+                        aria-selected={idx === highlightedIdx}
+                        className={`px-3 py-2 text-xs cursor-pointer transition-colors ${
+                          idx === highlightedIdx
+                            ? "bg-black/[0.05] dark:bg-white/[0.05] font-medium"
+                            : "hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"
+                        }`}
+                        onClick={() => addProviderOverride(p.provider)}
+                        onMouseEnter={() => setHighlightedIdx(idx)}
+                      >
+                        {p.provider}
+                      </li>
+                    ))
+                  )}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
 
