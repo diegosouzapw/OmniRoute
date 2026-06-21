@@ -85,6 +85,7 @@ import {
 import { resolveReasoningBufferedMaxTokens, toPositiveInteger } from "./reasoningTokenBuffer.ts";
 import { RESET_WINDOW_NAMES } from "./combo/types.ts";
 import type {
+  ComboLike,
   ComboRetryAfter,
   ComboErrorBody,
   SingleModelTarget,
@@ -121,6 +122,10 @@ import {
 } from "./combo/comboPredicates.ts";
 import { applyComboTargetExhaustion } from "./combo/targetExhaustion.ts";
 import { dedupeTargetsByExecutionKey, isRecord } from "./combo/comboData.ts";
+import {
+  expandProviderWildcardsInCombo,
+  expandProviderWildcardsInCollection,
+} from "./combo/providerWildcard.ts";
 import { resolveShadowTargets, scheduleShadowRouting } from "./combo/shadowRouting.ts";
 import {
   sortTargetsByCost,
@@ -553,10 +558,30 @@ export async function handleComboChat({
   const maxSetRetries = config.maxSetRetries ?? 0;
   const setRetryDelayMs = resolveDelayMs(config.setRetryDelayMs, 2000);
 
+  // #2562: Expand provider-wildcard steps (e.g. `fta/*`, `openai/gpt-4*`) into
+  // concrete model entries sourced from the live synced-models catalog + registry.
+  // Must run before resolveComboTargets so that wildcard-originated steps are
+  // treated identically to hand-authored entries by all downstream logic.
+  const expandedCombo = await expandProviderWildcardsInCombo(combo);
+  const expandedAllCombos = allCombos
+    ? Array.isArray(allCombos)
+      ? await expandProviderWildcardsInCollection(allCombos as ComboLike[])
+      : {
+          ...allCombos,
+          combos: await expandProviderWildcardsInCollection(
+            ((allCombos as { combos?: ComboLike[] }).combos || []) as ComboLike[]
+          ),
+        }
+    : allCombos;
+
   let orderedTargets =
     strategy === "weighted"
-      ? resolveWeightedTargets(combo, allCombos)?.orderedTargets || []
-      : resolveComboTargets(combo, allCombos, clampComboDepth(config.maxComboDepth));
+      ? resolveWeightedTargets(expandedCombo, expandedAllCombos)?.orderedTargets || []
+      : resolveComboTargets(
+          expandedCombo,
+          expandedAllCombos,
+          clampComboDepth(config.maxComboDepth)
+        );
 
   orderedTargets = await applyRequestTagRouting(orderedTargets, body, log);
 
@@ -1957,9 +1982,22 @@ async function handleRoundRobinCombo({
     ? resolveResilienceSettings(settings)
     : resolveResilienceSettings(null);
 
+  // #2562: Expand provider-wildcard steps before resolving targets.
+  const rrExpandedCombo = await expandProviderWildcardsInCombo(combo);
+  const rrExpandedAllCombos = allCombos
+    ? Array.isArray(allCombos)
+      ? await expandProviderWildcardsInCollection(allCombos as ComboLike[])
+      : {
+          ...allCombos,
+          combos: await expandProviderWildcardsInCollection(
+            ((allCombos as { combos?: ComboLike[] }).combos || []) as ComboLike[]
+          ),
+        }
+    : allCombos;
+
   const orderedTargets = resolveComboTargets(
-    combo,
-    allCombos,
+    rrExpandedCombo,
+    rrExpandedAllCombos,
     clampComboDepth(config.maxComboDepth)
   );
   const tagFilteredTargets = await applyRequestTagRouting(orderedTargets, body, log);
