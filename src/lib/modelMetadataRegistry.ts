@@ -500,3 +500,54 @@ export async function resolveModelAliasLookup(
     },
   };
 }
+
+/**
+ * Qualify duplicate model display names with a provider prefix so users can
+ * distinguish between providers that serve the same model.
+ *
+ * Problem: when multiple providers (e.g. `gh`, `cx`, `opencode-zen`) all serve
+ * `gpt-5.5`, each catalog entry gets `name: "GPT-5.5"`. A client like OpenCode
+ * that renders the `name` field (src/plugin.ts: `name: model.name || model.id`)
+ * shows an identical "GPT-5.5" for every provider variant, giving the user no
+ * way to know which provider they are selecting.
+ *
+ * Fix: make a single O(n) pass over the enriched catalog. For any base name that
+ * appears on entries from two or more distinct providers, replace each entry's
+ * `name` with `<providerPrefix>/<baseName>` (e.g. "gh/GPT-5.5", "cx/GPT-5.5").
+ * Entries with a unique name are left untouched, preserving the clean display for
+ * the common single-provider case. The provider prefix is the first segment of
+ * the model id (e.g. `gh` from `gh/gpt-5.5`).
+ *
+ * The modification is purely cosmetic — it only affects the catalog `name` field
+ * used for display. Model IDs, routing, and request parsing are unchanged.
+ */
+export function disambiguateCatalogModelNames<T extends JsonRecord>(models: T[]): T[] {
+  // Count how many distinct provider prefixes use each display name.
+  const nameToProviders = new Map<string, Set<string>>();
+  for (const model of models) {
+    const name = asNonEmptyString(model.name);
+    if (!name) continue;
+    const id = asNonEmptyString(model.id);
+    const prefix = id && id.includes("/") ? id.slice(0, id.indexOf("/")) : null;
+    if (!prefix) continue;
+    const existing = nameToProviders.get(name) || new Set<string>();
+    existing.add(prefix);
+    nameToProviders.set(name, existing);
+  }
+
+  // Only rewrite names that are shared across 2+ providers.
+  const ambiguous = new Set<string>();
+  for (const [name, providers] of nameToProviders) {
+    if (providers.size > 1) ambiguous.add(name);
+  }
+  if (ambiguous.size === 0) return models;
+
+  return models.map((model) => {
+    const name = asNonEmptyString(model.name);
+    if (!name || !ambiguous.has(name)) return model;
+    const id = asNonEmptyString(model.id);
+    const prefix = id && id.includes("/") ? id.slice(0, id.indexOf("/")) : null;
+    if (!prefix) return model;
+    return { ...model, name: `${prefix}/${name}` };
+  });
+}

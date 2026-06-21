@@ -42,9 +42,15 @@ import {
   getHandoff,
 } from "../../src/lib/db/contextHandoffs.ts";
 import { extractSessionAffinityKey } from "@/sse/services/auth";
+import { getHiddenModelsByProvider } from "@/models";
 import { resolveModelLockoutSettings } from "../../src/lib/resilience/modelLockoutSettings";
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
-import { getQuotaFetcher } from "./quotaPreflight.ts";
+import {
+  evaluateQuotaCutoff,
+  getQuotaFetcher,
+  type PreflightQuotaThresholds,
+  type QuotaInfo,
+} from "./quotaPreflight.ts";
 import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuffleDeck";
@@ -85,6 +91,7 @@ import {
 import { resolveReasoningBufferedMaxTokens, toPositiveInteger } from "./reasoningTokenBuffer.ts";
 import { RESET_WINDOW_NAMES } from "./combo/types.ts";
 import type {
+  ComboLike,
   ComboRetryAfter,
   ComboErrorBody,
   SingleModelTarget,
@@ -129,6 +136,10 @@ import {
 import { applyComboTargetExhaustion } from "./combo/targetExhaustion.ts";
 import { executeRuntimeUnitCombo } from "./combo/runtimeUnits.ts";
 import { dedupeTargetsByExecutionKey, isRecord } from "./combo/comboData.ts";
+import {
+  expandProviderWildcardsInCombo,
+  expandProviderWildcardsInCollection,
+} from "./combo/providerWildcard.ts";
 import { resolveShadowTargets, scheduleShadowRouting } from "./combo/shadowRouting.ts";
 import {
   sortTargetsByCost,
@@ -238,13 +249,97 @@ function getBootstrapLatencyMs(modelId: string): number {
   return DEFAULT_MODEL_P95_MS[normalized] ?? 1500;
 }
 
+function clampPercent(value: number): number {
+  if (!Number.isFinite(value)) return 100;
+  return Math.max(0, Math.min(100, value));
+}
+
+function asThresholdMap(value: unknown): Record<string, number> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const result: Record<string, number> = {};
+  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+    const numeric = Number(raw);
+    if (key && Number.isFinite(numeric)) result[key] = numeric;
+  }
+  return result;
+}
+
+function quotaWindowLookupNames(provider: string, windowName: string): string[] {
+  const names = [windowName];
+  const lower = windowName.toLowerCase();
+  if (lower !== windowName) names.push(lower);
+  if (provider === "codex") {
+    if (lower.includes("session") || lower === "5h" || lower === "five_hour") names.push("session");
+    if (lower.includes("weekly") || lower === "7d" || lower === "seven_day") names.push("weekly");
+    if (lower.includes("monthly") || lower === "30d") names.push("monthly");
+  }
+  return [...new Set(names)];
+}
+
+function buildAutoQuotaThresholds(
+  provider: string,
+  connection: Record<string, unknown> | undefined,
+  resilienceSettings: ResilienceSettings | null | undefined
+): PreflightQuotaThresholds {
+  const quotaPreflight = (resilienceSettings ?? resolveResilienceSettings(null))?.quotaPreflight;
+  const defaultThresholdPercent = quotaPreflight?.defaultThresholdPercent ?? 2;
+  const warnThresholdPercent = quotaPreflight?.warnThresholdPercent ?? 20;
+  const providerWindowMap = asThresholdMap(quotaPreflight?.providerWindowDefaults?.[provider]);
+  const perConnectionWindowOverrides = asThresholdMap(connection?.quotaWindowThresholds);
+
+  return {
+    resolveMinRemainingPercent: (windowName: string | null): number => {
+      if (windowName !== null) {
+        for (const lookupWindowName of quotaWindowLookupNames(provider, windowName)) {
+          const override = perConnectionWindowOverrides[lookupWindowName];
+          if (typeof override === "number") return override;
+          const providerDefault = providerWindowMap[lookupWindowName];
+          if (typeof providerDefault === "number") return providerDefault;
+        }
+      }
+      return defaultThresholdPercent;
+    },
+    resolveWarnRemainingPercent: () => warnThresholdPercent,
+  };
+}
+
+function quotaRemainingPercentFromQuota(quota: unknown): number {
+  if (!quota || typeof quota !== "object") return 100;
+  const record = quota as Record<string, unknown>;
+  if (record.limitReached === true) return 0;
+
+  const windows = record.windows;
+  if (windows && typeof windows === "object" && !Array.isArray(windows)) {
+    let minRemaining: number | null = null;
+    for (const windowInfo of Object.values(windows as Record<string, unknown>)) {
+      if (!windowInfo || typeof windowInfo !== "object") continue;
+      const percentUsed = Number((windowInfo as Record<string, unknown>).percentUsed);
+      if (!Number.isFinite(percentUsed)) continue;
+      const remaining = clampPercent((1 - percentUsed) * 100);
+      minRemaining = minRemaining === null ? remaining : Math.min(minRemaining, remaining);
+    }
+    if (minRemaining !== null) return minRemaining;
+  }
+
+  const percentUsed = Number(record.percentUsed);
+  if (Number.isFinite(percentUsed)) return clampPercent((1 - percentUsed) * 100);
+  return 100;
+}
+
 export async function buildAutoCandidates(
   targets: ResolvedComboTarget[],
   comboName: string,
   sessionId: string | null | undefined = null,
-  resetWindowConfig: ResetWindowConfig = resolveResetWindowConfig(null)
+  resetWindowConfig: ResetWindowConfig = resolveResetWindowConfig(null),
+  resilienceSettings: ResilienceSettings | null = null
 ): Promise<AutoProviderCandidate[]> {
+  const hiddenModelsMap = getHiddenModelsByProvider();
   const metrics = getComboMetrics(comboName);
+  // Opt-in hard quota cutoff (default OFF). When disabled, candidates are never
+  // dropped for low quota here — the soft quota penalty + connection cooldown still
+  // apply, so auto-routing behavior is unchanged.
+  const quotaCutoffEnabled =
+    (resilienceSettings ?? resolveResilienceSettings(null))?.quotaPreflight?.enabled === true;
   const { getPricingForModel } = await import("../../src/lib/localDb");
   const quotaPromises = new Map<string, Promise<unknown>>();
   let historicalLatencyStats: Record<string, HistoricalLatencyStatsEntry> = {};
@@ -266,6 +361,7 @@ export async function buildAutoCandidates(
   );
   const connectionPoolCounts = new Map<string, number>();
   const connectionsByProvider = new Map<string, Array<Record<string, unknown>>>();
+  const connectionById = new Map<string, Record<string, unknown>>();
   await Promise.all(
     uniqueProviders.map(async (provider) => {
       try {
@@ -273,6 +369,11 @@ export async function buildAutoCandidates(
         const active = Array.isArray(connections) ? connections : [];
         connectionPoolCounts.set(provider, active.length);
         connectionsByProvider.set(provider, active);
+        for (const connection of active) {
+          if (connection && typeof connection === "object" && typeof connection.id === "string") {
+            connectionById.set(connection.id, connection as Record<string, unknown>);
+          }
+        }
       } catch {
         connectionPoolCounts.set(provider, 0);
         connectionsByProvider.set(provider, []);
@@ -367,7 +468,11 @@ export async function buildAutoCandidates(
         breakerStateRaw === "OPEN" || breakerStateRaw === "HALF_OPEN" ? breakerStateRaw : "CLOSED";
       const contextAffinity = calculateTargetContextAffinity(target, sessionId);
       let resetWindowAffinity = 0.5;
+      let quotaRemaining = 100;
+      let quotaCutoffBlocked = false;
+      let quotaCutoffReason: string | undefined;
       const fetcher = getQuotaFetcher(provider);
+      const connection = target.connectionId ? connectionById.get(target.connectionId) : undefined;
       if (fetcher && target.connectionId) {
         const quotaKey = `${provider}:${target.connectionId}`;
         if (!quotaPromises.has(quotaKey)) {
@@ -376,6 +481,7 @@ export async function buildAutoCandidates(
             fetchResetAwareQuotaWithCache({
               provider,
               connectionId: target.connectionId,
+              connection,
               fetcher,
               config: resetWindowConfig,
               log: {},
@@ -385,6 +491,17 @@ export async function buildAutoCandidates(
         }
         const quota = await quotaPromises.get(quotaKey)!;
         resetWindowAffinity = calculateResetWindowAffinity(quota, resetWindowConfig);
+        quotaRemaining = quotaRemainingPercentFromQuota(quota);
+        if (quotaCutoffEnabled) {
+          const cutoffDecision = evaluateQuotaCutoff(
+            quota as QuotaInfo | null,
+            buildAutoQuotaThresholds(provider, connection, resilienceSettings)
+          );
+          if (!cutoffDecision.proceed) {
+            quotaCutoffBlocked = true;
+            quotaCutoffReason = cutoffDecision.reason || "quota_exhausted";
+          }
+        }
       }
 
       return {
@@ -393,7 +510,7 @@ export async function buildAutoCandidates(
         modelStr,
         provider,
         model,
-        quotaRemaining: 100,
+        quotaRemaining,
         quotaTotal: 100,
         circuitBreakerState,
         costPer1MTokens,
@@ -404,13 +521,19 @@ export async function buildAutoCandidates(
         quotaResetIntervalSecs: 86400,
         contextAffinity,
         resetWindowAffinity,
+        quotaCutoffBlocked,
+        quotaCutoffReason,
         connectionPoolSize: connectionPoolCounts.get(provider) ?? 1,
         connectionId: target.connectionId ?? undefined,
       };
     })
   );
 
-  return candidates;
+  // Filter out candidates whose model is hidden by the user in the dashboard
+  return candidates.filter((c) => {
+    const hiddenModels = hiddenModelsMap.get(c.provider);
+    return !hiddenModels?.has(c.model);
+  });
 }
 
 /**
@@ -423,6 +546,27 @@ export async function buildAutoCandidates(
  * @param {Object} options.log - Logger object
  * @returns {Promise<Response>}
  */
+// #2101 guard helpers: a 400 caused by context overflow or parameter validation
+// is NOT body-specific — different combo targets have different context windows /
+// output limits, so the request should fall through to the next target instead of
+// being short-circuited. Exported as pure predicates so the guard is unit-testable.
+/** @param {string} errorText */
+export function isContextOverflow400(errorText) {
+  return (
+    /\bcontext.*(?:length_exceeded|too long|overflow|exceeded|window|limit)\b/i.test(errorText) ||
+    /exceeds.*context/i.test(errorText) ||
+    /your input exceeds/i.test(errorText)
+  );
+}
+/** @param {string} errorText */
+export function isParamValidation400(errorText) {
+  return (
+    /\bmax_tokens\b.*(?:illegal|must|range|invalid)/i.test(errorText) ||
+    /\bparameter is illegal\b/i.test(errorText) ||
+    /\bis illegal.*range\b/i.test(errorText)
+  );
+}
+
 /** @param {object} options */
 export async function handleComboChat({
   body,
@@ -575,7 +719,9 @@ export async function handleComboChat({
     let runtimeUnits = executeModeUnits;
     let unitExecutionStrategy = strategy;
     if (strategy === "weighted") {
-      const stickyLimit = clampStickyWeightedTargetLimit(config.stickyWeightedLimit);
+      const stickyLimit = clampStickyWeightedTargetLimit(
+        (config as Record<string, unknown>).stickyWeightedLimit
+      );
       const stickyKey = getStickyWeightedExecutionKey(combo.name, stickyLimit);
       const stickyUnit = stickyKey
         ? runtimeUnits.find((unit) => unit.executionKey === stickyKey)
@@ -649,7 +795,9 @@ export async function handleComboChat({
       runCombo: handleComboChat,
     });
     if (strategy === "weighted" && execution.response.ok && execution.unit) {
-      const stickyLimit = clampStickyWeightedTargetLimit(config.stickyWeightedLimit);
+      const stickyLimit = clampStickyWeightedTargetLimit(
+        (config as Record<string, unknown>).stickyWeightedLimit
+      );
       if (stickyLimit > 1)
         recordStickyWeightedSuccess(combo.name, execution.unit.executionKey, stickyLimit);
     }
@@ -692,8 +840,7 @@ export async function handleComboChat({
 
   const isTargetSelectableForWeighted = async (target: ResolvedComboTarget): Promise<boolean> => {
     const rawModel = parseModel(target.modelStr).model || target.modelStr;
-    if (target.provider && getCircuitBreaker(target.provider).getStatus().state === "OPEN")
-      return false;
+    if (target.provider && getCircuitBreaker(target.provider).getStatus().state === "OPEN") return false;
     if (
       resilienceSettings.providerCooldown.enabled &&
       Boolean(target.provider && target.provider !== "unknown") &&
@@ -711,7 +858,26 @@ export async function handleComboChat({
     return isModelAvailable ? await isModelAvailable(target.modelStr, target) : true;
   };
 
-  const stickyWeightedLimit = clampStickyWeightedTargetLimit(config.stickyWeightedLimit);
+  // #2562: Expand provider-wildcard steps (e.g. `fta/*`, `openai/gpt-4*`) into
+  // concrete model entries sourced from the live synced-models catalog + registry.
+  // Must run before any step-group / target resolution so that wildcard-originated
+  // steps are treated identically to hand-authored entries by all downstream logic
+  // (including the sticky-weighted eligibility pass below).
+  const expandedCombo = await expandProviderWildcardsInCombo(combo);
+  const expandedAllCombos = allCombos
+    ? Array.isArray(allCombos)
+      ? await expandProviderWildcardsInCollection(allCombos as ComboLike[])
+      : {
+          ...allCombos,
+          combos: await expandProviderWildcardsInCollection(
+            ((allCombos as { combos?: ComboLike[] }).combos || []) as ComboLike[]
+          ),
+        }
+    : allCombos;
+
+  const stickyWeightedLimit = clampStickyWeightedTargetLimit(
+    (config as Record<string, unknown>).stickyWeightedLimit
+  );
   if (
     strategy === "weighted" &&
     !weightedStickyTargets.has(combo.name) &&
@@ -723,7 +889,7 @@ export async function handleComboChat({
   let stepGroups: Array<{ step: ComboRuntimeStep; targets: ResolvedComboTarget[] }> | undefined;
   const weightedEligibleKeys = new Set<string>();
   if (strategy === "weighted") {
-    stepGroups = resolveWeightedStepGroups(combo, allCombos);
+    stepGroups = resolveWeightedStepGroups(expandedCombo, expandedAllCombos);
     for (const group of stepGroups) {
       const availability = await Promise.all(group.targets.map(isTargetSelectableForWeighted));
       if (availability.some(Boolean)) weightedEligibleKeys.add(group.step.executionKey);
@@ -743,8 +909,8 @@ export async function handleComboChat({
   const weightedResolution =
     strategy === "weighted"
       ? resolveWeightedTargets(
-          combo,
-          allCombos,
+          expandedCombo,
+          expandedAllCombos,
           stickyWeightedKey,
           weightedEligibleKeys,
           stepGroups
@@ -752,17 +918,16 @@ export async function handleComboChat({
       : null;
   const getWeightedStepKeyForTarget = (target: ResolvedComboTarget): string | null => {
     if (!weightedResolution?.orderedSteps) return null;
-    const step = weightedResolution.orderedSteps.find(
-      (entry) =>
-        target.executionKey === entry.executionKey ||
-        target.executionKey.startsWith(entry.executionKey + ">")
+    const step = weightedResolution.orderedSteps.find((entry) =>
+      target.executionKey === entry.executionKey ||
+      target.executionKey.startsWith(entry.executionKey + ">")
     );
     return step?.executionKey || null;
   };
   let orderedTargets =
     strategy === "weighted"
       ? weightedResolution?.orderedTargets || []
-      : resolveComboTargets(combo, allCombos, clampComboDepth(config.maxComboDepth));
+      : resolveComboTargets(expandedCombo, expandedAllCombos, clampComboDepth(config.maxComboDepth));
 
   orderedTargets = await applyRequestTagRouting(orderedTargets, body, log);
 
@@ -925,11 +1090,28 @@ export async function handleComboChat({
       eligibleTargets,
       combo.name,
       relayOptions?.sessionId,
-      resetWindowConfig
+      resetWindowConfig,
+      resilienceSettings
     );
+    const routableCandidates = candidates.filter(
+      (candidate) => candidate.quotaCutoffBlocked !== true
+    );
+    const quotaBlockedCount = candidates.length - routableCandidates.length;
+    if (quotaBlockedCount > 0) {
+      log.info(
+        "COMBO",
+        `Auto strategy: quota cutoff skipped ${quotaBlockedCount}/${candidates.length} account candidates`
+      );
+    }
     // G2: Register candidates so chatCore can mark quotaSoftPenalty via setCandidateQuotaSoftPenalty.
-    _registerExecutionCandidates(candidates);
-    if (candidates.length > 0) {
+    _registerExecutionCandidates(routableCandidates);
+    if (candidates.length > 0 && routableCandidates.length === 0) {
+      return unavailableResponse(
+        429,
+        "All auto strategy candidates are below configured quota cutoffs"
+      );
+    }
+    if (routableCandidates.length > 0) {
       let selectedProvider: string | null = null;
       let selectedModel: string | null = null;
       let selectionReason = "";
@@ -937,7 +1119,7 @@ export async function handleComboChat({
       if (routingStrategy !== "rules") {
         try {
           const decision = selectWithStrategy(
-            candidates,
+            routableCandidates,
             {
               taskType,
               requestHasTools,
@@ -970,7 +1152,7 @@ export async function handleComboChat({
             budgetCap,
             explorationRate,
           },
-          candidates,
+          routableCandidates,
           taskType
         );
         selectedProvider = selection.provider;
@@ -992,7 +1174,7 @@ export async function handleComboChat({
 
       const scoredTargets = scoreAutoTargets(
         eligibleTargets,
-        candidates,
+        routableCandidates,
         taskType,
         weights,
         autoManifestHint
@@ -1006,7 +1188,17 @@ export async function handleComboChat({
         })?.target ||
         rankedTargets[0] ||
         eligibleTargets[0];
+      if (!selectedTarget) {
+        return unavailableResponse(
+          429,
+          "No auto strategy targets remained after quota cutoff filtering"
+        );
+      }
 
+      // Keep eligibleTargets as the last-resort fallback tail: dedupe drops the
+      // routable ranked ones (and, when the cutoff is OFF, makes this identical to
+      // the pre-cutoff behavior), but a quota-blocked target still survives as a
+      // final fallback instead of vanishing — the hard cutoff only de-prioritizes.
       orderedTargets = dedupeTargetsByExecutionKey(
         [selectedTarget, ...rankedTargets, ...eligibleTargets].filter(
           (entry): entry is ResolvedComboTarget => entry !== undefined && entry !== null
@@ -1532,6 +1724,7 @@ export async function handleComboChat({
                       exactCooldownMs: mlSettings.useExponentialBackoff
                         ? 0
                         : mlSettings.baseCooldownMs,
+                      maxCooldownMs: mlSettings.maxCooldownMs,
                     }
                   );
                 }
@@ -1601,6 +1794,11 @@ export async function handleComboChat({
               combo: combo.name,
               provider,
               model: modelStr,
+              account:
+                typeof target.label === "string" && target.label.trim().length > 0
+                  ? target.label.trim()
+                  : "",
+              accountId: target.connectionId ?? "",
               latencyMs,
               fallbackCount,
             });
@@ -1853,13 +2051,18 @@ export async function handleComboChat({
             exhaustedLogLevel: "info",
           });
 
-          // #2101: Prevent infinite fallback loops with 400 Bad Request errors that indicate
-          // request-body-specific issues (context overflow, malformed request, model access denied).
-          // These errors are unlikely to be resolved by trying different target models since
-          // the same problematic request body would be sent to all targets.
+          // #2101: Prevent infinite fallback loops with 400 Bad Request errors that are genuinely
+          // body-specific (malformed JSON, bad format, missing required fields).
+          // Context overflow and parameter validation errors are NOT body-specific:
+          // - Context overflow: different models have different context windows
+          // - Max_tokens / param errors: different models have different output limits
+          // - Model access denied: different providers serve different model sets
+          // These should fall through so the next combo target can try.
           if (
             result.status === 400 &&
             fallbackResult.shouldFallback &&
+            !isContextOverflow400(errorText) &&
+            !isParamValidation400(errorText) &&
             (fallbackResult.reason === RateLimitReason.MODEL_CAPACITY ||
               errorText.toLowerCase().includes("context") ||
               errorText.toLowerCase().includes("prompt") ||
@@ -1940,6 +2143,7 @@ export async function handleComboChat({
                     // #1308: honor a long upstream reset (e.g. "Resets in 160h") over
                     // the short base cooldown / exponential backoff when present.
                     exactCooldownMs: selectLockoutCooldownMs(cooldownMs, mlSettings),
+                    maxCooldownMs: mlSettings.maxCooldownMs,
                   }
                 );
                 lockoutRecorded = true;
@@ -1981,6 +2185,7 @@ export async function handleComboChat({
                 {
                   // #1308: honor a long upstream reset over base/exponential cooldown.
                   exactCooldownMs: selectLockoutCooldownMs(cooldownMs, mlSettings),
+                  maxCooldownMs: mlSettings.maxCooldownMs,
                 }
               );
             }
@@ -2170,9 +2375,22 @@ async function handleRoundRobinCombo({
     ? resolveResilienceSettings(settings)
     : resolveResilienceSettings(null);
 
+  // #2562: Expand provider-wildcard steps before resolving targets.
+  const rrExpandedCombo = await expandProviderWildcardsInCombo(combo);
+  const rrExpandedAllCombos = allCombos
+    ? Array.isArray(allCombos)
+      ? await expandProviderWildcardsInCollection(allCombos as ComboLike[])
+      : {
+          ...allCombos,
+          combos: await expandProviderWildcardsInCollection(
+            ((allCombos as { combos?: ComboLike[] }).combos || []) as ComboLike[]
+          ),
+        }
+    : allCombos;
+
   const orderedTargets = resolveComboTargets(
-    combo,
-    allCombos,
+    rrExpandedCombo,
+    rrExpandedAllCombos,
     clampComboDepth(config.maxComboDepth)
   );
   const tagFilteredTargets = await applyRequestTagRouting(orderedTargets, body, log);
@@ -2225,8 +2443,7 @@ async function handleRoundRobinCombo({
       if (stickyTarget) {
         const rawModel = parseModel(stickyTarget.modelStr).model || stickyTarget.modelStr;
         const stickyAvailable =
-          (!stickyTarget.provider ||
-            getCircuitBreaker(stickyTarget.provider).getStatus().state !== "OPEN") &&
+          (!stickyTarget.provider || getCircuitBreaker(stickyTarget.provider).getStatus().state !== "OPEN") &&
           !(
             resilienceSettings.providerCooldown.enabled &&
             Boolean(stickyTarget.provider && stickyTarget.provider !== "unknown") &&

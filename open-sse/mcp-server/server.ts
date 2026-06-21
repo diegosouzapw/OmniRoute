@@ -29,6 +29,7 @@ import {
   costReportInput,
   listModelsCatalogInput,
   webSearchInput,
+  webFetchInput,
   simulateRouteInput,
   setBudgetGuardInput,
   setRoutingStrategyInput,
@@ -788,6 +789,39 @@ async function handleWebSearch(args: {
   }
 }
 
+async function handleWebFetch(args: {
+  url: string;
+  provider?: "firecrawl" | "jina-reader" | "tavily-search";
+  format?: "markdown" | "html" | "links" | "screenshot";
+  include_metadata?: boolean;
+  depth?: number;
+  wait_for_selector?: string;
+}) {
+  const start = Date.now();
+  try {
+    const body: Record<string, unknown> = {
+      url: args.url,
+      format: args.format ?? "markdown",
+      include_metadata: args.include_metadata ?? false,
+    };
+    if (args.provider) body.provider = args.provider;
+    if (args.depth !== undefined) body.depth = args.depth;
+    if (args.wait_for_selector) body.wait_for_selector = args.wait_for_selector;
+
+    const result = await omniRouteFetch("/v1/web/fetch", {
+      method: "POST",
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(60000),
+    });
+    await logToolCall("omniroute_web_fetch", args, result, Date.now() - start, true);
+    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await logToolCall("omniroute_web_fetch", args, null, Date.now() - start, false, msg);
+    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+  }
+}
+
 // ============ MCP Server Setup ============
 
 /**
@@ -1099,6 +1133,18 @@ export function createMcpServer(): McpServer {
     },
     withScopeEnforcement("omniroute_web_search", (args) =>
       handleWebSearch(webSearchInput.parse(args))
+    )
+  );
+
+  server.registerTool(
+    "omniroute_web_fetch",
+    {
+      description:
+        "Fetches and extracts content from a URL using OmniRoute's web fetch gateway. Supports multiple providers (Firecrawl, Jina Reader, Tavily) with automatic failover. Returns the page content as markdown, HTML, links, or screenshot, along with metadata.",
+      inputSchema: webFetchInput,
+    },
+    withScopeEnforcement("omniroute_web_fetch", (args) =>
+      handleWebFetch(webFetchInput.parse(args))
     )
   );
 

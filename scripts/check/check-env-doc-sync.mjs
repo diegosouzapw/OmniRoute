@@ -195,6 +195,9 @@ const DOC_ONLY_ALLOWLIST = new Set([
   // Source-code constants referenced in the docs narrative for the local
   // endpoints / route-guard classification (PR-3 in #3932).
   "LOCAL_ONLY_API_PREFIXES",
+  // SQL keyword mentioned in the new VACUUM scheduler docs (#4437).
+  // The check's regex picks up the bare word in description text.
+  "VACUUM",
 ]);
 
 // Vars present in .env.example but intentionally absent from ENVIRONMENT.md.

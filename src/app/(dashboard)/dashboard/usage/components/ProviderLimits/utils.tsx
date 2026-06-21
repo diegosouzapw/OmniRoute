@@ -18,6 +18,7 @@ const QUOTA_LABEL_MAP: Record<string, string> = {
   session: "Session",
   weekly: "Weekly",
   code_review: "Code Review",
+  code_review_weekly: "Code Review Weekly",
   gpt_5_3_codex_spark_session: "GPT-5.3-Codex-Spark",
   gpt_5_3_codex_spark_weekly: "GPT-5.3-Codex-Spark Weekly",
   agentic_request: "Agentic",
@@ -688,4 +689,44 @@ export function getNextResetSummary(quotas: any[] | undefined): string | null {
     }
   }
   return soonestIso ? formatCountdown(soonestIso) : null;
+}
+
+// --- Provider dropdown filter (PR #769 port) -----------------------------
+// Pure helpers extracted from <ProviderLimits/> so the filter+dropdown logic
+// can be exercised by unit tests without rendering React. Keep them free of
+// browser-only globals so Node's native test runner can import them directly.
+
+/**
+ * Returns true when `connection` should be visible under the selected
+ * `providerFilter`. The sentinel `"all"` matches every connection; any other
+ * value must equal the connection's `provider` key exactly. Connections with a
+ * missing/non-string provider are filtered out when a specific provider is
+ * selected (defensive — the live route only emits string provider keys).
+ */
+export function matchesProviderFilter(
+  connection: { provider?: unknown } | null | undefined,
+  providerFilter: string
+): boolean {
+  if (!providerFilter || providerFilter === "all") return true;
+  if (!connection || typeof connection.provider !== "string") return false;
+  return connection.provider === providerFilter;
+}
+
+/**
+ * Distinct provider keys present in `connections`, optionally sorted with the
+ * supplied `compare` function (defaults to `String.prototype.localeCompare` so
+ * tests get deterministic output without depending on the i18n-aware
+ * `compareTr` helper). Empty / non-string provider values are skipped.
+ */
+export function buildProviderOptions(
+  connections: ReadonlyArray<{ provider?: unknown }>,
+  compare: (a: string, b: string) => number = (a, b) => a.localeCompare(b)
+): string[] {
+  const seen = new Set<string>();
+  for (const conn of connections) {
+    if (conn && typeof conn.provider === "string" && conn.provider) {
+      seen.add(conn.provider);
+    }
+  }
+  return Array.from(seen).sort(compare);
 }

@@ -1625,7 +1625,14 @@ function parseResetTime(resetValue: unknown): string | null {
     } else if (typeof resetValue === "number") {
       date = new Date(resetValue < 1e12 ? resetValue * 1000 : resetValue);
     } else if (typeof resetValue === "string") {
-      date = new Date(resetValue);
+      // Numeric strings are Unix timestamps too (seconds or milliseconds).
+      // `new Date("1700000000")` otherwise returns Invalid Date.
+      if (/^\d+$/.test(resetValue)) {
+        const ts = Number(resetValue);
+        date = new Date(ts < 1e12 ? ts * 1000 : ts);
+      } else {
+        date = new Date(resetValue);
+      }
     } else {
       return null;
     }
@@ -3105,6 +3112,18 @@ async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRec
     });
 
     if (!response.ok) {
+      // Social-auth Kiro accounts (added via /api/oauth/kiro/social-exchange with provider
+      // Google or GitHub) use a different token format that AWS CodeWhisperer's GetUsageLimits
+      // routinely rejects with 401/403, even when /messages still works. Surface a clear
+      // "auth expired, chat may still work" message instead of a generic upstream-error blob
+      // so the quota card matches what users with legacy social-auth accounts already see.
+      // Inspired by https://github.com/decolua/9router/pull/620.
+      if ((response.status === 401 || response.status === 403) && isSocialAuthKiroAccount(providerSpecificData)) {
+        return {
+          message: "Kiro quota API authentication expired. Chat may still work.",
+          quotas: {},
+        };
+      }
       const errorText = await response.text();
       throw new Error(`Kiro API error (${response.status}): ${errorText}`);
     }
@@ -3114,6 +3133,22 @@ async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRec
   } catch (error) {
     throw new Error(`Failed to fetch Kiro usage: ${error.message}`);
   }
+}
+
+/**
+ * Was this Kiro connection added via the Google/GitHub social-auth device flow
+ * (POST /api/oauth/kiro/social-exchange)? That route persists
+ * `{ authMethod: "imported", provider: "Google" | "Github" }` on the connection.
+ * Builder-ID / IDC / kiro-cli imports use different markers and should keep the
+ * existing throw-on-failure behavior.
+ */
+function isSocialAuthKiroAccount(providerSpecificData?: JsonRecord): boolean {
+  if (!providerSpecificData || providerSpecificData.authMethod !== "imported") return false;
+  const provider =
+    typeof providerSpecificData.provider === "string"
+      ? providerSpecificData.provider.toLowerCase()
+      : "";
+  return provider === "google" || provider === "github";
 }
 
 /**
@@ -3410,4 +3445,5 @@ export const __testing = {
   mapCodeAssistTierIdToLabel,
   mapSubscriptionTierStringToPlanLabel,
   toDisplayLabel,
+  getKiroUsage,
 };

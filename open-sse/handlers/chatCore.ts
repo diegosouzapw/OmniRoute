@@ -1,5 +1,8 @@
 import { injectMemoryAndSkills } from "./chatCore/memorySkillsInjection.ts";
 import { resolveChatCoreRequestSetup } from "./chatCore/requestSetup.ts";
+import { buildFailureUsageRecord } from "./chatCore/failureUsage.ts";
+import { extractSystemRoleMessages } from "./chatCore/claudeSystemRole.ts";
+export { extractSystemRoleMessages } from "./chatCore/claudeSystemRole.ts";
 import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
@@ -44,7 +47,8 @@ import {
 import { CORS_HEADERS } from "../utils/cors.ts";
 import { checkHeapPressureGuard } from "../utils/heapPressure.ts";
 import { normalizeHeaders } from "../utils/headers.ts";
-import { detectFormatFromEndpoint, getTargetFormat } from "../services/provider.ts";
+import { resolveChatCoreRequestFormat } from "./chatCore/requestFormat.ts";
+import { resolveChatCoreTargetFormat } from "./chatCore/targetFormat.ts";
 import { injectSystemPrompt } from "../services/systemPrompt.ts";
 import { translateRequest, needsTranslation } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
@@ -70,11 +74,7 @@ import {
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { createPreparedRequestLogger, runWithCapture } from "../utils/providerRequestLogging.ts";
 import { applyResponsesPreviousResponseIdPolicy } from "../utils/responsesStatePolicy.ts";
-import {
-  getModelTargetFormat,
-  PROVIDER_ID_TO_ALIAS,
-  splitClaudeEffortSuffix,
-} from "../config/providerModels.ts";
+import { applyClaudeEffortVariant } from "./chatCore/claudeEffortVariant.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../config/defaultThinkingSignature.ts";
 import {
   getStripTypesForProviderModel,
@@ -120,13 +120,8 @@ import {
 } from "../services/errorClassifier.ts";
 import { updateProviderConnection, getProviderConnectionById } from "@/lib/db/providers";
 import { wasRefreshTokenRotated } from "@omniroute/open-sse/services/refreshSerializer.ts";
-import {
-  recordKeyFailure,
-  recordKeySuccess,
-  trackConnectionExtraKeys,
-  connectionHasExtraKeys,
-  type KeyHealth,
-} from "../services/apiKeyRotator.ts";
+import { connectionHasExtraKeys } from "../services/apiKeyRotator.ts";
+import { recordKeyHealthStatus as recordKeyHealthStatusFor } from "./chatCore/keyHealth.ts";
 
 import {
   getCallLogPipelineCaptureStreamChunks,
@@ -171,7 +166,6 @@ import {
 import {
   getModelNormalizeToolCallId,
   getModelPreserveOpenAIDeveloperRole,
-  getModelUpstreamExtraHeaders,
 } from "@/lib/localDb";
 import { getProviderCredentials, extractSessionAffinityKey } from "@/sse/services/auth";
 import { deleteSessionAccountAffinity } from "@/lib/db/sessionAccountAffinity";
@@ -188,10 +182,7 @@ import {
 } from "../utils/cacheControlPolicy.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { applyCodexGlobalFastServiceTier } from "@/lib/providers/codexFastTier";
-import {
-  CPA_FORCE_FAST_MODE_HEADER,
-  shouldRequestClaudeFastMode,
-} from "@/lib/providers/claudeFastMode";
+import { buildUpstreamHeadersForExecute as buildUpstreamHeadersForExecuteFor } from "./chatCore/upstreamExecuteHeaders.ts";
 import {
   resolveEffectiveServiceTier as resolveEffectiveServiceTierFor,
   resolveReportedServiceTier as resolveReportedServiceTierFor,
@@ -206,12 +197,8 @@ import {
   shouldDetectLimit,
 } from "../services/toolLimitDetector.ts";
 
-import {
-  parseCodexQuotaHeaders,
-  getCodexModelScope,
-  getCodexDualWindowCooldownMs,
-  isCompactResponsesEndpoint,
-} from "../executors/codex.ts";
+import { isCompactResponsesEndpoint } from "../executors/codex.ts";
+import { buildCodexQuotaPersistence } from "./chatCore/codexQuota.ts";
 import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
@@ -253,12 +240,8 @@ import {
   getTokenLimit,
   resolveComboContextLimit,
 } from "../services/contextManager.ts";
-import {
-  getBackgroundTaskReason,
-  getDegradedModel,
-  getBackgroundDegradationConfig,
-} from "../services/backgroundTaskDetector.ts";
-import type { CompressionConfig } from "../services/compression/types.ts";
+import { resolveBackgroundTaskRedirect } from "./chatCore/backgroundRedirect.ts";
+import type { CompressionConfig, CompressionPipelineStep } from "../services/compression/types.ts";
 import { prepareWebSearchFallbackBody } from "../services/webSearchFallback.ts";
 import {
   resolveExplicitStreamAlias,
@@ -557,65 +540,8 @@ function buildExecutorClientHeaders(
   return Object.keys(normalized).length > 0 ? normalized : null;
 }
 
-function isCopilotClient(
-  headers: Headers | Record<string, unknown> | null | undefined,
-  userAgent?: string | null
-) {
-  const isMatch = (value: unknown) =>
-    typeof value === "string" && value.toLowerCase().includes("copilot");
-
-  if (isMatch(userAgent)) return true;
-
-  if (headers instanceof Headers) {
-    for (const [key, value] of headers as unknown as Iterable<[string, string]>) {
-      if (isMatch(key) || isMatch(value)) return true;
-    }
-  } else if (headers && typeof headers === "object") {
-    for (const [key, value] of Object.entries(headers)) {
-      if (isMatch(key) || isMatch(value)) return true;
-    }
-  }
-
-  return false;
-}
-
-export function extractSystemRoleMessages(payload: Record<string, unknown>): void {
-  if (!Array.isArray(payload.messages)) return;
-  const messages = payload.messages as Array<{ role?: unknown; content?: unknown }>;
-  // Treat both `system` and `developer` as system-equivalent (OpenAI's Responses
-  // API renamed system → developer). Anthropic rejects either as a chat role, so
-  // both must be lifted into the top-level `system` field — parity with the
-  // normal-path extractSystemMessagesToBody closure.
-  const isSystemRole = (role: unknown): boolean =>
-    typeof role === "string" &&
-    (role.toLowerCase() === "system" || role.toLowerCase() === "developer");
-  const systemMessages = messages.filter((m) => isSystemRole(m.role));
-  if (systemMessages.length === 0) return;
-
-  const extraBlocks: Array<Record<string, unknown>> = [];
-  for (const sm of systemMessages) {
-    if (typeof sm.content === "string" && sm.content.length > 0) {
-      extraBlocks.push({ type: "text", text: sm.content });
-    } else if (Array.isArray(sm.content)) {
-      for (const block of sm.content as Array<Record<string, unknown>>) {
-        if (block?.type === "text" && typeof block.text === "string" && block.text.length > 0) {
-          extraBlocks.push({ ...block });
-        }
-      }
-    }
-  }
-  if (extraBlocks.length > 0) {
-    const existingSystem = payload.system;
-    if (typeof existingSystem === "string" && existingSystem.length > 0) {
-      payload.system = [{ type: "text", text: existingSystem }, ...extraBlocks];
-    } else if (Array.isArray(existingSystem)) {
-      payload.system = [...(existingSystem as Array<Record<string, unknown>>), ...extraBlocks];
-    } else {
-      payload.system = extraBlocks;
-    }
-  }
-  payload.messages = messages.filter((m) => !isSystemRole(m.role));
-}
+// extractSystemRoleMessages extracted to chatCore/claudeSystemRole.ts (#3501); re-exported above so
+// existing importers (e.g. tests/unit/system-role-extraction.test.ts) keep resolving it from here.
 
 export async function handleChatCore({
   body,
@@ -746,147 +672,65 @@ export async function handleChatCore({
     payload?: unknown,
     maxDepth = 3
   ): EffectiveServiceTier | null => resolveReportedServiceTierFor(provider, payload, maxDepth);
+  // Failure usage record building extracted to chatCore/failureUsage.ts (#3501); the handler keeps
+  // the fire-and-forget save + computes latencyMs, so the call sites stay byte-identical.
   const persistFailureUsage = (statusCode: number, errorCode?: string | null) => {
-    saveRequestUsage({
-      provider: provider || "unknown",
-      model: model || "unknown",
-      tokens: { input: 0, output: 0, cacheRead: 0, cacheCreation: 0, reasoning: 0 },
-      status: String(statusCode),
-      success: false,
-      latencyMs: Date.now() - startTime,
-      timeToFirstTokenMs: 0,
-      errorCode: errorCode || String(statusCode),
-      timestamp: new Date().toISOString(),
-      connectionId: connectionId || undefined,
-      apiKeyId: apiKeyInfo?.id || undefined,
-      apiKeyName: apiKeyInfo?.name || undefined,
-      serviceTier: effectiveServiceTier,
-      comboStrategy: isCombo ? comboStrategy || undefined : undefined,
-    }).catch(() => {});
+    saveRequestUsage(
+      buildFailureUsageRecord({
+        provider,
+        model,
+        connectionId,
+        apiKeyInfo,
+        effectiveServiceTier,
+        isCombo,
+        comboStrategy,
+        statusCode,
+        errorCode,
+        latencyMs: Date.now() - startTime,
+      })
+    ).catch(() => {});
   };
 
+  // Key-health updater extracted to chatCore/keyHealth.ts (#3501); bind the per-request log once
+  // and delegate so the existing call sites stay byte-identical.
   const recordKeyHealthStatus = (
     status: number,
     creds: Record<string, unknown> | null | undefined
-  ): void => {
-    const connId = creds?.connectionId as string | undefined;
-    if (!connId) return;
-
-    const psd = creds.providerSpecificData as Record<string, unknown> | undefined;
-    const extraKeys = (psd?.extraApiKeys as string[] | undefined) ?? [];
-    const health = psd?.apiKeyHealth as Record<string, KeyHealth> | undefined;
-    const currentKeyId = (psd?.selectedKeyId as string | undefined) ?? "primary";
-
-    trackConnectionExtraKeys(connId, extraKeys);
-
-    if (status === 401) {
-      const updatedHealth = recordKeyFailure(connId, currentKeyId);
-      log?.warn?.(
-        "AUTH",
-        `401 on connection ${connId.slice(0, 8)} - key marked as failed (failure #${updatedHealth.failures})`
-      );
-
-      // Persist health status to DB on every failure (not just invalid transitions)
-      // This ensures in-memory state survives process restarts
-      const prevStatus = health?.[currentKeyId]?.status;
-      const prevFailures = health?.[currentKeyId]?.failures ?? 0;
-      if (updatedHealth.status !== prevStatus || updatedHealth.failures !== prevFailures) {
-        updateProviderConnection(connId, {
-          providerSpecificData: {
-            ...psd,
-            apiKeyHealth: { ...health, [currentKeyId]: updatedHealth },
-          },
-        }).catch((err: unknown) => {
-          log?.error?.(
-            "DB",
-            `Failed to persist apiKeyHealth: ${err instanceof Error ? err.message : String(err)}`
-          );
-        });
-      }
-    } else if (status >= 200 && status < 300) {
-      const updatedHealth = recordKeySuccess(connId, currentKeyId);
-      const prevStatus = health?.[currentKeyId]?.status;
-      if (prevStatus === "warning" || prevStatus === "invalid") {
-        updateProviderConnection(connId, {
-          providerSpecificData: {
-            ...psd,
-            apiKeyHealth: { ...health, [currentKeyId]: updatedHealth },
-          },
-        }).catch((err: unknown) => {
-          log?.error?.(
-            "DB",
-            `Failed to persist apiKeyHealth: ${err instanceof Error ? err.message : String(err)}`
-          );
-        });
-      }
-    }
-  };
+  ): void => recordKeyHealthStatusFor(status, creds, log);
 
   const persistCodexQuotaState = async (headers: Record<string, string> | null, status = 0) => {
     if (provider !== "codex" || !connectionId || !headers) return;
 
     try {
-      const quota = parseCodexQuotaHeaders(headers);
-      if (!quota) return;
-
       const existingProviderData =
         credentials?.providerSpecificData && typeof credentials.providerSpecificData === "object"
-          ? credentials.providerSpecificData
+          ? (credentials.providerSpecificData as Record<string, unknown>)
           : {};
-      const scope = getCodexModelScope(model || requestedModel || "");
-      const quotaState = {
-        usage5h: quota.usage5h,
-        limit5h: quota.limit5h,
-        resetAt5h: quota.resetAt5h,
-        usage7d: quota.usage7d,
-        limit7d: quota.limit7d,
-        resetAt7d: quota.resetAt7d,
-        scope,
-        updatedAt: new Date().toISOString(),
-      };
+      // Pure payload build extracted to chatCore/codexQuota.ts (#3501). Returns null when the
+      // response carries no quota headers (nothing to persist).
+      const built = buildCodexQuotaPersistence({
+        headers,
+        existingProviderData,
+        modelForScope: model || requestedModel || "",
+        status,
+      });
+      if (!built) return;
 
-      const nextProviderData: Record<string, unknown> = {
-        ...existingProviderData,
-        codexQuotaState: quotaState,
-      };
+      if (built.exhaustionLog) {
+        log?.debug?.("CODEX", built.exhaustionLog);
+      }
 
-      // T03/T09: on 429, persist exact reset time per scope to avoid global over-blocking.
-      // Use dual-window cooldown to distinguish short-term and weekly Codex exhaustion.
+      // Invalidate the preflight cache for this connection so the next
+      // isModelAvailable check fetches fresh quota data.
       if (status === 429) {
-        const { cooldownMs, window: exhaustedWindow } = getCodexDualWindowCooldownMs(quota);
-        if (cooldownMs > 0) {
-          const scopeUntil = new Date(Date.now() + cooldownMs).toISOString();
-          const scopeMapRaw =
-            existingProviderData &&
-            typeof existingProviderData === "object" &&
-            existingProviderData.codexScopeRateLimitedUntil &&
-            typeof existingProviderData.codexScopeRateLimitedUntil === "object"
-              ? existingProviderData.codexScopeRateLimitedUntil
-              : {};
-
-          nextProviderData.codexScopeRateLimitedUntil = {
-            ...(scopeMapRaw as Record<string, unknown>),
-            [scope]: scopeUntil,
-          };
-          nextProviderData.codexExhaustedWindow = exhaustedWindow;
-          log?.debug?.(
-            "CODEX",
-            `Quota exhaustion on ${exhaustedWindow} window, cooldown until ${scopeUntil}`
-          );
-        }
-
-        // Invalidate the preflight cache for this connection so the next
-        // isModelAvailable check fetches fresh quota data.
-        if (connectionId) {
-          invalidateCodexQuotaCache(connectionId);
-        }
+        invalidateCodexQuotaCache(connectionId);
       }
 
       await updateProviderConnection(connectionId, {
-        providerSpecificData: nextProviderData,
+        providerSpecificData: built.nextProviderData,
       });
 
-      credentials.providerSpecificData = nextProviderData;
+      credentials.providerSpecificData = built.nextProviderData;
     } catch (err) {
       const errMessage = err instanceof Error ? err.message : String(err);
       log?.debug?.("CODEX", `Failed to persist codex quota state: ${errMessage}`);
@@ -914,22 +758,17 @@ export async function handleChatCore({
     credentials.connectionId = connectionId;
   }
 
-  const endpointPath = String(clientRawRequest?.endpoint || "");
-  const sourceFormat = detectFormatFromEndpoint(body, endpointPath);
-  const isResponsesEndpoint =
-    /\/responses(?=\/|$)/i.test(endpointPath) || /^responses(?=\/|$)/i.test(endpointPath);
-  const nativeCodexPassthrough = shouldUseNativeCodexPassthrough({
-    provider,
-    sourceFormat,
+  // Endpoint/format resolution extracted to chatCore/requestFormat.ts (#3501); pure derivation
+  // from the inbound request, destructured so every downstream use stays byte-identical.
+  const {
     endpointPath,
-  });
-  const isDroidCLI =
-    userAgent?.toLowerCase().includes("droid") || userAgent?.toLowerCase().includes("codex-cli");
-  const copilotCompatibleReasoning = isCopilotClient(clientRawRequest?.headers, userAgent);
-  const clientResponseFormat =
-    sourceFormat === FORMATS.OPENAI_RESPONSES && !isResponsesEndpoint && !isDroidCLI
-      ? FORMATS.OPENAI
-      : sourceFormat;
+    sourceFormat,
+    isResponsesEndpoint,
+    nativeCodexPassthrough,
+    isDroidCLI,
+    copilotCompatibleReasoning,
+    clientResponseFormat,
+  } = resolveChatCoreRequestFormat({ clientRawRequest, body, provider, userAgent });
 
   // Check for bypass patterns (warmup, skip) - return fake response
   const bypassResponse = handleBypassRequest(body, model, userAgent);
@@ -940,35 +779,35 @@ export async function handleChatCore({
   // Detect source format and get target format
   // Model-specific targetFormat takes priority over provider default
 
-  // ── Background Task Redirection (T41) ──
-  const bgConfig = getBackgroundDegradationConfig();
-  const backgroundReason = bgConfig.enabled
-    ? getBackgroundTaskReason(body, clientRawRequest?.headers)
-    : null;
-  if (backgroundReason) {
-    const degradedModel = getDegradedModel(model);
-    if (degradedModel !== model) {
-      const originalModel = model;
-      log?.info?.(
-        "BACKGROUND",
-        `Background task redirect (${backgroundReason}): ${originalModel} → ${degradedModel}`
-      );
-      model = degradedModel;
-      if (body && typeof body === "object") {
-        body.model = model;
-      }
-
-      logAuditEvent({
-        action: "routing.background_task_redirect",
-        actor: apiKeyInfo?.name || "system",
-        target: connectionId || provider || "chat",
-        details: {
-          original_model: originalModel,
-          redirected_to: degradedModel,
-          reason: backgroundReason,
-        },
-      });
+  // ── Background Task Redirection (T41) — decision extracted to chatCore/backgroundRedirect.ts (#3501)
+  // backgroundReason is the detection signal (threaded into memory/skills injection below); redirect
+  // is the actual model downgrade to apply, if any.
+  const { backgroundReason, redirect: bgRedirect } = resolveBackgroundTaskRedirect({
+    body,
+    headers: clientRawRequest?.headers,
+    model,
+  });
+  if (bgRedirect) {
+    const originalModel = model;
+    log?.info?.(
+      "BACKGROUND",
+      `Background task redirect (${bgRedirect.reason}): ${originalModel} → ${bgRedirect.degradedModel}`
+    );
+    model = bgRedirect.degradedModel;
+    if (body && typeof body === "object") {
+      body.model = model;
     }
+
+    logAuditEvent({
+      action: "routing.background_task_redirect",
+      actor: apiKeyInfo?.name || "system",
+      target: connectionId || provider || "chat",
+      details: {
+        original_model: originalModel,
+        redirected_to: bgRedirect.degradedModel,
+        reason: bgRedirect.reason,
+      },
+    });
   }
 
   // Apply custom model aliases (Settings → Model Aliases → Pattern→Target) before routing (#315, #472)
@@ -990,41 +829,30 @@ export async function handleChatCore({
   // it into Claude thinking/effort config. An explicit client-supplied effort always
   // wins; native Claude passthrough is left untouched (it carries its own `thinking`),
   // and non-thinking base models are cleaned up later by normalizeThinkingForModel().
-  if (
-    (provider === "claude" || isClaudeCodeCompatibleProvider(provider)) &&
-    typeof effectiveModel === "string"
-  ) {
-    const { baseModel, effort } = splitClaudeEffortSuffix(effectiveModel);
-    if (effort) {
-      effectiveModel = baseModel;
-      if (body && typeof body === "object" && !Array.isArray(body)) {
-        const claudeBody = body as Record<string, unknown>;
-        claudeBody.model = baseModel;
-        if (sourceFormat !== FORMATS.CLAUDE) {
-          const explicitEffort =
-            claudeBody.reasoning_effort ??
-            (claudeBody.reasoning as Record<string, unknown> | undefined)?.effort ??
-            (claudeBody.output_config as Record<string, unknown> | undefined)?.effort;
-          if (explicitEffort === undefined || explicitEffort === null || explicitEffort === "") {
-            claudeBody.reasoning_effort = effort;
-          }
-        }
-      }
-      log?.info?.(
-        "PARAMS",
-        `Claude effort variant: stripped "-${effort}" → ${baseModel} (reasoning_effort=${effort})`
-      );
+  // Extracted to chatCore/claudeEffortVariant.ts (#3501); mutates body in place and returns the
+  // stripped model + an optional log line, keeping behaviour byte-identical.
+  {
+    const effortVariant = applyClaudeEffortVariant({
+      provider,
+      effectiveModel,
+      body,
+      sourceFormat,
+    });
+    effectiveModel = effortVariant.effectiveModel;
+    if (effortVariant.log) {
+      log?.info?.("PARAMS", effortVariant.log);
     }
   }
 
-  const alias = PROVIDER_ID_TO_ALIAS[provider] || provider;
-  const modelTargetFormat = getModelTargetFormat(alias, resolvedModel);
-  const targetFormat =
-    apiFormat === "responses"
-      ? FORMATS.OPENAI_RESPONSES
-      : modelTargetFormat ||
-        customModelTargetFormat ||
-        getTargetFormat(provider, credentials?.providerSpecificData);
+  // Wire target-format resolution extracted to chatCore/targetFormat.ts (#3501); `alias` is reused
+  // downstream when stripping the alias/ prefix off the upstream model id.
+  const { alias, targetFormat } = resolveChatCoreTargetFormat({
+    provider,
+    resolvedModel,
+    apiFormat,
+    customModelTargetFormat,
+    providerSpecificData: credentials?.providerSpecificData,
+  });
 
   const initialProviderRequest =
     body && typeof body === "object" && !Array.isArray(body)
@@ -1235,46 +1063,19 @@ export async function handleChatCore({
       ? credentials.providerSpecificData.customUserAgent.trim()
       : "";
 
-  const buildUpstreamHeadersForExecute = (modelToCall: string): Record<string, string> => {
-    const upstreamHeaders =
-      modelToCall === effectiveModel
-        ? {
-            ...getModelUpstreamExtraHeaders(provider || "", model || "", sourceFormat),
-            ...getModelUpstreamExtraHeaders(provider || "", resolvedModel || "", sourceFormat),
-          }
-        : (() => {
-            const r = resolveModelAlias(modelToCall);
-            return {
-              ...getModelUpstreamExtraHeaders(provider || "", modelToCall || "", sourceFormat),
-              ...getModelUpstreamExtraHeaders(provider || "", r || "", sourceFormat),
-            };
-          })();
-
-    if (connectionCustomUserAgent) {
-      upstreamHeaders["User-Agent"] = connectionCustomUserAgent;
-      if ("user-agent" in upstreamHeaders) {
-        upstreamHeaders["user-agent"] = connectionCustomUserAgent;
-      }
-    }
-
-    // Claude Fast Mode opt-in. When the user has enabled this in
-    // Settings > AI AND the target provider is the canonical Anthropic
-    // `claude` provider (Claude Code-compatible CPA bridges are excluded
-    // since they already select their own entrypoint) AND the model id
-    // matches the configured list, signal to a paired CLIProxyAPI build to
-    // rewrite the cc_entrypoint so the request can reach Anthropic Fast
-    // Mode (speed:"fast"). CPA builds that do not understand the header
-    // forward it harmlessly.
-    if (
-      provider === "claude" &&
-      typeof settings !== "undefined" &&
-      shouldRequestClaudeFastMode(settings, modelToCall)
-    ) {
-      upstreamHeaders[CPA_FORCE_FAST_MODE_HEADER] = "1";
-    }
-
-    return upstreamHeaders;
-  };
+  // Upstream extra-header building extracted to chatCore/upstreamExecuteHeaders.ts (#3501); bind the
+  // per-request inputs once and delegate so the existing call sites stay byte-identical.
+  const buildUpstreamHeadersForExecute = (modelToCall: string): Record<string, string> =>
+    buildUpstreamHeadersForExecuteFor({
+      modelToCall,
+      effectiveModel,
+      provider,
+      model,
+      resolvedModel,
+      sourceFormat,
+      connectionCustomUserAgent,
+      settings,
+    });
 
   // Default to false unless client explicitly sets stream: true (OpenAI spec compliant)
   const acceptHeader =
@@ -1430,6 +1231,7 @@ export async function handleChatCore({
         selectCompressionStrategy,
         selectCompressionPlan,
         enginesMapDerivesStackedPipeline,
+        activeComboResolves,
         applyCompressionAsync,
         resolveCacheAwareConfig,
       } = await import("../services/compression/strategySelector.ts");
@@ -1599,12 +1401,23 @@ export async function handleChatCore({
           );
         }
       }
+      let namedCombos: Record<string, CompressionPipelineStep[]> = {};
+      try {
+        const { listCompressionCombos } = await import("../../src/lib/db/compressionCombos.ts");
+        namedCombos = Object.fromEntries(listCompressionCombos().map((c) => [c.id, c.pipeline]));
+      } catch (err) {
+        log?.debug?.(
+          "COMPRESSION",
+          "Named combos load skipped: " + (err instanceof Error ? err.message : String(err))
+        );
+      }
       const modeBeforeOutputTransform = selectCompressionStrategy(
         config,
         compressionComboKey,
         estimatedTokens,
         body as Record<string, unknown>,
-        { provider, targetFormat, model: effectiveModel }
+        { provider, targetFormat, model: effectiveModel },
+        namedCombos
       );
       if (
         modeBeforeOutputTransform === "stacked" &&
@@ -1615,7 +1428,9 @@ export async function handleChatCore({
         // operator's explicit engines derive their own stacked pipeline, that pipeline (applied
         // below from compressionPlan.stackedPipeline) is authoritative. Legacy/backfilled
         // installs (enginesExplicit false) still fall through to the seeded default combo.
-        !enginesMapDerivesStackedPipeline(config)
+        !enginesMapDerivesStackedPipeline(config) &&
+        // Never let the legacy seeded default combo shadow the operator's active profile.
+        !activeComboResolves(config, namedCombos)
       ) {
         try {
           const { getDefaultCompressionCombo } =
@@ -1670,7 +1485,8 @@ export async function handleChatCore({
         compressionComboKey,
         estimatedTokens,
         compressionInputBody,
-        { provider, targetFormat, model: effectiveModel }
+        { provider, targetFormat, model: effectiveModel },
+        namedCombos
       );
       const mode = compressionPlan.mode as CompressionConfig["defaultMode"];
       // When the per-engine toggle map derives a stacked pipeline (and no named/routing

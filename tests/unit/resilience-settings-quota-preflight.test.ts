@@ -108,6 +108,29 @@ test("providerWindowDefaults: out-of-range values are clamped, garbage is pruned
   );
 });
 
+test("#4483: auto-routing quota cutoff is OFF by default (opt-in)", () => {
+  // The hard cutoff overlaps the existing soft penalty + cooldown, so it must not
+  // change auto-routing behavior unless an operator explicitly turns it on.
+  const settings = cloneDefaults();
+  assert.equal(settings.quotaPreflight.enabled, false);
+  assert.equal(resolveResilienceSettings({}).quotaPreflight.enabled, false);
+});
+
+test("#4483: enabling the quota cutoff round-trips and preserves the other thresholds", () => {
+  const next = mergeResilienceSettings(cloneDefaults(), {
+    quotaPreflight: { enabled: true },
+  });
+  assert.equal(next.quotaPreflight.enabled, true);
+  // Toggling the switch must not disturb the threshold defaults.
+  assert.equal(next.quotaPreflight.defaultThresholdPercent, 2);
+  assert.equal(next.quotaPreflight.warnThresholdPercent, 20);
+
+  const resolved = resolveResilienceSettings({
+    resilienceSettings: { quotaPreflight: { enabled: true } },
+  });
+  assert.equal(resolved.quotaPreflight.enabled, true);
+});
+
 test("resolveResilienceSettings round-trips a stored providerWindowDefaults map", () => {
   const stored = {
     resilienceSettings: {

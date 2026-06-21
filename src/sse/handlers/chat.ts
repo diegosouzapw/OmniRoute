@@ -85,6 +85,10 @@ import {
   getTaskRoutingConfig,
 } from "@omniroute/open-sse/services/taskAwareRouter.ts";
 import {
+  hasNativeWebSearchTool,
+  resolveWebSearchRouteOverride,
+} from "@omniroute/open-sse/services/webSearchRouting.ts";
+import {
   generateSessionId as generateStableSessionId,
   touchSession,
   extractExternalSessionId,
@@ -399,6 +403,24 @@ export async function handleChat(
     }
     taskRouteInfo = { taskType: tr.taskType, wasRouted: tr.wasRouted };
     telemetry.endPhase();
+  }
+
+  // #4481 layer 2 — Web-Search Routing (CCR-style Router.webSearch): a native web_search
+  // server tool + a configured `webSearchRouteModel` routes the whole request to that
+  // model (some providers don't implement Anthropic's web_search_20250305 server tool).
+  // Settings are read only when a web-search tool is present; the override lands before
+  // auto/combo resolution and the layer-1 fallback so the target's own handling applies.
+  if (hasNativeWebSearchTool(body)) {
+    const wsSettings = await getCachedSettings().catch(() => ({}) as Record<string, unknown>);
+    const wsRoute = resolveWebSearchRouteOverride(resolvedModelStr, body, wsSettings);
+    if (wsRoute.wasRouted) {
+      log.info(
+        "WEBSEARCH-ROUTE",
+        `web_search tool → model override: ${resolvedModelStr} → ${wsRoute.model}`
+      );
+      resolvedModelStr = wsRoute.model;
+      body = { ...body, model: wsRoute.model };
+    }
   }
 
   // ── Zero-Config Auto-Routing (auto and auto/ prefix) ────────────────────────
