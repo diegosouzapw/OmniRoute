@@ -1625,7 +1625,14 @@ function parseResetTime(resetValue: unknown): string | null {
     } else if (typeof resetValue === "number") {
       date = new Date(resetValue < 1e12 ? resetValue * 1000 : resetValue);
     } else if (typeof resetValue === "string") {
-      date = new Date(resetValue);
+      // Numeric strings are Unix timestamps too (seconds or milliseconds).
+      // `new Date("1700000000")` otherwise returns Invalid Date.
+      if (/^\d+$/.test(resetValue)) {
+        const ts = Number(resetValue);
+        date = new Date(ts < 1e12 ? ts * 1000 : ts);
+      } else {
+        date = new Date(resetValue);
+      }
     } else {
       return null;
     }

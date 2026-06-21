@@ -41,14 +41,20 @@ function toNumber(value: unknown, fallback = 0): number {
 function parseResetTime(resetValue: unknown): string | null {
   if (!resetValue) return null;
   try {
-    const date =
-      resetValue instanceof Date
-        ? resetValue
-        : typeof resetValue === "number"
-          ? new Date(resetValue < 1e12 ? resetValue * 1000 : resetValue)
-          : typeof resetValue === "string"
-            ? new Date(resetValue)
-            : null;
+    let date: Date | null = null;
+    if (resetValue instanceof Date) {
+      date = resetValue;
+    } else if (typeof resetValue === "number") {
+      date = new Date(resetValue < 1e12 ? resetValue * 1000 : resetValue);
+    } else if (typeof resetValue === "string") {
+      // Numeric strings are Unix timestamps too (seconds or milliseconds).
+      if (/^\d+$/.test(resetValue)) {
+        const ts = Number(resetValue);
+        date = new Date(ts < 1e12 ? ts * 1000 : ts);
+      } else {
+        date = new Date(resetValue);
+      }
+    }
     if (!date || date.getTime() <= 0) return null;
     return date.toISOString();
   } catch {
