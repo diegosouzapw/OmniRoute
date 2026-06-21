@@ -772,6 +772,98 @@ async function handleXiaomiMimoSpeech(providerConfig, body, modelId, token, cred
 }
 
 /**
+ * MiniMax T2A v2 — POST returns hex-encoded audio in a JSON envelope guarded by
+ * `base_resp.status_code` (0 = success).
+ * Port of decolua/9router#1043 by toanalien <toanalien@gmail.com>.
+ */
+function hexToBytes(audioHex) {
+  const clean = typeof audioHex === "string" ? audioHex.trim() : "";
+  if (!clean) throw new Error("MiniMax TTS returned no audio");
+  if (clean.length % 2 !== 0 || !/^[0-9a-f]+$/i.test(clean)) {
+    throw new Error("MiniMax TTS returned invalid audio");
+  }
+  const len = clean.length / 2;
+  const out = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    out[i] = parseInt(clean.substr(i * 2, 2), 16);
+  }
+  return out;
+}
+
+async function handleMinimaxSpeech(providerConfig, body, modelId, token) {
+  const voiceId =
+    (typeof body.voice === "string" && body.voice) || "English_expressive_narrator";
+  const res = await fetch(providerConfig.baseUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...buildAuthHeaders(providerConfig, token),
+    },
+    body: JSON.stringify({
+      model: modelId || "speech-2.8-hd",
+      text: body.input,
+      stream: false,
+      language_boost: "auto",
+      output_format: "hex",
+      voice_setting: {
+        voice_id: voiceId,
+        speed: typeof body.speed === "number" ? body.speed : 1,
+        vol: 1,
+        pitch: 0,
+      },
+      audio_setting: {
+        sample_rate: 32000,
+        bitrate: 128000,
+        format: "mp3",
+        channel: 1,
+      },
+    }),
+  });
+
+  const rawText = await res.text();
+  let data: Record<string, unknown> = {};
+  if (rawText) {
+    try {
+      const parsed = JSON.parse(rawText);
+      if (parsed && typeof parsed === "object") data = parsed as Record<string, unknown>;
+    } catch {
+      data = {};
+    }
+  }
+
+  if (!res.ok) {
+    return upstreamErrorResponse(res, rawText);
+  }
+
+  const baseResp =
+    ((data.base_resp || data.baseResp) as Record<string, unknown> | undefined) || {};
+  const statusCode = Number(baseResp.status_code ?? baseResp.statusCode ?? 0);
+  const statusMessage = String(
+    baseResp.status_msg || baseResp.statusMsg || data.message || ""
+  );
+  if (statusCode !== 0) {
+    return errorResponse(502, `MiniMax TTS: ${statusMessage || "upstream error"}`);
+  }
+
+  const audioField = (data.data as Record<string, unknown> | undefined)?.audio;
+  let bytes: Uint8Array;
+  try {
+    bytes = hexToBytes(audioField);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "invalid audio";
+    return errorResponse(502, `MiniMax TTS: ${msg}`);
+  }
+
+  return new Response(bytes, {
+    status: 200,
+    headers: {
+      ...CORS_HEADERS,
+      "Content-Type": "audio/mpeg",
+    },
+  });
+}
+
+/**
  * Handle Coqui TTS (local, no auth)
  * POST {baseUrl} with { text, speaker_id } → WAV audio
  */
@@ -927,6 +1019,10 @@ export async function handleAudioSpeech({
 
     if (providerConfig.format === "xiaomi-mimo-tts") {
       return handleXiaomiMimoSpeech(providerConfig, body, modelId, token, credentials);
+    }
+
+    if (providerConfig.format === "minimax-tts") {
+      return handleMinimaxSpeech(providerConfig, body, modelId, token);
     }
 
     if (providerConfig.format === "coqui") {
