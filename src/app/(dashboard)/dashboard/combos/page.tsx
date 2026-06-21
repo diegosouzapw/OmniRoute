@@ -159,6 +159,8 @@ const ADVANCED_FIELD_HELP_FALLBACK = {
     "How long a request can wait for a round-robin model slot before timing out. This queue is separate from any account-only concurrency cap.",
   stickyLimit:
     "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation).",
+  stickyWeightedLimit:
+    "Weighted sticky batch size: consecutive successful requests sent to the selected weighted target before drawing again. Empty or 1 keeps the current per-request weighted draw.",
   failoverBeforeRetry:
     "When enabled, a 429 from the upstream triggers immediate target failover instead of retrying the same URL first.",
   targetTimeoutMs:
@@ -2582,7 +2584,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
       handleAutoBalance();
     }
 
-    if (strategy === "round-robin") {
+    if (strategy === "round-robin" || strategy === "weighted") {
       setShowAdvanced(true);
     }
 
@@ -2703,6 +2705,9 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
       if (config.queueTimeoutMs !== undefined) configToSave.queueTimeoutMs = config.queueTimeoutMs;
       if (config.stickyRoundRobinLimit !== undefined)
         configToSave.stickyRoundRobinLimit = config.stickyRoundRobinLimit;
+    }
+    if (strategy === "weighted" && config.stickyWeightedLimit !== undefined) {
+      configToSave.stickyWeightedLimit = config.stickyWeightedLimit;
     }
     const hasConfigToSave = Object.keys(configToSave).length > 0;
     const hadExistingConfig = Object.keys(sanitizeComboRuntimeConfig(combo?.config)).length > 0;
@@ -3813,6 +3818,41 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                             setConfig({
                               ...config,
                               stickyRoundRobinLimit: e.target.value
+                                ? Number(e.target.value)
+                                : undefined,
+                            })
+                          }
+                          className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {strategy === "weighted" && (
+                    <div className="grid grid-cols-1 gap-2 pt-2 border-t border-black/5 dark:border-white/5">
+                      <div>
+                        <FieldLabelWithHelp
+                          label={getI18nOrFallback(
+                            t,
+                            "stickyWeightedLimit",
+                            "Sticky Weighted Limit"
+                          )}
+                          help={getI18nOrFallback(
+                            t,
+                            "advancedHelp.stickyWeightedLimit",
+                            ADVANCED_FIELD_HELP_FALLBACK.stickyWeightedLimit
+                          )}
+                          showHelp={!isExpertMode}
+                        />
+                        <input
+                          type="number"
+                          min="0"
+                          max="1000"
+                          value={config.stickyWeightedLimit ?? ""}
+                          placeholder="1"
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              stickyWeightedLimit: e.target.value
                                 ? Number(e.target.value)
                                 : undefined,
                             })

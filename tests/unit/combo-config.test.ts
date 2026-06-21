@@ -549,6 +549,24 @@ test("createComboSchema accepts per-combo stickyRoundRobinLimit and rejects out-
   assert.equal(tooHigh.success, false);
 });
 
+test("createComboSchema accepts per-combo stickyWeightedLimit and rejects out-of-range", () => {
+  const parsed = createComboSchema.parse({
+    name: "sticky-weighted",
+    models: [{ model: "openai/gpt-4o-mini", weight: 100 }],
+    strategy: "weighted",
+    config: { stickyWeightedLimit: 2 },
+  });
+  assert.equal(parsed.config.stickyWeightedLimit, 2);
+
+  const tooHigh = createComboSchema.safeParse({
+    name: "sticky-weighted-too-high",
+    models: [{ model: "openai/gpt-4o-mini", weight: 100 }],
+    strategy: "weighted",
+    config: { stickyWeightedLimit: 1001 },
+  });
+  assert.equal(tooHigh.success, false);
+});
+
 test("createComboSchema coerces string numbers for maxSetRetries and setRetryDelayMs", () => {
   const parsed = createComboSchema.parse({
     name: "coerce-test",

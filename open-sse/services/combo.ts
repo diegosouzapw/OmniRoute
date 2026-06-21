@@ -99,9 +99,13 @@ import {
   MAX_RR_COUNTERS,
   rrCounters,
   rrStickyTargets,
+  weightedStickyTargets,
   clampStickyRoundRobinTargetLimit,
+  clampStickyWeightedTargetLimit,
   getStickyRoundRobinStartIndex,
   recordStickyRoundRobinSuccess,
+  getStickyWeightedExecutionKey,
+  recordStickyWeightedSuccess,
 } from "./combo/rrState.ts";
 import { validateResponseQuality, toRetryAfterDisplayValue } from "./combo/validateQuality.ts";
 import {
@@ -132,6 +136,7 @@ import {
   getModelContextLimitForModelString,
   resolveComboTargets,
   resolveWeightedTargets,
+  resolveWeightedStepGroups,
   sortTargetsByContextSize,
 } from "./combo/comboStructure.ts";
 import {
@@ -553,9 +558,66 @@ export async function handleComboChat({
   const maxSetRetries = config.maxSetRetries ?? 0;
   const setRetryDelayMs = resolveDelayMs(config.setRetryDelayMs, 2000);
 
+  const isTargetSelectableForWeighted = async (target: ResolvedComboTarget): Promise<boolean> => {
+    const rawModel = parseModel(target.modelStr).model || target.modelStr;
+    if (getCircuitBreaker(target.provider).getStatus().state === "OPEN") return false;
+    if (
+      resilienceSettings.providerCooldown.enabled &&
+      Boolean(target.provider && target.provider !== "unknown") &&
+      isProviderInCooldown(target.provider, target.connectionId ?? undefined, resilienceSettings)
+    ) {
+      return false;
+    }
+    if (
+      target.provider &&
+      rawModel &&
+      isModelLocked(target.provider, target.connectionId || "", rawModel)
+    ) {
+      return false;
+    }
+    return isModelAvailable ? await isModelAvailable(target.modelStr, target) : true;
+  };
+
+  const stickyWeightedLimit = clampStickyWeightedTargetLimit(config.stickyWeightedLimit);
+  if (
+    strategy === "weighted" &&
+    !weightedStickyTargets.has(combo.name) &&
+    weightedStickyTargets.size >= MAX_RR_COUNTERS
+  ) {
+    const oldest = weightedStickyTargets.keys().next().value;
+    if (oldest !== undefined) weightedStickyTargets.delete(oldest);
+  }
+  const weightedEligibleKeys = new Set<string>();
+  if (strategy === "weighted") {
+    const stepGroups = resolveWeightedStepGroups(combo, allCombos);
+    for (const group of stepGroups) {
+      const availability = await Promise.all(group.targets.map(isTargetSelectableForWeighted));
+      if (availability.some(Boolean)) weightedEligibleKeys.add(group.step.executionKey);
+    }
+  }
+  const rawStickyWeightedKey =
+    strategy === "weighted" ? getStickyWeightedExecutionKey(combo.name, stickyWeightedLimit) : null;
+  const stickyWeightedKey =
+    rawStickyWeightedKey && weightedEligibleKeys.has(rawStickyWeightedKey)
+      ? rawStickyWeightedKey
+      : null;
+  if (rawStickyWeightedKey && !stickyWeightedKey) {
+    weightedStickyTargets.delete(combo.name);
+  }
+  const weightedResolution =
+    strategy === "weighted"
+      ? resolveWeightedTargets(combo, allCombos, stickyWeightedKey, weightedEligibleKeys)
+      : null;
+  const getWeightedStepKeyForTarget = (target: ResolvedComboTarget): string | null => {
+    if (!weightedResolution?.orderedSteps) return null;
+    const step = weightedResolution.orderedSteps.find((entry) =>
+      target.executionKey.startsWith(entry.executionKey)
+    );
+    return step?.executionKey || null;
+  };
   let orderedTargets =
     strategy === "weighted"
-      ? resolveWeightedTargets(combo, allCombos)?.orderedTargets || []
+      ? weightedResolution?.orderedTargets || []
       : resolveComboTargets(combo, allCombos, clampComboDepth(config.maxComboDepth));
 
   orderedTargets = await applyRequestTagRouting(orderedTargets, body, log);
@@ -563,7 +625,7 @@ export async function handleComboChat({
   if (strategy === "weighted") {
     log.info(
       "COMBO",
-      `Weighted selection${allCombos ? " with nested resolution" : ""}: ${orderedTargets.length} total targets`
+      `Weighted selection${stickyWeightedKey ? " (sticky)" : ""}${allCombos ? " with nested resolution" : ""}: ${orderedTargets.length} total targets`
     );
   } else if (allCombos) {
     log.info("COMBO", `${strategy} with nested resolution: ${orderedTargets.length} total targets`);
@@ -1382,6 +1444,12 @@ export async function handleComboChat({
             // Reset cooldown on success
             if (provider && provider !== "unknown") {
               recordProviderSuccess(provider, target.connectionId ?? undefined);
+            }
+            if (strategy === "weighted" && stickyWeightedLimit > 1) {
+              const stickySuccessKey = getWeightedStepKeyForTarget(target);
+              if (stickySuccessKey) {
+                recordStickyWeightedSuccess(combo.name, stickySuccessKey, stickyWeightedLimit);
+              }
             }
             // Webhook fan-out: best-effort, never blocks the response stream.
             notifyWebhookEvent("request.completed", {
