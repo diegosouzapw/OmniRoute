@@ -77,6 +77,24 @@ describe("OpencodeExecutor", () => {
       assert.equal(model.name, "DeepSeek V4 Flash Free");
       assert.equal(model.supportsReasoning, true);
     });
+
+    it("exposes DeepSeek V4 Pro effort variants on opencode-go only", () => {
+      const goModels = PROVIDER_MODELS["opencode-go"] || [];
+      const zenModels = PROVIDER_MODELS["opencode-zen"] || [];
+      const variants = ["low", "medium", "high", "max"].map((level) => `deepseek-v4-pro-${level}`);
+
+      for (const variant of variants) {
+        const model = goModels.find((m) => m.id === variant);
+        assert.ok(model, `${variant} should be in opencode-go model list`);
+        assert.equal(model?.supportsReasoning, true);
+        assert.equal(
+          zenModels.some((m) => m.id === variant),
+          false,
+          `${variant} should not be exposed on opencode-zen`
+        );
+      }
+    });
+
     it("routes opencode zen default models to chat completions", async () => {
       const minimaxResult = await zenExecutor.execute(createInput("minimax-m2.5-free"));
       assert.equal(minimaxResult.url, "https://opencode.ai/zen/v1/chat/completions");
@@ -528,10 +546,8 @@ describe("OpencodeExecutor", () => {
   });
 
   describe("DeepSeek V4 Pro reasoning-effort variants", () => {
-    // #xxxx: opencode/zen upstream only exposes the base id `deepseek-v4-pro`.
-    // The -low/-medium/-high/-max suffixes are operator-facing knobs that the
-    // executor rewrites to base + injects reasoning_effort, mirroring 9router's
-    // opencode-go executor (open-sse/executors/opencode-go.js).
+    // OpenCode Go only exposes the base id `deepseek-v4-pro`. The variants are
+    // operator-facing knobs that the executor rewrites to base + reasoning_effort.
     function baseBody(model) {
       return {
         model,
@@ -545,7 +561,7 @@ describe("OpencodeExecutor", () => {
     for (const level of levels) {
       it(`maps deepseek-v4-pro-${level} to base id + reasoning_effort=${level}`, () => {
         const variant = `deepseek-v4-pro-${level}`;
-        const out = zenExecutor.transformRequest(variant, baseBody(variant), false, {
+        const out = goExecutor.transformRequest(variant, baseBody(variant), false, {
           apiKey: "test-key",
         });
         assert.equal(out.model, "deepseek-v4-pro");
@@ -558,7 +574,7 @@ describe("OpencodeExecutor", () => {
     it("preserves explicit reasoning_effort over the variant suffix", () => {
       const body = baseBody("deepseek-v4-pro-high") as Record<string, unknown>;
       body.reasoning_effort = "max";
-      const out = zenExecutor.transformRequest("deepseek-v4-pro-high", body, false, {
+      const out = goExecutor.transformRequest("deepseek-v4-pro-high", body, false, {
         apiKey: "test-key",
       });
       assert.equal(out.reasoning_effort, "max");
@@ -566,7 +582,7 @@ describe("OpencodeExecutor", () => {
     });
 
     it("leaves the base id (no suffix) untouched", () => {
-      const out = zenExecutor.transformRequest(
+      const out = goExecutor.transformRequest(
         "deepseek-v4-pro",
         baseBody("deepseek-v4-pro"),
         false,
@@ -579,7 +595,7 @@ describe("OpencodeExecutor", () => {
     it("does not rewrite unrelated models with matching suffixes", () => {
       // -max/-high etc. should only fire for deepseek-v4-pro; another model that
       // happens to end with -high must be left alone.
-      const out = zenExecutor.transformRequest(
+      const out = goExecutor.transformRequest(
         "some-other-model-high",
         baseBody("some-other-model-high"),
         false,

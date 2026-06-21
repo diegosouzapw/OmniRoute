@@ -147,13 +147,8 @@ export class OpencodeExecutor extends BaseExecutor {
     ) {
       modifiedBody.tools = modifiedBody.tools.slice(0, 128);
     }
-    // #xxxx: DeepSeek V4 Pro reasoning-effort variants. The upstream opencode/zen
-    // exposes the base id `deepseek-v4-pro` only; the -low/-medium/-high/-max
-    // suffixes are operator-facing knobs that map to `reasoning_effort`. Rewrite
-    // body.model to the canonical base id (always — the upstream rejects the
-    // suffixed variants) and inject the chosen effort when the caller did not
-    // already set one (explicit beats derived). Mirrors 9router's opencode-go
-    // executor (open-sse/executors/opencode-go.js).
+    // OpenCode Go exposes `deepseek-v4-pro` as the upstream id. Local
+    // -low/-medium/-high/-max aliases map to reasoning_effort.
     if (modifiedBody && typeof modifiedBody === "object") {
       const mb = modifiedBody as Record<string, unknown>;
       const m = String(model || "");

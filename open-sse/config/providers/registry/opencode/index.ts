@@ -23,17 +23,6 @@ export const opencodeProvider: RegistryEntry = {
       interleavedField: "reasoning_content",
     },
     { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
-    // #xxxx: reasoning-effort variants for DeepSeek V4 Pro. The OpencodeExecutor
-    // rewrites the model id to "deepseek-v4-pro" and injects reasoning_effort from
-    // the suffix so the upstream sees a single canonical id + the chosen effort.
-    { id: "deepseek-v4-pro-low", name: "DeepSeek V4 Pro (low effort)", supportsReasoning: true },
-    {
-      id: "deepseek-v4-pro-medium",
-      name: "DeepSeek V4 Pro (medium effort)",
-      supportsReasoning: true,
-    },
-    { id: "deepseek-v4-pro-high", name: "DeepSeek V4 Pro (high effort)", supportsReasoning: true },
-    { id: "deepseek-v4-pro-max", name: "DeepSeek V4 Pro (max effort)", supportsReasoning: true },
     // #3110: MiniMax M3 free tier via OpenCode
     // #3328: MiniMax M3 is multimodal (verified: describes base64 images via the
     // opencode upstream) — flag it so vision requests aren't gated/stripped.
