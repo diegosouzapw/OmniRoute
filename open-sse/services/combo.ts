@@ -521,6 +521,27 @@ export async function buildAutoCandidates(
  * @param {Object} options.log - Logger object
  * @returns {Promise<Response>}
  */
+// #2101 guard helpers: a 400 caused by context overflow or parameter validation
+// is NOT body-specific — different combo targets have different context windows /
+// output limits, so the request should fall through to the next target instead of
+// being short-circuited. Exported as pure predicates so the guard is unit-testable.
+/** @param {string} errorText */
+export function isContextOverflow400(errorText) {
+  return (
+    /\bcontext.*(?:length_exceeded|too long|overflow|exceeded|window|limit)\b/i.test(errorText) ||
+    /exceeds.*context/i.test(errorText) ||
+    /your input exceeds/i.test(errorText)
+  );
+}
+/** @param {string} errorText */
+export function isParamValidation400(errorText) {
+  return (
+    /\bmax_tokens\b.*(?:illegal|must|range|invalid)/i.test(errorText) ||
+    /\bparameter is illegal\b/i.test(errorText) ||
+    /\bis illegal.*range\b/i.test(errorText)
+  );
+}
+
 /** @param {object} options */
 export async function handleComboChat({
   body,
@@ -1779,13 +1800,18 @@ export async function handleComboChat({
             exhaustedLogLevel: "info",
           });
 
-          // #2101: Prevent infinite fallback loops with 400 Bad Request errors that indicate
-          // request-body-specific issues (context overflow, malformed request, model access denied).
-          // These errors are unlikely to be resolved by trying different target models since
-          // the same problematic request body would be sent to all targets.
+          // #2101: Prevent infinite fallback loops with 400 Bad Request errors that are genuinely
+          // body-specific (malformed JSON, bad format, missing required fields).
+          // Context overflow and parameter validation errors are NOT body-specific:
+          // - Context overflow: different models have different context windows
+          // - Max_tokens / param errors: different models have different output limits
+          // - Model access denied: different providers serve different model sets
+          // These should fall through so the next combo target can try.
           if (
             result.status === 400 &&
             fallbackResult.shouldFallback &&
+            !isContextOverflow400(errorText) &&
+            !isParamValidation400(errorText) &&
             (fallbackResult.reason === RateLimitReason.MODEL_CAPACITY ||
               errorText.toLowerCase().includes("context") ||
               errorText.toLowerCase().includes("prompt") ||
