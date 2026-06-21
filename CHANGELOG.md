@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### New Features
+
+- **feat(db): scheduled VACUUM + manual Vacuum Now persist lastVacuumAt** - previously the SQLite database settings panel always showed lastVacuumAt as null because the manual vacuum path and the auto_vacuum setting never updated the timestamp. A new src/lib/db/vacuumScheduler.ts (replacing the orphaned compressionScheduler.ts) persists the last run timestamp and last error to the key_value table via migration 102, and exposes getState(), runNow(), init(), stop(). The getDatabaseSettings() lastVacuumAt field is now read from scheduler state (no more hardcoded null). Wired into the Next.js lifecycle via instrumentation-node.ts so a setInterval timer starts at boot (default 24h, configurable, default start window 02:00-04:00 local). New env flags: OMNIROUTE_VACUUM_ENABLED, OMNIROUTE_VACUUM_INTERVAL_HOURS, OMNIROUTE_VACUUM_WINDOW. ([#4437])
+
 ---
 
 ## [3.8.33] — TBD

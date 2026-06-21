@@ -6,6 +6,7 @@ import { backupDbFile } from "./backup";
 import { DATA_DIR, SQLITE_FILE, getDbInstance } from "./core";
 import { invalidateDbCache } from "./readCache";
 import { getDatabaseStats } from "./stats";
+import { getVacuumSchedulerState } from "./vacuumScheduler";
 
 const DATABASE_SETTINGS_NAMESPACE = "databaseSettings";
 
@@ -225,6 +226,7 @@ export function getUserDatabaseSettings(): UserDatabaseSettings {
 
 export function getDatabaseSettings(): DatabaseSettings {
   const dbStats = getDatabaseStats();
+  const vacuumState = getVacuumSchedulerState();
 
   return {
     ...getUserDatabaseSettings(),
@@ -238,7 +240,7 @@ export function getDatabaseSettings(): DatabaseSettings {
       databaseSizeBytes: dbStats.totalSize,
       pageCount: dbStats.pageCount,
       freelistCount: getFreelistCount(),
-      lastVacuumAt: null,
+      lastVacuumAt: vacuumState.lastRunAt,
       lastOptimizationAt: null,
       integrityCheck: getIntegrityCheck(),
     },
