@@ -110,7 +110,7 @@
     "open-sse/executors/chatgpt-web.ts": 2870,
     "open-sse/executors/claude-web.ts": 1057,
     "open-sse/executors/codex.ts": 1449,
-    "open-sse/executors/cursor.ts": 1391,
+    "open-sse/executors/cursor.ts": 1453,
     "open-sse/executors/deepseek-web.ts": 1117,
     "open-sse/executors/duckduckgo-web.ts": 925,
     "open-sse/executors/grok-web.ts": 1871,
