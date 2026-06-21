@@ -75,10 +75,13 @@ function readIntervalFromSettings(): number {
 }
 
 function readEnabledFromSettings(): boolean {
-  if (process.env.OMNIROUTE_VACUUM_DISABLED === "1") return false;
-  if (process.env.OMNIROUTE_VACUUM_ENABLED === "1") return true;
-  // Default-on for new installs — the issue is the opposite problem
-  // (vacuum never runs), not over-vacuuming.
+  // Master switch. Default-on for new installs — the issue is the opposite
+  // problem (vacuum never runs), not over-vacuuming. To disable, set to 0
+  // (or any value other than "1"). Matches the OMNIROUTE_BIFROST_ENABLED
+  // convention from PR #4433.
+  const raw = process.env.OMNIROUTE_VACUUM_ENABLED;
+  if (raw === "0" || raw === "false") return false;
+  if (raw === "1" || raw === "true") return true;
   return true;
 }
 
