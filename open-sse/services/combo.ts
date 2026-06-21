@@ -314,6 +314,11 @@ export async function buildAutoCandidates(
   resilienceSettings: ResilienceSettings | null = null
 ): Promise<AutoProviderCandidate[]> {
   const metrics = getComboMetrics(comboName);
+  // Opt-in hard quota cutoff (default OFF). When disabled, candidates are never
+  // dropped for low quota here — the soft quota penalty + connection cooldown still
+  // apply, so auto-routing behavior is unchanged.
+  const quotaCutoffEnabled =
+    (resilienceSettings ?? resolveResilienceSettings(null))?.quotaPreflight?.enabled === true;
   const { getPricingForModel } = await import("../../src/lib/localDb");
   const quotaPromises = new Map<string, Promise<unknown>>();
   let historicalLatencyStats: Record<string, HistoricalLatencyStatsEntry> = {};
@@ -466,13 +471,15 @@ export async function buildAutoCandidates(
         const quota = await quotaPromises.get(quotaKey)!;
         resetWindowAffinity = calculateResetWindowAffinity(quota, resetWindowConfig);
         quotaRemaining = quotaRemainingPercentFromQuota(quota);
-        const cutoffDecision = evaluateQuotaCutoff(
-          quota as QuotaInfo | null,
-          buildAutoQuotaThresholds(provider, connection, resilienceSettings)
-        );
-        if (!cutoffDecision.proceed) {
-          quotaCutoffBlocked = true;
-          quotaCutoffReason = cutoffDecision.reason || "quota_exhausted";
+        if (quotaCutoffEnabled) {
+          const cutoffDecision = evaluateQuotaCutoff(
+            quota as QuotaInfo | null,
+            buildAutoQuotaThresholds(provider, connection, resilienceSettings)
+          );
+          if (!cutoffDecision.proceed) {
+            quotaCutoffBlocked = true;
+            quotaCutoffReason = cutoffDecision.reason || "quota_exhausted";
+          }
         }
       }
 
@@ -919,7 +926,9 @@ export async function handleComboChat({
           const parsed = parseModel(entry.target.modelStr);
           const modelId = parsed.model || entry.target.modelStr;
           return entry.target.provider === selectedProvider && modelId === selectedModel;
-        })?.target || rankedTargets[0];
+        })?.target ||
+        rankedTargets[0] ||
+        eligibleTargets[0];
       if (!selectedTarget) {
         return unavailableResponse(
           429,
@@ -927,8 +936,12 @@ export async function handleComboChat({
         );
       }
 
+      // Keep eligibleTargets as the last-resort fallback tail: dedupe drops the
+      // routable ranked ones (and, when the cutoff is OFF, makes this identical to
+      // the pre-cutoff behavior), but a quota-blocked target still survives as a
+      // final fallback instead of vanishing — the hard cutoff only de-prioritizes.
       orderedTargets = dedupeTargetsByExecutionKey(
-        [selectedTarget, ...rankedTargets].filter(
+        [selectedTarget, ...rankedTargets, ...eligibleTargets].filter(
           (entry): entry is ResolvedComboTarget => entry !== undefined && entry !== null
         )
       );
