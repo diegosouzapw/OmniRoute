@@ -29,7 +29,9 @@ import type {
   ComboLike,
   ComboLogger,
   ComboRuntimeStep,
+  NestedComboMode,
   ResolvedComboTarget,
+  ResolvedComboUnit,
 } from "./types.ts";
 
 function toTrimmedString(value: unknown): string | null {
@@ -607,6 +609,17 @@ export function resolveComboTargets(
     : getDirectComboTargets(combo);
 }
 
+export function resolveComboRuntimeUnits(
+  combo: ComboLike,
+  allCombos: ComboCollectionLike,
+  mode: NestedComboMode,
+  maxDepth: number = MAX_COMBO_DEPTH
+): ResolvedComboUnit[] {
+  if (mode === "flatten" || !allCombos) return resolveComboTargets(combo, allCombos, maxDepth);
+  validateComboDAG(combo.name, allCombos, new Set<string>(), 0, maxDepth);
+  return getOrderedTopLevelRuntimeSteps(combo, allCombos);
+}
+
 export function resolveWeightedStepGroups(
   combo: ComboLike,
   allCombos: ComboCollectionLike
@@ -627,7 +640,8 @@ export function resolveWeightedTargets(
   combo: ComboLike,
   allCombos: ComboCollectionLike,
   preferredExecutionKey: string | null = null,
-  eligibleExecutionKeys: ReadonlySet<string> | null = null
+  eligibleExecutionKeys: ReadonlySet<string> | null = null,
+  stepGroups?: Array<{ step: ComboRuntimeStep; targets: ResolvedComboTarget[] }>
 ): {
   orderedTargets: ResolvedComboTarget[];
   selectedStep: ComboRuntimeStep | null;
@@ -654,7 +668,7 @@ export function resolveWeightedTargets(
     hasCompositeTierRuntimeOrder(combo)
   );
   const targetsByStep = new Map(
-    resolveWeightedStepGroups(combo, allCombos).map((group) => [
+    (stepGroups || resolveWeightedStepGroups(combo, allCombos)).map((group) => [
       group.step.executionKey,
       group.targets,
     ])
