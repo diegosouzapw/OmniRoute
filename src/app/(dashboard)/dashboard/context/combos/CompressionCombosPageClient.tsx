@@ -54,6 +54,7 @@ function NamedCombosManager() {
   const [outputModeIntensity, setOutputModeIntensity] = useState("full");
   const [assignmentIds, setAssignmentIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [activeComboId, setActiveComboId] = useState<string | null>(null);
 
   const refresh = () => {
     fetch("/api/context/combos")
@@ -71,6 +72,10 @@ function NamedCombosManager() {
     fetch("/api/compression/language-packs")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setLanguagePacks(Array.isArray(data?.packs) ? data.packs : []))
+      .catch(() => {});
+    fetch("/api/settings/compression")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setActiveComboId(data?.activeComboId ?? null))
       .catch(() => {});
   }, []);
 
@@ -143,15 +148,6 @@ function NamedCombosManager() {
   const deleteCombo = async (combo: CompressionCombo) => {
     if (!confirm(`Delete combo "${combo.name}"?`)) return;
     const res = await fetch(`/api/context/combos/${combo.id}`, { method: "DELETE" });
-    if (res.ok) refresh();
-  };
-
-  const setDefault = async (id: string) => {
-    const res = await fetch(`/api/context/combos/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isDefault: true }),
-    });
     if (res.ok) refresh();
   };
 
@@ -346,9 +342,12 @@ function NamedCombosManager() {
                 <h3 className="truncate text-base font-semibold text-text-main">{combo.name}</h3>
                 <p className="mt-1 text-sm text-text-muted">{combo.description}</p>
               </div>
-              {combo.isDefault && (
-                <span className="rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                  Default
+              {combo.id === activeComboId && (
+                <span
+                  data-testid={`active-badge-${combo.id}`}
+                  className="rounded-full bg-green-500/10 px-2 py-1 text-xs font-medium text-green-500"
+                >
+                  ● Active
                 </span>
               )}
             </div>
@@ -373,14 +372,6 @@ function NamedCombosManager() {
               >
                 Edit
               </button>
-              {!combo.isDefault && (
-                <button
-                  onClick={() => setDefault(combo.id)}
-                  className="rounded-lg border border-border px-3 py-1.5 text-xs text-text-main"
-                >
-                  Set as default
-                </button>
-              )}
               {!combo.isDefault && (
                 <button
                   onClick={() => deleteCombo(combo)}
