@@ -87,11 +87,18 @@ export default function AntigravityToolCard({
     }
   };
 
-  // Windows uses UAC dialog, no sudo needed
-  const isWindows = typeof navigator !== "undefined" && navigator.userAgent?.includes("Windows");
+  // MITM elevation is decided by the *server* OS, not by this browser's user
+  // agent. The server reports `isWin` and `needsSudoPassword` in GET status —
+  // a Windows browser hitting a Linux server still needs sudo, and a Linux
+  // browser hitting a Windows server does not (#822).
+  const serverIsWindows = status?.isWin === true;
+  const canRunWithoutPassword =
+    serverIsWindows ||
+    status?.hasCachedPassword === true ||
+    status?.needsSudoPassword === false;
 
   const handleStart = () => {
-    if (isWindows || status?.hasCachedPassword) {
+    if (canRunWithoutPassword) {
       doStart("");
     } else {
       setShowPasswordModal(true);
@@ -100,7 +107,7 @@ export default function AntigravityToolCard({
   };
 
   const handleStop = () => {
-    if (isWindows || status?.hasCachedPassword) {
+    if (canRunWithoutPassword) {
       doStop("");
     } else {
       setShowPasswordModal(true);
