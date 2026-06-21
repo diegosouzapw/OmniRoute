@@ -37,11 +37,30 @@ OpenRouter-style suffixes separate **what kind of route** (category) from **how 
 | ---------------------- | ----------------------------------------------------------------- |
 | `auto/coding:fast`     | coding pool, low-latency weights                                  |
 | `auto/coding:cheap`    | coding pool, cost-optimized (alias `auto/coding:floor`)           |
+| `auto/coding:free`     | coding pool, **free-tier models only**                            |
+| `auto/coding:pro`      | coding pool, **premium tier only** (no free models)               |
+| `auto/coding:reliable` | coding pool, **stability-weighted** (circuit-breaker health)      |
 | `auto/reasoning:pro`   | reasoning/thinking models only, premium tier                      |
+| `auto/reasoning:cheap` | reasoning models, cost-optimized (alias `:floor`)                 |
 | `auto/vision`          | vision-capable models (no tier → balanced weights)                |
+| `auto/vision:free`     | vision-capable models, free tier only                             |
 | `auto/multimodal:free` | multimodal-capable models, free tier only                         |
+| `auto/multimodal:reliable` | multimodal pool, stability-weighted                          |
 
-Any valid `auto/<category>[:<tier>]` resolves on demand; a curated subset is advertised in `/v1/models` and the dashboard (`AUTO_SUFFIX_VARIANTS` in `open-sse/services/autoCombo/builtinCatalog.ts`). Filtering is **fail-open** — if a constraint matches no connected models, the full pool is used so routing never breaks. The core scorer (`combo.ts`) is unchanged; the category/tier filter is applied in `buildAutoCandidates`.
+### All Tier Suffixes (cheat sheet)
+
+Every tier suffix works with every category, and `classifyTier` (`open-sse/services/autoCombo/suffixComposition.ts:62`) filters the candidate pool by the model's `free` / `pro` label from `freeTierCatalog.ts` + `models.dev` tier data. The 5 supported tiers compose with all 5 categories:
+
+| Tier          | Pool filter                  | Scoring weights                 | Aliases       |
+| ------------- | ---------------------------- | ------------------------------- | ------------- |
+| `(none)`      | full category pool           | balanced (LKGP)                 | —             |
+| `fast`        | full category pool           | low-latency weighted            | —             |
+| `cheap`       | full category pool           | cost-optimized (lowest first)   | `floor`       |
+| `reliable`    | full category pool           | stability-weighted (CB + p99)   | —             |
+| `free`        | **free-tier only** (`tier === 'free'`) | balanced                  | —             |
+| `pro`         | **premium-only** (`tier !== 'free'`)  | balanced                  | —             |
+
+A curated subset is advertised in `/v1/models` and the dashboard (`AUTO_SUFFIX_VARIANTS` in `open-sse/services/autoCombo/builtinCatalog.ts:48-58`); **all 30 combinations are valid** and resolve on demand. Filtering is **fail-open** — if a constraint matches no connected models, the full pool is used so routing never breaks. The core scorer (`combo.ts`) is unchanged; the category/tier filter is applied in `buildAutoCandidates`.
 
 > **Live model intelligence:** auto-routing fitness is informed by live **Arena ELO** rankings + **models.dev** tier data when the `ARENA_ELO_SYNC_ENABLED` flag is on (falls back to the static fitness map otherwise).
 
