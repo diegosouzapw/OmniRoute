@@ -62,15 +62,12 @@ export function buildUnifiedSource(opts: BuildUnifiedSourceOptions): UnifiedSour
   const { sinceIso, untilIso, rawCutoffDate, apiKeyWhere, apiKeyParams } = opts;
   const sinceDate = sinceIso?.split("T")[0] ?? null;
 
-  // daily_usage_summary rows are included only when the query window extends
-  // before rawCutoffDate AND no api_key filter is active (summary rows don't
-  // carry api_key/connection, so including them under a key filter leaks usage).
+  // Include summaries only when the window starts before rawCutoffDate and no api_key filter is active.
   const needsAggregated = (!sinceDate || sinceDate < rawCutoffDate) && !apiKeyWhere;
 
   const unifiedParams: AnalyticsParams = {};
 
-  // Raw leg lower bound: when agg rows are also included, floor at rawCutoffDate
-  // so the two legs never overlap (prevents double-counting).
+  // Floor raw rows at rawCutoffDate when summary rows are included to avoid double-counting.
   const rawConditions: string[] = [];
   if (needsAggregated) {
     rawConditions.push("timestamp >= @rawCutoff");
@@ -180,8 +177,7 @@ export function buildPresetUnifiedSource(opts: BuildUnifiedSourceOptions): Unifi
     rawConditions.push(apiKeyWhere);
     Object.assign(presetParams, apiKeyParams);
   }
-  const presetRawWhere =
-    rawConditions.length > 0 ? `WHERE ${rawConditions.join(" AND ")}` : "";
+  const presetRawWhere = rawConditions.length > 0 ? `WHERE ${rawConditions.join(" AND ")}` : "";
 
   const aggConditions: string[] = [];
   if (needsAggregated) {
@@ -192,8 +188,7 @@ export function buildPresetUnifiedSource(opts: BuildUnifiedSourceOptions): Unifi
     aggConditions.push("date < @presetRawCutoffDate");
     presetParams.presetRawCutoffDate = rawCutoffDate;
   }
-  const presetAggWhere =
-    aggConditions.length > 0 ? `WHERE ${aggConditions.join(" AND ")}` : "";
+  const presetAggWhere = aggConditions.length > 0 ? `WHERE ${aggConditions.join(" AND ")}` : "";
 
   const unifiedSource = needsAggregated
     ? `(
@@ -249,10 +244,7 @@ export interface UsageSummaryRow {
  * @param unifiedSource - Pre-built subquery string (UNION of raw + aggregated rows).
  * @param params        - Named params referenced inside `unifiedSource`.
  */
-export function getUsageSummary(
-  unifiedSource: string,
-  params: AnalyticsParams
-): UsageSummaryRow {
+export function getUsageSummary(unifiedSource: string, params: AnalyticsParams): UsageSummaryRow {
   const db = getDbInstance();
   const row = db
     .prepare(
@@ -303,10 +295,7 @@ export interface DailyUsageRow {
 /**
  * Daily request + token counts aggregated from the unified source CTE.
  */
-export function getDailyUsage(
-  unifiedSource: string,
-  params: AnalyticsParams
-): DailyUsageRow[] {
+export function getDailyUsage(unifiedSource: string, params: AnalyticsParams): DailyUsageRow[] {
   const db = getDbInstance();
   return db
     .prepare(
@@ -342,10 +331,7 @@ export interface DailyCostRow {
 /**
  * Per-day, per-provider, per-model token breakdown for cost calculation.
  */
-export function getDailyCostRows(
-  unifiedSource: string,
-  params: AnalyticsParams
-): DailyCostRow[] {
+export function getDailyCostRows(unifiedSource: string, params: AnalyticsParams): DailyCostRow[] {
   const db = getDbInstance();
   return db
     .prepare(
@@ -383,10 +369,7 @@ export interface HeatmapRow {
  * @param heatmapConditions - Array of SQL condition strings (combined with AND).
  * @param params            - Named params referenced inside the conditions.
  */
-export function getHeatmapRows(
-  heatmapConditions: string[],
-  params: AnalyticsParams
-): HeatmapRow[] {
+export function getHeatmapRows(heatmapConditions: string[], params: AnalyticsParams): HeatmapRow[] {
   const db = getDbInstance();
   return db
     .prepare(
@@ -424,10 +407,7 @@ export interface ModelUsageRow {
 /**
  * Per-model usage aggregates from the unified source CTE.
  */
-export function getModelUsageRows(
-  unifiedSource: string,
-  params: AnalyticsParams
-): ModelUsageRow[] {
+export function getModelUsageRows(unifiedSource: string, params: AnalyticsParams): ModelUsageRow[] {
   const db = getDbInstance();
   return db
     .prepare(
@@ -555,10 +535,7 @@ export interface AccountCostRow {
  *                      prefixed with `usage_history.` by the caller.
  * @param params      - Named params referenced inside `whereClause`.
  */
-export function getAccountCostRows(
-  whereClause: string,
-  params: AnalyticsParams
-): AccountCostRow[] {
+export function getAccountCostRows(whereClause: string, params: AnalyticsParams): AccountCostRow[] {
   const db = getDbInstance();
   return db
     .prepare(
