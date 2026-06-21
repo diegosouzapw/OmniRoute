@@ -65,6 +65,14 @@ export interface ProviderCooldownSettings {
 
 export interface QuotaPreflightSettings {
   /**
+   * Master switch for the auto-routing quota cutoff (buildAutoCandidates). When
+   * disabled (default), candidates are NOT dropped for low quota before scoring —
+   * the soft quota penalty + connection cooldown still apply, so behavior is
+   * unchanged. Opt-in because the hard cutoff interacts with the auto-routing
+   * scorer and must be validated per deployment. Default: false.
+   */
+  enabled: boolean;
+  /**
    * Global minimum-remaining cutoff (percent, 0-100). A connection is skipped
    * when its remaining quota drops to this value or below. Matches the
    * dashboard's quota bars (which show REMAINING %, not used %), so the
@@ -215,6 +223,13 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
     ),
   },
   quotaPreflight: {
+    // Opt-in (default OFF): the auto-routing hard cutoff drops low-quota candidates
+    // before scoring, overlapping the existing soft quota penalty + connection
+    // cooldown, so it must be explicitly enabled by the operator until its
+    // interaction with the scorer is validated in production.
+    enabled: ["true", "1", "on"].includes(
+      (process.env.QUOTA_PREFLIGHT_CUTOFF_ENABLED || "").trim().toLowerCase()
+    ),
     // Remaining-% semantics. 2 = "stop when only 2% remaining" (= 98% used).
     // Uniform across all providers and windows; operators set per-window
     // overrides per connection via the Cutoff modal in Dashboard › Limits,
@@ -428,7 +443,8 @@ function normalizeQuotaPreflightSettings(
     record.providerWindowDefaults,
     fallback.providerWindowDefaults
   );
-  return { defaultThresholdPercent, warnThresholdPercent, providerWindowDefaults };
+  const enabled = typeof record.enabled === "boolean" ? record.enabled : fallback.enabled;
+  return { enabled, defaultThresholdPercent, warnThresholdPercent, providerWindowDefaults };
 }
 
 function normalizeWaitForCooldownSettings(

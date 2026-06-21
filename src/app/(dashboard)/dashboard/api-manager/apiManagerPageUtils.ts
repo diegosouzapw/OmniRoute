@@ -103,3 +103,24 @@ export function formatUsdCost(value: number, locale: string): string {
     maximumFractionDigits: amount > 0 && amount < 1 ? 4 : 2,
   }).format(amount);
 }
+
+/**
+ * Mask a fully revealed API key for the at-rest display: keep the first 8 chars
+ * (provider prefix + a few entropy bits, e.g. `sk-or-12...`), append an ellipsis.
+ * Returns "" for empty/missing input so the UI can render an empty `<code>` cleanly.
+ */
+export function maskKey(fullKey: string | null | undefined): string {
+  if (!fullKey) return "";
+  return fullKey.length > 8 ? `${fullKey.slice(0, 8)}...` : fullKey;
+}
+
+/**
+ * Immutable Set toggle helper for the "which keys are currently revealed" state.
+ * Returns a NEW Set so React state setters always see a fresh reference.
+ */
+export function toggleKeyVisibility(prev: Set<string>, keyId: string): Set<string> {
+  const next = new Set(prev);
+  if (next.has(keyId)) next.delete(keyId);
+  else next.add(keyId);
+  return next;
+}

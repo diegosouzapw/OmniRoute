@@ -294,6 +294,58 @@ test("Command Code executor surfaces upstream and streamed errors", async () => 
   }, /boom/);
 });
 
+test("Command Code executor caps max_tokens to the registered per-model limit (GLM-5.x)", async () => {
+  const calls: FetchCall[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init, body: JSON.parse(String(init.body)) });
+    return commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }]);
+  };
+
+  // GLM-5 and GLM-5.1 are registered with maxOutputTokens: 131072.
+  // Without per-model capping, the upstream rejects with
+  // "限制数值范围[1,131072]".
+  await getExecutor("command-code").execute({
+    model: "zai-org/GLM-5.1",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: { messages: [{ role: "user", content: "Hi" }] },
+  });
+  assert.equal(calls[0].body.params.max_tokens, 131072);
+});
+
+test("Command Code executor caps max_tokens to the registered per-model limit (DeepSeek v4)", async () => {
+  const calls: FetchCall[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init, body: JSON.parse(String(init.body)) });
+    return commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }]);
+  };
+
+  // DeepSeek v4 pro is registered with maxOutputTokens: 384000.
+  await getExecutor("command-code").execute({
+    model: "deepseek/deepseek-v4-pro",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: { messages: [{ role: "user", content: "Hi" }] },
+  });
+  assert.equal(calls[0].body.params.max_tokens, 384000);
+});
+
+test("Command Code executor honors a smaller client-provided max_tokens under the per-model cap", async () => {
+  const calls: FetchCall[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init, body: JSON.parse(String(init.body)) });
+    return commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }]);
+  };
+
+  await getExecutor("command-code").execute({
+    model: "zai-org/GLM-5.1",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: { messages: [{ role: "user", content: "Hi" }], max_tokens: 2048 },
+  });
+  assert.equal(calls[0].body.params.max_tokens, 2048);
+});
+
 test("Command Code non-stream aggregation throws when the final error event lacks a trailing newline", async () => {
   globalThis.fetch = async () =>
     new Response(

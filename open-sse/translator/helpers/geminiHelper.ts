@@ -101,6 +101,30 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
       const rec = toRecord(item);
       if (rec.type === "text") {
         parts.push({ text: rec.text });
+      } else if (rec.type === "input_audio") {
+        // OpenAI Chat Completions audio input shape (ported from upstream
+        // decolua/9router#913): { type:"input_audio", input_audio:{data,format} }
+        // -> Gemini `inlineData: { mimeType: "audio/<format>", data }`.
+        const audio = toRecord(rec.input_audio);
+        if (typeof audio.data === "string" && audio.data) {
+          const format = typeof audio.format === "string" && audio.format ? audio.format : "wav";
+          const mimeType = format === "mp3" ? "audio/mpeg" : `audio/${format}`;
+          parts.push({ inlineData: { mimeType, data: audio.data } });
+        }
+      } else if (rec.type === "audio_url") {
+        // OpenAI-style audio_url (data: URI). Mirrors the image_url data-URL
+        // parser below but produces an audio inlineData part (#913).
+        const audioUrl = toRecord(rec.audio_url);
+        const url = typeof audioUrl.url === "string" ? audioUrl.url : "";
+        if (url.startsWith("data:")) {
+          const commaIndex = url.indexOf(",");
+          if (commaIndex !== -1) {
+            const mimePart = url.substring(5, commaIndex); // skip "data:"
+            const data = url.substring(commaIndex + 1);
+            const mimeType = mimePart.split(";")[0] || "audio/wav";
+            parts.push({ inlineData: { mimeType, data } });
+          }
+        }
       } else {
         // 0. Handle OpenAI audio input parts → Gemini inlineData (#912).
         //    Chat Completions shape: {type:"input_audio", input_audio:{data, format}}.

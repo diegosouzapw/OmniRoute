@@ -119,7 +119,7 @@ test("memory search respects a configured zero token budget", async () => {
   assert.equal(result.data.totalTokens, 0);
 });
 
-test("memory search keeps globally disabled memory disabled with explicit maxTokens", async () => {
+test("memory search runs explicitly even when global memory injection is disabled", async () => {
   await settingsDb.updateSettings({ memoryEnabled: false, memoryMaxTokens: 2000 });
   invalidateMemorySettingsCache();
 
@@ -137,9 +137,10 @@ test("memory search keeps globally disabled memory disabled with explicit maxTok
   });
 
   assert.equal(result.success, true);
-  assert.equal(result.data.count, 0);
-  assert.deepEqual(result.data.memories, []);
-  assert.equal(result.data.totalTokens, 0);
+  assert.equal(result.data.count, 1);
+  assert.equal(result.data.memories.length, 1);
+  assert.match(result.data.memories[0].content, /TypeScript/i);
+  assert.ok(result.data.totalTokens > 0);
 });
 
 test("memory clear deletes only older filtered entries and reports the deleted count", async () => {
