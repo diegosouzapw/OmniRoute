@@ -13,6 +13,7 @@ const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { handleComboChat, preScreenTargets } = await import("../../open-sse/services/combo.ts");
+const { weightedStickyTargets } = await import("../../open-sse/services/combo/rrState.ts");
 const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const { resetAllComboMetrics } = await import("../../open-sse/services/comboMetrics.ts");
@@ -69,6 +70,7 @@ test.beforeEach(async () => {
   resetAllSemaphores();
   _resetAllDecks();
   clearSessions();
+  weightedStickyTargets.clear();
   await cleanupTestDataDir();
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   await settingsDb.resetAllPricing();
@@ -80,6 +82,7 @@ test.after(async () => {
   resetAllCircuitBreakers();
   resetAllSemaphores();
   _resetAllDecks();
+  weightedStickyTargets.clear();
   settingsDb.clearAllLKGP();
   if (ORIGINAL_DATA_DIR === undefined) {
     delete process.env.DATA_DIR;
@@ -383,6 +386,139 @@ test("round-robin sticky batching fallback success becomes sticky target", async
   }
 
   assert.deepEqual(calls, ["openai/a", "claude/b", "claude/b", "gemini/c", "gemini/c"]);
+});
+
+test("weighted sticky limit batches successful weighted selections", async () => {
+  const calls: string[] = [];
+  const originalRandom = Math.random;
+  const draws = [0.1, 0.9];
+  Math.random = () => draws.shift() ?? 0.9;
+  try {
+    const combo = {
+      name: "weighted-sticky-batches",
+      strategy: "weighted",
+      models: [
+        { model: "openai/a", weight: 50 },
+        { model: "claude/b", weight: 50 },
+      ],
+      config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0, stickyWeightedLimit: 2 },
+    };
+    for (let i = 0; i < 4; i += 1) {
+      const result = await handleComboChat({
+        body: {},
+        combo,
+        handleSingleModel: async (_body: any, modelStr: string) => {
+          calls.push(modelStr);
+          return okResponse();
+        },
+        isModelAvailable: async () => true,
+        log: createLog(),
+        settings: null,
+        allCombos: null,
+      });
+      assert.equal(result.ok, true);
+    }
+  } finally {
+    Math.random = originalRandom;
+  }
+  assert.deepEqual(calls, ["openai/a", "openai/a", "claude/b", "claude/b"]);
+});
+
+test("weighted sticky limit clears unavailable sticky steps before sampling", async () => {
+  const calls: string[] = [];
+  const step0Key = "weighted-sticky-clears-model-1-openai-a";
+  const step1Key = "weighted-sticky-clears-model-2-claude-b";
+  weightedStickyTargets.set("weighted-sticky-clears", { executionKey: step0Key, successCount: 1 });
+  const combo = {
+    name: "weighted-sticky-clears",
+    strategy: "weighted",
+    models: [
+      { model: "openai/a", weight: 50 },
+      { model: "claude/b", weight: 50 },
+    ],
+    config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0, stickyWeightedLimit: 10 },
+  };
+  const result = await handleComboChat({
+    body: {},
+    combo,
+    handleSingleModel: async (_body: any, modelStr: string) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async (modelStr: string) => modelStr !== "openai/a",
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+  });
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["claude/b"]);
+  assert.equal(weightedStickyTargets.get("weighted-sticky-clears")?.executionKey, step1Key);
+});
+
+test("weighted sticky limit follows fallback success", async () => {
+  const calls: string[] = [];
+  const originalRandom = Math.random;
+  Math.random = () => 0.1;
+  try {
+    const combo = {
+      name: "weighted-sticky-fallback-success",
+      strategy: "weighted",
+      models: [
+        { model: "openai/a", weight: 50 },
+        { model: "claude/b", weight: 50 },
+      ],
+      config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0, stickyWeightedLimit: 2 },
+    };
+    for (let i = 0; i < 3; i += 1) {
+      const result = await handleComboChat({
+        body: {},
+        combo,
+        handleSingleModel: async (_body: any, modelStr: string) => {
+          calls.push(modelStr);
+          return modelStr === "openai/a" ? errorResponse(503, "a is down") : okResponse();
+        },
+        isModelAvailable: async () => true,
+        log: createLog(),
+        settings: null,
+        allCombos: null,
+      });
+      assert.equal(result.ok, true);
+    }
+  } finally {
+    Math.random = originalRandom;
+  }
+  assert.deepEqual(calls, ["openai/a", "claude/b", "claude/b", "openai/a", "claude/b"]);
+});
+
+test("weighted sticky keeps a top-level step if one nested leaf remains available", async () => {
+  const calls: string[] = [];
+  const step0Key = "weighted-nested-sticky-ref-1-minimax";
+  weightedStickyTargets.set("weighted-nested-sticky", { executionKey: step0Key, successCount: 1 });
+  const combo = {
+    name: "weighted-nested-sticky",
+    strategy: "weighted",
+    models: [{ kind: "combo-ref", comboName: "minimax", weight: 100 }],
+    config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0, stickyWeightedLimit: 10 },
+  };
+  const allCombos = [
+    combo,
+    { name: "minimax", strategy: "priority", models: ["ollama/m3", "oc/m3"] },
+  ];
+  const result = await handleComboChat({
+    body: {},
+    combo,
+    handleSingleModel: async (_body: any, modelStr: string) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async (modelStr: string) => modelStr !== "ollama/m3",
+    log: createLog(),
+    settings: null,
+    allCombos,
+  });
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["oc/m3"]);
+  assert.equal(weightedStickyTargets.get("weighted-nested-sticky")?.executionKey, step0Key);
 });
 
 test("strict-random survives a stale deck entry after a target is removed", async () => {

@@ -138,6 +138,7 @@ export const comboRuntimeConfigSchema = z
     // falls back to the global `settings.stickyRoundRobinLimit` so the existing
     // knob still controls the default. 0 clamps to 1 (no batching) upstream.
     stickyRoundRobinLimit: z.coerce.number().int().min(0).max(1000).optional(),
+    stickyWeightedLimit: z.coerce.number().int().min(0).max(1000).optional(),
     healthCheckEnabled: z.boolean().optional(),
     healthCheckTimeoutMs: z.coerce.number().int().min(100).max(30000).optional(),
     handoffThreshold: z.coerce.number().min(0.5).max(0.94).optional(),
