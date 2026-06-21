@@ -5,12 +5,15 @@ import { getDbInstance } from "./core";
 // follow the same convention to avoid introducing a new abstraction.
 const READ_KV_SQL =
   "SELECT value FROM key_value WHERE namespace = ? AND key = ? LIMIT 1";
+// The key_value table is (namespace, key, value) — no updated_at column
+// (see migrations/001_initial_schema.sql). Match the canonical write shape
+// used by serviceModels.ts / jsonMigration.ts.
 const WRITE_KV_SQL =
-  "INSERT OR REPLACE INTO key_value (namespace, key, value, updated_at) VALUES (?, ?, ?, ?)";
+  "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)";
 
 function setKeyValue(namespace: string, key: string, value: string): void {
   const db = getDbInstance();
-  db.prepare(WRITE_KV_SQL).run(namespace, key, value, Date.now());
+  db.prepare(WRITE_KV_SQL).run(namespace, key, value);
 }
 
 function getKeyValue(namespace: string, key: string): string | null {
