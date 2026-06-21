@@ -124,6 +124,7 @@
     "check:openapi-coverage": "node scripts/check/check-openapi-coverage.mjs",
     "check:openapi-security-tiers": "node scripts/check/check-openapi-security-tiers.mjs",
     "check:provider-consistency": "node --import tsx scripts/check/check-provider-consistency.ts",
+    "check:provider-assets": "node scripts/check/check-provider-assets.mjs",
     "check:fetch-targets": "node scripts/check/check-fetch-targets.mjs",
     "check:openapi-routes": "node scripts/check/check-openapi-routes.mjs",
     "check:openapi-breaking": "node scripts/check/check-openapi-breaking.mjs",
