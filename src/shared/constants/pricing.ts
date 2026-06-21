@@ -425,6 +425,15 @@ export const DEFAULT_PRICING = {
       reasoning: 9.0,
       cache_creation: 1.5,
     },
+    // Qwen3.5/3.6 Coder Model — ported from upstream 9router PR #156 (zx07).
+    // Priced identically to the vision tier per upstream defaults.
+    "coder-model": {
+      input: 1.5,
+      output: 6.0,
+      cached: 0.75,
+      reasoning: 9.0,
+      cache_creation: 1.5,
+    },
   },
 
   // Qoder AI (if)
