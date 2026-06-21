@@ -256,7 +256,9 @@ test("OpenAI -> Claude maps tool_choice and injects response_format instructions
 });
 
 test("OpenAI -> Claude turns reasoning settings into thinking budgets and expands max tokens", () => {
-  // `claude-4-sonnet` is a fixture that doesn't match any spec → default cap = 8192.
+  // `claude-4-sonnet` is a fixture that doesn't match any spec. Unknown caps
+  // should not get an implicit default; the translator only preserves the
+  // response room + thinking budget relationship.
   // fitThinkingToMaxTokens floors response room at MIN_RESPONSE_ROOM (1024)
   // and targets max_tokens = responseRoom + budget capped at modelCap.
   const effortResult = openaiToClaudeRequest(
@@ -270,7 +272,7 @@ test("OpenAI -> Claude turns reasoning settings into thinking budgets and expand
   );
 
   assert.deepEqual(effortResult.thinking, { type: "enabled", budget_tokens: 1024 });
-  // responseRoom=max(10,1024)=1024; target=min(1024+1024, 8192)=2048
+  // responseRoom=max(10,1024)=1024; target=1024+1024=2048
   assert.equal(effortResult.max_tokens, 2048);
 
   const explicitThinkingResult = openaiToClaudeRequest(
@@ -288,8 +290,23 @@ test("OpenAI -> Claude turns reasoning settings into thinking budgets and expand
     budget_tokens: 2000,
     max_tokens: 3000,
   });
-  // responseRoom=max(1000,1024)=1024; target=min(1024+2000, 8192)=3024
+  // responseRoom=max(1000,1024)=1024; target=1024+2000=3024
   assert.equal(explicitThinkingResult.max_tokens, 3024);
+});
+
+test("OpenAI -> Claude does not cap unknown models to a fallback maxOutputTokens", () => {
+  const result = openaiToClaudeRequest(
+    "claude-4-sonnet",
+    {
+      messages: [{ role: "user", content: "Reason about something hard" }],
+      max_tokens: 32000,
+      reasoning_effort: "high",
+    },
+    false
+  );
+
+  assert.equal(result.max_tokens, 163072);
+  assert.deepEqual(result.thinking, { type: "enabled", budget_tokens: 131072 });
 });
 
 test("OpenAI -> Claude preserves xhigh only for Claude models that expose it", () => {

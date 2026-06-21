@@ -504,10 +504,12 @@ function getTargetCompatibilityFailures(
     failures.push("structured_output");
   }
 
+  const maxOutputTokens = capabilities.maxOutputTokens;
   if (
     requirements.requestedOutputTokens > 0 &&
-    Number.isFinite(capabilities.maxOutputTokens) &&
-    capabilities.maxOutputTokens < requirements.requestedOutputTokens
+    typeof maxOutputTokens === "number" &&
+    Number.isFinite(maxOutputTokens) &&
+    maxOutputTokens < requirements.requestedOutputTokens
   ) {
     failures.push("output_tokens");
   }

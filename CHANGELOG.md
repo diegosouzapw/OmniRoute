@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **fix(models): unknown max output limits no longer default to 8192** — Models without synced, registry, or static `maxOutputTokens` metadata now resolve the limit as unknown instead of falling back to a generic 8192-token cap. Combo compatibility filtering, reasoning max-token buffering, and Claude/Gemini request translation only clamp or inject `maxOutputTokens` when a real model cap is known; otherwise requested output limits are preserved and absent limits stay absent.
+
 ---
 
 ## [3.8.32] — 2026-06-20

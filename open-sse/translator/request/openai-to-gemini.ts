@@ -32,9 +32,8 @@ import {
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
 
 // Observed Antigravity wrapper output cap, not an underlying model capability.
-// Keep this bridge-local: capMaxOutputTokens() falls back to OmniRoute's generic
-// 8192 default for unknown Claude-family IDs, while Antigravity currently caps
-// visible output around 16K. See: https://github.com/keisksw/antigravity-output-analysis
+// Keep this bridge-local: Antigravity currently caps visible output around 16K.
+// See: https://github.com/keisksw/antigravity-output-analysis
 const ANTIGRAVITY_CLAUDE_MAX_OUTPUT_TOKENS = 16_384;
 
 type GeminiPart = Record<string, unknown>;
@@ -278,9 +277,15 @@ function openaiToGeminiBase(
     | number
     | undefined;
   if (requestedMaxOutputTokens !== undefined) {
-    result.generationConfig.maxOutputTokens = capMaxOutputTokens(model, requestedMaxOutputTokens);
+    const maxOutputTokens = capMaxOutputTokens(model, requestedMaxOutputTokens);
+    if (maxOutputTokens !== null) {
+      result.generationConfig.maxOutputTokens = maxOutputTokens;
+    }
   } else {
-    result.generationConfig.maxOutputTokens = capMaxOutputTokens(model);
+    const maxOutputTokens = capMaxOutputTokens(model);
+    if (maxOutputTokens !== null) {
+      result.generationConfig.maxOutputTokens = maxOutputTokens;
+    }
   }
 
   // Thinking / Reasoning support (Google Gemini 2.0+ Thinking models)

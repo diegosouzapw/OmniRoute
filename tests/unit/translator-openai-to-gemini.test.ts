@@ -76,6 +76,22 @@ test("OpenAI -> Gemini helper converts text, images and files into Gemini parts"
   assert.deepEqual(convertOpenAIContentToParts("raw text"), [{ text: "raw text" }]);
 });
 
+test("OpenAI -> Gemini does not inject default maxOutputTokens for unknown caps", () => {
+  const withoutRequestLimit = openaiToGeminiRequest(
+    "gemini-2.5-pro",
+    { messages: [{ role: "user", content: "Hello" }] },
+    false
+  );
+  assert.equal((withoutRequestLimit as any).generationConfig.maxOutputTokens, undefined);
+
+  const withRequestLimit = openaiToGeminiRequest(
+    "gemini-2.5-pro",
+    { messages: [{ role: "user", content: "Hello" }], max_tokens: 32000 },
+    false
+  );
+  assert.equal((withRequestLimit as any).generationConfig.maxOutputTokens, 32000);
+});
+
 test("OpenAI -> Gemini helper cleans complex JSON Schema structures for Gemini compatibility", () => {
   const cleaned = cleanJSONSchemaForAntigravity({
     type: "object",
@@ -690,17 +706,19 @@ test("OpenAI -> Antigravity Gemini omits signature-less historical tool calls an
     "signature-less historical call MUST be emitted as native functionCall (bypass applied)"
   );
   assert.equal(
-    modelTurn?.parts.some((part) => part.thoughtSignature === "skip_thought_signature_validator") ?? false,
+    modelTurn?.parts.some((part) => part.thoughtSignature === "skip_thought_signature_validator") ??
+      false,
     true,
     "the bypass sentinel must be injected as thoughtSignature"
   );
 
   const toolTurn = result.request.contents.find(
-    (content) =>
-      content.role === "user" &&
-      content.parts.some((part) => part.functionResponse)
+    (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)
   );
-  assert.ok(toolTurn, "expected signature-less tool response to be preserved as native functionResponse (bypass applied)");
+  assert.ok(
+    toolTurn,
+    "expected signature-less tool response to be preserved as native functionResponse (bypass applied)"
+  );
   assert.equal(
     toolTurn.parts.some((part) => part.functionResponse),
     true,
