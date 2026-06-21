@@ -158,11 +158,7 @@ describe("settings/compression route — engines + activeComboId", () => {
     assert.equal(getRes.status, 200);
     const body = await getRes.json();
 
-    assert.equal(
-      body.engines?.rtk?.enabled,
-      true,
-      "engines.rtk.enabled should be true after PUT"
-    );
+    assert.equal(body.engines?.rtk?.enabled, true, "engines.rtk.enabled should be true after PUT");
     assert.equal(
       body.engines?.rtk?.level,
       "standard",
@@ -199,15 +195,29 @@ describe("settings/compression route — engines + activeComboId", () => {
 
   it("PUT with invalid engines shape is rejected by schema validation (400)", async () => {
     // engines values must have an `enabled` boolean — passing a string should fail the schema.
-    const putRes = await route.PUT(
-      makeRequest("PUT", { engines: { rtk: { enabled: "yes" } } })
-    );
+    const putRes = await route.PUT(makeRequest("PUT", { engines: { rtk: { enabled: "yes" } } }));
     assert.equal(putRes.status, 400);
     const body = await putRes.json();
     // Validation failures use { error: { message, details } } via validateBody helper.
     assert.ok(body.error !== null && typeof body.error === "object", "error should be an object");
     const errorMessage: string =
-      typeof body.error === "string" ? body.error : (body.error?.message ?? JSON.stringify(body.error));
+      typeof body.error === "string"
+        ? body.error
+        : (body.error?.message ?? JSON.stringify(body.error));
     assert.ok(!errorMessage.includes("at /"), "error must not contain a stack trace");
+  });
+
+  it("PUT accepts enginesExplicit (round-tripped from GET response)", async () => {
+    // Regression: the GET handler injects `enginesExplicit` (compression.ts:632) so the
+    // hub/panel can round-trip the full settings object. The previous .strict() PUT schema
+    // rejected it with 400 ("Unrecognized key: enginesExplicit"), causing every toggle on
+    // the Compression Hub / Panel to revert. Allow it through.
+    const putRes = await route.PUT(makeRequest("PUT", { enabled: true, enginesExplicit: true }));
+    assert.equal(putRes.status, 200);
+
+    core.resetDbInstance();
+
+    const putRes2 = await route.PUT(makeRequest("PUT", { enabled: false, enginesExplicit: false }));
+    assert.equal(putRes2.status, 200);
   });
 });
