@@ -339,6 +339,20 @@ export default function OpenClawToolCard({
                     : t("installCliPrompt", { tool: "Open Claw" })}
                 </p>
               </div>
+              {/*
+                Always surface Manual Config even when the CLI is not
+                detected locally — typical of remote OmniRoute
+                deployments where the CLI lives on the user's machine,
+                not on the server. Upstream report: #579.
+              */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowManualConfigModal(true)}
+              >
+                <span className="material-symbols-outlined text-[14px] mr-1">content_copy</span>
+                {t("manualConfig")}
+              </Button>
             </div>
           )}
 
