@@ -3212,6 +3212,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "claude",
   "cursor",
   "kimi-coding",
+  "kimi-coding-apikey",
   "glm",
   "glm-cn",
   "zai",

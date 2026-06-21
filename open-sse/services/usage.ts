@@ -1511,6 +1511,7 @@ export const USAGE_FETCHER_PROVIDERS = [
   "kiro",
   "amazon-q",
   "kimi-coding",
+  "kimi-coding-apikey",
   "qwen",
   "qoder",
   "glm",
