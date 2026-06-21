@@ -393,9 +393,10 @@ test("round-robin sticky batching fallback success becomes sticky target", async
 
 test("weighted sticky limit batches successful weighted selections", async () => {
   const calls: string[] = [];
-  const originalRandom = Math.random;
-  const draws = [0.1, 0.9];
-  Math.random = () => draws.shift() ?? 0.9;
+  const secureRandom = await import("../../src/shared/utils/secureRandom.ts");
+  // First draw targets openai/a (cumulative weight < 0.5), second targets claude/b
+  // (cumulative weight >= 0.5). With sticky=2, openai/a runs for 2 calls then claude/b for 2.
+  secureRandom._setSecureRandomFloatSource(() => (calls.length < 2 ? 0.1 : 0.9));
   try {
     const combo = {
       name: "weighted-sticky-batches",
@@ -422,7 +423,7 @@ test("weighted sticky limit batches successful weighted selections", async () =>
       assert.equal(result.ok, true);
     }
   } finally {
-    Math.random = originalRandom;
+    secureRandom._setSecureRandomFloatSource(null);
   }
   assert.deepEqual(calls, ["openai/a", "openai/a", "claude/b", "claude/b"]);
 });
@@ -460,8 +461,10 @@ test("weighted sticky limit clears unavailable sticky steps before sampling", as
 
 test("weighted sticky limit follows fallback success", async () => {
   const calls: string[] = [];
-  const originalRandom = Math.random;
-  Math.random = () => 0.1;
+  const secureRandom = await import("../../src/shared/utils/secureRandom.ts");
+  // Always draw claude/b (the failing target). The combo retries within claude/b,
+  // exhausts its leaves, falls through to openai/a, succeeds, and sticky migrates.
+  secureRandom._setSecureRandomFloatSource(() => 0.9);
   try {
     const combo = {
       name: "weighted-sticky-fallback-success",
@@ -472,13 +475,13 @@ test("weighted sticky limit follows fallback success", async () => {
       ],
       config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0, stickyWeightedLimit: 2 },
     };
-    for (let i = 0; i < 3; i += 1) {
+    for (let i = 0; i < 4; i += 1) {
       const result = await handleComboChat({
         body: {},
         combo,
         handleSingleModel: async (_body: any, modelStr: string) => {
           calls.push(modelStr);
-          return modelStr === "openai/a" ? errorResponse(503, "a is down") : okResponse();
+          return modelStr === "claude/b" ? errorResponse(503, "b is down") : okResponse();
         },
         isModelAvailable: async () => true,
         log: createLog(),
@@ -488,9 +491,9 @@ test("weighted sticky limit follows fallback success", async () => {
       assert.equal(result.ok, true);
     }
   } finally {
-    Math.random = originalRandom;
+    secureRandom._setSecureRandomFloatSource(null);
   }
-  assert.deepEqual(calls, ["openai/a", "claude/b", "claude/b", "openai/a", "claude/b"]);
+  assert.deepEqual(calls, ["claude/b", "openai/a", "openai/a", "claude/b", "openai/a", "openai/a"]);
 });
 
 test("weighted sticky keeps a top-level step if one nested leaf remains available", async () => {
