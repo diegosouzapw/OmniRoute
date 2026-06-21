@@ -145,11 +145,39 @@ function clampMaxTokens(value: unknown): number {
   return Math.max(1, Math.min(Math.floor(numeric), MAX_COMMAND_CODE_TOKENS));
 }
 
+// Reasoning/thinking fields that payload rules or clients may inject and that
+// CommandCode's upstream accepts inside `params`. Without this pass-through,
+// payload-rule overrides on these fields are silently dropped (#2986 follow-up).
+const COMMAND_CODE_PASSTHROUGH_FIELDS = [
+  "reasoning_effort",
+  "reasoning",
+  "thinking",
+  "effort",
+  "output_config",
+  "extra_body",
+] as const;
+
 function buildCommandCodeBody(model: string, body: unknown, stream = false): JsonRecord {
   const input = isRecord(body) ? body : {};
   const converted = convertMessages(input.messages);
   const explicitSystem = typeof input.system === "string" ? input.system : "";
   const system = [converted.system, explicitSystem].filter(Boolean).join("\n\n");
+
+  const params: JsonRecord = {
+    model,
+    messages: converted.messages,
+    tools: convertTools(input.tools),
+    system,
+    max_tokens: clampMaxTokens(input.max_tokens ?? input.max_completion_tokens),
+    stream: true,
+  };
+
+  for (const field of COMMAND_CODE_PASSTHROUGH_FIELDS) {
+    const value = input[field];
+    if (value !== undefined && value !== null) {
+      params[field] = value;
+    }
+  }
 
   return {
     config: {
@@ -167,14 +195,7 @@ function buildCommandCodeBody(model: string, body: unknown, stream = false): Jso
     taste: "",
     skills: "",
     permissionMode: "standard",
-    params: {
-      model,
-      messages: converted.messages,
-      tools: convertTools(input.tools),
-      system,
-      max_tokens: clampMaxTokens(input.max_tokens ?? input.max_completion_tokens),
-      stream: true,
-    },
+    params,
   };
 }
 

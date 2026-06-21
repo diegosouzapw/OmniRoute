@@ -141,6 +141,36 @@ test("Command Code executor posts wrapped body and required headers to /alpha/ge
   assert.equal(json.choices[0].message.content, "hello");
 });
 
+test("Command Code executor passes reasoning/thinking fields through to params (#2986 follow-up)", async () => {
+  const calls: any[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+    return commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }]);
+  };
+
+  await getExecutor("command-code").execute({
+    model: "deepseek/deepseek-v4-pro",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: {
+      stream: false,
+      messages: [{ role: "user", content: "Hi" }],
+      reasoning_effort: "high",
+      thinking: { type: "enabled" },
+      effort: "high",
+      output_config: { effort: "high" },
+      extra_body: { enable_thinking: true },
+    },
+  });
+
+  const posted = JSON.parse(String(calls[0].init.body));
+  assert.equal(posted.params.reasoning_effort, "high");
+  assert.deepEqual(posted.params.thinking, { type: "enabled" });
+  assert.equal(posted.params.effort, "high");
+  assert.deepEqual(posted.params.output_config, { effort: "high" });
+  assert.deepEqual(posted.params.extra_body, { enable_thinking: true });
+});
+
 test("Command Code raw NDJSON stream becomes OpenAI chat SSE chunks", async () => {
   const calls: any[] = [];
   globalThis.fetch = async (url, init = {}) => {
