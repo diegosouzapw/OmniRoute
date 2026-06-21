@@ -15,21 +15,56 @@ import {
   translateCostText,
   type TranslationFn,
 } from "@/shared/utils/serviceTierLabels";
-import {
-  BarChart,
-  ComposedChart,
-  Bar,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  PieChart,
-  Pie,
-  AreaChart,
-  Area,
-} from "recharts";
+
+type RechartsModule = typeof import("recharts");
+
+let rechartsModule: RechartsModule | null = null;
+let rechartsPromise: Promise<RechartsModule> | null = null;
+
+function loadRecharts() {
+  if (rechartsModule) return Promise.resolve(rechartsModule);
+  if (!rechartsPromise) {
+    rechartsPromise = import("recharts")
+      .then((module) => {
+        rechartsModule = module;
+        return module;
+      })
+      .catch((error) => {
+        rechartsPromise = null;
+        throw error;
+      });
+  }
+  return rechartsPromise;
+}
+
+function useRecharts() {
+  const [module, setModule] = useState<RechartsModule | null>(rechartsModule);
+
+  useEffect(() => {
+    if (module) return;
+    let cancelled = false;
+    loadRecharts()
+      .then((loadedModule) => {
+        if (!cancelled) setModule(loadedModule);
+      })
+      .catch(() => {
+        if (!cancelled) setModule(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [module]);
+
+  return module;
+}
+
+function ChartLoadingCard({ className = "p-4 flex-1" }: { className?: string }) {
+  return (
+    <Card className={className}>
+      <div className="py-8" aria-hidden="true" />
+    </Card>
+  );
+}
 
 function createDateFormatter(locale: string, options: Intl.DateTimeFormatOptions) {
   try {
@@ -358,6 +393,19 @@ export function DailyTrendChart({ dailyTrend }) {
     );
   }
 
+  return <DailyTrendChartBody chartData={chartData} hasCost={hasCost} />;
+}
+
+function DailyTrendChartBody({ chartData, hasCost }) {
+  const t = useTranslations("analytics");
+  const recharts = useRecharts();
+
+  if (!recharts) {
+    return <ChartLoadingCard />;
+  }
+
+  const { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } = recharts;
+
   return (
     <Card className="p-4 flex-1">
       <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
@@ -491,6 +539,18 @@ export function AccountDonut({ byAccount }) {
     );
   }
 
+  return <AccountDonutBody pieData={pieData} />;
+}
+
+function AccountDonutBody({ pieData }) {
+  const recharts = useRecharts();
+
+  if (!recharts) {
+    return <ChartLoadingCard />;
+  }
+
+  const { Cell, PieChart, Pie, Tooltip, ResponsiveContainer } = recharts;
+
   return (
     <Card className="p-4 flex-1">
       <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
@@ -564,6 +624,18 @@ export function ApiKeyDonut({ byApiKey }) {
       </Card>
     );
   }
+
+  return <ApiKeyDonutBody pieData={pieData} />;
+}
+
+function ApiKeyDonutBody({ pieData }) {
+  const recharts = useRecharts();
+
+  if (!recharts) {
+    return <ChartLoadingCard />;
+  }
+
+  const { Cell, PieChart, Pie, Tooltip, ResponsiveContainer } = recharts;
 
   return (
     <Card className="p-4 flex-1">
@@ -788,10 +860,29 @@ export function WeeklyPattern({ weeklyPattern }) {
     }));
   }, [weeklyPattern]);
 
+  return <WeeklyPatternBody chartData={chartData} title={t("chartWeekly")} />;
+}
+
+function WeeklyPatternBody({ chartData, title }) {
+  const recharts = useRecharts();
+
+  if (!recharts) {
+    return (
+      <Card className="px-4 py-3">
+        <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
+          {title}
+        </h3>
+        <div className="h-12" />
+      </Card>
+    );
+  }
+
+  const { ResponsiveContainer, BarChart, XAxis, Tooltip, Bar } = recharts;
+
   return (
     <Card className="px-4 py-3">
       <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
-        {t("chartWeekly")}
+        {title}
       </h3>
       <ResponsiveContainer width="100%" height={48}>
         <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
@@ -1268,6 +1359,18 @@ export function ProviderCostDonut({ byProvider }) {
     );
   }
 
+  return <ProviderCostDonutBody pieData={pieData} />;
+}
+
+function ProviderCostDonutBody({ pieData }) {
+  const recharts = useRecharts();
+
+  if (!recharts) {
+    return <ChartLoadingCard />;
+  }
+
+  const { Cell, PieChart, Pie, Tooltip, ResponsiveContainer } = recharts;
+
   return (
     <Card className="p-4 flex-1">
       <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
@@ -1345,6 +1448,19 @@ export function ModelOverTimeChart({ dailyByModel, modelNames }) {
       </Card>
     );
   }
+
+  return <ModelOverTimeChartBody chartData={chartData} models={models} />;
+}
+
+function ModelOverTimeChartBody({ chartData, models }) {
+  const t = useTranslations("analytics");
+  const recharts = useRecharts();
+
+  if (!recharts) {
+    return <ChartLoadingCard className="p-4" />;
+  }
+
+  const { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } = recharts;
 
   return (
     <Card className="p-4">
