@@ -376,7 +376,7 @@ test("provider hook: enrichment fetcher called when features.enrichment !== fals
   );
   const out = await hook.models!({} as never, { auth: apiAuth("sk") as never });
   assert.equal(called, 1, "enrichment fetcher called once");
-  const m = out["omniroute/claude-sonnet-4-6"];
+  const m = out["opencode-omniroute/claude-sonnet-4-6"];
   assert.equal(m.name, "Claude Sonnet 4.6", "enrichment name overlay applied");
   assert.equal(m.cost.input, 3, "enrichment pricing applied");
   assert.equal(m.cost.output, 15);
@@ -401,7 +401,11 @@ test("provider hook: enrichment fetcher NOT called when features.enrichment:fals
   );
   const out = await hook.models!({} as never, { auth: apiAuth("sk") as never });
   assert.equal(called, 0, "enrichment fetcher NOT called when gated off");
-  assert.equal(out["omniroute/claude-sonnet-4-6"].name, "claude-sonnet-4-6", "raw id preserved");
+  assert.equal(
+    out["opencode-omniroute/claude-sonnet-4-6"].name,
+    "claude-sonnet-4-6",
+    "raw id preserved"
+  );
 });
 
 test("provider hook: compression metadata fetcher NOT called by default (opt-in)", async () => {
@@ -459,7 +463,7 @@ test("provider hook: compression metadata fetcher called when opted in", async (
   );
   const out = await hook.models!({} as never, { auth: apiAuth("sk") as never });
   assert.equal(called, 1, "compression metadata fetcher called");
-  const combo = out["omniroute/claude-primary"];
+  const combo = out["opencode-omniroute/claude-primary"];
   assert.ok(combo, "combo entry present");
   assert.match(
     combo.name,
@@ -473,7 +477,7 @@ test("provider hook: compression metadata fetcher called when opted in", async (
 // ─────────────────────────────────────────────────────────────────────────
 
 const stubAuthJson = (apiKey: string) => async () => ({
-  omniroute: { type: "api" as const, key: apiKey },
+  "opencode-omniroute": { type: "api" as const, key: apiKey },
 });
 
 test("config hook: MCP auto-emit OFF by default (no mcp entry)", async () => {
@@ -488,7 +492,7 @@ test("config hook: MCP auto-emit OFF by default (no mcp entry)", async () => {
   );
   const input: { provider?: Record<string, unknown>; mcp?: Record<string, unknown> } = {};
   await hook(input as never);
-  assert.ok(input.provider?.omniroute, "provider block written");
+  assert.ok(input.provider?.["opencode-omniroute"], "provider block written");
   assert.equal(input.mcp, undefined, "no mcp block written");
 });
 
@@ -508,7 +512,7 @@ test("config hook: features.mcpAutoEmit:true writes mcp entry with provider apiK
   );
   const input: { provider?: Record<string, unknown>; mcp?: Record<string, unknown> } = {};
   await hook(input as never);
-  const entry = input.mcp?.omniroute as
+  const entry = input.mcp?.["opencode-omniroute"] as
     | { type: string; url: string; enabled: boolean; headers: Record<string, string> }
     | undefined;
   assert.ok(entry, "mcp entry written");
@@ -538,7 +542,7 @@ test("config hook: features.mcpToken overrides provider apiKey in mcp Bearer", a
   );
   const input: { provider?: Record<string, unknown>; mcp?: Record<string, unknown> } = {};
   await hook(input as never);
-  const entry = input.mcp?.omniroute as { headers: Record<string, string> };
+  const entry = input.mcp?.["opencode-omniroute"] as { headers: Record<string, string> };
   assert.equal(
     entry.headers.Authorization,
     "Bearer sk-mcp-narrower",
@@ -561,11 +565,11 @@ test("config hook: existing operator mcp.<providerId> wins (no overwrite)", asyn
     }
   );
   const input: { provider?: Record<string, unknown>; mcp?: Record<string, unknown> } = {
-    mcp: { omniroute: { type: "custom-user-entry", url: "https://manual.example/mcp" } },
+    mcp: { "opencode-omniroute": { type: "custom-user-entry", url: "https://manual.example/mcp" } },
   };
   await hook(input as never);
   assert.deepEqual(
-    input.mcp?.omniroute,
+    input.mcp?.["opencode-omniroute"],
     { type: "custom-user-entry", url: "https://manual.example/mcp" },
     "operator override preserved"
   );
@@ -580,7 +584,7 @@ test("config hook: features.mcpAutoEmit:true with /v1 in baseURL → strips corr
     },
     {
       readAuthJson: async () => ({
-        "omniroute-preprod": { type: "api" as const, key: "sk-preprod" },
+        "opencode-omniroute-preprod": { type: "api" as const, key: "sk-preprod" },
       }),
       fetcher: async () => SAMPLE_RAW,
       combosFetcher: async () => [],
@@ -589,7 +593,7 @@ test("config hook: features.mcpAutoEmit:true with /v1 in baseURL → strips corr
   );
   const input: { provider?: Record<string, unknown>; mcp?: Record<string, unknown> } = {};
   await hook(input as never);
-  const entry = input.mcp?.["omniroute-preprod"] as { url: string };
+  const entry = input.mcp?.["opencode-omniroute-preprod"] as { url: string };
   assert.equal(
     entry.url,
     "https://or-preprod.example.com/api/mcp/stream",
