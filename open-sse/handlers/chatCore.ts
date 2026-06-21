@@ -44,8 +44,8 @@ import {
 import { CORS_HEADERS } from "../utils/cors.ts";
 import { checkHeapPressureGuard } from "../utils/heapPressure.ts";
 import { normalizeHeaders } from "../utils/headers.ts";
-import { getTargetFormat } from "../services/provider.ts";
 import { resolveChatCoreRequestFormat } from "./chatCore/requestFormat.ts";
+import { resolveChatCoreTargetFormat } from "./chatCore/targetFormat.ts";
 import { injectSystemPrompt } from "../services/systemPrompt.ts";
 import { translateRequest, needsTranslation } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
@@ -71,7 +71,6 @@ import {
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { createPreparedRequestLogger, runWithCapture } from "../utils/providerRequestLogging.ts";
 import { applyResponsesPreviousResponseIdPolicy } from "../utils/responsesStatePolicy.ts";
-import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 import { applyClaudeEffortVariant } from "./chatCore/claudeEffortVariant.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../config/defaultThinkingSignature.ts";
 import {
@@ -881,14 +880,15 @@ export async function handleChatCore({
     }
   }
 
-  const alias = PROVIDER_ID_TO_ALIAS[provider] || provider;
-  const modelTargetFormat = getModelTargetFormat(alias, resolvedModel);
-  const targetFormat =
-    apiFormat === "responses"
-      ? FORMATS.OPENAI_RESPONSES
-      : modelTargetFormat ||
-        customModelTargetFormat ||
-        getTargetFormat(provider, credentials?.providerSpecificData);
+  // Wire target-format resolution extracted to chatCore/targetFormat.ts (#3501); `alias` is reused
+  // downstream when stripping the alias/ prefix off the upstream model id.
+  const { alias, targetFormat } = resolveChatCoreTargetFormat({
+    provider,
+    resolvedModel,
+    apiFormat,
+    customModelTargetFormat,
+    providerSpecificData: credentials?.providerSpecificData,
+  });
 
   const initialProviderRequest =
     body && typeof body === "object" && !Array.isArray(body)
