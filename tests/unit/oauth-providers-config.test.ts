@@ -293,6 +293,18 @@ test("all provider endpoint URLs use HTTPS when a URL is configured", () => {
   }
 });
 
+test("Qwen OAuth uses qwen.ai (not chat.qwen.ai) for device/token URLs — upstream PR #683 / decolua issue #572", () => {
+  // The legacy host `chat.qwen.ai` started returning errors; the correct authoritative
+  // host for Qwen's device-code OAuth endpoints is `qwen.ai`. Regression guard for the
+  // port of decolua/9router#683 (closes decolua issue #572).
+  const deviceUrl = new URL(QWEN_CONFIG.deviceCodeUrl);
+  const tokenUrl = new URL(QWEN_CONFIG.tokenUrl);
+  assert.equal(deviceUrl.hostname, "qwen.ai", "deviceCodeUrl must use qwen.ai");
+  assert.equal(tokenUrl.hostname, "qwen.ai", "tokenUrl must use qwen.ai");
+  assert.equal(deviceUrl.pathname, "/api/v1/oauth2/device/code");
+  assert.equal(tokenUrl.pathname, "/api/v1/oauth2/token");
+});
+
 test("browser-based providers expose buildAuthUrl and return provider-specific auth URLs", () => {
   const redirectUri = "http://localhost:43121/callback";
   const state = "state-123";
