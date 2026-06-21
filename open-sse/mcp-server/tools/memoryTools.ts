@@ -50,10 +50,8 @@ export const memoryTools = {
         ...baseConfig,
         enabled: true,
         maxTokens:
-          args.maxTokens ||
-          (baseConfig.maxTokens && baseConfig.maxTokens > 0
-            ? baseConfig.maxTokens
-            : DEFAULT_MEMORY_SETTINGS.maxTokens),
+          args.maxTokens ??
+          (memorySettings.enabled ? memorySettings.maxTokens : DEFAULT_MEMORY_SETTINGS.maxTokens),
       };
 
       const memories = await retrieveMemories(args.apiKeyId, config);
