@@ -319,6 +319,41 @@ function shouldDisplayGitHubQuota(quota: UsageQuota | null): quota is UsageQuota
   return quota.total > 0 || quota.remainingPercentage !== undefined;
 }
 
+function isKiroOverageEnabled(data: JsonRecord): boolean {
+  const overageConfiguration = toRecord(data.overageConfiguration);
+  const overageStatus = String(overageConfiguration.overageStatus || "")
+    .trim()
+    .toUpperCase();
+
+  return (
+    overageStatus === "ENABLED" ||
+    data.overageEnabled === true ||
+    overageConfiguration.overageEnabled === true
+  );
+}
+
+function buildKiroQuota(
+  used: number,
+  total: number,
+  resetAt: string | null,
+  overageEnabled: boolean
+): UsageQuota {
+  const remaining = total - used;
+
+  if (!overageEnabled) {
+    return { used, total, remaining, resetAt, unlimited: false };
+  }
+
+  return {
+    used,
+    total,
+    remaining,
+    remainingPercentage: 100,
+    resetAt,
+    unlimited: true,
+  };
+}
+
 function pickFirstNonEmptyString(...values: unknown[]): string | undefined {
   for (const value of values) {
     if (typeof value !== "string") continue;
@@ -2933,6 +2968,7 @@ export function buildKiroUsageResult(
   const usageList = Array.isArray(data.usageBreakdownList) ? data.usageBreakdownList : [];
   const quotaInfo: Record<string, UsageQuota> = {};
   const resetAt = parseResetTime(data.nextDateReset || data.resetDate);
+  const overageEnabled = isKiroOverageEnabled(data);
 
   usageList.forEach((breakdownValue: unknown) => {
     const breakdown = toRecord(breakdownValue);
@@ -2941,19 +2977,18 @@ export function buildKiroUsageResult(
     const used = toNumber(breakdown.currentUsageWithPrecision, 0);
     const total = toNumber(breakdown.usageLimitWithPrecision, 0);
 
-    quotaInfo[resourceType] = { used, total, remaining: total - used, resetAt, unlimited: false };
+    quotaInfo[resourceType] = buildKiroQuota(used, total, resetAt, overageEnabled);
 
     const freeTrialInfo = toRecord(breakdown.freeTrialInfo);
     if (Object.keys(freeTrialInfo).length > 0) {
       const freeUsed = toNumber(freeTrialInfo.currentUsageWithPrecision, 0);
       const freeTotal = toNumber(freeTrialInfo.usageLimitWithPrecision, 0);
-      quotaInfo[`${resourceType}_freetrial`] = {
-        used: freeUsed,
-        total: freeTotal,
-        remaining: freeTotal - freeUsed,
+      quotaInfo[`${resourceType}_freetrial`] = buildKiroQuota(
+        freeUsed,
+        freeTotal,
         resetAt,
-        unlimited: false,
-      };
+        overageEnabled
+      );
     }
   });
 
