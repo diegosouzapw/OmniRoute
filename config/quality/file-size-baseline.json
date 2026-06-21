@@ -176,7 +176,7 @@
     "src/app/(dashboard)/dashboard/usage/components/ProviderLimits/index.tsx": 1121,
     "src/app/api/oauth/[provider]/[action]/route.ts": 918,
     "src/app/api/providers/[id]/models/route.ts": 2590,
-    "src/app/api/providers/[id]/test/route.ts": 887,
+    "src/app/api/providers/[id]/test/route.ts": 917,
     "src/app/api/usage/analytics/route.ts": 941,
     "src/app/api/v1/models/catalog.ts": 1493,
     "src/lib/cloudflaredTunnel.ts": 934,
