@@ -44,6 +44,7 @@ export type ComboLogger = {
 export type SingleModelTarget =
   | (ResolvedComboTarget & {
       allowRateLimitedConnection?: boolean;
+      effectiveComboStrategy?: string | null;
       modelAbortSignal?: AbortSignal | null;
     })
   | { modelAbortSignal: AbortSignal };
@@ -65,6 +66,16 @@ export type ComboRelayOptions = {
   [key: string]: unknown;
 };
 
+export type NestedComboMode = "flatten" | "execute";
+
+export type ComboNestingContext = {
+  depth: number;
+  maxDepth: number;
+  visitedComboNames: string[];
+  rootComboName: string;
+  attemptBudget: { count: number; limit: number };
+};
+
 export type HandleComboChatOptions = {
   body: Record<string, unknown>;
   combo: ComboLike;
@@ -76,6 +87,7 @@ export type HandleComboChatOptions = {
   relayOptions?: ComboRelayOptions | null;
   signal?: AbortSignal | null;
   apiKeyAllowedConnections?: string[] | null;
+  nesting?: ComboNestingContext | null;
 };
 
 export type HandleRoundRobinOptions = Omit<

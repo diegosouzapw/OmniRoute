@@ -50,6 +50,7 @@ const DEFAULT_COMBO_CONFIG = {
   handoffProviders: ["codex"],
   maxMessagesForSummary: 30,
   maxComboDepth: 3,
+  nestedComboMode: "flatten",
   trackMetrics: true,
   reasoningTokenBufferEnabled: true,
   manifestRouting: false,
