@@ -921,7 +921,6 @@ export async function syncAllProviderLimits(
       if (connectionId) recordResult(connectionId, result);
     });
   }
-
   for (let i = 0; i < oauthConnections.length; i++) {
     const connection = oauthConnections[i];
     const [result] = await Promise.allSettled([fetchOne(connection)]);

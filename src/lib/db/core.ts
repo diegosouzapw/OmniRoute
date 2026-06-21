@@ -1,9 +1,3 @@
-/**
- * db/core.js — Database infrastructure: schema, singleton, utils, migration.
- *
- * All domain modules import `getDbInstance` and helpers from here.
- */
-
 import type { SqliteAdapter } from "./adapters/types";
 import {
   tryOpenSync,
@@ -54,13 +48,9 @@ type CriticalTableSpec = {
   readRows?: (db: SqliteDatabase) => JsonRecord[];
 };
 
-// ──────────────── Environment Detection ────────────────
-
 export const isCloud = typeof globalThis.caches === "object" && globalThis.caches !== null;
 
 export const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
-
-// ──────────────── Paths ────────────────
 
 export const DATA_DIR = resolveDataDir({ isCloud });
 const LEGACY_DATA_DIR = isCloud ? null : getLegacyDotDataDir();

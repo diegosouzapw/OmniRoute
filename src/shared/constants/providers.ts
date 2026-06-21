@@ -3239,7 +3239,6 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "vertex-partner",
 ];
 
-// ── Zod validation at module load (Phase 7.2) ──
 import { validateProviders } from "../validation/providerSchema";
 
 validateProviders(NOAUTH_PROVIDERS, "NOAUTH_PROVIDERS");
