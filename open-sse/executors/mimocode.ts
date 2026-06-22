@@ -164,7 +164,10 @@ async function bootstrapJwt(
     try {
       const resp = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)],
+        },
         body: JSON.stringify({ client: fingerprint }),
         signal: controller.signal,
       });
@@ -494,3 +497,6 @@ export class MimocodeExecutor extends BaseExecutor {
 }
 
 export default MimocodeExecutor;
+
+/** Internal export for tests only — keep surface minimal. */
+export const __test__ = { bootstrapJwt, USER_AGENTS };
