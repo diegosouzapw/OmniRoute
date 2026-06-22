@@ -140,7 +140,7 @@
     "open-sse/services/browserBackedChat.ts": 850,
     "open-sse/services/claudeCodeCompatible.ts": 1202,
     "_rebaseline_pr4592_exclude_exhausted_auto": "Reconcile #4592 already-merged growth: combo.ts 2991->3036 (+45, terminal-status quota-cutoff exclusion in buildAutoCandidates + opt-in gate). Fast-gate PR->release does not run check:file-size.",
-    "open-sse/services/combo.ts": 3069,
+    "open-sse/services/combo.ts": 3168,
     "open-sse/services/compression/strategySelector.ts": 848,
     "open-sse/services/rateLimitManager.ts": 1035,
     "open-sse/services/tokenRefresh.ts": 2070,

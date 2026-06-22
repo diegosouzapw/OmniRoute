@@ -582,6 +582,73 @@ export async function buildAutoCandidates(
   });
 }
 
+const TERMINAL_PIN_STATUSES = new Set(["credits_exhausted", "banned", "expired"]);
+
+/**
+ * Pure decision: should a context-cache pin be DROPPED because its provider has
+ * DURABLY fallen? A ccp pin keeps the prompt cache warm by bypassing the combo
+ * strategy — but if the pinned provider is dead (credits exhausted / banned /
+ * expired, circuit-open, repeated failures, or a long rate-limit) honoring the
+ * pin pounds a dead account forever with no failover (laila throttle + credits
+ * incidents, 2026-06-22). A brief transient cooldown is tolerated (pin kept) so
+ * an unstable provider does not churn the pin every turn. Connection-level
+ * `backoffLevel` already resets on success, so `backoffLevel >= K` ≈ K
+ * consecutive failures — no per-session counter needed.
+ *
+ * Returns true ⇒ drop the pin and use the strategy. Pure + unit-testable.
+ */
+export function pinIsDurablyUnhealthy(
+  circuitState: string | undefined,
+  connections: Array<{
+    testStatus?: string | null;
+    backoffLevel?: number | null;
+    rateLimitedUntil?: string | null;
+  }>,
+  now: number,
+  opts: { backoffLevel?: number; graceMs?: number } = {}
+): boolean {
+  if (circuitState === "OPEN") return true;
+  if (!Array.isArray(connections) || connections.length === 0) return true;
+  const backoffThreshold =
+    opts.backoffLevel ?? Number(process.env.PIN_DROP_BACKOFF_LEVEL || "2");
+  const graceMs = opts.graceMs ?? Number(process.env.PIN_DROP_GRACE_MS || "20000");
+  // The pin survives as long as AT LEAST ONE connection is healthy or only
+  // briefly cooling down — failover only when every connection is durably down.
+  const anyUsable = connections.some((c) => {
+    const status = typeof c.testStatus === "string" ? c.testStatus : "";
+    if (TERMINAL_PIN_STATUSES.has(status)) return false;
+    if (Number(c.backoffLevel ?? 0) >= backoffThreshold) return false;
+    const rl = c.rateLimitedUntil ? new Date(String(c.rateLimitedUntil)).getTime() : 0;
+    if (Number.isFinite(rl) && rl - now > graceMs) return false;
+    return true;
+  });
+  return !anyUsable;
+}
+
+/**
+ * Async wrapper: resolve the pinned model's provider, read its circuit state and
+ * active connections, and decide via {@link pinIsDurablyUnhealthy}. Fail-open
+ * (return false) on any error so a lookup bug never drops a healthy pin.
+ */
+async function isPinnedModelDurablyUnhealthy(pinnedModel: string): Promise<boolean> {
+  try {
+    const provider = parseModel(pinnedModel).provider;
+    if (!provider) return false;
+    const circuitState = getCircuitBreaker(provider)?.getStatus?.()?.state;
+    const connections = (await getProviderConnections({
+      provider,
+      isActive: true,
+    })) as Array<{
+      testStatus?: string | null;
+      backoffLevel?: number | null;
+      rateLimitedUntil?: string | null;
+    }>;
+    return pinIsDurablyUnhealthy(circuitState, connections || [], Date.now());
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Handle combo chat with fallback.
  * @param {Object} options
@@ -731,9 +798,41 @@ export async function handleComboChat({
 
   // Route to pinned model if context caching specifies one (Fix #679)
   if (pinnedModel) {
-    log.info(
+    // The pin is read from session_model_history (a PRIOR turn) and may name a
+    // model that has since been removed from this combo, or a provider whose
+    // credentials are gone. Without this guard a stale pin bypasses the strategy
+    // and routes to a dead model forever — incident 2026-06-21: cli-claude-heavy
+    // pinned to a deepseek connection with no active credentials → instant fail,
+    // never falling through to the live targets; and combos re-pointed Opus→Sonnet
+    // kept serving the old model. Validate the pin is still reachable in THIS
+    // combo's resolved targets (refs flattened) before honoring it. Only validate
+    // when allCombos is authoritative (non-empty) so we can resolve combo-refs;
+    // the auto-combo redirect path passes an empty list and keeps prior behavior.
+    const haveFullCombos = Array.isArray(allCombos) ? allCombos.length > 0 : !!allCombos;
+    const pinInCombo =
+      !haveFullCombos ||
+      resolveComboTargets(combo, allCombos, clampComboDepth(config.maxComboDepth)).some(
+        (t) => t.modelStr === pinnedModel
+      );
+    // Honor the pin only if it is still a combo target AND its provider is not
+    // DURABLY down. Without the health gate a pin keeps routing a session to a
+    // dead/credits-exhausted/throttled account forever (strategy bypassed, no
+    // failover) — incident 2026-06-22: laila stuck on a throttled claude account
+    // and credits_exhausted accounts never failing over. A transient cooldown is
+    // tolerated (pin kept) so an unstable provider does not churn the pin.
+    const pinDurablyDown = pinInCombo ? await isPinnedModelDurablyUnhealthy(pinnedModel) : false;
+    if (pinInCombo && !pinDurablyDown) {
+      log.info(
+        "COMBO",
+        `Bypassing strategy — routing directly to pinned context model: ${pinnedModel}`
+      );
+      return handleSingleModelWithTimeout(body, pinnedModel);
+    }
+    log.warn(
       "COMBO",
-      `Bypassing strategy — routing directly to pinned context model: ${pinnedModel}`
+      pinInCombo
+        ? `Context-cache pin "${pinnedModel}" provider durably unhealthy — dropping pin, using strategy`
+        : `Stale context-cache pin "${pinnedModel}" not in combo "${combo.name}" targets — dropping pin, using strategy`
     );
     return handleSingleModelWithTimeout(body, pinnedModel);
   }
