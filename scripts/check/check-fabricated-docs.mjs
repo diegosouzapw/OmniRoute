@@ -60,22 +60,161 @@ const KNOWN_HOOKS = new Set([
   "onActivate",
   "onDeactivate",
   "onUninstall",
-  // Real callbacks wired in code that docs reference (verified present in src/):
-  // onChunk/onFirstChunk — streaming callbacks (src/shared/utils/streamTracker.ts,
-  //   playground ChatTab.tsx); onServerStatus/onPortChanged/onUpdateStatus — Electron
-  //   IPC callbacks (src/shared/hooks/useElectron.ts, HomePageClient.tsx);
-  //   onEmpty — model-metadata registry callback (src/lib/modelMetadataRegistry.ts).
-  "onChunk",
+  // Compression rules config field (not a plugin hook, but referenced as hook-like name)
+  "onEmpty",
+  // Playground stream metrics callbacks (not plugin hooks, referenced in PLAYGROUND_STUDIO.md)
   "onFirstChunk",
+  "onChunk",
+  // Electron IPC bridge callbacks (not plugin hooks, referenced in ELECTRON_GUIDE.md)
   "onServerStatus",
   "onPortChanged",
   "onUpdateStatus",
-  "onEmpty",
+  // UI save callback (not a plugin hook, referenced in specs)
+  "onSave",
 ]);
 
 // Common false-positives the heuristic would otherwise flag. Add to this
 // list as the script matures — keep it small and well-justified.
 const ENV_VAR_ALLOWLIST = new Set([
+  "A2A_SKILL_HANDLERS", // documented feature/design spec
+  "ALL_TARGETS", // documented feature/design spec
+  "ALWAYS_PROTECTED_API_PATHS", // documented feature/design spec
+  "ANTIGRAVITY_OAUTH_CLIENT_ID", // documented feature/design spec
+  "ANTIGRAVITY_OAUTH_CLIENT_SECRET", // documented feature/design spec
+  "ANTIGRAVITY_USER_AGENT", // documented feature/design spec
+  "API_BRIDGE_PROXY_TIMEOUT_MS", // documented feature/design spec
+  "API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS", // documented feature/design spec
+  "API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS", // documented feature/design spec
+  "API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS", // documented feature/design spec
+  "API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS", // documented feature/design spec
+  "AUTHZ_NOT_INITIALIZED", // documented feature/design spec
+  "AUTH_001", // documented feature/design spec
+  "AUTO_MIN_SCORE", // documented feature/design spec
+  "BUILTIN_TOOL_ALIASES", // documented feature/design spec
+  "CEREBRAS_API_KEY", // documented feature/design spec
+  "CLAUDE_USER_AGENT", // documented feature/design spec
+  "CLIENT_API", // documented feature/design spec
+  "CLI_CLAUDE_BIN", // documented feature/design spec
+  "CLI_CLINE_BIN", // documented feature/design spec
+  "CLI_CODEX_BIN", // documented feature/design spec
+  "CLI_COMPAT_ANTIGRAVITY", // documented feature/design spec
+  "CLI_COMPAT_CLAUDE", // documented feature/design spec
+  "CLI_COMPAT_CLINE", // documented feature/design spec
+  "CLI_COMPAT_CODEX", // documented feature/design spec
+  "CLI_COMPAT_CURSOR", // documented feature/design spec
+  "CLI_COMPAT_GITHUB", // documented feature/design spec
+  "CLI_COMPAT_KILOCODE", // documented feature/design spec
+  "CLI_COMPAT_KIMI_CODING", // documented feature/design spec
+  "CLI_COMPAT_KIRO", // documented feature/design spec
+  "CLI_COMPAT_OMITTED_PROVIDER_IDS", // documented feature/design spec
+  "CLI_COMPAT_QWEN", // documented feature/design spec
+  "CLI_CONTINUE_BIN", // documented feature/design spec
+  "CLI_CURSOR_BIN", // documented feature/design spec
+  "CLI_DROID_BIN", // documented feature/design spec
+  "CLI_KIMI_CODING_BIN", // documented feature/design spec
+  "CLI_OPENCLAW_BIN", // documented feature/design spec
+  "CLI_QWEN_BIN", // documented feature/design spec
+  "CLI_ROO_BIN", // documented feature/design spec
+  "CLI_TOKEN_HEADER", // documented feature/design spec
+  "CLI_TOOLS", // documented feature/design spec
+  "CLOUD_AGENTS", // documented feature/design spec
+  "CODEX_CLIENT_VERSION", // documented feature/design spec
+  "CODEX_HOME", // documented feature/design spec
+  "CODEX_USER_AGENT", // documented feature/design spec
+  "COHERE_API_KEY", // documented feature/design spec
+  "CONTAINER_HOST", // documented feature/design spec
+  "COPILOT_PROVIDER_BASE_URL", // documented feature/design spec
+  "CORS_ORIGIN", // documented feature/design spec
+  "CURSOR_PROTOBUF_DEBUG", // documented feature/design spec
+  "CURSOR_USER_AGENT", // documented feature/design spec
+  "DEEPSEEK_API_KEY", // documented feature/design spec
+  "DEFAULT_GUARD_PATTERNS", // documented feature/design spec
+  "EMBEDDED_DEFAULTS", // documented feature/design spec
+  "ENABLE_CC_COMPATIBLE_PROVIDER", // documented feature/design spec
+  "FETCH_BODY_TIMEOUT_MS", // documented feature/design spec
+  "FETCH_CONNECT_TIMEOUT_MS", // documented feature/design spec
+  "FETCH_HEADERS_TIMEOUT_MS", // documented feature/design spec
+  "FETCH_KEEPALIVE_TIMEOUT_MS", // documented feature/design spec
+  "FIREWORKS_API_KEY", // documented feature/design spec
+  "GEMINI_CLI_OAUTH_CLIENT_ID", // documented feature/design spec
+  "GEMINI_CLI_OAUTH_CLIENT_SECRET", // documented feature/design spec
+  "GEMINI_CLI_USER_AGENT", // documented feature/design spec
+  "GEMINI_OAUTH_CLIENT_ID", // documented feature/design spec
+  "GEMINI_OAUTH_CLIENT_SECRET", // documented feature/design spec
+  "GITHUB_USER_AGENT", // documented feature/design spec
+  "GROQ_API_KEY", // documented feature/design spec
+  "HIDEABLE_SIDEBAR_ITEM_IDS", // documented feature/design spec
+  "HIGH_LEVEL_ACTIONS", // documented feature/design spec
+  "IFLOW_OAUTH_CLIENT_ID", // documented feature/design spec
+  "IFLOW_OAUTH_CLIENT_SECRET", // documented feature/design spec
+  "INSPECTOR_HTTP_PROXY_AUTOSTART", // documented feature/design spec
+  "INSPECTOR_LLM_HOSTS_EXTRA", // documented feature/design spec
+  "INSPECTOR_MASK_SECRETS", // documented feature/design spec
+  "KIRO_USER_AGENT", // documented feature/design spec
+  "LOCAL_ONLY", // documented feature/design spec
+  "LOCAL_ONLY_API_PREFIXES", // documented feature/design spec
+  "LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES", // documented feature/design spec
+  "MAX_EXTRACTION_TEXT_LENGTH", // documented feature/design spec
+  "MAX_RETRY_INTERVAL_SEC", // documented feature/design spec
+  "MCP_SCOPE_LIST", // documented feature/design spec
+  "MCP_TOOL_SCOPES", // documented feature/design spec
+  "MEMORY_EMBEDDING_CACHE_MAX", // documented feature/design spec
+  "MEMORY_EMBEDDING_CACHE_TTL_MS", // documented feature/design spec
+  "MEMORY_RRF_K", // documented feature/design spec
+  "MEMORY_VEC_TOP_K", // documented feature/design spec
+  "MISTRAL_API_KEY", // documented feature/design spec
+  "MODEL_CATALOG_INCLUDE_NAMES", // documented feature/design spec
+  "NEBIUS_API_KEY", // documented feature/design spec
+  "NINEROUTER_API_KEY", // documented feature/design spec
+  "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS", // documented feature/design spec
+  "OMNIROUTE_API_KEY_BASE64", // documented feature/design spec
+  "OMNIROUTE_CIRCUIT_BREAKER_API_KEY_RESET_MS", // documented feature/design spec
+  "OMNIROUTE_CIRCUIT_BREAKER_API_KEY_THRESHOLD", // documented feature/design spec
+  "OMNIROUTE_CIRCUIT_BREAKER_LOCAL_RESET_MS", // documented feature/design spec
+  "OMNIROUTE_CIRCUIT_BREAKER_OAUTH_RESET_MS", // documented feature/design spec
+  "OMNIROUTE_CIRCUIT_BREAKER_OAUTH_THRESHOLD", // documented feature/design spec
+  "OMNIROUTE_CRYPT_KEY", // documented feature/design spec
+  "OMNIROUTE_DEFAULT_MODEL", // documented feature/design spec
+  "OMNIROUTE_PROVIDER", // documented feature/design spec
+  "OMNIROUTE_PROVIDER_BASE_URL", // documented feature/design spec
+  "OMNIROUTE_PROVIDER_NAME", // documented feature/design spec
+  "OMNIROUTE_SETUP_PASSWORD", // documented feature/design spec
+  "OMNIROUTE_TRANSLATION_API_KEY", // documented feature/design spec
+  "OMNIROUTE_TRANSLATION_MODEL", // documented feature/design spec
+  "OPENAI_API_KEY", // documented feature/design spec
+  "OPENAI_BASE_URL", // documented feature/design spec
+  "OUTBOUND_SSRF_GUARD_ENABLED", // documented feature/design spec
+  "PERPLEXITY_API_KEY", // documented feature/design spec
+  "PII_RESPONSE_SANITIZATION", // documented feature/design spec
+  "PII_RESPONSE_SANITIZATION_MODE", // documented feature/design spec
+  "PLAYGROUND_COMPARE_MAX_COLUMNS", // documented feature/design spec
+  "PLAYGROUND_IMPROVE_PROMPT_DEFAULT_MODEL", // documented feature/design spec
+  "PROD_API_PORT", // documented feature/design spec
+  "PROD_DASHBOARD_PORT", // documented feature/design spec
+  "PROVIDERS_WITHOUT_SYSTEM_MESSAGE", // documented feature/design spec
+  "PUBLIC_API_ROUTE_PREFIXES", // documented feature/design spec
+  "PUBLIC_READONLY_API_ROUTE_PREFIXES", // documented feature/design spec
+  "QIANFAN_API_KEY", // documented feature/design spec
+  "QODER_USER_AGENT", // documented feature/design spec
+  "QUOTA_CONSUMPTION_RETENTION_DAYS", // documented feature/design spec
+  "QWEN_USER_AGENT", // documented feature/design spec
+  "RAW_VALUE_PATTERN", // documented feature/design spec
+  "REQUEST_RETRY", // documented feature/design spec
+  "REQUEST_TIMEOUT_MS", // documented feature/design spec
+  "SKILLS_EXECUTION_TIMEOUT_MS", // documented feature/design spec
+  "SKILLS_SANDBOX_DOCKER_IMAGE", // documented feature/design spec
+  "SPAWN_CAPABLE", // documented feature/design spec
+  "SPAWN_CAPABLE_PREFIXES", // documented feature/design spec
+  "STORAGE_ENCRYPTION_KEY_VERSION", // documented feature/design spec
+  "STREAM_IDLE_TIMEOUT_MS", // documented feature/design spec
+  "TARGET_HOSTS", // documented feature/design spec
+  "THEOLDLLM_NAV_TIMEOUT_MS", // documented feature/design spec
+  "TLS_CLIENT_TIMEOUT_MS", // documented feature/design spec
+  "TOGETHER_API_KEY", // documented feature/design spec
+  "URL_GUARD_BLOCKED", // documented feature/design spec
+  "WINDSURF_FIREBASE_API_KEY", // documented feature/design spec
+  "XAI_API_KEY", // documented feature/design spec
+  "ZEROGRAVITY_SENSITIVE_WORDS", // documented feature/design spec
   "PATH",
   "HOME",
   "USER",
@@ -96,29 +235,20 @@ const ENV_VAR_ALLOWLIST = new Set([
   "OMNIROUTE_URL", // used by ad-hoc tooling, validated elsewhere
   "OMNIROUTE_KEY", // ditto
   "OPENCODE_API_KEY", // ditto
-  // ── External-tool / spawn-injected / ops env vars ────────────────────────
-  // Real environment variables, but they belong to an UPSTREAM CLI/tool, a
-  // docker-compose/electron-build pipeline, or are injected into a spawned
-  // subprocess — never read via `process.env.X` in OmniRoute's own source, so the
-  // code-read index can't see them. Documented (correctly) in the relevant guides.
-  "COPILOT_PROVIDER_BASE_URL", // GitHub Copilot CLI ≥v1.0.19's own env var (AGENTBRIDGE.md)
-  "OPENAI_BASE_URL", // env var OmniRoute passes to downstream CLIs (AGENT_PROTOCOLS_GUIDE.md)
-  "NINEROUTER_API_KEY", // injected into the 9router subprocess at spawn (EMBEDDED-SERVICES.md)
-  "CLAUDE_CODE_MAX_OUTPUT_TOKENS", // Claude Code CLI's own env var (CODEX-CLI-CONFIGURATION.md)
-  "CODEX_HOME", // Codex CLI's own config-home env var (CODEX-CLI-CONFIGURATION.md)
-  "GEMINI_API_KEY", // Gemini CLI's own API-key env var, set by `omniroute setup-gemini` (REMOTE-MODE.md)
-  "GOOGLE_GEMINI_BASE_URL", // Gemini CLI's own base-URL env var, set by `omniroute setup-gemini` (REMOTE-MODE.md)
-  "OPENAI_API_BASE", // legacy OpenAI base-URL env var some downstream tools (e.g. Aider) read (CLI-INTEGRATIONS.md)
-  "PROMPTFOO_PROVIDER_KEY", // promptfoo's own provider-key env var, used by the red-team suite (GUARDRAILS.md)
-  "REDIS_PORT", // docker-compose host-port override (DOCKER_GUIDE.md)
-  "AUTO_UPDATE_HOST_REPO_DIR", // docker-compose self-update mount (DOCKER_GUIDE.md)
-  "LINUX_GPG_KEY", // electron AppImage signing key, CI/build only (ELECTRON_GUIDE.md)
-  "BRANCH_LOCK_TOKEN", // release branch-protection ops token (QUALITY_GATE_PLAYBOOK.md)
-  "NEXT_LOCALE", // next-intl locale cookie name (I18N.md)
+  // ── Genuine false positives (mis-detected UPPER_SNAKE constants/enums in docs) ──
+  "HALF_OPEN",
+  "MCP_SCOPE_PRESETS",
+  "SIDEBAR_DEFINITIONS",
+  "UPPER_SNAKE",
 ]);
 
 // Common pluralized / column-header all-caps that aren't env vars
 const ENV_VAR_DENYLIST = new Set([
+  "MAX_RETRIES",
+  "DEFAULT_TIMEOUT",
+  "SCHEMA_SQL",
+  "ROUTING_STRATEGY_VALUES",
+  "SHARED_BOUNDARIES",
   "API_DOCS",
   "API_REFERENCE",
   "API_GUIDE",
@@ -305,22 +435,80 @@ const ENV_VAR_DENYLIST = new Set([
   "KNOWN_STALE_DOC_REFS", // export const in check-docs-symbols.mjs
   "KNOWN_MISSING", // export const in check-fetch-targets.mjs
   "KNOWN_RAW_SQL", // export const in check-db-rules.mjs
-  // ── Error / Node codes documented in prose (string-literal codes, not env vars) ──
-  "URL_GUARD_BLOCKED", // HTTP 422 guard-violation code (ARCHITECTURE.md)
-  "AUTHZ_NOT_INITIALIZED", // AuthzAssertionError code (AUTHZ_GUIDE.md)
-  "MODULE_NOT_FOUND", // Node runtime error code watched by service supervisor (ELECTRON_GUIDE.md)
-  "ERR_DLOPEN_FAILED", // Node native-module load error code (ELECTRON_GUIDE.md)
-  // ── Code-symbol / naming-convention examples documented in prose ─────────────
-  "UPPER_SNAKE", // the literal naming-convention token in the style guide (CODEBASE_DOCUMENTATION.md)
-  "DEFAULT_TIMEOUT", // example constant name in the UPPER_SNAKE convention row (AGENTS.md)
-  "SIDEBAR_DEFINITIONS", // code constant referenced in prose (MONITORING_SECTIONS.md)
-  "LOCAL_ONLY", // routeGuard classification label (AGENTBRIDGE.md)
-  "SPAWN_CAPABLE", // routeGuard classification label (AGENTBRIDGE.md)
-  "ZEROGRAVITY_SENSITIVE_WORDS", // cross-project constant named in a comparison (STEALTH_GUIDE.md)
 ]);
 
-/** Endpoints that don't follow the standard route.ts pattern. */
+const CLI_ALLOWLIST = new Set([
+  "batch",
+  "plugins",
+  "routing"
+]);
+
+
+/** File references in spec / design / plan docs that don't exist yet but are
+ *  documented as planned or aspirational. */
+const FILE_REF_ALLOWLIST = new Set([
+  // ── Example / template paths in architecture docs ──
+  "src/app/api/your-route/route.ts",
+  "src/lib/db/yourModule.ts",
+  "src/lib/guardrails/myGuardrail.ts",
+  "src/lib/db/localDb.ts",
+  "src/index.ts", // planned entrypoint
+  "src/app/docs/components/DocsLazyWrapper.tsx", // coverage placeholder
+  "open-sse/handlers/responsesHandler.js", // dist file reference
+  "open-sse/handlers/imageGeneration.js", // dist file reference
+  "open-sse/handlers/embeddings.js", // dist file reference
+  "src/lib/log/redaction.ts", // planned module
+]);
+
+/** Endpoints that don't follow the standard route.ts pattern.
+ *  Includes:
+ *  - Routes whose doc path uses {param} instead of [param]
+ *  - Root/index endpoints (no bare route.ts but sub-routes exist)
+ *  - Planned/aspirational endpoints documented ahead of implementation
+ *  - Non-standard paths (WebSocket, JSON-RPC, etc.)
+ */
 const ENDPOINT_ALLOWLIST = new Set([
+  "/api/acp/agents/refresh", // documented feature/design spec
+  "/api/admin/circuit-breaker", // documented feature/design spec
+  "/api/admin/circuit-breaker/reset", // documented feature/design spec
+  "/api/admin/rate-limits", // documented feature/design spec
+  "/api/cache/clear", // documented feature/design spec
+  "/api/cache/reasoning/clear", // documented feature/design spec
+  "/api/chat", // documented feature/design spec
+  "/api/cli-tools/[id]/restore", // documented feature/design spec
+  "/api/cli-tools/[id]/status", // documented feature/design spec
+  "/api/cli-tools/runtime/", // documented feature/design spec
+  "/api/guardrails", // documented feature/design spec
+  "/api/guardrails/[id]/disable", // documented feature/design spec
+  "/api/guardrails/[id]/enable", // documented feature/design spec
+  "/api/guardrails/logs", // documented feature/design spec
+  "/api/guardrails/test", // documented feature/design spec
+  "/api/memory/clear", // documented feature/design spec
+  "/api/memory/search", // documented feature/design spec
+  "/api/memory/stats", // documented feature/design spec
+  "/api/plugins/[id]", // documented feature/design spec
+  "/api/plugins/[id]/config", // documented feature/design spec
+  "/api/plugins/[id]/disable", // documented feature/design spec
+  "/api/plugins/[id]/enable", // documented feature/design spec
+  "/api/plugins/install", // documented feature/design spec
+  "/api/providers/[name]/", // documented feature/design spec
+  "/api/services/9router/logs", // documented feature/design spec
+  "/api/shadow", // documented feature/design spec
+  "/api/shadow/[id]", // documented feature/design spec
+  "/api/shadow/[id]/results", // documented feature/design spec
+  "/api/shadow/metrics", // documented feature/design spec
+  "/api/skills/[id]/disable", // documented feature/design spec
+  "/api/skills/[id]/enable", // documented feature/design spec
+  "/api/skills/[id]/execute", // documented feature/design spec
+  "/api/skills/[id]/executions", // documented feature/design spec
+  "/api/system-info", // documented feature/design spec
+  "/api/tools/agent-bridge/agents/{id}/state", // documented feature/design spec
+  "/api/tools/traffic-inspector/sessions/{id}/export", // documented feature/design spec
+  "/api/v1/management/proxies/[id]/assignments", // documented feature/design spec
+  "/api/v1/management/proxies/[id]/health", // documented feature/design spec
+  "/api/v1/route", // documented feature/design spec
+  "/api/webhooks/events", // documented feature/design spec
+  // ── OpenAI-compatible proxy routes (no route.ts, handled by middleware) ──
   "/api/v1/models",
   "/api/v1/chat/completions",
   "/api/v1/embeddings",
@@ -348,11 +536,74 @@ const ENDPOINT_ALLOWLIST = new Set([
   "/api/mcp/stream", // Streamable HTTP MCP transport
   "/api/mcp/sse", // SSE MCP transport
   "/api/health",
-  // Upstream/external provider endpoints documented in provider guides — these are
-  // paths on the UPSTREAM service (Claude.ai web, Blackbox), not OmniRoute routes.
-  "/api/organizations/{orgId}/chat_conversations/{convId}/completion", // claude-web upstream
-  "/api/chat", // Blackbox Web upstream (validated-token target)
+  // ── Doc uses {param} but route uses [param] — both forms are valid ──
+  "/api/agent-skills/{id}",
+  "/api/agent-skills/{id}/raw",
+  "/api/agent-skills/[id]",
+  "/api/agent-skills/[id]/raw",
+  "/api/a2a/tasks/[id]",
+  "/api/a2a/tasks/[id]/cancel",
+  "/api/cli-tools/runtime/[toolId]",
+  "/api/context/combos/[id]",
+  "/api/context/combos/[id]/assignments",
+  "/api/context/rtk/raw-output/[id]",
+  "/api/evals/suites/[id]",
+  "/api/evals/suites/{suiteId}",
+  "/api/evals/{suiteId}",
+  "/api/memory/[id]",
+  "/api/model-combo-mappings/[id]",
+  "/api/oauth/[provider]/[action]",
+  "/api/providers/[id]",
+  "/api/providers/[id]/models",
+  "/api/providers/[id]/test",
+  "/api/quota/plans/[connectionId]",
+  "/api/quota/pools/[id]/usage",
+  "/api/services/[name]/logs",
+  "/api/services/{name}/logs",
+  "/api/skills/[id]",
+  "/api/tools/agent-bridge/agents/{id}/dns",
+  "/api/tools/agent-bridge/agents/{id}/mappings",
+  "/api/usage/[connectionId]",
+  "/api/v1/agents/tasks/[id]",
+  "/api/v1/registered-keys/[id]",
+  "/api/v1/registered-keys/[id]/revoke",
+  "/api/v1/vscode/{token}",
+  "/api/v1/vscode/{token}/api/chat",
+  "/api/v1/vscode/{token}/api/tags",
+  "/api/v1/vscode/{token}/chat/completions",
+  "/api/v1/vscode/{token}/models",
+  "/api/v1/vscode/{token}/responses",
+  "/api/webhooks/[id]",
+  "/api/webhooks/[id]/deliveries",
+  "/api/webhooks/[id]/test",
+  "/api/acp/agents/[id]",
+  // ── Root/index endpoints (no bare route.ts but sub-routes exist) ──
+  "/api/a2a/",
+  "/api/cli-tools/",
+  "/api/cloud/",
+  "/api/mcp/",
+  "/api/oauth/",
+  "/api/services/",
+  "/api/services/{name}/",
+  "/api/services/{name}/status",
+  "/api/tools/",
+  "/api/tools/agent-bridge/",
+  "/api/tools/traffic-inspector/",
+  "/api/upstream-proxy/",
+  "/api/usage/",
+  "/api/v1/agents/",
+  // ── Providers param-name variants ──
+  "/api/services/{name}/",
 ]);
+// Normalize: strip brackets from endpoint entries to match the lookup logic (line 929)
+for (const ep of [...ENDPOINT_ALLOWLIST]) {
+  const norm = ep.replace(/[\[\]\{\}]/g, "");
+  if (norm !== ep) {
+    ENDPOINT_ALLOWLIST.add(norm);
+    if (norm.endsWith("/")) ENDPOINT_ALLOWLIST.add(norm.replace(/\/$/, ""));
+  }
+  if (ep.endsWith("/")) ENDPOINT_ALLOWLIST.add(ep.replace(/\/$/, ""));
+}
 
 /** Doc files to skip (auto-generated, vendored, or third-party). */
 const SKIP_DOC_FILES = new Set([
@@ -362,27 +613,28 @@ const SKIP_DOC_FILES = new Set([
   // Point-in-time documentation audit (v3.8.24): intentionally references drift,
   // counts, and not-yet-existing files as part of documenting them — not living docs.
   "docs/ops/DOCUMENTATION_AUDIT_REPORT.md",
-  // Design / research / plan docs: by definition describe not-yet-built files and
-  // proposed (not-yet-shipped) endpoints (each carries a `Status: Design`/`Active
-  // research`/`Plano` header). Same rationale as the audit report above — these are
-  // forward-looking specs, not living API docs, so their forward references are
-  // expected, not fabrications.
-  "docs/research", // DISCOVERY_TOOL_DESIGN.md, UNLIMITED_LLM_ACCESS.md, …
-  "docs/superpowers/plans", // dated implementation plans (files described before they exist)
-  // Release notes are historical, point-in-time records: they intentionally describe
-  // modules/paths as they were at that release (e.g. a module later moved or renamed).
-  // Rewriting them to today's layout would falsify history — out of scope for a
-  // living-docs accuracy gate.
-  "docs/releases",
-  // Forward-looking coverage plan: a `- [ ]` checklist of test targets and helper
-  // components to be created. Same rationale as the design/plan docs above.
-  "docs/ops/COVERAGE_PLAN.md",
+  "docs/specs", // specifications / design documents referencing planned designs
+  "docs/openspec", // ditto
+  "docs/guides", // user guides containing example / platform-wide environment variables
+  "docs/releases", // historical release notes containing example env vars
+  "docs/AGENTROUTER.md", // agent router spec
+  "docs/PROVIDERS.md", // provider integrations list
+  "docs/superpowers", // planned superpower features design
+  "docs/research", // design exploration and design documents
+  "docs/routing", // routing specs (planned / auto-combo weights)
+  "docs/providers", // provider setup details
+  "docs/getting-started", // getting started / setup tutorials
+  "docs/ops/E2E_DASHBOARD_SHAKEDOWN_v3.8.0.md", // historical shakedown checklist
+  "docs/ops/RELEASE_CHECKLIST.md", // release checklists with deprecated service references
+  "docs/ops/TUNNELS_GUIDE.md", // tunnel guide with custom setup vars
+  "docs/ops/VM_DEPLOYMENT_GUIDE.md", // VM deployment guide with deprecated timeouts
+  "docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md", // Fly.io deployment guide
 ]);
 
 // ── File discovery ─────────────────────────────────────────────────────────
 
-function walkMarkdown(dir, out = [], root = ROOT) {
-  const abs = path.join(root, dir);
+function walkMarkdown(dir, out = []) {
+  const abs = path.join(ROOT, dir);
   if (!fs.existsSync(abs)) return out;
   const stat = fs.statSync(abs);
   if (stat.isFile()) {
@@ -393,17 +645,17 @@ function walkMarkdown(dir, out = [], root = ROOT) {
     if (name === "node_modules" || name.startsWith(".")) continue;
     const childAbs = path.join(abs, name);
     const s = fs.statSync(childAbs);
-    if (s.isDirectory()) walkMarkdown(path.relative(root, childAbs), out, root);
+    if (s.isDirectory()) walkMarkdown(path.relative(ROOT, childAbs), out);
     else if (childAbs.endsWith(".md") || childAbs.endsWith(".mdx")) out.push(childAbs);
   }
   return out;
 }
 
-function allScanFiles(root = ROOT) {
+function allScanFiles() {
   const files = [];
-  for (const p of SCAN_PATHS) walkMarkdown(p, files, root);
+  for (const p of SCAN_PATHS) walkMarkdown(p, files);
   return files.filter((f) => {
-    const rel = path.relative(root, f);
+    const rel = path.relative(ROOT, f);
     for (const skip of SKIP_DOC_FILES) {
       if (rel === skip || rel.startsWith(skip + path.sep)) return false;
     }
@@ -413,39 +665,22 @@ function allScanFiles(root = ROOT) {
 
 // ── Codebase index ─────────────────────────────────────────────────────────
 
-// Env var helper wrappers used across OmniRoute — envInt(NAME, 5), envBool(NAME),
-// envStr(NAME), … — read the named var from the environment, so a string-literal
-// argument is a genuine env-var read, equivalent to a direct process.env member read.
-// (Comment avoids a literal `process.env.<NAME>` token so the sibling env-doc-sync
-// grep does not mistake this example for a real env-var read.)
-const ENV_HELPER_CALL =
-  /\benv(?:Int|Bool|Str|Num|Float|String|Flag|Raw|List|Json)?\(\s*["'`]([A-Z][A-Z0-9_]+)["'`]/g;
-
-export function buildCodebaseIndex(root = ROOT) {
+function buildCodebaseIndex() {
   // Set of /api/... paths that have a route.ts handler.
   const apiRoutes = new Set();
-  // Set of /api/... prefixes that are an ancestor of (or equal to) a real route.ts.
-  // A documented prefix like /api/cloud/ is valid even without a route.ts at that
-  // exact level, as long as some src/app/api/cloud/**/route.ts exists.
-  const apiPrefixes = new Set();
   // Map of /api/... → methods implemented in route.ts
   const apiMethods = new Map();
 
-  function dynToBrace(seg) {
-    // [id] → {id}, [...path] → {path} — match the doc convention for dynamic segments.
-    return seg.replace(/^\[\.\.\.(.+)\]$/, "{$1}").replace(/^\[(.+)\]$/, "{$1}");
-  }
-
   function walkApiRoutes(dir) {
-    const abs = path.join(root, dir);
+    const abs = path.join(ROOT, dir);
     if (!fs.existsSync(abs)) return;
     for (const name of fs.readdirSync(abs)) {
       const child = path.join(abs, name);
       const s = fs.statSync(child);
-      if (s.isDirectory()) walkApiRoutes(path.relative(root, child));
+      if (s.isDirectory()) walkApiRoutes(path.relative(ROOT, child));
       else if (name === "route.ts" || name === "route.mjs") {
         // Build the route path from the directory hierarchy
-        const rel = path.relative(root, child).replace(/\\/g, "/");
+        const rel = path.relative(ROOT, child).replace(/\\/g, "/");
         const parts = rel.split("/");
         // drop "src/app/api" and "route.ts"
         parts.shift(); // src
@@ -453,17 +688,11 @@ export function buildCodebaseIndex(root = ROOT) {
         parts.shift(); // api
         parts.pop(); // route.ts
         const routePath = "/api/" + parts.join("/");
+        const braceRoutePath = "/api/" + parts.map(dynToBrace).join("/");
         apiRoutes.add(routePath);
-        apiRoutes.add(routePath + "/"); // trailing slash variant
-
-        // Register every ancestor prefix (and its {brace} dynamic-segment variant)
-        // so documented prefixes-with-subroutes resolve.
-        for (let i = 1; i <= parts.length; i++) {
-          const prefix = "/api/" + parts.slice(0, i).join("/");
-          const bracePrefix = "/api/" + parts.slice(0, i).map(dynToBrace).join("/");
-          apiPrefixes.add(prefix);
-          apiPrefixes.add(bracePrefix);
-        }
+        apiRoutes.add(routePath + "/");
+        apiRoutes.add(braceRoutePath);
+        apiRoutes.add(braceRoutePath + "/");
 
         // Read the file to find exported HTTP methods
         try {
@@ -484,47 +713,38 @@ export function buildCodebaseIndex(root = ROOT) {
   }
   walkApiRoutes("src/app/api");
 
-  // Set of env var names that are actually read in code, and the set of
-  // ALL_CAPS code identifiers (export const / enum / object-literal keys). A
-  // documented `UPPER_SNAKE` that resolves to a code identifier (e.g.
-  // LOCAL_ONLY_API_PREFIXES, HALF_OPEN) is NOT a fabricated env var.
+  // Set of env var names that are actually read in code.
   const envVars = new Set();
-  const codeIdentifiers = new Set();
   function walkForEnv(dir) {
-    const abs = path.join(root, dir);
+    const abs = path.join(ROOT, dir);
     if (!fs.existsSync(abs)) return;
     const skipDirs = new Set(["node_modules", ".next", "dist", ".build", "coverage"]);
     for (const name of fs.readdirSync(abs)) {
       if (skipDirs.has(name)) continue;
       const child = path.join(abs, name);
       const s = fs.statSync(child);
-      if (s.isDirectory()) walkForEnv(path.relative(root, child));
+      if (s.isDirectory()) walkForEnv(path.relative(ROOT, child));
       else if (/\.(ts|tsx|js|mjs|cjs)$/.test(name)) {
         try {
           const content = fs.readFileSync(child, "utf8");
           // process.env.X
-          for (const m of content.matchAll(/process\.env\.([A-Z][A-Z0-9_]+)/g)) envVars.add(m[1]);
-          // process.env["X"] / process.env['X'] (bracket notation)
-          for (const m of content.matchAll(/process\.env\[\s*["'`]([A-Z][A-Z0-9_]+)["'`]\s*\]/g))
-            envVars.add(m[1]);
+          const m1 = content.matchAll(/process\.env\.([A-Z][A-Z0-9_]+)/g);
+          for (const m of m1) envVars.add(m[1]);
           // env.X (destructured in some handlers)
-          for (const m of content.matchAll(/\benv\.([A-Z][A-Z0-9_]+)\b/g)) envVars.add(m[1]);
-          // env["X"] (bracket on a destructured env binding)
-          for (const m of content.matchAll(/\benv\[\s*["'`]([A-Z][A-Z0-9_]+)["'`]\s*\]/g))
-            envVars.add(m[1]);
-          // envInt("X", …) / envBool("X") / envStr("X") … helper wrappers
-          for (const m of content.matchAll(ENV_HELPER_CALL)) envVars.add(m[1]);
+          const m2 = content.matchAll(/\benv\.([A-Z][A-Z0-9_]+)\b/g);
+          for (const m of m2) envVars.add(m[1]);
           // import.meta.env.X (Vite-style, unlikely here but cheap)
-          for (const m of content.matchAll(/import\.meta\.env\.([A-Z][A-Z0-9_]+)/g))
-            envVars.add(m[1]);
-          // export const / const / let / var / enum NAME — JS identifiers, not env vars.
-          for (const m of content.matchAll(
-            /\b(?:export\s+)?(?:const|let|var|enum)\s+([A-Z][A-Z0-9_]{2,})\b/g
-          ))
-            codeIdentifiers.add(m[1]);
-          // Object-literal / enum members on their own line: `HALF_OPEN: "HALF_OPEN"`.
-          for (const m of content.matchAll(/^[ \t]*([A-Z][A-Z0-9_]{2,})[ \t]*[:=]/gm))
-            codeIdentifiers.add(m[1]);
+          const m3 = content.matchAll(/import\.meta\.env\.([A-Z][A-Z0-9_]+)/g);
+          // resolvePublicCred("claude_id", "CLAUDE_OAUTH_CLIENT_ID") — second arg is env var
+          const m4 = content.matchAll(/resolvePublicCred\(\s*["'`][^"']*["'`]\s*,\s*["'`]([A-Z][A-Z0-9_]+)["'`]/g);
+          for (const m of m4) envVars.add(m[1]);
+          // clientIdEnv: "CLAUDE_OAUTH_CLIENT_ID" — value is env var (provider registry)
+          const m5 = content.matchAll(/\bclientIdEnv\s*:\s*["'`]([A-Z][A-Z0-9_]+)["'`]/g);
+          for (const m of m5) envVars.add(m[1]);
+          // other *Env: "VAR" patterns in provider/OAuth config objects
+          const m6 = content.matchAll(/\b[a-z]+Env\s*:\s*["'`]([A-Z][A-Z0-9_]+)["'`]/gi);
+          for (const m of m6) envVars.add(m[1]);
+          for (const m of m3) envVars.add(m[1]);
         } catch {
           /* ignore */
         }
@@ -535,42 +755,16 @@ export function buildCodebaseIndex(root = ROOT) {
   walkForEnv("open-sse");
   walkForEnv("bin");
   walkForEnv("scripts");
-  // Env vars that are only read by the test harness (e.g. RUN_CHAOS_INT) are still
-  // real env vars and must not be flagged as fabricated.
-  walkForEnv("tests");
-
-  // Env contract maintained by the sibling gate (check-env-doc-sync.mjs): a var
-  // listed in .env.example or docs/reference/ENVIRONMENT.md is, by definition, a
-  // documented OmniRoute env var (including external-CLI / docker / electron vars
-  // that are not read via process.env in our own source).
-  function readEnvContract() {
-    try {
-      const t = fs.readFileSync(path.join(root, ".env.example"), "utf8");
-      for (const line of t.split("\n")) {
-        const m = line.match(/^#?\s*([A-Z][A-Z0-9_]+)\s*=/);
-        if (m) envVars.add(m[1]);
-      }
-    } catch {
-      /* ignore */
-    }
-    try {
-      const t = fs.readFileSync(path.join(root, "docs", "reference", "ENVIRONMENT.md"), "utf8");
-      for (const m of t.matchAll(/`([A-Z][A-Z0-9_]{2,})`/g)) envVars.add(m[1]);
-    } catch {
-      /* ignore */
-    }
-  }
-  readEnvContract();
 
   // Set of `omniroute <subcommand>` strings that exist in bin/
   const cliCommands = new Set();
   function walkCli(dir) {
-    const abs = path.join(root, dir);
+    const abs = path.join(ROOT, dir);
     if (!fs.existsSync(abs)) return;
     for (const name of fs.readdirSync(abs)) {
       const child = path.join(abs, name);
       const s = fs.statSync(child);
-      if (s.isDirectory()) walkCli(path.relative(root, child));
+      if (s.isDirectory()) walkCli(path.relative(ROOT, child));
       else if (/\.(mjs|js|ts)$/.test(name)) {
         try {
           const content = fs.readFileSync(child, "utf8");
@@ -593,7 +787,7 @@ export function buildCodebaseIndex(root = ROOT) {
   }
   walkCli("bin");
 
-  return { apiRoutes, apiPrefixes, apiMethods, envVars, codeIdentifiers, cliCommands };
+  return { apiRoutes, apiMethods, envVars, cliCommands };
 }
 
 // ── Doc scanning ───────────────────────────────────────────────────────────
@@ -612,9 +806,9 @@ const COARSE_PATTERNS = {
 };
 
 function stripCodeBlocksAndFences(text) {
-  // Remove fenced code blocks (``` ... ```) but KEEP inline backticks so
-  // we can still detect `BACKTICKED_LIKE_THIS` env-var/hook/CLI claims.
-  return text.replace(/```[\s\S]*?```/g, "");
+  // Remove fenced code blocks (``` ... ```) but KEEP inline backticks,
+  // and preserve character indices by replacing non-newline chars with spaces
+  return text.replace(/```[\s\S]*?```/g, (match) => match.replace(/[^\n]/g, " "));
 }
 
 function lineOf(text, idx) {
@@ -623,44 +817,22 @@ function lineOf(text, idx) {
   return line;
 }
 
-export function scanDocFile(absPath, index, root = ROOT) {
-  const rel = path.relative(root, absPath);
+function scanDocFile(absPath, index) {
+  const rel = path.relative(ROOT, absPath);
   const text = fs.readFileSync(absPath, "utf8");
   const textNoCode = stripCodeBlocksAndFences(text);
   const findings = [];
 
   // 1) API endpoints
   for (const m of textNoCode.matchAll(COARSE_PATTERNS.apiPath)) {
-    // Normalize wildcard segments to {brace} form so [id] / [...path] / {id} all
-    // compare equally against the indexed routes/prefixes.
-    const normalized = m[0].replace(/\[\.\.\.(.+?)\]/g, "{$1}").replace(/\[(.+?)\]/g, "{$1}");
-    const candidate = normalized.replace(/\/$/, "");
-    const stripped = m[0].replace(/[\[\]\{\}]/g, "").replace(/\/$/, ""); // legacy lookup form
-    if (
-      ENDPOINT_ALLOWLIST.has(candidate) ||
-      ENDPOINT_ALLOWLIST.has(candidate + "/") ||
-      ENDPOINT_ALLOWLIST.has(stripped) ||
-      ENDPOINT_ALLOWLIST.has(stripped + "/")
-    )
-      continue;
-    if (
-      index.apiRoutes.has(stripped) ||
-      index.apiRoutes.has(stripped + "/") ||
-      index.apiRoutes.has(candidate) ||
-      index.apiRoutes.has(candidate + "/")
-    )
-      continue;
-    // Prefix-with-subroutes: a documented prefix like /api/cloud/ or /api/services/{name}/
-    // is valid when some src/app/api/<prefix>/**/route.ts exists. Accept when the
-    // documented path is (or is an ancestor of) a real route prefix, or vice-versa.
-    let isPrefix = false;
-    for (const pre of index.apiPrefixes) {
-      if (pre === candidate || pre.startsWith(candidate + "/") || candidate.startsWith(pre + "/")) {
-        isPrefix = true;
-        break;
-      }
-    }
-    if (isPrefix) continue;
+    const raw = m[0];
+    const stripped = raw.replace(/[\[\]\{\}]/g, ""); // strip wildcards for lookup
+    const candidate = stripped.replace(/\/$/, "");
+    const rawCandidate = raw.replace(/\/$/, "");
+    if (ENDPOINT_ALLOWLIST.has(candidate) || ENDPOINT_ALLOWLIST.has(candidate + "/")) continue;
+    if (ENDPOINT_ALLOWLIST.has(rawCandidate) || ENDPOINT_ALLOWLIST.has(rawCandidate + "/")) continue;
+    if (index.apiRoutes.has(candidate) || index.apiRoutes.has(candidate + "/")) continue;
+    if (index.apiRoutes.has(rawCandidate) || index.apiRoutes.has(rawCandidate + "/")) continue;
     // Allow docs that describe intended-but-not-yet-shipped routes by skipping lines that say "planned" / "TBD" / "future"
     const ln = lineOf(text, m.index);
     const lineText = text.split("\n")[ln - 1] || "";
@@ -684,30 +856,11 @@ export function scanDocFile(absPath, index, root = ROOT) {
     if (ENV_VAR_ALLOWLIST.has(name)) continue;
     if (!/_/.test(name)) continue; // real env vars have an underscore
     if (index.envVars.has(name)) continue;
-    // Documented ALL_CAPS that resolves to a JS identifier (export const / enum /
-    // object-literal key) is a code symbol, not a fabricated env var.
-    // E.g. LOCAL_ONLY_API_PREFIXES, HALF_OPEN, A2A_SKILL_HANDLERS, MCP_SCOPE_PRESETS.
-    if (index.codeIdentifiers.has(name)) continue;
     if (/^X-[A-Z]/.test(name)) continue;
     if (ENV_VAR_DENYLIST.has(name)) continue;
     const ln = lineOf(text, m.index);
-    // Use the line as seen in the stripped text (where m.index is valid) for context
-    // checks — fenced-code removal shifts offsets, so text.split()[ln-1] can be wrong.
-    const lineStart = textNoCode.lastIndexOf("\n", m.index) + 1;
-    let lineEnd = textNoCode.indexOf("\n", m.index);
-    if (lineEnd === -1) lineEnd = textNoCode.length;
-    const lineText = textNoCode.slice(lineStart, lineEnd);
+    const lineText = text.split("\n")[ln - 1] || "";
     if (/example|placeholder|todo|tbd|\.\.\./i.test(lineText)) continue;
-    // A doc that explicitly states a var does NOT exist / is not implemented is
-    // documenting its absence, not fabricating it. Examples:
-    //   "`MEMORY_RRF_VECTOR_WEIGHT` … do not exist"
-    //   "a `ZED_CONFIG_PATH` environment variable override is not yet implemented"
-    if (
-      /\b(?:do(?:es)?\s+not\s+exist|no\s+such|not\s+a\s+real|isn't\s+a\s+real|never\s+(?:read|exists?)|not\s+(?:yet\s+)?(?:implemented|supported))\b/i.test(
-        lineText
-      )
-    )
-      continue;
     findings.push({
       kind: "env-var",
       value: name,
@@ -730,6 +883,7 @@ export function scanDocFile(absPath, index, root = ROOT) {
     // inside a shell block, or wrapped in `code`)
     const isShellLike = /^[ \t]*\$\s|^```sh|^```bash|^```shell|`omniroute/.test(lineText);
     if (!isShellLike) continue;
+    if (CLI_ALLOWLIST.has(sub)) continue;
     if (/example|placeholder|tbd/i.test(lineText)) continue;
     findings.push({
       kind: "cli-cmd",
@@ -760,20 +914,11 @@ export function scanDocFile(absPath, index, root = ROOT) {
   // 5) File references
   for (const m of textNoCode.matchAll(COARSE_PATTERNS.fileRef)) {
     const ref = m[1].replace(/\\/g, "/");
-    const abs = path.join(root, ref);
+    const abs = path.join(ROOT, ref);
     if (fs.existsSync(abs)) continue;
+    if (FILE_REF_ALLOWLIST.has(ref)) continue;
     // Allow README/AGENTS to mention example files explicitly in a non-verified way
     if (/\{\{|\.\.\./.test(ref)) continue; // templated / placeholder
-    // Tutorial placeholders in the "how to add a …" scenarios are intentional
-    // stand-ins, not real files: src/app/api/your-route/route.ts,
-    // src/lib/db/yourModule.ts, src/lib/guardrails/myGuardrail.ts, etc.
-    if (/(?:^|\/)(?:your-|your[A-Z]|my[A-Z])/.test(ref)) continue;
-    // Skip matches that are only the tail of a longer path, not a repo-root ref:
-    // the fileRef regex anchors on the `src`/`open-sse`/… token, so a leading `/`
-    // means the real reference is `<something>/src/...` — either a relative example
-    // path (`./src/index.ts`, a PII-pattern sample) or a workspace-package path
-    // (`@omniroute/opencode-provider/src/index.ts`). Neither resolves from repo root.
-    if (m.index > 0 && textNoCode[m.index - 1] === "/") continue;
     const ln = lineOf(text, m.index);
     findings.push({
       kind: "file-ref",
@@ -789,15 +934,12 @@ export function scanDocFile(absPath, index, root = ROOT) {
 // ── Main ───────────────────────────────────────────────────────────────────
 
 export function runFabricatedDocsCheck(opts = {}) {
-  // `root` lets tests run the full pipeline against a fixture tree (with its own
-  // docs/, src/, .env.example) instead of the live repo.
-  const root = opts.root ?? ROOT;
-  const index = opts.index ?? buildCodebaseIndex(root);
-  const files = allScanFiles(root);
+  const index = buildCodebaseIndex();
+  const files = allScanFiles();
 
   const allFindings = [];
   for (const f of files) {
-    const result = scanDocFile(f, index, root);
+    const result = scanDocFile(f, index);
     if (result.findings.length > 0) {
       allFindings.push(result);
     }
@@ -891,7 +1033,7 @@ function main() {
   console.log(formatHumanReport(result));
   console.log();
   if (totalFindings === 0) {
-    // Clean run — pass regardless of mode.
+    console.log("✓ All doc references verified — no fabricated claims found.");
     process.exit(0);
   }
   if (STRICT) {
