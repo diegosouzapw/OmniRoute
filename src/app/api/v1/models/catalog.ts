@@ -65,6 +65,12 @@ interface CustomModelEntry {
   supportedEndpoints?: string[];
   inputTokenLimit?: number;
   isHidden?: boolean;
+  // User-set "vision-capable" flag (persisted by addCustomModel / replaceCustomModels
+  // in src/lib/db/models.ts). Surfaced into `/v1/models` via
+  // getCustomVisionCapabilityFields so user-added vision models appear with
+  // `capabilities.vision: true` even when their id does not match the
+  // conservative isVisionModelId heuristic.
+  supportsVision?: boolean;
 }
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
@@ -149,6 +155,39 @@ function getVisionCapabilityFields(modelId: string) {
     input_modalities: ["text", "image"],
     output_modalities: ["text"],
   };
+}
+
+/**
+ * Vision-capability fields for a user-added custom chat model. Honours an
+ * explicit `supportsVision` flag on the saved entry (the dashboard "vision-
+ * capable" toggle) IN ADDITION TO the conservative id-based heuristic used by
+ * built-in models. Without this, a user who registered e.g. `my-vision-llm`
+ * and ticked vision saw no `capabilities.vision` in `/v1/models`, so the LLM
+ * selector and downstream routing treated the model as text-only.
+ *
+ * Port of upstream decolua/9router 5e5e78d3. Conservative: an explicit
+ * `supportsVision === false` wins so users can downgrade a mis-classified
+ * model (same anti-FP discipline as #4071 / #4072).
+ */
+export function getCustomVisionCapabilityFields(
+  entry: { supportsVision?: boolean } | null | undefined,
+  ...candidateIds: Array<string | null | undefined>
+): { capabilities: { vision: true }; input_modalities: string[]; output_modalities: string[] } | null {
+  if (entry && entry.supportsVision === false) return null;
+  if (entry && entry.supportsVision === true) {
+    return {
+      capabilities: { vision: true },
+      input_modalities: ["text", "image"],
+      output_modalities: ["text"],
+    };
+  }
+  for (const id of candidateIds) {
+    if (typeof id === "string" && id) {
+      const fields = getVisionCapabilityFields(id);
+      if (fields) return fields;
+    }
+  }
+  return null;
 }
 
 function qualifyOpenRouterModelId(modelId: string): string {
@@ -1264,7 +1303,7 @@ export async function getUnifiedModelsResponse(
           }
           const visionFields =
             modelType === "chat"
-              ? getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId)
+              ? getCustomVisionCapabilityFields(model, aliasId, modelId)
               : null;
 
           if (includeAlias) {
@@ -1297,8 +1336,7 @@ export async function getUnifiedModelsResponse(
             if (models.some((m) => m.id === providerPrefixedId)) continue;
             const providerVisionFields =
               modelType === "chat"
-                ? getVisionCapabilityFields(providerPrefixedId) ||
-                  getVisionCapabilityFields(modelId)
+                ? getCustomVisionCapabilityFields(model, providerPrefixedId, modelId)
                 : null;
             models.push({
               id: providerPrefixedId,
