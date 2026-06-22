@@ -28,6 +28,11 @@ import {
   outputStyleMeta,
 } from "../../../../../../open-sse/services/compression/outputStyles/catalog.ts";
 import { deriveDefaultPlan } from "../../../../../../open-sse/services/compression/deriveDefaultPlan.ts";
+import {
+  DEFAULT_CONTEXT_BUDGET,
+  type ContextBudgetConfig,
+} from "../../../../../../open-sse/services/compression/adaptiveCompression/types.ts";
+import { formatAdaptiveTarget } from "./adaptiveTargetLabel.ts";
 
 type CavemanIntensity = "lite" | "full" | "ultra";
 
@@ -56,6 +61,10 @@ interface CompressionConfig {
   ultraEngine?: "heuristic" | "slm";
   // Best-effort pre-warm of the SLM model on enable / cold restart. Default false.
   ultraSlmPrewarm?: boolean;
+  // Phase 4 (C): adaptive context-budget. Absent / mode:"off" = legacy auto-trigger.
+  // The panel currently surfaces the computed target read-only; mode/policy editors are a
+  // follow-up (the load/save path does not yet populate this field).
+  contextBudget?: ContextBudgetConfig;
 }
 
 const CAVEMAN_OUTPUT_LEVELS: CavemanIntensity[] = ["lite", "full", "ultra"];
@@ -246,6 +255,14 @@ export default function CompressionPanel() {
         className="mb-4 rounded-md border border-border/60 bg-bg-subtle px-3 py-2 text-xs text-text-muted"
       >
         <span className="font-medium text-text-main">Effective pipeline:</span> {derivedText}
+      </div>
+
+      {/* Adaptive context-budget — read-only computed target (Phase 4C, D-C1 transparency) */}
+      <div
+        data-testid="adaptive-target-preview"
+        className="mb-4 rounded-md border border-border/60 bg-bg-subtle px-3 py-2 text-xs text-text-muted"
+      >
+        {formatAdaptiveTarget(config.contextBudget ?? DEFAULT_CONTEXT_BUDGET, 200000)}
       </div>
 
       {/* Engine grid */}
