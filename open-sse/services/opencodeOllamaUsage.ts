@@ -72,12 +72,21 @@ function roundCurrency(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
+function safeToIsoString(time: number): string | null {
+  if (!Number.isFinite(time) || time < 0 || time > 8.64e15) return null;
+  try {
+    return new Date(time).toISOString();
+  } catch {
+    return null;
+  }
+}
+
 function parseResetTime(resetValue: unknown): string | null {
   const numeric = toNumber(resetValue, Number.NaN);
-  if (Number.isFinite(numeric) && numeric > 0) return new Date(numeric).toISOString();
+  if (Number.isFinite(numeric) && numeric > 0) return safeToIsoString(numeric);
   if (typeof resetValue !== "string" || !resetValue.trim()) return null;
   const parsed = Date.parse(resetValue);
-  return Number.isFinite(parsed) ? new Date(parsed).toISOString() : null;
+  return Number.isFinite(parsed) ? safeToIsoString(parsed) : null;
 }
 
 function getProviderSpecificString(data: JsonRecord | undefined, keys: string[]): string {
@@ -200,7 +209,7 @@ function parseOpenCodeGoSsrWindow(html: string, field: string): DashboardWindow 
     if (Number.isFinite(usagePercent) && Number.isFinite(resetInSec)) {
       return {
         usagePercent,
-        resetAt: new Date(Date.now() + Math.max(0, resetInSec) * 1000).toISOString(),
+        resetAt: safeToIsoString(Date.now() + Math.max(0, resetInSec) * 1000),
       };
     }
   }
@@ -251,7 +260,7 @@ function parseOpenCodeGoDashboardHtml(html: string): OpenCodeGoDashboardUsage | 
     if (resetInSec === null || !Number.isFinite(resetInSec)) continue;
     const window = {
       usagePercent,
-      resetAt: new Date(Date.now() + Math.max(0, resetInSec) * 1000).toISOString(),
+      resetAt: safeToIsoString(Date.now() + Math.max(0, resetInSec) * 1000),
     };
     if (label.includes("rolling")) usage.session = window;
     else if (label.includes("weekly")) usage.weekly = window;
@@ -322,106 +331,110 @@ export async function getOpenCodeGoUsage(apiKey: string, providerSpecificData?: 
     };
   }
 
-  const res = await fetch(OPENCODE_GO_QUOTA_URL, {
-    headers: {
-      Authorization: buildBearerAuthorization(token),
-      "Accept-Language": "en-US,en",
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-  });
-  if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
+  try {
+    const res = await fetch(OPENCODE_GO_QUOTA_URL, {
+      headers: {
+        Authorization: buildBearerAuthorization(token),
+        "Accept-Language": "en-US,en",
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        return {
+          message:
+            "OpenCode Go API key is valid for chat/models but cannot read quota from the Z.AI quota API. " +
+            "Set OPENCODE_GO_WORKSPACE_ID and OPENCODE_GO_AUTH_COOKIE to enable dashboard quota scraping.",
+        };
+      }
+      return {
+        message:
+          `OpenCode Go quota API error (${res.status}). ` +
+          "Set OMNIROUTE_OPENCODE_GO_QUOTA_URL to a working endpoint, or follow " +
+          "https://github.com/anomalyco/opencode/issues/16017 for upstream status.",
+      };
+    }
+
+    let json: unknown;
+    try {
+      json = await res.json();
+    } catch {
+      return { message: "OpenCode Go quota response parsing failed." };
+    }
+    const root = toRecord(json);
+    if (
+      toNumber(root.code, 200) === 401 ||
+      toNumber(root.code, 200) === 403 ||
+      root.success === false
+    ) {
       return {
         message:
           "OpenCode Go API key is valid for chat/models but cannot read quota from the Z.AI quota API. " +
           "Set OPENCODE_GO_WORKSPACE_ID and OPENCODE_GO_AUTH_COOKIE to enable dashboard quota scraping.",
       };
     }
-    return {
-      message:
-        `OpenCode Go quota API error (${res.status}). ` +
-        "Set OMNIROUTE_OPENCODE_GO_QUOTA_URL to a working endpoint, or follow " +
-        "https://github.com/anomalyco/opencode/issues/16017 for upstream status.",
-    };
-  }
 
-  let json: unknown;
-  try {
-    json = await res.json();
-  } catch {
-    return { message: "OpenCode Go quota response parsing failed." };
-  }
-  const root = toRecord(json);
-  if (
-    toNumber(root.code, 200) === 401 ||
-    toNumber(root.code, 200) === 403 ||
-    root.success === false
-  ) {
-    return {
-      message:
-        "OpenCode Go API key is valid for chat/models but cannot read quota from the Z.AI quota API. " +
-        "Set OPENCODE_GO_WORKSPACE_ID and OPENCODE_GO_AUTH_COOKIE to enable dashboard quota scraping.",
-    };
-  }
-
-  const data = toRecord(root.data);
-  const quotas: Record<string, UsageQuota> = {};
-  for (const limit of Array.isArray(data.limits) ? data.limits : []) {
-    const src = toRecord(limit);
-    const type = String(src.type || "").toUpperCase();
-    const resetAt = parseResetTime(src.nextResetTime);
-    if (type === "TOKENS_LIMIT" || type === "TOKEN_LIMIT") {
-      const quotaName = getOpenCodeGoTokenQuotaName(src, quotas);
-      quotas[quotaName] = buildOpenCodeGoDollarQuota(
-        quotaName,
-        src.percentage,
-        resetAt,
-        undefined,
-        Array.isArray(src.models)
-          ? src.models.map((model) => {
-              const modelInfo = toRecord(model);
-              return {
-                name: String(modelInfo.model || modelInfo.modelCode || "usage"),
-                used: toNumber(modelInfo.percentage, 0),
-              };
-            })
-          : undefined
-      );
-    } else if (type === "TIME_LIMIT" || type === "TIME_USAGE_LIMIT") {
-      quotas.mcp_monthly = buildOpenCodeGoDollarQuota(
-        "mcp_monthly",
-        src.percentage,
-        resetAt,
-        src.currentValue,
-        Array.isArray(src.usageDetails)
-          ? src.usageDetails.map((item) => {
-              const detail = toRecord(item);
-              return {
-                name: String(detail.modelCode || detail.name || "usage"),
-                used: toNumber(detail.usage, 0),
-              };
-            })
-          : undefined
-      );
+    const data = toRecord(root.data);
+    const quotas: Record<string, UsageQuota> = {};
+    for (const limit of Array.isArray(data.limits) ? data.limits : []) {
+      const src = toRecord(limit);
+      const type = String(src.type || "").toUpperCase();
+      const resetAt = parseResetTime(src.nextResetTime);
+      if (type === "TOKENS_LIMIT" || type === "TOKEN_LIMIT") {
+        const quotaName = getOpenCodeGoTokenQuotaName(src, quotas);
+        quotas[quotaName] = buildOpenCodeGoDollarQuota(
+          quotaName,
+          src.percentage,
+          resetAt,
+          undefined,
+          Array.isArray(src.models)
+            ? src.models.map((model) => {
+                const modelInfo = toRecord(model);
+                return {
+                  name: String(modelInfo.model || modelInfo.modelCode || "usage"),
+                  used: toNumber(modelInfo.percentage, 0),
+                };
+              })
+            : undefined
+        );
+      } else if (type === "TIME_LIMIT" || type === "TIME_USAGE_LIMIT") {
+        quotas.mcp_monthly = buildOpenCodeGoDollarQuota(
+          "mcp_monthly",
+          src.percentage,
+          resetAt,
+          src.currentValue,
+          Array.isArray(src.usageDetails)
+            ? src.usageDetails.map((item) => {
+                const detail = toRecord(item);
+                return {
+                  name: String(detail.modelCode || detail.name || "usage"),
+                  used: toNumber(detail.usage, 0),
+                };
+              })
+            : undefined
+        );
+      }
     }
-  }
 
-  const levelRaw =
-    typeof data.planName === "string"
-      ? data.planName
-      : typeof data.level === "string"
-        ? data.level
-        : "";
-  const planLabel = toTitleCase(levelRaw.replace(/\s*plan$/i, ""));
-  return {
-    plan: planLabel
-      ? /^opencode\s+go\b/i.test(planLabel)
-        ? planLabel
-        : `OpenCode Go ${planLabel}`
-      : null,
-    quotas: orderOpenCodeGoQuotas(quotas),
-  };
+    const levelRaw =
+      typeof data.planName === "string"
+        ? data.planName
+        : typeof data.level === "string"
+          ? data.level
+          : "";
+    const planLabel = toTitleCase(levelRaw.replace(/\s*plan$/i, ""));
+    return {
+      plan: planLabel
+        ? /^opencode\s+go\b/i.test(planLabel)
+          ? planLabel
+          : `OpenCode Go ${planLabel}`
+        : null,
+      quotas: orderOpenCodeGoQuotas(quotas),
+    };
+  } catch (error) {
+    return { message: `OpenCode Go quota API error: ${sanitizeErrorMessage(error)}` };
+  }
 }
 
 function resolveOllamaCloudConfig(providerSpecificData?: JsonRecord): OllamaCloudConfig {
@@ -451,31 +464,33 @@ function normalizeOllamaCloudCookie(value: string): string {
 }
 
 function extractOllamaUsagePercent(trackHtml: string): number | null {
-  const ariaMatch = trackHtml.match(/(\d+(?:\.\d+)?)%\s*used/);
+  const tagHeader = trackHtml.match(/^[^>]*/)?.[0] ?? "";
+  const ariaMatch = tagHeader.match(/(\d+(?:\.\d+)?)%\s*used/);
   if (ariaMatch) {
     const pct = toNumber(ariaMatch[1], Number.NaN);
     if (Number.isFinite(pct) && pct >= 0 && pct <= 100) return pct;
   }
-  const style = trackHtml.match(/style="([^"]*)"/)?.[1] ?? "";
+  const style = tagHeader.match(/style="([^"]*)"/)?.[1] ?? "";
   const pct = toNumber(style.match(/(?:^|;)\s*width\s*:\s*([0-9.]+)%/)?.[1], Number.NaN);
   return Number.isFinite(pct) && pct >= 0 && pct <= 100 ? pct : null;
 }
 
 function parseOllamaCloudSettingsHtml(html: string): OllamaCloudUsage | null {
-  const tracks = Array.from(html.matchAll(/<[^>]*\bdata-usage-track\b[^>]*>/gs), (m) => m[0]);
-  const times = Array.from(
-    html.matchAll(/class="[^"]*local-time[^"]*"[^>]*data-time="([^"]*)"/gs),
-    (m) => m[1] || null
-  );
-  const sessionPercent = tracks[0] ? extractOllamaUsagePercent(tracks[0]) : null;
-  const weeklyPercent = tracks[1] ? extractOllamaUsagePercent(tracks[1]) : null;
+  const parts = html.split(/\bdata-usage-track\b/);
+  if (parts.length < 2) return null;
+  const extractTime = (text: string): string | null => {
+    const match = text.match(/class="[^"]*local-time[^"]*"[^>]*data-time="([^"]*)"/);
+    return match?.[1] || null;
+  };
+  const sessionPercent = extractOllamaUsagePercent(parts[1]);
+  const weeklyPercent = parts[2] ? extractOllamaUsagePercent(parts[2]) : null;
   if (sessionPercent === null && weeklyPercent === null) return null;
   return {
     ...(sessionPercent !== null
-      ? { session: { usagePercent: sessionPercent, resetAt: times[0] ?? null } }
+      ? { session: { usagePercent: sessionPercent, resetAt: extractTime(parts[1]) } }
       : {}),
     ...(weeklyPercent !== null
-      ? { weekly: { usagePercent: weeklyPercent, resetAt: times[1] ?? null } }
+      ? { weekly: { usagePercent: weeklyPercent, resetAt: extractTime(parts[2]) } }
       : {}),
     planTier: html.match(/class="[^"]*capitalize[^"]*"[^>]*>([^<]*)</)?.[1]?.trim() || null,
   };

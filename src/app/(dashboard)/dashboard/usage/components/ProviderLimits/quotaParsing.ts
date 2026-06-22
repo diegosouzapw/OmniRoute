@@ -173,7 +173,7 @@ function sortGlmOrder(providerId: string, quotas: any[]) {
   quotas.sort((a, b) => (GLM_QUOTA_ORDER[a.name] ?? 99) - (GLM_QUOTA_ORDER[b.name] ?? 99));
 }
 
-export function parseQuotaData(provider, data) {
+export function parseQuotaData(provider: string | undefined, data: any) {
   if (!data || typeof data !== "object") return [];
   const providerId = String(provider || "").toLowerCase();
 

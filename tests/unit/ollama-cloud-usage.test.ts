@@ -98,6 +98,50 @@ test("getUsageForProvider scrapes Ollama Cloud settings quota", async () => {
   }
 });
 
+test("getUsageForProvider keeps Ollama Cloud reset times aligned to usage tracks", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalCookie = process.env.OLLAMA_USAGE_COOKIE;
+  const originalOmniCookie = process.env.OMNIROUTE_OLLAMA_USAGE_COOKIE;
+  delete process.env.OLLAMA_USAGE_COOKIE;
+  process.env.OMNIROUTE_OLLAMA_USAGE_COOKIE = "test-cookie";
+
+  globalThis.fetch = async () =>
+    new Response(
+      [
+        '<span class="local-time" data-time="2026-01-01T00:00:00.000Z"></span>',
+        '<div data-usage-track aria-label="34% used" style="width: 1%">',
+        '<span class="local-time" data-time="2026-06-22T15:00:00.000Z"></span>',
+        "</div>",
+        '<div data-usage-track style="width: 67%">',
+        '<span style="width: 1%"></span>',
+        '<span class="local-time" data-time="2026-06-29T15:00:00.000Z"></span>',
+        "</div>",
+      ].join(""),
+      { status: 200, headers: { "content-type": "text/html" } }
+    );
+
+  try {
+    const result = (await usage.getUsageForProvider({
+      id: "ollama-cloud-aligned-times",
+      provider: "ollama-cloud",
+      apiKey: "ollama-chat-key",
+    })) as {
+      quotas?: Record<string, { used: number; resetAt: string | null }>;
+    };
+
+    assert.equal(result.quotas!.session.used, 34);
+    assert.equal(result.quotas!.session.resetAt, "2026-06-22T15:00:00.000Z");
+    assert.equal(result.quotas!.weekly.used, 67);
+    assert.equal(result.quotas!.weekly.resetAt, "2026-06-29T15:00:00.000Z");
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalCookie === undefined) delete process.env.OLLAMA_USAGE_COOKIE;
+    else process.env.OLLAMA_USAGE_COOKIE = originalCookie;
+    if (originalOmniCookie === undefined) delete process.env.OMNIROUTE_OLLAMA_USAGE_COOKIE;
+    else process.env.OMNIROUTE_OLLAMA_USAGE_COOKIE = originalOmniCookie;
+  }
+});
+
 test("getUsageForProvider reports expired Ollama Cloud cookies on redirect", async () => {
   const originalFetch = globalThis.fetch;
   const originalCookie = process.env.OLLAMA_USAGE_COOKIE;
