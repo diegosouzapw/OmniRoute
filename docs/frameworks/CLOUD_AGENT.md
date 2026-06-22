@@ -1,16 +1,16 @@
 ---
 title: "Cloud Agents"
-version: 3.8.31
-lastUpdated: 2026-06-20
+version: 3.8.2
+lastUpdated: 2026-05-13
 ---
 
 # Cloud Agents
 
 > **Source of truth:** `src/lib/cloudAgent/` and `src/app/api/v1/agents/tasks/`
-> **Last updated:** 2026-06-20 — v3.8.31 (frontmatter refresh; 4 agents incl. cursor-cloud)
+> **Last updated:** 2026-05-13 — v3.8.0
 
-OmniRoute orchestrates third-party cloud-hosted coding agents (Codex Cloud, Cursor,
-Devin, Jules) as long-running tasks. Each agent is wrapped behind a uniform interface so
+OmniRoute orchestrates third-party cloud-hosted coding agents (Codex Cloud, Devin,
+Jules) as long-running tasks. Each agent is wrapped behind a uniform interface so
 clients can submit a prompt + repo URL and receive results without dealing with
 provider-specific APIs.
 
@@ -29,7 +29,6 @@ artifact, and supports follow-up messages and (in some providers) plan approval 
 | `jules`       | `JulesAgent`      | `src/lib/cloudAgent/agents/jules.ts` | `https://jules.googleapis.com/v1alpha`  | Yes           |
 | `devin`       | `DevinAgent`      | `src/lib/cloudAgent/agents/devin.ts` | `https://api.devin.ai/v1`               | Yes           |
 | `codex-cloud` | `CodexCloudAgent` | `src/lib/cloudAgent/agents/codex.ts` | `https://api.openai.com/v1/codex/cloud` | No (auto)     |
-| `cursor-cloud` | `CursorCloudAgent` | `src/lib/cloudAgent/agents/cursor.ts` | `https://api.cursor.com/v0`             | No (auto)     |
 
 Registry: `src/lib/cloudAgent/registry.ts` — exports `getAgent(providerId)`,
 `getAvailableAgents()`, and `isCloudAgentProvider(providerId)`. The registry is a
@@ -121,16 +120,6 @@ export abstract class CloudAgentBase {
 `CodexCloudAgent.approvePlan` intentionally throws — Codex Cloud auto-plans and has
 no approval gate. `CodexCloudAgent.listSources` returns `[]`.
 
-`CursorCloudAgent` drives Cursor's Background / Cloud Agents through its official REST
-API (`api.cursor.com/v0`) with a **user or service-account API key** — the safer,
-first-party alternative to re-using the Cursor IDE's OAuth session (provider `cursor`,
-which carries a ban-risk warning). It is a plain REST adapter (no `@cursor/sdk` native
-dependency). `approvePlan` throws (Cursor agents run autonomously); `listSources` lists
-the repositories reachable by the key. Cursor returns UPPERCASE status enums
-(`CREATING`/`RUNNING`/`FINISHED`/`ERROR`), mapped explicitly to the shared
-`CloudAgentStatus`. `baseUrl` is overridable per-credential so the API version/path can
-be corrected without a code change.
-
 ## Domain Types
 
 Source: `src/lib/cloudAgent/types.ts`
@@ -171,7 +160,7 @@ export interface CloudAgentActivity {
 
 export interface CloudAgentTask {
   id: string; // internal `task_...` id
-  providerId: "jules" | "devin" | "codex-cloud" | "cursor-cloud";
+  providerId: "jules" | "devin" | "codex-cloud";
   externalId?: string; // upstream provider's id
   status: CloudAgentStatus;
   prompt: string; // 1..10000 chars
@@ -215,7 +204,6 @@ CREATE TABLE IF NOT EXISTS cloud_agent_tasks (
   updated_at   TEXT NOT NULL DEFAULT (datetime('now')),
   completed_at TEXT
 );
-CREATE INDEX IF NOT EXISTS idx_cloud_agent_tasks_provider ON cloud_agent_tasks(provider_id);
 CREATE INDEX IF NOT EXISTS idx_cloud_agent_tasks_status   ON cloud_agent_tasks(status);
 CREATE INDEX IF NOT EXISTS idx_cloud_agent_tasks_created  ON cloud_agent_tasks(created_at DESC);
 ```
@@ -382,12 +370,189 @@ status events to the JSON-RPC 2.0 protocol. See [A2A-SERVER.md](./A2A-SERVER.md)
 No Cloud-Agent-specific env vars exist today — every secret lives in the
 `provider_connections` table.
 
+## Credential Setup Per Agent
+
+Each cloud agent has its own credential flow. Credentials are stored **encrypted at rest** in the `cloud_agent_credentials` table via `src/lib/cloudAgent/credentials.ts`.
+
+### Codex Cloud
+
+**Sign up:** https://openai.com/codex
+
+**Get credentials:**
+
+1. Sign in to https://platform.openai.com
+2. Go to **API Keys** → **Create new secret key**
+3. Copy the key (starts with `sk-...`)
+
+**Configure in OmniRoute:**
+
+> **Note:** Cloud agent credentials are configured via the dashboard **Cloud Agents** page or via the `/api/cloud/credentials/update` endpoint (PUT method). See the [Cloud Agent Base](../../src/lib/cloudAgent/baseAgent.ts) implementation for credential storage details.
+
+### Devin
+
+**Sign up:** https://devin.ai
+
+**Get credentials:**
+
+1. Sign in to https://app.devin.ai
+2. Go to **Settings** → **API Keys** → **Generate new key**
+3. Copy the key
+
+**Configure:**
+
+```bash
+PUT /api/cloud/credentials/update
+{
+  "providerId": "devin",
+  "apiKey": "devin-..."
+}
+```
+
+### Jules (Google)
+
+**Sign up:** https://jules.google.com
+
+**Get credentials:**
+
+1. Sign in with your Google account
+2. Go to **Settings** → **API Access** → **Generate token**
+3. Copy the token
+
+**Configure:**
+
+> **Note:** Cloud agent credentials are configured via the dashboard **Cloud Agents** page or via the `POST /api/v1/agents/credentials` endpoint.
+
+### Verifying Credentials
+
+Credentials can be listed via `GET /api/v1/agents/credentials` (API keys are masked) or viewed on the dashboard.
+
+To verify a credential actually works, create a test task and check it succeeds.
+
+## Plan Approval Workflows
+
+Some cloud agents (especially **Devin** and **Jules**) operate autonomously for extended periods. They may consume credits while doing so.
+
+> **Note:** Task management for cloud agents is handled internally by `src/lib/cloudAgent/`. Tasks are created and managed via the `/api/v1/agents/tasks` endpoint. There is no dedicated `/api/cloud/tasks` REST endpoint — cloud agent task management is integrated into the standard task pipeline.
+
+### Approval via Webhook
+
+```bash
+POST /api/webhooks
+{
+  "url": "https://your-approval-server.com/devin",
+  "events": ["cloud.plan.ready"]
+}
+```
+
+```json
+{
+  "type": "cloud.plan.ready",
+  "taskId": "task-abc123",
+  "providerId": "devin",
+  "plan": "Migrate auth to OAuth 2.1...\n\nFiles to modify: 3\nEstimated time: 30min\nEstimated credits: $3.50",
+  "estimatedCost": 3.5,
+  "approvalUrl": "http://localhost:20128/dashboard/cloud-tasks/task-abc123",
+  "expiresAt": "2026-06-08T18:00:00Z"
+}
+```
+
+The user clicks the approval URL (or sends `POST /api/v1/agents/tasks/{id}` with `{"action":"approve"}`) to proceed.
+
+### Credit Limits
+
+> **Note:** Credit limits for cloud agents are managed internally by `../../src/lib/cloudAgent/baseAgent.ts`. Task-level `options.planApprovalRequired` can be set when creating tasks via `/api/v1/agents/tasks`. Per-key daily limits are configured via the dashboard Settings page.
+
+## Cost Tracking
+
+Cloud agent usage is tracked separately from API usage:
+
+```bash
+# Per-agent cost
+GET /api/usage?provider=codex-cloud&range=30d
+GET /api/usage?provider=devin&range=30d
+GET /api/usage?provider=jules&range=30d
+```
+
+The cost includes:
+
+- **Compute credits** consumed by the agent
+- **API costs** for underlying LLM calls
+- **Storage** for files created during the task
+
+> **Note:** Cost forecasts are available via the dashboard Analytics page. There is no dedicated `/api/analytics/cost/forecast` REST endpoint.
+
+### Setting Budget Alerts
+
+```bash
+# Alert at 80% of budget
+POST /api/webhooks
+{
+  "events": ["cloud.budget.warning"],
+  "url": "https://your-server/budget-alert"
+}
+```
+
+Triggers when cumulative cloud spend for the current month exceeds 80% of `cloudBudget`.
+
+## Common Workflows
+
+> **Note:** Cloud agent task management is handled via the standard `/api/v1/agents/tasks` endpoint. There is no dedicated `/api/cloud/tasks` endpoint. Create tasks via `POST /api/v1/agents/tasks` and poll status via `GET /api/v1/agents/tasks/[id]`.
+
+## Best Practices
+
+1. **Always use `options.planApprovalRequired: true`** for non-trivial tasks
+2. **Use webhooks** for plan approvals (don't poll)
+3. **Review plans** before approving — agents can misunderstand prompts
+4. **Use webhooks** for cost tracking and alerts
+5. **Test agents** on small tasks before giving them large codebases
+6. **Keep task prompts focused** — multi-task prompts often fail
+
+## Troubleshooting
+
+### "Agent not available"
+
+> **Note:** Agent status is displayed on the dashboard **Cloud Agents** page. There is no dedicated `/api/cloud/agents` REST endpoint — agent availability is determined by the underlying ACP or cloud agent connection configured in `src/lib/cloudAgent/`.
+
+| Status                | Cause                       | Action                                                               |
+| --------------------- | --------------------------- | -------------------------------------------------------------------- |
+| `not_installed`       | CLI not installed           | Install (for ACP-based agents)                                       |
+| `no_credentials`      | No API key stored           | Add credentials via dashboard or PUT `/api/cloud/credentials/update` |
+| `invalid_credentials` | API key rejected            | Re-authenticate                                                      |
+| `quota_exhausted`     | Subscription/hard limit hit | Wait for reset                                                       |
+| `disabled`            | Agent disabled in settings  | Enable                                                               |
+
+### "Task stuck in planning"
+
+The agent is taking too long to generate a plan. Possible causes:
+
+- Prompt is too vague
+- Context is too large
+- Service is degraded
+
+Mitigation:
+
+- Cancel the task and re-submit with clearer prompt
+- Add `timeout: 300` (5 min) to limit planning time
+
+### "Task failed with insufficient_credits"
+
+The task exceeded its credit limit. To continue:
+
+1. Increase the task budget and re-submit
+2. Split the task into smaller pieces
+3. Use a different agent (e.g., swap Devin for Codex)
+
+### "Plan rejected but I want to override"
+
+> **Note:** Plan approval and override is managed via the dashboard **Cloud Agents** page or via the standard `/api/v1/agents/tasks/[id]` endpoint with an `approve` action.
+
 ## See Also
 
 - [A2A-SERVER.md](./A2A-SERVER.md)
 - [API_REFERENCE.md](../reference/API_REFERENCE.md)
 - [SKILLS.md](./SKILLS.md)
 - [MEMORY.md](./MEMORY.md)
+- [INTERNAL_API_ROUTES.md](../reference/INTERNAL_API_ROUTES.md) — full cloud agent API
 - Source: `src/lib/cloudAgent/`
 - Routes: `src/app/api/v1/agents/tasks/`, `src/app/api/cloud/`
 - Dashboard: `src/app/(dashboard)/dashboard/cloud-agents/page.tsx`
