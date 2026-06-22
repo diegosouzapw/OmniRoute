@@ -52,6 +52,7 @@ import { TheOldLlmExecutor } from "./theoldllm.ts";
 import { ChipotleExecutor } from "./chipotle.ts";
 import { LMArenaExecutor } from "./lmarena.ts";
 import { MimocodeExecutor } from "./mimocode.ts";
+import { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -148,6 +149,8 @@ const executors = {
   lma: new LMArenaExecutor(), // Alias
   mimocode: new MimocodeExecutor(),
   mcode: new MimocodeExecutor(), // Alias
+  "codebuddy-cn": new CodeBuddyCnExecutor(),
+  cbcn: new CodeBuddyCnExecutor(), // Alias for codebuddy-cn
 };
 
 const defaultCache = new Map();
@@ -208,3 +211,4 @@ export { TheOldLlmExecutor } from "./theoldllm.ts";
 export { ChipotleExecutor } from "./chipotle.ts";
 export { LMArenaExecutor } from "./lmarena.ts";
 export { MimocodeExecutor } from "./mimocode.ts";
+export { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";

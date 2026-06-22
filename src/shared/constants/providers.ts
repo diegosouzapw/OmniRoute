@@ -125,7 +125,15 @@ export const NOAUTH_PROVIDERS = {
   },
 };
 
-export const FREE_APIKEY_PROVIDER_IDS = new Set(["qoder", "mimocode", "opencode"]);
+export const FREE_APIKEY_PROVIDER_IDS = new Set([
+  "qoder",
+  "mimocode",
+  "opencode",
+  // codebuddy-cn is OAuth-primary but the Tencent gateway also accepts a direct
+  // API key (Authorization: Bearer). Admit it through the same managed-provider
+  // gate so POST /api/providers accepts the dual-auth shape.
+  "codebuddy-cn",
+]);
 
 export function supportsApiKeyOnFreeProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && FREE_APIKEY_PROVIDER_IDS.has(providerId);
@@ -328,6 +336,19 @@ export const OAUTH_PROVIDERS = {
     authHint:
       "Requires the Devin CLI binary. Run `devin auth login` to authenticate, or provide your WINDSURF_API_KEY. Install: https://cli.devin.ai",
     website: "https://cli.devin.ai",
+  },
+  "codebuddy-cn": {
+    id: "codebuddy-cn",
+    alias: "cbcn",
+    name: "CodeBuddy CN",
+    icon: "smart_toy",
+    color: "#006EFF",
+    textIcon: "CB",
+    website: "https://copilot.tencent.com",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    authHint:
+      "Tencent CodeBuddy CN (copilot.tencent.com). Sign in via the official CLI device-code flow, or paste a direct API key (sent as Authorization: Bearer). Catalog: GLM / Kimi / MiniMax / DeepSeek / Hunyuan.",
   },
 };
 
@@ -3234,6 +3255,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "xiaomi-mimo",
   "vertex",
   "vertex-partner",
+  "codebuddy-cn",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──

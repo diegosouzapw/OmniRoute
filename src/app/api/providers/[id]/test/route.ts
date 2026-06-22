@@ -122,6 +122,13 @@ const OAUTH_TEST_CONFIG = {
     checkExpiry: true,
     refreshable: true,
   },
+  "codebuddy-cn": {
+    // Upstream test endpoint mirrors "tokenExists: true" from the CodeBuddy port —
+    // validate auth via token presence + refresh path. Live connectivity is
+    // verified through real /v2/chat/completions traffic.
+    checkExpiry: true,
+    refreshable: true,
+  },
 };
 
 import { CLI_RUNTIME_PROVIDER_MAP } from "./cliRuntimeProviderMap";

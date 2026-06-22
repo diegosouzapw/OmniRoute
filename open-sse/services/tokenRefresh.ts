@@ -463,6 +463,75 @@ export async function refreshWindsurfToken(
   }
 }
 
+/**
+ * CodeBuddy CN (Tencent) token refresh — POST /v2/plugin/auth/token/refresh with
+ * the refresh token carried in the X-Refresh-Token header (not a form body),
+ * matching the official CodeBuddy CLI. Response: { code: 0, data: <token> }.
+ */
+export async function refreshCodebuddyCnToken(
+  refreshToken: string,
+  log: any,
+  proxyConfig: unknown = null
+) {
+  if (!refreshToken) return null;
+  const { CODEBUDDY_CN_CONFIG } = await import("@/lib/oauth/constants/oauth");
+  const oauth = CODEBUDDY_CN_CONFIG;
+  try {
+    const response = await runWithProxyContext(proxyConfig, () =>
+      fetch(oauth.refreshUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "User-Agent": oauth.userAgent,
+          "X-Requested-With": "XMLHttpRequest",
+          "X-Domain": "copilot.tencent.com",
+          "X-Refresh-Token": refreshToken,
+          "X-Auth-Refresh-Source": "plugin",
+          "X-Product": "SaaS",
+        },
+        body: "{}",
+      })
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      log?.error?.("TOKEN_REFRESH", "Failed to refresh CodeBuddy CN token", {
+        status: response.status,
+        error: errorText,
+      });
+      return null;
+    }
+
+    const data: any = await response.json();
+    if (data?.code !== 0 || !data?.data?.accessToken) {
+      log?.error?.("TOKEN_REFRESH", "CodeBuddy CN token refresh returned no token", {
+        code: data?.code,
+        msg: data?.msg,
+      });
+      return null;
+    }
+
+    log?.info?.("TOKEN_REFRESH", "Successfully refreshed CodeBuddy CN token", {
+      hasNewAccessToken: !!data.data.accessToken,
+      hasNewRefreshToken: !!data.data.refreshToken,
+      expiresIn: data.data.expiresIn,
+    });
+
+    return {
+      accessToken: data.data.accessToken,
+      refreshToken: data.data.refreshToken || refreshToken,
+      expiresIn: data.data.expiresIn,
+    };
+  } catch (error: any) {
+    log?.error?.(
+      "TOKEN_REFRESH",
+      `Network error refreshing CodeBuddy CN token: ${error?.message}`
+    );
+    return null;
+  }
+}
+
 export async function refreshClineToken(refreshToken, log, proxyConfig: unknown = null) {
   const endpoint = PROVIDERS.cline?.refreshUrl;
   if (!endpoint) {
@@ -1457,6 +1526,9 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
         proxyConfig
       );
 
+    case "codebuddy-cn":
+      return await refreshCodebuddyCnToken(credentials.refreshToken, log, proxyConfig);
+
     default:
       // Fallback to generic OAuth refresh for unknown providers
       return refreshAccessToken(provider, credentials.refreshToken, credentials, log, proxyConfig);
@@ -1484,6 +1556,7 @@ export function supportsTokenRefresh(provider) {
     "windsurf",
     "devin-cli",
     "gitlab-duo",
+    "codebuddy-cn",
   ]);
   if (explicitlySupported.has(provider)) return true;
   const config = PROVIDERS[provider];

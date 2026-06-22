@@ -88,8 +88,8 @@ const ENV_KEY_RE = /(clientId|clientSecret|apiKey)Env\s*:/;
 //   TODO(6A.8): Consider tightening CRED_KEY_RE to exclude function-signature contexts — but
 //   that adds complexity; the FP rate is low (1 file). Frozen by file:line:value key.
 export const KNOWN_LITERAL_CREDS = new Set([
-  "open-sse/services/usage.ts:499:minimax", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (moved 582→499 by the OpenCode/Ollama usage extraction)
-  "open-sse/services/usage.ts:499:minimax-cn", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (moved 582→499 by the OpenCode/Ollama usage extraction)
+  "open-sse/services/usage.ts:504:minimax", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (moved to 504 by OpenCode/Ollama + codebuddy-cn import insertions)
+  "open-sse/services/usage.ts:504:minimax-cn", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (moved to 504 by OpenCode/Ollama + codebuddy-cn import insertions)
 ]);
 
 /**
