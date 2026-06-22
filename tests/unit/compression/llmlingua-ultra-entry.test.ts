@@ -56,3 +56,51 @@ test("runLlmlinguaUltra throws when the backend fail-opens (no gain)", async () 
     /no gain/
   );
 });
+
+import {
+  prewarmLlmlinguaUltra,
+  __setUltraSlmTestHooks,
+} from "../../../open-sse/services/compression/engines/llmlingua/ultraEntry.ts";
+
+test("prewarmLlmlinguaUltra fires exactly one warm call when available", async () => {
+  let calls = 0;
+  __setUltraSlmTestHooks({
+    available: true,
+    run: async (text) => {
+      calls++;
+      return text.slice(0, 1);
+    },
+  });
+  try {
+    const attempted = await prewarmLlmlinguaUltra();
+    assert.equal(attempted, true);
+    assert.equal(calls, 1);
+  } finally {
+    __resetUltraEntryForTests();
+  }
+});
+
+test("prewarmLlmlinguaUltra swallows a warm-call failure", async () => {
+  __setUltraSlmTestHooks({
+    available: true,
+    run: async () => {
+      throw new Error("load failed");
+    },
+  });
+  try {
+    const attempted = await prewarmLlmlinguaUltra(); // must NOT throw
+    assert.equal(attempted, true);
+  } finally {
+    __resetUltraEntryForTests();
+  }
+});
+
+test("prewarmLlmlinguaUltra is a no-op when unavailable", async () => {
+  __setUltraSlmTestHooks({ available: false });
+  try {
+    const attempted = await prewarmLlmlinguaUltra();
+    assert.equal(attempted, false);
+  } finally {
+    __resetUltraEntryForTests();
+  }
+});

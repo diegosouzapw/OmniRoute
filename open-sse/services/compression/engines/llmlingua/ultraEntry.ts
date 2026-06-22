@@ -90,12 +90,14 @@ export async function prewarmLlmlinguaUltra(opts?: UltraSlmOptions): Promise<boo
   if (!slmAvailable()) return false;
   try {
     // A small but non-trivial sample so the worker triggers a real model load.
-    await workerBackend(
+    // Route through `runLlmlinguaUltra` so the same backend seam (and test hook)
+    // is exercised; a no-op/throw from the worker is fine here (best-effort).
+    await runLlmlinguaUltra(
       "The quick brown fox jumps over the lazy dog while the sun sets behind the hills.",
       { model: opts?.model ?? DEFAULT_LLMLINGUA_MODEL, compressionRate: opts?.compressionRate }
     );
   } catch {
-    // swallow — pre-warm is best-effort
+    // swallow — pre-warm is best-effort (a no-op/throw from the worker is fine).
   }
   return true;
 }
