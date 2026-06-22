@@ -86,7 +86,9 @@ export function applyOutputStyles(
     return { body, applied: false, skippedReason: "no_styles" };
   }
 
-  const combined = `${buildStyleInstructions(resolved, language)}\n${SHARED_BOUNDARIES}`;
+  // Single space before the shared boundary so a legacy single-style (terse-prose)
+  // injection stays byte-identical to the old caveman output mode (D-A5 back-compat).
+  const combined = `${buildStyleInstructions(resolved, language)} ${SHARED_BOUNDARIES}`;
   const instruction = `${OUTPUT_STYLE_MARKER}\n${combined}`;
 
   const messages = Array.isArray(body.messages) ? body.messages : null;
