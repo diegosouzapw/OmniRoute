@@ -775,6 +775,18 @@ export function encodeResponseSseEvent(raw: string): { sse: string; terminal: bo
     // Keep message as the generic SSE event for non-JSON upstream payloads.
   }
 
+  // Drop frames whose data payload is empty. The codex WS upstream emits some
+  // frames (notably `codex.rate_limits`) with no data field; these are not valid
+  // Responses API SSE events. Clients that json.loads() each event's data — e.g.
+  // the OpenAI SDK's responses.stream() — raise a JSONDecodeError on the empty
+  // data, which tears down the connection and surfaces upstream as
+  // "Invalid state: Controller is already closed". Frames that DO carry a payload
+  // (including a populated codex.rate_limits) are preserved. The HTTP/SSE
+  // responses path never forwards empty frames; the WS bridge now matches that.
+  if (!payload.trim()) {
+    return { sse: "", terminal };
+  }
+
   return { sse: `event: ${eventType}\ndata: ${payload}\n\n`, terminal };
 }
 
@@ -973,15 +985,19 @@ export class CodexExecutor extends BaseExecutor {
                 : Buffer.from(event.data as Buffer).toString("utf8");
             const sseEvent = encodeResponseSseEvent(raw);
             if (closed) return;
-            try {
-              controller.enqueue(encoder.encode(sseEvent.sse));
-            } catch {
-              finishStream({
-                reason: "downstream_closed",
-                emitDone: false,
-                closeController: false,
-              });
-              return;
+            // Filtered events (codex.* / empty payload) return an empty `sse` —
+            // skip them so no empty frame reaches the client.
+            if (sseEvent.sse) {
+              try {
+                controller.enqueue(encoder.encode(sseEvent.sse));
+              } catch {
+                finishStream({
+                  reason: "downstream_closed",
+                  emitDone: false,
+                  closeController: false,
+                });
+                return;
+              }
             }
             if (sseEvent.terminal) {
               finishStream({ reason: "terminal_event" });
