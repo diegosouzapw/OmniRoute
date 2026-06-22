@@ -115,6 +115,9 @@ export default function EditConnectionModal({
     codexServiceTier: "default" as CodexServiceTier,
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
+    opencodeGoWorkspaceId: "",
+    opencodeGoAuthCookie: "",
+    ollamaCloudUsageCookie: "",
     ccCompatibleContext1m: false,
     ccCompatibleRedactThinking: false,
     cloudCodeProjectId: "",
@@ -157,6 +160,8 @@ export default function EditConnectionModal({
   const showsRegion = isVertex || isBedrock;
   const isGlm = isGlmProvider(provider);
   const isCloudflare = provider === "cloudflare-ai";
+  const isOpenCodeGo = provider === "opencode-go";
+  const isOllamaCloud = provider === "ollama-cloud";
   const openRouterPreset = useOpenRouterPresetControl(provider, t);
   const setOpenRouterPreset = openRouterPreset.setValue;
   const isCodex = provider === "codex";
@@ -218,6 +223,10 @@ export default function EditConnectionModal({
       const existingOpenRouterPreset = stringField(connection.providerSpecificData?.preset);
       const existingCx = stringField(connection.providerSpecificData?.cx);
       const existingAccountId = stringField(connection.providerSpecificData?.accountId);
+      const existingOpenCodeGoWorkspaceId =
+        stringField(connection.providerSpecificData?.opencodeGoWorkspaceId) ||
+        stringField(connection.providerSpecificData?.openCodeGoWorkspaceId) ||
+        stringField(connection.providerSpecificData?.workspaceId);
       const codexRequestDefaults = getCodexRequestDefaults(connection.providerSpecificData);
       const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
         connection.providerSpecificData
@@ -269,6 +278,9 @@ export default function EditConnectionModal({
         codexServiceTier: codexRequestDefaults.serviceTier ?? "default",
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
+        opencodeGoWorkspaceId: existingOpenCodeGoWorkspaceId,
+        opencodeGoAuthCookie: "",
+        ollamaCloudUsageCookie: "",
         ccCompatibleContext1m: ccRequestDefaults.context1m,
         ccCompatibleRedactThinking: ccRequestDefaults.redactThinking,
         cloudCodeProjectId:
@@ -497,6 +509,18 @@ export default function EditConnectionModal({
             updates.providerSpecificData.consoleApiKey = undefined;
           }
         }
+        if (isOpenCodeGo) {
+          updates.providerSpecificData.opencodeGoWorkspaceId =
+            formData.opencodeGoWorkspaceId.trim() || undefined;
+          if (formData.opencodeGoAuthCookie.trim()) {
+            updates.providerSpecificData.opencodeGoAuthCookie =
+              formData.opencodeGoAuthCookie.trim();
+          }
+        }
+        if (isOllamaCloud && formData.ollamaCloudUsageCookie.trim()) {
+          updates.providerSpecificData.ollamaCloudUsageCookie =
+            formData.ollamaCloudUsageCookie.trim();
+        }
         if (formData.validationModelId) {
           updates.providerSpecificData.validationModelId = formData.validationModelId;
         }
@@ -695,6 +719,60 @@ export default function EditConnectionModal({
             description={t("disableCoolingDescription")}
           />
         </div>
+        {isOpenCodeGo && (
+          <div className="flex flex-col gap-3 rounded-lg border border-border/50 bg-surface/20 p-4">
+            <Input
+              label={providerText(t, "opencodeGoWorkspaceIdLabel", "OpenCode Go workspace ID")}
+              name="opencodeGoWorkspaceId"
+              value={formData.opencodeGoWorkspaceId}
+              onChange={(e) => setFormData({ ...formData, opencodeGoWorkspaceId: e.target.value })}
+              placeholder="workspace_..."
+              hint={providerText(
+                t,
+                "opencodeGoWorkspaceIdHint",
+                "Required for quota scraping. Copy it from the OpenCode Go workspace URL."
+              )}
+              autoComplete="off"
+              spellCheck={false}
+            />
+            <Input
+              label={providerText(t, "opencodeGoAuthCookieLabel", "OpenCode Go auth cookie")}
+              name="opencodeGoAuthCookie"
+              type="password"
+              value={formData.opencodeGoAuthCookie}
+              onChange={(e) => setFormData({ ...formData, opencodeGoAuthCookie: e.target.value })}
+              placeholder="auth=..."
+              hint={providerText(
+                t,
+                "opencodeGoAuthCookieHint",
+                "Leave blank to keep the stored cookie. Paste auth=... or only the cookie value to replace it."
+              )}
+              autoComplete="off"
+              spellCheck={false}
+              autoCapitalize="off"
+            />
+          </div>
+        )}
+        {isOllamaCloud && (
+          <div className="flex flex-col gap-3 rounded-lg border border-border/50 bg-surface/20 p-4">
+            <Input
+              label={providerText(t, "ollamaCloudUsageCookieLabel", "Ollama Cloud usage cookie")}
+              name="ollamaCloudUsageCookie"
+              type="password"
+              value={formData.ollamaCloudUsageCookie}
+              onChange={(e) => setFormData({ ...formData, ollamaCloudUsageCookie: e.target.value })}
+              placeholder="__Secure-session=..."
+              hint={providerText(
+                t,
+                "ollamaCloudUsageCookieHint",
+                "Leave blank to keep the stored cookie. Paste the __Secure-session cookie value from ollama.com/settings to replace it."
+              )}
+              autoComplete="off"
+              spellCheck={false}
+              autoCapitalize="off"
+            />
+          </div>
+        )}
         {supportsGoogleProjectId && (
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
             {isAntigravity && (

@@ -18,7 +18,14 @@ import {
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 
-import { isHttpUrl, CODEX_REASONING_EFFORT_VALUES, REQUEST_DEFAULT_SERVICE_TIER_VALUES, upstreamHeadersRecordSchema, modelCompatPerProtocolSchema, customHeadersSchema } from "./misc.ts";
+import {
+  isHttpUrl,
+  CODEX_REASONING_EFFORT_VALUES,
+  REQUEST_DEFAULT_SERVICE_TIER_VALUES,
+  upstreamHeadersRecordSchema,
+  modelCompatPerProtocolSchema,
+  customHeadersSchema,
+} from "./misc.ts";
 
 export function validateProviderSpecificData(
   data: Record<string, unknown> | undefined,
@@ -182,6 +189,50 @@ export function validateProviderSpecificData(
       message: "providerSpecificData.consoleApiKey must be at most 10000 characters",
       path: ["consoleApiKey"],
     });
+  }
+
+  for (const key of ["openCodeGoWorkspaceId", "opencodeGoWorkspaceId", "workspaceId"] as const) {
+    const value = data[key];
+    if (value !== undefined && value !== null && typeof value !== "string") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `providerSpecificData.${key} must be a string`,
+        path: [key],
+      });
+    }
+    if (typeof value === "string" && value.length > 1000) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `providerSpecificData.${key} must be at most 1000 characters`,
+        path: [key],
+      });
+    }
+  }
+
+  for (const key of [
+    "openCodeGoAuthCookie",
+    "opencodeGoAuthCookie",
+    "authCookie",
+    "ollamaUsageCookie",
+    "ollamaCloudUsageCookie",
+    "ollamaCloudCookie",
+    "usageCookie",
+  ] as const) {
+    const value = data[key];
+    if (value !== undefined && value !== null && typeof value !== "string") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `providerSpecificData.${key} must be a string`,
+        path: [key],
+      });
+    }
+    if (typeof value === "string" && value.length > 10000) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `providerSpecificData.${key} must be at most 10000 characters`,
+        path: [key],
+      });
+    }
   }
 
   const groupTag = data.tag;
@@ -361,7 +412,10 @@ export const bulkWebSessionImportSchema = z.object({
     .array(
       z.object({
         name: z.string().min(1).max(200),
-        credential: z.string().min(1).max(64 * 1024, "Credential must be under 64 KB"),
+        credential: z
+          .string()
+          .min(1)
+          .max(64 * 1024, "Credential must be under 64 KB"),
       })
     )
     .min(1, "entries must contain at least 1 item")

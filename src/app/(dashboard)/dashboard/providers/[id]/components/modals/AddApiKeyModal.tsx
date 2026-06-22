@@ -77,6 +77,8 @@ export default function AddApiKeyModal({
   const isQoder = provider === "qoder";
   const openRouterPreset = useOpenRouterPresetControl(provider, t);
   const isCloudflare = provider === "cloudflare-ai";
+  const isOpenCodeGo = provider === "opencode-go";
+  const isOllamaCloud = provider === "ollama-cloud";
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = provider === "google-pse-search";
@@ -112,6 +114,9 @@ export default function AddApiKeyModal({
     customUserAgent: "",
     accountId: "",
     consoleApiKey: "",
+    opencodeGoWorkspaceId: "",
+    opencodeGoAuthCookie: "",
+    ollamaCloudUsageCookie: "",
     ccCompatibleContext1m: false,
     ccCompatibleRedactThinking: false,
     passthroughModels: false,
@@ -302,6 +307,17 @@ export default function AddApiKeyModal({
       }
       if (provider === "bailian-coding-plan" && formData.consoleApiKey.trim()) {
         providerSpecificData.consoleApiKey = formData.consoleApiKey.trim();
+      }
+      if (isOpenCodeGo) {
+        if (formData.opencodeGoWorkspaceId.trim()) {
+          providerSpecificData.opencodeGoWorkspaceId = formData.opencodeGoWorkspaceId.trim();
+        }
+        if (formData.opencodeGoAuthCookie.trim()) {
+          providerSpecificData.opencodeGoAuthCookie = formData.opencodeGoAuthCookie.trim();
+        }
+      }
+      if (isOllamaCloud && formData.ollamaCloudUsageCookie.trim()) {
+        providerSpecificData.ollamaCloudUsageCookie = formData.ollamaCloudUsageCookie.trim();
       }
       if (isGooglePse && formData.cx.trim()) {
         providerSpecificData.cx = formData.cx.trim();
@@ -710,6 +726,70 @@ export default function AddApiKeyModal({
               </div>
             )}
             {freeModelsToggle}
+            {isOpenCodeGo && (
+              <div className="flex flex-col gap-3 rounded-lg border border-border/50 bg-surface/20 p-4">
+                <Input
+                  label={providerText(t, "opencodeGoWorkspaceIdLabel", "OpenCode Go workspace ID")}
+                  name="opencodeGoWorkspaceId"
+                  value={formData.opencodeGoWorkspaceId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, opencodeGoWorkspaceId: e.target.value })
+                  }
+                  placeholder="workspace_..."
+                  hint={providerText(
+                    t,
+                    "opencodeGoWorkspaceIdHint",
+                    "Required for quota scraping. Copy it from the OpenCode Go workspace URL."
+                  )}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                <Input
+                  label={providerText(t, "opencodeGoAuthCookieLabel", "OpenCode Go auth cookie")}
+                  name="opencodeGoAuthCookie"
+                  type="password"
+                  value={formData.opencodeGoAuthCookie}
+                  onChange={(e) =>
+                    setFormData({ ...formData, opencodeGoAuthCookie: e.target.value })
+                  }
+                  placeholder="auth=..."
+                  hint={providerText(
+                    t,
+                    "opencodeGoAuthCookieHint",
+                    "Paste the auth cookie value from opencode.ai. The auth= prefix is accepted."
+                  )}
+                  autoComplete="off"
+                  spellCheck={false}
+                  autoCapitalize="off"
+                />
+              </div>
+            )}
+            {isOllamaCloud && (
+              <div className="flex flex-col gap-3 rounded-lg border border-border/50 bg-surface/20 p-4">
+                <Input
+                  label={providerText(
+                    t,
+                    "ollamaCloudUsageCookieLabel",
+                    "Ollama Cloud usage cookie"
+                  )}
+                  name="ollamaCloudUsageCookie"
+                  type="password"
+                  value={formData.ollamaCloudUsageCookie}
+                  onChange={(e) =>
+                    setFormData({ ...formData, ollamaCloudUsageCookie: e.target.value })
+                  }
+                  placeholder="__Secure-session=..."
+                  hint={providerText(
+                    t,
+                    "ollamaCloudUsageCookieHint",
+                    "Required for quota scraping. Paste the __Secure-session cookie value from ollama.com/settings."
+                  )}
+                  autoComplete="off"
+                  spellCheck={false}
+                  autoCapitalize="off"
+                />
+              </div>
+            )}
             {isCompatible && !isCcCompatible && (
               <p className="text-xs text-text-muted">
                 {isAnthropic

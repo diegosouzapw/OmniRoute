@@ -179,6 +179,50 @@ export function validateProviderSpecificData(
     });
   }
 
+  for (const key of ["openCodeGoWorkspaceId", "opencodeGoWorkspaceId", "workspaceId"] as const) {
+    const value = data[key];
+    if (value !== undefined && value !== null && typeof value !== "string") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `providerSpecificData.${key} must be a string`,
+        path: [key],
+      });
+    }
+    if (typeof value === "string" && value.length > 1000) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `providerSpecificData.${key} must be at most 1000 characters`,
+        path: [key],
+      });
+    }
+  }
+
+  for (const key of [
+    "openCodeGoAuthCookie",
+    "opencodeGoAuthCookie",
+    "authCookie",
+    "ollamaUsageCookie",
+    "ollamaCloudUsageCookie",
+    "ollamaCloudCookie",
+    "usageCookie",
+  ] as const) {
+    const value = data[key];
+    if (value !== undefined && value !== null && typeof value !== "string") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `providerSpecificData.${key} must be a string`,
+        path: [key],
+      });
+    }
+    if (typeof value === "string" && value.length > 10000) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `providerSpecificData.${key} must be at most 10000 characters`,
+        path: [key],
+      });
+    }
+  }
+
   const groupTag = data.tag;
   if (
     groupTag !== undefined &&

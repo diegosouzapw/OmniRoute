@@ -11,9 +11,8 @@ vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
 }));
 
-const { default: EditConnectionModal } = await import(
-  "../../../src/app/(dashboard)/dashboard/providers/[id]/components/modals/EditConnectionModal"
-);
+const { default: EditConnectionModal } =
+  await import("../../../src/app/(dashboard)/dashboard/providers/[id]/components/modals/EditConnectionModal");
 
 const FREE_TOGGLE = 'button[role="switch"][aria-label="importFreeModelsOnlyLabel"]';
 
@@ -38,6 +37,14 @@ function render(props: Record<string, unknown>) {
   return el;
 }
 
+function setInputValue(input: HTMLInputElement, value: string) {
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")!.set!;
+  act(() => {
+    setter.call(input, value);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+}
+
 async function waitFor(fn: () => boolean, timeoutMs = 2000) {
   const start = Date.now();
   while (!fn()) {
@@ -51,7 +58,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.stubGlobal(
     "fetch",
-    vi.fn(() => Promise.resolve({ ok: true, json: async () => ({}), text: async () => "" } as Response))
+    vi.fn(() =>
+      Promise.resolve({ ok: true, json: async () => ({}), text: async () => "" } as Response)
+    )
   );
   vi.stubGlobal("localStorage", {
     getItem: () => null,
@@ -157,5 +166,70 @@ describe("EditConnectionModal — import only free models", () => {
 
     await waitFor(() => onResyncModels.mock.calls.length > 0);
     expect(onResyncModels).toHaveBeenCalledWith("conn-4");
+  });
+});
+
+describe("EditConnectionModal — quota scraping fields", () => {
+  it("saves OpenCode Go workspace and replacement auth cookie", async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const el = render({
+      providerId: "opencode-go",
+      connection: {
+        id: "conn-opencode-go",
+        provider: "opencode-go",
+        name: "OpenCode Go",
+        authType: "apikey",
+        providerSpecificData: { workspaceId: "workspace-existing" },
+      },
+      onSave,
+    });
+
+    const workspaceInput = el.querySelector<HTMLInputElement>(
+      'input[name="opencodeGoWorkspaceId"]'
+    )!;
+    const cookieInput = el.querySelector<HTMLInputElement>('input[name="opencodeGoAuthCookie"]')!;
+    expect(workspaceInput.value).toBe("workspace-existing");
+    setInputValue(workspaceInput, "workspace-updated");
+    setInputValue(cookieInput, "auth=opencode-cookie");
+
+    const saveBtn = Array.from(el.querySelectorAll("button")).find(
+      (b) => b.textContent?.trim() === "save"
+    )!;
+    act(() => {
+      saveBtn.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    await waitFor(() => onSave.mock.calls.length > 0);
+    const payload = onSave.mock.calls[0][0];
+    expect(payload.providerSpecificData?.opencodeGoWorkspaceId).toBe("workspace-updated");
+    expect(payload.providerSpecificData?.opencodeGoAuthCookie).toBe("auth=opencode-cookie");
+  });
+
+  it("omits Ollama Cloud usage cookie when the edit field is left blank", async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const el = render({
+      providerId: "ollama-cloud",
+      connection: {
+        id: "conn-ollama-cloud",
+        provider: "ollama-cloud",
+        name: "Ollama Cloud",
+        authType: "apikey",
+        providerSpecificData: {},
+      },
+      onSave,
+    });
+
+    expect(el.querySelector<HTMLInputElement>('input[name="ollamaCloudUsageCookie"]')).toBeTruthy();
+
+    const saveBtn = Array.from(el.querySelectorAll("button")).find(
+      (b) => b.textContent?.trim() === "save"
+    )!;
+    act(() => {
+      saveBtn.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    await waitFor(() => onSave.mock.calls.length > 0);
+    const payload = onSave.mock.calls[0][0];
+    expect("ollamaCloudUsageCookie" in payload.providerSpecificData).toBe(false);
   });
 });

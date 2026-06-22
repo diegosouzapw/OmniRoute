@@ -209,6 +209,13 @@ export function sanitizeProviderSpecificDataForResponse(value: unknown): JsonRec
   delete sanitized.awsSecretAccessKey;
   delete sanitized.sessionToken;
   delete sanitized.awsSessionToken;
+  delete sanitized.openCodeGoAuthCookie;
+  delete sanitized.opencodeGoAuthCookie;
+  delete sanitized.authCookie;
+  delete sanitized.ollamaUsageCookie;
+  delete sanitized.ollamaCloudUsageCookie;
+  delete sanitized.ollamaCloudCookie;
+  delete sanitized.usageCookie;
   return sanitized;
 }
 

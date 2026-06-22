@@ -175,3 +175,43 @@ test("provider schemas reject oversized OpenRouter preset values", () => {
   assert.equal(created.success, false);
   assert.equal(updated.success, false);
 });
+
+test("provider schemas accept quota scraping provider-specific strings", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "opencode-go",
+    apiKey: "token",
+    name: "OpenCode Go",
+    providerSpecificData: {
+      opencodeGoWorkspaceId: "workspace-123",
+      opencodeGoAuthCookie: "auth=cookie-value",
+    },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      ollamaCloudUsageCookie: "__Secure-session=cookie-value",
+    },
+  });
+
+  assert.equal(created.success, true);
+  assert.equal(updated.success, true);
+});
+
+test("provider schemas reject malformed quota scraping provider-specific values", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "opencode-go",
+    apiKey: "token",
+    name: "OpenCode Go",
+    providerSpecificData: {
+      opencodeGoWorkspaceId: 123,
+      opencodeGoAuthCookie: "x".repeat(10001),
+    },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      ollamaCloudUsageCookie: 123,
+    },
+  });
+
+  assert.equal(created.success, false);
+  assert.equal(updated.success, false);
+});
