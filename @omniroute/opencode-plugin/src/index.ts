@@ -240,10 +240,18 @@ export function resolveOmniRoutePluginOptions(
   opts?: OmniRoutePluginOptions
 ): Required<Pick<OmniRoutePluginOptions, "providerId" | "displayName" | "modelCacheTtl">> &
   Pick<OmniRoutePluginOptions, "baseURL" | "features"> {
-  const providerId = opts?.providerId ?? OMNIROUTE_PROVIDER_KEY;
+  const rawProviderId = opts?.providerId ?? OMNIROUTE_PROVIDER_KEY;
+  // OC 1.17.8+ native-adapter gate rejects providerID not in
+  // {openai, anthropic, opencode*}. Silently prefix so existing
+  // configs (providerId: "omniroute") keep working.
+  const providerId = rawProviderId.startsWith("opencode-")
+    ? rawProviderId
+    : `opencode-${rawProviderId}`;
   const displayName =
     opts?.displayName ??
-    (providerId === OMNIROUTE_PROVIDER_KEY ? "OmniRoute" : `OmniRoute (${providerId})`);
+    (providerId === `opencode-${OMNIROUTE_PROVIDER_KEY}`
+      ? "OmniRoute"
+      : `OmniRoute (${providerId})`);
   const modelCacheTtl =
     typeof opts?.modelCacheTtl === "number" && opts.modelCacheTtl > 0
       ? opts.modelCacheTtl

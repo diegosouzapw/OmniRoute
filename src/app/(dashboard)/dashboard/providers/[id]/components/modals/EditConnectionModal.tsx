@@ -683,9 +683,7 @@ export default function EditConnectionModal({
           {showFreeModelsToggle && (
             <Toggle
               checked={formData.importFreeModelsOnly}
-              onChange={(checked) =>
-                setFormData({ ...formData, importFreeModelsOnly: checked })
-              }
+              onChange={(checked) => setFormData({ ...formData, importFreeModelsOnly: checked })}
               label={t("importFreeModelsOnlyLabel")}
               description={t("importFreeModelsOnlyHint")}
             />
@@ -1020,10 +1018,9 @@ export default function EditConnectionModal({
                 return (
                   <div className="flex items-center gap-2">
                     <span
-                      className={`flex-1 font-mono text-xs bg-sidebar/50 px-3 py-2 rounded border border-border truncate ${statusColor}`}
+                      className={`flex-1 min-w-0 break-all font-mono text-xs bg-sidebar/50 px-3 py-2 rounded border border-border ${statusColor}`}
                     >
-                      {statusIcon} {t("primaryKey")}: {connection.apiKey.slice(0, 6)}...
-                      {connection.apiKey.slice(-4)}
+                      {statusIcon} {t("primaryKey")}: {connection.apiKey}
                     </span>
                     {health && (
                       <span

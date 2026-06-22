@@ -8,7 +8,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { classifyErrorText, parseRetryFromErrorText, checkFallbackError } =
+const { classifyErrorText, parseRetryFromErrorText, checkFallbackError, getProviderProfile } =
   await import("../../open-sse/services/accountFallback.ts");
 const { RateLimitReason } = await import("../../open-sse/config/constants.ts");
 
@@ -70,15 +70,32 @@ test("#2321 checkFallbackError returns ~1h cooldown for OAuth 429 + Usage Limit 
   );
 });
 
-test("#2321 checkFallbackError honors ISO timestamp from body when present", () => {
-  const futureMs = 45 * 60 * 1000;
-  const future = new Date(Date.now() + futureMs).toISOString();
+test("#2321 checkFallbackError ignores ISO timestamp when upstream retry hints are disabled", () => {
+  const future = new Date(Date.now() + 45 * 60 * 1000).toISOString();
   const out = checkFallbackError(
     429,
     `Claude Pro usage limit reached. Try again at ${future}`,
     0,
     null,
     "claude"
+  );
+  assert.equal(out.reason, RateLimitReason.QUOTA_EXHAUSTED);
+  assert.equal(out.usedUpstreamRetryHint, false);
+  assert.equal(out.cooldownMs, 60 * 60 * 1000);
+});
+
+test("#2321 checkFallbackError honors ISO timestamp when upstream retry hints are enabled", () => {
+  const futureMs = 45 * 60 * 1000;
+  const future = new Date(Date.now() + futureMs).toISOString();
+  const profile = { ...getProviderProfile("claude"), useUpstreamRetryHints: true };
+  const out = checkFallbackError(
+    429,
+    `Claude Pro usage limit reached. Try again at ${future}`,
+    0,
+    null,
+    "claude",
+    null,
+    profile
   );
   assert.equal(out.reason, RateLimitReason.QUOTA_EXHAUSTED);
   // Within ~30s of the requested wait time.
