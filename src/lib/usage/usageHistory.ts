@@ -215,25 +215,17 @@ const pendingRequests: {
  */
 const pendingById = new Map<string, PendingRequestDetail>();
 
-/**
- * Orphaned-pending-request reaper.
- *
- * Pending details are normally removed when a request finalizes (clean completion,
- * tracked error, client cancel). But a request that never finalizes cleanly — an
- * upstream/fetch error thrown before the finalize call, a client disconnect, or a
- * process-level timeout — leaves its detail in `pendingById` (and `pendingRequests.details`)
- * forever, each retaining truncated request/response payload previews. Under real proxy
- * traffic a steady fraction of requests terminate abnormally, so this grows monotonically
- * (previously only an admin reset via clearPendingRequests() could free it).
- *
- * The reaper drops entries whose `startedAt` is older than MAX_PENDING_REQUEST_AGE_MS — far
- * longer than any genuine request — so only truly-orphaned entries are evicted; a live
- * request always finalizes long before that. MAX_PENDING_DETAILS is a hard backstop.
- */
-const MAX_PENDING_REQUEST_AGE_MS = 15 * 60 * 1000;
+const DEFAULT_MAX_PENDING_REQUEST_AGE_MS = 60 * 60 * 1000;
 const MAX_PENDING_DETAILS = 5000;
 const PENDING_SWEEP_INTERVAL_MS = 5 * 60 * 1000;
 let _pendingSweepTimer: ReturnType<typeof setInterval> | null = null;
+
+export function getMaxPendingRequestAgeMs(
+  rawValue: string | undefined = process.env.MAX_PENDING_REQUEST_AGE_MS
+): number {
+  const parsed = Number.parseInt(rawValue ?? "", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_PENDING_REQUEST_AGE_MS;
+}
 
 function ensurePendingSweepTimer(): void {
   if (_pendingSweepTimer || typeof setInterval !== "function") return;
@@ -256,7 +248,7 @@ function ensurePendingSweepTimer(): void {
  */
 export function sweepStalePendingRequests(
   now: number = Date.now(),
-  maxAgeMs: number = MAX_PENDING_REQUEST_AGE_MS
+  maxAgeMs: number = getMaxPendingRequestAgeMs()
 ): number {
   let removed = 0;
 
@@ -347,12 +339,13 @@ export function trackPendingRequest(
       if (!pendingRequests.details[connectionId][modelKey]) {
         pendingRequests.details[connectionId][modelKey] = [];
       }
+      const now = Date.now();
       const newDetail = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        id: `${now}-${Math.random().toString(36).slice(2, 8)}`,
         model,
         provider,
         connectionId,
-        startedAt: Date.now(),
+        startedAt: now,
         ...normalizedMetadata,
       };
       pendingRequests.details[connectionId][modelKey].push(newDetail);
