@@ -1,12 +1,18 @@
 import { spawn } from "node:child_process";
 import { dirname } from "node:path";
 import { writePidFile, cleanupPidFile, killAllSubprocesses } from "../utils/pid.mjs";
+import {
+  RESTART_RESET_MS,
+  DEFAULT_MAX_RESTARTS,
+  shouldExitInsteadOfRestart,
+  computeRestartDelayMs,
+  waitUntilPortFree,
+} from "./supervisorPolicy.mjs";
 
 const CRASH_LOG_LINES = 50;
-const RESTART_RESET_MS = 30_000;
 
 export class ServerSupervisor {
-  constructor({ serverPath, env, maxRestarts = 2, memoryLimit = 512, onCrashCallback }) {
+  constructor({ serverPath, env, maxRestarts = DEFAULT_MAX_RESTARTS, memoryLimit = 512, onCrashCallback }) {
     this.serverPath = serverPath;
     this.env = env;
     this.maxRestarts = maxRestarts;
@@ -54,7 +60,10 @@ export class ServerSupervisor {
     const exitCode = typeof code === "number" ? code : null;
     cleanupPidFile("server");
 
-    if (this.isShuttingDown || exitCode === 0) {
+    // #4425: only exit on an intentional shutdown. A spontaneous code-0 exit (e.g. a
+    // systemd MemoryMax cgroup kill, which reports the process exited cleanly) is anomalous
+    // and must be restarted, not treated as a graceful stop that leaves the gateway dead.
+    if (shouldExitInsteadOfRestart(this.isShuttingDown)) {
       process.exit(exitCode ?? 0);
       return;
     }
@@ -79,12 +88,18 @@ export class ServerSupervisor {
     }
 
     this.restartCount++;
-    const delay = Math.min(1000 * 2 ** (this.restartCount - 1), 10_000);
+    const delay = computeRestartDelayMs(this.restartCount);
     console.error(
       `\n⚠ Server exited (code=${code ?? "?"}). Restarting in ${delay / 1000}s... (${this.restartCount}/${this.maxRestarts})`
     );
     if (this.crashLog.length) this.dumpCrashLog();
-    setTimeout(() => this.start(), delay);
+    // #4425: after a crash the OS may not have released the listen socket yet — restarting
+    // immediately produced the EADDRINUSE cascade that exhausted the restart budget. Wait
+    // (bounded) for the port to free up before respawning.
+    setTimeout(async () => {
+      await waitUntilPortFree(process.env.PORT || 20128);
+      this.start();
+    }, delay);
   }
 
   dumpCrashLog() {

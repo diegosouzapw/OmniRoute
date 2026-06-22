@@ -330,19 +330,31 @@ export function scoreAutoTargets(
   weights: ScoringWeights,
   manifestHint?: RoutingHint | null
 ) {
-  const candidateByExecutionKey = new Map(
-    candidates.map((candidate: ProviderCandidate & { executionKey: string }) => [
-      candidate.executionKey,
-      candidate,
-    ])
-  );
-  return targets
-    .map((target) => {
-      const candidate = candidateByExecutionKey.get(target.executionKey);
-      if (!candidate) return null;
+  const targetByExecutionKey = new Map(targets.map((target) => [target.executionKey, target]));
+  const activeCandidates = candidates.filter((candidate) => candidate.quotaCutoffBlocked !== true);
+
+  return activeCandidates
+    .map((candidate) => {
+      const baseTarget =
+        targetByExecutionKey.get(candidate.executionKey) ||
+        targets.find(
+          (target) =>
+            target.stepId === candidate.stepId ||
+            (target.provider === candidate.provider && target.modelStr === candidate.modelStr)
+        );
+      if (!baseTarget) return null;
+
+      const target: ResolvedComboTarget = {
+        ...baseTarget,
+        stepId: candidate.stepId,
+        executionKey: candidate.executionKey,
+        modelStr: candidate.modelStr,
+        provider: candidate.provider,
+        connectionId: candidate.connectionId ?? baseTarget.connectionId,
+      };
       const factors = calculateFactors(
         candidate as ProviderCandidate,
-        candidates,
+        activeCandidates,
         taskType ?? "general",
         getTaskFitness,
         manifestHint ?? undefined

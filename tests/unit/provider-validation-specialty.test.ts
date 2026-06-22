@@ -367,15 +367,15 @@ test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and
 });
 
 test("web-cookie provider validators surface auth and subscription failures", async () => {
-  __setGrokTlsFetchOverride(async () => ({
-    status: 401,
-    headers: new Headers(),
-    text: "Unauthorized",
-    body: null,
-  }));
+  // Perplexity uses tlsFetchPerplexity (TLS-impersonating client). Return 403 to simulate
+  // an invalid session cookie so the validator emits the expected error message.
   __setPplxTlsFetchOverride(async () => {
     return { status: 403, headers: new Headers(), text: null, body: null };
   });
+  __setGrokTlsFetchOverride(async () => {
+    return { status: 401, headers: new Headers(), text: "Unauthorized", body: null };
+  });
+
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
     if (target.includes("app.blackbox.ai/api/auth/session")) {

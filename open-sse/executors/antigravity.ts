@@ -769,6 +769,15 @@ export class AntigravityExecutor extends BaseExecutor {
       // Claude model served via Antigravity. Drop them so they never reach the envelope.
       output_config: _outputConfig,
       output_format: _outputFormat,
+      // #1926: the unified thinking adapter can also set Claude/OpenAI-native thinking fields
+      // at the body root. Google rejects them with `400 Bad input: oneOf at '/' not met`
+      // (or `Unknown name "thinking"`), breaking every reasoning/thinking model served via
+      // Antigravity (e.g. claude-opus-4-x-thinking). Strip the whole thinking family too.
+      thinking: _thinking,
+      reasoning_effort: _reasoningEffort,
+      reasoning: _reasoning,
+      enable_thinking: _enableThinking,
+      thinking_budget: _thinkingBudget,
       ...passthroughFields
     } = normalizedBody;
 

@@ -585,8 +585,21 @@ export function handleNoCredentials(
     return errorResponse(lastStatus, lastError);
   }
   if (!excludeConnectionId) {
-    log.error("AUTH", `No credentials for provider: ${provider}`);
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
+    // Ported from upstream decolua/9router#336 (Ibrahim Ryan): surface as 404
+    // NOT_FOUND instead of 400 BAD_REQUEST so combo routing can fall through to
+    // the next target. The combo target loop (open-sse/services/combo.ts) treats
+    // 400 as a hard stop to break body-specific infinite fallback loops
+    // (PR #4316 / issue #4279). 404 flows through checkFallbackError as
+    // `shouldFallback: true` (generic-error catch-all path in
+    // open-sse/services/accountFallback.ts), letting a combo like
+    // `antigravity/opus → github/opus` skip a provider whose credentials are
+    // all disabled. log level is `warn` rather than `error` because zero active
+    // credentials is an expected operator-driven state, not a server fault.
+    log.warn("AUTH", `No active credentials for provider: ${provider}`);
+    return errorResponse(
+      HTTP_STATUS.NOT_FOUND,
+      `No active credentials for provider: ${provider}`
+    );
   }
   log.warn("CHAT", "No more accounts available", { provider });
   return errorResponse(
@@ -742,6 +755,26 @@ export function withSessionHeader(response: Response, sessionId: string | null):
       headers: response.headers,
     });
     cloned.headers.set("X-OmniRoute-Session-Id", sessionId);
+    return cloned;
+  }
+}
+
+export function withSelectedConnectionHeader(
+  response: Response,
+  connectionId: string | null | undefined
+): Response {
+  if (!response || !connectionId) return response;
+
+  try {
+    response.headers.set("X-OmniRoute-Selected-Connection-Id", connectionId);
+    return response;
+  } catch {
+    const cloned = new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+    cloned.headers.set("X-OmniRoute-Selected-Connection-Id", connectionId);
     return cloned;
   }
 }

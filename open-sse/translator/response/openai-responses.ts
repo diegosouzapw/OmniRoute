@@ -465,7 +465,7 @@ function flushEvents(state) {
   return events;
 }
 
-function normalizeUpstreamFailure(data, fallbackType = "server_error") {
+export function normalizeUpstreamFailure(data, fallbackType = "server_error") {
   const response = data?.response && typeof data.response === "object" ? data.response : null;
   const error =
     response?.error && typeof response.error === "object"
@@ -482,10 +482,29 @@ function normalizeUpstreamFailure(data, fallbackType = "server_error") {
         ? data.message
         : "Upstream failure";
 
+  // Preserve upstream error semantics:
+  // - context_length_exceeded → 400 (client can retry with smaller context)
+  // - rate_limit_exceeded → 429 (client should back off)
+  // - Everything else → 502 (upstream failure)
+  const isContextOverflow = code === "context_length_exceeded";
+  const isRateLimit = code === "rate_limit_exceeded" || code === "rate_limited";
+  let status: number;
+  let type: string;
+  if (isRateLimit) {
+    status = 429;
+    type = "rate_limit_error";
+  } else if (isContextOverflow) {
+    status = 400;
+    type = "invalid_request_error";
+  } else {
+    status = 502;
+    type = fallbackType;
+  }
+
   return {
-    status: code === "rate_limit_exceeded" ? 429 : 502,
-    type: code === "rate_limit_exceeded" ? "rate_limit_error" : fallbackType,
-    code: code || (fallbackType === "rate_limit_error" ? "rate_limit_exceeded" : "bad_gateway"),
+    status,
+    type,
+    code: code || (isRateLimit ? "rate_limit_exceeded" : "bad_gateway"),
     message,
   };
 }

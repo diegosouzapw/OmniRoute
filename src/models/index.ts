@@ -8,6 +8,7 @@ export {
   deleteProviderConnections,
   getProviderNodes,
   getProviderNodeById,
+  resolveProviderNodeForConnection,
   createProviderNode,
   updateProviderNode,
   deleteProviderNode,
@@ -24,4 +25,5 @@ export {
   validateApiKey,
   isCloudEnabled,
   resolveProxyForProvider,
+  getHiddenModelsByProvider,
 } from "@/lib/localDb";

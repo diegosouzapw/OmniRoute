@@ -364,8 +364,10 @@ test("unmapped custom model requests fail after combo resolution falls through",
   );
   const json = (await response.json()) as any;
 
-  assert.equal(response.status, 400);
-  assert.match(json.error.message, /No credentials for provider: tenant/);
+  // Upstream port decolua/9router#336: 400 → 404 so combo routing can fall through
+  // to the next target when a provider has zero usable credentials.
+  assert.equal(response.status, 404);
+  assert.match(json.error.message, /No active credentials for provider: tenant/);
 });
 
 test("strategy updates take effect for later requests on the same combo name", async () => {

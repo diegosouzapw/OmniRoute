@@ -17,6 +17,7 @@ import {
   type AutoCategory,
   type AutoTier,
 } from "./suffixComposition";
+import { getHiddenModelsByProvider } from "@/models";
 
 /** #4235 Phase B: optional category/tier overlay for `auto/<category>:<tier>` combos. */
 export interface AutoComboSpec {
@@ -235,6 +236,7 @@ export async function createVirtualAutoCombo(
   const blockedProviders = new Set(
     Array.isArray(settings.blockedProviders) ? (settings.blockedProviders as string[]) : []
   );
+  const hiddenModelsMap = getHiddenModelsByProvider();
 
   const validConnections = connections.filter(hasUsableConnectionCredential);
 
@@ -249,6 +251,10 @@ export async function createVirtualAutoCombo(
       modelId = firstModel?.id;
     }
     if (!modelId) continue; // Skip providers without a model
+
+    // Skip models that the user has hidden in the dashboard
+    const hiddenModels = hiddenModelsMap.get(conn.provider);
+    if (hiddenModels?.has(modelId)) continue;
 
     candidatePool.push({
       provider: conn.provider,

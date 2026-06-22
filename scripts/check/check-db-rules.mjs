@@ -47,7 +47,7 @@ export const INTENTIONALLY_INTERNAL = new Set([
   "comboForecast", // intentionally-internal: src/lib/usage/comboForecast.ts
   "commandCodeAuth", // intentionally-internal: 5 API routes em /api/providers/command-code/auth/*
   "compression", // intentionally-internal: 2 API routes (settings/compression, context/rtk/config)
-  "compressionScheduler", // DEAD?: 0 importers na auditoria de 2026-06-11; mantido para schema reservation
+  "vacuumScheduler", // intentionally-internal: src/instrumentation-node.ts (dynamic import, lifecycle wiring per Rule #2)
   "detailedLogs", // intentionally-internal: 3 callers (callLogs.ts, logs/detail route, embeddings handler)
   "discovery", // DEAD?: 0 importers na auditoria de 2026-06-11; lib/discovery/index.ts não usa db/discovery
   "domainState", // intentionally-internal: 5 callers (batchWriter, circuitBreaker, costRules, fallbackPolicy, lockoutPolicy)
@@ -59,6 +59,7 @@ export const INTENTIONALLY_INTERNAL = new Set([
   "obsidian", // intentionally-internal: src/lib/obsidianSync.ts + settings/obsidian route + MCP obsidianTools.ts
   "pluginMetrics", // DEAD? (production): write path não foi conectado ainda (documentado no cabeçalho do módulo); testado por tests/unit/plugins-metrics.test.ts
   "prompts", // DEAD? (production): zero callers de produção encontrados; domínio domain/prompts.ts é independente; testado por tests/integration/proxy-pipeline.test.ts
+  "providerNodeSelect", // db-internal: importado só por db/providers.ts (selectProviderNodeForConnection — lógica pura de seleção de provider node split do providers.ts, #4421)
   "providerStats", // intentionally-internal: src/app/api/provider-stats/route.ts
   "recovery", // intentionally-internal: bin/cli/runtime.mjs (import() dinâmico) + tests
   "secrets", // intentionally-internal: src/instrumentation-node.ts (import() dinâmico na inicialização)
