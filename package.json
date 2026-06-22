@@ -145,6 +145,7 @@
     "check:complexity": "node scripts/check/check-complexity.mjs",
     "check:dead-code": "node scripts/check/check-dead-code.mjs",
     "check:cognitive-complexity": "node scripts/check/check-cognitive-complexity.mjs",
+    "check:release-green": "node scripts/quality/validate-release-green.mjs",
     "check:type-coverage": "node scripts/check/check-type-coverage.mjs",
     "check:lockfile": "node scripts/check/check-lockfile.mjs",
     "check:bundle-size": "node scripts/check/check-bundle-size.mjs",
