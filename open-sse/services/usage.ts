@@ -37,6 +37,10 @@ import {
 } from "../executors/antigravity.ts";
 import { getCreditsMode } from "./antigravityCredits.ts";
 import { CLAUDE_CODE_VERSION, fetchClaudeBootstrap } from "../executors/claudeIdentity.ts";
+import {
+  isClaudeOauthUsageCoolingDown,
+  markClaudeOauthUsage429,
+} from "./claudeUsageCooldown.ts";
 import { generateAntigravityRequestId, getAntigravitySessionId } from "./antigravityIdentity.ts";
 import {
   extractCodeAssistOnboardTierId,
@@ -2564,6 +2568,12 @@ async function getClaudeUsage(accessToken?: string) {
 
   // Refresh bootstrap in parallel; best-effort, failure non-fatal.
   const bootstrapPromise = fetchClaudeBootstrap(accessToken).catch(() => null);
+  // Skip OAuth usage call while this token is cooling down from a recent 429
+  // (chat with the same token still works — only the quota endpoint is throttled).
+  if (isClaudeOauthUsageCoolingDown(accessToken)) {
+    const legacy = await getClaudeUsageLegacy(accessToken);
+    return { ...legacy, bootstrap: await bootstrapPromise };
+  }
   try {
     // Real CLI uses axios here, not Stainless — UA is `claude-code/<version>`
     // (not `claude-cli/...`) and the shape is simpler than /v1/messages.
@@ -2647,6 +2657,11 @@ async function getClaudeUsage(accessToken?: string) {
         extraUsage: data.extra_usage ?? null,
         bootstrap,
       };
+    }
+
+    // Cool down OAuth usage polling after a 429 (quota endpoint only — chat is unaffected).
+    if (oauthResponse.status === 429) {
+      markClaudeOauthUsage429(accessToken);
     }
 
     // Fallback: OAuth endpoint returned non-OK, try legacy settings/org endpoint
