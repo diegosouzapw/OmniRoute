@@ -33,7 +33,6 @@ const MIN_FETCH_INTERVAL_MS = 30000;
 const QUOTA_BAR_GREEN_THRESHOLD = 50;
 const QUOTA_BAR_YELLOW_THRESHOLD = 20;
 
-// Display label per known provider; the icon is resolved by ProviderIcon.
 const PROVIDER_LABEL: Record<string, string> = {
   antigravity: "Antigravity",
   "gemini-cli": "Gemini CLI",
@@ -54,8 +53,7 @@ const PROVIDER_LABEL: Record<string, string> = {
   deepseek: "DeepSeek",
 };
 
-// Group ordering — single source of truth for "where does Codex sit
-// relative to Antigravity on the page".
+// Group ordering — single source of truth for provider placement.
 const PROVIDER_ORDER: Record<string, number> = {
   antigravity: 1,
   "gemini-cli": 2,

@@ -35,7 +35,6 @@ import { isUserCallableAgyModelId } from "@omniroute/open-sse/config/agyModels.t
 import { onUsageRecorded } from "./usageEvents";
 
 type JsonRecord = Record<string, unknown>;
-
 type SyncSource = "manual" | "scheduled";
 
 interface ProviderConnectionLike {

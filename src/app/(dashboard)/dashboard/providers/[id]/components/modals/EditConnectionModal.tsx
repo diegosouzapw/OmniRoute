@@ -49,7 +49,8 @@ import { getWebSessionCredentialRequirement } from "../../webSessionCredentials"
 import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
-import { mergeCcCompatibleRequestDefaults } from "./ccCompatibleRequestDefaults";
+import { assignEditApiKeyProviderSpecificData } from "./connectionProviderSpecificData";
+import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
 
 export interface EditConnectionModalConnection {
   id?: string;
@@ -115,9 +116,7 @@ export default function EditConnectionModal({
     codexServiceTier: "default" as CodexServiceTier,
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
-    opencodeGoWorkspaceId: "",
-    opencodeGoAuthCookie: "",
-    ollamaCloudUsageCookie: "",
+    ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
     ccCompatibleRedactThinking: false,
     cloudCodeProjectId: "",
@@ -160,8 +159,6 @@ export default function EditConnectionModal({
   const showsRegion = isVertex || isBedrock;
   const isGlm = isGlmProvider(provider);
   const isCloudflare = provider === "cloudflare-ai";
-  const isOpenCodeGo = provider === "opencode-go";
-  const isOllamaCloud = provider === "ollama-cloud";
   const openRouterPreset = useOpenRouterPresetControl(provider, t);
   const setOpenRouterPreset = openRouterPreset.setValue;
   const isCodex = provider === "codex";
@@ -494,57 +491,24 @@ export default function EditConnectionModal({
       if (!isOAuth) {
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
-          extraApiKeys: extraApiKeys.filter((k) => k.trim().length > 0),
-          tag: formData.tag.trim() || undefined,
-          tags: parseRoutingTagsInput(formData.routingTags),
-          excludedModels: parseExcludedModelsInput(formData.excludedModels),
-          customUserAgent: formData.customUserAgent.trim(),
-          ...openRouterPreset.getPatch(),
-          ...(formData.passthroughModels ? { passthroughModels: true } : {}),
         };
-        if (provider === "bailian-coding-plan") {
-          if (formData.consoleApiKey.trim()) {
-            updates.providerSpecificData.consoleApiKey = formData.consoleApiKey.trim();
-          } else {
-            updates.providerSpecificData.consoleApiKey = undefined;
-          }
-        }
-        if (isOpenCodeGo) {
-          updates.providerSpecificData.opencodeGoWorkspaceId =
-            formData.opencodeGoWorkspaceId.trim() || undefined;
-          if (formData.opencodeGoAuthCookie.trim()) {
-            updates.providerSpecificData.opencodeGoAuthCookie =
-              formData.opencodeGoAuthCookie.trim();
-          }
-        }
-        if (isOllamaCloud && formData.ollamaCloudUsageCookie.trim()) {
-          updates.providerSpecificData.ollamaCloudUsageCookie =
-            formData.ollamaCloudUsageCookie.trim();
-        }
-        if (formData.validationModelId) {
-          updates.providerSpecificData.validationModelId = formData.validationModelId;
-        }
-        if (isGooglePse) {
-          updates.providerSpecificData.cx = formData.cx.trim() || undefined;
-        }
-        if (usesBaseUrl) {
-          updates.providerSpecificData.baseUrl = validatedBaseUrl;
-        } else if (showsRegion) {
-          updates.providerSpecificData.region = formData.region.trim() || defaultRegion;
-        } else if (isGlm) {
-          updates.providerSpecificData.apiRegion = formData.apiRegion;
-        } else if (isCloudflare && formData.accountId.trim()) {
-          updates.providerSpecificData.accountId = formData.accountId.trim();
-        }
-        if (supportsGoogleProjectId) {
-          updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
-        }
-        if (isCcCompatible) {
-          updates.providerSpecificData.requestDefaults = mergeCcCompatibleRequestDefaults(
-            updates.providerSpecificData.requestDefaults,
-            formData
-          );
-        }
+        assignEditApiKeyProviderSpecificData({
+          provider,
+          formData,
+          target: updates.providerSpecificData,
+          extraApiKeys,
+          openRouterPreset,
+          usesBaseUrl,
+          validatedBaseUrl,
+          showsRegion,
+          defaultRegion,
+          isGlm,
+          isCloudflare,
+          supportsGoogleProjectId,
+          trimmedCloudCodeProjectId,
+          isGooglePse,
+          isCcCompatible,
+        });
       } else {
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
@@ -719,60 +683,13 @@ export default function EditConnectionModal({
             description={t("disableCoolingDescription")}
           />
         </div>
-        {isOpenCodeGo && (
-          <div className="flex flex-col gap-3 rounded-lg border border-border/50 bg-surface/20 p-4">
-            <Input
-              label={providerText(t, "opencodeGoWorkspaceIdLabel", "OpenCode Go workspace ID")}
-              name="opencodeGoWorkspaceId"
-              value={formData.opencodeGoWorkspaceId}
-              onChange={(e) => setFormData({ ...formData, opencodeGoWorkspaceId: e.target.value })}
-              placeholder="workspace_..."
-              hint={providerText(
-                t,
-                "opencodeGoWorkspaceIdHint",
-                "Required for quota scraping. Copy it from the OpenCode Go workspace URL."
-              )}
-              autoComplete="off"
-              spellCheck={false}
-            />
-            <Input
-              label={providerText(t, "opencodeGoAuthCookieLabel", "OpenCode Go auth cookie")}
-              name="opencodeGoAuthCookie"
-              type="password"
-              value={formData.opencodeGoAuthCookie}
-              onChange={(e) => setFormData({ ...formData, opencodeGoAuthCookie: e.target.value })}
-              placeholder="auth=..."
-              hint={providerText(
-                t,
-                "opencodeGoAuthCookieHint",
-                "Leave blank to keep the stored cookie. Paste auth=... or only the cookie value to replace it."
-              )}
-              autoComplete="off"
-              spellCheck={false}
-              autoCapitalize="off"
-            />
-          </div>
-        )}
-        {isOllamaCloud && (
-          <div className="flex flex-col gap-3 rounded-lg border border-border/50 bg-surface/20 p-4">
-            <Input
-              label={providerText(t, "ollamaCloudUsageCookieLabel", "Ollama Cloud usage cookie")}
-              name="ollamaCloudUsageCookie"
-              type="password"
-              value={formData.ollamaCloudUsageCookie}
-              onChange={(e) => setFormData({ ...formData, ollamaCloudUsageCookie: e.target.value })}
-              placeholder="__Secure-session=..."
-              hint={providerText(
-                t,
-                "ollamaCloudUsageCookieHint",
-                "Leave blank to keep the stored cookie. Paste the __Secure-session cookie value from ollama.com/settings to replace it."
-              )}
-              autoComplete="off"
-              spellCheck={false}
-              autoCapitalize="off"
-            />
-          </div>
-        )}
+        <QuotaScrapingFields
+          provider={provider}
+          values={formData}
+          onChange={(patch) => setFormData({ ...formData, ...patch })}
+          t={t}
+          editMode
+        />
         {supportsGoogleProjectId && (
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
             {isAntigravity && (

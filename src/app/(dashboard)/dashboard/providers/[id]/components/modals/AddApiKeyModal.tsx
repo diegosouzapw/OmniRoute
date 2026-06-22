@@ -12,8 +12,6 @@ import {
   getProviderBaseUrlHint,
   getProviderBaseUrlPlaceholder,
   isGlmProvider,
-  parseRoutingTagsInput,
-  parseExcludedModelsInput,
   getWebSessionCredentialLabel,
   getWebSessionCredentialHint,
   getWebSessionCredentialCheckLabel,
@@ -28,7 +26,8 @@ import { getWebSessionCredentialRequirement } from "../../webSessionCredentials"
 import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
-import { assignCcCompatibleRequestDefaults } from "./ccCompatibleRequestDefaults";
+import { buildAddProviderSpecificData } from "./connectionProviderSpecificData";
+import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
 
 export interface AddApiKeyModalProps {
   isOpen: boolean;
@@ -77,8 +76,6 @@ export default function AddApiKeyModal({
   const isQoder = provider === "qoder";
   const openRouterPreset = useOpenRouterPresetControl(provider, t);
   const isCloudflare = provider === "cloudflare-ai";
-  const isOpenCodeGo = provider === "opencode-go";
-  const isOllamaCloud = provider === "ollama-cloud";
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = provider === "google-pse-search";
@@ -114,9 +111,7 @@ export default function AddApiKeyModal({
     customUserAgent: "",
     accountId: "",
     consoleApiKey: "",
-    opencodeGoWorkspaceId: "",
-    opencodeGoAuthCookie: "",
-    ollamaCloudUsageCookie: "",
+    ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
     ccCompatibleRedactThinking: false,
     passthroughModels: false,
@@ -288,58 +283,27 @@ export default function AddApiKeyModal({
         }
       }
 
-      const providerSpecificData: Record<string, unknown> = {};
-      if (formData.customUserAgent.trim()) {
-        providerSpecificData.customUserAgent = formData.customUserAgent.trim();
-      }
-      openRouterPreset.applyTo(providerSpecificData);
-      if (formData.routingTags.trim()) {
-        providerSpecificData.tags = parseRoutingTagsInput(formData.routingTags);
-      }
-      if (formData.excludedModels.trim()) {
-        providerSpecificData.excludedModels = parseExcludedModelsInput(formData.excludedModels);
-      }
-      if (formData.passthroughModels) {
-        providerSpecificData.passthroughModels = true;
-      }
-      if (showFreeModelsToggle && formData.importFreeModelsOnly) {
-        providerSpecificData.importFreeModelsOnly = true;
-      }
-      if (provider === "bailian-coding-plan" && formData.consoleApiKey.trim()) {
-        providerSpecificData.consoleApiKey = formData.consoleApiKey.trim();
-      }
-      if (isOpenCodeGo) {
-        if (formData.opencodeGoWorkspaceId.trim()) {
-          providerSpecificData.opencodeGoWorkspaceId = formData.opencodeGoWorkspaceId.trim();
-        }
-        if (formData.opencodeGoAuthCookie.trim()) {
-          providerSpecificData.opencodeGoAuthCookie = formData.opencodeGoAuthCookie.trim();
-        }
-      }
-      if (isOllamaCloud && formData.ollamaCloudUsageCookie.trim()) {
-        providerSpecificData.ollamaCloudUsageCookie = formData.ollamaCloudUsageCookie.trim();
-      }
-      if (isGooglePse && formData.cx.trim()) {
-        providerSpecificData.cx = formData.cx.trim();
-      }
-      if (usesBaseUrl) {
-        providerSpecificData.baseUrl = validatedBaseUrl;
-      } else if (showsRegion) {
-        providerSpecificData.region = formData.region.trim() || defaultRegion;
-      } else if (isGlm) {
-        providerSpecificData.apiRegion = formData.apiRegion;
-      } else if (isCloudflare && formData.accountId.trim()) {
-        providerSpecificData.accountId = formData.accountId.trim();
-      }
-      if (isCcCompatible) assignCcCompatibleRequestDefaults(providerSpecificData, formData);
+      const providerSpecificData = buildAddProviderSpecificData({
+        provider,
+        formData,
+        openRouterPreset,
+        showFreeModelsToggle,
+        isGooglePse,
+        usesBaseUrl,
+        validatedBaseUrl,
+        showsRegion,
+        defaultRegion,
+        isGlm,
+        isCloudflare,
+        isCcCompatible,
+      });
 
       const payload = {
         name: formData.name,
         apiKey: credentialInput.trim() || undefined,
         priority: formData.priority,
         testStatus: "active",
-        providerSpecificData:
-          Object.keys(providerSpecificData).length > 0 ? providerSpecificData : undefined,
+        providerSpecificData,
       };
 
       const error = await onSave(payload);
@@ -726,70 +690,12 @@ export default function AddApiKeyModal({
               </div>
             )}
             {freeModelsToggle}
-            {isOpenCodeGo && (
-              <div className="flex flex-col gap-3 rounded-lg border border-border/50 bg-surface/20 p-4">
-                <Input
-                  label={providerText(t, "opencodeGoWorkspaceIdLabel", "OpenCode Go workspace ID")}
-                  name="opencodeGoWorkspaceId"
-                  value={formData.opencodeGoWorkspaceId}
-                  onChange={(e) =>
-                    setFormData({ ...formData, opencodeGoWorkspaceId: e.target.value })
-                  }
-                  placeholder="workspace_..."
-                  hint={providerText(
-                    t,
-                    "opencodeGoWorkspaceIdHint",
-                    "Required for quota scraping. Copy it from the OpenCode Go workspace URL."
-                  )}
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-                <Input
-                  label={providerText(t, "opencodeGoAuthCookieLabel", "OpenCode Go auth cookie")}
-                  name="opencodeGoAuthCookie"
-                  type="password"
-                  value={formData.opencodeGoAuthCookie}
-                  onChange={(e) =>
-                    setFormData({ ...formData, opencodeGoAuthCookie: e.target.value })
-                  }
-                  placeholder="auth=..."
-                  hint={providerText(
-                    t,
-                    "opencodeGoAuthCookieHint",
-                    "Paste the auth cookie value from opencode.ai. The auth= prefix is accepted."
-                  )}
-                  autoComplete="off"
-                  spellCheck={false}
-                  autoCapitalize="off"
-                />
-              </div>
-            )}
-            {isOllamaCloud && (
-              <div className="flex flex-col gap-3 rounded-lg border border-border/50 bg-surface/20 p-4">
-                <Input
-                  label={providerText(
-                    t,
-                    "ollamaCloudUsageCookieLabel",
-                    "Ollama Cloud usage cookie"
-                  )}
-                  name="ollamaCloudUsageCookie"
-                  type="password"
-                  value={formData.ollamaCloudUsageCookie}
-                  onChange={(e) =>
-                    setFormData({ ...formData, ollamaCloudUsageCookie: e.target.value })
-                  }
-                  placeholder="__Secure-session=..."
-                  hint={providerText(
-                    t,
-                    "ollamaCloudUsageCookieHint",
-                    "Required for quota scraping. Paste the __Secure-session cookie value from ollama.com/settings."
-                  )}
-                  autoComplete="off"
-                  spellCheck={false}
-                  autoCapitalize="off"
-                />
-              </div>
-            )}
+            <QuotaScrapingFields
+              provider={provider}
+              values={formData}
+              onChange={(patch) => setFormData({ ...formData, ...patch })}
+              t={t}
+            />
             {isCompatible && !isCcCompatible && (
               <p className="text-xs text-text-muted">
                 {isAnthropic
