@@ -129,3 +129,36 @@ test("CompressionStats accepts an optional ultraTier signal", () => {
   } satisfies CompressionStats;
   assert.equal(s.ultraTier, "heuristic");
 });
+
+import {
+  ultraCompress,
+  ultraCompressHeuristic,
+} from "../../../open-sse/services/compression/ultra.ts";
+
+test("ultraCompressHeuristic is a synchronous pure heuristic (no SLM)", () => {
+  const cfg = {
+    enabled: true,
+    compressionRate: 0.5,
+    minScoreThreshold: 0.3,
+    slmFallbackToAggressive: false,
+    maxTokensPerMessage: 0,
+  };
+  const r = ultraCompressHeuristic(
+    [{ role: "user", content: "the quick brown fox jumps over the lazy dog" }],
+    cfg
+  );
+  assert.equal(r.stats.mode, "ultra");
+  assert.equal(r.stats.ultraTier, "heuristic");
+  assert.ok(r.stats.techniquesUsed.includes("ultra-heuristic-pruning"));
+});
+
+test("ultraCompress with default config (no ultraEngine) uses heuristic tier", async () => {
+  const r = await ultraCompress([{ role: "user", content: "the quick brown fox jumps" }], {
+    enabled: true,
+    compressionRate: 0.5,
+    minScoreThreshold: 0.3,
+    slmFallbackToAggressive: false,
+    maxTokensPerMessage: 0,
+  });
+  assert.equal(r.stats.ultraTier, "heuristic");
+});
