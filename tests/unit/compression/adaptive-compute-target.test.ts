@@ -16,3 +16,15 @@ test("reserve-output: falls back to outputReserve when no max_tokens", () => {
   assert.equal(computeTarget("reserve-output", 200000, null, base), 194880);
   assert.equal(computeTarget("reserve-output", 200000, 0, base), 194880); // 0 is not a positive reserve
 });
+
+test("percentage policy: limit × pct, floored", () => {
+  assert.equal(computeTarget("percentage", 200000, null, { ...base, pct: 0.7 }), 140000);
+  // invalid pct (out of (0,1]) → treated as 1.0 (no shrink)
+  assert.equal(computeTarget("percentage", 200000, null, { ...base, pct: 0 }), 200000);
+  assert.equal(computeTarget("percentage", 200000, null, { ...base, pct: 1.5 }), 200000);
+});
+
+test("absolute policy: model-independent budget", () => {
+  assert.equal(computeTarget("absolute", 200000, 8000, { ...base, absoluteBudget: 50000 }), 50000);
+  assert.equal(computeTarget("absolute", 8000, null, { ...base, absoluteBudget: 50000 }), 50000);
+});
