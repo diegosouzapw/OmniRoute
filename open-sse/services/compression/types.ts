@@ -69,6 +69,13 @@ export interface CavemanOutputModeConfig {
   autoClarity: boolean;
 }
 
+export type OutputStyleLevel = "lite" | "full" | "ultra";
+
+export interface OutputStyleSelectionEntry {
+  id: string;
+  level: OutputStyleLevel;
+}
+
 export interface RtkConfig {
   enabled: boolean;
   intensity: RtkIntensity;
@@ -135,6 +142,8 @@ export interface CompressionConfig {
   stackedPipeline?: CompressionPipelineStep[];
   cavemanConfig?: CavemanConfig;
   cavemanOutputMode?: CavemanOutputModeConfig;
+  /** Phase 4A: selected output styles (supersedes cavemanOutputMode via a back-compat shim). */
+  outputStyles?: OutputStyleSelectionEntry[];
   rtkConfig?: RtkConfig;
   languageConfig?: CompressionLanguageConfig;
   aggressive?: AggressiveConfig;

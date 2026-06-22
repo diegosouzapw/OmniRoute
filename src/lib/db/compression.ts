@@ -17,6 +17,7 @@ import {
   type AggressiveConfig,
   type CavemanConfig,
   type CavemanOutputModeConfig,
+  type OutputStyleSelectionEntry,
   type CompressionLanguageConfig,
   type CompressionPipelineStep,
   type CompressionConfig,
@@ -106,6 +107,21 @@ function normalizeCavemanOutputModeConfig(value: unknown): CavemanOutputModeConf
         ? record.autoClarity
         : DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG.autoClarity,
   };
+}
+
+function normalizeOutputStyleSelection(value: unknown): OutputStyleSelectionEntry[] {
+  if (!Array.isArray(value)) return [];
+  const out: OutputStyleSelectionEntry[] = [];
+  for (const raw of value) {
+    const record = toRecord(raw);
+    const id = typeof record.id === "string" ? record.id.trim() : "";
+    const level =
+      record.level === "lite" || record.level === "full" || record.level === "ultra"
+        ? record.level
+        : null;
+    if (id && level) out.push({ id, level });
+  }
+  return out;
 }
 
 function normalizeRtkConfig(value: unknown): RtkConfig {
@@ -512,6 +528,7 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     ...DEFAULT_COMPRESSION_CONFIG,
     cavemanConfig: { ...DEFAULT_CAVEMAN_CONFIG },
     cavemanOutputMode: { ...DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG },
+    outputStyles: [],
     rtkConfig: { ...DEFAULT_RTK_CONFIG },
     languageConfig: { ...DEFAULT_COMPRESSION_LANGUAGE_CONFIG },
     stackedPipeline: normalizeStackedPipeline(undefined),
@@ -589,6 +606,9 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         break;
       case "cavemanOutputMode":
         config.cavemanOutputMode = normalizeCavemanOutputModeConfig(parsed);
+        break;
+      case "outputStyles":
+        config.outputStyles = normalizeOutputStyleSelection(parsed);
         break;
       case "rtkConfig":
         config.rtkConfig = normalizeRtkConfig(parsed);
