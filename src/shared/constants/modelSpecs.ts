@@ -26,7 +26,7 @@ export interface ModelSpec {
   // (2026-05-19): "Any request that tries to set a fixed thinking budget gets a 400 error."
   adaptiveThinkingOnly?: boolean;
   // Explicit operator override for the no-thinking gateway alias (Fase 8.1). When unset,
-  // the catalog auto-advertises a `claude-3-omniroute-no-thinking/…` variant for
+  // the catalog auto-advertises a `no-think/…` variant for
   // Claude-family thinking-capable models that honor `disabled`. Set `true` to force the
   // variant on for any other model, or `false` to suppress it. See open-sse/utils/noThinkingAlias.ts.
   noThinkingAlias?: boolean;
