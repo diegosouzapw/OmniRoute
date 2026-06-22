@@ -148,6 +148,9 @@ export function filterToOpenAIFormat(body) {
   // Strip Claude-specific fields that OpenAI-compatible providers reject
   delete body.metadata;
   delete body.anthropic_version;
+  // Codex clients send a top-level `client_metadata` object; OpenAI rejects it
+  // with 400 "Unknown parameter: 'client_metadata'" (9router#1157).
+  delete body.client_metadata;
 
   // Map max_output_tokens (from Vercel AI SDK) to max_tokens logic
   if (body.max_output_tokens !== undefined) {
