@@ -445,11 +445,14 @@ export function openaiResponsesToOpenAIRequest(
   }
   delete result.store;
 
-  // Copilot-only: promote Responses `reasoning.{effort,summary}` to Chat fields
-  // so the downstream openai-to-claude translator can enable extended thinking.
-  // Gated by the UA marker from translateRequest; other clients see `reasoning` dropped.
+  // Promote Responses `reasoning.effort` to the Chat-Completions-native
+  // `reasoning_effort` field so OpenAI-family upstreams (and the downstream
+  // openai-to-claude translator's extended-thinking path) keep the hint when a
+  // Responses client is routed across formats. The Copilot-only `summary` ->
+  // Claude summarized-thinking marker stays behind the UA gate from
+  // translateRequest because it is Copilot-specific glue, not an OpenAI-native
+  // field. Ported from upstream PR decolua/9router#1817 (ryanngit).
   if (
-    credentialRecord._copilotClient === true &&
     root.reasoning &&
     typeof root.reasoning === "object" &&
     !Array.isArray(root.reasoning)
@@ -459,7 +462,10 @@ export function openaiResponsesToOpenAIRequest(
     if (effort && result.reasoning_effort === undefined) {
       result.reasoning_effort = normalizeResponsesReasoningEffort(effort);
     }
-    if (shouldRequestClaudeSummarizedThinking(reasoningRec.summary)) {
+    if (
+      credentialRecord._copilotClient === true &&
+      shouldRequestClaudeSummarizedThinking(reasoningRec.summary)
+    ) {
       result[COPILOT_REASONING_SUMMARY_MARKER] = "summarized";
     }
   }

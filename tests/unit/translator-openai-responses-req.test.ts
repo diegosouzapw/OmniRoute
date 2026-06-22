@@ -623,7 +623,10 @@ test("Chat -> Responses prefers max_completion_tokens over max_tokens when both 
   assert.equal((result as any).max_completion_tokens, undefined);
 });
 
-test("Responses -> Chat drops `reasoning` and does not synthesize reasoning_effort without Copilot marker", () => {
+test("Responses -> Chat drops `reasoning` and promotes effort to reasoning_effort even without Copilot marker", () => {
+  // Updated per upstream PR decolua/9router#1817 (ryanngit): the OpenAI-native
+  // `reasoning_effort` hint is always preserved across the Responses -> Chat
+  // hop; only the Copilot-specific `summary` -> Claude marker stays gated.
   const result = openaiResponsesToOpenAIRequest(
     "claude-opus-4-7",
     {
@@ -635,7 +638,7 @@ test("Responses -> Chat drops `reasoning` and does not synthesize reasoning_effo
   ) as Record<string, unknown>;
 
   assert.equal(result.reasoning, undefined);
-  assert.equal(result.reasoning_effort, undefined);
+  assert.equal(result.reasoning_effort, "high");
 });
 
 test("Responses -> Chat promotes reasoning.effort to reasoning_effort when _copilotClient is set", () => {
