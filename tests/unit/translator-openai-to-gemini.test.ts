@@ -18,6 +18,8 @@ const { clearGeminiThoughtSignatures } =
   await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
 
 type UnknownRecord = Record<string, unknown>;
+type GeminiRequestWithConfig = { generationConfig: UnknownRecord };
+type GeminiRequestWithSystem = { systemInstruction: { role?: unknown; parts?: unknown } };
 
 test.beforeEach(() => {
   clearGeminiThoughtSignatures();
@@ -82,14 +84,20 @@ test("OpenAI -> Gemini does not inject default maxOutputTokens for unknown caps"
     { messages: [{ role: "user", content: "Hello" }] },
     false
   );
-  assert.equal((withoutRequestLimit as any).generationConfig.maxOutputTokens, undefined);
+  assert.equal(
+    (withoutRequestLimit as GeminiRequestWithConfig).generationConfig.maxOutputTokens,
+    undefined
+  );
 
   const withRequestLimit = openaiToGeminiRequest(
     "gemini-2.5-pro",
     { messages: [{ role: "user", content: "Hello" }], max_tokens: 32000 },
     false
   );
-  assert.equal((withRequestLimit as any).generationConfig.maxOutputTokens, 32000);
+  assert.equal(
+    (withRequestLimit as GeminiRequestWithConfig).generationConfig.maxOutputTokens,
+    32000
+  );
 });
 
 test("OpenAI -> Gemini helper cleans complex JSON Schema structures for Gemini compatibility", () => {
@@ -253,11 +261,9 @@ test("OpenAI -> Gemini request maps messages, merged system instructions, tools 
     false
   );
 
-  assert.equal((result as any).systemInstruction.role, "system");
-  assert.deepEqual((result as any).systemInstruction.parts, [
-    { text: "Rule A" },
-    { text: "Rule B" },
-  ]);
+  const systemInstruction = (result as GeminiRequestWithSystem).systemInstruction;
+  assert.equal(systemInstruction.role, "system");
+  assert.deepEqual(systemInstruction.parts, [{ text: "Rule A" }, { text: "Rule B" }]);
   assert.equal(result.contents[0].role, "user");
   assert.deepEqual(result.contents[0].parts, [
     { text: "What is the weather?" },
@@ -286,12 +292,13 @@ test("OpenAI -> Gemini request maps messages, merged system instructions, tools 
     response: { result: { temp: 20 } },
   });
 
-  assert.equal((result as any).generationConfig.maxOutputTokens, 2222);
-  assert.equal((result as any).generationConfig.temperature, 0.3);
-  assert.equal((result as any).generationConfig.topP, 0.9);
-  assert.deepEqual((result as any).generationConfig.stopSequences, ["DONE"]);
-  assert.equal((result as any).generationConfig.responseMimeType, "application/json");
-  const responseSchema = (result as any).generationConfig.responseSchema as {
+  const generationConfig = (result as GeminiRequestWithConfig).generationConfig;
+  assert.equal(generationConfig.maxOutputTokens, 2222);
+  assert.equal(generationConfig.temperature, 0.3);
+  assert.equal(generationConfig.topP, 0.9);
+  assert.deepEqual(generationConfig.stopSequences, ["DONE"]);
+  assert.equal(generationConfig.responseMimeType, "application/json");
+  const responseSchema = generationConfig.responseSchema as {
     properties: { answer: { type: string; enum?: string[] } };
   };
   assert.equal(responseSchema.properties.answer.type, "string");
