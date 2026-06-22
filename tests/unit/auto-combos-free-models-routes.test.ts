@@ -44,6 +44,10 @@ test.after(() => {
   }
 });
 
+test.beforeEach(async () => {
+  await settingsDb.updateSettings({ requireLogin: false });
+});
+
 // ── /api/free-models ──────────────────────────────────────────────────────────
 
 test("GET /api/free-models returns 200 with models array (no auth required by default)", async () => {
