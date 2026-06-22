@@ -31,3 +31,16 @@ export function isNoMemoryRequested(
     .toLowerCase();
   return value === "true" || value === "1" || value === "yes";
 }
+
+/**
+ * Per-request compression override via the `x-omniroute-compression` header. Mirrors the
+ * `x-omniroute-no-memory` convention (#4290). Returns the raw trimmed value, or null when
+ * absent/blank. The resolver (planFromHeader) owns interpretation and casing rules; this
+ * helper only reads the wire.
+ */
+export function resolveCompressionHeader(
+  headers: Record<string, unknown> | Headers | null | undefined
+): string | null {
+  const value = (getHeaderValueCaseInsensitive(headers, "x-omniroute-compression") || "").trim();
+  return value || null;
+}
