@@ -19,8 +19,20 @@
  * Registration: call registerBailianCodingPlanQuotaFetcher() once at server startup.
  */
 
-import { registerQuotaFetcher, type QuotaInfo } from "./quotaPreflight.ts";
+import { registerQuotaFetcher, registerQuotaWindows, type QuotaInfo } from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
+
+// #4594 — Named windows surfaced through the shared `quota.windows` contract so
+// per-window preflight cutoffs (quotaPreflight) and the dashboard window catalog
+// can target Bailian's 5h / weekly / monthly limits individually.
+export const BAILIAN_WINDOW_5H = "5h";
+export const BAILIAN_WINDOW_WEEKLY = "weekly";
+export const BAILIAN_WINDOW_MONTHLY = "monthly";
+export const BAILIAN_QUOTA_WINDOWS = [
+  BAILIAN_WINDOW_5H,
+  BAILIAN_WINDOW_WEEKLY,
+  BAILIAN_WINDOW_MONTHLY,
+] as const;
 
 // Bailian quota hosts (international / china fallback)
 const BAILIAN_QUOTA_HOSTS = {
@@ -122,7 +134,7 @@ function buildHeaders(authKey: string): Record<string, string> {
 
 // ─── Response Parser ─────────────────────────────────────────────────────────
 
-function parseBailianQuotaResponse(data: unknown): BailianTripleWindowQuota | null {
+export function parseBailianQuotaResponse(data: unknown): BailianTripleWindowQuota | null {
   const obj = toRecord(data);
 
   if (obj["code"] === "ConsoleNeedLogin") {
@@ -195,6 +207,14 @@ function parseBailianQuotaResponse(data: unknown): BailianTripleWindowQuota | nu
     total: 100,
     percentUsed: worstPercentUsed,
     resetAt: dominantResetAt,
+    // #4594 — shared per-window breakdown consumed by preflight cutoffs.
+    windows: {
+      [BAILIAN_WINDOW_5H]: window5h,
+      [BAILIAN_WINDOW_WEEKLY]: windowWeekly,
+      [BAILIAN_WINDOW_MONTHLY]: windowMonthly,
+    },
+    // Legacy per-window fields preserved for existing consumers (quotaMonitor,
+    // cooldown computation). Do not remove without checking callers.
     window5h,
     windowWeekly,
     windowMonthly,
@@ -313,4 +333,7 @@ export function invalidateBailianQuotaCache(connectionId: string): void {
 export function registerBailianCodingPlanQuotaFetcher(): void {
   registerQuotaFetcher("bailian-coding-plan", fetchBailianQuota);
   registerMonitorFetcher("bailian-coding-plan", fetchBailianQuota);
+  // #4594 — expose the 5h/weekly/monthly windows so per-window cutoffs and the
+  // dashboard catalog can discover them, mirroring codex/opencode.
+  registerQuotaWindows("bailian-coding-plan", BAILIAN_QUOTA_WINDOWS);
 }
