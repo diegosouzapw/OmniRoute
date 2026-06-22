@@ -125,3 +125,14 @@ test("replace-autotrigger: fires on bare off base, defers to an explicit base pl
   assert.deepEqual(defers.telemetry!.stagesApplied, []);
   assert.equal(defers.telemetry!.fit, false); // 400000 > target, recorded as not fitting
 });
+
+test("unknown model context limit → skip adaptive (null telemetry, base unchanged)", () => {
+  for (const lim of [null, 0, -1]) {
+    const { plan, telemetry } = resolveAdaptivePlan({
+      basePlan, estimatedTokens: 999999, modelContextLimit: lim,
+      requestMaxTokens: 8000, config: cfg(),
+    });
+    assert.equal(telemetry, null);
+    assert.deepEqual(plan, basePlan);
+  }
+});
