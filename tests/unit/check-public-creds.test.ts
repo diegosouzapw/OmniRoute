@@ -23,10 +23,9 @@ test("flags a clientId behind a process.env fallback (env || literal)", () => {
 });
 
 test("flags clientSecret and apiKey literals too", () => {
-  const src = [
-    `clientSecret: "GOCSPX-secret-literal",`,
-    `apiKey: "AIzaSyLeakedFirebaseKey",`,
-  ].join("\n");
+  const src = [`clientSecret: "GOCSPX-secret-literal",`, `apiKey: "AIzaSyLeakedFirebaseKey",`].join(
+    "\n"
+  );
   const v = findLiteralCreds(src, new Set(), "x.ts");
   assert.equal(v.length, 2);
 });
@@ -41,7 +40,7 @@ test("does NOT flag resolvePublicCredMulti() with literal env-name args", () => 
   assert.deepEqual(findLiteralCreds(src, new Set(), "x.ts"), []);
 });
 
-test("does NOT flag empty-string fallback (process.env || \"\")", () => {
+test('does NOT flag empty-string fallback (process.env || "")', () => {
   const src = `clientIdDefault: process.env.GITLAB_OAUTH_CLIENT_ID || "",`;
   assert.deepEqual(findLiteralCreds(src, new Set(), "x.ts"), []);
 });
@@ -75,10 +74,7 @@ test("a NEW literal is still flagged even with the real frozen allowlist", () =>
 });
 
 test("real scanned files produce ZERO violations with the frozen allowlist (gate exits 0)", () => {
-  const scanned = [
-    "open-sse/config/providerRegistry.ts",
-    "src/lib/oauth/constants/oauth.ts",
-  ];
+  const scanned = ["open-sse/config/providerRegistry.ts", "src/lib/oauth/constants/oauth.ts"];
   for (const rel of scanned) {
     const src = fs.readFileSync(path.join(repoRoot, rel), "utf8") as string;
     const v = findLiteralCreds(src, KNOWN_LITERAL_CREDS, rel);
@@ -91,10 +87,7 @@ test("every frozen literal is actually present in a scanned file (no dead allowl
   // per-provider plugins (#3993), so providerRegistry.ts is now a re-export barrel;
   // entries keyed by an explicit `file:line:value` are checked against the file named
   // in the key (which is where the literal actually lives), not this anchor blob.
-  const anchorFiles = [
-    "open-sse/config/providerRegistry.ts",
-    "src/lib/oauth/constants/oauth.ts",
-  ];
+  const anchorFiles = ["open-sse/config/providerRegistry.ts", "src/lib/oauth/constants/oauth.ts"];
   const anchorBlob = anchorFiles
     .map((rel) => fs.readFileSync(path.join(repoRoot, rel), "utf8") as string)
     .join("\n");
@@ -107,9 +100,15 @@ test("every frozen literal is actually present in a scanned file (no dead allowl
       // match on file content rather than the exact line number.
       const file = entry.replace(/:\d+:.*$/, "");
       const src = fs.readFileSync(path.join(repoRoot, file), "utf8") as string;
-      assert.ok(src.includes(value), `frozen literal not found in its source file ${file}: ${value}`);
+      assert.ok(
+        src.includes(value),
+        `frozen literal not found in its source file ${file}: ${value}`
+      );
     } else {
-      assert.ok(anchorBlob.includes(value), `frozen literal not found in any anchor file: ${value}`);
+      assert.ok(
+        anchorBlob.includes(value),
+        `frozen literal not found in any anchor file: ${value}`
+      );
     }
   }
 });
@@ -127,8 +126,16 @@ test("with an empty allowlist the real scanned files surface zero violations (al
   ) as string;
   const regViolations = findLiteralCreds(reg, new Set(), "providerRegistry.ts");
   const oauthViolations = findLiteralCreds(oauth, new Set(), "oauth.ts");
-  assert.equal(regViolations.length, 0, `providerRegistry.ts should be clean, got: ${regViolations.join(", ")}`);
-  assert.equal(oauthViolations.length, 0, `oauth.ts should be clean, got: ${oauthViolations.join(", ")}`);
+  assert.equal(
+    regViolations.length,
+    0,
+    `providerRegistry.ts should be clean, got: ${regViolations.join(", ")}`
+  );
+  assert.equal(
+    oauthViolations.length,
+    0,
+    `oauth.ts should be clean, got: ${oauthViolations.join(", ")}`
+  );
 });
 
 // --- 6A.8: expanded scope (open-sse/** and src/lib/oauth/**) ---
@@ -164,21 +171,37 @@ test("6A.8 stale: known literal that was removed from the codebase is detected a
   const liveViolations = findLiteralCreds(src, new Set(), "file.ts");
   // The allowlist has an entry "old-literal" but it's not in live violations.
   const stale = (reportStale as (a: Set<string>, b: string[], c: string) => string[])(
-    new Set(["old-literal"]), liveViolations, "check-public-creds"
+    new Set(["old-literal"]),
+    liveViolations,
+    "check-public-creds"
   );
   assert.deepEqual(stale, ["old-literal"]);
 });
 
 test("6A.8: open-sse/services/usage.ts FP — function-signature apiKey is suppressed by allowlist", () => {
-  // open-sse/services/usage.ts L543: `getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn")`
+  // open-sse/services/usage.ts: `getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn")`
   // The CRED_KEY_RE matches `apiKey:` in the TypeScript function-parameter type annotation.
   // "minimax" and "minimax-cn" are provider-name strings in the type, NOT credentials.
   // Frozen in KNOWN_LITERAL_CREDS as FPs by file:line:value key.
-  const realSrc = fs.readFileSync(path.join(repoRoot, "open-sse/services/usage.ts"), "utf8") as string;
+  const realSrc = fs.readFileSync(
+    path.join(repoRoot, "open-sse/services/usage.ts"),
+    "utf8"
+  ) as string;
   // With empty allowlist the FP shows up (it IS flagged by the regex).
   const vWithEmpty = findLiteralCreds(realSrc, new Set(), "open-sse/services/usage.ts");
-  assert.ok(vWithEmpty.some((v) => v.includes("minimax")), `expected FP 'minimax' violations with empty allowlist, got: ${vWithEmpty.join(", ")}`);
+  assert.ok(
+    vWithEmpty.some((v) => v.includes("minimax")),
+    `expected FP 'minimax' violations with empty allowlist, got: ${vWithEmpty.join(", ")}`
+  );
   // With KNOWN_LITERAL_CREDS the FPs are suppressed.
-  const vWithAllowlist = findLiteralCreds(realSrc, KNOWN_LITERAL_CREDS, "open-sse/services/usage.ts");
-  assert.deepEqual(vWithAllowlist, [], `FP violations should be suppressed, got: ${vWithAllowlist.join(", ")}`);
+  const vWithAllowlist = findLiteralCreds(
+    realSrc,
+    KNOWN_LITERAL_CREDS,
+    "open-sse/services/usage.ts"
+  );
+  assert.deepEqual(
+    vWithAllowlist,
+    [],
+    `FP violations should be suppressed, got: ${vWithAllowlist.join(", ")}`
+  );
 });

@@ -99,11 +99,10 @@ test.after(() => {
 test("#3500 buildUnifiedSource — raw-only branch when sinceIso is recent", () => {
   // A very recent sinceIso means no aggregated rows are needed
   const recentIso = new Date(Date.now() - 3600_000).toISOString(); // 1 hour ago
-  const today = new Date().toISOString().split("T")[0];
   const result = mod.buildUnifiedSource({
     sinceIso: recentIso,
     untilIso: null,
-    rawCutoffDate: today,
+    rawCutoffDate: "2000-01-01",
     apiKeyWhere: "",
     apiKeyParams: {},
   });
@@ -154,7 +153,10 @@ test("#3500 buildUnifiedSource — api_key filter suppresses daily_usage_summary
     apiKeyParams: { apiKey0: "key-abc" },
   });
 
-  assert.ok(!result.unifiedSource.includes("daily_usage_summary"), "agg leg suppressed with api_key filter");
+  assert.ok(
+    !result.unifiedSource.includes("daily_usage_summary"),
+    "agg leg suppressed with api_key filter"
+  );
   assert.ok(result.unifiedSource.includes("usage_history"), "raw leg still present");
   assert.equal(result.unifiedParams.apiKey0, "key-abc", "apiKey0 propagated");
 });
@@ -167,8 +169,20 @@ test("#3500 getUsageSummary — returns correct scalar aggregations", () => {
   const rawCutoffDate = "2020-01-01";
   const ts = new Date().toISOString();
 
-  insertUsageHistory({ tokens_input: 50, tokens_output: 80, success: 1, latency_ms: 200, timestamp: ts });
-  insertUsageHistory({ tokens_input: 30, tokens_output: 40, success: 0, latency_ms: 400, timestamp: ts });
+  insertUsageHistory({
+    tokens_input: 50,
+    tokens_output: 80,
+    success: 1,
+    latency_ms: 200,
+    timestamp: ts,
+  });
+  insertUsageHistory({
+    tokens_input: 30,
+    tokens_output: 40,
+    success: 0,
+    latency_ms: 400,
+    timestamp: ts,
+  });
 
   const { unifiedSource, unifiedParams } = mod.buildUnifiedSource({
     sinceIso: null,
@@ -233,8 +247,22 @@ test("#3500 getDailyCostRows — groups by date+provider+model+serviceTier", () 
   const rawCutoffDate = "2020-01-01";
   const ts = "2025-04-01T12:00:00.000Z";
 
-  insertUsageHistory({ timestamp: ts, provider: "anthropic", model: "claude-3-5-sonnet", tokens_input: 100, tokens_output: 200, service_tier: "priority" });
-  insertUsageHistory({ timestamp: ts, provider: "anthropic", model: "claude-3-5-sonnet", tokens_input: 50, tokens_output: 100, service_tier: "priority" });
+  insertUsageHistory({
+    timestamp: ts,
+    provider: "anthropic",
+    model: "claude-3-5-sonnet",
+    tokens_input: 100,
+    tokens_output: 200,
+    service_tier: "priority",
+  });
+  insertUsageHistory({
+    timestamp: ts,
+    provider: "anthropic",
+    model: "claude-3-5-sonnet",
+    tokens_input: 50,
+    tokens_output: 100,
+    service_tier: "priority",
+  });
 
   const { unifiedSource, unifiedParams } = mod.buildUnifiedSource({
     sinceIso: "2025-04-01T00:00:00.000Z",
@@ -262,10 +290,9 @@ test("#3500 getHeatmapRows — groups by date, respects conditions", () => {
   const ts = "2025-05-15T10:00:00.000Z";
   insertUsageHistory({ timestamp: ts, tokens_input: 40, tokens_output: 60 });
 
-  const rows = mod.getHeatmapRows(
-    ["timestamp >= @heatmapStart"],
-    { heatmapStart: "2025-05-15T00:00:00.000Z" }
-  );
+  const rows = mod.getHeatmapRows(["timestamp >= @heatmapStart"], {
+    heatmapStart: "2025-05-15T00:00:00.000Z",
+  });
 
   const may15 = rows.find((r) => r.date === "2025-05-15");
   assert.ok(may15, "2025-05-15 row present");
@@ -280,8 +307,24 @@ test("#3500 getModelUsageRows — returns per-model aggregates", () => {
   const rawCutoffDate = "2020-01-01";
   const ts = "2025-06-01T10:00:00.000Z";
 
-  insertUsageHistory({ timestamp: ts, provider: "openai", model: "gpt-5", tokens_input: 100, tokens_output: 200, success: 1, latency_ms: 150 });
-  insertUsageHistory({ timestamp: ts, provider: "openai", model: "gpt-5", tokens_input: 50, tokens_output: 100, success: 1, latency_ms: 250 });
+  insertUsageHistory({
+    timestamp: ts,
+    provider: "openai",
+    model: "gpt-5",
+    tokens_input: 100,
+    tokens_output: 200,
+    success: 1,
+    latency_ms: 150,
+  });
+  insertUsageHistory({
+    timestamp: ts,
+    provider: "openai",
+    model: "gpt-5",
+    tokens_input: 50,
+    tokens_output: 100,
+    success: 1,
+    latency_ms: 250,
+  });
 
   const { unifiedSource, unifiedParams } = mod.buildUnifiedSource({
     sinceIso: "2025-06-01T00:00:00.000Z",
@@ -310,7 +353,14 @@ test("#3500 getProviderCostRows — groups by provider+model+serviceTier", () =>
   const rawCutoffDate = "2020-01-01";
   const ts = "2025-07-01T12:00:00.000Z";
 
-  insertUsageHistory({ timestamp: ts, provider: "gemini", model: "gemini-2.5-flash", tokens_input: 200, tokens_output: 300, tokens_cache_read: 50 });
+  insertUsageHistory({
+    timestamp: ts,
+    provider: "gemini",
+    model: "gemini-2.5-flash",
+    tokens_input: 200,
+    tokens_output: 300,
+    tokens_cache_read: 50,
+  });
 
   const { unifiedSource, unifiedParams } = mod.buildUnifiedSource({
     sinceIso: "2025-07-01T00:00:00.000Z",
@@ -335,8 +385,22 @@ test("#3500 getProviderUsageRows — aggregates per provider", () => {
   const rawCutoffDate = "2020-01-01";
   const ts = "2025-08-01T12:00:00.000Z";
 
-  insertUsageHistory({ timestamp: ts, provider: "mistral", tokens_input: 100, tokens_output: 100, success: 1, latency_ms: 200 });
-  insertUsageHistory({ timestamp: ts, provider: "mistral", tokens_input: 100, tokens_output: 100, success: 0, latency_ms: 400 });
+  insertUsageHistory({
+    timestamp: ts,
+    provider: "mistral",
+    tokens_input: 100,
+    tokens_output: 100,
+    success: 1,
+    latency_ms: 200,
+  });
+  insertUsageHistory({
+    timestamp: ts,
+    provider: "mistral",
+    tokens_input: 100,
+    tokens_output: 100,
+    success: 0,
+    latency_ms: 400,
+  });
 
   const { unifiedSource, unifiedParams } = mod.buildUnifiedSource({
     sinceIso: "2025-08-01T00:00:00.000Z",
@@ -365,8 +429,22 @@ test("#3500 getApiKeyUsageRows — groups by api_key identity", () => {
   const apiKeyWhereClause =
     "WHERE (api_key_id IS NOT NULL AND api_key_id != '') OR (api_key_name IS NOT NULL AND api_key_name != '')";
 
-  insertUsageHistory({ timestamp: ts, provider: "openai", model: "gpt-4.1", api_key_id: "key-xyz", tokens_input: 50, tokens_output: 80 });
-  insertUsageHistory({ timestamp: ts, provider: "openai", model: "gpt-4.1", api_key_id: "key-xyz", tokens_input: 30, tokens_output: 40 });
+  insertUsageHistory({
+    timestamp: ts,
+    provider: "openai",
+    model: "gpt-4.1",
+    api_key_id: "key-xyz",
+    tokens_input: 50,
+    tokens_output: 80,
+  });
+  insertUsageHistory({
+    timestamp: ts,
+    provider: "openai",
+    model: "gpt-4.1",
+    api_key_id: "key-xyz",
+    tokens_input: 30,
+    tokens_output: 40,
+  });
 
   const rows = mod.getApiKeyUsageRows(apiKeyWhereClause, {});
   const row = rows.find((r) => r.apiKeyId === "key-xyz");
@@ -399,9 +477,30 @@ test("#3500 getServiceTierUsageRows — groups by serviceTier+provider+model", (
   const rawCutoffDate = "2020-01-01";
   const ts = "2025-09-01T12:00:00.000Z";
 
-  insertUsageHistory({ timestamp: ts, provider: "openai", model: "gpt-5", service_tier: "flex", tokens_input: 100, tokens_output: 150 });
-  insertUsageHistory({ timestamp: ts, provider: "openai", model: "gpt-5", service_tier: "flex", tokens_input: 50, tokens_output: 75 });
-  insertUsageHistory({ timestamp: ts, provider: "openai", model: "gpt-5", service_tier: "standard", tokens_input: 200, tokens_output: 300 });
+  insertUsageHistory({
+    timestamp: ts,
+    provider: "openai",
+    model: "gpt-5",
+    service_tier: "flex",
+    tokens_input: 100,
+    tokens_output: 150,
+  });
+  insertUsageHistory({
+    timestamp: ts,
+    provider: "openai",
+    model: "gpt-5",
+    service_tier: "flex",
+    tokens_input: 50,
+    tokens_output: 75,
+  });
+  insertUsageHistory({
+    timestamp: ts,
+    provider: "openai",
+    model: "gpt-5",
+    service_tier: "standard",
+    tokens_input: 200,
+    tokens_output: 300,
+  });
 
   const { unifiedSource, unifiedParams } = mod.buildUnifiedSource({
     sinceIso: "2025-09-01T00:00:00.000Z",
@@ -430,7 +529,11 @@ test("#3500 getServiceTierUsageRows — groups by serviceTier+provider+model", (
 test("#3500 getWeeklyPatternRows — groups by day of week, ascending", () => {
   const rawCutoffDate = "2020-01-01";
   // Monday 2025-06-02
-  insertUsageHistory({ timestamp: "2025-06-02T10:00:00.000Z", tokens_input: 10, tokens_output: 20 });
+  insertUsageHistory({
+    timestamp: "2025-06-02T10:00:00.000Z",
+    tokens_input: 10,
+    tokens_output: 20,
+  });
   insertUsageHistory({ timestamp: "2025-06-02T11:00:00.000Z", tokens_input: 5, tokens_output: 10 });
 
   const { unifiedSource, unifiedParams } = mod.buildUnifiedSource({
@@ -493,7 +596,16 @@ test("#3500 getPresetCostModelRows — groups by model+provider+serviceTier", ()
   const rawCutoffDate = "2020-01-01";
   const ts = "2025-10-01T12:00:00.000Z";
 
-  insertUsageHistory({ timestamp: ts, provider: "cohere", model: "command-r-plus", tokens_input: 200, tokens_output: 300, tokens_cache_read: 10, tokens_cache_creation: 5, tokens_reasoning: 0 });
+  insertUsageHistory({
+    timestamp: ts,
+    provider: "cohere",
+    model: "command-r-plus",
+    tokens_input: 200,
+    tokens_output: 300,
+    tokens_cache_read: 10,
+    tokens_cache_creation: 5,
+    tokens_reasoning: 0,
+  });
 
   const { unifiedSource, unifiedParams } = mod.buildPresetUnifiedSource({
     sinceIso: "2025-10-01T00:00:00.000Z",
