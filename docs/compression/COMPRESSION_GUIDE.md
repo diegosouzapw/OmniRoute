@@ -188,6 +188,25 @@ Combo: "free-forever"
 This lets you use stacked compression on free/coding providers while keeping lite mode on paid
 subscriptions.
 
+### Per-request override
+
+Send the `x-omniroute-compression` request header to override the compression plan for a single
+request. It has the highest precedence — it beats the routing-combo override, the active profile,
+auto-trigger, and the panel Default. Unknown values are ignored (the request is never rejected) and
+the global master switch still gates everything: when compression is off globally, the header cannot
+turn it on. Values:
+
+| Value | Effect |
+|-------|--------|
+| `off` | No compression for this request. |
+| `default` | The panel-derived Default profile (ignores the active profile). |
+| `engine:<id>` | A single engine when enabled, e.g. `engine:rtk`. |
+| `<combo>` | A named combo, matched by name (case-insensitive) first, then by id. |
+
+The applied plan is echoed back in the `X-OmniRoute-Compression: <mode>; source=<source>` response
+header, where `<source>` is one of `request-header`, `routing-override`, `active-profile`,
+`auto-trigger`, `default`, or `off`.
+
 ### API
 
 ```bash
