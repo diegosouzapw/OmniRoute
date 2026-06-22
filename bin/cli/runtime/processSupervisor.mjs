@@ -12,13 +12,7 @@ import {
 const CRASH_LOG_LINES = 50;
 
 export class ServerSupervisor {
-  constructor({
-    serverPath,
-    env,
-    maxRestarts = DEFAULT_MAX_RESTARTS,
-    memoryLimit = 512,
-    onCrashCallback,
-  }) {
+  constructor({ serverPath, env, maxRestarts = DEFAULT_MAX_RESTARTS, memoryLimit = 512, onCrashCallback }) {
     this.serverPath = serverPath;
     this.env = env;
     this.maxRestarts = maxRestarts;

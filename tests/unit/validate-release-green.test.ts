@@ -14,25 +14,23 @@ const {
 } = mod;
 
 test("eslintCounts sums errors + warnings across files", () => {
-  const parsed = [{ errorCount: 2, warningCount: 5 }, { errorCount: 0, warningCount: 3 }, {}];
+  const parsed = [
+    { errorCount: 2, warningCount: 5 },
+    { errorCount: 0, warningCount: 3 },
+    {},
+  ];
   assert.deepEqual(eslintCounts(parsed), { errors: 2, warnings: 8 });
 });
 
 test("parseEslintJson tolerates a leading non-JSON banner", () => {
-  const out = 'npm warn something\n[{"errorCount":0,"warningCount":1}]';
+  const out = "npm warn something\n[{\"errorCount\":0,\"warningCount\":1}]";
   assert.deepEqual(parseEslintJson(out), [{ errorCount: 0, warningCount: 1 }]);
   assert.equal(parseEslintJson("no json here"), null);
 });
 
 test("parseCognitiveCount reads the gate's count (en + pt)", () => {
-  assert.equal(
-    parseCognitiveCount("[cognitive-complexity] 797 function(s) exceed the threshold (15)."),
-    797
-  );
-  assert.equal(
-    parseCognitiveCount("[cognitive-complexity] REGRESSÃO — 801 violações > baseline 797"),
-    801
-  );
+  assert.equal(parseCognitiveCount("[cognitive-complexity] 797 function(s) exceed the threshold (15)."), 797);
+  assert.equal(parseCognitiveCount("[cognitive-complexity] REGRESSÃO — 801 violações > baseline 797"), 801);
   assert.equal(parseCognitiveCount("no number"), null);
 });
 

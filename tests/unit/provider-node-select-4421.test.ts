@@ -7,8 +7,9 @@ import assert from "node:assert/strict";
 // suffix ("openai-compatible-responses-<uuid>"). selectProviderNodeForConnection now
 // also resolves the bare type to the sole matching node.
 
-const { selectProviderNodeForConnection, nodeTypeFromId } =
-  await import("../../src/lib/db/providerNodeSelect.ts");
+const { selectProviderNodeForConnection, nodeTypeFromId } = await import(
+  "../../src/lib/db/providerNodeSelect.ts"
+);
 
 const UUID = "1715ed0f-1111-2222-3333-444455556666";
 const UUID2 = "2222aaaa-1111-2222-3333-444455556666";
@@ -42,10 +43,7 @@ test("#4421 a base type does not match a more-specific node type", () => {
 });
 
 test("#4421 nodeTypeFromId strips a trailing UUID", () => {
-  assert.equal(
-    nodeTypeFromId(`openai-compatible-responses-${UUID}`),
-    "openai-compatible-responses"
-  );
+  assert.equal(nodeTypeFromId(`openai-compatible-responses-${UUID}`), "openai-compatible-responses");
   assert.equal(nodeTypeFromId(`openai-compatible-${UUID}`), "openai-compatible");
   assert.equal(nodeTypeFromId("no-uuid-here"), "no-uuid-here");
 });
