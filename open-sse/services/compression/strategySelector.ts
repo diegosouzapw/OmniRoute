@@ -29,6 +29,8 @@ import {
   deriveDefaultPlanFromConfig,
   buildNamedComboLookup,
 } from "./planResolution.ts";
+import { resolveAdaptivePlan } from "./adaptiveCompression/resolveAdaptivePlan.ts";
+import type { AdaptiveTelemetry } from "./adaptiveCompression/types.ts";
 
 // Re-export so existing importers (resolver test + chatCore dynamic import) keep resolving.
 export { planFromHeader, formatCompressionMeta, buildNamedComboLookup };
@@ -68,6 +70,12 @@ export function shouldAutoTrigger(config: CompressionConfig, estimatedTokens: nu
  * `combos` defaults to `{}` so Phase-1 callers are unchanged; when supplied, chatCore passes
  * its DB-loaded named-combo map so the active profile can resolve here purely (no DB import).
  */
+/** True when the adaptive resolver owns automatic-by-size escalation (D-C4). */
+function adaptiveEnabled(config: CompressionConfig): boolean {
+  const mode = config.contextBudget?.mode;
+  return mode === "floor" || mode === "replace-autotrigger";
+}
+
 function resolveBasePlan(
   config: CompressionConfig,
   comboId: string | null,
@@ -101,7 +109,7 @@ function resolveBasePlan(
     );
   }
 
-  if (shouldAutoTrigger(config, estimatedTokens)) {
+  if (!adaptiveEnabled(config) && shouldAutoTrigger(config, estimatedTokens)) {
     const mode = config.autoTriggerMode ?? "lite";
     return withSource(
       mode === "stacked"
@@ -154,6 +162,13 @@ export function getEffectiveMode(
  * The caching-aware mode adjustment is applied to `mode` exactly as in
  * {@link selectCompressionStrategy}.
  */
+/** Adaptive (Sub-project C) inputs + telemetry sink for selectCompressionPlan. */
+export interface AdaptiveSelectOptions {
+  modelContextLimit?: number | null;
+  requestMaxTokens?: number | null;
+  onAdaptive?: (telemetry: AdaptiveTelemetry) => void;
+}
+
 export function selectCompressionPlan(
   config: CompressionConfig,
   comboId: string | null,
@@ -161,9 +176,24 @@ export function selectCompressionPlan(
   body?: Record<string, unknown>,
   context?: CachingDetectionContext,
   combos: NamedCombos = {},
-  header: string | null = null
+  header: string | null = null,
+  adaptiveOptions?: AdaptiveSelectOptions
 ): DerivedPlan {
-  const plan = resolveBasePlan(config, comboId, estimatedTokens, combos, header);
+  let plan = resolveBasePlan(config, comboId, estimatedTokens, combos, header);
+
+  // Adaptive context-budget floor/escalation (D-C4): after the base plan, replacing the
+  // (now-bypassed) auto-trigger branch. Pure resolver; chatCore supplies the model limit.
+  if (adaptiveEnabled(config) && config.contextBudget) {
+    const { plan: adaptivePlan, telemetry } = resolveAdaptivePlan({
+      basePlan: plan,
+      estimatedTokens,
+      modelContextLimit: adaptiveOptions?.modelContextLimit ?? null,
+      requestMaxTokens: adaptiveOptions?.requestMaxTokens ?? null,
+      config: config.contextBudget,
+    });
+    plan = adaptivePlan;
+    if (telemetry && adaptiveOptions?.onAdaptive) adaptiveOptions.onAdaptive(telemetry);
+  }
 
   // Apply caching-aware adjustments to the mode if body is provided
   if (body) {
