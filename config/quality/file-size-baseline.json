@@ -197,7 +197,7 @@
     "src/lib/db/migrationRunner.ts": 1125,
     "src/lib/db/models.ts": 1259,
     "src/lib/db/providers.ts": 1063,
-    "src/lib/db/proxies.ts": 1048,
+    "src/lib/db/proxies.ts": 1057,
     "src/lib/db/settings.ts": 1149,
     "src/lib/db/usageAnalytics.ts": 873,
     "src/lib/evals/evalRunner.ts": 961,
