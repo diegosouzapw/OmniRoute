@@ -205,6 +205,8 @@ export const compressionSettingsUpdateSchema = z
     engines: z.record(z.string(), engineToggleSchema).optional(),
     enginesExplicit: z.boolean().optional(),
     activeComboId: z.string().nullable().optional(),
+    ultraEngine: z.enum(["heuristic", "slm"]).optional(),
+    ultraSlmPrewarm: z.boolean().optional(),
   })
   .strict();
 

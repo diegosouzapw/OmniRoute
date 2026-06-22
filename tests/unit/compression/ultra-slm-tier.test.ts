@@ -329,3 +329,24 @@ test("shouldPrewarmUltraSlm: true only when slm + prewarm both on", () => {
   assert.equal(shouldPrewarmUltraSlm({ ultraEngine: "heuristic", ultraSlmPrewarm: true }), false);
   assert.equal(shouldPrewarmUltraSlm({}), false);
 });
+
+import { maybePrewarmUltraSlmOnConfig } from "../../../open-sse/services/compression/ultra.ts";
+
+test("maybePrewarmUltraSlmOnConfig fires prewarm when slm+prewarm on (stub)", async () => {
+  let warmed = 0;
+  __setUltraSlmTestHooks({
+    available: true,
+    run: async (t) => {
+      warmed++;
+      return t.slice(0, 1);
+    },
+  });
+  try {
+    await maybePrewarmUltraSlmOnConfig({ ultraEngine: "slm", ultraSlmPrewarm: true });
+    assert.equal(warmed, 1);
+    await maybePrewarmUltraSlmOnConfig({ ultraEngine: "heuristic", ultraSlmPrewarm: true });
+    assert.equal(warmed, 1); // unchanged — heuristic does not prewarm
+  } finally {
+    __resetUltraEntryForTests();
+  }
+});

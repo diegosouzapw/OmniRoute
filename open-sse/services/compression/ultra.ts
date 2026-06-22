@@ -3,7 +3,11 @@ import { extractPreservedBlocks } from "./preservation.ts";
 import { DEFAULT_ULTRA_CONFIG } from "./types.ts";
 import type { UltraConfig, CompressionStats, CompressionMode } from "./types.ts";
 import { extractTextContent, mapTextContent, type ChatMessageLike } from "./messageContent.ts";
-import { slmAvailable, runLlmlinguaUltra } from "./engines/llmlingua/ultraEntry.ts";
+import {
+  slmAvailable,
+  runLlmlinguaUltra,
+  prewarmLlmlinguaUltra,
+} from "./engines/llmlingua/ultraEntry.ts";
 
 const COMPRESSED_PREFIX = "[COMPRESSED:";
 
@@ -297,4 +301,21 @@ export function shouldPrewarmUltraSlm(config: {
   ultraSlmPrewarm?: boolean;
 }): boolean {
   return config.ultraEngine === "slm" && config.ultraSlmPrewarm === true;
+}
+
+/**
+ * Best-effort: when the resolved config selects the SLM tier WITH pre-warm,
+ * trigger a single warm call. Awaitable for tests; call sites fire-and-forget
+ * (`void maybePrewarmUltraSlmOnConfig(cfg)`). Never throws.
+ */
+export async function maybePrewarmUltraSlmOnConfig(config: {
+  ultraEngine?: "heuristic" | "slm";
+  ultraSlmPrewarm?: boolean;
+}): Promise<void> {
+  if (!shouldPrewarmUltraSlm(config)) return;
+  try {
+    await prewarmLlmlinguaUltra();
+  } catch {
+    // best-effort
+  }
 }
