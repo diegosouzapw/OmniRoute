@@ -130,13 +130,6 @@ function isChatAutoComboNoAuthProvider(providerDef: NoAuthProviderDefinition): b
   return providerDef.serviceKinds.includes("llm");
 }
 
-function getFirstRegistryModelId(providerInfo: { models?: Array<{ id?: string }> } | undefined) {
-  const firstModel = Array.isArray(providerInfo?.models) ? providerInfo.models[0] : undefined;
-  return typeof firstModel?.id === "string" && firstModel.id.trim().length > 0
-    ? firstModel.id
-    : undefined;
-}
-
 function getNoAuthCandidates(
   excludedProviders: Set<string>,
   blockedProviders: Set<string>
