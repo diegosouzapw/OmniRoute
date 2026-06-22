@@ -7,6 +7,7 @@ import {
   createProxyDispatcher,
   getDefaultDispatcher,
   getRetryDispatcher,
+  isRelayType,
   normalizeProxyUrl,
   proxyConfigToUrl,
   proxyUrlForLogs,
@@ -277,9 +278,10 @@ export async function runWithProxyContext(
 
   // T14: Proxy Fast-Fail
   // Perform a short TCP reachability check before issuing upstream requests.
-  // Skip for vercel-relay type: proxyConfigToUrl returns "https://<host>" which is the
-  // relay endpoint itself, not a proxy — the actual routing is handled via relay headers.
-  const isVercelRelay = (effectiveProxyConfig as { type?: string })?.type === "vercel";
+  // Skip for edge-relay types (vercel / deno): proxyConfigToUrl returns
+  // "https://<host>" which is the relay endpoint itself, not an HTTP proxy —
+  // the actual routing is handled via x-relay-* headers below.
+  const isVercelRelay = isRelayType((effectiveProxyConfig as { type?: string })?.type);
   if (resolvedProxyUrl && !isVercelRelay) {
     const reachable = await isProxyReachable(resolvedProxyUrl);
     if (!reachable) {
@@ -506,20 +508,22 @@ async function patchedFetch(
     throw lastDispatcherError;
   }
 
-  // Vercel Relay: instead of routing through an HTTP proxy dispatcher, we send
-  // relay headers to the Vercel edge function which forwards the request upstream.
+  // Edge relay (vercel / deno): instead of routing through an HTTP proxy
+  // dispatcher, we send x-relay-* headers to the edge function which forwards
+  // the request upstream. Both backends share the same envelope shape.
   const contextProxy = proxyContext.getStore();
   if (
     contextProxy &&
     typeof contextProxy === "object" &&
-    (contextProxy as { type?: string }).type === "vercel"
+    isRelayType((contextProxy as { type?: string }).type)
   ) {
-    const vc = contextProxy as { host?: string; relayAuth?: string };
+    const vc = contextProxy as { type?: string; host?: string; relayAuth?: string };
     if (!vc.relayAuth) {
       // Generic message without internal labels — this throw can bubble up to
       // catch blocks that put error.message in response bodies (combo per-model
       // timeout, executor catch-all). Don't leak "[ProxyFetch]" diagnostics.
-      throw new Error("Vercel relay configuration error: missing relayAuth");
+      const label = vc.type === "vercel" ? "Vercel relay" : `${vc.type || "Edge"} relay`;
+      throw new Error(`${label} configuration error: missing relayAuth`);
     }
     const targetUrl = getTargetUrl(input);
     const relayHeaders = buildVercelRelayHeaders(targetUrl, vc.relayAuth);
@@ -529,7 +533,7 @@ async function patchedFetch(
     // to relay routing logs (the rest of this module already follows that rule).
     const hostForLogs = proxyUrlForLogs(vc.host ? `https://${vc.host}` : "");
     if (process.env.OMNIROUTE_PROXY_FETCH_DEBUG === "true") {
-      console.debug(`[ProxyFetch] Routing via Vercel relay: ${hostForLogs}`);
+      console.debug(`[ProxyFetch] Routing via ${vc.type || "edge"} relay: ${hostForLogs}`);
     }
     return await originalFetch(`https://${vc.host}`, {
       ...options,

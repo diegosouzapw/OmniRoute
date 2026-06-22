@@ -9,6 +9,15 @@ const DISPATCHER_CACHE_KEY = Symbol.for("omniroute.proxyDispatcher.cache");
 const DEFAULT_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.default");
 const RETRY_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.retry");
 const SUPPORTED_PROTOCOLS = new Set(["http:", "https:", "socks5:"]);
+// Edge-relay proxy types. These do NOT go through an HTTP/SOCKS dispatcher —
+// the caller wraps the upstream URL with buildRelayHeaders() and fetches the
+// relay endpoint directly. Keep this set as the single source of truth so
+// every dispatch decision stays in sync when a new relay backend lands.
+export const RELAY_TYPES: ReadonlySet<string> = new Set(["vercel", "deno"]);
+
+export function isRelayType(type: string | undefined | null): boolean {
+  return typeof type === "string" && RELAY_TYPES.has(type);
+}
 const DEFAULT_PROXY_DISPATCHER_CONNECTIONS = 32;
 const MAX_PROXY_DISPATCHER_CONNECTIONS = 256;
 
@@ -317,6 +326,11 @@ export function buildVercelRelayHeaders(
   };
 }
 
+// Vercel + Deno Deploy share the same x-relay-{target,path,auth} envelope.
+// Use this alias when the call is intentionally backend-agnostic; the named
+// vercel-specific export above stays for direct callers that already use it.
+export const buildRelayHeaders = buildVercelRelayHeaders;
+
 export function proxyConfigToUrl(
   proxyConfig: unknown,
   { allowSocks5 = isSocks5ProxyEnabled() } = {}
@@ -337,9 +351,10 @@ export function proxyConfigToUrl(
   if (!config.host) return null;
   const type = String(config.type || "http").toLowerCase();
 
-  // Vercel Relay entries carry the relay URL in `host` — no dispatcher needed;
-  // callers should use buildVercelRelayHeaders() and fetch directly.
-  if (type === "vercel") {
+  // Edge-relay entries (vercel / deno) carry the relay URL in `host` — no
+  // dispatcher needed; callers should use buildRelayHeaders() and fetch
+  // the relay endpoint directly.
+  if (RELAY_TYPES.has(type)) {
     return config.host ? `https://${config.host}` : null;
   }
 
