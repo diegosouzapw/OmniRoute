@@ -24,7 +24,7 @@ vi.mock("next-intl", () => ({
 }));
 
 const { default: AddApiKeyModal } = await import(
-  "../../src/app/(dashboard)/dashboard/providers/[id]/components/modals/AddApiKeyModal"
+  "../../../src/app/(dashboard)/dashboard/providers/[id]/components/modals/AddApiKeyModal"
 );
 
 const DEFAULT_MODEL_INPUT_SELECTOR = 'input[data-testid="compat-default-model-input"]';
