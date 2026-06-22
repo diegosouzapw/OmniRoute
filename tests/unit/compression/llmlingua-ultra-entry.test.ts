@@ -104,3 +104,71 @@ test("prewarmLlmlinguaUltra is a no-op when unavailable", async () => {
     __resetUltraEntryForTests();
   }
 });
+
+// ─── Task 7 — gated VPS live validation (Hard Rule #18) ──────────────────────
+// These tests run the REAL ONNX model and are SKIPPED unless RUN_LLMLINGUA_INT=1
+// AND the optional deps are present (only true on the VPS). Under the normal
+// runner they print a skip line and pass as no-ops.
+//
+// VPS command (run ON the VPS, optional deps present, real ONNX model downloaded
+// on the first call):
+//
+//   RUN_LLMLINGUA_INT=1 node --import tsx --import ./open-sse/utils/setupPolyfill.ts \
+//     --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit \
+//     tests/unit/compression/llmlingua-ultra-entry.test.ts
+//
+// Expected: "GATED real ultra-SLM compression" PASSES with a real shrink +
+// ultraTier:"slm"; "GATED forced-unavailable ultra falls back to heuristic"
+// PASSES with ultraTier:"heuristic".
+import { ultraCompress } from "../../../open-sse/services/compression/ultra.ts";
+
+test("GATED real ultra-SLM compression (RUN_LLMLINGUA_INT=1)", async () => {
+  if (process.env.RUN_LLMLINGUA_INT !== "1") {
+    console.log("skip: RUN_LLMLINGUA_INT!=1");
+    return;
+  }
+  if (!depsResolve()) {
+    console.log("skip: deps absent");
+    return;
+  }
+  const LONG_PROSE =
+    "The quick brown fox jumps over the lazy dog while the sun sets slowly behind the distant hills. ".repeat(
+      120
+    );
+  const r = await ultraCompress([{ role: "user", content: LONG_PROSE }], {
+    enabled: true,
+    compressionRate: 0.5,
+    minScoreThreshold: 0.3,
+    slmFallbackToAggressive: false,
+    maxTokensPerMessage: 0,
+    ultraEngine: "slm",
+  });
+  const out = r.messages[0].content as string;
+  assert.equal(typeof out, "string");
+  assert.ok(out.length < LONG_PROSE.length, "expected a real SLM shrink");
+  assert.equal(r.stats.ultraTier, "slm");
+});
+
+test("GATED forced-unavailable ultra falls back to heuristic", async () => {
+  if (process.env.RUN_LLMLINGUA_INT !== "1") {
+    console.log("skip: RUN_LLMLINGUA_INT!=1");
+    return;
+  }
+  __setUltraSlmTestHooks({ available: false });
+  try {
+    const r = await ultraCompress(
+      [{ role: "user", content: "the quick brown fox jumps over the lazy dog ".repeat(40) }],
+      {
+        enabled: true,
+        compressionRate: 0.5,
+        minScoreThreshold: 0.3,
+        slmFallbackToAggressive: false,
+        maxTokensPerMessage: 0,
+        ultraEngine: "slm",
+      }
+    );
+    assert.equal(r.stats.ultraTier, "heuristic");
+  } finally {
+    __resetUltraEntryForTests();
+  }
+});
