@@ -1,7 +1,8 @@
 
 import { DefaultExecutor } from "./default.ts";
-import {  ExecuteInput, type ProviderCredentials } from "./base.ts";
+import {  ExecuteInput, setUserAgentHeader, type ProviderCredentials } from "./base.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
+import { CLAUDE_CLI_USER_AGENT } from "../config/anthropicHeaders.ts";
 import { NON_ANTHROPIC_THINKING_PLACEHOLDER } from "../translator/helpers/claudeHelper.ts";
 type JsonRecord = Record<string, unknown>;
 
@@ -127,7 +128,27 @@ export class KimiExecutor extends DefaultExecutor {
     const cleanedBody = super.transformRequest(model, body, stream, credentials);
     return applyKimiRequestDefaults(cleanedBody);
   }
-  
+
+  buildHeaders(
+    credentials: ProviderCredentials,
+    stream = true,
+    clientHeaders?: Record<string, string> | null
+  ) {
+    // 9router#1985: Kimi For Coding only accepts requests from approved coding agents
+    // (Kimi CLI, Claude Code, Roo Code, Kilo Code, ...). DefaultExecutor forwards the
+    // calling client's User-Agent verbatim (added in v3.8.2 for OpenCode), so a request
+    // originating from a non-allowlisted client such as GitHub Copilot leaks that UA to
+    // Kimi and is rejected with "only available for Coding Agents". Pin an approved
+    // coding-agent UA after the base headers are built so the client UA can never leak
+    // upstream. An operator override via the per-provider *_USER_AGENT env var still wins.
+    const headers = super.buildHeaders(credentials, stream, clientHeaders);
+    const providerId = String(this.config?.id || this.provider || "kimi-coding");
+    const envKey = `${providerId.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_USER_AGENT`;
+    const envUA = process.env[envKey]?.trim();
+    setUserAgentHeader(headers, envUA || CLAUDE_CLI_USER_AGENT);
+    return headers;
+  }
+
 }
 
 export default KimiExecutor;
