@@ -596,10 +596,7 @@ export function handleNoCredentials(
     // all disabled. log level is `warn` rather than `error` because zero active
     // credentials is an expected operator-driven state, not a server fault.
     log.warn("AUTH", `No active credentials for provider: ${provider}`);
-    return errorResponse(
-      HTTP_STATUS.NOT_FOUND,
-      `No active credentials for provider: ${provider}`
-    );
+    return errorResponse(HTTP_STATUS.NOT_FOUND, `No active credentials for provider: ${provider}`);
   }
   log.warn("CHAT", "No more accounts available", { provider });
   return errorResponse(
@@ -755,6 +752,26 @@ export function withSessionHeader(response: Response, sessionId: string | null):
       headers: response.headers,
     });
     cloned.headers.set("X-OmniRoute-Session-Id", sessionId);
+    return cloned;
+  }
+}
+
+export function withSelectedConnectionHeader(
+  response: Response,
+  connectionId: string | null | undefined
+): Response {
+  if (!response || !connectionId) return response;
+
+  try {
+    response.headers.set("X-OmniRoute-Selected-Connection-Id", connectionId);
+    return response;
+  } catch {
+    const cloned = new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+    cloned.headers.set("X-OmniRoute-Selected-Connection-Id", connectionId);
     return cloned;
   }
 }

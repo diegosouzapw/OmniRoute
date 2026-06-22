@@ -840,7 +840,8 @@ export async function handleComboChat({
 
   const isTargetSelectableForWeighted = async (target: ResolvedComboTarget): Promise<boolean> => {
     const rawModel = parseModel(target.modelStr).model || target.modelStr;
-    if (target.provider && getCircuitBreaker(target.provider).getStatus().state === "OPEN") return false;
+    if (target.provider && getCircuitBreaker(target.provider).getStatus().state === "OPEN")
+      return false;
     if (
       resilienceSettings.providerCooldown.enabled &&
       Boolean(target.provider && target.provider !== "unknown") &&
@@ -918,16 +919,21 @@ export async function handleComboChat({
       : null;
   const getWeightedStepKeyForTarget = (target: ResolvedComboTarget): string | null => {
     if (!weightedResolution?.orderedSteps) return null;
-    const step = weightedResolution.orderedSteps.find((entry) =>
-      target.executionKey === entry.executionKey ||
-      target.executionKey.startsWith(entry.executionKey + ">")
+    const step = weightedResolution.orderedSteps.find(
+      (entry) =>
+        target.executionKey === entry.executionKey ||
+        target.executionKey.startsWith(entry.executionKey + ">")
     );
     return step?.executionKey || null;
   };
   let orderedTargets =
     strategy === "weighted"
       ? weightedResolution?.orderedTargets || []
-      : resolveComboTargets(expandedCombo, expandedAllCombos, clampComboDepth(config.maxComboDepth));
+      : resolveComboTargets(
+          expandedCombo,
+          expandedAllCombos,
+          clampComboDepth(config.maxComboDepth)
+        );
 
   orderedTargets = await applyRequestTagRouting(orderedTargets, body, log);
 
@@ -1740,6 +1746,13 @@ export async function handleComboChat({
               return null;
             }
 
+            const responseConnectionId =
+              result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
+              result.headers?.get("x-omniroute-selected-connection-id");
+            if (responseConnectionId) {
+              target.connectionId = responseConnectionId;
+            }
+
             // Success decay: a healthy response walks the model's lockout failure
             // count back down (and eventually clears an expired lockout entirely).
             if (provider && rawModel) {
@@ -2443,7 +2456,8 @@ async function handleRoundRobinCombo({
       if (stickyTarget) {
         const rawModel = parseModel(stickyTarget.modelStr).model || stickyTarget.modelStr;
         const stickyAvailable =
-          (!stickyTarget.provider || getCircuitBreaker(stickyTarget.provider).getStatus().state !== "OPEN") &&
+          (!stickyTarget.provider ||
+            getCircuitBreaker(stickyTarget.provider).getStatus().state !== "OPEN") &&
           !(
             resilienceSettings.providerCooldown.enabled &&
             Boolean(stickyTarget.provider && stickyTarget.provider !== "unknown") &&
@@ -2662,6 +2676,14 @@ async function handleRoundRobinCombo({
             if (offset > 0) fallbackCount++;
             break; // move to next model
           }
+
+          const responseConnectionId =
+            result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
+            result.headers?.get("x-omniroute-selected-connection-id");
+          if (responseConnectionId) {
+            target.connectionId = responseConnectionId;
+          }
+
           const latencyMs = Date.now() - startTime;
           log.info(
             "COMBO-RR",
@@ -2678,6 +2700,19 @@ async function handleRoundRobinCombo({
 
           if (provider && provider !== "unknown") {
             recordProviderSuccess(provider, target.connectionId ?? undefined);
+          }
+
+          const rawModel = parseModel(modelStr).model || modelStr;
+          if (provider && rawModel) {
+            const dcResult = decayModelFailureCount(provider, target.connectionId || "", rawModel);
+            if (dcResult.cleared) {
+              log.info("COMBO-RR", `Model ${modelStr} fully recovered — lockout cleared`);
+            } else if (dcResult.newFailureCount > 0) {
+              log.debug(
+                "COMBO-RR",
+                `Model ${modelStr} decayed to failureCount=${dcResult.newFailureCount}`
+              );
+            }
           }
 
           if (stickyRoundRobinEnabled) {

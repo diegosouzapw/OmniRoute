@@ -66,6 +66,7 @@ import {
   safeLogEvents,
   shouldRetryStreamEarlyEof,
   withSessionHeader,
+  withSelectedConnectionHeader,
 } from "./chatHelpers";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 
@@ -1182,7 +1183,7 @@ async function handleSingleModelChat(
         }
         if (telemetry) telemetry.startPhase("finalize");
         if (telemetry) telemetry.endPhase();
-        return result.response;
+        return withSelectedConnectionHeader(result.response, credentials?.connectionId);
       }
 
       const isAntigravityStreamReadinessFailure =
@@ -1219,7 +1220,7 @@ async function handleSingleModelChat(
 
         // Stream readiness timeout is an upstream stall after an HTTP response was received,
         // not an account/quota failure. Do NOT mark the account unavailable here.
-        return result.response;
+        return withSelectedConnectionHeader(result.response, credentials?.connectionId);
       }
 
       if (isAntigravityStreamReadinessFailure) {
@@ -1263,7 +1264,7 @@ async function handleSingleModelChat(
           continue;
         }
 
-        return result.response;
+        return withSelectedConnectionHeader(result.response, credentials?.connectionId);
       }
 
       const isAntigravityPreResponseTimeout =
@@ -1313,14 +1314,14 @@ async function handleSingleModelChat(
           continue;
         }
 
-        return result.response;
+        return withSelectedConnectionHeader(result.response, credentials?.connectionId);
       }
 
       if (result.errorType === "account_semaphore_capacity") {
         // Local concurrency pressure is not an upstream quota failure. Prefer another
         // account when possible; pinned combo steps fall through to combo orchestration.
         if (hasForcedConnection) {
-          return result.response;
+          return withSelectedConnectionHeader(result.response, credentials?.connectionId);
         }
 
         log.warn(
@@ -1508,7 +1509,7 @@ async function handleSingleModelChat(
         breaker._onFailure();
       }
 
-      return result.response;
+      return withSelectedConnectionHeader(result.response, credentials?.connectionId);
     }
   }
 }
