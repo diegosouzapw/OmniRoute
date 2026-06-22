@@ -1,5 +1,8 @@
-// Convention: when type is a relay (vercel | deno), the `notes` column stores JSON { relayAuth: "<token>" }
-// used by proxyFetch.ts to route requests through the Vercel edge relay instead of an undici ProxyAgent.
+// Convention: when type is a relay (vercel | deno | cloudflare), the `notes` column stores JSON
+// { relayAuth: "<token>" } used by proxyFetch.ts to route requests through the relay edge function
+// (Vercel Edge, Deno Deploy, or Cloudflare Workers) instead of an undici ProxyAgent. All relay
+// types share the exact same x-relay-target / x-relay-path / x-relay-auth header spec; only the
+// deployment surface differs.
 import { randomUUID } from "crypto";
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
@@ -122,7 +125,7 @@ function mapAssignmentRow(row: unknown): ProxyAssignmentRecord {
 // Edge-relay proxy types. Mirrors RELAY_TYPES in open-sse/utils/proxyDispatcher.
 // Duplicated here (not imported) to keep src/lib/db/ free of open-sse runtime
 // imports; if a third relay backend lands, update BOTH sets.
-const RELAY_PROXY_TYPES = new Set(["vercel", "deno"]);
+const RELAY_PROXY_TYPES = new Set(["vercel", "deno", "cloudflare"]);
 
 function isRelayProxyType(type: unknown): boolean {
   return typeof type === "string" && RELAY_PROXY_TYPES.has(type);

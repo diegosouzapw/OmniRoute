@@ -13,7 +13,7 @@ const SUPPORTED_PROTOCOLS = new Set(["http:", "https:", "socks5:"]);
 // the caller wraps the upstream URL with buildRelayHeaders() and fetches the
 // relay endpoint directly. Keep this set as the single source of truth so
 // every dispatch decision stays in sync when a new relay backend lands.
-export const RELAY_TYPES: ReadonlySet<string> = new Set(["vercel", "deno"]);
+export const RELAY_TYPES: ReadonlySet<string> = new Set(["vercel", "deno", "cloudflare"]);
 
 export function isRelayType(type: string | undefined | null): boolean {
   return typeof type === "string" && RELAY_TYPES.has(type);
@@ -415,9 +415,11 @@ export function proxyConfigToUrl(
   if (!config.host) return null;
   const type = String(config.type || "http").toLowerCase();
 
-  // Edge-relay entries (vercel / deno) carry the relay URL in `host` — no
-  // dispatcher needed; callers should use buildRelayHeaders() and fetch
-  // the relay endpoint directly.
+  // Edge-relay entries (vercel / deno / cloudflare) carry the relay URL in
+  // `host` — no dispatcher needed; callers should use buildRelayHeaders() and
+  // fetch the relay endpoint directly. All relay types share the exact same
+  // x-relay-target / x-relay-path / x-relay-auth header spec (only the
+  // deployment target differs).
   if (RELAY_TYPES.has(type)) {
     return config.host ? `https://${config.host}` : null;
   }

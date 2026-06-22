@@ -79,3 +79,33 @@ export const vercelDeploySchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Project name must be lowercase alphanumeric with hyphens")
     .default("omniroute-relay"),
 });
+
+export const cloudflareDeploySchema = z.object({
+  // Cloudflare Account ID is a 32-char lowercase hex string. Reject anything
+  // obviously malformed so users get clearer feedback than a Cloudflare 401/404.
+  accountId: z
+    .string()
+    .min(8, "Cloudflare Account ID looks too short")
+    .max(64)
+    .regex(
+      /^[a-f0-9]+$/,
+      "Cloudflare Account ID must be lowercase hex"
+    ),
+  // Cloudflare API tokens are opaque alphanumeric (40+ chars) — same alphabet
+  // we accept for Vercel tokens; constrain length to catch paste accidents.
+  apiToken: z
+    .string()
+    .min(20, "Cloudflare API token looks too short")
+    .max(200)
+    .regex(
+      /^[A-Za-z0-9_-]+$/,
+      "Cloudflare API token must contain only alphanumeric, underscore, or hyphen"
+    ),
+  projectName: z
+    .string()
+    .min(3)
+    .max(52)
+    .regex(/^[a-z0-9-]+$/, "Worker name must be lowercase alphanumeric with hyphens")
+    .default("omniroute-relay"),
+});
+
