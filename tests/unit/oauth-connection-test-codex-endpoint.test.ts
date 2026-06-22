@@ -97,11 +97,7 @@ test("codex test reports invalid when the endpoint returns 401 (port PR#347)", a
   );
 
   assert.equal(result.valid, false, "401 from the real endpoint must be reported as invalid");
-  assert.equal(
-    calls.length,
-    1,
-    "must NOT burn the refresh_token from a connection test (codex is a rotating provider — openai/codex#9648)"
-  );
+  assert.equal(calls.length, 1, "must NOT burn the refresh_token from a connection test (codex is a rotating provider — openai/codex#9648)");
 });
 
 test("codex test reports invalid when the endpoint returns 403 (port PR#347)", async (t) => {

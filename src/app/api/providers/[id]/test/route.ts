@@ -554,8 +554,7 @@ export async function testOAuthConnection(
     // 400 because the probe body is invalid. A 400 from such a provider means auth
     // succeeded; only 401/403 means the token is bad.
     const accepted =
-      res.ok ||
-      (Array.isArray(config.acceptStatuses) && config.acceptStatuses.includes(res.status));
+      res.ok || (Array.isArray(config.acceptStatuses) && config.acceptStatuses.includes(res.status));
     if (accepted) {
       return {
         valid: true,

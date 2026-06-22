@@ -21,16 +21,13 @@ export function resolveChatCoreTargetFormat(opts: {
   customModelTargetFormat: string | undefined;
   providerSpecificData: unknown;
 }) {
-  const { provider, resolvedModel, apiFormat, customModelTargetFormat, providerSpecificData } =
-    opts;
+  const { provider, resolvedModel, apiFormat, customModelTargetFormat, providerSpecificData } = opts;
   const alias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   const modelTargetFormat = getModelTargetFormat(alias, resolvedModel);
   const targetFormat =
     apiFormat === "responses"
       ? FORMATS.OPENAI_RESPONSES
-      : modelTargetFormat ||
-        customModelTargetFormat ||
-        getTargetFormat(provider, providerSpecificData);
+      : modelTargetFormat || customModelTargetFormat || getTargetFormat(provider, providerSpecificData);
   return { alias, targetFormat };
 }
 

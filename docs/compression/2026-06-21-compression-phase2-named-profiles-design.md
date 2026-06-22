@@ -66,7 +66,6 @@ master off                                            → off
 ```
 
 The active profile is an **explicit operator choice**, so it resolves:
-
 - **regardless of `enginesExplicit`** (setting `activeComboId` is itself an explicit
   opt-in, even on a legacy install), and
 - **above auto-trigger** (a manually-chosen profile wins over automatic escalation),
@@ -114,7 +113,7 @@ import); only chatCore touches the DB.
 `is_default`, `getDefaultCompressionCombo`, `setDefaultCompressionCombo`,
 `setEngineInDefaultCombo`, the chatCore legacy default-combo block, and the
 `deriveEnginesMap` backfill are **unchanged**. Setting `activeComboId` never writes
-`is_default`. The active-profile path resolves _before_ (and independently of) the legacy
+`is_default`. The active-profile path resolves *before* (and independently of) the legacy
 default-combo fallback, so legacy installs that never set `activeComboId` keep their exact
 behavior; an install that sets `activeComboId` runs that profile.
 
@@ -137,7 +136,6 @@ Active profile:  [ Default (from panel) ▼ ]
 On change → `PUT /api/settings/compression { activeComboId }` (null for "Default";
 debounced/merge-patch like the panel's `save()`). Below it, a **read-only preview** of the
 active profile's effective pipeline ("runs: rtk → caveman → …"):
-
 - Default → `deriveDefaultPlan(config.engines, config.enabled)` (the pure fn, client-side).
 - Named combo → that combo's pipeline.
 
@@ -156,7 +154,7 @@ active profile's effective pipeline ("runs: rtk → caveman → …"):
 
 - **Remove** the **"Set as Default"** button (the active selector replaces it).
 - **Keep** everything else: create/list/edit/delete, the pipeline editor (add/remove steps
-  - per-step intensity), language packs, output mode, routing-combo assignments.
+  + per-step intensity), language packs, output mode, routing-combo assignments.
 - **Add** an **"● Active"** badge on the card whose id equals `activeComboId`.
 
 ### 3.4 Navigation

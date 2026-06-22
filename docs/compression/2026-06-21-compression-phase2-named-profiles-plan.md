@@ -23,14 +23,12 @@ lastUpdated: 2026-06-21
 ## File Structure
 
 **Modify:**
-
 - `open-sse/services/compression/strategySelector.ts` — thread a `combos` param through `resolveBasePlan`/`selectCompressionPlan`/`selectCompressionStrategy`/`getEffectiveMode`; resolve the active combo in `resolveBasePlan`; export `activeComboResolves()`.
 - `open-sse/handlers/chatCore.ts` — load named combos, pass them to the two `selectCompression*` calls, guard the legacy default-combo block with `!activeComboResolves(...)`.
 - `src/app/(dashboard)/dashboard/context/combos/CompressionHub.tsx` — remove master toggle / mode selector / reorder; add the active-profile selector + preview.
 - `src/app/(dashboard)/dashboard/context/combos/CompressionCombosPageClient.tsx` — remove `setDefault` + "Set as Default" button; add the "● Active" badge from `activeComboId`.
 
 **Create (tests):**
-
 - `tests/unit/compression/active-combo-dispatch.test.ts`
 - `tests/unit/compression/active-combo-integration.test.ts`
 - `tests/unit/ui/compressionHub-active-selector.test.tsx`
@@ -43,7 +41,6 @@ lastUpdated: 2026-06-21
 ## Task 1: Dispatch — resolve the active combo + thread `combos`
 
 **Files:**
-
 - Modify: `open-sse/services/compression/strategySelector.ts`
 - Test: `tests/unit/compression/active-combo-dispatch.test.ts`
 
@@ -62,12 +59,7 @@ import {
   type CompressionConfig,
 } from "../../../open-sse/services/compression/types.ts";
 
-const combos = {
-  c1: [
-    { engine: "rtk", intensity: "standard" },
-    { engine: "caveman", intensity: "full" },
-  ],
-};
+const combos = { c1: [{ engine: "rtk", intensity: "standard" }, { engine: "caveman", intensity: "full" }] };
 
 function cfg(overrides: Partial<CompressionConfig> = {}): CompressionConfig {
   return { ...DEFAULT_COMPRESSION_CONFIG, enabled: true, ...overrides };
@@ -81,11 +73,7 @@ describe("active named combo resolution (Phase 2)", () => {
     assert.deepEqual(plan.stackedPipeline, combos.c1);
   });
   it("activeComboId null => falls through to derived default (not the combo)", () => {
-    const config = cfg({
-      activeComboId: null,
-      enginesExplicit: true,
-      engines: { rtk: { enabled: true } },
-    });
+    const config = cfg({ activeComboId: null, enginesExplicit: true, engines: { rtk: { enabled: true } } });
     assert.equal(selectCompressionStrategy(config, null, 0, undefined, undefined, combos), "rtk");
   });
   it("activeComboId set but combo missing => graceful fall-through to default", () => {
@@ -94,21 +82,11 @@ describe("active named combo resolution (Phase 2)", () => {
   });
   it("routing-combo override wins over the active profile", () => {
     const config = cfg({ activeComboId: "c1", comboOverrides: { "my-combo": "off" } });
-    assert.equal(
-      selectCompressionStrategy(config, "my-combo", 0, undefined, undefined, combos),
-      "off"
-    );
+    assert.equal(selectCompressionStrategy(config, "my-combo", 0, undefined, undefined, combos), "off");
   });
   it("active profile wins over auto-trigger", () => {
-    const config = cfg({
-      activeComboId: "c1",
-      autoTriggerTokens: 1000,
-      autoTriggerMode: "aggressive",
-    });
-    assert.equal(
-      selectCompressionStrategy(config, null, 5000, undefined, undefined, combos),
-      "stacked"
-    );
+    const config = cfg({ activeComboId: "c1", autoTriggerTokens: 1000, autoTriggerMode: "aggressive" });
+    assert.equal(selectCompressionStrategy(config, null, 5000, undefined, undefined, combos), "stacked");
   });
 });
 
@@ -221,8 +199,7 @@ export function selectCompressionStrategy(
   context?: CachingDetectionContext,
   combos: NamedCombos = {}
 ): CompressionMode {
-  return selectCompressionPlan(config, comboId, estimatedTokens, body, context, combos)
-    .mode as CompressionMode;
+  return selectCompressionPlan(config, comboId, estimatedTokens, body, context, combos).mode as CompressionMode;
 }
 ```
 
@@ -255,7 +232,6 @@ git commit -m "feat(compression): resolve active named combo in dispatch (active
 ## Task 2: chatCore — load named combos + guard the legacy block
 
 **Files:**
-
 - Modify: `open-sse/handlers/chatCore.ts` (compression dispatch block, ~lines 1428–1690)
 - Test: `tests/unit/compression/active-combo-integration.test.ts`
 
@@ -275,10 +251,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const { getDbInstance, resetDbInstance } = await import("../../../src/lib/db/core.ts");
 const combosDb = await import("../../../src/lib/db/compressionCombos.ts");
 const { updateCompressionSettings } = await import("../../../src/lib/db/compression.ts");
-const { selectCompressionPlan } =
-  await import("../../../open-sse/services/compression/strategySelector.ts");
-const { DEFAULT_COMPRESSION_CONFIG } =
-  await import("../../../open-sse/services/compression/types.ts");
+const { selectCompressionPlan } = await import("../../../open-sse/services/compression/strategySelector.ts");
+const { DEFAULT_COMPRESSION_CONFIG } = await import("../../../open-sse/services/compression/types.ts");
 
 after(() => {
   resetDbInstance();
@@ -297,9 +271,7 @@ test("an active named combo's pipeline is what selectCompressionPlan resolves, f
   await updateCompressionSettings({ enabled: true, activeComboId: created.id });
 
   // Mirror chatCore's load: build the combos map from the DB.
-  const combos = Object.fromEntries(
-    combosDb.listCompressionCombos().map((c) => [c.id, c.pipeline])
-  );
+  const combos = Object.fromEntries(combosDb.listCompressionCombos().map((c) => [c.id, c.pipeline]));
   const config = { ...DEFAULT_COMPRESSION_CONFIG, enabled: true, activeComboId: created.id };
   const plan = selectCompressionPlan(config, null, 5000, undefined, undefined, combos);
   assert.equal(plan.mode, "stacked");
@@ -316,55 +288,53 @@ test("an active named combo's pipeline is what selectCompressionPlan resolves, f
 - [ ] **Step 3: Implement** in `chatCore.ts`. In the compression block, AFTER `config` is loaded and BEFORE the first `selectCompressionStrategy` call (line ~1602), load the named combos once:
 
 ```ts
-let namedCombos: Record<string, CompressionPipelineStep[]> = {};
-try {
-  const { listCompressionCombos } = await import("../../src/lib/db/compressionCombos.ts");
-  namedCombos = Object.fromEntries(listCompressionCombos().map((c) => [c.id, c.pipeline]));
-} catch (err) {
-  log?.debug?.(
-    "COMPRESSION",
-    "Named combos load skipped: " + (err instanceof Error ? err.message : String(err))
-  );
-}
+      let namedCombos: Record<string, CompressionPipelineStep[]> = {};
+      try {
+        const { listCompressionCombos } = await import("../../src/lib/db/compressionCombos.ts");
+        namedCombos = Object.fromEntries(listCompressionCombos().map((c) => [c.id, c.pipeline]));
+      } catch (err) {
+        log?.debug?.(
+          "COMPRESSION",
+          "Named combos load skipped: " + (err instanceof Error ? err.message : String(err))
+        );
+      }
 ```
 
 Pass `namedCombos` as the 6th arg to BOTH `selectCompressionStrategy` (line ~1602) and `selectCompressionPlan` (line ~1668):
 
 ```ts
-const modeBeforeOutputTransform = selectCompressionStrategy(
-  config,
-  compressionComboKey,
-  estimatedTokens,
-  body as Record<string, unknown>,
-  { provider, targetFormat, model: effectiveModel },
-  namedCombos
-);
+      const modeBeforeOutputTransform = selectCompressionStrategy(
+        config,
+        compressionComboKey,
+        estimatedTokens,
+        body as Record<string, unknown>,
+        { provider, targetFormat, model: effectiveModel },
+        namedCombos
+      );
 ```
-
 ```ts
-const compressionPlan = selectCompressionPlan(
-  config,
-  compressionComboKey,
-  estimatedTokens,
-  compressionInputBody,
-  { provider, targetFormat, model: effectiveModel },
-  namedCombos
-);
+      const compressionPlan = selectCompressionPlan(
+        config,
+        compressionComboKey,
+        estimatedTokens,
+        compressionInputBody,
+        { provider, targetFormat, model: effectiveModel },
+        namedCombos
+      );
 ```
 
 Guard the legacy default-combo block (the `if (modeBeforeOutputTransform === "stacked" && ... && !enginesMapDerivesStackedPipeline(config))` at line ~1609) so it does NOT fire when the active profile resolves — add `enginesMapDerivesStackedPipeline` is already imported; add `activeComboResolves` to the same import block (line ~1430) and add the guard term:
 
 ```ts
-const {
-  selectCompressionStrategy,
-  selectCompressionPlan,
-  enginesMapDerivesStackedPipeline,
-  activeComboResolves, // ← add
-  applyCompressionAsync,
-  resolveCacheAwareConfig,
-} = await import("../services/compression/strategySelector.ts");
+      const {
+        selectCompressionStrategy,
+        selectCompressionPlan,
+        enginesMapDerivesStackedPipeline,
+        activeComboResolves,                 // ← add
+        applyCompressionAsync,
+        resolveCacheAwareConfig,
+      } = await import("../services/compression/strategySelector.ts");
 ```
-
 ```ts
       if (
         modeBeforeOutputTransform === "stacked" &&
@@ -392,7 +362,6 @@ git commit -m "feat(compression): chatCore loads named combos; legacy default co
 ## Task 3: UI — active-profile selector in CompressionHub (remove duplicates)
 
 **Files:**
-
 - Modify: `src/app/(dashboard)/dashboard/context/combos/CompressionHub.tsx`
 - Test: `tests/unit/ui/compressionHub-active-selector.test.tsx`
 
@@ -427,7 +396,6 @@ git commit -m "feat(dashboard): active-profile selector in CompressionHub; remov
 ## Task 4: UI — NamedCombosManager: remove "Set as Default", add "● Active" badge
 
 **Files:**
-
 - Modify: `src/app/(dashboard)/dashboard/context/combos/CompressionCombosPageClient.tsx`
 - Test: `tests/unit/ui/namedCombos-active-badge.test.tsx`
 
@@ -459,7 +427,6 @@ git commit -m "feat(dashboard): NamedCombosManager active badge; remove Set-as-D
 ## Task 5: Full validation + no-regression + file-size
 
 **Files:**
-
 - Modify (if needed): `config/quality/file-size-baseline.json` (rebaseline any grown frozen file with a justification key)
 - Test: reuse existing suites.
 
@@ -482,7 +449,6 @@ git commit -m "chore(compression): Phase 2 full validation + file-size rebaselin
 ---
 
 ## Self-review notes (done while writing)
-
 - **Spec coverage:** active-combo resolution in resolveBasePlan (T1), `combos` threading (T1), chatCore load + legacy-block guard (T2), active-profile selector + Hub cleanup (T3), Set-as-Default removal + active badge (T4), is_default-untouched assertion (T2), tests + file-size (T5). ✓
 - **Type consistency:** `NamedCombos = Record<string, CompressionPipelineStep[]>` used in T1's signatures + T2's chatCore load + `activeComboResolves`. `DerivedPlan.stackedPipeline` accepts `CompressionPipelineStep[]` (structural superset). ✓
 - **No placeholders:** concrete code/tests; UI removals point at exact elements (the executing subagent reads the file). T3 step 4 offers the simplest preview option and tells the executor to pick what the test asserts — make the test assert the combo-engine text and the "Default" fallback text so the choice is fixed at execution.
@@ -490,7 +456,6 @@ git commit -m "chore(compression): Phase 2 full validation + file-size rebaselin
 ---
 
 # 📌 RESUMO — o que ESTE plano (Fase 2) entrega
-
 1. **Resolução do perfil ativo** no `resolveBasePlan` (precedência routing-override > ativo > auto-trigger > Default derivado), independente de `enginesExplicit`, com `combos` threaded por `selectCompressionPlan`/`Strategy`.
 2. **chatCore** carrega combos nomeados (`listCompressionCombos`) e os passa ao resolver; o bloco legado de default-combo é guardado por `!activeComboResolves` (não sombreia o perfil ativo).
 3. **CompressionHub** ganha o seletor de perfil ativo + preview e perde master-toggle/mode-selector/reorder (duplicados/derivados).
@@ -498,7 +463,6 @@ git commit -m "chore(compression): Phase 2 full validation + file-size rebaselin
 5. Zero API/DB nova; `is_default`/legado intocados; validação completa + rebaseline file-size.
 
 # ⏳ PENDÊNCIAS — depois desta fase
-
 - **Fase 3** — header `x-omniroute-compression` (resolver já header-aware; falta parsing+wiring, espelhando `x-omniroute-no-memory` #4290).
 - Deferidos da Fase 1: B-OBSERVABILITY, packs caveman de/fr/ja, bump js-tiktoken.
 - Decisão operacional: ligar o SLM (tier ultra) em produção.

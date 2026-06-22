@@ -341,10 +341,7 @@ export function processRtkText(
       if (config.enabledFilters.length === 0 || config.enabledFilters.includes(filter.id)) {
         const filtered = applyLineFilter(result, {
           ...filter,
-          maxLines: effectiveMaxLines(
-            filter.maxLines || config.maxLinesPerResult,
-            config.intensity
-          ),
+          maxLines: effectiveMaxLines(filter.maxLines || config.maxLinesPerResult, config.intensity),
         });
         result = filtered.text;
         if (filtered.appliedRules.length > 0) {

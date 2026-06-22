@@ -78,10 +78,7 @@ test("PR#769: buildProviderOptions — honors a custom comparator (e.g. Turkish-
   // unchanged — verify with a reverse comparator instead of pulling in the
   // real i18n helper.
   const reverse = (a: string, b: string) => b.localeCompare(a);
-  const out = buildProviderOptions(
-    [{ provider: "a" }, { provider: "c" }, { provider: "b" }],
-    reverse
-  );
+  const out = buildProviderOptions([{ provider: "a" }, { provider: "c" }, { provider: "b" }], reverse);
   assert.deepEqual(out, ["c", "b", "a"]);
 });
 

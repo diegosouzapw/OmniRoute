@@ -11,10 +11,12 @@ import assert from "node:assert/strict";
 //      400 and rate-limit as 429 (instead of rewriting everything to 502).
 
 const { checkFallbackError } = await import("../../open-sse/services/accountFallback.ts");
-const { isContextOverflow400, isParamValidation400 } =
-  await import("../../open-sse/services/combo.ts");
-const { normalizeUpstreamFailure } =
-  await import("../../open-sse/translator/response/openai-responses.ts");
+const { isContextOverflow400, isParamValidation400 } = await import(
+  "../../open-sse/services/combo.ts"
+);
+const { normalizeUpstreamFailure } = await import(
+  "../../open-sse/translator/response/openai-responses.ts"
+);
 
 test("#4519 checkFallbackError treats per-model max_tokens 400 as fallback-worthy with zero cooldown", () => {
   const res = checkFallbackError(

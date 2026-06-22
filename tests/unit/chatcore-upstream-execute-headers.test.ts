@@ -64,11 +64,7 @@ test("fast-mode header is NOT set for non-claude providers even with fast settin
 });
 
 test("returns a plain object (no per-model extra headers configured for unknown models)", () => {
-  const h = buildUpstreamHeadersForExecute({
-    ...base,
-    modelToCall: "totally-unknown",
-    effectiveModel: "x",
-  });
+  const h = buildUpstreamHeadersForExecute({ ...base, modelToCall: "totally-unknown", effectiveModel: "x" });
   assert.equal(typeof h, "object");
   assert.equal(h[CPA_FORCE_FAST_MODE_HEADER], undefined);
 });

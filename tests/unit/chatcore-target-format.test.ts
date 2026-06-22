@@ -8,10 +8,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { resolveChatCoreTargetFormat } from "../../open-sse/handlers/chatCore/targetFormat.ts";
-import {
-  PROVIDER_ID_TO_ALIAS,
-  getModelTargetFormat,
-} from "../../open-sse/config/providerModels.ts";
+import { PROVIDER_ID_TO_ALIAS, getModelTargetFormat } from "../../open-sse/config/providerModels.ts";
 import { getTargetFormat } from "../../open-sse/services/provider.ts";
 import { FORMATS } from "../../open-sse/translator/formats.ts";
 
@@ -27,9 +24,7 @@ function expected(
   const targetFormat =
     apiFormat === "responses"
       ? FORMATS.OPENAI_RESPONSES
-      : modelTargetFormat ||
-        customModelTargetFormat ||
-        getTargetFormat(provider, providerSpecificData);
+      : modelTargetFormat || customModelTargetFormat || getTargetFormat(provider, providerSpecificData);
   return { alias, targetFormat };
 }
 

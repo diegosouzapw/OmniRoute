@@ -11,10 +11,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const { getDbInstance, resetDbInstance } = await import("../../../src/lib/db/core.ts");
 const combosDb = await import("../../../src/lib/db/compressionCombos.ts");
 const { updateCompressionSettings } = await import("../../../src/lib/db/compression.ts");
-const { selectCompressionPlan } =
-  await import("../../../open-sse/services/compression/strategySelector.ts");
-const { DEFAULT_COMPRESSION_CONFIG } =
-  await import("../../../open-sse/services/compression/types.ts");
+const { selectCompressionPlan } = await import("../../../open-sse/services/compression/strategySelector.ts");
+const { DEFAULT_COMPRESSION_CONFIG } = await import("../../../open-sse/services/compression/types.ts");
 
 after(() => {
   resetDbInstance();
@@ -33,9 +31,7 @@ test("an active named combo's pipeline is what selectCompressionPlan resolves, f
   await updateCompressionSettings({ enabled: true, activeComboId: created.id });
 
   // Mirror chatCore's load: build the combos map from the DB.
-  const combos = Object.fromEntries(
-    combosDb.listCompressionCombos().map((c) => [c.id, c.pipeline])
-  );
+  const combos = Object.fromEntries(combosDb.listCompressionCombos().map((c) => [c.id, c.pipeline]));
   const config = { ...DEFAULT_COMPRESSION_CONFIG, enabled: true, activeComboId: created.id };
   const plan = selectCompressionPlan(config, null, 5000, undefined, undefined, combos);
   assert.equal(plan.mode, "stacked");

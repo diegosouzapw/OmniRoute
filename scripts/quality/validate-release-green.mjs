@@ -42,9 +42,7 @@ const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
 /** Read the committed ratchet baseline value for a metric (null if unknown). */
 export function baselineValue(metric, root = ROOT) {
   try {
-    const raw = JSON.parse(
-      readFileSync(join(root, "config/quality/quality-baseline.json"), "utf8")
-    );
+    const raw = JSON.parse(readFileSync(join(root, "config/quality/quality-baseline.json"), "utf8"));
     const metrics = raw.metrics || raw;
     const v = metrics?.[metric]?.value;
     return typeof v === "number" ? v : null;
@@ -143,13 +141,7 @@ function main() {
 
   const hardCmd = (id, label, cmd, cmdArgs) => {
     const { code, out } = run(cmd, cmdArgs);
-    record({
-      id,
-      label,
-      kind: "hard",
-      ok: code === 0,
-      detail: code === 0 ? "pass" : firstFailureLine(out),
-    });
+    record({ id, label, kind: "hard", ok: code === 0, detail: code === 0 ? "pass" : firstFailureLine(out) });
   };
 
   process.stderr.write("🔎 Release-green validation (current working tree)\n\n");
@@ -161,22 +153,10 @@ function main() {
     const { out } = run("npx", ["eslint", ".", "--format", "json"]);
     const parsed = parseEslintJson(out);
     if (!parsed) {
-      record({
-        id: "lint",
-        label: "ESLint",
-        kind: "hard",
-        ok: false,
-        detail: "could not parse eslint json",
-      });
+      record({ id: "lint", label: "ESLint", kind: "hard", ok: false, detail: "could not parse eslint json" });
     } else {
       const { errors, warnings } = eslintCounts(parsed);
-      record({
-        id: "lint-errors",
-        label: "ESLint errors",
-        kind: "hard",
-        ok: errors === 0,
-        detail: `${errors} error(s)`,
-      });
+      record({ id: "lint-errors", label: "ESLint errors", kind: "hard", ok: errors === 0, detail: `${errors} error(s)` });
       const base = baselineValue("eslintWarnings");
       const over = isDrift(warnings, base);
       record({
@@ -230,10 +210,7 @@ function main() {
     hardCmd("vitest", "Vitest (MCP / autoCombo / cache)", npmCmd, ["run", "test:vitest"]);
   }
   if (WITH_BUILD) {
-    hardCmd("pack-artifact", "Package artifact (npm pack policy)", npmCmd, [
-      "run",
-      "check:pack-artifact",
-    ]);
+    hardCmd("pack-artifact", "Package artifact (npm pack policy)", npmCmd, ["run", "check:pack-artifact"]);
   }
 
   const { releaseGreen, hardFailures, drift } = computeVerdict(results);

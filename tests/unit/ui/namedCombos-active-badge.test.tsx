@@ -19,9 +19,7 @@ function mount(ui: React.ReactElement): HTMLElement {
 }
 
 beforeEach(() => {
-  (
-    globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
-  ).IS_REACT_ACT_ENVIRONMENT = true;
+  (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 });
 
 afterEach(async () => {
@@ -57,26 +55,23 @@ function setupFetchMock() {
   const json = (body: unknown, status = 200) =>
     new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
   const combos = [combo("c1", "Alpha"), combo("c2", "Bravo")];
-  vi.spyOn(globalThis, "fetch").mockImplementation(
-    async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = input.toString();
-      void init;
-      if (url.includes("/api/context/combos/") && url.includes("/assignments"))
-        return json({ assignments: [] });
-      if (url.includes("/api/context/combos")) return json({ combos });
-      if (url.includes("/api/combos")) return json({ combos: [] });
-      if (url.includes("/api/compression/language-packs")) return json({ packs: [] });
-      if (url.includes("/api/settings/compression"))
-        return json({ activeComboId: "c2", enabled: true });
-      return json({}, 404);
-    }
-  );
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = input.toString();
+    void init;
+    if (url.includes("/api/context/combos/") && url.includes("/assignments")) return json({ assignments: [] });
+    if (url.includes("/api/context/combos")) return json({ combos });
+    if (url.includes("/api/combos")) return json({ combos: [] });
+    if (url.includes("/api/compression/language-packs")) return json({ packs: [] });
+    if (url.includes("/api/settings/compression")) return json({ activeComboId: "c2", enabled: true });
+    return json({}, 404);
+  });
 }
 
 describe("NamedCombosManager — active badge, no set-as-default", () => {
   async function render() {
-    const { default: CompressionCombosPageClient } =
-      await import("../../../src/app/(dashboard)/dashboard/context/combos/CompressionCombosPageClient");
+    const { default: CompressionCombosPageClient } = await import(
+      "../../../src/app/(dashboard)/dashboard/context/combos/CompressionCombosPageClient"
+    );
     let container!: HTMLElement;
     await act(async () => {
       container = mount(<CompressionCombosPageClient />);

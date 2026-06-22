@@ -75,11 +75,7 @@ test("discoverKiroProfileArn falls back to the first profile when no region matc
       { status: 200, headers: { "Content-Type": "application/json" } }
     )) as typeof fetch;
   try {
-    const arn = await discoverKiroProfileArn(
-      "tok",
-      "https://q.eu-west-1.amazonaws.com",
-      "eu-west-1"
-    );
+    const arn = await discoverKiroProfileArn("tok", "https://q.eu-west-1.amazonaws.com", "eu-west-1");
     assert.equal(arn, "arn:aws:codewhisperer:us-east-1:1:profile/X");
   } finally {
     globalThis.fetch = originalFetch;
@@ -118,9 +114,7 @@ test("getKiroUsage returns a friendly auth-expired message for social-auth Kiro 
   let callIdx = 0;
   globalThis.fetch = (async (_url: string, init?: RequestInit) => {
     callIdx += 1;
-    const target = String(
-      (init?.headers as Record<string, string> | undefined)?.["x-amz-target"] || ""
-    );
+    const target = String((init?.headers as Record<string, string> | undefined)?.["x-amz-target"] || "");
     if (target.endsWith("ListAvailableProfiles")) {
       return new Response(
         JSON.stringify({ profiles: [{ arn: "arn:aws:codewhisperer:us-east-1:1:profile/SOCIAL" }] }),
@@ -155,9 +149,7 @@ test("getKiroUsage returns a friendly auth-expired message for social-auth Kiro 
 test("getKiroUsage still throws on 401/403 for non-social Kiro accounts (Builder-ID/IDC)", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = (async (_url: string, init?: RequestInit) => {
-    const target = String(
-      (init?.headers as Record<string, string> | undefined)?.["x-amz-target"] || ""
-    );
+    const target = String((init?.headers as Record<string, string> | undefined)?.["x-amz-target"] || "");
     if (target.endsWith("ListAvailableProfiles")) {
       return new Response(
         JSON.stringify({ profiles: [{ arn: "arn:aws:codewhisperer:us-east-1:1:profile/BID" }] }),

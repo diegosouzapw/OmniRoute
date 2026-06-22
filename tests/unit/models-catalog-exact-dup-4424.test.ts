@@ -38,18 +38,15 @@ test("collapses the reporter's two distinct duplicated ids to two unique entries
 
 test("preserves intentional same-id audio variants (transcription vs speech)", () => {
   const input = [
-    {
-      id: "prov/whisper",
-      owned_by: "prov",
-      root: "whisper",
-      type: "audio",
-      subtype: "transcription",
-    },
+    { id: "prov/whisper", owned_by: "prov", root: "whisper", type: "audio", subtype: "transcription" },
     { id: "prov/whisper", owned_by: "prov", root: "whisper", type: "audio", subtype: "speech" },
   ];
   const out = dedupeExactCatalogIds(input);
   assert.equal(out.length, 2);
-  assert.deepEqual(out.map((m) => m.subtype).sort(), ["speech", "transcription"]);
+  assert.deepEqual(
+    out.map((m) => m.subtype).sort(),
+    ["speech", "transcription"]
+  );
 });
 
 test("keeps distinct ids untouched", () => {

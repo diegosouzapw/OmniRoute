@@ -596,7 +596,10 @@ export function handleNoCredentials(
     // all disabled. log level is `warn` rather than `error` because zero active
     // credentials is an expected operator-driven state, not a server fault.
     log.warn("AUTH", `No active credentials for provider: ${provider}`);
-    return errorResponse(HTTP_STATUS.NOT_FOUND, `No active credentials for provider: ${provider}`);
+    return errorResponse(
+      HTTP_STATUS.NOT_FOUND,
+      `No active credentials for provider: ${provider}`
+    );
   }
   log.warn("CHAT", "No more accounts available", { provider });
   return errorResponse(

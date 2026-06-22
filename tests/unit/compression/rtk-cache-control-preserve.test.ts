@@ -62,9 +62,7 @@ test("RTK preserves a tool_result block carrying cache_control byte-for-byte (st
 
   // The marked breakpoint block must be untouched — content identical, marker intact.
   assert.equal(after, before, "cache_control-marked tool_result must not be rewritten");
-  assert.deepEqual(toolResultBlock(res.body as Record<string, unknown>).cache_control, {
-    type: "ephemeral",
-  });
+  assert.deepEqual(toolResultBlock(res.body as Record<string, unknown>).cache_control, { type: "ephemeral" });
 });
 
 test("RTK preserves an inner text sub-block carrying cache_control (array content)", () => {

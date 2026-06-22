@@ -29,7 +29,11 @@ export default function ManualConfigModal({ isOpen, onClose, title, configs = []
           <div key={index} className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-text-main">{config.filename}</span>
-              <Button variant="ghost" size="sm" onClick={() => copyConfig(config.content, index)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => copyConfig(config.content, index)}
+              >
                 <span className="material-symbols-outlined text-[14px] mr-1">
                   {copiedIndex === index ? "check" : "content_copy"}
                 </span>

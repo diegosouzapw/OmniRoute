@@ -3,11 +3,13 @@ import { getDbInstance } from "./core";
 // in test fixtures; the 3 production call sites (pricingSync, jsonMigration,
 // serviceModels) all use `getDbInstance().prepare(...).run()` directly. We
 // follow the same convention to avoid introducing a new abstraction.
-const READ_KV_SQL = "SELECT value FROM key_value WHERE namespace = ? AND key = ? LIMIT 1";
+const READ_KV_SQL =
+  "SELECT value FROM key_value WHERE namespace = ? AND key = ? LIMIT 1";
 // The key_value table is (namespace, key, value) — no updated_at column
 // (see migrations/001_initial_schema.sql). Match the canonical write shape
 // used by serviceModels.ts / jsonMigration.ts.
-const WRITE_KV_SQL = "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)";
+const WRITE_KV_SQL =
+  "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)";
 
 function setKeyValue(namespace: string, key: string, value: string): void {
   const db = getDbInstance();
@@ -16,7 +18,9 @@ function setKeyValue(namespace: string, key: string, value: string): void {
 
 function getKeyValue(namespace: string, key: string): string | null {
   const db = getDbInstance();
-  const row = db.prepare(READ_KV_SQL).get(namespace, key) as { value: string } | undefined;
+  const row = db.prepare(READ_KV_SQL).get(namespace, key) as
+    | { value: string }
+    | undefined;
   return row?.value ?? null;
 }
 

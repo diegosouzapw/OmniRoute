@@ -38,7 +38,11 @@ import {
   type McpToolDefinition,
   type OpenAITool,
 } from "../utils/cursorAgentProtobuf.ts";
-import { resolveCursorImages, extractImageUrls, CursorImageError } from "../utils/cursorImages.ts";
+import {
+  resolveCursorImages,
+  extractImageUrls,
+  CursorImageError,
+} from "../utils/cursorImages.ts";
 import {
   estimateInputTokens,
   estimateOutputTokens,
@@ -137,9 +141,7 @@ function buildCursorOutputConstraints(body: {
   const fmt = body.response_format;
   if (isRecordLike(fmt)) {
     if (fmt.type === "json_object") {
-      constraints.push(
-        "Return a single valid JSON object and no surrounding prose or code fences."
-      );
+      constraints.push("Return a single valid JSON object and no surrounding prose or code fences.");
     } else if (fmt.type === "json_schema") {
       const js = isRecordLike(fmt.json_schema) ? fmt.json_schema.schema : fmt.schema;
       constraints.push(

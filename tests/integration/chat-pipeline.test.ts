@@ -718,7 +718,7 @@ test("chat pipeline applies Codex CLI fingerprint to OAuth responses requests", 
     "instructions",
     "store",
     "reasoning",
-    "include",
+    "prompt_cache_key",
   ]);
   assert.equal(call.body.model, "gpt-5.5");
   assert.equal(call.body.store, false);

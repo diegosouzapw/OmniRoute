@@ -153,7 +153,9 @@ export default function CompressionHub() {
           </span>
           <div>
             <h1 className="text-xl font-bold text-text-main">Compression Hub</h1>
-            <p className="text-sm text-text-muted">Pick which compression profile runs globally.</p>
+            <p className="text-sm text-text-muted">
+              Pick which compression profile runs globally.
+            </p>
           </div>
         </div>
         <button
@@ -204,8 +206,7 @@ export default function CompressionHub() {
             Active profile
           </label>
           <p className="text-xs text-text-muted">
-            Pick which compression profile runs globally — the panel-derived Default or a saved
-            named combo.
+            Pick which compression profile runs globally — the panel-derived Default or a saved named combo.
           </p>
         </div>
         <select

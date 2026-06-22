@@ -163,7 +163,10 @@ import {
   normalizeExecutorResult,
   executeWithUpstreamStartTimeout,
 } from "./chatCore/upstreamTimeouts.ts";
-import { getModelNormalizeToolCallId, getModelPreserveOpenAIDeveloperRole } from "@/lib/localDb";
+import {
+  getModelNormalizeToolCallId,
+  getModelPreserveOpenAIDeveloperRole,
+} from "@/lib/localDb";
 import { getProviderCredentials, extractSessionAffinityKey } from "@/sse/services/auth";
 import { deleteSessionAccountAffinity } from "@/lib/db/sessionAccountAffinity";
 import { getExecutor } from "../executors/index.ts";
@@ -900,7 +903,9 @@ export async function handleChatCore({
   // field instead of the upstream model, so strict clients (Claude Desktop) that validate
   // response.model === request.model stop rejecting alias/combo requests with a 401.
   const echoModel =
-    settings.echoRequestedModelName === true && typeof requestedModel === "string" && requestedModel
+    settings.echoRequestedModelName === true &&
+    typeof requestedModel === "string" &&
+    requestedModel
       ? requestedModel
       : null;
   const detailedLoggingEnabled =
@@ -3315,20 +3320,17 @@ export async function handleChatCore({
         ? 499
         : error.name === "TimeoutError" || error.name === "BodyTimeoutError"
           ? HTTP_STATUS.GATEWAY_TIMEOUT
-          : error.status && typeof error.status === "number"
-            ? error.status
-            : HTTP_STATUS.BAD_GATEWAY;
+          : (error.status && typeof error.status === "number") ? error.status
+          : HTTP_STATUS.BAD_GATEWAY;
     const failureMessage =
       error.name === "AbortError"
         ? "Request aborted"
         : formatProviderError(error, provider, model, failureStatus);
     const upstreamErrorCode = getUpstreamErrorIdentifier(error);
     const upstreamErrorType =
-      upstreamErrorCode === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE
-        ? "upstream_timeout"
-        : failureStatus === 401
-          ? "authentication_error"
-          : undefined;
+      upstreamErrorCode === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE ? "upstream_timeout"
+      : failureStatus === 401 ? "authentication_error"
+      : undefined;
     appendRequestLog({
       model,
       provider,

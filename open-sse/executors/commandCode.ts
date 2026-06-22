@@ -154,7 +154,9 @@ function getModelMaxTokensCap(modelId: string): number {
   if (!entry) return MAX_COMMAND_CODE_TOKENS;
   const model = entry.models?.find((m: { id: string }) => m.id === modelId);
   const registryCap = (model as { maxOutputTokens?: number } | undefined)?.maxOutputTokens;
-  return typeof registryCap === "number" && registryCap > 0 ? registryCap : MAX_COMMAND_CODE_TOKENS;
+  return typeof registryCap === "number" && registryCap > 0
+    ? registryCap
+    : MAX_COMMAND_CODE_TOKENS;
 }
 
 // Reasoning/thinking fields that payload rules or clients may inject and that

@@ -3118,10 +3118,7 @@ async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRec
       // "auth expired, chat may still work" message instead of a generic upstream-error blob
       // so the quota card matches what users with legacy social-auth accounts already see.
       // Inspired by https://github.com/decolua/9router/pull/620.
-      if (
-        (response.status === 401 || response.status === 403) &&
-        isSocialAuthKiroAccount(providerSpecificData)
-      ) {
+      if ((response.status === 401 || response.status === 403) && isSocialAuthKiroAccount(providerSpecificData)) {
         return {
           message: "Kiro quota API authentication expired. Chat may still work.",
           quotas: {},

@@ -2536,7 +2536,11 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
   // identity).
   const handleDeselectModel = (model) => {
     const value =
-      typeof model?.value === "string" ? model.value : typeof model === "string" ? model : "";
+      typeof model?.value === "string"
+        ? model.value
+        : typeof model === "string"
+          ? model
+          : "";
     if (!value) return;
     setModels(models.filter((m) => m.model !== value));
     setBuilderError("");

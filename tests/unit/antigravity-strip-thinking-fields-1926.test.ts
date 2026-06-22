@@ -37,14 +37,9 @@ test("transformRequest drops Claude/OpenAI thinking fields from the Antigravity 
     },
   };
 
-  const result = await executor.transformRequest(
-    "antigravity/claude-opus-4-8-thinking",
-    body,
-    true,
-    {
-      projectId: "project-1",
-    }
-  );
+  const result = await executor.transformRequest("antigravity/claude-opus-4-8-thinking", body, true, {
+    projectId: "project-1",
+  });
 
   if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
   const envelope = result as Record<string, unknown>;

@@ -298,17 +298,9 @@ function getCatalogModelCapabilities(model: JsonRecord): string[] {
   return ["chat"];
 }
 
-function normalizeCatalogStatus(
-  model: JsonRecord,
-  source: string,
-  warning?: string
-): McpCatalogStatus {
+function normalizeCatalogStatus(model: JsonRecord, source: string, warning?: string): McpCatalogStatus {
   const explicitStatus = toString(model.status);
-  if (
-    explicitStatus === "available" ||
-    explicitStatus === "degraded" ||
-    explicitStatus === "unavailable"
-  ) {
+  if (explicitStatus === "available" || explicitStatus === "degraded" || explicitStatus === "unavailable") {
     return explicitStatus;
   }
 
@@ -366,8 +358,7 @@ export async function getMcpModelsCatalog(
   connections = Array.isArray(connections) ? connections : [];
 
   const activeConnections = connections.filter((connection) => {
-    const provider =
-      typeof connection?.provider === "string" ? normalizeProviderId(connection.provider) : null;
+    const provider = typeof connection?.provider === "string" ? normalizeProviderId(connection.provider) : null;
     if (!provider || !connection?.id || connection.isActive === false) return false;
     if (requestedProvider && provider !== requestedProvider) return false;
     return true;
@@ -380,9 +371,7 @@ export async function getMcpModelsCatalog(
   }));
 
   if (requestedProvider && requestSpecs.length === 0) {
-    const isNoAuthProvider = Object.values(NOAUTH_PROVIDERS).some(
-      (provider) => provider.id === requestedProvider
-    );
+    const isNoAuthProvider = Object.values(NOAUTH_PROVIDERS).some((provider) => provider.id === requestedProvider);
     if (isNoAuthProvider) {
       requestSpecs.push({
         provider: requestedProvider,
@@ -404,10 +393,7 @@ export async function getMcpModelsCatalog(
 
   for (const spec of requestSpecs) {
     const raw = toRecord(await fetchJson(spec.path));
-    const source = toString(
-      raw.source,
-      spec.path.startsWith("/api/providers/") ? "api" : "v1_catalog"
-    );
+    const source = toString(raw.source, spec.path.startsWith("/api/providers/") ? "api" : "v1_catalog");
     const warning = raw.warning ? String(raw.warning) : undefined;
     if (warning) warnings.add(warning);
     sources.add(source);
@@ -447,12 +433,7 @@ function withScopeEnforcement(
 ) {
   return async (args: unknown, extra?: McpToolExtraLike): Promise<TextToolResult> => {
     const scopeContext = resolveCallerScopeContext(extra, Array.from(MCP_ALLOWED_SCOPES));
-    const scopeCheck = evaluateToolScopes(
-      toolName,
-      scopeContext.scopes,
-      MCP_ENFORCE_SCOPES,
-      toolScopes
-    );
+    const scopeCheck = evaluateToolScopes(toolName, scopeContext.scopes, MCP_ENFORCE_SCOPES, toolScopes);
     if (!scopeCheck.allowed) {
       const missingScopes =
         scopeCheck.missing.length > 0 ? scopeCheck.missing.join(", ") : "unavailable";
@@ -1162,7 +1143,9 @@ export function createMcpServer(): McpServer {
         "Fetches and extracts content from a URL using OmniRoute's web fetch gateway. Supports multiple providers (Firecrawl, Jina Reader, Tavily) with automatic failover. Returns the page content as markdown, HTML, links, or screenshot, along with metadata.",
       inputSchema: webFetchInput,
     },
-    withScopeEnforcement("omniroute_web_fetch", (args) => handleWebFetch(webFetchInput.parse(args)))
+    withScopeEnforcement("omniroute_web_fetch", (args) =>
+      handleWebFetch(webFetchInput.parse(args))
+    )
   );
 
   server.registerTool(
@@ -1476,8 +1459,7 @@ export function createMcpServer(): McpServer {
   });
 
   // ── Dynamic Skill Tools (from skills table) ──
-  const skillToMcpToolName = (skill: { name: string }) =>
-    `skill_${skill.name.replace(/[^a-z0-9_-]/gi, "_")}`;
+  const skillToMcpToolName = (skill: { name: string }) => `skill_${skill.name.replace(/[^a-z0-9_-]/gi, "_")}`;
   try {
     const enabledSkills = skillRegistry.list().filter((s) => s.enabled);
     for (const skill of enabledSkills) {

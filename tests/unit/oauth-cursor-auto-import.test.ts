@@ -120,7 +120,9 @@ describe("cursorDbCandidatePaths", () => {
 
   it("returns a single path on Linux", () => {
     const paths = cursorDbCandidatePaths("linux", { home: "/home/test" });
-    assert.deepEqual(paths, ["/home/test/.config/Cursor/User/globalStorage/state.vscdb"]);
+    assert.deepEqual(paths, [
+      "/home/test/.config/Cursor/User/globalStorage/state.vscdb",
+    ]);
   });
 
   it("returns a single path on Windows using APPDATA", () => {

@@ -187,8 +187,7 @@ export function selectCompressionStrategy(
   context?: CachingDetectionContext,
   combos: NamedCombos = {}
 ): CompressionMode {
-  return selectCompressionPlan(config, comboId, estimatedTokens, body, context, combos)
-    .mode as CompressionMode;
+  return selectCompressionPlan(config, comboId, estimatedTokens, body, context, combos).mode as CompressionMode;
 }
 
 /**
@@ -434,7 +433,9 @@ async function applyUltraAsync(
           stats: {
             ...slm.stats,
             mode: "ultra",
-            techniquesUsed: Array.from(new Set([...(slm.stats.techniquesUsed ?? []), "ultra-slm"])),
+            techniquesUsed: Array.from(
+              new Set([...(slm.stats.techniquesUsed ?? []), "ultra-slm"])
+            ),
           },
         };
       }
@@ -444,11 +445,7 @@ async function applyUltraAsync(
   }
 
   // SLM tier unavailable or produced no gain → fall back per slmFallbackToAggressive.
-  return applyCompression(
-    body,
-    ultraConfig?.slmFallbackToAggressive ? "aggressive" : "ultra",
-    options
-  );
+  return applyCompression(body, ultraConfig?.slmFallbackToAggressive ? "aggressive" : "ultra", options);
 }
 
 function normalizePipelineStep(step: CompressionPipelineStep | string): CompressionPipelineStep {

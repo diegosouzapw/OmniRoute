@@ -670,7 +670,10 @@ export function mergeResilienceSettings(
       current.providerCooldown
     ),
     quotaPreflight: normalizeQuotaPreflightSettings(updates.quotaPreflight, current.quotaPreflight),
-    streamRecovery: normalizeStreamRecoverySettings(updates.streamRecovery, current.streamRecovery),
+    streamRecovery: normalizeStreamRecoverySettings(
+      updates.streamRecovery,
+      current.streamRecovery
+    ),
   };
 }
 

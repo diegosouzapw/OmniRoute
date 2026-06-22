@@ -51,11 +51,7 @@ test("sourceFormat 'claude' strips the model but does NOT inject reasoning_effor
 });
 
 test("an explicit client reasoning_effort wins (not overwritten)", () => {
-  const body: Record<string, unknown> = {
-    model: "claude-sonnet-4-low",
-    reasoning_effort: "high",
-    messages: [],
-  };
+  const body: Record<string, unknown> = { model: "claude-sonnet-4-low", reasoning_effort: "high", messages: [] };
   const r = applyClaudeEffortVariant({
     provider: "claude",
     effectiveModel: "claude-sonnet-4-low",

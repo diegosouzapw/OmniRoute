@@ -27,8 +27,14 @@ test("webFetchTool has the required McpToolDefinition shape", () => {
 
 test("webFetchTool is registered in MCP_TOOLS and MCP_TOOL_MAP", () => {
   const toolNames = MCP_TOOLS.map((t) => t.name);
-  assert.ok(toolNames.includes("omniroute_web_fetch"), "webFetchTool must be in MCP_TOOLS array");
-  assert.ok("omniroute_web_fetch" in MCP_TOOL_MAP, "webFetchTool must be in MCP_TOOL_MAP");
+  assert.ok(
+    toolNames.includes("omniroute_web_fetch"),
+    "webFetchTool must be in MCP_TOOLS array"
+  );
+  assert.ok(
+    "omniroute_web_fetch" in MCP_TOOL_MAP,
+    "webFetchTool must be in MCP_TOOL_MAP"
+  );
 });
 
 // ── Scope mapping ──

@@ -64,30 +64,16 @@ test("applies the unknown/undefined fallbacks", () => {
 
 test("combo strategy is included only for combo requests", () => {
   const combo = buildFailureUsageRecord({
-    provider: "x",
-    model: "y",
-    connectionId: null,
-    apiKeyInfo: null,
-    effectiveServiceTier: "standard",
-    isCombo: true,
-    comboStrategy: "round-robin",
-    statusCode: 500,
-    errorCode: "boom",
-    latencyMs: 1,
+    provider: "x", model: "y", connectionId: null, apiKeyInfo: null,
+    effectiveServiceTier: "standard", isCombo: true, comboStrategy: "round-robin",
+    statusCode: 500, errorCode: "boom", latencyMs: 1,
   });
   assert.equal(combo.comboStrategy, "round-robin");
 
   const comboNoStrategy = buildFailureUsageRecord({
-    provider: "x",
-    model: "y",
-    connectionId: null,
-    apiKeyInfo: null,
-    effectiveServiceTier: "standard",
-    isCombo: true,
-    comboStrategy: null,
-    statusCode: 500,
-    errorCode: "boom",
-    latencyMs: 1,
+    provider: "x", model: "y", connectionId: null, apiKeyInfo: null,
+    effectiveServiceTier: "standard", isCombo: true, comboStrategy: null,
+    statusCode: 500, errorCode: "boom", latencyMs: 1,
   });
   assert.equal(comboNoStrategy.comboStrategy, undefined);
 });

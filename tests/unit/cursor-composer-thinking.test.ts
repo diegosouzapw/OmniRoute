@@ -58,16 +58,28 @@ test("isComposerModel matches composer + composer-* (case-insensitive, vendor pr
 });
 
 test("visibleComposerContentFromThinking returns suffix after last </think> (trim-start)", () => {
-  assert.equal(visibleComposerContentFromThinking("private reasoning</think>OK"), "OK");
-  assert.equal(visibleComposerContentFromThinking("a</think>b</think>  final"), "final");
+  assert.equal(
+    visibleComposerContentFromThinking("private reasoning</think>OK"),
+    "OK"
+  );
+  assert.equal(
+    visibleComposerContentFromThinking("a</think>b</think>  final"),
+    "final"
+  );
   assert.equal(visibleComposerContentFromThinking("no marker yet"), "");
   assert.equal(visibleComposerContentFromThinking(""), "");
   assert.equal(visibleComposerContentFromThinking("ends with</think>"), "");
 });
 
 test("composerReasoningRemainder returns only the hidden portion before last </think>", () => {
-  assert.equal(composerReasoningRemainder("private reasoning</think>OK"), "private reasoning");
-  assert.equal(composerReasoningRemainder("just hidden, no marker"), "just hidden, no marker");
+  assert.equal(
+    composerReasoningRemainder("private reasoning</think>OK"),
+    "private reasoning"
+  );
+  assert.equal(
+    composerReasoningRemainder("just hidden, no marker"),
+    "just hidden, no marker"
+  );
   assert.equal(composerReasoningRemainder(""), "");
 });
 
@@ -77,7 +89,11 @@ test("Composer streaming: emits visible suffix after </think> as content deltas;
   const chunks: string[] = [];
   const ctx: StreamCtx = newStreamCtx("composer-2.5-fast", (c) => chunks.push(c));
   processFrame(buildThinkingDeltaPayload("private reasoning"), ctx, new Set());
-  processFrame(buildThinkingDeltaPayload(" that must not leak</think>O"), ctx, new Set());
+  processFrame(
+    buildThinkingDeltaPayload(" that must not leak</think>O"),
+    ctx,
+    new Set()
+  );
   processFrame(buildThinkingDeltaPayload("K"), ctx, new Set());
 
   const sseText = chunks.join("");
@@ -122,7 +138,11 @@ test("Composer non-streaming aggregation: thinking with </think> populates total
 test("Non-Composer model: thinking field stays in reasoning_content (unchanged contract)", () => {
   const chunks: string[] = [];
   const ctx: StreamCtx = newStreamCtx("gpt-5.3-codex", (c) => chunks.push(c));
-  processFrame(buildThinkingDeltaPayload("hidden</think>SHOULD_NOT_APPEAR"), ctx, new Set());
+  processFrame(
+    buildThinkingDeltaPayload("hidden</think>SHOULD_NOT_APPEAR"),
+    ctx,
+    new Set()
+  );
 
   const sseText = chunks.join("");
   assert.ok(sseText.includes("reasoning_content"), "reasoning_content delta missing");

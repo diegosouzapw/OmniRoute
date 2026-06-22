@@ -110,13 +110,9 @@ test("routes to the configured model when a native web-search tool is present", 
 });
 
 test("does NOT route when the request has no native web-search tool", () => {
-  const r = resolveWebSearchRouteOverride(
-    "minimax,MiniMax-M3",
-    { tools: [{ type: "function" }] },
-    {
-      webSearchRouteModel: "openrouter,anthropic/claude-3.5-sonnet",
-    }
-  );
+  const r = resolveWebSearchRouteOverride("minimax,MiniMax-M3", { tools: [{ type: "function" }] }, {
+    webSearchRouteModel: "openrouter,anthropic/claude-3.5-sonnet",
+  });
   assert.deepEqual(r, { wasRouted: false, model: "minimax,MiniMax-M3" });
 });
 

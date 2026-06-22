@@ -27,8 +27,9 @@ import fs from "node:fs";
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-hidden-4558-"));
 process.env.DATA_DIR = tmpDir;
 
-const { mergeModelCompatOverride, getHiddenModelsByProvider, getModelIsHidden } =
-  await import("../../src/lib/localDb.ts");
+const { mergeModelCompatOverride, getHiddenModelsByProvider, getModelIsHidden } = await import(
+  "../../src/lib/localDb.ts"
+);
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 
 before(() => {

@@ -40,7 +40,8 @@ export function buildTelegramPayload(
       : null;
   const accountId = typeof data.accountId === "string" ? data.accountId.trim() : null;
   const accountDisplay =
-    account || (accountId ? escapeMd(getAccountDisplayName({ id: accountId, name: null })) : null);
+    account ||
+    (accountId ? escapeMd(getAccountDisplayName({ id: accountId, name: null })) : null);
   const latencyMs =
     typeof data.latencyMs === "number" && Number.isFinite(data.latencyMs) ? data.latencyMs : null;
   const fallbackCount =

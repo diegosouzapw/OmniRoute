@@ -6,10 +6,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { convertOpenAIContentToParts } =
-  await import("../../open-sse/translator/helpers/geminiHelper.ts");
-const { VALID_OPENAI_CONTENT_TYPES, filterToOpenAIFormat } =
-  await import("../../open-sse/translator/helpers/openaiHelper.ts");
+const { convertOpenAIContentToParts } = await import(
+  "../../open-sse/translator/helpers/geminiHelper.ts"
+);
+const { VALID_OPENAI_CONTENT_TYPES, filterToOpenAIFormat } = await import(
+  "../../open-sse/translator/helpers/openaiHelper.ts"
+);
 
 type Part = { inlineData?: { mimeType: string; data: string } };
 

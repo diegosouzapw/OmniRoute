@@ -94,8 +94,7 @@ export function execFileWithPassword(
     // `spawn` is used (not `exec`) so each arg is a separate argv entry and
     // shell metacharacters do not expand. See docs/security/SOCKET_DEV_FINDINGS.md §3.
     // nosemgrep
-    const child = spawn(finalCommand, finalArgs, {
-      // nosemgrep
+    const child = spawn(finalCommand, finalArgs, { // nosemgrep
       stdio: ["pipe", "pipe", "pipe"],
     });
     let stdout = "";
