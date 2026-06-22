@@ -50,3 +50,24 @@ test("already fits → base plan unchanged, fit=true, no stages", () => {
   assert.ok(telemetry!.headroomBefore > 0);
   assert.equal(telemetry!.headroomAfter, telemetry!.headroomBefore);
 });
+
+test("over target → escalates and stops at first fitting stage (no over-escalation)", () => {
+  // Injected estimator: each stage halves the prompt. target = 200000-8000-1024 = 190976.
+  // Start over target at 400000: stage1 → 200000 (still over), stage2 → 100000 (fits) → STOP.
+  const halve = (prior: number) => Math.round(prior / 2);
+  const { plan, telemetry } = resolveAdaptivePlan({
+    basePlan: { mode: "off", stackedPipeline: [] },
+    estimatedTokens: 400000,
+    modelContextLimit: 200000,
+    requestMaxTokens: 8000,
+    config: cfg(),
+    estimate: halve,
+  });
+  assert.equal(telemetry!.fit, true);
+  assert.equal(telemetry!.stagesApplied.length, 2); // stopped after the 2nd stage
+  assert.equal(plan.mode, "stacked");
+  assert.equal(plan.stackedPipeline.length, 2);
+  // first two ladder engines above "off": session-dedup then rtk
+  assert.deepEqual(telemetry!.stagesApplied, ["session-dedup", "rtk"]);
+  assert.ok(telemetry!.headroomAfter >= 0);
+});
