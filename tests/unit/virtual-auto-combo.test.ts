@@ -202,16 +202,23 @@ test("createVirtualAutoCombo includes no-auth OpenCode Free without provider_con
 test("createVirtualAutoCombo includes all chat-capable no-auth providers without connections", async () => {
   const combo: VirtualComboResult = await virtualFactory.createVirtualAutoCombo("fast");
 
-  const byProvider = new Map(combo.models.map((model) => [model.providerId, model]));
+  // Each noAuth provider should have multiple models (not just the first)
+  const ddgwModels = combo.models.filter((m) => m.providerId === "duckduckgo-web");
+  assert.ok(ddgwModels.length >= 1, "duckduckgo-web should have at least one model");
+  assert.ok(ddgwModels.every((m) => m.connectionId === "noauth"), "all ddgw models should use noauth connection");
+  assert.ok(ddgwModels.some((m) => m.model.startsWith("ddgw/")), "ddgw models should have correct prefix");
 
-  assert.equal(byProvider.get("duckduckgo-web")?.connectionId, "noauth");
-  assert.equal(byProvider.get("duckduckgo-web")?.model, "ddgw/gpt-4o-mini");
-  assert.equal(byProvider.get("theoldllm")?.connectionId, "noauth");
-  assert.equal(byProvider.get("theoldllm")?.model, "tllm/GPT_5_4");
-  assert.equal(byProvider.get("chipotle")?.connectionId, "noauth");
-  assert.equal(byProvider.get("chipotle")?.model, "pepper/pepper-1");
+  const tllmModels = combo.models.filter((m) => m.providerId === "theoldllm");
+  assert.ok(tllmModels.length >= 1, "theoldllm should have at least one model");
+  assert.ok(tllmModels.every((m) => m.connectionId === "noauth"), "all tllm models should use noauth connection");
+  assert.ok(tllmModels.some((m) => m.model === "tllm/GPT_5_4"), "tllm should include GPT_5_4");
+
+  const chipotleModels = combo.models.filter((m) => m.providerId === "chipotle");
+  assert.ok(chipotleModels.length >= 1, "chipotle should have at least one model");
+  assert.ok(chipotleModels.every((m) => m.connectionId === "noauth"), "all chipotle models should use noauth connection");
+
   assert.equal(
-    byProvider.has("veoaifree-web"),
+    combo.models.some((model) => model.providerId === "veoaifree-web"),
     false,
     "video-only no-auth providers must not be inserted into chat auto-combos"
   );

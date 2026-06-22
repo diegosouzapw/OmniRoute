@@ -37,6 +37,7 @@ export const AUTO_TEMPLATE_VARIANTS: Record<string, AutoVariant | undefined> = {
   "auto/smart": "smart",
   "auto/claude-opus": "smart",
   "auto/claude-sonnet": "coding",
+  "auto/best-free": "cheap",
 };
 
 /**

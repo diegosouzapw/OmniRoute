@@ -9,6 +9,7 @@ export const rekaProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "bearer",
   models: [
+    { id: "reka-flash", name: "Reka Flash" },
     { id: "reka-flash-3", name: "Reka Flash 3" },
     { id: "reka-edge-2603", name: "Reka Edge 2603" },
   ],
