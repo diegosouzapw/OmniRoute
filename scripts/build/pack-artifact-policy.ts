@@ -112,6 +112,7 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
   "open-sse/",
   "src/domain/",
   "src/lib/",
+  "src/models/",
   "src/mitm/",
   "src/server/",
   "src/shared/",

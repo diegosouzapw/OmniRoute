@@ -8,6 +8,7 @@ export {
   deleteProviderConnections,
   getProviderNodes,
   getProviderNodeById,
+  resolveProviderNodeForConnection,
   createProviderNode,
   updateProviderNode,
   deleteProviderNode,

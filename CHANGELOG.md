@@ -2,27 +2,85 @@
 
 ## [Unreleased]
 
-### New Features
-
-- **feat(db): scheduled VACUUM + manual Vacuum Now persist lastVacuumAt** - previously the SQLite database settings panel always showed lastVacuumAt as null because the manual vacuum path and the auto_vacuum setting never updated the timestamp. A new src/lib/db/vacuumScheduler.ts (replacing the orphaned compressionScheduler.ts) persists the last run timestamp and last error to the key_value table via migration 102, and exposes getState(), runNow(), init(), stop(). The getDatabaseSettings() lastVacuumAt field is now read from scheduler state (no more hardcoded null). Wired into the Next.js lifecycle via instrumentation-node.ts so a setInterval timer starts at boot (default 24h, configurable, default start window 02:00-04:00 local). New env flags: OMNIROUTE_VACUUM_ENABLED, OMNIROUTE_VACUUM_INTERVAL_HOURS, OMNIROUTE_VACUUM_WINDOW. ([#4437])
-
 ---
 
-## [3.8.33] — TBD
+## [3.8.34] — TBD
 
 _In development — bullets added per PR; finalized at release._
 
-### 🐛 Fixed
+### 📝 Maintenance
 
+- **chore(quality): release-green pre-flight validator + nightly signal** — new `npm run check:release-green` (`scripts/quality/validate-release-green.mjs`) reproduces the release-equivalent validation (full unit + vitest + ratchets + typecheck + lint, optional `--with-build` package-artifact) against the current working tree and classifies each red as **HARD** (real defect) vs **DRIFT** (ratchet, rebaselined at release) — purely diagnostic, never blocking contributors. A new `nightly-release-green` workflow runs it on the active release branch and opens/updates a tracking issue on hard failures. Closes the gap where the full gate (`ci.yml`) only ran on the release PR, so reds accrued silently on `release/**` and surfaced in layers at release time. (thanks @diegosouzapw)
+
+---
+
+## [3.8.33] — 2026-06-21
+
+### ✨ New Features
+
+- **feat(combo): nested combo-ref execution (`nestedComboMode: execute`)** — selection strategies can now treat a combo-reference step as a black box, executing the referenced combo as a single unit instead of flattening its targets. ([#4537](https://github.com/diegosouzapw/OmniRoute/pull/4537) — thanks @adivekar-utexas)
+- **feat(combo): sticky weighted selection limit with exhaustion-aware renormalization** — weighted strategies gain a configurable sticky-selection limit; once a target is exhausted, remaining weights renormalize so traffic is redistributed correctly. ([#4489](https://github.com/diegosouzapw/OmniRoute/pull/4489) — thanks @adivekar-utexas)
+- **feat(combos): provider-wildcard expansion in combo steps** — a combo step may now reference a whole provider via wildcard and have it expand to that provider's models at resolution time. ([#4545](https://github.com/diegosouzapw/OmniRoute/pull/4545) — thanks @Rahulsharma0810)
+- **feat(compression): Phase 2 — named profiles + active selector** — the compression settings panel becomes the single source of truth via a single active-profile selector (Default panel vs a named combo) wired into the runtime. ([#4521](https://github.com/diegosouzapw/OmniRoute/pull/4521) — thanks @diegosouzapw)
+- **feat(sse): route `web_search` requests to a configured model** — CCR-style webSearch scenario: requests carrying a `web_search*` tool can be routed to a dedicated `webSearchRouteModel`, configurable from the Routing tab. ([#4509](https://github.com/diegosouzapw/OmniRoute/pull/4509) — thanks @shafqatevo / @diegosouzapw)
+- **feat(mcp): `omniroute_web_fetch` tool for URL content extraction** — new MCP tool that fetches and extracts the content of a URL. ([#4510](https://github.com/diegosouzapw/OmniRoute/pull/4510) — thanks @ponkcore)
+- **feat(models): qualify duplicate model names with their provider prefix** — when two providers expose a same-named model, the catalog now disambiguates each with its provider prefix. ([#4516](https://github.com/diegosouzapw/OmniRoute/pull/4516) — thanks @Rahulsharma0810)
+- **feat(translator): accept OpenAI audio input parts in Gemini translation** — `input_audio` message parts are now translated through to Gemini. ([#4434](https://github.com/diegosouzapw/OmniRoute/pull/4434) — thanks @diegosouzapw)
+- **feat(webhooks): enrich Telegram request notifications** — Telegram webhook payloads carry richer request context. ([#4524](https://github.com/diegosouzapw/OmniRoute/pull/4524) — thanks @mppata-glitch)
+- **feat(bazaarlink): add `authHint` to the existing APIKEY_PROVIDERS entry** — surfaces the auth hint for the bazaarlink provider. ([#4522](https://github.com/diegosouzapw/OmniRoute/pull/4522) — thanks @adivekar-utexas)
+- **feat(usage): API-key USD quota percent + reset hints, weekly-window cutoff** — usage dashboard surfaces API-key USD quota percentage and reset hints, honoring the weekly window cutoff. ([#4398](https://github.com/diegosouzapw/OmniRoute/pull/4398) — thanks @Witroch4)
+- **feat(usage): surface Codex code-review weekly window + `additional_rate_limits` fallback** — exposes the Codex code-review weekly window and falls back to `additional_rate_limits` when present. ([#4494](https://github.com/diegosouzapw/OmniRoute/pull/4494) — thanks @diegosouzapw)
+- **feat(dashboard): per-provider dropdown filter on the quota dashboard** — filter the quota dashboard by provider. ([#4495](https://github.com/diegosouzapw/OmniRoute/pull/4495) — thanks @diegosouzapw)
+- **feat(dashboard): inline show/hide toggle for API keys on the API Manager page** ([#4505](https://github.com/diegosouzapw/OmniRoute/pull/4505) — thanks @diegosouzapw)
+- **feat(dashboard): toggle-style model deselection in the combo builder modal** ([#4498](https://github.com/diegosouzapw/OmniRoute/pull/4498) — thanks @diegosouzapw)
+- **feat(dashboard): Done button in the model picker for combo creation** ([#4496](https://github.com/diegosouzapw/OmniRoute/pull/4496) — thanks @diegosouzapw)
+- **feat(providers): expose `gpt-4o` on the built-in GitHub Copilot (`gh`) provider** ([#4487](https://github.com/diegosouzapw/OmniRoute/pull/4487) — thanks @diegosouzapw)
+- **feat(pricing): default pricing for the Qwen coder-model on the `qw` provider** ([#4488](https://github.com/diegosouzapw/OmniRoute/pull/4488) — thanks @diegosouzapw)
+
+### 🔧 Bug Fixes
+
+- **fix(api): resolve a compatible provider node by base type, not only exact id** — connection→node resolution now matches on the bare derived node type when the exact id isn't found and the match is unambiguous (ambiguous → 404), via a pure `providerNodeSelect` helper. ([#4576](https://github.com/diegosouzapw/OmniRoute/pull/4576) — thanks @aleksesipenko / @diegosouzapw)
+- **fix(cli): supervisor restarts on spontaneous exit-0 (OOM cgroup) + waits for port before respawn** — a child that exits 0 because the cgroup OOM-killer reaped it is now restarted (not treated as a clean shutdown), the restart reset window widened 30s→60s, and the supervisor waits for the port to be free before respawning. ([#4578](https://github.com/diegosouzapw/OmniRoute/pull/4578) — thanks @oyi77 / @diegosouzapw)
+- **fix(combo): attribute lockout decay & success telemetry to the dynamically-selected connection** — on the combo success path the actual connection chosen by dynamic account-selection is read from the `X-OmniRoute-Selected-Connection-Id` response header (instead of the often-empty static `target.connectionId`), so model-lockout decay, `recordProviderSuccess`, LKGP and success/failure telemetry attribute to the right connection on both the priority and round-robin paths. The pre-screen "unavailable" snapshot is also no longer a permanent skip — availability is re-checked on each retry since connection cooldowns can expire mid-request. ([#4550](https://github.com/diegosouzapw/OmniRoute/pull/4550) — thanks @Chewji9875)
 - **fix(auto): enforce the quota cutoff before scoring (opt-in)** — auto-routing now evaluates a hard quota cutoff in `buildAutoCandidates` to drop low-quota candidates before scoring, with a 429 guard when all candidates fall below cutoff. The cutoff is **opt-in** behind `QuotaPreflightSettings.enabled` (default OFF via `QUOTA_PREFLIGHT_CUTOFF_ENABLED`), so default behavior is unchanged. ([#4483](https://github.com/diegosouzapw/OmniRoute/pull/4483) — thanks @megamen32)
-- **fix(antigravity): reasoning/thinking models no longer 400 with `oneOf at '/' not met`** — the Cloud Code envelope passthrough also leaked the Claude/OpenAI-native thinking fields (`thinking`, `reasoning_effort`, `reasoning`, `enable_thinking`, `thinking_budget`) the unified thinking adapter sets at the body root; Google rejected them with `400 Bad input: oneOf at '/' not met`. The whole thinking family is now stripped before the envelope is built; Gemini's own `generationConfig.thinkingConfig` is unaffected. (port from 9router#1926 — thanks @theseven99 / @diegosouzapw)
+- **fix(antigravity): reasoning/thinking models no longer 400 with `oneOf at '/' not met`** — the Cloud Code envelope passthrough also leaked the Claude/OpenAI-native thinking fields (`thinking`, `reasoning_effort`, `reasoning`, `enable_thinking`, `thinking_budget`) the unified thinking adapter sets at the body root; Google rejected them with `400 Bad input: oneOf at '/' not met`. The whole thinking family is now stripped before the envelope is built; Gemini's own `generationConfig.thinkingConfig` is unaffected. ([#4485](https://github.com/diegosouzapw/OmniRoute/pull/4485) — port from 9router#1926, thanks @theseven99 / @diegosouzapw)
 - **fix(integration): restore the codex and memory pipeline contracts** — realigns the CLI fingerprint + memory-tools contracts so the codex and memory pipelines pass their integration checks again. ([#4474](https://github.com/diegosouzapw/OmniRoute/pull/4474) — thanks @KooshaPari)
-- **perf(quota): stop writing redundant `quota_snapshots` rows from idle connections** — the 60s background refresh persisted a snapshot for every window of every connection regardless of change, generating 400K+ rows/day from idle accounts. `setQuotaCache` now skips the write when a window's `remaining_percentage`/`is_exhausted` is unchanged from the last cached observation; the first observation and every real change still persist. ([#4438](https://github.com/diegosouzapw/OmniRoute/issues/4438) — thanks @oyi77)
-- **fix(combo): attribute lockout decay & success telemetry to the dynamically-selected connection** — on the combo success path the actual connection chosen by dynamic account-selection is now read from the `X-OmniRoute-Selected-Connection-Id` response header (instead of the often-empty static `target.connectionId`), so model-lockout decay, `recordProviderSuccess`, LKGP and success/failure telemetry attribute to the right connection on both the priority and round-robin paths. The pre-screen "unavailable" snapshot is also no longer a permanent skip — availability is re-checked on each retry since connection cooldowns can expire mid-request. ([#4550](https://github.com/diegosouzapw/OmniRoute/pull/4550) — thanks @Chewji9875)
+- **fix(sse): RTK must preserve `cache_control`-marked `tool_result` blocks** — reasoning-token-keeping no longer drops tool_result blocks that carry a `cache_control` marker. ([#4560](https://github.com/diegosouzapw/OmniRoute/pull/4560) — thanks @diegosouzapw)
+- **fix(auto-combo): respect model visibility (`isHidden`) in the auto-combo candidate pool** — hidden models are excluded from auto-combo candidates. ([#4558](https://github.com/diegosouzapw/OmniRoute/pull/4558) — thanks @herjarsa)
+- **fix(dashboard): avoid overlapping provider health polls** — guards against concurrent provider-health poll cycles overlapping. ([#4557](https://github.com/diegosouzapw/OmniRoute/pull/4557) — thanks @KooshaPari)
+- **fix(dashboard): make the API Manager key table usable on mobile** ([#4556](https://github.com/diegosouzapw/OmniRoute/pull/4556) — thanks @janeza2)
+- **fix(executors): decode Composer/Cursor `</think>`-marked visible output** — visible text wrapped in Cursor Composer's `</think>` markers is now decoded correctly. ([#4554](https://github.com/diegosouzapw/OmniRoute/pull/4554) — thanks @diegosouzapw)
+- **fix(oauth): improve Cursor auto-import reliability on macOS** ([#4552](https://github.com/diegosouzapw/OmniRoute/pull/4552) — thanks @diegosouzapw)
+- **fix(providers/test): probe the real Codex `/responses` endpoint** — connection test hits the actual Codex `/responses` endpoint. ([#4551](https://github.com/diegosouzapw/OmniRoute/pull/4551) — thanks @diegosouzapw)
+- **fix(mcp): `webFetchInput` emits `URL is required` for a missing url** — clearer validation error for the web-fetch tool. ([#4541](https://github.com/diegosouzapw/OmniRoute/pull/4541) — thanks @ponkcore / @diegosouzapw)
+- **fix(compression): allow `enginesExplicit` through the PUT validation schema** — the compression settings PUT no longer rejects the `enginesExplicit` flag. ([#4532](https://github.com/diegosouzapw/OmniRoute/pull/4532) — thanks @DevEstacion)
+- **fix(no-think): normalize provider prefix to canonical in no-think variants** ([#4531](https://github.com/diegosouzapw/OmniRoute/pull/4531) — thanks @Rahulsharma0810)
+- **fix(combo): pass `maxCooldownMs` from settings to the `recordModelLockoutFailure` call sites** ([#4530](https://github.com/diegosouzapw/OmniRoute/pull/4530) — thanks @Chewji9875)
+- **fix(combo): allow fallback on context-overflow & param-validation 400s; preserve upstream codes** — combo fallback now triggers on recoverable 400s while keeping the original upstream status. ([#4519](https://github.com/diegosouzapw/OmniRoute/pull/4519) — thanks @adivekar-utexas)
+- **fix(command-code): cap `max_tokens` per model using the registry `maxOutputTokens`** ([#4518](https://github.com/diegosouzapw/OmniRoute/pull/4518) — thanks @adivekar-utexas)
+- **fix(mitm): gate sudo prompts on server platform, not browser UA** ([#4514](https://github.com/diegosouzapw/OmniRoute/pull/4514) — thanks @diegosouzapw)
+- **fix(mitm): graceful sudo degradation in slim Docker / non-root containers** ([#4513](https://github.com/diegosouzapw/OmniRoute/pull/4513) — thanks @diegosouzapw)
+- **fix(usage): clear auth-expired message for Kiro social-auth accounts** ([#4512](https://github.com/diegosouzapw/OmniRoute/pull/4512) — thanks @diegosouzapw)
+- **fix(pricing): default cost rows for Antigravity Gemini 3.5 Flash tiers + `gemini-pro-agent`** ([#4508](https://github.com/diegosouzapw/OmniRoute/pull/4508) — thanks @diegosouzapw)
+- **fix(api): dedupe exact-duplicate ids in `/v1/models`** — low-noise model output without alias/canonical duplicates. ([#4506](https://github.com/diegosouzapw/OmniRoute/pull/4506) — thanks @Rahulsharma0810 / @diegosouzapw)
+- **fix(dashboard): enable Codex Apply/Reset buttons when the CLI is installed** ([#4504](https://github.com/diegosouzapw/OmniRoute/pull/4504) — thanks @diegosouzapw)
+- **fix(dashboard): show API-Key-compatible providers in the Antigravity CLI Tools model picker** ([#4503](https://github.com/diegosouzapw/OmniRoute/pull/4503) — thanks @diegosouzapw)
+- **fix(dashboard): migrate ManualConfigModal copy to the shared `useCopyToClipboard` hook** ([#4502](https://github.com/diegosouzapw/OmniRoute/pull/4502) — thanks @diegosouzapw)
+- **fix(sse): skip disabled providers in combo fallback** ([#4500](https://github.com/diegosouzapw/OmniRoute/pull/4500) — thanks @diegosouzapw)
+- **fix(usage): parse numeric-string quota reset timestamps as Unix sec/ms** ([#4493](https://github.com/diegosouzapw/OmniRoute/pull/4493) — thanks @diegosouzapw)
+- **fix(db): scheduled VACUUM + persist `lastVacuumAt`** — a new `vacuumScheduler.ts` persists the last run timestamp and last error to the `key_value` table (migration 102) and feeds the database settings panel; wired into the Next.js lifecycle (default 24h, window 02:00–04:00 local). New env flags: `OMNIROUTE_VACUUM_ENABLED`, `OMNIROUTE_VACUUM_INTERVAL_HOURS`, `OMNIROUTE_VACUUM_WINDOW`. ([#4480](https://github.com/diegosouzapw/OmniRoute/pull/4480) — thanks @KooshaPari / @oyi77)
+- **perf(quota): stop writing redundant `quota_snapshots` rows from idle connections** — the 60s background refresh persisted a snapshot for every window of every connection regardless of change, generating 400K+ rows/day from idle accounts. `setQuotaCache` now skips the write when a window's `remaining_percentage`/`is_exhausted` is unchanged from the last cached observation; the first observation and every real change still persist. ([#4565](https://github.com/diegosouzapw/OmniRoute/pull/4565), [#4438](https://github.com/diegosouzapw/OmniRoute/issues/4438) — thanks @oyi77)
+
+### 🔒 Security
+
+- **fix(sse): crypto-secure RNG for combo/deck load-balancing selection** — replaces `Math.random()` with a crypto-secure source in the combo/deck weighted-selection path. ([#4455](https://github.com/diegosouzapw/OmniRoute/pull/4455) — thanks @diegosouzapw)
 
 ### 📝 Maintenance
 
 - **perf(dashboard): shrink provider assets + fix the usage rollup cutoff** — recompresses oversized provider images (nanobot/picoclaw/zeroclaw) and adds a `check:provider-assets` gate, plus a usage-analytics rollup cutoff fix. ([#4464](https://github.com/diegosouzapw/OmniRoute/pull/4464) — thanks @KooshaPari)
+- **refactor(chatCore): extract pure leaves from `chatCore.ts`** — incremental decomposition of the chat-core handler into pure, individually-testable leaves (system-role extraction, upstream-header build, failure usage-record builder, key-health, request-format, claude-effort, target-format, Background-Task-Redirect decision, Codex quota-state persistence). ([#4548](https://github.com/diegosouzapw/OmniRoute/pull/4548), [#4547](https://github.com/diegosouzapw/OmniRoute/pull/4547), [#4544](https://github.com/diegosouzapw/OmniRoute/pull/4544), [#4538](https://github.com/diegosouzapw/OmniRoute/pull/4538), [#4526](https://github.com/diegosouzapw/OmniRoute/pull/4526), [#4492](https://github.com/diegosouzapw/OmniRoute/pull/4492) — #3501, thanks @diegosouzapw)
+- **chore(i18n): remove unused config helpers** ([#4482](https://github.com/diegosouzapw/OmniRoute/pull/4482) — thanks @KooshaPari)
+- **chore(quality): reconcile quality baselines (complexity, cognitive-complexity, file-size) across the cycle** ([#4579](https://github.com/diegosouzapw/OmniRoute/pull/4579), [#4570](https://github.com/diegosouzapw/OmniRoute/pull/4570), [#4543](https://github.com/diegosouzapw/OmniRoute/pull/4543), [#4542](https://github.com/diegosouzapw/OmniRoute/pull/4542), [#4535](https://github.com/diegosouzapw/OmniRoute/pull/4535), [#4534](https://github.com/diegosouzapw/OmniRoute/pull/4534), [#4529](https://github.com/diegosouzapw/OmniRoute/pull/4529), [#4528](https://github.com/diegosouzapw/OmniRoute/pull/4528), [#4523](https://github.com/diegosouzapw/OmniRoute/pull/4523) — thanks @diegosouzapw)
 
 ---
 

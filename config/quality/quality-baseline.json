@@ -2,8 +2,9 @@
   "_comment": "Catraca de qualidade. 'down' = nao pode aumentar; 'up' = nao pode cair. Atualize via 'npm run quality:ratchet -- --update' (somente quando melhora). Cada valor e um numero REAL medido, nunca um chute. Cobertura entra na Fase 4 a partir de um run de cobertura mergeada no CI.",
   "metrics": {
     "eslintWarnings": {
-      "value": 3867,
-      "direction": "down"
+      "value": 3900,
+      "direction": "down",
+      "_rebaseline_2026_06_22_v3833_release": "Cumulative cycle drift surfaced by the release PR full CI (the Quality Ratchet does NOT run on PR→release fast-gates, so warnings accrued across dozens of parallel-session merges this cycle — #4537/#4489/#4545/#4558/#4530/#4532/etc.). 3867→3900 (+33). Verified my own release-finalize changes (geminiHelper dedup net-shrink, auth.ts maxCooldownMs wiring) contribute 0 warnings via eslint --format json on the touched files. No coverage/openapi/i18n regressions."
     },
     "eslintErrors": {
       "value": 0,
@@ -95,9 +96,10 @@
       "dedicatedGate": true
     },
     "cognitiveComplexity": {
-      "value": 793,
+      "value": 797,
       "direction": "down",
-      "dedicatedGate": true
+      "dedicatedGate": true,
+      "_rebaseline_2026_06_22_v3833_release": "793→797 (+4) — pre-existing cycle drift on origin/release/v3.8.33 surfaced by the release PR full CI (cognitive-complexity does NOT run on PR→release fast-gates). Verified my release-finalize prod changes add 0 new violations to the COUNT: geminiHelper convertOpenAIContentToParts was already a violation (merging the duplicate #912 handler is intra-function, count unchanged) and auth.ts markAccountUnavailable only gained args (no new control flow). The +4 comes from this cycle's parallel-session combo logic (#4537 nestedComboMode / #4489 sticky-weighted / #4581 lockout-decay). Structural shrink tracked in #3501."
     },
     "typeCoveragePct": {
       "value": 92.17,

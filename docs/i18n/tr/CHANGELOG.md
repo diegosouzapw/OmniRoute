@@ -6,6 +6,12 @@
 
 ## [3.8.31] — 2026-06-20
 
+## [3.8.34] — TBD
+
+_See the English CHANGELOG for v3.8.34 details._
+
+---
+
 ## [3.8.33] — TBD
 
 _See English CHANGELOG for v3.8.33 details._
