@@ -711,13 +711,14 @@ test("chat pipeline applies Codex CLI fingerprint to OAuth responses requests", 
   assert.ok(headerOrder.indexOf("Accept") < headerOrder.indexOf("User-Agent"));
 
   const bodyOrder = Object.keys(JSON.parse(call.bodyString));
-  assert.deepEqual(bodyOrder.slice(0, 7), [
+  assert.deepEqual(bodyOrder.slice(0, 8), [
     "model",
     "stream",
     "input",
     "instructions",
     "store",
     "reasoning",
+    "include",
     "prompt_cache_key",
   ]);
   assert.equal(call.body.model, "gpt-5.5");
