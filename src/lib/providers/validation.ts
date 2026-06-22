@@ -2376,7 +2376,12 @@ async function validateAnthropicCompatibleProvider({
     providerSpecificData
   );
 
-  // Step 1: Try GET /models
+  // Step 1: Best-effort GET /models probe. /models is NOT part of the Anthropic API spec
+  // and many compatible proxies either 404, 401, or 403 on /models even with a valid key —
+  // so a 401/403 here must NOT mark the credentials invalid. Only a 2xx is a positive
+  // signal that the proxy DOES implement /models AND the key was accepted; everything else
+  // (including auth-shaped statuses) falls through to the authoritative POST /v1/messages
+  // probe below. Ported from decolua/9router 584cf66a.
   try {
     const modelsRes = await validationRead(
       joinBaseUrlAndPath(baseUrl, providerSpecificData?.modelsPath || "/models"),
@@ -2390,15 +2395,11 @@ async function validateAnthropicCompatibleProvider({
     if (modelsRes.ok) {
       return { valid: true, error: null };
     }
-
-    if (modelsRes.status === 401 || modelsRes.status === 403) {
-      return { valid: false, error: "Invalid API key" };
-    }
   } catch {
     // /models fetch failed — fall through to messages test
   }
 
-  // Step 2: Fallback — try a minimal messages request
+  // Step 2: Authoritative probe — POST /v1/messages with max_tokens=1.
   const testModelId = providerSpecificData?.validationModelId || "claude-3-5-sonnet-20241022";
   try {
     const messagesRes = await validationWrite(
