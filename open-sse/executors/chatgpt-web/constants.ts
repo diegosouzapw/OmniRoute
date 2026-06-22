@@ -7,17 +7,8 @@ import { createHash } from "node:crypto";
 import { saveCallLog } from "@/lib/usage/callLogArtifacts.ts";
 import { streamWithTimeout } from "../../utils/stream.ts";
 import { ANTIGRAVITY_CONFIG } from "../../config/errorConfig.ts";
-import {
-  storeChatGptImage,
-  getChatGptImageConversationContext,
-  __resetChatGptImageCacheForTesting,
-  type ChatGptImageConversationContext,
-} from "../../services/chatgptImageCache.ts";
 
-import { thinkingEffortCache } from "./thinking.ts";
-import { tokenCache, cookieKey } from "./session.ts";
-import { warmupCache } from "./warmup.ts";
-import { dplCache } from "./sentinel.ts";
+
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -133,12 +124,3 @@ export function oaiHeaders(sessionId: string, deviceId: string): Record<string, 
 //   entity["…","value", …]                       →  value
 export const ENTITY_RE = /entity\["[^"]*","([^"]*)"[^\]]*\]/g;
 
-// Test-only: clear caches between tests
-export function __resetChatGptWebCachesForTesting(): void {
-  tokenCache.clear();
-  warmupCache.clear();
-  thinkingEffortCache.clear();
-  deviceIdCache.clear();
-  __resetChatGptImageCacheForTesting();
-  dplCache = null;
-}
