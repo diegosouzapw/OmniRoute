@@ -9,7 +9,7 @@ import type { CompressionEngineApplyOptions } from "./engines/types.ts";
 import { applyLiteCompression } from "./lite.ts";
 import { cavemanCompress } from "./caveman.ts";
 import { compressAggressive } from "./aggressive.ts";
-import { ultraCompress } from "./ultra.ts";
+import { ultraCompress, ultraCompressHeuristic } from "./ultra.ts";
 import { createCompressionStats } from "./stats.ts";
 import { registerBuiltinCompressionEngines } from "./engines/index.ts";
 import { getCompressionEngine, getEngineEntry } from "./engines/registry.ts";
@@ -325,19 +325,22 @@ export function applyCompression(
       ...(options?.config?.ultra ?? {}),
       preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
     };
-    const result = ultraCompress(messages, ultraConfig);
+    const result = ultraCompressHeuristic(messages, ultraConfig);
     const compressedBody = { ...compressionBody, messages: result.messages };
     return {
       body: adapter.restore(compressedBody),
       compressed: result.stats.savingsPercent > 0,
-      stats: createCompressionStats(
-        compressionBody,
-        compressedBody,
-        mode,
-        ["ultra"],
-        result.stats.rulesApplied,
-        result.stats.durationMs
-      ),
+      stats: {
+        ...createCompressionStats(
+          compressionBody,
+          compressedBody,
+          mode,
+          ["ultra"],
+          result.stats.rulesApplied,
+          result.stats.durationMs
+        ),
+        ultraTier: result.stats.ultraTier,
+      },
     };
   }
   return { body, compressed: false, stats: null };
@@ -402,9 +405,41 @@ async function applyUltraAsync(
   const ultraConfig = options?.config?.ultra;
   const modelPath = typeof ultraConfig?.modelPath === "string" ? ultraConfig.modelPath.trim() : "";
 
-  // No model configured → heuristic ultra (unchanged default).
+  // No explicit modelPath → run the two-tier ultra resolver (heuristic, or SLM when
+  // config.ultraEngine === "slm" and the worker backend is available). This is the
+  // Phase-4 (B) path; it fail-opens to the heuristic and records the resolved tier.
   if (!modelPath) {
-    return applyCompression(body, "ultra", options);
+    const adapter = adaptBodyForCompression(body);
+    const messages = (adapter.body.messages ?? []) as Array<{
+      role: string;
+      content?: string | unknown[];
+      [key: string]: unknown;
+    }>;
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return { body, compressed: false, stats: null };
+    }
+    const ultraConfig = {
+      ...(options?.config?.ultra ?? {}),
+      preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
+      ultraEngine: options?.config?.ultraEngine,
+    };
+    const result = await ultraCompress(messages, ultraConfig);
+    const compressedBody = { ...adapter.body, messages: result.messages };
+    return {
+      body: adapter.restore(compressedBody),
+      compressed: result.stats.savingsPercent > 0,
+      stats: {
+        ...createCompressionStats(
+          adapter.body,
+          compressedBody,
+          "ultra",
+          result.stats.techniquesUsed,
+          result.stats.rulesApplied,
+          result.stats.durationMs
+        ),
+        ultraTier: result.stats.ultraTier,
+      },
+    };
   }
 
   registerBuiltinCompressionEngines();

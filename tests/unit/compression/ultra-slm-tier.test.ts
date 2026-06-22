@@ -280,3 +280,34 @@ test("stacked ultraEngine.apply stays synchronous and compresses via heuristic",
   assert.equal(typeof (res as { then?: unknown }).then, "undefined");
   assert.ok(res.stats);
 });
+
+test("applyCompressionAsync ultra + ultraEngine:'slm' (stub) yields ultraTier in stats", async () => {
+  __setUltraSlmTestHooks({
+    available: true,
+    run: async (text) => text.slice(0, Math.ceil(text.length / 2)),
+  });
+  try {
+    const reqBody = {
+      messages: [
+        { role: "user", content: "the quick brown fox jumps over the lazy dog more than once" },
+      ],
+    };
+    const result = await applyCompressionAsync(reqBody, "ultra", {
+      config: {
+        enabled: true,
+        defaultMode: "ultra",
+        ultraEngine: "slm",
+        ultra: {
+          enabled: true,
+          compressionRate: 0.5,
+          minScoreThreshold: 0.3,
+          slmFallbackToAggressive: false,
+          maxTokensPerMessage: 0,
+        },
+      } as never,
+    });
+    assert.equal(result.stats?.ultraTier, "slm");
+  } finally {
+    __resetUltraEntryForTests();
+  }
+});
