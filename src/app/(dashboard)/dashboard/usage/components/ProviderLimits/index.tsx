@@ -46,6 +46,7 @@ const PROVIDER_LABEL: Record<string, string> = {
   zai: "Z.AI",
   glmt: "GLM Thinking",
   "opencode-go": "OpenCode Go",
+  "ollama-cloud": "Ollama Cloud",
   "kimi-coding": "Kimi Coding",
   minimax: "MiniMax",
   "minimax-cn": "MiniMax CN",
@@ -66,10 +67,11 @@ const PROVIDER_ORDER: Record<string, number> = {
   zai: 8,
   glmt: 9,
   "opencode-go": 10,
-  "kimi-coding": 11,
-  minimax: 12,
-  "minimax-cn": 13,
-  nanogpt: 14,
+  "ollama-cloud": 11,
+  "kimi-coding": 12,
+  minimax: 13,
+  "minimax-cn": 14,
+  nanogpt: 15,
 };
 
 const TIER_FILTERS = [

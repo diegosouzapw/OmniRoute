@@ -3229,6 +3229,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "zai",
   "glmt",
   "opencode-go",
+  "ollama-cloud",
   "minimax",
   "minimax-cn",
   "crof",

@@ -103,6 +103,34 @@ const OPENCODE_GO_QUOTA_TOTALS = {
 } as const;
 const OPENCODE_GO_QUOTA_ORDER = ["session", "weekly", "mcp_monthly"] as const;
 type OpenCodeGoQuotaName = (typeof OPENCODE_GO_QUOTA_ORDER)[number];
+type OpenCodeGoDashboardWindow = { usagePercent: number; resetAt: string | null };
+type OpenCodeGoDashboardUsage = {
+  session?: OpenCodeGoDashboardWindow;
+  weekly?: OpenCodeGoDashboardWindow;
+  mcp_monthly?: OpenCodeGoDashboardWindow;
+};
+type OpenCodeGoDashboardConfig =
+  | { state: "configured"; workspaceId: string; authCookie: string }
+  | { state: "incomplete"; missing: string }
+  | { state: "none" };
+
+const OPENCODE_GO_DASHBOARD_BASE_URL =
+  process.env.OMNIROUTE_OPENCODE_GO_DASHBOARD_URL ?? "https://opencode.ai/workspace";
+
+type OllamaCloudWindow = { usagePercent: number; resetAt: string | null };
+type OllamaCloudUsage = {
+  session?: OllamaCloudWindow;
+  weekly?: OllamaCloudWindow;
+  planTier?: string | null;
+};
+type OllamaCloudConfig =
+  | { state: "configured"; cookie: string }
+  | { state: "invalid"; error: string }
+  | { state: "none" };
+
+const OLLAMA_CLOUD_USAGE_URL =
+  process.env.OMNIROUTE_OLLAMA_CLOUD_USAGE_URL ?? "https://ollama.com/settings";
+const OLLAMA_CLOUD_SESSION_COOKIE = "__Secure-session";
 
 // Cursor dashboard usage API config
 // The endpoint that powers https://cursor.com/dashboard/spending. Validates the WorkOS
@@ -235,8 +263,63 @@ function getOpenCodeGoQuotaDisplayName(quotaName: OpenCodeGoQuotaName): string {
   return "Monthly";
 }
 
+function getProviderSpecificString(data: JsonRecord | undefined, keys: string[]): string {
+  const obj = toRecord(data);
+  for (const key of keys) {
+    const value = obj[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return "";
+}
+
+function resolveOpenCodeGoDashboardConfig(
+  providerSpecificData?: JsonRecord
+): OpenCodeGoDashboardConfig {
+  const workspaceId =
+    process.env.OMNIROUTE_OPENCODE_GO_WORKSPACE_ID?.trim() ||
+    process.env.OPENCODE_GO_WORKSPACE_ID?.trim() ||
+    getProviderSpecificString(providerSpecificData, [
+      "openCodeGoWorkspaceId",
+      "opencodeGoWorkspaceId",
+      "workspaceId",
+    ]);
+  const authCookie =
+    process.env.OMNIROUTE_OPENCODE_GO_AUTH_COOKIE?.trim() ||
+    process.env.OPENCODE_GO_AUTH_COOKIE?.trim() ||
+    getProviderSpecificString(providerSpecificData, [
+      "openCodeGoAuthCookie",
+      "opencodeGoAuthCookie",
+      "authCookie",
+    ]);
+
+  if (!workspaceId && !authCookie) return { state: "none" };
+  if (workspaceId && authCookie) return { state: "configured", workspaceId, authCookie };
+  return {
+    state: "incomplete",
+    missing: workspaceId ? "OPENCODE_GO_AUTH_COOKIE" : "OPENCODE_GO_WORKSPACE_ID",
+  };
+}
+
+function normalizeOpenCodeGoAuthCookie(value: string): string {
+  return value
+    .trim()
+    .replace(/^auth=/i, "")
+    .trim();
+}
+
 function normalizeOpenCodeGoQuotaToken(apiKey: string): string {
-  return apiKey.trim().replace(/^Bearer\s+/i, "");
+  return apiKey
+    .trim()
+    .replace(/^Bearer\s+/i, "")
+    .trim();
+}
+
+function buildBearerAuthorization(value: string): string {
+  const token = value
+    .trim()
+    .replace(/^Bearer\s+/i, "")
+    .trim();
+  return token ? `Bearer ${token}` : "";
 }
 
 function buildOpenCodeGoDollarQuota(
@@ -283,6 +366,246 @@ function orderOpenCodeGoQuotas(quotas: Record<string, UsageQuota>): Record<strin
   }
 
   return ordered;
+}
+
+const OPENCODE_GO_SCRAPED_NUMBER = String.raw`(-?\d+(?:\.\d+)?)`;
+
+function parseOpenCodeGoSsrWindow(html: string, field: string): OpenCodeGoDashboardWindow | null {
+  const pctFirst = new RegExp(
+    String.raw`${field}:\$R\[\d+\]=\{[^}]*usagePercent:${OPENCODE_GO_SCRAPED_NUMBER}[^}]*resetInSec:${OPENCODE_GO_SCRAPED_NUMBER}[^}]*\}`
+  ).exec(html);
+  if (pctFirst) {
+    const usagePercent = toNumber(pctFirst[1], Number.NaN);
+    const resetInSec = toNumber(pctFirst[2], Number.NaN);
+    if (Number.isFinite(usagePercent) && Number.isFinite(resetInSec)) {
+      return {
+        usagePercent,
+        resetAt: new Date(Date.now() + Math.max(0, resetInSec) * 1000).toISOString(),
+      };
+    }
+  }
+
+  const resetFirst = new RegExp(
+    String.raw`${field}:\$R\[\d+\]=\{[^}]*resetInSec:${OPENCODE_GO_SCRAPED_NUMBER}[^}]*usagePercent:${OPENCODE_GO_SCRAPED_NUMBER}[^}]*\}`
+  ).exec(html);
+  if (resetFirst) {
+    const resetInSec = toNumber(resetFirst[1], Number.NaN);
+    const usagePercent = toNumber(resetFirst[2], Number.NaN);
+    if (Number.isFinite(usagePercent) && Number.isFinite(resetInSec)) {
+      return {
+        usagePercent,
+        resetAt: new Date(Date.now() + Math.max(0, resetInSec) * 1000).toISOString(),
+      };
+    }
+  }
+
+  return null;
+}
+
+function parseOpenCodeGoHumanReset(value: string): number | null {
+  const text = value.toLowerCase().replace(/\s+/g, " ").trim();
+  if (["reset-now", "reset now", "now", "resets now"].includes(text)) return 0;
+
+  const days = text.match(/(\d+(?:\.\d+)?)\s*days?/);
+  const hours = text.match(/(\d+(?:\.\d+)?)\s*hours?/);
+  const minutes = text.match(/(\d+(?:\.\d+)?)\s*minutes?/);
+  const seconds = text.match(/(\d+(?:\.\d+)?)\s*seconds?/);
+  if (!days && !hours && !minutes && !seconds) return null;
+
+  return (
+    toNumber(days?.[1], 0) * 86_400 +
+    toNumber(hours?.[1], 0) * 3_600 +
+    toNumber(minutes?.[1], 0) * 60 +
+    toNumber(seconds?.[1], 0)
+  );
+}
+
+function parseOpenCodeGoDataSlotWindows(html: string): OpenCodeGoDashboardUsage {
+  const result: OpenCodeGoDashboardUsage = {};
+  const items = html.split(/data-slot="usage-item"/);
+
+  for (let i = 1; i < items.length; i++) {
+    const content = items[i] ?? "";
+    const label = content
+      .match(/data-slot="usage-label">([^<]+)</)?.[1]
+      ?.trim()
+      .toLowerCase();
+    const usagePercent = toNumber(
+      content.match(/data-slot="usage-value">[^0-9]*(\d+(?:\.\d+)?)/)?.[1],
+      Number.NaN
+    );
+    const resetMatch = content.match(/data-slot="(reset-time|reset-now)">([\s\S]*?)<\/span>/);
+    if (!label || !Number.isFinite(usagePercent) || !resetMatch) continue;
+
+    const resetText = resetMatch[2]
+      .replace(/<!--\$-->/g, "")
+      .replace(/<!--\/-->/g, "")
+      .replace(/Resets?\s*in\s*/i, "")
+      .trim();
+    const resetInSec = resetMatch[1] === "reset-now" ? 0 : parseOpenCodeGoHumanReset(resetText);
+    if (resetInSec === null || !Number.isFinite(resetInSec)) continue;
+
+    const usage = {
+      usagePercent,
+      resetAt: new Date(Date.now() + Math.max(0, resetInSec) * 1000).toISOString(),
+    };
+    if (label.includes("rolling")) result.session = usage;
+    else if (label.includes("weekly")) result.weekly = usage;
+    else if (label.includes("monthly")) result.mcp_monthly = usage;
+  }
+
+  return result;
+}
+
+function parseOpenCodeGoDashboardHtml(html: string): OpenCodeGoDashboardUsage | null {
+  const usage: OpenCodeGoDashboardUsage = {
+    session: parseOpenCodeGoSsrWindow(html, "rollingUsage") ?? undefined,
+    weekly: parseOpenCodeGoSsrWindow(html, "weeklyUsage") ?? undefined,
+    mcp_monthly: parseOpenCodeGoSsrWindow(html, "monthlyUsage") ?? undefined,
+  };
+
+  if (usage.session || usage.weekly || usage.mcp_monthly) return usage;
+
+  const dataSlotUsage = parseOpenCodeGoDataSlotWindows(html);
+  if (dataSlotUsage.session || dataSlotUsage.weekly || dataSlotUsage.mcp_monthly) {
+    return dataSlotUsage;
+  }
+
+  return null;
+}
+
+async function fetchOpenCodeGoDashboardUsage(
+  config: Extract<OpenCodeGoDashboardConfig, { state: "configured" }>
+): Promise<{ usage: OpenCodeGoDashboardUsage | null; message?: string }> {
+  const url = `${OPENCODE_GO_DASHBOARD_BASE_URL.replace(/\/+$/, "")}/${encodeURIComponent(
+    config.workspaceId
+  )}/go`;
+  const response = await fetch(url, {
+    headers: {
+      Accept: "text/html",
+      Cookie: `auth=${normalizeOpenCodeGoAuthCookie(config.authCookie)}`,
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Gecko/20100101 Firefox/148.0",
+    },
+    signal: AbortSignal.timeout(10_000),
+  });
+
+  if (!response.ok) {
+    return { usage: null, message: `OpenCode Go dashboard error (${response.status}).` };
+  }
+
+  const html = await response.text();
+  const usage = parseOpenCodeGoDashboardHtml(html);
+  return {
+    usage,
+    message: usage ? undefined : "OpenCode Go dashboard response did not contain quota windows.",
+  };
+}
+
+function resolveOllamaCloudConfig(providerSpecificData?: JsonRecord): OllamaCloudConfig {
+  const cookie =
+    process.env.OMNIROUTE_OLLAMA_USAGE_COOKIE?.trim() ||
+    process.env.OLLAMA_USAGE_COOKIE?.trim() ||
+    process.env.OLLAMA_CLOUD_USAGE_COOKIE?.trim() ||
+    getProviderSpecificString(providerSpecificData, [
+      "ollamaUsageCookie",
+      "ollamaCloudUsageCookie",
+      "ollamaCloudCookie",
+      "usageCookie",
+      "cookie",
+    ]);
+
+  if (!cookie) return { state: "none" };
+  if (cookie.includes("\r") || cookie.includes("\n")) {
+    return { state: "invalid", error: "Ollama Cloud cookie contains invalid CRLF characters." };
+  }
+  return { state: "configured", cookie };
+}
+
+function normalizeOllamaCloudCookie(value: string): string {
+  const trimmed = value.trim();
+  if (trimmed.toLowerCase().startsWith(`${OLLAMA_CLOUD_SESSION_COOKIE.toLowerCase()}=`)) {
+    return trimmed.slice(OLLAMA_CLOUD_SESSION_COOKIE.length + 1).trim();
+  }
+  return trimmed;
+}
+
+function extractOllamaUsagePercent(trackHtml: string): number | null {
+  const ariaMatch = trackHtml.match(/(\d+(?:\.\d+)?)%\s*used/);
+  if (ariaMatch) {
+    const pct = toNumber(ariaMatch[1], Number.NaN);
+    if (Number.isFinite(pct) && pct >= 0 && pct <= 100) return pct;
+  }
+
+  const style = trackHtml.match(/style="([^"]*)"/)?.[1] ?? "";
+  const width = style.match(/(?:^|;)\s*width\s*:\s*([0-9.]+)%/)?.[1];
+  const pct = toNumber(width, Number.NaN);
+  return Number.isFinite(pct) && pct >= 0 && pct <= 100 ? pct : null;
+}
+
+function extractOllamaResetTimes(html: string): Array<string | null> {
+  const times: Array<string | null> = [];
+  const re = /class="[^"]*local-time[^"]*"[^>]*data-time="([^"]*)"/gs;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(html)) !== null) {
+    times.push(match[1] || null);
+  }
+  return times;
+}
+
+function extractOllamaPlanTier(html: string): string | null {
+  return html.match(/class="[^"]*capitalize[^"]*"[^>]*>([^<]*)</)?.[1]?.trim() || null;
+}
+
+function parseOllamaCloudSettingsHtml(html: string): OllamaCloudUsage | null {
+  const tracks: string[] = [];
+  const trackRe = /<[^>]*\bdata-usage-track\b[^>]*>/gs;
+  let trackMatch: RegExpExecArray | null;
+  while ((trackMatch = trackRe.exec(html)) !== null) {
+    tracks.push(trackMatch[0]);
+  }
+
+  const sessionPercent = tracks[0] ? extractOllamaUsagePercent(tracks[0]) : null;
+  const weeklyPercent = tracks[1] ? extractOllamaUsagePercent(tracks[1]) : null;
+  if (sessionPercent === null && weeklyPercent === null) return null;
+
+  const resetTimes = extractOllamaResetTimes(html);
+  return {
+    ...(sessionPercent !== null
+      ? { session: { usagePercent: sessionPercent, resetAt: resetTimes[0] ?? null } }
+      : {}),
+    ...(weeklyPercent !== null
+      ? { weekly: { usagePercent: weeklyPercent, resetAt: resetTimes[1] ?? null } }
+      : {}),
+    planTier: extractOllamaPlanTier(html),
+  };
+}
+
+async function fetchOllamaCloudUsageFromSettings(
+  config: Extract<OllamaCloudConfig, { state: "configured" }>
+): Promise<{ usage: OllamaCloudUsage | null; message?: string }> {
+  const response = await fetch(OLLAMA_CLOUD_USAGE_URL, {
+    redirect: "manual",
+    headers: {
+      Accept: "text/html",
+      Cookie: `${OLLAMA_CLOUD_SESSION_COOKIE}=${normalizeOllamaCloudCookie(config.cookie)}`,
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Gecko/20100101 Firefox/148.0",
+    },
+    signal: AbortSignal.timeout(10_000),
+  });
+
+  if (response.status >= 300 && response.status < 400) {
+    return { usage: null, message: "Ollama Cloud authentication expired. Refresh the cookie." };
+  }
+  if (!response.ok) {
+    return { usage: null, message: `Ollama Cloud settings error (${response.status}).` };
+  }
+
+  const html = await response.text();
+  const usage = parseOllamaCloudSettingsHtml(html);
+  return {
+    usage,
+    message: usage ? undefined : "Ollama Cloud settings page did not contain usage quota tracks.",
+  };
 }
 
 function getFieldValue(source: unknown, snakeKey: string, camelKey: string): unknown {
@@ -966,16 +1289,50 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
   return { plan, quotas: orderGlmQuotas(quotas) };
 }
 
-async function getOpenCodeGoUsage(apiKey: string) {
+async function getOpenCodeGoUsage(apiKey: string, providerSpecificData?: JsonRecord) {
+  const dashboardConfig = resolveOpenCodeGoDashboardConfig(providerSpecificData);
+  if (dashboardConfig.state === "incomplete") {
+    return {
+      message: `OpenCode Go dashboard quota config is incomplete. Missing ${dashboardConfig.missing}.`,
+    };
+  }
+  if (dashboardConfig.state === "configured") {
+    try {
+      const dashboard = await fetchOpenCodeGoDashboardUsage(dashboardConfig);
+      if (dashboard.usage) {
+        const quotas: Record<string, UsageQuota> = {};
+        for (const quotaName of OPENCODE_GO_QUOTA_ORDER) {
+          const usage = dashboard.usage[quotaName];
+          if (!usage) continue;
+          quotas[quotaName] = buildOpenCodeGoDollarQuota(
+            quotaName,
+            usage.usagePercent,
+            usage.resetAt
+          );
+        }
+        return { plan: "OpenCode Go", quotas: orderOpenCodeGoQuotas(quotas) };
+      }
+      return {
+        message: dashboard.message || "OpenCode Go dashboard quota data unavailable.",
+      };
+    } catch (error) {
+      return { message: `OpenCode Go dashboard quota error: ${sanitizeErrorMessage(error)}` };
+    }
+  }
+
   const token = normalizeOpenCodeGoQuotaToken(apiKey);
 
   if (!token) {
-    return { message: "API key not available. Add an OpenCode Go API key to view usage." };
+    return {
+      message:
+        "OpenCode Go quota requires OPENCODE_GO_WORKSPACE_ID and OPENCODE_GO_AUTH_COOKIE. " +
+        "The API key can be used for chat/models, but OpenCode Go does not expose quota via API key.",
+    };
   }
 
   const res = await fetch(OPENCODE_GO_QUOTA_URL, {
     headers: {
-      Authorization: token,
+      Authorization: buildBearerAuthorization(token),
       "Accept-Language": "en-US,en",
       "Content-Type": "application/json",
       Accept: "application/json",
@@ -986,9 +1343,8 @@ async function getOpenCodeGoUsage(apiKey: string) {
     if (res.status === 401 || res.status === 403) {
       return {
         message:
-          "OpenCode Go does not expose a public quota API. Chat requests still work. " +
-          "Set OMNIROUTE_OPENCODE_GO_QUOTA_URL to a working endpoint, or follow " +
-          "https://github.com/anomalyco/opencode/issues/16017 for upstream status.",
+          "OpenCode Go API key is valid for chat/models but cannot read quota from the Z.AI quota API. " +
+          "Set OPENCODE_GO_WORKSPACE_ID and OPENCODE_GO_AUTH_COOKIE to enable dashboard quota scraping.",
       };
     }
     return {
@@ -1010,9 +1366,8 @@ async function getOpenCodeGoUsage(apiKey: string) {
   if (code === 401 || code === 403 || (json as Record<string, unknown>).success === false) {
     return {
       message:
-        "OpenCode Go does not expose a public quota API. Chat requests still work. " +
-        "Set OMNIROUTE_OPENCODE_GO_QUOTA_URL to a working endpoint, or follow " +
-        "https://github.com/anomalyco/opencode/issues/16017 for upstream status.",
+        "OpenCode Go API key is valid for chat/models but cannot read quota from the Z.AI quota API. " +
+        "Set OPENCODE_GO_WORKSPACE_ID and OPENCODE_GO_AUTH_COOKIE to enable dashboard quota scraping.",
     };
   }
 
@@ -1079,6 +1434,57 @@ async function getOpenCodeGoUsage(apiKey: string) {
     : null;
 
   return { plan, quotas: orderOpenCodeGoQuotas(quotas) };
+}
+
+async function getOllamaCloudUsage(providerSpecificData?: JsonRecord) {
+  const config = resolveOllamaCloudConfig(providerSpecificData);
+  if (config.state === "none") {
+    return {
+      message:
+        "Ollama Cloud quota requires OLLAMA_USAGE_COOKIE. Copy the __Secure-session cookie from ollama.com/settings.",
+    };
+  }
+  if (config.state === "invalid") {
+    return { message: config.error };
+  }
+
+  try {
+    const result = await fetchOllamaCloudUsageFromSettings(config);
+    if (!result.usage) {
+      return { message: result.message || "Ollama Cloud quota data unavailable." };
+    }
+
+    const quotas: Record<string, UsageQuota> = {};
+    if (result.usage.session) {
+      const pct = toPercentage(result.usage.session.usagePercent);
+      quotas.session = {
+        used: pct,
+        total: 100,
+        remaining: Math.max(0, 100 - pct),
+        remainingPercentage: Math.max(0, 100 - pct),
+        resetAt: result.usage.session.resetAt,
+        unlimited: false,
+        displayName: "Session",
+      };
+    }
+    if (result.usage.weekly) {
+      const pct = toPercentage(result.usage.weekly.usagePercent);
+      quotas.weekly = {
+        used: pct,
+        total: 100,
+        remaining: Math.max(0, 100 - pct),
+        remainingPercentage: Math.max(0, 100 - pct),
+        resetAt: result.usage.weekly.resetAt,
+        unlimited: false,
+        displayName: "Weekly",
+      };
+    }
+
+    const plan = result.usage.planTier ? `Ollama Cloud ${result.usage.planTier}` : "Ollama Cloud";
+    return { plan, quotas };
+  } catch (error) {
+    return { message: `Ollama Cloud quota error: ${sanitizeErrorMessage(error)}` };
+  }
 }
 
 /**
@@ -1589,7 +1995,9 @@ export async function getUsageForProvider(
         ...(provider === "glm-cn" ? { apiRegion: "china" } : {}),
       });
     case "opencode-go":
-      return await getOpenCodeGoUsage(apiKey || "");
+      return await getOpenCodeGoUsage(apiKey || "", providerSpecificData);
+    case "ollama-cloud":
+      return await getOllamaCloudUsage(providerSpecificData);
     case "minimax":
     case "minimax-cn":
       return await getMiniMaxUsage(apiKey || "", provider);
@@ -3118,7 +3526,10 @@ async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRec
       // "auth expired, chat may still work" message instead of a generic upstream-error blob
       // so the quota card matches what users with legacy social-auth accounts already see.
       // Inspired by https://github.com/decolua/9router/pull/620.
-      if ((response.status === 401 || response.status === 403) && isSocialAuthKiroAccount(providerSpecificData)) {
+      if (
+        (response.status === 401 || response.status === 403) &&
+        isSocialAuthKiroAccount(providerSpecificData)
+      ) {
         return {
           message: "Kiro quota API authentication expired. Chat may still work.",
           quotas: {},
