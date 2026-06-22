@@ -285,3 +285,16 @@ export async function ultraCompress(
     return ultraCompressHeuristic(messages, config, "heuristic-fallback");
   }
 }
+
+/**
+ * Pure decision: should the ultra SLM model be pre-warmed for this config?
+ * True only when the SLM tier is selected AND pre-warm is enabled. The CALLER
+ * decides timing (enable-transition or cold-start) and fires `prewarmLlmlinguaUltra`
+ * best-effort; this helper stays clock-free / side-effect-free.
+ */
+export function shouldPrewarmUltraSlm(config: {
+  ultraEngine?: "heuristic" | "slm";
+  ultraSlmPrewarm?: boolean;
+}): boolean {
+  return config.ultraEngine === "slm" && config.ultraSlmPrewarm === true;
+}

@@ -320,3 +320,12 @@ test("compression index re-exports the ultra-SLM surface", () => {
   assert.equal(typeof compression.runLlmlinguaUltra, "function");
   assert.equal(typeof compression.prewarmLlmlinguaUltra, "function");
 });
+
+import { shouldPrewarmUltraSlm } from "../../../open-sse/services/compression/ultra.ts";
+
+test("shouldPrewarmUltraSlm: true only when slm + prewarm both on", () => {
+  assert.equal(shouldPrewarmUltraSlm({ ultraEngine: "slm", ultraSlmPrewarm: true }), true);
+  assert.equal(shouldPrewarmUltraSlm({ ultraEngine: "slm", ultraSlmPrewarm: false }), false);
+  assert.equal(shouldPrewarmUltraSlm({ ultraEngine: "heuristic", ultraSlmPrewarm: true }), false);
+  assert.equal(shouldPrewarmUltraSlm({}), false);
+});
