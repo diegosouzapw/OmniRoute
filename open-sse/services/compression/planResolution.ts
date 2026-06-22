@@ -1,6 +1,10 @@
 import type { CompressionConfig, CompressionPipelineStep } from "./types.ts";
 import { resolveCompressionPlan } from "./resolveCompressionPlan.ts";
-import { deriveDefaultPlan, type DerivedPlan, type CompressionSource } from "./deriveDefaultPlan.ts";
+import {
+  deriveDefaultPlan,
+  type DerivedPlan,
+  type CompressionSource,
+} from "./deriveDefaultPlan.ts";
 
 /** Named-combo map: combo id → its stacked pipeline (operator-defined profiles). */
 type NamedCombos = Record<string, CompressionPipelineStep[]>;
@@ -35,7 +39,7 @@ export function planFromHeader(
   }
 
   if (lower.startsWith("engine:")) {
-    const id = lower.slice("engine:".length);
+    const id = lower.slice("engine:".length).trim();
     const engine = config.engines?.[id];
     return engine?.enabled
       ? withSource(deriveDefaultPlan({ [id]: engine }, true), "request-header")
@@ -49,6 +53,25 @@ export function planFromHeader(
 /** Renders the X-OmniRoute-Compression response header value. */
 export function formatCompressionMeta(plan: DerivedPlan): string {
   return `${plan.mode}; source=${plan.source ?? "off"}`;
+}
+
+/**
+ * Builds the named-combo lookup keyed by BOTH combo id and lowercased (trimmed) name, so the
+ * `<combo>` header form can match by either. A combo with a blank/whitespace/missing name
+ * contributes only its id key — a blank name would otherwise register a useless "" key, and a
+ * single malformed row must not throw and disable the whole map (`name` is NOT NULL in the DB
+ * but may be an empty string). Pure.
+ */
+export function buildNamedComboLookup(
+  combos: Array<{ id: string; name?: string | null; pipeline: CompressionPipelineStep[] }>
+): NamedCombos {
+  const map: NamedCombos = {};
+  for (const c of combos) {
+    map[c.id] = c.pipeline;
+    const name = c.name?.trim();
+    if (name) map[name.toLowerCase()] = c.pipeline;
+  }
+  return map;
 }
 
 /**

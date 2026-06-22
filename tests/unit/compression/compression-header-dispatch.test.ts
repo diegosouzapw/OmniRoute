@@ -5,6 +5,7 @@ import {
   selectCompressionPlan,
   planFromHeader,
   formatCompressionMeta,
+  buildNamedComboLookup,
 } from "../../../open-sse/services/compression/strategySelector.ts";
 import {
   DEFAULT_COMPRESSION_CONFIG,
@@ -12,7 +13,10 @@ import {
 } from "../../../open-sse/services/compression/types.ts";
 
 const combos = {
-  c1: [{ engine: "rtk", intensity: "standard" }, { engine: "caveman", intensity: "full" }],
+  c1: [
+    { engine: "rtk", intensity: "standard" },
+    { engine: "caveman", intensity: "full" },
+  ],
   "fast combo": [{ engine: "lite" }],
 };
 
@@ -52,8 +56,16 @@ describe("planFromHeader (Phase 3)", () => {
     assert.equal(planFromHeader(config, "engine:rtk", combos), null);
   });
 
+  it("engine: <id> => tolerates whitespace after the colon", () => {
+    const config = cfg({ enginesExplicit: true, engines: { rtk: { enabled: true } } });
+    assert.equal(planFromHeader(config, "engine: rtk", combos)?.mode, "rtk");
+  });
+
   it("<combo> matches by name (case-insensitive) and by id", () => {
-    assert.deepEqual(planFromHeader(cfg(), "FAST COMBO", combos)?.stackedPipeline, combos["fast combo"]);
+    assert.deepEqual(
+      planFromHeader(cfg(), "FAST COMBO", combos)?.stackedPipeline,
+      combos["fast combo"]
+    );
     assert.deepEqual(planFromHeader(cfg(), "c1", combos)?.stackedPipeline, combos.c1);
   });
 
@@ -105,7 +117,15 @@ describe("header precedence in resolveBasePlan (Phase 3)", () => {
 describe("source on non-header paths", () => {
   it("routing-override / active-profile / auto-trigger / default / off", () => {
     assert.equal(
-      selectCompressionPlan(cfg({ comboOverrides: { r: "lite" } }), "r", 0, undefined, undefined, combos, null).source,
+      selectCompressionPlan(
+        cfg({ comboOverrides: { r: "lite" } }),
+        "r",
+        0,
+        undefined,
+        undefined,
+        combos,
+        null
+      ).source,
       "routing-override"
     );
     assert.equal(planWithHeader(cfg({ activeComboId: "c1" }), null).source, "active-profile");
@@ -124,7 +144,8 @@ describe("source on non-header paths", () => {
       "auto-trigger"
     );
     assert.equal(
-      planWithHeader(cfg({ enginesExplicit: true, engines: { rtk: { enabled: true } } }), null).source,
+      planWithHeader(cfg({ enginesExplicit: true, engines: { rtk: { enabled: true } } }), null)
+        .source,
       "default"
     );
     assert.equal(planWithHeader(cfg({ enabled: false }), null).source, "off");
@@ -138,5 +159,33 @@ describe("formatCompressionMeta", () => {
       "aggressive; source=request-header"
     );
     assert.equal(formatCompressionMeta({ mode: "off", stackedPipeline: [] }), "off; source=off");
+  });
+});
+
+describe("buildNamedComboLookup", () => {
+  const pipe = [{ engine: "lite" }];
+
+  it("keys each combo by both id and lowercased name", () => {
+    const map = buildNamedComboLookup([{ id: "abc-123", name: "My Fast Combo", pipeline: pipe }]);
+    assert.deepEqual(map["abc-123"], pipe);
+    assert.deepEqual(map["my fast combo"], pipe);
+  });
+
+  it("skips the name key (no '' key, no crash) when the name is blank/whitespace/missing", () => {
+    const map = buildNamedComboLookup([
+      { id: "id-empty", name: "", pipeline: pipe },
+      { id: "id-space", name: "   ", pipeline: pipe },
+      { id: "id-null", name: null, pipeline: pipe },
+    ]);
+    assert.deepEqual(map["id-empty"], pipe); // id key always present
+    assert.deepEqual(map["id-space"], pipe);
+    assert.deepEqual(map["id-null"], pipe);
+    assert.equal(Object.prototype.hasOwnProperty.call(map, ""), false); // no blank key
+    assert.equal(Object.keys(map).length, 3); // only the three id keys
+  });
+
+  it("trims surrounding whitespace on the name key", () => {
+    const map = buildNamedComboLookup([{ id: "x", name: "  Spaced  ", pipeline: pipe }]);
+    assert.deepEqual(map["spaced"], pipe);
   });
 });
