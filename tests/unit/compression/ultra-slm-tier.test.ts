@@ -239,3 +239,32 @@ test("ultraEngine:'slm' but slmAvailable() false → heuristic tier (no SLM atte
     __resetUltraEntryForTests();
   }
 });
+
+test("SLM tier preserves fenced code + URLs verbatim (structure wrapper)", async () => {
+  // Stub the SLM to lowercase prose — any leakage of code/URL into it would show.
+  __setUltraSlmTestHooks({
+    available: true,
+    run: async (text) => (text.trim() ? text.toLowerCase() + " x" : text),
+  });
+  try {
+    const code = "```js\nconst A = 1; // KEEP\n```";
+    const url = "https://Example.com/Path";
+    // The fenced block must open at line-start for `extractPreservedBlocks` to tombstone
+    // it (the same rule the heuristic Tier-A already relies on); both tiers share that
+    // wrapper, so this proves the SLM tier preserves structure identically.
+    const content = `Some PROSE here and ${url} trailing PROSE\n${code}\nmore PROSE after`;
+    const r = await ultraCompress([{ role: "user", content }], {
+      enabled: true,
+      compressionRate: 0.5,
+      minScoreThreshold: 0.3,
+      slmFallbackToAggressive: false,
+      maxTokensPerMessage: 0,
+      ultraEngine: "slm",
+    });
+    const out = r.messages[0].content as string;
+    assert.ok(out.includes(code), "fenced code block must survive verbatim");
+    assert.ok(out.includes(url), "URL must survive verbatim");
+  } finally {
+    __resetUltraEntryForTests();
+  }
+});
