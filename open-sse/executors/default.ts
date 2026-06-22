@@ -16,6 +16,7 @@ import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
 import { mergeClientAnthropicBeta } from "../config/anthropicHeaders.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
+import { stripUnsupportedParams } from "../translator/paramSupport.ts";
 import {
   detectFormat,
   getOpenAICompatibleType,
@@ -649,6 +650,17 @@ export class DefaultExecutor extends BaseExecutor {
         withDefaults as Record<string, unknown>,
         "QwenExecutor"
       );
+    }
+
+    // Config-driven strip of params unsupported by the target provider/model
+    // (e.g. claude-opus-4 deprecated `temperature` → Anthropic 400). Port from
+    // 9router#7ae9fff6 (fixes upstream #1748). Rules live in
+    // ../translator/paramSupport.ts so adding one means editing one table.
+    if (typeof withDefaults === "object" && withDefaults !== null) {
+      const bodyRecord = withDefaults as Record<string, unknown>;
+      const outboundModel =
+        typeof bodyRecord.model === "string" ? bodyRecord.model : model;
+      stripUnsupportedParams(this.provider, outboundModel, bodyRecord);
     }
 
     // Apply modelIdPrefix from RegistryEntry (e.g. "accounts/fireworks/models/")

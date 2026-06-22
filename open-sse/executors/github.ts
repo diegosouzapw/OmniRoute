@@ -6,6 +6,7 @@ import {
   getGitHubCopilotRefreshHeaders,
 } from "../config/providerHeaderProfiles.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
+import { stripUnsupportedParams } from "../translator/paramSupport.ts";
 
 export class GithubExecutor extends BaseExecutor {
   constructor() {
@@ -125,6 +126,13 @@ export class GithubExecutor extends BaseExecutor {
         this.sanitizeChatCompletionsMessage(msg)
       );
     }
+
+    // Config-driven strip of params unsupported by the target provider/model.
+    // For GitHub Copilot this removes Claude-style `thinking` and
+    // `reasoning_effort` for Claude models that reject them upstream
+    // (Haiku 4.5 / Opus 4.7 — Opus 4.6 / Sonnet 4.6 keep them).
+    // Port from 9router#7ae9fff6 (fixes upstream #1748, #713).
+    stripUnsupportedParams("github", model, modifiedBody);
 
     return modifiedBody;
   }
