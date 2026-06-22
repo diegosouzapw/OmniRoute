@@ -691,6 +691,68 @@ export function getNextResetSummary(quotas: any[] | undefined): string | null {
   return soonestIso ? formatCountdown(soonestIso) : null;
 }
 
+function addQuotaModelIdVariants(out: Set<string>, provider: string, modelId: string) {
+  const raw = modelId.trim().toLowerCase();
+  const providerId = provider.trim().toLowerCase();
+  if (!raw) return;
+  out.add(raw);
+  if (!providerId) return;
+
+  const prefix = `${providerId}/`;
+  if (raw.startsWith(prefix)) {
+    const stripped = raw.slice(prefix.length);
+    if (stripped) out.add(stripped);
+  } else {
+    out.add(`${providerId}/${raw}`);
+  }
+}
+
+export function collectHiddenQuotaModelIds(provider: string, payload: unknown): string[] {
+  const hidden = new Set<string>();
+  const data = toRecord(payload);
+  const collect = (entries: unknown) => {
+    if (!Array.isArray(entries)) return;
+    for (const entry of entries) {
+      const record = toRecord(entry);
+      if (record.isHidden !== true && record.isDeleted !== true) continue;
+      if (typeof record.id === "string") addQuotaModelIdVariants(hidden, provider, record.id);
+    }
+  };
+
+  collect(data.models);
+  collect(data.modelCompatOverrides);
+  return Array.from(hidden);
+}
+
+export function filterHiddenModelQuotas(
+  provider: string,
+  quotas: any[] | undefined,
+  hiddenModelIds: string[] | undefined
+): any[] {
+  if (!Array.isArray(quotas)) return [];
+  if (!hiddenModelIds || hiddenModelIds.length === 0) return quotas;
+
+  const hidden = new Set(
+    hiddenModelIds.map((id) => id.trim().toLowerCase()).filter((id) => id.length > 0)
+  );
+  if (hidden.size === 0) return quotas;
+
+  return quotas.filter((quota) => {
+    if (!quota || quota.isCredits) return true;
+    const modelId =
+      typeof quota.modelKey === "string"
+        ? quota.modelKey
+        : typeof quota.modelId === "string"
+          ? quota.modelId
+          : "";
+    if (!modelId) return true;
+
+    const candidates = new Set<string>();
+    addQuotaModelIdVariants(candidates, provider, modelId);
+    return !Array.from(candidates).some((candidate) => hidden.has(candidate));
+  });
+}
+
 // --- Provider dropdown filter (PR #769 port) -----------------------------
 // Pure helpers extracted from <ProviderLimits/> so the filter+dropdown logic
 // can be exercised by unit tests without rendering React. Keep them free of
