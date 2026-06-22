@@ -1162,6 +1162,15 @@ export async function handleChatCore({
         }
       }
       const compressionInputBody = body as Record<string, unknown>;
+      // Adaptive context-budget (Sub-project C): model context window + request max_tokens drive
+      // the budget target. getTokenLimit is already imported; provider/effectiveModel resolved above.
+      const adaptiveModelContextLimit =
+        provider && effectiveModel ? getTokenLimit(provider, effectiveModel) : null;
+      const requestMaxTokens =
+        typeof (compressionInputBody as Record<string, unknown>)?.max_tokens === "number"
+          ? ((compressionInputBody as Record<string, unknown>).max_tokens as number)
+          : null;
+      let adaptiveTelemetry: import("../services/compression/adaptiveCompression/types.ts").AdaptiveTelemetry | null = null;
       const compressionPlan = selectCompressionPlan(
         config,
         compressionComboKey,
@@ -1169,9 +1178,20 @@ export async function handleChatCore({
         compressionInputBody,
         { provider, targetFormat, model: effectiveModel },
         namedCombos,
-        compressionHeader
+        compressionHeader,
+        {
+          modelContextLimit: adaptiveModelContextLimit,
+          requestMaxTokens: requestMaxTokens,
+          onAdaptive: (t) => { adaptiveTelemetry = t; },
+        }
       );
       const mode = compressionPlan.mode as CompressionConfig["defaultMode"];
+      if (adaptiveTelemetry && adaptiveTelemetry.fit === false) {
+        log?.warn?.(
+          "COMPRESSION",
+          `adaptive budget-exceeded: target=${adaptiveTelemetry.target} headroomAfter=${adaptiveTelemetry.headroomAfter} stages=${adaptiveTelemetry.stagesApplied.join(",")} (best-effort plan sent, content preserved)`
+        );
+      }
       compressionResponseMeta = formatCompressionMeta(compressionPlan);
       // When the per-engine toggle map derives a stacked pipeline (and no named/routing
       // combo already set config.stackedPipeline), feed that derived pipeline through so
@@ -1252,6 +1272,7 @@ export async function handleChatCore({
                 engineBreakdown: ensureEngineBreakdown(result.stats),
                 validationWarnings: result.stats.validationWarnings,
                 fallbackApplied: result.stats.fallbackApplied,
+                ...(adaptiveTelemetry ? { adaptive: adaptiveTelemetry } : {}),
                 timestamp: Date.now(),
               };
               emit("compression.completed", compressionCompletedPayload);
