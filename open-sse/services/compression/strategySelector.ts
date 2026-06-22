@@ -21,7 +21,7 @@ import {
   type CachingDetectionContext,
 } from "./cachingAware.ts";
 import { resolveCompressionPlan } from "./resolveCompressionPlan.ts";
-import { deriveDefaultPlan, type DerivedPlan } from "./deriveDefaultPlan.ts";
+import { deriveDefaultPlan, type DerivedPlan, type CompressionSource } from "./deriveDefaultPlan.ts";
 
 /** Named-combo map: combo id → its stacked pipeline (operator-defined profiles). */
 type NamedCombos = Record<string, CompressionPipelineStep[]>;
@@ -58,36 +58,97 @@ export function shouldAutoTrigger(config: CompressionConfig, estimatedTokens: nu
  * `combos` defaults to `{}` so Phase-1 callers are unchanged; when supplied, chatCore passes
  * its DB-loaded named-combo map so the active profile can resolve here purely (no DB import).
  */
+/** Tags a plan with the precedence layer that produced it (Phase 3 observability). */
+function withSource(plan: DerivedPlan, source: CompressionSource): DerivedPlan {
+  return { ...plan, source };
+}
+
+/**
+ * Interprets the `x-omniroute-compression` request header into a plan, or null when the
+ * value is unrecognized (caller falls through to normal resolution). Pure.
+ *   off            -> no compression
+ *   default        -> the panel-derived Default (ignores active profile / routing / auto-trigger)
+ *   engine:<id>    -> that single engine, when enabled in config.engines
+ *   <combo>        -> a named combo, matched name-first (lowercased) then exact id (Decision A)
+ */
+export function planFromHeader(
+  config: CompressionConfig,
+  header: string,
+  combos: NamedCombos
+): DerivedPlan | null {
+  const h = header.trim();
+  if (!h) return null;
+  const lower = h.toLowerCase();
+
+  if (lower === "off") return withSource({ mode: "off", stackedPipeline: [] }, "request-header");
+
+  if (lower === "default") {
+    // Empty combos + null comboId yields the pure panel default (no active-combo leak).
+    return withSource(deriveDefaultPlanFromConfig(config, null, {}), "request-header");
+  }
+
+  if (lower.startsWith("engine:")) {
+    const id = lower.slice("engine:".length);
+    const engine = config.engines?.[id];
+    return engine?.enabled
+      ? withSource(deriveDefaultPlan({ [id]: engine }, true), "request-header")
+      : null;
+  }
+
+  const combo = combos[lower] ?? combos[h];
+  return combo ? withSource({ mode: "stacked", stackedPipeline: combo }, "request-header") : null;
+}
+
+/** Renders the X-OmniRoute-Compression response header value. */
+export function formatCompressionMeta(plan: DerivedPlan): string {
+  return `${plan.mode}; source=${plan.source ?? "off"}`;
+}
+
 function resolveBasePlan(
   config: CompressionConfig,
   comboId: string | null,
   estimatedTokens: number,
-  combos: NamedCombos = {}
+  combos: NamedCombos = {},
+  header: string | null = null
 ): DerivedPlan {
-  if (!config.enabled) return { mode: "off", stackedPipeline: [] };
+  if (!config.enabled) return withSource({ mode: "off", stackedPipeline: [] }, "off");
+
+  // Phase 3: an explicit, recognized header wins over every operator layer (Decision B).
+  // The master switch above is the hard kill: a header cannot turn compression on.
+  if (header) {
+    const fromHeader = planFromHeader(config, header, combos);
+    if (fromHeader) return fromHeader; // already tagged "request-header"
+  }
 
   const comboMode = checkComboOverride(config, comboId);
   if (comboMode) {
     // A routing-combo "stacked" override still wants the configured stacked pipeline,
     // so route it through the resolver (which reads config.stackedPipeline for stacked).
-    return resolveCompressionPlan(config, { comboId, combos });
+    return withSource(resolveCompressionPlan(config, { comboId, combos }), "routing-override");
   }
 
   // Active profile: an EXPLICIT operator choice. Resolves regardless of enginesExplicit and
   // above auto-trigger (manual choice beats automatic escalation), but below a routing-combo
   // override (route-scoped is more specific).
   if (config.activeComboId && combos[config.activeComboId]) {
-    return { mode: "stacked", stackedPipeline: combos[config.activeComboId] };
+    return withSource(
+      { mode: "stacked", stackedPipeline: combos[config.activeComboId] },
+      "active-profile"
+    );
   }
 
   if (shouldAutoTrigger(config, estimatedTokens)) {
     const mode = config.autoTriggerMode ?? "lite";
-    return mode === "stacked"
-      ? { mode, stackedPipeline: config.stackedPipeline ?? [] }
-      : { mode, stackedPipeline: [] };
+    return withSource(
+      mode === "stacked"
+        ? { mode, stackedPipeline: config.stackedPipeline ?? [] }
+        : { mode, stackedPipeline: [] },
+      "auto-trigger"
+    );
   }
 
-  return deriveDefaultPlanFromConfig(config, comboId, combos);
+  const plan = deriveDefaultPlanFromConfig(config, comboId, combos);
+  return withSource(plan, plan.mode === "off" ? "off" : "default");
 }
 
 /**
@@ -146,9 +207,10 @@ export function getEffectiveMode(
   config: CompressionConfig,
   comboId: string | null,
   estimatedTokens: number,
-  combos: NamedCombos = {}
+  combos: NamedCombos = {},
+  header: string | null = null
 ): CompressionMode {
-  return resolveBasePlan(config, comboId, estimatedTokens, combos).mode as CompressionMode;
+  return resolveBasePlan(config, comboId, estimatedTokens, combos, header).mode as CompressionMode;
 }
 
 /**
@@ -165,15 +227,16 @@ export function selectCompressionPlan(
   estimatedTokens: number,
   body?: Record<string, unknown>,
   context?: CachingDetectionContext,
-  combos: NamedCombos = {}
+  combos: NamedCombos = {},
+  header: string | null = null
 ): DerivedPlan {
-  const plan = resolveBasePlan(config, comboId, estimatedTokens, combos);
+  const plan = resolveBasePlan(config, comboId, estimatedTokens, combos, header);
 
   // Apply caching-aware adjustments to the mode if body is provided
   if (body) {
     const ctx = detectCachingContext(body, context);
     const cacheAware = getCacheAwareStrategy(plan.mode as CompressionMode, ctx);
-    return { ...plan, mode: cacheAware.strategy as CompressionMode };
+    return { ...plan, mode: cacheAware.strategy as CompressionMode }; // ...plan preserves source
   }
 
   return plan;
@@ -185,9 +248,10 @@ export function selectCompressionStrategy(
   estimatedTokens: number,
   body?: Record<string, unknown>,
   context?: CachingDetectionContext,
-  combos: NamedCombos = {}
+  combos: NamedCombos = {},
+  header: string | null = null
 ): CompressionMode {
-  return selectCompressionPlan(config, comboId, estimatedTokens, body, context, combos).mode as CompressionMode;
+  return selectCompressionPlan(config, comboId, estimatedTokens, body, context, combos, header).mode as CompressionMode;
 }
 
 /**
