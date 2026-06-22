@@ -225,7 +225,7 @@
     "ink-text-input": "^6.0.0",
     "ioredis": "^5.10.1",
     "jose": "^6.2.3",
-    "js-yaml": "^4.1.1",
+    "js-yaml": "^5.0.0",
     "jsonc-parser": "^3.3.1",
     "lowdb": "^7.0.1",
     "lucide-react": "^1.16.0",
