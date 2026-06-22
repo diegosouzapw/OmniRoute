@@ -289,7 +289,7 @@
     "@types/better-sqlite3": "^7.6.13",
     "@types/bun": "latest",
     "@types/keytar": "^4.4.2",
-    "@types/node": "^25.9.1",
+    "@types/node": "^26.0.0",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "@types/ws": "^8.18.0",
