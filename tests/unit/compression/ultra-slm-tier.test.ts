@@ -311,3 +311,12 @@ test("applyCompressionAsync ultra + ultraEngine:'slm' (stub) yields ultraTier in
     __resetUltraEntryForTests();
   }
 });
+
+import * as compression from "../../../open-sse/services/compression/index.ts";
+
+test("compression index re-exports the ultra-SLM surface", () => {
+  assert.equal(typeof compression.ultraCompressHeuristic, "function");
+  assert.equal(typeof compression.slmAvailable, "function");
+  assert.equal(typeof compression.runLlmlinguaUltra, "function");
+  assert.equal(typeof compression.prewarmLlmlinguaUltra, "function");
+});
