@@ -1,11 +1,25 @@
 import { fetchLiveProviderLimits } from "@/lib/usage/providerLimits";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 
+export function resolveLiveWsEventPort(): string | null {
+  const configuredPort = process.env.LIVE_WS_PORT?.trim();
+  if (configuredPort) {
+    return configuredPort;
+  }
+
+  const enabled = process.env.OMNIROUTE_ENABLE_LIVE_WS?.trim().toLowerCase();
+  return enabled === "1" || enabled === "true" ? "20129" : null;
+}
+
 export async function forwardDashboardEventToLiveWs(
   event: string,
   payload: unknown
 ): Promise<void> {
-  const port = process.env.LIVE_WS_PORT || "20129";
+  const port = resolveLiveWsEventPort();
+  if (!port) {
+    return;
+  }
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 1_500);
   try {
