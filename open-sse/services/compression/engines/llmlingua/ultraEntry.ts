@@ -22,12 +22,25 @@ import { DEFAULT_LLMLINGUA_MODEL } from "./constants.ts";
 /** Cached probe result. null = not probed yet. */
 let _slmAvailable: boolean | null = null;
 
+// ─── test-only injectable hooks ─────────────────────────────────────────────
+interface UltraSlmTestHooks {
+  available?: boolean;
+  run?: (text: string, opts?: UltraSlmOptions) => Promise<string>;
+}
+let _testHooks: UltraSlmTestHooks | null = null;
+
+/** Test-only: override availability + the per-prose run, to avoid loading a real model. */
+export function __setUltraSlmTestHooks(hooks: UltraSlmTestHooks): void {
+  _testHooks = hooks;
+}
+
 /**
  * Cheap, cached, non-blocking probe: are the optional SLM deps installed?
  * Reuses the worker's memoized `depsAvailable()` (a filesystem manifest check),
  * so it never spawns a worker or loads a model.
  */
 export function slmAvailable(): boolean {
+  if (_testHooks && typeof _testHooks.available === "boolean") return _testHooks.available;
   if (_slmAvailable !== null) return _slmAvailable;
   _slmAvailable = depsAvailable();
   return _slmAvailable;
@@ -49,6 +62,13 @@ export interface UltraSlmOptions {
  * throw, so the ultra resolver falls back to Tier-A and records the fallback.
  */
 export async function runLlmlinguaUltra(text: string, opts?: UltraSlmOptions): Promise<string> {
+  if (_testHooks?.run) {
+    const out = await _testHooks.run(text, opts);
+    if (typeof out !== "string" || out.length >= text.length) {
+      throw new Error("llmlingua-ultra: backend produced no gain");
+    }
+    return out;
+  }
   const out = await workerBackend(text, {
     model: opts?.model,
     compressionRate: opts?.compressionRate,
@@ -80,7 +100,8 @@ export async function prewarmLlmlinguaUltra(opts?: UltraSlmOptions): Promise<boo
   return true;
 }
 
-/** Test-only: reset the cached probe. */
+/** Test-only: reset the cached probe + injected hooks. */
 export function __resetUltraEntryForTests(): void {
   _slmAvailable = null;
+  _testHooks = null;
 }

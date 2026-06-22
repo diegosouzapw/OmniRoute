@@ -69,7 +69,19 @@ function pruneProseOnly(text: string, rate: number, minScore: number): string {
  * Any backend failure (throw / no-op) falls back to the Tier-A heuristic for that
  * segment, so the SLM NEVER touches structured content and NEVER fails the segment.
  */
-async function compressProseSlm(text: string, cfg: UltraConfig): Promise<string> {
+/**
+ * One compressed prose segment plus whether the SLM (not the heuristic fallback)
+ * genuinely produced it. `usedSlm` is what the resolver records the tier from — it
+ * must reflect "Tier-B ran", NOT merely "the text changed" (a heuristic-fallback
+ * also shrinks the text, so deriving the tier from text inequality would mislabel
+ * a fallback as "slm").
+ */
+interface ProseSlmResult {
+  text: string;
+  usedSlm: boolean;
+}
+
+async function compressProseSlm(text: string, cfg: UltraConfig): Promise<ProseSlmResult> {
   const { text: withPlaceholders, blocks } = extractPreservedBlocks(text);
   if (blocks.length === 0) {
     return slmOrHeuristic(text, cfg);
@@ -79,6 +91,7 @@ async function compressProseSlm(text: string, cfg: UltraConfig): Promise<string>
   const splitRe = new RegExp(`(${escaped.join("|")})`, "g");
   const parts = withPlaceholders.split(splitRe);
   const out: string[] = [];
+  let usedSlm = false;
   for (const part of parts) {
     if (!part) {
       out.push("");
@@ -88,22 +101,28 @@ async function compressProseSlm(text: string, cfg: UltraConfig): Promise<string>
     if (preserved !== undefined) {
       out.push(preserved); // verbatim — never sent to the model
     } else {
-      out.push(await slmOrHeuristic(part, cfg));
+      const seg = await slmOrHeuristic(part, cfg);
+      out.push(seg.text);
+      if (seg.usedSlm) usedSlm = true;
     }
   }
-  return out.join("");
+  return { text: out.join(""), usedSlm };
 }
 
-/** Run the SLM on a prose segment; on throw/no-op, fall back to the Tier-A pruner for it. */
-async function slmOrHeuristic(prose: string, cfg: UltraConfig): Promise<string> {
+/**
+ * Run the SLM on a prose segment; on throw/no-op, fall back to the Tier-A pruner for it.
+ * `usedSlm` is true ONLY when the SLM backend itself produced the output.
+ */
+async function slmOrHeuristic(prose: string, cfg: UltraConfig): Promise<ProseSlmResult> {
   try {
-    return await runLlmlinguaUltra(prose, {
+    const text = await runLlmlinguaUltra(prose, {
       model: cfg.modelPath ? undefined : undefined,
       compressionRate: cfg.compressionRate,
       modelPath: cfg.modelPath,
     });
+    return { text, usedSlm: true };
   } catch {
-    return pruneByScore(prose, cfg.compressionRate, cfg.minScoreThreshold);
+    return { text: pruneByScore(prose, cfg.compressionRate, cfg.minScoreThreshold), usedSlm: false };
   }
 }
 
@@ -233,8 +252,8 @@ export async function ultraCompress(
       const next = (await mapTextContentAsync(msg, async (textPart) => {
         if (!textPart || textPart.startsWith(COMPRESSED_PREFIX)) return textPart;
         messageOriginalChars += textPart.length;
-        const out = await compressProseSlm(textPart, effectiveConfig);
-        if (out !== textPart) anySlm = true;
+        const { text: out, usedSlm } = await compressProseSlm(textPart, effectiveConfig);
+        if (usedSlm) anySlm = true;
         messageCompressedChars += out.length;
         return out;
       })) as Message;

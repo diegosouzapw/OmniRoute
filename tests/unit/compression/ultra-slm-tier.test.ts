@@ -162,3 +162,80 @@ test("ultraCompress with default config (no ultraEngine) uses heuristic tier", a
   });
   assert.equal(r.stats.ultraTier, "heuristic");
 });
+
+import {
+  __setUltraSlmTestHooks,
+  __resetUltraEntryForTests,
+} from "../../../open-sse/services/compression/engines/llmlingua/ultraEntry.ts";
+
+test("ultraEngine:'slm' with available stub backend records ultraTier:'slm'", async () => {
+  __setUltraSlmTestHooks({
+    available: true,
+    run: async (text) => text.slice(0, Math.ceil(text.length / 2)),
+  });
+  try {
+    const r = await ultraCompress(
+      [{ role: "user", content: "the quick brown fox jumps over the lazy dog repeatedly today" }],
+      {
+        enabled: true,
+        compressionRate: 0.5,
+        minScoreThreshold: 0.3,
+        slmFallbackToAggressive: false,
+        maxTokensPerMessage: 0,
+        ultraEngine: "slm",
+      }
+    );
+    assert.equal(r.stats.ultraTier, "slm");
+    assert.ok(r.stats.techniquesUsed.includes("ultra-slm"));
+    assert.ok(r.stats.compressedTokens <= r.stats.originalTokens);
+  } finally {
+    __resetUltraEntryForTests();
+  }
+});
+
+test("ultraEngine:'slm' but backend throws → ultraTier:'heuristic-fallback'", async () => {
+  __setUltraSlmTestHooks({
+    available: true,
+    run: async () => {
+      throw new Error("worker timeout");
+    },
+  });
+  try {
+    const r = await ultraCompress(
+      [{ role: "user", content: "the quick brown fox jumps over the lazy dog repeatedly today" }],
+      {
+        enabled: true,
+        compressionRate: 0.5,
+        minScoreThreshold: 0.3,
+        slmFallbackToAggressive: false,
+        maxTokensPerMessage: 0,
+        ultraEngine: "slm",
+      }
+    );
+    assert.equal(r.stats.ultraTier, "heuristic-fallback");
+  } finally {
+    __resetUltraEntryForTests();
+  }
+});
+
+test("ultraEngine:'slm' but slmAvailable() false → heuristic tier (no SLM attempt)", async () => {
+  __setUltraSlmTestHooks({
+    available: false,
+    run: async () => {
+      throw new Error("should not be called");
+    },
+  });
+  try {
+    const r = await ultraCompress([{ role: "user", content: "the quick brown fox jumps" }], {
+      enabled: true,
+      compressionRate: 0.5,
+      minScoreThreshold: 0.3,
+      slmFallbackToAggressive: false,
+      maxTokensPerMessage: 0,
+      ultraEngine: "slm",
+    });
+    assert.equal(r.stats.ultraTier, "heuristic");
+  } finally {
+    __resetUltraEntryForTests();
+  }
+});
