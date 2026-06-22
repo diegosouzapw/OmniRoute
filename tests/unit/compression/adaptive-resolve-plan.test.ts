@@ -136,3 +136,15 @@ test("unknown model context limit → skip adaptive (null telemetry, base unchan
     assert.deepEqual(plan, basePlan);
   }
 });
+
+test("hard-off: floor still escalates an overflowing 'off' base plan (spec §9)", () => {
+  const halve = (prior: number) => Math.round(prior / 2);
+  const { telemetry } = resolveAdaptivePlan({
+    basePlan: { mode: "off", stackedPipeline: [] }, // explicit off (header off resolves to this)
+    estimatedTokens: 400000, modelContextLimit: 200000, requestMaxTokens: 8000,
+    config: cfg(), // mode: "floor"
+    estimate: halve,
+  });
+  assert.ok(telemetry!.stagesApplied.length > 0); // floor escalated despite off
+  assert.equal(telemetry!.fit, true);
+});
