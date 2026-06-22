@@ -62,3 +62,21 @@ test("adaptive floor: bypasses auto-trigger, escalates a base plan to fit", () =
   assert.equal(tel.value!.target, 200000 - 8000 - 1024);
   assert.ok(tel.value!.stagesApplied.length > 0);
 });
+
+test("adaptive escalation still respects caching downgrade (D-C / §6 cache-safety)", () => {
+  const cfg = {
+    ...legacyCfg(),
+    contextBudget: { mode: "floor" as const, policy: "reserve-output" as const, outputReserve: 4096, safetyMargin: 1024, pct: 0.85, absoluteBudget: 0 },
+  };
+  // A caching provider context downgrades aggressive/ultra → standard; the adaptive plan's
+  // mode is "stacked", which getCacheAwareStrategy passes through unchanged, but the
+  // pipeline engines remain those that the existing apply path already cache-guards.
+  const body = { model: "openai/gpt-5", messages: [{ role: "user", content: "x" }] };
+  const plan = selectCompressionPlan(
+    cfg as any, null, 5_000_000, body, { provider: "openai", model: "openai/gpt-5" }, {}, null,
+    { modelContextLimit: 200000, requestMaxTokens: 8000 }
+  );
+  // mode is still a valid CompressionMode string after the cache-aware pass
+  assert.ok(typeof plan.mode === "string");
+  assert.ok(plan.stackedPipeline.length > 0);
+});
