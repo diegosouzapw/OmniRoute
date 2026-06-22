@@ -104,3 +104,24 @@ test("ladder exhausted, still over target → fit=false, all stages applied, pla
   assert.ok(plan.stackedPipeline.length >= 7);          // best-effort plan, content NOT dropped
   assert.ok(telemetry!.headroomAfter < 0);
 });
+
+test("replace-autotrigger: fires on bare off base, defers to an explicit base plan", () => {
+  const halve = (prior: number) => Math.round(prior / 2);
+  // bare off base → it acts
+  const acts = resolveAdaptivePlan({
+    basePlan: { mode: "off", stackedPipeline: [] },
+    estimatedTokens: 400000, modelContextLimit: 200000, requestMaxTokens: 8000,
+    config: cfg({ mode: "replace-autotrigger" }), estimate: halve,
+  });
+  assert.ok(acts.telemetry!.stagesApplied.length > 0);
+
+  // explicit aggressive base → defer (choice wins, may overflow)
+  const defers = resolveAdaptivePlan({
+    basePlan: { mode: "aggressive", stackedPipeline: [] },
+    estimatedTokens: 400000, modelContextLimit: 200000, requestMaxTokens: 8000,
+    config: cfg({ mode: "replace-autotrigger" }), estimate: halve,
+  });
+  assert.deepEqual(defers.plan, { mode: "aggressive", stackedPipeline: [] });
+  assert.deepEqual(defers.telemetry!.stagesApplied, []);
+  assert.equal(defers.telemetry!.fit, false); // 400000 > target, recorded as not fitting
+});
