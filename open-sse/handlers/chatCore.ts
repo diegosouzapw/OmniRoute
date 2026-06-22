@@ -93,6 +93,7 @@ import {
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { normalizeMimoThinking } from "../services/mimoThinking.ts";
 import { normalizeClaudeAdaptiveThinking } from "../services/claudeAdaptiveThinking.ts";
+import { normalizeClaudeHaikuConstraints } from "../services/claudeHaikuConstraints.ts";
 import { echoModelInObject } from "../services/responseModelEcho.ts";
 import { stripGpt5SamplingWhenReasoning } from "../services/gpt5SamplingGuard.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
@@ -1796,6 +1797,13 @@ export async function handleChatCore({
     // defaults) to `{type:"adaptive"}` — effort stays on `output_config.effort`. Keyed on
     // the resolved upstream model, so it covers every routing mode. See claudeAdaptiveThinking.ts.
     translatedBody = normalizeClaudeAdaptiveThinking(translatedBody, finalModelToUpstream);
+    // Claude Haiku rejects `thinking.type:"adaptive"` and `output_config.effort`
+    // (both Sonnet 4.6 / Opus 4.5+ only). Several paths can still emit those
+    // shapes on a Haiku target — native passthrough, reasoning_effort buckets,
+    // per-model defaults — so collapse them to a Haiku-valid shape here, after
+    // model substitution. Mirrors upstream 9router 401d93bd5. See
+    // services/claudeHaikuConstraints.ts.
+    translatedBody = normalizeClaudeHaikuConstraints(translatedBody, finalModelToUpstream);
   }
 
   // Xiaomi MiMo controls reasoning ONLY via `thinking:{type:"enabled"|"disabled"}` and
