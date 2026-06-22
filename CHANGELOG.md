@@ -4,6 +4,16 @@
 
 ---
 
+## [3.8.34] — TBD
+
+_In development — bullets added per PR; finalized at release._
+
+### 📝 Maintenance
+
+- **chore(quality): release-green pre-flight validator + nightly signal** — new `npm run check:release-green` (`scripts/quality/validate-release-green.mjs`) reproduces the release-equivalent validation (full unit + vitest + ratchets + typecheck + lint, optional `--with-build` package-artifact) against the current working tree and classifies each red as **HARD** (real defect) vs **DRIFT** (ratchet, rebaselined at release) — purely diagnostic, never blocking contributors. A new `nightly-release-green` workflow runs it on the active release branch and opens/updates a tracking issue on hard failures. Closes the gap where the full gate (`ci.yml`) only ran on the release PR, so reds accrued silently on `release/**` and surfaced in layers at release time. (thanks @diegosouzapw)
+
+---
+
 ## [3.8.33] — 2026-06-21
 
 ### ✨ New Features
