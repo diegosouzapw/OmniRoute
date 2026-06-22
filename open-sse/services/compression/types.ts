@@ -189,6 +189,14 @@ export interface CompressionStats {
   validationWarnings?: string[];
   validationErrors?: string[];
   fallbackApplied?: boolean;
+  /**
+   * Phase 4 (B): which `ultra` tier actually ran for this request.
+   * "slm" — Tier-B ran and produced the output.
+   * "heuristic-fallback" — Tier-B was selected but failed/timed out → Tier-A used.
+   * "heuristic" — Tier-A used directly (ultraEngine !== "slm" or SLM unavailable).
+   * Consumed by D0's persister as `CompressionRunTelemetry.ultraTier`.
+   */
+  ultraTier?: "slm" | "heuristic-fallback" | "heuristic";
   preservedBlockCount?: number;
   rtkRawOutputPointers?: Array<{
     id: string;

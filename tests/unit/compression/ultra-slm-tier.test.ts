@@ -114,3 +114,18 @@ test("DEFAULT_COMPRESSION_CONFIG defaults ultraEngine to 'heuristic'", () => {
 test("DEFAULT_COMPRESSION_CONFIG defaults ultraSlmPrewarm to false", () => {
   assert.equal(DEFAULT_COMPRESSION_CONFIG.ultraSlmPrewarm, false);
 });
+
+import type { CompressionStats } from "../../../open-sse/services/compression/types.ts";
+
+test("CompressionStats accepts an optional ultraTier signal", () => {
+  const s = {
+    originalTokens: 10,
+    compressedTokens: 5,
+    savingsPercent: 50,
+    techniquesUsed: ["ultra-heuristic-pruning"],
+    mode: "ultra" as const,
+    timestamp: 1,
+    ultraTier: "heuristic" as const,
+  } satisfies CompressionStats;
+  assert.equal(s.ultraTier, "heuristic");
+});
