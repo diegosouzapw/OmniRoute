@@ -37,10 +37,26 @@ const OAUTH_TEST_CONFIG = {
     refreshable: true,
   },
   codex: {
-    // Codex OAuth tokens are ChatGPT session tokens, NOT standard OpenAI API keys.
-    // They don't work with api.openai.com/v1/models (returns 403 "Access denied").
-    // Use checkExpiry mode instead — actual connectivity is validated via Usage/Limits.
-    checkExpiry: true,
+    // Port of decolua/9router#347: probe the real Codex /responses endpoint instead
+    // of relying on `checkExpiry`. Codex OAuth tokens are ChatGPT session tokens
+    // (not OpenAI API keys) — api.openai.com/v1/models rejects them with 403.
+    // Hitting the actual endpoint with a minimal invalid body returns 400 when
+    // auth is accepted (the body is the reason for the failure) and 401/403 when
+    // the token is bad. That is a real auth signal — checkExpiry alone could not
+    // distinguish a revoked-but-not-yet-expired token from a working one.
+    url: "https://chatgpt.com/backend-api/codex/responses",
+    method: "POST",
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    extraHeaders: {
+      "Content-Type": "application/json",
+      originator: "codex-cli",
+      "User-Agent": "codex-cli/1.0.18 (macOS; arm64)",
+    },
+    // Minimal invalid body — triggers a fast 400 without consuming quota.
+    body: JSON.stringify({ model: "gpt-5.3-codex", input: [], stream: false, store: false }),
+    // 400 = bad request, but auth was accepted; only 401/403 means the token is bad.
+    acceptStatuses: [400],
     refreshable: true,
   },
   "gemini-cli": {
@@ -524,13 +540,23 @@ export async function testOAuthConnection(
     };
 
     const url = typeof config.getUrl === "function" ? config.getUrl(connection) : config.url;
-    const res = await fetch(url, {
+    const fetchInit: RequestInit = {
       method: config.method,
       headers,
       signal: AbortSignal.timeout(timeoutMs),
-    });
+    };
+    // Port of decolua/9router#347: providers like Codex must send a body so the
+    // upstream returns 400 (auth ok) instead of 405/415.
+    if (config.body) fetchInit.body = config.body;
+    const res = await fetch(url, fetchInit);
 
-    if (res.ok) {
+    // Port of decolua/9router#347: some providers (Codex) intentionally trigger a
+    // 400 because the probe body is invalid. A 400 from such a provider means auth
+    // succeeded; only 401/403 means the token is bad.
+    const accepted =
+      res.ok ||
+      (Array.isArray(config.acceptStatuses) && config.acceptStatuses.includes(res.status));
+    if (accepted) {
       return {
         valid: true,
         error: null,
@@ -566,16 +592,21 @@ export async function testOAuthConnection(
       const tokens = await refreshOAuthToken(connection);
       if (tokens) {
         // Retry with new token
-        const retryRes = await fetch(url, {
+        const retryInit: RequestInit = {
           method: config.method,
           headers: {
             [config.authHeader]: `${config.authPrefix}${tokens.accessToken}`,
             ...config.extraHeaders,
           },
           signal: AbortSignal.timeout(timeoutMs),
-        });
+        };
+        if (config.body) retryInit.body = config.body;
+        const retryRes = await fetch(url, retryInit);
 
-        if (retryRes.ok) {
+        const retryAccepted =
+          retryRes.ok ||
+          (Array.isArray(config.acceptStatuses) && config.acceptStatuses.includes(retryRes.status));
+        if (retryAccepted) {
           return {
             valid: true,
             error: null,

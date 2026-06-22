@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type {
   ProviderBreakerSnapshot,
   ConnectionCooldownSnapshot,
 } from "@/app/(dashboard)/dashboard/combos/live/comboFlowModel";
 
 const DEFAULT_POLL_MS = 5000;
+const POLL_TIMEOUT_MS = 8000;
 
 export interface ResilienceHealthSnapshot {
   /** Per-provider circuit-breaker state (`providerHealth`). */
@@ -28,13 +29,26 @@ const EMPTY: ResilienceHealthSnapshot = { providerHealth: {}, connectionHealth: 
  */
 export function useProviderBreakerHealth(pollMs = DEFAULT_POLL_MS): ResilienceHealthSnapshot {
   const [snapshot, setSnapshot] = useState<ResilienceHealthSnapshot>(EMPTY);
+  const inFlightRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     const poll = async () => {
+      if (inFlightRef.current) return;
+
+      const controller = new AbortController();
+      inFlightRef.current = controller;
+      const timeoutId = setTimeout(
+        () => controller.abort("Provider breaker health timeout"),
+        POLL_TIMEOUT_MS
+      );
+
       try {
-        const res = await fetch("/api/monitoring/health");
+        const res = await fetch("/api/monitoring/health", {
+          signal: controller.signal,
+          cache: "no-store",
+        });
         if (!res.ok) return;
         const json = (await res.json()) as {
           providerHealth?: Record<string, ProviderBreakerSnapshot>;
@@ -53,6 +67,11 @@ export function useProviderBreakerHealth(pollMs = DEFAULT_POLL_MS): ResilienceHe
         });
       } catch {
         // Fail-soft: keep the previous snapshot; cascade degrades to no badges.
+      } finally {
+        clearTimeout(timeoutId);
+        if (inFlightRef.current === controller) {
+          inFlightRef.current = null;
+        }
       }
     };
 
@@ -60,6 +79,8 @@ export function useProviderBreakerHealth(pollMs = DEFAULT_POLL_MS): ResilienceHe
     const id = setInterval(poll, pollMs);
     return () => {
       cancelled = true;
+      inFlightRef.current?.abort("Provider breaker health unmounted");
+      inFlightRef.current = null;
       clearInterval(id);
     };
   }, [pollMs]);

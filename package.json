@@ -1,6 +1,6 @@
 {
   "name": "omniroute",
-  "version": "3.8.32",
+  "version": "3.8.34",
   "description": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "type": "module",
   "bin": {
@@ -14,6 +14,7 @@
     "open-sse/",
     "src/domain/",
     "src/lib/",
+    "src/models/",
     "src/mitm/",
     "src/server/",
     "src/shared/",
@@ -124,6 +125,7 @@
     "check:openapi-coverage": "node scripts/check/check-openapi-coverage.mjs",
     "check:openapi-security-tiers": "node scripts/check/check-openapi-security-tiers.mjs",
     "check:provider-consistency": "node --import tsx scripts/check/check-provider-consistency.ts",
+    "check:provider-assets": "node scripts/check/check-provider-assets.mjs",
     "check:fetch-targets": "node scripts/check/check-fetch-targets.mjs",
     "check:openapi-routes": "node scripts/check/check-openapi-routes.mjs",
     "check:openapi-breaking": "node scripts/check/check-openapi-breaking.mjs",
@@ -143,6 +145,7 @@
     "check:complexity": "node scripts/check/check-complexity.mjs",
     "check:dead-code": "node scripts/check/check-dead-code.mjs",
     "check:cognitive-complexity": "node scripts/check/check-cognitive-complexity.mjs",
+    "check:release-green": "node scripts/quality/validate-release-green.mjs",
     "check:type-coverage": "node scripts/check/check-type-coverage.mjs",
     "check:lockfile": "node scripts/check/check-lockfile.mjs",
     "check:bundle-size": "node scripts/check/check-bundle-size.mjs",

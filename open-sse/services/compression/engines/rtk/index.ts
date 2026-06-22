@@ -28,6 +28,23 @@ type ToolMeta = { toolName: string; command: string | null };
 const SHELL_TOOL_NAME_RE = /\b(bash|shell|terminal|run_command|execute_command|exec|command)\b/;
 
 /**
+ * A content block (or text sub-block) carrying `cache_control` is an explicit upstream
+ * prompt-cache breakpoint — the provider caches the prefix up to and INCLUDING it. Rewriting
+ * such a block's text invalidates that cached prefix every turn (guaranteed cache miss), the
+ * "provider cache broken" regression once RTK started compressing Anthropic tool_result blocks.
+ * So we preserve any cache_control-marked block byte-for-byte. (#3936: under caching, only ever
+ * preserve more of the prefix — never rewrite a client-declared breakpoint.)
+ */
+function hasCacheControlMarker(part: unknown): boolean {
+  return (
+    !!part &&
+    typeof part === "object" &&
+    (part as Record<string, unknown>).cache_control !== undefined &&
+    (part as Record<string, unknown>).cache_control !== null
+  );
+}
+
+/**
  * Resolve the shell command + whether to skip RTK filters for a tool result, given the
  * tool id (OpenAI `tool_call_id` / Anthropic `tool_use_id`) and the lookup built from the
  * preceding assistant tool calls. A missing entry runs filters with text-based command
@@ -324,7 +341,10 @@ export function processRtkText(
       if (config.enabledFilters.length === 0 || config.enabledFilters.includes(filter.id)) {
         const filtered = applyLineFilter(result, {
           ...filter,
-          maxLines: effectiveMaxLines(filter.maxLines || config.maxLinesPerResult, config.intensity),
+          maxLines: effectiveMaxLines(
+            filter.maxLines || config.maxLinesPerResult,
+            config.intensity
+          ),
         });
         result = filtered.text;
         if (filtered.appliedRules.length > 0) {
@@ -456,6 +476,8 @@ function processToolResultBlocks(
   let compressed = false;
   const nextContent = content.map((part) => {
     if (!isAnthropicToolResultBlock(part)) return part;
+    // The block itself is a cache breakpoint — preserve it byte-for-byte.
+    if (hasCacheControlMarker(part)) return part;
     const toolUseId = typeof part.tool_use_id === "string" ? part.tool_use_id : null;
     const { command, skipFilters } = resolveToolMeta(toolUseId, toolCallLookup);
     const inner = part.content;
@@ -473,6 +495,8 @@ function processToolResultBlocks(
       let blockChanged = false;
       const nextInner = inner.map((sub) => {
         if (!isTextBlock(sub) || !sub.text) return sub;
+        // A text sub-block can carry its own cache breakpoint — preserve it byte-for-byte.
+        if (hasCacheControlMarker(sub)) return sub;
         const processed = processRtkText(sub.text, { config, command, skipFilters });
         collect(processed);
         if (!processed.compressed) return sub;

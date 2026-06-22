@@ -13,7 +13,7 @@
  * Pure leaf: this module never imports from the combo barrel.
  */
 
-import type { ResolvedComboTarget } from "./types.ts";
+import type { ResolvedComboUnit } from "./types.ts";
 
 // In-memory atomic counter per combo for round-robin distribution
 // Resets on server restart (by design — no stale state)
@@ -21,7 +21,8 @@ import type { ResolvedComboTarget } from "./types.ts";
 export const MAX_RR_COUNTERS = 500;
 
 export const rrCounters = new Map<string, number>();
-export const rrStickyTargets = new Map<
+export const rrStickyTargets = new Map<string, { executionKey: string; successCount: number }>();
+export const weightedStickyTargets = new Map<
   string,
   { executionKey: string; successCount: number }
 >();
@@ -32,9 +33,11 @@ export function clampStickyRoundRobinTargetLimit(value: unknown): number {
   return Math.min(Math.max(Math.floor(numericValue), 1), 1000);
 }
 
+export const clampStickyWeightedTargetLimit = clampStickyRoundRobinTargetLimit;
+
 export function getStickyRoundRobinStartIndex(
   comboName: string,
-  targets: ResolvedComboTarget[],
+  targets: ResolvedComboUnit[],
   stickyLimit: number
 ): { startIndex: number; counter: number } {
   const sticky = rrStickyTargets.get(comboName);
@@ -51,9 +54,9 @@ export function getStickyRoundRobinStartIndex(
 
 export function recordStickyRoundRobinSuccess(
   comboName: string,
-  target: ResolvedComboTarget,
+  target: ResolvedComboUnit,
   stickyLimit: number,
-  targets: ResolvedComboTarget[]
+  targets: ResolvedComboUnit[]
 ): void {
   const sticky = rrStickyTargets.get(comboName);
   const successCount = sticky?.executionKey === target.executionKey ? sticky.successCount + 1 : 1;
@@ -68,4 +71,28 @@ export function recordStickyRoundRobinSuccess(
   }
 
   rrStickyTargets.set(comboName, { executionKey: target.executionKey, successCount });
+}
+
+export function getStickyWeightedExecutionKey(
+  comboName: string,
+  stickyLimit: number
+): string | null {
+  const sticky = weightedStickyTargets.get(comboName);
+  if (!sticky || stickyLimit <= 1 || sticky.successCount >= stickyLimit) return null;
+  return sticky.executionKey;
+}
+
+export function recordStickyWeightedSuccess(
+  comboName: string,
+  executionKey: string,
+  stickyLimit: number
+): void {
+  const sticky = weightedStickyTargets.get(comboName);
+  const successCount = sticky?.executionKey === executionKey ? sticky.successCount + 1 : 1;
+  if (successCount >= stickyLimit) {
+    weightedStickyTargets.delete(comboName);
+    return;
+  }
+
+  weightedStickyTargets.set(comboName, { executionKey, successCount });
 }

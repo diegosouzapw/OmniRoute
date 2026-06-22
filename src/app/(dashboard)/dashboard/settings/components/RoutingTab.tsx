@@ -1485,6 +1485,41 @@ export default function RoutingTab() {
         </div>
       </Card>
 
+      {/* #4481 layer 2 — Web-Search Routing (CCR-style Router.webSearch) */}
+      <Card>
+        <div className="flex gap-3">
+          <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 h-fit">
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+              travel_explore
+            </span>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold">
+              {t("webSearchRouteTitle") || "Web search routing"}
+            </h3>
+            <p className="text-sm text-text-muted mt-1">
+              {t("webSearchRouteDesc") ||
+                "When a request includes a native web_search tool, route the whole request to this model instead of the default — useful for providers that don't implement Anthropic's web_search server tool. Leave blank to disable."}
+            </p>
+            <div className="mt-3">
+              <Input
+                value={
+                  typeof settings.webSearchRouteModel === "string"
+                    ? settings.webSearchRouteModel
+                    : ""
+                }
+                onChange={(e) => updateSetting({ webSearchRouteModel: e.target.value })}
+                placeholder={
+                  t("webSearchRoutePlaceholder") || "e.g. openrouter,anthropic/claude-3.5-sonnet"
+                }
+                disabled={loading}
+                aria-label={t("webSearchRouteTitle") || "Web search routing model"}
+              />
+            </div>
+          </div>
+        </div>
+      </Card>
+
       <Card>
         <div className="flex items-start justify-between gap-4">
           <div className="flex gap-3">

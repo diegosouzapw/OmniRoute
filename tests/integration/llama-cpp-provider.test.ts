@@ -112,7 +112,10 @@ test("llama-cpp provider: routes request to custom baseUrl with no auth header",
       headers: toPlainHeaders(init.headers),
       body: init.body ? JSON.parse(String(init.body)) : null,
     });
-    return buildLlamaResponse("Why did the programmer go broke? Because he used up all his cache!", "unsloth/gemma-4-26B-A4B-it-GGUF:UD-IQ2_M");
+    return buildLlamaResponse(
+      "Why did the programmer go broke? Because he used up all his cache!",
+      "unsloth/gemma-4-26B-A4B-it-GGUF:UD-IQ2_M"
+    );
   };
 
   const response = await handleChat(
@@ -135,7 +138,10 @@ test("llama-cpp provider: routes request to custom baseUrl with no auth header",
   assert.equal(upstream.headers.Authorization, undefined, "no auth header for local provider");
   assert.equal(upstream.body.messages[0].content, "Tell me a joke.");
   assert.equal(upstream.body.model, "unsloth/gemma-4-26B-A4B-it-GGUF:UD-IQ2_M");
-  assert.equal(json.choices[0].message.content, "Why did the programmer go broke? Because he used up all his cache!");
+  assert.equal(
+    json.choices[0].message.content,
+    "Why did the programmer go broke? Because he used up all his cache!"
+  );
 });
 
 test("llama-cpp provider: alias matching works via model catalog prefix", async () => {
@@ -152,7 +158,12 @@ test("llama-cpp provider: alias matching works via model catalog prefix", async 
   const fetchCalls: FetchCall[] = [];
 
   globalThis.fetch = async (url, init: RequestInit = {}) => {
-    fetchCalls.push({ url: String(url), method: init.method, headers: toPlainHeaders(init.headers), body: init.body ? JSON.parse(String(init.body)) : null });
+    fetchCalls.push({
+      url: String(url),
+      method: init.method,
+      headers: toPlainHeaders(init.headers),
+      body: init.body ? JSON.parse(String(init.body)) : null,
+    });
     return buildLlamaResponse("42", "unsloth/gemma-4-26B-A4B-it-GGUF:UD-IQ2_M");
   };
 
@@ -167,11 +178,16 @@ test("llama-cpp provider: alias matching works via model catalog prefix", async 
   );
 
   const json = (await response.json()) as any;
-  assert.equal(response.status, 200, `expected 200, got ${response.status}: ${JSON.stringify(json)}`);
+  assert.equal(
+    response.status,
+    200,
+    `expected 200, got ${response.status}: ${JSON.stringify(json)}`
+  );
   assert.equal(json.choices[0].message.content, "42");
 });
 
-test("llama-cpp provider: returns 400 when no connection exists", async () => {
+test("llama-cpp provider: returns 404 when no connection exists", async () => {
+  // Upstream port decolua/9router#336: 400 → 404 so combo routing can fall through.
   const response = await handleChat(
     buildRequest({
       body: {
@@ -182,7 +198,7 @@ test("llama-cpp provider: returns 400 when no connection exists", async () => {
     })
   );
 
-  assert.equal(response.status, 400);
+  assert.equal(response.status, 404);
   const json = (await response.json()) as any;
-  assert.match(json.error.message, /No credentials for provider/);
+  assert.match(json.error.message, /No active credentials for provider/);
 });

@@ -18,6 +18,7 @@ export interface ApiKeyUsageLimitPayload {
     dailySpentUsd: number;
     weeklySpentUsd: number;
     dailyWindowStartIso: string;
+    dailyResetAtIso: string;
     weeklyWindowStartIso: string;
     weeklyResetAtIso: string | null;
     dailyExceeded: boolean;

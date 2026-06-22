@@ -132,8 +132,9 @@ test("buildUsageCommandText formats API key USD limits when fair usage is enable
         dailySpentUsd: 2,
         weeklySpentUsd: 5.25,
         dailyWindowStartIso: "2026-06-16T03:00:00.000Z",
+        dailyResetAtIso: "2026-06-17T03:00:00.000Z",
         weeklyWindowStartIso: "2026-06-09T12:00:00.000Z",
-        weeklyResetAtIso: "2026-06-16T12:00:00.000Z",
+        weeklyResetAtIso: "2026-06-23T12:00:00.000Z",
         dailyExceeded: false,
         weeklyExceeded: false,
       }),
@@ -159,11 +160,17 @@ test("buildUsageCommandText formats API key USD limits when fair usage is enable
       "$10.00",
       "Gasto diario",
       "$2.00",
+      "Uso diario",
+      "20%",
+      "Resets in 15h",
       "",
       "Cota semanal",
       "$50.00",
       "Gasto semanal",
       "$5.25",
+      "Uso semanal",
+      "11%",
+      "Resets in 7d",
     ].join("\n")
   );
 });

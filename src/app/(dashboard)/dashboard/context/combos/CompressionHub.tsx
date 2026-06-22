@@ -7,6 +7,11 @@
 // structural difference from the engine pages (which hydrate fine) was a page-level
 // `useTranslations("contextCombos")`. To stay on the proven-good path, strings here
 // remain literal English text, exactly like `EngineConfigPage`.
+//
+// Phase 2: this Hub is now a thin overview. The master toggle, mode selector, and the
+// reorderable per-layer pipeline live in the panel at /dashboard/context/settings and
+// in the named-combo editor. Here we expose a single active-profile selector
+// (Default-from-panel | a named combo) + a read-only preview.
 
 import { useCallback, useEffect, useState } from "react";
 
@@ -17,48 +22,15 @@ type CompressionMode = "off" | "lite" | "standard" | "aggressive" | "ultra" | "r
 interface CompressionSettings {
   enabled: boolean;
   defaultMode: CompressionMode;
+  activeComboId?: string | null;
   contextEditing?: { enabled: boolean };
   [key: string]: unknown;
 }
 
-interface EngineEntry {
+interface NamedCombo {
   id: string;
   name: string;
-  description: string;
-  icon: string;
-  stackable: boolean;
-  stackPriority: number;
-  metadata: { stable?: boolean; description?: string; [key: string]: unknown };
-}
-
-interface PipelineStep {
-  engine: string;
-  intensity?: string;
-  config?: Record<string, unknown>;
-}
-
-interface DefaultCombo {
-  id: string;
-  name: string;
-  pipeline: PipelineStep[];
-}
-
-// ── Constants ──────────────────────────────────────────────────────────────────
-
-const MODES: { value: CompressionMode; label: string; hint: string }[] = [
-  { value: "off", label: "Off", hint: "No compression" },
-  { value: "lite", label: "Lite", hint: "Fast cleanup" },
-  { value: "standard", label: "Standard", hint: "Standard Caveman" },
-  { value: "aggressive", label: "Aggressive", hint: "Summary plus aging" },
-  { value: "ultra", label: "Ultra", hint: "Heuristic pruning" },
-  { value: "rtk", label: "RTK", hint: "Tool output filters" },
-  { value: "stacked", label: "Stacked", hint: "Run the layers below in sequence" },
-];
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
-
-function enginePagePath(engineId: string): string {
-  return `/dashboard/context/${engineId}`;
+  pipeline: { engine: string; intensity?: string }[];
 }
 
 // ── Sub-components ──────────────────────────────────────────────────────────────
@@ -96,8 +68,7 @@ function Toggle({
 
 export default function CompressionHub() {
   const [settings, setSettings] = useState<CompressionSettings | null>(null);
-  const [engines, setEngines] = useState<EngineEntry[]>([]);
-  const [combo, setCombo] = useState<DefaultCombo | null>(null);
+  const [combos, setCombos] = useState<NamedCombo[]>([]);
   const [loading, setLoading] = useState(true);
   const [explainerOpen, setExplainerOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -108,14 +79,11 @@ export default function CompressionHub() {
     async function load() {
       setLoading(true);
       const asJson = (r: Response) => (r.ok ? r.json() : null);
-      const [settingsData, enginesData, comboData] = await Promise.all([
+      const [settingsData, combosData] = await Promise.all([
         fetch("/api/settings/compression")
           .then(asJson)
           .catch(() => null),
-        fetch("/api/compression/engines")
-          .then(asJson)
-          .catch(() => null),
-        fetch("/api/context/combos/default")
+        fetch("/api/context/combos")
           .then(asJson)
           .catch(() => null),
       ]);
@@ -125,19 +93,8 @@ export default function CompressionHub() {
       } else {
         setSettings({ enabled: false, defaultMode: "off", contextEditing: { enabled: false } });
       }
-      if (enginesData?.engines) {
-        setEngines(
-          [...(enginesData.engines as EngineEntry[])].sort(
-            (a, b) => a.stackPriority - b.stackPriority
-          )
-        );
-      }
-      if (comboData?.id) {
-        setCombo({
-          id: String(comboData.id),
-          name: String(comboData.name ?? "Default"),
-          pipeline: Array.isArray(comboData.pipeline) ? comboData.pipeline : [],
-        });
+      if (Array.isArray(combosData?.combos)) {
+        setCombos(combosData.combos as NamedCombo[]);
       }
       setLoading(false);
     }
@@ -147,7 +104,7 @@ export default function CompressionHub() {
     };
   }, []);
 
-  // ── Settings mutations (master switch + mode) ────────────────────────────────
+  // ── Settings mutations ───────────────────────────────────────────────────────
   const saveSettings = useCallback(
     async (patch: Partial<CompressionSettings>) => {
       if (!settings) return;
@@ -172,43 +129,6 @@ export default function CompressionHub() {
     [settings]
   );
 
-  // Layer enable/disable moved to the single-source panel (/dashboard/context/settings,
-  // the `engines` map). The old per-layer toggle here wrote the now-deprecated
-  // /api/context/combos/default route (a 410 shim) — it has been removed. This Hub keeps
-  // the read-only derived view + the reorder control (which uses the named-combo [id] route).
-
-  // ── Reorder an active layer ───────────────────────────────────────────────────
-  // Persisted via the [id] route so the custom order survives (the `/default` route
-  // re-sorts by stackPriority). Only callable with ≥2 active steps, so the route's
-  // `pipeline.min(1)` guard is always satisfied.
-  const moveStep = useCallback(
-    async (index: number, direction: -1 | 1) => {
-      if (!combo) return;
-      const target = index + direction;
-      if (target < 0 || target >= combo.pipeline.length) return;
-      const next = [...combo.pipeline];
-      [next[index], next[target]] = [next[target], next[index]];
-      const prev = combo;
-      setCombo({ ...combo, pipeline: next });
-      setError(null);
-      try {
-        const res = await fetch(`/api/context/combos/${combo.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ pipeline: next }),
-        });
-        if (!res.ok) {
-          setCombo(prev);
-          setError("Failed to reorder pipeline.");
-        }
-      } catch {
-        setCombo(prev);
-        setError("Failed to reorder pipeline.");
-      }
-    },
-    [combo]
-  );
-
   // ── Derived state ─────────────────────────────────────────────────────────────
   if (loading) {
     return (
@@ -218,13 +138,10 @@ export default function CompressionHub() {
     );
   }
 
-  const enabled = settings?.enabled ?? false;
-  const mode = settings?.defaultMode ?? "off";
-  const pipelineActive = enabled && mode === "stacked";
-  const enabledIds = new Set((combo?.pipeline ?? []).map((s) => s.engine));
-  const activeSteps = combo?.pipeline ?? [];
-  const inactiveEngines = engines.filter((e) => !enabledIds.has(e.id));
-  const engineById = (id: string) => engines.find((e) => e.id === id);
+  const activeCombo = combos.find((c) => c.id === settings?.activeComboId) ?? null;
+  const activePipelineText = activeCombo
+    ? activeCombo.pipeline.map((s) => s.engine).join(" → ")
+    : "";
 
   return (
     <section className="flex flex-col gap-5 rounded-xl border border-primary/30 bg-surface p-5">
@@ -236,9 +153,7 @@ export default function CompressionHub() {
           </span>
           <div>
             <h1 className="text-xl font-bold text-text-main">Compression Hub</h1>
-            <p className="text-sm text-text-muted">
-              Enable, configure, and order compression layers in one place.
-            </p>
+            <p className="text-sm text-text-muted">Pick which compression profile runs globally.</p>
           </div>
         </div>
         <button
@@ -263,230 +178,69 @@ export default function CompressionHub() {
           </p>
           <ol className="ml-4 list-decimal space-y-1.5">
             <li>
-              <strong className="text-text-main">Token Saver (master)</strong>: must be enabled.
-              When it is off, nothing is compressed.
+              <strong className="text-text-main">Active profile</strong>: chooses which compression
+              profile runs globally — the panel-derived Default or one of your saved named combos.
             </li>
             <li>
-              <strong className="text-text-main">Mode</strong>: defines the strategy. Simple modes
-              (Lite/Standard/Aggressive/Ultra/RTK) run one technique.{" "}
-              <strong className="text-text-main">Stacked</strong> runs multiple layers in sequence
-              and uses the layer list below.
+              <strong className="text-text-main">Default (from panel)</strong>: derived from the
+              master switch and per-engine toggles you configure in Compression Settings.
             </li>
             <li>
-              <strong className="text-text-main">Layers (pipeline)</strong>: in Stacked mode, each
-              active layer runs in order and passes the compressed text to the next one (for
-              example: Session Dedup → RTK → Caveman).
+              <strong className="text-text-main">Named combos</strong>: saved pipelines you build in
+              the named-combo editor. Selecting one makes it the active profile for every request.
             </li>
             <li>
-              <strong className="text-text-main">Configuration</strong>: each layer has its own
-              enable switch and parameters (the settings button).
-            </li>
-            <li>
-              <strong className="text-text-main">Named combos</strong>: save different pipelines and
-              assign them to specific routing combos in the section below.
+              <strong className="text-text-main">Preview</strong>: shows which engines the active
+              profile runs, in order.
             </li>
           </ol>
         </div>
       )}
 
-      {/* ── Master switch + status ── */}
-      <div className="flex flex-col gap-4 rounded-lg border border-border bg-bg p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-text-main">Token Saver</p>
-            <p className="text-xs text-text-muted">Master switch for compression.</p>
-          </div>
-          <Toggle
-            checked={enabled}
-            onChange={() => saveSettings({ enabled: !enabled })}
-            ariaLabel="Toggle Token Saver"
-          />
-        </div>
-
-        {/* Mode selector */}
-        <div className="flex flex-col gap-2">
-          <p className="text-xs font-medium text-text-muted">Mode</p>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
-            {MODES.map((m) => (
-              <button
-                key={m.value}
-                type="button"
-                disabled={!enabled}
-                onClick={() => saveSettings({ defaultMode: m.value })}
-                title={m.hint}
-                className={`rounded-lg border px-2.5 py-2 text-left text-xs transition-all disabled:opacity-40 ${
-                  mode === m.value
-                    ? "border-primary/60 bg-primary/10 text-primary"
-                    : "border-border text-text-main hover:bg-surface"
-                }`}
-              >
-                <span className="block font-medium">{m.label}</span>
-                <span className="mt-0.5 block text-[10px] leading-tight text-text-muted">
-                  {m.hint}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Pipeline status callout */}
-        {pipelineActive ? (
-          <div className="flex items-center gap-2 rounded-lg border border-green-500/40 bg-green-500/5 px-3 py-2 text-xs text-green-500">
-            <span className="material-symbols-outlined text-[16px]">check_circle</span>
-            Layer pipeline is active. The layers below run on each request.
-          </div>
-        ) : (
-          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-xs text-amber-500">
-            <span className="material-symbols-outlined text-[16px]">info</span>
-            <span>The layers below only run in Stacked mode with Token Saver enabled.</span>
-            {!enabled && (
-              <button
-                type="button"
-                onClick={() => saveSettings({ enabled: true })}
-                className="rounded border border-amber-500/50 px-2 py-0.5 font-medium hover:bg-amber-500/10"
-              >
-                Enable Token Saver
-              </button>
-            )}
-            {enabled && mode !== "stacked" && (
-              <button
-                type="button"
-                onClick={() => saveSettings({ defaultMode: "stacked" })}
-                className="rounded border border-amber-500/50 px-2 py-0.5 font-medium hover:bg-amber-500/10"
-              >
-                Use Stacked mode
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* ── Active pipeline (ordered, reorderable) ── */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-text-main">
-            Active pipeline <span className="text-text-muted">(execution order)</span>
-          </h2>
-          <span className="text-xs text-text-muted">{activeSteps.length} layer(s)</span>
-        </div>
-        <p className="text-xs text-text-muted">
-          Turn layers on/off and set their level in{" "}
-          <a href="/dashboard/context/settings" className="underline hover:text-text-main">
-            Compression Settings
-          </a>
-          . You can reorder the active layers here.
-        </p>
-        {activeSteps.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-xs text-text-muted">
-            No active layers. Enable a layer in Compression Settings to build the pipeline.
+      {/* ── Active profile ── */}
+      <div className="flex flex-col gap-3 rounded-lg border border-border bg-bg p-4">
+        <div className="flex flex-col gap-1">
+          <label htmlFor="active-profile" className="text-sm font-semibold text-text-main">
+            Active profile
+          </label>
+          <p className="text-xs text-text-muted">
+            Pick which compression profile runs globally — the panel-derived Default or a saved
+            named combo.
           </p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {activeSteps.map((step, index) => {
-              const engine = engineById(step.engine);
-              return (
-                <li
-                  key={step.engine}
-                  className="flex items-center gap-3 rounded-lg border border-border bg-bg p-3"
-                >
-                  <div className="flex flex-col">
-                    <button
-                      type="button"
-                      onClick={() => moveStep(index, -1)}
-                      disabled={index === 0}
-                      aria-label="Move up"
-                      className="text-text-muted hover:text-text-main disabled:opacity-30"
-                    >
-                      <span className="material-symbols-outlined text-[18px]">arrow_upward</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => moveStep(index, 1)}
-                      disabled={index === activeSteps.length - 1}
-                      aria-label="Move down"
-                      className="text-text-muted hover:text-text-main disabled:opacity-30"
-                    >
-                      <span className="material-symbols-outlined text-[18px]">arrow_downward</span>
-                    </button>
-                  </div>
-                  <span className="w-5 text-center text-xs font-mono text-text-muted">
-                    {index + 1}
-                  </span>
-                  <span
-                    className="material-symbols-outlined text-[20px] text-primary"
-                    aria-hidden="true"
-                  >
-                    {engine?.icon ?? "compress"}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-medium text-text-main">
-                        {engine?.name ?? step.engine}
-                      </p>
-                      {engine && engine.metadata?.stable === false && (
-                        <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-500">
-                          beta
-                        </span>
-                      )}
-                    </div>
-                    <p className="truncate text-xs text-text-muted">{engine?.description ?? ""}</p>
-                  </div>
-                  <a
-                    href={enginePagePath(step.engine)}
-                    title="Configure layer"
-                    className="shrink-0 rounded-lg border border-border px-2 py-1.5 text-text-muted hover:bg-surface hover:text-text-main"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">settings</span>
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
-
-      {/* ── Inactive layers ── */}
-      {inactiveEngines.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold text-text-main">Available layers</h2>
-          <ul className="flex flex-col gap-2">
-            {inactiveEngines.map((engine) => (
-              <li
-                key={engine.id}
-                className="flex items-center gap-3 rounded-lg border border-border bg-bg p-3 opacity-90"
-              >
-                <span
-                  className="material-symbols-outlined text-[20px] text-text-muted"
-                  aria-hidden="true"
-                >
-                  {engine.icon}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate text-sm font-medium text-text-main">{engine.name}</p>
-                    {engine.metadata?.stable === false && (
-                      <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-500">
-                        beta
-                      </span>
-                    )}
-                    <span className="rounded bg-border/50 px-1.5 py-0.5 text-[10px] text-text-muted">
-                      prio {engine.stackPriority}
-                    </span>
-                  </div>
-                  <p className="truncate text-xs text-text-muted">{engine.description}</p>
-                </div>
-                <a
-                  href={enginePagePath(engine.id)}
-                  title="Configure layer"
-                  className="shrink-0 rounded-lg border border-border px-2 py-1.5 text-text-muted hover:bg-surface hover:text-text-main"
-                >
-                  <span className="material-symbols-outlined text-[18px]">settings</span>
-                </a>
-              </li>
-            ))}
-          </ul>
         </div>
-      )}
+        <select
+          id="active-profile"
+          data-testid="active-profile-select"
+          value={settings?.activeComboId ?? ""}
+          onChange={(e) => saveSettings({ activeComboId: e.target.value || null })}
+          className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-main"
+        >
+          <option value="">Default (from panel)</option>
+          {combos.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+        <div
+          data-testid="active-profile-preview"
+          className="rounded-lg border border-dashed border-border px-3 py-2 text-xs text-text-muted"
+        >
+          {activeCombo ? (
+            <span>
+              Runs: <span className="font-mono text-text-main">{activePipelineText}</span>
+            </span>
+          ) : (
+            <span>
+              Default — configured in{" "}
+              <a href="/dashboard/context/settings" className="underline hover:text-text-main">
+                Compression Settings
+              </a>
+              .
+            </span>
+          )}
+        </div>
+      </div>
 
       {/* ── Compressão delegada ao provedor ── */}
       <div className="flex flex-col gap-3">

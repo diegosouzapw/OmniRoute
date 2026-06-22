@@ -1102,6 +1102,44 @@ export function getModelIsHidden(providerId: string, modelId: string): boolean {
 }
 
 /**
+ * Get a map of provider ID → set of hidden model IDs from all modelCompatOverrides
+ * and customModels. Used by auto-combo candidate building to skip user-hidden models.
+ * Single bulk DB query — not N+1 per model.
+ */
+export function getHiddenModelsByProvider(): Map<string, Set<string>> {
+  const db = getDbInstance();
+  const result = new Map<string, Set<string>>();
+
+  // Query all rows from key_value for both namespaces
+  const rows = db
+    .prepare(
+      "SELECT key, value FROM key_value WHERE namespace IN ('modelCompatOverrides', 'customModels')"
+    )
+    .all() as Array<{ key: string; value: string | null }>;
+
+  for (const row of rows) {
+    if (!row.value) continue;
+    try {
+      const parsed = JSON.parse(row.value);
+      if (!Array.isArray(parsed)) continue;
+      for (const entry of parsed) {
+        if (entry && typeof entry === "object" && entry.isHidden) {
+          const modelId = entry.id;
+          if (typeof modelId === "string" && modelId.length > 0) {
+            if (!result.has(row.key)) result.set(row.key, new Set());
+            result.get(row.key)!.add(modelId);
+          }
+        }
+      }
+    } catch {
+      // Skip malformed entries
+    }
+  }
+
+  return result;
+}
+
+/**
  * #3782 — Check if a model was DELETED (trash) rather than merely eye-hidden.
  *
  * Only the DELETE route sets `isDeleted`. The sync re-import filter keys on this

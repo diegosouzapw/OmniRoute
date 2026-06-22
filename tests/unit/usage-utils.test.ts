@@ -60,6 +60,21 @@ describe("parseResetTime", () => {
   it("returns null for invalid date strings", () => {
     assert.equal(__testing.parseResetTime("not-a-date"), null);
   });
+
+  // Inspired-by upstream decolua/9router#768 — provider APIs sometimes return
+  // the reset timestamp as a numeric string. Without explicit detection,
+  // `new Date("1700000000")` returns Invalid Date and the value is lost.
+  it("parses a numeric string in seconds (value < 1e12)", () => {
+    const sec = "1700000000";
+    const out = __testing.parseResetTime(sec);
+    assert.equal(out, new Date(Number(sec) * 1000).toISOString());
+  });
+
+  it("parses a numeric string already in milliseconds (value >= 1e12)", () => {
+    const ms = "1700000000000";
+    const out = __testing.parseResetTime(ms);
+    assert.equal(out, new Date(Number(ms)).toISOString());
+  });
 });
 
 /* ------------------------------------------------------------------ */
@@ -157,19 +172,37 @@ describe("inferGitHubPlanName", () => {
 
   it("infers Pro+ from premiumTotal >= 1400", () => {
     const data = { copilot_plan: "INDIVIDUAL" };
-    const premium = { used: 0, total: 1500, remaining: 1500, remainingPercentage: 100, unlimited: false };
+    const premium = {
+      used: 0,
+      total: 1500,
+      remaining: 1500,
+      remainingPercentage: 100,
+      unlimited: false,
+    };
     assert.equal(__testing.inferGitHubPlanName(data, premium), "Copilot Pro+");
   });
 
   it("infers Enterprise from premiumTotal >= 900", () => {
     const data = { copilot_plan: "INDIVIDUAL" };
-    const premium = { used: 0, total: 900, remaining: 900, remainingPercentage: 100, unlimited: false };
+    const premium = {
+      used: 0,
+      total: 900,
+      remaining: 900,
+      remainingPercentage: 100,
+      unlimited: false,
+    };
     assert.equal(__testing.inferGitHubPlanName(data, premium), "Copilot Enterprise");
   });
 
   it("infers Pro when premiumTotal >= 250 and combined has INDIVIDUAL", () => {
     const data = { copilot_plan: "INDIVIDUAL" };
-    const premium = { used: 0, total: 300, remaining: 300, remainingPercentage: 100, unlimited: false };
+    const premium = {
+      used: 0,
+      total: 300,
+      remaining: 300,
+      remainingPercentage: 100,
+      unlimited: false,
+    };
     assert.equal(__testing.inferGitHubPlanName(data, premium), "Copilot Pro");
   });
 
@@ -313,6 +346,9 @@ describe("mapSubscriptionTierStringToPlanLabel", () => {
     const start = process.hrtime.bigint();
     __testing.mapSubscriptionTierStringToPlanLabel(" ".repeat(100000) + "(");
     const ms = Number(process.hrtime.bigint() - start) / 1e6;
-    assert.ok(ms < 500, `tier mapping took ${ms.toFixed(1)}ms on whitespace-heavy input — possible ReDoS`);
+    assert.ok(
+      ms < 500,
+      `tier mapping took ${ms.toFixed(1)}ms on whitespace-heavy input — possible ReDoS`
+    );
   });
 });

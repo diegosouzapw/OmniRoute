@@ -23,11 +23,21 @@ const GATES = [
   // Group A — instant (<1s)
   { name: "check:tracked-artifacts", cmd: ["node", "scripts/check/check-tracked-artifacts.mjs"] },
   { name: "check:any-budget:t11", cmd: ["node", "scripts/check/check-t11-any-budget.mjs"] },
-  { name: "check:migration-numbering", cmd: ["node", "scripts/check/check-migration-numbering.mjs"] },
-  { name: "check:node-runtime", cmd: ["node", "--import", "tsx", "scripts/check/check-supported-node-runtime.ts"] },
+  {
+    name: "check:migration-numbering",
+    cmd: ["node", "scripts/check/check-migration-numbering.mjs"],
+  },
+  {
+    name: "check:node-runtime",
+    cmd: ["node", "--import", "tsx", "scripts/check/check-supported-node-runtime.ts"],
+  },
 
   // Group B — fast (<5s)
-  { name: "check:provider-consistency", cmd: ["node", "--import", "tsx", "scripts/check/check-provider-consistency.ts"] },
+  {
+    name: "check:provider-consistency",
+    cmd: ["node", "--import", "tsx", "scripts/check/check-provider-consistency.ts"],
+  },
+  { name: "check:provider-assets", cmd: ["node", "scripts/check/check-provider-assets.mjs"] },
   { name: "check:public-creds", cmd: ["node", "scripts/check/check-public-creds.mjs"] },
   { name: "check:error-helper", cmd: ["node", "scripts/check/check-error-helper.mjs"] },
   { name: "check:fetch-targets", cmd: ["node", "scripts/check/check-fetch-targets.mjs"] },
@@ -39,8 +49,14 @@ const GATES = [
   { name: "check:file-size", cmd: ["node", "scripts/check/check-file-size.mjs"] },
   { name: "check:complexity", cmd: ["node", "scripts/check/check-complexity.mjs"] },
   { name: "check:docs-symbols", cmd: ["node", "scripts/check/check-docs-symbols.mjs"] },
-  { name: "check:known-symbols", cmd: ["node", "--import", "tsx", "scripts/check/check-known-symbols.ts"] },
-  { name: "check:route-guard-membership", cmd: ["node", "--import", "tsx", "scripts/check/check-route-guard-membership.ts"] },
+  {
+    name: "check:known-symbols",
+    cmd: ["node", "--import", "tsx", "scripts/check/check-known-symbols.ts"],
+  },
+  {
+    name: "check:route-guard-membership",
+    cmd: ["node", "--import", "tsx", "scripts/check/check-route-guard-membership.ts"],
+  },
   { name: "check:test-discovery", cmd: ["node", "scripts/check/check-test-discovery.mjs"] },
   { name: "check:test-masking", cmd: ["node", "scripts/check/check-test-masking.mjs"] },
 
@@ -140,7 +156,9 @@ function formatTable(results) {
 async function main() {
   const gates = FAST_ONLY ? GATES.filter((g) => !g.slow) : GATES;
 
-  console.log(`\n[quality:scan] Running ${gates.length} gate(s) with concurrency=${CONCURRENCY}...\n`);
+  console.log(
+    `\n[quality:scan] Running ${gates.length} gate(s) with concurrency=${CONCURRENCY}...\n`
+  );
   const wallStart = Date.now();
 
   const results = await runWithPool(gates, CONCURRENCY);

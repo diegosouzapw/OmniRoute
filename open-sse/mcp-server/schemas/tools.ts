@@ -459,6 +459,65 @@ export const webSearchTool: McpToolDefinition<typeof webSearchInput, typeof webS
   sourceEndpoints: ["/v1/search"],
 };
 
+// --- Tool 10: omniroute_web_fetch ---
+export const webFetchInput = z.object({
+  url: z
+    .string({ error: "URL is required" })
+    .min(1, "URL is required")
+    .describe("The URL to fetch content from"),
+  provider: z
+    .enum(["firecrawl", "jina-reader", "tavily-search"])
+    .optional()
+    .describe("Specific fetch provider to use (default: first available)"),
+  format: z
+    .enum(["markdown", "html", "links", "screenshot"])
+    .optional()
+    .default("markdown")
+    .describe("Output format for the fetched content"),
+  include_metadata: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe("Include page metadata (title, description) in the response"),
+  depth: z
+    .number()
+    .int()
+    .min(0)
+    .max(2)
+    .optional()
+    .describe("Crawl depth for Firecrawl (0 = single page, max 2)"),
+  wait_for_selector: z
+    .string()
+    .optional()
+    .describe("CSS selector to wait for before extracting content (Firecrawl only)"),
+});
+
+export const webFetchOutput = z.object({
+  provider: z.string(),
+  url: z.string(),
+  content: z.string(),
+  links: z.array(z.string()),
+  metadata: z
+    .object({
+      title: z.string().nullable(),
+      description: z.string().nullable(),
+    })
+    .nullable(),
+  screenshot_url: z.string().nullable(),
+});
+
+export const webFetchTool: McpToolDefinition<typeof webFetchInput, typeof webFetchOutput> = {
+  name: "omniroute_web_fetch",
+  description:
+    "Fetches and extracts content from a URL using OmniRoute's web fetch gateway. Supports multiple providers (Firecrawl, Jina Reader, Tavily) with automatic failover. Returns the page content as markdown, HTML, links, or screenshot, along with metadata.",
+  inputSchema: webFetchInput,
+  outputSchema: webFetchOutput,
+  scopes: ["execute:search"],
+  auditLevel: "basic",
+  phase: 1,
+  sourceEndpoints: ["/v1/web/fetch"],
+};
+
 // ============ Phase 2: Advanced Tools (8) ============
 
 // --- Tool 9: omniroute_simulate_route ---
@@ -1397,6 +1456,7 @@ export const MCP_TOOLS = [
   costReportTool,
   listModelsCatalogTool,
   webSearchTool,
+  webFetchTool,
   simulateRouteTool,
   setBudgetGuardTool,
   setRoutingStrategyTool,

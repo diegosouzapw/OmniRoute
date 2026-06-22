@@ -1,0 +1,273 @@
+#!/usr/bin/env node
+// scripts/quality/validate-release-green.mjs
+//
+// "Release-green" pre-flight validator (Solution C).
+//
+// WHY: the full gate (ci.yml — unit shards, vitest, ratchets, package-artifact)
+// runs ONLY on the release PR (PR → main). PRs into release/** only get the
+// fast-gates (quality.yml: TIA-impacted tests + typecheck + lint checks). So
+// reds accumulate silently on the release branch and explode — in layers — at
+// release time. This script reproduces the release-equivalent validation against
+// the CURRENT working tree so the maintainer (or the nightly, Solution D) can see
+// the real state of the release branch at any time.
+//
+// DESIGN — never blocking to contributors:
+//   • HARD checks (typecheck, lint errors, unit, vitest, db-rules, public-creds,
+//     optionally package-artifact) → a failure here is a real defect; exit 1.
+//   • DRIFT checks (eslint WARNINGS, cognitive-complexity, file-size) → ratchet
+//     drift accrued across the cycle is NOT a contributor's fault; it is reported
+//     and rebaselined by the maintainer at release. Drift NEVER changes the exit
+//     code, so wiring this as a check can never block anyone on drift.
+//
+// This script DIAGNOSES + REPORTS only (no auto-fix). The fix-to-green
+// orchestration lives in the (future) /green-prs + review-prs flows that call it.
+//
+// Usage:
+//   node scripts/quality/validate-release-green.mjs [--json] [--with-build] [--quick]
+//     --json        emit machine-readable JSON to stdout (report goes to stderr)
+//     --with-build  also run check:pack-artifact (needs a dist/ build — slow)
+//     --quick       skip the slow unit + vitest suites (drift + typecheck + lint only)
+
+import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(__dirname, "..", "..");
+const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
+
+// ─── Pure helpers (exported for tests) ──────────────────────────────────────
+
+/** Read the committed ratchet baseline value for a metric (null if unknown). */
+export function baselineValue(metric, root = ROOT) {
+  try {
+    const raw = JSON.parse(
+      readFileSync(join(root, "config/quality/quality-baseline.json"), "utf8")
+    );
+    const metrics = raw.metrics || raw;
+    const v = metrics?.[metric]?.value;
+    return typeof v === "number" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Best-effort "first meaningful failure line" from captured command output. */
+export function firstFailureLine(out) {
+  const lines = String(out || "")
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const hit = lines.find((l) => /✖|not ok|AssertionError|error TS|FAIL|Error:|REGRESS/i.test(l));
+  return (hit || lines[lines.length - 1] || "failed").slice(0, 200);
+}
+
+/** Sum {errorCount,warningCount} across an eslint --format json result array. */
+export function eslintCounts(parsed) {
+  let errors = 0;
+  let warnings = 0;
+  for (const f of parsed || []) {
+    errors += f.errorCount || 0;
+    warnings += f.warningCount || 0;
+  }
+  return { errors, warnings };
+}
+
+/** Parse the eslint JSON array out of mixed stdout (tolerates a leading banner). */
+export function parseEslintJson(out) {
+  const start = String(out || "").indexOf("[");
+  if (start < 0) return null;
+  try {
+    return JSON.parse(String(out).slice(start));
+  } catch {
+    return null;
+  }
+}
+
+/** Pull the cognitive-complexity violation count from the gate's output. */
+export function parseCognitiveCount(out) {
+  const m = String(out || "").match(/(\d+)\s+(?:function\(s\) exceed|violações|violations)/i);
+  return m ? Number(m[1]) : null;
+}
+
+/**
+ * Drift verdict for a ratchet: a metric that grew past its committed baseline is
+ * "drift" (reported, never blocking). `direction:"down"` metrics (warnings,
+ * complexity, file-size counts) regress when current > baseline.
+ */
+export function isDrift(current, baseline) {
+  if (typeof current !== "number" || typeof baseline !== "number") return false;
+  return current > baseline;
+}
+
+/** releaseGreen iff there are zero failing HARD checks (drift never blocks). */
+export function computeVerdict(results) {
+  const hardFailures = results.filter((r) => r.kind === "hard" && !r.ok);
+  const drift = results.filter((r) => r.kind === "drift" && !r.ok);
+  return { releaseGreen: hardFailures.length === 0, hardFailures, drift };
+}
+
+// ─── Orchestration (only when run directly) ─────────────────────────────────
+
+function run(cmd, cmdArgs) {
+  try {
+    const out = execFileSync(cmd, cmdArgs, {
+      cwd: ROOT,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      maxBuffer: 256 * 1024 * 1024,
+      env: { ...process.env, FORCE_COLOR: "0" },
+    });
+    return { code: 0, out };
+  } catch (err) {
+    return {
+      code: typeof err.status === "number" ? err.status : 1,
+      out: `${err.stdout || ""}${err.stderr || ""}`,
+    };
+  }
+}
+
+function main() {
+  const args = new Set(process.argv.slice(2));
+  const JSON_OUT = args.has("--json");
+  const WITH_BUILD = args.has("--with-build");
+  const QUICK = args.has("--quick");
+
+  const results = [];
+  const record = (r) => {
+    results.push(r);
+    const icon = r.ok ? "✅" : r.kind === "drift" ? "🟡" : "❌";
+    process.stderr.write(`${icon} [${r.kind}] ${r.label}${r.detail ? ` — ${r.detail}` : ""}\n`);
+  };
+
+  const hardCmd = (id, label, cmd, cmdArgs) => {
+    const { code, out } = run(cmd, cmdArgs);
+    record({
+      id,
+      label,
+      kind: "hard",
+      ok: code === 0,
+      detail: code === 0 ? "pass" : firstFailureLine(out),
+    });
+  };
+
+  process.stderr.write("🔎 Release-green validation (current working tree)\n\n");
+
+  hardCmd("typecheck", "Typecheck (core)", npmCmd, ["run", "typecheck:core"]);
+
+  // ESLint: ONE pass → errors (hard) + warnings (drift)
+  {
+    const { out } = run("npx", ["eslint", ".", "--format", "json"]);
+    const parsed = parseEslintJson(out);
+    if (!parsed) {
+      record({
+        id: "lint",
+        label: "ESLint",
+        kind: "hard",
+        ok: false,
+        detail: "could not parse eslint json",
+      });
+    } else {
+      const { errors, warnings } = eslintCounts(parsed);
+      record({
+        id: "lint-errors",
+        label: "ESLint errors",
+        kind: "hard",
+        ok: errors === 0,
+        detail: `${errors} error(s)`,
+      });
+      const base = baselineValue("eslintWarnings");
+      const over = isDrift(warnings, base);
+      record({
+        id: "eslint-warnings",
+        label: "ESLint warnings (ratchet)",
+        kind: "drift",
+        ok: !over,
+        detail:
+          base == null
+            ? `${warnings} (no baseline)`
+            : `${warnings} vs baseline ${base}${over ? ` (+${warnings - base} drift → rebaseline at release)` : ""}`,
+      });
+    }
+  }
+
+  hardCmd("db-rules", "DB rules", npmCmd, ["run", "check:db-rules"]);
+  hardCmd("public-creds", "Public creds", npmCmd, ["run", "check:public-creds"]);
+
+  // Cognitive-complexity (drift)
+  {
+    const { out } = run(npmCmd, ["run", "check:cognitive-complexity"]);
+    const current = parseCognitiveCount(out);
+    const base = baselineValue("cognitiveComplexity");
+    const over = isDrift(current, base);
+    record({
+      id: "cognitive-complexity",
+      label: "Cognitive complexity (ratchet)",
+      kind: "drift",
+      ok: !over,
+      detail:
+        current == null
+          ? "could not parse count"
+          : `${current} vs baseline ${base}${over ? ` (+${current - base} drift → rebaseline at release)` : ""}`,
+    });
+  }
+
+  // file-size (drift)
+  {
+    const { code, out } = run(npmCmd, ["run", "check:file-size"]);
+    record({
+      id: "file-size",
+      label: "File-size ratchet",
+      kind: "drift",
+      ok: code === 0,
+      detail: code === 0 ? "within frozen caps" : firstFailureLine(out),
+    });
+  }
+
+  if (!QUICK) {
+    hardCmd("unit", "Unit tests (full, CI concurrency)", npmCmd, ["run", "test:unit:ci"]);
+    hardCmd("vitest", "Vitest (MCP / autoCombo / cache)", npmCmd, ["run", "test:vitest"]);
+  }
+  if (WITH_BUILD) {
+    hardCmd("pack-artifact", "Package artifact (npm pack policy)", npmCmd, [
+      "run",
+      "check:pack-artifact",
+    ]);
+  }
+
+  const { releaseGreen, hardFailures, drift } = computeVerdict(results);
+
+  process.stderr.write("\n──────── verdict ────────\n");
+  process.stderr.write(`HARD failures (block — real defects): ${hardFailures.length}\n`);
+  hardFailures.forEach((r) => process.stderr.write(`  ❌ ${r.label}: ${r.detail}\n`));
+  process.stderr.write(`Ratchet drift (non-blocking — rebaseline at release): ${drift.length}\n`);
+  drift.forEach((r) => process.stderr.write(`  🟡 ${r.label}: ${r.detail}\n`));
+  process.stderr.write(
+    releaseGreen
+      ? "\n✅ RELEASE-GREEN (no hard failures). Any drift above is rebaselined at release, not a contributor concern.\n"
+      : "\n❌ NOT release-green — hard failures must be fixed (in the originating PR branch, via co-authorship).\n"
+  );
+
+  if (JSON_OUT) {
+    process.stdout.write(
+      JSON.stringify(
+        {
+          releaseGreen,
+          hardFailures: hardFailures.map((r) => ({ id: r.id, label: r.label, detail: r.detail })),
+          drift: drift.map((r) => ({ id: r.id, label: r.label, detail: r.detail })),
+          checks: results.map((r) => ({ id: r.id, kind: r.kind, ok: r.ok, detail: r.detail })),
+        },
+        null,
+        2
+      ) + "\n"
+    );
+  }
+
+  process.exit(releaseGreen ? 0 : 1);
+}
+
+// Run only when invoked directly (so tests can import the pure helpers).
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  main();
+}

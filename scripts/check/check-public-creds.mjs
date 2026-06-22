@@ -81,15 +81,15 @@ const ENV_KEY_RE = /(clientId|clientSecret|apiKey)Env\s*:/;
 //
 // 6A.8: Expanded scope to open-sse/** + src/lib/oauth/**. Newly discovered FPs:
 //
-//   open-sse/services/usage.ts L546: `getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn")`
+//   open-sse/services/usage.ts L582: `getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn")`
 //   The CRED_KEY_RE matches `apiKey:` in the TypeScript function-parameter type annotation.
 //   "minimax" and "minimax-cn" are provider-name strings in the type annotation, NOT credentials.
 //   This is a false positive (the gate was designed for object-literal assignments, not fn params).
 //   TODO(6A.8): Consider tightening CRED_KEY_RE to exclude function-signature contexts — but
 //   that adds complexity; the FP rate is low (1 file). Frozen by file:line:value key.
 export const KNOWN_LITERAL_CREDS = new Set([
-  "open-sse/services/usage.ts:582:minimax", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (moved 547→582 by #4293 usage extraction)
-  "open-sse/services/usage.ts:582:minimax-cn", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (moved 547→582 by #4293 usage extraction)
+  "open-sse/services/usage.ts:582:minimax", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (moved 543→547 by #3838/#4293, then 547→582 by the v3.8.33 usage.ts growth)
+  "open-sse/services/usage.ts:582:minimax-cn", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (moved 543→547 by #3838/#4293, then 547→582 by the v3.8.33 usage.ts growth)
 ]);
 
 /**

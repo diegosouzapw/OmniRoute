@@ -38,11 +38,7 @@ import {
   type McpToolDefinition,
   type OpenAITool,
 } from "../utils/cursorAgentProtobuf.ts";
-import {
-  resolveCursorImages,
-  extractImageUrls,
-  CursorImageError,
-} from "../utils/cursorImages.ts";
+import { resolveCursorImages, extractImageUrls, CursorImageError } from "../utils/cursorImages.ts";
 import {
   estimateInputTokens,
   estimateOutputTokens,
@@ -141,7 +137,9 @@ function buildCursorOutputConstraints(body: {
   const fmt = body.response_format;
   if (isRecordLike(fmt)) {
     if (fmt.type === "json_object") {
-      constraints.push("Return a single valid JSON object and no surrounding prose or code fences.");
+      constraints.push(
+        "Return a single valid JSON object and no surrounding prose or code fences."
+      );
     } else if (fmt.type === "json_schema") {
       const js = isRecordLike(fmt.json_schema) ? fmt.json_schema.schema : fmt.schema;
       constraints.push(
@@ -305,6 +303,40 @@ function tryParseJsonError(payload: Buffer): { message: string; status: number }
   }
 }
 
+// ─── Composer thinking-as-content decoding ─────────────────────────────────
+//
+// The Cursor `composer-*` family encodes its visible reply inside the
+// `thinking` field, marked off from the (private) chain-of-thought by a
+// final `</think>` sentinel. Everything AFTER the last `</think>` is the
+// user-facing reply; the prefix must stay hidden.
+//
+// Ported from decolua/9router#1310 by Noé Rivera. Same algorithm, adapted
+// to OmniRoute's StreamCtx-based pipeline so streaming + non-streaming
+// share the accumulation path.
+
+const COMPOSER_THINK_END = "</think>";
+
+export function isComposerModel(model: string | undefined | null): boolean {
+  const id = String(model ?? "")
+    .split("/")
+    .pop();
+  return /^composer(?:-|$)/i.test(id ?? "");
+}
+
+export function visibleComposerContentFromThinking(thinking: string): string {
+  if (!thinking) return "";
+  const endIdx = thinking.lastIndexOf(COMPOSER_THINK_END);
+  if (endIdx < 0) return "";
+  return thinking.slice(endIdx + COMPOSER_THINK_END.length).trimStart();
+}
+
+export function composerReasoningRemainder(thinking: string): string {
+  if (!thinking) return "";
+  const endIdx = thinking.lastIndexOf(COMPOSER_THINK_END);
+  if (endIdx < 0) return thinking;
+  return thinking.slice(0, endIdx);
+}
+
 // ─── Phase 4: streaming dispatch context ───────────────────────────────────
 //
 // One StreamCtx flows through a single execute() call. It owns the live
@@ -344,6 +376,10 @@ export type StreamCtx = {
   // role:"tool" message can be answered on the open h2 stream via
   // encodeExecMcpResult.
   pendingToolCalls: Map<string, { execMsgId: number; execId: string; toolName: string }>;
+  // Composer thinking-as-content (decolua/9router#1310): tracks how much of
+  // the visible suffix (after the last `</think>`) has already been streamed
+  // out as `content` deltas, so we only emit the incremental tail per frame.
+  composerVisibleEmittedLength: number;
 };
 
 export function newStreamCtx(model: string, emit: (chunk: string) => void): StreamCtx {
@@ -363,6 +399,7 @@ export function newStreamCtx(model: string, emit: (chunk: string) => void): Stre
     emittedToolCallIndex: 0,
     toolCalls: [],
     pendingToolCalls: new Map(),
+    composerVisibleEmittedLength: 0,
   };
 }
 
@@ -577,7 +614,22 @@ export function processFrame(
       }
       ctx.thinkingText += d.text;
       ctx.receivedText = true;
-      emitChunk(ctx, { reasoning_content: d.text });
+      // Composer (decolua/9router#1310) encodes the visible reply inside the
+      // thinking field, after a final `</think>` marker. Emit the post-marker
+      // suffix as plain `content` (so OpenAI-compatible clients see the reply)
+      // and keep the pre-marker chain-of-thought out of `reasoning_content` —
+      // it was never intended for the user.
+      if (isComposerModel(ctx.model)) {
+        const visible = visibleComposerContentFromThinking(ctx.thinkingText);
+        if (visible.length > ctx.composerVisibleEmittedLength) {
+          const deltaContent = visible.slice(ctx.composerVisibleEmittedLength);
+          ctx.composerVisibleEmittedLength = visible.length;
+          ctx.totalText += deltaContent;
+          emitChunk(ctx, { content: deltaContent });
+        }
+      } else {
+        emitChunk(ctx, { reasoning_content: d.text });
+      }
     } else if (d.kind === "token_delta") {
       ctx.tokenDelta += d.tokens;
     } else if (d.kind === "turn_ended") {
@@ -1354,7 +1406,15 @@ export class CursorExecutor extends BaseExecutor {
       content: ctx.totalText.length > 0 ? ctx.totalText : null,
     };
     if (ctx.thinkingText.length > 0) {
-      message.reasoning_content = ctx.thinkingText;
+      // Composer: strip the visible reply (after `</think>`) from the reasoning
+      // payload so it is not duplicated — it already lives in message.content
+      // via the processFrame thinking handler.
+      const reasoningPayload = isComposerModel(ctx.model)
+        ? composerReasoningRemainder(ctx.thinkingText)
+        : ctx.thinkingText;
+      if (reasoningPayload.length > 0) {
+        message.reasoning_content = reasoningPayload;
+      }
     }
     if (ctx.toolCalls.length > 0) {
       message.tool_calls = ctx.toolCalls.map((tc) => ({

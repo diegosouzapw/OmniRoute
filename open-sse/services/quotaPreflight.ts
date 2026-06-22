@@ -44,6 +44,8 @@ export interface QuotaInfo {
    * (e.g. "session", "weekly", "monthly").
    */
   windows?: Record<string, QuotaWindowInfo>;
+  /** True when the upstream usage endpoint explicitly reports exhausted quota. */
+  limitReached?: boolean;
 }
 
 export type QuotaFetcher = (
@@ -138,6 +140,88 @@ function isRemainingAtOrBelowThreshold(
   thresholdPercent: number
 ): boolean {
   return remainingPercent <= thresholdPercent + REMAINING_PERCENT_EPSILON;
+}
+
+function exhaustedResult(quotaPercent: number, resetAt: string | null): PreflightQuotaResult {
+  return {
+    proceed: false,
+    reason: "quota_exhausted",
+    quotaPercent,
+    resetAt,
+  };
+}
+
+function quotaWindowCutoffResult(
+  windows: NonNullable<QuotaInfo["windows"]>,
+  thresholds?: PreflightQuotaThresholds
+): PreflightQuotaResult | null {
+  let worstUsedPercent = 0;
+  let worstWindow: string | null = null;
+  let worstResetAt: string | null = null;
+
+  for (const [windowName, windowInfo] of Object.entries(windows)) {
+    if (!Number.isFinite(windowInfo.percentUsed)) continue;
+    const minRemainingPercent = resolveOrDefault(
+      thresholds?.resolveMinRemainingPercent,
+      windowName,
+      DEFAULT_MIN_REMAINING_PERCENT
+    );
+    if (
+      !isRemainingAtOrBelowThreshold(
+        remainingPercentFrom(windowInfo.percentUsed),
+        minRemainingPercent
+      )
+    ) {
+      continue;
+    }
+    if (windowInfo.percentUsed <= worstUsedPercent && worstWindow !== null) continue;
+    worstUsedPercent = windowInfo.percentUsed;
+    worstWindow = windowName;
+    worstResetAt = windowInfo.resetAt ?? null;
+  }
+
+  return worstWindow === null ? null : exhaustedResult(worstUsedPercent, worstResetAt);
+}
+
+function quotaPercentCutoffResult(
+  quota: QuotaInfo,
+  thresholds?: PreflightQuotaThresholds
+): PreflightQuotaResult {
+  if (!Number.isFinite(quota.percentUsed)) return { proceed: true };
+
+  const minRemainingPercent = resolveOrDefault(
+    thresholds?.resolveMinRemainingPercent,
+    null,
+    DEFAULT_MIN_REMAINING_PERCENT
+  );
+  const remainingPercent = remainingPercentFrom(quota.percentUsed);
+  return isRemainingAtOrBelowThreshold(remainingPercent, minRemainingPercent)
+    ? exhaustedResult(quota.percentUsed, quota.resetAt ?? null)
+    : { proceed: true, quotaPercent: quota.percentUsed };
+}
+
+/**
+ * Pure cutoff evaluator used by routing paths that already fetched quota.
+ * Mirrors preflightQuota threshold semantics without performing I/O or logging.
+ */
+export function evaluateQuotaCutoff(
+  quota: QuotaInfo | null | undefined,
+  thresholds?: PreflightQuotaThresholds
+): PreflightQuotaResult {
+  if (!quota) return { proceed: true };
+  if (quota.limitReached === true) return exhaustedResult(1, quota.resetAt ?? null);
+
+  const windows = quota.windows;
+  if (windows && Object.keys(windows).length > 0) {
+    return (
+      quotaWindowCutoffResult(windows, thresholds) ?? {
+        proceed: true,
+        quotaPercent: quota.percentUsed,
+      }
+    );
+  }
+
+  return quotaPercentCutoffResult(quota, thresholds);
 }
 
 export async function preflightQuota(

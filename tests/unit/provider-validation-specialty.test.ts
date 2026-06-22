@@ -367,15 +367,15 @@ test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and
 });
 
 test("web-cookie provider validators surface auth and subscription failures", async () => {
-  __setGrokTlsFetchOverride(async () => ({
-    status: 401,
-    headers: new Headers(),
-    text: JSON.stringify({ error: "unauthorized" }),
-    body: null,
-  }));
+  // Perplexity uses tlsFetchPerplexity (TLS-impersonating client). Return 403 to simulate
+  // an invalid session cookie so the validator emits the expected error message.
   __setPplxTlsFetchOverride(async () => {
     return { status: 403, headers: new Headers(), text: null, body: null };
   });
+  __setGrokTlsFetchOverride(async () => {
+    return { status: 401, headers: new Headers(), text: "Unauthorized", body: null };
+  });
+
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
     if (target.includes("app.blackbox.ai/api/auth/session")) {
@@ -627,7 +627,7 @@ test("grok-web validator: Cloudflare challenge page is detected and reported", a
 const { __setTlsFetchOverrideForTesting } =
   await import("../../open-sse/services/chatgptTlsClient.ts");
 
-function makeTlsResponse(status: number, body: string, headers: Record<string, string> = {}) {
+function makeTlsResponse(status: number, body: string, headers: Record<string, string> = {}): any {
   const h = new Headers();
   for (const [k, v] of Object.entries(headers)) h.set(k, v);
   return { status, headers: h, text: body, body: null };
@@ -638,7 +638,7 @@ test.afterEach(() => {
 });
 
 test("chatgpt-web validator: accepts a valid session response with accessToken", async () => {
-  let captured: { url: string; opts: { headers?: Record<string, string> } } | null = null;
+  let captured: { url: string; opts: any } | null = null;
   __setTlsFetchOverrideForTesting(async (url, opts) => {
     captured = { url, opts };
     return makeTlsResponse(
@@ -2146,14 +2146,18 @@ test("validateCommandCodeProvider rejects auth failures and provider outages", a
 const { __setTlsFetchOverrideForTesting: __setClaudeTlsFetchOverride } =
   await import("../../open-sse/services/claudeTlsClient.ts");
 
-function makeClaudeTlsResponse(status: number, body: string, headers: Record<string, string> = {}) {
+function makeClaudeTlsResponse(
+  status: number,
+  body: string,
+  headers: Record<string, string> = {}
+): any {
   const h = new Headers();
   for (const [k, v] of Object.entries(headers)) h.set(k, v);
   return { status, ok: status >= 200 && status < 300, headers: h, text: body, body: null };
 }
 
 test("claude-web validator: 200 from /api/organizations → valid", async () => {
-  let captured: { url: string; opts: { headers?: Record<string, string> } } | null = null;
+  let captured: { url: string; opts: any } | null = null;
   __setClaudeTlsFetchOverride(async (url, opts) => {
     captured = { url, opts };
     return makeClaudeTlsResponse(200, JSON.stringify({ orgs: [] }));
