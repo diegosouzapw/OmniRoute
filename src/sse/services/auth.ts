@@ -38,6 +38,7 @@ import {
   isQuotaPreflightEnabled,
 } from "@omniroute/open-sse/services/quotaPreflight.ts";
 import { resolveResilienceSettings } from "@/lib/resilience/settings";
+import { resolveModelLockoutSettings } from "@/lib/resilience/modelLockoutSettings";
 import { syncHealthFromDB, type KeyHealth } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import {
   classifyProviderError,
@@ -1771,6 +1772,7 @@ export async function markAccountUnavailable(
     persistUnavailableState?: boolean;
     /** Caller is the combo engine — it records its own model-level lockouts. */
     isCombo?: boolean;
+    maxCooldownMs?: number;
   } = {}
 ) {
   const currentMutex = markMutexes.get(connectionId) || Promise.resolve();
@@ -1792,6 +1794,10 @@ export async function markAccountUnavailable(
       .filter((connection) => connection.id.length > 0);
     const conn = connections.find((connection) => connection.id === connectionId);
     const backoffLevel = conn?.backoffLevel || 0;
+
+    const mlSettings = resolveModelLockoutSettings(await getSettings());
+    const effectiveMaxCooldownMs =
+      options.maxCooldownMs !== undefined ? options.maxCooldownMs : mlSettings.maxCooldownMs;
 
     // T06/T10/T36: terminal statuses should not be overwritten by transient cooldown state.
     if (conn && isTerminalConnectionStatus(conn)) {
@@ -1891,6 +1897,7 @@ export async function markAccountUnavailable(
         {
           exactCooldownMs:
             fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
+          maxCooldownMs: effectiveMaxCooldownMs,
         }
       );
       // Update last error for observability (without changing terminal status)
@@ -1919,7 +1926,10 @@ export async function markAccountUnavailable(
         "forbidden",
         status,
         effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.serviceUnavailable,
-        effectiveProviderProfile
+        effectiveProviderProfile,
+        {
+          maxCooldownMs: effectiveMaxCooldownMs,
+        }
       );
       updateProviderConnection(connectionId, {
         lastErrorType: "forbidden",
@@ -1966,6 +1976,7 @@ export async function markAccountUnavailable(
         {
           exactCooldownMs:
             fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
+          maxCooldownMs: effectiveMaxCooldownMs,
         }
       );
       updateProviderConnection(connectionId, {
@@ -1999,7 +2010,10 @@ export async function markAccountUnavailable(
         status === 404
           ? (effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.notFoundLocal)
           : COOLDOWN_MS.notFoundLocal,
-        effectiveProviderProfile
+        effectiveProviderProfile,
+        {
+          maxCooldownMs: effectiveMaxCooldownMs,
+        }
       );
       updateProviderConnection(connectionId, {
         lastErrorType: "not_found",
