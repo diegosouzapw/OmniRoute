@@ -27,7 +27,10 @@ export class GithubExecutor extends BaseExecutor {
 
   buildUrl(model: string, _stream: boolean, _urlIndex = 0) {
     const targetFormat = getModelTargetFormat("gh", model);
-    if (targetFormat === "openai-responses") {
+    // 9router#102: Copilot Codex models advertise supported_endpoints: ["/responses"]
+    // and 400 on /chat/completions. Route any *-codex id to /responses even when it
+    // isn't in the curated registry, so newly-shipped Codex models work out of the box.
+    if (targetFormat === "openai-responses" || /codex/i.test(model)) {
       return (
         this.config.responsesBaseUrl ||
         this.config.baseUrl?.replace(/\/chat\/completions\/?$/, "/responses") ||
