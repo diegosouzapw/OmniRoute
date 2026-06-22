@@ -1063,6 +1063,26 @@ export async function refreshCodexToken(refreshToken, log, proxyConfig: unknown 
         return { error: "unrecoverable_refresh_error", code: errorCode };
       }
 
+      // Defense-in-depth (port from decolua/9router#1821): any 401 from OpenAI's
+      // OAuth token endpoint means the refresh credential itself was rejected
+      // (e.g. rotated away, or a payload variant whose code we do not yet
+      // recognize — OpenAI has shipped both `token_expired` and the bare
+      // "Could not validate your token" message). Retrying with the same dead
+      // refresh token will never succeed; surface re-auth instead of looping.
+      // 429 / 5xx remain transient and fall through to the retryable branch.
+      if (response.status === 401) {
+        const code = errorCode || "unauthorized";
+        log?.error?.(
+          "TOKEN_REFRESH",
+          "Codex OAuth token endpoint returned 401. Re-authentication required.",
+          {
+            status: response.status,
+            errorCode: code,
+          }
+        );
+        return { error: "unrecoverable_refresh_error", code };
+      }
+
       log?.error?.("TOKEN_REFRESH", "Failed to refresh Codex token", {
         status: response.status,
         error: errorText,
