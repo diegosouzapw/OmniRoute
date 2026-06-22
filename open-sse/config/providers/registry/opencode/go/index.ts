@@ -43,6 +43,15 @@ export const opencode_goProvider: RegistryEntry = {
     { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude", supportsVision: false },
     { id: "hy3-preview", name: "Hunyuan3 Preview" },
     { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
+    // OpencodeExecutor rewrites these aliases to the canonical upstream id and injects reasoning_effort.
+    { id: "deepseek-v4-pro-low", name: "DeepSeek V4 Pro (low effort)", supportsReasoning: true },
+    {
+      id: "deepseek-v4-pro-medium",
+      name: "DeepSeek V4 Pro (medium effort)",
+      supportsReasoning: true,
+    },
+    { id: "deepseek-v4-pro-high", name: "DeepSeek V4 Pro (high effort)", supportsReasoning: true },
+    { id: "deepseek-v4-pro-max", name: "DeepSeek V4 Pro (max effort)", supportsReasoning: true },
     { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
   ],
 };
