@@ -10,7 +10,10 @@ export const GEMINI_UNSUPPORTED_SCHEMA_KEYS = new Set([
   "maxLength",
   "exclusiveMinimum",
   "exclusiveMaximum",
-  "pattern",
+  // NOTE: `pattern` is intentionally NOT in this set. Antigravity (Gemini-derived
+  // surface) accepts `pattern` on string constraints, and glob/grep/file-search
+  // tools depend on it to express their argument regex. Removing it produced
+  // upstream 400s and wrong-tool semantics (decolua/9router#1368).
   "minItems",
   "maxItems",
   "format",
