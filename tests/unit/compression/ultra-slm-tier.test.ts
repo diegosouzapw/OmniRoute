@@ -10,7 +10,7 @@
  * The llmlingua backend is injectable (setLlmlinguaBackend), so the tier is testable
  * without the real ONNX model.
  */
-import { describe, it, after, afterEach } from "node:test";
+import { describe, it, after, afterEach, test } from "node:test";
 import assert from "node:assert/strict";
 
 import { applyCompressionAsync } from "../../../open-sse/services/compression/index.ts";
@@ -100,4 +100,17 @@ describe("ultra SLM tier — modelPath routes through llmlingua", () => {
     assert.equal((result.stats as { mode?: string } | null)?.mode, "ultra");
     assert.ok(!techniques(result.stats).includes("ultra-slm"));
   });
+});
+
+// ─── Phase 4 (B): SLM-tier resolver, probe, telemetry, pre-warm ──────────────
+// (Appended to the pre-existing legacy `modelPath` suite above, which must stay green.)
+
+import { DEFAULT_COMPRESSION_CONFIG } from "../../../open-sse/services/compression/types.ts";
+
+test("DEFAULT_COMPRESSION_CONFIG defaults ultraEngine to 'heuristic'", () => {
+  assert.equal(DEFAULT_COMPRESSION_CONFIG.ultraEngine, "heuristic");
+});
+
+test("DEFAULT_COMPRESSION_CONFIG defaults ultraSlmPrewarm to false", () => {
+  assert.equal(DEFAULT_COMPRESSION_CONFIG.ultraSlmPrewarm, false);
 });
