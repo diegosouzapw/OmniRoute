@@ -131,6 +131,25 @@ test("Responses input (no messages) uses instructions field", () => {
   assert.ok(!("messages" in r.body));
 });
 
+test("terse-prose localizes per language (back-compat with the legacy caveman packs)", () => {
+  // Regression guard: the legacy caveman output mode localized to en/pt-BR/ja/id; the
+  // migrated terse-prose style must inject the SAME localized text, not fall back to English.
+  const ptBR = applyOutputStyles(
+    { messages: [{ role: "user", content: "Resuma os logs." }] },
+    sel(["terse-prose", "lite"]),
+    "pt-BR"
+  );
+  assert.match(String(ptBR.body.messages?.[0]?.content), /Responda conciso/);
+  assert.doesNotMatch(String(ptBR.body.messages?.[0]?.content), /Respond concise/);
+
+  const en = applyOutputStyles(
+    { messages: [{ role: "user", content: "Summarize logs." }] },
+    sel(["terse-prose", "lite"]),
+    "en"
+  );
+  assert.match(String(en.body.messages?.[0]?.content), /Respond concise/);
+});
+
 function escapeRe(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

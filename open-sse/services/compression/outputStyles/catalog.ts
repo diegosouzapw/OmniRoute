@@ -1,4 +1,4 @@
-import { SHARED_BOUNDARIES } from "../outputMode.ts";
+import { SHARED_BOUNDARIES, CAVEMAN_INSTRUCTION_BY_LANGUAGE } from "../outputMode.ts";
 
 /**
  * A single output-steering style. Instruction text MUST be static per
@@ -33,12 +33,14 @@ export const OUTPUT_STYLE_CATALOG: Record<string, OutputStyle> = {
     id: "terse-prose",
     label: "Terse prose",
     description: "Drop filler/articles/hedging; keep technical substance exact.",
-    // Migrated verbatim from the caveman output mode (outputMode.ts), so the
-    // back-compat golden test stays byte-identical.
-    levels: {
-      lite: `Respond concise. Drop filler, pleasantries, hedging. Keep full sentences, technical terms, code, errors, URLs, and identifiers exact. ${SHARED_BOUNDARIES}`,
-      full: `Respond terse like smart caveman. Drop articles (a/an/the), filler (just/really/basically/actually/simply), pleasantries, hedging. Fragments OK. Short synonyms (big not extensive, fix not implement). Keep all technical substance, code, errors, URLs, identifiers exact. ${SHARED_BOUNDARIES}`,
-      ultra: `Respond ultra terse. Maximum compression. Telegraphic. Abbreviate (DB/auth/config/req/res/fn/impl), strip conjunctions, arrows for causality (X → Y). One word when one word enough. Never abbreviate code symbols, API names, error strings, URLs, or identifiers. ${SHARED_BOUNDARIES}`,
+    // Migrated verbatim from the caveman output mode (outputMode.ts) — referenced (not
+    // re-typed) so the back-compat injection stays byte-identical across ALL languages,
+    // not just English (the legacy mode localized to en/pt-BR/ja/id).
+    levels: CAVEMAN_INSTRUCTION_BY_LANGUAGE.en,
+    i18n: {
+      "pt-BR": CAVEMAN_INSTRUCTION_BY_LANGUAGE["pt-BR"],
+      ja: CAVEMAN_INSTRUCTION_BY_LANGUAGE.ja,
+      id: CAVEMAN_INSTRUCTION_BY_LANGUAGE.id,
     },
   },
   "less-code": {
