@@ -1120,29 +1120,44 @@ export async function handleChatCore({
           );
         }
       }
-      if (config.enabled && config.cavemanOutputMode?.enabled) {
+      // Phase 4A: unified output styles (supersedes cavemanOutputMode via the back-compat shim).
+      let outputStyleResult: import("../services/compression/outputStyles/apply.ts").OutputStylesResult | null =
+        null;
+      if (config.enabled) {
         try {
-          const { applyCavemanOutputMode } = await import("../services/compression/outputMode.ts");
-          const outputModeLanguage =
-            config.languageConfig?.enabled === true ? config.languageConfig.defaultLanguage : "en";
-          const outputMode = applyCavemanOutputMode(
-            body as Parameters<typeof applyCavemanOutputMode>[0],
-            config.cavemanOutputMode,
-            outputModeLanguage
+          const { resolveOutputStyleSelection } = await import(
+            "../services/compression/outputStyles/backCompat.ts"
           );
-          if (outputMode.applied) {
-            body = outputMode.body as typeof body;
-            cavemanOutputModeApplied = true;
-            cavemanOutputModeIntensity = config.cavemanOutputMode.intensity;
-            estimatedTokens = estimateTokens(body?.messages ?? body?.input ?? []);
-            log?.debug?.("COMPRESSION", "Caveman output mode instruction applied");
-          } else if (outputMode.skippedReason && outputMode.skippedReason !== "disabled") {
-            log?.debug?.("COMPRESSION", `Caveman output mode skipped: ${outputMode.skippedReason}`);
+          const selection = resolveOutputStyleSelection(config);
+          if (selection.length > 0) {
+            const { applyOutputStyles } = await import(
+              "../services/compression/outputStyles/apply.ts"
+            );
+            const outputStyleLanguage =
+              config.languageConfig?.enabled === true ? config.languageConfig.defaultLanguage : "en";
+            outputStyleResult = applyOutputStyles(
+              body as Parameters<typeof applyOutputStyles>[0],
+              selection,
+              outputStyleLanguage
+            );
+            if (outputStyleResult.applied) {
+              body = outputStyleResult.body as typeof body;
+              cavemanOutputModeApplied = true;
+              cavemanOutputModeIntensity =
+                outputStyleResult.appliedStyles?.map((s) => `${s.id}:${s.level}`).join(",") ?? null;
+              estimatedTokens = estimateTokens(body?.messages ?? body?.input ?? []);
+              log?.debug?.("COMPRESSION", "Output styles applied");
+            } else if (
+              outputStyleResult.skippedReason &&
+              outputStyleResult.skippedReason !== "no_styles"
+            ) {
+              log?.debug?.("COMPRESSION", `Output styles skipped: ${outputStyleResult.skippedReason}`);
+            }
           }
         } catch (err) {
           log?.debug?.(
             "COMPRESSION",
-            "Caveman output mode skipped: " + (err instanceof Error ? err.message : String(err))
+            "Output styles skipped: " + (err instanceof Error ? err.message : String(err))
           );
         }
       }
@@ -1392,6 +1407,35 @@ export async function handleChatCore({
               "COMPRESSION",
               "Caveman output analytics write skipped: " +
                 (err instanceof Error ? err.message : String(err))
+            );
+          }
+        })();
+      }
+      if (outputStyleResult) {
+        void (async () => {
+          try {
+            const { buildOutputStyleTelemetry } = await import(
+              "../services/compression/outputStyles/telemetry.ts"
+            );
+            const { insertCompressionRunTelemetryRow } = await import(
+              "../../src/lib/db/compressionRunTelemetry.ts"
+            );
+            const record = buildOutputStyleTelemetry({
+              requestId: skillRequestId ?? traceId ?? "",
+              model: effectiveModel ?? "",
+              provider: provider ?? "",
+              source: config.compressionComboId ? "active-profile" : "default",
+              tokensBefore: estimatedTokens,
+              tokensAfter: estimatedTokens,
+              applied: outputStyleResult.applied,
+              appliedStyles: outputStyleResult.appliedStyles,
+              skippedReason: outputStyleResult.skippedReason,
+            });
+            insertCompressionRunTelemetryRow(record);
+          } catch (err) {
+            log?.debug?.(
+              "COMPRESSION",
+              "Run-telemetry emit skipped: " + (err instanceof Error ? err.message : String(err))
             );
           }
         })();
