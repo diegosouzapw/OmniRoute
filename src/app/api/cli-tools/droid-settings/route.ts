@@ -11,10 +11,15 @@ import {
 } from "@/shared/services/cliRuntime";
 import { createBackup } from "@/shared/services/backupService";
 import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db/cliToolState";
-import { cliModelConfigSchema } from "@/shared/validation/schemas";
+import { cliMultiModelConfigSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { resolveApiKey } from "@/shared/services/apiKeyResolver";
 import { readJsoncConfig } from "../_lib/jsoncConfig";
+import {
+  buildDroidCustomModels,
+  isOmniRouteCustomModel,
+  normalizeDroidModelList,
+} from "@/shared/services/droidCustomModels";
 
 const getDroidSettingsPath = () => getCliPrimaryConfigPath("droid");
 const getDroidDir = () => path.dirname(getDroidSettingsPath());
@@ -25,10 +30,12 @@ const getDroidDir = () => path.dirname(getDroidSettingsPath());
 // "installed but not configured" instead of a 500 misread as "not installed".
 const readSettings = async () => readJsoncConfig(getDroidSettingsPath());
 
-// Check if settings has OmniRoute customModels
+// Check if settings has OmniRoute customModels.
+// Multi-model entries are stored as `custom:OmniRoute-0`, `custom:OmniRoute-1`, …
+// (Ported from upstream PR decolua/9router#618.)
 const hasOmniRouteConfig = (settings: any) => {
   if (!settings || !settings.customModels) return false;
-  return settings.customModels.some((m) => m.id === "custom:OmniRoute-0");
+  return settings.customModels.some(isOmniRouteCustomModel);
 };
 
 // GET - Check droid CLI and read current settings
@@ -103,12 +110,29 @@ export async function POST(request: Request) {
     // (#549) Extract keyId BEFORE validation — Zod strips unknown fields!
     const keyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
 
-    const validation = validateBody(cliModelConfigSchema, rawBody);
+    const validation = validateBody(cliMultiModelConfigSchema, rawBody);
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { baseUrl, model } = validation.data;
+    const { baseUrl, model, models, activeModel } = validation.data;
     const apiKey = await resolveApiKey(keyId, validation.data.apiKey);
+
+    // Multi-model support (ported from decolua/9router#618): accept either a
+    // `models` array or the legacy single `model` string.
+    const modelList = normalizeDroidModelList({ model, models });
+    if (modelList.length === 0) {
+      return NextResponse.json(
+        {
+          error: {
+            message: "Invalid request",
+            details: [
+              { field: "models", message: "baseUrl and at least one model are required" },
+            ],
+          },
+        },
+        { status: 400 }
+      );
+    }
 
     const droidDir = getDroidDir();
     const settingsPath = getDroidSettingsPath();
@@ -133,26 +157,19 @@ export async function POST(request: Request) {
       settings.customModels = [];
     }
 
-    // Remove existing OmniRoute config if any
-    settings.customModels = settings.customModels.filter((m) => m.id !== "custom:OmniRoute-0");
+    // Remove every existing OmniRoute config (multi-model: index 0..N)
+    settings.customModels = settings.customModels.filter((m) => !isOmniRouteCustomModel(m));
 
     // Normalize baseUrl to ensure /v1 suffix
     const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl : `${baseUrl}/v1`;
 
-    // Add new OmniRoute config
-    const customModel = {
-      model: model,
-      id: "custom:OmniRoute-0",
-      index: 0,
+    // Build and prepend OmniRoute entries (one per requested model)
+    const newEntries = buildDroidCustomModels(modelList, {
       baseUrl: normalizedBaseUrl,
       apiKey: apiKey || "your_api_key",
-      displayName: model,
-      maxOutputTokens: 131072,
-      noImageSupport: false,
-      provider: "openai",
-    };
-
-    settings.customModels.unshift(customModel);
+      activeModel,
+    });
+    settings.customModels = [...newEntries, ...settings.customModels];
 
     // Write settings
     await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
@@ -206,9 +223,9 @@ export async function DELETE(request: Request) {
       throw error;
     }
 
-    // Remove OmniRoute customModels
+    // Remove OmniRoute customModels (every index, multi-model)
     if (settings.customModels) {
-      settings.customModels = settings.customModels.filter((m) => m.id !== "custom:OmniRoute-0");
+      settings.customModels = settings.customModels.filter((m) => !isOmniRouteCustomModel(m));
 
       // Remove customModels array if empty
       if (settings.customModels.length === 0) {
