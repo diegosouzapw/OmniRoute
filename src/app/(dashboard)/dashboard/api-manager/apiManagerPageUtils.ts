@@ -111,6 +111,7 @@ export function formatUsdCost(value: number, locale: string): string {
  */
 export function maskKey(fullKey: string | null | undefined): string {
   if (!fullKey) return "";
+  if (fullKey.includes("****")) return fullKey;
   return fullKey.length > 8 ? `${fullKey.slice(0, 8)}...` : fullKey;
 }
 
