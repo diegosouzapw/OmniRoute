@@ -23,6 +23,10 @@ import {
   ENGINE_IDS,
   engineMeta,
 } from "../../../../../../open-sse/services/compression/engineCatalog.ts";
+import {
+  OUTPUT_STYLE_IDS,
+  outputStyleMeta,
+} from "../../../../../../open-sse/services/compression/outputStyles/catalog.ts";
 import { deriveDefaultPlan } from "../../../../../../open-sse/services/compression/deriveDefaultPlan.ts";
 
 type CavemanIntensity = "lite" | "full" | "ultra";
@@ -45,6 +49,7 @@ interface CompressionConfig {
   engines: Record<string, EngineToggle>;
   activeComboId: string | null;
   cavemanOutputMode?: CavemanOutputModeConfig;
+  outputStyles?: Array<{ id: string; level: CavemanIntensity }>;
 }
 
 const CAVEMAN_OUTPUT_LEVELS: CavemanIntensity[] = ["lite", "full", "ultra"];
@@ -56,6 +61,7 @@ const DEFAULT_CONFIG: CompressionConfig = {
   engines: {},
   activeComboId: null,
   cavemanOutputMode: { enabled: false, intensity: "full", autoClarity: true },
+  outputStyles: [],
 };
 
 function normalizeEngines(raw: unknown): Record<string, EngineToggle> {
@@ -86,6 +92,7 @@ export default function CompressionPanel() {
             ...data,
             engines: normalizeEngines(data.engines),
             cavemanOutputMode: data.cavemanOutputMode ?? DEFAULT_CONFIG.cavemanOutputMode,
+            outputStyles: data.outputStyles ?? DEFAULT_CONFIG.outputStyles,
           });
         }
       })
@@ -135,12 +142,24 @@ export default function CompressionPanel() {
     save({ engines });
   };
 
-  const setCavemanOutput = (patch: Partial<CavemanOutputModeConfig>) => {
-    const cavemanOutputMode: CavemanOutputModeConfig = {
-      ...(config.cavemanOutputMode ?? DEFAULT_CONFIG.cavemanOutputMode!),
-      ...patch,
-    };
-    save({ cavemanOutputMode });
+  const setOutputStyle = (id: string, patch: { enabled?: boolean; level?: CavemanIntensity }) => {
+    const current = config.outputStyles ?? [];
+    const existing = current.find((s) => s.id === id);
+    let next = current;
+    if (patch.enabled === false) {
+      next = current.filter((s) => s.id !== id);
+    } else {
+      const level = patch.level ?? existing?.level ?? "full";
+      next = existing
+        ? current.map((s) => (s.id === id ? { id, level } : s))
+        : [...current, { id, level }];
+    }
+    // Persist in catalog order so injection order is stable.
+    const ordered = OUTPUT_STYLE_IDS.flatMap((sid) => {
+      const hit = next.find((s) => s.id === sid);
+      return hit ? [hit] : [];
+    });
+    save({ outputStyles: ordered });
   };
 
   const toggleMcpAccessibility = async (enabled: boolean) => {
@@ -273,40 +292,60 @@ export default function CompressionPanel() {
         })}
       </div>
 
-      {/* cavemanOutput — response-output instruction injection (separate from the input engine) */}
-      <div className="mt-2 flex flex-col gap-2 border-t border-border/30 py-3 sm:flex-row sm:items-center sm:justify-between">
+      {/* Output Styles — response-output instruction injection (Phase 4A, catalog-driven) */}
+      <div className="mt-2 flex flex-col gap-3 border-t border-border/30 py-3">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-text-main">
-            {t("compressionSettingsCavemanOutputMode")}
+            {t("compressionSettingsOutputStyles")}
           </p>
           <p className="mt-0.5 text-xs text-text-muted">
-            Injects terse response instructions without rewriting provider output.
+            Inject response-shaping instructions without rewriting provider output. Combine freely.
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <select
-            data-testid="caveman-output-intensity"
-            value={config.cavemanOutputMode?.intensity ?? "full"}
-            onChange={(e) => setCavemanOutput({ intensity: e.target.value as CavemanIntensity })}
-            disabled={!config.cavemanOutputMode?.enabled || saving}
-            className="w-28 rounded border border-border bg-surface px-2 py-1 text-xs text-text-main"
-          >
-            {CAVEMAN_OUTPUT_LEVELS.map((lvl) => (
-              <option key={lvl} value={lvl}>
-                {lvl}
-              </option>
-            ))}
-          </select>
-          <span data-testid="caveman-output-toggle">
-            <Toggle
-              size="sm"
-              checked={config.cavemanOutputMode?.enabled ?? false}
-              onChange={(enabled) => setCavemanOutput({ enabled })}
-              disabled={saving}
-              ariaLabel={t("compressionSettingsCavemanOutputMode")}
-            />
-          </span>
-        </div>
+        {OUTPUT_STYLE_IDS.map((id) => {
+          const meta = outputStyleMeta(id);
+          const sel = config.outputStyles?.find((s) => s.id === id);
+          return (
+            <div
+              key={id}
+              data-testid={`output-style-row-${id}`}
+              className="flex items-center justify-between gap-2"
+            >
+              <div className="min-w-0">
+                <p className="text-sm text-text-main">{meta.label}</p>
+                {meta.description && (
+                  <p className="text-xs text-text-muted">{meta.description}</p>
+                )}
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <select
+                  data-testid={`output-style-level-${id}`}
+                  value={sel?.level ?? "full"}
+                  onChange={(e) =>
+                    setOutputStyle(id, { level: e.target.value as CavemanIntensity })
+                  }
+                  disabled={!sel || saving}
+                  className="w-28 rounded border border-border bg-surface px-2 py-1 text-xs text-text-main"
+                >
+                  {CAVEMAN_OUTPUT_LEVELS.map((lvl) => (
+                    <option key={lvl} value={lvl}>
+                      {lvl}
+                    </option>
+                  ))}
+                </select>
+                <span data-testid={`output-style-toggle-${id}`}>
+                  <Toggle
+                    size="sm"
+                    checked={Boolean(sel)}
+                    onChange={(enabled) => setOutputStyle(id, { enabled })}
+                    disabled={saving}
+                    ariaLabel={meta.label}
+                  />
+                </span>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* mcpAccessibility — writes its own endpoint / separate store */}

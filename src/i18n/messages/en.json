@@ -5818,6 +5818,8 @@
     "mcpAccessibilityTitle": "MCP accessibility output",
     "compressionSettingsCavemanIntensity": "Caveman intensity",
     "compressionSettingsCavemanOutputMode": "Caveman output mode",
+    "compressionSettingsOutputStyles": "Output styles",
+    "compressionStylesTileTitle": "Output styles",
     "compressionSettingsOutputIntensity": "Output intensity",
     "compressionSettingsAutoClarityBypass": "Auto clarity bypass",
     "resilienceWaitForCooldown": "Wait for Cooldown",
