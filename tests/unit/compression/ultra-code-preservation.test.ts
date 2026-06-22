@@ -9,7 +9,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { ultraCompress } from "@omniroute/open-sse/services/compression/ultra.ts";
 
-test("ultraCompress preserves fenced code, inline code, and URLs byte-identical", () => {
+test("ultraCompress preserves fenced code, inline code, and URLs byte-identical", async () => {
   const code = "```ts\nexport function add(a, b) {\n  return a + b;\n}\n```";
   const inline = "`add(x, y)`";
   const url = "https://example.com/api/v1/auth?id=42";
@@ -20,7 +20,7 @@ test("ultraCompress preserves fenced code, inline code, and URLs byte-identical"
   // Realistic layout: fenced code block sits on its own line (markdown convention).
   const text = `${filler}\n\n${code}\n\nThen call ${inline} and see ${url} for details.\n\n${filler}`;
 
-  const { messages } = ultraCompress([{ role: "user", content: text }], {
+  const { messages } = await ultraCompress([{ role: "user", content: text }], {
     maxTokensPerMessage: 0,
   });
   const out = typeof messages[0].content === "string" ? messages[0].content : "";
