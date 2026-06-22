@@ -50,6 +50,12 @@ interface CompressionConfig {
   activeComboId: string | null;
   cavemanOutputMode?: CavemanOutputModeConfig;
   outputStyles?: Array<{ id: string; level: CavemanIntensity }>;
+  // Phase 4 (B): two-tier `ultra` mode controls.
+  // ultraEngine "heuristic" = Tier-A token pruner (default, byte-identical to pre-B);
+  // "slm" = Tier-B LLMLingua-2 ONNX worker when available, else fail-open to Tier-A.
+  ultraEngine?: "heuristic" | "slm";
+  // Best-effort pre-warm of the SLM model on enable / cold restart. Default false.
+  ultraSlmPrewarm?: boolean;
 }
 
 const CAVEMAN_OUTPUT_LEVELS: CavemanIntensity[] = ["lite", "full", "ultra"];
@@ -62,6 +68,8 @@ const DEFAULT_CONFIG: CompressionConfig = {
   activeComboId: null,
   cavemanOutputMode: { enabled: false, intensity: "full", autoClarity: true },
   outputStyles: [],
+  ultraEngine: "heuristic",
+  ultraSlmPrewarm: false,
 };
 
 function normalizeEngines(raw: unknown): Record<string, EngineToggle> {
@@ -352,6 +360,48 @@ export default function CompressionPanel() {
             </div>
           );
         })}
+      </div>
+
+      {/* Ultra SLM tier — Phase 4 (B): pick the `ultra`-mode engine (heuristic Tier-A
+          or the opt-in LLMLingua-2 SLM Tier-B) + best-effort pre-warm. */}
+      <div className="mt-2 flex flex-col gap-3 border-t border-border/30 py-3">
+        <label className="flex items-center justify-between">
+          <span className="text-sm font-medium text-text-main">
+            {t("compressionUltraEngine")}
+          </span>
+          <select
+            data-testid="ultra-engine-select"
+            value={config.ultraEngine ?? "heuristic"}
+            onChange={(e) =>
+              save({ ultraEngine: e.target.value === "slm" ? "slm" : "heuristic" })
+            }
+            disabled={saving}
+            className="w-44 rounded border border-border bg-surface px-2 py-1 text-sm text-text-main"
+          >
+            <option value="heuristic">{t("compressionUltraEngineHeuristic")}</option>
+            <option value="slm">{t("compressionUltraEngineSlm")}</option>
+          </select>
+        </label>
+
+        {config.ultraEngine === "slm" && (
+          <>
+            <p className="text-xs text-text-muted">{t("compressionUltraSlmHint")}</p>
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-text-muted">
+                {t("compressionUltraSlmPrewarm")}
+              </span>
+              <span data-testid="ultra-slm-prewarm-toggle">
+                <Toggle
+                  size="sm"
+                  checked={config.ultraSlmPrewarm ?? false}
+                  onChange={(ultraSlmPrewarm) => save({ ultraSlmPrewarm })}
+                  disabled={saving}
+                  ariaLabel={t("compressionUltraSlmPrewarm")}
+                />
+              </span>
+            </label>
+          </>
+        )}
       </div>
 
       {/* mcpAccessibility — writes its own endpoint / separate store */}
