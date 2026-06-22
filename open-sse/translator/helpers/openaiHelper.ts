@@ -35,6 +35,11 @@ export function filterToOpenAIFormat(body) {
   if (!body.messages || !Array.isArray(body.messages)) return body;
 
   body.messages = body.messages.map((msg) => {
+    // Normalize OpenAI Responses-style `developer` role to `system` — many
+    // OpenAI-compatible providers reject `developer` (ported from
+    // decolua/9router#1011).
+    if (msg.role === "developer") msg = { ...msg, role: "system" };
+
     // Keep tool messages as-is (OpenAI format)
     if (msg.role === "tool") return msg;
 
