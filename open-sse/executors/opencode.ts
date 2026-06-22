@@ -147,13 +147,13 @@ export class OpencodeExecutor extends BaseExecutor {
     ) {
       modifiedBody.tools = modifiedBody.tools.slice(0, 128);
     }
-    if (modifiedBody && typeof modifiedBody === "object") {
+    if (modifiedBody && typeof modifiedBody === "object" && !Array.isArray(modifiedBody)) {
       const mb = modifiedBody as Record<string, unknown>;
       const m = String(model || "");
       const effortLevels = ["low", "medium", "high", "max"] as const;
       const matchedLevel = effortLevels.find((level) => m.endsWith(`-${level}`));
       if (matchedLevel) {
-        const base = m.slice(0, -`-${matchedLevel}`.length);
+        const base = m.slice(0, -matchedLevel.length - 1);
         if (base.toLowerCase() === "deepseek-v4-pro") {
           mb.model = "deepseek-v4-pro";
           if (mb.reasoning_effort === undefined) {
