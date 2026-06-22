@@ -1151,7 +1151,11 @@ test("CodexExecutor.transformRequest preserves native Codex custom tools", () =>
   assert.equal(tools[1].strict, false);
 });
 
-test("CodexExecutor.transformRequest still drops custom tools outside native passthrough", () => {
+test("CodexExecutor.transformRequest preserves Responses-native custom tools even outside native passthrough", () => {
+  // Ported from upstream decolua/9router ed68bced — Responses-native freeform
+  // tools (e.g. grammar-backed apply_patch) are a legal upstream shape and
+  // must survive normalization regardless of whether the request is flagged
+  // as a native Codex passthrough.
   const executor = new CodexExecutor();
   const result = executor.transformRequest(
     "gpt-5.5",
@@ -1170,7 +1174,7 @@ test("CodexExecutor.transformRequest still drops custom tools outside native pas
   const tools = result.tools as Array<Record<string, unknown>>;
   assert.deepEqual(
     tools.map((tool) => tool.name),
-    ["exec_command"]
+    ["apply_patch", "exec_command"]
   );
 });
 

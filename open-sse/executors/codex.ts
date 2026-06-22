@@ -450,10 +450,13 @@ export function normalizeCodexTools(
     }
 
     // Native Codex clients send Responses API custom tools such as apply_patch as:
-    // { type: "custom", name, format }. Preserve those only on native passthrough;
-    // translated/non-native requests can still contain provider-specific "custom"
-    // shapes that the Codex backend would reject.
-    if (toolType === "custom" && options?.preserveCustomTools === true) {
+    // { type: "custom", name, format }. Responses-native freeform tools are a
+    // legal upstream shape and must survive normalization regardless of whether
+    // the caller flagged the request as a native passthrough — pre-shaped /
+    // translated callers (e.g. Cursor freeform-tool plugins) also rely on them
+    // reaching the Codex Responses backend intact. Ported from upstream
+    // decolua/9router ed68bced (CODEX_PASSTHROUGH_TOOL_TYPES).
+    if (toolType === "custom") {
       const name = typeof tool.name === "string" ? tool.name.trim().slice(0, 128) : "";
       if (!name) return false;
       tool.name = name;
