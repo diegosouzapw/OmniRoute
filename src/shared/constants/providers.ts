@@ -2968,17 +2968,15 @@ export function isSelfHostedChatProvider(providerId: unknown): boolean {
 
 export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
   return (
+    // ponytail: any noAuth provider auto-qualifies — no per-provider maintenance
+    (typeof providerId === "string" && providerId in NOAUTH_PROVIDERS) ||
     providerId === "searxng-search" ||
     providerId === "pollinations" ||
     providerId === "copilot-web" ||
-    providerId === "duckduckgo-web" ||
-    providerId === "veoaifree-web" ||
     providerId === "hackclub" ||
     providerId === "huggingchat" ||
     providerId === "gitlawb" ||
     providerId === "gitlawb-gmi" ||
-    providerId === "mimocode" ||
-    providerId === "opencode" ||
     isLocalProvider(providerId) ||
     isSelfHostedChatProvider(providerId) ||
     isOpenAICompatibleProvider(providerId) ||
