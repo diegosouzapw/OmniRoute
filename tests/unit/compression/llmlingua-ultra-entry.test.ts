@@ -42,3 +42,17 @@ test("slmAvailable() result is cached (second call also fast)", () => {
   slmAvailable();
   assert.ok(Date.now() - start < 1000);
 });
+
+import { runLlmlinguaUltra } from "../../../open-sse/services/compression/engines/llmlingua/ultraEntry.ts";
+
+test("runLlmlinguaUltra throws when the backend fail-opens (no gain)", async () => {
+  if (depsResolve()) {
+    console.log("skip: optional deps present — no-op path N/A");
+    return;
+  }
+  // Deps absent → workerBackend returns the original text unchanged (no-op) → throw.
+  await assert.rejects(
+    () => runLlmlinguaUltra("hello world this is some prose to compress"),
+    /no gain/
+  );
+});
