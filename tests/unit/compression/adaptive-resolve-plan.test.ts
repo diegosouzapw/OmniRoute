@@ -87,3 +87,20 @@ test("floor escalates beyond a light base plan (base lite → starts above lite)
   assert.ok(!telemetry!.stagesApplied.includes("session-dedup")); // did NOT restart below lite
   assert.ok(!telemetry!.stagesApplied.includes("rtk"));
 });
+
+test("ladder exhausted, still over target → fit=false, all stages applied, plan still set", () => {
+  const noop = (prior: number) => prior; // estimator never reduces → never fits
+  const { plan, telemetry } = resolveAdaptivePlan({
+    basePlan: { mode: "off", stackedPipeline: [] },
+    estimatedTokens: 999999,
+    modelContextLimit: 200000,
+    requestMaxTokens: 8000,
+    config: cfg(),
+    estimate: noop,
+  });
+  assert.equal(telemetry!.fit, false);                 // budget-exceeded
+  assert.equal(telemetry!.stagesApplied.length, 7);    // entire DEFAULT_LADDER above "off"
+  assert.equal(plan.mode, "stacked");
+  assert.ok(plan.stackedPipeline.length >= 7);          // best-effort plan, content NOT dropped
+  assert.ok(telemetry!.headroomAfter < 0);
+});
