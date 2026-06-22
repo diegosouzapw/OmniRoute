@@ -199,7 +199,7 @@
     "src/lib/db/providers.ts": 1063,
     "src/lib/db/proxies.ts": 1057,
     "src/lib/db/settings.ts": 1149,
-    "src/lib/db/usageAnalytics.ts": 873,
+    "src/lib/db/usageAnalytics.ts": 925,
     "src/lib/evals/evalRunner.ts": 961,
     "src/lib/memory/retrieval.ts": 1171,
     "src/lib/modelsDevSync.ts": 934,
