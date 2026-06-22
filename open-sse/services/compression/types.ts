@@ -10,6 +10,7 @@
  */
 
 import { ENGINE_IDS } from "./engineCatalog.ts";
+import type { ContextBudgetConfig } from "./adaptiveCompression/types.ts";
 
 // Re-export so consumers that already import from this module (e.g. src/lib/db/compression.ts)
 // can get ENGINE_IDS without a second bare `@omniroute/open-sse/...engineCatalog.ts` specifier.
@@ -161,6 +162,13 @@ export interface CompressionConfig {
    * change for installs that predate the panel). Set by `getCompressionSettings`.
    */
   enginesExplicit?: boolean;
+  /**
+   * Context-budget adaptive compression (Sub-project C). Absent / mode:"off" = legacy
+   * binary auto-trigger (byte-identical). When mode is "floor" or "replace-autotrigger"
+   * the adaptive resolver owns automatic-by-size escalation and the legacy
+   * shouldAutoTrigger branch is bypassed.
+   */
+  contextBudget?: ContextBudgetConfig;
   /**
    * Phase 4 (B): which tier the `ultra` mode uses.
    * "heuristic" = Tier-A token pruner (`pruneByScore`, default, byte-identical to pre-B).
