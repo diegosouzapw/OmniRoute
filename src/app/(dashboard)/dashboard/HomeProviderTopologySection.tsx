@@ -19,13 +19,17 @@ export function HomeProviderTopologySection({
   providers,
   lastProvider,
   errorProvider,
+  enabled = true,
 }: {
   providers: TopologyProvider[];
   lastProvider: string;
   errorProvider: string;
+  enabled?: boolean;
 }) {
   const t = useTranslations("home");
-  const { activeRequests: liveActiveRequests } = useLiveRequests();
+  // #4596: gate the live-WS connection so it only opens while the topology
+  // section is actually shown on the home page.
+  const { activeRequests: liveActiveRequests } = useLiveRequests({ enabled });
 
   return (
     <Card>

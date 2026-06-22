@@ -196,7 +196,9 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   // Appearance settings for home page pinning
   const [pinProviderQuotaToHome, setPinProviderQuotaToHome] = useState(false);
   const [showQuickStartOnHome, setShowQuickStartOnHome] = useState(true); // default on
-  const [showProviderTopologyOnHome, setShowProviderTopologyOnHome] = useState(true); // default on
+  // #4596: default hidden until appearance settings load, so the live-WS
+  // topology connection is never opened before we know the user wants it.
+  const [showProviderTopologyOnHome, setShowProviderTopologyOnHome] = useState(false);
   const [autoRefreshProviderQuota, setAutoRefreshProviderQuota] = useState(false);
   const [autoRefreshProviderQuotaInterval, setAutoRefreshProviderQuotaInterval] = useState(180);
   const [appearanceSettingsLoaded, setAppearanceSettingsLoaded] = useState(false);
@@ -1165,6 +1167,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           providers={topologyProviders}
           lastProvider={lastProvider}
           errorProvider={errorProvider}
+          enabled={showProviderTopologyOnHome}
         />
       )}
 
