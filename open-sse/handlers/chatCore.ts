@@ -18,6 +18,7 @@ import {
   getHeaderValueCaseInsensitive,
   isNoMemoryRequested,
   resolveCompressionHeader,
+  isStripReasoningRequested,
 } from "./chatCore/headers.ts";
 import { markCodexScopeRateLimited } from "./chatCore/codexFailover.ts";
 import { getCombosCached } from "./chatCore/comboContextCache.ts";
@@ -3493,7 +3494,13 @@ export async function handleChatCore({
     if (clientResponseFormat === FORMATS.OPENAI_RESPONSES) {
       translatedResponse = sanitizeResponsesApiResponse(translatedResponse);
     } else if (clientResponseFormat === FORMATS.OPENAI) {
-      translatedResponse = sanitizeOpenAIResponse(translatedResponse);
+      // Port of decolua/9router#517: opt-in `x-omniroute-strip-reasoning` header
+      // unconditionally drops `reasoning_content` from the final non-streaming
+      // JSON for clients (e.g. Firecrawl AI SDK) whose JSON parsers break on
+      // that non-standard field. Reasoning replay cache is captured above this
+      // sanitize step, so the cache feature is unaffected.
+      const stripReasoning = isStripReasoningRequested(clientRawRequest?.headers ?? null);
+      translatedResponse = sanitizeOpenAIResponse(translatedResponse, { stripReasoning });
     }
 
     applyClientUsageBuffer(translatedResponse, body, clientResponseFormat);
