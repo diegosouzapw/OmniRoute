@@ -4173,6 +4173,8 @@
     "optional": "Optional",
     "anthropicCompatibleName": "Anthropic Compatible",
     "openaiCompatibleName": "OpenAI Compatible",
+    "compatibleDefaultModelLabel": "Default Model",
+    "compatibleDefaultModelHint": "Enter the model ID exactly as your compatible endpoint expects it. This model will be saved as the connection default.",
     "failedImportModels": "Failed to import models",
     "noModelsReturnedFromEndpoint": "No models returned from /models endpoint.",
     "importingModelsProgress": "Importing {current} of {total} models...",
