@@ -86,7 +86,8 @@ export async function createBuiltinAutoCombo(modelStr: string, suffix: string) {
 
   const resolved = resolveAutoVariant(modelStr, suffix);
   if (resolved.recognized) {
-    const virtualCombo = await createVirtualAutoCombo(resolved.variant);
+    const spec = modelStr === "auto/best-free" ? { tier: "free" as const } : undefined;
+    const virtualCombo = await createVirtualAutoCombo(resolved.variant, spec);
     virtualCombo.name = modelStr;
     virtualCombo.id = modelStr;
     return virtualCombo;
