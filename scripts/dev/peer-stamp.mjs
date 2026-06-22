@@ -20,6 +20,20 @@ import { randomUUID } from "node:crypto";
  */
 export const PEER_IP_HEADER = "x-omniroute-peer-ip";
 
+/**
+ * Companion header to PEER_IP_HEADER: `<token>|1` when the inbound TCP request
+ * carried forwarding headers (`x-forwarded-for` / `x-real-ip`), `<token>|0`
+ * otherwise. Required so the middleware can tell that a loopback socket is the
+ * reverse-proxy hop (nginx / Caddy / Cloudflare Tunnel) and NOT trust it as
+ * local — without this, a leaked JWT over a public tunnel would reach the
+ * LOCAL_ONLY routes that spawn child processes (Hard Rules #15 + #17;
+ * port of upstream decolua/9router commit da667836).
+ *
+ * Keep VIA_PROXY_HEADER in sync with VIA_PROXY_HEADER in
+ * src/server/authz/headers.ts (the TS side cannot import this .mjs).
+ */
+export const VIA_PROXY_HEADER = "x-omniroute-via-proxy";
+
 /** Generate (once) and return the per-process stamp token, persisting it in env
  *  so the middleware running in the same process reads the identical value. */
 export function ensurePeerStampToken() {
@@ -27,17 +41,26 @@ export function ensurePeerStampToken() {
   return process.env.OMNIROUTE_PEER_STAMP_TOKEN;
 }
 
-/** Strip any client-supplied PEER_IP_HEADER and stamp the real TCP peer IP,
- *  token-prefixed. Never throws — a stamping failure must not block a request
- *  (it degrades to "locality unknown" → fail closed in the middleware). */
+/** Strip any client-supplied PEER_IP_HEADER + VIA_PROXY_HEADER and stamp the
+ *  real TCP peer IP plus a token-protected via-proxy marker. Never throws — a
+ *  stamping failure must not block a request (it degrades to "locality
+ *  unknown" → fail closed in the middleware). */
 export function stampPeerIp(req) {
   try {
     if (!req || !req.headers) return;
     // Node lowercases incoming header names; delete kills any client value.
     delete req.headers[PEER_IP_HEADER];
+    delete req.headers[VIA_PROXY_HEADER];
     const ip = req.socket && req.socket.remoteAddress;
     if (ip) {
-      req.headers[PEER_IP_HEADER] = `${ensurePeerStampToken()}|${ip}`;
+      const token = ensurePeerStampToken();
+      req.headers[PEER_IP_HEADER] = `${token}|${ip}`;
+      // Forwarding headers present = request arrived via a reverse proxy; the
+      // loopback socket is the proxy hop, not the end-user, so it must not be
+      // trusted as local. Token-prefix the marker so a remote caller cannot
+      // forge it (or its absence) on a non-proxied request.
+      const viaProxy = !!(req.headers["x-forwarded-for"] || req.headers["x-real-ip"]);
+      req.headers[VIA_PROXY_HEADER] = `${token}|${viaProxy ? "1" : "0"}`;
     }
   } catch {
     /* never block a request on peer stamping */

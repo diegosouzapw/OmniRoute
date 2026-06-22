@@ -8,8 +8,8 @@ import { extractApiKey, isValidApiKey } from "../../../sse/services/auth";
 import { getApiKeyMetadata } from "../../../lib/db/apiKeys";
 import { hasManageScope } from "../../../lib/api/requireManagementAuth";
 import { evaluateAccessTokenAuth } from "../accessTokenAuth";
-import { CLI_TOKEN_HEADER, PEER_IP_HEADER } from "../headers";
-import { resolveStampedPeer } from "../peerStamp";
+import { CLI_TOKEN_HEADER, PEER_IP_HEADER, VIA_PROXY_HEADER } from "../headers";
+import { resolveStampedPeer, resolveStampedViaProxy } from "../peerStamp";
 import {
   isAlwaysProtectedPath,
   isLocalOnlyBypassableByManageScope,
@@ -35,15 +35,34 @@ function requestPeerAddress(ctx: PolicyContext): string | null {
   return ctx.request.ip ?? ctx.request.socket?.remoteAddress ?? null;
 }
 
+/**
+ * True when the inbound TCP request carried forwarding headers
+ * (`x-forwarded-for` / `x-real-ip`), as stamped by the custom Node server. When
+ * set, the socket peer is the reverse-proxy hop, not the end-user — so a
+ * loopback / private-LAN socket must NOT be trusted as local (Hard Rules #15 +
+ * #17, port of decolua/9router da667836). Token-validated; an attacker who
+ * knows the header name but not the per-process token cannot influence it.
+ */
+function isViaProxyRequest(ctx: PolicyContext): boolean {
+  return resolveStampedViaProxy(
+    ctx.request.headers?.get?.(VIA_PROXY_HEADER) ?? null,
+    process.env.OMNIROUTE_PEER_STAMP_TOKEN
+  );
+}
+
 function isLoopbackRequest(ctx: PolicyContext): boolean {
+  if (isViaProxyRequest(ctx)) return false;
   const peerAddress = requestPeerAddress(ctx);
   return peerAddress ? isLoopbackHost(peerAddress) : false;
 }
 
 // Owner-authorized (2026-05-30): allow LOCAL_ONLY *paths* from a trusted private
 // LAN, based on the real socket peer IP (not spoofable). Does NOT relax the
-// CLI-token gate, which stays strictly loopback.
+// CLI-token gate, which stays strictly loopback. Also falls back to "not LAN"
+// when a reverse-proxy hop is detected (the apparent LAN IP would be the proxy,
+// not the end-user — see isViaProxyRequest above).
 function isPrivateLanRequest(ctx: PolicyContext): boolean {
+  if (isViaProxyRequest(ctx)) return false;
   const peerAddress = requestPeerAddress(ctx);
   return peerAddress ? isPrivateLanHost(peerAddress) : false;
 }
