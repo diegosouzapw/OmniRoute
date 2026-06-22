@@ -204,107 +204,93 @@ export function resolvePlanValue(plan, providerSpecificData) {
   return livePlan || null;
 }
 
+function unknownPlanTier(raw: string | null = null) {
+  return { key: "unknown", label: "Unknown", variant: "default", rank: 0, raw };
+}
+
+function formatUnknownPlanLabel(raw: string) {
+  return raw
+    .toLowerCase()
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function matchClaudePlanTier(raw: string, upper: string) {
+  const match = upper.match(/(?:DEFAULT_)?CLAUDE_(MAX|PRO|TEAM|ENTERPRISE|FREE)(?:_(\d+X))?/);
+  if (!match) return null;
+
+  const multiplier = match[2] ? ` ${match[2].toLowerCase()}` : "";
+  const tiers = {
+    MAX: { key: "ultra", label: `Max${multiplier}`, variant: "success", rank: 4, raw },
+    PRO: { key: "pro", label: "Pro", variant: "success", rank: 3, raw },
+    TEAM: { key: "team", label: "Team", variant: "info", rank: 6, raw },
+    ENTERPRISE: { key: "enterprise", label: "Enterprise", variant: "info", rank: 7, raw },
+    FREE: { key: "free", label: "Free", variant: "default", rank: 1, raw },
+  };
+  return tiers[match[1]];
+}
+
+function matchKeywordPlanTier(raw: string, upper: string) {
+  if (upper.includes("PRO+") || upper.includes("PRO PLUS") || upper.includes("PROPLUS"))
+    return { key: "plus", label: "Pro+", variant: "success", rank: 4, raw };
+  if (upper.includes("ENTERPRISE") || upper.includes("CORP") || upper.includes("ORG"))
+    return { key: "enterprise", label: "Enterprise", variant: "info", rank: 7, raw };
+  if (upper.includes("TEAM") || upper.includes("CHATGPTTEAM"))
+    return { key: "team", label: "Team", variant: "info", rank: 6, raw };
+  if (upper.includes("BUSINESS") || upper.includes("STANDARD") || upper.includes("BIZ"))
+    return { key: "business", label: "Business", variant: "warning", rank: 5, raw };
+  if (upper.includes("STUDENT"))
+    return { key: "pro", label: "Student", variant: "success", rank: 3, raw };
+  if (upper.includes("ULTRA"))
+    return { key: "ultra", label: "Ultra", variant: "success", rank: 4, raw };
+  return null;
+}
+
+function matchTokenPlanTier(raw: string, upper: string) {
+  if (hasTierToken(upper, "MAX"))
+    return { key: "ultra", label: "Max", variant: "success", rank: 4, raw };
+  if (hasTierToken(upper, "PRO") || hasTierToken(upper, "PREMIUM"))
+    return { key: "pro", label: "Pro", variant: "success", rank: 3, raw };
+  if (hasTierToken(upper, "STARTER"))
+    return { key: "lite", label: "Starter", variant: "primary", rank: 2, raw };
+  if (hasTierToken(upper, "LITE") || hasTierToken(upper, "LIGHT"))
+    return { key: "lite", label: "Lite", variant: "primary", rank: 2, raw };
+  if (hasTierToken(upper, "PLUS") || hasTierToken(upper, "PAID"))
+    return { key: "plus", label: "Plus", variant: "success", rank: 2, raw };
+  return null;
+}
+
+function matchFreePlanTier(raw: string, upper: string) {
+  return upper.includes("FREE") ||
+    upper.includes("BASIC") ||
+    upper.includes("TRIAL") ||
+    upper.includes("LEGACY")
+    ? { key: "free", label: "Free", variant: "default", rank: 1, raw }
+    : null;
+}
+
 /**
  * Normalize provider-specific plan labels into a shared tier taxonomy.
  * Supported tiers: enterprise, business, team, ultra, pro, plus, lite, free, unknown.
  */
 export function normalizePlanTier(plan) {
   const raw = typeof plan === "string" ? plan.trim() : "";
-  if (!raw) {
-    return { key: "unknown", label: "Unknown", variant: "default", rank: 0, raw: null };
-  }
+  if (!raw) return unknownPlanTier(null);
 
   const upper = raw.toUpperCase();
 
   // Provider names that are not real plan tiers — treat as unknown
-  if (PROVIDER_PLAN_FALLBACKS.has(raw.toLowerCase())) {
-    return { key: "unknown", label: "Unknown", variant: "default", rank: 0, raw };
-  }
+  if (PROVIDER_PLAN_FALLBACKS.has(raw.toLowerCase())) return unknownPlanTier(raw);
 
   // Match Anthropic bootstrap strings (claude_max, default_claude_max_20x, etc.)
   // before the generic PRO/TEAM checks so underscored values don't fall through.
-  const claudeMatch = upper.match(/(?:DEFAULT_)?CLAUDE_(MAX|PRO|TEAM|ENTERPRISE|FREE)(?:_(\d+X))?/);
-  if (claudeMatch) {
-    const family = claudeMatch[1];
-    const multiplier = claudeMatch[2] ? ` ${claudeMatch[2].toLowerCase()}` : "";
-    if (family === "MAX") {
-      return { key: "ultra", label: `Max${multiplier}`, variant: "success", rank: 4, raw };
-    }
-    if (family === "PRO") {
-      return { key: "pro", label: "Pro", variant: "success", rank: 3, raw };
-    }
-    if (family === "TEAM") {
-      return { key: "team", label: "Team", variant: "info", rank: 6, raw };
-    }
-    if (family === "ENTERPRISE") {
-      return { key: "enterprise", label: "Enterprise", variant: "info", rank: 7, raw };
-    }
-    if (family === "FREE") {
-      return { key: "free", label: "Free", variant: "default", rank: 1, raw };
-    }
-  }
-
-  if (upper.includes("PRO+") || upper.includes("PRO PLUS") || upper.includes("PROPLUS")) {
-    return { key: "plus", label: "Pro+", variant: "success", rank: 4, raw };
-  }
-
-  if (upper.includes("ENTERPRISE") || upper.includes("CORP") || upper.includes("ORG")) {
-    return { key: "enterprise", label: "Enterprise", variant: "info", rank: 7, raw };
-  }
-
-  // Team plan (e.g., ChatGPT Team, GitHub Team)
-  if (upper.includes("TEAM") || upper.includes("CHATGPTTEAM")) {
-    return { key: "team", label: "Team", variant: "info", rank: 6, raw };
-  }
-
-  if (upper.includes("BUSINESS") || upper.includes("STANDARD") || upper.includes("BIZ")) {
-    return { key: "business", label: "Business", variant: "warning", rank: 5, raw };
-  }
-
-  if (upper.includes("STUDENT")) {
-    return { key: "pro", label: "Student", variant: "success", rank: 3, raw };
-  }
-
-  if (upper.includes("ULTRA")) {
-    return { key: "ultra", label: "Ultra", variant: "success", rank: 4, raw };
-  }
-
-  if (hasTierToken(upper, "MAX")) {
-    return { key: "ultra", label: "Max", variant: "success", rank: 4, raw };
-  }
-
-  if (hasTierToken(upper, "PRO") || hasTierToken(upper, "PREMIUM")) {
-    return { key: "pro", label: "Pro", variant: "success", rank: 3, raw };
-  }
-
-  if (hasTierToken(upper, "STARTER")) {
-    return { key: "lite", label: "Starter", variant: "primary", rank: 2, raw };
-  }
-
-  if (hasTierToken(upper, "LITE") || hasTierToken(upper, "LIGHT")) {
-    return { key: "lite", label: "Lite", variant: "primary", rank: 2, raw };
-  }
-
-  if (hasTierToken(upper, "PLUS") || hasTierToken(upper, "PAID")) {
-    return { key: "plus", label: "Plus", variant: "success", rank: 2, raw };
-  }
-
-  if (
-    upper.includes("FREE") ||
-    upper.includes("BASIC") ||
-    upper.includes("TRIAL") ||
-    upper.includes("LEGACY")
-  ) {
-    return { key: "free", label: "Free", variant: "default", rank: 1, raw };
-  }
-
-  const titleCased = raw
-    .toLowerCase()
-    .split(/[\s_-]+/)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-
-  return { key: "unknown", label: titleCased || "Unknown", variant: "default", rank: 0, raw };
+  const matched =
+    matchClaudePlanTier(raw, upper) ||
+    matchKeywordPlanTier(raw, upper) ||
+    matchTokenPlanTier(raw, upper) ||
+    matchFreePlanTier(raw, upper);
+  return matched || { ...unknownPlanTier(raw), label: formatUnknownPlanLabel(raw) || "Unknown" };
 }
 
 // === Card Grid Helpers (T7) =================================================
