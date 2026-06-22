@@ -71,3 +71,19 @@ test("over target → escalates and stops at first fitting stage (no over-escala
   assert.deepEqual(telemetry!.stagesApplied, ["session-dedup", "rtk"]);
   assert.ok(telemetry!.headroomAfter >= 0);
 });
+
+test("floor escalates beyond a light base plan (base lite → starts above lite)", () => {
+  const halve = (prior: number) => Math.round(prior / 2);
+  const { telemetry } = resolveAdaptivePlan({
+    basePlan: { mode: "lite", stackedPipeline: [] },
+    estimatedTokens: 400000,
+    modelContextLimit: 200000,
+    requestMaxTokens: 8000,
+    config: cfg(),
+    estimate: halve,
+  });
+  // base "lite" rank=4; ladder stages above rank 4 = caveman(5), aggressive(6), ultra(7).
+  assert.equal(telemetry!.stagesApplied[0], "caveman");
+  assert.ok(!telemetry!.stagesApplied.includes("session-dedup")); // did NOT restart below lite
+  assert.ok(!telemetry!.stagesApplied.includes("rtk"));
+});
