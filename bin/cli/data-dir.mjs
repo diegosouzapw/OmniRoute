@@ -1,5 +1,6 @@
 import os from "node:os";
 import path from "node:path";
+import fs from "node:fs";
 
 const APP_NAME = "omniroute";
 
@@ -22,6 +23,18 @@ export function resolveDataDir() {
   if (configured) return configured;
 
   const homeDir = safeHomeDir();
+  const legacyDir = path.join(homeDir, `.${APP_NAME}`);
+
+  if (fs.existsSync(legacyDir)) {
+    try {
+      if (fs.statSync(legacyDir).isDirectory()) {
+        return legacyDir;
+      }
+    } catch {
+      // Ignore stat errors.
+    }
+  }
+
   if (process.platform === "win32") {
     const appData = process.env.APPDATA || path.join(homeDir, "AppData", "Roaming");
     return path.join(appData, APP_NAME);
@@ -30,7 +43,7 @@ export function resolveDataDir() {
   const xdgConfigHome = normalizeConfiguredPath(process.env.XDG_CONFIG_HOME);
   if (xdgConfigHome) return path.join(xdgConfigHome, APP_NAME);
 
-  return path.join(homeDir, `.${APP_NAME}`);
+  return legacyDir;
 }
 
 export function resolveStoragePath(dataDir = resolveDataDir()) {

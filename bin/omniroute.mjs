@@ -80,7 +80,6 @@ function loadEnvFile() {
           }
         }
         console.log(`  \x1b[2m📋 Loaded env from ${envPath}\x1b[0m`);
-        return;
       }
     } catch {
       // Ignore errors reading env files.
