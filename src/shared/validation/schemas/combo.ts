@@ -186,7 +186,7 @@ export const comboRuntimeConfigSchema = z
     shadowRouting: shadowRoutingSchema.optional(),
     evalRouting: evalRoutingSchema.optional(),
   })
-  .strict()
+  .passthrough()
   .superRefine((config, ctx) => {
     if (config.zeroLatencyOptimizationsEnabled === true) return;
 

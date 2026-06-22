@@ -174,9 +174,31 @@ const ADVANCED_FIELD_HELP_FALLBACK = {
 };
 
 const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
+  // UI-removed knobs (replaced by per-target timeoutMs on each step)
   "timeoutMs",
   "healthCheckEnabled",
   "healthCheckTimeoutMs",
+  // queueTimeoutMs is still in the schema but the dashboard UI no longer surfaces
+  // it; carrying it forward through edit+save leaves a stale knob in the modal
+  // that surprises operators. Strip it pre-PUT so the persisted config matches
+  // what the UI is currently able to display.
+  "queueTimeoutMs",
+  // Keys that were present in v3.8.31-era combo configs but have since been
+  // removed from comboRuntimeConfigSchema. Mirrors the server-side strip list
+  // in src/app/api/combos/[id]/route.ts so the modal never re-introduces them
+  // when the user clicks Save. See #4382 (combo update returns 400).
+  "queueDepth",
+  "fallbackDelayMs",
+  "handoffProviders",
+  "maxComboDepth",
+  "manifestRouting",
+  "complexityAwareRouting",
+  "pipeline_enabled",
+  "pipelineConcurrency",
+  "shadowRouting",
+  "evalRouting",
+  "resetAwareEnabled",
+  "resetAwareWindow",
 ]);
 const MS_PER_SECOND = 1000;
 
