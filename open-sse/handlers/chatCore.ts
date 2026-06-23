@@ -6,6 +6,7 @@ export { extractSystemRoleMessages } from "./chatCore/claudeSystemRole.ts";
 import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
 import { applyClientUsageBuffer } from "./chatCore/clientUsageBuffer.ts";
+import { buildPostCallGuardrailContext } from "./chatCore/postCallGuardrailContext.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
 import {
   getHeaderValueCaseInsensitive,
@@ -200,7 +201,7 @@ import { getModelNormalizeToolCallId, getModelPreserveOpenAIDeveloperRole } from
 import { getProviderCredentials, extractSessionAffinityKey } from "@/sse/services/auth";
 import { deleteSessionAccountAffinity } from "@/lib/db/sessionAccountAffinity";
 import { getCacheControlSettings } from "@/lib/cacheControlSettings";
-import { guardrailRegistry, resolveDisabledGuardrails } from "@/lib/guardrails";
+import { guardrailRegistry } from "@/lib/guardrails";
 import { shouldPreserveCacheControl } from "../utils/cacheControlPolicy.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { applyCodexGlobalFastServiceTier } from "@/lib/providers/codexFastTier";
@@ -3503,23 +3504,16 @@ export async function handleChatCore({
       );
     }
 
-    const guardrailContext = {
+    const guardrailContext = buildPostCallGuardrailContext({
       apiKeyInfo,
-      disabledGuardrails: resolveDisabledGuardrails({
-        apiKeyInfo: (apiKeyInfo as Record<string, unknown> | null) ?? null,
-        body,
-        headers: (clientRawRequest?.headers as Headers | Record<string, unknown> | null) ?? null,
-      }),
-      endpoint: clientRawRequest?.endpoint || null,
-      headers: (clientRawRequest?.headers as Headers | Record<string, unknown> | null) ?? null,
+      body,
+      clientRawRequest,
       log,
-      method: "POST",
       model,
       provider,
-      sourceFormat: responsePayloadFormat,
-      stream: false,
-      targetFormat: clientResponseFormat,
-    } as const;
+      responsePayloadFormat,
+      clientResponseFormat,
+    });
     const postCallGuardrails = await guardrailRegistry.runPostCallHooks(
       translatedResponse,
       guardrailContext
