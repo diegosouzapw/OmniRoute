@@ -532,6 +532,21 @@ function withAssistantRoleOnFirstDelta(state, result) {
 }
 
 /**
+ * Resolve the terminal finish_reason for a Responses→Chat stream.
+ *
+ * `currentToolCallId` is intentionally sticky for the current turn: it is set when a
+ * function_call item is announced (`response.output_item.added`) and is only cleared once
+ * the matching `response.output_item.done` advances `toolCallIndex`. If the stream ends
+ * (flush or `response.completed`) after a tool call was emitted but BEFORE its
+ * `output_item.done` arrived, `toolCallIndex` is still 0 while `currentToolCallId` is set.
+ * Guarding on it as well lets us still finalize as `tool_calls` instead of `stop`, so
+ * OpenAI-compatible clients continue tool-result processing instead of stopping prematurely.
+ */
+function computeFinishReason(state): "tool_calls" | "stop" {
+  return (state.toolCallIndex || 0) > 0 || state.currentToolCallId ? "tool_calls" : "stop";
+}
+
+/**
  * Translate OpenAI Responses API chunk to OpenAI Chat Completions format
  * This is for when Codex returns data and we need to send it to an OpenAI-compatible client
  */
@@ -544,7 +559,7 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     // Flush: send final chunk with finish_reason
     if (!state.finishReasonSent && state.started) {
       state.finishReasonSent = true;
-      const hadToolCalls = (state.toolCallIndex || 0) > 0;
+      const finishReason = computeFinishReason(state);
       return {
         id: state.chatId || `chatcmpl-${Date.now()}`,
         object: "chat.completion.chunk",
@@ -554,7 +569,7 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
           {
             index: 0,
             delta: {},
-            finish_reason: hadToolCalls ? "tool_calls" : "stop",
+            finish_reason: finishReason,
           },
         ],
       };
@@ -830,8 +845,7 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
 
     if (!state.finishReasonSent) {
       state.finishReasonSent = true;
-      const hadToolCalls = (state.toolCallIndex || 0) > 0;
-      const reason = hadToolCalls ? "tool_calls" : "stop";
+      const reason = computeFinishReason(state);
       state.finishReason = reason; // Mark for usage injection in stream.js
 
       const finalChunk: Record<string, unknown> = {
