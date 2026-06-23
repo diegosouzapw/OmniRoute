@@ -416,6 +416,14 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
 
           // Handle text content (may contain <think> tags)
           if (delta.content) {
+            // Close reasoning if it was opened via native reasoning_content
+            // and is still open, before emitting message content. Without this
+            // the reasoning item is never closed and the message reuses the
+            // reasoning output_index, producing a protocol-invalid stream.
+            if (state.reasoningId && !state.reasoningDone) {
+              closeReasoning(controller);
+            }
+
             let content = delta.content;
 
             if (content.includes("<think>")) {
@@ -442,31 +450,36 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
 
             // Regular text content
             if (content) {
+              // Use a distinct output_index for the message when reasoning was
+              // emitted, so the message item does not collide with the
+              // reasoning item's output_index.
+              const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
+
               // Fix for #1211: Strip leading double-newlines / blank spaces from the very first text chunk
-              if (!state.msgTextBuf[idx]) {
+              if (!state.msgTextBuf[msgIdx]) {
                 content = content.trimStart();
               }
 
               if (!content) continue;
 
-              if (!state.msgItemAdded[idx]) {
-                state.msgItemAdded[idx] = true;
-                const msgId = `msg_${state.responseId}_${idx}`;
+              if (!state.msgItemAdded[msgIdx]) {
+                state.msgItemAdded[msgIdx] = true;
+                const msgId = `msg_${state.responseId}_${msgIdx}`;
 
                 emit(controller, "response.output_item.added", {
                   type: "response.output_item.added",
-                  output_index: idx,
+                  output_index: msgIdx,
                   item: { id: msgId, type: "message", content: [], role: "assistant" },
                 });
               }
 
-              if (!state.msgContentAdded[idx]) {
-                state.msgContentAdded[idx] = true;
+              if (!state.msgContentAdded[msgIdx]) {
+                state.msgContentAdded[msgIdx] = true;
 
                 emit(controller, "response.content_part.added", {
                   type: "response.content_part.added",
-                  item_id: `msg_${state.responseId}_${idx}`,
-                  output_index: idx,
+                  item_id: `msg_${state.responseId}_${msgIdx}`,
+                  output_index: msgIdx,
                   content_index: 0,
                   part: { type: "output_text", annotations: [], logprobs: [], text: "" },
                 });
@@ -474,21 +487,27 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
 
               emit(controller, "response.output_text.delta", {
                 type: "response.output_text.delta",
-                item_id: `msg_${state.responseId}_${idx}`,
-                output_index: idx,
+                item_id: `msg_${state.responseId}_${msgIdx}`,
+                output_index: msgIdx,
                 content_index: 0,
                 delta: content,
                 logprobs: [],
               });
 
-              if (!state.msgTextBuf[idx]) state.msgTextBuf[idx] = "";
-              state.msgTextBuf[idx] += content;
+              if (!state.msgTextBuf[msgIdx]) state.msgTextBuf[msgIdx] = "";
+              state.msgTextBuf[msgIdx] += content;
             }
           }
 
           // Handle tool_calls
           if (delta.tool_calls) {
-            closeMessage(controller, idx);
+            // Close reasoning first so tool calls do not collide with an
+            // open reasoning item, then close the message at its real index.
+            if (state.reasoningId && !state.reasoningDone) {
+              closeReasoning(controller);
+            }
+            const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
+            closeMessage(controller, msgIdx);
 
             for (const tc of delta.tool_calls) {
               const tcIdx = tc.index ?? 0;
