@@ -135,6 +135,7 @@
     "check:duplication": "node scripts/check/check-duplication.mjs",
     "check:tracked-artifacts": "node scripts/check/check-tracked-artifacts.mjs",
     "check:test-masking": "node scripts/check/check-test-masking.mjs",
+    "check:test-runner-api": "node scripts/check/check-test-runner-api.mjs",
     "check:error-helper": "node scripts/check/check-error-helper.mjs",
     "check:migration-numbering": "node scripts/check/check-migration-numbering.mjs",
     "check:public-creds": "node scripts/check/check-public-creds.mjs",
