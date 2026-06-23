@@ -11,6 +11,7 @@ import { storeSemanticCacheResponse } from "./chatCore/semanticCacheStore.ts";
 import { buildNonStreamingResponseHeaders } from "./chatCore/nonStreamingResponseHeaders.ts";
 import { maybeConvertJsonBodyToSse } from "./chatCore/jsonBodyToSse.ts";
 import { assembleStreamingResponseHeaders } from "./chatCore/streamingResponseHeaders.ts";
+import { storeStreamingSemanticCacheResponse } from "./chatCore/streamingSemanticCacheStore.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
 import {
   getHeaderValueCaseInsensitive,
@@ -3861,32 +3862,17 @@ export async function handleChatCore({
     }
 
     // Semantic cache: store assembled streaming response for future cache hits
-    if (
-      semanticCacheEnabled &&
-      streamStatus === 200 &&
-      streamResponseBody &&
-      isCacheableForWrite(body, clientRawRequest?.headers)
-    ) {
-      try {
-        const cleanBody = { ...streamResponseBody };
-        delete cleanBody._streamed;
-        if (!isSmallEnoughForSemanticCache(cleanBody)) return;
-        const sig = generateSignature(
-          model,
-          body.messages ?? body.input,
-          body.temperature,
-          body.top_p,
-          apiKeyInfo?.id ?? undefined
-        );
-        const u = streamUsage as Record<string, unknown> | null;
-        const tokensSaved =
-          (Number(u?.prompt_tokens ?? 0) || 0) + (Number(u?.completion_tokens ?? 0) || 0);
-        setCachedResponse(sig, model, cleanBody, tokensSaved);
-        log?.debug?.("CACHE", `Stored streaming response for ${model} (${tokensSaved} tokens)`);
-      } catch {
-        // Cache write failed — non-critical
-      }
-    }
+    storeStreamingSemanticCacheResponse({
+      enabled: semanticCacheEnabled,
+      streamStatus,
+      streamResponseBody,
+      body,
+      headers: clientRawRequest?.headers,
+      model,
+      apiKeyId: apiKeyInfo?.id ?? undefined,
+      streamUsage,
+      log,
+    });
   };
 
   const streamFailureFinalizers = streamFailure.createStreamFailureFinalizers({
