@@ -170,6 +170,7 @@ import { recordCompressionCacheStats } from "./chatCore/compressionCacheStats.ts
 import { writeCavemanOutputAnalytics } from "./chatCore/cavemanOutputAnalytics.ts";
 import { scheduleQuotaShareConsumption } from "./chatCore/quotaShareConsumption.ts";
 import { emitRequestGamificationEvent } from "./chatCore/gamificationEvent.ts";
+import { runPluginOnResponseHook } from "./chatCore/pluginOnResponse.ts";
 import {
   appendNonStreamingSseTerminalSignal,
   type NonStreamingSseTerminalState,
@@ -4205,15 +4206,7 @@ export async function handleChatCore({
   await emitRequestGamificationEvent({ apiKeyId: apiKeyInfo?.id, model, provider });
 
   // ── Plugin onResponse hook (fire-and-forget) ──
-  try {
-    const { runOnResponse } = await import("@/lib/plugins/hooks");
-    runOnResponse(
-      { requestId: traceId, body, model, provider, apiKeyInfo, metadata: {} },
-      { status: 200 }
-    ).catch(() => {});
-  } catch (_) {
-    /* plugin onResponse optional */
-  }
+  await runPluginOnResponseHook({ requestId: traceId, body, model, provider, apiKeyInfo });
 
   return {
     success: true,
