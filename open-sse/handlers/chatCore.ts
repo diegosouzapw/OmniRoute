@@ -172,6 +172,7 @@ import { scheduleQuotaShareConsumption } from "./chatCore/quotaShareConsumption.
 import { emitRequestGamificationEvent } from "./chatCore/gamificationEvent.ts";
 import { runPluginOnResponseHook } from "./chatCore/pluginOnResponse.ts";
 import { scheduleStreamingQuotaShareConsumption } from "./chatCore/streamingQuotaShare.ts";
+import { recordStreamingUsageStats } from "./chatCore/streamingUsageStats.ts";
 import {
   appendNonStreamingSseTerminalSignal,
   type NonStreamingSseTerminalState,
@@ -3974,37 +3975,20 @@ export async function handleChatCore({
     // Track cache token metrics for streaming responses
     if (streamUsage && typeof streamUsage === "object") {
       attachCompressionUsageReceiptAfterAnalytics(streamUsage as Record<string, unknown>, "stream");
-
-      saveRequestUsage({
-        provider: provider || "unknown",
-        model: model || "unknown",
-        tokens: streamUsage,
-        status: String(normalizedStreamStatus),
-        success: normalizedStreamStatus === 200,
-        latencyMs: Date.now() - startTime,
-        timeToFirstTokenMs: ttft,
-        errorCode:
-          normalizedStreamStatus === 200 ? null : streamErrorCode || String(normalizedStreamStatus),
-        timestamp: new Date().toISOString(),
-        connectionId: connectionId || undefined,
-        apiKeyId: apiKeyInfo?.id || undefined,
-        apiKeyName: apiKeyInfo?.name || undefined,
-        serviceTier: effectiveServiceTier,
-        comboStrategy: isCombo ? comboStrategy || undefined : undefined,
-      }).catch((err) => {
-        console.error("Failed to save usage stats:", err.message);
-      });
-
-      if (apiKeyInfo?.id && normalizedStreamStatus === 200) {
-        try {
-          const billable = computeBillableTokens(streamUsage);
-          if (billable > 0)
-            recordTokenUsage(apiKeyInfo.id, provider || "unknown", model || "unknown", billable);
-        } catch {
-          // never block the stream on counter recording
-        }
-      }
     }
+    recordStreamingUsageStats(streamUsage, {
+      provider,
+      model,
+      streamStatus: normalizedStreamStatus,
+      startTime,
+      ttft,
+      streamErrorCode,
+      connectionId,
+      apiKeyInfo,
+      effectiveServiceTier,
+      isCombo,
+      comboStrategy,
+    });
 
     persistAttemptLogs({
       status: normalizedStreamStatus,
