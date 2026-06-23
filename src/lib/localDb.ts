@@ -91,6 +91,7 @@ export {
 
 export * from "./db/compressionCacheStats";
 export * from "./db/compressionCombos";
+export * from "./db/compressionRunTelemetry";
 
 export {
   // API Keys
