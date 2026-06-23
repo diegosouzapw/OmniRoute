@@ -75,6 +75,7 @@
     "prebuild:docs": "node scripts/docs/gen-openapi-module.mjs",
     "gen:provider-reference": "node --import tsx scripts/docs/gen-provider-reference.ts",
     "bench:compression": "node --import tsx scripts/compression/benchmark.ts",
+    "eval:compression": "node --import tsx scripts/compression-eval/index.ts",
     "build": "node scripts/build/build-next-isolated.mjs",
     "build:secure": "OMNIROUTE_BUILD_PROFILE=minimal node scripts/build/build-next-isolated.mjs",
     "build:cli": "node --import tsx scripts/build/prepublish.ts",
