@@ -754,6 +754,55 @@ function toCodexResponseFailedEvent(parsed: Record<string, unknown>): Record<str
   };
 }
 
+// Env-gated kill-switch: drop ALL non-standard `codex.*` SSE events (notably
+// `codex.rate_limits`) from the Responses stream. These events are NOT part of
+// the OpenAI Responses API — strict clients (e.g. the OpenAI SDK's
+// `responses.stream()`) choke on the unknown event type / empty data field and
+// tear the stream down, surfacing as "Invalid state: Controller is already
+// closed". Opt-in so the default still forwards them for clients that want them.
+function codexDropNonstandardEvents(): boolean {
+  const v = process.env.OMNIROUTE_CODEX_DROP_NONSTANDARD_EVENTS;
+  return v === "true" || v === "1" || v === "yes";
+}
+
+// SSE block filter for the HTTP Responses path (super.execute). The HTTP
+// transport forwards the upstream stream verbatim — including the non-standard
+// `event: codex.rate_limits` frame (no data line) — so the WS-only filter in
+// encodeResponseSseEvent never runs for it. When the kill-switch is on, strip
+// every `codex.*` event block from the byte stream before it reaches the client.
+function filterNonstandardCodexSse(response: Response): Response {
+  const contentType = response.headers.get("content-type") || "";
+  if (!response.body || !contentType.includes("text/event-stream")) {
+    return response;
+  }
+  const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+  let buffer = "";
+  const dropBlock = (block: string): boolean => {
+    const match = /^event:\s*(.+)$/m.exec(block);
+    return !!match && match[1].trim().startsWith("codex.");
+  };
+  const transform = new TransformStream<Uint8Array, Uint8Array>({
+    transform(chunk, controller) {
+      buffer += decoder.decode(chunk, { stream: true });
+      let sep: number;
+      while ((sep = buffer.indexOf("\n\n")) !== -1) {
+        const block = buffer.slice(0, sep + 2);
+        buffer = buffer.slice(sep + 2);
+        if (!dropBlock(block)) controller.enqueue(encoder.encode(block));
+      }
+    },
+    flush(controller) {
+      if (buffer && !dropBlock(buffer)) controller.enqueue(encoder.encode(buffer));
+    },
+  });
+  return new Response(response.body.pipeThrough(transform), {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+}
+
 export function encodeResponseSseEvent(raw: string): { sse: string; terminal: boolean } {
   let eventType = "message";
   let payload = raw;
@@ -775,14 +824,23 @@ export function encodeResponseSseEvent(raw: string): { sse: string; terminal: bo
     // Keep message as the generic SSE event for non-JSON upstream payloads.
   }
 
-  // Drop frames whose data payload is empty. The codex WS upstream emits some
-  // frames (notably `codex.rate_limits`) with no data field; these are not valid
-  // Responses API SSE events. Clients that json.loads() each event's data — e.g.
-  // the OpenAI SDK's responses.stream() — raise a JSONDecodeError on the empty
-  // data, which tears down the connection and surfaces upstream as
-  // "Invalid state: Controller is already closed". Frames that DO carry a payload
-  // (including a populated codex.rate_limits) are preserved. The HTTP/SSE
-  // responses path never forwards empty frames; the WS bridge now matches that.
+  // Env-gated: drop non-standard `codex.*` events (notably `codex.rate_limits`)
+  // before they reach the client. They are NOT part of the OpenAI Responses API
+  // and break strict consumers: the OpenAI SDK's responses.stream() chokes on
+  // the unknown event type / empty data and tears the stream down, surfacing as
+  // "Invalid state: Controller is already closed". The earlier empty-payload
+  // check below never caught codex.rate_limits — over WS the frame carries a
+  // non-empty JSON payload (`{"type":"codex.rate_limits", ...}`), so
+  // `!payload.trim()` is false. Match by event type instead. Opt-in via
+  // OMNIROUTE_CODEX_DROP_NONSTANDARD_EVENTS (the HTTP transport is handled
+  // separately by filterNonstandardCodexSse, since super.execute forwards the
+  // upstream stream verbatim and never runs this function).
+  if (eventType.startsWith("codex.") && codexDropNonstandardEvents()) {
+    return { sse: "", terminal };
+  }
+
+  // Drop frames whose raw payload is empty (defensive; non-JSON / blank upstream
+  // chunks). Frames that carry a payload are preserved.
   if (!payload.trim()) {
     return { sse: "", terminal };
   }
@@ -852,7 +910,14 @@ export class CodexExecutor extends BaseExecutor {
     const nextInput = { ...input, credentials };
 
     if (!isCodexResponsesWebSocketRequired(nextInput.model, nextInput.credentials)) {
-      return super.execute(nextInput);
+      const httpResult = await super.execute(nextInput);
+      if (codexDropNonstandardEvents()) {
+        const resp = (httpResult as { response?: Response }).response;
+        if (resp?.body) {
+          (httpResult as { response: Response }).response = filterNonstandardCodexSse(resp);
+        }
+      }
+      return httpResult;
     }
 
     const url = CODEX_RESPONSES_WS_URL;
