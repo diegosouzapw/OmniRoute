@@ -144,7 +144,7 @@ export const OAUTH_PROVIDERS = {
   qoder: {
     id: "qoder",
     alias: "if",
-    name: "Qoder AI",
+    name: "Qoder",
     icon: "water_drop",
     color: "#6366F1",
     subscriptionRisk: true,
