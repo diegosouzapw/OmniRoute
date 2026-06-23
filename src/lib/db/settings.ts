@@ -136,6 +136,9 @@ export async function getSettings() {
     wsAuth: false,
     maxBodySizeMb: requestBodyLimitMbFromEnv(process.env.MAX_BODY_SIZE_BYTES),
     debugMode: true,
+    // Opt-in diagnostic: when true, the chat handler emits a `log.debug("TOOLS", …)`
+    // line per request summarizing tool count + MCP/hosted/client source breakdown.
+    logToolSources: false,
     // LOCAL_ONLY manage-scope bypass policy defaults (T-011 / spec §Data Model).
     // Preserves PR #2473 behaviour on migration — the bypass starts ENABLED
     // for `/api/mcp/` so existing manage-scope Bearer clients keep working.

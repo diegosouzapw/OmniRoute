@@ -85,6 +85,7 @@ import {
 } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { createPreparedRequestLogger, runWithCapture } from "../utils/providerRequestLogging.ts";
+import { summarizeToolSources } from "../utils/toolSources.ts";
 import { applyResponsesPreviousResponseIdPolicy } from "../utils/responsesStatePolicy.ts";
 import { applyClaudeEffortVariant } from "./chatCore/claudeEffortVariant.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../config/defaultThinkingSignature.ts";
@@ -659,6 +660,12 @@ export async function handleChatCore({
   const noLogEnabled = apiKeyInfo?.noLog === true;
   // Consolidate settings reads — fetch once, reuse throughout the request
   const settings = cachedSettings ?? (await getCachedSettings());
+  // Opt-in tool-source diagnostics (#1825): summarize the request's tool definitions
+  // (count + MCP/hosted/client source breakdown + first names) as a single debug line.
+  if (settings.logToolSources === true) {
+    const toolSummary = summarizeToolSources((body as { tools?: unknown }).tools);
+    if (toolSummary) log?.debug?.("TOOLS", toolSummary);
+  }
   // #1311 (opt-in): echo the client-requested alias/combo name in the response `model`
   // field instead of the upstream model, so strict clients (Claude Desktop) that validate
   // response.model === request.model stop rejecting alias/combo requests with a 401.
