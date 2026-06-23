@@ -6,6 +6,19 @@ type JsonRecord = Record<string, unknown>;
 const TOOL_CHOICE_ANY = ["a", "n", "y"].join("");
 
 /**
+ * Port of decolua/9router commit 0aaa5ab3 (closes prompt-cache instability):
+ * Anthropic injects a dynamic `x-anthropic-billing-header: <value>` line at
+ * the top of some system prompts. When we translate Claude → OpenAI and
+ * forward to a non-Anthropic upstream, that line both leaks into the
+ * assistant prompt and rotates per request, destroying prompt-cache hits.
+ * Strip it from each system entry before assembling the OpenAI request.
+ */
+function stripAnthropicBillingHeader(text: unknown): string {
+  if (typeof text !== "string") return "";
+  return text.replace(/^x-anthropic-billing-header:[^\n]*(?:\r?\n)?/i, "");
+}
+
+/**
  * Normalize tool input schema for OpenAI compatibility.
  * OpenAI strict mode requires `properties: {}` on object-type schemas,
  * even for zero-argument tools. Anthropic/MCP tools may omit it (#1898).
@@ -108,8 +121,11 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
   // System message
   if (body.system) {
     const systemContent = Array.isArray(body.system)
-      ? body.system.map((s) => s.text || "").join("\n")
-      : body.system;
+      ? body.system
+          .map((s) => stripAnthropicBillingHeader(s.text || ""))
+          .filter(Boolean)
+          .join("\n")
+      : stripAnthropicBillingHeader(body.system);
 
     if (systemContent) {
       result.messages.push({
