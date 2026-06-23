@@ -3816,6 +3816,7 @@
   },
   "onboarding": {
     "welcome": "Welcome",
+    "tiers": "Tiers",
     "security": "Security",
     "test": "Test",
     "ready": "Ready!",
