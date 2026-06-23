@@ -13,7 +13,7 @@ import {
 } from "./adapters/driverFactory";
 import path from "path";
 import fs from "fs";
-import { resolveDataDir, getLegacyDotDataDir } from "../dataPaths";
+import { resolveWritableDataDir, getLegacyDotDataDir } from "../dataPaths";
 import { runMigrations } from "./migrationRunner";
 import { runDbHealthCheck } from "./healthCheck";
 import { resetAllDbModuleState } from "./stateReset";
@@ -83,7 +83,7 @@ export const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
 
 // ──────────────── Paths ────────────────
 
-export const DATA_DIR = resolveDataDir({ isCloud });
+export const DATA_DIR = resolveWritableDataDir({ isCloud });
 const LEGACY_DATA_DIR = isCloud ? null : getLegacyDotDataDir();
 export const SQLITE_FILE = isCloud ? null : path.join(DATA_DIR, "storage.sqlite");
 const JSON_DB_FILE = isCloud ? null : path.join(DATA_DIR, "db.json");
