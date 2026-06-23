@@ -25,6 +25,9 @@ export const githubProvider: RegistryEntry = {
   defaultContextLength: 128000,
   headers: getGitHubCopilotChatHeaders(),
   models: [
+    // Copilot still serves the original GPT-4 via chat/completions; keep it
+    // alongside GPT-4o and the GPT-5.x family so apps that hard-code `gpt-4` resolve here.
+    { id: "gpt-4", name: "GPT-4", contextLength: 128000 },
     // 9router#98 — Copilot still serves GPT-4o via chat/completions; keep it
     // alongside the GPT-5.x family so apps that hard-code `gpt-4o` resolve here.
     { id: "gpt-4o", name: "GPT-4o", contextLength: 128000 },
