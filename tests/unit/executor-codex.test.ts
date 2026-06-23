@@ -530,9 +530,12 @@ test("CodexExecutor.transformRequest preserves native assistant commentary histo
     ),
     true
   );
+  // Reasoning items are stripped from the Responses input — encrypted_content is
+  // unusable with store=false (previous_response_id deleted) and the summary blob
+  // only inflates context on every subsequent agentic turn (decolua/9router#1599).
   assert.equal(
     result.input.some((item) => item.type === "reasoning"),
-    true
+    false
   );
   assert.equal(
     result.input.some((item) => item.type === "function_call"),

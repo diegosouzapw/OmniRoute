@@ -296,7 +296,7 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
  *      server-generated prefix (rs_, fc_, resp_, msg_) — so the content is
  *      preserved but the backend won't try to look it up
  */
-function stripStoredItemReferences(body: Record<string, unknown>): void {
+export function stripStoredItemReferences(body: Record<string, unknown>): void {
   if (Array.isArray(body.input) && body.input.length === 0) {
     body.input = [
       {
@@ -325,6 +325,19 @@ function stripStoredItemReferences(body: Record<string, unknown>): void {
       typeof item === "object" &&
       !Array.isArray(item) &&
       (item as Record<string, unknown>).type === "item_reference"
+    ) {
+      strippedCount++;
+      return false;
+    }
+
+    // Reasoning blobs (encrypted_content) are unusable with store=false since
+    // previous_response_id is deleted — strip them to avoid wasting context
+    // tokens (O(n^2) growth across agentic turns).
+    if (
+      item &&
+      typeof item === "object" &&
+      !Array.isArray(item) &&
+      (item as Record<string, unknown>).type === "reasoning"
     ) {
       strippedCount++;
       return false;
