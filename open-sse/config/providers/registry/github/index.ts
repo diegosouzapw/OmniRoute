@@ -31,6 +31,10 @@ export const githubProvider: RegistryEntry = {
     // 9router#98 — Copilot still serves GPT-4o via chat/completions; keep it
     // alongside the GPT-5.x family so apps that hard-code `gpt-4o` resolve here.
     { id: "gpt-4o", name: "GPT-4o", contextLength: 128000 },
+    // Copilot also serves the cheaper GPT-4o mini via chat/completions; keep it
+    // alongside gpt-4o so apps that hard-code `gpt-4o-mini` resolve to the Copilot
+    // (`gh`) provider rather than only the github-models (`ghm`) marketplace entry.
+    { id: "gpt-4o-mini", name: "GPT-4o mini", contextLength: 128000 },
     { id: "gpt-5-mini", name: "GPT-5 Mini", targetFormat: "openai-responses" },
     { id: "gpt-5.3-codex", name: "GPT-5.3 Codex", targetFormat: "openai-responses" },
     { id: "gpt-5.4-mini", name: "GPT-5.4 Mini", targetFormat: "openai-responses" },
