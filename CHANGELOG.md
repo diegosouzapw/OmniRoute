@@ -10,6 +10,8 @@ _In development — bullets added per PR; finalized at release._
 
 ### 🔧 Bug Fixes
 
+- **feat(sse): auto-promote successful combo model**: a new opt-in `comboAutoPromoteEnabled` setting reorders a combo's persisted model list so that, when a combo model responds successfully, it is moved to position #1 for future requests. (thanks @arssnndr)
+
 - **fix(sse):** dense, deterministic `response.output` ordering in `response.completed` — items are now sorted by their actual `output_index` (via a recorded-as-emitted accumulator + stable sort) instead of being rebuilt from unordered state dicts; `normalizeOutputIndex` replaces fragile `parseInt` calls for robust index coercion; superseded tool calls (replaced at the same index mid-stream) are excluded from the final output array. (thanks @Marco9113)
 
 - **codex/translator**: normalize Codex custom/freeform tools (`apply_patch`, `type:"custom"` with no `parameters`) to a `{ input: string }` function schema instead of an empty schema — the empty schema made models invoke `apply_patch` with `{}`, breaking the Codex runtime which expects `{ input: string }`. Also map `custom_tool_call` / `custom_tool_call_output` input items and stream `apply_patch` tool calls via `custom_tool_call_input.delta`/`.done` events. (thanks @nstung463)

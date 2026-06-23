@@ -124,6 +124,7 @@ export async function getSettings() {
     autoRefreshProviderQuota: false,
     autoRefreshProviderQuotaInterval: 180,
     comboConfigMode: "guided",
+    comboAutoPromoteEnabled: false,
     codexServiceTier: { enabled: false },
     claudeFastMode: {
       enabled: false,

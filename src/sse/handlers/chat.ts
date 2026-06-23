@@ -46,6 +46,8 @@ import * as log from "../utils/logger";
 import { checkAndRefreshToken } from "../services/tokenRefresh";
 import { createHookContext, runHooks, initPreRequestRegistry } from "@/lib/middleware/registry";
 import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
+import { updateCombo } from "@/lib/db/combos";
+import { promoteSuccessfulComboModel } from "@/lib/combos/autoPromote";
 import {
   deleteSessionAccountAffinity,
   getCachedSettings,
@@ -192,6 +194,7 @@ function intersectAllowedConnectionIds(primary: unknown, secondary: unknown): st
 }
 
 const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
+const comboPromoteDeps = { updateCombo, info: log.info, warn: log.warn };
 
 /**
  * Handle chat completion request
@@ -673,7 +676,17 @@ export async function handleChat(
           },
           target?.effectiveComboStrategy ?? combo.strategy,
           true
-        ),
+        ).then(async (res: Response) => {
+          // Auto-promote the winning combo model to position #1 (opt-in flag).
+          if (res?.ok)
+            await promoteSuccessfulComboModel(
+              combo,
+              m,
+              settings as Record<string, unknown>,
+              comboPromoteDeps
+            );
+          return res;
+        }),
       isModelAvailable: checkModelAvailable,
       log,
       settings,
