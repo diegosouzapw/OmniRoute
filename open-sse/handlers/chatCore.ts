@@ -10,6 +10,7 @@ import { buildPostCallGuardrailContext } from "./chatCore/postCallGuardrailConte
 import { storeSemanticCacheResponse } from "./chatCore/semanticCacheStore.ts";
 import { buildNonStreamingResponseHeaders } from "./chatCore/nonStreamingResponseHeaders.ts";
 import { maybeConvertJsonBodyToSse } from "./chatCore/jsonBodyToSse.ts";
+import { assembleStreamingResponseHeaders } from "./chatCore/streamingResponseHeaders.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
 import {
   getHeaderValueCaseInsensitive,
@@ -3709,20 +3710,13 @@ export async function handleChatCore({
     await onRequestSuccess();
   }
 
-  const responseHeaders: Record<string, string> = {
-    ...buildStreamingResponseHeaders(providerResponse.headers, {
-      provider,
-      model,
-      cacheHit: false,
-      latencyMs: 0,
-      usage: null,
-      costUsd: 0,
-    }),
-    "x-omniroute-request-id": pendingRequestId,
-  };
-  if (compressionResponseMeta) {
-    responseHeaders[OMNIROUTE_RESPONSE_HEADERS.compression] = compressionResponseMeta;
-  }
+  const responseHeaders = assembleStreamingResponseHeaders({
+    providerHeaders: providerResponse.headers,
+    provider,
+    model,
+    pendingRequestId,
+    compressionResponseMeta,
+  });
 
   // Create transform stream with logger for streaming response
   let transformStream;
