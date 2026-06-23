@@ -50,6 +50,8 @@ export interface DashboardConnectionState {
 export interface UseLiveDashboardOptions {
   /** WebSocket URL (default: ws://hostname:20129) */
   wsUrl?: string;
+  /** Whether the WebSocket connection should be active (default: true) */
+  enabled?: boolean;
   /** API key for authentication */
   apiKey?: string;
   /** Channels to subscribe to */
@@ -66,6 +68,7 @@ export interface UseLiveDashboardOptions {
  */
 export function useLiveDashboard({
   wsUrl = DEFAULT_WS_URL,
+  enabled = true,
   apiKey,
   channels = ["requests", "combo", "credentials"],
   autoReconnect = true,
@@ -202,6 +205,23 @@ export function useLiveDashboard({
 
   // Connect on mount and on reconnect trigger
   useEffect(() => {
+    mountedRef.current = true;
+    if (!enabled) {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+      wsRef.current?.close();
+      wsRef.current = null;
+      setConnection({
+        isConnected: false,
+        isConnecting: false,
+        error: null,
+        reconnectAttempt: 0,
+      });
+      return;
+    }
+
     connect();
     return () => {
       mountedRef.current = false;
@@ -210,7 +230,7 @@ export function useLiveDashboard({
       }
       wsRef.current?.close();
     };
-  }, [connect]);
+  }, [connect, enabled]);
 
   // Connect (for manual retry)
   const reconnect = useCallback(() => {

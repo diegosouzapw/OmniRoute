@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 
 // Regression guard: the OpenAI-compatible chat WebSocket endpoint (/api/v1/ws)
 // must be documented in openapi.yaml so it shows up on the dashboard's

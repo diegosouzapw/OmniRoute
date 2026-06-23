@@ -55,7 +55,10 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
     result.generationConfig.topK = body.top_k;
   }
   if (body.max_tokens !== undefined) {
-    result.generationConfig.maxOutputTokens = capMaxOutputTokens(model, body.max_tokens);
+    const maxOutputTokens = capMaxOutputTokens(model, body.max_tokens);
+    if (maxOutputTokens !== null) {
+      result.generationConfig.maxOutputTokens = maxOutputTokens;
+    }
   }
 
   // ── System instruction ─────────────────────────────────────────

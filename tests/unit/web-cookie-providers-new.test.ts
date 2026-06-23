@@ -127,7 +127,10 @@ test("v0 Vercel Web executor is registered", () => {
 
 test("Kimi Web executor is registered", () => {
   assert.ok(hasSpecializedExecutor("kimi-web"));
-  assert.ok(hasSpecializedExecutor("kimi"));
+  // #4699: the `kimi` API-key provider must NOT be routed through KimiWebExecutor
+  // (Bug 2) — it correctly falls through to DefaultExecutor. Only the explicit
+  // kimi-web alias keeps the specialized web executor.
+  assert.equal(hasSpecializedExecutor("kimi"), false);
   const executor = getExecutor("kimi-web");
   assert.ok(executor instanceof KimiWebExecutor);
 });
@@ -390,9 +393,7 @@ test("Poe Web: sends p-b cookie in header", async () => {
 // ── Venice Web Execution Tests ───────────────────────────────────────────────
 
 test("Venice Web: streaming passes through SSE", async () => {
-  const sseData = [
-    'data: {"choices":[{"delta":{"content":"Hello"}}]}',
-  ];
+  const sseData = ['data: {"choices":[{"delta":{"content":"Hello"}}]}'];
   const restore = mockFetchCapture(200, mockSSEStream(sseData));
   try {
     const executor = new VeniceWebExecutor();
@@ -422,9 +423,7 @@ test("Venice Web: error response returns error result", async () => {
 // ── v0 Vercel Web Execution Tests ────────────────────────────────────────────
 
 test("v0 Vercel Web: streaming passes through SSE", async () => {
-  const sseData = [
-    'data: {"choices":[{"delta":{"content":"function hello() {}"}}]}',
-  ];
+  const sseData = ['data: {"choices":[{"delta":{"content":"function hello() {}"}}]}'];
   const restore = mockFetchCapture(200, mockSSEStream(sseData));
   try {
     const executor = new V0VercelWebExecutor();
@@ -454,9 +453,7 @@ test("v0 Vercel Web: error response returns error result", async () => {
 // ── Kimi Web Execution Tests ─────────────────────────────────────────────────
 
 test("Kimi Web: streaming passes through SSE", async () => {
-  const sseData = [
-    'data: {"choices":[{"delta":{"content":"你好"}}]}',
-  ];
+  const sseData = ['data: {"choices":[{"delta":{"content":"你好"}}]}'];
   const restore = mockFetchCapture(200, mockSSEStream(sseData));
   try {
     const executor = new KimiWebExecutor();
@@ -486,9 +483,7 @@ test("Kimi Web: error response returns error result", async () => {
 // ── Doubao Web Execution Tests ───────────────────────────────────────────────
 
 test("Doubao Web: streaming passes through SSE", async () => {
-  const sseData = [
-    'data: {"choices":[{"delta":{"content":"你好世界"}}]}',
-  ];
+  const sseData = ['data: {"choices":[{"delta":{"content":"你好世界"}}]}'];
   const restore = mockFetchCapture(200, mockSSEStream(sseData));
   try {
     const executor = new DoubaoWebExecutor();

@@ -36,8 +36,14 @@ import {
   recordRelayUsage,
 } from "@/lib/db/relayProxies";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
-import { createHash } from "node:crypto";
 import { z } from "zod";
+import {
+  checkIpRateLimit,
+  extractToken,
+  getClientIp,
+  hashToken,
+  sanitizeForensicHeader,
+} from "../relaySecurity";
 
 // Minimal request-shape validation (Rule #7). `.passthrough()` keeps every other
 // OpenAI chat-completion field intact (temperature, tools, response_format, …) —
@@ -64,33 +70,53 @@ const BIFROST_ENABLED = process.env.BIFROST_ENABLED !== "0";
 
 const injectionGuard = createInjectionGuard();
 
+type RelayUsageRecorder = (status: "success" | "error", statusCode: number) => void;
+
 export async function OPTIONS() {
   return handleCorsOptions();
 }
 
-function sanitizeForensicHeader(value: string | null, max = 256): string {
-  if (!value) return "unknown";
-  return value.replace(/[\r\n]+/g, " ").slice(0, max);
-}
+function finalizeReadableStream(
+  body: ReadableStream<Uint8Array>,
+  onFinalize: (error?: unknown) => void
+): ReadableStream<Uint8Array> {
+  const reader = body.getReader();
+  let finalized = false;
 
-function extractToken(request: Request): string | null {
-  const auth = request.headers.get("authorization") || "";
-  const match = auth.match(/^Bearer\s+(.+)$/i);
-  if (match) return match[1];
-  return request.headers.get("x-relay-token");
-}
+  const finalizeOnce = (error?: unknown) => {
+    if (finalized) return;
+    finalized = true;
+    onFinalize(error);
+  };
 
-function hashToken(token: string): string {
-  return createHash("sha256").update(token).digest("hex");
+  return new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      try {
+        const { done, value } = await reader.read();
+        if (done) {
+          finalizeOnce();
+          controller.close();
+          return;
+        }
+        controller.enqueue(value);
+      } catch (error) {
+        finalizeOnce(error);
+        controller.error(error);
+      }
+    },
+    async cancel(reason) {
+      try {
+        await reader.cancel(reason);
+      } finally {
+        finalizeOnce(reason);
+      }
+    },
+  });
 }
 
 export async function POST(request: Request) {
   const startTime = Date.now();
-  const clientIp = sanitizeForensicHeader(
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      request.headers.get("x-real-ip") ||
-      null
-  );
+  const clientIp = getClientIp(request);
   const userAgent = sanitizeForensicHeader(request.headers.get("user-agent"));
 
   if (!BIFROST_ENABLED) {
@@ -165,6 +191,28 @@ export async function POST(request: Request) {
       return new Response(JSON.stringify(buildErrorBody(401, "Relay token expired")), {
         status: 401,
         headers: JSON_CORS_HEADERS,
+      });
+    }
+
+    // 2a. Per-(token,IP) gate — mirrors the TypeScript relay fallback so the
+    // sidecar path does not weaken leaked-token abuse protection.
+    const ipCheck = checkIpRateLimit(token.id, clientIp);
+    if (!ipCheck.allowed) {
+      recordRelayUsage(token.id, {
+        requestId: request.headers.get("x-request-id") || undefined,
+        status: "rate_limited",
+        statusCode: 429,
+        latencyMs: Date.now() - startTime,
+        clientIp,
+        userAgent,
+      });
+      return new Response(JSON.stringify(buildErrorBody(429, "Per-IP rate limit exceeded")), {
+        status: 429,
+        headers: {
+          ...JSON_CORS_HEADERS,
+          "Retry-After": String(ipCheck.resetIn),
+          "X-RateLimit-Scope": "ip",
+        },
       });
     }
 
@@ -254,7 +302,11 @@ export async function POST(request: Request) {
     }
 
     const ac = new AbortController();
-    const tid = setTimeout(() => ac.abort(), BIFROST_TIMEOUT_MS);
+    let timedOut = false;
+    const tid = setTimeout(() => {
+      timedOut = true;
+      ac.abort();
+    }, BIFROST_TIMEOUT_MS);
 
     let upstream: Response;
     try {
@@ -264,20 +316,23 @@ export async function POST(request: Request) {
         body: JSON.stringify(body),
         signal: ac.signal,
       });
-    } finally {
+    } catch (error) {
       clearTimeout(tid);
+      throw error;
     }
 
-    // 5. Forward response. For streaming we pass the body stream through
-    //    unmodified — Node's fetch streams chunked correctly.
-    recordRelayUsage(token.id, {
-      requestId: request.headers.get("x-request-id") || undefined,
-      status: upstream.status < 500 ? "success" : "error",
-      statusCode: upstream.status,
-      latencyMs: Date.now() - startTime,
-      clientIp,
-      userAgent,
-    });
+    // 5. Forward response. Non-streaming responses can be accounted for as soon
+    //    as headers arrive; streaming responses finalize on body close/cancel/error.
+    const recordUsage: RelayUsageRecorder = (status, statusCode) => {
+      recordRelayUsage(token.id, {
+        requestId: request.headers.get("x-request-id") || undefined,
+        status,
+        statusCode,
+        latencyMs: Date.now() - startTime,
+        clientIp,
+        userAgent,
+      });
+    };
 
     const newHeaders = new Headers(upstream.headers);
     newHeaders.set("X-Routed-By", "bifrost");
@@ -285,6 +340,23 @@ export async function POST(request: Request) {
     if (!wantsStream) {
       newHeaders.set("Content-Type", upstream.headers.get("Content-Type") ?? "application/json");
     }
+
+    if (wantsStream && upstream.body) {
+      const stream = finalizeReadableStream(upstream.body, (error) => {
+        clearTimeout(tid);
+        const statusCode = timedOut ? 504 : upstream.status;
+        const status = error || statusCode >= 500 ? "error" : "success";
+        recordUsage(status, statusCode);
+      });
+
+      return new Response(stream, {
+        status: upstream.status,
+        headers: newHeaders,
+      });
+    }
+
+    clearTimeout(tid);
+    recordUsage(upstream.status < 500 ? "success" : "error", upstream.status);
 
     return new Response(upstream.body, {
       status: upstream.status,

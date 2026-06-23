@@ -49,7 +49,8 @@ import { getWebSessionCredentialRequirement } from "../../webSessionCredentials"
 import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
-import { mergeCcCompatibleRequestDefaults } from "./ccCompatibleRequestDefaults";
+import { assignEditApiKeyProviderSpecificData } from "./connectionProviderSpecificData";
+import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
 
 export interface EditConnectionModalConnection {
   id?: string;
@@ -115,6 +116,7 @@ export default function EditConnectionModal({
     codexServiceTier: "default" as CodexServiceTier,
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
+    ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
     ccCompatibleRedactThinking: false,
     cloudCodeProjectId: "",
@@ -218,6 +220,10 @@ export default function EditConnectionModal({
       const existingOpenRouterPreset = stringField(connection.providerSpecificData?.preset);
       const existingCx = stringField(connection.providerSpecificData?.cx);
       const existingAccountId = stringField(connection.providerSpecificData?.accountId);
+      const existingOpenCodeGoWorkspaceId =
+        stringField(connection.providerSpecificData?.opencodeGoWorkspaceId) ||
+        stringField(connection.providerSpecificData?.openCodeGoWorkspaceId) ||
+        stringField(connection.providerSpecificData?.workspaceId);
       const codexRequestDefaults = getCodexRequestDefaults(connection.providerSpecificData);
       const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
         connection.providerSpecificData
@@ -269,6 +275,9 @@ export default function EditConnectionModal({
         codexServiceTier: codexRequestDefaults.serviceTier ?? "default",
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
+        opencodeGoWorkspaceId: existingOpenCodeGoWorkspaceId,
+        opencodeGoAuthCookie: "",
+        ollamaCloudUsageCookie: "",
         ccCompatibleContext1m: ccRequestDefaults.context1m,
         ccCompatibleRedactThinking: ccRequestDefaults.redactThinking,
         cloudCodeProjectId:
@@ -482,45 +491,24 @@ export default function EditConnectionModal({
       if (!isOAuth) {
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
-          extraApiKeys: extraApiKeys.filter((k) => k.trim().length > 0),
-          tag: formData.tag.trim() || undefined,
-          tags: parseRoutingTagsInput(formData.routingTags),
-          excludedModels: parseExcludedModelsInput(formData.excludedModels),
-          customUserAgent: formData.customUserAgent.trim(),
-          ...openRouterPreset.getPatch(),
-          ...(formData.passthroughModels ? { passthroughModels: true } : {}),
         };
-        if (provider === "bailian-coding-plan") {
-          if (formData.consoleApiKey.trim()) {
-            updates.providerSpecificData.consoleApiKey = formData.consoleApiKey.trim();
-          } else {
-            updates.providerSpecificData.consoleApiKey = undefined;
-          }
-        }
-        if (formData.validationModelId) {
-          updates.providerSpecificData.validationModelId = formData.validationModelId;
-        }
-        if (isGooglePse) {
-          updates.providerSpecificData.cx = formData.cx.trim() || undefined;
-        }
-        if (usesBaseUrl) {
-          updates.providerSpecificData.baseUrl = validatedBaseUrl;
-        } else if (showsRegion) {
-          updates.providerSpecificData.region = formData.region.trim() || defaultRegion;
-        } else if (isGlm) {
-          updates.providerSpecificData.apiRegion = formData.apiRegion;
-        } else if (isCloudflare && formData.accountId.trim()) {
-          updates.providerSpecificData.accountId = formData.accountId.trim();
-        }
-        if (supportsGoogleProjectId) {
-          updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
-        }
-        if (isCcCompatible) {
-          updates.providerSpecificData.requestDefaults = mergeCcCompatibleRequestDefaults(
-            updates.providerSpecificData.requestDefaults,
-            formData
-          );
-        }
+        assignEditApiKeyProviderSpecificData({
+          provider,
+          formData,
+          target: updates.providerSpecificData,
+          extraApiKeys,
+          openRouterPreset,
+          usesBaseUrl,
+          validatedBaseUrl,
+          showsRegion,
+          defaultRegion,
+          isGlm,
+          isCloudflare,
+          supportsGoogleProjectId,
+          trimmedCloudCodeProjectId,
+          isGooglePse,
+          isCcCompatible,
+        });
       } else {
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
@@ -683,9 +671,7 @@ export default function EditConnectionModal({
           {showFreeModelsToggle && (
             <Toggle
               checked={formData.importFreeModelsOnly}
-              onChange={(checked) =>
-                setFormData({ ...formData, importFreeModelsOnly: checked })
-              }
+              onChange={(checked) => setFormData({ ...formData, importFreeModelsOnly: checked })}
               label={t("importFreeModelsOnlyLabel")}
               description={t("importFreeModelsOnlyHint")}
             />
@@ -697,6 +683,13 @@ export default function EditConnectionModal({
             description={t("disableCoolingDescription")}
           />
         </div>
+        <QuotaScrapingFields
+          provider={provider}
+          values={formData}
+          onChange={(patch) => setFormData({ ...formData, ...patch })}
+          t={t}
+          editMode
+        />
         {supportsGoogleProjectId && (
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
             {isAntigravity && (
@@ -1020,10 +1013,9 @@ export default function EditConnectionModal({
                 return (
                   <div className="flex items-center gap-2">
                     <span
-                      className={`flex-1 font-mono text-xs bg-sidebar/50 px-3 py-2 rounded border border-border truncate ${statusColor}`}
+                      className={`flex-1 min-w-0 break-all font-mono text-xs bg-sidebar/50 px-3 py-2 rounded border border-border ${statusColor}`}
                     >
-                      {statusIcon} {t("primaryKey")}: {connection.apiKey.slice(0, 6)}...
-                      {connection.apiKey.slice(-4)}
+                      {statusIcon} {t("primaryKey")}: {connection.apiKey}
                     </span>
                     {health && (
                       <span

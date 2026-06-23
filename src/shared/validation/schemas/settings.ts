@@ -101,7 +101,20 @@ export const providerCooldownSettingsSchema = z
     minRetryCooldownMs: z.number().int().min(0).max(300000).optional(),
     maxRetryCooldownMs: z.number().int().min(0).max(3600000).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((value, ctx) => {
+    if (
+      typeof value.minRetryCooldownMs === "number" &&
+      typeof value.maxRetryCooldownMs === "number" &&
+      value.maxRetryCooldownMs < value.minRetryCooldownMs
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "maxRetryCooldownMs must be greater than or equal to minRetryCooldownMs",
+        path: ["maxRetryCooldownMs"],
+      });
+    }
+  });
 
 export const updateResilienceSchema = z
   .object({

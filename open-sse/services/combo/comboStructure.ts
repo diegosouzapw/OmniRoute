@@ -478,6 +478,14 @@ function deriveRequestCompatibilityRequirements(
   };
 }
 
+function exceedsKnownOutputLimit(
+  requestedOutputTokens: number,
+  maxOutputTokens: number | null
+): boolean {
+  if (requestedOutputTokens <= 0 || maxOutputTokens === null) return false;
+  return maxOutputTokens < requestedOutputTokens;
+}
+
 function getTargetCompatibilityFailures(
   target: ResolvedComboTarget,
   requirements: RequestCompatibilityRequirements
@@ -506,11 +514,7 @@ function getTargetCompatibilityFailures(
     failures.push("structured_output");
   }
 
-  if (
-    requirements.requestedOutputTokens > 0 &&
-    Number.isFinite(capabilities.maxOutputTokens) &&
-    capabilities.maxOutputTokens < requirements.requestedOutputTokens
-  ) {
+  if (exceedsKnownOutputLimit(requirements.requestedOutputTokens, capabilities.maxOutputTokens)) {
     failures.push("output_tokens");
   }
 

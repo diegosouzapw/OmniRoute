@@ -222,7 +222,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
 
-  // ──────────────── Runtime (10) ────────────────
+  // ──────────────── Runtime (12) ────────────────
   {
     key: "OMNIROUTE_MCP_ENFORCE_SCOPES",
     label: "MCP Enforce Scopes",
@@ -312,6 +312,30 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     type: "boolean",
     requiresRestart: false,
     warningLevel: "caution",
+  },
+  {
+    key: "STREAM_RECOVERY_ENABLED",
+    label: "Stream Recovery",
+    description:
+      "Enable transparent early retry for truncated upstream SSE streams before any response bytes reach the client.",
+    descriptionI18nKey: "featureFlagStreamRecoveryEnabledDescription",
+    category: "runtime",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
+    key: "STREAM_RECOVERY_MIDSTREAM_ENABLED",
+    label: "Mid-Stream Continuation",
+    description:
+      "Allow stream recovery to re-request and stitch a response after bytes have already reached the client.",
+    descriptionI18nKey: "featureFlagStreamRecoveryMidstreamEnabledDescription",
+    category: "runtime",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "danger",
   },
   {
     key: "MODEL_CATALOG_INCLUDE_NAMES",

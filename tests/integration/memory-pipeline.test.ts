@@ -60,12 +60,15 @@ test.after(async () => {
   await harness.cleanup();
 });
 
-async function enableMemory(maxTokens = 400) {
+async function enableMemory(
+  maxTokens = 400,
+  strategy: "recent" | "semantic" | "hybrid" = "recent"
+) {
   await settingsDb.updateSettings({
     memoryEnabled: true,
     memoryMaxTokens: maxTokens,
     memoryRetentionDays: 30,
-    memoryStrategy: "recent",
+    memoryStrategy: strategy,
   });
 }
 
@@ -172,6 +175,7 @@ test("later requests inject retrieved memories into upstream messages", async ()
 
 test("memory search ranks query-relevant memories first", async () => {
   const apiKey = await seedApiKey();
+  await enableMemory(400, "hybrid");
 
   await memoryTools.omniroute_memory_add.handler({
     apiKeyId: apiKey.id,

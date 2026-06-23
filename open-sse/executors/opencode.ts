@@ -79,7 +79,9 @@ export class OpencodeExecutor extends BaseExecutor {
 
       // Forward OpenCode request metadata headers from client
       const findClientHeader = (name: string) =>
-        Object.entries(clientHeaders).find(([key]) => key.toLowerCase() === name.toLowerCase())?.[1];
+        Object.entries(clientHeaders).find(
+          ([key]) => key.toLowerCase() === name.toLowerCase()
+        )?.[1];
 
       const opencodeHeaderKeys = [
         "x-opencode-session",
@@ -144,6 +146,21 @@ export class OpencodeExecutor extends BaseExecutor {
       modifiedBody.tools.length > 128
     ) {
       modifiedBody.tools = modifiedBody.tools.slice(0, 128);
+    }
+    if (modifiedBody && typeof modifiedBody === "object" && !Array.isArray(modifiedBody)) {
+      const mb = modifiedBody as Record<string, unknown>;
+      const m = String(model || "");
+      const effortLevels = ["low", "medium", "high", "max"] as const;
+      const matchedLevel = effortLevels.find((level) => m.endsWith(`-${level}`));
+      if (matchedLevel) {
+        const base = m.slice(0, -matchedLevel.length - 1);
+        if (base.toLowerCase() === "deepseek-v4-pro") {
+          mb.model = "deepseek-v4-pro";
+          if (mb.reasoning_effort === undefined) {
+            mb.reasoning_effort = matchedLevel;
+          }
+        }
+      }
     }
     return modifiedBody;
   }

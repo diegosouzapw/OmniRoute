@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 
 const ROOT = process.cwd();
 const API_ROOT = path.join(ROOT, "src", "app", "api");

@@ -1509,7 +1509,7 @@ test("provider models route always returns the Reka preset catalog", async () =>
   assert.equal(body.source, "local_catalog");
   assert.deepEqual(
     body.models.map((model) => model.id),
-    ["reka-flash-3", "reka-edge-2603"]
+    ["reka-flash-3", "reka-flash", "reka-edge-2603"]
   );
 });
 
@@ -1532,7 +1532,7 @@ test("provider models route returns Reka local catalog without an API key", asyn
   assert.equal(body.source, "local_catalog");
   assert.deepEqual(
     body.models.map((model) => model.id),
-    ["reka-flash-3", "reka-edge-2603"]
+    ["reka-flash-3", "reka-flash", "reka-edge-2603"]
   );
 });
 

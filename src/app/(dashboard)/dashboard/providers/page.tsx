@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardSkeleton, Badge, Button, CollapsibleSection } from "@/shared/components";
 import {
   AGGREGATOR_PROVIDER_IDS,
@@ -9,7 +9,6 @@ import {
   IDE_PROVIDER_IDS,
   IMAGE_ONLY_PROVIDER_IDS,
   VIDEO_PROVIDER_IDS,
-  isClaudeCodeCompatibleProvider,
 } from "@/shared/constants/providers";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
@@ -19,6 +18,7 @@ import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
 import {
   buildStaticProviderEntries,
+  buildCompatibleProviderGroups,
   filterConfiguredProviderEntries,
   shouldFilterProviderEntriesForDisplayMode,
   shouldShowFirstProviderHint,
@@ -480,37 +480,18 @@ export default function ProvidersPage() {
     }
   };
 
-  const compatibleProviders = providerNodes
-    .filter((node) => node.type === "openai-compatible")
-    .map((node) => ({
-      id: node.id,
-      name: node.name || t("openaiCompatibleName"),
-      color: "#10A37F",
-      textIcon: "OC",
-      apiType: node.apiType,
-    }));
-
-  const anthropicCompatibleProviders = providerNodes
-    .filter(
-      (node) => node.type === "anthropic-compatible" && !isClaudeCodeCompatibleProvider(node.id)
-    )
-    .map((node) => ({
-      id: node.id,
-      name: node.name || t("anthropicCompatibleName"),
-      color: "#D97757",
-      textIcon: "AC",
-    }));
-
-  const ccCompatibleProviders = providerNodes
-    .filter(
-      (node) => node.type === "anthropic-compatible" && isClaudeCodeCompatibleProvider(node.id)
-    )
-    .map((node) => ({
-      id: node.id,
-      name: node.name || ccCompatibleLabel,
-      color: "#B45309",
-      textIcon: "CC",
-    }));
+  const compatibleProviderGroups = useMemo(
+    () =>
+      buildCompatibleProviderGroups(providerNodes, {
+        openaiCompatibleName: t("openaiCompatibleName"),
+        anthropicCompatibleName: t("anthropicCompatibleName"),
+        claudeCodeCompatibleName: ccCompatibleLabel,
+      }),
+    [ccCompatibleLabel, providerNodes, t]
+  );
+  const compatibleProviders = compatibleProviderGroups.openai;
+  const anthropicCompatibleProviders = compatibleProviderGroups.anthropic;
+  const ccCompatibleProviders = compatibleProviderGroups.claudeCode;
 
   const effectiveProviderDisplayMode =
     providerDisplayMode === "configured" && connections.length === 0 ? "all" : providerDisplayMode;
@@ -530,7 +511,7 @@ export default function ProvidersPage() {
     activeServiceKind
   );
 
-  const blockedProviderSet = new Set(blockedProviders);
+  const blockedProviderSet = useMemo(() => new Set(blockedProviders), [blockedProviders]);
   const rawNoAuthEntriesAll = buildStaticProviderEntries("no-auth", getProviderStats);
   const noAuthEntriesAll = rawNoAuthEntriesAll.filter(({ providerId, provider }) => {
     const alias = typeof provider.alias === "string" ? provider.alias : null;
@@ -970,8 +951,8 @@ export default function ProvidersPage() {
                       }`}
                       title={t("testAllCompatible")}
                     >
-                      <span className="material-symbols-outlined text-[14px]">
-                        {testingMode === "compatible" ? "sync" : "play_arrow"}
+                      <span className={`material-symbols-outlined text-[14px]${testingMode === "compatible" ? " animate-spin" : ""}`}>
+                        play_arrow
                       </span>
                       {testingMode === "compatible" ? t("testing") : t("testAll")}
                     </button>
@@ -1065,8 +1046,8 @@ export default function ProvidersPage() {
                     title={t("testAllOAuth")}
                     aria-label={t("testAllOAuth")}
                   >
-                    <span className="material-symbols-outlined text-[14px]">
-                      {testingMode === "oauth" ? "sync" : "play_arrow"}
+                    <span className={`material-symbols-outlined text-[14px]${testingMode === "oauth" ? " animate-spin" : ""}`}>
+                      play_arrow
                     </span>
                     {testingMode === "oauth" ? t("testing") : t("testAll")}
                   </button>
@@ -1115,8 +1096,8 @@ export default function ProvidersPage() {
                   title={t("testAll")}
                   aria-label={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "ide" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "ide" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "ide" ? t("testing") : t("testAll")}
                 </button>
@@ -1172,8 +1153,8 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "web-cookie" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "web-cookie" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "web-cookie" ? t("testing") : t("testAll")}
                 </button>
@@ -1216,8 +1197,8 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "free" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "free" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "free" ? t("testing") : t("testAll")}
                 </button>
@@ -1261,8 +1242,8 @@ export default function ProvidersPage() {
                   title={t("testAllApiKey")}
                   aria-label={t("testAllApiKey")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "apikey" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "apikey" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "apikey" ? t("testing") : t("testAll")}
                 </button>
@@ -1313,8 +1294,8 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "no-auth" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "no-auth" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "no-auth" ? t("testing") : t("testAll")}
                 </button>
@@ -1357,8 +1338,8 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "upstream-proxy" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "upstream-proxy" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "upstream-proxy" ? t("testing") : t("testAll")}
                 </button>
@@ -1500,8 +1481,8 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "cloud-agent" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "cloud-agent" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "cloud-agent" ? t("testing") : t("testAll")}
                 </button>
@@ -1548,8 +1529,8 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "local" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "local" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "local" ? t("testing") : t("testAll")}
                 </button>
@@ -1592,8 +1573,8 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "search" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "search" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "search" ? t("testing") : t("testAll")}
                 </button>
@@ -1702,8 +1683,8 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "audio" ? "sync" : "play_arrow"}
+                  <span className={`material-symbols-outlined text-[14px]${testingMode === "audio" ? " animate-spin" : ""}`}>
+                    play_arrow
                   </span>
                   {testingMode === "audio" ? t("testing") : t("testAll")}
                 </button>

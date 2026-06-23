@@ -7,7 +7,11 @@ import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
 import { cloneBoundedChatLogPayload, truncateForLog } from "./chatCore/logTruncation.ts";
-import { getHeaderValueCaseInsensitive, isNoMemoryRequested } from "./chatCore/headers.ts";
+import {
+  getHeaderValueCaseInsensitive,
+  isNoMemoryRequested,
+  resolveCompressionHeader,
+} from "./chatCore/headers.ts";
 import { markCodexScopeRateLimited } from "./chatCore/codexFailover.ts";
 import { getCombosCached, getUpstreamProxyConfigCached } from "./chatCore/comboContextCache.ts";
 export { clearCombosCache, clearUpstreamProxyConfigCache } from "./chatCore/comboContextCache.ts";
@@ -163,10 +167,7 @@ import {
   normalizeExecutorResult,
   executeWithUpstreamStartTimeout,
 } from "./chatCore/upstreamTimeouts.ts";
-import {
-  getModelNormalizeToolCallId,
-  getModelPreserveOpenAIDeveloperRole,
-} from "@/lib/localDb";
+import { getModelNormalizeToolCallId, getModelPreserveOpenAIDeveloperRole } from "@/lib/localDb";
 import { getProviderCredentials, extractSessionAffinityKey } from "@/sse/services/auth";
 import { deleteSessionAccountAffinity } from "@/lib/db/sessionAccountAffinity";
 import { getExecutor } from "../executors/index.ts";
@@ -903,9 +904,7 @@ export async function handleChatCore({
   // field instead of the upstream model, so strict clients (Claude Desktop) that validate
   // response.model === request.model stop rejecting alias/combo requests with a 401.
   const echoModel =
-    settings.echoRequestedModelName === true &&
-    typeof requestedModel === "string" &&
-    requestedModel
+    settings.echoRequestedModelName === true && typeof requestedModel === "string" && requestedModel
       ? requestedModel
       : null;
   const detailedLoggingEnabled =
@@ -1203,6 +1202,7 @@ export async function handleChatCore({
   let cavemanOutputModeApplied = false;
   let cavemanOutputModeIntensity: string | null = null;
   let preCompressionBody: typeof body | null = null;
+  let compressionResponseMeta: string | null = null;
   // Delegated Context Editing (Claude only): captured at the canonical compression
   // settings read below, then threaded to executor.execute() further down. Lives at
   // function scope because the read happens inside the per-message compression block.
@@ -1234,6 +1234,8 @@ export async function handleChatCore({
         activeComboResolves,
         applyCompressionAsync,
         resolveCacheAwareConfig,
+        formatCompressionMeta,
+        buildNamedComboLookup,
       } = await import("../services/compression/strategySelector.ts");
       const { trackCompressionStats } = await import("../services/compression/stats.ts");
       let config: CompressionConfig = compressionSettings ?? {
@@ -1404,12 +1406,17 @@ export async function handleChatCore({
       let namedCombos: Record<string, CompressionPipelineStep[]> = {};
       try {
         const { listCompressionCombos } = await import("../../src/lib/db/compressionCombos.ts");
-        namedCombos = Object.fromEntries(listCompressionCombos().map((c) => [c.id, c.pipeline]));
+        namedCombos = buildNamedComboLookup(listCompressionCombos());
       } catch (err) {
         log?.debug?.(
           "COMPRESSION",
           "Named combos load skipped: " + (err instanceof Error ? err.message : String(err))
         );
+      }
+      // Phase 3: per-request override. Unknown values fall through in the resolver (never error).
+      const compressionHeader = resolveCompressionHeader(clientRawRequest?.headers ?? null);
+      if (compressionHeader) {
+        log?.debug?.("COMPRESSION", `x-omniroute-compression header: ${compressionHeader}`);
       }
       const modeBeforeOutputTransform = selectCompressionStrategy(
         config,
@@ -1417,7 +1424,8 @@ export async function handleChatCore({
         estimatedTokens,
         body as Record<string, unknown>,
         { provider, targetFormat, model: effectiveModel },
-        namedCombos
+        namedCombos,
+        compressionHeader
       );
       if (
         modeBeforeOutputTransform === "stacked" &&
@@ -1486,9 +1494,11 @@ export async function handleChatCore({
         estimatedTokens,
         compressionInputBody,
         { provider, targetFormat, model: effectiveModel },
-        namedCombos
+        namedCombos,
+        compressionHeader
       );
       const mode = compressionPlan.mode as CompressionConfig["defaultMode"];
+      compressionResponseMeta = formatCompressionMeta(compressionPlan);
       // When the per-engine toggle map derives a stacked pipeline (and no named/routing
       // combo already set config.stackedPipeline), feed that derived pipeline through so
       // applyCompressionAsync (which reads config.stackedPipeline for stacked mode) runs the
@@ -3320,17 +3330,20 @@ export async function handleChatCore({
         ? 499
         : error.name === "TimeoutError" || error.name === "BodyTimeoutError"
           ? HTTP_STATUS.GATEWAY_TIMEOUT
-          : (error.status && typeof error.status === "number") ? error.status
-          : HTTP_STATUS.BAD_GATEWAY;
+          : error.status && typeof error.status === "number"
+            ? error.status
+            : HTTP_STATUS.BAD_GATEWAY;
     const failureMessage =
       error.name === "AbortError"
         ? "Request aborted"
         : formatProviderError(error, provider, model, failureStatus);
     const upstreamErrorCode = getUpstreamErrorIdentifier(error);
     const upstreamErrorType =
-      upstreamErrorCode === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE ? "upstream_timeout"
-      : failureStatus === 401 ? "authentication_error"
-      : undefined;
+      upstreamErrorCode === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE
+        ? "upstream_timeout"
+        : failureStatus === 401
+          ? "authentication_error"
+          : undefined;
     appendRequestLog({
       model,
       provider,
@@ -4462,6 +4475,9 @@ export async function handleChatCore({
       costUsd: estimatedCost,
       requestId: skillRequestId,
     });
+    if (compressionResponseMeta) {
+      responseHeaders[OMNIROUTE_RESPONSE_HEADERS.compression] = compressionResponseMeta;
+    }
     // #1311: echo the requested alias/combo name in the non-streaming response model.
     if (echoModel) echoModelInObject(translatedResponse, echoModel);
     return {
@@ -4587,6 +4603,9 @@ export async function handleChatCore({
     }),
     "x-omniroute-request-id": pendingRequestId,
   };
+  if (compressionResponseMeta) {
+    responseHeaders[OMNIROUTE_RESPONSE_HEADERS.compression] = compressionResponseMeta;
+  }
 
   // Create transform stream with logger for streaming response
   let transformStream;

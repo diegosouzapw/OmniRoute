@@ -21,6 +21,8 @@ import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
 import QuotaCutoffModal from "./QuotaCutoffModal";
 import QuotaCardGrid from "./QuotaCardGrid";
+import { useVisibleQuotaData } from "./useVisibleQuotaData";
+import { formatAutoRefreshCountdown } from "./formatters";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 import { compareTr } from "@/shared/utils/turkishText";
 
@@ -33,7 +35,6 @@ const MIN_FETCH_INTERVAL_MS = 30000;
 const QUOTA_BAR_GREEN_THRESHOLD = 50;
 const QUOTA_BAR_YELLOW_THRESHOLD = 20;
 
-// Display label per known provider; the icon is resolved by ProviderIcon.
 const PROVIDER_LABEL: Record<string, string> = {
   antigravity: "Antigravity",
   "gemini-cli": "Gemini CLI",
@@ -46,6 +47,7 @@ const PROVIDER_LABEL: Record<string, string> = {
   zai: "Z.AI",
   glmt: "GLM Thinking",
   "opencode-go": "OpenCode Go",
+  "ollama-cloud": "Ollama Cloud",
   "kimi-coding": "Kimi Coding",
   minimax: "MiniMax",
   "minimax-cn": "MiniMax CN",
@@ -53,8 +55,7 @@ const PROVIDER_LABEL: Record<string, string> = {
   deepseek: "DeepSeek",
 };
 
-// Group ordering — single source of truth for "where does Codex sit
-// relative to Antigravity on the page".
+// Group ordering — single source of truth for provider placement.
 const PROVIDER_ORDER: Record<string, number> = {
   antigravity: 1,
   "gemini-cli": 2,
@@ -66,10 +67,11 @@ const PROVIDER_ORDER: Record<string, number> = {
   zai: 8,
   glmt: 9,
   "opencode-go": 10,
-  "kimi-coding": 11,
-  minimax: 12,
-  "minimax-cn": 13,
-  nanogpt: 14,
+  "ollama-cloud": 11,
+  "kimi-coding": 12,
+  minimax: 13,
+  "minimax-cn": 14,
+  nanogpt: 15,
 };
 
 const TIER_FILTERS = [
@@ -211,13 +213,6 @@ function aggregateWorst(statuses: StatusKey[]): "critical" | "alert" | "ok" | "e
     if (s === "ok" && worst === "empty") worst = "ok";
   }
   return worst;
-}
-
-function formatAutoRefreshCountdown(ms: number): string {
-  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
 interface ProviderLimitsProps {
@@ -564,6 +559,7 @@ export default function ProviderLimits({
       (a, b) => (PROVIDER_ORDER[a.provider] || 99) - (PROVIDER_ORDER[b.provider] || 99)
     );
   }, [filteredConnections]);
+  const visibleQuotaData = useVisibleQuotaData(sortedConnections, quotaData);
 
   const resolvedPlanByConnection = useMemo(() => {
     const out: Record<string, string | null> = {};
@@ -613,10 +609,10 @@ export default function ProviderLimits({
   const statusByConnection = useMemo(() => {
     const out: Record<string, StatusKey> = {};
     for (const conn of sortedConnections) {
-      out[conn.id] = getWorstStatus(quotaData[conn.id]?.quotas);
+      out[conn.id] = getWorstStatus(visibleQuotaData[conn.id]?.quotas);
     }
     return out;
-  }, [sortedConnections, quotaData]);
+  }, [sortedConnections, visibleQuotaData]);
 
   const purchaseTypeCounts = useMemo(() => {
     const counts: Record<PurchaseTypeKey, number> = {
@@ -697,8 +693,8 @@ export default function ProviderLimits({
       const sa = statusRank[statusByConnection[a.id] || "empty"];
       const sb = statusRank[statusByConnection[b.id] || "empty"];
       if (sa !== sb) return sa - sb;
-      const ra = getSoonestResetMs(quotaData[a.id]?.quotas);
-      const rb = getSoonestResetMs(quotaData[b.id]?.quotas);
+      const ra = getSoonestResetMs(visibleQuotaData[a.id]?.quotas);
+      const rb = getSoonestResetMs(visibleQuotaData[b.id]?.quotas);
       return ra - rb;
     });
   }, [
@@ -711,7 +707,7 @@ export default function ProviderLimits({
     statusByConnection,
     envFilter,
     providerFilter,
-    quotaData,
+    visibleQuotaData,
   ]);
 
   // Distinct provider keys present in the current connection set (after the
@@ -1055,7 +1051,7 @@ export default function ProviderLimits({
 
         <QuotaCardGrid
           connections={visibleConnections}
-          quotaData={quotaData}
+          quotaData={visibleQuotaData}
           loading={loading}
           errors={errors}
           lastRefreshedAt={lastRefreshedAt}
@@ -1064,7 +1060,7 @@ export default function ProviderLimits({
           renderInlineQuotaSummary={(quota) => renderInlineQuotaSummary(quota.quotas)}
           onRefresh={refreshProvider}
           onOpenCutoff={(conn) => {
-            const windows = (quotaData[conn.id]?.quotas || []).filter(
+            const windows = (visibleQuotaData[conn.id]?.quotas || []).filter(
               (q: any) => q && typeof q.name === "string" && !q.isCredits
             );
             setCutoffModalWindows(windows);

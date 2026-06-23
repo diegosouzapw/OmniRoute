@@ -9,7 +9,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import { assertNoStale } from "./lib/allowlist.mjs";
 
 const ROOT = process.cwd();

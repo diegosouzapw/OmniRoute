@@ -12,8 +12,6 @@ import {
   getProviderBaseUrlHint,
   getProviderBaseUrlPlaceholder,
   isGlmProvider,
-  parseRoutingTagsInput,
-  parseExcludedModelsInput,
   getWebSessionCredentialLabel,
   getWebSessionCredentialHint,
   getWebSessionCredentialCheckLabel,
@@ -28,7 +26,8 @@ import { getWebSessionCredentialRequirement } from "../../webSessionCredentials"
 import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
-import { assignCcCompatibleRequestDefaults } from "./ccCompatibleRequestDefaults";
+import { buildAddProviderSpecificData } from "./connectionProviderSpecificData";
+import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
 
 export interface AddApiKeyModalProps {
   isOpen: boolean;
@@ -112,6 +111,7 @@ export default function AddApiKeyModal({
     customUserAgent: "",
     accountId: "",
     consoleApiKey: "",
+    ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
     ccCompatibleRedactThinking: false,
     passthroughModels: false,
@@ -283,47 +283,27 @@ export default function AddApiKeyModal({
         }
       }
 
-      const providerSpecificData: Record<string, unknown> = {};
-      if (formData.customUserAgent.trim()) {
-        providerSpecificData.customUserAgent = formData.customUserAgent.trim();
-      }
-      openRouterPreset.applyTo(providerSpecificData);
-      if (formData.routingTags.trim()) {
-        providerSpecificData.tags = parseRoutingTagsInput(formData.routingTags);
-      }
-      if (formData.excludedModels.trim()) {
-        providerSpecificData.excludedModels = parseExcludedModelsInput(formData.excludedModels);
-      }
-      if (formData.passthroughModels) {
-        providerSpecificData.passthroughModels = true;
-      }
-      if (showFreeModelsToggle && formData.importFreeModelsOnly) {
-        providerSpecificData.importFreeModelsOnly = true;
-      }
-      if (provider === "bailian-coding-plan" && formData.consoleApiKey.trim()) {
-        providerSpecificData.consoleApiKey = formData.consoleApiKey.trim();
-      }
-      if (isGooglePse && formData.cx.trim()) {
-        providerSpecificData.cx = formData.cx.trim();
-      }
-      if (usesBaseUrl) {
-        providerSpecificData.baseUrl = validatedBaseUrl;
-      } else if (showsRegion) {
-        providerSpecificData.region = formData.region.trim() || defaultRegion;
-      } else if (isGlm) {
-        providerSpecificData.apiRegion = formData.apiRegion;
-      } else if (isCloudflare && formData.accountId.trim()) {
-        providerSpecificData.accountId = formData.accountId.trim();
-      }
-      if (isCcCompatible) assignCcCompatibleRequestDefaults(providerSpecificData, formData);
+      const providerSpecificData = buildAddProviderSpecificData({
+        provider,
+        formData,
+        openRouterPreset,
+        showFreeModelsToggle,
+        isGooglePse,
+        usesBaseUrl,
+        validatedBaseUrl,
+        showsRegion,
+        defaultRegion,
+        isGlm,
+        isCloudflare,
+        isCcCompatible,
+      });
 
       const payload = {
         name: formData.name,
         apiKey: credentialInput.trim() || undefined,
         priority: formData.priority,
         testStatus: "active",
-        providerSpecificData:
-          Object.keys(providerSpecificData).length > 0 ? providerSpecificData : undefined,
+        providerSpecificData,
       };
 
       const error = await onSave(payload);
@@ -710,6 +690,12 @@ export default function AddApiKeyModal({
               </div>
             )}
             {freeModelsToggle}
+            <QuotaScrapingFields
+              provider={provider}
+              values={formData}
+              onChange={(patch) => setFormData({ ...formData, ...patch })}
+              t={t}
+            />
             {isCompatible && !isCcCompatible && (
               <p className="text-xs text-text-muted">
                 {isAnthropic

@@ -1,10 +1,11 @@
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { solveDeepSeekPowAsync } from "../lib/deepseek-pow.ts";
+import { type OpenAIToolCall } from "../translator/webTools.ts";
 import {
-  serializeToolsToPrompt,
-  parseToolCallsFromText,
-  type OpenAIToolCall,
-} from "../translator/webTools.ts";
+  serializeDeepSeekToolPrompt,
+  parseDeepSeekToolCalls,
+  buildToolConversationPrompt,
+} from "../translator/deepseekWebTools.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 
 export const DEEPSEEK_WEB_BASE = "https://chat.deepseek.com";
@@ -196,170 +197,170 @@ function transformSSE(deepseekStream: ReadableStream, model: string): ReadableSt
 
   return new ReadableStream(
     {
-    async start(controller) {
-      const reader = deepseekStream.getReader();
-      let buffer = "";
+      async start(controller) {
+        const reader = deepseekStream.getReader();
+        let buffer = "";
 
-      const emit = (obj: object) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`));
-      };
+        const emit = (obj: object) => {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`));
+        };
 
-      const chunk = (delta: object, finish?: string) => {
-        emit({
-          id,
-          object: "chat.completion.chunk",
-          created,
-          model: streamModel,
-          choices: [{ index: 0, delta, finish_reason: finish ?? null }],
-        });
-      };
+        const chunk = (delta: object, finish?: string) => {
+          emit({
+            id,
+            object: "chat.completion.chunk",
+            created,
+            model: streamModel,
+            choices: [{ index: 0, delta, finish_reason: finish ?? null }],
+          });
+        };
 
-      const ensureRole = () => {
-        if (!emittedRole) {
-          emittedRole = true;
-          chunk({ role: "assistant", content: "" });
-        }
-      };
+        const ensureRole = () => {
+          if (!emittedRole) {
+            emittedRole = true;
+            chunk({ role: "assistant", content: "" });
+          }
+        };
 
-      const finishStream = () => {
-        const citations = appendSearchCitations(searchResults, streamModel);
-        if (citations) {
+        const finishStream = () => {
+          const citations = appendSearchCitations(searchResults, streamModel);
+          if (citations) {
+            ensureRole();
+            chunk({ content: `\n\n${citations}` });
+          }
           ensureRole();
-          chunk({ content: `\n\n${citations}` });
-        }
-        ensureRole();
-        chunk({}, "stop");
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-        controller.close();
-      };
+          chunk({}, "stop");
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
+        };
 
-      const sendByPath = (raw: string) => {
-        const text = formatStreamContent(raw, streamModel);
-        if (!text) return;
-        ensureRole();
-        let path = currentPath;
-        if (!path && thinkingModel) path = "thinking";
-        else if (!path && isSearchModel(streamModel)) path = "content";
-        if (path === "thinking") {
-          chunk({ reasoning_content: text });
-        } else {
-          chunk({ content: text });
-        }
-      };
+        const sendByPath = (raw: string) => {
+          const text = formatStreamContent(raw, streamModel);
+          if (!text) return;
+          ensureRole();
+          let path = currentPath;
+          if (!path && thinkingModel) path = "thinking";
+          else if (!path && isSearchModel(streamModel)) path = "content";
+          if (path === "thinking") {
+            chunk({ reasoning_content: text });
+          } else {
+            chunk({ content: text });
+          }
+        };
 
-      const applyFragmentType = (frag: any) => {
-        const type = String(frag?.type || "").toUpperCase();
-        if (type === "THINK") currentPath = "thinking";
-        else if (type === "ANSWER" || type === "RESPONSE") currentPath = "content";
-      };
-
-      const handleFragment = (frag: any, setPathFromType = false) => {
-        if (setPathFromType) applyFragmentType(frag);
-        if (typeof frag?.content !== "string" || frag.content.length === 0) return;
-        if (!setPathFromType) {
+        const applyFragmentType = (frag: any) => {
           const type = String(frag?.type || "").toUpperCase();
           if (type === "THINK") currentPath = "thinking";
           else if (type === "ANSWER" || type === "RESPONSE") currentPath = "content";
-        }
-        sendByPath(frag.content);
-      };
+        };
 
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        const handleFragment = (frag: any, setPathFromType = false) => {
+          if (setPathFromType) applyFragmentType(frag);
+          if (typeof frag?.content !== "string" || frag.content.length === 0) return;
+          if (!setPathFromType) {
+            const type = String(frag?.type || "").toUpperCase();
+            if (type === "THINK") currentPath = "thinking";
+            else if (type === "ANSWER" || type === "RESPONSE") currentPath = "content";
+          }
+          sendByPath(frag.content);
+        };
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() || "";
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-          for (const line of lines) {
-            if (!line.startsWith("data: ") && !line.startsWith("data:")) continue;
-            const payload = line.replace(/^data:\s*/, "").trim();
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || "";
 
-            if (payload === "[DONE]") {
-              finishStream();
-              return;
-            }
+            for (const line of lines) {
+              if (!line.startsWith("data: ") && !line.startsWith("data:")) continue;
+              const payload = line.replace(/^data:\s*/, "").trim();
 
-            let data: Record<string, unknown>;
-            try {
-              data = JSON.parse(payload);
-            } catch {
-              continue;
-            }
-
-            const p = (data as any)?.p;
-            const o = (data as any)?.o;
-            const v = (data as any)?.v;
-
-            if (v && typeof v === "object" && v.response) {
-              if (v.response.thinking_enabled === true) currentPath = "thinking";
-              else if (v.response.thinking_enabled === false) currentPath = "content";
-              const fragments = v.response.fragments;
-              if (Array.isArray(fragments)) {
-                for (const frag of fragments) handleFragment(frag, false);
+              if (payload === "[DONE]") {
+                finishStream();
+                return;
               }
-            }
 
-            if (p === "response/fragments") {
-              if (Array.isArray(v)) {
-                for (const frag of v) handleFragment(frag, true);
-              } else if (v && typeof v === "object") {
-                handleFragment(v, true);
+              let data: Record<string, unknown>;
+              try {
+                data = JSON.parse(payload);
+              } catch {
+                continue;
               }
-            }
 
-            if (p === "response" && Array.isArray(v)) {
-              for (const entry of v) {
-                if (entry?.p === "response" && entry?.v?.thinking_enabled === true) {
-                  currentPath = "thinking";
+              const p = (data as any)?.p;
+              const o = (data as any)?.o;
+              const v = (data as any)?.v;
+
+              if (v && typeof v === "object" && v.response) {
+                if (v.response.thinking_enabled === true) currentPath = "thinking";
+                else if (v.response.thinking_enabled === false) currentPath = "content";
+                const fragments = v.response.fragments;
+                if (Array.isArray(fragments)) {
+                  for (const frag of fragments) handleFragment(frag, false);
                 }
               }
-            }
 
-            if (p === "response/search_status") continue;
+              if (p === "response/fragments") {
+                if (Array.isArray(v)) {
+                  for (const frag of v) handleFragment(frag, true);
+                } else if (v && typeof v === "object") {
+                  handleFragment(v, true);
+                }
+              }
 
-            if (p === "response/search_results" && Array.isArray(v)) {
-              if (o !== "BATCH") {
-                searchResults.length = 0;
-                searchResults.push(...v);
-              } else {
-                for (const op of v) {
-                  const match = String(op?.p || "").match(/^(\d+)\/cite_index$/);
-                  if (match) {
-                    const index = parseInt(match[1], 10);
-                    if (searchResults[index]) searchResults[index].cite_index = op.v;
+              if (p === "response" && Array.isArray(v)) {
+                for (const entry of v) {
+                  if (entry?.p === "response" && entry?.v?.thinking_enabled === true) {
+                    currentPath = "thinking";
                   }
                 }
               }
-              continue;
-            }
 
-            if (typeof v === "string") {
-              sendByPath(v);
-            } else if (Array.isArray(v) && p === "response") {
-              for (const entry of v) {
-                if (Array.isArray(entry?.v)) {
-                  const joined = entry.v.map((item: any) => item?.content || "").join("");
-                  if (joined) sendByPath(joined);
+              if (p === "response/search_status") continue;
+
+              if (p === "response/search_results" && Array.isArray(v)) {
+                if (o !== "BATCH") {
+                  searchResults.length = 0;
+                  searchResults.push(...v);
+                } else {
+                  for (const op of v) {
+                    const match = String(op?.p || "").match(/^(\d+)\/cite_index$/);
+                    if (match) {
+                      const index = parseInt(match[1], 10);
+                      if (searchResults[index]) searchResults[index].cite_index = op.v;
+                    }
+                  }
+                }
+                continue;
+              }
+
+              if (typeof v === "string") {
+                sendByPath(v);
+              } else if (Array.isArray(v) && p === "response") {
+                for (const entry of v) {
+                  if (Array.isArray(entry?.v)) {
+                    const joined = entry.v.map((item: any) => item?.content || "").join("");
+                    if (joined) sendByPath(joined);
+                  }
                 }
               }
-            }
 
-            // Do not close on FINISHED — DeepSeek may still send search_results afterward.
-            if (p === "response/status" && v === "FINISHED") {
-              continue;
+              // Do not close on FINISHED — DeepSeek may still send search_results afterward.
+              if (p === "response/status" && v === "FINISHED") {
+                continue;
+              }
             }
           }
+        } catch (err) {
+          controller.error(err);
+          return;
         }
-      } catch (err) {
-        controller.error(err);
-        return;
-      }
 
-      finishStream();
-    },
+        finishStream();
+      },
     },
     { highWaterMark: 16384 }
   );
@@ -738,6 +739,10 @@ function buildToolAwareResult(opts: {
     const sse = new ReadableStream({
       start(controller) {
         emit(controller, { role: "assistant", content: "" }, null);
+        // Surrounding natural-language text (and reasoning) is emitted before the tool_calls
+        // so a model reply that interleaves a plan with a call still reaches the client (#7).
+        if (reasoningContent) emit(controller, { reasoning_content: reasoningContent }, null);
+        if (content) emit(controller, { content }, null);
         if (hasCalls) {
           emit(
             controller,
@@ -751,8 +756,6 @@ function buildToolAwareResult(opts: {
             },
             null
           );
-        } else if (content) {
-          emit(controller, { content }, null);
         }
         emit(controller, {}, finishReason);
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
@@ -826,7 +829,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
     // back into OpenAI tool_calls on the way out.
     const requestedTools = bodyObj.tools;
     const hasTools = Array.isArray(requestedTools) && requestedTools.length > 0;
-    const toolSystemPrompt = hasTools ? serializeToolsToPrompt(requestedTools) : "";
+    const toolSystemPrompt = hasTools ? serializeDeepSeekToolPrompt(requestedTools) : "";
 
     const messages = (Array.isArray(bodyObj.messages) ? bodyObj.messages : []) as Array<{
       role: string;
@@ -868,7 +871,12 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       const accessToken = await acquireAccessToken(userToken, signal, log);
       log?.info?.("DEEPSEEK-WEB", `Token acquired in ${Date.now() - t0}ms`);
 
-      const prompt = messagesToPrompt(promptMessages, historyWindow);
+      // Tool (agentic) requests replay the whole trajectory — prior tool calls and their
+      // results — so the model keeps context across turns instead of restarting each time.
+      // Plain chat keeps the legacy last-user-message / rolling-window behavior.
+      const prompt = hasTools
+        ? buildToolConversationPrompt(messages, toolSystemPrompt)
+        : messagesToPrompt(promptMessages, historyWindow);
       const refFileIds = Array.isArray(bodyObj.ref_file_ids) ? bodyObj.ref_file_ids : [];
       log?.info?.(
         "DEEPSEEK-WEB",
@@ -1030,7 +1038,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       if (hasTools) {
         const { content, reasoningContent } = await collectSSEContent(resp.body!, clientModel);
         await cleanupFn();
-        const { content: cleanedContent, toolCalls } = parseToolCallsFromText(
+        const { content: cleanedContent, toolCalls } = parseDeepSeekToolCalls(
           content,
           `call-${Date.now()}`,
           requestedTools

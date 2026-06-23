@@ -130,13 +130,6 @@ function isChatAutoComboNoAuthProvider(providerDef: NoAuthProviderDefinition): b
   return providerDef.serviceKinds.includes("llm");
 }
 
-function getFirstRegistryModelId(providerInfo: { models?: Array<{ id?: string }> } | undefined) {
-  const firstModel = Array.isArray(providerInfo?.models) ? providerInfo.models[0] : undefined;
-  return typeof firstModel?.id === "string" && firstModel.id.trim().length > 0
-    ? firstModel.id
-    : undefined;
-}
-
 function getNoAuthCandidates(
   excludedProviders: Set<string>,
   blockedProviders: Set<string>
@@ -156,8 +149,8 @@ function getNoAuthCandidates(
       continue;
 
     const providerInfo = registry[providerId];
-    const modelId = getFirstRegistryModelId(providerInfo);
-    if (!modelId) continue;
+    const registryModels = Array.isArray(providerInfo?.models) ? providerInfo.models : [];
+    if (registryModels.length === 0) continue;
 
     // No-auth providers do not have provider_connections rows. Use the same
     // synthetic connection id returned by getProviderCredentials() so the
@@ -169,13 +162,18 @@ function getNoAuthCandidates(
         ? providerInfo.alias
         : null;
     const routingPrefix = providerDef.alias || registryAlias || providerId;
-    candidates.push({
-      provider: providerId,
-      connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
-      model: modelId,
-      modelStr: `${routingPrefix}/${modelId}`,
-      costPer1MTokens: 0,
-    });
+
+    for (const model of registryModels) {
+      const modelId = typeof model?.id === "string" && model.id.trim().length > 0 ? model.id : null;
+      if (!modelId) continue;
+      candidates.push({
+        provider: providerId,
+        connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
+        model: modelId,
+        modelStr: `${routingPrefix}/${modelId}`,
+        costPer1MTokens: 0,
+      });
+    }
   }
 
   return candidates;

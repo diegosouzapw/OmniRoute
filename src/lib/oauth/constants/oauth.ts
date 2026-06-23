@@ -99,8 +99,8 @@ export const GEMINI_CONFIG = {
 // Qwen OAuth Configuration (Device Code Flow with PKCE)
 export const QWEN_CONFIG = {
   clientId: resolvePublicCred("qwen_id", "QWEN_OAUTH_CLIENT_ID"),
-  deviceCodeUrl: "https://chat.qwen.ai/api/v1/oauth2/device/code",
-  tokenUrl: "https://chat.qwen.ai/api/v1/oauth2/token",
+  deviceCodeUrl: "https://qwen.ai/api/v1/oauth2/device/code",
+  tokenUrl: "https://qwen.ai/api/v1/oauth2/token",
   scope: "openid profile email model.completion",
   codeChallengeMethod: "S256",
 };

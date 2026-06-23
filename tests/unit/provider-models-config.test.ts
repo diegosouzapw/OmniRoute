@@ -78,8 +78,9 @@ test("Reka registry exposes preset models", () => {
 
   assert.equal(PROVIDER_ID_TO_ALIAS.reka, "reka");
   assert.equal(getDefaultModel("reka"), "reka-flash-3");
-  assert.deepEqual(ids, ["reka-flash-3", "reka-edge-2603"]);
+  assert.deepEqual(ids, ["reka-flash-3", "reka-flash", "reka-edge-2603"]);
   assert.equal(isValidModel("reka", "reka-edge-2603"), true);
+  assert.equal(isValidModel("reka", "reka-flash"), true);
 });
 
 test("GitHub Copilot registry reflects the current supported model lineup", () => {

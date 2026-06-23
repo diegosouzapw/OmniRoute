@@ -6,7 +6,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 let cachedSpec: { data: any; mtime: number } | null = null;

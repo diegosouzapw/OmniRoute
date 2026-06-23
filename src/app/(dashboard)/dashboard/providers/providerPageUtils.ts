@@ -7,6 +7,7 @@ import {
   type ResolvedProviderCatalogEntry,
   type StaticProviderCatalogCategory,
 } from "@/lib/providers/catalog";
+import { isClaudeCodeCompatibleProvider } from "@/shared/constants/providers";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import { providerHasServiceKind } from "@/lib/providers/serviceKindIndex";
 import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
@@ -24,6 +25,20 @@ export interface ProviderEntry<TProvider = Record<string, unknown>> {
   displayAuthType: "oauth" | "apikey" | "compatible" | "no-auth";
   toggleAuthType: "oauth" | "free" | "apikey" | "no-auth";
 }
+
+export type CompatibleProviderInfo = {
+  id: string;
+  name: string;
+  color: string;
+  textIcon: string;
+  apiType?: string;
+};
+
+export type CompatibleProviderGroups = {
+  openai: CompatibleProviderInfo[];
+  anthropic: CompatibleProviderInfo[];
+  claudeCode: CompatibleProviderInfo[];
+};
 
 export function shouldApplyConfiguredOnlyFilter(
   showConfiguredOnly: boolean,
@@ -108,6 +123,53 @@ export function buildStaticProviderEntries(
     group.toggleAuthType,
     getProviderStats
   );
+}
+
+export function buildCompatibleProviderGroups(
+  providerNodes: Array<{ id: string; name?: string; type?: string; apiType?: string }>,
+  labels: {
+    openaiCompatibleName: string;
+    anthropicCompatibleName: string;
+    claudeCodeCompatibleName: string;
+  }
+): CompatibleProviderGroups {
+  const openai: CompatibleProviderInfo[] = [];
+  const anthropic: CompatibleProviderInfo[] = [];
+  const claudeCode: CompatibleProviderInfo[] = [];
+
+  for (const node of providerNodes) {
+    if (node.type === "openai-compatible") {
+      openai.push({
+        id: node.id,
+        name: node.name || labels.openaiCompatibleName,
+        color: "#10A37F",
+        textIcon: "OC",
+        apiType: node.apiType,
+      });
+      continue;
+    }
+
+    if (node.type !== "anthropic-compatible") continue;
+
+    if (isClaudeCodeCompatibleProvider(node.id)) {
+      claudeCode.push({
+        id: node.id,
+        name: node.name || labels.claudeCodeCompatibleName,
+        color: "#B45309",
+        textIcon: "CC",
+      });
+      continue;
+    }
+
+    anthropic.push({
+      id: node.id,
+      name: node.name || labels.anthropicCompatibleName,
+      color: "#D97757",
+      textIcon: "AC",
+    });
+  }
+
+  return { openai, anthropic, claudeCode };
 }
 
 export function filterConfiguredProviderEntries<TProvider>(

@@ -97,13 +97,12 @@ test.after(() => {
 // ---------------------------------------------------------------------------
 
 test("#3500 buildUnifiedSource — raw-only branch when sinceIso is recent", () => {
-  // A very recent sinceIso means no aggregated rows are needed
-  const recentIso = new Date(Date.now() - 3600_000).toISOString(); // 1 hour ago
-  const today = new Date().toISOString().split("T")[0];
+  // sinceIso >= rawCutoffDate means no aggregated rows are needed.
+  const recentIso = "2025-06-02T12:00:00.000Z";
   const result = mod.buildUnifiedSource({
     sinceIso: recentIso,
     untilIso: null,
-    rawCutoffDate: today,
+    rawCutoffDate: "2025-06-01",
     apiKeyWhere: "",
     apiKeyParams: {},
   });

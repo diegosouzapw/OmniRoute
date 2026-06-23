@@ -34,13 +34,13 @@ const {
 // Test group 1 — Flag definitions registry
 // ──────────────────────────────────────────────────────
 describe("featureFlagDefinitions", () => {
-  it("has exactly 35 flag definitions", () => {
-    assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, 35);
+  it("has exactly 37 flag definitions", () => {
+    assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, 37);
   });
 
   it("has unique keys for all flags", () => {
     const keys = FEATURE_FLAG_DEFINITIONS.map((d) => d.key);
-    assert.strictEqual(new Set(keys).size, 35);
+    assert.strictEqual(new Set(keys).size, 37);
   });
 
   it("has valid categories for all flags", () => {
@@ -124,6 +124,27 @@ describe("featureFlagDefinitions", () => {
     assert.strictEqual(def.type, "boolean");
     assert.strictEqual(def.defaultValue, "true");
     assert.strictEqual(def.requiresRestart, false);
+  });
+
+  it("defines stream recovery as runtime boolean flags disabled by default", () => {
+    const early = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "STREAM_RECOVERY_ENABLED");
+    const midstream = FEATURE_FLAG_DEFINITIONS.find(
+      (d) => d.key === "STREAM_RECOVERY_MIDSTREAM_ENABLED"
+    );
+
+    assert.ok(early, "STREAM_RECOVERY_ENABLED should exist");
+    assert.strictEqual(early.category, "runtime");
+    assert.strictEqual(early.type, "boolean");
+    assert.strictEqual(early.defaultValue, "false");
+    assert.strictEqual(early.requiresRestart, false);
+    assert.strictEqual(early.warningLevel, "caution");
+
+    assert.ok(midstream, "STREAM_RECOVERY_MIDSTREAM_ENABLED should exist");
+    assert.strictEqual(midstream.category, "runtime");
+    assert.strictEqual(midstream.type, "boolean");
+    assert.strictEqual(midstream.defaultValue, "false");
+    assert.strictEqual(midstream.requiresRestart, false);
+    assert.strictEqual(midstream.warningLevel, "danger");
   });
 
   it("defines control-plane proxy direct fallback as a network boolean flag disabled by default", () => {
@@ -274,9 +295,9 @@ describe("resolveFeatureFlag", () => {
   });
 
   describe("resolveAllFeatureFlags", () => {
-    it("returns all 35 flags", () => {
+    it("returns all 37 flags", () => {
       const all = resolveAllFeatureFlags();
-      assert.strictEqual(all.length, 35);
+      assert.strictEqual(all.length, 37);
     });
 
     it("marks DB-overridden flags with source 'db'", () => {

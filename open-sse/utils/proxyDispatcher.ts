@@ -108,10 +108,42 @@ function getProxyDispatcherOptions(env: Record<string, string | undefined> = pro
   };
 }
 
+export function getDefaultDispatcherConnectionLimit(
+  env: Record<string, string | undefined> = process.env
+): number {
+  const raw = env.OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS;
+  if (raw == null || raw.trim() === "") return DEFAULT_PROXY_DISPATCHER_CONNECTIONS;
+
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    console.warn(
+      `[ProxyDispatcher] Invalid OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS="${raw}". Using default ${DEFAULT_PROXY_DISPATCHER_CONNECTIONS}.`
+    );
+    return DEFAULT_PROXY_DISPATCHER_CONNECTIONS;
+  }
+
+  return Math.min(Math.floor(parsed), MAX_PROXY_DISPATCHER_CONNECTIONS);
+}
+
+function getDefaultDispatcherOptions(env: Record<string, string | undefined> = process.env) {
+  const options = getDispatcherOptions();
+  // #4580 — On the direct egress path, undici's default pipelining (1) lets a long
+  // SSE stream monopolize the single pooled socket per origin, serializing every
+  // other concurrent request to that same provider. Mirror the proxy fix (#4288):
+  // disable pipelining and keep several connections available. Unlike the proxy
+  // path we KEEP keep-alive — the 1ms TTL there is a cheap-proxy-socket workaround,
+  // not needed (and harmful to perf) for direct connections.
+  return {
+    ...options,
+    connections: getDefaultDispatcherConnectionLimit(env),
+    pipelining: 0,
+  };
+}
+
 export function getDefaultDispatcher(): Dispatcher {
   const globalWithCache = globalThis as GlobalWithDispatcherCache;
   if (!globalWithCache[DEFAULT_DISPATCHER_KEY]) {
-    globalWithCache[DEFAULT_DISPATCHER_KEY] = new Agent(getDispatcherOptions());
+    globalWithCache[DEFAULT_DISPATCHER_KEY] = new Agent(getDefaultDispatcherOptions());
   }
   return globalWithCache[DEFAULT_DISPATCHER_KEY];
 }
@@ -360,6 +392,12 @@ export function __getProxyDispatcherOptionsForTest(
   env: Record<string, string | undefined> = process.env
 ) {
   return getProxyDispatcherOptions(env);
+}
+
+export function __getDefaultDispatcherOptionsForTest(
+  env: Record<string, string | undefined> = process.env
+) {
+  return getDefaultDispatcherOptions(env);
 }
 
 export function createProxyDispatcher(proxyUrl: string): Dispatcher {

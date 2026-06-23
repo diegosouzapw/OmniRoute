@@ -243,7 +243,7 @@ export async function handleChat(
   // Log request endpoint and model
   const url = new URL(request.url);
 
-  // No-thinking gateway alias (Fase 8.1): `claude-3-omniroute-no-thinking/<provider>/<model>`
+  // No-thinking gateway alias (Fase 8.1): `no-think/<provider>/<model>`
   // resolves back to the real model with reasoning suppressed in place, before any
   // model resolution / combo routing sees it. Claude/Messages path forces
   // `thinking:{type:"disabled"}`; OpenAI path drops the reasoning fields.

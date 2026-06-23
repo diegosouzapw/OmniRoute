@@ -41,14 +41,13 @@ function applyCopilotSummarizedThinkingDisplay(
 //   - max_tokens must be <= model output cap (e.g. 128000 for Opus 4.7)
 const MIN_CLAUDE_THINKING_BUDGET = 1024;
 const MIN_RESPONSE_ROOM = 1024;
-const FALLBACK_OUTPUT_CAP = 128000;
 
-function safeCapMaxOutputTokens(model: string): number {
+function safeCapMaxOutputTokens(model: string): number | null {
   try {
     const cap = capMaxOutputTokens(model);
-    return typeof cap === "number" && cap > 0 ? cap : FALLBACK_OUTPUT_CAP;
+    return typeof cap === "number" && cap > 0 ? cap : null;
   } catch {
-    return FALLBACK_OUTPUT_CAP;
+    return null;
   }
 }
 
@@ -86,26 +85,35 @@ export function fitThinkingToMaxTokens(
   // No budgeted thinking — just cap max_tokens to the model output ceiling.
   if (!thinking || requestedBudget <= 0) {
     return {
-      maxTokens: Math.min(Math.max(callerMaxTokens, 1), modelCap),
+      maxTokens:
+        modelCap === null
+          ? Math.max(callerMaxTokens, 1)
+          : Math.min(Math.max(callerMaxTokens, 1), modelCap),
       thinking,
     };
   }
 
   let responseRoom = Math.max(callerMaxTokens, MIN_RESPONSE_ROOM);
-  let target = Math.min(responseRoom + requestedBudget, modelCap);
+  let target =
+    modelCap === null
+      ? responseRoom + requestedBudget
+      : Math.min(responseRoom + requestedBudget, modelCap);
   let fittedBudget = target - responseRoom;
 
   // If the cap squeezed thinking below Anthropic's floor, try shrinking
   // response room to MIN_RESPONSE_ROOM to recover budget.
   if (fittedBudget < MIN_CLAUDE_THINKING_BUDGET && responseRoom > MIN_RESPONSE_ROOM) {
     responseRoom = MIN_RESPONSE_ROOM;
-    target = Math.min(responseRoom + requestedBudget, modelCap);
+    target =
+      modelCap === null
+        ? responseRoom + requestedBudget
+        : Math.min(responseRoom + requestedBudget, modelCap);
     fittedBudget = target - responseRoom;
   }
 
   // Cap too tight for any thinking — disable rather than send an invalid request.
   if (fittedBudget < MIN_CLAUDE_THINKING_BUDGET) {
-    return { maxTokens: modelCap, thinking: undefined };
+    return { maxTokens: modelCap ?? Math.max(callerMaxTokens, 1), thinking: undefined };
   }
 
   const adjustedThinking: Record<string, unknown> = { ...thinking };

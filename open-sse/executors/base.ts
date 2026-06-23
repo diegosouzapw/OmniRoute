@@ -252,15 +252,21 @@ const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
 //      models, and the `oswe-*` family (Raptor) which still rejects
 //      reasoning_effort.
 // Order matters: the opt-in check must run BEFORE the broad Claude/haiku/oswe strip.
-const GITHUB_REASONING_EFFORT_OPT_IN_PATTERN =
-  /claude[-_.]?(?:opus|sonnet)[-_.]?4[-_.]6/i;
+const GITHUB_REASONING_EFFORT_OPT_IN_PATTERN = /claude[-_.]?(?:opus|sonnet)[-_.]?4[-_.]6/i;
 const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;
 
 function supportsMaxEffortForProvider(provider: string, model: string): boolean {
-  return (
+  const isClaude =
     (provider === PROVIDER_CLAUDE || isClaudeCodeCompatible(provider)) &&
-    supportsClaudeMaxEffort(model)
-  );
+    supportsClaudeMaxEffort(model);
+  // opencode-go proxies DeepSeek with the native DeepSeek API contract, which
+  // accepts {high, max} literally. Without this opt-in, max would be
+  // normalized to xhigh (the OmniRoute-internal top tier) and rejected by the
+  // upstream. Scoped to opencode-go deliberately: OpenRouter's DeepSeek path
+  // (pi#4055) is the documented inverse and expects xhigh, not max.
+  const isOpencodeGoDeepSeek =
+    provider === "opencode-go" && model.toLowerCase().includes("deepseek");
+  return isClaude || isOpencodeGoDeepSeek;
 }
 
 export function sanitizeReasoningEffortForProvider(

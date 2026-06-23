@@ -41,6 +41,16 @@ describe("providerCooldown in updateResilienceSchema", () => {
     });
     assert.equal(result.success, false, "Schema should reject unknown keys");
   });
+
+  it("rejects providerCooldown max below min", () => {
+    const result = updateResilienceSchema.safeParse({
+      providerCooldown: {
+        minRetryCooldownMs: 120000,
+        maxRetryCooldownMs: 30000,
+      },
+    });
+    assert.equal(result.success, false, "Schema should reject contradictory cooldown bounds");
+  });
 });
 
 describe("providerCooldown roundtrip through mergeResilienceSettings", () => {

@@ -10,9 +10,20 @@ const SINGLE_MODE_OF: Record<string, string> = {
   rtk: "rtk",
 };
 
+export type CompressionSource =
+  | "request-header"
+  | "routing-override"
+  | "active-profile"
+  | "auto-trigger"
+  | "default"
+  | "off";
+
 export interface DerivedPlan {
   mode: string;
   stackedPipeline: Array<{ engine: string; intensity?: string }>;
+  /** Which precedence layer decided this plan (Phase 3 observability). Optional so
+   *  Phase 1/2 callers and snapshots are unaffected. */
+  source?: CompressionSource;
 }
 
 /**

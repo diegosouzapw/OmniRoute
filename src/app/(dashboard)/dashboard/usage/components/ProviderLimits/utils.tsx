@@ -1,5 +1,4 @@
-import { getModelsByProviderId } from "@omniroute/open-sse/config/providerModels.ts";
-import { safePercentage } from "@/shared/utils/formatting";
+export { parseQuotaData } from "./quotaParsing";
 
 const PROVIDER_PLAN_FALLBACKS = new Set([
   "claude code",
@@ -34,12 +33,6 @@ const QUOTA_LABEL_MAP: Record<string, string> = {
   "Monthly Tools": "Monthly Tools",
   tokens: "Tokens",
   time_limit: "Time Limit",
-};
-
-const GLM_QUOTA_ORDER: Record<string, number> = {
-  session: 0,
-  weekly: 1,
-  mcp_monthly: 2,
 };
 
 function toRecord(value: unknown): Record<string, unknown> {
@@ -179,267 +172,6 @@ export function calculatePercentage(used, total) {
   return Math.round(((total - used) / total) * 100);
 }
 
-function isPastResetWindow(resetAt) {
-  if (!resetAt) return false;
-  const resetTime =
-    typeof resetAt === "number" ? resetAt : typeof resetAt === "string" ? Date.parse(resetAt) : NaN;
-  if (!Number.isFinite(resetTime)) return false;
-  return Date.now() >= resetTime;
-}
-
-function normalizeQuotaEntry(name: string, quota: any = {}, extras: any = {}) {
-  const usedRaw = Number(quota?.used || 0);
-  const totalRaw = Number(quota?.total || 0);
-  const resetAt = quota?.resetAt || null;
-
-  // T13: Only consider it stale if the reset time passed AND there's still usage shown.
-  // If usage is already 0 (or remaining is 100%), it's naturally reset and doesn't need to be marked as stale.
-  const passedReset = isPastResetWindow(resetAt);
-  const remainingPercentageRaw = safePercentage(quota?.remainingPercentage);
-  const hasPendingUsage =
-    usedRaw > 0 || (remainingPercentageRaw !== undefined && remainingPercentageRaw < 100);
-  const staleAfterReset = passedReset && hasPendingUsage;
-
-  const used = staleAfterReset ? 0 : usedRaw;
-  const total = Number.isFinite(totalRaw) ? totalRaw : 0;
-
-  const remainingPercentage =
-    staleAfterReset && total > 0
-      ? 100
-      : remainingPercentageRaw !== undefined
-        ? remainingPercentageRaw
-        : undefined;
-
-  return {
-    name,
-    used: Number.isFinite(used) ? used : 0,
-    total,
-    resetAt,
-    staleAfterReset,
-    ...(remainingPercentage !== undefined ? { remainingPercentage } : {}),
-    ...extras,
-  };
-}
-
-/**
- * Parse provider-specific quota structures into normalized array
- * @param {string} provider - Provider name (github, antigravity, codex, kiro, claude)
- * @param {Object} data - Raw quota data from provider
- * @returns {Array<Object>} Normalized quota objects with { name, used, total, resetAt }
- */
-export function parseQuotaData(provider, data) {
-  if (!data || typeof data !== "object") return [];
-
-  const normalizedQuotas = [];
-  const providerId = String(provider || "").toLowerCase();
-
-  try {
-    switch (providerId) {
-      case "github":
-        if (data.quotas) {
-          Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
-            if (quota?.unlimited && (!quota?.total || quota.total <= 0)) {
-              return;
-            }
-            normalizedQuotas.push(normalizeQuotaEntry(name, quota));
-          });
-        }
-        break;
-
-      case "glm":
-      case "glm-cn":
-      case "glmt":
-      case "opencode-go":
-        if (data.quotas) {
-          Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
-            normalizedQuotas.push(
-              normalizeQuotaEntry(name, quota, {
-                displayName: quota?.displayName,
-                details: Array.isArray(quota?.details) ? quota.details : undefined,
-                isPercentageOnly:
-                  Number(quota?.total || 0) === 100 && quota?.remainingPercentage !== undefined,
-              })
-            );
-          });
-        }
-        break;
-
-      case "antigravity":
-      case "agy":
-        if (data.quotas) {
-          Object.entries(data.quotas).forEach(([modelKey, quota]: [string, any]) => {
-            if (modelKey === "credits") {
-              // Credit balance: render as "N credits remaining" counter, not a progress bar
-              const remaining = Number(quota?.remaining ?? 0);
-              normalizedQuotas.push({
-                name: "credits",
-                used: 0,
-                total: 0,
-                remaining,
-                resetAt: null,
-                unlimited: false,
-                isCredits: true,
-                // Show green if >50, yellow if >10, red if ≤10
-                remainingPercentage: remaining > 50 ? 100 : remaining > 10 ? 60 : 20,
-                creditCount: remaining,
-              });
-              return;
-            }
-            if (modelKey === "models") {
-              // Summary row: skip — individual models are shown via modelQuotas if needed
-              return;
-            }
-            if (quota?.unlimited && (!quota?.total || quota.total <= 0)) {
-              return;
-            }
-            normalizedQuotas.push(
-              normalizeQuotaEntry(modelKey, quota, {
-                modelKey: modelKey,
-                isPercentageOnly: quota?.fractionReported === true,
-                ...(quota?.quotaSource ? { quotaSource: quota.quotaSource } : {}),
-                ...(quota?.fractionReported !== undefined
-                  ? { fractionReported: quota.fractionReported }
-                  : {}),
-              })
-            );
-          });
-        }
-        break;
-
-      case "codex":
-        if (data.quotas) {
-          Object.entries(data.quotas).forEach(([quotaType, quota]: [string, any]) => {
-            normalizedQuotas.push(
-              normalizeQuotaEntry(quotaType, quota, {
-                displayName: quota?.displayName,
-                isPercentageOnly: true,
-              })
-            );
-          });
-        }
-        break;
-
-      case "kiro":
-      case "amazon-q":
-        if (data.quotas) {
-          Object.entries(data.quotas).forEach(([quotaType, quota]: [string, any]) => {
-            normalizedQuotas.push(normalizeQuotaEntry(quotaType, quota));
-          });
-        }
-        break;
-
-      case "claude":
-        if (data.message) {
-          // Handle error message case
-          normalizedQuotas.push({
-            name: "error",
-            used: 0,
-            total: 0,
-            resetAt: null,
-            message: data.message,
-          });
-        } else if (data.quotas) {
-          Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
-            normalizedQuotas.push(
-              normalizeQuotaEntry(name, quota, {
-                isPercentageOnly: true,
-              })
-            );
-          });
-        }
-        break;
-
-      case "gemini-cli":
-        if (data.quotas) {
-          Object.entries(data.quotas).forEach(([modelKey, quota]: [string, any]) => {
-            normalizedQuotas.push(normalizeQuotaEntry(modelKey, quota, { modelKey }));
-          });
-        }
-        break;
-
-      case "nanogpt":
-        if (data.quotas) {
-          Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
-            normalizedQuotas.push(normalizeQuotaEntry(name, quota));
-          });
-        }
-        break;
-
-      case "deepseek":
-        // DeepSeek balance: credits-style display with currency
-        // Match any "credits" key with optional 3-letter currency suffix
-        if (data.quotas) {
-          Object.entries(data.quotas).forEach(([quotaKey, quota]: [string, any]) => {
-            // Match credits, credits_usd, credits_cny, credits_eur, etc.
-            const match = quotaKey.match(/^credits(?:_([a-z]{3}))?$/);
-            if (match) {
-              const remaining = Number(quota?.remaining ?? 0);
-              // Extract currency from key suffix or use quota.currency, fallback to USD
-              const currency = quota?.currency ?? (match[1] ? match[1].toUpperCase() : "USD");
-              normalizedQuotas.push({
-                name: currency,
-                used: 0,
-                total: 0,
-                remaining,
-                resetAt: null,
-                unlimited: false,
-                isCredits: true,
-                currency,
-                creditCount: remaining,
-                // Color coding based on balance amount: green >20, yellow 5-20, red <5
-                remainingPercentage: remaining > 20 ? 100 : remaining > 5 ? 60 : 20,
-              });
-            } else {
-              normalizedQuotas.push(normalizeQuotaEntry(quotaKey, quota));
-            }
-          });
-        }
-        break;
-
-      default:
-        // Generic fallback for unknown providers
-        if (data.quotas) {
-          Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
-            normalizedQuotas.push(normalizeQuotaEntry(name, quota));
-          });
-        }
-    }
-  } catch (error) {
-    console.error(`Error parsing quota data for ${provider}:`, error);
-    return [];
-  }
-
-  // Sort quotas according to PROVIDER_MODELS order
-  const modelOrder = getModelsByProviderId(provider);
-  if (modelOrder.length > 0) {
-    const orderMap = new Map(modelOrder.map((m, i) => [m.id, i]));
-
-    normalizedQuotas.sort((a, b) => {
-      // Use modelKey for antigravity, otherwise use name
-      const keyA = a.modelKey || a.name;
-      const keyB = b.modelKey || b.name;
-      const orderA = orderMap.get(keyA) ?? 999;
-      const orderB = orderMap.get(keyB) ?? 999;
-      return (orderA as number) - (orderB as number);
-    });
-  }
-
-  if (
-    providerId === "glm" ||
-    providerId === "glm-cn" ||
-    providerId === "glmt" ||
-    providerId === "opencode-go"
-  ) {
-    normalizedQuotas.sort((a, b) => {
-      const orderA = GLM_QUOTA_ORDER[a.name] ?? 99;
-      const orderB = GLM_QUOTA_ORDER[b.name] ?? 99;
-      return orderA - orderB;
-    });
-  }
-
-  return normalizedQuotas;
-}
-
 /**
  * Resolve the best available plan label using live usage first, then persisted
  * provider-specific connection metadata.
@@ -472,107 +204,93 @@ export function resolvePlanValue(plan, providerSpecificData) {
   return livePlan || null;
 }
 
+function unknownPlanTier(raw: string | null = null) {
+  return { key: "unknown", label: "Unknown", variant: "default", rank: 0, raw };
+}
+
+function formatUnknownPlanLabel(raw: string) {
+  return raw
+    .toLowerCase()
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function matchClaudePlanTier(raw: string, upper: string) {
+  const match = upper.match(/(?:DEFAULT_)?CLAUDE_(MAX|PRO|TEAM|ENTERPRISE|FREE)(?:_(\d+X))?/);
+  if (!match) return null;
+
+  const multiplier = match[2] ? ` ${match[2].toLowerCase()}` : "";
+  const tiers = {
+    MAX: { key: "ultra", label: `Max${multiplier}`, variant: "success", rank: 4, raw },
+    PRO: { key: "pro", label: "Pro", variant: "success", rank: 3, raw },
+    TEAM: { key: "team", label: "Team", variant: "info", rank: 6, raw },
+    ENTERPRISE: { key: "enterprise", label: "Enterprise", variant: "info", rank: 7, raw },
+    FREE: { key: "free", label: "Free", variant: "default", rank: 1, raw },
+  };
+  return tiers[match[1]];
+}
+
+function matchKeywordPlanTier(raw: string, upper: string) {
+  if (upper.includes("PRO+") || upper.includes("PRO PLUS") || upper.includes("PROPLUS"))
+    return { key: "plus", label: "Pro+", variant: "success", rank: 4, raw };
+  if (upper.includes("ENTERPRISE") || upper.includes("CORP") || upper.includes("ORG"))
+    return { key: "enterprise", label: "Enterprise", variant: "info", rank: 7, raw };
+  if (upper.includes("TEAM") || upper.includes("CHATGPTTEAM"))
+    return { key: "team", label: "Team", variant: "info", rank: 6, raw };
+  if (upper.includes("BUSINESS") || upper.includes("STANDARD") || upper.includes("BIZ"))
+    return { key: "business", label: "Business", variant: "warning", rank: 5, raw };
+  if (upper.includes("STUDENT"))
+    return { key: "pro", label: "Student", variant: "success", rank: 3, raw };
+  if (upper.includes("ULTRA"))
+    return { key: "ultra", label: "Ultra", variant: "success", rank: 4, raw };
+  return null;
+}
+
+function matchTokenPlanTier(raw: string, upper: string) {
+  if (hasTierToken(upper, "MAX"))
+    return { key: "ultra", label: "Max", variant: "success", rank: 4, raw };
+  if (hasTierToken(upper, "PRO") || hasTierToken(upper, "PREMIUM"))
+    return { key: "pro", label: "Pro", variant: "success", rank: 3, raw };
+  if (hasTierToken(upper, "STARTER"))
+    return { key: "lite", label: "Starter", variant: "primary", rank: 2, raw };
+  if (hasTierToken(upper, "LITE") || hasTierToken(upper, "LIGHT"))
+    return { key: "lite", label: "Lite", variant: "primary", rank: 2, raw };
+  if (hasTierToken(upper, "PLUS") || hasTierToken(upper, "PAID"))
+    return { key: "plus", label: "Plus", variant: "success", rank: 2, raw };
+  return null;
+}
+
+function matchFreePlanTier(raw: string, upper: string) {
+  return upper.includes("FREE") ||
+    upper.includes("BASIC") ||
+    upper.includes("TRIAL") ||
+    upper.includes("LEGACY")
+    ? { key: "free", label: "Free", variant: "default", rank: 1, raw }
+    : null;
+}
+
 /**
  * Normalize provider-specific plan labels into a shared tier taxonomy.
  * Supported tiers: enterprise, business, team, ultra, pro, plus, lite, free, unknown.
  */
 export function normalizePlanTier(plan) {
   const raw = typeof plan === "string" ? plan.trim() : "";
-  if (!raw) {
-    return { key: "unknown", label: "Unknown", variant: "default", rank: 0, raw: null };
-  }
+  if (!raw) return unknownPlanTier(null);
 
   const upper = raw.toUpperCase();
 
   // Provider names that are not real plan tiers — treat as unknown
-  if (PROVIDER_PLAN_FALLBACKS.has(raw.toLowerCase())) {
-    return { key: "unknown", label: "Unknown", variant: "default", rank: 0, raw };
-  }
+  if (PROVIDER_PLAN_FALLBACKS.has(raw.toLowerCase())) return unknownPlanTier(raw);
 
   // Match Anthropic bootstrap strings (claude_max, default_claude_max_20x, etc.)
   // before the generic PRO/TEAM checks so underscored values don't fall through.
-  const claudeMatch = upper.match(/(?:DEFAULT_)?CLAUDE_(MAX|PRO|TEAM|ENTERPRISE|FREE)(?:_(\d+X))?/);
-  if (claudeMatch) {
-    const family = claudeMatch[1];
-    const multiplier = claudeMatch[2] ? ` ${claudeMatch[2].toLowerCase()}` : "";
-    if (family === "MAX") {
-      return { key: "ultra", label: `Max${multiplier}`, variant: "success", rank: 4, raw };
-    }
-    if (family === "PRO") {
-      return { key: "pro", label: "Pro", variant: "success", rank: 3, raw };
-    }
-    if (family === "TEAM") {
-      return { key: "team", label: "Team", variant: "info", rank: 6, raw };
-    }
-    if (family === "ENTERPRISE") {
-      return { key: "enterprise", label: "Enterprise", variant: "info", rank: 7, raw };
-    }
-    if (family === "FREE") {
-      return { key: "free", label: "Free", variant: "default", rank: 1, raw };
-    }
-  }
-
-  if (upper.includes("PRO+") || upper.includes("PRO PLUS") || upper.includes("PROPLUS")) {
-    return { key: "plus", label: "Pro+", variant: "success", rank: 4, raw };
-  }
-
-  if (upper.includes("ENTERPRISE") || upper.includes("CORP") || upper.includes("ORG")) {
-    return { key: "enterprise", label: "Enterprise", variant: "info", rank: 7, raw };
-  }
-
-  // Team plan (e.g., ChatGPT Team, GitHub Team)
-  if (upper.includes("TEAM") || upper.includes("CHATGPTTEAM")) {
-    return { key: "team", label: "Team", variant: "info", rank: 6, raw };
-  }
-
-  if (upper.includes("BUSINESS") || upper.includes("STANDARD") || upper.includes("BIZ")) {
-    return { key: "business", label: "Business", variant: "warning", rank: 5, raw };
-  }
-
-  if (upper.includes("STUDENT")) {
-    return { key: "pro", label: "Student", variant: "success", rank: 3, raw };
-  }
-
-  if (upper.includes("ULTRA")) {
-    return { key: "ultra", label: "Ultra", variant: "success", rank: 4, raw };
-  }
-
-  if (hasTierToken(upper, "MAX")) {
-    return { key: "ultra", label: "Max", variant: "success", rank: 4, raw };
-  }
-
-  if (hasTierToken(upper, "PRO") || hasTierToken(upper, "PREMIUM")) {
-    return { key: "pro", label: "Pro", variant: "success", rank: 3, raw };
-  }
-
-  if (hasTierToken(upper, "STARTER")) {
-    return { key: "lite", label: "Starter", variant: "primary", rank: 2, raw };
-  }
-
-  if (hasTierToken(upper, "LITE") || hasTierToken(upper, "LIGHT")) {
-    return { key: "lite", label: "Lite", variant: "primary", rank: 2, raw };
-  }
-
-  if (hasTierToken(upper, "PLUS") || hasTierToken(upper, "PAID")) {
-    return { key: "plus", label: "Plus", variant: "success", rank: 2, raw };
-  }
-
-  if (
-    upper.includes("FREE") ||
-    upper.includes("BASIC") ||
-    upper.includes("TRIAL") ||
-    upper.includes("LEGACY")
-  ) {
-    return { key: "free", label: "Free", variant: "default", rank: 1, raw };
-  }
-
-  const titleCased = raw
-    .toLowerCase()
-    .split(/[\s_-]+/)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-
-  return { key: "unknown", label: titleCased || "Unknown", variant: "default", rank: 0, raw };
+  const matched =
+    matchClaudePlanTier(raw, upper) ||
+    matchKeywordPlanTier(raw, upper) ||
+    matchTokenPlanTier(raw, upper) ||
+    matchFreePlanTier(raw, upper);
+  return matched || { ...unknownPlanTier(raw), label: formatUnknownPlanLabel(raw) || "Unknown" };
 }
 
 // === Card Grid Helpers (T7) =================================================
@@ -689,6 +407,68 @@ export function getNextResetSummary(quotas: any[] | undefined): string | null {
     }
   }
   return soonestIso ? formatCountdown(soonestIso) : null;
+}
+
+function addQuotaModelIdVariants(out: Set<string>, provider: string, modelId: string) {
+  const raw = modelId.trim().toLowerCase();
+  const providerId = provider.trim().toLowerCase();
+  if (!raw) return;
+  out.add(raw);
+  if (!providerId) return;
+
+  const prefix = `${providerId}/`;
+  if (raw.startsWith(prefix)) {
+    const stripped = raw.slice(prefix.length);
+    if (stripped) out.add(stripped);
+  } else {
+    out.add(`${providerId}/${raw}`);
+  }
+}
+
+export function collectHiddenQuotaModelIds(provider: string, payload: unknown): string[] {
+  const hidden = new Set<string>();
+  const data = toRecord(payload);
+  const collect = (entries: unknown) => {
+    if (!Array.isArray(entries)) return;
+    for (const entry of entries) {
+      const record = toRecord(entry);
+      if (record.isHidden !== true && record.isDeleted !== true) continue;
+      if (typeof record.id === "string") addQuotaModelIdVariants(hidden, provider, record.id);
+    }
+  };
+
+  collect(data.models);
+  collect(data.modelCompatOverrides);
+  return Array.from(hidden);
+}
+
+export function filterHiddenModelQuotas(
+  provider: string,
+  quotas: any[] | undefined,
+  hiddenModelIds: string[] | undefined
+): any[] {
+  if (!Array.isArray(quotas)) return [];
+  if (!hiddenModelIds || hiddenModelIds.length === 0) return quotas;
+
+  const hidden = new Set(
+    hiddenModelIds.map((id) => id.trim().toLowerCase()).filter((id) => id.length > 0)
+  );
+  if (hidden.size === 0) return quotas;
+
+  return quotas.filter((quota) => {
+    if (!quota || quota.isCredits) return true;
+    const modelId =
+      typeof quota.modelKey === "string"
+        ? quota.modelKey
+        : typeof quota.modelId === "string"
+          ? quota.modelId
+          : "";
+    if (!modelId) return true;
+
+    const candidates = new Set<string>();
+    addQuotaModelIdVariants(candidates, provider, modelId);
+    return !Array.from(candidates).some((candidate) => hidden.has(candidate));
+  });
 }
 
 // --- Provider dropdown filter (PR #769 port) -----------------------------

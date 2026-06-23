@@ -35,7 +35,6 @@ import { isUserCallableAgyModelId } from "@omniroute/open-sse/config/agyModels.t
 import { onUsageRecorded } from "./usageEvents";
 
 type JsonRecord = Record<string, unknown>;
-
 type SyncSource = "manual" | "scheduled";
 
 interface ProviderConnectionLike {
@@ -64,6 +63,7 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "zai",
   "glmt",
   "opencode-go",
+  "ollama-cloud",
   "minimax",
   "minimax-cn",
   "crof",

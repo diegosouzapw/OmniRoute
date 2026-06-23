@@ -1545,6 +1545,26 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (Array.isArray(parsed.choices) && parsed.choices.length === 0) {
                     const emptyChoicesUsage = extractUsage(parsed) ?? parsed.usage;
                     if (hasValidUsage(emptyChoicesUsage)) {
+                      // Some upstreams (e.g. Ollama Cloud) emit prompt_tokens: 0
+                      // even when input was sent — they simply don't count input
+                      // tokens.  When we have a non-zero output but zero input,
+                      // estimate the real input token count from the request body.
+                      if (
+                        emptyChoicesUsage &&
+                        typeof emptyChoicesUsage === "object" &&
+                        !Array.isArray(emptyChoicesUsage) &&
+                        emptyChoicesUsage.completion_tokens > 0
+                      ) {
+                        const pt = emptyChoicesUsage.prompt_tokens ?? 0;
+                        if (pt === 0) {
+                          const estimated = estimateUsage(body, totalContentLength, FORMATS.OPENAI);
+                          if (estimated?.prompt_tokens > 0) {
+                            emptyChoicesUsage.prompt_tokens = estimated.prompt_tokens;
+                            emptyChoicesUsage.total_tokens =
+                              (emptyChoicesUsage.total_tokens ?? 0) + estimated.prompt_tokens;
+                          }
+                        }
+                      }
                       usage = emptyChoicesUsage;
                       output = `data: ${JSON.stringify(parsed)}\n\n`;
                       injectedUsage = true;

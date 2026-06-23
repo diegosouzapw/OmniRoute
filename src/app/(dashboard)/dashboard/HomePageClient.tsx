@@ -13,10 +13,8 @@ import { useNotificationStore } from "@/store/notificationStore";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import { useIsElectron, useOpenExternal } from "@/shared/hooks/useElectron";
-import { useLiveRequests } from "@/hooks/useLiveDashboard";
-import { selectActiveRequests } from "../home/topologyUtils";
+import { HomeProviderTopologySection } from "./HomeProviderTopologySection";
 
-const ProviderTopology = dynamic(() => import("../home/ProviderTopology"), { ssr: false });
 const ProviderQuotaWidget = dynamic(() => import("../home/ProviderQuotaWidget"), { ssr: false });
 import type { NewsAnnouncement } from "@/shared/utils/releaseNotes";
 
@@ -123,7 +121,8 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const [updating, setUpdating] = useState(false);
 
   // Platform detection and download links for Electron
-  const platform = typeof globalThis.window === "undefined" ? undefined : globalThis.window.electronAPI?.platform;
+  const platform =
+    typeof globalThis.window === "undefined" ? undefined : globalThis.window.electronAPI?.platform;
   const electronDownload = useMemo(() => {
     const latest = versionInfo?.latest || "";
     const cleanLatest = latest.replace(/^v/, "");
@@ -171,7 +170,8 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   }>({ status: "idle" });
 
   useEffect(() => {
-    if (!isElectron || typeof globalThis.window === "undefined" || !globalThis.window.electronAPI) return;
+    if (!isElectron || typeof globalThis.window === "undefined" || !globalThis.window.electronAPI)
+      return;
 
     // Trigger initial check silently on mount
     globalThis.window.electronAPI.checkForUpdates().catch((err: any) => {
@@ -196,9 +196,12 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   // Appearance settings for home page pinning
   const [pinProviderQuotaToHome, setPinProviderQuotaToHome] = useState(false);
   const [showQuickStartOnHome, setShowQuickStartOnHome] = useState(true); // default on
-  const [showProviderTopologyOnHome, setShowProviderTopologyOnHome] = useState(true); // default on
+  // #4596: default hidden until appearance settings load, so the live-WS
+  // topology connection is never opened before we know the user wants it.
+  const [showProviderTopologyOnHome, setShowProviderTopologyOnHome] = useState(false);
   const [autoRefreshProviderQuota, setAutoRefreshProviderQuota] = useState(false);
   const [autoRefreshProviderQuotaInterval, setAutoRefreshProviderQuotaInterval] = useState(180);
+  const [appearanceSettingsLoaded, setAppearanceSettingsLoaded] = useState(false);
 
   useEffect(() => {
     // Fetch the pin settings (lightweight)
@@ -225,6 +228,9 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       })
       .catch(() => {
         /* ignore — defaults stay */
+      })
+      .finally(() => {
+        setAppearanceSettingsLoaded(true);
       });
   }, []);
 
@@ -236,10 +242,9 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
 
   const fetchData = useCallback(async () => {
     try {
-      const [provRes, modelsRes, metricsRes, versionRes] = await Promise.all([
+      const [provRes, modelsRes, versionRes] = await Promise.all([
         fetch("/api/providers"),
         fetch("/api/models"),
-        fetch("/api/provider-metrics"),
         fetch("/api/system/version"),
       ]);
       if (provRes.ok) {
@@ -249,10 +254,6 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       if (modelsRes.ok) {
         const modelsData = await modelsRes.json();
         setModels(modelsData.models || []);
-      }
-      if (metricsRes.ok) {
-        const metricsData = await metricsRes.json();
-        setProviderMetrics(metricsData.metrics || {});
       }
       if (versionRes.ok) {
         const versionData = await versionRes.json();
@@ -278,6 +279,10 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   }, []);
 
   useEffect(() => {
+    if (!appearanceSettingsLoaded || !showProviderTopologyOnHome) {
+      return;
+    }
+
     let cancelled = false;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     let controller: AbortController | null = null;
@@ -317,7 +322,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       if (timeoutId) clearTimeout(timeoutId);
       controller?.abort();
     };
-  }, []);
+  }, [appearanceSettingsLoaded, showProviderTopologyOnHome]);
 
   // T07: Check for unhealthy API keys and show notification (once per session)
   const notifiedUnhealthyKeys = useRef<Set<string>>(new Set());
@@ -1061,9 +1066,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       {pinProviderQuotaToHome && (
         <Suspense fallback={<CardSkeleton />}>
           <ProviderQuotaWidget
-            autoRefreshInterval={
-              autoRefreshProviderQuota ? autoRefreshProviderQuotaInterval : 0
-            }
+            autoRefreshInterval={autoRefreshProviderQuota ? autoRefreshProviderQuotaInterval : 0}
           />
         </Suspense>
       )}
@@ -1159,35 +1162,13 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
         </Card>
       )}
 
-      {/* Provider Topology (controlled by Appearance setting, default on) */}
       {showProviderTopologyOnHome && (
-        <Card>
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="text-base font-semibold">{t("providerTopology")}</h2>
-              <p className="text-xs text-text-muted">
-                Connected providers routing through OmniRoute in real time
-              </p>
-            </div>
-            <div className="flex items-center gap-3 text-[11px] text-text-muted">
-              <span className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-green-500" /> Active
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-amber-500" /> Recent
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-red-500" /> Error
-              </span>
-            </div>
-          </div>
-          <ProviderTopology
-            providers={topologyProviders}
-            activeRequests={selectActiveRequests(liveActiveRequests)}
-            lastProvider={lastProvider}
-            errorProvider={errorProvider}
-          />
-        </Card>
+        <HomeProviderTopologySection
+          providers={topologyProviders}
+          lastProvider={lastProvider}
+          errorProvider={errorProvider}
+          enabled={showProviderTopologyOnHome}
+        />
       )}
 
       {/* Provider Models Modal */}

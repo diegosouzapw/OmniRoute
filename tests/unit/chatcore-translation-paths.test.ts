@@ -274,11 +274,10 @@ async function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-// 10s ceiling: on 2-core CI runners under shard contention the 1500ms budget
-// expired mid-flight (observed: 1580ms fail on the upstream-timeout test) —
-// green runs return as soon as the condition holds, so the ceiling only
-// bounds the failure case.
-async function waitFor(fn, timeoutMs = 10000) {
+// 30s ceiling: c8 instrumentation plus --test-concurrency=8 can stall CI workers
+// well past the upstream timeout budget. Green runs return as soon as the condition
+// holds, so the ceiling only bounds the failure case.
+async function waitFor(fn, timeoutMs = 30000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
     const result = await fn();

@@ -83,6 +83,32 @@ Content-Type: application/json
 
 > **Cache-hit cost semantics:** on a semantic-cache HIT (`X-OmniRoute-Cache-Hit: true`) no upstream call is made, so `X-OmniRoute-Response-Cost` is `0.0000000000` (the **incremental** cost of serving the hit). The original/would-have-been cost is reported separately in `X-OmniRoute-Cost-Saved`. Billing consumers should sum `X-OmniRoute-Response-Cost` (hits cost nothing); cache analytics can aggregate `X-OmniRoute-Cost-Saved`.
 
+### `x-omniroute-compression`
+
+Per-request override of the compression plan. Highest precedence — beats the routing-combo
+override, the active profile, auto-trigger, and the panel Default. Values:
+
+| Value | Effect |
+|-------|--------|
+| `off` | No compression for this request. |
+| `default` | The panel-derived Default profile (ignores the active profile). |
+| `engine:<id>` | A single engine when enabled, e.g. `engine:rtk`. |
+| `<combo>` | A named combo, matched by name (case-insensitive) first, then by id. |
+
+Notes:
+- Unknown values are ignored (the request is never rejected); resolution falls through to the normal operator precedence.
+- If multiple combos share a name, pass the combo **id** for a deterministic match.
+- A combo whose name is `off` or `default` cannot be selected by name (those keywords are interpreted first); reference such a combo by its id.
+- The master compression switch is a hard gate: when compression is disabled globally, this header cannot enable it.
+
+The applied plan is echoed back in the response header:
+
+```
+X-OmniRoute-Compression: <mode>; source=<source>
+```
+
+where `<source>` is one of `request-header`, `routing-override`, `active-profile`, `auto-trigger`, `default`, or `off`.
+
 ---
 
 ## Embeddings

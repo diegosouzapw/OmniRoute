@@ -456,7 +456,7 @@ test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek still preserves xh
   const body = {
     model: "deepseek/deepseek-v4-pro",
     reasoning_effort: "xhigh",
-    messages: [{ role: "user", content: "hi" }],
+    messages: [],
   };
   const result = sanitizeReasoningEffortForProvider(
     body,
@@ -465,5 +465,56 @@ test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek still preserves xh
     null
   );
   assert.equal(result, body);
+  assert.equal((result as any).reasoning_effort, "xhigh");
+});
+
+// ── opencode-go DeepSeek V4 Pro effort variants (#4647) ──────────────────────
+// opencode-go proxies DeepSeek with the native DeepSeek API contract, which
+// accepts {high, max} literally. The OpencodeExecutor's transformRequest sets
+// reasoning_effort to the variant suffix (low|medium|high|max), and the
+// sanitizer must NOT rewrite `max` → `xhigh` for this provider+model combo.
+
+test("sanitizeReasoningEffortForProvider: opencode-go DeepSeek V4 Pro preserves max", () => {
+  const body = {
+    model: "deepseek-v4-pro",
+    reasoning_effort: "max",
+    messages: [],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "opencode-go", "deepseek-v4-pro", null);
+  assert.equal(result, body, "opencode-go DeepSeek max must pass through unchanged");
+  assert.equal((result as any).reasoning_effort, "max");
+});
+
+test("sanitizeReasoningEffortForProvider: opencode-go DeepSeek V4 Pro preserves variant suffix levels", () => {
+  for (const level of ["low", "medium", "high", "max"]) {
+    const body = {
+      model: `deepseek-v4-pro-${level}`,
+      reasoning_effort: level,
+      messages: [],
+    };
+    const result = sanitizeReasoningEffortForProvider(
+      body,
+      "opencode-go",
+      `deepseek-v4-pro-${level}`,
+      null
+    );
+    assert.equal(
+      (result as any).reasoning_effort,
+      level,
+      `opencode-go deepseek-v4-pro-${level} preserves reasoning_effort=${level}`
+    );
+  }
+});
+
+test("sanitizeReasoningEffortForProvider: opencode-go with non-DeepSeek model still normalizes max → xhigh", () => {
+  // The opt-in must be scoped to DeepSeek models on opencode-go only — other
+  // opencode-go models (e.g. glm/kimi/mimo) follow the default xhigh policy.
+  const body = {
+    model: "mimo-v2.5-pro",
+    reasoning_effort: "max",
+    messages: [],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "opencode-go", "mimo-v2.5-pro", null);
+  assert.notEqual(result, body);
   assert.equal((result as any).reasoning_effort, "xhigh");
 });

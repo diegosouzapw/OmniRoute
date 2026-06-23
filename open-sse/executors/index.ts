@@ -134,7 +134,6 @@ const executors = {
   "v0-vercel-web": new V0VercelWebExecutor(),
   v0: new V0VercelWebExecutor(), // Alias
   "kimi-web": new KimiWebExecutor(),
-  kimi: new KimiWebExecutor(), // Alias
   "kimi-coding-apikey": new KimiExecutor(), // Alias
   "kimi-coding": new KimiExecutor(), // Alias
   "doubao-web": new DoubaoWebExecutor(),

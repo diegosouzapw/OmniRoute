@@ -711,15 +711,14 @@ test("chat pipeline applies Codex CLI fingerprint to OAuth responses requests", 
   assert.ok(headerOrder.indexOf("Accept") < headerOrder.indexOf("User-Agent"));
 
   const bodyOrder = Object.keys(JSON.parse(call.bodyString));
-  assert.deepEqual(bodyOrder.slice(0, 7), [
-    "model",
-    "stream",
-    "input",
-    "instructions",
-    "store",
-    "reasoning",
-    "prompt_cache_key",
-  ]);
+  // Order must match the canonical Codex fingerprint bodyFieldOrder (cliFingerprints.ts):
+  // …reasoning, prompt_cache_key, …, include — i.e. prompt_cache_key precedes include.
+  // (#4584 inadvertently flipped these two; fast-gates skip integration tests so it only
+  // surfaced on the release PR full CI.)
+  assert.deepEqual(
+    bodyOrder.slice(0, 8),
+    "model stream input instructions store reasoning prompt_cache_key include".split(" ")
+  );
   assert.equal(call.body.model, "gpt-5.5");
   assert.equal(call.body.store, false);
   assert.equal(
