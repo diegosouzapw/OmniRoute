@@ -5,6 +5,7 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
+import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 
 function normalizeToolName(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -615,7 +616,7 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
   // Function call started
   if (eventType === "response.output_item.added" && data.item?.type === "function_call") {
     const item = data.item;
-    state.currentToolCallId = item.call_id || `call_${Date.now()}`;
+    state.currentToolCallId = item.call_id || fallbackToolCallId();
     state.currentToolCallArgsBuffer = ""; // reset per-call arg buffer
     state.currentToolCallDeferred = false;
 
@@ -694,7 +695,7 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     const item = data.item;
     const buffered = state.currentToolCallArgsBuffer || "";
     const currentIndex = state.toolCallIndex; // capture before increment
-    const callId = item.call_id || state.currentToolCallId || `call_${Date.now()}`;
+    const callId = item.call_id || state.currentToolCallId || fallbackToolCallId();
     const toolName = normalizeToolName(item.name);
 
     if (state.currentToolCallDeferred) {
