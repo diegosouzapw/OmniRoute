@@ -469,6 +469,21 @@ export class DefaultExecutor extends BaseExecutor {
           } else if (credentials.accessToken) {
             headers["Authorization"] = `Bearer ${credentials.accessToken}`;
           }
+          // Port of decolua/9router commit b977bf74:
+          // Third-party Anthropic-compatible gateways frequently require
+          // Authorization: Bearer ALONGSIDE x-api-key — without it they
+          // return 401 missing_api_key on every forward. Only emit the
+          // Bearer fallback for non-official upstreams; api.anthropic.com
+          // (and the empty/default baseUrl that targets it) must keep the
+          // x-api-key-only behavior to avoid regressing the official path.
+          if (effectiveKey && !headers["Authorization"]) {
+            const baseUrl = credentials?.providerSpecificData?.baseUrl || "";
+            const isOfficialAnthropic =
+              baseUrl === "" || baseUrl.includes("api.anthropic.com");
+            if (!isOfficialAnthropic) {
+              headers["Authorization"] = `Bearer ${effectiveKey}`;
+            }
+          }
           if (!headers["anthropic-version"]) {
             headers["anthropic-version"] = "2023-06-01";
           }
