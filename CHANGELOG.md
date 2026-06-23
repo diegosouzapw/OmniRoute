@@ -8,6 +8,10 @@
 
 _In development — bullets added per PR; finalized at release._
 
+### 🔧 Bug Fixes
+
+- **db-backups**: make the database-import size cap configurable via `OMNIROUTE_DB_IMPORT_MAX_MB` (default 100 MB, 4 GB ceiling) so backups larger than 100 MB can be restored; error message now points to the env var and to VACUUM (#4719).
+
 ---
 
 ## [3.8.34] — 2026-06-23
