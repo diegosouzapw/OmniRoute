@@ -473,3 +473,55 @@ test("GeminiCLIExecutor.execute applies CLI fingerprint to the final Cloud Code 
     globalThis.fetch = originalFetch;
   }
 });
+
+test("GeminiCLIExecutor.parseRetryFromErrorMessage reads structured google.rpc.RetryInfo.retryDelay", () => {
+  const executor = new GeminiCLIExecutor();
+
+  const body = JSON.stringify({
+    error: {
+      code: 429,
+      message: "Resource has been exhausted (e.g. check quota).",
+      status: "RESOURCE_EXHAUSTED",
+      details: [
+        { "@type": "type.googleapis.com/google.rpc.QuotaFailure", violations: [] },
+        { "@type": "type.googleapis.com/google.rpc.RetryInfo", retryDelay: "30s" },
+      ],
+    },
+  });
+
+  // The prose regex would not match this JSON body, so a positive result proves
+  // the structured RetryInfo path is what produced the hint.
+  assert.equal(executor.parseRetryFromErrorMessage(body), 30_000);
+});
+
+test("GeminiCLIExecutor.parseRetryFromErrorMessage parses fractional retryDelay seconds", () => {
+  const executor = new GeminiCLIExecutor();
+
+  const body = JSON.stringify({
+    error: {
+      details: [
+        { "@type": "type.googleapis.com/google.rpc.RetryInfo", retryDelay: "1.5s" },
+      ],
+    },
+  });
+
+  assert.equal(executor.parseRetryFromErrorMessage(body), 1_500);
+});
+
+test("GeminiCLIExecutor.parseRetryFromErrorMessage still parses prose 'reset after' format", () => {
+  const executor = new GeminiCLIExecutor();
+
+  assert.equal(
+    executor.parseRetryFromErrorMessage("Your quota will reset after 1h2m3s"),
+    1 * 3600 * 1000 + 2 * 60 * 1000 + 3 * 1000
+  );
+});
+
+test("GeminiCLIExecutor.parseRetryFromErrorMessage returns null for unrelated JSON", () => {
+  const executor = new GeminiCLIExecutor();
+
+  assert.equal(
+    executor.parseRetryFromErrorMessage(JSON.stringify({ error: { message: "nope" } })),
+    null
+  );
+});

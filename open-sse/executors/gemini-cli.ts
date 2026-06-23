@@ -534,10 +534,17 @@ export class GeminiCLIExecutor extends BaseExecutor {
     }
   }
 
-  // Parse retry time from Gemini error message body
-  // Format: "Your quota will reset after 2h7m23s"
+  // Parse retry time from Gemini error message body. Two shapes are handled:
+  //  1. Structured google.rpc.RetryInfo in the 429/503 JSON body:
+  //     { error: { details: [{ "@type": ".../google.rpc.RetryInfo", retryDelay: "30s" }] } }
+  //  2. Human-readable prose: "Your quota will reset after 2h7m23s"
+  // The structured hint is authoritative (it is what the Cloud Code Assist API
+  // sends), so it is checked first and falls through to the prose form on miss.
   parseRetryFromErrorMessage(errorMessage: unknown): number | null {
     if (!errorMessage || typeof errorMessage !== "string") return null;
+
+    const structuredMs = this.parseStructuredRetryDelay(errorMessage);
+    if (structuredMs !== null) return structuredMs;
 
     const match = errorMessage.match(/reset (?:after|in) (\d+h)?(\d+m)?(\d+s)?/i);
     if (!match) return null;
@@ -548,6 +555,32 @@ export class GeminiCLIExecutor extends BaseExecutor {
     if (match[3]) totalMs += parseInt(match[3]) * 1000;
 
     return totalMs || 2_000;
+  }
+
+  // Read google.rpc.RetryInfo.retryDelay from a Google API error JSON body and
+  // convert the protobuf Duration string ("30s", "1.5s", "0.500s") into ms.
+  // Returns null when the body is not JSON or carries no RetryInfo detail.
+  private parseStructuredRetryDelay(bodyText: string): number | null {
+    if (!bodyText.includes("RetryInfo")) return null;
+    try {
+      const parsed = JSON.parse(bodyText);
+      const details = parsed?.error?.details;
+      if (!Array.isArray(details)) return null;
+      for (const detail of details) {
+        if (
+          detail?.["@type"] === "type.googleapis.com/google.rpc.RetryInfo" &&
+          typeof detail?.retryDelay === "string"
+        ) {
+          const seconds = parseFloat(detail.retryDelay.replace(/s$/i, ""));
+          if (Number.isFinite(seconds) && seconds >= 0) {
+            return Math.round(seconds * 1000) || 2_000;
+          }
+        }
+      }
+    } catch {
+      /* not JSON — caller falls back to prose parsing */
+    }
+    return null;
   }
 }
 
