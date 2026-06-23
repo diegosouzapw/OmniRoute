@@ -50,9 +50,22 @@ export const REFRESH_LEAD_MS: Record<string, number> = {
 
 /**
  * Get the proactive refresh lead time (ms) for a given provider.
- * Falls back to TOKEN_EXPIRY_BUFFER_MS (5 min) when not explicitly listed.
+ *
+ * Precedence:
+ *   1. A per-connection override in `providerSpecificData.refreshLeadMs`
+ *      (must be a positive finite number), so an operator can tune the lead
+ *      time for a single connection without touching the provider defaults.
+ *   2. The provider default from REFRESH_LEAD_MS.
+ *   3. TOKEN_EXPIRY_BUFFER_MS (5 min) when nothing else applies.
  */
-export function getRefreshLeadMs(provider: string): number {
+export function getRefreshLeadMs(
+  provider: string,
+  providerSpecificData?: { refreshLeadMs?: unknown } | null
+): number {
+  const override = providerSpecificData?.refreshLeadMs;
+  if (typeof override === "number" && Number.isFinite(override) && override > 0) {
+    return override;
+  }
   return REFRESH_LEAD_MS[provider] ?? TOKEN_EXPIRY_BUFFER_MS;
 }
 
