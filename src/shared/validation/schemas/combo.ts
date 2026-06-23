@@ -187,27 +187,25 @@ export const comboRuntimeConfigSchema = z
     evalRouting: evalRoutingSchema.optional(),
   })
   .passthrough()
-  .superRefine((config, ctx) => {
-    if (config.zeroLatencyOptimizationsEnabled === true) return;
+  .transform((config) => {
+    // Backward-compat shim: combos stored prior to v3.8.33 may carry zero-latency
+    // feature flags (fallbackCompressionMode !== "off", hedging === true, or
+    // predictiveTtftMs > 0) without the accompanying zeroLatencyOptimizationsEnabled
+    // gate that the new schema requires. Auto-promote the flag when any such feature
+    // is enabled but the gate is unset/false, so stored combos continue to round-trip
+    // through PUT /api/combos/{id} without returning 400. This replaces the prior
+    // superRefine that hard-rejected these payloads (see issue #4382).
+    if (config.zeroLatencyOptimizationsEnabled === true) return config;
 
-    const addZeroLatencyIssue = (path: string[]) => {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "zeroLatencyOptimizationsEnabled must be true to enable zero-latency combo features",
-        path,
-      });
-    };
+    const hasZeroLatencyFeature =
+      config.hedging === true ||
+      (typeof config.predictiveTtftMs === "number" && config.predictiveTtftMs > 0) ||
+      (!!config.fallbackCompressionMode && config.fallbackCompressionMode !== "off");
 
-    if (config.hedging === true) {
-      addZeroLatencyIssue(["hedging"]);
+    if (hasZeroLatencyFeature) {
+      return { ...config, zeroLatencyOptimizationsEnabled: true };
     }
-    if (typeof config.predictiveTtftMs === "number" && config.predictiveTtftMs > 0) {
-      addZeroLatencyIssue(["predictiveTtftMs"]);
-    }
-    if (config.fallbackCompressionMode && config.fallbackCompressionMode !== "off") {
-      addZeroLatencyIssue(["fallbackCompressionMode"]);
-    }
+    return config;
   });
 
 export const comboNameSchema = z
