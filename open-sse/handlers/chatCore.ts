@@ -167,12 +167,10 @@ import {
   mergeResponseToolNameMap,
 } from "./chatCore/passthroughToolNames.ts";
 import {
-  parseNonStreamingSSEPayload,
-  normalizeNonStreamingEventPayload,
-  shouldTreatBufferedEventResponseAsExpected,
   appendNonStreamingSseTerminalSignal,
   type NonStreamingSseTerminalState,
 } from "./chatCore/nonStreamingSse.ts";
+import { parseNonStreamingResponseBody } from "./chatCore/nonStreamingResponseParse.ts";
 import {
   createBodyTimeoutError,
   readStreamChunkWithTimeout,
@@ -207,7 +205,6 @@ import { buildCodexQuotaPersistence } from "./chatCore/codexQuota.ts";
 import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
-import { extractSSEErrorMessage } from "./sseParser.ts";
 import { sanitizeOpenAIResponse, sanitizeResponsesApiResponse } from "./responseSanitizer.ts";
 import {
   withRateLimit,
@@ -254,7 +251,6 @@ import {
   stripMarkdownCodeFence,
 } from "../utils/aiSdkCompat.ts";
 import { generateRequestId } from "@/shared/utils/requestId";
-import { normalizePayloadForLog } from "@/lib/logPayloads";
 import { extractFacts } from "@/lib/memory/extraction";
 import { handleToolCallExecution } from "@/lib/skills/interception";
 import { OMNIROUTE_RESPONSE_HEADERS } from "@/shared/constants/headers";
@@ -3382,92 +3378,63 @@ export async function handleChatCore({
 
   // Non-streaming response
   if (!stream) {
-    const contentType = (providerResponse.headers.get("content-type") || "").toLowerCase();
-    let responseBody;
-    let responsePayloadFormat = targetFormat;
-    const rawBody = await readNonStreamingResponseBody(
+    const parsed = await parseNonStreamingResponseBody({
       providerResponse,
-      contentType,
-      upstreamStream
-    );
-    const normalizedProviderPayload = normalizePayloadForLog(rawBody);
-    const looksLikeSSE =
-      contentType.includes("text/event-stream") ||
-      contentType.includes("application/x-ndjson") ||
-      /(^|\n)\s*(event|data):/m.test(rawBody);
+      upstreamStream,
+      providerHeaders,
+      finalBody,
+      targetFormat,
+      model,
+      log,
+    });
+    const normalizedProviderPayload = parsed.normalizedProviderPayload;
+    const looksLikeSSE = parsed.looksLikeSSE;
 
-    if (looksLikeSSE) {
-      const streamPayload = normalizeNonStreamingEventPayload(rawBody, contentType);
-      const streamKind = contentType.includes("application/x-ndjson") ? "NDJSON" : "SSE";
-      if (shouldTreatBufferedEventResponseAsExpected(upstreamStream, providerHeaders, finalBody)) {
-        log?.debug?.(
-          "STREAM",
-          `Buffering upstream ${streamKind} response for non-streaming client request`
-        );
-      } else {
-        log?.warn?.(
-          "STREAM",
-          `Unexpected ${streamKind} response for non-streaming request — buffering`
-        );
-      }
-      // Upstream returned an event stream for a non-streaming client; convert best-effort to JSON.
-      const parsedFromSSE = parseNonStreamingSSEPayload(streamPayload, targetFormat, model);
-
-      if (!parsedFromSSE) {
-        appendRequestLog({
-          model,
-          provider,
-          connectionId,
-          status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
-        }).catch(() => {});
-        // Some executors (e.g. the Devin/Windsurf CLI) always emit
-        // text/event-stream, signalling failure with an error-only chunk
-        // (`data: {"error":{"message":"Devin CLI not found..."}}`) that carries
-        // no `choices`. Surface that real, sanitized message instead of the
-        // generic 502 so the actionable error is not swallowed (#3324).
-        const surfacedSseError = extractSSEErrorMessage(streamPayload);
-        const invalidSseMessage =
-          surfacedSseError || "Invalid SSE response for non-streaming request";
-        persistAttemptLogs({
-          status: HTTP_STATUS.BAD_GATEWAY,
-          error: invalidSseMessage,
-          providerRequest: finalBody || translatedBody,
-          providerResponse: normalizedProviderPayload,
-          clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, invalidSseMessage),
-          cacheSource: "upstream",
-        });
-        persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_sse_payload");
-        trackPendingRequest(model, provider, pendingConnId, false);
-        return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidSseMessage);
-      }
-
-      responseBody = parsedFromSSE.body;
-      responsePayloadFormat = parsedFromSSE.format;
-    } else {
-      try {
-        responseBody = rawBody ? JSON.parse(rawBody) : {};
-      } catch (err) {
-        appendRequestLog({
-          model,
-          provider,
-          connectionId,
-          status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
-        }).catch(() => {});
-        const detailedError = `Invalid JSON response from provider (error: ${err instanceof Error ? err.message : String(err)}): ${rawBody.substring(0, 1000)}`;
-        const invalidJsonMessage = "Invalid JSON response from provider";
-        persistAttemptLogs({
-          status: HTTP_STATUS.BAD_GATEWAY,
-          error: detailedError,
-          providerRequest: finalBody || translatedBody,
-          providerResponse: normalizedProviderPayload,
-          clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage),
-          cacheSource: "upstream",
-        });
-        persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_json_payload");
-        trackPendingRequest(model, provider, connectionId, false);
-        return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage);
-      }
+    if (parsed.kind === "invalid_sse") {
+      appendRequestLog({
+        model,
+        provider,
+        connectionId,
+        status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
+      }).catch(() => {});
+      const invalidSseMessage = parsed.message;
+      persistAttemptLogs({
+        status: HTTP_STATUS.BAD_GATEWAY,
+        error: invalidSseMessage,
+        providerRequest: finalBody || translatedBody,
+        providerResponse: normalizedProviderPayload,
+        clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, invalidSseMessage),
+        cacheSource: "upstream",
+      });
+      persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_sse_payload");
+      trackPendingRequest(model, provider, pendingConnId, false);
+      return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidSseMessage);
     }
+
+    if (parsed.kind === "invalid_json") {
+      appendRequestLog({
+        model,
+        provider,
+        connectionId,
+        status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
+      }).catch(() => {});
+      const detailedError = parsed.detailedError;
+      const invalidJsonMessage = parsed.message;
+      persistAttemptLogs({
+        status: HTTP_STATUS.BAD_GATEWAY,
+        error: detailedError,
+        providerRequest: finalBody || translatedBody,
+        providerResponse: normalizedProviderPayload,
+        clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage),
+        cacheSource: "upstream",
+      });
+      persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "invalid_json_payload");
+      trackPendingRequest(model, provider, connectionId, false);
+      return createErrorResult(HTTP_STATUS.BAD_GATEWAY, invalidJsonMessage);
+    }
+
+    let responseBody = parsed.responseBody;
+    let responsePayloadFormat = parsed.responsePayloadFormat;
 
     // Check for empty content response (fake success) - trigger fallback
     if (isEmptyContentResponse(responseBody)) {
