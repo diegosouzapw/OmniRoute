@@ -22,6 +22,9 @@ import { getSaturation } from "./saturationSignals";
 import { getQuotaStore } from "./QuotaStore";
 import { listAllocationsForApiKey, getPool } from "@/lib/db/quotaPools";
 import { getModelCap } from "@/lib/db/quotaModelCaps";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("quota:enforce");
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -188,13 +191,33 @@ export async function enforceQuotaShare(input: EnforceInput): Promise<EnforceDec
   const consumedByThisKey: Record<string, number> = {};
 
   for (const dim of plan.dimensions) {
-    // Skip placeholder dimensions whose limit is unknown (Number.EPSILON / 0 — the
-    // "configure manually" seed for glm/minimax/kimi-coding/deepseek in planRegistry.ts).
-    // An unconfigured limit is NOT a real cap: enforcing it would block every request
-    // after the first one, because decideFairShare's global-saturated gate fires as soon
-    // as consumedTotal exceeds ~EPSILON. The real cap kicks in once a limit is set via
-    // the Wizard "Limite" step (provider_plans override).
-    if (!(dim.limit > Number.EPSILON)) continue;
+    // Skip ONLY the documented placeholder (Number.EPSILON — the "configure manually"
+    // seed for glm/minimax/kimi-coding/deepseek in planRegistry.ts). An unconfigured
+    // EPSILON limit is NOT a real cap: enforcing it would block every request after the
+    // first one, because decideFairShare's global-saturated gate fires as soon as
+    // consumedTotal exceeds ~EPSILON. The real cap kicks in once a limit is set via the
+    // Wizard "Limite" step (provider_plans override).
+    //
+    // SECURITY (fail-open guard): the predicate is EXACT equality, not `<= EPSILON`. A
+    // broader skip would fail-open on a real configured limit — a 0 means "block
+    // everything", a negative is corrupt config. Those must flow into decideFairShare and
+    // be ENFORCED (global-saturated block), never silently bypassed. Only a non-finite
+    // limit (NaN/Infinity — not even storable through provider_plans JSON) is skipped, and
+    // then with a warn so the bypass is observable instead of silent.
+    if (dim.limit === Number.EPSILON) continue;
+    if (!Number.isFinite(dim.limit)) {
+      log.warn(
+        {
+          provider: input.provider,
+          poolId: pool.id,
+          unit: dim.unit,
+          window: dim.window,
+          limit: dim.limit,
+        },
+        "quota dimension has a non-finite limit; skipping enforcement (misconfiguration)"
+      );
+      continue;
+    }
     const dimKey = { poolId: pool.id, unit: dim.unit, window: dim.window };
     const dimKeyStr = dimensionKeyToString(dimKey);
 
