@@ -167,6 +167,7 @@ import {
 } from "./chatCore/passthroughToolNames.ts";
 import { recordContextEditingTelemetryHook } from "./chatCore/contextEditingTelemetry.ts";
 import { recordCompressionCacheStats } from "./chatCore/compressionCacheStats.ts";
+import { writeCavemanOutputAnalytics } from "./chatCore/cavemanOutputAnalytics.ts";
 import {
   appendNonStreamingSseTerminalSignal,
   type NonStreamingSseTerminalState,
@@ -1380,31 +1381,15 @@ export async function handleChatCore({
         }
       }
       if (cavemanOutputModeApplied && !compressionAnalyticsRecorded) {
-        compressionAnalyticsWritePromise = (async () => {
-          try {
-            const { insertCompressionAnalyticsRow } =
-              await import("../../src/lib/db/compressionAnalytics.ts");
-            insertCompressionAnalyticsRow({
-              timestamp: new Date().toISOString(),
-              combo_id: comboName ?? null,
-              provider: provider ?? null,
-              mode: "output-caveman",
-              engine: "caveman-output",
-              compression_combo_id: config.compressionComboId ?? null,
-              original_tokens: estimatedTokens,
-              compressed_tokens: estimatedTokens,
-              tokens_saved: 0,
-              request_id: skillRequestId,
-              output_mode: cavemanOutputModeIntensity,
-            });
-          } catch (err) {
-            log?.debug?.(
-              "COMPRESSION",
-              "Caveman output analytics write skipped: " +
-                (err instanceof Error ? err.message : String(err))
-            );
-          }
-        })();
+        compressionAnalyticsWritePromise = writeCavemanOutputAnalytics({
+          comboName,
+          provider,
+          compressionComboId: config.compressionComboId,
+          estimatedTokens,
+          skillRequestId,
+          cavemanOutputModeIntensity,
+          log,
+        });
       }
       if (outputStyleResult) {
         void (async () => {
