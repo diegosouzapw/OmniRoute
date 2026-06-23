@@ -22,6 +22,7 @@ import {
   filterConfiguredProviderEntries,
   shouldFilterProviderEntriesForDisplayMode,
   shouldShowFirstProviderHint,
+  upsertProviderNodeById,
 } from "./providerPageUtils";
 import type { ProviderEntry } from "./providerPageUtils";
 import {
@@ -1745,7 +1746,7 @@ export default function ProvidersPage() {
         mode="openai"
         onClose={() => setShowAddCompatibleModal(false)}
         onCreated={(node) => {
-          setProviderNodes((prev) => [...prev, node]);
+          setProviderNodes((prev) => upsertProviderNodeById(prev, node));
           setShowAddCompatibleModal(false);
           router.push(`/dashboard/providers/${node.id}`);
         }}
@@ -1755,7 +1756,7 @@ export default function ProvidersPage() {
         mode="anthropic"
         onClose={() => setShowAddAnthropicCompatibleModal(false)}
         onCreated={(node) => {
-          setProviderNodes((prev) => [...prev, node]);
+          setProviderNodes((prev) => upsertProviderNodeById(prev, node));
           setShowAddAnthropicCompatibleModal(false);
           router.push(`/dashboard/providers/${node.id}`);
         }}
@@ -1767,7 +1768,7 @@ export default function ProvidersPage() {
           title={addCcCompatibleLabel}
           onClose={() => setShowAddCcCompatibleModal(false)}
           onCreated={(node) => {
-            setProviderNodes((prev) => [...prev, node]);
+            setProviderNodes((prev) => upsertProviderNodeById(prev, node));
             setShowAddCcCompatibleModal(false);
             router.push(`/dashboard/providers/${node.id}`);
           }}
