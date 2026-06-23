@@ -72,3 +72,27 @@ test("computeVerdict: releaseGreen iff zero HARD failures (drift never blocks)",
   ]);
   assert.equal(allGreen.releaseGreen, true);
 });
+
+test("computeVerdict: full-coverage classification — ratchets are drift, defects are hard", () => {
+  // Mirrors the expanded check set: the ratchets that historically surfaced in
+  // layers on the release PR (complexity/openapi/zizmor/…) are DRIFT → never block;
+  // the new real-defect gates (docs-all, integration) are HARD → block.
+  const results = [
+    { id: "complexity", kind: "drift", ok: false },
+    { id: "openapi-coverage", kind: "drift", ok: false },
+    { id: "workflow-lint", kind: "drift", ok: false },
+    { id: "dead-code", kind: "drift", ok: true },
+    { id: "codeql-ratchet", kind: "drift", ok: true },
+    { id: "docs-all", kind: "hard", ok: true },
+    { id: "integration", kind: "hard", ok: true },
+  ];
+  const v = computeVerdict(results);
+  // Three ratchets drifted but NONE block — release is still green, all reported.
+  assert.equal(v.releaseGreen, true);
+  assert.equal(v.drift.length, 3);
+
+  // A hard gate (integration assertion regression) flips it red.
+  const withHardFail = computeVerdict([...results, { id: "integration", kind: "hard", ok: false }]);
+  assert.equal(withHardFail.releaseGreen, false);
+  assert.equal(withHardFail.hardFailures.length, 1);
+});
