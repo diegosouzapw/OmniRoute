@@ -5,6 +5,7 @@ import { extractSystemRoleMessages } from "./chatCore/claudeSystemRole.ts";
 export { extractSystemRoleMessages } from "./chatCore/claudeSystemRole.ts";
 import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
+import { applyClientUsageBuffer } from "./chatCore/clientUsageBuffer.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
 import {
   getHeaderValueCaseInsensitive,
@@ -68,7 +69,6 @@ import { resolveStreamReadinessTimeout } from "../utils/streamReadinessPolicy.ts
 import { createStreamController, pipeWithDisconnect } from "../utils/streamHandler.ts";
 import * as streamFailure from "../utils/streamFailureFinalization.ts";
 import { createSseHeartbeatTransform, shapeForClientFormat } from "../utils/sseHeartbeat.ts";
-import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/usageTracking.ts";
 import {
   refreshWithRetry,
   isUnrecoverableRefreshError,
@@ -3470,20 +3470,7 @@ export async function handleChatCore({
       translatedResponse = sanitizeOpenAIResponse(translatedResponse);
     }
 
-    // Add buffer and filter usage for client (to prevent CLI context errors)
-    if (translatedResponse?.usage) {
-      const buffered = addBufferToUsage(translatedResponse.usage);
-      translatedResponse.usage = filterUsageForFormat(buffered, clientResponseFormat);
-    } else {
-      // Fallback: estimate usage when provider returned no usage block
-      const contentLength = JSON.stringify(
-        translatedResponse?.choices?.[0]?.message?.content || ""
-      ).length;
-      if (contentLength > 0) {
-        const estimated = estimateUsage(body, contentLength, clientResponseFormat);
-        translatedResponse.usage = filterUsageForFormat(estimated, clientResponseFormat);
-      }
-    }
+    applyClientUsageBuffer(translatedResponse, body, clientResponseFormat);
 
     if (memoryOwnerId && memorySettings?.enabled && memorySettings.maxTokens > 0) {
       const requestMemoryText = extractMemoryTextFromRequestBody(body as Record<string, unknown>);
