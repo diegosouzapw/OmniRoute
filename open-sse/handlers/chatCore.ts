@@ -6,7 +6,6 @@ export { extractSystemRoleMessages } from "./chatCore/claudeSystemRole.ts";
 import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
-import { cloneBoundedChatLogPayload, truncateForLog } from "./chatCore/logTruncation.ts";
 import {
   getHeaderValueCaseInsensitive,
   isNoMemoryRequested,
@@ -134,12 +133,16 @@ import {
   getUpstreamErrorIdentifier,
 } from "./chatCore/streamErrorResult.ts";
 import { wrapReadableStreamWithFinalize } from "./chatCore/streamFinalize.ts";
-import { buildCacheUsageLogMeta, attachLogMeta } from "./chatCore/cacheUsageMeta.ts";
+import { buildCacheUsageLogMeta } from "./chatCore/cacheUsageMeta.ts";
 import { buildExecutorClientHeaders } from "./chatCore/executorClientHeaders.ts";
 import { resolveExecutionCredentials as resolveExecutionCredentialsFor } from "./chatCore/executionCredentials.ts";
 import { resolveExecutorWithProxy as resolveExecutorWithProxyFor } from "./chatCore/executorProxy.ts";
 import type { ClaudeMessage } from "./chatCore/claudeMessageTypes.ts";
 import { normalizeClaudeUpstreamMessages as normalizeClaudeUpstreamMessagesFor } from "./chatCore/claudeUpstreamMessages.ts";
+import {
+  persistAttemptLogs as persistAttemptLogsFor,
+  type PersistAttemptLogsArgs,
+} from "./chatCore/attemptLogging.ts";
 
 import {
   getCallLogPipelineCaptureStreamChunks,
@@ -147,16 +150,10 @@ import {
 } from "@/lib/logEnv";
 import { logAuditEvent } from "@/lib/compliance";
 import { emit } from "@/lib/events/eventBus";
-import { extractProviderWarnings } from "@/lib/compliance/providerAudit";
 import { adaptBodyForCompression } from "../services/compression/bodyAdapter.ts";
 import { ensureEngineBreakdown } from "../services/compression/engineBreakdown.ts";
 import { handleBypassRequest } from "../utils/bypassHandler.ts";
-import {
-  saveRequestUsage,
-  trackPendingRequest,
-  appendRequestLog,
-  saveCallLog,
-} from "@/lib/usageDb";
+import { saveRequestUsage, trackPendingRequest, appendRequestLog } from "@/lib/usageDb";
 import { finalizePendingScope, updatePendingScope } from "@/lib/usage/pendingRequestScope";
 import { formatUsageLog } from "@/lib/usage/tokenAccounting";
 import { recordCost } from "@/domain/costRules";
@@ -709,118 +706,31 @@ export async function handleChatCore({
           clientRawRequest?.headers ?? null,
           "x-omniroute-session-id"
         )) || skillRequestId;
-  const persistAttemptLogs = ({
-    status,
-    tokens,
-    responseBody,
-    error,
-    providerRequest,
-    providerResponse,
-    clientResponse,
-    claudeCacheMeta,
-    claudeCacheUsageMeta,
-    cacheSource,
-  }: {
-    status: number;
-    tokens?: unknown;
-    responseBody?: unknown;
-    error?: string | null;
-    providerRequest?: unknown;
-    providerResponse?: unknown;
-    clientResponse?: unknown;
-    claudeCacheMeta?: Record<string, unknown>;
-    claudeCacheUsageMeta?: Record<string, unknown>;
-    cacheSource?: "upstream" | "semantic";
-  }) => {
-    const providerWarnings = extractProviderWarnings(
-      providerResponse,
-      clientResponse,
-      responseBody
-    );
-    if (providerWarnings.length > 0) {
-      logAuditEvent({
-        action: "provider.warning",
-        actor: "system",
-        target: [provider, connectionId].filter(Boolean).join(":") || provider || model,
-        resourceType: "provider_warning",
-        status: "warning",
-        requestId: skillRequestId,
-        details: {
-          provider,
-          model,
-          connectionId,
-          httpStatus: status,
-          warnings: providerWarnings,
-        },
-      });
-    }
-
-    const pipelinePayloads = detailedLoggingEnabled
-      ? (reqLogger?.getPipelinePayloads?.() ?? {})
-      : null;
-
-    if (pipelinePayloads) {
-      if (providerRequest !== undefined && !pipelinePayloads.providerRequest) {
-        pipelinePayloads.providerRequest = providerRequest as Record<string, unknown>;
-      }
-      if (providerResponse !== undefined && !pipelinePayloads.providerResponse) {
-        pipelinePayloads.providerResponse = providerResponse as Record<string, unknown>;
-      }
-      if (clientResponse !== undefined) {
-        pipelinePayloads.clientResponse = clientResponse as Record<string, unknown>;
-      }
-      if (error) {
-        pipelinePayloads.error = {
-          ...(typeof pipelinePayloads.error === "object" && pipelinePayloads.error
-            ? (pipelinePayloads.error as Record<string, unknown>)
-            : {}),
-          message: error,
-        };
-      }
-    }
-
-    saveCallLog({
-      id: pendingRequestId,
-      method: "POST",
-      path: clientRawRequest?.endpoint || "/v1/chat/completions",
-      status,
-      model,
-      requestedModel,
+  // persistAttemptLogs extracted to chatCore/attemptLogging.ts (#3501); bind the per-request context
+  // once so the 16 call sites keep passing only the per-attempt args (byte-identical).
+  const persistAttemptLogs = (args: PersistAttemptLogsArgs) =>
+    persistAttemptLogsFor(args, {
       provider,
-      connectionId: connectionId || credentials?.connectionId || undefined,
-      duration: Date.now() - startTime,
-      tokens: tokens || {},
-      requestBody: cloneBoundedChatLogPayload(
-        attachLogMeta(truncateForLog(body as Record<string, unknown>), {
-          claudePromptCache: claudeCacheMeta,
-        })
-      ),
-      responseBody: cloneBoundedChatLogPayload(
-        attachLogMeta(truncateForLog(responseBody as Record<string, unknown>), {
-          claudePromptCache: claudeCacheMeta
-            ? {
-                applied: claudeCacheMeta.applied,
-                totalBreakpoints: claudeCacheMeta.totalBreakpoints,
-                anthropicBeta: claudeCacheMeta.anthropicBeta,
-              }
-            : null,
-          claudePromptCacheUsage: claudeCacheUsageMeta,
-        })
-      ),
-      error: error || null,
+      connectionId,
+      model,
+      skillRequestId,
+      detailedLoggingEnabled,
+      reqLogger,
+      pendingRequestId,
+      clientRawRequest,
+      requestedModel,
+      credentials,
+      startTime,
+      body,
       sourceFormat,
       targetFormat,
       comboName,
       comboStepId,
       comboExecutionKey,
       tokensCompressed,
-      cacheSource: cacheSource === "semantic" ? "semantic" : "upstream",
-      apiKeyId: apiKeyInfo?.id || null,
-      apiKeyName: apiKeyInfo?.name || null,
-      noLog: noLogEnabled,
-      pipelinePayloads,
-    }).catch(() => {});
-  };
+      apiKeyInfo,
+      noLogEnabled,
+    });
 
   // Primary path: merge client model id + alias target so config on either key applies; resolved
   // id wins on same header name. T5 family fallback uses only (nextModel, resolveModelAlias(next))
