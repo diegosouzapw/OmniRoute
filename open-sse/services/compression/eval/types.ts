@@ -27,3 +27,39 @@ export type JudgeVerdict = "same" | "materially-differs" | "unparseable";
 export interface GradeVerdict { correct: boolean; raw: string; }
 
 export interface RunStamps { answerModel: string; judgeModel: string; corpusHash: string; sampleSize: number | "all"; }
+
+import type { SavingsResult } from "./savings.ts";
+
+export interface EvalRecord {
+  id: string;
+  kind: ContentKind;
+  fidelity: JudgeVerdict;
+  /** null when the case has no gold; otherwise whether that answer graded correct. */
+  goldFull: boolean | null;
+  goldCompressed: boolean | null;
+  savings: SavingsResult;
+  errored: boolean;
+  errorDetail?: string;
+}
+
+export interface KindSummary {
+  kind: ContentKind;
+  casesScored: number;
+  fidelityPreservedPct: number; // same / scored
+  goldAccuracyDeltaPct: number | null; // compressed-correct% − full-correct% over gold cases (null if none)
+  meanRatio: number;
+}
+
+export interface EvalReport {
+  stamps: RunStamps;
+  partial: boolean;
+  totalCostUsd: number;
+  overall: {
+    casesScored: number;
+    casesErrored: number;
+    fidelityPreservedPct: number;
+    goldAccuracyDeltaPct: number | null;
+    meanRatio: number;
+  };
+  perKind: KindSummary[];
+}
