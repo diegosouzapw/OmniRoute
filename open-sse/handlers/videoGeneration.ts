@@ -18,6 +18,7 @@
 import { getVideoProvider, parseVideoModel } from "../config/videoRegistry.ts";
 import { kieExecutor } from "../executors/kie.ts";
 import { vertexGenerateVideo } from "../executors/vertexMedia.ts";
+import { handleGoogleFlowVideoGeneration } from "./videoGeneration/googleFlowHandler.ts";
 import { getExecutor } from "../executors/index.ts";
 import { isJsonObject, parseKieResultJson } from "../utils/kieTask.ts";
 import {
@@ -59,6 +60,10 @@ export async function handleVideoGeneration({ body, credentials, log }) {
 
   if (providerConfig.format === "vertex-veo") {
     return handleVertexVeoGeneration({ model, body, credentials, log });
+  }
+
+  if (providerConfig.format === "google-flow") {
+    return handleGoogleFlowVideoGeneration({ model, providerConfig, body, credentials, log });
   }
 
   if (providerConfig.format === "comfyui") {

@@ -39,6 +39,23 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     ],
   },
 
+  googleflow: {
+    id: "googleflow",
+    alias: "flow",
+    // ⚠️ Wire host isolated for live HAR validation (Rule #18). The handler reuses
+    // the Google account OAuth credential (accessToken + Cloud Code projectId) that
+    // the Antigravity provider already establishes; no separate OAuth flow is added.
+    baseUrl: "https://aisandbox-pa.googleapis.com",
+    authType: "oauth",
+    authHeader: "bearer",
+    format: "google-flow",
+    models: [
+      { id: "veo-3.1-generate", name: "Veo 3.1 (Google Flow)" },
+      { id: "veo-3.1-fast-generate", name: "Veo 3.1 Fast (Google Flow)" },
+      { id: "veo-3.0-generate", name: "Veo 3.0 (Google Flow)" },
+    ],
+  },
+
   kie: {
     id: "kie",
     baseUrl: "https://api.kie.ai",
