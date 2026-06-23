@@ -627,6 +627,25 @@ export class DefaultExecutor extends BaseExecutor {
     const cleanedBody = super.transformRequest(model, body, stream, credentials);
     let withDefaults = applyProviderRequestDefaults(cleanedBody, this.config.requestDefaults);
     withDefaults = this.applyJsonSchemaFallback(withDefaults);
+
+    // Port of decolua/9router commit d652300e:
+    // Cerebras returns 400 (wrong_api_format) and Mistral returns 422
+    // (extra_forbidden) when the forwarded body carries `client_metadata`
+    // (an OpenAI Codex / Claude CLI passthrough field with no equivalent on
+    // these upstreams). Strip it before sending downstream. Other providers
+    // (notably `openai` / `codex`) intentionally keep it.
+    if (
+      withDefaults &&
+      typeof withDefaults === "object" &&
+      !Array.isArray(withDefaults) &&
+      (this.provider === "cerebras" || this.provider === "mistral") &&
+      Object.prototype.hasOwnProperty.call(withDefaults, "client_metadata")
+    ) {
+      const withoutClientMetadata = { ...(withDefaults as Record<string, unknown>) };
+      delete withoutClientMetadata.client_metadata;
+      withDefaults = withoutClientMetadata;
+    }
+
     const targetFormat = getTargetFormat(this.provider, credentials?.providerSpecificData);
     const requestFormat =
       withDefaults && typeof withDefaults === "object" && !Array.isArray(withDefaults)
