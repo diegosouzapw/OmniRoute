@@ -1047,3 +1047,50 @@ test("Responses -> Chat: a valid function_call/output pair is preserved (issue #
   assert.ok(toolMsg, "matching tool result must be preserved");
   assert.equal(toolMsg.tool_call_id, "c1");
 });
+
+// --- AI SDK image content part (#1330) ---
+test("Chat -> Responses converts AI SDK image content part to input_image", () => {
+  // AI SDK emits image parts as { type: "image", image: "data:...;base64,..." }
+  // rather than the OpenAI { type: "image_url", image_url: { url } } shape. The
+  // Responses translator must forward them as input_image (#1330).
+  const imageUrl = "data:image/png;base64,iVBORw0KGgo=";
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.2",
+    {
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Describe this image" },
+            { type: "image", image: imageUrl, detail: "high" },
+          ],
+        },
+      ],
+    },
+    true,
+    {}
+  ) as Record<string, unknown>;
+
+  const input = result.input as any[];
+  assert.deepEqual(input[0].content, [
+    { type: "input_text", text: "Describe this image" },
+    { type: "input_image", image_url: imageUrl, detail: "high" },
+  ]);
+});
+
+test("Chat -> Responses defaults AI SDK image detail to auto", () => {
+  const imageUrl = "data:image/jpeg;base64,/9j/4AAQ=";
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.2",
+    { messages: [{ role: "user", content: [{ type: "image", image: imageUrl }] }] },
+    true,
+    {}
+  ) as Record<string, unknown>;
+
+  const input = result.input as any[];
+  assert.deepEqual(input[0].content[0], {
+    type: "input_image",
+    image_url: imageUrl,
+    detail: "auto",
+  });
+});

@@ -553,6 +553,19 @@ export function openaiToOpenAIResponsesRequest(
                   }
                   return imgResult;
                 }
+                if (
+                  contentItem.type === "image" &&
+                  typeof contentItem.image === "string" &&
+                  /^data:([^;]+);base64,(.+)$/.test(contentItem.image)
+                ) {
+                  // AI SDK-style image part: { type: "image", image: "data:...;base64,..." } (#1330)
+                  const imgResult: JsonRecord = {
+                    type: "input_image",
+                    image_url: contentItem.image,
+                    detail: contentItem.detail !== undefined ? contentItem.detail : "auto",
+                  };
+                  return imgResult;
+                }
                 if (contentItem.type === "file" || contentItem.type === "document") {
                   // Accept both the OpenAI `file` shape and the Gemini-style `document` shape,
                   // and map the bare `data`/`url` fields too, so a PDF reaches Codex/Responses
