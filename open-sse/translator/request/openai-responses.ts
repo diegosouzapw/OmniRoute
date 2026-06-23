@@ -381,10 +381,18 @@ export function openaiResponsesToOpenAIRequest(
             },
           };
         }
+        // Responses API "hosted" tools (e.g. Codex's request_user_input,
+        // { type: "request_user_input" }) carry no explicit `name` and cannot be
+        // represented as a Chat Completions function declaration. Emitting them with
+        // an empty name produces an anonymous functionDeclaration that downstream
+        // providers such as Gemini reject with a 400 ("Invalid function name").
+        // Skip any tool without a non-empty string name; named tools are unaffected.
+        const name = tool.name;
+        if (typeof name !== "string" || name.trim() === "") return [];
         return {
           type: "function",
           function: {
-            name: toString(tool.name),
+            name,
             description: toString(tool.description),
             parameters: tool.parameters,
             strict: tool.strict,
