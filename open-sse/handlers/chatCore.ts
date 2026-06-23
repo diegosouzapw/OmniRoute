@@ -157,7 +157,6 @@ import { ensureEngineBreakdown } from "../services/compression/engineBreakdown.t
 import { handleBypassRequest } from "../utils/bypassHandler.ts";
 import { saveRequestUsage, trackPendingRequest, appendRequestLog } from "@/lib/usageDb";
 import { finalizePendingScope, updatePendingScope } from "@/lib/usage/pendingRequestScope";
-import { formatUsageLog } from "@/lib/usage/tokenAccounting";
 import { recordCost } from "@/domain/costRules";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
@@ -171,6 +170,7 @@ import {
   type NonStreamingSseTerminalState,
 } from "./chatCore/nonStreamingSse.ts";
 import { parseNonStreamingResponseBody } from "./chatCore/nonStreamingResponseParse.ts";
+import { recordNonStreamingUsageStats } from "./chatCore/nonStreamingUsageStats.ts";
 import {
   createBodyTimeoutError,
   readStreamChunkWithTimeout,
@@ -3565,41 +3565,17 @@ export async function handleChatCore({
 
     // Save structured call log with full payloads
     const cacheUsageLogMeta = buildCacheUsageLogMeta(usage);
-    if (usage && typeof usage === "object") {
-      if (traceEnabled) {
-        const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider?.toUpperCase()} | ${formatUsageLog(usage)}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
-        console.log(`${COLORS.green}${msg}${COLORS.reset}`);
-      }
-
-      saveRequestUsage({
-        provider: provider || "unknown",
-        model: model || "unknown",
-        tokens: usage,
-        status: "200",
-        success: true,
-        latencyMs: Date.now() - startTime,
-        timeToFirstTokenMs: Date.now() - startTime,
-        errorCode: null,
-        timestamp: new Date().toISOString(),
-        connectionId: connectionId || undefined,
-        apiKeyId: apiKeyInfo?.id || undefined,
-        apiKeyName: apiKeyInfo?.name || undefined,
-        serviceTier: effectiveServiceTier,
-        comboStrategy: isCombo ? comboStrategy || undefined : undefined,
-      }).catch((err) => {
-        console.error("Failed to save usage stats:", err.message);
-      });
-
-      if (apiKeyInfo?.id) {
-        try {
-          const billable = computeBillableTokens(usage);
-          if (billable > 0)
-            recordTokenUsage(apiKeyInfo.id, provider || "unknown", model || "unknown", billable);
-        } catch {
-          // never block the response on counter recording
-        }
-      }
-    }
+    recordNonStreamingUsageStats(usage, {
+      traceEnabled,
+      provider,
+      connectionId,
+      model,
+      startTime,
+      apiKeyInfo,
+      effectiveServiceTier,
+      isCombo,
+      comboStrategy,
+    });
 
     // Translate response to client's expected format (usually OpenAI)
     // Pass toolNameMap so Claude OAuth proxy_ prefix is stripped in tool_use blocks (#605)
