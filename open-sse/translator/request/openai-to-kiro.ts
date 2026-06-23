@@ -128,6 +128,12 @@ function convertMessages(messages, tools, model) {
   let currentRole = null;
   let toolsAttached = false;
 
+  // Only Claude models support images in Kiro. Kiro also routes non-Claude
+  // models (deepseek, minimax, glm, qwen3-coder-next, auto-kiro) that do not
+  // accept image attachments — gate image extraction behind a Claude check so
+  // we never attach images those models would reject.
+  const supportsImages = typeof model === "string" && model.toLowerCase().includes("claude");
+
   const flushPending = () => {
     if (currentRole === "user") {
       const content = pendingUserContent.join("\n\n").trim() || "(empty)";
@@ -250,9 +256,10 @@ function convertMessages(messages, tools, model) {
           .map((c) => c.text || "");
         content = textParts.join("\n");
 
-        // Extract images (OpenAI image_url and Anthropic image formats)
+        // Extract images (OpenAI image_url and Anthropic image formats).
+        // Skip entirely for models that do not support images — see supportsImages.
         for (const block of msg.content) {
-          if (block.type === "image_url") {
+          if (supportsImages && block.type === "image_url") {
             const url: string = block.image_url?.url || "";
             if (url.startsWith("data:")) {
               // data:image/jpeg;base64,<data>
@@ -261,11 +268,11 @@ function convertMessages(messages, tools, model) {
               const format = mediaType.split("/")[1] || "jpeg";
               if (bytes) pendingImages.push({ format, source: { bytes } });
             }
-          } else if (block.type === "image" && block.source?.type === "base64") {
+          } else if (supportsImages && block.type === "image" && block.source?.type === "base64") {
             const format = (block.source.media_type || "image/jpeg").split("/")[1] || "jpeg";
             if (block.source.data)
               pendingImages.push({ format, source: { bytes: block.source.data } });
-          } else if (block.type === "image" && typeof block.image === "string") {
+          } else if (supportsImages && block.type === "image" && typeof block.image === "string") {
             // AI SDK-style image part: { type: "image", image: "data:...;base64,..." } (#1330)
             const url = block.image;
             if (url.startsWith("data:")) {

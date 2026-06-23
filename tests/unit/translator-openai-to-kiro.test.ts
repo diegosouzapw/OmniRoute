@@ -915,3 +915,65 @@ test("OpenAI -> Kiro serializes non-string role:tool content to non-empty text (
   assert.notEqual(text, "", "non-string tool content must not collapse to empty string");
   assert.match(text, /entry A/, "serialized content preserves the structured text blocks");
 });
+
+// Only Claude models support images in Kiro. Non-Claude Kiro models
+// (deepseek-3.2, minimax-m2.5, glm-5, qwen3-coder-next, auto-kiro) must NOT
+// receive image attachments — attaching them is wrong for those models.
+const PNG_DATA_URL = "data:image/png;base64,aGVsbG8=";
+
+function buildImageRequest(model: string) {
+  return buildKiroPayload(
+    model,
+    {
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Describe this picture" },
+            { type: "image_url", image_url: { url: PNG_DATA_URL } },
+            { type: "image", source: { type: "base64", media_type: "image/png", data: "aGk=" } },
+            { type: "image", image: PNG_DATA_URL },
+          ],
+        },
+      ],
+    },
+    false,
+    null
+  );
+}
+
+test("OpenAI -> Kiro attaches images for Claude models", () => {
+  const result = buildImageRequest("claude-sonnet-4.6");
+  const images = result.conversationState.currentMessage.userInputMessage.images;
+  assert.ok(Array.isArray(images), "Claude models must keep image attachments");
+  // Three image blocks (image_url + Anthropic base64 + AI SDK-style) → 3 entries
+  assert.equal(images.length, 3, "all three supported image part shapes are attached");
+  assert.equal(images[0].format, "png");
+  assert.ok(images[0].source.bytes, "image bytes are preserved for Claude");
+});
+
+test("OpenAI -> Kiro drops images for non-Claude models (deepseek)", () => {
+  const result = buildImageRequest("deepseek-3.2");
+  const images = result.conversationState.currentMessage.userInputMessage.images;
+  assert.ok(
+    images === undefined || images.length === 0,
+    `non-Claude Kiro models must NOT receive image attachments, got: ${JSON.stringify(images)}`
+  );
+  // The accompanying text must still survive.
+  assert.match(
+    result.conversationState.currentMessage.userInputMessage.content,
+    /Describe this picture/,
+    "text content is preserved even when images are dropped"
+  );
+});
+
+test("OpenAI -> Kiro drops images for non-Claude models (glm / auto-kiro)", () => {
+  for (const model of ["glm-5", "minimax-m2.5", "qwen3-coder-next", "auto-kiro"]) {
+    const result = buildImageRequest(model);
+    const images = result.conversationState.currentMessage.userInputMessage.images;
+    assert.ok(
+      images === undefined || images.length === 0,
+      `${model} must NOT receive image attachments, got: ${JSON.stringify(images)}`
+    );
+  }
+});
