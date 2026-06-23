@@ -165,6 +165,7 @@ import {
   restoreClaudePassthroughToolNames,
   mergeResponseToolNameMap,
 } from "./chatCore/passthroughToolNames.ts";
+import { resolveCompressionSettings } from "./chatCore/compressionSettings.ts";
 import { recordContextEditingTelemetryHook } from "./chatCore/contextEditingTelemetry.ts";
 import { recordCompressionCacheStats } from "./chatCore/compressionCacheStats.ts";
 import { writeCavemanOutputAnalytics } from "./chatCore/cavemanOutputAnalytics.ts";
@@ -875,20 +876,10 @@ export async function handleChatCore({
   let contextEditingEnabled = false;
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {
     let estimatedTokens = estimateTokens(allMessages);
-    let promptCompressionEnabled = false;
-    let compressionSettings: CompressionConfig | null = null;
-
-    try {
-      const { getCompressionSettings } = await import("../../src/lib/db/compression.ts");
-      compressionSettings = await getCompressionSettings();
-      promptCompressionEnabled = compressionSettings.enabled;
-      contextEditingEnabled = compressionSettings.contextEditing?.enabled === true;
-    } catch (err) {
-      log?.warn?.(
-        "COMPRESSION",
-        "Compression settings lookup skipped: " + (err instanceof Error ? err.message : String(err))
-      );
-    }
+    const compressionSettingsResult = await resolveCompressionSettings(log);
+    const compressionSettings: CompressionConfig | null = compressionSettingsResult.settings;
+    const promptCompressionEnabled = compressionSettingsResult.enabled;
+    contextEditingEnabled = compressionSettingsResult.contextEditingEnabled;
 
     // --- Modular Compression Pipeline (Phase 1 Lite + Phase 2 Standard/Caveman + Phase 3 Aggressive) ---
     // Runs BEFORE the existing reactive compressContext() to proactively reduce tokens.
