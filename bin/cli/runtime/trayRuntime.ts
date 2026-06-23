@@ -83,8 +83,12 @@ function isInstalled(): boolean {
 }
 
 function installSystray(): void {
+  // --save-exact persists systray2 to the runtime package.json so installing it does not
+  // prune a sibling runtime dep (e.g. better-sqlite3 from nativeDeps.mjs, which writes to the
+  // same runtime dir) as "extraneous", and so the tray dep survives a later sibling install.
+  // Without it, a sibling install reproduces "No SQLite driver available".
   execSync(
-    `npm install --prefix "${RUNTIME_DIR}" ${SYSTRAY_SPEC} --no-audit --no-fund --silent`,
+    `npm install --prefix "${RUNTIME_DIR}" ${SYSTRAY_SPEC} --no-audit --no-fund --save-exact --silent`,
     { stdio: ["ignore", "ignore", "pipe"], timeout: 120_000 }
   );
 }

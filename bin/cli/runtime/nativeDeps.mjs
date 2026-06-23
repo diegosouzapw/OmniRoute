@@ -79,7 +79,18 @@ export function isBetterSqliteBinaryValid() {
 
 export function npmInstallRuntime(pkgs, opts = {}) {
   const cwd = ensureRuntimeDir();
-  const npmArgs = ["install", ...pkgs, "--no-audit", "--no-fund", "--prefer-online", "--no-save"];
+  // Persist to the runtime package.json (exact version) instead of --no-save so a later
+  // install of a sibling runtime dep (e.g. systray2 from trayRuntime.ts, which writes to the
+  // same runtime dir) does not prune this package as "extraneous" — that pruning otherwise
+  // reproduces "No SQLite driver available" after a tray install removes better-sqlite3.
+  const npmArgs = [
+    "install",
+    ...pkgs,
+    "--no-audit",
+    "--no-fund",
+    "--prefer-online",
+    "--save-exact",
+  ];
   // On Windows .cmd files cannot be executed without a shell; use cmd.exe /c explicitly
   // so we never set shell:true (which would propagate env and enable injection).
   const isWin = platform() === "win32";
