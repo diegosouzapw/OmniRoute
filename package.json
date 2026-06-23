@@ -76,6 +76,7 @@
     "gen:provider-reference": "node --import tsx scripts/docs/gen-provider-reference.ts",
     "bench:compression": "node --import tsx scripts/compression/benchmark.ts",
     "eval:compression": "node --import tsx scripts/compression-eval/index.ts",
+    "release:sync-changelog-i18n": "node scripts/release/sync-changelog-i18n.mjs",
     "build": "node scripts/build/build-next-isolated.mjs",
     "build:secure": "OMNIROUTE_BUILD_PROFILE=minimal node scripts/build/build-next-isolated.mjs",
     "build:cli": "node --import tsx scripts/build/prepublish.ts",
