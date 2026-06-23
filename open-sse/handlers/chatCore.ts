@@ -171,6 +171,7 @@ import {
   isStackedCompressionCombo,
   type RuntimeCompressionCombo,
 } from "./chatCore/compressionComboPredicates.ts";
+import { emitOutputStyleTelemetry } from "./chatCore/outputStyleTelemetry.ts";
 import { recordContextEditingTelemetryHook } from "./chatCore/contextEditingTelemetry.ts";
 import { recordCompressionCacheStats } from "./chatCore/compressionCacheStats.ts";
 import { writeCavemanOutputAnalytics } from "./chatCore/cavemanOutputAnalytics.ts";
@@ -1374,33 +1375,16 @@ export async function handleChatCore({
           log,
         });
       }
-      if (outputStyleResult) {
-        void (async () => {
-          try {
-            const { buildOutputStyleTelemetry } =
-              await import("../services/compression/outputStyles/telemetry.ts");
-            const { insertCompressionRunTelemetryRow } =
-              await import("../../src/lib/db/compressionRunTelemetry.ts");
-            const record = buildOutputStyleTelemetry({
-              requestId: skillRequestId ?? traceId ?? "",
-              model: effectiveModel ?? "",
-              provider: provider ?? "",
-              source: config.compressionComboId ? "active-profile" : "default",
-              tokensBefore: estimatedTokens,
-              tokensAfter: estimatedTokens,
-              applied: outputStyleResult.applied,
-              appliedStyles: outputStyleResult.appliedStyles,
-              skippedReason: outputStyleResult.skippedReason,
-            });
-            insertCompressionRunTelemetryRow(record);
-          } catch (err) {
-            log?.debug?.(
-              "COMPRESSION",
-              "Run-telemetry emit skipped: " + (err instanceof Error ? err.message : String(err))
-            );
-          }
-        })();
-      }
+      emitOutputStyleTelemetry({
+        outputStyleResult,
+        skillRequestId,
+        traceId,
+        effectiveModel,
+        provider,
+        compressionComboId: config.compressionComboId,
+        estimatedTokens,
+        log,
+      });
     } catch (err) {
       log?.warn?.(
         "COMPRESSION",
