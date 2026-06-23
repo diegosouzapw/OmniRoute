@@ -106,7 +106,6 @@ import {
   COOLDOWN_MS,
   HTTP_STATUS,
   FETCH_BODY_TIMEOUT_MS,
-  MAX_TOOLS_LIMIT,
   PROVIDER_MAX_TOKENS,
   SSE_HEARTBEAT_INTERVAL_MS,
   STREAM_IDLE_TIMEOUT_MS,
@@ -145,6 +144,7 @@ import {
 } from "./chatCore/attemptLogging.ts";
 import { stageTrace } from "./chatCore/stageTrace.ts";
 import { attachCompressionUsageReceiptAfterAnalytics as attachCompressionUsageReceiptAfterAnalyticsFor } from "./chatCore/compressionUsageReceipt.ts";
+import { prepareUpstreamBody } from "./chatCore/upstreamBody.ts";
 
 import {
   getCallLogPipelineCaptureStreamChunks,
@@ -185,14 +185,7 @@ import { getProviderCredentials, extractSessionAffinityKey } from "@/sse/service
 import { deleteSessionAccountAffinity } from "@/lib/db/sessionAccountAffinity";
 import { getCacheControlSettings } from "@/lib/cacheControlSettings";
 import { guardrailRegistry, resolveDisabledGuardrails } from "@/lib/guardrails";
-import {
-  applyConfiguredPayloadRules,
-  resolvePayloadRuleProtocols,
-} from "../services/payloadRules.ts";
-import {
-  shouldPreserveCacheControl,
-  providerSupportsCaching,
-} from "../utils/cacheControlPolicy.ts";
+import { shouldPreserveCacheControl } from "../utils/cacheControlPolicy.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { applyCodexGlobalFastServiceTier } from "@/lib/providers/codexFastTier";
 import { buildUpstreamHeadersForExecute as buildUpstreamHeadersForExecuteFor } from "./chatCore/upstreamExecuteHeaders.ts";
@@ -204,7 +197,6 @@ import {
 import { cacheReasoningFromAssistantMessage } from "../services/reasoningCache.ts";
 import { sanitizeOpenAITool } from "../services/toolSchemaSanitizer.ts";
 import {
-  getEffectiveToolLimit,
   setDetectedToolLimit,
   parseToolLimitFromError,
   shouldDetectLimit,
@@ -2109,86 +2101,17 @@ export async function handleChatCore({
         connectionId,
         credentials: executionCredentials,
       });
-      let bodyToSend =
-        translatedBody.model === modelToCall
-          ? translatedBody
-          : { ...translatedBody, model: modelToCall };
-      const payloadRuleModel =
-        typeof bodyToSend.model === "string" && bodyToSend.model.length > 0
-          ? bodyToSend.model
-          : modelToCall;
-      const payloadRuleProtocols = resolvePayloadRuleProtocols({
+      // Upstream body preparation extracted to chatCore/upstreamBody.ts (#3501 — first internal
+      // sub-slice of executeProviderRequest); produces the body sent upstream (payload rules +
+      // tool-limit truncation + qwen oauth user backfill + prompt_cache_key injection).
+      let bodyToSend = await prepareUpstreamBody({
+        translatedBody,
+        modelToCall,
         provider,
         targetFormat,
+        credentials,
+        log,
       });
-      const payloadRuleResult = await applyConfiguredPayloadRules(
-        bodyToSend,
-        payloadRuleModel,
-        payloadRuleProtocols
-      );
-      bodyToSend = payloadRuleResult.payload;
-
-      if (payloadRuleResult.applied.length > 0) {
-        const appliedSummary = payloadRuleResult.applied
-          .map((rule) => {
-            if (rule.type === "filter") return `${rule.type}:${rule.path}`;
-            const serializedValue = JSON.stringify(rule.value);
-            const safeValue =
-              typeof serializedValue === "string" && serializedValue.length > 80
-                ? `${serializedValue.slice(0, 77)}...`
-                : serializedValue;
-            return `${rule.type}:${rule.path}=${safeValue}`;
-          })
-          .join(", ");
-        log?.debug?.(
-          "PAYLOAD_RULES",
-          `Applied ${payloadRuleResult.applied.length} rule(s) for ${payloadRuleModel} (${payloadRuleProtocols.join(", ")}): ${appliedSummary}`
-        );
-      }
-
-      const effectiveToolLimit = getEffectiveToolLimit(provider);
-      if (
-        effectiveToolLimit < MAX_TOOLS_LIMIT &&
-        Array.isArray(bodyToSend.tools) &&
-        bodyToSend.tools.length > effectiveToolLimit
-      ) {
-        const truncatedTools = bodyToSend.tools.slice(0, effectiveToolLimit);
-        bodyToSend = { ...bodyToSend, tools: truncatedTools };
-        log?.debug?.(
-          "TOOL_LIMIT",
-          `Truncated ${bodyToSend.tools.length} tools to ${effectiveToolLimit} for ${provider}`
-        );
-      }
-
-      // Qwen OAuth rejects requests without a non-empty `user` field.
-      // Some minimal OpenAI-compatible clients omit it, so we backfill a
-      // stable default only for OAuth mode (API key mode is unaffected).
-      const hasValidQwenUser =
-        typeof bodyToSend.user === "string" && bodyToSend.user.trim().length > 0;
-      const isQwenOAuthRequest =
-        provider === "qwen" &&
-        !credentials?.apiKey &&
-        typeof credentials?.accessToken === "string" &&
-        credentials.accessToken.trim().length > 0;
-      if (isQwenOAuthRequest && !hasValidQwenUser) {
-        bodyToSend = { ...bodyToSend, user: "omniroute-qwen-oauth" };
-        log?.debug?.("QWEN", "Injected fallback user for OAuth request");
-      }
-
-      // Inject prompt_cache_key only for providers that support it
-      if (
-        targetFormat === FORMATS.OPENAI &&
-        providerSupportsCaching(provider) &&
-        !bodyToSend.prompt_cache_key &&
-        Array.isArray(bodyToSend.messages) &&
-        !["nvidia", "codex", "xai"].includes(provider)
-      ) {
-        const { generatePromptCacheKey } = await import("@/lib/promptCache");
-        const cacheKey = generatePromptCacheKey(bodyToSend.messages);
-        if (cacheKey) {
-          bodyToSend = { ...bodyToSend, prompt_cache_key: cacheKey };
-        }
-      }
 
       updatePendingScope(pendingScope, {
         providerRequest: bodyToSend,
