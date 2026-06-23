@@ -143,6 +143,8 @@ import {
   persistAttemptLogs as persistAttemptLogsFor,
   type PersistAttemptLogsArgs,
 } from "./chatCore/attemptLogging.ts";
+import { stageTrace } from "./chatCore/stageTrace.ts";
+import { attachCompressionUsageReceiptAfterAnalytics as attachCompressionUsageReceiptAfterAnalyticsFor } from "./chatCore/compressionUsageReceipt.ts";
 
 import {
   getCallLogPipelineCaptureStreamChunks,
@@ -368,19 +370,10 @@ export async function handleChatCore({
     });
   });
   const traceEnabled = process.env.OMNIROUTE_TRACE === "true" || process.env.DEBUG === "true";
-  const trace = (label: string, extra?: Record<string, unknown>) => {
-    if (!traceEnabled) return;
-    const elapsed = Date.now() - startTime;
-    let suffix = "";
-    if (extra) {
-      try {
-        suffix = ` ${JSON.stringify(extra)}`;
-      } catch {
-        suffix = " [unserializable]";
-      }
-    }
-    log?.info?.("STAGE_TRACE", `${traceId} ${label} t=${elapsed}ms${suffix}`);
-  };
+  // Stage trace extracted to chatCore/stageTrace.ts (#3501); bind the per-request inputs once so the
+  // call sites stay byte-identical.
+  const trace = (label: string, extra?: Record<string, unknown>) =>
+    stageTrace(label, extra, { traceEnabled, startTime, traceId, log });
   let tokensCompressed: number | null = null;
   body = injectSystemPrompt(body);
   // ── Plugin onRequest hook ──
@@ -683,22 +676,16 @@ export async function handleChatCore({
     detailedLoggingEnabled && getCallLogPipelineCaptureStreamChunks();
   const skillRequestId = generateRequestId();
   let compressionAnalyticsWritePromise: Promise<void> | null = null;
+  // Compression usage-receipt attachment extracted to chatCore/compressionUsageReceipt.ts (#3501);
+  // pass the in-flight analytics write + request id so behaviour stays byte-identical.
   const attachCompressionUsageReceiptAfterAnalytics = (
     usage: Record<string, unknown>,
     source: "provider" | "estimated" | "stream"
-  ) => {
-    const pendingWrite = compressionAnalyticsWritePromise;
-    void (async () => {
-      try {
-        if (pendingWrite) await pendingWrite;
-        const { attachCompressionUsageReceipt } =
-          await import("../../src/lib/db/compressionAnalytics.ts");
-        attachCompressionUsageReceipt(skillRequestId, usage, source);
-      } catch {
-        // Compression analytics are best-effort and must never affect responses.
-      }
-    })();
-  };
+  ) =>
+    attachCompressionUsageReceiptAfterAnalyticsFor(usage, source, {
+      pendingWrite: compressionAnalyticsWritePromise,
+      skillRequestId,
+    });
   const pipelineSessionId =
     (clientRawRequest?.headers && typeof clientRawRequest.headers.get === "function"
       ? clientRawRequest.headers.get("x-omniroute-session-id")
