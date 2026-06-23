@@ -3,7 +3,7 @@
  *
  * Context: NVIDIA's API-key validation endpoint stalls when routed through the
  * global proxy/TLS-patched fetch (undici dispatcher → 504). As a documented
- * exception, `directHttpsRequest()` in `src/lib/providers/validation.ts` calls
+ * exception, `directHttpsRequest()` in `src/lib/providers/validation/index.ts` calls
  * `safeOutboundFetch({ bypassProxyPatch: true })`, which resolves the native
  * fetch reference via `getOriginalFetch()` and bypasses the patch for that one
  * validation call only.
@@ -18,7 +18,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 test("bypassProxyPatch is present in the NVIDIA validation path (#3226 documented exception)", () => {
-  const validation = readFileSync("src/lib/providers/validation.ts", "utf8");
+  const validation = readFileSync("src/lib/providers/validation/index.ts", "utf8");
   assert.ok(
     validation.includes("bypassProxyPatch"),
     "expected bypassProxyPatch to be present in validation.ts (the documented NVIDIA exception)"

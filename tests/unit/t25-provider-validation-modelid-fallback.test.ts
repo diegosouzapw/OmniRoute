@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { validateProviderApiKey } = await import("../../src/lib/providers/validation.ts");
+const { validateProviderApiKey } = await import("../../src/lib/providers/validation/index.ts");
 
 test("T25: openai-compatible validation succeeds directly when /models works", async () => {
   const originalFetch = globalThis.fetch;

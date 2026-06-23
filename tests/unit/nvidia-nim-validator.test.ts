@@ -18,7 +18,7 @@ import http from "node:http";
 // import; if the first import happened inside a test that had already patched
 // `globalThis.fetch`, `getOriginalFetch()` would forever return that test's mock
 // and poison every later bypass call. Loading here pins the real native fetch.
-const { validateProviderApiKey } = await import("../../src/lib/providers/validation.ts");
+const { validateProviderApiKey } = await import("../../src/lib/providers/validation/index.ts");
 
 async function withMockServer(
   handler: (req: http.IncomingMessage, res: http.ServerResponse) => void,

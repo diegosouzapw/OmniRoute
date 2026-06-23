@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { validateProviderApiKey, validateClaudeCodeCompatibleProvider } =
-  await import("../../src/lib/providers/validation.ts");
+  await import("../../src/lib/providers/validation/index.ts");
 
 const originalFetch = globalThis.fetch;
 

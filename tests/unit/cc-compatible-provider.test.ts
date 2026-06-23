@@ -21,7 +21,7 @@ const {
 const { getModelsByProviderId, supportsXHighEffort } =
   await import("../../open-sse/config/providerModels.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
-const { validateProviderApiKey } = await import("../../src/lib/providers/validation.ts");
+const { validateProviderApiKey } = await import("../../src/lib/providers/validation/index.ts");
 const providerNodesRoute = await import("../../src/app/api/provider-nodes/route.ts");
 const providerNodesValidateRoute =
   await import("../../src/app/api/provider-nodes/validate/route.ts");

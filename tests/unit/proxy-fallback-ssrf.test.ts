@@ -9,7 +9,7 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omr-proxy-ssrf-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const { isRetryableProxyTarget } = await import("../../src/lib/providers/validation.ts");
+const { isRetryableProxyTarget } = await import("../../src/lib/providers/validation/index.ts");
 const { isPrivateHost } = await import("../../src/shared/network/outboundUrlGuard.ts");
 
 test.after(() => {

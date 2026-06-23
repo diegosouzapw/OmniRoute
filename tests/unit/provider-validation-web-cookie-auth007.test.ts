@@ -18,7 +18,7 @@ globalThis.fetch = (async () => {
   });
 }) as typeof fetch;
 
-const { validateWebCookieProvider } = await import("../../src/lib/providers/validation.ts");
+const { validateWebCookieProvider } = await import("../../src/lib/providers/validation/index.ts");
 
 function mockFetch(status: number, body: string) {
   nextResponse = { status, body };

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { validateProviderApiKey } = await import("../../src/lib/providers/validation.ts");
+const { validateProviderApiKey } = await import("../../src/lib/providers/validation/index.ts");
 
 test("serper validation accepts authenticated non-auth upstream errors", async () => {
   const originalFetch = globalThis.fetch;

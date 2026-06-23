@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 // pin the validator dispatch (firecrawl → POST api.firecrawl.dev/v1/scrape with Bearer;
 // jina-reader → GET r.jina.ai/<url> with Bearer) and the auth-failure mapping.
 
-const { validateProviderApiKey } = await import("../../src/lib/providers/validation.ts");
+const { validateProviderApiKey } = await import("../../src/lib/providers/validation/index.ts");
 
 const originalFetch = globalThis.fetch;
 

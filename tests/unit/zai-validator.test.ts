@@ -14,7 +14,7 @@ import http from "node:http";
 //     reachable. directHttpsRequest accepts plain HTTP URLs in test environments.
 //   - Assert that (a) the correct auth header is used, (b) 401/403 → "Invalid API key",
 //     (c) any other status → valid (including 502 which is z.ai's queue timeout, not auth).
-const { validateProviderApiKey } = await import("../../src/lib/providers/validation.ts");
+const { validateProviderApiKey } = await import("../../src/lib/providers/validation/index.ts");
 
 async function withMockServer(
   handler: (req: http.IncomingMessage, res: http.ServerResponse) => void,

@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 // --test-force-exit and emits "Promise resolution is still pending" failures
 // in CI even though the module evaluation is well-formed.
 import { APIKEY_PROVIDERS, OAUTH_PROVIDERS } from "../../src/shared/constants/providers.ts";
-import { validateProviderApiKey } from "../../src/lib/providers/validation.ts";
+import { validateProviderApiKey } from "../../src/lib/providers/validation/index.ts";
 import {
   validateBody,
   createProviderSchema,

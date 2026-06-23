@@ -6,7 +6,7 @@ const {
   validateClaudeCodeCompatibleProvider,
   validateCommandCodeProvider,
   isSecurityBlockError,
-} = await import("../../src/lib/providers/validation.ts");
+} = await import("../../src/lib/providers/validation/index.ts");
 
 const { SafeOutboundFetchError } = await import("../../src/shared/network/safeOutboundFetch.ts");
 
