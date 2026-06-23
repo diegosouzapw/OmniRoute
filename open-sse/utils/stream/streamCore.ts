@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { FORMATS } from "../../translator/formats";
 import { initState } from "../../translator/index.ts";
+import { generateSessionId } from "../../services/sessionManager.ts";
 
 import { parseTextualToolCallFromContent, containsTextualToolCallCandidate, containsMalformedTextualToolCall, extractAllowedToolNames, collectPassthroughTextualToolCall } from "./textualToolCalls.ts";
 import { getOpenAIIntermediateChunks } from "./openaiChunks.ts";
@@ -11,6 +12,38 @@ import { stringifyIdValue, asRecord, appendBoundedText, STREAM_MODE } from "./ut
 import { JsonRecord, StreamLogger, StreamCompletePayload, StreamFailurePayload, StreamOptions, TranslateState, ToolCall, UsageTokenRecord } from "./types.ts";
 import { normalizeStreamFailurePayload } from "./errors.ts";
 import { STREAM_IDLE_TIMEOUT_MS } from "../../config/constants";
+
+import { translateResponse } from "../../translator/index.ts";
+import { trackPendingRequest, appendRequestLog } from "@/lib/usageDb";
+import {
+  extractUsage,
+  hasValidUsage,
+  estimateUsage,
+  logUsage,
+  addBufferToUsage,
+  filterUsageForFormat,
+} from "../usageTracking.ts";
+import {
+  parseSSELine,
+  hasValuableContent,
+  fixInvalidId,
+  formatSSE,
+  unwrapGeminiChunk,
+} from "../../utils/streamHelpers.ts";
+import { calculateCost } from "@/lib/usage/costCalculator";
+import { buildOmniRouteSseMetadataComment } from "@/domain/omnirouteResponseMeta";
+import {
+  createStructuredSSECollector,
+  buildStreamSummaryFromEvents,
+} from "../../utils/streamPayloadCollector.ts";
+import {
+  sanitizeStreamingChunk,
+  OMIT_STREAMING_CHUNK_MARKER,
+} from "../../handlers/responseSanitizer.ts";
+import { buildErrorBody } from "../../utils/error.ts";
+import { recordToolLatency } from "../../services/toolLatencyTracker.ts";
+import { markToolFinish, consumeToolFinishTime } from "../../services/sessionManager.ts";
+
 
 /**
  * If the upstream provider stops sending data for STREAM_IDLE_TIMEOUT_MS,
