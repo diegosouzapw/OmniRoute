@@ -169,6 +169,7 @@ import { recordContextEditingTelemetryHook } from "./chatCore/contextEditingTele
 import { recordCompressionCacheStats } from "./chatCore/compressionCacheStats.ts";
 import { writeCavemanOutputAnalytics } from "./chatCore/cavemanOutputAnalytics.ts";
 import { scheduleQuotaShareConsumption } from "./chatCore/quotaShareConsumption.ts";
+import { emitRequestGamificationEvent } from "./chatCore/gamificationEvent.ts";
 import {
   appendNonStreamingSseTerminalSignal,
   type NonStreamingSseTerminalState,
@@ -3752,18 +3753,7 @@ export async function handleChatCore({
     // === /Quota Share POST-hook ===
 
     // ── Gamification event (fire-and-forget) ──
-    if (apiKeyInfo?.id) {
-      try {
-        const { emitGamificationEvent } = await import("@/lib/gamification/events");
-        emitGamificationEvent({
-          apiKeyId: apiKeyInfo.id,
-          action: "request",
-          metadata: { model, provider },
-        });
-      } catch (_) {
-        /* gamification optional */
-      }
-    }
+    await emitRequestGamificationEvent({ apiKeyId: apiKeyInfo?.id, model, provider });
 
     finalizePendingScope(pendingScope, {
       providerResponse: responseBody,
@@ -4212,18 +4202,7 @@ export async function handleChatCore({
   }
 
   // ── Gamification event (fire-and-forget) ──
-  if (apiKeyInfo?.id) {
-    try {
-      const { emitGamificationEvent } = await import("@/lib/gamification/events");
-      emitGamificationEvent({
-        apiKeyId: apiKeyInfo.id,
-        action: "request",
-        metadata: { model, provider },
-      });
-    } catch (_) {
-      /* gamification optional */
-    }
-  }
+  await emitRequestGamificationEvent({ apiKeyId: apiKeyInfo?.id, model, provider });
 
   // ── Plugin onResponse hook (fire-and-forget) ──
   try {
