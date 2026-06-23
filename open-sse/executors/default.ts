@@ -491,7 +491,14 @@ export class DefaultExecutor extends BaseExecutor {
               headers["Authorization"] = `Bearer ${effectiveKey}`;
             }
           }
-          if (!headers["anthropic-version"]) {
+          // Default the anthropic-version header only when the caller/operator
+          // has not already supplied one. The lookup is case-insensitive so a
+          // pre-set "Anthropic-Version" (e.g. from this.config.headers or a
+          // custom header) is not clobbered with a duplicate lowercase entry.
+          const hasAnthropicVersion = Object.keys(headers).some(
+            (key) => key.toLowerCase() === "anthropic-version"
+          );
+          if (!hasAnthropicVersion) {
             headers["anthropic-version"] = "2023-06-01";
           }
         } else {

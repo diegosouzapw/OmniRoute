@@ -435,6 +435,43 @@ test("DefaultExecutor.buildHeaders handles GLM, default auth and anthropic-compa
   assert.equal(anthropicHeaders.Accept, "text/event-stream");
 });
 
+test("DefaultExecutor.buildHeaders keeps a caller-supplied Anthropic-Version (case-insensitive guard) for anthropic-compatible providers", () => {
+  // An operator may configure a Title-Case "Anthropic-Version" via the provider
+  // config headers. The default-guard at the anthropic-compatible-* branch must
+  // detect it case-insensitively and NOT add a second lowercase
+  // "anthropic-version" key, which undici would otherwise combine into
+  // "2025-01-01, 2023-06-01" and break the upstream request.
+  const anthropicCompat = new DefaultExecutor("anthropic-compatible-test");
+  // `config` is shared across instances via the provider registry, so snapshot
+  // and restore `config.headers` to avoid leaking the Title-Case override into
+  // other tests.
+  const originalConfigHeaders = anthropicCompat.config.headers;
+  anthropicCompat.config.headers = {
+    ...originalConfigHeaders,
+    "Anthropic-Version": "2025-01-01",
+  };
+
+  try {
+    const headers = anthropicCompat.buildHeaders({ apiKey: "anth-key" }, true);
+
+    const versionKeys = Object.keys(headers).filter(
+      (key) => key.toLowerCase() === "anthropic-version"
+    );
+    assert.equal(versionKeys.length, 1, "Duplicate anthropic-version header keys found");
+    assert.equal(headers["Anthropic-Version"], "2025-01-01");
+    assert.equal(headers["anthropic-version"], undefined);
+    assert.equal(headers["x-api-key"], "anth-key");
+  } finally {
+    anthropicCompat.config.headers = originalConfigHeaders;
+  }
+});
+
+test("DefaultExecutor.buildHeaders still defaults anthropic-version when no variant is present", () => {
+  const anthropicCompat = new DefaultExecutor("anthropic-compatible-test");
+  const headers = anthropicCompat.buildHeaders({ apiKey: "anth-key" }, true);
+  assert.equal(headers["anthropic-version"], "2023-06-01");
+});
+
 test("DefaultExecutor local OpenAI-style providers honor custom base URLs and skip empty bearer headers", () => {
   const lmStudio = new DefaultExecutor("lm-studio");
   const vllm = new DefaultExecutor("vllm");
