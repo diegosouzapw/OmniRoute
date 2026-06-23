@@ -171,6 +171,7 @@ import { writeCavemanOutputAnalytics } from "./chatCore/cavemanOutputAnalytics.t
 import { scheduleQuotaShareConsumption } from "./chatCore/quotaShareConsumption.ts";
 import { emitRequestGamificationEvent } from "./chatCore/gamificationEvent.ts";
 import { runPluginOnResponseHook } from "./chatCore/pluginOnResponse.ts";
+import { scheduleStreamingQuotaShareConsumption } from "./chatCore/streamingQuotaShare.ts";
 import {
   appendNonStreamingSseTerminalSignal,
   type NonStreamingSseTerminalState,
@@ -4030,29 +4031,17 @@ export async function handleChatCore({
     // Resolve the real per-request cost (calculateCost) so USD-unit pools accrue
     // on streaming traffic too; this previously recorded usd:0 hardcoded, which
     // meant DeepSeek-style `usd/monthly` shared pools never blocked on streams.
-    if (apiKeyInfo?.id && credentials?.connectionId && normalizedStreamStatus === 200) {
-      const quotaApiKeyId = apiKeyInfo.id;
-      const quotaConnectionId = credentials.connectionId;
-      // onStreamComplete is sync — use .then() (fire-and-forget, fail-open) instead of await
-      import("@/lib/quota/spendRecorder")
-        .then(({ recordStreamingConsumption }) =>
-          recordStreamingConsumption(
-            {
-              apiKeyId: quotaApiKeyId,
-              connectionId: quotaConnectionId,
-              provider,
-              model,
-              streamUsage,
-              streamStatus: normalizedStreamStatus,
-              serviceTier: effectiveServiceTier,
-            },
-            { calculateCost, log }
-          )
-        )
-        .catch(() => {
-          // Outer fail-open — never throws to caller
-        });
-    }
+    scheduleStreamingQuotaShareConsumption({
+      apiKeyId: apiKeyInfo?.id,
+      connectionId: credentials?.connectionId,
+      provider,
+      model,
+      streamUsage,
+      streamStatus: normalizedStreamStatus,
+      serviceTier: effectiveServiceTier,
+      calculateCost,
+      log,
+    });
     // === /Quota Share POST-hook streaming ===
 
     if (
