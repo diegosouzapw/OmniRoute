@@ -227,6 +227,35 @@ export async function validateCommandCodeProvider({ apiKey, providerSpecificData
 }
 
 
+// HuggingFace fine-grained Inference-Provider tokens are valid even when
+// model/task endpoints reject them, so the generic OpenAI-like probe against
+// router.huggingface.co/v1/models falsely marks them invalid. Validate the
+// token strictly as an auth check via the whoami-v2 endpoint instead: only
+// 401/403 means the token is invalid; any other non-OK status is a transient
+// upstream failure, NOT an invalid key.
+export async function validateHuggingFaceProvider({ apiKey }: any) {
+  try {
+    const response = await validationRead("https://huggingface.co/api/whoami-v2", {
+      method: "GET",
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+
+    if (response.ok) {
+      return { valid: true, error: null, method: "huggingface_whoami" };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    // Non-auth, non-OK status — surface as a transient upstream failure rather
+    // than declaring the (potentially valid) fine-grained token invalid.
+    return { valid: false, error: `HuggingFace token check returned ${response.status}` };
+  } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
+}
+
 export async function validateGeminiLikeProvider({
   apiKey,
   baseUrl,

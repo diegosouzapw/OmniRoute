@@ -95,6 +95,7 @@ import {
   validateOpenAILikeProvider,
   validateCommandCodeProvider,
   validateGeminiLikeProvider,
+  validateHuggingFaceProvider,
   validateOpenAICompatibleProvider,
 } from "./validation/openaiFormat";
 import {
@@ -280,6 +281,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
       }
     },
     "command-code": validateCommandCodeProvider,
+    huggingface: validateHuggingFaceProvider,
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
     "fal-ai": ({ apiKey, providerSpecificData }: any) =>
