@@ -118,7 +118,12 @@ export function convertKiroToOpenAI(chunk, state) {
   if (eventType === "toolUseEvent" || data.toolUseEvent) {
     const toolUse = data.toolUseEvent || data;
     const toolCallId = toolUse.toolUseId || fallbackToolCallId();
-    const toolName = toolUse.name || "";
+    // #1375: long tool names were hash-truncated for Kiro (sanitizeKiroTools).
+    // Map the streamed name back to the original so the client sees the name
+    // it sent. `state.toolNameMap` carries truncated → original entries.
+    const rawName = toolUse.name || "";
+    const toolName =
+      state.toolNameMap instanceof Map ? state.toolNameMap.get(rawName) || rawName : rawName;
     const toolInput = toolUse.input || {};
 
     // #3980: record that this stream produced tool calls so the terminal
