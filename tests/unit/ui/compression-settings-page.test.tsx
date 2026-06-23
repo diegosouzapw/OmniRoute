@@ -6,6 +6,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 // ── Mock next-intl (CompressionSettingsTab calls useTranslations) ──────────
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
+  useLocale: () => "en",
 }));
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -55,6 +56,21 @@ afterEach(async () => {
 function setupFetchMock() {
   vi.spyOn(globalThis, "fetch").mockImplementation(async (input: RequestInfo | URL) => {
     const url = input.toString();
+    // D0 tile reads this; it must resolve to a valid Summary BEFORE the generic
+    // /api/settings/compression match (the run-telemetry URL contains that prefix).
+    if (url.includes("/run-telemetry")) {
+      return new Response(
+        JSON.stringify({
+          totalRuns: 0,
+          totalTokensSaved: 0,
+          runsWithStyles: 0,
+          bypassCount: 0,
+          totalOutputTokens: 0,
+          appliedStyleCounts: {},
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
     if (url.includes("/api/settings/compression")) {
       return new Response(
         JSON.stringify({
@@ -101,6 +117,8 @@ describe("CompressionSettingsPage", () => {
 
     expect(container).toBeTruthy();
     expect(container.children.length).toBeGreaterThan(0);
+    // D0: the read-only telemetry tile is mounted alongside the panel.
+    expect(container.querySelector('[data-testid="compression-styles-tile"]')).toBeTruthy();
   });
 
   it("does not crash when fetch calls fail (fail-soft)", async () => {

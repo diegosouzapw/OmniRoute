@@ -7,7 +7,12 @@ import {
   outputStyleMeta,
 } from "../../../open-sse/services/compression/outputStyles/catalog.ts";
 
-vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key }));
+// Locale is mutable per-test so we can exercise the locale gate (terse-cjk → zh only).
+const intl = vi.hoisted(() => ({ locale: "en" }));
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => key,
+  useLocale: () => intl.locale,
+}));
 
 const containers: HTMLElement[] = [];
 const roots: Array<{ unmount: () => void }> = [];
@@ -25,6 +30,7 @@ function mount(ui: React.ReactElement): HTMLElement {
 beforeEach(() => {
   (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
     true;
+  intl.locale = "en";
 });
 
 afterEach(async () => {
@@ -77,6 +83,7 @@ function setupFetchMock() {
 describe("CompressionPanel output styles", () => {
   it("renders one row per catalog style", async () => {
     setupFetchMock();
+    intl.locale = "zh-CN"; // a locale that matches every gated style, so all rows render
     const { default: CompressionPanel } = await import(
       "../../../src/app/(dashboard)/dashboard/context/settings/CompressionPanel"
     );
@@ -90,6 +97,38 @@ describe("CompressionPanel output styles", () => {
       expect(row, `expected a row for style "${id}"`).toBeTruthy();
       expect(container.textContent).toContain(outputStyleMeta(id).label);
     }
+  });
+
+  it("locale-gates terse-cjk: hidden under a non-zh locale", async () => {
+    setupFetchMock();
+    intl.locale = "en";
+    const { default: CompressionPanel } = await import(
+      "../../../src/app/(dashboard)/dashboard/context/settings/CompressionPanel"
+    );
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mount(<CompressionPanel />);
+    });
+    await flush();
+    // terse-cjk (locale "zh") must NOT be offered under "en"…
+    expect(container.querySelector(`[data-testid="output-style-row-terse-cjk"]`)).toBeFalsy();
+    // …while the non-gated styles still render.
+    expect(container.querySelector(`[data-testid="output-style-row-terse-prose"]`)).toBeTruthy();
+    expect(container.querySelector(`[data-testid="output-style-row-less-code"]`)).toBeTruthy();
+  });
+
+  it("locale-gates terse-cjk: offered under a zh locale (zh-CN base matches)", async () => {
+    setupFetchMock();
+    intl.locale = "zh-CN";
+    const { default: CompressionPanel } = await import(
+      "../../../src/app/(dashboard)/dashboard/context/settings/CompressionPanel"
+    );
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mount(<CompressionPanel />);
+    });
+    await flush();
+    expect(container.querySelector(`[data-testid="output-style-row-terse-cjk"]`)).toBeTruthy();
   });
 
   it("toggling a style PUTs an outputStyles selection", async () => {

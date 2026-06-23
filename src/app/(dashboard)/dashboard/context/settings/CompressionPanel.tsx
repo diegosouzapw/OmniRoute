@@ -13,7 +13,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 // Import Card/Toggle from their direct module paths rather than the @/shared/components
 // barrel: the barrel transitively pulls a heavy/Node-only module that hangs the
 // vitest/jsdom component test. Direct imports resolve identically under Next.js.
@@ -76,6 +76,9 @@ function normalizeEngines(raw: unknown): Record<string, EngineToggle> {
 
 export default function CompressionPanel() {
   const t = useTranslations("settings");
+  // D-A6/§7: locale-gated styles (e.g. terse-cjk → zh) are only OFFERED under their locale.
+  // Compare the UI language base ("zh-CN" → "zh") against the style's `locale`.
+  const uiLang = (useLocale() || "en").split("-")[0];
   const [config, setConfig] = useState<CompressionConfig>(DEFAULT_CONFIG);
   const [mcpAccessibility, setMcpAccessibility] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -302,7 +305,10 @@ export default function CompressionPanel() {
             Inject response-shaping instructions without rewriting provider output. Combine freely.
           </p>
         </div>
-        {OUTPUT_STYLE_IDS.map((id) => {
+        {OUTPUT_STYLE_IDS.filter((id) => {
+          const m = outputStyleMeta(id);
+          return !m?.locale || m.locale === uiLang;
+        }).map((id) => {
           const meta = outputStyleMeta(id);
           const sel = config.outputStyles?.find((s) => s.id === id);
           return (
