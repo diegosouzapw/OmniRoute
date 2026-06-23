@@ -374,3 +374,46 @@ test("extractUsage ignores non-final Ollama NDJSON chunks (done=false)", () => {
 
   assert.equal(usage, null);
 });
+
+// ── Antigravity (Gemini) streaming usageMetadata tests ──
+
+test("extractUsage reads top-level Gemini usageMetadata from a streaming chunk", () => {
+  const usage = extractUsage({
+    usageMetadata: {
+      promptTokenCount: 120,
+      candidatesTokenCount: 60,
+      totalTokenCount: 180,
+      cachedContentTokenCount: 30,
+      thoughtsTokenCount: 12,
+    },
+  });
+
+  assert.equal(usage.prompt_tokens, 120);
+  assert.equal(usage.completion_tokens, 60);
+  assert.equal(usage.total_tokens, 180);
+  assert.equal(usage.cached_tokens, 30);
+  assert.equal(usage.reasoning_tokens, 12);
+});
+
+test("extractUsage reads Antigravity usageMetadata wrapped inside a response envelope", () => {
+  // Antigravity (AG MITM) shapes usage as { response: { usageMetadata: {...} } }.
+  // Without the response.usageMetadata fallback, token usage is silently dropped.
+  const usage = extractUsage({
+    response: {
+      usageMetadata: {
+        promptTokenCount: 200,
+        candidatesTokenCount: 75,
+        totalTokenCount: 275,
+        cachedContentTokenCount: 40,
+        thoughtsTokenCount: 18,
+      },
+    },
+  });
+
+  assert.notEqual(usage, null);
+  assert.equal(usage.prompt_tokens, 200);
+  assert.equal(usage.completion_tokens, 75);
+  assert.equal(usage.total_tokens, 275);
+  assert.equal(usage.cached_tokens, 40);
+  assert.equal(usage.reasoning_tokens, 18);
+});
