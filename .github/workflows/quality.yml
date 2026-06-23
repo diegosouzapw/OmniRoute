@@ -40,6 +40,8 @@ jobs:
       - run: npm run check:fetch-targets
       - run: npm run check:openapi-routes
       - run: npm run check:docs-symbols
+      - name: Docs accuracy (fabricated-docs + i18n mirrors, strict)
+        run: npm run check:docs-all
       - run: npm run check:deps
       - run: npm run check:file-size
       - run: npm run check:error-helper
@@ -49,6 +51,7 @@ jobs:
       - run: npm run check:known-symbols
       - run: npm run check:route-guard-membership
       - run: npm run check:test-discovery
+      - run: npm run check:test-runner-api
       - run: npm run check:any-budget:t11
       - name: Typecheck (core)
         run: npm run typecheck:core
@@ -82,3 +85,48 @@ jobs:
           echo "Running impacted tests:"; echo "$SEL"
           mapfile -t FILES <<< "$SEL"
           node --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 "${FILES[@]}"
+
+  fast-vitest:
+    name: Vitest (fast-path)
+    runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ci-lint-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-lint-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run test:vitest
+
+  fast-unit:
+    name: Unit Tests fast-path (${{ matrix.shard }}/2)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    env:
+      JWT_SECRET: ci-lint-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-lint-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: >
+          node --max-old-space-size=4096 --import tsx
+          --import ./tests/_setup/isolateDataDir.ts
+          --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2
+          tests/unit/*.test.ts
+          "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
