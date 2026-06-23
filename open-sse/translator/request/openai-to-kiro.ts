@@ -6,6 +6,28 @@ import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { v4 as uuidv4, v5 as uuidv5 } from "uuid";
 
+/**
+ * Anthropic's direct-provider `[1m]` context-1m beta suffix. Kiro is AWS
+ * Bedrock-backed and does not honor it, so forwarding a `kr/*` model id that
+ * carries `[1m]` produces a malformed upstream model id at Bedrock.
+ */
+export const KIRO_UNSUPPORTED_CONTEXT_1M_SUFFIX = "[1m]";
+export const KIRO_UNSUPPORTED_CONTEXT_1M_MESSAGE =
+  "[kr/*] '[1m]' suffix is not supported by Kiro upstream. Kiro is AWS " +
+  "Bedrock-backed and does not honor Anthropic's context-1m beta. Use a " +
+  "direct-Anthropic provider for 1M-context routing.";
+
+/**
+ * Kiro is AWS Bedrock-backed, so Anthropic's direct-provider `[1m]` context
+ * beta cannot be forwarded as part of a `kr/*` model id.
+ */
+export function hasUnsupportedKiroContextSuffix(model: unknown): boolean {
+  return (
+    typeof model === "string" &&
+    model.toLowerCase().includes(KIRO_UNSUPPORTED_CONTEXT_1M_SUFFIX)
+  );
+}
+
 function parseToolInput(value: unknown) {
   if (value && typeof value === "object" && !Array.isArray(value)) {
     return value;
@@ -639,6 +661,12 @@ function convertMessages(messages, tools, model) {
  * Build Kiro payload from OpenAI format
  */
 export function buildKiroPayload(model, body, stream, credentials) {
+  // Reject the Anthropic-only `[1m]` context beta before it reaches Bedrock —
+  // Kiro cannot honor it and a forwarded `kr/*[1m]` id is malformed upstream.
+  if (hasUnsupportedKiroContextSuffix(model)) {
+    throw new Error(KIRO_UNSUPPORTED_CONTEXT_1M_MESSAGE);
+  }
+
   // Normalize model name: Claude Code sends dashes (claude-sonnet-4-6),
   // Kiro API expects dots (claude-sonnet-4.6). Convert trailing version segment.
   const normalizedModel = model.replace(

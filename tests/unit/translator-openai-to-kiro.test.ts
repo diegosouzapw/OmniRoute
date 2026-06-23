@@ -977,3 +977,22 @@ test("OpenAI -> Kiro drops images for non-Claude models (glm / auto-kiro)", () =
     );
   }
 });
+
+test("buildKiroPayload rejects the Anthropic-only [1m] context suffix before Bedrock", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  assert.throws(
+    () => buildKiroPayload("claude-opus-4.7-thinking-agentic[1m]", body, true, {}),
+    /\[1m\]' suffix is not supported by Kiro upstream/,
+    "kr/* model ids carrying [1m] must be rejected, not forwarded to AWS Bedrock"
+  );
+});
+
+test("buildKiroPayload accepts kr/* model ids without the [1m] suffix", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  assert.doesNotThrow(
+    () => buildKiroPayload("claude-sonnet-4.5", body, true, {}),
+    "model ids without [1m] must continue to build normally"
+  );
+});

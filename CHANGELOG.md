@@ -10,6 +10,8 @@ _In development — bullets added per PR; finalized at release._
 
 ### 🔧 Bug Fixes
 
+- **sse/kiro**: reject the Anthropic-only `[1m]` context-1m suffix in `buildKiroPayload` before it reaches AWS Bedrock — Kiro is Bedrock-backed and cannot honor the beta, so a forwarded `kr/*[1m]` model id was malformed upstream; callers now get a clear error pointing them at a direct-Anthropic provider for 1M-context routing (thanks @Delcado19).
+
 - **Engine Combos editor: saving a pipeline no longer fails silently with HTTP 400 (#4955).** The
   named-combos pipeline dropdown offered four engines (`headroom`, `session-dedup`, `ccr`,
   `llmlingua`) that the `PUT /api/context/combos/[id]` schema rejects, so selecting one made the
