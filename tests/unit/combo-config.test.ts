@@ -214,12 +214,9 @@ test("combo config schema accepts explicit zero-latency opt-in controls", () => 
 });
 
 test("combo config schema auto-promotes the zero-latency gate for legacy configs without opt-in", () => {
-  // Pre-3.8.33 stored combos carry zero-latency subfeatures (hedging /
-  // fallbackCompressionMode / predictiveTtftMs) WITHOUT the
-  // zeroLatencyOptimizationsEnabled gate the current schema expects. Rather than
-  // rejecting these on the first GUI edit (the #4382 400), the schema now
-  // auto-promotes the gate to true so the stored config round-trips through
-  // PUT /api/combos/{id}. See #4774 (closes #4382 followup).
+  // Pre-3.8.33 combos carry zero-latency subfeatures without the
+  // zeroLatencyOptimizationsEnabled gate. The schema now auto-promotes the gate
+  // (instead of 400-ing on the first GUI edit) so they round-trip. See #4774/#4382.
   const result = createComboSchema.safeParse({
     name: "zero-latency-legacy",
     models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
@@ -254,10 +251,8 @@ test("combo config schema leaves the zero-latency gate untouched when no subfeat
 });
 
 test("combo config schema no longer rejects v3.8.31-era removed config keys (#4382 round-trip)", () => {
-  // These keys were dropped from the schema after v3.8.31 but still live in
-  // stored combo JSON. The schema switched from .strict() (which 400'd on these)
-  // to .passthrough() so legacy configs survive an edit+save; the server route
-  // (stripLegacyComboConfigKeys) and migration 103 then scrub them on write.
+  // Keys dropped after v3.8.31 still live in stored JSON. The schema switched
+  // .strict() (which 400'd) → .passthrough(); the route + migration 103 scrub them.
   const result = createComboSchema.safeParse({
     name: "legacy-removed-keys",
     models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
