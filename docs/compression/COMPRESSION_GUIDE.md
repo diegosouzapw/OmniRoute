@@ -278,7 +278,7 @@ Every compressed request includes stats in the server logs:
 | Phase 1 | Off, Lite                            | ✅ Shipped |
 | Phase 2 | Standard, Aggressive, Ultra          | ✅ Shipped |
 | Phase 3 | RTK, Stacked, Compression Combos     | ✅ Shipped |
-| Phase 4 | Per-model adaptive, ML-based pruning | 🗓️ Planned |
+| Phase 4 | Output Styles, SLM-tier Ultra, adaptive context-budget, eval harness | ✅ Shipped |
 
 ---
 
