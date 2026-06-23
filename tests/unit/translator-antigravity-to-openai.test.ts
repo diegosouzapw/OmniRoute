@@ -192,3 +192,61 @@ test("Antigravity -> OpenAI lowers schema types recursively", () => {
     },
   });
 });
+
+test("Antigravity -> OpenAI strips enumDescriptions from tool schema (top-level + nested)", () => {
+  const result = antigravityToOpenAIRequest(
+    "gpt-4o",
+    {
+      request: {
+        tools: [
+          {
+            functionDeclarations: [
+              {
+                name: "configure",
+                parameters: {
+                  type: "OBJECT",
+                  enumDescriptions: { ROOT: "should be stripped" },
+                  properties: {
+                    mode: {
+                      type: "STRING",
+                      enum: ["fast", "slow"],
+                      enumDescriptions: { fast: "go fast", slow: "go slow" },
+                    },
+                    tags: {
+                      type: "ARRAY",
+                      items: {
+                        type: "STRING",
+                        enum: ["a", "b"],
+                        enumDescriptions: { a: "alpha", b: "beta" },
+                      },
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+    false
+  );
+
+  const parameters = (result.tools[0].function as any).parameters;
+
+  // enumDescriptions must be removed at every level of the schema tree...
+  assert.equal("enumDescriptions" in parameters, false);
+  assert.equal("enumDescriptions" in parameters.properties.mode, false);
+  assert.equal("enumDescriptions" in parameters.properties.tags.items, false);
+
+  // ...while leaving the rest of the schema (incl. enum values) intact.
+  assert.deepEqual(parameters, {
+    type: "object",
+    properties: {
+      mode: { type: "string", enum: ["fast", "slow"] },
+      tags: {
+        type: "array",
+        items: { type: "string", enum: ["a", "b"] },
+      },
+    },
+  });
+});

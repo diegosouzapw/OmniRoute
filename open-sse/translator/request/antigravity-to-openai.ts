@@ -100,6 +100,7 @@ export function antigravityToOpenAIRequest(model, body, stream) {
 }
 
 // Recursively convert Antigravity schema types (OBJECT, STRING, etc.) to lowercase
+// and strip unsupported fields like enumDescriptions
 function normalizeSchemaTypes(schema) {
   if (!schema || typeof schema !== "object") return schema;
 
@@ -108,6 +109,9 @@ function normalizeSchemaTypes(schema) {
   if (typeof result.type === "string") {
     result.type = result.type.toLowerCase();
   }
+
+  // Strip enumDescriptions — not supported by upstream OpenAI-compatible APIs
+  delete result.enumDescriptions;
 
   if (result.properties) {
     const normalized = {};
