@@ -1370,15 +1370,18 @@ export async function getUnifiedModelsResponse(
     if (apiKey) {
       const { isModelAllowedForKey, getApiKeyMetadata } = await import("@/lib/db/apiKeys");
 
-      // Quota-exclusive keys (allowedQuotas non-empty): show only the
-      // quotaShared-* virtual models for the key's assigned pools (Phase B3).
-      // This takes precedence over the normal allowedModels filter.
+      // Quota-exclusive keys (allowedQuotas non-empty): list ONLY the pool's qtSd/*
+      // virtual models. #4806: build from the hidden qtSd/* combos directly — the base
+      // `models` list drops hidden combos, so filtering it returned nothing (0 models).
       const keyMeta = await getApiKeyMetadata(apiKey);
       if (keyMeta && keyMeta.allowedQuotas && keyMeta.allowedQuotas.length > 0) {
-        const { resolveQuotaKeyScope } = await import("@/lib/quota/quotaKey");
-        const { filterModelsToQuotaPools } = await import("@/lib/quota/quotaCombos");
-        const scope = await resolveQuotaKeyScope(keyMeta.allowedQuotas);
-        finalModels = filterModelsToQuotaPools(models, scope.poolSlugs);
+        const { buildQuotaExclusiveModels } = await import("@/lib/quota/quotaCombos");
+        finalModels = await buildQuotaExclusiveModels(
+          keyMeta.allowedQuotas,
+          combos,
+          timestamp,
+          (c) => buildComboCatalogMetadata(c, combos)
+        );
       } else {
         const filtered = [];
         for (const m of models) {

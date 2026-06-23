@@ -21,7 +21,12 @@ import {
   updateCombo,
 } from "@/lib/db/combos";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
-import { quotaModelName, parseQuotaModelName, isQuotaModelName, quotaGroupSlug } from "./quotaModelNaming";
+import {
+  quotaModelName,
+  parseQuotaModelName,
+  isQuotaModelName,
+  quotaGroupSlug,
+} from "./quotaModelNaming";
 import { createLogger } from "@/shared/utils/logger";
 
 const log = createLogger("quota/quotaCombos");
@@ -87,7 +92,11 @@ function getProviderModelIds(provider: string): string[] {
   const models = entry && Array.isArray(entry.models) ? entry.models : [];
   if (models.length === 0) return [];
   return models
-    .map((m) => (typeof m === "object" && m !== null && typeof (m as { id?: unknown }).id === "string" ? (m as { id: string }).id : null))
+    .map((m) =>
+      typeof m === "object" && m !== null && typeof (m as { id?: unknown }).id === "string"
+        ? (m as { id: string }).id
+        : null
+    )
     .filter((id): id is string => id !== null && id.length > 0);
 }
 
@@ -184,7 +193,12 @@ export async function syncQuotaCombos(poolId: string): Promise<void> {
     }));
     try {
       const existing = await getComboByName(comboName);
-      const payload = { name: comboName, models: steps, strategy: "fill-first" as const, isHidden: true };
+      const payload = {
+        name: comboName,
+        models: steps,
+        strategy: "fill-first" as const,
+        isHidden: true,
+      };
       if (existing && typeof existing.id === "string") await updateCombo(existing.id, payload);
       else await createCombo(payload);
     } catch (err) {
@@ -228,7 +242,10 @@ export async function syncQuotaCombos(poolId: string): Promise<void> {
       try {
         await deleteComboByName(name);
       } catch (err) {
-        log.warn({ err: (err as Error)?.message, comboName: name, poolId }, "quota-combo prune failed");
+        log.warn(
+          { err: (err as Error)?.message, comboName: name, poolId },
+          "quota-combo prune failed"
+        );
       }
     }
   }
@@ -262,6 +279,51 @@ export function filterModelsToQuotaPools<T extends { id: string }>(
 }
 
 /**
+ * #4806 — Build the /v1/models catalog list for a quota-exclusive API key.
+ *
+ * The pool's qtSd/<group>/<provider>/<model> combos are isHidden:true, so the
+ * base /v1/models list (which skips hidden combos) never contains them. Filtering
+ * that base list therefore returned nothing and clients (e.g. Claude Desktop)
+ * showed "0 modelo encontrado" once "Cota exclusiva" was enabled on the pool.
+ *
+ * This selects the (hidden) qtSd/* combos whose parsed group slug is in
+ * `poolSlugs` and maps each through `toEntry` — the catalog's own combo-entry
+ * builder — so it stays free of catalog-internal helpers and is unit-testable.
+ *
+ * Fail-closed: an empty `poolSlugs` array yields an empty list (a quota key with
+ * no resolvable pools sees no models).
+ */
+export async function buildQuotaExclusiveModels<TCombo extends { name?: unknown }>(
+  allowedQuotas: string[],
+  combos: TCombo[],
+  timestamp: number,
+  metadataFor: (combo: TCombo) => Record<string, unknown>
+): Promise<Array<Record<string, unknown>>> {
+  const { resolveQuotaKeyScope } = await import("./quotaKey");
+  const scope = await resolveQuotaKeyScope(allowedQuotas);
+  if (scope.poolSlugs.length === 0) return [];
+  const slugSet = new Set(scope.poolSlugs);
+  const out: Array<Record<string, unknown>> = [];
+  for (const combo of combos) {
+    const name = typeof combo.name === "string" ? combo.name : "";
+    if (!isQuotaModelName(name)) continue;
+    const parsed = parseQuotaModelName(name);
+    if (!parsed || !slugSet.has(parsed.groupSlug)) continue;
+    out.push({
+      id: name,
+      object: "model",
+      created: timestamp,
+      owned_by: "combo",
+      permission: [],
+      root: name,
+      parent: null,
+      ...metadataFor(combo),
+    });
+  }
+  return out;
+}
+
+/**
  * Delete ALL `quotaShared-*` combos that belong to the given pool.
  *
  * B4: scoped to this pool's group+provider so that removing one pool does not
@@ -290,7 +352,10 @@ export async function removeQuotaCombosForPool(poolId: string): Promise<void> {
   let poolProvider: string | undefined;
   for (const connId of pool.connectionIds) {
     try {
-      const connection = (await getProviderConnectionById(connId)) as Record<string, unknown> | null;
+      const connection = (await getProviderConnectionById(connId)) as Record<
+        string,
+        unknown
+      > | null;
       if (connection && typeof connection.provider === "string" && connection.provider.length > 0) {
         poolProvider = connection.provider;
         break;
@@ -309,7 +374,10 @@ export async function removeQuotaCombosForPool(poolId: string): Promise<void> {
   try {
     allCombos = await getCombos();
   } catch (err) {
-    log.warn({ err: (err as Error)?.message, poolId }, "removeQuotaCombosForPool: getCombos failed");
+    log.warn(
+      { err: (err as Error)?.message, poolId },
+      "removeQuotaCombosForPool: getCombos failed"
+    );
     return;
   }
 
@@ -328,7 +396,10 @@ export async function removeQuotaCombosForPool(poolId: string): Promise<void> {
     try {
       await deleteComboByName(name);
     } catch (err) {
-      log.warn({ err: (err as Error)?.message, comboName: name, poolId }, "quota-combo remove failed");
+      log.warn(
+        { err: (err as Error)?.message, comboName: name, poolId },
+        "quota-combo remove failed"
+      );
     }
   }
 }
