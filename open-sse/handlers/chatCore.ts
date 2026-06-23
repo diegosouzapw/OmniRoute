@@ -172,6 +172,7 @@ import {
   type RuntimeCompressionCombo,
 } from "./chatCore/compressionComboPredicates.ts";
 import { emitOutputStyleTelemetry } from "./chatCore/outputStyleTelemetry.ts";
+import { writeCompressionAnalytics } from "./chatCore/compressionAnalyticsWrite.ts";
 import { recordContextEditingTelemetryHook } from "./chatCore/contextEditingTelemetry.ts";
 import { recordCompressionCacheStats } from "./chatCore/compressionCacheStats.ts";
 import { writeCavemanOutputAnalytics } from "./chatCore/cavemanOutputAnalytics.ts";
@@ -1277,74 +1278,19 @@ export async function handleChatCore({
           if (result.compressed || result.stats.fallbackApplied || cavemanOutputModeApplied) {
             trackCompressionStats(result.stats);
             compressionAnalyticsRecorded = true;
-            compressionAnalyticsWritePromise = (async () => {
-              try {
-                const { insertCompressionAnalyticsRow, insertCompressionEngineBreakdown } =
-                  await import("../../src/lib/db/compressionAnalytics.ts");
-                const { calculateCost } = await import("../../src/lib/usage/costCalculator.ts");
-                const tokensSaved = Math.max(
-                  0,
-                  result.stats.originalTokens - result.stats.compressedTokens
-                );
-                const rtkPointers = result.stats.rtkRawOutputPointers ?? [];
-                const estimatedUsdSaved = await calculateCost(
-                  provider ?? "",
-                  effectiveModel ?? "",
-                  {
-                    input: tokensSaved,
-                  },
-                  { serviceTier: effectiveServiceTier }
-                );
-                insertCompressionAnalyticsRow({
-                  timestamp: new Date().toISOString(),
-                  combo_id: comboName ?? null,
-                  provider: provider ?? null,
-                  mode,
-                  engine: result.stats.engine ?? mode,
-                  compression_combo_id:
-                    result.stats.compressionComboId ?? config.compressionComboId ?? null,
-                  original_tokens: result.stats.originalTokens,
-                  compressed_tokens: result.stats.compressedTokens,
-                  tokens_saved: tokensSaved,
-                  duration_ms: result.stats.durationMs ?? null,
-                  request_id: skillRequestId,
-                  estimated_usd_saved: estimatedUsdSaved || null,
-                  validation_fallback: result.stats.fallbackApplied ? 1 : 0,
-                  output_mode: cavemanOutputModeApplied ? cavemanOutputModeIntensity : null,
-                  rtk_raw_output_pointer: rtkPointers[0]?.id ?? null,
-                  rtk_raw_output_bytes: rtkPointers[0]?.bytes ?? null,
-                  rtk_raw_output_pointers: rtkPointers.length
-                    ? JSON.stringify(rtkPointers.map((pointer) => pointer.id))
-                    : null,
-                  rtk_raw_output_total_bytes: rtkPointers.length
-                    ? rtkPointers.reduce((total, pointer) => total + pointer.bytes, 0)
-                    : null,
-                });
-                // Persist the per-engine breakdown of a stacked run so per-engine
-                // analytics (getPerEngineAnalytics) is accurate historically, not just
-                // in the live `compression.completed` event.
-                const engineBreakdown = result.stats.engineBreakdown ?? [];
-                if (engineBreakdown.length > 0) {
-                  insertCompressionEngineBreakdown(
-                    engineBreakdown.map((b) => ({
-                      timestamp: new Date().toISOString(),
-                      request_id: skillRequestId,
-                      engine: b.engine,
-                      original_tokens: b.originalTokens,
-                      compressed_tokens: b.compressedTokens,
-                      tokens_saved: Math.max(0, b.originalTokens - b.compressedTokens),
-                      duration_ms: b.durationMs ?? null,
-                    }))
-                  );
-                }
-              } catch (err) {
-                log?.debug?.(
-                  "COMPRESSION",
-                  "Compression analytics write skipped: " +
-                    (err instanceof Error ? err.message : String(err))
-                );
-              }
-            })();
+            compressionAnalyticsWritePromise = writeCompressionAnalytics({
+              stats: result.stats,
+              provider,
+              effectiveModel,
+              effectiveServiceTier,
+              comboName,
+              mode,
+              compressionComboId: config.compressionComboId,
+              skillRequestId,
+              cavemanOutputModeApplied,
+              cavemanOutputModeIntensity,
+              log,
+            });
           }
 
           if (result.compressed) {
