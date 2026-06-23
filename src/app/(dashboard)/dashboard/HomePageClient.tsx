@@ -114,9 +114,6 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
     Array<{ id?: string; prefix?: string; name?: string }>
   >([]);
 
-  // Live in-flight requests for Provider Topology pulse animation (#3507)
-  const { activeRequests: liveActiveRequests } = useLiveRequests();
-
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [updating, setUpdating] = useState(false);
 
