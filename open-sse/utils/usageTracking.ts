@@ -402,6 +402,18 @@ export function extractUsage(chunk) {
     });
   }
 
+  // Ollama NDJSON format (raw from provider, before translation)
+  // Ollama sends: { "model": "...", "done": true, "prompt_eval_count": N, "eval_count": M }
+  if (chunk.done === true && typeof chunk.prompt_eval_count === "number") {
+    const promptEvalCount = chunk.prompt_eval_count || 0;
+    const evalCount = chunk.eval_count || 0;
+    return normalizeUsage({
+      prompt_tokens: promptEvalCount,
+      completion_tokens: evalCount,
+      total_tokens: promptEvalCount + evalCount,
+    });
+  }
+
   return null;
 }
 

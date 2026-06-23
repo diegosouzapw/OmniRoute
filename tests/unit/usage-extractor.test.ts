@@ -332,3 +332,45 @@ test("extractUsage reads flat cached_tokens and reasoning_tokens from streaming 
   assert.equal(usage.cached_tokens, 192);
   assert.equal(usage.reasoning_tokens, 49);
 });
+
+// ── Ollama raw NDJSON streaming usage ──
+// Ollama sends a final NDJSON line { done: true, prompt_eval_count, eval_count }
+// (raw from the provider, before any OpenAI translation). Without a dedicated
+// branch, extractUsage returns null and Ollama streaming usage is dropped.
+
+test("extractUsage reads Ollama raw NDJSON final chunk (done + prompt_eval_count/eval_count)", () => {
+  const usage = extractUsage({
+    model: "llama3.1",
+    done: true,
+    prompt_eval_count: 26,
+    eval_count: 298,
+  });
+
+  assert.ok(usage, "expected usage to be extracted from the Ollama final chunk");
+  assert.equal(usage.prompt_tokens, 26);
+  assert.equal(usage.completion_tokens, 298);
+  assert.equal(usage.total_tokens, 324);
+});
+
+test("extractUsage defaults missing Ollama eval counts to zero", () => {
+  const usage = extractUsage({
+    model: "llama3.1",
+    done: true,
+    prompt_eval_count: 12,
+  });
+
+  assert.ok(usage, "expected usage to be extracted even with only prompt_eval_count");
+  assert.equal(usage.prompt_tokens, 12);
+  assert.equal(usage.completion_tokens, 0);
+  assert.equal(usage.total_tokens, 12);
+});
+
+test("extractUsage ignores non-final Ollama NDJSON chunks (done=false)", () => {
+  const usage = extractUsage({
+    model: "llama3.1",
+    done: false,
+    response: "partial",
+  });
+
+  assert.equal(usage, null);
+});
