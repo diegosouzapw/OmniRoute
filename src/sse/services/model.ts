@@ -1,5 +1,12 @@
 // Re-export from open-sse with localDb integration
-import { getModelAliases, getComboByName, getProviderNodes, getCustomModels } from "@/lib/localDb";
+import {
+  getModelAliases,
+  getComboByName,
+  getComboById,
+  getComboByNameInsensitive,
+  getProviderNodes,
+  getCustomModels,
+} from "@/lib/localDb";
 import { getCachedSettings } from "@/lib/localDb";
 import { getComboStepTarget } from "@/lib/combos/steps";
 import {
@@ -211,6 +218,22 @@ export async function getCombo(modelStr) {
     if (combo && combo.models && combo.models.length > 0) {
       return combo;
     }
+  }
+
+  // #4446: the opencode-plugin publishes combos as ModelV2 `id: combo.id`, and
+  // the OpenCode `--model` dispatch path forwards a lowercased bare slug. The
+  // exact, case-sensitive name match above misses both a combo addressed by its
+  // stored id (UUID/slug) and a lowercased display name (e.g. "master-light" for
+  // a combo named "MASTER-LIGHT"). These two fallbacks only run after the exact
+  // match fails, so they never re-route a combo that already resolves today.
+  combo = await getComboById(modelStr);
+  if (combo && combo.models && combo.models.length > 0) {
+    return combo;
+  }
+
+  combo = await getComboByNameInsensitive(modelStr);
+  if (combo && combo.models && combo.models.length > 0) {
+    return combo;
   }
 
   return null;

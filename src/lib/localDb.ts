@@ -83,6 +83,7 @@ export {
   getCombos,
   getComboById,
   getComboByName,
+  getComboByNameInsensitive,
   createCombo,
   updateCombo,
   reorderCombos,
