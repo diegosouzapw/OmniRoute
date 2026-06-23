@@ -10,6 +10,8 @@ _In development — bullets added per PR; finalized at release._
 
 ### 🔧 Bug Fixes
 
+- **antigravity-to-openai**: preserve the `required` array when translating Draft 2020-12 tool schemas (e.g. from OpenCode), stripping unsupported JSON Schema meta keywords while keeping mandatory arguments required so the model no longer calls tools without them. (thanks @anuragg-saxenaa)
+
 - **cli(runtime)**: persist the lazily-installed native runtime deps (`better-sqlite3`, `systray2`) to the shared runtime `package.json` with `--save-exact` instead of `--no-save`, so installing one no longer prunes the other as "extraneous" — fixing a "No SQLite driver available" failure after a `--tray` install (thanks @omartuhintvs).
 
 - **pricing**: add the `MiniMax-M3` cost row (canonical + lowercase alias) so the new MiniMax default model gets accurate per-request cost accounting instead of falling back to a zero/default rate (thanks @octo-patch).

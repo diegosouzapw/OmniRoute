@@ -85,7 +85,7 @@ export function antigravityToOpenAIRequest(model, body, stream) {
             function: {
               name: func.name,
               description: func.description || "",
-              parameters: normalizeSchemaTypes(func.parameters) || {
+              parameters: cleanSchemaPreservingRequired(func.parameters) || {
                 type: "object",
                 properties: {},
               },
@@ -100,22 +100,24 @@ export function antigravityToOpenAIRequest(model, body, stream) {
 }
 
 // Recursively convert Antigravity schema types (OBJECT, STRING, etc.) to lowercase
-// and strip unsupported fields like enumDescriptions
-function normalizeSchemaTypes(schema) {
+// and strip unsupported fields like enumDescriptions.
+function normalizeSchemaTypes(schema: unknown): unknown {
   if (!schema || typeof schema !== "object") return schema;
 
-  const result = Array.isArray(schema) ? [...schema] : { ...schema };
+  const result: JsonRecord = Array.isArray(schema)
+    ? ([...(schema as unknown[])] as unknown as JsonRecord)
+    : { ...(schema as JsonRecord) };
 
   if (typeof result.type === "string") {
     result.type = result.type.toLowerCase();
   }
 
-  // Strip enumDescriptions — not supported by upstream OpenAI-compatible APIs
+  // Strip enumDescriptions — not supported by upstream APIs
   delete result.enumDescriptions;
 
-  if (result.properties) {
-    const normalized = {};
-    for (const [key, val] of Object.entries(result.properties)) {
+  if (result.properties && typeof result.properties === "object") {
+    const normalized: JsonRecord = {};
+    for (const [key, val] of Object.entries(result.properties as JsonRecord)) {
       normalized[key] = normalizeSchemaTypes(val);
     }
     result.properties = normalized;
@@ -126,6 +128,83 @@ function normalizeSchemaTypes(schema) {
   }
 
   return result;
+}
+
+// Clean a JSON Schema for Antigravity while PRESERVING the `required` array at every level.
+// Unlike the type-lowering pass alone, this strips JSON Schema Draft 2020-12 meta keywords
+// ($schema, $defs, $ref, additionalProperties, patternProperties, title, x-*, ...) that the
+// Antigravity upstream does not accept, yet keeps `required` so the model still treats
+// mandatory tool arguments as mandatory. Clients such as OpenCode send full Draft 2020-12
+// tool schemas; dropping `required` lets the model call tools without their required args.
+function cleanSchemaPreservingRequired(schema: unknown): unknown {
+  if (!schema || typeof schema !== "object") return schema;
+
+  // Reuse the existing recursion to lowercase types + strip enumDescriptions, then
+  // remove draft-meta keywords and reconcile `required` against the surviving properties.
+  const normalized = normalizeSchemaTypes(structuredClone(schema));
+  stripDraftMeta(normalized);
+  preserveRequired(normalized);
+  return normalized;
+}
+
+// Draft 2020-12 / JSON Schema meta keywords the Antigravity upstream does not accept.
+const DRAFT_META_KEYS = new Set([
+  "$schema",
+  "$defs",
+  "definitions",
+  "$ref",
+  "$comment",
+  "const",
+  "additionalProperties",
+  "propertyNames",
+  "patternProperties",
+  "title",
+]);
+
+function stripDraftMeta(obj: unknown): void {
+  if (!obj || typeof obj !== "object") return;
+  if (Array.isArray(obj)) {
+    for (const item of obj) stripDraftMeta(item);
+    return;
+  }
+  const record = obj as JsonRecord;
+  for (const key of Object.keys(record)) {
+    if (DRAFT_META_KEYS.has(key) || key.startsWith("x-")) {
+      delete record[key];
+    }
+  }
+  for (const value of Object.values(record)) {
+    if (value && typeof value === "object") stripDraftMeta(value);
+  }
+}
+
+// Preserve `required` even when referenced fields were stripped from constraint blocks.
+// At each node where both `required` and `properties` are present, keep only the entries
+// that still exist in `properties`; drop `required` entirely if none survive. This avoids
+// emitting a `required` array that references fields removed by stripDraftMeta.
+function preserveRequired(obj: unknown): void {
+  if (!obj || typeof obj !== "object") return;
+  if (Array.isArray(obj)) {
+    for (const item of obj) preserveRequired(item);
+    return;
+  }
+  const record = obj as JsonRecord;
+  if (Array.isArray(record.required) && record.properties && typeof record.properties === "object") {
+    const properties = record.properties as JsonRecord;
+    const valid = (record.required as unknown[]).filter(
+      (field) =>
+        typeof field === "string" &&
+        Object.prototype.hasOwnProperty.call(properties, field)
+    );
+    if (valid.length === 0) {
+      delete record.required;
+    } else {
+      record.required = valid;
+    }
+  }
+  for (const value of Object.values(record)) {
+    if (value && typeof value === "object") preserveRequired(value);
+  }
 }
 
 // Convert Antigravity content to OpenAI message
