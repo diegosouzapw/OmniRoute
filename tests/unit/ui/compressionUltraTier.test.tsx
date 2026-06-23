@@ -6,7 +6,10 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 // i18n does not resolve to a real locale in vitest/jsdom, so mock next-intl to echo
 // the key. This test asserts ONLY on i18n-independent hooks (data-testid + values)
 // and the captured PUT body.
-vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key }));
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => key,
+  useLocale: () => "en",
+}));
 
 const containers: HTMLElement[] = [];
 const roots: Array<{ unmount: () => void }> = [];
