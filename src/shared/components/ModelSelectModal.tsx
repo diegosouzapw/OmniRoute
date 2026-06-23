@@ -38,7 +38,7 @@ type ModelSelectModalProps = {
   onDeselect?: (model: unknown) => void;
   selectedModel?: string;
   selectedModels?: string[];
-  activeProviders?: Array<{ provider: string }>;
+  activeProviders?: Array<{ provider: string; id?: string | number }>;
   title?: string;
   modelAliases?: Record<string, string>;
   addedModelValues?: string[];
@@ -79,6 +79,11 @@ export default function ModelSelectModal({
   const [combos, setCombos] = useState<any[]>([]);
   const [providerNodes, setProviderNodes] = useState<any[]>([]);
   const [customModels, setCustomModels] = useState<Record<string, any>>({});
+  // Models discovered live from a custom provider's upstream `/models` endpoint,
+  // keyed by provider id. Merged into the alias/custom/fallback list below and
+  // tagged with the `auto` source badge. Ported from upstream PR
+  // decolua/9router#2018 (Hamsa_M).
+  const [fetchedModels, setFetchedModels] = useState<Record<string, any[]>>({});
 
   const fetchCombos = async () => {
     try {
@@ -127,6 +132,65 @@ export default function ModelSelectModal({
   useEffect(() => {
     if (isOpen) fetchCustomModels();
   }, [isOpen]);
+
+  // Fetch the live model catalog for one custom provider from its connection's
+  // upstream `/models` endpoint. Returns the model array, or null on any failure.
+  const fetchProviderModels = async (providerId: string): Promise<any[] | null> => {
+    try {
+      // Find the connection id for this provider — the route is keyed by connection.
+      const connection = activeProviders.find((p) => p.provider === providerId);
+      if (!connection?.id) return null;
+
+      const res = await fetch(`/api/providers/${connection.id}/models`);
+      if (!res.ok) {
+        console.warn(`Failed to fetch models for ${providerId}: ${res.status}`);
+        return null;
+      }
+      const data = await res.json();
+      return data.models || [];
+    } catch (error) {
+      console.error(`Error fetching models for ${providerId}:`, error);
+      return null;
+    }
+  };
+
+  // When the modal opens, dynamically load models for every connected custom
+  // (openai-/anthropic-compatible) provider in parallel.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let cancelled = false;
+
+    const loadCustomProviderModels = async () => {
+      const customProviderIds = activeProviders
+        .filter(
+          (p) =>
+            isOpenAICompatibleProvider(p.provider) || isAnthropicCompatibleProvider(p.provider)
+        )
+        .map((p) => p.provider);
+
+      if (customProviderIds.length === 0) return;
+
+      const fetched: Record<string, any[]> = {};
+      await Promise.all(
+        customProviderIds.map(async (providerId) => {
+          const models = await fetchProviderModels(providerId);
+          if (models && models.length > 1) {
+            fetched[providerId] = models;
+          }
+        })
+      );
+
+      if (!cancelled) setFetchedModels(fetched);
+    };
+
+    loadCustomProviderModels();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, activeProviders]);
 
   const allProviders = useMemo(
     () => ({ ...OAUTH_PROVIDERS, ...NOAUTH_PROVIDERS, ...APIKEY_PROVIDERS }),
@@ -245,7 +309,29 @@ export default function ModelSelectModal({
             source: normalizeModelCatalogSource(cm.source) === "imported" ? "imported" : "custom",
           }));
 
-        const allModels = [...nodeModels, ...fallbackEntries, ...customEntries];
+        // Models discovered live from the provider's upstream `/models` endpoint.
+        // Deduped against alias, fallback, and user-added custom models; tagged
+        // with the `auto` source so the badge reads "auto".
+        const fetchedEntries = (fetchedModels[providerId] || [])
+          .map((m) => {
+            const id = m.id || m.slug || m.model || m.name;
+            return {
+              id,
+              name: m.name || m.displayName || id,
+              value: `${nodePrefix}/${id}`,
+              isFetched: true,
+              source: "auto",
+            };
+          })
+          .filter(
+            (fm) =>
+              fm.id &&
+              !nodeModels.some((nm) => nm.id === fm.id) &&
+              !fallbackEntries.some((fbm) => fbm.id === fm.id) &&
+              !customEntries.some((cm) => cm.id === fm.id)
+          );
+
+        const allModels = [...nodeModels, ...fallbackEntries, ...customEntries, ...fetchedEntries];
 
         if (allModels.length > 0) {
           groups[providerId] = {
@@ -299,6 +385,7 @@ export default function ModelSelectModal({
     allProviders,
     providerNodes,
     customModels,
+    fetchedModels,
   ]);
 
   // Filter combos by search query
