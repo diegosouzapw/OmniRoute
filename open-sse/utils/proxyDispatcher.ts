@@ -43,6 +43,58 @@ type ProxyConfigObject = {
   family?: string;
 };
 
+/**
+ * Direct upstream fan-out dispatcher.
+ *
+ * A single Undici Agent configured with `connections > 1` should be enough in
+ * theory, but real Codex `/backend-api/codex/responses` streams on Node 24 have
+ * still been observed queuing every subsequent same-origin request until the
+ * previous stream emits trailers. Using several one-connection Agents gives
+ * each long SSE stream an independent pool/client and prevents one stream from
+ * monopolizing the effective queue while keeping pipelining disabled.
+ */
+class RoundRobinDispatcher {
+  private readonly dispatchers: Dispatcher[];
+  private nextIndex = 0;
+
+  constructor(dispatchers: Dispatcher[]) {
+    this.dispatchers = dispatchers;
+  }
+
+  dispatch(options: Dispatcher.DispatchOptions, handler: Dispatcher.DispatchHandler): boolean {
+    const dispatcher = this.dispatchers[this.nextIndex % this.dispatchers.length];
+    this.nextIndex = (this.nextIndex + 1) % this.dispatchers.length;
+    return dispatcher.dispatch(options, handler);
+  }
+
+  close(callback?: () => void): Promise<void> | void {
+    const done = Promise.all(this.dispatchers.map((dispatcher) => dispatcher.close())).then(
+      () => undefined
+    );
+    if (callback) {
+      done.then(callback);
+      return;
+    }
+    return done;
+  }
+
+  destroy(
+    errorOrCallback?: Error | null | (() => void),
+    callback?: () => void
+  ): Promise<void> | void {
+    const callbackFn = typeof errorOrCallback === "function" ? errorOrCallback : callback;
+    const error = typeof errorOrCallback === "function" ? null : (errorOrCallback ?? null);
+    const done = Promise.all(this.dispatchers.map((dispatcher) => dispatcher.destroy(error))).then(
+      () => undefined
+    );
+    if (callbackFn) {
+      done.then(callbackFn);
+      return;
+    }
+    return done;
+  }
+}
+
 function getDispatcherCache(): DispatcherCache {
   const globalWithCache = globalThis as GlobalWithDispatcherCache;
   if (!globalWithCache[DISPATCHER_CACHE_KEY]) {
@@ -136,12 +188,11 @@ export function getDefaultDispatcherConnectionLimit(
 
 function getDefaultDispatcherOptions(env: Record<string, string | undefined> = process.env) {
   const options = getDispatcherOptions();
-  // #4580 — On the direct egress path, undici's default pipelining (1) lets a long
-  // SSE stream monopolize the single pooled socket per origin, serializing every
-  // other concurrent request to that same provider. Mirror the proxy fix (#4288):
-  // disable pipelining and keep several connections available. Unlike the proxy
-  // path we KEEP keep-alive — the 1ms TTL there is a cheap-proxy-socket workaround,
-  // not needed (and harmful to perf) for direct connections.
+  // #4580 — On the direct egress path, undici's default pipelining (1) let a long
+  // SSE stream monopolize the single pooled socket per origin. Keep the public
+  // connection-limit option here, but getDefaultDispatcher() fans it out across
+  // independent one-connection Agents; in production traces, one multi-connection
+  // Agent could still queue same-origin Codex streams behind prior trailers.
   return {
     ...options,
     connections: getDefaultDispatcherConnectionLimit(env),
@@ -149,10 +200,23 @@ function getDefaultDispatcherOptions(env: Record<string, string | undefined> = p
   };
 }
 
+function createRoundRobinDirectDispatcher(connectionLimit: number): Dispatcher {
+  const baseOptions = getDispatcherOptions();
+  const perAgentOptions = {
+    ...baseOptions,
+    connections: 1,
+    pipelining: 0,
+  };
+  const dispatchers = Array.from({ length: connectionLimit }, () => new Agent(perAgentOptions));
+  return new RoundRobinDispatcher(dispatchers) as unknown as Dispatcher;
+}
+
 export function getDefaultDispatcher(): Dispatcher {
   const globalWithCache = globalThis as GlobalWithDispatcherCache;
   if (!globalWithCache[DEFAULT_DISPATCHER_KEY]) {
-    globalWithCache[DEFAULT_DISPATCHER_KEY] = new Agent(getDefaultDispatcherOptions());
+    globalWithCache[DEFAULT_DISPATCHER_KEY] = createRoundRobinDirectDispatcher(
+      getDefaultDispatcherConnectionLimit()
+    );
   }
   return globalWithCache[DEFAULT_DISPATCHER_KEY];
 }
@@ -413,6 +477,10 @@ export function __getDefaultDispatcherOptionsForTest(
   env: Record<string, string | undefined> = process.env
 ) {
   return getDefaultDispatcherOptions(env);
+}
+
+export function __createRoundRobinDispatcherForTest(dispatchers: Dispatcher[]): Dispatcher {
+  return new RoundRobinDispatcher(dispatchers) as unknown as Dispatcher;
 }
 
 export function createProxyDispatcher(proxyUrl: string): Dispatcher {

@@ -1,6 +1,8 @@
 import { describe, it, afterEach } from "node:test";
 import assert from "node:assert/strict";
+import type { Dispatcher } from "undici";
 import {
+  __createRoundRobinDispatcherForTest,
   __getDefaultDispatcherOptionsForTest,
   __getProxyDispatcherOptionsForTest,
   getDefaultDispatcherConnectionLimit,
@@ -39,7 +41,10 @@ describe("#4580 direct dispatcher options", () => {
   });
 
   it("connection limit honors OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS", () => {
-    assert.equal(getDefaultDispatcherConnectionLimit({ OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS: "8" }), 8);
+    assert.equal(
+      getDefaultDispatcherConnectionLimit({ OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS: "8" }),
+      8
+    );
   });
 
   it("connection limit clamps invalid values to the default", () => {
@@ -48,5 +53,31 @@ describe("#4580 direct dispatcher options", () => {
       32
     );
     assert.equal(getDefaultDispatcherConnectionLimit({}), 32);
+  });
+
+  it("fans out direct requests across independent dispatcher pools", () => {
+    const calls: number[] = [];
+    const dispatchers = [0, 1, 2].map(
+      (index) =>
+        ({
+          dispatch() {
+            calls.push(index);
+            return true;
+          },
+          close() {},
+          destroy() {},
+        }) as unknown as Dispatcher
+    );
+    const dispatcher = __createRoundRobinDispatcherForTest(dispatchers);
+    const dispatchOptions = {
+      origin: "https://chatgpt.com",
+      path: "/backend-api/codex/responses",
+      method: "POST",
+    } as unknown as Parameters<Dispatcher["dispatch"]>[0];
+    const handler = {} as Parameters<Dispatcher["dispatch"]>[1];
+
+    for (let i = 0; i < 7; i++) dispatcher.dispatch(dispatchOptions, handler);
+
+    assert.deepEqual(calls, [0, 1, 2, 0, 1, 2, 0]);
   });
 });
