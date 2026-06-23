@@ -1,5 +1,7 @@
 // Gemini helper functions for translator
 
+import { safeParseJSON } from "./jsonUtil.ts";
+
 type JsonRecord = Record<string, unknown>;
 
 // Unsupported JSON Schema constraints that should be removed for Antigravity.
@@ -242,14 +244,9 @@ export function extractTextContent(content: unknown): string {
   return "";
 }
 
-// Try parse JSON safely
+// Try parse JSON safely (null fallback on parse error; re-export keeps legacy API).
 export function tryParseJSON(str: unknown): unknown {
-  if (typeof str !== "string") return str;
-  try {
-    return JSON.parse(str);
-  } catch {
-    return null;
-  }
+  return safeParseJSON(str, null);
 }
 
 // Generate request ID

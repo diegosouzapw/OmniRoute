@@ -4,6 +4,7 @@ import { FORMATS } from "../formats.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../../config/providerModels.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
+import { safeParseJSON } from "../helpers/jsonUtil.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { capMaxOutputTokens } from "../../../src/lib/modelCapabilities.ts";
 import { isAdaptiveThinkingOnly } from "../../../src/shared/constants/modelSpecs.ts";
@@ -701,14 +702,9 @@ function extractTextContent(content) {
   return "";
 }
 
-// Try parse JSON
-function tryParseJSON(str) {
-  if (typeof str !== "string") return str;
-  try {
-    return JSON.parse(str);
-  } catch {
-    return str;
-  }
+// Try parse JSON (passthrough fallback: return the raw input string on parse error).
+function tryParseJSON(str: unknown): unknown {
+  return safeParseJSON(str, str);
 }
 
 function stripCacheControl(value: unknown): unknown {
