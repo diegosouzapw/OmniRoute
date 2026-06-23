@@ -213,9 +213,15 @@ test("combo config schema accepts explicit zero-latency opt-in controls", () => 
   assert.equal(parsed.config.predictiveTtftMs, 1800);
 });
 
-test("combo config schema rejects enabled zero-latency subfeatures without opt-in", () => {
+test("combo config schema auto-promotes the zero-latency gate for legacy configs without opt-in", () => {
+  // Pre-3.8.33 stored combos carry zero-latency subfeatures (hedging /
+  // fallbackCompressionMode / predictiveTtftMs) WITHOUT the
+  // zeroLatencyOptimizationsEnabled gate the current schema expects. Rather than
+  // rejecting these on the first GUI edit (the #4382 400), the schema now
+  // auto-promotes the gate to true so the stored config round-trips through
+  // PUT /api/combos/{id}. See #4774 (closes #4382 followup).
   const result = createComboSchema.safeParse({
-    name: "zero-latency-noop",
+    name: "zero-latency-legacy",
     models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
     config: {
       hedging: true,
@@ -224,11 +230,47 @@ test("combo config schema rejects enabled zero-latency subfeatures without opt-i
     },
   });
 
-  assert.equal(result.success, false);
-  assert.deepEqual(
-    result.error.issues.map((issue) => issue.path.join(".")),
-    ["config.hedging", "config.predictiveTtftMs", "config.fallbackCompressionMode"]
-  );
+  assert.equal(result.success, true);
+  assert.equal(result.data.config.zeroLatencyOptimizationsEnabled, true);
+  // The enabled subfeatures are preserved verbatim.
+  assert.equal(result.data.config.hedging, true);
+  assert.equal(result.data.config.fallbackCompressionMode, "lite");
+  assert.equal(result.data.config.predictiveTtftMs, 1800);
+});
+
+test("combo config schema leaves the zero-latency gate untouched when no subfeature is enabled", () => {
+  // A plain config with no zero-latency subfeature must NOT be auto-promoted —
+  // the gate stays at its default (false) so we don't silently flip optimizations on.
+  const result = createComboSchema.safeParse({
+    name: "no-zero-latency",
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
+    config: {
+      fallbackCompressionMode: "off",
+    },
+  });
+
+  assert.equal(result.success, true);
+  assert.notEqual(result.data.config.zeroLatencyOptimizationsEnabled, true);
+});
+
+test("combo config schema no longer rejects v3.8.31-era removed config keys (#4382 round-trip)", () => {
+  // These keys were dropped from the schema after v3.8.31 but still live in
+  // stored combo JSON. The schema switched from .strict() (which 400'd on these)
+  // to .passthrough() so legacy configs survive an edit+save; the server route
+  // (stripLegacyComboConfigKeys) and migration 103 then scrub them on write.
+  const result = createComboSchema.safeParse({
+    name: "legacy-removed-keys",
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
+    config: {
+      queueDepth: 4,
+      fallbackDelayMs: 200,
+      maxComboDepth: 3,
+      shadowRouting: { enabled: false },
+      resetAwareEnabled: true,
+    },
+  });
+
+  assert.equal(result.success, true);
 });
 
 test("combo config schema allows zero-latency tuning fields when subfeatures stay disabled", () => {
