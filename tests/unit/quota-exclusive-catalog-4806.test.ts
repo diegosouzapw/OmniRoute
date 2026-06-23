@@ -120,3 +120,63 @@ test("#4806 quota-exclusive key lists its qtSd/* virtual models in GET /v1/model
     );
   }
 });
+
+test("#4806 quota-exclusive key does NOT see qtSd/* of a group it is not allocated to", async () => {
+  // Group A (glm) — the key's group.
+  const groupA = groupsDb.createGroup("Alpha");
+  const connA = await providersDb.createProviderConnection({
+    provider: "glm",
+    authType: "apikey",
+    name: "quota-4806-glm-a",
+    apiKey: "sk-glm-4806-a",
+  });
+  const poolA = poolsDb.createPool({
+    connectionId: (connA as Record<string, unknown>).id as string,
+    name: "Alpha",
+    groupId: groupA.id,
+  });
+  await syncQuotaCombos(poolA.id);
+
+  // Group B (codex) — a DIFFERENT group the key is NOT allocated to.
+  const groupB = groupsDb.createGroup("Beta");
+  const connB = await providersDb.createProviderConnection({
+    provider: "codex",
+    authType: "apikey",
+    name: "quota-4806-codex-b",
+    apiKey: "sk-codex-4806-b",
+  });
+  const poolB = poolsDb.createPool({
+    connectionId: (connB as Record<string, unknown>).id as string,
+    name: "Beta",
+    groupId: groupB.id,
+  });
+  await syncQuotaCombos(poolB.id);
+
+  // Key scoped ONLY to group A's pool.
+  const created = await apiKeysDb.createApiKey("Quota-4806 Key A", "machine-4806-a");
+  await apiKeysDb.updateApiKeyPermissions(created.id, { allowedQuotas: [poolA.id] });
+
+  const res = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models", {
+      headers: { Authorization: `Bearer ${created.key}` },
+    })
+  );
+  assert.equal(res.status, 200);
+  const body = (await res.json()) as { data: Array<{ id: string }> };
+
+  const slugA = quotaGroupSlug("Alpha");
+  const slugB = quotaGroupSlug("Beta");
+
+  assert.ok(
+    body.data.some((m) => parseQuotaModelName(m.id)?.groupSlug === slugA),
+    "key must see its own group A qtSd/* models"
+  );
+  const leakedFromB = body.data.filter((m) => parseQuotaModelName(m.id)?.groupSlug === slugB);
+  assert.equal(
+    leakedFromB.length,
+    0,
+    `key in group A must NOT see group B (${slugB}) models; leaked: ${JSON.stringify(
+      leakedFromB.map((m) => m.id)
+    )}`
+  );
+});
