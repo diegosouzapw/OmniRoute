@@ -563,6 +563,45 @@ export class DefaultExecutor extends BaseExecutor {
   }
 
   /**
+   * Downgrade `response_format: { type: "json_schema" }` to `json_object` for
+   * `openai-compatible-*` providers, injecting the JSON schema into the system
+   * prompt instead. DeepSeek / Ollama / local OpenAI-compatible models often
+   * lack native Structured Output and return empty or malformed content when a
+   * `json_schema` response_format is forwarded as-is. Gated on the
+   * `openai-compatible-` provider family so providers with native Structured
+   * Output support keep the native `json_schema` path.
+   */
+  applyJsonSchemaFallback<T>(body: T): T {
+    if (!this.provider?.startsWith?.("openai-compatible-")) return body;
+    if (!body || typeof body !== "object" || Array.isArray(body)) return body;
+
+    const record = body as Record<string, unknown>;
+    const rf = record.response_format as
+      | { type?: string; json_schema?: { schema?: unknown } }
+      | undefined;
+    if (rf?.type !== "json_schema" || !rf.json_schema?.schema) return body;
+
+    const schemaJson = JSON.stringify(rf.json_schema.schema, null, 2);
+    const prompt = `You must respond with valid JSON that strictly follows this JSON schema:\n\`\`\`json\n${schemaJson}\n\`\`\`\nRespond ONLY with the JSON object, no other text.`;
+
+    const messages: Array<Record<string, unknown>> = Array.isArray(record.messages)
+      ? (record.messages as Array<Record<string, unknown>>).map((m) => ({ ...m }))
+      : [];
+    const sys = messages.find((m) => m.role === "system");
+    if (sys) {
+      if (typeof sys.content === "string") {
+        sys.content = `${sys.content}\n\n${prompt}`;
+      } else if (Array.isArray(sys.content)) {
+        sys.content.push({ type: "text", text: `\n\n${prompt}` });
+      }
+    } else {
+      messages.unshift({ role: "system", content: prompt });
+    }
+
+    return { ...record, messages, response_format: { type: "json_object" } } as T;
+  }
+
+  /**
    * For compatible providers, the model name is already clean by the time
    * it reaches the executor (chatCore sets body.model = modelInfo.model,
    * which is the parsed model ID without internal routing prefixes).
@@ -573,6 +612,7 @@ export class DefaultExecutor extends BaseExecutor {
   transformRequest(model, body, stream, credentials) {
     const cleanedBody = super.transformRequest(model, body, stream, credentials);
     let withDefaults = applyProviderRequestDefaults(cleanedBody, this.config.requestDefaults);
+    withDefaults = this.applyJsonSchemaFallback(withDefaults);
     const targetFormat = getTargetFormat(this.provider, credentials?.providerSpecificData);
     const requestFormat =
       withDefaults && typeof withDefaults === "object" && !Array.isArray(withDefaults)
