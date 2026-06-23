@@ -10,6 +10,8 @@ _In development — bullets added per PR; finalized at release._
 
 ### 🔧 Bug Fixes
 
+- **pricing**: add the `MiniMax-M3` cost row (canonical + lowercase alias) so the new MiniMax default model gets accurate per-request cost accounting instead of falling back to a zero/default rate (thanks @octo-patch).
+
 - **fix(sse):** Kiro tool-schema sanitizer — strip unsupported JSON-Schema keywords (`anyOf`/`$ref`/`if`-`then`, etc.) and hash-truncate tool names >64 chars before dispatch, mapping the streamed tool-call name back for the client, so Kiro no longer rejects tool calls with `400 "Improperly formed request"`. (thanks @smarthomeblack)
 
 - **sse**: make the `anthropic-version` default-guard case-insensitive for `anthropic-compatible-*` providers, so a caller/operator-supplied `Anthropic-Version` (any casing) is no longer clobbered by a second lowercase `anthropic-version: 2023-06-01` header. (thanks @zakirkun)

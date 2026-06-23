@@ -71,6 +71,22 @@ export const DEFAULT_PRICING_REGIONAL = {
     "kimi-latest": { input: 1.0, output: 4.0, cached: 0.5, reasoning: 6.0, cache_creation: 1.0 },
   },
   minimax: {
+    // MiniMax M3 — new default model (upstream upgrade from M2.7).
+    // Same api.minimax.io endpoint; pricing mirrors the M2.x base tier.
+    "minimax-m3": {
+      input: 0.5,
+      output: 2.0,
+      cached: 0.25,
+      reasoning: 3.0,
+      cache_creation: 0.5,
+    },
+    "MiniMax-M3": {
+      input: 0.5,
+      output: 2.0,
+      cached: 0.25,
+      reasoning: 3.0,
+      cache_creation: 0.5,
+    },
     "minimax-m2.1": {
       input: 0.5,
       output: 2.0,

@@ -42,6 +42,21 @@ test("T12: codex catalog includes GPT 5.5 variations", () => {
   assert.equal(codexModels.get("gpt-5.5-xhigh")?.targetFormat, "openai-responses");
 });
 
+test("T12: pricing table includes MiniMax-M3 (canonical + lowercase alias)", () => {
+  const pricing = getDefaultPricing();
+
+  assert.ok(pricing.minimax["MiniMax-M3"], "missing minimax/MiniMax-M3");
+  assert.ok(pricing.minimax["minimax-m3"], "missing minimax/minimax-m3 alias");
+
+  for (const key of ["MiniMax-M3", "minimax-m3"]) {
+    assert.equal(pricing.minimax[key].input, 0.5, `${key} input`);
+    assert.equal(pricing.minimax[key].output, 2.0, `${key} output`);
+    assert.equal(pricing.minimax[key].cached, 0.25, `${key} cached`);
+    assert.equal(pricing.minimax[key].reasoning, 3.0, `${key} reasoning`);
+    assert.equal(pricing.minimax[key].cache_creation, 0.5, `${key} cache_creation`);
+  }
+});
+
 test("T12: minimax default model list starts with M3", () => {
   const minimaxModels = REGISTRY.minimax.models.map((m) => m.id);
   const minimaxCnModels = REGISTRY["minimax-cn"].models.map((m) => m.id);
