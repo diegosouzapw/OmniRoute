@@ -7,6 +7,7 @@ import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
 import { applyClientUsageBuffer } from "./chatCore/clientUsageBuffer.ts";
 import { buildPostCallGuardrailContext } from "./chatCore/postCallGuardrailContext.ts";
+import { storeSemanticCacheResponse } from "./chatCore/semanticCacheStore.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
 import {
   getHeaderValueCaseInsensitive,
@@ -3563,22 +3564,16 @@ export async function handleChatCore({
     }
 
     // ── Phase 9.1: Cache store (non-streaming, temp=0) ──
-    if (
-      semanticCacheEnabled &&
-      isCacheableForWrite(body, clientRawRequest?.headers) &&
-      isSmallEnoughForSemanticCache(translatedResponse)
-    ) {
-      const signature = generateSignature(
-        model,
-        body.messages ?? body.input,
-        body.temperature,
-        body.top_p,
-        apiKeyInfo?.id ?? undefined
-      );
-      const tokensSaved = usage?.prompt_tokens + usage?.completion_tokens || 0;
-      setCachedResponse(signature, model, translatedResponse, tokensSaved);
-      log?.debug?.("CACHE", `Stored response for ${model} (${tokensSaved} tokens)`);
-    }
+    storeSemanticCacheResponse({
+      enabled: semanticCacheEnabled,
+      body,
+      headers: clientRawRequest?.headers,
+      translatedResponse,
+      model,
+      apiKeyId: apiKeyInfo?.id ?? undefined,
+      usage,
+      log,
+    });
 
     // ── Phase 9.2: Save for idempotency ──
     // Reuse the key resolved by checkIdempotencyCache() above (single derivation per
