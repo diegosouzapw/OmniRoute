@@ -12,6 +12,7 @@ import { buildNonStreamingResponseHeaders } from "./chatCore/nonStreamingRespons
 import { maybeConvertJsonBodyToSse } from "./chatCore/jsonBodyToSse.ts";
 import { assembleStreamingResponseHeaders } from "./chatCore/streamingResponseHeaders.ts";
 import { storeStreamingSemanticCacheResponse } from "./chatCore/streamingSemanticCacheStore.ts";
+import { assembleStreamingPipeline } from "./chatCore/streamingPipeline.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
 import {
   getHeaderValueCaseInsensitive,
@@ -71,9 +72,10 @@ import {
 } from "../utils/stream.ts";
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
 import { resolveStreamReadinessTimeout } from "../utils/streamReadinessPolicy.ts";
-import { createStreamController, pipeWithDisconnect } from "../utils/streamHandler.ts";
+import { createStreamController } from "../utils/streamHandler.ts";
 import * as streamFailure from "../utils/streamFailureFinalization.ts";
 import { createSseHeartbeatTransform, shapeForClientFormat } from "../utils/sseHeartbeat.ts";
+import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/usageTracking.ts";
 import {
   refreshWithRetry,
   isUnrecoverableRefreshError,
@@ -91,7 +93,7 @@ import {
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { normalizeMimoThinking } from "../services/mimoThinking.ts";
 import { normalizeClaudeAdaptiveThinking } from "../services/claudeAdaptiveThinking.ts";
-import { echoModelInObject, createModelEchoTransform } from "../services/responseModelEcho.ts";
+import { echoModelInObject } from "../services/responseModelEcho.ts";
 import { stripGpt5SamplingWhenReasoning } from "../services/gpt5SamplingGuard.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
 import { supportsMaxTokens } from "@/lib/modelCapabilities.ts";
@@ -112,7 +114,6 @@ import {
   HTTP_STATUS,
   FETCH_BODY_TIMEOUT_MS,
   PROVIDER_MAX_TOKENS,
-  SSE_HEARTBEAT_INTERVAL_MS,
   STREAM_IDLE_TIMEOUT_MS,
   STREAM_READINESS_TIMEOUT_MS,
   ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
@@ -247,9 +248,6 @@ import {
   isCacheableForWrite,
 } from "@/lib/semanticCache";
 import { saveIdempotency } from "@/lib/idempotencyLayer";
-import { createProgressTransform, wantsProgress } from "../utils/progressTracker.ts";
-import { createPiiSseTransform } from "@/lib/streamingPiiTransform";
-import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import {
   isModelUnavailableError,
   getNextFamilyFallback,
@@ -3943,36 +3941,16 @@ export async function handleChatCore({
     );
   }
 
-  // ── Phase 9.3: Progress tracking (opt-in) ──
-  const progressEnabled = wantsProgress(clientRawRequest?.headers);
-  let finalStream;
-
-  let piiStream = pipeWithDisconnect(providerResponse, transformStream, streamController);
-  if (typeof createPiiTransform === "function") {
-    piiStream = piiStream.pipeThrough((createPiiTransform as () => TransformStream)());
-  } else if (isFeatureFlagEnabled("PII_RESPONSE_SANITIZATION")) {
-    piiStream = piiStream.pipeThrough(createPiiSseTransform());
-  }
-
-  if (progressEnabled) {
-    const progressTransform = createProgressTransform({ signal: streamController.signal });
-    // Chain: provider → transform → progress → client
-    finalStream = piiStream.pipeThrough(progressTransform);
-    responseHeaders[OMNIROUTE_RESPONSE_HEADERS.progress] = "enabled";
-  } else {
-    finalStream = piiStream;
-  }
-  finalStream = finalStream.pipeThrough(
-    createSseHeartbeatTransform({
-      signal: streamController.signal,
-      intervalMs: SSE_HEARTBEAT_INTERVAL_MS,
-      shape: shapeForClientFormat(clientResponseFormat),
-    })
-  );
-  // #1311: echo the requested alias/combo name in each streamed SSE chunk's model field.
-  if (echoModel) {
-    finalStream = finalStream.pipeThrough(createModelEchoTransform(echoModel));
-  }
+  const finalStream = assembleStreamingPipeline({
+    providerResponse,
+    transformStream,
+    streamController,
+    createPiiTransform,
+    clientRawRequestHeaders: clientRawRequest?.headers,
+    clientResponseFormat,
+    echoModel,
+    responseHeaders,
+  });
 
   // ── Gamification event (fire-and-forget) ──
   await emitRequestGamificationEvent({ apiKeyId: apiKeyInfo?.id, model, provider });
