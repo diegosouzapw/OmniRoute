@@ -30,11 +30,7 @@ function toInteger(
   const min = options.min ?? 0;
   const max = options.max ?? Number.MAX_SAFE_INTEGER;
   const parsed =
-    typeof value === "number"
-      ? value
-      : typeof value === "string"
-        ? Number(value)
-        : fallback;
+    typeof value === "number" ? value : typeof value === "string" ? Number(value) : fallback;
   return Number.isFinite(parsed) ? Math.max(min, Math.min(max, Math.trunc(parsed))) : fallback;
 }
 
@@ -65,10 +61,14 @@ export function resolveModelLockoutSettings(
     process.execArgv.includes("--test") ||
     process.argv.some((arg) => typeof arg === "string" && arg.includes("test"));
 
-  const baseCooldownMs = toInteger(raw.baseCooldownMs, DEFAULT_MODEL_LOCKOUT_SETTINGS.baseCooldownMs, {
-    min: isTest ? 0 : 5_000,
-    max: 600_000,
-  });
+  const baseCooldownMs = toInteger(
+    raw.baseCooldownMs,
+    DEFAULT_MODEL_LOCKOUT_SETTINGS.baseCooldownMs,
+    {
+      min: isTest ? 0 : 5_000,
+      max: 600_000,
+    }
+  );
   const maxCooldownMs = Math.max(
     toInteger(raw.maxCooldownMs, DEFAULT_MODEL_LOCKOUT_SETTINGS.maxCooldownMs, {
       min: isTest ? 0 : 5_000,

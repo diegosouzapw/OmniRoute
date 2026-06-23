@@ -1055,7 +1055,7 @@ async function handleSingleModelChat(
           breaker._onFailure();
         }
 
-        return handleNoCredentials(
+        const noCredsRes = handleNoCredentials(
           credentials,
           excludedConnectionIds.size > 0 ? Array.from(excludedConnectionIds)[0] : null,
           provider,
@@ -1063,6 +1063,11 @@ async function handleSingleModelChat(
           lastError,
           lastStatus
         );
+        const lastFailedConnectionId =
+          excludedConnectionIds.size > 0
+            ? Array.from(excludedConnectionIds)[excludedConnectionIds.size - 1]
+            : null;
+        return withSelectedConnectionHeader(noCredsRes, lastFailedConnectionId);
       }
 
       const accountId = credentials.connectionId.slice(0, 8);
