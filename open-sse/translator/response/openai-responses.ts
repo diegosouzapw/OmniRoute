@@ -346,19 +346,32 @@ function emitToolCall(state, emit, tc) {
 
   if (funcName) state.funcNames[tcIdx] = funcName;
 
+  // Codex custom tools (apply_patch) are surfaced to the client as custom_tool_call items
+  // and stream their raw patch via custom_tool_call_input.* events instead of the
+  // function_call_arguments.* events used for regular function tools. (#1007)
+  const isCustomTool = (state.funcNames[tcIdx] || funcName) === "apply_patch";
+
   if (!state.funcCallIds[tcIdx] && newCallId) {
     state.funcCallIds[tcIdx] = newCallId;
 
     emit("response.output_item.added", {
       type: "response.output_item.added",
       output_index: tcIdx,
-      item: {
-        id: `fc_${newCallId}`,
-        type: "function_call",
-        arguments: "",
-        call_id: newCallId,
-        name: state.funcNames[tcIdx] || "",
-      },
+      item: isCustomTool
+        ? {
+            id: `fc_${newCallId}`,
+            type: "custom_tool_call",
+            input: "",
+            call_id: newCallId,
+            name: state.funcNames[tcIdx] || "",
+          }
+        : {
+            id: `fc_${newCallId}`,
+            type: "function_call",
+            arguments: "",
+            call_id: newCallId,
+            name: state.funcNames[tcIdx] || "",
+          },
     });
   }
 
@@ -372,8 +385,11 @@ function emitToolCall(state, emit, tc) {
     state.funcArgsBuf[tcIdx] = nextArgs;
 
     if (refCallId && emittedDelta) {
-      emit("response.function_call_arguments.delta", {
-        type: "response.function_call_arguments.delta",
+      const deltaEvent = isCustomTool
+        ? "response.custom_tool_call_input.delta"
+        : "response.function_call_arguments.delta";
+      emit(deltaEvent, {
+        type: deltaEvent,
         item_id: `fc_${refCallId}`,
         output_index: tcIdx,
         delta: emittedDelta,
@@ -386,25 +402,57 @@ function closeToolCall(state, emit, idx) {
   const callId = state.funcCallIds[idx];
   if (callId && !state.funcItemDone[idx]) {
     const args = state.funcArgsBuf[idx] || "{}";
+    const isCustomTool = (state.funcNames[idx] || "") === "apply_patch";
 
-    emit("response.function_call_arguments.done", {
-      type: "response.function_call_arguments.done",
-      item_id: `fc_${callId}`,
-      output_index: parseInt(idx),
-      arguments: args,
-    });
+    if (isCustomTool) {
+      // The model produced JSON {"input":"..."} against the normalized custom-tool schema.
+      // Unwrap it back to the raw patch string the Codex runtime expects. (#1007)
+      let rawInput = args;
+      try {
+        const parsed = JSON.parse(args);
+        if (parsed && typeof parsed.input === "string") rawInput = parsed.input;
+      } catch {
+        // Not JSON — fall back to the raw buffered arguments.
+      }
 
-    emit("response.output_item.done", {
-      type: "response.output_item.done",
-      output_index: parseInt(idx),
-      item: {
-        id: `fc_${callId}`,
-        type: "function_call",
+      emit("response.custom_tool_call_input.done", {
+        type: "response.custom_tool_call_input.done",
+        item_id: `fc_${callId}`,
+        output_index: parseInt(idx),
+        input: rawInput,
+      });
+
+      emit("response.output_item.done", {
+        type: "response.output_item.done",
+        output_index: parseInt(idx),
+        item: {
+          id: `fc_${callId}`,
+          type: "custom_tool_call",
+          input: rawInput,
+          call_id: callId,
+          name: state.funcNames[idx] || "",
+        },
+      });
+    } else {
+      emit("response.function_call_arguments.done", {
+        type: "response.function_call_arguments.done",
+        item_id: `fc_${callId}`,
+        output_index: parseInt(idx),
         arguments: args,
-        call_id: callId,
-        name: state.funcNames[idx] || "",
-      },
-    });
+      });
+
+      emit("response.output_item.done", {
+        type: "response.output_item.done",
+        output_index: parseInt(idx),
+        item: {
+          id: `fc_${callId}`,
+          type: "function_call",
+          arguments: args,
+          call_id: callId,
+          name: state.funcNames[idx] || "",
+        },
+      });
+    }
 
     state.funcItemDone[idx] = true;
     state.funcArgsDone[idx] = true;
@@ -434,12 +482,33 @@ function sendCompleted(state, emit) {
     }
     for (const idx in state.funcCallIds) {
       const callId = state.funcCallIds[idx];
+      const name = state.funcNames[idx] || "";
+      const args = state.funcArgsBuf[idx] || "{}";
+      // Mirror the streamed custom_tool_call shape in the final snapshot so Codex can
+      // reconcile the apply_patch item from response.completed. (#1007)
+      if (name === "apply_patch") {
+        let rawInput = args;
+        try {
+          const parsed = JSON.parse(args);
+          if (parsed && typeof parsed.input === "string") rawInput = parsed.input;
+        } catch {
+          // Not JSON — fall back to the raw buffered arguments.
+        }
+        output.push({
+          id: `fc_${callId}`,
+          type: "custom_tool_call",
+          call_id: callId,
+          name,
+          input: rawInput,
+        });
+        continue;
+      }
       output.push({
         id: `fc_${callId}`,
         type: "function_call",
         call_id: callId,
-        name: state.funcNames[idx] || "",
-        arguments: state.funcArgsBuf[idx] || "{}",
+        name,
+        arguments: args,
       });
     }
 

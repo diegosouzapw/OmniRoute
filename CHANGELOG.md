@@ -10,6 +10,8 @@ _In development — bullets added per PR; finalized at release._
 
 ### 🔧 Bug Fixes
 
+- **codex/translator**: normalize Codex custom/freeform tools (`apply_patch`, `type:"custom"` with no `parameters`) to a `{ input: string }` function schema instead of an empty schema — the empty schema made models invoke `apply_patch` with `{}`, breaking the Codex runtime which expects `{ input: string }`. Also map `custom_tool_call` / `custom_tool_call_output` input items and stream `apply_patch` tool calls via `custom_tool_call_input.delta`/`.done` events. (thanks @nstung463)
+
 - **antigravity-to-openai**: preserve the `required` array when translating Draft 2020-12 tool schemas (e.g. from OpenCode), stripping unsupported JSON Schema meta keywords while keeping mandatory arguments required so the model no longer calls tools without them. (thanks @anuragg-saxenaa)
 
 - **cli(runtime)**: persist the lazily-installed native runtime deps (`better-sqlite3`, `systray2`) to the shared runtime `package.json` with `--save-exact` instead of `--no-save`, so installing one no longer prunes the other as "extraneous" — fixing a "No SQLite driver available" failure after a `--tray` install (thanks @omartuhintvs).

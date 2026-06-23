@@ -294,6 +294,66 @@ export function openaiResponsesToOpenAIRequest(
       continue;
     }
 
+    if (itemType === "custom_tool_call") {
+      // Codex custom tool call (e.g. apply_patch): `input` is a raw string, not JSON
+      // arguments. Map it onto the assistant tool_calls list as a function call whose
+      // arguments wrap the raw string as { input }, matching the { input: string }
+      // schema the request-side tools normalization advertises for custom tools.
+      const fnName = toString(item.name).trim();
+      if (!fnName) {
+        continue;
+      }
+      if (!currentAssistantMsg) {
+        currentAssistantMsg = {
+          role: "assistant",
+          content: null,
+          tool_calls: [],
+        };
+      }
+      const toolCalls = Array.isArray(currentAssistantMsg.tool_calls)
+        ? currentAssistantMsg.tool_calls
+        : [];
+      toolCalls.push({
+        id: toString(item.call_id),
+        type: "function",
+        function: {
+          name: fnName,
+          arguments: JSON.stringify({ input: item.input }),
+        },
+      });
+      currentAssistantMsg.tool_calls = toolCalls;
+      continue;
+    }
+
+    if (itemType === "custom_tool_call_output") {
+      // Result of a custom tool call — translate the same way as function_call_output.
+      if (currentAssistantMsg) {
+        messages.push(currentAssistantMsg);
+        currentAssistantMsg = null;
+      }
+      if (pendingToolResults.length > 0) {
+        for (const toolResult of pendingToolResults) {
+          messages.push(toolResult);
+        }
+        pendingToolResults = [];
+      }
+      // Unwrap JSON-wrapped output {"output":"...","metadata":{...}} → plain string.
+      const rawOut = typeof item.output === "string" ? item.output : JSON.stringify(item.output);
+      let toolContent = rawOut;
+      try {
+        const parsed = JSON.parse(rawOut);
+        if (parsed && typeof parsed.output === "string") toolContent = parsed.output;
+      } catch {
+        // Not JSON — keep the raw output as the tool content.
+      }
+      messages.push({
+        role: "tool",
+        tool_call_id: toString(item.call_id),
+        content: toolContent,
+      });
+      continue;
+    }
+
     if (itemType === "reasoning") {
       // Skip reasoning items - they are display-only metadata
       continue;
@@ -342,10 +402,11 @@ export function openaiResponsesToOpenAIRequest(
               function: {
                 name: toString(sub.name),
                 description: toString(sub.description),
-                parameters: sub.parameters ?? sub.input_schema ?? {
-                  type: "object",
-                  properties: {},
-                },
+                parameters: sub.parameters ??
+                  sub.input_schema ?? {
+                    type: "object",
+                    properties: {},
+                  },
               },
             }));
         }
@@ -389,6 +450,30 @@ export function openaiResponsesToOpenAIRequest(
         // Skip any tool without a non-empty string name; named tools are unaffected.
         const name = tool.name;
         if (typeof name !== "string" || name.trim() === "") return [];
+
+        // Custom/freeform tools (e.g. Codex apply_patch with type:"custom" and a grammar
+        // format) carry no `parameters` field. Converting them to an empty function schema
+        // makes downstream models invoke them with {}, but the Codex runtime expects
+        // { input: string }. Normalize all custom tools to a well-defined { input: string }
+        // schema so the model produces valid arguments. (#1007)
+        if (toolType === "custom") {
+          return {
+            type: "function",
+            function: {
+              name: toString(tool.name),
+              description: toString(tool.description),
+              parameters: {
+                type: "object",
+                properties: {
+                  input: { type: "string" },
+                },
+                required: ["input"],
+                additionalProperties: false,
+              },
+              strict: tool.strict,
+            },
+          };
+        }
         return {
           type: "function",
           function: {
@@ -460,11 +545,7 @@ export function openaiResponsesToOpenAIRequest(
   // Claude summarized-thinking marker stays behind the UA gate from
   // translateRequest because it is Copilot-specific glue, not an OpenAI-native
   // field. Ported from upstream PR decolua/9router#1817 (ryanngit).
-  if (
-    root.reasoning &&
-    typeof root.reasoning === "object" &&
-    !Array.isArray(root.reasoning)
-  ) {
+  if (root.reasoning && typeof root.reasoning === "object" && !Array.isArray(root.reasoning)) {
     const reasoningRec = toRecord(root.reasoning);
     const effort = toString(reasoningRec.effort);
     if (effort && result.reasoning_effort === undefined) {
