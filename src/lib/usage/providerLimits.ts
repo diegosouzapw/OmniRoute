@@ -327,7 +327,12 @@ export async function refreshAndUpdateCredentials(
     | null;
 
   if (!refreshResult) {
-    if (connection.provider === "github" && connection.accessToken) {
+    // Refresh failed but we still have an accessToken — fall back to the
+    // existing token for ANY OAuth provider (graceful degradation) instead of
+    // hard-failing. Previously this was qualified to `provider === "github"`,
+    // which left every other provider stuck on a transient refresh failure even
+    // when a usable access token was still on hand.
+    if (connection.accessToken) {
       return { connection, refreshed: false };
     }
     throw withStatus(
