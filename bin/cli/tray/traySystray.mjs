@@ -100,8 +100,24 @@ export function initSystrayUnix({ port, onQuit, onOpenDashboard, onShowLogs }) {
   return tray;
 }
 
-export function killSystrayUnix(tray) {
+/**
+ * @param {{ kill?: (exit: boolean) => void, _process?: { pid?: number }, process?: () => ({ pid?: number } | null) }} tray
+ * @param {(pid: number, signal: string) => void} [killProcess] injectable process.kill (for tests)
+ */
+export function killSystrayUnix(tray, killProcess = process.kill) {
+  if (!tray) return;
   try {
+    // systray2.kill(false) closes the IPC channel but leaves the Go tray
+    // binary subprocess running, which keeps an orphan NSStatusItem on macOS
+    // and blocks a freshly spawned tray (e.g. hide-to-tray bgProcess) from
+    // registering. Kill the child PID directly first, then close IPC.
+    try {
+      const proc =
+        tray._process || (typeof tray.process === "function" ? tray.process() : null);
+      if (proc && proc.pid) {
+        killProcess(proc.pid, "SIGKILL");
+      }
+    } catch {}
     tray.kill(false);
   } catch {}
 }

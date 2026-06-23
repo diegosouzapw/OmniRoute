@@ -72,6 +72,61 @@ test("autostart.enable registers Linux autostart (systemd and/or desktop)", asyn
   assert.equal(isAutostartEnabled(), false, "isAutostartEnabled deve ser false após disable");
 });
 
+test("killSystrayUnix mata o PID filho com SIGKILL ANTES de tray.kill(false)", async () => {
+  const { killSystrayUnix } = await import("../../bin/cli/tray/traySystray.mjs");
+  const calls: string[] = [];
+  const fakeKill = (pid: number, signal: string) => {
+    calls.push(`kill:${pid}:${signal}`);
+  };
+  const tray = {
+    _process: { pid: 4242 },
+    kill: (exit: boolean) => {
+      calls.push(`tray.kill:${exit}`);
+    },
+  };
+
+  killSystrayUnix(tray, fakeKill);
+
+  // O child PID deve ser morto com SIGKILL ANTES de fechar o IPC (tray.kill).
+  assert.deepEqual(calls, ["kill:4242:SIGKILL", "tray.kill:false"]);
+});
+
+test("killSystrayUnix usa tray.process() como fallback quando _process ausente", async () => {
+  const { killSystrayUnix } = await import("../../bin/cli/tray/traySystray.mjs");
+  const calls: string[] = [];
+  const fakeKill = (pid: number, signal: string) => {
+    calls.push(`kill:${pid}:${signal}`);
+  };
+  const tray = {
+    process: () => ({ pid: 7777 }),
+    kill: (exit: boolean) => {
+      calls.push(`tray.kill:${exit}`);
+    },
+  };
+
+  killSystrayUnix(tray, fakeKill);
+
+  assert.deepEqual(calls, ["kill:7777:SIGKILL", "tray.kill:false"]);
+});
+
+test("killSystrayUnix fecha o IPC mesmo sem PID filho disponível", async () => {
+  const { killSystrayUnix } = await import("../../bin/cli/tray/traySystray.mjs");
+  const calls: string[] = [];
+  const fakeKill = (pid: number, signal: string) => {
+    calls.push(`kill:${pid}:${signal}`);
+  };
+  const tray = {
+    kill: (exit: boolean) => {
+      calls.push(`tray.kill:${exit}`);
+    },
+  };
+
+  killSystrayUnix(tray, fakeKill);
+
+  // Sem child PID, nenhum SIGKILL — mas o IPC ainda é fechado.
+  assert.deepEqual(calls, ["tray.kill:false"]);
+});
+
 test("commands/tray.mjs pode ser importado sem erro", async () => {
   const mod = await import("../../bin/cli/commands/tray.mjs");
   assert.equal(typeof mod.registerTray, "function");
