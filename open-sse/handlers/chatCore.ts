@@ -9,6 +9,7 @@ import { applyClientUsageBuffer } from "./chatCore/clientUsageBuffer.ts";
 import { buildPostCallGuardrailContext } from "./chatCore/postCallGuardrailContext.ts";
 import { storeSemanticCacheResponse } from "./chatCore/semanticCacheStore.ts";
 import { buildNonStreamingResponseHeaders } from "./chatCore/nonStreamingResponseHeaders.ts";
+import { maybeConvertJsonBodyToSse } from "./chatCore/jsonBodyToSse.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
 import {
   getHeaderValueCaseInsensitive,
@@ -67,7 +68,6 @@ import {
   withBodyTimeout,
 } from "../utils/stream.ts";
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
-import { synthesizeOpenAiSseFromJson } from "../utils/jsonToSse.ts";
 import { resolveStreamReadinessTimeout } from "../utils/streamReadinessPolicy.ts";
 import { createStreamController, pipeWithDisconnect } from "../utils/streamHandler.ts";
 import * as streamFailure from "../utils/streamFailureFinalization.ts";
@@ -3646,40 +3646,7 @@ export async function handleChatCore({
   // though it carried valid content/reasoning_content. Detect a JSON (non-SSE)
   // upstream body and synthesize an equivalent OpenAI SSE stream so the
   // streaming pipeline (and the client) get a valid stream.
-  {
-    const upstreamContentType = (providerResponse.headers.get("content-type") || "").toLowerCase();
-    const isNonSseJsonBody =
-      !!providerResponse.body &&
-      upstreamContentType.includes("application/json") &&
-      !upstreamContentType.includes("text/event-stream") &&
-      !upstreamContentType.includes("application/x-ndjson");
-    if (isNonSseJsonBody) {
-      const jsonText = await withBodyTimeout<string>(providerResponse.text());
-      const synthesizedSse = synthesizeOpenAiSseFromJson(jsonText);
-      const rebuiltHeaders = new Headers(providerResponse.headers);
-      rebuiltHeaders.delete("content-length");
-      if (synthesizedSse) {
-        log?.debug?.(
-          "STREAM",
-          `Upstream returned application/json on a streaming request — converting to SSE (${provider}/${model})`
-        );
-        rebuiltHeaders.set("content-type", "text/event-stream");
-        providerResponse = new Response(synthesizedSse, {
-          status: providerResponse.status,
-          statusText: providerResponse.statusText,
-          headers: rebuiltHeaders,
-        });
-      } else {
-        // Not a convertible chat-completion JSON — rebuild the consumed body so
-        // the existing readiness/error path still runs unchanged.
-        providerResponse = new Response(jsonText, {
-          status: providerResponse.status,
-          statusText: providerResponse.statusText,
-          headers: rebuiltHeaders,
-        });
-      }
-    }
-  }
+  providerResponse = await maybeConvertJsonBodyToSse(providerResponse, { log, provider, model });
   const streamReadinessPolicy = resolveStreamReadinessTimeout({
     baseTimeoutMs: STREAM_READINESS_TIMEOUT_MS,
     provider,
