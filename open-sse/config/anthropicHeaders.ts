@@ -64,6 +64,49 @@ export function mergeClientAnthropicBeta(
   return baseList.join(",");
 }
 
+/**
+ * Collapse a list of comma-list header values into a deduped, trimmed token
+ * array. Empty/undefined/null entries are dropped. Used to reconcile the
+ * case-variant `anthropic-version` / `anthropic-beta` headers below.
+ */
+function uniqueCommaValues(values: Array<string | undefined | null>): string[] {
+  return [
+    ...new Set(
+      values
+        .filter((value) => value !== undefined && value !== null && value !== "")
+        .flatMap((value) => String(value).split(","))
+        .map((value) => value.trim())
+        .filter(Boolean)
+    ),
+  ];
+}
+
+/**
+ * Dedupe case-variant Anthropic headers in-place. Node/undici's fetch merges
+ * `anthropic-version` and `Anthropic-Version` into a single `"v, v"` value,
+ * which the Anthropic API rejects (#1475). Collapse both case variants down to
+ * one canonical lowercase header carrying a single value. Same for
+ * `anthropic-beta` (joined comma-list, deduped). Mutates `headers`.
+ */
+export function normalizeAnthropicHeaderVariants(headers: Record<string, string>): void {
+  const versionValues = uniqueCommaValues([
+    headers["anthropic-version"],
+    headers["Anthropic-Version"],
+  ]);
+  delete headers["Anthropic-Version"];
+  delete headers["anthropic-version"];
+  if (versionValues.length > 0) {
+    headers["anthropic-version"] = versionValues[0];
+  }
+
+  const betaValues = uniqueCommaValues([headers["anthropic-beta"], headers["Anthropic-Beta"]]);
+  delete headers["Anthropic-Beta"];
+  delete headers["anthropic-beta"];
+  if (betaValues.length > 0) {
+    headers["anthropic-beta"] = betaValues.join(",");
+  }
+}
+
 export const CLAUDE_CLI_VERSION = "2.1.187";
 export const CLAUDE_CLI_USER_AGENT = `claude-cli/${CLAUDE_CLI_VERSION} (external, cli)`;
 export const CLAUDE_CLI_STAINLESS_PACKAGE_VERSION = "0.94.0";

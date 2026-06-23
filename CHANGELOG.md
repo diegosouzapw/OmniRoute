@@ -18,6 +18,7 @@ _In development — bullets added per PR; finalized at release._
 - **fix(codebuddy):** only send reasoning params when the client requests reasoning. (thanks @anki1kr)
 - **fix(sse):** keep streaming for forceStream providers when a JSON client requests it. Providers marked `forceStream:true` reject `stream:false` upstream (HTTP 400); `resolveStreamFlag` now guards against this so stream-only providers keep streaming even when the client sends `Accept: application/json` or `stream:false`. (thanks @anki1kr)
 - **fix(sse):** prevent non-JSON SSE lines and duplicate `[DONE]` from breaking clients. (thanks @qianze0628)
+- **fix(sse):** dedupe case-variant Anthropic headers in the executor `buildHeaders` path — Node/undici's `fetch` merges `anthropic-version` and `Anthropic-Version` into a single `"v, v"` value that the Anthropic API rejects, so both case variants are now collapsed to one canonical lowercase header (same for `anthropic-beta`). (thanks @Delcado19)
 
 ---
 
