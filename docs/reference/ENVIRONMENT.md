@@ -643,7 +643,7 @@ The logging system writes to both stdout and rotated log files. All configuratio
 | `CALL_LOG_RETENTION_DAYS`                 | `7`                        | Days to keep request/call log entries in the database.                            |
 | `CALL_LOG_MAX_ENTRIES`                    | `10000`                    | Max call log entries in the in-memory buffer.                                     |
 | `CALL_LOGS_TABLE_MAX_ROWS`                | `100000`                   | Max rows in the `call_logs` SQLite table before pruning.                          |
-| `MAX_PENDING_REQUEST_AGE_MS`             | `3600000` (1 hour)         | Max age for orphaned active request log entries before in-memory cleanup.         |
+| `MAX_PENDING_REQUEST_AGE_MS`              | `3600000` (1 hour)         | Max age for orphaned active request log entries before in-memory cleanup.         |
 | `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS` | `true`                     | Store stream chunks in pipeline artifacts when `call_log_pipeline_enabled=true`.  |
 | `CALL_LOG_PIPELINE_MAX_SIZE_KB`           | `512`                      | Max pipeline call log artifact size in KB when `call_log_pipeline_enabled=true`.  |
 | `PROXY_LOGS_TABLE_MAX_ROWS`               | `100000`                   | Max rows in the `proxy_logs` SQLite table before pruning.                         |
@@ -1081,9 +1081,3 @@ is developer tooling only.
 | `OMNIROUTE_URL`    | `http://localhost:20128` | `scripts/ad-hoc/regen-opencode-config.ts` | Base URL of the OmniRoute instance to query for `/v1/models`.                                                             |
 | `OMNIROUTE_KEY`    | _(unset)_                | `scripts/ad-hoc/regen-opencode-config.ts` | API key to authenticate against the OmniRoute `/v1/models` endpoint. Falls back to `OPENCODE_API_KEY` when unset.         |
 | `OPENCODE_API_KEY` | _(unset)_                | `scripts/ad-hoc/regen-opencode-config.ts` | OpenCode-style API key (`sk-...`) written into the regenerated `opencode.json`. Falls back to `OMNIROUTE_KEY` when unset. |
-
-| Variable                          | Default       | Source File                     | Description                                                                                                                                                                                                                                               |
-| --------------------------------- | ------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_VACUUM_ENABLED`        | `1`           | `src/lib/db/vacuumScheduler.ts` | Master switch for the scheduled SQLite VACUUM job. When `1` (default), starts a `setInterval` timer at boot that runs `VACUUM` once every `OMNIROUTE_VACUUM_INTERVAL_HOURS`. When `0`, disables the scheduler entirely (manual "Vacuum Now" still works). |
-| `OMNIROUTE_VACUUM_INTERVAL_HOURS` | `24`          | `src/lib/db/vacuumScheduler.ts` | How often to run scheduled `VACUUM`, in hours. Minimum `1`. Must be an integer. Changes require a restart (or `omniroute vacuum restart`).                                                                                                                |
-| `OMNIROUTE_VACUUM_WINDOW`         | `02:00-04:00` | `src/lib/db/vacuumScheduler.ts` | Local-time window during which the first VACUUM is allowed to run, in `HH:MM-HH:MM` (24-hour) format. Outside the window the scheduler waits until the window opens. Setting to `00:00-23:59` disables the window check.                                  |
