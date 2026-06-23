@@ -60,7 +60,10 @@ const COUNTABLE_UNITS = new Set(["requests", "tokens", "usd"]);
  */
 export async function enforceQuotaShare(input: EnforceInput): Promise<EnforceDecision> {
   // 1. Find pools that contain this apiKeyId.
-  let allocations: Array<{ poolId: string; allocation: import("@/lib/db/quotaPools").PoolAllocation }>;
+  let allocations: Array<{
+    poolId: string;
+    allocation: import("@/lib/db/quotaPools").PoolAllocation;
+  }>;
   try {
     allocations = listAllocationsForApiKey(input.apiKeyId);
   } catch {
@@ -129,6 +132,13 @@ export async function enforceQuotaShare(input: EnforceInput): Promise<EnforceDec
   const consumedByThisKey: Record<string, number> = {};
 
   for (const dim of plan.dimensions) {
+    // Skip placeholder dimensions whose limit is unknown (Number.EPSILON / 0 — the
+    // "configure manually" seed for glm/minimax/kimi-coding/deepseek in planRegistry.ts).
+    // An unconfigured limit is NOT a real cap: enforcing it would block every request
+    // after the first one, because decideFairShare's global-saturated gate fires as soon
+    // as consumedTotal exceeds ~EPSILON. The real cap kicks in once a limit is set via
+    // the Wizard "Limite" step (provider_plans override).
+    if (!(dim.limit > Number.EPSILON)) continue;
     const dimKey = { poolId: pool.id, unit: dim.unit, window: dim.window };
     const dimKeyStr = dimensionKeyToString(dimKey);
 
@@ -224,7 +234,10 @@ export async function enforceQuotaShare(input: EnforceInput): Promise<EnforceDec
  * Errors are swallowed (B29): the LLM response has already been delivered.
  */
 export async function recordConsumption(input: RecordConsumptionInput): Promise<void> {
-  let allocations: Array<{ poolId: string; allocation: import("@/lib/db/quotaPools").PoolAllocation }>;
+  let allocations: Array<{
+    poolId: string;
+    allocation: import("@/lib/db/quotaPools").PoolAllocation;
+  }>;
   try {
     allocations = listAllocationsForApiKey(input.apiKeyId);
   } catch {
@@ -288,10 +301,7 @@ function messageForReason(reason: string, provider: string): string {
   }
 }
 
-function costForUnit(
-  cost: RecordConsumptionInput["cost"],
-  unit: QuotaUnit
-): number {
+function costForUnit(cost: RecordConsumptionInput["cost"], unit: QuotaUnit): number {
   switch (unit) {
     case "tokens":
       return cost.tokens ?? 0;
