@@ -18,6 +18,15 @@ import { runMigrations } from "./migrationRunner";
 import { runDbHealthCheck } from "./healthCheck";
 import { resetAllDbModuleState } from "./stateReset";
 import { parseStoredPayload } from "../logPayloads";
+import { DEFAULT_DATABASE_SETTINGS, type DatabaseSettings } from "@/types/databaseSettings";
+import {
+  applyDatabaseOptimizationSettingsForDb,
+  applyStoredDatabaseOptimizationSettings,
+  getAutoVacuumModeForDb,
+  setAutoVacuumForDb,
+  setCacheSizeForDb,
+  setPageSizeForDb,
+} from "./optimizationSettings";
 import {
   buildArtifactRelativePath,
   writeCallArtifact,
@@ -29,6 +38,7 @@ import { invalidateDbCache } from "./readCache";
 type SqliteDatabase = SqliteAdapter;
 type JsonRecord = Record<string, unknown>;
 type CheckpointMode = "PASSIVE" | "FULL" | "RESTART" | "TRUNCATE";
+type DatabaseOptimizationSettings = DatabaseSettings["optimization"];
 type PreservedTableSnapshot = {
   table: string;
   rowCount: number;
@@ -1340,7 +1350,7 @@ export function getDbInstance(): SqliteDatabase {
   // contended op can no longer freeze the loop past the host watchdog's 6s liveness probe.
   db.pragma("busy_timeout = 2000");
   db.pragma("synchronous = NORMAL");
-  db.pragma("cache_size = -2048");
+  db.pragma(`cache_size = -${DEFAULT_DATABASE_SETTINGS.optimization.cacheSize}`);
   db.exec(SCHEMA_SQL);
   ensureProviderConnectionsColumns(db);
   ensureUsageHistoryColumns(db);
@@ -1360,6 +1370,8 @@ export function getDbInstance(): SqliteDatabase {
   `);
 
   runMigrations(db, { isNewDb });
+
+  applyStoredDatabaseOptimizationSettings(db);
 
   offloadLegacyCallLogDetails(db);
 
@@ -1731,44 +1743,16 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
 
 // ──────────────── Auto-Vacuum Management ────────────────
 
+export function applyDatabaseOptimizationSettings(settings: DatabaseOptimizationSettings): void {
+  applyDatabaseOptimizationSettingsForDb(getDbInstance(), settings, { applyPersistent: true });
+}
+
 export function setAutoVacuum(mode: "NONE" | "FULL" | "INCREMENTAL"): void {
-  const db = getDbInstance();
-
-  const currentMode = db.pragma("auto_vacuum", { simple: true }) as number;
-  const modeMap: Record<string, number> = {
-    NONE: 0,
-    FULL: 1,
-    INCREMENTAL: 2,
-  };
-
-  const targetMode = modeMap[mode];
-
-  if (currentMode === targetMode) {
-    console.log(`[DB] auto_vacuum already set to ${mode}`);
-    return;
-  }
-
-  console.log(`[DB] Changing auto_vacuum from ${currentMode} to ${mode} (${targetMode})`);
-
-  db.pragma(`auto_vacuum = ${targetMode}`);
-
-  db.exec("VACUUM");
-
-  const newMode = db.pragma("auto_vacuum", { simple: true }) as number;
-  console.log(`[DB] auto_vacuum changed to ${newMode}`);
+  setAutoVacuumForDb(getDbInstance(), mode);
 }
 
 export function getAutoVacuumMode(): "NONE" | "FULL" | "INCREMENTAL" {
-  const db = getDbInstance();
-  const mode = db.pragma("auto_vacuum", { simple: true }) as number;
-
-  const modeMap: Record<number, "NONE" | "FULL" | "INCREMENTAL"> = {
-    0: "NONE",
-    1: "FULL",
-    2: "INCREMENTAL",
-  };
-
-  return modeMap[mode] || "NONE";
+  return getAutoVacuumModeForDb(getDbInstance());
 }
 
 export function runManualVacuum(): { success: boolean; duration: number; error?: string } {
@@ -1790,35 +1774,9 @@ export function runManualVacuum(): { success: boolean; duration: number; error?:
 }
 
 export function setPageSize(pageSize: number): void {
-  const db = getDbInstance();
-  const currentPageSize = db.pragma("page_size", { simple: true }) as number;
-
-  if (currentPageSize === pageSize) {
-    console.log(`[DB] page_size already set to ${pageSize}`);
-    return;
-  }
-
-  console.log(`[DB] Changing page_size from ${currentPageSize} to ${pageSize}`);
-  db.pragma(`page_size = ${pageSize}`);
-  db.exec("VACUUM");
-
-  const newPageSize = db.pragma("page_size", { simple: true }) as number;
-  console.log(`[DB] page_size changed to ${newPageSize}`);
+  setPageSizeForDb(getDbInstance(), pageSize);
 }
 
 export function setCacheSize(cacheSizeKb: number): void {
-  const db = getDbInstance();
-  const currentCacheSize = db.pragma("cache_size", { simple: true }) as number;
-  const targetCacheSize = -cacheSizeKb;
-
-  if (currentCacheSize === targetCacheSize) {
-    console.log(`[DB] cache_size already set to ${cacheSizeKb}KB`);
-    return;
-  }
-
-  console.log(`[DB] Changing cache_size from ${Math.abs(currentCacheSize)}KB to ${cacheSizeKb}KB`);
-  db.pragma(`cache_size = ${targetCacheSize}`);
-
-  const newCacheSize = db.pragma("cache_size", { simple: true }) as number;
-  console.log(`[DB] cache_size changed to ${Math.abs(newCacheSize)}KB`);
+  setCacheSizeForDb(getDbInstance(), cacheSizeKb);
 }

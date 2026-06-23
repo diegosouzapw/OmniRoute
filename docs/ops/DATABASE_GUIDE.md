@@ -40,9 +40,10 @@ For **single-user, single-instance** deployments (the primary OmniRoute use case
 ```ts
 // src/lib/db/core.ts
 db.pragma("journal_mode = WAL");
-db.pragma("busy_timeout = 5000");
+db.pragma("busy_timeout = 2000");
 db.pragma("synchronous = NORMAL");
-db.pragma("cache_size = -2048");
+// Settings > System & Storage > Cache Size is applied as KiB.
+db.pragma("cache_size = -16384");
 ```
 
 WAL allows **concurrent reads** during writes — important for the dashboard, which queries while requests are being recorded.
