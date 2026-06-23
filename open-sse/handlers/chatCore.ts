@@ -166,6 +166,7 @@ import {
   mergeResponseToolNameMap,
 } from "./chatCore/passthroughToolNames.ts";
 import { recordContextEditingTelemetryHook } from "./chatCore/contextEditingTelemetry.ts";
+import { recordCompressionCacheStats } from "./chatCore/compressionCacheStats.ts";
 import {
   appendNonStreamingSseTerminalSignal,
   type NonStreamingSseTerminalState,
@@ -1362,39 +1363,15 @@ export async function handleChatCore({
           }
 
           if (result.compressed) {
-            void (async () => {
-              try {
-                const { detectCachingContext } =
-                  await import("../services/compression/cachingAware.ts");
-                const { recordCacheStats } =
-                  await import("../../src/lib/db/compressionCacheStats.ts");
-                const cacheContext = detectCachingContext(compressionInputBody, {
-                  provider,
-                  targetFormat,
-                  model: effectiveModel,
-                });
-                const tokensSavedCompression = Math.max(
-                  0,
-                  result.stats.originalTokens - result.stats.compressedTokens
-                );
-                recordCacheStats({
-                  provider: cacheContext.provider ?? provider ?? "unknown",
-                  model: effectiveModel ?? "",
-                  compressionMode: mode,
-                  cacheControlPresent: cacheContext.hasCacheControl,
-                  estimatedCacheHit: cacheContext.hasCacheControl && cacheContext.isCachingProvider,
-                  tokensSavedCompression,
-                  tokensSavedCaching: 0,
-                  netSavings: tokensSavedCompression,
-                });
-              } catch (err) {
-                log?.debug?.(
-                  "COMPRESSION",
-                  "Compression cache stats write skipped: " +
-                    (err instanceof Error ? err.message : String(err))
-                );
-              }
-            })();
+            recordCompressionCacheStats({
+              compressionInputBody,
+              provider,
+              targetFormat,
+              effectiveModel,
+              mode,
+              stats: result.stats,
+              log,
+            });
             log?.info?.(
               "COMPRESSION",
               `Prompt compressed (${mode}): ${result.stats.originalTokens} -> ${result.stats.compressedTokens} tokens (${result.stats.savingsPercent}% saved, techniques: ${result.stats.techniquesUsed.join(",")})`
