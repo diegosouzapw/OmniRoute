@@ -173,6 +173,7 @@ import { emitRequestGamificationEvent } from "./chatCore/gamificationEvent.ts";
 import { runPluginOnResponseHook } from "./chatCore/pluginOnResponse.ts";
 import { scheduleStreamingQuotaShareConsumption } from "./chatCore/streamingQuotaShare.ts";
 import { recordStreamingUsageStats } from "./chatCore/streamingUsageStats.ts";
+import { recordStreamingCost } from "./chatCore/streamingCost.ts";
 import {
   appendNonStreamingSseTerminalSignal,
   type NonStreamingSseTerminalState,
@@ -4003,13 +4004,15 @@ export async function handleChatCore({
       cacheSource: "upstream",
     });
 
-    if (apiKeyInfo?.id && streamUsage) {
-      calculateCost(provider, model, streamUsage, { serviceTier: effectiveServiceTier })
-        .then((estimatedCost) => {
-          if (estimatedCost > 0) recordCost(apiKeyInfo.id, estimatedCost);
-        })
-        .catch(() => {});
-    }
+    recordStreamingCost({
+      apiKeyId: apiKeyInfo?.id,
+      provider,
+      model,
+      streamUsage,
+      serviceTier: effectiveServiceTier,
+      calculateCost,
+      recordCost,
+    });
 
     // === Quota Share POST-hook streaming (B/F7) — fire-and-forget, fail-open ===
     // Resolve the real per-request cost (calculateCost) so USD-unit pools accrue
