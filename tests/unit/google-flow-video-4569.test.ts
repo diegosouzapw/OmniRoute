@@ -150,6 +150,24 @@ test("parseFlowOperationResult: done but empty → explicit no-video error", () 
   assert.match(r.error ?? "", /no video/i);
 });
 
+test("parseFlowOperationResult: null/empty array elements do not crash (defensive)", () => {
+  // Upstream returning a null element must not throw a TypeError (gemini-code-assist #4769).
+  for (const response of [
+    { videos: [null] },
+    { videos: [undefined] },
+    { videos: [{}] },
+    { generateVideoResponse: { generatedSamples: [null] } },
+    { generateVideoResponse: { generatedSamples: [{ video: null }] } },
+    { generateVideoResponse: { generatedSamples: [{}] } },
+  ]) {
+    const r = parseFlowOperationResult({ done: true, response });
+    assert.equal(r.done, true);
+    assert.match(r.error ?? "", /no video/i);
+    assert.equal(r.base64, undefined);
+    assert.equal(r.url, undefined);
+  }
+});
+
 test("resolveFlowProjectId: direct, providerSpecificData, and missing", () => {
   assert.equal(resolveFlowProjectId({ projectId: "proj-1" }), "proj-1");
   assert.equal(resolveFlowProjectId({ providerSpecificData: { projectId: "proj-2" } }), "proj-2");

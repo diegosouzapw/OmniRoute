@@ -143,10 +143,13 @@ function extractVideoFromResponse(response: unknown): { base64?: string; url?: s
   // Documented Veo LRO shape: response.videos[].bytesBase64Encoded | gcsUri
   const videos = (response as { videos?: unknown }).videos;
   if (Array.isArray(videos) && videos.length > 0) {
-    const v = videos[0] as Record<string, unknown>;
-    if (typeof v.bytesBase64Encoded === "string") return { base64: v.bytesBase64Encoded };
-    if (typeof v.gcsUri === "string") return { url: v.gcsUri };
-    if (typeof v.uri === "string") return { url: v.uri };
+    const v = videos[0];
+    if (v && typeof v === "object") {
+      const rec = v as Record<string, unknown>;
+      if (typeof rec.bytesBase64Encoded === "string") return { base64: rec.bytesBase64Encoded };
+      if (typeof rec.gcsUri === "string") return { url: rec.gcsUri };
+      if (typeof rec.uri === "string") return { url: rec.uri };
+    }
   }
 
   // Alternate Veo shape: response.generateVideoResponse.generatedSamples[].video.uri
@@ -154,10 +157,15 @@ function extractVideoFromResponse(response: unknown): { base64?: string; url?: s
     .generateVideoResponse;
   const samples = gen && typeof gen === "object" ? gen.generatedSamples : undefined;
   if (Array.isArray(samples) && samples.length > 0) {
-    const video = (samples[0] as { video?: Record<string, unknown> }).video;
-    if (video && typeof video.uri === "string") return { url: video.uri };
-    if (video && typeof video.bytesBase64Encoded === "string") {
-      return { base64: video.bytesBase64Encoded };
+    const sample = samples[0];
+    const video =
+      sample && typeof sample === "object"
+        ? (sample as { video?: unknown }).video
+        : undefined;
+    if (video && typeof video === "object") {
+      const rec = video as Record<string, unknown>;
+      if (typeof rec.uri === "string") return { url: rec.uri };
+      if (typeof rec.bytesBase64Encoded === "string") return { base64: rec.bytesBase64Encoded };
     }
   }
 
