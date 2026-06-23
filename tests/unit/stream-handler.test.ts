@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   createDisconnectAwareStream,
+  createNoopAbortWritable,
   createStreamController,
   pipeWithDisconnect,
 } from "../../open-sse/utils/streamHandler.ts";
@@ -281,6 +282,40 @@ test("createDisconnectAwareStream cancel propagates disconnect reason and aborts
   assert.equal(controller.isConnected(), false);
   assert.equal(disconnectEvent.reason, "client-gone");
   assert.ok(disconnectEvent.duration >= 0);
+});
+
+test("createNoopAbortWritable: getWriter().abort() returns a resolved Promise (matches WritableStreamDefaultWriter contract)", async () => {
+  // The mock writable that pipeWithDisconnect hands to createDisconnectAwareStream
+  // is consumed only via its writer's abort() hook (in the cancel() path). The
+  // native WritableStreamDefaultWriter.abort() returns Promise<void>; the mock
+  // must match that contract so cancel/error handling can await it instead of
+  // receiving `undefined`. Ported from decolua/9router@6b624af4.
+  const writable = createNoopAbortWritable();
+  const writer = writable.getWriter();
+
+  const aborted = writer.abort();
+
+  assert.ok(aborted instanceof Promise, "abort() must return a Promise, not undefined");
+  // Awaiting must resolve cleanly to undefined (Promise<void>), never reject.
+  assert.equal(await aborted, undefined);
+});
+
+test("createNoopAbortWritable: cancelling a stream wired through it awaits the abort promise without throwing", async () => {
+  // End-to-end seam: the noop writable is what pipeWithDisconnect injects. Wire
+  // it into createDisconnectAwareStream exactly as production does and drive the
+  // cancel() path. With abort() returning undefined (the pre-fix shape) this
+  // still completes, but a thenable abort keeps the cancel/error path clean.
+  const transformStream = {
+    readable: new ReadableStream({
+      pull() {},
+      cancel() {},
+    }),
+    writable: createNoopAbortWritable(),
+  };
+
+  const stream = createDisconnectAwareStream(transformStream, createStreamController());
+
+  await assert.doesNotReject(stream.cancel("client-gone"));
 });
 
 test("createDisconnectAwareStream uses the default cancel reason when none is provided", async () => {

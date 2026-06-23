@@ -346,6 +346,22 @@ function buildStreamErrorChunks(
 }
 
 /**
+ * Minimal `writable` half used by `pipeWithDisconnect`. The real writable is
+ * driven entirely by the upstream-piped readable, so the writer only needs an
+ * `abort()` hook for `createDisconnectAwareStream`'s `cancel()` path.
+ *
+ * `abort()` returns `Promise<void>` to match the native
+ * `WritableStreamDefaultWriter.abort()` contract — `cancel()` (and any caller
+ * that awaits the writer) gets a real thenable instead of `undefined`, which
+ * keeps abort/error handling clean. Ported from decolua/9router@6b624af4.
+ */
+export function createNoopAbortWritable(): {
+  getWriter: () => { abort: () => Promise<void> };
+} {
+  return { getWriter: () => ({ abort: () => Promise.resolve() }) };
+}
+
+/**
  * Create transform stream with disconnect detection
  * Wraps existing transform stream and adds abort capability
  */
@@ -432,7 +448,7 @@ export function pipeWithDisconnect(
   if (!stallTimeoutMs || stallTimeoutMs <= 0) {
     const transformedBody = providerResponse.body.pipeThrough(transformStream);
     return createDisconnectAwareStream(
-      { readable: transformedBody, writable: { getWriter: () => ({ abort: () => {} }) } },
+      { readable: transformedBody, writable: createNoopAbortWritable() },
       streamController
     );
   }
@@ -526,7 +542,7 @@ export function pipeWithDisconnect(
 
   const transformedBody = providerResponse.body.pipeThrough(upstreamTap).pipeThrough(transformStream);
   return createDisconnectAwareStream(
-    { readable: transformedBody, writable: { getWriter: () => ({ abort: () => {} }) } },
+    { readable: transformedBody, writable: createNoopAbortWritable() },
     wrappedController
   );
 }
