@@ -168,6 +168,7 @@ import {
 import { recordContextEditingTelemetryHook } from "./chatCore/contextEditingTelemetry.ts";
 import { recordCompressionCacheStats } from "./chatCore/compressionCacheStats.ts";
 import { writeCavemanOutputAnalytics } from "./chatCore/cavemanOutputAnalytics.ts";
+import { scheduleQuotaShareConsumption } from "./chatCore/quotaShareConsumption.ts";
 import {
   appendNonStreamingSseTerminalSignal,
   type NonStreamingSseTerminalState,
@@ -3740,23 +3741,14 @@ export async function handleChatCore({
     }
 
     // === Quota Share POST-hook (B/F7) — fire-and-forget, fail-open ===
-    if (apiKeyInfo?.id && credentials?.connectionId) {
-      try {
-        const { scheduleRecordConsumption, buildConsumptionCost } =
-          await import("@/lib/quota/spendRecorder");
-        scheduleRecordConsumption(
-          {
-            apiKeyId: apiKeyInfo.id,
-            connectionId: credentials.connectionId,
-            provider: provider ?? "unknown",
-            cost: buildConsumptionCost(usage, estimatedCost),
-          },
-          log
-        );
-      } catch (_) {
-        // Outer fail-open — never throws to caller
-      }
-    }
+    await scheduleQuotaShareConsumption({
+      apiKeyId: apiKeyInfo?.id,
+      connectionId: credentials?.connectionId,
+      provider,
+      usage,
+      estimatedCost,
+      log,
+    });
     // === /Quota Share POST-hook ===
 
     // ── Gamification event (fire-and-forget) ──
