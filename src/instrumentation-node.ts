@@ -239,10 +239,8 @@ export async function registerNodejs(): Promise<void> {
 
   await import("@/lib/db/core").then(({ ensureDbInitialized }) => ensureDbInitialized());
 
-  // Scheduled VACUUM (#4437): the previous compressionScheduler.ts was orphaned
-  // (read the wrong settings namespace, never imported anywhere). This call wires
-  // the new vacuumScheduler into the lifecycle: registers the timer and persists
-  // lastVacuumAt to the key_value table so the UI's "Last vacuum" card can read it.
+  // Storage-configured scheduled VACUUM (#4437): registers the timer from
+  // Settings > System & Storage and persists lastVacuumAt for the UI.
   try {
     const { initVacuumScheduler } = await import("@/lib/db/vacuumScheduler");
     initVacuumScheduler();
