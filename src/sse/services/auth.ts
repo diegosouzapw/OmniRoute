@@ -78,6 +78,7 @@ interface ProviderConnectionView {
   tokenExpiresAt: string | null;
   expiresAt: string | null;
   projectId: string | null;
+  defaultModel: string | null;
   providerSpecificData: JsonRecord;
   lastUsedAt: string | null;
   consecutiveUseCount: number;
@@ -171,6 +172,7 @@ function toProviderConnection(value: unknown): ProviderConnectionView {
     tokenExpiresAt: toStringOrNull(row.tokenExpiresAt),
     expiresAt: toStringOrNull(row.expiresAt),
     projectId: toStringOrNull(row.projectId),
+    defaultModel: toStringOrNull(row.defaultModel),
     providerSpecificData: asRecord(row.providerSpecificData),
     lastUsedAt: toStringOrNull(row.lastUsedAt),
     consecutiveUseCount: toNumber(row.consecutiveUseCount, 0),
@@ -787,6 +789,7 @@ function buildSyntheticNoAuthCredentials(providerSpecificData: JsonRecord = {}):
   refreshToken: null;
   expiresAt: null;
   projectId: null;
+  defaultModel: null;
   copilotToken: null;
   providerSpecificData: JsonRecord;
   connectionId: typeof SYNTHETIC_NOAUTH_CONNECTION_ID;
@@ -808,6 +811,7 @@ function buildSyntheticNoAuthCredentials(providerSpecificData: JsonRecord = {}):
     refreshToken: null,
     expiresAt: null,
     projectId: null,
+    defaultModel: null,
     copilotToken: null,
     providerSpecificData,
     connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
@@ -1600,6 +1604,10 @@ export async function getProviderCredentials(
       refreshToken: connection.refreshToken,
       expiresAt: connection.tokenExpiresAt || connection.expiresAt || null,
       projectId: connection.projectId,
+      // #474: surface the connection's configured defaultModel so the chat /
+      // embeddings handlers can resolve a bare model name (e.g. an alias that
+      // resolved to "auto") to a real provider model ID before the upstream call.
+      defaultModel: connection.defaultModel || null,
       copilotToken:
         typeof connection.providerSpecificData.copilotToken === "string"
           ? connection.providerSpecificData.copilotToken

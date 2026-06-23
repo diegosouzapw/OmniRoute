@@ -17,6 +17,7 @@ import {
   isDailyQuotaExhausted,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { getModelInfo, getComboForModel } from "../services/model";
+import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
@@ -1076,7 +1077,15 @@ async function handleSingleModelChat(
 
       const accountId = credentials.connectionId.slice(0, 8);
       log.info("AUTH", `Using ${provider} account: ${accountId}...`);
-      let requestBody = body;
+      // #474: when the request used a bare model name (no "/" — e.g. an alias
+      // that resolved to "auto") and the selected connection declares a
+      // defaultModel, resolve the bare name to that real model ID before the
+      // upstream call so the provider receives a concrete model rather than the
+      // placeholder. A "/"-qualified model name is always left untouched.
+      const effectiveModel =
+        resolveBareModelToConnectionDefault(modelStr, model, credentials.defaultModel) ?? model;
+      let requestBody =
+        effectiveModel !== model ? { ...body, model: `${provider}/${effectiveModel}` } : body;
       let injectedHandoff = null;
       if (
         comboStrategy === "context-relay" &&
@@ -1139,7 +1148,7 @@ async function handleSingleModelChat(
         breaker,
         body: requestBody,
         provider,
-        model,
+        model: effectiveModel,
         refreshedCredentials,
         proxyInfo,
         log,
