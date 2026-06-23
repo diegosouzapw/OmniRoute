@@ -8,6 +8,7 @@ import { checkSemanticCache } from "./chatCore/semanticCache.ts";
 import { applyClientUsageBuffer } from "./chatCore/clientUsageBuffer.ts";
 import { buildPostCallGuardrailContext } from "./chatCore/postCallGuardrailContext.ts";
 import { storeSemanticCacheResponse } from "./chatCore/semanticCacheStore.ts";
+import { buildNonStreamingResponseHeaders } from "./chatCore/nonStreamingResponseHeaders.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
 import {
   getHeaderValueCaseInsensitive,
@@ -161,7 +162,6 @@ import { saveRequestUsage, trackPendingRequest, appendRequestLog } from "@/lib/u
 import { finalizePendingScope, updatePendingScope } from "@/lib/usage/pendingRequestScope";
 import { recordCost } from "@/domain/costRules";
 import { calculateCost } from "@/lib/usage/costCalculator";
-import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import {
   buildClaudePassthroughToolNameMap,
   restoreClaudePassthroughToolNames,
@@ -3619,22 +3619,15 @@ export async function handleChatCore({
       providerResponse: responseBody,
       clientResponse: translatedResponse,
     });
-    const responseHeaders: Record<string, string> = {
-      "Content-Type": "application/json",
-      [OMNIROUTE_RESPONSE_HEADERS.cache]: "MISS",
-    };
-    attachOmniRouteMetaHeaders(responseHeaders, {
+    const responseHeaders = buildNonStreamingResponseHeaders({
       provider,
       model,
-      cacheHit: false,
-      latencyMs: Date.now() - startTime,
-      usage: responseUsage,
-      costUsd: estimatedCost,
+      startTime,
+      responseUsage,
+      estimatedCost,
       requestId: skillRequestId,
+      compressionResponseMeta,
     });
-    if (compressionResponseMeta) {
-      responseHeaders[OMNIROUTE_RESPONSE_HEADERS.compression] = compressionResponseMeta;
-    }
     // #1311: echo the requested alias/combo name in the non-streaming response model.
     if (echoModel) echoModelInObject(translatedResponse, echoModel);
     return {
