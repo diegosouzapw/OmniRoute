@@ -77,6 +77,13 @@ test("next config declares Turbopack aliases, runtime assets and server external
     tracingIncludes.includes("./open-sse/services/compression/engines/rtk/filters/**/*.json")
   );
   assert.ok(tracingIncludes.includes("./open-sse/services/compression/rules/**/*.json"));
+  // sql.js WASM must ship in the standalone bundle: sqljsAdapter resolves it from
+  // node_modules/sql.js/dist/sql-wasm.wasm at runtime (driver fallback tier), but
+  // Next traces sql-wasm.js without auto-including the runtime .wasm asset.
+  assert.ok(
+    tracingIncludes.includes("./node_modules/sql.js/dist/sql-wasm.wasm"),
+    "sql-wasm.wasm must be trace-included so the sql.js fallback works in standalone builds"
+  );
   assert.ok(tracingExcludes.includes("./_tasks/**/*"));
   assert.ok(tracingExcludes.includes("./tests/**/*"));
 
