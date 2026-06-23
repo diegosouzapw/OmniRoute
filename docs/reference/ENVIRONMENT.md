@@ -1082,3 +1082,12 @@ is developer tooling only.
 | `OMNIROUTE_URL`    | `http://localhost:20128` | `scripts/ad-hoc/regen-opencode-config.ts` | Base URL of the OmniRoute instance to query for `/v1/models`.                                                             |
 | `OMNIROUTE_KEY`    | _(unset)_                | `scripts/ad-hoc/regen-opencode-config.ts` | API key to authenticate against the OmniRoute `/v1/models` endpoint. Falls back to `OPENCODE_API_KEY` when unset.         |
 | `OPENCODE_API_KEY` | _(unset)_                | `scripts/ad-hoc/regen-opencode-config.ts` | OpenCode-style API key (`sk-...`) written into the regenerated `opencode.json`. Falls back to `OMNIROUTE_KEY` when unset. |
+
+### Compression offline-eval harness (ad-hoc tooling)
+
+Used by `scripts/compression-eval/index.ts`, the offline compression evaluation CLI.
+Not required for normal operation — developer tooling only.
+
+| Variable                    | Default      | Source File                       | Description                                                                                                                                              |
+| --------------------------- | ------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_EVAL_CREDENTIALS` | `{}` (empty) | `scripts/compression-eval/index.ts` | Operator-supplied JSON credentials for the provider exercised by the offline compression-eval CLI (parsed with `JSON.parse`). Leave unset for a dry run. |
