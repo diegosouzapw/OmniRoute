@@ -184,6 +184,12 @@ import {
   orderTargetsByHeadroom,
   type PreScreenResult,
 } from "./combo/quotaStrategies.ts";
+import {
+  classifyTask,
+  getConversationCacheKey,
+  isTaskRoutingStrategy,
+  reorderByTaskWeight,
+} from "./taskAwareRouting.ts";
 
 // Backward-compatible re-exports — these were public from combo.ts before the
 // types extraction (Quality Gate v2 / Fase 9). Keep the external surface stable.
@@ -612,8 +618,7 @@ export function pinIsDurablyUnhealthy(
 ): boolean {
   if (circuitState === "OPEN") return true;
   if (!Array.isArray(connections) || connections.length === 0) return true;
-  const backoffThreshold =
-    opts.backoffLevel ?? Number(process.env.PIN_DROP_BACKOFF_LEVEL || "2");
+  const backoffThreshold = opts.backoffLevel ?? Number(process.env.PIN_DROP_BACKOFF_LEVEL || "2");
   const graceMs = opts.graceMs ?? Number(process.env.PIN_DROP_GRACE_MS || "20000");
   // The pin survives as long as AT LEAST ONE connection is healthy or only
   // briefly cooling down — failover only when every connection is durably down.
@@ -855,8 +860,7 @@ export async function handleComboChat({
       })
       .filter((m): m is string => Boolean(m));
     const cfg = config as Record<string, unknown>;
-    const judgeModel =
-      typeof cfg.judgeModel === "string" ? cfg.judgeModel : undefined;
+    const judgeModel = typeof cfg.judgeModel === "string" ? cfg.judgeModel : undefined;
     const tuning =
       cfg.fusionTuning && typeof cfg.fusionTuning === "object"
         ? (cfg.fusionTuning as FusionTuning)
@@ -1020,7 +1024,8 @@ export async function handleComboChat({
 
   const isTargetSelectableForWeighted = async (target: ResolvedComboTarget): Promise<boolean> => {
     const rawModel = parseModel(target.modelStr).model || target.modelStr;
-    if (target.provider && getCircuitBreaker(target.provider).getStatus().state === "OPEN") return false;
+    if (target.provider && getCircuitBreaker(target.provider).getStatus().state === "OPEN")
+      return false;
     if (
       resilienceSettings.providerCooldown.enabled &&
       Boolean(target.provider && target.provider !== "unknown") &&
@@ -1098,16 +1103,21 @@ export async function handleComboChat({
       : null;
   const getWeightedStepKeyForTarget = (target: ResolvedComboTarget): string | null => {
     if (!weightedResolution?.orderedSteps) return null;
-    const step = weightedResolution.orderedSteps.find((entry) =>
-      target.executionKey === entry.executionKey ||
-      target.executionKey.startsWith(entry.executionKey + ">")
+    const step = weightedResolution.orderedSteps.find(
+      (entry) =>
+        target.executionKey === entry.executionKey ||
+        target.executionKey.startsWith(entry.executionKey + ">")
     );
     return step?.executionKey || null;
   };
   let orderedTargets =
     strategy === "weighted"
       ? weightedResolution?.orderedTargets || []
-      : resolveComboTargets(expandedCombo, expandedAllCombos, clampComboDepth(config.maxComboDepth));
+      : resolveComboTargets(
+          expandedCombo,
+          expandedAllCombos,
+          clampComboDepth(config.maxComboDepth)
+        );
 
   orderedTargets = await applyRequestTagRouting(orderedTargets, body, log);
 
@@ -1566,9 +1576,32 @@ export async function handleComboChat({
       `Quota-share ordering: ${orderedTargets[0]?.modelStr}${orderedTargets[0]?.connectionId ? ` (${orderedTargets[0].connectionId})` : ""} selected (DRR+P2C)`
     );
   }
-  const _sticky = await applySessionStickiness(orderedTargets, body.messages as Array<{ role?: string; content?: unknown }>); orderedTargets = _sticky.targets;
+  const _sticky = await applySessionStickiness(
+    orderedTargets,
+    body.messages as Array<{ role?: string; content?: unknown }>
+  );
+  orderedTargets = _sticky.targets;
   orderedTargets = orderTargetsByEvalScores(orderedTargets, config.evalRouting, log);
   orderedTargets = filterTargetsByRequestCompatibility(orderedTargets, body, log);
+
+  // Task-aware reordering: only active for strategies ["smart","task","task-aware","task_aware","auto"].
+  // Additive — does not affect any of the other 15 strategies.
+  if (isTaskRoutingStrategy(strategy)) {
+    const task = classifyTask(body);
+    const conversationCacheKey = getConversationCacheKey(body);
+    const taskReordered = reorderByTaskWeight(orderedTargets, task);
+    if (taskReordered[0]?.modelStr !== orderedTargets[0]?.modelStr) {
+      const reasons =
+        Array.isArray(task.reasons) && task.reasons.length > 0
+          ? ` (${task.reasons.join(",")})`
+          : "";
+      log.info(
+        "COMBO",
+        `task-route task=${task.level}${reasons} cacheKey=${conversationCacheKey ?? "none"} → ${taskReordered[0]?.modelStr}`
+      );
+    }
+    orderedTargets = taskReordered;
+  }
 
   // Parallel pre-screen: check provider profiles and model availability for all targets
   // Only runs for priority strategy where sequential checking causes latency
@@ -2101,7 +2134,8 @@ export async function handleComboChat({
                 }
               }
             }
-            if (_sticky.messageHash && target.connectionId) recordStickyBinding(_sticky.messageHash, target.connectionId); // LKGP (#919):
+            if (_sticky.messageHash && target.connectionId)
+              recordStickyBinding(_sticky.messageHash, target.connectionId); // LKGP (#919):
             if (provider) {
               const connId = effectiveConnectionId || undefined;
               void (async () => {
@@ -2648,7 +2682,8 @@ async function handleRoundRobinCombo({
       if (stickyTarget) {
         const rawModel = parseModel(stickyTarget.modelStr).model || stickyTarget.modelStr;
         const stickyAvailable =
-          (!stickyTarget.provider || getCircuitBreaker(stickyTarget.provider).getStatus().state !== "OPEN") &&
+          (!stickyTarget.provider ||
+            getCircuitBreaker(stickyTarget.provider).getStatus().state !== "OPEN") &&
           !(
             resilienceSettings.providerCooldown.enabled &&
             Boolean(stickyTarget.provider && stickyTarget.provider !== "unknown") &&
