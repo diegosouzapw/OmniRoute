@@ -232,3 +232,22 @@ test("next-intl webpack hook preserves caller config and filters known extractor
     false
   );
 });
+
+test("optimizePackageImports excludes the internal @omniroute/open-sse workspace (build-OOM guard)", async () => {
+  // Regression guard: adding the internal `@omniroute/open-sse` workspace to
+  // optimizePackageImports makes Next.js resolve its entire barrel at build
+  // time, driving the webpack production pass into a heap runaway that OOM'd
+  // even at 28 GB. optimizePackageImports is for EXTERNAL barrel libs only.
+  const { default: nextConfig } = await loadNextConfig("optimize-pkg-imports");
+  const list = nextConfig.experimental?.optimizePackageImports ?? [];
+
+  assert.ok(Array.isArray(list), "optimizePackageImports should be an array");
+  assert.ok(
+    !list.includes("@omniroute/open-sse"),
+    "do NOT add the internal @omniroute/open-sse workspace to optimizePackageImports — it OOMs the production build"
+  );
+  // The intended external barrel libs must remain optimized.
+  for (const lib of ["lucide-react", "date-fns", "next-intl"]) {
+    assert.ok(list.includes(lib), `expected external barrel lib ${lib} to stay optimized`);
+  }
+});

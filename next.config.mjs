@@ -113,6 +113,17 @@ const nextConfig = {
     // PR-2 of diegosouzapw/OmniRoute#3932: tree-shake barrel re-exports so
     // route bundles don't pull in 14 locale files, every lucide-react icon,
     // or the full date-fns surface when only one helper is used.
+    //
+    // NOTE: this list must only contain EXTERNAL barrel libraries. Do NOT add
+    // the internal `@omniroute/open-sse` workspace here: optimizePackageImports
+    // makes Next.js resolve every export of the package's barrel at build time,
+    // and open-sse's `index.ts` re-exports the entire streaming engine
+    // (executors/translators/services/handlers/mcp-server — thousands of
+    // modules). Combined with the #3501 god-file splits (which multiplied the
+    // re-export edges), this drove the webpack production pass into a heap
+    // runaway that OOM'd even at a 28 GB --max-old-space-size (RSS pinned at the
+    // ceiling in a GC death-spiral). Removing it keeps the build's heap bounded.
+    // optimizePackageImports is designed for external libs, not workspaces.
     optimizePackageImports: [
       "lobehub/icons",
       "@lobehub/icons",
@@ -122,7 +133,6 @@ const nextConfig = {
       "lodash-es",
       "material-symbols",
       "next-intl",
-      "@omniroute/open-sse",
     ],
   },
   outputFileTracingRoot: projectRoot,
