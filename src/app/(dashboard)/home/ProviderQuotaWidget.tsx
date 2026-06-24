@@ -283,8 +283,6 @@ export default function ProviderQuotaWidget({ autoRefreshInterval = 0 }: Provide
                       {tr("refreshAll", "Refresh All")}
                     </button>
                   )}
-
-                  {/* Future: embed small QuotaProgressBar for the primary window here */}
                 </div>
               );
             })}
