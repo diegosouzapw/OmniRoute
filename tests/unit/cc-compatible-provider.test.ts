@@ -3,10 +3,16 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { restoreEnv, snapshotEnv } from "../helpers/env.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cc-compatible-"));
-const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
-const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
+const ENV_NAMES = [
+  "ENABLE_CC_COMPATIBLE_PROVIDER",
+  "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS",
+  "INITIAL_PASSWORD",
+  "JWT_SECRET",
+];
+const originalEnv = snapshotEnv(ENV_NAMES);
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.INITIAL_PASSWORD = "";
 delete process.env.JWT_SECRET;
@@ -33,8 +39,6 @@ const providerNodesValidateRoute =
 const providerModelsRoute = await import("../../src/app/api/providers/[id]/models/route.ts");
 
 const originalFetch = globalThis.fetch;
-const originalFlag = process.env.ENABLE_CC_COMPATIBLE_PROVIDER;
-const originalAllowPrivateProviderUrls = process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -47,41 +51,16 @@ await resetStorage();
 
 test.afterEach(async () => {
   globalThis.fetch = originalFetch;
-  if (originalFlag === undefined) {
-    delete process.env.ENABLE_CC_COMPATIBLE_PROVIDER;
-  } else {
-    process.env.ENABLE_CC_COMPATIBLE_PROVIDER = originalFlag;
-  }
-  if (originalAllowPrivateProviderUrls === undefined) {
-    delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
-  } else {
-    process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
-  }
+  restoreEnv(originalEnv, [
+    "ENABLE_CC_COMPATIBLE_PROVIDER",
+    "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS",
+  ]);
   await resetStorage();
 });
 
 test.after(() => {
   globalThis.fetch = originalFetch;
-  if (originalFlag === undefined) {
-    delete process.env.ENABLE_CC_COMPATIBLE_PROVIDER;
-  } else {
-    process.env.ENABLE_CC_COMPATIBLE_PROVIDER = originalFlag;
-  }
-  if (originalAllowPrivateProviderUrls === undefined) {
-    delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
-  } else {
-    process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
-  }
-  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
-    delete process.env.INITIAL_PASSWORD;
-  } else {
-    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
-  }
-  if (ORIGINAL_JWT_SECRET === undefined) {
-    delete process.env.JWT_SECRET;
-  } else {
-    process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
-  }
+  restoreEnv(originalEnv);
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });

@@ -3,16 +3,24 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { restoreEnv, snapshotEnv } from "../helpers/env.ts";
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
+import {
+  withPrepareFailure as withPrepareFailureOnDb,
+  withPrepareOverride as withPrepareOverrideOnDb,
+} from "../helpers/prepareOverride.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-route-edges-"));
-const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
-const ORIGINAL_API_KEY_SECRET = process.env.API_KEY_SECRET;
-const ORIGINAL_CLOUD_URL = process.env.CLOUD_URL;
-const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
-const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
-const ORIGINAL_REQUIRE_API_KEY = process.env.REQUIRE_API_KEY;
-const ORIGINAL_ENABLE_SOCKS5_PROXY = process.env.ENABLE_SOCKS5_PROXY;
+const ENV_NAMES = [
+  "DATA_DIR",
+  "API_KEY_SECRET",
+  "CLOUD_URL",
+  "INITIAL_PASSWORD",
+  "JWT_SECRET",
+  "REQUIRE_API_KEY",
+  "ENABLE_SOCKS5_PROXY",
+];
+const originalEnv = snapshotEnv(ENV_NAMES);
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-api-key-secret";
 process.env.CLOUD_URL = "http://cloud.example";
@@ -100,44 +108,11 @@ async function seedOpenAIConnection({
 }
 
 async function withPrepareFailure(match, message, fn) {
-  const db = core.getDbInstance();
-  const originalPrepare = db.prepare.bind(db);
-
-  db.prepare = (sql, ...args) => {
-    const sqlText = String(sql);
-    const matched = typeof match === "function" ? match(sqlText) : sqlText.includes(match);
-    if (matched) {
-      throw new Error(message);
-    }
-    return originalPrepare(sql, ...args);
-  };
-
-  try {
-    return await fn();
-  } finally {
-    db.prepare = originalPrepare;
-  }
+  return withPrepareFailureOnDb(core.getDbInstance(), match, message, fn);
 }
 
 async function withPrepareOverride(match, override, fn) {
-  const db = core.getDbInstance();
-  const originalPrepare = db.prepare.bind(db);
-
-  db.prepare = (sql, ...args) => {
-    const sqlText = String(sql);
-    const matched = typeof match === "function" ? match(sqlText) : sqlText.includes(match);
-    const statement = originalPrepare(sql, ...args);
-    if (!matched) {
-      return statement;
-    }
-    return override({ sqlText, statement, args });
-  };
-
-  try {
-    return await fn();
-  } finally {
-    db.prepare = originalPrepare;
-  }
+  return withPrepareOverrideOnDb(core.getDbInstance(), match, override, fn);
 }
 
 test.beforeEach(async () => {
@@ -147,41 +122,7 @@ test.beforeEach(async () => {
 test.after(async () => {
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  if (ORIGINAL_DATA_DIR === undefined) {
-    delete process.env.DATA_DIR;
-  } else {
-    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
-  }
-  if (ORIGINAL_API_KEY_SECRET === undefined) {
-    delete process.env.API_KEY_SECRET;
-  } else {
-    process.env.API_KEY_SECRET = ORIGINAL_API_KEY_SECRET;
-  }
-  if (ORIGINAL_CLOUD_URL === undefined) {
-    delete process.env.CLOUD_URL;
-  } else {
-    process.env.CLOUD_URL = ORIGINAL_CLOUD_URL;
-  }
-  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
-    delete process.env.INITIAL_PASSWORD;
-  } else {
-    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
-  }
-  if (ORIGINAL_JWT_SECRET === undefined) {
-    delete process.env.JWT_SECRET;
-  } else {
-    process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
-  }
-  if (ORIGINAL_REQUIRE_API_KEY === undefined) {
-    delete process.env.REQUIRE_API_KEY;
-  } else {
-    process.env.REQUIRE_API_KEY = ORIGINAL_REQUIRE_API_KEY;
-  }
-  if (ORIGINAL_ENABLE_SOCKS5_PROXY === undefined) {
-    delete process.env.ENABLE_SOCKS5_PROXY;
-  } else {
-    process.env.ENABLE_SOCKS5_PROXY = ORIGINAL_ENABLE_SOCKS5_PROXY;
-  }
+  restoreEnv(originalEnv);
 });
 
 test("api keys route covers auth, create, masking, pagination fallback and cloud sync", async () => {
