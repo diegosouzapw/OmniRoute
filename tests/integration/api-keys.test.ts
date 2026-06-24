@@ -292,6 +292,7 @@ test("POST /api/keys triggers cloud sync when cloud mode is enabled", async () =
 });
 
 test("GET /api/keys returns 500 when the key store throws unexpectedly", async () => {
+  await enableManagementAuth();
   await apiKeysDb.createApiKey("Alpha", MACHINE_ID);
 
   const db = core.getDbInstance();
@@ -311,7 +312,9 @@ test("GET /api/keys returns 500 when the key store throws unexpectedly", async (
   console.error = () => {};
 
   try {
-    const response = await listRoute.GET(new Request("http://localhost/api/keys"));
+    const response = await listRoute.GET(
+      await makeManagementSessionRequest("http://localhost/api/keys")
+    );
     const body = (await response.json()) as any;
 
     assert.equal(response.status, 500);

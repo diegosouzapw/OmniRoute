@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } from "../../open-sse/services/webSearchFallback.ts";
+import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
 import { createChatPipelineHarness } from "./_chatPipelineHarness.ts";
 
@@ -109,10 +110,10 @@ test("enabling a disabled skill makes it available in the request pipeline", asy
   });
 
   const updateResponse = await skillByIdRouteModule.PUT(
-    new Request("http://localhost/api/skills/id", {
+    await makeManagementSessionRequest("http://localhost/api/skills/id", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ enabled: true }),
+      body: { enabled: true },
     }),
     { params: Promise.resolve({ id: skill.id }) }
   );
@@ -294,10 +295,10 @@ test("disabling a skill removes it from request tool injection", async () => {
   });
 
   const updateResponse = await skillByIdRouteModule.PUT(
-    new Request("http://localhost/api/skills/id", {
+    await makeManagementSessionRequest("http://localhost/api/skills/id", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ enabled: false }),
+      body: { enabled: false },
     }),
     { params: Promise.resolve({ id: skill.id }) }
   );

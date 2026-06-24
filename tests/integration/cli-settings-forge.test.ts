@@ -19,9 +19,7 @@ const core = await import("../../src/lib/db/core.ts");
 const localDb = await import("../../src/lib/localDb.ts");
 
 // Import route handlers
-const { GET, POST, DELETE } = await import(
-  "../../src/app/api/cli-tools/forge-settings/route.ts"
-);
+const { GET, POST, DELETE } = await import("../../src/app/api/cli-tools/forge-settings/route.ts");
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
@@ -50,8 +48,9 @@ test("forge-settings GET: returns 401 when auth required and no token", async ()
 // ── Test 2: GET with valid auth → 200 ────────────────────────────────────────
 
 test("forge-settings GET: returns 200 with valid auth (forge not installed on CI)", async () => {
-  // No auth required in default test state (no INITIAL_PASSWORD, no requireLogin)
-  const res = await GET(new Request("http://localhost/api/cli-tools/forge-settings"));
+  const res = await GET(
+    await makeManagementSessionRequest("http://localhost/api/cli-tools/forge-settings")
+  );
   assert.equal(res.status, 200, `Expected 200, got ${res.status}`);
   const body = await res.json();
   assert.ok(
@@ -64,10 +63,10 @@ test("forge-settings GET: returns 200 with valid auth (forge not installed on CI
 
 test("forge-settings POST: 400 when baseUrl is missing", async () => {
   const res = await POST(
-    new Request("http://localhost/api/cli-tools/forge-settings", {
+    await makeManagementSessionRequest("http://localhost/api/cli-tools/forge-settings", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ apiKey: "sk-test", model: "gpt-5" }), // missing baseUrl
+      body: { apiKey: "sk-test", model: "gpt-5" }, // missing baseUrl
     })
   );
   assert.equal(res.status, 400, `Expected 400 for missing baseUrl, got ${res.status}`);
@@ -77,10 +76,10 @@ test("forge-settings POST: 400 when baseUrl is missing", async () => {
 
 test("forge-settings POST: 400 when model is missing", async () => {
   const res = await POST(
-    new Request("http://localhost/api/cli-tools/forge-settings", {
+    await makeManagementSessionRequest("http://localhost/api/cli-tools/forge-settings", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ baseUrl: "http://localhost:20128", apiKey: "sk-test" }),
+      body: { baseUrl: "http://localhost:20128", apiKey: "sk-test" },
     })
   );
   assert.equal(res.status, 400, `Expected 400 for missing model, got ${res.status}`);
@@ -95,22 +94,19 @@ test("forge-settings POST: writes config.toml with valid body", async () => {
 
   try {
     const res = await POST(
-      new Request("http://localhost/api/cli-tools/forge-settings", {
+      await makeManagementSessionRequest("http://localhost/api/cli-tools/forge-settings", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
+        body: {
           baseUrl: "http://localhost:20128",
           apiKey: "sk-test-forge-key",
           model: "gpt-5.4-mini",
-        }),
+        },
       })
     );
 
     // 200 = success; 403 = write guard active (test env); 500 = backup dir issue
-    assert.ok(
-      [200, 403, 500].includes(res.status),
-      `Unexpected status ${res.status}`
-    );
+    assert.ok([200, 403, 500].includes(res.status), `Unexpected status ${res.status}`);
 
     if (res.status === 200) {
       const body = await res.json();
@@ -143,16 +139,15 @@ test("forge-settings DELETE: removes config file when it exists", async () => {
     fs.mkdirSync(forgeDir, { recursive: true });
     fs.writeFileSync(
       path.join(forgeDir, "config.toml"),
-      "# managed by OmniRoute (plan 14)\n[openai]\nbase_url = \"http://localhost:20128\"\n"
+      '# managed by OmniRoute (plan 14)\n[openai]\nbase_url = "http://localhost:20128"\n'
     );
 
     const res = await DELETE(
-      new Request("http://localhost/api/cli-tools/forge-settings", { method: "DELETE" })
+      await makeManagementSessionRequest("http://localhost/api/cli-tools/forge-settings", {
+        method: "DELETE",
+      })
     );
-    assert.ok(
-      [200, 403, 500].includes(res.status),
-      `Expected 200/403/500, got ${res.status}`
-    );
+    assert.ok([200, 403, 500].includes(res.status), `Expected 200/403/500, got ${res.status}`);
 
     if (res.status === 200) {
       const body = await res.json();
@@ -167,11 +162,14 @@ test("forge-settings DELETE: removes config file when it exists", async () => {
 // ── Test 6: Error sanitization (Hard Rule #12) ───────────────────────────────
 
 test("forge-settings: error responses do not leak stack traces", async () => {
-  const badReq = new Request("http://localhost/api/cli-tools/forge-settings", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: "{ this is not json }",
-  });
+  const badReq = await makeManagementSessionRequest(
+    "http://localhost/api/cli-tools/forge-settings",
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{ this is not json }",
+    }
+  );
   const res = await POST(badReq);
   const bodyStr = JSON.stringify(await res.json());
   assert.ok(
