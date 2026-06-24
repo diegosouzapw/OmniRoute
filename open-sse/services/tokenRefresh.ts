@@ -470,7 +470,7 @@ export async function refreshWindsurfToken(
  */
 export async function refreshCodebuddyCnToken(
   refreshToken: string,
-  log: any,
+  log: RefreshLogger,
   proxyConfig: unknown = null
 ) {
   if (!refreshToken) return null;
@@ -503,7 +503,7 @@ export async function refreshCodebuddyCnToken(
       return null;
     }
 
-    const data: any = await response.json();
+    const data = await response.json();
     if (data?.code !== 0 || !data?.data?.accessToken) {
       log?.error?.("TOKEN_REFRESH", "CodeBuddy CN token refresh returned no token", {
         code: data?.code,
@@ -523,7 +523,7 @@ export async function refreshCodebuddyCnToken(
       refreshToken: data.data.refreshToken || refreshToken,
       expiresIn: data.data.expiresIn,
     };
-  } catch (error: any) {
+  } catch (error) {
     log?.error?.(
       "TOKEN_REFRESH",
       `Network error refreshing CodeBuddy CN token: ${error?.message}`

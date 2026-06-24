@@ -123,7 +123,7 @@ flag in the weekly perf review.
 | Endpoint | Method | p50 | p95 | p99 |
 |---|---|---|---|---|
 | `/api/health/ping` | GET | 5 ms | 20 ms | 50 ms |
-| `/api/version` | GET | 5 ms | 20 ms | 50 ms |
+| `/api/system/version` | GET | 5 ms | 20 ms | 50 ms |
 | `/api/docs` | GET | 20 ms | 80 ms | 200 ms (HTML shell, no provider call) |
 
 ---

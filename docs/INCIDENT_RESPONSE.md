@@ -65,8 +65,8 @@ not** skip steps; each is timed.
    - **Roll back** to the last green deploy (`bin/rollback.sh vX.Y.Z`).
    - **Failover** to the healthy replicas (Caddy LB removes the bad
      replica automatically; verify with `curl /api/health/ping`).
-   - **Disable** a broken provider via `POST /api/providers/{id}/disable`
-     (one-line toggle; safe by default).
+   - **Disable** a broken provider connection via `PUT /api/providers/{id}`
+     with `{ "isActive": false }` (one-line toggle; safe by default).
 6. **0:15** — Post the chosen mitigation in the channel. If the page
    is still firing after 5 more minutes, escalate to the secondary.
 
@@ -79,8 +79,8 @@ not** skip steps; each is timed.
 
 ### 4.1 Provider outage (single provider down)
 
-1. `POST /api/providers/{provider}/disable` — toggles the provider off
-   in the registry; all routes re-resolve on next request.
+1. `PUT /api/providers/{id}` with `{ "isActive": false }` — toggles the
+   connection off in the registry; all routes re-resolve on next request.
 2. Verify p95 returns to budget within 5 min.
 3. If all providers for a model are down, **disable the model** (see
    `src/lib/a2a/skills/providerDiscovery.ts` for the disable path).
@@ -91,7 +91,7 @@ not** skip steps; each is timed.
 
 ### 4.2 Cluster-wide latency regression
 
-1. Check the most recent deploy (`/api/version` returns the SHA).
+1. Check the most recent deploy (`/api/system/version` returns the running version).
 2. If p95 doubled vs the 7-day baseline, **roll back** to the prior
    SHA via `bin/rollback.sh`.
 3. If the regression is provider-side, see § 4.1.

@@ -1,3 +1,7 @@
+---
+title: "Release-Green — fila e release branch verdes"
+---
+
 # Release-Green: mantendo a fila e a release branch verdes
 
 ## O problema que isto resolve
@@ -19,12 +23,12 @@ verde na primeira CI.
 
 ## A família (4 peças) — e como cada uma roda à parte
 
-| Peça | O que é | Quando rodar | Escopo |
-| ---- | ------- | ------------ | ------ |
-| **`/green-prs`** (Solução A) | Varredura sob demanda do mantenedor sobre a **fila de PRs abertos** | **À parte, periódico** — e principalmente **antes** de um `/generate-release` | Fila inteira de PRs → `release/**` |
-| **`/validate-release-green`** (Solução C — `npm run check:release-green`) | Motor de validação: reproduz o gate completo contra uma branch OU um merge-candidato | À parte, a qualquer momento | Uma branch específica ou um PR-merge |
-| **`/babysit <PR#>`** | Conduz a **CI ao vivo** de **um** PR até o verde | À parte, por PR | Um PR |
-| **`nightly-release-green.yml`** (Solução D) | Workflow noturno automático; abre issue em HARD red | Automático (cron) | A release branch ativa |
+| Peça                                                                      | O que é                                                                              | Quando rodar                                                                  | Escopo                               |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | ------------------------------------ |
+| **`/green-prs`** (Solução A)                                              | Varredura sob demanda do mantenedor sobre a **fila de PRs abertos**                  | **À parte, periódico** — e principalmente **antes** de um `/generate-release` | Fila inteira de PRs → `release/**`   |
+| **`/validate-release-green`** (Solução C — `npm run check:release-green`) | Motor de validação: reproduz o gate completo contra uma branch OU um merge-candidato | À parte, a qualquer momento                                                   | Uma branch específica ou um PR-merge |
+| **`/babysit <PR#>`**                                                      | Conduz a **CI ao vivo** de **um** PR até o verde                                     | À parte, por PR                                                               | Um PR                                |
+| **`nightly-release-green.yml`** (Solução D)                               | Workflow noturno automático; abre issue em HARD red                                  | Automático (cron)                                                             | A release branch ativa               |
 
 **Resposta curta à pergunta "é só para release?":** **não.** O `/green-prs` foi desenhado para
 rodar **de tempos em tempos, entre releases**. Rodar à parte é o uso normal — o release é apenas

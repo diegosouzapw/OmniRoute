@@ -6,9 +6,15 @@
  * pin down the contract: defaults remain loopback-only; the env var extends
  * the allow-list with bare hostnames or `host:port` pairs; the absence of
  * Origin is still only acceptable on loopback.
+ *
+ * Runner note: lives under tests/unit/security/ (a node:test–collected subdir)
+ * and uses node:test + assert/strict so the gate `check:test-discovery` actually
+ * runs it. The original copy under tests/unit/server/ used vitest in a path no
+ * runner collected — it never executed (caught by Gate 6A.1).
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
 import {
   buildAllowedOrigins,
   buildAllowedHosts,
@@ -23,21 +29,21 @@ const EMPTY_ENV: NodeJS.ProcessEnv = {};
 
 describe("parseCsvEnv", () => {
   it("returns empty set for undefined", () => {
-    expect(parseCsvEnv(undefined).size).toBe(0);
+    assert.equal(parseCsvEnv(undefined).size, 0);
   });
 
   it("returns empty set for empty string", () => {
-    expect(parseCsvEnv("").size).toBe(0);
+    assert.equal(parseCsvEnv("").size, 0);
   });
 
   it("trims whitespace and drops empty entries", () => {
     const out = parseCsvEnv("  a , b ,, c  ");
-    expect([...out]).toEqual(["a", "b", "c"]);
+    assert.deepEqual([...out], ["a", "b", "c"]);
   });
 
   it("deduplicates entries", () => {
     const out = parseCsvEnv("a,a,b");
-    expect([...out]).toEqual(["a", "b"]);
+    assert.deepEqual([...out], ["a", "b"]);
   });
 });
 
@@ -45,103 +51,106 @@ describe("buildAllowedOrigins", () => {
   it("includes the loopback defaults", () => {
     const out = buildAllowedOrigins(EMPTY_ENV);
     for (const origin of DEFAULT_ALLOWED_ORIGINS) {
-      expect(out.has(origin)).toBe(true);
+      assert.equal(out.has(origin), true);
     }
   });
 
   it("extends defaults with LIVE_WS_ALLOWED_ORIGINS", () => {
-    const env = { ...EMPTY_ENV, LIVE_WS_ALLOWED_ORIGINS: "https://dash.example.com,https://other.example.com" };
+    const env = {
+      ...EMPTY_ENV,
+      LIVE_WS_ALLOWED_ORIGINS: "https://dash.example.com,https://other.example.com",
+    };
     const out = buildAllowedOrigins(env);
-    expect(out.has("https://dash.example.com")).toBe(true);
-    expect(out.has("https://other.example.com")).toBe(true);
+    assert.equal(out.has("https://dash.example.com"), true);
+    assert.equal(out.has("https://other.example.com"), true);
     // Defaults remain.
-    expect(out.has("http://localhost:20128")).toBe(true);
+    assert.equal(out.has("http://localhost:20128"), true);
   });
 });
 
 describe("buildAllowedHosts", () => {
   it("returns empty set when env is not set", () => {
-    expect(buildAllowedHosts(EMPTY_ENV).size).toBe(0);
+    assert.equal(buildAllowedHosts(EMPTY_ENV).size, 0);
   });
 
   it("parses comma-separated hosts", () => {
     const env = { ...EMPTY_ENV, LIVE_WS_ALLOWED_HOSTS: "100.96.135.160,desktop.tailnet.ts.net" };
     const out = buildAllowedHosts(env);
-    expect(out.has("100.96.135.160")).toBe(true);
-    expect(out.has("desktop.tailnet.ts.net")).toBe(true);
+    assert.equal(out.has("100.96.135.160"), true);
+    assert.equal(out.has("desktop.tailnet.ts.net"), true);
   });
 });
 
 describe("originHost", () => {
   it("returns host and hostname for a valid URL", () => {
-    expect(originHost("http://100.96.135.160:20128")).toEqual({
+    assert.deepEqual(originHost("http://100.96.135.160:20128"), {
       host: "100.96.135.160:20128",
       hostname: "100.96.135.160",
     });
   });
 
   it("returns null for an invalid URL", () => {
-    expect(originHost("not a url")).toBeNull();
+    assert.equal(originHost("not a url"), null);
   });
 });
 
 describe("originHostMatches", () => {
   it("returns false when the allow-list is empty", () => {
-    expect(originHostMatches("http://100.96.135.160:20128", new Set())).toBe(false);
+    assert.equal(originHostMatches("http://100.96.135.160:20128", new Set()), false);
   });
 
   it("matches by exact host:port", () => {
     const allow = new Set(["100.96.135.160:20128"]);
-    expect(originHostMatches("http://100.96.135.160:20128", allow)).toBe(true);
+    assert.equal(originHostMatches("http://100.96.135.160:20128", allow), true);
   });
 
   it("matches by bare hostname regardless of port", () => {
     const allow = new Set(["100.96.135.160"]);
-    expect(originHostMatches("http://100.96.135.160:20128", allow)).toBe(true);
-    expect(originHostMatches("http://100.96.135.160:55555", allow)).toBe(true);
+    assert.equal(originHostMatches("http://100.96.135.160:20128", allow), true);
+    assert.equal(originHostMatches("http://100.96.135.160:55555", allow), true);
   });
 
   it("returns false for a non-matching host", () => {
     const allow = new Set(["100.96.135.160"]);
-    expect(originHostMatches("http://10.0.0.5:20128", allow)).toBe(false);
+    assert.equal(originHostMatches("http://10.0.0.5:20128", allow), false);
   });
 
   it("returns false for an unparseable origin", () => {
     const allow = new Set(["100.96.135.160"]);
-    expect(originHostMatches("not-a-url", allow)).toBe(false);
+    assert.equal(originHostMatches("not-a-url", allow), false);
   });
 });
 
 describe("isOriginAllowed", () => {
   it("rejects any non-loopback origin by default", () => {
-    expect(isOriginAllowed("http://100.96.135.160:20128", EMPTY_ENV)).toBe(false);
+    assert.equal(isOriginAllowed("http://100.96.135.160:20128", EMPTY_ENV), false);
   });
 
   it("accepts the default loopback origins", () => {
-    expect(isOriginAllowed("http://127.0.0.1:20128", EMPTY_ENV)).toBe(true);
-    expect(isOriginAllowed("http://localhost:20128", EMPTY_ENV)).toBe(true);
-    expect(isOriginAllowed("http://[::1]:20128", EMPTY_ENV)).toBe(true);
+    assert.equal(isOriginAllowed("http://127.0.0.1:20128", EMPTY_ENV), true);
+    assert.equal(isOriginAllowed("http://localhost:20128", EMPTY_ENV), true);
+    assert.equal(isOriginAllowed("http://[::1]:20128", EMPTY_ENV), true);
   });
 
   it("accepts an Origin matching LIVE_WS_ALLOWED_ORIGINS", () => {
     const env = { ...EMPTY_ENV, LIVE_WS_ALLOWED_ORIGINS: "https://dash.example.com" };
-    expect(isOriginAllowed("https://dash.example.com", env)).toBe(true);
+    assert.equal(isOriginAllowed("https://dash.example.com", env), true);
   });
 
   it("accepts a Tailscale Origin when LIVE_WS_ALLOWED_HOSTS is set", () => {
     const env = { ...EMPTY_ENV, LIVE_WS_ALLOWED_HOSTS: "100.96.135.160" };
-    expect(isOriginAllowed("http://100.96.135.160:20128", env)).toBe(true);
+    assert.equal(isOriginAllowed("http://100.96.135.160:20128", env), true);
   });
 
   it("accepts a Tailscale Origin matched by host:port when LIVE_WS_ALLOWED_HOSTS is set", () => {
     const env = { ...EMPTY_ENV, LIVE_WS_ALLOWED_HOSTS: "100.96.135.160:20128" };
-    expect(isOriginAllowed("http://100.96.135.160:20128", env)).toBe(true);
+    assert.equal(isOriginAllowed("http://100.96.135.160:20128", env), true);
   });
 
   it("does NOT accept a Tailscale Origin when LIVE_WS_ALLOWED_HOSTS is unset", () => {
     // Critical security invariant: without explicit opt-in, the LAN/Tailscale
     // surface is closed even though the listener is reachable.
-    expect(isOriginAllowed("http://100.96.135.160:20128", EMPTY_ENV)).toBe(false);
+    assert.equal(isOriginAllowed("http://100.96.135.160:20128", EMPTY_ENV), false);
   });
 
   it("rejects a missing Origin when bound to LAN (0.0.0.0)", () => {
@@ -150,19 +159,19 @@ describe("isOriginAllowed", () => {
     // empty-Origin path is for non-browser callers; the security stance is
     // "refuse unless loopback".
     const env = { ...EMPTY_ENV, LIVE_WS_HOST: "0.0.0.0" };
-    expect(isOriginAllowed(undefined, env)).toBe(false);
+    assert.equal(isOriginAllowed(undefined, env), false);
   });
 
   it("accepts a missing Origin on loopback (CLI/MCP)", () => {
     // CLI/MCP clients running on the same host omit Origin. The default
     // listener (127.0.0.1) accepts them.
-    expect(isOriginAllowed(undefined, EMPTY_ENV)).toBe(true);
+    assert.equal(isOriginAllowed(undefined, EMPTY_ENV), true);
   });
 
   it("accepts a missing Origin on ::1 / localhost hosts", () => {
     const env1 = { ...EMPTY_ENV, LIVE_WS_HOST: "::1" };
-    expect(isOriginAllowed(undefined, env1)).toBe(true);
+    assert.equal(isOriginAllowed(undefined, env1), true);
     const env2 = { ...EMPTY_ENV, LIVE_WS_HOST: "localhost" };
-    expect(isOriginAllowed(undefined, env2)).toBe(true);
+    assert.equal(isOriginAllowed(undefined, env2), true);
   });
 });
