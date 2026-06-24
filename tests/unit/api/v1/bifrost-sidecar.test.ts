@@ -239,3 +239,165 @@ test("bifrost route: records relay usage after SSE stream completion", async () 
 
   restoreEnv();
 });
+
+// Bug fix from PR #4612 review (gemini-code-assist + Diego on #4616):
+// `body.getReader()` was called eagerly at the top of `finalizeReadableStream`,
+// which locked the upstream stream and prevented it from being released back
+// to the connection pool when the consumer immediately dropped the response
+// (browser tab close, fetch.abort(), response.body never read). The fix moves
+// reader acquisition into the wrapped stream's `start()` hook. This test
+// verifies the contract: getReader() is called once, only when the wrapped
+// stream is being pulled, not at route entry.
+test("bifrost route: lazy reader - getReader() is deferred to the wrapped stream start hook", async () => {
+  process.env.BIFROST_BASE_URL = "http://bifrost.test.local:8080";
+  process.env.BIFROST_TIMEOUT_MS = "5000";
+  delete process.env.BIFROST_API_KEY;
+  delete process.env.OMNIROUTE_BIFROST_KEY;
+  delete process.env.BIFROST_STREAMING_ENABLED;
+
+  const relayToken = seedRelayToken(`relay_bifrost_lazy_${Date.now()}`);
+
+  let getReaderCallCount = 0;
+  let sourceGetReaderCallsBeforeResponse: number | null = null;
+
+  const sourceStream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode("data: {\"delta\":\"a\"}\n\n"));
+      controller.enqueue(new TextEncoder().encode("data: {\"delta\":\"b\"}\n\n"));
+      controller.close();
+    },
+  });
+
+  // Wrap the source to count getReader() calls.
+  const countingSource = new Proxy(sourceStream, {
+    get(target, prop, receiver) {
+      if (prop === "getReader") {
+        return (...args: unknown[]) => {
+          if (sourceGetReaderCallsBeforeResponse === null) {
+            getReaderCallCount += 1;
+          }
+          return Reflect.get(target, prop, receiver).apply(target, args);
+        };
+      }
+      return Reflect.get(target, prop, receiver);
+    },
+  });
+
+  globalThis.fetch = async () =>
+    new Response(countingSource, {
+      status: 200,
+      headers: { "content-type": "text/event-stream" },
+    });
+
+  const { POST } = await import(
+    `../../../../src/app/api/v1/relay/chat/completions/bifrost/route.ts?case=${Date.now()}-${Math.random()}`
+  );
+
+  const req = new Request("http://localhost/api/v1/relay/chat/completions/bifrost", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${relayToken.rawToken}`,
+      "content-type": "application/json",
+      "x-request-id": "bifrost-lazy-reader-test",
+    },
+    body: JSON.stringify({
+      model: "gpt-4",
+      stream: true,
+      messages: [{ role: "user", content: "hi" }],
+    }),
+  });
+
+  const res = await POST(req);
+  assert.equal(res.status, 200);
+
+  // Snapshot the call count *immediately* after POST returns. With the lazy
+  // fix, getReader() should NOT have been called yet at this point - the
+  // wrapped stream's start() runs when the response body is first pulled,
+  // not when the Response object is constructed.
+  sourceGetReaderCallsBeforeResponse = getReaderCallCount;
+
+  // Now consume the response - this should pull the wrapped stream and
+  // trigger getReader() exactly once via the start() hook.
+  const text = await res.text();
+  assert.match(text, /delta/);
+
+  // After consumption, getReader() should have been called exactly once.
+  assert.equal(
+    getReaderCallCount,
+    1,
+    `expected exactly 1 getReader() call, got ${getReaderCallCount}`
+  );
+
+  restoreEnv();
+});
+
+// Bug fix from PR #4612 review: client-initiated cancel was previously
+// recorded as {status: 'error', errorCode: 'cancelled'} which inflated
+// the error count in relay analytics. The fix classifies client cancel
+// as {status: 'success', outcome: 'cancelled'}.
+test("bifrost route: mid-stream client cancel is recorded as success, not error", async () => {
+  process.env.BIFROST_BASE_URL = "http://bifrost.test.local:8080";
+  process.env.BIFROST_TIMEOUT_MS = "5000";
+  delete process.env.BIFROST_API_KEY;
+  delete process.env.OMNIROUTE_BIFROST_KEY;
+  delete process.env.BIFROST_STREAMING_ENABLED;
+
+  const relayToken = seedRelayToken(`relay_bifrost_cancel_${Date.now()}`);
+
+  // Source stream that emits chunks slowly so we have time to cancel.
+  globalThis.fetch = async () =>
+    new Response(
+      new ReadableStream<Uint8Array>({
+        async start(controller) {
+          controller.enqueue(new TextEncoder().encode("data: {\"delta\":\"a\"}\n\n"));
+          await new Promise((r) => setTimeout(r, 25));
+          controller.enqueue(new TextEncoder().encode("data: {\"delta\":\"b\"}\n\n"));
+          controller.close();
+        },
+      }),
+      {
+        status: 200,
+        headers: { "content-type": "text/event-stream" },
+      }
+    );
+
+  const { POST } = await import(
+    `../../../../src/app/api/v1/relay/chat/completions/bifrost/route.ts?case=${Date.now()}-${Math.random()}`
+  );
+
+  const req = new Request("http://localhost/api/v1/relay/chat/completions/bifrost", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${relayToken.rawToken}`,
+      "content-type": "application/json",
+      "x-request-id": "bifrost-cancel-test",
+    },
+    body: JSON.stringify({
+      model: "gpt-4",
+      stream: true,
+      messages: [{ role: "user", content: "hi" }],
+    }),
+  });
+
+  const res = await POST(req);
+  assert.equal(res.status, 200);
+
+  // Read a small amount then cancel mid-stream.
+  const reader = res.body!.getReader();
+  await reader.read();
+  await reader.cancel("client-abort");
+
+  // Give the cancel handler a tick to record usage.
+  await new Promise((r) => setTimeout(r, 50));
+
+  const logs = getRelayLogs(relayToken.id, 10);
+  assert.equal(logs.length, 1, `expected 1 log entry, got ${logs.length}`);
+  assert.equal(
+    logs[0].status,
+    "success",
+    `expected status=success (client cancel is not an error), got ${logs[0].status}`
+  );
+  assert.equal(logs[0].status_code, 200);
+
+  restoreEnv();
+});

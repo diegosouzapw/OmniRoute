@@ -70,7 +70,14 @@ const BIFROST_ENABLED = process.env.BIFROST_ENABLED !== "0";
 
 const injectionGuard = createInjectionGuard();
 
-type RelayUsageRecorder = (status: "success" | "error", statusCode: number) => void;
+type RelayUsageStatus = "success" | "error";
+type RelayOutcome = "complete" | "cancelled" | "timeout" | "upstream_error";
+
+type RelayUsageRecorder = (
+  status: RelayUsageStatus,
+  statusCode: number,
+  outcome?: RelayOutcome
+) => void;
 
 export async function OPTIONS() {
   return handleCorsOptions();
@@ -78,37 +85,62 @@ export async function OPTIONS() {
 
 function finalizeReadableStream(
   body: ReadableStream<Uint8Array>,
-  onFinalize: (error?: unknown) => void
+  onFinalize: (error?: unknown, outcome?: "complete" | "cancelled" | "upstream_error") => void
 ): ReadableStream<Uint8Array> {
-  const reader = body.getReader();
+  // Defer reader acquisition until the wrapped stream is actually pulled.
+  // Calling `body.getReader()` eagerly at route entry locks the upstream
+  // stream so it cannot be released back to the connection pool if the
+  // consumer immediately drops the response (browser tab close, fetch.abort,
+  // response-stream never read). Per WHATWG, the underlying source is
+  // locked when a reader is attached; moving reader init into `start()` means
+  // a drop-without-read leaves the source releasable.
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
   let finalized = false;
 
-  const finalizeOnce = (error?: unknown) => {
+  const finalizeOnce = (
+    error?: unknown,
+    outcome?: "complete" | "cancelled" | "upstream_error"
+  ) => {
     if (finalized) return;
     finalized = true;
-    onFinalize(error);
+    onFinalize(error, outcome);
   };
 
   return new ReadableStream<Uint8Array>({
+    async start() {
+      reader = body.getReader();
+    },
     async pull(controller) {
+      // `start()` is guaranteed to have run before `pull()` per spec; the
+      // non-null assertion is a load-bearing invariant of the wrapper.
+      const activeReader = reader!;
       try {
-        const { done, value } = await reader.read();
+        const { done, value } = await activeReader.read();
         if (done) {
-          finalizeOnce();
+          finalizeOnce(undefined, "complete");
           controller.close();
           return;
         }
         controller.enqueue(value);
       } catch (error) {
-        finalizeOnce(error);
+        // An error from the source stream (network failure, upstream 5xx mid-
+        // stream, etc.) — route to the error outcome.
+        finalizeOnce(error, "upstream_error");
         controller.error(error);
       }
     },
     async cancel(reason) {
       try {
-        await reader.cancel(reason);
+        if (reader) {
+          await reader.cancel(reason);
+        }
       } finally {
-        finalizeOnce(reason);
+        // `reason` is non-undefined when the consumer cancelled (browser tab
+        // close, fetch.abort, response.body.cancel). Per the route contract a
+        // client cancel is recorded as `status: 'success', outcome: 'cancelled'`
+        // — see recordUsage() in the POST handler. Upstream-side errors arrive
+        // via pull()'s catch and use finalizeOnce(error, 'upstream_error').
+        finalizeOnce(reason, "cancelled");
       }
     },
   });
@@ -323,11 +355,17 @@ export async function POST(request: Request) {
 
     // 5. Forward response. Non-streaming responses can be accounted for as soon
     //    as headers arrive; streaming responses finalize on body close/cancel/error.
-    const recordUsage: RelayUsageRecorder = (status, statusCode) => {
+    //    Status is derived from the outcome:
+    //      - complete        -> success, statusCode = upstream.status
+    //      - cancelled       -> success (client cancel is not an error)
+    //      - upstream_error  -> error,   statusCode = upstream.status (or 504 if timeout)
+    //      - timeout         -> error,   statusCode = 504
+    const recordUsage: RelayUsageRecorder = (status, statusCode, outcome) => {
       recordRelayUsage(token.id, {
         requestId: request.headers.get("x-request-id") || undefined,
         status,
         statusCode,
+        outcome,
         latencyMs: Date.now() - startTime,
         clientIp,
         userAgent,
@@ -342,11 +380,23 @@ export async function POST(request: Request) {
     }
 
     if (wantsStream && upstream.body) {
-      const stream = finalizeReadableStream(upstream.body, (error) => {
+      const stream = finalizeReadableStream(upstream.body, (error, outcome) => {
         clearTimeout(tid);
-        const statusCode = timedOut ? 504 : upstream.status;
-        const status = error || statusCode >= 500 ? "error" : "success";
-        recordUsage(status, statusCode);
+        if (outcome === "cancelled") {
+          // Client cancel is not an error.
+          recordUsage("success", upstream.status, "cancelled");
+          return;
+        }
+        if (outcome === "upstream_error" || timedOut) {
+          recordUsage("error", timedOut ? 504 : upstream.status, timedOut ? "timeout" : "upstream_error");
+          return;
+        }
+        // Clean completion.
+        recordUsage(
+          upstream.status >= 500 ? "error" : "success",
+          upstream.status,
+          "complete"
+        );
       });
 
       return new Response(stream, {
