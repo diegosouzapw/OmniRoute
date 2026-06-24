@@ -1,10 +1,33 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import dns from "node:dns";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-images-"));
+
+// Stub DNS for fetchRemoteImage's GHSA-cmhj-wh2f-9cgx DNS-rebinding guard
+// (assertHostnameResolvesPublic in src/shared/network/remoteImageFetch.ts).
+// Several image-handler tests (Fal AI URL->b64 normalization, BFL polling
+// with base64 input images, NanoBanana polling with URL->b64 conversion)
+// mock globalThis.fetch with example.com URLs that don't resolve in CI; the
+// handler invokes fetchRemoteImage without exposing a `lookup` injection
+// point, so we monkey-patch dns.promises.lookup to always return a public IP
+// so the rebinding guard passes and the test exercises the mocked fetch
+// behaviour as intended. Node --test runs each file in its own process, so
+// this rebinding does not leak across files.
+const originalDnsLookup = dns.promises.lookup;
+(dns.promises as { lookup: unknown }).lookup = (async (
+  _hostname: string,
+  options?: { all?: boolean }
+) => {
+  const record = { address: "203.0.113.1", family: 4 };
+  return options && options.all ? [record] : record;
+}) as typeof dns.promises.lookup;
+process.on("exit", () => {
+  (dns.promises as { lookup: unknown }).lookup = originalDnsLookup;
+});
 
 const { IMAGE_PROVIDERS, parseImageModel, getAllImageModels } =
   await import("../../open-sse/config/imageRegistry.ts");
