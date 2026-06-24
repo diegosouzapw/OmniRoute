@@ -270,3 +270,52 @@ test("PUT /api/combos preserves legacy string combo refs during normalization", 
   assert.equal(stored.models[0].kind, "combo-ref");
   assert.equal(stored.models[0].comboName, "child-ref");
 });
+
+test("PUT /api/combos rejects an empty body {} with 400", async () => {
+  const combo = await combosDb.createCombo(createTieredComboInput());
+
+  const response = await comboRoute.PUT(makeUpdateRequest({}), {
+    params: Promise.resolve({ id: combo.id }),
+  });
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(body, {
+    error: {
+      message: "Invalid request",
+      details: [
+        {
+          field: "body",
+          message: "At least one updatable field is required",
+        },
+      ],
+    },
+  });
+});
+
+test("PUT /api/combos rejects a body of only undefined fields with 400", async () => {
+  const combo = await combosDb.createCombo(createTieredComboInput());
+
+  const response = await comboRoute.PUT(
+    makeUpdateRequest({ name: undefined, isActive: undefined }),
+    { params: Promise.resolve({ id: combo.id }) }
+  );
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 400);
+  assert.equal(body.error.details[0].message, "At least one updatable field is required");
+});
+
+test("PUT /api/combos still accepts a single-field update (regression guard)", async () => {
+  // Make sure the empty-body check doesn't accidentally reject a legitimate
+  // single-field update like the handleToggleCombo flow that sends only { isActive }.
+  const combo = await combosDb.createCombo(createTieredComboInput());
+
+  const response = await comboRoute.PUT(makeUpdateRequest({ isActive: false }), {
+    params: Promise.resolve({ id: combo.id }),
+  });
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.isActive, false);
+});

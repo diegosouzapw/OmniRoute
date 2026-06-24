@@ -113,6 +113,28 @@ export async function PUT(request, { params }) {
     );
   }
 
+  // Reject empty / no-op updates early. Saves a round-trip to the cloud-sync
+  // path and surfaces "stuck toggle" bugs to the client.
+  const updatableKeys = Object.keys(rawBody ?? {}).filter(
+    (k) => k !== "id" && rawBody?.[k] !== undefined
+  );
+  if (updatableKeys.length === 0) {
+    return NextResponse.json(
+      {
+        error: {
+          message: "Invalid request",
+          details: [
+            {
+              field: "body",
+              message: "At least one updatable field is required",
+            },
+          ],
+        },
+      },
+      { status: 400 }
+    );
+  }
+
   try {
     const { id } = await params;
     const validation = validateBody(updateComboSchema, rawBody);
