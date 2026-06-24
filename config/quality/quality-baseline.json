@@ -94,7 +94,7 @@
       "eps": 0.5
     },
     "deadExports": {
-      "value": 182,
+      "value": 169,
       "direction": "down",
       "dedicatedGate": true,
       "_dead_code_ratchet_2026_06_24_unused_helpers": "287 -> 279 after removing unused legacy response/cost/settings/plugin/OAuth helper modules.",
@@ -106,7 +106,8 @@
       "_dead_code_ratchet_2026_06_24_flow_node_defaults": "249 -> 244 after removing unused default exports from live agent-skills, combo flow, and compression flow components while preserving named imports.",
       "_dead_code_ratchet_2026_06_24_dashboard_flow_defaults": "244 -> 234 after removing unused default exports from live dashboard flow, compression config, and omni-skills components while preserving named imports.",
       "_dead_code_ratchet_2026_06_24_internal_type_exports": "234 -> 196 after removing unused export qualifiers from internal schema/type aliases while preserving local declarations.",
-      "_dead_code_ratchet_2026_06_24_legacy_type_barrels": "196 -> 182 after removing unused legacy type barrel exports and localizing stale type declarations."
+      "_dead_code_ratchet_2026_06_24_legacy_type_barrels": "196 -> 182 after removing unused legacy type barrel exports and localizing stale type declarations.",
+      "_dead_code_ratchet_2026_06_24_stale_leaf_helpers": "182 -> 169 after deleting unused leaf helper implementations from dashboard quota utilities, combo builder helpers, request/correlation utilities, and stale validation helpers."
     },
     "cognitiveComplexity": {
       "value": 801,

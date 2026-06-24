@@ -73,27 +73,6 @@ export function addRequestIdHeader(headers: Record<string, string> = {}): Record
 }
 
 /**
- * Next.js middleware-compatible wrapper.
- * Attaches `x-request-id` to response headers.
- *
- * @param {Request} request
- * @param {Response} response
- * @returns {Response} Response with request ID header
- */
-export function attachRequestIdToResponse(request: RequestLike, response: Response): Response {
-  const requestId = getRequestId() || getHeaderValue(request, "x-request-id") || randomUUID();
-
-  const headers = new Headers(response.headers);
-  headers.set("x-request-id", requestId);
-
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
-}
-
-/**
  * Generate a new request ID (UUID v4).
  * @returns {string}
  */
