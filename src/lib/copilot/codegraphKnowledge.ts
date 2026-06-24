@@ -232,30 +232,6 @@ export function listFiles(language?: string, limit = 50): CodeGraphQueryResult {
 }
 
 /**
- * Get impact analysis: find symbols that depend on a given symbol (transitively).
- */
-export function getImpactAnalysis(symbolName: string, depth = 1): CodeGraphQueryResult {
-  if (depth <= 0)
-    return { success: false, data: null, error: "Depth must be >= 1", engine: "none" };
-
-  // Direct callers (depth 1)
-  const directCallers = findCallers(symbolName);
-  if (depth === 1) return directCallers;
-
-  // For depth > 1, we'd need recursive CTE or multiple queries.
-  // For now, just return direct callers with a note.
-  const result = directCallers;
-  return {
-    ...result,
-    data: (result.data as Record<string, unknown>[])?.map((r) => ({
-      ...r,
-      _depth: 1,
-      _note: `Depth > 1 requires multiple queries. Use searchSymbols() + findCallers() iteratively for deeper analysis.`,
-    })),
-  };
-}
-
-/**
  * Check if CodeGraph DB is available.
  */
 export function isCodeGraphAvailable(): boolean {

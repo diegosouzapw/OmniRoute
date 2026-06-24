@@ -6,7 +6,7 @@
  *   - AccountDonut.js, ApiKeyDonut.js, ProviderCostDonut.js
  *   - ApiKeyTable.js, ModelTable.js
  *   - WeeklyPattern.js, MostActiveDay7d.js, WeeklySquares7d.js
- *   - UsageDetail.js, SortIndicator.js
+ *   - SortIndicator.js
  */
 export {
   SortIndicator,
@@ -17,7 +17,6 @@ export {
   MostActiveDay7d,
   WeeklySquares7d,
   ModelTable,
-  UsageDetail,
   ProviderTable,
   ServiceTierBreakdown,
 } from "./charts";

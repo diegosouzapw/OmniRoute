@@ -194,43 +194,6 @@ export const v1SearchSchema = z
   })
   .catchall(z.unknown());
 
-export const searchResultSchema = z.object({
-  title: z.string(),
-  url: z.string(),
-  display_url: z.string().optional(),
-  snippet: z.string(),
-  position: z.number().int().positive(),
-  score: z.number().min(0).max(1).nullable().optional(),
-  published_at: z.string().nullable().optional(),
-  favicon_url: z.string().nullable().optional(),
-  content: z
-    .object({
-      format: z.enum(["text", "markdown"]).optional(),
-      text: z.string().optional(),
-      length: z.number().int().optional(),
-    })
-    .nullable()
-    .optional(),
-  metadata: z
-    .object({
-      author: z.string().nullable().optional(),
-      language: z.string().nullable().optional(),
-      source_type: z
-        .enum(["article", "blog", "forum", "video", "academic", "news", "other"])
-        .nullable()
-        .optional(),
-      image_url: z.string().nullable().optional(),
-    })
-    .nullable()
-    .optional(),
-  citation: z.object({
-    provider: z.string(),
-    retrieved_at: z.string(),
-    rank: z.number().int().positive(),
-  }),
-  provider_raw: z.record(z.string(), z.unknown()).nullable().optional(),
-});
-
 export const v1BatchCreateSchema = z.object({
   input_file_id: z.string().min(1),
   endpoint: z.enum(SUPPORTED_BATCH_ENDPOINTS),

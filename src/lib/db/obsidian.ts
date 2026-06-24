@@ -29,9 +29,11 @@ export function setObsidianToken(token: string): void {
   try {
     const db = getDbInstance();
     const encrypted = encrypt(token) ?? token;
-    db.prepare(
-      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
-    ).run(OBSIDIAN_NAMESPACE, OBSIDIAN_TOKEN_KEY, JSON.stringify(encrypted));
+    db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+      OBSIDIAN_NAMESPACE,
+      OBSIDIAN_TOKEN_KEY,
+      JSON.stringify(encrypted)
+    );
   } catch {
     // Non-fatal — token still works in-memory if persistence fails.
   }
@@ -68,20 +70,10 @@ export function getObsidianBaseUrl(): string {
 export function setObsidianBaseUrl(url: string): void {
   try {
     const db = getDbInstance();
-    db.prepare(
-      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
-    ).run(OBSIDIAN_NAMESPACE, "base_url", JSON.stringify(url));
-  } catch {
-    // Non-fatal.
-  }
-}
-
-export function clearObsidianBaseUrl(): void {
-  try {
-    const db = getDbInstance();
-    db.prepare("DELETE FROM key_value WHERE namespace = ? AND key = ?").run(
+    db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
       OBSIDIAN_NAMESPACE,
-      "base_url"
+      "base_url",
+      JSON.stringify(url)
     );
   } catch {
     // Non-fatal.
@@ -107,9 +99,11 @@ export function getObsidianVaultPath(): string | null {
 export function setObsidianVaultPath(vaultPath: string): void {
   try {
     const db = getDbInstance();
-    db.prepare(
-      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
-    ).run(OBSIDIAN_NAMESPACE, "vault_path", JSON.stringify(vaultPath));
+    db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+      OBSIDIAN_NAMESPACE,
+      "vault_path",
+      JSON.stringify(vaultPath)
+    );
   } catch {
     // Non-fatal.
   }
@@ -146,9 +140,11 @@ export function getWebdavUsername(): string | null {
 export function setWebdavUsername(username: string): void {
   try {
     const db = getDbInstance();
-    db.prepare(
-      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
-    ).run(OBSIDIAN_NAMESPACE, "webdav_username", JSON.stringify(username));
+    db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+      OBSIDIAN_NAMESPACE,
+      "webdav_username",
+      JSON.stringify(username)
+    );
   } catch {
     // Non-fatal.
   }
@@ -188,9 +184,11 @@ export function setWebdavPassword(password: string): void {
   try {
     const db = getDbInstance();
     const encrypted = encrypt(password) ?? password;
-    db.prepare(
-      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
-    ).run(OBSIDIAN_NAMESPACE, "webdav_password", JSON.stringify(encrypted));
+    db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+      OBSIDIAN_NAMESPACE,
+      "webdav_password",
+      JSON.stringify(encrypted)
+    );
   } catch {
     // Non-fatal.
   }
@@ -226,9 +224,11 @@ export function getWebdavEnabled(): boolean {
 export function setWebdavEnabled(enabled: boolean): void {
   try {
     const db = getDbInstance();
-    db.prepare(
-      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
-    ).run(OBSIDIAN_NAMESPACE, "webdav_enabled", JSON.stringify(enabled));
+    db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+      OBSIDIAN_NAMESPACE,
+      "webdav_enabled",
+      JSON.stringify(enabled)
+    );
   } catch {
     // Non-fatal.
   }
@@ -246,7 +246,12 @@ export function clearWebdavEnabled(): void {
   }
 }
 
-export function getObsidianConfig(): { token: string | null; connected: boolean; baseUrl: string; vaultPath: string | null } {
+export function getObsidianConfig(): {
+  token: string | null;
+  connected: boolean;
+  baseUrl: string;
+  vaultPath: string | null;
+} {
   const token = getObsidianToken();
   const baseUrl = getObsidianBaseUrl();
   const vaultPath = getObsidianVaultPath();

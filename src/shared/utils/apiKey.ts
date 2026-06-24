@@ -60,33 +60,3 @@ export function generateApiKeyWithMachine(machineId: string): { key: string; key
  * @param {string} apiKey
  * @returns {{ machineId: string, keyId: string, isNewFormat: boolean } | null}
  */
-export function parseApiKey(
-  apiKey: string
-): { machineId: string | null; keyId: string; isNewFormat: boolean } | null {
-  if (!apiKey || !apiKey.startsWith("sk-")) return null;
-
-  const parts = apiKey.split("-");
-
-  // New format: sk-{machineId}-{keyId}-{crc8} = 4 parts
-  if (parts.length === 4) {
-    const [, machineId, keyId, crc] = parts;
-
-    // Validate CRC
-    let expectedCrc;
-    try {
-      expectedCrc = generateCrc(machineId, keyId);
-    } catch {
-      return null;
-    }
-    if (crc !== expectedCrc) return null;
-
-    return { machineId, keyId, isNewFormat: true };
-  }
-
-  // Old format: sk-{random8} = 2 parts
-  if (parts.length === 2) {
-    return { machineId: null, keyId: parts[1], isNewFormat: false };
-  }
-
-  return null;
-}
