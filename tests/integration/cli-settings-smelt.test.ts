@@ -7,6 +7,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-smelt-settings-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -16,9 +17,7 @@ process.env.JWT_SECRET = "test-jwt-secret-smelt";
 const core = await import("../../src/lib/db/core.ts");
 const localDb = await import("../../src/lib/localDb.ts");
 
-const { GET, POST, DELETE } = await import(
-  "../../src/app/api/cli-tools/smelt-settings/route.ts"
-);
+const { GET, POST, DELETE } = await import("../../src/app/api/cli-tools/smelt-settings/route.ts");
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
@@ -44,10 +43,12 @@ test("smelt-settings GET: returns 401 when auth required and no token", async ()
   assert.equal(res.status, 401, `Expected 401, got ${res.status}`);
 });
 
-// ── Test 2: GET without auth requirement → 200 ───────────────────────────────
+// ── Test 2: GET with valid auth → 200 ────────────────────────────────────────
 
-test("smelt-settings GET: returns 200 when auth not required", async () => {
-  const res = await GET(new Request("http://localhost/api/cli-tools/smelt-settings"));
+test("smelt-settings GET: returns 200 with valid auth", async () => {
+  const res = await GET(
+    await makeManagementSessionRequest("http://localhost/api/cli-tools/smelt-settings")
+  );
   assert.equal(res.status, 200, `Expected 200, got ${res.status}`);
   const body = await res.json();
   assert.ok(
@@ -60,10 +61,10 @@ test("smelt-settings GET: returns 200 when auth not required", async () => {
 
 test("smelt-settings POST: 400 when baseUrl is missing", async () => {
   const res = await POST(
-    new Request("http://localhost/api/cli-tools/smelt-settings", {
+    await makeManagementSessionRequest("http://localhost/api/cli-tools/smelt-settings", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ apiKey: "sk-test", model: "gpt-5" }),
+      body: { apiKey: "sk-test", model: "gpt-5" },
     })
   );
   assert.equal(res.status, 400, `Expected 400, got ${res.status}`);
@@ -73,10 +74,10 @@ test("smelt-settings POST: 400 when baseUrl is missing", async () => {
 
 test("smelt-settings POST: 400 when model is missing", async () => {
   const res = await POST(
-    new Request("http://localhost/api/cli-tools/smelt-settings", {
+    await makeManagementSessionRequest("http://localhost/api/cli-tools/smelt-settings", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ baseUrl: "http://localhost:20128", apiKey: "sk-test" }),
+      body: { baseUrl: "http://localhost:20128", apiKey: "sk-test" },
     })
   );
   assert.equal(res.status, 400, `Expected 400, got ${res.status}`);
@@ -91,20 +92,17 @@ test("smelt-settings POST: writes config.json with valid body", async () => {
 
   try {
     const res = await POST(
-      new Request("http://localhost/api/cli-tools/smelt-settings", {
+      await makeManagementSessionRequest("http://localhost/api/cli-tools/smelt-settings", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
+        body: {
           baseUrl: "http://localhost:20128",
           apiKey: "sk-test-smelt-key",
           model: "gpt-5.4-mini",
-        }),
+        },
       })
     );
-    assert.ok(
-      [200, 403, 500].includes(res.status),
-      `Unexpected status ${res.status}`
-    );
+    assert.ok([200, 403, 500].includes(res.status), `Unexpected status ${res.status}`);
     if (res.status === 200) {
       const body = await res.json();
       assert.equal(body.success, true);
@@ -143,12 +141,11 @@ test("smelt-settings DELETE: removes OmniRoute fields from existing config", asy
     );
 
     const res = await DELETE(
-      new Request("http://localhost/api/cli-tools/smelt-settings", { method: "DELETE" })
+      await makeManagementSessionRequest("http://localhost/api/cli-tools/smelt-settings", {
+        method: "DELETE",
+      })
     );
-    assert.ok(
-      [200, 403, 500].includes(res.status),
-      `Expected 200/403/500, got ${res.status}`
-    );
+    assert.ok([200, 403, 500].includes(res.status), `Expected 200/403/500, got ${res.status}`);
     if (res.status === 200) {
       const body = await res.json();
       assert.equal(body.success, true);
@@ -162,11 +159,14 @@ test("smelt-settings DELETE: removes OmniRoute fields from existing config", asy
 // ── Test 6: Error sanitization (Hard Rule #12) ───────────────────────────────
 
 test("smelt-settings: error responses do not leak stack traces", async () => {
-  const badReq = new Request("http://localhost/api/cli-tools/smelt-settings", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: "{ bad json }",
-  });
+  const badReq = await makeManagementSessionRequest(
+    "http://localhost/api/cli-tools/smelt-settings",
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{ bad json }",
+    }
+  );
   const res = await POST(badReq);
   const bodyStr = JSON.stringify(await res.json());
   assert.ok(

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-proxy-registry-flow-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -37,30 +38,30 @@ test("integration: proxy create with inline assignment is atomic and clears lega
 
   const proxyLegacyRoute = await import("../../src/app/api/settings/proxy/route.ts");
   const legacySetRes = await proxyLegacyRoute.PUT(
-    new Request("http://localhost/api/settings/proxy", {
+    await makeManagementSessionRequest("http://localhost/api/settings/proxy", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: {
         level: "provider",
         id: "openai",
         proxy: { type: "http", host: "legacy-openai.local", port: 8080 },
-      }),
+      },
     })
   );
   assert.equal(legacySetRes.status, 200);
 
   const createRes = await proxySettingsRoute.POST(
-    new Request("http://localhost/api/settings/proxies", {
+    await makeManagementSessionRequest("http://localhost/api/settings/proxies", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: {
         name: "Atomic Flow Proxy",
         type: "http",
         host: "atomic-flow.local",
         port: 8080,
         source: "dashboard-custom",
         assignment: { scope: "provider", scopeId: "openai" },
-      }),
+      },
     })
   );
   assert.equal(createRes.status, 201);
@@ -71,7 +72,9 @@ test("integration: proxy create with inline assignment is atomic and clears lega
   assert.equal(createdProxy.assignment.scopeId, "openai");
 
   const assignmentsRes = await proxyAssignmentsRoute.GET(
-    new Request("http://localhost/api/settings/proxies/assignments?scope=provider&scopeId=openai")
+    await makeManagementSessionRequest(
+      "http://localhost/api/settings/proxies/assignments?scope=provider&scopeId=openai"
+    )
   );
   assert.equal(assignmentsRes.status, 200);
   const assignments = (await assignmentsRes.json()) as any;
@@ -79,7 +82,9 @@ test("integration: proxy create with inline assignment is atomic and clears lega
   assert.equal(assignments.items[0].proxyId, createdProxy.id);
 
   const legacyGetRes = await proxyLegacyRoute.GET(
-    new Request("http://localhost/api/settings/proxy?level=provider&id=openai")
+    await makeManagementSessionRequest(
+      "http://localhost/api/settings/proxy?level=provider&id=openai"
+    )
   );
   assert.equal(legacyGetRes.status, 200);
   const legacyGet = (await legacyGetRes.json()) as any;
@@ -102,16 +107,16 @@ test("integration: proxy registry full flow works and enforces safe delete", asy
   });
 
   const createRes = await proxySettingsRoute.POST(
-    new Request("http://localhost/api/settings/proxies", {
+    await makeManagementSessionRequest("http://localhost/api/settings/proxies", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: {
         name: "Flow Proxy",
         type: "http",
         host: "flow.local",
         port: 8080,
         source: "dashboard-custom",
-      }),
+      },
     })
   );
   assert.equal(createRes.status, 201);
@@ -120,20 +125,20 @@ test("integration: proxy registry full flow works and enforces safe delete", asy
   assert.equal(createdProxy.source, "dashboard-custom");
 
   const assignRes = await proxyAssignmentsRoute.PUT(
-    new Request("http://localhost/api/settings/proxies/assignments", {
+    await makeManagementSessionRequest("http://localhost/api/settings/proxies/assignments", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: {
         scope: "account",
         scopeId: connection.id,
         proxyId: createdProxy.id,
-      }),
+      },
     })
   );
   assert.equal(assignRes.status, 200);
 
   const resolveRes = await proxyAssignmentsRoute.GET(
-    new Request(
+    await makeManagementSessionRequest(
       `http://localhost/api/settings/proxies/assignments?resolveConnectionId=${connection.id}`
     )
   );
@@ -144,14 +149,14 @@ test("integration: proxy registry full flow works and enforces safe delete", asy
   assert.equal(resolved.proxy.host, "flow.local");
 
   const bulkRes = await proxyBulkRoute.PUT(
-    new Request("http://localhost/api/settings/proxies/bulk-assign", {
+    await makeManagementSessionRequest("http://localhost/api/settings/proxies/bulk-assign", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: {
         scope: "provider",
         scopeIds: ["openai", "anthropic"],
         proxyId: createdProxy.id,
-      }),
+      },
     })
   );
   assert.equal(bulkRes.status, 200);
@@ -177,7 +182,7 @@ test("integration: proxy registry full flow works and enforces safe delete", asy
   });
 
   const healthRes = await proxyHealthRoute.GET(
-    new Request("http://localhost/api/settings/proxies/health?hours=24")
+    await makeManagementSessionRequest("http://localhost/api/settings/proxies/health?hours=24")
   );
   assert.equal(healthRes.status, 200);
   const healthPayload = (await healthRes.json()) as any;
@@ -187,9 +192,12 @@ test("integration: proxy registry full flow works and enforces safe delete", asy
   assert.equal(row.errorCount >= 1, true);
 
   const deleteConflictRes = await proxySettingsRoute.DELETE(
-    new Request(`http://localhost/api/settings/proxies?id=${createdProxy.id}`, {
-      method: "DELETE",
-    })
+    await makeManagementSessionRequest(
+      `http://localhost/api/settings/proxies?id=${createdProxy.id}`,
+      {
+        method: "DELETE",
+      }
+    )
   );
   assert.equal(deleteConflictRes.status, 409);
   const deleteConflict = (await deleteConflictRes.json()) as any;
@@ -198,35 +206,38 @@ test("integration: proxy registry full flow works and enforces safe delete", asy
   assert.equal(deleteConflict.requestId.length > 0, true);
 
   const clearAccountAssignment = await proxyAssignmentsRoute.PUT(
-    new Request("http://localhost/api/settings/proxies/assignments", {
+    await makeManagementSessionRequest("http://localhost/api/settings/proxies/assignments", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: {
         scope: "account",
         scopeId: connection.id,
         proxyId: null,
-      }),
+      },
     })
   );
   assert.equal(clearAccountAssignment.status, 200);
 
   const clearProviderBulk = await proxyBulkRoute.PUT(
-    new Request("http://localhost/api/settings/proxies/bulk-assign", {
+    await makeManagementSessionRequest("http://localhost/api/settings/proxies/bulk-assign", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: {
         scope: "provider",
         scopeIds: ["openai", "anthropic"],
         proxyId: null,
-      }),
+      },
     })
   );
   assert.equal(clearProviderBulk.status, 200);
 
   const deleteOkRes = await proxySettingsRoute.DELETE(
-    new Request(`http://localhost/api/settings/proxies?id=${createdProxy.id}`, {
-      method: "DELETE",
-    })
+    await makeManagementSessionRequest(
+      `http://localhost/api/settings/proxies?id=${createdProxy.id}`,
+      {
+        method: "DELETE",
+      }
+    )
   );
   assert.equal(deleteOkRes.status, 200);
   const deleteOkPayload = (await deleteOkRes.json()) as any;
