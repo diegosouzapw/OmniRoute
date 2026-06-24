@@ -596,7 +596,7 @@ export async function buildAutoCandidates(
 // output limits, so the request should fall through to the next target instead of
 // being short-circuited. Exported as pure predicates so the guard is unit-testable.
 /** @param {string} errorText */
-export function isContextOverflow400(errorText) {
+export function isContextOverflow400(errorText: string) {
   return (
     /\bcontext.*(?:length_exceeded|too long|overflow|exceeded|window|limit)\b/i.test(errorText) ||
     /exceeds.*context/i.test(errorText) ||
@@ -604,7 +604,7 @@ export function isContextOverflow400(errorText) {
   );
 }
 /** @param {string} errorText */
-export function isParamValidation400(errorText) {
+export function isParamValidation400(errorText: string) {
   return (
     /\bmax_tokens\b.*(?:illegal|must|range|invalid)/i.test(errorText) ||
     /\bparameter is illegal\b/i.test(errorText) ||
@@ -885,7 +885,8 @@ export async function handleComboChat({
 
   const isTargetSelectableForWeighted = async (target: ResolvedComboTarget): Promise<boolean> => {
     const rawModel = parseModel(target.modelStr).model || target.modelStr;
-    if (target.provider && getCircuitBreaker(target.provider).getStatus().state === "OPEN") return false;
+    if (target.provider && getCircuitBreaker(target.provider).getStatus().state === "OPEN")
+      return false;
     if (
       resilienceSettings.providerCooldown.enabled &&
       Boolean(target.provider && target.provider !== "unknown") &&
@@ -963,16 +964,21 @@ export async function handleComboChat({
       : null;
   const getWeightedStepKeyForTarget = (target: ResolvedComboTarget): string | null => {
     if (!weightedResolution?.orderedSteps) return null;
-    const step = weightedResolution.orderedSteps.find((entry) =>
-      target.executionKey === entry.executionKey ||
-      target.executionKey.startsWith(entry.executionKey + ">")
+    const step = weightedResolution.orderedSteps.find(
+      (entry) =>
+        target.executionKey === entry.executionKey ||
+        target.executionKey.startsWith(entry.executionKey + ">")
     );
     return step?.executionKey || null;
   };
   let orderedTargets =
     strategy === "weighted"
       ? weightedResolution?.orderedTargets || []
-      : resolveComboTargets(expandedCombo, expandedAllCombos, clampComboDepth(config.maxComboDepth));
+      : resolveComboTargets(
+          expandedCombo,
+          expandedAllCombos,
+          clampComboDepth(config.maxComboDepth)
+        );
 
   orderedTargets = await applyRequestTagRouting(orderedTargets, body, log);
 
@@ -2494,7 +2500,8 @@ async function handleRoundRobinCombo({
       if (stickyTarget) {
         const rawModel = parseModel(stickyTarget.modelStr).model || stickyTarget.modelStr;
         const stickyAvailable =
-          (!stickyTarget.provider || getCircuitBreaker(stickyTarget.provider).getStatus().state !== "OPEN") &&
+          (!stickyTarget.provider ||
+            getCircuitBreaker(stickyTarget.provider).getStatus().state !== "OPEN") &&
           !(
             resilienceSettings.providerCooldown.enabled &&
             Boolean(stickyTarget.provider && stickyTarget.provider !== "unknown") &&
