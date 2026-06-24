@@ -11,7 +11,7 @@ interface OpenRouterPresetInputProps {
   t: ProviderMessageTranslator;
 }
 
-export default function OpenRouterPresetInput({ value, onChange, t }: OpenRouterPresetInputProps) {
+function OpenRouterPresetInput({ value, onChange, t }: OpenRouterPresetInputProps) {
   return (
     <Input
       label={providerText(t, "openRouterPresetLabel", "OpenRouter preset")}

@@ -27,13 +27,6 @@ export type OnboardingTestResult = {
 
 export type CompatibleNodeMode = "openai" | "anthropic" | "cc";
 
-export type CompatibleProviderNode = {
-  id: string;
-  name?: string;
-  baseUrl?: string;
-  [key: string]: unknown;
-};
-
 export type OnboardingProviderNodes = {
   ccCompatibleProviderEnabled: boolean;
 };
