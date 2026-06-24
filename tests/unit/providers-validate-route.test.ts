@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-providers-validate-route-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -32,7 +33,7 @@ test.after(() => {
 test("providers validate route returns 400 for invalid JSON", async () => {
   await resetStorage();
 
-  const request = new Request("http://localhost/api/providers/validate", {
+  const request = await makeManagementSessionRequest("http://localhost/api/providers/validate", {
     method: "POST",
     body: "invalid json",
   });
@@ -48,9 +49,9 @@ test("providers validate route returns 400 for missing provider and apiKey", asy
   await resetStorage();
 
   // Empty body
-  const request = new Request("http://localhost/api/providers/validate", {
+  const request = await makeManagementSessionRequest("http://localhost/api/providers/validate", {
     method: "POST",
-    body: JSON.stringify({}),
+    body: {},
   });
 
   const response = await validateRoute.POST(request);
@@ -62,9 +63,9 @@ test("providers validate route returns 400 for invalid provider type", async () 
   await resetStorage();
 
   // Provider validation not supported returns 400
-  const request = new Request("http://localhost/api/providers/validate", {
+  const request = await makeManagementSessionRequest("http://localhost/api/providers/validate", {
     method: "POST",
-    body: JSON.stringify({ provider: "unknown-provider", apiKey: "test-key" }),
+    body: { provider: "unknown-provider", apiKey: "test-key" },
   });
 
   const response = await validateRoute.POST(request);
@@ -86,13 +87,13 @@ test("providers validate route forwards baseUrl to built-in specialty validators
   };
 
   try {
-    const request = new Request("http://localhost/api/providers/validate", {
+    const request = await makeManagementSessionRequest("http://localhost/api/providers/validate", {
       method: "POST",
-      body: JSON.stringify({
+      body: {
         provider: "heroku",
         apiKey: "heroku-key",
         baseUrl: "https://us.inference.heroku.com",
-      }),
+      },
     });
 
     const response = await validateRoute.POST(request);
@@ -118,13 +119,13 @@ test("providers validate route blocks private baseUrl values by default", async 
   };
 
   try {
-    const request = new Request("http://localhost/api/providers/validate", {
+    const request = await makeManagementSessionRequest("http://localhost/api/providers/validate", {
       method: "POST",
-      body: JSON.stringify({
+      body: {
         provider: "heroku",
         apiKey: "heroku-key",
         baseUrl: "http://127.0.0.1:8080",
-      }),
+      },
     });
 
     const response = await validateRoute.POST(request);
@@ -165,13 +166,13 @@ test("providers validate route allows private baseUrl values when opt-in env is 
   };
 
   try {
-    const request = new Request("http://localhost/api/providers/validate", {
+    const request = await makeManagementSessionRequest("http://localhost/api/providers/validate", {
       method: "POST",
-      body: JSON.stringify({
+      body: {
         provider: "heroku",
         apiKey: "heroku-key",
         baseUrl: "http://127.0.0.1:8080",
-      }),
+      },
     });
 
     const response = await validateRoute.POST(request);
@@ -202,13 +203,13 @@ test("providers validate route returns 504 on controlled outbound timeout", asyn
   };
 
   try {
-    const request = new Request("http://localhost/api/providers/validate", {
+    const request = await makeManagementSessionRequest("http://localhost/api/providers/validate", {
       method: "POST",
-      body: JSON.stringify({
+      body: {
         provider: "heroku",
         apiKey: "heroku-key",
         baseUrl: "https://us.inference.heroku.com",
-      }),
+      },
     });
 
     const response = await validateRoute.POST(request);
