@@ -770,7 +770,9 @@ function codexDropNonstandardEvents(): boolean {
 // `event: codex.rate_limits` frame (no data line) — so the WS-only filter in
 // encodeResponseSseEvent never runs for it. When the kill-switch is on, strip
 // every `codex.*` event block from the byte stream before it reaches the client.
-function filterNonstandardCodexSse(response: Response): Response {
+// Exported for unit testing (#4715). Strips `codex.*` SSE event blocks from a
+// streaming Response when the OMNIROUTE_CODEX_DROP_NONSTANDARD_EVENTS kill-switch is on.
+export function filterNonstandardCodexSse(response: Response): Response {
   const contentType = response.headers.get("content-type") || "";
   if (!response.body || !contentType.includes("text/event-stream")) {
     return response;
