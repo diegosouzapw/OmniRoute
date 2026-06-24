@@ -171,7 +171,6 @@ test("the shipped allowlist freezes exactly the known current violators (all sco
     "src/app/api/cli-tools/guide-settings/[toolId]/route.ts",
     "src/app/api/models/catalog/route.ts",
     "src/app/api/providers/test-batch/route.ts",
-    "src/app/api/usage/proxy-logs/route.ts",
   ]);
 });
 
@@ -189,6 +188,10 @@ test("import-json route has been removed from the shipped missing-helper allowli
 
 test("logs export route has been removed from the shipped missing-helper allowlist", async () => {
   await assertRouteRemovedFromMissingHelperAllowlist("src/app/api/logs/export/route.ts");
+});
+
+test("proxy logs route has been removed from the shipped missing-helper allowlist", async () => {
+  await assertRouteRemovedFromMissingHelperAllowlist("src/app/api/usage/proxy-logs/route.ts");
 });
 
 test("returns multiple violating paths and preserves input order", () => {
@@ -259,7 +262,6 @@ test("6A.8: the shipped allowlist freezes the new expanded-scope known violators
     "src/app/api/cli-tools/guide-settings/[toolId]/route.ts",
     "src/app/api/models/catalog/route.ts",
     "src/app/api/providers/test-batch/route.ts",
-    "src/app/api/usage/proxy-logs/route.ts",
   ];
   for (const p of expectedApiViolators) {
     assert.ok(allowlist.has(p), `expected allowlist to contain pre-existing API violation: ${p}`);
