@@ -45,7 +45,6 @@ export const KNOWN_MISSING_ERROR_HELPER = new Set([
   // TODO(6A.8): pre-existing, triage — route through buildErrorBody()/sanitizeErrorMessage()
   "src/app/api/cli-tools/backups/route.ts",
   "src/app/api/cli-tools/guide-settings/[toolId]/route.ts",
-  "src/app/api/logs/export/route.ts",
   "src/app/api/models/catalog/route.ts",
   "src/app/api/providers/test-batch/route.ts",
   "src/app/api/usage/proxy-logs/route.ts",
