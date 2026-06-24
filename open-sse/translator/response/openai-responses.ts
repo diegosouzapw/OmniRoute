@@ -128,7 +128,10 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     // Close reasoning if it was opened via native reasoning_content and is
     // still open, before emitting message content. Otherwise the reasoning
     // item is never closed and the message reuses its output_index.
-    if (state.reasoningId && !state.reasoningDone) {
+    // Guard on !inThinking: reasoning opened via <think> tags is closed by its
+    // matching </think> below — force-closing it here would snapshot a partial
+    // buffer (dense output records the item at close time). (#4848 + #4906)
+    if (state.reasoningId && !state.reasoningDone && !state.inThinking) {
       closeReasoning(state, emit);
     }
 
@@ -188,6 +191,36 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
   return events;
 }
 
+// Normalize output_index to a non-negative integer (replaces fragile parseInt calls)
+function normalizeOutputIndex(outputIndex) {
+  const normalized = Number(outputIndex);
+  return Number.isInteger(normalized) && normalized >= 0 ? normalized : 0;
+}
+
+// Record a finalized item keyed by output_index so buildDenseOutput can sort later
+function recordCompletedItem(state, outputIndex, item) {
+  if (!Array.isArray(state.completedOutputItems)) {
+    state.completedOutputItems = [];
+  }
+  const normalized = normalizeOutputIndex(outputIndex);
+  state.completedOutputItems.push({ output_index: normalized, item, seq: state.seq });
+  return normalized;
+}
+
+// Build a dense, deterministic output array sorted by output_index then by seq
+function buildDenseOutput(state) {
+  const items = Array.isArray(state.completedOutputItems) ? state.completedOutputItems : [];
+  return items
+    .slice()
+    .sort((left, right) => {
+      if (left.output_index !== right.output_index) {
+        return left.output_index - right.output_index;
+      }
+      return left.seq - right.seq;
+    })
+    .map(({ item }) => item);
+}
+
 // Helper functions
 function startReasoning(state, emit, idx) {
   if (!state.reasoningId) {
@@ -243,15 +276,19 @@ function closeReasoning(state, emit) {
       part: { type: "summary_text", text: state.reasoningBuf },
     });
 
+    const reasoningItem = {
+      id: state.reasoningId,
+      type: "reasoning",
+      summary: [{ type: "summary_text", text: state.reasoningBuf }],
+    };
+
     emit("response.output_item.done", {
       type: "response.output_item.done",
       output_index: state.reasoningIndex,
-      item: {
-        id: state.reasoningId,
-        type: "reasoning",
-        summary: [{ type: "summary_text", text: state.reasoningBuf }],
-      },
+      item: reasoningItem,
     });
+
+    recordCompletedItem(state, state.reasoningIndex, reasoningItem);
   }
 }
 
@@ -296,12 +333,13 @@ function closeMessage(state, emit, idx) {
   if (state.msgItemAdded[idx] && !state.msgItemDone[idx]) {
     state.msgItemDone[idx] = true;
     const fullText = state.msgTextBuf[idx] || "";
-    const msgId = `msg_${state.responseId}_${idx}`;
+    const normalizedIndex = normalizeOutputIndex(idx);
+    const msgId = `msg_${state.responseId}_${normalizedIndex}`;
 
     emit("response.output_text.done", {
       type: "response.output_text.done",
       item_id: msgId,
-      output_index: parseInt(idx),
+      output_index: normalizedIndex,
       content_index: 0,
       text: fullText,
       logprobs: [],
@@ -310,21 +348,25 @@ function closeMessage(state, emit, idx) {
     emit("response.content_part.done", {
       type: "response.content_part.done",
       item_id: msgId,
-      output_index: parseInt(idx),
+      output_index: normalizedIndex,
       content_index: 0,
       part: { type: "output_text", annotations: [], logprobs: [], text: fullText },
     });
 
+    const msgItem = {
+      id: msgId,
+      type: "message",
+      content: [{ type: "output_text", annotations: [], logprobs: [], text: fullText }],
+      role: "assistant",
+    };
+
     emit("response.output_item.done", {
       type: "response.output_item.done",
-      output_index: parseInt(idx),
-      item: {
-        id: msgId,
-        type: "message",
-        content: [{ type: "output_text", annotations: [], logprobs: [], text: fullText }],
-        role: "assistant",
-      },
+      output_index: normalizedIndex,
+      item: msgItem,
     });
+
+    recordCompletedItem(state, normalizedIndex, msgItem);
   }
 }
 
@@ -336,7 +378,9 @@ function emitToolCall(state, emit, tc) {
   // T37: If we already have a tool call at this index but the ID changed,
   // we must close the current one and start a new one to prevent merging.
   if (state.funcCallIds[tcIdx] && newCallId && state.funcCallIds[tcIdx] !== newCallId) {
-    closeToolCall(state, emit, tcIdx);
+    // Superseded call: close and emit output_item.done but do NOT record as final output
+    // since this call was replaced by a new one at the same index.
+    closeToolCall(state, emit, tcIdx, false);
     delete state.funcCallIds[tcIdx];
     delete state.funcNames[tcIdx];
     delete state.funcArgsBuf[tcIdx];
@@ -398,12 +442,14 @@ function emitToolCall(state, emit, tc) {
   }
 }
 
-function closeToolCall(state, emit, idx) {
+function closeToolCall(state, emit, idx, recordAsCompleted = true) {
   const callId = state.funcCallIds[idx];
   if (callId && !state.funcItemDone[idx]) {
+    const normalizedIndex = normalizeOutputIndex(idx);
     const args = state.funcArgsBuf[idx] || "{}";
     const isCustomTool = (state.funcNames[idx] || "") === "apply_patch";
 
+    let funcItem;
     if (isCustomTool) {
       // The model produced JSON {"input":"..."} against the normalized custom-tool schema.
       // Unwrap it back to the raw patch string the Codex runtime expects. (#1007)
@@ -418,40 +464,50 @@ function closeToolCall(state, emit, idx) {
       emit("response.custom_tool_call_input.done", {
         type: "response.custom_tool_call_input.done",
         item_id: `fc_${callId}`,
-        output_index: parseInt(idx),
+        output_index: normalizedIndex,
         input: rawInput,
       });
 
+      funcItem = {
+        id: `fc_${callId}`,
+        type: "custom_tool_call",
+        input: rawInput,
+        call_id: callId,
+        name: state.funcNames[idx] || "",
+      };
+
       emit("response.output_item.done", {
         type: "response.output_item.done",
-        output_index: parseInt(idx),
-        item: {
-          id: `fc_${callId}`,
-          type: "custom_tool_call",
-          input: rawInput,
-          call_id: callId,
-          name: state.funcNames[idx] || "",
-        },
+        output_index: normalizedIndex,
+        item: funcItem,
       });
     } else {
       emit("response.function_call_arguments.done", {
         type: "response.function_call_arguments.done",
         item_id: `fc_${callId}`,
-        output_index: parseInt(idx),
+        output_index: normalizedIndex,
         arguments: args,
       });
 
+      funcItem = {
+        id: `fc_${callId}`,
+        type: "function_call",
+        arguments: args,
+        call_id: callId,
+        name: state.funcNames[idx] || "",
+      };
+
       emit("response.output_item.done", {
         type: "response.output_item.done",
-        output_index: parseInt(idx),
-        item: {
-          id: `fc_${callId}`,
-          type: "function_call",
-          arguments: args,
-          call_id: callId,
-          name: state.funcNames[idx] || "",
-        },
+        output_index: normalizedIndex,
+        item: funcItem,
       });
+    }
+
+    // Only record as a completed output item when this is a final close (not a
+    // superseded-call eviction where a new call replaced this one at the same index).
+    if (recordAsCompleted) {
+      recordCompletedItem(state, normalizedIndex, funcItem);
     }
 
     state.funcItemDone[idx] = true;
@@ -463,54 +519,11 @@ function sendCompleted(state, emit) {
   if (!state.completedSent) {
     state.completedSent = true;
 
-    // Build output from accumulated state
-    const output = [];
-    if (state.reasoningId) {
-      output.push({
-        id: state.reasoningId,
-        type: "reasoning",
-        summary: [{ type: "summary_text", text: state.reasoningBuf }],
-      });
-    }
-    for (const idx in state.msgItemAdded) {
-      output.push({
-        id: `msg_${state.responseId}_${idx}`,
-        type: "message",
-        role: "assistant",
-        content: [{ type: "output_text", annotations: [], text: state.msgTextBuf[idx] || "" }],
-      });
-    }
-    for (const idx in state.funcCallIds) {
-      const callId = state.funcCallIds[idx];
-      const name = state.funcNames[idx] || "";
-      const args = state.funcArgsBuf[idx] || "{}";
-      // Mirror the streamed custom_tool_call shape in the final snapshot so Codex can
-      // reconcile the apply_patch item from response.completed. (#1007)
-      if (name === "apply_patch") {
-        let rawInput = args;
-        try {
-          const parsed = JSON.parse(args);
-          if (parsed && typeof parsed.input === "string") rawInput = parsed.input;
-        } catch {
-          // Not JSON — fall back to the raw buffered arguments.
-        }
-        output.push({
-          id: `fc_${callId}`,
-          type: "custom_tool_call",
-          call_id: callId,
-          name,
-          input: rawInput,
-        });
-        continue;
-      }
-      output.push({
-        id: `fc_${callId}`,
-        type: "function_call",
-        call_id: callId,
-        name,
-        arguments: args,
-      });
-    }
+    // Build a dense, deterministic output array from items recorded as they were emitted
+    // (each close*() call records its item via recordCompletedItem — including the
+    // #1007 custom_tool_call shape for apply_patch). Sorted by output_index then by
+    // emission sequence for stable ordering.
+    const output = buildDenseOutput(state);
 
     const response: Record<string, unknown> = {
       id: state.responseId,
