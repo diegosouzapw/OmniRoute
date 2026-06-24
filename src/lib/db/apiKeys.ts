@@ -27,6 +27,24 @@ import {
   hasClaudeCodeWildcardPermission,
   matchesWildcardPattern,
 } from "./apiKeys/modelPermissions";
+import {
+  parseAllowedModels,
+  parseAllowedCombos,
+  parseNoLog,
+  parseAutoResolve,
+  parseDisableNonPublicModels,
+  parseAllowUsageCommand,
+  parseIsActive,
+  parseAccessSchedule,
+  parseRateLimits,
+  parseAllowedConnections,
+  parseAllowedQuotas,
+  parseStringList,
+  parseNullableTimestamp,
+  parseIsBanned,
+  parseStreamDefaultMode,
+} from "./apiKeys/rowParsers";
+import type { AccessSchedule, RateLimitRule } from "./apiKeys/types";
 
 // ──────────────── Performance Optimizations ────────────────
 
@@ -40,18 +58,8 @@ interface CacheEntry<TValue> {
   value: TValue;
 }
 
-export interface RateLimitRule {
-  limit: number;
-  window: number;
-}
-
-export interface AccessSchedule {
-  enabled: boolean;
-  from: string;
-  until: string;
-  days: number[];
-  tz: string;
-}
+// Re-exported for the historical public surface (moved to ./apiKeys/types).
+export type { AccessSchedule, RateLimitRule } from "./apiKeys/types";
 
 interface ApiKeyMetadata {
   id: string;
@@ -277,11 +285,6 @@ function evictIfNeeded<TKey, TValue>(cache: Map<TKey, TValue>) {
   }
 }
 
-
-
-
-
-
 async function getModelPermissionCandidates(modelId: string): Promise<string[]> {
   const candidates = new Set<string>();
   addModelCandidate(candidates, modelId);
@@ -312,8 +315,6 @@ async function getModelPermissionCandidates(modelId: string): Promise<string[]> 
   return Array.from(candidates);
 }
 
-
-
 async function getPublishedModelLookupTarget(
   modelId: string
 ): Promise<{ providerId: string; modelId: string } | null> {
@@ -340,8 +341,6 @@ async function getPublishedModelLookupTarget(
 
   return null;
 }
-
-
 
 function ensureApiKeyColumn(
   db: ApiKeysDbLike,
@@ -484,156 +483,6 @@ export async function getApiKeyById(id: string) {
     setNoLog(camelRow.id, camelRow.noLog === true);
   }
   return camelRow;
-}
-
-/**
- * Helper function to safely parse allowed_models JSON
- */
-function parseAllowedModels(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") {
-    return [];
-  }
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function parseAllowedCombos(value: unknown): string[] {
-  return parseStringList(value);
-}
-
-function parseNoLog(value: unknown): boolean {
-  return value === true || value === 1 || value === "1";
-}
-
-function parseAutoResolve(value: unknown): boolean {
-  return value === true || value === 1 || value === "1";
-}
-
-function parseDisableNonPublicModels(value: unknown): boolean {
-  return value === true || value === 1 || value === "1";
-}
-
-function parseAllowUsageCommand(value: unknown): boolean {
-  return value === true || value === 1 || value === "1";
-}
-
-function parseIsActive(value: unknown): boolean {
-  // DEFAULT 1 — active unless explicitly set to 0
-  if (value === 0 || value === "0" || value === false) return false;
-  return true;
-}
-
-function parseAccessSchedule(value: unknown): AccessSchedule | null {
-  if (!value || typeof value !== "string" || value.trim() === "") return null;
-  try {
-    const parsed: unknown = JSON.parse(value);
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
-    const obj = parsed as Record<string, unknown>;
-    if (
-      typeof obj["enabled"] !== "boolean" ||
-      typeof obj["from"] !== "string" ||
-      typeof obj["until"] !== "string" ||
-      !Array.isArray(obj["days"]) ||
-      typeof obj["tz"] !== "string"
-    ) {
-      return null;
-    }
-    const days = (obj["days"] as unknown[]).filter(
-      (d): d is number => typeof d === "number" && Number.isInteger(d) && d >= 0 && d <= 6
-    );
-    return {
-      enabled: obj["enabled"],
-      from: obj["from"],
-      until: obj["until"],
-      days,
-      tz: obj["tz"],
-    };
-  } catch {
-    return null;
-  }
-}
-
-function parseRateLimits(value: unknown): RateLimitRule[] | null {
-  if (!value || typeof value !== "string" || value.trim() === "") return null;
-  try {
-    const parsed = JSON.parse(value);
-    if (!Array.isArray(parsed)) return null;
-    return parsed.filter(
-      (rule: RateLimitRule) =>
-        typeof rule === "object" &&
-        rule !== null &&
-        typeof rule.limit === "number" &&
-        typeof rule.window === "number"
-    ) as RateLimitRule[];
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Helper function to safely parse allowed_connections JSON
- */
-function parseAllowedConnections(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") {
-    return [];
-  }
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Helper function to safely parse allowed_quotas JSON
- */
-function parseAllowedQuotas(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") {
-    return [];
-  }
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function parseStringList(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") return [];
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function parseNullableTimestamp(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  return trimmed === "" ? null : trimmed;
-}
-
-function parseIsBanned(value: unknown): boolean {
-  return value === 1 || value === "1" || value === true;
-}
-
-function parseStreamDefaultMode(value: unknown): "legacy" | "json" {
-  return value === "json" ? "json" : "legacy";
 }
 
 async function hashKey(key: string): Promise<string> {
