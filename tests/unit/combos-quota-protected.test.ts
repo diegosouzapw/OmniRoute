@@ -5,22 +5,28 @@ import os from "node:os";
 import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-quota-protected-"));
+const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.INITIAL_PASSWORD = "";
+delete process.env.JWT_SECRET;
 
 const core = await import("../../src/lib/db/core.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const comboRoute = await import("../../src/app/api/combos/[id]/route.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  await settingsDb.updateSettings({ requireLogin: false });
 }
 
 function makePutRequest(id: string, body: Record<string, unknown>) {
   return new Request(`http://localhost/api/combos/${id}`, {
     method: "PUT",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", "x-omniroute-peer-locality": "loopback" },
     body: JSON.stringify(body),
   });
 }
@@ -28,6 +34,7 @@ function makePutRequest(id: string, body: Record<string, unknown>) {
 function makeDeleteRequest(id: string) {
   return new Request(`http://localhost/api/combos/${id}`, {
     method: "DELETE",
+    headers: { "x-omniroute-peer-locality": "loopback" },
   });
 }
 
@@ -38,6 +45,16 @@ test.beforeEach(async () => {
 test.after(() => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+    delete process.env.INITIAL_PASSWORD;
+  } else {
+    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+  }
+  if (ORIGINAL_JWT_SECRET === undefined) {
+    delete process.env.JWT_SECRET;
+  } else {
+    process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
+  }
 });
 
 // ---- quota-protected combos ----
@@ -90,7 +107,11 @@ test("PUT /api/combos/[id] returns 409 for a qtSd/* combo and does NOT mutate it
 
   // Verify the combo was NOT mutated
   const unchanged = await combosDb.getComboById(combo.id);
-  assert.equal(unchanged?.strategy, "priority", "Strategy must remain unchanged after rejected PUT");
+  assert.equal(
+    unchanged?.strategy,
+    "priority",
+    "Strategy must remain unchanged after rejected PUT"
+  );
 });
 
 // ---- non-quota combos still work ----
@@ -152,10 +173,7 @@ test("DELETE /api/combos/[id] returns 404 when combo does not exist", async () =
 
 test("combos page source filters isHidden from rendered list", async () => {
   const pageSource = fs.readFileSync(
-    new URL(
-      "../../src/app/(dashboard)/dashboard/combos/page.tsx",
-      import.meta.url
-    ).pathname,
+    new URL("../../src/app/(dashboard)/dashboard/combos/page.tsx", import.meta.url).pathname,
     "utf8"
   );
   assert.ok(
