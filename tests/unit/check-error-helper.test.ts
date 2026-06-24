@@ -167,7 +167,6 @@ test("the shipped allowlist freezes exactly the known current violators (all sco
   assert.deepEqual(frozen, [
     // 6A.8 expanded scope: src/app/api/**/route.ts pre-existing violations
     // TODO(6A.8): pre-existing, triage — route through buildErrorBody()/sanitizeErrorMessage()
-    "src/app/api/cli-tools/backups/route.ts",
     "src/app/api/cli-tools/guide-settings/[toolId]/route.ts",
     "src/app/api/providers/test-batch/route.ts",
   ]);
@@ -195,6 +194,10 @@ test("proxy logs route has been removed from the shipped missing-helper allowlis
 
 test("models catalog route has been removed from the shipped missing-helper allowlist", async () => {
   await assertRouteRemovedFromMissingHelperAllowlist("src/app/api/models/catalog/route.ts");
+});
+
+test("cli-tools backups route has been removed from the shipped missing-helper allowlist", async () => {
+  await assertRouteRemovedFromMissingHelperAllowlist("src/app/api/cli-tools/backups/route.ts");
 });
 
 test("returns multiple violating paths and preserves input order", () => {
@@ -261,7 +264,6 @@ test("6A.8: the shipped allowlist freezes the new expanded-scope known violators
   // These are the real violations found when expanding scope to src/app/api/**/route.ts.
   // They are frozen as pre-existing; fixing one requires removing it from the allowlist.
   const expectedApiViolators = [
-    "src/app/api/cli-tools/backups/route.ts",
     "src/app/api/cli-tools/guide-settings/[toolId]/route.ts",
     "src/app/api/providers/test-batch/route.ts",
   ];
