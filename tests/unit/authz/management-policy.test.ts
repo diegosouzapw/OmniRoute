@@ -111,7 +111,11 @@ function remoteCtx(headers: Headers, method = "GET", path = "/api/keys") {
 test("managementPolicy: allows when auth not required (no password set)", async () => {
   await settingsDb.updateSettings({ requireLogin: true, password: null });
   const policy = await loadPolicy();
-  const out = await policy.evaluate(ctx(new Headers()));
+  const out = await policy.evaluate(
+    ctx(new Headers(), "GET", "/api/keys", {
+      socket: { remoteAddress: "127.0.0.1" },
+    })
+  );
   assert.equal(out.allow, true);
   if (out.allow) {
     assert.equal(out.subject.kind, "anonymous");
@@ -124,6 +128,19 @@ test("managementPolicy: rejects remote fresh bootstrap without a password", asyn
   const policy = await loadPolicy();
 
   const out = await policy.evaluate(remoteCtx(new Headers()));
+
+  assert.equal(out.allow, false);
+  if (!out.allow) {
+    assert.equal(out.status, 401);
+    assert.equal(out.code, "AUTH_001");
+  }
+});
+
+test("managementPolicy: rejects fresh bootstrap when localhost URL and Host are unstamped", async () => {
+  await settingsDb.updateSettings({ requireLogin: true, password: null });
+  const policy = await loadPolicy();
+
+  const out = await policy.evaluate(ctx(new Headers({ host: "localhost:20128" })));
 
   assert.equal(out.allow, false);
   if (!out.allow) {

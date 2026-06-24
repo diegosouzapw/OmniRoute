@@ -10,6 +10,8 @@
 import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { getSettings } from "@/lib/localDb";
+import { AUTHZ_HEADER_PEER_LOCALITY, PEER_IP_HEADER } from "@/server/authz/headers";
+import { resolveStampedPeer } from "@/server/authz/peerStamp";
 import { isPublicApiRoute } from "@/shared/constants/publicApiRoutes";
 import { extractApiKey } from "@/sse/services/auth";
 
@@ -18,15 +20,23 @@ type RequestLike = {
     get?: (name: string) => { value?: string } | undefined;
   };
   headers?: Headers;
+  ip?: string | null;
   method?: string;
   nextUrl?: { hostname?: string | null; pathname?: string | null } | null;
+  socket?: { remoteAddress?: string | null } | null;
   url?: string;
 };
 
-const LOOPBACK_HOSTNAMES = new Set(["localhost", "::1"]);
+const TRUSTED_PEER_LOCALITIES = new Set(["loopback", "lan", "remote"]);
 
 function hasConfiguredPassword(settings: Record<string, unknown>): boolean {
   return typeof settings.password === "string" && settings.password.length > 0;
+}
+
+function getRequestHeaders(request: RequestLike | Request | null | undefined): Headers | undefined {
+  return request && typeof request === "object" && "headers" in request
+    ? request.headers
+    : undefined;
 }
 
 function getRequestPathname(request: RequestLike | Request | null | undefined): string | null {
@@ -75,54 +85,45 @@ function getRequestMethod(request: RequestLike | Request | null | undefined): st
   return "GET";
 }
 
-function getRequestHostname(request: RequestLike | Request | null | undefined): string | null {
-  const nextHostname =
-    request &&
-    typeof request === "object" &&
-    "nextUrl" in request &&
-    request.nextUrl &&
-    typeof request.nextUrl.hostname === "string"
-      ? request.nextUrl.hostname
-      : null;
+function isLoopbackAddress(address: string | null | undefined): boolean {
+  if (!address) return false;
 
-  if (nextHostname) return nextHostname;
+  const normalized = address
+    .trim()
+    .toLowerCase()
+    .replace(/^\[(.*)\]$/, "$1")
+    .replace(/^::ffff:/, "");
 
-  const rawUrl =
-    request && typeof request === "object" && "url" in request && typeof request.url === "string"
-      ? request.url
-      : "";
-
-  if (rawUrl) {
-    try {
-      return new URL(rawUrl, "http://localhost").hostname;
-    } catch {
-      // Fall through to Host header parsing.
-    }
-  }
-
-  const requestHeaders =
-    request && typeof request === "object" && "headers" in request ? request.headers : undefined;
-  const host = requestHeaders?.get("host") || requestHeaders?.get("Host") || null;
-  if (!host) return null;
-
-  try {
-    return new URL(`http://${host}`).hostname;
-  } catch {
-    return host.split(":")[0] || null;
-  }
+  if (normalized === "localhost" || normalized === "::1") return true;
+  if (/^127(?:\.\d{1,3}){3}$/.test(normalized)) return true;
+  return false;
 }
 
 export function isLoopbackRequest(request: RequestLike | Request | null | undefined): boolean {
-  const hostname = getRequestHostname(request);
-  if (!hostname) return false;
+  const headers = getRequestHeaders(request);
+  const stampedLocality = headers?.get(AUTHZ_HEADER_PEER_LOCALITY)?.trim().toLowerCase();
+  if (stampedLocality && TRUSTED_PEER_LOCALITIES.has(stampedLocality)) {
+    return stampedLocality === "loopback";
+  }
 
-  const normalized = hostname
-    .trim()
-    .toLowerCase()
-    .replace(/^\[(.*)\]$/, "$1");
-  if (LOOPBACK_HOSTNAMES.has(normalized)) return true;
-  if (/^127(?:\.\d{1,3}){3}$/.test(normalized)) return true;
-  return false;
+  const stampedPeer = resolveStampedPeer(
+    headers?.get(PEER_IP_HEADER) ?? null,
+    process.env.OMNIROUTE_PEER_STAMP_TOKEN
+  );
+  if (stampedPeer) return isLoopbackAddress(stampedPeer);
+
+  const directPeer =
+    request && typeof request === "object" && "ip" in request && typeof request.ip === "string"
+      ? request.ip
+      : request &&
+          typeof request === "object" &&
+          "socket" in request &&
+          request.socket &&
+          typeof request.socket.remoteAddress === "string"
+        ? request.socket.remoteAddress
+        : null;
+
+  return isLoopbackAddress(directPeer);
 }
 
 function getCookieValueFromHeader(headers: Headers | undefined, name: string): string | null {
@@ -218,8 +219,7 @@ export async function isDashboardSessionAuthenticated(
       ? request.cookies.get("auth_token")?.value || null
       : null;
 
-  const requestHeaders =
-    request && typeof request === "object" && "headers" in request ? request.headers : undefined;
+  const requestHeaders = getRequestHeaders(request);
 
   if (!token) {
     token = getCookieValueFromHeader(requestHeaders, "auth_token");
