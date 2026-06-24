@@ -15,17 +15,23 @@ import { mcpAccessibilityConfigSchema } from "../../../src/shared/validation/com
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-mcpaccess-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
+const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.INITIAL_PASSWORD = "";
+delete process.env.JWT_SECRET;
 
 const core = await import("../../../src/lib/db/core.ts");
+const settingsDb = await import("../../../src/lib/db/settings.ts");
 const { getMcpAccessibilityConfig, setMcpAccessibilityConfig } =
   await import("../../../src/lib/db/compression.ts");
 const route = await import("../../../src/app/api/settings/compression/mcp-accessibility/route.ts");
 
-function resetDir() {
+async function resetDir() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  await settingsDb.updateSettings({ requireLogin: false });
 }
 
 describe("mcpAccessibility config reachability", () => {
@@ -36,6 +42,16 @@ describe("mcpAccessibility config reachability", () => {
     fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
     if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
     else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+    if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+      delete process.env.INITIAL_PASSWORD;
+    } else {
+      process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+    }
+    if (ORIGINAL_JWT_SECRET === undefined) {
+      delete process.env.JWT_SECRET;
+    } else {
+      process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
+    }
   });
 
   it("validates partial updates and rejects unknown / invalid fields", () => {

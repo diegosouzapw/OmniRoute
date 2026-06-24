@@ -5,11 +5,16 @@ import os from "node:os";
 import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cc-compatible-"));
+const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.INITIAL_PASSWORD = "";
+delete process.env.JWT_SECRET;
 
 const core = await import("../../src/lib/db/core.ts");
 const compliance = await import("../../src/lib/compliance/index.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const { DefaultExecutor } = await import("../../open-sse/executors/default.ts");
 const {
   buildClaudeCodeCompatibleRequest,
@@ -35,7 +40,10 @@ async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  await settingsDb.updateSettings({ requireLogin: false });
 }
+
+await resetStorage();
 
 test.afterEach(async () => {
   globalThis.fetch = originalFetch;
@@ -63,6 +71,16 @@ test.after(() => {
     delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
   } else {
     process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
+  }
+  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+    delete process.env.INITIAL_PASSWORD;
+  } else {
+    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+  }
+  if (ORIGINAL_JWT_SECRET === undefined) {
+    delete process.env.JWT_SECRET;
+  } else {
+    process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
   }
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });

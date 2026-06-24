@@ -61,7 +61,11 @@ test("PoolCreateSchema rejects when primary connectionId is NOT in connectionIds
     name: "x",
     allocations: [],
   });
-  assert.equal(result.success, false, "Expected refine to reject when primary not in connectionIds");
+  assert.equal(
+    result.success,
+    false,
+    "Expected refine to reject when primary not in connectionIds"
+  );
   const msg = result.error?.issues[0]?.message ?? "";
   assert.ok(
     msg.includes("primary connectionId must be one of connectionIds"),
@@ -101,10 +105,7 @@ test("PoolCreateSchema accepts connectionIds with single element matching connec
 // ── PoolWizard.tsx structural assertions ──────────────────────────────────────
 
 test("PoolWizard.tsx: connectionIds state is defined (multi-select)", () => {
-  assert.ok(
-    wizardSrc.includes("connectionIds"),
-    "Expected connectionIds state in PoolWizard"
-  );
+  assert.ok(wizardSrc.includes("connectionIds"), "Expected connectionIds state in PoolWizard");
   assert.ok(
     wizardSrc.includes("useState<string[]>([])"),
     "Expected connectionIds initialized as string[] state"
@@ -130,10 +131,7 @@ test("PoolWizard.tsx: POST body sends both connectionId and connectionIds", () =
     wizardSrc.includes("connectionId: primaryConnectionId"),
     "Expected connectionId: primaryConnectionId in POST body"
   );
-  assert.ok(
-    wizardSrc.includes("connectionIds,"),
-    "Expected connectionIds spread in POST body"
-  );
+  assert.ok(wizardSrc.includes("connectionIds,"), "Expected connectionIds spread in POST body");
 });
 
 test("PoolWizard.tsx: step-3 preview maps over connectionIds (previewByProvider)", () => {
@@ -142,7 +140,7 @@ test("PoolWizard.tsx: step-3 preview maps over connectionIds (previewByProvider)
     "Expected previewByProvider useMemo in PoolWizard"
   );
   assert.ok(
-    wizardSrc.includes("connectionIds.map((cid)"),
+    /connectionIds\s*\.map\(\(\w+\)\s*=>/.test(wizardSrc),
     "Expected connectionIds.map to build per-provider preview"
   );
 });
@@ -180,7 +178,11 @@ for (const key of NEW_KEYS) {
       Object.prototype.hasOwnProperty.call(en.quotaShare, key),
       `en.json missing quotaShare.${key}`
     );
-    assert.equal(typeof en.quotaShare[key], "string", `quotaShare.${key} must be a string in en.json`);
+    assert.equal(
+      typeof en.quotaShare[key],
+      "string",
+      `quotaShare.${key} must be a string in en.json`
+    );
     assert.ok(en.quotaShare[key].length > 0, `quotaShare.${key} must not be empty in en.json`);
   });
 
@@ -189,7 +191,11 @@ for (const key of NEW_KEYS) {
       Object.prototype.hasOwnProperty.call(pt.quotaShare, key),
       `pt-BR.json missing quotaShare.${key}`
     );
-    assert.equal(typeof pt.quotaShare[key], "string", `quotaShare.${key} must be a string in pt-BR.json`);
+    assert.equal(
+      typeof pt.quotaShare[key],
+      "string",
+      `quotaShare.${key} must be a string in pt-BR.json`
+    );
     assert.ok(pt.quotaShare[key].length > 0, `quotaShare.${key} must not be empty in pt-BR.json`);
   });
 }

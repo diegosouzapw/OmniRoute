@@ -7,7 +7,11 @@ import net from "node:net";
 
 const isWindows = process.platform === "win32";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-fixes-"));
+const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.INITIAL_PASSWORD = "";
+delete process.env.JWT_SECRET;
 
 const core = await import("../../src/lib/db/core.ts");
 const backupDb = await import("../../src/lib/db/backup.ts");
@@ -61,9 +65,24 @@ async function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
+async function resetStorageWithAuthDisabled() {
+  await resetStorage();
+  await settingsDb.updateSettings({ requireLogin: false });
+}
+
 test.after(async () => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+    delete process.env.INITIAL_PASSWORD;
+  } else {
+    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+  }
+  if (ORIGINAL_JWT_SECRET === undefined) {
+    delete process.env.JWT_SECRET;
+  } else {
+    process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
+  }
 });
 
 test("token refresh dedupe key avoids collision for same-prefix tokens", async () => {
@@ -447,7 +466,7 @@ test("proxy fetch accepts socks5 context when feature flag is enabled", async ()
 });
 
 test("proxy settings route blocks socks5 with backend flag disabled", async () => {
-  await resetStorage();
+  await resetStorageWithAuthDisabled();
 
   await withEnv("ENABLE_SOCKS5_PROXY", "false", async () => {
     const request = new Request("http://localhost/api/settings/proxy", {
@@ -471,7 +490,7 @@ test("proxy settings route blocks socks5 with backend flag disabled", async () =
 });
 
 test("proxy settings route accepts socks5 with backend flag enabled", async () => {
-  await resetStorage();
+  await resetStorageWithAuthDisabled();
 
   await withEnv("ENABLE_SOCKS5_PROXY", "true", async () => {
     const request = new Request("http://localhost/api/settings/proxy", {
@@ -495,6 +514,8 @@ test("proxy settings route accepts socks5 with backend flag enabled", async () =
 });
 
 test("proxy test route rejects socks5 when backend flag is disabled", async () => {
+  await resetStorageWithAuthDisabled();
+
   await withEnv("ENABLE_SOCKS5_PROXY", "false", async () => {
     const request = new Request("http://localhost/api/settings/proxy/test", {
       method: "POST",
@@ -517,6 +538,8 @@ test("proxy test route rejects socks5 when backend flag is disabled", async () =
 });
 
 test("proxy test route runs socks5 test when backend flag is enabled", async () => {
+  await resetStorageWithAuthDisabled();
+
   await withEnv("ENABLE_SOCKS5_PROXY", "true", async () => {
     const request = new Request("http://localhost/api/settings/proxy/test", {
       method: "POST",
@@ -540,7 +563,7 @@ test("proxy test route runs socks5 test when backend flag is enabled", async () 
 });
 
 test("proxy test route validates JSON, schema, and proxy types before dispatching", async () => {
-  await resetStorage();
+  await resetStorageWithAuthDisabled();
 
   const invalidJsonResponse = await proxyTestRoute.POST(
     new Request("http://localhost/api/settings/proxy/test", {
@@ -603,7 +626,7 @@ test("proxy test route validates JSON, schema, and proxy types before dispatchin
 });
 
 test("proxy test route handles invalid proxy ports and uses stored proxy config when proxyId is provided", async () => {
-  await resetStorage();
+  await resetStorageWithAuthDisabled();
 
   const invalidPortResponse = await proxyTestRoute.POST(
     new Request("http://localhost/api/settings/proxy/test", {
