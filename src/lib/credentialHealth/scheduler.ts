@@ -18,11 +18,7 @@
 
 import { testSingleConnection } from "@/app/api/providers/[id]/test/route";
 import { getProviderConnections } from "@/lib/localDb";
-import {
-  setCredentialHealth,
-  removeCredentialHealth,
-  initCredentialCache,
-} from "@/lib/credentialHealth/cache";
+import { setCredentialHealth, initCredentialCache } from "@/lib/credentialHealth/cache";
 import { emit } from "@/lib/events/eventBus";
 
 // ── Config ────────────────────────────────────────────────────────────────
@@ -201,7 +197,7 @@ async function testConnection(
 /**
  * Single sweep: test all provider connections in parallel (with concurrency limit).
  */
-export async function sweep(): Promise<void> {
+async function sweep(): Promise<void> {
   const state = getSchedulerState();
   if (state.sweepInProgress) return;
   state.sweepInProgress = true;
@@ -301,28 +297,3 @@ export function initCredentialHealthCheck(): void {
     sweep().catch((err) => console.error(LOG_PREFIX, "Initial sweep failed:", err));
   }, INITIAL_DELAY_MS);
 }
-
-/**
- * Stop the scheduler (for tests / hot-reload).
- */
-export function stopCredentialHealthCheck(): void {
-  const state = getSchedulerState();
-  if (state.sweepTimer) {
-    clearTimeout(state.sweepTimer);
-    state.sweepTimer = null;
-  }
-  state.initialized = false;
-}
-
-/**
- * Force an immediate sweep (for manual refresh / testing).
- */
-export async function forceSweep(): Promise<void> {
-  const state = getSchedulerState();
-  state.initialized = true;
-  initCredentialCache();
-  await sweep();
-}
-
-// Auto-initialize on first import
-initCredentialHealthCheck();

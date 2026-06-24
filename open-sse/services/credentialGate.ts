@@ -8,9 +8,9 @@
  * Integration point: combo.ts handleComboChat(), before
  * handleSingleModelWrapped() at line ~2162.
  *
- * Health status is populated by the background scheduler
- * (credentialHealth/scheduler.ts) which periodically calls
- * testSingleConnection() for all connections.
+ * Health status is populated by the background scheduler started from
+ * instrumentation-node.ts. The scheduler periodically calls
+ * testSingleConnection() for provider connections.
  */
 
 import {

@@ -31,10 +31,3 @@ export function startBudgetResetJob() {
   timer.unref?.();
   return timer;
 }
-
-export function stopBudgetResetJob() {
-  if (timer) {
-    clearInterval(timer);
-    timer = null;
-  }
-}

@@ -108,6 +108,7 @@ export async function registerNodejs(): Promise<void> {
     { startBackgroundRefresh },
     { ensureCloudSyncInitialized },
     { startProviderLimitsSyncScheduler },
+    { initCredentialHealthCheck },
     { startCleanupScheduler },
     { getSettings },
     { applyRuntimeSettings },
@@ -123,6 +124,7 @@ export async function registerNodejs(): Promise<void> {
     import("@/domain/quotaCache"),
     import("@/lib/initCloudSync"),
     import("@/shared/services/providerLimitsSyncScheduler"),
+    import("@/lib/credentialHealth/scheduler"),
     import("@/lib/db/cleanup"),
     import("@/lib/db/settings"),
     import("@/lib/config/runtimeSettings"),
@@ -147,6 +149,8 @@ export async function registerNodejs(): Promise<void> {
     console.log("[STARTUP] Quota cache background refresh started");
     startProviderLimitsSyncScheduler();
     console.log("[STARTUP] Provider limits sync scheduler started");
+    initCredentialHealthCheck();
+    console.log("[STARTUP] Credential health scheduler started");
     startCleanupScheduler();
     console.log("[STARTUP] DB cleanup scheduler started");
     const cloudSyncInitialized = await ensureCloudSyncInitialized();

@@ -76,6 +76,7 @@ describe("Pipeline Wiring — instrumentation-node.ts", () => {
     assert.match(src, /registerDefaultGuardrails/);
     assert.match(src, /registerBuiltinSkills/);
     assert.match(src, /startProviderLimitsSyncScheduler/);
+    assert.match(src, /initCredentialHealthCheck/);
     assert.match(src, /startCleanupScheduler/);
   });
 

@@ -37,29 +37,6 @@ export function isDraining(): boolean {
 }
 
 /**
- * Track a new in-flight request. Call `done()` when it completes.
- * Returns a done callback.
- */
-export function trackRequest(): () => void {
-  const state = getShutdownState();
-  state.activeRequests++;
-  let called = false;
-  return () => {
-    if (!called) {
-      called = true;
-      state.activeRequests--;
-    }
-  };
-}
-
-/**
- * Get current active request count (for monitoring/health endpoints).
- */
-export function getActiveRequestCount(): number {
-  return getShutdownState().activeRequests;
-}
-
-/**
  * Wait for all in-flight requests to complete, with timeout.
  */
 async function waitForDrain(): Promise<void> {
