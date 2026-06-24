@@ -205,12 +205,6 @@ export const kiroImportSchema = z.object({
   region: z.string().trim().default("us-east-1"),
 });
 
-export const kiroSocialExchangeSchema = z.object({
-  code: z.string().trim().min(1, "Code is required"),
-  codeVerifier: z.string().trim().min(1, "Code verifier is required"),
-  provider: z.enum(["google", "github"]),
-});
-
 export const zedImportSchema = z.object({
   confirmedAccounts: z.array(confirmedAccountSchema),
 });
