@@ -10,6 +10,10 @@ _In development — bullets added per PR; finalized at release._
 
 - **feat(providers):** update volcengine-ark model list, adding DeepSeek-V4-Flash and DeepSeek-V4-Pro. (thanks @kenlin8827)
 
+### 🔧 Bug Fixes
+
+- **fix(dashboard):** show custom provider given-name instead of internal id across dashboard pages — cache, combo health, compression analytics, cost overview, health/autopilot, provider stats, route explainability, provider utilization, runtime. Adds shared `resolveProviderName` resolver and `useProviderNodeMap` hook. (#4603)
+
 ---
 
 ## [3.8.35] — 2026-06-23
