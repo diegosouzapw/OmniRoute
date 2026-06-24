@@ -64,5 +64,3 @@ export function IoNode({ data }: NodeProps) {
     </div>
   );
 }
-
-export default IoNode;

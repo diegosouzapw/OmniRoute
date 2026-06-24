@@ -9,7 +9,7 @@ function useOrigin(): string {
   return useSyncExternalStore(
     () => () => {}, // no external subscription needed
     () => (typeof window !== "undefined" ? window.location.origin : ""),
-    () => "", // server snapshot
+    () => "" // server snapshot
   );
 }
 
@@ -89,5 +89,3 @@ export function McpA2aLinksBar(): JSX.Element {
     </div>
   );
 }
-
-export default McpA2aLinksBar;
