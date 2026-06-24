@@ -1173,6 +1173,12 @@ export async function handleComboChat({
     }
   }
 
+  // When the "auto" strategy applies an explicit non-rules routerStrategy
+  // (cost / lkgp / sla / …), that decision is authoritative and must NOT be
+  // clobbered by the additive task-aware reorder below (#4945 regression). The
+  // default "rules" path stays eligible for task-aware refinement.
+  let autoExplicitRouterApplied = false;
+
   if (strategy === "auto") {
     const requestHasTools = Array.isArray(body?.tools) && body.tools.length > 0;
     let eligibleTargets = [...orderedTargets];
@@ -1322,6 +1328,9 @@ export async function handleComboChat({
           selectedProvider = decision.provider;
           selectedModel = decision.model;
           selectionReason = decision.reason;
+          // Explicit router strategy produced a selection — it wins over the
+          // task-aware reorder (which would otherwise re-sort by task weight).
+          autoExplicitRouterApplied = Boolean(selectedProvider && selectedModel);
         } catch (err) {
           log.warn(
             "COMBO",
@@ -1585,8 +1594,10 @@ export async function handleComboChat({
   orderedTargets = filterTargetsByRequestCompatibility(orderedTargets, body, log);
 
   // Task-aware reordering: only active for strategies ["smart","task","task-aware","task_aware","auto"].
-  // Additive — does not affect any of the other 15 strategies.
-  if (isTaskRoutingStrategy(strategy)) {
+  // Additive — does not affect any of the other 15 strategies. Skipped when the
+  // "auto" strategy already applied an explicit non-rules routerStrategy
+  // (cost/lkgp/sla/…), whose selection is authoritative (#4945 regression).
+  if (isTaskRoutingStrategy(strategy) && !autoExplicitRouterApplied) {
     const task = classifyTask(body);
     const conversationCacheKey = getConversationCacheKey(body);
     const taskReordered = reorderByTaskWeight(orderedTargets, task);
