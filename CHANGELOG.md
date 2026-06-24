@@ -11,6 +11,7 @@ _In development — bullets added per PR; finalized at release._
 ### ✨ New Features
 
 - **feat(blackbox):** refresh provider model catalog with latest models. (thanks @ptkelanatechsolutions)
+- **kiro**: inline `<thinking>` stream splitter — when `<thinking_mode>enabled</thinking_mode>` is present, `assistantResponseEvent` content is now split into separate `delta.content` / `delta.reasoning_content` SSE chunks (new `open-sse/executors/kiroThinking.ts` module wired into `KiroExecutor.transformEventStreamToSSE`).
 
 ### 🔧 Bug Fixes
 
