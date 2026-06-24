@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
-import { selectProxyForValidation } from "@omniroute/open-sse/services/proxyAutoSelector.ts";
 import {
   buildClaudeCodeCompatibleHeaders,
   buildClaudeCodeCompatibleValidationPayload,
@@ -10,8 +9,6 @@ import {
   CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH,
   joinClaudeCodeCompatibleUrl,
   joinBaseUrlAndPath,
-  stripClaudeCodeCompatibleEndpointSuffix,
-  stripAnthropicMessagesSuffix,
 } from "@omniroute/open-sse/services/claudeCodeCompatible.ts";
 import {
   isClaudeCodeCompatibleProvider,
@@ -24,11 +21,9 @@ import {
 } from "@/shared/constants/providers";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
-  SafeOutboundFetchError,
-  getSafeOutboundFetchErrorStatus,
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
-import { getProviderOutboundGuard, isPrivateHost } from "@/shared/network/outboundUrlGuard";
+import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import {
   buildGrokCookieHeader,
   buildQwenCookieHeader,
@@ -85,324 +80,41 @@ import {
 import { signAwsRequest } from "@omniroute/open-sse/utils/awsSigV4.ts";
 import { validateImageProviderApiKey } from "@/lib/providers/imageValidation";
 
-const OPENAI_LIKE_FORMATS = new Set(["openai", "openai-responses"]);
-const GEMINI_LIKE_FORMATS = new Set(["gemini", "gemini-cli"]);
+import {
+  OPENAI_LIKE_FORMATS,
+  GEMINI_LIKE_FORMATS,
+  normalizeBaseUrl,
+  normalizeAzureOpenAIBaseUrl,
+  normalizeAnthropicBaseUrl,
+  normalizeClaudeCodeCompatibleBaseUrl,
+  addModelsSuffix,
+  resolveBaseUrl,
+  resolveChatUrl,
+  normalizeHerokuChatUrl,
+  normalizeDatabricksChatUrl,
+  normalizeSnowflakeChatUrl,
+  normalizeGigachatChatUrl,
+} from "./validation/urlHelpers";
+import {
+  STANDARD_USER_AGENT,
+  applyCustomUserAgent,
+  withCustomUserAgent,
+  directHttpsRequest,
+  buildBearerHeaders,
+  buildRekaHeaders,
+  buildClarifaiHeaders,
+  buildKeyHeaders,
+  buildTokenHeaders,
+} from "./validation/headers";
+import {
+  validationRead,
+  validationWrite,
+  toValidationErrorResult,
+} from "./validation/transport";
 
-function normalizeBaseUrl(baseUrl: string) {
-  // Guard against a non-string baseUrl reaching .trim() / .replace() — see #2463
-  // where NVIDIA NIM validation surfaced as `e.startsWith is not a function`
-  // after the bundler renamed `baseUrl` to `e`. Any malformed providerSpecificData
-  // (e.g. saved as object from a UI bug) would otherwise crash mid-validation.
-  const value = typeof baseUrl === "string" ? baseUrl : "";
-  return value.trim().replace(/\/$/, "");
-}
-
-function normalizeAzureOpenAIBaseUrl(baseUrl: string) {
-  return normalizeBaseUrl(baseUrl)
-    .replace(/\/openai$/i, "")
-    .replace(/\/openai\/deployments\/[^/]+\/chat\/completions.*$/i, "");
-}
-
-function normalizeAnthropicBaseUrl(baseUrl: string) {
-  return stripAnthropicMessagesSuffix(baseUrl || "");
-}
-
-function normalizeClaudeCodeCompatibleBaseUrl(baseUrl: string) {
-  return stripClaudeCodeCompatibleEndpointSuffix(baseUrl || "");
-}
-
-function addModelsSuffix(baseUrl: string) {
-  const normalized = normalizeBaseUrl(baseUrl);
-  if (!normalized) return "";
-
-  const suffixes = ["/chat/completions", "/responses", "/chat", "/messages"];
-  if (normalized.endsWith("/models")) {
-    return normalized;
-  }
-  for (const suffix of suffixes) {
-    if (normalized.endsWith(suffix)) {
-      return `${normalized.slice(0, -suffix.length)}/models`;
-    }
-  }
-
-  return `${normalized}/models`;
-}
-
-function resolveBaseUrl(entry: any, providerSpecificData: any = {}) {
-  if (providerSpecificData?.baseUrl) return normalizeBaseUrl(providerSpecificData.baseUrl);
-  if (entry?.baseUrl) return normalizeBaseUrl(entry.baseUrl);
-  return "";
-}
-
-function resolveChatUrl(provider: string, baseUrl: string, providerSpecificData: any = {}) {
-  const normalized = normalizeBaseUrl(baseUrl);
-  if (!normalized) return "";
-
-  if (isOpenAICompatibleProvider(provider)) {
-    if (providerSpecificData?.chatPath) {
-      return `${normalized}${providerSpecificData.chatPath}`;
-    }
-    if (providerSpecificData?.apiType === "responses") {
-      return `${normalized}/responses`;
-    }
-    return `${normalized}/chat/completions`;
-  }
-
-  if (
-    normalized.endsWith("/chat/completions") ||
-    normalized.endsWith("/responses") ||
-    normalized.endsWith("/chat")
-  ) {
-    return normalized;
-  }
-
-  if (normalized.endsWith("/v1")) {
-    return `${normalized}/chat/completions`;
-  }
-
-  return normalized;
-}
-
-function normalizeHerokuChatUrl(baseUrl: string) {
-  const normalized = normalizeBaseUrl(baseUrl);
-  if (!normalized) return "";
-  return normalized.endsWith("/v1/chat/completions")
-    ? normalized
-    : `${normalized}/v1/chat/completions`;
-}
-
-function normalizeDatabricksChatUrl(baseUrl: string) {
-  const normalized = normalizeBaseUrl(baseUrl);
-  if (!normalized) return "";
-  return normalized.endsWith("/chat/completions") ? normalized : `${normalized}/chat/completions`;
-}
-
-function normalizeSnowflakeChatUrl(baseUrl: string) {
-  const normalized = normalizeBaseUrl(baseUrl)
-    .replace(/\/cortex\/inference:complete$/, "")
-    .replace(/\/api\/v2$/, "");
-  if (!normalized) return "";
-  return `${normalized}/api/v2/cortex/inference:complete`;
-}
-
-function normalizeGigachatChatUrl(baseUrl: string) {
-  const normalized = normalizeBaseUrl(baseUrl).replace(/\/chat\/completions$/, "");
-  if (!normalized) return "";
-  return `${normalized}/chat/completions`;
-}
-
-// Standardized desktop Chrome UA for web-cookie/no-auth session probes (minimizes anti-bot detection).
-const STANDARD_USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
-
-function getCustomUserAgent(providerSpecificData: any = {}) {
-  if (typeof providerSpecificData?.customUserAgent !== "string") return null;
-  const customUserAgent = providerSpecificData.customUserAgent.trim();
-  return customUserAgent || null;
-}
-
-function applyCustomUserAgent(headers: Record<string, string>, providerSpecificData: any = {}) {
-  const customUserAgent = getCustomUserAgent(providerSpecificData);
-  if (!customUserAgent) return headers;
-  headers["User-Agent"] = customUserAgent;
-  if ("user-agent" in headers) {
-    headers["user-agent"] = customUserAgent;
-  }
-  return headers;
-}
-
-function withCustomUserAgent(init: RequestInit, providerSpecificData: any = {}) {
-  return {
-    ...init,
-    headers: applyCustomUserAgent(
-      { ...((init.headers as Record<string, string> | undefined) || {}) },
-      providerSpecificData
-    ),
-  };
-}
-
-/**
- * Direct HTTPS request utility that bypasses the global patched fetch.
- * Used for provider validation where the patched fetch has compatibility issues.
- * Uses safeOutboundFetch with bypassProxyPatch to use native Node.js fetch directly.
- */
-function directHttpsRequest(
-  url: string,
-  options: { method?: string; headers?: Record<string, string>; body?: string },
-  timeoutMs: number
-): Promise<{ status: number; ok: boolean; text: () => Promise<string> }> {
-  return safeOutboundFetch(url, {
-    method: options.method || "GET",
-    headers: (options.headers || {}) as Record<string, string>,
-    body: options.body,
-    timeoutMs,
-    bypassProxyPatch: true,
-    allowRedirect: true,
-    guard: "none",
-    retry: false,
-  }).then(async (response) => ({
-    status: response.status,
-    ok: response.ok,
-    text: async () => await response.text(),
-  }));
-}
-
-function buildBearerHeaders(apiKey: string, providerSpecificData: any = {}) {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (apiKey) {
-    headers.Authorization = `Bearer ${apiKey}`;
-  }
-  return applyCustomUserAgent(headers, providerSpecificData);
-}
-
-function buildRekaHeaders(apiKey: string, providerSpecificData: any = {}) {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-
-  if (apiKey) {
-    headers.Authorization = `Bearer ${apiKey}`;
-    headers["X-Api-Key"] = apiKey;
-  }
-
-  return applyCustomUserAgent(headers, providerSpecificData);
-}
-
-function buildClarifaiHeaders(apiKey: string, providerSpecificData: any = {}) {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-
-  if (apiKey) {
-    headers.Authorization = `Key ${apiKey}`;
-  }
-
-  return applyCustomUserAgent(headers, providerSpecificData);
-}
-
-function buildKeyHeaders(apiKey: string, providerSpecificData: any = {}) {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-
-  if (apiKey) {
-    headers.Authorization = `Key ${apiKey}`;
-  }
-
-  return applyCustomUserAgent(headers, providerSpecificData);
-}
-
-function buildTokenHeaders(apiKey: string, providerSpecificData: any = {}) {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-
-  if (apiKey) {
-    headers.Authorization = `Token ${apiKey}`;
-  }
-
-  return applyCustomUserAgent(headers, providerSpecificData);
-}
-
-/**
- * Wrapped fetch call that auto-retries with a proxy when the direct connection
- * fails.  This happens transparently so individual validators don't need to
- * think about proxy fallback.
- */
-async function fetchWithProxyFallback(
-  url: string,
-  init: RequestInit,
-  presets: typeof SAFE_OUTBOUND_FETCH_PRESETS.validationRead,
-  isLocal: boolean
-): Promise<Response> {
-  try {
-    return await safeOutboundFetch(url, {
-      ...presets,
-      guard: isLocal ? "none" : getProviderOutboundGuard(),
-      ...init,
-    });
-  } catch (err: unknown) {
-    // Only attempt proxy fallback for retryable errors (network / timeout)
-    // and only when the target is not a local / LAN address.
-    const fetchErr = err as SafeOutboundFetchError;
-    const isNetworkIssue = fetchErr?.code === "NETWORK_ERROR" || fetchErr?.code === "TIMEOUT";
-    const isRetryable = fetchErr?.isRetryable !== false;
-    const isValidTarget = !isLocal && isRetryableProxyTarget(url);
-
-    if (isLocal || !isNetworkIssue || !isRetryable) throw err;
-    if (!isValidTarget) throw err;
-
-    const proxyUrl = await selectProxyForValidation(url);
-    if (!proxyUrl) throw err;
-
-    return safeOutboundFetch(url, {
-      ...presets,
-      guard: isLocal ? "none" : getProviderOutboundGuard(),
-      ...init,
-      proxyConfig: proxyUrl,
-    });
-  }
-}
-
-export function isRetryableProxyTarget(url: string): boolean {
-  try {
-    const hostname = new URL(url).hostname.toLowerCase();
-    // Never proxy-fallback to a private/link-local/metadata host. Delegates to
-    // the canonical SSRF guard (covers 169.254, 0.0.0.0, 172.16/12, CGNAT,
-    // IPv6 fc/fd/fe80, .internal — gaps the previous inline check missed).
-    return !isPrivateHost(hostname);
-  } catch {
-    return false;
-  }
-}
-
-async function validationRead(url: string, init: RequestInit, isLocal: boolean = false) {
-  return fetchWithProxyFallback(url, init, SAFE_OUTBOUND_FETCH_PRESETS.validationRead, isLocal);
-}
-
-async function validationWrite(url: string, init: RequestInit, isLocal: boolean = false) {
-  return fetchWithProxyFallback(url, init, SAFE_OUTBOUND_FETCH_PRESETS.validationWrite, isLocal);
-}
-
-// A validation failure should only be flagged `securityBlocked` (which the route
-// surfaces as a `provider.validation.ssrf_blocked` audit event + a security warning in
-// the UI) when it is a GENUINE SSRF/guard block — not for every outbound-guard 503.
-// A blocked redirect (REDIRECT_BLOCKED) to a PUBLIC host is benign: the redirect was
-// never followed, so no SSRF occurred. Web-cookie providers like qwen-web answer their
-// probe with a 307 to a public host, which used to be mislabeled as an SSRF block
-// (#3288 / #3758). Only treat a blocked redirect as a security event when its target is
-// a private/internal host.
-export function isSecurityBlockError(error: unknown): boolean {
-  if (!(error instanceof SafeOutboundFetchError)) return false;
-  if (error.code === "URL_GUARD_BLOCKED" || error.code === "INVALID_URL") return true;
-  if (error.code === "REDIRECT_BLOCKED") {
-    if (!error.location) return false;
-    try {
-      return isPrivateHost(new URL(error.location, error.url).hostname);
-    } catch {
-      return false;
-    }
-  }
-  return false;
-}
-
-function toValidationErrorResult(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error || "Validation failed");
-  const statusCode = getSafeOutboundFetchErrorStatus(error);
-
-  return {
-    valid: false,
-    error: message || "Validation failed",
-    unsupported: false as const,
-    ...(statusCode ? { statusCode } : {}),
-    ...(error instanceof SafeOutboundFetchError && error.code === "TIMEOUT"
-      ? { timeout: true }
-      : {}),
-    ...(isSecurityBlockError(error) ? { securityBlocked: true } : {}),
-  };
-}
+// isRetryableProxyTarget + isSecurityBlockError now live in ./validation/transport. Re-export them
+// here to preserve the historical public surface (tests + route handlers import them via this module).
+export { isRetryableProxyTarget, isSecurityBlockError } from "./validation/transport";
 
 async function validateBedrockProvider({ apiKey, providerSpecificData = {} }: any) {
   if (!apiKey) {
