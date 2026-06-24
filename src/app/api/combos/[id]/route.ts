@@ -1,19 +1,11 @@
 import { NextResponse } from "next/server";
-import {
-  getComboById,
-  updateCombo,
-  deleteCombo,
-  getComboByName,
-  getCombos,
-  isCloudEnabled,
-} from "@/lib/localDb";
-import { getConsistentMachineId } from "@/shared/utils/machineId";
-import { syncToCloud } from "@/lib/cloudSync";
+import { getComboById, updateCombo, deleteCombo, getComboByName, getCombos } from "@/lib/localDb";
+import { syncToCloudIfEnabled } from "@/lib/cloudSync";
 import { validateCompositeTiersConfig } from "@/lib/combos/compositeTiers";
 import { normalizeComboModels } from "@/lib/combos/steps";
 import { validateComboDAG, clampComboDepth } from "@omniroute/open-sse/services/combo.ts";
 import { updateComboSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { validatedJsonBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { QUOTA_MODEL_PREFIX } from "@/lib/quota/quotaModelNaming";
 import { comboErrorResponse } from "@/lib/api/comboErrorResponse";
@@ -91,40 +83,23 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(combo);
   } catch (error) {
-    console.log("Error fetching combo:", error);
-    return comboErrorResponse("INTERNAL_001", 500, undefined, request);
+    console.error("[combos.get]", { err: error }, "Error fetching combo");
+    return NextResponse.json({ error: "Failed to fetch combo" }, { status: 500 });
   }
 }
 
 // PUT /api/combos/[id] - Update combo
-export async function PUT(request, { params }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
-  let rawBody;
-  try {
-    rawBody = await request.json();
-  } catch {
-    return comboErrorResponse(
-      "COMBO_001",
-      400,
-      { field: "body", reason: "Invalid JSON body" },
-      request
-    );
-  }
+  const bodyResult = await validatedJsonBody(request, updateComboSchema);
+  if (!bodyResult.success) return bodyResult.response;
+  const validation = { data: bodyResult.data };
 
   try {
     const { id } = await params;
-    const validation = validateBody(updateComboSchema, rawBody);
-    if (isValidationFailure(validation)) {
-      return comboErrorResponse(
-        "COMBO_002",
-        400,
-        { issues: validation.error },
-        request
-      );
-    }
-    const currentCombo = (await getComboById(id)) as ComboRowShape | null;
+    const currentCombo = await getComboById(id);
     if (!currentCombo) {
       return comboErrorResponse("COMBO_007", 404, { id }, request);
     }
@@ -142,17 +117,17 @@ export async function PUT(request, { params }) {
     const normalizedUpdate = { ...validation.data };
     if (normalizedUpdate.compressionOverride !== undefined) {
       const legacyCompressionOverride = normalizedUpdate.compressionOverride;
-    const nextConfig: Record<string, unknown> =
-      currentCombo.config &&
-      typeof currentCombo.config === "object" &&
-      !Array.isArray(currentCombo.config)
-        ? { ...(currentCombo.config as Record<string, unknown>) }
-        : {};
-    if (legacyCompressionOverride) {
-      nextConfig.compressionMode = legacyCompressionOverride;
-    } else {
-      delete nextConfig.compressionMode;
-    }
+      const nextConfig: Record<string, unknown> =
+        currentCombo.config &&
+        typeof currentCombo.config === "object" &&
+        !Array.isArray(currentCombo.config)
+          ? { ...(currentCombo.config as Record<string, unknown>) }
+          : {};
+      if (legacyCompressionOverride) {
+        nextConfig.compressionMode = legacyCompressionOverride;
+      } else {
+        delete nextConfig.compressionMode;
+      }
       normalizedUpdate.config = nextConfig;
       delete normalizedUpdate.compressionOverride;
     }
@@ -178,18 +153,20 @@ export async function PUT(request, { params }) {
       ...body,
       name: comboName,
     };
-    const compositeValidation = validateCompositeTiersConfig(nextComboState);
-    if (compositeValidation.success === false) {
-      const failure = compositeValidation as {
-        success: false;
-        error: { message: string; details: unknown[] };
-      };
-      return comboErrorResponse(
-        "COMBO_003",
-        400,
-        { reason: failure.error.message, details: failure.error.details },
-        request
-      );
+    // Composite tiers reference step IDs from `combo.models`; if the request
+    // doesn't change `config` or `models`, the merged state is identical to
+    // what was last persisted and re-validating it can only fail when the
+    // persisted data is stale (e.g. a stored combo whose tiers were authored
+    // against a step that was later removed). The original validation
+    // already happened on the write that produced the row, so trust it for
+    // every other field-update (isActive toggle, name rename, message etc.)
+    // and re-run only when the user is actually editing the graph.
+    const touchesGraph = body.config !== undefined || body.models !== undefined;
+    if (touchesGraph) {
+      const compositeValidation = validateCompositeTiersConfig(nextComboState);
+      if (!compositeValidation.success) {
+        return NextResponse.json({ error: compositeValidation.error }, { status: 400 });
+      }
     }
 
     // Check if name already exists (exclude current combo)
@@ -226,12 +203,7 @@ export async function PUT(request, { params }) {
               : dagError instanceof Error && /depth/i.test(dagError.message)
                 ? "max-depth-exceeded"
                 : "invalid-graph";
-          return comboErrorResponse(
-            "COMBO_005",
-            400,
-            { comboName, reason },
-            request
-          );
+          return comboErrorResponse("COMBO_005", 400, { comboName, reason }, request);
         }
       }
     }
@@ -243,8 +215,8 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json(combo);
   } catch (error) {
-    console.log("Error updating combo:", error);
-    return comboErrorResponse("INTERNAL_001", 500, undefined, request);
+    console.error("[combos.put]", { err: error }, "Error updating combo");
+    return NextResponse.json({ error: "Failed to update combo" }, { status: 500 });
   }
 }
 
@@ -278,22 +250,7 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.log("Error deleting combo:", error);
-    return comboErrorResponse("INTERNAL_001", 500, undefined, request);
-  }
-}
-
-/**
- * Sync to Cloud if enabled
- */
-async function syncToCloudIfEnabled() {
-  try {
-    const cloudEnabled = await isCloudEnabled();
-    if (!cloudEnabled) return;
-
-    const machineId = await getConsistentMachineId();
-    await syncToCloud(machineId);
-  } catch (error) {
-    console.log("Error syncing to cloud:", error);
+    console.error("[combos.delete]", { err: error }, "Error deleting combo");
+    return NextResponse.json({ error: "Failed to delete combo" }, { status: 500 });
   }
 }

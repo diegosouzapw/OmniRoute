@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { getCombos, createCombo, getComboByName, isCloudEnabled } from "@/lib/localDb";
-import { getConsistentMachineId } from "@/shared/utils/machineId";
-import { syncToCloud } from "@/lib/cloudSync";
+import { getCombos, createCombo, getComboByName } from "@/lib/localDb";
+import { syncToCloudIfEnabled } from "@/lib/cloudSync";
 import { validateCompositeTiersConfig } from "@/lib/combos/compositeTiers";
 import { normalizeComboModels } from "@/lib/combos/steps";
 import { validateComboDAG, clampComboDepth } from "@omniroute/open-sse/services/combo.ts";
 import { createComboSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { validatedJsonBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { comboErrorResponse } from "@/lib/api/comboErrorResponse";
 
@@ -19,7 +18,7 @@ export async function GET(request: Request) {
     const combos = await getCombos();
     return NextResponse.json({ combos });
   } catch (error) {
-    console.log("Error fetching combos:", error);
+    console.error("[combos.list]", { err: error }, "Error fetching combos");
     return NextResponse.json({ error: "Failed to fetch combos" }, { status: 500 });
   }
 }
@@ -29,17 +28,13 @@ export async function POST(request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
-  try {
-    const body = await request.json();
+  const bodyResult = await validatedJsonBody(request, createComboSchema);
+  if (!bodyResult.success) return bodyResult.response;
 
-    // Zod validation (covers name format, length, etc.)
-    const validation = validateBody(createComboSchema, body);
-    if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
-    }
+  try {
     const allCombos = await getCombos();
-    const normalizedModels = normalizeComboModels(validation.data.models, {
-      comboName: validation.data.name,
+    const normalizedModels = normalizeComboModels(bodyResult.data.models, {
+      comboName: bodyResult.data.name,
       // `allCombos` from `getCombos()` is typed as the DB-shaped record
       // (JsonRecord & { version: 2; models: ComboStep[] }) which is
       // structurally compatible with the local ComboCollectionLike in
@@ -47,7 +42,7 @@ export async function POST(request) {
       allCombos: allCombos as never,
     });
     const comboInput = {
-      ...validation.data,
+      ...bodyResult.data,
       models: normalizedModels,
     };
     const { name, strategy, config } = comboInput;
@@ -98,22 +93,7 @@ export async function POST(request) {
 
     return NextResponse.json(combo, { status: 201 });
   } catch (error) {
-    console.log("Error creating combo:", error);
+    console.error("[combos.create]", { err: error }, "Error creating combo");
     return NextResponse.json({ error: "Failed to create combo" }, { status: 500 });
-  }
-}
-
-/**
- * Sync to Cloud if enabled
- */
-async function syncToCloudIfEnabled() {
-  try {
-    const cloudEnabled = await isCloudEnabled();
-    if (!cloudEnabled) return;
-
-    const machineId = await getConsistentMachineId();
-    await syncToCloud(machineId);
-  } catch (error) {
-    console.log("Error syncing to cloud:", error);
   }
 }

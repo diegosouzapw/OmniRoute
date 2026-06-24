@@ -1,5 +1,6 @@
 import crypto from "crypto";
-import { getProviderConnections, updateProviderConnection } from "@/lib/localDb";
+import { getProviderConnections, updateProviderConnection, isCloudEnabled } from "@/lib/localDb";
+import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { buildConfigSyncEnvelope, toLegacyCloudSyncPayload } from "@/lib/sync/bundle";
 
 const CLOUD_URL = process.env.CLOUD_URL || process.env.NEXT_PUBLIC_CLOUD_URL;
@@ -204,6 +205,31 @@ async function updateLocalTokens(cloudProviders: unknown) {
 
       await updateProviderConnection(localProviderId, updates);
     }
+  }
+}
+
+/**
+ * Fire-and-forget cloud-sync trigger used by mutation routes that don't
+ * need to know whether the sync succeeded. Never throws — a failed sync
+ * must not block the user's request.
+ *
+ * This helper used to be copy-pasted into 13+ route handlers (combos/*,
+ * providers/*, models/alias, oauth/*). Centralizing it here keeps the
+ * error-handling shape consistent and makes the dependency on the
+ * `isCloudEnabled` / `getConsistentMachineId` / `syncToCloud` trio
+ * obvious to anyone reading the call site.
+ */
+export async function syncToCloudIfEnabled(): Promise<void> {
+  try {
+    const cloudEnabled = await isCloudEnabled();
+    if (!cloudEnabled) return;
+
+    const machineId = await getConsistentMachineId();
+    await syncToCloud(machineId);
+  } catch (error) {
+    // Best-effort: never propagate. The user-facing request has already
+    // succeeded; cloud-sync is an out-of-band replication step.
+    console.error("[cloudSync.syncToCloudIfEnabled]", { err: error }, "Cloud sync failed");
   }
 }
 

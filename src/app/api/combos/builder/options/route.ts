@@ -10,7 +10,11 @@ export async function GET(request: Request) {
     const options = await getComboBuilderOptions();
     return NextResponse.json(options);
   } catch (error) {
-    console.log("Error fetching combo builder options:", error);
+    console.error(
+      "[combos.builder.options]",
+      { err: error },
+      "Error fetching combo builder options"
+    );
     return NextResponse.json({ error: "Failed to fetch combo builder options" }, { status: 500 });
   }
 }

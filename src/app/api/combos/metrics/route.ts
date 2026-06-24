@@ -27,7 +27,7 @@ export async function GET(request) {
     const allMetrics = getAllComboMetrics();
     return NextResponse.json({ metrics: allMetrics });
   } catch (error) {
-    console.log("Error fetching combo metrics:", error);
+    console.error("[combos.metrics.get]", { err: error }, "Error fetching combo metrics");
     return NextResponse.json({ error: "Failed to fetch combo metrics" }, { status: 500 });
   }
 }
@@ -49,7 +49,7 @@ export async function DELETE(request) {
     resetAllComboMetrics();
     return NextResponse.json({ success: true, message: "All combo metrics reset" });
   } catch (error) {
-    console.log("Error resetting combo metrics:", error);
+    console.error("[combos.metrics.delete]", { err: error }, "Error resetting combo metrics");
     return NextResponse.json({ error: "Failed to reset combo metrics" }, { status: 500 });
   }
 }
