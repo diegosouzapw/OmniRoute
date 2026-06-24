@@ -4,24 +4,28 @@ title: ACP (Agent Client Protocol)
 
 # ACP (Agent Client Protocol)
 
-> **TL;DR**: ACP lets OmniRoute spawn CLI agents (like Claude Code, Codex, Gemini CLI) as child processes instead of using HTTP APIs. This gives you "CLI-as-backend" transport.
+> **TL;DR**: ACP Agents lets OmniRoute discover local CLI agents (like Claude Code,
+> Codex, Gemini CLI) and manage custom agent definitions for the `/dashboard/acp-agents`
+> registry.
 
 ---
 
 ## What Is ACP?
 
-ACP (Agent Client Protocol) is a **"CLI-as-backend" transport** for OmniRoute. Instead of intercepting HTTP API calls to AI providers, ACP **spawns CLI agents as child processes** and feeds prompts through their native interface.
+ACP (Agent Client Protocol) is OmniRoute's local CLI-agent registry. It detects installed
+agent binaries, records custom agent definitions, and exposes the catalog through
+`GET /api/acp/agents` for the dashboard and integrations.
 
 ### Why Use ACP?
 
-| Benefit                | Description                                |
-| ---------------------- | ------------------------------------------ |
-| **No API keys needed** | Uses your existing CLI authentication      |
-| **Native protocol**    | Uses each CLI's native input/output format |
-| **Auto-discovery**     | Detects installed CLIs on your system      |
-| **14 built-in agents** | Pre-configured for popular CLI tools       |
-| **Custom agents**      | Add your own CLI tools via settings        |
-| **Process management** | Handles lifecycle (spawn, send, kill)      |
+| Benefit                | Description                                                    |
+| ---------------------- | -------------------------------------------------------------- |
+| **No API keys needed** | Uses your existing CLI authentication when an integration runs |
+| **Native protocol**    | Records each CLI's intended stdio/http protocol                |
+| **Auto-discovery**     | Detects installed CLIs on your system                          |
+| **14 built-in agents** | Pre-configured for popular CLI tools                           |
+| **Custom agents**      | Add your own CLI tools via settings                            |
+| **Safe probes**        | Validates custom version commands before execution             |
 
 ---
 
@@ -68,9 +72,10 @@ claude --version
 
 ACP automatically detects installed CLI agents on your system. No configuration needed!
 
-### Step 3: Use ACP Transport
+### Step 3: Manage ACP Agents
 
-Once detected, ACP can be used as a transport for any supported provider. OmniRoute will automatically use ACP when the CLI is available.
+Open `/dashboard/acp-agents` or call `GET /api/acp/agents` to view detected agents.
+Use `POST /api/acp/agents` to register custom agents or refresh detection.
 
 ---
 
@@ -81,36 +86,33 @@ Once detected, ACP can be used as a transport for any supported provider. OmniRo
 ```
 ┌─────────────────┐
 │  OmniRoute      │
-│  (HTTP Proxy)   │
+│  (ACP API)      │
 └────────┬────────┘
          │
-         │ spawn()
+         │ version probe
          ▼
 ┌─────────────────┐
-│  Child Process  │
-│  (CLI Agent)    │
+│  CLI Binary     │
 │                 │
-│  stdin  ◄──────┤  Send prompt
-│  stdout ──────►│  Receive response
-│  stderr ──────►│  Receive errors
+│  --version ────►│  Detect availability
 └─────────────────┘
 ```
 
-### Process Lifecycle
+### Detection Lifecycle
 
-1. **Spawn** — ACP creates a child process for the CLI agent
-2. **Send** — ACP writes prompts to the process's stdin
-3. **Receive** — ACP reads responses from stdout/stderr
-4. **Idle Detection** — ACP waits 2 seconds of inactivity before considering the response complete
-5. **Kill** — ACP terminates the process (SIGTERM, then SIGKILL after 5s)
+1. **Load definitions** — Built-in agents are defined in `src/lib/acp/registry.ts`.
+2. **Merge custom agents** — `setCustomAgents()` loads settings-backed custom agents.
+3. **Validate probes** — `resolveVersionProbe()` rejects shell metacharacters and mismatched
+   custom binaries.
+4. **Detect** — `detectInstalledAgents()` runs the safe version probe and caches results for
+   60 seconds.
+5. **Refresh** — `refreshAgentCache()` clears the cache and runs detection again.
 
 ### Communication Protocol
 
-ACP uses **stdio** (standard input/output) for communication with CLI agents. The protocol is:
-
-1. **Send prompt** — Write to stdin with a newline
-2. **Wait for response** — Read from stdout until idle (2s of no output)
-3. **Timeout** — Default 120 seconds (configurable)
+The active ACP module records whether an agent is intended for `stdio` or `http`, but it does not
+own a process manager. Runtime integrations that launch an agent should use the registry output and
+apply their own lifecycle handling.
 
 ---
 
@@ -123,7 +125,7 @@ ACP uses **stdio** (standard input/output) for communication with CLI agents. Th
 Detects all installed CLI agents on the system. Results are cached for 60 seconds.
 
 ```typescript
-import { detectInstalledAgents } from "@/lib/acp";
+import { detectInstalledAgents } from "@/lib/acp/registry";
 
 const agents = detectInstalledAgents();
 // Returns: CliAgentInfo[]
@@ -142,34 +144,12 @@ interface CliAgentInfo {
 }
 ```
 
-#### `getAvailableAgents()`
-
-Gets only the agents that are installed and available for ACP.
-
-```typescript
-import { getAvailableAgents } from "@/lib/acp";
-
-const available = getAvailableAgents();
-// Returns: CliAgentInfo[] (only installed agents)
-```
-
-#### `getAgentById(id)`
-
-Gets a specific agent by ID.
-
-```typescript
-import { getAgentById } from "@/lib/acp";
-
-const agent = getAgentById("claude");
-// Returns: CliAgentInfo | undefined
-```
-
 #### `setCustomAgents(agents)`
 
 Sets custom agent definitions from settings.
 
 ```typescript
-import { setCustomAgents } from "@/lib/acp";
+import { setCustomAgents } from "@/lib/acp/registry";
 
 setCustomAgents([
   {
@@ -184,165 +164,23 @@ setCustomAgents([
 ]);
 ```
 
-### Manager Functions
-
-#### `acpManager.spawn(agentId, binary, args, env)`
-
-Spawns a new CLI agent process.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const session = acpManager.spawn("claude", "claude", ["--print", "--output-format", "json"], {
-  /* custom env vars */
-});
-// Returns: AcpSession
-```
-
-**Allowed agent IDs**: `["claude", "codex", "gemini", "qwen"]`
-
-#### `acpManager.sendPrompt(sessionId, prompt, timeoutMs)`
-
-Sends a prompt to a CLI agent and collects the response.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const response = await acpManager.sendPrompt(
-  "acp-claude-1234567890-abc123",
-  "What is 2+2?",
-  120000 // 2 minutes timeout
-);
-// Returns: Promise<string>
-```
-
-#### `acpManager.kill(sessionId)`
-
-Kills a session and cleans up.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const killed = acpManager.kill("acp-claude-1234567890-abc123");
-// Returns: boolean
-```
-
-#### `acpManager.getActiveSessions()`
-
-Gets all active sessions.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-const sessions = acpManager.getActiveSessions();
-// Returns: AcpSession[]
-```
-
-#### `acpManager.killAll()`
-
-Kills all sessions.
-
-```typescript
-import { acpManager } from "@/lib/acp";
-
-acpManager.killAll();
-```
-
-### Session Interface
-
-```typescript
-interface AcpSession {
-  id: string; // Unique session ID
-  agentId: string; // Agent ID (e.g., "claude")
-  process: ChildProcess; // Child process handle
-  alive: boolean; // Whether the process is alive
-  stdoutBuffer: string; // Accumulated stdout buffer
-  stderrBuffer: string; // Accumulated stderr buffer
-  createdAt: Date; // Created timestamp
-}
-```
-
-### Events
-
-The `AcpManager` extends `EventEmitter` and emits the following events:
-
-#### `stdout`
-
-Emitted when the CLI agent writes to stdout.
-
-```typescript
-acpManager.on("stdout", ({ sessionId, data }) => {
-  console.log(`[${sessionId}] stdout: ${data}`);
-});
-```
-
-#### `stderr`
-
-Emitted when the CLI agent writes to stderr.
-
-```typescript
-acpManager.on("stderr", ({ sessionId, data }) => {
-  console.error(`[${sessionId}] stderr: ${data}`);
-});
-```
-
-#### `exit`
-
-Emitted when the CLI agent process exits.
-
-```typescript
-acpManager.on("exit", ({ sessionId, code, signal }) => {
-  console.log(`[${sessionId}] exited with code ${code}, signal ${signal}`);
-});
-```
-
-#### `error`
-
-Emitted when the CLI agent process errors.
-
-```typescript
-acpManager.on("error", ({ sessionId, error }) => {
-  console.error(`[${sessionId}] error: ${error}`);
-});
-```
-
----
-
 ## Configuration
 
 ### Environment Variables
 
-ACP inherits all environment variables from the parent process and can be extended with custom env vars:
-
-```typescript
-acpManager.spawn("claude", "claude", [], {
-  ANTHROPIC_API_KEY: "sk-...",
-  DEBUG: "true",
-});
-```
+ACP detection inherits the OmniRoute server environment when it runs version probes.
 
 ### Spawn Arguments
 
-Each agent has default spawn arguments defined in the registry. You can override them:
-
-```typescript
-acpManager.spawn("claude", "claude", ["--print", "--verbose"], {});
-```
-
-### Timeouts
-
-Default prompt timeout is **120 seconds** (2 minutes). You can override:
-
-```typescript
-await acpManager.sendPrompt(sessionId, prompt, 300000); // 5 minutes
-```
+Each agent has default spawn arguments defined in the registry. Custom agents can provide
+`spawnArgs` through `POST /api/acp/agents`.
 
 ### Detection Cache
 
 Agent detection is cached for **60 seconds** to avoid expensive filesystem scans. Force refresh:
 
 ```typescript
-import { refreshAgentCache } from "@/lib/acp";
+import { refreshAgentCache } from "@/lib/acp/registry";
 
 refreshAgentCache();
 ```
@@ -387,59 +225,15 @@ Each ACP session runs in its own child process. The process is killed when the s
 - **Cached calls**: <1ms (returns from cache)
 - **Cache TTL**: 60 seconds
 
-### Prompt Performance
-
-- **Spawn**: ~50-100ms
-- **Send prompt**: ~10-50ms
-- **Wait for response**: Depends on CLI agent (typically 1-30 seconds)
-- **Kill**: ~5 seconds (SIGTERM) + immediate (SIGKILL)
-
 ### Resource Usage
 
-- **Memory per session**: ~10-50MB (depends on CLI agent)
-- **CPU**: Minimal (I/O bound)
-- **Disk**: None
+- **Memory**: Detection cache stores the current agent list.
+- **CPU**: Version probes are short-lived child processes.
+- **Disk**: Custom agents are persisted through settings.
 
 ---
 
 ## Troubleshooting
-
-### "Unknown agent" Error
-
-**Problem**: `acpManager.spawn()` throws `Unknown agent: <id>`
-
-**Solution**: Only 4 agents are allowed in `spawn()`:
-
-- `claude`
-- `codex`
-- `gemini`
-- `qwen`
-
-Other agents must be spawned manually or via custom agent definitions.
-
-### "Session not alive" Error
-
-**Problem**: `acpManager.sendPrompt()` throws `Session ${sessionId} is not alive`
-
-**Solution**: The session may have exited or been killed. Check session status:
-
-```typescript
-const session = acpManager.getSession(sessionId);
-if (!session?.alive) {
-  // Re-spawn the session
-  acpManager.spawn("claude", "claude", [], {});
-}
-```
-
-### "ACP timeout" Error
-
-**Problem**: `acpManager.sendPrompt()` throws `ACP timeout after 120000ms`
-
-**Solution**: Increase the timeout:
-
-```typescript
-await acpManager.sendPrompt(sessionId, prompt, 300000); // 5 minutes
-```
 
 ### CLI Not Detected
 
@@ -452,6 +246,16 @@ await acpManager.sendPrompt(sessionId, prompt, 300000); // 5 minutes
 3. **Check permissions**: Ensure the CLI is executable
 4. **Custom agent**: Add a custom agent definition for non-standard CLIs
 
+### Version Probe Rejected
+
+**Problem**: `POST /api/acp/agents` rejects a custom `versionCommand`.
+
+**Solutions**:
+
+1. Use the configured binary as the first token.
+2. Pass plain arguments only, for example `mycli --version`.
+3. Do not use shell metacharacters such as `;`, `&`, `|`, redirects, or command substitution.
+
 ### Permission Denied
 
 **Problem**: ACP can't execute the CLI
@@ -460,67 +264,33 @@ await acpManager.sendPrompt(sessionId, prompt, 300000); // 5 minutes
 
 1. **Check file permissions**: `chmod +x /usr/local/bin/claude`
 2. **Check ownership**: Ensure OmniRoute has read/execute permissions
-3. **Check SELinux/AppArmor**: May block process spawning
+3. **Check sandboxing**: System policies may block version probes
 
 ---
 
 ## Examples
 
-### Example 1: Spawn and Use Claude Code
+### Example 1: Detect Installed Agents
 
 ```typescript
-import { acpManager, detectInstalledAgents } from "@/lib/acp";
+import { detectInstalledAgents } from "@/lib/acp/registry";
 
-// Detect installed agents
 const agents = detectInstalledAgents();
-const claude = agents.find((a) => a.id === "claude");
-
-if (claude?.installed) {
-  // Spawn a new session
-  const session = acpManager.spawn("claude", claude.binary, ["--print", "--output-format", "json"]);
-
-  // Send a prompt
-  const response = await acpManager.sendPrompt(
-    session.id,
-    "Explain quantum computing in 100 words"
-  );
-
-  console.log("Claude's response:", response);
-
-  // Clean up
-  acpManager.kill(session.id);
-}
+const installed = agents.filter((agent) => agent.installed);
 ```
 
-### Example 2: Auto-Discovery with Fallback
+### Example 2: Refresh Through The REST API
 
-```typescript
-import { acpManager, getAvailableAgents } from "@/lib/acp";
-
-const available = getAvailableAgents();
-
-// Try Claude first, fallback to Codex
-let agentId = "claude";
-if (!available.find((a) => a.id === "claude")) {
-  if (available.find((a) => a.id === "codex")) {
-    agentId = "codex";
-  } else {
-    throw new Error("No ACP-compatible CLI agent found");
-  }
-}
-
-const agent = available.find((a) => a.id === agentId)!;
-const session = acpManager.spawn(agentId, agent.binary, agent.spawnArgs);
-
-const response = await acpManager.sendPrompt(session.id, "Hello!");
-
-acpManager.kill(session.id);
+```bash
+curl -X POST http://localhost:20128/api/acp/agents \
+  -H "Content-Type: application/json" \
+  -d '{"action":"refresh"}'
 ```
 
 ### Example 3: Custom Agent
 
 ```typescript
-import { setCustomAgents, detectInstalledAgents } from "@/lib/acp";
+import { setCustomAgents, detectInstalledAgents } from "@/lib/acp/registry";
 
 // Register a custom CLI agent
 setCustomAgents([
@@ -555,6 +325,4 @@ const agents = detectInstalledAgents();
 
 - [AionUi Project](https://github.com/iOfficeAI/AionUi) — Inspiration for ACP auto-detection
 - [ACP Source Code](../../src/lib/acp/) — Implementation details
-  - `manager.ts` — Process lifecycle management
   - `registry.ts` — Agent discovery and registration
-  - `index.ts` — Public API exports
