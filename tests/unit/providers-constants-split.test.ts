@@ -1,8 +1,8 @@
 // Characterization of the providers.ts catalog split (god-file decomposition): the host became a
 // barrel that re-exports 10 data catalogs now living under constants/providers/*, and APIKEY is
-// merged from 3 source parts. Locks: the public surface (every catalog + helpers still exported),
-// the spread-merge integrity (157 APIKEY entries, no loss/dup), and that load-time Zod validation
-// still runs. Pure-data move → behavior must be identical.
+// merged from 6 semantic family files (apikey/<family>.ts). Locks: the public surface (every catalog
+// + helpers still exported), the spread-merge integrity (157 APIKEY entries, no loss/dup), and that
+// load-time Zod validation still runs. Pure-data move → behavior must be identical.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
@@ -31,19 +31,32 @@ test("barrel still exports every catalog + key helpers", () => {
   }
 });
 
-test("APIKEY_PROVIDERS merges the 3 parts into 157 entries (no loss / no dup)", async () => {
+test("APIKEY_PROVIDERS merges the 6 family files into 157 entries (no loss / no dup)", async () => {
   const keys = Object.keys((P as Record<string, object>).APIKEY_PROVIDERS);
   assert.equal(keys.length, 157);
   assert.equal(new Set(keys).size, 157, "duplicate keys after spread-merge");
-  // the merged object equals the concatenation of the 3 source parts
-  const p1 = await import("../../src/shared/constants/providers/apikey.part1.ts");
-  const p2 = await import("../../src/shared/constants/providers/apikey.part2.ts");
-  const p3 = await import("../../src/shared/constants/providers/apikey.part3.ts");
-  const partTotal =
-    Object.keys(p1.APIKEY_PROVIDERS_PART1).length +
-    Object.keys(p2.APIKEY_PROVIDERS_PART2).length +
-    Object.keys(p3.APIKEY_PROVIDERS_PART3).length;
-  assert.equal(partTotal, 157);
+  // the merged object's entry-count equals the sum of the 6 semantic family files; families are a
+  // strict partition (every provider in exactly one), so the sum must be exactly 157.
+  const families: [string, string][] = [
+    ["gateways", "APIKEY_PROVIDERS_GATEWAYS"],
+    ["frontier-labs", "APIKEY_PROVIDERS_FRONTIER"],
+    ["inference-hosts", "APIKEY_PROVIDERS_INFERENCE"],
+    ["enterprise-cloud", "APIKEY_PROVIDERS_ENTERPRISE"],
+    ["regional", "APIKEY_PROVIDERS_REGIONAL"],
+    ["specialty-media", "APIKEY_PROVIDERS_SPECIALTY"],
+  ];
+  let famTotal = 0;
+  const seen = new Set<string>();
+  for (const [file, exportName] of families) {
+    const mod = await import(`../../src/shared/constants/providers/apikey/${file}.ts`);
+    const famKeys = Object.keys(mod[exportName]);
+    famTotal += famKeys.length;
+    for (const k of famKeys) {
+      assert.ok(!seen.has(k), `provider ${k} appears in more than one family`);
+      seen.add(k);
+    }
+  }
+  assert.equal(famTotal, 157, "families must partition all 157 providers");
 });
 
 test("AI_PROVIDERS Proxy aggregates all sections; lookups resolve", () => {
