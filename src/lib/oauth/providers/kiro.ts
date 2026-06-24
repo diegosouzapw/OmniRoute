@@ -1,11 +1,16 @@
-import { KIRO_CONFIG } from "../constants/oauth";
+import { KIRO_CONFIG, AWS_REGION_PATTERN, assertValidAwsRegion } from "../constants/oauth";
 
 export const kiro = {
   config: KIRO_CONFIG,
   flowType: "device_code",
   requestDeviceCode: async (config) => {
     const regionMatch = String(config.tokenUrl || "").match(/oidc\.([a-z0-9-]+)\.amazonaws\.com/i);
-    const resolvedRegion = regionMatch?.[1] || "us-east-1";
+    const candidateRegion = regionMatch?.[1] || "us-east-1";
+    // Region is sourced from KIRO_CONFIG.tokenUrl (trusted constant) but defensively
+    // re-validate before letting it influence later fetches (GHSA-6mwv-4mrm-5p3m).
+    const resolvedRegion = AWS_REGION_PATTERN.test(candidateRegion)
+      ? candidateRegion
+      : "us-east-1";
     const registerPayload: {
       clientName: string;
       clientType: string;
@@ -77,6 +82,7 @@ export const kiro = {
   },
   pollToken: async (config, deviceCode, codeVerifier, extraData) => {
     const tokenRegion = String(extraData?._region || "us-east-1").toLowerCase();
+    assertValidAwsRegion(tokenRegion);
     const tokenUrl = `https://oidc.${tokenRegion}.amazonaws.com/token`;
 
     const response = await fetch(tokenUrl, {
@@ -132,6 +138,9 @@ export const kiro = {
     const accessToken = tokenData?.access_token;
     if (!accessToken) return null;
     const region = String(tokenData?._region || "us-east-1").toLowerCase();
+    // Defensive: tokenData._region came from upstream JSON or extraData
+    // and is interpolated into the runtime host below (GHSA-6mwv-4mrm-5p3m).
+    if (!AWS_REGION_PATTERN.test(region)) return null;
     const runtimeHost =
       region === "us-east-1"
         ? "https://codewhisperer.us-east-1.amazonaws.com"
