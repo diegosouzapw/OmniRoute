@@ -229,6 +229,12 @@ export const createComboSchema = z.object({
   tool_filter_regex: z.string().max(1000).optional(),
   context_cache_protection: z.boolean().optional(),
   context_length: z.number().int().min(1000).max(2000000).optional(),
+  // Optional embedding dimensions override for embedding combos.
+  // When set, the value is injected into every upstream embedding request as
+  // the `dimensions` field (and translated to `outputDimensionality` for Gemini).
+  // Stored as a string to match the OpenAI API convention; coerced to number
+  // by the embedding handler. Leave unset to use each model's default.
+  dimensions: z.string().regex(/^\d+$/, "dimensions must be a positive integer string").optional().nullable(),
 });
 
 export const updateComboDefaultsSchema = z
@@ -278,6 +284,7 @@ export const updateComboSchema = z
     context_cache_protection: z.boolean().optional(),
     context_length: z.number().int().min(1000).max(2000000).optional().nullable(),
     compressionOverride: comboCompressionOverrideSchema.optional(),
+    dimensions: z.string().regex(/^\d+$/, "dimensions must be a positive integer string").optional().nullable(),
   })
   .superRefine((value, ctx) => {
     if (
@@ -292,7 +299,8 @@ export const updateComboSchema = z
       value.tool_filter_regex === undefined &&
       value.context_cache_protection === undefined &&
       value.context_length === undefined &&
-      value.compressionOverride === undefined
+      value.compressionOverride === undefined &&
+      value.dimensions === undefined
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

@@ -72,8 +72,22 @@ export async function createEmbeddingResponse(
           settings = getDatabaseSettings();
         } catch {}
 
+        // Inject the combo's configured dimensions into the request body so that
+        // every upstream embedding call within this combo receives the same
+        // dimensions override. The client's own dimensions value takes precedence
+        // if already set. Ported from decolua/9router#1530.
+        const comboRecord = combo as Record<string, unknown>;
+        const comboDimensions =
+          comboRecord.dimensions !== undefined && comboRecord.dimensions !== null
+            ? String(comboRecord.dimensions)
+            : undefined;
+        const bodyWithDimensions =
+          comboDimensions !== undefined && body.dimensions === undefined
+            ? { ...body, dimensions: comboDimensions }
+            : body;
+
         return handleComboChat({
-          body,
+          body: bodyWithDimensions,
           combo: combo as any,
           handleSingleModel: async (reqBody: any, targetModelStr: string, target?: any) => {
             const newBody = { ...reqBody, model: targetModelStr };
