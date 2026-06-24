@@ -167,6 +167,7 @@ import { openadapterProvider } from "./registry/openadapter/index.ts";
 import { ditProvider } from "./registry/dit/index.ts";
 import { tokenrouterProvider } from "./registry/tokenrouter/index.ts";
 import { codebuddy_cnProvider } from "./registry/codebuddy-cn/index.ts";
+import { pioneerProvider } from "./registry/pioneer/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -336,4 +337,5 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   dit: ditProvider,
   tokenrouter: tokenrouterProvider,
   "codebuddy-cn": codebuddy_cnProvider,
+  pioneer: pioneerProvider,
 };
