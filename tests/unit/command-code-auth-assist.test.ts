@@ -5,11 +5,17 @@ import os from "node:os";
 import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-command-code-auth-"));
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
+const ORIGINAL_STORAGE_ENCRYPTION_KEY = process.env.STORAGE_ENCRYPTION_KEY;
+const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.STORAGE_ENCRYPTION_KEY = "test-command-code-auth-encryption-key";
-delete process.env.INITIAL_PASSWORD;
+process.env.INITIAL_PASSWORD = "";
+delete process.env.JWT_SECRET;
 
 const core = await import("../../src/lib/db/core.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const startRoute = await import("../../src/app/api/providers/command-code/auth/start/route.ts");
 const callbackRoute =
   await import("../../src/app/api/providers/command-code/auth/callback/route.ts");
@@ -17,10 +23,11 @@ const statusRoute = await import("../../src/app/api/providers/command-code/auth/
 const applyRoute = await import("../../src/app/api/providers/command-code/auth/apply/route.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 
-function resetDb() {
+async function resetDb() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  await settingsDb.updateSettings({ requireLogin: false });
 }
 
 function jsonRequest(url: string, body: unknown, headers: HeadersInit = {}) {
@@ -31,23 +38,53 @@ function jsonRequest(url: string, body: unknown, headers: HeadersInit = {}) {
   });
 }
 
-test.beforeEach(() => {
+function managementRequest(url: string, init: RequestInit = {}) {
+  return new Request(url, {
+    ...init,
+    headers: {
+      "x-omniroute-peer-locality": "loopback",
+      ...init.headers,
+    },
+  });
+}
+
+test.beforeEach(async () => {
   delete process.env.OMNIROUTE_PUBLIC_BASE_URL;
   delete process.env.OMNIROUTE_BASE_URL;
   delete process.env.BASE_URL;
   delete process.env.NEXT_PUBLIC_BASE_URL;
   delete process.env.COMMAND_CODE_CALLBACK_PORT;
-  resetDb();
+  await resetDb();
 });
 
 test.after(() => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_DATA_DIR === undefined) {
+    delete process.env.DATA_DIR;
+  } else {
+    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+  }
+  if (ORIGINAL_STORAGE_ENCRYPTION_KEY === undefined) {
+    delete process.env.STORAGE_ENCRYPTION_KEY;
+  } else {
+    process.env.STORAGE_ENCRYPTION_KEY = ORIGINAL_STORAGE_ENCRYPTION_KEY;
+  }
+  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+    delete process.env.INITIAL_PASSWORD;
+  } else {
+    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+  }
+  if (ORIGINAL_JWT_SECRET === undefined) {
+    delete process.env.JWT_SECRET;
+  } else {
+    process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
+  }
 });
 
 test("Command Code auth assist start/callback/status/apply keeps state hash and key private", async () => {
   const startResponse = await startRoute.POST(
-    new Request("http://localhost:20128/api/providers/command-code/auth/start", {
+    managementRequest("http://localhost:20128/api/providers/command-code/auth/start", {
       method: "POST",
       headers: { origin: "http://localhost:20128" },
     })
@@ -105,7 +142,7 @@ test("Command Code auth assist start/callback/status/apply keeps state hash and 
   assert.equal(callbackBody.success, true);
 
   const statusResponse = await statusRoute.GET(
-    new Request(
+    managementRequest(
       `http://localhost:20128/api/providers/command-code/auth/status?state=${encodeURIComponent(
         startBody.state
       )}`
@@ -119,11 +156,15 @@ test("Command Code auth assist start/callback/status/apply keeps state hash and 
   assert.ok(!("stateHash" in statusBody));
 
   const applyResponse = await applyRoute.POST(
-    jsonRequest("http://localhost:20128/api/providers/command-code/auth/apply", {
-      state: startBody.state,
-      name: "Command Code Studio",
-      setDefault: true,
-    })
+    jsonRequest(
+      "http://localhost:20128/api/providers/command-code/auth/apply",
+      {
+        state: startBody.state,
+        name: "Command Code Studio",
+        setDefault: true,
+      },
+      { "x-omniroute-peer-locality": "loopback" }
+    )
   );
   assert.equal(applyResponse.status, 200);
   const applyBody = await applyResponse.json();
@@ -139,9 +180,13 @@ test("Command Code auth assist start/callback/status/apply keeps state hash and 
   assert.equal(connections[0].apiKey, "cc_test_secret");
 
   const secondApplyResponse = await applyRoute.POST(
-    jsonRequest("http://localhost:20128/api/providers/command-code/auth/apply", {
-      state: startBody.state,
-    })
+    jsonRequest(
+      "http://localhost:20128/api/providers/command-code/auth/apply",
+      {
+        state: startBody.state,
+      },
+      { "x-omniroute-peer-locality": "loopback" }
+    )
   );
   assert.equal(secondApplyResponse.status, 409);
 });
@@ -150,7 +195,7 @@ test("Command Code auth assist keeps auth URL callback on CLI localhost contract
   process.env.OMNIROUTE_PUBLIC_BASE_URL = "https://omniroute.example.com/base-path";
 
   const startResponse = await startRoute.POST(
-    new Request("http://localhost:20128/api/providers/command-code/auth/start", {
+    managementRequest("http://localhost:20128/api/providers/command-code/auth/start", {
       method: "POST",
       headers: { origin: "http://localhost:20128" },
     })
@@ -166,7 +211,7 @@ test("Command Code auth assist keeps auth URL callback on CLI localhost contract
 test("Command Code auth assist allows only configured CLI callback port range", async () => {
   process.env.COMMAND_CODE_CALLBACK_PORT = "5962";
   const configuredPortResponse = await startRoute.POST(
-    new Request("http://localhost:20128/api/providers/command-code/auth/start", {
+    managementRequest("http://localhost:20128/api/providers/command-code/auth/start", {
       method: "POST",
       headers: { origin: "http://localhost:20128" },
     })
@@ -177,10 +222,10 @@ test("Command Code auth assist allows only configured CLI callback port range", 
     "http://localhost:5962/callback"
   );
 
-  resetDb();
+  await resetDb();
   process.env.COMMAND_CODE_CALLBACK_PORT = "20128";
   const invalidPortResponse = await startRoute.POST(
-    new Request("http://localhost:20128/api/providers/command-code/auth/start", {
+    managementRequest("http://localhost:20128/api/providers/command-code/auth/start", {
       method: "POST",
       headers: { origin: "http://localhost:20128" },
     })
@@ -191,10 +236,10 @@ test("Command Code auth assist allows only configured CLI callback port range", 
     "http://localhost:5959/callback"
   );
 
-  resetDb();
+  await resetDb();
   process.env.COMMAND_CODE_CALLBACK_PORT = "5962abc";
   const partialPortResponse = await startRoute.POST(
-    new Request("http://localhost:20128/api/providers/command-code/auth/start", {
+    managementRequest("http://localhost:20128/api/providers/command-code/auth/start", {
       method: "POST",
       headers: { origin: "http://localhost:20128" },
     })

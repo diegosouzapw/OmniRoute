@@ -21,8 +21,10 @@ async function resetStorage() {
   core.resetDbInstance();
   payloadRulesService.resetPayloadRulesConfigForTests();
   delete process.env.INITIAL_PASSWORD;
+  delete process.env.JWT_SECRET;
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  await settingsDb.updateSettings({ requireLogin: false });
 }
 
 async function enableManagementAuth() {
