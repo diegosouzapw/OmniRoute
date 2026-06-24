@@ -5,8 +5,13 @@ import os from "node:os";
 import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-evals-route-"));
+const ORIGINAL_API_KEY_SECRET = process.env.API_KEY_SECRET;
+const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-secret";
+process.env.INITIAL_PASSWORD = "";
+delete process.env.JWT_SECRET;
 
 interface EvalsRoutePayload {
   suites: unknown[];
@@ -18,26 +23,53 @@ interface EvalsRoutePayload {
 
 const core = await import("../../src/lib/db/core.ts");
 const localDb = await import("../../src/lib/localDb.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const evalsRoute = await import("../../src/app/api/evals/route.ts");
 const evalSuitesRoute = await import("../../src/app/api/evals/suites/route.ts");
 const evalSuiteByIdRoute = await import("../../src/app/api/evals/suites/[suiteId]/route.ts");
 
-function resetDb() {
+async function resetDb() {
   core.resetDbInstance();
   localDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  await settingsDb.updateSettings({ requireLogin: false });
 }
 
-test.beforeEach(() => {
-  resetDb();
+test.beforeEach(async () => {
+  await resetDb();
 });
 
 test.after(() => {
   core.resetDbInstance();
   localDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_API_KEY_SECRET === undefined) {
+    delete process.env.API_KEY_SECRET;
+  } else {
+    process.env.API_KEY_SECRET = ORIGINAL_API_KEY_SECRET;
+  }
+  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+    delete process.env.INITIAL_PASSWORD;
+  } else {
+    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+  }
+  if (ORIGINAL_JWT_SECRET === undefined) {
+    delete process.env.JWT_SECRET;
+  } else {
+    process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
+  }
 });
+
+function makeRequest(url: string, init: RequestInit = {}) {
+  return new Request(url, {
+    ...init,
+    headers: {
+      "x-omniroute-peer-locality": "loopback",
+      ...init.headers,
+    },
+  });
+}
 
 test("evals GET returns suites, target options, api key metadata, and persisted history", async () => {
   const apiKey = await localDb.createApiKey("Dashboard Key", "machine-test");
@@ -70,7 +102,7 @@ test("evals GET returns suites, target options, api key metadata, and persisted 
     createdAt: "2026-04-23T12:00:00.000Z",
   });
 
-  const response = await evalsRoute.GET(new Request("http://localhost/api/evals"));
+  const response = await evalsRoute.GET(makeRequest("http://localhost/api/evals"));
   assert.equal(response.status, 200);
 
   const payload = (await response.json()) as EvalsRoutePayload;
@@ -106,7 +138,7 @@ test("evals GET exposes stored runs and aggregated pass rate inline", async () =
     createdAt: "2026-04-23T12:00:00.000Z",
   });
 
-  const response = await evalsRoute.GET(new Request("http://localhost/api/evals"));
+  const response = await evalsRoute.GET(makeRequest("http://localhost/api/evals"));
   assert.equal(response.status, 200);
 
   const payload = (await response.json()) as EvalsRoutePayload;
@@ -118,7 +150,7 @@ test("evals GET exposes stored runs and aggregated pass rate inline", async () =
 
 test("eval suite routes create, update, fetch, and delete custom suites", async () => {
   const createResponse = await evalSuitesRoute.POST(
-    new Request("http://localhost/api/evals/suites", {
+    makeRequest("http://localhost/api/evals/suites", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -148,13 +180,13 @@ test("eval suite routes create, update, fetch, and delete custom suites", async 
   const suiteId = createPayload.suite.id;
 
   const getResponse = await evalSuiteByIdRoute.GET(
-    new Request(`http://localhost/api/evals/suites/${suiteId}`),
+    makeRequest(`http://localhost/api/evals/suites/${suiteId}`),
     { params: Promise.resolve({ suiteId }) }
   );
   assert.equal(getResponse.status, 200);
 
   const updateResponse = await evalSuiteByIdRoute.PUT(
-    new Request(`http://localhost/api/evals/suites/${suiteId}`, {
+    makeRequest(`http://localhost/api/evals/suites/${suiteId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -200,13 +232,13 @@ test("eval suite routes create, update, fetch, and delete custom suites", async 
   assert.equal(updatePayload.suite.cases.length, 2);
 
   const deleteResponse = await evalSuiteByIdRoute.DELETE(
-    new Request(`http://localhost/api/evals/suites/${suiteId}`, { method: "DELETE" }),
+    makeRequest(`http://localhost/api/evals/suites/${suiteId}`, { method: "DELETE" }),
     { params: Promise.resolve({ suiteId }) }
   );
   assert.equal(deleteResponse.status, 200);
 
   const missingResponse = await evalSuiteByIdRoute.GET(
-    new Request(`http://localhost/api/evals/suites/${suiteId}`),
+    makeRequest(`http://localhost/api/evals/suites/${suiteId}`),
     { params: Promise.resolve({ suiteId }) }
   );
   assert.equal(missingResponse.status, 404);
