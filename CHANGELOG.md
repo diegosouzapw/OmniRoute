@@ -8,6 +8,8 @@
 
 _In development — bullets added per PR; finalized at release._
 
+- **feat(providers):** update volcengine-ark model list, adding DeepSeek-V4-Flash and DeepSeek-V4-Pro. (thanks @kenlin8827)
+
 ---
 
 ## [3.8.35] — 2026-06-23
