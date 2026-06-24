@@ -14,7 +14,11 @@ import path from "node:path";
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-file-download-"));
+const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.INITIAL_PASSWORD = "";
+delete process.env.JWT_SECRET;
 process.env.API_KEY_SECRET = "test-secret-file-dl";
 
 const core = await import("../../src/lib/db/core.ts");
@@ -34,6 +38,16 @@ test.beforeEach(async () => {
 test.after(async () => {
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+    delete process.env.INITIAL_PASSWORD;
+  } else {
+    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+  }
+  if (ORIGINAL_JWT_SECRET === undefined) {
+    delete process.env.JWT_SECRET;
+  } else {
+    process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
+  }
 });
 
 // ── Helper: create a real file in the DB ───────────────────────────────────
@@ -68,7 +82,9 @@ test("GET /api/files/{id}/content — auth not required (default) → file conte
   const file = createTestFile({ filename: "hello.jsonl", content });
 
   const res = await fileContentRoute.GET(
-    new Request(`http://localhost/api/files/${file.id}/content`),
+    new Request(`http://localhost/api/files/${file.id}/content`, {
+      headers: { "x-omniroute-peer-locality": "loopback" },
+    }),
     { params: Promise.resolve({ id: file.id }) }
   );
 

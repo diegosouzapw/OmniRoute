@@ -9,11 +9,16 @@ import os from "node:os";
 import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-err-sanitize-"));
+const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.INITIAL_PASSWORD = "";
+delete process.env.JWT_SECRET;
 process.env.API_KEY_SECRET = "test-api-key-secret-32chars-long!!";
 
 const core = await import("../../src/lib/db/core.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const mappingsRoute = await import("../../src/app/api/model-combo-mappings/route.ts");
 const mappingsIdRoute = await import("../../src/app/api/model-combo-mappings/[id]/route.ts");
 const syncTokens = await import("../../src/lib/sync/tokens.ts");
@@ -35,11 +40,22 @@ async function resetStorage() {
 
 test.beforeEach(async () => {
   await resetStorage();
+  await settingsDb.updateSettings({ requireLogin: false });
 });
 
 test.after(() => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+    delete process.env.INITIAL_PASSWORD;
+  } else {
+    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+  }
+  if (ORIGINAL_JWT_SECRET === undefined) {
+    delete process.env.JWT_SECRET;
+  } else {
+    process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
+  }
 });
 
 async function createCombo(name: string, model: string) {
