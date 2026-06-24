@@ -5,7 +5,7 @@ import { getApiKeys, getComboByName, getCombos } from "@/lib/localDb";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
 import { testComboSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { validatedJsonBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 async function getInternalApiKey(): Promise<string | null> {
@@ -135,27 +135,11 @@ export async function POST(request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
-  let rawBody;
-  try {
-    rawBody = await request.json();
-  } catch {
-    return NextResponse.json(
-      {
-        error: {
-          message: "Invalid request",
-          details: [{ field: "body", message: "Invalid JSON body" }],
-        },
-      },
-      { status: 400 }
-    );
-  }
+  const bodyResult = await validatedJsonBody(request, testComboSchema);
+  if (!bodyResult.success) return bodyResult.response;
 
   try {
-    const validation = validateBody(testComboSchema, rawBody);
-    if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
-    }
-    const { comboName } = validation.data;
+    const { comboName } = bodyResult.data;
 
     const combo = await getComboByName(comboName);
     if (!combo) {
@@ -196,7 +180,7 @@ export async function POST(request) {
       testedAt: new Date().toISOString(),
     });
   } catch (error) {
-    console.log("Error testing combo:", error);
+    console.error("[combos.test]", { err: error }, "Error testing combo");
     return NextResponse.json({ error: "Failed to test combo" }, { status: 500 });
   }
 }

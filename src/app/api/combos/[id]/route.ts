@@ -1,19 +1,11 @@
 import { NextResponse } from "next/server";
-import {
-  getComboById,
-  updateCombo,
-  deleteCombo,
-  getComboByName,
-  getCombos,
-  isCloudEnabled,
-} from "@/lib/localDb";
-import { getConsistentMachineId } from "@/shared/utils/machineId";
-import { syncToCloud } from "@/lib/cloudSync";
+import { getComboById, updateCombo, deleteCombo, getComboByName, getCombos } from "@/lib/localDb";
+import { syncToCloudIfEnabled } from "@/lib/cloudSync";
 import { validateCompositeTiersConfig } from "@/lib/combos/compositeTiers";
 import { normalizeComboModels } from "@/lib/combos/steps";
 import { validateComboDAG, clampComboDepth } from "@omniroute/open-sse/services/combo.ts";
 import { updateComboSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { validatedJsonBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { QUOTA_MODEL_PREFIX } from "@/lib/quota/quotaModelNaming";
@@ -74,7 +66,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(combo);
   } catch (error) {
-    console.log("Error fetching combo:", error);
+    console.error("[combos.get]", { err: error }, "Error fetching combo");
     return NextResponse.json({ error: "Failed to fetch combo" }, { status: 500 });
   }
 }
@@ -84,27 +76,12 @@ export async function PUT(request, { params }) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
-  let rawBody;
-  try {
-    rawBody = await request.json();
-  } catch {
-    return NextResponse.json(
-      {
-        error: {
-          message: "Invalid request",
-          details: [{ field: "body", message: "Invalid JSON body" }],
-        },
-      },
-      { status: 400 }
-    );
-  }
+  const bodyResult = await validatedJsonBody(request, updateComboSchema);
+  if (!bodyResult.success) return bodyResult.response;
+  const validation = { data: bodyResult.data };
 
   try {
     const { id } = await params;
-    const validation = validateBody(updateComboSchema, rawBody);
-    if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
-    }
     const currentCombo = await getComboById(id);
     if (!currentCombo) {
       return NextResponse.json({ error: "Combo not found" }, { status: 404 });
@@ -156,9 +133,20 @@ export async function PUT(request, { params }) {
       ...body,
       name: comboName,
     };
-    const compositeValidation = validateCompositeTiersConfig(nextComboState);
-    if (!compositeValidation.success) {
-      return NextResponse.json({ error: compositeValidation.error }, { status: 400 });
+    // Composite tiers reference step IDs from `combo.models`; if the request
+    // doesn't change `config` or `models`, the merged state is identical to
+    // what was last persisted and re-validating it can only fail when the
+    // persisted data is stale (e.g. a stored combo whose tiers were authored
+    // against a step that was later removed). The original validation
+    // already happened on the write that produced the row, so trust it for
+    // every other field-update (isActive toggle, name rename, message etc.)
+    // and re-run only when the user is actually editing the graph.
+    const touchesGraph = body.config !== undefined || body.models !== undefined;
+    if (touchesGraph) {
+      const compositeValidation = validateCompositeTiersConfig(nextComboState);
+      if (!compositeValidation.success) {
+        return NextResponse.json({ error: compositeValidation.error }, { status: 400 });
+      }
     }
 
     // Check if name already exists (exclude current combo)
@@ -192,7 +180,7 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json(combo);
   } catch (error) {
-    console.log("Error updating combo:", error);
+    console.error("[combos.put]", { err: error }, "Error updating combo");
     return NextResponse.json({ error: "Failed to update combo" }, { status: 500 });
   }
 }
@@ -228,22 +216,7 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.log("Error deleting combo:", error);
+    console.error("[combos.delete]", { err: error }, "Error deleting combo");
     return NextResponse.json({ error: "Failed to delete combo" }, { status: 500 });
-  }
-}
-
-/**
- * Sync to Cloud if enabled
- */
-async function syncToCloudIfEnabled() {
-  try {
-    const cloudEnabled = await isCloudEnabled();
-    if (!cloudEnabled) return;
-
-    const machineId = await getConsistentMachineId();
-    await syncToCloud(machineId);
-  } catch (error) {
-    console.log("Error syncing to cloud:", error);
   }
 }
