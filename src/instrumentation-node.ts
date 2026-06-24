@@ -276,6 +276,18 @@ export async function registerNodejs(): Promise<void> {
       console.warn("[STARTUP] Auto-refresh daemon failed to start (non-fatal):", msg);
     }
 
+    // Proactive connection-cooldown recovery (#8): re-validate connections whose
+    // transient `rate_limited_until` window has elapsed OUTSIDE the request hot
+    // path, so the first request after a cooldown does not pay the probe latency.
+    // Lazy/self-recovery still happens in getProviderCredentials; this front-runs it.
+    try {
+      const { initConnectionRecoveryScheduler } = await import("@/lib/quota/connectionRecovery");
+      initConnectionRecoveryScheduler();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] Connection recovery scheduler failed to start (non-fatal):", msg);
+    }
+
     try {
       // Arena ELO sync: model intelligence from the Arena AI leaderboard, powering the
       // Free Provider Rankings page. On by default; configurable from Dashboard Feature Flags.
