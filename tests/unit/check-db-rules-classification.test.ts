@@ -100,7 +100,6 @@ const TYPE_ONLY = new Set(["_rowTypes"]);
 // Flag them but do NOT fail — a separate decision is needed to remove them.
 const DOCUMENTED_DEAD = new Set([
   "pluginMetrics", // DEAD? (production): write path not yet wired (self-documented)
-  "prompts", // DEAD? (production): zero production callers; integration test only verifies interface shape
 ]);
 
 const SEARCH_ROOTS = [
@@ -120,7 +119,7 @@ test("INTENTIONALLY_INTERNAL is exported from check-db-rules.mjs", () => {
   assert.ok(INTENTIONALLY_INTERNAL.size > 0, "INTENTIONALLY_INTERNAL must not be empty");
 });
 
-test("INTENTIONALLY_INTERNAL contains the expected 28 audited modules", () => {
+test("INTENTIONALLY_INTERNAL contains the expected 27 audited modules", () => {
   const expected = [
     "_rowTypes",
     "accessTokens",
@@ -140,7 +139,6 @@ test("INTENTIONALLY_INTERNAL contains the expected 28 audited modules", () => {
     "notion",
     "obsidian",
     "pluginMetrics",
-    "prompts",
     "providerNodeSelect",
     "providerStats",
     "recovery",
