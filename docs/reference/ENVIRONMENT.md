@@ -576,6 +576,7 @@ REQUEST_TIMEOUT_MS (global override)
 | `FETCH_TIMEOUT_MS`                       | `600000`             | Total HTTP request timeout for upstream provider calls.                                                     |
 | `STREAM_IDLE_TIMEOUT_MS`                 | `600000`             | Max silence between SSE chunks before aborting. Extended-thinking models rarely pause >90s.                 |
 | `STREAM_READINESS_TIMEOUT_MS`            | `80000`              | Time to receive the first non-ping SSE event. Inherits `REQUEST_TIMEOUT_MS` when set.                       |
+| `OMNIROUTE_CODEX_DROP_NONSTANDARD_EVENTS` | _(off)_             | Strip non-standard `codex.*` SSE events (e.g. `codex.rate_limits`) that break the OpenAI SDK's `responses.stream()` with a 502. Set `true`/`1`/`yes` to enable. |
 | `FETCH_HEADERS_TIMEOUT_MS`               | = `FETCH_TIMEOUT_MS` | Time to receive response headers.                                                                           |
 | `FETCH_BODY_TIMEOUT_MS`                  | = `FETCH_TIMEOUT_MS` | Time to receive the full response body.                                                                     |
 | `FETCH_CONNECT_TIMEOUT_MS`               | `30000`              | TCP connection establishment timeout.                                                                       |
