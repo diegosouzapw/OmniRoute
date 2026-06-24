@@ -189,7 +189,7 @@
     "src/app/api/providers/[id]/models/route.ts": 2590,
     "src/app/api/providers/[id]/test/route.ts": 917,
     "src/app/api/usage/analytics/route.ts": 941,
-    "src/app/api/v1/models/catalog.ts": 1574,
+    "src/app/api/v1/models/catalog.ts": 1577,
     "src/lib/cloudflaredTunnel.ts": 934,
     "src/lib/db/apiKeys.ts": 1662,
     "src/lib/db/core.ts": 1825,
