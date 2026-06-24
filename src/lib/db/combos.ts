@@ -10,6 +10,29 @@ import { normalizeComboRecord } from "@/lib/combos/steps";
 
 type JsonRecord = Record<string, unknown>;
 
+/**
+ * Public, typed shape of a stored combo record. Returned by {@link getCombos}
+ * and {@link getComboById} so route handlers and consumers don't have to
+ * widen back from `JsonRecord`. Unknown/optional fields (e.g. compositeTiers,
+ * phenoTiers, telemetry) are preserved via the index signature.
+ */
+export type ComboRecord = {
+  id: string;
+  name: string;
+  models: unknown[];
+  strategy: string;
+  config: JsonRecord;
+  isHidden: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  [key: string]: unknown;
+};
+
+function toComboRecord(value: unknown): ComboRecord {
+  return value as ComboRecord;
+}
+
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
@@ -90,7 +113,7 @@ function getNextSortOrder() {
   return (sortOrder ?? 0) + 1;
 }
 
-export async function getCombos() {
+export async function getCombos(): Promise<ComboRecord[]> {
   const db = getDbInstance();
   const rawCombos = db
     .prepare("SELECT data, sort_order, context_cache_protection FROM combos ORDER BY sort_order ASC, name COLLATE NOCASE ASC")
@@ -103,18 +126,20 @@ export async function getCombos() {
     .filter((name): name is string => name.length > 0);
 
   return rawCombos.map((combo) =>
-    normalizeComboRecord(combo, {
-      allCombos: comboNames,
-    })
+    toComboRecord(
+      normalizeComboRecord(combo, {
+        allCombos: comboNames,
+      })
+    )
   );
 }
 
-export async function getComboById(id: string) {
+export async function getComboById(id: string): Promise<ComboRecord | null> {
   const db = getDbInstance();
   const row = db.prepare("SELECT data, sort_order, context_cache_protection FROM combos WHERE id = ?").get(id);
   const combo = parseComboRow(row);
   if (!combo) return null;
-  return normalizeStoredCombo(combo, db, typeof combo.name === "string" ? [combo.name] : []);
+  return toComboRecord(normalizeStoredCombo(combo, db, typeof combo.name === "string" ? [combo.name] : []));
 }
 
 export async function getComboByName(name: string) {
