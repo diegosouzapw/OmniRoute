@@ -407,5 +407,3 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
     </div>
   );
 }
-
-export default EngineConfigPage;

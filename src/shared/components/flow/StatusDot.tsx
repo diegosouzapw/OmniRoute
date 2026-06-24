@@ -32,5 +32,3 @@ export function StatusDot({ color, error = false, sizeClass = "size-1.5" }: Stat
     </span>
   );
 }
-
-export default StatusDot;

@@ -107,5 +107,3 @@ export function FlowCanvas({
     </div>
   );
 }
-
-export default FlowCanvas;

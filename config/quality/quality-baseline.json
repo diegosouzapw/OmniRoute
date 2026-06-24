@@ -94,7 +94,7 @@
       "eps": 0.5
     },
     "deadExports": {
-      "value": 244,
+      "value": 234,
       "direction": "down",
       "dedicatedGate": true,
       "_dead_code_ratchet_2026_06_24_unused_helpers": "287 -> 279 after removing unused legacy response/cost/settings/plugin/OAuth helper modules.",
@@ -103,7 +103,8 @@
       "_dead_code_ratchet_2026_06_24_orphan_adapters": "263 -> 261 after removing the orphan raw VS Code model presentation helper and unused standalone nodeSqliteAdapter wrapper.",
       "_dead_code_ratchet_2026_06_24_component_exports": "261 -> 259 after removing unused default exports from live Loading and SkillsConceptCard components while keeping their named exports.",
       "_dead_code_ratchet_2026_06_24_skills_ui_defaults": "259 -> 249 after removing unused default exports from live agent-skills and omni-skills UI components while preserving named imports.",
-      "_dead_code_ratchet_2026_06_24_flow_node_defaults": "249 -> 244 after removing unused default exports from live agent-skills, combo flow, and compression flow components while preserving named imports."
+      "_dead_code_ratchet_2026_06_24_flow_node_defaults": "249 -> 244 after removing unused default exports from live agent-skills, combo flow, and compression flow components while preserving named imports.",
+      "_dead_code_ratchet_2026_06_24_dashboard_flow_defaults": "244 -> 234 after removing unused default exports from live dashboard flow, compression config, and omni-skills components while preserving named imports."
     },
     "cognitiveComplexity": {
       "value": 801,

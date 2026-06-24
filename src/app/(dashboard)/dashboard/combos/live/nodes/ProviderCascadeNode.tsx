@@ -237,5 +237,3 @@ export function ProviderCascadeNode({ data }: NodeProps) {
     </div>
   );
 }
-
-export default ProviderCascadeNode;
