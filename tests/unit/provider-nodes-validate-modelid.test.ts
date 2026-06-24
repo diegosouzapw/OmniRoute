@@ -7,12 +7,16 @@ import os from "node:os";
 import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-validate-modelid-"));
+const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.INITIAL_PASSWORD = "";
+delete process.env.JWT_SECRET;
 
 const core = await import("../../src/lib/db/core.ts");
-const providerNodesValidateRoute = await import(
-  "../../src/app/api/provider-nodes/validate/route.ts"
-);
+const settingsDb = await import("../../src/lib/db/settings.ts");
+const providerNodesValidateRoute =
+  await import("../../src/app/api/provider-nodes/validate/route.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -20,6 +24,7 @@ async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  await settingsDb.updateSettings({ requireLogin: false });
 }
 
 test.afterEach(async () => {
@@ -31,6 +36,16 @@ test.after(() => {
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+    delete process.env.INITIAL_PASSWORD;
+  } else {
+    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+  }
+  if (ORIGINAL_JWT_SECRET === undefined) {
+    delete process.env.JWT_SECRET;
+  } else {
+    process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
+  }
 });
 
 type FetchCall = { url: string; init: any };
@@ -46,11 +61,15 @@ function installFetchSequence(responses: Array<() => Response>) {
   return calls;
 }
 
+test.beforeEach(async () => {
+  await resetStorage();
+});
+
 function validate(body: Record<string, unknown>) {
   return providerNodesValidateRoute.POST(
     new Request("http://localhost/api/provider-nodes/validate", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-omniroute-peer-locality": "loopback" },
       body: JSON.stringify(body),
     })
   );
