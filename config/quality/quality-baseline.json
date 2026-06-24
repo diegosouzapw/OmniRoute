@@ -94,7 +94,7 @@
       "eps": 0.5
     },
     "deadExports": {
-      "value": 75,
+      "value": 74,
       "direction": "down",
       "dedicatedGate": true,
       "_dead_code_ratchet_2026_06_24_unused_helpers": "287 -> 279 after removing unused legacy response/cost/settings/plugin/OAuth helper modules.",
@@ -115,7 +115,8 @@
       "_dead_code_ratchet_2026_06_24_vscode_onboarding_exports": "96 -> 90 after deleting unused leaf exports from provider onboarding, OpenRouter preset input, and VS Code service-tier route helpers.",
       "_dead_code_ratchet_2026_06_24_generated_provider_exports": "90 -> 86 after deleting unused provider type exports, an unused command-code cleanup helper, and stale OpenAPI generated title metadata.",
       "_dead_code_ratchet_2026_06_24_dead_ui_registry_exports": "86 -> 77 after deleting unused shared UI components and stale ACP, live-dashboard, and middleware-registry helper exports.",
-      "_dead_code_ratchet_2026_06_24_legacy_oneproxy_wrappers": "77 -> 75 after deleting unused legacy oneproxy sync/rotator wrappers and updating env, feature-flag, and proxy docs to the active free-proxy provider flow."
+      "_dead_code_ratchet_2026_06_24_legacy_oneproxy_wrappers": "77 -> 75 after deleting unused legacy oneproxy sync/rotator wrappers and updating env, feature-flag, and proxy docs to the active free-proxy provider flow.",
+      "_dead_code_ratchet_2026_06_24_tool_policy_surface": "75 -> 74 after deleting the unused toolPolicy implementation and removing the stale TOOL_POLICY_MODE env/feature-flag documentation surface."
     },
     "cognitiveComplexity": {
       "value": 801,

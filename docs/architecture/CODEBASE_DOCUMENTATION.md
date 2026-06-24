@@ -325,7 +325,7 @@ Top-level files in `src/lib/`:
 - `ipUtils.ts`, `logEnv.ts`, `logPayloads.ts`, `logRotation.ts`
 - `modelAliasSeed.ts`, `modelCapabilities.ts`, `modelMetadataRegistry.ts`, `modelsDevSync.ts`
 - `piiSanitizer.ts`, `pricingSync.ts`
-- `apiKeyExposure.ts`, `cacheControlSettings.ts`, `dataPaths.ts`, `toolPolicy.ts`
+- `apiKeyExposure.ts`, `cacheControlSettings.ts`, `dataPaths.ts`
 - `translatorEvents.ts`, `usageDb.ts`, `usageAnalytics.ts`, `webhookDispatcher.ts`
 
 #### 3.2.1 `src/lib/db/`

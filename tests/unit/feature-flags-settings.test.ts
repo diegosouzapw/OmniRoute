@@ -34,13 +34,13 @@ const {
 // Test group 1 — Flag definitions registry
 // ──────────────────────────────────────────────────────
 describe("featureFlagDefinitions", () => {
-  it("has exactly 36 flag definitions", () => {
-    assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, 36);
+  it("has exactly 35 flag definitions", () => {
+    assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, 35);
   });
 
   it("has unique keys for all flags", () => {
     const keys = FEATURE_FLAG_DEFINITIONS.map((d) => d.key);
-    assert.strictEqual(new Set(keys).size, 36);
+    assert.strictEqual(new Set(keys).size, 35);
   });
 
   it("has valid categories for all flags", () => {
@@ -295,9 +295,9 @@ describe("resolveFeatureFlag", () => {
   });
 
   describe("resolveAllFeatureFlags", () => {
-    it("returns all 36 flags", () => {
+    it("returns all 35 flags", () => {
       const all = resolveAllFeatureFlags();
-      assert.strictEqual(all.length, 36);
+      assert.strictEqual(all.length, 35);
     });
 
     it("marks DB-overridden flags with source 'db'", () => {
@@ -396,12 +396,6 @@ describe("featureFlagUpdateSchema validation", () => {
     const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "INJECTION_GUARD_MODE");
     assert.ok(def, "INJECTION_GUARD_MODE should exist");
     assert.deepStrictEqual(def.enumValues, ["off", "warn", "block", "redact"]);
-  });
-
-  it("validates that TOOL_POLICY_MODE has known enum values", () => {
-    const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "TOOL_POLICY_MODE");
-    assert.ok(def, "TOOL_POLICY_MODE should exist");
-    assert.deepStrictEqual(def.enumValues, ["disabled", "warn", "block"]);
   });
 
   it("setFeatureFlagOverride throws for unknown keys", () => {

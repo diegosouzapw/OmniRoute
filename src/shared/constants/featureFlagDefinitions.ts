@@ -175,19 +175,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
 
-  // ──────────────── Policies (3) ────────────────
-  {
-    key: "TOOL_POLICY_MODE",
-    label: "Tool Policy Mode",
-    description: "Set the tool use policy enforcement mode",
-    descriptionI18nKey: "featureFlagToolPolicyModeDescription",
-    category: "policies",
-    defaultValue: "disabled",
-    type: "enum",
-    enumValues: ["disabled", "warn", "block"],
-    requiresRestart: false,
-    warningLevel: "info",
-  },
+  // ──────────────── Policies (2) ────────────────
   {
     key: "RATE_LIMIT_AUTO_ENABLE",
     label: "Rate Limit Auto-Enable",

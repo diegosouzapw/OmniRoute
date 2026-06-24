@@ -72,13 +72,12 @@ used when neither a DB override nor an environment variable is present.
 | `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`         | boolean | `false` |         | Allow provider URLs pointing to private/internal networks.                                                                                                                         |
 | `ENABLE_CC_COMPATIBLE_PROVIDER`                 | boolean | `false` | ✓       | Enable Claude Code compatible provider mode.                                                                                                                                       |
 
-### Policies (3)
+### Policies (2)
 
-| Key                                       | Type    | Default    | Restart | Description                                                            |
-| ----------------------------------------- | ------- | ---------- | ------- | ---------------------------------------------------------------------- |
-| `TOOL_POLICY_MODE`                        | enum    | `disabled` |         | Tool-use policy enforcement mode. Values: `disabled`, `warn`, `block`. |
-| `RATE_LIMIT_AUTO_ENABLE`                  | boolean | `false`    |         | Automatically enable rate limiting based on usage patterns.            |
-| `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE` | boolean | `false`    | ✓       | Allow multiple connections per compatibility node.                     |
+| Key                                       | Type    | Default | Restart | Description                                                 |
+| ----------------------------------------- | ------- | ------- | ------- | ----------------------------------------------------------- |
+| `RATE_LIMIT_AUTO_ENABLE`                  | boolean | `false` |         | Automatically enable rate limiting based on usage patterns. |
+| `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE` | boolean | `false` | ✓       | Allow multiple connections per compatibility node.          |
 
 ### Runtime (10)
 
