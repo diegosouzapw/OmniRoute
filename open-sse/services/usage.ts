@@ -1667,7 +1667,7 @@ const GEMINI_CLI_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
  * string or as an object of the form `{ id: "..." }`, and stored connection
  * project ids can carry stray whitespace. Centralized here so the Gemini CLI
  * usage path matches the executor/oauth normalization already shipped in
- * `open-sse/executors/gemini-cli.ts` and `src/lib/oauth/services/gemini.ts`.
+ * `open-sse/executors/gemini-cli.ts` and `src/lib/oauth/providers/gemini.ts`.
  */
 function normalizeCloudCodeProjectId(project: unknown): string | null {
   if (typeof project === "string") return project.trim() || null;
