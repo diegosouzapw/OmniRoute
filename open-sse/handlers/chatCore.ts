@@ -109,6 +109,7 @@ import {
   formatProviderError,
   sanitizeErrorMessage,
 } from "../utils/error.ts";
+import { reportMalformed200, detectMalformedNonStream } from "../utils/diagnostics.ts";
 import {
   checkTokenLimits,
   recordTokenUsage,
@@ -3624,6 +3625,59 @@ export async function handleChatCore({
         clientResponse: translatedResponse,
       });
       return createErrorResult(HTTP_STATUS.BAD_REQUEST, guardrailMessage);
+    }
+
+    // Validate the *translated* response actually carries client-usable output.
+    // isEmptyContentResponse (above) runs on the raw responseBody before translation;
+    // this check runs after translation + sanitization + tool-call execution to catch
+    // cases where a provider returns a structurally valid raw body that translates into
+    // choices:[] or output:[] with no usable content (Responses API shape included).
+    const malformedTranslatedReason = detectMalformedNonStream(translatedResponse);
+    if (malformedTranslatedReason) {
+      const totalLatency = Date.now() - startTime;
+      const rawBytes = (() => {
+        try {
+          return JSON.stringify(responseBody || {}).length;
+        } catch {
+          return -1;
+        }
+      })();
+      reportMalformed200({
+        mode: "nonstream",
+        provider,
+        model,
+        connectionId,
+        reason: malformedTranslatedReason,
+        recvBytes: rawBytes,
+        recvLines: -1,
+        emitted: -1,
+        events: {},
+        ttftMs: totalLatency,
+        elapsedMs: totalLatency,
+      });
+      appendRequestLog({
+        model,
+        provider,
+        connectionId,
+        status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
+      }).catch(() => {});
+      const malformedMessage = `[${provider}/${model}] returned an empty response (no usable choices/output)`;
+      persistAttemptLogs({
+        status: HTTP_STATUS.BAD_GATEWAY,
+        tokens: usage,
+        responseBody,
+        providerRequest: finalBody || translatedBody,
+        providerResponse: looksLikeSSE
+          ? { _streamed: true, _format: "sse-json", summary: responseBody }
+          : responseBody,
+        clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, malformedMessage),
+        claudeCacheMeta: claudePromptCacheLogMeta,
+        claudeCacheUsageMeta: cacheUsageLogMeta,
+        cacheSource: "upstream",
+      });
+      persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "malformed_translated_response");
+      trackPendingRequest(model, provider, pendingConnId, false);
+      return createErrorResult(HTTP_STATUS.BAD_GATEWAY, malformedMessage);
     }
 
     // ── Phase 9.1: Cache store (non-streaming, temp=0) ──
