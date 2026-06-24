@@ -112,9 +112,19 @@ export async function PUT(request, { params }) {
       ...body,
       name: comboName,
     };
-    const compositeValidation = validateCompositeTiersConfig(nextComboState);
-    if (!compositeValidation.success) {
-      return NextResponse.json({ error: compositeValidation.error }, { status: 400 });
+    // Composite tiers reference steps by step id (e.g. "primary" → stepId).
+    // When the user toggles `isActive`, renames the combo, or updates any
+    // non-graph field, the stored `compositeTiers` may legitimately point at
+    // a step that was removed in an earlier edit — that is *not* something
+    // we should 400 on. Only re-validate when the request actually touches
+    // the graph (config or models).
+    const touchesGraph =
+      body.config !== undefined || body.models !== undefined;
+    if (touchesGraph) {
+      const compositeValidation = validateCompositeTiersConfig(nextComboState);
+      if (!compositeValidation.success) {
+        return NextResponse.json({ error: compositeValidation.error }, { status: 400 });
+      }
     }
 
     // Check if name already exists (exclude current combo)
