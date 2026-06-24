@@ -21,6 +21,7 @@ import { resolvePlan } from "./planResolver";
 import { getSaturation } from "./saturationSignals";
 import { getQuotaStore } from "./QuotaStore";
 import { listAllocationsForApiKey, getPool } from "@/lib/db/quotaPools";
+import { getModelCap } from "@/lib/db/quotaModelCaps";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -106,8 +107,64 @@ export async function enforceQuotaShare(input: EnforceInput): Promise<EnforceDec
     return { kind: "allow" };
   }
 
+  // Obtain the store early — needed for both the model-cap pre-check (step 3b)
+  // and the pool-level dimension loop (step 4).
+  const store = await getQuotaStore();
+
   // 3. Resolve the provider plan (dimensions).
   const plan = resolvePlan(input.connectionId, input.provider);
+
+  // 3b. Per-(key, model) model-cap pre-check (Fase 3 #7).
+  //
+  // If the caller provides a model name, look for a cap row in
+  // quota_allocation_model_caps for (pool.id, apiKeyId, model). When found and
+  // the cap value is real (> EPSILON), peek the per-model consumption bucket and
+  // block ONLY this model if the cap is reached. Other models in the same pool
+  // remain unaffected — cap is per-model, not global.
+  //
+  // Consumption is stored in quota_consumption using a model-scoped dimension key:
+  //   poolId  = "${pool.id}:model:${model}"  (distinct from pool-level rows)
+  //   unit    = cap.capUnit
+  //   window  = "hourly"  (rate-limiting window; fixed for model caps)
+  //
+  // Fail-open per B16: any error reading the cap or peeking the store → skip check.
+  if (input.model) {
+    let modelCap: import("@/lib/db/quotaModelCaps").ModelCap | null = null;
+    try {
+      modelCap = getModelCap(pool.id, input.apiKeyId, input.model);
+    } catch {
+      // DB error — fail-open per B16
+    }
+    if (modelCap && modelCap.capValue > Number.EPSILON) {
+      const modelBucketPoolId = `${pool.id}:model:${input.model}`;
+      const modelDimKey = {
+        poolId: modelBucketPoolId,
+        unit: modelCap.capUnit,
+        window: "hourly" as const,
+      };
+      const modelConsumed = await store.peek(input.apiKeyId, modelDimKey).catch(() => 0);
+      if (modelConsumed >= modelCap.capValue) {
+        try {
+          const { notifyWebhookEvent } = await import("@/lib/webhookDispatcher");
+          notifyWebhookEvent("quota.exceeded", {
+            apiKeyId: input.apiKeyId,
+            provider: input.provider,
+            connectionId: input.connectionId,
+            reason: "model-cap",
+            model: input.model,
+          });
+        } catch {
+          // webhook is best-effort
+        }
+        return {
+          kind: "block",
+          reason: `Model cap reached for your API key on ${input.provider}/${input.model} [model-cap]`,
+          httpStatus: 429,
+        };
+      }
+    }
+  }
+
   if (!plan.dimensions.length) {
     // No dimensions configured → nothing to enforce
     return { kind: "allow" };
@@ -122,7 +179,6 @@ export async function enforceQuotaShare(input: EnforceInput): Promise<EnforceDec
       : 1;
 
   // 4. For each active dimension, peek consumption and saturation.
-  const store = await getQuotaStore();
   const dimensionsInfo: Array<{
     key: { poolId: string; unit: QuotaUnit; window: import("./dimensions").QuotaWindow };
     limit: number;
@@ -270,9 +326,9 @@ export async function recordConsumption(input: RecordConsumptionInput): Promise<
   if (!poolId) return;
 
   const plan = resolvePlan(input.connectionId, input.provider);
-  if (!plan.dimensions.length) return;
-
   const store = await getQuotaStore();
+
+  // Pool-level dimension consumption (existing behaviour).
   for (const dim of plan.dimensions) {
     const dimKey = { poolId, unit: dim.unit, window: dim.window };
     const cost = costForUnit(input.cost, dim.unit);
@@ -280,6 +336,33 @@ export async function recordConsumption(input: RecordConsumptionInput): Promise<
       await store.consume(input.apiKeyId, dimKey, cost).catch(() => {
         // Fail-open per B29 — drift expected; teto global do fetcher corrige
       });
+    }
+  }
+
+  // Per-(key, model) consumption tracking (Fase 3 #7).
+  // When the caller provides a model name, increment the model-scoped bucket so
+  // that the next enforceQuotaShare call sees an up-to-date per-model count.
+  // Only runs when a cap row actually exists (no cap → no bucket to maintain).
+  if (input.model) {
+    let modelCap: import("@/lib/db/quotaModelCaps").ModelCap | null = null;
+    try {
+      modelCap = getModelCap(poolId, input.apiKeyId, input.model);
+    } catch {
+      // DB not available — silent no-op per B29
+    }
+    if (modelCap && modelCap.capValue > Number.EPSILON) {
+      const cost = costForUnit(input.cost, modelCap.capUnit);
+      if (cost > 0) {
+        const modelBucketPoolId = `${poolId}:model:${input.model}`;
+        const modelDimKey = {
+          poolId: modelBucketPoolId,
+          unit: modelCap.capUnit,
+          window: "hourly" as const,
+        };
+        await store.consume(input.apiKeyId, modelDimKey, cost).catch(() => {
+          // Fail-open per B29
+        });
+      }
     }
   }
 }
