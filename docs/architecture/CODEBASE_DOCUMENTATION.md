@@ -376,23 +376,22 @@ Tables created across the migrations (52 total):
 
 Pure business logic, no I/O. Imported by routes and handlers.
 
-| File                                       | Purpose                                           |
-| ------------------------------------------ | ------------------------------------------------- |
-| `policyEngine.ts`                          | Top-level policy resolver                         |
-| `fallbackPolicy.ts`                        | Fallback decision tree                            |
-| `costRules.ts`                             | Cost calculation rules                            |
-| `lockoutPolicy.ts`                         | Model lockout decisions                           |
-| `tagRouter.ts`                             | Tag-based routing                                 |
-| `comboResolver.ts`                         | Combo resolution from request → target list       |
-| `connectionModelRules.ts`                  | Per-connection model filters                      |
-| `modelAvailability.ts`                     | Model availability check                          |
-| `degradation.ts`                           | Degraded-mode transitions                         |
-| `providerExpiration.ts`                    | Expired account/key detection                     |
-| `quotaCache.ts`                            | Cached quota decisions                            |
-| `responses.ts`, `omnirouteResponseMeta.ts` | Response shape helpers                            |
-| `configAudit.ts`                           | Config change audit                               |
-| `assessment/`                              | Model assessment (per RFC, partially implemented) |
-| `types.ts`                                 | Shared domain types                               |
+| File                       | Purpose                                           |
+| -------------------------- | ------------------------------------------------- |
+| `policyEngine.ts`          | Top-level policy resolver                         |
+| `fallbackPolicy.ts`        | Fallback decision tree                            |
+| `costRules.ts`             | Cost calculation rules                            |
+| `lockoutPolicy.ts`         | Model lockout decisions                           |
+| `tagRouter.ts`             | Tag-based routing                                 |
+| `comboResolver.ts`         | Combo resolution from request → target list       |
+| `connectionModelRules.ts`  | Per-connection model filters                      |
+| `modelAvailability.ts`     | Model availability check                          |
+| `degradation.ts`           | Degraded-mode transitions                         |
+| `providerExpiration.ts`    | Expired account/key detection                     |
+| `quotaCache.ts`            | Cached quota decisions                            |
+| `omnirouteResponseMeta.ts` | OmniRoute response metadata helpers               |
+| `assessment/`              | Model assessment (per RFC, partially implemented) |
+| `types.ts`                 | Shared domain types                               |
 
 ### 3.4 `src/server/` — Server-only
 
@@ -424,7 +423,7 @@ Split into focused subdirectories:
   `bodySize.ts`, `colors.ts`, `appConfig.ts`, `config.ts`,
   `sidebarVisibility.ts`, `visionBridgeDefaults.ts`.
 - `validation/` — `schemas.ts` (~80 Zod schemas), `compressionConfigSchemas.ts`,
-  `oneproxySchemas.ts`, `providerSchema.ts`, `settingsSchemas.ts`, `helpers.ts`.
+  `providerSchema.ts`, `settingsSchemas.ts`, `helpers.ts`.
 - `contracts/` — public API contracts shipped to npm.
 - `types/` — shared TS types.
 - `utils/` — `circuitBreaker.ts`, `apiAuth.ts`, `apiKey.ts`, `apiKeyPolicy.ts`,

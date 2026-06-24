@@ -94,10 +94,11 @@
       "eps": 0.5
     },
     "deadExports": {
-      "value": 279,
+      "value": 271,
       "direction": "down",
       "dedicatedGate": true,
-      "_dead_code_ratchet_2026_06_24_unused_helpers": "287 -> 279 after removing unused legacy response/cost/settings/plugin/OAuth helper modules."
+      "_dead_code_ratchet_2026_06_24_unused_helpers": "287 -> 279 after removing unused legacy response/cost/settings/plugin/OAuth helper modules.",
+      "_dead_code_ratchet_2026_06_24_stale_domain_helpers": "279 -> 271 after removing unused domain response/config-audit helpers, benchmark stub, duplicate validation files, stale barrels, and inspector secret-mask re-export."
     },
     "cognitiveComplexity": {
       "value": 801,
