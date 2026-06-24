@@ -55,7 +55,8 @@ export function ApiKeyField({ name, serviceLabel, showReveal = false }: ApiKeyFi
   async function confirmReveal() {
     setRevealPending(true);
     try {
-      const res = await fetch(`/api/services/${name}/status?reveal=key`, {
+      const res = await fetch(`/api/services/${name}/reveal-key`, {
+        method: "POST",
         headers: { "X-Reveal-Confirm": "yes" },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

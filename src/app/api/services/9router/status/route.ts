@@ -4,7 +4,6 @@ import { getInstalledVersion, getLatestVersion } from "@/lib/services/installers
 import { getOrCreateApiKey, maskApiKey } from "@/lib/services/apiKey";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
-import { logAuditEvent } from "@/lib/compliance/index";
 
 const TOOL = "9router";
 
@@ -12,6 +11,12 @@ export async function GET(request: Request = new Request("http://localhost/")): 
   try {
     const url = new URL(request.url);
     const reveal = url.searchParams.get("reveal");
+    if (reveal === "key") {
+      return createErrorResponse({
+        status: 400,
+        message: "Use POST /api/services/9router/reveal-key to reveal the API key.",
+      });
+    }
 
     const sup = getSupervisor(TOOL);
     const row = await getServiceRow(TOOL);
@@ -38,35 +43,6 @@ export async function GET(request: Request = new Request("http://localhost/")): 
       autoStart: row?.autoStart ?? false,
       providerExpose: row?.providerExpose ?? false,
     };
-
-    if (reveal === "key") {
-      const confirmHeader = request.headers.get("X-Reveal-Confirm");
-      if (confirmHeader !== "yes") {
-        return createErrorResponse({
-          status: 403,
-          message: "Missing confirmation header. Send X-Reveal-Confirm: yes to reveal the key.",
-        });
-      }
-
-      if (!apiKey) {
-        return createErrorResponse({ status: 404, message: "No API key found for 9router." });
-      }
-
-      // Gravar no audit log (best-effort — falha silenciosa para não bloquear reveal)
-      try {
-        logAuditEvent({
-          action: "service.reveal_api_key",
-          target: TOOL,
-          resourceType: "service",
-          status: "success",
-          details: { tool: TOOL },
-        });
-      } catch {
-        /* best-effort */
-      }
-
-      return Response.json({ ...base, apiKeyPlain: apiKey });
-    }
 
     return Response.json(base);
   } catch (err) {

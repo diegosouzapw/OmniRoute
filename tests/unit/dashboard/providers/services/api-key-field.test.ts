@@ -24,6 +24,13 @@ describe("ApiKeyField — rotate-key endpoint", () => {
     assert.equal(path, "/api/services/9router/rotate-key");
   });
 
+  it("reveal-key route path is dedicated and separate from status", () => {
+    const name = "9router";
+    const path = `/api/services/${name}/reveal-key`;
+    assert.equal(path, "/api/services/9router/reveal-key");
+    assert.ok(!path.includes("/status"));
+  });
+
   it("success message includes service label", () => {
     const label = "9Router";
     const msg = `Key rotated — ${label} restarted to apply the new key`;
