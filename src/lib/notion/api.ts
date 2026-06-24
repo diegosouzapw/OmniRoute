@@ -79,7 +79,10 @@ function classifyNotionError(status: number, code: string, message: string): Err
 }
 
 function sanitize(msg: string): string {
-  return msg.replace(/\s+at\s+\S+/g, "").replace(/\/[\w/.-]+\.[a-z]+\:\d+/g, "").slice(0, 4096);
+  return msg
+    .replace(/\s+at\s+\S+/g, "")
+    .replace(/\/[\w/.-]+\.[a-z]+\:\d+/g, "")
+    .slice(0, 4096);
 }
 
 async function notionFetch(
@@ -110,7 +113,7 @@ async function notionFetch(
       });
 
       if (!response.ok) {
-        const body = await response.json().catch(() => ({})) as Record<string, unknown>;
+        const body = (await response.json().catch(() => ({}))) as Record<string, unknown>;
         const errBody = body as Partial<NotionErrorBody>;
         const code = errBody?.code ?? "unknown";
         const msg = errBody?.message ?? `HTTP ${response.status}`;
@@ -138,7 +141,11 @@ async function notionFetch(
         clearTimeout(timeout);
         throw new NotionTimeoutError("Notion API request timed out after 55s");
       }
-      if (err instanceof NotionAuthError || err instanceof NotionNotFoundError || err instanceof NotionValidationError) {
+      if (
+        err instanceof NotionAuthError ||
+        err instanceof NotionNotFoundError ||
+        err instanceof NotionValidationError
+      ) {
         clearTimeout(timeout);
         throw err;
       }
@@ -227,11 +234,7 @@ export function createNotionClient(apiKey: string) {
       return notionFetch(`/databases/${databaseId}`, apiKey);
     },
 
-    async appendBlocks(
-      blockId: string,
-      children: unknown[],
-      after?: string
-    ): Promise<unknown> {
+    async appendBlocks(blockId: string, children: unknown[], after?: string): Promise<unknown> {
       const body: Record<string, unknown> = {
         children: children.slice(0, 100),
       };
@@ -246,4 +249,4 @@ export function createNotionClient(apiKey: string) {
   return client;
 }
 
-export type NotionClient = ReturnType<typeof createNotionClient>;
+type NotionClient = ReturnType<typeof createNotionClient>;

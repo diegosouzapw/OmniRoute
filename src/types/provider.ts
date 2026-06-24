@@ -1,7 +1,7 @@
 /**
  * Provider connection — a configured cloud AI provider account.
  */
-export interface ProviderConnection {
+interface ProviderConnection {
   id: string;
   provider: string;
   label: string;
@@ -19,7 +19,7 @@ export interface ProviderConnection {
 /**
  * Provider node — a specific endpoint within a provider.
  */
-export interface ProviderNode {
+interface ProviderNode {
   id: string;
   connectionId: string;
   provider: string;

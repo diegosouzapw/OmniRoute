@@ -1,7 +1,7 @@
 /**
  * Combo — a routing group that distributes requests across provider nodes.
  */
-export interface Combo {
+interface Combo {
   id: string;
   name: string;
   model: string;
