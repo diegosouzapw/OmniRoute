@@ -87,6 +87,43 @@ const TEST_MEMORY_STORE = new Map<string, number>();
 const FALLBACK_MEMORY_STORE = new Map<string, number>();
 let explicitTestMode = false;
 
+// Minimum store size before we bother sweeping (avoids O(n) cost on tiny stores)
+const EVICTION_THRESHOLD = 50;
+
+/**
+ * Evict all in-memory rate-limit window keys whose window has already ended.
+ *
+ * Key format: `rl:api_key:{id}:{windowSize}:{windowNumber}`
+ * A key expires at epoch-second `(windowNumber + 1) * windowSize`.
+ *
+ * Exported so tests can exercise it directly and so callers can invoke it
+ * with any store (TEST_MEMORY_STORE or FALLBACK_MEMORY_STORE).
+ *
+ * Fixes: #4041 — FALLBACK_MEMORY_STORE accumulated indefinitely → OOM (#4771).
+ */
+export function evictStaleRateLimitWindows(store: Map<string, number>, nowSeconds: number): void {
+  for (const key of store.keys()) {
+    // Format: rl:api_key:{id}:{windowSize}:{windowNumber}
+    // Split only on the last two colons to handle ids that contain colons.
+    const lastColon = key.lastIndexOf(":");
+    if (lastColon === -1) continue;
+    const secondLastColon = key.lastIndexOf(":", lastColon - 1);
+    if (secondLastColon === -1) continue;
+
+    const windowNumber = Number(key.slice(lastColon + 1));
+    const windowSize = Number(key.slice(secondLastColon + 1, lastColon));
+
+    if (!Number.isFinite(windowNumber) || !Number.isFinite(windowSize) || windowSize <= 0) {
+      continue;
+    }
+
+    const windowEnd = (windowNumber + 1) * windowSize;
+    if (windowEnd <= nowSeconds) {
+      store.delete(key);
+    }
+  }
+}
+
 export function setRateLimiterTestMode(enabled: boolean) {
   explicitTestMode = enabled;
   if (enabled) TEST_MEMORY_STORE.clear();
@@ -98,6 +135,12 @@ function checkInMemoryRateLimit(
   rules: RateLimitRule[]
 ): RateLimitResult {
   const now = Math.floor(Date.now() / 1000);
+
+  // Opportunistic eviction: sweep stale windows when the store has grown past
+  // the threshold. Bounded O(n) sweep — no timer, no background work.
+  if (store.size > EVICTION_THRESHOLD) {
+    evictStaleRateLimitWindows(store, now);
+  }
   for (const rule of rules) {
     const currentWindow = Math.floor(now / rule.window);
     const windowKey = `rl:api_key:${keyId}:${rule.window}:${currentWindow}`;
