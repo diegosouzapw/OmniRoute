@@ -38,16 +38,24 @@ import {
 } from "../executors/antigravity.ts";
 import { getCreditsMode } from "./antigravityCredits.ts";
 import { CLAUDE_CODE_VERSION, fetchClaudeBootstrap } from "../executors/claudeIdentity.ts";
-import {
-  isClaudeOauthUsageCoolingDown,
-  markClaudeOauthUsage429,
-} from "./claudeUsageCooldown.ts";
+import { isClaudeOauthUsageCoolingDown, markClaudeOauthUsage429 } from "./claudeUsageCooldown.ts";
 import { generateAntigravityRequestId, getAntigravitySessionId } from "./antigravityIdentity.ts";
 import {
   extractCodeAssistOnboardTierId,
   extractCodeAssistSubscriptionTier,
 } from "./codeAssistSubscription.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import {
+  toRecord,
+  toNumber,
+  toPercentage,
+  toTitleCase,
+  getFieldValue,
+  clampPercentage,
+  roundCurrency,
+  toDisplayLabel,
+  pickFirstNonEmptyString,
+} from "./usage/scalars.ts";
 
 // Quota / usage upstream URLs (overridable for testing or relays).
 const CROF_USAGE_URL = process.env.OMNIROUTE_CROF_USAGE_URL ?? "https://crof.ai/usage_api/";
@@ -162,33 +170,6 @@ type SubscriptionCacheEntry = {
   fetchedAt: number;
 };
 
-function toRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
-
-function toNumber(value: unknown, fallback = 0): number {
-  const parsed =
-    typeof value === "number"
-      ? value
-      : typeof value === "string" && value.trim().length > 0
-        ? Number(value)
-        : Number.NaN;
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function toPercentage(value: unknown): number {
-  return Math.max(0, Math.min(100, toNumber(value, 0)));
-}
-
-function toTitleCase(value: string): string {
-  return value
-    .trim()
-    .split(/[\s_-]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join(" ");
-}
-
 function getGlmTokenQuotaName(
   limit: JsonRecord,
   existingQuotas: Record<string, UsageQuota>
@@ -207,34 +188,6 @@ function getGlmQuotaDisplayName(quotaName: string): string {
   if (quotaName === "weekly") return "Weekly Quota";
   return quotaName;
 }
-function getFieldValue(source: unknown, snakeKey: string, camelKey: string): unknown {
-  const obj = toRecord(source);
-  return obj[snakeKey] ?? obj[camelKey] ?? null;
-}
-
-function clampPercentage(value: number): number {
-  return Math.max(0, Math.min(100, value));
-}
-
-function roundCurrency(value: number): number {
-  return Math.round(value * 100) / 100;
-}
-
-function toDisplayLabel(value: string): string {
-  return value
-    .replace(/^copilot[_\s-]*/i, "")
-    .split(/[\s_-]+/)
-    .filter(Boolean)
-    .map((part) => {
-      if (/^pro\+$/i.test(part)) return "Pro+";
-      if (/^[a-z]{2,}$/.test(part))
-        return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
-      return part;
-    })
-    .join(" ")
-    .trim();
-}
-
 function shouldDisplayGitHubQuota(quota: UsageQuota | null): quota is UsageQuota {
   if (!quota) return false;
   if (quota.unlimited && quota.total <= 0) return false;
@@ -274,15 +227,6 @@ function buildKiroQuota(
     resetAt,
     unlimited: true,
   };
-}
-
-function pickFirstNonEmptyString(...values: unknown[]): string | undefined {
-  for (const value of values) {
-    if (typeof value !== "string") continue;
-    const trimmed = value.trim();
-    if (trimmed) return trimmed;
-  }
-  return undefined;
 }
 
 function inferMiniMaxPlanLabelFromTotals(models: JsonRecord[]): string | null {
