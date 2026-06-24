@@ -55,7 +55,9 @@ function convertClaudeServerWebSearchTool(tool: JsonRecord): JsonRecord {
   return {
     type: "web_search",
     ...(Object.keys(filters).length > 0 ? { filters } : {}),
-    ...(tool.user_location && typeof tool.user_location === "object" && !Array.isArray(tool.user_location)
+    ...(tool.user_location &&
+    typeof tool.user_location === "object" &&
+    !Array.isArray(tool.user_location)
       ? { user_location: tool.user_location }
       : {}),
   };
@@ -133,32 +135,15 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
     }
   }
 
-  // Fix missing tool responses - OpenAI requires every tool_call to have a response
-  fixMissingToolResponses(result.messages);
+  // #4714 / #4385: re-group every role:"tool" message immediately after the
+  // assistant turn whose tool_calls issued it (dropping genuine orphans), then
+  // fill placeholders for any tool_call left unanswered.
+  result.messages = regroupToolMessages(result.messages);
 
-  // #4385: drop orphan tool results — a role:"tool" message whose tool_call_id has no
-  // matching assistant.tool_calls (e.g. history truncation / compression removed the
-  // assistant turn that issued the call but kept the tool_result). OpenAI-compatible
-  // upstreams reject these with 502 "Messages with role 'tool' must be a response to a
-  // preceding message with 'tool_calls'". Mirrors the filter already applied on the
-  // Responses->Chat path in openai-responses.ts (#2893). Run after fixMissingToolResponses
-  // so the inserted "[No response received]" placeholders (which DO match a tool_call)
-  // are kept, and only genuinely orphaned results are removed.
-  const assistantToolCallIds = new Set<string>();
-  for (const msg of result.messages) {
-    const calls = (msg as JsonRecord).tool_calls;
-    if (Array.isArray(calls)) {
-      for (const tc of calls as { id?: string }[]) {
-        if (tc.id) assistantToolCallIds.add(String(tc.id));
-      }
-    }
-  }
-  result.messages = result.messages.filter((msg) => {
-    if ((msg as JsonRecord).role === "tool") {
-      return assistantToolCallIds.has(String((msg as JsonRecord).tool_call_id ?? ""));
-    }
-    return true;
-  });
+  // Fix missing tool responses - OpenAI requires every tool_call to have a response.
+  // Runs after regrouping so real results are already adjacent and only a truly
+  // unanswered tool_call receives a "[No response received]" placeholder.
+  fixMissingToolResponses(result.messages);
 
   const useNativeResponsesWebSearch = shouldUseNativeResponsesWebSearch(credentials);
 
@@ -221,6 +206,62 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
   }
 
   return result;
+}
+
+// #4714: Re-group tool result messages so every role:"tool" message sits
+// immediately after the assistant message whose tool_calls issued it, in
+// tool_calls order. Claude Code can issue parallel tool_use in one assistant turn
+// but have their tool_result blocks arrive across SEPARATE user turns with
+// interleaved text; the naive conversion then left a role:"tool" stranded after a
+// user message, which OpenAI-compatible upstreams reject with 400 "Messages with
+// role 'tool' must be a response to a preceding message with 'tool_calls'".
+// Tool messages whose tool_call_id matches no assistant.tool_calls are dropped here
+// (supersedes the standalone #4385 orphan filter — same drop behavior, plus ordering).
+function regroupToolMessages(messages: JsonRecord[]): JsonRecord[] {
+  // tool_call_id -> index of the assistant message that issued it (first wins).
+  const callIdToAssistant = new Map<string, number>();
+  messages.forEach((msg, idx) => {
+    if (msg.role === "assistant" && Array.isArray(msg.tool_calls)) {
+      for (const tc of msg.tool_calls as { id?: string }[]) {
+        if (tc.id && !callIdToAssistant.has(String(tc.id))) {
+          callIdToAssistant.set(String(tc.id), idx);
+        }
+      }
+    }
+  });
+
+  // Collect tool messages per assistant index, keyed by tool_call_id (first result wins).
+  const toolsByAssistant = new Map<number, Map<string, JsonRecord>>();
+  for (const msg of messages) {
+    if (msg.role !== "tool") continue;
+    const callId = String(msg.tool_call_id ?? "");
+    const assistantIdx = callIdToAssistant.get(callId);
+    if (assistantIdx === undefined) continue; // orphan -> drop
+    let group = toolsByAssistant.get(assistantIdx);
+    if (!group) {
+      group = new Map();
+      toolsByAssistant.set(assistantIdx, group);
+    }
+    if (!group.has(callId)) group.set(callId, msg);
+  }
+
+  // Rebuild: keep non-tool messages in order; attach each assistant's tool results
+  // immediately after it, ordered by the assistant's own tool_calls sequence.
+  const out: JsonRecord[] = [];
+  messages.forEach((msg, idx) => {
+    if (msg.role === "tool") return; // moved into its assistant's group
+    out.push(msg);
+    if (msg.role === "assistant" && Array.isArray(msg.tool_calls)) {
+      const group = toolsByAssistant.get(idx);
+      if (group) {
+        for (const tc of msg.tool_calls as { id?: string }[]) {
+          const tool = tc.id ? group.get(String(tc.id)) : undefined;
+          if (tool) out.push(tool);
+        }
+      }
+    }
+  });
+  return out;
 }
 
 // Fix missing tool responses - add empty responses for tool_calls without responses
