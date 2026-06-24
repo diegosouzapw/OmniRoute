@@ -126,15 +126,3 @@ function isClassifiedAsPublic(path: string, method: string): boolean {
   }
   return matchesReadonlyPublic(path, method);
 }
-
-export function isClientApi(routeClass: RouteClass): boolean {
-  return routeClass === "CLIENT_API";
-}
-
-export function isManagement(routeClass: RouteClass): boolean {
-  return routeClass === "MANAGEMENT";
-}
-
-export function isPublic(routeClass: RouteClass): boolean {
-  return routeClass === "PUBLIC";
-}

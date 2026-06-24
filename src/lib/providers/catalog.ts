@@ -173,16 +173,6 @@ export function getStaticProviderCatalogGroup(
   return STATIC_PROVIDER_CATALOG_GROUPS[category];
 }
 
-export function getStaticProviderCategories(providerId: string): StaticProviderCatalogCategory[] {
-  const categories: StaticProviderCatalogCategory[] = [];
-  for (const category of STATIC_PROVIDER_CATALOG_RESOLUTION_ORDER) {
-    if (STATIC_PROVIDER_CATALOG_GROUPS[category].providers[providerId]) {
-      categories.push(category);
-    }
-  }
-  return categories;
-}
-
 export function resolveStaticProviderCatalogEntry(
   providerId: string
 ): ResolvedStaticProviderCatalogEntry | null {

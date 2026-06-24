@@ -15,13 +15,7 @@
  * Part of: Group B — Quota Sharing Engine (plan 22, frente F6).
  */
 
-import {
-  getPool,
-  getBucket,
-  incrementBucket,
-  getPair,
-  sumPoolDimension,
-} from "@/lib/localDb";
+import { getPool, getBucket, incrementBucket, getPair, sumPoolDimension } from "@/lib/localDb";
 import { WINDOW_MS, dimensionKeyToString } from "./dimensions";
 import type { DimensionKey } from "./dimensions";
 import type { QuotaStore, PoolUsageSnapshot } from "./types";
@@ -285,8 +279,4 @@ export function getSqliteQuotaStore(): SqliteQuotaStore {
     _instance = new SqliteQuotaStore();
   }
   return _instance;
-}
-
-export function resetSqliteQuotaStore(): void {
-  _instance = null;
 }

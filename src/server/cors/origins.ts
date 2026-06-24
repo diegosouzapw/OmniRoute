@@ -34,10 +34,6 @@ export function setRuntimeAllowedOrigins(csv: string | null | undefined): void {
   runtimeAllowedOrigins = parseOriginList(csv);
 }
 
-export function getRuntimeAllowedOrigins(): ReadonlySet<string> {
-  return runtimeAllowedOrigins;
-}
-
 function parseOriginList(value: string | null | undefined): Set<string> {
   const result = new Set<string>();
   if (!value) return result;

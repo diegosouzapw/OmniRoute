@@ -477,7 +477,9 @@ export async function applyRuntimeSettings(
 
   if (force || hasChanged(currentSnapshot.usageTokenBuffer, previousSnapshot.usageTokenBuffer)) {
     const newBuffer =
-      typeof currentSnapshot.usageTokenBuffer === "number" ? currentSnapshot.usageTokenBuffer : null;
+      typeof currentSnapshot.usageTokenBuffer === "number"
+        ? currentSnapshot.usageTokenBuffer
+        : null;
     await applyUsageTrackingSection(newBuffer);
     markChanged("usageTracking");
   }
@@ -531,17 +533,16 @@ export async function applyRuntimeSettings(
     markChanged("authzBypass");
   }
 
-  if (force || hasChanged(currentSnapshot.customBannedSignals, previousSnapshot.customBannedSignals)) {
+  if (
+    force ||
+    hasChanged(currentSnapshot.customBannedSignals, previousSnapshot.customBannedSignals)
+  ) {
     setCustomBannedSignals(currentSnapshot.customBannedSignals);
     markChanged("bannedSignals");
   }
 
   lastAppliedSnapshot = currentSnapshot;
   return changes;
-}
-
-export function getLastAppliedRuntimeSettingsSnapshotForTests() {
-  return lastAppliedSnapshot;
 }
 
 export function resetRuntimeSettingsStateForTests() {

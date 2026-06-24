@@ -23,8 +23,7 @@ import {
 } from "./cache";
 
 const STATIC_MODEL = process.env.MEMORY_STATIC_MODEL || "minishlab/potion-base-8M";
-const TRANSFORMERS_MODEL =
-  process.env.MEMORY_TRANSFORMERS_MODEL || "Xenova/all-MiniLM-L6-v2";
+const TRANSFORMERS_MODEL = process.env.MEMORY_TRANSFORMERS_MODEL || "Xenova/all-MiniLM-L6-v2";
 
 /** Build an EmbeddingResolution for "no source available" cases. */
 function noSource(reason: string): EmbeddingResolution {
@@ -184,12 +183,7 @@ export async function embed(
     };
   }
 
-  const cacheKey = buildCacheKey(
-    resolution.source,
-    resolution.model,
-    resolution.dimensions,
-    text
-  );
+  const cacheKey = buildCacheKey(resolution.source, resolution.model, resolution.dimensions, text);
 
   const cached = cacheGet(cacheKey);
   if (cached) {
@@ -289,12 +283,4 @@ export async function listEmbeddingProviders(): Promise<EmbeddingProviderListing
   }
 
   return result;
-}
-
-/**
- * Drop the in-memory embedding cache.
- * Called when settings (model/source) change.
- */
-export function invalidateEmbeddingCache(): void {
-  cacheInvalidate();
 }

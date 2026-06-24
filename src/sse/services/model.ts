@@ -40,14 +40,6 @@ async function getCombinedModelAliases(): Promise<Record<string, unknown>> {
 }
 
 /**
- * Resolve model alias from localDb
- */
-export async function resolveModelAlias(alias) {
-  const aliases = await getModelAliases();
-  return resolveModelAliasFromMap(alias, aliases);
-}
-
-/**
  * Look up custom-model metadata from the DB in a single read:
  *  - apiFormat: "responses" when the model is configured for the Responses API.
  *  - targetFormat: the optional per-model wire format override (#2905).
@@ -208,16 +200,4 @@ export async function getComboForModel(modelStr) {
   }
 
   return null;
-}
-
-/**
- * Legacy: get combo models as string array
- * @returns {Promise<string[]|null>}
- */
-export async function getComboModels(modelStr) {
-  const combo = await getCombo(modelStr);
-  if (!combo) return null;
-  return (combo.models || [])
-    .map((entry) => getComboStepTarget(entry))
-    .filter((entry): entry is string => typeof entry === "string" && entry.length > 0);
 }
