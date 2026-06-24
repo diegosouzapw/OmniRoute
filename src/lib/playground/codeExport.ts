@@ -1,6 +1,3 @@
-// src/lib/playground/codeExport.ts
-import { z } from "zod";
-
 /**
  * Endpoint suportado pelo Playground Studio. Reflete os 13 endpoints da API OmniRoute
  * consumíveis pelas tabs Chat/Compare/Build/Search/Scrape via Export Code.
@@ -80,42 +77,6 @@ export interface PlaygroundState {
   rerankModel?: string;
   documents?: string[];
 }
-
-export const PlaygroundStateSchema = z.object({
-  endpoint: z.enum([
-    "chat.completions",
-    "responses",
-    "completions",
-    "embeddings",
-    "images",
-    "audio.transcriptions",
-    "audio.speech",
-    "video",
-    "music",
-    "moderations",
-    "rerank",
-    "search",
-    "web.fetch",
-  ]),
-  baseUrl: z.string().min(1),
-  model: z.string().optional(),
-  systemPrompt: z.string().optional(),
-  messages: z.array(z.any()).optional(),
-  prompt: z.string().optional(),
-  query: z.string().optional(),
-  url: z.string().optional(),
-  params: z.record(z.string(), z.any()).optional(),
-  tools: z.array(z.any()).optional(),
-  stream: z.boolean().optional(),
-  searchProvider: z.string().optional(),
-  searchType: z.enum(["web", "news"]).optional(),
-  maxResults: z.number().int().optional(),
-  fetchProvider: z.enum(["firecrawl", "jina-reader", "tavily-search"]).optional(),
-  fetchFormat: z.enum(["markdown", "html", "links", "screenshot"]).optional(),
-  fetchDepth: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
-  rerankModel: z.string().optional(),
-  documents: z.array(z.string()).optional(),
-});
 
 /** Constante: placeholder de API key — NUNCA embutir key real. */
 export const API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY";

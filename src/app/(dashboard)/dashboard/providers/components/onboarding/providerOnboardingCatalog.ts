@@ -117,10 +117,6 @@ export function filterWizardProviderOptions(
   });
 }
 
-export function getDefaultConnectionName(option: Pick<WizardProviderOption, "name">): string {
-  return `${option.name} Primary`;
-}
-
 export function buildProviderSpecificData(input: {
   baseUrl?: string;
   region?: string;

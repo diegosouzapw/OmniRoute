@@ -407,10 +407,3 @@ export const databaseSettingsSchema = z
     // Skip location and stats as they're read-only
   })
   .strict();
-
-export type DatabaseSettingsSchema = z.infer<typeof databaseSettingsSchema>;
-
-export const featureFlagUpdateSchema = z.object({
-  key: z.string().min(1),
-  value: z.string().optional(),
-});

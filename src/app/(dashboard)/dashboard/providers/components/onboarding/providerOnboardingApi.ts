@@ -132,15 +132,6 @@ async function expectOk<T>(response: Response, fallback: string): Promise<T> {
   return data as T;
 }
 
-export async function fetchOnboardingConnections(): Promise<OnboardingConnection[]> {
-  const response = await fetch("/api/providers");
-  const data = await expectOk<{ connections?: OnboardingConnection[] }>(
-    response,
-    "Failed to load provider connections"
-  );
-  return Array.isArray(data.connections) ? data.connections : [];
-}
-
 export async function fetchOnboardingProviderNodes(): Promise<OnboardingProviderNodes> {
   const response = await fetch("/api/provider-nodes");
   const data = await expectOk<Record<string, unknown>>(response, "Failed to load provider nodes");
@@ -249,22 +240,4 @@ export function buildCompatibleNodeRequest(input: CreateCompatibleProviderNodeIn
   if (defaults.hasModelsPath) body.modelsPath = sanitizedInput.modelsPath || "";
   if ("compatMode" in defaults) body.compatMode = defaults.compatMode;
   return parseOrThrow(createProviderNodeSchema, body, "Compatible provider data is invalid");
-}
-
-export async function createCompatibleProviderNode(
-  input: CreateCompatibleProviderNodeInput
-): Promise<CompatibleProviderNode> {
-  const response = await fetch("/api/provider-nodes", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(buildCompatibleNodeRequest(input)),
-  });
-  const data = await expectOk<{ node?: CompatibleProviderNode }>(
-    response,
-    "Failed to create compatible provider"
-  );
-  if (!data.node?.id) {
-    throw new Error("Compatible provider was created without an id");
-  }
-  return data.node;
 }

@@ -94,7 +94,7 @@
       "eps": 0.5
     },
     "deadExports": {
-      "value": 107,
+      "value": 96,
       "direction": "down",
       "dedicatedGate": true,
       "_dead_code_ratchet_2026_06_24_unused_helpers": "287 -> 279 after removing unused legacy response/cost/settings/plugin/OAuth helper modules.",
@@ -110,7 +110,8 @@
       "_dead_code_ratchet_2026_06_24_stale_leaf_helpers": "182 -> 169 after deleting unused leaf helper implementations from dashboard quota utilities, combo builder helpers, request/correlation utilities, and stale validation helpers.",
       "_dead_code_ratchet_2026_06_24_stale_schema_exports": "169 -> 145 after deleting unused legacy schema exports, duplicate helper aliases, and stale utility constants while preserving live route/test contracts.",
       "_dead_code_ratchet_2026_06_24_internal_helper_exports": "145 -> 121 after deleting unused internal diagnostics, legacy service helpers, stale cache cleanup helpers, and orphan utility exports while preserving documented/tested contracts.",
-      "_dead_code_ratchet_2026_06_24_stale_leaf_exports": "121 -> 107 after deleting unused stale leaf exports from semantic cache, API-key parsing, webhook delivery detail, OAuth config, Obsidian sync/base-url helpers, prompt-cache, codegraph, API v1 schemas, analytics, and playground/provider utility surfaces."
+      "_dead_code_ratchet_2026_06_24_stale_leaf_exports": "121 -> 107 after deleting unused stale leaf exports from semantic cache, API-key parsing, webhook delivery detail, OAuth config, Obsidian sync/base-url helpers, prompt-cache, codegraph, API v1 schemas, analytics, and playground/provider utility surfaces.",
+      "_dead_code_ratchet_2026_06_24_stale_internal_exports": "107 -> 96 after deleting unused leaf exports from CLI tool mapping, playground schemas, provider onboarding helpers, settings schemas, OAuth callback helper, Zed keychain lookup, SSE logger wrappers, and the shared logger default export."
     },
     "cognitiveComplexity": {
       "value": 801,

@@ -91,32 +91,3 @@ export function startLocalServer(
     });
   });
 }
-
-/**
- * Wait for callback with timeout
- * @param {number} timeoutMs - Timeout in milliseconds
- * @returns {Promise<Object>} - Callback params
- */
-export function waitForCallback(timeoutMs = 300000) {
-  return new Promise((resolve, reject) => {
-    let resolved = false;
-
-    const timeout = setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        reject(new Error("Authentication timeout"));
-      }
-    }, timeoutMs);
-
-    const onCallback = (params: Record<string, string>) => {
-      if (!resolved) {
-        resolved = true;
-        clearTimeout(timeout);
-        resolve(params);
-      }
-    };
-
-    // Return the callback function
-    (resolve as any).__onCallback = onCallback;
-  });
-}

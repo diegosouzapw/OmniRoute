@@ -9,13 +9,7 @@ export type {
   PlaygroundState,
 } from "./codeExport";
 
-export {
-  PlaygroundStateSchema,
-  API_KEY_PLACEHOLDER,
-  exportCode,
-  exportAllLanguages,
-  endpointToPath,
-} from "./codeExport";
+export { API_KEY_PLACEHOLDER, exportCode, exportAllLanguages, endpointToPath } from "./codeExport";
 
 export type { ImprovePromptRequest, ImprovePromptResult } from "./promptImprover";
 
