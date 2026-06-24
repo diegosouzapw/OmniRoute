@@ -47,7 +47,6 @@ export const KNOWN_MISSING_ERROR_HELPER = new Set([
   "src/app/api/cli-tools/guide-settings/[toolId]/route.ts",
   "src/app/api/models/catalog/route.ts",
   "src/app/api/providers/test-batch/route.ts",
-  "src/app/api/usage/proxy-logs/route.ts",
 ]);
 
 // Import specifiers that count as "uses the error helper" (path ends in utils/error).
