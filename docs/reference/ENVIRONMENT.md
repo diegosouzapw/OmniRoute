@@ -616,6 +616,8 @@ Provider-level circuit breaker tuning. Defaults reflect the scaled values used s
 | `OMNIROUTE_CIRCUIT_BREAKER_API_KEY_RESET_MS`  | `30000` | `open-sse/config/constants.ts` | Reset window (ms) for API-key provider breaker.                             |
 | `OMNIROUTE_CIRCUIT_BREAKER_LOCAL_THRESHOLD`   | `2`     | `open-sse/config/constants.ts` | Consecutive failure threshold for local providers (Ollama, LM Studio, ...). |
 | `OMNIROUTE_CIRCUIT_BREAKER_LOCAL_RESET_MS`    | `15000` | `open-sse/config/constants.ts` | Reset window (ms) for local provider breaker.                               |
+| `PIN_DROP_BACKOFF_LEVEL`                      | `2`     | `open-sse/services/combo.ts`   | Backoff depth at which a context-cache pin's provider is deemed durably unhealthy and the pin is dropped for failover. |
+| `PIN_DROP_GRACE_MS`                           | `20000` | `open-sse/services/combo.ts`   | Anti-flap window (ms) tolerating brief transient cooldowns before dropping a context-cache pin.                       |
 
 ### Scenarios
 

@@ -242,7 +242,7 @@
     "tests/unit/executor-codex.test.ts": 1339,
     "tests/unit/executor-default-base.test.ts": 1339,
     "tests/unit/grok-web.test.ts": 2437,
-    "tests/unit/image-generation-handler.test.ts": 1996,
+    "tests/unit/image-generation-handler.test.ts": 2019,
     "tests/unit/model-sync-route.test.ts": 1016,
     "tests/unit/models-catalog-route.test.ts": 1507,
     "_rebaseline_pr4561_qwen_oauth_url": "Reconcile #4561 (port decolua/9router#683) already-merged growth: oauth-providers-config.test.ts 855->867 (+12, qwen.ai URL regression-pin test). Fast-gate PR->release does not run check:file-size, so this surfaced post-merge.",
