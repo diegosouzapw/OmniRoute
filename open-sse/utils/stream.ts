@@ -1791,7 +1791,12 @@ export function createSSEStream(options: StreamOptions = {}) {
                 }
 
                 clientPayload = parsed;
-              } catch {}
+              } catch {
+                // Skip non-JSON data lines silently — don't forward garbage to clients.
+                // Upstream providers sometimes return plain-text errors (HTML, rate-limit
+                // messages) in the SSE stream that would break downstream JSON decoders.
+                continue;
+              }
             }
 
             if (!injectedUsage) {
