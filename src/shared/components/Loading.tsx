@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 
 type SpinnerSize = "sm" | "md" | "lg" | "xl";
-type LoadingType = "spinner" | "page" | "skeleton" | "card";
 
 const spinnerSizes: Record<SpinnerSize, string> = {
   sm: "size-4",
@@ -27,14 +26,6 @@ interface PageLoadingProps {
 
 interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
   className?: string;
-}
-
-interface LoadingProps extends HTMLAttributes<HTMLDivElement> {
-  type?: LoadingType;
-  className?: string;
-  message?: string;
-  size?: SpinnerSize;
-  label?: string;
 }
 
 // Spinner loading
@@ -104,25 +95,4 @@ export function CardSkeleton() {
       <Skeleton className="h-3 w-20" />
     </div>
   );
-}
-
-// Default export
-export default function Loading({
-  type = "spinner",
-  className,
-  message,
-  size,
-  label,
-  ...props
-}: LoadingProps) {
-  switch (type) {
-    case "page":
-      return <PageLoading message={message} className={className} />;
-    case "skeleton":
-      return <Skeleton className={className} {...props} />;
-    case "card":
-      return <CardSkeleton />;
-    default:
-      return <Spinner size={size} className={className} label={label} />;
-  }
 }

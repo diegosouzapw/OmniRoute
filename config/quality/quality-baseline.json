@@ -94,13 +94,14 @@
       "eps": 0.5
     },
     "deadExports": {
-      "value": 261,
+      "value": 259,
       "direction": "down",
       "dedicatedGate": true,
       "_dead_code_ratchet_2026_06_24_unused_helpers": "287 -> 279 after removing unused legacy response/cost/settings/plugin/OAuth helper modules.",
       "_dead_code_ratchet_2026_06_24_stale_domain_helpers": "279 -> 271 after removing unused domain response/config-audit helpers, benchmark stub, duplicate validation files, stale barrels, and inspector secret-mask re-export.",
       "_dead_code_ratchet_2026_06_24_framework_stubs": "271 -> 263 after removing unused discovery/cloud-agent/gamification barrels, assessment migration/index stubs, and skills custom/hybrid preview helpers.",
-      "_dead_code_ratchet_2026_06_24_orphan_adapters": "263 -> 261 after removing the orphan raw VS Code model presentation helper and unused standalone nodeSqliteAdapter wrapper."
+      "_dead_code_ratchet_2026_06_24_orphan_adapters": "263 -> 261 after removing the orphan raw VS Code model presentation helper and unused standalone nodeSqliteAdapter wrapper.",
+      "_dead_code_ratchet_2026_06_24_component_exports": "261 -> 259 after removing unused default exports from live Loading and SkillsConceptCard components while keeping their named exports."
     },
     "cognitiveComplexity": {
       "value": 801,

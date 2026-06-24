@@ -11,7 +11,10 @@ export interface SkillsConceptCardProps {
 const COMPARISON_ROWS = ["whatIs", "direction", "executor", "storage", "tagline"] as const;
 type ComparisonRow = (typeof COMPARISON_ROWS)[number];
 
-export function SkillsConceptCard({ variant, className = "" }: SkillsConceptCardProps): JSX.Element {
+export function SkillsConceptCard({
+  variant,
+  className = "",
+}: SkillsConceptCardProps): JSX.Element {
   const t = useTranslations("agentSkills");
 
   const crossLinkHref = variant === "agent" ? "/dashboard/omni-skills" : "/dashboard/agent-skills";
@@ -80,5 +83,3 @@ export function SkillsConceptCard({ variant, className = "" }: SkillsConceptCard
     </div>
   );
 }
-
-export default SkillsConceptCard;
