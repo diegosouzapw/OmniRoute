@@ -6,9 +6,14 @@ import path from "node:path";
 
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-skills-route-"));
 const originalDataDir = process.env.DATA_DIR;
+const originalInitialPassword = process.env.INITIAL_PASSWORD;
+const originalJwtSecret = process.env.JWT_SECRET;
 process.env.DATA_DIR = tmpDir;
+process.env.INITIAL_PASSWORD = "";
+delete process.env.JWT_SECRET;
 
 const core = await import("../../src/lib/db/core.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const { skillRegistry } = await import("../../src/lib/skills/registry.ts");
 const skillsRoute = await import("../../src/app/api/skills/route.ts");
 const skillByIdRoute = await import("../../src/app/api/skills/[id]/route.ts");
@@ -21,12 +26,13 @@ function clearSkillRegistry() {
   }
 }
 
-function resetStorage() {
+async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(tmpDir, { recursive: true, force: true });
   fs.mkdirSync(tmpDir, { recursive: true });
   clearSkillRegistry();
   core.getDbInstance();
+  await settingsDb.updateSettings({ requireLogin: false });
 }
 
 async function registerSkill(overrides = {}) {
@@ -52,14 +58,24 @@ async function registerSkill(overrides = {}) {
   });
 }
 
-test.beforeEach(() => {
-  resetStorage();
+test.beforeEach(async () => {
+  await resetStorage();
 });
 
 test.after(() => {
   core.resetDbInstance();
   clearSkillRegistry();
   process.env.DATA_DIR = originalDataDir;
+  if (originalInitialPassword === undefined) {
+    delete process.env.INITIAL_PASSWORD;
+  } else {
+    process.env.INITIAL_PASSWORD = originalInitialPassword;
+  }
+  if (originalJwtSecret === undefined) {
+    delete process.env.JWT_SECRET;
+  } else {
+    process.env.JWT_SECRET = originalJwtSecret;
+  }
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
