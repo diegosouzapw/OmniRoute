@@ -8,6 +8,7 @@ import { validateComboDAG, clampComboDepth } from "@omniroute/open-sse/services/
 import { createComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { comboErrorResponse } from "@/lib/api/comboErrorResponse";
 
 // GET /api/combos - Get all combos
 export async function GET(request: Request) {
@@ -56,9 +57,11 @@ export async function POST(request) {
         success: false;
         error: { message: string; details: unknown[] };
       };
-      return NextResponse.json(
-        { error: failure.error.message, details: failure.error.details },
-        { status: 400 }
+      return comboErrorResponse(
+        "COMBO_003",
+        400,
+        { reason: failure.error.message, details: failure.error.details },
+        request
       );
     }
 
