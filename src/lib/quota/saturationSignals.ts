@@ -60,18 +60,124 @@ interface RateLimitHeaderEntry {
   ts: number;
 }
 
+/**
+ * TOKEN rate-limit header snapshot. Unlike the per-minute REQUEST headers, the
+ * token headers ride on EVERY upstream response (success too), so they enable
+ * proactive throttling before a 429. `resetAt` is the upstream reset normalized
+ * to epoch ms (Anthropic RFC3339 → Date.parse; OpenAI duration → now + secs),
+ * or null when the upstream sent no reset header.
+ */
+interface TokenHeaderEntry {
+  limit: number;
+  remaining: number;
+  resetAt: number | null; // epoch ms, normalized; null when unknown
+  ts: number;
+}
+
 const _rateLimitHeaders = new Map<string, RateLimitHeaderEntry>();
+const _tokenHeaders = new Map<string, TokenHeaderEntry>();
 const RL_HEADER_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+/** Test-only: clear the rate-limit + token header caches between asserts. */
+export function _clearRateLimitHeaders(): void {
+  _rateLimitHeaders.clear();
+  _tokenHeaders.clear();
+}
+
+/**
+ * Parse an OpenAI rate-limit reset DURATION string into milliseconds.
+ * OpenAI reports token/request resets as Go-style durations, e.g. "6m0s",
+ * "1s", "1h30m15s", "1.5s". Returns null when unparseable.
+ */
+function parseDurationMs(raw: string): number | null {
+  const s = raw.trim();
+  if (!s) return null;
+  // Bounded, non-overlapping segments to avoid ReDoS (PII learning #1).
+  const re = /(\d+(?:\.\d+)?)(ms|h|m|s)/g;
+  let total = 0;
+  let matched = false;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(s)) !== null) {
+    matched = true;
+    const value = Number(m[1]);
+    if (!Number.isFinite(value)) return null;
+    switch (m[2]) {
+      case "h":
+        total += value * 3_600_000;
+        break;
+      case "m":
+        total += value * 60_000;
+        break;
+      case "s":
+        total += value * 1000;
+        break;
+      case "ms":
+        total += value;
+        break;
+    }
+  }
+  return matched ? total : null;
+}
+
+/**
+ * Normalize a token-reset header value to epoch ms.
+ *   - Anthropic: RFC3339 timestamp ("2026-01-01T00:00:30Z") → Date.parse.
+ *   - OpenAI: duration ("6m0s") → now + parsed ms.
+ * Returns null when absent or unparseable.
+ */
+function normalizeTokenReset(raw: string | undefined, nowMs: number): number | null {
+  if (!raw) return null;
+  const s = raw.trim();
+  if (!s) return null;
+  // RFC3339 / ISO-8601 if it looks like a date (YYYY-MM-DD with a time sep).
+  if (/\d{4}-\d{2}-\d{2}/.test(s) && /[T:]/.test(s)) {
+    const t = Date.parse(s);
+    if (Number.isFinite(t)) return t;
+  }
+  // Otherwise treat as an OpenAI-style duration relative to now.
+  const durMs = parseDurationMs(s);
+  return durMs === null ? null : nowMs + durMs;
+}
+
+/**
+ * Pick the first present {limit, remaining[, reset]} triple from a list of
+ * header-key candidates, in priority order. Returns null when none are usable
+ * (missing keys, non-finite, or limit <= 0).
+ */
+function pickTokenTriple(
+  headers: Record<string, string>,
+  candidates: Array<{ limit: string; remaining: string; reset: string }>
+): { limit: number; remaining: number; reset: string | undefined } | null {
+  for (const c of candidates) {
+    const limitStr = headers[c.limit];
+    const remainingStr = headers[c.remaining];
+    if (limitStr === undefined || remainingStr === undefined) continue;
+    const limit = Number(limitStr);
+    const remaining = Number(remainingStr);
+    if (Number.isFinite(limit) && limit > 0 && Number.isFinite(remaining)) {
+      return { limit, remaining, reset: headers[c.reset] };
+    }
+  }
+  return null;
+}
 
 /**
  * Store rate-limit headers from an upstream response for saturation signal use.
  * Called by the response handler after a successful request.
+ *
+ * Captures two independent signals, both keyed `${provider}:${connectionId}`:
+ *   - REQUEST headers (per-minute RPM burst) — legacy, anthropic fallback.
+ *   - TOKEN headers (per-window TPM) — universal proactive saturation; present
+ *     on EVERY response, so we can throttle before the 429.
  */
 export function storeRateLimitHeaders(
   connectionId: string,
   provider: string,
   headers: Record<string, string>
 ): void {
+  const key = `${provider}:${connectionId}`;
+
+  // ── REQUEST headers (legacy path, unchanged) ──────────────────────────────
   // Anthropic: anthropic-ratelimit-requests-limit / anthropic-ratelimit-requests-remaining
   const limitStr =
     headers["anthropic-ratelimit-requests-limit"] ??
@@ -86,13 +192,63 @@ export function storeRateLimitHeaders(
     const limit = Number(limitStr);
     const remaining = Number(remainingStr);
     if (Number.isFinite(limit) && limit > 0 && Number.isFinite(remaining)) {
-      _rateLimitHeaders.set(`${provider}:${connectionId}`, {
-        limit,
-        remaining,
-        ts: Date.now(),
-      });
+      _rateLimitHeaders.set(key, { limit, remaining, ts: Date.now() });
     }
   }
+
+  // ── TOKEN headers (universal proactive saturation) ────────────────────────
+  // Anthropic base tokens, then OpenAI x-ratelimit-*-tokens, then anthropic
+  // input/output variants as a fallback. First usable triple wins.
+  const tokenTriple = pickTokenTriple(headers, [
+    {
+      limit: "anthropic-ratelimit-tokens-limit",
+      remaining: "anthropic-ratelimit-tokens-remaining",
+      reset: "anthropic-ratelimit-tokens-reset",
+    },
+    {
+      limit: "x-ratelimit-limit-tokens",
+      remaining: "x-ratelimit-remaining-tokens",
+      reset: "x-ratelimit-reset-tokens",
+    },
+    {
+      limit: "anthropic-ratelimit-input-tokens-limit",
+      remaining: "anthropic-ratelimit-input-tokens-remaining",
+      reset: "anthropic-ratelimit-input-tokens-reset",
+    },
+    {
+      limit: "anthropic-ratelimit-output-tokens-limit",
+      remaining: "anthropic-ratelimit-output-tokens-remaining",
+      reset: "anthropic-ratelimit-output-tokens-reset",
+    },
+  ]);
+
+  if (tokenTriple) {
+    const now = Date.now();
+    _tokenHeaders.set(key, {
+      limit: tokenTriple.limit,
+      remaining: tokenTriple.remaining,
+      resetAt: normalizeTokenReset(tokenTriple.reset, now),
+      ts: now,
+    });
+  }
+}
+
+/**
+ * Token-header saturation signal for a (provider, connectionId).
+ * Returns `{ saturation, resetAt }` where saturation = 1 − remaining/limit
+ * (clamped 0..1) and resetAt is the normalized epoch-ms reset (or null), or
+ * null when no fresh token-header data exists.
+ */
+export function getTokenHeaderSaturation(
+  provider: string,
+  connectionId: string
+): { saturation: number; resetAt: number | null } | null {
+  const entry = _tokenHeaders.get(`${provider}:${connectionId}`);
+  if (!entry || Date.now() - entry.ts > RL_HEADER_TTL_MS) return null;
+  if (!(entry.limit > 0)) return null;
+  const used = entry.limit - entry.remaining;
+  const saturation = Math.min(1, Math.max(0, used / entry.limit));
+  return { saturation, resetAt: entry.resetAt };
 }
 
 function cacheKey(connectionId: string, provider: string, dim: DimensionSpec): string {
@@ -292,26 +448,56 @@ async function fetchAnthropicSaturation(
   return anthropicHeaderSaturation(connectionId);
 }
 
+/**
+ * Injectable seam for the generic usage fetch so the token-header
+ * complement/fallback is unit-testable without the open-sse usage service.
+ * Defaults to getUsageForProvider; pass null to restore.
+ */
+type GenericUsageFetcher = (connectionId: string, provider: string) => Promise<unknown>;
+let _genericUsageFetcherOverride: GenericUsageFetcher | null = null;
+
+/** Test-only: inject the generic usage fetcher; pass null to restore. */
+export function __setGenericUsageFetcherForTests(fetcher: GenericUsageFetcher | null): void {
+  _genericUsageFetcherOverride = fetcher;
+}
+
+async function defaultGenericUsageFetch(
+  connectionId: string,
+  provider: string
+): Promise<unknown> {
+  const mod = await import("@omniroute/open-sse/services/usage");
+  const conn = { id: connectionId, provider } as Parameters<typeof mod.getUsageForProvider>[0];
+  return mod.getUsageForProvider(conn);
+}
+
 async function fetchGenericSaturation(
   connectionId: string,
   provider: string
 ): Promise<number> {
+  // 1. Real usage percent is authoritative when present (a provider that
+  //    actually reports utilization beats the burst-window token headers).
   try {
-    const mod = await import("@omniroute/open-sse/services/usage");
-    const conn = { id: connectionId, provider } as Parameters<typeof mod.getUsageForProvider>[0];
-    const result = await mod.getUsageForProvider(conn);
-    if (!result || typeof result !== "object") return 0;
-    const obj = result as Record<string, unknown>;
-    const pct =
-      typeof obj.percentUsed === "number"
-        ? obj.percentUsed
-        : typeof obj.used_percent === "number"
-          ? obj.used_percent
-          : 0;
-    return Math.min(1, Math.max(0, pct));
+    const fetcher = _genericUsageFetcherOverride ?? defaultGenericUsageFetch;
+    const result = await fetcher(connectionId, provider);
+    if (result && typeof result === "object") {
+      const obj = result as Record<string, unknown>;
+      const pct =
+        typeof obj.percentUsed === "number"
+          ? obj.percentUsed
+          : typeof obj.used_percent === "number"
+            ? obj.used_percent
+            : null;
+      if (pct !== null && Number.isFinite(pct)) {
+        return Math.min(1, Math.max(0, pct));
+      }
+    }
   } catch {
-    return 0;
+    // fall through to the token-header complement
   }
+
+  // 2. Complement/fallback: proactive TOKEN-header saturation (universal, rides
+  //    on every response). Fail-open to 0 when no fresh token-header data.
+  return getTokenHeaderSaturation(provider, connectionId)?.saturation ?? 0;
 }
 
 // ---------------------------------------------------------------------------
