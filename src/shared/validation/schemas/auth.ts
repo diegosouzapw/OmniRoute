@@ -203,6 +203,12 @@ export const traeImportSchema = z.object({
 export const kiroImportSchema = z.object({
   refreshToken: z.string().trim().min(1, "Refresh token is required"),
   region: z.string().trim().default("us-east-1"),
+  // IDC (organization) token fields — present when auto-detected from an IDC SSO
+  // cache token with a clientIdHash (#2059). Optional for backward compatibility.
+  clientId: z.string().optional(),
+  clientSecret: z.string().optional(),
+  authMethod: z.string().optional(),
+  profileArn: z.string().optional(),
 });
 
 export const kiroSocialExchangeSchema = z.object({
