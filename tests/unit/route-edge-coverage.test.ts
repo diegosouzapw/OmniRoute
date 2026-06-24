@@ -6,6 +6,13 @@ import path from "node:path";
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-route-edges-"));
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
+const ORIGINAL_API_KEY_SECRET = process.env.API_KEY_SECRET;
+const ORIGINAL_CLOUD_URL = process.env.CLOUD_URL;
+const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
+const ORIGINAL_REQUIRE_API_KEY = process.env.REQUIRE_API_KEY;
+const ORIGINAL_ENABLE_SOCKS5_PROXY = process.env.ENABLE_SOCKS5_PROXY;
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-api-key-secret";
 process.env.CLOUD_URL = "http://cloud.example";
@@ -32,6 +39,7 @@ const MACHINE_ID = "1234567890abcdef";
 async function resetStorage() {
   delete process.env.ALLOW_API_KEY_REVEAL;
   delete process.env.INITIAL_PASSWORD;
+  delete process.env.JWT_SECRET;
   delete process.env.REQUIRE_API_KEY;
   delete process.env.ENABLE_SOCKS5_PROXY;
 
@@ -39,6 +47,7 @@ async function resetStorage() {
   apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  await localDb.updateSettings({ requireLogin: false });
 }
 
 async function enableManagementAuth() {
@@ -57,6 +66,9 @@ function makeRequest(url, { method = "GET", token, body, headers } = {}) {
   }
   if (body !== undefined && !requestHeaders.has("content-type")) {
     requestHeaders.set("content-type", "application/json");
+  }
+  if (!requestHeaders.has("x-omniroute-peer-locality")) {
+    requestHeaders.set("x-omniroute-peer-locality", "loopback");
   }
 
   return new Request(url, {
@@ -135,6 +147,41 @@ test.beforeEach(async () => {
 test.after(async () => {
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_DATA_DIR === undefined) {
+    delete process.env.DATA_DIR;
+  } else {
+    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+  }
+  if (ORIGINAL_API_KEY_SECRET === undefined) {
+    delete process.env.API_KEY_SECRET;
+  } else {
+    process.env.API_KEY_SECRET = ORIGINAL_API_KEY_SECRET;
+  }
+  if (ORIGINAL_CLOUD_URL === undefined) {
+    delete process.env.CLOUD_URL;
+  } else {
+    process.env.CLOUD_URL = ORIGINAL_CLOUD_URL;
+  }
+  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+    delete process.env.INITIAL_PASSWORD;
+  } else {
+    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+  }
+  if (ORIGINAL_JWT_SECRET === undefined) {
+    delete process.env.JWT_SECRET;
+  } else {
+    process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
+  }
+  if (ORIGINAL_REQUIRE_API_KEY === undefined) {
+    delete process.env.REQUIRE_API_KEY;
+  } else {
+    process.env.REQUIRE_API_KEY = ORIGINAL_REQUIRE_API_KEY;
+  }
+  if (ORIGINAL_ENABLE_SOCKS5_PROXY === undefined) {
+    delete process.env.ENABLE_SOCKS5_PROXY;
+  } else {
+    process.env.ENABLE_SOCKS5_PROXY = ORIGINAL_ENABLE_SOCKS5_PROXY;
+  }
 });
 
 test("api keys route covers auth, create, masking, pagination fallback and cloud sync", async () => {
