@@ -17,6 +17,16 @@ import {
 import { setNoLog } from "../compliance/noLog";
 import { resolveModelAlias } from "@omniroute/open-sse/services/modelDeprecation.ts";
 import { getSyncedAvailableModelsByConnection, getCustomModels, getModelIsHidden } from "./models";
+import {
+  CLAUDE_CODE_PROVIDER_PREFIXES,
+  preferClaudeCodeForUnprefixedClaudeModels,
+  stripExtendedContextSuffix,
+  isPotentialUnprefixedClaudeCodeModel,
+  addModelCandidate,
+  modelPatternMatches,
+  hasClaudeCodeWildcardPermission,
+  matchesWildcardPattern,
+} from "./apiKeys/modelPermissions";
 
 // ──────────────── Performance Optimizations ────────────────
 
@@ -171,8 +181,6 @@ const _lastUsedUpdateCache = new Map<string, number>();
 const CACHE_TTL = 60 * 1000; // 1 minute TTL
 const LAST_USED_UPDATE_TTL = 5 * 60 * 1000;
 const MAX_CACHE_SIZE = 1000;
-const CLAUDE_CODE_PROVIDER_PREFIXES = new Set(["cc", "claude"]);
-const CLAUDE_CODE_SHORT_ALIASES = new Set(["sonnet", "opus", "haiku", "fable"]);
 
 // Wildcard scope matching is now handled by `matchesWildcardPattern`
 // (deterministic, no RegExp from dynamic strings).
@@ -269,38 +277,10 @@ function evictIfNeeded<TKey, TValue>(cache: Map<TKey, TValue>) {
   }
 }
 
-function isTruthyEnvFlag(value: string | undefined): boolean {
-  return typeof value === "string" && /^(1|true|yes|on)$/i.test(value.trim());
-}
 
-async function preferClaudeCodeForUnprefixedClaudeModels(): Promise<boolean> {
-  try {
-    const { getCachedSettings } = await import("./readCache");
-    const settings = await getCachedSettings();
-    if (typeof settings.preferClaudeCodeForUnprefixedClaudeModels === "boolean") {
-      return settings.preferClaudeCodeForUnprefixedClaudeModels;
-    }
-  } catch {
-    // Standalone DB usage may not have the settings cache ready.
-  }
-  return isTruthyEnvFlag(process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS);
-}
 
-function stripExtendedContextSuffix(modelId: string): string {
-  return modelId.endsWith("[1m]") ? modelId.slice(0, -4) : modelId;
-}
 
-function isPotentialUnprefixedClaudeCodeModel(modelId: string): boolean {
-  const clean = stripExtendedContextSuffix(modelId.trim());
-  return /^claude-/i.test(clean) || CLAUDE_CODE_SHORT_ALIASES.has(clean.toLowerCase());
-}
 
-function addModelCandidate(candidates: Set<string>, modelId: string): void {
-  const clean = modelId.trim();
-  if (!clean) return;
-  candidates.add(clean);
-  candidates.add(stripExtendedContextSuffix(clean));
-}
 
 async function getModelPermissionCandidates(modelId: string): Promise<string[]> {
   const candidates = new Set<string>();
@@ -332,33 +312,7 @@ async function getModelPermissionCandidates(modelId: string): Promise<string[]> 
   return Array.from(candidates);
 }
 
-function modelPatternMatches(pattern: string, candidates: string[]): boolean {
-  for (const candidate of candidates) {
-    if (pattern === candidate) return true;
-    if (pattern.endsWith("/*")) {
-      const prefix = pattern.slice(0, -2);
-      if (candidate.startsWith(prefix + "/") || candidate.startsWith(prefix)) {
-        return true;
-      }
-    }
-    if (pattern.includes("*") && matchesWildcardPattern(pattern, candidate)) {
-      return true;
-    }
-  }
-  return false;
-}
 
-function hasClaudeCodeWildcardPermission(
-  allowedModels: string[] | undefined,
-  candidates: string[]
-): boolean {
-  if (!allowedModels || allowedModels.length === 0) return false;
-  return allowedModels.some(
-    (pattern) =>
-      (pattern === "cc/*" || pattern === "claude/*") &&
-      candidates.some((candidate) => modelPatternMatches(pattern, [candidate]))
-  );
-}
 
 async function getPublishedModelLookupTarget(
   modelId: string
@@ -387,59 +341,7 @@ async function getPublishedModelLookupTarget(
   return null;
 }
 
-/**
- * Match an API-key wildcard scope pattern against a model id without
- * compiling a RegExp from string concatenation (avoid ReDoS exposure on
- * operator-supplied patterns and silence the Semgrep `js/regex-injection`
- * advisory for `new RegExp(<dynamic>)`).
- *
- * Supported pattern syntax (only what real scopes use):
- *   - literal segments
- *   - `*` matches any run of characters, but does NOT cross `/`
- *
- * Walks the pattern token-by-token: each `*` consumes the longest possible
- * run within the current path segment, then the next literal anchor must
- * appear before the segment boundary. Worst-case complexity is O(n*m)
- * where n = pattern length, m = candidate length — there is no nested
- * backtracking that could explode adversarially.
- */
-function matchesWildcardPattern(pattern: string, candidate: string): boolean {
-  const pSegs = pattern.split("/");
-  const cSegs = candidate.split("/");
-  if (pSegs.length !== cSegs.length) return false;
-  for (let i = 0; i < pSegs.length; i++) {
-    if (!segmentMatchesWildcard(pSegs[i], cSegs[i])) return false;
-  }
-  return true;
-}
 
-function segmentMatchesWildcard(pattern: string, segment: string): boolean {
-  if (pattern === segment) return true;
-  if (!pattern.includes("*")) return false;
-  const parts = pattern.split("*");
-  // Anchor first literal to the start.
-  let cursor = 0;
-  const first = parts[0];
-  if (first) {
-    if (!segment.startsWith(first)) return false;
-    cursor = first.length;
-  }
-  // Anchor last literal to the end.
-  const last = parts[parts.length - 1];
-  const endLimit = segment.length - last.length;
-  if (last) {
-    if (!segment.endsWith(last)) return false;
-  }
-  // Each middle literal must appear in order between cursor and endLimit.
-  for (let i = 1; i < parts.length - 1; i++) {
-    const piece = parts[i];
-    if (!piece) continue;
-    const idx = segment.indexOf(piece, cursor);
-    if (idx === -1 || idx + piece.length > endLimit) return false;
-    cursor = idx + piece.length;
-  }
-  return cursor <= endLimit;
-}
 
 function ensureApiKeyColumn(
   db: ApiKeysDbLike,
