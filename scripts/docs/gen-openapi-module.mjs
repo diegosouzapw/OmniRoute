@@ -110,8 +110,8 @@ async function main() {
 //
 // Source of truth: docs/openapi.yaml
 //
-// The Api Explorer consumes \`OPENAPI_ENDPOINTS\`; the spec metadata
-// (\`OPENAPI_VERSION\`, \`OPENAPI_TITLE\`) is surfaced in the page header.
+// The Api Explorer consumes \`OPENAPI_ENDPOINTS\`; \`OPENAPI_VERSION\`
+// is surfaced in the page header.
 `;
 
   const body = `
@@ -135,7 +135,6 @@ export interface OpenApiEndpoint {
 }
 
 export const OPENAPI_VERSION = ${quote(version)};
-export const OPENAPI_TITLE = ${quote(title)};
 
 export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
 ${endpoints.map(renderEndpoint).join(",\n")}${endpoints.length > 0 ? "," : ""}

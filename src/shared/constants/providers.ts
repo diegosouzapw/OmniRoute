@@ -16,12 +16,6 @@ export type ServiceKind =
 
 export type RiskNoticeVariant = "oauth" | "webCookie" | "deprecated" | "embedded-service";
 
-export interface ProviderRiskNoticeFields {
-  subscriptionRisk?: boolean;
-  riskNoticeVariant?: RiskNoticeVariant;
-  isEmbeddedService?: boolean;
-}
-
 export const FREE_PROVIDERS = {};
 
 // No-auth Providers
@@ -3116,18 +3110,6 @@ export const AI_PROVIDERS = new Proxy({} as Record<string, any>, {
     return undefined;
   },
 });
-
-export type AiProviderId =
-  | keyof typeof NOAUTH_PROVIDERS
-  | keyof typeof OAUTH_PROVIDERS
-  | keyof typeof APIKEY_PROVIDERS
-  | keyof typeof WEB_COOKIE_PROVIDERS
-  | keyof typeof LOCAL_PROVIDERS
-  | keyof typeof SEARCH_PROVIDERS
-  | keyof typeof AUDIO_ONLY_PROVIDERS
-  | keyof typeof UPSTREAM_PROXY_PROVIDERS
-  | keyof typeof CLOUD_AGENT_PROVIDERS
-  | keyof typeof SYSTEM_PROVIDERS;
 
 export type AiProviderDefinition =
   | (typeof NOAUTH_PROVIDERS)[keyof typeof NOAUTH_PROVIDERS]
