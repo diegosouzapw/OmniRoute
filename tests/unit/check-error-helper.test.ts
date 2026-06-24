@@ -5,7 +5,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 // @ts-expect-error — .mjs gate module has no type declarations; runtime shape is known.
-import { findErrorHelperViolations, KNOWN_MISSING_ERROR_HELPER } from "../../scripts/check/check-error-helper.mjs";
+import {
+  findErrorHelperViolations,
+  KNOWN_MISSING_ERROR_HELPER,
+} from "../../scripts/check/check-error-helper.mjs";
 
 type FileEntry = { path: string; source: string };
 type FindFn = (files: FileEntry[], allowlist: Set<string>) => string[];
@@ -169,15 +172,28 @@ test("the shipped allowlist freezes exactly the known current violators (all sco
     "src/app/api/logs/export/route.ts",
     "src/app/api/models/catalog/route.ts",
     "src/app/api/providers/test-batch/route.ts",
-    "src/app/api/settings/import-json/route.ts",
     "src/app/api/usage/proxy-logs/route.ts",
   ]);
+});
+
+test("import-json route has been removed from the shipped missing-helper allowlist", async () => {
+  const source = await import("node:fs").then((fs) =>
+    fs.readFileSync("src/app/api/settings/import-json/route.ts", "utf8")
+  );
+  const path = "src/app/api/settings/import-json/route.ts";
+
+  assert.equal(allowlist.has(path), false);
+  assert.deepEqual(find([{ path, source }], EMPTY), []);
+  assert.ok(source.includes("sanitizeErrorMessage"));
 });
 
 test("returns multiple violating paths and preserves input order", () => {
   const files: FileEntry[] = [
     { path: "open-sse/executors/a.ts", source: `return { error: { message: err.message } };` },
-    { path: "open-sse/executors/b.ts", source: `import { x } from "../utils/error.ts"; return { error: err.message };` },
+    {
+      path: "open-sse/executors/b.ts",
+      source: `import { x } from "../utils/error.ts"; return { error: err.message };`,
+    },
     { path: "open-sse/executors/c.ts", source: `return { error: e.stack };` },
   ];
   assert.deepEqual(find(files, EMPTY), ["open-sse/executors/a.ts", "open-sse/executors/c.ts"]);
@@ -240,7 +256,6 @@ test("6A.8: the shipped allowlist freezes the new expanded-scope known violators
     "src/app/api/logs/export/route.ts",
     "src/app/api/models/catalog/route.ts",
     "src/app/api/providers/test-batch/route.ts",
-    "src/app/api/settings/import-json/route.ts",
     "src/app/api/usage/proxy-logs/route.ts",
   ];
   for (const p of expectedApiViolators) {
