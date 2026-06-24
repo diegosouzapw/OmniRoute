@@ -94,9 +94,10 @@
       "eps": 0.5
     },
     "deadExports": {
-      "value": 287,
+      "value": 279,
       "direction": "down",
-      "dedicatedGate": true
+      "dedicatedGate": true,
+      "_dead_code_ratchet_2026_06_24_unused_helpers": "287 -> 279 after removing unused legacy response/cost/settings/plugin/OAuth helper modules."
     },
     "cognitiveComplexity": {
       "value": 801,
