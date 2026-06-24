@@ -63,24 +63,24 @@ Even outside blocked regions, proxies are useful for:
 │         ▲                                        │            │
 │         │                                        ▼            │
 │  ┌──────┴──────┐                        ┌──────────────────┐  │
-│  │ 1proxy Sync │                        │ Upstream         │  │
-│  │ (free pool) │                        │ Provider API     │  │
+│  │ Free Proxy  │                        │ Upstream         │  │
+│  │ Sync        │                        │ Provider API     │  │
 │  └─────────────┘                        └──────────────────┘  │
 └───────────────────────────────────────────────────────────────┘
 ```
 
 ### Key Components
 
-| Component            | File                                         | Role                                                       |
-| -------------------- | -------------------------------------------- | ---------------------------------------------------------- |
-| **Proxy Registry**   | `src/lib/db/proxies.ts`                      | CRUD for proxy entries + scope assignments                 |
-| **Proxy Dispatcher** | `open-sse/utils/proxyDispatcher.ts`          | Creates `undici` ProxyAgent/SOCKS dispatchers with caching |
-| **Proxy Fetch**      | `open-sse/utils/proxyFetch.ts`               | Wraps `fetch()` with proxy dispatcher injection            |
-| **Settings Route**   | `src/app/api/settings/proxy/route.ts`        | Legacy proxy config API (GET/PUT/DELETE)                   |
-| **Management Route** | `src/app/api/v1/management/proxies/route.ts` | Registry CRUD API (GET/POST/PATCH/DELETE)                  |
-| **1proxy DB**        | `src/lib/db/oneproxy.ts`                     | Free proxy marketplace persistence                         |
-| **1proxy Sync**      | `src/lib/oneproxySync.ts`                    | Fetches proxies from 1proxy API                            |
-| **1proxy Rotator**   | `src/lib/oneproxyRotator.ts`                 | Rotation strategies (quality/random/sequential)            |
+| Component              | File                                         | Role                                                       |
+| ---------------------- | -------------------------------------------- | ---------------------------------------------------------- |
+| **Proxy Registry**     | `src/lib/db/proxies.ts`                      | CRUD for proxy entries + scope assignments                 |
+| **Proxy Dispatcher**   | `open-sse/utils/proxyDispatcher.ts`          | Creates `undici` ProxyAgent/SOCKS dispatchers with caching |
+| **Proxy Fetch**        | `open-sse/utils/proxyFetch.ts`               | Wraps `fetch()` with proxy dispatcher injection            |
+| **Settings Route**     | `src/app/api/settings/proxy/route.ts`        | Legacy proxy config API (GET/PUT/DELETE)                   |
+| **Management Route**   | `src/app/api/v1/management/proxies/route.ts` | Registry CRUD API (GET/POST/PATCH/DELETE)                  |
+| **Free Proxy DB**      | `src/lib/db/freeProxies.ts`                  | Free proxy source persistence                              |
+| **Free Proxy Sources** | `src/lib/freeProxyProviders/`                | Source adapters for 1proxy, Proxifly, and IPLocate         |
+| **Free Proxy Routes**  | `src/app/api/settings/free-proxies/`         | Sync, list, stats, and promote-to-pool APIs                |
 
 ---
 
@@ -270,17 +270,17 @@ OmniRoute integrates with the **[1proxy](https://1proxy-api.aitradepulse.com)** 
 ### How It Works
 
 ```
-┌─────────────┐     Sync      ┌─────────────────┐    Rotate     ┌──────────┐
-│  1proxy API │ ────────────▶ │  proxy_registry  │ ────────────▶ │ Provider │
-│  (external) │   up to 500   │  source=oneproxy │  by quality   │   API    │
-└─────────────┘    proxies    └─────────────────┘               └──────────┘
+┌─────────────┐     Sync      ┌──────────────┐    Add to Pool    ┌──────────┐
+│  1proxy API │ ────────────▶ │ free_proxies │ ────────────────▶ │ Provider │
+│  (external) │   up to 500   │ source=1proxy│  proxy_registry  │   API    │
+└─────────────┘    proxies    └──────────────┘                   └──────────┘
 ```
 
 1. **Sync** — OmniRoute fetches validated proxies from the 1proxy API
-2. **Store** — Proxies are saved in the same `proxy_registry` table with `source = 'oneproxy'`
+2. **Store** — Proxies are saved in `free_proxies` with `source = '1proxy'`
 3. **Filter** — Filter by protocol, country, quality score
-4. **Rotate** — Pick the best proxy using quality, random, or sequential strategies
-5. **Auto-degrade** — Failed proxies get their quality score reduced; below threshold → marked inactive
+4. **Promote** — Add selected free proxies into the main `proxy_registry` pool
+5. **Route** — Normal proxy resolution chooses assigned registry proxies for provider traffic
 
 ### Syncing Proxies
 
@@ -294,28 +294,28 @@ OmniRoute integrates with the **[1proxy](https://1proxy-api.aitradepulse.com)** 
 
 ```bash
 # Trigger sync
-curl -X POST http://localhost:20128/api/settings/oneproxy \
+curl -X POST http://localhost:20128/api/settings/free-proxies/sync \
   -H "Content-Type: application/json" \
-  -d '{}'
+  -d '{"sources":["1proxy"]}'
 
 # Response:
-# { "success": true, "added": 127, "updated": 45, "failed": 2, "total": 172 }
+# { "success": true, "results": { "1proxy": { "fetched": 172, "added": 127, "updated": 45, "errors": [] } } }
 ```
 
 ### Filtering Proxies
 
 ```bash
 # Filter by protocol
-curl "http://localhost:20128/api/settings/oneproxy?protocol=socks5"
+curl "http://localhost:20128/api/settings/free-proxies?sources=1proxy&protocol=socks5"
 
 # Filter by country
-curl "http://localhost:20128/api/settings/oneproxy?countryCode=US"
+curl "http://localhost:20128/api/settings/free-proxies?sources=1proxy&country=US"
 
 # Filter by minimum quality score
-curl "http://localhost:20128/api/settings/oneproxy?minQuality=80"
+curl "http://localhost:20128/api/settings/free-proxies?sources=1proxy&minQuality=80"
 
 # Combine filters
-curl "http://localhost:20128/api/settings/oneproxy?protocol=http&countryCode=DE&minQuality=70"
+curl "http://localhost:20128/api/settings/free-proxies?sources=1proxy&protocol=http&country=DE&minQuality=70"
 ```
 
 ### Proxy Quality Scores
@@ -331,45 +331,42 @@ Each 1proxy proxy comes with metadata:
 | `countryCode`   | Two-letter ISO country code                  |
 | `lastValidated` | Timestamp of last validation                 |
 
-Quality scores are dynamically adjusted:
+Quality scores are preserved from source validation:
 
-- **Failed requests** reduce the score by 10 points
-- **Score drops to ≤10** → proxy is marked `inactive`
-- Inactive proxies are excluded from rotation
+- Free proxies keep their upstream validation score in `free_proxies`
+- Promoted proxies are copied into `proxy_registry`
+- Production routing uses the normal registry status, assignment, and health checks
 
-### Rotation Strategies
+### Adding Free Proxies to the Pool
 
 ```bash
-# Rotate by quality (best proxy first) — default
-curl -X POST http://localhost:20128/api/settings/oneproxy/rotate \
+# Add one free proxy to the main proxy pool
+curl -X POST http://localhost:20128/api/settings/free-proxies/free-proxy-uuid/add-to-pool \
   -H "Content-Type: application/json" \
-  -d '{"strategy": "quality"}'
+  -d '{}'
 
-# Random rotation
-curl -X POST http://localhost:20128/api/settings/oneproxy/rotate \
-  -d '{"strategy": "random"}'
-
-# Sequential (least recently validated first)
-curl -X POST http://localhost:20128/api/settings/oneproxy/rotate \
-  -d '{"strategy": "sequential"}'
+# Add several visible free proxies to the pool
+curl -X POST http://localhost:20128/api/settings/free-proxies/bulk-add-to-pool \
+  -H "Content-Type: application/json" \
+  -d '{"ids":["free-proxy-uuid"]}'
 ```
 
 ### Circuit Breaker
 
-The 1proxy sync has a built-in circuit breaker:
+The 1proxy free-proxy provider has a built-in circuit breaker:
 
 - After **5 consecutive sync failures**, further sync attempts are blocked
-- Reset with: `resetOneproxyCircuitBreaker()` or restart the server
-- Sync status is available at `GET /api/settings/oneproxy?action=status`
+- Restart the server to reset the in-memory provider state
+- Aggregate free-proxy status is available at `GET /api/settings/free-proxies/stats`
 
 ### Clearing 1proxy Proxies
 
 ```bash
 # Delete a single 1proxy proxy
-curl -X DELETE "http://localhost:20128/api/settings/oneproxy?id=proxy-uuid"
+curl -X DELETE "http://localhost:20128/api/settings/free-proxies?id=free-proxy-uuid"
 
 # Clear ALL 1proxy proxies (manual proxies are untouched)
-curl -X DELETE "http://localhost:20128/api/settings/oneproxy?clearAll=1"
+curl -X DELETE "http://localhost:20128/api/settings/free-proxies?source=1proxy"
 ```
 
 ---
@@ -481,17 +478,17 @@ curl -X PUT "http://localhost:20128/api/upstream-proxy/openai" \
 
 For exposing your OmniRoute instance to the public internet (Cloudflare/ngrok/Tailscale) instead of routing outbound through a proxy, see [TUNNELS_GUIDE.md](./TUNNELS_GUIDE.md). The tunnel REST API lives under `/api/tunnels/{cloudflared,ngrok,tailscale}/*` and is orthogonal to the outbound proxy chain documented above.
 
-### 1proxy API
+### Free Proxy API
 
-| Method   | Endpoint                               | Description             |
-| -------- | -------------------------------------- | ----------------------- |
-| `GET`    | `/api/settings/oneproxy`               | List 1proxy proxies     |
-| `GET`    | `/api/settings/oneproxy?action=stats`  | Get stats + sync status |
-| `GET`    | `/api/settings/oneproxy?action=status` | Get sync status only    |
-| `POST`   | `/api/settings/oneproxy`               | Trigger sync            |
-| `POST`   | `/api/settings/oneproxy/rotate`        | Rotate to next proxy    |
-| `DELETE` | `/api/settings/oneproxy?id=uuid`       | Delete one              |
-| `DELETE` | `/api/settings/oneproxy?clearAll=1`    | Clear all               |
+| Method   | Endpoint                                      | Description                           |
+| -------- | --------------------------------------------- | ------------------------------------- |
+| `GET`    | `/api/settings/free-proxies`                  | List free proxies                     |
+| `GET`    | `/api/settings/free-proxies/stats`            | Get free-proxy stats                  |
+| `POST`   | `/api/settings/free-proxies/sync`             | Trigger source sync                   |
+| `POST`   | `/api/settings/free-proxies/{id}/add-to-pool` | Add one proxy to the main pool        |
+| `POST`   | `/api/settings/free-proxies/bulk-add-to-pool` | Add multiple proxies to the main pool |
+| `DELETE` | `/api/settings/free-proxies?id=uuid`          | Delete one                            |
+| `DELETE` | `/api/settings/free-proxies?source=1proxy`    | Clear one source                      |
 
 ### Upstream Proxy API
 
@@ -505,13 +502,13 @@ For exposing your OmniRoute instance to the public internet (Cloudflare/ngrok/Ta
 
 ## Environment Variables
 
-| Variable                         | Default                               | Description                                                    |
-| -------------------------------- | ------------------------------------- | -------------------------------------------------------------- |
-| `ENABLE_SOCKS5_PROXY`            | `true`                                | Enable SOCKS5 proxy support (default `true` in `.env.example`) |
-| `ONEPROXY_ENABLED`               | `true`                                | Enable 1proxy integration                                      |
-| `ONEPROXY_API_URL`               | `https://1proxy-api.aitradepulse.com` | 1proxy API endpoint                                            |
-| `ONEPROXY_MAX_PROXIES`           | `500`                                 | Maximum proxies to sync                                        |
-| `ONEPROXY_MIN_QUALITY_THRESHOLD` | `50`                                  | Minimum quality score to import                                |
+| Variable                        | Default        | Description                                                    |
+| ------------------------------- | -------------- | -------------------------------------------------------------- |
+| `ENABLE_SOCKS5_PROXY`           | `true`         | Enable SOCKS5 proxy support (default `true` in `.env.example`) |
+| `FREE_PROXY_1PROXY_ENABLED`     | `true`         | Enable the 1proxy free-proxy source                            |
+| `FREE_PROXY_1PROXY_API_URL`     | _(see source)_ | 1proxy API endpoint                                            |
+| `FREE_PROXY_1PROXY_MAX`         | `500`          | Maximum 1proxy proxies to sync                                 |
+| `FREE_PROXY_1PROXY_MIN_QUALITY` | `50`           | Minimum quality score to import                                |
 
 ---
 
@@ -548,10 +545,10 @@ Check the resolution order:
 Check the sync status:
 
 ```bash
-curl "http://localhost:20128/api/settings/oneproxy?action=status"
+curl "http://localhost:20128/api/settings/free-proxies/stats"
 ```
 
-If `consecutiveFailures >= 5`, the circuit breaker has tripped. Restart the server to reset, or wait for manual reset.
+If the provider reports repeated errors, restart the server to reset the in-memory circuit breaker.
 
 ---
 
@@ -620,19 +617,19 @@ Without this, a dead proxy would block every request for the full `PROXY_TIMEOUT
 
 ### Tunable Environment Variables
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `PROXY_FAST_FAIL_TIMEOUT_MS` | `2000` | TCP connection timeout per health check |
-| `PROXY_HEALTH_CACHE_TTL_MS` | `30000` | How long a health result is cached |
+| Variable                     | Default | Purpose                                 |
+| ---------------------------- | ------- | --------------------------------------- |
+| `PROXY_FAST_FAIL_TIMEOUT_MS` | `2000`  | TCP connection timeout per health check |
+| `PROXY_HEALTH_CACHE_TTL_MS`  | `30000` | How long a health result is cached      |
 
 **Recommended values:**
 
-| Scenario | Fast-fail timeout | Cache TTL | Reasoning |
-|----------|-------------------|-----------|-----------|
-| High-throughput API gateway | 1500ms | 60000ms | Aggressive fail-fast, longer cache to reduce checks |
-| Geo-distributed nodes | 3000ms | 15000ms | Slower networks need more time; shorter cache for fast failover |
-| Dev / testing | 1000ms | 10000ms | Quick iteration on local proxies |
-| Stealth / anti-detection | 2500ms | 45000ms | Avoid rapid probing that could trigger rate limits |
+| Scenario                    | Fast-fail timeout | Cache TTL | Reasoning                                                       |
+| --------------------------- | ----------------- | --------- | --------------------------------------------------------------- |
+| High-throughput API gateway | 1500ms            | 60000ms   | Aggressive fail-fast, longer cache to reduce checks             |
+| Geo-distributed nodes       | 3000ms            | 15000ms   | Slower networks need more time; shorter cache for fast failover |
+| Dev / testing               | 1000ms            | 10000ms   | Quick iteration on local proxies                                |
+| Stealth / anti-detection    | 2500ms            | 45000ms   | Avoid rapid probing that could trigger rate limits              |
 
 ### Inspecting Proxy Health
 
@@ -654,11 +651,11 @@ The `stale` flag is `true` when the cache entry has exceeded `HEALTH_CACHE_TTL_M
 
 The health check uses sensible defaults based on the URL scheme:
 
-| Scheme | Default port |
-|--------|-------------|
-| `http://` | 8080 |
-| `https://` | 443 |
-| `socks5://` / `socks5h://` | 1080 |
+| Scheme                     | Default port |
+| -------------------------- | ------------ |
+| `http://`                  | 8080         |
+| `https://`                 | 443          |
+| `socks5://` / `socks5h://` | 1080         |
 
 Custom ports in the URL (`http://host:9999`) always take precedence over the scheme default.
 
@@ -672,15 +669,15 @@ OmniRoute tracks per-proxy usage to help operators diagnose routing patterns, la
 
 For every request through a configured proxy, OmniRoute records:
 
-| Metric | Description |
-|--------|-------------|
-| `proxy_url` | Full proxy URL (with auth credentials masked) |
-| `provider` | Upstream provider ID (openai, anthropic, etc.) |
+| Metric       | Description                                     |
+| ------------ | ----------------------------------------------- |
+| `proxy_url`  | Full proxy URL (with auth credentials masked)   |
+| `provider`   | Upstream provider ID (openai, anthropic, etc.)  |
 | `latency_ms` | Total round-trip time including proxy handshake |
-| `connect_ms` | TCP connect time only |
-| `status` | HTTP status code from upstream |
-| `error` | Error class if request failed |
-| `timestamp` | ISO 8601 UTC |
+| `connect_ms` | TCP connect time only                           |
+| `status`     | HTTP status code from upstream                  |
+| `error`      | Error class if request failed                   |
+| `timestamp`  | ISO 8601 UTC                                    |
 
 ### Accessing the Data
 
@@ -736,11 +733,11 @@ When multiple proxies are assigned to a scope, OmniRoute uses a **rotation strat
 
 ### Available Strategies
 
-| Strategy | When to use | Trade-off |
-|----------|-------------|-----------|
-| `quality` (default) | Production with mixed-quality proxies | Favors high-rated proxies; may starve low-rated ones |
-| `random` | Load distribution, privacy | Even distribution; ignores quality signals |
-| `sequential` | Debugging, deterministic testing | Cycles through proxies in order; easy to reason about |
+| Strategy            | When to use                           | Trade-off                                             |
+| ------------------- | ------------------------------------- | ----------------------------------------------------- |
+| `quality` (default) | Production with mixed-quality proxies | Favors high-rated proxies; may starve low-rated ones  |
+| `random`            | Load distribution, privacy            | Even distribution; ignores quality signals            |
+| `sequential`        | Debugging, deterministic testing      | Cycles through proxies in order; easy to reason about |
 
 ### Decision Tree
 
@@ -763,7 +760,7 @@ When multiple proxies are assigned to a scope, OmniRoute uses a **rotation strat
    │         │              builds quality
    │         │              data over time)
    │         │
-   │    Use `quality` 
+   │    Use `quality`
    │    (best for
    │    mixed quality)
    │
@@ -771,50 +768,6 @@ Use `random`
 (spread load
 evenly)
 ```
-
-### Configuring Rotation Strategy
-
-```ts
-import { rotateOneproxyProxy } from "omniroute/oneproxyRotator";
-
-// In a one-off script
-const proxy = await rotateOneproxyProxy({ strategy: "quality" });
-if (proxy) {
-  console.log(`Selected: ${proxy.host}:${proxy.port}, quality=${proxy.qualityScore}`);
-}
-```
-
-### Resetting Sequential Index
-
-When using `sequential` strategy, the internal index accumulates. To reset:
-
-```ts
-import { resetSequentialIndex } from "omniroute/oneproxyRotator";
-
-resetSequentialIndex();
-```
-
-Useful when:
-- Restarting a load test
-- Recovering from a proxy outage (so you don't cycle through dead ones first)
-- Manually rebalancing after adding new proxies
-
-### Marking a Proxy as Failed
-
-When a proxy consistently fails, mark it manually so the rotator will skip it:
-
-```ts
-import { failOneproxyProxy } from "omniroute/oneproxyRotator";
-
-const removed = await failOneproxyProxy("1.2.3.4", 8080);
-if (removed) {
-  console.log("Proxy marked as failed; rotator will skip it");
-}
-```
-
-The proxy is **not deleted** — it's marked unhealthy and won't be selected until the next successful health check (via `proxyHealth.ts`) or manual reset.
-
----
 
 > 📖 **Related documentation:**
 >

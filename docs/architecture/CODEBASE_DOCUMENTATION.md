@@ -317,7 +317,7 @@ Top-level files in `src/lib/`:
 
 - `localDb.ts` — re-export layer only. **Never** add logic here.
 - `proxyHealth.ts`, `proxyLogger.ts`, `tokenHealthCheck.ts`, `localHealthCheck.ts`
-- `oneproxyRotator.ts`, `oneproxySync.ts`
+- `freeProxyProviders/`, `db/freeProxies.ts`
 - `apiBridgeServer.ts`, `cacheLayer.ts`, `semanticCache.ts`
 - `cloudSync.ts`, `initCloudSync.ts`
 - `cloudflaredTunnel.ts`, `ngrokTunnel.ts`, `tailscaleTunnel.ts`
