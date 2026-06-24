@@ -3123,12 +3123,6 @@ export type AiProviderDefinition =
   | (typeof CLOUD_AGENT_PROVIDERS)[keyof typeof CLOUD_AGENT_PROVIDERS]
   | (typeof SYSTEM_PROVIDERS)[keyof typeof SYSTEM_PROVIDERS];
 
-// Auth methods
-export const AUTH_METHODS = {
-  oauth: { id: "oauth", name: "OAuth", icon: "lock" },
-  apikey: { id: "apikey", name: "API Key", icon: "key" },
-};
-
 export function getProviderByAlias(alias: string): AiProviderDefinition | null {
   for (const section of _PROVIDER_SECTIONS) {
     for (const provider of Object.values(section)) {

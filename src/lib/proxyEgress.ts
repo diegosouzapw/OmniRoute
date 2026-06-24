@@ -13,7 +13,10 @@
  * entering and leaving by.
  */
 import { request as undiciRequest } from "undici";
-import { createProxyDispatcher, proxyConfigToUrl } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
+import {
+  createProxyDispatcher,
+  proxyConfigToUrl,
+} from "@omniroute/open-sse/utils/proxyDispatcher.ts";
 import { rotationGroupFor } from "@omniroute/open-sse/services/refreshSerializer.ts";
 
 const EGRESS_ECHO_URL = "https://api64.ipify.org?format=json";
@@ -191,9 +194,7 @@ export async function diagnoseAllEgressIps(deps?: {
   getConnections?: () => Promise<
     Array<{ id: string; provider: string; name?: string; email?: string; authType?: string }>
   >;
-  resolveProxy?: (
-    connectionId: string
-  ) => Promise<{ proxy?: unknown; level?: string } | null>;
+  resolveProxy?: (connectionId: string) => Promise<{ proxy?: unknown; level?: string } | null>;
 }): Promise<EgressDiagnostic> {
   const getConnections =
     deps?.getConnections ??
@@ -262,9 +263,21 @@ export interface ProxyValidationResult {
  */
 export async function validateProxyPool(deps?: {
   listProxies?: () => Promise<
-    Array<{ id: string; type: string; host: string; port: number | string; username?: string | null; password?: string | null; status?: string | null }>
+    Array<{
+      id: string;
+      type: string;
+      host: string;
+      port: number | string;
+      username?: string | null;
+      password?: string | null;
+      status?: string | null;
+    }>
   >;
-  markStatus?: (id: string, status: string, meta: { latencyMs: number; egressIp: string | null }) => Promise<void>;
+  markStatus?: (
+    id: string,
+    status: string,
+    meta: { latencyMs: number; egressIp: string | null }
+  ) => Promise<void>;
 }): Promise<ProxyValidationResult[]> {
   const listProxies =
     deps?.listProxies ??
@@ -315,74 +328,4 @@ export async function validateProxyPool(deps?: {
   }
 
   return report;
-}
-
-export interface DistributionPlan {
-  assignments: Array<{ connectionId: string; account: string; proxyId: string }>;
-  unassigned: Array<{ connectionId: string; account: string }>;
-  sharingRisk: boolean;
-  note: string;
-}
-
-/**
- * PURE: plan a 1-proxy-per-connection assignment so no two accounts of the same
- * rotation group share an egress IP (the codex anomaly trigger). Default is
- * strict 1:1 — extras are left UNASSIGNED (better unrouted than sharing an IP).
- * allowSharing=true round-robins instead, flagging sharingRisk.
- */
-export function planProxyDistribution(
-  connections: Array<{ id: string; account?: string }>,
-  liveProxyIds: string[],
-  opts: { allowSharing?: boolean } = {}
-): DistributionPlan {
-  const assignments: DistributionPlan["assignments"] = [];
-  const unassigned: DistributionPlan["unassigned"] = [];
-  let sharingRisk = false;
-
-  connections.forEach((c, i) => {
-    const account = c.account || c.id.slice(0, 8);
-    if (liveProxyIds.length === 0) {
-      unassigned.push({ connectionId: c.id, account });
-      return;
-    }
-    if (opts.allowSharing) {
-      assignments.push({ connectionId: c.id, account, proxyId: liveProxyIds[i % liveProxyIds.length] });
-    } else if (i < liveProxyIds.length) {
-      assignments.push({ connectionId: c.id, account, proxyId: liveProxyIds[i] });
-    } else {
-      unassigned.push({ connectionId: c.id, account });
-    }
-  });
-
-  if (opts.allowSharing && liveProxyIds.length < connections.length) sharingRisk = true;
-
-  const note =
-    liveProxyIds.length === 0
-      ? "No live proxies available — add working proxies before distributing."
-      : liveProxyIds.length < connections.length && !opts.allowSharing
-        ? `Only ${liveProxyIds.length} live proxies for ${connections.length} accounts — ${unassigned.length} left unassigned (avoid shared-IP anomaly).`
-        : "1 distinct proxy per account.";
-
-  return { assignments, unassigned, sharingRisk, note };
-}
-
-/**
- * Apply a distribution plan: assign each proxy to its connection (account scope).
- */
-export async function applyProxyDistribution(
-  plan: DistributionPlan,
-  deps?: { assign?: (connectionId: string, proxyId: string) => Promise<void> }
-): Promise<{ applied: number }> {
-  const assign =
-    deps?.assign ??
-    (async (connectionId: string, proxyId: string) => {
-      const { assignProxyToScope } = await import("./db/proxies");
-      await assignProxyToScope("account", connectionId, proxyId);
-    });
-  let applied = 0;
-  for (const a of plan.assignments) {
-    await assign(a.connectionId, a.proxyId);
-    applied++;
-  }
-  return { applied };
 }
