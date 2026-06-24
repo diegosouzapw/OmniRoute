@@ -26,9 +26,11 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-agentskil
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 const ORIGINAL_API_KEY_SECRET = process.env.API_KEY_SECRET;
 const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET ?? "agentskills-routes-test-secret";
+delete process.env.JWT_SECRET;
 
 // Import DB first (order matters — sets DATA_DIR before localDb loads)
 const core = await import("../../src/lib/db/core.ts");
@@ -55,12 +57,13 @@ function makeRequest(
   method: string,
   url: string,
   body?: unknown,
-  headers: Record<string, string> = {},
+  headers: Record<string, string> = {}
 ): Request {
   return new Request(url, {
     method,
     headers: {
       ...(body !== undefined ? { "content-type": "application/json" } : {}),
+      "x-omniroute-peer-locality": "loopback",
       ...headers,
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -95,6 +98,12 @@ test.after(() => {
   } else {
     process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
   }
+
+  if (ORIGINAL_JWT_SECRET === undefined) {
+    delete process.env.JWT_SECRET;
+  } else {
+    process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
+  }
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -120,7 +129,10 @@ test("GET /api/agent-skills?category=api — returns 22 api skills", async () =>
   assert.equal(res.status, 200);
   const body = (await res.json()) as { skills: Array<{ category: string }>; count: number };
   assert.equal(body.count, 22);
-  assert.ok(body.skills.every((s) => s.category === "api"), "All skills should be api category");
+  assert.ok(
+    body.skills.every((s) => s.category === "api"),
+    "All skills should be api category"
+  );
 });
 
 test("GET /api/agent-skills?category=cli — returns 20 cli skills", async () => {
@@ -130,7 +142,10 @@ test("GET /api/agent-skills?category=cli — returns 20 cli skills", async () =>
   assert.equal(res.status, 200);
   const body = (await res.json()) as { skills: Array<{ category: string }>; count: number };
   assert.equal(body.count, 20);
-  assert.ok(body.skills.every((s) => s.category === "cli"), "All skills should be cli category");
+  assert.ok(
+    body.skills.every((s) => s.category === "cli"),
+    "All skills should be cli category"
+  );
 });
 
 test("GET /api/agent-skills?area=providers — returns only providers area skills", async () => {
@@ -154,7 +169,7 @@ test("GET /api/agent-skills?category=invalid — returns 400 with sanitized erro
   // Hard Rule #12: no stack trace exposure
   assert.ok(
     !body.error.message.match(/\bat \/|\bat file:\/\//),
-    `Error message must not contain stack trace: "${body.error.message}"`,
+    `Error message must not contain stack trace: "${body.error.message}"`
   );
 });
 
@@ -192,7 +207,7 @@ test("GET /api/agent-skills/[id] — returns 404 with sanitized error for unknow
   // Hard Rule #12: no stack trace exposure
   assert.ok(
     !body.error.message.match(/\bat \/|\bat file:\/\//),
-    `Error message must not contain stack trace: "${body.error.message}"`,
+    `Error message must not contain stack trace: "${body.error.message}"`
   );
 });
 
@@ -213,7 +228,7 @@ test("GET /api/agent-skills/[id]/raw — returns 404 with sanitized error for un
   // Hard Rule #12: no stack trace exposure
   assert.ok(
     !body.error.message.match(/\bat \/|\bat file:\/\//),
-    `Error message must not contain stack trace: "${body.error.message}"`,
+    `Error message must not contain stack trace: "${body.error.message}"`
   );
 });
 
@@ -230,14 +245,14 @@ test("GET /api/agent-skills/[id]/raw — returns markdown or 502 for valid id (n
   // Either 200 (network available) or 502 (no network) is acceptable
   assert.ok(
     res.status === 200 || res.status === 502 || res.status === 500,
-    `Expected 200, 502, or 500 but got ${res.status}`,
+    `Expected 200, 502, or 500 but got ${res.status}`
   );
 
   if (res.status === 200) {
     const contentType = res.headers.get("content-type") ?? "";
     assert.ok(
       contentType.includes("text/markdown"),
-      `Expected text/markdown content-type, got: ${contentType}`,
+      `Expected text/markdown content-type, got: ${contentType}`
     );
     const cacheControl = res.headers.get("cache-control") ?? "";
     assert.ok(cacheControl.includes("max-age=3600"), "Cache-Control should include max-age=3600");
@@ -247,7 +262,7 @@ test("GET /api/agent-skills/[id]/raw — returns markdown or 502 for valid id (n
     assert.ok(body.error);
     assert.ok(
       !body.error.message.match(/\bat \/|\bat file:\/\//),
-      `Error message must not contain stack trace: "${body.error.message}"`,
+      `Error message must not contain stack trace: "${body.error.message}"`
     );
   }
 });
@@ -291,7 +306,7 @@ test("POST /api/agent-skills/generate — 401 when auth is required and no token
   // requireManagementAuth returns 401 or 403 when auth is required and no token
   assert.ok(
     res.status === 401 || res.status === 403,
-    `Expected 401 or 403 without auth, got ${res.status}`,
+    `Expected 401 or 403 without auth, got ${res.status}`
   );
 
   const body = (await res.json()) as { error: { message: string } | string };
@@ -300,7 +315,7 @@ test("POST /api/agent-skills/generate — 401 when auth is required and no token
     typeof body.error === "string" ? body.error : (body.error as { message: string }).message;
   assert.ok(
     !errorMsg.match(/\bat \/|\bat file:\/\//),
-    `Error message must not contain stack trace: "${errorMsg}"`,
+    `Error message must not contain stack trace: "${errorMsg}"`
   );
 });
 
@@ -318,7 +333,7 @@ test("POST /api/agent-skills/generate — 400 when body is invalid (non-boolean 
   // But with invalid body, 400 should come first
   assert.ok(
     res.status === 400 || res.status === 503,
-    `Expected 400 (bad body) or 503 (generator unavailable), got ${res.status}`,
+    `Expected 400 (bad body) or 503 (generator unavailable), got ${res.status}`
   );
 
   const body = (await res.json()) as { error: { message: string } };
@@ -326,7 +341,7 @@ test("POST /api/agent-skills/generate — 400 when body is invalid (non-boolean 
   // Hard Rule #12: no stack trace exposure
   assert.ok(
     !body.error.message.match(/\bat \/|\bat file:\/\//),
-    `Error message must not contain stack trace: "${body.error.message}"`,
+    `Error message must not contain stack trace: "${body.error.message}"`
   );
 });
 
@@ -345,7 +360,7 @@ test("POST /api/agent-skills/generate — 503 when generator module unavailable 
   // Both are valid depending on merge state.
   assert.ok(
     res.status === 200 || res.status === 503,
-    `Expected 200 (generator available) or 503 (generator unavailable), got ${res.status}`,
+    `Expected 200 (generator available) or 503 (generator unavailable), got ${res.status}`
   );
 
   const body = (await res.json()) as Record<string, unknown>;
@@ -355,7 +370,7 @@ test("POST /api/agent-skills/generate — 503 when generator module unavailable 
     // Hard Rule #12: no stack trace exposure
     assert.ok(
       !err.message.match(/\bat \/|\bat file:\/\//),
-      `503 error message must not contain stack trace: "${err.message}"`,
+      `503 error message must not contain stack trace: "${err.message}"`
     );
   } else {
     // 200: body should look like a GeneratorReport
@@ -369,7 +384,7 @@ test("POST /api/agent-skills/generate — 400 when request body is not JSON", as
 
   const req = new Request("http://localhost/api/agent-skills/generate", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", "x-omniroute-peer-locality": "loopback" },
     body: "not valid json {{{",
   });
   const res = await generateRoute.POST(req);
@@ -380,7 +395,7 @@ test("POST /api/agent-skills/generate — 400 when request body is not JSON", as
   // Hard Rule #12: no stack trace exposure
   assert.ok(
     !body.error.message.match(/\bat \/|\bat file:\/\//),
-    `Error message must not contain stack trace: "${body.error.message}"`,
+    `Error message must not contain stack trace: "${body.error.message}"`
   );
 });
 
@@ -394,23 +409,20 @@ test("Hard Rule #12: all error responses contain sanitized messages (no 'at /' p
   // Collect error responses from various bad inputs
   const errorResponses: Response[] = [
     // Invalid category query
-    await listRoute.GET(
-      makeRequest("GET", "http://localhost/api/agent-skills?category=bad-val"),
-    ),
+    await listRoute.GET(makeRequest("GET", "http://localhost/api/agent-skills?category=bad-val")),
     // Unknown skill id
     await idRoute.GET(makeRequest("GET", "http://localhost/api/agent-skills/unknown-id"), {
       params: Promise.resolve({ id: "unknown-id" }),
     }),
     // Unknown raw skill id
-    await rawRoute.GET(
-      makeRequest("GET", "http://localhost/api/agent-skills/unknown-id/raw"),
-      { params: Promise.resolve({ id: "unknown-id" }) },
-    ),
+    await rawRoute.GET(makeRequest("GET", "http://localhost/api/agent-skills/unknown-id/raw"), {
+      params: Promise.resolve({ id: "unknown-id" }),
+    }),
     // Invalid generate body (non-boolean)
     await generateRoute.POST(
       makeRequest("POST", "http://localhost/api/agent-skills/generate", {
         dryRun: 42,
-      }),
+      })
     ),
   ];
 
@@ -419,14 +431,14 @@ test("Hard Rule #12: all error responses contain sanitized messages (no 'at /' p
     const contentType = res.headers.get("content-type") ?? "";
     assert.ok(
       contentType.includes("application/json") || contentType.includes("json"),
-      `Error response must be JSON, got content-type: ${contentType}`,
+      `Error response must be JSON, got content-type: ${contentType}`
     );
 
     const body = (await res.json()) as { error?: { message?: string } };
     const message = body?.error?.message ?? "";
     assert.ok(
       !message.match(/\bat \/|\bat file:\/\//),
-      `Stack trace detected in error response (status ${res.status}): "${message}"`,
+      `Stack trace detected in error response (status ${res.status}): "${message}"`
     );
   }
 });

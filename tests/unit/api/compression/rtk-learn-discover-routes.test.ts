@@ -21,12 +21,13 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rtk-ld-routes-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 process.env.DATA_DIR = TEST_DATA_DIR;
 delete process.env.INITIAL_PASSWORD;
+delete process.env.JWT_SECRET;
 
-const { maybePersistRtkRawOutput } = await import(
-  "../../../../open-sse/services/compression/engines/rtk/index.ts"
-);
+const { maybePersistRtkRawOutput } =
+  await import("../../../../open-sse/services/compression/engines/rtk/index.ts");
 const discoverRoute = await import("../../../../src/app/api/context/rtk/discover/route.ts");
 const learnRoute = await import("../../../../src/app/api/context/rtk/learn/route.ts");
 
@@ -41,7 +42,10 @@ function seedSamples() {
 }
 
 function get(url: string): Request {
-  return new Request(url, { method: "GET" });
+  return new Request(url, {
+    method: "GET",
+    headers: { "x-omniroute-peer-locality": "loopback" },
+  });
 }
 
 test.beforeEach(() => {
@@ -55,6 +59,8 @@ test.after(() => {
   else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
   if (ORIGINAL_INITIAL_PASSWORD !== undefined)
     process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+  if (ORIGINAL_JWT_SECRET === undefined) delete process.env.JWT_SECRET;
+  else process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
 });
 
 test("GET /discover — returns ranked noise candidates + sampleCount", async () => {
