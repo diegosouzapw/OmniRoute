@@ -19,19 +19,19 @@ A skill is a versioned, schema-defined unit of work. OmniRoute can inject skills
 
 OmniRoute has two distinct but complementary skill systems:
 
-| Dimension | **Omni Skills** (this doc) | **Agent Skills** |
-| :--- | :--- | :--- |
-| Purpose | LLM tool injection + sandboxed execution | SKILL.md catalog for external agents to discover and consume |
-| Source of truth | `src/lib/skills/` + marketplace | `src/lib/agentSkills/` + `skills/` directory |
-| Runtime mode | Injected into outbound requests, executed on tool-call events | Static markdown catalog + REST/MCP/A2A discovery endpoints |
-| Who uses it | OmniRoute itself (combo routing, inbound LLM calls) | External agents, MCP clients, A2A orchestrators |
-| Count | Variable (marketplace-driven) | 42 canonical entries (22 API + 20 CLI) |
-| Format | `SkillDefinition` with tool schema + handler | `SKILL.md` frontmatter + markdown body |
-| Discovery | `/api/skills/*` REST + `omniroute_skills_*` MCP tools | `/api/agent-skills/*` REST + `omniroute_agent_skills_*` MCP tools + A2A `list-capabilities` |
+| Dimension       | **Omni Skills** (this doc)                                    | **Agent Skills**                                                                            |
+| :-------------- | :------------------------------------------------------------ | :------------------------------------------------------------------------------------------ |
+| Purpose         | LLM tool injection + sandboxed execution                      | SKILL.md catalog for external agents to discover and consume                                |
+| Source of truth | `src/lib/skills/` + marketplace                               | `src/lib/agentSkills/` + `skills/` directory                                                |
+| Runtime mode    | Injected into outbound requests, executed on tool-call events | Static markdown catalog + REST/MCP/A2A discovery endpoints                                  |
+| Who uses it     | OmniRoute itself (combo routing, inbound LLM calls)           | External agents, MCP clients, A2A orchestrators                                             |
+| Count           | Variable (marketplace-driven)                                 | 42 canonical entries (22 API + 20 CLI)                                                      |
+| Format          | `SkillDefinition` with tool schema + handler                  | `SKILL.md` frontmatter + markdown body                                                      |
+| Discovery       | `/api/skills/*` REST + `omniroute_skills_*` MCP tools         | `/api/agent-skills/*` REST + `omniroute_agent_skills_*` MCP tools + A2A `list-capabilities` |
 
-**Omni Skills** are the execution engine — they define what OmniRoute *can do* when an LLM invokes a tool.
+**Omni Skills** are the execution engine — they define what OmniRoute _can do_ when an LLM invokes a tool.
 
-**Agent Skills** are the documentation catalog — they explain to external agents *how to use* OmniRoute's REST API and CLI, with structured SKILL.md files that can be fed directly into agent prompts.
+**Agent Skills** are the documentation catalog — they explain to external agents _how to use_ OmniRoute's REST API and CLI, with structured SKILL.md files that can be fed directly into agent prompts.
 
 For the Agent Skills catalog, generator, MCP tools, and A2A skill, see [docs/frameworks/AGENT-SKILLS.md](./AGENT-SKILLS.md).
 
@@ -186,9 +186,11 @@ Default allowed images: `alpine:3.20`, `node:22-alpine`, `python:3.12-alpine`. A
 
 ---
 
-## Hybrid Executor (preview)
+## Execution Path
 
-`src/lib/skills/hybrid.ts` defines a `HybridExecutor` that decides between `direct` (in-process) and `sandbox` execution per call, with an `autoUpgrade` retry path on timeout/memory errors. The wired-in `directExecutor` / `sandboxRunner` implementations are stubs (`executeDirect`, `executeInSandbox` return placeholder objects) — treat this module as a contract under construction. Real execution still goes through `skillExecutor` + `SandboxRunner`.
+Runtime execution goes through `skillExecutor` and `SandboxRunner`. The older
+hybrid-executor preview was removed because it only returned placeholder objects
+and had no live importers.
 
 ---
 
@@ -332,10 +334,10 @@ The `SkillExecutor` (`src/lib/skills/executor.ts`) is a **singleton** that manag
 
 ### Default Configuration
 
-| Setting | Default | Configurable via |
-|---------|---------|------------------|
-| `timeout` | `30000` (30s) | `skillExecutor.setTimeout(ms)` |
-| `maxRetries` | `3` | `skillExecutor.setMaxRetries(count)` |
+| Setting      | Default       | Configurable via                     |
+| ------------ | ------------- | ------------------------------------ |
+| `timeout`    | `30000` (30s) | `skillExecutor.setTimeout(ms)`       |
+| `maxRetries` | `3`           | `skillExecutor.setMaxRetries(count)` |
 
 > **Important**: The executor is a singleton — calling `setTimeout()` affects all subsequent invocations globally. Per-skill timeouts are not currently supported; if you need different timeouts per skill, submit separate processes or fork the executor.
 
@@ -345,11 +347,11 @@ From `src/lib/skills/types.ts`:
 
 ```ts
 enum SkillStatus {
-  PENDING = "pending",   // Queued, not yet started
-  RUNNING = "running",   // Handler invoked
-  SUCCESS = "success",   // Handler returned valid output
-  ERROR = "error",       // Handler threw an exception
-  TIMEOUT = "timeout",   // Exceeded the executor's timeout
+  PENDING = "pending", // Queued, not yet started
+  RUNNING = "running", // Handler invoked
+  SUCCESS = "success", // Handler returned valid output
+  ERROR = "error", // Handler threw an exception
+  TIMEOUT = "timeout", // Exceeded the executor's timeout
 }
 ```
 
@@ -413,9 +415,9 @@ The `SkillMode` enum (`src/lib/skills/types.ts`) controls **when and how** skill
 
 ```ts
 enum SkillMode {
-  AUTO = "auto",       // LLM decides when to call the skill
-  MANUAL = "manual",   // Only invoked by explicit user request
-  HYBRID = "hybrid",   // AUTO scoring + manual override
+  AUTO = "auto", // LLM decides when to call the skill
+  MANUAL = "manual", // Only invoked by explicit user request
+  HYBRID = "hybrid", // AUTO scoring + manual override
 }
 ```
 
@@ -423,11 +425,11 @@ enum SkillMode {
 
 ### When to Use Each Mode
 
-| Mode | LLM behavior | Use case |
-|------|--------------|----------|
-| `AUTO` | LLM can call the skill when it deems necessary | General-purpose skills (file reads, HTTP requests) |
-| `MANUAL` | LLM cannot call the skill; only an explicit `executeSkill` API call invokes it | Sensitive operations (database writes, payments) |
-| `HYBRID` | LLM can suggest the skill; user must confirm | Skills that have side effects but aren't dangerous |
+| Mode     | LLM behavior                                                                   | Use case                                           |
+| -------- | ------------------------------------------------------------------------------ | -------------------------------------------------- |
+| `AUTO`   | LLM can call the skill when it deems necessary                                 | General-purpose skills (file reads, HTTP requests) |
+| `MANUAL` | LLM cannot call the skill; only an explicit `executeSkill` API call invokes it | Sensitive operations (database writes, payments)   |
+| `HYBRID` | LLM can suggest the skill; user must confirm                                   | Skills that have side effects but aren't dangerous |
 
 ### AUTO Scoring
 
@@ -454,22 +456,23 @@ The browser skill (`src/lib/skills/builtin/browser.ts`) provides headless browse
 // Enable in your config
 const config: SkillConfig = {
   enabled: true,
-  mode: SkillMode.MANUAL,  // Always require explicit invocation
+  mode: SkillMode.MANUAL, // Always require explicit invocation
   allowedSkills: ["browser"],
-  timeout: 60000,          // 60s for page loads
+  timeout: 60000, // 60s for page loads
   maxRetries: 1,
 };
 ```
 
 ### Other Built-in Categories
 
-| Category | Skills | Mode |
-|----------|--------|------|
-| File I/O | `file_read`, `file_write` | AUTO |
-| HTTP | `http_request` | AUTO |
-| Search | `web_search` | AUTO |
-| Code Exec | `eval_code` (sandboxed JavaScript/Python) | HYBRID |
-| System | `execute_command` (sandboxed CLI execution) | MANUAL |
+| Category  | Skills                                      | Mode   |
+| --------- | ------------------------------------------- | ------ |
+| File I/O  | `file_read`, `file_write`                   | AUTO   |
+| HTTP      | `http_request`                              | AUTO   |
+| Search    | `web_search`                                | AUTO   |
+| Code Exec | `eval_code` (sandboxed JavaScript/Python)   | HYBRID |
+| System    | `execute_command` (sandboxed CLI execution) | MANUAL |
+
 ### Adding a Custom Skill
 
 See the [Plugin SDK & Skills Integration](../plugins/PLUGIN_SDK.md) for how to add a custom skill via the plugin system.

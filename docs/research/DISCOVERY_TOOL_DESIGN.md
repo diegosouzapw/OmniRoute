@@ -31,18 +31,21 @@ The Discovery Tool is an automated service that scans LLM providers for free/unl
 ## Components
 
 ### 1. Scanner
+
 - Probes known provider URLs for API endpoints
 - Detects authentication requirements (none, cookie, API key, OAuth)
 - Discovers available models via `/v1/models` or equivalent
 - Checks for rate limits and free tier availability
 
 ### 2. Tester
+
 - Tests authentication bypass methods (cookie extraction, public endpoints)
 - Validates session token freshness
 - Measures rate limits and quotas
 - Tests streaming support
 
 ### 3. Reporter
+
 - Generates structured JSON reports
 - Stores findings in SQLite (`discovery_results` table)
 - Sends notifications for high-value discoveries
@@ -52,10 +55,10 @@ The Discovery Tool is an automated service that scans LLM providers for free/unl
 
 ```typescript
 interface DiscoveryConfig {
-  enabled: boolean;           // Default: false (opt-in)
-  scanInterval: number;       // ms between scans (default: 24h)
+  enabled: boolean; // Default: false (opt-in)
+  scanInterval: number; // ms between scans (default: 24h)
   maxConcurrentScans: number; // parallel scan limit (default: 3)
-  targetProviders: string[];  // specific providers to scan (empty = all known)
+  targetProviders: string[]; // specific providers to scan (empty = all known)
   notificationWebhook?: string; // URL for discovery notifications
 }
 ```
@@ -84,18 +87,18 @@ CREATE TABLE discovery_results (
 ## API Endpoints
 
 > ⚠️ **Not yet implemented — Phase 2 (Future).** The routes below are a design
-> proposal, not live endpoints. `src/lib/discovery/index.ts` is an explicit Phase-1
-> stub and none of the discovery routes exist yet. They are intentionally documented
-> here as the planned surface; the `check-docs-symbols` quality gate suppresses them
-> via `KNOWN_STALE_DOC_REFS` until Phase 2 lands. See **Implementation Plan → Phase 2**.
+> proposal, not live endpoints. The earlier Phase-1 stub was removed because it
+> had no live importers; none of the discovery routes exist yet. They are
+> intentionally documented here as the planned surface. See **Implementation
+> Plan → Phase 2**.
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/discovery/results` | List all discovery results |
-| GET | `/api/discovery/results/:id` | Get specific result |
-| POST | `/api/discovery/scan` | Trigger manual scan |
-| POST | `/api/discovery/verify/:id` | Verify a discovery |
-| DELETE | `/api/discovery/results/:id` | Delete a result |
+| Method | Path                         | Description                |
+| ------ | ---------------------------- | -------------------------- |
+| GET    | `/api/discovery/results`     | List all discovery results |
+| GET    | `/api/discovery/results/:id` | Get specific result        |
+| POST   | `/api/discovery/scan`        | Trigger manual scan        |
+| POST   | `/api/discovery/verify/:id`  | Verify a discovery         |
+| DELETE | `/api/discovery/results/:id` | Delete a result            |
 
 ## Settings Toggle
 
@@ -114,14 +117,16 @@ In OmniRoute dashboard settings:
 
 ## Implementation Plan
 
-### Phase 1 (Current — Stub)
+### Phase 1 (Historical — Design Only)
+
 - [x] Design doc
-- [ ] Stub service (`src/lib/discovery/index.ts`)
+- [x] Removed unused local stub before Phase 2 implementation
 - [ ] DB migration for `discovery_results` table
 - [ ] Settings toggle in settings API
 - [ ] Basic scanner that probes a single URL
 
 ### Phase 2 (Future)
+
 - [ ] Full scanner with multi-provider support
 - [ ] Auth bypass testing
 - [ ] Model discovery
@@ -129,6 +134,7 @@ In OmniRoute dashboard settings:
 - [ ] Dashboard UI tab
 
 ### Phase 3 (Future)
+
 - [ ] Auto-registration integration
 - [ ] Session pool management
 - [ ] Continuous scanning

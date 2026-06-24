@@ -24,11 +24,11 @@ artifact, and supports follow-up messages and (in some providers) plan approval 
 
 ## Supported Agents
 
-| Provider ID   | Class             | Source                               | Upstream Base URL                       | Plan Approval |
-| ------------- | ----------------- | ------------------------------------ | --------------------------------------- | ------------- |
-| `jules`       | `JulesAgent`      | `src/lib/cloudAgent/agents/jules.ts` | `https://jules.googleapis.com/v1alpha`  | Yes           |
-| `devin`       | `DevinAgent`      | `src/lib/cloudAgent/agents/devin.ts` | `https://api.devin.ai/v1`               | Yes           |
-| `codex-cloud` | `CodexCloudAgent` | `src/lib/cloudAgent/agents/codex.ts` | `https://api.openai.com/v1/codex/cloud` | No (auto)     |
+| Provider ID    | Class              | Source                                | Upstream Base URL                       | Plan Approval |
+| -------------- | ------------------ | ------------------------------------- | --------------------------------------- | ------------- |
+| `jules`        | `JulesAgent`       | `src/lib/cloudAgent/agents/jules.ts`  | `https://jules.googleapis.com/v1alpha`  | Yes           |
+| `devin`        | `DevinAgent`       | `src/lib/cloudAgent/agents/devin.ts`  | `https://api.devin.ai/v1`               | Yes           |
+| `codex-cloud`  | `CodexCloudAgent`  | `src/lib/cloudAgent/agents/codex.ts`  | `https://api.openai.com/v1/codex/cloud` | No (auto)     |
 | `cursor-cloud` | `CursorCloudAgent` | `src/lib/cloudAgent/agents/cursor.ts` | `https://api.cursor.com/v0`             | No (auto)     |
 
 Registry: `src/lib/cloudAgent/registry.ts` — exports `getAgent(providerId)`,
@@ -195,9 +195,8 @@ exported alongside the types and are used by the route handlers.
 
 ## Database
 
-Source: `src/lib/cloudAgent/db.ts` — table is created lazily via
-`createCloudAgentTaskTable()` (also called from `src/lib/cloudAgent/index.ts` at
-module import).
+Source: `src/lib/cloudAgent/db.ts` — route handlers call
+`createCloudAgentTaskTable()` before reading or writing cloud-agent task rows.
 
 ```sql
 CREATE TABLE IF NOT EXISTS cloud_agent_tasks (
