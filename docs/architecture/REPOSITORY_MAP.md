@@ -134,8 +134,7 @@ src/
 ├── store/               # Legacy in-memory store (being phased out for src/lib/db)
 ├── types/               # Shared TS type files
 ├── instrumentation.ts   # Next.js telemetry hook (browser + edge)
-├── instrumentation-node.ts  # Node-only instrumentation
-├── server-init.ts       # Server bootstrap (DB migrations, jobs, cleanup)
+├── instrumentation-node.ts  # Node-only startup bootstrap (DB migrations, jobs, cleanup)
 └── proxy.ts             # HTTP-proxy entry shim
 ```
 

@@ -540,7 +540,7 @@ export function getArenaEloSyncStatus(): SyncStatus {
   };
 }
 
-// ─── Init (called from server-init.ts) ───────────────────
+// ─── Init (called from instrumentation-node.ts) ───────────────────
 
 /**
  * Initialize Arena ELO sync if enabled via feature flag configuration.

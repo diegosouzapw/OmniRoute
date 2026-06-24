@@ -108,6 +108,7 @@ export async function registerNodejs(): Promise<void> {
     { startBackgroundRefresh },
     { ensureCloudSyncInitialized },
     { startProviderLimitsSyncScheduler },
+    { startCleanupScheduler },
     { getSettings },
     { applyRuntimeSettings },
     { startRuntimeConfigHotReload },
@@ -122,6 +123,7 @@ export async function registerNodejs(): Promise<void> {
     import("@/domain/quotaCache"),
     import("@/lib/initCloudSync"),
     import("@/shared/services/providerLimitsSyncScheduler"),
+    import("@/lib/db/cleanup"),
     import("@/lib/db/settings"),
     import("@/lib/config/runtimeSettings"),
     import("@/lib/config/hotReload"),
@@ -145,6 +147,8 @@ export async function registerNodejs(): Promise<void> {
     console.log("[STARTUP] Quota cache background refresh started");
     startProviderLimitsSyncScheduler();
     console.log("[STARTUP] Provider limits sync scheduler started");
+    startCleanupScheduler();
+    console.log("[STARTUP] DB cleanup scheduler started");
     const cloudSyncInitialized = await ensureCloudSyncInitialized();
     console.log(
       `[STARTUP] Cloud/model sync background bootstrap ${cloudSyncInitialized ? "initialized" : "skipped"}`
@@ -291,8 +295,7 @@ export async function registerNodejs(): Promise<void> {
     }
 
     // Pricing sync: opt-in external pricing data (self-gated by PRICING_SYNC_ENABLED inside
-    // initPricingSync). Was only wired into the unused server-init.ts, so it never ran in the
-    // standalone runtime even when enabled. Non-blocking, never fatal.
+    // initPricingSync). Non-blocking, never fatal.
     try {
       const { initPricingSync } = await import("@/lib/pricingSync");
       await initPricingSync();

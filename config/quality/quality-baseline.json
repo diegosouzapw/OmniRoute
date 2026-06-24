@@ -94,7 +94,7 @@
       "eps": 0.5
     },
     "deadExports": {
-      "value": 62,
+      "value": 59,
       "direction": "down",
       "dedicatedGate": true,
       "_dead_code_ratchet_2026_06_24_unused_helpers": "287 -> 279 after removing unused legacy response/cost/settings/plugin/OAuth helper modules.",
@@ -119,7 +119,8 @@
       "_dead_code_ratchet_2026_06_24_tool_policy_surface": "75 -> 74 after deleting the unused toolPolicy implementation and removing the stale TOOL_POLICY_MODE env/feature-flag documentation surface.",
       "_dead_code_ratchet_2026_06_24_acp_manager_surface": "74 -> 70 after deleting the unused ACP barrel/process manager and removing docs-only ACP registry getters.",
       "_dead_code_ratchet_2026_06_24_stale_skill_stubs": "70 -> 68 after deleting unused standalone A2A/browser skill stubs and updating docs/tests to the active skills and A2A registries.",
-      "_dead_code_ratchet_2026_06_24_gamification_exports": "68 -> 62 after deleting unused gamification badge/streak/server helper exports and updating docs to the active event and federation route flows."
+      "_dead_code_ratchet_2026_06_24_gamification_exports": "68 -> 62 after deleting unused gamification badge/streak/server helper exports and updating docs to the active event and federation route flows.",
+      "_dead_code_ratchet_2026_06_24_legacy_startup": "62 -> 59 after deleting the unused server-init bootstrap and orphan reasoning-cache cleanup job, then wiring DB cleanup into the live instrumentation-node startup path."
     },
     "cognitiveComplexity": {
       "value": 801,

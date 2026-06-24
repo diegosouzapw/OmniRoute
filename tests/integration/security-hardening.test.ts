@@ -144,10 +144,18 @@ test("chat handler wires guardrail pre-call validation", () => {
   );
 });
 
-test("server-init.ts calls enforceSecrets", () => {
-  const content = readIfExists("src/server-init.ts");
-  assert.ok(content, "src/server-init.ts should exist");
-  assert.ok(content.includes("enforceSecrets"), "server-init.ts should call enforceSecrets");
+test("instrumentation-node.ts restores secrets before validating runtime env", () => {
+  const content = readIfExists("src/instrumentation-node.ts");
+  assert.ok(content, "src/instrumentation-node.ts should exist");
+  assert.ok(content.includes("ensureSecrets"), "instrumentation-node.ts should restore secrets");
+  assert.ok(
+    content.includes("enforceWebRuntimeEnv"),
+    "instrumentation-node.ts should validate env"
+  );
+  assert.ok(
+    content.indexOf("await ensureSecrets()") < content.indexOf("enforceWebRuntimeEnv()"),
+    "instrumentation-node.ts should restore secrets before env validation"
+  );
 });
 
 test("instrumentation-node.ts validates runtime env after restoring secrets", () => {
