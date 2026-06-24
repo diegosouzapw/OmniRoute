@@ -108,7 +108,7 @@ export function AgentSkillsPageClient(): JSX.Element {
         setLoadingPreview(false);
       }
     },
-    [markdownCache],
+    [markdownCache]
   );
 
   // ── Debounced preview load (200ms) ───────────────────────────────────────
@@ -120,12 +120,9 @@ export function AgentSkillsPageClient(): JSX.Element {
     return () => clearTimeout(timer);
   }, [selectedId, loadPreview]);
 
-  const handleSelectCard = useCallback(
-    (id: string) => {
-      setSelectedId(id);
-    },
-    [],
-  );
+  const handleSelectCard = useCallback((id: string) => {
+    setSelectedId(id);
+  }, []);
 
   const handleRefreshPreview = useCallback(() => {
     if (!selectedId) return;
@@ -177,9 +174,8 @@ export function AgentSkillsPageClient(): JSX.Element {
     return true;
   });
 
-  const selectedMarkdown = selectedId ? markdownCache.get(selectedId) ?? null : null;
-  const coverageTotal =
-    coverage !== null ? coverage.api.have + coverage.cli.have : null;
+  const selectedMarkdown = selectedId ? (markdownCache.get(selectedId) ?? null) : null;
+  const coverageTotal = coverage !== null ? coverage.api.have + coverage.cli.have : null;
   const showGenerateButton = coverageTotal !== null && coverageTotal < 42;
 
   return (
@@ -211,11 +207,7 @@ export function AgentSkillsPageClient(): JSX.Element {
               </button>
             )}
           </div>
-          {coverage ? (
-            <CoverageBar coverage={coverage} />
-          ) : (
-            <CoverageBarSkeleton />
-          )}
+          {coverage ? <CoverageBar coverage={coverage} /> : <CoverageBarSkeleton />}
         </div>
 
         {/* MCP + A2A links */}
@@ -264,10 +256,7 @@ export function AgentSkillsPageClient(): JSX.Element {
       {/* Two-column grid: left = skill cards, right = preview */}
       <div className="grid grid-cols-12 gap-4" data-testid="skills-grid">
         {/* Left: skill cards list (col-span 7) */}
-        <div
-          className="col-span-12 lg:col-span-7 flex flex-col gap-2"
-          data-testid="skills-list"
-        >
+        <div className="col-span-12 lg:col-span-7 flex flex-col gap-2" data-testid="skills-list">
           {loadingCatalog ? (
             Array.from({ length: 6 }).map((_, i) => <SkillCardSkeleton key={i} />)
           ) : filteredSkills.length === 0 ? (
@@ -302,5 +291,3 @@ export function AgentSkillsPageClient(): JSX.Element {
     </div>
   );
 }
-
-export default AgentSkillsPageClient;

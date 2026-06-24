@@ -155,5 +155,3 @@ export function OmniSkillsList({
     </div>
   );
 }
-
-export default OmniSkillsList;

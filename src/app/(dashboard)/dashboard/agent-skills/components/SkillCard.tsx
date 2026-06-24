@@ -20,7 +20,7 @@ export function SkillCard({ skill, selected, onClick }: SkillCardProps): JSX.Ele
         onClick();
       }
     },
-    [onClick],
+    [onClick]
   );
 
   const previewItems: string[] =
@@ -109,5 +109,3 @@ export function SkillCard({ skill, selected, onClick }: SkillCardProps): JSX.Ele
     </div>
   );
 }
-
-export default SkillCard;
