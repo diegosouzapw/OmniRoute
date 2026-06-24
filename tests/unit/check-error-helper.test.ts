@@ -169,22 +169,26 @@ test("the shipped allowlist freezes exactly the known current violators (all sco
     // TODO(6A.8): pre-existing, triage — route through buildErrorBody()/sanitizeErrorMessage()
     "src/app/api/cli-tools/backups/route.ts",
     "src/app/api/cli-tools/guide-settings/[toolId]/route.ts",
-    "src/app/api/logs/export/route.ts",
     "src/app/api/models/catalog/route.ts",
     "src/app/api/providers/test-batch/route.ts",
     "src/app/api/usage/proxy-logs/route.ts",
   ]);
 });
 
-test("import-json route has been removed from the shipped missing-helper allowlist", async () => {
-  const source = await import("node:fs").then((fs) =>
-    fs.readFileSync("src/app/api/settings/import-json/route.ts", "utf8")
-  );
-  const path = "src/app/api/settings/import-json/route.ts";
+async function assertRouteRemovedFromMissingHelperAllowlist(path: string) {
+  const source = await import("node:fs").then((fs) => fs.readFileSync(path, "utf8"));
 
   assert.equal(allowlist.has(path), false);
   assert.deepEqual(find([{ path, source }], EMPTY), []);
   assert.ok(source.includes("sanitizeErrorMessage"));
+}
+
+test("import-json route has been removed from the shipped missing-helper allowlist", async () => {
+  await assertRouteRemovedFromMissingHelperAllowlist("src/app/api/settings/import-json/route.ts");
+});
+
+test("logs export route has been removed from the shipped missing-helper allowlist", async () => {
+  await assertRouteRemovedFromMissingHelperAllowlist("src/app/api/logs/export/route.ts");
 });
 
 test("returns multiple violating paths and preserves input order", () => {
@@ -253,7 +257,6 @@ test("6A.8: the shipped allowlist freezes the new expanded-scope known violators
   const expectedApiViolators = [
     "src/app/api/cli-tools/backups/route.ts",
     "src/app/api/cli-tools/guide-settings/[toolId]/route.ts",
-    "src/app/api/logs/export/route.ts",
     "src/app/api/models/catalog/route.ts",
     "src/app/api/providers/test-batch/route.ts",
     "src/app/api/usage/proxy-logs/route.ts",
