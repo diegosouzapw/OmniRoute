@@ -43,7 +43,6 @@ export const KNOWN_MISSING_ERROR_HELPER = new Set([
   // --- original open-sse/executors + handlers scope (pre-6A.8) ---
   // --- 6A.8 expanded scope: src/app/api/**/route.ts pre-existing violations ---
   // TODO(6A.8): pre-existing, triage — route through buildErrorBody()/sanitizeErrorMessage()
-  "src/app/api/cli-tools/backups/route.ts",
   "src/app/api/cli-tools/guide-settings/[toolId]/route.ts",
   "src/app/api/providers/test-batch/route.ts",
 ]);
