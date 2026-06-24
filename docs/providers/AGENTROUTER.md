@@ -124,7 +124,7 @@ request (see `open-sse/services/claudeCodeCompatible.ts`):
 | Header                                      | Value                                                                                               |
 | ------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | `Authorization`                             | `Bearer <api-key>`                                                                                  |
-| `User-Agent`                                | `claude-cli/2.1.158 (external, sdk-cli)`                                                            |
+| `User-Agent`                                | `claude-cli/2.1.187 (external, sdk-cli)`                                                            |
 | `anthropic-version`                         | `2023-06-01`                                                                                        |
 | `anthropic-beta`                            | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                            |
 | Per-connection redact-thinking beta toggle  | Adds `redact-thinking-2026-02-12` for upstreams that specifically require redacted thinking streams |
