@@ -7,7 +7,11 @@ import type { NextRequest } from "next/server";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-backup-"));
 const isWindows = process.platform === "win32";
+const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.INITIAL_PASSWORD = "";
+delete process.env.JWT_SECRET;
 
 const core = await import("../../src/lib/db/core.ts");
 const backupDb = await import("../../src/lib/db/backup.ts");
@@ -67,7 +71,10 @@ async function waitForBackupEntry(filename, expectedConnectionCount, timeoutMs =
 function makeDbBackupsJsonRequest(method: string, body: unknown): NextRequest {
   return new Request("http://localhost/api/db-backups", {
     method,
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "x-omniroute-peer-locality": "loopback",
+    },
     body: JSON.stringify(body),
   }) as unknown as NextRequest;
 }
@@ -79,6 +86,16 @@ test.beforeEach(async () => {
 test.after(async () => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+    delete process.env.INITIAL_PASSWORD;
+  } else {
+    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+  }
+  if (ORIGINAL_JWT_SECRET === undefined) {
+    delete process.env.JWT_SECRET;
+  } else {
+    process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
+  }
 });
 
 test("backupDbFile creates manual backups and listDbBackups returns metadata", async () => {
