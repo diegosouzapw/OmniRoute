@@ -17,6 +17,7 @@ const analyticsRoute = await import("../../src/app/api/usage/analytics/route.ts"
 
 const clearPendingRequests = usageHistory.clearPendingRequests;
 const EXPECTED_TOTAL_COST = 0.020925;
+let managementApiKey = "";
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -54,7 +55,10 @@ async function seedAnalyticsData() {
 }
 
 function makeRequest(url: string) {
-  return new Request(url, { method: "GET" });
+  return new Request(url, {
+    method: "GET",
+    headers: { authorization: `Bearer ${managementApiKey}` },
+  });
 }
 
 function assertClose(actual: number, expected: number, epsilon = 0.000001) {
@@ -66,6 +70,12 @@ function assertClose(actual: number, expected: number, epsilon = 0.000001) {
 
 test.beforeEach(async () => {
   await resetStorage();
+  const managementKey = await apiKeysDb.createApiKey(
+    "Usage Analytics Test Admin",
+    "machine-admin",
+    ["manage"]
+  );
+  managementApiKey = managementKey.key;
   await localDb.updatePricing({
     openai: { "gpt-4o": { input: 2.5, output: 10 } },
     anthropic: { "claude-sonnet": { input: 3, output: 15 } },
