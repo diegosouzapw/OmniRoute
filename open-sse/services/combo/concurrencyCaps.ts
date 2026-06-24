@@ -24,7 +24,7 @@ import { effectiveMaxConcurrency } from "./comboPredicates.ts";
 import type { ResolvedComboTarget } from "./types.ts";
 
 /** Read a connection's positive `maxConcurrent`, or null when unset / <= 0 / on error. */
-async function lookupPositiveCap(connectionId: string): Promise<number | null> {
+export async function lookupPositiveCap(connectionId: string): Promise<number | null> {
   try {
     const conn = await getProviderConnectionById(connectionId);
     const raw = (conn as { maxConcurrent?: number | null } | null)?.maxConcurrent;

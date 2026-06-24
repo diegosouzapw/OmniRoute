@@ -43,6 +43,10 @@ type ComboCooldownWaitSettings = {
   budgetMs: number;
 };
 
+type QuotaShareConcurrencyLimitSettings = {
+  enabled: boolean;
+};
+
 type ProviderCooldownSettings = {
   enabled: boolean;
   minRetryCooldownMs: number;
@@ -61,6 +65,7 @@ type ResilienceResponse = {
   };
   waitForCooldown: WaitForCooldownSettings;
   comboCooldownWait: ComboCooldownWaitSettings;
+  quotaShareConcurrencyLimit: QuotaShareConcurrencyLimitSettings;
   providerCooldown: ProviderCooldownSettings;
 };
 
@@ -848,6 +853,79 @@ function ComboCooldownWaitCard({
   );
 }
 
+function QuotaShareConcurrencyLimitCard({
+  value,
+  onSave,
+  saving,
+}: {
+  value: QuotaShareConcurrencyLimitSettings;
+  onSave: (next: QuotaShareConcurrencyLimitSettings) => Promise<void>;
+  saving: boolean;
+}) {
+  const t = useTranslations("settings");
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
+
+  const title =
+    t("resilienceQuotaShareConcurrencyTitle") || "Quota-share per-connection concurrency";
+  const desc =
+    t("resilienceQuotaShareConcurrencyDesc") ||
+    "For quota-share combos only: when a connection sets a Max Concurrent cap, serialize concurrent requests to that subscription account so it is never flooded past its ceiling — excess requests wait in the queue instead of getting a 429. The cap comes from each connection's Max Concurrent field; this switch only enables/disables honoring it.";
+
+  return (
+    <Card className="p-6">
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-xl text-primary">filter_list</span>
+          <h2 className="text-lg font-bold">{title}</h2>
+        </div>
+        <ActionRow
+          editing={editing}
+          saving={saving}
+          onEdit={() => setEditing(true)}
+          onCancel={() => {
+            setDraft(value);
+            setEditing(false);
+          }}
+          onSave={async () => {
+            await onSave(draft);
+            setEditing(false);
+          }}
+        />
+      </div>
+
+      <p className="mb-4 text-sm text-text-muted">{desc}</p>
+
+      <div className="grid grid-cols-1 gap-3">
+        {editing ? (
+          <BooleanField
+            label={t("resilienceEnableServerWait") || "Enabled"}
+            description={
+              t("resilienceQuotaShareConcurrencyToggleDesc") ||
+              "Quota-share combos only; honors each connection's Max Concurrent cap."
+            }
+            checked={draft.enabled}
+            onChange={(enabled) => setDraft((prev) => ({ ...prev, enabled }))}
+          />
+        ) : (
+          <div className="rounded-xl border border-border bg-bg-subtle p-4">
+            <div className="text-xs text-text-muted">
+              {t("resilienceEnableServerWait") || "Enabled"}
+            </div>
+            <div className="mt-1 text-sm font-semibold text-text-main">
+              {value.enabled ? t("statusEnabled") : t("statusDisabled")}
+            </div>
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
 function ProviderCooldownCard({
   value,
   onSave,
@@ -1085,6 +1163,13 @@ export default function ResilienceTab() {
         value={data.comboCooldownWait}
         saving={savingSection === "comboCooldownWait"}
         onSave={(comboCooldownWait) => savePatch("comboCooldownWait", { comboCooldownWait })}
+      />
+      <QuotaShareConcurrencyLimitCard
+        value={data.quotaShareConcurrencyLimit}
+        saving={savingSection === "quotaShareConcurrencyLimit"}
+        onSave={(quotaShareConcurrencyLimit) =>
+          savePatch("quotaShareConcurrencyLimit", { quotaShareConcurrencyLimit })
+        }
       />
       <ProviderCooldownCard
         value={data.providerCooldown}

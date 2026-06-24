@@ -57,6 +57,21 @@ export interface ComboCooldownWaitSettings {
   budgetMs: number;
 }
 
+/**
+ * Per-connection concurrency limit for quota-share (`qtSd/…`) combos (FASE 2.1).
+ * The quota-share gating in selectQuotaShareTarget is fail-open and cannot
+ * hard-limit a single-connection pool, so concurrent requests to one
+ * subscription account can still flood it (→ 429 + cooldown). When a connection
+ * declares a positive `max_concurrent` ceiling, this layer serializes concurrent
+ * requests to that account through a per-connection semaphore (excess requests
+ * wait in the queue instead of flooding). Kill-switch only: the cap itself comes
+ * from each connection's `max_concurrent`. Wiring lives in
+ * open-sse/services/combo/quotaShareConcurrency.ts.
+ */
+export interface QuotaShareConcurrencyLimitSettings {
+  enabled: boolean;
+}
+
 export interface ProviderCooldownSettings {
   /**
    * Minimum cooldown (ms) before a failed provider/connection can be retried.
@@ -141,6 +156,7 @@ export interface ResilienceSettings {
   providerBreaker: Record<AuthCategory, ProviderBreakerProfileSettings>;
   waitForCooldown: WaitForCooldownSettings;
   comboCooldownWait: ComboCooldownWaitSettings;
+  quotaShareConcurrencyLimit: QuotaShareConcurrencyLimitSettings;
   providerCooldown: ProviderCooldownSettings;
   quotaPreflight: QuotaPreflightSettings;
   streamRecovery: StreamRecoverySettings;
@@ -152,6 +168,7 @@ export interface ResilienceSettingsPatch {
   providerBreaker?: Partial<Record<AuthCategory, Partial<ProviderBreakerProfileSettings>>>;
   waitForCooldown?: Partial<WaitForCooldownSettings>;
   comboCooldownWait?: Partial<ComboCooldownWaitSettings>;
+  quotaShareConcurrencyLimit?: Partial<QuotaShareConcurrencyLimitSettings>;
   providerCooldown?: Partial<ProviderCooldownSettings>;
   quotaPreflight?: Partial<QuotaPreflightSettings>;
   streamRecovery?: Partial<StreamRecoverySettings>;
@@ -271,6 +288,13 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
     maxWaitMs: 5000,
     maxAttempts: 2,
     budgetMs: 8000,
+  },
+  // FASE 2.1: serialize concurrent quota-share requests per connection when the
+  // connection sets a max_concurrent cap, so a subscription account is not
+  // flooded past its concurrency ceiling. Kill-switch only (default on); the cap
+  // comes from each connection's max_concurrent.
+  quotaShareConcurrencyLimit: {
+    enabled: true,
   },
   providerCooldown: {
     minRetryCooldownMs: Number(process.env.PROVIDER_COOLDOWN_MIN_MS || "5000"),
@@ -550,6 +574,14 @@ function normalizeComboCooldownWaitSettings(
   return { enabled, maxWaitMs, maxAttempts, budgetMs };
 }
 
+function normalizeQuotaShareConcurrencyLimitSettings(
+  next: unknown,
+  fallback: QuotaShareConcurrencyLimitSettings
+): QuotaShareConcurrencyLimitSettings {
+  const record = asRecord(next);
+  return { enabled: toBoolean(record.enabled, fallback.enabled) };
+}
+
 function normalizeProviderCooldownSettings(
   next: unknown,
   fallback: ProviderCooldownSettings
@@ -665,6 +697,7 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
       maxRetryWaitMs: waitMaxRetrySec * 1000,
     },
     comboCooldownWait: DEFAULT_RESILIENCE_SETTINGS.comboCooldownWait,
+    quotaShareConcurrencyLimit: DEFAULT_RESILIENCE_SETTINGS.quotaShareConcurrencyLimit,
     providerCooldown: DEFAULT_RESILIENCE_SETTINGS.providerCooldown,
     quotaPreflight: DEFAULT_RESILIENCE_SETTINGS.quotaPreflight,
     streamRecovery: streamRecoveryDefaults,
@@ -707,6 +740,10 @@ export function resolveResilienceSettings(
     comboCooldownWait: normalizeComboCooldownWaitSettings(
       current.comboCooldownWait,
       fallback.comboCooldownWait
+    ),
+    quotaShareConcurrencyLimit: normalizeQuotaShareConcurrencyLimitSettings(
+      current.quotaShareConcurrencyLimit,
+      fallback.quotaShareConcurrencyLimit
     ),
     providerCooldown: normalizeProviderCooldownSettings(
       current.providerCooldown,
@@ -756,6 +793,10 @@ export function mergeResilienceSettings(
     comboCooldownWait: normalizeComboCooldownWaitSettings(
       updates.comboCooldownWait,
       current.comboCooldownWait
+    ),
+    quotaShareConcurrencyLimit: normalizeQuotaShareConcurrencyLimitSettings(
+      updates.quotaShareConcurrencyLimit,
+      current.quotaShareConcurrencyLimit
     ),
     providerCooldown: normalizeProviderCooldownSettings(
       updates.providerCooldown,

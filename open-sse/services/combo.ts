@@ -79,7 +79,9 @@ import { selectQuotaShareTarget } from "./combo/quotaShareStrategy.ts";
 import {
   resolveMaxConcurrentByConnection,
   makeConnectionConcurrencyResolver,
+  lookupPositiveCap,
 } from "./combo/concurrencyCaps.ts";
+import { acquireQuotaShareConcurrencySlot } from "./combo/quotaShareConcurrency.ts";
 import { orderTargetsByEvalScores } from "./evalRouting.ts";
 import { generateRoutingHints } from "./manifestAdapter";
 import type { RoutingHint } from "./manifestAdapter";
@@ -1667,9 +1669,11 @@ export async function handleComboChat({
   // because the target hit a SHORT transient cooldown, we wait it out and
   // re-run the whole set loop instead of propagating the 429. `globalAttempts`
   // persists across these waits so MAX_GLOBAL_ATTEMPTS still bounds total work.
-  // The wait happens at the crystallization point, which holds no semaphore slot
-  // (the quota-share path never calls semaphore.acquire) and no explicit
-  // in-flight lease that must be released here.
+  // The wait happens at the crystallization point. The only semaphore slot the
+  // quota-share path may hold is the FASE 2.1 per-connection concurrency slot
+  // (acquired once around dispatchWithCooldownRetry below); it is intentionally
+  // kept across the wait so the account stays "busy", and is released by the
+  // outer finally — not here.
   //
   // The set loop is wrapped in a small recursive closure rather than an extra
   // labelled `while (true)` so the loop body keeps its original indentation; a
@@ -1681,6 +1685,14 @@ export async function handleComboChat({
     strategy === "quota-share" && resilienceSettings.comboCooldownWait.enabled;
   let comboCooldownAttempt = 0;
   let comboCooldownBudgetLeftMs = resilienceSettings.comboCooldownWait.budgetMs;
+
+  // FASE 2.1: per-connection concurrency limit for quota-share. The gating in
+  // selectQuotaShareTarget is fail-open and cannot hard-limit a single-connection
+  // pool, so we serialize concurrent requests to the selected account through a
+  // per-connection semaphore. Enabled only for quota-share combos (the cap is the
+  // account's) and gated by the kill-switch; the slot wraps the whole dispatch.
+  const quotaShareConcurrencyEnabled =
+    strategy === "quota-share" && resilienceSettings.quotaShareConcurrencyLimit.enabled;
 
   const dispatchWithCooldownRetry = async (): Promise<Response> => {
     for (let setTry = 0; setTry <= maxSetRetries; setTry++) {
@@ -2658,9 +2670,31 @@ export async function handleComboChat({
     return errorResponse(503, "Combo routing completed without an upstream response");
   };
 
+  // FASE 2.1: acquire the per-connection concurrency slot for the selected
+  // quota-share target once, around the whole dispatch (including any
+  // cooldown-aware re-dispatch), so concurrent requests to one subscription
+  // account are serialized through the connection's max_concurrent ceiling. The
+  // cap is read fresh from the selected connection; a null cap (no limit) or a
+  // saturated queue is a no-op (fail-open). Released in the finally below.
+  let quotaShareConcurrencyRelease: (() => void) | null = null;
+  const qsConnectionId = orderedTargets[0]?.connectionId;
+  if (quotaShareConcurrencyEnabled && qsConnectionId) {
+    const qsCap = await lookupPositiveCap(qsConnectionId);
+    quotaShareConcurrencyRelease = await acquireQuotaShareConcurrencySlot(
+      orderedTargets[0],
+      qsCap,
+      {
+        queueTimeoutMs: config.queueTimeoutMs ?? 30000,
+        maxQueueSize: resolveComboQueueDepth(config),
+      },
+      log
+    );
+  }
+
   try {
     return await dispatchWithCooldownRetry();
   } finally {
+    quotaShareConcurrencyRelease?.();
     // G2: Clean up candidate registry to prevent unbounded memory growth.
     _unregisterExecutionCandidates(_registeredExecutionKeys);
   }
