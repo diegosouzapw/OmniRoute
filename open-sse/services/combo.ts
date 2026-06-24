@@ -74,6 +74,7 @@ import { supportsToolCalling } from "./modelCapabilities.ts";
 import { estimateTokens } from "./contextManager.ts";
 import { getSessionConnection } from "./sessionManager.ts";
 import { applySessionStickiness, recordStickyBinding } from "./combo/sessionStickiness.ts";
+import { selectQuotaShareTarget } from "./combo/quotaShareStrategy.ts";
 import { orderTargetsByEvalScores } from "./evalRouting.ts";
 import { generateRoutingHints } from "./manifestAdapter";
 import type { RoutingHint } from "./manifestAdapter";
@@ -1554,6 +1555,15 @@ export async function handleComboChat({
     log.info(
       "COMBO",
       `Headroom ordering: ${orderedTargets[0]?.modelStr}${orderedTargets[0]?.connectionId ? ` (${orderedTargets[0].connectionId})` : ""} has most free capacity`
+    );
+  } else if (strategy === "quota-share") {
+    // Internal quota-share combos (qtSd/): delegate 100% to the dedicated module
+    // (DRR + P2C in-flight + per-model bucket gating). No generic case is touched.
+    const qsModel = typeof body?.model === "string" ? body.model : (orderedTargets[0]?.modelStr ?? "");
+    orderedTargets = selectQuotaShareTarget(orderedTargets, combo.name, qsModel).orderedTargets;
+    log.info(
+      "COMBO",
+      `Quota-share ordering: ${orderedTargets[0]?.modelStr}${orderedTargets[0]?.connectionId ? ` (${orderedTargets[0].connectionId})` : ""} selected (DRR+P2C)`
     );
   }
   const _sticky = await applySessionStickiness(orderedTargets, body.messages as Array<{ role?: string; content?: unknown }>); orderedTargets = _sticky.targets;

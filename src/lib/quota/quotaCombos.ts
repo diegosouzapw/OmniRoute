@@ -28,6 +28,14 @@ import {
   quotaGroupSlug,
 } from "./quotaModelNaming";
 import { createLogger } from "@/shared/utils/logger";
+import type { AnyRoutingStrategyValue } from "@/shared/constants/routingStrategies";
+
+/**
+ * Routing strategy for every auto-minted quota-share (qtSd/) combo. Internal
+ * only — resolves to the dedicated DRR + P2C in-flight + per-model gating
+ * selection in combo.ts (Phase 3 #9). Was "fill-first" before the hardening.
+ */
+export const QUOTA_SHARE_STRATEGY: AnyRoutingStrategyValue = "quota-share";
 
 const log = createLogger("quota/quotaCombos");
 
@@ -170,8 +178,9 @@ export async function syncQuotaCombos(poolId: string): Promise<void> {
   const poolProvider: string | undefined = upsertWork[0]?.provider;
 
   // Group steps by model across all connections (Task 3 guarantees a single provider).
-  // This produces one combo per model with ALL connections' steps + strategy "fill-first",
-  // fixing the collision where two same-provider connections would overwrite each other.
+  // This produces one combo per model with ALL connections' steps + the dedicated
+  // "quota-share" strategy (Phase 3 #9), fixing the collision where two same-provider
+  // connections would overwrite each other.
   const byModel = new Map<string, Array<{ connId: string; provider: string }>>();
   for (const { connId, provider, modelIds } of upsertWork) {
     for (const modelId of modelIds) {
@@ -196,7 +205,7 @@ export async function syncQuotaCombos(poolId: string): Promise<void> {
       const payload = {
         name: comboName,
         models: steps,
-        strategy: "fill-first" as const,
+        strategy: QUOTA_SHARE_STRATEGY,
         isHidden: true,
       };
       if (existing && typeof existing.id === "string") await updateCombo(existing.id, payload);
