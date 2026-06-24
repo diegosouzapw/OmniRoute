@@ -8,12 +8,17 @@ import { randomUUID } from "node:crypto";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-add-to-pool-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
+const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.INITIAL_PASSWORD = "";
+delete process.env.JWT_SECRET;
 delete process.env.OMNIROUTE_API_KEY;
 
 const core = await import("../../src/lib/db/core.ts");
 const freeProxiesDb = await import("../../src/lib/db/freeProxies.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const addToPoolRoute =
   await import("../../src/app/api/settings/free-proxies/[id]/add-to-pool/route.ts");
 const bulkAddRoute =
@@ -39,6 +44,7 @@ function makeBulkReq(ids: string[]): Request {
 
 test.beforeEach(async () => {
   await reset();
+  await settingsDb.updateSettings({ requireLogin: false });
   addToPoolRoute._resetConnectivityTesterForTests();
   bulkAddRoute._resetQuickTesterForTests();
 });
@@ -50,6 +56,16 @@ test.after(() => {
     delete process.env.DATA_DIR;
   } else {
     process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+  }
+  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+    delete process.env.INITIAL_PASSWORD;
+  } else {
+    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+  }
+  if (ORIGINAL_JWT_SECRET === undefined) {
+    delete process.env.JWT_SECRET;
+  } else {
+    process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
   }
 });
 
