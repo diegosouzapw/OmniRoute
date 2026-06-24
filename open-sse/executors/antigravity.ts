@@ -60,6 +60,26 @@ import * as prl from "../utils/providerRequestLogging.ts";
 const MAX_RETRY_AFTER_MS = 60_000;
 const LONG_RETRY_THRESHOLD_MS = 60_000;
 const CREDITS_EXHAUSTED_TTL_MS = 5 * 60 * 60 * 1000; // 5 hours
+// Cap for transient 5xx backoff — shorter than the 429 cap to avoid long stalls on
+// infra hiccups ("Agent execution terminated", "high traffic", capacity errors).
+const ANTIGRAVITY_TRANSIENT_RETRY_MAX_MS = 15_000;
+
+const ANTIGRAVITY_TRANSIENT_ERROR_PATTERNS: RegExp[] = [
+  /high\s+traffic/i,
+  /agent\s+(execution\s+)?terminated\s+due\s+to\s+error/i,
+  /capacity/i,
+  /temporarily\s+unavailable/i,
+  /timeout/i,
+  /stream\s+(ended|closed|terminated|interrupted)/i,
+  /empty\s+response/i,
+];
+
+const ANTIGRAVITY_TRANSIENT_STATUSES = new Set([
+  HTTP_STATUS.SERVER_ERROR,
+  HTTP_STATUS.BAD_GATEWAY,
+  HTTP_STATUS.SERVICE_UNAVAILABLE,
+  HTTP_STATUS.GATEWAY_TIMEOUT,
+]);
 // The upstream API uses plain model IDs (no -high/-low suffix).
 // Tier suffixes were speculative and caused 404 for gemini-3.x models — the
 // bare-Pro→Low normalization was retired (the set stayed empty, making the guard
@@ -958,6 +978,40 @@ export class AntigravityExecutor extends BaseExecutor {
   }
 
   /**
+   * Flatten an Antigravity error JSON + raw body text into a single string so
+   * isTransientAntigravityError can match against body patterns.
+   */
+  extractErrorMessage(errorJson: unknown, bodyText = ""): string {
+    const candidates: string[] = [];
+    if (errorJson && typeof errorJson === "object") {
+      const obj = errorJson as Record<string, unknown>;
+      const errField = obj.error;
+      if (errField && typeof errField === "object") {
+        const msg = (errField as Record<string, unknown>).message;
+        if (typeof msg === "string") candidates.push(msg);
+        else if (msg != null) candidates.push(JSON.stringify(msg));
+      } else if (typeof errField === "string") {
+        candidates.push(errField);
+      }
+      if (typeof obj.message === "string") candidates.push(obj.message);
+    }
+    if (bodyText) candidates.push(bodyText);
+    return candidates.filter(Boolean).join("\n");
+  }
+
+  /**
+   * Return true when a status + error message combination should be retried
+   * with exponential backoff instead of immediately failing-over to the next URL.
+   * 429 is always transient. Transient 5xx statuses (500/502/503/504) are also
+   * retried when the body contains a known capacity/traffic/agent pattern.
+   */
+  isTransientAntigravityError(status: number, message: string): boolean {
+    if (status === HTTP_STATUS.RATE_LIMITED) return true;
+    if (ANTIGRAVITY_TRANSIENT_STATUSES.has(status)) return true;
+    return ANTIGRAVITY_TRANSIENT_ERROR_PATTERNS.some((p) => p.test(message || ""));
+  }
+
+  /**
    * Collect an SSE streaming response into a single non-streaming JSON response.
    * Parses Gemini-format SSE chunks and assembles text content + usage into one
    * OpenAI-format chat.completion payload.
@@ -1469,25 +1523,42 @@ export class AntigravityExecutor extends BaseExecutor {
             continue;
           }
 
-          // Auto retry only for 429 when retryMs is 0 or undefined
-          if (
-            response.status === HTTP_STATUS.RATE_LIMITED &&
-            (!retryMs || retryMs === 0) &&
-            retryAttemptsByUrl[urlIndex] < MAX_AUTO_RETRIES
-          ) {
-            retryAttemptsByUrl[urlIndex]++;
-            // Exponential backoff: 2s, 4s, 8s...
-            const backoffMs = Math.min(
-              1000 * 2 ** retryAttemptsByUrl[urlIndex],
-              MAX_RETRY_AFTER_MS
-            );
-            log?.debug?.(
-              "RETRY",
-              `429 auto retry ${retryAttemptsByUrl[urlIndex]}/${MAX_AUTO_RETRIES} after ${backoffMs / 1000}s`
-            );
-            await new Promise((resolve) => setTimeout(resolve, backoffMs));
-            urlIndex--;
-            continue;
+          // Auto retry for 429 (no Retry-After) or transient 5xx errors.
+          // For 5xx we read the body to detect known transient patterns
+          // ("Agent execution terminated due to error", "high traffic", "capacity").
+          if ((!retryMs || retryMs === 0) && retryAttemptsByUrl[urlIndex] < MAX_AUTO_RETRIES) {
+            let shouldAutoRetry = response.status === HTTP_STATUS.RATE_LIMITED;
+            if (!shouldAutoRetry && ANTIGRAVITY_TRANSIENT_STATUSES.has(response.status)) {
+              try {
+                const errBody = await response.clone().text();
+                let errJson: unknown = null;
+                try {
+                  errJson = errBody ? JSON.parse(errBody) : null;
+                } catch {
+                  // non-JSON body — fall through to pattern match against raw text
+                }
+                const errMsg = this.extractErrorMessage(errJson, errBody);
+                shouldAutoRetry = this.isTransientAntigravityError(response.status, errMsg);
+              } catch {
+                // ignore body read errors
+              }
+            }
+            if (shouldAutoRetry) {
+              retryAttemptsByUrl[urlIndex]++;
+              // Exponential backoff: 2s, 4s, 8s… capped per-status
+              const cap =
+                response.status === HTTP_STATUS.RATE_LIMITED
+                  ? MAX_RETRY_AFTER_MS
+                  : ANTIGRAVITY_TRANSIENT_RETRY_MAX_MS;
+              const backoffMs = Math.min(1000 * 2 ** retryAttemptsByUrl[urlIndex], cap);
+              log?.debug?.(
+                "RETRY",
+                `${response.status} transient auto retry ${retryAttemptsByUrl[urlIndex]}/${MAX_AUTO_RETRIES} after ${backoffMs / 1000}s`
+              );
+              await new Promise((resolve) => setTimeout(resolve, backoffMs));
+              urlIndex--;
+              continue;
+            }
           }
 
           log?.debug?.(
