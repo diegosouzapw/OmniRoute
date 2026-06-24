@@ -34,6 +34,9 @@ import {
 } from "../usage/callLogArtifacts";
 import { migrateLegacyEncryptedString } from "./encryption";
 import { invalidateDbCache } from "./readCache";
+import { rowToCamel } from "./caseMapping";
+// Re-exported so existing call sites that pull these helpers off the core module keep working.
+export { toSnakeCase, toCamelCase, objToSnake, rowToCamel, cleanNulls } from "./caseMapping";
 
 type SqliteDatabase = SqliteAdapter;
 type JsonRecord = Record<string, unknown>;
@@ -443,76 +446,6 @@ const SCHEMA_SQL = `
   CREATE INDEX IF NOT EXISTS idx_quota_snapshots_connection_time ON quota_snapshots(connection_id, created_at);
   CREATE INDEX IF NOT EXISTS idx_quota_snapshots_created_at ON quota_snapshots(created_at);
 `;
-
-// ──────────────── Column Mapping ────────────────
-
-export function toSnakeCase(str: string): string {
-  return str.replace(/([A-Z])/g, "_$1").toLowerCase();
-}
-
-export function toCamelCase(str: string): string {
-  return str.replace(/_([a-z])/g, (_: string, c: string) => c.toUpperCase());
-}
-
-export function objToSnake(obj: unknown): unknown {
-  if (!obj || typeof obj !== "object") return obj;
-  const result: JsonRecord = {};
-  for (const [k, v] of Object.entries(obj as JsonRecord)) {
-    result[toSnakeCase(k)] = v;
-  }
-  return result;
-}
-
-export function rowToCamel(row: unknown): JsonRecord | null {
-  if (!row) return null;
-  const result: JsonRecord = {};
-  for (const [k, v] of Object.entries(row as JsonRecord)) {
-    const camelKey = toCamelCase(k);
-    if (
-      camelKey === "isActive" ||
-      camelKey === "rateLimitProtection" ||
-      camelKey === "proxyEnabled" ||
-      camelKey === "perKeyProxyEnabled"
-    ) {
-      result[camelKey] = v === 1 || v === true;
-    } else if (camelKey === "providerSpecificData" && typeof v === "string") {
-      try {
-        result[camelKey] = JSON.parse(v);
-      } catch {
-        result[camelKey] = v;
-      }
-    } else if (camelKey.endsWith("Json")) {
-      // Convention: any column with a `_json` suffix is JSON-encoded TEXT.
-      // Surface the parsed object under the friendlier name (key minus the
-      // "Json" suffix) — e.g. quotaWindowThresholdsJson → quotaWindowThresholds.
-      // A NULL/absent column normalizes to `baseKey: null` (not the suffixed
-      // key) so read and write paths expose a consistent shape.
-      const baseKey = camelKey.slice(0, -"Json".length);
-      if (typeof v === "string") {
-        try {
-          result[baseKey] = JSON.parse(v);
-        } catch {
-          result[baseKey] = null;
-        }
-      } else {
-        result[baseKey] = v == null ? null : v;
-      }
-    } else {
-      result[camelKey] = v;
-    }
-  }
-  return result;
-}
-
-export function cleanNulls(obj: unknown): JsonRecord {
-  const result: JsonRecord = {};
-  for (const [k, v] of Object.entries((obj as JsonRecord) || {})) {
-    if (v !== null && v !== undefined) {
-      result[k] = v;
-    }
-  }
-  return result;
-}
 
 // ──────────────── Singleton DB Instance ────────────────
 // Use globalThis to survive Next.js dev HMR module re-evaluation.
