@@ -326,20 +326,20 @@ test("critical routes: settings proxy resolves config, validates payloads, and d
   });
 
   const invalidJson = await settingsProxyRoute.PUT(
-    new Request("http://localhost/api/settings/proxy", {
+    await makeManagementSessionRequest("http://localhost/api/settings/proxy", {
       method: "PUT",
       headers: { "content-type": "application/json" },
       body: "{",
     })
   );
   const invalidProviders = await settingsProxyRoute.PUT(
-    makeRequest("http://localhost/api/settings/proxy", {
+    await makeManagementSessionRequest("http://localhost/api/settings/proxy", {
       method: "PUT",
       body: { providers: "not-an-object" },
     })
   );
   const setProviderProxy = await settingsProxyRoute.PUT(
-    makeRequest("http://localhost/api/settings/proxy", {
+    await makeManagementSessionRequest("http://localhost/api/settings/proxy", {
       method: "PUT",
       body: {
         level: "provider",
@@ -354,21 +354,30 @@ test("critical routes: settings proxy resolves config, validates payloads, and d
     })
   );
   const getProviderProxy = await settingsProxyRoute.GET(
-    new Request("http://localhost/api/settings/proxy?level=provider&id=openai")
+    await makeManagementSessionRequest(
+      "http://localhost/api/settings/proxy?level=provider&id=openai"
+    )
   );
   const resolveProxy = await settingsProxyRoute.GET(
-    new Request(`http://localhost/api/settings/proxy?resolve=${connection.id}`)
+    await makeManagementSessionRequest(
+      `http://localhost/api/settings/proxy?resolve=${connection.id}`
+    )
   );
   const missingLevelDelete = await settingsProxyRoute.DELETE(
-    new Request("http://localhost/api/settings/proxy")
-  );
-  const deleteProviderProxy = await settingsProxyRoute.DELETE(
-    new Request("http://localhost/api/settings/proxy?level=provider&id=openai", {
+    await makeManagementSessionRequest("http://localhost/api/settings/proxy", {
       method: "DELETE",
     })
   );
+  const deleteProviderProxy = await settingsProxyRoute.DELETE(
+    await makeManagementSessionRequest(
+      "http://localhost/api/settings/proxy?level=provider&id=openai",
+      {
+        method: "DELETE",
+      }
+    )
+  );
   const getFullConfig = await settingsProxyRoute.GET(
-    new Request("http://localhost/api/settings/proxy")
+    await makeManagementSessionRequest("http://localhost/api/settings/proxy")
   );
 
   const invalidJsonBody = (await invalidJson.json()) as any;
@@ -412,7 +421,7 @@ test("critical routes: settings proxy prefers registry assignment for global loo
   await localDb.assignProxyToScope("global", null, proxy.id);
 
   const response = await settingsProxyRoute.GET(
-    new Request("http://localhost/api/settings/proxy?level=global")
+    await makeManagementSessionRequest("http://localhost/api/settings/proxy?level=global")
   );
   const body = (await response.json()) as any;
 
@@ -469,7 +478,7 @@ test("critical routes: MITM settings reject non-443 transparent interception por
 
 test("critical routes: settings proxy covers global fallback and socks5 gating", async () => {
   const setLegacyGlobalProxy = await settingsProxyRoute.PUT(
-    makeRequest("http://localhost/api/settings/proxy", {
+    await makeManagementSessionRequest("http://localhost/api/settings/proxy", {
       method: "PUT",
       body: {
         level: "global",
@@ -482,13 +491,13 @@ test("critical routes: settings proxy covers global fallback and socks5 gating",
     })
   );
   const getLegacyGlobalProxy = await settingsProxyRoute.GET(
-    new Request("http://localhost/api/settings/proxy?level=global")
+    await makeManagementSessionRequest("http://localhost/api/settings/proxy?level=global")
   );
   // SOCKS5 is now enabled by default (opt-out via ENABLE_SOCKS5_PROXY); set it false
   // explicitly to exercise the disabled-rejection path (an unset env now means enabled).
   process.env.ENABLE_SOCKS5_PROXY = "false";
   const socksDisabled = await settingsProxyRoute.PUT(
-    makeRequest("http://localhost/api/settings/proxy", {
+    await makeManagementSessionRequest("http://localhost/api/settings/proxy", {
       method: "PUT",
       body: {
         level: "provider",
@@ -504,7 +513,7 @@ test("critical routes: settings proxy covers global fallback and socks5 gating",
 
   process.env.ENABLE_SOCKS5_PROXY = "true";
   const socksEnabled = await settingsProxyRoute.PUT(
-    makeRequest("http://localhost/api/settings/proxy", {
+    await makeManagementSessionRequest("http://localhost/api/settings/proxy", {
       method: "PUT",
       body: {
         level: "provider",

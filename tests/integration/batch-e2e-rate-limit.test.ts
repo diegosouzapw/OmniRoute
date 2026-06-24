@@ -7,11 +7,14 @@ import http from "node:http";
 import net from "node:net";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { createManagementSessionHeaders } from "../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-batch-e2e-rl-"));
 const REPO_ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const RELAY_PORT = await getFreePort();
 const SERVER_PORT = await getFreePort();
+const TEST_JWT_SECRET = "batch-e2e-rate-limit-jwt-secret-32";
+process.env.JWT_SECRET = TEST_JWT_SECRET;
 
 function getFreePort() {
   return new Promise<number>((resolve, reject) => {
@@ -122,6 +125,7 @@ function createServerProcess() {
       HOST: "127.0.0.1",
       REQUIRE_API_KEY: "false",
       API_KEY_SECRET: "batch-e2e-rl-secret",
+      JWT_SECRET: TEST_JWT_SECRET,
       DISABLE_SQLITE_AUTO_BACKUP: "true",
       INITIAL_PASSWORD: "",
       NEXT_TELEMETRY_DISABLED: "1",
@@ -220,9 +224,12 @@ test.before(async () => {
   await waitForServer(app.baseUrl, app);
 
   // Seed a provider_node via the API (don't open DB in this process)
+  const managementHeaders = await createManagementSessionHeaders({
+    "Content-Type": "application/json",
+  });
   const nodeResp = await fetch(`${app.baseUrl}/api/provider-nodes`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: managementHeaders,
     body: JSON.stringify({
       type: "openai-compatible",
       name: "Batch E2E Test Provider",
