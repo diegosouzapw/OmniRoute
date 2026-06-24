@@ -863,18 +863,29 @@ export default function CombosPage() {
 
   const handleToggleCombo = async (combo) => {
     const newActive = combo.isActive === false ? true : false;
+    const previousActive = combo.isActive !== false;
     // Optimistic update
     setCombos((prev) => prev.map((c) => (c.id === combo.id ? { ...c, isActive: newActive } : c)));
     try {
-      await fetch(`/api/combos/${combo.id}`, {
+      const res = await fetch(`/api/combos/${combo.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isActive: newActive }),
       });
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        const serverMessage =
+          err?.error?.details?.[0]?.message ?? err?.error?.message ?? t("failedToggle");
+        // Revert on server error
+        setCombos((prev) =>
+          prev.map((c) => (c.id === combo.id ? { ...c, isActive: previousActive } : c))
+        );
+        notify.error(serverMessage);
+      }
     } catch (error) {
-      // Revert on error
+      // Revert on network error
       setCombos((prev) =>
-        prev.map((c) => (c.id === combo.id ? { ...c, isActive: !newActive } : c))
+        prev.map((c) => (c.id === combo.id ? { ...c, isActive: previousActive } : c))
       );
       notify.error(t("failedToggle"));
     }
@@ -2560,11 +2571,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
   // identity).
   const handleDeselectModel = (model) => {
     const value =
-      typeof model?.value === "string"
-        ? model.value
-        : typeof model === "string"
-          ? model
-          : "";
+      typeof model?.value === "string" ? model.value : typeof model === "string" ? model : "";
     if (!value) return;
     setModels(models.filter((m) => m.model !== value));
     setBuilderError("");
