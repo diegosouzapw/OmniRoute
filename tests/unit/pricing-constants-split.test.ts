@@ -1,6 +1,6 @@
 // Characterization of the pricing.ts split (god-file decomposition): the host became a barrel that
-// re-exports DEFAULT_PRICING (now merged from 2 source parts that import shared tier consts) and
-// keeps the 3 helper functions. Pure-data move → behavior identical. Locks: public surface, the
+// re-exports DEFAULT_PRICING (now merged from 4 semantic family files that import shared tier consts)
+// and keeps the 3 helper functions. Pure-data move → behavior identical. Locks: public surface, the
 // spread-merge integrity, and that lookups/cost math resolve unchanged.
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -18,13 +18,25 @@ test("barrel still exports DEFAULT_PRICING + the 3 helpers", () => {
   }
 });
 
-test("DEFAULT_PRICING merges both parts; spread-merge total = sum of parts", async () => {
+test("DEFAULT_PRICING merges the 4 family files; families partition all entries", async () => {
   const merged = Object.keys((P as Record<string, object>).DEFAULT_PRICING).length;
-  const a = await import("../../src/shared/constants/pricing/default-pricing.part1.ts");
-  const b = await import("../../src/shared/constants/pricing/default-pricing.part2.ts");
-  const partTotal =
-    Object.keys(a.DEFAULT_PRICING_PART1).length + Object.keys(b.DEFAULT_PRICING_PART2).length;
-  assert.equal(merged, partTotal, "spread-merge lost/duplicated a top-level key");
+  const families: [string, string][] = [
+    ["oauth-subscriptions", "DEFAULT_PRICING_OAUTH"],
+    ["frontier-labs", "DEFAULT_PRICING_FRONTIER"],
+    ["inference-hosts", "DEFAULT_PRICING_INFERENCE"],
+    ["regional", "DEFAULT_PRICING_REGIONAL"],
+  ];
+  let famTotal = 0;
+  const seen = new Set<string>();
+  for (const [file, exportName] of families) {
+    const mod = await import(`../../src/shared/constants/pricing/${file}.ts`);
+    for (const k of Object.keys(mod[exportName])) {
+      assert.ok(!seen.has(k), `pricing key ${k} appears in more than one family`);
+      seen.add(k);
+      famTotal++;
+    }
+  }
+  assert.equal(merged, famTotal, "spread-merge lost/duplicated a top-level key");
   assert.ok(merged > 25);
 });
 

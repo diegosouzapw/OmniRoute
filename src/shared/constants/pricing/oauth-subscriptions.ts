@@ -1,23 +1,13 @@
 /**
- * Pricing data — DEFAULT_PRICING part 1 of 2 (god-file decomposition). Pure data; merged by the barrel.
+ * Pricing data — oauth-subscriptions family (OAuth / IDE subscription aliases (cc, codex, gemini-cli, antigravity, copilot, kiro…)).
+ * Pure data; merged by default-pricing.ts via spread (god-file decomposition; semantic split).
  */
 import {
   GPT_5_3_CODEX_PRICING,
   GPT_5_5_PRICING,
-  CLAUDE_FABLE_5_PRICING,
-  CLAUDE_OPUS_4_PRICING,
-  CLAUDE_SONNET_4_PRICING,
-  CLAUDE_OPUS_46_PRICING,
-  CLAUDE_SONNET_46_PRICING,
 } from "./shared-tiers";
 
-export const DEFAULT_PRICING_PART1 = {
-  // OAuth Providers (using aliases)
-
-  // Claude Code (cc)
-  // Rates aligned with Anthropic's published per-MTok pricing
-  // (https://platform.claude.com/docs/en/about-claude/pricing).
-  // Cache write = 1.25x input, cache hit = 0.1x input, reasoning = output rate.
+export const DEFAULT_PRICING_OAUTH = {
   cc: {
     "claude-fable-5": {
       input: 10.0,
@@ -76,8 +66,6 @@ export const DEFAULT_PRICING_PART1 = {
       cache_creation: 1.25,
     },
   },
-
-  // OpenAI Codex (cx)
   cx: {
     "codex-auto-review": GPT_5_5_PRICING,
     // GPT 5.5
@@ -196,8 +184,6 @@ export const DEFAULT_PRICING_PART1 = {
       cache_creation: 1.0,
     },
   },
-
-  // Gemini CLI
   "gemini-cli": {
     "gemini-3-flash-preview": {
       input: 0.5,
@@ -251,8 +237,6 @@ export const DEFAULT_PRICING_PART1 = {
       cache_creation: 0.1,
     },
   },
-
-  // Qwen Code (qw)
   qw: {
     "qwen3-coder-plus": {
       input: 1.0,
@@ -293,8 +277,6 @@ export const DEFAULT_PRICING_PART1 = {
       cache_creation: 1.5,
     },
   },
-
-  // Qoder AI (if)
   if: {
     "qwen3-coder-plus": {
       input: 1.0,
@@ -382,8 +364,6 @@ export const DEFAULT_PRICING_PART1 = {
       cache_creation: 0.75,
     },
   },
-
-  // Antigravity (ag) - User-provided pricing
   ag: {
     "gemini-3.1-pro-low": {
       input: 2.0,
@@ -458,8 +438,6 @@ export const DEFAULT_PRICING_PART1 = {
       cache_creation: 0.5,
     },
   },
-
-  // GitHub Copilot (gh)
   gh: {
     "gpt-5": {
       input: 3.0,
@@ -546,215 +524,123 @@ export const DEFAULT_PRICING_PART1 = {
       cache_creation: 0.5,
     },
   },
-
-  // API Key Providers (alias = id)
-
-  // OpenAI
-  openai: {
-    "gpt-5.5": GPT_5_5_PRICING,
-    // The -pro tier mirrors its base family pricing until OpenAI publishes a
-    // distinct pro rate; without these rows the openai provider's gpt-5.x-pro
-    // models (in the registry) resolved to $0 and tripped the catalog pricing gate.
-    "gpt-5.5-pro": GPT_5_5_PRICING,
-    // gpt-5.4 family (public API tier; mirrors the codex 5.4 tier for the
-    // base/mini, with a lower nano tier). Without these rows the openai
-    // provider's gpt-5.4* models resolved to $0.
-    "gpt-5.4": {
-      input: 5.0,
-      output: 20.0,
-      cached: 2.5,
-      reasoning: 30.0,
-      cache_creation: 5.0,
-    },
-    "gpt-5.4-pro": {
-      input: 5.0,
-      output: 20.0,
-      cached: 2.5,
-      reasoning: 30.0,
-      cache_creation: 5.0,
-    },
-    "gpt-5.4-mini": {
-      input: 1.5,
-      output: 6.0,
-      cached: 0.75,
-      reasoning: 9.0,
-      cache_creation: 1.5,
-    },
-    "gpt-5.4-nano": {
-      input: 0.4,
-      output: 1.6,
-      cached: 0.2,
-      reasoning: 2.4,
-      cache_creation: 0.4,
-    },
-    "gpt-4.1": {
-      input: 2.0,
-      output: 8.0,
-      cached: 0.5,
-      reasoning: 12.0,
-      cache_creation: 2.0,
-    },
-    "gpt-4.1-mini": {
-      input: 0.4,
-      output: 1.6,
-      cached: 0.1,
-      reasoning: 2.4,
-      cache_creation: 0.4,
-    },
-    "gpt-4.1-nano": {
-      input: 0.1,
-      output: 0.4,
-      cached: 0.025,
-      reasoning: 0.6,
-      cache_creation: 0.1,
-    },
-    "gpt-4o": {
-      input: 2.5,
-      output: 10.0,
-      cached: 1.25,
-      reasoning: 15.0,
-      cache_creation: 2.5,
-    },
-    "gpt-4o-2024-11-20": {
-      input: 2.5,
-      output: 10.0,
-      cached: 1.25,
-      reasoning: 15.0,
-      cache_creation: 2.5,
-    },
-    "gpt-4o-mini": {
-      input: 0.15,
-      output: 0.6,
-      cached: 0.075,
-      reasoning: 0.9,
-      cache_creation: 0.15,
-    },
-    o3: {
-      input: 2.0,
-      output: 8.0,
-      cached: 0.5,
-      reasoning: 12.0,
-      cache_creation: 2.0,
-    },
-    "o3-mini": {
-      input: 1.1,
-      output: 4.4,
-      cached: 0.55,
-      reasoning: 6.6,
-      cache_creation: 1.1,
-    },
-    "o4-mini": {
-      input: 1.1,
-      output: 4.4,
-      cached: 0.275,
-      reasoning: 6.6,
-      cache_creation: 1.1,
-    },
-    "gpt-4-turbo": {
-      input: 10.0,
-      output: 30.0,
-      cached: 5.0,
-      reasoning: 45.0,
-      cache_creation: 10.0,
-    },
-    o1: {
-      input: 15.0,
-      output: 60.0,
-      cached: 7.5,
-      reasoning: 90.0,
-      cache_creation: 15.0,
-    },
-    "o1-mini": {
-      input: 3.0,
-      output: 12.0,
-      cached: 1.5,
-      reasoning: 18.0,
-      cache_creation: 3.0,
-    },
-  },
-
-  // Anthropic
-  anthropic: {
-    "claude-sonnet-4-20250514": {
-      input: 3.0,
-      output: 15.0,
-      cached: 1.5,
-      reasoning: 15.0,
-      cache_creation: 3.0,
-    },
-    "claude-opus-4-20250514": {
+  kiro: {
+    "claude-fable-5": {
       input: 15.0,
       output: 75.0,
       cached: 7.5,
       reasoning: 112.5,
       cache_creation: 15.0,
     },
-    "claude-3-5-sonnet-20241022": {
+    "claude-sonnet-4.5": {
       input: 3.0,
       output: 15.0,
       cached: 1.5,
       reasoning: 15.0,
       cache_creation: 3.0,
     },
-    // Claude 4.5 Haiku — modelo eco mais recente da Anthropic (2025-10)
-    "claude-haiku-4-5-20251001": {
-      input: 1.0,
-      output: 5.0,
-      cached: 0.5,
-      reasoning: 7.5,
-      cache_creation: 1.0,
-    },
     "claude-haiku-4.5": {
-      input: 1.0,
-      output: 5.0,
-      cached: 0.5,
-      reasoning: 7.5,
-      cache_creation: 1.0,
+      input: 0.5,
+      output: 2.5,
+      cached: 0.25,
+      reasoning: 2.5,
+      cache_creation: 0.5,
     },
-    // Claude Sonnet 4.6 — maxOutput 64k tokens, $3/$15/M
-    "claude-sonnet-4-6-20251031": {
+    // Models from issue #334
+    "claude-sonnet-4": {
       input: 3.0,
       output: 15.0,
       cached: 1.5,
-      reasoning: 22.5,
+      reasoning: 15.0,
       cache_creation: 3.0,
+    },
+    "claude-opus-4.8": {
+      input: 15.0,
+      output: 75.0,
+      cached: 7.5,
+      reasoning: 75.0,
+      cache_creation: 15.0,
+    },
+    "claude-opus-4.7": {
+      input: 15.0,
+      output: 75.0,
+      cached: 7.5,
+      reasoning: 75.0,
+      cache_creation: 15.0,
+    },
+    "claude-opus-4.6": {
+      input: 15.0,
+      output: 75.0,
+      cached: 7.5,
+      reasoning: 75.0,
+      cache_creation: 15.0,
     },
     "claude-sonnet-4.6": {
       input: 3.0,
       output: 15.0,
       cached: 1.5,
-      reasoning: 22.5,
+      reasoning: 15.0,
       cache_creation: 3.0,
     },
-    // Claude Opus 4.6 — mais barato que Opus 4 ($5/$25 vs $15/$75)
-    "claude-opus-4-6-20251031": {
-      input: 5.0,
-      output: 25.0,
-      cached: 2.5,
-      reasoning: 37.5,
-      cache_creation: 5.0,
+    "deepseek-v3.2": {
+      input: 0.27,
+      output: 1.1,
+      cached: 0.07,
+      reasoning: 1.1,
+      cache_creation: 0.27,
     },
-    "claude-opus-4.6": {
-      input: 5.0,
-      output: 25.0,
-      cached: 2.5,
-      reasoning: 37.5,
-      cache_creation: 5.0,
+    // Registry exposes this model as "deepseek-3.2" (no "v") — keep both keys priced.
+    "deepseek-3.2": {
+      input: 0.27,
+      output: 1.1,
+      cached: 0.07,
+      reasoning: 1.1,
+      cache_creation: 0.27,
     },
-    // Common model IDs (without dates) used across providers
-    // Intentional duplicates of dot-notation variants (e.g. claude-opus-4.6)
-    // to cover hyphen-notation IDs (claude-opus-4-6) used by some clients
-    "claude-fable-5": CLAUDE_FABLE_5_PRICING,
-    "claude-opus-4.8": CLAUDE_OPUS_4_PRICING,
-    "claude-opus-4-8": CLAUDE_OPUS_4_PRICING,
-    "claude-opus-4-7": CLAUDE_OPUS_4_PRICING,
-    "claude-opus-4-6": CLAUDE_OPUS_46_PRICING,
-    "claude-sonnet-4-6": CLAUDE_SONNET_46_PRICING,
-    "claude-opus-4-5-20251101": CLAUDE_OPUS_4_PRICING,
-    "claude-sonnet-4-5-20250929": CLAUDE_SONNET_4_PRICING,
-    "claude-sonnet-4": CLAUDE_SONNET_4_PRICING,
-    "claude-opus-4": CLAUDE_OPUS_4_PRICING,
+    "minimax-m2.1": {
+      input: 0.4,
+      output: 1.6,
+      cached: 0.1,
+      reasoning: 1.6,
+      cache_creation: 0.4,
+    },
+    // MiniMax M2.5 — cheaper than M2.1, reasoning + tools
+    "minimax-m2.5": {
+      input: 0.27,
+      output: 0.95,
+      cached: 0.135,
+      reasoning: 1.425,
+      cache_creation: 0.27,
+    },
+    "glm-5": {
+      input: 1.0,
+      output: 3.2,
+      cached: 0.2,
+      reasoning: 4.8,
+      cache_creation: 1.0,
+    },
+    "qwen3-coder-next": {
+      input: 2.0,
+      output: 8.0,
+      cached: 0.5,
+      reasoning: 8.0,
+      cache_creation: 2.0,
+    },
+    // Kiro "Auto" model — routes to best available
+    auto: {
+      input: 3.0,
+      output: 15.0,
+      cached: 1.5,
+      reasoning: 15.0,
+      cache_creation: 3.0,
+    },
+    // Registry exposes the Auto model as id "auto-kiro" — keep both keys priced.
+    "auto-kiro": {
+      input: 3.0,
+      output: 15.0,
+      cached: 1.5,
+      reasoning: 15.0,
+      cache_creation: 3.0,
+    },
   },
-
-  // Gemini
 };
