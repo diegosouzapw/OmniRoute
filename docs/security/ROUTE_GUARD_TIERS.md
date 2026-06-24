@@ -170,3 +170,111 @@ without also implementing the enforcement logic.
 - `docs/security/CLI_TOKEN.md` — CLI machine-ID token
 - `docs/architecture/AUTHZ_GUIDE.md` — full authorization pipeline
 - `docs/frameworks/MCP-SERVER.md` — MCP server transports and scopes
+
+---
+
+## Private LAN / Tailscale Recognition
+
+The route guard classifies a request as "loopback" using the socket's
+remote address (127.0.0.1, ::1). For LAN and overlay-network deployments
+(ZeroTier, Tailscale, Nebula, plain RFC1918) operators need a way to tell
+the guard that a non-loopback address is still trusted.
+
+`PRIVATE_LAN_PATTERNS` in `src/server/authz/routeGuard.ts` is the static
+default. The set covers:
+
+- `127.0.0.0/8`, `::1/128` — loopback
+- `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` — RFC1918 private
+- `169.254.0.0/16` — link-local
+- `fc00::/7` — ULA
+- `fe80::/10` — IPv6 link-local
+
+### Tailscale (100.64.0.0/10) and other overlay networks
+
+Tailscale and several other overlay networks use Carrier-Grade NAT ranges
+that are NOT in `PRIVATE_LAN_PATTERNS`:
+
+| Network        | CIDR                | Why we don't include it by default                                 |
+| -------------- | ------------------- | ------------------------------------------------------------------ |
+| Tailscale      | `100.64.0.0/10`     | Operationally indistinguishable from a public CGNAT client. Opt-in. |
+| ZeroTier       | `10.147.0.0/16`     | Already covered by RFC1918 default.                                |
+| Nebula         | `10.42.0.0/16` etc. | Already covered by RFC1918 default.                                |
+| Hamachi        | `25.0.0.0/8`        | Public IP range; opt-in via env var.                               |
+| Cloudflare WARP | `100.96.0.0/12`     | CGNAT-shaped range; opt-in via env var.                            |
+
+To opt in to a Tailscale / WARP / Hamachi deployment, set one or more
+`PRIVATE_LAN_CIDR` entries. The format is `a.b.c.d/n` (IPv4) or
+`a::b/n` (IPv6). Multiple CIDRs are comma-separated.
+
+```bash
+# .env (Tailscale)
+PRIVATE_LAN_CIDR=100.64.0.0/10
+
+# .env (Cloudflare WARP)
+PRIVATE_LAN_CIDR=100.96.0.0/12
+
+# Multiple overlays
+PRIVATE_LAN_CIDR=100.64.0.0/10,100.96.0.0/12
+```
+
+`TAILSCALE_CIDR` is accepted as an alias for `PRIVATE_LAN_CIDR` so existing
+Tailscale-only deployments do not need to rename the variable. When both
+are set, the union of the two is used.
+
+### Why this is opt-in
+
+- CGNAT ranges overlap with the addresses of many real public clients
+  (ISPs in APAC, mobile carriers). Treating them as "private" by default
+  would expose LOCAL_ONLY API routes to the public internet on any
+  OmniRoute install that happens to be reachable from one of those
+  networks.
+- Operators on Tailscale know the difference. Making them set an env var
+  is the standard "secure by default, explicit opt-in" pattern.
+- Tests cover both modes: the default behaviour rejects CGNAT, and the
+  opt-in env var extends the allow-list to include the configured CIDR.
+
+### Files
+
+| File                                            | Purpose                                              |
+| ----------------------------------------------- | ---------------------------------------------------- |
+| `src/server/authz/routeGuard.ts`                | `PRIVATE_LAN_PATTERNS` + `parseCidrList`             |
+| `tests/unit/server/route-guard-tailscale.test.ts` | Unit tests for the CGNAT and CIDR logic            |
+| `docs/security/ROUTE_GUARD_TIERS.md` (this file)| This section                                         |
+
+---
+
+## Live WebSocket LAN Exposure
+
+The Live Dashboard WebSocket server (`src/server/ws/liveServer.ts`,
+default port 20129) is bound to `127.0.0.1` by default. To expose it on a
+LAN or overlay network:
+
+```bash
+# 1. Bind to all interfaces
+LIVE_WS_HOST=0.0.0.0
+
+# 2. Authorise the host(s) your browser will reach
+#    — accept any origin whose host matches an entry.
+LIVE_WS_ALLOWED_HOSTS=100.96.135.160,desktop.tailnet.ts.net
+```
+
+Without `LIVE_WS_ALLOWED_HOSTS` the WS server still rejects browsers
+whose `Origin` does not match the loopback defaults, even when bound to
+`0.0.0.0`. This is by design: WS does not honour CORS, and a malicious
+page on origin X could otherwise ride the user's API key.
+
+For a fully tightened production deployment, also set the
+static-origin list:
+
+```bash
+LIVE_WS_ALLOWED_ORIGINS=https://omniroute.example.com,https://admin.example.com
+```
+
+Files:
+
+| File                                            | Purpose                                              |
+| ----------------------------------------------- | ---------------------------------------------------- |
+| `src/server/ws/liveServerAllowList.ts`          | Allow-list policy extracted for unit testing         |
+| `src/server/ws/liveServer.ts`                   | WS server, calls into the allow-list                 |
+| `tests/unit/server/live-server-allowlist.test.ts` | Pin down the allow-list contract                   |
+| `src/hooks/useLiveDashboard.ts`                 | Client hook: connects to port 20129                  |
