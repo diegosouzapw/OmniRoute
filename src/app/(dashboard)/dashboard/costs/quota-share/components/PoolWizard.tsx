@@ -1,21 +1,6 @@
 "use client";
 
-/**
- * PoolWizard — 3-step guided pool creation wizard.
- *
- * Step 1 · Conta   — connection picker + pool name + default policy
- * Step 2 · Limite  — editable plan dimensions for the chosen connection (PUT /api/quota/plans/[id])
- * Step 3 · Chaves  — allocation rows + "exclusive" checkbox + quotaModelName preview
- *
- * On finish:
- *   1. POST /api/quota/pools           → get new pool id
- *   2. PUT  /api/quota/plans/[connId]  → only when user edited dimensions
- *   3. PATCH /api/quota/pools/[id]     → allocations + exclusive flag
- *
- * Visually mirrors BuildWizard's Stepper from the Playground.
- *
- * Phase C1 — Quota Share Redesign.
- */
+/** PoolWizard — 3-step guided pool creation/edit wizard for quota-share pools. */
 
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
@@ -32,10 +17,6 @@ import type {
   QuotaWindow,
 } from "@/lib/quota/dimensions";
 import type { QuotaPool } from "@/lib/db/quotaPools";
-
-// ────────────────────────────────────────────────────────────────────────────
-// Types used by the create/edit wizard flow.
-// ────────────────────────────────────────────────────────────────────────────
 
 interface Connection {
   id: string;
@@ -79,10 +60,6 @@ export interface PoolWizardProps {
   connectionPoolName?: Record<string, string>;
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// Constants
-// ────────────────────────────────────────────────────────────────────────────
-
 const UNIT_OPTIONS: QuotaUnit[] = ["percent", "requests", "tokens", "usd"];
 const WINDOW_OPTIONS: QuotaWindow[] = ["5h", "hourly", "daily", "weekly", "monthly"];
 
@@ -113,10 +90,6 @@ const PREVIEW_MODELS_BY_PROVIDER: Record<string, string[]> = {
 function getPreviewModels(provider: string): string[] {
   return PREVIEW_MODELS_BY_PROVIDER[provider] ?? PREVIEW_MODELS_BY_PROVIDER["default"];
 }
-
-// ────────────────────────────────────────────────────────────────────────────
-// Stepper header (mirrors BuildWizard's Stepper)
-// ────────────────────────────────────────────────────────────────────────────
 
 function Stepper({ currentStep }: { currentStep: 1 | 2 | 3 }) {
   const t = useTranslations("quotaShare");
@@ -167,10 +140,6 @@ function Stepper({ currentStep }: { currentStep: 1 | 2 | 3 }) {
     </div>
   );
 }
-
-// ────────────────────────────────────────────────────────────────────────────
-// Main component
-// ────────────────────────────────────────────────────────────────────────────
 
 export default function PoolWizard({
   open,
