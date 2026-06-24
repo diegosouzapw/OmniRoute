@@ -201,7 +201,7 @@
     "src/lib/evals/evalRunner.ts": 961,
     "src/lib/memory/retrieval.ts": 1171,
     "src/lib/modelsDevSync.ts": 934,
-    "src/lib/providers/validation.ts": 4522,
+    "src/lib/providers/validation.ts": 4523,
     "src/lib/tailscaleTunnel.ts": 1202,
     "src/lib/usage/callLogs.ts": 975,
     "src/lib/usage/providerLimits.ts": 950,
