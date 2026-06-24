@@ -13,6 +13,7 @@ _In development — bullets added per PR; finalized at release._
 - **feat(blackbox):** refresh provider model catalog with latest models. (thanks @ptkelanatechsolutions)
 - **kiro**: inline `<thinking>` stream splitter — when `<thinking_mode>enabled</thinking_mode>` is present, `assistantResponseEvent` content is now split into separate `delta.content` / `delta.reasoning_content` SSE chunks (new `open-sse/executors/kiroThinking.ts` module wired into `KiroExecutor.transformEventStreamToSSE`).
 - **feat(cursor):** parse Cursor Composer DeepSeek-style inline tool calls — Composer `cu/composer-2.5*` models embed tool invocations in their visible text using `<｜tool▁calls▁begin｜>…<｜tool▁calls▁end｜>` markers instead of structured protobuf frames; a new streaming parser (`composerToolCalls.ts`) intercepts these in both streaming and non-streaming paths, suppresses the markers from the client-visible content, and emits proper OpenAI `tool_calls` deltas so downstream clients handle them natively. (thanks @noestelar)
+- **feat(proxy):** support auth-less `host:port` batch import and surface proxy-test failures. (thanks @dimaslanjaka)
 
 ### 🔧 Bug Fixes
 
