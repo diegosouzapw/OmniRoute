@@ -1927,6 +1927,9 @@ export async function handleChatCore({
         apiKeyId: apiKeyInfo.id,
         connectionId: credentials.connectionId,
         provider: provider ?? "unknown",
+        // Resolved model id (post background-redirect / alias) — the same scope the
+        // router/log use. Operators configure per-(key,model) caps against THIS id.
+        model: model || undefined,
         estimatedCost: {},
       }).catch((err: unknown) => {
         log?.warn?.(
@@ -3616,6 +3619,7 @@ export async function handleChatCore({
       apiKeyId: apiKeyInfo?.id,
       connectionId: credentials?.connectionId,
       provider,
+      model,
       usage,
       estimatedCost,
       log,

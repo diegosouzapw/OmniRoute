@@ -14,6 +14,7 @@ export async function scheduleQuotaShareConsumption(args: {
   apiKeyId: string | null | undefined;
   connectionId: string | null | undefined;
   provider: string | null | undefined;
+  model?: string | null | undefined;
   usage: unknown;
   estimatedCost: number;
   log?: LoggerLike;
@@ -28,6 +29,8 @@ export async function scheduleQuotaShareConsumption(args: {
         apiKeyId: args.apiKeyId,
         connectionId: args.connectionId,
         provider: args.provider ?? "unknown",
+        // Per-(key,model) cap accounting — same resolved model id used at enforce time.
+        model: args.model ?? undefined,
         cost: buildConsumptionCost(args.usage, args.estimatedCost),
       },
       args.log
