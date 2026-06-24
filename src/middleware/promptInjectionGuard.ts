@@ -58,13 +58,16 @@ export function withInjectionGuard(handler: any, options: any = {}) {
       return handler(request, context);
     }
 
+    // Hoist parsed body so it can be threaded to the downstream handler (#4041).
+    let parsedBody: any = null;
+
     try {
       // Clone request so body can still be read by handler
       const cloned = request.clone();
-      const body = await cloned.json().catch(() => null);
+      parsedBody = await cloned.json().catch(() => null);
 
-      if (body) {
-        const { blocked, result }: any = guard(body);
+      if (parsedBody) {
+        const { blocked, result }: any = guard(parsedBody);
 
         if (blocked) {
           return new Response(
@@ -94,6 +97,10 @@ export function withInjectionGuard(handler: any, options: any = {}) {
       });
     }
 
-    return handler(request, context);
+    // Thread the already-parsed body to the handler as a third argument so downstream
+    // handlers (e.g. /v1/responses) can reuse it without re-cloning+re-parsing the
+    // request on the hot path (#4041). Handlers that don't accept a preParsedBody
+    // simply ignore the extra argument — no signature change required for other routes.
+    return handler(request, context, parsedBody);
   };
 }

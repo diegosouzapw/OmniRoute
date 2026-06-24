@@ -29,10 +29,13 @@ export async function OPTIONS() {
 
 /**
  * POST /v1/messages - Claude format (auto convert via handleChat)
+ *
+ * `preParsedBody` is threaded from withInjectionGuard (#4041) so the body is
+ * parsed at most once per request.
  */
-async function postHandler(request, context) {
+async function postHandler(request: any, context: any, preParsedBody: any = null) {
   await ensureInitialized();
-  return await handleChat(request);
+  return await handleChat(request, null, preParsedBody);
 }
 
 export const POST = withInjectionGuard(postHandler);
