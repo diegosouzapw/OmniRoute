@@ -285,18 +285,26 @@ test("QoderExecutor: PAT token falls back to Cosy auth when Bearer returns 401",
 
   globalThis.fetch = async (url, options) => {
     callCount++;
-    if (callCount === 1) {
+    const u = String(url);
+    if (u === "https://api.qoder.com/v1/chat/completions") {
       // First call to api.qoder.com returns 401 TOKEN_INVALID
-      assert.equal(String(url), "https://api.qoder.com/v1/chat/completions");
       assert.equal(options.headers.Authorization, "Bearer pt-0pUI-test-token");
       return new Response(JSON.stringify({ code: "TOKEN_INVALID", message: "invalid apikey" }), {
         status: 401,
         headers: { "Content-Type": "application/json" },
       });
     }
-    // Second call to api1.qoder.sh (Cosy fallback) returns SSE response
-    assert.ok(String(url).includes("api1.qoder.sh"));
-    assert.ok(String(url).includes("agent_chat_generation"));
+    if (u.includes("/jobToken/exchange")) {
+      // #4683: the PAT is exchanged for a short-lived jt-* job token before the Cosy call.
+      assert.deepEqual(JSON.parse(String(options.body)), { personal_token: "pt-0pUI-test-token" });
+      return new Response(JSON.stringify({ job_token: "jt-from-exchange", expires_in: 86400 }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    // Cosy fallback call to api1.qoder.sh returns SSE response
+    assert.ok(u.includes("api1.qoder.sh"));
+    assert.ok(u.includes("agent_chat_generation"));
     assert.ok(options.headers["Cosy-Key"]);
     assert.ok(options.headers["Cosy-User"]);
     assert.ok(options.headers["Cosy-Date"]);
@@ -315,7 +323,11 @@ test("QoderExecutor: PAT token falls back to Cosy auth when Bearer returns 401",
       credentials: { apiKey: "pt-0pUI-test-token" },
     });
 
-    assert.equal(callCount, 2, "Should have made 2 fetch calls (1 Bearer + 1 Cosy)");
+    assert.equal(
+      callCount,
+      3,
+      "Should have made 3 fetch calls (1 Bearer + 1 jobToken exchange + 1 Cosy)"
+    );
     assert.equal(response.status, 200);
     const payload = await response.json();
     assert.equal(payload.object, "chat.completion");

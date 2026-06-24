@@ -11,7 +11,7 @@ import {
   QODER_DEFAULT_USER_AGENT,
 } from "../config/providerHeaderProfiles.ts";
 import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
-import { buildCosyHeadersForValidation } from "../services/qoderCli.ts";
+import { buildCosyHeadersForValidation, resolveQoderJobToken } from "../services/qoderCli.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 
 function getAuthToken(credentials: ProviderCredentials): string {
@@ -131,7 +131,10 @@ export class QoderExecutor extends BaseExecutor {
       // PAT tokens (pt-*) are not accepted as Bearer tokens by api.qoder.com/v1/chat/completions.
       // They return 401 TOKEN_INVALID. Fallback to Cosy auth against api1.qoder.sh.
       if (!response.ok && response.status === 401 && isPatToken) {
-        const cosyHeaders = buildCosyHeadersForValidation(bodyStr, token);
+        // #4683: exchange the PAT (pt-*) for a job token (jt-*) before the Cosy call;
+        // Cosy rejects a raw pt-* in security_oauth_token with a generic 500.
+        const cosyToken = await resolveQoderJobToken(token, { signal });
+        const cosyHeaders = buildCosyHeadersForValidation(bodyStr, cosyToken);
         const cosyEndpoint =
           "https://api1.qoder.sh/algo/api/v2/service/pro/sse/agent_chat_generation?AgentId=agent_common";
         const cosyRes = await fetch(cosyEndpoint, {
