@@ -3,11 +3,20 @@
  * for a provider/connection/dimension combination.
  *
  * Strategy (per provider):
- *   codex   → codexQuotaFetcher (dual 5h + weekly window)
- *   bailian → bailianQuotaFetcher (triple 5h + weekly + monthly window)
- *   default → getUsageForProvider (open-sse/services/usage.ts)
+ *   codex            → codexQuotaFetcher (dual 5h + weekly window)
+ *   bailian          → bailianQuotaFetcher (triple 5h + weekly + monthly window)
+ *   anthropic/claude → REAL plan-window utilization from GET /api/oauth/usage
+ *                      (the same path usage.ts already uses): window "5h" →
+ *                      five_hour.utilization, "weekly" → seven_day.utilization.
+ *                      Falls back to the per-minute REQUEST rate-limit headers
+ *                      (anthropic-ratelimit-requests-*) only when no OAuth plan
+ *                      window is available (e.g. API-key Claude connections).
+ *   default          → getUsageForProvider (open-sse/services/usage.ts)
  *
- * Cache: in-memory Map, TTL = 30 seconds.
+ * Cache: in-memory Map, TTL = 30 seconds. The 30s TTL is what keeps the
+ * NON-OFFICIAL, rate-limited oauth/usage endpoint from being polled per
+ * request (it returns 429 under load) — never call it on the hot path without
+ * this cache. usage.ts adds its own 429 cooldown on top.
  * Fail-open: on any error, return 0 (generous mode) and log pino.warn.
  * Hard Rule #12: no stack traces propagated to return values.
  *
@@ -158,15 +167,129 @@ async function fetchBailianSaturation(
   return Math.min(1, Math.max(0, pct));
 }
 
-async function fetchAnthropicSaturation(
-  connectionId: string,
-  dim: DimensionSpec
-): Promise<number> {
+/**
+ * Per-minute REQUEST rate-limit headers fallback. Used only when the OAuth
+ * plan-window utilization is unavailable (e.g. API-key Claude connections that
+ * have no /api/oauth/usage data). This signal reflects TPM/RPM bursts, NOT the
+ * 5h/weekly plan window, so it is a weak last resort.
+ */
+function anthropicHeaderSaturation(connectionId: string): number {
   const entry = _rateLimitHeaders.get(`anthropic:${connectionId}`);
   if (!entry || Date.now() - entry.ts > RL_HEADER_TTL_MS) return 0;
 
   const used = entry.limit - entry.remaining;
   return Math.min(1, Math.max(0, used / entry.limit));
+}
+
+/**
+ * Injectable seam (DB lookup + usage fetch) so the oauth/usage plan-window path
+ * is unit-testable without touching the DB or the network. Defaults are wired
+ * lazily to the real implementations inside fetchAnthropicSaturation.
+ */
+interface AnthropicSaturationDeps {
+  /** Resolve a connection (with decrypted accessToken/authType) by id. */
+  loadConnection: (connectionId: string) => Promise<Record<string, unknown> | null>;
+  /** Fetch usage for the connection (delegates to getUsageForProvider). */
+  fetchUsage: (conn: Record<string, unknown>) => Promise<unknown>;
+}
+
+let _anthropicDepsOverride: AnthropicSaturationDeps | null = null;
+
+/** Test-only: inject ({loadConnection, fetchUsage}); pass null to restore. */
+export function __setAnthropicSaturationDepsForTests(
+  deps: AnthropicSaturationDeps | null
+): void {
+  _anthropicDepsOverride = deps;
+}
+
+async function defaultAnthropicDeps(): Promise<AnthropicSaturationDeps> {
+  const [providersMod, usageMod] = await Promise.all([
+    import("@/lib/db/providers"),
+    import("@omniroute/open-sse/services/usage"),
+  ]);
+  return {
+    loadConnection: (connectionId) =>
+      providersMod.getProviderConnectionById(connectionId) as Promise<Record<
+        string,
+        unknown
+      > | null>,
+    fetchUsage: (conn) =>
+      usageMod.getUsageForProvider(conn as Parameters<typeof usageMod.getUsageForProvider>[0]),
+  };
+}
+
+/**
+ * Map a QuotaWindow to the Claude usage quota key produced by getClaudeUsage
+ * (usage.ts). "session (5h)" carries five_hour.utilization and "weekly (7d)"
+ * carries seven_day.utilization.
+ */
+function claudeUsageKeyForWindow(window: QuotaWindow): string | null {
+  switch (window) {
+    case "5h":
+      return "session (5h)";
+    case "weekly":
+    case "monthly":
+      // Anthropic exposes a 7-day plan window, not a monthly one — treat the
+      // longer requested window as the weekly plan saturation.
+      return "weekly (7d)";
+    default:
+      return null;
+  }
+}
+
+/**
+ * Extract the plan utilization (0..1) for the requested window from a
+ * getClaudeUsage() result, or null when the OAuth plan window is unavailable
+ * (e.g. legacy/admin API-key shape with no per-window quotas).
+ */
+function planUtilizationFromUsage(usage: unknown, window: QuotaWindow): number | null {
+  if (!usage || typeof usage !== "object") return null;
+  const quotas = (usage as Record<string, unknown>).quotas;
+  if (!quotas || typeof quotas !== "object" || Array.isArray(quotas)) return null;
+
+  const key = claudeUsageKeyForWindow(window);
+  if (!key) return null;
+  const entry = (quotas as Record<string, unknown>)[key];
+  if (!entry || typeof entry !== "object") return null;
+
+  // getClaudeUsage stores `used` = utilization (% used, 0..100).
+  const used = (entry as Record<string, unknown>).used;
+  if (typeof used !== "number" || !Number.isFinite(used)) return null;
+  return Math.min(1, Math.max(0, used / 100));
+}
+
+async function fetchAnthropicSaturation(
+  connectionId: string,
+  dim: DimensionSpec
+): Promise<number> {
+  // Try the REAL plan-window utilization first (5h / weekly), via the same
+  // /api/oauth/usage path usage.ts already uses. This is the signal fairShare
+  // actually needs for Claude Pro/Max — the per-minute request headers do not
+  // reflect the plan window. Any failure here falls back to the header path,
+  // and ultimately fails open (0).
+  try {
+    const deps = _anthropicDepsOverride ?? (await defaultAnthropicDeps());
+    const conn = await deps.loadConnection(connectionId);
+    // Only OAuth connections have plan-window usage; API-key Claude does not.
+    const hasOauthToken =
+      !!conn &&
+      typeof conn.accessToken === "string" &&
+      conn.accessToken.length > 0 &&
+      (conn.authType === undefined || conn.authType === "oauth");
+    if (hasOauthToken) {
+      const usage = await deps.fetchUsage(conn as Record<string, unknown>);
+      const util = planUtilizationFromUsage(usage, dim.window);
+      if (util !== null) return util;
+    }
+  } catch (err) {
+    log.warn(
+      { err: (err as Error)?.message, connectionId },
+      "anthropic oauth/usage saturation failed — falling back to rate-limit headers"
+    );
+  }
+
+  // Fallback: per-minute REQUEST rate-limit headers (weak, TPM/RPM only).
+  return anthropicHeaderSaturation(connectionId);
 }
 
 async function fetchGenericSaturation(
