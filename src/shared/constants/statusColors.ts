@@ -16,4 +16,4 @@ export const STATUS_HEX = {
   muted: "#6b7280",
 } as const;
 
-export type StatusHexKey = keyof typeof STATUS_HEX;
+type StatusHexKey = keyof typeof STATUS_HEX;

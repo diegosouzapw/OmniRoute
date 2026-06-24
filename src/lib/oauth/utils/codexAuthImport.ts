@@ -54,9 +54,9 @@ function extractCodexAccountId(
   );
 }
 
-// ──── Public types ────────────────────────────────────────────────────────────
+// ──── Parsed input types ──────────────────────────────────────────────────────
 
-export interface CodexAuthFileInput {
+interface CodexAuthFileInput {
   auth_mode?: unknown;
   OPENAI_API_KEY?: unknown;
   tokens?: {

@@ -71,7 +71,7 @@ export interface SkillCoverage {
   generatedAt: string; // ISO datetime
 }
 
-export interface SkillCatalogEntry extends AgentSkill {
+interface SkillCatalogEntry extends AgentSkill {
   // No additional fields; alias for AgentSkill at catalog-level.
 }
 

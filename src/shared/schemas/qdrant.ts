@@ -38,7 +38,7 @@ export const QdrantHealthResultSchema = z.object({
   error: z.string().optional(),
 });
 
-export type QdrantSettings = z.infer<typeof QdrantSettingsSchema>;
-export type QdrantSettingsUpdate = z.infer<typeof QdrantSettingsUpdateSchema>;
-export type QdrantSearch = z.infer<typeof QdrantSearchSchema>;
-export type QdrantHealthResult = z.infer<typeof QdrantHealthResultSchema>;
+type QdrantSettings = z.infer<typeof QdrantSettingsSchema>;
+type QdrantSettingsUpdate = z.infer<typeof QdrantSettingsUpdateSchema>;
+type QdrantSearch = z.infer<typeof QdrantSearchSchema>;
+type QdrantHealthResult = z.infer<typeof QdrantHealthResultSchema>;
