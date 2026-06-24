@@ -152,36 +152,10 @@ export function updateHook(name: string, updates: Partial<HookConfig>): boolean 
 }
 
 /**
- * Get a hook config by name.
- */
-export function getHook(name: string): HookConfig | undefined {
-  return getRegistryState().hooks.get(name);
-}
-
-/**
  * Get all registered hooks.
  */
 export function getAllHooks(): HookConfig[] {
   return Array.from(getRegistryState().hooks.values());
-}
-
-/**
- * Load hooks from DB config rows into the registry.
- * This is called at startup to restore persisted hooks.
- */
-export function loadHooksFromConfig(rows: HookConfig[]): void {
-  const state = getRegistryState();
-  for (const row of rows) {
-    if (!state.hooks.has(row.name)) {
-      state.hooks.set(row.name, row);
-      try {
-        const compiled = compileHookCode(row.code, row.name);
-        state.middlewares.set(row.name, compiled);
-      } catch (err) {
-        console.error(`[Middleware] Failed to compile hook "${row.name}":`, err);
-      }
-    }
-  }
 }
 
 /**
@@ -298,35 +272,4 @@ export function getHookLogs(hookName?: string, limit = 50): HookLogEntry[] {
  */
 export function initPreRequestRegistry(): void {
   getRegistryState().initialized = true;
-}
-
-/**
- * Clear all hooks (for testing).
- */
-export function clearAllHooks(): void {
-  const state = getRegistryState();
-  state.hooks.clear();
-  state.middlewares.clear();
-  state.logs = [];
-}
-
-/**
- * Get registry stats for health monitoring.
- */
-export function getRegistryStats(): {
-  totalHooks: number;
-  enabledHooks: number;
-  globalHooks: number;
-  comboScopedHooks: number;
-  recentLogs: number;
-} {
-  const state = getRegistryState();
-  const hooks = Array.from(state.hooks.values());
-  return {
-    totalHooks: hooks.length,
-    enabledHooks: hooks.filter((h) => h.enabled).length,
-    globalHooks: hooks.filter((h) => h.scope.type === "global").length,
-    comboScopedHooks: hooks.filter((h) => h.scope.type === "combo").length,
-    recentLogs: state.logs.length,
-  };
 }

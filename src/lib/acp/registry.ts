@@ -199,13 +199,6 @@ export function setCustomAgents(agents: CustomAgentDef[]): void {
   _cachedAgents = null; // invalidate cache
 }
 
-/**
- * Get current custom agent definitions.
- */
-export function getCustomAgentDefs(): CustomAgentDef[] {
-  return _customAgentDefs;
-}
-
 function tokenizeVersionCommand(command: string): string[] | null {
   if (!command || DISALLOWED_VERSION_COMMAND_CHARS.test(command)) {
     return null;

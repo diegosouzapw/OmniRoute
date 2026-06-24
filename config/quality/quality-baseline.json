@@ -94,7 +94,7 @@
       "eps": 0.5
     },
     "deadExports": {
-      "value": 86,
+      "value": 77,
       "direction": "down",
       "dedicatedGate": true,
       "_dead_code_ratchet_2026_06_24_unused_helpers": "287 -> 279 after removing unused legacy response/cost/settings/plugin/OAuth helper modules.",
@@ -113,7 +113,8 @@
       "_dead_code_ratchet_2026_06_24_stale_leaf_exports": "121 -> 107 after deleting unused stale leaf exports from semantic cache, API-key parsing, webhook delivery detail, OAuth config, Obsidian sync/base-url helpers, prompt-cache, codegraph, API v1 schemas, analytics, and playground/provider utility surfaces.",
       "_dead_code_ratchet_2026_06_24_stale_internal_exports": "107 -> 96 after deleting unused leaf exports from CLI tool mapping, playground schemas, provider onboarding helpers, settings schemas, OAuth callback helper, Zed keychain lookup, SSE logger wrappers, and the shared logger default export.",
       "_dead_code_ratchet_2026_06_24_vscode_onboarding_exports": "96 -> 90 after deleting unused leaf exports from provider onboarding, OpenRouter preset input, and VS Code service-tier route helpers.",
-      "_dead_code_ratchet_2026_06_24_generated_provider_exports": "90 -> 86 after deleting unused provider type exports, an unused command-code cleanup helper, and stale OpenAPI generated title metadata."
+      "_dead_code_ratchet_2026_06_24_generated_provider_exports": "90 -> 86 after deleting unused provider type exports, an unused command-code cleanup helper, and stale OpenAPI generated title metadata.",
+      "_dead_code_ratchet_2026_06_24_dead_ui_registry_exports": "86 -> 77 after deleting unused shared UI components and stale ACP, live-dashboard, and middleware-registry helper exports."
     },
     "cognitiveComplexity": {
       "value": 801,

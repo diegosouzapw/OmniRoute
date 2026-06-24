@@ -464,16 +464,3 @@ export function useLiveComboStatus(options?: UseLiveDashboardOptions) {
     reconnect,
   };
 }
-
-// ── Connection Status Hook ────────────────────────────────────────────────
-
-/**
- * Hook for checking connection status only (no events).
- */
-export function useLiveConnectionStatus(options?: UseLiveDashboardOptions) {
-  const { connection, reconnect } = useLiveDashboard({
-    channels: [],
-    ...options,
-  });
-  return { ...connection, reconnect };
-}
