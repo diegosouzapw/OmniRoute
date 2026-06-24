@@ -282,15 +282,23 @@ function openaiToGeminiBase(
   }
 
   // Thinking / Reasoning support (Google Gemini 2.0+ Thinking models)
-  // 1. OpenAI format: reasoning_effort (low/medium/high)
+  // 1. OpenAI format: reasoning_effort (low/medium/high/auto/max/xhigh)
+  // "auto", "max", and "xhigh" are clamped to the high-tier budget because Gemini
+  // does not accept these strings directly. "auto" signals "use max reasonable effort"
+  // which maps to high. "max"/"xhigh" exceed Gemini's accepted range and are clamped.
+  // Port of decolua/9router#2043 by @nguyenxvotanminh3.
   if (body.reasoning_effort) {
+    const highBudget = capThinkingBudget(model, 32768);
     const budgetMap: Record<string, number> = {
       low: 1024,
       medium: getDefaultThinkingBudget(model) || 8192,
-      high: capThinkingBudget(model, 32768),
+      high: highBudget,
+      auto: highBudget,
+      max: highBudget,
+      xhigh: highBudget,
     };
     const budget =
-      budgetMap[body.reasoning_effort as string] || getDefaultThinkingBudget(model) || 8192;
+      budgetMap[body.reasoning_effort as string] ?? getDefaultThinkingBudget(model) ?? 8192;
     result.generationConfig.thinkingConfig = {
       thinkingBudget: budget,
       includeThoughts: true,
