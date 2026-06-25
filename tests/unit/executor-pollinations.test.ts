@@ -47,7 +47,9 @@ test("PollinationsExecutor enhances 401 errors for premium models with actionabl
   // Mock super.execute (BaseExecutor.prototype.execute) to throw a 401
   const origBaseExec = Object.getPrototypeOf(Object.getPrototypeOf(executor)).execute;
   Object.getPrototypeOf(Object.getPrototypeOf(executor)).execute = async function () {
-    const err = new Error("Authentication required. Please provide an API key via Authorization header (Bearer token) or ?key= query parameter.");
+    const err = new Error(
+      "Authentication required. Please provide an API key via Authorization header (Bearer token) or ?key= query parameter."
+    );
     (err as any).status = 401;
     throw err;
   };
@@ -95,4 +97,33 @@ test("PollinationsExecutor passes through 401 errors for non-premium models", as
   } finally {
     Object.getPrototypeOf(Object.getPrototypeOf(executor)).execute = origBaseExec;
   }
+});
+
+test("#3981 PollinationsExecutor.transformRequest does not force jsonMode on a plain (non-JSON) request", () => {
+  const executor = new PollinationsExecutor();
+  // A normal chat request has no response_format. Forcing jsonMode here makes
+  // pollinations reject the request with HTTP 400 (the bug reported in #3981).
+  const body: any = { messages: [{ role: "user", content: "hello" }] };
+  executor.transformRequest("openai", body, false, {});
+  assert.equal(body.jsonMode, undefined);
+});
+
+test("#3981 PollinationsExecutor.transformRequest enables jsonMode when response_format requests json_object", () => {
+  const executor = new PollinationsExecutor();
+  const body: any = {
+    messages: [{ role: "user", content: "hi" }],
+    response_format: { type: "json_object" },
+  };
+  executor.transformRequest("openai", body, false, {});
+  assert.equal(body.jsonMode, true);
+});
+
+test("#3981 PollinationsExecutor.transformRequest enables jsonMode when response_format requests json_schema", () => {
+  const executor = new PollinationsExecutor();
+  const body: any = {
+    messages: [{ role: "user", content: "hi" }],
+    response_format: { type: "json_schema", json_schema: { name: "x", schema: {} } },
+  };
+  executor.transformRequest("openai", body, false, {});
+  assert.equal(body.jsonMode, true);
 });
