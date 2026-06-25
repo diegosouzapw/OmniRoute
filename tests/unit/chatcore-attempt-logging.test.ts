@@ -17,6 +17,15 @@ const coreDb = await import("../../src/lib/db/core.ts");
 const { getCallLogById } = await import("../../src/lib/usage/callLogs.ts");
 const { persistAttemptLogs } = await import("../../open-sse/handlers/chatCore/attemptLogging.ts");
 
+type CodexRotationEnvelope = {
+  _omniroute?: {
+    codexAccountRotation?: {
+      initialConnectionId: unknown;
+      finalConnectionId: unknown;
+    };
+  };
+};
+
 function baseCtx(overrides: Record<string, unknown> = {}) {
   return {
     provider: "openai",
@@ -50,6 +59,11 @@ async function pollForCallLog(id: string, tries = 120) {
     await new Promise((r) => setTimeout(r, 20));
   }
   return null;
+}
+
+function getCodexAccountRotation(value: unknown) {
+  if (!value || typeof value !== "object") return undefined;
+  return (value as CodexRotationEnvelope)._omniroute?.codexAccountRotation;
 }
 
 before(async () => {
@@ -92,11 +106,11 @@ test("uses final credentials connectionId when Codex failover rotates the accoun
   const row = await pollForCallLog(id);
   assert.ok(row);
   assert.equal(row.connectionId, "final-conn");
-  assert.deepEqual((row.requestBody as any)?._omniroute?.codexAccountRotation, {
+  assert.deepEqual(getCodexAccountRotation(row.requestBody), {
     initialConnectionId: "initial-conn",
     finalConnectionId: "final-conn",
   });
-  assert.deepEqual((row.responseBody as any)?._omniroute?.codexAccountRotation, {
+  assert.deepEqual(getCodexAccountRotation(row.responseBody), {
     initialConnectionId: "initial-conn",
     finalConnectionId: "final-conn",
   });
