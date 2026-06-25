@@ -29,6 +29,7 @@ import {
   deriveDefaultPlanFromConfig,
   buildNamedComboLookup,
 } from "./planResolution.ts";
+import { getDefaultCompressionTelemetry } from "./telemetry.ts";
 
 // Re-export so existing importers (resolver test + chatCore dynamic import) keep resolving.
 export { planFromHeader, formatCompressionMeta, buildNamedComboLookup };
@@ -247,6 +248,7 @@ export function applyCompression(
       ...options,
       preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
     });
+    recordSingleRunTelemetry(result.stats, options);
     return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
   }
   if (mode === "stacked") {
@@ -255,6 +257,7 @@ export function applyCompression(
       options?.config?.stackedPipeline,
       options
     );
+    recordSingleRunTelemetry(result.stats, options);
     return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
   }
   if (mode === "standard") {
@@ -282,6 +285,7 @@ export function applyCompression(
       compressionBody as Parameters<typeof cavemanCompress>[0],
       cavemanConfig
     );
+    recordSingleRunTelemetry(result.stats, options);
     return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
   }
   if (mode === "aggressive") {
@@ -327,7 +331,7 @@ export function applyCompression(
     };
     const result = ultraCompress(messages, ultraConfig);
     const compressedBody = { ...compressionBody, messages: result.messages };
-    return {
+    const finalResult: CompressionResult = {
       body: adapter.restore(compressedBody),
       compressed: result.stats.savingsPercent > 0,
       stats: createCompressionStats(
@@ -339,6 +343,8 @@ export function applyCompression(
         result.stats.durationMs
       ),
     };
+    recordSingleRunTelemetry(finalResult.stats, options);
+    return finalResult;
   }
   return { body, compressed: false, stats: null };
 }
@@ -524,9 +530,11 @@ interface StackAccumulator {
   validationWarnings: Set<string>;
   validationErrors: Set<string>;
   fallbackApplied: boolean;
+  /** Caller-supplied options propagated through the stacked pipeline (for telemetry). */
+  options: StackOptions | undefined;
 }
 
-function createStackAccumulator(): StackAccumulator {
+function createStackAccumulator(options: StackOptions | undefined): StackAccumulator {
   return {
     techniques: new Set<string>(),
     rules: new Set<string>(),
@@ -535,6 +543,7 @@ function createStackAccumulator(): StackAccumulator {
     validationWarnings: new Set<string>(),
     validationErrors: new Set<string>(),
     fallbackApplied: false,
+    options,
   };
 }
 
@@ -599,6 +608,8 @@ function mergeStackStep(acc: StackAccumulator, engineId: string, result: Compres
     ...(result.stats.rulesApplied ? { rulesApplied: result.stats.rulesApplied } : {}),
     ...(result.stats.durationMs !== undefined ? { durationMs: result.stats.durationMs } : {}),
   });
+  // Fire per-engine breakdown telemetry. Fire-and-forget — never throws.
+  reportPerEngineBreakdownTelemetry(result.stats, engineId, acc.options);
 }
 
 function finalizeStackedResult(
@@ -650,7 +661,7 @@ export function applyStackedCompression(
 
   let currentBody = body;
   let compressed = false;
-  const acc = createStackAccumulator();
+  const acc = createStackAccumulator(options);
   const start = performance.now();
 
   const bailout = options?.bailout;
@@ -722,7 +733,7 @@ export async function applyStackedCompressionAsync(
 
   let currentBody = body;
   let compressed = false;
-  const acc = createStackAccumulator();
+  const acc = createStackAccumulator(options);
   const start = performance.now();
 
   const bailout = options?.bailout;
@@ -779,4 +790,27 @@ export async function applyStackedCompressionAsync(
     start,
     options?.compressionComboId ?? options?.config?.compressionComboId
   );
+}
+
+/**
+ * Fire a per-engine breakdown telemetry event. Fire-and-forget — never throws.
+ *
+ * The telemetry singleton consumes the per-engine stats that the engine already
+ * produces (the CompressionStats object attached to each step CompressionResult).
+ * We do not need to call recordEngineBreakdown here — finalizeStackedResult
+ * already populates stats.engineBreakdown for the parent run. This hook is
+ * reserved for a future PR that adds per-engine child spans for distributed tracing.
+ *
+ * The function deliberately accepts unused parameters (`engineName`, `options`)
+ * so that adding labels in the future is a one-line change.
+ */
+function reportPerEngineBreakdownTelemetry(
+  stats: CompressionStats | null,
+  engineName: string,
+  options: StackOptions | undefined
+): void {
+  if (!stats) return;
+  // Mark the parameters as intentionally unused for downstream extension.
+  void engineName;
+  void options;
 }
