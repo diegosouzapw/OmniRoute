@@ -13,6 +13,36 @@ export function isRedisConfigured(): boolean {
   return REDIS_URL.length > 0;
 }
 
+/**
+ * State-change-gated log throttle for the Redis error handler.
+ *
+ * #4878: when REDIS_URL points at a non-running server, ioredis retries on a
+ * backoff and fires the "error" event on every attempt, flooding the logs with
+ * identical "[REDIS] Error:" lines. We only want to log when the error STATE
+ * actually changes (first occurrence, or a different error message), not on
+ * every retry of the same failure.
+ */
+export function createRedisLogThrottle() {
+  let lastLogged: string | null = null;
+  return {
+    shouldLog(message: string): boolean {
+      if (message === lastLogged) return false;
+      lastLogged = message;
+      return true;
+    },
+    reset(): void {
+      lastLogged = null;
+    },
+  };
+}
+
+const redisLogThrottle = createRedisLogThrottle();
+
+// Exposed for unit tests — returns a fresh, isolated throttle instance.
+export function _createRedisLogThrottleForTests() {
+  return createRedisLogThrottle();
+}
+
 export function getRedisClient() {
   if (!isRedisConfigured()) {
     throw new Error("Redis is not configured");
@@ -26,7 +56,14 @@ export function getRedisClient() {
         return Math.min(times * 50, 2000); // Exponential backoff
       },
     });
-    redisClient.on("error", (err) => console.error("[REDIS] Error:", err.message));
+    redisClient.on("error", (err) => {
+      // Throttle: log once per error-state change instead of on every retry (#4878).
+      if (redisLogThrottle.shouldLog(err.message)) {
+        console.error("[REDIS] Error:", err.message);
+      }
+    });
+    // A successful connection resets the throttle so the next failure logs again.
+    redisClient.on("ready", () => redisLogThrottle.reset());
   }
   return redisClient;
 }
