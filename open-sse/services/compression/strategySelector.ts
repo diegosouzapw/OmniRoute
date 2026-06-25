@@ -29,7 +29,7 @@ import {
   deriveDefaultPlanFromConfig,
   buildNamedComboLookup,
 } from "./planResolution.ts";
-import { getDefaultCompressionTelemetry } from "./telemetry.ts";
+import { getDefaultCompressionTelemetry, type CompressionTelemetryContext } from "./telemetry.ts";
 
 // Re-export so existing importers (resolver test + chatCore dynamic import) keep resolving.
 export { planFromHeader, formatCompressionMeta, buildNamedComboLookup };
@@ -824,7 +824,6 @@ function reportPerEngineBreakdownTelemetry(
     getDefaultCompressionTelemetry().recordEngineBreakdown(stats, engineName);
   } catch (err) {
     if (process.env.OMNIROUTE_TELEMETRY_DEBUG === "1") {
-       
       console.warn("[compression-telemetry] reportPerEngineBreakdownTelemetry failed:", err);
     }
   }
@@ -853,7 +852,6 @@ function recordSingleRunTelemetry(
     getDefaultCompressionTelemetry().recordCompressionRun(stats, ctx);
   } catch (err) {
     if (process.env.OMNIROUTE_TELEMETRY_DEBUG === "1") {
-       
       console.warn("[compression-telemetry] recordSingleRunTelemetry failed:", err);
     }
   }
