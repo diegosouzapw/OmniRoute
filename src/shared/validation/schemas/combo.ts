@@ -220,6 +220,7 @@ export const comboNameSchema = z
 
 export const createComboSchema = z.object({
   name: comboNameSchema,
+  description: z.string().max(2000).optional(),
   models: z.array(comboModelEntry).optional().default([]),
   strategy: comboStrategySchema.optional().default("priority"),
   config: comboRuntimeConfigSchema.optional(),
@@ -266,6 +267,7 @@ export const updateComboDefaultsSchema = z
 export const updateComboSchema = z
   .object({
     name: comboNameSchema.optional(),
+    description: z.string().max(2000).optional().nullable(),
     models: z.array(comboModelEntry).optional(),
     strategy: comboStrategySchema.optional(),
     config: comboRuntimeConfigSchema.optional(),
@@ -280,6 +282,7 @@ export const updateComboSchema = z
   .superRefine((value, ctx) => {
     if (
       value.name === undefined &&
+      value.description === undefined &&
       value.models === undefined &&
       value.strategy === undefined &&
       value.config === undefined &&

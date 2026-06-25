@@ -2345,6 +2345,8 @@
     "leastLatency": "Least Latency",
     "comboName": "Combo Name",
     "comboNamePlaceholder": "my-combo",
+    "comboDescription": "Description",
+    "comboDescriptionPlaceholder": "Optional note describing this combo",
     "deleteConfirm": "Delete this combo?",
     "noCombosYet": "No combos yet",
     "comboCreated": "Combo created successfully",
