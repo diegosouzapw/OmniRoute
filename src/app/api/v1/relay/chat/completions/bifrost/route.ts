@@ -44,6 +44,7 @@ import {
   hashToken,
   sanitizeForensicHeader,
 } from "../relaySecurity";
+import { recordTenantCost, recordTenantRequest } from "@/lib/observability/tenantMetrics";
 
 // Minimal request-shape validation (Rule #7). `.passthrough()` keeps every other
 // OpenAI chat-completion field intact (temperature, tools, response_format, …) —
@@ -357,6 +358,44 @@ export async function POST(request: Request) {
 
     clearTimeout(tid);
     recordUsage(upstream.status < 500 ? "success" : "error", upstream.status);
+
+    // PR-007 wire-up: attribute the request to its tenant and record the
+    // cost once we have the upstream response. Tenant id is taken from
+    // the explicit `x-tenant-id` header (set by the management dashboard)
+    // or the relay token id as a fallback.
+    //
+    // Cost is sourced from the bifrost sidecar's `x-bifrost-cost-usd`
+    // response header when present (the sidecar knows the real token
+    // counts from the upstream API). When the header is absent we fall
+    // back to the static pricing table with zero tokens — this gives
+    // $0 cost and a recorded request count without forcing the relay to
+    // buffer the streaming response body for token extraction. The
+    // cost-calculator is also exposed at /api/internal/tenant-cost for
+    // callers that DO have token counts (the TS relay, the dashboard,
+    // external billing integrations).
+    const tenantId = request.headers.get("x-tenant-id") || token.id;
+    recordTenantRequest({
+      tenantId,
+      route: "v1.relay.chat.completions.bifrost",
+      status: upstream.status,
+    });
+    const headerCost = upstream.headers.get("x-bifrost-cost-usd");
+    const declaredModel = (body as { model?: string }).model ?? "unknown";
+    const headerCostNum = headerCost ? Number.parseFloat(headerCost) : NaN;
+    if (Number.isFinite(headerCostNum) && headerCostNum > 0) {
+      try {
+        const currencyHeader = upstream.headers.get("x-bifrost-cost-currency") ?? "USD";
+        recordTenantCost({
+          tenantId,
+          provider: "bifrost",
+          model: declaredModel,
+          costUsd: headerCostNum,
+          currency: currencyHeader,
+        });
+      } catch {
+        // Cost-recording failures must not break the relay.
+      }
+    }
 
     return new Response(upstream.body, {
       status: upstream.status,

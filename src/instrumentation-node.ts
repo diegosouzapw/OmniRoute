@@ -69,6 +69,20 @@ async function ensureSecrets(): Promise<void> {
 }
 
 export async function registerNodejs(): Promise<void> {
+  // Observability bootstrap (PR-007). Initialise the in-process tracer and
+  // start the periodic process-metrics scrape BEFORE anything else so the
+  // very first spans/metrics (proxy fetch, DB init) carry a trace context.
+  // Both helpers are no-ops when OTEL_ENABLED=0 (the default) so this is
+  // safe to leave in mainline.
+  try {
+    const { initTelemetry, setProcessMetrics } = await import("@/lib/observability");
+    initTelemetry();
+    setProcessMetrics();
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Could not initialise observability (non-fatal):", msg);
+  }
+
   // Initialize proxy fetch patch FIRST (before any HTTP requests)
   await import("@omniroute/open-sse/index.ts");
   console.log("[STARTUP] Global fetch proxy patch initialized");
