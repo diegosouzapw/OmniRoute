@@ -530,13 +530,24 @@ export async function buildAutoCandidates(
       // testStatus must still fall through to normal connection-cooldown / model-lockout
       // handling instead of being hard-blocked here (which would surface a misleading
       // "below quota cutoff" 429 when every candidate is transiently unavailable).
-      const statusCutoffReason = quotaCutoffEnabled
-        ? getConnectionStatusQuotaCutoffReason(connection)
-        : undefined;
+      // The connection's terminal/transient status (credits_exhausted / rate_limited /
+      // banned / expired / future-dated unavailable) is classified unconditionally.
+      const connectionStatusReason = getConnectionStatusQuotaCutoffReason(connection);
+      const statusCutoffReason = quotaCutoffEnabled ? connectionStatusReason : undefined;
+      // #4540: when the HARD cutoff is OFF (default), a status-flagged connection is NOT
+      // hard-blocked (that would surface a misleading "below quota cutoff" 429), but it
+      // also must not score identically to a healthy provider. A no-fetcher exhausted
+      // connection keeps quotaRemaining=100, so we tag a SOFT penalty applied at scoring
+      // time (scoreAutoTargets → STATUS_SOFT_DEPRIORITIZE_FACTOR) instead.
+      let statusPenalty = false;
+      let statusPenaltyReason: string | undefined;
       if (statusCutoffReason) {
         quotaCutoffBlocked = true;
         quotaCutoffReason = statusCutoffReason;
         quotaRemaining = 0;
+      } else if (connectionStatusReason) {
+        statusPenalty = true;
+        statusPenaltyReason = connectionStatusReason;
       }
       if (fetcher && target.connectionId) {
         const quotaKey = `${provider}:${target.connectionId}`;
@@ -590,6 +601,8 @@ export async function buildAutoCandidates(
         resetWindowAffinity,
         quotaCutoffBlocked,
         quotaCutoffReason,
+        statusPenalty,
+        statusPenaltyReason,
         connectionPoolSize: connectionPoolCounts.get(provider) ?? 1,
         connectionId: target.connectionId ?? undefined,
       };

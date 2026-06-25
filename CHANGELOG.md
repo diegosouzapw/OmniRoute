@@ -12,6 +12,7 @@ _In development — bullets added per PR; finalized at release._
 
 ### 🔧 Bug Fixes
 
+- **fix(sse):** auto-combo now soft-penalizes exhausted provider connections so dead providers stop winning. A connection in a terminal/transient status (`credits_exhausted` / `rate_limited` / `banned` / `expired` / future-dated `unavailable`) with no numeric quota fetcher used to keep `quotaRemaining=100` and score identically to a healthy provider — routing kept picking it. With the quota-preflight HARD cutoff OFF (the default), such a candidate is no longer hard-blocked (which would surface a misleading "below quota cutoff" 429); instead its auto-combo score is multiplied by `STATUS_SOFT_DEPRIORITIZE_FACTOR` (default 0.5) so it ranks strictly below an otherwise-identical healthy candidate. The existing opt-in hard-cutoff path is unchanged. (#4540)
 - **fix(dashboard):** show custom provider given-name instead of internal id across dashboard pages — cache, combo health, compression analytics, cost overview, health/autopilot, provider stats, route explainability, provider utilization, runtime. Adds shared `resolveProviderName` resolver and `useProviderNodeMap` hook. (#4603)
 
 ---
