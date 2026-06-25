@@ -87,5 +87,3 @@ export function ResponseNode({ data }: NodeProps) {
     </div>
   );
 }
-
-export default ResponseNode;

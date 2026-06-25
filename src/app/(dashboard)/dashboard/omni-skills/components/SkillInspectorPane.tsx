@@ -93,9 +93,7 @@ export function SkillInspectorPane({
   if (!selectedSkillId || !skill) {
     return (
       <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-text-muted text-sm text-center p-6">
-        <span className="material-symbols-outlined text-[40px] mb-3 opacity-30">
-          manage_search
-        </span>
+        <span className="material-symbols-outlined text-[40px] mb-3 opacity-30">manage_search</span>
         <span>Selecione uma skill à esquerda para inspecionar.</span>
       </div>
     );
@@ -293,5 +291,3 @@ export function SkillInspectorPane({
     </div>
   );
 }
-
-export default SkillInspectorPane;

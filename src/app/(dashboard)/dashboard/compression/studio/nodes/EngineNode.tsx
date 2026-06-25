@@ -164,5 +164,3 @@ export function EngineNode({ data }: NodeProps) {
     </div>
   );
 }
-
-export default EngineNode;

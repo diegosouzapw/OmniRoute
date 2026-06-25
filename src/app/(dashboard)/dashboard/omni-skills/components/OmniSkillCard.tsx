@@ -87,12 +87,12 @@ export function OmniSkillCard({ skill, selected, onClick }: OmniSkillCardProps):
         <div className="flex items-center gap-1.5 shrink-0">
           <span className={`inline-block size-2 rounded-full ${modeDot}`} />
           <span className={`text-[10px] font-medium ${modeColor}`}>
-            {t(effectiveMode === "on" ? "onMode" : effectiveMode === "auto" ? "autoMode" : "offMode")}
+            {t(
+              effectiveMode === "on" ? "onMode" : effectiveMode === "auto" ? "autoMode" : "offMode"
+            )}
           </span>
         </div>
       </div>
     </button>
   );
 }
-
-export default OmniSkillCard;

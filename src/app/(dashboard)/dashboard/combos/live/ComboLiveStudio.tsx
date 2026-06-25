@@ -377,5 +377,3 @@ export function ComboLiveStudio({
     </div>
   );
 }
-
-export default ComboLiveStudio;

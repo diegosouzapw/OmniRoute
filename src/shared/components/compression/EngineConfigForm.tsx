@@ -74,5 +74,3 @@ export function EngineConfigForm({ schema, value, onChange }: EngineConfigFormPr
     </div>
   );
 }
-
-export default EngineConfigForm;

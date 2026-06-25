@@ -160,5 +160,3 @@ export function WaterfallInspector({ run, className = "" }: WaterfallInspectorPr
     </div>
   );
 }
-
-export default WaterfallInspector;

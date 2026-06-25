@@ -102,5 +102,3 @@ export function OmniExecutionsTab({
     </Card>
   );
 }
-
-export default OmniExecutionsTab;

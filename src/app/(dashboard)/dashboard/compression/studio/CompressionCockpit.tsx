@@ -258,5 +258,3 @@ export function CompressionCockpit({ run: runProp }: CompressionCockpitProps) {
     </div>
   );
 }
-
-export default CompressionCockpit;

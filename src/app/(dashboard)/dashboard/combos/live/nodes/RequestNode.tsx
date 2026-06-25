@@ -47,5 +47,3 @@ export function RequestNode({ data }: NodeProps) {
     </div>
   );
 }
-
-export default RequestNode;

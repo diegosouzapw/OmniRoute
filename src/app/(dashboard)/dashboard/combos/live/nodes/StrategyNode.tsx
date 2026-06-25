@@ -88,5 +88,3 @@ export function StrategyNode({ data }: NodeProps) {
     </div>
   );
 }
-
-export default StrategyNode;
