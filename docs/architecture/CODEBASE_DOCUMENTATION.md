@@ -303,7 +303,7 @@ table groups the actual directories and notable top-level files.
 | `search/`         | `executeWebSearch.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `services/`       | Embedded services framework: `ServiceSupervisor.ts` (generic child-process supervisor with operation lock, ring buffer, health checker), `bootstrap.ts` (process-level registration and auto-start), `registry.ts` (tool → supervisor map), `apiKey.ts` (AES-256-GCM key store), `modelSync.ts` (periodic model sync), `ringBuffer.ts` (5 MB circular log buffer), `healthCheck.ts` (HTTP health probe), `types.ts`, `embedWsProxy.ts` (WebSocket proxy), `installers/{ninerouter,cliproxy}.ts`. See `docs/frameworks/EMBEDDED-SERVICES.md`                                                                                                                                      |
 | `agentSkills/`    | Agent Skills catalog + generator: `catalog.ts` (getCatalog/getSkillById/filterCatalog/computeCoverage), `generator.ts` (generateAgentSkills → writes `skills/{id}/SKILL.md`), `openapiParser.ts` (extracts REST endpoints from OpenAPI spec), `cliRegistryParser.ts` (extracts CLI subcommands from bin/cli-registry), `schemas.ts` (Zod: AgentSkillSchema, SkillCoverageSchema, ListQuerySchema, GenerateBodySchema), `types.ts` (AgentSkill, SkillCoverage, SkillMarkdown, GeneratorReport). Consumed by REST routes (`/api/agent-skills/*`), MCP tools (`omniroute_agent_skills_*`), and A2A skill `list-capabilities`. See [AGENT-SKILLS.md](../frameworks/AGENT-SKILLS.md). |
-| `skills/`         | Skill framework: `registry.ts`, `executor.ts`, `interception.ts`, `injection.ts`, `sandbox.ts`, `custom.ts`, `hybrid.ts`, `builtins.ts`, `a2a.ts`, `providerSettings.ts`, `schemas.ts`, `skillssh.ts`, `types.ts`, plus `builtin/browser.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `skills/`         | Skill framework: `registry.ts`, `executor.ts`, `interception.ts`, `injection.ts`, `sandbox.ts`, `builtins.ts`, `a2a.ts`, `providerSettings.ts`, `schemas.ts`, `skillssh.ts`, `types.ts`, plus `builtin/browser.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `spend/`          | `batchWriter.ts` (write-behind buffer)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | `sync/`           | `bundle.ts`, `tokens.ts` (Cloud Sync)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `system/`         | System-level helpers                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
@@ -376,23 +376,22 @@ Tables created across the migrations (52 total):
 
 Pure business logic, no I/O. Imported by routes and handlers.
 
-| File                                       | Purpose                                           |
-| ------------------------------------------ | ------------------------------------------------- |
-| `policyEngine.ts`                          | Top-level policy resolver                         |
-| `fallbackPolicy.ts`                        | Fallback decision tree                            |
-| `costRules.ts`                             | Cost calculation rules                            |
-| `lockoutPolicy.ts`                         | Model lockout decisions                           |
-| `tagRouter.ts`                             | Tag-based routing                                 |
-| `comboResolver.ts`                         | Combo resolution from request → target list       |
-| `connectionModelRules.ts`                  | Per-connection model filters                      |
-| `modelAvailability.ts`                     | Model availability check                          |
-| `degradation.ts`                           | Degraded-mode transitions                         |
-| `providerExpiration.ts`                    | Expired account/key detection                     |
-| `quotaCache.ts`                            | Cached quota decisions                            |
-| `responses.ts`, `omnirouteResponseMeta.ts` | Response shape helpers                            |
-| `configAudit.ts`                           | Config change audit                               |
-| `assessment/`                              | Model assessment (per RFC, partially implemented) |
-| `types.ts`                                 | Shared domain types                               |
+| File                       | Purpose                                           |
+| -------------------------- | ------------------------------------------------- |
+| `policyEngine.ts`          | Top-level policy resolver                         |
+| `fallbackPolicy.ts`        | Fallback decision tree                            |
+| `costRules.ts`             | Cost calculation rules                            |
+| `lockoutPolicy.ts`         | Model lockout decisions                           |
+| `tagRouter.ts`             | Tag-based routing                                 |
+| `comboResolver.ts`         | Combo resolution from request → target list       |
+| `connectionModelRules.ts`  | Per-connection model filters                      |
+| `modelAvailability.ts`     | Model availability check                          |
+| `degradation.ts`           | Degraded-mode transitions                         |
+| `providerExpiration.ts`    | Expired account/key detection                     |
+| `quotaCache.ts`            | Cached quota decisions                            |
+| `omnirouteResponseMeta.ts` | OmniRoute response metadata helpers               |
+| `assessment/`              | Model assessment (per RFC, partially implemented) |
+| `types.ts`                 | Shared domain types                               |
 
 ### 3.4 `src/server/` — Server-only
 
@@ -424,7 +423,7 @@ Split into focused subdirectories:
   `bodySize.ts`, `colors.ts`, `appConfig.ts`, `config.ts`,
   `sidebarVisibility.ts`, `visionBridgeDefaults.ts`.
 - `validation/` — `schemas.ts` (~80 Zod schemas), `compressionConfigSchemas.ts`,
-  `oneproxySchemas.ts`, `providerSchema.ts`, `settingsSchemas.ts`, `helpers.ts`.
+  `providerSchema.ts`, `settingsSchemas.ts`, `helpers.ts`.
 - `contracts/` — public API contracts shipped to npm.
 - `types/` — shared TS types.
 - `utils/` — `circuitBreaker.ts`, `apiAuth.ts`, `apiKey.ts`, `apiKeyPolicy.ts`,

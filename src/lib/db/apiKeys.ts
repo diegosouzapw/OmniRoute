@@ -847,8 +847,8 @@ export async function updateApiKeyPermissions(
   // transaction so a concurrent writer cannot slip in between and make the
   // audit log lie about what changed. SQLite is single-writer in practice,
   // but the transaction also gives us atomicity if the underlying driver
-  // ever swaps to a backend that allows multiple writers (sqljsAdapter /
-  // nodeSqliteAdapter fall-back per v3.8.1 db driver cascade).
+  // ever swaps to a backend that allows multiple writers (sql.js /
+  // node:sqlite fallback per the db driver cascade).
   let previousScopes: string[] = [];
   let changedRows = 0;
   if (scopesUpdate !== undefined) {

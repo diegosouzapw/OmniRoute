@@ -431,7 +431,7 @@ have to assemble lockout/budget/fallback logic themselves.
 - Provider expiration tracking: `src/domain/providerExpiration.ts`
 - Quota cache: `src/domain/quotaCache.ts`
 - Degradation state: `src/domain/degradation.ts`
-- Configuration audit: `src/domain/configAudit.ts`
+- Configuration audit: `src/lib/compliance/index.ts`
 - OmniRoute response metadata builder: `src/domain/omnirouteResponseMeta.ts`
 - Assessment subsystem: `src/domain/assessment/` — periodic evaluation jobs
 
