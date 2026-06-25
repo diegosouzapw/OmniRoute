@@ -50,6 +50,7 @@ export const INTENTIONALLY_INTERNAL = new Set([
   "compression", // intentionally-internal: 2 API routes (settings/compression, context/rtk/config)
   "vacuumScheduler", // intentionally-internal: src/instrumentation-node.ts (dynamic import, lifecycle wiring per Rule #2)
   "detailedLogs", // intentionally-internal: 3 callers (callLogs.ts, logs/detail route, embeddings handler)
+  "discovery", // DEAD?: zero importers found in the rebased tree; kept frozen until the cleanup/baseline PR lands
   "domainState", // intentionally-internal: 5 callers (batchWriter, circuitBreaker, costRules, fallbackPolicy, lockoutPolicy)
   "encryption", // intentionally-internal: 8+ callers (container, webhookDispatcher, cloudAgent/credentials, services/apiKey, 4+ routes, open-sse)
   "healthCheck", // db-internal: importado por db/core.ts (runDbHealthCheck)
