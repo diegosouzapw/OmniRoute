@@ -117,7 +117,7 @@
   "frozen": {
     "_rebaseline_pr1043_minimax_tts": "Upstream port decolua/9router#1043 (toanalien) own growth: audioSpeech.ts 965->1061 (+96). Adds MiniMax T2A v2 TTS dispatch (handleMinimaxSpeech + hexToBytes helper) — provider entry was already in audioRegistry (format: minimax-tts) but no handler existed, falling through to the OpenAI-compatible default that fails (T2A has custom shape + hex-encoded audio + base_resp envelope). New branch sits next to the other inline provider branches (xiaomi-mimo, coqui, tortoise, aws-polly) — extracting would just create indirection. Covered by tests/unit/minimax-tts-1043.test.ts (3 tests, GREEN: success, base_resp error, invalid-hex).",
     "open-sse/config/providerRegistry.ts": 4731,
-    "open-sse/executors/antigravity.ts": 1721,
+    "open-sse/executors/antigravity.ts": 1735,
     "open-sse/executors/base.ts": 1414,
     "open-sse/executors/chatgpt-web.ts": 2870,
     "open-sse/executors/claude-web.ts": 1057,
