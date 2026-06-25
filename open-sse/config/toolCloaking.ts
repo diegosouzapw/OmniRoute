@@ -146,10 +146,9 @@ function cloakAntigravityContents(
     const content = asRecord(contentValue);
     if (!content || !Array.isArray(content.parts)) return contentValue;
 
-    const nextParts = content.parts.map((partValue) =>
-      cloakAntigravityToolPart(partValue, toolNameMap)
-    );
-    if (nextParts.every((part, index) => part === content.parts[index])) return contentValue;
+    const parts = content.parts;
+    const nextParts = parts.map((partValue) => cloakAntigravityToolPart(partValue, toolNameMap));
+    if (nextParts.every((part, index) => part === parts[index])) return contentValue;
 
     contentsChanged = true;
     return { ...content, parts: nextParts };
