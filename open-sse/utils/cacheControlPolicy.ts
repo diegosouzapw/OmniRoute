@@ -92,7 +92,48 @@ const CACHING_PROVIDERS = new Set([
   "openai",
   "codex",
   "azure",
+  // #2069 — Alibaba DashScope's OpenAI-compatible endpoints (alibaba /
+  // alibaba-cn, upstream "alicode"/"alicode-intl") natively honor
+  // `cache_control: {type:"ephemeral"}` breakpoints. Without these entries
+  // shouldPreserveCacheControl() returns false for Claude Code clients and the
+  // OpenAI-format translator strips cache_control, so DashScope never sees the
+  // hints and every request is a cache miss.
+  "alibaba",
+  "alibaba-cn",
 ]);
+
+/**
+ * Providers that honor EXPLICIT `cache_control` breakpoints carried inside an
+ * OpenAI-format request body (i.e. the markers must be passed THROUGH the
+ * Claude→OpenAI translation instead of stripped).
+ *
+ * This is a strict subset of CACHING_PROVIDERS and deliberately excludes
+ * `openai` / `codex` / `azure`: those use AUTOMATIC prefix caching (#3955) and
+ * do NOT accept explicit `cache_control` fields in the request — forwarding the
+ * markers there is meaningless at best and a 400 "unknown field" at worst, and
+ * it broke the chatCore "strips cache markers for non-Claude providers" test.
+ * Claude-format providers re-inject markers via prepareClaudeRequest, so they
+ * are not listed here either.
+ */
+const OPENAI_FORMAT_CACHE_CONTROL_PROVIDERS = new Set([
+  // #2069 — DashScope OpenAI-compatible endpoints accept ephemeral breakpoints.
+  "alibaba",
+  "alibaba-cn",
+  // #3088 — Xiaomi MiMo honors OpenAI-format cache_control breakpoints.
+  "xiaomi-mimo",
+]);
+
+/**
+ * Whether `cache_control` markers should be PASSED THROUGH the OpenAI-format
+ * translation for this provider (vs. stripped). Used to gate the request-side
+ * passthrough so generic / implicit-cache OpenAI providers keep getting cleaned.
+ */
+export function providerHonorsOpenAIFormatCacheControl(
+  provider: string | null | undefined
+): boolean {
+  if (!provider) return false;
+  return OPENAI_FORMAT_CACHE_CONTROL_PROVIDERS.has(provider.toLowerCase());
+}
 
 /**
  * Detect if the client is Claude Code or another caching-aware client

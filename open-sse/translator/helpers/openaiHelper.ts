@@ -31,7 +31,12 @@ const CLAUDE_TOOL_CHOICE_REQUIRED = "an" + "y";
 // Filter messages to OpenAI standard format
 // Remove: redacted_thinking, and other non-OpenAI blocks
 // Convert: thinking blocks → reasoning_content on the message
-export function filterToOpenAIFormat(body) {
+export function filterToOpenAIFormat(body, opts = {}) {
+  // #2069 — when the routed provider honors OpenAI-format cache_control
+  // breakpoints (DashScope/alibaba, Xiaomi MiMo, etc.) and preservation was
+  // requested upstream, keep the `cache_control` field on each content block
+  // instead of destructuring it away. `signature` is always stripped.
+  const preserveCacheControl = opts?.preserveCacheControl === true;
   if (!body.messages || !Array.isArray(body.messages)) return body;
 
   body.messages = body.messages.map((msg) => {
@@ -72,8 +77,13 @@ export function filterToOpenAIFormat(body) {
 
         // Only keep valid OpenAI content types
         if (VALID_OPENAI_CONTENT_TYPES.includes(block.type)) {
-          // Remove signature and cache_control fields
-          const { signature, cache_control, ...cleanBlock } = block;
+          // Strip `signature` always; strip `cache_control` unless the provider
+          // honors OpenAI-format cache breakpoints and preservation was requested (#2069).
+          const { signature, cache_control, ...rest } = block;
+          const cleanBlock =
+            preserveCacheControl && cache_control !== undefined
+              ? { ...rest, cache_control }
+              : rest;
           if (
             cleanBlock.type === "text" &&
             typeof cleanBlock.text === "string" &&

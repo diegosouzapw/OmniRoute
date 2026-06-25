@@ -5,6 +5,7 @@ import {
   prepareClaudeRequest,
 } from "./helpers/claudeHelper.ts";
 import { filterToOpenAIFormat } from "./helpers/openaiHelper.ts";
+import { providerHonorsOpenAIFormatCacheControl } from "../utils/cacheControlPolicy.ts";
 import {
   coerceToolSchemas,
   injectEmptyReasoningContentForToolCalls,
@@ -213,12 +214,22 @@ export function translateRequest(
         if (toOpenAI) {
           // Forward Copilot UA marker to source→openai translators only.
           const hasTargetHint = targetFormat != null;
+          // #2069 — forward the cache_control-preservation intent so the
+          // source→openai translator (e.g. claudeToOpenAIRequest) keeps the
+          // client's breakpoints — but ONLY for providers that honor explicit
+          // OpenAI-format cache_control (DashScope/alibaba, Xiaomi MiMo). Generic
+          // / implicit-cache OpenAI providers (openai/codex/azure) must still be
+          // stripped.
+          const preserveCacheControl =
+            options?.preserveCacheControl === true &&
+            providerHonorsOpenAIFormatCacheControl(provider);
           const step1Credentials =
-            options?.copilotClient || hasTargetHint
+            options?.copilotClient || hasTargetHint || preserveCacheControl
               ? {
                   ...(credentials && typeof credentials === "object" ? credentials : {}),
                   ...(options?.copilotClient ? { _copilotClient: true } : {}),
                   ...(hasTargetHint ? { _targetFormat: targetFormat } : {}),
+                  ...(preserveCacheControl ? { _preserveCacheControl: true } : {}),
                 }
               : credentials;
           result = toOpenAI(model, result, stream, step1Credentials);
@@ -256,7 +267,14 @@ export function translateRequest(
   // Always normalize to clean OpenAI format when target is OpenAI
   // This handles hybrid requests (e.g., OpenAI messages + Claude tools)
   if (targetFormat === FORMATS.OPENAI) {
-    result = filterToOpenAIFormat(result);
+    // #2069 — preserve client cache_control breakpoints only for providers that
+    // honor explicit OpenAI-format markers (DashScope/alibaba, Xiaomi MiMo) when
+    // requested upstream; generic/implicit-cache OpenAI providers stay stripped.
+    result = filterToOpenAIFormat(result, {
+      preserveCacheControl:
+        options?.preserveCacheControl === true &&
+        providerHonorsOpenAIFormatCacheControl(provider),
+    });
   }
 
   // Final step: prepare request for Claude format endpoints

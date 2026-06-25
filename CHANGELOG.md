@@ -23,6 +23,7 @@ _In development — bullets added per PR; finalized at release._
 - **fix(sse):** prevent non-JSON SSE lines and duplicate `[DONE]` from breaking clients. (thanks @qianze0628)
 - **fix(sse):** dedupe case-variant Anthropic headers in the executor `buildHeaders` path — Node/undici's `fetch` merges `anthropic-version` and `Anthropic-Version` into a single `"v, v"` value that the Anthropic API rejects, so both case variants are now collapsed to one canonical lowercase header (same for `anthropic-beta`). (thanks @Delcado19)
 - **oauth(kiro):** support Kiro IDC (organization) token import — when the `~/.aws/sso/cache` token carries a `clientIdHash`, auto-import now reads the linked client registration file to obtain `clientId`/`clientSecret`, probes the Kiro IDE `profile.json` for `profileArn` (ARN region normalized to `us-east-1` for the runtime gateway), and refreshes via the regional AWS OIDC endpoint instead of the social path; the import schema and modal forward these credentials so manual imports also work for IDC tokens. (thanks @enjoyer-hub)
+- **fix(translator):** preserve client `cache_control` breakpoints when routing Claude-format requests (e.g. Claude Code) to Alibaba DashScope's OpenAI-compatible providers (`alibaba` / `alibaba-cn`). The Claude→OpenAI translation previously stripped the markers from the system and message text blocks, so DashScope's explicit caching never engaged and every request was a cache miss. Cache hints now survive when preservation is requested for caching-capable OpenAI-format providers. (thanks @sacrtap)
 
 ---
 
