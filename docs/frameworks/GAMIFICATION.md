@@ -69,7 +69,7 @@ Client Request
         → emitGamificationEvent()           [src/lib/gamification/events.ts]
           → awardXp()                       [src/lib/gamification/xp.ts]
           → updateStreak()                  [src/lib/gamification/streaks.ts]
-          → evaluateBadges()                [src/lib/gamification/badges.ts]
+          → checkAndUnlockBadge()           [src/lib/gamification/events.ts]
           → updateLeaderboard()             [src/lib/gamification/leaderboard.ts]
           → checkAnomalies()                [src/lib/gamification/antiCheat.ts]
 ```
@@ -323,33 +323,35 @@ Badge definitions are stored in `badge_definitions` as JSON `criteria`:
 }
 ```
 
-### Evaluation Flow
+### Unlock Flow
 
 ```
 emitGamificationEvent(event)
-  → evaluateBadges(apiKeyId, event)
-    → getBadgeDefinitions()           # all definitions
-    → getUserBadges(apiKeyId)         # already earned (skip)
-    → for each unearned badge:
-       → matchesCriteria(badge, event, userState)
-       → if match: awardBadge(apiKeyId, badgeId)
-         → return notification payload
+  → updateStreak(apiKeyId)            # request events only
+  → checkAndUnlockBadge(apiKeyId, id) # streak thresholds
+  → checkActionCountBadges(apiKeyId, action)
+    → count xp_audit_log rows for the action
+    → checkAndUnlockBadge(apiKeyId, id)
+      → hasBadge(apiKeyId, id)
+      → unlockBadge(apiKeyId, id)
+      → recordBadgeUnlock(apiKeyId, payload)
 ```
 
-Evaluation is **event-driven** — it runs after every gamification event, but
-only checks badges whose `criteria.type` aligns with the event action. This
-keeps evaluation fast (< 5ms for most events).
+Unlocking is **event-driven** and intentionally narrow: `events.ts` unlocks
+streak badges from the current streak and action-count badges from
+`xp_audit_log`. `src/lib/gamification/badges.ts` owns the built-in badge
+definitions and seeding, not a generic evaluator.
 
-### `matchesCriteria(badge, event, userState)`
+### Active Criteria Checks
 
-| Criteria Type  | Check                                              |
-| -------------- | -------------------------------------------------- |
-| `action_count` | `getActionCount(apiKeyId, action) >= count`        |
-| `streak`       | `getCurrentStreak(apiKeyId) >= days`               |
-| `unique_count` | `getUniqueCount(apiKeyId, field) >= n`             |
-| `rank`         | `getRank(apiKeyId, scope) <= n`                    |
-| `first`        | No prior `xp_audit_log` entry for this action type |
-| `hidden`       | Delegates to the appropriate sub-check             |
+| Criteria Type  | Check                                         |
+| -------------- | --------------------------------------------- |
+| `action_count` | `COUNT(*) FROM xp_audit_log WHERE action = ?` |
+| `streak`       | `updateStreak(apiKeyId) >= threshold`         |
+
+Other criteria values may still appear in built-in badge definitions for
+catalog metadata, but they are not evaluated by the active event path unless
+explicitly wired in `src/lib/gamification/events.ts`.
 
 ### Built-in Badges (20+)
 
@@ -400,9 +402,7 @@ namespaced keys:
 ### Logic
 
 ```typescript
-export async function updateStreak(
-  apiKeyId: string
-): Promise<{ current: number; longest: number; milestone: boolean }>;
+export async function updateStreak(apiKeyId: string): Promise<number>;
 ```
 
 1. Read streak record from `key_value`.
@@ -411,8 +411,8 @@ export async function updateStreak(
 4. If `lastDate === yesterday` — increment `current`; update `longest` if needed.
 5. If `lastDate < yesterday` — reset `current = 1` (streak broken).
 6. Write updated record.
-7. Check milestones: 7, 14, 30, 60, 90, 180, 365 days. If crossed, set
-   `milestone = true` (caller awards XP and checks badges).
+7. Return the current streak count. `events.ts` maps thresholds 3, 7, 30,
+   and 365 to badge unlocks.
 
 ### Edge Cases
 
@@ -623,21 +623,19 @@ server. The local instance:
    to validate the token and fetch the current leaderboard.
 3. Stores the server record with `status: connected`.
 
-### Sync Model
+### Federation Endpoints
 
-Federation uses **overwrite sync**, not additive:
+Connected community servers can exchange leaderboard data through the
+federation routes:
 
 ```
 Local Instance                Community Server
      │                              │
-     ├── push score ───────────────►│  POST /federation/score
-     │   { api_key_id, score }      │  (server validates token hash)
+     ├── push score ───────────────►│  POST /api/gamification/federation/score
+     │   { apiKeyId, scope, score } │  (server validates token hash)
      │                              │
-     ├── pull leaderboard ─────────►│  GET /federation/leaderboard
-     │◄── top-N entries ────────────┤  (overwrites local cache)
-     │                              │
-     └── health check ─────────────►│  GET /federation/health
-         (every 60s, timeout 5s)    │
+     └── pull leaderboard ─────────►│  GET /api/gamification/federation/leaderboard
+         scope, limit               │◄── top-N entries
 ```
 
 ### Auth

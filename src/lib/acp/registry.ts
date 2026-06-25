@@ -376,18 +376,3 @@ export function refreshAgentCache(): CliAgentInfo[] {
   _cachedAgents = null;
   return detectInstalledAgents();
 }
-
-/**
- * Get a specific agent by ID.
- */
-export function getAgentById(id: string): CliAgentInfo | undefined {
-  const agents = detectInstalledAgents();
-  return agents.find((a) => a.id === id);
-}
-
-/**
- * Get agents that are installed and available for ACP.
- */
-export function getAvailableAgents(): CliAgentInfo[] {
-  return detectInstalledAgents().filter((a) => a.installed);
-}

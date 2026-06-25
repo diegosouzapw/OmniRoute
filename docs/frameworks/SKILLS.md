@@ -19,19 +19,19 @@ A skill is a versioned, schema-defined unit of work. OmniRoute can inject skills
 
 OmniRoute has two distinct but complementary skill systems:
 
-| Dimension | **Omni Skills** (this doc) | **Agent Skills** |
-| :--- | :--- | :--- |
-| Purpose | LLM tool injection + sandboxed execution | SKILL.md catalog for external agents to discover and consume |
-| Source of truth | `src/lib/skills/` + marketplace | `src/lib/agentSkills/` + `skills/` directory |
-| Runtime mode | Injected into outbound requests, executed on tool-call events | Static markdown catalog + REST/MCP/A2A discovery endpoints |
-| Who uses it | OmniRoute itself (combo routing, inbound LLM calls) | External agents, MCP clients, A2A orchestrators |
-| Count | Variable (marketplace-driven) | 42 canonical entries (22 API + 20 CLI) |
-| Format | `SkillDefinition` with tool schema + handler | `SKILL.md` frontmatter + markdown body |
-| Discovery | `/api/skills/*` REST + `omniroute_skills_*` MCP tools | `/api/agent-skills/*` REST + `omniroute_agent_skills_*` MCP tools + A2A `list-capabilities` |
+| Dimension       | **Omni Skills** (this doc)                                    | **Agent Skills**                                                                            |
+| :-------------- | :------------------------------------------------------------ | :------------------------------------------------------------------------------------------ |
+| Purpose         | LLM tool injection + sandboxed execution                      | SKILL.md catalog for external agents to discover and consume                                |
+| Source of truth | `src/lib/skills/` + marketplace                               | `src/lib/agentSkills/` + `skills/` directory                                                |
+| Runtime mode    | Injected into outbound requests, executed on tool-call events | Static markdown catalog + REST/MCP/A2A discovery endpoints                                  |
+| Who uses it     | OmniRoute itself (combo routing, inbound LLM calls)           | External agents, MCP clients, A2A orchestrators                                             |
+| Count           | Variable (marketplace-driven)                                 | 42 canonical entries (22 API + 20 CLI)                                                      |
+| Format          | `SkillDefinition` with tool schema + handler                  | `SKILL.md` frontmatter + markdown body                                                      |
+| Discovery       | `/api/skills/*` REST + `omniroute_skills_*` MCP tools         | `/api/agent-skills/*` REST + `omniroute_agent_skills_*` MCP tools + A2A `list-capabilities` |
 
-**Omni Skills** are the execution engine — they define what OmniRoute *can do* when an LLM invokes a tool.
+**Omni Skills** are the execution engine — they define what OmniRoute _can do_ when an LLM invokes a tool.
 
-**Agent Skills** are the documentation catalog — they explain to external agents *how to use* OmniRoute's REST API and CLI, with structured SKILL.md files that can be fed directly into agent prompts.
+**Agent Skills** are the documentation catalog — they explain to external agents _how to use_ OmniRoute's REST API and CLI, with structured SKILL.md files that can be fed directly into agent prompts.
 
 For the Agent Skills catalog, generator, MCP tools, and A2A skill, see [docs/frameworks/AGENT-SKILLS.md](./AGENT-SKILLS.md).
 
@@ -49,7 +49,6 @@ Three sources of skills coexist in the same registry:
    - `web_search` — pluggable search provider with caching (`executeWebSearch`)
    - `eval_code` — Docker-sandboxed `node` or `python` execution
    - `execute_command` — Docker-sandboxed shell command
-   - `browser` — Playwright-backed scaffolding, disabled by default (`builtin/browser.ts`)
 2. **SkillsMP** (the OmniRoute Marketplace) — fetched from `https://skillsmp.com/api/v1/skills/search`. Requires `skillsmpApiKey` in Settings.
 3. **SkillsSH** (`skills.sh` community catalog) — fetched from `https://skills.sh/api/search`. No auth needed; SKILL.md content pulled from GitHub raw.
 
@@ -262,17 +261,19 @@ See [MCP-SERVER.md](./MCP-SERVER.md) for transport setup and scope assignments.
 
 ## A2A Integration
 
-`src/lib/skills/a2a.ts` exports the `memory_aware_routing` A2A skill descriptor and a `registerA2ASkill(registry)` helper. Custom A2A skills live in `src/lib/a2a/skills/` and are dispatched via `A2A_SKILL_HANDLERS` (`src/lib/a2a/taskExecution.ts`). See [A2A-SERVER.md](./A2A-SERVER.md) for the full task lifecycle.
+Custom A2A skills live in `src/lib/a2a/skills/` and are dispatched via
+`A2A_SKILL_HANDLERS` (`src/lib/a2a/taskExecution.ts`). See
+[A2A-SERVER.md](./A2A-SERVER.md) for the full task lifecycle.
 
 ---
 
 ## Adding a New Built-in Skill
 
-1. **Define the handler** in `src/lib/skills/builtins.ts` (or a sibling file under `src/lib/skills/builtin/`). Signature: `(input, { apiKeyId, sessionId }) => Promise<output>`.
+1. **Define the handler** in `src/lib/skills/builtins.ts`. Signature: `(input, { apiKeyId, sessionId }) => Promise<output>`.
 2. **Sandboxed code path?** Call `sandboxRunner.run(image, command, env, sandboxConfig({...}))`. Use `normalizeImage()` against the allowlist.
 3. **Filesystem path?** Always pass through `resolveWorkspacePath(input, context)` before touching disk.
 4. **Network call?** Use `safeOutboundFetch` with `guard: "public-only"`; sanitize headers via `sanitizeHeaders()`.
-5. **Register** by adding the entry to `builtinSkills` (or calling `registerBrowserSkill(executor)`-style at boot).
+5. **Register** by adding the entry to `builtinSkills`.
 6. **Wire built-in tool aliases** (optional) in `BUILTIN_TOOL_ALIASES` (`interception.ts:23`) if the upstream model emits a different name.
 7. **Tests** in `src/lib/skills/__tests__/` (Vitest).
 
@@ -332,10 +333,10 @@ The `SkillExecutor` (`src/lib/skills/executor.ts`) is a **singleton** that manag
 
 ### Default Configuration
 
-| Setting | Default | Configurable via |
-|---------|---------|------------------|
-| `timeout` | `30000` (30s) | `skillExecutor.setTimeout(ms)` |
-| `maxRetries` | `3` | `skillExecutor.setMaxRetries(count)` |
+| Setting      | Default       | Configurable via                     |
+| ------------ | ------------- | ------------------------------------ |
+| `timeout`    | `30000` (30s) | `skillExecutor.setTimeout(ms)`       |
+| `maxRetries` | `3`           | `skillExecutor.setMaxRetries(count)` |
 
 > **Important**: The executor is a singleton — calling `setTimeout()` affects all subsequent invocations globally. Per-skill timeouts are not currently supported; if you need different timeouts per skill, submit separate processes or fork the executor.
 
@@ -345,11 +346,11 @@ From `src/lib/skills/types.ts`:
 
 ```ts
 enum SkillStatus {
-  PENDING = "pending",   // Queued, not yet started
-  RUNNING = "running",   // Handler invoked
-  SUCCESS = "success",   // Handler returned valid output
-  ERROR = "error",       // Handler threw an exception
-  TIMEOUT = "timeout",   // Exceeded the executor's timeout
+  PENDING = "pending", // Queued, not yet started
+  RUNNING = "running", // Handler invoked
+  SUCCESS = "success", // Handler returned valid output
+  ERROR = "error", // Handler threw an exception
+  TIMEOUT = "timeout", // Exceeded the executor's timeout
 }
 ```
 
@@ -381,9 +382,8 @@ const total = skillExecutor.countExecutions("api-key-id");
 The `maxRetries` setting is stored but **not currently used** by the executor's `execute()` method — it only performs a single attempt. The `maxRetries` value is exposed for future implementation and for hooks that want to read it.
 
 For now, retries must be implemented inside the skill handler itself. Built-in
-skills are registered against the executor (e.g. `registerBuiltinSkills(executor)`
-/ `registerBrowserSkill(executor)` in `src/lib/skills/builtin/`); whichever handler
-you register can wrap its own retry loop:
+skills are registered against the executor with `registerBuiltinSkills(executor)`;
+whichever handler you register can wrap its own retry loop:
 
 ```ts
 // inside a skill handler
@@ -413,9 +413,9 @@ The `SkillMode` enum (`src/lib/skills/types.ts`) controls **when and how** skill
 
 ```ts
 enum SkillMode {
-  AUTO = "auto",       // LLM decides when to call the skill
-  MANUAL = "manual",   // Only invoked by explicit user request
-  HYBRID = "hybrid",   // AUTO scoring + manual override
+  AUTO = "auto", // LLM decides when to call the skill
+  MANUAL = "manual", // Only invoked by explicit user request
+  HYBRID = "hybrid", // AUTO scoring + manual override
 }
 ```
 
@@ -423,11 +423,11 @@ enum SkillMode {
 
 ### When to Use Each Mode
 
-| Mode | LLM behavior | Use case |
-|------|--------------|----------|
-| `AUTO` | LLM can call the skill when it deems necessary | General-purpose skills (file reads, HTTP requests) |
-| `MANUAL` | LLM cannot call the skill; only an explicit `executeSkill` API call invokes it | Sensitive operations (database writes, payments) |
-| `HYBRID` | LLM can suggest the skill; user must confirm | Skills that have side effects but aren't dangerous |
+| Mode     | LLM behavior                                                                   | Use case                                           |
+| -------- | ------------------------------------------------------------------------------ | -------------------------------------------------- |
+| `AUTO`   | LLM can call the skill when it deems necessary                                 | General-purpose skills (file reads, HTTP requests) |
+| `MANUAL` | LLM cannot call the skill; only an explicit `executeSkill` API call invokes it | Sensitive operations (database writes, payments)   |
+| `HYBRID` | LLM can suggest the skill; user must confirm                                   | Skills that have side effects but aren't dangerous |
 
 ### AUTO Scoring
 
@@ -444,32 +444,34 @@ document; there is no float `0.6`-style threshold and no `registry.ts` scoring.
 
 ## Built-in Skills Catalog
 
-OmniRoute ships with a curated set of built-in skills in `src/lib/skills/builtin/`. The most common ones:
+OmniRoute ships with a curated set of built-in skills in `src/lib/skills/builtins.ts`. The most common ones:
 
 ### Browser Automation Skill
 
-The browser skill (`src/lib/skills/builtin/browser.ts`) provides headless browser automation via Playwright/Puppeteer. **It is implemented but not in the default skills catalog** — to use it, install the browser extension plugin separately.
+There is no built-in browser automation handler in the active catalog. Browser automation
+should be provided by a plugin that registers its own handler with the skill executor.
 
 ```ts
 // Enable in your config
 const config: SkillConfig = {
   enabled: true,
-  mode: SkillMode.MANUAL,  // Always require explicit invocation
+  mode: SkillMode.MANUAL, // Always require explicit invocation
   allowedSkills: ["browser"],
-  timeout: 60000,          // 60s for page loads
+  timeout: 60000, // 60s for page loads
   maxRetries: 1,
 };
 ```
 
 ### Other Built-in Categories
 
-| Category | Skills | Mode |
-|----------|--------|------|
-| File I/O | `file_read`, `file_write` | AUTO |
-| HTTP | `http_request` | AUTO |
-| Search | `web_search` | AUTO |
-| Code Exec | `eval_code` (sandboxed JavaScript/Python) | HYBRID |
-| System | `execute_command` (sandboxed CLI execution) | MANUAL |
+| Category  | Skills                                      | Mode   |
+| --------- | ------------------------------------------- | ------ |
+| File I/O  | `file_read`, `file_write`                   | AUTO   |
+| HTTP      | `http_request`                              | AUTO   |
+| Search    | `web_search`                                | AUTO   |
+| Code Exec | `eval_code` (sandboxed JavaScript/Python)   | HYBRID |
+| System    | `execute_command` (sandboxed CLI execution) | MANUAL |
+
 ### Adding a Custom Skill
 
 See the [Plugin SDK & Skills Integration](../plugins/PLUGIN_SDK.md) for how to add a custom skill via the plugin system.
