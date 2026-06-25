@@ -13,6 +13,7 @@ _In development — bullets added per PR; finalized at release._
 ### 🔧 Bug Fixes
 
 - **fix(dashboard):** show custom provider given-name instead of internal id across dashboard pages — cache, combo health, compression analytics, cost overview, health/autopilot, provider stats, route explainability, provider utilization, runtime. Adds shared `resolveProviderName` resolver and `useProviderNodeMap` hook. (#4603)
+- **fix(dashboard):** on OAuth providers (e.g. GLM Coding), "Test all models" with auto-hide-failed now switches the model list to the "visible" filter after the run, so just-hidden failed models actually disappear on-screen — parity with the passthrough-provider path (#3610). Previously they were hidden in the DB but stayed visible under the "All" filter, so it looked like nothing was hidden. (#4887)
 
 ---
 
