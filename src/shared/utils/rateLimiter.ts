@@ -9,6 +9,30 @@ if (process.env.NODE_ENV === "production" && !REDIS_URL) {
 
 let redisClient: Redis | null = null;
 
+/**
+ * Throttle Redis connection-error logging. ioredis emits an `error` event on
+ * every failed (re)connection attempt, so a configured-but-unreachable
+ * `REDIS_URL` (e.g. pointing at a host that isn't running) floods the logs with
+ * one `[REDIS] Error:` line per retry. This returns a predicate that logs the
+ * first occurrence of a given message immediately, then at most once per
+ * `intervalMs`. (#4878)
+ */
+export function createRedisErrorThrottle(intervalMs: number) {
+  let lastLoggedAt = 0;
+  let lastMessage: string | null = null;
+  return (message: string, now: number): boolean => {
+    if (message !== lastMessage || now - lastLoggedAt >= intervalMs) {
+      lastMessage = message;
+      lastLoggedAt = now;
+      return true;
+    }
+    return false;
+  };
+}
+
+const REDIS_ERROR_LOG_INTERVAL_MS = 60_000;
+const shouldLogRedisError = createRedisErrorThrottle(REDIS_ERROR_LOG_INTERVAL_MS);
+
 export function isRedisConfigured(): boolean {
   return REDIS_URL.length > 0;
 }
@@ -26,7 +50,11 @@ export function getRedisClient() {
         return Math.min(times * 50, 2000); // Exponential backoff
       },
     });
-    redisClient.on("error", (err) => console.error("[REDIS] Error:", err.message));
+    redisClient.on("error", (err) => {
+      if (shouldLogRedisError(err.message, Date.now())) {
+        console.error("[REDIS] Error:", err.message);
+      }
+    });
   }
   return redisClient;
 }
