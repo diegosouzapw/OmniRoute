@@ -36,8 +36,7 @@ The client (`src/lib/obsidian/api.ts`) wraps the Local REST API with:
 There is **no environment variable** for the Obsidian token or base URL — both are
 stored in the SQLite `key_value` table (namespace `obsidian`) via
 `src/lib/db/obsidian.ts`. The token is **encrypted at rest** (AES-256-GCM, with
-plaintext backward-compat fallback). Configure from the **Context Sources** tab of the
-Endpoint dashboard (`ObsidianSourceCard`), or via the settings REST API.
+plaintext backward-compat fallback). Configure via the settings REST API.
 
 > [!IMPORTANT]
 > The **Obsidian Local REST API** plugin must be installed and running. Its REST

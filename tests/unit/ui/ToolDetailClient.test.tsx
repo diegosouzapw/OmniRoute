@@ -121,15 +121,10 @@ vi.mock("../../../src/app/(dashboard)/dashboard/cli-code/components/index", () =
   HermesAgentToolCard: () => <div data-testid="HermesAgentToolCard" />,
 }));
 
-vi.mock("../../../src/app/(dashboard)/dashboard/cli-code/components/CliproxyapiToolCard", () => ({
-  default: () => <div data-testid="CliproxyapiToolCard" />,
-}));
-
 // ── Import after mocks ────────────────────────────────────────────────────────
 
-const { default: ToolDetailClient } = await import(
-  "@/app/(dashboard)/dashboard/cli-code/components/ToolDetailClient"
-);
+const { default: ToolDetailClient } =
+  await import("@/app/(dashboard)/dashboard/cli-code/components/ToolDetailClient");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

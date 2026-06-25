@@ -37,7 +37,7 @@ The integration is a thin, hardened wrapper over the official Notion REST API
 There is **no environment variable** for the Notion token — it is stored in the
 SQLite `key_value` table (namespace `notion`, key `integration_token`) via
 `src/lib/db/notion.ts`. Configure it from the **Context Sources** tab of the Endpoint
-dashboard (`ObsidianSourceCard`'s sibling `NotionSourceCard`), or via the settings REST API.
+dashboard (`NotionSourceCard`), or via the settings REST API.
 
 > [!NOTE]
 > The token is a **Notion internal integration token**. Create an integration at
