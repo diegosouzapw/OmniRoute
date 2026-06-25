@@ -2,7 +2,7 @@
   "_comment": "Catraca de qualidade. 'down' = nao pode aumentar; 'up' = nao pode cair. Atualize via 'npm run quality:ratchet -- --update' (somente quando melhora). Cada valor e um numero REAL medido, nunca um chute. Cobertura entra na Fase 4 a partir de um run de cobertura mergeada no CI.",
   "metrics": {
     "eslintWarnings": {
-      "value": 3912,
+      "value": 3911,
       "direction": "down",
       "_rebaseline_2026_06_23_v3835_release": "v3.8.35 cycle drift surfaced by the release-green pre-flight (the Quality Ratchet does NOT run on PR→release fast-gates, so warnings accrued across this cycle's parallel-session merges — Compression Phase 4 #4694/#4707/#4716/#4720, chatCore #3501 leaf extractions, contributor PRs #4726/#4753/#4774/#4781/#4783/#4793, etc.). 3907→3912 (+5). Verified my release-finalize working tree touches ONLY docs/*.md (THREAT_MODEL), CHANGELOG.md, baselines, and 1 string line in scripts/check/check-fabricated-docs.mjs — 0 production-code change, so all +5 is inherited contributor drift. No coverage/openapi/i18n regressions.",
       "_rebaseline_2026_06_22_v3834_release": "v3.8.34 cycle drift surfaced by the release-green pre-flight (the Quality Ratchet does NOT run on PR→release fast-gates, so warnings accrued across this cycle's parallel-session merges — #4583-4586/#4588-4593/#4606-4621/#4644/#4647/#4696/etc.). 3900→3907 (+7). Verified my release-finalize working tree touches ONLY CHANGELOG.md (git status: 0 code changes), so all +7 is inherited contributor drift. No coverage/openapi/i18n regressions.",
