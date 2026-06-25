@@ -314,4 +314,17 @@ export async function registerNodejs(): Promise<void> {
       console.warn("[STARTUP] models.dev sync failed to start (non-fatal):", msg);
     }
   }
+
+  // PR-009: observability stack — initialize OpenTelemetry, set up periodic
+  // process-metric collection, and start the resource detector. Both helpers
+  // are no-ops when OMNIROUTE_OTEL_ENABLED !== "true".
+  try {
+    const { initTelemetry, setProcessMetrics } = await import("@/lib/observability");
+    initTelemetry();
+    setProcessMetrics();
+    console.log("[STARTUP] Observability (OpenTelemetry) initialized");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Could not initialize observability (non-fatal):", msg);
+  }
 }

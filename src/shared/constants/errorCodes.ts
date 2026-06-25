@@ -163,6 +163,38 @@ export const ERROR_CODES: Record<string, ErrorCodeDef> = {
     httpStatus: 503,
     category: "INTERNAL",
   },
+
+  // ── Health (PR-009) ──
+  HEALTH_001: {
+    code: "HEALTH_001",
+    message: "Database health check failed",
+    httpStatus: 503,
+    category: "HEALTH",
+  },
+  HEALTH_002: {
+    code: "HEALTH_002",
+    message: "Migration health check failed",
+    httpStatus: 503,
+    category: "HEALTH",
+  },
+  HEALTH_003: {
+    code: "HEALTH_003",
+    message: "Cache health check failed",
+    httpStatus: 503,
+    category: "HEALTH",
+  },
+  HEALTH_004: {
+    code: "HEALTH_004",
+    message: "Bifrost sidecar health check failed",
+    httpStatus: 503,
+    category: "HEALTH",
+  },
+  HEALTH_005: {
+    code: "HEALTH_005",
+    message: "Health check timed out",
+    httpStatus: 503,
+    category: "HEALTH",
+  },
 };
 
 export function createErrorResponse(code: string, details: ErrorDetails = {}) {
