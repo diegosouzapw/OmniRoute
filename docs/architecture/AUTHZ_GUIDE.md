@@ -163,7 +163,7 @@ write:resilience, pricing:write, read:cache, write:cache,
 read:compression, write:compression, read:proxies
 ```
 
-Preset bundles (`MCP_SCOPE_PRESETS`): `readonly`, `full`, `monitor`, `agent`. Use `hasRequiredScopes(granted, toolName)` and `getMissingScopes()` for enforcement inside MCP handlers.
+Runtime MCP enforcement lives in `open-sse/mcp-server/scopeEnforcement.ts`, which supports exact scopes plus wildcards such as `read:*` and `*`.
 
 ## Auth Required Toggle
 

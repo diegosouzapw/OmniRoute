@@ -141,8 +141,6 @@ export function isAnthropicCompatibleProvider(providerId: unknown): providerId i
   return typeof providerId === "string" && providerId.startsWith(ANTHROPIC_COMPATIBLE_PREFIX);
 }
 
-
-
 export function isClaudeCodeCompatibleProvider(providerId: unknown): providerId is string {
   return typeof providerId === "string" && providerId.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX);
 }
@@ -332,12 +330,6 @@ export type AiProviderDefinition =
   | (typeof UPSTREAM_PROXY_PROVIDERS)[keyof typeof UPSTREAM_PROXY_PROVIDERS]
   | (typeof CLOUD_AGENT_PROVIDERS)[keyof typeof CLOUD_AGENT_PROVIDERS]
   | (typeof SYSTEM_PROVIDERS)[keyof typeof SYSTEM_PROVIDERS];
-
-// Auth methods
-export const AUTH_METHODS = {
-  oauth: { id: "oauth", name: "OAuth", icon: "lock" },
-  apikey: { id: "apikey", name: "API Key", icon: "key" },
-};
 
 export function getProviderByAlias(alias: string): AiProviderDefinition | null {
   for (const section of _PROVIDER_SECTIONS) {

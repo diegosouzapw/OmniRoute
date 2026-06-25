@@ -101,35 +101,3 @@ export function validateSecrets(env = process.env) {
     warnings,
   };
 }
-
-/**
- * Validate secrets and terminate process if critical ones are missing.
- * Should be called during server initialization (fail-fast).
- * @param {object} [logger] - Optional logger (defaults to console)
- */
-export function enforceSecrets(logger = console, env = process.env) {
-  const result = validateSecrets(env);
-
-  // Print warnings (non-fatal)
-  for (const w of result.warnings) {
-    logger.warn(`⚠️  [SECURITY] ${w.issue}`);
-  }
-
-  // If there are errors, print them and exit
-  if (!result.valid) {
-    logger.error("");
-    logger.error("═══════════════════════════════════════════════════");
-    logger.error("  ❌  SECURITY: Missing required secrets");
-    logger.error("═══════════════════════════════════════════════════");
-    for (const e of result.errors) {
-      logger.error(`  • ${e.issue}`);
-      logger.error(`    → ${e.hint}`);
-    }
-    logger.error("");
-    logger.error("  Set these in your .env file or environment.");
-    logger.error("  See .env.example for reference.");
-    logger.error("═══════════════════════════════════════════════════");
-    logger.error("");
-    process.exit(1);
-  }
-}

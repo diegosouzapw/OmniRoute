@@ -17,14 +17,17 @@ const {
   resolveEgressIp: (u: string | null, o?: any) => Promise<{ ip: string | null; cached: boolean }>;
   analyzeEgressSharing: (c: any[]) => {
     byEgressIp: Record<string, string[]>;
-    sharedWithinRotationGroup: Array<{ egressIp: string; rotationGroup: string; connections: string[] }>;
+    sharedWithinRotationGroup: Array<{
+      egressIp: string;
+      rotationGroup: string;
+      connections: string[];
+    }>;
   };
   diagnoseAllEgressIps: (deps?: any) => Promise<any>;
-  validateProxyPool: (deps?: any) => Promise<any[]>;
   _setEgressProbeForTests: (fn: any) => void;
   clearEgressCache: () => void;
 };
-const { validateProxyPool, planProxyDistribution, applyProxyDistribution } = egress as any;
+const { validateProxyPool } = egress as any;
 
 test("resolveEgressIp returns the probed IP and caches by proxy URL", async () => {
   clearEgressCache();
@@ -51,10 +54,38 @@ test("resolveEgressIp returns the probed IP and caches by proxy URL", async () =
 
 test("analyzeEgressSharing flags ≥2 same-rotation-group accounts on one egress IP", () => {
   const result = analyzeEgressSharing([
-    { connectionId: "a", provider: "codex", account: "acc-a", proxyLevel: "direct", proxyHost: null, egressIp: "100.115.194.84" },
-    { connectionId: "b", provider: "codex", account: "acc-b", proxyLevel: "direct", proxyHost: null, egressIp: "100.115.194.84" },
-    { connectionId: "c", provider: "openai", account: "acc-c", proxyLevel: "direct", proxyHost: null, egressIp: "100.115.194.84" },
-    { connectionId: "d", provider: "claude", account: "acc-d", proxyLevel: "direct", proxyHost: null, egressIp: "100.115.194.84" },
+    {
+      connectionId: "a",
+      provider: "codex",
+      account: "acc-a",
+      proxyLevel: "direct",
+      proxyHost: null,
+      egressIp: "100.115.194.84",
+    },
+    {
+      connectionId: "b",
+      provider: "codex",
+      account: "acc-b",
+      proxyLevel: "direct",
+      proxyHost: null,
+      egressIp: "100.115.194.84",
+    },
+    {
+      connectionId: "c",
+      provider: "openai",
+      account: "acc-c",
+      proxyLevel: "direct",
+      proxyHost: null,
+      egressIp: "100.115.194.84",
+    },
+    {
+      connectionId: "d",
+      provider: "claude",
+      account: "acc-d",
+      proxyLevel: "direct",
+      proxyHost: null,
+      egressIp: "100.115.194.84",
+    },
   ]);
 
   // codex + openai share the openai-auth0 family → 3 accounts on one IP = warning
@@ -69,13 +100,32 @@ test("analyzeEgressSharing flags ≥2 same-rotation-group accounts on one egress
     "a lone claude account must not be flagged"
   );
 
-  assert.deepEqual(result.byEgressIp["100.115.194.84"].sort(), ["acc-a", "acc-b", "acc-c", "acc-d"]);
+  assert.deepEqual(result.byEgressIp["100.115.194.84"].sort(), [
+    "acc-a",
+    "acc-b",
+    "acc-c",
+    "acc-d",
+  ]);
 });
 
 test("analyzeEgressSharing: distinct IPs per account = no warning (the healthy .17 case)", () => {
   const result = analyzeEgressSharing([
-    { connectionId: "a", provider: "codex", account: "acc-a", proxyLevel: "account", proxyHost: "p1", egressIp: "203.0.113.1" },
-    { connectionId: "b", provider: "codex", account: "acc-b", proxyLevel: "account", proxyHost: "p2", egressIp: "203.0.113.2" },
+    {
+      connectionId: "a",
+      provider: "codex",
+      account: "acc-a",
+      proxyLevel: "account",
+      proxyHost: "p1",
+      egressIp: "203.0.113.1",
+    },
+    {
+      connectionId: "b",
+      provider: "codex",
+      account: "acc-b",
+      proxyLevel: "account",
+      proxyHost: "p2",
+      egressIp: "203.0.113.2",
+    },
   ]);
   assert.equal(result.sharedWithinRotationGroup.length, 0, "1 IP per account is safe");
 });
@@ -89,7 +139,10 @@ test("diagnoseAllEgressIps wires resolution + probe and surfaces the shared-IP w
       { id: "c1", provider: "codex", email: "one@x.com" },
       { id: "c2", provider: "codex", email: "two@x.com" },
     ],
-    resolveProxy: async () => ({ proxy: { type: "http", host: "9.9.9.9", port: 8080 }, level: "global" }),
+    resolveProxy: async () => ({
+      proxy: { type: "http", host: "9.9.9.9", port: 8080 },
+      level: "global",
+    }),
   });
 
   assert.equal(diag.connections.length, 2);
@@ -121,7 +174,11 @@ test("validateProxyPool marks live proxies active and dead proxies error", async
   });
 
   assert.equal(marked["p-live"], "active", "a reachable proxy must be (re)marked active");
-  assert.equal(marked["p-dead"], "error", "an unreachable proxy must be marked error (so resolution skips it)");
+  assert.equal(
+    marked["p-dead"],
+    "error",
+    "an unreachable proxy must be marked error (so resolution skips it)"
+  );
 
   const live = report.find((r) => r.proxyId === "p-live");
   assert.equal(live!.alive, true);
@@ -132,59 +189,4 @@ test("validateProxyPool marks live proxies active and dead proxies error", async
   assert.equal(dead!.previousStatus, "active", "was wrongly active before validation");
 
   _setEgressProbeForTests(null);
-});
-
-test("planProxyDistribution: strict 1:1, extras left unassigned (no shared IP)", () => {
-  const plan = planProxyDistribution(
-    [{ id: "c1", account: "a1" }, { id: "c2", account: "a2" }, { id: "c3", account: "a3" }],
-    ["p1", "p2"]
-  );
-  assert.equal(plan.assignments.length, 2);
-  assert.deepEqual(plan.assignments.map((a: any) => a.proxyId), ["p1", "p2"]);
-  assert.equal(plan.unassigned.length, 1, "c3 has no proxy → unassigned, not sharing");
-  assert.equal(plan.unassigned[0].connectionId, "c3");
-  assert.equal(plan.sharingRisk, false);
-});
-
-test("planProxyDistribution: enough proxies → 1 distinct per account", () => {
-  const plan = planProxyDistribution(
-    [{ id: "c1", account: "a1" }, { id: "c2", account: "a2" }],
-    ["p1", "p2", "p3"]
-  );
-  assert.equal(plan.assignments.length, 2);
-  assert.equal(plan.unassigned.length, 0);
-  assert.match(plan.note, /1 distinct proxy/);
-});
-
-test("planProxyDistribution: allowSharing round-robins and flags sharingRisk", () => {
-  const plan = planProxyDistribution(
-    [{ id: "c1", account: "a1" }, { id: "c2", account: "a2" }, { id: "c3", account: "a3" }],
-    ["p1", "p2"],
-    { allowSharing: true }
-  );
-  assert.equal(plan.assignments.length, 3);
-  assert.deepEqual(plan.assignments.map((a: any) => a.proxyId), ["p1", "p2", "p1"]);
-  assert.equal(plan.sharingRisk, true);
-});
-
-test("planProxyDistribution: no live proxies → all unassigned with guidance", () => {
-  const plan = planProxyDistribution([{ id: "c1", account: "a1" }], []);
-  assert.equal(plan.assignments.length, 0);
-  assert.equal(plan.unassigned.length, 1);
-  assert.match(plan.note, /No live proxies/);
-});
-
-test("applyProxyDistribution assigns each proxy to its connection", async () => {
-  const calls: Array<[string, string]> = [];
-  const plan = planProxyDistribution(
-    [{ id: "c1", account: "a1" }, { id: "c2", account: "a2" }],
-    ["p1", "p2"]
-  );
-  const res = await applyProxyDistribution(plan, {
-    assign: async (connectionId: string, proxyId: string) => {
-      calls.push([connectionId, proxyId]);
-    },
-  });
-  assert.equal(res.applied, 2);
-  assert.deepEqual(calls, [["c1", "p1"], ["c2", "p2"]]);
 });

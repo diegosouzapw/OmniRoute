@@ -134,8 +134,7 @@ src/
 ├── store/               # Legacy in-memory store (being phased out for src/lib/db)
 ├── types/               # Shared TS type files
 ├── instrumentation.ts   # Next.js telemetry hook (browser + edge)
-├── instrumentation-node.ts  # Node-only instrumentation
-├── server-init.ts       # Server bootstrap (DB migrations, jobs, cleanup)
+├── instrumentation-node.ts  # Node-only startup bootstrap (DB migrations, jobs, cleanup)
 └── proxy.ts             # HTTP-proxy entry shim
 ```
 
@@ -407,7 +406,7 @@ open-sse/
 
 | Doc                        | Purpose                                                             |
 | -------------------------- | ------------------------------------------------------------------- |
-| `MCP-SERVER.md`            | MCP server: 87 tools, 3 transports, 30 scopes, REST endpoints      |
+| `MCP-SERVER.md`            | MCP server: 87 tools, 3 transports, 30 scopes, REST endpoints       |
 | `A2A-SERVER.md`            | A2A v0.3: JSON-RPC, 5 skills, REST helpers, agent card              |
 | `AGENT_PROTOCOLS_GUIDE.md` | Unified guide: A2A vs ACP vs Cloud Agents                           |
 | `CLOUD_AGENT.md`           | Codex Cloud / Devin / Jules orchestration                           |

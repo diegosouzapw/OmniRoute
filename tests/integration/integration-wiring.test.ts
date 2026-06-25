@@ -47,11 +47,11 @@ function listProjectFiles(relPath: string): string[] {
 
 // ─── Pipeline Wiring ─────────────────────────────────
 
-describe("Pipeline Wiring — server-init.ts", () => {
-  const src = readProjectFile("src/server-init.ts");
+describe("Pipeline Wiring — instrumentation-node.ts", () => {
+  const src = readProjectFile("src/instrumentation-node.ts");
 
   it("should initialize compliance audit log", () => {
-    assert.ok(src, "src/server-init.ts should exist");
+    assert.ok(src, "src/instrumentation-node.ts should exist");
     assert.match(src, /initAuditLog/);
   });
 
@@ -60,33 +60,31 @@ describe("Pipeline Wiring — server-init.ts", () => {
   });
 
   it("should enforce secrets before startup", () => {
-    assert.match(src, /enforceSecrets/);
+    assert.match(src, /ensureSecrets/);
   });
 
   it("should enforce web runtime env before startup", () => {
     assert.match(src, /enforceWebRuntimeEnv/);
   });
 
-  it("should log server.start audit event", () => {
-    assert.match(src, /server\.start/);
+  it("should restore runtime settings and management password state", () => {
+    assert.match(src, /ensurePersistentManagementPasswordHash/);
+    assert.match(src, /applyRuntimeSettings/);
   });
 
-  it("should use the structured startup logger instead of direct console calls", () => {
-    assert.match(src, /createLogger\("server-init"\)/);
-    assert.doesNotMatch(src, /console\.(log|warn|error|info|debug)\(/);
+  it("should initialize startup registries and background schedulers", () => {
+    assert.match(src, /registerDefaultGuardrails/);
+    assert.match(src, /registerBuiltinSkills/);
+    assert.match(src, /startProviderLimitsSyncScheduler/);
+    assert.match(src, /initCredentialHealthCheck/);
+    assert.match(src, /startCleanupScheduler/);
   });
-});
-
-describe("Pipeline Wiring — instrumentation-node.ts", () => {
-  const src = readProjectFile("src/instrumentation-node.ts");
 
   it("should seed default model aliases during startup restore", () => {
-    assert.ok(src, "src/instrumentation-node.ts should exist");
     assert.match(src, /seedDefaultModelAliases/);
   });
 
   it("should initialize Arena ELO sync on the live startup path (on by default, opt-out)", () => {
-    // The Next standalone runtime boots through instrumentation-node, NOT server-init.ts.
     // The Arena ELO sync (which feeds the Free Provider Rankings page) must be wired here,
     // or it never runs in production. initArenaEloSync self-gates through the feature flag
     // resolver so ARENA_ELO_SYNC_ENABLED and dashboard overrides still apply.
@@ -95,9 +93,8 @@ describe("Pipeline Wiring — instrumentation-node.ts", () => {
   });
 
   it("should initialize pricing + models.dev sync on the live startup path (self-gated, opt-in)", () => {
-    // Same dead-path bug as Arena: these were only wired into the never-executed server-init.ts
-    // (models.dev had no caller at all), so their toggles were inert. They self-gate internally
-    // (PRICING_SYNC_ENABLED / settings.modelsDevSyncEnabled), so calling them here preserves opt-in.
+    // They self-gate internally (PRICING_SYNC_ENABLED / settings.modelsDevSyncEnabled),
+    // so calling them here preserves opt-in.
     assert.match(src, /initPricingSync/);
     assert.match(src, /initModelsDevSync/);
   });

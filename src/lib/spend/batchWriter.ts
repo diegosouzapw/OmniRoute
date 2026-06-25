@@ -195,10 +195,6 @@ export async function flushSpendBatchWriter() {
   return spendBatchWriter.flush();
 }
 
-export async function stopSpendBatchWriter() {
-  return spendBatchWriter.stop();
-}
-
 export function resetSpendBatchWriterForTests() {
   spendBatchWriter.resetForTests();
 }

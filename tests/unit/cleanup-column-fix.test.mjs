@@ -57,26 +57,23 @@ test("cleanup: has background scheduler (startCleanupScheduler)", () => {
     source.includes("startCleanupScheduler"),
     "must export startCleanupScheduler for periodic background cleanup"
   );
-  assert.ok(
-    source.includes("CLEANUP_INTERVAL_MS"),
-    "must have a cleanup interval constant"
-  );
+  assert.ok(source.includes("CLEANUP_INTERVAL_MS"), "must have a cleanup interval constant");
   assert.ok(
     source.includes("VACUUM"),
     "scheduler must run VACUUM after deletes to reclaim disk space"
   );
 });
 
-test("cleanup: scheduler is wired into server-init.ts", () => {
-  const serverInitPath = path.resolve(import.meta.dirname, "../../src/server-init.ts");
-  const serverInit = fs.readFileSync(serverInitPath, "utf-8");
+test("cleanup: scheduler is wired into the live instrumentation startup path", () => {
+  const startupPath = path.resolve(import.meta.dirname, "../../src/instrumentation-node.ts");
+  const startup = fs.readFileSync(startupPath, "utf-8");
   assert.ok(
-    serverInit.includes('import { startCleanupScheduler } from "./lib/db/cleanup"'),
-    "server-init.ts must import startCleanupScheduler"
+    startup.includes('import("@/lib/db/cleanup")'),
+    "instrumentation-node.ts must import the cleanup scheduler"
   );
   assert.ok(
-    serverInit.includes("startCleanupScheduler()"),
-    "server-init.ts must call startCleanupScheduler() at startup"
+    startup.includes("startCleanupScheduler()"),
+    "instrumentation-node.ts must call startCleanupScheduler() at startup"
   );
 });
 
@@ -103,10 +100,7 @@ test("cleanup: a2a_task_events uses correct table name (not 'a2a_events')", () =
 });
 
 test("cleanup: memories uses correct table name (not 'memory_entries')", () => {
-  assert.ok(
-    source.includes("DELETE FROM memories WHERE"),
-    "must use correct table name memories"
-  );
+  assert.ok(source.includes("DELETE FROM memories WHERE"), "must use correct table name memories");
   assert.ok(
     !source.includes("DELETE FROM memory_entries WHERE"),
     "must NOT use non-existent table name memory_entries"

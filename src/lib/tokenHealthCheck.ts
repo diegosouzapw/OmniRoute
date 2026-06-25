@@ -281,18 +281,6 @@ export function initTokenHealthCheck() {
   }
 }
 
-/**
- * Stop the scheduler (useful for tests / hot-reload).
- */
-export function stopTokenHealthCheck() {
-  const state = getHCState();
-  if (state.interval) {
-    clearInterval(state.interval);
-    state.interval = null;
-  }
-  state.initialized = false;
-}
-
 // ── Core sweep ───────────────────────────────────────────────────────────────
 async function sweep() {
   try {

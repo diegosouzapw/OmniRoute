@@ -61,7 +61,7 @@ const KNOWN_HOOKS = new Set([
   "onDeactivate",
   "onUninstall",
   // Real callbacks wired in code that docs reference (verified present in src/):
-  // onChunk/onFirstChunk — streaming callbacks (src/shared/utils/streamTracker.ts,
+  // onChunk/onFirstChunk — streaming callbacks (src/sse/services/streamState.ts,
   //   playground ChatTab.tsx); onServerStatus/onPortChanged/onUpdateStatus — Electron
   //   IPC callbacks (src/shared/hooks/useElectron.ts, HomePageClient.tsx);
   //   onEmpty — model-metadata registry callback (src/lib/modelMetadataRegistry.ts).
