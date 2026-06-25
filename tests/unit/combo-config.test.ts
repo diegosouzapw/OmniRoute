@@ -552,6 +552,290 @@ test("updateComboDefaultsSchema rejects composite tiers in global defaults and p
   );
 });
 
+// Composite-tiers backward-compat shim (post-3.8.32 → pre-3.8.32 stored configs).
+// Mirrors the zeroLatencyOptimizationsEnabled auto-promotion test above (#4774).
+// The new per-composite-tier `strategy` and `cost` fields are optional in the
+// schema, and a .transform() backfills them with safe defaults on parse, so
+// stored combos that pre-date the field additions continue to round-trip
+// through PUT /api/combos/{id} without returning 400.
+test("createComboSchema auto-promotes strategy and cost for legacy compositeTiers (round-trip)", () => {
+  // Simulate a stored pre-3.8.32 compositeTiers payload: only `defaultTier`
+  // and `tiers`, no `strategy` or `cost`.
+  const result = createComboSchema.safeParse({
+    name: "tiered-legacy",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        id: "step-primary",
+        providerId: "codex",
+        model: "gpt-5.4",
+        connectionId: "conn-codex-a",
+      },
+      {
+        kind: "model",
+        id: "step-backup",
+        providerId: "codex",
+        model: "gpt-5.4",
+        connectionId: "conn-codex-b",
+      },
+    ],
+    config: {
+      compositeTiers: {
+        defaultTier: "primary",
+        tiers: {
+          primary: {
+            stepId: "step-primary",
+            fallbackTier: "backup",
+          },
+          backup: {
+            stepId: "step-backup",
+          },
+        },
+      },
+    },
+  });
+
+  assert.equal(result.success, true);
+  // The new fields are backfilled with safe defaults.
+  assert.equal(result.data.config.compositeTiers.strategy, "priority");
+  assert.equal(result.data.config.compositeTiers.cost.floor, 0);
+  assert.equal(result.data.config.compositeTiers.cost.ceiling, 1_000_000);
+  // The pre-existing fields are preserved verbatim.
+  assert.equal(result.data.config.compositeTiers.defaultTier, "primary");
+  assert.equal(result.data.config.compositeTiers.tiers.primary.stepId, "step-primary");
+  assert.equal(result.data.config.compositeTiers.tiers.primary.fallbackTier, "backup");
+});
+
+test("createComboSchema compositeTiers transform is idempotent (running twice = same result)", () => {
+  const input = {
+    name: "tiered-idempotent",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        id: "step-primary",
+        providerId: "codex",
+        model: "gpt-5.4",
+        connectionId: "conn-codex-a",
+      },
+    ],
+    config: {
+      compositeTiers: {
+        defaultTier: "primary",
+        tiers: {
+          primary: {
+            stepId: "step-primary",
+          },
+        },
+      },
+    },
+  };
+
+  // First parse: auto-promotes the new fields with defaults.
+  const first = createComboSchema.parse(input);
+  const firstTiers = first.config.compositeTiers;
+
+  // Second parse: feed the (already promoted) output back through the schema.
+  // The spread-in transform must preserve the explicit values the caller
+  // already set, not re-apply the defaults on top of them.
+  const second = createComboSchema.parse({
+    ...input,
+    config: {
+      compositeTiers: firstTiers,
+    },
+  });
+  const secondTiers = second.config.compositeTiers;
+
+  assert.equal(secondTiers.strategy, "priority");
+  assert.equal(secondTiers.cost.floor, 0);
+  assert.equal(secondTiers.cost.ceiling, 1_000_000);
+  assert.equal(secondTiers.defaultTier, "primary");
+  // Shape stays the same across the two parses (no field accumulation, no
+  // re-defaulting of values the caller explicitly set).
+  assert.deepEqual(Object.keys(secondTiers).sort(), Object.keys(firstTiers).sort());
+});
+
+test("createComboSchema preserves explicit strategy and cost values on new combos", () => {
+  // A brand-new combo with explicit per-composite-tier values must keep
+  // them — the transform's defaults only fire when fields are missing.
+  const result = createComboSchema.safeParse({
+    name: "tiered-explicit",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        id: "step-primary",
+        providerId: "codex",
+        model: "gpt-5.4",
+        connectionId: "conn-codex-a",
+      },
+      {
+        kind: "model",
+        id: "step-backup",
+        providerId: "codex",
+        model: "gpt-5.4",
+        connectionId: "conn-codex-b",
+      },
+    ],
+    config: {
+      compositeTiers: {
+        defaultTier: "primary",
+        strategy: "weighted",
+        cost: {
+          floor: 5,
+          ceiling: 100,
+        },
+        tiers: {
+          primary: {
+            stepId: "step-primary",
+            fallbackTier: "backup",
+          },
+          backup: {
+            stepId: "step-backup",
+          },
+        },
+      },
+    },
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(result.data.config.compositeTiers.strategy, "weighted");
+  assert.equal(result.data.config.compositeTiers.cost.floor, 5);
+  assert.equal(result.data.config.compositeTiers.cost.ceiling, 100);
+});
+
+test("createComboSchema accepts compositeTiers with partial cost (only floor set)", () => {
+  // Hand-edited or partial configs may set `floor` without `ceiling`.
+  // The transform must fill the missing `ceiling` with the safe default
+  // while preserving the explicit `floor` value.
+  const result = createComboSchema.safeParse({
+    name: "tiered-partial-cost",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        id: "step-primary",
+        providerId: "codex",
+        model: "gpt-5.4",
+        connectionId: "conn-codex-a",
+      },
+    ],
+    config: {
+      compositeTiers: {
+        defaultTier: "primary",
+        cost: { floor: 10 },
+        tiers: {
+          primary: { stepId: "step-primary" },
+        },
+      },
+    },
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(result.data.config.compositeTiers.cost.floor, 10);
+  assert.equal(result.data.config.compositeTiers.cost.ceiling, 1_000_000);
+  assert.equal(result.data.config.compositeTiers.strategy, "priority");
+});
+
+test("createComboSchema passthrough allows unknown compositeTiers keys (forward-compat)", () => {
+  // compositeTiersSchema switched from .strict() → .passthrough() so future
+  // fields added by newer code don't 400 on stored configs that already carry
+  // them. The schema must accept the unknown key verbatim and the new fields
+  // still get auto-promoted.
+  const result = createComboSchema.safeParse({
+    name: "tiered-future-field",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        id: "step-primary",
+        providerId: "codex",
+        model: "gpt-5.4",
+        connectionId: "conn-codex-a",
+      },
+    ],
+    config: {
+      compositeTiers: {
+        defaultTier: "primary",
+        futureField: "preserved-verbatim",
+        tiers: {
+          primary: { stepId: "step-primary" },
+        },
+      },
+    },
+  });
+
+  assert.equal(result.success, true);
+  // The future field is preserved on the parsed object at runtime even
+  // though the zod-inferred type doesn't statically know about it
+  // (compositeTiersSchema uses .passthrough() for forward-compat).
+  const parsedTiers = result.data.config.compositeTiers as Record<string, unknown>;
+  assert.equal(parsedTiers.futureField, "preserved-verbatim");
+  assert.equal(parsedTiers.strategy, "priority");
+  const cost = parsedTiers.cost as { floor: number; ceiling: number };
+  assert.equal(cost.floor, 0);
+  assert.equal(cost.ceiling, 1_000_000);
+});
+
+test("createComboSchema rejects compositeTiers with an invalid strategy enum value", () => {
+  // The auto-promotion is only triggered when `strategy` is missing. An
+  // explicit value must still be validated against comboStrategySchema.
+  const result = createComboSchema.safeParse({
+    name: "tiered-bad-strategy",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        id: "step-primary",
+        providerId: "codex",
+        model: "gpt-5.4",
+        connectionId: "conn-codex-a",
+      },
+    ],
+    config: {
+      compositeTiers: {
+        defaultTier: "primary",
+        strategy: "not-a-real-strategy",
+        tiers: {
+          primary: { stepId: "step-primary" },
+        },
+      },
+    },
+  });
+
+  assert.equal(result.success, false);
+});
+
+test("createComboSchema rejects compositeTiers with a negative cost floor", () => {
+  // cost.floor / cost.ceiling are z.coerce.number().min(0).optional() —
+  // negative values must still be rejected on the parse path.
+  const result = createComboSchema.safeParse({
+    name: "tiered-negative-floor",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        id: "step-primary",
+        providerId: "codex",
+        model: "gpt-5.4",
+        connectionId: "conn-codex-a",
+      },
+    ],
+    config: {
+      compositeTiers: {
+        defaultTier: "primary",
+        cost: { floor: -1, ceiling: 100 },
+        tiers: {
+          primary: { stepId: "step-primary" },
+        },
+      },
+    },
+  });
+
+  assert.equal(result.success, false);
+});
+
 test("createComboSchema accepts failoverBeforeRetry, maxSetRetries and setRetryDelayMs", () => {
   const parsed = createComboSchema.parse({
     name: "failover-test",

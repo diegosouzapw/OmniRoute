@@ -94,12 +94,61 @@ export const compositeTierEntrySchema = z
   })
   .strict();
 
+// Per-composite-tier cost gating. Optional so legacy stored compositeTiers
+// (pre-3.8.32) round-trip without 400 — the backfill defaults are applied
+// later in the `compositeTiersSchema` transform. Uses .passthrough() for
+// forward-compat with future cost-gating sub-fields.
+const compositeTiersCostSchema = z
+  .object({
+    floor: z.coerce.number().min(0).optional(),
+    ceiling: z.coerce.number().min(0).optional(),
+  })
+  .passthrough();
+
+// Per-composite-tier routing strategy. Optional so legacy stored
+// compositeTiers (pre-3.8.32) round-trip without 400 — the backfill default
+// ("priority") is applied later in the `compositeTiersSchema` transform.
 export const compositeTiersSchema = z
   .object({
     defaultTier: z.string().trim().min(1).max(100),
     tiers: z.record(z.string().trim().min(1).max(100), compositeTierEntrySchema),
+    // Post-3.8.32: per-tier routing strategy (e.g. "priority", "weighted").
+    strategy: comboStrategySchema.optional(),
+    // Post-3.8.32: per-tier cost gating.
+    cost: compositeTiersCostSchema.optional(),
   })
-  .strict();
+  // .passthrough() so legacy configs that carry forward-compatible unknown
+  // keys (added by future releases) don't 400 on the next PUT. Mirrors the
+  // parent comboRuntimeConfigSchema pattern (see #4774, #4382).
+  .passthrough()
+  .transform((compositeTiers) => {
+    // Backward-compat shim: legacy stored compositeTiers (pre-3.8.32) lack
+    // the post-release `strategy` and `cost` sub-fields the new schema
+    // requires. Auto-promote them to safe defaults so stored combos
+    // continue to round-trip through PUT /api/combos/{id} without 400.
+    //
+    // Defaults match the post-3.8.32 engine behaviour:
+    //   - strategy  → "priority" (matches the combo default; legacy configs
+    //                 never had an explicit per-tier strategy)
+    //   - cost.floor → 0         (no minimum cost gating)
+    //   - cost.ceiling → 1_000_000 (matches the existing maxCostPer1MTokens
+    //                 cap from slaRoutingPolicySchema; effectively unbounded
+    //                 for any practical request)
+    //
+    // Idempotent: running the transform twice on the same input produces
+    // the same output (the spread preserves any explicit values the caller
+    // already set).
+    const rawCost = compositeTiers.cost as { floor?: number; ceiling?: number } | undefined;
+    return {
+      ...compositeTiers,
+      strategy: compositeTiers.strategy ?? "priority",
+      cost: {
+        floor: 0,
+        ceiling: 1_000_000,
+        ...(rawCost ?? {}),
+      },
+    };
+  });
 
 export const compressionModeSchema = z.enum([
   "off",
