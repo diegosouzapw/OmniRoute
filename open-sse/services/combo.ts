@@ -1183,6 +1183,11 @@ export async function handleComboChat({
     }
   }
 
+  // #4945 regression guard: when an "auto" combo uses an EXPLICIT router
+  // (routingStrategy lkgp/cost/etc, not the default "rules" scorer), that router
+  // pins orderedTargets[0]. The task-aware reordering below must then refine only
+  // the fallback order, never override the router's primary choice.
+  let autoUsedExplicitRouter = false;
   if (strategy === "auto") {
     const requestHasTools = Array.isArray(body?.tools) && body.tools.length > 0;
     let eligibleTargets = [...orderedTargets];
@@ -1332,6 +1337,7 @@ export async function handleComboChat({
           selectedProvider = decision.provider;
           selectedModel = decision.model;
           selectionReason = decision.reason;
+          autoUsedExplicitRouter = true;
         } catch (err) {
           log.warn(
             "COMBO",
@@ -1604,17 +1610,26 @@ export async function handleComboChat({
     const task = classifyTask(body);
     const conversationCacheKey = getConversationCacheKey(body);
     const taskReordered = reorderByTaskWeight(orderedTargets, task);
-    if (taskReordered[0]?.modelStr !== orderedTargets[0]?.modelStr) {
+    // #4945 regression guard: when an explicit auto router (lkgp/cost/…) pinned
+    // orderedTargets[0], keep that primary choice and let task-aware refine only
+    // the fallback tail — otherwise task weighting silently defeats the operator's
+    // chosen LKGP/cost selection. reorderByTaskWeight returns the same target
+    // objects (no clone), so identity filtering is safe.
+    const pinnedFirst = autoUsedExplicitRouter ? orderedTargets[0] : undefined;
+    const nextOrder = pinnedFirst
+      ? [pinnedFirst, ...taskReordered.filter((t) => t !== pinnedFirst)]
+      : taskReordered;
+    if (nextOrder[0]?.modelStr !== orderedTargets[0]?.modelStr) {
       const reasons =
         Array.isArray(task.reasons) && task.reasons.length > 0
           ? ` (${task.reasons.join(",")})`
           : "";
       log.info(
         "COMBO",
-        `task-route task=${task.level}${reasons} cacheKey=${conversationCacheKey ?? "none"} → ${taskReordered[0]?.modelStr}`
+        `task-route task=${task.level}${reasons} cacheKey=${conversationCacheKey ?? "none"} → ${nextOrder[0]?.modelStr}`
       );
     }
-    orderedTargets = taskReordered;
+    orderedTargets = nextOrder;
   }
 
   // Parallel pre-screen: check provider profiles and model availability for all targets

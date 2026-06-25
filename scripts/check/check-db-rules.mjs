@@ -42,6 +42,7 @@ export const INTENTIONALLY_INTERNAL = new Set([
   "accessTokens", // intentionally-internal: 4 rotas /api/cli/* (connect, whoami, tokens, tokens/[id]) + server/authz/accessTokenAuth.ts via import direto "@/lib/db/accessTokens" (Rule #2)
   "apiKeyColumnFallbacks", // db-internal: importado só por db/apiKeys.ts (API_KEY_COLUMN_FALLBACKS — fallbacks de coluna split do apiKeys.ts)
   "apiKeyUsageLimitFields", // db-internal: importado só por db/apiKeys.ts (helpers de campo de limite de uso split do apiKeys.ts; mig 101)
+  "caseMapping", // db-internal: importado só por db/core.ts (toSnakeCase/toCamelCase/objToSnake — column-mapping snake↔camel split do core.ts, #4947)
   "cleanup", // intentionally-internal: 3 API routes (purge-quota-snapshots, purge-call-logs, purge-detailed-logs)
   "cliToolState", // intentionally-internal: 14+ API routes em /api/cli-tools/*-settings
   "comboForecast", // intentionally-internal: src/lib/usage/comboForecast.ts
@@ -63,6 +64,7 @@ export const INTENTIONALLY_INTERNAL = new Set([
   "providerNodeSelect", // db-internal: importado só por db/providers.ts (selectProviderNodeForConnection — lógica pura de seleção de provider node split do providers.ts, #4421)
   "providerStats", // intentionally-internal: src/app/api/provider-stats/route.ts
   "recovery", // intentionally-internal: bin/cli/runtime.mjs (import() dinâmico) + tests
+  "schemaColumns", // db-internal: importado só por db/core.ts (ensureProviderConnections/UsageHistory/CallLogsColumns + hasColumn/hasTable/getTableColumns — schema-column reconciliation split do core.ts, #4948)
   "secrets", // intentionally-internal: src/instrumentation-node.ts (import() dinâmico na inicialização)
   "serviceModels", // intentionally-internal: 3 callers (services/modelSync, services/bootstrap, /api/services/9router/models)
   "stateReset", // db-internal: 3 callers dentro de src/lib/db/ (core, backup, apiKeys) para coordenação de reset
