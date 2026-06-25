@@ -73,6 +73,19 @@ export function addRequestIdHeader(headers: Record<string, string> = {}): Record
 }
 
 /**
+ * Attach an x-request-id header to a response.
+ * Reuses the incoming request header when present, otherwise uses the active
+ * async request context.
+ */
+export function attachRequestIdToResponse(request: RequestLike, response: Response): Response {
+  const requestId = getHeaderValue(request, "x-request-id") || getRequestId();
+  if (requestId) {
+    response.headers.set("x-request-id", requestId);
+  }
+  return response;
+}
+
+/**
  * Generate a new request ID (UUID v4).
  * @returns {string}
  */
