@@ -14,6 +14,7 @@ _In development — bullets added per PR; finalized at release._
 
 - **fix(dashboard):** show custom provider given-name instead of internal id across dashboard pages — cache, combo health, compression analytics, cost overview, health/autopilot, provider stats, route explainability, provider utilization, runtime. Adds shared `resolveProviderName` resolver and `useProviderNodeMap` hook. (#4603)
 - **fix(dashboard):** on OAuth providers (e.g. GLM Coding), "Test all models" with auto-hide-failed now switches the model list to the "visible" filter after the run, so just-hidden failed models actually disappear on-screen — parity with the passthrough-provider path (#3610). Previously they were hidden in the DB but stayed visible under the "All" filter, so it looked like nothing was hidden. (#4887)
+- **fix(antigravity):** default `safetySettings` to all-OFF for parity with the native Gemini paths. The Antigravity (Google Cloud Code) request builder set `safetySettings: undefined`, which `JSON.stringify` drops — so no safety settings reached Google and its server-side defaults false-flagged benign technical prompts as `prohibited_content` (HTTP 200 + blocked body, which combo failover treats as terminal). Now honors a caller-supplied value and otherwise defaults to `DEFAULT_SAFETY_SETTINGS`, matching the claude-to-gemini / openai-to-gemini paths (#5003)
 
 ---
 

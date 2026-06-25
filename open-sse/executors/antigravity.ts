@@ -45,6 +45,7 @@ import {
   stripCloudCodeThinkingConfig,
 } from "../services/cloudCodeThinking.ts";
 import { buildGeminiTools } from "../translator/helpers/geminiToolsSanitizer.ts";
+import { DEFAULT_SAFETY_SETTINGS } from "../translator/helpers/geminiHelper.ts";
 import {
   applyAntigravityClientProfileHeaders,
   removeHeaderCaseInsensitive,
@@ -584,6 +585,14 @@ function sanitizeAntigravityGeminiRequest(
     clean.sessionId = request.sessionId;
   }
 
+  // #5003: preserve safetySettings through the Claude-path whitelist so the all-OFF
+  // default (or a caller-supplied value) actually reaches Google Cloud Code. Without
+  // this the field is dropped and Google applies its own safety defaults that
+  // false-flag benign technical prompts as `prohibited_content`.
+  if (Array.isArray(request.safetySettings)) {
+    clean.safetySettings = request.safetySettings;
+  }
+
   return clean;
 }
 
@@ -754,7 +763,12 @@ export class AntigravityExecutor extends BaseExecutor {
         credentials,
         typeof normalizedRequest?.sessionId === "string" ? normalizedRequest.sessionId : undefined
       ),
-      safetySettings: undefined,
+      // #5003: default to all-OFF safety for parity with the native Gemini paths
+      // (claude-to-gemini / openai-to-gemini both default to DEFAULT_SAFETY_SETTINGS).
+      // Previously this was `undefined`, which JSON.stringify drops, so Google Cloud Code
+      // applied its server-side defaults that false-flag benign technical prompts as
+      // `prohibited_content` (HTTP 200 + blocked body → terminal combo failover).
+      safetySettings: normalizedRequest?.safetySettings ?? DEFAULT_SAFETY_SETTINGS,
       toolConfig:
         Array.isArray(normalizedRequest?.tools) && normalizedRequest.tools.length > 0
           ? { functionCallingConfig: { mode: "VALIDATED" } }
