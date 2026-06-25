@@ -370,6 +370,13 @@ export function createDisconnectAwareStream(transformStream, streamController) {
           }
           controller.enqueue(value);
         } catch (error) {
+          if (!streamController.isConnected()) {
+            try {
+              controller.close();
+            } catch {}
+            return;
+          }
+
           streamController.handleError(error);
 
           // T35: Encapsulate mid-stream errors as SSE events instead of abruptly aborting
@@ -377,15 +384,22 @@ export function createDisconnectAwareStream(transformStream, streamController) {
           const errorMsg = getErrorMessage(error);
           const statusCode = getErrorStatusCode(error);
 
-          for (const chunk of buildStreamErrorChunks(
-            errorMsg,
-            statusCode,
-            streamController.clientResponseFormat
-          )) {
-            controller.enqueue(chunk);
+          try {
+            for (const chunk of buildStreamErrorChunks(
+              errorMsg,
+              statusCode,
+              streamController.clientResponseFormat
+            )) {
+              controller.enqueue(chunk);
+            }
+          } catch {
+            // The downstream may have closed while we were formatting the in-band
+            // error event. The original stream error has already been recorded.
           }
 
-          controller.close();
+          try {
+            controller.close();
+          } catch {}
         }
       },
 
@@ -524,7 +538,9 @@ export function pipeWithDisconnect(
     },
   });
 
-  const transformedBody = providerResponse.body.pipeThrough(upstreamTap).pipeThrough(transformStream);
+  const transformedBody = providerResponse.body
+    .pipeThrough(upstreamTap)
+    .pipeThrough(transformStream);
   return createDisconnectAwareStream(
     { readable: transformedBody, writable: { getWriter: () => ({ abort: () => {} }) } },
     wrappedController
