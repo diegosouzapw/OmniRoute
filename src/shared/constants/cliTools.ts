@@ -323,7 +323,8 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
     name: "Hermes",
     icon: "terminal",
     color: "#8B5CF6",
-    description: "Nous Research Hermes — generic OpenAI-compatible setup (use hermes-agent for full agent)",
+    description:
+      "Nous Research Hermes — generic OpenAI-compatible setup (use hermes-agent for full agent)",
     docsUrl: "/docs?section=cli-tools&tool=hermes",
     configType: "guide",
     category: "code",
@@ -846,29 +847,3 @@ export function listCliTools(): CliToolEntry[] {
 export function getCliTool(id: string): CliToolEntry | undefined {
   return CLI_TOOLS[id];
 }
-
-// ─── Provider model mapping helper ───────────────────────────────────────────
-
-// Get all provider models for mapping dropdown
-export const getProviderModelsForMapping = (providers: Array<{
-  id: string;
-  isActive: boolean;
-  testStatus: string;
-  provider: string;
-  name: string;
-  models?: string[];
-}>) => {
-  const result: Array<{ connectionId: string; provider: string; name: string; models: string[] }> =
-    [];
-  providers.forEach((conn) => {
-    if (conn.isActive && (conn.testStatus === "active" || conn.testStatus === "success")) {
-      result.push({
-        connectionId: conn.id,
-        provider: conn.provider,
-        name: conn.name,
-        models: conn.models || [],
-      });
-    }
-  });
-  return result;
-};

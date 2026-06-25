@@ -18,7 +18,6 @@ import { isRunningInDocker } from "./dockerDetect";
 /** Minimal keytar surface (CJS/native; typings may not expose `default`). */
 type KeytarModule = {
   findCredentials: (service: string) => Promise<Array<{ account: string; password: string }>>;
-  getPassword: (service: string, account: string) => Promise<string | null>;
 };
 
 async function loadKeytar(): Promise<KeytarModule | null> {
@@ -151,59 +150,6 @@ export async function discoverZedCredentials(): Promise<ZedCredential[]> {
   }
 
   return credentials;
-}
-
-/**
- * Gets a specific Zed credential for a provider
- *
- * FIX #2: Instead of hardcoded account names, first try findCredentials
- * which will return all actual credentials for the service, then fallback
- * to common patterns only if needed.
- *
- * @param provider - Provider name (openai, anthropic, google, etc.)
- * @returns The credential if found, null otherwise
- */
-export async function getZedCredential(provider: string): Promise<ZedCredential | null> {
-  const keytar = await loadKeytar();
-  if (!keytar) return null;
-
-  const patterns = ZED_SERVICE_PATTERNS.filter((p) =>
-    p.toLowerCase().includes(provider.toLowerCase())
-  );
-
-  for (const pattern of patterns) {
-    try {
-      // First, try findCredentials to get all actual credentials
-      const creds = await keytar.findCredentials(pattern);
-      if (creds.length > 0 && creds[0].password) {
-        return {
-          provider,
-          service: pattern,
-          account: creds[0].account,
-          token: creds[0].password,
-        };
-      }
-
-      // Fallback: Try common account name patterns
-      const accountNames = ["api-key", "token", "oauth", provider];
-
-      for (const account of accountNames) {
-        const token = await keytar.getPassword(pattern, account);
-        if (token) {
-          return {
-            provider,
-            service: pattern,
-            account,
-            token,
-          };
-        }
-      }
-    } catch (error: any) {
-      console.debug("Failed to get credential for %s:", pattern, error?.message || error);
-    }
-  }
-
-  return null;
 }
 
 /**

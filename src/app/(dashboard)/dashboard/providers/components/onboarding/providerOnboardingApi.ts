@@ -27,13 +27,6 @@ export type OnboardingTestResult = {
 
 export type CompatibleNodeMode = "openai" | "anthropic" | "cc";
 
-export type CompatibleProviderNode = {
-  id: string;
-  name?: string;
-  baseUrl?: string;
-  [key: string]: unknown;
-};
-
 export type OnboardingProviderNodes = {
   ccCompatibleProviderEnabled: boolean;
 };
@@ -130,15 +123,6 @@ async function expectOk<T>(response: Response, fallback: string): Promise<T> {
     throw new Error(extractError(data, fallback));
   }
   return data as T;
-}
-
-export async function fetchOnboardingConnections(): Promise<OnboardingConnection[]> {
-  const response = await fetch("/api/providers");
-  const data = await expectOk<{ connections?: OnboardingConnection[] }>(
-    response,
-    "Failed to load provider connections"
-  );
-  return Array.isArray(data.connections) ? data.connections : [];
 }
 
 export async function fetchOnboardingProviderNodes(): Promise<OnboardingProviderNodes> {
@@ -249,22 +233,4 @@ export function buildCompatibleNodeRequest(input: CreateCompatibleProviderNodeIn
   if (defaults.hasModelsPath) body.modelsPath = sanitizedInput.modelsPath || "";
   if ("compatMode" in defaults) body.compatMode = defaults.compatMode;
   return parseOrThrow(createProviderNodeSchema, body, "Compatible provider data is invalid");
-}
-
-export async function createCompatibleProviderNode(
-  input: CreateCompatibleProviderNodeInput
-): Promise<CompatibleProviderNode> {
-  const response = await fetch("/api/provider-nodes", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(buildCompatibleNodeRequest(input)),
-  });
-  const data = await expectOk<{ node?: CompatibleProviderNode }>(
-    response,
-    "Failed to create compatible provider"
-  );
-  if (!data.node?.id) {
-    throw new Error("Compatible provider was created without an id");
-  }
-  return data.node;
 }

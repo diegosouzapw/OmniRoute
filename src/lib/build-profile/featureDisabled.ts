@@ -21,6 +21,3 @@ export class FeatureDisabledError extends Error {
 export function featureDisabledError(featureName: string): FeatureDisabledError {
   return new FeatureDisabledError(featureName);
 }
-
-export const OMNIROUTE_BUILD_PROFILE: string = process.env.OMNIROUTE_BUILD_PROFILE || "full";
-export const IS_MINIMAL_BUILD: boolean = OMNIROUTE_BUILD_PROFILE === "minimal";

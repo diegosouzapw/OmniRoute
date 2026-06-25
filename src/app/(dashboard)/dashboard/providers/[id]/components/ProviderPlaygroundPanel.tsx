@@ -19,17 +19,6 @@ import { MusicExampleCard } from "@/app/(dashboard)/dashboard/media-providers/co
 import type { ServiceKind } from "@/shared/constants/providers";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 
-export const MEDIA_SERVICE_KINDS: ServiceKind[] = [
-  "embedding",
-  "image",
-  "tts",
-  "stt",
-  "webSearch",
-  "webFetch",
-  "video",
-  "music",
-];
-
 export function renderKindPanel(kind: ServiceKind, providerId: string): JSX.Element | null {
   switch (kind) {
     case "llm":

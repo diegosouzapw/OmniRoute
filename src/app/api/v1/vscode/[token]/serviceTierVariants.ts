@@ -35,10 +35,6 @@ export function stripVscodeServiceTierVariantModelId(modelId: string | null | un
   return parseVscodeServiceTierVariantModelId(modelId).baseModelId;
 }
 
-export function isVscodeServiceTierVariantModelId(modelId: string | null | undefined): boolean {
-  return Boolean(parseVscodeServiceTierVariantModelId(modelId).serviceTier);
-}
-
 export function getVscodeServiceTierVariantModelId(
   baseModelId: string,
   serviceTier: ServiceTierId
@@ -70,7 +66,9 @@ function supportsCodexServiceTierModel(baseModelId: string): boolean {
 
   return CODEX_FAST_TIER_DEFAULT_SUPPORTED_MODELS.some((candidate) => {
     const normalizedCandidate = candidate.trim().toLowerCase();
-    return normalizedModel === normalizedCandidate || normalizedModel.startsWith(normalizedCandidate);
+    return (
+      normalizedModel === normalizedCandidate || normalizedModel.startsWith(normalizedCandidate)
+    );
   });
 }
 
@@ -89,10 +87,7 @@ export function supportsVscodeServiceTierVariants(model: VscodeServiceTierModelL
   return supportsCodexServiceTierModel(baseModelId);
 }
 
-function cloneModelIdentifiers<T extends VscodeServiceTierModelLike>(
-  model: T,
-  modelId: string
-): T {
+function cloneModelIdentifiers<T extends VscodeServiceTierModelLike>(model: T, modelId: string): T {
   return {
     ...model,
     ...(model.id ? { id: modelId } : {}),
@@ -101,7 +96,9 @@ function cloneModelIdentifiers<T extends VscodeServiceTierModelLike>(
   };
 }
 
-export function expandVscodeServiceTierModels<T extends VscodeServiceTierModelLike>(models: T[]): T[] {
+export function expandVscodeServiceTierModels<T extends VscodeServiceTierModelLike>(
+  models: T[]
+): T[] {
   const expanded: T[] = [];
 
   for (const model of models) {
@@ -112,7 +109,8 @@ export function expandVscodeServiceTierModels<T extends VscodeServiceTierModelLi
     }
 
     const baseModelId = stripVscodeServiceTierVariantModelId(rawModelId);
-    const baseModel = rawModelId === baseModelId ? model : cloneModelIdentifiers(model, baseModelId);
+    const baseModel =
+      rawModelId === baseModelId ? model : cloneModelIdentifiers(model, baseModelId);
     expanded.push(baseModel as T);
 
     if (!supportsVscodeServiceTierVariants(model)) {
@@ -120,7 +118,12 @@ export function expandVscodeServiceTierModels<T extends VscodeServiceTierModelLi
     }
 
     for (const serviceTier of SUPPORTED_VSCODE_SERVICE_TIERS) {
-      expanded.push(cloneModelIdentifiers(baseModel as T, getVscodeServiceTierVariantModelId(baseModelId, serviceTier)));
+      expanded.push(
+        cloneModelIdentifiers(
+          baseModel as T,
+          getVscodeServiceTierVariantModelId(baseModelId, serviceTier)
+        )
+      );
     }
   }
 
@@ -137,7 +140,9 @@ export function getVscodeServiceTierVariantSuffix(serviceTier: ServiceTierId | u
   return "Default";
 }
 
-export function resolveVscodeServiceTierRequest(body: Record<string, unknown>): Record<string, unknown> {
+export function resolveVscodeServiceTierRequest(
+  body: Record<string, unknown>
+): Record<string, unknown> {
   const rawModelId = typeof body.model === "string" ? body.model.trim() : "";
   if (!rawModelId) {
     return body;
@@ -169,7 +174,10 @@ export async function rewriteVscodeServiceTierRequest(request: Request): Promise
     return request;
   }
 
-  const body = await request.clone().json().catch(() => null);
+  const body = await request
+    .clone()
+    .json()
+    .catch(() => null);
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return request;
   }
