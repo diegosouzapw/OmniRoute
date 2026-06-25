@@ -14,6 +14,7 @@ _In development — bullets added per PR; finalized at release._
 
 - **fix(dashboard):** show custom provider given-name instead of internal id across dashboard pages — cache, combo health, compression analytics, cost overview, health/autopilot, provider stats, route explainability, provider utilization, runtime. Adds shared `resolveProviderName` resolver and `useProviderNodeMap` hook. (#4603)
 - **fix(dashboard):** on OAuth providers (e.g. GLM Coding), "Test all models" with auto-hide-failed now switches the model list to the "visible" filter after the run, so just-hidden failed models actually disappear on-screen — parity with the passthrough-provider path (#3610). Previously they were hidden in the DB but stayed visible under the "All" filter, so it looked like nothing was hidden. (#4887)
+- **fix(pollinations):** stop forcing `jsonMode` on every request. Pollinations treats `jsonMode=true` as "the model MUST return JSON" and rejects (HTTP 400 "messages must contain the word 'json'") any normal chat request whose messages don't mention "json", so all non-JSON chat was broken. `jsonMode` is now only enabled when the caller actually requests JSON output (`response_format.type` of `json_object` or `json_schema`). (#3981)
 
 ---
 
