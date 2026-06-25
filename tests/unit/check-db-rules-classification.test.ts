@@ -101,7 +101,6 @@ const TYPE_ONLY = new Set(["_rowTypes"]);
 const DOCUMENTED_DEAD = new Set([
   "discovery", // DEAD?: 0 importers; lib/discovery/index.ts is independent
   "pluginMetrics", // DEAD? (production): write path not yet wired (self-documented)
-  "prompts", // DEAD? (production): zero production callers; integration test only verifies interface shape
 ]);
 
 const SEARCH_ROOTS = [
@@ -121,7 +120,7 @@ test("INTENTIONALLY_INTERNAL is exported from check-db-rules.mjs", () => {
   assert.ok(INTENTIONALLY_INTERNAL.size > 0, "INTENTIONALLY_INTERNAL must not be empty");
 });
 
-test("INTENTIONALLY_INTERNAL contains the expected 32 audited modules", () => {
+test("INTENTIONALLY_INTERNAL contains the expected 31 audited modules", () => {
   const expected = [
     "_rowTypes",
     "accessTokens",
@@ -144,7 +143,6 @@ test("INTENTIONALLY_INTERNAL contains the expected 32 audited modules", () => {
     "obsidian",
     "optimizationSettings",
     "pluginMetrics",
-    "prompts",
     "providerNodeSelect",
     "providerStats",
     "recovery",
