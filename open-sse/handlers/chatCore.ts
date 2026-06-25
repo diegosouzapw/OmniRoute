@@ -60,7 +60,7 @@ import { checkHeapPressureGuard } from "../utils/heapPressure.ts";
 import { normalizeHeaders } from "../utils/headers.ts";
 import { resolveChatCoreRequestFormat } from "./chatCore/requestFormat.ts";
 import { resolveChatCoreTargetFormat } from "./chatCore/targetFormat.ts";
-import { injectSystemPrompt } from "../services/systemPrompt.ts";
+import { injectSystemPrompt, injectCustomSystemPrompt } from "../services/systemPrompt.ts";
 import { translateRequest, needsTranslation } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
 import { splitMisplacedToolResults } from "../translator/helpers/claudeHelper.ts";
@@ -387,6 +387,17 @@ export async function handleChatCore({
     stageTrace(label, extra, { traceEnabled, startTime, traceId, log });
   let tokensCompressed: number | null = null;
   body = injectSystemPrompt(body);
+  // ── Per-endpoint custom system prompt (port of upstream #2063) ──
+  // Reads from cachedSettings if available (passed in from combo/chat layer)
+  // to avoid an extra DB read on the hot path. Falls through to getCachedSettings()
+  // only when this function is called outside the normal chat dispatch.
+  {
+    const _s = cachedSettings ?? (await getCachedSettings());
+    if (_s.customSystemPromptEnabled === true && typeof _s.customSystemPrompt === "string" && _s.customSystemPrompt) {
+      body = injectCustomSystemPrompt(body as Record<string, unknown>, _s.customSystemPrompt);
+      log?.debug?.("CUSTOMSP", "custom system prompt injected");
+    }
+  }
   // ── Plugin onRequest hook ──
   // Dynamic import cached by Node.js after first call — minimal overhead
   const pluginGate = await runPluginOnRequestHook({

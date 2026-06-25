@@ -236,10 +236,10 @@ function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
  * provider. Apply provider-aware sanitation here (after transformRequest, so
  * reintroductions by per-provider transforms are also caught) before fetch.
  * xhigh support is opt-out: pass through unchanged unless the registry marks
- * a model as unsupported. Literal max support is Claude/CC-compatible only and
- * intentionally separate: older Opus/Sonnet models may support max even when
- * they do not support xhigh. For OpenAI-shape providers, max normalizes to
- * xhigh by default and falls back to high only for explicit xhigh opt-outs.
+ * a model as unsupported. Literal max support is provider-specific and
+ * intentionally separate: some upstreams accept max even when they do not
+ * accept xhigh. For OpenAI-shape providers, max normalizes to xhigh by default
+ * and falls back to high only for explicit xhigh opt-outs.
  */
 const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
 // GitHub Copilot Claude routing is granular (upstream port: decolua/9router#791):
@@ -264,9 +264,12 @@ function supportsMaxEffortForProvider(provider: string, model: string): boolean 
   // normalized to xhigh (the OmniRoute-internal top tier) and rejected by the
   // upstream. Scoped to opencode-go deliberately: OpenRouter's DeepSeek path
   // (pi#4055) is the documented inverse and expects xhigh, not max.
+  // Ollama Cloud also accepts literal max (for example GLM 5.2 supports
+  // low|medium|high|max|none) and rejects xhigh.
   const isOpencodeGoDeepSeek =
     provider === "opencode-go" && model.toLowerCase().includes("deepseek");
-  return isClaude || isOpencodeGoDeepSeek;
+  const isOllamaCloud = provider === "ollama-cloud";
+  return isClaude || isOpencodeGoDeepSeek || isOllamaCloud;
 }
 
 export function sanitizeReasoningEffortForProvider(

@@ -3111,7 +3111,10 @@
     "tierAlwaysProtected": "Always Protected",
     "tierPublic": "Public",
     "hideInternal": "Hide Internal",
-    "showInternal": "Show Internal"
+    "showInternal": "Show Internal",
+    "customSystemPromptTitle": "Custom System Prompt",
+    "customSystemPromptDescription": "Inject a custom system prompt into every model request",
+    "customSystemPromptPlaceholder": "e.g. Always respond in pirate speak..."
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",
