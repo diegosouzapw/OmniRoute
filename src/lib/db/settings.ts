@@ -147,6 +147,8 @@ export async function getSettings() {
     customBannedSignals: [],
     proxyEnabled: true,
     perKeyProxyEnabled: false,
+    customSystemPromptEnabled: false,
+    customSystemPrompt: "",
   };
   for (const row of rows) {
     const record = toRecord(row);

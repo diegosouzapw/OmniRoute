@@ -3002,7 +3002,10 @@
     "tierAlwaysProtected": "__MISSING__:Always Protected",
     "tierPublic": "__MISSING__:Public",
     "hideInternal": "__MISSING__:Hide Internal",
-    "showInternal": "__MISSING__:Show Internal"
+    "showInternal": "__MISSING__:Show Internal",
+    "customSystemPromptTitle": "Custom System Prompt",
+    "customSystemPromptDescription": "Inject a custom system prompt into every model request",
+    "customSystemPromptPlaceholder": "e.g. Always respond in pirate speak..."
   },
   "endpoints": {
     "tabProxy": "Koncová Proxy",

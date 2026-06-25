@@ -10,6 +10,7 @@ _In development — bullets added per PR; finalized at release._
 
 - **feat(providers):** update volcengine-ark model list, adding DeepSeek-V4-Flash and DeepSeek-V4-Pro. (thanks @kenlin8827)
 - **feat(combos):** add an editable per-combo `description` field. The routing-combo form now has a Description input, persisted in the combo `data` blob via `/api/combos` (POST/PUT) and round-tripped through GET — no new DB column ([#5005](https://github.com/diegosouzapw/OmniRoute/issues/5005)).
+- **feat(endpoint):** per-endpoint custom system prompt injection. A toggle + text field in the Endpoint settings card lets users inject a custom system prompt into every model request, applied via the existing system-prompt engine. Stored in settings DB. (thanks @whale9820)
 
 ### 🔧 Bug Fixes
 
