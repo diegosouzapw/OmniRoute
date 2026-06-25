@@ -99,7 +99,7 @@ import { normalizeClaudeAdaptiveThinking } from "../services/claudeAdaptiveThink
 import { normalizeClaudeHaikuConstraints } from "../services/claudeHaikuConstraints.ts";
 import { echoModelInObject } from "../services/responseModelEcho.ts";
 import { stripGpt5SamplingWhenReasoning } from "../services/gpt5SamplingGuard.ts";
-import { getUnsupportedParams } from "../config/providerRegistry.ts";
+import { getUnsupportedParams, REGISTRY } from "../config/providerRegistry.ts";
 import { supportsMaxTokens } from "@/lib/modelCapabilities.ts";
 import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
 import {
@@ -783,12 +783,17 @@ export async function handleChatCore({
   // sourceFormat="claude" applies the Anthropic Messages spec default (stream=false
   // when body omits stream), preventing STREAM_EARLY_EOF on /v1/messages when
   // clients send Accept: */* without an explicit stream flag.
+  // providerRequiresStreaming: providers with forceStream:true reject stream:false
+  // upstream (HTTP 400); keep streaming so OmniRoute can convert the stream to JSON
+  // for the client via handleForcedSSEToJson. (#2081)
+  const providerRequiresStreaming = REGISTRY[provider]?.forceStream === true;
   const stream =
     nativeCodexPassthrough && isCompactResponsesEndpoint(endpointPath)
       ? false
       : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat, {
           userAgent: streamUserAgent,
           streamDefaultMode: apiKeyInfo?.streamDefaultMode,
+          providerRequiresStreaming,
         });
 
   // `settings` is already consolidated once near the top of handleChatCore

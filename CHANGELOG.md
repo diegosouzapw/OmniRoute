@@ -12,6 +12,7 @@ _In development — bullets added per PR; finalized at release._
 
 - **fix(executors): strip `client_metadata` from forwarded body for Cerebras and Mistral** — Cerebras returns 400 (`wrong_api_format`) and Mistral returns 422 (`extra_forbidden`) when the passthrough body carries `client_metadata` (an OpenAI Codex / Claude CLI field with no equivalent on these upstreams). The default executor now drops it for these two providers before sending downstream; other providers (notably `openai`/`codex`) keep it. (thanks @saurabh321gupta)
 - **fix(codebuddy):** only send reasoning params when the client requests reasoning. (thanks @anki1kr)
+- **fix(sse):** keep streaming for forceStream providers when a JSON client requests it. Providers marked `forceStream:true` reject `stream:false` upstream (HTTP 400); `resolveStreamFlag` now guards against this so stream-only providers keep streaming even when the client sends `Accept: application/json` or `stream:false`. (thanks @anki1kr)
 
 ---
 
