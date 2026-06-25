@@ -373,6 +373,13 @@ export async function handleChatCore({
   // call sites stay byte-identical.
   const trace = (label: string, extra?: Record<string, unknown>) =>
     stageTrace(label, extra, { traceEnabled, startTime, traceId, log });
+  const getCurrentConnectionId = () => {
+    const credentialConnectionId =
+      typeof credentials?.connectionId === "string" && credentials.connectionId.trim().length > 0
+        ? credentials.connectionId.trim()
+        : null;
+    return credentialConnectionId || connectionId || null;
+  };
   let tokensCompressed: number | null = null;
   body = injectSystemPrompt(body);
   // ── Plugin onRequest hook ──
@@ -439,7 +446,7 @@ export async function handleChatCore({
       buildFailureUsageRecord({
         provider,
         model,
-        connectionId,
+        connectionId: getCurrentConnectionId(),
         apiKeyInfo,
         effectiveServiceTier,
         isCombo,
@@ -459,7 +466,8 @@ export async function handleChatCore({
   ): void => recordKeyHealthStatusFor(status, creds, log);
 
   const persistCodexQuotaState = async (headers: Record<string, string> | null, status = 0) => {
-    if (provider !== "codex" || !connectionId || !headers) return;
+    const currentConnectionId = getCurrentConnectionId();
+    if (provider !== "codex" || !currentConnectionId || !headers) return;
 
     try {
       const existingProviderData =
@@ -483,10 +491,10 @@ export async function handleChatCore({
       // Invalidate the preflight cache for this connection so the next
       // isModelAvailable check fetches fresh quota data.
       if (status === 429) {
-        invalidateCodexQuotaCache(connectionId);
+        invalidateCodexQuotaCache(currentConnectionId);
       }
 
-      await updateProviderConnection(connectionId, {
+      await updateProviderConnection(currentConnectionId, {
         providerSpecificData: built.nextProviderData,
       });
 
@@ -2136,7 +2144,7 @@ export async function handleChatCore({
       const accountSemaphoreKey = resolveAccountSemaphoreKey({
         provider,
         model: modelToCall,
-        connectionId,
+        connectionId: executionCredentials?.connectionId || connectionId,
         credentials: executionCredentials,
       });
       // Upstream body preparation extracted to chatCore/upstreamBody.ts (#3501 — first internal
@@ -2656,6 +2664,7 @@ export async function handleChatCore({
     providerUrl = result.url;
     providerHeaders = result.headers;
     finalBody = providerRequestCapture.body(result.transformedBody);
+    const responseConnectionId = getCurrentConnectionId();
     effectiveServiceTier = resolveEffectiveServiceTier(finalBody);
     claudePromptCacheLogMeta = buildClaudePromptCacheLogMeta(
       targetFormat,
@@ -2674,7 +2683,7 @@ export async function handleChatCore({
     // Update rate limiter from response headers (learn limits dynamically)
     updateFromHeaders(
       provider,
-      connectionId,
+      responseConnectionId,
       providerResponse.headers,
       providerResponse.status,
       model
@@ -2684,7 +2693,7 @@ export async function handleChatCore({
     try {
       const { storeRateLimitHeaders } = await import("@/lib/quota/saturationSignals");
       storeRateLimitHeaders(
-        connectionId,
+        responseConnectionId,
         provider,
         providerResponse.headers as Record<string, string>
       );
@@ -2998,10 +3007,11 @@ export async function handleChatCore({
         `${decision.kind} (model remaining: ${decision.snapshot.modelRemaining ?? "unknown"}, total remaining: ${decision.snapshot.totalRemaining ?? "unknown"})`
       );
     }
-    if (connectionId && errorType) {
+    const errorConnectionId = getCurrentConnectionId();
+    if (errorConnectionId && errorType) {
       try {
         if (errorType === PROVIDER_ERROR_TYPES.FORBIDDEN) {
-          await updateProviderConnection(connectionId, {
+          await updateProviderConnection(errorConnectionId, {
             isActive: false,
             testStatus: "banned",
             lastErrorType: errorType,
@@ -3009,28 +3019,28 @@ export async function handleChatCore({
             errorCode: statusCode,
           });
           console.warn(
-            `[provider] Node ${connectionId} banned (${statusCode}) — disabling permanently`
+            `[provider] Node ${errorConnectionId} banned (${statusCode}) — disabling permanently`
           );
         } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
           // Plan A: if connection has extra API keys, don't disable — only the failing key is affected.
           // Single-key connections still get disabled as before.
           if (
             connectionHasExtraKeys(
-              connectionId,
+              errorConnectionId,
               (credentials?.providerSpecificData as Record<string, unknown> | undefined)
                 ?.extraApiKeys as string[] | undefined
             )
           ) {
-            await updateProviderConnection(connectionId, {
+            await updateProviderConnection(errorConnectionId, {
               lastErrorType: errorType,
               lastError: message,
               errorCode: statusCode,
             });
             console.warn(
-              `[provider] Node ${connectionId} account deactivated (${statusCode}) — has extra keys, keeping connection active`
+              `[provider] Node ${errorConnectionId} account deactivated (${statusCode}) — has extra keys, keeping connection active`
             );
           } else {
-            await updateProviderConnection(connectionId, {
+            await updateProviderConnection(errorConnectionId, {
               isActive: false,
               testStatus: "deactivated",
               lastErrorType: errorType,
@@ -3038,7 +3048,7 @@ export async function handleChatCore({
               errorCode: statusCode,
             });
             console.warn(
-              `[provider] Node ${connectionId} account deactivated (${statusCode}) — disabling permanently`
+              `[provider] Node ${errorConnectionId} account deactivated (${statusCode}) — disabling permanently`
             );
           }
         } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
@@ -3047,40 +3057,40 @@ export async function handleChatCore({
           const accountSemaphoreKey = resolveAccountSemaphoreKey({
             provider,
             model: currentModel,
-            connectionId,
+            connectionId: errorConnectionId,
             credentials,
           });
           if (accountSemaphoreKey) {
             markAccountSemaphoreBlocked(accountSemaphoreKey, quotaCooldownMs);
           }
-          if (isModelScope() && connectionId) {
-            lockModel(provider, connectionId, model, "quota_exhausted", quotaCooldownMs);
+          if (isModelScope() && errorConnectionId) {
+            lockModel(provider, errorConnectionId, model, "quota_exhausted", quotaCooldownMs);
             console.warn(
-              `[provider] Node ${connectionId} ModelScope model quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
+              `[provider] Node ${errorConnectionId} ModelScope model quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
             );
           } else if (
             lockModelIfPerModelQuota(
               provider,
-              connectionId,
+              errorConnectionId,
               model,
               "quota_exhausted",
               quotaCooldownMs
             )
           ) {
             console.warn(
-              `[provider] Node ${connectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
+              `[provider] Node ${errorConnectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
             );
           } else {
-            await updateProviderConnection(connectionId, {
+            await updateProviderConnection(errorConnectionId, {
               testStatus: "credits_exhausted",
               lastErrorType: errorType,
               lastError: message,
               errorCode: statusCode,
             });
-            console.warn(`[provider] Node ${connectionId} exhausted quota (${statusCode})`);
+            console.warn(`[provider] Node ${errorConnectionId} exhausted quota (${statusCode})`);
           }
         } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
-          await updateProviderConnection(connectionId, {
+          await updateProviderConnection(errorConnectionId, {
             isActive: false,
             testStatus: "expired",
             lastErrorType: errorType,
@@ -3088,34 +3098,34 @@ export async function handleChatCore({
             errorCode: statusCode,
           });
           console.warn(
-            `[provider] Node ${connectionId} account deactivated (${statusCode}) — marked expired`
+            `[provider] Node ${errorConnectionId} account deactivated (${statusCode}) — marked expired`
           );
         } else if (errorType === PROVIDER_ERROR_TYPES.UNAUTHORIZED) {
           // Normal 401 (token/session auth issue): keep account active for refresh/re-auth.
-          await updateProviderConnection(connectionId, {
+          await updateProviderConnection(errorConnectionId, {
             lastErrorType: errorType,
             lastError: message,
             errorCode: statusCode,
           });
         } else if (errorType === PROVIDER_ERROR_TYPES.OAUTH_INVALID_TOKEN) {
           // OAuth 401 with invalid credentials - token refresh can recover
-          await updateProviderConnection(connectionId, {
+          await updateProviderConnection(errorConnectionId, {
             lastErrorType: errorType,
             lastError: message,
             errorCode: statusCode,
           });
           console.warn(
-            `[provider] Node ${connectionId} OAuth token invalid (${statusCode}) — token refresh available`
+            `[provider] Node ${errorConnectionId} OAuth token invalid (${statusCode}) — token refresh available`
           );
         } else if (errorType === PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR) {
           // Cloud Code 403 with stale project: not a ban, keep account active.
-          await updateProviderConnection(connectionId, {
+          await updateProviderConnection(errorConnectionId, {
             lastErrorType: errorType,
             lastError: message,
             errorCode: statusCode,
           });
           console.warn(
-            `[provider] Node ${connectionId} project routing error (${statusCode}) — not banning`
+            `[provider] Node ${errorConnectionId} project routing error (${statusCode}) — not banning`
           );
         }
       } catch {
@@ -3123,9 +3133,12 @@ export async function handleChatCore({
       }
     }
 
-    appendRequestLog({ model, provider, connectionId, status: `FAILED ${statusCode}` }).catch(
-      () => {}
-    );
+    appendRequestLog({
+      model,
+      provider,
+      connectionId: errorConnectionId,
+      status: `FAILED ${statusCode}`,
+    }).catch(() => {});
 
     const errMsg = formatProviderError(new Error(message), provider, model, statusCode);
     console.log(`${COLORS.red}[ERROR] ${errMsg}${COLORS.reset}`);
@@ -3146,9 +3159,9 @@ export async function handleChatCore({
     );
 
     // Update rate limiter from error response headers
-    updateFromHeaders(provider, connectionId, providerResponse.headers, statusCode, model);
-    if (connectionId && upstreamErrorBody !== null && upstreamErrorBody !== undefined) {
-      updateFromResponseBody(provider, connectionId, upstreamErrorBody, statusCode, model);
+    updateFromHeaders(provider, errorConnectionId, providerResponse.headers, statusCode, model);
+    if (errorConnectionId && upstreamErrorBody !== null && upstreamErrorBody !== undefined) {
+      updateFromResponseBody(provider, errorConnectionId, upstreamErrorBody, statusCode, model);
     }
 
     // ── T5: Intra-family model fallback ──────────────────────────────────────
@@ -3501,9 +3514,10 @@ export async function handleChatCore({
     if (onRequestSuccess) {
       await onRequestSuccess();
     }
+    const successConnectionId = getCurrentConnectionId();
     await maybeSyncClaudeExtraUsageState({
       provider,
-      connectionId,
+      connectionId: successConnectionId,
       providerSpecificData: credentials?.providerSpecificData,
       log,
     });
@@ -3524,16 +3538,20 @@ export async function handleChatCore({
       skillRequestId,
       log,
     });
-    appendRequestLog({ model, provider, connectionId, tokens: usage, status: "200 OK" }).catch(
-      () => {}
-    );
+    appendRequestLog({
+      model,
+      provider,
+      connectionId: successConnectionId,
+      tokens: usage,
+      status: "200 OK",
+    }).catch(() => {});
 
     // Save structured call log with full payloads
     const cacheUsageLogMeta = buildCacheUsageLogMeta(usage);
     recordNonStreamingUsageStats(usage, {
       traceEnabled,
       provider,
-      connectionId,
+      connectionId: successConnectionId,
       model,
       startTime,
       apiKeyInfo,
@@ -3942,11 +3960,12 @@ export async function handleChatCore({
       streamFailureCompletionRecorded = true;
     }
     const cacheUsageLogMeta = buildCacheUsageLogMeta(streamUsage);
+    const streamConnectionId = getCurrentConnectionId();
 
     if (normalizedStreamStatus === 200) {
       void maybeSyncClaudeExtraUsageState({
         provider,
-        connectionId,
+        connectionId: streamConnectionId,
         providerSpecificData: credentials?.providerSpecificData,
         log,
       });
@@ -3973,7 +3992,7 @@ export async function handleChatCore({
       pendingRequestId,
       model,
       provider,
-      connectionId: connectionId || credentials?.connectionId || null,
+      connectionId: streamConnectionId,
       providerResponse: providerPayload ?? streamResponseBody ?? undefined,
       clientResponse: clientPayload ?? streamResponseBody ?? undefined,
       status: normalizedStreamStatus,
@@ -3992,7 +4011,7 @@ export async function handleChatCore({
       startTime,
       ttft,
       streamErrorCode,
-      connectionId,
+      connectionId: streamConnectionId,
       apiKeyInfo,
       effectiveServiceTier,
       isCombo,

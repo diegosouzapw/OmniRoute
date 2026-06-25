@@ -2,8 +2,8 @@
 // Characterization of persistAttemptLogs — the per-attempt call-log persistence extracted from
 // handleChatCore (chatCore god-file decomposition, #3501). Uses a real temp DB and polls the
 // persisted row (saveCallLog is async + fire-and-forget). Locks: the field mapping, the
-// cacheSource semantic/upstream normalization, the connectionId → credentials.connectionId
-// fallback, and error persistence.
+// cacheSource semantic/upstream normalization, final credentials.connectionId attribution,
+// credentials fallback, and error persistence.
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -63,7 +63,10 @@ after(() => {
 
 test("persists a call log row with the mapped fields (default cacheSource=upstream)", async () => {
   const id = "attempt-basic-1";
-  persistAttemptLogs({ status: 200, tokens: { input: 1, output: 2 } }, baseCtx({ pendingRequestId: id }));
+  persistAttemptLogs(
+    { status: 200, tokens: { input: 1, output: 2 } },
+    baseCtx({ pendingRequestId: id, credentials: { connectionId: "conn-1" } })
+  );
   const row = await pollForCallLog(id);
   assert.ok(row, "call log row should be persisted");
   assert.equal(row.status, 200);
@@ -74,12 +77,34 @@ test("persists a call log row with the mapped fields (default cacheSource=upstre
   assert.equal(row.cacheSource, "upstream");
 });
 
+test("uses final credentials connectionId when Codex failover rotates the account", async () => {
+  const id = "attempt-codex-rotation-1";
+  persistAttemptLogs(
+    { status: 200, tokens: { input: 1, output: 2 }, responseBody: { id: "response-1" } },
+    baseCtx({
+      pendingRequestId: id,
+      provider: "codex",
+      connectionId: "initial-conn",
+      credentials: { connectionId: "final-conn" },
+    })
+  );
+
+  const row = await pollForCallLog(id);
+  assert.ok(row);
+  assert.equal(row.connectionId, "final-conn");
+  assert.deepEqual((row.requestBody as any)?._omniroute?.codexAccountRotation, {
+    initialConnectionId: "initial-conn",
+    finalConnectionId: "final-conn",
+  });
+  assert.deepEqual((row.responseBody as any)?._omniroute?.codexAccountRotation, {
+    initialConnectionId: "initial-conn",
+    finalConnectionId: "final-conn",
+  });
+});
+
 test("cacheSource 'semantic' is preserved", async () => {
   const id = "attempt-semantic-1";
-  persistAttemptLogs(
-    { status: 200, cacheSource: "semantic" },
-    baseCtx({ pendingRequestId: id })
-  );
+  persistAttemptLogs({ status: 200, cacheSource: "semantic" }, baseCtx({ pendingRequestId: id }));
   const row = await pollForCallLog(id);
   assert.ok(row);
   assert.equal(row.cacheSource, "semantic");
