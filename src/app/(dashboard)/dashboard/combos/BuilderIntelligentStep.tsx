@@ -38,7 +38,7 @@ function toProviderOptions(activeProviders: any[] = [], candidatePool: string[] 
         ? provider.displayName
         : typeof provider?.providerName === "string" && provider.providerName.trim().length > 0
           ? provider.providerName
-          : AI_PROVIDERS[providerId]?.name || providerId;
+          : (AI_PROVIDERS as Record<string, any>)[providerId]?.name || providerId;
     const connectionCount =
       typeof provider?.activeConnectionCount === "number"
         ? provider.activeConnectionCount

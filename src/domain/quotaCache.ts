@@ -304,7 +304,8 @@ function hydrateQuotaCacheFromSnapshots(connectionId: string): QuotaCacheEntry |
     if (snapshotWindowDurationMs && snapshotWindowDurationMs > 0) {
       windowDurationMs = snapshotWindowDurationMs;
     }
-    const createdAtMs = parseDate(camelSnapshot.createdAt ?? snapshot.created_at);
+    const createdAtVal = camelSnapshot.createdAt ?? snapshot.created_at;
+    const createdAtMs = createdAtVal ? parseDate(createdAtVal) : null;
     if (createdAtMs !== null) fetchedAt = Math.max(fetchedAt, createdAtMs);
   }
 

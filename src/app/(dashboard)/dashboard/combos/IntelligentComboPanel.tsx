@@ -26,7 +26,7 @@ function formatProviderLabel(providerId: string, activeProviders: any[] = []) {
     return matchedProvider.displayName.trim();
   }
 
-  return AI_PROVIDERS[providerId]?.name || providerId;
+  return (AI_PROVIDERS as Record<string, any>)[providerId]?.name || providerId;
 }
 
 function countProvidersInScope(activeProviders: any[] = []) {
