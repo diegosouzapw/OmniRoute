@@ -598,11 +598,12 @@ function deriveCandidatePoolFromModels(models) {
   const providerIds = new Set<string>();
 
   for (const entry of models || []) {
-    if (entry?.kind === "combo-ref") continue;
+    if (!entry) continue;
+    if (entry.kind === "combo-ref") continue;
     const modelValue = getModelString(entry);
-    const parsed = parseQualifiedModel(modelValue);
+    const parsed = typeof modelValue === "string" ? parseQualifiedModel(modelValue) : null;
     const providerId =
-      typeof entry?.providerId === "string" && entry.providerId.trim().length > 0
+      typeof entry.providerId === "string" && entry.providerId.trim().length > 0
         ? entry.providerId.trim()
         : parsed?.providerId;
     if (providerId) providerIds.add(providerId);
