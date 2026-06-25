@@ -2136,17 +2136,6 @@ export async function handleChatCore({
 
   const executeProviderRequest = async (modelToCall = effectiveModel, allowDedup = false) => {
     const execute = async () => {
-      const executionCredentials = getExecutionCredentials();
-      // Track execution credentials for key health recording (to capture selectedKeyId)
-      let lastExecCreds = executionCredentials;
-      const accountSemaphoreMaxConcurrency =
-        resolveAccountSemaphoreMaxConcurrency(executionCredentials);
-      const accountSemaphoreKey = resolveAccountSemaphoreKey({
-        provider,
-        model: modelToCall,
-        connectionId: executionCredentials?.connectionId || connectionId,
-        credentials: executionCredentials,
-      });
       // Upstream body preparation extracted to chatCore/upstreamBody.ts (#3501 — first internal
       // sub-slice of executeProviderRequest); produces the body sent upstream (payload rules +
       // tool-limit truncation + qwen oauth user backfill + prompt_cache_key injection).
@@ -2164,90 +2153,105 @@ export async function handleChatCore({
         stage: "payload_prepared",
       });
 
-      trace("pre_semaphore", {
-        semaphoreKey: accountSemaphoreKey,
-        max: accountSemaphoreMaxConcurrency,
-      });
-      if (accountSemaphoreKey && accountSemaphoreMaxConcurrency != null) {
-        updatePendingScope(pendingScope, {
-          stage: "waiting_account_slot",
-        });
-      }
-      const acquireAccountSemaphoreRelease =
-        accountSemaphoreKey && accountSemaphoreMaxConcurrency != null
-          ? await acquireAccountSemaphore(accountSemaphoreKey, {
-              maxConcurrency: accountSemaphoreMaxConcurrency,
-              signal: streamController.signal,
-            })
-          : () => {};
-      trace("post_semaphore");
-      updatePendingScope(pendingScope, {
-        stage: "waiting_rate_limit",
-      });
-
+      let releaseRawResultAccountSemaphore = () => {};
       try {
-        trace("pre_rate_limit");
-        const rawResult = await withRateLimit(
-          provider,
-          connectionId,
-          modelToCall,
-          async () => {
-            trace("inside_rate_limit");
-            updatePendingScope(pendingScope, {
-              stage: "rate_limit_slot_acquired",
-            });
-            let attempts = 0;
-            const isModelScopeForRequest = isModelScope();
-            const maxAttempts = isModelScopeForRequest
+        const rawResult = await (async () => {
+          let attempts = 0;
+          const isModelScopeForRequest = isModelScope();
+          const maxAttempts = isModelScopeForRequest
+            ? 3
+            : provider === "qwen"
               ? 3
-              : provider === "qwen"
+              : provider === "codex"
                 ? 3
-                : provider === "codex"
-                  ? 3
-                  : 1;
+                : 1;
 
-            // ── Codex 429 account-rotation state ─────────────────────────────────
-            // Track excluded connection IDs for codex failover across attempts.
-            const codexExcludedIds: string[] = [];
-            // Derive session affinity key once for codex failover (used to clear affinity on 429).
-            const codexSessionAffinityKey =
-              provider === "codex"
-                ? (extractSessionAffinityKey(body, clientRawRequest?.headers) ?? null)
-                : null;
+          // ── Codex 429 account-rotation state ─────────────────────────────────
+          // Track excluded connection IDs for codex failover across attempts.
+          const codexExcludedIds: string[] = [];
+          // Derive session affinity key once for codex failover (used to clear affinity on 429).
+          const codexSessionAffinityKey =
+            provider === "codex"
+              ? (extractSessionAffinityKey(body, clientRawRequest?.headers) ?? null)
+              : null;
 
-            while (attempts < maxAttempts) {
-              trace("pre_executor", { attempt: attempts });
+          while (attempts < maxAttempts) {
+            trace("pre_executor", { attempt: attempts });
+            updatePendingScope(pendingScope, {
+              stage: "sending_to_provider",
+            });
+            const execCreds = getExecutionCredentials();
+            const attemptConnectionId = execCreds?.connectionId || connectionId;
+            const accountSemaphoreMaxConcurrency = resolveAccountSemaphoreMaxConcurrency(execCreds);
+            const accountSemaphoreKey = resolveAccountSemaphoreKey({
+              provider,
+              model: modelToCall,
+              connectionId: attemptConnectionId,
+              credentials: execCreds,
+            });
+
+            trace("pre_semaphore", {
+              semaphoreKey: accountSemaphoreKey,
+              max: accountSemaphoreMaxConcurrency,
+            });
+            if (accountSemaphoreKey && accountSemaphoreMaxConcurrency != null) {
               updatePendingScope(pendingScope, {
-                stage: "sending_to_provider",
+                stage: "waiting_account_slot",
               });
-              const execCreds = getExecutionCredentials();
-              const rawExecutorResult = await executeWithUpstreamStartTimeout({
-                executor,
+            }
+            const releaseAccountSemaphore =
+              accountSemaphoreKey && accountSemaphoreMaxConcurrency != null
+                ? await acquireAccountSemaphore(accountSemaphoreKey, {
+                    maxConcurrency: accountSemaphoreMaxConcurrency,
+                    signal: streamController.signal,
+                  })
+                : () => {};
+            trace("post_semaphore");
+            updatePendingScope(pendingScope, {
+              stage: "waiting_rate_limit",
+            });
+
+            try {
+              trace("pre_rate_limit", { connectionId: attemptConnectionId });
+              const rawExecutorResult = await withRateLimit(
                 provider,
-                model: modelToCall,
-                signal: streamController.signal,
-                log,
-                execute: (signal) =>
-                  runWithCapture(providerRequestCapture, () =>
-                    executor.execute({
-                      model: modelToCall,
-                      body: bodyToSend,
-                      stream: upstreamStream,
-                      credentials: execCreds,
-                      signal,
-                      log,
-                      extendedContext,
-                      upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
-                      clientHeaders: buildExecutorClientHeaders(
-                        clientRawRequest?.headers,
-                        userAgent
+                attemptConnectionId,
+                modelToCall,
+                async () => {
+                  trace("inside_rate_limit", { connectionId: attemptConnectionId });
+                  updatePendingScope(pendingScope, {
+                    stage: "rate_limit_slot_acquired",
+                  });
+                  return executeWithUpstreamStartTimeout({
+                    executor,
+                    provider,
+                    model: modelToCall,
+                    signal: streamController.signal,
+                    log,
+                    execute: (signal) =>
+                      runWithCapture(providerRequestCapture, () =>
+                        executor.execute({
+                          model: modelToCall,
+                          body: bodyToSend,
+                          stream: upstreamStream,
+                          credentials: execCreds,
+                          signal,
+                          log,
+                          extendedContext,
+                          upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
+                          clientHeaders: buildExecutorClientHeaders(
+                            clientRawRequest?.headers,
+                            userAgent
+                          ),
+                          onCredentialsRefreshed,
+                          skipUpstreamRetry,
+                          contextEditing: { enabled: contextEditingEnabled },
+                        })
                       ),
-                      onCredentialsRefreshed,
-                      skipUpstreamRetry,
-                      contextEditing: { enabled: contextEditingEnabled },
-                    })
-                  ),
-              });
+                  });
+                },
+                streamController.signal
+              );
               const res = normalizeExecutorResult(rawExecutorResult);
               trace("post_executor", { status: res?.response?.status });
 
@@ -2277,6 +2281,7 @@ export async function handleChatCore({
                 if (bodyPeek.toLowerCase().includes("exceeded your current quota")) {
                   const delay = 1500 * (attempts + 1);
                   log?.warn?.("QWEN_RETRY", `Quota 429 hit. Retrying in ${delay}ms...`);
+                  releaseAccountSemaphore();
                   await new Promise((r) => setTimeout(r, delay));
                   attempts++;
                   continue;
@@ -2296,6 +2301,7 @@ export async function handleChatCore({
                     "MODELSCOPE_RETRY",
                     `429 ${decision.kind}; retrying in ${delay}ms (model remaining: ${decision.snapshot.modelRemaining ?? "unknown"})`
                   );
+                  releaseAccountSemaphore();
                   await new Promise((r) => setTimeout(r, delay));
                   attempts++;
                   continue;
@@ -2309,7 +2315,8 @@ export async function handleChatCore({
                 res.response.status === 429 &&
                 attempts < maxAttempts - 1
               ) {
-                const failedConnectionId = credentials?.connectionId || connectionId;
+                const failedConnectionId =
+                  execCreds?.connectionId || credentials?.connectionId || connectionId;
                 const normalizedHeaders = normalizeHeaders(res.response.headers);
                 const retryAfterHeader = normalizedHeaders["retry-after"] ?? null;
                 const retryAfterMs = retryAfterHeader
@@ -2356,7 +2363,18 @@ export async function handleChatCore({
 
                 if (!nextCreds || nextCreds.allRateLimited) {
                   log?.warn?.("CODEX_FAILOVER", "No more codex accounts available — returning 429");
-                  return res;
+                  if (stream) {
+                    releaseAccountSemaphore();
+                    return {
+                      ...res,
+                      _executionCredentials: execCreds,
+                    };
+                  }
+                  return {
+                    ...res,
+                    _accountSemaphoreRelease: releaseAccountSemaphore,
+                    _executionCredentials: execCreds,
+                  };
                 }
 
                 const newConnectionId = nextCreds.connectionId;
@@ -2380,6 +2398,7 @@ export async function handleChatCore({
                 // Update credentials in-place so getExecutionCredentials() picks up the new account
                 Object.assign(credentials, nextCreds);
 
+                releaseAccountSemaphore();
                 attempts++;
                 continue;
               }
@@ -2388,7 +2407,7 @@ export async function handleChatCore({
               if (stream) {
                 const originalBody = res.response.body;
                 if (!originalBody) {
-                  acquireAccountSemaphoreRelease();
+                  releaseAccountSemaphore();
                   return res;
                 }
 
@@ -2480,7 +2499,7 @@ export async function handleChatCore({
                     originalBody as ReadableStream<Uint8Array>,
                     () => runUpstreamStream(bodyToSend),
                     {
-                      finalize: acquireAccountSemaphoreRelease,
+                      finalize: releaseAccountSemaphore,
                       onRetry: (attempt, err) =>
                         log?.warn?.(
                           "STREAM_RECOVERY",
@@ -2499,7 +2518,7 @@ export async function handleChatCore({
                 } else {
                   clientBody = wrapReadableStreamWithFinalize(
                     originalBody,
-                    acquireAccountSemaphoreRelease
+                    releaseAccountSemaphore
                   );
                 }
 
@@ -2518,11 +2537,14 @@ export async function handleChatCore({
               return {
                 ...res,
                 _executionCredentials: execCreds,
+                _accountSemaphoreRelease: releaseAccountSemaphore,
               };
+            } catch (error) {
+              releaseAccountSemaphore();
+              throw error;
             }
-          },
-          streamController.signal
-        );
+          }
+        })();
 
         if (stream) {
           return rawResult;
@@ -2538,6 +2560,10 @@ export async function handleChatCore({
         ) {
           recordKeyHealthStatus(status, rawResult._executionCredentials);
         }
+        releaseRawResultAccountSemaphore =
+          typeof rawResult._accountSemaphoreRelease === "function"
+            ? rawResult._accountSemaphoreRelease
+            : () => {};
 
         const statusText = rawResult.response.statusText;
         const headersObj = normalizeHeaders(rawResult.response.headers);
@@ -2549,7 +2575,8 @@ export async function handleChatCore({
           contentType,
           upstreamStream
         );
-        acquireAccountSemaphoreRelease();
+        releaseRawResultAccountSemaphore();
+        releaseRawResultAccountSemaphore = () => {};
 
         return {
           ...rawResult,
@@ -2567,7 +2594,7 @@ export async function handleChatCore({
           },
         };
       } catch (error) {
-        acquireAccountSemaphoreRelease();
+        releaseRawResultAccountSemaphore();
         throw error;
       }
     };
@@ -3089,17 +3116,6 @@ export async function handleChatCore({
             });
             console.warn(`[provider] Node ${errorConnectionId} exhausted quota (${statusCode})`);
           }
-        } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
-          await updateProviderConnection(errorConnectionId, {
-            isActive: false,
-            testStatus: "expired",
-            lastErrorType: errorType,
-            lastError: message,
-            errorCode: statusCode,
-          });
-          console.warn(
-            `[provider] Node ${errorConnectionId} account deactivated (${statusCode}) — marked expired`
-          );
         } else if (errorType === PROVIDER_ERROR_TYPES.UNAUTHORIZED) {
           // Normal 401 (token/session auth issue): keep account active for refresh/re-auth.
           await updateProviderConnection(errorConnectionId, {
