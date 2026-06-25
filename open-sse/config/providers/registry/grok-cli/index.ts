@@ -16,6 +16,6 @@ export const grok_cliProvider: RegistryEntry = {
   oauth: {
     clientIdEnv: "GROK_OAUTH_CLIENT_ID",
     clientIdDefault: "b1a00492-073a-47ea-816f-4c329264a828",
-    tokenUrl: "https://auth.x.ai/oauth/token",
+    tokenUrl: "https://auth.x.ai/oauth2/token",
   },
 };
