@@ -61,25 +61,23 @@ used when neither a DB override nor an environment variable is present.
 | `PII_RESPONSE_SANITIZATION_MODE` | enum    | `redact` | Mode for PII response sanitization. Values: `redact`, `warn`, `block`, `off`. |
 | `OUTBOUND_SSRF_GUARD_ENABLED`    | boolean | `true`   | Block outbound requests to private/internal IP ranges.                        |
 
-### Network (7)
+### Network (6)
 
 | Key                                             | Type    | Default | Restart | Description                                                                                                                                                                        |
 | ----------------------------------------------- | ------- | ------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ENABLE_TLS_FINGERPRINT`                        | boolean | `false` | ✓       | Enable TLS fingerprint stealth mode.                                                                                                                                               |
-| `ONEPROXY_ENABLED`                              | boolean | `true`  |         | Enable 1proxy request proxying.                                                                                                                                                    |
 | `PROXY_AUTO_SELECT_ENABLED`                     | boolean | `false` |         | When no proxy is assigned to a connection, auto-select the first working proxy from the registry. Off by default (otherwise any registry proxy becomes a global fallback — #3332). |
 | `OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK` | boolean | `false` |         | Allow OAuth and provider validation flows to bypass a pinned proxy and connect directly when proxy reachability pre-checks fail. Off by default because this can change egress IP. |
 | `MITM_DISABLE_TLS_VERIFY`                       | boolean | `false` | ✓       | Disable TLS certificate verification for the MITM proxy. **Danger.**                                                                                                               |
 | `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`         | boolean | `false` |         | Allow provider URLs pointing to private/internal networks.                                                                                                                         |
 | `ENABLE_CC_COMPATIBLE_PROVIDER`                 | boolean | `false` | ✓       | Enable Claude Code compatible provider mode.                                                                                                                                       |
 
-### Policies (3)
+### Policies (2)
 
-| Key                                       | Type    | Default    | Restart | Description                                                            |
-| ----------------------------------------- | ------- | ---------- | ------- | ---------------------------------------------------------------------- |
-| `TOOL_POLICY_MODE`                        | enum    | `disabled` |         | Tool-use policy enforcement mode. Values: `disabled`, `warn`, `block`. |
-| `RATE_LIMIT_AUTO_ENABLE`                  | boolean | `false`    |         | Automatically enable rate limiting based on usage patterns.            |
-| `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE` | boolean | `false`    | ✓       | Allow multiple connections per compatibility node.                     |
+| Key                                       | Type    | Default | Restart | Description                                                 |
+| ----------------------------------------- | ------- | ------- | ------- | ----------------------------------------------------------- |
+| `RATE_LIMIT_AUTO_ENABLE`                  | boolean | `false` |         | Automatically enable rate limiting based on usage patterns. |
+| `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE` | boolean | `false` | ✓       | Allow multiple connections per compatibility node.          |
 
 ### Runtime (10)
 

@@ -118,17 +118,6 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
   {
-    key: "ONEPROXY_ENABLED",
-    label: "OneProxy Enabled",
-    description: "Enable 1proxy request proxying.",
-    descriptionI18nKey: "settings.featureFlags.oneproxyEnabled",
-    category: "network",
-    defaultValue: "true",
-    type: "boolean",
-    requiresRestart: false,
-    warningLevel: "info",
-  },
-  {
     key: "PROXY_AUTO_SELECT_ENABLED",
     label: "Proxy Auto-Selection Fallback",
     description:
@@ -186,19 +175,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
 
-  // ──────────────── Policies (3) ────────────────
-  {
-    key: "TOOL_POLICY_MODE",
-    label: "Tool Policy Mode",
-    description: "Set the tool use policy enforcement mode",
-    descriptionI18nKey: "featureFlagToolPolicyModeDescription",
-    category: "policies",
-    defaultValue: "disabled",
-    type: "enum",
-    enumValues: ["disabled", "warn", "block"],
-    requiresRestart: false,
-    warningLevel: "info",
-  },
+  // ──────────────── Policies (2) ────────────────
   {
     key: "RATE_LIMIT_AUTO_ENABLE",
     label: "Rate Limit Auto-Enable",

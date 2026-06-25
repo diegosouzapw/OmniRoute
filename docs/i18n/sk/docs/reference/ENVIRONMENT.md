@@ -184,9 +184,8 @@ OmniRoute provides a two-layer defense: request-side injection scanning and resp
 
 ## 6. Tool & Routing Policies
 
-| Variable           | Default    | Source File             | Description                                                                                                                               |
-| ------------------ | ---------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `TOOL_POLICY_MODE` | `disabled` | `src/lib/toolPolicy.ts` | Controls LLM tool/function-calling access. `allowlist` = only listed tools, `denylist` = all except listed, `disabled` = no restrictions. |
+| Variable | Default | Source File | Description |
+| -------- | ------- | ----------- | ----------- |
 
 ---
 
@@ -485,18 +484,18 @@ The logging system writes to both stdout and rotated log files. All configuratio
 
 ## 17. Memory Optimization
 
-| Variable                   | Default                         | Description                                                            |
-| -------------------------- | ------------------------------- | ---------------------------------------------------------------------- |
-| `OMNIROUTE_MEMORY_MB`      | `512`                           | Runtime V8 heap limit. Docker standalone and `omniroute serve` use it to set `--max-old-space-size`. |
-| `PROMPT_CACHE_MAX_SIZE`    | `50`                            | Max cached system prompt entries.                                      |
-| `PROMPT_CACHE_MAX_BYTES`   | `2097152` (2 MB)                | Max total prompt cache size.                                           |
-| `PROMPT_CACHE_TTL_MS`      | `300000` (5 min)                | Prompt cache entry TTL.                                                |
-| `SEMANTIC_CACHE_MAX_SIZE`  | `100`                           | Max cached temperature=0 responses.                                    |
-| `SEMANTIC_CACHE_MAX_BYTES` | `4194304` (4 MB)                | Max total semantic cache size.                                         |
-| `SEMANTIC_CACHE_TTL_MS`    | `1800000` (30 min)              | Semantic cache entry TTL.                                              |
-| `STREAM_HISTORY_MAX`       | `50`                            | Max recent stream events in the Dashboard live view buffer.            |
-| `CONTEXT_LENGTH_DEFAULT`   | `128000`                        | Global fallback max context length for models without explicit config. |
-| `USAGE_TOKEN_BUFFER`       | `100`                           | Extra token headroom reserved when tracking usage quotas.              |
+| Variable                   | Default            | Description                                                                                          |
+| -------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_MEMORY_MB`      | `512`              | Runtime V8 heap limit. Docker standalone and `omniroute serve` use it to set `--max-old-space-size`. |
+| `PROMPT_CACHE_MAX_SIZE`    | `50`               | Max cached system prompt entries.                                                                    |
+| `PROMPT_CACHE_MAX_BYTES`   | `2097152` (2 MB)   | Max total prompt cache size.                                                                         |
+| `PROMPT_CACHE_TTL_MS`      | `300000` (5 min)   | Prompt cache entry TTL.                                                                              |
+| `SEMANTIC_CACHE_MAX_SIZE`  | `100`              | Max cached temperature=0 responses.                                                                  |
+| `SEMANTIC_CACHE_MAX_BYTES` | `4194304` (4 MB)   | Max total semantic cache size.                                                                       |
+| `SEMANTIC_CACHE_TTL_MS`    | `1800000` (30 min) | Semantic cache entry TTL.                                                                            |
+| `STREAM_HISTORY_MAX`       | `50`               | Max recent stream events in the Dashboard live view buffer.                                          |
+| `CONTEXT_LENGTH_DEFAULT`   | `128000`           | Global fallback max context length for models without explicit config.                               |
+| `USAGE_TOKEN_BUFFER`       | `100`              | Extra token headroom reserved when tracking usage quotas.                                            |
 
 ### Low-RAM Docker Example
 
