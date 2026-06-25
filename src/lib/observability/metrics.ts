@@ -80,6 +80,10 @@ const LABEL_ALLOWLIST = {
   omniroute_cache_misses_total: ["layer"],
   omniroute_quota_remaining: ["provider", "model"],
   omniroute_quota_limit: ["provider", "model"],
+  omniroute_compression_runs_total: ["mode", "engine", "combo_id", "fallback"],
+  omniroute_compression_savings_ratio: ["mode", "engine", "combo_id"],
+  omniroute_compression_duration_seconds: ["mode", "engine"],
+  omniroute_compression_tokens_total: ["direction", "mode", "engine"],
 } as const;
 
 type AllowedLabel<F extends keyof typeof LABEL_ALLOWLIST> =
@@ -373,6 +377,153 @@ export function recordCacheMiss(layer: "memory" | "disk" | "prompt" | "provider"
     family.values.set(key, series);
   }
   series.value = (series.value ?? 0) + 1;
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// Compression telemetry (PR-006)
+// ───────────────────────────────────────────────────────────────────────────
+
+/** Histogram buckets for compression run duration, in seconds. */
+const COMPRESSION_DURATION_BUCKETS = [
+  0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5,
+] as const;
+
+/**
+ * Record one compression run. Emits four metric families:
+ *
+ *  - omniroute_compression_runs_total (counter, by mode/engine/combo/fallback)
+ *  - omniroute_compression_savings_ratio (gauge, by mode/engine/combo)
+ *  - omniroute_compression_duration_seconds (histogram, by mode/engine)
+ *  - omniroute_compression_tokens_total (counter, direction=original|compressed)
+ *
+ * Designed to be called from {@link open-sse/services/compression/telemetry.ts}
+ * but lives here so the label allow-list and registry are co-located with the
+ * other families. Never throws — swallows registry errors after logging at
+ * debug level so compression callers can fire-and-forget.
+ */
+export function recordCompressionRun(opts: {
+  mode: string;
+  engine: string;
+  comboId: string | null | undefined;
+  fallbackApplied: boolean | undefined;
+  savingsPercent: number;
+  durationMs: number | undefined;
+  originalTokens: number;
+  compressedTokens: number;
+}): void {
+  try {
+    const fallbackLabel = opts.fallbackApplied ? "true" : "false";
+    const comboLabel = opts.comboId ?? "none";
+
+    // Counter: runs_total
+    const runsFamily = ensureFamily(
+      "omniroute_compression_runs_total",
+      "Compression runs by mode/engine/combo/fallback.",
+      "counter"
+    );
+    const runsLabels = validateLabels("omniroute_compression_runs_total", {
+      mode: opts.mode,
+      engine: opts.engine,
+      combo_id: comboLabel,
+      fallback: fallbackLabel,
+    });
+    const runsKey = labelKey(runsLabels);
+    let runsSeries = runsFamily.values.get(runsKey);
+    if (!runsSeries) {
+      runsSeries = { value: 0, labels: runsLabels };
+      runsFamily.values.set(runsKey, runsSeries);
+    }
+    runsSeries.value = (runsSeries.value ?? 0) + 1;
+
+    // Gauge: savings_ratio (latest observed per label-set)
+    const savingsFamily = ensureFamily(
+      "omniroute_compression_savings_ratio",
+      "Most recent savings ratio observed per mode/engine/combo (0..1).",
+      "gauge"
+    );
+    const savingsLabels = validateLabels("omniroute_compression_savings_ratio", {
+      mode: opts.mode,
+      engine: opts.engine,
+      combo_id: comboLabel,
+    });
+    const savingsKey = labelKey(savingsLabels);
+    let savingsSeries = savingsFamily.values.get(savingsKey);
+    if (!savingsSeries) {
+      savingsSeries = { value: opts.savingsPercent, labels: savingsLabels };
+      savingsFamily.values.set(savingsKey, savingsSeries);
+    } else {
+      savingsSeries.value = opts.savingsPercent;
+    }
+
+    // Histogram: duration_seconds
+    if (typeof opts.durationMs === "number" && Number.isFinite(opts.durationMs)) {
+      const durationFamily = ensureFamily(
+        "omniroute_compression_duration_seconds",
+        "Compression run duration in seconds.",
+        "histogram",
+        COMPRESSION_DURATION_BUCKETS
+      );
+      const durationLabels = validateLabels("omniroute_compression_duration_seconds", {
+        mode: opts.mode,
+        engine: opts.engine,
+      });
+      const durationKey = labelKey(durationLabels);
+      let durationSeries = durationFamily.values.get(durationKey);
+      if (!durationSeries) {
+        durationSeries = makeHistogramSeries(COMPRESSION_DURATION_BUCKETS);
+        durationSeries.labels = durationLabels;
+        durationFamily.values.set(durationKey, durationSeries);
+      }
+      const seconds = Math.max(0, opts.durationMs / 1000);
+      for (const bucket of COMPRESSION_DURATION_BUCKETS) {
+        if (seconds <= bucket) {
+          durationSeries.buckets!.set(
+            bucket.toString(),
+            (durationSeries.buckets!.get(bucket.toString()) ?? 0) + 1
+          );
+        }
+      }
+      durationSeries.count = (durationSeries.count ?? 0) + 1;
+      durationSeries.sum = (durationSeries.sum ?? 0) + seconds;
+    }
+
+    // Counter: tokens_total (direction=original|compressed)
+    const tokensFamily = ensureFamily(
+      "omniroute_compression_tokens_total",
+      "Total tokens observed by direction/mode/engine.",
+      "counter"
+    );
+    const origLabels = validateLabels("omniroute_compression_tokens_total", {
+      direction: "original",
+      mode: opts.mode,
+      engine: opts.engine,
+    });
+    const origKey = labelKey(origLabels);
+    let origSeries = tokensFamily.values.get(origKey);
+    if (!origSeries) {
+      origSeries = { value: 0, labels: origLabels };
+      tokensFamily.values.set(origKey, origSeries);
+    }
+    origSeries.value = (origSeries.value ?? 0) + Math.max(0, opts.originalTokens);
+
+    const compLabels = validateLabels("omniroute_compression_tokens_total", {
+      direction: "compressed",
+      mode: opts.mode,
+      engine: opts.engine,
+    });
+    const compKey = labelKey(compLabels);
+    let compSeries = tokensFamily.values.get(compKey);
+    if (!compSeries) {
+      compSeries = { value: 0, labels: compLabels };
+      tokensFamily.values.set(compKey, compSeries);
+    }
+    compSeries.value = (compSeries.value ?? 0) + Math.max(0, opts.compressedTokens);
+  } catch (err) {
+    if (process.env.OMNIROUTE_TELEMETRY_DEBUG === "1") {
+      // eslint-disable-next-line no-console
+      console.warn("[metrics] recordCompressionRun failed:", err);
+    }
+  }
 }
 
 /** Update process metrics (heap, rss, event-loop lag). Called every 15s. */

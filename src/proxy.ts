@@ -1,9 +1,12 @@
 import type { NextRequest } from "next/server";
 import { runAuthzPipeline } from "./server/authz/pipeline";
+import { withProxySpan } from "@/lib/observability/proxySpan";
 
-export async function proxy(request: NextRequest) {
+async function proxyHandler(request: NextRequest) {
   return runAuthzPipeline(request, { enforce: true });
 }
+
+export const proxy = withProxySpan(proxyHandler);
 
 export const config = {
   matcher: [

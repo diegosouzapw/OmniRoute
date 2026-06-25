@@ -53,6 +53,7 @@ export {
   recordQuotaRemaining,
   recordCacheHit,
   recordCacheMiss,
+  recordCompressionRun,
   setProcessMetrics,
 } from "./metrics";
 

@@ -69,6 +69,20 @@ async function ensureSecrets(): Promise<void> {
 }
 
 export async function registerNodejs(): Promise<void> {
+  // Initialize observability FIRST (before any HTTP requests, so spans can attach).
+  // The bootstrap is default-off (OTEL_SDK_DISABLED=true) so this is a near no-op
+  // when not enabled. Reads OTEL_SERVICE_NAME / OTEL_EXPORTER_OTLP_ENDPOINT /
+  // OTEL_RESOURCE_ATTRIBUTES from env to configure resource + exporter.
+  try {
+    const { initTelemetry, setProcessMetrics } = await import("@/lib/observability");
+    await initTelemetry({ source: "instrumentation-node" });
+    setProcessMetrics();
+    console.log("[STARTUP] Observability telemetry initialized");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Observability init failed (non-fatal):", msg);
+  }
+
   // Initialize proxy fetch patch FIRST (before any HTTP requests)
   await import("@omniroute/open-sse/index.ts");
   console.log("[STARTUP] Global fetch proxy patch initialized");

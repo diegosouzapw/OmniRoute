@@ -10,6 +10,31 @@ import { normalizeComboRecord } from "@/lib/combos/steps";
 
 type JsonRecord = Record<string, unknown>;
 
+/**
+ * Public shape returned by the combos DB layer.
+ *
+ * `JsonRecord`-typed accessors leak `unknown` into every consumer and force
+ * defensive casts at the route boundary. This type gives callers the
+ * structural guarantees that the normalization pipeline actually produces,
+ * so `getCombos()` / `getComboById()` / `getComboByName()` can return a
+ * precise shape and downstream `ComboLike` casts narrow correctly.
+ */
+export type ComboRecord = JsonRecord & {
+  name?: string;
+  strategy?: string;
+  models?: unknown[];
+  config?: JsonRecord;
+  autoConfig?: JsonRecord;
+  context_cache_protection?: JsonRecord;
+  system_message?: string;
+  isHidden?: boolean;
+  sortOrder?: number;
+  isActive?: boolean;
+  id?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
@@ -90,7 +115,7 @@ function getNextSortOrder() {
   return (sortOrder ?? 0) + 1;
 }
 
-export async function getCombos() {
+export async function getCombos(): Promise<ComboRecord[]> {
   const db = getDbInstance();
   const rawCombos = db
     .prepare("SELECT data, sort_order, context_cache_protection FROM combos ORDER BY sort_order ASC, name COLLATE NOCASE ASC")
@@ -109,7 +134,7 @@ export async function getCombos() {
   );
 }
 
-export async function getComboById(id: string) {
+export async function getComboById(id: string): Promise<ComboRecord | null> {
   const db = getDbInstance();
   const row = db.prepare("SELECT data, sort_order, context_cache_protection FROM combos WHERE id = ?").get(id);
   const combo = parseComboRow(row);
@@ -117,7 +142,7 @@ export async function getComboById(id: string) {
   return normalizeStoredCombo(combo, db, typeof combo.name === "string" ? [combo.name] : []);
 }
 
-export async function getComboByName(name: string) {
+export async function getComboByName(name: string): Promise<ComboRecord | null> {
   const db = getDbInstance();
   const row = db.prepare("SELECT data, sort_order, context_cache_protection FROM combos WHERE name = ?").get(name);
   const combo = parseComboRow(row);
