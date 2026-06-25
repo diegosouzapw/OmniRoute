@@ -10,8 +10,8 @@
  * attempt. Results are memoized per-token for the process lifetime to
  * avoid redundant round-trips.
  *
- * Based on AntigravityService.loadCodeAssist() in
- * src/lib/oauth/services/antigravity.ts and the CLIProxyAPI reference
+ * Based on the Antigravity OAuth provider metadata in
+ * src/lib/oauth/providers/antigravity.ts and the CLIProxyAPI reference
  * implementation in internal/runtime/executor/antigravity_executor.go.
  */
 
