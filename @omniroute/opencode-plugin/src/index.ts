@@ -4406,8 +4406,24 @@ export function createOmniRouteConfigHook(
       authJson = undefined;
     }
 
-    const entry = authJson?.[resolved.providerId] as AuthJsonApiEntry | undefined;
-    const apiKey = entry && entry.type === "api" && typeof entry.key === "string" ? entry.key : "";
+    // Try both prefixed (e.g. opencode-omniroute) and unprefixed (e.g. omniroute)
+    // keys so a user who ran `/connect omniroute` before the auto-prefix fix
+    // does not need to re-auth. Also handles dual-key for auth.json entries
+    // written by a newer OC dispatcher with the prefixed key.
+    const bareKey = resolved.providerId.startsWith("opencode-")
+      ? resolved.providerId.slice("opencode-".length)
+      : resolved.providerId;
+    const lookupKeys = [resolved.providerId];
+    if (bareKey !== resolved.providerId) lookupKeys.push(bareKey);
+    let entry;
+    for (const k of lookupKeys) {
+      const e = authJson?.[k];
+      if (e?.type === "api" && typeof e.key === "string" && e.key.length > 0) {
+        entry = e;
+        break;
+      }
+    }
+    const apiKey = entry?.type === "api" && typeof entry.key === "string" ? entry.key : "";
 
     if (!apiKey) {
       // (c) no apiKey — silent no-op (with debug breadcrumb). The operator
