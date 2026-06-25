@@ -9,6 +9,7 @@ lastUpdated: 2026-06-08
 > **TL;DR**: OmniRoute uses **SQLite with WAL journaling** as its primary store, with **AES-256-GCM** encryption at rest for sensitive fields. This guide covers the schema, migrations, backup/recovery, and operational runbooks.
 
 **Sources:**
+
 - `src/lib/db/core.ts` — singleton + SCHEMA_SQL (17 base tables)
 - `src/lib/db/migrationRunner.ts` — versioned migrations
 - `src/lib/db/migrations/` — 94 versioned SQL files
@@ -22,14 +23,14 @@ lastUpdated: 2026-06-08
 
 OmniRoute chose SQLite over PostgreSQL/MySQL for several reasons:
 
-| Factor | SQLite | PostgreSQL |
-|--------|--------|-----------|
-| **Deployment** | Embedded — no separate server | Requires server setup |
-| **Encryption** | Application-layer (AES-256-GCM) | Built-in TDE |
+| Factor          | SQLite                            | PostgreSQL                        |
+| --------------- | --------------------------------- | --------------------------------- |
+| **Deployment**  | Embedded — no separate server     | Requires server setup             |
+| **Encryption**  | Application-layer (AES-256-GCM)   | Built-in TDE                      |
 | **Performance** | Faster for small/medium workloads | Better for huge concurrent writes |
-| **Concurrency** | WAL mode allows concurrent reads | Full MVCC |
-| **Backup** | Single-file copy | `pg_dump` or filesystem snapshot |
-| **Use case** | Per-user install, embedded | Multi-tenant SaaS |
+| **Concurrency** | WAL mode allows concurrent reads  | Full MVCC                         |
+| **Backup**      | Single-file copy                  | `pg_dump` or filesystem snapshot  |
+| **Use case**    | Per-user install, embedded        | Multi-tenant SaaS                 |
 
 For **single-user, single-instance** deployments (the primary OmniRoute use case), SQLite is simpler and faster.
 
@@ -54,12 +55,12 @@ WAL allows **concurrent reads** during writes — important for the dashboard, w
 
 The SQLite file is stored at:
 
-| OS | Path |
-|----|------|
-| Linux | `~/.omniroute/storage.sqlite` |
-| macOS | `~/.omniroute/storage.sqlite` |
-| Windows | `%USERPROFILE%\.omniroute\storage.sqlite` |
-| Docker | `/app/data/storage.sqlite` (configurable via `DATA_DIR`) |
+| OS      | Path                                                     |
+| ------- | -------------------------------------------------------- |
+| Linux   | `~/.omniroute/storage.sqlite`                            |
+| macOS   | `~/.omniroute/storage.sqlite`                            |
+| Windows | `%USERPROFILE%\.omniroute\storage.sqlite`                |
+| Docker  | `/app/data/storage.sqlite` (configurable via `DATA_DIR`) |
 
 Companion files:
 
@@ -88,30 +89,29 @@ OmniRoute's database has **76 domain modules** in `src/lib/db/`. Each module:
 
 OmniRoute has **76 module files** in `src/lib/db/`. Below is a sampling of core modules; see the directory listing for the complete list:
 
-| Module | Tables | Responsibility |
-|--------|--------|----------------|
-| `providers.ts` | `provider_connections` | OAuth/API key provider registration and credentials |
-| `models.ts` | `key_value` (model data) | Model definitions, capabilities, pricing |
-| `combos.ts` | `combos` | Combo routing configs and ordering |
-| `apiKeys.ts` | `api_keys` | API key lifecycle, scopes, quota tracking |
-| `settings.ts` | `key_value`, `api_keys`, `combos` | System configuration and shared KV store |
-| `backup.ts` | — | Backup export/import operations |
-| `proxies.ts` | `proxy_registry`, `proxy_assignments`, `provider_connections` | Proxy configs and routing rules |
-| `prompts.ts` | `prompt_templates` | Reusable prompt templates, versioning |
-| `webhooks.ts` | `webhooks` | Event-driven webhook subscriptions and logs |
-| `detailedLogs.ts` | `request_detail_logs` | Per-request audit logging (optional, high volume) |
-| `domainState.ts` | `domain_*` (5 tables) | Domain budgets, circuit breakers, lockouts, fallback chains, cost history |
-| `registeredKeys.ts` | `registered_keys`, `account_key_limits`, `provider_key_limits` | Whitelisted API keys for MCP/A2A |
-| `quotaSnapshots.ts` | `quota_snapshots` | Historical quota usage |
-| `modelComboMappings.ts` | `model_combo_mappings` | Map models to combo defaults |
-| `cliToolState.ts` | `cli_tool_state` | CLI-specific persistent state |
-| `encryption.ts` | — | Helpers for encrypting/decrypting fields |
-| `readCache.ts` | — | In-memory cache for read-heavy ops |
-| `secrets.ts` | `key_value` (encrypted entries) | Encrypted secret storage |
-| `stateReset.ts` | — | Wipe/reset DB state for testing |
-| `contextHandoffs.ts` | `context_handoffs` | Session context for agent handoff |
-| `usage*.ts` | `usage_history`, `call_logs`, `proxy_logs` | Usage tracking |
-| `compression*.ts` | `compression_settings`, `compression_combos` | Compression config |
+| Module                  | Tables                                                         | Responsibility                                                            |
+| ----------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `providers.ts`          | `provider_connections`                                         | OAuth/API key provider registration and credentials                       |
+| `models.ts`             | `key_value` (model data)                                       | Model definitions, capabilities, pricing                                  |
+| `combos.ts`             | `combos`                                                       | Combo routing configs and ordering                                        |
+| `apiKeys.ts`            | `api_keys`                                                     | API key lifecycle, scopes, quota tracking                                 |
+| `settings.ts`           | `key_value`, `api_keys`, `combos`                              | System configuration and shared KV store                                  |
+| `backup.ts`             | —                                                              | Backup export/import operations                                           |
+| `proxies.ts`            | `proxy_registry`, `proxy_assignments`, `provider_connections`  | Proxy configs and routing rules                                           |
+| `webhooks.ts`           | `webhooks`                                                     | Event-driven webhook subscriptions and logs                               |
+| `detailedLogs.ts`       | `request_detail_logs`                                          | Per-request audit logging (optional, high volume)                         |
+| `domainState.ts`        | `domain_*` (5 tables)                                          | Domain budgets, circuit breakers, lockouts, fallback chains, cost history |
+| `registeredKeys.ts`     | `registered_keys`, `account_key_limits`, `provider_key_limits` | Whitelisted API keys for MCP/A2A                                          |
+| `quotaSnapshots.ts`     | `quota_snapshots`                                              | Historical quota usage                                                    |
+| `modelComboMappings.ts` | `model_combo_mappings`                                         | Map models to combo defaults                                              |
+| `cliToolState.ts`       | `cli_tool_state`                                               | CLI-specific persistent state                                             |
+| `encryption.ts`         | —                                                              | Helpers for encrypting/decrypting fields                                  |
+| `readCache.ts`          | —                                                              | In-memory cache for read-heavy ops                                        |
+| `secrets.ts`            | `key_value` (encrypted entries)                                | Encrypted secret storage                                                  |
+| `stateReset.ts`         | —                                                              | Wipe/reset DB state for testing                                           |
+| `contextHandoffs.ts`    | `context_handoffs`                                             | Session context for agent handoff                                         |
+| `usage*.ts`             | `usage_history`, `call_logs`, `proxy_logs`                     | Usage tracking                                                            |
+| `compression*.ts`       | `compression_settings`, `compression_combos`                   | Compression config                                                        |
 
 ### Module Boundaries
 
@@ -136,29 +136,30 @@ This rule is enforced by code review — there's no static check, but violations
 
 ### Core Tables (created in initial migration)
 
-| Table | Purpose | Key columns |
-|-------|---------|-------------|
-| `provider_connections` | Provider credentials (encrypted) | `id`, `provider`, `auth_type`, `api_key`, `is_active` |
-| `provider_nodes` | Provider node routing info | `id`, `type`, `name`, `base_url`, `created_at` |
-| `key_value` | General KV store | `namespace`, `key`, `value` |
-| `combos` | Routing combo definitions | `id`, `name`, `data`, `sort_order` |
-| `api_keys` | API keys for the gateway | `id`, `name`, `key`, `machine_id`, `allowed_models` |
-| `db_meta` | Database metadata | `key`, `value` |
-| `usage_history` | Request usage records | `id`, `provider`, `model`, `tokens_input`, `tokens_output`, `timestamp` |
-| `call_logs` | Request payloads & responses | `id`, `timestamp`, `status`, `model`, `provider`, `latency_ms` |
-| `proxy_logs` | Proxy request logs | `id`, `timestamp`, `proxy_type`, `status`, `provider` |
-| `domain_fallback_chains` | Model-to-provider chains | `model`, `chain` |
-| `domain_budgets` | Per-domain spend budgets | `api_key_id`, `daily_limit_usd`, `warning_threshold`, `reset_interval` |
-| `domain_budget_reset_logs` | Budget reset history | `id`, `api_key_id`, `reset_interval`, `previous_spend`, `reset_at` |
-| `domain_cost_history` | Per-domain cost tracking | `id`, `api_key_id`, `cost`, `timestamp` |
-| `domain_lockout_state` | Domain rate-limit state | `identifier`, `attempts`, `locked_until` |
-| `domain_circuit_breakers` | Circuit breaker state per domain | `name`, `state`, `failure_count`, `last_failure_time` |
-| `semantic_cache` | LLM response cache | `id`, `signature`, `model`, `prompt_hash`, `response` |
-| `quota_snapshots` | Historical quota snapshots | `id`, `provider`, `connection_id`, `window_key`, `remaining_percentage` |
+| Table                      | Purpose                          | Key columns                                                             |
+| -------------------------- | -------------------------------- | ----------------------------------------------------------------------- |
+| `provider_connections`     | Provider credentials (encrypted) | `id`, `provider`, `auth_type`, `api_key`, `is_active`                   |
+| `provider_nodes`           | Provider node routing info       | `id`, `type`, `name`, `base_url`, `created_at`                          |
+| `key_value`                | General KV store                 | `namespace`, `key`, `value`                                             |
+| `combos`                   | Routing combo definitions        | `id`, `name`, `data`, `sort_order`                                      |
+| `api_keys`                 | API keys for the gateway         | `id`, `name`, `key`, `machine_id`, `allowed_models`                     |
+| `db_meta`                  | Database metadata                | `key`, `value`                                                          |
+| `usage_history`            | Request usage records            | `id`, `provider`, `model`, `tokens_input`, `tokens_output`, `timestamp` |
+| `call_logs`                | Request payloads & responses     | `id`, `timestamp`, `status`, `model`, `provider`, `latency_ms`          |
+| `proxy_logs`               | Proxy request logs               | `id`, `timestamp`, `proxy_type`, `status`, `provider`                   |
+| `domain_fallback_chains`   | Model-to-provider chains         | `model`, `chain`                                                        |
+| `domain_budgets`           | Per-domain spend budgets         | `api_key_id`, `daily_limit_usd`, `warning_threshold`, `reset_interval`  |
+| `domain_budget_reset_logs` | Budget reset history             | `id`, `api_key_id`, `reset_interval`, `previous_spend`, `reset_at`      |
+| `domain_cost_history`      | Per-domain cost tracking         | `id`, `api_key_id`, `cost`, `timestamp`                                 |
+| `domain_lockout_state`     | Domain rate-limit state          | `identifier`, `attempts`, `locked_until`                                |
+| `domain_circuit_breakers`  | Circuit breaker state per domain | `name`, `state`, `failure_count`, `last_failure_time`                   |
+| `semantic_cache`           | LLM response cache               | `id`, `signature`, `model`, `prompt_hash`, `response`                   |
+| `quota_snapshots`          | Historical quota snapshots       | `id`, `provider`, `connection_id`, `window_key`, `remaining_percentage` |
 
 ### Additional Tables (added by later migrations)
 
 Subsequent migrations add tables such as:
+
 - `cli_tool_state` (migration 011) — CLI tool state
 - `mcp_*` tables — MCP server audit
 - `a2a_*` tables — A2A task state
@@ -320,16 +321,16 @@ For frequently-read data (models, providers, settings), `readCache.ts` provides 
 
 ```ts
 // Cached at startup, invalidated on write
-const providers = await getCachedProviders();  // Fast, in-memory
-const fresh = await listProviders();           // Slow, hits DB
+const providers = await getCachedProviders(); // Fast, in-memory
+const fresh = await listProviders(); // Slow, hits DB
 ```
 
-| Cached entity | Cache key | TTL |
-|---------------|-----------|-----|
-| `models` | `models:v1` | Until write |
+| Cached entity          | Cache key      | TTL         |
+| ---------------------- | -------------- | ----------- |
+| `models`               | `models:v1`    | Until write |
 | `provider_connections` | `providers:v1` | Until write |
-| `settings` | `settings:v1` | Until write |
-| `combos` | `combos:v1` | Until write |
+| `settings`             | `settings:v1`  | Until write |
+| `combos`               | `combos:v1`    | Until write |
 
 Cache is invalidated on every write to the corresponding table.
 
@@ -444,7 +445,7 @@ Run monthly during low-traffic windows. (WAL mode reduces the need, but doesn't 
 
 `src/lib/db/healthCheck.ts` provides **DB-level health diagnostics**:
 
-```bash
+````bash
 GET /api/db/health
 
 Returns:
@@ -463,7 +464,7 @@ Returns:
     }
   }
 }
-```
+````
 
 Run `PRAGMA integrity_check` to detect corruption:
 
@@ -535,7 +536,6 @@ sqlite3 ~/.omniroute/storage.sqlite <<EOF
 SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';
 EOF
 ```
-
 
 ### Reset (Wipe) All Data
 

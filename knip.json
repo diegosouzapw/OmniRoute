@@ -12,7 +12,16 @@
         "scripts/**/*.{mjs,ts}",
         "electron/main.js",
         "electron/preload.js",
-        "electron/loginManager.js"
+        "electron/loginManager.js",
+        "src/lib/plugins/index.ts",
+        "src/lib/plugins/sdk.ts",
+        "src/lib/plugins/pluginWorker.ts",
+        "src/mitm/manager.stub.ts",
+        "src/server/authz/assertAuth.ts",
+        "src/shared/components/index.tsx",
+        "src/shared/components/layouts/index.tsx",
+        "src/shared/hooks/useElectron.ts",
+        "src/store/index.ts"
       ],
       "project": ["src/**/*.{ts,tsx}", "!src/**/*.test.{ts,tsx}"],
       "ignore": [

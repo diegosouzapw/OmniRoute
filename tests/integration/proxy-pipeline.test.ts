@@ -291,40 +291,7 @@ describe("Plugin Architecture — plugins/hooks.ts", () => {
 });
 
 // ═══════════════════════════════════════════════════
-// 4. Prompt Template Versioning (L-6)
-// ═══════════════════════════════════════════════════
-
-describe("Prompt Template Versioning — prompts.ts module existence", () => {
-  it("prompts.ts should exist", () => {
-    const full = join(ROOT, "src", "lib", "db", "prompts.ts");
-    assert.ok(existsSync(full), "prompts.ts should exist");
-  });
-
-  it("should export CRUD functions", () => {
-    const src = readFileSync(join(ROOT, "src", "lib", "db", "prompts.ts"), "utf8");
-    assert.match(src, /export function savePrompt/);
-    assert.match(src, /export function getActivePrompt/);
-    assert.match(src, /export function getPromptVersion/);
-    assert.match(src, /export function listPromptVersions/);
-    assert.match(src, /export function listPrompts/);
-    assert.match(src, /export function rollbackPrompt/);
-    assert.match(src, /export function renderPrompt/);
-  });
-
-  it("should define PromptTemplate interface", () => {
-    const src = readFileSync(join(ROOT, "src", "lib", "db", "prompts.ts"), "utf8");
-    assert.match(src, /export interface PromptTemplate/);
-  });
-
-  it("should use content hashing for deduplication", () => {
-    const src = readFileSync(join(ROOT, "src", "lib", "db", "prompts.ts"), "utf8");
-    assert.match(src, /content_hash/);
-    assert.match(src, /sha256/);
-  });
-});
-
-// ═══════════════════════════════════════════════════
-// 5. Eval cleanup (Task 28)
+// 4. Eval cleanup (Task 28)
 // ═══════════════════════════════════════════════════
 
 describe("Eval cleanup — orphaned scheduler module", () => {

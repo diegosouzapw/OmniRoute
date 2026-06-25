@@ -19,7 +19,6 @@ const budget = [
   { file: "src/lib/db/apiKeys.ts", maxAny: 0 },
   { file: "src/lib/db/cliToolState.ts", maxAny: 0 },
   { file: "src/lib/db/encryption.ts", maxAny: 0 },
-  { file: "src/lib/db/prompts.ts", maxAny: 0 },
   { file: "src/lib/db/providers.ts", maxAny: 0 },
   { file: "src/lib/db/settings.ts", maxAny: 0 },
   { file: "open-sse/config/providerRegistry.ts", maxAny: 0 },

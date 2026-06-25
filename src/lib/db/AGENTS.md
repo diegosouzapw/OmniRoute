@@ -26,7 +26,6 @@ Each module owns specific tables + CRUD operations:
 | `settings.ts`           | `settings`                | KV store for system configuration                       |
 | `backup.ts`             | Backup export/import ops  | Serialize/deserialize entire DB state                   |
 | `proxies.ts`            | `proxies`                 | MITM proxy configs and routing rules                    |
-| `prompts.ts`            | `prompts`                 | Reusable prompt templates, versioning                   |
 | `webhooks.ts`           | `webhooks`                | Event-driven webhook subscriptions and logs             |
 | `detailedLogs.ts`       | `detailed_logs`           | Per-request audit logging (optional, high volume)       |
 | `domainState.ts`        | `domain_state`            | Transient runtime state (not persisted across restarts) |

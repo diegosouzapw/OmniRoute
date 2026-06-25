@@ -203,19 +203,13 @@ import {
   reorderByTaskWeight,
 } from "./taskAwareRouting.ts";
 
-// Backward-compatible re-exports — these were public from combo.ts before the
-// types extraction (Quality Gate v2 / Fase 9). Keep the external surface stable.
 export { RESET_WINDOW_NAMES };
-// chatCore.ts's dynamic `import("../services/combo")` reads these two — keep them
-// re-exported from combo.ts after the auto-strategy extraction (combo split D8).
 export { QUOTA_SOFT_DEPRIORITIZE_FACTOR, setCandidateQuotaSoftPenalty };
 export { scoreAutoTargets, expandAutoComboCandidatePool };
 export type { SingleModelTarget, ResolvedComboTarget };
 export { validateResponseQuality };
 export { clampComboDepth, shouldSkipForPredictedTtft, shouldRecordProviderBreakerFailure };
 export { resolveShadowTargets, scheduleShadowRouting };
-// preScreenTargets was public from combo.ts before the reset-aware quota
-// extraction (combo split D7b). Keep the external surface stable.
 export { preScreenTargets };
 export { resolveComboRuntimeUnits, resolveComboTargets, filterTargetsByRequestCompatibility };
 export {
@@ -234,7 +228,6 @@ export {
 // combo.ts imports back the three reset-window helpers buildAutoCandidates +
 // orchestration need, plus the strategy orderers and preScreenTargets (above).
 
-// Bootstrap defaults from ClawRouter benchmark (used when no local latency history exists yet)
 const DEFAULT_MODEL_P95_MS: Record<string, number> = {
   "grok-4-fast-non-reasoning": 1143,
   "grok-4-1-fast-non-reasoning": 1244,
@@ -697,7 +690,7 @@ async function isPinnedModelDurablyUnhealthy(pinnedModel: string): Promise<boole
 // output limits, so the request should fall through to the next target instead of
 // being short-circuited. Exported as pure predicates so the guard is unit-testable.
 /** @param {string} errorText */
-export function isContextOverflow400(errorText) {
+export function isContextOverflow400(errorText: string) {
   return (
     /\bcontext.*(?:length_exceeded|too long|overflow|exceeded|window|limit)\b/i.test(errorText) ||
     /exceeds.*context/i.test(errorText) ||
@@ -705,7 +698,7 @@ export function isContextOverflow400(errorText) {
   );
 }
 /** @param {string} errorText */
-export function isParamValidation400(errorText) {
+export function isParamValidation400(errorText: string) {
   return (
     /\bmax_tokens\b.*(?:illegal|must|range|invalid)/i.test(errorText) ||
     /\bparameter is illegal\b/i.test(errorText) ||
