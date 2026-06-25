@@ -53,6 +53,18 @@ jobs:
       - run: npm run check:test-discovery
       - run: npm run check:test-runner-api
       - run: npm run check:any-budget:t11
+      # Build-scope guard: fails if worktrees/cruft leak into the tsconfig include
+      # scope (would OOM `next build`). Instant. See incident 2026-06-25 / #5031.
+      - run: npm run check:build-scope
+      # Pack-policy (unexpected-files allowlist) WITHOUT a build — catches a stray file
+      # leaking into the npm tarball (v3.8.36: 6 ops bin/*.sh) per-PR instead of only on
+      # the release PR's heavy Package Artifact job.
+      - run: npm run check:pack-policy
+      # Complexity + cognitive-complexity ratchets on the fast-path (PR→release) so
+      # cycle drift is rebaselined PER-PR instead of cascading onto the release PR's
+      # Quality Ratchet (v3.8.36: +30 complexity / +15 cognitive surfaced only post-merge).
+      - run: npm run check:complexity
+      - run: npm run check:cognitive-complexity
       - name: Typecheck (core)
         run: npm run typecheck:core
       # TIA: build the impact map at runtime (gitignored, ~21MB) and run only the

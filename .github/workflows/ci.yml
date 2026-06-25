@@ -140,7 +140,15 @@ jobs:
     name: Quality Ratchet
     runs-on: ubuntu-latest
     needs: test-coverage
-    if: ${{ !cancelled() && needs.test-coverage.result == 'success' }}
+    # Run even when test-coverage was SKIPPED/FAILED (e.g. a single flaky Coverage
+    # Shard breaks the shard→coverage→ratchet chain). The DETERMINISTIC ratchets
+    # (eslint / complexity / cognitive-complexity / duplication / codeql) do NOT need
+    # the coverage artifact and MUST still run so cycle drift is measured on the
+    # release PR — otherwise a flake silently skips the whole gate (incident: v3.8.36
+    # release PR #4854, where the drift cascade only surfaced post-merge in #5029).
+    # The coverage.* metrics degrade gracefully: the download is continue-on-error and
+    # the ratchet runs with --allow-missing, so absent coverage is skipped, not failed.
+    if: ${{ !cancelled() }}
     # security-events: read lets the CodeQL ratchet read open code-scanning alerts
     # via `gh api .../code-scanning/alerts`. contents: read keeps checkout working.
     permissions:
@@ -156,7 +164,12 @@ jobs:
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       # Coverage mergeada (coverage-summary.json) p/ o ratchet de cobertura.
+      # continue-on-error: o artifact pode não existir se a job test-coverage foi
+      # SKIPPED (shard flaky). Nesse caso collect-metrics pula coverage.* (ausente sem
+      # erro) e o ratchet roda com --allow-missing — as métricas determinísticas
+      # (eslint/complexity/cognitive) seguem BLOQUEANTES.
       - uses: actions/download-artifact@v8
+        continue-on-error: true
         with:
           name: coverage-report
           path: coverage/
@@ -164,8 +177,10 @@ jobs:
       # Catraca: falha se qualquer métrica regredir vs quality-baseline.json (commitado).
       # Hoje: contagem de warnings do ESLint. Fase 4 estende com cobertura (lida do
       # coverage mergeado). Tamanho de arquivo e duplicação têm gates dedicados.
+      # --allow-missing: pula métricas do baseline ausentes do collect (coverage.* quando
+      # o artifact não veio) em vez de falhar — mantém os gates determinísticos ativos.
       - name: Ratchet check
-        run: node scripts/quality/check-quality-ratchet.mjs --summary .artifacts/quality-ratchet.md
+        run: node scripts/quality/check-quality-ratchet.mjs --allow-missing --summary .artifacts/quality-ratchet.md
       # Fase 6A.5: require-tighten — BLOQUEANTE (promovido de advisory no fim do ciclo
       # v3.8.27). Falha quando uma métrica MELHOROU sem o baseline ter sido apertado no
       # mesmo PR (força capturar ganhos permanentes). As métricas coverage.* carregam
@@ -174,7 +189,7 @@ jobs:
       # mergeada == baseline (ver a nota _require_tighten_flip_blocking em
       # config/quality/quality-baseline.json).
       - name: Require-tighten (blocking)
-        run: node scripts/quality/check-quality-ratchet.mjs --require-tighten
+        run: node scripts/quality/check-quality-ratchet.mjs --allow-missing --require-tighten
       # Catraca de duplicação (jscpd@4 sobre src+open-sse). Roda neste job (paralelo)
       # para não pesar no caminho crítico do lint.
       - name: Duplication ratchet
