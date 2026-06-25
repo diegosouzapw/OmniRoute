@@ -470,7 +470,7 @@ test("pipeWithDisconnect does not double-clear transform errors already accounte
 });
 
 test("createDisconnectAwareStream ignores reader errors after client disconnect", async () => {
-  let readableController;
+  let readableController!: ReadableStreamDefaultController;
   let onErrorCalled = false;
   const transformStream = {
     readable: new ReadableStream({
