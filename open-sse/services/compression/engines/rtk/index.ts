@@ -331,8 +331,21 @@ export function processRtkText(
   let result = text;
 
   const detection = detectCommandType(text, options.command);
+  // #4559: A document/file read (e.g. a Read tool returning a ~147-line code/prose
+  // file) is NOT repetitive command output, but the generic-output *fallback* filter
+  // and the final line/char hard-cap (designed for npm/make/docker logs) silently drop
+  // its middle. Treat content as a document read when RTK recognized no command,
+  // classified it "unknown", and it carries none of the generic error markers the
+  // generic-output filter keys on — then skip the truncating fallbacks. Genuine logs
+  // detect as a known command type (or carry a command / error markers), so RTK's
+  // value on those is preserved.
+  const hasGenericErrorMarkers = /Error:|Exception:|Traceback \(most recent call last\):/.test(
+    text
+  );
+  const isDocumentLikeRead =
+    detection.type === "unknown" && !detection.command && !hasGenericErrorMarkers;
   let matchedFilterPatterns: string[] = [];
-  if (!options.skipFilters) {
+  if (!options.skipFilters && !isDocumentLikeRead) {
     const filter = matchRtkFilter(text, detection.command, {
       customFiltersEnabled: config.customFiltersEnabled,
       trustProjectFilters: config.trustProjectFilters,
@@ -403,13 +416,17 @@ export function processRtkText(
       return [];
     }
   });
-  const truncated = smartTruncate(result, {
-    maxLines: effectiveMaxLines(config.maxLinesPerResult, config.intensity),
-    maxChars: config.maxCharsPerResult,
-    preserveHead: config.intensity === "aggressive" ? 16 : 24,
-    preserveTail: config.intensity === "aggressive" ? 16 : 24,
-    priorityPatterns: [...defaultPriorityPatterns, ...filterPriorityPatterns],
-  });
+  // #4559: skip the generic line/char hard-cap for document/file reads (see
+  // isDocumentLikeRead above) so the middle of a code/prose read is not dropped.
+  const truncated = isDocumentLikeRead
+    ? { text: result, truncated: false, droppedLines: 0 }
+    : smartTruncate(result, {
+        maxLines: effectiveMaxLines(config.maxLinesPerResult, config.intensity),
+        maxChars: config.maxCharsPerResult,
+        preserveHead: config.intensity === "aggressive" ? 16 : 24,
+        preserveTail: config.intensity === "aggressive" ? 16 : 24,
+        priorityPatterns: [...defaultPriorityPatterns, ...filterPriorityPatterns],
+      });
   if (truncated.truncated) {
     result = truncated.text;
     techniquesUsed.push("rtk-truncate");
