@@ -9,6 +9,7 @@ import {
   ROUTER_STRATEGY_OPTIONS,
   normalizeIntelligentRoutingConfig,
 } from "@/lib/combos/intelligentRouting";
+import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { compareTr } from "@/shared/utils/turkishText";
 
 function getI18nOrFallback(t: any, key: string, fallback: string) {
@@ -21,24 +22,34 @@ function toProviderOptions(activeProviders: any[] = [], candidatePool: string[] 
 
   activeProviders.forEach((provider) => {
     const providerId =
-      typeof provider?.provider === "string" && provider.provider.trim().length > 0
-        ? provider.provider
-        : typeof provider?.id === "string" && provider.id.trim().length > 0
-          ? provider.id
-          : null;
+      typeof provider?.providerId === "string" && provider.providerId.trim().length > 0
+        ? provider.providerId
+        : typeof provider?.provider === "string" && provider.provider.trim().length > 0
+          ? provider.provider
+          : typeof provider?.id === "string" && provider.id.trim().length > 0
+            ? provider.id
+            : null;
 
     if (!providerId) return;
 
     const currentEntry = uniqueProviders.get(providerId);
     const fallbackLabel =
-      typeof provider?.name === "string" && provider.name.trim().length > 0
-        ? provider.name
-        : providerId;
+      typeof provider?.displayName === "string" && provider.displayName.trim().length > 0
+        ? provider.displayName
+        : typeof provider?.providerName === "string" && provider.providerName.trim().length > 0
+          ? provider.providerName
+          : AI_PROVIDERS[providerId]?.name || providerId;
+    const connectionCount =
+      typeof provider?.activeConnectionCount === "number"
+        ? provider.activeConnectionCount
+        : typeof provider?.connectionCount === "number"
+          ? provider.connectionCount
+          : 1;
 
     uniqueProviders.set(providerId, {
       id: providerId,
       label: currentEntry?.label || fallbackLabel,
-      connectionCount: (currentEntry?.connectionCount || 0) + 1,
+      connectionCount: (currentEntry?.connectionCount || 0) + connectionCount,
     });
   });
 

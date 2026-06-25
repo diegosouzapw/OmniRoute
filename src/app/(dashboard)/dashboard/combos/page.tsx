@@ -594,6 +594,23 @@ function findBuilderProviderByIdentifier(builderProviders, providerIdentifier) {
   );
 }
 
+function deriveCandidatePoolFromModels(models) {
+  const providerIds = new Set<string>();
+
+  for (const entry of models || []) {
+    if (entry?.kind === "combo-ref") continue;
+    const modelValue = getModelString(entry);
+    const parsed = parseQualifiedModel(modelValue);
+    const providerId =
+      typeof entry?.providerId === "string" && entry.providerId.trim().length > 0
+        ? entry.providerId.trim()
+        : parsed?.providerId;
+    if (providerId) providerIds.add(providerId);
+  }
+
+  return Array.from(providerIds);
+}
+
 function formatComboEntryDisplay(
   entry,
   {
@@ -2558,11 +2575,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
   // identity).
   const handleDeselectModel = (model) => {
     const value =
-      typeof model?.value === "string"
-        ? model.value
-        : typeof model === "string"
-          ? model
-          : "";
+      typeof model?.value === "string" ? model.value : typeof model === "string" ? model : "";
     if (!value) return;
     setModels(models.filter((m) => m.model !== value));
     setBuilderError("");
@@ -2750,6 +2763,16 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     }
     if (strategy === "weighted" && config.stickyWeightedLimit !== undefined) {
       configToSave.stickyWeightedLimit = config.stickyWeightedLimit;
+    }
+    if (
+      usesIntelligentBuilderStage &&
+      !isExpertMode &&
+      (!Array.isArray(configToSave.candidatePool) || configToSave.candidatePool.length === 0)
+    ) {
+      const derivedCandidatePool = deriveCandidatePoolFromModels(models);
+      if (derivedCandidatePool.length > 0) {
+        configToSave.candidatePool = derivedCandidatePool;
+      }
     }
     const hasConfigToSave = Object.keys(configToSave).length > 0;
     const hadExistingConfig = Object.keys(sanitizeComboRuntimeConfig(combo?.config)).length > 0;
@@ -3044,7 +3067,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
             <BuilderIntelligentStep
               t={t}
               config={config}
-              activeProviders={activeProviders}
+              activeProviders={builderProviders}
               onChange={(nextIntelligentConfig: any) =>
                 setConfig((previousConfig) => ({
                   ...previousConfig,

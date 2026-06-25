@@ -10,6 +10,7 @@ import {
   buildIntelligentProviderScores,
   normalizeIntelligentRoutingConfig,
 } from "@/lib/combos/intelligentRouting";
+import { AI_PROVIDERS } from "@/shared/constants/providers";
 
 function getI18nOrFallback(t: any, key: string, fallback: string) {
   if (typeof t?.has === "function" && t.has(key)) return t(key);
@@ -17,18 +18,31 @@ function getI18nOrFallback(t: any, key: string, fallback: string) {
 }
 
 function formatProviderLabel(providerId: string, activeProviders: any[] = []) {
-  const matchedConnection = activeProviders.find(
-    (provider) =>
-      provider?.provider === providerId ||
-      provider?.id === providerId ||
-      provider?.name === providerId
+  const matchedProvider = activeProviders.find(
+    (provider) => provider?.providerId === providerId || provider?.provider === providerId
   );
 
-  if (matchedConnection?.name && matchedConnection.name !== providerId) {
-    return `${matchedConnection.name} (${providerId})`;
+  if (typeof matchedProvider?.displayName === "string" && matchedProvider.displayName.trim()) {
+    return matchedProvider.displayName.trim();
   }
 
-  return providerId;
+  return AI_PROVIDERS[providerId]?.name || providerId;
+}
+
+function countProvidersInScope(activeProviders: any[] = []) {
+  const providerIds = new Set<string>();
+
+  for (const provider of activeProviders) {
+    const providerId =
+      typeof provider?.providerId === "string" && provider.providerId.trim().length > 0
+        ? provider.providerId.trim()
+        : typeof provider?.provider === "string" && provider.provider.trim().length > 0
+          ? provider.provider.trim()
+          : null;
+    if (providerId) providerIds.add(providerId);
+  }
+
+  return providerIds.size;
 }
 
 export default function IntelligentComboPanel({
@@ -51,6 +65,8 @@ export default function IntelligentComboPanel({
     [combo?.config]
   );
   const providerScores = useMemo(() => buildIntelligentProviderScores(combo), [combo]);
+  const providerScopeCount =
+    normalizedConfig.candidatePool.length || countProvidersInScope(activeProviders);
 
   const handleModePackChange = async (modePackId: string) => {
     if (!combo?.id || modePackId === normalizedConfig.modePack) return;
@@ -118,9 +134,7 @@ export default function IntelligentComboPanel({
                 {combo?.name}
               </code>
               <span>{allCombos.length} intelligent combo(s)</span>
-              <span>
-                {normalizedConfig.candidatePool.length || activeProviders.length} providers in scope
-              </span>
+              <span>{providerScopeCount} providers in scope</span>
             </div>
           </div>
 
@@ -149,9 +163,7 @@ export default function IntelligentComboPanel({
                 <p className="text-[10px] uppercase tracking-wide text-text-muted">
                   Candidate Pool
                 </p>
-                <p className="text-lg font-semibold text-text-main">
-                  {normalizedConfig.candidatePool.length || activeProviders.length}
-                </p>
+                <p className="text-lg font-semibold text-text-main">{providerScopeCount}</p>
               </div>
             </div>
           </Card.Section>

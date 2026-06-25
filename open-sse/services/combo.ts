@@ -422,11 +422,22 @@ export async function buildAutoCandidates(
     const connectionIds = providerConnections
       .map((c) => (c && typeof c === "object" && typeof c.id === "string" ? c.id : null))
       .filter((id): id is string => id !== null);
-    if (connectionIds.length === 0) {
+    const allowedConnectionIds = Array.isArray(target.allowedConnectionIds)
+      ? new Set(
+          target.allowedConnectionIds.filter(
+            (connectionId): connectionId is string =>
+              typeof connectionId === "string" && connectionId.trim().length > 0
+          )
+        )
+      : null;
+    const scopedConnectionIds = allowedConnectionIds
+      ? connectionIds.filter((connectionId) => allowedConnectionIds.has(connectionId))
+      : connectionIds;
+    if (scopedConnectionIds.length === 0) {
       expandedTargets.push(target);
       continue;
     }
-    for (const connectionId of connectionIds) {
+    for (const connectionId of scopedConnectionIds) {
       expandedTargets.push({
         ...target,
         connectionId,
@@ -885,7 +896,8 @@ export async function handleComboChat({
 
   const isTargetSelectableForWeighted = async (target: ResolvedComboTarget): Promise<boolean> => {
     const rawModel = parseModel(target.modelStr).model || target.modelStr;
-    if (target.provider && getCircuitBreaker(target.provider).getStatus().state === "OPEN") return false;
+    if (target.provider && getCircuitBreaker(target.provider).getStatus().state === "OPEN")
+      return false;
     if (
       resilienceSettings.providerCooldown.enabled &&
       Boolean(target.provider && target.provider !== "unknown") &&
@@ -963,16 +975,21 @@ export async function handleComboChat({
       : null;
   const getWeightedStepKeyForTarget = (target: ResolvedComboTarget): string | null => {
     if (!weightedResolution?.orderedSteps) return null;
-    const step = weightedResolution.orderedSteps.find((entry) =>
-      target.executionKey === entry.executionKey ||
-      target.executionKey.startsWith(entry.executionKey + ">")
+    const step = weightedResolution.orderedSteps.find(
+      (entry) =>
+        target.executionKey === entry.executionKey ||
+        target.executionKey.startsWith(entry.executionKey + ">")
     );
     return step?.executionKey || null;
   };
   let orderedTargets =
     strategy === "weighted"
       ? weightedResolution?.orderedTargets || []
-      : resolveComboTargets(expandedCombo, expandedAllCombos, clampComboDepth(config.maxComboDepth));
+      : resolveComboTargets(
+          expandedCombo,
+          expandedAllCombos,
+          clampComboDepth(config.maxComboDepth)
+        );
 
   orderedTargets = await applyRequestTagRouting(orderedTargets, body, log);
 
@@ -2494,7 +2511,8 @@ async function handleRoundRobinCombo({
       if (stickyTarget) {
         const rawModel = parseModel(stickyTarget.modelStr).model || stickyTarget.modelStr;
         const stickyAvailable =
-          (!stickyTarget.provider || getCircuitBreaker(stickyTarget.provider).getStatus().state !== "OPEN") &&
+          (!stickyTarget.provider ||
+            getCircuitBreaker(stickyTarget.provider).getStatus().state !== "OPEN") &&
           !(
             resilienceSettings.providerCooldown.enabled &&
             Boolean(stickyTarget.provider && stickyTarget.provider !== "unknown") &&
