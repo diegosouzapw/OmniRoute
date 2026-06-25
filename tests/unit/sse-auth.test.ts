@@ -12,6 +12,7 @@ const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+const quotaSnapshotsDb = await import("../../src/lib/db/quotaSnapshots.ts");
 const auth = await import("../../src/sse/services/auth.ts");
 const quotaCache = await import("../../src/domain/quotaCache.ts");
 const fallback = await import("../../open-sse/services/accountFallback.ts");
@@ -840,6 +841,86 @@ test("getProviderCredentials prioritizes accounts that still have quota availabl
 
   assert.equal(selected.connectionId, available.id);
   assert.equal(selected.apiKey, "sk-available");
+});
+
+test("getProviderCredentials uses persisted quota snapshots after cache restart", async () => {
+  const exhausted = await seedConnection("openai", {
+    name: "snapshot-quota-exhausted",
+    priority: 1,
+    apiKey: "sk-snapshot-exhausted",
+    providerSpecificData: {
+      limitPolicy: {
+        enabled: true,
+        thresholdPercent: 99,
+        windows: ["daily"],
+      },
+    },
+  });
+  const available = await seedConnection("openai", {
+    name: "snapshot-quota-available",
+    priority: 9,
+    apiKey: "sk-snapshot-available",
+    providerSpecificData: {
+      limitPolicy: {
+        enabled: true,
+        thresholdPercent: 99,
+        windows: ["daily"],
+      },
+    },
+  });
+
+  quotaSnapshotsDb.saveQuotaSnapshot({
+    provider: "openai",
+    connection_id: exhausted.id,
+    window_key: "daily",
+    remaining_percentage: 0,
+    is_exhausted: 1,
+    next_reset_at: futureIso(180_000),
+    window_duration_ms: null,
+    raw_data: null,
+  });
+
+  const selected = await auth.getProviderCredentials("openai");
+
+  assert.equal(selected.connectionId, available.id);
+  assert.equal(selected.apiKey, "sk-snapshot-available");
+});
+
+test("getProviderCredentials skips Codex accounts exhausted in persisted snapshots after restart", async () => {
+  const exhausted = await seedConnection("codex", {
+    authType: "oauth",
+    name: "codex-snapshot-exhausted",
+    priority: 1,
+    apiKey: null,
+    accessToken: "codex-snapshot-exhausted-access",
+    refreshToken: "codex-snapshot-exhausted-refresh",
+  });
+  const available = await seedConnection("codex", {
+    authType: "oauth",
+    name: "codex-snapshot-available",
+    priority: 9,
+    apiKey: null,
+    accessToken: "codex-snapshot-available-access",
+    refreshToken: "codex-snapshot-available-refresh",
+  });
+
+  for (const windowKey of ["session", "weekly"]) {
+    quotaSnapshotsDb.saveQuotaSnapshot({
+      provider: "codex",
+      connection_id: exhausted.id,
+      window_key: windowKey,
+      remaining_percentage: 0,
+      is_exhausted: 1,
+      next_reset_at: futureIso(180_000),
+      window_duration_ms: null,
+      raw_data: null,
+    });
+  }
+
+  const selected = await auth.getProviderCredentials("codex", null, null, "gpt-5.4-mini");
+
+  assert.equal(selected.connectionId, available.id);
+  assert.equal(selected.accessToken, "codex-snapshot-available-access");
 });
 
 test("getProviderCredentials round-robin switches to the least recently used account after the sticky limit", async () => {
