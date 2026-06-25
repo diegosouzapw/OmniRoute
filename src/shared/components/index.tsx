@@ -15,7 +15,6 @@ export { default as ThemeToggle } from "./ThemeToggle";
 export { ThemeProvider } from "./ThemeProvider";
 export { default as Sidebar } from "./Sidebar";
 export { default as Header } from "./Header";
-export { default as Footer } from "./Footer";
 export { default as OAuthModal } from "./OAuthModal";
 export { default as ModelSelectModal } from "./ModelSelectModal";
 export { default as ManualConfigModal } from "./ManualConfigModal";
@@ -40,7 +39,6 @@ export { default as NoAuthProviderCard } from "./NoAuthProviderCard";
 export { default as NoAuthAccountCard } from "./NoAuthAccountCard";
 export { default as CollapsibleSection } from "./CollapsibleSection";
 export { default as InfoTooltip } from "./InfoTooltip";
-export { default as PresetSlider } from "./PresetSlider";
 export { default as DistributeProxiesButton } from "./DistributeProxiesButton";
 
 export { SkillsConceptCard } from "./SkillsConceptCard";
