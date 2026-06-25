@@ -1,0 +1,61 @@
+# Reference Prometheus configuration for OmniRoute operators — PR-008.
+#
+# This file is a TEMPLATE. Operators copy it into their own monitoring
+# infrastructure and adjust:
+#   - The scrape target (the OmniRoute /metrics endpoint URL — defaults
+#     to localhost:3030, matching the default Node port).
+#   - The external_labels to match their environment.
+#   - The Alertmanager target(s) in `alerting:`.
+#
+# What this file does:
+#   - Scrapes the OmniRoute /metrics endpoint every 15s.
+#   - Loads the SLO alert rules from `rules/omniroute-slos.yaml`.
+#   - Loads the SLO recording rules from `rules/omniroute-recording.yaml`.
+#   - Loads the SLO objective metadata from `alerts/slo-objectives.yaml`.
+#     (Prometheus evaluates the metadata as `vector(N)` rules; they have
+#     no alert semantics but `promtool check rules` validates syntax.)
+#
+# Recommended Alertmanager routing: see `ops/alertmanager/alertmanager.yml`
+# in the upstream repo (separate PR). Severity label drives routing.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: omniroute
+    environment: production
+
+# Alertmanager target. Replace with your cluster's alertmanager service.
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - "alertmanager.observability.svc:9093"
+
+# Rule files — relative to the Prometheus working directory. Operators
+# typically mount this directory at /etc/prometheus/rules/.
+rule_files:
+  - rules/omniroute-slos.yaml
+  - rules/omniroute-recording.yaml
+  - alerts/slo-objectives.yaml
+
+scrape_configs:
+  # OmniRoute's own /metrics endpoint.
+  - job_name: omniroute
+    metrics_path: /metrics
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    static_configs:
+      - targets:
+          - "localhost:3030"
+        labels:
+          service: omniroute
+          tier: edge
+
+  # Optional: scrape the OTel collector's Prometheus exporter if the
+  # operator runs the collector as a sidecar (PR #4974). Uncomment if so.
+  # - job_name: omniroute-otel-collector
+  #   static_configs:
+  #     - targets: ["localhost:8889"]
+  #       labels:
+  #         service: omniroute
+  #         component: otel-collector

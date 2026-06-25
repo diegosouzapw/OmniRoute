@@ -1,0 +1,95 @@
+# OmniRoute Prometheus recording rules — PR-008 (SLO recording rules)
+#
+# Recording rules are pre-computed every `interval` so dashboards and alerts
+# can query a stable, low-cardinality series instead of re-aggregating raw
+# counters on every dashboard load. Naming convention follows the
+# Prometheus standard: `level:metric:operations`.
+#
+# Validated by `scripts/validate-prometheus-rules.mjs`. Same requirements
+# as alerts: `summary`, `description`, `runbook_url`, `severity` label.
+groups:
+  - name: omniroute.slo.recording
+    interval: 30s
+    rules:
+      # 1. Per-route error rate (5m rolling). Used by the HighErrorRate
+      #    alert and the availability dashboard panel.
+      - record: omniroute:slo:error_rate_5m
+        expr: |
+          sum by (route) (
+            rate(omniroute_http_requests_total{status=~"5.."}[5m])
+          )
+          /
+          clamp_min(
+            sum by (route) (
+              rate(omniroute_http_requests_total[5m])
+            ),
+            0.0001
+          )
+        labels:
+          severity: info
+          slo: availability
+        annotations:
+          summary: "Per-route 5xx error rate (5m)"
+          description: "5xx rate divided by total rate per route, over the last 5 minutes."
+          runbook_url: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/runbooks/OmniRouteHighErrorRate.md"
+
+      # 2. Per-route p99 latency (5m rolling). The histogram_quantile()
+      #    call MUST be inside `sum by (le)` aggregation — computing it
+      #    per series first yields nonsensical results when routes share
+      #    the bucket boundaries.
+      - record: omniroute:slo:latency_p99_5m
+        expr: |
+          histogram_quantile(
+            0.99,
+            sum by (route, le) (
+              rate(omniroute_http_request_duration_seconds_bucket[5m])
+            )
+          )
+        labels:
+          severity: info
+          slo: latency
+        annotations:
+          summary: "Per-route p99 latency (5m)"
+          description: "99th-percentile HTTP request duration per route, over the last 5 minutes."
+          runbook_url: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/runbooks/OmniRouteHighLatencyP99.md"
+
+      # 3. Availability = 1 - error_rate. Reported as a ratio in [0, 1].
+      #    The 30-day rolling SLO target is 0.999.
+      - record: omniroute:slo:availability_5m
+        expr: 1 - omniroute:slo:error_rate_5m
+        labels:
+          severity: info
+          slo: availability
+        annotations:
+          summary: "Per-route availability (5m rolling)"
+          description: "1 minus the per-route 5xx error rate. Multi-window burn-rate alerts use this series."
+          runbook_url: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/runbooks/OmniRouteHighErrorRate.md"
+
+      # 4. Total requests per route over 5m. Drives the requests/sec
+      #    panel on the overview dashboard.
+      - record: omniroute:http:requests_per_route_5m
+        expr: |
+          sum by (route, method, status) (
+            rate(omniroute_http_requests_total[5m])
+          ) * 300
+        labels:
+          severity: info
+          slo: capacity
+        annotations:
+          summary: "Requests per route per 5m"
+          description: "Estimated request count per (route, method, status) over a 5-minute window."
+          runbook_url: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/runbooks/OmniRouteHighConcurrency.md"
+
+      # 5. RSS growth rate (bytes/sec, 5m). Positive = leak suspected;
+      #    this series feeds a future alert (not part of PR-008) that
+      #    pages on sustained positive growth outside traffic peaks.
+      - record: omniroute:process:memory_growth_rate_5m
+        expr: |
+          deriv(omniroute_process_resident_bytes[5m])
+        labels:
+          severity: info
+          slo: reliability
+        annotations:
+          summary: "RSS derivative (bytes/sec, 5m)"
+          description: "Derivative of the resident set size over the last 5 minutes. Sustained positive values indicate a memory leak."
+          runbook_url: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/runbooks/OmniRouteHighMemoryUsage.md"

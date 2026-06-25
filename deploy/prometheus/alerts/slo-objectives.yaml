@@ -1,0 +1,104 @@
+# OmniRoute SLO definitions — PR-008 (operator reference)
+#
+# This file is a *machine-readable* declaration of OmniRoute's SLO targets.
+# It is NOT loaded by Prometheus as a rule file (the format is identical so
+# `promtool check` accepts it for syntax validation, but no rule names here
+# are referenced by alerts).
+#
+# Operators consume this file in two ways:
+#   1. As documentation — every entry is the contract for the matching
+#      alert in `omniroute-slos.yaml`.
+#   2. As input for SLO-management tools (Sloth, Pyrra, Sloth-SLO) that
+#      generate multi-window burn-rate alerts. The fields below map 1:1
+#      to the SLO spec.
+#
+# Latency SLOs differ per route family:
+#   - `proxy-*` routes (OmniRoute's OpenAI-compatible passthrough): p99 < 500ms.
+#   - `bifrost-*` routes (upstream provider relay): p99 < 2s because the
+#     provider itself is the dominant latency contributor.
+#
+# Availability SLO is uniform: 99.9% per route per 30-day rolling window,
+# computed as the fraction of non-5xx responses. The error budget is
+# 43m 49s of 5xx traffic per 30-day window.
+#
+# Validated by `scripts/validate-prometheus-rules.mjs`. The validation
+# requires: top-level `groups`, each entry with `name`, `objective`,
+# `window`, `indicator`, and `description`.
+groups:
+  - name: omniroute.slo.latency
+    rules:
+      # Recording-rule style metadata — these series are NOT evaluated by
+      # Prometheus. They live here only for SLO-tool consumption.
+      - record: omniroute:slo:latency_objective
+        expr: vector(0.5)
+        labels:
+          route_family: proxy
+          service: omniroute
+          window: 30d
+          indicator: latency
+        annotations:
+          name: "Proxy route latency"
+          description: "p99 latency must stay below 500ms for any `proxy-*` route over a rolling 30-day window."
+          objective: "0.999"
+          slo_class: latency
+          runbook_url: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/runbooks/OmniRouteHighLatencyP99.md"
+
+      - record: omniroute:slo:latency_objective
+        expr: vector(2.0)
+        labels:
+          route_family: bifrost
+          service: omniroute
+          window: 30d
+          indicator: latency
+        annotations:
+          name: "Bifrost route latency"
+          description: "p99 latency must stay below 2s for any `bifrost-*` route over a rolling 30-day window."
+          objective: "0.999"
+          slo_class: latency
+          runbook_url: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/runbooks/OmniRouteHighLatencyP99.md"
+
+  - name: omniroute.slo.availability
+    rules:
+      - record: omniroute:slo:availability_objective
+        expr: vector(0.999)
+        labels:
+          service: omniroute
+          window: 30d
+          indicator: availability
+        annotations:
+          name: "Per-route availability"
+          description: "At least 99.9% of requests per route must return a non-5xx status over a rolling 30-day window."
+          objective: "0.999"
+          slo_class: availability
+          error_budget: "43m 49s of 5xx traffic per 30d"
+          runbook_url: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/runbooks/OmniRouteHighErrorRate.md"
+
+  - name: omniroute.slo.reliability
+    rules:
+      - record: omniroute:slo:reliability_objective
+        expr: vector(1)
+        labels:
+          service: omniroute
+          window: 30d
+          indicator: reliability
+        annotations:
+          name: "Process liveness (no OOM-kill)"
+          description: "OmniRoute node process must not be OOM-killed during the 30-day window. Failure modes are tracked separately under the reliability SLO."
+          objective: "0.999"
+          slo_class: reliability
+          runbook_url: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/runbooks/OmniRouteSuspectedOOM.md"
+
+  - name: omniroute.slo.cost
+    rules:
+      - record: omniroute:slo:cost_objective
+        expr: vector(0.9)
+        labels:
+          service: omniroute
+          window: 1h
+          indicator: cost
+        annotations:
+          name: "Per-provider quota utilization"
+          description: "Quota utilization per (provider, model) pair must stay below 90% over a rolling 1-hour window."
+          objective: "0.9"
+          slo_class: cost
+          runbook_url: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/runbooks/OmniRouteQuotaOverspend.md"

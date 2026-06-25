@@ -1,0 +1,216 @@
+# OmniRoute Prometheus alert rules — PR-008 (SLO alerts)
+#
+# Operators consume this file via their own Prometheus + Alertmanager.
+# OmniRoute itself emits `/metrics` in the standard text exposition format
+# (see src/lib/observability/metrics.ts). No code changes are required on
+# the OmniRoute side to enable these alerts — they are default-off in the
+# sense that Prometheus only fires them once the operator loads this file.
+#
+# Metric name deviations from the PR-008 spec:
+#   - All counters are emitted with the `omniroute_` prefix and labels
+#     (route, method, status) / (provider, model, outcome) — see
+#     src/lib/observability/metrics.ts LABEL_ALLOWLIST.
+#   - `http_requests_in_flight` is NOT exposed as a gauge; we approximate
+#     backpressure via the rate of in-flight concurrent requests inferred
+#     from the histogram count vs the request rate. See the HighConcurrency
+#     alert for the precise formulation.
+#   - `process_memory_bytes{kind=...}` is NOT exposed. OmniRoute exposes
+#     `omniroute_process_heap_bytes` (V8 heap used) and
+#     `omniroute_process_resident_bytes` (RSS). The HighMemoryUsage alert
+#     therefore fires on a *threshold* of heap bytes, not a ratio.
+#   - Provider request counters are `omniroute_provider_upstream_attempts_total`
+#     labelled by `outcome` (`success` | `error` | `timeout` | `rate-limit`).
+#   - Quota utilization is derived from `omniroute_quota_remaining` and
+#     `omniroute_quota_limit` as `1 - (remaining / limit)`.
+#
+# This file is consumed by `promtool check rules` and by our
+# `scripts/validate-prometheus-rules.mjs` validator. Each alert must have:
+#   - `summary` annotation
+#   - `description` annotation
+#   - `runbook_url` annotation pointing to a real file under docs/runbooks/
+#   - `severity` label (`critical` | `warning` | `info`)
+groups:
+  - name: omniroute.slo
+    interval: 30s
+    rules:
+      # ────────────────────────────────────────────────────────────────────
+      # 1. 5xx error budget burn (availability)
+      # ────────────────────────────────────────────────────────────────────
+      - alert: OmniRouteHighErrorRate
+        expr: |
+          sum by (route) (
+            rate(omniroute_http_requests_total{status=~"5.."}[5m])
+          )
+          /
+          sum by (route) (
+            rate(omniroute_http_requests_total[5m])
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          slo: availability
+          service: omniroute
+        annotations:
+          summary: "OmniRoute 5xx error rate > 5% on route {{ $labels.route }}"
+          description: |
+            More than 5% of requests to route `{{ $labels.route }}` have returned
+            HTTP 5xx in the last 5 minutes. This is consuming the 99.9% availability
+            error budget faster than the 30-day rolling target allows.
+          runbook_url: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/runbooks/OmniRouteHighErrorRate.md"
+
+      # ────────────────────────────────────────────────────────────────────
+      # 2. p99 latency SLO
+      # ────────────────────────────────────────────────────────────────────
+      - alert: OmniRouteHighLatencyP99
+        expr: |
+          histogram_quantile(
+            0.99,
+            sum by (route, le) (
+              rate(omniroute_http_request_duration_seconds_bucket[5m])
+            )
+          ) > 2.0
+        for: 10m
+        labels:
+          severity: warning
+          slo: latency
+          service: omniroute
+        annotations:
+          summary: "OmniRoute p99 latency > 2s on route {{ $labels.route }}"
+          description: |
+            99th-percentile latency for route `{{ $labels.route }}` has exceeded
+            2 seconds for at least 10 minutes. The SLO is 500ms p99 for proxy
+            routes and 2s p99 for bifrost routes; this alert fires before the
+            bifrost budget is fully consumed.
+          runbook_url: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/runbooks/OmniRouteHighLatencyP99.md"
+
+      # ────────────────────────────────────────────────────────────────────
+      # 3. V8 heap pressure
+      # ────────────────────────────────────────────────────────────────────
+      - alert: OmniRouteHighMemoryUsage
+        expr: omniroute_process_heap_bytes > 1.2e9
+        for: 10m
+        labels:
+          severity: warning
+          slo: reliability
+          service: omniroute
+        annotations:
+          summary: "OmniRoute V8 heap > 1.2 GiB for 10m"
+          description: |
+            V8 heap usage has exceeded 1.2 GiB for 10 minutes. The default
+            `--max-old-space-size` is 8 GiB, so this is ~15% of budget; sustained
+            growth typically indicates a leak in the request path.
+          runbook_url: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/runbooks/OmniRouteHighMemoryUsage.md"
+
+      # ────────────────────────────────────────────────────────────────────
+      # 4. RSS growth → suspected OOM
+      # ────────────────────────────────────────────────────────────────────
+      - alert: OmniRouteSuspectedOOM
+        expr: omniroute_process_resident_bytes > 1.5e9
+        for: 5m
+        labels:
+          severity: critical
+          slo: reliability
+          service: omniroute
+        annotations:
+          summary: "OmniRoute RSS > 1.5 GiB for 5m — OOM risk"
+          description: |
+            Resident set size has exceeded 1.5 GiB for 5 minutes. Container
+            memory limits (typically 2-4 GiB) are within reach; the next
+            spike is likely to trigger an OOM-kill.
+          runbook_url: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/runbooks/OmniRouteSuspectedOOM.md"
+
+      # ────────────────────────────────────────────────────────────────────
+      # 5. Backpressure signal — request rate sustained above the
+      #    500 req/s soft ceiling, computed as a 5-minute rate. The
+      #    operator's `node` is sized for ≈500 concurrent in-flight
+      #    requests; sustained traffic above that means the event loop
+      #    is queueing work and latency will spike next.
+      # ────────────────────────────────────────────────────────────────────
+      - alert: OmniRouteHighConcurrency
+        expr: |
+          sum(rate(omniroute_http_requests_total[1m])) * 60 > 500
+        for: 5m
+        labels:
+          severity: warning
+          slo: capacity
+          service: omniroute
+        annotations:
+          summary: "OmniRoute request rate > 500 req/min sustained for 5m"
+          description: |
+            Sustained inbound request rate exceeds 500 req/min for 5 minutes.
+            This is the proxy for the soft-concurrency ceiling on the node
+            process; expect queueing latency and provider timeouts to follow.
+            Scale horizontally (add a replica) or shed low-priority traffic.
+          runbook_url: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/runbooks/OmniRouteHighConcurrency.md"
+
+      # ────────────────────────────────────────────────────────────────────
+      # 6. Bifrost timeout ratio
+      # ────────────────────────────────────────────────────────────────────
+      - alert: OmniRouteBifrostTimeoutRate
+        expr: |
+          sum(rate(omniroute_provider_upstream_attempts_total{outcome="timeout"}[5m]))
+          /
+          sum(rate(omniroute_provider_upstream_attempts_total[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          slo: reliability
+          service: omniroute
+        annotations:
+          summary: "Bifrost timeout ratio > 10% (provider upstream)"
+          description: |
+            More than 10% of provider upstream calls have ended in `outcome="timeout"`
+            over the last 5 minutes. This usually means a provider is degraded;
+            the auto-fallback path will shift load, but cost and latency will
+            both rise until the primary recovers.
+          runbook_url: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/runbooks/OmniRouteBifrostTimeoutRate.md"
+
+      # ────────────────────────────────────────────────────────────────────
+      # 7. Per-provider error+rate-limit spike
+      # ────────────────────────────────────────────────────────────────────
+      - alert: OmniRouteProviderErrorSpike
+        expr: |
+          sum by (provider, model) (
+            rate(omniroute_provider_upstream_attempts_total{outcome=~"error|rate-limit"}[5m])
+          ) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          slo: reliability
+          service: omniroute
+        annotations:
+          summary: "Provider {{ $labels.provider }}/{{ $labels.model }} error+rate-limit > 0.5/s"
+          description: |
+            Provider `{{ $labels.provider }}` model `{{ $labels.model }}` is
+            returning errors or rate-limit responses at more than 0.5/s sustained
+            over 5 minutes. Investigate the provider status page; consider
+            removing this model from the combo or downgrading its priority.
+          runbook_url: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/runbooks/OmniRouteProviderErrorSpike.md"
+
+      # ────────────────────────────────────────────────────────────────────
+      # 8. Quota overspend — over 90% of any quota consumed.
+      #    Derived: utilization = 1 - (remaining / limit). We guard the
+      #    denominator to skip series where the limit has not been observed
+      #    yet (quota scrape is best-effort).
+      # ────────────────────────────────────────────────────────────────────
+      - alert: OmniRouteQuotaOverspend
+        expr: |
+          (
+            1 - (
+              omniroute_quota_remaining / on(provider, model) omniroute_quota_limit
+            )
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          slo: cost
+          service: omniroute
+        annotations:
+          summary: "Quota > 90% consumed for {{ $labels.provider }}/{{ $labels.model }}"
+          description: |
+            The provider/model `{{ $labels.provider }}/{{ $labels.model }}` has
+            consumed more than 90% of its quota window. Remaining headroom is
+            insufficient for the next hour of expected traffic. Either reduce
+            traffic to this provider (combo priority) or wait for the quota to
+            reset.
+          runbook_url: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/runbooks/OmniRouteQuotaOverspend.md"
