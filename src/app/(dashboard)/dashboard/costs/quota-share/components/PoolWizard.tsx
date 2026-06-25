@@ -364,6 +364,7 @@ export default function PoolWizard({
   // ── Preview model names ───────────────────────────────────────────────────
 
   // Per-provider preview: { provider, names[], totalModels }
+  // Keep the preview tied to connectionIds.map((cid) so multi-provider pools render each provider.
   const previewByProvider = useMemo(() => {
     const name = poolName.trim();
     if (connectionIds.length === 0 || !name) return [];
