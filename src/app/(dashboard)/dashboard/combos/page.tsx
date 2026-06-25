@@ -54,7 +54,6 @@ const ProxyConfigModal = dynamic(() => import("@/shared/components/ProxyConfigMo
   ssr: false,
 });
 
-// Validate combo name: letters, numbers, spaces, -, _, /, ., [ and ].
 const VALID_NAME_REGEX = /^[a-zA-Z0-9_/.\-\[\] ]+$/;
 
 const STRATEGY_OPTIONS = ROUTING_STRATEGIES.map((strategy) => ({
@@ -174,19 +173,10 @@ const ADVANCED_FIELD_HELP_FALLBACK = {
 };
 
 const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
-  // UI-removed knobs (replaced by per-target timeoutMs on each step)
   "timeoutMs",
   "healthCheckEnabled",
   "healthCheckTimeoutMs",
-  // queueTimeoutMs is still in the schema but the dashboard UI no longer surfaces
-  // it; carrying it forward through edit+save leaves a stale knob in the modal
-  // that surprises operators. Strip it pre-PUT so the persisted config matches
-  // what the UI is currently able to display.
   "queueTimeoutMs",
-  // Keys that were present in v3.8.31-era combo configs but have since been
-  // removed from comboRuntimeConfigSchema. Mirrors the server-side strip list
-  // in src/app/api/combos/[id]/route.ts so the modal never re-introduces them
-  // when the user clicks Save. See #4382 (combo update returns 400).
   "queueDepth",
   "fallbackDelayMs",
   "handoffProviders",
@@ -554,9 +544,6 @@ function getStrategyRecommendationText(t, strategy, field) {
   );
 }
 
-// ─────────────────────────────────────────────
-// Helper: normalize model entry (legacy string ↔ new object)
-// ─────────────────────────────────────────────
 function normalizeModelEntry(entry) {
   if (typeof entry === "string") return { model: entry, weight: 0 };
   if (entry?.kind === "combo-ref") {
@@ -666,9 +653,6 @@ function formatComboEntryDisplay(
   return `${providerLabel}/${modelLabel}`;
 }
 
-// ─────────────────────────────────────────────
-// Main Page
-// ─────────────────────────────────────────────
 export default function CombosPage() {
   const t = useTranslations("combos");
   const tc = useTranslations("common");
@@ -1143,7 +1127,6 @@ export default function CombosPage() {
         />
       )}
 
-      {/* Combos List */}
       {combos.length === 0 ? (
         <EmptyState
           icon="🧩"
@@ -1222,7 +1205,6 @@ export default function CombosPage() {
         </div>
       )}
 
-      {/* Test Results Modal */}
       {testResults && (
         <Modal
           isOpen={!!testResults}
@@ -1236,7 +1218,6 @@ export default function CombosPage() {
         </Modal>
       )}
 
-      {/* Create Modal */}
       <ComboFormModal
         key="create"
         isOpen={showCreateModal}
@@ -1247,7 +1228,6 @@ export default function CombosPage() {
         comboConfigMode={comboConfigMode}
       />
 
-      {/* Edit Modal */}
       <ComboFormModal
         key={editingCombo?.id || "new"}
         isOpen={!!editingCombo}
@@ -1258,7 +1238,6 @@ export default function CombosPage() {
         comboConfigMode={comboConfigMode}
       />
 
-      {/* Proxy Config Modal */}
       {proxyTargetCombo && (
         <ProxyConfigModal
           isOpen={!!proxyTargetCombo}
@@ -1549,9 +1528,6 @@ function ComboReadinessPanel({ checks, blockers, showDescription = true }) {
   );
 }
 
-// ─────────────────────────────────────────────
-// Combo Card
-// ─────────────────────────────────────────────
 function ComboCard({
   combo,
   metrics,
@@ -1650,12 +1626,10 @@ function ComboCard({
             <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
           </button>
 
-          {/* Icon */}
           <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <span className="material-symbols-outlined text-primary text-[18px]">layers</span>
           </div>
           <div className="min-w-0 flex-1">
-            {/* Name + Strategy Badge + Copy */}
             <div className="flex items-center gap-2">
               <code className="text-sm font-medium font-mono truncate">{combo.name}</code>
               <Tooltip content={strategyDescription}>
@@ -1690,7 +1664,6 @@ function ComboCard({
               </button>
             </div>
 
-            {/* Model tags with weights */}
             <div className="flex items-center gap-1 mt-0.5 flex-wrap">
               {models.length === 0 ? (
                 <span className="text-xs text-text-muted italic">{t("noModels")}</span>
@@ -1719,7 +1692,6 @@ function ComboCard({
               )}
             </div>
 
-            {/* Metrics row */}
             {metrics && (
               <div className="flex items-center gap-3 mt-1">
                 <span className="text-[10px] text-text-muted">
@@ -1740,7 +1712,6 @@ function ComboCard({
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center justify-between md:justify-end gap-1.5 shrink-0 ml-0 md:ml-2 w-full md:w-auto mt-2 md:mt-0 pt-2 md:pt-0 border-t border-black/5 dark:border-white/5 md:border-t-0">
           <div className="flex items-center gap-2">
             <Toggle
@@ -1837,9 +1808,6 @@ function ComboCard({
   );
 }
 
-// ─────────────────────────────────────────────
-// Test Results View
-// ─────────────────────────────────────────────
 function TestResultsView({ results }) {
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
 
@@ -1925,9 +1893,6 @@ function TestResultsView({ results }) {
   );
 }
 
-// ─────────────────────────────────────────────
-// Combo Form Modal
-// ─────────────────────────────────────────────
 function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, comboConfigMode }) {
   type CreateDraftSnapshot = {
     name: string;
@@ -4457,7 +4422,6 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
         </div>
       </Modal>
 
-      {/* Model Select Modal */}
       <ModelSelectModal
         isOpen={showModelSelect}
         onClose={() => setShowModelSelect(false)}
@@ -4473,7 +4437,3 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     </>
   );
 }
-
-// ─────────────────────────────────────────────
-// WeightTotalBar moved to ./WeightTotalBar.tsx (re-exported via ./parts).
-// PR-1 of diegosouzapw/OmniRoute#3932 — pure presentational component.
