@@ -47,11 +47,12 @@ import { V0VercelWebExecutor } from "./v0-vercel-web.ts";
 import { KimiWebExecutor } from "./kimi-web.ts";
 import { DoubaoWebExecutor } from "./doubao-web.ts";
 import { QwenWebExecutor } from "./qwen-web.ts";
-import { KimiExecutor } from "./kimi.ts"
+import { KimiExecutor } from "./kimi.ts";
 import { TheOldLlmExecutor } from "./theoldllm.ts";
 import { ChipotleExecutor } from "./chipotle.ts";
 import { LMArenaExecutor } from "./lmarena.ts";
 import { MimocodeExecutor } from "./mimocode.ts";
+import { GrokCliExecutor } from "./grok-cli.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -148,6 +149,8 @@ const executors = {
   lma: new LMArenaExecutor(), // Alias
   mimocode: new MimocodeExecutor(),
   mcode: new MimocodeExecutor(), // Alias
+  "grok-cli": new GrokCliExecutor(),
+  gc: new GrokCliExecutor(), // Alias
 };
 
 const defaultCache = new Map();
@@ -208,3 +211,4 @@ export { TheOldLlmExecutor } from "./theoldllm.ts";
 export { ChipotleExecutor } from "./chipotle.ts";
 export { LMArenaExecutor } from "./lmarena.ts";
 export { MimocodeExecutor } from "./mimocode.ts";
+export { GrokCliExecutor } from "./grok-cli.ts";

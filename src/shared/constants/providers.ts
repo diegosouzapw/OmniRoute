@@ -329,6 +329,17 @@ export const OAUTH_PROVIDERS = {
       "Requires the Devin CLI binary. Run `devin auth login` to authenticate, or provide your WINDSURF_API_KEY. Install: https://cli.devin.ai",
     website: "https://cli.devin.ai",
   },
+  "grok-cli": {
+    id: "grok-cli",
+    alias: "gc",
+    name: "Grok Build",
+    icon: "smart_toy",
+    color: "#1DA1F2",
+    textIcon: "GB",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    authHint: "OAuth authentication via auth.x.ai for Grok Build access.",
+  },
 };
 
 // Web / Cookie Providers
