@@ -16,12 +16,7 @@ export type TranslatorTab = "translate" | "monitor";
 export type TranslateMode = "preview" | "send";
 
 // Slugs canônicos dos accordions Advanced (deep-link).
-export type AdvancedSlug =
-  | "rawjson"
-  | "pipeline"
-  | "streamtransform"
-  | "testbench"
-  | "compression";
+export type AdvancedSlug = "rawjson" | "pipeline" | "streamtransform" | "testbench" | "compression";
 
 // Estado do deep-link parseado a partir da querystring (hook useTranslateDeepLink).
 export interface TranslateDeepLink {
@@ -59,7 +54,7 @@ export interface AdvancedAccordionProps {
 // Templates retornados por getExampleTemplates(t) — espelha o shape de exampleTemplates.tsx.
 // exampleTemplates.tsx não exporta este type, então definimos inline aqui.
 // NÃO duplicar os dados — importar apenas getExampleTemplates/FORMAT_META/FORMAT_OPTIONS do módulo.
-export interface ExampleTemplate {
+interface ExampleTemplate {
   id: string;
   name: string;
   icon: string;

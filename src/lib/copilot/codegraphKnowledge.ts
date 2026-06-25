@@ -31,7 +31,7 @@ export interface CodeGraphNode {
   visibility?: string;
 }
 
-export interface CodeGraphEdge {
+interface CodeGraphEdge {
   id: number;
   source: string;
   target: string;
@@ -40,14 +40,14 @@ export interface CodeGraphEdge {
   metadata?: Record<string, unknown>;
 }
 
-export interface CodeGraphFile {
+interface CodeGraphFile {
   path: string;
   language: string;
   nodeCount: number;
   modifiedAt: number;
 }
 
-export interface CodeGraphSearchResult {
+interface CodeGraphSearchResult {
   nodes: CodeGraphNode[];
   total: number;
 }

@@ -149,4 +149,4 @@ export const XP_REWARDS = {
 } as const;
 
 /** Union type of all XP action keys. */
-export type XpAction = keyof typeof XP_REWARDS;
+type XpAction = keyof typeof XP_REWARDS;

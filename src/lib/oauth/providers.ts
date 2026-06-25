@@ -51,9 +51,7 @@ function hasCustomGoogleOAuthCredentials(
       env?.GEMINI_OAUTH_CLIENT_SECRET
     );
     return (
-      hasValue(clientId) &&
-      hasValue(clientSecret) &&
-      clientId !== resolvePublicCred("gemini_id")
+      hasValue(clientId) && hasValue(clientSecret) && clientId !== resolvePublicCred("gemini_id")
     );
   }
 
@@ -114,13 +112,6 @@ export function getProvider(name) {
     throw new Error(`Unknown provider: ${name}`);
   }
   return provider;
-}
-
-/**
- * Get all provider names
- */
-export function getProviderNames() {
-  return Object.keys(PROVIDERS);
 }
 
 /**

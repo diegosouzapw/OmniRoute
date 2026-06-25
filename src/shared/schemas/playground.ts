@@ -11,7 +11,7 @@ export const PlaygroundPresetRowSchema = z.object({
   params_json: z.string(), // JSON serializado (parsed na rota)
   created_at: z.string().datetime(),
 });
-export type PlaygroundPresetRow = z.infer<typeof PlaygroundPresetRowSchema>;
+type PlaygroundPresetRow = z.infer<typeof PlaygroundPresetRowSchema>;
 
 /** Body de POST /api/playground/presets. */
 export const PlaygroundPresetCreateSchema = z.object({

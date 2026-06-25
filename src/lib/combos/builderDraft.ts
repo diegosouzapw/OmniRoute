@@ -49,13 +49,6 @@ export function parseQualifiedModel(
   };
 }
 
-export function getComboDraftTarget(entry: unknown): string | null {
-  if (typeof entry === "string") return toTrimmedString(entry);
-  if (!isRecord(entry)) return null;
-  if (entry.kind === "combo-ref") return toTrimmedString(entry.comboName);
-  return toTrimmedString(entry.model);
-}
-
 export function buildPrecisionComboModelStep({
   providerId,
   modelId,

@@ -47,7 +47,7 @@ export interface SkillExecution {
   createdAt: Date;
 }
 
-export interface SkillConfig {
+interface SkillConfig {
   enabled: boolean;
   mode: SkillMode;
   allowedSkills: string[];

@@ -15,11 +15,6 @@ import {
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 
-// ──── Settings Schemas ────
-// FASE-01: Removed .passthrough() — only explicitly listed fields are accepted
-
-export const settingsFallbackStrategySchema = z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES);
-
 // Single source of truth: ../settingsSchemas (the schema the runtime settings route validates
 // against). Re-exported here so this modular barrel stays in exact lockstep — a divergent local
 // copy (introduced by the #3988 lossy modularization) silently dropped 40 fields while gaining a

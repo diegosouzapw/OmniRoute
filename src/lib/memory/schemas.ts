@@ -39,8 +39,8 @@ export const MemoryUpdateInputSchema = z
   .strict();
 
 /**
- * Exported schema types for TypeScript references
+ * Schema types for TypeScript references
  */
-export type MemoryConfig = z.infer<typeof MemoryConfigSchema>;
-export type MemoryCreateInput = z.infer<typeof MemoryCreateInputSchema>;
-export type MemoryUpdateInput = z.infer<typeof MemoryUpdateInputSchema>;
+type MemoryConfig = z.infer<typeof MemoryConfigSchema>;
+type MemoryCreateInput = z.infer<typeof MemoryCreateInputSchema>;
+type MemoryUpdateInput = z.infer<typeof MemoryUpdateInputSchema>;

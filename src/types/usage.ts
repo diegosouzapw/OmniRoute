@@ -1,7 +1,7 @@
 /**
  * Usage tracking types for API call monitoring and statistics.
  */
-export interface UsageEntry {
+interface UsageEntry {
   id: string;
   date: string;
   provider: string;
@@ -15,7 +15,7 @@ export interface UsageEntry {
   apiKeyId?: string;
 }
 
-export interface UsageStats {
+interface UsageStats {
   totalCalls: number;
   totalTokens: number;
   totalInputTokens: number;
@@ -40,7 +40,7 @@ export interface ModelUsageStats {
   avgLatencyMs: number;
 }
 
-export interface CallLog {
+interface CallLog {
   id: string;
   timestamp: string;
   method: string;

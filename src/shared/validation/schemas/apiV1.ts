@@ -231,42 +231,6 @@ export const searchResultSchema = z.object({
   provider_raw: z.record(z.string(), z.unknown()).nullable().optional(),
 });
 
-export const v1SearchResponseSchema = z.object({
-  id: z.string(),
-  provider: z.string(),
-  query: z.string(),
-  results: z.array(searchResultSchema),
-  cached: z.boolean(),
-  answer: z
-    .object({
-      source: z.enum(["none", "provider", "internal"]).optional(),
-      text: z.string().nullable().optional(),
-      model: z.string().nullable().optional(),
-    })
-    .nullable()
-    .optional(),
-  usage: z.object({
-    queries_used: z.number().int().min(0),
-    search_cost_usd: z.number().min(0),
-    llm_tokens: z.number().int().min(0).optional(),
-  }),
-  metrics: z.object({
-    response_time_ms: z.number().int().min(0),
-    upstream_latency_ms: z.number().int().min(0).optional(),
-    gateway_latency_ms: z.number().int().min(0).optional(),
-    total_results_available: z.number().int().nullable(),
-  }),
-  errors: z
-    .array(
-      z.object({
-        provider: z.string(),
-        code: z.string(),
-        message: z.string(),
-      })
-    )
-    .optional(),
-});
-
 export const v1BatchCreateSchema = z.object({
   input_file_id: z.string().min(1),
   endpoint: z.enum(SUPPORTED_BATCH_ENDPOINTS),

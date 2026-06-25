@@ -50,7 +50,7 @@ export interface Settings {
   localOnlyManageScopeBypassPrefixes?: string[];
 }
 
-export interface ComboDefaults {
+interface ComboDefaults {
   strategy: RoutingStrategyValue;
   maxRetries: number;
   retryDelayMs: number;
@@ -67,7 +67,7 @@ export interface ComboDefaults {
   maxMessagesForSummary?: number;
 }
 
-export interface ProxyConfig {
+interface ProxyConfig {
   type: "http" | "https" | "socks5";
   host: string;
   port: number;
@@ -75,7 +75,7 @@ export interface ProxyConfig {
   password?: string;
 }
 
-export interface KVPair {
+interface KVPair {
   key: string;
   value: string;
 }

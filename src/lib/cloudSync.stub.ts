@@ -9,13 +9,7 @@ import { featureDisabledError } from "@/lib/build-profile/featureDisabled";
 
 const FEATURE = "cloud-sync";
 
-export const CLOUD_URL = "";
-export const CLOUD_SYNC_TIMEOUT_MS = 0;
 export const CLOUD_SYNC_SECRETS_ENABLED = false;
-
-export function verifyCloudSignature(_rawBody: string, _sigHeader: string | null): boolean {
-  return false;
-}
 
 export async function fetchWithTimeout(): Promise<never> {
   throw featureDisabledError(FEATURE);
