@@ -12,7 +12,7 @@ async function getInternalApiKey(): Promise<string | null> {
   try {
     const keys = await getApiKeys();
     const active = (
-      keys as Array<{ key: string; isActive?: boolean; revokedAt?: string | null }>
+      keys as unknown as Array<{ key: string; isActive?: boolean; revokedAt?: string | null }>
     ).find((k) => k.key && k.isActive !== false && !k.revokedAt);
     return active?.key ?? null;
   } catch {
@@ -28,6 +28,11 @@ function buildComboTestResult(target, partial = {}) {
     executionKey: target.executionKey,
     connectionId: target.connectionId,
     label: target.label,
+    status: "ok" as "ok" | "error",
+    statusCode: undefined as number | undefined,
+    error: undefined as string | undefined,
+    responseText: undefined as string | undefined,
+    latencyMs: 0 as number,
     ...partial,
   };
 }
@@ -163,7 +168,8 @@ export async function POST(request) {
     }
 
     const allCombos = await getCombos();
-    const targets = resolveNestedComboTargets(combo, allCombos);
+    // Cast: ComboRecord -> ComboLike requires {name: string}, but ComboRecord has {name?: string}
+    const targets = resolveNestedComboTargets(combo as unknown as Parameters<typeof resolveNestedComboTargets>[0], allCombos as unknown as Parameters<typeof resolveNestedComboTargets>[1]);
 
     if (targets.length === 0) {
       return NextResponse.json({ error: "Combo has no models" }, { status: 400 });

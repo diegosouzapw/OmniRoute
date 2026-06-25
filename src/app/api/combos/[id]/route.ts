@@ -114,7 +114,9 @@ export async function PUT(request, { params }) {
     };
     const compositeValidation = validateCompositeTiersConfig(nextComboState);
     if (!compositeValidation.success) {
-      return NextResponse.json({ error: compositeValidation.error }, { status: 400 });
+      // Cast: TypeScript can't narrow union type to failure variant via `!success` check alone
+      const failure = compositeValidation as { success: false; error: { message: string; details: unknown[] } };
+      return NextResponse.json({ error: failure.error }, { status: 400 });
     }
 
     // Check if name already exists (exclude current combo)
