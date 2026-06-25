@@ -8,31 +8,31 @@ interface ImportGrokCliAuthModalProps {
   onSuccess: () => void;
 }
 
-function extractTokenFromGrokJson(json: unknown): {
+function parseGrokJson(json: unknown): {
   valid: boolean;
-  token: string | null;
   email: string | null;
+  hasRefreshToken: boolean;
 } {
   try {
     const doc = json && typeof json === "object" ? (json as Record<string, unknown>) : null;
-    if (!doc) return { valid: false, token: null, email: null };
+    if (!doc) return { valid: false, email: null, hasRefreshToken: false };
 
-    // Grok Build auth.json format:
-    // { "https://auth.x.ai::clientId": { "key": "eyJ...", "sub": "...", "email": "..." } }
     const entries = Object.values(doc);
     for (const entry of entries) {
       if (entry && typeof entry === "object" && "key" in entry) {
         const obj = entry as Record<string, unknown>;
         const key = typeof obj.key === "string" ? obj.key : null;
         const email = typeof obj.email === "string" ? obj.email : null;
+        const hasRefreshToken =
+          typeof obj.refresh_token === "string" && obj.refresh_token.length > 0;
         if (key && key.startsWith("eyJ")) {
-          return { valid: true, token: key, email };
+          return { valid: true, email, hasRefreshToken };
         }
       }
     }
-    return { valid: false, token: null, email: null };
+    return { valid: false, email: null, hasRefreshToken: false };
   } catch {
-    return { valid: false, token: null, email: null };
+    return { valid: false, email: null, hasRefreshToken: false };
   }
 }
 
@@ -42,8 +42,9 @@ export default function ImportGrokCliAuthModal({
 }: ImportGrokCliAuthModalProps) {
   const notify = useNotificationStore();
   const [tab, setTab] = useState<"upload" | "paste">("upload");
-  const [parsedToken, setParsedToken] = useState<string | null>(null);
+  const [parsedJson, setParsedJson] = useState<unknown>(null);
   const [detectedEmail, setDetectedEmail] = useState<string | null>(null);
+  const [hasRefreshToken, setHasRefreshToken] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
   const [pasteText, setPasteText] = useState("");
   const [name, setName] = useState("");
@@ -53,16 +54,18 @@ export default function ImportGrokCliAuthModal({
   function handlePreview(json: unknown) {
     setParseError(null);
     setDetectedEmail(null);
-    setParsedToken(null);
-    const { valid, token, email } = extractTokenFromGrokJson(json);
-    if (!valid || !token) {
+    setParsedJson(null);
+    setHasRefreshToken(false);
+    const result = parseGrokJson(json);
+    if (!result.valid) {
       setParseError(
         "Not a valid Grok Build auth.json. Expected an object with a key containing a JWT."
       );
       return;
     }
-    setDetectedEmail(email);
-    setParsedToken(token);
+    setDetectedEmail(result.email);
+    setHasRefreshToken(result.hasRefreshToken);
+    setParsedJson(json);
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -82,28 +85,29 @@ export default function ImportGrokCliAuthModal({
   function handlePasteChange(text: string) {
     setPasteText(text);
     if (!text.trim()) {
-      setParsedToken(null);
+      setParsedJson(null);
       setParseError(null);
       setDetectedEmail(null);
+      setHasRefreshToken(false);
       return;
     }
     try {
       handlePreview(JSON.parse(text));
     } catch {
       setParseError("Could not parse JSON");
-      setParsedToken(null);
+      setParsedJson(null);
     }
   }
 
   async function handleSubmit() {
-    if (!parsedToken) return;
+    if (!parsedJson) return;
     setLoading(true);
     setError(null);
     try {
       const res = await fetch("/api/oauth/grok-cli/import-token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: parsedToken }),
+        body: JSON.stringify({ token: parsedJson }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -171,12 +175,22 @@ export default function ImportGrokCliAuthModal({
         {parseError && <p className="text-sm text-red-500">{parseError}</p>}
 
         {/* Detected info */}
-        {parsedToken && (
+        {parsedJson && (
           <div className="flex flex-col gap-3">
             <div className="bg-green-500/10 border border-green-500/20 rounded-md p-3">
               <p className="text-sm text-green-400">
                 Valid Grok Build token detected{detectedEmail ? ` (${detectedEmail})` : ""}
               </p>
+              {hasRefreshToken && (
+                <p className="text-xs text-green-500 mt-1">
+                  Refresh token included — automatic token renewal enabled
+                </p>
+              )}
+              {!hasRefreshToken && (
+                <p className="text-xs text-amber-400 mt-1">
+                  No refresh token found — you will need to re-import when the token expires
+                </p>
+              )}
             </div>
             <input
               type="text"
@@ -193,7 +207,7 @@ export default function ImportGrokCliAuthModal({
 
         {/* Buttons */}
         <div className="flex gap-2">
-          <Button onClick={handleSubmit} fullWidth disabled={!parsedToken || loading}>
+          <Button onClick={handleSubmit} fullWidth disabled={!parsedJson || loading}>
             {loading ? "Saving…" : "Save Connection"}
           </Button>
           <Button onClick={onClose} variant="ghost" fullWidth>

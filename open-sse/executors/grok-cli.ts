@@ -16,6 +16,7 @@ import { PROVIDERS } from "../config/constants.ts";
 import https from "node:https";
 
 const GROK_TOKEN_URL = "https://auth.x.ai/oauth2/token";
+const REQUEST_TIMEOUT_MS = 60_000;
 
 export class GrokCliExecutor extends BaseExecutor {
   constructor() {
@@ -57,7 +58,8 @@ export class GrokCliExecutor extends BaseExecutor {
         {
           "Content-Type": "application/x-www-form-urlencoded",
         },
-        body.toString()
+        body.toString(),
+        10_000
       );
 
       if (result.status !== 200) {
@@ -93,11 +95,14 @@ export class GrokCliExecutor extends BaseExecutor {
   private nativeHttpsPost(
     url: string,
     headers: Record<string, string>,
-    bodyStr: string
+    bodyStr: string,
+    timeoutMs = 10_000
   ): Promise<{ status: number; body: string }> {
     const urlObj = new URL(url);
 
     return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => req.destroy(new Error("Timeout")), timeoutMs);
+
       const req = https.request(
         {
           hostname: urlObj.hostname,
@@ -114,6 +119,7 @@ export class GrokCliExecutor extends BaseExecutor {
           const chunks: Buffer[] = [];
           res.on("data", (chunk: Buffer) => chunks.push(chunk));
           res.on("end", () => {
+            clearTimeout(timer);
             resolve({
               status: res.statusCode ?? 500,
               body: Buffer.concat(chunks).toString("utf-8"),
@@ -122,7 +128,10 @@ export class GrokCliExecutor extends BaseExecutor {
         }
       );
 
-      req.on("error", reject);
+      req.on("error", (err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
       req.write(bodyStr);
       req.end();
     });
@@ -136,7 +145,21 @@ export class GrokCliExecutor extends BaseExecutor {
   ): Promise<Response> {
     const urlObj = new URL(url);
 
+    if (signal?.aborted) {
+      return Promise.reject(new Error("Aborted"));
+    }
+
     return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => req.destroy(new Error("Timeout")), REQUEST_TIMEOUT_MS);
+      let settled = false;
+
+      const settle = (fn: () => void) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        fn();
+      };
+
       const req = https.request(
         {
           hostname: urlObj.hostname,
@@ -153,27 +176,32 @@ export class GrokCliExecutor extends BaseExecutor {
           const chunks: Buffer[] = [];
           res.on("data", (chunk: Buffer) => chunks.push(chunk));
           res.on("end", () => {
-            const responseBody = Buffer.concat(chunks).toString("utf-8");
-            const responseHeaders: Record<string, string> = {};
-            for (const [key, value] of Object.entries(res.headers)) {
-              if (typeof value === "string") responseHeaders[key] = value;
-              else if (Array.isArray(value)) responseHeaders[key] = value.join(", ");
-            }
-            resolve(
-              new Response(responseBody, {
-                status: res.statusCode ?? 500,
-                headers: responseHeaders,
-              })
-            );
+            settle(() => {
+              const responseBody = Buffer.concat(chunks).toString("utf-8");
+              const responseHeaders: Record<string, string> = {};
+              for (const [key, value] of Object.entries(res.headers)) {
+                if (typeof value === "string") responseHeaders[key] = value;
+                else if (Array.isArray(value)) responseHeaders[key] = value.join(", ");
+              }
+              resolve(
+                new Response(responseBody, {
+                  status: res.statusCode ?? 500,
+                  headers: responseHeaders,
+                })
+              );
+            });
           });
         }
       );
 
       if (signal) {
-        signal.addEventListener("abort", () => req.destroy(new Error("Aborted")), { once: true });
+        const onAbort = () => settle(() => reject(new Error("Aborted")));
+        signal.addEventListener("abort", onAbort, { once: true });
+        // Clean up listener when request finishes naturally
+        req.on("close", () => signal.removeEventListener("abort", onAbort));
       }
 
-      req.on("error", reject);
+      req.on("error", (err) => settle(() => reject(err)));
       req.write(bodyStr);
       req.end();
     });
