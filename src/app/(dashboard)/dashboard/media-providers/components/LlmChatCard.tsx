@@ -12,8 +12,19 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 import { useApiKey } from "../../providers/hooks/useApiKey";
 import { useProviderModels } from "../../providers/hooks/useProviderModels";
+import {
+  CODEX_PLAYGROUND_REASONING_EFFORT,
+  type CodexResponseMetadata,
+  buildCodexResponseMetadata,
+  buildResponsesInputMessages,
+  extractResponsesOutputText,
+  formatCodexUsageValue,
+  isCodexPlaygroundProvider,
+  normalizeCodexResponsesModel,
+} from "./llmChatResponsesMetadata";
 
 const ENDPOINT = "/api/v1/chat/completions";
+const RESPONSES_ENDPOINT = "/api/v1/responses";
 
 /** Header used to test a specific API key's policy from the dashboard playground
  *  without exposing the key secret to the browser — the gateway resolves the key
@@ -57,6 +68,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   model?: string;
+  metadata?: CodexResponseMetadata;
 }
 
 interface Stats {
@@ -118,6 +130,59 @@ function extractUsage(line: string): { prompt_tokens?: number; completion_tokens
   }
 }
 
+function CodexResponseMetadataPanel({
+  metadata,
+  rawOpen,
+  onToggleRaw,
+}: {
+  metadata: CodexResponseMetadata;
+  rawOpen: boolean;
+  onToggleRaw: () => void;
+}) {
+  const usageEntries = Object.entries(metadata.usage);
+  const fields = [
+    ["requested", metadata.requestedModel],
+    ["resolved", metadata.resolvedModel],
+    ["reasoning", metadata.reasoningEffort],
+    ["response", metadata.responseId],
+  ].filter(([, value]) => typeof value === "string" && value.trim().length > 0);
+
+  return (
+    <div className="mt-2 rounded-md border border-border bg-bg-subtle/70 px-3 py-2 text-[11px] text-text-muted">
+      {usageEntries.length > 0 && (
+        <div className="font-mono leading-relaxed break-words text-text-muted">
+          {usageEntries.map(([key, value]) => `${key}=${formatCodexUsageValue(value)}`).join(" · ")}
+        </div>
+      )}
+      {fields.length > 0 && (
+        <div className="mt-2 grid gap-x-4 gap-y-1 sm:grid-cols-2">
+          {fields.map(([label, value]) => (
+            <div key={label} className="min-w-0 font-mono">
+              <span className="text-text-muted/70">{label}=</span>
+              <span className="break-all text-text-main/80">{value}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <button
+        type="button"
+        onClick={onToggleRaw}
+        className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-accent hover:text-accent/80"
+      >
+        <span className="material-symbols-outlined text-[13px]">
+          {rawOpen ? "expand_less" : "data_object"}
+        </span>
+        {rawOpen ? "Hide raw Responses JSON" : "View raw Responses JSON"}
+      </button>
+      {rawOpen && (
+        <pre className="mt-2 max-h-56 overflow-auto rounded border border-border bg-bg-card p-2 text-[11px] text-text-main">
+          {JSON.stringify(metadata.raw, null, 2)}
+        </pre>
+      )}
+    </div>
+  );
+}
+
 export function LlmChatCard({
   providerId,
   initialModel,
@@ -157,6 +222,7 @@ export function LlmChatCard({
   const [input, setInput] = useState<string>("");
   const [streaming, setStreaming] = useState<boolean>(false);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [expandedRawMessages, setExpandedRawMessages] = useState<Set<number>>(() => new Set());
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -168,6 +234,8 @@ export function LlmChatCard({
   // also covers vendor-namespaced ids (e.g. `moonshotai/kimi-k2.6`) that already
   // contain a slash but still need the provider prefix (#3050).
   const qualifiedModel = qualifyPlaygroundModel(effectiveModel, providerId);
+  const isCodexPlayground = isCodexPlaygroundProvider(providerId);
+  const codexResponsesModel = normalizeCodexResponsesModel(effectiveModel || qualifiedModel);
 
   // Autofocus textarea in embedded mode
   useEffect(() => {
@@ -216,6 +284,70 @@ export function LlmChatCard({
       };
       const playgroundKeyId = resolvePlaygroundKeyId(selectedKey, keys);
       if (playgroundKeyId) headers[PLAYGROUND_KEY_ID_HEADER] = playgroundKeyId;
+      if (isCodexPlayground) {
+        const res = await fetch(RESPONSES_ENDPOINT, {
+          method: "POST",
+          signal: controller.signal,
+          credentials: "same-origin",
+          headers,
+          body: JSON.stringify({
+            model: codexResponsesModel,
+            input: buildResponsesInputMessages([...messages, userMsg]),
+            reasoning: { effort: CODEX_PLAYGROUND_REASONING_EFFORT },
+            stream: false,
+            store: false,
+          }),
+        });
+
+        const payload: unknown = await res.json().catch(() => null);
+
+        if (!res.ok) {
+          const errData = payload && typeof payload === "object" ? payload : null;
+          const errMsg =
+            errData && (errData as Record<string, unknown>).error
+              ? String(
+                  (((errData as Record<string, unknown>).error as Record<string, unknown>)
+                    ?.message as string | undefined) ?? `HTTP ${res.status}`
+                )
+              : `HTTP ${res.status}`;
+          setMessages((prev) => {
+            const next = [...prev];
+            const last = next[next.length - 1];
+            next[next.length - 1] = { ...last, role: "assistant", content: `[Error: ${errMsg}]` };
+            return next;
+          });
+          return;
+        }
+
+        const metadata = buildCodexResponseMetadata({
+          payload,
+          headers: res.headers,
+          requestedModel: codexResponsesModel,
+          reasoningEffort: CODEX_PLAYGROUND_REASONING_EFFORT,
+          fallbackLatencyMs: performance.now() - t0,
+        });
+        const responseText = extractResponsesOutputText(payload) || "[No text output]";
+
+        setMessages((prev) => {
+          const next = [...prev];
+          const last = next[next.length - 1];
+          next[next.length - 1] = {
+            ...last,
+            role: "assistant",
+            content: responseText,
+            model: metadata.resolvedModel || codexResponsesModel,
+            metadata,
+          };
+          return next;
+        });
+        setStats({
+          latencyMs: metadata.latencyMs,
+          tokensIn: metadata.tokensIn,
+          tokensOut: metadata.tokensOut,
+        });
+        return;
+      }
+
       const res = await fetch(ENDPOINT, {
         method: "POST",
         signal: controller.signal,
@@ -325,7 +457,17 @@ export function LlmChatCard({
       // Refocus textarea so user can keep typing
       requestAnimationFrame(() => textareaRef.current?.focus());
     }
-  }, [input, streaming, selectedKey, keys, providerId, qualifiedModel, messages]);
+  }, [
+    input,
+    streaming,
+    selectedKey,
+    keys,
+    providerId,
+    qualifiedModel,
+    isCodexPlayground,
+    codexResponsesModel,
+    messages,
+  ]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -342,7 +484,17 @@ export function LlmChatCard({
     if (streaming) abortRef.current?.abort();
     setMessages([]);
     setStats(null);
+    setExpandedRawMessages(new Set());
   }, [streaming]);
+
+  const toggleRawMessage = useCallback((index: number) => {
+    setExpandedRawMessages((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  }, []);
 
   useImperativeHandle(
     controlsRef,
@@ -502,6 +654,13 @@ export function LlmChatCard({
                         <span className="inline-block w-1.5 h-3.5 bg-text-main ml-0.5 align-text-bottom animate-pulse" />
                       )}
                     </div>
+                    {!isUser && !isError && msg.metadata && (
+                      <CodexResponseMetadataPanel
+                        metadata={msg.metadata}
+                        rawOpen={expandedRawMessages.has(i)}
+                        onToggleRaw={() => toggleRawMessage(i)}
+                      />
+                    )}
                   </div>
                 </div>
               );
