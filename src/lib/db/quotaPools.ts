@@ -28,7 +28,10 @@ async function removeQuotaCombosGuarded(poolId: string): Promise<void> {
     const { removeQuotaCombosForPool } = await import("@/lib/quota/quotaCombos");
     await removeQuotaCombosForPool(poolId);
   } catch (err) {
-    console.warn("[quota-pools] removeQuotaCombosForPool failed (non-fatal):", (err as Error)?.message);
+    console.warn(
+      "[quota-pools] removeQuotaCombosForPool failed (non-fatal):",
+      (err as Error)?.message
+    );
   }
 }
 
@@ -115,9 +118,9 @@ function assertSingleProvider(connectionIds: string[]): void {
   const db = getDb();
   const placeholders = connectionIds.map(() => "?").join(",");
   const rows = db
-    .prepare<{ provider: string }>(
-      `SELECT DISTINCT provider FROM provider_connections WHERE id IN (${placeholders})`
-    )
+    .prepare<{
+      provider: string;
+    }>(`SELECT DISTINCT provider FROM provider_connections WHERE id IN (${placeholders})`)
     .all(...connectionIds);
   const providers = rows.map((r) => r.provider).filter(Boolean);
   if (new Set(providers).size > 1) {
@@ -194,12 +197,7 @@ function getAllocations(poolId: string): PoolAllocation[] {
 }
 
 function makeId(): string {
-  // Use Web Crypto UUID (available in Node ≥19 globally; also available in browsers)
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
-  }
-  // Fallback: timestamp + random (extremely unlikely to collide in tests)
-  return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
+  return crypto.randomUUID();
 }
 
 // ---------------------------------------------------------------------------
@@ -236,7 +234,9 @@ export function listPools(): QuotaPool[] {
  */
 export function getPool(id: string): QuotaPool | null {
   const row = getDb()
-    .prepare<PoolRow>("SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?")
+    .prepare<PoolRow>(
+      "SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?"
+    )
     .get(id);
   if (!row) return null;
   return rowToPool(row, getAllocations(row.id));
@@ -268,7 +268,9 @@ export function createPool(input: PoolCreate): QuotaPool {
   const database = getDb();
   const doCreate = database.transaction(() => {
     database
-      .prepare("INSERT INTO quota_pools (id, connection_id, name, group_id, created_at) VALUES (?, ?, ?, ?, ?)")
+      .prepare(
+        "INSERT INTO quota_pools (id, connection_id, name, group_id, created_at) VALUES (?, ?, ?, ?, ?)"
+      )
       .run(id, primaryConnectionId, input.name, groupId, now);
 
     const insertConn = database.prepare(
@@ -298,7 +300,13 @@ export function createPool(input: PoolCreate): QuotaPool {
   doCreate();
 
   const result = rowToPool(
-    { id, connection_id: primaryConnectionId, name: input.name, group_id: groupId, created_at: now },
+    {
+      id,
+      connection_id: primaryConnectionId,
+      name: input.name,
+      group_id: groupId,
+      created_at: now,
+    },
     getAllocations(id)
   );
 
@@ -317,7 +325,9 @@ export function createPool(input: PoolCreate): QuotaPool {
 export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
   const database = getDb();
   const existing = database
-    .prepare<PoolRow>("SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?")
+    .prepare<PoolRow>(
+      "SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?"
+    )
     .get(id);
   if (!existing) return null;
 
@@ -340,9 +350,7 @@ export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
     if (input.connectionIds !== undefined && input.connectionIds.length > 0) {
       const newPrimary = input.connectionIds[0];
       // Replace join rows.
-      database
-        .prepare("DELETE FROM quota_pool_connections WHERE pool_id = ?")
-        .run(id);
+      database.prepare("DELETE FROM quota_pool_connections WHERE pool_id = ?").run(id);
       const insertConn = database.prepare(
         "INSERT OR IGNORE INTO quota_pool_connections (pool_id, connection_id) VALUES (?, ?)"
       );
@@ -350,9 +358,7 @@ export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
         insertConn.run(id, connId);
       }
       // Sync primary column.
-      database
-        .prepare("UPDATE quota_pools SET connection_id = ? WHERE id = ?")
-        .run(newPrimary, id);
+      database.prepare("UPDATE quota_pools SET connection_id = ? WHERE id = ?").run(newPrimary, id);
       existing.connection_id = newPrimary;
     }
 
@@ -399,13 +405,15 @@ export function deletePool(id: string): boolean {
   const doDelete = database.transaction(() => {
     database.prepare("DELETE FROM quota_pool_connections WHERE pool_id = ?").run(id);
     // Prune this pool id from every key's allowed_quotas JSON array.
-    database.prepare(
-      `UPDATE api_keys SET allowed_quotas = COALESCE(
+    database
+      .prepare(
+        `UPDATE api_keys SET allowed_quotas = COALESCE(
          (SELECT json_group_array(value) FROM json_each(api_keys.allowed_quotas) WHERE value != ?),
          '[]')
        WHERE allowed_quotas IS NOT NULL AND allowed_quotas != '[]'
          AND EXISTS (SELECT 1 FROM json_each(api_keys.allowed_quotas) WHERE value = ?)`
-    ).run(id, id);
+      )
+      .run(id, id);
     return database.prepare("DELETE FROM quota_pools WHERE id = ?").run(id);
   });
   const result = doDelete();
@@ -453,7 +461,10 @@ export function upsertAllocations(poolId: string, allocations: PoolAllocation[])
 
   // Normalize: when all weights are 0, distribute equally so the pool is usable
   // without requiring a manual re-save. Persists the normalized weights.
-  const totalWeight = allocations.reduce((s, a) => s + (Number.isFinite(a.weight) ? a.weight : 0), 0);
+  const totalWeight = allocations.reduce(
+    (s, a) => s + (Number.isFinite(a.weight) ? a.weight : 0),
+    0
+  );
   const normalizedAllocations =
     totalWeight === 0 && allocations.length > 0
       ? allocations.map((a) => ({ ...a, weight: 100 / allocations.length }))
@@ -462,7 +473,9 @@ export function upsertAllocations(poolId: string, allocations: PoolAllocation[])
   // Resolve the target pool's group so we can propagate to siblings.
   // Defensive: fall back to [poolId] (single-pool semantics) if pool not found.
   const targetPool = database
-    .prepare<PoolRow>("SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?")
+    .prepare<PoolRow>(
+      "SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?"
+    )
     .get(poolId);
 
   // Collect all pools in the group (includes the target pool itself).
