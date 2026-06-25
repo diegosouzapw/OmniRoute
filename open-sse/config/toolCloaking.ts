@@ -52,6 +52,16 @@ function toToolName(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function rememberCloakedToolName(
+  toolNameMap: Map<string, string>,
+  rawName: string,
+  cloakedName: string
+): boolean {
+  if (cloakedName === rawName) return false;
+  toolNameMap.set(cloakedName, toolNameMap.get(rawName) ?? rawName);
+  return true;
+}
+
 export function shouldCloakAntigravityTool(toolName: string): boolean {
   return (
     toolName.length > 0 && !AG_DEFAULT_TOOLS.has(toolName) && !toolName.endsWith(AG_TOOL_SUFFIX)
@@ -60,6 +70,92 @@ export function shouldCloakAntigravityTool(toolName: string): boolean {
 
 export function getCloakedAntigravityToolName(toolName: string): string {
   return shouldCloakAntigravityTool(toolName) ? `${toolName}${AG_TOOL_SUFFIX}` : toolName;
+}
+
+function cloakAntigravityToolDeclarations(
+  tools: unknown,
+  toolNameMap: Map<string, string>
+): JsonRecord[] | null {
+  if (!Array.isArray(tools)) return null;
+
+  const preservedTools: JsonRecord[] = [];
+  const cloakedDeclarations: JsonRecord[] = [];
+
+  for (const toolValue of tools) {
+    const tool = asRecord(toolValue);
+    if (!tool || !Array.isArray(tool.functionDeclarations)) {
+      preservedTools.push(toolValue as JsonRecord);
+      continue;
+    }
+
+    for (const declarationValue of tool.functionDeclarations) {
+      const declaration = asRecord(declarationValue);
+      if (!declaration) continue;
+
+      const rawName = toToolName(declaration.name);
+      if (!rawName) {
+        cloakedDeclarations.push({ ...declaration });
+        continue;
+      }
+
+      const cloakedName = getCloakedAntigravityToolName(rawName);
+      rememberCloakedToolName(toolNameMap, rawName, cloakedName);
+      cloakedDeclarations.push({ ...declaration, name: cloakedName });
+    }
+  }
+
+  if (cloakedDeclarations.length === 0) return null;
+
+  const declaredNames = new Set(
+    cloakedDeclarations.map((declaration) => toToolName(declaration.name)).filter(Boolean)
+  );
+  const decoys = AG_DECOY_TOOLS.filter((declaration) => !declaredNames.has(declaration.name));
+  return [...preservedTools, { functionDeclarations: [...cloakedDeclarations, ...decoys] }];
+}
+
+function cloakAntigravityToolPart(partValue: unknown, toolNameMap: Map<string, string>): unknown {
+  const part = asRecord(partValue);
+  if (!part) return partValue;
+
+  const nextPart: JsonRecord = { ...part };
+  let changed = false;
+
+  for (const key of ["functionCall", "functionResponse"] as const) {
+    const toolUse = asRecord(part[key]);
+    if (!toolUse) continue;
+
+    const rawName = toToolName(toolUse.name);
+    const cloakedName = getCloakedAntigravityToolName(rawName);
+    if (rememberCloakedToolName(toolNameMap, rawName, cloakedName)) {
+      nextPart[key] = { ...toolUse, name: cloakedName };
+      changed = true;
+    }
+  }
+
+  return changed ? nextPart : partValue;
+}
+
+function cloakAntigravityContents(
+  contents: unknown,
+  toolNameMap: Map<string, string>
+): unknown[] | null {
+  if (!Array.isArray(contents)) return null;
+
+  let contentsChanged = false;
+  const nextContents = contents.map((contentValue) => {
+    const content = asRecord(contentValue);
+    if (!content || !Array.isArray(content.parts)) return contentValue;
+
+    const nextParts = content.parts.map((partValue) =>
+      cloakAntigravityToolPart(partValue, toolNameMap)
+    );
+    if (nextParts.every((part, index) => part === content.parts[index])) return contentValue;
+
+    contentsChanged = true;
+    return { ...content, parts: nextParts };
+  });
+
+  return contentsChanged ? nextContents : null;
 }
 
 export function cloakAntigravityToolPayload<T extends JsonRecord>(
@@ -84,111 +180,16 @@ export function cloakAntigravityToolPayload<T extends JsonRecord>(
     ...request,
   };
 
-  if (Array.isArray(request.tools)) {
-    const preservedTools: JsonRecord[] = [];
-    const cloakedDeclarations: JsonRecord[] = [];
-
-    for (const toolValue of request.tools) {
-      const tool = asRecord(toolValue);
-      if (!tool || !Array.isArray(tool.functionDeclarations)) {
-        preservedTools.push(toolValue as JsonRecord);
-        continue;
-      }
-
-      for (const declarationValue of tool.functionDeclarations) {
-        const declaration = asRecord(declarationValue);
-        if (!declaration) continue;
-
-        const rawName = toToolName(declaration.name);
-        if (!rawName) {
-          cloakedDeclarations.push({ ...declaration });
-          continue;
-        }
-
-        const cloakedName = getCloakedAntigravityToolName(rawName);
-        if (cloakedName !== rawName) {
-          changed = true;
-          toolNameMap.set(cloakedName, toolNameMap.get(rawName) ?? rawName);
-        }
-
-        cloakedDeclarations.push({
-          ...declaration,
-          name: cloakedName,
-        });
-      }
-    }
-
-    if (cloakedDeclarations.length > 0) {
-      const declaredNames = new Set(
-        cloakedDeclarations
-          .map((declaration) => toToolName(declaration.name))
-          .filter((name) => name.length > 0)
-      );
-      const decoys = AG_DECOY_TOOLS.filter((declaration) => !declaredNames.has(declaration.name));
-      nextRequest.tools = [
-        ...preservedTools,
-        { functionDeclarations: [...cloakedDeclarations, ...decoys] },
-      ];
-      changed = true;
-    }
+  const nextTools = cloakAntigravityToolDeclarations(request.tools, toolNameMap);
+  if (nextTools) {
+    nextRequest.tools = nextTools;
+    changed = true;
   }
 
-  if (Array.isArray(request.contents)) {
-    let contentsChanged = false;
-    const nextContents = request.contents.map((contentValue) => {
-      const content = asRecord(contentValue);
-      if (!content || !Array.isArray(content.parts)) return contentValue;
-
-      let partChanged = false;
-      const nextParts = content.parts.map((partValue) => {
-        const part = asRecord(partValue);
-        if (!part) return partValue;
-
-        const nextPart: JsonRecord = { ...part };
-
-        const functionCall = asRecord(part.functionCall);
-        if (functionCall) {
-          const rawName = toToolName(functionCall.name);
-          const cloakedName = getCloakedAntigravityToolName(rawName);
-          if (cloakedName !== rawName) {
-            nextPart.functionCall = {
-              ...functionCall,
-              name: cloakedName,
-            };
-            toolNameMap.set(cloakedName, toolNameMap.get(rawName) ?? rawName);
-            partChanged = true;
-          }
-        }
-
-        const functionResponse = asRecord(part.functionResponse);
-        if (functionResponse) {
-          const rawName = toToolName(functionResponse.name);
-          const cloakedName = getCloakedAntigravityToolName(rawName);
-          if (cloakedName !== rawName) {
-            nextPart.functionResponse = {
-              ...functionResponse,
-              name: cloakedName,
-            };
-            toolNameMap.set(cloakedName, toolNameMap.get(rawName) ?? rawName);
-            partChanged = true;
-          }
-        }
-
-        return partChanged ? nextPart : partValue;
-      });
-
-      if (!partChanged) return contentValue;
-      contentsChanged = true;
-      return {
-        ...content,
-        parts: nextParts,
-      };
-    });
-
-    if (contentsChanged) {
-      nextRequest.contents = nextContents;
-      changed = true;
-    }
+  const nextContents = cloakAntigravityContents(request.contents, toolNameMap);
+  if (nextContents) {
+    nextRequest.contents = nextContents;
+    changed = true;
   }
 
   if (!changed) {
