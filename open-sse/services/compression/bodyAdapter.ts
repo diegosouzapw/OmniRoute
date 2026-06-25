@@ -65,9 +65,19 @@ function responsesItemToMessage(item: ResponsesItem): MessageLike | null {
   if (!RESPONSES_MESSAGE_TYPES.has(type)) return null;
 
   if (type === "function_call_output") {
+    const rawOutput = item.output ?? item.content;
+    // OpenAI Responses shape (Codex): body.input holds Responses items. When
+    // output is a JSON object (not a string or content array), serialise it so
+    // compression engines can process the text. On restore the serialised string
+    // is kept as output — the Responses API accepts string output. (#1998)
+    const isObjectOutput =
+      rawOutput !== null &&
+      rawOutput !== undefined &&
+      typeof rawOutput === "object" &&
+      !Array.isArray(rawOutput);
     return {
       role: "tool",
-      content: toChatContent(item.output ?? item.content),
+      content: isObjectOutput ? JSON.stringify(rawOutput) : toChatContent(rawOutput),
     };
   }
 
