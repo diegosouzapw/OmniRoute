@@ -13,6 +13,7 @@ _In development — bullets added per PR; finalized at release._
 ### 🔧 Bug Fixes
 
 - **fix(dashboard):** show custom provider given-name instead of internal id across dashboard pages — cache, combo health, compression analytics, cost overview, health/autopilot, provider stats, route explainability, provider utilization, runtime. Adds shared `resolveProviderName` resolver and `useProviderNodeMap` hook. (#4603)
+- **fix(compression):** stop RTK over-truncating file-read tool results — a tool returning a file's contents (e.g. a ~147-line code/prose file via a Read tool) is no longer head/tail-truncated by the generic-output fallback filter or the line/char hard-cap, which were silently dropping the middle. RTK now treats content with no detected command, an `unknown` type, and no error markers as a document read and skips those truncation paths; genuine repetitive command output (npm install, make, docker logs) is unaffected. (#4559)
 
 ---
 
