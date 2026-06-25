@@ -14,6 +14,7 @@ _In development — bullets added per PR; finalized at release._
 
 - **fix(dashboard):** show custom provider given-name instead of internal id across dashboard pages — cache, combo health, compression analytics, cost overview, health/autopilot, provider stats, route explainability, provider utilization, runtime. Adds shared `resolveProviderName` resolver and `useProviderNodeMap` hook. (#4603)
 - **fix(dashboard):** on OAuth providers (e.g. GLM Coding), "Test all models" with auto-hide-failed now switches the model list to the "visible" filter after the run, so just-hidden failed models actually disappear on-screen — parity with the passthrough-provider path (#3610). Previously they were hidden in the DB but stayed visible under the "All" filter, so it looked like nothing was hidden. (#4887)
+- **fix(chatgpt-web):** map the advertised `gpt-5.5`, `gpt-5.5-pro`, `gpt-5.4-pro` and `gpt-5.2-pro` catalog ids to their dash-form ChatGPT backend slugs. They were missing from `MODEL_MAP`, so the executor sent the dot-form id verbatim, which the ChatGPT backend silently ignored and served the default Plus model instead of the requested one. Adds a drift guard asserting no advertised dot-form id reaches the backend verbatim. (#4665)
 
 ---
 

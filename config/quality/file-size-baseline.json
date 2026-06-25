@@ -240,7 +240,7 @@
     "tests/unit/cc-compatible-provider.test.ts": 1179,
     "tests/unit/chatcore-sanitization.test.ts": 829,
     "tests/unit/chatcore-translation-paths.test.ts": 2810,
-    "tests/unit/chatgpt-web.test.ts": 2809,
+    "tests/unit/chatgpt-web.test.ts": 2855,
     "tests/unit/combo-routing-engine.test.ts": 3213,
     "tests/unit/combo-strategy-fallbacks.test.ts": 880,
     "tests/unit/db-core-init.test.ts": 867,
