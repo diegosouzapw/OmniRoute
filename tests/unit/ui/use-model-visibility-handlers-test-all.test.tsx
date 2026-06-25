@@ -22,7 +22,7 @@ vi.stubGlobal("fetch", mockFetch);
 const {
   useModelVisibilityHandlers,
 } = await import(
-  "../../src/app/(dashboard)/dashboard/providers/[id]/hooks/useModelVisibilityHandlers"
+  "../../../src/app/(dashboard)/dashboard/providers/[id]/hooks/useModelVisibilityHandlers"
 );
 
 type Hook = ReturnType<typeof useModelVisibilityHandlers>;
