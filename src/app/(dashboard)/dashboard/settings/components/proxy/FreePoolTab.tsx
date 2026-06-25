@@ -102,7 +102,11 @@ export default function FreePoolTab() {
       const res = await fetch(`/api/settings/free-proxies/${id}/add-to-pool`, {
         method: "POST",
       });
-      if (res.ok) {
+      // #4878: gate on the parsed body, not just res.ok. The route used to return
+      // a default 200 with { success:false } on a failed connectivity probe, which
+      // flipped the row to "In Pool" optimistically even though nothing was added.
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.success) {
         setProxies((prev) => prev.map((p) => (p.id === id ? { ...p, inPool: true } : p)));
       }
     } catch {}
