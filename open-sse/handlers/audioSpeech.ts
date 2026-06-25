@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto";
 import { CORS_HEADERS } from "../utils/cors.ts";
 import { stripTrailingSlashes } from "../utils/urlSanitize.ts";
 /**
