@@ -13,6 +13,7 @@ _In development — bullets added per PR; finalized at release._
 ### 🔧 Bug Fixes
 
 - **fix(dashboard):** show custom provider given-name instead of internal id across dashboard pages — cache, combo health, compression analytics, cost overview, health/autopilot, provider stats, route explainability, provider utilization, runtime. Adds shared `resolveProviderName` resolver and `useProviderNodeMap` hook. (#4603)
+- **fix(sse):** honor per-account proxies and fingerprint rotation in the OpenCode (Free) executor. The UI exposes multi-account + per-account proxy controls, but the executor was a plain pass-through — requests always egressed direct and never rotated. The executor now reads `providerSpecificData.accountProxies`, dispatches each request through the selected account's proxy via `runWithProxyContext`, and rotates to the next account (with exponential cooldown) on a 429. The synthetic no-auth credentials are also hydrated with the connection's `fingerprints`/`accountProxies` so the config reaches the executor (also fixes the same gap for MiMoCode). (#4954)
 
 ---
 

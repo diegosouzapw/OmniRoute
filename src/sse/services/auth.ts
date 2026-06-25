@@ -781,14 +781,14 @@ type AnonymousFallbackProviderDefinition = {
   noAuth?: boolean;
 };
 
-function buildSyntheticNoAuthCredentials(): {
+function buildSyntheticNoAuthCredentials(providerSpecificData: JsonRecord = {}): {
   apiKey: null;
   accessToken: null;
   refreshToken: null;
   expiresAt: null;
   projectId: null;
   copilotToken: null;
-  providerSpecificData: Record<string, never>;
+  providerSpecificData: JsonRecord;
   connectionId: typeof SYNTHETIC_NOAUTH_CONNECTION_ID;
   testStatus: "active";
   lastError: null;
@@ -809,7 +809,7 @@ function buildSyntheticNoAuthCredentials(): {
     expiresAt: null,
     projectId: null,
     copilotToken: null,
-    providerSpecificData: {},
+    providerSpecificData,
     connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
     testStatus: "active",
     lastError: null,
@@ -819,6 +819,39 @@ function buildSyntheticNoAuthCredentials(): {
     rateLimitedUntil: null,
     maxConcurrent: null,
   };
+}
+
+/**
+ * #4954 — A no-auth provider ("OpenCode Free", MiMoCode, …) has no DB-backed
+ * credential, but its NoAuthAccountCard DOES persist a real connection row whose
+ * `providerSpecificData` carries the per-account proxy/rotation config
+ * (`fingerprints` + `accountProxies`). The synthetic credentials returned above
+ * default to an empty `providerSpecificData`, so without hydration the executor
+ * never sees those proxies and every request egresses direct. Pull just the
+ * rotation-relevant fields off the active connection so the executor can honor
+ * them. Best-effort: any read failure falls back to empty (historical behavior).
+ */
+async function loadNoAuthProviderSpecificData(providerId: string): Promise<JsonRecord> {
+  try {
+    const connectionsRaw = await getProviderConnections({ provider: providerId });
+    const connections = (Array.isArray(connectionsRaw) ? connectionsRaw : []).map(
+      toProviderConnection
+    );
+    const hydrated: JsonRecord = {};
+    for (const conn of connections) {
+      const psd = conn.providerSpecificData;
+      if (!psd || typeof psd !== "object") continue;
+      if (Array.isArray(psd.fingerprints) && !Array.isArray(hydrated.fingerprints)) {
+        hydrated.fingerprints = psd.fingerprints;
+      }
+      if (Array.isArray(psd.accountProxies) && !Array.isArray(hydrated.accountProxies)) {
+        hydrated.accountProxies = psd.accountProxies;
+      }
+    }
+    return hydrated;
+  } catch {
+    return {};
+  }
 }
 
 function providerCanUseSyntheticNoAuthFallback(providerId: string): boolean {
@@ -838,10 +871,16 @@ function providerCanUseSyntheticNoAuthFallback(providerId: string): boolean {
   );
 }
 
-function maybeSyntheticNoAuthFallback(providerId: string, excludedConnectionIds: Set<string>) {
+async function maybeSyntheticNoAuthFallback(
+  providerId: string,
+  excludedConnectionIds: Set<string>
+) {
   if (!providerCanUseSyntheticNoAuthFallback(providerId)) return null;
   if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) return null;
-  return buildSyntheticNoAuthCredentials();
+  // #4954: hydrate per-account proxy/rotation config off the connection row so
+  // no-auth executors (opencode, mimocode) actually honor configured proxies.
+  const providerSpecificData = await loadNoAuthProviderSpecificData(providerId);
+  return buildSyntheticNoAuthCredentials(providerSpecificData);
 }
 
 function normalizeExcludedConnectionIds(
@@ -1021,7 +1060,7 @@ export async function getProviderCredentials(
         excludeConnectionId,
         options.excludeConnectionIds
       );
-      return maybeSyntheticNoAuthFallback(resolvedId, excludedForNoAuth);
+      return await maybeSyntheticNoAuthFallback(resolvedId, excludedForNoAuth);
     }
 
     const allowSuppressedConnections = options.allowSuppressedConnections === true;
@@ -1106,7 +1145,7 @@ export async function getProviderCredentials(
         // the dashboard sees a misleading "bad_request" code.
         const terminalConnections = allConnections.filter(isTerminalConnectionStatus);
         if (terminalConnections.length === allConnections.length) {
-          const syntheticFallback = maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
+          const syntheticFallback = await maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
           if (syntheticFallback) return syntheticFallback;
 
           const statusCounts = new Map<string, number>();
@@ -1123,7 +1162,7 @@ export async function getProviderCredentials(
           };
         }
       }
-      const syntheticFallback = maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
+      const syntheticFallback = await maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
       if (syntheticFallback) return syntheticFallback;
       log.warn("AUTH", `No credentials for ${provider}`);
       return null;
@@ -1294,7 +1333,7 @@ export async function getProviderCredentials(
           cooldownModel: allBlockedByModelCooldown ? requestedModel : null,
         };
       }
-      const syntheticFallback = maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
+      const syntheticFallback = await maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
       if (syntheticFallback) return syntheticFallback;
       log.warn("AUTH", `${provider} | all ${connections.length} accounts unavailable`);
       return null;
