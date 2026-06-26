@@ -25,6 +25,7 @@ import {
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
+import { deriveConfigFromRegistryModelsUrl } from "./discoveryConfig";
 import { fetchGitHubCopilotModels } from "@omniroute/open-sse/services/githubCopilotModels.ts";
 import { fetchKiroAvailableModels } from "@omniroute/open-sse/services/kiroModels.ts";
 import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
@@ -2387,28 +2388,10 @@ export async function GET(
       return buildApiDiscoveryResponse(models);
     }
 
-    let config =
+    const config =
       provider in PROVIDER_MODELS_CONFIG
         ? PROVIDER_MODELS_CONFIG[provider as keyof typeof PROVIDER_MODELS_CONFIG]
-        : undefined;
-
-    // Derive config from registry modelsUrl when not in PROVIDER_MODELS_CONFIG.
-    // This allows providers to enable live model discovery by adding modelsUrl to their
-    // RegistryEntry, without needing a hardcoded entry in PROVIDER_MODELS_CONFIG.
-    if (!config) {
-      const registryEntry = getRegistryEntry(provider);
-      if (typeof registryEntry?.modelsUrl === "string" && registryEntry.modelsUrl.length > 0) {
-        config = {
-          url: registryEntry.modelsUrl,
-          method: "GET",
-          authHeader: "Authorization",
-          authPrefix: "Bearer ",
-          headers: { "Content-Type": "application/json" },
-          parseResponse: (data: Record<string, unknown>) =>
-            (data.data || data.models || []) as ProviderModelObject[],
-        };
-      }
-    }
+        : deriveConfigFromRegistryModelsUrl(provider);
     // Static model providers (no remote /models API)
     // Qwen OAuth Fallback: The Dashscope /models API rejects OAuth tokens with 401
     if (provider === "qwen" && connection.authType === "oauth") {
