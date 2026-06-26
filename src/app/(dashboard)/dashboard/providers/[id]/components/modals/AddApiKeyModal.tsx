@@ -203,7 +203,14 @@ export default function AddApiKeyModal({
         }),
       });
       const data = await res.json();
-      setValidationResult(data.valid ? "success" : "failed");
+      const ok = !!data.valid;
+      setValidationResult(ok ? "success" : "failed");
+      // #5088: surface the detailed reason the backend returns (e.g. a TLS/EACCES
+      // environment error for claude-web/chatgpt-web) instead of only a bare
+      // "invalid" badge — otherwise the real cause is hidden and users are stuck.
+      if (!ok && typeof data.error === "string" && data.error) {
+        setSaveError(data.error);
+      }
     } catch {
       setValidationResult("failed");
     } finally {
