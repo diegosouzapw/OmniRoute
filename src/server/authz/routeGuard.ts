@@ -160,10 +160,56 @@ export function isPrivateLanHost(hostHeader: string | null): boolean {
   return PRIVATE_LAN_PATTERNS.some((re) => re.test(host));
 }
 
-export function isLocalOnlyPath(path: string): boolean {
+/**
+ * LOCAL_ONLY paths whose READ methods are safe to expose to non-loopback
+ * clients. The corresponding WRITE methods (POST / PUT / PATCH / DELETE)
+ * remain strictly loopback because they spawn subprocesses or mutate
+ * local state.
+ *
+ * Currently used to expose `GET /api/system/version` to remote dashboards so
+ * they can show the user's installed OmniRoute build / "update available"
+ * banner without first having to log in. The corresponding POST remains
+ * LOCAL_ONLY because it triggers `git checkout` + `npm install` + `pm2
+ * restart` (auto-update) — see src/app/api/system/version/route.ts.
+ *
+ * Each entry is matched as an exact path (`path === entry`) or a child
+ * (`path.startsWith(entry + "/")`) so a prefix can't over-broaden the
+ * exemption (e.g. `"/api/system/version-foo"` must NOT match
+ * `"/api/system/version"`).
+ */
+export const LOCAL_ONLY_API_GET_EXEMPTIONS: ReadonlyArray<string> = [
+  "/api/system/version",
+];
+
+function isLocalOnlyPathUnconditional(path: string): boolean {
   return (
     LOCAL_ONLY_API_PREFIXES.some((p) => path === p || path.startsWith(p)) ||
     LOCAL_ONLY_API_PATTERNS.some((re) => re.test(path))
+  );
+}
+
+/**
+ * True when `path` (and optionally its HTTP method) requires loopback access.
+ * Read methods listed in `LOCAL_ONLY_API_GET_EXEMPTIONS` are exempted from the
+ * gate so dashboards can render version banners etc. without first logging in;
+ * the corresponding WRITE methods on the same path stay LOCAL_ONLY because
+ * they spawn subprocesses (see `src/app/api/system/version/route.ts` POST).
+ *
+ * Callers that don't have a method (e.g. unit tests, audit tooling) get the
+ * conservative behaviour: the path is treated as LOCAL_ONLY regardless of
+ * method.
+ */
+export function isLocalOnlyPath(path: string, method?: string): boolean {
+  if (!isLocalOnlyPathUnconditional(path)) return false;
+  if (!method) return true;
+  const upper = method.toUpperCase();
+  // Only GET / HEAD / OPTIONS are safe-by-construction read methods. The
+  // exemption list is intentionally narrow — never auto-widen it to PUT/PATCH
+  // because the whole point of this carve-out is read-only endpoints.
+  const isReadMethod = upper === "GET" || upper === "HEAD" || upper === "OPTIONS";
+  if (!isReadMethod) return true;
+  return !LOCAL_ONLY_API_GET_EXEMPTIONS.some(
+    (p) => path === p || path.startsWith(p + "/")
   );
 }
 

@@ -117,10 +117,20 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     const validation = validateBody(updateComboSchema, rawBody);
     if (isValidationFailure(validation)) {
+      // Surface the FIRST field-level issue at the top of `details` so a
+      // dashboard toast can render a specific message ("config.compressionMode:
+      // …") instead of the generic catalog "One or more combo fields are
+      // invalid". The full structured detail list is preserved under
+      // `details.issues` for any caller that needs the full picture.
+      const firstIssue = validation.error.details?.[0];
       return comboErrorResponse(
         "COMBO_002",
         400,
-        { issues: validation.error },
+        {
+          issues: validation.error,
+          firstField: firstIssue?.field,
+          firstMessage: firstIssue?.message,
+        },
         request
       );
     }

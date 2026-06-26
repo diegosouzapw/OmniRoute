@@ -5,6 +5,7 @@ import { createErrorResponse } from "@/lib/api/errorResponse";
 import { extractApiKey, isValidApiKey } from "@/sse/services/auth";
 import {
   LOCAL_ONLY_API_PREFIXES,
+  LOCAL_ONLY_API_GET_EXEMPTIONS,
   ALWAYS_PROTECTED_API_PATHS,
   LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES,
   SPAWN_CAPABLE_PREFIXES,
@@ -33,6 +34,12 @@ interface TierEntry {
   prefixes: string[];
   description: string;
   bypassable: boolean;
+  // Populated only on the LOCAL_ONLY tier — lists paths whose read methods
+  // (GET / HEAD / OPTIONS) bypass the loopback-only gate so dashboards can
+  // render them before the user logs in. The corresponding WRITE methods on
+  // those paths remain loopback-enforced. See LOCAL_ONLY_API_GET_EXEMPTIONS
+  // in src/server/authz/routeGuard.ts.
+  readMethodExemptions?: string[];
 }
 
 /**
@@ -104,6 +111,7 @@ export async function GET(request: Request) {
         description:
           "Loopback-only routes. Spawn child processes; exposing them to non-local traffic is a known CVE class (GHSA-fhh6-4qxv-rpqj). Some entries are opt-in bypassable via the manage scope (kill-switch gated).",
         bypassable: LOCAL_ONLY_API_PREFIXES.some(isBypassableConstant),
+        readMethodExemptions: [...LOCAL_ONLY_API_GET_EXEMPTIONS],
       },
       {
         name: "ALWAYS_PROTECTED",

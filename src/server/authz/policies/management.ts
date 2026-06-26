@@ -142,9 +142,20 @@ export const managementPolicy: RoutePolicy = {
     // the subprocess-spawning /api/cli-tools/runtime/* surface, which is NOT
     // in the bypass list).
     //
+    // Method-aware exemption: read methods on LOCAL_ONLY paths listed in
+    // `LOCAL_ONLY_API_GET_EXEMPTIONS` (currently only `GET /api/system/version`)
+    // are also allowed from non-loopback so dashboards can show version info
+    // before the user logs in. The corresponding WRITE method stays
+    // LOCAL_ONLY because it spawns `git`/`npm`/`pm2` (see
+    // src/app/api/system/version/route.ts).
+    //
     // Anonymous (no Bearer / invalid key / wrong scope / no session) requests
     // still hit the same 403 LOCAL_ONLY they did before.
-    if (isLocalOnlyPath(path) && !isLoopbackRequest(ctx) && !isPrivateLanRequest(ctx)) {
+    if (
+      isLocalOnlyPath(path, ctx.request?.method) &&
+      !isLoopbackRequest(ctx) &&
+      !isPrivateLanRequest(ctx)
+    ) {
       if (isLocalOnlyBypassableByManageScope(path)) {
         // Management auth is header-only — a URL-borne token must never satisfy a
         // manage-scope bypass of a LOCAL_ONLY route. See #3300 follow-up.

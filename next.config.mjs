@@ -10,6 +10,68 @@ const scriptSrc =
   process.env.NODE_ENV === "development"
     ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:"
     : "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:";
+// Build the static part of the connect-src directive once at config load.
+// ws:/wss: are listed as bare schemes (CSP allows any host under a scheme token),
+// but the WebSocket dashboard hook also opens sockets to <window.location.host>
+// on arbitrary hostnames (LAN, Tailscale 100.64.0.0/10, public domains, ...).
+// We extend the per-response header in `headers()` below with the request's own
+// host so a Next.js process serving multiple hostnames still emits a CSP that
+// matches the page that loaded it. http:/https: are kept broad so the OpenAI-
+// compatible /v1 proxy, image fetches, and other upstream calls work.
+const CONNECT_SRC_BASE = [
+  "'self'",
+  "http://localhost:*",
+  "http://127.0.0.1:*",
+  "ws://localhost:*",
+  "ws://127.0.0.1:*",
+  "https:",
+  "wss:",
+].join(" ");
+// Replacement marker inside `contentSecurityPolicy` — we always have
+// `connect-src 'self' …` as the start of the directive, so we substitute on
+// that exact prefix and never on a substring of another directive.
+const CONNECT_SRC_MARKER = "connect-src 'self'";
+const CONNECT_SRC_REPLACEMENT_PREFIX = `connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*`;
+
+// Returns a CSP-safe origin token ("scheme://host[:port]") from a Host header
+// value, or null when the header is missing or carries anything that isn't a
+// plain host[:port] (defensive against header injection — we only accept a
+// narrow charset and never accept a full URL, path, or directive separator).
+// The Host header may include a comma-separated list when the request went
+// through multiple proxies; we only use the first segment.
+function originTokenFromHostHeader(hostHeader, protocol) {
+  if (!hostHeader || typeof hostHeader !== "string") return null;
+  const firstSegment = hostHeader.split(",")[0].trim();
+  if (!firstSegment) return null;
+  // Host tokens: alphanumerics, dot, dash, underscore, IPv6 brackets+colons,
+  // and a single optional :port suffix.
+  if (!/^[A-Za-z0-9._[\]:-]+$/.test(firstSegment)) return null;
+  const inferredScheme = protocol === "https:" || protocol === "wss:" ? "https" : "http";
+  return `${inferredScheme}://${firstSegment}`;
+}
+
+// Augments the static `connect-src` directive with the request's own HTTP
+// and WS origins. This is the targeted relaxation needed so the dashboard's
+// live WebSocket (`useLiveDashboard` opens ws://<window.location.host>:20129)
+// is permitted by CSP when the user accesses OmniRoute from a non-localhost
+// host (LAN IP, Tailscale CGNAT 100.64.0.0/10, public DNS, ...). The injected
+// tokens are derived solely from the Host header, which is set by the reverse
+// proxy / Next.js server — never from a client-controlled header — so this
+// cannot be abused by a remote attacker to widen CSP for their own origin.
+function appendOwnOriginToCsp(staticCsp, hostHeader, protocol) {
+  const ownOrigin = originTokenFromHostHeader(hostHeader, protocol);
+  if (!ownOrigin) return staticCsp;
+  // Mirror the same host over ws:/wss: so a same-origin WS upgrade is also
+  // covered. http://host stays http; https://host translates to wss://host.
+  const wsScheme = protocol === "https:" || protocol === "wss:" ? "wss" : "ws";
+  const ownWsOrigin = ownOrigin.replace(/^https?:/, `${wsScheme}:`);
+  if (!staticCsp.includes(CONNECT_SRC_MARKER)) return staticCsp;
+  return staticCsp.replace(
+    CONNECT_SRC_MARKER,
+    `${CONNECT_SRC_REPLACEMENT_PREFIX} ${ownOrigin} ${ownWsOrigin}`
+  );
+}
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -21,7 +83,7 @@ const contentSecurityPolicy = [
   "font-src 'self' https://fonts.gstatic.com data:",
   "img-src 'self' data: blob: https:",
   "media-src 'self' data: blob:",
-  "connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https: wss:",
+  `connect-src ${CONNECT_SRC_BASE}`,
   "worker-src 'self' blob:",
   "manifest-src 'self'",
 ].join("; ");
@@ -299,10 +361,33 @@ const nextConfig = {
   },
 
   async headers() {
+    // Next.js supports a function-form `headers` entry that receives the
+    // incoming NextRequest and returns the per-response header map. We use
+    // this so the CSP's `connect-src` directive can be augmented with the
+    // request's own origin — otherwise the dashboard's live WebSocket (which
+    // targets <window.location.host>:20129) is blocked whenever the user
+    // accesses OmniRoute from anything other than localhost / 127.0.0.1
+    // (LAN IPs, Tailscale 100.64/10, public DNS names, ...).
+    const buildHeadersForRequest = (request) => {
+      // Re-build the static CSP with the request's own host appended so the
+      // dashboard WS connection from the same origin is allowed. The Host
+      // header is a controlled, server-side value (the reverse proxy already
+      // sets it) and we only inject a single token into a single directive,
+      // so the relaxation is tightly scoped.
+      const hostHeader = request?.headers?.get?.("host") || "";
+      const xfp = request?.headers?.get?.("x-forwarded-proto") || "";
+      const proto = xfp || new URL(request?.url || "http://placeholder/").protocol || "http:";
+      const cspWithOwnOrigin = appendOwnOriginToCsp(contentSecurityPolicy, hostHeader, proto);
+      const perRequestHeaders = securityHeaders.map((h) =>
+        h.key === "Content-Security-Policy" ? { ...h, value: cspWithOwnOrigin } : h
+      );
+      return perRequestHeaders;
+    };
+
     return [
       {
         source: "/:path*",
-        headers: securityHeaders,
+        headers: buildHeadersForRequest,
       },
       // G-10: allow OmniRoute's own dashboard to embed the 9Router UI via our reverse proxy.
       // `frame-ancestors 'self'` overrides the global `frame-ancestors 'none'` only for this
