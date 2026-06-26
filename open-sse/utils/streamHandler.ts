@@ -143,6 +143,24 @@ function isPendingRequestClearedError(error: unknown): boolean {
   );
 }
 
+/**
+ * A client disconnect — the caller aborted the request or closed the SSE
+ * connection — is NOT a provider failure. It surfaces either as an
+ * AbortError/ResponseAborted, or, when OmniRoute then tries to enqueue another
+ * chunk into the now-closed response stream, as a "Controller is already closed"
+ * TypeError. Treating any of these as an upstream error wrongly cools down the
+ * account/connection, so the stream error path uses this to skip the provider
+ * failover/cooldown (the chatgpt-web / codex / antigravity executors already
+ * guard client aborts the same way).
+ */
+export function isClientDisconnectError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const name = (error as { name?: unknown }).name;
+  if (name === "AbortError" || name === "ResponseAborted") return true;
+  const message = (error as { message?: unknown }).message;
+  return typeof message === "string" && /Controller is already closed/i.test(message);
+}
+
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message) return error.message;
   if (typeof error === "string" && error.trim().length > 0) return error;
@@ -251,6 +269,16 @@ export function createStreamController({
       if (abortTimeout) {
         clearTimeout(abortTimeout);
         abortTimeout = null;
+      }
+
+      // A client disconnect is not a provider failure. If the client already went away
+      // (disconnected) or the error is a client abort / "Controller is already closed",
+      // skip the onError failover/cooldown path — otherwise one cancelled request marks
+      // the upstream connection unavailable.
+      if (disconnected || isClientDisconnectError(error)) {
+        clearPendingRequest(error);
+        logStream(disconnected ? "client_disconnect (post-abort)" : "client_disconnect");
+        return;
       }
 
       const alreadyCleared = isPendingRequestClearedError(error);
