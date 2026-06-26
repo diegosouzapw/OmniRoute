@@ -28,6 +28,7 @@ _In development — bullets added per PR; finalized at release._
 - **fix(tts):** resolve Gemini TTS models from catalog and add `gemini-3.1-flash-tts-preview` as the new default Vertex TTS model. (thanks @nguyenha935)
 - **fix(sse): don't cool down a healthy connection on a self-inflicted upstream timeout (504)** — when OmniRoute's own deadline elapses (surfaced as `TimeoutError`/`BodyTimeoutError` → 504), the connection is no longer disabled/failed-over, so a slow-but-healthy provider isn't penalised for our timeout. Genuine upstream 5xx/429 still trigger cooldown; antigravity keeps its own policy. (thanks @costaeder)
 - **fix(sse): robust Anthropic `/v1/messages` streaming — real ping keepalive + client-disconnect guard** — slow first tokens on reasoning models could trip strict clients' idle-read watchdog; the route now keeps the stream warm with a real `event: ping` (Anthropic clients ignore SSE comments) from the very first frame, and a client disconnect (AbortError / controller-closed) no longer counts as a provider failure (no failover/cooldown). (thanks @costaeder)
+- **fix: preserve model hidden flags (`isHidden`) across model sync** — `replaceCustomModels` pruned the compat-override list to the new custom-model ids, silently wiping the `isHidden` flag of eye-hidden SYNCED models on every periodic sync / import (all hidden models turned back on). The redundant cleanup is removed (per-model removal already handles its own compat cleanup), so eye-hidden models stay hidden across re-sync. (#4389, thanks @herjarsa)
 
 ---
 
