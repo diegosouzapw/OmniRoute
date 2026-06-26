@@ -1,5 +1,6 @@
 {
   "_comment": "Catraca de tamanho (check-file-size.mjs). frozen so pode encolher; arquivos novos <= cap. --update ratcheta.",
+  "_rebaseline_2026_06_26_5074_fusion_editor": "PR #5074 own growth: src/app/(dashboard)/dashboard/combos/page.tsx 4485->4594 (+109 = the Fusion judgeModel + fusionTuning editor block — text/number inputs wired through updateFusionTuning, schema-validated) and tests/unit/combo-config.test.ts 800->881 (testFrozen add: 5 new Fusion-config schema tests). Cohesive UI block at the strategy-conditional editor; combos/page.tsx structural shrink tracked in #3501. Covered by combo-config.test.ts.",
   "_rebaseline_2026_06_26_5101_responses_textformat": "PR #5101 own growth: open-sse/executors/default.ts 859->876 (+17 = defaultResponsesTextFormat — fills the Responses-API default text.format for openai-compatible-*responses* providers so LM-Studio-style upstreams stop 400ing; guarded, never overwrites an existing format). Irreducible executor chokepoint next to applyJsonSchemaFallback; covered by tests/unit/responses-default-text-format.test.ts.",
   "_rebaseline_2026_06_26_5117_basereds": "Base-red repair #5117 own growth + sibling drift: open-sse/handlers/responseSanitizer.ts 1122->1139 (+17 = synthesize an output[] message item from an output_text-only Responses body so the answer is not dropped/false-502'd; #4942 regression, covered by tests/unit/response-sanitizer.test.ts). src/app/(dashboard)/dashboard/providers/[id]/components/modals/AddApiKeyModal.tsx 866->868 (+2 sibling drift from a separately-merged PR, already on the release tip; rebaselined here to green the file-size gate).",
   "_rebaseline_2026_06_26_leva5": "Leva 5 (26 PRs, release/v3.8.38, tip 7b6a9ed33): own growth from merged PRs — cursor.ts 1474->1577 (#4912 composer inline tool-calls wiring), kiro.ts 814->944 (#4911 inline-thinking splitter wiring), videoGeneration.ts 1083->1265 (#5051 Alibaba DashScope handler), default.ts 835->859 (#4727 client_metadata strip), base.ts 1470->1475 (#4846 anthropic header normalize call), chat.ts 1552->1560 (#5064 self-inflicted-timeout cooldown skip). All covered by per-PR tests; growth is localized feature/fix code next to existing branches.",
@@ -170,7 +171,7 @@
     "src/app/(dashboard)/dashboard/cache/page.tsx": 845,
     "src/app/(dashboard)/dashboard/cli-code/components/CodexToolCard.tsx": 900,
     "src/app/(dashboard)/dashboard/cloud-agents/page.tsx": 922,
-    "src/app/(dashboard)/dashboard/combos/page.tsx": 4485,
+    "src/app/(dashboard)/dashboard/combos/page.tsx": 4594,
     "src/app/(dashboard)/dashboard/costs/CostOverviewTab.tsx": 1495,
     "src/app/(dashboard)/dashboard/costs/quota-share/components/PoolWizard.tsx": 1007,
     "src/app/(dashboard)/dashboard/endpoint/EndpointPageClient.tsx": 2612,
@@ -284,7 +285,8 @@
     "tests/unit/translator-openai-to-kiro.test.ts": 999,
     "tests/unit/translator-resp-gemini-to-openai.test.ts": 1234,
     "tests/unit/usage-service-hardening.test.ts": 1633,
-    "tests/unit/vscode-token-routes.test.ts": 1212
+    "tests/unit/vscode-token-routes.test.ts": 1212,
+    "tests/unit/combo-config.test.ts": 881
   },
   "_rebaseline_2026_06_09": "Re-baseline consciente pre-release v3.8.19: 9 arquivos cresceram durante o ciclo (features mergeadas: RequestLoggerV2 +281 request-logger rework, stream +101, combo +73, chatCore +45, catalog +32 fable-5/catalog-flag, callLogs +4, accountFallback +2, usageHistory novo 840) + core.ts +7 (fix resetAllDbModuleState, PR 3536). A catraca segue valendo destes valores — proximo crescimento falha. Decisao: encolher (esp. RequestLoggerV2/chatCore) e a issue #3501 ficam para o ciclo seguinte.",
   "_rebaseline_2026_06_11_phase1f": "Phase 1f (#3501): ProviderDetailPageClient.tsx 4948→4062 (-886 LOC); 3 novos hooks extraídos. useProviderConnections.ts=954 acima do cap=800 — justificado: extração direta do god-component (zero lógica nova), própria redução do cliente supera o custo. useProviderSettings.ts=263 e useProviderModels.ts=154 já abaixo do cap.",
