@@ -15,6 +15,7 @@ _In development — bullets added per PR; finalized at release._
 - **feat(cursor):** parse Cursor Composer DeepSeek-style inline tool calls — Composer `cu/composer-2.5*` models embed tool invocations in their visible text using `<｜tool▁calls▁begin｜>…<｜tool▁calls▁end｜>` markers instead of structured protobuf frames; a new streaming parser (`composerToolCalls.ts`) intercepts these in both streaming and non-streaming paths, suppresses the markers from the client-visible content, and emits proper OpenAI `tool_calls` deltas so downstream clients handle them natively. (thanks @noestelar)
 - **feat(proxy):** support auth-less `host:port` batch import and surface proxy-test failures. (thanks @dimaslanjaka)
 - **feat(video): Alibaba DashScope video provider (`wan2.7-t2v`)** — adds the `alibaba` video provider (DashScope async task → poll → MP4) wired through the standard apikey credential path, so text-to-video requests can route to Alibaba's `wan2.7-t2v` model. (thanks @josevictorferreira)
+- **feat(cc): per-connection "summarized thinking display" toggle for Claude-Code-compatible providers** — exposes a connection-level toggle that drives the existing Copilot summarized-thinking marker, so operators can opt a CC-compatible connection into summarized reasoning display from the UI (schema + request defaults + provider modals, with i18n). (thanks @rdself)
 
 ### 🔧 Bug Fixes
 
