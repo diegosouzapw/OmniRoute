@@ -221,7 +221,7 @@ export async function openDatabaseAsync(
     return sync;
   }
 
-  console.warn("[DB] Drivers síncronos indisponíveis — usando sql.js (WASM)");
+  console.warn("[DB] Synchronous drivers unavailable — falling back to sql.js (WASM)");
   const adapter = await preInitSqlJs(filePath);
   console.log(`[DB] Driver: sql.js | file: ${filePath}`);
   return adapter;
