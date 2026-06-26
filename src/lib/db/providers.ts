@@ -14,6 +14,7 @@ import {
 import { invalidateDbCache } from "./readCache";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
+import { webSessionCredentialKey, parseProviderSpecificData } from "./webSessionDedup";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -263,6 +264,35 @@ export async function createProviderConnection(data: JsonRecord) {
       for (const row of apiKeyRows) {
         const decrypted = decryptConnectionFields(toRecord(rowToCamel(row)));
         if (toStringOrNull(decrypted.apiKey)?.trim() === newApiKey) {
+          existing = row;
+          break;
+        }
+      }
+    }
+  } else if (data.authType === "cookie") {
+    // #3368 PR6 — dedup web-session cookie/token credentials. Re-importing the
+    // same session (e.g. via bulk web-session import) under a different or blank
+    // name must update the existing connection instead of inserting a duplicate,
+    // mirroring the apikey dedup (#3023).
+    // 1) Name-based upsert for parity with the apikey path.
+    if (data.name) {
+      existing =
+        (db
+          .prepare(
+            "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'cookie' AND name = ?"
+          )
+          .get(data.provider, data.name) as JsonRecord | undefined) || null;
+    }
+    // 2) Credential-value dedup: provider_specific_data is plaintext JSON, so the
+    // stored cookie/token value can be compared directly (no decryption needed).
+    const newCredKey = webSessionCredentialKey(normalizedProviderSpecificData);
+    if (!existing && newCredKey) {
+      const cookieRows = db
+        .prepare("SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'cookie'")
+        .all(data.provider) as JsonRecord[];
+      for (const row of cookieRows) {
+        const psd = parseProviderSpecificData(row.provider_specific_data);
+        if (psd && webSessionCredentialKey(psd) === newCredKey) {
           existing = row;
           break;
         }
