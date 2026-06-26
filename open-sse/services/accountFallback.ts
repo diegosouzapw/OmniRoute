@@ -36,7 +36,6 @@ import { isRpdExhausted, isRpmExhausted } from "./geminiRateLimitTracker.ts";
 export type ProviderProfile = {
   baseCooldownMs: number;
   useUpstreamRetryHints: boolean;
-  /** Issue #2100 follow-up. Stored override; undefined → per-provider default. */
   useUpstream429BreakerHints?: boolean;
   maxCooldownMs: number;
   maxBackoffSteps: number;
