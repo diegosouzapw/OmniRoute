@@ -156,3 +156,21 @@ export async function executeWithUpstreamStartTimeout<T>({
     }
   }
 }
+
+/**
+ * Check whether an auth token is close to expiry.
+ *
+ * The default buffer is 5 minutes — callers that are about to make an
+ * upstream request should re-auth if this returns true.
+ *
+ * @param expiresAt - ISO string, Date, or epoch-ms; falsy means not expiring.
+ * @param bufferMs  - grace window in ms (default 5 min).
+ */
+export function isTokenExpiringSoon(
+  expiresAt: string | Date | number | null | undefined,
+  bufferMs = 5 * 60 * 1000,
+): boolean {
+  if (!expiresAt) return false;
+  const expiresAtMs = new Date(expiresAt).getTime();
+  return expiresAtMs - Date.now() < bufferMs;
+}
