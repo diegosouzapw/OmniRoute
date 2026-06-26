@@ -197,10 +197,17 @@ export async function resolvePlaywrightProxy(
     const p = await resolver(providerKey);
     if (!p?.host) return undefined;
     const scheme = p.type === "socks5" ? "socks5" : "http";
-    return {
+    // Build explicitly instead of a conditional object spread: the spread form
+    // widens username/password to `{}` under the LaunchOptions["proxy"] type,
+    // tripping typecheck once browserPool.ts is pulled into typecheck-core scope.
+    const proxy: NonNullable<import("playwright").LaunchOptions["proxy"]> = {
       server: `${scheme}://${p.host}:${p.port}`,
-      ...(p.username ? { username: p.username, password: p.password ?? "" } : {}),
     };
+    if (p.username) {
+      proxy.username = String(p.username);
+      proxy.password = p.password == null ? "" : String(p.password);
+    }
+    return proxy;
   } catch (err) {
     console.warn("[BrowserPool] Failed to resolve proxy from DB:", err);
     return undefined;
@@ -289,6 +296,14 @@ function parseCookieString(
     secure: boolean;
     sameSite: "Lax" | "Strict" | "None";
   }>;
+}
+
+// Clear a key from the pending-creation map once its promise settles, counting
+// failures. Kept as a leaf helper so acquireBrowserContext stays under the
+// function-length ceiling (#3368 PR7 metrics).
+function settlePendingContext(key: string, failed: boolean): void {
+  if (failed) state.metrics.contextCreateFailures++;
+  state.pendingContexts.delete(key);
 }
 
 export async function acquireBrowserContext(
@@ -382,11 +397,8 @@ export async function acquireBrowserContext(
 
   state.pendingContexts.set(key, createPromise);
   createPromise
-    .then(() => state.pendingContexts.delete(key))
-    .catch(() => {
-      state.metrics.contextCreateFailures++;
-      state.pendingContexts.delete(key);
-    });
+    .then(() => settlePendingContext(key, false))
+    .catch(() => settlePendingContext(key, true));
 
   return createPromise;
 }

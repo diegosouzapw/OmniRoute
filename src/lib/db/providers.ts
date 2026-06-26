@@ -192,6 +192,42 @@ export async function getProviderConnectionById(id: string) {
   );
 }
 
+// #3368 PR6 — dedup web-session cookie/token credentials on connection create.
+// Re-importing the same session (e.g. via bulk web-session import) under a
+// different or blank name must update the existing connection instead of
+// inserting a duplicate, mirroring the apikey dedup (#3023). Extracted from
+// createProviderConnection to keep that function below the complexity baseline.
+// provider_specific_data is plaintext JSON, so the value is compared directly
+// without decryption.
+function findExistingCookieConnection(
+  db: DbLike,
+  provider: unknown,
+  name: unknown,
+  normalizedProviderSpecificData: unknown
+): JsonRecord | null {
+  // 1) Name-based upsert for parity with the apikey path.
+  if (name) {
+    const byName =
+      (db
+        .prepare(
+          "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'cookie' AND name = ?"
+        )
+        .get(provider, name) as JsonRecord | undefined) || null;
+    if (byName) return byName;
+  }
+  // 2) Credential-value dedup against existing cookie rows.
+  const newCredKey = webSessionCredentialKey(normalizedProviderSpecificData);
+  if (!newCredKey) return null;
+  const cookieRows = db
+    .prepare("SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'cookie'")
+    .all(provider) as JsonRecord[];
+  for (const row of cookieRows) {
+    const psd = parseProviderSpecificData(row.provider_specific_data);
+    if (psd && webSessionCredentialKey(psd) === newCredKey) return row;
+  }
+  return null;
+}
+
 export async function createProviderConnection(data: JsonRecord) {
   const db = getDbInstance() as unknown as DbLike;
   const now = new Date().toISOString();
@@ -270,34 +306,12 @@ export async function createProviderConnection(data: JsonRecord) {
       }
     }
   } else if (data.authType === "cookie") {
-    // #3368 PR6 — dedup web-session cookie/token credentials. Re-importing the
-    // same session (e.g. via bulk web-session import) under a different or blank
-    // name must update the existing connection instead of inserting a duplicate,
-    // mirroring the apikey dedup (#3023).
-    // 1) Name-based upsert for parity with the apikey path.
-    if (data.name) {
-      existing =
-        (db
-          .prepare(
-            "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'cookie' AND name = ?"
-          )
-          .get(data.provider, data.name) as JsonRecord | undefined) || null;
-    }
-    // 2) Credential-value dedup: provider_specific_data is plaintext JSON, so the
-    // stored cookie/token value can be compared directly (no decryption needed).
-    const newCredKey = webSessionCredentialKey(normalizedProviderSpecificData);
-    if (!existing && newCredKey) {
-      const cookieRows = db
-        .prepare("SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'cookie'")
-        .all(data.provider) as JsonRecord[];
-      for (const row of cookieRows) {
-        const psd = parseProviderSpecificData(row.provider_specific_data);
-        if (psd && webSessionCredentialKey(psd) === newCredKey) {
-          existing = row;
-          break;
-        }
-      }
-    }
+    existing = findExistingCookieConnection(
+      db,
+      data.provider,
+      data.name,
+      normalizedProviderSpecificData
+    );
   }
 
   if (existing) {
