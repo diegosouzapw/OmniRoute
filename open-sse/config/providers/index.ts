@@ -141,6 +141,7 @@ import { bailian_coding_planProvider } from "./registry/bailian-coding-plan/inde
 import { gigachatProvider } from "./registry/gigachat/index.ts";
 import { devin_cliProvider } from "./registry/devin-cli/index.ts";
 import { chutesProvider } from "./registry/chutes/index.ts";
+import { factoryProvider } from "./registry/factory/index.ts";
 import { databricksProvider } from "./registry/databricks/index.ts";
 import { rekaProvider } from "./registry/reka/index.ts";
 import { vercel_ai_gatewayProvider } from "./registry/vercel-ai-gateway/index.ts";
@@ -307,6 +308,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   gigachat: gigachatProvider,
   "devin-cli": devin_cliProvider,
   chutes: chutesProvider,
+  factory: factoryProvider,
   databricks: databricksProvider,
   reka: rekaProvider,
   "vercel-ai-gateway": vercel_ai_gatewayProvider,
