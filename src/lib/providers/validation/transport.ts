@@ -7,7 +7,7 @@ import {
   getSafeOutboundFetchErrorStatus,
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
-import { getProviderOutboundGuard, isPrivateHost } from "@/shared/network/outboundUrlGuard";
+import { getProviderValidationGuard, isPrivateHost } from "@/shared/network/outboundUrlGuard";
 import { selectProxyForValidation } from "@omniroute/open-sse/services/proxyAutoSelector.ts";
 
 /**
@@ -24,7 +24,7 @@ export async function fetchWithProxyFallback(
   try {
     return await safeOutboundFetch(url, {
       ...presets,
-      guard: isLocal ? "none" : getProviderOutboundGuard(),
+      guard: isLocal ? "none" : getProviderValidationGuard(),
       ...init,
     });
   } catch (err: unknown) {
@@ -43,7 +43,7 @@ export async function fetchWithProxyFallback(
 
     return safeOutboundFetch(url, {
       ...presets,
-      guard: isLocal ? "none" : getProviderOutboundGuard(),
+      guard: isLocal ? "none" : getProviderValidationGuard(),
       ...init,
       proxyConfig: proxyUrl,
     });
