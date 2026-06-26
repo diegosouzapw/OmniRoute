@@ -23,7 +23,7 @@
 [![50+ Free](https://img.shields.io/badge/50%2B-Free_Tiers-00B894?style=for-the-badge)](#-231-ai-providers--50-free)
 [![1.6B Free Tokens/mo](https://img.shields.io/badge/1.6B-Free_Tokens%2Fmo-00B894?style=for-the-badge)](docs/reference/FREE_TIERS.md)
 [![Token Savings](https://img.shields.io/badge/up_to_95%25-Token_Savings-E17055?style=for-the-badge)](#%EF%B8%8F-save-1595-tokens--automatically)
-[![15 Strategies](https://img.shields.io/badge/15-Routing_Strategies-0984E3?style=for-the-badge)](#-combos--the-flagship)
+[![17 Strategies](https://img.shields.io/badge/17-Routing_Strategies-0984E3?style=for-the-badge)](#-combos--the-flagship)
 [![$0 to start](https://img.shields.io/badge/%240-To_Start-FDCB6E?style=for-the-badge&logoColor=black)](#-quick-start)
 
 <br/>
@@ -182,7 +182,7 @@
                           ▼
 ┌──────────────────────────────────────────────────────────┐
 │                  OmniRoute — Smart Router                  │
-│  RTK + Caveman compression · 15 routing strategies         │
+│  RTK + Caveman compression · 17 routing strategies         │
 │  Circuit breakers · TLS stealth · MCP · A2A · Guardrails   │
 └─────────────────────────┬──────────────────────────────────┘
         ┌─────────────┬────┴────────┬─────────────┐
@@ -220,7 +220,7 @@ No combo to create. Set your model to `auto` (or a variant) and OmniRoute builds
 
 ##
 
-### 🔀 Or build your own — 15 routing strategies
+### 🔀 Or build your own — 17 routing strategies
 
 | Goal                                    | Strategy / combo                                   |
 | --------------------------------------- | -------------------------------------------------- |
@@ -229,6 +229,8 @@ No combo to create. Set your model to `auto` (or a variant) and OmniRoute builds
 | 💸 Always cheapest viable model         | `cost-optimized` · `auto/cheap`                    |
 | 🧠 Hand off long context between models | `context-relay` · `context-optimized`              |
 | 🎲 Randomized / privacy routing         | `random` · `strict-random`                         |
+| 🧬 Fan out to a panel + judge synthesis | `fusion`                                           |
+| 📊 Route by remaining quota headroom    | `reset-window` · `headroom`                        |
 | 🤖 Just make it smart                   | `auto` (9-factor scoring) · `lkgp` · `reset-aware` |
 
 <sub>The Auto-Combo engine scores every candidate on **9 factors** (health, quota, cost, latency, success rate, freshness…) — see [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
@@ -266,7 +268,7 @@ Result: 4 layers of fallback = zero downtime
 | -------------------------------------- | ----------------------------------------------------------- | ------------- |
 | 🌐 Providers                           | **231**                                                     | 20–100        |
 | 🆓 Free providers                      | **50+ (11 free forever)**                                   | 1–5           |
-| 🔀 Routing strategies                  | **15** (priority, weighted, cost-optimized, context-relay…) | 1–3           |
+| 🔀 Routing strategies                  | **17** (priority, weighted, cost-optimized, context-relay, fusion…) | 1–3           |
 | 🗜️ Token compression                   | **RTK + Caveman stacked (15–95%)**                          | None / 20–40% |
 | 🧰 Built-in MCP server                 | **87 tools, 3 transports, 30 scopes**                       | Rare          |
 | 🤝 A2A agent protocol                  | **6 skills, JSON-RPC 2.0**                                  | None          |

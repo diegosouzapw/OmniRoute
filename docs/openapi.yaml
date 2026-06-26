@@ -6672,10 +6672,13 @@ components:
             - least-used
             - cost-optimized
             - reset-aware
+            - reset-window
+            - headroom
             - strict-random
             - auto
             - lkgp
             - context-optimized
+            - fusion
           default: priority
         nodes:
           type: array
