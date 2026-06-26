@@ -11,7 +11,26 @@ import {
   resolveProviderChoice,
 } from "../provider-catalog.mjs";
 import { registerSetupOpenCode } from "./setup-open-code.mjs";
+import { registerSetupElectron } from "./setup-electron.mjs";
+import { registerSetupDocker } from "./setup-docker.mjs";
+import { registerSetupPodman } from "./setup-podman.mjs";
+import { registerSetupVps } from "./setup-vps.mjs";
+import { registerSetupRemote } from "./setup-remote.mjs";
 import { t } from "../i18n.mjs";
+
+/**
+ * The full list of `setup <area>` aggregator areas, in display order.
+ * Keep in sync with the calls to registerSetupX() below. Each entry is
+ * { area: <command-name>, title: <one-line description> }.
+ */
+export const SETUP_AREAS = [
+  { area: "electron", title: "Electron desktop client (install / dev / build per platform)" },
+  { area: "docker", title: "Docker / docker compose (build, run, --profile …)" },
+  { area: "podman", title: "Podman (build / run / compose / quadlet)" },
+  { area: "vps", title: "VPS provisioning (apt + nginx + certbot + docker)" },
+  { area: "remote", title: "Remote-mode aggregator (connect / tokens / contexts)" },
+  { area: "opencode", title: "OpenCode plugin wiring (legacy; unchanged)" },
+];
 
 const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 
@@ -146,16 +165,50 @@ export function registerSetup(program) {
     .option("--test-provider", "Test the provider after saving it")
     .option("--non-interactive", "Read all inputs from flags/env and do not prompt")
     .option("--list", "List all supported CLI tools")
+    .addHelpText(
+      "after",
+      `\nSetup areas (subcommands):\n` +
+        SETUP_AREAS.map((a) => `  ${a.area.padEnd(10)} ${a.title}`).join("\n") +
+        `\n\nExamples:\n` +
+        `  omniroute setup electron dev\n` +
+        `  omniroute setup docker compose --profile web --run\n` +
+        `  omniroute setup podman quadlet --profile web --run\n` +
+        `  omniroute setup vps --provider-preset hetzner --hostname ai.example.com\n` +
+        `  omniroute setup remote connect 192.168.0.15\n` +
+        `  omniroute setup remote status\n` +
+        `\nRun \`omniroute setup <area> --help\` for the full flag set of any area.\n`
+    )
     .action(async (opts, cmd) => {
+      // If the user typed `omniroute setup --help` we want the area
+      // catalogue, not the prompt-based setup flow. Commander renders the
+      // help text on its own when `--help` is present, but the action
+      // still fires afterwards (with `opts.help === true`). Detect that
+      // and exit cleanly.
+      if (opts.help) {
+        cmd.help({ error: false });
+        return;
+      }
+
+      // The user typed `omniroute setup <area> [args…]` and Commander
+      // dispatched the area subcommand itself. We never get here in that
+      // case because the area's own action handler owns the flow. The
+      // only way this action fires is when no area was passed.
+
       const globalOpts = cmd.optsWithGlobals();
       const exitCode = await runSetupCommand({ ...opts, output: globalOpts.output });
       if (exitCode !== 0) process.exit(exitCode);
     });
 
-  // Wire up `omniroute setup opencode` subcommand. Kept inside registerSetup
-  // so it always travels with the parent command (avoids a separate register
+  // Wire up `omniroute setup <area>` subcommands. Kept inside registerSetup
+  // so they always travel with the parent command (avoids a separate register
   // call in the registry that would silently break if the parent renames).
-  registerSetupOpenCode(program.commands.find((c) => c.name() === "setup"));
+  const setupCommand = program.commands.find((c) => c.name() === "setup");
+  registerSetupOpenCode(setupCommand);
+  registerSetupElectron(setupCommand);
+  registerSetupDocker(setupCommand);
+  registerSetupPodman(setupCommand);
+  registerSetupVps(setupCommand);
+  registerSetupRemote(setupCommand);
 }
 
 export async function runSetupCommand(opts = {}) {

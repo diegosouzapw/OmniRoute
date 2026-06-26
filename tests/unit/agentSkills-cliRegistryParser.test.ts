@@ -5,9 +5,8 @@ import path from "node:path";
 import os from "node:os";
 
 // Dynamic import to pick up ESM module
-const { parseCliRegistry, getCommandsForFamily } = await import(
-  "../../src/lib/agentSkills/cliRegistryParser.ts"
-);
+const { parseCliRegistry, getCommandsForFamily } =
+  await import("../../src/lib/agentSkills/cliRegistryParser.ts");
 
 // ─── Fixture helpers ──────────────────────────────────────────────────────────
 
@@ -15,9 +14,7 @@ const { parseCliRegistry, getCommandsForFamily } = await import(
  * Creates a temporary directory mirroring bin/cli/commands/,
  * writes fixture .mjs files, changes CWD, returns cleanup fn.
  */
-function withFixtureCli(
-  files: Record<string, string>,
-): { cleanup: () => void } {
+function withFixtureCli(files: Record<string, string>): { cleanup: () => void } {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-cli-test-"));
   const commandsDir = path.join(tmpDir, "bin", "cli", "commands");
   fs.mkdirSync(commandsDir, { recursive: true });
@@ -159,7 +156,7 @@ test("parseCliRegistry() recognises providers family with ≥5 subcommands", () 
     assert.ok(providerCmds, "Expected 'cli-providers' family to exist");
     assert.ok(
       providerCmds!.length >= 5,
-      `Expected ≥5 provider commands, got ${providerCmds!.length}: ${providerCmds!.map((c) => c.name).join(", ")}`,
+      `Expected ≥5 provider commands, got ${providerCmds!.length}: ${providerCmds!.map((c) => c.name).join(", ")}`
     );
   } finally {
     cleanup();
@@ -174,10 +171,7 @@ test("parseCliRegistry() recognises health family commands", () => {
     const { families } = parseCliRegistry();
     const healthCmds = families.get("cli-health");
     assert.ok(healthCmds, "Expected 'cli-health' family to exist");
-    assert.ok(
-      healthCmds!.length >= 2,
-      `Expected ≥2 health commands, got ${healthCmds!.length}`,
-    );
+    assert.ok(healthCmds!.length >= 2, `Expected ≥2 health commands, got ${healthCmds!.length}`);
   } finally {
     cleanup();
   }
@@ -195,7 +189,7 @@ test("parseCliRegistry() extracts description for each command", () => {
     assert.ok(providers, "Expected providers command");
     assert.ok(
       providers!.description.length > 0,
-      `Expected non-empty description for providers, got: "${providers!.description}"`,
+      `Expected non-empty description for providers, got: "${providers!.description}"`
     );
   } finally {
     cleanup();
@@ -213,7 +207,7 @@ test("parseCliRegistry() marks subcommands with isSubcommand=true (after first)"
     const subCmds = providerCmds.filter((c) => c.isSubcommand);
     assert.ok(
       subCmds.length >= 4,
-      `Expected ≥4 subcommands (list, available, test, etc.), got ${subCmds.length}`,
+      `Expected ≥4 subcommands (list, available, test, etc.), got ${subCmds.length}`
     );
   } finally {
     cleanup();
@@ -232,10 +226,7 @@ test("parseCliRegistry() extracts flags from .option() calls", () => {
     if (rotate) {
       // If rotate exists and has flags, verify format
       for (const flag of rotate.flags) {
-        assert.ok(
-          typeof flag === "string" && flag.length > 0,
-          `Invalid flag: "${flag}"`,
-        );
+        assert.ok(typeof flag === "string" && flag.length > 0, `Invalid flag: "${flag}"`);
       }
     }
   } finally {
@@ -251,9 +242,7 @@ test("parseCliRegistry() skips unrecognised .mjs files", () => {
   try {
     const { families } = parseCliRegistry();
     // No family should be mapped from unknown-custom
-    const hasUnknown = [...families.keys()].some((k) =>
-      String(k).includes("unknown-custom"),
-    );
+    const hasUnknown = [...families.keys()].some((k) => String(k).includes("unknown-custom"));
     assert.equal(hasUnknown, false, "unknown-custom.mjs should not create a family");
     // providers.mjs should still be parsed
     assert.ok(families.has("cli-providers"), "Expected cli-providers family from providers.mjs");
@@ -270,7 +259,7 @@ test("parseCliRegistry() throws if commands directory is missing", () => {
     assert.throws(
       () => parseCliRegistry(),
       /cliRegistryParser: could not read/,
-      "Expected error when commands dir is missing",
+      "Expected error when commands dir is missing"
     );
   } finally {
     process.chdir(originalCwd);
@@ -288,17 +277,80 @@ test("parseCliRegistry() with real providers.mjs: providers family has ≥5 comm
   assert.ok(providerCmds, "Expected cli-providers family from real providers.mjs");
   assert.ok(
     providerCmds!.length >= 5,
-    `Expected ≥5 real provider commands, got ${providerCmds!.length}: ${providerCmds!.map((c) => c.name).join(", ")}`,
+    `Expected ≥5 real provider commands, got ${providerCmds!.length}: ${providerCmds!.map((c) => c.name).join(", ")}`
   );
 });
 
 test("getCommandsForFamily('cli-providers') with real files: returns ≥5 strings", () => {
   const commands = getCommandsForFamily("cli-providers");
-  assert.ok(
-    commands.length >= 5,
-    `Expected ≥5 cli-providers commands, got ${commands.length}`,
-  );
+  assert.ok(commands.length >= 5, `Expected ≥5 cli-providers commands, got ${commands.length}`);
   for (const cmd of commands) {
     assert.ok(typeof cmd === "string" && cmd.length > 0, `Invalid command name: "${cmd}"`);
+  }
+});
+
+test("parseCliRegistry() exposes setup-electron/docker/podman/vps/remote via cli-setup family", () => {
+  // The setup-* aggregator files declare subcommands of the parent
+  // `setup` command (e.g. `.command("electron")`). The parser must
+  // qualify them as `setup electron` (not `setup-electron electron`)
+  // and route them to the cli-setup SkillArea so the GUI's command
+  // catalogue surfaces them.
+  const { cleanup } = withFixtureCli({
+    "setup-electron.mjs": `
+      export function registerSetupElectron(setupCommand) {
+        setupCommand
+          .command("electron")
+          .description("Print the right Electron install/dev/build command")
+          .option("--run", "Execute it now");
+      }
+    `,
+    "setup-docker.mjs": `
+      export function registerSetupDocker(setupCommand) {
+        setupCommand
+          .command("docker")
+          .description("Print the right docker / docker compose command");
+      }
+    `,
+    "setup-podman.mjs": `
+      export function registerSetupPodman(setupCommand) {
+        setupCommand
+          .command("podman")
+          .description("Print the right podman command");
+      }
+    `,
+    "setup-vps.mjs": `
+      export function registerSetupVps(setupCommand) {
+        setupCommand
+          .command("vps")
+          .description("Print apt + nginx + certbot + docker run block");
+      }
+    `,
+    "setup-remote.mjs": `
+      export function registerSetupRemote(setupCommand) {
+        setupCommand
+          .command("remote")
+          .description("Aggregated remote-mode setup");
+      }
+    `,
+  });
+
+  try {
+    const result = parseCliRegistry();
+    const setupCmds = result.families.get("cli-setup") ?? [];
+    const names = setupCmds.map((c) => c.name);
+    for (const expected of [
+      "setup electron",
+      "setup docker",
+      "setup podman",
+      "setup vps",
+      "setup remote",
+    ]) {
+      assert.ok(
+        names.includes(expected),
+        `expected '${expected}' in cli-setup family, got: ${names.join(", ")}`
+      );
+    }
+  } finally {
+    cleanup();
   }
 });

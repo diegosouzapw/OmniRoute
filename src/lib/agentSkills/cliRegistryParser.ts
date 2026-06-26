@@ -42,55 +42,80 @@ export interface ParsedCliRegistry {
  * Files that don't map to a known family are ignored.
  */
 const FILE_FAMILY_MAP: Record<string, SkillArea> = {
-  "serve": "cli-serve",
-  "dashboard": "cli-serve",
-  "stop": "cli-serve",
-  "restart": "cli-serve",
-  "health": "cli-health",
-  "status": "cli-health",
-  "doctor": "cli-health",
-  "providers": "cli-providers",
+  serve: "cli-serve",
+  dashboard: "cli-serve",
+  stop: "cli-serve",
+  restart: "cli-serve",
+  health: "cli-health",
+  status: "cli-health",
+  doctor: "cli-health",
+  providers: "cli-providers",
   "provider-cmd": "cli-providers",
   "test-provider": "cli-providers",
-  "keys": "cli-keys",
-  "oauth": "cli-keys",
-  "models": "cli-models",
-  "chat": "cli-chat",
-  "stream": "cli-chat",
-  "repl": "cli-chat",
-  "combo": "cli-routing",
-  "routing": "cli-routing",
-  "resilience": "cli-resilience",
-  "quota": "cli-resilience",
-  "compression": "cli-compression",
+  keys: "cli-keys",
+  oauth: "cli-keys",
+  models: "cli-models",
+  chat: "cli-chat",
+  stream: "cli-chat",
+  repl: "cli-chat",
+  combo: "cli-routing",
+  routing: "cli-routing",
+  resilience: "cli-resilience",
+  quota: "cli-resilience",
+  compression: "cli-compression",
   "context-eng": "cli-contexts",
-  "contexts": "cli-contexts",
-  "sessions": "cli-contexts",
-  "cost": "cli-cost-usage",
-  "usage": "cli-cost-usage",
-  "pricing": "cli-cost-usage",
-  "mcp": "cli-mcp",
-  "a2a": "cli-a2a",
-  "tunnel": "cli-tunnel",
-  "backup": "cli-backup-sync",
-  "sync": "cli-backup-sync",
-  "cloud": "cli-backup-sync",
-  "audit": "cli-policy-audit",
-  "policy": "cli-policy-audit",
-  "logs": "cli-policy-audit",
-  "telemetry": "cli-policy-audit",
-  "batches": "cli-batches",
-  "files": "cli-batches",
-  "eval": "cli-eval",
-  "simulate": "cli-eval",
-  "skills": "cli-plugins-skills",
-  "plugin": "cli-plugins-skills",
-  "memory": "cli-plugins-skills",
-  "setup": "cli-setup",
-  "config": "cli-setup",
-  "env": "cli-setup",
-  "update": "cli-setup",
-  "autostart": "cli-setup",
+  contexts: "cli-contexts",
+  sessions: "cli-contexts",
+  cost: "cli-cost-usage",
+  usage: "cli-cost-usage",
+  pricing: "cli-cost-usage",
+  mcp: "cli-mcp",
+  a2a: "cli-a2a",
+  tunnel: "cli-tunnel",
+  backup: "cli-backup-sync",
+  sync: "cli-backup-sync",
+  cloud: "cli-backup-sync",
+  audit: "cli-policy-audit",
+  policy: "cli-policy-audit",
+  logs: "cli-policy-audit",
+  telemetry: "cli-policy-audit",
+  batches: "cli-batches",
+  files: "cli-batches",
+  eval: "cli-eval",
+  simulate: "cli-eval",
+  skills: "cli-plugins-skills",
+  plugin: "cli-plugins-skills",
+  memory: "cli-plugins-skills",
+  setup: "cli-setup",
+  config: "cli-setup",
+  env: "cli-setup",
+  update: "cli-setup",
+  autostart: "cli-setup",
+  // ── Setup aggregator subcommands (added in feat/cli-setup-aggregator).
+  // The runtime aggregator (bin/cli/commands/setup.mjs → setup.electron
+  // etc.) exposes these as `omniroute setup <area>`. Mapping their file
+  // basenames to `cli-setup` keeps them discoverable in the GUI's
+  // command catalogue without inventing a new family.
+  "setup-electron": "cli-setup",
+  "setup-docker": "cli-setup",
+  "setup-podman": "cli-setup",
+  "setup-vps": "cli-setup",
+  "setup-remote": "cli-setup",
+};
+
+/**
+ * Per-file override for the top-level command name the parser uses to
+ * qualify subcommands. By default the parser uses the file basename, but
+ * the `setup-*` aggregator files declare subcommands of `setup` (e.g.
+ * `.command("electron")`) so the GUI surface needs the names qualified
+ * as `setup electron`, not `setup-electron electron`.
+ */
+const TOP_LEVEL_NAME_OVERRIDES: Record<string, string> = {
+  "setup-electron": "setup",
+  "setup-docker": "setup",
+  "setup-podman": "setup",
+  "setup-vps": "setup",
+  "setup-remote": "setup",
 };
 
 // ── Regex patterns ───────────────────────────────────────────────────────────
@@ -155,11 +180,17 @@ function extractCommandsFromContent(content: string, topLevelName: string): RawC
     // Compose full command name:
     // - If rawName equals the top-level name (or is the isDefault pattern), use as-is
     // - Otherwise, qualify as "topLevel subname"
+    // For files in TOP_LEVEL_NAME_OVERRIDES (the setup-* aggregator files),
+    // every `.command()` call is a subcommand of the parent `setup`
+    // command — there's no top-level command in those files because the
+    // parent is wired in bin/cli/commands/setup.mjs.
+    const alwaysQualify = Object.values(TOP_LEVEL_NAME_OVERRIDES).includes(topLevelName);
     const isTopLevel =
-      rawName === topLevelName ||
-      rawName.startsWith(topLevelName + " ") ||
-      // Some files declare standalone root commands (e.g. serve, health)
-      !rawName.includes(" ");
+      !alwaysQualify &&
+      (rawName === topLevelName ||
+        rawName.startsWith(topLevelName + " ") ||
+        // Some files declare standalone root commands (e.g. serve, health)
+        !rawName.includes(" "));
 
     const fullName = isTopLevel && i === 0 ? rawName : `${topLevelName} ${rawName}`;
 
@@ -187,7 +218,7 @@ export function parseCliRegistry(): ParsedCliRegistry {
   } catch (err) {
     throw new Error(
       `cliRegistryParser: could not read ${commandsDir}. ` +
-        `Run from project root. Underlying error: ${err instanceof Error ? err.message : String(err)}`,
+        `Run from project root. Underlying error: ${err instanceof Error ? err.message : String(err)}`
     );
   }
 
@@ -207,7 +238,10 @@ export function parseCliRegistry(): ParsedCliRegistry {
       continue; // skip unreadable files
     }
 
-    const rawCmds = extractCommandsFromContent(content, basename);
+    const rawCmds = extractCommandsFromContent(
+      content,
+      TOP_LEVEL_NAME_OVERRIDES[basename] ?? basename
+    );
     if (rawCmds.length === 0) continue;
 
     for (let i = 0; i < rawCmds.length; i++) {

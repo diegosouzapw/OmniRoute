@@ -27,7 +27,12 @@
     "loginEnabled": "Login: enabled (password updated)",
     "loginDisabled": "Login: disabled",
     "providerInfo": "Provider: {info}",
-    "opencode": "Install and configure the bundled @omniroute/opencode-plugin for OpenCode"
+    "opencode": "Install and configure the bundled @omniroute/opencode-plugin for OpenCode",
+    "electron": "Print the right Electron install/dev/build command for this platform (electron:dev, electron:build, electron:build:win|mac|linux)",
+    "docker": "Print the right docker / docker compose command (build | run | compose --profile …)",
+    "podman": "Print the right podman command (build | run | compose | quadlet) for rootless/container-on-systemd hosts",
+    "vps": "Print the exact apt + nginx + certbot + docker run block to provision a fresh Linux VPS as an OmniRoute gateway",
+    "remote": "Aggregated remote-mode setup: status (default) | connect | tokens | contexts — wires the existing connect/tokens/contexts primitives together"
   },
   "doctor": {
     "title": "OmniRoute Doctor",
