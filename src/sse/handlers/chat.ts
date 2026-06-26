@@ -19,6 +19,7 @@ import {
 import { getModelInfo, getComboForModel } from "../services/model";
 import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { isSelfInflictedUpstreamTimeout } from "@omniroute/open-sse/handlers/chatCore/cooldownClassification.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
@@ -1502,7 +1503,14 @@ async function handleSingleModelChat(
         (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
       const hasExtraKeys = extraKeys.length > 0 || connectionHasExtraKeys(credentials.connectionId);
       const is401 = result.status === 401;
-      const skipConnectionDisable = is401 && hasExtraKeys;
+      // Our own deadline timeout (fetch-start / body / combo-per-model, surfaced as a 504
+      // tagged "upstream_timeout") fired on a slow-but-not-failed upstream — the request
+      // was still being processed. The connection is healthy, so don't cool it down: a
+      // self-inflicted-timeout cooldown penalises a healthy account and, when a provider
+      // has a single connection, blocks every subsequent request.
+      const skipConnectionDisable =
+        (is401 && hasExtraKeys) ||
+        isSelfInflictedUpstreamTimeout(result.status, result.errorType, provider);
 
       const { shouldFallback, cooldownMs } = skipConnectionDisable
         ? { shouldFallback: false, cooldownMs: 0 }

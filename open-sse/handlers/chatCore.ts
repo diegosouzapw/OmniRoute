@@ -2668,8 +2668,15 @@ export async function handleChatCore({
         ? "Request aborted"
         : formatProviderError(error, provider, model, failureStatus);
     const upstreamErrorCode = getUpstreamErrorIdentifier(error);
+    // Tag our own deadline timeouts (fetch-start TimeoutError / body BodyTimeoutError,
+    // both surfaced as a 504) as "upstream_timeout" so the cooldown layer can tell a
+    // slow-but-not-failed request apart from a real provider 5xx. (Antigravity already
+    // tags its pre-response timeout via the code below.)
+    const isOwnDeadlineTimeout =
+      failureStatus === HTTP_STATUS.GATEWAY_TIMEOUT &&
+      (error.name === "TimeoutError" || error.name === "BodyTimeoutError");
     const upstreamErrorType =
-      upstreamErrorCode === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE
+      upstreamErrorCode === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE || isOwnDeadlineTimeout
         ? "upstream_timeout"
         : failureStatus === 401
           ? "authentication_error"
