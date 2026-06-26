@@ -48,6 +48,36 @@ export interface PooledContext {
   isStealth: boolean;
 }
 
+// #3368 PR7 — lightweight, cumulative browser-pool telemetry. Counters are
+// incremented at lifecycle points and surfaced via getBrowserPoolMetrics()
+// (and the omniroute_browser_pool_status MCP tool), giving the previously
+// caller-less getBrowserPoolStatus() an observability home.
+export interface BrowserPoolMetrics {
+  browserLaunches: number;
+  browserLaunchFailures: number;
+  contextsCreated: number;
+  contextsReused: number;
+  contextsEvicted: number;
+  contextsReleased: number;
+  contextCreateFailures: number;
+  shutdowns: number;
+  lastShutdownReason: string | null;
+}
+
+function createBrowserPoolMetrics(): BrowserPoolMetrics {
+  return {
+    browserLaunches: 0,
+    browserLaunchFailures: 0,
+    contextsCreated: 0,
+    contextsReused: 0,
+    contextsEvicted: 0,
+    contextsReleased: 0,
+    contextCreateFailures: 0,
+    shutdowns: 0,
+    lastShutdownReason: null,
+  };
+}
+
 interface PoolState {
   browser: Browser | null;
   contexts: Map<string, PooledContext>;
@@ -58,6 +88,7 @@ interface PoolState {
   evictTimer: NodeJS.Timeout | null;
   cloakLaunch: ((opts: unknown) => Promise<Browser>) | null;
   cloakLaunchResolved: boolean;
+  metrics: BrowserPoolMetrics;
 }
 
 const POOL_IDLE_TIMEOUT_MS = 5 * 60 * 1000;
@@ -76,6 +107,7 @@ const state: PoolState = {
   evictTimer: null,
   cloakLaunch: null,
   cloakLaunchResolved: false,
+  metrics: createBrowserPoolMetrics(),
 };
 
 function getCloakbrowserModuleId(): string {
@@ -123,6 +155,7 @@ function evictStaleContexts(): void {
         ((now - pooled.lastUsed) / 1000).toFixed(0) + "s)"
       );
       state.contexts.delete(key);
+      state.metrics.contextsEvicted++;
       pooled.context.close().catch(() => {});
     }
   }
@@ -200,12 +233,14 @@ async function launchBrowser(): Promise<Browser> {
     }
     state.browser = browser;
     state.launching = null;
+    state.metrics.browserLaunches++;
     return browser;
   })();
   try {
     return await state.launching;
   } catch (err) {
     state.launching = null;
+    state.metrics.browserLaunchFailures++;
     throw err;
   }
 }
@@ -269,6 +304,7 @@ export async function acquireBrowserContext(
   if (existing) {
     existing.lastUsed = Date.now();
     state.lastActivity = Date.now();
+    state.metrics.contextsReused++;
     resetIdleTimer();
     return existing;
   }
@@ -337,6 +373,7 @@ export async function acquireBrowserContext(
       isStealth,
     };
     state.contexts.set(key, pooled);
+    state.metrics.contextsCreated++;
     state.lastActivity = Date.now();
     resetIdleTimer();
     startEvictTimer();
@@ -346,7 +383,10 @@ export async function acquireBrowserContext(
   state.pendingContexts.set(key, createPromise);
   createPromise
     .then(() => state.pendingContexts.delete(key))
-    .catch(() => state.pendingContexts.delete(key));
+    .catch(() => {
+      state.metrics.contextCreateFailures++;
+      state.pendingContexts.delete(key);
+    });
 
   return createPromise;
 }
@@ -359,6 +399,7 @@ export async function releaseBrowserContext(key: string): Promise<void> {
   const pooled = state.contexts.get(key);
   if (!pooled) return;
   state.contexts.delete(key);
+  state.metrics.contextsReleased++;
   try {
     await pooled.context.close();
   } catch {
@@ -370,6 +411,8 @@ export async function releaseBrowserContext(key: string): Promise<void> {
 }
 
 export async function shutdownPool(reason: string): Promise<void> {
+  state.metrics.shutdowns++;
+  state.metrics.lastShutdownReason = reason;
   if (state.idleTimer) {
     clearTimeout(state.idleTimer);
     state.idleTimer = null;
@@ -415,6 +458,23 @@ export function getBrowserPoolStatus(): {
     stealthAvailable: state.cloakLaunch !== null,
     lastActivityAgoMs: state.lastActivity === 0 ? -1 : Date.now() - state.lastActivity,
   };
+}
+
+/**
+ * #3368 PR7 — browser-pool observability. Returns live status plus cumulative
+ * lifecycle telemetry (launches, context create/reuse/evict/release counts,
+ * failures, shutdowns). Surfaced via the omniroute_browser_pool_status MCP tool.
+ */
+export function getBrowserPoolMetrics(): {
+  status: ReturnType<typeof getBrowserPoolStatus>;
+  metrics: BrowserPoolMetrics;
+} {
+  return { status: getBrowserPoolStatus(), metrics: { ...state.metrics } };
+}
+
+/** Test-only: reset cumulative metrics so assertions start from a clean slate. */
+export function __resetBrowserPoolMetricsForTest(): void {
+  state.metrics = createBrowserPoolMetrics();
 }
 
 export async function readPageResponseBody(
