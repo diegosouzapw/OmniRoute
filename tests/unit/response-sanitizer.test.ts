@@ -282,6 +282,35 @@ test("sanitizeResponsesApiResponse converts chat completions tool calls into Res
   assert.equal((sanitized as any).usage.output_tokens_details.reasoning_tokens, 2);
 });
 
+test("sanitizeResponsesApiResponse synthesizes an output[] message from output_text-only bodies (#4942 regression)", () => {
+  const sanitized = sanitizeResponsesApiResponse({
+    object: "response",
+    status: "completed",
+    model: "lmstudio/local",
+    output_text: "  I prefer TypeScript.  ",
+  }) as any;
+
+  assert.equal(sanitized.object, "response");
+  // output[] must be synthesized (was dropped before the fix → response flagged malformed)
+  assert.equal(sanitized.output.length, 1);
+  assert.equal(sanitized.output[0].type, "message");
+  assert.equal(sanitized.output[0].role, "assistant");
+  assert.equal(sanitized.output[0].content[0].type, "output_text");
+  assert.equal(sanitized.output[0].content[0].text, "I prefer TypeScript.");
+  // and output_text is re-derived (trimmed) from the synthesized item
+  assert.equal(sanitized.output_text, "I prefer TypeScript.");
+});
+
+test("sanitizeResponsesApiResponse leaves output[] empty when output_text is blank", () => {
+  const sanitized = sanitizeResponsesApiResponse({
+    object: "response",
+    status: "completed",
+    output_text: "   ",
+  }) as any;
+  assert.equal(sanitized.output.length, 0);
+  assert.equal(sanitized.output_text, undefined);
+});
+
 test("sanitizeResponsesApiResponse preserves native Responses payloads and usage details", () => {
   const sanitized = sanitizeResponsesApiResponse({
     id: "resp_native",

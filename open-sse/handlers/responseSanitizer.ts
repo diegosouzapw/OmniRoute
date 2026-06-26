@@ -361,6 +361,23 @@ export function sanitizeResponsesApiResponse(body: unknown): unknown {
   };
 
   const output = sanitizeResponsesOutput(responseRoot.output);
+
+  // Some upstreams return a shorthand Responses body that carries the answer only
+  // in `output_text` with an empty/absent `output[]`. Synthesize a message item so
+  // the sanitized response still has usable structured output — otherwise the text
+  // is dropped and the response is later flagged malformed (#4942 regression).
+  if (
+    output.length === 0 &&
+    typeof responseRoot.output_text === "string" &&
+    responseRoot.output_text.trim().length > 0
+  ) {
+    output.push({
+      id: "msg_0",
+      type: "message",
+      role: "assistant",
+      content: [{ type: "output_text", text: responseRoot.output_text.trim() }],
+    });
+  }
   sanitized.output = output;
 
   const outputText = extractResponsesOutputText(output);

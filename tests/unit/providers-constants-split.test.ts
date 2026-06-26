@@ -1,7 +1,7 @@
 // Characterization of the providers.ts catalog split (god-file decomposition): the host became a
 // barrel that re-exports 10 data catalogs now living under constants/providers/*, and APIKEY is
 // merged from 6 semantic family files (apikey/<family>.ts). Locks: the public surface (every catalog
-// + helpers still exported), the spread-merge integrity (157 APIKEY entries, no loss/dup), and that
+// + helpers still exported), the spread-merge integrity (159 APIKEY entries, no loss/dup), and that
 // load-time Zod validation still runs. Pure-data move → behavior must be identical.
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -31,12 +31,12 @@ test("barrel still exports every catalog + key helpers", () => {
   }
 });
 
-test("APIKEY_PROVIDERS merges the 6 family files into 157 entries (no loss / no dup)", async () => {
+test("APIKEY_PROVIDERS merges the 6 family files into 159 entries (no loss / no dup)", async () => {
   const keys = Object.keys((P as Record<string, object>).APIKEY_PROVIDERS);
-  assert.equal(keys.length, 157);
-  assert.equal(new Set(keys).size, 157, "duplicate keys after spread-merge");
+  assert.equal(keys.length, 159);
+  assert.equal(new Set(keys).size, 159, "duplicate keys after spread-merge");
   // the merged object's entry-count equals the sum of the 6 semantic family files; families are a
-  // strict partition (every provider in exactly one), so the sum must be exactly 157.
+  // strict partition (every provider in exactly one), so the sum must be exactly 159.
   const families: [string, string][] = [
     ["gateways", "APIKEY_PROVIDERS_GATEWAYS"],
     ["frontier-labs", "APIKEY_PROVIDERS_FRONTIER"],
@@ -56,7 +56,7 @@ test("APIKEY_PROVIDERS merges the 6 family files into 157 entries (no loss / no 
       seen.add(k);
     }
   }
-  assert.equal(famTotal, 157, "families must partition all 157 providers");
+  assert.equal(famTotal, 159, "families must partition all 159 providers");
 });
 
 test("AI_PROVIDERS Proxy aggregates all sections; lookups resolve", () => {

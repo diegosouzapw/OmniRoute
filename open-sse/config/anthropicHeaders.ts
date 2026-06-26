@@ -89,21 +89,29 @@ function uniqueCommaValues(values: Array<string | undefined | null>): string[] {
  * `anthropic-beta` (joined comma-list, deduped). Mutates `headers`.
  */
 export function normalizeAnthropicHeaderVariants(headers: Record<string, string>): void {
-  const versionValues = uniqueCommaValues([
-    headers["anthropic-version"],
-    headers["Anthropic-Version"],
-  ]);
-  delete headers["Anthropic-Version"];
-  delete headers["anthropic-version"];
-  if (versionValues.length > 0) {
-    headers["anthropic-version"] = versionValues[0];
+  // Only collapse when BOTH case variants are present simultaneously — that is the
+  // only situation undici merges into a rejected `"v, v"` value. A lone variant is
+  // sent fine on its own, so leave it untouched (preserving the caller's casing
+  // instead of silently rewriting it to lowercase).
+  if ("anthropic-version" in headers && "Anthropic-Version" in headers) {
+    const versionValues = uniqueCommaValues([
+      headers["anthropic-version"],
+      headers["Anthropic-Version"],
+    ]);
+    delete headers["Anthropic-Version"];
+    delete headers["anthropic-version"];
+    if (versionValues.length > 0) {
+      headers["anthropic-version"] = versionValues[0];
+    }
   }
 
-  const betaValues = uniqueCommaValues([headers["anthropic-beta"], headers["Anthropic-Beta"]]);
-  delete headers["Anthropic-Beta"];
-  delete headers["anthropic-beta"];
-  if (betaValues.length > 0) {
-    headers["anthropic-beta"] = betaValues.join(",");
+  if ("anthropic-beta" in headers && "Anthropic-Beta" in headers) {
+    const betaValues = uniqueCommaValues([headers["anthropic-beta"], headers["Anthropic-Beta"]]);
+    delete headers["Anthropic-Beta"];
+    delete headers["anthropic-beta"];
+    if (betaValues.length > 0) {
+      headers["anthropic-beta"] = betaValues.join(",");
+    }
   }
 }
 
