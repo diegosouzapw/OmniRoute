@@ -33,6 +33,13 @@ const OAUTH_CRED = { accessToken: "tok-test-ACCESS", providerSpecificData: {} };
 // (process.versions.node) forms are collapsed to <NODE>.
 const NODE_VERSION = typeof process !== "undefined" ? process.version : "";
 const NODE_VERSION_BARE = typeof process !== "undefined" ? (process.versions?.node ?? "") : "";
+// The OmniRoute app version also leaks into headers (cline X-CLIENT-VERSION /
+// X-CORE-VERSION = clineAuth APP_VERSION = process.env.npm_package_version ||
+// "0.0.0"). It is "0.0.0" under a direct `node` run (Unit Tests shard) but the real
+// package version under `npx`/`npm run` (Coverage shard), so it must be normalized
+// too — mirror clineAuth's resolution and collapse it to <APP>.
+const APP_VERSION =
+  (typeof process !== "undefined" ? process.env.npm_package_version : "") || "0.0.0";
 
 function sanitize(headers: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
@@ -48,6 +55,7 @@ function sanitize(headers: Record<string, unknown>): Record<string, unknown> {
       .replace(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "<UUID>");
     if (NODE_VERSION) s = s.split(NODE_VERSION).join("<NODE>");
     if (NODE_VERSION_BARE) s = s.split(NODE_VERSION_BARE).join("<NODE>");
+    if (APP_VERSION) s = s.split(APP_VERSION).join("<APP>");
     out[k] = s;
   }
   return out;
