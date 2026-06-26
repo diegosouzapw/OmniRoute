@@ -5,6 +5,7 @@ import {
   isLocalOnlyBypassableByManageScope,
   isAlwaysProtectedPath,
   isLoopbackHost,
+  LOCAL_ONLY_API_GET_EXEMPTIONS,
 } from "../../../src/server/authz/routeGuard.ts";
 import { managementPolicy } from "../../../src/server/authz/policies/management.ts";
 import { getMachineTokenSync } from "../../../src/lib/machineToken.ts";
@@ -283,4 +284,126 @@ test("management policy allows /api/copilot/chat from localhost with valid CLI t
   );
   const outcome = await managementPolicy.evaluate(ctx);
   assert.equal(outcome.allow, true);
+});
+
+// ─── T-22 follow-up: method-aware GET exemptions (#5084) ──────────────────
+//
+// PR #5084 added a narrow carve-out so dashboards can show the OmniRoute
+// build version (and a "update available" banner) on a remote host BEFORE
+// the user logs in. The route handler is still LOCAL_ONLY for non-loopback
+// traffic in general, but `GET /api/system/version` is exempted because
+// reading the version does not spawn a child process. The corresponding
+// `POST /api/system/version` (auto-update: git checkout + npm install +
+// pm2 restart) stays LOCAL_ONLY. The tests below pin the new behaviour so
+// a future change cannot silently widen the carve-out to write methods or
+// unrelated paths.
+
+test("LOCAL_ONLY_API_GET_EXEMPTIONS: exposes the read-method exemption list as a readonly array", () => {
+  // The constant is what other modules (the management policy, the
+  // settings inventory) read. It MUST be a ReadonlyArray so accidental
+  // mutations from a consumer throw at runtime instead of silently
+  // widening the bypass surface.
+  assert.ok(Array.isArray(LOCAL_ONLY_API_GET_EXEMPTIONS));
+  // The exemption list is intentionally narrow — every addition is a
+  // decision to expose a LOCAL_ONLY route to non-loopback read traffic.
+  // A future PR that broadens it must be reviewed explicitly, so this
+  // test is the early warning.
+  assert.ok(
+    LOCAL_ONLY_API_GET_EXEMPTIONS.length >= 1,
+    "exemption list must contain at least the /api/system/version entry from #5084"
+  );
+  assert.ok(
+    LOCAL_ONLY_API_GET_EXEMPTIONS.includes("/api/system/version"),
+    "exemption list must include /api/system/version (the #5084 carve-out)"
+  );
+});
+
+test("isLocalOnlyPath with method: GET on /api/system/version is NOT local-only (exempted)", () => {
+  // The whole point of #5084: a dashboard on a remote host can render
+  // the installed OmniRoute build / update banner without first logging
+  // in. The read method is safe by construction.
+  assert.equal(isLocalOnlyPath("/api/system/version", "GET"), false);
+  assert.equal(isLocalOnlyPath("/api/system/version", "HEAD"), false);
+  assert.equal(isLocalOnlyPath("/api/system/version", "OPTIONS"), false);
+});
+
+test("isLocalOnlyPath with method: POST on /api/system/version IS local-only (still gated)", () => {
+  // The auto-update POST triggers `git checkout` + `npm install` + `pm2
+  // restart` — see src/app/api/system/version/route.ts. It MUST stay
+  // loopback-only even though the GET carve-out exists. A regression
+  // here would re-introduce the RCE-via-tunnel surface (#5084 follow-up
+  // guard).
+  assert.equal(isLocalOnlyPath("/api/system/version", "POST"), true);
+  assert.equal(isLocalOnlyPath("/api/system/version", "PUT"), true);
+  assert.equal(isLocalOnlyPath("/api/system/version", "PATCH"), true);
+  assert.equal(isLocalOnlyPath("/api/system/version", "DELETE"), true);
+  // Lowercase is also handled.
+  assert.equal(isLocalOnlyPath("/api/system/version", "post"), true);
+});
+
+test("isLocalOnlyPath with method: GET on a non-exempted LOCAL_ONLY path is still local-only", () => {
+  // /api/mcp/sse is in LOCAL_ONLY_API_PREFIXES but NOT in
+  // LOCAL_ONLY_API_GET_EXEMPTIONS. The carve-out is per-entry, not
+  // global — every path on the exemption list must be opted in
+  // explicitly. A future change that adds /api/mcp/sse to the exemption
+  // list must update the test below.
+  assert.equal(isLocalOnlyPath("/api/mcp/sse", "GET"), true);
+  assert.equal(isLocalOnlyPath("/api/mcp/sse", "HEAD"), true);
+  assert.equal(isLocalOnlyPath("/api/services/9router/status", "GET"), true);
+  assert.equal(isLocalOnlyPath("/api/tools/agent-bridge/whatever", "GET"), true);
+});
+
+test("isLocalOnlyPath: child paths of an exemption match the exemption (prefix, not over-broaden)", () => {
+  // /api/system/version/X must also be exempt for GET (e.g. a future
+  // /api/system/version/check). The match is prefix-with-slash, so
+  // /api/system/version-foo (no slash) must NOT match the /api/system/version
+  // exemption — a sibling path that just happens to share a prefix.
+  assert.equal(isLocalOnlyPath("/api/system/version/check", "GET"), false);
+  assert.equal(isLocalOnlyPath("/api/system/version-foo", "GET"), true);
+});
+
+test("isLocalOnlyPath without method: keeps the conservative behaviour (LOCAL_ONLY for any path on the list)", () => {
+  // Callers that don't have a method (audit tooling, dashboards that
+  // want the worst-case answer) MUST still get the conservative
+  // LOCAL_ONLY result. Removing this fallback would silently allow
+  // write traffic past the gate in any caller that forgets to pass the
+  // method.
+  assert.equal(isLocalOnlyPath("/api/system/version"), true);
+  assert.equal(isLocalOnlyPath("/api/system/version", undefined), true);
+  assert.equal(isLocalOnlyPath("/api/mcp/sse"), true);
+});
+
+test("isLocalOnlyPath with method: non-LOCAL_ONLY paths return false regardless of method", () => {
+  // Sanity: the method overload must not accidentally start returning
+  // true for non-LOCAL_ONLY paths.
+  assert.equal(isLocalOnlyPath("/api/settings", "GET"), false);
+  assert.equal(isLocalOnlyPath("/api/providers", "POST"), false);
+  assert.equal(isLocalOnlyPath("/v1/chat/completions", "POST"), false);
+});
+
+// ─── T-22 follow-up: management policy honours the GET exemption (#5084) ────
+//
+// Integration-style assertions through the management policy: a remote
+// dashboard on a non-loopback host should now be able to read
+// /api/system/version without 403, while the same host on POST still
+// gets 403. The peer-stamp + CLI-token setup mirrors the existing
+// /api/mcp/ tests so the model is consistent.
+
+test("management policy: GET /api/system/version from non-localhost without auth is allowed (exempted read)", async () => {
+  // The exemption deliberately bypasses the auth requirement for the
+  // version read — otherwise the dashboard couldn't render the build
+  // banner before the user has logged in. The 200 comes from the route
+  // handler, not the policy, so we assert the policy allows.
+  const ctx = makeCtx("/api/system/version", { host: "dashboard.example.com" }, { method: "GET" });
+  const outcome = await managementPolicy.evaluate(ctx);
+  assert.equal(outcome.allow, true);
+});
+
+test("management policy: POST /api/system/version from non-localhost without auth is still 403", async () => {
+  // The auto-update POST is the surface #5084 carved GET out FROM. It
+  // must remain LOCAL_ONLY for non-loopback, regardless of exemptions.
+  const ctx = makeCtx("/api/system/version", { host: "dashboard.example.com" }, { method: "POST" });
+  const outcome = await managementPolicy.evaluate(ctx);
+  assert.equal(outcome.allow, false);
+  if (!outcome.allow) assert.equal(outcome.status, 403);
 });
