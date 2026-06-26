@@ -373,6 +373,17 @@ export default function ProviderModelsSection({
     );
   }
 
+  const aliasByModelId = Object.entries(modelAliases).reduce<Record<string, string>>(
+    (acc, [alias, fullModel]) => {
+      const prefix = `${providerDisplayAlias}/`;
+      if (fullModel.startsWith(prefix)) {
+        acc[fullModel.slice(prefix.length)] = alias;
+      }
+      return acc;
+    },
+    {}
+  );
+
   const modelsWithVisibility = models.map((model) => ({
     ...model,
     isHidden: effectiveModelHidden(model.id),
@@ -451,8 +462,15 @@ export default function ProviderModelsSection({
               model={model}
               fullModel={`${providerDisplayAlias}/${model.id}`}
               provider={providerId}
+              alias={aliasByModelId[model.id]}
               copied={copied}
               onCopy={onCopy}
+              onSetAlias={(a) => onSetAlias(model.id, a, providerDisplayAlias)}
+              onDeleteAlias={
+                aliasByModelId[model.id]
+                  ? () => onDeleteAlias(aliasByModelId[model.id])
+                  : undefined
+              }
               t={t}
               showDeveloperToggle
               effectiveModelNormalize={effectiveModelNormalize}
