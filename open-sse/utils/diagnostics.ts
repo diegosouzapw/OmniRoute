@@ -200,6 +200,29 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
     return null;
   }
 
+  // ── Claude API shape (native passthrough: type:"message" + content:[]) ──
+  if (body.type === "message") {
+    const content = body.content;
+    if (!Array.isArray(content) || content.length === 0) return "empty_choices";
+
+    const hasOutput = content.some((block: Record<string, unknown>) => {
+      if (
+        block.type === "text" &&
+        typeof block.text === "string" &&
+        (block.text as string).length > 0
+      )
+        return true;
+      if (block.type === "tool_use") return true;
+      if (block.type === "tool_result") return true;
+      return false;
+    });
+
+    if (!hasOutput) return "empty_choices";
+    const stopReason = body.stop_reason;
+    if (stopReason === null) return "no_terminal";
+    return null;
+  }
+
   // ── Chat Completions shape ──
   const choices = body.choices;
   if (!Array.isArray(choices) || choices.length === 0) return "empty_choices";
