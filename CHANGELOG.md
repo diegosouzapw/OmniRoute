@@ -8,6 +8,16 @@
 
 _In development — bullets added per PR; finalized at release._
 
+### 🔧 Bug Fixes
+
+- **Engine Combos editor: saving a pipeline no longer fails silently with HTTP 400 (#4955).** The
+  named-combos pipeline dropdown offered four engines (`headroom`, `session-dedup`, `ccr`,
+  `llmlingua`) that the `PUT /api/context/combos/[id]` schema rejects, so selecting one made the
+  save return 400 while the UI swallowed the error. The dropdown is now sourced from a single
+  canonical engine map shared with `stackedPipelineStepSchema` (parity guarded by a unit test), and
+  the editor surfaces save errors and empty-name/empty-pipeline validation instead of failing
+  quietly.
+
 ---
 
 ## [3.8.36] — 2026-06-25
