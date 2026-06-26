@@ -893,6 +893,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 
 | Document                                                       | Description                                                                      |
 | -------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| [Setup & Run Guide](docs/SETUP.md)                             | **Consolidated** install/run reference: Electron, Docker, Podman, VM/VPS, remote |
 | [User Guide](docs/guides/USER_GUIDE.md)                        | Providers, combos, CLI integration, deployment                                   |
 | [Setup Guide](docs/guides/SETUP_GUIDE.md)                      | Full install methods, CLI tool configs, protocol setup, timeout tuning           |
 | [CLI Tools Guide](docs/reference/CLI-TOOLS.md)                 | Per-tool setup for Claude Code, Codex, Cursor, Cline, OpenClaw, Kilo, Copilot    |
