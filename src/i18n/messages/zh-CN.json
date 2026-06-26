@@ -4398,6 +4398,8 @@
     "ccCompatibleContext1mLabel": "启用 1M context beta",
     "ccCompatibleRedactThinkingDescription": "为要求隐藏 Claude 思考流的 CC Compatible 上游添加 redact-thinking beta header。",
     "ccCompatibleRedactThinkingLabel": "启用 redact-thinking beta",
+    "ccCompatibleSummarizeThinkingDescription": "为 CC Compatible 的 thinking 请求添加 `display: \"summarized\"`，让支持的 Claude 模型流式返回可见思考增量。",
+    "ccCompatibleSummarizeThinkingLabel": "启用 summarized thinking display",
     "ccCompatibleDetailsTitle": "CC 兼容中转站详情",
     "ccCompatibleLabel": "CC 兼容",
     "ccCompatibleModelsDescription": "CC 兼容中转站不提供模型列表。请添加该中转站接受的 Claude 模型 ID。",

@@ -51,6 +51,7 @@ test("provider schemas accept boolean CC-compatible request defaults", () => {
       requestDefaults: {
         context1m: true,
         redactThinking: true,
+        summarizeThinking: true,
       },
     },
   });
@@ -59,6 +60,7 @@ test("provider schemas accept boolean CC-compatible request defaults", () => {
       requestDefaults: {
         context1m: false,
         redactThinking: false,
+        summarizeThinking: false,
       },
     },
   });
@@ -76,6 +78,7 @@ test("provider schemas reject non-boolean CC-compatible request defaults", () =>
       requestDefaults: {
         context1m: "yes",
         redactThinking: "yes",
+        summarizeThinking: "yes",
       },
     },
   });
@@ -84,6 +87,7 @@ test("provider schemas reject non-boolean CC-compatible request defaults", () =>
       requestDefaults: {
         context1m: 1,
         redactThinking: 1,
+        summarizeThinking: 1,
       },
     },
   });

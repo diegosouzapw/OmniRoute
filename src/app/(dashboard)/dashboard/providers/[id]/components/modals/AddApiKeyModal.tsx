@@ -116,6 +116,7 @@ export default function AddApiKeyModal({
     ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
     ccCompatibleRedactThinking: false,
+    ccCompatibleSummarizeThinking: false,
     passthroughModels: false,
     importFreeModelsOnly: false,
   });
@@ -679,14 +680,8 @@ export default function AddApiKeyModal({
               <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
                 {isCcCompatible && (
                   <CcCompatibleRequestDefaultsFields
-                    context1m={formData.ccCompatibleContext1m}
-                    redactThinking={formData.ccCompatibleRedactThinking}
-                    onContext1mChange={(checked) =>
-                      setFormData({ ...formData, ccCompatibleContext1m: checked })
-                    }
-                    onRedactThinkingChange={(checked) =>
-                      setFormData({ ...formData, ccCompatibleRedactThinking: checked })
-                    }
+                    values={formData}
+                    onChange={(patch) => setFormData({ ...formData, ...patch })}
                   />
                 )}
                 {openRouterPreset.input}

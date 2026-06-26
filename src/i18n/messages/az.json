@@ -4159,6 +4159,8 @@
     "ccCompatibleContext1mLabel": "Enable 1M context beta",
     "ccCompatibleRedactThinkingDescription": "Adds the redact-thinking beta header for CC Compatible upstreams that require hidden Claude thinking streams.",
     "ccCompatibleRedactThinkingLabel": "Enable redact-thinking beta",
+    "ccCompatibleSummarizeThinkingDescription": "Adds `display: \"summarized\"` to CC Compatible thinking requests so supported Claude models stream visible thinking deltas.",
+    "ccCompatibleSummarizeThinkingLabel": "Enable summarized thinking display",
     "ccCompatibleDetailsTitle": "CC-compatible relay details",
     "ccCompatibleLabel": "CC Compatible",
     "ccCompatibleModelsDescription": "CC-compatible relays do not expose model listing. Add the Claude model IDs your relay accepts.",
