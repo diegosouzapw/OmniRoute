@@ -1,5 +1,6 @@
 {
   "_comment": "Catraca de tamanho (check-file-size.mjs). frozen so pode encolher; arquivos novos <= cap. --update ratcheta.",
+  "_rebaseline_2026_06_26_5101_responses_textformat": "PR #5101 own growth: open-sse/executors/default.ts 859->876 (+17 = defaultResponsesTextFormat — fills the Responses-API default text.format for openai-compatible-*responses* providers so LM-Studio-style upstreams stop 400ing; guarded, never overwrites an existing format). Irreducible executor chokepoint next to applyJsonSchemaFallback; covered by tests/unit/responses-default-text-format.test.ts.",
   "_rebaseline_2026_06_26_5117_basereds": "Base-red repair #5117 own growth + sibling drift: open-sse/handlers/responseSanitizer.ts 1122->1139 (+17 = synthesize an output[] message item from an output_text-only Responses body so the answer is not dropped/false-502'd; #4942 regression, covered by tests/unit/response-sanitizer.test.ts). src/app/(dashboard)/dashboard/providers/[id]/components/modals/AddApiKeyModal.tsx 866->868 (+2 sibling drift from a separately-merged PR, already on the release tip; rebaselined here to green the file-size gate).",
   "_rebaseline_2026_06_26_leva5": "Leva 5 (26 PRs, release/v3.8.38, tip 7b6a9ed33): own growth from merged PRs — cursor.ts 1474->1577 (#4912 composer inline tool-calls wiring), kiro.ts 814->944 (#4911 inline-thinking splitter wiring), videoGeneration.ts 1083->1265 (#5051 Alibaba DashScope handler), default.ts 835->859 (#4727 client_metadata strip), base.ts 1470->1475 (#4846 anthropic header normalize call), chat.ts 1552->1560 (#5064 self-inflicted-timeout cooldown skip). All covered by per-PR tests; growth is localized feature/fix code next to existing branches.",
   "_rebaseline_2026_06_26_rc17b_leva4": "Leva 4 (22 PRs): drift dos commits definidores. route.ts (#4931 DGrid), settings.ts (#4852/#4856), chat.ts (#4852/#4858/#4870), antigravity.ts (#4941 retry), codex.ts (#4849), request/openai-responses.ts (#4859/#4862), response/openai-responses.ts (#4862/#4906 dense+custom-tool), kiro.ts NOVO>800 (#4855), openai-to-claude.ts NOVO>800 (#4853); testes: executor-codex (#4849), translator-openai-responses-req (#4859).",
@@ -232,7 +233,7 @@
     "src/shared/validation/schemas.ts": 2523,
     "src/sse/handlers/chat.ts": 1560,
     "src/sse/services/auth.ts": 2336,
-    "open-sse/executors/default.ts": 859,
+    "open-sse/executors/default.ts": 876,
     "open-sse/translator/request/openai-responses.ts": 902,
     "open-sse/executors/kiro.ts": 944,
     "open-sse/translator/request/openai-to-claude.ts": 805
