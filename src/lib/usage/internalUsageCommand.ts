@@ -211,6 +211,85 @@ export function isInternalUsageCommand(text: string | null | undefined): boolean
   return typeof text === "string" && text.trim() === INTERNAL_USAGE_COMMAND;
 }
 
+function isClaudeCodeTitlePrompt(text: string): boolean {
+  return (
+    /<session>[\s\S]*<\/session>/i.test(text) &&
+    /write the title in the language the user wrote in/i.test(text)
+  );
+}
+
+function hasStandaloneInternalUsageCommandLine(text: string): boolean {
+  if (isClaudeCodeTitlePrompt(text)) return false;
+  return text.split(/\r?\n/).some((line) => line.trim() === INTERNAL_USAGE_COMMAND);
+}
+
+function isTextCommandPart(part: unknown): boolean {
+  if (typeof part === "string") return isInternalUsageCommand(part);
+  if (!isRecord(part)) return false;
+
+  const type = typeof part.type === "string" ? part.type : "";
+  if (type && type !== "text" && type !== "input_text") return false;
+
+  return isInternalUsageCommand(part.text as string | null | undefined);
+}
+
+function contentHasStandaloneUsageCommand(content: unknown, allowStandaloneLine: boolean): boolean {
+  if (typeof content === "string") {
+    return (
+      isInternalUsageCommand(content) ||
+      (allowStandaloneLine && hasStandaloneInternalUsageCommandLine(content))
+    );
+  }
+
+  if (Array.isArray(content)) {
+    return content.some((part) => {
+      if (isTextCommandPart(part)) return true;
+      if (!allowStandaloneLine || !isRecord(part)) return false;
+
+      const type = typeof part.type === "string" ? part.type : "";
+      if (type && type !== "text" && type !== "input_text") return false;
+      return typeof part.text === "string" && hasStandaloneInternalUsageCommandLine(part.text);
+    });
+  }
+
+  if (isRecord(content)) return isTextCommandPart(content);
+
+  return false;
+}
+
+function bodyHasTools(body: unknown): boolean {
+  return isRecord(body) && Array.isArray(body.tools) && body.tools.length > 0;
+}
+
+function hasInternalUsageCommandInBody(body: unknown): boolean {
+  if (!isRecord(body)) return false;
+
+  const allowStandaloneLine = bodyHasTools(body);
+  const messages = Array.isArray(body.messages) ? body.messages : null;
+  if (messages) {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const item = messages[i];
+      if (!isRecord(item) || item.role !== "user") continue;
+      return contentHasStandaloneUsageCommand(item.content, allowStandaloneLine);
+    }
+  }
+
+  if (typeof body.input === "string") {
+    return contentHasStandaloneUsageCommand(body.input, allowStandaloneLine);
+  }
+
+  const input = Array.isArray(body.input) ? body.input : null;
+  if (input) {
+    for (let i = input.length - 1; i >= 0; i--) {
+      const item = input[i];
+      if (!isRecord(item) || item.role !== "user") continue;
+      return contentHasStandaloneUsageCommand(item.content, allowStandaloneLine);
+    }
+  }
+
+  return false;
+}
+
 function connectionFromValue(value: unknown): ProviderConnectionLike | null {
   if (!isRecord(value)) return null;
   const id = typeof value.id === "string" ? value.id : "";
@@ -747,8 +826,7 @@ export async function handleInternalUsageCommand(
   body: unknown,
   deps: InternalUsageCommandDeps = {}
 ): Promise<Response | null> {
-  const lastUserText = extractLastUserText(body);
-  if (!isInternalUsageCommand(lastUserText)) return null;
+  if (!hasInternalUsageCommandInBody(body)) return null;
 
   const resolvedDeps = await normalizeDeps(deps);
   const apiKey = extractUsageCommandApiKey(request);

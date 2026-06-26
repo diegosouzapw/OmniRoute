@@ -493,6 +493,119 @@ test("handleInternalUsageCommand keeps Claude quota snapshots for Anthropic call
   assert.doesNotMatch(body.content[0].text, /Codex Pro/);
 });
 
+test("handleInternalUsageCommand detects Claude Code usage command beside local output", async () => {
+  const response = await handleInternalUsageCommand(
+    new Request("http://localhost/v1/messages", {
+      method: "POST",
+      headers: {
+        "anthropic-version": "2023-06-01",
+        "x-api-key": "sk-enabled",
+      },
+    }),
+    {
+      model: "claude/claude-opus-4-8",
+      stream: true,
+      tools: [{ name: "Read", input_schema: { type: "object" } }],
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "toolu_local_model",
+              content: "local /model command output that Claude Code keeps in context",
+            },
+            { type: "text", text: "@@om-usage" },
+          ],
+        },
+      ],
+    },
+    {
+      isValidApiKey: async () => true,
+      getApiKeyMetadata: async () => ({
+        id: "key-enabled",
+        name: "enabled",
+        allowedConnections: ["conn-claude"],
+        allowUsageCommand: true,
+      }),
+      now: () => NOW,
+      getProviderConnectionById: async () => ({
+        id: "conn-claude",
+        provider: "claude",
+        isActive: true,
+      }),
+      getProviderConnections: async () => [],
+      getProviderLimitsCache: () => ({
+        plan: "Claude Max",
+        quotas: {
+          "weekly (7d)": {
+            used: 72,
+            total: 100,
+            resetAt: new Date(NOW + 24 * 60 * 60_000).toISOString(),
+          },
+        },
+        message: null,
+        fetchedAt: new Date(NOW).toISOString(),
+      }),
+      getAllProviderLimitsCache: () => ({}),
+    }
+  );
+
+  assert.ok(response, "command should be handled locally");
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("Content-Type") || "", /text\/event-stream/);
+  const text = await response.text();
+  assert.match(text, /event: content_block_delta/);
+  assert.match(text, /Claude Max/);
+  assert.match(text, /event: message_stop/);
+});
+
+test("handleInternalUsageCommand ignores Claude Code title generation prompts", async () => {
+  const response = await handleInternalUsageCommand(
+    new Request("http://localhost/v1/messages", {
+      method: "POST",
+      headers: {
+        "anthropic-version": "2023-06-01",
+        "x-api-key": "sk-enabled",
+      },
+    }),
+    {
+      model: "claude/claude-opus-4-8",
+      stream: true,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: [
+                "<session>",
+                "@@om-usage",
+                "</session>",
+                "",
+                "Write the title in the language the user wrote in, regardless of examples.",
+              ].join("\n"),
+            },
+          ],
+        },
+      ],
+    },
+    {
+      isValidApiKey: async () => {
+        throw new Error("auth must not run for Claude Code title prompts");
+      },
+      getApiKeyMetadata: async () => null,
+      now: () => NOW,
+      getProviderConnectionById: async () => null,
+      getProviderConnections: async () => [],
+      getProviderLimitsCache: () => null,
+      getAllProviderLimitsCache: () => ({}),
+    }
+  );
+
+  assert.equal(response, null);
+});
+
 test("handleInternalUsageCommand ignores normal prompts", async () => {
   const response = await handleInternalUsageCommand(
     new Request("http://localhost/v1/chat/completions", {
