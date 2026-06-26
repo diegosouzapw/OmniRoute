@@ -112,8 +112,11 @@ export async function withEarlyStreamKeepalive(
         interval.unref?.();
       }
       // First keepalive immediately on commit so the client sees a byte right away.
+      // Use the configured frame (e.g. ANTHROPIC_PING_FRAME) — an SSE comment here
+      // would be ignored by Anthropic clients' watchdog on a sub-interval gap,
+      // defeating the keepalive for exactly the case it targets.
       try {
-        controller.enqueue(KEEPALIVE_FRAME);
+        controller.enqueue(keepaliveFrame);
       } catch {
         /* consumer already gone */
       }
