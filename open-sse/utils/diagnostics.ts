@@ -11,6 +11,12 @@
 
 import { sanitizeErrorMessage } from "./error.ts";
 
+// Terminal Claude stop_reason values where an empty content array is still a
+// legitimate completion (truncated at the token limit, or a tool-call turn).
+// Mirrors errorClassifier.isEmptyContentResponse so the post-translation check
+// agrees with the raw-body check on native (untranslated) Anthropic responses.
+const LEGIT_EMPTY_CLAUDE_STOP = new Set(["max_tokens", "tool_use"]);
+
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export type MalformedReason =
@@ -168,6 +174,9 @@ export function synthResponsesFailure(reason?: MalformedReason): string {
  * - Tool-call responses (content=null + tool_calls=[…]) are also valid.
  * - Responses API function_call / other structural items count as output even
  *   when they carry no user-visible text.
+ * - Native Anthropic Messages responses (claude→claude, not translated) carry a
+ *   top-level `content` array instead of `choices`; any block (text, tool_use,
+ *   thinking/redacted_thinking, …) counts as usable output.
  */
 export function detectMalformedNonStream(resp: unknown): MalformedReason | null {
   if (!resp || typeof resp !== "object") return "empty_choices";
@@ -198,6 +207,22 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
     const status = typeof body.status === "string" ? body.status : "";
     if (status && !["completed", "done"].includes(status)) return "no_terminal";
     return null;
+  }
+
+  // ── Anthropic Messages shape ──
+  // claude→claude responses are not translated, so the "translated" body is still
+  // a native Anthropic message ({ type:"message", content:[…blocks…] }) with no
+  // top-level `choices`. Without this branch the chat-completions check below
+  // misclassifies every non-streaming /v1/messages call routed to a Claude
+  // provider as empty_choices and 502s it — e.g. Claude Code's non-streaming Bash
+  // command classifier, whose thinking-only reply ([{ type:"thinking", … }]) has
+  // no `choices`. Any content block (text, tool_use, thinking/redacted_thinking, …)
+  // is usable output; an empty content array is malformed only when no terminal
+  // stop_reason (max_tokens / tool_use) explains it.
+  if (Array.isArray(body.content)) {
+    if ((body.content as unknown[]).length > 0) return null;
+    const stopReason = typeof body.stop_reason === "string" ? body.stop_reason : "";
+    return LEGIT_EMPTY_CLAUDE_STOP.has(stopReason) ? null : "empty_choices";
   }
 
   // ── Chat Completions shape ──

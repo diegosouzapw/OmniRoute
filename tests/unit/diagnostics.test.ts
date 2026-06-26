@@ -168,6 +168,53 @@ test("detectMalformedNonStream allows Responses API function_call items as valid
   assert.equal(detectMalformedNonStream(body), null);
 });
 
+// ── (c2) detectMalformedNonStream — native Anthropic Messages shape ──────────
+// claude→claude responses are not translated, so the body stays in Anthropic
+// shape ({ type:"message", content:[…] }) with no top-level `choices`.
+
+test("detectMalformedNonStream returns null for Anthropic text response", () => {
+  const body = {
+    type: "message",
+    role: "assistant",
+    content: [{ type: "text", text: "git status" }],
+    stop_reason: "end_turn",
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream returns null for Anthropic tool_use response", () => {
+  const body = {
+    type: "message",
+    role: "assistant",
+    content: [{ type: "tool_use", id: "toolu_1", name: "get_weather", input: { city: "Paris" } }],
+    stop_reason: "tool_use",
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream returns null for Anthropic thinking-only response (regression)", () => {
+  // A reasoning model can return a thinking block whose text is empty but which
+  // carries a valid signature. This is a valid completion, not a 502 — it is
+  // exactly what Claude Code's non-streaming Bash command classifier hits.
+  const body = {
+    type: "message",
+    role: "assistant",
+    content: [{ type: "thinking", thinking: "", signature: "EoACCmMIDxgC…" }],
+    stop_reason: "end_turn",
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream allows empty Anthropic content with a terminal stop_reason", () => {
+  const body = { type: "message", role: "assistant", content: [], stop_reason: "max_tokens" };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream flags empty Anthropic content with no terminal stop_reason", () => {
+  const body = { type: "message", role: "assistant", content: [], stop_reason: null };
+  assert.equal(detectMalformedNonStream(body), "empty_choices");
+});
+
 // ── (d) no stack trace leakage ───────────────────────────────────────────────
 
 test("synthOpenAIErrorChunk message does NOT contain stack trace path", () => {

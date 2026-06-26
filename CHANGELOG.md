@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### 🔧 Bug Fixes
+
+- **fix(sse):** classify native Anthropic Messages responses in `detectMalformedNonStream`. `claude → claude` requests are not translated, so the post-translation empty-response check (#4942) received a native Anthropic body (`{ type:"message", content:[…] }`) with no top-level `choices` and misclassified **every** non-streaming `/v1/messages` call routed to a Claude provider as `empty_choices` → HTTP 502 — regardless of content. Most visibly this broke Claude Code's non-streaming Bash command classifier, whose reply is often a `thinking`-only block. Any content block (text / `tool_use` / `thinking`) now counts as usable output, consistent with `isEmptyContentResponse`. (fixes [#5108](https://github.com/diegosouzapw/OmniRoute/issues/5108))
+
 ---
 
 ## [3.8.37] — 2026-06-26
