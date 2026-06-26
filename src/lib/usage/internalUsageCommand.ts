@@ -9,6 +9,7 @@ export const INTERNAL_USAGE_COMMAND = "@@om-usage";
 export const USAGE_COMMAND_DISABLED_MESSAGE = "Usage command is disabled for this API key.";
 const USAGE_COMMAND_AUTH_REQUIRED_MESSAGE = "Usage command requires an authenticated API key.";
 const LOCAL_USAGE_MODEL = "omniroute/local-usage";
+const TEXT_PLAIN_HEADERS = { "Content-Type": "text/plain; charset=utf-8" } as const;
 
 type JsonRecord = Record<string, unknown>;
 
@@ -577,6 +578,28 @@ function inferUsageCommandSelection(request: Request, body: unknown): UsageComma
   };
 }
 
+function inferHttpUsageCommandSelection(request: Request): UsageCommandSelection {
+  try {
+    const url = new URL(request.url, "http://localhost");
+    return {
+      preferredConnectionId:
+        url.searchParams.get("connectionId")?.trim() ||
+        readHeader(request, "x-omniroute-connection")?.trim() ||
+        null,
+      preferredProvider: url.searchParams.get("provider")?.trim() || null,
+    };
+  } catch {
+    return {
+      preferredConnectionId: readHeader(request, "x-omniroute-connection")?.trim() || null,
+      preferredProvider: null,
+    };
+  }
+}
+
+function createPlainUsageCommandResponse(text: string, status = 200): Response {
+  return new Response(text, { status, headers: TEXT_PLAIN_HEADERS });
+}
+
 function isAnthropicRequest(request: Request): boolean {
   if (request.headers.has("anthropic-version")) return true;
   return hasPathSegment(getRequestPathname(request), "messages");
@@ -847,5 +870,29 @@ export async function handleInternalUsageCommand(
     request,
     body,
     await buildUsageCommandText(metadata, resolvedDeps, inferUsageCommandSelection(request, body))
+  );
+}
+
+export async function handleInternalUsageCommandHttpRequest(
+  request: Request,
+  deps: InternalUsageCommandDeps = {}
+): Promise<Response> {
+  const resolvedDeps = await normalizeDeps(deps);
+  const apiKey = extractUsageCommandApiKey(request);
+  if (!apiKey || !(await resolvedDeps.isValidApiKey(apiKey))) {
+    return createPlainUsageCommandResponse(USAGE_COMMAND_AUTH_REQUIRED_MESSAGE, 401);
+  }
+
+  const metadata = await resolvedDeps.getApiKeyMetadata(apiKey);
+  if (!metadata?.id) {
+    return createPlainUsageCommandResponse(USAGE_COMMAND_AUTH_REQUIRED_MESSAGE, 401);
+  }
+
+  if (metadata.allowUsageCommand !== true) {
+    return createPlainUsageCommandResponse(USAGE_COMMAND_DISABLED_MESSAGE, 403);
+  }
+
+  return createPlainUsageCommandResponse(
+    await buildUsageCommandText(metadata, resolvedDeps, inferHttpUsageCommandSelection(request))
   );
 }
