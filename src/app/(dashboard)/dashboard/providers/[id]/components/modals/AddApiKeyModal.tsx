@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Badge, Input, Modal, Toggle } from "@/shared/components";
@@ -28,7 +27,6 @@ import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
 import { buildAddProviderSpecificData } from "./connectionProviderSpecificData";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
-
 export interface AddApiKeyModalProps {
   isOpen: boolean;
   provider?: string;

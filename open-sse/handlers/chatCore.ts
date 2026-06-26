@@ -398,7 +398,11 @@ export async function handleChatCore({
   // only when this function is called outside the normal chat dispatch.
   {
     const _s = cachedSettings ?? (await getCachedSettings());
-    if (_s.customSystemPromptEnabled === true && typeof _s.customSystemPrompt === "string" && _s.customSystemPrompt) {
+    if (
+      _s.customSystemPromptEnabled === true &&
+      typeof _s.customSystemPrompt === "string" &&
+      _s.customSystemPrompt
+    ) {
       body = injectCustomSystemPrompt(body as Record<string, unknown>, _s.customSystemPrompt);
       log?.debug?.("CUSTOMSP", "custom system prompt injected");
     }
@@ -1796,8 +1800,8 @@ export async function handleChatCore({
   // `_toolNameMap` so kiro-to-openai maps streamed tool-call names back (#1375).
   if (targetFormat === FORMATS.KIRO) {
     const kiroTools =
-      translatedBody?.conversationState?.currentMessage?.userInputMessage
-        ?.userInputMessageContext?.tools;
+      translatedBody?.conversationState?.currentMessage?.userInputMessage?.userInputMessageContext
+        ?.tools;
     if (kiroTools) {
       const { tools: sanitizedKiroTools, nameMap: kiroNameMap } = sanitizeKiroTools(kiroTools);
       translatedBody.conversationState.currentMessage.userInputMessage.userInputMessageContext.tools =
@@ -2052,15 +2056,38 @@ export async function handleChatCore({
     });
 
   let onPipelineStreamError: streamFailure.PipelineStreamErrorHandler | null = null;
+  let onClientDisconnectFinalize:
+    | ((event: { reason: string; duration: number }) => boolean)
+    | null = null;
 
   // Create stream controller for disconnect detection
   const streamController = createStreamController({
-    onDisconnect,
+    onDisconnect: (event) => {
+      let finalized = false;
+      try {
+        finalized = onClientDisconnectFinalize?.(event) === true;
+      } catch {}
+      if (!finalized) {
+        try {
+          finalizePendingScope(pendingScope, {
+            status: 499,
+            error: `Client disconnected: ${event.reason}`,
+            errorCode: "client_disconnected",
+          });
+          finalized = true;
+        } catch {}
+      }
+      try {
+        onDisconnect?.(event);
+      } catch {}
+      return finalized;
+    },
     onError: (event) => onPipelineStreamError?.(event),
     provider,
     model,
     connectionId,
     clientResponseFormat,
+    clientAbortSignal: clientRawRequest?.signal,
   });
 
   const dedupRequestBody = { ...translatedBody, model: `${provider}/${model}`, stream };
@@ -3859,6 +3886,7 @@ export async function handleChatCore({
     (finalBody as Record<string, unknown> | null | undefined) ?? null
   );
 
+  let streamCompletionRecorded = false;
   let streamFailureCompletionRecorded = false;
 
   // Callback to save call log when stream completes (include responseBody when provided by stream)
@@ -3873,6 +3901,8 @@ export async function handleChatCore({
     ttft,
   }) => {
     const normalizedStreamStatus = streamStatus || 200;
+    if (streamCompletionRecorded) return;
+    streamCompletionRecorded = true;
     if (normalizedStreamStatus !== 200) {
       if (streamFailureCompletionRecorded) return;
       streamFailureCompletionRecorded = true;
@@ -4011,12 +4041,20 @@ export async function handleChatCore({
 
   const streamFailureFinalizers = streamFailure.createStreamFailureFinalizers({
     isFailureCompletionRecorded: () => streamFailureCompletionRecorded,
+    isStreamCompletionRecorded: () => streamCompletionRecorded,
     onStreamComplete,
     persistFailureUsage,
     onStreamFailure,
   });
   const handleStreamFailure = streamFailureFinalizers.handleStreamFailure;
   onPipelineStreamError = streamFailureFinalizers.onPipelineStreamError;
+  onClientDisconnectFinalize = (event) =>
+    handleStreamFailure({
+      status: 499,
+      message: `Client disconnected: ${event.reason}`,
+      code: "client_disconnected",
+      type: "client_disconnected",
+    });
 
   // For providers using Responses API format, translate stream back to openai (Chat Completions) format
   // UNLESS client is Droid CLI which expects openai-responses format back

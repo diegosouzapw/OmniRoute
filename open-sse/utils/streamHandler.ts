@@ -5,8 +5,6 @@ import { PENDING_REQUEST_CLEARED_MARKER } from "./stream.ts";
 
 // Stream handler with disconnect detection - shared for all providers
 
-const DISCONNECT_ABORT_DELAY_MS = 2_000;
-
 // Default budget for the pipeWithDisconnect raw-upstream stall watchdog.
 // Inherits STREAM_IDLE_TIMEOUT_MS so a single env knob still governs the
 // max time we tolerate silence from upstream. Reasoning models (Claude
@@ -30,12 +28,13 @@ type StreamErrorEvent = {
 };
 
 type StreamControllerOptions = {
-  onDisconnect?: (event: StreamDisconnectEvent) => void;
+  onDisconnect?: (event: StreamDisconnectEvent) => boolean | void;
   onError?: (event: StreamErrorEvent) => boolean | void;
   provider?: string;
   model?: string;
   connectionId?: string | null;
   clientResponseFormat?: string | null;
+  clientAbortSignal?: AbortSignal | null;
 };
 
 type StreamController = ReturnType<typeof createStreamController>;
@@ -177,6 +176,28 @@ function getErrorStatusCode(error: unknown): number {
   return 502;
 }
 
+function hasClientTerminalSseMarker(text: string, clientResponseFormat?: string | null): boolean {
+  if (/(?:^|\r?\n)data:\s*\[DONE\]\s*(?:\r?\n|$)/.test(text)) {
+    return true;
+  }
+
+  if (isResponsesClientFormat(clientResponseFormat)) {
+    return (
+      /(?:^|\r?\n)event:\s*response\.completed\s*(?:\r?\n|$)/.test(text) ||
+      /"type"\s*:\s*"response\.completed"/.test(text)
+    );
+  }
+
+  if (clientResponseFormat === FORMATS.CLAUDE) {
+    return (
+      /(?:^|\r?\n)event:\s*message_stop\s*(?:\r?\n|$)/.test(text) ||
+      /"type"\s*:\s*"message_stop"/.test(text)
+    );
+  }
+
+  return false;
+}
+
 /**
  * Create stream controller with abort and disconnect detection
  * @param {object} options
@@ -193,12 +214,13 @@ export function createStreamController({
   model,
   connectionId,
   clientResponseFormat,
+  clientAbortSignal,
 }: StreamControllerOptions = {}) {
   const abortController = new AbortController();
   const startTime = Date.now();
   let disconnected = false;
-  let abortTimeout: ReturnType<typeof setTimeout> | null = null;
   let pendingRequestCleared = false;
+  let cleanupClientAbortSignal: (() => void) | null = null;
 
   const logStream = (status) => {
     const duration = Date.now() - startTime;
@@ -226,7 +248,24 @@ export function createStreamController({
     } catch {}
   };
 
-  return {
+  const cleanupClientAbortListener = () => {
+    if (!cleanupClientAbortSignal) return;
+    cleanupClientAbortSignal();
+    cleanupClientAbortSignal = null;
+  };
+
+  const getClientAbortReason = () => {
+    const reason = clientAbortSignal?.reason;
+    if (typeof reason === "string" && reason.trim().length > 0) {
+      return reason;
+    }
+    if (reason instanceof Error && reason.message) {
+      return reason.message;
+    }
+    return "request_signal_aborted";
+  };
+
+  const controller = {
     signal: abortController.signal,
     startTime,
 
@@ -236,6 +275,7 @@ export function createStreamController({
     handleDisconnect: (reason = "client_closed") => {
       if (disconnected) return;
       disconnected = true;
+      cleanupClientAbortListener();
 
       logStream(`disconnect: ${reason}`);
 
@@ -243,10 +283,7 @@ export function createStreamController({
       // fire when the client aborts mid-stream, so we must clean up here.
       clearPendingRequest();
 
-      // Delay abort to allow cleanup
-      abortTimeout = setTimeout(() => {
-        abortController.abort();
-      }, DISCONNECT_ABORT_DELAY_MS);
+      abortController.abort(reason);
 
       onDisconnect?.({ reason, duration: Date.now() - startTime });
     },
@@ -255,21 +292,14 @@ export function createStreamController({
     handleComplete: () => {
       if (disconnected) return;
       disconnected = true;
+      cleanupClientAbortListener();
 
       logStream("complete");
-
-      if (abortTimeout) {
-        clearTimeout(abortTimeout);
-        abortTimeout = null;
-      }
     },
 
     // Call on error
     handleError: (error: unknown) => {
-      if (abortTimeout) {
-        clearTimeout(abortTimeout);
-        abortTimeout = null;
-      }
+      cleanupClientAbortListener();
 
       // A client disconnect is not a provider failure. If the client already went away
       // (disconnected) or the error is a client abort / "Controller is already closed",
@@ -313,9 +343,28 @@ export function createStreamController({
       logStream("error: unknown");
     },
 
-    abort: () => abortController.abort(),
+    abort: () => {
+      cleanupClientAbortListener();
+      abortController.abort();
+    },
     clientResponseFormat,
   };
+
+  if (clientAbortSignal && typeof clientAbortSignal.addEventListener === "function") {
+    const handleClientAbort = () => {
+      controller.handleDisconnect(getClientAbortReason());
+    };
+    if (clientAbortSignal.aborted) {
+      queueMicrotask(handleClientAbort);
+    } else {
+      clientAbortSignal.addEventListener("abort", handleClientAbort, { once: true });
+      cleanupClientAbortSignal = () => {
+        clientAbortSignal.removeEventListener("abort", handleClientAbort);
+      };
+    }
+  }
+
+  return controller;
 }
 
 function buildStreamErrorChunks(
@@ -396,6 +445,23 @@ export function createNoopAbortWritable(): {
 export function createDisconnectAwareStream(transformStream, streamController) {
   const reader = transformStream.readable.getReader();
   const writer = transformStream.writable.getWriter();
+  const terminalDecoder = new TextDecoder();
+  let terminalTail = "";
+  let clientTerminalSeen = false;
+
+  const noteClientChunk = (chunk: unknown) => {
+    if (clientTerminalSeen) return;
+    if (!(chunk instanceof Uint8Array)) return;
+
+    terminalTail += terminalDecoder.decode(chunk, { stream: true });
+    if (terminalTail.length > 4096) {
+      terminalTail = terminalTail.slice(-4096);
+    }
+    clientTerminalSeen = hasClientTerminalSseMarker(
+      terminalTail,
+      streamController.clientResponseFormat
+    );
+  };
 
   return new ReadableStream(
     {
@@ -413,7 +479,23 @@ export function createDisconnectAwareStream(transformStream, streamController) {
             return;
           }
           controller.enqueue(value);
+          noteClientChunk(value);
         } catch (error) {
+          if (!streamController.isConnected()) {
+            try {
+              controller.close();
+            } catch {}
+            return;
+          }
+
+          if (clientTerminalSeen) {
+            streamController.handleComplete();
+            try {
+              controller.close();
+            } catch {}
+            return;
+          }
+
           streamController.handleError(error);
 
           // T35: Encapsulate mid-stream errors as SSE events instead of abruptly aborting
@@ -433,12 +515,9 @@ export function createDisconnectAwareStream(transformStream, streamController) {
         }
       },
 
-      cancel(reason) {
+      async cancel(reason) {
         streamController.handleDisconnect(reason || "cancelled");
-        reader.cancel();
-        setTimeout(() => {
-          writer.abort();
-        }, DISCONNECT_ABORT_DELAY_MS).unref?.();
+        await Promise.allSettled([reader.cancel(reason), writer.abort(reason)]);
       },
     },
     { highWaterMark: 16384 }
@@ -568,7 +647,9 @@ export function pipeWithDisconnect(
     },
   });
 
-  const transformedBody = providerResponse.body.pipeThrough(upstreamTap).pipeThrough(transformStream);
+  const transformedBody = providerResponse.body
+    .pipeThrough(upstreamTap)
+    .pipeThrough(transformStream);
   return createDisconnectAwareStream(
     { readable: transformedBody, writable: createNoopAbortWritable() },
     wrappedController

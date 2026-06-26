@@ -1,3 +1,5 @@
+import { copyOpenAICompatibleReasoningFields } from "../utils/reasoningFields.ts";
+
 /**
  * Response Sanitizer — Normalizes LLM responses to strict OpenAI SDK format.
  *
@@ -1072,32 +1074,7 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
                 ? collapseExcessiveNewlines(deltaRecord.content)
                 : deltaRecord.content;
           }
-          if (deltaRecord.reasoning_content !== undefined) {
-            delta.reasoning_content = deltaRecord.reasoning_content;
-          }
-          if (deltaRecord.reasoning_text !== undefined) {
-            delta.reasoning_text = deltaRecord.reasoning_text;
-          } else if (typeof deltaRecord.reasoning === "string" && deltaRecord.reasoning) {
-            // Alias: some providers use 'reasoning' instead of 'reasoning_content'
-            delta.reasoning_content = deltaRecord.reasoning;
-          } else if (Array.isArray(deltaRecord.reasoning_details)) {
-            // StepFun/OpenRouter: reasoning_details[{type:"reasoning.text", text:"..."}]
-            const parts: string[] = [];
-            for (const detail of deltaRecord.reasoning_details) {
-              const d = detail && typeof detail === "object" ? (detail as JsonRecord) : null;
-              if (!d) continue;
-              const text =
-                typeof d.text === "string"
-                  ? d.text
-                  : typeof d.content === "string"
-                    ? d.content
-                    : "";
-              if (text) parts.push(text);
-            }
-            if (parts.length > 0) {
-              delta.reasoning_content = parts.join("");
-            }
-          }
+          copyOpenAICompatibleReasoningFields(deltaRecord, delta);
           if (deltaRecord.tool_calls !== undefined) {
             delta.tool_calls = Array.isArray(deltaRecord.tool_calls)
               ? deltaRecord.tool_calls.map((tc) => {
