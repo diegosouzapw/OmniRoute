@@ -1,9 +1,10 @@
-# CLAUDE.md
+# CLAUDE.md — 1ai-ecosystem Engineering Rules
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This is a Claude Code project configuration for a 1ai-ecosystem repository.
 
-## Quick Start
+**You MUST read `AGENTS.md` in this repo's root.** It contains the mandatory engineering rules, session classification, and full protocol stack.
 
+→ Read `AGENTS.md` now before proceeding with any other task.
 ```bash
 npm install                    # Install deps (auto-generates .env from .env.example)
 npm run dev                    # Dev server at http://localhost:20128
