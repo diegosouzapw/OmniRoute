@@ -60,7 +60,7 @@ const LEGACY_REMOVED_COMBO_CONFIG_KEYS = Object.freeze([
   "resetAwareWindow",
 ]);
 
-function stripLegacyComboConfigKeys(rawConfig) {
+function stripLegacyComboConfigKeys(rawConfig: unknown): unknown {
   if (!rawConfig || typeof rawConfig !== "object" || Array.isArray(rawConfig)) {
     return rawConfig;
   }
@@ -77,7 +77,7 @@ function stripLegacyComboConfigKeys(rawConfig) {
 }
 
 // GET /api/combos/[id] - Get combo by ID
-export async function GET(request, { params }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
@@ -91,13 +91,13 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(combo);
   } catch (error) {
-    console.log("Error fetching combo:", error);
+    console.error("[combos.get]", "Error fetching combo:", error);
     return comboErrorResponse("INTERNAL_001", 500, undefined, request);
   }
 }
 
 // PUT /api/combos/[id] - Update combo
-export async function PUT(request, { params }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
@@ -117,12 +117,7 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     const validation = validateBody(updateComboSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return comboErrorResponse(
-        "COMBO_002",
-        400,
-        { issues: validation.error },
-        request
-      );
+      return comboErrorResponse("COMBO_002", 400, { issues: validation.error }, request);
     }
     const currentCombo = (await getComboById(id)) as ComboRowShape | null;
     if (!currentCombo) {
@@ -142,17 +137,17 @@ export async function PUT(request, { params }) {
     const normalizedUpdate = { ...validation.data };
     if (normalizedUpdate.compressionOverride !== undefined) {
       const legacyCompressionOverride = normalizedUpdate.compressionOverride;
-    const nextConfig: Record<string, unknown> =
-      currentCombo.config &&
-      typeof currentCombo.config === "object" &&
-      !Array.isArray(currentCombo.config)
-        ? { ...(currentCombo.config as Record<string, unknown>) }
-        : {};
-    if (legacyCompressionOverride) {
-      nextConfig.compressionMode = legacyCompressionOverride;
-    } else {
-      delete nextConfig.compressionMode;
-    }
+      const nextConfig: Record<string, unknown> =
+        currentCombo.config &&
+        typeof currentCombo.config === "object" &&
+        !Array.isArray(currentCombo.config)
+          ? { ...(currentCombo.config as Record<string, unknown>) }
+          : {};
+      if (legacyCompressionOverride) {
+        nextConfig.compressionMode = legacyCompressionOverride;
+      } else {
+        delete nextConfig.compressionMode;
+      }
       normalizedUpdate.config = nextConfig;
       delete normalizedUpdate.compressionOverride;
     }
@@ -226,12 +221,7 @@ export async function PUT(request, { params }) {
               : dagError instanceof Error && /depth/i.test(dagError.message)
                 ? "max-depth-exceeded"
                 : "invalid-graph";
-          return comboErrorResponse(
-            "COMBO_005",
-            400,
-            { comboName, reason },
-            request
-          );
+          return comboErrorResponse("COMBO_005", 400, { comboName, reason }, request);
         }
       }
     }
@@ -243,13 +233,13 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json(combo);
   } catch (error) {
-    console.log("Error updating combo:", error);
+    console.error("[combos.update]", "Error updating combo:", error);
     return comboErrorResponse("INTERNAL_001", 500, undefined, request);
   }
 }
 
 // DELETE /api/combos/[id] - Delete combo
-export async function DELETE(request, { params }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
@@ -278,7 +268,7 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.log("Error deleting combo:", error);
+    console.error("[combos.delete]", "Error deleting combo:", error);
     return comboErrorResponse("INTERNAL_001", 500, undefined, request);
   }
 }
@@ -294,6 +284,6 @@ async function syncToCloudIfEnabled() {
     const machineId = await getConsistentMachineId();
     await syncToCloud(machineId);
   } catch (error) {
-    console.log("Error syncing to cloud:", error);
+    console.error("[combos.cloudSync]", "Error syncing to cloud:", error);
   }
 }

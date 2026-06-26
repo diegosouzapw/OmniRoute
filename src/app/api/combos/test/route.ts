@@ -20,7 +20,17 @@ async function getInternalApiKey(): Promise<string | null> {
   }
 }
 
-function buildComboTestResult(target, partial = {}) {
+function buildComboTestResult(
+  target: {
+    modelStr?: string;
+    provider?: string;
+    stepId?: string;
+    executionKey?: string;
+    connectionId?: string;
+    label?: string;
+  },
+  partial: Record<string, unknown> = {}
+) {
   return {
     model: target.modelStr,
     provider: target.provider,
@@ -131,7 +141,7 @@ async function testComboTarget(target, baseInternalUrl, internalApiKey: string |
  * Sends a real chat completion request through each model in the combo
  * and only reports success when the model returns usable text content.
  */
-export async function POST(request) {
+export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
@@ -196,7 +206,7 @@ export async function POST(request) {
       testedAt: new Date().toISOString(),
     });
   } catch (error) {
-    console.log("Error testing combo:", error);
+    console.error("[combos.test]", "Error testing combo:", error);
     return NextResponse.json({ error: "Failed to test combo" }, { status: 500 });
   }
 }

@@ -19,13 +19,13 @@ export async function GET(request: Request) {
     const combos = await getCombos();
     return NextResponse.json({ combos });
   } catch (error) {
-    console.log("Error fetching combos:", error);
+    console.error("[combos.list]", "Error fetching combos:", error);
     return NextResponse.json({ error: "Failed to fetch combos" }, { status: 500 });
   }
 }
 
 // POST /api/combos - Create new combo
-export async function POST(request) {
+export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
@@ -98,7 +98,7 @@ export async function POST(request) {
 
     return NextResponse.json(combo, { status: 201 });
   } catch (error) {
-    console.log("Error creating combo:", error);
+    console.error("[combos.create]", "Error creating combo:", error);
     return NextResponse.json({ error: "Failed to create combo" }, { status: 500 });
   }
 }
@@ -114,6 +114,6 @@ async function syncToCloudIfEnabled() {
     const machineId = await getConsistentMachineId();
     await syncToCloud(machineId);
   } catch (error) {
-    console.log("Error syncing to cloud:", error);
+    console.error("[combos.cloudSync]", "Error syncing to cloud:", error);
   }
 }
