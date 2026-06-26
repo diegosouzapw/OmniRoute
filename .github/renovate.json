@@ -1,0 +1,125 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "_comment_PR014": "Renovate config — fallback for Dependabot. See docs/dependencies/00-strategy.md §4 for the rationale (Dependabot is the default; Renovate is kept ready in case Dependabot is rejected or rate-limited). Schedule is weekends so it complements (never overlaps) Dependabot's Monday slot.",
+  "extends": [
+    "config:recommended",
+    ":automergeMinor",
+    ":automergePatch",
+    ":disableMajorUpdates"
+  ],
+  "timezone": "UTC",
+  "schedule": [
+    "every weekend"
+  ],
+  "prConcurrentLimit": 3,
+  "branchConcurrentLimit": 5,
+  "commitMessagePrefix": "deps(renovate)",
+  "commitMessageAction": "Bump",
+  "commitMessageTopic": "{{depName}}",
+  "prTitle": "{{commitMessagePrefix}} {{commitMessageAction}} {{commitMessageTopic}} ({{newVersion}})",
+  "labels": [
+    "dependencies",
+    "renovate"
+  ],
+  "assignees": [
+    "kooshapari"
+  ],
+  "reviewers": [
+    "kooshapari"
+  ],
+  "packageRules": [
+    {
+      "_comment": "Match npm production dependencies.",
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["dependencies", "optionalDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "_comment": "Dev-deps: minor + patch automerge; major requires manual review.",
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "_comment": "@types/node is owned by Renovate (Dependabot churns on it daily). Auto-merge patch only.",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@types/node"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "_comment": "Hard freezes — never auto-bump. Same list as Dependabot.",
+      "matchPackageNames": [
+        "@huggingface/transformers",
+        "jscpd"
+      ],
+      "enabled": false
+    },
+    {
+      "_comment": "Major freezes for UI/runtime — handled by scripts/deps/major-bump.sh.",
+      "matchPackageNames": [
+        "react",
+        "react-dom",
+        "next",
+        "eslint",
+        "eslint-config-next"
+      ],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "_comment": "Lockfile maintenance weekly.",
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["lockFileMaintenance"],
+      "enabled": true,
+      "schedule": ["before 6am on monday"]
+    },
+    {
+      "_comment": "Group GitHub Actions.",
+      "groupName": "GitHub Actions",
+      "matchManagers": ["github-actions"]
+    },
+    {
+      "_comment": "Docker base images group.",
+      "groupName": "Docker images",
+      "matchManagers": ["docker"]
+    },
+    {
+      "_comment": "Security advisories — bypass schedule + concurrent limit.",
+      "matchCategories": ["security"],
+      "schedule": ["at any time"],
+      "prPriority": 10
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"],
+    "assignees": ["kooshapari"],
+    "prPriority": 10,
+    "schedule": ["at any time"]
+  },
+  "osvVulnerabilityAlerts": true,
+  "dependencyDashboard": true,
+  "dependencyDashboardLabels": [
+    "dependencies",
+    "renovate"
+  ],
+  "rebaseWhen": "behind-base-branch",
+  "stabilityDays": 3,
+  "prCreation": "immediate",
+  "suppressNotifications": [
+    "lockFileErrors"
+  ],
+  "gitIgnoredAuthors": [
+    "dependabot[bot]",
+    "renovate[bot]"
+  ]
+}
