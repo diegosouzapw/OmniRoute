@@ -1156,6 +1156,29 @@
       "stream": "devin://acp/stdio"
     }
   },
+  "dgrid": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.dgrid.ai/v1/chat/completions",
+      "stream": "https://api.dgrid.ai/v1/chat/completions"
+    }
+  },
   "dify": {
     "format": "openai",
     "headers": {
@@ -3124,6 +3147,29 @@
     "url": {
       "nonStream": "https://www.phind.com/api/chat",
       "stream": "https://www.phind.com/api/chat"
+    }
+  },
+  "pioneer": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Content-Type": "application/json",
+        "x-api-key": "<CRED>"
+      },
+      "nonStream": {
+        "Content-Type": "application/json",
+        "x-api-key": "<CRED>"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Content-Type": "application/json",
+        "x-api-key": "<CRED>"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.pioneer.ai/v1/chat/completions",
+      "stream": "https://api.pioneer.ai/v1/chat/completions"
     }
   },
   "pollinations": {

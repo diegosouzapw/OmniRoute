@@ -1,5 +1,6 @@
 {
   "_comment": "Catraca de tamanho (check-file-size.mjs). frozen so pode encolher; arquivos novos <= cap. --update ratcheta.",
+  "_rebaseline_2026_06_26_relgreen_db_test": "Release-green follow-up: tests/unit/db-core-init.test.ts 867->877 (+10 = the invalid-DATA_DIR test now captures the rejection and asserts both Error type AND message — restores net-neutral assert count after #5117's consolidation, satisfying check:test-masking — instead of a single assert.rejects).",
   "_rebaseline_2026_06_26_5074_fusion_editor": "PR #5074 own growth: src/app/(dashboard)/dashboard/combos/page.tsx 4485->4594 (+109 = the Fusion judgeModel + fusionTuning editor block — text/number inputs wired through updateFusionTuning, schema-validated) and tests/unit/combo-config.test.ts 800->881 (testFrozen add: 5 new Fusion-config schema tests). Cohesive UI block at the strategy-conditional editor; combos/page.tsx structural shrink tracked in #3501. Covered by combo-config.test.ts.",
   "_rebaseline_2026_06_26_5101_responses_textformat": "PR #5101 own growth: open-sse/executors/default.ts 859->876 (+17 = defaultResponsesTextFormat — fills the Responses-API default text.format for openai-compatible-*responses* providers so LM-Studio-style upstreams stop 400ing; guarded, never overwrites an existing format). Irreducible executor chokepoint next to applyJsonSchemaFallback; covered by tests/unit/responses-default-text-format.test.ts.",
   "_rebaseline_2026_06_26_5117_basereds": "Base-red repair #5117 own growth + sibling drift: open-sse/handlers/responseSanitizer.ts 1122->1139 (+17 = synthesize an output[] message item from an output_text-only Responses body so the answer is not dropped/false-502'd; #4942 regression, covered by tests/unit/response-sanitizer.test.ts). src/app/(dashboard)/dashboard/providers/[id]/components/modals/AddApiKeyModal.tsx 866->868 (+2 sibling drift from a separately-merged PR, already on the release tip; rebaselined here to green the file-size gate).",
@@ -253,7 +254,7 @@
     "tests/unit/chatgpt-web.test.ts": 2855,
     "tests/unit/combo-routing-engine.test.ts": 3213,
     "tests/unit/combo-strategy-fallbacks.test.ts": 880,
-    "tests/unit/db-core-init.test.ts": 867,
+    "tests/unit/db-core-init.test.ts": 877,
     "tests/unit/db-migration-runner.test.ts": 1491,
     "tests/unit/db-settings-crud.test.ts": 941,
     "tests/unit/deepseek-web.test.ts": 1081,

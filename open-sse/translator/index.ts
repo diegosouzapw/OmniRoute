@@ -264,6 +264,23 @@ export function translateRequest(
     }
   }
 
+  // Resolve reasoning-replay status up-front: it gates both the reasoning_content
+  // strip in filterToOpenAIFormat below (#4849 must NOT strip client reasoning for
+  // replay providers) and the cache re-injection further down.
+  const normalizedProvider = String(provider ?? "");
+  const normalizedModel = String(model ?? "");
+  const resolvedCapabilities = getResolvedModelCapabilities({
+    provider: normalizedProvider,
+    model: normalizedModel,
+  });
+  const isReasoner = requiresReasoningReplay({
+    provider: normalizedProvider,
+    model: normalizedModel,
+    thinkingEnabled: hasThinkingConfig(result),
+    supportsReasoning: supportsReasoning({ provider: normalizedProvider, model: normalizedModel }),
+    interleavedField: resolvedCapabilities?.interleavedField ?? null,
+  });
+
   // Always normalize to clean OpenAI format when target is OpenAI
   // This handles hybrid requests (e.g., OpenAI messages + Claude tools)
   if (targetFormat === FORMATS.OPENAI) {
@@ -274,6 +291,8 @@ export function translateRequest(
       preserveCacheControl:
         options?.preserveCacheControl === true &&
         providerHonorsOpenAIFormatCacheControl(provider),
+      // #4849 regression guard: keep client reasoning_content for replay providers.
+      preserveReasoningContent: isReasoner,
     });
   }
 
@@ -333,19 +352,9 @@ export function translateRequest(
   // clients omit it from the conversation history. Without this, DeepSeek V4
   // returns 400: "The reasoning_content in the thinking mode must be passed
   // back to the API."
-  const normalizedProvider = String(provider ?? "");
-  const normalizedModel = String(model ?? "");
-  const resolvedCapabilities = getResolvedModelCapabilities({
-    provider: normalizedProvider,
-    model: normalizedModel,
-  });
-  const isReasoner = requiresReasoningReplay({
-    provider: normalizedProvider,
-    model: normalizedModel,
-    thinkingEnabled: hasThinkingConfig(result),
-    supportsReasoning: supportsReasoning({ provider: normalizedProvider, model: normalizedModel }),
-    interleavedField: resolvedCapabilities?.interleavedField ?? null,
-  });
+  // isReasoner / normalizedProvider / normalizedModel / resolvedCapabilities were
+  // resolved up-front (before the OpenAI-format filter) so the #4849 reasoning strip
+  // could honor reasoning-replay providers.
   if (isReasoner && result.messages && Array.isArray(result.messages)) {
     const canReplayReasoningOnly = isReasoningOnlyReplayTarget(normalizedProvider, normalizedModel);
 

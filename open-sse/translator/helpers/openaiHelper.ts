@@ -37,6 +37,11 @@ export function filterToOpenAIFormat(body, opts = {}) {
   // requested upstream, keep the `cache_control` field on each content block
   // instead of destructuring it away. `signature` is always stripped.
   const preserveCacheControl = opts?.preserveCacheControl === true;
+  // #4849 strips reasoning_content from tool-call assistant turns to stop O(n^2)
+  // context growth — but reasoning-replay providers (DeepSeek V4, Kimi K2, etc.)
+  // REQUIRE the client's reasoning_content to be passed back, so keep it for them
+  // (the caller sets this when the routed model needs reasoning replay).
+  const preserveReasoningContent = opts?.preserveReasoningContent === true;
   if (!body.messages || !Array.isArray(body.messages)) return body;
 
   body.messages = body.messages.map((msg) => {
@@ -50,8 +55,10 @@ export function filterToOpenAIFormat(body, opts = {}) {
 
     // Keep assistant messages with tool_calls, but strip reasoning_content —
     // reasoning blobs inflate context on every subsequent agentic turn (O(n^2)).
+    // Exception: reasoning-replay providers must keep client-provided
+    // reasoning_content (they 400 without it), so preserve it when requested.
     if (msg.role === "assistant" && msg.tool_calls) {
-      if (msg.reasoning_content !== undefined) {
+      if (!preserveReasoningContent && msg.reasoning_content !== undefined) {
         const { reasoning_content, ...cleanMsg } = msg;
         return cleanMsg;
       }
