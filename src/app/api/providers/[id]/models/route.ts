@@ -2387,11 +2387,28 @@ export async function GET(
       return buildApiDiscoveryResponse(models);
     }
 
-    const config =
+    let config =
       provider in PROVIDER_MODELS_CONFIG
         ? PROVIDER_MODELS_CONFIG[provider as keyof typeof PROVIDER_MODELS_CONFIG]
         : undefined;
 
+    // Derive config from registry modelsUrl when not in PROVIDER_MODELS_CONFIG.
+    // This allows providers to enable live model discovery by adding modelsUrl to their
+    // RegistryEntry, without needing a hardcoded entry in PROVIDER_MODELS_CONFIG.
+    if (!config) {
+      const registryEntry = getRegistryEntry(provider);
+      if (typeof registryEntry?.modelsUrl === "string" && registryEntry.modelsUrl.length > 0) {
+        config = {
+          url: registryEntry.modelsUrl,
+          method: "GET",
+          authHeader: "Authorization",
+          authPrefix: "Bearer ",
+          headers: { "Content-Type": "application/json" },
+          parseResponse: (data: Record<string, unknown>) =>
+            (data.data || data.models || []) as ProviderModelObject[],
+        };
+      }
+    }
     // Static model providers (no remote /models API)
     // Qwen OAuth Fallback: The Dashscope /models API rejects OAuth tokens with 401
     if (provider === "qwen" && connection.authType === "oauth") {
