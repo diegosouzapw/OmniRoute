@@ -20,6 +20,7 @@ export const API_ENDPOINTS = {
 export const PROVIDER_ENDPOINTS = {
   agentrouter: "https://agentrouter.org/v1/chat/completions",
   openrouter: "https://openrouter.ai/api/v1/chat/completions",
+  dgrid: "https://api.dgrid.ai/v1/chat/completions",
   glm: "https://api.z.ai/api/anthropic/v1/messages",
   glmt: "https://api.z.ai/api/anthropic/v1/messages",
   "bailian-coding-plan": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1/messages",

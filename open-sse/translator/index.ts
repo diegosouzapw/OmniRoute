@@ -103,14 +103,24 @@ function hasNonEmptyReasoningContent(message: Record<string, unknown>): boolean 
   return typeof message.reasoning_content === "string" && message.reasoning_content.length > 0;
 }
 
-function isDeepSeekReplayTarget(provider: unknown, model: unknown): boolean {
+function isReasoningOnlyReplayTarget(provider: unknown, model: unknown): boolean {
   const normalizedProvider = String(provider ?? "")
     .trim()
     .toLowerCase();
   const normalizedModel = String(model ?? "")
     .trim()
     .toLowerCase();
-  return normalizedProvider === "deepseek" || /(^|\/)deepseek/i.test(normalizedModel);
+  // DeepSeek V4 and Xiaomi MiMo both enforce "pass reasoning_content back on
+  // subsequent turns" even on PLAIN (non-tool-call) assistant turns. Without
+  // replaying on those turns the upstream 400s with "Param Incorrect: The
+  // reasoning_content in the thinking mode must be passed back to the API."
+  // (deepseek #1682, xiaomi-mimo 9router#1321/#1337).
+  return (
+    normalizedProvider === "deepseek" ||
+    /(^|\/)deepseek/i.test(normalizedModel) ||
+    normalizedProvider === "xiaomi-mimo" ||
+    /(^|\/)mimo/i.test(normalizedModel)
+  );
 }
 
 /** @param options.normalizeToolCallId - When true, use 9-char tool call ids (e.g. Mistral); when false, leave ids as-is */
@@ -319,7 +329,7 @@ export function translateRequest(
     interleavedField: resolvedCapabilities?.interleavedField ?? null,
   });
   if (isReasoner && result.messages && Array.isArray(result.messages)) {
-    const canReplayReasoningOnly = isDeepSeekReplayTarget(normalizedProvider, normalizedModel);
+    const canReplayReasoningOnly = isReasoningOnlyReplayTarget(normalizedProvider, normalizedModel);
 
     for (const [messageIndex, msg] of result.messages.entries()) {
       if (msg.role !== "assistant") continue;
@@ -555,6 +565,7 @@ export function initState(sourceFormat) {
       funcCallIds: {},
       funcArgsDone: {},
       funcItemDone: {},
+      completedOutputItems: [],
       completedSent: false,
     };
   }

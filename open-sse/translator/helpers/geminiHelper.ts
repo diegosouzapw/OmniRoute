@@ -1,5 +1,7 @@
 // Gemini helper functions for translator
 
+import { safeParseJSON } from "./jsonUtil.ts";
+
 type JsonRecord = Record<string, unknown>;
 
 // Unsupported JSON Schema constraints that should be removed for Antigravity.
@@ -10,7 +12,10 @@ export const GEMINI_UNSUPPORTED_SCHEMA_KEYS = new Set([
   "maxLength",
   "exclusiveMinimum",
   "exclusiveMaximum",
-  "pattern",
+  // NOTE: `pattern` is intentionally NOT in this set. Antigravity (Gemini-derived
+  // surface) accepts `pattern` on string constraints, and glob/grep/file-search
+  // tools depend on it to express their argument regex. Removing it produced
+  // upstream 400s and wrong-tool semantics (decolua/9router#1368).
   "minItems",
   "maxItems",
   "format",
@@ -239,14 +244,9 @@ export function extractTextContent(content: unknown): string {
   return "";
 }
 
-// Try parse JSON safely
+// Try parse JSON safely (null fallback on parse error; re-export keeps legacy API).
 export function tryParseJSON(str: unknown): unknown {
-  if (typeof str !== "string") return str;
-  try {
-    return JSON.parse(str);
-  } catch {
-    return null;
-  }
+  return safeParseJSON(str, null);
 }
 
 // Generate request ID

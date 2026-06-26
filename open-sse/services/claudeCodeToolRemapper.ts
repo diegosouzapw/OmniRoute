@@ -194,7 +194,35 @@ function toPascalCaseToolName(name: string): string {
 export function needsThirdPartyCloak(name: string): boolean {
   if (!name) return false;
   if (CLAUDE_BUILTIN_TOOL_NAMES.has(name)) return false;
+  // `mcp__<server>__<tool>` names are genuine Claude Code MCP tool names that
+  // Anthropic accepts natively. Cloaking them to PascalCase is unnecessary and,
+  // via round-trip asymmetry (a history tool_use keeping the original name while
+  // tools[] is cloaked), produces "Tool reference 'mcp__…' not found in available
+  // tools" 400s on the native claude OAuth path. Leave the MCP namespace alone.
+  if (name.startsWith("mcp__")) return false;
   return /[a-z]/.test(name.charAt(0)) || name.includes("_") || name.includes("-");
+}
+
+/**
+ * Anthropic server-side tool types whose `name` is a reserved literal that the
+ * Messages API validates exactly (e.g. type `web_search_20250305` REQUIRES
+ * `name: "web_search"`). These look like third-party harness tools to the name
+ * cloak (`web_search` has a `_`, fails the PascalCase test) so without this
+ * guard the cloak rewrites the name to `WebSearch` and Anthropic 400s with
+ * `tools.N.web_search_20250305.name: Input should be 'web_search'`.
+ *
+ * Detection mirrors the codebase's existing convention: a versioned built-in
+ * tool type carries an 8-digit date suffix (`web_search_20250305`,
+ * `code_execution_20250522`, `bash_20250124`, …) — see
+ * `stripVersionedToolModelPrefix` in executors/base.ts. The non-versioned
+ * aliases (`web_search`, `web_search_preview`) are covered explicitly.
+ */
+const VERSIONED_SERVER_TOOL_TYPE = /^[a-z][a-z0-9_]*_\d{8}$/;
+const NON_VERSIONED_SERVER_TOOL_TYPES = new Set(["web_search", "web_search_preview"]);
+
+export function isAnthropicServerToolType(type: unknown): boolean {
+  if (typeof type !== "string" || type.length === 0) return false;
+  return VERSIONED_SERVER_TOOL_TYPE.test(type) || NON_VERSIONED_SERVER_TOOL_TYPES.has(type);
 }
 
 export interface CloakOptions {
@@ -265,6 +293,11 @@ export function cloakThirdPartyToolNames(
   // not corrupt an input body that may be logged or replayed on fallback).
   if (Array.isArray(tools)) {
     body.tools = tools.map((tool) => {
+      // Never rewrite the reserved name of an Anthropic server-side tool — its
+      // `type` (web_search_20250305, …) binds the API to an exact `name`.
+      if (tool && isAnthropicServerToolType(tool.type)) {
+        return tool;
+      }
       if (tool && typeof tool.name === "string" && shouldCloak(tool.name)) {
         return { ...tool, name: aliasFor(tool.name) };
       }

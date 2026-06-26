@@ -556,10 +556,12 @@ test("resilience API only exposes configuration, not runtime breaker state", asy
 
   assert.equal(response.status, 200);
   assert.deepEqual(Object.keys(json).sort(), [
+    "comboCooldownWait",
     "connectionCooldown",
     "legacy",
     "providerBreaker",
     "providerCooldown",
+    "quotaShareConcurrencyLimit",
     "requestQueue",
     "waitForCooldown",
   ]);

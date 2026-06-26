@@ -71,6 +71,33 @@ test("GithubExecutor.buildUrl keeps GitHub Claude Opus 4.6 on /chat/completions"
   assert.equal(url, "https://api.githubcopilot.com/chat/completions");
 });
 
+test("GithubExecutor.buildUrl routes unlisted Codex models to /responses (9router#102)", () => {
+  // Copilot Codex models advertise supported_endpoints: ["/responses"]. When such
+  // a model isn't in the curated gh registry, getModelTargetFormat returns null and
+  // the request fell through to /chat/completions -> upstream 400 "model <id> is not
+  // accessible via the /chat/completions endpoint". Any *-codex id must route to
+  // /responses regardless of whether it's explicitly registered.
+  const executor = new GithubExecutor();
+  for (const model of [
+    "gpt-5-codex",
+    "gpt-5.1-codex",
+    "gpt-5.1-codex-mini",
+    "gpt-5.1-codex-max",
+    "gpt-5.2-codex",
+  ]) {
+    assert.equal(
+      executor.buildUrl(model, true),
+      "https://api.githubcopilot.com/responses",
+      `${model} must route to /responses`
+    );
+  }
+  // Non-codex unlisted models keep the chat/completions default.
+  assert.equal(
+    executor.buildUrl("some-random-chat-model", true),
+    "https://api.githubcopilot.com/chat/completions"
+  );
+});
+
 test("GithubExecutor.transformRequest injects JSON response instructions for Claude and strips reasoning fields", () => {
   const executor = new GithubExecutor();
   const body = {

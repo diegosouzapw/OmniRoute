@@ -100,8 +100,32 @@ export function initSystrayUnix({ port, onQuit, onOpenDashboard, onShowLogs }) {
   return tray;
 }
 
+/**
+ * Resolve the Go systray2 child subprocess PID from a tray instance.
+ * systray2 exposes the spawned binary either as the `_process` field or via a
+ * `process()` accessor depending on version. Returns the numeric PID or null.
+ */
+export function getSystrayChildPid(tray) {
+  if (!tray) return null;
+  try {
+    const proc = tray._process || (typeof tray.process === "function" ? tray.process() : null);
+    if (proc && typeof proc.pid === "number") return proc.pid;
+  } catch {}
+  return null;
+}
+
 export function killSystrayUnix(tray) {
   try {
+    // systray2.kill(false) closes the IPC channel but leaves the Go tray binary
+    // subprocess running, which keeps an orphan NSStatusItem on macOS and blocks
+    // a freshly spawned tray (e.g. on respawn / hide-to-tray) from registering.
+    // SIGKILL the child PID directly first, then close IPC.
+    const pid = getSystrayChildPid(tray);
+    if (pid) {
+      try {
+        process.kill(pid, "SIGKILL");
+      } catch {}
+    }
     tray.kill(false);
   } catch {}
 }

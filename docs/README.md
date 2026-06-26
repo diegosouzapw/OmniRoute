@@ -78,7 +78,7 @@ Pluggable subsystems exposed to clients, agents, and operators.
 
 Combo routing, scoring, and replay.
 
-- [AUTO-COMBO.md](routing/AUTO-COMBO.md) — Auto-Combo (9-factor scoring, 15 strategies).
+- [AUTO-COMBO.md](routing/AUTO-COMBO.md) — Auto-Combo (9-factor scoring, 17 strategies).
 - [REASONING_REPLAY.md](routing/REASONING_REPLAY.md) — reasoning replay flow.
 
 ## security/

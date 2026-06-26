@@ -1,4 +1,4 @@
-import { KIRO_CONFIG } from "../constants/oauth";
+import { KIRO_CONFIG, assertValidAwsRegion } from "../constants/oauth";
 
 /**
  * Kiro OAuth Service
@@ -17,6 +17,7 @@ export class KiroService {
    * Returns clientId and clientSecret for device code flow
    */
   async registerClient(region: string = "us-east-1") {
+    assertValidAwsRegion(region);
     const endpoint = `https://oidc.${region}.amazonaws.com/client/register`;
 
     const response = await fetch(endpoint, {
@@ -55,6 +56,7 @@ export class KiroService {
     startUrl: string,
     region: string = "us-east-1"
   ) {
+    assertValidAwsRegion(region);
     const endpoint = `https://oidc.${region}.amazonaws.com/device_authorization`;
 
     const response = await fetch(endpoint, {
@@ -94,6 +96,7 @@ export class KiroService {
     deviceCode: string,
     region: string = "us-east-1"
   ) {
+    assertValidAwsRegion(region);
     const endpoint = `https://oidc.${region}.amazonaws.com/token`;
 
     const response = await fetch(endpoint, {
@@ -189,6 +192,7 @@ export class KiroService {
     // but a Kiro-social refresh token the OIDC client can't refresh — use the social path (#2467).
     if (clientId && clientSecret && authMethod !== "imported") {
       const resolvedRegion = region || "us-east-1";
+      assertValidAwsRegion(resolvedRegion);
       const endpoint = `https://oidc.${resolvedRegion}.amazonaws.com/token`;
 
       const response = await fetch(endpoint, {
@@ -288,6 +292,7 @@ export class KiroService {
    * If registerClient() also fails, the import falls back to the shared social-auth refresh path.
    */
   async validateImportToken(refreshToken: string, region: string = "us-east-1") {
+    assertValidAwsRegion(region);
     // Validate token format
     if (!refreshToken.startsWith("aorAAAAAG")) {
       throw new Error("Invalid token format. Token should start with aorAAAAAG...");

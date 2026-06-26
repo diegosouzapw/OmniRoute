@@ -1,5 +1,12 @@
 // Re-export from open-sse with localDb integration
-import { getModelAliases, getComboByName, getProviderNodes, getCustomModels } from "@/lib/localDb";
+import {
+  getModelAliases,
+  getComboByName,
+  getComboById,
+  getComboByNameInsensitive,
+  getProviderNodes,
+  getCustomModels,
+} from "@/lib/localDb";
 import { getCachedSettings } from "@/lib/localDb";
 import { getComboStepTarget } from "@/lib/combos/steps";
 import {
@@ -7,8 +14,29 @@ import {
   resolveModelAliasFromMap,
   getModelInfoCore,
 } from "@omniroute/open-sse/services/model.ts";
+import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 
 export { parseModel };
+
+/**
+ * Reserved provider prefixes — built-in provider ids + aliases. User-defined
+ * compatible-node prefixes must not be allowed to shadow these, otherwise a
+ * node with prefix="cf" would hijack cloudflare-ai requests (and similar for
+ * every built-in provider). Ported from upstream 9router 047fdc89.
+ *
+ * Built lazily so the registry is only walked once per process.
+ */
+let _reservedProviderPrefixes: Set<string> | null = null;
+function getReservedProviderPrefixes(): Set<string> {
+  if (_reservedProviderPrefixes) return _reservedProviderPrefixes;
+  const reserved = new Set<string>();
+  for (const entry of Object.values(REGISTRY)) {
+    if (entry?.id) reserved.add(entry.id);
+    if (entry?.alias) reserved.add(entry.alias);
+  }
+  _reservedProviderPrefixes = reserved;
+  return reserved;
+}
 
 /**
  * Build a combined model alias map that merges both alias stores:
@@ -98,45 +126,58 @@ export async function getModelInfo(modelStr) {
     // Ensure prefixToCheck is always a concise identifier, not a full model string
     const prefixToCheck = parsed.providerAlias || parsed.provider;
 
-    // Check OpenAI Compatible nodes
-    // Match by node.prefix (user-defined alias) OR node.id (internal UUID id stored by
-    // combo steps), so that combo targets using the internal node id still resolve
-    // correctly (#2778).
-    const openaiNodes = await getProviderNodes({ type: "openai-compatible" });
-    const matchedOpenAI = openaiNodes.find(
-      (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
-    );
-    if (matchedOpenAI) {
-      const { apiFormat, targetFormat } = await lookupCustomModelMeta(
-        matchedOpenAI.id as string,
-        parsed.model as string
-      );
-      return {
-        provider: matchedOpenAI.id,
-        model: parsed.model,
-        extendedContext,
-        ...(apiFormat && { apiFormat }),
-        ...(targetFormat && { targetFormat }),
-      };
-    }
+    // Compatible-node prefixes are user-defined. They must not be allowed to
+    // shadow built-in provider ids/aliases (e.g. `cf` → cloudflare-ai). When
+    // prefixToCheck matches a built-in registry id/alias, skip the compatible-
+    // node prefix lookup so the request still routes to the built-in provider.
+    // Internal UUID-prefixed node ids (e.g. "openai-compatible-responses-...")
+    // are never in the reserved set, so the #2778 combo path still works.
+    // Ported from upstream 9router 047fdc89.
+    const reserved = getReservedProviderPrefixes();
+    const isReservedPrefix =
+      typeof prefixToCheck === "string" && reserved.has(prefixToCheck);
 
-    // Check Anthropic Compatible nodes
-    const anthropicNodes = await getProviderNodes({ type: "anthropic-compatible" });
-    const matchedAnthropic = anthropicNodes.find(
-      (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
-    );
-    if (matchedAnthropic) {
-      const { apiFormat, targetFormat } = await lookupCustomModelMeta(
-        matchedAnthropic.id as string,
-        parsed.model as string
+    if (!isReservedPrefix) {
+      // Check OpenAI Compatible nodes
+      // Match by node.prefix (user-defined alias) OR node.id (internal UUID id stored by
+      // combo steps), so that combo targets using the internal node id still resolve
+      // correctly (#2778).
+      const openaiNodes = await getProviderNodes({ type: "openai-compatible" });
+      const matchedOpenAI = openaiNodes.find(
+        (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
       );
-      return {
-        provider: matchedAnthropic.id,
-        model: parsed.model,
-        extendedContext,
-        ...(apiFormat && { apiFormat }),
-        ...(targetFormat && { targetFormat }),
-      };
+      if (matchedOpenAI) {
+        const { apiFormat, targetFormat } = await lookupCustomModelMeta(
+          matchedOpenAI.id as string,
+          parsed.model as string
+        );
+        return {
+          provider: matchedOpenAI.id,
+          model: parsed.model,
+          extendedContext,
+          ...(apiFormat && { apiFormat }),
+          ...(targetFormat && { targetFormat }),
+        };
+      }
+
+      // Check Anthropic Compatible nodes
+      const anthropicNodes = await getProviderNodes({ type: "anthropic-compatible" });
+      const matchedAnthropic = anthropicNodes.find(
+        (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
+      );
+      if (matchedAnthropic) {
+        const { apiFormat, targetFormat } = await lookupCustomModelMeta(
+          matchedAnthropic.id as string,
+          parsed.model as string
+        );
+        return {
+          provider: matchedAnthropic.id,
+          model: parsed.model,
+          extendedContext,
+          ...(apiFormat && { apiFormat }),
+          ...(targetFormat && { targetFormat }),
+        };
+      }
     }
 
     // stripModelPrefix: if enabled, strip provider prefix and re-resolve
@@ -177,6 +218,22 @@ export async function getCombo(modelStr) {
     if (combo && combo.models && combo.models.length > 0) {
       return combo;
     }
+  }
+
+  // #4446: the opencode-plugin publishes combos as ModelV2 `id: combo.id`, and
+  // the OpenCode `--model` dispatch path forwards a lowercased bare slug. The
+  // exact, case-sensitive name match above misses both a combo addressed by its
+  // stored id (UUID/slug) and a lowercased display name (e.g. "master-light" for
+  // a combo named "MASTER-LIGHT"). These two fallbacks only run after the exact
+  // match fails, so they never re-route a combo that already resolves today.
+  combo = await getComboById(modelStr);
+  if (combo && combo.models && combo.models.length > 0) {
+    return combo;
+  }
+
+  combo = await getComboByNameInsensitive(modelStr);
+  if (combo && combo.models && combo.models.length > 0) {
+    return combo;
   }
 
   return null;

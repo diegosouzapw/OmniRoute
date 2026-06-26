@@ -27,6 +27,7 @@ import { kilocode } from "./kilocode";
 import { cline } from "./cline";
 import { windsurf } from "./windsurf";
 import { grokCli } from "./grok-cli";
+import { codebuddyCn } from "./codebuddy-cn";
 
 export const PROVIDERS = {
   claude,
@@ -49,6 +50,7 @@ export const PROVIDERS = {
   // devin-cli shares the same token format as windsurf (WINDSURF_API_KEY / devin auth login)
   "devin-cli": windsurf,
   "grok-cli": grokCli,
+  "codebuddy-cn": codebuddyCn,
 };
 
 export default PROVIDERS;

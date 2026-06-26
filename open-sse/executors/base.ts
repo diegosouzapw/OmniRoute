@@ -192,6 +192,50 @@ export function applyConfiguredUserAgent(
   }
 }
 
+/**
+ * Returns true when the outbound request targets an OpenAI-compatible endpoint
+ * (a `openai-compatible-*` provider, or a Chat Completions / Responses URL).
+ * Used to scope the X-Stainless strip narrowly so genuine SDK-spoofing paths
+ * (e.g. Claude Code compat, which legitimately ADDS X-Stainless-*) are untouched.
+ */
+export function isOpenAICompatibleEndpoint(provider: string, url: string): boolean {
+  if (provider?.startsWith?.("openai-compatible-")) return true;
+  return url.includes("/v1/chat/completions") || url.includes("/v1/responses");
+}
+
+/**
+ * Strip OpenAI SDK (`X-Stainless-*`) metadata headers and normalize an SDK-derived
+ * User-Agent for OpenAI-compatible passthrough requests. Some upstream gateways
+ * 403 on these SDK-identifying headers. Only applied to OpenAI-compatible endpoints —
+ * other providers (Claude/Claude Code compat) may legitimately send X-Stainless-*.
+ *
+ * Mutates `headers` in place and returns the list of stripped header keys (for logging).
+ */
+export function stripStainlessHeadersForOpenAICompat(
+  headers: Record<string, string>,
+  provider: string,
+  url: string
+): string[] {
+  if (!isOpenAICompatibleEndpoint(provider, url)) return [];
+
+  const strippedKeys: string[] = [];
+  for (const key of Object.keys(headers)) {
+    if (key.toLowerCase().startsWith("x-stainless-")) {
+      delete headers[key];
+      strippedKeys.push(key);
+    }
+  }
+
+  // Normalize User-Agent: SDK-based clients send verbose product strings that some
+  // upstreams block. Replace with a clean browser-like UA only when it looks SDK-derived.
+  const ua = (headers["User-Agent"] || headers["user-agent"] || "").toLowerCase();
+  if (ua.includes("openai") && (ua.includes("node") || ua.includes("axios") || ua.includes("undici"))) {
+    setUserAgentHeader(headers, "Mozilla/5.0 (compatible; OpenAI Compatible)");
+  }
+
+  return strippedKeys;
+}
+
 export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal): AbortSignal {
   const controller = new AbortController();
 
@@ -236,10 +280,10 @@ function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
  * provider. Apply provider-aware sanitation here (after transformRequest, so
  * reintroductions by per-provider transforms are also caught) before fetch.
  * xhigh support is opt-out: pass through unchanged unless the registry marks
- * a model as unsupported. Literal max support is Claude/CC-compatible only and
- * intentionally separate: older Opus/Sonnet models may support max even when
- * they do not support xhigh. For OpenAI-shape providers, max normalizes to
- * xhigh by default and falls back to high only for explicit xhigh opt-outs.
+ * a model as unsupported. Literal max support is provider-specific and
+ * intentionally separate: some upstreams accept max even when they do not
+ * accept xhigh. For OpenAI-shape providers, max normalizes to xhigh by default
+ * and falls back to high only for explicit xhigh opt-outs.
  */
 const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
 // GitHub Copilot Claude routing is granular (upstream port: decolua/9router#791):
@@ -264,9 +308,12 @@ function supportsMaxEffortForProvider(provider: string, model: string): boolean 
   // normalized to xhigh (the OmniRoute-internal top tier) and rejected by the
   // upstream. Scoped to opencode-go deliberately: OpenRouter's DeepSeek path
   // (pi#4055) is the documented inverse and expects xhigh, not max.
+  // Ollama Cloud also accepts literal max (for example GLM 5.2 supports
+  // low|medium|high|max|none) and rejects xhigh.
   const isOpencodeGoDeepSeek =
     provider === "opencode-go" && model.toLowerCase().includes("deepseek");
-  return isClaude || isOpencodeGoDeepSeek;
+  const isOllamaCloud = provider === "ollama-cloud";
+  return isClaude || isOpencodeGoDeepSeek || isOllamaCloud;
 }
 
 export function sanitizeReasoningEffortForProvider(
@@ -813,6 +860,16 @@ export class BaseExecutor {
       const url = this.buildUrl(model, stream, urlIndex, activeCredentials);
       const headers = this.buildHeaders(activeCredentials, stream, clientHeaders, model);
       applyConfiguredUserAgent(headers, activeCredentials?.providerSpecificData);
+
+      // Strip OpenAI SDK (X-Stainless-*) metadata + normalize SDK-derived User-Agent
+      // on OpenAI-compatible passthrough requests — some upstream gateways 403 on them.
+      const strippedStainless = stripStainlessHeadersForOpenAICompat(headers, this.provider, url);
+      if (strippedStainless.length > 0) {
+        log?.debug?.(
+          "HEADERS",
+          `Stripped X-Stainless-* from OpenAI-compatible request: ${strippedStainless.join(", ")}`
+        );
+      }
 
       const ccRequestDefaults = isClaudeCodeCompatible(this.provider)
         ? getClaudeCodeCompatibleRequestDefaults(activeCredentials?.providerSpecificData)

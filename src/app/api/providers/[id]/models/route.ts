@@ -191,6 +191,9 @@ const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   // but was left out of the sweep, so it served a stale hardcoded seed (grok-3, grok-2-1212,
   // claude-3.7-sonnet …). Live fetch keeps it fresh; seed stays as the offline fallback.
   "api-airforce",
+  // DGrid is an OpenAI-compatible gateway whose default seed is the free auto-router;
+  // the full model catalog is discovered live from https://api.dgrid.ai/v1/models.
+  "dgrid",
 ]);
 
 function isNamedOpenAIStyleProvider(provider: string): boolean {

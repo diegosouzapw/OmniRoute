@@ -50,9 +50,22 @@ export const REFRESH_LEAD_MS: Record<string, number> = {
 
 /**
  * Get the proactive refresh lead time (ms) for a given provider.
- * Falls back to TOKEN_EXPIRY_BUFFER_MS (5 min) when not explicitly listed.
+ *
+ * Precedence:
+ *   1. A per-connection override in `providerSpecificData.refreshLeadMs`
+ *      (must be a positive finite number), so an operator can tune the lead
+ *      time for a single connection without touching the provider defaults.
+ *   2. The provider default from REFRESH_LEAD_MS.
+ *   3. TOKEN_EXPIRY_BUFFER_MS (5 min) when nothing else applies.
  */
-export function getRefreshLeadMs(provider: string): number {
+export function getRefreshLeadMs(
+  provider: string,
+  providerSpecificData?: { refreshLeadMs?: unknown } | null
+): number {
+  const override = providerSpecificData?.refreshLeadMs;
+  if (typeof override === "number" && Number.isFinite(override) && override > 0) {
+    return override;
+  }
   return REFRESH_LEAD_MS[provider] ?? TOKEN_EXPIRY_BUFFER_MS;
 }
 
@@ -458,6 +471,75 @@ export async function refreshWindsurfToken(
     log?.error?.(
       "TOKEN_REFRESH",
       `Network error refreshing Windsurf token: ${error instanceof Error ? error.message : String(error)}`
+    );
+    return null;
+  }
+}
+
+/**
+ * CodeBuddy CN (Tencent) token refresh — POST /v2/plugin/auth/token/refresh with
+ * the refresh token carried in the X-Refresh-Token header (not a form body),
+ * matching the official CodeBuddy CLI. Response: { code: 0, data: <token> }.
+ */
+export async function refreshCodebuddyCnToken(
+  refreshToken: string,
+  log: RefreshLogger,
+  proxyConfig: unknown = null
+) {
+  if (!refreshToken) return null;
+  const { CODEBUDDY_CN_CONFIG } = await import("@/lib/oauth/constants/oauth");
+  const oauth = CODEBUDDY_CN_CONFIG;
+  try {
+    const response = await runWithProxyContext(proxyConfig, () =>
+      fetch(oauth.refreshUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "User-Agent": oauth.userAgent,
+          "X-Requested-With": "XMLHttpRequest",
+          "X-Domain": "copilot.tencent.com",
+          "X-Refresh-Token": refreshToken,
+          "X-Auth-Refresh-Source": "plugin",
+          "X-Product": "SaaS",
+        },
+        body: "{}",
+      })
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      log?.error?.("TOKEN_REFRESH", "Failed to refresh CodeBuddy CN token", {
+        status: response.status,
+        error: errorText,
+      });
+      return null;
+    }
+
+    const data = await response.json();
+    if (data?.code !== 0 || !data?.data?.accessToken) {
+      log?.error?.("TOKEN_REFRESH", "CodeBuddy CN token refresh returned no token", {
+        code: data?.code,
+        msg: data?.msg,
+      });
+      return null;
+    }
+
+    log?.info?.("TOKEN_REFRESH", "Successfully refreshed CodeBuddy CN token", {
+      hasNewAccessToken: !!data.data.accessToken,
+      hasNewRefreshToken: !!data.data.refreshToken,
+      expiresIn: data.data.expiresIn,
+    });
+
+    return {
+      accessToken: data.data.accessToken,
+      refreshToken: data.data.refreshToken || refreshToken,
+      expiresIn: data.data.expiresIn,
+    };
+  } catch (error) {
+    log?.error?.(
+      "TOKEN_REFRESH",
+      `Network error refreshing CodeBuddy CN token: ${error?.message}`
     );
     return null;
   }
@@ -994,6 +1076,26 @@ export async function refreshCodexToken(refreshToken, log, proxyConfig: unknown 
         return { error: "unrecoverable_refresh_error", code: errorCode };
       }
 
+      // Defense-in-depth (port from decolua/9router#1821): any 401 from OpenAI's
+      // OAuth token endpoint means the refresh credential itself was rejected
+      // (e.g. rotated away, or a payload variant whose code we do not yet
+      // recognize — OpenAI has shipped both `token_expired` and the bare
+      // "Could not validate your token" message). Retrying with the same dead
+      // refresh token will never succeed; surface re-auth instead of looping.
+      // 429 / 5xx remain transient and fall through to the retryable branch.
+      if (response.status === 401) {
+        const code = errorCode || "unauthorized";
+        log?.error?.(
+          "TOKEN_REFRESH",
+          "Codex OAuth token endpoint returned 401. Re-authentication required.",
+          {
+            status: response.status,
+            errorCode: code,
+          }
+        );
+        return { error: "unrecoverable_refresh_error", code };
+      }
+
       log?.error?.("TOKEN_REFRESH", "Failed to refresh Codex token", {
         status: response.status,
         error: errorText,
@@ -1457,6 +1559,9 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
         proxyConfig
       );
 
+    case "codebuddy-cn":
+      return await refreshCodebuddyCnToken(credentials.refreshToken, log, proxyConfig);
+
     default:
       // Fallback to generic OAuth refresh for unknown providers
       return refreshAccessToken(provider, credentials.refreshToken, credentials, log, proxyConfig);
@@ -1484,6 +1589,7 @@ export function supportsTokenRefresh(provider) {
     "windsurf",
     "devin-cli",
     "gitlab-duo",
+    "codebuddy-cn",
   ]);
   if (explicitlySupported.has(provider)) return true;
   const config = PROVIDERS[provider];

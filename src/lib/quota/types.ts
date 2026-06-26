@@ -66,6 +66,13 @@ export interface EnforceInput {
   apiKeyId: string;
   connectionId: string;
   provider: string;
+  /**
+   * Optional model identifier. When present, `enforceQuotaShare` checks for a
+   * per-(key, model) cap row in `quota_allocation_model_caps` and blocks only
+   * this model if the cap is reached (Fase 3 #7). Fully backward-compatible:
+   * callers that do not pass `model` receive unchanged behaviour.
+   */
+  model?: string;
   estimatedCost?: { tokens?: number; usd?: number; requests?: number };
 }
 
@@ -77,5 +84,11 @@ export interface RecordConsumptionInput {
   apiKeyId: string;
   connectionId: string;
   provider: string;
+  /**
+   * Optional model identifier. When present, `recordConsumption` also
+   * increments the per-(key, model) consumption bucket used by the model-cap
+   * pre-check in `enforceQuotaShare` (Fase 3 #7). Backward-compatible.
+   */
+  model?: string;
   cost: { tokens?: number; usd?: number; requests?: number };
 }

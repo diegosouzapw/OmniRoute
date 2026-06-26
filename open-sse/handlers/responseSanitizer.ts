@@ -269,10 +269,26 @@ export function extractThinkingFromContent(text: string): {
  * Sanitize a non-streaming OpenAI ChatCompletion response.
  * Strips non-standard fields and normalizes required fields.
  */
-export function sanitizeOpenAIResponse(body: unknown): unknown {
+export interface SanitizeOpenAIResponseOptions {
+  /**
+   * When true, unconditionally remove `reasoning_content` from every choice
+   * message in the final payload — including reasoning-only messages and
+   * DeepSeek V4 — even though the default sanitizer keeps it in those cases.
+   * Wired to the `x-omniroute-strip-reasoning` request header for clients whose
+   * JSON parsers cannot tolerate the non-standard field (e.g. Firecrawl AI SDK).
+   * Ported from upstream 9router#517 (closes upstream #509).
+   */
+  stripReasoning?: boolean;
+}
+
+export function sanitizeOpenAIResponse(
+  body: unknown,
+  options: SanitizeOpenAIResponseOptions = {}
+): unknown {
   const bodyRecord = toRecord(body);
   if (!bodyRecord) return body;
   const isDeepSeekV4 = isDeepSeekV4Model(bodyRecord.model);
+  const stripReasoning = options.stripReasoning === true;
 
   // Build sanitized response with only allowed top-level fields
   const sanitized: JsonRecord = {};
@@ -295,6 +311,9 @@ export function sanitizeOpenAIResponse(body: unknown): unknown {
         sanitizedChoice.finish_reason !== "tool_calls"
       ) {
         sanitizedChoice.finish_reason = "tool_calls";
+      }
+      if (stripReasoning && message && "reasoning_content" in message) {
+        delete message.reasoning_content;
       }
       return sanitizedChoice;
     });

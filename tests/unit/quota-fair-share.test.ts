@@ -201,3 +201,49 @@ test("fairShare: empty dimensions → allow:ok", () => {
   assert.equal(result.kind, "allow");
   assert.equal(result.reason, "ok");
 });
+
+// ─── Guard A: unknown/garbage policy must fail SAFE (treated as hard) ─────────
+// Defensive guard for issue #10: a policy value outside hard|soft|burst (e.g. a
+// corrupted DB row read through `row.policy as Policy`) previously fell through
+// every switch case in decideFairShare and returned a silent `allow`
+// (fail-OPEN). It must be treated as the most restrictive policy (hard) so an
+// unknown policy can never bypass fair-share enforcement.
+
+test("fairShare: GUARD-A strict mode, unknown policy over fair_share → block:fair-share (treated as hard)", () => {
+  // globalUsedPercent=0.6 >= 0.5 → strict; consumed=600 > fair_share=500.
+  // policy is garbage ("bogus") — must behave like hard and BLOCK, not allow.
+  const result = decideFairShare({
+    dimensions: [dim({ limit: 1000, consumedTotal: 700, globalUsedPercent: 0.6 })],
+    // Cast through unknown to bypass the Policy type — simulates a corrupted row.
+    allocation: { weight: 50, policy: "bogus" as unknown as "hard" },
+    consumedByThisKey: { "pool1:tokens:hourly": 600 },
+    saturationThreshold: THRESHOLD,
+  });
+  assert.equal(result.kind, "block");
+  assert.equal(result.reason, "fair-share");
+});
+
+test("fairShare: GUARD-A strict mode, unknown policy UNDER fair_share → allow (hard semantics still allow under share)", () => {
+  // Treated as hard: under fair_share is allowed even in strict mode.
+  const result = decideFairShare({
+    dimensions: [dim({ limit: 1000, consumedTotal: 700, globalUsedPercent: 0.7 })],
+    allocation: { weight: 50, policy: "garbage" as unknown as "hard" },
+    consumedByThisKey: { "pool1:tokens:hourly": 300 },
+    saturationThreshold: THRESHOLD,
+  });
+  assert.equal(result.kind, "allow");
+});
+
+test("fairShare: GUARD-A generous mode, unknown policy → hard semantics (no soft penalize / no burst leniency)", () => {
+  // Generous mode (globalUsedPercent=0.3), consumed=600 > fair_share=500, but
+  // consumedTotal=600 < 1000 so hard allows borrowing. Must NOT be flagged as
+  // penalized (that would be soft) and must NOT block (key < global limit).
+  const result = decideFairShare({
+    dimensions: [dim({ limit: 1000, consumedTotal: 600, globalUsedPercent: 0.3 })],
+    allocation: { weight: 50, policy: "weird" as unknown as "hard" },
+    consumedByThisKey: { "pool1:tokens:hourly": 600 },
+    saturationThreshold: THRESHOLD,
+  });
+  assert.equal(result.kind, "allow");
+  assert.equal(result.penalized, undefined, "unknown policy must not get soft penalize semantics");
+});

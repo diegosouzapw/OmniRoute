@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Supports **15 routing strategies** (see `src/shared/constants/routingStrategies.ts`):
+Supports **17 routing strategies** (see `src/shared/constants/routingStrategies.ts`):
 
 | Strategy | Behavior |
 |----------|----------|
@@ -241,10 +241,12 @@ Supports **15 routing strategies** (see `src/shared/constants/routingStrategies.
 | `cost-optimized` | Cheapest healthy target first |
 | `reset-aware` | Aware of provider reset windows |
 | `reset-window` | Reset window-based routing |
+| `headroom` | Most remaining quota headroom first |
 | `strict-random` | Truly uniform (no quality weighting) |
 | `auto` | Use 9-factor scoring (`autoCombo/`) |
 | `lkgp` | Last known good provider first |
 | `context-optimized` | Best for long-context requests |
+| `fusion` | Fan out to a panel in parallel, then synthesize via a judge (`fusion.ts`) |
 
 ### base.ts (1170 LOC)
 

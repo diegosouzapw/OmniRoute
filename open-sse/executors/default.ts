@@ -16,6 +16,7 @@ import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
 import { mergeClientAnthropicBeta } from "../config/anthropicHeaders.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
+import { stripUnsupportedParams } from "../translator/paramSupport.ts";
 import {
   detectFormat,
   getOpenAICompatibleType,
@@ -32,6 +33,7 @@ import { buildMaritalkChatUrl } from "../config/maritalk.ts";
 import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
+import { buildClineHeaders } from "@/shared/utils/clineAuth";
 
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 
@@ -446,6 +448,12 @@ export class DefaultExecutor extends BaseExecutor {
       case "glm-coding-apikey":
         headers["x-api-key"] = effectiveKey || credentials.accessToken;
         break;
+      case "cline":
+        // Cline's API requires the bearer token prefixed with `workos:` plus a
+        // set of Cline client-identification headers; plain `Bearer <token>`
+        // is rejected upstream. buildClineHeaders() emits both.
+        Object.assign(headers, buildClineHeaders(effectiveKey || credentials.accessToken));
+        break;
       default:
         if (isClaudeCodeCompatible(this.provider)) {
           const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
@@ -468,7 +476,29 @@ export class DefaultExecutor extends BaseExecutor {
           } else if (credentials.accessToken) {
             headers["Authorization"] = `Bearer ${credentials.accessToken}`;
           }
-          if (!headers["anthropic-version"]) {
+          // Port of decolua/9router commit b977bf74:
+          // Third-party Anthropic-compatible gateways frequently require
+          // Authorization: Bearer ALONGSIDE x-api-key — without it they
+          // return 401 missing_api_key on every forward. Only emit the
+          // Bearer fallback for non-official upstreams; api.anthropic.com
+          // (and the empty/default baseUrl that targets it) must keep the
+          // x-api-key-only behavior to avoid regressing the official path.
+          if (effectiveKey && !headers["Authorization"]) {
+            const baseUrl = credentials?.providerSpecificData?.baseUrl || "";
+            const isOfficialAnthropic =
+              baseUrl === "" || baseUrl.includes("api.anthropic.com");
+            if (!isOfficialAnthropic) {
+              headers["Authorization"] = `Bearer ${effectiveKey}`;
+            }
+          }
+          // Default the anthropic-version header only when the caller/operator
+          // has not already supplied one. The lookup is case-insensitive so a
+          // pre-set "Anthropic-Version" (e.g. from this.config.headers or a
+          // custom header) is not clobbered with a duplicate lowercase entry.
+          const hasAnthropicVersion = Object.keys(headers).some(
+            (key) => key.toLowerCase() === "anthropic-version"
+          );
+          if (!hasAnthropicVersion) {
             headers["anthropic-version"] = "2023-06-01";
           }
         } else {
@@ -547,6 +577,45 @@ export class DefaultExecutor extends BaseExecutor {
   }
 
   /**
+   * Downgrade `response_format: { type: "json_schema" }` to `json_object` for
+   * `openai-compatible-*` providers, injecting the JSON schema into the system
+   * prompt instead. DeepSeek / Ollama / local OpenAI-compatible models often
+   * lack native Structured Output and return empty or malformed content when a
+   * `json_schema` response_format is forwarded as-is. Gated on the
+   * `openai-compatible-` provider family so providers with native Structured
+   * Output support keep the native `json_schema` path.
+   */
+  applyJsonSchemaFallback<T>(body: T): T {
+    if (!this.provider?.startsWith?.("openai-compatible-")) return body;
+    if (!body || typeof body !== "object" || Array.isArray(body)) return body;
+
+    const record = body as Record<string, unknown>;
+    const rf = record.response_format as
+      | { type?: string; json_schema?: { schema?: unknown } }
+      | undefined;
+    if (rf?.type !== "json_schema" || !rf.json_schema?.schema) return body;
+
+    const schemaJson = JSON.stringify(rf.json_schema.schema, null, 2);
+    const prompt = `You must respond with valid JSON that strictly follows this JSON schema:\n\`\`\`json\n${schemaJson}\n\`\`\`\nRespond ONLY with the JSON object, no other text.`;
+
+    const messages: Array<Record<string, unknown>> = Array.isArray(record.messages)
+      ? (record.messages as Array<Record<string, unknown>>).map((m) => ({ ...m }))
+      : [];
+    const sys = messages.find((m) => m.role === "system");
+    if (sys) {
+      if (typeof sys.content === "string") {
+        sys.content = `${sys.content}\n\n${prompt}`;
+      } else if (Array.isArray(sys.content)) {
+        sys.content.push({ type: "text", text: `\n\n${prompt}` });
+      }
+    } else {
+      messages.unshift({ role: "system", content: prompt });
+    }
+
+    return { ...record, messages, response_format: { type: "json_object" } } as T;
+  }
+
+  /**
    * For compatible providers, the model name is already clean by the time
    * it reaches the executor (chatCore sets body.model = modelInfo.model,
    * which is the parsed model ID without internal routing prefixes).
@@ -557,6 +626,7 @@ export class DefaultExecutor extends BaseExecutor {
   transformRequest(model, body, stream, credentials) {
     const cleanedBody = super.transformRequest(model, body, stream, credentials);
     let withDefaults = applyProviderRequestDefaults(cleanedBody, this.config.requestDefaults);
+    withDefaults = this.applyJsonSchemaFallback(withDefaults);
     const targetFormat = getTargetFormat(this.provider, credentials?.providerSpecificData);
     const requestFormat =
       withDefaults && typeof withDefaults === "object" && !Array.isArray(withDefaults)
@@ -649,6 +719,17 @@ export class DefaultExecutor extends BaseExecutor {
         withDefaults as Record<string, unknown>,
         "QwenExecutor"
       );
+    }
+
+    // Config-driven strip of params unsupported by the target provider/model
+    // (e.g. claude-opus-4 deprecated `temperature` → Anthropic 400). Port from
+    // 9router#7ae9fff6 (fixes upstream #1748). Rules live in
+    // ../translator/paramSupport.ts so adding one means editing one table.
+    if (typeof withDefaults === "object" && withDefaults !== null) {
+      const bodyRecord = withDefaults as Record<string, unknown>;
+      const outboundModel =
+        typeof bodyRecord.model === "string" ? bodyRecord.model : model;
+      stripUnsupportedParams(this.provider, outboundModel, bodyRecord);
     }
 
     // Apply modelIdPrefix from RegistryEntry (e.g. "accounts/fireworks/models/")

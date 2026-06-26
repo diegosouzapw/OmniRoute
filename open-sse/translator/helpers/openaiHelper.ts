@@ -35,11 +35,23 @@ export function filterToOpenAIFormat(body) {
   if (!body.messages || !Array.isArray(body.messages)) return body;
 
   body.messages = body.messages.map((msg) => {
+    // Normalize OpenAI Responses-style `developer` role to `system` — many
+    // OpenAI-compatible providers reject `developer` (ported from
+    // decolua/9router#1011).
+    if (msg.role === "developer") msg = { ...msg, role: "system" };
+
     // Keep tool messages as-is (OpenAI format)
     if (msg.role === "tool") return msg;
 
-    // Keep assistant messages with tool_calls as-is
-    if (msg.role === "assistant" && msg.tool_calls) return msg;
+    // Keep assistant messages with tool_calls, but strip reasoning_content —
+    // reasoning blobs inflate context on every subsequent agentic turn (O(n^2)).
+    if (msg.role === "assistant" && msg.tool_calls) {
+      if (msg.reasoning_content !== undefined) {
+        const { reasoning_content, ...cleanMsg } = msg;
+        return cleanMsg;
+      }
+      return msg;
+    }
 
     // Handle string content
     if (typeof msg.content === "string") return msg;
@@ -148,6 +160,9 @@ export function filterToOpenAIFormat(body) {
   // Strip Claude-specific fields that OpenAI-compatible providers reject
   delete body.metadata;
   delete body.anthropic_version;
+  // Codex clients send a top-level `client_metadata` object; OpenAI rejects it
+  // with 400 "Unknown parameter: 'client_metadata'" (9router#1157).
+  delete body.client_metadata;
 
   // Map max_output_tokens (from Vercel AI SDK) to max_tokens logic
   if (body.max_output_tokens !== undefined) {
@@ -170,7 +185,9 @@ export function filterToOpenAIFormat(body) {
             type: "function",
             function: {
               name: tool.name,
-              description: tool.description || "",
+              // Coerce: strict upstream validators (NVIDIA NIM, Codex) reject
+              // non-string descriptions. Ports decolua/9router#397.
+              description: String(tool.description ?? ""),
               parameters: tool.input_schema || { type: "object", properties: {} },
             },
           };
@@ -182,7 +199,7 @@ export function filterToOpenAIFormat(body) {
             type: "function",
             function: {
               name: fn.name,
-              description: fn.description || "",
+              description: String(fn.description ?? ""),
               parameters: fn.parameters || { type: "object", properties: {} },
             },
           }));

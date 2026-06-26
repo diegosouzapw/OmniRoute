@@ -97,6 +97,11 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
     funcCallIds: {},
     funcArgsDone: {},
     funcItemDone: {},
+    completedOutputItems: [] as Array<{
+      output_index: number;
+      item: Record<string, unknown>;
+      seq: number;
+    }>,
     buffer: "",
     completedSent: false,
     usage: null,
@@ -105,6 +110,36 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
 
   const encoder = new TextEncoder();
   const nextSeq = () => ++state.seq;
+
+  // Normalize output_index to a non-negative integer (replaces fragile parseInt calls)
+  const normalizeOutputIndex = (outputIndex: number | string): number => {
+    const normalized = Number(outputIndex);
+    return Number.isInteger(normalized) && normalized >= 0 ? normalized : 0;
+  };
+
+  // Record a finalized item as it is emitted in output_item.done so buildDenseOutput
+  // can later sort by the actual output_index rather than rebuilding from state dicts.
+  const recordCompletedItem = (
+    outputIndex: number | string,
+    item: Record<string, unknown>
+  ): number => {
+    const normalized = normalizeOutputIndex(outputIndex);
+    state.completedOutputItems.push({ output_index: normalized, item, seq: state.seq });
+    return normalized;
+  };
+
+  // Build a dense, deterministic output array sorted by output_index then by seq
+  // (emission order within the same index) — mirrors upstream PR #721.
+  const buildDenseOutput = (): Array<Record<string, unknown>> =>
+    state.completedOutputItems
+      .slice()
+      .sort((left, right) => {
+        if (left.output_index !== right.output_index) {
+          return left.output_index - right.output_index;
+        }
+        return left.seq - right.seq;
+      })
+      .map(({ item }) => item);
 
   const emit = (controller, eventType, data) => {
     data.sequence_number = nextSeq();
@@ -172,15 +207,19 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
         part: { type: "summary_text", text: state.reasoningBuf },
       });
 
+      const reasoningItem = {
+        id: state.reasoningId,
+        type: "reasoning",
+        summary: [{ type: "summary_text", text: state.reasoningBuf }],
+      };
+
       emit(controller, "response.output_item.done", {
         type: "response.output_item.done",
         output_index: state.reasoningIndex,
-        item: {
-          id: state.reasoningId,
-          type: "reasoning",
-          summary: [{ type: "summary_text", text: state.reasoningBuf }],
-        },
+        item: reasoningItem,
       });
+
+      recordCompletedItem(state.reasoningIndex, reasoningItem);
     }
   };
 
@@ -188,12 +227,13 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
     if (state.msgItemAdded[idx] && !state.msgItemDone[idx]) {
       state.msgItemDone[idx] = true;
       const fullText = state.msgTextBuf[idx] || "";
-      const msgId = `msg_${state.responseId}_${idx}`;
+      const normalizedIndex = normalizeOutputIndex(idx);
+      const msgId = `msg_${state.responseId}_${normalizedIndex}`;
 
       emit(controller, "response.output_text.done", {
         type: "response.output_text.done",
         item_id: msgId,
-        output_index: parseInt(idx),
+        output_index: normalizedIndex,
         content_index: 0,
         text: fullText,
         logprobs: [],
@@ -202,27 +242,32 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
       emit(controller, "response.content_part.done", {
         type: "response.content_part.done",
         item_id: msgId,
-        output_index: parseInt(idx),
+        output_index: normalizedIndex,
         content_index: 0,
         part: { type: "output_text", annotations: [], logprobs: [], text: fullText },
       });
 
+      const msgItem = {
+        id: msgId,
+        type: "message",
+        content: [{ type: "output_text", annotations: [], logprobs: [], text: fullText }],
+        role: "assistant",
+      };
+
       emit(controller, "response.output_item.done", {
         type: "response.output_item.done",
-        output_index: parseInt(idx),
-        item: {
-          id: msgId,
-          type: "message",
-          content: [{ type: "output_text", annotations: [], logprobs: [], text: fullText }],
-          role: "assistant",
-        },
+        output_index: normalizedIndex,
+        item: msgItem,
       });
+
+      recordCompletedItem(normalizedIndex, msgItem);
     }
   };
 
-  const closeToolCall = (controller, idx) => {
+  const closeToolCall = (controller, idx, recordAsCompleted = true) => {
     const callId = state.funcCallIds[idx];
     if (callId && !state.funcItemDone[idx]) {
+      const normalizedIndex = normalizeOutputIndex(idx);
       let args = state.funcArgsBuf[idx] || "{}";
 
       // Fix #1674 & #1852: Final cleanup of empty string and empty array placeholders
@@ -248,21 +293,29 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
       emit(controller, "response.function_call_arguments.done", {
         type: "response.function_call_arguments.done",
         item_id: `fc_${callId}`,
-        output_index: parseInt(idx),
+        output_index: normalizedIndex,
         arguments: args,
       });
 
+      const funcItem = {
+        id: `fc_${callId}`,
+        type: "function_call",
+        arguments: args,
+        call_id: callId,
+        name: state.funcNames[idx] || "",
+      };
+
       emit(controller, "response.output_item.done", {
         type: "response.output_item.done",
-        output_index: parseInt(idx),
-        item: {
-          id: `fc_${callId}`,
-          type: "function_call",
-          arguments: args,
-          call_id: callId,
-          name: state.funcNames[idx] || "",
-        },
+        output_index: normalizedIndex,
+        item: funcItem,
       });
+
+      // Only record as a completed output item when this is a final close (not a
+      // superseded-call eviction where a new call replaced this one at the same index).
+      if (recordAsCompleted) {
+        recordCompletedItem(normalizedIndex, funcItem);
+      }
 
       state.funcItemDone[idx] = true;
       state.funcArgsDone[idx] = true;
@@ -273,33 +326,9 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
     if (!state.completedSent) {
       state.completedSent = true;
 
-      // Build output from accumulated state
-      const output = [];
-      if (state.reasoningId) {
-        output.push({
-          id: state.reasoningId,
-          type: "reasoning",
-          summary: [{ type: "summary_text", text: state.reasoningBuf }],
-        });
-      }
-      for (const idx in state.msgItemAdded) {
-        output.push({
-          id: `msg_${state.responseId}_${idx}`,
-          type: "message",
-          role: "assistant",
-          content: [{ type: "output_text", annotations: [], text: state.msgTextBuf[idx] || "" }],
-        });
-      }
-      for (const idx in state.funcCallIds) {
-        const callId = state.funcCallIds[idx];
-        output.push({
-          id: `fc_${callId}`,
-          type: "function_call",
-          call_id: callId,
-          name: state.funcNames[idx] || "",
-          arguments: state.funcArgsBuf[idx] || "{}",
-        });
-      }
+      // Build a dense, deterministic output array from items recorded as they were emitted.
+      // Sorted by output_index then by emission sequence for stable ordering.
+      const output = buildDenseOutput();
 
       const response: Record<string, unknown> = {
         id: state.responseId,
@@ -416,6 +445,17 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
 
           // Handle text content (may contain <think> tags)
           if (delta.content) {
+            // Close reasoning if it was opened via native reasoning_content
+            // and is still open, before emitting message content. Without this
+            // the reasoning item is never closed and the message reuses the
+            // reasoning output_index, producing a protocol-invalid stream.
+            // Guard on !inThinking: reasoning opened via <think> tags is closed by
+            // its matching </think> below — force-closing it here would snapshot a
+            // partial buffer (dense output records the item at close time). (#4848 + #4906)
+            if (state.reasoningId && !state.reasoningDone && !state.inThinking) {
+              closeReasoning(controller);
+            }
+
             let content = delta.content;
 
             if (content.includes("<think>")) {
@@ -442,31 +482,36 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
 
             // Regular text content
             if (content) {
+              // Use a distinct output_index for the message when reasoning was
+              // emitted, so the message item does not collide with the
+              // reasoning item's output_index.
+              const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
+
               // Fix for #1211: Strip leading double-newlines / blank spaces from the very first text chunk
-              if (!state.msgTextBuf[idx]) {
+              if (!state.msgTextBuf[msgIdx]) {
                 content = content.trimStart();
               }
 
               if (!content) continue;
 
-              if (!state.msgItemAdded[idx]) {
-                state.msgItemAdded[idx] = true;
-                const msgId = `msg_${state.responseId}_${idx}`;
+              if (!state.msgItemAdded[msgIdx]) {
+                state.msgItemAdded[msgIdx] = true;
+                const msgId = `msg_${state.responseId}_${msgIdx}`;
 
                 emit(controller, "response.output_item.added", {
                   type: "response.output_item.added",
-                  output_index: idx,
+                  output_index: msgIdx,
                   item: { id: msgId, type: "message", content: [], role: "assistant" },
                 });
               }
 
-              if (!state.msgContentAdded[idx]) {
-                state.msgContentAdded[idx] = true;
+              if (!state.msgContentAdded[msgIdx]) {
+                state.msgContentAdded[msgIdx] = true;
 
                 emit(controller, "response.content_part.added", {
                   type: "response.content_part.added",
-                  item_id: `msg_${state.responseId}_${idx}`,
-                  output_index: idx,
+                  item_id: `msg_${state.responseId}_${msgIdx}`,
+                  output_index: msgIdx,
                   content_index: 0,
                   part: { type: "output_text", annotations: [], logprobs: [], text: "" },
                 });
@@ -474,21 +519,27 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
 
               emit(controller, "response.output_text.delta", {
                 type: "response.output_text.delta",
-                item_id: `msg_${state.responseId}_${idx}`,
-                output_index: idx,
+                item_id: `msg_${state.responseId}_${msgIdx}`,
+                output_index: msgIdx,
                 content_index: 0,
                 delta: content,
                 logprobs: [],
               });
 
-              if (!state.msgTextBuf[idx]) state.msgTextBuf[idx] = "";
-              state.msgTextBuf[idx] += content;
+              if (!state.msgTextBuf[msgIdx]) state.msgTextBuf[msgIdx] = "";
+              state.msgTextBuf[msgIdx] += content;
             }
           }
 
           // Handle tool_calls
           if (delta.tool_calls) {
-            closeMessage(controller, idx);
+            // Close reasoning first so tool calls do not collide with an
+            // open reasoning item, then close the message at its real index.
+            if (state.reasoningId && !state.reasoningDone) {
+              closeReasoning(controller);
+            }
+            const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
+            closeMessage(controller, msgIdx);
 
             for (const tc of delta.tool_calls) {
               const tcIdx = tc.index ?? 0;
@@ -497,7 +548,9 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
 
               // T37: Prevent merging if a new tool_call uses the same index
               if (state.funcCallIds[tcIdx] && newCallId && state.funcCallIds[tcIdx] !== newCallId) {
-                closeToolCall(controller, tcIdx);
+                // Superseded call: close and emit output_item.done but do NOT record as final output
+                // since this call was replaced by a new one at the same index.
+                closeToolCall(controller, tcIdx, false);
                 delete state.funcCallIds[tcIdx];
                 delete state.funcNames[tcIdx];
                 delete state.funcArgsBuf[tcIdx];

@@ -27,6 +27,25 @@ test("isLocalOnlyPath: /api/local* does NOT match the bare /api/localifications 
   assert.equal(isLocalOnlyPath("/api/localhost-check"), false);
 });
 
+// ─── /api/oauth/cursor/auto-import is local-only (spawns `which cursor`) ──
+
+test("isLocalOnlyPath: /api/oauth/cursor/auto-import is local-only (spawns child process)", () => {
+  // The Cursor auto-import route runs `execFile("which", ["cursor"])` to verify a
+  // local Cursor install before importing its credentials — a child-process spawn
+  // that must be loopback-enforced BEFORE any auth check (Hard Rules #15/#17), so a
+  // leaked JWT via tunnel cannot reach the spawn. Found by check:route-guard-membership.
+  assert.equal(isLocalOnlyPath("/api/oauth/cursor/auto-import"), true);
+});
+
+test("isLocalOnlyPath: the rest of /api/oauth/ stays remote-reachable (no over-broadening)", () => {
+  // Only the spawn-capable auto-import path is loopback-locked. The rest of the OAuth
+  // surface (browser redirect / callback flows) MUST remain reachable remotely — a
+  // flat /api/oauth/ prefix would wrongly lock the whole OAuth subtree.
+  assert.equal(isLocalOnlyPath("/api/oauth/cursor"), false);
+  assert.equal(isLocalOnlyPath("/api/oauth/cursor/callback"), false);
+  assert.equal(isLocalOnlyPath("/api/oauth/anthropic/callback"), false);
+});
+
 test("isLocalOnlyBypassableByManageScope: /api/local/ is NOT bypassable (defence in depth)", () => {
   // The kill-switch path. Even if a DB row tries to whitelist /api/local/ via
   // the manage-scope bypass list, the runtime predicate must reject it because

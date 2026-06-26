@@ -423,6 +423,7 @@ const LOBE_PROVIDER_ALIASES = {
   tavily: "Tavily",
   "tavily-search": "Tavily",
   tencent: "Tencent",
+  "codebuddy-cn": "Tencent",
   together: "Together",
   topaz: "TopazLabs",
   trae: "Trae",

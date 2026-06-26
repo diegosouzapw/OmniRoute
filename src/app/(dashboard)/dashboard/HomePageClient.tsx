@@ -14,6 +14,7 @@ import { copyToClipboard } from "@/shared/utils/clipboard";
 import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import { useIsElectron, useOpenExternal } from "@/shared/hooks/useElectron";
 import { HomeProviderTopologySection } from "./HomeProviderTopologySection";
+import { shouldShowProviderTopologyOnHome } from "./homeAppearance";
 
 const ProviderQuotaWidget = dynamic(() => import("../home/ProviderQuotaWidget"), { ssr: false });
 import type { NewsAnnouncement } from "@/shared/utils/releaseNotes";
@@ -218,9 +219,15 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           if (typeof data.showQuickStartOnHome === "boolean") {
             setShowQuickStartOnHome(data.showQuickStartOnHome);
           }
-          if (typeof data.showProviderTopologyOnHome === "boolean") {
-            setShowProviderTopologyOnHome(data.showProviderTopologyOnHome);
-          }
+          // #4596 regression fix: the topology card defaults ON (matches the
+          // AppearanceTab toggle's `!== false`). Honoring only an explicit boolean
+          // left the card hidden whenever the setting was never persisted
+          // (undefined), silently removing it for most installs. The live-WS
+          // connection is still gated by `appearanceSettingsLoaded` in the data
+          // effect, so it is never opened before settings load.
+          setShowProviderTopologyOnHome(
+            shouldShowProviderTopologyOnHome(data.showProviderTopologyOnHome)
+          );
           if (typeof data.autoRefreshProviderQuota === "boolean") {
             setAutoRefreshProviderQuota(data.autoRefreshProviderQuota);
           }

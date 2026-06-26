@@ -7,6 +7,7 @@ import {
   joinClaudeCodeCompatibleUrl,
 } from "./claudeCodeCompatible.ts";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
+import { buildClineHeaders } from "@/shared/utils/clineAuth";
 
 const OPENAI_COMPATIBLE_PREFIX = "openai-compatible-";
 const OPENAI_COMPATIBLE_DEFAULTS = {
@@ -347,6 +348,11 @@ export function buildProviderHeaders(provider, credentials, stream = true, body 
     if (!stream) {
       headers["Accept"] = "application/json";
     }
+  } else if (provider === "cline") {
+    // Cline's API requires the bearer token prefixed with `workos:` plus a set
+    // of Cline client-identification headers; plain `Bearer <token>` is rejected
+    // upstream. buildClineHeaders() emits both.
+    Object.assign(headers, buildClineHeaders(credentials.apiKey || credentials.accessToken));
   } else if (entry) {
     // Registry-driven auth
     const authHeader = entry.authHeader || "bearer";

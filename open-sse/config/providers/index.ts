@@ -40,6 +40,7 @@ import { baichuanProvider } from "./registry/baichuan/index.ts";
 import { yiProvider } from "./registry/yi/index.ts";
 import { deepseekProvider } from "./registry/deepseek/index.ts";
 import { deepseek_webProvider } from "./registry/deepseek/web/index.ts";
+import { dgridProvider } from "./registry/dgrid/index.ts";
 import { kimi_coding_apikeyProvider } from "./registry/kimi/coding-apikey/index.ts";
 import { kimi_codingProvider } from "./registry/kimi/coding/index.ts";
 import { kimiProvider } from "./registry/kimi/index.ts";
@@ -167,6 +168,8 @@ import { openadapterProvider } from "./registry/openadapter/index.ts";
 import { ditProvider } from "./registry/dit/index.ts";
 import { tokenrouterProvider } from "./registry/tokenrouter/index.ts";
 import { grok_cliProvider } from "./registry/grok-cli/index.ts";
+import { codebuddy_cnProvider } from "./registry/codebuddy-cn/index.ts";
+import { pioneerProvider } from "./registry/pioneer/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -207,6 +210,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   yi: yiProvider,
   deepseek: deepseekProvider,
   "deepseek-web": deepseek_webProvider,
+  dgrid: dgridProvider,
   "kimi-coding-apikey": kimi_coding_apikeyProvider,
   "kimi-coding": kimi_codingProvider,
   kimi: kimiProvider,
@@ -336,4 +340,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   dit: ditProvider,
   tokenrouter: tokenrouterProvider,
   "grok-cli": grok_cliProvider,
+  "codebuddy-cn": codebuddy_cnProvider,
+  pioneer: pioneerProvider,
 };

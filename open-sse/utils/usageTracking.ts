@@ -392,13 +392,29 @@ export function extractUsage(chunk) {
   }
 
   // Gemini format (Antigravity)
-  if (chunk.usageMetadata && typeof chunk.usageMetadata === "object") {
+  // Antigravity wraps usageMetadata inside a `response` envelope:
+  // { response: { usageMetadata: {...} } } — fall back to it so AG-shaped
+  // chunks do not silently drop token usage.
+  const usageMeta = chunk.usageMetadata || chunk.response?.usageMetadata;
+  if (usageMeta && typeof usageMeta === "object") {
     return normalizeUsage({
-      prompt_tokens: chunk.usageMetadata?.promptTokenCount || 0,
-      completion_tokens: chunk.usageMetadata?.candidatesTokenCount || 0,
-      total_tokens: chunk.usageMetadata?.totalTokenCount,
-      cached_tokens: chunk.usageMetadata?.cachedContentTokenCount,
-      reasoning_tokens: chunk.usageMetadata?.thoughtsTokenCount,
+      prompt_tokens: usageMeta.promptTokenCount || 0,
+      completion_tokens: usageMeta.candidatesTokenCount || 0,
+      total_tokens: usageMeta.totalTokenCount,
+      cached_tokens: usageMeta.cachedContentTokenCount,
+      reasoning_tokens: usageMeta.thoughtsTokenCount,
+    });
+  }
+
+  // Ollama NDJSON format (raw from provider, before translation)
+  // Ollama sends: { "model": "...", "done": true, "prompt_eval_count": N, "eval_count": M }
+  if (chunk.done === true && typeof chunk.prompt_eval_count === "number") {
+    const promptEvalCount = chunk.prompt_eval_count || 0;
+    const evalCount = chunk.eval_count || 0;
+    return normalizeUsage({
+      prompt_tokens: promptEvalCount,
+      completion_tokens: evalCount,
+      total_tokens: promptEvalCount + evalCount,
     });
   }
 

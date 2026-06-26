@@ -641,8 +641,8 @@ export async function saveRequestUsage(entry: any) {
       `
       INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name,
         tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation, tokens_reasoning,
-        service_tier, status, success, latency_ms, ttft_ms, error_code, combo_strategy, timestamp)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        service_tier, status, success, latency_ms, ttft_ms, error_code, combo_strategy, endpoint, timestamp)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
     ).run(
       entry.provider || null,
@@ -666,6 +666,7 @@ export async function saveRequestUsage(entry: any) {
           : 0,
       entry.errorCode || null,
       entry.comboStrategy || entry.combo_strategy || null,
+      entry.endpoint || null,
       timestamp
     );
 

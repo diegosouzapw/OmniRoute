@@ -53,6 +53,8 @@ import { ChipotleExecutor } from "./chipotle.ts";
 import { LMArenaExecutor } from "./lmarena.ts";
 import { MimocodeExecutor } from "./mimocode.ts";
 import { GrokCliExecutor } from "./grok-cli.ts";
+import { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
+
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -151,6 +153,8 @@ const executors = {
   mcode: new MimocodeExecutor(), // Alias
   "grok-cli": new GrokCliExecutor(),
   gc: new GrokCliExecutor(), // Alias
+  "codebuddy-cn": new CodeBuddyCnExecutor(),
+  cbcn: new CodeBuddyCnExecutor(), // Alias for codebuddy-cn
 };
 
 const defaultCache = new Map();
@@ -212,3 +216,4 @@ export { ChipotleExecutor } from "./chipotle.ts";
 export { LMArenaExecutor } from "./lmarena.ts";
 export { MimocodeExecutor } from "./mimocode.ts";
 export { GrokCliExecutor } from "./grok-cli.ts";
+export { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";

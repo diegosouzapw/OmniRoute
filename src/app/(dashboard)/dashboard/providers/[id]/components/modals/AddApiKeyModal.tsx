@@ -45,6 +45,7 @@ export interface AddApiKeyModalProps {
     apiKey?: string;
     priority: number;
     baseUrl?: string;
+    defaultModel?: string;
     providerSpecificData?: Record<string, unknown>;
   }) => Promise<void | unknown>;
   onClose: () => void;
@@ -100,6 +101,7 @@ export default function AddApiKeyModal({
   const [formData, setFormData] = useState({
     name: "",
     apiKey: "",
+    defaultModel: "",
     priority: 1,
     baseUrl: initialBaseUrl || defaultBaseUrl,
     cx: "",
@@ -303,6 +305,7 @@ export default function AddApiKeyModal({
         apiKey: credentialInput.trim() || undefined,
         priority: formData.priority,
         testStatus: "active",
+        defaultModel: isCompatible ? formData.defaultModel.trim() || undefined : undefined,
         providerSpecificData,
       };
 
@@ -696,6 +699,16 @@ export default function AddApiKeyModal({
               onChange={(patch) => setFormData({ ...formData, ...patch })}
               t={t}
             />
+            {isCompatible && (
+              <Input
+                label={t("compatibleDefaultModelLabel")}
+                value={formData.defaultModel}
+                onChange={(e) => setFormData({ ...formData, defaultModel: e.target.value })}
+                placeholder={isAnthropic ? "claude-3-5-sonnet-latest" : "gpt-4o-mini"}
+                hint={t("compatibleDefaultModelHint")}
+                data-testid="compat-default-model-input"
+              />
+            )}
             {isCompatible && !isCcCompatible && (
               <p className="text-xs text-text-muted">
                 {isAnthropic
@@ -832,6 +845,7 @@ export default function AddApiKeyModal({
                 disabled={
                   !formData.name ||
                   (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
+                  (isCompatible && !formData.defaultModel.trim()) ||
                   (isGooglePse && !formData.cx.trim()) ||
                   saving ||
                   (usesBaseUrl && !formData.baseUrl.trim() && !defaultBaseUrl)

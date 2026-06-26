@@ -1,7 +1,27 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import dns from "node:dns";
 
 import { handleImageGeneration } from "../../open-sse/handlers/imageGeneration.ts";
+
+// Stub DNS for fetchRemoteImage's GHSA-cmhj-wh2f-9cgx DNS-rebinding guard
+// (assertHostnameResolvesPublic in src/shared/network/remoteImageFetch.ts).
+// The b64_json test mocks globalThis.fetch with an example.com URL that
+// doesn't resolve in CI; the handler invokes fetchRemoteImage without
+// exposing a `lookup` injection point, so we monkey-patch dns.promises.lookup
+// to always return a public IP so the rebinding guard passes and the test
+// exercises the mocked fetch behaviour as intended.
+const originalDnsLookup = dns.promises.lookup;
+(dns.promises as { lookup: unknown }).lookup = (async (
+  _hostname: string,
+  options?: { all?: boolean }
+) => {
+  const record = { address: "203.0.113.1", family: 4 };
+  return options && options.all ? [record] : record;
+}) as typeof dns.promises.lookup;
+process.on("exit", () => {
+  (dns.promises as { lookup: unknown }).lookup = originalDnsLookup;
+});
 
 test("handleImageGeneration(nanobanana): async submit+poll returns URL payload", async () => {
   const originalFetch = globalThis.fetch;

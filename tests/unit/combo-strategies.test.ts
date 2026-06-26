@@ -12,6 +12,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const dbCore = await import("../../src/lib/db/core.ts");
 const { handleComboChat } = await import("../../open-sse/services/combo.ts");
+const { clearAllStickyBindings } =
+  await import("../../open-sse/services/combo/sessionStickiness.ts");
 const { invalidateCodexQuotaCache, registerCodexConnection, registerCodexQuotaFetcher } =
   await import("../../open-sse/services/codexQuotaFetcher.ts");
 const { registerQuotaFetcher } = await import("../../open-sse/services/quotaPreflight.ts");
@@ -171,6 +173,10 @@ async function selectedConnectionFor(
   combo: Record<string, unknown>,
   options: { apiKeyAllowedConnections?: string[] | null } = {}
 ) {
+  // Isolate strategy/round-robin assertions from session stickiness (#5): this helper
+  // reuses the same body, so a sticky binding from a prior call would pin the connection
+  // and break tie-break rotation. Stickiness has its own suite (combo-session-stickiness).
+  clearAllStickyBindings();
   const calls: Array<string | null> = [];
   const response = await handleComboChat({
     body: reqBodyTextArray,

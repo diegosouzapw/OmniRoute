@@ -57,7 +57,7 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 |                     | Kimi K2           | $9/mo flat  | 10M tokens/mo    | Predictable cost     |
 | **🆓 FREE**         | Qoder             | $0          | Unlimited        | 8 models free        |
 |                     | Qwen              | $0          | Unlimited        | 3 models free        |
-|                     | Kiro              | $0          | Unlimited        | Claude free          |
+|                     | Kiro              | $0          | ~50 credits/mo   | Claude free          |
 
 **💡 Pro Tip:** Start with Gemini CLI (180K free/month) + Qoder (unlimited free) combo = $0 cost!
 
@@ -240,7 +240,7 @@ Models: if/kimi-k2, if/qwen3-coder-plus, if/qwen3-max, if/qwen3-235b, if/deepsee
 #### Kiro (Claude FREE)
 
 ```bash
-Dashboard → Connect Kiro → AWS Builder ID or Google/GitHub → Unlimited
+Dashboard → Connect Kiro → AWS Builder ID or Google/GitHub → ~50 credits/month
 
 Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```

@@ -270,7 +270,8 @@ export default function OAuthModal({
         provider === "kiro" ||
         provider === "amazon-q" ||
         provider === "kimi-coding" ||
-        provider === "kilocode"
+        provider === "kilocode" ||
+        provider === "codebuddy-cn"
       ) {
         setIsDeviceCode(true);
         setStep("waiting");

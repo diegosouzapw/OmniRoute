@@ -52,6 +52,40 @@ function toToolName(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+/**
+ * Recursively strip `enumDescriptions` from a JSON schema.
+ *
+ * VSCode Copilot emits `enumDescriptions` inside tool parameter schemas, but the
+ * Antigravity API rejects any request carrying that field with HTTP 400. Walk the
+ * schema's `properties` and `items` so the field is removed at every nesting level
+ * before the declaration is sent upstream.
+ */
+export function stripEnumDescriptions(schema: unknown): unknown {
+  if (!schema || typeof schema !== "object") return schema;
+
+  if (Array.isArray(schema)) {
+    return schema.map((entry) => stripEnumDescriptions(entry));
+  }
+
+  const result: JsonRecord = { ...(schema as JsonRecord) };
+  delete result.enumDescriptions;
+
+  const properties = asRecord(result.properties);
+  if (properties) {
+    const nextProperties: JsonRecord = {};
+    for (const key of Object.keys(properties)) {
+      nextProperties[key] = stripEnumDescriptions(properties[key]);
+    }
+    result.properties = nextProperties;
+  }
+
+  if (result.items !== undefined) {
+    result.items = stripEnumDescriptions(result.items);
+  }
+
+  return result;
+}
+
 export function shouldCloakAntigravityTool(toolName: string): boolean {
   return (
     toolName.length > 0 && !AG_DEFAULT_TOOLS.has(toolName) && !toolName.endsWith(AG_TOOL_SUFFIX)
@@ -99,9 +133,20 @@ export function cloakAntigravityToolPayload<T extends JsonRecord>(
         const declaration = asRecord(declarationValue);
         if (!declaration) continue;
 
-        const rawName = toToolName(declaration.name);
+        // VSCode Copilot sends `enumDescriptions` in tool parameter schemas, but the
+        // Antigravity API rejects requests carrying that field with HTTP 400. Strip it
+        // recursively before the declaration is forwarded upstream.
+        const stripped: JsonRecord =
+          declaration.parameters !== undefined
+            ? { ...declaration, parameters: stripEnumDescriptions(declaration.parameters) }
+            : declaration;
+        if (stripped !== declaration) {
+          changed = true;
+        }
+
+        const rawName = toToolName(stripped.name);
         if (!rawName) {
-          cloakedDeclarations.push({ ...declaration });
+          cloakedDeclarations.push({ ...stripped });
           continue;
         }
 
@@ -112,7 +157,7 @@ export function cloakAntigravityToolPayload<T extends JsonRecord>(
         }
 
         cloakedDeclarations.push({
-          ...declaration,
+          ...stripped,
           name: cloakedName,
         });
       }

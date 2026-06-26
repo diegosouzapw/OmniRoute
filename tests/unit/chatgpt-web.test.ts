@@ -1119,6 +1119,13 @@ test("Executor MODEL_MAP: dot-form OmniRoute IDs translate to dash-form ChatGPT 
       ["gpt-5.4-thinking-mini", "gpt-5-4-t-mini"],
       ["gpt-5.2-thinking", "gpt-5-2-thinking"],
       ["o3", "o3"],
+      // Regression #4665: these advertised catalog ids were missing from
+      // MODEL_MAP and fell through as their dot-form slug verbatim, which the
+      // ChatGPT backend-api silently rejects → served the default Plus model.
+      ["gpt-5.5", "gpt-5-5"],
+      ["gpt-5.5-pro", "gpt-5-5-pro"],
+      ["gpt-5.4-pro", "gpt-5-4-pro"],
+      ["gpt-5.2-pro", "gpt-5-2-pro"],
     ];
     for (const [omniId, expectedSlug] of cases) {
       m.calls.urls.length = 0;
@@ -1135,6 +1142,45 @@ test("Executor MODEL_MAP: dot-form OmniRoute IDs translate to dash-form ChatGPT 
       const convIdx = m.calls.urls.findIndex((u) => u.endsWith("/backend-api/f/conversation"));
       const body = JSON.parse(m.calls.bodies[convIdx]);
       assert.equal(body.model, expectedSlug, `${omniId} should map to ${expectedSlug}`);
+    }
+  } finally {
+    m.restore();
+  }
+});
+
+test("MODEL_MAP drift guard: every advertised dot-form catalog id resolves to a dash-form backend slug (no verbatim fall-through) (#4665)", async () => {
+  reset();
+  const { getRegistryEntry } = await import("../../open-sse/config/providerRegistry.ts");
+  const ids = (getRegistryEntry("chatgpt-web")?.models || []).map((m) => m.id);
+  // Dot-form ids must never reach the ChatGPT backend verbatim — the backend
+  // only accepts dash-form slugs. (Ids that are already dash-form, e.g.
+  // "gpt-4-5", legitimately pass through unchanged and are exempt.)
+  const dotFormIds = ids.filter((id) => id.includes("."));
+  const m = installMockFetch();
+  try {
+    for (const omniId of dotFormIds) {
+      m.calls.urls.length = 0;
+      m.calls.bodies.length = 0;
+      const executor = new ChatGptWebExecutor();
+      await executor.execute({
+        model: omniId,
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: false,
+        credentials: { apiKey: "test" },
+        signal: AbortSignal.timeout(10_000),
+        log: null,
+      });
+      const convIdx = m.calls.urls.findIndex((u) => u.endsWith("/backend-api/f/conversation"));
+      const body = JSON.parse(m.calls.bodies[convIdx]);
+      assert.ok(
+        !body.model.includes("."),
+        `${omniId} reached the backend as "${body.model}" (still dot-form) — missing MODEL_MAP entry causes silent model substitution`,
+      );
+      assert.notEqual(
+        body.model,
+        omniId,
+        `${omniId} fell through MODEL_MAP verbatim — add a dash-form mapping`,
+      );
     }
   } finally {
     m.restore();

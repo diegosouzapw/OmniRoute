@@ -13,11 +13,20 @@ import {
 } from "./adapters/driverFactory";
 import path from "path";
 import fs from "fs";
-import { resolveDataDir, getLegacyDotDataDir } from "../dataPaths";
+import { resolveWritableDataDir, getLegacyDotDataDir } from "../dataPaths";
 import { runMigrations } from "./migrationRunner";
 import { runDbHealthCheck } from "./healthCheck";
 import { resetAllDbModuleState } from "./stateReset";
 import { parseStoredPayload } from "../logPayloads";
+import { DEFAULT_DATABASE_SETTINGS, type DatabaseSettings } from "@/types/databaseSettings";
+import {
+  applyDatabaseOptimizationSettingsForDb,
+  applyStoredDatabaseOptimizationSettings,
+  getAutoVacuumModeForDb,
+  setAutoVacuumForDb,
+  setCacheSizeForDb,
+  setPageSizeForDb,
+} from "./optimizationSettings";
 import {
   buildArtifactRelativePath,
   writeCallArtifact,
@@ -25,10 +34,22 @@ import {
 } from "../usage/callLogArtifacts";
 import { migrateLegacyEncryptedString } from "./encryption";
 import { invalidateDbCache } from "./readCache";
+import { rowToCamel } from "./caseMapping";
+// Re-exported so existing call sites that pull these helpers off the core module keep working.
+export { toSnakeCase, toCamelCase, objToSnake, rowToCamel, cleanNulls } from "./caseMapping";
+import {
+  ensureProviderConnectionsColumns,
+  ensureUsageHistoryColumns,
+  ensureCallLogsColumns,
+  hasTable,
+  quoteIdentifier,
+  getTableColumns,
+} from "./schemaColumns";
 
 type SqliteDatabase = SqliteAdapter;
 type JsonRecord = Record<string, unknown>;
 type CheckpointMode = "PASSIVE" | "FULL" | "RESTART" | "TRUNCATE";
+type DatabaseOptimizationSettings = DatabaseSettings["optimization"];
 type PreservedTableSnapshot = {
   table: string;
   rowCount: number;
@@ -62,7 +83,7 @@ export const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
 
 // ──────────────── Paths ────────────────
 
-export const DATA_DIR = resolveDataDir({ isCloud });
+export const DATA_DIR = resolveWritableDataDir({ isCloud });
 const LEGACY_DATA_DIR = isCloud ? null : getLegacyDotDataDir();
 export const SQLITE_FILE = isCloud ? null : path.join(DATA_DIR, "storage.sqlite");
 const JSON_DB_FILE = isCloud ? null : path.join(DATA_DIR, "db.json");
@@ -434,76 +455,6 @@ const SCHEMA_SQL = `
   CREATE INDEX IF NOT EXISTS idx_quota_snapshots_created_at ON quota_snapshots(created_at);
 `;
 
-// ──────────────── Column Mapping ────────────────
-
-export function toSnakeCase(str: string): string {
-  return str.replace(/([A-Z])/g, "_$1").toLowerCase();
-}
-
-export function toCamelCase(str: string): string {
-  return str.replace(/_([a-z])/g, (_: string, c: string) => c.toUpperCase());
-}
-
-export function objToSnake(obj: unknown): unknown {
-  if (!obj || typeof obj !== "object") return obj;
-  const result: JsonRecord = {};
-  for (const [k, v] of Object.entries(obj as JsonRecord)) {
-    result[toSnakeCase(k)] = v;
-  }
-  return result;
-}
-
-export function rowToCamel(row: unknown): JsonRecord | null {
-  if (!row) return null;
-  const result: JsonRecord = {};
-  for (const [k, v] of Object.entries(row as JsonRecord)) {
-    const camelKey = toCamelCase(k);
-    if (
-      camelKey === "isActive" ||
-      camelKey === "rateLimitProtection" ||
-      camelKey === "proxyEnabled" ||
-      camelKey === "perKeyProxyEnabled"
-    ) {
-      result[camelKey] = v === 1 || v === true;
-    } else if (camelKey === "providerSpecificData" && typeof v === "string") {
-      try {
-        result[camelKey] = JSON.parse(v);
-      } catch {
-        result[camelKey] = v;
-      }
-    } else if (camelKey.endsWith("Json")) {
-      // Convention: any column with a `_json` suffix is JSON-encoded TEXT.
-      // Surface the parsed object under the friendlier name (key minus the
-      // "Json" suffix) — e.g. quotaWindowThresholdsJson → quotaWindowThresholds.
-      // A NULL/absent column normalizes to `baseKey: null` (not the suffixed
-      // key) so read and write paths expose a consistent shape.
-      const baseKey = camelKey.slice(0, -"Json".length);
-      if (typeof v === "string") {
-        try {
-          result[baseKey] = JSON.parse(v);
-        } catch {
-          result[baseKey] = null;
-        }
-      } else {
-        result[baseKey] = v == null ? null : v;
-      }
-    } else {
-      result[camelKey] = v;
-    }
-  }
-  return result;
-}
-
-export function cleanNulls(obj: unknown): JsonRecord {
-  const result: JsonRecord = {};
-  for (const [k, v] of Object.entries((obj as JsonRecord) || {})) {
-    if (v !== null && v !== undefined) {
-      result[k] = v;
-    }
-  }
-  return result;
-}
-
 // ──────────────── Singleton DB Instance ────────────────
 // Use globalThis to survive Next.js dev HMR module re-evaluation.
 // Module-level `let` resets on every webpack recompile, causing connection leaks.
@@ -528,210 +479,6 @@ function checkpointDb(db: SqliteDatabase, mode: CheckpointMode = "TRUNCATE"): bo
   if (isCloud || isBuildPhase || !SQLITE_FILE) return false;
   db.pragma(`wal_checkpoint(${mode})`);
   return true;
-}
-
-function ensureProviderConnectionsColumns(db: SqliteDatabase) {
-  try {
-    const columns = db.prepare("PRAGMA table_info(provider_connections)").all() as Array<{
-      name?: string;
-    }>;
-    const columnNames = new Set(columns.map((column) => String(column.name ?? "")));
-    if (!columnNames.has("rate_limit_protection")) {
-      db.exec(
-        "ALTER TABLE provider_connections ADD COLUMN rate_limit_protection INTEGER DEFAULT 0"
-      );
-      console.log("[DB] Added provider_connections.rate_limit_protection column");
-    }
-    if (!columnNames.has("last_used_at")) {
-      db.exec("ALTER TABLE provider_connections ADD COLUMN last_used_at TEXT");
-      console.log("[DB] Added provider_connections.last_used_at column");
-    }
-    if (!columnNames.has("group")) {
-      db.exec('ALTER TABLE provider_connections ADD COLUMN "group" TEXT');
-      console.log('[DB] Added provider_connections."group" column');
-    }
-    if (!columnNames.has("max_concurrent")) {
-      db.exec("ALTER TABLE provider_connections ADD COLUMN max_concurrent INTEGER");
-      console.log("[DB] Added provider_connections.max_concurrent column");
-    }
-    if (!columnNames.has("proxy_enabled")) {
-      db.exec(
-        "ALTER TABLE provider_connections ADD COLUMN proxy_enabled INTEGER NOT NULL DEFAULT 1"
-      );
-      console.log("[DB] Added provider_connections.proxy_enabled column");
-    }
-    if (!columnNames.has("per_key_proxy_enabled")) {
-      db.exec(
-        "ALTER TABLE provider_connections ADD COLUMN per_key_proxy_enabled INTEGER NOT NULL DEFAULT 0"
-      );
-      console.log("[DB] Added provider_connections.per_key_proxy_enabled column");
-    }
-    if (!columnNames.has("quota_window_thresholds_json")) {
-      db.exec("ALTER TABLE provider_connections ADD COLUMN quota_window_thresholds_json TEXT");
-      console.log("[DB] Added provider_connections.quota_window_thresholds_json column");
-    }
-    if (!columnNames.has("rate_limit_overrides_json")) {
-      db.exec("ALTER TABLE provider_connections ADD COLUMN rate_limit_overrides_json TEXT");
-      console.log("[DB] Added provider_connections.rate_limit_overrides_json column");
-    }
-    db.exec(
-      "CREATE INDEX IF NOT EXISTS idx_pc_max_concurrent ON provider_connections(provider, max_concurrent)"
-    );
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.warn("[DB] Failed to verify provider_connections schema:", message);
-  }
-}
-
-function ensureUsageHistoryColumns(db: SqliteDatabase) {
-  try {
-    const columns = db.prepare("PRAGMA table_info(usage_history)").all() as Array<{
-      name?: string;
-    }>;
-    const columnNames = new Set(columns.map((column) => String(column.name ?? "")));
-
-    if (!columnNames.has("success")) {
-      db.exec("ALTER TABLE usage_history ADD COLUMN success INTEGER DEFAULT 1");
-      console.log("[DB] Added usage_history.success column");
-    }
-    if (!columnNames.has("latency_ms")) {
-      db.exec("ALTER TABLE usage_history ADD COLUMN latency_ms INTEGER DEFAULT 0");
-      console.log("[DB] Added usage_history.latency_ms column");
-    }
-    if (!columnNames.has("ttft_ms")) {
-      db.exec("ALTER TABLE usage_history ADD COLUMN ttft_ms INTEGER DEFAULT 0");
-      console.log("[DB] Added usage_history.ttft_ms column");
-    }
-    if (!columnNames.has("error_code")) {
-      db.exec("ALTER TABLE usage_history ADD COLUMN error_code TEXT");
-      console.log("[DB] Added usage_history.error_code column");
-    }
-    if (!columnNames.has("service_tier")) {
-      db.exec("ALTER TABLE usage_history ADD COLUMN service_tier TEXT DEFAULT 'standard'");
-      console.log("[DB] Added usage_history.service_tier column");
-    }
-    db.exec("CREATE INDEX IF NOT EXISTS idx_uh_service_tier ON usage_history(service_tier)");
-    if (!columnNames.has("combo_strategy")) {
-      db.exec("ALTER TABLE usage_history ADD COLUMN combo_strategy TEXT DEFAULT 'direct'");
-      console.log("[DB] Added usage_history.combo_strategy column");
-    }
-    db.exec("CREATE INDEX IF NOT EXISTS idx_uh_combo_strategy ON usage_history(combo_strategy)");
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.warn("[DB] Failed to verify usage_history schema:", message);
-  }
-}
-
-function ensureCallLogsColumns(db: SqliteDatabase) {
-  try {
-    const columns = db.prepare("PRAGMA table_info(call_logs)").all() as Array<{
-      name?: string;
-    }>;
-    const columnNames = new Set(columns.map((column) => String(column.name ?? "")));
-
-    if (!columnNames.has("artifact_relpath")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN artifact_relpath TEXT");
-      console.log("[DB] Added call_logs.artifact_relpath column");
-    }
-    if (!columnNames.has("has_pipeline_details")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN has_pipeline_details INTEGER DEFAULT 0");
-      console.log("[DB] Added call_logs.has_pipeline_details column");
-    }
-    if (!columnNames.has("requested_model")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN requested_model TEXT DEFAULT NULL");
-      console.log("[DB] Added call_logs.requested_model column");
-    }
-    if (!columnNames.has("request_type")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN request_type TEXT DEFAULT NULL");
-      console.log("[DB] Added call_logs.request_type column");
-    }
-    if (!columnNames.has("tokens_cache_read")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN tokens_cache_read INTEGER DEFAULT NULL");
-      console.log("[DB] Added call_logs.tokens_cache_read column");
-    }
-    if (!columnNames.has("tokens_cache_creation")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN tokens_cache_creation INTEGER DEFAULT NULL");
-      console.log("[DB] Added call_logs.tokens_cache_creation column");
-    }
-    if (!columnNames.has("tokens_reasoning")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN tokens_reasoning INTEGER DEFAULT NULL");
-      console.log("[DB] Added call_logs.tokens_reasoning column");
-    }
-    if (!columnNames.has("cache_source")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN cache_source TEXT DEFAULT 'upstream'");
-      console.log("[DB] Added call_logs.cache_source column");
-    }
-    if (!columnNames.has("combo_step_id")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN combo_step_id TEXT DEFAULT NULL");
-      console.log("[DB] Added call_logs.combo_step_id column");
-    }
-    if (!columnNames.has("combo_execution_key")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN combo_execution_key TEXT DEFAULT NULL");
-      console.log("[DB] Added call_logs.combo_execution_key column");
-    }
-    if (!columnNames.has("error_summary")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN error_summary TEXT DEFAULT NULL");
-      console.log("[DB] Added call_logs.error_summary column");
-    }
-    if (!columnNames.has("detail_state")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN detail_state TEXT DEFAULT 'none'");
-      console.log("[DB] Added call_logs.detail_state column");
-    }
-    if (!columnNames.has("artifact_size_bytes")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN artifact_size_bytes INTEGER DEFAULT NULL");
-      console.log("[DB] Added call_logs.artifact_size_bytes column");
-    }
-    if (!columnNames.has("artifact_sha256")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN artifact_sha256 TEXT DEFAULT NULL");
-      console.log("[DB] Added call_logs.artifact_sha256 column");
-    }
-    if (!columnNames.has("has_request_body")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN has_request_body INTEGER DEFAULT 0");
-      console.log("[DB] Added call_logs.has_request_body column");
-    }
-    if (!columnNames.has("has_response_body")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN has_response_body INTEGER DEFAULT 0");
-      console.log("[DB] Added call_logs.has_response_body column");
-    }
-    if (!columnNames.has("request_summary")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN request_summary TEXT DEFAULT NULL");
-      console.log("[DB] Added call_logs.request_summary column");
-    }
-
-    db.exec(
-      "CREATE INDEX IF NOT EXISTS idx_call_logs_requested_model ON call_logs(requested_model)"
-    );
-    db.exec("CREATE INDEX IF NOT EXISTS idx_call_logs_request_type ON call_logs(request_type)");
-    db.exec(
-      "CREATE INDEX IF NOT EXISTS idx_cl_combo_target ON call_logs(combo_name, combo_execution_key, timestamp)"
-    );
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.warn("[DB] Failed to verify call_logs schema:", message);
-  }
-}
-
-function hasColumn(db: SqliteDatabase, tableName: string, columnName: string): boolean {
-  const rows = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name?: string }>;
-  return rows.some((row) => row.name === columnName);
-}
-
-function hasTable(db: SqliteDatabase, tableName: string): boolean {
-  return Boolean(
-    db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(tableName)
-  );
-}
-
-function quoteIdentifier(identifier: string): string {
-  return `"${identifier.replace(/"/g, '""')}"`;
-}
-
-function getTableColumns(db: SqliteDatabase, tableName: string): string[] {
-  return (
-    db.prepare(`PRAGMA table_info(${quoteIdentifier(tableName)})`).all() as Array<{ name?: string }>
-  )
-    .map((column) => String(column.name ?? ""))
-    .filter((column) => column.length > 0);
 }
 
 function summarizePreservedTables(tables: PreservedTableSnapshot[]): string {
@@ -1340,7 +1087,7 @@ export function getDbInstance(): SqliteDatabase {
   // contended op can no longer freeze the loop past the host watchdog's 6s liveness probe.
   db.pragma("busy_timeout = 2000");
   db.pragma("synchronous = NORMAL");
-  db.pragma("cache_size = -2048");
+  db.pragma(`cache_size = -${DEFAULT_DATABASE_SETTINGS.optimization.cacheSize}`);
   db.exec(SCHEMA_SQL);
   ensureProviderConnectionsColumns(db);
   ensureUsageHistoryColumns(db);
@@ -1360,6 +1107,8 @@ export function getDbInstance(): SqliteDatabase {
   `);
 
   runMigrations(db, { isNewDb });
+
+  applyStoredDatabaseOptimizationSettings(db);
 
   offloadLegacyCallLogDetails(db);
 
@@ -1731,44 +1480,16 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
 
 // ──────────────── Auto-Vacuum Management ────────────────
 
+export function applyDatabaseOptimizationSettings(settings: DatabaseOptimizationSettings): void {
+  applyDatabaseOptimizationSettingsForDb(getDbInstance(), settings, { applyPersistent: true });
+}
+
 export function setAutoVacuum(mode: "NONE" | "FULL" | "INCREMENTAL"): void {
-  const db = getDbInstance();
-
-  const currentMode = db.pragma("auto_vacuum", { simple: true }) as number;
-  const modeMap: Record<string, number> = {
-    NONE: 0,
-    FULL: 1,
-    INCREMENTAL: 2,
-  };
-
-  const targetMode = modeMap[mode];
-
-  if (currentMode === targetMode) {
-    console.log(`[DB] auto_vacuum already set to ${mode}`);
-    return;
-  }
-
-  console.log(`[DB] Changing auto_vacuum from ${currentMode} to ${mode} (${targetMode})`);
-
-  db.pragma(`auto_vacuum = ${targetMode}`);
-
-  db.exec("VACUUM");
-
-  const newMode = db.pragma("auto_vacuum", { simple: true }) as number;
-  console.log(`[DB] auto_vacuum changed to ${newMode}`);
+  setAutoVacuumForDb(getDbInstance(), mode);
 }
 
 export function getAutoVacuumMode(): "NONE" | "FULL" | "INCREMENTAL" {
-  const db = getDbInstance();
-  const mode = db.pragma("auto_vacuum", { simple: true }) as number;
-
-  const modeMap: Record<number, "NONE" | "FULL" | "INCREMENTAL"> = {
-    0: "NONE",
-    1: "FULL",
-    2: "INCREMENTAL",
-  };
-
-  return modeMap[mode] || "NONE";
+  return getAutoVacuumModeForDb(getDbInstance());
 }
 
 export function runManualVacuum(): { success: boolean; duration: number; error?: string } {
@@ -1790,35 +1511,9 @@ export function runManualVacuum(): { success: boolean; duration: number; error?:
 }
 
 export function setPageSize(pageSize: number): void {
-  const db = getDbInstance();
-  const currentPageSize = db.pragma("page_size", { simple: true }) as number;
-
-  if (currentPageSize === pageSize) {
-    console.log(`[DB] page_size already set to ${pageSize}`);
-    return;
-  }
-
-  console.log(`[DB] Changing page_size from ${currentPageSize} to ${pageSize}`);
-  db.pragma(`page_size = ${pageSize}`);
-  db.exec("VACUUM");
-
-  const newPageSize = db.pragma("page_size", { simple: true }) as number;
-  console.log(`[DB] page_size changed to ${newPageSize}`);
+  setPageSizeForDb(getDbInstance(), pageSize);
 }
 
 export function setCacheSize(cacheSizeKb: number): void {
-  const db = getDbInstance();
-  const currentCacheSize = db.pragma("cache_size", { simple: true }) as number;
-  const targetCacheSize = -cacheSizeKb;
-
-  if (currentCacheSize === targetCacheSize) {
-    console.log(`[DB] cache_size already set to ${cacheSizeKb}KB`);
-    return;
-  }
-
-  console.log(`[DB] Changing cache_size from ${Math.abs(currentCacheSize)}KB to ${cacheSizeKb}KB`);
-  db.pragma(`cache_size = ${targetCacheSize}`);
-
-  const newCacheSize = db.pragma("cache_size", { simple: true }) as number;
-  console.log(`[DB] cache_size changed to ${Math.abs(newCacheSize)}KB`);
+  setCacheSizeForDb(getDbInstance(), cacheSizeKb);
 }

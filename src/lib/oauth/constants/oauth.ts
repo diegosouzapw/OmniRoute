@@ -131,6 +131,19 @@ export const QODER_CONFIG = {
   },
 };
 
+// CodeBuddy CN (Tencent — copilot.tencent.com) OAuth Configuration
+// (Custom Device-Auth Flow: POST stateUrl → open authUrl → GET pollUrl?state=).
+// No client_id/secret — the upstream CLI ships none.
+export const CODEBUDDY_CN_CONFIG = {
+  baseUrl: "https://copilot.tencent.com",
+  stateUrl: "https://copilot.tencent.com/v2/plugin/auth/state",
+  tokenUrl: "https://copilot.tencent.com/v2/plugin/auth/token",
+  refreshUrl: "https://copilot.tencent.com/v2/plugin/auth/token/refresh",
+  userAgent: "CLI/2.63.2 CodeBuddy/2.63.2",
+  platform: "CLI",
+  pollInterval: 5000,
+};
+
 // Kimi Coding OAuth Configuration (Device Code Flow)
 export const KIMI_CODING_CONFIG = {
   clientId: resolvePublicCred("kimi_id", "KIMI_CODING_OAUTH_CLIENT_ID"),
@@ -261,6 +274,22 @@ export const GITLAB_DUO_CONFIG = {
   scope: "ai_features read_user",
   codeChallengeMethod: "S256",
 };
+
+// AWS region allowlist — prevents SSRF via region injection into upstream URLs
+// (GHSA-6mwv-4mrm-5p3m). Region values flow user-supplied through the kiro OAuth
+// import surfaces (request body, providerSpecificData) and are interpolated into
+// URLs like `https://oidc.${region}.amazonaws.com/...`. Without this guard, a
+// region like "127.0.0.1" or "evil.com" would redirect the proxy's outbound
+// fetch to an attacker-controlled host. Canonical AWS region shape only:
+// two letters, dash, one-or-more letters, dash, one-or-two digits.
+export const AWS_REGION_PATTERN = /^[a-z]{2}-[a-z]+-\d{1,2}$/;
+
+export function assertValidAwsRegion(region: string): string {
+  if (typeof region !== "string" || !AWS_REGION_PATTERN.test(region)) {
+    throw new Error("Invalid region");
+  }
+  return region;
+}
 
 // Kiro OAuth Configuration
 // Supports multiple auth methods:
@@ -440,4 +469,5 @@ export const PROVIDERS = {
   WINDSURF: "windsurf",
   DEVIN_CLI: "devin-cli",
   TRAE: "trae",
+  CODEBUDDY_CN: "codebuddy-cn",
 };

@@ -102,8 +102,12 @@ export function claudeToOpenAIResponse(chunk, state) {
 
     case "content_block_stop": {
       if (state.inThinkingBlock && chunk.index === state.currentBlockIndex) {
-        // Thinking block closed — no additional content needed;
-        // reasoning_content chunks have already been streamed
+        // Emit explicit close marker so clients that scan content for `</think>`
+        // (Claude Code, Cursor, etc.) know the thinking section ended; without
+        // it the UI stays stuck on the "thinking" indicator after the upstream
+        // stream completes. Ported from decolua/9router#454. `reasoning_content`
+        // consumers are unaffected — they already saw the streamed deltas above.
+        results.push(createChunk(state, { content: "</think>" }));
         state.inThinkingBlock = false;
       }
       state.textBlockStarted = false;
