@@ -206,11 +206,8 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
     if (!Array.isArray(content) || content.length === 0) return "empty_choices";
 
     const hasOutput = content.some((block: Record<string, unknown>) => {
-      if (
-        block.type === "text" &&
-        typeof block.text === "string" &&
-        (block.text as string).length > 0
-      )
+      if (block === null || typeof block !== "object") return false;
+      if (block.type === "text" && typeof block.text === "string" && block.text.length > 0)
         return true;
       if (block.type === "tool_use") return true;
       if (block.type === "tool_result") return true;
