@@ -215,6 +215,18 @@ test("detectMalformedNonStream returns 'empty_choices' for Claude message with e
   assert.equal(detectMalformedNonStream(body), "empty_choices");
 });
 
+test("detectMalformedNonStream returns 'empty_choices' for Claude message with (empty response) placeholder", () => {
+  // convertOpenAINonStreamingToClaude substitutes this placeholder for empty
+  // upstream content; it must still be treated as malformed.
+  const body = {
+    type: "message",
+    role: "assistant",
+    content: [{ type: "text", text: "(empty response)" }],
+    stop_reason: "end_turn",
+  };
+  assert.equal(detectMalformedNonStream(body), "empty_choices");
+});
+
 // ── (d) no stack trace leakage ───────────────────────────────────────────────
 
 test("synthOpenAIErrorChunk message does NOT contain stack trace path", () => {

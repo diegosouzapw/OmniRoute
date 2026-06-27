@@ -186,7 +186,17 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
       content.some((block) => {
         if (!block || typeof block !== "object") return false;
         const b = block as Record<string, unknown>;
-        if (b.type === "text") return typeof b.text === "string" && (b.text as string).length > 0;
+        if (b.type === "text") {
+          // convertOpenAINonStreamingToClaude emits "(empty response)" as a
+          // placeholder when the upstream produced no content; treat it as
+          // empty so a genuinely empty completion still trips the guard
+          // (parity with the OpenAI `content:""` path).
+          return (
+            typeof b.text === "string" &&
+            (b.text as string).length > 0 &&
+            b.text !== "(empty response)"
+          );
+        }
         if (b.type === "thinking")
           return typeof b.thinking === "string" && (b.thinking as string).length > 0;
         if (b.type === "tool_use")
