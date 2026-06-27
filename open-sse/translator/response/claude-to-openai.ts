@@ -76,6 +76,14 @@ export function claudeToOpenAIResponse(chunk, state) {
     case "content_block_delta": {
       const delta = chunk.delta;
       if (delta?.type === "text_delta" && delta.text) {
+        // Flush the deferred </think> close marker before the first text delta so
+        // clients like Claude Code / Cursor (that scan content for </think>) see it
+        // immediately before the assistant reply begins — but NOT in tool-use streams
+        // where no text_delta ever arrives (#5123).
+        if (state.pendingThinkClose) {
+          results.push(createChunk(state, { content: "</think>" }));
+          state.pendingThinkClose = false;
+        }
         results.push(createChunk(state, { content: delta.text }));
       } else if (delta?.type === "thinking_delta" && delta.thinking) {
         // Map Claude thinking_delta → OpenAI reasoning_content
@@ -102,12 +110,15 @@ export function claudeToOpenAIResponse(chunk, state) {
 
     case "content_block_stop": {
       if (state.inThinkingBlock && chunk.index === state.currentBlockIndex) {
-        // Emit explicit close marker so clients that scan content for `</think>`
-        // (Claude Code, Cursor, etc.) know the thinking section ended; without
-        // it the UI stays stuck on the "thinking" indicator after the upstream
-        // stream completes. Ported from decolua/9router#454. `reasoning_content`
-        // consumers are unaffected — they already saw the streamed deltas above.
-        results.push(createChunk(state, { content: "</think>" }));
+        // Defer the </think> close marker instead of emitting immediately.
+        // If the next block is tool_use there will be no text_delta, so the
+        // marker would appear as a spurious assistant text chunk before
+        // tool_calls, corrupting OpenAI-compatible clients (#5123).
+        // The marker is flushed in the text_delta branch (for pure-text
+        // thinking responses — preserving the #4633 / decolua/9router#454
+        // behavior) or in the message_delta finish path when no tool_calls
+        // were collected.
+        state.pendingThinkClose = true;
         state.inThinkingBlock = false;
       }
       state.textBlockStarted = false;
@@ -178,6 +189,15 @@ export function claudeToOpenAIResponse(chunk, state) {
       }
 
       if (chunk.delta?.stop_reason) {
+        // Flush any deferred </think> close marker now that we know the stream
+        // is finishing. Only emit when there are no tool_calls — if tool_calls
+        // were collected the marker must stay suppressed (#5123). Text-based
+        // responses that had no text_delta (edge case: thinking-only with
+        // immediate stop) still receive the marker here.
+        if (state.pendingThinkClose && state.toolCalls.size === 0) {
+          results.push(createChunk(state, { content: "</think>" }));
+          state.pendingThinkClose = false;
+        }
         state.finishReason = convertStopReason(chunk.delta.stop_reason);
         const finalChunk: {
           id: string;
