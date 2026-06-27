@@ -5,8 +5,8 @@ import type {
   CompressionResult,
   CompressionStats,
 } from "./types.ts";
-import { extractTextContent } from "./messageContent.ts";
-import { checkFidelity, type FidelityGateConfig } from "./fidelityGate.ts";
+import { type FidelityGateConfig } from "./fidelityGate.ts";
+import { gateAdvance } from "./fidelityGateStep.ts";
 import type { CompressionEngineApplyOptions } from "./engines/types.ts";
 import { applyLiteCompression } from "./lite.ts";
 import { cavemanCompress } from "./caveman.ts";
@@ -585,7 +585,7 @@ function reportEngineStep(
 }
 
 /** Accumulates per-step telemetry across a stacked run (shared sync/async). */
-interface StackAccumulator {
+export interface StackAccumulator {
   techniques: Set<string>;
   rules: Set<string>;
   breakdown: NonNullable<CompressionStats["engineBreakdown"]>;
@@ -648,41 +648,6 @@ function decideStep(result: CompressionResult, bailout: BailoutConfig): { advanc
   const gain = result.stats?.savingsPercent ?? 0;
   if (gain < minGain) return { advance: false };
   return { advance: true };
-}
-
-function bodyToText(body: Record<string, unknown>): string {
-  const messages = body.messages;
-  if (!Array.isArray(messages)) return "";
-  return messages.map((m) => extractTextContent((m as { content?: unknown }).content as never)).join("\n");
-}
-
-/**
- * Fidelity gate (opt-in, independent of TV1). Called at each advance point AFTER mergeStackStep
- * pushed the step's breakdown entry. Off → zero-cost `return true` (byte-identical legacy). On a
- * fidelity failure it marks the just-pushed breakdown entry rejected (no advance) and returns false.
- */
-function gateAdvance(
-  result: CompressionResult,
-  inputBody: Record<string, unknown>,
-  fidelityGate: FidelityGateConfig | undefined,
-  acc: StackAccumulator
-): boolean {
-  if (!fidelityGate?.enabled) return true;
-  const verdict = checkFidelity(bodyToText(inputBody), bodyToText(result.body), fidelityGate);
-  if (verdict.passed) return true;
-  // mergeStackStep only pushed a breakdown entry when result.stats exists; only then is
-  // acc.breakdown's last entry THIS step's (else it would be the prior engine's — don't touch it).
-  if (result.stats) {
-    const last = acc.breakdown[acc.breakdown.length - 1];
-    if (last) {
-      last.rejected = true;
-      last.rejectReason = verdict.detail ?? verdict.failedInvariant;
-      last.compressedTokens = last.originalTokens;
-      last.savingsPercent = 0;
-    }
-  }
-  acc.fallbackApplied = true;
-  return false;
 }
 
 /** Folds one engine result into the accumulator (telemetry + breakdown entry). */
