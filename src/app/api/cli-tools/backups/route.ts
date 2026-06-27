@@ -6,6 +6,7 @@ import { listBackups, restoreBackup, deleteBackup } from "@/shared/services/back
 import { ensureCliConfigWriteAllowed } from "@/shared/services/cliRuntime";
 import { cliBackupMutationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const VALID_TOOLS = ["claude", "codex", "droid", "openclaw", "cline", "kilo", "qwen"];
 
@@ -85,7 +86,11 @@ export async function POST(request) {
   } catch (error) {
     console.log("Error restoring backup:", error.message);
     return NextResponse.json(
-      { error: error.message || "Failed to restore backup" },
+      {
+        error:
+          sanitizeErrorMessage(error instanceof Error ? error.message : String(error)) ||
+          "Failed to restore backup",
+      },
       { status: 500 }
     );
   }

@@ -43,13 +43,6 @@ export const KNOWN_MISSING_ERROR_HELPER = new Set([
   // --- original open-sse/executors + handlers scope (pre-6A.8) ---
   // --- 6A.8 expanded scope: src/app/api/**/route.ts pre-existing violations ---
   // TODO(6A.8): pre-existing, triage — route through buildErrorBody()/sanitizeErrorMessage()
-  "src/app/api/cli-tools/backups/route.ts",
-  "src/app/api/cli-tools/guide-settings/[toolId]/route.ts",
-  "src/app/api/logs/export/route.ts",
-  "src/app/api/models/catalog/route.ts",
-  "src/app/api/providers/test-batch/route.ts",
-  "src/app/api/settings/import-json/route.ts",
-  "src/app/api/usage/proxy-logs/route.ts",
 ]);
 
 // Import specifiers that count as "uses the error helper" (path ends in utils/error).
@@ -136,9 +129,7 @@ function forwardsRawError(source) {
     if (m && !/sanitize/i.test(line)) tainted.add(m[1]);
   }
   const taintedUse =
-    tainted.size > 0
-      ? new RegExp(String.raw`\b(?:${[...tainted].join("|")})\b`)
-      : null;
+    tainted.size > 0 ? new RegExp(String.raw`\b(?:${[...tainted].join("|")})\b`) : null;
 
   // Pass 2: scan for leak lines.
   for (let i = 0; i < lines.length; i++) {

@@ -35,10 +35,7 @@ export type PersistAttemptLogsContext = {
   model: string | null | undefined;
   skillRequestId: string;
   detailedLoggingEnabled: boolean;
-  reqLogger:
-    | { getPipelinePayloads?: () => Record<string, unknown> | undefined }
-    | null
-    | undefined;
+  reqLogger: { getPipelinePayloads?: () => Record<string, unknown> | undefined } | null | undefined;
   pendingRequestId: unknown;
   clientRawRequest: { endpoint?: string } | null | undefined;
   requestedModel: unknown;
@@ -54,6 +51,26 @@ export type PersistAttemptLogsContext = {
   apiKeyInfo: { id?: string | null; name?: string | null } | null | undefined;
   noLogEnabled: unknown;
 };
+
+function toConnectionId(value: unknown): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function buildAccountRotationMeta(
+  provider: string | null | undefined,
+  initialConnectionId: string | null,
+  finalConnectionId: string | null
+) {
+  if (provider !== "codex" || !initialConnectionId || !finalConnectionId) return null;
+  if (initialConnectionId === finalConnectionId) return null;
+
+  return {
+    codexAccountRotation: {
+      initialConnectionId,
+      finalConnectionId,
+    },
+  };
+}
 
 export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAttemptLogsContext) {
   const {
@@ -90,20 +107,27 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     apiKeyInfo,
     noLogEnabled,
   } = ctx;
+  const initialConnectionId = toConnectionId(connectionId);
+  const finalConnectionId = toConnectionId(credentials?.connectionId) || initialConnectionId;
+  const accountRotationMeta = buildAccountRotationMeta(
+    provider,
+    initialConnectionId,
+    finalConnectionId
+  );
 
   const providerWarnings = extractProviderWarnings(providerResponse, clientResponse, responseBody);
   if (providerWarnings.length > 0) {
     logAuditEvent({
       action: "provider.warning",
       actor: "system",
-      target: [provider, connectionId].filter(Boolean).join(":") || provider || model,
+      target: [provider, finalConnectionId].filter(Boolean).join(":") || provider || model,
       resourceType: "provider_warning",
       status: "warning",
       requestId: skillRequestId,
       details: {
         provider,
         model,
-        connectionId,
+        connectionId: finalConnectionId,
         httpStatus: status,
         warnings: providerWarnings,
       },
@@ -142,16 +166,18 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     model,
     requestedModel,
     provider,
-    connectionId: connectionId || credentials?.connectionId || undefined,
+    connectionId: finalConnectionId || undefined,
     duration: Date.now() - startTime,
     tokens: tokens || {},
     requestBody: cloneBoundedChatLogPayload(
       attachLogMeta(truncateForLog(body as Record<string, unknown>), {
+        ...accountRotationMeta,
         claudePromptCache: claudeCacheMeta,
       })
     ),
     responseBody: cloneBoundedChatLogPayload(
       attachLogMeta(truncateForLog(responseBody as Record<string, unknown>), {
+        ...accountRotationMeta,
         claudePromptCache: claudeCacheMeta
           ? {
               applied: claudeCacheMeta.applied,

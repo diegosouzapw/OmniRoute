@@ -102,6 +102,30 @@ test("detectMalformedNonStream returns null for valid chat completion", () => {
   assert.equal(detectMalformedNonStream(body), null);
 });
 
+test("detectMalformedNonStream returns null for a valid Claude-native message (#4942 regression)", () => {
+  const body = {
+    type: "message",
+    role: "assistant",
+    content: [{ type: "text", text: "Preserved" }],
+    stop_reason: "end_turn",
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream returns 'empty_choices' for a Claude-native message with no text", () => {
+  const body = { type: "message", role: "assistant", content: [{ type: "text", text: "" }] };
+  assert.equal(detectMalformedNonStream(body), "empty_choices");
+});
+
+test("detectMalformedNonStream returns null for a Claude-native message carrying a tool_use block", () => {
+  const body = {
+    type: "message",
+    role: "assistant",
+    content: [{ type: "tool_use", id: "tu_1", name: "search", input: {} }],
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
 test("detectMalformedNonStream returns null when tool_calls present", () => {
   const body = {
     choices: [

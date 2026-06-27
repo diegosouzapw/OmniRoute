@@ -282,6 +282,35 @@ test("sanitizeResponsesApiResponse converts chat completions tool calls into Res
   assert.equal((sanitized as any).usage.output_tokens_details.reasoning_tokens, 2);
 });
 
+test("sanitizeResponsesApiResponse synthesizes an output[] message from output_text-only bodies (#4942 regression)", () => {
+  const sanitized = sanitizeResponsesApiResponse({
+    object: "response",
+    status: "completed",
+    model: "lmstudio/local",
+    output_text: "  I prefer TypeScript.  ",
+  }) as any;
+
+  assert.equal(sanitized.object, "response");
+  // output[] must be synthesized (was dropped before the fix → response flagged malformed)
+  assert.equal(sanitized.output.length, 1);
+  assert.equal(sanitized.output[0].type, "message");
+  assert.equal(sanitized.output[0].role, "assistant");
+  assert.equal(sanitized.output[0].content[0].type, "output_text");
+  assert.equal(sanitized.output[0].content[0].text, "I prefer TypeScript.");
+  // and output_text is re-derived (trimmed) from the synthesized item
+  assert.equal(sanitized.output_text, "I prefer TypeScript.");
+});
+
+test("sanitizeResponsesApiResponse leaves output[] empty when output_text is blank", () => {
+  const sanitized = sanitizeResponsesApiResponse({
+    object: "response",
+    status: "completed",
+    output_text: "   ",
+  }) as any;
+  assert.equal(sanitized.output.length, 0);
+  assert.equal(sanitized.output_text, undefined);
+});
+
 test("sanitizeResponsesApiResponse preserves native Responses payloads and usage details", () => {
   const sanitized = sanitizeResponsesApiResponse({
     id: "resp_native",
@@ -324,7 +353,7 @@ test("sanitizeResponsesApiResponse preserves native Responses payloads and usage
   assert.equal((sanitized as any).usage.output_tokens_details.reasoning_tokens, 3);
 });
 
-test("sanitizeStreamingChunk keeps only safe chunk fields and maps reasoning aliases", () => {
+test("sanitizeStreamingChunk keeps only safe chunk fields and preserves readable reasoning aliases", () => {
   const sanitized = sanitizeStreamingChunk({
     id: "chunk_1",
     object: "chat.completion.chunk",
@@ -359,7 +388,7 @@ test("sanitizeStreamingChunk keeps only safe chunk fields and maps reasoning ali
         delta: {
           role: "assistant",
           content: "Line 1\n\nLine 2",
-          reasoning_content: "stream reasoning",
+          reasoning: "stream reasoning",
           tool_calls: [{ id: "call_1" }],
         },
         finish_reason: "stop",
@@ -387,9 +416,28 @@ test("sanitizeStreamingChunk converts reasoning_details arrays in deltas", () =>
   });
 
   assert.equal((sanitized as any).choices[0].delta.reasoning_content, "alphabeta");
+  assert.deepEqual((sanitized as any).choices[0].delta.reasoning_details, [
+    { type: "reasoning.text", text: "alpha" },
+    { content: "beta" },
+  ]);
 });
 
-test("sanitizeStreamingChunk preserves Copilot reasoning_text deltas", () => {
+test("sanitizeStreamingChunk preserves client-readable reasoning deltas", () => {
+  const sanitized = sanitizeStreamingChunk({
+    choices: [
+      {
+        delta: {
+          reasoning: "readable reasoning",
+        },
+      },
+    ],
+  });
+
+  assert.equal((sanitized as any).choices[0].delta.reasoning, "readable reasoning");
+  assert.equal((sanitized as any).choices[0].delta.reasoning_content, undefined);
+});
+
+test("sanitizeStreamingChunk preserves and mirrors Copilot reasoning_text deltas", () => {
   const sanitized = sanitizeStreamingChunk({
     choices: [
       {
@@ -401,6 +449,7 @@ test("sanitizeStreamingChunk preserves Copilot reasoning_text deltas", () => {
   });
 
   assert.equal((sanitized as any).choices[0].delta.reasoning_text, "copilot reasoning");
+  assert.equal((sanitized as any).choices[0].delta.reasoning_content, "copilot reasoning");
 });
 
 test("sanitizeStreamingChunk strips commentary content from Responses completed events", () => {

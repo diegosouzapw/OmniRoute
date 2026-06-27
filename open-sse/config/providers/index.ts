@@ -170,6 +170,7 @@ import { tokenrouterProvider } from "./registry/tokenrouter/index.ts";
 import { grok_cliProvider } from "./registry/grok-cli/index.ts";
 import { codebuddy_cnProvider } from "./registry/codebuddy-cn/index.ts";
 import { pioneerProvider } from "./registry/pioneer/index.ts";
+import { zenmux_freeProvider } from "./registry/zenmux-free/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -342,4 +343,5 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "grok-cli": grok_cliProvider,
   "codebuddy-cn": codebuddy_cnProvider,
   pioneer: pioneerProvider,
+  "zenmux-free": zenmux_freeProvider,
 };

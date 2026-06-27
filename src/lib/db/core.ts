@@ -1278,8 +1278,8 @@ export async function ensureDbInitialized(): Promise<void> {
     return;
   }
 
-  // Nenhum driver síncrono — pré-inicializar sql.js (WASM, async)
-  console.warn("[DB] Pré-inicializando sql.js WASM (drivers síncronos indisponíveis)...");
+  // No synchronous driver available — pre-initialize sql.js (WASM, async)
+  console.warn("[DB] Pre-initializing sql.js WASM (synchronous drivers unavailable)...");
   await preInitSqlJs(SQLITE_FILE);
   // Agora getSqlJsAdapter() retornará o adapter, e getDbInstance() vai usá-lo
   getDbInstance();

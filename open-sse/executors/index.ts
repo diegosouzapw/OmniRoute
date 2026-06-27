@@ -54,6 +54,7 @@ import { LMArenaExecutor } from "./lmarena.ts";
 import { MimocodeExecutor } from "./mimocode.ts";
 import { GrokCliExecutor } from "./grok-cli.ts";
 import { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
+import { ZenmuxFreeExecutor } from "./zenmux-free.ts";
 
 
 const executors = {
@@ -155,6 +156,8 @@ const executors = {
   gc: new GrokCliExecutor(), // Alias
   "codebuddy-cn": new CodeBuddyCnExecutor(),
   cbcn: new CodeBuddyCnExecutor(), // Alias for codebuddy-cn
+  "zenmux-free": new ZenmuxFreeExecutor(),
+  zmf: new ZenmuxFreeExecutor(), // Alias for zenmux-free
 };
 
 const defaultCache = new Map();
@@ -217,3 +220,4 @@ export { LMArenaExecutor } from "./lmarena.ts";
 export { MimocodeExecutor } from "./mimocode.ts";
 export { GrokCliExecutor } from "./grok-cli.ts";
 export { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
+export { ZenmuxFreeExecutor } from "./zenmux-free.ts";
