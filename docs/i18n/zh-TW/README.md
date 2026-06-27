@@ -70,7 +70,7 @@
 <b>🌐 提供 41+ 種語言</b>
 <table>
   <tr>
-    <td align="center"><a href="../../README.md">🇺🇸</a></td>
+    <td align="center"><a href="../../../README.md">🇺🇸</a></td>
     <td align="center"><a href="../pt-BR/README.md">🇧🇷</a></td>
     <td align="center"><a href="../es/README.md">🇪🇸</a></td>
     <td align="center"><a href="../fr/README.md">🇫🇷</a></td>
