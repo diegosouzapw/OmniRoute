@@ -69,6 +69,18 @@ type ResilienceResponse = {
   providerCooldown: ProviderCooldownSettings;
 };
 
+function toResilienceResponse(json: ResilienceResponse): ResilienceResponse {
+  return {
+    requestQueue: json.requestQueue,
+    connectionCooldown: json.connectionCooldown,
+    providerBreaker: json.providerBreaker,
+    waitForCooldown: json.waitForCooldown,
+    comboCooldownWait: json.comboCooldownWait,
+    quotaShareConcurrencyLimit: json.quotaShareConcurrencyLimit,
+    providerCooldown: json.providerCooldown,
+  };
+}
+
 function formatMs(value: number | null | undefined) {
   if (typeof value !== "number") return "—";
   return `${value}ms`;
@@ -1058,13 +1070,7 @@ export default function ResilienceTab() {
         }
         const json = await response.json();
         if (!mounted) return;
-        setData({
-          requestQueue: json.requestQueue,
-          connectionCooldown: json.connectionCooldown,
-          providerBreaker: json.providerBreaker,
-          waitForCooldown: json.waitForCooldown,
-          providerCooldown: json.providerCooldown,
-        });
+        setData(toResilienceResponse(json));
       } catch (error) {
         notify.error(
           error instanceof Error
@@ -1094,13 +1100,7 @@ export default function ResilienceTab() {
       if (!response.ok) {
         throw new Error(json?.error?.message || json?.error || `HTTP ${response.status}`);
       }
-      setData({
-        requestQueue: json.requestQueue,
-        connectionCooldown: json.connectionCooldown,
-        providerBreaker: json.providerBreaker,
-        waitForCooldown: json.waitForCooldown,
-        providerCooldown: json.providerCooldown,
-      });
+      setData(toResilienceResponse(json));
       notify.success(tx("savedSuccessfully", "Resilience settings updated."));
     } catch (error) {
       notify.error(
