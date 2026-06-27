@@ -39,6 +39,12 @@ test("extractThinkingFromContent does NOT treat <thoughtful> as a reasoning tag"
   assert.equal(parsed.thinking, null);
 });
 
+test("extractThinkingFromContent handles closing-only reasoning before content tag", () => {
+  const parsed = extractThinkingFromContent("planning\n</thinking>\n<content>visible</content>");
+  assert.equal(parsed.content, "<content>visible</content>");
+  assert.equal(parsed.thinking, "planning");
+});
+
 test("sanitizeOpenAIResponse strips non-standard fields and preserves required top-level fields", () => {
   const sanitized = sanitizeOpenAIResponse({
     id: "chatcmpl_existing",
@@ -139,7 +145,7 @@ test("sanitizeOpenAIResponse maps Claude-style usage fields and strips extras", 
   });
 });
 
-test("sanitizeOpenAIResponse strips reasoning_details-derived reasoning_content when visible text exists", () => {
+test("sanitizeOpenAIResponse preserves reasoning_details-derived reasoning_content with visible text", () => {
   const sanitized = sanitizeOpenAIResponse({
     model: "openrouter/model",
     choices: [
@@ -150,14 +156,18 @@ test("sanitizeOpenAIResponse strips reasoning_details-derived reasoning_content 
           reasoning_details: [
             { type: "reasoning.text", text: "first " },
             { type: "thinking", content: "second" },
-            { type: "other", text: "ignored" },
           ],
         },
       },
     ],
   });
 
-  assert.equal((sanitized as any).choices[0].message.reasoning_content, undefined);
+  assert.equal((sanitized as any).choices[0].message.content, "Visible");
+  assert.equal((sanitized as any).choices[0].message.reasoning_content, "first second");
+  assert.deepEqual((sanitized as any).choices[0].message.reasoning_details, [
+    { type: "reasoning.text", text: "first " },
+    { type: "thinking", content: "second" },
+  ]);
 });
 
 test("sanitizeOpenAIResponse preserves DeepSeek V4 reasoning_content with visible text", () => {
@@ -198,7 +208,7 @@ test("sanitizeOpenAIResponse preserves DeepSeek V4 reasoning_details with visibl
   assert.equal((sanitized as any).choices[0].message.reasoning_content, "first second");
 });
 
-test("sanitizeOpenAIResponse still strips non-DeepSeek reasoning_content with visible text", () => {
+test("sanitizeOpenAIResponse preserves non-DeepSeek reasoning_content with visible text", () => {
   const sanitized = sanitizeOpenAIResponse({
     model: "o3-mini",
     choices: [
@@ -212,7 +222,31 @@ test("sanitizeOpenAIResponse still strips non-DeepSeek reasoning_content with vi
     ],
   });
 
+  assert.equal((sanitized as any).choices[0].message.content, "Visible answer");
+  assert.equal((sanitized as any).choices[0].message.reasoning_content, "OpenAI reasoning");
+});
+
+test("sanitizeOpenAIResponse preserves OpenRouter native reasoning and signatures", () => {
+  const sanitized = sanitizeOpenAIResponse({
+    model: "moonshotai/kimi-k2.6",
+    choices: [
+      {
+        message: {
+          role: "assistant",
+          content: "<thinking>tag-derived</thinking><content>Visible answer</content>",
+          reasoning: "provider native reasoning",
+          reasoning_details: [{ type: "reasoning.encrypted", data: "sig" }],
+        },
+      },
+    ],
+  });
+
   assert.equal((sanitized as any).choices[0].message.reasoning_content, undefined);
+  assert.equal((sanitized as any).choices[0].message.reasoning, "provider native reasoning");
+  assert.deepEqual((sanitized as any).choices[0].message.reasoning_details, [
+    { type: "reasoning.encrypted", data: "sig" },
+  ]);
+  assert.equal((sanitized as any).choices[0].message.content, "<content>Visible answer</content>");
 });
 
 test("sanitizeOpenAIResponse keeps reasoning_details-derived reasoning_content for reasoning-only messages", () => {
@@ -535,9 +569,7 @@ test("sanitizeOpenAIResponse preserves reasoning_content when tool_calls are pre
   assert.equal(message.tool_calls[0].id, "call_search_1");
 });
 
-test("sanitizeOpenAIResponse still strips reasoning_content when no tool_calls exist", () => {
-  // When there are no tool_calls, the original behavior should remain:
-  // reasoning_content is stripped to avoid client rendering issues.
+test("sanitizeOpenAIResponse preserves reasoning_content when no tool_calls exist", () => {
   const sanitized = sanitizeOpenAIResponse({
     model: "gpt-4.1",
     choices: [
@@ -553,7 +585,7 @@ test("sanitizeOpenAIResponse still strips reasoning_content when no tool_calls e
 
   const message = (sanitized as any).choices[0].message;
   assert.equal(message.content, "Hello world");
-  assert.equal(message.reasoning_content, undefined);
+  assert.equal(message.reasoning_content, "Some internal reasoning");
 });
 
 test("sanitizeOpenAIResponse preserves reasoning_content when legacy function_call is present", () => {
