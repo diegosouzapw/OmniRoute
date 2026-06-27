@@ -95,7 +95,7 @@ function convertMessages(messages: unknown): { system: string; messages: unknown
     }
 
     if (role === "user") {
-      out.push({ role: "user", content: message.content ?? "" });
+      out.push({ role: "user", content: normalizeContentText(message.content) });
       continue;
     }
 
