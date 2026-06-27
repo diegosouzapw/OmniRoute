@@ -10,6 +10,7 @@
  *   - aggregated xAI response.completed → OpenAI ChatCompletion JSON
  *   - per-event xAI SSE → OpenAI ChatCompletion stream chunks
  */
+import { normalizeXaiReasoningEffort } from "../thinking.ts";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -192,8 +193,7 @@ export function chatRequestToXaiResponses(req: OpenAiChatRequest): XaiResponsesR
       input.push({
         type: "function_call_output",
         call_id: m.tool_call_id,
-        output:
-          typeof m.content === "string" ? m.content : JSON.stringify(m.content ?? ""),
+        output: typeof m.content === "string" ? m.content : JSON.stringify(m.content ?? ""),
       });
       continue;
     }
@@ -229,7 +229,10 @@ export function chatRequestToXaiResponses(req: OpenAiChatRequest): XaiResponsesR
   if (req.response_format) out.text = { format: req.response_format };
   if (req.parallel_tool_calls != null) out.parallel_tool_calls = req.parallel_tool_calls;
   if (req.seed != null) out.seed = req.seed;
-  if (req.reasoning_effort) out.reasoning = { effort: req.reasoning_effort };
+  if (req.reasoning_effort) {
+    const effort = normalizeXaiReasoningEffort(req.reasoning_effort);
+    if (effort) out.reasoning = { effort };
+  }
   if (req.reasoning) out.reasoning = req.reasoning;
   if (req.tool_choice) out.tool_choice = req.tool_choice;
 
@@ -272,7 +275,7 @@ function extractAssistantTextAndCalls(completed: XaiCompleted): {
  */
 export function xaiCompletedToChatJson(
   completed: XaiCompleted,
-  origReq: OpenAiChatRequest | null = null,
+  origReq: OpenAiChatRequest | null = null
 ): object {
   const { text, toolCalls, refusal } = extractAssistantTextAndCalls(completed);
   const finishReason = toolCalls.length ? "tool_calls" : "stop";
@@ -296,8 +299,7 @@ export function xaiCompletedToChatJson(
     out.usage = {
       prompt_tokens: u.input_tokens ?? u.prompt_tokens ?? 0,
       completion_tokens: u.output_tokens ?? u.completion_tokens ?? 0,
-      total_tokens:
-        u.total_tokens ?? ((u.input_tokens ?? 0) + (u.output_tokens ?? 0)),
+      total_tokens: u.total_tokens ?? (u.input_tokens ?? 0) + (u.output_tokens ?? 0),
     };
   }
   return out;

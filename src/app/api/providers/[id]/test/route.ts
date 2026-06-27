@@ -73,6 +73,21 @@ const OAUTH_TEST_CONFIG = {
     authPrefix: "Bearer ",
     refreshable: true,
   },
+  xai: {
+    url: "https://api.x.ai/v1/chat/completions",
+    method: "POST",
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    extraHeaders: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "grok-4.3",
+      messages: [{ role: "user", content: "ping" }],
+      max_tokens: 1,
+      stream: false,
+      reasoning_effort: "high",
+    }),
+    refreshable: true,
+  },
   github: {
     url: "https://api.github.com/user",
     method: "GET",
@@ -561,7 +576,8 @@ export async function testOAuthConnection(
     // 400 because the probe body is invalid. A 400 from such a provider means auth
     // succeeded; only 401/403 means the token is bad.
     const accepted =
-      res.ok || (Array.isArray(config.acceptStatuses) && config.acceptStatuses.includes(res.status));
+      res.ok ||
+      (Array.isArray(config.acceptStatuses) && config.acceptStatuses.includes(res.status));
     if (accepted) {
       return {
         valid: true,
