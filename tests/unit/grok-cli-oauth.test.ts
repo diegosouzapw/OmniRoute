@@ -2,11 +2,23 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { grokCli } = await import("../../src/lib/oauth/providers/grok-cli.ts");
+const { resolvePublicCred } = await import("@omniroute/open-sse/utils/publicCreds");
 
 test("Grok Build OAuth Provider - config", () => {
   assert.ok(grokCli.config.clientId, "clientId should be defined");
-  assert.ok(grokCli.config.clientId.includes("b1a00492"), "clientId should contain xAI client ID");
+  // The public client_id must come from the embedded default (Hard Rule #11),
+  // not a string literal — assert it matches resolvePublicCred("grok_id").
+  assert.equal(
+    grokCli.config.clientId,
+    resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID"),
+    "clientId must resolve from the embedded grok_id default"
+  );
   assert.equal(grokCli.config.tokenUrl, "https://auth.x.ai/oauth2/token");
+});
+
+test("publicCreds: grok_id embedded default is present and decodes", () => {
+  const decoded = resolvePublicCred("grok_id");
+  assert.ok(decoded.length > 0, "grok_id must decode to a non-empty client id");
 });
 
 test("Grok Build OAuth Provider - flowType is import_token", () => {

@@ -6,8 +6,10 @@
  * Supports automatic token refresh using the refresh_token.
  */
 
+import { resolvePublicCred } from "@omniroute/open-sse/utils/publicCreds";
+
 const GROK_CLI_CONFIG = {
-  clientId: process.env.GROK_OAUTH_CLIENT_ID || "b1a00492-073a-47ea-816f-4c329264a828",
+  clientId: resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID"),
   tokenUrl: "https://auth.x.ai/oauth2/token",
 };
 

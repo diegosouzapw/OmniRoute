@@ -13,6 +13,7 @@ import {
   type ProviderCredentials,
 } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
+import { resolvePublicCred } from "../utils/publicCreds.ts";
 import https from "node:https";
 
 const GROK_TOKEN_URL = "https://auth.x.ai/oauth2/token";
@@ -44,7 +45,7 @@ export class GrokCliExecutor extends BaseExecutor {
       return null;
     }
 
-    const clientId = process.env.GROK_OAUTH_CLIENT_ID || "b1a00492-073a-47ea-816f-4c329264a828";
+    const clientId = resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID");
 
     try {
       const body = new URLSearchParams({
