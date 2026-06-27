@@ -155,7 +155,6 @@ export const SIDEBAR_ICON_ACCENTS: Partial<Record<HideableSidebarItemId, string>
   media: "#D946EF",
   batch: "#14B8A6",
   "batch-files": "#38BDF8",
-  settings: "#94A3B8",
   "settings-general": "#64748B",
   "settings-appearance": "#D946EF",
   "settings-ai": "#A78BFA",
