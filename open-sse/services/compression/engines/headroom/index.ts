@@ -41,6 +41,7 @@ import {
   GCF_FENCE_CLOSE,
   decodeTabular,
 } from "./tabular.ts";
+import { TOON_FENCE_OPEN, TOON_FENCE_CLOSE } from "./toon.ts";
 
 export { encodeTabular, decodeTabular } from "./tabular.ts";
 
@@ -234,13 +235,23 @@ export function reconstructHeadroom(body: Record<string, unknown>): Record<strin
  */
 function restoreText(text: string): string {
   // Fast path: no fence marker present
-  if (!text.includes(TABULAR_FENCE_OPEN) && !text.includes(GCF_FENCE_OPEN)) return text;
+  if (
+    !text.includes(TABULAR_FENCE_OPEN) &&
+    !text.includes(GCF_FENCE_OPEN) &&
+    !text.includes(TOON_FENCE_OPEN)
+  )
+    return text;
 
   let result = text;
 
-  // Process both fence types: GCF first (new format), then legacy omni-tabular
-  for (const fence of [GCF_FENCE_OPEN, TABULAR_FENCE_OPEN]) {
-    const closeTag = fence === GCF_FENCE_OPEN ? GCF_FENCE_CLOSE : TABULAR_FENCE_CLOSE;
+  // Process all fence types: GCF first (new format), then legacy omni-tabular, then TOON
+  for (const fence of [GCF_FENCE_OPEN, TABULAR_FENCE_OPEN, TOON_FENCE_OPEN]) {
+    const closeTag =
+      fence === GCF_FENCE_OPEN
+        ? GCF_FENCE_CLOSE
+        : fence === TOON_FENCE_OPEN
+          ? TOON_FENCE_CLOSE
+          : TABULAR_FENCE_CLOSE;
 
     let searchFrom = 0;
     while (true) {

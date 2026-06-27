@@ -16,6 +16,7 @@
  */
 
 import { encodeGeneric, decodeGeneric } from "./gcf/index.ts";
+import { TOON_FENCE_OPEN, decodeToon } from "./toon.ts";
 
 // ─── fence markers ───────────────────────────────────────────────────────────
 
@@ -226,6 +227,8 @@ export function decodeTabularBlockLegacy(block: string): Record<string, unknown>
  * Auto-detects format from the fence marker.
  */
 export function decodeTabular(text: string): Record<string, unknown>[] {
+  if (text.startsWith(TOON_FENCE_OPEN + "\n")) return decodeToon(text);
+
   // Detect format from fence marker.
   if (text.startsWith(GCF_FENCE_OPEN + "\n") || text.startsWith("GCF ")) {
     // GCF format: strip fence if present, decode via GCF decoder.

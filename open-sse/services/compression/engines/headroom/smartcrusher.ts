@@ -21,6 +21,7 @@
  */
 
 import { encodeTabularBlock, wrapTabular, kindOf } from "./tabular.ts";
+import { encodeToonBlock, wrapToon } from "./toon.ts";
 
 /** Default minimum number of rows to trigger compaction. */
 export const DEFAULT_MIN_ROWS = 8;
@@ -101,13 +102,27 @@ export function tryCompactJson(jsonStr: string, minRows: number = DEFAULT_MIN_RO
   if (!allObjects(parsed)) return null;
 
   const arr = parsed as Record<string, unknown>[];
-  const blockContent = encodeTabularBlock(arr);
-  const compact = wrapTabular(blockContent);
+  const compact = pickSmallestEncoding(arr);
 
   // Only use compact form if it is strictly smaller
   if (compact.length >= jsonStr.length) return null;
 
   return compact;
+}
+
+/**
+ * Best-of-N encoder selection: GCF (default) vs TOON. Returns the strictly
+ * smaller fenced block; ties resolve to GCF for cache stability. Extracted so
+ * tryCompactJson stays below the complexity gate.
+ */
+export function pickSmallestEncoding(arr: Record<string, unknown>[]): string {
+  const gcf = wrapTabular(encodeTabularBlock(arr));
+  const toonInner = encodeToonBlock(arr);
+  if (toonInner !== null) {
+    const toon = wrapToon(toonInner);
+    if (toon.length < gcf.length) return toon;
+  }
+  return gcf;
 }
 
 type MessageLike = {
