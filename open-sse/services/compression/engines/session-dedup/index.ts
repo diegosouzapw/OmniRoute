@@ -30,6 +30,7 @@
 
 import crypto from "node:crypto";
 import { createCompressionStats } from "../../stats.ts";
+import { applyFuzzyPass } from "./fuzzy.ts";
 import type {
   CompressionEngine,
   CompressionEngineApplyOptions,
@@ -45,6 +46,8 @@ const ENGINE_ID = "session-dedup";
 const DEFAULT_MIN_BLOCK_CHARS = 80;
 /** Minimum number of lines a block must span to be a dedup candidate. */
 const MIN_BLOCK_LINES = 3;
+/** Hard cap on blocks compared in the fuzzy O(n²) pass (fail-safe bound). */
+const MAX_FUZZY_BLOCKS = 200;
 
 // ─── hash helper (SHA-256 prefix, collision-resistant) ───────────────────────
 
@@ -317,30 +320,39 @@ export const sessionDedupEngine: CompressionEngine = {
     }
 
     const start = performance.now();
-    const { messages: dedupedMessages, dedupCount } = processMessages(
+    const { messages: exactMessages, dedupCount } = processMessages(
       messages as MessageLike[],
       minBlockChars
     );
 
-    if (dedupCount === 0) {
+    const fuzzyCfg = stepConfig["fuzzy"] as
+      | { enabled?: boolean; minJaccard?: number; shingleSize?: number }
+      | undefined;
+    let finalMessages = exactMessages;
+    let fuzzyCount = 0;
+    if (fuzzyCfg?.enabled) {
+      const r = applyFuzzyPass(finalMessages, {
+        minJaccard: typeof fuzzyCfg.minJaccard === "number" ? fuzzyCfg.minJaccard : 0.85,
+        shingleSize: typeof fuzzyCfg.shingleSize === "number" ? fuzzyCfg.shingleSize : 3,
+        maxBlocks: MAX_FUZZY_BLOCKS,
+        minBlockChars,
+        principalId: options?.principalId,
+      });
+      finalMessages = r.messages;
+      fuzzyCount = r.fuzzyCount;
+    }
+
+    if (dedupCount + fuzzyCount === 0) {
       return { body, compressed: false, stats: null };
     }
 
-    const newBody: Record<string, unknown> = {
-      ...body,
-      messages: dedupedMessages,
-    };
-
+    const newBody: Record<string, unknown> = { ...body, messages: finalMessages };
     const durationMs = Math.round(performance.now() - start);
-    const stats = createCompressionStats(
-      body,
-      newBody,
-      "stacked",
-      ["session-dedup"],
-      [`deduplicated-${dedupCount}-blocks`],
-      durationMs
-    );
-
+    const techniques = ["session-dedup"];
+    if (fuzzyCount > 0) techniques.push("fuzzy-dedup");
+    const rules = [`deduplicated-${dedupCount}-blocks`];
+    if (fuzzyCount > 0) rules.push(`fuzzy-${fuzzyCount}-blocks`);
+    const stats = createCompressionStats(body, newBody, "stacked", techniques, rules, durationMs);
     return { body: newBody, compressed: true, stats };
   },
 
