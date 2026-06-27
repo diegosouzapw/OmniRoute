@@ -5,6 +5,7 @@ import { sessionDedupEngine } from "./session-dedup/index.ts";
 import { headroomEngine } from "./headroom/index.ts";
 import { ccrEngine } from "./ccr/index.ts";
 import { llmlinguaEngine } from "./llmlingua/index.ts";
+import { ionizerEngine } from "./ionizer/index.ts";
 
 let registered = false;
 
@@ -26,6 +27,7 @@ export function registerBuiltinCompressionEngines(): void {
     { id: "headroom", engine: headroomEngine },
     { id: "ccr", engine: ccrEngine },
     { id: "llmlingua", engine: llmlinguaEngine },
+    { id: "ionizer", engine: ionizerEngine },
   ];
 
   for (const { id, engine } of engines) {
