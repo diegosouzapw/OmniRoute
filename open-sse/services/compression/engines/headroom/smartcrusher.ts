@@ -125,11 +125,52 @@ export function pickSmallestEncoding(arr: Record<string, unknown>[]): string {
   return gcf;
 }
 
-type MessageLike = {
+export type MessageLike = {
   role?: string;
   content?: string | Array<Record<string, unknown>>;
   [key: string]: unknown;
 };
+
+/**
+ * Collect every JSON array (whole-string or inside a ```json fence) in non-system
+ * messages that SmartCrusher would compact (same gates as tryCompactJson). Pure;
+ * shared by summarizeEncoderCandidates so the A/B table mirrors production scope.
+ */
+export function collectCompactableArrays(
+  messages: MessageLike[],
+  minRows: number = DEFAULT_MIN_ROWS
+): Record<string, unknown>[][] {
+  const out: Record<string, unknown>[][] = [];
+  const pushIfCompactable = (jsonStr: string) => {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(jsonStr);
+    } catch {
+      return;
+    }
+    if (!Array.isArray(parsed) || parsed.length < minRows) return;
+    if (!allObjects(parsed)) return;
+    out.push(parsed as Record<string, unknown>[]);
+  };
+  const scanText = (text: string) => {
+    const trimmed = text.trimStart();
+    if (trimmed.startsWith("[")) pushIfCompactable(text.trim());
+    const regex = new RegExp(JSON_FENCE_RE.source, "g");
+    let m: RegExpExecArray | null;
+    while ((m = regex.exec(text)) !== null) pushIfCompactable(m[1].trim());
+  };
+  for (const msg of messages) {
+    if (msg.role === "system") continue;
+    if (typeof msg.content === "string") scanText(msg.content);
+    else if (Array.isArray(msg.content)) {
+      for (const part of msg.content) {
+        if (part["type"] === "text" && typeof part["text"] === "string")
+          scanText(part["text"] as string);
+      }
+    }
+  }
+  return out;
+}
 
 /**
  * Process a single text string: try to compact it as a whole JSON array,
