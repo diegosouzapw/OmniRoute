@@ -8564,6 +8564,7 @@
     "restartServer": "Restart",
     "trustCert": "Trust Cert",
     "downloadCert": "Download Cert",
+    "certManualTitle": "Certificate couldn't be installed automatically (e.g. inside a container). The bridge can still run — trust the CA manually:",
     "regenerateCert": "Regenerate Cert",
     "starting": "Starting…",
     "stopping": "Stopping…",

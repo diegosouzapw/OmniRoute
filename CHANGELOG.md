@@ -8,6 +8,10 @@
 
 _In development — bullets added per PR; finalized at release._
 
+### ✨ New Features
+
+- **feat(agent-bridge): graceful cert-install fallback for containers / headless** — when the MITM root CA can't be installed into the system trust store automatically (Docker / headless / no sudo / read-only trust store), the Agent Bridge no longer hard-fails on start with a generic "Certificate install failed". It now starts in skip mode and the dashboard surfaces a platform-specific **manual-install guide** (plus a CA download link) so the operator can trust the certificate by hand. The trust-cert endpoints return a structured `{ skippable, manualGuide }` response (HTTP 200) for environment failures instead of a 500; an explicit user cancellation is still reported distinctly. ([#4546](https://github.com/diegosouzapw/OmniRoute/issues/4546) — thanks @phuchptty)
+
 ### 🔧 Bug Fixes
 
 - **fix(sse): defer `</think>` close so it never leaks before `tool_calls` in Claude→OpenAI streaming** — when a Claude thinking block was followed by a tool_use block, the translator unconditionally emitted a `content: "</think>"` chunk at `content_block_stop`, injecting a spurious assistant text chunk immediately before the `tool_calls` delta and corrupting OpenAI-compatible clients (e.g. Kimi Coding). The close marker is now deferred: it is flushed at the first `text_delta` that follows the thinking block (preserving the #4633 / decolua/9router#454 behavior for Claude Code / Cursor) or at stream finish when no tool_calls were collected. Tool-use streams never get a `text_delta` after the thinking block, so `</think>` is never emitted into content before `tool_calls`. ([#5123](https://github.com/diegosouzapw/OmniRoute/issues/5123))
