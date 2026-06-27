@@ -49,6 +49,7 @@ export async function runServe(opts = {}) {
   const port = parsePort(opts.port ?? process.env.PORT ?? "20128", 20128);
   const apiPort = parsePort(process.env.API_PORT ?? String(port), port);
   const dashboardPort = parsePort(process.env.DASHBOARD_PORT ?? String(port), port);
+  const hostname = process.env.HOSTNAME || "0.0.0.0";
   const noOpen = opts.open === false;
 
   console.log(`
@@ -136,7 +137,7 @@ export async function runServe(opts = {}) {
     PORT: String(dashboardPort),
     DASHBOARD_PORT: String(dashboardPort),
     API_PORT: String(apiPort),
-    HOSTNAME: "0.0.0.0",
+    HOSTNAME: hostname,
     NODE_ENV: "production",
     NODE_OPTIONS: `--max-old-space-size=${memoryLimit}`,
   };
