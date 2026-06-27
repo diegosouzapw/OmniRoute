@@ -168,11 +168,33 @@ export function synthResponsesFailure(reason?: MalformedReason): string {
  * - Tool-call responses (content=null + tool_calls=[…]) are also valid.
  * - Responses API function_call / other structural items count as output even
  *   when they carry no user-visible text.
+ * - Claude Messages shape (type:"message" + content[]) is checked directly,
+ *   since a Claude client receives the translated body in that shape (no
+ *   `choices`/`object:"response"`), e.g. a non-Claude provider answering a
+ *   Claude-format request.
  */
 export function detectMalformedNonStream(resp: unknown): MalformedReason | null {
   if (!resp || typeof resp !== "object") return "empty_choices";
 
   const body = resp as Record<string, unknown>;
+
+  // ── Claude Messages shape ──
+  if (body.type === "message") {
+    const content = body.content;
+    const hasOutput =
+      Array.isArray(content) &&
+      content.some((block) => {
+        if (!block || typeof block !== "object") return false;
+        const b = block as Record<string, unknown>;
+        if (b.type === "text") return typeof b.text === "string" && (b.text as string).length > 0;
+        if (b.type === "thinking")
+          return typeof b.thinking === "string" && (b.thinking as string).length > 0;
+        if (b.type === "tool_use")
+          return typeof b.name === "string" && (b.name as string).length > 0;
+        return false;
+      });
+    return hasOutput ? null : "empty_choices";
+  }
 
   // ── Responses API shape ──
   if (body.object === "response") {
