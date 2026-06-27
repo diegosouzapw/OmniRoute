@@ -7,8 +7,10 @@ import type { RegistryEntry } from "../../shared.ts";
 // Factory Droids subscription can proxy traffic through OmniRoute.
 //
 // Auth surface (per https://github.com/Factory-AI/droid-sdk-typescript): the
-// SDK requires `apiKey` (`process.env.FACTORY_API_KEY`) at runtime and falls
-// back to stored CLI credentials only when omitted. Factory has not (yet)
+// upstream SDK reads its API key from a `FACTORY_API_KEY` env var and falls
+// back to stored CLI credentials only when omitted. OmniRoute does NOT read
+// that env var — like every gateway since v3.8.0, the key is supplied from the
+// Dashboard connection credential. Factory has not (yet)
 // published a public OAuth/refresh-token endpoint, so this entry ships with
 // `authType: "apikey"`. An OAuth variant can be layered in later by adding
 // `src/lib/oauth/providers/factory.ts` and switching `authType` here once

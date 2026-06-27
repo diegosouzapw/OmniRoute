@@ -10,6 +10,7 @@ _In development — bullets added per PR; finalized at release._
 
 ### ✨ New Features
 
+- **feat(providers): add Factory (factory.ai) as a subscription gateway provider** — `factory` (Factory Droids' hosted gateway) is now a first-class routing provider on the OpenAI-compatible `https://api.factory.ai/v1` endpoint with Bearer apikey auth; the key is supplied from the Dashboard connection (not env). ([#5065](https://github.com/diegosouzapw/OmniRoute/pull/5065) — thanks @KooshaPari)
 - **feat(providers): add Grok Build (xAI) provider with OAuth import-token flow** — `grok-cli` (alias `gc`) routes through Grok's CLI chat proxy; users paste their `~/.grok/auth.json` (or the JWT), with automatic `refresh_token` rotation. The public xAI client_id is embedded via `resolvePublicCred("grok_id")` (Hard Rule #11), never a literal. ([#5020](https://github.com/diegosouzapw/OmniRoute/pull/5020) — thanks @fulorgnas)
 - **feat(dashboard): click-to-edit model alias in the provider page** — click an alias to edit it inline (Enter/blur saves, Escape cancels), instead of only being able to delete and re-add it. ([#5119](https://github.com/diegosouzapw/OmniRoute/pull/5119) — thanks @waguriagentic)
 - **feat(providers): add ZenMux Free (session-cookie free-tier) provider** — `zenmux-free` (alias `zmf`) with a dedicated executor translating ZenMux's Anthropic-style SSE to OpenAI format; ships 12 free-tier models (DeepSeek V3.2, GLM 4.7 Flash Free, etc.). ([#5105](https://github.com/diegosouzapw/OmniRoute/pull/5105) — thanks @mrnasil)
