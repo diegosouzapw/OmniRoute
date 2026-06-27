@@ -33,11 +33,9 @@
 import { Worker } from "node:worker_threads";
 import path from "node:path";
 import fs from "node:fs";
+import { pathToFileURL } from "node:url";
 
-import {
-  LLMLINGUA_WORKER_TIMEOUT_MS,
-  LLMLINGUA_WORKER_IDLE_MS,
-} from "./constants.ts";
+import { LLMLINGUA_WORKER_TIMEOUT_MS, LLMLINGUA_WORKER_IDLE_MS } from "./constants.ts";
 import { resolveLlmlinguaModel } from "./modelStore.ts";
 import type { LlmlinguaBackend } from "./index.ts";
 
@@ -229,7 +227,8 @@ function ensureWorker(): Worker {
   if (worker) return worker;
 
   const { workerFile, execArgv } = resolveWorkerFile();
-  const w = new Worker(workerFile, { execArgv });
+  const absoluteWorkerFile = path.resolve(workerFile);
+  const w = new Worker(pathToFileURL(absoluteWorkerFile).href, { execArgv });
 
   w.on("message", (reply: WorkerReply) => {
     const entry = pending.get(reply.id);

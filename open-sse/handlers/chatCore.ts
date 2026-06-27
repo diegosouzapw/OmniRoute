@@ -99,7 +99,7 @@ import { normalizeClaudeAdaptiveThinking } from "../services/claudeAdaptiveThink
 import { normalizeClaudeHaikuConstraints } from "../services/claudeHaikuConstraints.ts";
 import { echoModelInObject } from "../services/responseModelEcho.ts";
 import { stripGpt5SamplingWhenReasoning } from "../services/gpt5SamplingGuard.ts";
-import { getUnsupportedParams } from "../config/providerRegistry.ts";
+import { getUnsupportedParams, REGISTRY } from "../config/providerRegistry.ts";
 import { supportsMaxTokens } from "@/lib/modelCapabilities.ts";
 import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
 import {
@@ -279,6 +279,7 @@ import { generateRequestId } from "@/shared/utils/requestId";
 import { extractFacts } from "@/lib/memory/extraction";
 import { handleToolCallExecution } from "@/lib/skills/interception";
 import { OMNIROUTE_RESPONSE_HEADERS } from "@/shared/constants/headers";
+import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 import {
   buildClaudeCodeCompatibleRequest,
   isClaudeCodeCompatibleProvider,
@@ -389,6 +390,13 @@ export async function handleChatCore({
   // call sites stay byte-identical.
   const trace = (label: string, extra?: Record<string, unknown>) =>
     stageTrace(label, extra, { traceEnabled, startTime, traceId, log });
+  const getCurrentConnectionId = () => {
+    const credentialConnectionId =
+      typeof credentials?.connectionId === "string" && credentials.connectionId.trim().length > 0
+        ? credentials.connectionId.trim()
+        : null;
+    return credentialConnectionId || connectionId || null;
+  };
   let tokensCompressed: number | null = null;
   body = injectSystemPrompt(body);
   // ── Per-endpoint custom system prompt (port of upstream #2063) ──
@@ -397,7 +405,11 @@ export async function handleChatCore({
   // only when this function is called outside the normal chat dispatch.
   {
     const _s = cachedSettings ?? (await getCachedSettings());
-    if (_s.customSystemPromptEnabled === true && typeof _s.customSystemPrompt === "string" && _s.customSystemPrompt) {
+    if (
+      _s.customSystemPromptEnabled === true &&
+      typeof _s.customSystemPrompt === "string" &&
+      _s.customSystemPrompt
+    ) {
       body = injectCustomSystemPrompt(body as Record<string, unknown>, _s.customSystemPrompt);
       log?.debug?.("CUSTOMSP", "custom system prompt injected");
     }
@@ -440,7 +452,7 @@ export async function handleChatCore({
       buildFailureUsageRecord({
         provider,
         model,
-        connectionId,
+        connectionId: getCurrentConnectionId(),
         apiKeyInfo,
         effectiveServiceTier,
         isCombo,
@@ -461,7 +473,8 @@ export async function handleChatCore({
   ): void => recordKeyHealthStatusFor(status, creds, log);
 
   const persistCodexQuotaState = async (headers: Record<string, string> | null, status = 0) => {
-    if (provider !== "codex" || !connectionId || !headers) return;
+    const currentConnectionId = getCurrentConnectionId();
+    if (provider !== "codex" || !currentConnectionId || !headers) return;
 
     try {
       const existingProviderData =
@@ -485,10 +498,10 @@ export async function handleChatCore({
       // Invalidate the preflight cache for this connection so the next
       // isModelAvailable check fetches fresh quota data.
       if (status === 429) {
-        invalidateCodexQuotaCache(connectionId);
+        invalidateCodexQuotaCache(currentConnectionId);
       }
 
-      await updateProviderConnection(connectionId, {
+      await updateProviderConnection(currentConnectionId, {
         providerSpecificData: built.nextProviderData,
       });
 
@@ -783,12 +796,17 @@ export async function handleChatCore({
   // sourceFormat="claude" applies the Anthropic Messages spec default (stream=false
   // when body omits stream), preventing STREAM_EARLY_EOF on /v1/messages when
   // clients send Accept: */* without an explicit stream flag.
+  // providerRequiresStreaming: providers with forceStream:true reject stream:false
+  // upstream (HTTP 400); keep streaming so OmniRoute can convert the stream to JSON
+  // for the client via handleForcedSSEToJson. (#2081)
+  const providerRequiresStreaming = REGISTRY[provider]?.forceStream === true;
   const stream =
     nativeCodexPassthrough && isCompactResponsesEndpoint(endpointPath)
       ? false
       : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat, {
           userAgent: streamUserAgent,
           streamDefaultMode: apiKeyInfo?.streamDefaultMode,
+          providerRequiresStreaming,
         });
 
   // `settings` is already consolidated once near the top of handleChatCore
@@ -1554,6 +1572,9 @@ export async function handleChatCore({
       }
 
       ccSessionId = resolveClaudeCodeCompatibleSessionId(clientRawRequest?.headers);
+      const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
+        credentials?.providerSpecificData
+      );
       translatedBody = buildClaudeCodeCompatibleRequest({
         sourceBody: body,
         normalizedBody: normalizedForCc,
@@ -1565,6 +1586,7 @@ export async function handleChatCore({
         now: new Date(),
         preserveCacheControl,
         preserveClaudeMessages: sourceFormat === FORMATS.CLAUDE && isClaudeCodeSemanticPassthrough,
+        summarizeThinking: ccRequestDefaults.summarizeThinking === true,
       });
       log?.debug?.("FORMAT", "claude-code-compatible bridge enabled");
 
@@ -1786,8 +1808,8 @@ export async function handleChatCore({
   // `_toolNameMap` so kiro-to-openai maps streamed tool-call names back (#1375).
   if (targetFormat === FORMATS.KIRO) {
     const kiroTools =
-      translatedBody?.conversationState?.currentMessage?.userInputMessage
-        ?.userInputMessageContext?.tools;
+      translatedBody?.conversationState?.currentMessage?.userInputMessage?.userInputMessageContext
+        ?.tools;
     if (kiroTools) {
       const { tools: sanitizedKiroTools, nameMap: kiroNameMap } = sanitizeKiroTools(kiroTools);
       translatedBody.conversationState.currentMessage.userInputMessage.userInputMessageContext.tools =
@@ -2042,15 +2064,38 @@ export async function handleChatCore({
     });
 
   let onPipelineStreamError: streamFailure.PipelineStreamErrorHandler | null = null;
+  let onClientDisconnectFinalize:
+    | ((event: { reason: string; duration: number }) => boolean)
+    | null = null;
 
   // Create stream controller for disconnect detection
   const streamController = createStreamController({
-    onDisconnect,
+    onDisconnect: (event) => {
+      let finalized = false;
+      try {
+        finalized = onClientDisconnectFinalize?.(event) === true;
+      } catch {}
+      if (!finalized) {
+        try {
+          finalizePendingScope(pendingScope, {
+            status: 499,
+            error: `Client disconnected: ${event.reason}`,
+            errorCode: "client_disconnected",
+          });
+          finalized = true;
+        } catch {}
+      }
+      try {
+        onDisconnect?.(event);
+      } catch {}
+      return finalized;
+    },
     onError: (event) => onPipelineStreamError?.(event),
     provider,
     model,
     connectionId,
     clientResponseFormat,
+    clientAbortSignal: clientRawRequest?.signal,
   });
 
   const dedupRequestBody = { ...translatedBody, model: `${provider}/${model}`, stream };
@@ -2059,17 +2104,6 @@ export async function handleChatCore({
 
   const executeProviderRequest = async (modelToCall = effectiveModel, allowDedup = false) => {
     const execute = async () => {
-      const executionCredentials = getExecutionCredentials();
-      // Track execution credentials for key health recording (to capture selectedKeyId)
-      let lastExecCreds = executionCredentials;
-      const accountSemaphoreMaxConcurrency =
-        resolveAccountSemaphoreMaxConcurrency(executionCredentials);
-      const accountSemaphoreKey = resolveAccountSemaphoreKey({
-        provider,
-        model: modelToCall,
-        connectionId,
-        credentials: executionCredentials,
-      });
       // Upstream body preparation extracted to chatCore/upstreamBody.ts (#3501 — first internal
       // sub-slice of executeProviderRequest); produces the body sent upstream (payload rules +
       // tool-limit truncation + qwen oauth user backfill + prompt_cache_key injection).
@@ -2087,90 +2121,105 @@ export async function handleChatCore({
         stage: "payload_prepared",
       });
 
-      trace("pre_semaphore", {
-        semaphoreKey: accountSemaphoreKey,
-        max: accountSemaphoreMaxConcurrency,
-      });
-      if (accountSemaphoreKey && accountSemaphoreMaxConcurrency != null) {
-        updatePendingScope(pendingScope, {
-          stage: "waiting_account_slot",
-        });
-      }
-      const acquireAccountSemaphoreRelease =
-        accountSemaphoreKey && accountSemaphoreMaxConcurrency != null
-          ? await acquireAccountSemaphore(accountSemaphoreKey, {
-              maxConcurrency: accountSemaphoreMaxConcurrency,
-              signal: streamController.signal,
-            })
-          : () => {};
-      trace("post_semaphore");
-      updatePendingScope(pendingScope, {
-        stage: "waiting_rate_limit",
-      });
-
+      let releaseRawResultAccountSemaphore = () => {};
       try {
-        trace("pre_rate_limit");
-        const rawResult = await withRateLimit(
-          provider,
-          connectionId,
-          modelToCall,
-          async () => {
-            trace("inside_rate_limit");
-            updatePendingScope(pendingScope, {
-              stage: "rate_limit_slot_acquired",
-            });
-            let attempts = 0;
-            const isModelScopeForRequest = isModelScope();
-            const maxAttempts = isModelScopeForRequest
+        const rawResult = await (async () => {
+          let attempts = 0;
+          const isModelScopeForRequest = isModelScope();
+          const maxAttempts = isModelScopeForRequest
+            ? 3
+            : provider === "qwen"
               ? 3
-              : provider === "qwen"
+              : provider === "codex"
                 ? 3
-                : provider === "codex"
-                  ? 3
-                  : 1;
+                : 1;
 
-            // ── Codex 429 account-rotation state ─────────────────────────────────
-            // Track excluded connection IDs for codex failover across attempts.
-            const codexExcludedIds: string[] = [];
-            // Derive session affinity key once for codex failover (used to clear affinity on 429).
-            const codexSessionAffinityKey =
-              provider === "codex"
-                ? (extractSessionAffinityKey(body, clientRawRequest?.headers) ?? null)
-                : null;
+          // ── Codex 429 account-rotation state ─────────────────────────────────
+          // Track excluded connection IDs for codex failover across attempts.
+          const codexExcludedIds: string[] = [];
+          // Derive session affinity key once for codex failover (used to clear affinity on 429).
+          const codexSessionAffinityKey =
+            provider === "codex"
+              ? (extractSessionAffinityKey(body, clientRawRequest?.headers) ?? null)
+              : null;
 
-            while (attempts < maxAttempts) {
-              trace("pre_executor", { attempt: attempts });
+          while (attempts < maxAttempts) {
+            trace("pre_executor", { attempt: attempts });
+            updatePendingScope(pendingScope, {
+              stage: "sending_to_provider",
+            });
+            const execCreds = getExecutionCredentials();
+            const attemptConnectionId = execCreds?.connectionId || connectionId;
+            const accountSemaphoreMaxConcurrency = resolveAccountSemaphoreMaxConcurrency(execCreds);
+            const accountSemaphoreKey = resolveAccountSemaphoreKey({
+              provider,
+              model: modelToCall,
+              connectionId: attemptConnectionId,
+              credentials: execCreds,
+            });
+
+            trace("pre_semaphore", {
+              semaphoreKey: accountSemaphoreKey,
+              max: accountSemaphoreMaxConcurrency,
+            });
+            if (accountSemaphoreKey && accountSemaphoreMaxConcurrency != null) {
               updatePendingScope(pendingScope, {
-                stage: "sending_to_provider",
+                stage: "waiting_account_slot",
               });
-              const execCreds = getExecutionCredentials();
-              const rawExecutorResult = await executeWithUpstreamStartTimeout({
-                executor,
+            }
+            const releaseAccountSemaphore =
+              accountSemaphoreKey && accountSemaphoreMaxConcurrency != null
+                ? await acquireAccountSemaphore(accountSemaphoreKey, {
+                    maxConcurrency: accountSemaphoreMaxConcurrency,
+                    signal: streamController.signal,
+                  })
+                : () => {};
+            trace("post_semaphore");
+            updatePendingScope(pendingScope, {
+              stage: "waiting_rate_limit",
+            });
+
+            try {
+              trace("pre_rate_limit", { connectionId: attemptConnectionId });
+              const rawExecutorResult = await withRateLimit(
                 provider,
-                model: modelToCall,
-                signal: streamController.signal,
-                log,
-                execute: (signal) =>
-                  runWithCapture(providerRequestCapture, () =>
-                    executor.execute({
-                      model: modelToCall,
-                      body: bodyToSend,
-                      stream: upstreamStream,
-                      credentials: execCreds,
-                      signal,
-                      log,
-                      extendedContext,
-                      upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
-                      clientHeaders: buildExecutorClientHeaders(
-                        clientRawRequest?.headers,
-                        userAgent
+                attemptConnectionId,
+                modelToCall,
+                async () => {
+                  trace("inside_rate_limit", { connectionId: attemptConnectionId });
+                  updatePendingScope(pendingScope, {
+                    stage: "rate_limit_slot_acquired",
+                  });
+                  return executeWithUpstreamStartTimeout({
+                    executor,
+                    provider,
+                    model: modelToCall,
+                    signal: streamController.signal,
+                    log,
+                    execute: (signal) =>
+                      runWithCapture(providerRequestCapture, () =>
+                        executor.execute({
+                          model: modelToCall,
+                          body: bodyToSend,
+                          stream: upstreamStream,
+                          credentials: execCreds,
+                          signal,
+                          log,
+                          extendedContext,
+                          upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
+                          clientHeaders: buildExecutorClientHeaders(
+                            clientRawRequest?.headers,
+                            userAgent
+                          ),
+                          onCredentialsRefreshed,
+                          skipUpstreamRetry,
+                          contextEditing: { enabled: contextEditingEnabled },
+                        })
                       ),
-                      onCredentialsRefreshed,
-                      skipUpstreamRetry,
-                      contextEditing: { enabled: contextEditingEnabled },
-                    })
-                  ),
-              });
+                  });
+                },
+                streamController.signal
+              );
               const res = normalizeExecutorResult(rawExecutorResult);
               trace("post_executor", { status: res?.response?.status });
 
@@ -2200,6 +2249,7 @@ export async function handleChatCore({
                 if (bodyPeek.toLowerCase().includes("exceeded your current quota")) {
                   const delay = 1500 * (attempts + 1);
                   log?.warn?.("QWEN_RETRY", `Quota 429 hit. Retrying in ${delay}ms...`);
+                  releaseAccountSemaphore();
                   await new Promise((r) => setTimeout(r, delay));
                   attempts++;
                   continue;
@@ -2219,6 +2269,7 @@ export async function handleChatCore({
                     "MODELSCOPE_RETRY",
                     `429 ${decision.kind}; retrying in ${delay}ms (model remaining: ${decision.snapshot.modelRemaining ?? "unknown"})`
                   );
+                  releaseAccountSemaphore();
                   await new Promise((r) => setTimeout(r, delay));
                   attempts++;
                   continue;
@@ -2232,7 +2283,8 @@ export async function handleChatCore({
                 res.response.status === 429 &&
                 attempts < maxAttempts - 1
               ) {
-                const failedConnectionId = credentials?.connectionId || connectionId;
+                const failedConnectionId =
+                  execCreds?.connectionId || credentials?.connectionId || connectionId;
                 const normalizedHeaders = normalizeHeaders(res.response.headers);
                 const retryAfterHeader = normalizedHeaders["retry-after"] ?? null;
                 const retryAfterMs = retryAfterHeader
@@ -2279,7 +2331,18 @@ export async function handleChatCore({
 
                 if (!nextCreds || nextCreds.allRateLimited) {
                   log?.warn?.("CODEX_FAILOVER", "No more codex accounts available — returning 429");
-                  return res;
+                  if (stream) {
+                    releaseAccountSemaphore();
+                    return {
+                      ...res,
+                      _executionCredentials: execCreds,
+                    };
+                  }
+                  return {
+                    ...res,
+                    _accountSemaphoreRelease: releaseAccountSemaphore,
+                    _executionCredentials: execCreds,
+                  };
                 }
 
                 const newConnectionId = nextCreds.connectionId;
@@ -2303,6 +2366,7 @@ export async function handleChatCore({
                 // Update credentials in-place so getExecutionCredentials() picks up the new account
                 Object.assign(credentials, nextCreds);
 
+                releaseAccountSemaphore();
                 attempts++;
                 continue;
               }
@@ -2311,7 +2375,7 @@ export async function handleChatCore({
               if (stream) {
                 const originalBody = res.response.body;
                 if (!originalBody) {
-                  acquireAccountSemaphoreRelease();
+                  releaseAccountSemaphore();
                   return res;
                 }
 
@@ -2403,7 +2467,7 @@ export async function handleChatCore({
                     originalBody as ReadableStream<Uint8Array>,
                     () => runUpstreamStream(bodyToSend),
                     {
-                      finalize: acquireAccountSemaphoreRelease,
+                      finalize: releaseAccountSemaphore,
                       onRetry: (attempt, err) =>
                         log?.warn?.(
                           "STREAM_RECOVERY",
@@ -2422,7 +2486,7 @@ export async function handleChatCore({
                 } else {
                   clientBody = wrapReadableStreamWithFinalize(
                     originalBody,
-                    acquireAccountSemaphoreRelease
+                    releaseAccountSemaphore
                   );
                 }
 
@@ -2441,11 +2505,14 @@ export async function handleChatCore({
               return {
                 ...res,
                 _executionCredentials: execCreds,
+                _accountSemaphoreRelease: releaseAccountSemaphore,
               };
+            } catch (error) {
+              releaseAccountSemaphore();
+              throw error;
             }
-          },
-          streamController.signal
-        );
+          }
+        })();
 
         if (stream) {
           return rawResult;
@@ -2461,6 +2528,10 @@ export async function handleChatCore({
         ) {
           recordKeyHealthStatus(status, rawResult._executionCredentials);
         }
+        releaseRawResultAccountSemaphore =
+          typeof rawResult._accountSemaphoreRelease === "function"
+            ? rawResult._accountSemaphoreRelease
+            : () => {};
 
         const statusText = rawResult.response.statusText;
         const headersObj = normalizeHeaders(rawResult.response.headers);
@@ -2472,7 +2543,8 @@ export async function handleChatCore({
           contentType,
           upstreamStream
         );
-        acquireAccountSemaphoreRelease();
+        releaseRawResultAccountSemaphore();
+        releaseRawResultAccountSemaphore = () => {};
 
         return {
           ...rawResult,
@@ -2490,7 +2562,7 @@ export async function handleChatCore({
           },
         };
       } catch (error) {
-        acquireAccountSemaphoreRelease();
+        releaseRawResultAccountSemaphore();
         throw error;
       }
     };
@@ -2587,6 +2659,7 @@ export async function handleChatCore({
     providerUrl = result.url;
     providerHeaders = result.headers;
     finalBody = providerRequestCapture.body(result.transformedBody);
+    const responseConnectionId = getCurrentConnectionId();
     effectiveServiceTier = resolveEffectiveServiceTier(finalBody);
     claudePromptCacheLogMeta = buildClaudePromptCacheLogMeta(
       targetFormat,
@@ -2605,7 +2678,7 @@ export async function handleChatCore({
     // Update rate limiter from response headers (learn limits dynamically)
     updateFromHeaders(
       provider,
-      connectionId,
+      responseConnectionId,
       providerResponse.headers,
       providerResponse.status,
       model
@@ -2615,7 +2688,7 @@ export async function handleChatCore({
     try {
       const { storeRateLimitHeaders } = await import("@/lib/quota/saturationSignals");
       storeRateLimitHeaders(
-        connectionId,
+        responseConnectionId,
         provider,
         providerResponse.headers as Record<string, string>
       );
@@ -2663,8 +2736,15 @@ export async function handleChatCore({
         ? "Request aborted"
         : formatProviderError(error, provider, model, failureStatus);
     const upstreamErrorCode = getUpstreamErrorIdentifier(error);
+    // Tag our own deadline timeouts (fetch-start TimeoutError / body BodyTimeoutError,
+    // both surfaced as a 504) as "upstream_timeout" so the cooldown layer can tell a
+    // slow-but-not-failed request apart from a real provider 5xx. (Antigravity already
+    // tags its pre-response timeout via the code below.)
+    const isOwnDeadlineTimeout =
+      failureStatus === HTTP_STATUS.GATEWAY_TIMEOUT &&
+      (error.name === "TimeoutError" || error.name === "BodyTimeoutError");
     const upstreamErrorType =
-      upstreamErrorCode === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE
+      upstreamErrorCode === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE || isOwnDeadlineTimeout
         ? "upstream_timeout"
         : failureStatus === 401
           ? "authentication_error"
@@ -2929,10 +3009,11 @@ export async function handleChatCore({
         `${decision.kind} (model remaining: ${decision.snapshot.modelRemaining ?? "unknown"}, total remaining: ${decision.snapshot.totalRemaining ?? "unknown"})`
       );
     }
-    if (connectionId && errorType) {
+    const errorConnectionId = getCurrentConnectionId();
+    if (errorConnectionId && errorType) {
       try {
         if (errorType === PROVIDER_ERROR_TYPES.FORBIDDEN) {
-          await updateProviderConnection(connectionId, {
+          await updateProviderConnection(errorConnectionId, {
             isActive: false,
             testStatus: "banned",
             lastErrorType: errorType,
@@ -2940,28 +3021,28 @@ export async function handleChatCore({
             errorCode: statusCode,
           });
           console.warn(
-            `[provider] Node ${connectionId} banned (${statusCode}) — disabling permanently`
+            `[provider] Node ${errorConnectionId} banned (${statusCode}) — disabling permanently`
           );
         } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
           // Plan A: if connection has extra API keys, don't disable — only the failing key is affected.
           // Single-key connections still get disabled as before.
           if (
             connectionHasExtraKeys(
-              connectionId,
+              errorConnectionId,
               (credentials?.providerSpecificData as Record<string, unknown> | undefined)
                 ?.extraApiKeys as string[] | undefined
             )
           ) {
-            await updateProviderConnection(connectionId, {
+            await updateProviderConnection(errorConnectionId, {
               lastErrorType: errorType,
               lastError: message,
               errorCode: statusCode,
             });
             console.warn(
-              `[provider] Node ${connectionId} account deactivated (${statusCode}) — has extra keys, keeping connection active`
+              `[provider] Node ${errorConnectionId} account deactivated (${statusCode}) — has extra keys, keeping connection active`
             );
           } else {
-            await updateProviderConnection(connectionId, {
+            await updateProviderConnection(errorConnectionId, {
               isActive: false,
               testStatus: "deactivated",
               lastErrorType: errorType,
@@ -2969,7 +3050,7 @@ export async function handleChatCore({
               errorCode: statusCode,
             });
             console.warn(
-              `[provider] Node ${connectionId} account deactivated (${statusCode}) — disabling permanently`
+              `[provider] Node ${errorConnectionId} account deactivated (${statusCode}) — disabling permanently`
             );
           }
         } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
@@ -2978,75 +3059,64 @@ export async function handleChatCore({
           const accountSemaphoreKey = resolveAccountSemaphoreKey({
             provider,
             model: currentModel,
-            connectionId,
+            connectionId: errorConnectionId,
             credentials,
           });
           if (accountSemaphoreKey) {
             markAccountSemaphoreBlocked(accountSemaphoreKey, quotaCooldownMs);
           }
-          if (isModelScope() && connectionId) {
-            lockModel(provider, connectionId, model, "quota_exhausted", quotaCooldownMs);
+          if (isModelScope() && errorConnectionId) {
+            lockModel(provider, errorConnectionId, model, "quota_exhausted", quotaCooldownMs);
             console.warn(
-              `[provider] Node ${connectionId} ModelScope model quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
+              `[provider] Node ${errorConnectionId} ModelScope model quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
             );
           } else if (
             lockModelIfPerModelQuota(
               provider,
-              connectionId,
+              errorConnectionId,
               model,
               "quota_exhausted",
               quotaCooldownMs
             )
           ) {
             console.warn(
-              `[provider] Node ${connectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
+              `[provider] Node ${errorConnectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
             );
           } else {
-            await updateProviderConnection(connectionId, {
+            await updateProviderConnection(errorConnectionId, {
               testStatus: "credits_exhausted",
               lastErrorType: errorType,
               lastError: message,
               errorCode: statusCode,
             });
-            console.warn(`[provider] Node ${connectionId} exhausted quota (${statusCode})`);
+            console.warn(`[provider] Node ${errorConnectionId} exhausted quota (${statusCode})`);
           }
-        } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
-          await updateProviderConnection(connectionId, {
-            isActive: false,
-            testStatus: "expired",
-            lastErrorType: errorType,
-            lastError: message,
-            errorCode: statusCode,
-          });
-          console.warn(
-            `[provider] Node ${connectionId} account deactivated (${statusCode}) — marked expired`
-          );
         } else if (errorType === PROVIDER_ERROR_TYPES.UNAUTHORIZED) {
           // Normal 401 (token/session auth issue): keep account active for refresh/re-auth.
-          await updateProviderConnection(connectionId, {
+          await updateProviderConnection(errorConnectionId, {
             lastErrorType: errorType,
             lastError: message,
             errorCode: statusCode,
           });
         } else if (errorType === PROVIDER_ERROR_TYPES.OAUTH_INVALID_TOKEN) {
           // OAuth 401 with invalid credentials - token refresh can recover
-          await updateProviderConnection(connectionId, {
+          await updateProviderConnection(errorConnectionId, {
             lastErrorType: errorType,
             lastError: message,
             errorCode: statusCode,
           });
           console.warn(
-            `[provider] Node ${connectionId} OAuth token invalid (${statusCode}) — token refresh available`
+            `[provider] Node ${errorConnectionId} OAuth token invalid (${statusCode}) — token refresh available`
           );
         } else if (errorType === PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR) {
           // Cloud Code 403 with stale project: not a ban, keep account active.
-          await updateProviderConnection(connectionId, {
+          await updateProviderConnection(errorConnectionId, {
             lastErrorType: errorType,
             lastError: message,
             errorCode: statusCode,
           });
           console.warn(
-            `[provider] Node ${connectionId} project routing error (${statusCode}) — not banning`
+            `[provider] Node ${errorConnectionId} project routing error (${statusCode}) — not banning`
           );
         }
       } catch {
@@ -3054,9 +3124,12 @@ export async function handleChatCore({
       }
     }
 
-    appendRequestLog({ model, provider, connectionId, status: `FAILED ${statusCode}` }).catch(
-      () => {}
-    );
+    appendRequestLog({
+      model,
+      provider,
+      connectionId: errorConnectionId,
+      status: `FAILED ${statusCode}`,
+    }).catch(() => {});
 
     const errMsg = formatProviderError(new Error(message), provider, model, statusCode);
     console.log(`${COLORS.red}[ERROR] ${errMsg}${COLORS.reset}`);
@@ -3077,9 +3150,9 @@ export async function handleChatCore({
     );
 
     // Update rate limiter from error response headers
-    updateFromHeaders(provider, connectionId, providerResponse.headers, statusCode, model);
-    if (connectionId && upstreamErrorBody !== null && upstreamErrorBody !== undefined) {
-      updateFromResponseBody(provider, connectionId, upstreamErrorBody, statusCode, model);
+    updateFromHeaders(provider, errorConnectionId, providerResponse.headers, statusCode, model);
+    if (errorConnectionId && upstreamErrorBody !== null && upstreamErrorBody !== undefined) {
+      updateFromResponseBody(provider, errorConnectionId, upstreamErrorBody, statusCode, model);
     }
 
     // ── T5: Intra-family model fallback ──────────────────────────────────────
@@ -3432,9 +3505,10 @@ export async function handleChatCore({
     if (onRequestSuccess) {
       await onRequestSuccess();
     }
+    const successConnectionId = getCurrentConnectionId();
     await maybeSyncClaudeExtraUsageState({
       provider,
-      connectionId,
+      connectionId: successConnectionId,
       providerSpecificData: credentials?.providerSpecificData,
       log,
     });
@@ -3455,16 +3529,20 @@ export async function handleChatCore({
       skillRequestId,
       log,
     });
-    appendRequestLog({ model, provider, connectionId, tokens: usage, status: "200 OK" }).catch(
-      () => {}
-    );
+    appendRequestLog({
+      model,
+      provider,
+      connectionId: successConnectionId,
+      tokens: usage,
+      status: "200 OK",
+    }).catch(() => {});
 
     // Save structured call log with full payloads
     const cacheUsageLogMeta = buildCacheUsageLogMeta(usage);
     recordNonStreamingUsageStats(usage, {
       traceEnabled,
       provider,
-      connectionId,
+      connectionId: successConnectionId,
       model,
       startTime,
       apiKeyInfo,
@@ -3842,6 +3920,7 @@ export async function handleChatCore({
     (finalBody as Record<string, unknown> | null | undefined) ?? null
   );
 
+  let streamCompletionRecorded = false;
   let streamFailureCompletionRecorded = false;
 
   // Callback to save call log when stream completes (include responseBody when provided by stream)
@@ -3856,16 +3935,19 @@ export async function handleChatCore({
     ttft,
   }) => {
     const normalizedStreamStatus = streamStatus || 200;
+    if (streamCompletionRecorded) return;
+    streamCompletionRecorded = true;
     if (normalizedStreamStatus !== 200) {
       if (streamFailureCompletionRecorded) return;
       streamFailureCompletionRecorded = true;
     }
     const cacheUsageLogMeta = buildCacheUsageLogMeta(streamUsage);
+    const streamConnectionId = getCurrentConnectionId();
 
     if (normalizedStreamStatus === 200) {
       void maybeSyncClaudeExtraUsageState({
         provider,
-        connectionId,
+        connectionId: streamConnectionId,
         providerSpecificData: credentials?.providerSpecificData,
         log,
       });
@@ -3892,7 +3974,7 @@ export async function handleChatCore({
       pendingRequestId,
       model,
       provider,
-      connectionId: connectionId || credentials?.connectionId || null,
+      connectionId: streamConnectionId,
       providerResponse: providerPayload ?? streamResponseBody ?? undefined,
       clientResponse: clientPayload ?? streamResponseBody ?? undefined,
       status: normalizedStreamStatus,
@@ -3911,7 +3993,7 @@ export async function handleChatCore({
       startTime,
       ttft,
       streamErrorCode,
-      connectionId,
+      connectionId: streamConnectionId,
       apiKeyInfo,
       effectiveServiceTier,
       isCombo,
@@ -3994,12 +4076,20 @@ export async function handleChatCore({
 
   const streamFailureFinalizers = streamFailure.createStreamFailureFinalizers({
     isFailureCompletionRecorded: () => streamFailureCompletionRecorded,
+    isStreamCompletionRecorded: () => streamCompletionRecorded,
     onStreamComplete,
     persistFailureUsage,
     onStreamFailure,
   });
   const handleStreamFailure = streamFailureFinalizers.handleStreamFailure;
   onPipelineStreamError = streamFailureFinalizers.onPipelineStreamError;
+  onClientDisconnectFinalize = (event) =>
+    handleStreamFailure({
+      status: 499,
+      message: `Client disconnected: ${event.reason}`,
+      code: "client_disconnected",
+      type: "client_disconnected",
+    });
 
   // For providers using Responses API format, translate stream back to openai (Chat Completions) format
   // UNLESS client is Droid CLI which expects openai-responses format back

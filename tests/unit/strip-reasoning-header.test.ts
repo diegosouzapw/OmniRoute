@@ -7,12 +7,9 @@ import assert from "node:assert/strict";
 // (Firecrawl AI SDK) have JSON parsers that break on this non-standard
 // extension even when there is no visible content, so the default
 // "keep reasoning-only messages" behavior is not sufficient.
-const { isStripReasoningRequested, getHeaderValueCaseInsensitive } = await import(
-  "../../open-sse/handlers/chatCore/headers.ts"
-);
-const { sanitizeOpenAIResponse } = await import(
-  "../../open-sse/handlers/responseSanitizer.ts"
-);
+const { isStripReasoningRequested, getHeaderValueCaseInsensitive } =
+  await import("../../open-sse/handlers/chatCore/headers.ts");
+const { sanitizeOpenAIResponse } = await import("../../open-sse/handlers/responseSanitizer.ts");
 
 test("isStripReasoningRequested is true for truthy header values", () => {
   for (const v of ["true", "1", "yes", "TRUE", "Yes", " true "]) {
@@ -98,7 +95,7 @@ test("stripReasoning=true: reasoning-only message has reasoning_content removed"
   assert.equal("reasoning_content" in out.choices[0].message, false);
 });
 
-test("stripReasoning=true: message with both content and reasoning_content has reasoning stripped", () => {
+test("stripReasoning=true: message with content has all OpenAI-compatible reasoning stripped", () => {
   const out = sanitizeOpenAIResponse(
     {
       id: "chatcmpl-x",
@@ -112,6 +109,9 @@ test("stripReasoning=true: message with both content and reasoning_content has r
             role: "assistant",
             content: "visible answer",
             reasoning_content: "internal",
+            reasoning: "native reasoning",
+            reasoning_text: "copilot reasoning",
+            reasoning_details: [{ type: "reasoning.encrypted", data: "sig" }],
           },
           finish_reason: "stop",
         },
@@ -120,5 +120,8 @@ test("stripReasoning=true: message with both content and reasoning_content has r
     { stripReasoning: true }
   ) as { choices: Array<{ message: Record<string, unknown> }> };
   assert.equal(out.choices[0].message.reasoning_content, undefined);
+  assert.equal(out.choices[0].message.reasoning, undefined);
+  assert.equal(out.choices[0].message.reasoning_text, undefined);
+  assert.equal(out.choices[0].message.reasoning_details, undefined);
   assert.equal(out.choices[0].message.content, "visible answer");
 });

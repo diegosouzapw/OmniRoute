@@ -240,7 +240,6 @@ export const FREE_MODEL_BUDGETS: FreeModelBudget[] = [
   { provider: "kiro", modelId: "claude-opus-4.7", displayName: "Claude Opus 4.7", monthlyTokens: 25000, creditTokens: 0, freeType: "recurring-monthly", poolKey: "kiro", tos: "avoid" },
   { provider: "kiro", modelId: "claude-opus-4.6", displayName: "Claude Opus 4.6", monthlyTokens: 25000, creditTokens: 0, freeType: "recurring-monthly", poolKey: "kiro", tos: "avoid" },
   { provider: "kiro", modelId: "claude-sonnet-4.6", displayName: "Claude Sonnet 4.6", monthlyTokens: 25000, creditTokens: 0, freeType: "recurring-monthly", poolKey: "kiro", tos: "avoid" },
-  { provider: "kiro", modelId: "claude-sonnet-4.5", displayName: "Claude Sonnet 4.5", monthlyTokens: 25000, creditTokens: 0, freeType: "recurring-monthly", poolKey: "kiro", tos: "avoid" },
   { provider: "kiro", modelId: "claude-haiku-4.5", displayName: "Claude Haiku 4.5", monthlyTokens: 25000, creditTokens: 0, freeType: "recurring-monthly", poolKey: "kiro", tos: "avoid" },
   { provider: "kiro", modelId: "deepseek-3.2", displayName: "DeepSeek V3.2", monthlyTokens: 25000, creditTokens: 0, freeType: "recurring-monthly", poolKey: "kiro", tos: "avoid" },
   { provider: "kiro", modelId: "minimax-m2.5", displayName: "MiniMax M2.5", monthlyTokens: 25000, creditTokens: 0, freeType: "recurring-monthly", poolKey: "kiro", tos: "avoid" },

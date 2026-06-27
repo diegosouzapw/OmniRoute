@@ -10,10 +10,11 @@ import type { ProviderCredentials } from "./base.ts";
  * as the client sent it, so we force it true here — OmniRoute still re-aggregates
  * the SSE into a JSON response for non-streaming clients.
  *
- * CodeBuddy CN only surfaces model reasoning when the request carries the
- * official CLI's OpenAI-style params: reasoning_effort + reasoning_summary:"auto".
- * Mirror the CLI here. When the caller explicitly asks for "none"/"off" we drop
- * the field entirely (the gateway has no "none" value).
+ * Reasoning params are opt-in: reasoning_summary:"auto" is only added when the
+ * client explicitly sets reasoning_effort. Plain requests are left untouched.
+ * When the caller explicitly asks for "none"/"off" we drop the field entirely
+ * (the gateway has no "none" value). Forcing reasoning on plain requests trips
+ * CodeBuddy's content filter and returns an error.
  */
 export class CodeBuddyCnExecutor extends DefaultExecutor {
   constructor() {
@@ -37,10 +38,14 @@ export class CodeBuddyCnExecutor extends DefaultExecutor {
     if (eff === "none" || eff === "off") {
       // Gateway has no "none" — just omit. Do NOT set reasoning_summary.
       delete out.reasoning_effort;
-    } else {
-      if (!eff) out.reasoning_effort = "medium";
+    } else if (eff) {
+      // Client explicitly asked for reasoning — mirror the CLI's reasoning_summary
+      // so CodeBuddy surfaces the model's reasoning.
       out.reasoning_summary = "auto";
     }
+    // No reasoning requested: leave both unset. Forcing reasoning_effort:"medium"
+    // + reasoning_summary on plain requests makes CodeBuddy trip its content
+    // filter and return an error.
     return out;
   }
 }

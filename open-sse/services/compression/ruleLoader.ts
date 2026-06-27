@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import os from "node:os";
 import type { CavemanIntensity, CavemanRule } from "./types.ts";
 
 type CavemanRuleCategory = NonNullable<CavemanRule["category"]>;
@@ -58,14 +58,29 @@ function getRuleFlags(rule: FileRule): string {
   return rule.flags ?? "gi";
 }
 
+function getModuleDir(): string {
+  const anchors = [process.cwd()];
+  const argv1 = process.argv[1];
+  if (typeof argv1 === "string" && argv1) anchors.push(path.dirname(argv1));
+  const rel = path.join("open-sse", "services", "compression");
+  for (const anchor of anchors) {
+    let dir = path.resolve(anchor);
+    for (let i = 0; i <= 8; i++) {
+      if (fs.existsSync(path.join(dir, rel))) return dir;
+      const parent = path.dirname(dir);
+      if (parent === dir) break;
+      dir = parent;
+    }
+  }
+  return path.join(os.homedir(), ".omniroute");
+}
+
 function getRulesDir(): string {
   if (rulesDirCache) return rulesDirCache;
-  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+  const root = getModuleDir();
   const candidates = [
-    path.join(moduleDir, "rules"),
-    path.join(moduleDir, "..", "services", "compression", "rules"),
-    path.join(process.cwd(), "open-sse", "services", "compression", "rules"),
-    path.join(process.cwd(), "app", "open-sse", "services", "compression", "rules"),
+    path.join(root, "open-sse", "services", "compression", "rules"),
+    path.join(root, "app", "open-sse", "services", "compression", "rules"),
   ];
   rulesDirCache =
     candidates.find((candidate, index) => {

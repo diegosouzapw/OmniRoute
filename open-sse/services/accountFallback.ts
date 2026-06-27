@@ -18,6 +18,7 @@ import {
   DEFAULT_RESILIENCE_SETTINGS,
   resolveResilienceSettings,
 } from "../../src/lib/resilience/settings";
+import { resolveModelLockoutSettings } from "../../src/lib/resilience/modelLockoutSettings";
 import {
   getAllCircuitBreakerStatuses,
   getCircuitBreaker,
@@ -35,8 +36,8 @@ import { isRpdExhausted, isRpmExhausted } from "./geminiRateLimitTracker.ts";
 export type ProviderProfile = {
   baseCooldownMs: number;
   useUpstreamRetryHints: boolean;
-  /** Issue #2100 follow-up. Stored override; undefined → per-provider default. */
   useUpstream429BreakerHints?: boolean;
+  maxCooldownMs: number;
   maxBackoffSteps: number;
   failureThreshold: number;
   resetTimeoutMs: number;
@@ -323,9 +324,8 @@ function buildProviderProfile(
   return {
     baseCooldownMs: connectionCooldown.baseCooldownMs,
     useUpstreamRetryHints: connectionCooldown.useUpstreamRetryHints,
-    // Issue #2100 follow-up: propagate stored override (boolean | undefined)
-    // so the runtime resolver picks user setting first, then per-provider default.
     useUpstream429BreakerHints: connectionCooldown.useUpstream429BreakerHints,
+    maxCooldownMs: resolveModelLockoutSettings(settings).maxCooldownMs,
     maxBackoffSteps: connectionCooldown.maxBackoffSteps,
     failureThreshold: providerBreaker.failureThreshold,
     resetTimeoutMs: providerBreaker.resetTimeoutMs,

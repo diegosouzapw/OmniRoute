@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Badge, Input, Modal, Toggle } from "@/shared/components";
@@ -28,7 +27,6 @@ import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
 import { buildAddProviderSpecificData } from "./connectionProviderSpecificData";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
-
 export interface AddApiKeyModalProps {
   isOpen: boolean;
   provider?: string;
@@ -116,6 +114,7 @@ export default function AddApiKeyModal({
     ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
     ccCompatibleRedactThinking: false,
+    ccCompatibleSummarizeThinking: false,
     passthroughModels: false,
     importFreeModelsOnly: false,
   });
@@ -202,7 +201,14 @@ export default function AddApiKeyModal({
         }),
       });
       const data = await res.json();
-      setValidationResult(data.valid ? "success" : "failed");
+      const ok = !!data.valid;
+      setValidationResult(ok ? "success" : "failed");
+      // #5088: surface the detailed reason the backend returns (e.g. a TLS/EACCES
+      // environment error for claude-web/chatgpt-web) instead of only a bare
+      // "invalid" badge — otherwise the real cause is hidden and users are stuck.
+      if (!ok && typeof data.error === "string" && data.error) {
+        setSaveError(data.error);
+      }
     } catch {
       setValidationResult("failed");
     } finally {
@@ -679,14 +685,8 @@ export default function AddApiKeyModal({
               <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
                 {isCcCompatible && (
                   <CcCompatibleRequestDefaultsFields
-                    context1m={formData.ccCompatibleContext1m}
-                    redactThinking={formData.ccCompatibleRedactThinking}
-                    onContext1mChange={(checked) =>
-                      setFormData({ ...formData, ccCompatibleContext1m: checked })
-                    }
-                    onRedactThinkingChange={(checked) =>
-                      setFormData({ ...formData, ccCompatibleRedactThinking: checked })
-                    }
+                    values={formData}
+                    onChange={(patch) => setFormData({ ...formData, ...patch })}
                   />
                 )}
                 {openRouterPreset.input}

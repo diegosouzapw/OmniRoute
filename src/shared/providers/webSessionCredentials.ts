@@ -17,6 +17,13 @@ export type WebSessionCredentialRequirement =
     };
 
 export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
+  "zenmux-free": {
+    kind: "cookie",
+    credentialName: "Cookie header (full)",
+    placeholder: "paste the full Cookie header from zenmux.ai",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie"],
+  },
   "chatgpt-web": {
     kind: "cookie",
     credentialName: "__Secure-next-auth.session-token",
@@ -210,7 +217,8 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     // `arena-auth-prod-v1.0`, `arena-auth-prod-v1.1`, … Users must paste the FULL
     // Cookie header so the executor can reconstruct the single cookie from chunks.
     credentialName: "arena-auth-prod-v1",
-    placeholder: "Paste the full Cookie header from lmarena.ai (the session is now split across arena-auth-prod-v1.0, .1, …)",
+    placeholder:
+      "Paste the full Cookie header from lmarena.ai (the session is now split across arena-auth-prod-v1.0, .1, …)",
     acceptsFullCookieHeader: true,
     storageKeys: [
       "cookie",

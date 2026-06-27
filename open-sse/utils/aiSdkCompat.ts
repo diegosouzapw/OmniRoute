@@ -7,6 +7,13 @@ export type StreamDefaultMode = "legacy" | "json";
 export interface ResolveStreamFlagOptions {
   userAgent?: unknown;
   streamDefaultMode?: unknown;
+  /**
+   * When true, the provider rejects non-streaming requests (e.g. forceStream providers
+   * such as CodeBuddy). resolveStreamFlag will keep streaming even when the client sends
+   * Accept: application/json or stream:false; the caller is responsible for accumulating
+   * the stream and converting it to a JSON response for the client. (#2081)
+   */
+  providerRequiresStreaming?: boolean;
 }
 
 function normalizeResolveStreamFlagOptions(optionsOrUserAgent?: unknown): ResolveStreamFlagOptions {
@@ -35,7 +42,9 @@ export function clientWantsJsonResponse(acceptHeader: unknown): boolean {
 
 /**
  * Resolves stream behavior from request body + Accept header.
- * Priority: explicit `stream: true/false` in body wins.
+ * Priority: explicit `stream: true/false` in body wins, UNLESS the provider
+ * requires streaming (`providerRequiresStreaming: true`) — in that case the
+ * result is always `true` regardless of client preference (#2081).
  * Accept header only acts as fallback when stream is not explicitly set.
  * Fixes #656: clients sending both `stream: true` and `Accept: application/json`
  * should still get streaming responses — body intent takes precedence.
@@ -53,11 +62,18 @@ export function resolveStreamFlag(
   sourceFormat?: string,
   optionsOrUserAgent?: unknown
 ): boolean {
-  // Explicit body value always wins
+  const options = normalizeResolveStreamFlagOptions(optionsOrUserAgent);
+
+  // Stream-only providers must keep streaming even when the client asked for JSON;
+  // OmniRoute accumulates the provider stream and converts it to JSON for the client
+  // downstream (handleForcedSSEToJson). Sending stream:false to such a provider
+  // returns HTTP 400. (#2081)
+  if (options.providerRequiresStreaming) return true;
+
+  // Explicit body value always wins (for non-stream-only providers)
   if (bodyStream === true) return true;
   if (bodyStream === false) return false;
 
-  const options = normalizeResolveStreamFlagOptions(optionsOrUserAgent);
   const streamDefaultMode = normalizeStreamDefaultMode(options.streamDefaultMode);
 
   const acceptsEventStream =

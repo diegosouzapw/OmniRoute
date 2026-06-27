@@ -19,10 +19,13 @@ export interface HarnessResult {
   responseChunks: string[];
 }
 
-function fakeReq(headers: Record<string, string> = {}): IncomingMessage {
+function fakeReq(
+  headers: Record<string, string> = {},
+  url = "/v1/chat/completions"
+): IncomingMessage {
   return {
     method: "POST",
-    url: "/v1/chat/completions",
+    url,
     headers: {
       host: "api.example.com",
       "user-agent": "ut",
@@ -68,10 +71,11 @@ export async function runHandler(
     upstreamStatus?: number;
     upstreamBody?: string;
     headers?: Record<string, string>;
+    url?: string;
   } = {}
 ): Promise<HarnessResult> {
   const { res, out } = fakeRes();
-  const req = fakeReq(opts.headers);
+  const req = fakeReq(opts.headers, opts.url);
   const buf = Buffer.from(typeof body === "string" ? body : JSON.stringify(body));
 
   const originalFetch = globalThis.fetch;
