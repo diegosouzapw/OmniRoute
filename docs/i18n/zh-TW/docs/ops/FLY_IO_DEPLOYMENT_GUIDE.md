@@ -1,32 +1,32 @@
-# OmniRoute Fly.io 部署指南 (中文 (简体))
+# OmniRoute Fly.io 部署指南 (中文 (簡體))
 
 🌐 **Languages:** 🇺🇸 [English](../../../../docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇸🇦 [ar](../../ar/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇧🇬 [bg](../../bg/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇧🇩 [bn](../../bn/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇨🇿 [cs](../../cs/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇩🇰 [da](../../da/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇩🇪 [de](../../de/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇪🇸 [es](../../es/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇷 [fa](../../fa/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇫🇮 [fi](../../fi/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇫🇷 [fr](../../fr/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [gu](../../gu/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇱 [he](../../he/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [hi](../../hi/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇭🇺 [hu](../../hu/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇩 [id](../../id/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇹 [it](../../it/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇯🇵 [ja](../../ja/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇰🇷 [ko](../../ko/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [mr](../../mr/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇲🇾 [ms](../../ms/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇳🇱 [nl](../../nl/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇳🇴 [no](../../no/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇵🇭 [phi](../../phi/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇵🇱 [pl](../../pl/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇵🇹 [pt](../../pt/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇷🇴 [ro](../../ro/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇷🇺 [ru](../../ru/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇸🇰 [sk](../../sk/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇸🇪 [sv](../../sv/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇰🇪 [sw](../../sw/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ta](../../ta/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [te](../../te/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇹🇭 [th](../../th/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇹🇷 [tr](../../tr/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇵🇰 [ur](../../ur/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇻🇳 [vi](../../vi/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/FLY_IO_DEPLOYMENT_GUIDE.md)
 
 ---
 
-本文档记录 OmniRoute 在 Fly.io 上的实际部署方法，适用于两类场景：
+本文檔記錄 OmniRoute 在 Fly.io 上的實際部署方法，適用於兩類場景：
 
-- 首次把当前项目部署到 Fly.io
-- 后续代码更新后继续发布
-- 新项目参考同样流程部署
+- 首次把當前項目部署到 Fly.io
+- 後續代碼更新後繼續發布
+- 新項目參考同樣流程部署
 
-本文基于当前项目已经验证通过的配置整理，应用名为 `omniroute`。
-
----
-
-## 1. 部署目标
-
-- 平台：Fly.io
-- 部署方式：本地 `flyctl` 直接发布
-- 运行方式：使用仓库内现有 `Dockerfile` 和 `fly.toml`
-- 数据持久化：Fly Volume 挂载到 `/data`
-- 访问地址：`https://omniroute.fly.dev/`
+本文基於當前項目已經驗證通過的設定整理，應用名為 `omniroute`。
 
 ---
 
-## 2. 当前项目关键配置
+## 1. 部署目標
 
-当前仓库中的 `fly.toml` 已确认包含以下关键项：
+- 平臺：Fly.io
+- 部署方式：本地 `flyctl` 直接發布
+- 運行方式：使用倉庫內現有 `Dockerfile` 和 `fly.toml`
+- 數據持久化：Fly Volume 掛載到 `/data`
+- 訪問地址：`https://omniroute.fly.dev/`
+
+---
+
+## 2. 當前項目關鍵設定
+
+當前倉庫中的 `fly.toml` 已確認包含以下關鍵項：
 
 ```toml
 app = 'omniroute'
@@ -49,17 +49,17 @@ primary_region = 'sin'
   BIND = "0.0.0.0"
 ```
 
-说明：
+說明：
 
-- `app = 'omniroute'` 决定实际部署到哪个 Fly 应用
-- `destination = '/data'` 决定持久卷挂载目录
-- 本项目必须让 `DATA_DIR=/data`，否则数据库和密钥会写到容器临时目录
+- `app = 'omniroute'` 決定實際部署到哪個 Fly 應用
+- `destination = '/data'` 決定持久卷掛載目錄
+- 本項目必須讓 `DATA_DIR=/data`，否則資料庫和密鑰會寫到容器臨時目錄
 
 ---
 
-## 3. 必备工具
+## 3. 必備工具
 
-### 3.1 安装 Fly CLI
+### 3.1 安裝 Fly CLI
 
 Windows PowerShell：
 
@@ -67,15 +67,15 @@ Windows PowerShell：
 pwsh -Command "iwr https://fly.io/install.ps1 -useb | iex"
 ```
 
-如果安装脚本在当前环境失败，也可以手动下载 `flyctl` 二进制并放到 `PATH` 中。
+如果安裝腳本在當前環境失敗，也可以手動下載 `flyctl` 二進位並放到 `PATH` 中。
 
-### 3.2 登录 Fly 账号
+### 3.2 登錄 Fly 帳號
 
 ```powershell
 flyctl auth login
 ```
 
-### 3.3 检查登录状态
+### 3.3 檢查登錄狀態
 
 ```powershell
 flyctl auth whoami
@@ -84,24 +84,24 @@ flyctl version
 
 ---
 
-## 4. 首次部署当前项目
+## 4. 首次部署當前項目
 
-### 4.1 获取代码并进入目录
+### 4.1 獲取代碼並進入目錄
 
 ```powershell
 git clone https://github.com/diegosouzapw/OmniRoute.git
 cd OmniRoute
 ```
 
-### 4.2 确认应用名
+### 4.2 確認應用名
 
-打开 `fly.toml`，重点看这一行：
+打開 `fly.toml`，重點看這一行：
 
 ```toml
 app = 'omniroute'
 ```
 
-如果你准备部署到自己的新应用，可改成全局唯一名称，例如：
+如果你準備部署到自己的新應用，可改成全局唯一名稱，例如：
 
 ```toml
 app = 'omniroute-yourname'
@@ -109,18 +109,18 @@ app = 'omniroute-yourname'
 
 注意：
 
-- 控制台里要看的是与 `fly.toml` 里 `app` 一致的应用
-- 以前如果用过别的名字，例如 `oroute`，不要和 `omniroute` 混淆
+- 控制臺裡要看的是與 `fly.toml` 裡 `app` 一致的應用
+- 以前如果用過別的名字，例如 `oroute`，不要和 `omniroute` 混淆
 
-### 4.3 创建应用
+### 4.3 創建應用
 
-如果该应用尚不存在：
+如果該應用尚不存在：
 
 ```powershell
 flyctl apps create omniroute
 ```
 
-如果你已经改成别的应用名，把 `omniroute` 替换成你的名字。
+如果你已經改成別的應用名，把 `omniroute` 替換成你的名字。
 
 ### 4.4 首次部署
 
@@ -130,13 +130,13 @@ flyctl deploy
 
 ---
 
-## 5. 必配参数
+## 5. 必配參數
 
-本项目在 Fly.io 上建议至少配置以下参数。
+本項目在 Fly.io 上建議至少設定以下參數。
 
-### 5.1 已验证使用的参数
+### 5.1 已驗證使用的參數
 
-这些参数已经在当前 `omniroute` 应用上实际部署：
+這些參數已經在當前 `omniroute` 應用上實際部署：
 
 - `API_KEY_SECRET`
 - `DATA_DIR`
@@ -145,58 +145,58 @@ flyctl deploy
 - `NEXT_PUBLIC_BASE_URL`
 - `STORAGE_ENCRYPTION_KEY`
 
-### 5.2 关于 `INITIAL_PASSWORD`
+### 5.2 關於 `INITIAL_PASSWORD`
 
-当前项目没有设置 `INITIAL_PASSWORD`，因为本次部署按需求不使用它。
+當前項目沒有設置 `INITIAL_PASSWORD`，因為本次部署按需求不使用它。
 
-如果不设置：
+如果不設置：
 
-- 启动日志会提示默认密码是 `CHANGEME`
-- 部署后应尽快在系统设置中修改登录密码
+- 啟動日誌會提示默認密碼是 `CHANGEME`
+- 部署後應儘快在系統設置中修改登錄密碼
 
-如果你希望无人值守初始化后台密码，也可以后续补：
+如果你希望無人值守初始化後臺密碼，也可以後續補：
 
 - `INITIAL_PASSWORD`
 
 ---
 
-## 6. 推荐参数说明
+## 6. 推薦參數說明
 
-### 6.1 Secrets 中设置
+### 6.1 Secrets 中設置
 
-建议放入 Fly Secrets：
+建議放入 Fly Secrets：
 
-| 变量名                   | 是否推荐 | 说明                           |
+| 變量名                   | 是否推薦 | 說明                           |
 | ------------------------ | -------- | ------------------------------ |
-| `API_KEY_SECRET`         | 必需     | API Key 生成与校验使用         |
-| `JWT_SECRET`             | 必需     | 登录态和 JWT 签名使用          |
-| `STORAGE_ENCRYPTION_KEY` | 强烈推荐 | 加密存储敏感连接信息           |
-| `MACHINE_ID_SALT`        | 推荐     | 生成稳定机器标识               |
-| `INITIAL_PASSWORD`       | 可选     | 首次部署时直接指定后台初始密码 |
-| OAuth/API 私密凭证       | 按需     | 各类外部平台鉴权配置           |
+| `API_KEY_SECRET`         | 必需     | API Key 生成與校驗使用         |
+| `JWT_SECRET`             | 必需     | 登錄態和 JWT 籤名使用          |
+| `STORAGE_ENCRYPTION_KEY` | 強烈推薦 | 加密存儲敏感連接資訊           |
+| `MACHINE_ID_SALT`        | 推薦     | 生成穩定機器標識               |
+| `INITIAL_PASSWORD`       | 可選     | 首次部署時直接指定後臺初始密碼 |
+| OAuth/API 私密憑證       | 按需     | 各類外部平臺鑑權設定           |
 
-### 6.2 当前项目推荐值
+### 6.2 當前項目推薦值
 
-| 变量名                 | 推荐值                      |
+| 變量名                 | 推薦值                      |
 | ---------------------- | --------------------------- |
 | `DATA_DIR`             | `/data`                     |
 | `NEXT_PUBLIC_BASE_URL` | `https://omniroute.fly.dev` |
 
-说明：
+說明：
 
-- `DATA_DIR=/data` 非常关键，必须与 Fly Volume 挂载点一致
-- `NEXT_PUBLIC_BASE_URL` 用于调度器和前端回调等场景
+- `DATA_DIR=/data` 非常關鍵，必須與 Fly Volume 掛載點一致
+- `NEXT_PUBLIC_BASE_URL` 用於調度器和前端回調等場景
 
 ---
 
-## 7. 一键设置参数
+## 7. 一鍵設置參數
 
-下面命令会生成安全随机值，并把当前项目需要的参数一次性写入 Fly Secrets。
+下面命令會生成安全隨機值，並把當前項目需要的參數一次性寫入 Fly Secrets。
 
-说明：
+說明：
 
 - 不包含 `INITIAL_PASSWORD`
-- 适用于当前项目 `omniroute`
+- 適用於當前項目 `omniroute`
 
 ```powershell
 $apiKeySecret = [Convert]::ToHexString((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 })).ToLower()
@@ -214,79 +214,79 @@ flyctl secrets set `
   -a omniroute
 ```
 
-如果你还要加初始密码：
+如果你還要加初始密碼：
 
 ```powershell
-flyctl secrets set INITIAL_PASSWORD=你的强密码 -a omniroute
+flyctl secrets set INITIAL_PASSWORD=你的強密碼 -a omniroute
 ```
 
 ---
 
-## 8. 查看当前参数
+## 8. 查看當前參數
 
 ```powershell
 flyctl secrets list -a omniroute
 ```
 
-如果控制台 `Secrets` 页面没有显示你期待的变量，先检查：
+如果控制臺 `Secrets` 頁面沒有顯示你期待的變量，先檢查：
 
-- 看的应用是不是 `omniroute`
-- `fly.toml` 的 `app` 是否和控制台应用一致
+- 看的應用是不是 `omniroute`
+- `fly.toml` 的 `app` 是否和控制臺應用一致
 
 ---
 
-## 9. 后续更新发布
+## 9. 後續更新發布
 
-代码有更新后，发布步骤很简单：
+代碼有更新後，發布步驟很簡單：
 
 ```powershell
 git pull
 flyctl deploy
 ```
 
-如果只更新参数，不改代码：
+如果只更新參數，不改代碼：
 
 ```powershell
 flyctl secrets set KEY=value -a omniroute
 ```
 
-Fly 会自动滚动更新机器。
+Fly 會自動滾動更新機器。
 
-### 9.1 跟踪原仓库更新并保留 fork 的 `fly.toml`
+### 9.1 跟蹤原倉庫更新並保留 fork 的 `fly.toml`
 
-如果当前仓库是 fork，并且你要同步上游 `https://github.com/diegosouzapw/OmniRoute` 的更新，推荐按下面流程执行。
+如果當前倉庫是 fork，並且你要同步上遊 `https://github.com/diegosouzapw/OmniRoute` 的更新，推薦按下面流程執行。
 
-先确认远程：
+先確認遠程：
 
 ```powershell
 git remote -v
 ```
 
-应至少包含：
+應至少包含：
 
 - `origin` 指向你自己的 fork
-- `upstream` 指向原仓库
+- `upstream` 指向原倉庫
 
-如果没有 `upstream`，先添加：
+如果沒有 `upstream`，先添加：
 
 ```powershell
 git remote add upstream https://github.com/diegosouzapw/OmniRoute.git
 ```
 
-同步上游前，先抓取最新提交和标签：
+同步上遊前，先抓取最新提交和標籤：
 
 ```powershell
 git fetch upstream --tags
 ```
 
-查看当前版本和上游标签：
+查看當前版本和上遊標籤：
 
 ```powershell
 git describe --tags --always
 git show --no-patch --oneline v3.4.7
 ```
 
-如果你想合并上游最新 `main`，并强制保留 fork 当前的 `fly.toml`，可按下面流程执行：
+如果你想合併上遊最新 `main`，並強制保留 fork 當前的 `fly.toml`，可按下面流程執行：
 
 ```powershell
 git merge upstream/main
@@ -296,52 +296,52 @@ git commit -m "chore(deploy): keep fork fly.toml"
 git push origin main
 ```
 
-说明：
+說明：
 
-- `git merge upstream/main` 用于同步原仓库最新代码
-- `git checkout HEAD~1 -- fly.toml` 用于恢复合并前你 fork 自己的 `fly.toml`
-- 如果上游没有改 `fly.toml`，这一步不会带来额外差异
-- 如果上游改了 `fly.toml`，这一步能确保 Fly 应用名、挂载卷、区域等 fork 自定义部署配置不被覆盖
+- `git merge upstream/main` 用於同步原倉庫最新代碼
+- `git checkout HEAD~1 -- fly.toml` 用於恢復合併前你 fork 自己的 `fly.toml`
+- 如果上遊沒有改 `fly.toml`，這一步不會帶來額外差異
+- 如果上遊改了 `fly.toml`，這一步能確保 Fly 應用名、掛載卷、區域等 fork 自定義部署設定不被覆蓋
 
-如果你明确只想对齐某个发布标签，例如 `v3.4.7`，也可以先确认标签是否已经包含在 `upstream/main`：
+如果你明確只想對齊某個發布標籤，例如 `v3.4.7`，也可以先確認標籤是否已經包含在 `upstream/main`：
 
 ```powershell
 git merge-base --is-ancestor v3.4.7 upstream/main
 ```
 
-返回成功表示 `upstream/main` 已经包含该版本，直接合并 `upstream/main` 即可。
+返回成功表示 `upstream/main` 已經包含該版本，直接合併 `upstream/main` 即可。
 
-### 9.2 同步上游后的标准发布顺序
+### 9.2 同步上遊後的標準發布順序
 
-同步原仓库完成后，推荐按下面顺序发布：
+同步原倉庫完成後，推薦按下面順序發布：
 
 1. `git fetch upstream --tags`
 2. `git merge upstream/main`
-3. 恢复 fork 的 `fly.toml`
+3. 恢復 fork 的 `fly.toml`
 4. `git push origin main`
 5. `flyctl deploy`
 6. `flyctl status -a omniroute`
 7. `flyctl logs --no-tail -a omniroute`
 
-这就是当前项目升级到 `v3.4.7` 时使用的实际流程。
+這就是當前項目升級到 `v3.4.7` 時使用的實際流程。
 
 ---
 
-## 10. 发布后检查
+## 10. 發布後檢查
 
-### 10.1 查看应用状态
+### 10.1 查看應用狀態
 
 ```powershell
 flyctl status -a omniroute
 ```
 
-### 10.2 查看启动日志
+### 10.2 查看啟動日誌
 
 ```powershell
 flyctl logs --no-tail -a omniroute
 ```
 
-### 10.3 检查网站可访问
+### 10.3 檢查網站可訪問
 
 ```powershell
 try {
@@ -355,82 +355,82 @@ try {
 }
 ```
 
-返回 `200` 说明站点已正常响应。
+返回 `200` 說明站點已正常響應。
 
 ---
 
-## 11. 成功标志
+## 11. 成功標誌
 
-部署成功后，日志里应看到类似内容：
+部署成功後，日誌裡應看到類似內容：
 
 ```text
 [bootstrap] Secrets persisted to: /data/server.env
 [DB] SQLite database ready: /data/storage.sqlite
 ```
 
-这两个点很关键：
+這兩個點很關鍵：
 
-- `/data/server.env` 说明运行时密钥落到了持久卷
-- `/data/storage.sqlite` 说明数据库写入持久卷
+- `/data/server.env` 說明運行時密鑰落到了持久卷
+- `/data/storage.sqlite` 說明資料庫寫入持久卷
 
-如果你看到的是 `/app/data/...`，说明 `DATA_DIR` 没配对，需要立即修正。
+如果你看到的是 `/app/data/...`，說明 `DATA_DIR` 沒配對，需要立即修正。
 
 ---
 
-## 12. 常见问题
+## 12. 常見問題
 
-### 12.1 `Secrets` 页面是空的
+### 12.1 `Secrets` 頁面是空的
 
-通常有两种原因：
+通常有兩種原因：
 
-- 你还没执行 `flyctl secrets set`
-- 你打开的是另一个应用，例如 `oroute`，不是 `omniroute`
+- 你還沒執行 `flyctl secrets set`
+- 你打開的是另一個應用，例如 `oroute`，不是 `omniroute`
 
-### 12.2 `flyctl deploy` 报 `app not found`
+### 12.2 `flyctl deploy` 報 `app not found`
 
-先创建应用：
+先創建應用：
 
 ```powershell
 flyctl apps create omniroute
 ```
 
-### 12.3 `fly.toml` 解析失败
+### 12.3 `fly.toml` 解析失敗
 
-重点检查：
+重點檢查：
 
-- 注释里是否有乱码字符
-- TOML 引号和缩进是否正确
+- 注釋裡是否有亂碼字符
+- TOML 引號和縮進是否正確
 
-### 12.4 数据没有持久化
+### 12.4 數據沒有持久化
 
-检查以下两点：
+檢查以下兩點：
 
 - `fly.toml` 中是否存在 `destination = '/data'`
-- `DATA_DIR` 是否设置为 `/data`
+- `DATA_DIR` 是否設置為 `/data`
 
-### 12.5 不设置 `INITIAL_PASSWORD` 是否能跑
+### 12.5 不設置 `INITIAL_PASSWORD` 是否能跑
 
-可以运行，但会回退到默认 `CHANGEME`。生产环境建议尽快修改后台密码。
+可以運行，但會回退到默認 `CHANGEME`。生產環境建議儘快修改後臺密碼。
 
 ---
 
-## 13. 新项目复用建议
+## 13. 新項目復用建議
 
-如果以后是新项目照着这份文档部署，最少改这几项：
+如果以後是新項目照著這份文檔部署，最少改這幾項：
 
-1. 修改 `fly.toml` 里的 `app`
+1. 修改 `fly.toml` 裡的 `app`
 2. 修改 `NEXT_PUBLIC_BASE_URL`
 3. 保持 `DATA_DIR=/data`
 4. 重新生成 `API_KEY_SECRET`、`JWT_SECRET`、`MACHINE_ID_SALT`、`STORAGE_ENCRYPTION_KEY`
-5. 首次部署后检查日志是否写入 `/data`
+5. 首次部署後檢查日誌是否寫入 `/data`
 
-不要直接复用旧项目的密钥。
+不要直接復用舊項目的密鑰。
 
 ---
 
-## 14. 当前项目的最小发布清单
+## 14. 當前項目的最小發布清單
 
-当前项目后续最常用的命令如下：
+當前項目後續最常用的命令如下：
 
 ```powershell
 flyctl auth whoami
@@ -440,13 +440,13 @@ flyctl deploy
 flyctl logs --no-tail -a omniroute
 ```
 
-如果只是正常发版，核心就是：
+如果只是正常發版，核心就是：
 
 ```powershell
 flyctl deploy
 ```
 
-如果是新环境首次部署，核心就是：
+如果是新環境首次部署，核心就是：
 
 1. `flyctl auth login`
 2. `flyctl apps create omniroute`
