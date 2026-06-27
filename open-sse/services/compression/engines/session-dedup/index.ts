@@ -30,7 +30,7 @@
 
 import crypto from "node:crypto";
 import { createCompressionStats } from "../../stats.ts";
-import { applyFuzzyPass } from "./fuzzy.ts";
+import { runFuzzyPass } from "./fuzzy.ts";
 import type {
   CompressionEngine,
   CompressionEngineApplyOptions,
@@ -46,8 +46,6 @@ const ENGINE_ID = "session-dedup";
 const DEFAULT_MIN_BLOCK_CHARS = 80;
 /** Minimum number of lines a block must span to be a dedup candidate. */
 const MIN_BLOCK_LINES = 3;
-/** Hard cap on blocks compared in the fuzzy O(n²) pass (fail-safe bound). */
-const MAX_FUZZY_BLOCKS = 200;
 
 // ─── hash helper (SHA-256 prefix, collision-resistant) ───────────────────────
 
@@ -342,24 +340,12 @@ export const sessionDedupEngine: CompressionEngine = {
       minBlockChars
     );
 
-    const rawFuzzy = stepConfig["fuzzy"] as
-      | boolean
-      | { enabled?: boolean; minJaccard?: number; shingleSize?: number }
-      | undefined;
-    const fuzzyCfg = typeof rawFuzzy === "boolean" ? { enabled: rawFuzzy } : rawFuzzy;
-    let finalMessages = exactMessages;
-    let fuzzyCount = 0;
-    if (fuzzyCfg?.enabled) {
-      const r = applyFuzzyPass(finalMessages, {
-        minJaccard: typeof fuzzyCfg.minJaccard === "number" ? fuzzyCfg.minJaccard : 0.85,
-        shingleSize: typeof fuzzyCfg.shingleSize === "number" ? fuzzyCfg.shingleSize : 3,
-        maxBlocks: MAX_FUZZY_BLOCKS,
-        minBlockChars,
-        principalId: options?.principalId,
-      });
-      finalMessages = r.messages;
-      fuzzyCount = r.fuzzyCount;
-    }
+    const { messages: finalMessages, fuzzyCount } = runFuzzyPass(
+      exactMessages,
+      stepConfig,
+      minBlockChars,
+      options?.principalId
+    );
 
     if (dedupCount + fuzzyCount === 0) {
       return { body, compressed: false, stats: null };

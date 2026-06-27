@@ -3,6 +3,9 @@ import { storeBlock } from "../ccr/index.ts";
 
 type MessageLike = { role?: string; content?: unknown; [key: string]: unknown };
 
+/** Hard cap on blocks compared in the fuzzy O(n²) pass (fail-safe bound). */
+export const MAX_FUZZY_BLOCKS = 200;
+
 /** FNV-1a 32-bit hash (deterministic, cheap, no Math.random). */
 function fnv1a(s: string): number {
   let h = 0x811c9dc5;
@@ -121,4 +124,30 @@ export function applyFuzzyPass(messages: MessageLike[], opts: FuzzyPassOptions):
   } catch {
     return { messages, fuzzyCount: 0 };
   }
+}
+
+/**
+ * Resolve the `fuzzy` step-config (a bare boolean OR `{ enabled, minJaccard?, shingleSize? }`)
+ * and run the near-duplicate pass. Returns the messages unchanged + `fuzzyCount: 0` when disabled.
+ * Keeps the engine's `apply()` thin (config normalization + dispatch live here).
+ */
+export function runFuzzyPass(
+  messages: MessageLike[],
+  stepConfig: Record<string, unknown>,
+  minBlockChars: number,
+  principalId?: string
+): FuzzyPassResult {
+  const raw = stepConfig["fuzzy"] as
+    | boolean
+    | { enabled?: boolean; minJaccard?: number; shingleSize?: number }
+    | undefined;
+  const cfg = typeof raw === "boolean" ? { enabled: raw } : raw;
+  if (!cfg?.enabled) return { messages, fuzzyCount: 0 };
+  return applyFuzzyPass(messages, {
+    minJaccard: typeof cfg.minJaccard === "number" ? cfg.minJaccard : 0.85,
+    shingleSize: typeof cfg.shingleSize === "number" ? cfg.shingleSize : 3,
+    maxBlocks: MAX_FUZZY_BLOCKS,
+    minBlockChars,
+    principalId,
+  });
 }
