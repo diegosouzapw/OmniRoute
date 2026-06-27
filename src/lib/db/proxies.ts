@@ -131,7 +131,7 @@ function isRelayProxyType(type: unknown): boolean {
   return typeof type === "string" && RELAY_PROXY_TYPES.has(type);
 }
 
-function extractRelayAuth(notes: unknown): string | undefined {
+export function extractRelayAuth(notes: unknown): string | undefined {
   if (typeof notes !== "string") return undefined;
   try {
     const parsed = JSON.parse(notes) as {
