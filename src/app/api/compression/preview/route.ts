@@ -38,6 +38,9 @@ export const PreviewRequestSchema = z.object({
   // / checkDiffHunks on FidelityGateConfig) use their conservative defaults until the studio gets
   // a config panel for them.
   fidelityGate: z.object({ enabled: z.boolean() }).optional(),
+  // Playground fuzzy near-duplicate toggle → injects `{ fuzzy: { enabled: true } }` into the
+  // session-dedup step config (see buildStep).
+  fuzzyDedup: z.object({ enabled: z.boolean() }).optional(),
 });
 
 function countTokens(text: string): number {
@@ -53,6 +56,12 @@ function messagesToText(messages: Array<{ role: string; content: unknown }>): st
     .join("\n");
 }
 
+function buildStep(engine: string, fuzzy?: { enabled: boolean }) {
+  return engine === "session-dedup" && fuzzy?.enabled
+    ? { engine, config: { fuzzy: { enabled: true } } }
+    : { engine };
+}
+
 async function dispatchCompression(
   requestBody: Record<string, unknown>,
   opts: {
@@ -61,12 +70,13 @@ async function dispatchCompression(
     effectiveMode: CompressionMode;
     config?: unknown;
     fidelityGate?: { enabled: boolean };
+    fuzzyDedup?: { enabled: boolean };
   }
 ) {
   if (opts.engineId) {
     return applyCompressionAsync(requestBody, "stacked", {
       config: {
-        stackedPipeline: [{ engine: opts.engineId }],
+        stackedPipeline: [buildStep(opts.engineId, opts.fuzzyDedup)],
         ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
       } as CompressionConfig,
     });
@@ -74,7 +84,7 @@ async function dispatchCompression(
   if (opts.pipeline) {
     return applyCompressionAsync(requestBody, "stacked", {
       config: {
-        stackedPipeline: opts.pipeline.map((engine) => ({ engine })),
+        stackedPipeline: opts.pipeline.map((engine) => buildStep(engine, opts.fuzzyDedup)),
         ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
       } as CompressionConfig,
     });
@@ -106,7 +116,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages, mode, engineId, pipeline, config, fidelityGate } = parsed.data;
+  const { messages, mode, engineId, pipeline, config, fidelityGate, fuzzyDedup } = parsed.data;
   const effectiveMode: CompressionMode = engineId || pipeline ? "stacked" : (mode as CompressionMode);
   const originalText = messagesToText(messages);
   const originalTokens = countTokens(originalText);
@@ -115,7 +125,7 @@ export async function POST(req: Request) {
     const start = Date.now();
     const requestBody = { messages };
     const result = await dispatchCompression(requestBody as Record<string, unknown>, {
-      engineId, pipeline, effectiveMode, config, fidelityGate,
+      engineId, pipeline, effectiveMode, config, fidelityGate, fuzzyDedup,
     });
     const durationMs = Date.now() - start;
 
