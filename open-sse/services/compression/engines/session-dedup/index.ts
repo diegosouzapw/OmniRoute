@@ -342,9 +342,11 @@ export const sessionDedupEngine: CompressionEngine = {
       minBlockChars
     );
 
-    const fuzzyCfg = stepConfig["fuzzy"] as
+    const rawFuzzy = stepConfig["fuzzy"] as
+      | boolean
       | { enabled?: boolean; minJaccard?: number; shingleSize?: number }
       | undefined;
+    const fuzzyCfg = typeof rawFuzzy === "boolean" ? { enabled: rawFuzzy } : rawFuzzy;
     let finalMessages = exactMessages;
     let fuzzyCount = 0;
     if (fuzzyCfg?.enabled) {
@@ -367,7 +369,8 @@ export const sessionDedupEngine: CompressionEngine = {
     const durationMs = Math.round(performance.now() - start);
     const techniques = ["session-dedup"];
     if (fuzzyCount > 0) techniques.push("fuzzy-dedup");
-    const rules = [`deduplicated-${dedupCount}-blocks`];
+    const rules: string[] = [];
+    if (dedupCount > 0) rules.push(`deduplicated-${dedupCount}-blocks`);
     if (fuzzyCount > 0) rules.push(`fuzzy-${fuzzyCount}-blocks`);
     const stats = createCompressionStats(body, newBody, "stacked", techniques, rules, durationMs);
     return { body: newBody, compressed: true, stats };

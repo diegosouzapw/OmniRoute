@@ -43,3 +43,12 @@ test("config schema advertises the fuzzy toggle + validateConfig accepts a fuzzy
   assert.equal(sessionDedupEngine.validateConfig({ fuzzy: { enabled: true } }).valid, true);
   assert.equal(sessionDedupEngine.validateConfig({ fuzzy: { enabled: "yes" } }).valid, false);
 });
+
+test("fuzzy as a bare boolean true also fires (schema advertises type:boolean)", () => {
+  resetCcrStore();
+  const body = { messages: [{ role: "user", content: A }, { role: "user", content: Aprime }] };
+  const res = sessionDedupEngine.apply(body, { stepConfig: { fuzzy: true }, principalId: "p1" });
+  assert.equal(res.compressed, true);
+  const msgs = res.body.messages as Array<{ content: string }>;
+  assert.match(msgs[1].content, /^\[CCR retrieve hash=[0-9a-f]{24} chars=\d+\]$/);
+});
