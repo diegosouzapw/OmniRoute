@@ -126,6 +126,12 @@ export interface RegistryEntry {
   defaultContextLength?: number;
   /** Optional session pool config for rate limit management */
   poolConfig?: Record<string, unknown>;
+  /**
+   * When true, the provider rejects non-streaming requests (HTTP 400).
+   * resolveStreamFlag will keep streaming even when the client requests JSON;
+   * OmniRoute accumulates the stream and converts it to a JSON body for the client. (#2081)
+   */
+  forceStream?: boolean;
 }
 
 export interface LegacyProvider {
@@ -380,6 +386,9 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     // notices); replaced by kimi-k2-5-260127.
     "kimi-k2-5-260127",
     "glm-4-7-251222",
+    // DeepSeek V4 models available on Volcengine Ark (port from upstream PR #1473)
+    "DeepSeek-V4-Flash",
+    "DeepSeek-V4-Pro",
   ]),
   ai21: buildModels(["jamba-large-1.7", "jamba-mini-2"]),
   gigachat: buildModels(["GigaChat-2-Max", "GigaChat-2-Pro", "GigaChat-2-Lite"]),

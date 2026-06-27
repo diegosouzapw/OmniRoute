@@ -3002,7 +3002,10 @@
     "tierAlwaysProtected": "__MISSING__:Always Protected",
     "tierPublic": "__MISSING__:Public",
     "hideInternal": "__MISSING__:Hide Internal",
-    "showInternal": "__MISSING__:Show Internal"
+    "showInternal": "__MISSING__:Show Internal",
+    "customSystemPromptTitle": "Custom System Prompt",
+    "customSystemPromptDescription": "Inject a custom system prompt into every model request",
+    "customSystemPromptPlaceholder": "e.g. Always respond in pirate speak..."
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",
@@ -3902,6 +3905,9 @@
     "reauthenticateConnection": "Re-authenticate this connection",
     "proxyConfig": "Proxy config",
     "aliasExistsAlert": "Alias \"{alias}\" already exists. Please use a different model or edit existing alias.",
+    "aliasInputPlaceholder": "alias name",
+    "clickToSetAlias": "Click to set alias",
+    "clickToEditAlias": "Alias: {alias} (click to edit)",
     "openRouterAnyModelHint": "OpenRouter supports any model. Add models and create aliases for quick access.",
     "modelIdFromOpenRouter": "Model ID (from OpenRouter)",
     "openRouterModelPlaceholder": "anthropic/claude-3-opus",
@@ -4156,6 +4162,8 @@
     "ccCompatibleContext1mLabel": "Enable 1M context beta",
     "ccCompatibleRedactThinkingDescription": "Adds the redact-thinking beta header for CC Compatible upstreams that require hidden Claude thinking streams.",
     "ccCompatibleRedactThinkingLabel": "Enable redact-thinking beta",
+    "ccCompatibleSummarizeThinkingDescription": "Adds `display: \"summarized\"` to CC Compatible thinking requests so supported Claude models stream visible thinking deltas.",
+    "ccCompatibleSummarizeThinkingLabel": "Enable summarized thinking display",
     "ccCompatibleDetailsTitle": "CC-compatible relay details",
     "ccCompatibleLabel": "CC Compatible",
     "ccCompatibleModelsDescription": "CC-compatible relays do not expose model listing. Add the Claude model IDs your relay accepts.",

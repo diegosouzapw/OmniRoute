@@ -1286,7 +1286,7 @@ test("createSSEStream passthrough restores Claude tool names from the mapping ta
   assert.equal(text.includes("tool_alias"), false);
 });
 
-test("createSSEStream passthrough fixes generic ids and normalizes reasoning aliases", async () => {
+test("createSSEStream passthrough fixes generic ids and preserves readable reasoning aliases", async () => {
   const text = await readTransformed(
     [
       `data: ${JSON.stringify({
@@ -1314,10 +1314,11 @@ test("createSSEStream passthrough fixes generic ids and normalizes reasoning ali
   );
 
   assert.match(text, /"id":"chatcmpl-/);
-  assert.match(text, /"reasoning_content":"Let me think first"/);
+  assert.match(text, /"reasoning":"Let me think first"/);
+  assert.doesNotMatch(text, /"reasoning_content":"Let me think first"/);
 });
 
-test("createSSEStream passthrough reserializes reasoning aliases with valid ids", async () => {
+test("createSSEStream passthrough mirrors unsupported reasoning aliases with valid ids", async () => {
   const text = await readTransformed(
     [
       `data: ${JSON.stringify({
@@ -1329,7 +1330,7 @@ test("createSSEStream passthrough reserializes reasoning aliases with valid ids"
           {
             index: 0,
             delta: {
-              reasoning: "Alias-only reasoning",
+              reasoning_text: "Alias-only reasoning",
             },
           },
         ],
@@ -1345,7 +1346,6 @@ test("createSSEStream passthrough reserializes reasoning aliases with valid ids"
   );
 
   assert.match(text, /"reasoning_content":"Alias-only reasoning"/);
-  assert.doesNotMatch(text, /"reasoning":"Alias-only reasoning"/);
 });
 
 test("createSSEStream passthrough preserves OpenAI content thinking tags as content", async () => {

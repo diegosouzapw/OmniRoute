@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   createDisconnectAwareStream,
+  createNoopAbortWritable,
   createStreamController,
   pipeWithDisconnect,
 } from "../../open-sse/utils/streamHandler.ts";
@@ -56,6 +57,45 @@ test("createDisconnectAwareStream converts upstream errors into SSE error chunks
   assert.match(text, /"message":"provider exploded"/);
   assert.match(text, /"code":"rate_limit_exceeded"/);
   assert.match(text, /\[DONE\]/);
+});
+
+test("createDisconnectAwareStream treats errors after OpenAI DONE as successful completion", async () => {
+  let pullCount = 0;
+  let errorHandled = false;
+  const transformStream = {
+    readable: new ReadableStream({
+      pull(controller) {
+        pullCount += 1;
+        if (pullCount === 1) {
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          return;
+        }
+        controller.error(new Error("terminated"));
+      },
+    }),
+    writable: {
+      getWriter() {
+        return {
+          abort() {},
+        };
+      },
+    },
+  };
+
+  const stream = createDisconnectAwareStream(
+    transformStream,
+    createStreamController({
+      onError() {
+        errorHandled = true;
+      },
+    })
+  );
+  const text = await readStreamText(stream);
+
+  assert.equal(text, "data: [DONE]\n\n");
+  assert.equal(errorHandled, false);
+  assert.doesNotMatch(text, /finish_reason/);
+  assert.doesNotMatch(text, /terminated/);
 });
 
 test("createDisconnectAwareStream: Gemini 503 high-demand error becomes SSE error chunk with message preserved", async () => {
@@ -283,6 +323,40 @@ test("createDisconnectAwareStream cancel propagates disconnect reason and aborts
   assert.ok(disconnectEvent.duration >= 0);
 });
 
+test("createNoopAbortWritable: getWriter().abort() returns a resolved Promise (matches WritableStreamDefaultWriter contract)", async () => {
+  // The mock writable that pipeWithDisconnect hands to createDisconnectAwareStream
+  // is consumed only via its writer's abort() hook (in the cancel() path). The
+  // native WritableStreamDefaultWriter.abort() returns Promise<void>; the mock
+  // must match that contract so cancel/error handling can await it instead of
+  // receiving `undefined`. Ported from decolua/9router@6b624af4.
+  const writable = createNoopAbortWritable();
+  const writer = writable.getWriter();
+
+  const aborted = writer.abort();
+
+  assert.ok(aborted instanceof Promise, "abort() must return a Promise, not undefined");
+  // Awaiting must resolve cleanly to undefined (Promise<void>), never reject.
+  assert.equal(await aborted, undefined);
+});
+
+test("createNoopAbortWritable: cancelling a stream wired through it awaits the abort promise without throwing", async () => {
+  // End-to-end seam: the noop writable is what pipeWithDisconnect injects. Wire
+  // it into createDisconnectAwareStream exactly as production does and drive the
+  // cancel() path. With abort() returning undefined (the pre-fix shape) this
+  // still completes, but a thenable abort keeps the cancel/error path clean.
+  const transformStream = {
+    readable: new ReadableStream({
+      pull() {},
+      cancel() {},
+    }),
+    writable: createNoopAbortWritable(),
+  };
+
+  const stream = createDisconnectAwareStream(transformStream, createStreamController());
+
+  await assert.doesNotReject(stream.cancel("client-gone"));
+});
+
 test("createDisconnectAwareStream uses the default cancel reason when none is provided", async () => {
   let disconnectEvent = null;
 
@@ -469,6 +543,42 @@ test("pipeWithDisconnect does not double-clear transform errors already accounte
   assert.equal(pending.byAccount[connectionId][modelKey], 1);
 });
 
+test("createDisconnectAwareStream ignores reader errors after client disconnect", async () => {
+  let readableController!: ReadableStreamDefaultController;
+  let onErrorCalled = false;
+  const transformStream = {
+    readable: new ReadableStream({
+      start(controller) {
+        readableController = controller;
+      },
+    }),
+    writable: {
+      getWriter() {
+        return {
+          abort() {},
+        };
+      },
+    },
+  };
+  const streamController = createStreamController({
+    onError() {
+      onErrorCalled = true;
+      return true;
+    },
+  });
+  const stream = createDisconnectAwareStream(transformStream, streamController);
+  const reader = stream.getReader();
+  const readPromise = reader.read();
+
+  streamController.handleDisconnect("ResponseAborted");
+  readableController.error(new Error("Invalid state: Controller is already closed"));
+
+  const result = await readPromise;
+
+  assert.equal(result.done, true);
+  assert.equal(onErrorCalled, false, "disconnect races must not be recorded as upstream errors");
+});
+
 // Stall detection: tied to RAW upstream byte activity, not transform output.
 // Ports decolua/9router#1243 — reasoning models (Claude thinking, Kiro
 // EventStream binary frames) can stream raw bytes for long stretches while
@@ -511,18 +621,19 @@ test("pipeWithDisconnect does NOT flag a slow but progressing upstream as stalle
     },
   });
 
-  const stream = pipeWithDisconnect(
-    new Response(source),
-    swallowingTransform,
-    streamController,
-    { stallTimeoutMs: 200 }
-  );
+  const stream = pipeWithDisconnect(new Response(source), swallowingTransform, streamController, {
+    stallTimeoutMs: 200,
+  });
 
   const text = await readStreamText(stream);
 
   // No stall error — final flush output reaches the client cleanly.
   assert.equal(text, "done");
-  assert.equal(onErrorCalled, false, "stall watchdog must NOT fire on a slow but progressing upstream");
+  assert.equal(
+    onErrorCalled,
+    false,
+    "stall watchdog must NOT fire on a slow but progressing upstream"
+  );
   assert.doesNotMatch(text, /stall/i);
   assert.doesNotMatch(text, /"finish_reason":"error"/);
 });
@@ -548,12 +659,9 @@ test("pipeWithDisconnect flags a truly stalled upstream (no bytes for the full s
     },
   });
 
-  const stream = pipeWithDisconnect(
-    new Response(source),
-    new TransformStream(),
-    streamController,
-    { stallTimeoutMs: 80 }
-  );
+  const stream = pipeWithDisconnect(new Response(source), new TransformStream(), streamController, {
+    stallTimeoutMs: 80,
+  });
 
   const text = await readStreamText(stream);
 
@@ -581,12 +689,9 @@ test("pipeWithDisconnect stall watchdog does not fire after normal stream comple
     },
   });
 
-  const stream = pipeWithDisconnect(
-    new Response(source),
-    new TransformStream(),
-    streamController,
-    { stallTimeoutMs: 50 }
-  );
+  const stream = pipeWithDisconnect(new Response(source), new TransformStream(), streamController, {
+    stallTimeoutMs: 50,
+  });
 
   const text = await readStreamText(stream);
 

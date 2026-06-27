@@ -78,6 +78,7 @@ interface ProviderConnectionView {
   tokenExpiresAt: string | null;
   expiresAt: string | null;
   projectId: string | null;
+  defaultModel: string | null;
   providerSpecificData: JsonRecord;
   lastUsedAt: string | null;
   consecutiveUseCount: number;
@@ -171,6 +172,7 @@ function toProviderConnection(value: unknown): ProviderConnectionView {
     tokenExpiresAt: toStringOrNull(row.tokenExpiresAt),
     expiresAt: toStringOrNull(row.expiresAt),
     projectId: toStringOrNull(row.projectId),
+    defaultModel: toStringOrNull(row.defaultModel),
     providerSpecificData: asRecord(row.providerSpecificData),
     lastUsedAt: toStringOrNull(row.lastUsedAt),
     consecutiveUseCount: toNumber(row.consecutiveUseCount, 0),
@@ -781,14 +783,15 @@ type AnonymousFallbackProviderDefinition = {
   noAuth?: boolean;
 };
 
-function buildSyntheticNoAuthCredentials(): {
+function buildSyntheticNoAuthCredentials(providerSpecificData: JsonRecord = {}): {
   apiKey: null;
   accessToken: null;
   refreshToken: null;
   expiresAt: null;
   projectId: null;
+  defaultModel: null;
   copilotToken: null;
-  providerSpecificData: Record<string, never>;
+  providerSpecificData: JsonRecord;
   connectionId: typeof SYNTHETIC_NOAUTH_CONNECTION_ID;
   testStatus: "active";
   lastError: null;
@@ -808,8 +811,9 @@ function buildSyntheticNoAuthCredentials(): {
     refreshToken: null,
     expiresAt: null,
     projectId: null,
+    defaultModel: null,
     copilotToken: null,
-    providerSpecificData: {},
+    providerSpecificData,
     connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
     testStatus: "active",
     lastError: null,
@@ -819,6 +823,39 @@ function buildSyntheticNoAuthCredentials(): {
     rateLimitedUntil: null,
     maxConcurrent: null,
   };
+}
+
+/**
+ * #4954 — A no-auth provider ("OpenCode Free", MiMoCode, …) has no DB-backed
+ * credential, but its NoAuthAccountCard DOES persist a real connection row whose
+ * `providerSpecificData` carries the per-account proxy/rotation config
+ * (`fingerprints` + `accountProxies`). The synthetic credentials returned above
+ * default to an empty `providerSpecificData`, so without hydration the executor
+ * never sees those proxies and every request egresses direct. Pull just the
+ * rotation-relevant fields off the active connection so the executor can honor
+ * them. Best-effort: any read failure falls back to empty (historical behavior).
+ */
+async function loadNoAuthProviderSpecificData(providerId: string): Promise<JsonRecord> {
+  try {
+    const connectionsRaw = await getProviderConnections({ provider: providerId });
+    const connections = (Array.isArray(connectionsRaw) ? connectionsRaw : []).map(
+      toProviderConnection
+    );
+    const hydrated: JsonRecord = {};
+    for (const conn of connections) {
+      const psd = conn.providerSpecificData;
+      if (!psd || typeof psd !== "object") continue;
+      if (Array.isArray(psd.fingerprints) && !Array.isArray(hydrated.fingerprints)) {
+        hydrated.fingerprints = psd.fingerprints;
+      }
+      if (Array.isArray(psd.accountProxies) && !Array.isArray(hydrated.accountProxies)) {
+        hydrated.accountProxies = psd.accountProxies;
+      }
+    }
+    return hydrated;
+  } catch {
+    return {};
+  }
 }
 
 function providerCanUseSyntheticNoAuthFallback(providerId: string): boolean {
@@ -838,10 +875,16 @@ function providerCanUseSyntheticNoAuthFallback(providerId: string): boolean {
   );
 }
 
-function maybeSyntheticNoAuthFallback(providerId: string, excludedConnectionIds: Set<string>) {
+async function maybeSyntheticNoAuthFallback(
+  providerId: string,
+  excludedConnectionIds: Set<string>
+) {
   if (!providerCanUseSyntheticNoAuthFallback(providerId)) return null;
   if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) return null;
-  return buildSyntheticNoAuthCredentials();
+  // #4954: hydrate per-account proxy/rotation config off the connection row so
+  // no-auth executors (opencode, mimocode) actually honor configured proxies.
+  const providerSpecificData = await loadNoAuthProviderSpecificData(providerId);
+  return buildSyntheticNoAuthCredentials(providerSpecificData);
 }
 
 function normalizeExcludedConnectionIds(
@@ -1021,7 +1064,7 @@ export async function getProviderCredentials(
         excludeConnectionId,
         options.excludeConnectionIds
       );
-      return maybeSyntheticNoAuthFallback(resolvedId, excludedForNoAuth);
+      return await maybeSyntheticNoAuthFallback(resolvedId, excludedForNoAuth);
     }
 
     const allowSuppressedConnections = options.allowSuppressedConnections === true;
@@ -1106,7 +1149,7 @@ export async function getProviderCredentials(
         // the dashboard sees a misleading "bad_request" code.
         const terminalConnections = allConnections.filter(isTerminalConnectionStatus);
         if (terminalConnections.length === allConnections.length) {
-          const syntheticFallback = maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
+          const syntheticFallback = await maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
           if (syntheticFallback) return syntheticFallback;
 
           const statusCounts = new Map<string, number>();
@@ -1123,7 +1166,7 @@ export async function getProviderCredentials(
           };
         }
       }
-      const syntheticFallback = maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
+      const syntheticFallback = await maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
       if (syntheticFallback) return syntheticFallback;
       log.warn("AUTH", `No credentials for ${provider}`);
       return null;
@@ -1294,7 +1337,7 @@ export async function getProviderCredentials(
           cooldownModel: allBlockedByModelCooldown ? requestedModel : null,
         };
       }
-      const syntheticFallback = maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
+      const syntheticFallback = await maybeSyntheticNoAuthFallback(resolvedId, excludedConnectionIds);
       if (syntheticFallback) return syntheticFallback;
       log.warn("AUTH", `${provider} | all ${connections.length} accounts unavailable`);
       return null;
@@ -1561,6 +1604,10 @@ export async function getProviderCredentials(
       refreshToken: connection.refreshToken,
       expiresAt: connection.tokenExpiresAt || connection.expiresAt || null,
       projectId: connection.projectId,
+      // #474: surface the connection's configured defaultModel so the chat /
+      // embeddings handlers can resolve a bare model name (e.g. an alias that
+      // resolved to "auto") to a real provider model ID before the upstream call.
+      defaultModel: connection.defaultModel || null,
       copilotToken:
         typeof connection.providerSpecificData.copilotToken === "string"
           ? connection.providerSpecificData.copilotToken
@@ -1869,6 +1916,7 @@ export async function markAccountUnavailable(
     const disableCooling = connProviderSpecificData.disableCooling === true;
 
     const isPerModelQuotaProvider = hasPerModelQuota(provider, model, connectionPassthroughModels);
+    const modelLockoutOptions = { maxCooldownMs: effectiveProviderProfile?.maxCooldownMs };
     if (
       isPerModelQuotaProvider &&
       provider &&
@@ -1895,6 +1943,7 @@ export async function markAccountUnavailable(
           : (fallbackResult.baseCooldownMs ?? effectiveProviderProfile?.baseCooldownMs ?? 0),
         effectiveProviderProfile,
         {
+          ...modelLockoutOptions,
           exactCooldownMs:
             fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
           maxCooldownMs: mlSettings.maxCooldownMs,
@@ -1950,16 +1999,6 @@ export async function markAccountUnavailable(
     const cooldownMs = terminalStatus ? 0 : rawCooldownMs;
 
     // ── #3027: per-model subscription/permission 403 → model-only lockout ──
-    // Passthrough / per-model-quota providers (e.g. ollama-cloud with
-    // passthroughModels:true) multiplex many upstream models behind one key.
-    // A scoped 403 like "this model requires a subscription, upgrade for access"
-    // is about the paid model, not the key — cooling the whole connection would
-    // knock out the free models on the same key too and escalate backoff
-    // (#3001/#3027). This generalizes the grok-web 403 precedent above to every
-    // hasPerModelQuota provider. Terminal/credential 403s (banned/deactivated
-    // key, credits exhausted) are excluded here because
-    // resolveTerminalConnectionStatus() returns a non-null status for them, so
-    // they keep their existing connection-level cooldown/deactivation path.
     if (isPerModelQuotaProvider && status === 403 && provider && model && !terminalStatus) {
       const lockout = recordModelLockoutFailure(
         provider,
@@ -1972,6 +2011,7 @@ export async function markAccountUnavailable(
           COOLDOWN_MS.serviceUnavailable,
         effectiveProviderProfile,
         {
+          ...modelLockoutOptions,
           exactCooldownMs:
             fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
           maxCooldownMs: mlSettings.maxCooldownMs,

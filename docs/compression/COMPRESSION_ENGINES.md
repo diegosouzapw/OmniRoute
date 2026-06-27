@@ -116,7 +116,7 @@ override points it at a local copy instead (offline / air-gapped installs).
 
 ### Optional dependencies & on-demand install
 
-The LLMLingua runtime stack is **optional**. Three packages are declared as
+The prunable LLMLingua runtime peer stack is **optional**. Three packages are declared as
 `optionalDependencies` in `package.json` and kept **external** by the production build
 (`scripts/build/prepublish.ts` does not bundle them):
 
@@ -126,9 +126,12 @@ The LLMLingua runtime stack is **optional**. Three packages are declared as
 | `@tensorflow/tfjs`   | `4.22.0`      | Heaviest dep — dominates the ~800 MB footprint |
 | `js-tiktoken`        | `^1.0.20`     | Tokenizer                                      |
 
-`@huggingface/transformers` is pinned at `3.5.2` as a **regular** dependency (shared with
-the local embeddings path), so it always ships — only the three packages above are
-prunable. A standard `npm install` (dev) installs them automatically.
+`@huggingface/transformers` is pinned at `3.5.2` as an **optional** dependency (shared with
+the local embeddings path and also traced into the standalone bundle). Keeping it optional prevents
+`onnxruntime-node` CUDA provider postinstall failures on CUDA 11 hosts from aborting the whole
+OmniRoute install; when the optional stack is absent, LLMLingua still fail-opens. Only the three
+packages above are prunable SLM peers. A standard `npm install` (dev) installs the optional stack
+automatically unless optional dependencies are omitted.
 
 **Why on-demand:** the npm-published package, the standalone bundle, and the Docker image
 ship **without** these deps to stay slim. When they are absent, the worker's dependency

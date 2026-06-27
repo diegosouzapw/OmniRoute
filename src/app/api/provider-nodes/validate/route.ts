@@ -16,6 +16,48 @@ import { isCcCompatibleProviderEnabled } from "@/shared/utils/featureFlags";
 import { providerNodeValidateSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
+// Matches a base URL whose host is localhost / 127.0.0.1 (with an optional port).
+const LOCALHOST_BASE_URL_RE = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(?:[/?#]|$)/i;
+
+// Extract the underlying network error code from a SafeOutboundFetchError chain.
+// safeOutboundFetch wraps fetch failures and preserves the original error as `cause`,
+// so a connection-refused surfaces as cause.code === "ECONNREFUSED".
+function getOutboundCauseCode(error: unknown): string | undefined {
+  const cause = (error as { cause?: unknown })?.cause;
+  if (cause && typeof cause === "object") {
+    const direct = (cause as { code?: unknown }).code;
+    if (typeof direct === "string") return direct;
+    const nested = (cause as { cause?: { code?: unknown } }).cause?.code;
+    if (typeof nested === "string") return nested;
+  }
+  return undefined;
+}
+
+// When a connection error happens against a localhost base URL, the most common
+// cause is running OmniRoute in Docker — `localhost` then points at the container,
+// not the host. Augment the surfaced message with an actionable hint in that case.
+// Ported from decolua/9router#642.
+export function augmentDockerLocalhostHint(
+  error: unknown,
+  baseUrl: string | undefined,
+  fallbackMessage: string
+): string {
+  if (!baseUrl || !LOCALHOST_BASE_URL_RE.test(baseUrl)) return fallbackMessage;
+
+  const code =
+    error instanceof SafeOutboundFetchError && error.code === "TIMEOUT"
+      ? "ETIMEDOUT"
+      : getOutboundCauseCode(error);
+
+  if (code === "ECONNREFUSED") {
+    return "Connection refused — are you running OmniRoute in Docker? localhost points to the container, not your host. Use your host IP (e.g. http://192.168.x.x:11434) or http://host.docker.internal:11434 on Linux/Mac.";
+  }
+  if (code === "ETIMEDOUT") {
+    return "Connection timeout — are you running OmniRoute in Docker? Use your host IP (e.g. http://192.168.x.x:11434) or http://host.docker.internal:11434 on Linux/Mac.";
+  }
+  return fallbackMessage;
+}
+
 function sanitizeAnthropicBaseUrl(baseUrl: string) {
   return (baseUrl || "")
     .trim()
@@ -212,18 +254,19 @@ export async function POST(request) {
     }
     return NextResponse.json({ valid: false, error: getModelsErrorMessage(res.status) });
   } catch (error) {
+    const attemptedBaseUrl =
+      rawBody && typeof rawBody === "object" && "baseUrl" in rawBody
+        ? String((rawBody as { baseUrl?: unknown }).baseUrl || "")
+        : "";
     const status = getSafeOutboundFetchErrorStatus(error);
     if (status) {
-      const message = error instanceof Error ? error.message : "Validation failed";
+      const rawMessage = error instanceof Error ? error.message : "Validation failed";
+      const message = augmentDockerLocalhostHint(error, attemptedBaseUrl, rawMessage);
       if (
         error instanceof SafeOutboundFetchError &&
         error.code === "URL_GUARD_BLOCKED" &&
         message.includes(PROVIDER_URL_BLOCKED_MESSAGE)
       ) {
-        const attemptedBaseUrl =
-          rawBody && typeof rawBody === "object" && "baseUrl" in rawBody
-            ? String((rawBody as { baseUrl?: unknown }).baseUrl || "")
-            : "";
         logAuditEvent({
           action: "provider.validation.ssrf_blocked",
           actor: "admin",
@@ -242,6 +285,7 @@ export async function POST(request) {
       return NextResponse.json({ error: message }, { status });
     }
     console.log("Error validating provider node:", error);
-    return NextResponse.json({ error: "Validation failed" }, { status: 500 });
+    const message = augmentDockerLocalhostHint(error, attemptedBaseUrl, "Validation failed");
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

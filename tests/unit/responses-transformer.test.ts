@@ -105,7 +105,7 @@ test("createResponsesApiTransformStream converts think tags into reasoning summa
     summary: [{ type: "summary_text", text: "planning" }],
   });
   assert.deepEqual(completed.output[1].content, [
-    { type: "output_text", annotations: [], text: "answer" },
+    { type: "output_text", annotations: [], logprobs: [], text: "answer" },
   ]);
 });
 

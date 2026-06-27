@@ -72,6 +72,23 @@ test("T28: vertex catalog includes partner models when vertex executor is availa
   assert.ok(vertexIds.includes("GLM-5.1-FP8"));
 });
 
+test("T28: volcengine (Ark) catalog includes DeepSeek V4 models", () => {
+  const volcengineIds = REGISTRY.volcengine.models.map((m) => m.id);
+
+  assert.ok(
+    volcengineIds.includes("DeepSeek-V4-Flash"),
+    "volcengine Ark must list DeepSeek-V4-Flash"
+  );
+  assert.ok(
+    volcengineIds.includes("DeepSeek-V4-Pro"),
+    "volcengine Ark must list DeepSeek-V4-Pro"
+  );
+  // Existing models must still be present
+  assert.ok(volcengineIds.includes("deepseek-v3-2-251201"));
+  assert.ok(volcengineIds.includes("kimi-k2-5-260127"));
+  assert.ok(volcengineIds.includes("glm-4-7-251222"));
+});
+
 test("T28: new catalog models resolve through getModelInfoCore", async () => {
   const minimax = await getModelInfoCore("minimax/MiniMax-M2.7", {});
   assert.equal(minimax.provider, "minimax");

@@ -50,6 +50,7 @@ test("normalizeProviderSpecificData keeps only boolean CC-compatible request def
     requestDefaults: {
       context1m: true,
       redactThinking: true,
+      summarizeThinking: true,
       customFlag: "keep-me",
     },
   });
@@ -57,10 +58,12 @@ test("normalizeProviderSpecificData keeps only boolean CC-compatible request def
   assert.deepEqual(getClaudeCodeCompatibleRequestDefaults(normalized), {
     context1m: true,
     redactThinking: true,
+    summarizeThinking: true,
   });
   assert.deepEqual(normalized?.requestDefaults, {
     context1m: true,
     redactThinking: true,
+    summarizeThinking: true,
     customFlag: "keep-me",
   });
 
@@ -68,6 +71,7 @@ test("normalizeProviderSpecificData keeps only boolean CC-compatible request def
     requestDefaults: {
       context1m: "yes",
       redactThinking: "yes",
+      summarizeThinking: "yes",
       customFlag: "keep-me",
     },
   });

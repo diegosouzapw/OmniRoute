@@ -822,6 +822,79 @@ export function getPresetCostModelRows(
 }
 
 // ---------------------------------------------------------------------------
+// Endpoint dimension — ported from decolua/9router#152 (thanks @toanalien).
+// Reads directly from usage_history (raw rows) so the unified CTE stays
+// untouched; matches the pattern used by getAutoRoutingVariantBreakdown.
+// ---------------------------------------------------------------------------
+
+export interface EndpointUsageRow {
+  endpoint: string;
+  provider: string;
+  model: string;
+  requests: number;
+  promptTokens: number;
+  completionTokens: number;
+  cacheReadTokens: number;
+  cacheCreationTokens: number;
+  reasoningTokens: number;
+  totalTokens: number;
+  avgLatencyMs: number;
+  successfulRequests: number;
+  lastUsed: string;
+}
+
+export interface EndpointUsageParams {
+  sinceIso?: string | null;
+  untilIso?: string | null;
+}
+
+/**
+ * Per-endpoint × provider × model usage aggregates from `usage_history`.
+ * NULL endpoints fold into the 'unknown' bucket so legacy rows stay visible.
+ *
+ * Inspired by decolua/9router#152 (byEndpoint aggregation), reshaped for the
+ * OmniRoute SQLite schema + analytics conventions.
+ */
+export function getEndpointUsageRows(params: EndpointUsageParams = {}): EndpointUsageRow[] {
+  const db = getDbInstance();
+  const conditions: string[] = [];
+  const bind: Record<string, unknown> = {};
+  if (params.sinceIso) {
+    conditions.push("timestamp >= @since");
+    bind.since = params.sinceIso;
+  }
+  if (params.untilIso) {
+    conditions.push("timestamp <= @until");
+    bind.until = params.untilIso;
+  }
+  const whereSql = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  return db
+    .prepare(
+      `
+      SELECT
+        COALESCE(NULLIF(endpoint, ''), 'unknown') as endpoint,
+        LOWER(COALESCE(provider, 'unknown')) as provider,
+        LOWER(COALESCE(model, 'unknown')) as model,
+        COUNT(*) as requests,
+        COALESCE(SUM(tokens_input), 0) as promptTokens,
+        COALESCE(SUM(tokens_output), 0) as completionTokens,
+        COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
+        COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
+        COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens,
+        COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens,
+        COALESCE(AVG(latency_ms), 0) as avgLatencyMs,
+        COALESCE(SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END), 0) as successfulRequests,
+        COALESCE(MAX(timestamp), '') as lastUsed
+      FROM usage_history
+      ${whereSql}
+      GROUP BY endpoint, LOWER(COALESCE(provider, 'unknown')), LOWER(COALESCE(model, 'unknown'))
+      ORDER BY requests DESC
+    `
+    )
+    .all(bind) as EndpointUsageRow[];
+}
+
+// ---------------------------------------------------------------------------
 // Export-JSON backup — /api/settings/export-json
 // ---------------------------------------------------------------------------
 

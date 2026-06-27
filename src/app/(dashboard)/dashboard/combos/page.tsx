@@ -215,6 +215,19 @@ function sanitizeComboRuntimeConfig(config) {
   );
 }
 
+// Build the next combo config when a Fusion tuning field changes. Prunes empty /
+// non-finite entries and drops the whole `fusionTuning` object when no field is
+// set, so an empty `{}` is never persisted (sanitizeComboRuntimeConfig keeps any
+// non-null object as-is).
+function updateFusionTuning(config, field, rawValue) {
+  const value = rawValue === "" ? undefined : Number(rawValue);
+  const next = { ...(config.fusionTuning || {}), [field]: value };
+  const pruned = Object.fromEntries(
+    Object.entries(next).filter(([, v]) => typeof v === "number" && Number.isFinite(v))
+  );
+  return { ...config, fusionTuning: Object.keys(pruned).length > 0 ? pruned : undefined };
+}
+
 const STRATEGY_RECOMMENDATIONS_FALLBACK = {
   priority: {
     title: "Fail-safe baseline",
@@ -1930,6 +1943,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
   const isExpertMode = normalizeComboConfigMode(comboConfigMode) === "expert";
   const createDraftStateRef = useRef<CreateDraftSnapshot>(getEmptyCreateDraftSnapshot());
   const [name, setName] = useState(combo?.name || "");
+  const [description, setDescription] = useState<string>(combo?.description || "");
   const [models, setModels] = useState(() => {
     return (combo?.models || []).map((m) => normalizeModelEntry(m));
   });
@@ -1990,6 +2004,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
           );
 
       setName(nextCombo?.name || "");
+      setDescription(nextCombo?.description || "");
       setModels((nextCombo?.models || []).map((m) => normalizeModelEntry(m)));
       setStrategy(nextCombo?.strategy || comboDefaults?.strategy || "priority");
       setConfig(nextConfig);
@@ -2717,6 +2732,14 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
       strategy,
     };
 
+    // Per-combo description (#5005). Free-text, optional, persisted in combo data.
+    if (description.trim()) {
+      saveData.description = description.trim();
+    } else if (isEdit) {
+      // Editing: send null to explicitly clear a previously-set description.
+      saveData.description = null;
+    }
+
     // Include config only if any values are set
     const configToSave = sanitizeComboRuntimeConfig(config);
     // Add round-robin specific fields to config
@@ -2911,6 +2934,25 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                 {!isExpertMode && (
                   <p className="text-[10px] text-text-muted mt-0.5">{t("nameHint")}</p>
                 )}
+              </div>
+
+              {/* Description (#5005) — optional free-text note for this combo */}
+              <div>
+                <label className="text-[11px] font-medium text-text-muted block mb-0.5">
+                  {getI18nOrFallback(t, "comboDescription", "Description")}
+                </label>
+                <textarea
+                  rows={2}
+                  data-testid="combo-description-input"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder={getI18nOrFallback(
+                    t,
+                    "comboDescriptionPlaceholder",
+                    "Optional note describing this combo"
+                  )}
+                  className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none resize-none"
+                />
               </div>
 
               {!isEdit && !isExpertMode && (
@@ -4016,6 +4058,102 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                           </p>
                         </div>
                       )}
+                    </div>
+                  )}
+                  {strategy === "fusion" && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-2 border-t border-black/5 dark:border-white/5">
+                      <div className="md:col-span-2">
+                        <FieldLabelWithHelp
+                          label={getI18nOrFallback(t, "fusionJudgeModel", "Judge model")}
+                          help={getI18nOrFallback(
+                            t,
+                            "fusionJudgeModelHelp",
+                            "Model that synthesizes the panel answers into one final response. Leave empty to use the first panel model."
+                          )}
+                          showHelp={!isExpertMode}
+                        />
+                        <input
+                          type="text"
+                          value={config.judgeModel ?? ""}
+                          placeholder={models[0]?.model || "openai/gpt-5.5"}
+                          onChange={(e) =>
+                            setConfig({ ...config, judgeModel: e.target.value || undefined })
+                          }
+                          className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <FieldLabelWithHelp
+                          label={getI18nOrFallback(t, "fusionMinPanel", "Min panel")}
+                          help={getI18nOrFallback(
+                            t,
+                            "fusionMinPanelHelp",
+                            "Successful panel answers required before stragglers get a grace window (default 2)."
+                          )}
+                          showHelp={!isExpertMode}
+                        />
+                        <input
+                          type="number"
+                          min="1"
+                          max="50"
+                          value={config.fusionTuning?.minPanel ?? ""}
+                          placeholder="2"
+                          onChange={(e) =>
+                            setConfig(updateFusionTuning(config, "minPanel", e.target.value))
+                          }
+                          className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <FieldLabelWithHelp
+                          label={getI18nOrFallback(t, "fusionStragglerGraceMs", "Straggler grace (ms)")}
+                          help={getI18nOrFallback(
+                            t,
+                            "fusionStragglerGraceMsHelp",
+                            "How long to wait for slow panel models once quorum is reached (default 8000)."
+                          )}
+                          showHelp={!isExpertMode}
+                        />
+                        <input
+                          type="number"
+                          min="0"
+                          max="120000"
+                          value={config.fusionTuning?.stragglerGraceMs ?? ""}
+                          placeholder="8000"
+                          onChange={(e) =>
+                            setConfig(updateFusionTuning(config, "stragglerGraceMs", e.target.value))
+                          }
+                          className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <FieldLabelWithHelp
+                          label={getI18nOrFallback(
+                            t,
+                            "fusionPanelHardTimeoutMs",
+                            "Panel hard timeout (ms)"
+                          )}
+                          help={getI18nOrFallback(
+                            t,
+                            "fusionPanelHardTimeoutMsHelp",
+                            "Absolute cap so one hung model can't stall the whole panel (default 90000)."
+                          )}
+                          showHelp={!isExpertMode}
+                        />
+                        <input
+                          type="number"
+                          min="1000"
+                          max="600000"
+                          value={config.fusionTuning?.panelHardTimeoutMs ?? ""}
+                          placeholder="90000"
+                          onChange={(e) =>
+                            setConfig(
+                              updateFusionTuning(config, "panelHardTimeoutMs", e.target.value)
+                            )
+                          }
+                          className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                        />
+                      </div>
                     </div>
                   )}
                   {!isExpertMode && (

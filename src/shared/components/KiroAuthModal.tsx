@@ -32,6 +32,10 @@ export default function KiroAuthModal({
   const [importing, setImporting] = useState(false);
   const [autoDetecting, setAutoDetecting] = useState(false);
   const [autoDetected, setAutoDetected] = useState(false);
+  // IDC/organization credentials returned by auto-import when the SSO cache token
+  // has a clientIdHash. Spread into the import POST body so the regional OIDC
+  // endpoint is used for token refresh instead of the social path (#2059).
+  const [idcCredentials, setIdcCredentials] = useState<Record<string, string> | null>(null);
 
   // Auto-detect token when import method is selected
   useEffect(() => {
@@ -41,6 +45,7 @@ export default function KiroAuthModal({
       setAutoDetecting(true);
       setError(null);
       setAutoDetected(false);
+      setIdcCredentials(null);
 
       try {
         const res = await fetch(
@@ -51,6 +56,16 @@ export default function KiroAuthModal({
         if (data.found) {
           setRefreshToken(data.refreshToken);
           setAutoDetected(true);
+          // Store IDC/organization credentials if present in the auto-detect response
+          if (data.clientId && data.clientSecret) {
+            setIdcCredentials({
+              clientId: data.clientId,
+              clientSecret: data.clientSecret,
+              ...(data.region ? { region: data.region } : {}),
+              ...(data.authMethod ? { authMethod: data.authMethod } : {}),
+              ...(data.profileArn ? { profileArn: data.profileArn } : {}),
+            });
+          }
         } else {
           setError(data.error || "Could not auto-detect token");
         }
@@ -89,7 +104,10 @@ export default function KiroAuthModal({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ refreshToken: refreshToken.trim() }),
+          body: JSON.stringify({
+            refreshToken: refreshToken.trim(),
+            ...(idcCredentials || {}),
+          }),
         }
       );
 

@@ -200,6 +200,29 @@ certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 
 Or use the "Trust Cert" button in the dashboard (runs the appropriate command for your OS, with sudo prompt if needed).
 
+#### Electron-based IDEs ignore the OS trust store (`NODE_EXTRA_CA_CERTS`)
+
+Some IDEs — notably **Antigravity IDE**, and other Electron / VS Code-derived apps — bundle
+their own Node.js runtime that **does not consult the OS trust store** for outbound
+`fetch`/HTTPS. Trusting the CA at the OS/NSS level is enough for the IDE's native **backend**
+(e.g. a Go language server, which uses the OS CA bundle), but the **Electron frontend** will
+still fail TLS — it surfaces as the app being *logged out* or showing a *"connection error"*
+even though the MITM log shows the backend's bootstrap calls returning `200`. Two steps are
+required, and both matter:
+
+1. Point the runtime at the CA explicitly:
+   ```bash
+   export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
+   ```
+2. **Launch the IDE from that shell.** Starting it from the desktop icon / Dock / Start menu
+   does **not** inherit shell exports, and `~/.config/environment.d/*.conf` only applies after
+   a fresh graphical login. Fully quit the IDE first — Electron's singleton lock means a second
+   launch just focuses the existing process and the new environment is ignored.
+
+The OS-trust + NSS step above remains necessary (the Chromium network stack used by some auth
+flows reads the per-user NSS store, and has its own static pins for `*.googleapis.com` that a
+locally-trusted CA overrides). `NODE_EXTRA_CA_CERTS` covers the Node `fetch` path on top of it.
+
 ### 3.3 DNS routing
 
 For each agent you want to intercept, its API host(s) must resolve to `127.0.0.1`. AgentBridge manages `/etc/hosts` entries automatically when you toggle DNS for an agent in the Setup Wizard.
@@ -220,6 +243,13 @@ Use the Model Mapping Table in each agent card to define source → target mappi
 | `*` (wildcard) | `claude-haiku-4.7` |
 
 Wildcard `*` maps any unrecognized model to the specified target. Persisted in `agent_bridge_mappings` table.
+
+> **Tip — discover the agent's real model IDs.** An IDE may send model names that differ from
+> its UI labels and that change between major versions. For example **Antigravity 2** sends
+> `gemini-3.1-pro-low`, `gemini-pro-agent`, and `gemini-3.1-flash-lite` over the wire — not the
+> `gemini-2.5-pro` shown in older docs. Send one chat with no matching mapping in place: the MITM
+> logs the exact incoming `model:` and passes the request through. Map that literal value, then
+> the next request is intercepted and routed to your target.
 
 ### 3.5 Risk notice
 
@@ -358,6 +388,9 @@ When `AGENTBRIDGE_UPSTREAM_CA_CERT` is set, the file is read at startup. If the 
 - **Port 443 requires privilege**: On Linux, AgentBridge needs `setcap 'cap_net_bind_service=+ep'` on the Node binary, or run via `authbind`. The Setup Wizard displays OS-specific instructions.
 - **IDE restart required**: After DNS redirect, the IDE must be restarted for the new host resolution to take effect.
 - **Hardcoded OAuth tokens**: Some agents (Kiro, Antigravity) store OAuth refresh tokens locally. These are transparent to AgentBridge — it sees the Bearer token in each request, which is masked before logging.
+- **Electron frontends need `NODE_EXTRA_CA_CERTS`**: IDEs whose frontend runs on a bundled Node/Electron runtime ignore the OS/NSS trust store and must be launched from a shell with `NODE_EXTRA_CA_CERTS` set (see §3.2). Symptom when missing: the IDE backend authenticates (MITM shows `200`s) but the UI stays logged out.
+- **Multiple installs of the same IDE are independent**: a system install (e.g. `/usr/share/antigravity/antigravity`) and a user-local "Full" install (e.g. `~/AntigravityIDE_Full/antigravity-ide`) are separate processes with their own runtimes — each must be relaunched with the CA injected. Identify which one is running by its binary path before relaunching.
+- **Identity is set by the agent's system prompt, not the routed model**: when you remap an agent's model to a different provider, the reply still claims the agent's native identity (e.g. Antigravity answers "I am powered by Gemini") because the IDE injects that into the system prompt. Confirm the real backend in `call_logs` / `proxy_logs` (`provider`, `model`, `target_format`), not by asking the model who it is.
 
 ---
 
@@ -381,6 +414,22 @@ If the IDE shows TLS errors after starting AgentBridge:
 1. Verify the cert was installed: `security find-certificate -c "OmniRoute AgentBridge"` (macOS) or `certutil -L -d sql:$HOME/.pki/nssdb` (Linux/NSS)
 2. Some apps maintain their own trust store (Firefox, Chrome on Linux). Run "Trust Cert" again and check the NSS/Firefox-specific cert store.
 3. Restart the IDE after trusting — in-flight TLS sessions use the old trust state.
+
+### IDE logged out / "connection error" despite a trusted CA
+
+Symptom: after redirecting DNS and trusting the CA, an Electron-based IDE (e.g. Antigravity)
+opens **logged out** or shows an authentication/connection error, yet the MITM log shows the
+bootstrap calls (`loadCodeAssist`, `fetchAvailableModels`, …) returning `200`.
+
+Cause: the IDE's **bundled Node/Electron runtime ignores the OS trust store**. The native
+backend (a Go language server) trusts the OS CA and authenticates, but the Electron frontend
+does not — so the UI believes it is offline.
+
+Fix (both steps): export `NODE_EXTRA_CA_CERTS=<ca.crt>` **and relaunch the IDE from that
+shell**, not from the desktop icon. Fully quit the IDE first — Electron's singleton lock means
+a second launch just focuses the existing process and the new environment is ignored. See §3.2.
+This mirrors an open upstream report where a standalone agent works through a MITM but the IDE
+variant fails under the same setup.
 
 ### DNS not propagated
 

@@ -23,6 +23,26 @@ export interface CompressionEngineStep {
   durationMs?: number;
 }
 
+// ── Diff ─────────────────────────────────────────────────────────────────
+
+export type DiffSegment = { type: "same" | "removed" | "added"; text: string };
+
+// ── Preview API response ──────────────────────────────────────────────────
+
+export interface PreviewResponse {
+  original: string;
+  compressed: string;
+  originalTokens: number;
+  compressedTokens: number;
+  savingsPct: number;
+  mode: string;
+  durationMs?: number;
+  engineBreakdown: CompressionEngineStep[];
+  diff: DiffSegment[];
+  preservedBlocks: Array<{ kind: string; preview: string }>;
+  ruleRemovals: string[];
+}
+
 // ── Run Model ─────────────────────────────────────────────────────────────
 
 export interface CompressionRunModel {
@@ -34,6 +54,23 @@ export interface CompressionRunModel {
   savingsPercent: number;
   steps: CompressionEngineStep[];
   timestamp: number;
+  diff?: DiffSegment[];
+}
+
+// ── previewToRunModel ─────────────────────────────────────────────────────
+
+export function previewToRunModel(res: PreviewResponse, label: string): CompressionRunModel {
+  return {
+    requestId: `preview-${label}`,
+    comboId: null,
+    mode: res.mode,
+    originalTokens: res.originalTokens,
+    compressedTokens: res.compressedTokens,
+    savingsPercent: res.savingsPct,
+    steps: res.engineBreakdown,
+    timestamp: 0,
+    diff: res.diff,
+  };
 }
 
 // ── compressionEventToModel ───────────────────────────────────────────────

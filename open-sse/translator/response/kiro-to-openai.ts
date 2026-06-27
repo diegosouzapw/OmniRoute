@@ -4,6 +4,7 @@
  */
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
+import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 
 /**
  * Parse Kiro SSE event and convert to OpenAI format
@@ -116,8 +117,13 @@ export function convertKiroToOpenAI(chunk, state) {
   // Handle tool use events
   if (eventType === "toolUseEvent" || data.toolUseEvent) {
     const toolUse = data.toolUseEvent || data;
-    const toolCallId = toolUse.toolUseId || `call_${Date.now()}`;
-    const toolName = toolUse.name || "";
+    const toolCallId = toolUse.toolUseId || fallbackToolCallId();
+    // #1375: long tool names were hash-truncated for Kiro (sanitizeKiroTools).
+    // Map the streamed name back to the original so the client sees the name
+    // it sent. `state.toolNameMap` carries truncated → original entries.
+    const rawName = toolUse.name || "";
+    const toolName =
+      state.toolNameMap instanceof Map ? state.toolNameMap.get(rawName) || rawName : rawName;
     const toolInput = toolUse.input || {};
 
     // #3980: record that this stream produced tool calls so the terminal

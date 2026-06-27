@@ -696,12 +696,12 @@ export function getCodexRequestDefaults(providerSpecificData: unknown): {
     ...(defaults.serviceTier ? { serviceTier: defaults.serviceTier } : {}),
   };
 }
-
 export function getClaudeCodeCompatibleRequestDefaults(providerSpecificData: unknown) {
   const defaults = _getClaudeCodeCompatibleRequestDefaults(providerSpecificData);
   return {
     context1m: defaults.context1m === true,
     redactThinking: defaults.redactThinking === true,
+    summarizeThinking: defaults.summarizeThinking === true,
   };
 }
 

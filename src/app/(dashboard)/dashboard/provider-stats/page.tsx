@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useCallback, Fragment } from "react";
 import { Card } from "@/shared/components";
+import { useProviderNodeMap, resolveProviderName } from "@/lib/display/useProviderNodeMap";
 
 interface ProviderStat {
   provider: string;
@@ -33,7 +34,14 @@ interface ToolLatencyStat {
   measurementCount: number;
 }
 
-type SortKey = "totalRequests" | "successfulRequests" | "avgLatencyMs" | "totalTokensIn" | "totalTokensOut" | "avgTtftAfterToolMs" | "avgGapAfterToolMs";
+type SortKey =
+  | "totalRequests"
+  | "successfulRequests"
+  | "avgLatencyMs"
+  | "totalTokensIn"
+  | "totalTokensOut"
+  | "avgTtftAfterToolMs"
+  | "avgGapAfterToolMs";
 type SortDir = "asc" | "desc";
 
 function formatNumber(n: number | null): string {
@@ -55,6 +63,7 @@ function successRate(successful: number, total: number): string {
 }
 
 export default function ProviderStatsPage() {
+  const nodeMap = useProviderNodeMap();
   const [data, setData] = useState<{
     providers: ProviderStat[];
     models: ModelStat[];
@@ -99,12 +108,11 @@ export default function ProviderStatsPage() {
   // Compute summary stats
   const totalRequests = data?.providers.reduce((s, p) => s + (p.totalRequests || 0), 0) ?? 0;
   const totalSuccessful = data?.providers.reduce((s, p) => s + (p.successfulRequests || 0), 0) ?? 0;
-  const avgLatency =
-    data?.providers.length
-      ? Math.round(
-          data.providers.reduce((s, p) => s + (p.avgLatencyMs || 0), 0) / data.providers.length
-        )
-      : 0;
+  const avgLatency = data?.providers.length
+    ? Math.round(
+        data.providers.reduce((s, p) => s + (p.avgLatencyMs || 0), 0) / data.providers.length
+      )
+    : 0;
   const activeProviders = data?.providers.length ?? 0;
 
   // Sorted providers
@@ -112,8 +120,8 @@ export default function ProviderStatsPage() {
     if (sortKey === "avgTtftAfterToolMs" || sortKey === "avgGapAfterToolMs") {
       const aLatency = data?.toolLatency?.[a.provider] ?? null;
       const bLatency = data?.toolLatency?.[b.provider] ?? null;
-      const va = aLatency ? (aLatency[sortKey] as number) ?? 0 : 0;
-      const vb = bLatency ? (bLatency[sortKey] as number) ?? 0 : 0;
+      const va = aLatency ? ((aLatency[sortKey] as number) ?? 0) : 0;
+      const vb = bLatency ? ((bLatency[sortKey] as number) ?? 0) : 0;
       return sortDir === "desc" ? vb - va : va - vb;
     }
     const va = (a[sortKey] as number) ?? 0;
@@ -294,17 +302,20 @@ export default function ProviderStatsPage() {
               {sortedProviders.map((p) => {
                 const isExpanded = expandedProvider === p.provider;
                 const models = modelsByProvider.get(p.provider) ?? [];
-                const rate = p.totalRequests > 0 ? (p.successfulRequests / p.totalRequests) * 100 : 0;
+                const rate =
+                  p.totalRequests > 0 ? (p.successfulRequests / p.totalRequests) * 100 : 0;
                 return (
                   <Fragment key={p.provider}>
                     <tr
                       className="border-b border-border/50 hover:bg-surface/50 transition-colors cursor-pointer"
                       onClick={() =>
-                        setExpandedProvider(isExpanded ? null : models.length > 0 ? p.provider : null)
+                        setExpandedProvider(
+                          isExpanded ? null : models.length > 0 ? p.provider : null
+                        )
                       }
                     >
                       <td className="py-2.5 px-3 font-medium text-text-main">
-                        {p.provider}
+                        {resolveProviderName(p.provider, nodeMap)}
                       </td>
                       <td className="py-2.5 px-3 text-right tabular-nums text-text-main">
                         {formatNumber(p.totalRequests)}
@@ -363,7 +374,9 @@ export default function ProviderStatsPage() {
                                   <th className="text-right py-1.5 px-3 font-medium">Requests</th>
                                   <th className="text-right py-1.5 px-3 font-medium">Success</th>
                                   <th className="text-right py-1.5 px-3 font-medium">Rate</th>
-                                  <th className="text-right py-1.5 px-3 font-medium">Avg Latency</th>
+                                  <th className="text-right py-1.5 px-3 font-medium">
+                                    Avg Latency
+                                  </th>
                                   <th className="px-3 w-8" />
                                 </tr>
                               </thead>
@@ -444,7 +457,10 @@ export default function ProviderStatsPage() {
               </thead>
               <tbody>
                 {Object.entries(data.comboMetrics).map(([name, m]: [string, any]) => (
-                  <tr key={name} className="border-b border-border/50 hover:bg-surface/50 transition-colors">
+                  <tr
+                    key={name}
+                    className="border-b border-border/50 hover:bg-surface/50 transition-colors"
+                  >
                     <td className="py-2 px-3 font-medium text-text-main">{name}</td>
                     <td className="py-2 px-3 text-right tabular-nums text-text-main">
                       {formatNumber(m.requestCount ?? m.totalRequests ?? 0)}
@@ -456,7 +472,9 @@ export default function ProviderStatsPage() {
                       {formatLatency(m.avgLatency ?? m.avgTotalMs ?? null)}
                     </td>
                     <td className="py-2 px-3 text-right tabular-nums">
-                      {typeof m.successRate === "number" ? `${(m.successRate * 100).toFixed(1)}%` : "—"}
+                      {typeof m.successRate === "number"
+                        ? `${(m.successRate * 100).toFixed(1)}%`
+                        : "—"}
                     </td>
                   </tr>
                 ))}
@@ -478,10 +496,7 @@ export default function ProviderStatsPage() {
             {Object.entries(data.telemetry).map(([key, val]: [string, any]) => {
               if (val == null || typeof val === "object") return null;
               return (
-                <div
-                  key={key}
-                  className="rounded-lg border border-border/40 bg-surface/30 p-3"
-                >
+                <div key={key} className="rounded-lg border border-border/40 bg-surface/30 p-3">
                   <p className="text-xs text-text-muted uppercase tracking-wide">
                     {key.replace(/([A-Z])/g, " $1").replace(/_/g, " ")}
                   </p>

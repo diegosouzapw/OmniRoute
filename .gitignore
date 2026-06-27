@@ -161,6 +161,8 @@ typescript
 
 # Superpowers plans/specs (internal tooling, not project code)
 docs/superpowers/
+# Superpowers visual-companion brainstorm mockups (ephemeral)
+.superpowers/
 
 # TIA test-impact map — generated at runtime in CI (build-test-impact-map.mjs), never committed (~21MB)
 config/quality/test-impact-map.json

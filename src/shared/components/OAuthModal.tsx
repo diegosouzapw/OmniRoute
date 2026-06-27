@@ -19,7 +19,7 @@ const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex"]);
  * Phase 2 will reintroduce browser login via Firebase OAuth + RegisterUser.
  * Spec: docs/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
  */
-const IMPORT_TOKEN_ONLY_PROVIDERS = new Set(["windsurf", "devin-cli"]);
+const IMPORT_TOKEN_ONLY_PROVIDERS = new Set(["windsurf", "devin-cli", "grok-cli"]);
 
 type OAuthModalProps = {
   isOpen: boolean;
@@ -55,12 +55,13 @@ export default function OAuthModal({
   const [polling, setPolling] = useState(false);
   // API-key paste mode: for providers that accept a token directly (windsurf, devin-cli)
   const [showPasteToken, setShowPasteToken] = useState(
-    provider === "windsurf" || provider === "devin-cli"
+    provider === "windsurf" || provider === "devin-cli" || provider === "grok-cli"
   );
   const [pasteToken, setPasteToken] = useState("");
   const [savingToken, setSavingToken] = useState(false);
 
-  const supportsTokenPaste = provider === "windsurf" || provider === "devin-cli";
+  const supportsTokenPaste =
+    provider === "windsurf" || provider === "devin-cli" || provider === "grok-cli";
   // Phase 1 hotfix (2026-05-29): windsurf/devin-cli are import-token-only.
   // Hide the "Browser Login" tab — Phase 2 will restore it via Firebase OAuth.
   const importTokenOnly = IMPORT_TOKEN_ONLY_PROVIDERS.has(provider);
@@ -269,7 +270,8 @@ export default function OAuthModal({
         provider === "kiro" ||
         provider === "amazon-q" ||
         provider === "kimi-coding" ||
-        provider === "kilocode"
+        provider === "kilocode" ||
+        provider === "codebuddy-cn"
       ) {
         setIsDeviceCode(true);
         setStep("waiting");
@@ -730,14 +732,16 @@ export default function OAuthModal({
             <p className="text-sm text-text-muted">
               {provider === "windsurf"
                 ? 'In the Windsurf / VS Code IDE, run the "Windsurf: Provide Auth Token" command from the command palette (or click the Jupyter "Get Windsurf Authentication Token" button), then copy the shown token and paste it below. Opening windsurf.com/show-auth-token directly only shows a "Redirecting" page — the IDE must initiate the flow.'
-                : 'Provide your WINDSURF_API_KEY (obtained via `devin auth login`, or via the Windsurf IDE "Windsurf: Provide Auth Token" command).'}
+                : provider === "grok-cli"
+                  ? 'Paste your Grok Build JWT token from ~/.grok/auth.json (the "key" field value). You can get it by running `grok login` in your terminal.'
+                  : 'Provide your WINDSURF_API_KEY (obtained via `devin auth login`, or via the Windsurf IDE "Windsurf: Provide Auth Token" command).'}
             </p>
             <Input
               value={pasteToken}
               onChange={(e) => setPasteToken(e.target.value)}
-              placeholder="ws-..."
+              placeholder={provider === "grok-cli" ? "eyJ..." : "ws-..."}
               type="password"
-              label="API Key / Token"
+              label={provider === "grok-cli" ? "JWT Token" : "API Key / Token"}
             />
             {error && <p className="text-sm text-red-500">{error}</p>}
             <div className="flex gap-2">

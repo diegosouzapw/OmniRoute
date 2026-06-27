@@ -21,10 +21,15 @@ function getDefaultWsUrl(): string {
   if (typeof window === "undefined") return "ws://localhost:20129";
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const { hostname } = window.location;
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
+  // Bug #1 fix: Use the WS server's actual port (20129) for both loopback
+  // and non-loopback clients. Previously the non-loopback branch tried to
+  // upgrade the HTTP port (window.location.host) which has no upgrade
+  // handler in src/proxy.ts. If the user wants the upgrade to go through
+  // Next.js (same-origin), they should explicitly pass `wsUrl`.
+  if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
     return `${protocol}//${hostname}:20129`;
   }
-  return `${protocol}//${window.location.host}/live-ws`;
+  return `${protocol}//${hostname}:20129`;
 }
 
 const DEFAULT_WS_URL = getDefaultWsUrl();

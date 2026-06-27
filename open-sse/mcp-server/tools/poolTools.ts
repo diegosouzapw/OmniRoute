@@ -12,6 +12,7 @@
 import { z } from "zod";
 import { PoolRegistry } from "../../services/sessionPool/poolRegistry.ts";
 import { getWebSessionPoolHealth } from "../../services/webSessionPoolHealth.ts";
+import { getBrowserPoolMetrics } from "../../services/browserPool.ts";
 
 // ─── Input Schemas ─────────────────────────────────────────────────────────
 
@@ -140,6 +141,16 @@ export async function handlePoolHealth(
   return report as unknown as Record<string, unknown>;
 }
 
+export const browserPoolStatusInput = z.object({});
+
+/**
+ * Handle browser_pool_status tool (#3368 PR7): return the stealth browser
+ * pool's live status plus cumulative lifecycle telemetry.
+ */
+export async function handleBrowserPoolStatus(): Promise<Record<string, unknown>> {
+  return getBrowserPoolMetrics();
+}
+
 // ─── Tool Registry ─────────────────────────────────────────────────────────
 
 export const poolTools = {
@@ -182,5 +193,13 @@ export const poolTools = {
     scopes: ["read:health"],
     inputSchema: poolHealthInput,
     handler: (args: z.infer<typeof poolHealthInput>) => handlePoolHealth(args),
+  },
+  omniroute_browser_pool_status: {
+    name: "omniroute_browser_pool_status",
+    description:
+      "Returns the stealth browser pool's live status (enabled, active contexts, browser running, stealth available, idle age) plus cumulative lifecycle telemetry: browser launches/failures, context create/reuse/evict/release counts, context-create failures, and shutdowns with the last reason.",
+    scopes: ["read:health"],
+    inputSchema: browserPoolStatusInput,
+    handler: () => handleBrowserPoolStatus(),
   },
 };

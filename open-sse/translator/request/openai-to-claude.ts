@@ -4,6 +4,7 @@ import { FORMATS } from "../formats.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../../config/providerModels.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
+import { safeParseJSON } from "../helpers/jsonUtil.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { capMaxOutputTokens } from "../../../src/lib/modelCapabilities.ts";
 import { isAdaptiveThinkingOnly } from "../../../src/shared/constants/modelSpecs.ts";
@@ -222,7 +223,23 @@ export function openaiToClaudeRequest(model, body, stream) {
   };
 
   // Temperature
-  if (body.temperature !== undefined) {
+  //
+  // Claude's Messages API rejects `temperature` when extended thinking is active.
+  // Two cases where thinking is on:
+  //   (a) Caller passes `body.thinking` or `body.reasoning_effort` (handled later —
+  //       `result.thinking` becomes truthy, and we strip temperature at the end).
+  //   (b) The request targets Claude OAuth (claude-code), which always sends
+  //       `Anthropic-Beta: ...,interleaved-thinking-2025-05-14,...` in headers.
+  //       The model is forced into thinking server-side, but neither `body.thinking`
+  //       nor `result.thinking` will be set, so we detect this by model name. This
+  //       affects claude-opus-4.x and claude-sonnet-4.x (the families that support
+  //       extended thinking).
+  //
+  // For models that don't force thinking (haiku, older sonnets), preserve temperature.
+  // Note: Opus 4.7+/Fable 5 already drop sampling params upstream of the translator via
+  // the registry `unsupportedParams` strip; this covers the remaining 4.x families.
+  const modelForcesThinking = /claude-(?:opus|sonnet)-4/i.test(String(model));
+  if (body.temperature !== undefined && !modelForcesThinking) {
     result.temperature = body.temperature;
   }
   if (body.temperature === undefined && body.top_p !== undefined) {
@@ -526,6 +543,15 @@ export function openaiToClaudeRequest(model, body, stream) {
 
   delete result[COPILOT_REASONING_SUMMARY_MARKER];
 
+  // Final guard: Claude rejects `temperature` whenever extended thinking is
+  // enabled. If `result.thinking` was set above from `body.thinking` or
+  // `body.reasoning_effort` (manual budget or adaptive effort), drop temperature
+  // defensively. The model-name strip earlier already covers Claude OAuth's
+  // forced-thinking case (claude-opus-4.x / claude-sonnet-4.x).
+  if (result.thinking && result.temperature !== undefined) {
+    delete result.temperature;
+  }
+
   // Attach toolNameMap to result for response translation
   if (toolNameMap.size > 0) {
     result._toolNameMap = toolNameMap;
@@ -701,14 +727,9 @@ function extractTextContent(content) {
   return "";
 }
 
-// Try parse JSON
-function tryParseJSON(str) {
-  if (typeof str !== "string") return str;
-  try {
-    return JSON.parse(str);
-  } catch {
-    return str;
-  }
+// Try parse JSON (passthrough fallback: return the raw input string on parse error).
+function tryParseJSON(str: unknown): unknown {
+  return safeParseJSON(str, str);
 }
 
 function stripCacheControl(value: unknown): unknown {

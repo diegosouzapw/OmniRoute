@@ -71,6 +71,41 @@ test("visibleComposerContentFromThinking returns suffix after last </think> (tri
   assert.equal(visibleComposerContentFromThinking("ends with</think>"), "");
 });
 
+test("visibleComposerContentFromThinking strips `<｜final｜>` sentinel markers (full-width + ASCII)", () => {
+  // Full-width pipe sentinels (decolua/9router#1316).
+  assert.equal(
+    visibleComposerContentFromThinking("reasoning</think><｜final｜>OK_PR1316<｜/final｜>"),
+    "OK_PR1316"
+  );
+  // ASCII pipe sentinels.
+  assert.equal(
+    visibleComposerContentFromThinking("reasoning</think><|final|>HELLO<|/final|>"),
+    "HELLO"
+  );
+  // Open marker without a closing tag still gets stripped.
+  assert.equal(
+    visibleComposerContentFromThinking("r</think><｜final｜>just open"),
+    "just open"
+  );
+  // No sentinel — plain suffix is unchanged.
+  assert.equal(
+    visibleComposerContentFromThinking("reasoning</think>plain answer"),
+    "plain answer"
+  );
+});
+
+test("visibleComposerContentFromThinking holds back a partial opening marker until complete", () => {
+  // A streamed chunk delivered only the start of the sentinel — emit nothing yet.
+  assert.equal(visibleComposerContentFromThinking("r</think><"), "");
+  assert.equal(visibleComposerContentFromThinking("r</think><｜fin"), "");
+  assert.equal(visibleComposerContentFromThinking("r</think><|fin"), "");
+  // Once the full marker + payload arrive the real content surfaces.
+  assert.equal(
+    visibleComposerContentFromThinking("r</think><｜final｜>NOW_VISIBLE"),
+    "NOW_VISIBLE"
+  );
+});
+
 test("composerReasoningRemainder returns only the hidden portion before last </think>", () => {
   assert.equal(
     composerReasoningRemainder("private reasoning</think>OK"),
@@ -133,6 +168,27 @@ test("Composer non-streaming aggregation: thinking with </think> populates total
     new Set()
   );
   assert.equal(ctx.totalText, "OK");
+});
+
+test("Composer streaming: partial `<｜final｜>` sentinel split across chunks never leaks", () => {
+  const chunks: string[] = [];
+  const ctx: StreamCtx = newStreamCtx("cu/composer-2.5", (c) => chunks.push(c));
+  // The sentinel arrives byte-fragmented across three thinking-delta frames.
+  processFrame(buildThinkingDeltaPayload("reasoning</think><｜fina"), ctx, new Set());
+  processFrame(buildThinkingDeltaPayload("l｜>OK_S"), ctx, new Set());
+  processFrame(buildThinkingDeltaPayload("TREAM"), ctx, new Set());
+
+  const events = parseSSE(chunks.join(""));
+  const content = events
+    .map((e) => {
+      const choices = (e as { choices?: Array<{ delta?: { content?: string } }> }).choices;
+      return choices?.[0]?.delta?.content ?? "";
+    })
+    .join("");
+  assert.equal(content, "OK_STREAM");
+  assert.equal(ctx.totalText, "OK_STREAM");
+  assert.ok(!chunks.join("").includes("final"), "sentinel literal must not leak");
+  assert.ok(!chunks.join("").includes("｜"), "full-width pipe must not leak");
 });
 
 test("Non-Composer model: thinking field stays in reasoning_content (unchanged contract)", () => {

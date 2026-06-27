@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useProviderNodeMap, resolveProviderName } from "@/lib/display/useProviderNodeMap";
 
 interface CompressionAnalyticsSummary {
   totalRequests: number;
@@ -122,6 +123,7 @@ export default function CompressionAnalyticsTab() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [since, setSince] = useState<"24h" | "7d" | "30d" | "all">("24h");
+  const nodeMap = useProviderNodeMap();
 
   useEffect(() => {
     fetch(`/api/analytics/compression?since=${since}`)
@@ -303,7 +305,7 @@ export default function CompressionAnalyticsTab() {
             {providers.map(([prov, data]) => (
               <ProviderBar
                 key={prov}
-                provider={prov}
+                provider={resolveProviderName(prov, nodeMap)}
                 count={data.count}
                 total={stats.totalRequests}
                 tokensSaved={data.tokensSaved}

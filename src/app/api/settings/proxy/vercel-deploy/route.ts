@@ -5,6 +5,10 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { vercelDeploySchema } from "@/shared/validation/freeProxySchemas";
 import { createProxy } from "@/lib/localDb";
 import { encrypt } from "@/lib/db/encryption";
+// Shared SSRF-safe relay-path resolver — the same pure guard embedded in the
+// Deno Deploy worker. Both edge relays must enforce identical path validation,
+// so they import one source of truth rather than diverging copies.
+import { resolveRelayTarget } from "../deno-deploy/route";
 
 const VERCEL_API_BASE = process.env.VERCEL_API_BASE || "https://api.vercel.com";
 const POLL_INTERVAL_MS = 3000;
@@ -15,7 +19,11 @@ function buildRelayFunction(relayAuth: string): string {
   // The runtime SSRF guard is inlined into the edge function (cannot import
   // Node-side helpers from the Edge runtime); it blocks RFC1918, loopback,
   // link-local, IPv6 ULA, and embedded credentials on the x-relay-target host.
+  // `resolveRelayTarget` (shared with the Deno worker) closes the x-relay-path
+  // host-confusion hole and is embedded verbatim via Function#toString.
   return `export const config = { runtime: "edge" };
+
+${resolveRelayTarget.toString()}
 
 function isPrivateHostname(h) {
   if (!h) return true;
@@ -63,9 +71,13 @@ export default async function handler(req) {
     return new Response("forbidden x-relay-target (private/loopback host)", { status: 403 });
   }
   const relayPath = req.headers.get("x-relay-path") || "/";
+  const resolved = resolveRelayTarget(target, relayPath);
+  if (!resolved.ok) {
+    return new Response(resolved.reason, { status: resolved.status });
+  }
   const headers = new Headers(req.headers);
   ["x-relay-target", "x-relay-path", "x-relay-auth", "host"].forEach(h => headers.delete(h));
-  const upstream = await fetch(target.replace(/\\/$/, "") + relayPath, {
+  const upstream = await fetch(resolved.url, {
     method: req.method,
     headers,
     body: req.method !== "GET" && req.method !== "HEAD" ? req.body : undefined,
@@ -74,6 +86,14 @@ export default async function handler(req) {
   return new Response(upstream.body, { status: upstream.status, headers: upstream.headers });
 }`;
 }
+
+/**
+ * Test-only hook exposing the generated Vercel worker source so the SSRF
+ * regression test can assert it no longer string-concatenates the relay path
+ * and embeds the shared `resolveRelayTarget` guard. Not part of the route
+ * contract.
+ */
+export const __buildRelayFunctionForTest = buildRelayFunction;
 
 async function pollDeployment(deploymentApiUrl: string, token: string): Promise<"READY" | "ERROR"> {
   for (let i = 0; i < POLL_MAX_ATTEMPTS; i++) {

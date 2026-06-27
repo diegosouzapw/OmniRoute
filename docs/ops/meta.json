@@ -2,6 +2,7 @@
   "title": "Operations",
   "pages": [
     "RELEASE_CHECKLIST",
+    "RELEASE_GREEN",
     "VM_DEPLOYMENT_GUIDE",
     "FLY_IO_DEPLOYMENT_GUIDE",
     "TUNNELS_GUIDE",

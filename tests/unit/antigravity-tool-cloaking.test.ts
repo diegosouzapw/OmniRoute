@@ -5,6 +5,7 @@ import {
   AG_DECOY_TOOLS,
   AG_TOOL_SUFFIX,
   cloakAntigravityToolPayload,
+  stripEnumDescriptions,
 } from "../../open-sse/config/toolCloaking.ts";
 
 test("cloakAntigravityToolPayload cloaks custom tools, preserves native tools and injects decoys", () => {
@@ -91,4 +92,102 @@ test("cloakAntigravityToolPayload composes namespace sanitization maps with Anti
     result.toolNameMap?.get(`workspace_read${AG_TOOL_SUFFIX}`),
     "mcp__filesystem__workspace_read"
   );
+});
+
+test("stripEnumDescriptions removes enumDescriptions at every nesting level", () => {
+  const schema = {
+    type: "OBJECT",
+    enumDescriptions: ["should be removed at root"],
+    properties: {
+      mode: {
+        type: "STRING",
+        enum: ["a", "b"],
+        enumDescriptions: ["desc a", "desc b"],
+      },
+      nested: {
+        type: "OBJECT",
+        properties: {
+          choice: {
+            type: "STRING",
+            enumDescriptions: ["deep desc"],
+          },
+        },
+      },
+      list: {
+        type: "ARRAY",
+        items: {
+          type: "STRING",
+          enumDescriptions: ["item desc"],
+        },
+      },
+    },
+  };
+
+  const stripped = stripEnumDescriptions(schema) as any;
+
+  assert.equal("enumDescriptions" in stripped, false);
+  assert.equal("enumDescriptions" in stripped.properties.mode, false);
+  assert.equal("enumDescriptions" in stripped.properties.nested.properties.choice, false);
+  assert.equal("enumDescriptions" in stripped.properties.list.items, false);
+  // Non-target fields are preserved.
+  assert.deepEqual(stripped.properties.mode.enum, ["a", "b"]);
+  // Input is not mutated.
+  assert.ok(Array.isArray((schema.properties.mode as any).enumDescriptions));
+});
+
+test("cloakAntigravityToolPayload strips enumDescriptions from declaration parameters", () => {
+  const payload = {
+    request: {
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: "workspace_read",
+              description: "Read a file",
+              parameters: {
+                type: "OBJECT",
+                enumDescriptions: ["root-level"],
+                properties: {
+                  mode: {
+                    type: "STRING",
+                    enum: ["read", "write"],
+                    enumDescriptions: ["read mode", "write mode"],
+                  },
+                },
+              },
+            },
+            {
+              name: "run_command",
+              description: "Native tool keeps visible name but loses enumDescriptions",
+              parameters: {
+                type: "OBJECT",
+                properties: {
+                  shell: {
+                    type: "STRING",
+                    enumDescriptions: ["bash", "zsh"],
+                  },
+                },
+              },
+            },
+          ],
+        },
+      ],
+      contents: [],
+    },
+  };
+
+  const result = cloakAntigravityToolPayload(payload);
+  const declarations = (result.body.request.tools?.[0] as any)?.functionDeclarations || [];
+
+  const cloaked = declarations.find(
+    (d: { name: string }) => d.name === `workspace_read${AG_TOOL_SUFFIX}`
+  );
+  assert.ok(cloaked, "cloaked client tool present");
+  assert.equal("enumDescriptions" in cloaked.parameters, false);
+  assert.equal("enumDescriptions" in cloaked.parameters.properties.mode, false);
+  assert.deepEqual(cloaked.parameters.properties.mode.enum, ["read", "write"]);
+
+  const native = declarations.find((d: { name: string }) => d.name === "run_command");
+  assert.ok(native, "native tool preserved");
+  assert.equal("enumDescriptions" in native.parameters.properties.shell, false);
 });

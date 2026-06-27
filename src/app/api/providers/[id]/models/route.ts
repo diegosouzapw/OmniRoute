@@ -25,6 +25,7 @@ import {
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
+import { deriveConfigFromRegistryModelsUrl } from "./discoveryConfig";
 import { fetchGitHubCopilotModels } from "@omniroute/open-sse/services/githubCopilotModels.ts";
 import { fetchKiroAvailableModels } from "@omniroute/open-sse/services/kiroModels.ts";
 import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
@@ -191,6 +192,9 @@ const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   // but was left out of the sweep, so it served a stale hardcoded seed (grok-3, grok-2-1212,
   // claude-3.7-sonnet …). Live fetch keeps it fresh; seed stays as the offline fallback.
   "api-airforce",
+  // DGrid is an OpenAI-compatible gateway whose default seed is the free auto-router;
+  // the full model catalog is discovered live from https://api.dgrid.ai/v1/models.
+  "dgrid",
 ]);
 
 function isNamedOpenAIStyleProvider(provider: string): boolean {
@@ -2387,8 +2391,7 @@ export async function GET(
     const config =
       provider in PROVIDER_MODELS_CONFIG
         ? PROVIDER_MODELS_CONFIG[provider as keyof typeof PROVIDER_MODELS_CONFIG]
-        : undefined;
-
+        : deriveConfigFromRegistryModelsUrl(provider);
     // Static model providers (no remote /models API)
     // Qwen OAuth Fallback: The Dashscope /models API rejects OAuth tokens with 401
     if (provider === "qwen" && connection.authType === "oauth") {

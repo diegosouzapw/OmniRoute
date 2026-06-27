@@ -12,6 +12,8 @@ import type {
 } from "@omniroute/open-sse/services/compression/types";
 import { buildCompressionPreviewDiff } from "@omniroute/open-sse/services/compression/diffHelper";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { countTextTokens } from "@/shared/utils/tiktokenCounter";
+import { ensureEngineBreakdown } from "@omniroute/open-sse/services/compression/engineBreakdown";
 
 export const PreviewCompressionConfigSchema = compressionPreviewConfigSchema;
 
@@ -29,11 +31,12 @@ export const PreviewRequestSchema = z.object({
     .optional()
     .default("stacked"),
   engineId: z.string().optional(),
+  pipeline: z.array(z.string()).min(1).optional(),
   config: PreviewCompressionConfigSchema.optional(),
 });
 
 function countTokens(text: string): number {
-  return Math.ceil(text.split(/\s+/).filter(Boolean).length * 1.33);
+  return countTextTokens(text);
 }
 
 function messagesToText(messages: Array<{ role: string; content: unknown }>): string {
@@ -43,6 +46,25 @@ function messagesToText(messages: Array<{ role: string; content: unknown }>): st
       return `${m.role}: ${content}`;
     })
     .join("\n");
+}
+
+async function dispatchCompression(
+  requestBody: Record<string, unknown>,
+  opts: { engineId?: string; pipeline?: string[]; effectiveMode: CompressionMode; config?: unknown }
+) {
+  if (opts.engineId) {
+    return applyCompressionAsync(requestBody, "stacked", {
+      config: { stackedPipeline: [{ engine: opts.engineId }] } as CompressionConfig,
+    });
+  }
+  if (opts.pipeline) {
+    return applyCompressionAsync(requestBody, "stacked", {
+      config: { stackedPipeline: opts.pipeline.map((engine) => ({ engine })) } as CompressionConfig,
+    });
+  }
+  return applyCompression(requestBody, opts.effectiveMode, {
+    config: opts.config as CompressionConfig | undefined,
+  });
 }
 
 export async function POST(req: Request) {
@@ -64,25 +86,17 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages, mode, engineId, config } = parsed.data;
-  const effectiveMode: CompressionMode = engineId ? "stacked" : (mode as CompressionMode);
+  const { messages, mode, engineId, pipeline, config } = parsed.data;
+  const effectiveMode: CompressionMode = engineId || pipeline ? "stacked" : (mode as CompressionMode);
   const originalText = messagesToText(messages);
   const originalTokens = countTokens(originalText);
 
   try {
     const start = Date.now();
     const requestBody = { messages };
-    let result;
-    if (engineId) {
-      const engineConfig = { stackedPipeline: [{ engine: engineId }] } as CompressionConfig;
-      result = await applyCompressionAsync(requestBody as Record<string, unknown>, "stacked", {
-        config: engineConfig,
-      });
-    } else {
-      result = await applyCompression(requestBody as Record<string, unknown>, effectiveMode, {
-        config: config as CompressionConfig | undefined,
-      });
-    }
+    const result = await dispatchCompression(requestBody as Record<string, unknown>, {
+      engineId, pipeline, effectiveMode, config,
+    });
     const durationMs = Date.now() - start;
 
     const compressedMessages = (result.body.messages ?? messages) as Array<{
@@ -94,6 +108,7 @@ export async function POST(req: Request) {
     const tokensSaved = Math.max(0, originalTokens - compressedTokens);
     const savingsPct = originalTokens > 0 ? Math.round((tokensSaved / originalTokens) * 100) : 0;
     const techniquesUsed: string[] = result.stats?.techniquesUsed ?? [];
+    const engineBreakdown = result.stats ? ensureEngineBreakdown(result.stats) : [];
     const diff = buildCompressionPreviewDiff(originalText, compressedText, result.stats);
 
     return NextResponse.json({
@@ -104,6 +119,7 @@ export async function POST(req: Request) {
       tokensSaved,
       savingsPct,
       techniquesUsed,
+      engineBreakdown,
       durationMs,
       mode: effectiveMode,
       intensity: null,

@@ -16,7 +16,6 @@ import {
   computeApiKeyCounts,
   formatUsdCost,
   toLocalDateTimeInputValue,
-  maskKey,
   toggleKeyVisibility,
 } from "./apiManagerPageUtils";
 import type { KeyStatus, KeyType } from "./apiManagerPageUtils";
@@ -987,7 +986,7 @@ export default function ApiManagerPageClient() {
                     <code className="text-sm text-text-muted font-mono truncate">
                       {visibleKeys.has(key.id)
                         ? (revealedKeys.get(key.id) ?? key.key)
-                        : maskKey(key.key)}
+                        : key.key}
                     </code>
                     {allowKeyReveal ? (
                       <>

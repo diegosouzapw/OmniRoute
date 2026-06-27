@@ -26,7 +26,11 @@ import {
   isTlsFingerprintActive,
 } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { resolveProxyForConnection } from "@/lib/localDb";
-import { CircuitBreakerOpenError, getCircuitBreaker } from "../../shared/utils/circuitBreaker";
+import {
+  CircuitBreakerOpenError,
+  getCircuitBreaker,
+  isLocalStreamLifecycleError,
+} from "../../shared/utils/circuitBreaker";
 import { classify429FromError, type FailureKind } from "../../shared/utils/classify429";
 import { resolveUseUpstream429BreakerHints } from "../../shared/utils/providerHints";
 
@@ -324,6 +328,9 @@ export async function checkPipelineGates(
     failureThreshold: providerProfile.failureThreshold ?? providerProfile.circuitBreakerThreshold,
     degradationThreshold: providerProfile.degradationThreshold,
     resetTimeout: providerProfile.resetTimeoutMs ?? providerProfile.circuitBreakerReset,
+    // #4602: a local WS-bridge "Controller is already closed" throw is not an
+    // upstream outage — keep it from tripping the whole-provider breaker.
+    isFailure: (e) => !isLocalStreamLifecycleError(e),
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
     ...(useHints429
@@ -422,6 +429,13 @@ export async function executeChatWithBreaker({
           onStreamFailure: async (failure: any) => {
             if (isShadowTraffic) return;
             if (!credentials.connectionId) return;
+            if (
+              Number(failure?.status) === 499 ||
+              failure?.code === "client_disconnected" ||
+              failure?.type === "client_disconnected"
+            ) {
+              return;
+            }
             // A3 guard: if 401 and connection has extra keys, skip connection-level disable
             // (key-level failure already recorded in chatCore.ts via T07)
             // Check extra keys directly from credentials for reliability across restarts
@@ -596,10 +610,7 @@ export function handleNoCredentials(
     // all disabled. log level is `warn` rather than `error` because zero active
     // credentials is an expected operator-driven state, not a server fault.
     log.warn("AUTH", `No active credentials for provider: ${provider}`);
-    return errorResponse(
-      HTTP_STATUS.NOT_FOUND,
-      `No active credentials for provider: ${provider}`
-    );
+    return errorResponse(HTTP_STATUS.NOT_FOUND, `No active credentials for provider: ${provider}`);
   }
   log.warn("CHAT", "No more accounts available", { provider });
   return errorResponse(

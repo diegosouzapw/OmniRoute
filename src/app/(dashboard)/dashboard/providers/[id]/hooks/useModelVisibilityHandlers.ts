@@ -26,6 +26,7 @@ import {
   providerText,
   testAllResultsText,
   evaluateTestAllEntry,
+  shouldSwitchToVisibleFilter,
   type ProviderMessageTranslator,
   type CompatByProtocolMap,
 } from "../providerPageHelpers";
@@ -391,6 +392,14 @@ export function useModelVisibilityHandlers({
     notify.info(testAllResultsText(t, ok, ok + error));
     if (hiddenCount > 0) {
       notify.info(providerText(t, "testAllFailedHidden", "{count} hidden", { count: hiddenCount }));
+      // Bug #4887: switch to "visible" so the models we just auto-hid disappear
+      // on-screen — parity with PassthroughModelsSection (#3610). Without this,
+      // failed models were hidden in the DB but stayed visible under the "All"
+      // filter, so on GLM (and other OAuth providers using this hook's handleTestAll)
+      // it looked like nothing was hidden.
+      if (shouldSwitchToVisibleFilter({ autoHideFailed, hiddenCount })) {
+        setVisibilityFilter("visible");
+      }
     }
     setTestingAll(false);
     setTestProgress(null);

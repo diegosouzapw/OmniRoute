@@ -6,6 +6,28 @@ import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { v4 as uuidv4, v5 as uuidv5 } from "uuid";
 
+/**
+ * Anthropic's direct-provider `[1m]` context-1m beta suffix. Kiro is AWS
+ * Bedrock-backed and does not honor it, so forwarding a `kr/*` model id that
+ * carries `[1m]` produces a malformed upstream model id at Bedrock.
+ */
+export const KIRO_UNSUPPORTED_CONTEXT_1M_SUFFIX = "[1m]";
+export const KIRO_UNSUPPORTED_CONTEXT_1M_MESSAGE =
+  "[kr/*] '[1m]' suffix is not supported by Kiro upstream. Kiro is AWS " +
+  "Bedrock-backed and does not honor Anthropic's context-1m beta. Use a " +
+  "direct-Anthropic provider for 1M-context routing.";
+
+/**
+ * Kiro is AWS Bedrock-backed, so Anthropic's direct-provider `[1m]` context
+ * beta cannot be forwarded as part of a `kr/*` model id.
+ */
+export function hasUnsupportedKiroContextSuffix(model: unknown): boolean {
+  return (
+    typeof model === "string" &&
+    model.toLowerCase().includes(KIRO_UNSUPPORTED_CONTEXT_1M_SUFFIX)
+  );
+}
+
 function parseToolInput(value: unknown) {
   if (value && typeof value === "object" && !Array.isArray(value)) {
     return value;
@@ -127,6 +149,12 @@ function convertMessages(messages, tools, model) {
   let pendingImages: Array<{ format: string; source: { bytes: string } }> = [];
   let currentRole = null;
   let toolsAttached = false;
+
+  // Only Claude models support images in Kiro. Kiro also routes non-Claude
+  // models (deepseek, minimax, glm, qwen3-coder-next, auto-kiro) that do not
+  // accept image attachments — gate image extraction behind a Claude check so
+  // we never attach images those models would reject.
+  const supportsImages = typeof model === "string" && model.toLowerCase().includes("claude");
 
   const flushPending = () => {
     if (currentRole === "user") {
@@ -250,9 +278,10 @@ function convertMessages(messages, tools, model) {
           .map((c) => c.text || "");
         content = textParts.join("\n");
 
-        // Extract images (OpenAI image_url and Anthropic image formats)
+        // Extract images (OpenAI image_url and Anthropic image formats).
+        // Skip entirely for models that do not support images — see supportsImages.
         for (const block of msg.content) {
-          if (block.type === "image_url") {
+          if (supportsImages && block.type === "image_url") {
             const url: string = block.image_url?.url || "";
             if (url.startsWith("data:")) {
               // data:image/jpeg;base64,<data>
@@ -261,11 +290,11 @@ function convertMessages(messages, tools, model) {
               const format = mediaType.split("/")[1] || "jpeg";
               if (bytes) pendingImages.push({ format, source: { bytes } });
             }
-          } else if (block.type === "image" && block.source?.type === "base64") {
+          } else if (supportsImages && block.type === "image" && block.source?.type === "base64") {
             const format = (block.source.media_type || "image/jpeg").split("/")[1] || "jpeg";
             if (block.source.data)
               pendingImages.push({ format, source: { bytes: block.source.data } });
-          } else if (block.type === "image" && typeof block.image === "string") {
+          } else if (supportsImages && block.type === "image" && typeof block.image === "string") {
             // AI SDK-style image part: { type: "image", image: "data:...;base64,..." } (#1330)
             const url = block.image;
             if (url.startsWith("data:")) {
@@ -632,6 +661,12 @@ function convertMessages(messages, tools, model) {
  * Build Kiro payload from OpenAI format
  */
 export function buildKiroPayload(model, body, stream, credentials) {
+  // Reject the Anthropic-only `[1m]` context beta before it reaches Bedrock —
+  // Kiro cannot honor it and a forwarded `kr/*[1m]` id is malformed upstream.
+  if (hasUnsupportedKiroContextSuffix(model)) {
+    throw new Error(KIRO_UNSUPPORTED_CONTEXT_1M_MESSAGE);
+  }
+
   // Normalize model name: Claude Code sends dashes (claude-sonnet-4-6),
   // Kiro API expects dots (claude-sonnet-4.6). Convert trailing version segment.
   const normalizedModel = model.replace(

@@ -92,7 +92,14 @@ export function extractPreservedBlocks(
   const builtIns: CompiledPattern[] = [
     { pattern: /\$\$[\s\S]*?\$\$/g, kind: "math_block" },
     { pattern: /\\\[[\s\S]*?\\\]/g, kind: "math_block" },
-    { pattern: /(?<!\$)\$(?![\s$\d])(?:\\.|[^$\n]){1,160}?(?<!\s)\$(?!\$)/g, kind: "math_inline" },
+    // #4795: exclude `\` from the catch-all branch so a backslash is only ever
+    // consumed by the escape branch `\\.`. The previous `[^$\n]` overlapped with
+    // `\\.`, making a run of consecutive backslashes (e.g. unmatched `$` + a
+    // Windows path) exponentially ambiguous → catastrophic backtracking (ReDoS).
+    {
+      pattern: /(?<!\$)\$(?![\s$\d])(?:\\.|[^$\n\\]){1,160}?(?<!\s)\$(?!\$)/g,
+      kind: "math_inline",
+    },
     { pattern: /\\begin\{[A-Za-z*]+\}[\s\S]*?\\end\{[A-Za-z*]+\}/g, kind: "latex_block" },
     { pattern: /^#{1,6}\s+.+$/gm, kind: "markdown_heading" },
     { pattern: /^\s*\|.*\|\s*$/gm, kind: "markdown_table" },

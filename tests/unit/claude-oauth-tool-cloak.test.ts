@@ -13,6 +13,7 @@ import assert from "node:assert/strict";
 import {
   cloakThirdPartyToolNames,
   needsThirdPartyCloak,
+  isAnthropicServerToolType,
 } from "../../open-sse/services/claudeCodeToolRemapper.ts";
 import {
   sanitizeClaudeToolSchema,
@@ -106,6 +107,48 @@ describe("cloakThirdPartyToolNames", () => {
     assert.equal(needsThirdPartyCloak("TodoWrite"), false);
     assert.equal(needsThirdPartyCloak("read_file"), true);
     assert.equal(needsThirdPartyCloak("mixture_of_agents"), true);
+  });
+
+  it("needsThirdPartyCloak leaves mcp__ namespace untouched (#4861)", () => {
+    // Genuine Claude Code MCP names Anthropic accepts natively; cloaking them
+    // caused round-trip "Tool reference 'mcp__…' not found" 400s on claude OAuth.
+    assert.equal(needsThirdPartyCloak("mcp__filesystem__read_file"), false);
+    assert.equal(needsThirdPartyCloak("mcp__github__create_issue"), false);
+    assert.equal(needsThirdPartyCloak("mcp__server"), false);
+  });
+
+  it("preserves the reserved name of a versioned Anthropic server tool", () => {
+    const body: AnyRecord = {
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 5 }],
+    };
+    cloakThirdPartyToolNames(body);
+    // Anthropic requires tools.N.web_search_20250305.name === "web_search".
+    assert.equal((body.tools as AnyRecord[])[0].name, "web_search");
+    // No reverse-map entry needed because nothing was cloaked.
+    assert.equal((body._toolNameMap as Map<string, string> | undefined)?.has("WebSearch") ?? false, false);
+  });
+
+  it("still cloaks a genuine third-party tool sitting next to a server tool", () => {
+    const body: AnyRecord = {
+      tools: [
+        { type: "web_search_20250305", name: "web_search" },
+        { name: "mixture_of_agents" },
+      ],
+    };
+    cloakThirdPartyToolNames(body);
+    assert.equal((body.tools as AnyRecord[])[0].name, "web_search");
+    assert.equal((body.tools as AnyRecord[])[1].name, "MixtureOfAgents");
+  });
+
+  it("isAnthropicServerToolType detects versioned + non-versioned server tools", () => {
+    assert.equal(isAnthropicServerToolType("web_search_20250305"), true);
+    assert.equal(isAnthropicServerToolType("code_execution_20250522"), true);
+    assert.equal(isAnthropicServerToolType("web_search"), true);
+    assert.equal(isAnthropicServerToolType("web_search_preview"), true);
+    // Not server tools — must remain cloakable.
+    assert.equal(isAnthropicServerToolType("mixture_of_agents"), false);
+    assert.equal(isAnthropicServerToolType("Bash"), false);
+    assert.equal(isAnthropicServerToolType(undefined), false);
   });
 });
 

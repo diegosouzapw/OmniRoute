@@ -154,13 +154,18 @@ test("POST /api/combos rejects composite tiers that point to unknown steps", asy
   assert.equal(response.status, 400);
   assert.deepEqual(body, {
     error: {
-      message: "Invalid composite tiers",
-      details: [
-        {
-          field: "config.compositeTiers.tiers.primary.stepId",
-          message: 'stepId "step-missing" does not exist in combo.models',
-        },
-      ],
+      code: "COMBO_003",
+      message: "Composite tier configuration is invalid",
+      category: "COMBO",
+      details: {
+        reason: "Invalid composite tiers",
+        details: [
+          {
+            field: "config.compositeTiers.tiers.primary.stepId",
+            message: 'stepId "step-missing" does not exist in combo.models',
+          },
+        ],
+      },
     },
   });
 });
@@ -222,13 +227,18 @@ test("PUT /api/combos rejects updates that orphan an existing composite tier ste
   assert.equal(response.status, 400);
   assert.deepEqual(body, {
     error: {
-      message: "Invalid composite tiers",
-      details: [
-        {
-          field: "config.compositeTiers.tiers.primary.stepId",
-          message: 'stepId "step-primary" does not exist in combo.models',
-        },
-      ],
+      code: "COMBO_003",
+      message: "Composite tier configuration is invalid",
+      category: "COMBO",
+      details: {
+        reason: "Invalid composite tiers",
+        details: [
+          {
+            field: "config.compositeTiers.tiers.primary.stepId",
+            message: 'stepId "step-primary" does not exist in combo.models',
+          },
+        ],
+      },
     },
   });
 });

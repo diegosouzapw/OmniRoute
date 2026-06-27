@@ -6,6 +6,7 @@ import {
   getGitHubCopilotRefreshHeaders,
 } from "../config/providerHeaderProfiles.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
+import { stripUnsupportedParams } from "../translator/paramSupport.ts";
 
 export class GithubExecutor extends BaseExecutor {
   constructor() {
@@ -24,9 +25,31 @@ export class GithubExecutor extends BaseExecutor {
     );
   }
 
+  // GitHub Copilot's /responses endpoint only serves OpenAI (gpt/codex) models.
+  // Gemini and Claude variants on Copilot reject with HTTP 400
+  //   "model <id> does not support Responses API." (unsupported_api_for_model)
+  // Pin a defensive invariant: even if a future registry edit (or an upstream
+  // model-discovery refresh) tagged a Claude/Gemini entry as openai-responses,
+  // the executor must still route it to /chat/completions. Port of 9router#1536
+  // (follow-up to #663); also reinforces the existing comments on the gh
+  // registry entries (claude-opus-4-5-20251101, claude-opus-4.7, gemini-*).
+  supportsResponsesEndpoint(model: string | null | undefined): boolean {
+    const m = (model || "").toLowerCase();
+    if (!m) return true;
+    return !(m.includes("gemini") || m.includes("claude"));
+  }
+
   buildUrl(model: string, _stream: boolean, _urlIndex = 0) {
     const targetFormat = getModelTargetFormat("gh", model);
-    if (targetFormat === "openai-responses") {
+    // 9router#102: Copilot Codex models advertise supported_endpoints: ["/responses"]
+    // and 400 on /chat/completions. Route any *-codex id to /responses even when it
+    // isn't in the curated registry, so newly-shipped Codex models work out of the box.
+    // 9router#1536: but never route Gemini/Claude variants to /responses (they 400) —
+    // gate the whole decision on supportsResponsesEndpoint().
+    if (
+      (targetFormat === "openai-responses" || /codex/i.test(model)) &&
+      this.supportsResponsesEndpoint(model)
+    ) {
       return (
         this.config.responsesBaseUrl ||
         this.config.baseUrl?.replace(/\/chat\/completions\/?$/, "/responses") ||
@@ -125,6 +148,13 @@ export class GithubExecutor extends BaseExecutor {
         this.sanitizeChatCompletionsMessage(msg)
       );
     }
+
+    // Config-driven strip of params unsupported by the target provider/model.
+    // For GitHub Copilot this removes Claude-style `thinking` and
+    // `reasoning_effort` for Claude models that reject them upstream
+    // (Haiku 4.5 / Opus 4.7 — Opus 4.6 / Sonnet 4.6 keep them).
+    // Port from 9router#7ae9fff6 (fixes upstream #1748, #713).
+    stripUnsupportedParams("github", model, modifiedBody);
 
     return modifiedBody;
   }

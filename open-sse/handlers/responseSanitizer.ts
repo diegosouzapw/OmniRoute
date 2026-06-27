@@ -1,3 +1,5 @@
+import { copyOpenAICompatibleReasoningFields } from "../utils/reasoningFields.ts";
+
 /**
  * Response Sanitizer — Normalizes LLM responses to strict OpenAI SDK format.
  *
@@ -269,10 +271,26 @@ export function extractThinkingFromContent(text: string): {
  * Sanitize a non-streaming OpenAI ChatCompletion response.
  * Strips non-standard fields and normalizes required fields.
  */
-export function sanitizeOpenAIResponse(body: unknown): unknown {
+export interface SanitizeOpenAIResponseOptions {
+  /**
+   * When true, unconditionally remove `reasoning_content` from every choice
+   * message in the final payload — including reasoning-only messages and
+   * DeepSeek V4 — even though the default sanitizer keeps it in those cases.
+   * Wired to the `x-omniroute-strip-reasoning` request header for clients whose
+   * JSON parsers cannot tolerate the non-standard field (e.g. Firecrawl AI SDK).
+   * Ported from upstream 9router#517 (closes upstream #509).
+   */
+  stripReasoning?: boolean;
+}
+
+export function sanitizeOpenAIResponse(
+  body: unknown,
+  options: SanitizeOpenAIResponseOptions = {}
+): unknown {
   const bodyRecord = toRecord(body);
   if (!bodyRecord) return body;
   const isDeepSeekV4 = isDeepSeekV4Model(bodyRecord.model);
+  const stripReasoning = options.stripReasoning === true;
 
   // Build sanitized response with only allowed top-level fields
   const sanitized: JsonRecord = {};
@@ -295,6 +313,9 @@ export function sanitizeOpenAIResponse(body: unknown): unknown {
         sanitizedChoice.finish_reason !== "tool_calls"
       ) {
         sanitizedChoice.finish_reason = "tool_calls";
+      }
+      if (stripReasoning && message && "reasoning_content" in message) {
+        delete message.reasoning_content;
       }
       return sanitizedChoice;
     });
@@ -342,6 +363,23 @@ export function sanitizeResponsesApiResponse(body: unknown): unknown {
   };
 
   const output = sanitizeResponsesOutput(responseRoot.output);
+
+  // Some upstreams return a shorthand Responses body that carries the answer only
+  // in `output_text` with an empty/absent `output[]`. Synthesize a message item so
+  // the sanitized response still has usable structured output — otherwise the text
+  // is dropped and the response is later flagged malformed (#4942 regression).
+  if (
+    output.length === 0 &&
+    typeof responseRoot.output_text === "string" &&
+    responseRoot.output_text.trim().length > 0
+  ) {
+    output.push({
+      id: "msg_0",
+      type: "message",
+      role: "assistant",
+      content: [{ type: "output_text", text: responseRoot.output_text.trim() }],
+    });
+  }
   sanitized.output = output;
 
   const outputText = extractResponsesOutputText(output);
@@ -1036,32 +1074,7 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
                 ? collapseExcessiveNewlines(deltaRecord.content)
                 : deltaRecord.content;
           }
-          if (deltaRecord.reasoning_content !== undefined) {
-            delta.reasoning_content = deltaRecord.reasoning_content;
-          }
-          if (deltaRecord.reasoning_text !== undefined) {
-            delta.reasoning_text = deltaRecord.reasoning_text;
-          } else if (typeof deltaRecord.reasoning === "string" && deltaRecord.reasoning) {
-            // Alias: some providers use 'reasoning' instead of 'reasoning_content'
-            delta.reasoning_content = deltaRecord.reasoning;
-          } else if (Array.isArray(deltaRecord.reasoning_details)) {
-            // StepFun/OpenRouter: reasoning_details[{type:"reasoning.text", text:"..."}]
-            const parts: string[] = [];
-            for (const detail of deltaRecord.reasoning_details) {
-              const d = detail && typeof detail === "object" ? (detail as JsonRecord) : null;
-              if (!d) continue;
-              const text =
-                typeof d.text === "string"
-                  ? d.text
-                  : typeof d.content === "string"
-                    ? d.content
-                    : "";
-              if (text) parts.push(text);
-            }
-            if (parts.length > 0) {
-              delta.reasoning_content = parts.join("");
-            }
-          }
+          copyOpenAICompatibleReasoningFields(deltaRecord, delta);
           if (deltaRecord.tool_calls !== undefined) {
             delta.tool_calls = Array.isArray(deltaRecord.tool_calls)
               ? deltaRecord.tool_calls.map((tc) => {

@@ -637,41 +637,94 @@ export async function saveRequestUsage(entry: any) {
     const timestamp = entry.timestamp || new Date().toISOString();
     const serviceTier = normalizeServiceTier(entry.serviceTier ?? entry.service_tier);
 
-    db.prepare(
+    const tokensInput = getLoggedInputTokens(entry.tokens);
+    const tokensOutput = getLoggedOutputTokens(entry.tokens);
+
+    // Dedup guard: skip INSERT when an identical row already exists in the same
+    // second. This prevents double-counting when onRequestSuccess fires more
+    // than once (e.g. combo routing calling the callback from both the
+    // streaming and non-streaming paths for the same underlying request).
+    // Keyed on the natural identity of a request: timestamp + provider + model
+    // + connectionId + apiKeyId + token counts. If only the endpoint is missing
+    // on the existing row, fill it in rather than inserting a duplicate.
+    let inserted = false;
+
+    db.transaction(() => {
+      const existing = db
+        .prepare(
+          `SELECT id, endpoint FROM usage_history
+           WHERE timestamp = ?
+             AND COALESCE(provider, '')     = COALESCE(?, '')
+             AND COALESCE(model, '')        = COALESCE(?, '')
+             AND COALESCE(connection_id, '') = COALESCE(?, '')
+             AND COALESCE(api_key_id, '')   = COALESCE(?, '')
+             AND tokens_input  = ?
+             AND tokens_output = ?
+           ORDER BY id DESC LIMIT 1`
+        )
+        .get(
+          timestamp,
+          entry.provider || null,
+          entry.model || null,
+          entry.connectionId || null,
+          entry.apiKeyId || null,
+          tokensInput,
+          tokensOutput
+        ) as { id: number; endpoint: string | null } | undefined;
+
+      if (existing) {
+        // Back-fill endpoint if the original row missed it.
+        if (!existing.endpoint && entry.endpoint) {
+          db.prepare(`UPDATE usage_history SET endpoint = ? WHERE id = ?`).run(
+            entry.endpoint,
+            existing.id
+          );
+        }
+        return; // duplicate — do not insert
+      }
+
+      db.prepare(
+        `
+        INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name,
+          tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation, tokens_reasoning,
+          service_tier, status, success, latency_ms, ttft_ms, error_code, combo_strategy, endpoint, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
-      INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name,
-        tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation, tokens_reasoning,
-        service_tier, status, success, latency_ms, ttft_ms, error_code, combo_strategy, timestamp)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `
-    ).run(
-      entry.provider || null,
-      entry.model || null,
-      entry.connectionId || null,
-      entry.apiKeyId || null,
-      entry.apiKeyName || null,
-      getLoggedInputTokens(entry.tokens),
-      getLoggedOutputTokens(entry.tokens),
-      getPromptCacheReadTokens(entry.tokens),
-      getPromptCacheCreationTokens(entry.tokens),
-      getReasoningTokens(entry.tokens),
-      serviceTier,
-      entry.status || null,
-      entry.success === false ? 0 : 1,
-      Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
-      Number.isFinite(Number(entry.timeToFirstTokenMs))
-        ? Number(entry.timeToFirstTokenMs)
-        : Number.isFinite(Number(entry.latencyMs))
-          ? Number(entry.latencyMs)
-          : 0,
-      entry.errorCode || null,
-      entry.comboStrategy || entry.combo_strategy || null,
-      timestamp
-    );
+      ).run(
+        entry.provider || null,
+        entry.model || null,
+        entry.connectionId || null,
+        entry.apiKeyId || null,
+        entry.apiKeyName || null,
+        tokensInput,
+        tokensOutput,
+        getPromptCacheReadTokens(entry.tokens),
+        getPromptCacheCreationTokens(entry.tokens),
+        getReasoningTokens(entry.tokens),
+        serviceTier,
+        entry.status || null,
+        entry.success === false ? 0 : 1,
+        Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
+        Number.isFinite(Number(entry.timeToFirstTokenMs))
+          ? Number(entry.timeToFirstTokenMs)
+          : Number.isFinite(Number(entry.latencyMs))
+            ? Number(entry.latencyMs)
+            : 0,
+        entry.errorCode || null,
+        entry.comboStrategy || entry.combo_strategy || null,
+        entry.endpoint || null,
+        timestamp
+      );
+
+      inserted = true;
+    })();
 
     // Decoupled via the event bus so usageHistory never imports providerLimits
     // (which would pull the executors/translator graph into the type-check surface).
-    emitUsageRecorded(entry.provider, entry.connectionId);
+    // Only emit when a row was actually inserted — not on dedup no-ops.
+    if (inserted) {
+      emitUsageRecorded(entry.provider, entry.connectionId);
+    }
   } catch (error) {
     console.error("Failed to save usage stats:", error);
   }

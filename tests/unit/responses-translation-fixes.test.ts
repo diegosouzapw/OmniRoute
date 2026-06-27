@@ -459,3 +459,57 @@ test("Chat→Responses streaming: multiple <think> tags in one chunk handled", (
   const combined = textDeltas.join("");
   assert.ok(!combined.includes("<think>"), `text should not contain <think> tag, got: ${combined}`);
 });
+
+// Regression: a tool call was announced (response.output_item.added set currentToolCallId)
+// but the stream ended before response.output_item.done could advance toolCallIndex. The
+// terminal finish_reason must still be "tool_calls", not "stop", so OpenAI-compatible
+// clients keep processing the tool result instead of stopping prematurely.
+test("Responses→Chat streaming: flush finalizes tool_calls when currentToolCallId set but toolCallIndex==0", () => {
+  const state = {
+    started: true,
+    chatId: "chatcmpl-x",
+    created: 1_700_000_000,
+    model: "gpt-4",
+    toolCallIndex: 0,
+    currentToolCallId: "call_abc",
+    finishReasonSent: false,
+  };
+
+  const result = openaiResponsesToOpenAIResponse(null, state);
+  assert.ok(result, "flush should emit a final chunk");
+  assert.equal(result.choices[0].finish_reason, "tool_calls");
+});
+
+test("Responses→Chat streaming: response.completed finalizes tool_calls when currentToolCallId set but toolCallIndex==0", () => {
+  const state = {
+    started: true,
+    chatId: "chatcmpl-y",
+    created: 1_700_000_000,
+    model: "gpt-4",
+    toolCallIndex: 0,
+    currentToolCallId: "call_def",
+    finishReasonSent: false,
+  };
+
+  const chunk = { type: "response.completed", data: { response: {} } };
+  const result = openaiResponsesToOpenAIResponse(chunk, state);
+  assert.ok(result, "response.completed should emit a final chunk");
+  assert.equal(result.choices[0].finish_reason, "tool_calls");
+  assert.equal(state.finishReason, "tool_calls");
+});
+
+test("Responses→Chat streaming: flush finalizes stop when no tool call was emitted", () => {
+  const state = {
+    started: true,
+    chatId: "chatcmpl-z",
+    created: 1_700_000_000,
+    model: "gpt-4",
+    toolCallIndex: 0,
+    currentToolCallId: null,
+    finishReasonSent: false,
+  };
+
+  const result = openaiResponsesToOpenAIResponse(null, state);
+  assert.ok(result, "flush should emit a final chunk");
+  assert.equal(result.choices[0].finish_reason, "stop");
+});

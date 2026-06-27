@@ -435,6 +435,43 @@ test("DefaultExecutor.buildHeaders handles GLM, default auth and anthropic-compa
   assert.equal(anthropicHeaders.Accept, "text/event-stream");
 });
 
+test("DefaultExecutor.buildHeaders keeps a caller-supplied Anthropic-Version (case-insensitive guard) for anthropic-compatible providers", () => {
+  // An operator may configure a Title-Case "Anthropic-Version" via the provider
+  // config headers. The default-guard at the anthropic-compatible-* branch must
+  // detect it case-insensitively and NOT add a second lowercase
+  // "anthropic-version" key, which undici would otherwise combine into
+  // "2025-01-01, 2023-06-01" and break the upstream request.
+  const anthropicCompat = new DefaultExecutor("anthropic-compatible-test");
+  // `config` is shared across instances via the provider registry, so snapshot
+  // and restore `config.headers` to avoid leaking the Title-Case override into
+  // other tests.
+  const originalConfigHeaders = anthropicCompat.config.headers;
+  anthropicCompat.config.headers = {
+    ...originalConfigHeaders,
+    "Anthropic-Version": "2025-01-01",
+  };
+
+  try {
+    const headers = anthropicCompat.buildHeaders({ apiKey: "anth-key" }, true);
+
+    const versionKeys = Object.keys(headers).filter(
+      (key) => key.toLowerCase() === "anthropic-version"
+    );
+    assert.equal(versionKeys.length, 1, "Duplicate anthropic-version header keys found");
+    assert.equal(headers["Anthropic-Version"], "2025-01-01");
+    assert.equal(headers["anthropic-version"], undefined);
+    assert.equal(headers["x-api-key"], "anth-key");
+  } finally {
+    anthropicCompat.config.headers = originalConfigHeaders;
+  }
+});
+
+test("DefaultExecutor.buildHeaders still defaults anthropic-version when no variant is present", () => {
+  const anthropicCompat = new DefaultExecutor("anthropic-compatible-test");
+  const headers = anthropicCompat.buildHeaders({ apiKey: "anth-key" }, true);
+  assert.equal(headers["anthropic-version"], "2023-06-01");
+});
+
 test("DefaultExecutor local OpenAI-style providers honor custom base URLs and skip empty bearer headers", () => {
   const lmStudio = new DefaultExecutor("lm-studio");
   const vllm = new DefaultExecutor("vllm");
@@ -928,6 +965,107 @@ test("DefaultExecutor.transformRequest neutralizes incompatible tool_choice for 
 
   assert.notEqual(result, body);
   assert.equal((result as any).tool_choice, "auto");
+});
+
+// Port of decolua/9router#1343: openai-compatible-* providers (DeepSeek / Ollama /
+// local OpenAI-compatible models) often lack native Structured Output, so a
+// `json_schema` response_format is downgraded to `json_object` with the schema
+// injected into the system prompt instead.
+test("DefaultExecutor.transformRequest downgrades json_schema to json_object for openai-compatible providers and injects the schema into a fresh system prompt", () => {
+  const executor = new DefaultExecutor("openai-compatible-deepseek");
+  const schema = {
+    type: "object",
+    properties: { answer: { type: "string" } },
+    required: ["answer"],
+  };
+  const body = {
+    model: "deepseek-chat",
+    messages: [{ role: "user", content: "give me JSON" }],
+    response_format: {
+      type: "json_schema",
+      json_schema: { name: "answer_schema", schema },
+    },
+  };
+
+  const result = executor.transformRequest("deepseek-chat", body, true, {
+    providerSpecificData: { baseUrl: "https://proxy.example/v1" },
+  }) as any;
+
+  // response_format is downgraded to json_object.
+  assert.deepEqual(result.response_format, { type: "json_object" });
+  // A system message carrying the schema is injected at the front.
+  assert.equal(result.messages[0].role, "system");
+  assert.match(result.messages[0].content, /strictly follows this JSON schema/);
+  assert.ok(result.messages[0].content.includes('"answer"'));
+  // The original user message is preserved.
+  assert.equal(result.messages[1].role, "user");
+  assert.equal(result.messages[1].content, "give me JSON");
+  // Original body is not mutated.
+  assert.equal((body as any).response_format.type, "json_schema");
+  assert.equal(body.messages.length, 1);
+});
+
+test("DefaultExecutor.transformRequest appends the json_schema prompt to an existing system message", () => {
+  const executor = new DefaultExecutor("openai-compatible-ollama");
+  const body = {
+    model: "llama3.1",
+    messages: [
+      { role: "system", content: "You are concise." },
+      { role: "user", content: "give me JSON" },
+    ],
+    response_format: {
+      type: "json_schema",
+      json_schema: { name: "s", schema: { type: "object" } },
+    },
+  };
+
+  const result = executor.transformRequest("llama3.1", body, true, {
+    providerSpecificData: { baseUrl: "https://proxy.example/v1" },
+  }) as any;
+
+  assert.deepEqual(result.response_format, { type: "json_object" });
+  assert.equal(result.messages[0].role, "system");
+  assert.match(result.messages[0].content, /^You are concise\./);
+  assert.match(result.messages[0].content, /strictly follows this JSON schema/);
+  // Existing system message object is not mutated in place.
+  assert.equal(body.messages[0].content, "You are concise.");
+});
+
+test("DefaultExecutor.transformRequest leaves json_schema response_format untouched for native providers", () => {
+  const executor = new DefaultExecutor("openai");
+  const responseFormat = {
+    type: "json_schema",
+    json_schema: { name: "s", schema: { type: "object" } },
+  };
+  const body = {
+    model: "gpt-4.1",
+    messages: [{ role: "user", content: "give me JSON" }],
+    response_format: responseFormat,
+  };
+
+  const result = executor.transformRequest("gpt-4.1", body, true, {}) as any;
+
+  // Native OpenAI keeps the json_schema response_format; no system prompt injected.
+  assert.deepEqual(result.response_format, responseFormat);
+  assert.equal(result.messages.length, 1);
+  assert.equal(result.messages[0].role, "user");
+});
+
+test("DefaultExecutor.transformRequest ignores non-json_schema response_format for openai-compatible providers", () => {
+  const executor = new DefaultExecutor("openai-compatible-deepseek");
+  const body = {
+    model: "deepseek-chat",
+    messages: [{ role: "user", content: "hi" }],
+    response_format: { type: "json_object" },
+  };
+
+  const result = executor.transformRequest("deepseek-chat", body, true, {
+    providerSpecificData: { baseUrl: "https://proxy.example/v1" },
+  }) as any;
+
+  assert.deepEqual(result.response_format, { type: "json_object" });
+  assert.equal(result.messages.length, 1);
+  assert.equal(result.messages[0].role, "user");
 });
 
 test("DefaultExecutor.transformRequest applies GLMT preset defaults without overriding explicit values", () => {

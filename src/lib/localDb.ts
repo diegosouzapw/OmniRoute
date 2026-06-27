@@ -83,6 +83,7 @@ export {
   getCombos,
   getComboById,
   getComboByName,
+  getComboByNameInsensitive,
   createCombo,
   updateCombo,
   reorderCombos,
@@ -533,6 +534,7 @@ export {
   deleteFreeProxy,
   clearFreeProxiesBySource,
   getFreeProxyStats,
+  recordFreeProxySync,
 } from "./db/freeProxies";
 
 export type { FreeProxyRecord, FreeProxyStats } from "./db/freeProxies";
@@ -574,6 +576,13 @@ export {
   upsertAllocations,
   listAllocationsForApiKey,
 } from "./db/quotaPools";
+// Quota per-(key, model) caps — Group B Fase 3 #7
+export {
+  getModelCap,
+  listModelCaps,
+  setModelCap,
+  deleteModelCap,
+} from "./db/quotaModelCaps";
 
 export {
   // Quota Groups (B2)

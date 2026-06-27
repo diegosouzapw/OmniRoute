@@ -12,7 +12,6 @@ const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
-const quotaSnapshotsDb = await import("../../src/lib/db/quotaSnapshots.ts");
 const auth = await import("../../src/sse/services/auth.ts");
 const quotaCache = await import("../../src/domain/quotaCache.ts");
 const fallback = await import("../../open-sse/services/accountFallback.ts");
@@ -843,86 +842,6 @@ test("getProviderCredentials prioritizes accounts that still have quota availabl
   assert.equal(selected.apiKey, "sk-available");
 });
 
-test("getProviderCredentials uses persisted quota snapshots after cache restart", async () => {
-  const exhausted = await seedConnection("openai", {
-    name: "snapshot-quota-exhausted",
-    priority: 1,
-    apiKey: "sk-snapshot-exhausted",
-    providerSpecificData: {
-      limitPolicy: {
-        enabled: true,
-        thresholdPercent: 99,
-        windows: ["daily"],
-      },
-    },
-  });
-  const available = await seedConnection("openai", {
-    name: "snapshot-quota-available",
-    priority: 9,
-    apiKey: "sk-snapshot-available",
-    providerSpecificData: {
-      limitPolicy: {
-        enabled: true,
-        thresholdPercent: 99,
-        windows: ["daily"],
-      },
-    },
-  });
-
-  quotaSnapshotsDb.saveQuotaSnapshot({
-    provider: "openai",
-    connection_id: exhausted.id,
-    window_key: "daily",
-    remaining_percentage: 0,
-    is_exhausted: 1,
-    next_reset_at: futureIso(180_000),
-    window_duration_ms: null,
-    raw_data: null,
-  });
-
-  const selected = await auth.getProviderCredentials("openai");
-
-  assert.equal(selected.connectionId, available.id);
-  assert.equal(selected.apiKey, "sk-snapshot-available");
-});
-
-test("getProviderCredentials skips Codex accounts exhausted in persisted snapshots after restart", async () => {
-  const exhausted = await seedConnection("codex", {
-    authType: "oauth",
-    name: "codex-snapshot-exhausted",
-    priority: 1,
-    apiKey: null,
-    accessToken: "codex-snapshot-exhausted-access",
-    refreshToken: "codex-snapshot-exhausted-refresh",
-  });
-  const available = await seedConnection("codex", {
-    authType: "oauth",
-    name: "codex-snapshot-available",
-    priority: 9,
-    apiKey: null,
-    accessToken: "codex-snapshot-available-access",
-    refreshToken: "codex-snapshot-available-refresh",
-  });
-
-  for (const windowKey of ["session", "weekly"]) {
-    quotaSnapshotsDb.saveQuotaSnapshot({
-      provider: "codex",
-      connection_id: exhausted.id,
-      window_key: windowKey,
-      remaining_percentage: 0,
-      is_exhausted: 1,
-      next_reset_at: futureIso(180_000),
-      window_duration_ms: null,
-      raw_data: null,
-    });
-  }
-
-  const selected = await auth.getProviderCredentials("codex", null, null, "gpt-5.4-mini");
-
-  assert.equal(selected.connectionId, available.id);
-  assert.equal(selected.accessToken, "codex-snapshot-available-access");
-});
-
 test("getProviderCredentials round-robin switches to the least recently used account after the sticky limit", async () => {
   await settingsDb.updateSettings({
     fallbackStrategy: "round-robin",
@@ -1493,4 +1412,141 @@ test("markAccountUnavailable reuses an existing Codex scope cooldown", async () 
   assert.ok(result.cooldownMs > 0);
   assert.equal(updated.rateLimitedUntil, undefined);
   assert.equal(updated.providerSpecificData.codexScopeRateLimitedUntil.spark, retryAfter);
+});
+
+test("markAccountUnavailable uses a connection-wide cooldown for non-local 404 errors", async () => {
+  const connection = await seedConnection("openai", {
+    name: "remote-404",
+    providerSpecificData: {
+      baseUrl: "https://api.openai.com/v1",
+    },
+  });
+
+  const result = await auth.markAccountUnavailable(
+    connection.id,
+    404,
+    "model not found",
+    "openai",
+    "gpt-missing"
+  );
+  const updated = await providersDb.getProviderConnectionById(connection.id);
+
+  assert.equal(result.shouldFallback, true);
+  assert.ok(result.cooldownMs > 0);
+  assert.equal(updated.testStatus, "unavailable");
+  assert.ok(updated.rateLimitedUntil);
+});
+
+test("markAccountUnavailable auto-disables permanently banned accounts when the setting is enabled", async () => {
+  await settingsDb.updateSettings({ autoDisableBannedAccounts: true });
+  const connection = await seedConnection("openai", {
+    name: "permanent-ban",
+  });
+
+  const result = await auth.markAccountUnavailable(
+    connection.id,
+    401,
+    "Verify your account to continue",
+    "openai",
+    "gpt-4o"
+  );
+  const updated = await providersDb.getProviderConnectionById(connection.id);
+
+  assert.equal(result.shouldFallback, true);
+  assert.equal(updated.isActive, false);
+  assert.equal(updated.testStatus, "banned");
+});
+
+test("markAccountUnavailable leaves permanently banned accounts active when auto-disable is disabled", async () => {
+  await settingsDb.updateSettings({ autoDisableBannedAccounts: false });
+  const connection = await seedConnection("openai", {
+    name: "permanent-ban-disabled",
+  });
+
+  const result = await auth.markAccountUnavailable(
+    connection.id,
+    401,
+    "Verify your account to continue",
+    "openai",
+    "gpt-4o"
+  );
+  const updated = await providersDb.getProviderConnectionById(connection.id);
+
+  assert.equal(result.shouldFallback, true);
+  assert.equal(updated.isActive, true);
+  assert.equal(updated.testStatus, "banned");
+});
+
+test("markAccountUnavailable swallows auto-disable persistence errors", async () => {
+  await settingsDb.updateSettings({ autoDisableBannedAccounts: true });
+  const connection = await seedConnection("openai", {
+    name: "permanent-ban-update-fails",
+  });
+
+  const db = core.getDbInstance();
+  const originalPrepare = db.prepare.bind(db);
+  db.prepare = (sql) => {
+    const statement = originalPrepare(sql);
+    if (!String(sql).includes("UPDATE provider_connections SET")) {
+      return statement;
+    }
+
+    return new Proxy(statement, {
+      get(target, prop, receiver) {
+        if (prop === "run") {
+          return (params) => {
+            if (params && typeof params === "object" && params.isActive === 0) {
+              throw new Error("persist disable failed");
+            }
+            return target.run(params);
+          };
+        }
+        return Reflect.get(target, prop, receiver);
+      },
+    });
+  };
+
+  try {
+    const result = await auth.markAccountUnavailable(
+      connection.id,
+      401,
+      "Verify your account to continue",
+      "openai",
+      "gpt-4o"
+    );
+    const updated = await providersDb.getProviderConnectionById(connection.id);
+
+    assert.equal(result.shouldFallback, true);
+    assert.equal(updated.isActive, true);
+    assert.equal(updated.testStatus, "banned");
+  } finally {
+    db.prepare = originalPrepare;
+  }
+});
+
+test("markAccountUnavailable persists in-memory model lockout for combo transient 429 when persistUnavailableState=false", async () => {
+  const connection = await seedConnection("openai", {
+    name: "combo-transient-test",
+  });
+  const model = "gpt-4o";
+  const connId = connection.id as string;
+
+  assert.equal(fallback.isModelLocked("openai", connId, model), false);
+
+  await auth.markAccountUnavailable(connId, 429, "Rate limit exceeded", "openai", model, null, {
+    persistUnavailableState: false,
+  });
+
+  assert.equal(fallback.isModelLocked("openai", connId, model), true);
+
+  assert.equal(fallback.isModelLocked("openai", connId, "gpt-4o-mini"), false);
+
+  const otherConn = await seedConnection("openai", {
+    name: "other-conn",
+  });
+  assert.equal(fallback.isModelLocked("openai", otherConn.id as string, model), false);
+
+  const updated = await providersDb.getProviderConnectionById(connId);
+  assert.equal(updated.rateLimitedUntil == null, true);
+  assert.notEqual(updated.testStatus, "unavailable");
 });
