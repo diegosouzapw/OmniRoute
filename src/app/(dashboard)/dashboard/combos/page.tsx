@@ -45,6 +45,7 @@ import {
   normalizeIntelligentRoutingFilter,
   normalizeIntelligentRoutingConfig,
 } from "@/lib/combos/intelligentRouting";
+import { resolveServerErrorMessage } from "@/lib/api/serverErrorMessage";
 import { useTranslations } from "next-intl";
 
 const ModelSelectModal = dynamic(() => import("@/shared/components/ModelSelectModal"), {
@@ -878,18 +879,28 @@ export default function CombosPage() {
 
   const handleToggleCombo = async (combo) => {
     const newActive = combo.isActive === false ? true : false;
+    const previousActive = combo.isActive !== false;
     // Optimistic update
     setCombos((prev) => prev.map((c) => (c.id === combo.id ? { ...c, isActive: newActive } : c)));
     try {
-      await fetch(`/api/combos/${combo.id}`, {
+      const res = await fetch(`/api/combos/${combo.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isActive: newActive }),
       });
+      if (!res.ok) {
+        // The server rejected the toggle (4xx/5xx). Surface its message instead
+        // of silently reverting with a generic toast — never swallow the error.
+        const errorBody = await res.json().catch(() => null);
+        setCombos((prev) =>
+          prev.map((c) => (c.id === combo.id ? { ...c, isActive: previousActive } : c))
+        );
+        notify.error(resolveServerErrorMessage(errorBody, t("failedToggle")));
+      }
     } catch (error) {
-      // Revert on error
+      // Revert on network error
       setCombos((prev) =>
-        prev.map((c) => (c.id === combo.id ? { ...c, isActive: !newActive } : c))
+        prev.map((c) => (c.id === combo.id ? { ...c, isActive: previousActive } : c))
       );
       notify.error(t("failedToggle"));
     }
