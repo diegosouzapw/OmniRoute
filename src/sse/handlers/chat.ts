@@ -223,6 +223,21 @@ export async function handleChat(
 
   const rawClientBody = cloneLogPayload(body);
 
+  // Early guard: an explicitly empty `messages` array is invalid for every
+  // upstream (Anthropic/OpenAI both reject "at least one message is required").
+  // Forwarding it produced a confusing raw upstream 400/502; reject it here with
+  // a clear OmniRoute-level error before any routing or upstream call (#5110).
+  // Responses-API requests use `input` (not `messages`) so they are unaffected,
+  // and an absent `messages` field is left to downstream validation.
+  if (Array.isArray((body as { messages?: unknown }).messages) &&
+    (body as { messages: unknown[] }).messages.length === 0) {
+    log.warn("CHAT", "Rejecting request with empty messages array");
+    return errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
+      "messages: at least one message is required"
+    );
+  }
+
   // Build clientRawRequest for logging (if not provided)
   if (!clientRawRequest) {
     clientRawRequest = buildClientRawRequest(request, rawClientBody);
