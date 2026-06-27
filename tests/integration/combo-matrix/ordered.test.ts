@@ -75,3 +75,48 @@ test("fill-first: keeps using the first target until it fails, then moves on", a
   }
   assert.deepEqual(h.providersSeen(), ["openai", "openai", "openai"]);
 });
+
+test("round-robin: cycles through targets in batches (sticky limit = 3 default)", async () => {
+  await seedConnection("openai", { apiKey: "sk-openai-rr" });
+  await seedConnection("claude", { apiKey: "sk-claude-rr" });
+  await seedConnection("gemini", { apiKey: "sk-gemini-rr" });
+  await combosDb.createCombo({
+    name: "m-rr",
+    strategy: "round-robin",
+    config: { maxRetries: 0, retryDelayMs: 0 },
+    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022", "gemini/gemini-2.5-flash"],
+  });
+  h.installRecordingFetch();
+
+  for (let i = 0; i < 9; i++) {
+    const r = await handleChat(buildRequest({ body: body("m-rr") }));
+    assert.equal(r.status, 200);
+  }
+  assert.deepEqual(h.providersSeen(), [
+    "openai", "openai", "openai",
+    "claude", "claude", "claude",
+    "gemini", "gemini", "gemini",
+  ]);
+});
+
+test("least-used: prefers the target with the fewest recent uses", async () => {
+  await seedConnection("openai", { apiKey: "sk-openai-lu" });
+  await seedConnection("claude", { apiKey: "sk-claude-lu" });
+  await combosDb.createCombo({
+    name: "m-least-used",
+    strategy: "least-used",
+    config: { maxRetries: 0, retryDelayMs: 0, stickyRoundRobinLimit: 1 },
+    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022"],
+  });
+  h.installRecordingFetch();
+
+  // Over an even number of calls each target should be picked roughly equally;
+  // least-used must not pin to a single provider.
+  for (let i = 0; i < 6; i++) {
+    const r = await handleChat(buildRequest({ body: body("m-least-used") }));
+    assert.equal(r.status, 200);
+  }
+  const seen = h.providersSeen();
+  assert.ok(seen.includes("openai"), "least-used must reach openai");
+  assert.ok(seen.includes("claude"), "least-used must reach claude");
+});
