@@ -168,7 +168,11 @@ async function handleStreamableRequest(request: Request): Promise<Response> {
   if (sessionId) {
     const session = _streamableSessions.get(sessionId);
     if (!session) {
-      return errorResponse("Bad Request: Unknown Mcp-Session-Id header", -32000);
+      // MCP spec (2025-03-26 / 2025-11-25, Session Management): once a session is
+      // terminated/unknown, the server MUST respond with HTTP 404 Not Found so the
+      // client re-initializes. A 400 here is non-recoverable for spec-compliant
+      // clients (they only re-init on 404). See issue #5169.
+      return errorResponse("Not Found: Unknown Mcp-Session-Id header", -32000, 404);
     }
 
     try {
