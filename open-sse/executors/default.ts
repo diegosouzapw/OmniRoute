@@ -15,6 +15,7 @@ import {
 import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
 import { mergeClientAnthropicBeta } from "../config/anthropicHeaders.ts";
+import { isOfficialAnthropicBaseUrl } from "../utils/anthropicHost.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import { stripUnsupportedParams } from "../translator/paramSupport.ts";
 import {
@@ -485,8 +486,7 @@ export class DefaultExecutor extends BaseExecutor {
           // x-api-key-only behavior to avoid regressing the official path.
           if (effectiveKey && !headers["Authorization"]) {
             const baseUrl = credentials?.providerSpecificData?.baseUrl || "";
-            const isOfficialAnthropic =
-              baseUrl === "" || baseUrl.includes("api.anthropic.com");
+            const isOfficialAnthropic = isOfficialAnthropicBaseUrl(baseUrl);
             if (!isOfficialAnthropic) {
               headers["Authorization"] = `Bearer ${effectiveKey}`;
             }
