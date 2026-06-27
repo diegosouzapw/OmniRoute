@@ -223,23 +223,25 @@ function splitClosingOnlyReasoningPrefix(text: string): {
   thinking: string | null;
 } | null {
   const closeMatch = text.match(REASONING_CLOSE_TAG_REGEX);
-  if (!closeMatch?.index) return null;
+  if (!closeMatch || closeMatch.index === undefined || closeMatch.index === 0) return null;
+  const closeIndex = closeMatch.index;
 
-  const suffix = text.slice(closeMatch.index + closeMatch[0].length);
+  const suffix = text.slice(closeIndex + closeMatch[0].length);
   if (!CONTENT_OPEN_TAG_REGEX.test(suffix)) return null;
 
-  const thinking = cleanReasoningFragment(text.slice(0, closeMatch.index));
+  const thinking = cleanReasoningFragment(text.slice(0, closeIndex));
   if (!thinking) return null;
   return { content: suffix.trim(), thinking };
 }
 
 function movePrefixBeforeContentTagToThinking(cleaned: string, thinkingParts: string[]): string {
   const contentMatch = cleaned.match(CONTENT_OPEN_TAG_REGEX);
-  if (!contentMatch?.index || contentMatch.index <= 0) return cleaned;
+  if (!contentMatch || contentMatch.index === undefined || contentMatch.index <= 0) return cleaned;
+  const contentIndex = contentMatch.index;
 
-  const prefix = cleanReasoningFragment(cleaned.slice(0, contentMatch.index));
+  const prefix = cleanReasoningFragment(cleaned.slice(0, contentIndex));
   if (prefix) thinkingParts.unshift(prefix);
-  return cleaned.slice(contentMatch.index);
+  return cleaned.slice(contentIndex);
 }
 
 /**
