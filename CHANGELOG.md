@@ -8,6 +8,10 @@
 
 _In development — bullets added per PR; finalized at release._
 
+### 🔧 Bug Fixes
+
+- **fix(sse): normalize array user-message content in the Command Code executor to prevent upstream 400** — when a client sends a user turn whose `content` is an array of content parts (e.g. `[{type:"text",text:"…"}, …]`), the raw array was forwarded verbatim to the Command Code upstream, which requires `messages[N].content` for the `user` role to be a plain string — resulting in `expected string, received array` / HTTP 400 on DeepSeek V4-Pro and other Command Code models. The user branch of `convertMessages` now calls `normalizeContentText()` (already used by system, assistant, and tool branches) so multi-part user content is joined to a string before dispatch. Partially addresses ([#5166](https://github.com/diegosouzapw/OmniRoute/issues/5166)); the 0-output-token symptom on reasoning-only models is tracked separately.
+
 ---
 
 ## [3.8.38] — 2026-06-27
