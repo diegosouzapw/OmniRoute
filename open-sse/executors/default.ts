@@ -620,6 +620,22 @@ export class DefaultExecutor extends BaseExecutor {
     return { ...record, messages, response_format: { type: "json_object" } } as T;
   }
 
+  // Some Responses-compatible upstreams (e.g. LM Studio) reject a request whose
+  // `text` is an object missing `text.format` with a 400 missing_required_parameter.
+  // The Responses API default for that field is { type: "text" }, so default it
+  // for openai-compatible "responses" providers before forwarding upstream.
+  defaultResponsesTextFormat<T>(body: T): T {
+    if (!this.provider?.startsWith?.("openai-compatible-")) return body;
+    if (!this.provider.includes("responses")) return body;
+    if (!body || typeof body !== "object" || Array.isArray(body)) return body;
+    const record = body as Record<string, unknown>;
+    const text = record.text;
+    if (!text || typeof text !== "object" || Array.isArray(text)) return body;
+    const textRecord = text as Record<string, unknown>;
+    if (textRecord.format !== undefined) return body;
+    return { ...record, text: { ...textRecord, format: { type: "text" } } } as T;
+  }
+
   /**
    * For compatible providers, the model name is already clean by the time
    * it reaches the executor (chatCore sets body.model = modelInfo.model,
@@ -632,6 +648,7 @@ export class DefaultExecutor extends BaseExecutor {
     const cleanedBody = super.transformRequest(model, body, stream, credentials);
     let withDefaults = applyProviderRequestDefaults(cleanedBody, this.config.requestDefaults);
     withDefaults = this.applyJsonSchemaFallback(withDefaults);
+    withDefaults = this.defaultResponsesTextFormat(withDefaults);
 
     // Port of decolua/9router commit d652300e:
     // Cerebras returns 400 (wrong_api_format) and Mistral returns 422

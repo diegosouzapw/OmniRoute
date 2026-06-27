@@ -9,7 +9,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { REGISTRY } = await import("../../../open-sse/config/providerRegistry.ts");
+const { REGISTRY } = await import("../../open-sse/config/providerRegistry.ts");
 
 const blackbox = (REGISTRY as Record<string, Record<string, unknown>>).blackbox;
 

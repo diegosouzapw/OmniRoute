@@ -73,7 +73,11 @@ test("non-rotating OAuth provider is still refreshed proactively from quota-sync
   const origRefresh = exec.refreshCredentials;
   let refreshCalls = 0;
   exec.needsRefresh = () => true;
-  // null -> non-github -> surfaces a 401; proves the refresh was actually attempted.
+  // Refresh returns null with no usable access token left -> surfaces a 401;
+  // proves the refresh was actually attempted (the codex no-rotate gate did not
+  // block this non-rotating provider). Note: since #4786 a *present* accessToken
+  // would gracefully fall back for any OAuth provider, so we leave it empty here
+  // to keep the 401-throw branch reachable and the gate assertion meaningful.
   exec.refreshCredentials = async () => {
     refreshCalls++;
     return null;
@@ -83,7 +87,7 @@ test("non-rotating OAuth provider is still refreshed proactively from quota-sync
       refreshAndUpdateCredentials({
         id: "cursor-1",
         provider: "cursor",
-        accessToken: "a",
+        accessToken: "",
         refreshToken: "r",
         tokenExpiresAt: new Date(2000).toISOString(),
         providerSpecificData: {},

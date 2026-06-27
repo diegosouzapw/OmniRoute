@@ -29,10 +29,10 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.JWT_SECRET = process.env.JWT_SECRET || "test-jwt-secret-idc-2059";
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "test-api-key-secret-idc-2059";
 
-const core = await import("../../../src/lib/db/core.ts");
+const core = await import("../../src/lib/db/core.ts");
 
 // Import route module once (DB is initialized on first import).
-const { GET } = await import("../../../src/app/api/oauth/kiro/auto-import/route.ts");
+const { GET } = await import("../../src/app/api/oauth/kiro/auto-import/route.ts");
 
 const ORIGINAL_HOME = process.env.HOME;
 const ORIGINAL_APPDATA = process.env.APPDATA;
@@ -302,7 +302,7 @@ test("auto-import: clientIdHash present but registration file missing — gracef
 // ── Tests: schema ─────────────────────────────────────────────────────────────
 
 test("kiroImportSchema: accepts optional IDC fields (clientId, clientSecret, authMethod, profileArn)", async () => {
-  const { kiroImportSchema } = await import("../../../src/shared/validation/schemas/auth.ts");
+  const { kiroImportSchema } = await import("../../src/shared/validation/schemas/auth.ts");
 
   const result = kiroImportSchema.safeParse({
     refreshToken: "aorAAAAAGsome-token",
@@ -330,7 +330,7 @@ test("kiroImportSchema: accepts optional IDC fields (clientId, clientSecret, aut
 });
 
 test("kiroImportSchema: still valid without IDC fields (backward compat)", async () => {
-  const { kiroImportSchema } = await import("../../../src/shared/validation/schemas/auth.ts");
+  const { kiroImportSchema } = await import("../../src/shared/validation/schemas/auth.ts");
 
   const result = kiroImportSchema.safeParse({
     refreshToken: "aorAAAAAGsome-token",
@@ -344,7 +344,7 @@ test("kiroImportSchema: still valid without IDC fields (backward compat)", async
 });
 
 test("kiroImportSchema: rejects non-string clientId", async () => {
-  const { kiroImportSchema } = await import("../../../src/shared/validation/schemas/auth.ts");
+  const { kiroImportSchema } = await import("../../src/shared/validation/schemas/auth.ts");
 
   const result = kiroImportSchema.safeParse({
     refreshToken: "aorAAAAAGsome-token",

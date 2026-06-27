@@ -420,11 +420,29 @@ function convertClaudeMessage(msg, preserveCacheControl = false) {
           if (typeof block.content === "string") {
             resultContent = block.content;
           } else if (Array.isArray(block.content)) {
+            // Keep text in the tool message; lift any images out as a following user
+            // turn (OpenAI `tool` messages can't carry images). Without this, an
+            // image-only tool_result is JSON.stringify'd → base64 as text, which
+            // causes "input exceeds the context window" errors in OpenAI-protocol
+            // upstreams (port of decolua/9router#2123 by alican532).
+            const textParts: string[] = [];
+            let hasImage = false;
+            for (const c of block.content) {
+              if (c.type === "text") {
+                textParts.push(c.text);
+              } else if (c.type === "image" && c.source?.type === "base64") {
+                parts.push({
+                  type: "image_url",
+                  image_url: {
+                    url: `data:${c.source.media_type};base64,${c.source.data}`,
+                  },
+                });
+                hasImage = true;
+              }
+            }
             resultContent =
-              block.content
-                .filter((c) => c.type === "text")
-                .map((c) => c.text)
-                .join("\n") || JSON.stringify(block.content);
+              textParts.join("\n") ||
+              (hasImage ? "[tool returned an image; see attached]" : JSON.stringify(block.content));
           } else if (block.content) {
             resultContent = JSON.stringify(block.content);
           }

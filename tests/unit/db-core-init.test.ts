@@ -515,8 +515,18 @@ test("invalid DATA_DIR (a file where a dir is expected) surfaces as a startup fa
     // regular file is a non-permission misconfiguration (EEXIST/ENOTDIR), which
     // resolveWritableDataDir rethrows by design (only EACCES/EPERM fall back), so
     // the failure now surfaces at import time, not lazily from getDbInstance().
-    await assert.rejects(
-      withEnv({ DATA_DIR: fileAsDir }, () => importFresh("src/lib/db/core.ts")),
+    let caught: unknown;
+    await withEnv({ DATA_DIR: fileAsDir }, () => importFresh("src/lib/db/core.ts")).then(
+      () => {
+        throw new Error("expected importing db/core with an invalid DATA_DIR to reject");
+      },
+      (err) => {
+        caught = err;
+      }
+    );
+    assert.ok(caught instanceof Error, "an invalid DATA_DIR must surface as a thrown Error");
+    assert.match(
+      String((caught as Error).message),
       /unable to open database file|ENOTDIR|EEXIST|not a directory|file already exists/i
     );
   } finally {

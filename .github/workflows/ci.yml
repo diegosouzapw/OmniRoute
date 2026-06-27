@@ -509,7 +509,7 @@ jobs:
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Cache Next.js build cache
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8
         with:
           path: .build/next/cache
           key: nextjs-${{ runner.os }}-node-${{ env.CI_NODE_VERSION }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**/*', 'open-sse/**/*', 'db/**/*', 'next.config.mjs', 'tsconfig*.json', 'postcss.config.*', 'tailwind.config.*') }}
@@ -698,7 +698,7 @@ jobs:
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Cache Next.js build cache
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8
         with:
           path: .build/next/cache
           key: nextjs-${{ runner.os }}-node-${{ env.CI_NODE_26_VERSION }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**/*', 'open-sse/**/*', 'db/**/*', 'next.config.mjs', 'tsconfig*.json', 'postcss.config.*', 'tailwind.config.*') }}
@@ -1004,7 +1004,7 @@ jobs:
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Cache Playwright browsers
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.0.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}

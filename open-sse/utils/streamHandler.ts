@@ -503,15 +503,22 @@ export function createDisconnectAwareStream(transformStream, streamController) {
           const errorMsg = getErrorMessage(error);
           const statusCode = getErrorStatusCode(error);
 
-          for (const chunk of buildStreamErrorChunks(
-            errorMsg,
-            statusCode,
-            streamController.clientResponseFormat
-          )) {
-            controller.enqueue(chunk);
+          try {
+            for (const chunk of buildStreamErrorChunks(
+              errorMsg,
+              statusCode,
+              streamController.clientResponseFormat
+            )) {
+              controller.enqueue(chunk);
+            }
+          } catch {
+            // The downstream may have closed while we were formatting the in-band
+            // error event. The original stream error has already been recorded.
           }
 
-          controller.close();
+          try {
+            controller.close();
+          } catch {}
         }
       },
 

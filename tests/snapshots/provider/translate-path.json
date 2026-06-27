@@ -730,26 +730,26 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://cline.bot",
-        "User-Agent": "OmniRoute/0.0.0",
+        "User-Agent": "OmniRoute/<APP>",
         "X-CLIENT-TYPE": "omniroute",
-        "X-CLIENT-VERSION": "0.0.0",
-        "X-CORE-VERSION": "0.0.0",
+        "X-CLIENT-VERSION": "<APP>",
+        "X-CORE-VERSION": "<APP>",
         "X-IS-MULTIROOT": "false",
         "X-PLATFORM": "linux",
-        "X-PLATFORM-VERSION": "v24.16.0",
+        "X-PLATFORM-VERSION": "<NODE>",
         "X-Title": "Cline"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://cline.bot",
-        "User-Agent": "OmniRoute/0.0.0",
+        "User-Agent": "OmniRoute/<APP>",
         "X-CLIENT-TYPE": "omniroute",
-        "X-CLIENT-VERSION": "0.0.0",
-        "X-CORE-VERSION": "0.0.0",
+        "X-CLIENT-VERSION": "<APP>",
+        "X-CORE-VERSION": "<APP>",
         "X-IS-MULTIROOT": "false",
         "X-PLATFORM": "linux",
-        "X-PLATFORM-VERSION": "v24.16.0",
+        "X-PLATFORM-VERSION": "<NODE>",
         "X-Title": "Cline"
       },
       "oauth": {
@@ -757,13 +757,13 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://cline.bot",
-        "User-Agent": "OmniRoute/0.0.0",
+        "User-Agent": "OmniRoute/<APP>",
         "X-CLIENT-TYPE": "omniroute",
-        "X-CLIENT-VERSION": "0.0.0",
-        "X-CORE-VERSION": "0.0.0",
+        "X-CLIENT-VERSION": "<APP>",
+        "X-CORE-VERSION": "<APP>",
         "X-IS-MULTIROOT": "false",
         "X-PLATFORM": "linux",
-        "X-PLATFORM-VERSION": "v24.16.0",
+        "X-PLATFORM-VERSION": "<NODE>",
         "X-Title": "Cline"
       }
     },
@@ -1154,6 +1154,29 @@
     "url": {
       "nonStream": "devin://acp/stdio",
       "stream": "devin://acp/stdio"
+    }
+  },
+  "dgrid": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.dgrid.ai/v1/chat/completions",
+      "stream": "https://api.dgrid.ai/v1/chat/completions"
     }
   },
   "dify": {
@@ -3126,6 +3149,29 @@
       "stream": "https://www.phind.com/api/chat"
     }
   },
+  "pioneer": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Content-Type": "application/json",
+        "x-api-key": "<CRED>"
+      },
+      "nonStream": {
+        "Content-Type": "application/json",
+        "x-api-key": "<CRED>"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Content-Type": "application/json",
+        "x-api-key": "<CRED>"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.pioneer.ai/v1/chat/completions",
+      "stream": "https://api.pioneer.ai/v1/chat/completions"
+    }
+  },
   "pollinations": {
     "format": "openai",
     "headers": {
@@ -3287,7 +3333,7 @@
         "X-Stainless-Package-Version": "5.11.0",
         "X-Stainless-Retry-Count": "1",
         "X-Stainless-Runtime": "node",
-        "X-Stainless-Runtime-Version": "v24.16.0"
+        "X-Stainless-Runtime-Version": "<NODE>"
       },
       "nonStream": {
         "Accept-Language": "*",
@@ -3305,7 +3351,7 @@
         "X-Stainless-Package-Version": "5.11.0",
         "X-Stainless-Retry-Count": "1",
         "X-Stainless-Runtime": "node",
-        "X-Stainless-Runtime-Version": "v24.16.0"
+        "X-Stainless-Runtime-Version": "<NODE>"
       },
       "oauth": {
         "Accept": "text/event-stream",
@@ -3324,7 +3370,7 @@
         "X-Stainless-Package-Version": "5.11.0",
         "X-Stainless-Retry-Count": "1",
         "X-Stainless-Runtime": "node",
-        "X-Stainless-Runtime-Version": "v24.16.0"
+        "X-Stainless-Runtime-Version": "<NODE>"
       }
     },
     "url": {

@@ -543,6 +543,42 @@ test("pipeWithDisconnect does not double-clear transform errors already accounte
   assert.equal(pending.byAccount[connectionId][modelKey], 1);
 });
 
+test("createDisconnectAwareStream ignores reader errors after client disconnect", async () => {
+  let readableController!: ReadableStreamDefaultController;
+  let onErrorCalled = false;
+  const transformStream = {
+    readable: new ReadableStream({
+      start(controller) {
+        readableController = controller;
+      },
+    }),
+    writable: {
+      getWriter() {
+        return {
+          abort() {},
+        };
+      },
+    },
+  };
+  const streamController = createStreamController({
+    onError() {
+      onErrorCalled = true;
+      return true;
+    },
+  });
+  const stream = createDisconnectAwareStream(transformStream, streamController);
+  const reader = stream.getReader();
+  const readPromise = reader.read();
+
+  streamController.handleDisconnect("ResponseAborted");
+  readableController.error(new Error("Invalid state: Controller is already closed"));
+
+  const result = await readPromise;
+
+  assert.equal(result.done, true);
+  assert.equal(onErrorCalled, false, "disconnect races must not be recorded as upstream errors");
+});
+
 // Stall detection: tied to RAW upstream byte activity, not transform output.
 // Ports decolua/9router#1243 — reasoning models (Claude thinking, Kiro
 // EventStream binary frames) can stream raw bytes for long stretches while
