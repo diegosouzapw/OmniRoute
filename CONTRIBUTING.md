@@ -167,6 +167,11 @@ npm run coverage:report
 # Lint + format check
 npm run lint
 npm run check
+
+# Gated real-upstream combo smoke (requires VPS access + real provider credits)
+# Hits REAL providers — costs a little. NEVER runs in CI. Skips cleanly without the gate.
+# Needs: ssh root@192.168.0.15 access (sources a read-only DB snapshot from the VPS).
+RUN_COMBO_LIVE=1 npm run test:combo:live
 ```
 
 Coverage notes:

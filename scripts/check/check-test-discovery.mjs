@@ -60,6 +60,8 @@ export const COLLECTORS = [
   { glob: "tests/integration/*.test.ts", sources: ["package.json"] },
   // Node native runner — test:combo:matrix / test:integration (combo strategy decision matrix, 17 strategies)
   { glob: "tests/integration/combo-matrix/*.test.ts", sources: ["package.json"] },
+  // Node native runner — test:combo:live (gated real-upstream smoke; RUN_COMBO_LIVE=1 + VPS creds)
+  { glob: "tests/integration/combo-live/*.live.test.ts", sources: ["package.json"] },
   // Node native runner — test:system
   { glob: "tests/e2e/system-failover.test.ts", sources: ["package.json"] },
   // vitest.mcp.config.ts — test:vitest
