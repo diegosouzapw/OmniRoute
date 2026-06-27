@@ -208,6 +208,10 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
   // falls through to `empty_choices` → a false 502 (#5108, regression from #4942).
   if (body.type === "message" && Array.isArray(body.content)) {
     const hasOutput = (body.content as unknown[]).some((block) => {
+      // A malformed/partial provider response could carry a null (or non-object)
+      // entry in `content`; guard before type-asserting so the detector never
+      // throws on `null.type` (that would crash the whole non-stream classifier).
+      if (block === null || typeof block !== "object") return false;
       const b = block as Record<string, unknown>;
       // Text block with visible text.
       if (b.type === "text" && typeof b.text === "string" && (b.text as string).length > 0) {

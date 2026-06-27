@@ -126,6 +126,23 @@ test("detectMalformedNonStream returns null for a Claude-native message carrying
   assert.equal(detectMalformedNonStream(body), null);
 });
 
+test("detectMalformedNonStream tolerates a null block in a Claude-native content array", () => {
+  // A malformed/partial provider response could carry a null entry in `content`.
+  // The detector must not throw (TypeError on null.type) — it skips the null
+  // block and classifies by the remaining valid blocks.
+  const body = {
+    type: "message",
+    role: "assistant",
+    content: [null, { type: "text", text: "still here" }],
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream returns 'empty_choices' for a Claude-native message of only null blocks", () => {
+  const body = { type: "message", role: "assistant", content: [null] };
+  assert.equal(detectMalformedNonStream(body), "empty_choices");
+});
+
 test("detectMalformedNonStream returns null when tool_calls present", () => {
   const body = {
     choices: [
