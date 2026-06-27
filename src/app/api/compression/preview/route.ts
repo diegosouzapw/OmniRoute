@@ -33,6 +33,10 @@ export const PreviewRequestSchema = z.object({
   engineId: z.string().optional(),
   pipeline: z.array(z.string()).min(1).optional(),
   config: PreviewCompressionConfigSchema.optional(),
+  // Playground fidelity-gate toggle. Only `enabled` is exposed on the API surface on purpose:
+  // the advanced thresholds (minTokenSurvivalPercent / minJsonKeyPercent / checkNumericIntegrity
+  // / checkDiffHunks on FidelityGateConfig) use their conservative defaults until the studio gets
+  // a config panel for them.
   fidelityGate: z.object({ enabled: z.boolean() }).optional(),
 });
 
