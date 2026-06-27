@@ -58,7 +58,11 @@ describe("synthesizeOpenAiSseFromJson (#3089)", () => {
 
     const finishChunk = events[events.length - 1];
     assert.equal(finishChunk.choices[0].finish_reason, "stop");
-    assert.deepEqual(finishChunk.usage, { prompt_tokens: 7, completion_tokens: 3, total_tokens: 10 });
+    assert.deepEqual(finishChunk.usage, {
+      prompt_tokens: 7,
+      completion_tokens: 3,
+      total_tokens: 10,
+    });
   });
 
   test("content-only completion converts without a reasoning_content delta", () => {
@@ -69,7 +73,62 @@ describe("synthesizeOpenAiSseFromJson (#3089)", () => {
       .filter((c) => c !== "[DONE]")
       .map((c) => JSON.parse(c).choices[0].delta);
     assert.equal(deltas.filter((d) => d.content === "ok").length, 1);
-    assert.equal(deltas.some((d) => d.reasoning_content !== undefined), false);
+    assert.equal(
+      deltas.some((d) => d.reasoning_content !== undefined),
+      false
+    );
+  });
+
+  test("preserves client-readable reasoning alias", () => {
+    const sse = synthesizeOpenAiSseFromJson(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              role: "assistant",
+              reasoning: "client-readable thinking",
+              content: "final text",
+            },
+          },
+        ],
+      })
+    );
+    const deltas = parseDataChunks(sse)
+      .filter((c) => c !== "[DONE]")
+      .map((c) => JSON.parse(c).choices[0].delta);
+
+    assert.equal(
+      deltas.find((d) => d.reasoning !== undefined)?.reasoning,
+      "client-readable thinking"
+    );
+    assert.equal(
+      deltas.some((d) => d.reasoning_content !== undefined),
+      false
+    );
+  });
+
+  test("mirrors unsupported reasoning aliases to reasoning_content", () => {
+    const sse = synthesizeOpenAiSseFromJson(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              role: "assistant",
+              reasoning_text: "alias thinking",
+              content: "final text",
+            },
+          },
+        ],
+      })
+    );
+    const deltas = parseDataChunks(sse)
+      .filter((c) => c !== "[DONE]")
+      .map((c) => JSON.parse(c).choices[0].delta);
+
+    assert.equal(
+      deltas.find((d) => d.reasoning_content !== undefined)?.reasoning_content,
+      "alias thinking"
+    );
   });
 
   test("forwards tool_calls in the delta", () => {
@@ -79,7 +138,9 @@ describe("synthesizeOpenAiSseFromJson (#3089)", () => {
           {
             message: {
               role: "assistant",
-              tool_calls: [{ id: "t1", type: "function", function: { name: "f", arguments: "{}" } }],
+              tool_calls: [
+                { id: "t1", type: "function", function: { name: "f", arguments: "{}" } },
+              ],
             },
             finish_reason: "tool_calls",
           },

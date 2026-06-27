@@ -142,6 +142,7 @@ import { bailian_coding_planProvider } from "./registry/bailian-coding-plan/inde
 import { gigachatProvider } from "./registry/gigachat/index.ts";
 import { devin_cliProvider } from "./registry/devin-cli/index.ts";
 import { chutesProvider } from "./registry/chutes/index.ts";
+import { factoryProvider } from "./registry/factory/index.ts";
 import { databricksProvider } from "./registry/databricks/index.ts";
 import { rekaProvider } from "./registry/reka/index.ts";
 import { vercel_ai_gatewayProvider } from "./registry/vercel-ai-gateway/index.ts";
@@ -167,8 +168,10 @@ import { kiroProvider } from "./registry/kiro/index.ts";
 import { openadapterProvider } from "./registry/openadapter/index.ts";
 import { ditProvider } from "./registry/dit/index.ts";
 import { tokenrouterProvider } from "./registry/tokenrouter/index.ts";
+import { grok_cliProvider } from "./registry/grok-cli/index.ts";
 import { codebuddy_cnProvider } from "./registry/codebuddy-cn/index.ts";
 import { pioneerProvider } from "./registry/pioneer/index.ts";
+import { zenmux_freeProvider } from "./registry/zenmux-free/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -310,6 +313,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   gigachat: gigachatProvider,
   "devin-cli": devin_cliProvider,
   chutes: chutesProvider,
+  factory: factoryProvider,
   databricks: databricksProvider,
   reka: rekaProvider,
   "vercel-ai-gateway": vercel_ai_gatewayProvider,
@@ -338,6 +342,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   openadapter: openadapterProvider,
   dit: ditProvider,
   tokenrouter: tokenrouterProvider,
+  "grok-cli": grok_cliProvider,
   "codebuddy-cn": codebuddy_cnProvider,
   pioneer: pioneerProvider,
+  "zenmux-free": zenmux_freeProvider,
 };

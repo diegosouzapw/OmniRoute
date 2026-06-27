@@ -19,6 +19,7 @@ import { testSingleConnection } from "../[id]/test/route";
 import { providersBatchTestSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 // Determine auth type group for a provider id
 function getAuthGroup(providerId) {
@@ -50,6 +51,16 @@ function isCompatibleProvider(providerId) {
     (providerId.startsWith(OPENAI_COMPATIBLE_PREFIX) ||
       providerId.startsWith(ANTHROPIC_COMPATIBLE_PREFIX))
   );
+}
+
+function getSafeErrorMessage(error: unknown, fallback = "Test failed") {
+  const rawMessage =
+    error instanceof Error
+      ? error.message
+      : error && typeof error === "object" && "message" in error
+        ? String(error.message ?? "")
+        : String(error ?? "");
+  return sanitizeErrorMessage(rawMessage) || fallback;
 }
 
 // POST /api/providers/test-batch - Test multiple connections by group
@@ -183,6 +194,7 @@ export async function POST(request) {
           testedAt: data.testedAt || new Date().toISOString(),
         };
       } catch (error) {
+        const message = getSafeErrorMessage(error, "Connection test failed");
         return {
           provider: conn.provider,
           connectionId: conn.id,
@@ -190,8 +202,8 @@ export async function POST(request) {
           authType: conn.authType || getAuthGroup(conn.provider),
           valid: false,
           latencyMs: 0,
-          error: error.message,
-          diagnosis: { type: "network_error", source: "local", code: null, message: error.message },
+          error: message,
+          diagnosis: { type: "network_error", source: "local", code: null, message },
           statusCode: null,
           testedAt: new Date().toISOString(),
         };
@@ -204,6 +216,7 @@ export async function POST(request) {
       const batch = connectionsToTest.slice(i, i + CONCURRENCY);
       const batchResults = await Promise.allSettled(batch.map(testOne));
       for (const r of batchResults) {
+        const message = r.status === "rejected" ? getSafeErrorMessage(r.reason) : null;
         results.push(
           r.status === "fulfilled"
             ? r.value
@@ -214,12 +227,12 @@ export async function POST(request) {
                 authType: "unknown",
                 valid: false,
                 latencyMs: 0,
-                error: r.reason?.message || "Test failed",
+                error: message,
                 diagnosis: {
                   type: "network_error",
                   source: "local",
                   code: null,
-                  message: r.reason?.message || "Test failed",
+                  message,
                 },
                 statusCode: null,
                 testedAt: new Date().toISOString(),

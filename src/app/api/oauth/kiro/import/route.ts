@@ -61,40 +61,72 @@ export async function POST(request: Request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { refreshToken, region } = validation.data;
+    const { refreshToken, region, clientId, clientSecret, authMethod, profileArn } =
+      validation.data;
 
     const kiroService = new KiroService();
 
     // Resolve proxy for this provider (provider-level → global → direct)
     const proxy = await resolveProxyForProvider(targetProvider);
 
-    // Validate and refresh token (through proxy if configured).
-    // validateImportToken also calls registerClient() to obtain a per-connection OIDC
-    // client pair so multiple Kiro accounts do not share a single backend session (#2328).
-    const tokenData = await runWithProxyContext(proxy, () =>
-      kiroService.validateImportToken(refreshToken.trim(), region)
-    );
+    // For IDC tokens the client already has OIDC client credentials extracted from the
+    // SSO cache registration file by auto-import (#2059). Refresh directly via the
+    // regional OIDC endpoint without calling registerClient() again. For social /
+    // Builder-ID tokens (no clientId) use validateImportToken() which handles
+    // registerClient() internally to obtain an isolated refresh session (#2328).
+    const isIdc = !!(clientId && clientSecret);
+    let tokenData: Awaited<ReturnType<typeof kiroService.validateImportToken>>;
+    if (isIdc) {
+      const providerSpecificData = {
+        clientId,
+        clientSecret,
+        region: region || "us-east-1",
+        authMethod: "idc",
+      };
+      const refreshed = await runWithProxyContext(proxy, () =>
+        kiroService.refreshToken(refreshToken.trim(), providerSpecificData)
+      );
+      tokenData = {
+        accessToken: refreshed.accessToken,
+        refreshToken: refreshed.refreshToken || refreshToken.trim(),
+        expiresIn: refreshed.expiresIn || 3600,
+        profileArn: profileArn || null,
+        authMethod: "idc",
+        clientId,
+        clientSecret,
+      } as any;
+    } else {
+      // Validate and refresh token (through proxy if configured).
+      // validateImportToken also calls registerClient() to obtain a per-connection OIDC
+      // client pair so multiple Kiro accounts do not share a single backend session (#2328).
+      tokenData = await runWithProxyContext(proxy, () =>
+        kiroService.validateImportToken(refreshToken.trim(), region)
+      );
+    }
 
     // Extract email from JWT if available
     const email = kiroService.extractEmailFromJWT(tokenData.accessToken);
+
+    const resolvedAuthMethod = isIdc ? "idc" : (tokenData as any).authMethod || "imported";
+    const resolvedProfileArn = (tokenData as any).profileArn || null;
 
     // Save to database
     const connection: any = await createProviderConnection({
       provider: targetProvider,
       authType: "oauth",
       accessToken: tokenData.accessToken,
-      refreshToken: tokenData.refreshToken,
-      expiresAt: new Date(Date.now() + tokenData.expiresIn * 1000).toISOString(),
+      refreshToken: tokenData.refreshToken || refreshToken.trim(),
+      expiresAt: new Date(Date.now() + (tokenData.expiresIn || 3600) * 1000).toISOString(),
       email: email || null,
       providerSpecificData: {
-        profileArn: tokenData.profileArn,
-        authMethod: tokenData.authMethod || "imported",
-        provider: "Imported",
+        profileArn: resolvedProfileArn,
+        authMethod: resolvedAuthMethod,
+        provider: isIdc ? "Enterprise" : "Imported",
         ...(tokenData.clientId
           ? {
               clientId: tokenData.clientId,
               clientSecret: tokenData.clientSecret,
-              region,
+              region: region || "us-east-1",
               ...(tokenData.clientSecretExpiresAt
                 ? { clientSecretExpiresAt: tokenData.clientSecretExpiresAt }
                 : {}),

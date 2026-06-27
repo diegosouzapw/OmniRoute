@@ -27,6 +27,14 @@ export const clineProvider: RegistryEntry = {
     { id: "openai/gpt-5.5", name: "GPT-5.5" },
     { id: "deepseek/deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
     { id: "deepseek/deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
+    // #3321 — free OpenRouter-served models Cline exposes; were missing from the picker.
+    { id: "minimax/minimax-m3", name: "MiniMax M3", contextLength: 1048576, supportsVision: true },
+    {
+      id: "nvidia/nemotron-3-ultra-550b-a55b",
+      name: "Nemotron 3 Ultra 550B",
+      contextLength: 1048576,
+      supportsReasoning: true,
+    },
   ],
   passthroughModels: true,
 };

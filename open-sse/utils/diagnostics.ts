@@ -200,6 +200,42 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
     return null;
   }
 
+  // ── Claude / Anthropic Messages shape ──
+  // A `/v1/messages` request to a Claude provider keeps the response in Claude shape
+  // (no translation when client and provider formats both = Claude), so it reaches here
+  // as `{ type:"message", content:[…] }` — which has neither `object:"response"` nor
+  // `choices`. Without this branch every non-streaming Claude response (incl. plain text)
+  // falls through to `empty_choices` → a false 502 (#5108, regression from #4942).
+  if (body.type === "message" && Array.isArray(body.content)) {
+    const hasOutput = (body.content as unknown[]).some((block) => {
+      // A malformed/partial provider response could carry a null (or non-object)
+      // entry in `content`; guard before type-asserting so the detector never
+      // throws on `null.type` (that would crash the whole non-stream classifier).
+      if (block === null || typeof block !== "object") return false;
+      const b = block as Record<string, unknown>;
+      // Text block with visible text.
+      if (b.type === "text" && typeof b.text === "string" && (b.text as string).length > 0) {
+        return true;
+      }
+      // Extended-thinking block: a non-empty `signature` is cryptographic proof the
+      // thinking step ran, so it is a valid completion even when the thinking text is "".
+      if (
+        b.type === "thinking" &&
+        typeof b.signature === "string" &&
+        (b.signature as string).length > 0
+      ) {
+        return true;
+      }
+      // Redacted thinking and tool_use are valid structural output.
+      if (b.type === "redacted_thinking") return true;
+      if (b.type === "tool_use" && typeof b.id === "string" && (b.id as string).length > 0) {
+        return true;
+      }
+      return false;
+    });
+    return hasOutput ? null : "empty_choices";
+  }
+
   // ── Chat Completions shape ──
   const choices = body.choices;
   if (!Array.isArray(choices) || choices.length === 0) return "empty_choices";

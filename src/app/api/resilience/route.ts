@@ -243,6 +243,7 @@ export async function PATCH(request) {
         maxRetryWaitSec: nextResilience.waitForCooldown.maxRetryWaitSec,
       },
       comboCooldownWait: nextResilience.comboCooldownWait,
+      quotaShareConcurrencyLimit: nextResilience.quotaShareConcurrencyLimit,
       providerCooldown: nextResilience.providerCooldown,
       legacy: buildLegacyResilienceCompat(nextResilience),
     });

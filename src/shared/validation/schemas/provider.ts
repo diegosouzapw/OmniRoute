@@ -170,6 +170,16 @@ export function validateProviderSpecificData(
           path: ["requestDefaults", "context1m"],
         });
       }
+
+      for (const booleanKey of ["redactThinking", "summarizeThinking"] as const) {
+        const value = requestDefaultsRecord[booleanKey];
+        if (value === undefined || value === null || typeof value === "boolean") continue;
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `providerSpecificData.requestDefaults.${booleanKey} must be a boolean`,
+          path: ["requestDefaults", booleanKey],
+        });
+      }
     }
   }
 

@@ -8,7 +8,7 @@
  * Leaf component: imports from shared, leaf helpers, and sibling components.
  * Never imports from ProviderDetailPageClient.
  */
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Badge } from "@/shared/components";
 import { providerText } from "../providerPageHelpers";
 import ModelCompatPopover from "./ModelCompatPopover";
@@ -21,12 +21,14 @@ import { ModelSourceBadge, type ModelCompatSavePatch } from "./ModelRow";
 export interface PassthroughModelRowProps {
   modelId: string;
   fullModel: string;
+  alias?: string | null;
   source?: string;
   isFree?: boolean;
   isHidden?: boolean;
   copied?: string;
   onCopy: (text: string, key: string) => void;
   onDeleteAlias?: () => void;
+  onSetAlias?: (alias: string) => void;
   t: (key: string, values?: Record<string, unknown>) => string;
   showDeveloperToggle?: boolean;
   effectiveModelNormalize: (modelId: string, protocol?: string) => boolean;
@@ -48,12 +50,14 @@ export interface PassthroughModelRowProps {
 export default function PassthroughModelRow({
   modelId,
   fullModel,
+  alias,
   source,
   isFree,
   isHidden,
   copied,
   onCopy,
   onDeleteAlias,
+  onSetAlias,
   t,
   showDeveloperToggle = true,
   effectiveModelNormalize,
@@ -67,6 +71,43 @@ export default function PassthroughModelRow({
   testStatus,
   testingModel,
 }: PassthroughModelRowProps) {
+  const [editing, setEditing] = useState(false);
+  const [aliasValue, setAliasValue] = useState(alias || "");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editing]);
+
+  const startEditing = () => {
+    setAliasValue(alias || "");
+    setEditing(true);
+  };
+
+  const handleAliasSubmit = () => {
+    const trimmed = aliasValue.trim();
+    if (trimmed && trimmed !== alias) {
+      onSetAlias?.(trimmed);
+    } else if (!trimmed && alias) {
+      onDeleteAlias?.();
+    }
+    setEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAliasSubmit();
+    }
+    if (e.key === "Escape") {
+      setAliasValue(alias || "");
+      setEditing(false);
+    }
+  };
+
   return (
     <div
       className={`flex min-w-0 flex-col gap-2 rounded-lg border border-border px-3.5 py-3 transition-opacity hover:bg-sidebar/50 ${
@@ -86,6 +127,36 @@ export default function PassthroughModelRow({
         >
           {fullModel}
         </code>
+        {onSetAlias && (
+          <span className="flex min-w-0 items-center text-[9px] gap-1">
+            {editing ? (
+              <input
+                ref={inputRef}
+                type="text"
+                value={aliasValue}
+                onChange={(e) => setAliasValue(e.target.value)}
+                onBlur={handleAliasSubmit}
+                onKeyDown={handleKeyDown}
+                placeholder={providerText(t, "aliasInputPlaceholder", "alias name")}
+                className="bg-surface border border-primary/50 rounded px-1 py-0.5 text-[9px] text-text-main outline-none w-24"
+              />
+            ) : (
+              <span
+                className={`truncate text-[9px] italic cursor-pointer hover:text-primary transition-colors ${alias ? "text-primary/80" : "text-text-muted/70"}`}
+                onClick={startEditing}
+                title={
+                  alias
+                    ? providerText(t, "clickToEditAlias", "Alias: {alias} (click to edit)", {
+                        alias,
+                      })
+                    : providerText(t, "clickToSetAlias", "Click to set alias")
+                }
+              >
+                {alias || providerText(t, "clickToSetAlias", "Click to set alias")}
+              </span>
+            )}
+          </span>
+        )}
       </div>
       <div className="flex min-w-0 items-center justify-between gap-2">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">

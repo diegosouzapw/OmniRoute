@@ -8,6 +8,7 @@ import {
 import { PROVIDERS } from "../config/constants.ts";
 import { v4 as uuidv4 } from "uuid";
 import { refreshKiroToken } from "../services/tokenRefresh.ts";
+import { splitInlineThinking, flushPendingThinking, type KiroThinkingState } from "./kiroThinking.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -34,6 +35,10 @@ type KiroStreamState = {
   hasContextUsage?: boolean;
   hasMeteringEvent?: boolean;
   usage?: UsageSummary;
+  hasReasoningContent?: boolean;
+  reasoningChunkCount?: number;
+  // Inline-thinking splitter state (populated only when thinkingExpected=true).
+  thinking?: KiroThinkingState;
 };
 
 type EventFrame = {
@@ -338,18 +343,51 @@ export class KiroExecutor extends BaseExecutor {
       return { response, url, headers, transformedBody };
     }
 
-    // For Kiro, we need to transform the binary EventStream to SSE
-    // Create a TransformStream to convert binary to SSE text
-    const transformedResponse = this.transformEventStreamToSSE(response, model);
+    // For Kiro, we need to transform the binary EventStream to SSE.
+    // Create a TransformStream to convert binary to SSE text.
+    //
+    // When the user enabled thinking, Claude on Kiro streams its reasoning
+    // **inline** as `<thinking>…</thinking>` blocks inside
+    // `assistantResponseEvent.content` rather than as separate
+    // `reasoningContentEvent` frames. We pass a hint so the transform stream
+    // can split that inline reasoning into the OpenAI `delta.reasoning_content`
+    // channel.
+    const tb = transformedBody as Record<string, unknown>;
+    const userContent =
+      (
+        (
+          (
+            (tb?.conversationState as Record<string, unknown>)
+              ?.currentMessage as Record<string, unknown>
+          )?.userInputMessage as Record<string, unknown>
+        )?.content as string
+      ) || "";
+    const thinkingExpected = userContent.includes("<thinking_mode>enabled</thinking_mode>");
+    const transformedResponse = this.transformEventStreamToSSE(response, model, { thinkingExpected });
 
     return { response: transformedResponse, url, headers, transformedBody };
   }
 
   /**
-   * Transform AWS EventStream binary response to SSE text stream
-   * Using TransformStream instead of ReadableStream.pull() to avoid Workers timeout
+   * Transform AWS EventStream binary response to SSE text stream.
+   * Using TransformStream instead of ReadableStream.pull() to avoid Workers timeout.
+   *
+   * @param response        Upstream raw fetch response (binary EventStream).
+   * @param model           Logical model id (kept in OpenAI chunks for clients).
+   * @param opts
+   * @param opts.thinkingExpected  When true, scan inbound
+   *   `assistantResponseEvent.content` for inline `<thinking>…</thinking>`
+   *   blocks and split them into the OpenAI `delta.reasoning_content` channel.
+   *   Required for Claude on Kiro when `<thinking_mode>enabled</thinking_mode>`
+   *   is in the system prompt, because Kiro streams reasoning inline rather
+   *   than as separate `reasoningContentEvent` frames.
    */
-  transformEventStreamToSSE(response: Response, model: string) {
+  transformEventStreamToSSE(
+    response: Response,
+    model: string,
+    opts: { thinkingExpected?: boolean } = {}
+  ) {
+    const thinkingExpected = !!opts.thinkingExpected;
     const buffer = new ByteQueue();
     let chunkIndex = 0;
     const responseId = `chatcmpl-${Date.now()}`;
@@ -364,6 +402,9 @@ export class KiroExecutor extends BaseExecutor {
       seenToolIds: new Map(),
       toolArgsEmitted: new Map(),
       toolArgsBuffered: new Map(),
+      hasReasoningContent: false,
+      reasoningChunkCount: 0,
+      thinking: thinkingExpected ? { thinkingMode: false, pendingTag: "" } : undefined,
     };
 
     const transformStream = new TransformStream(
@@ -434,21 +475,75 @@ export class KiroExecutor extends BaseExecutor {
               }
               state.totalContentLength += content.length;
 
-              const chunk: JsonRecord = {
-                id: responseId,
-                object: "chat.completion.chunk",
-                created,
-                model,
-                choices: [
-                  {
-                    index: 0,
-                    delta: chunkIndex === 0 ? { role: "assistant", content } : { content },
-                    finish_reason: null,
+              if (thinkingExpected && state.thinking) {
+                // Claude on Kiro emits reasoning inline as `<thinking>…</thinking>`
+                // when `<thinking_mode>enabled</thinking_mode>` is in the system prompt.
+                // Split it into the OpenAI `reasoning_content` channel so downstream
+                // consumers see the same shape they would get from a native reasoning model.
+                const thinkingState = state.thinking;
+                splitInlineThinking(
+                  thinkingState,
+                  content,
+                  (text) => {
+                    if (!text) return;
+                    const chunk: JsonRecord = {
+                      id: responseId,
+                      object: "chat.completion.chunk",
+                      created,
+                      model,
+                      choices: [
+                        {
+                          index: 0,
+                          delta: chunkIndex === 0 ? { role: "assistant", content: text } : { content: text },
+                          finish_reason: null,
+                        },
+                      ],
+                    };
+                    chunkIndex++;
+                    controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
                   },
-                ],
-              };
-              chunkIndex++;
-              controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+                  (reasoning) => {
+                    if (!reasoning) return;
+                    state.hasReasoningContent = true;
+                    const reasoningDelta: JsonRecord =
+                      (state.reasoningChunkCount ?? 0) === 0 && chunkIndex === 0
+                        ? { role: "assistant", reasoning_content: reasoning }
+                        : { reasoning_content: reasoning };
+                    const chunk: JsonRecord = {
+                      id: responseId,
+                      object: "chat.completion.chunk",
+                      created,
+                      model,
+                      choices: [
+                        {
+                          index: 0,
+                          delta: reasoningDelta,
+                          finish_reason: null,
+                        },
+                      ],
+                    };
+                    chunkIndex++;
+                    state.reasoningChunkCount = (state.reasoningChunkCount ?? 0) + 1;
+                    controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+                  }
+                );
+              } else {
+                const chunk: JsonRecord = {
+                  id: responseId,
+                  object: "chat.completion.chunk",
+                  created,
+                  model,
+                  choices: [
+                    {
+                      index: 0,
+                      delta: chunkIndex === 0 ? { role: "assistant", content } : { content },
+                      finish_reason: null,
+                    },
+                  ],
+                };
+                chunkIndex++;
+                controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+              }
             }
 
             // Handle codeEvent
@@ -643,6 +738,41 @@ export class KiroExecutor extends BaseExecutor {
           // Flush any buffered tool arguments (partial-object payloads) before finishing —
           // idempotent against toolArgsEmitted if messageStopEvent already flushed them.
           flushBufferedToolArgs(state, controller, { responseId, created, model });
+
+          // Drain any pending inline-thinking tag fragment so we don't drop
+          // trailing characters when the stream ends mid-tag (e.g. `<thi`).
+          if (thinkingExpected && state.thinking) {
+            const thinkingState = state.thinking;
+            flushPendingThinking(
+              thinkingState,
+              (text) => {
+                if (!text) return;
+                const chunk: JsonRecord = {
+                  id: responseId,
+                  object: "chat.completion.chunk",
+                  created,
+                  model,
+                  choices: [{ index: 0, delta: { content: text }, finish_reason: null }],
+                };
+                chunkIndex++;
+                controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+              },
+              (reasoning) => {
+                if (!reasoning) return;
+                const chunk: JsonRecord = {
+                  id: responseId,
+                  object: "chat.completion.chunk",
+                  created,
+                  model,
+                  choices: [
+                    { index: 0, delta: { reasoning_content: reasoning }, finish_reason: null },
+                  ],
+                };
+                chunkIndex++;
+                controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+              }
+            );
+          }
 
           // Emit finish chunk if not already sent
           if (!state.finishEmitted) {

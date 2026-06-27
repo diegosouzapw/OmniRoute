@@ -47,6 +47,11 @@ export interface CompressionEngine {
   targets: CompressionEngineTarget[];
   stackable: boolean;
   stackPriority: number;
+  /**
+   * Marks an intentionally-lossy sampling engine (e.g. ionizer). The fidelity gate SKIPS such
+   * engines: their drop is deliberate and recoverable via CCR, not accidental corruption.
+   */
+  sampling?: boolean;
   metadata: CompressionEngineMetadata;
   apply(body: Record<string, unknown>, options?: CompressionEngineApplyOptions): CompressionResult;
   /**

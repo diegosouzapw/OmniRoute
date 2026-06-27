@@ -51,8 +51,6 @@ export function supportsApiKeyOnFreeProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && FREE_APIKEY_PROVIDER_IDS.has(providerId);
 }
 
-// OAuth Providers
-
 // Web / Cookie Providers
 
 // API Key Providers
@@ -140,8 +138,6 @@ export function isOpenAICompatibleProvider(providerId: unknown): providerId is s
 export function isAnthropicCompatibleProvider(providerId: unknown): providerId is string {
   return typeof providerId === "string" && providerId.startsWith(ANTHROPIC_COMPATIBLE_PREFIX);
 }
-
-
 
 export function isClaudeCodeCompatibleProvider(providerId: unknown): providerId is string {
   return typeof providerId === "string" && providerId.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX);

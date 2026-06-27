@@ -33,6 +33,7 @@ const {
   GEMINI_CONFIG,
   GITHUB_CONFIG,
   GITLAB_DUO_CONFIG,
+  GROK_CLI_CONFIG,
   KILOCODE_CONFIG,
   KIMI_CODING_CONFIG,
   KIRO_CONFIG,
@@ -67,6 +68,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "cline",
   "windsurf",
   "devin-cli",
+  "grok-cli",
   "codebuddy-cn",
 ];
 
@@ -89,6 +91,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   windsurf: WINDSURF_CONFIG,
   "devin-cli": WINDSURF_CONFIG,
   trae: TRAE_CONFIG,
+  "grok-cli": GROK_CLI_CONFIG,
   "codebuddy-cn": CODEBUDDY_CN_CONFIG,
 };
 

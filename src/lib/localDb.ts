@@ -324,6 +324,7 @@ export {
 } from "./db/quotaSnapshots";
 
 export * from "./db/sessionAccountAffinity";
+export * from "./db/quotaResetEvents";
 
 export type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";
 

@@ -185,6 +185,18 @@ export const comboRuntimeConfigSchema = z
     resetWindowQuotaCacheMaxStaleMs: z.coerce.number().int().min(0).max(3_600_000).optional(),
     shadowRouting: shadowRoutingSchema.optional(),
     evalRouting: evalRoutingSchema.optional(),
+    // Fusion strategy (open-sse/services/fusion.ts): the panel is the combo's
+    // targets; `judgeModel` synthesizes the final answer (defaults to the first
+    // panel model when unset); `fusionTuning` controls quorum-grace collection.
+    judgeModel: z.string().trim().max(200).optional(),
+    fusionTuning: z
+      .object({
+        minPanel: z.coerce.number().int().min(1).max(50).optional(),
+        stragglerGraceMs: z.coerce.number().int().min(0).max(120_000).optional(),
+        panelHardTimeoutMs: z.coerce.number().int().min(1000).max(600_000).optional(),
+      })
+      .strict()
+      .optional(),
   })
   .passthrough()
   .transform((config) => {
