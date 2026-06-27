@@ -183,8 +183,10 @@ export const ANTIGRAVITY_CONFIG = {
   authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
   tokenUrl: "https://oauth2.googleapis.com/token",
   userInfoUrl: "https://www.googleapis.com/oauth2/v1/userinfo",
+  // No "openid" scope — the working 9router flow requests only the Cloud Code /
+  // userinfo scopes below. "openid" (with PKCE) routed Google into the hanging
+  // `firstparty/nativeapp` consent. Match 9router exactly (antigravity login fix).
   scopes: [
-    "openid",
     "https://www.googleapis.com/auth/cloud-platform",
     "https://www.googleapis.com/auth/userinfo.email",
     "https://www.googleapis.com/auth/userinfo.profile",

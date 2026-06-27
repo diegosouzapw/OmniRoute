@@ -32,7 +32,13 @@ async function fetchFirstOk(endpoints: string[], init: RequestInit, timeoutMs?: 
 
 export const antigravity = {
   config: ANTIGRAVITY_CONFIG,
-  flowType: "authorization_code_pkce",
+  // NO PKCE. The embedded Antigravity client is a Google "Desktop/native" OAuth client;
+  // sending a PKCE code_challenge (combined with the openid scope) pushed Google into the
+  // `signin/oauth/firstparty/nativeapp` consent flow that hangs and never redirects back
+  // (operator report 2026-06-27). The working 9router flow uses a plain authorization_code
+  // grant with client_secret and no code_challenge — match it exactly. The token exchange
+  // already sends client_secret (ANTIGRAVITY_OAUTH_CLIENT_SECRET) and omits code_verifier.
+  flowType: "authorization_code",
   buildAuthUrl: (config, redirectUri, state, codeChallenge) => {
     const params = new URLSearchParams({
       client_id: config.clientId,
