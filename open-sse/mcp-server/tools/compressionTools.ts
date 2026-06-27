@@ -248,9 +248,18 @@ import { resolveCallerScopeContext } from "../scopeEnforcement.ts";
 const ccrRetrieveInput = z.object({
   hash: z
     .string()
-    .length(24)
-    .regex(/^[0-9a-f]{24}$/)
+    .min(6)
+    .max(64)
     .describe("24-hex content hash from a [CCR retrieve hash=<hash>] marker"),
+  mode: z
+    .enum(["full", "head", "tail", "lines", "grep", "stats"])
+    .optional()
+    .describe("Retrieval mode: full (default) | head | tail | lines | grep | stats"),
+  n: z.number().int().positive().max(10000).optional().describe("head/tail: number of lines"),
+  start: z.number().int().positive().optional().describe("lines: 1-indexed inclusive start"),
+  end: z.number().int().positive().optional().describe("lines: 1-indexed inclusive end"),
+  pattern: z.string().max(512).optional().describe("grep: regex (validated safe; ReDoS-rejected)"),
+  unique: z.boolean().optional().describe("grep: dedupe matching lines"),
 });
 
 export async function handleSetCompressionEngine(
@@ -349,6 +358,7 @@ export const compressionTools = {
       "Retrieve the verbatim content block stored by the CCR compression engine. " +
       "When a large block is compressed, a marker `[CCR retrieve hash=<24hex> chars=N]` " +
       "is inserted. Pass the hash from the marker to this tool to get the original text back. " +
+      "Optional `mode` (head/tail/lines/grep/stats) retrieves a slice or summary instead of the whole block; omit for the full block. " +
       "Scope: read:compression. Always available (sticky-on).",
     scopes: ["read:compression"],
     inputSchema: ccrRetrieveInput,
