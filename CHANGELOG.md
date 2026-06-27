@@ -8,6 +8,10 @@
 
 _In development — bullets added per PR; finalized at release._
 
+### 🔧 Bug Fixes
+
+- **fix(sse): defer `</think>` close so it never leaks before `tool_calls` in Claude→OpenAI streaming** — when a Claude thinking block was followed by a tool_use block, the translator unconditionally emitted a `content: "</think>"` chunk at `content_block_stop`, injecting a spurious assistant text chunk immediately before the `tool_calls` delta and corrupting OpenAI-compatible clients (e.g. Kimi Coding). The close marker is now deferred: it is flushed at the first `text_delta` that follows the thinking block (preserving the #4633 / decolua/9router#454 behavior for Claude Code / Cursor) or at stream finish when no tool_calls were collected. Tool-use streams never get a `text_delta` after the thinking block, so `</think>` is never emitted into content before `tool_calls`. ([#5123](https://github.com/diegosouzapw/OmniRoute/issues/5123))
+
 ---
 
 ## [3.8.38] — 2026-06-27
