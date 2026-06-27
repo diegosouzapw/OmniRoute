@@ -36,3 +36,10 @@ test("fuzzy enabled but below threshold → untouched", () => {
   const res = sessionDedupEngine.apply(body, { stepConfig: { fuzzy: { enabled: true, minJaccard: 0.85 } }, principalId: "p1" });
   assert.equal(res.compressed, false);
 });
+
+test("config schema advertises the fuzzy toggle + validateConfig accepts a fuzzy block", () => {
+  const schema = sessionDedupEngine.getConfigSchema();
+  assert.ok(schema.some((f) => f.key === "fuzzy"));
+  assert.equal(sessionDedupEngine.validateConfig({ fuzzy: { enabled: true } }).valid, true);
+  assert.equal(sessionDedupEngine.validateConfig({ fuzzy: { enabled: "yes" } }).valid, false);
+});

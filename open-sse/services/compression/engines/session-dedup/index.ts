@@ -261,6 +261,14 @@ const SESSION_DEDUP_SCHEMA: EngineConfigField[] = [
     min: 1,
     max: 100000,
   },
+  {
+    key: "fuzzy",
+    type: "boolean",
+    label: "Fuzzy near-duplicate dedup",
+    description:
+      "Opt-in: replace whole messages ~85%+ similar to an earlier one with a recoverable CCR marker.",
+    defaultValue: false,
+  },
 ];
 
 function validateSessionDedupConfig(config: Record<string, unknown>): EngineValidationResult {
@@ -272,6 +280,15 @@ function validateSessionDedupConfig(config: Record<string, unknown>): EngineVali
     const v = config["minBlockChars"];
     if (typeof v !== "number" || !Number.isFinite(v) || v < 1) {
       errors.push("minBlockChars must be a positive number");
+    }
+  }
+  if (config["fuzzy"] !== undefined) {
+    const f = config["fuzzy"];
+    if (typeof f === "object" && f !== null) {
+      const fe = (f as Record<string, unknown>)["enabled"];
+      if (fe !== undefined && typeof fe !== "boolean") errors.push("fuzzy.enabled must be a boolean");
+    } else if (typeof f !== "boolean") {
+      errors.push("fuzzy must be an object { enabled } or a boolean");
     }
   }
   return { valid: errors.length === 0, errors };
