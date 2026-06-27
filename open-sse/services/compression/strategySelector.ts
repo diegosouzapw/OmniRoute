@@ -5,6 +5,8 @@ import type {
   CompressionResult,
   CompressionStats,
 } from "./types.ts";
+import { extractTextContent } from "./messageContent.ts";
+import { checkFidelity, type FidelityGateConfig } from "./fidelityGate.ts";
 import type { CompressionEngineApplyOptions } from "./engines/types.ts";
 import { applyLiteCompression } from "./lite.ts";
 import { cavemanCompress } from "./caveman.ts";
@@ -552,6 +554,8 @@ interface StackOptions {
   compressionComboId?: string | null;
   /** TV1 bail-out discipline (opt-in, default disabled). */
   bailout?: BailoutConfig;
+  /** Opt-in per-step fidelity gate (default disabled). */
+  fidelityGate?: FidelityGateConfig;
   /** Authenticated principal id — threaded through to CCR engine for store scoping. */
   principalId?: string;
   /** F3.3: called once per engine as it completes (live per-engine streaming). */
@@ -646,6 +650,41 @@ function decideStep(result: CompressionResult, bailout: BailoutConfig): { advanc
   return { advance: true };
 }
 
+function bodyToText(body: Record<string, unknown>): string {
+  const messages = body.messages;
+  if (!Array.isArray(messages)) return "";
+  return messages.map((m) => extractTextContent((m as { content?: unknown }).content as never)).join("\n");
+}
+
+/**
+ * Fidelity gate (opt-in, independent of TV1). Called at each advance point AFTER mergeStackStep
+ * pushed the step's breakdown entry. Off → zero-cost `return true` (byte-identical legacy). On a
+ * fidelity failure it marks the just-pushed breakdown entry rejected (no advance) and returns false.
+ */
+function gateAdvance(
+  result: CompressionResult,
+  inputBody: Record<string, unknown>,
+  fidelityGate: FidelityGateConfig | undefined,
+  acc: StackAccumulator
+): boolean {
+  if (!fidelityGate?.enabled) return true;
+  const verdict = checkFidelity(bodyToText(inputBody), bodyToText(result.body), fidelityGate);
+  if (verdict.passed) return true;
+  // mergeStackStep only pushed a breakdown entry when result.stats exists; only then is
+  // acc.breakdown's last entry THIS step's (else it would be the prior engine's — don't touch it).
+  if (result.stats) {
+    const last = acc.breakdown[acc.breakdown.length - 1];
+    if (last) {
+      last.rejected = true;
+      last.rejectReason = verdict.detail ?? verdict.failedInvariant;
+      last.compressedTokens = last.originalTokens;
+      last.savingsPercent = 0;
+    }
+  }
+  acc.fallbackApplied = true;
+  return false;
+}
+
 /** Folds one engine result into the accumulator (telemetry + breakdown entry). */
 function mergeStackStep(acc: StackAccumulator, engineId: string, result: CompressionResult): void {
   if (!result.stats) return;
@@ -719,6 +758,7 @@ export function applyStackedCompression(
   const start = performance.now();
 
   const bailout = options?.bailout;
+  const fidelityGate = options?.fidelityGate ?? options?.config?.fidelityGate;
   const onStep = options?.onEngineStep;
   const totalSteps = steps.length;
   let stepIdx = 0;
@@ -746,14 +786,14 @@ export function applyStackedCompression(
         continue;
       }
       mergeStackStep(acc, step.engine, result);
-      if (decideStep(result, bailout).advance) {
+      if (decideStep(result, bailout).advance && gateAdvance(result, currentBody, fidelityGate, acc)) {
         currentBody = result.body;
         compressed = true;
       }
     } else {
       const result = engine.apply(currentBody, buildStepOptions(step, options));
       mergeStackStep(acc, step.engine, result);
-      if (result.compressed) {
+      if (result.compressed && gateAdvance(result, currentBody, fidelityGate, acc)) {
         currentBody = result.body;
         compressed = true;
       }
@@ -791,6 +831,7 @@ export async function applyStackedCompressionAsync(
   const start = performance.now();
 
   const bailout = options?.bailout;
+  const fidelityGate = options?.fidelityGate ?? options?.config?.fidelityGate;
   const onStep = options?.onEngineStep;
   const totalSteps = steps.length;
   let stepIdx = 0;
@@ -819,7 +860,7 @@ export async function applyStackedCompressionAsync(
         continue;
       }
       mergeStackStep(acc, step.engine, result);
-      if (decideStep(result, bailout).advance) {
+      if (decideStep(result, bailout).advance && gateAdvance(result, currentBody, fidelityGate, acc)) {
         currentBody = result.body;
         compressed = true;
       }
@@ -828,7 +869,7 @@ export async function applyStackedCompressionAsync(
         ? await engine.applyAsync(currentBody, stepOptions)
         : engine.apply(currentBody, stepOptions);
       mergeStackStep(acc, step.engine, result);
-      if (result.compressed) {
+      if (result.compressed && gateAdvance(result, currentBody, fidelityGate, acc)) {
         currentBody = result.body;
         compressed = true;
       }
