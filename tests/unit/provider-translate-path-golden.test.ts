@@ -26,20 +26,37 @@ const OAUTH_CRED = { accessToken: "tok-test-ACCESS", providerSpecificData: {} };
 
 // Strip tokens + dynamic fields (github x-request-id uuid, kimi device-id) so the
 // snapshot is stable run-to-run.
+// Live Node version leaks into headers (e.g. X-PLATFORM-VERSION = process.version)
+// and varies by environment/patch (local v24.16 vs CI v24.17), so it must be
+// normalized away — otherwise the golden is only stable on the exact Node patch it
+// was generated on. Both `vX.Y.Z` (process.version) and `X.Y.Z`
+// (process.versions.node) forms are collapsed to <NODE>.
+const NODE_VERSION = typeof process !== "undefined" ? process.version : "";
+const NODE_VERSION_BARE = typeof process !== "undefined" ? (process.versions?.node ?? "") : "";
+// The OmniRoute app version also leaks into headers (cline X-CLIENT-VERSION /
+// X-CORE-VERSION = clineAuth APP_VERSION = process.env.npm_package_version ||
+// "0.0.0"). It is "0.0.0" under a direct `node` run (Unit Tests shard) but the real
+// package version under `npx`/`npm run` (Coverage shard), so it must be normalized
+// too — mirror clineAuth's resolution and collapse it to <APP>.
+const APP_VERSION =
+  (typeof process !== "undefined" ? process.env.npm_package_version : "") || "0.0.0";
+
 function sanitize(headers: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(headers)) {
-    out[k] =
-      typeof v === "string"
-        ? v
-            .replace(/Bearer .+/, "Bearer <TOK>")
-            .replace(/sk-test-APIKEY|tok-test-ACCESS/g, "<CRED>")
-            .replace(/kimi-\d{10,}/g, "kimi-<TS>")
-            .replace(
-              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
-              "<UUID>"
-            )
-        : v;
+    if (typeof v !== "string") {
+      out[k] = v;
+      continue;
+    }
+    let s = v
+      .replace(/Bearer .+/, "Bearer <TOK>")
+      .replace(/sk-test-APIKEY|tok-test-ACCESS/g, "<CRED>")
+      .replace(/kimi-\d{10,}/g, "kimi-<TS>")
+      .replace(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "<UUID>");
+    if (NODE_VERSION) s = s.split(NODE_VERSION).join("<NODE>");
+    if (NODE_VERSION_BARE) s = s.split(NODE_VERSION_BARE).join("<NODE>");
+    if (APP_VERSION) s = s.split(APP_VERSION).join("<APP>");
+    out[k] = s;
   }
   return out;
 }
@@ -60,10 +77,7 @@ type ProviderTranslatePathEntry = {
   format: unknown;
 };
 
-export function buildProviderTranslatePathSnapshot(): Record<
-  string,
-  ProviderTranslatePathEntry
-> {
+export function buildProviderTranslatePathSnapshot(): Record<string, ProviderTranslatePathEntry> {
   const snapshot: Record<string, ProviderTranslatePathEntry> = {};
   for (const pid of providerIds) {
     const noAuth = Boolean((PROVIDERS as Record<string, { noAuth?: boolean }>)[pid]?.noAuth);
@@ -115,16 +129,12 @@ test("GOLDEN guard catches translate-path drift", () => {
     delete process.env.UPDATE_GOLDEN;
 
     // Same value → passes.
-    assert.doesNotThrow(() =>
-      goldenSnapshot("provider/translate-path", snapshot, tmpDir)
-    );
+    assert.doesNotThrow(() => goldenSnapshot("provider/translate-path", snapshot, tmpDir));
 
     // Mutated value → must throw (drift detected).
     const mutated = JSON.parse(JSON.stringify(snapshot)) as typeof snapshot;
     mutated[firstId].format = "DRIFTED-FORMAT";
-    assert.throws(() =>
-      goldenSnapshot("provider/translate-path", mutated, tmpDir)
-    );
+    assert.throws(() => goldenSnapshot("provider/translate-path", mutated, tmpDir));
   } finally {
     delete process.env.UPDATE_GOLDEN;
     fs.rmSync(tmpDir, { recursive: true, force: true });

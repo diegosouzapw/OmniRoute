@@ -10,6 +10,7 @@ import { mergeOpenCodeConfigText } from "@/shared/services/opencodeConfig";
 import { guideSettingsSaveSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { resolveApiKey, getOrCreateApiKey } from "@/shared/services/apiKeyResolver";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 /**
  * POST /api/cli-tools/guide-settings/:toolId
@@ -77,7 +78,10 @@ export async function POST(request, { params }) {
         );
     }
   } catch (error) {
-    return NextResponse.json({ error: (error as any).message }, { status: 500 });
+    return NextResponse.json(
+      { error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)) },
+      { status: 500 }
+    );
   }
 }
 

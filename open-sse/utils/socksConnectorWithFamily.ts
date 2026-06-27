@@ -1,6 +1,27 @@
 import { Agent, buildConnector, type Dispatcher } from "undici";
 import { SocksClient, type SocksProxy } from "socks";
 
+const DEFAULT_SOCKS_HANDSHAKE_TIMEOUT_MS = 10_000;
+const MAX_SOCKS_HANDSHAKE_TIMEOUT_MS = 120_000;
+
+/**
+ * Resolve the SOCKS5 handshake (connect) timeout, operator-tunable via
+ * `SOCKS_HANDSHAKE_TIMEOUT_MS` (#5109). Under a saturated per-host pool the real
+ * handshake to a residential gateway can exceed the 10s default even though the
+ * proxy is reachable, so high-concurrency deployments can raise it without a
+ * code change. Invalid / non-positive values fall back to the default; values
+ * above the ceiling are clamped.
+ */
+export function resolveSocksHandshakeTimeoutMs(
+  env: Record<string, string | undefined> = process.env
+): number {
+  const raw = env.SOCKS_HANDSHAKE_TIMEOUT_MS;
+  if (raw == null || raw.trim() === "") return DEFAULT_SOCKS_HANDSHAKE_TIMEOUT_MS;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed < 1) return DEFAULT_SOCKS_HANDSHAKE_TIMEOUT_MS;
+  return Math.min(Math.floor(parsed), MAX_SOCKS_HANDSHAKE_TIMEOUT_MS);
+}
+
 /** The net.connect family options pinned for the SOCKS proxy hop. */
 export function buildSocksFamilySocketOptions(family: 4 | 6 | null): Record<string, unknown> {
   if (family === 6) return { family: 6, autoSelectFamily: false };
@@ -36,7 +57,7 @@ function socksConnectorWithFamily(
       const r = await SocksClient.createConnection({
         command: "connect",
         proxy,
-        timeout: 10_000,
+        timeout: resolveSocksHandshakeTimeoutMs(),
         destination: { host: hostname, port: resolvePort(protocol, port) },
         existing_socket: httpSocket as never,
         socket_options: socketOptions as never,

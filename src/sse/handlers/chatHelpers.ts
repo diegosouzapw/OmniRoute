@@ -429,6 +429,13 @@ export async function executeChatWithBreaker({
           onStreamFailure: async (failure: any) => {
             if (isShadowTraffic) return;
             if (!credentials.connectionId) return;
+            if (
+              Number(failure?.status) === 499 ||
+              failure?.code === "client_disconnected" ||
+              failure?.type === "client_disconnected"
+            ) {
+              return;
+            }
             // A3 guard: if 401 and connection has extra keys, skip connection-level disable
             // (key-level failure already recorded in chatCore.ts via T07)
             // Check extra keys directly from credentials for reliability across restarts
@@ -603,10 +610,7 @@ export function handleNoCredentials(
     // all disabled. log level is `warn` rather than `error` because zero active
     // credentials is an expected operator-driven state, not a server fault.
     log.warn("AUTH", `No active credentials for provider: ${provider}`);
-    return errorResponse(
-      HTTP_STATUS.NOT_FOUND,
-      `No active credentials for provider: ${provider}`
-    );
+    return errorResponse(HTTP_STATUS.NOT_FOUND, `No active credentials for provider: ${provider}`);
   }
   log.warn("CHAT", "No more accounts available", { provider });
   return errorResponse(

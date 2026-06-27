@@ -63,7 +63,7 @@ const BROWSER_DEVICE_FLOW_PROVIDERS = new Set(["codex"]);
 const RETIRED_PKCE_PROVIDERS = new Set(["windsurf", "devin-cli"]);
 
 /** Providers that allow direct import of a raw API token (no OAuth exchange). */
-const IMPORT_TOKEN_PROVIDERS = new Set(["windsurf", "devin-cli"]);
+const IMPORT_TOKEN_PROVIDERS = new Set(["windsurf", "devin-cli", "grok-cli"]);
 
 /**
  * Constant-time string comparison to prevent timing-oracle attacks (CWE-208).

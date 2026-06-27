@@ -93,6 +93,11 @@ const IGNORE_FROM_CODE = new Set([
   "PR_BODY",
   // CLI machine-id token opt-out (server-side flag; not user-configurable via .env).
   "OMNIROUTE_DISABLE_CLI_TOKEN",
+  // Gated combo live-smoke harness (scripts/test/_vpsClient.mjs) — override the VPS HTTP
+  // smoke target host/key. Test/CI-only signals with safe defaults
+  // ("http://192.168.0.15:20128" / null), never OmniRoute runtime config (#5151).
+  "COMBO_LIVE_BASE_URL",
+  "COMBO_LIVE_API_KEY",
   // update-notifier opt-out for the CLI binary.
   "OMNIROUTE_NO_UPDATE_NOTIFIER",
   // Headless CLI execution flag for Electron.

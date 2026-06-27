@@ -143,6 +143,16 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
+<<<<<<< HEAD
+=======
+      - name: Cache Next.js build cache
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8
+        with:
+          path: .build/next/cache
+          key: nextjs-${{ runner.os }}-node-${{ env.CI_NODE_VERSION }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**/*', 'open-sse/**/*', 'db/**/*', 'next.config.mjs', 'tsconfig*.json', 'postcss.config.*', 'tailwind.config.*') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-node-${{ env.CI_NODE_VERSION }}-${{ hashFiles('package-lock.json') }}-
+>>>>>>> 7b139fdb5 (Release v3.8.38 (#5078))
       - run: npm run build
 
   package-artifact:
@@ -211,7 +221,38 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
+<<<<<<< HEAD
       - run: node --max-old-space-size=4096 --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts
+=======
+      - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
+
+  test-vitest:
+    name: Vitest (MCP / autoCombo / UI components)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+    env:
+      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-test-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      # The second test runner (CLAUDE.md: "Both test runners must pass") — was never
+      # wired into CI until the 2026-06-09 quality audit (Fase 6A.2).
+      - run: npm run test:vitest
+      # vitest:ui is RED today (14 fails — UI component drift accumulated while the
+      # suite never ran in CI). Informational until the Fase 6A triage (2026-06-16+)
+      # fixes the components/tests; then drop continue-on-error to make it blocking.
+      - run: npm run test:vitest:ui
+        continue-on-error: true
+>>>>>>> 7b139fdb5 (Release v3.8.38 (#5078))
 
   node-24-compat:
     name: Node 24 Compatibility (${{ matrix.shard }}/2)
@@ -234,6 +275,37 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
+<<<<<<< HEAD
+=======
+      - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/4 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
+
+  node-26-compat-build:
+    name: Node 26 Compatibility Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: build
+    env:
+      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-test-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_26_VERSION }}
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - run: npm run check:node-runtime
+      - name: Cache Next.js build cache
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8
+        with:
+          path: .build/next/cache
+          key: nextjs-${{ runner.os }}-node-${{ env.CI_NODE_26_VERSION }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**/*', 'open-sse/**/*', 'db/**/*', 'next.config.mjs', 'tsconfig*.json', 'postcss.config.*', 'tailwind.config.*') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-node-${{ env.CI_NODE_26_VERSION }}-${{ hashFiles('package-lock.json') }}-
+>>>>>>> 7b139fdb5 (Release v3.8.38 (#5078))
       - run: npm run build
       - run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
 
@@ -258,8 +330,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
+<<<<<<< HEAD
       - run: npm run build
       - run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
+=======
+      - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/4 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
+>>>>>>> 7b139fdb5 (Release v3.8.38 (#5078))
 
   test-coverage-shard:
     name: Coverage Shard (${{ matrix.shard }}/8)
@@ -297,8 +373,13 @@ jobs:
             --reporter=json \
             --exclude=tests/** \
             --exclude=**/*.test.* \
+<<<<<<< HEAD
             node --max-old-space-size=4096 --import tsx --test --test-force-exit --test-concurrency=4 \
               --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts
+=======
+            node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 \
+              --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
+>>>>>>> 7b139fdb5 (Release v3.8.38 (#5078))
       - name: Upload raw shard coverage
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -507,6 +588,15 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
+<<<<<<< HEAD
+=======
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6.0.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: playwright-chromium-${{ runner.os }}-
+>>>>>>> 7b139fdb5 (Release v3.8.38 (#5078))
       - run: npx playwright install --with-deps chromium
       - run: npm run build
       - run: npx playwright test tests/e2e/*.spec.ts --shard=${{ matrix.shard }}/6

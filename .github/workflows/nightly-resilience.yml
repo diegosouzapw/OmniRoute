@@ -1,0 +1,110 @@
+name: Nightly Resilience
+on:
+  schedule:
+    - cron: "41 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  heap:
+    name: Heap-growth gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: npm run test:heap
+
+  chaos:
+    name: Resilience chaos (fault injection)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: npm run test:chaos
+
+  k6-soak:
+    name: k6 load/soak
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - name: Build CLI bundle
+        env:
+          JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
+        run: npm run build:cli
+      - name: Start OmniRoute (background)
+        env:
+          JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
+          PORT: "20128"
+        run: |
+          node dist/server.js > server.log 2>&1 &
+          echo $! > server.pid
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:20128/api/monitoring/health >/dev/null; then echo "server up"; break; fi
+            sleep 2
+          done
+      - name: Install k6
+        uses: grafana/setup-k6-action@v1
+      - name: Run k6 soak
+        run: k6 run tests/load/k6-soak.js
+        env:
+          BASE_URL: http://localhost:20128
+          SOAK_DURATION: "3m"
+          SOAK_VUS: "10"
+      - name: Stop server
+        if: always()
+        run: kill "$(cat server.pid)" || true
+
+  a11y:
+    name: A11y axe (nightly, freeze-and-alert)
+    runs-on: ubuntu-latest
+    # The Playwright webServer (`start` mode) builds Next via build-next-isolated.mjs and
+    # boots the standalone server itself (waits on /api/monitoring/health, 15min webServer
+    # timeout). Unlike the per-PR test-e2e job, this nightly job has no pre-built artifact,
+    # so it self-builds — hence the generous job timeout. REQUIRE_AXE=1 makes the suite run
+    # the real axe analysis (the 4 page tests are gated to nightly so per-PR e2e stays fast)
+    # and makes the meta-test fail loudly if @axe-core/playwright ever goes missing.
+    timeout-minutes: 30
+    env:
+      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-test-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+      REQUIRE_AXE: "1"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6.0.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: playwright-chromium-${{ runner.os }}-
+      - run: npx playwright install --with-deps chromium
+      - name: Run axe a11y suite (self-building webServer)
+        run: npx playwright test tests/e2e/a11y.spec.ts

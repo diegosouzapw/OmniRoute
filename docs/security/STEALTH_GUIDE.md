@@ -93,6 +93,7 @@ For third-party Anthropic relays that only accept "real Claude Code" traffic:
 - `CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION = "v24.3.0"`
 - `anthropic-beta = "claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24"` by default
 - The per-connection "Enable redact-thinking beta" toggle adds `redact-thinking-2026-02-12` when a CC Compatible upstream specifically requires redacted thinking streams
+- The per-connection "Enable summarized thinking display" toggle stores `providerSpecificData.requestDefaults.summarizeThinking` and adds `display: "summarized"` to CC Compatible thinking requests that did not already set a display mode
 - `CONTEXT_1M_BETA_HEADER = "context-1m-2025-08-07"` (Opus/Sonnet 4.x family)
 - Default path: `/v1/messages?beta=true`
 

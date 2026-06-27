@@ -1,5 +1,8 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
-import { mergeClientAnthropicBeta } from "../config/anthropicHeaders.ts";
+import {
+  mergeClientAnthropicBeta,
+  normalizeAnthropicHeaderVariants,
+} from "../config/anthropicHeaders.ts";
 import { applyContextEditingToBody } from "../config/contextEditing.ts";
 import { findOffendingField, stripGroqUnsupportedFields } from "../config/providerFieldStrips.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
@@ -575,6 +578,8 @@ export class BaseExecutor {
     }
 
     headers["Accept"] = stream ? "text/event-stream" : "application/json";
+
+    normalizeAnthropicHeaderVariants(headers);
 
     return headers;
   }

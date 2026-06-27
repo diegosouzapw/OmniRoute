@@ -151,7 +151,7 @@ export function validateProviderSpecificData(
         });
       }
 
-      for (const booleanKey of ["context1m", "redactThinking"] as const) {
+      for (const booleanKey of ["context1m", "redactThinking", "summarizeThinking"] as const) {
         const value = requestDefaultsRecord[booleanKey];
         if (value === undefined || value === null || typeof value === "boolean") continue;
         ctx.addIssue({

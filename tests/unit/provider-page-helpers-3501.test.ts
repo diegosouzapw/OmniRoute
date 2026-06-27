@@ -206,6 +206,7 @@ test("getClaudeCodeCompatibleRequestDefaults returns CC-compatible booleans", ()
   const result = getClaudeCodeCompatibleRequestDefaults(null);
   assert.equal(typeof result.context1m, "boolean");
   assert.equal(typeof result.redactThinking, "boolean");
+  assert.equal(typeof result.summarizeThinking, "boolean");
 });
 
 test("compatProtocolLabelKey maps protocol strings to i18n keys", () => {

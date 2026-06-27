@@ -83,11 +83,7 @@ export interface UseProviderConnectionsReturn {
   handleUpdateConnectionStatus: (id: string, isActive: boolean) => Promise<void>;
   handleToggleRateLimit: (connectionId: string, enabled: boolean) => Promise<void>;
   handleToggleClaudeExtraUsage: (connectionId: string, enabled: boolean) => Promise<void>;
-  handleToggleCodexLimit: (
-    connectionId: string,
-    field: string,
-    enabled: boolean
-  ) => Promise<void>;
+  handleToggleCodexLimit: (connectionId: string, field: string, enabled: boolean) => Promise<void>;
   handleToggleCliproxyapiMode: (connectionId: string, enabled: boolean) => Promise<void>;
   handleToggleProxyEnabled: (connectionId: string, proxyEnabled: boolean) => Promise<void>;
   handleTogglePerKeyProxyEnabled: (
@@ -101,9 +97,7 @@ export interface UseProviderConnectionsReturn {
   // Batch handlers
   handleBatchSetActive: (isActive: boolean) => Promise<void>;
   handleBatchDeleteOpenModal: () => void;
-  handleBatchDeleteConfirm: (
-    onAfter?: () => Promise<void>
-  ) => Promise<void>;
+  handleBatchDeleteConfirm: (onAfter?: () => Promise<void>) => Promise<void>;
   handleBatchRetest: () => Promise<void>;
   handleBatchTestAll: () => Promise<void>;
 
@@ -198,8 +192,7 @@ export function useProviderConnections(
         setConnections(filtered);
       }
       if (nodesRes.ok) {
-        let node =
-          (nodesData.nodes || []).find((entry: any) => entry.id === providerId) || null;
+        let node = (nodesData.nodes || []).find((entry: any) => entry.id === providerId) || null;
 
         // Newly created compatible nodes can be briefly unavailable on one worker.
         if (!node && isCompatible) {
@@ -208,8 +201,7 @@ export function useProviderConnections(
             const retryRes = await fetch("/api/provider-nodes", { cache: "no-store" });
             if (!retryRes.ok) continue;
             const retryData = await retryRes.json();
-            node =
-              (retryData.nodes || []).find((entry: any) => entry.id === providerId) || null;
+            node = (retryData.nodes || []).find((entry: any) => entry.id === providerId) || null;
             if (node) break;
           }
         }
@@ -230,10 +222,7 @@ export function useProviderConnections(
         conns
           .filter((c) => c.id)
           .map((c) =>
-            fetch(
-              `/api/settings/proxy?resolve=${encodeURIComponent(c.id!)}`,
-              { cache: "no-store" }
-            )
+            fetch(`/api/settings/proxy?resolve=${encodeURIComponent(c.id!)}`, { cache: "no-store" })
               .then((r) => (r.ok ? r.json() : null))
               .then((data) => [c.id!, data] as [string, any])
               .catch(() => [c.id!, null] as [string, any])
@@ -347,9 +336,7 @@ export function useProviderConnections(
         body: JSON.stringify({ isActive }),
       });
       if (res.ok) {
-        setConnections((prev: any[]) =>
-          prev.map((c) => (c.id === id ? { ...c, isActive } : c))
-        );
+        setConnections((prev: any[]) => prev.map((c) => (c.id === id ? { ...c, isActive } : c)));
       }
     } catch (error) {
       console.log("Error updating connection status:", error);
@@ -365,9 +352,7 @@ export function useProviderConnections(
       });
       if (res.ok) {
         setConnections((prev: any[]) =>
-          prev.map((c) =>
-            c.id === connectionId ? { ...c, rateLimitProtection: enabled } : c
-          )
+          prev.map((c) => (c.id === connectionId ? { ...c, rateLimitProtection: enabled } : c))
         );
       }
     } catch (error) {
@@ -434,11 +419,7 @@ export function useProviderConnections(
     }
   };
 
-  const handleToggleCodexLimit = async (
-    connectionId: string,
-    field: string,
-    enabled: boolean
-  ) => {
+  const handleToggleCodexLimit = async (connectionId: string, field: string, enabled: boolean) => {
     try {
       const target = (connections as any[]).find((connection) => connection.id === connectionId);
       if (!target) return;
@@ -561,7 +542,7 @@ export function useProviderConnections(
       const res = await fetch(`/api/providers/${connectionId}/test`, { method: "POST" });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(data.error || t("failedRetestConnection"));
+        notify.error(data.error || t("failedRetestConnection"));
         return;
       }
       await fetchConnections();
@@ -641,10 +622,7 @@ export function useProviderConnections(
 
   const handleToggleSelectAll = useCallback(() => {
     setSelectedIds((prev) => {
-      if (
-        prev.size === (connections as any[]).length &&
-        (connections as any[]).length > 0
-      ) {
+      if (prev.size === (connections as any[]).length && (connections as any[]).length > 0) {
         return new Set();
       }
       return new Set((connections as any[]).map((c: { id: string }) => c.id));

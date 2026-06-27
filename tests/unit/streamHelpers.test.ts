@@ -25,8 +25,20 @@ describe("hasValuableContent", () => {
       assert.strictEqual(hasValuableContent(chunk, FORMATS.OPENAI), true);
     });
 
+    it("returns true for client-readable reasoning", () => {
+      const chunk = { choices: [{ delta: { reasoning: "thinking" } }] };
+      assert.strictEqual(hasValuableContent(chunk, FORMATS.OPENAI), true);
+    });
+
     it("returns true for Copilot reasoning_text", () => {
       const chunk = { choices: [{ delta: { reasoning_text: "thinking" } }] };
+      assert.strictEqual(hasValuableContent(chunk, FORMATS.OPENAI), true);
+    });
+
+    it("returns true for OpenRouter reasoning_details", () => {
+      const chunk = {
+        choices: [{ delta: { reasoning_details: [{ type: "reasoning.text", text: "thinking" }] } }],
+      };
       assert.strictEqual(hasValuableContent(chunk, FORMATS.OPENAI), true);
     });
 

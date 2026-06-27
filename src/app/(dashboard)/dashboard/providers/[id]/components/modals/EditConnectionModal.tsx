@@ -119,6 +119,7 @@ export default function EditConnectionModal({
     ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
     ccCompatibleRedactThinking: false,
+    ccCompatibleSummarizeThinking: false,
     cloudCodeProjectId: "",
     antigravityClientProfile: "ide",
     blockExtraUsage:
@@ -280,6 +281,7 @@ export default function EditConnectionModal({
         ollamaCloudUsageCookie: "",
         ccCompatibleContext1m: ccRequestDefaults.context1m,
         ccCompatibleRedactThinking: ccRequestDefaults.redactThinking,
+        ccCompatibleSummarizeThinking: ccRequestDefaults.summarizeThinking,
         cloudCodeProjectId:
           (connection.providerSpecificData?.projectId as string) || connection.projectId || "",
         antigravityClientProfile: normalizeAntigravityClientProfileSetting(
@@ -654,14 +656,8 @@ export default function EditConnectionModal({
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
             {isCcCompatible && (
               <CcCompatibleRequestDefaultsFields
-                context1m={formData.ccCompatibleContext1m}
-                redactThinking={formData.ccCompatibleRedactThinking}
-                onContext1mChange={(checked) =>
-                  setFormData({ ...formData, ccCompatibleContext1m: checked })
-                }
-                onRedactThinkingChange={(checked) =>
-                  setFormData({ ...formData, ccCompatibleRedactThinking: checked })
-                }
+                values={formData}
+                onChange={(patch) => setFormData({ ...formData, ...patch })}
               />
             )}
             {openRouterPreset.input}

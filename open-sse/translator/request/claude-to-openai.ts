@@ -91,6 +91,16 @@ function shouldUseNativeResponsesWebSearch(credentials: unknown): boolean {
 
 // Convert Claude request to OpenAI format
 export function claudeToOpenAIRequest(model, body, stream, credentials: unknown = null) {
+  // #2069 — when the routed provider honors OpenAI-format cache_control breakpoints
+  // (DashScope/alibaba, etc.) and the upstream caller requested preservation, keep
+  // the client's cache_control markers on system + message text blocks instead of
+  // collapsing them away during the Claude→OpenAI conversion.
+  const preserveCacheControl =
+    credentials !== null &&
+    typeof credentials === "object" &&
+    !Array.isArray(credentials) &&
+    (credentials as JsonRecord)._preserveCacheControl === true;
+
   const result: {
     model: string;
     messages: JsonRecord[];
@@ -120,14 +130,35 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
 
   // System message
   if (body.system) {
-    const systemContent = Array.isArray(body.system)
-      ? body.system
-          .map((s) => stripAnthropicBillingHeader(s.text || ""))
-          .filter(Boolean)
-          .join("\n")
-      : stripAnthropicBillingHeader(body.system);
+    // When preserving cache_control for a caching-capable provider, and the client
+    // tagged any system block, keep the array-of-blocks shape so the breakpoint
+    // survives (DashScope reads cache_control off content blocks). Otherwise fall
+    // back to the joined-string form expected by generic OpenAI providers (#2069).
+    const systemHasCacheControl =
+      preserveCacheControl &&
+      Array.isArray(body.system) &&
+      body.system.some((s) => s && typeof s === "object" && s.cache_control !== undefined);
 
-    if (systemContent) {
+    const systemContent = systemHasCacheControl
+      ? body.system.map((s) => {
+          // body.system may be a mixed array — handle string elements (and
+          // null/non-object) defensively so we never drop text or throw.
+          if (typeof s === "string") return { type: "text", text: stripAnthropicBillingHeader(s) };
+          const rawText = s && typeof s === "object" ? (s as JsonRecord).text || "" : "";
+          const block: JsonRecord = { type: "text", text: stripAnthropicBillingHeader(rawText) };
+          if (s && typeof s === "object" && (s as JsonRecord).cache_control !== undefined) {
+            block.cache_control = (s as JsonRecord).cache_control;
+          }
+          return block;
+        })
+      : Array.isArray(body.system)
+        ? body.system
+            .map((s) => stripAnthropicBillingHeader(s.text || ""))
+            .filter(Boolean)
+            .join("\n")
+        : stripAnthropicBillingHeader(body.system);
+
+    if (systemHasCacheControl || systemContent) {
       result.messages.push({
         role: "system",
         content: systemContent,
@@ -139,7 +170,7 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
   if (body.messages && Array.isArray(body.messages)) {
     for (let i = 0; i < body.messages.length; i++) {
       const msg = body.messages[i];
-      const converted = convertClaudeMessage(msg);
+      const converted = convertClaudeMessage(msg, preserveCacheControl);
       if (converted) {
         // Handle array of messages (multiple tool results)
         if (Array.isArray(converted)) {
@@ -317,7 +348,7 @@ function fixMissingToolResponses(messages) {
 }
 
 // Convert single Claude message - returns single message or array of messages
-function convertClaudeMessage(msg) {
+function convertClaudeMessage(msg, preserveCacheControl = false) {
   const role = msg.role === "user" || msg.role === "tool" ? "user" : "assistant";
 
   // Simple string content
@@ -334,9 +365,16 @@ function convertClaudeMessage(msg) {
 
     for (const block of msg.content) {
       switch (block.type) {
-        case "text":
-          parts.push({ type: "text", text: block.text });
+        case "text": {
+          const textPart: JsonRecord = { type: "text", text: block.text };
+          // #2069 — carry the client's cache_control breakpoint through to
+          // caching-capable OpenAI-format providers (DashScope/alibaba, etc.).
+          if (preserveCacheControl && block.cache_control !== undefined) {
+            textPart.cache_control = block.cache_control;
+          }
+          parts.push(textPart);
           break;
+        }
 
         case "image":
           if (block.source?.type === "base64") {
@@ -382,11 +420,29 @@ function convertClaudeMessage(msg) {
           if (typeof block.content === "string") {
             resultContent = block.content;
           } else if (Array.isArray(block.content)) {
+            // Keep text in the tool message; lift any images out as a following user
+            // turn (OpenAI `tool` messages can't carry images). Without this, an
+            // image-only tool_result is JSON.stringify'd → base64 as text, which
+            // causes "input exceeds the context window" errors in OpenAI-protocol
+            // upstreams (port of decolua/9router#2123 by alican532).
+            const textParts: string[] = [];
+            let hasImage = false;
+            for (const c of block.content) {
+              if (c.type === "text") {
+                textParts.push(c.text);
+              } else if (c.type === "image" && c.source?.type === "base64") {
+                parts.push({
+                  type: "image_url",
+                  image_url: {
+                    url: `data:${c.source.media_type};base64,${c.source.data}`,
+                  },
+                });
+                hasImage = true;
+              }
+            }
             resultContent =
-              block.content
-                .filter((c) => c.type === "text")
-                .map((c) => c.text)
-                .join("\n") || JSON.stringify(block.content);
+              textParts.join("\n") ||
+              (hasImage ? "[tool returned an image; see attached]" : JSON.stringify(block.content));
           } else if (block.content) {
             resultContent = JSON.stringify(block.content);
           }

@@ -179,6 +179,11 @@ const EMBEDDED_DEFAULTS = {
   github_copilot_id: [
     38, 27, 95, 71, 16, 90, 69, 67, 4, 29, 72, 22, 90, 91, 12, 0, 75, 19, 8, 87,
   ],
+  // Grok Build CLI (xAI) — public oauth client id (import-token flow)
+  grok_id: [
+    13, 92, 15, 89, 66, 91, 76, 70, 72, 29, 71, 70, 3, 65, 93, 84, 72, 23, 28, 87, 92, 88, 15, 95,
+    91, 22, 71, 87, 20, 66, 67, 86, 13, 81, 81, 21,
+  ],
 } as const;
 
 export type EmbeddedDefaultKey = keyof typeof EMBEDDED_DEFAULTS;

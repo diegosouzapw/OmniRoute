@@ -3,6 +3,17 @@
  * Pure data literal; re-exported by the providers.ts barrel. No behavior change.
  */
 export const OAUTH_PROVIDERS = {
+  "grok-cli": {
+    id: "grok-cli",
+    alias: "gc",
+    name: "Grok Build",
+    icon: "bolt",
+    color: "#000000",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    authHint:
+      "Paste your ~/.grok/auth.json (or the JWT access token) from the Grok Build CLI; refresh_token is rotated automatically.",
+  },
   qoder: {
     id: "qoder",
     alias: "if",
