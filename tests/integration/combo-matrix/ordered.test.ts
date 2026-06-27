@@ -120,3 +120,64 @@ test("least-used: prefers the target with the fewest recent uses", async () => {
   assert.ok(seen.includes("openai"), "least-used must reach openai");
   assert.ok(seen.includes("claude"), "least-used must reach claude");
 });
+
+test("random: over many calls reaches every target", async () => {
+  await seedConnection("openai", { apiKey: "sk-openai-rnd" });
+  await seedConnection("claude", { apiKey: "sk-claude-rnd" });
+  await seedConnection("gemini", { apiKey: "sk-gemini-rnd" });
+  await combosDb.createCombo({
+    name: "m-random",
+    strategy: "random",
+    config: { maxRetries: 0, retryDelayMs: 0, stickyRoundRobinLimit: 1 },
+    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022", "gemini/gemini-2.5-flash"],
+  });
+  h.installRecordingFetch();
+
+  for (let i = 0; i < 30; i++) {
+    const r = await handleChat(buildRequest({ body: body("m-random") }));
+    assert.equal(r.status, 200);
+  }
+  const unique = new Set(h.providersSeen());
+  assert.equal(unique.size, 3, "random must reach all three providers over 30 calls");
+});
+
+test("strict-random: uses every target once before repeating (deck, no early repeats)", async () => {
+  const { _resetAllDecks } = await import("../../../src/shared/utils/shuffleDeck.ts");
+  _resetAllDecks();
+  await seedConnection("openai", { apiKey: "sk-openai-sr" });
+  await seedConnection("claude", { apiKey: "sk-claude-sr" });
+  await seedConnection("gemini", { apiKey: "sk-gemini-sr" });
+  await combosDb.createCombo({
+    name: "m-strict-random",
+    strategy: "strict-random",
+    config: { maxRetries: 0, retryDelayMs: 0, stickyRoundRobinLimit: 1 },
+    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022", "gemini/gemini-2.5-flash"],
+  });
+  h.installRecordingFetch();
+
+  for (let i = 0; i < 3; i++) {
+    const r = await handleChat(buildRequest({ body: body("m-strict-random") }));
+    assert.equal(r.status, 200);
+  }
+  // First full deck cycle: each provider exactly once (order varies, set is full).
+  assert.deepEqual(new Set(h.providersSeen()), new Set(["openai", "claude", "gemini"]));
+});
+
+test("p2c: spreads load across targets over many calls (no single-target pin)", async () => {
+  await seedConnection("openai", { apiKey: "sk-openai-p2c" });
+  await seedConnection("claude", { apiKey: "sk-claude-p2c" });
+  await seedConnection("gemini", { apiKey: "sk-gemini-p2c" });
+  await combosDb.createCombo({
+    name: "m-p2c",
+    strategy: "p2c",
+    config: { maxRetries: 0, retryDelayMs: 0, stickyRoundRobinLimit: 1 },
+    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022", "gemini/gemini-2.5-flash"],
+  });
+  h.installRecordingFetch();
+
+  for (let i = 0; i < 30; i++) {
+    const r = await handleChat(buildRequest({ body: body("m-p2c") }));
+    assert.equal(r.status, 200);
+  }
+  assert.ok(new Set(h.providersSeen()).size >= 2, "p2c must spread across at least two targets");
+});
