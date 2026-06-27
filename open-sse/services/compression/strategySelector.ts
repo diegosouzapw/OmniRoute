@@ -751,14 +751,14 @@ export function applyStackedCompression(
         continue;
       }
       mergeStackStep(acc, step.engine, result);
-      if (decideStep(result, bailout).advance && gateAdvance(result, currentBody, fidelityGate, acc)) {
+      if (decideStep(result, bailout).advance && gateAdvance(result, currentBody, fidelityGate, acc, step.engine)) {
         currentBody = result.body;
         compressed = true;
       }
     } else {
       const result = engine.apply(currentBody, buildStepOptions(step, options));
       mergeStackStep(acc, step.engine, result);
-      if (result.compressed && gateAdvance(result, currentBody, fidelityGate, acc)) {
+      if (result.compressed && gateAdvance(result, currentBody, fidelityGate, acc, step.engine)) {
         currentBody = result.body;
         compressed = true;
       }
@@ -825,7 +825,7 @@ export async function applyStackedCompressionAsync(
         continue;
       }
       mergeStackStep(acc, step.engine, result);
-      if (decideStep(result, bailout).advance && gateAdvance(result, currentBody, fidelityGate, acc)) {
+      if (decideStep(result, bailout).advance && gateAdvance(result, currentBody, fidelityGate, acc, step.engine)) {
         currentBody = result.body;
         compressed = true;
       }
@@ -834,7 +834,7 @@ export async function applyStackedCompressionAsync(
         ? await engine.applyAsync(currentBody, stepOptions)
         : engine.apply(currentBody, stepOptions);
       mergeStackStep(acc, step.engine, result);
-      if (result.compressed && gateAdvance(result, currentBody, fidelityGate, acc)) {
+      if (result.compressed && gateAdvance(result, currentBody, fidelityGate, acc, step.engine)) {
         currentBody = result.body;
         compressed = true;
       }

@@ -2,6 +2,7 @@ import { extractTextContent } from "./messageContent.ts";
 import { checkFidelity, type FidelityGateConfig } from "./fidelityGate.ts";
 import type { CompressionResult } from "./types.ts";
 import type { StackAccumulator } from "./strategySelector.ts";
+import { getCompressionEngine } from "./engines/registry.ts";
 
 function bodyToText(body: Record<string, unknown>): string {
   const messages = body.messages;
@@ -18,9 +19,11 @@ export function gateAdvance(
   result: CompressionResult,
   inputBody: Record<string, unknown>,
   fidelityGate: FidelityGateConfig | undefined,
-  acc: StackAccumulator
+  acc: StackAccumulator,
+  engineId?: string
 ): boolean {
   if (!fidelityGate?.enabled) return true;
+  if (engineId && getCompressionEngine(engineId)?.sampling) return true; // lossy-by-design, CCR-recoverable
   const verdict = checkFidelity(bodyToText(inputBody), bodyToText(result.body), fidelityGate);
   if (verdict.passed) return true;
   // mergeStackStep only pushed a breakdown entry when result.stats exists; only then is
