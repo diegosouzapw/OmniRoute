@@ -7,6 +7,8 @@ import { PlaygroundInput, LANE_ENGINES } from "./PlaygroundInput";
 export interface PlayViewProps { text: string; onText: (t: string) => void; laneEngines?: readonly string[]; }
 
 function laneStatus(l: Lane): string {
+  const rejected = l.run?.steps?.find((s) => s.rejected);
+  if (rejected) return `⚠ rejeitado: ${rejected.rejectReason ?? ""}`;
   return l.error ? "⚠ erro" : l.run ? `−${l.run.savingsPercent}%` : "—";
 }
 
@@ -31,15 +33,16 @@ function LaneList({ lanes, onSelect }: { lanes: Lane[]; onSelect: (e: string) =>
 export function PlayView({ text, onText, laneEngines = LANE_ENGINES }: PlayViewProps) {
   const [active, setActive] = useState<string[]>(["rtk", "caveman"]);
   const [selectedLane, setSelectedLane] = useState<string | null>(null);
+  const [fidelityGate, setFidelityGate] = useState(false);
   const { batch, loading, run } = usePreviewCompression();
   const messages = [{ role: "user", content: text }];
   const toggle = (e: string) => setActive((a) => (a.includes(e) ? a.filter((x) => x !== e) : [...a, e]));
-  const onRun = () => run({ messages, laneEngines: [...laneEngines], activeEngines: orderByStack(active, laneEngines) });
+  const onRun = () => run({ messages, laneEngines: [...laneEngines], activeEngines: orderByStack(active, laneEngines), fidelityGate });
   const activeDiff = resolveActiveDiff(batch, selectedLane);
   return (
     <div className="flex h-full gap-3">
       <div className="w-[260px] shrink-0">
-        <PlaygroundInput text={text} onText={onText} active={active} onToggleActive={toggle} onRun={onRun} loading={loading} />
+        <PlaygroundInput text={text} onText={onText} active={active} onToggleActive={toggle} onRun={onRun} loading={loading} fidelityGate={fidelityGate} onToggleFidelity={() => setFidelityGate((v) => !v)} />
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-auto">
         {batch?.combined && (

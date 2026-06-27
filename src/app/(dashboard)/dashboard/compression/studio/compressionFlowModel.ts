@@ -21,6 +21,8 @@ export interface CompressionEngineStep {
   techniquesUsed: string[];
   rulesApplied?: string[];
   durationMs?: number;
+  rejected?: boolean;
+  rejectReason?: string;
 }
 
 // ── Diff ─────────────────────────────────────────────────────────────────
