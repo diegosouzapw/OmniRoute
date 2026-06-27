@@ -173,6 +173,12 @@ test("chatRequestToXaiResponses: normalizes max reasoning_effort for xAI", () =>
   assert.deepStrictEqual(out.reasoning, { effort: "high" });
 });
 
+test("chatRequestToXaiResponses: normalizes reasoning.effort for xAI", () => {
+  const req = { model: "grok-4.3", messages: [], reasoning: { effort: "max", summary: "auto" } };
+  const out = chatRequestToXaiResponses(req);
+  assert.deepStrictEqual(out.reasoning, { effort: "high", summary: "auto" });
+});
+
 test("chatRequestToXaiResponses: maps max_tokens to max_output_tokens", () => {
   const req = { model: "grok-4", messages: [], max_tokens: 512 };
   const out = chatRequestToXaiResponses(req);

@@ -233,7 +233,11 @@ export function chatRequestToXaiResponses(req: OpenAiChatRequest): XaiResponsesR
     const effort = normalizeXaiReasoningEffort(req.reasoning_effort);
     if (effort) out.reasoning = { effort };
   }
-  if (req.reasoning) out.reasoning = req.reasoning;
+  if (req.reasoning && typeof req.reasoning === "object") {
+    const reasoning = req.reasoning as Record<string, unknown>;
+    const effort = normalizeXaiReasoningEffort(reasoning.effort);
+    out.reasoning = effort ? { ...reasoning, effort } : reasoning;
+  }
   if (req.tool_choice) out.tool_choice = req.tool_choice;
 
   const tools = req.tools ? toolsPassthrough(req.tools) : undefined;

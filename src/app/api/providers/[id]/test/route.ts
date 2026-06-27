@@ -84,7 +84,7 @@ const OAUTH_TEST_CONFIG = {
       messages: [{ role: "user", content: "ping" }],
       max_tokens: 1,
       stream: false,
-      reasoning_effort: "high",
+      reasoning: { effort: "high" },
     }),
     refreshable: true,
   },
