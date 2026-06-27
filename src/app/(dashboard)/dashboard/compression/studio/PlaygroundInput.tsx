@@ -1,5 +1,5 @@
 "use client";
-export const LANE_ENGINES = ["session-dedup", "ccr", "lite", "rtk", "headroom", "caveman", "aggressive", "ultra"] as const;
+export const LANE_ENGINES = ["session-dedup", "ccr", "lite", "rtk", "ionizer", "headroom", "caveman", "aggressive", "ultra"] as const;
 export interface PlaygroundInputProps { text: string; onText: (t: string) => void; active: string[]; onToggleActive: (engine: string) => void; onRun: () => void; loading: boolean; fidelityGate: boolean; onToggleFidelity: () => void; fuzzyDedup: boolean; onToggleFuzzy: () => void; }
 export function PlaygroundInput({ text, onText, active, onToggleActive, onRun, loading, fidelityGate, onToggleFidelity, fuzzyDedup, onToggleFuzzy }: PlaygroundInputProps) {
   return (
