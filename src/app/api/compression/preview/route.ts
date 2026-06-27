@@ -33,6 +33,7 @@ export const PreviewRequestSchema = z.object({
   engineId: z.string().optional(),
   pipeline: z.array(z.string()).min(1).optional(),
   config: PreviewCompressionConfigSchema.optional(),
+  fidelityGate: z.object({ enabled: z.boolean() }).optional(),
 });
 
 function countTokens(text: string): number {
@@ -50,20 +51,35 @@ function messagesToText(messages: Array<{ role: string; content: unknown }>): st
 
 async function dispatchCompression(
   requestBody: Record<string, unknown>,
-  opts: { engineId?: string; pipeline?: string[]; effectiveMode: CompressionMode; config?: unknown }
+  opts: {
+    engineId?: string;
+    pipeline?: string[];
+    effectiveMode: CompressionMode;
+    config?: unknown;
+    fidelityGate?: { enabled: boolean };
+  }
 ) {
   if (opts.engineId) {
     return applyCompressionAsync(requestBody, "stacked", {
-      config: { stackedPipeline: [{ engine: opts.engineId }] } as CompressionConfig,
+      config: {
+        stackedPipeline: [{ engine: opts.engineId }],
+        ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
+      } as CompressionConfig,
     });
   }
   if (opts.pipeline) {
     return applyCompressionAsync(requestBody, "stacked", {
-      config: { stackedPipeline: opts.pipeline.map((engine) => ({ engine })) } as CompressionConfig,
+      config: {
+        stackedPipeline: opts.pipeline.map((engine) => ({ engine })),
+        ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
+      } as CompressionConfig,
     });
   }
   return applyCompression(requestBody, opts.effectiveMode, {
-    config: opts.config as CompressionConfig | undefined,
+    config: {
+      ...(opts.config as CompressionConfig | undefined),
+      ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
+    } as CompressionConfig | undefined,
   });
 }
 
@@ -86,7 +102,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages, mode, engineId, pipeline, config } = parsed.data;
+  const { messages, mode, engineId, pipeline, config, fidelityGate } = parsed.data;
   const effectiveMode: CompressionMode = engineId || pipeline ? "stacked" : (mode as CompressionMode);
   const originalText = messagesToText(messages);
   const originalTokens = countTokens(originalText);
@@ -95,7 +111,7 @@ export async function POST(req: Request) {
     const start = Date.now();
     const requestBody = { messages };
     const result = await dispatchCompression(requestBody as Record<string, unknown>, {
-      engineId, pipeline, effectiveMode, config,
+      engineId, pipeline, effectiveMode, config, fidelityGate,
     });
     const durationMs = Date.now() - start;
 
