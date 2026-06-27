@@ -66,8 +66,8 @@
 </div>
 
 <div align="center">
-<b>🌐 Available in 40+ languages</b>
-<table>
+ <b>🌐 Available in 41+ languages</b>
+ <table>
   <tr>
     <td align="center"><a href="README.md">🇺🇸</a></td>
     <td align="center"><a href="docs/i18n/pt-BR/README.md">🇧🇷</a></td>
@@ -76,6 +76,7 @@
     <td align="center"><a href="docs/i18n/it/README.md">🇮🇹</a></td>
     <td align="center"><a href="docs/i18n/ru/README.md">🇷🇺</a></td>
     <td align="center"><a href="docs/i18n/zh-CN/README.md">🇨🇳</a></td>
+    <td align="center"><a href="docs/i18n/zh-TW/README.md">🇹🇼</a></td>
     <td align="center"><a href="docs/i18n/de/README.md">🇩🇪</a></td>
     <td align="center"><a href="docs/i18n/ja/README.md">🇯🇵</a></td>
     <td align="center"><a href="docs/i18n/ko/README.md">🇰🇷</a></td>
