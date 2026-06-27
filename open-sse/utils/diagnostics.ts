@@ -169,42 +169,13 @@ export function synthResponsesFailure(reason?: MalformedReason): string {
  * - Responses API function_call / other structural items count as output even
  *   when they carry no user-visible text.
  * - Claude Messages shape (type:"message" + content[]) is checked directly,
- *   since a Claude client receives the translated body in that shape (no
- *   `choices`/`object:"response"`), e.g. a non-Claude provider answering a
- *   Claude-format request.
+ *   since a Claude client receives the body in that shape (no
+ *   `choices`/`object:"response"`).
  */
 export function detectMalformedNonStream(resp: unknown): MalformedReason | null {
   if (!resp || typeof resp !== "object") return "empty_choices";
 
   const body = resp as Record<string, unknown>;
-
-  // ── Claude Messages shape ──
-  if (body.type === "message") {
-    const content = body.content;
-    const hasOutput =
-      Array.isArray(content) &&
-      content.some((block) => {
-        if (!block || typeof block !== "object") return false;
-        const b = block as Record<string, unknown>;
-        if (b.type === "text") {
-          // convertOpenAINonStreamingToClaude emits "(empty response)" as a
-          // placeholder when the upstream produced no content; treat it as
-          // empty so a genuinely empty completion still trips the guard
-          // (parity with the OpenAI `content:""` path).
-          return (
-            typeof b.text === "string" &&
-            (b.text as string).length > 0 &&
-            b.text !== "(empty response)"
-          );
-        }
-        if (b.type === "thinking")
-          return typeof b.thinking === "string" && (b.thinking as string).length > 0;
-        if (b.type === "tool_use")
-          return typeof b.name === "string" && (b.name as string).length > 0;
-        return false;
-      });
-    return hasOutput ? null : "empty_choices";
-  }
 
   // ── Responses API shape ──
   if (body.object === "response") {
@@ -245,16 +216,25 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
       // throws on `null.type` (that would crash the whole non-stream classifier).
       if (block === null || typeof block !== "object") return false;
       const b = block as Record<string, unknown>;
-      // Text block with visible text.
-      if (b.type === "text" && typeof b.text === "string" && (b.text as string).length > 0) {
+      // Text block with visible text. `convertOpenAINonStreamingToClaude` emits
+      // "(empty response)" as a placeholder when the upstream produced no content,
+      // so treat that sentinel as empty — a genuinely empty completion still trips
+      // the guard (parity with the OpenAI `content:""` path).
+      if (
+        b.type === "text" &&
+        typeof b.text === "string" &&
+        (b.text as string).length > 0 &&
+        b.text !== "(empty response)"
+      ) {
         return true;
       }
-      // Extended-thinking block: a non-empty `signature` is cryptographic proof the
-      // thinking step ran, so it is a valid completion even when the thinking text is "".
+      // Extended-thinking block: valid when it carries visible thinking text OR a
+      // non-empty `signature` (cryptographic proof the thinking step ran, so it is a
+      // valid completion even when the thinking text is "").
       if (
         b.type === "thinking" &&
-        typeof b.signature === "string" &&
-        (b.signature as string).length > 0
+        ((typeof b.thinking === "string" && (b.thinking as string).length > 0) ||
+          (typeof b.signature === "string" && (b.signature as string).length > 0))
       ) {
         return true;
       }
