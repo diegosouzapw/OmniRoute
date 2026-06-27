@@ -11,7 +11,6 @@ import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { validateProviderApiKey } from "@/lib/providers/validation";
 import { getCliRuntimeStatus } from "@/shared/services/cliRuntime";
-// Use the shared open-sse token refresh with built-in dedup/race-condition cache
 import { getAccessToken } from "@omniroute/open-sse/services/tokenRefresh.ts";
 import { rotationGroupFor } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import { saveCallLog } from "@/lib/usageDb";
@@ -25,25 +24,14 @@ import {
 import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
 import { removeConnectionHealth } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 
-// Bound the OAuth probe so a hung upstream can't block the connection-test queue
-// forever (#1449). Mirrors the 30s timeout the API-key path uses via validateProviderApiKey.
 const OAUTH_TEST_TIMEOUT_MS = 30_000;
 
-// OAuth provider test endpoints
 const OAUTH_TEST_CONFIG = {
   claude: {
-    // Claude doesn't have userinfo, we verify token exists and not expired
     checkExpiry: true,
     refreshable: true,
   },
   codex: {
-    // Port of decolua/9router#347: probe the real Codex /responses endpoint instead
-    // of relying on `checkExpiry`. Codex OAuth tokens are ChatGPT session tokens
-    // (not OpenAI API keys) — api.openai.com/v1/models rejects them with 403.
-    // Hitting the actual endpoint with a minimal invalid body returns 400 when
-    // auth is accepted (the body is the reason for the failure) and 401/403 when
-    // the token is bad. That is a real auth signal — checkExpiry alone could not
-    // distinguish a revoked-but-not-yet-expired token from a working one.
     url: "https://chatgpt.com/backend-api/codex/responses",
     method: "POST",
     authHeader: "Authorization",
@@ -53,9 +41,7 @@ const OAUTH_TEST_CONFIG = {
       originator: "codex-cli",
       "User-Agent": "codex-cli/1.0.18 (macOS; arm64)",
     },
-    // Minimal invalid body — triggers a fast 400 without consuming quota.
     body: JSON.stringify({ model: "gpt-5.3-codex", input: [], stream: false, store: false }),
-    // 400 = bad request, but auth was accepted; only 401/403 means the token is bad.
     acceptStatuses: [400],
     refreshable: true,
   },
@@ -105,8 +91,6 @@ const OAUTH_TEST_CONFIG = {
     refreshable: true,
   },
   qwen: {
-    // DashScope (previously portal.qwen.ai) /v1/models might return 404 or auth issues.
-    // Use checkExpiry instead — actual connectivity is validated via real requests.
     checkExpiry: true,
     refreshable: true,
   },
@@ -118,14 +102,9 @@ const OAUTH_TEST_CONFIG = {
     refreshable: true,
   },
   kilocode: {
-    // Kilo OAuth does not expose a stable user-info endpoint in all environments.
-    // Validate using token presence/expiry as a lightweight auth check.
     checkExpiry: true,
   },
   cline: {
-    // Cline's /api/v1/models endpoint frequently returns stale auth errors even
-    // with fresh tokens. Use checkExpiry instead — actual connectivity is validated
-    // via real requests.
     checkExpiry: true,
     refreshable: true,
   },
