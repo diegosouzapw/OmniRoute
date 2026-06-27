@@ -23,6 +23,7 @@
     "@tensorflow/tfjs",
     "@testing-library/jest-dom",
     "@testing-library/react",
+    "@toon-format/toon",
     "@types/bcryptjs",
     "@types/better-sqlite3",
     "@types/bun",
