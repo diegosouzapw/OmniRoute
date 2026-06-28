@@ -1,7 +1,7 @@
 ---
 title: "Environment Variables Reference"
-version: 3.8.31
-lastUpdated: 2026-06-20
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Environment Variables Reference
@@ -202,7 +202,7 @@ OmniRoute provides a two-layer defense: request-side injection scanning and resp
 
 | Variable                  | Default   | Source File                              | Description                                                                                 |
 | ------------------------- | --------- | ---------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `INPUT_SANITIZER_ENABLED` | `false`   | `src/middleware/promptInjectionGuard.ts` | Enable scanning of incoming messages for prompt injection patterns.                         |
+| `INPUT_SANITIZER_ENABLED` | `true`    | `src/middleware/promptInjectionGuard.ts` | Enable scanning of incoming messages for prompt injection patterns.                         |
 | `INPUT_SANITIZER_MODE`    | `warn`    | `src/middleware/promptInjectionGuard.ts` | `warn` = log only, `block` = reject request with 400, `redact` = strip suspicious patterns. |
 | `INJECTION_GUARD_MODE`    | _(unset)_ | `src/middleware/promptInjectionGuard.ts` | Legacy alias for `INPUT_SANITIZER_MODE` — same behavior.                                    |
 | `PII_REDACTION_ENABLED`   | `false`   | `src/middleware/promptInjectionGuard.ts` | Detect PII (emails, phones, SSNs) in incoming requests.                                     |
@@ -376,9 +376,9 @@ detection above).
 | `OMNIROUTE_API_KEY_ID`                          | _(unset)_                                           | `open-sse/mcp-server/audit.ts`                              | Key ID for MCP audit log attribution.                                                                                                                                   |
 | `ROUTER_API_KEY`                                | _(unset)_                                           | Legacy                                                      | Legacy alias for `OMNIROUTE_API_KEY`.                                                                                                                                   |
 | `OMNIROUTE_CONTEXT`                             | _(active context)_                                  | `bin/cli/program.mjs`, `bin/cli/api.mjs`                    | CLI remote-mode context/profile for `omniroute` commands; overrides the active context in the local contexts store. Equivalent to `--context <name>`.                   |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`                  | `false`                                             | `open-sse/mcp-server/server.ts`                             | Enforce scope-based access control on MCP tool calls.                                                                                                                   |
+| `OMNIROUTE_MCP_ENFORCE_SCOPES`                  | `true`                                              | `open-sse/mcp-server/server.ts`                             | Enforce scope-based access control on MCP tool calls.                                                                                                                   |
 | `OMNIROUTE_MCP_SCOPES`                          | _(all)_                                             | `open-sse/mcp-server/server.ts`                             | Comma-separated scopes: `admin`, `combos`, `health`, `models`, `routing`, `budget`, `metrics`, `pricing`, `memory`, `skills`.                                           |
-| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`           | enabled                                             | `open-sse/mcp-server/descriptionCompressor.ts`              | Compress MCP tool descriptions before serializing the manifest. Disable values: `0`, `false`, `off`.                                                                    |
+| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`           | `false`                                             | `open-sse/mcp-server/descriptionCompressor.ts`              | Compress MCP tool descriptions before serializing the manifest. Enable values: `1`, `true`, `on`.                                                                       |
 | `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION`         | `rtk`                                               | `open-sse/mcp-server/descriptionCompressor.ts`              | Compression algorithm/profile. Disable values: `0`, `false`, `off`.                                                                                                     |
 | `MODEL_SYNC_INTERVAL_HOURS`                     | `24`                                                | `src/shared/services/modelSyncScheduler.ts`                 | Model catalog sync interval in hours.                                                                                                                                   |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES`         | `70`                                                | `src/server-init.ts`                                        | Provider rate-limit and quota polling interval.                                                                                                                         |
@@ -660,18 +660,18 @@ The logging system writes to both stdout and rotated log files. All configuratio
 
 ## 17. Memory Optimization
 
-| Variable                   | Default            | Description                                                                                          |
-| -------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_MEMORY_MB`      | `512`              | Runtime V8 heap limit. Docker standalone and `omniroute serve` use it to set `--max-old-space-size`. |
-| `PROMPT_CACHE_MAX_SIZE`    | `50`               | Max cached system prompt entries.                                                                    |
-| `PROMPT_CACHE_MAX_BYTES`   | `2097152` (2 MB)   | Max total prompt cache size.                                                                         |
-| `PROMPT_CACHE_TTL_MS`      | `300000` (5 min)   | Prompt cache entry TTL.                                                                              |
-| `SEMANTIC_CACHE_MAX_SIZE`  | `100`              | Max cached temperature=0 responses.                                                                  |
-| `SEMANTIC_CACHE_MAX_BYTES` | `4194304` (4 MB)   | Max total semantic cache size.                                                                       |
-| `SEMANTIC_CACHE_TTL_MS`    | `1800000` (30 min) | Semantic cache entry TTL.                                                                            |
-| `STREAM_HISTORY_MAX`       | `50`               | Max recent stream events in the Dashboard live view buffer.                                          |
-| `CONTEXT_LENGTH_DEFAULT`   | `128000`           | Global fallback max context length for models without explicit config.                               |
-| `USAGE_TOKEN_BUFFER`       | `100`              | Extra token headroom reserved when tracking usage quotas.                                            |
+| Variable                   | Default            | Description                                                                                                                                                                                                                                                                       |
+| -------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_MEMORY_MB`      | _auto_             | Runtime V8 heap limit (MB). When unset, calibrated dynamically (~35% of system RAM, clamped to `[512, 4096]`); `512` is only the floor when total memory can't be read. Set explicitly to override. Docker standalone and `omniroute serve` use it to set `--max-old-space-size`. |
+| `PROMPT_CACHE_MAX_SIZE`    | `50`               | Max cached system prompt entries.                                                                                                                                                                                                                                                 |
+| `PROMPT_CACHE_MAX_BYTES`   | `2097152` (2 MB)   | Max total prompt cache size.                                                                                                                                                                                                                                                      |
+| `PROMPT_CACHE_TTL_MS`      | `300000` (5 min)   | Prompt cache entry TTL.                                                                                                                                                                                                                                                           |
+| `SEMANTIC_CACHE_MAX_SIZE`  | `100`              | Max cached temperature=0 responses.                                                                                                                                                                                                                                               |
+| `SEMANTIC_CACHE_MAX_BYTES` | `4194304` (4 MB)   | Max total semantic cache size.                                                                                                                                                                                                                                                    |
+| `SEMANTIC_CACHE_TTL_MS`    | `1800000` (30 min) | Semantic cache entry TTL.                                                                                                                                                                                                                                                         |
+| `STREAM_HISTORY_MAX`       | `50`               | Max recent stream events in the Dashboard live view buffer.                                                                                                                                                                                                                       |
+| `CONTEXT_LENGTH_DEFAULT`   | `128000`           | Global fallback max context length for models without explicit config.                                                                                                                                                                                                            |
+| `USAGE_TOKEN_BUFFER`       | `100`              | Extra token headroom reserved when tracking usage quotas.                                                                                                                                                                                                                         |
 
 ### Compression
 

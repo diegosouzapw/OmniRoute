@@ -28,6 +28,7 @@ export default definePlugin({
 Factory function that creates a Plugin object with defaults.
 
 **Parameters:**
+
 - `name` (string, required) — Plugin name in kebab-case
 - `priority` (number, optional, default: 100) — Lower runs first
 - `enabled` (boolean, optional, default: true) — Start enabled?
@@ -69,15 +70,15 @@ onRequest: (ctx) => {
 
 ## Plugin Context (`PluginContext`)
 
-| Field | Type | Description |
-|---|---|---|
-| `requestId` | `string` | Unique request identifier |
-| `model` | `string` | Requested model name |
-| `provider` | `string` | Target provider ID |
-| `body` | `Record<string, unknown>` | Request body |
-| `headers` | `Record<string, string>` | Request headers |
-| `metadata` | `Record<string, unknown>` | Mutable metadata |
-| `timestamp` | `number` | Request timestamp |
+| Field       | Type                      | Description               |
+| ----------- | ------------------------- | ------------------------- |
+| `requestId` | `string`                  | Unique request identifier |
+| `model`     | `string`                  | Requested model name      |
+| `provider`  | `string`                  | Target provider ID        |
+| `body`      | `Record<string, unknown>` | Request body              |
+| `headers`   | `Record<string, string>`  | Request headers           |
+| `metadata`  | `Record<string, unknown>` | Mutable metadata          |
+| `timestamp` | `number`                  | Request timestamp         |
 
 ## Manifest (`plugin.json`)
 
@@ -134,13 +135,13 @@ Or as simple booleans (default priority 100):
 
 Plugins run in a sandboxed VM context. Access to external resources requires explicit permissions:
 
-| Permission | Grants |
-|---|---|
-| `network` | `fetch`, `AbortController`, `Headers`, `Request`, `Response` |
-| `file-read` | `fs.readFile`, `fs.readdir`, `fs.stat` |
-| `file-write` | `fs.writeFile`, `fs.mkdir`, `fs.rm` |
-| `env` | Read-only `process.env` proxy |
-| `exec` | `child_process.exec`, `child_process.execSync` |
+| Permission   | Grants                                                       |
+| ------------ | ------------------------------------------------------------ |
+| `network`    | `fetch`, `AbortController`, `Headers`, `Request`, `Response` |
+| `file-read`  | `fs.readFile`, `fs.readdir`, `fs.stat`                       |
+| `file-write` | `fs.writeFile`, `fs.mkdir`, `fs.rm`                          |
+| `env`        | Read-only `process.env` proxy                                |
+| `exec`       | `child_process.exec`, `child_process.execSync`               |
 
 Without a permission, the corresponding globals are simply not available in the sandbox.
 
@@ -167,22 +168,22 @@ Config values are persisted in the database and accessible via the dashboard con
 
 ## Built-in Events
 
-| Event | When | Payload |
-|---|---|---|
-| `onRequest` | Before chat handler | Request context |
-| `onResponse` | After chat handler | Response data |
-| `onError` | On handler error | Error object |
-| `onModelSelect` | Model selected for routing | Model info |
-| `onComboResolve` | Combo routing resolved | Combo targets |
-| `onRateLimit` | Rate limit hit | Limit info |
-| `onQuotaExhaust` | Quota exhausted | Quota info |
-| `onProviderError` | Provider returned error | Error details |
-| `onStreamStart` | SSE stream started | Stream info |
-| `onStreamEnd` | SSE stream ended | Stream stats |
-| `onInstall` | Plugin installed | `{ name, version, manifest }` |
-| `onActivate` | Plugin activated | `{ name, version, manifest }` |
-| `onDeactivate` | Plugin deactivated | `{ name, version, manifest }` |
-| `onUninstall` | Plugin uninstalled (before files deleted) | `{ name, version, manifest }` |
+| Event             | When                                      | Payload                       |
+| ----------------- | ----------------------------------------- | ----------------------------- |
+| `onRequest`       | Before chat handler                       | Request context               |
+| `onResponse`      | After chat handler                        | Response data                 |
+| `onError`         | On handler error                          | Error object                  |
+| `onModelSelect`   | Model selected for routing                | Model info                    |
+| `onComboResolve`  | Combo routing resolved                    | Combo targets                 |
+| `onRateLimit`     | Rate limit hit                            | Limit info                    |
+| `onQuotaExhaust`  | Quota exhausted                           | Quota info                    |
+| `onProviderError` | Provider returned error                   | Error details                 |
+| `onStreamStart`   | SSE stream started                        | Stream info                   |
+| `onStreamEnd`     | SSE stream ended                          | Stream stats                  |
+| `onInstall`       | Plugin installed                          | `{ name, version, manifest }` |
+| `onActivate`      | Plugin activated                          | `{ name, version, manifest }` |
+| `onDeactivate`    | Plugin deactivated                        | `{ name, version, manifest }` |
+| `onUninstall`     | Plugin uninstalled (before files deleted) | `{ name, version, manifest }` |
 
 ## Examples
 
@@ -215,7 +216,7 @@ export default definePlugin({
     const window = 60000; // 1 minute
     const maxRequests = 100;
 
-    const timestamps = (requests.get(key) || []).filter(t => t > now - window);
+    const timestamps = (requests.get(key) || []).filter((t) => t > now - window);
     timestamps.push(now);
     requests.set(key, timestamps);
 

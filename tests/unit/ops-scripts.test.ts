@@ -1,8 +1,8 @@
 /**
  * tests/unit/ops-scripts.test.ts
  *
- * Contract tests for the incident-runbook ops scripts under bin/ (referenced by
- * docs/INCIDENT_RESPONSE.md and docs/PERF_BUDGETS.md):
+ * Contract tests for the self-hoster incident-recovery / cold-start ops scripts
+ * under bin/:
  *   rollback.sh · snapshot-data.sh · restore-data.sh · restore-policies.sh ·
  *   cold-start-bench.sh
  *

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # bin/snapshot-data.sh — consistent point-in-time snapshot of the OmniRoute data
-# volume (the SQLite store under $DATA_DIR). Used by the data-layer incident
-# runbook (docs/INCIDENT_RESPONSE.md §4.4) before any restore.
+# volume (the SQLite store under $DATA_DIR). Used by the data-layer
+# incident-recovery flow before any restore.
 #
 # Output: a directory $DB_BACKUPS_DIR/snapshot_<UTC>[_<label>] holding a
 # `VACUUM INTO` copy of storage.sqlite (consistent even with WAL writers active)

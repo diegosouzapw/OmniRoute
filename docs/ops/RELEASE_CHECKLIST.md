@@ -1,7 +1,7 @@
 ---
 title: "Release Checklist"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Release Checklist
@@ -21,7 +21,7 @@ lastUpdated: 2026-05-13
 
 # 2. Run quality gate locally
 npm run check              # lint + tests
-npm run test:coverage      # full coverage gate (75/75/75/70)
+npm run test:coverage      # full coverage gate (60/60/60/60)
 
 # 3. Build & smoke
 npm run build
@@ -66,13 +66,13 @@ npm run test:e2e           # optional but recommended
 - [ ] `npm run check:cycles` — no circular deps
 - [ ] `npm run check:any-budget:t11` — within budget
 - [ ] `npm run check:route-validation:t06` — clean
-- [ ] `npm run check:node-runtime` — supported floor met (`>=20.20.2 <21`, `>=22.22.2 <23`, `>=24.0.0 <25`)
+- [ ] `npm run check:node-runtime` — supported runtime floor met (`>=20.20.2 <21`, `>=22.22.2 <23`, `>=24.0.0 <27`, per `SUPPORTED_NODE_RANGE` in `src/shared/utils/nodeRuntimeSupport.ts`; note `package.json` `engines` is stricter: `>=22.0.0 <23 || >=24.0.0 <27`)
 
 ### Testing
 
 - [ ] `npm run test:unit` — pass
 - [ ] `npm run test:vitest` — pass (MCP server, autoCombo, cache)
-- [ ] `npm run test:coverage` — gate 75/75/75/70 satisfied (statements/lines/functions/branches)
+- [ ] `npm run test:coverage` — gate 60/60/60/60 satisfied (statements/lines/functions/branches)
 - [ ] `npm run test:integration` — pass (if changes touch DB / handlers)
 - [ ] `npm run test:combo:matrix` — pass (combo strategy matrix: proves all 17 routing strategies' selection decisions deterministically; run when touching combo routing, strategy resolution, or fallback logic)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **optional/manual** (gated real-upstream smoke; sources a read-only DB snapshot from VPS `root@192.168.0.15`; hits real providers, costs credits; never runs in CI; skips cleanly without the gate)
@@ -86,7 +86,7 @@ npm run test:e2e           # optional but recommended
 Husky hooks live in `.husky/` and run automatically on git operations.
 
 - **pre-commit:** `npx lint-staged + node scripts/check/check-docs-sync.mjs + npm run check:any-budget:t11`
-- **pre-push:** currently disabled (commented out). When re-enabled, runs `npm run test:unit`.
+- **pre-push:** fast deterministic gates — `npm run check:any-budget:t11 && npm run check:tracked-artifacts` (activated 2026-06-13). Intentionally excludes `test:unit` (slow; covered by the CI `test-unit` job).
   - Run `npm run test:unit` manually before pushing release branches.
 
 If a hook fails: fix the underlying issue, don't bypass with `--no-verify`.
@@ -158,11 +158,11 @@ If `electron/` changed:
 
 The repository uses three distinct output directories — never mix them up:
 
-| Directory     | Purpose                                                       | Tracked? |
-| ------------- | ------------------------------------------------------------- | -------- |
-| `src/`        | Application source (TypeScript / TSX)                         | Yes      |
-| `.build/`     | Build intermediates — `next build` output (`distDir`)         | No (gitignored) |
-| `dist/`       | Shippable npm bundle — assembled by `assembleStandalone`      | No (gitignored) |
+| Directory | Purpose                                                  | Tracked?        |
+| --------- | -------------------------------------------------------- | --------------- |
+| `src/`    | Application source (TypeScript / TSX)                    | Yes             |
+| `.build/` | Build intermediates — `next build` output (`distDir`)    | No (gitignored) |
+| `dist/`   | Shippable npm bundle — assembled by `assembleStandalone` | No (gitignored) |
 
 > **Operator note:** the remote VPS image directory remains `/usr/lib/node_modules/omniroute/app/`.
 > Only the **in-repo** build output moved (`app/` → `dist/`). The deploy skills rsync
@@ -312,7 +312,7 @@ If release has critical issue:
 - Never use `git push --force` to `main` or `release/*` branches
 - Never skip Husky hooks (`--no-verify`)
 - Never commit secrets, credentials, or `.env` files
-- Coverage must stay ≥75/75/75/70 (statements/lines/functions/branches)
+- Coverage must stay ≥60/60/60/60 (statements/lines/functions/branches)
 - Always include or update tests when changing production code in `src/`, `open-sse/`, `electron/`, or `bin/`
 
 ## Automated Sync Check

@@ -1,7 +1,7 @@
 ---
 title: "Test Coverage Plan"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Test Coverage Plan
@@ -42,15 +42,15 @@ The recommended baseline is the number to optimize against.
 
 ## Milestones
 
-| Phase   |                 Target | Focus                                             | Status     |
-| ------- | ---------------------: | ------------------------------------------------- | ---------- |
-| Phase 1 | 60% statements / lines | Quick wins and low-risk utility coverage          | ✅ Done    |
-| Phase 2 | 65% statements / lines | DB and route foundations                          | ✅ Done    |
-| Phase 3 | 70% statements / lines | Provider validation and usage analytics           | ✅ Done    |
-| Phase 4 | 75% statements / lines | `open-sse` translators and helpers                | ✅ Done    |
-| Phase 5 | 80% statements / lines | `open-sse` handlers and executor branches         | ✅ Done    |
+| Phase   |                 Target | Focus                                             | Status      |
+| ------- | ---------------------: | ------------------------------------------------- | ----------- |
+| Phase 1 | 60% statements / lines | Quick wins and low-risk utility coverage          | ✅ Done     |
+| Phase 2 | 65% statements / lines | DB and route foundations                          | ✅ Done     |
+| Phase 3 | 70% statements / lines | Provider validation and usage analytics           | ✅ Done     |
+| Phase 4 | 75% statements / lines | `open-sse` translators and helpers                | ✅ Done     |
+| Phase 5 | 80% statements / lines | `open-sse` handlers and executor branches         | ✅ Done     |
 | Phase 6 | 85% statements / lines | Harder edge cases, branch debt, regression suites | In progress |
-| Phase 7 | 90% statements / lines | Final sweep, gap closure, strict ratchet          | Pending    |
+| Phase 7 | 90% statements / lines | Final sweep, gap closure, strict ratchet          | Pending     |
 
 Branches and functions should ratchet upward with each phase, but the primary hard target is statements / lines.
 
@@ -58,28 +58,28 @@ Branches and functions should ratchet upward with each phase, but the primary ha
 
 These files have the lowest line coverage today (< 60%) and offer the best return for Phases 6-7. Generated from `coverage/coverage-summary.json` on 2026-05-13:
 
-| #   | File                                                              | Lines % |
-| --- | ----------------------------------------------------------------- | ------: |
-| 1   | `open-sse/services/compression/validation.ts`                     |   7.87% |
-| 2   | `src/app/api/v1/batches/route.ts`                                 |   9.67% |
-| 3   | `src/app/docs/components/FeedbackWidget.tsx`                      |   9.80% |
-| 4   | `open-sse/services/compression/toolResultCompressor.ts`           |  10.00% |
-| 5   | `src/app/docs/components/DocCodeBlocks.tsx`                       |  10.63% |
-| 6   | `open-sse/services/compression/engines/rtk/lineFilter.ts`         |  10.96% |
-| 7   | `open-sse/services/specificityRules.ts`                           |  11.28% |
-| 8   | `src/mitm/systemCommands.ts`                                      |  12.19% |
-| 9   | `open-sse/services/compression/aggressive.ts`                     |  12.77% |
-| 10  | `src/app/api/v1/batches/[id]/cancel/route.ts`                     |  12.98% |
-| 11  | `open-sse/services/compression/progressiveAging.ts`               |  13.26% |
-| 12  | `open-sse/services/compression/engines/rtk/smartTruncate.ts`      |  13.43% |
-| 13  | `open-sse/services/compression/engines/rtk/deduplicator.ts`       |  13.51% |
-| 14  | `src/lib/cloudAgent/agents/jules.ts`                              |  13.52% |
-| 15  | `open-sse/services/compression/lite.ts`                           |  14.46% |
-| 16  | `src/app/api/v1/rerank/route.ts`                                  |  14.94% |
-| 17  | `open-sse/services/compression/preservation.ts`                   |  15.07% |
-| 18  | `src/lib/cloudAgent/agents/codex.ts`                              |  15.54% |
-| 19  | `open-sse/services/tierResolver.ts`                               |  16.66% |
-| 20  | `src/app/docs/components/DocsLazyWrapper.tsx`                     |  16.66% |
+| #   | File                                                         | Lines % |
+| --- | ------------------------------------------------------------ | ------: |
+| 1   | `open-sse/services/compression/validation.ts`                |   7.87% |
+| 2   | `src/app/api/v1/batches/route.ts`                            |   9.67% |
+| 3   | `src/app/docs/components/FeedbackWidget.tsx`                 |   9.80% |
+| 4   | `open-sse/services/compression/toolResultCompressor.ts`      |  10.00% |
+| 5   | `src/app/docs/components/DocCodeBlocks.tsx`                  |  10.63% |
+| 6   | `open-sse/services/compression/engines/rtk/lineFilter.ts`    |  10.96% |
+| 7   | `open-sse/services/specificityRules.ts`                      |  11.28% |
+| 8   | `src/mitm/systemCommands.ts`                                 |  12.19% |
+| 9   | `open-sse/services/compression/aggressive.ts`                |  12.77% |
+| 10  | `src/app/api/v1/batches/[id]/cancel/route.ts`                |  12.98% |
+| 11  | `open-sse/services/compression/progressiveAging.ts`          |  13.26% |
+| 12  | `open-sse/services/compression/engines/rtk/smartTruncate.ts` |  13.43% |
+| 13  | `open-sse/services/compression/engines/rtk/deduplicator.ts`  |  13.51% |
+| 14  | `src/lib/cloudAgent/agents/jules.ts`                         |  13.52% |
+| 15  | `open-sse/services/compression/lite.ts`                      |  14.46% |
+| 16  | `src/app/api/v1/rerank/route.ts`                             |  14.94% |
+| 17  | `open-sse/services/compression/preservation.ts`              |  15.07% |
+| 18  | `src/lib/cloudAgent/agents/codex.ts`                         |  15.54% |
+| 19  | `open-sse/services/tierResolver.ts`                          |  16.66% |
+| 20  | `src/app/docs/components/DocsLazyWrapper.tsx`                |  16.66% |
 
 Themes for Phases 6-7:
 
@@ -157,7 +157,7 @@ Themes for Phases 6-7:
 
 Update `npm run test:coverage` thresholds only after the project actually exceeds the next milestone with a comfortable buffer.
 
-**Current gate (as of 2026-05-13):** `npm run test:coverage` enforces **75 statements / 75 lines / 75 functions / 70 branches**. This is the conservative ratchet against the measured baseline (82.58% / 82.58% / 84.23% / 75.22%) and preserves headroom for transient flakiness.
+**Current gate:** `npm run test:coverage` enforces **60 statements / 60 lines / 60 functions / 60 branches** (the metric was rebased in Quality-Gates Fase 6A.1 — the earlier 82.58% baseline was inflated because it counted test files and excluded `open-sse`). The `test:coverage:legacy` command preserves the old 50/50/50 metric for historical comparison.
 
 For ad-hoc threshold checks against the latest report use:
 
@@ -171,7 +171,7 @@ Recommended ratchet sequence (order is `statements-lines / branches / functions`
 2. 60/62/58
 3. 65/64/62
 4. 70/66/66
-5. 75/70/72  <-- current gate (75/70/75)
+5. 75/70/72 <-- current gate (75/70/75)
 6. 80/75/78
 7. 85/80/84
 8. 90/85/88

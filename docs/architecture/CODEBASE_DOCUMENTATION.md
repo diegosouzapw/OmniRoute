@@ -26,7 +26,7 @@ without inventing new modules.
 | Concern       | Choice                                                                                                                   |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------ | --- | ------------- | --- | ------------------------------------ |
 | Web framework | **Next.js 16** (App Router, standalone output, no global middleware)                                                     |
-| Language      | **TypeScript 5.9+** — target `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                    |
+| Language      | **TypeScript 6.0+** — target `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                    |
 | Runtime       | **Node.js** `>=20.20.2 <21                                                                                               |     | >=22.22.2 <23 |     | >=24.0.0 <27`(enforced via`engines`) |
 | Database      | **SQLite** via `better-sqlite3` (singleton, WAL journaling)                                                              |
 | Desktop       | **Electron 41** + `electron-builder` 26.10 (separate workspace at `electron/`)                                           |
@@ -457,7 +457,7 @@ open-sse/
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
 ├── utils/                  Streaming helpers, TLS client, AWS SigV4, proxy fetch, …
-└── mcp-server/             MCP server (3 transports, 30 scopes, 87 tools)
+└── mcp-server/             MCP server (3 transports, 30 scopes, 94 tools)
 ```
 
 ### 4.1 `open-sse/handlers/`
@@ -482,7 +482,7 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-45 provider executors, each extending `BaseExecutor` (`base.ts`):
+70 provider executors, each extending `BaseExecutor` (`base.ts`):
 
 `antigravity`, `azure-openai`, `blackbox-web`, `chatgpt-web`, `cliproxyapi`,
 `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
@@ -491,7 +491,7 @@ open-sse/
 (shared identity helper) and `index.ts` (registry).
 
 > Note: providers not listed here are served by `default.ts` using the generic
-> OpenAI-compatible executor. The full provider catalog (226+ entries) lives in
+> OpenAI-compatible executor. The full provider catalog (237 entries) lives in
 > `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
@@ -502,7 +502,7 @@ Hub-and-spoke translation (OpenAI is the hub).
   `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
   `gemini-to-openai`, `openai-responses`, `openai-to-claude`,
   `openai-to-cursor`, `openai-to-gemini`, `openai-to-kiro`.
-- **8 response translators** (`translator/response/`):
+- **9 response translators** (`translator/response/`):
   `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`,
   `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`,
   `openai-to-claude`.
@@ -524,7 +524,7 @@ Highlights (full list under `open-sse/services/`):
 
 | Concern                   | Files                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Combo routing             | `combo.ts` (15 strategies), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Combo routing             | `combo.ts` (17 strategies), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | Auto Combo engine         | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`                                                                                                                                                                                                                                                                                                                                                                             |
 | Resilience                | `accountFallback.ts` (cooldown + lockout), `errorClassifier.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | Quotas                    | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
@@ -634,17 +634,17 @@ Two binaries are exposed in `package.json` → `bin`:
 
 ## 7. `tests/`
 
-| Directory                                                                      | Type                                                                                       |
-| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
-| `tests/unit/`                                                                  | Unit tests via Node native test runner (506 files, plus `api/`, `auth/`, `authz/` subdirs) |
-| `tests/integration/`                                                           | Cross-module + DB-state tests                                                              |
-| `tests/e2e/`                                                                   | Playwright UI tests                                                                        |
-| `tests/protocols-e2e/`                                                         | MCP/A2A protocol e2e                                                                       |
-| `tests/translator/`                                                            | Translator-specific tests                                                                  |
-| `tests/security/`                                                              | Security regressions                                                                       |
-| `tests/load/`                                                                  | Load / stress tests                                                                        |
-| `tests/golden-set/`                                                            | Reference outputs for translator regressions                                               |
-| `tests/helpers/`, `tests/fixtures/`, `tests/manual/`, `tests/scratch_test.mjs` | Support                                                                                    |
+| Directory                                                                      | Type                                                                                        |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `tests/unit/`                                                                  | Unit tests via Node native test runner (1821 files, plus `api/`, `auth/`, `authz/` subdirs) |
+| `tests/integration/`                                                           | Cross-module + DB-state tests                                                               |
+| `tests/e2e/`                                                                   | Playwright UI tests                                                                         |
+| `tests/protocols-e2e/`                                                         | MCP/A2A protocol e2e                                                                        |
+| `tests/translator/`                                                            | Translator-specific tests                                                                   |
+| `tests/security/`                                                              | Security regressions                                                                        |
+| `tests/load/`                                                                  | Load / stress tests                                                                         |
+| `tests/golden-set/`                                                            | Reference outputs for translator regressions                                                |
+| `tests/helpers/`, `tests/fixtures/`, `tests/manual/`, `tests/scratch_test.mjs` | Support                                                                                     |
 
 Common commands:
 
@@ -805,7 +805,7 @@ See [A2A-SERVER.md § Adding a New Skill](../frameworks/A2A-SERVER.md). Skills l
 - **Branches**: prefixes `feat/`, `fix/`, `refactor/`, `docs/`, `test/`,
   `chore/`. Never commit directly to `main`.
 - **Husky**: pre-commit runs `lint-staged` + `check:docs-sync` +
-  `check:any-budget:t11`; pre-push runs `npm run test:unit`.
+  `check:any-budget:t11`; pre-push runs `check:any-budget:t11` + `check:tracked-artifacts` (fast gates; excludes `test:unit`).
 
 ---
 

@@ -25,11 +25,12 @@ Current shipped packs (verified against `rules/` directory contents):
 | English             | `rules/en/`    | `context`, `dedup`, `filler`, `structural`, `ultra` |
 | Spanish             | `rules/es/`    | `context`, `dedup`, `filler`, `structural`, `ultra` |
 | Portuguese (Brazil) | `rules/pt-BR/` | `context`, `dedup`, `filler`, `structural`, `ultra` |
+| Indonesian          | `rules/id/`    | `context`, `dedup`, `filler`, `structural`, `ultra` |
 | German              | `rules/de/`    | `context`, `filler`, `structural`                   |
 | French              | `rules/fr/`    | `context`, `filler`, `structural`                   |
 | Japanese            | `rules/ja/`    | `context`, `filler`, `structural`                   |
 
-> **Parity note:** `en`, `es`, and `pt-BR` packs have the full 5 categories; `de`, `fr`, `ja` ship 3 categories. The missing `dedup` and `ultra` categories silently fall back to the English built-ins. Contributions welcome to add `dedup.json` and `ultra.json` for the smaller packs.
+> **Parity note:** `en`, `es`, `pt-BR`, and `id` packs have the full 5 categories; `de`, `fr`, `ja` ship 3 categories. The missing `dedup` and `ultra` categories silently fall back to the English built-ins. Contributions welcome to add `dedup.json` and `ultra.json` for the smaller packs.
 >
 > The `pt-BR` pack is based on **[Troglodita](https://github.com/leninejunior/troglodita)** by Lenine Júnior — a compression system designed from scratch for Brazilian Portuguese grammar (pleonasm reduction, PT-BR filler removal, technical abbreviations for the dev BR community).
 >
@@ -54,12 +55,12 @@ Compression settings can include:
     "enabled": true,
     "defaultLanguage": "en",
     "autoDetect": true,
-    "enabledPacks": ["en", "pt-BR", "es", "de", "fr", "ja"]
+    "enabledPacks": ["en", "pt-BR", "es", "id", "de", "fr", "ja"]
   },
   "cavemanConfig": {
     "language": "en",
     "autoDetectLanguage": true,
-    "enabledLanguagePacks": ["en", "pt-BR", "es", "de", "fr", "ja"]
+    "enabledLanguagePacks": ["en", "pt-BR", "es", "id", "de", "fr", "ja"]
   }
 }
 ```

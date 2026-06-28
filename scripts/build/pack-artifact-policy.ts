@@ -79,10 +79,10 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "bin/nodeRuntimeSupport.mjs",
   "bin/omniroute.mjs",
   "bin/reset-password.mjs",
-  // Operator / incident-runbook shell tooling (rollback, snapshot, restore,
-  // cold-start bench) shipped in bin/ for self-hosters — referenced by
-  // docs/INCIDENT_RESPONSE.md, not imported by the runtime. Included via the
-  // package.json "files": ["bin/"] entry, so they must be allowed here.
+  // Operator incident-recovery / cold-start shell tooling (rollback, snapshot,
+  // restore, cold-start bench) shipped in bin/ for self-hosters — not imported by
+  // the runtime. Included via the package.json "files": ["bin/"] entry, so they
+  // must be allowed here. Each script is self-documenting via --help.
   "bin/_ops-common.sh",
   "bin/cold-start-bench.sh",
   "bin/restore-data.sh",

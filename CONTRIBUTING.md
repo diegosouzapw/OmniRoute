@@ -160,7 +160,7 @@ npm run test:protocols:e2e
 # Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Coverage gate: 75% statements/lines/functions, 70% branches
+# Coverage gate: 60% statements/lines/functions/branches
 npm run test:coverage
 npm run coverage:report
 
@@ -184,7 +184,7 @@ npm run test:combo:live:vps:failover     # adds a real cross-provider failover s
 Coverage notes:
 
 - `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
-- Pull requests must keep the coverage gate at **75%+** statements/lines/functions and **70%+** branches
+- Pull requests must keep the coverage gate at **60%+** statements/lines/functions/branches
 - If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must add or update automated tests in the same PR
 - `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
 - `npm run test:coverage:legacy` preserves the older metric for historical comparison
@@ -196,7 +196,7 @@ Before opening or merging a PR:
 
 - Run `npm run test:unit`
 - Run `npm run test:coverage`
-- Ensure the coverage gate stays at **75%+** statements/lines/functions, **70%+** branches
+- Ensure the coverage gate stays at **60%+** statements/lines/functions/branches
 - Include the changed or added test files in the PR description when production code changed
 - Check the SonarQube result on the PR when the project secrets are configured in CI
 

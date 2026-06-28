@@ -359,9 +359,6 @@ const SKIP_DOC_FILES = new Set([
   "docs/reference/PROVIDER_REFERENCE.md", // auto-generated from providers.ts
   "docs/openapi.yaml",
   "docs/i18n", // translations — separate workflow
-  // Point-in-time documentation audit (v3.8.24): intentionally references drift,
-  // counts, and not-yet-existing files as part of documenting them — not living docs.
-  "docs/ops/DOCUMENTATION_AUDIT_REPORT.md",
   // Design / research / plan docs: by definition describe not-yet-built files and
   // proposed (not-yet-shipped) endpoints (each carries a `Status: Design`/`Active
   // research`/`Plano` header). Same rationale as the audit report above — these are
