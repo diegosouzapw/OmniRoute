@@ -36,7 +36,7 @@ open-sse/
 ├── types.d.ts            # Public type exports
 ├── package.json          # @omniroute/open-sse
 ├── config/               # Provider configs, constants, registries
-├── executors/            # Per-provider HTTP executors (70 files)
+├── executors/            # Per-provider HTTP executors (68 + base.ts/index.ts)
 ├── handlers/             # Request handlers (chatCore, responses, etc.)
 ├── lib/                  # Internal utilities
 ├── mcp-server/           # Model Context Protocol server
@@ -49,7 +49,7 @@ open-sse/
 ### Module Counts
 
 | Directory | Files | Purpose |
-| `executors/` | 70 | Per-provider HTTP executors (unified via DefaultExecutor factory) |
+| `executors/` | 68 | Per-provider HTTP executors (unified via DefaultExecutor factory) |
 | `handlers/` | 16 | Request entry points (chatCore, responses, embeddings) |
 | `services/` | ~294 | Routing, caching, rate limiting, refresh, etc. |
 | `translator/` | ~27 | Format conversion (OpenAI ↔ Claude ↔ Gemini) |
@@ -252,7 +252,7 @@ Supports **17 routing strategies** (see `src/shared/constants/routingStrategies.
 
 ### base.ts (1170 LOC)
 
-The **abstract executor** that all 70 executors extend. It contains:
+The **abstract executor** that all 68 executors extend. It contains:
 
 - `buildUrl()` — default URL construction (subclasses override for custom)
 - `buildHeaders()` — default headers (auth, content-type)

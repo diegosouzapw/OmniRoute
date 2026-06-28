@@ -35,22 +35,22 @@ For full test matrix, see `CONTRIBUTING.md` → "Running Tests". For deep archit
 
 ## Project at a Glance
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 231 LLM providers, auto-fallback.
+**OmniRoute** — unified AI proxy/router. One endpoint, 237 LLM providers, auto-fallback.
 
-| Layer         | Location                | Purpose                                                                                                                                |
-| ------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| API Routes    | `src/app/api/v1/`       | Next.js App Router — entry points                                                                                                      |
-| Handlers      | `open-sse/handlers/`    | Request processing (chat, embeddings, etc)                                                                                             |
-| Executors     | `open-sse/executors/`   | Provider-specific HTTP dispatch                                                                                                        |
-| Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                               |
-| Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                       |
-| Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                               |
-| Database      | `src/lib/db/`           | SQLite domain modules (83 files, 97 migrations)                                                                                        |
-| Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                              |
-| MCP Server    | `open-sse/mcp-server/`  | 88 tools (34 base + memory/skill/notion/obsidian/gamification/plugin modules), 3 transports (stdio / SSE / Streamable HTTP), 31 scopes |
-| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                            |
-| Skills        | `src/lib/skills/`       | Extensible skill framework                                                                                                             |
-| Memory        | `src/lib/memory/`       | Persistent conversational memory                                                                                                       |
+| Layer         | Location                | Purpose                                                                                                                                                |
+| ------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| API Routes    | `src/app/api/v1/`       | Next.js App Router — entry points                                                                                                                      |
+| Handlers      | `open-sse/handlers/`    | Request processing (chat, embeddings, etc)                                                                                                             |
+| Executors     | `open-sse/executors/`   | Provider-specific HTTP dispatch                                                                                                                        |
+| Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                                               |
+| Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                                       |
+| Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                                               |
+| Database      | `src/lib/db/`           | SQLite domain modules (94 files, 106 migrations)                                                                                                       |
+| Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                                              |
+| MCP Server    | `open-sse/mcp-server/`  | 94 tools (34 base + memory/skill/agentSkill/pool/notion/obsidian/gamification/plugin modules), 3 transports (stdio / SSE / Streamable HTTP), 30 scopes |
+| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                                            |
+| Skills        | `src/lib/skills/`       | Extensible skill framework                                                                                                                             |
+| Memory        | `src/lib/memory/`       | Persistent conversational memory                                                                                                                       |
 
 Monorepo: `src/` (Next.js 16 app), `open-sse/` (streaming engine workspace), `electron/` (desktop app), `tests/`, `bin/` (CLI entry point).
 
@@ -72,7 +72,7 @@ Client → /v1/chat/completions (Next.js route)
 
 API routes follow a consistent pattern: `Route → CORS preflight → Zod body validation → Optional auth (extractApiKey/isValidApiKey) → API key policy enforcement → Handler delegation (open-sse)`. No global Next.js middleware — interception is route-specific.
 
-**Combo routing** (`open-sse/services/combo.ts`): 17 strategies (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, context-relay, fusion). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks. The `fusion` strategy is the exception: it fans out to a panel of models in parallel, then a judge model synthesizes one final answer (`open-sse/services/fusion.ts`). See `docs/routing/AUTO-COMBO.md` for the 9-factor Auto-Combo scoring + the full strategy table and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
+**Combo routing** (`open-sse/services/combo.ts`): 17 strategies (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, context-relay, fusion). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks. The `fusion` strategy is the exception: it fans out to a panel of models in parallel, then a judge model synthesizes one final answer (`open-sse/services/fusion.ts`). See `docs/routing/AUTO-COMBO.md` for the 12-factor Auto-Combo scoring + the full strategy table and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -332,7 +332,7 @@ For any non-trivial change, read the matching deep-dive first:
 | Repo navigation                               | `docs/architecture/REPOSITORY_MAP.md`                   |
 | Architecture                                  | `docs/architecture/ARCHITECTURE.md`                     |
 | Engineering reference                         | `docs/architecture/CODEBASE_DOCUMENTATION.md`           |
-| Auto-Combo (9-factor scoring, 17 strategies)  | `docs/routing/AUTO-COMBO.md`                            |
+| Auto-Combo (12-factor scoring, 17 strategies) | `docs/routing/AUTO-COMBO.md`                            |
 | Resilience (3 mechanisms)                     | `docs/architecture/RESILIENCE_GUIDE.md`                 |
 | Reasoning replay                              | `docs/routing/REASONING_REPLAY.md`                      |
 | Skills framework                              | `docs/frameworks/SKILLS.md`                             |

@@ -273,7 +273,7 @@ Full PT-BR and EN translations are provided. 39 other locales fall back to EN au
 
 ### Step 2 — Install CLI Tools
 
-All npm-based tools require Node.js 20.20.2+, 22.22.2+ or 24.x:
+All npm-based tools require Node.js 22.22.2+ or 24.x:
 
 ```bash
 # Claude Code (Anthropic)

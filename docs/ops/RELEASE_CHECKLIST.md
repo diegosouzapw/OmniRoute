@@ -66,7 +66,7 @@ npm run test:e2e           # optional but recommended
 - [ ] `npm run check:cycles` — no circular deps
 - [ ] `npm run check:any-budget:t11` — within budget
 - [ ] `npm run check:route-validation:t06` — clean
-- [ ] `npm run check:node-runtime` — supported runtime floor met (`>=20.20.2 <21`, `>=22.22.2 <23`, `>=24.0.0 <27`, per `SUPPORTED_NODE_RANGE` in `src/shared/utils/nodeRuntimeSupport.ts`; note `package.json` `engines` is stricter: `>=22.0.0 <23 || >=24.0.0 <27`)
+- [ ] `npm run check:node-runtime` — supported runtime floor met (`>=22.22.2 <23`, `>=24.0.0 <27`, per `SUPPORTED_NODE_RANGE` in `src/shared/utils/nodeRuntimeSupport.ts`; aligned with `package.json` `engines`)
 
 ### Testing
 

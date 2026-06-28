@@ -226,7 +226,7 @@ allowlist is a false sense of quality.
 ## Agent tooling: LSP-in-the-loop (opt-in)
 
 Beyond the CI gates, OmniRoute ships an **opt-in** `agent-lsp` scaffold
-([`.mcp.json.example`](../../.mcp.json.example), Fase 7 Task 15). Copy it to `.mcp.json`
+(a project-level `.mcp.json`, Fase 7 Task 15). Create `.mcp.json`
 to expose a TypeScript language server to coding agents, so they resolve symbols /
 diagnostics **before** writing code — a compile-before-claim companion to
 `typecheck:core` that cuts "invented symbol" errors at the source. It is intentionally

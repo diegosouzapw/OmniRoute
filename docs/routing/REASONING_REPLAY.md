@@ -96,7 +96,7 @@ Replay is enabled when `requiresReasoningReplay(provider, model)` returns `true`
 - `/deepseek-r1/i`
 - `/deepseek-reasoner/i`
 - `/deepseek-chat/i`
-- `/deepseek[-/]?v4[-.](flash|pro)(-free)?/i`
+- `/deepseek[-/]?v4[-.]flash/i` and `/deepseek[-/]?v4[-.]pro/i` (V4 Flash / Pro, optional `-free` suffix)
 - `/(deepseek|zen\/deepseek)-v4/i`
 - `/kimi-k2/i`
 - `/qwq/i`

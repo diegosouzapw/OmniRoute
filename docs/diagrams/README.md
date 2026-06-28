@@ -10,16 +10,16 @@ Mermaid sources (`.mmd`) and exported SVGs for OmniRoute v3.8.0 architecture flo
 
 ## Canonical diagrams
 
-| Source                                             | Exported                                 | Used in                                                                        |
-| -------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------ |
-| [request-pipeline.mmd](./request-pipeline.mmd)     | [SVG](./exported/request-pipeline.svg)   | docs/architecture/ARCHITECTURE.md, docs/architecture/CODEBASE_DOCUMENTATION.md |
-| [auto-combo-9factor.mmd](./auto-combo-9factor.mmd) | [SVG](./exported/auto-combo-9factor.svg) | docs/routing/AUTO-COMBO.md                                                     |
-| [resilience-3layers.mmd](./resilience-3layers.mmd) | [SVG](./exported/resilience-3layers.svg) | docs/architecture/RESILIENCE_GUIDE.md, CLAUDE.md                               |
-| [i18n-flow.mmd](./i18n-flow.mmd)                   | [SVG](./exported/i18n-flow.svg)          | docs/guides/I18N.md                                                            |
-| [mcp-tools-87.mmd](./mcp-tools-87.mmd)             | [SVG](./exported/mcp-tools-87.svg)       | docs/frameworks/MCP-SERVER.md                                                  |
-| [cloud-agent-flow.mmd](./cloud-agent-flow.mmd)     | [SVG](./exported/cloud-agent-flow.svg)   | docs/frameworks/CLOUD_AGENT.md                                                 |
-| [authz-pipeline.mmd](./authz-pipeline.mmd)         | [SVG](./exported/authz-pipeline.svg)     | docs/architecture/AUTHZ_GUIDE.md                                               |
-| [db-schema-overview.mmd](./db-schema-overview.mmd) | [SVG](./exported/db-schema-overview.svg) | docs/architecture/CODEBASE_DOCUMENTATION.md                                    |
+| Source                                               | Exported                                  | Used in                                                                        |
+| ---------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------ |
+| [request-pipeline.mmd](./request-pipeline.mmd)       | [SVG](./exported/request-pipeline.svg)    | docs/architecture/ARCHITECTURE.md, docs/architecture/CODEBASE_DOCUMENTATION.md |
+| [auto-combo-12factor.mmd](./auto-combo-12factor.mmd) | [SVG](./exported/auto-combo-12factor.svg) | docs/routing/AUTO-COMBO.md                                                     |
+| [resilience-3layers.mmd](./resilience-3layers.mmd)   | [SVG](./exported/resilience-3layers.svg)  | docs/architecture/RESILIENCE_GUIDE.md, CLAUDE.md                               |
+| [i18n-flow.mmd](./i18n-flow.mmd)                     | [SVG](./exported/i18n-flow.svg)           | docs/guides/I18N.md                                                            |
+| [mcp-tools-94.mmd](./mcp-tools-94.mmd)               | [SVG](./exported/mcp-tools-94.svg)        | docs/frameworks/MCP-SERVER.md                                                  |
+| [cloud-agent-flow.mmd](./cloud-agent-flow.mmd)       | [SVG](./exported/cloud-agent-flow.svg)    | docs/frameworks/CLOUD_AGENT.md                                                 |
+| [authz-pipeline.mmd](./authz-pipeline.mmd)           | [SVG](./exported/authz-pipeline.svg)      | docs/architecture/AUTHZ_GUIDE.md                                               |
+| [db-schema-overview.mmd](./db-schema-overview.mmd)   | [SVG](./exported/db-schema-overview.svg)  | docs/architecture/CODEBASE_DOCUMENTATION.md                                    |
 
 ## How to update
 
@@ -49,7 +49,7 @@ From a doc in `docs/<subfolder>/`, the relative path becomes `../diagrams/...`:
 From the repo root (e.g. `CLAUDE.md`):
 
 ```markdown
-![Resilience layers](./docs/diagrams/exported/resilience-3layers.svg)
+![Resilience layers](./exported/resilience-3layers.svg)
 ```
 
 ## Conventions

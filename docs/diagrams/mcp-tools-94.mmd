@@ -1,14 +1,15 @@
 %% MCP Server tool inventory by category
 %% Reflects: open-sse/mcp-server/ — TOTAL_MCP_TOOL_COUNT in server.ts
-%% (MCP_TOOLS 33 + memory 3 + skill 4 + agentSkill 3 + gamification 8 + plugin 8 + notion 6 + obsidian 22 = 87)
+%% (MCP_TOOLS 34 + memory 3 + skill 4 + agentSkill 3 + pool 6 + gamification 8 + plugin 8 + notion 6 + obsidian 22 = 94)
 %% Regenerate the SVG with: npm run docs:render-diagrams
-%% v3.8.26
+%% v3.8.40
 flowchart LR
-  MCP["MCP Server<br/>87 tools total"]
-  MCP --> Core["Core (33)<br/>routing, cache, compression,<br/>quota, proxy, tunnels, search"]
+  MCP["MCP Server<br/>94 tools total"]
+  MCP --> Core["Core (34)<br/>routing, cache, compression,<br/>quota, proxy, tunnels, search, web_fetch"]
   MCP --> Mem["Memory (3)<br/>memory_search, memory_save,<br/>memory_delete"]
   MCP --> Skl["Skills (4)<br/>skill_invoke, skill_list,<br/>skill_diagnose, skill_uninstall"]
   MCP --> ASkl["Agent-Skills (3)<br/>cli-registry discovery"]
+  MCP --> Pool["Pool (6)<br/>pool_status, pool_sessions, pool_reset,<br/>pool_warm, pool_health, browser_pool_status"]
   MCP --> Gam["Gamification (8)"]
   MCP --> Plg["Plugins (8)"]
   MCP --> Notion["Notion (6)<br/>search, get_page, query_database,<br/>get_database, list_block_children,<br/>append_blocks"]

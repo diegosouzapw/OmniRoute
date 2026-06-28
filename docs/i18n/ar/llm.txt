@@ -16,7 +16,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 ## Tech Stack
 
-- **Runtime:** Node.js `>=20.20.2 <21 || >=22.22.2 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
+- **Runtime:** Node.js `>=22.22.2 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
 - **Framework:** Next.js 16 (App Router) with TypeScript 5.9
 - **Database:** SQLite via better-sqlite3 (local, zero-config, 55 migrations)
 - **State management:** Zustand (client), SQLite (server persistence)

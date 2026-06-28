@@ -10,9 +10,9 @@ lastUpdated: 2026-06-28
 >
 > Source of truth: `open-sse/mcp-server/schemas/tools.ts` (34 base) + `memoryTools.ts` (3) + `skillTools.ts` (4) + `agentSkillTools.ts` (3) + `poolTools.ts` (6) + `gamificationTools.ts` (8) + `pluginTools.ts` (8) + `notionTools.ts` (6) + `obsidianTools.ts` (22) = **94** (`TOTAL_MCP_TOOL_COUNT`). Tool registration and scope wiring lives in `open-sse/mcp-server/server.ts`.
 
-![MCP tool inventory (87 tools by category)](../diagrams/exported/mcp-tools-87.svg)
+![MCP tool inventory (94 tools by category)](../diagrams/exported/mcp-tools-94.svg)
 
-> Source: [diagrams/mcp-tools-87.mmd](../diagrams/mcp-tools-87.mmd) (regenerate via `npm run docs:render-diagrams`).
+> Source: [diagrams/mcp-tools-94.mmd](../diagrams/mcp-tools-94.mmd) (regenerate via `npm run docs:render-diagrams`).
 
 ## Installation
 
