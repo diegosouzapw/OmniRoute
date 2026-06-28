@@ -2,11 +2,27 @@
 FROM node:24-trixie-slim AS base
 WORKDIR /app
 
+# `apt-get upgrade` pulls the security-patched versions of the Debian (trixie)
+# base-image packages at build time — clears the subset of container-scan CVEs
+# (perl / util-linux / systemd / ncurses / zlib / tar / sqlite / shadow / pam …)
+# that already have a fix published in trixie. CVEs without an upstream fix yet
+# (local-only TOCTOU, etc.) remain until the distro patches them and the image
+# is rebuilt; none are reachable from the proxy's request surface at runtime.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=shared \
   --mount=type=cache,target=/var/lib/apt/lists,sharing=shared \
   apt-get update \
+  && apt-get upgrade -y \
   && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates \
   && rm -rf /var/lib/apt/lists/*
+
+# Refresh the globally-installed npm so its *bundled* node_modules (undici, tar)
+# ship the patched versions. These are npm's own internals — not application
+# dependencies (our app already resolves undici@8.5.0 / tar@7.5.16, both fixed) —
+# but the container scanner flags the stale copies under
+# /usr/local/lib/node_modules/npm/node_modules. npm is not invoked at runtime in
+# the runner stages, so this is hygiene, not an exploitable runtime path.
+RUN npm install -g npm@latest \
+  && npm cache clean --force
 
 # ── Builder ────────────────────────────────────────────────────────────────
 FROM base AS builder
