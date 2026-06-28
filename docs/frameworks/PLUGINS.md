@@ -1,3 +1,9 @@
+---
+title: "OmniRoute CLI Plugin System"
+version: 3.8.40
+lastUpdated: 2026-06-28
+---
+
 # OmniRoute CLI Plugin System
 
 Extend the `omniroute` CLI without modifying its core. Plugins follow the `omniroute-cmd-*` naming convention, similar to `gh extension` or `kubectl plugin`.

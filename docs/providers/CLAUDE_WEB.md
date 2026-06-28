@@ -1,3 +1,9 @@
+---
+title: "Providers — Claude Web"
+version: 3.8.40
+lastUpdated: 2026-06-28
+---
+
 # Providers — Claude Web
 
 ## claude-web

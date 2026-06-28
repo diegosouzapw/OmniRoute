@@ -1,3 +1,9 @@
+---
+title: "AgentRouter Setup Guide"
+version: 3.8.40
+lastUpdated: 2026-06-28
+---
+
 # AgentRouter Setup Guide
 
 [AgentRouter](https://agentrouter.org) is an Anthropic-compatible relay that resells

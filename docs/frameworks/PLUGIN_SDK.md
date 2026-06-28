@@ -1,3 +1,9 @@
+---
+title: "OmniRoute Plugin SDK"
+version: 3.8.40
+lastUpdated: 2026-06-28
+---
+
 # OmniRoute Plugin SDK
 
 ## Quick Start
