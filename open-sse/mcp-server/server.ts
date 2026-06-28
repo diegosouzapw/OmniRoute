@@ -1,15 +1,3 @@
-/**
- * OmniRoute MCP Server — Model Context Protocol server exposing
- * OmniRoute gateway intelligence as tools for AI agents.
- *
- * Supports two transports:
- *   1. stdio  — for IDE integration (VS Code, Cursor, Claude Desktop)
- *   2. HTTP   — for remote/programmatic access
- *
- * Tools wrap existing OmniRoute API endpoints and add intelligence
- * such as routing simulation, budget guards, and session snapshots.
- */
-
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -101,8 +89,6 @@ import { getCodexRequestDefaults } from "../../src/lib/providers/requestDefaults
 import { normalizeQuotaResponse } from "../../src/shared/contracts/quota.ts";
 import { AI_PROVIDERS, NOAUTH_PROVIDERS } from "../../src/shared/constants/providers.ts";
 import { resolveOmniRouteBaseUrl } from "../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
-
-// ============ Configuration ============
 
 const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
 const MCP_ENFORCE_SCOPES = process.env.OMNIROUTE_MCP_ENFORCE_SCOPES === "true";
@@ -488,8 +474,6 @@ function withScopeEnforcement(
   };
 }
 
-// ============ Tool Handlers ============
-
 async function handleGetHealth() {
   const start = Date.now();
   try {
@@ -840,11 +824,6 @@ async function handleWebFetch(args: {
   }
 }
 
-// ============ MCP Server Setup ============
-
-/**
- * Create and configure the OmniRoute MCP Server with all essential tools.
- */
 export function createMcpServer(): McpServer {
   const server = new McpServer({
     name: "omniroute",
@@ -916,7 +895,6 @@ export function createMcpServer(): McpServer {
     ...notionTools.map((t) => t.name),
   ]);
 
-  // Register essential tools
   server.registerTool(
     "omniroute_get_health",
     {
@@ -1007,8 +985,6 @@ export function createMcpServer(): McpServer {
       handleListModelsCatalog(listModelsCatalogInput.parse(args))
     )
   );
-
-  // ── Advanced Tools (Phase 3) ──────────────────────────────
 
   server.registerTool(
     "omniroute_simulate_route",
@@ -1185,8 +1161,6 @@ export function createMcpServer(): McpServer {
       handleCacheFlush(cacheFlushInput.parse(args))
     )
   );
-
-  // ── 1proxy Tools ──────────────────────────────
 
   server.registerTool(
     "omniroute_oneproxy_fetch",
