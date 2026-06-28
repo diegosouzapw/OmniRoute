@@ -127,6 +127,73 @@ test("request log detail labels OpenAI protocol variants explicitly", () => {
   assert.notEqual(responsesHtml.indexOf(">OpenAI-Responses<"), -1);
 });
 
+test("request log detail compression-summary badge shows positive saved%, never negative", () => {
+  // Regression: prior code used `(-{pct}%)` which produced literal "-100%" when the entire
+  // prompt was compressed (compressed=5286, totalIn=0). The fix clamps pct to [0, 100] and
+  // uses "(N% saved)" so the user-facing label is always positive.
+  const make = (tokensIn: number, tokensCompressed: number) =>
+    renderToStaticMarkup(
+      React.createElement(RequestLoggerDetail, {
+        log: {
+          status: 200,
+          method: "POST",
+          path: "/v1/chat/completions",
+          timestamp: "2026-04-09T21:27:08.000Z",
+          duration: 1500,
+          provider: "openai-compatible-sp-openai",
+          sourceFormat: "openai-chat",
+          model: "gpt-5.4",
+          requestedModel: "openai-compatible-sp-openai/gpt-5.4",
+          cacheSource: "semantic",
+          tokens: {
+            in: tokensIn,
+            out: 42,
+            cacheRead: null,
+            cacheWrite: null,
+            reasoning: null,
+            compressed: tokensCompressed,
+          },
+        },
+        detail: {
+          tokens: {
+            in: tokensIn,
+            out: 42,
+            cacheRead: null,
+            cacheWrite: null,
+            reasoning: null,
+            compressed: tokensCompressed,
+          },
+        },
+        loading: false,
+        onClose: () => {},
+        onCopy: async () => true,
+      })
+    );
+
+  // Original bug repro: totalIn=0, compressed=5286 → previously rendered "(−100%)".
+  const fullyCompressed = make(0, 5286);
+  assert.match(fullyCompressed, /Compressed: 5,286 → 0 \(100% saved\)/);
+  assert.equal(
+    fullyCompressed.includes("(-100%)"),
+    false,
+    "literal '(-100%)' must never appear"
+  );
+  assert.equal(
+    fullyCompressed.includes("\u2212100%"),
+    false,
+    "unicode minus + 100% must never appear"
+  );
+
+  // Half-compressed case must clamp cleanly inside the [0, 100] window.
+  const halfCompressed = make(2500, 2500);
+  assert.match(halfCompressed, /Compressed: 5,000 → 2,500 \(50% saved\)/);
+  assert.equal(halfCompressed.includes("-50%"), false);
+
+  // Sanity: tiny input, tiny savings still rendered as a positive percentage.
+  const small = make(1000, 100);
+  assert.match(small, /Compressed: 1,100 → 1,000 \(9% saved\)/);
+});
+
 test("request log detail follows the email visibility setting for accounts", () => {
   const props = {
     log: {

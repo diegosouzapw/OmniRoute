@@ -499,7 +499,7 @@ test("chatCore keeps Responses-native Codex payloads in native passthrough mode"
 
   assert.equal(result.success, true);
   assert.match(call.url, /\/responses$/);
-  assert.equal(call.body.input, "ship it");
+  assert.deepEqual(call.body.input, [{ type: "message", role: "user", content: [{ type: "input_text", text: "ship it" }] }]);
   assert.equal(call.body.instructions, "custom system prompt");
   assert.equal(call.body.store, false);
   assert.deepEqual(call.body.metadata, { source: "codex-client" });

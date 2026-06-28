@@ -31,6 +31,7 @@ import {
 import { resolveProviderId } from "../../src/shared/constants/providers";
 import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
 import { getCodexModelScope } from "../config/codexQuotaScopes.ts";
+import { getQuotaScopedModelForProvider } from "./antigravityQuotaFamily.ts";
 import { isRpdExhausted, isRpmExhausted } from "./geminiRateLimitTracker.ts";
 
 export type ProviderProfile = {
@@ -390,7 +391,10 @@ function getCanonicalLockProvider(provider: string): string {
 
 function getModelLockKey(provider: string, connectionId: string, model: string) {
   const canonicalProvider = getCanonicalLockProvider(provider);
-  const lockModel = canonicalProvider === "codex" ? getCodexModelScope(model) : model;
+  const lockModel =
+    canonicalProvider === "codex"
+      ? getCodexModelScope(model)
+      : getQuotaScopedModelForProvider(canonicalProvider, model) || model;
   return `${canonicalProvider}:${connectionId}:${lockModel}`;
 }
 

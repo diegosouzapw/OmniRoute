@@ -20,6 +20,23 @@ export function resolveMaxOldSpaceMb(value, fallback = 512) {
 }
 
 /**
+ * Derive a sane DEFAULT V8 heap ceiling (MB) from the host's physical RAM, used
+ * when `OMNIROUTE_MEMORY_MB` is unset. A fixed 512MB default crashed boxes with
+ * plenty of RAM under load (65 providers / 2600 models → "Ineffective
+ * mark-compacts near heap limit ~500MB"); see #5172 / #5160 / #5152. Targets
+ * ~35% of total RAM, clamped to [512, 4096]. Invalid/zero totalmem → 512.
+ * Pass the result as the `fallback` of {@link resolveMaxOldSpaceMb} so an
+ * explicit OMNIROUTE_MEMORY_MB override always wins.
+ * @param {number | undefined | null} totalmemBytes — typically `os.totalmem()`
+ */
+export function calibrateHeapFallbackMb(totalmemBytes) {
+  const totalMb = Number(totalmemBytes) / (1024 * 1024);
+  if (!Number.isFinite(totalMb) || totalMb <= 0) return 512;
+  const target = Math.floor(totalMb * 0.35);
+  return Math.min(4096, Math.max(512, target));
+}
+
+/**
  * @param {NodeJS.ProcessEnv | Record<string, string | undefined>} [fromEnv]
  *        Defaults to process.env. Pass bootstrap `merged` so project `.env` PORT applies before spawn.
  */

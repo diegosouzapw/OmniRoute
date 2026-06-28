@@ -14,6 +14,8 @@ import { buildCompressionPreviewDiff } from "@omniroute/open-sse/services/compre
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { countTextTokens } from "@/shared/utils/tiktokenCounter";
 import { ensureEngineBreakdown } from "@omniroute/open-sse/services/compression/engineBreakdown";
+import { summarizeEncoderCandidates } from "@omniroute/open-sse/services/compression/engines/headroom/encoderComparison";
+import { DEFAULT_MIN_ROWS } from "@omniroute/open-sse/services/compression/engines/headroom/smartcrusher";
 
 export const PreviewCompressionConfigSchema = compressionPreviewConfigSchema;
 
@@ -60,6 +62,20 @@ function buildStep(engine: string, fuzzy?: { enabled: boolean }) {
   return engine === "session-dedup" && fuzzy?.enabled
     ? { engine, config: { fuzzy: { enabled: true } } }
     : { engine };
+}
+
+function headroomParticipates(
+  engineId: string | undefined,
+  pipeline: string[] | undefined,
+  mode: CompressionMode
+): boolean {
+  // An explicit single-engine or pipeline override decides on its own terms:
+  // headroom only participates if it is the engine / is named in the pipeline.
+  // (effectiveMode is forced to "stacked" whenever engineId/pipeline is set, so we
+  // must not fall through to the mode check for those — e.g. engineId:"lite".)
+  if (engineId) return engineId === "headroom";
+  if (pipeline) return pipeline.includes("headroom");
+  return mode === "stacked";
 }
 
 async function dispatchCompression(
@@ -117,7 +133,8 @@ export async function POST(req: Request) {
   }
 
   const { messages, mode, engineId, pipeline, config, fidelityGate, fuzzyDedup } = parsed.data;
-  const effectiveMode: CompressionMode = engineId || pipeline ? "stacked" : (mode as CompressionMode);
+  const effectiveMode: CompressionMode =
+    engineId || pipeline ? "stacked" : (mode as CompressionMode);
   const originalText = messagesToText(messages);
   const originalTokens = countTokens(originalText);
 
@@ -125,7 +142,12 @@ export async function POST(req: Request) {
     const start = Date.now();
     const requestBody = { messages };
     const result = await dispatchCompression(requestBody as Record<string, unknown>, {
-      engineId, pipeline, effectiveMode, config, fidelityGate, fuzzyDedup,
+      engineId,
+      pipeline,
+      effectiveMode,
+      config,
+      fidelityGate,
+      fuzzyDedup,
     });
     const durationMs = Date.now() - start;
 
@@ -141,7 +163,12 @@ export async function POST(req: Request) {
     const engineBreakdown = result.stats ? ensureEngineBreakdown(result.stats) : [];
     const diff = buildCompressionPreviewDiff(originalText, compressedText, result.stats);
 
+    const encoderComparison = headroomParticipates(engineId, pipeline, effectiveMode)
+      ? summarizeEncoderCandidates(messages, DEFAULT_MIN_ROWS, countTextTokens)
+      : null;
+
     return NextResponse.json({
+      encoderComparison,
       original: originalText,
       compressed: compressedText,
       originalTokens,

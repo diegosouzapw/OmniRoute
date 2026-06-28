@@ -83,12 +83,34 @@ import {
 import { updateProviderConnection, getProviderConnectionById } from "@/lib/db/providers";
 import { wasRefreshTokenRotated } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import {
+<<<<<<< HEAD
   recordKeyFailure,
   recordKeySuccess,
   trackConnectionExtraKeys,
   connectionHasExtraKeys,
   type KeyHealth,
 } from "../services/apiKeyRotator.ts";
+=======
+  isSemaphoreCapacityError,
+  createStreamingErrorResult,
+  getUpstreamErrorIdentifier,
+} from "./chatCore/streamErrorResult.ts";
+import { wrapReadableStreamWithFinalize } from "./chatCore/streamFinalize.ts";
+import { buildCacheUsageLogMeta } from "./chatCore/cacheUsageMeta.ts";
+import { buildExecutorClientHeaders } from "./chatCore/executorClientHeaders.ts";
+import { resolveExecutionCredentials as resolveExecutionCredentialsFor } from "./chatCore/executionCredentials.ts";
+import { resolveExecutorWithProxy as resolveExecutorWithProxyFor } from "./chatCore/executorProxy.ts";
+import type { ClaudeMessage } from "./chatCore/claudeMessageTypes.ts";
+import { normalizeClaudeUpstreamMessages as normalizeClaudeUpstreamMessagesFor } from "./chatCore/claudeUpstreamMessages.ts";
+import {
+  persistAttemptLogs as persistAttemptLogsFor,
+  type PersistAttemptLogsArgs,
+} from "./chatCore/attemptLogging.ts";
+import { stageTrace } from "./chatCore/stageTrace.ts";
+import { attachCompressionUsageReceiptAfterAnalytics as attachCompressionUsageReceiptAfterAnalyticsFor } from "./chatCore/compressionUsageReceipt.ts";
+import { prepareUpstreamBody } from "./chatCore/upstreamBody.ts";
+import { getQuotaScopeLabelForProvider } from "../services/antigravityQuotaFamily.ts";
+>>>>>>> dc4091158 (Release v3.8.39 (#5164))
 
 import {
   getCallLogPipelineCaptureStreamChunks,
@@ -4977,8 +4999,9 @@ export async function handleChatCore({
               quotaCooldownMs
             )
           ) {
+            const quotaScope = getQuotaScopeLabelForProvider(provider, model);
             console.warn(
-              `[provider] Node ${errorConnectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
+              `[provider] Node ${errorConnectionId} ${quotaScope}-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (cooldown_scope=${quotaScope}, ttl_source=${retryAfterMs ? "upstream" : "inferred"}, connection stays active)`
             );
           } else {
             await updateProviderConnection(errorConnectionId, {

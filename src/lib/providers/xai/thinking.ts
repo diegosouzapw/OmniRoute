@@ -16,6 +16,13 @@ const VALID_EFFORTS = new Set(["minimal", "low", "medium", "high"]);
 
 export type ReasoningEffort = "minimal" | "low" | "medium" | "high";
 
+export function normalizeXaiReasoningEffort(effort: unknown): ReasoningEffort | undefined {
+  if (typeof effort !== "string") return undefined;
+  const normalized = effort.toLowerCase();
+  if (normalized === "max" || normalized === "xhigh") return "high";
+  return VALID_EFFORTS.has(normalized) ? (normalized as ReasoningEffort) : undefined;
+}
+
 /**
  * Map a numeric token budget to a discrete effort tier.
  *   <=0       → undefined (disabled)
@@ -69,7 +76,7 @@ interface ApplyThinkingOptions {
  */
 export function applyThinking(
   request: ThinkingRequest,
-  options: ApplyThinkingOptions = {},
+  options: ApplyThinkingOptions = {}
 ): ThinkingRequest {
   if (!request || typeof request !== "object") return request;
   const out: ThinkingRequest = { ...request };
@@ -77,14 +84,19 @@ export function applyThinking(
   // 1) Already xAI-native? Honor and stop.
   if (out.reasoning && typeof out.reasoning === "object") {
     const reasoning = out.reasoning as Record<string, unknown>;
-    if (typeof reasoning.effort === "string" && VALID_EFFORTS.has(reasoning.effort)) {
+    const normalizedEffort = normalizeXaiReasoningEffort(reasoning.effort);
+    if (normalizedEffort) {
+      if (reasoning.effort !== normalizedEffort) {
+        out.reasoning = { ...reasoning, effort: normalizedEffort };
+      }
       return out;
     }
   }
 
   // 2) OpenAI Chat reasoning_effort
-  if (typeof out.reasoning_effort === "string" && VALID_EFFORTS.has(out.reasoning_effort)) {
-    out.reasoning = { effort: out.reasoning_effort as ReasoningEffort };
+  const reasoningEffort = normalizeXaiReasoningEffort(out.reasoning_effort);
+  if (reasoningEffort) {
+    out.reasoning = { effort: reasoningEffort };
     delete out.reasoning_effort;
     return out;
   }

@@ -2,6 +2,7 @@ import { registerMemory } from "./memory.mjs";
 import { registerSkills } from "./skills.mjs";
 import { registerAudit } from "./audit.mjs";
 import { registerOAuth } from "./oauth.mjs";
+import { registerLogin } from "./login.mjs";
 import { registerCloud } from "./cloud.mjs";
 import { registerEval } from "./eval.mjs";
 import { registerWebhooks } from "./webhooks.mjs";
@@ -83,6 +84,7 @@ export function registerCommands(program) {
   registerSkills(program);
   registerAudit(program);
   registerOAuth(program);
+  registerLogin(program);
   registerCloud(program);
   registerEval(program);
   registerWebhooks(program);

@@ -34,6 +34,7 @@ import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer
 import { normalizeCodexVerbosity } from "../services/codexVerbosity.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
+import { normalizeCodexResponsesInput } from "../utils/responsesInputNormalization.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
 import { createRequire } from "module";
 
@@ -52,11 +53,7 @@ type WreqWebSocket = {
   onclose: (() => void) | null;
 };
 type WebsocketFn = (url: string, opts?: Record<string, unknown>) => Promise<WreqWebSocket>;
-type ResponsesMessageInput = {
-  role?: unknown;
-  phase?: unknown;
-  content?: unknown;
-};
+type ResponsesMessageInput = { role?: unknown; phase?: unknown; content?: unknown };
 
 let _websocketFn: WebsocketFn | null = null;
 let _wreqChecked = false;
@@ -1326,6 +1323,8 @@ export class CodexExecutor extends BaseExecutor {
         content: [{ type: "input_text", text: typeof p === "string" ? p : JSON.stringify(p) }],
       }));
     }
+
+    normalizeCodexResponsesInput(body);
 
     if (Array.isArray(body.input)) {
       body.input = sanitizeResponsesInputItems(body.input, false, {

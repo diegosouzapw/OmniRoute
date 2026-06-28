@@ -100,6 +100,68 @@ A token with insufficient scope gets `403` with a clear message.
 
 ---
 
+## Connecting Antigravity on a remote install
+
+Antigravity (and other Google "native/desktop" OAuth providers such as
+`gemini-cli`) use Google's `firstparty/nativeapp` consent screen. Google only
+releases the authorization code when the **loopback redirect**
+(`http://127.0.0.1:<port>/callback`) is **reachable from the browser that
+approves the sign-in**. On a remote VPS install that loopback lives on the
+server, not on your machine, so the consent screen **hangs forever and never
+emits a code** — the normal "paste the callback URL" fallback has nothing to
+paste. (This is a Google-side constraint: the same hang happens in any proxy
+that uses the bundled Antigravity desktop client, not just OmniRoute.)
+
+There are two supported ways to connect Antigravity to a remote OmniRoute.
+
+### Option A — local login helper (recommended)
+
+Run the OAuth on **your own computer**, where `127.0.0.1` is reachable, and paste
+the result into the remote dashboard. The helper talks only to Google — it does
+**not** need network access to your VPS, so it works even behind firewalls.
+
+```bash
+# On your LOCAL machine (needs Node.js + a browser):
+npx omniroute login antigravity
+#   ↳ opens the Google consent in your browser, captures the callback on a local
+#     loopback port, exchanges it, and prints a one-line credential blob:
+#
+#   omniroute-cred-v1.eyJ2IjoxLCJ...
+```
+
+Then, in the **remote** dashboard: **Providers → Antigravity → Connect**, and
+paste the `omniroute-cred-v1.…` blob into the **Step 2** field (it accepts either
+a callback URL or a credential blob). OmniRoute decodes it, runs the Cloud Code
+onboarding server-side, and persists the connection.
+
+> The blob contains a refresh token — treat it like a password. It is sent once
+> over your dashboard connection and stored encrypted at rest.
+
+Flags: `--no-browser` (print the URL instead of auto-opening), `--port <n>`
+(pin the loopback port), `--timeout <ms>`.
+
+### Option B — SSH local-forward tunnel
+
+If you have SSH access to the VPS, forward the dashboard port so that the
+loopback callback resolves back to the server through the tunnel:
+
+```bash
+# On your LOCAL machine:
+ssh -L 20128:localhost:20128 user@your-vps
+# then open http://localhost:20128 in your LOCAL browser and connect Antigravity
+# normally — the 127.0.0.1:20128/callback redirect now reaches the VPS via SSH.
+```
+
+Because you reach the dashboard as `localhost:20128`, the Google consent
+completes and the callback is delivered to the server through the same tunnel —
+no blob needed. Keep the tunnel open until the connection shows as active.
+
+> A fully headless alternative (no helper, no tunnel) is to configure your **own**
+> Google OAuth web credentials + a public base URL; see the provider's OAuth
+> environment variables. The two options above need no extra Google setup.
+
+---
+
 ## Managing tokens
 
 ```bash

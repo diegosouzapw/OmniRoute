@@ -21,7 +21,11 @@ const contentSecurityPolicy = [
   "font-src 'self' https://fonts.gstatic.com data:",
   "img-src 'self' data: blob: https:",
   "media-src 'self' data: blob:",
-  "connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https: wss:",
+  // `ws:` is permitted scheme-wide (mirroring the bare `wss:` already allowed) so the
+  // dashboard can open `ws://<lan-or-tailscale-host>:*` to its own Live WS server when
+  // OmniRoute is reached from a non-loopback host. Same-origin HTTP fetches stay covered
+  // by `'self'`; the loopback origins remain listed explicitly for clarity. (#5083)
+  "connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https: ws: wss:",
   "worker-src 'self' blob:",
   "manifest-src 'self'",
 ].join("; ");

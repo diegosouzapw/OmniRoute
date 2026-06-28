@@ -5,8 +5,12 @@ info:
   version: 1.0.0
 =======
   title: OmniRoute API
+<<<<<<< HEAD
   version: 3.8.38
 >>>>>>> 7b139fdb5 (Release v3.8.38 (#5078))
+=======
+  version: 3.8.39
+>>>>>>> dc4091158 (Release v3.8.39 (#5164))
   description: |
     Public v1 API surface of OmniRoute (KooshaPari fork).
 

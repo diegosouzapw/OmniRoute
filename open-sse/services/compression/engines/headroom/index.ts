@@ -41,6 +41,7 @@ import {
   GCF_FENCE_CLOSE,
   decodeTabular,
 } from "./tabular.ts";
+import { TOON_FENCE_OPEN, TOON_FENCE_CLOSE } from "./toon.ts";
 
 export { encodeTabular, decodeTabular } from "./tabular.ts";
 
@@ -232,35 +233,54 @@ export function reconstructHeadroom(body: Record<string, unknown>): Record<strin
  * Restore all GCF (```gcf-generic) and legacy (```omni-tabular) blocks
  * in a text string back to their original JSON.
  */
+/** Map a fence-open marker to its matching close tag. */
+function closeTagFor(fence: string): string {
+  if (fence === GCF_FENCE_OPEN) return GCF_FENCE_CLOSE;
+  if (fence === TOON_FENCE_OPEN) return TOON_FENCE_CLOSE;
+  return TABULAR_FENCE_CLOSE;
+}
+
+/**
+ * Decode every occurrence of one fence type in `text`, replacing each block
+ * with its original JSON. Extracted from restoreText to keep that function
+ * below the cognitive-complexity gate.
+ */
+function decodeFenceOccurrences(text: string, fence: string, closeTag: string): string {
+  let result = text;
+  let searchFrom = 0;
+  while (true) {
+    const fenceStart = result.indexOf(fence, searchFrom);
+    if (fenceStart === -1) break;
+
+    const contentStart = fenceStart + fence.length + 1; // skip "\n" after fence open
+    const fenceEnd = result.indexOf("\n" + closeTag, contentStart);
+    if (fenceEnd === -1) break;
+
+    const blockContent = result.slice(contentStart, fenceEnd);
+    const decoded = decodeTabular(fence + "\n" + blockContent + "\n" + closeTag);
+    const jsonStr = JSON.stringify(decoded);
+
+    const fullFence = result.slice(fenceStart, fenceEnd + closeTag.length + 1); // +1 for the "\n"
+    result = result.slice(0, fenceStart) + jsonStr + result.slice(fenceStart + fullFence.length);
+
+    searchFrom = fenceStart + jsonStr.length;
+  }
+  return result;
+}
+
 function restoreText(text: string): string {
   // Fast path: no fence marker present
-  if (!text.includes(TABULAR_FENCE_OPEN) && !text.includes(GCF_FENCE_OPEN)) return text;
+  if (
+    !text.includes(TABULAR_FENCE_OPEN) &&
+    !text.includes(GCF_FENCE_OPEN) &&
+    !text.includes(TOON_FENCE_OPEN)
+  )
+    return text;
 
   let result = text;
-
-  // Process both fence types: GCF first (new format), then legacy omni-tabular
-  for (const fence of [GCF_FENCE_OPEN, TABULAR_FENCE_OPEN]) {
-    const closeTag = fence === GCF_FENCE_OPEN ? GCF_FENCE_CLOSE : TABULAR_FENCE_CLOSE;
-
-    let searchFrom = 0;
-    while (true) {
-      const fenceStart = result.indexOf(fence, searchFrom);
-      if (fenceStart === -1) break;
-
-      const contentStart = fenceStart + fence.length + 1; // skip "\n" after fence open
-      const fenceEnd = result.indexOf("\n" + closeTag, contentStart);
-      if (fenceEnd === -1) break;
-
-      const blockContent = result.slice(contentStart, fenceEnd);
-      const decoded = decodeTabular(fence + "\n" + blockContent + "\n" + closeTag);
-      const jsonStr = JSON.stringify(decoded);
-
-      const fullFence = result.slice(fenceStart, fenceEnd + closeTag.length + 1); // +1 for the "\n"
-      result = result.slice(0, fenceStart) + jsonStr + result.slice(fenceStart + fullFence.length);
-
-      searchFrom = fenceStart + jsonStr.length;
-    }
+  // Process all fence types: GCF first (new format), then legacy omni-tabular, then TOON
+  for (const fence of [GCF_FENCE_OPEN, TABULAR_FENCE_OPEN, TOON_FENCE_OPEN]) {
+    result = decodeFenceOccurrences(result, fence, closeTagFor(fence));
   }
-
   return result;
 }

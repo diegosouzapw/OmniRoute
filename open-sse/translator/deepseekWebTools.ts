@@ -297,13 +297,35 @@ function asString(value: unknown): string | null {
 }
 
 /**
+ * Build a map of tool name → set of parameter property keys from the requested tools array.
+ * Used by the nameless-block fallback to do conservative schema-based name resolution.
+ */
+function buildSchemaParamMap(requestedTools: unknown): Map<string, Set<string>> {
+  const map = new Map<string, Set<string>>();
+  if (!Array.isArray(requestedTools)) return map;
+  for (const tool of requestedTools as OpenAIToolDef[]) {
+    const fn = tool?.function;
+    if (!fn?.name) continue;
+    const params = fn.parameters as Record<string, unknown> | undefined;
+    const props = params?.properties;
+    if (props && typeof props === "object" && !Array.isArray(props)) {
+      map.set(fn.name, new Set(Object.keys(props as Record<string, unknown>)));
+    } else {
+      map.set(fn.name, new Set());
+    }
+  }
+  return map;
+}
+
+/**
  * Turn one tool block (tag name + inner text) into a name + JSON-string arguments.
  * Returns null when no plausible tool name can be recovered.
  */
 function extractCall(
   tagName: string,
   innerRaw: string,
-  requested: RequestedToolName[]
+  requested: RequestedToolName[],
+  schemaMap?: Map<string, Set<string>>
 ): ExtractedCall | null {
   const inner = innerRaw.trim();
 
@@ -346,6 +368,28 @@ function extractCall(
       nameFromTag = false;
     }
   }
+
+  // Nameless-block fallback (#5154): when all explicit name-resolution paths fail but the
+  // block has <parameter> children, try a conservative schema-based match. If exactly ONE
+  // requested tool's parameter-schema keys are a superset of every extracted param name,
+  // adopt that tool name. Zero matches or ambiguous (>1) → keep returning null to avoid
+  // misattributing calls.
+  if (!name && paramObj && schemaMap && schemaMap.size > 0) {
+    const extractedKeys = Object.keys(paramObj);
+    if (extractedKeys.length > 0) {
+      const candidates: string[] = [];
+      for (const [toolName, schemaKeys] of schemaMap) {
+        if (schemaKeys.size > 0 && extractedKeys.every((k) => schemaKeys.has(k))) {
+          candidates.push(toolName);
+        }
+      }
+      if (candidates.length === 1) {
+        name = candidates[0];
+        nameFromTag = false;
+      }
+    }
+  }
+
   if (!name) return null;
 
   let argsValue: unknown;
@@ -396,6 +440,7 @@ export function parseDeepSeekToolCalls(
   }
 
   const requested = getRequestedToolNames(requestedTools);
+  const schemaMap = buildSchemaParamMap(requestedTools);
   const blocks = pairToolBlocks(tokens, text.length);
 
   // Only extract from leaf blocks (no other block nested inside), so a doubled
@@ -413,7 +458,7 @@ export function parseDeepSeekToolCalls(
       getAttr(block.open.attrs, "id") ||
       "";
     const inner = text.slice(block.innerStart, block.innerEnd);
-    const call = extractCall(tagName, inner, requested);
+    const call = extractCall(tagName, inner, requested, schemaMap);
     if (!call) continue;
     toolCalls.push({
       id: `${idSeed}_${toolCalls.length}`,

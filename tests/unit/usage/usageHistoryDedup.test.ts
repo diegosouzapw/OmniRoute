@@ -32,11 +32,16 @@ test.after(() => {
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
+let entrySeq = 0;
+
 function makeEntry(overrides: Record<string, unknown> = {}) {
+  entrySeq++;
+  const timestamp = new Date(Date.now() + entrySeq).toISOString();
+
   return {
     provider: "test-provider",
     model: "test-model",
-    connectionId: "conn-abc123",
+    connectionId: `conn-abc123-${entrySeq}`,
     apiKeyId: null,
     apiKeyName: null,
     tokens: { input_tokens: 10, output_tokens: 20 },
@@ -47,7 +52,7 @@ function makeEntry(overrides: Record<string, unknown> = {}) {
     errorCode: null,
     comboStrategy: null,
     endpoint: "/v1/chat/completions",
-    timestamp: new Date().toISOString(),
+    timestamp,
     ...overrides,
   };
 }

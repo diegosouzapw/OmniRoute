@@ -87,7 +87,53 @@ _Your universal API proxy — one endpoint, 160+ providers, zero downtime. Now w
 ## 🖼️ Main Dashboard
 
 <div align="center">
+<<<<<<< HEAD
   <img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="800"/>
+=======
+ <b>🌐 Available in 41+ languages</b>
+ <table>
+  <tr>
+    <td align="center"><a href="README.md">🇺🇸</a></td>
+    <td align="center"><a href="docs/i18n/pt-BR/README.md">🇧🇷</a></td>
+    <td align="center"><a href="docs/i18n/es/README.md">🇪🇸</a></td>
+    <td align="center"><a href="docs/i18n/fr/README.md">🇫🇷</a></td>
+    <td align="center"><a href="docs/i18n/it/README.md">🇮🇹</a></td>
+    <td align="center"><a href="docs/i18n/ru/README.md">🇷🇺</a></td>
+    <td align="center"><a href="docs/i18n/zh-CN/README.md">🇨🇳</a></td>
+    <td align="center"><a href="docs/i18n/zh-TW/README.md">🇹🇼</a></td>
+    <td align="center"><a href="docs/i18n/de/README.md">🇩🇪</a></td>
+    <td align="center"><a href="docs/i18n/ja/README.md">🇯🇵</a></td>
+    <td align="center"><a href="docs/i18n/ko/README.md">🇰🇷</a></td>
+    <td align="center"><a href="docs/i18n/in/README.md">🇮🇳</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="docs/i18n/th/README.md">🇹🇭</a></td>
+    <td align="center"><a href="docs/i18n/vi/README.md">🇻🇳</a></td>
+    <td align="center"><a href="docs/i18n/id/README.md">🇮🇩</a></td>
+    <td align="center"><a href="docs/i18n/ms/README.md">🇲🇾</a></td>
+    <td align="center"><a href="docs/i18n/phi/README.md">🇵🇭</a></td>
+    <td align="center"><a href="docs/i18n/ar/README.md">🇸🇦</a></td>
+    <td align="center"><a href="docs/i18n/he/README.md">🇮🇱</a></td>
+    <td align="center"><a href="docs/i18n/az/README.md">🇦🇿</a></td>
+    <td align="center"><a href="docs/i18n/uk-UA/README.md">🇺🇦</a></td>
+    <td align="center"><a href="docs/i18n/pl/README.md">🇵🇱</a></td>
+    <td align="center"><a href="docs/i18n/cs/README.md">🇨🇿</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="docs/i18n/nl/README.md">🇳🇱</a></td>
+    <td align="center"><a href="docs/i18n/bg/README.md">🇧🇬</a></td>
+    <td align="center"><a href="docs/i18n/da/README.md">🇩🇰</a></td>
+    <td align="center"><a href="docs/i18n/fi/README.md">🇫🇮</a></td>
+    <td align="center"><a href="docs/i18n/no/README.md">🇳🇴</a></td>
+    <td align="center"><a href="docs/i18n/sv/README.md">🇸🇪</a></td>
+    <td align="center"><a href="docs/i18n/hu/README.md">🇭🇺</a></td>
+    <td align="center"><a href="docs/i18n/ro/README.md">🇷🇴</a></td>
+    <td align="center"><a href="docs/i18n/sk/README.md">🇸🇰</a></td>
+    <td align="center"><a href="docs/i18n/pt/README.md">🇵🇹</a></td>
+    <td align="center"></td>
+  </tr>
+</table>
+>>>>>>> dc4091158 (Release v3.8.39 (#5164))
 </div>
 
 <<<<<<< HEAD
@@ -411,13 +457,13 @@ Result: 4 layers of fallback = zero downtime
 
 </div>
 
-> Recent highlights from **v3.8.20 → v3.8.38**. Full history in [`CHANGELOG.md`](CHANGELOG.md).
+> Recent highlights from **v3.8.20 → v3.8.39**. Full history in [`CHANGELOG.md`](CHANGELOG.md).
 
 - **⚖️ Quota-Share routing** — a dedicated combo strategy that spreads load across accounts by _available quota_: Deficit-Round-Robin scheduling, per-connection `max_concurrent` with cooldown-wait queueing, multi-window usage buckets (5h / 7d / per-model), per-(key,model) caps, session stickiness for prompt-cache integrity, and proactive saturation from upstream token-usage headers. → [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)
 - **🤖 One-command CLI/agent setup** — a dedicated `setup-*` command configures each coding tool to route through OmniRoute (Claude Code, Codex, Cline, Continue, Cursor, Roo Code, Kilo Code, Crush, Goose, Qwen Code, Aider, OpenCode, Gemini CLI); `omniroute launch` / `omniroute launch-codex` are zero-config launchers. → [CLI Integrations](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ Remote mode** — drive a remote OmniRoute from any machine with scoped access tokens (`omniroute connect` / `omniroute contexts` / `omniroute tokens`). → [Remote Mode](docs/guides/REMOTE-MODE.md)
-- **🧭 Smarter auto-routing** — OpenRouter-style `auto/<category>:<tier>` combos (e.g. `auto/coding:fast`, `auto/reasoning:pro`), a **Fusion** strategy (16th — fan out to a panel of models in parallel, then synthesize via a judge), **task-aware routing** (best-fit connection per task type), per-request `X-Route-Model` override, live Arena-ELO + models.dev model intelligence, per-step account allowlists, provider-wildcard combo steps, nested combo-ref execution, sticky weighted selection, and `web_search`-aware routing. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ Pluggable compression** — an async pipeline of **9 composable engines** with Compression Studios, an LLMLingua-2 ONNX engine and a heuristic/SLM two-tier **Ultra**, RTK, delegated Anthropic Context Editing, **Output Styles** (output-axis steering: terse-prose / less-code / terse-CJK), an **adaptive context-budget dial** (escalate only as far as needed to fit the context window), per-request `x-omniroute-compression` control, an opt-in offline eval harness, one-click **Headroom** proxy lifecycle management from the dashboard (Docker sidecar supported), a synthetic **compression playground** (Play lanes + A/B Compare with USD-capped fidelity verdicts), an opt-in **per-step fidelity gate** that rejects a lossy engine before it degrades the prompt, and a unified panel with named profiles + an active-profile selector. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
+- **🛰️ Remote mode** — drive a remote OmniRoute from any machine with scoped access tokens (`omniroute connect` / `omniroute contexts` / `omniroute tokens`), plus an `omniroute login antigravity` helper that runs Google "native/desktop" OAuth on your own machine and pastes a credential blob into a remote/VPS install (where the loopback redirect is unreachable). → [Remote Mode](docs/guides/REMOTE-MODE.md)
+- **🧭 Smarter auto-routing** — OpenRouter-style `auto/<category>:<tier>` combos (e.g. `auto/coding:fast`, `auto/reasoning:pro`), a **Fusion** strategy (fan out to a panel of models in parallel, then synthesize via a judge), **task-aware routing** (best-fit connection per task type), per-request `X-Route-Model` override, live Arena-ELO + models.dev model intelligence, per-step account allowlists, provider-wildcard combo steps, nested combo-ref execution, sticky weighted selection, and `web_search`-aware routing. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🗜️ Pluggable compression** — an async pipeline of **9 composable engines** with Compression Studios, an LLMLingua-2 ONNX engine and a heuristic/SLM two-tier **Ultra**, RTK, delegated Anthropic Context Editing, **Output Styles** (output-axis steering: terse-prose / less-code / terse-CJK), an **adaptive context-budget dial** (escalate only as far as needed to fit the context window), per-request `x-omniroute-compression` control, an opt-in offline eval harness, one-click **Headroom** proxy lifecycle management from the dashboard (Docker sidecar supported), a synthetic **compression playground** (Play lanes + A/B Compare with USD-capped fidelity verdicts), an opt-in **per-step fidelity gate** that rejects a lossy engine before it degrades the prompt, a **best-of-N candidate encoder** (GCF vs TOON — keep whichever is shorter, with an A/B bytes/token table in the studio), **CCR ranged/grep/stats retrieval** (pull an exact byte/line slice or summary of a stored block instead of re-expanding it), and a unified panel with named profiles + an active-profile selector. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
 - **🕵️ Transparent MITM decrypt (TPROXY)** — capture & translate traffic from CLIs that ignore proxy env vars, with a per-SNI certificate authority and a trust-store installer. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
 - **💸 Cost telemetry everywhere** — `X-OmniRoute-*` cost/usage headers on every endpoint (including media), a non-token cost engine, a cache-HIT `X-OmniRoute-Cost-Saved` header, and per-key USD spend quotas. → [API Reference](docs/reference/API_REFERENCE.md)
 - **🧠 Memory you control** — opt-in int8 vector quantization (Qdrant + sqlite-vec), memory off by default, and a per-request `x-omniroute-no-memory` header. → [Memory](docs/frameworks/MEMORY.md)

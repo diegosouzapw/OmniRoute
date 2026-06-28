@@ -1,6 +1,6 @@
 {
   "name": "omniroute",
-  "version": "3.8.38",
+  "version": "3.8.39",
   "description": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "type": "module",
   "bin": {
@@ -71,7 +71,7 @@
   },
   "homepage": "https://omniroute.online",
   "scripts": {
-    "dev": "node scripts/dev/run-next.mjs dev",
+    "dev": "node --max-old-space-size=8192 scripts/dev/run-next.mjs dev",
     "prebuild:docs": "node scripts/docs/gen-openapi-module.mjs",
     "gen:provider-reference": "node --import tsx scripts/docs/gen-provider-reference.ts",
     "bench:compression": "node --import tsx scripts/compression/benchmark.ts",
@@ -302,6 +302,7 @@
     "@types/node": "^26.0.0",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
+    "@types/safe-regex": "^1.1.6",
     "@types/ws": "^8.18.0",
     "@vitejs/plugin-react": "^6.0.2",
     "c8": "^11.0.0",

@@ -334,6 +334,29 @@ re-migration.
 
 ---
 
+## Internal Strategy Classification
+
+`quota-share` is an **internal-only** routing strategy (`INTERNAL_ROUTING_STRATEGY_VALUES` in
+`src/shared/constants/routingStrategies.ts`). It is used exclusively by system-minted
+`qtSd/` pool combos and is deliberately excluded from `ROUTING_STRATEGY_VALUES` so it never
+appears as a user-selectable option in the UI or API.
+
+---
+
+## Test Coverage
+
+Two layers of automated coverage ship with the quota-share engine:
+
+| Suite | Command | What it covers |
+| :--- | :--- | :--- |
+| Unit (29 tests) | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR scheduler, saturation gating, concurrency caps, fairShare math, backlog queueing |
+| Integration matrix | `npm run test:combo:matrix` | End-to-end routing decision through the real combo pipeline; DRR fairness + saturation deprioritization via live seams (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
+
+The integration matrix runs in CI alongside the other 17 public strategies. The unit suite
+can be run standalone.
+
+---
+
 ## DB Schema Summary
 
 Three tables added by migrations `073–075`:

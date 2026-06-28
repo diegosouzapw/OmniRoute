@@ -2,11 +2,15 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { platform } from "node:os";
+import { platform, totalmem } from "node:os";
 import { t } from "../i18n.mjs";
 import { writePidFile, cleanupPidFile, waitForServer } from "../utils/pid.mjs";
 import { ServerSupervisor, detectMitmCrash } from "../runtime/processSupervisor.mjs";
 import { isTermux } from "../../../scripts/build/postinstallSupport.mjs";
+import {
+  resolveMaxOldSpaceMb,
+  calibrateHeapFallbackMb,
+} from "../../../scripts/build/runtime-env.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..", "..");
@@ -126,9 +130,13 @@ export async function runServe(opts = {}) {
 
   console.log(`  \x1b[2m⏳ Starting server...\x1b[0m\n`);
 
-  const rawMemory = parseInt(process.env.OMNIROUTE_MEMORY_MB || "512", 10);
-  const memoryLimit =
-    Number.isFinite(rawMemory) && rawMemory >= 64 && rawMemory <= 16384 ? rawMemory : 512;
+  // #5172/#5160/#5152: default the V8 heap to ~35% of physical RAM (clamped
+  // [512, 4096]) instead of a fixed 512MB, which OOM-crashed boxes with plenty
+  // of RAM under load. An explicit OMNIROUTE_MEMORY_MB still wins.
+  const memoryLimit = resolveMaxOldSpaceMb(
+    process.env.OMNIROUTE_MEMORY_MB,
+    calibrateHeapFallbackMb(totalmem())
+  );
 
   const env = {
     ...process.env,
@@ -136,7 +144,7 @@ export async function runServe(opts = {}) {
     PORT: String(dashboardPort),
     DASHBOARD_PORT: String(dashboardPort),
     API_PORT: String(apiPort),
-    HOSTNAME: "0.0.0.0",
+    HOSTNAME: process.env.HOSTNAME || "0.0.0.0",
     NODE_ENV: "production",
     NODE_OPTIONS: `--max-old-space-size=${memoryLimit}`,
   };

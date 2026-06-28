@@ -29,6 +29,22 @@ export interface CompressionEngineStep {
 
 export type DiffSegment = { type: "same" | "removed" | "added"; text: string };
 
+// ── Encoder comparison (TOON/GCF/JSON A/B) ────────────────────────────────
+
+export interface EncoderSize {
+  bytes: number;
+  tokens: number;
+}
+
+export interface EncoderComparison {
+  arraysCompared: number;
+  json: EncoderSize;
+  gcf: EncoderSize;
+  toon: EncoderSize;
+  toonAvailable: boolean;
+  winner: "gcf" | "toon" | "json";
+}
+
 // ── Preview API response ──────────────────────────────────────────────────
 
 export interface PreviewResponse {
@@ -43,6 +59,7 @@ export interface PreviewResponse {
   diff: DiffSegment[];
   preservedBlocks: Array<{ kind: string; preview: string }>;
   ruleRemovals: string[];
+  encoderComparison?: EncoderComparison | null;
 }
 
 // ── Run Model ─────────────────────────────────────────────────────────────
@@ -57,6 +74,7 @@ export interface CompressionRunModel {
   steps: CompressionEngineStep[];
   timestamp: number;
   diff?: DiffSegment[];
+  encoderComparison?: EncoderComparison | null;
 }
 
 // ── previewToRunModel ─────────────────────────────────────────────────────
@@ -72,6 +90,7 @@ export function previewToRunModel(res: PreviewResponse, label: string): Compress
     steps: res.engineBreakdown,
     timestamp: 0,
     diff: res.diff,
+    encoderComparison: res.encoderComparison ?? null,
   };
 }
 
