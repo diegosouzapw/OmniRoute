@@ -239,6 +239,15 @@ export class GrokCliExecutor extends BaseExecutor {
       transformed.model = model || "grok-composer-2.5-fast";
     }
     transformed.stream = !!stream;
+
+    // Grok Build rejects unsupported parameters with 400.
+    const UNSUPPORTED = ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"];
+    for (const param of UNSUPPORTED) {
+      if (param in transformed) {
+        delete transformed[param];
+      }
+    }
+
     return transformed;
   }
 }
