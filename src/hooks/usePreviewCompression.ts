@@ -3,8 +3,8 @@ import { useCallback, useState } from "react";
 import { previewToRunModel, type CompressionRunModel, type PreviewResponse } from "@/app/(dashboard)/dashboard/compression/studio/compressionFlowModel";
 export interface PreviewMessage { role: string; content: unknown; }
 export interface Lane { engine: string; run: CompressionRunModel | null; error: string | null; }
-export interface PreviewBatch { lanes: Lane[]; combined: CompressionRunModel | null; diff: PreviewResponse["diff"] | null; }
-export interface RunPreviewArgs { messages: PreviewMessage[]; laneEngines: string[]; activeEngines: string[]; language?: string; fidelityGate?: boolean; fuzzyDedup?: boolean; }
+export interface PreviewBatch { lanes: Lane[]; combined: CompressionRunModel | null; diff: PreviewResponse["diff"] | null; riskGate: PreviewResponse["riskGate"] | null; }
+export interface RunPreviewArgs { messages: PreviewMessage[]; laneEngines: string[]; activeEngines: string[]; language?: string; fidelityGate?: boolean; fuzzyDedup?: boolean; riskGate?: boolean; }
 async function postPreview(payload: Record<string, unknown>): Promise<PreviewResponse> {
   const res = await fetch("/api/compression/preview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
   const data = await res.json();
@@ -12,10 +12,11 @@ async function postPreview(payload: Record<string, unknown>): Promise<PreviewRes
   return data as PreviewResponse;
 }
 export async function runPreviewBatch(args: RunPreviewArgs): Promise<PreviewBatch> {
-  const { messages, laneEngines, activeEngines, fidelityGate, fuzzyDedup } = args;
+  const { messages, laneEngines, activeEngines, fidelityGate, fuzzyDedup, riskGate } = args;
   const extra = {
     ...(fidelityGate ? { fidelityGate: { enabled: true } } : {}),
     ...(fuzzyDedup ? { fuzzyDedup: { enabled: true } } : {}),
+    ...(riskGate ? { riskGate: { enabled: true } } : {}),
   };
   const lanes: Lane[] = await Promise.all(
     laneEngines.map(async (engine): Promise<Lane> => {
@@ -25,11 +26,12 @@ export async function runPreviewBatch(args: RunPreviewArgs): Promise<PreviewBatc
   );
   let combined: CompressionRunModel | null = null;
   let diff: PreviewResponse["diff"] | null = null;
+  let riskGateStats: PreviewResponse["riskGate"] | null = null;
   if (activeEngines.length > 0) {
-    try { const res = await postPreview({ messages, pipeline: activeEngines, ...extra }); combined = previewToRunModel(res, activeEngines.join(" → ")); diff = res.diff; }
+    try { const res = await postPreview({ messages, pipeline: activeEngines, ...extra }); combined = previewToRunModel(res, activeEngines.join(" → ")); diff = res.diff; riskGateStats = res.riskGate ?? null; }
     catch { combined = null; }
   }
-  return { lanes, combined, diff };
+  return { lanes, combined, diff, riskGate: riskGateStats };
 }
 export function usePreviewCompression() {
   const [batch, setBatch] = useState<PreviewBatch | null>(null);

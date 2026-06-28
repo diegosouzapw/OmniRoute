@@ -5,6 +5,7 @@ import { WaterfallInspector } from "./WaterfallInspector";
 import { DiffPane } from "./DiffPane";
 import { EncoderComparisonTable } from "./EncoderComparisonTable";
 import { PlaygroundInput, LANE_ENGINES } from "./PlaygroundInput";
+import { RiskGateBadge } from "./RiskGateBadge";
 export interface PlayViewProps {
   text: string;
   onText: (t: string) => void;
@@ -45,6 +46,7 @@ export function PlayView({ text, onText, laneEngines = LANE_ENGINES }: PlayViewP
   const [fuzzyDedup, setFuzzyDedup] = useState(false);
   const [selectedLane, setSelectedLane] = useState<string | null>(null);
   const [fidelityGate, setFidelityGate] = useState(false);
+  const [riskGate, setRiskGate] = useState(false);
   const { batch, loading, run } = usePreviewCompression();
   const messages = [{ role: "user", content: text }];
   const toggle = (e: string) =>
@@ -56,6 +58,7 @@ export function PlayView({ text, onText, laneEngines = LANE_ENGINES }: PlayViewP
       activeEngines: orderByStack(active, laneEngines),
       fidelityGate,
       fuzzyDedup,
+      riskGate,
     });
   const activeDiff = resolveActiveDiff(batch, selectedLane);
   return (
@@ -72,6 +75,8 @@ export function PlayView({ text, onText, laneEngines = LANE_ENGINES }: PlayViewP
           onToggleFidelity={() => setFidelityGate((v) => !v)}
           fuzzyDedup={fuzzyDedup}
           onToggleFuzzy={() => setFuzzyDedup((v) => !v)}
+          riskGate={riskGate}
+          onToggleRisk={() => setRiskGate((v) => !v)}
         />
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-auto">
@@ -81,6 +86,7 @@ export function PlayView({ text, onText, laneEngines = LANE_ENGINES }: PlayViewP
               Fluxo combinado — {active.join(" → ")}
             </header>
             <WaterfallInspector run={batch.combined} />
+            <RiskGateBadge stats={batch?.riskGate ?? null} />
           </section>
         )}
         <section>
