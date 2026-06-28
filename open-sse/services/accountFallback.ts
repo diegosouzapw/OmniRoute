@@ -70,8 +70,7 @@ type ModelFailureState = {
   failureCount: number;
   lastFailureAt: number;
   resetAfterMs: number;
-  /** Cooldown applied on the last failure — extends the escalation window so a
-   *  model that fails again right after its lockout expires keeps escalating. */
+  /** Last cooldown extends the escalation window past lockout expiry. */
   lastCooldownMs?: number;
 };
 type AccountState = JsonRecord & {
@@ -88,14 +87,11 @@ function toJsonRecord(value: unknown): JsonRecord {
 
 // Provider-level failure tracking for circuit breaker behavior
 // Error codes that count toward provider-level failure threshold.
-// 429 is included: per-error-type cooldowns (rate_limit: 60s, quota_exhausted: 1h)
-// prevent cascading provider trips at scale (Issue #1846 concern addressed),
-// while still allowing the circuit breaker to open on sustained 429s and
-// prevent infinite combo retries (Issue #3200).
+// 429 is included: per-error cooldowns prevent cascading trips while sustained
+// 429s can still open the breaker and stop infinite combo retries.
 const PROVIDER_FAILURE_ERROR_CODES = new Set([408, 429, 500, 502, 503, 504]);
 
-// Per-connection failure deduplication: prevents rapid-fire failures from the
-// same connection from counting multiple times toward the provider breaker.
+// Per-connection dedupe prevents rapid-fire failures from overcounting.
 const CONNECTION_FAILURE_DEDUP_MS = 5000;
 const MAX_CONNECTION_FAILURE_DEDUP_ENTRIES = 10_000;
 const lastConnectionFailure = new Map<string, number>();
