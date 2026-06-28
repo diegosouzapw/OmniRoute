@@ -1,7 +1,4 @@
-import {
-  copyOpenAICompatibleReasoningFields,
-  getReadableReasoningValue,
-} from "../utils/reasoningFields.ts";
+import { copyOpenAICompatibleReasoningFields } from "../utils/reasoningFields.ts";
 import { normalizeOpenAICompatibleFinishReason } from "../utils/finishReason.ts";
 
 /**
@@ -10,7 +7,7 @@ import { normalizeOpenAICompatibleFinishReason } from "../utils/finishReason.ts"
  * Fixes Issues:
  * 1. Strips non-standard fields (x_groq, usage_breakdown, service_tier) that
  *    break OpenAI Python SDK v1.83+ Pydantic validation (returns str instead of object)
- * 2. Extracts <think> tags from thinking models into reasoning_content
+ * 2. Preserves provider-native reasoning fields without inferring them from prompt text
  * 3. Normalizes response id, object, and usage fields
  * 4. Converts developer role → system for non-OpenAI providers
  */
@@ -458,7 +455,7 @@ function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
 }
 
 /**
- * Sanitize a message object, extracting <think> tags if present.
+ * Sanitize a message object without inferring protocol reasoning from prompt text.
  */
 function sanitizeMessage(msg: unknown): unknown {
   const msgRecord = toRecord(msg);
@@ -470,18 +467,13 @@ function sanitizeMessage(msg: unknown): unknown {
   if (msgRecord.role) sanitized.role = msgRecord.role;
   if (msgRecord.refusal !== undefined) sanitized.refusal = msgRecord.refusal;
 
-  // Handle content — extract <think> tags
+  // Handle content. Prompt-formatted tags such as <thinking> or <content> are
+  // ordinary assistant text unless the provider also sends explicit reasoning
+  // fields. Do not infer reasoning from generated text in the generic sanitizer;
+  // provider-specific translators that explicitly rely on inline thinking tags
+  // keep their own parsing before this layer.
   if (typeof msgRecord.content === "string") {
-    const { content, thinking } = extractThinkingFromContent(
-      stripInternalToolEnvelopeText(msgRecord.content)
-    );
-    sanitized.content = collapseExcessiveNewlines(content);
-
-    // Set reasoning_content from prompt-format tags only when the provider did
-    // not also return a native OpenAI-compatible reasoning field.
-    if (thinking && !getReadableReasoningValue(msgRecord)) {
-      sanitized.reasoning_content = thinking;
-    }
+    sanitized.content = collapseExcessiveNewlines(stripInternalToolEnvelopeText(msgRecord.content));
   } else if (msgRecord.content !== undefined) {
     sanitized.content = msgRecord.content;
   }

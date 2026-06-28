@@ -65,7 +65,7 @@ test("sanitizeOpenAIResponse strips non-standard fields and preserves required t
   });
 });
 
-test("sanitizeOpenAIResponse extracts thinking, collapses newlines, preserves reasoning_content with tool_calls, and preserves tool calls", () => {
+test("sanitizeOpenAIResponse preserves prompt-format tags as content and preserves tool calls", () => {
   const sanitized = sanitizeOpenAIResponse({
     id: "chatcmpl_test",
     model: "gpt-4.1",
@@ -85,13 +85,16 @@ test("sanitizeOpenAIResponse extracts thinking, collapses newlines, preserves re
 
   assert.equal((sanitized as any).choices[0].index, 2);
   assert.equal((sanitized as any).choices[0].finish_reason, "tool_calls");
-  (assert as any).equal((sanitized as any).choices[0].message.content, "Hello\n\nworld");
-  assert.equal((sanitized as any).choices[0].message.reasoning_content, "internal chain");
+  (assert as any).equal(
+    (sanitized as any).choices[0].message.content,
+    "Hello\n\n<think>internal chain</think>\n\nworld"
+  );
+  assert.equal((sanitized as any).choices[0].message.reasoning_content, undefined);
   (assert as any).deepEqual((sanitized as any).choices[0].message.tool_calls, [{ id: "call_1" }]);
   assert.deepEqual((sanitized as any).choices[0].message.function_call, { name: "legacy" });
 });
 
-test("sanitizeOpenAIResponse extracts unclosed reasoning wrappers into reasoning_content", () => {
+test("sanitizeOpenAIResponse preserves unclosed prompt-format wrappers as content", () => {
   const sanitized = sanitizeOpenAIResponse({
     model: "gpt-4.1",
     choices: [
@@ -104,11 +107,11 @@ test("sanitizeOpenAIResponse extracts unclosed reasoning wrappers into reasoning
     ],
   });
 
-  assert.equal((sanitized as any).choices[0].message.content, "");
-  assert.equal((sanitized as any).choices[0].message.reasoning_content, "internal planning");
+  assert.equal((sanitized as any).choices[0].message.content, "§54§ <thought\ninternal planning");
+  assert.equal((sanitized as any).choices[0].message.reasoning_content, undefined);
 });
 
-test("sanitizeOpenAIResponse preserves native reasoning_content when no visible content remains", () => {
+test("sanitizeOpenAIResponse preserves native reasoning_content without stripping content tags", () => {
   const sanitized = sanitizeOpenAIResponse({
     model: "gpt-4.1",
     choices: [
@@ -122,7 +125,7 @@ test("sanitizeOpenAIResponse preserves native reasoning_content when no visible 
     ],
   });
 
-  assert.equal(((sanitized as any).choices[0].message as any).content, "");
+  assert.equal(((sanitized as any).choices[0].message as any).content, "<think>discard me</think>");
   assert.equal((sanitized as any).choices[0].message.reasoning_content, "provider reasoning");
 });
 
@@ -246,7 +249,10 @@ test("sanitizeOpenAIResponse preserves OpenRouter native reasoning and signature
   assert.deepEqual((sanitized as any).choices[0].message.reasoning_details, [
     { type: "reasoning.encrypted", data: "sig" },
   ]);
-  assert.equal((sanitized as any).choices[0].message.content, "<content>Visible answer</content>");
+  assert.equal(
+    (sanitized as any).choices[0].message.content,
+    "<thinking>tag-derived</thinking><content>Visible answer</content>"
+  );
 });
 
 test("sanitizeOpenAIResponse keeps reasoning_details-derived reasoning_content for reasoning-only messages", () => {
@@ -436,6 +442,26 @@ test("sanitizeStreamingChunk keeps only safe chunk fields and preserves readable
     },
     system_fingerprint: "fp_123",
   });
+});
+
+test("sanitizeStreamingChunk preserves prompt-format tags in content deltas", () => {
+  const sanitized = sanitizeStreamingChunk({
+    choices: [
+      {
+        index: 0,
+        delta: {
+          content: "<thinking>\n[metacognition]\n</thinking><content>answer</content>",
+        },
+        finish_reason: null,
+      },
+    ],
+  });
+
+  assert.equal(
+    (sanitized as any).choices[0].delta.content,
+    "<thinking>\n[metacognition]\n</thinking><content>answer</content>"
+  );
+  assert.equal((sanitized as any).choices[0].delta.reasoning_content, undefined);
 });
 
 test("sanitizeStreamingChunk converts reasoning_details arrays in deltas", () => {

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { geminiToOpenAIResponse } =
+const { antigravityToOpenAIResponse, geminiToOpenAIResponse } =
   await import("../../open-sse/translator/response/gemini-to-openai.ts");
 const { translateNonStreamingResponse } =
   await import("../../open-sse/handlers/responseTranslator.ts");
@@ -423,6 +423,77 @@ test("Gemini stream: routes textual reasoning tags to reasoning_content before t
     .delta.tool_calls[0];
   assert.equal(toolCall.id, "call_grep");
   assert.equal(result.at(-1).choices[0].finish_reason, "tool_calls");
+});
+
+test("Antigravity/Agy stream: prompt-format thinking tags remain content before tool calls", () => {
+  const state = createStreamingState();
+  const result = antigravityToOpenAIResponse(
+    {
+      response: {
+        responseId: "resp-agy-prompt-tags",
+        modelVersion: "claude-opus-4-6-thinking",
+        candidates: [
+          {
+            content: {
+              parts: [
+                { text: "<thinking>prompt-required section</thinking><content>answer</content>" },
+                {
+                  functionCall: {
+                    id: "call_lookup",
+                    name: "lookup",
+                    args: { query: "status" },
+                  },
+                },
+              ],
+            },
+            finishReason: "STOP",
+          },
+        ],
+      },
+    },
+    state
+  );
+
+  const content = result.map((event: any) => event.choices?.[0]?.delta?.content || "").join("");
+  assert.equal(content, "<thinking>prompt-required section</thinking><content>answer</content>");
+  assert.equal(
+    result.some((event: any) => event.choices?.[0]?.delta?.reasoning_content),
+    false
+  );
+  const toolCall = result.find((event: any) => event.choices?.[0]?.delta?.tool_calls)?.choices[0]
+    .delta.tool_calls[0];
+  assert.equal(toolCall.id, "call_lookup");
+});
+
+test("Antigravity/Agy stream: native Gemini thought parts still become reasoning_content", () => {
+  const state = createStreamingState();
+  const result = antigravityToOpenAIResponse(
+    {
+      response: {
+        responseId: "resp-agy-native-thought",
+        modelVersion: "gemini-3.5-flash-low",
+        candidates: [
+          {
+            content: {
+              parts: [{ thought: true, text: "native thought" }, { text: "visible answer" }],
+            },
+            finishReason: "STOP",
+          },
+        ],
+      },
+    },
+    state
+  );
+
+  assert.equal(
+    result.find((event: any) => event.choices?.[0]?.delta?.reasoning_content)?.choices[0].delta
+      .reasoning_content,
+    "native thought"
+  );
+  assert.equal(
+    result.find((event: any) => event.choices?.[0]?.delta?.content)?.choices[0].delta.content,
+    "visible answer"
+  );
 });
 
 test("Gemini stream: keeps textual reasoning hidden across split chunks", () => {
@@ -1174,7 +1245,10 @@ test("Gemini stream: open textual reasoning is flushed before a signed native to
     "buffered textual reasoning must be flushed, not dropped, when a tool call arrives"
   );
   assert.equal(r2[toolIdx]?.choices[0].delta.tool_calls[0].id, "call-flush-1");
-  assert.ok(reasoningIdx >= 0 && toolIdx > reasoningIdx, "reasoning is emitted before the tool call");
+  assert.ok(
+    reasoningIdx >= 0 && toolIdx > reasoningIdx,
+    "reasoning is emitted before the tool call"
+  );
 });
 
 // #3821-review LEDGER-15 — a reasoning-only chunk interrupting a partially-buffered

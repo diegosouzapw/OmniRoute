@@ -289,8 +289,7 @@ export function translateRequest(
     // requested upstream; generic/implicit-cache OpenAI providers stay stripped.
     result = filterToOpenAIFormat(result, {
       preserveCacheControl:
-        options?.preserveCacheControl === true &&
-        providerHonorsOpenAIFormatCacheControl(provider),
+        options?.preserveCacheControl === true && providerHonorsOpenAIFormatCacheControl(provider),
       // #4849 regression guard: keep client reasoning_content for replay providers.
       preserveReasoningContent: isReasoner,
     });
@@ -586,7 +585,6 @@ export function initState(sourceFormat) {
       reasoningBuf: "",
       reasoningPartAdded: false,
       reasoningDone: false,
-      inThinking: false,
       funcArgsBuf: {},
       funcNames: {},
       funcCallIds: {},

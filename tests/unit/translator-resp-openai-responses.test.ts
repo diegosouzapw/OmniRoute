@@ -112,7 +112,7 @@ test("OpenAI -> Responses: flush on null closes text content and emits response.
   assert.ok(events.some((event) => event.event === "response.completed"));
 });
 
-test("OpenAI -> Responses: <think> tags become reasoning events and normal text still streams", () => {
+test("OpenAI -> Responses: prompt-format <think> tags remain text", () => {
   const events = collectEvents([
     {
       id: "chatcmpl-3",
@@ -130,13 +130,13 @@ test("OpenAI -> Responses: <think> tags become reasoning events and normal text 
   assert.ok(
     events.some(
       (event) =>
-        event.event === "response.reasoning_summary_text.delta" && event.data.delta === "Plan it"
+        event.event === "response.output_text.delta" &&
+        event.data.delta === "<think>Plan it</think>Done."
     )
   );
-  assert.ok(
-    events.some(
-      (event) => event.event === "response.output_text.delta" && event.data.delta === "Done."
-    )
+  assert.equal(
+    events.some((event) => event.event === "response.reasoning_summary_text.delta"),
+    false
   );
 });
 

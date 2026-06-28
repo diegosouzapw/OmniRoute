@@ -83,7 +83,7 @@ test("createResponsesApiTransformStream converts plain chat deltas into Response
   assert.equal(doneMarker.data, "[DONE]");
 });
 
-test("createResponsesApiTransformStream converts think tags into reasoning summaries", async () => {
+test("createResponsesApiTransformStream preserves prompt-format think tags as text", async () => {
   const output = await runTransformStream([
     'data: {"choices":[{"index":0,"delta":{"content":"<think>plan"}}]}\n\n',
     'data: {"choices":[{"index":0,"delta":{"content":"ning</think>answer"}}]}\n\n',
@@ -98,14 +98,9 @@ test("createResponsesApiTransformStream converts think tags into reasoning summa
     events.find((event) => event.event === "response.completed").data
   ).response;
 
-  assert.deepEqual(reasoningDeltas, ["plan", "ning"]);
-  assert.deepEqual(completed.output[0], {
-    id: completed.output[0].id,
-    type: "reasoning",
-    summary: [{ type: "summary_text", text: "planning" }],
-  });
-  assert.deepEqual(completed.output[1].content, [
-    { type: "output_text", annotations: [], logprobs: [], text: "answer" },
+  assert.deepEqual(reasoningDeltas, []);
+  assert.deepEqual(completed.output[0].content, [
+    { type: "output_text", annotations: [], logprobs: [], text: "<think>planning</think>answer" },
   ]);
 });
 

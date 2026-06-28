@@ -91,7 +91,6 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
     reasoningBuf: "",
     reasoningPartAdded: false,
     reasoningDone: false,
-    inThinking: false,
     funcArgsBuf: {},
     funcNames: {},
     funcCallIds: {},
@@ -443,42 +442,17 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
             emitReasoningDelta(controller, delta.reasoning_content);
           }
 
-          // Handle text content (may contain <think> tags)
+          // Handle text content
           if (delta.content) {
             // Close reasoning if it was opened via native reasoning_content
             // and is still open, before emitting message content. Without this
             // the reasoning item is never closed and the message reuses the
             // reasoning output_index, producing a protocol-invalid stream.
-            // Guard on !inThinking: reasoning opened via <think> tags is closed by
-            // its matching </think> below — force-closing it here would snapshot a
-            // partial buffer (dense output records the item at close time). (#4848 + #4906)
-            if (state.reasoningId && !state.reasoningDone && !state.inThinking) {
+            if (state.reasoningId && !state.reasoningDone) {
               closeReasoning(controller);
             }
 
             let content = delta.content;
-
-            if (content.includes("<think>")) {
-              state.inThinking = true;
-              content = content.replaceAll("<think>", "");
-              startReasoning(controller, idx);
-            }
-
-            if (content.includes("</think>")) {
-              const parts = content.split("</think>");
-              const thinkPart = parts[0];
-              const textPart = parts.slice(1).join("</think>");
-
-              if (thinkPart) emitReasoningDelta(controller, thinkPart);
-              closeReasoning(controller);
-              state.inThinking = false;
-              content = textPart;
-            }
-
-            if (state.inThinking && content) {
-              emitReasoningDelta(controller, content);
-              continue;
-            }
 
             // Regular text content
             if (content) {
