@@ -69,9 +69,8 @@ vs. $20 + terkena batas = frustrasi
 
 ```
 Combo: "free-forever"
-  1. gc/gemini-3-flash         (180K gratis/bulan)
-  2. if/kimi-k2-thinking       (gratis tanpa batas)
-  3. qw/qwen3-coder-plus       (gratis tanpa batas)
+  1. if/kimi-k2-thinking       (unlimited free)
+  2. qw/qwen3-coder-plus       (unlimited free)
 
 Biaya bulanan: $0
 Kualitas: Model siap produksi
@@ -141,16 +140,6 @@ Models:
 ```
 
 
-```bash
-→ Google OAuth
-→ 180K completions/month + 1K/day
-
-Models:
-  gc/gemini-3-flash-preview
-  gc/gemini-2.5-pro
-```
-
-**Nilai Terbaik:** Tingkat gratis yang sangat besar! Gunakan ini sebelum tingkatan berbayar.
 
 #### GitHub Copilot
 
@@ -240,9 +229,8 @@ Use in CLI: premium-coding
 ```
 Name: free-combo
 Models:
-  1. gc/gemini-3-flash-preview (180K gratis/bulan)
-  2. if/kimi-k2-thinking (tanpa batas)
-  3. qw/qwen3-coder-plus (tanpa batas)
+  1. if/kimi-k2-thinking (unlimited)
+  2. qw/qwen3-coder-plus (unlimited)
 
 Cost: $0 selamanya!
 ```

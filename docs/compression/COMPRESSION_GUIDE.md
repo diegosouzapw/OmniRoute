@@ -181,8 +181,8 @@ Combo: "free-forever"
   Compression Combo: "coding-agent-stack"
   Pipeline: RTK -> Caveman
   Targets:
-    1. gc/gemini-3-flash
-    2. if/kimi-k2-thinking
+    1. if/kimi-k2-thinking
+    2. qw/qwen3-coder-plus
 ```
 
 This lets you use stacked compression on free/coding providers while keeping lite mode on paid

@@ -83,6 +83,7 @@ Comprehensive settings panel with tabs:
 
 ## 🔧 CLI Tools
 
+One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
 
 ![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 
@@ -90,6 +91,7 @@ Comprehensive settings panel with tabs:
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
+Dashboard for discovering and managing CLI agents. Shows a grid of 17 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
 
 - **Installation status** — Installed / Not Found with version detection
 - **Protocol badges** — stdio, HTTP, etc.

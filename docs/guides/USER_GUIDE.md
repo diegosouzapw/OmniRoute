@@ -83,8 +83,8 @@ vs. $20 + hitting limits = frustration
 
 ```
 Combo: "free-forever"
-  2. if/kimi-k2       (unlimited free)
-  3. qw/qwen3-coder-plus       (unlimited free)
+  1. if/kimi-k2       (unlimited free)
+  2. qw/qwen3-coder-plus       (unlimited free)
 
 Monthly cost: $0
 Quality: Production-ready models
@@ -159,15 +159,6 @@ Models:
   cx/gpt-5.3-codex-spark
 ```
 
-
-```bash
-→ Google OAuth
-→ 180K completions/month + 1K/day
-
-Models:
-```
-
-**Best Value:** Huge free tier! Use this before paid tiers.
 
 #### GitHub Copilot
 
@@ -262,8 +253,8 @@ Use in CLI: premium-coding
 ```
 Name: free-combo
 Models:
-  2. if/kimi-k2 (unlimited)
-  3. qw/coder-model (unlimited)
+  1. if/kimi-k2 (unlimited)
+  2. qw/coder-model (unlimited)
 
 Cost: $0 forever!
 ```
