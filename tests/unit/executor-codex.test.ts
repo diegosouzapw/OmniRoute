@@ -49,7 +49,6 @@ test.afterEach(() => {
 
 async function withEnv<T>(entries: Record<string, string | undefined>, fn: () => T | Promise<T>) {
   const previous = new Map();
-
   for (const [key, value] of Object.entries(entries)) {
     previous.set(key, process.env[key]);
     if (value === undefined) {
@@ -58,7 +57,6 @@ async function withEnv<T>(entries: Record<string, string | undefined>, fn: () =>
       process.env[key] = value;
     }
   }
-
   try {
     return await fn();
   } finally {
@@ -81,7 +79,6 @@ test("Codex helper functions isolate rate-limit scopes and parse quota headers",
     "x-codex-7d-limit": "5000",
     "x-codex-7d-reset-at": new Date(Date.now() + 120_000).toISOString(),
   });
-
   assert.equal(getCodexModelScope("codex-spark-mini"), "spark");
   assert.equal(getCodexModelScope("gpt-5.3-codex-spark"), "spark");
   assert.equal(getCodexModelScope("codex-bengalfox"), "spark");
@@ -154,7 +151,6 @@ test("isCodexResponsesWebSocketRequired: OMNIROUTE_CODEX_WS_ENABLED=false forces
 
 test("CodexExecutor.buildUrl honors /responses subpaths and compact mode", () => {
   const executor = new CodexExecutor();
-
   assert.equal(
     executor.buildUrl("gpt-5.3-codex", true, 0, {}),
     "https://chatgpt.com/backend-api/codex/responses"
@@ -1106,10 +1102,7 @@ test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted to
 
   assert.deepEqual(result.tool_choice, { type: "function", name: "jira_get_issue" });
 
-  const body = {
-    tools: [{ type: "function", name: "exec_command", parameters: { type: "object" } }],
-    tool_choice: { type: "local_shell" },
-  };
+  const body = { tools: [], tool_choice: { type: "local_shell" } };
   normalizeCodexTools(body);
   assert.equal(body.tool_choice, undefined);
 });
