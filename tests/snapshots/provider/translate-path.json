@@ -2155,16 +2155,19 @@
       "apiKey": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-KILOCODE-EDITORNAME": "OmniRoute"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-KILOCODE-EDITORNAME": "OmniRoute"
       },
       "oauth": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-KILOCODE-EDITORNAME": "OmniRoute"
       }
     },
     "url": {

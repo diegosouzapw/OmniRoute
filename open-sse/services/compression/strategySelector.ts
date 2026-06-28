@@ -34,17 +34,12 @@ import {
 import { resolveAdaptivePlan } from "./adaptiveCompression/resolveAdaptivePlan.ts";
 import type { AdaptiveTelemetry } from "./adaptiveCompression/types.ts";
 import type { RiskGateConfig } from "./riskGate/riskGate.ts";
+import { resolveRiskGate, withRiskGateAsync } from "./riskGate/strategyWrap.ts";
 import {
-  resolveRiskGate,
-  withRiskGate,
-  withRiskGateAsync,
-} from "./riskGate/strategyWrap.ts";
-import {
-  resolveQuantumLock,
-  quantumCachingContext,
-  withQuantumLock,
-  withQuantumLockAsync,
-} from "./quantumLock/index.ts";
+  withCompressionEntrypointGuards,
+  withCompressionEntrypointGuardsAsync,
+} from "./entrypointWrap.ts";
+export { resolveCacheAwareConfig } from "./cacheAwareConfig.ts";
 
 // Re-export so existing importers (resolver test + chatCore dynamic import) keep resolving.
 export { planFromHeader, formatCompressionMeta, buildNamedComboLookup };
@@ -232,32 +227,6 @@ export function selectCompressionStrategy(
     .mode as CompressionMode;
 }
 
-/**
- * #3890: honor the cache-aware `skipSystemPrompt` decision that `getCacheAwareStrategy`
- * already computes but that `selectCompressionStrategy` (which can only return a mode
- * string) previously discarded. In a caching context the system prompt is part of the
- * cacheable prefix, so compressing it breaks the upstream prompt cache. This forces
- * `preserveSystemPrompt` on for caching requests even when the operator turned it off,
- * and leaves non-caching requests untouched.
- */
-export function resolveCacheAwareConfig(
-  config: CompressionConfig,
-  body?: Record<string, unknown>,
-  context?: CachingDetectionContext
-): CompressionConfig {
-  if (!body) return config;
-  const ctx = detectCachingContext(body, context);
-  // Only `skipSystemPrompt` is consumed here, and it depends solely on `ctx.isCachingProvider`
-  // (NOT on the strategy arg — see getCacheAwareStrategy), so the stored `defaultMode` is a safe
-  // input even though it may be "off" for a panel-configured install. If getCacheAwareStrategy is
-  // ever extended to key `skipSystemPrompt` on the mode, pass the resolved effective mode instead.
-  const cacheAware = getCacheAwareStrategy(config.defaultMode, ctx);
-  if (cacheAware.skipSystemPrompt && config.preserveSystemPrompt === false) {
-    return { ...config, preserveSystemPrompt: true };
-  }
-  return config;
-}
-
 export function applyCompression(
   body: Record<string, unknown>,
   mode: CompressionMode,
@@ -278,12 +247,7 @@ export function applyCompression(
     cachingContext?: CachingDetectionContext;
   }
 ): CompressionResult {
-  return withQuantumLock(
-    body,
-    resolveQuantumLock(options),
-    quantumCachingContext(body, options),
-    (b) => withRiskGate(b, resolveRiskGate(options), (b2) => runCompression(b2, mode, options))
-  );
+  return withCompressionEntrypointGuards(body, options, (b) => runCompression(b, mode, options));
 }
 
 function runCompression(
@@ -434,11 +398,8 @@ export async function applyCompressionAsync(
     cachingContext?: CachingDetectionContext;
   }
 ): Promise<CompressionResult> {
-  return withQuantumLockAsync(
-    body,
-    resolveQuantumLock(options),
-    quantumCachingContext(body, options),
-    (b) => runCompressionAsync(b, mode, options)
+  return withCompressionEntrypointGuardsAsync(body, options, (b) =>
+    runCompressionAsync(b, mode, options)
   );
 }
 

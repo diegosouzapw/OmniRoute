@@ -266,7 +266,7 @@
     "tests/unit/db-settings-crud.test.ts": 941,
     "tests/unit/deepseek-web.test.ts": 1081,
     "tests/unit/executor-antigravity.test.ts": 942,
-    "tests/unit/executor-codex.test.ts": 1340,
+    "tests/unit/executor-codex.test.ts": 1347,
     "tests/unit/executor-default-base.test.ts": 1477,
     "tests/unit/grok-web.test.ts": 2437,
     "tests/unit/image-generation-handler.test.ts": 2019,

@@ -163,6 +163,10 @@ export const OAUTH_PROVIDERS = {
     textIcon: "KC",
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
+    // #4019: serve Kilo's free models without signup. With no account connected,
+    // getProviderCredentials synthesizes a noauth credential and the executor
+    // sends `Bearer anonymous` (see the kilocode registry `anonymousApiKey`).
+    anonymousFallback: true,
   },
   cline: {
     id: "cline",

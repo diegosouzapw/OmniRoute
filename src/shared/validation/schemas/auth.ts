@@ -133,7 +133,7 @@ export const oauthPollSchema = z.object({
 
 /** Import a raw API token (e.g. WINDSURF_API_KEY) without going through the browser OAuth flow. */
 export const oauthImportTokenSchema = z.object({
-  token: z.string().trim().min(1, "Token is required"),
+  token: z.union([z.string().trim().min(1, "Token is required"), z.record(z.string(), z.unknown())]),
   connectionId: z.string().optional(),
 });
 
