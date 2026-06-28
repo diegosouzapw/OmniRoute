@@ -57,35 +57,52 @@ function parseJwtPayload(token: string): {
  *   - Raw JWT string (no refresh_token available)
  *   - The entire auth.json object: { "https://auth.x.ai::...": { "key": "eyJ...", "refresh_token": "..." } }
  */
-function extractTokenAndRefresh(input: any): { accessToken: string; refreshToken: string | null } {
-  if (typeof input === "string") return { accessToken: input, refreshToken: null };
+function extractTokenAndRefresh(input: unknown): {
+  accessToken: string;
+  refreshToken: string | null;
+  rawAuthJson: Record<string, unknown> | null;
+} {
+  if (typeof input === "string")
+    return { accessToken: input, refreshToken: null, rawAuthJson: null };
 
   if (input && typeof input === "object") {
     // auth.json format: first entry's "key" and "refresh_token" fields
     const keys = Object.keys(input);
-    if (keys.length > 0 && input[keys[0]]?.key) {
-      return {
-        accessToken: input[keys[0]].key,
-        refreshToken: input[keys[0]].refresh_token || null,
-      };
+    if (
+      keys.length > 0 &&
+      (input as Record<string, unknown>)[keys[0]] &&
+      typeof (input as Record<string, unknown>)[keys[0]] === "object"
+    ) {
+      const entry = (input as Record<string, Record<string, unknown>>)[keys[0]];
+      if (entry.key) {
+        return {
+          accessToken: String(entry.key),
+          refreshToken: typeof entry.refresh_token === "string" ? entry.refresh_token : null,
+          rawAuthJson: input as Record<string, unknown>,
+        };
+      }
     }
     // Already has accessToken
-    if (input.accessToken) {
+    if ((input as Record<string, unknown>).accessToken) {
       return {
-        accessToken: input.accessToken,
-        refreshToken: input.refreshToken || null,
+        accessToken: String((input as Record<string, unknown>).accessToken),
+        refreshToken:
+          typeof (input as Record<string, unknown>).refreshToken === "string"
+            ? ((input as Record<string, unknown>).refreshToken as string)
+            : null,
+        rawAuthJson: input as Record<string, unknown>,
       };
     }
   }
 
-  return { accessToken: "", refreshToken: null };
+  return { accessToken: "", refreshToken: null, rawAuthJson: null };
 }
 
 export const grokCli = {
   config: GROK_CLI_CONFIG,
   flowType: "import_token",
-  mapTokens: (token: any) => {
-    const { accessToken, refreshToken } = extractTokenAndRefresh(token);
+  mapTokens: (token: unknown) => {
+    const { accessToken, refreshToken, rawAuthJson } = extractTokenAndRefresh(token);
     const { email, authInfo } = parseJwtPayload(accessToken);
 
     return {
@@ -98,6 +115,7 @@ export const grokCli = {
         teamId: authInfo?.team_id || null,
         tier: authInfo?.tier || 1,
         principalType: authInfo?.principal_type || "User",
+        rawAuthJson: rawAuthJson || undefined,
       },
     };
   },
