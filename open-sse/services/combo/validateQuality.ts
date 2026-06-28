@@ -21,6 +21,28 @@ export function toRetryAfterDisplayValue(value: ComboRetryAfter): string | Date 
   return new Date(value);
 }
 
+function responsesApiOutputHasContent(output: unknown): boolean {
+  return (
+    Array.isArray(output) &&
+    output.some((item) => {
+      if (!item || typeof item !== "object") return false;
+      const record = item as Record<string, unknown>;
+      if (record.type !== "message") return Boolean(record.type);
+      const content = record.content;
+      return (
+        Array.isArray(content) &&
+        content.some(
+          (part) =>
+            !!part &&
+            typeof part === "object" &&
+            typeof (part as Record<string, unknown>).text === "string" &&
+            ((part as Record<string, string>).text as string).length > 0
+        )
+      );
+    })
+  );
+}
+
 /**
  * Validate that a successful (HTTP 200) non-streaming response actually contains
  * meaningful content. Returns { valid: true } or { valid: false, reason }.
@@ -271,6 +293,22 @@ export async function validateResponseQuality(
   }
 
   const choices = json?.choices;
+  if (json?.object === "response") {
+    if (!responsesApiOutputHasContent(json.output)) return { valid: false, reason: "empty_choices" };
+    const status = typeof json.status === "string" ? json.status : "";
+    if (status && !["completed", "done"].includes(status)) {
+      return { valid: false, reason: "no_terminal" };
+    }
+    return {
+      valid: true,
+      clonedResponse: new Response(text, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+      }),
+    };
+  }
+
   if (!Array.isArray(choices) || choices.length === 0) {
     if (json?.output || json?.result || json?.data || json?.response) return { valid: true };
     if (json?.error) {
