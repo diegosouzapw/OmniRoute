@@ -46,11 +46,6 @@ type GeminiFunctionCallPart = {
   };
 };
 
-type GeminiToOpenAIResponseOptions = {
-  parseTextualReasoningTags: boolean;
-  unwrapResponseEnvelope?: boolean;
-};
-
 const REASONING_TAG_OPEN_REGEX =
   /<(think|thinking|thought|internal_thought)(?=\s|>|\r?\n)(?:\s[^>]*)?(?:>|\r?\n)/i;
 const REASONING_TAG_OPEN_PREFIXES = ["<think", "<thinking", "<thought", "<internal_thought"];
@@ -294,20 +289,18 @@ function emitFunctionCallPart(
   });
 }
 
-function geminiLikeToOpenAIResponse(chunk, state, options: GeminiToOpenAIResponseOptions) {
+// Convert Gemini response chunk to OpenAI format
+export function geminiToOpenAIResponse(chunk, state) {
   if (!chunk) return null;
 
-  const response =
-    options.unwrapResponseEnvelope && chunk && typeof chunk === "object" && "response" in chunk
-      ? chunk.response
-      : chunk;
+  // Handle Antigravity wrapper
+  const response = chunk.response || chunk;
   if (!response) return null;
 
   const modelVersion =
     typeof response.modelVersion === "string" ? response.modelVersion.toLowerCase() : "";
   const parseTextualReasoningTags = !chunk.response && !modelVersion.startsWith("antigravity/");
   const results = [];
-  const parseTextualReasoningTags = options.parseTextualReasoningTags;
   const candidate = response.candidates?.[0];
 
   if (!candidate) {
@@ -448,18 +441,16 @@ function geminiLikeToOpenAIResponse(chunk, state, options: GeminiToOpenAIRespons
         }
 
         if (hasFunctionCall) {
-          if (parseTextualReasoningTags) {
-            // Flush any still-open textual reasoning wrapper as reasoning_content BEFORE
-            // the tool call. A signed native functionCall arriving while a `<thinking>`
-            // (etc.) tag opened in an earlier chunk is still buffered must not silently
-            // drop that buffered reasoning — flushOpenTextualReasoning emits it and clears
-            // the active-tag/content buffers. (LEDGER-4 / #3821-review)
-            flushOpenTextualReasoning(state, results);
-            // Also drop any partial open-tag fragment buffered at a chunk boundary
-            // (flushOpenTextualReasoning early-returns when only this is set), matching the
-            // pre-fix branch which cleared all three buffers. (#3821-review convergence)
-            state.textualReasoningTagBuffer = undefined;
-          }
+          // Flush any still-open textual reasoning wrapper as reasoning_content BEFORE
+          // the tool call. A signed native functionCall arriving while a `<thinking>`
+          // (etc.) tag opened in an earlier chunk is still buffered must not silently
+          // drop that buffered reasoning — flushOpenTextualReasoning emits it and clears
+          // the active-tag/content buffers. (LEDGER-4 / #3821-review)
+          flushOpenTextualReasoning(state, results);
+          // Also drop any partial open-tag fragment buffered at a chunk boundary
+          // (flushOpenTextualReasoning early-returns when only this is set), matching the
+          // pre-fix branch which cleared all three buffers. (#3821-review convergence)
+          state.textualReasoningTagBuffer = undefined;
           emitFunctionCallPart(part, state, results);
         }
         continue;
@@ -471,9 +462,7 @@ function geminiLikeToOpenAIResponse(chunk, state, options: GeminiToOpenAIRespons
       // back to a structured OpenAI tool call so clients/tools do not see it as
       // assistant prose.
       if (part.text !== undefined && part.text !== "") {
-        const afterReasoning = parseTextualReasoningTags
-          ? consumeTextualReasoningTags(part.text, state, results)
-          : part.text;
+        const afterReasoning = consumeTextualReasoningTags(part.text, state, results);
         if (!afterReasoning) continue;
 
         let accumulated = (state.textualToolCallBuffer || "") + afterReasoning;
@@ -762,19 +751,6 @@ function geminiLikeToOpenAIResponse(chunk, state, options: GeminiToOpenAIRespons
   return results.length > 0 ? results : null;
 }
 
-// Convert Gemini response chunk to OpenAI format.
-export function geminiToOpenAIResponse(chunk, state) {
-  return geminiLikeToOpenAIResponse(chunk, state, { parseTextualReasoningTags: true });
-}
-
-// Convert Antigravity/Agy Gemini-shaped response chunks to OpenAI format.
-export function antigravityToOpenAIResponse(chunk, state) {
-  return geminiLikeToOpenAIResponse(chunk, state, {
-    parseTextualReasoningTags: false,
-    unwrapResponseEnvelope: true,
-  });
-}
-
 // Register
 register(FORMATS.GEMINI, FORMATS.OPENAI, null, geminiToOpenAIResponse);
-register(FORMATS.ANTIGRAVITY, FORMATS.OPENAI, null, antigravityToOpenAIResponse);
+register(FORMATS.ANTIGRAVITY, FORMATS.OPENAI, null, geminiToOpenAIResponse);
