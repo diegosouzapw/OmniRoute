@@ -72,9 +72,14 @@ self.addEventListener("fetch", (event) => {
     (async () => {
       if (isNavigateRequest) {
         try {
-          return await fetch(event.request);
+          const networkResponse = await fetch(event.request);
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            void caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          }
+          return networkResponse;
         } catch {
-          return (await caches.match("/offline")) || Response.error();
+          return (await navigationFallback(event.request)) || Response.error();
         }
       }
 
@@ -109,6 +114,10 @@ self.addEventListener("fetch", (event) => {
     })()
   );
 });
+
+async function navigationFallback(request) {
+  return (await caches.match(request)) || (await caches.match("/")) || (await caches.match("/offline"));
+}
 
 // ── Push Notifications ───────────────────────────────────────────────────────
 
