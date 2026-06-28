@@ -6,10 +6,15 @@
  * is absent (Docker / desktop / locked-down installs) or the registry is unreachable, the
  * call returned null and the banner silently never rendered — even when an update existed.
  *
- * This module keeps the fast `npm` CLI path as the primary source but adds an
- * npm-binary-free HTTP fallback (the npm registry JSON API, reachable with plain `fetch`)
- * and logs a warning instead of degrading silently. Version parsing is also hardened so a
- * `v`-prefix or pre-release suffix no longer collapses the comparison to `false` via `NaN`.
+ * This module keeps the fast `npm` CLI path as the primary source but adds two
+ * npm-binary-free HTTP fallbacks, reachable with plain `fetch`:
+ *   1. the npm registry JSON API (`registry.npmjs.org`), then
+ *   2. the GitHub releases API (`api.github.com/.../releases/latest`) — the source the
+ *      issue itself suggested, and the only one that still works on networks that reach
+ *      GitHub (the same host `getNews()` already pulls from) but block the npm registry.
+ * It logs a warning instead of degrading silently when ALL sources fail. Version parsing
+ * is also hardened so a `v`-prefix or pre-release suffix no longer collapses the
+ * comparison to `false` via `NaN`.
  */
 import { execFile } from "child_process";
 import { promisify } from "util";
@@ -20,6 +25,14 @@ const log = createLogger("system/versionCheck");
 
 /** npm-binary-free latest-version source: the registry JSON API. */
 const NPM_REGISTRY_LATEST_URL = "https://registry.npmjs.org/omniroute/latest";
+
+/**
+ * Second npm-binary-free source: the GitHub releases API. Works on networks that allow
+ * GitHub (where `getNews()` already succeeds) but block the npm registry — the most likely
+ * surviving cause of "#4100 still not fixed" after the registry fallback shipped in v3.8.28.
+ */
+const GITHUB_RELEASES_LATEST_URL =
+  "https://api.github.com/repos/diegosouzapw/OmniRoute/releases/latest";
 
 const LOOKUP_TIMEOUT_MS = 10_000;
 
@@ -88,17 +101,46 @@ export async function getLatestVersionFromRegistry(
 }
 
 /**
+ * Latest published version via the GitHub releases API. Needs only network access to
+ * GitHub — no `npm` binary and no npm registry — so it covers installs that reach GitHub
+ * (the same host `getNews()` pulls from) but cannot reach `registry.npmjs.org`. Reads the
+ * `tag_name` of the latest release (e.g. `v3.8.39`); `normalizeVersion`/`isNewer` tolerate
+ * the `v` prefix downstream.
+ */
+export async function getLatestVersionFromGitHub(
+  fetchImpl: typeof fetch = fetch
+): Promise<string | null> {
+  try {
+    const res = await fetchImpl(GITHUB_RELEASES_LATEST_URL, {
+      signal: AbortSignal.timeout(LOOKUP_TIMEOUT_MS),
+      headers: {
+        // GitHub's API rejects requests without a User-Agent.
+        "User-Agent": "omniroute-version-check",
+        Accept: "application/vnd.github+json",
+      },
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { tag_name?: unknown };
+    return typeof data?.tag_name === "string" && data.tag_name ? data.tag_name : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Resolve the latest published version. Tries the `npm` CLI first (fast on source installs),
- * then falls back to the registry HTTP API (npm-binary-free). Logs a warning — instead of
- * silently degrading to "no update available" — when BOTH sources fail. Thunks are injectable
- * for tests.
+ * then the registry HTTP API, then the GitHub releases API — both npm-binary-free. Logs a
+ * warning — instead of silently degrading to "no update available" — when ALL sources fail.
+ * Thunks are injectable for tests.
  */
 export async function resolveLatestVersion(opts?: {
   npmCli?: () => Promise<string | null>;
   registry?: () => Promise<string | null>;
+  github?: () => Promise<string | null>;
 }): Promise<string | null> {
   const npmCli = opts?.npmCli ?? getLatestVersionFromNpmCli;
   const registry = opts?.registry ?? (() => getLatestVersionFromRegistry());
+  const github = opts?.github ?? (() => getLatestVersionFromGitHub());
 
   const viaCli = await npmCli();
   if (viaCli) return viaCli;
@@ -106,8 +148,11 @@ export async function resolveLatestVersion(opts?: {
   const viaRegistry = await registry();
   if (viaRegistry) return viaRegistry;
 
+  const viaGitHub = await github();
+  if (viaGitHub) return viaGitHub;
+
   log.warn(
-    "Latest-version lookup failed via both npm CLI and registry HTTP — the update banner will not show even if a newer release exists"
+    "Latest-version lookup failed via npm CLI, registry HTTP, and GitHub releases — the update banner will not show even if a newer release exists"
   );
   return null;
 }
