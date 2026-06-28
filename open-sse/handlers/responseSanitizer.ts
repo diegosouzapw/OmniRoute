@@ -10,7 +10,7 @@ import { normalizeOpenAICompatibleFinishReason } from "../utils/finishReason.ts"
  * Fixes Issues:
  * 1. Strips non-standard fields (x_groq, usage_breakdown, service_tier) that
  *    break OpenAI Python SDK v1.83+ Pydantic validation (returns str instead of object)
- * 2. Extracts <think> tags from thinking models into reasoning_content
+ * 2. Optionally extracts native textual reasoning tags from known tag-style models
  * 3. Normalizes response id, object, and usage fields
  * 4. Converts developer role → system for non-OpenAI providers
  */
@@ -297,6 +297,30 @@ export function extractThinkingFromContent(text: string): {
   };
 }
 
+function normalizeReasoningRouteId(value: unknown): string {
+  return typeof value === "string" ? value.toLowerCase() : "";
+}
+
+export function shouldParseTextualReasoningTags(provider?: unknown, model?: unknown): boolean {
+  const providerId = normalizeReasoningRouteId(provider);
+  const modelId = normalizeReasoningRouteId(model);
+  if (
+    providerId.includes("antigravity") ||
+    providerId === "agy" ||
+    modelId.includes("antigravity/") ||
+    modelId.startsWith("agy/")
+  ) {
+    return false;
+  }
+
+  const routeId = `${providerId}/${modelId}`;
+  return (
+    /deepseek[-_/]?r1\b/.test(routeId) ||
+    /r1[-_/]?distill\b/.test(routeId) ||
+    /(?:^|[/:_-])qwq(?:[/._:-]|$)/.test(routeId)
+  );
+}
+
 /**
  * Sanitize a non-streaming OpenAI ChatCompletion response.
  * Strips non-standard fields and normalizes required fields.
@@ -311,6 +335,12 @@ export interface SanitizeOpenAIResponseOptions {
    * Ported from upstream 9router#517 (closes upstream #509).
    */
   stripReasoning?: boolean;
+  /**
+   * Keep disabled for generic OpenAI-compatible responses: prompt-format tags
+   * can be user-requested visible content. Enable only for routes/models whose
+   * upstream contract uses textual tags as the native reasoning channel.
+   */
+  parseTextualReasoningTags?: boolean;
 }
 
 export function sanitizeOpenAIResponse(
@@ -320,6 +350,7 @@ export function sanitizeOpenAIResponse(
   const bodyRecord = toRecord(body);
   if (!bodyRecord) return body;
   const stripReasoning = options.stripReasoning === true;
+  const parseTextualReasoningTags = options.parseTextualReasoningTags === true;
 
   // Build sanitized response with only allowed top-level fields
   const sanitized: JsonRecord = {};
@@ -333,7 +364,7 @@ export function sanitizeOpenAIResponse(
   // Sanitize choices
   if (Array.isArray(bodyRecord.choices)) {
     sanitized.choices = bodyRecord.choices.map((choice, idx) => {
-      const sanitizedChoice = sanitizeChoice(choice, idx);
+      const sanitizedChoice = sanitizeChoice(choice, idx, { parseTextualReasoningTags });
       const message = toRecord(sanitizedChoice.message);
       if (
         message &&
@@ -426,7 +457,11 @@ export function sanitizeResponsesApiResponse(body: unknown): unknown {
 /**
  * Sanitize a single choice object.
  */
-function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
+function sanitizeChoice(
+  choice: unknown,
+  defaultIndex: number,
+  options: Pick<SanitizeOpenAIResponseOptions, "parseTextualReasoningTags"> = {}
+): JsonRecord {
   const choiceRecord = toRecord(choice);
   const sanitized: JsonRecord = {
     index: defaultIndex,
@@ -443,10 +478,10 @@ function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
 
   // Sanitize message (non-streaming) or delta (streaming)
   if (choiceRecord?.message !== undefined) {
-    sanitized.message = sanitizeMessage(choiceRecord.message);
+    sanitized.message = sanitizeMessage(choiceRecord.message, options);
   }
   if (choiceRecord?.delta !== undefined) {
-    sanitized.delta = sanitizeMessage(choiceRecord.delta);
+    sanitized.delta = sanitizeMessage(choiceRecord.delta, options);
   }
 
   // Keep logprobs if present
@@ -457,10 +492,10 @@ function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
   return sanitized;
 }
 
-/**
- * Sanitize a message object, extracting <think> tags if present.
- */
-function sanitizeMessage(msg: unknown): unknown {
+function sanitizeMessage(
+  msg: unknown,
+  options: Pick<SanitizeOpenAIResponseOptions, "parseTextualReasoningTags"> = {}
+): unknown {
   const msgRecord = toRecord(msg);
   if (!msgRecord) return msg;
 
@@ -470,16 +505,16 @@ function sanitizeMessage(msg: unknown): unknown {
   if (msgRecord.role) sanitized.role = msgRecord.role;
   if (msgRecord.refusal !== undefined) sanitized.refusal = msgRecord.refusal;
 
-  // Handle content — extract <think> tags
   if (typeof msgRecord.content === "string") {
-    const { content, thinking } = extractThinkingFromContent(
-      stripInternalToolEnvelopeText(msgRecord.content)
-    );
+    const strippedContent = stripInternalToolEnvelopeText(msgRecord.content);
+    const nativeReasoning = getReadableReasoningValue(msgRecord);
+    const { content, thinking } =
+      options.parseTextualReasoningTags === true && !nativeReasoning
+        ? extractThinkingFromContent(strippedContent)
+        : { content: strippedContent, thinking: null };
     sanitized.content = collapseExcessiveNewlines(content);
 
-    // Set reasoning_content from prompt-format tags only when the provider did
-    // not also return a native OpenAI-compatible reasoning field.
-    if (thinking && !getReadableReasoningValue(msgRecord)) {
+    if (thinking) {
       sanitized.reasoning_content = thinking;
     }
   } else if (msgRecord.content !== undefined) {

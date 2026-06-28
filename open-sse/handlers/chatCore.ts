@@ -234,7 +234,11 @@ import { buildCodexQuotaPersistence } from "./chatCore/codexQuota.ts";
 import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
-import { sanitizeOpenAIResponse, sanitizeResponsesApiResponse } from "./responseSanitizer.ts";
+import {
+  sanitizeOpenAIResponse,
+  sanitizeResponsesApiResponse,
+  shouldParseTextualReasoningTags,
+} from "./responseSanitizer.ts";
 import {
   withRateLimit,
   updateFromHeaders,
@@ -3613,7 +3617,10 @@ export async function handleChatCore({
       // that non-standard field. Reasoning replay cache is captured above this
       // sanitize step, so the cache feature is unaffected.
       const stripReasoning = isStripReasoningRequested(clientRawRequest?.headers ?? null);
-      translatedResponse = sanitizeOpenAIResponse(translatedResponse, { stripReasoning });
+      translatedResponse = sanitizeOpenAIResponse(translatedResponse, {
+        stripReasoning,
+        parseTextualReasoningTags: shouldParseTextualReasoningTags(provider, model),
+      });
     }
 
     applyClientUsageBuffer(translatedResponse, body, clientResponseFormat);
