@@ -33,6 +33,8 @@ import {
 } from "./planResolution.ts";
 import { resolveAdaptivePlan } from "./adaptiveCompression/resolveAdaptivePlan.ts";
 import type { AdaptiveTelemetry } from "./adaptiveCompression/types.ts";
+import { applyRiskMask, restoreRiskBlocks } from "./riskGate/riskGateStep.ts";
+import type { RiskGateConfig } from "./riskGate/riskGate.ts";
 
 // Re-export so existing importers (resolver test + chatCore dynamic import) keep resolving.
 export { planFromHeader, formatCompressionMeta, buildNamedComboLookup };
@@ -260,6 +262,23 @@ export function applyCompression(
      * skipped instead of silently dropping the target. Flows through to applyStackedCompression.
      */
     bailout?: BailoutConfig;
+    /** Risk-gate mask/restore wrapper (opt-in, default off). Read via resolveRiskGate. */
+    riskGate?: RiskGateConfig;
+  }
+): CompressionResult {
+  return withRiskGate(body, resolveRiskGate(options), (b) => runCompression(b, mode, options));
+}
+
+function runCompression(
+  body: Record<string, unknown>,
+  mode: CompressionMode,
+  options?: {
+    model?: string;
+    supportsVision?: boolean | null;
+    config?: CompressionConfig;
+    principalId?: string;
+    bailout?: BailoutConfig;
+    riskGate?: RiskGateConfig;
   }
 ): CompressionResult {
   if (mode === "off") {
@@ -556,6 +575,8 @@ interface StackOptions {
   bailout?: BailoutConfig;
   /** Opt-in per-step fidelity gate (default disabled). */
   fidelityGate?: FidelityGateConfig;
+  /** Risk-gate mask/restore wrapper (opt-in, default off). Read via resolveRiskGate. */
+  riskGate?: RiskGateConfig;
   /** Authenticated principal id — threaded through to CCR engine for store scoping. */
   principalId?: string;
   /** F3.3: called once per engine as it completes (live per-engine streaming). */
@@ -709,7 +730,48 @@ function finalizeStackedResult(
   return { body: currentBody, compressed, stats };
 }
 
+/**
+ * Resolve the effective risk-gate config from either an explicit `riskGate` option
+ * or the compression config, honoring `enabled`. Returns undefined (no-op) otherwise.
+ */
+function resolveRiskGate(options?: {
+  riskGate?: RiskGateConfig;
+  config?: CompressionConfig;
+}): RiskGateConfig | undefined {
+  const rg = options?.riskGate ?? options?.config?.riskGate;
+  return rg?.enabled ? rg : undefined;
+}
+
+/**
+ * OUTER wrapper around a sync compression entry point: masks risky spans BEFORE the
+ * pipeline, runs the existing logic on the masked body, then restores the spans in the
+ * result and attaches `stats.riskGate`. When the gate is absent, behavior is byte-identical
+ * (run is called with the original body and nothing is attached).
+ */
+function withRiskGate(
+  body: Record<string, unknown>,
+  riskGate: RiskGateConfig | undefined,
+  run: (b: Record<string, unknown>) => CompressionResult
+): CompressionResult {
+  if (!riskGate) return run(body);
+  const mask = applyRiskMask(body, riskGate);
+  const result = run(mask.maskedBody);
+  if (mask.blocks.length) result.body = restoreRiskBlocks(result.body, mask.blocks);
+  if (result.stats) result.stats.riskGate = mask.stats;
+  return result;
+}
+
 export function applyStackedCompression(
+  body: Record<string, unknown>,
+  pipeline?: Array<CompressionPipelineStep | string>,
+  options?: StackOptions
+): CompressionResult {
+  return withRiskGate(body, resolveRiskGate(options), (b) =>
+    runStackedCompression(b, pipeline, options)
+  );
+}
+
+function runStackedCompression(
   body: Record<string, unknown>,
   pipeline?: Array<CompressionPipelineStep | string>,
   options?: StackOptions
@@ -783,6 +845,20 @@ export function applyStackedCompression(
  * telemetry, same final stats — so sync-only pipelines yield the same result.
  */
 export async function applyStackedCompressionAsync(
+  body: Record<string, unknown>,
+  pipeline?: Array<CompressionPipelineStep | string>,
+  options?: StackOptions
+): Promise<CompressionResult> {
+  const riskGate = resolveRiskGate(options);
+  if (!riskGate) return runStackedCompressionAsync(body, pipeline, options);
+  const mask = applyRiskMask(body, riskGate);
+  const result = await runStackedCompressionAsync(mask.maskedBody, pipeline, options);
+  if (mask.blocks.length) result.body = restoreRiskBlocks(result.body, mask.blocks);
+  if (result.stats) result.stats.riskGate = mask.stats;
+  return result;
+}
+
+async function runStackedCompressionAsync(
   body: Record<string, unknown>,
   pipeline?: Array<CompressionPipelineStep | string>,
   options?: StackOptions
