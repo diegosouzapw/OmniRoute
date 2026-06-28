@@ -15,11 +15,7 @@ import {
   getCodexEffectiveServiceTier,
   type CodexGlobalServiceMode,
 } from "@/lib/providers/codexFastTier";
-import {
-  normalizeCodexLimitPolicy,
-  providerText,
-  ERROR_TYPE_LABELS,
-} from "../providerPageHelpers";
+import { normalizeCodexLimitPolicy, providerText, ERROR_TYPE_LABELS } from "../providerPageHelpers";
 
 // ---------------------------------------------------------------------------
 // Types (exported so the client can reference them without re-importing)
@@ -54,7 +50,6 @@ export interface ConnectionRowProps {
   isOAuth: boolean;
   isClaude?: boolean;
   isCodex?: boolean;
-  isGeminiCli?: boolean;
   codexGlobalServiceMode?: CodexGlobalServiceMode;
   isFirst: boolean;
   isLast: boolean;
@@ -93,10 +88,6 @@ export interface ConnectionRowProps {
   isApplyingClaudeAuthLocal?: boolean;
   onExportClaudeAuthFile?: () => void;
   isExportingClaudeAuthFile?: boolean;
-  onApplyGeminiAuthLocal?: () => void;
-  isApplyingGeminiAuthLocal?: boolean;
-  onExportGeminiAuthFile?: () => void;
-  isExportingGeminiAuthFile?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -375,10 +366,6 @@ export default function ConnectionRow({
   isApplyingClaudeAuthLocal,
   onExportClaudeAuthFile,
   isExportingClaudeAuthFile,
-  onApplyGeminiAuthLocal,
-  isApplyingGeminiAuthLocal,
-  onExportGeminiAuthFile,
-  isExportingGeminiAuthFile,
   perKeyProxyEnabled,
   onTogglePerKeyProxyEnabled,
   proxyEnabled,
@@ -409,15 +396,6 @@ export default function ConnectionRow({
     typeof t.has === "function" && t.has("exportClaudeAuthFile")
       ? t("exportClaudeAuthFile")
       : "Export auth";
-  const applyGeminiAuthLabel =
-    typeof t.has === "function" && t.has("applyGeminiAuthLocal")
-      ? t("applyGeminiAuthLocal")
-      : "Apply auth";
-  const exportGeminiAuthLabel =
-    typeof t.has === "function" && t.has("exportGeminiAuthFile")
-      ? t("exportGeminiAuthFile")
-      : "Export auth";
-
   // Use useState + useEffect for impure Date.now() to avoid calling during render
   const [isCooldown, setIsCooldown] = useState(false);
   // T12: token expiry status — lazy init avoids calling Date.now() during render;
@@ -867,34 +845,6 @@ export default function ConnectionRow({
             title={exportClaudeAuthLabel}
           >
             {exportClaudeAuthLabel}
-          </Button>
-        )}
-        {isGeminiCli && onApplyGeminiAuthLocal && (
-          <Button
-            size="sm"
-            variant="ghost"
-            icon="install_desktop"
-            loading={isApplyingGeminiAuthLocal}
-            disabled={isApplyingGeminiAuthLocal}
-            onClick={onApplyGeminiAuthLocal}
-            className="!h-7 !px-2 text-xs text-emerald-500 hover:text-emerald-400"
-            title={applyGeminiAuthLabel}
-          >
-            {applyGeminiAuthLabel}
-          </Button>
-        )}
-        {isGeminiCli && onExportGeminiAuthFile && (
-          <Button
-            size="sm"
-            variant="ghost"
-            icon="download"
-            loading={isExportingGeminiAuthFile}
-            disabled={isExportingGeminiAuthFile}
-            onClick={onExportGeminiAuthFile}
-            className="!h-7 !px-2 text-xs text-sky-500 hover:text-sky-400"
-            title={exportGeminiAuthLabel}
-          >
-            {exportGeminiAuthLabel}
           </Button>
         )}
         <Toggle

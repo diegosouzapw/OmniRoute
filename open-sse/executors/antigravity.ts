@@ -679,7 +679,7 @@ export class AntigravityExecutor extends BaseExecutor {
     // Auto-discover a missing projectId via loadCodeAssist before failing (#2334/#2541).
     // A freshly re-added Antigravity account can have an empty stored projectId even when
     // its Google account already owns a Cloud Code project (the OAuth-time loadCodeAssist
-    // returned empty/transiently failed). Mirror gemini-cli.ts's bootstrap to recover it
+    // returned empty/transiently failed). Mirror the Cloud Code bootstrap to recover it
     // here — the helper memoizes per access-token, so this is a one-time round-trip.
     if (!projectId && credentials?.accessToken) {
       const discovered = await ensureAntigravityProjectAssigned(credentials.accessToken);

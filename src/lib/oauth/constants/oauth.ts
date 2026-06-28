@@ -13,10 +13,7 @@ import {
   GITHUB_COPILOT_CHAT_USER_AGENT,
   GITHUB_COPILOT_EDITOR_VERSION,
 } from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
-import {
-  resolvePublicCred,
-  resolvePublicCredMulti,
-} from "@omniroute/open-sse/utils/publicCreds.ts";
+import { resolvePublicCred } from "@omniroute/open-sse/utils/publicCreds.ts";
 import { buildGitLabOAuthEndpoints, GITLAB_DUO_DEFAULT_BASE_URL } from "../gitlab";
 
 /**
@@ -72,28 +69,6 @@ export const CODEX_CONFIG = {
     // the only known tool that sustains multiple Codex OAuth accounts.
     prompt: "login",
   },
-};
-
-// Gemini (Google) OAuth Configuration (Standard OAuth2)
-// clientId/clientSecret are public values shipped in the Gemini CLI binary;
-// resolved through resolvePublicCred so they don't appear as literals here.
-export const GEMINI_CONFIG = {
-  clientId: resolvePublicCredMulti("gemini_id", [
-    "GEMINI_CLI_OAUTH_CLIENT_ID",
-    "GEMINI_OAUTH_CLIENT_ID",
-  ]),
-  clientSecret: resolvePublicCredMulti("gemini_alt", [
-    "GEMINI_CLI_OAUTH_CLIENT_SECRET",
-    "GEMINI_OAUTH_CLIENT_SECRET",
-  ]),
-  authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
-  tokenUrl: "https://oauth2.googleapis.com/token",
-  userInfoUrl: "https://www.googleapis.com/oauth2/v1/userinfo",
-  scopes: [
-    "https://www.googleapis.com/auth/cloud-platform",
-    "https://www.googleapis.com/auth/userinfo.email",
-    "https://www.googleapis.com/auth/userinfo.profile",
-  ],
 };
 
 // Qwen OAuth Configuration (Device Code Flow with PKCE)
@@ -461,7 +436,7 @@ export const OAUTH_TIMEOUT = 300000;
 export const PROVIDERS = {
   CLAUDE: "claude",
   CODEX: "codex",
-  GEMINI: "gemini-cli",
+  GEMINI: "gemini",
   QWEN: "qwen",
   QODER: "qoder",
   ANTIGRAVITY: "antigravity",

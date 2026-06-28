@@ -222,7 +222,7 @@ async function saveQwenConfig({ baseUrl, apiKey, model }) {
     .trim()
     .replace(/\/+$/, "");
   const resolvedApiKey = apiKey || "sk_omniroute";
-  const resolvedModel = model || "gemini-cli/gemini-3.1-pro-preview";
+  const resolvedModel = model || "qwen/qwen3-coder-plus";
 
   // Read existing config to preserve other settings (permissions, mcpServers, etc.)
   let existingConfig: Record<string, any> = {};

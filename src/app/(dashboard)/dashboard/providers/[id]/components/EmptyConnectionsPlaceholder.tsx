@@ -108,17 +108,6 @@ export default function EmptyConnectionsPlaceholder({
                     : "Import auth"}
                 </Button>
               )}
-              {providerId === "gemini-cli" && (
-                <Button
-                  variant="secondary"
-                  icon="upload_file"
-                  onClick={() => gateConnectionFlow(onOpenImportGemini)}
-                >
-                  {typeof t.has === "function" && t.has("importGeminiAuth")
-                    ? t("importGeminiAuth")
-                    : "Import auth"}
-                </Button>
-              )}
               {providerId === "grok-cli" && (
                 <Button
                   variant="secondary"

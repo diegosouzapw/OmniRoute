@@ -70,8 +70,6 @@ import FireworksMonoIcon from "@lobehub/icons/es/Fireworks/components/Mono";
 import FriendliMonoIcon from "@lobehub/icons/es/Friendli/components/Mono";
 import GeminiColorIcon from "@lobehub/icons/es/Gemini/components/Color";
 import GeminiMonoIcon from "@lobehub/icons/es/Gemini/components/Mono";
-import GeminiCLIColorIcon from "@lobehub/icons/es/GeminiCLI/components/Color";
-import GeminiCLIMonoIcon from "@lobehub/icons/es/GeminiCLI/components/Mono";
 import GithubMonoIcon from "@lobehub/icons/es/Github/components/Mono";
 import GithubCopilotMonoIcon from "@lobehub/icons/es/GithubCopilot/components/Mono";
 import GoogleColorIcon from "@lobehub/icons/es/Google/components/Color";
@@ -237,7 +235,6 @@ const LOBE_ICON_COMPONENTS = {
   Fireworks: { mono: FireworksMonoIcon, color: FireworksColorIcon },
   Friendli: { mono: FriendliMonoIcon },
   Gemini: { mono: GeminiMonoIcon, color: GeminiColorIcon },
-  GeminiCLI: { mono: GeminiCLIMonoIcon, color: GeminiCLIColorIcon },
   Github: { mono: GithubMonoIcon },
   GithubCopilot: { mono: GithubCopilotMonoIcon },
   Google: { mono: GoogleMonoIcon, color: GoogleColorIcon },
@@ -370,7 +367,6 @@ const LOBE_PROVIDER_ALIASES = {
   gemini: "Gemini",
   "gemini-web": "Gemini",
   "gemini-business": "Gemini",
-  "gemini-cli": "GeminiCLI",
   github: "GithubCopilot",
   "github-models": "Github",
   "github-copilot": "GithubCopilot",

@@ -152,7 +152,6 @@ import { opencode_goProvider } from "./registry/opencode/go/index.ts";
 import { opencodeProvider } from "./registry/opencode/index.ts";
 import { maritalkProvider } from "./registry/maritalk/index.ts";
 import { basetenProvider } from "./registry/baseten/index.ts";
-import { gemini_cliProvider } from "./registry/gemini/cli/index.ts";
 import { geminiProvider } from "./registry/gemini/index.ts";
 import { gemini_webProvider } from "./registry/gemini/web/index.ts";
 import { clineProvider } from "./registry/cline/index.ts";
@@ -323,7 +322,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   opencode: opencodeProvider,
   maritalk: maritalkProvider,
   baseten: basetenProvider,
-  "gemini-cli": gemini_cliProvider,
   gemini: geminiProvider,
   "gemini-web": gemini_webProvider,
   cline: clineProvider,

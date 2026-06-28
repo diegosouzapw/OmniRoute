@@ -267,7 +267,7 @@ Zod schemas, and unit tests aligned when editing.
 
 ### Provider Categories
 
-- **Free** (4): Qoder AI, Qwen Code, Gemini CLI (deprecated), Kiro AI
+- **Free** (3): Qoder AI, Qwen Code, Kiro AI
 - **OAuth** (14): Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, Kimi Coding, Kilo Code, Cline, Qwen (⚠️ free tier discontinued 2026-04-15), Kiro, Qoder, Gemini, Windsurf (v3.8), GitLab Duo (v3.8)
 - **API Key** (120+): OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Perplexity,
   Together, Fireworks, Cerebras, Cohere, NVIDIA, Nebius, SiliconFlow, Hyperbolic,
@@ -291,7 +291,7 @@ Providers are registered in `src/shared/constants/providers.ts` with Zod validat
 ### Executors (`open-sse/executors/`)
 
 Provider-specific request executors: `base.ts`, `default.ts`, `cursor.ts`, `codex.ts`,
-`antigravity.ts`, `github.ts`, `gemini-cli.ts`, `kiro.ts`, `qoder.ts`, `vertex.ts`,
+`antigravity.ts`, `github.ts`, `kiro.ts`, `qoder.ts`, `vertex.ts`,
 `cloudflare-ai.ts`, `opencode.ts`, `pollinations.ts`, `puter.ts`.
 
 #### Executor Internals

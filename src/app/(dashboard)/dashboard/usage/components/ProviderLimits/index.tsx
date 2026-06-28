@@ -37,7 +37,6 @@ const QUOTA_BAR_YELLOW_THRESHOLD = 20;
 
 const PROVIDER_LABEL: Record<string, string> = {
   antigravity: "Antigravity",
-  "gemini-cli": "Gemini CLI",
   github: "GitHub Copilot",
   kiro: "Kiro AI",
   "amazon-q": "Amazon Q",
@@ -58,7 +57,6 @@ const PROVIDER_LABEL: Record<string, string> = {
 // Group ordering — single source of truth for provider placement.
 const PROVIDER_ORDER: Record<string, number> = {
   antigravity: 1,
-  "gemini-cli": 2,
   github: 3,
   codex: 4,
   claude: 5,

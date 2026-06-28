@@ -299,7 +299,6 @@ Result: 4 layers of fallback = zero downtime
 > **v3.8.20 → v3.8.38** 重点更新。完整记录见 [`CHANGELOG.md`](../../CHANGELOG.md)。
 
 - **⚖️ Quota-Share 路由** — 一个专用的 Combo 策略，按可用配额跨账户分配负载：Deficit-Round-Robin 调度、每连接 `max_concurrent` 配合冷却等待队列、多窗口使用量桶（5h / 7d / 每模型）、每(密钥,模型)上限、会话粘性确保提示缓存完整性，以及基于上游 Token 使用标头的主动饱和检测。→ [Resilience Guide](../../architecture/RESILIENCE_GUIDE.md)
-- **🤖 一键 CLI/代理设置** — 专用的 `setup-*` 命令配置每个编码工具通过 OmniRoute 路由（Claude Code、Codex、Cline、Continue、Cursor、Roo Code、Kilo Code、Crush、Goose、Qwen Code、Aider、OpenCode、Gemini CLI）；`omniroute launch` / `omniroute launch-codex` 是零配置启动器。→ [CLI Integrations](../../guides/CLI-INTEGRATIONS.md)
 - **🛰️ 远程模式** — 通过范围访问令牌从任何机器驱动远程 OmniRoute（`omniroute connect` / `omniroute contexts` / `omniroute tokens`）。→ [Remote Mode](../../guides/REMOTE-MODE.md)
 - **🧭 更智能的自动路由** — OpenRouter 风格的 `auto/<category>:<tier>` Combo（如 `auto/coding:fast`、`auto/reasoning:pro`）、**Fusion** 策略（第 16 种 — 并行分发到多个模型，然后通过裁判合成）、**任务感知路由**（按任务类型选择最佳连接）、每请求 `X-Route-Model` 覆盖、实时 Arena-ELO + models.dev 模型智能、每步骤账户允许列表、供应商通配符 Combo 步骤、嵌套 Combo 引用执行、粘性加权选择以及 `web_search` 感知路由。→ [Auto-Combo](../../routing/AUTO-COMBO.md)
 - **🗜️ 可插拔压缩** — **9 个可组合引擎**的异步流水线，带 Compression Studios、LLMLingua-2 ONNX 引擎和启发式/SLM 双层 **Ultra**、RTK、委托式 Anthropic 上下文编辑、**输出样式**（输出轴控制：简洁文章 / 少代码 / 简洁 CJK）、**自适应上下文预算拨盘**（仅扩展到适合上下文窗口所需的最低限度）、每请求 `x-omniroute-compression` 控制、可选的离线评估工具、仪表板上一键 **Headroom** 代理生命周期管理（支持 Docker 边车）、合成**压缩游乐场**（Play 赛道 + A/B 比较，附 USD 上限保真度判定）、可选的**每步骤保真度门控**（在损失性引擎降低提示质量前拒绝它），以及统一面板带命名配置文件 + 活动配置文件选择器。→ [Compression](../../compression/COMPRESSION_ENGINES.md)
@@ -325,7 +324,6 @@ Result: 4 layers of fallback = zero downtime
   <tr>
     <td align="center" width="120"><a href="https://github.com/anthropics/claude-code"><img src="./public/providers/claude.svg" width="52" alt="Claude Code"/><br/><b>Claude Code</b></a></td>
     <td align="center" width="120"><a href="https://github.com/openai/codex"><img src="./public/providers/codex.svg" width="52" alt="Codex CLI"/><br/><b>Codex CLI</b></a></td>
-    <td align="center" width="120"><a href="https://github.com/google-gemini/gemini-cli"><img src="./public/providers/gemini-cli.svg" width="52" alt="Gemini CLI"/><br/><b>Gemini CLI</b></a></td>
     <td align="center" width="120"><img src="./public/providers/cursor.png" width="52" alt="Cursor"/><br/><b>Cursor</b></td>
     <td align="center" width="120"><img src="./public/providers/copilot.png" width="52" alt="Copilot"/><br/><b>Copilot</b></td>
     <td align="center" width="120"><img src="./public/providers/continue.png" width="52" alt="Continue"/><br/><b>Continue</b></td>
@@ -370,7 +368,6 @@ Result: 4 layers of fallback = zero downtime
   </tr>
   <tr>
     <td align="center" width="150"><img src="https://img.shields.io/badge/Cloudflare_AI-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare AI"/><br/><sub>50+ 模型<br/>1 万神经元/天</sub></td>
-    <td align="center" width="150"><img src="https://img.shields.io/badge/Gemini_CLI-8E75B2?style=flat-square&logo=googlegemini&logoColor=white" alt="Gemini CLI"/><br/><sub>gemini-3-flash<br/>18 万/月免费</sub></td>
     <td align="center" width="150"><img src="https://img.shields.io/badge/NVIDIA_NIM-76B900?style=flat-square&logo=nvidia&logoColor=white" alt="NVIDIA NIM"/><br/><sub>129 个模型<br/>~40 RPM 免费</sub></td>
     <td align="center" width="150"><img src="https://img.shields.io/badge/Cerebras-F15A29?style=flat-square" alt="Cerebras"/><br/><sub>Qwen3 235B<br/>1M Token/天</sub></td>
   </tr>

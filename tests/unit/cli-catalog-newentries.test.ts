@@ -48,7 +48,11 @@ for (const id of NEW_IDS) {
   test(`New entry '${id}' has color in #RRGGBB format`, () => {
     const entry = CLI_TOOLS[id];
     assert.ok(entry, `Entry '${id}' not found`);
-    assert.match(entry.color, /^#[0-9A-Fa-f]{6}$/, `Entry '${id}' color '${entry.color}' is not #RRGGBB`);
+    assert.match(
+      entry.color,
+      /^#[0-9A-Fa-f]{6}$/,
+      `Entry '${id}' color '${entry.color}' is not #RRGGBB`
+    );
   });
 
   test(`New entry '${id}' has non-empty vendor`, () => {
@@ -125,14 +129,6 @@ test("forge was added/confirmed: category=code, acpSpawnable=true, baseUrlSuppor
   assert.equal(entry.category, "code");
   assert.equal(entry.acpSpawnable, true);
   assert.equal(entry.baseUrlSupport, "full");
-});
-
-test("gemini-cli was added: category=code, acpSpawnable=true, defaultCommand=gemini", () => {
-  const entry = CLI_TOOLS["gemini-cli"];
-  assert.ok(entry, "gemini-cli entry must exist");
-  assert.equal(entry.category, "code");
-  assert.equal(entry.acpSpawnable, true);
-  assert.equal(entry.defaultCommand, "gemini");
 });
 
 test("cursor-cli was added: category=code, acpSpawnable=true", () => {

@@ -10,7 +10,7 @@ describe("tokenRefresh helpers", () => {
       assert.equal(mod.getRefreshLeadMs("openai"), 5 * 60 * 1000);
       assert.equal(mod.getRefreshLeadMs("claude"), 5 * 60 * 1000);
       assert.equal(mod.getRefreshLeadMs("iflow"), 24 * 60 * 60 * 1000);
-      assert.equal(mod.getRefreshLeadMs("gemini-cli"), 15 * 60 * 1000);
+      assert.equal(mod.getRefreshLeadMs("antigravity"), 15 * 60 * 1000);
     });
 
     it("falls back to TOKEN_EXPIRY_BUFFER_MS for unknown providers", () => {
@@ -21,10 +21,7 @@ describe("tokenRefresh helpers", () => {
     it("honors a positive per-connection refreshLeadMs override", () => {
       // Override beats both the provider default and the fallback buffer.
       assert.equal(mod.getRefreshLeadMs("codex", { refreshLeadMs: 90_000 }), 90_000);
-      assert.equal(
-        mod.getRefreshLeadMs("unknown-provider", { refreshLeadMs: 12_345 }),
-        12_345
-      );
+      assert.equal(mod.getRefreshLeadMs("unknown-provider", { refreshLeadMs: 12_345 }), 12_345);
     });
 
     it("ignores invalid or non-positive override values", () => {

@@ -1,15 +1,14 @@
 import { getModelAliases, setModelAlias } from "@/lib/db/models";
 
 export const DEFAULT_MODEL_ALIAS_SEED = Object.freeze({
-  "gemini-1.5-pro": "gemini-cli/gemini-1.5-pro",
-  "gemini-1.5-flash": "gemini-cli/gemini-1.5-flash",
-  "gemini-3-pro-high": "gemini-cli/gemini-3.1-pro-preview",
-  "gemini-3-pro-low": "gemini-cli/gemini-3.1-flash-lite-preview",
-  "gemini-3-pro-preview": "gemini-cli/gemini-3.1-pro-preview",
-  "gemini-3.1-pro-preview": "gemini-cli/gemini-3.1-pro-preview",
-  "gemini-3.1-pro-preview-customtools": "gemini-cli/gemini-3.1-pro-preview-customtools",
-  "gemini-3-flash-preview": "gemini-cli/gemini-3-flash-preview",
-  "gemini-3.1-flash-lite-preview": "gemini-cli/gemini-3.1-flash-lite-preview",
+  "gemini-1.5-pro": "gemini/gemini-1.5-pro",
+  "gemini-1.5-flash": "gemini/gemini-1.5-flash",
+  "gemini-3-pro-high": "agy/gemini-3.1-pro-high",
+  "gemini-3-pro-low": "agy/gemini-3.1-pro-low",
+  "gemini-3-pro-preview": "agy/gemini-pro-agent",
+  "gemini-3.1-pro-preview": "agy/gemini-pro-agent",
+  "gemini-3-flash-preview": "agy/gemini-3.5-flash-medium",
+  "gemini-3.1-flash-lite-preview": "gemini/gemini-3.1-flash-lite-preview",
 });
 
 type SeedLogger = {

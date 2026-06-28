@@ -79,15 +79,6 @@ const AGENT_DEFINITIONS: Omit<CliAgentInfo, "version" | "installed">[] = [
     protocol: "stdio",
   },
   {
-    id: "gemini-cli",
-    name: "Gemini CLI",
-    binary: "gemini",
-    versionCommand: "gemini --version",
-    providerAlias: "gemini-cli",
-    spawnArgs: [],
-    protocol: "stdio",
-  },
-  {
     id: "openclaw",
     name: "OpenClaw",
     binary: "openclaw",

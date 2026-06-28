@@ -78,23 +78,7 @@ export const importClaudeAuthBulkSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
-// ──── Gemini CLI Auth Import Schema ────
-
-export const importGeminiAuthSchema = z.object({
-  source: z.discriminatedUnion("kind", [
-    z.object({ kind: z.literal("json"), json: z.unknown() }),
-    z.object({
-      kind: z.literal("text"),
-      text: z.string().max(256 * 1024, "oauth_creds.json content exceeds 256KB"),
-    }),
-  ]),
-  name: z.string().min(1).max(200).optional(),
-  email: z.string().email("Must be a valid email").optional(),
-  overwriteExisting: z.boolean().optional(),
-});
-
 // ──── Antigravity CLI (`agy`) Auth Import Schema ────
-// Same source/options shape as gemini-cli; the parser handles the agy-specific token JSON.
 
 export const importAgyAuthSchema = z.object({
   source: z.discriminatedUnion("kind", [
@@ -115,22 +99,6 @@ export const importAgyAuthSchema = z.object({
 export const applyLocalAgyAuthSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   email: z.string().email("Must be a valid email").optional(),
-  overwriteExisting: z.boolean().optional(),
-});
-
-// ──── Gemini CLI Auth Import Bulk Schema ────
-
-export const importGeminiAuthBulkSchema = z.object({
-  entries: z
-    .array(
-      z.object({
-        json: z.unknown(),
-        name: z.string().min(1).max(200).optional(),
-        email: z.string().email("Must be a valid email").optional(),
-      })
-    )
-    .min(1, "At least one entry is required")
-    .max(50, "At most 50 entries per bulk import"),
   overwriteExisting: z.boolean().optional(),
 });
 

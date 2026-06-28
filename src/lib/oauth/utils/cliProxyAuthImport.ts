@@ -24,8 +24,6 @@ export const CLIPROXY_TYPE_TO_PROVIDER: Record<string, string> = {
   claude: "claude",
   codex: "codex",
   antigravity: "antigravity",
-  gemini: "gemini-cli",
-  "gemini-cli": "gemini-cli",
   qwen: "qwen",
   kimi: "kimi",
 };
@@ -71,10 +69,7 @@ export function resolveCliProxyExpiry(record: JsonRecord, now: number): string |
  * Parse one CLIProxyAPI auth-file object into a normalized record. Returns null when
  * the file is not a supported OAuth credential (unknown `type`, or no access token).
  */
-export function parseCliProxyAuthRecord(
-  raw: unknown,
-  now: number = 0
-): ParsedCliProxyAuth | null {
+export function parseCliProxyAuthRecord(raw: unknown, now: number = 0): ParsedCliProxyAuth | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   const record = raw as JsonRecord;
   const type = asString(record.type)?.toLowerCase();

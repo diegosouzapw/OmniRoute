@@ -46,6 +46,11 @@ type GeminiFunctionCallPart = {
   };
 };
 
+type GeminiToOpenAIResponseOptions = {
+  parseTextualReasoningTags: boolean;
+  unwrapResponseEnvelope?: boolean;
+};
+
 const REASONING_TAG_OPEN_REGEX =
   /<(think|thinking|thought|internal_thought)(?=\s|>|\r?\n)(?:\s[^>]*)?(?:>|\r?\n)/i;
 const REASONING_TAG_OPEN_PREFIXES = ["<think", "<thinking", "<thought", "<internal_thought"];
@@ -289,18 +294,20 @@ function emitFunctionCallPart(
   });
 }
 
-// Convert Gemini response chunk to OpenAI format
-export function geminiToOpenAIResponse(chunk, state) {
+function geminiLikeToOpenAIResponse(chunk, state, options: GeminiToOpenAIResponseOptions) {
   if (!chunk) return null;
 
-  // Handle Antigravity wrapper
-  const response = chunk.response || chunk;
+  const response =
+    options.unwrapResponseEnvelope && chunk && typeof chunk === "object" && "response" in chunk
+      ? chunk.response
+      : chunk;
   if (!response) return null;
 
   const modelVersion =
     typeof response.modelVersion === "string" ? response.modelVersion.toLowerCase() : "";
   const parseTextualReasoningTags = !chunk.response && !modelVersion.startsWith("antigravity/");
   const results = [];
+  const parseTextualReasoningTags = options.parseTextualReasoningTags;
   const candidate = response.candidates?.[0];
 
   if (!candidate) {
@@ -755,7 +762,19 @@ export function geminiToOpenAIResponse(chunk, state) {
   return results.length > 0 ? results : null;
 }
 
+// Convert Gemini response chunk to OpenAI format.
+export function geminiToOpenAIResponse(chunk, state) {
+  return geminiLikeToOpenAIResponse(chunk, state, { parseTextualReasoningTags: true });
+}
+
+// Convert Antigravity/Agy Gemini-shaped response chunks to OpenAI format.
+export function antigravityToOpenAIResponse(chunk, state) {
+  return geminiLikeToOpenAIResponse(chunk, state, {
+    parseTextualReasoningTags: false,
+    unwrapResponseEnvelope: true,
+  });
+}
+
 // Register
 register(FORMATS.GEMINI, FORMATS.OPENAI, null, geminiToOpenAIResponse);
-register(FORMATS.GEMINI_CLI, FORMATS.OPENAI, null, geminiToOpenAIResponse);
-register(FORMATS.ANTIGRAVITY, FORMATS.OPENAI, null, geminiToOpenAIResponse);
+register(FORMATS.ANTIGRAVITY, FORMATS.OPENAI, null, antigravityToOpenAIResponse);

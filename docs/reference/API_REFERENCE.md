@@ -1040,7 +1040,6 @@ Returns the public A2A agent card (name, description, capabilities, skill catalo
 
 ## ACP (Agent Client Protocol) Management
 
-The ACP framework lets you spawn CLI agents (Claude Code, Codex, Gemini CLI, etc.)
 as child processes. These endpoints manage ACP agent detection and custom agent
 registration.
 

@@ -671,7 +671,6 @@ Setiap penyedia memiliki pelaksana khusus yang memperluas `BaseExecutor` (dalam 
 | `CodexExecutor`        | OpenAI Codex                                                                                                                                                | Injects system instructions, forces reasoning effort                 |
 | `CursorExecutor`       | Cursor IDE                                                                                                                                                  | Protokol ConnectRPC, pengkodean Protobuf, penandatanganan permintaan melalui checksum |
 | `GithubExecutor`       | GitHub Copilot                                                                                                                                              | Copilot token refresh, VSCode-mimicking headers                      |
-| `GeminiCLIExecutor`    | Gemini CLI                                                                                                                                                  | Google OAuth token refresh cycle                                     |
 | `KiroExecutor`         | AWS CodeWhisperer/Kiro                                                                                                                                      | Format biner AWS EventStream → konversi SSE                       |
 | `OpenCodeExecutor`     | OpenCode                                                                                                                                                    | Penyiapan penyedia yang kompatibel dengan AI SDK                                     |
 | `PollinationsExecutor` | Pollinations AI                                                                                                                                             | Tidak diperlukan kunci API, permintaan dengan tarif terbatas                           |
@@ -687,7 +686,6 @@ Semua penyedia lain (termasuk node khusus yang kompatibel) menggunakan `DefaultE
 | ---------------- | ---------------- | --------------------- | ---------------- | ---------- | ------------- | ------------------ |
 | Claude           | claude           | Kunci API / OAuth       | ✅               | ✅         | ✅            | ⚠️ Admin only      |
 | Gemini           | gemini           | Kunci API / OAuth       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
-| Gemini CLI       | gemini-cli       | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
 | Antigravity      | antigravity      | OAuth                 | ✅               | ✅         | ✅            | ✅ API kuota penuh  |
 | OpenAI           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
 | Codex            | openai-responses | OAuth                 | ✅ forced        | ❌         | ✅            | ✅ Rate limits     |

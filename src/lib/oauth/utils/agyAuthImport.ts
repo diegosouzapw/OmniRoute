@@ -23,7 +23,7 @@ function toNonEmptyString(value: unknown): string | null {
 }
 
 /**
- * Error carrying an HTTP status + machine code, mirroring GeminiAuthFileError so the
+ * Error carrying an HTTP status + machine code so the
  * agy-auth routes can translate it to a clean response (never a raw stack trace).
  */
 export class AgyAuthFileError extends Error {
@@ -63,9 +63,9 @@ export interface CreateAgyConnectionOptions {
 // ──── Parse & validate ────────────────────────────────────────────────────────
 
 /**
- * Parse the Antigravity CLI (`agy`) token file. Unlike gemini-cli's flat
- * `oauth_creds.json`, the agy file nests the token under `.token`, uses an ISO `expiry`
- * string, and has NO `id_token`. A flat top-level shape is accepted as a fallback.
+ * Parse the Antigravity CLI (`agy`) token file. It nests the token under `.token`,
+ * uses an ISO `expiry` string, and has NO `id_token`. A flat top-level shape is
+ * accepted as a fallback.
  */
 export function parseAndValidateAgyToken(raw: unknown): ParsedAgyAuth {
   const doc = toRecord(raw);
