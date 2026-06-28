@@ -185,6 +185,19 @@ export const oauthDeviceCompleteSchema = z.object({
   connectionId: z.string().optional(),
 });
 
+/**
+ * Persist credentials obtained by the local remote-login helper. Google's
+ * `firstparty/nativeapp` consent only releases the auth code when the loopback
+ * redirect is reachable, which never happens on a remote VPS install — so the
+ * helper (`omniroute login antigravity`) runs the OAuth on the user's own machine
+ * and emits a single-line credential blob. The dashboard pastes that blob here;
+ * the server decodes + finalizes + persists. See src/lib/oauth/credentialBlob.ts.
+ */
+export const oauthPasteCredentialsSchema = z.object({
+  blob: z.string().trim().min(1, "credential blob is required"),
+  connectionId: z.string().optional(),
+});
+
 export const cursorImportSchema = z.object({
   accessToken: z.string().trim().min(1, "Access token is required"),
   machineId: z.string().trim().optional(),

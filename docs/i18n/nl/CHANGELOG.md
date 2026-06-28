@@ -6,6 +6,12 @@
 
 ## [3.8.31] — 2026-06-20
 
+## [3.8.39] — TBD
+
+_In development — bullets added per PR; finalized at release._
+
+---
+
 ## [3.8.38] — 2026-06-27
 
 ### ✨ New Features
@@ -29,6 +35,7 @@
 - **feat(quota): opt-in Codex/Claude auto-ping keepalive** — an opt-in background keepalive can periodically ping Codex/Claude connections to keep their session/quota state warm, reducing cold-start failures on the first real request. ([#5102](https://github.com/diegosouzapw/OmniRoute/pull/5102))
 - **feat(ops): SRE playbooks + ops helper scripts** — salvaged from a closed stale PR; adds operator runbooks and ops helper scripts. ([#5138](https://github.com/diegosouzapw/OmniRoute/pull/5138) — thanks @KooshaPari / @diegosouzapw)
 - **feat(mcp): web-session robustness — cookie dedup + browser-pool observability** — the MCP web-session path now de-duplicates cookies when (re)hydrating a session (avoiding conflicting duplicate `Cookie` headers) and exposes browser-pool observability (pool size / in-use / acquisition metrics) for the headless web providers. ([#5121](https://github.com/diegosouzapw/OmniRoute/pull/5121), builds on [#3368](https://github.com/diegosouzapw/OmniRoute/issues/3368))
+- **feat(compression): Ionizer engine — lossy JSON-array sampling reversible via CCR** — a new compression engine that down-samples large JSON arrays to a representative subset and records a Compact Change Representation (CCR) so the omitted rows can be reconstructed, trading exactness for a large token reduction on tabular/array-heavy payloads. ([#5148](https://github.com/diegosouzapw/OmniRoute/pull/5148))
 
 ### 🔧 Bug Fixes
 
@@ -74,6 +81,8 @@
 - **fix(dashboard): surface the server error on `handleToggleCombo` failure** — a failed combo toggle now shows the backend error instead of silently no-op'ing. ([#5138](https://github.com/diegosouzapw/OmniRoute/pull/5138) — thanks @KooshaPari / @diegosouzapw)
 - **fix(quota): track provider quota reset windows + enrich the Codex playground** — observed quota reset windows are tracked and surfaced, and the Codex playground gains the enriched quota metadata. ([#5141](https://github.com/diegosouzapw/OmniRoute/pull/5141) — thanks @Witroch4 / @diegosouzapw)
 - **fix(sidebar): drop the orphan `settings` accent color** — removed a dangling accent-color entry that broke `typecheck:core`. ([#5142](https://github.com/diegosouzapw/OmniRoute/pull/5142))
+- **fix(sse): preserve non-stream reasoning fields for compatible clients** — non-streaming responses now keep the upstream reasoning fields (`reasoning` / `reasoning_content` and OpenRouter/Gemini `reasoning_details`) instead of stripping them in `responseSanitizer`, so clients that render reasoning on buffered responses no longer lose it. ([#5155](https://github.com/diegosouzapw/OmniRoute/pull/5155) — thanks @rdself)
+- **fix(i18n): add missing English UI labels** — fills in untranslated English strings that were surfacing as raw keys in the dashboard. ([#5153](https://github.com/diegosouzapw/OmniRoute/pull/5153) — thanks @rdself)
 
 ### 🔒 Security
 
@@ -84,6 +93,7 @@
 - **refactor(store): remove dead legacy store modules** — salvaged cleanup of unused legacy store code. ([#5138](https://github.com/diegosouzapw/OmniRoute/pull/5138) — thanks @JxnLexn / @diegosouzapw)
 - **test(combo): deterministic routing-decision matrix for all 17 strategies** — a deterministic E2E matrix pins the routing decision of every combo strategy. ([#5146](https://github.com/diegosouzapw/OmniRoute/pull/5146))
 - **chore:** baseline reconciliations (complexity / file-size / cognitive), golden-snapshot + apikey-count alignment for new providers, orphan-test relocation, release base-red repairs, CHANGELOG i18n mirror sync, and an `actions/cache` 5→6 bump. ([#5145](https://github.com/diegosouzapw/OmniRoute/pull/5145), [#5144](https://github.com/diegosouzapw/OmniRoute/pull/5144), [#5125](https://github.com/diegosouzapw/OmniRoute/pull/5125), [#5126](https://github.com/diegosouzapw/OmniRoute/pull/5126), [#5120](https://github.com/diegosouzapw/OmniRoute/pull/5120), [#5117](https://github.com/diegosouzapw/OmniRoute/pull/5117), [#5112](https://github.com/diegosouzapw/OmniRoute/pull/5112))
+- **test:** gated live smoke for combo strategies (in-process + VPS HTTP) and refreshed release expectations to match current code. ([#5151](https://github.com/diegosouzapw/OmniRoute/pull/5151), [#5150](https://github.com/diegosouzapw/OmniRoute/pull/5150) — thanks @KooshaPari / @diegosouzapw)
 
 ---
 

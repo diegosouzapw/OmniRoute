@@ -717,7 +717,7 @@ export async function getUnifiedModelsResponse(
     // #4164 entry is emitted instead, so the id is never dropped.
     // #4235 Phase B: also advertise the curated `auto/<category>[:<tier>]` combos.
     for (const autoId of [...Object.keys(AUTO_TEMPLATE_VARIANTS), ...AUTO_SUFFIX_VARIANTS]) {
-      if (listedIds.has(autoId)) continue;
+      if (blockedProviders.has("auto") || listedIds.has(autoId)) continue; // #5192
       listedIds.add(autoId);
       const baseAutoEntry = {
         id: autoId,

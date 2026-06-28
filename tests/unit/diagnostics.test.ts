@@ -209,6 +209,65 @@ test("detectMalformedNonStream allows Responses API function_call items as valid
   assert.equal(detectMalformedNonStream(body), null);
 });
 
+// ── (c2) detectMalformedNonStream — Claude Messages shape ────────────────────
+
+test("detectMalformedNonStream returns null for Claude message with text content", () => {
+  const body = {
+    type: "message",
+    role: "assistant",
+    content: [{ type: "text", text: "Hi!" }],
+    stop_reason: "end_turn",
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream returns null for Claude message with tool_use block", () => {
+  const body = {
+    type: "message",
+    role: "assistant",
+    content: [{ type: "tool_use", id: "toolu_1", name: "search", input: {} }],
+    stop_reason: "tool_use",
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream returns null for Claude message with thinking block", () => {
+  const body = {
+    type: "message",
+    role: "assistant",
+    content: [{ type: "thinking", thinking: "let me think" }],
+    stop_reason: "end_turn",
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream returns 'empty_choices' for Claude message with empty content", () => {
+  const body = { type: "message", role: "assistant", content: [], stop_reason: "end_turn" };
+  assert.equal(detectMalformedNonStream(body), "empty_choices");
+});
+
+test("detectMalformedNonStream returns 'empty_choices' for Claude message with empty-text block", () => {
+  const body = {
+    type: "message",
+    role: "assistant",
+    content: [{ type: "text", text: "" }],
+    stop_reason: "end_turn",
+  };
+  assert.equal(detectMalformedNonStream(body), "empty_choices");
+});
+
+test("detectMalformedNonStream returns 'empty_choices' for Claude message with (empty response) placeholder", () => {
+  // convertOpenAINonStreamingToClaude substitutes this placeholder for empty
+  // upstream content; it must still be treated as malformed.
+  const body = {
+    type: "message",
+    role: "assistant",
+    content: [{ type: "text", text: "(empty response)" }],
+    stop_reason: "end_turn",
+  };
+  assert.equal(detectMalformedNonStream(body), "empty_choices");
+});
+
 // ── (d) no stack trace leakage ───────────────────────────────────────────────
 
 test("synthOpenAIErrorChunk message does NOT contain stack trace path", () => {

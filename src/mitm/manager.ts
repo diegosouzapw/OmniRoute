@@ -4,7 +4,7 @@ import fs from "fs";
 import { resolveMitmDataDir } from "./dataDir.ts";
 import { addDNSEntry, addDNSEntries, removeDNSEntry, removeDNSEntries } from "./dns/dnsConfig.ts";
 import { generateCert } from "./cert/generate.ts";
-import { installCert, uninstallCert } from "./cert/install.ts";
+import { installCertResult, uninstallCert } from "./cert/install.ts";
 import { ALL_TARGETS } from "./targets/index.ts";
 import { detectAgent } from "./detection/index.ts";
 import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
@@ -397,7 +397,7 @@ export async function startMitm(
   apiKey: string,
   sudoPassword: string,
   options: { port?: number } = {}
-): Promise<{ running: true; pid: number | null }> {
+): Promise<{ running: true; pid: number | null; certTrusted: boolean }> {
   // Check if already running
   if (serverProcess && !serverProcess.killed) {
     throw new Error("MITM proxy is already running");
@@ -446,8 +446,23 @@ export async function startMitm(
     await generateCert();
   }
 
-  // 2. Install certificate to system keychain
-  await installCert(sudoPassword, certPath);
+  // 2. Install certificate to system keychain. A failure here must NOT abort the
+  //    bridge: in containers/headless the system trust store can't be written,
+  //    so we start in "untrusted" mode and let the operator trust the CA by hand
+  //    (mirrors the best-effort "continuing" pattern used for DNS below). (#4546)
+  let certTrusted = false;
+  try {
+    const certResult = await installCertResult(sudoPassword, certPath);
+    certTrusted = certResult.installed;
+    if (!certResult.installed) {
+      log.warn(
+        { reason: certResult.reason },
+        "MITM cert not auto-trusted; bridge starting in skip mode (manual trust required)"
+      );
+    }
+  } catch (err) {
+    log.error({ err }, "installCertResult threw unexpectedly (continuing without trusted cert)");
+  }
 
   // 3. Add DNS entries: Antigravity defaults + all agents with dns_enabled=true +
   //    all custom hosts with enabled=true.
@@ -600,6 +615,7 @@ export async function startMitm(
   return {
     running: true,
     pid: serverPid,
+    certTrusted,
   };
 }
 

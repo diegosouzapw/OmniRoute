@@ -136,7 +136,7 @@ export async function runServe(opts = {}) {
     PORT: String(dashboardPort),
     DASHBOARD_PORT: String(dashboardPort),
     API_PORT: String(apiPort),
-    HOSTNAME: "0.0.0.0",
+    HOSTNAME: process.env.HOSTNAME || "0.0.0.0",
     NODE_ENV: "production",
     NODE_OPTIONS: `--max-old-space-size=${memoryLimit}`,
   };
