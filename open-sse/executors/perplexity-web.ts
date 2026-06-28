@@ -57,7 +57,7 @@ const PPLX_SUPPORTED_BLOCK_USE_CASES = [
 // Firefox 148 — must match the `firefox_148` TLS profile used by perplexityTlsClient.
 // A mismatched UA vs TLS fingerprint is itself a Cloudflare bot signal (issue #2459).
 const PPLX_USER_AGENT =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:152.0) Gecko/20100101 Firefox/152.0";
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:148.0) Gecko/20100101 Firefox/148.0";
 
 const MODEL_MAP: Record<string, [string, string]> = {
   "pplx-auto": ["concise", "pplx_pro"],

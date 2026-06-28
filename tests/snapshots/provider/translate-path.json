@@ -1016,14 +1016,14 @@
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/connect+proto",
-        "User-Agent": "Cursor/3.3",
+        "User-Agent": "Cursor/3.9",
         "connect-accept-encoding": "gzip",
         "connect-protocol-version": "1"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/connect+proto",
-        "User-Agent": "Cursor/3.3",
+        "User-Agent": "Cursor/3.9",
         "connect-accept-encoding": "gzip",
         "connect-protocol-version": "1"
       },
@@ -1031,7 +1031,7 @@
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/connect+proto",
-        "User-Agent": "Cursor/3.3",
+        "User-Agent": "Cursor/3.9",
         "connect-accept-encoding": "gzip",
         "connect-protocol-version": "1"
       }
