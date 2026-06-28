@@ -2501,7 +2501,7 @@ export async function handleChatCore({
                   response: new Response(clientBody, {
                     status: res.response.status,
                     statusText: res.response.statusText,
-                    headers: res.response.headers,
+                    headers: new Headers(normalizeHeaders(res.response.headers)),
                   }),
                 };
               }
