@@ -46,6 +46,7 @@ import {
 } from "../services/cloudCodeThinking.ts";
 import { buildGeminiTools } from "../translator/helpers/geminiToolsSanitizer.ts";
 import { DEFAULT_SAFETY_SETTINGS } from "../translator/helpers/geminiHelper.ts";
+import { normalizeOpenAICompatibleFinishReasonString } from "../utils/finishReason.ts";
 import {
   applyAntigravityClientProfileHeaders,
   removeHeaderCaseInsensitive,
@@ -402,10 +403,9 @@ export function processAntigravitySSEPayload(
       }
     }
     if (candidate?.finishReason) {
-      collected.finishReason =
-        candidate.finishReason.toLowerCase() === "stop"
-          ? "stop"
-          : candidate.finishReason.toLowerCase();
+      collected.finishReason = normalizeOpenAICompatibleFinishReasonString(
+        String(candidate.finishReason).toLowerCase()
+      );
     }
     if (parsed?.response?.usageMetadata) {
       const um = parsed.response.usageMetadata;
