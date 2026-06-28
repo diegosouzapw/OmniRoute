@@ -107,6 +107,7 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     tokensCompressed,
     apiKeyInfo,
     noLogEnabled,
+    correlationId,
   } = ctx;
   const initialConnectionId = toConnectionId(connectionId);
   const finalConnectionId = toConnectionId(credentials?.connectionId) || initialConnectionId;
