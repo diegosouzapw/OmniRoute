@@ -1,0 +1,1234 @@
+{
+  "results": [
+    {
+      "path": ".audit-run-v37/clones/.github",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": ".audit-run-v37/clones/Conft",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": ".audit-run-v37/clones/Dino-fork",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": ".audit-run-v37/clones/Tracely",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": ".audit-run-v37/clones/nanovms",
+      "hooks": 12,
+      "signals": 3,
+      "grade": "B"
+    },
+    {
+      "path": ".audit-run-v37/clones/thegent-workspace",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": ".audit-run-v37/clones/vibeproxy-monitoring-unified",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": ".",
+      "hooks": 12,
+      "signals": 2,
+      "grade": "C"
+    },
+    {
+      "path": "Civis",
+      "hooks": 15,
+      "signals": 2,
+      "grade": "C"
+    },
+    {
+      "path": "Dino",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit",
+      "hooks": 14,
+      "signals": 2,
+      "grade": "C"
+    },
+    {
+      "path": "HexaKit/agileplus-agents",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/agileplus-mcp",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/bifrost",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/crates",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/docs",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/dotfiles",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/forgecode-fork",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/harnesses",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/koosha-portfolio",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/platforms",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/prompts",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/proto",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/python",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/repos",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/rust",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/shelf-infra",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/src",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/template-go",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/template-python",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/template-rust",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/template-typescript",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/templates",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/templates/go",
+      "hooks": 9,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/templates/kotlin",
+      "hooks": 9,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/templates/mojo",
+      "hooks": 9,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/templates/python",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/templates/rust",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/templates/swift",
+      "hooks": 9,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/templates/zig",
+      "hooks": 9,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/tests",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/vendor",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "HexaKit/worklogs",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "KDesktopVirt",
+      "hooks": 6,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "KWatch",
+      "hooks": 1,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "KaskMan",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "KlipDot",
+      "hooks": 12,
+      "signals": 2,
+      "grade": "C"
+    },
+    {
+      "path": "MCPForge",
+      "hooks": 6,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "ObservabilityKit",
+      "hooks": 11,
+      "signals": 2,
+      "grade": "C"
+    },
+    {
+      "path": "OmniRoute",
+      "hooks": 11,
+      "signals": 2,
+      "grade": "C"
+    },
+    {
+      "path": "Parpoura",
+      "hooks": 15,
+      "signals": 2,
+      "grade": "C"
+    },
+    {
+      "path": "PhenoCompose",
+      "hooks": 12,
+      "signals": 3,
+      "grade": "B"
+    },
+    {
+      "path": "PhenoContracts",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "PhenoHandbook",
+      "hooks": 10,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "PhenoMCPServers",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "PhenoMCPServers/servers/external/mcpforge",
+      "hooks": 6,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "PhenoObservability",
+      "hooks": 11,
+      "signals": 2,
+      "grade": "C"
+    },
+    {
+      "path": "PhenoPlugins",
+      "hooks": 6,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "PhenoProject",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "PhenoRuntime",
+      "hooks": 11,
+      "signals": 2,
+      "grade": "C"
+    },
+    {
+      "path": "PhenoSpecs",
+      "hooks": 9,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "PhenoVCS",
+      "hooks": 8,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "Pine",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "PlayCua",
+      "hooks": 12,
+      "signals": 3,
+      "grade": "B"
+    },
+    {
+      "path": "PolicyStack",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "Quillr",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "ResilienceKit",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "Sidekick",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "Sidekick/crates/cheap-llm-mcp",
+      "hooks": 6,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "Tasken",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "Tasken-phenoforge-final",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "TestingKit",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "Tokn",
+      "hooks": 3,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "Tokn-wt-feat-clap-ext-adopt-rebased-2026-06-14",
+      "hooks": 3,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "Tracera",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "Tracera/Tracera",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "agent-user-status",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "agentapi-plusplus",
+      "hooks": 8,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "argis-extensions",
+      "hooks": 2,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "cliproxyapi-plusplus",
+      "hooks": 2,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "cliproxyapi-plusplus/.worktrees/tier-0-hygiene",
+      "hooks": 2,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "dinoforge-packs",
+      "hooks": 9,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "eyetracker",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "forgecode-wts/wt-autovac",
+      "hooks": 11,
+      "signals": 2,
+      "grade": "C"
+    },
+    {
+      "path": "heliosBench",
+      "hooks": 9,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "pheno",
+      "hooks": 14,
+      "signals": 2,
+      "grade": "C"
+    },
+    {
+      "path": "pheno/agileplus-agents",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/agileplus-mcp",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/bifrost",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/crates",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/docs",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/dotfiles",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/forgecode-fork",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/harnesses",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/koosha-portfolio",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/pheno-cli",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/phenotype-governance",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/phenotype-hub",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/phenotype-infrakit",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/phenotype-router-monitor",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/platforms",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/prompts",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/proto",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/python",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/repos",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/rust",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/sharecli",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/shelf-infra",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/src",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/template-go",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/template-python",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/template-rust",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/template-typescript",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/templates",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/tests",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/vendor",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "pheno/worklogs",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "phenoAI",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "phenoData",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "phenoDesign",
+      "hooks": 9,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenoResearchEngine",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenoUtils",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "phenoUtils-phenoschema-final",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "phenodag-tool",
+      "hooks": 5,
+      "signals": 2,
+      "grade": "C"
+    },
+    {
+      "path": "phenodocs",
+      "hooks": 10,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenokits-commons",
+      "hooks": 6,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenokits-commons/hexagon",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "phenokits-commons/templates/webapp",
+      "hooks": 9,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-apps-L39-wt",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-apps-L39-wt/AtomsBot-2nd",
+      "hooks": 6,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-apps-L39-wt/KlipDot-wtrees/perf-quick-wins-2026-06-08",
+      "hooks": 6,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-apps-L39-wt/Parpoura-5th",
+      "hooks": 15,
+      "signals": 2,
+      "grade": "C"
+    },
+    {
+      "path": "phenotype-apps-L39-wt/kwality-wtrees/gitignore-pycache",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-apps-main",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-apps-main/AtomsBot-2nd",
+      "hooks": 6,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-apps-main/KlipDot-wtrees/perf-quick-wins-2026-06-08",
+      "hooks": 6,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-apps-main/Parpoura-5th",
+      "hooks": 15,
+      "signals": 2,
+      "grade": "C"
+    },
+    {
+      "path": "phenotype-apps-main/kwality-wtrees/gitignore-pycache",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-go-sdk/packages/devhex",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-go-sdk/packages/mcpkit",
+      "hooks": 9,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-go-sdk-devhex-platformkit-final/packages/devhex",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-go-sdk-devhex-platformkit-final/packages/mcpkit",
+      "hooks": 9,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-infra",
+      "hooks": 6,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-journeys",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-landing/sites/byteport-landing",
+      "hooks": 6,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-landing/sites/hwledger-landing",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-landing/sites/odin-landing",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-landing/sites/phenokits-landing",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-landing/sites/projects-landing",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-landing/sites/thegent-landing",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-org-audits",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-python-sdk/packages/auth-kit",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-python-sdk/packages/data-kit",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-python-sdk/packages/mcp-kit",
+      "hooks": 9,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-python-sdk/packages/observability-kit",
+      "hooks": 11,
+      "signals": 2,
+      "grade": "C"
+    },
+    {
+      "path": "phenotype-python-sdk/packages/resilience-kit",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-python-sdk-datakit-final/packages/auth-kit",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-python-sdk-datakit-final/packages/data-kit",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-python-sdk-datakit-final/packages/mcp-kit",
+      "hooks": 9,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-python-sdk-datakit-final/packages/observability-kit",
+      "hooks": 11,
+      "signals": 2,
+      "grade": "C"
+    },
+    {
+      "path": "phenotype-python-sdk-datakit-final/packages/resilience-kit",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry",
+      "hooks": 7,
+      "signals": 2,
+      "grade": "C"
+    },
+    {
+      "path": "phenotype-registry-archived-local-work",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-archived-local-work/scaffold/phenotype-hub",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-conft-settly-final",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-conft-settly-final/scaffold/phenotype-hub",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-dagctl-final",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-dagctl-final/scaffold/phenotype-hub",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-datakit-final",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-datakit-final/scaffold/phenotype-hub",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-depguard-final",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-depguard-final/scaffold/phenotype-hub",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-devhex-platformkit-final",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-devhex-platformkit-final/scaffold/phenotype-hub",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-drain-next",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-drain-next/scaffold/phenotype-hub",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-helioscope-final",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-helioscope-final/scaffold/phenotype-hub",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-httpora-final",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-httpora-final/scaffold/phenotype-hub",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-phenoforge-final",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-phenoforge-final/scaffold/phenotype-hub",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-phenoschema-final",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-phenoschema-final/scaffold/phenotype-hub",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-preserve-wip",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-preserve-wip/scaffold/phenotype-hub",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-profila-final",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-profila-final/scaffold/phenotype-hub",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-utils-boundary",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-registry-utils-boundary/scaffold/phenotype-hub",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-sdk/lang/go/packages/devhex",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-sdk/lang/go/packages/mcpkit",
+      "hooks": 9,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-sdk/lang/python/packages/auth-kit",
+      "hooks": 4,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-sdk/lang/python/packages/data-kit",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-sdk/lang/python/packages/mcp-kit",
+      "hooks": 9,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "phenotype-sdk/lang/python/packages/observability-kit",
+      "hooks": 11,
+      "signals": 2,
+      "grade": "C"
+    },
+    {
+      "path": "phenotype-sdk/lang/python/packages/resilience-kit",
+      "hooks": 7,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "portage",
+      "hooks": 6,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "rich-cli-kit",
+      "hooks": 6,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "thegent",
+      "hooks": 5,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "thegent/templates/python",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "thegent-dispatch",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    },
+    {
+      "path": "thegent-pr2-v2",
+      "hooks": 5,
+      "signals": 0,
+      "grade": "D"
+    },
+    {
+      "path": "thegent-pr2-v2/templates/python",
+      "hooks": 9,
+      "signals": 1,
+      "grade": "D"
+    }
+  ],
+  "grades": {
+    "D": 183,
+    "B": 3,
+    "C": 18
+  },
+  "total": 204
+}
