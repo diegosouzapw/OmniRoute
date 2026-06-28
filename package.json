@@ -32,6 +32,7 @@
     "scripts/dev/sync-env.mjs",
     "scripts/build/native-binary-compat.mjs",
     "scripts/build/build-next-isolated.mjs",
+    "scripts/build/runtime-env.mjs",
     "README.md",
     "LICENSE",
     "!**/__tests__/**",
@@ -295,10 +296,8 @@
     "@tailwindcss/postcss": "^4.3.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
-    "@types/bcryptjs": "^3.0.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/bun": "latest",
-    "@types/keytar": "^4.4.2",
     "@types/node": "^26.0.0",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
@@ -362,6 +361,9 @@
     "protobufjs": "^7.6.3",
     "@babel/core": "^7.29.6",
     "hono": "^4.12.25",
+    "@yarnpkg/parsers": {
+      "js-yaml": "^4.2.0"
+    },
     "jsdom": {
       "undici": "^7.28.0"
     },
