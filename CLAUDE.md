@@ -327,33 +327,33 @@ connection continue serving other models.
 
 For any non-trivial change, read the matching deep-dive first:
 
-| Area                                          | Doc                                                               |
-| --------------------------------------------- | ----------------------------------------------------------------- |
-| Repo navigation                               | `docs/architecture/REPOSITORY_MAP.md`                             |
-| Architecture                                  | `docs/architecture/ARCHITECTURE.md`                               |
-| Engineering reference                         | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (9-factor scoring, 17 strategies)  | `docs/routing/AUTO-COMBO.md`                                      |
-| Resilience (3 mechanisms)                     | `docs/architecture/RESILIENCE_GUIDE.md`                           |
-| Reasoning replay                              | `docs/routing/REASONING_REPLAY.md`                                |
-| Skills framework                              | `docs/frameworks/SKILLS.md`                                       |
-| Memory system (FTS5 + Qdrant)                 | `docs/frameworks/MEMORY.md`                                       |
-| Cloud agents                                  | `docs/frameworks/CLOUD_AGENT.md`                                  |
-| Guardrails (PII / injection / vision)         | `docs/security/GUARDRAILS.md`                                     |
-| Public upstream credentials (Gemini/etc.)     | `docs/security/PUBLIC_CREDS.md`                                   |
-| Error message sanitization                    | `docs/security/ERROR_SANITIZATION.md`                             |
-| Evals                                         | `docs/frameworks/EVALS.md`                                        |
-| Compliance / audit                            | `docs/security/COMPLIANCE.md`                                     |
-| Webhooks                                      | `docs/frameworks/WEBHOOKS.md`                                     |
-| Authorization pipeline                        | `docs/architecture/AUTHZ_GUIDE.md`                                |
-| Stealth (TLS / fingerprint)                   | `docs/security/STEALTH_GUIDE.md`                                  |
-| Agent protocols (A2A / ACP / Cloud)           | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
-| MCP server                                    | `docs/frameworks/MCP-SERVER.md`                                   |
-| A2A server                                    | `docs/frameworks/A2A-SERVER.md`                                   |
+| Area                                          | Doc                                                     |
+| --------------------------------------------- | ------------------------------------------------------- |
+| Repo navigation                               | `docs/architecture/REPOSITORY_MAP.md`                   |
+| Architecture                                  | `docs/architecture/ARCHITECTURE.md`                     |
+| Engineering reference                         | `docs/architecture/CODEBASE_DOCUMENTATION.md`           |
+| Auto-Combo (9-factor scoring, 17 strategies)  | `docs/routing/AUTO-COMBO.md`                            |
+| Resilience (3 mechanisms)                     | `docs/architecture/RESILIENCE_GUIDE.md`                 |
+| Reasoning replay                              | `docs/routing/REASONING_REPLAY.md`                      |
+| Skills framework                              | `docs/frameworks/SKILLS.md`                             |
+| Memory system (FTS5 + Qdrant)                 | `docs/frameworks/MEMORY.md`                             |
+| Cloud agents                                  | `docs/frameworks/CLOUD_AGENT.md`                        |
+| Guardrails (PII / injection / vision)         | `docs/security/GUARDRAILS.md`                           |
+| Public upstream credentials (Gemini/etc.)     | `docs/security/PUBLIC_CREDS.md`                         |
+| Error message sanitization                    | `docs/security/ERROR_SANITIZATION.md`                   |
+| Evals                                         | `docs/frameworks/EVALS.md`                              |
+| Compliance / audit                            | `docs/security/COMPLIANCE.md`                           |
+| Webhooks                                      | `docs/frameworks/WEBHOOKS.md`                           |
+| Authorization pipeline                        | `docs/architecture/AUTHZ_GUIDE.md`                      |
+| Stealth (TLS / fingerprint)                   | `docs/security/STEALTH_GUIDE.md`                        |
+| Agent protocols (A2A / ACP / Cloud)           | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`              |
+| MCP server                                    | `docs/frameworks/MCP-SERVER.md`                         |
+| A2A server                                    | `docs/frameworks/A2A-SERVER.md`                         |
 | API reference + OpenAPI                       | `docs/reference/API_REFERENCE.md` + `docs/openapi.yaml` |
-| Provider catalog (auto-generated)             | `docs/reference/PROVIDER_REFERENCE.md`                            |
-| Release flow                                  | `docs/ops/RELEASE_CHECKLIST.md`                                   |
-| Embedded services                             | `docs/frameworks/EMBEDDED-SERVICES.md`                            |
-| Quality gates (~48 scripts, allowlist policy) | `docs/architecture/QUALITY_GATES.md`                              |
+| Provider catalog (auto-generated)             | `docs/reference/PROVIDER_REFERENCE.md`                  |
+| Release flow                                  | `docs/ops/RELEASE_CHECKLIST.md`                         |
+| Embedded services                             | `docs/frameworks/EMBEDDED-SERVICES.md`                  |
+| Quality gates (~48 scripts, allowlist policy) | `docs/architecture/QUALITY_GATES.md`                    |
 
 ---
 
@@ -387,6 +387,31 @@ Why this matters: fixing bug A while opening bug B is worse than not fixing at a
 **Copilot coverage policy**: When a PR changes production code and coverage is below 60% (statements/lines/functions/branches), do not just report — add or update tests, rerun the coverage gate, then ask for confirmation. Include commands run, changed test files, and final coverage result in the PR report.
 
 ---
+
+## Planning & Research Artifacts (superpowers, deep-research)
+
+`_tasks/` is a **separate, isolated git repository** that is gitignored by the main
+repo (`.gitignore` → `_tasks/`). It is the canonical home for working artifacts —
+plans, specs/designs, research, hand-offs — so they stay **versioned in their own
+repo** instead of polluting the main OmniRoute tree.
+
+**Hard rule — never write superpowers / planning / research output under `docs/` or
+the repo root.** The superpowers skills ship with defaults that point at `docs/…`
+(`writing-plans` → `docs/superpowers/plans/`, `brainstorming` → `docs/superpowers/specs/`).
+Those defaults are **overridden here**. Whenever you invoke superpowers (or any
+plan/spec/research generator) in this project, save to `_tasks/` instead, using the
+same filename convention:
+
+| Artifact (skill)                   | Default (do NOT use)      | Save here instead                                             |
+| ---------------------------------- | ------------------------- | ------------------------------------------------------------- |
+| Plans (`writing-plans`)            | `docs/superpowers/plans/` | `_tasks/superpowers/plans/YYYY-MM-DD-<feature>.md`            |
+| Specs / design (`brainstorming`)   | `docs/superpowers/specs/` | `_tasks/superpowers/specs/YYYY-MM-DD-<topic>-design.md`       |
+| Research (`deep-research`, ad-hoc) | `docs/research/`          | `_tasks/research/…`                                           |
+| Hand-offs (`/handoff`)             | —                         | `_tasks/hands-off/<YYYY-MM-DD>_<branch>_v<versão>_sess-<id>/` |
+
+When a superpowers skill announces a path like "saved to `docs/superpowers/plans/…`",
+rewrite it to the `_tasks/…` equivalent before writing. Commit those artifacts inside
+the `_tasks/` repo (`git -C _tasks …`), never in the main repo.
 
 ## Git Workflow
 

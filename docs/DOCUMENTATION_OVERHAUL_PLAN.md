@@ -274,10 +274,10 @@
 - `docs/README.md` — Keep as-is
 - `docs/SUBMIT_PR.md` — Contributor-only
 - `docs/releases/v3.8.0.md` — Release notes
-- `docs/research/` — Internal research
 - `docs/specs/` — Internal specs
 - `docs/openspec/` — Internal specs
-- `docs/superpowers/` — Internal plans
+- `_tasks/research/` — Internal research (isolated, separately-versioned repo; gitignored)
+- `_tasks/superpowers/` — Internal plans/specs from superpowers (isolated repo; gitignored)
 
 ---
 

@@ -387,7 +387,7 @@ export const TRAE_CONFIG = {
 //
 //   Phase 2 will reintroduce browser login via Firebase OAuth + RegisterUser
 //   (ported from fendoushaonian/WindSurf-gRPC-API).
-//   Spec: docs/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
+//   Spec: _tasks/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
 //
 // Active fields:
 //   - inferenceUrl       → used by WindsurfExecutor (open-sse/executors/windsurf.ts)

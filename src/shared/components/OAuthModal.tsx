@@ -18,7 +18,7 @@ const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex"]);
  * Phase 1 hotfix (2026-05-29): windsurf & devin-cli only support import-token.
  * Their PKCE flow targeting app.devin.ai/editor/signin returned 404 post-rebrand.
  * Phase 2 will reintroduce browser login via Firebase OAuth + RegisterUser.
- * Spec: docs/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
+ * Spec: _tasks/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
  */
 const IMPORT_TOKEN_ONLY_PROVIDERS = new Set(["windsurf", "devin-cli", "grok-cli"]);
 

@@ -5,7 +5,7 @@ import { WINDSURF_CONFIG } from "../constants/oauth";
  *
  * The previous PKCE Authorization Code flow targeting `https://app.devin.ai/editor/signin`
  * stopped working post-rebrand: that endpoint now returns 404. Until Phase 2 ports the
- * Firebase OAuth + RegisterUser flow (see docs/superpowers/specs/2026-05-29-windsurf-login-fix-design.md),
+ * Firebase OAuth + RegisterUser flow (see _tasks/superpowers/specs/2026-05-29-windsurf-login-fix-design.md),
  * the only supported login path is import-token:
  *
  *   1. In the Windsurf / VS Code IDE, the user runs the

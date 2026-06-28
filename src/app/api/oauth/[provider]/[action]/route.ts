@@ -112,7 +112,7 @@ export async function GET(
   // The action permanently does not exist for these providers regardless of who
   // is asking — answering 401 first would mislead callers into thinking the
   // route is gated rather than gone. See spec
-  // docs/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
+  // _tasks/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
   try {
     const earlyParams = await params;
     if (

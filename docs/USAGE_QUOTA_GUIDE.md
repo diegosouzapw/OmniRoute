@@ -9,6 +9,7 @@ lastUpdated: 2026-06-08
 > **TL;DR**: OmniRoute tracks every request's token usage, computes cost, enforces per-API-key quota, and surfaces analytics in the dashboard. This guide explains how it all works.
 
 **Sources:**
+
 - `open-sse/services/usage.ts` (~70KB) — main usage tracking
 - `src/lib/usageAnalytics.ts` (~10KB) — aggregation for dashboard
 - `src/lib/db/quotaSnapshots.ts` — historical quota data
@@ -43,23 +44,23 @@ Request ──▶ chatCore ──▶ usage.record() ──▶ SQLite
 
 The `usage.ts` service captures a **usage event** for every request:
 
-| Field | Type | Source |
-|-------|------|--------|
-| `id` | string | UUID generated on record |
-| `apiKeyId` | string | The API key that initiated the request |
-| `provider` | string | Provider ID (openai, anthropic, etc.) |
-| `model` | string | Model ID (gpt-5, claude-opus-4-6, etc.) |
-| `comboId` | string? | Combo ID if routed through a combo |
-| `promptTokens` | number | From upstream response |
-| `completionTokens` | number | From upstream response |
-| `cachedTokens` | number | Cache hit tokens (Anthropic prompt caching, etc.) |
-| `totalTokens` | number | prompt + completion |
-| `costUsd` | number | Computed from pricing data |
-| `latencyMs` | number | End-to-end request duration |
-| `status` | enum | `success`, `error`, `rate_limited`, `timeout`, `cancelled` |
-| `errorClass` | string? | Error class if status != success |
-| `timestamp` | string | ISO 8601 UTC |
-| `metadata` | object | Custom plugin-injected data |
+| Field              | Type    | Source                                                     |
+| ------------------ | ------- | ---------------------------------------------------------- |
+| `id`               | string  | UUID generated on record                                   |
+| `apiKeyId`         | string  | The API key that initiated the request                     |
+| `provider`         | string  | Provider ID (openai, anthropic, etc.)                      |
+| `model`            | string  | Model ID (gpt-5, claude-opus-4-6, etc.)                    |
+| `comboId`          | string? | Combo ID if routed through a combo                         |
+| `promptTokens`     | number  | From upstream response                                     |
+| `completionTokens` | number  | From upstream response                                     |
+| `cachedTokens`     | number  | Cache hit tokens (Anthropic prompt caching, etc.)          |
+| `totalTokens`      | number  | prompt + completion                                        |
+| `costUsd`          | number  | Computed from pricing data                                 |
+| `latencyMs`        | number  | End-to-end request duration                                |
+| `status`           | enum    | `success`, `error`, `rate_limited`, `timeout`, `cancelled` |
+| `errorClass`       | string? | Error class if status != success                           |
+| `timestamp`        | string  | ISO 8601 UTC                                               |
+| `metadata`         | object  | Custom plugin-injected data                                |
 
 ### Where Tokens Come From
 
@@ -91,19 +92,20 @@ OmniRoute tracks `cached_tokens` separately from `prompt_tokens` because:
 
 Costs are computed from **pricing data** synced from LiteLLM (`src/lib/pricingSync.ts`):
 
-| Model | Input $/1M | Output $/1M | Cached $/1M |
-|-------|-----------|-------------|-------------|
-| gpt-5 | $2.50 | $10.00 | — |
-| claude-opus-4-6 | $15.00 | $75.00 | $1.50 |
-| claude-sonnet-4-5 | $3.00 | $15.00 | $0.30 |
-| gemini-2.5-pro | $1.25 | $10.00 | — |
+| Model             | Input $/1M | Output $/1M | Cached $/1M |
+| ----------------- | ---------- | ----------- | ----------- |
+| gpt-5             | $2.50      | $10.00      | —           |
+| claude-opus-4-6   | $15.00     | $75.00      | $1.50       |
+| claude-sonnet-4-5 | $3.00      | $15.00      | $0.30       |
+| gemini-2.5-pro    | $1.25      | $10.00      | —           |
 
 The cost formula (`src/lib/usage/costCalculator.ts`):
 
 ```ts
-cost = (prompt_tokens - cached_tokens) * input_price
-     + cached_tokens * cached_price
-     + completion_tokens * output_price
+cost =
+  (prompt_tokens - cached_tokens) * input_price +
+  cached_tokens * cached_price +
+  completion_tokens * output_price;
 ```
 
 > **Why subtract cached from prompt?** The cached portion is priced separately; charging input price on the whole prompt would over-count.
@@ -119,40 +121,39 @@ curl -X POST http://localhost:20128/api/pricing/sync
 
 For models with no pricing data, OmniRoute falls back to **estimating cost** using internal average rates (sourced from LiteLLM's pricing data).
 
-
 ---
 
 ## Date Range Aggregation
 
 The `usageAnalytics.ts` module computes dashboard widgets from raw usage data. It supports 7 time ranges:
 
-| Range | Window | Use case |
-|-------|--------|----------|
-| `1d` | Last 24 hours | Hourly cost spike detection |
-| `7d` | Last 7 days | Weekly review |
-| `30d` | Last 30 days | Monthly billing |
-| `90d` | Last 90 days | Quarterly analysis |
-| `ytd` | Since Jan 1 of current year | Annual budget tracking |
-| `all` | All time | Lifetime stats |
-| `custom` | User-defined start/end | Audits, ad-hoc queries |
+| Range    | Window                      | Use case                    |
+| -------- | --------------------------- | --------------------------- |
+| `1d`     | Last 24 hours               | Hourly cost spike detection |
+| `7d`     | Last 7 days                 | Weekly review               |
+| `30d`    | Last 30 days                | Monthly billing             |
+| `90d`    | Last 90 days                | Quarterly analysis          |
+| `ytd`    | Since Jan 1 of current year | Annual budget tracking      |
+| `all`    | All time                    | Lifetime stats              |
+| `custom` | User-defined start/end      | Audits, ad-hoc queries      |
 
 ### Dashboard Widgets Computed
 
 For any date range, the analytics layer computes:
 
-| Widget | Description |
-|--------|-------------|
-| **Summary cards** | Total requests, total cost, total tokens, success rate |
-| **Daily trend chart** | Cost + tokens per day, stacked by model |
-| **Activity heatmap** | Hour-of-day × day-of-week grid, color = request count |
-| **Model breakdown** | Pie chart of cost by model |
-| **Provider breakdown** | Bar chart of requests by provider |
-| **Top API keys** | Table of top 10 keys by cost |
-| **Error analysis** | Error rate over time, top error classes |
+| Widget                 | Description                                            |
+| ---------------------- | ------------------------------------------------------ |
+| **Summary cards**      | Total requests, total cost, total tokens, success rate |
+| **Daily trend chart**  | Cost + tokens per day, stacked by model                |
+| **Activity heatmap**   | Hour-of-day × day-of-week grid, color = request count  |
+| **Model breakdown**    | Pie chart of cost by model                             |
+| **Provider breakdown** | Bar chart of requests by provider                      |
+| **Top API keys**       | Table of top 10 keys by cost                           |
+| **Error analysis**     | Error rate over time, top error classes                |
 
 ### Programmatic Access
 
-```ts
+````ts
 import { computeAnalytics } from "@/lib/usageAnalytics";
 
 const analytics = await computeAnalytics(
@@ -186,7 +187,7 @@ await updateApiKey(keyId, {
   quotaLimit: 10_00,    // $10.00 — hard stop
   quotaWindow: "month", // "day" | "week" | "month" | "all"
 });
-```
+````
 
 ### Enforcement Flow
 
@@ -203,14 +204,14 @@ Request ──▶ quotaCheck()
 
 `quotaSnapshots` table stores **historical quota state** for trend analysis:
 
-| Field | Description |
-|-------|-------------|
-| `apiKeyId` | The key being tracked |
-| `window` | "day" | "week" | "month" |
-| `used` | Cost used in this window (cents) |
-| `limit` | The limit (cents) |
-| `resetAt` | When the window resets |
-| `createdAt` | When the snapshot was taken |
+| Field       | Description                      |
+| ----------- | -------------------------------- | ------ | ------- |
+| `apiKeyId`  | The key being tracked            |
+| `window`    | "day"                            | "week" | "month" |
+| `used`      | Cost used in this window (cents) |
+| `limit`     | The limit (cents)                |
+| `resetAt`   | When the window resets           |
+| `createdAt` | When the snapshot was taken      |
 
 Snapshots are taken **on every request** that uses > 0 cost, and used to:
 
@@ -243,7 +244,7 @@ Response:
       "promptTokens": 1234,
       "completionTokens": 567,
       "totalTokens": 1801,
-      "costUsd": 0.0050,
+      "costUsd": 0.005,
       "latencyMs": 1234,
       "status": "success",
       "timestamp": "2026-06-08T12:00:00Z"
@@ -272,12 +273,12 @@ Response:
     "avgLatencyMs": 1234
   },
   "models": [
-    { "model": "gpt-5", "cost": 8.50, "requests": 1234, "tokens": 4567890 },
+    { "model": "gpt-5", "cost": 8.5, "requests": 1234, "tokens": 4567890 },
     { "model": "claude-opus-4-6", "cost": 3.84, "requests": 234, "tokens": 234567 }
   ],
   "daily": [
-    { "date": "2026-06-01", "cost": 1.50, "requests": 800 },
-    { "date": "2026-06-02", "cost": 2.00, "requests": 1000 }
+    { "date": "2026-06-01", "cost": 1.5, "requests": 800 },
+    { "date": "2026-06-02", "cost": 2.0, "requests": 1000 }
   ]
 }
 ```
@@ -296,10 +297,10 @@ Usage data is accessed via the dashboard or MCP tools, not direct REST export en
 
 Two MCP tools expose usage data to agents (see `open-sse/mcp-server/tools/`):
 
-| Tool | Description |
-|------|-------------|
+| Tool                    | Description                                        |
+| ----------------------- | -------------------------------------------------- |
 | `omniroute_cost_report` | Generates a per-key cost report for a given period |
-| `omniroute_check_quota` | Returns current quota status for an API key |
+| `omniroute_check_quota` | Returns current quota status for an API key        |
 
 Example agent invocation:
 
@@ -328,14 +329,15 @@ Old records are cleaned up by `src/lib/db/cleanup.ts`:
 
 - Triggered by the background cron process
 - Deletes records from `usage_history` older than the configured `usageHistory` retention setting
+
 ### Storage Estimation
 
-| Request rate | 30-day storage | 90-day storage |
-|--------------|----------------|----------------|
-| 100 req/day | ~3MB | ~9MB |
-| 1,000 req/day | ~30MB | ~90MB |
-| 10,000 req/day | ~300MB | ~900MB |
-| 100,000 req/day | ~3GB | ~9GB |
+| Request rate    | 30-day storage | 90-day storage |
+| --------------- | -------------- | -------------- |
+| 100 req/day     | ~3MB           | ~9MB           |
+| 1,000 req/day   | ~30MB          | ~90MB          |
+| 10,000 req/day  | ~300MB         | ~900MB         |
+| 100,000 req/day | ~3GB           | ~9GB           |
 
 For very high traffic, consider:
 
@@ -364,8 +366,8 @@ Anthropic prompt caching saves **90% on repeated context**:
 // The caching is automatic — just include the same large system prompt
 const response = await openai.chat({
   model: "claude-sonnet-4-5",
-  system: longSystemPrompt,  // Will be cached automatically
-  messages: [{ role: "user", content: "..." }]
+  system: longSystemPrompt, // Will be cached automatically
+  messages: [{ role: "user", content: "..." }],
 });
 ```
 
@@ -377,8 +379,8 @@ RTK + Caveman compression saves **15-95% on tool-heavy sessions**:
 const config = {
   compression: {
     engine: "rtk",
-    intensity: "aggressive"
-  }
+    intensity: "aggressive",
+  },
 };
 ```
 
@@ -387,7 +389,7 @@ const config = {
 Always set `quotaLimit` to prevent runaway costs:
 
 ```ts
-await updateApiKey(keyId, { quotaLimit: 10_00 });  // $10/month cap
+await updateApiKey(keyId, { quotaLimit: 10_00 }); // $10/month cap
 ```
 
 ### 5. Audit Top Consumers
@@ -409,6 +411,7 @@ GET /api/usage/analytics?groupBy=apiKey
 3. Verify pricing data is up to date: `POST /api/pricing/sync`
 
 ### "Records missing"
+
 - Check DB retention settings under Dashboard → Database → Cleanup — old records are deleted by the periodic cleanup task (`src/lib/db/cleanup.ts`)
 - Check for errors in `src/lib/db/usage*.ts` — DB write failures are logged but not surfaced
 - Verify the request actually reached `chatCore` — check combo routing
