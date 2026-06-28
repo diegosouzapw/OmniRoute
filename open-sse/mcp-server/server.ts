@@ -6,8 +6,11 @@ import {
   getComboStepTarget,
 } from "../../src/lib/combos/steps.ts";
 
+import { handleToolSearch } from "./toolSearch/handler.ts";
+
 import {
   MCP_TOOLS,
+  toolSearchInput,
   getHealthInput,
   listCombosInput,
   getComboMetricsInput,
@@ -1196,6 +1199,22 @@ export function createMcpServer(): McpServer {
     withScopeEnforcement("omniroute_oneproxy_stats", (args) =>
       handleOneproxyStats(oneproxyStatsInput.parse(args))
     )
+  );
+
+  server.registerTool(
+    "omniroute_tool_search",
+    {
+      description:
+        "Search MCP tools by keyword; returns compact one-line TS signatures for token-efficient discovery.",
+      inputSchema: toolSearchInput,
+    },
+    withScopeEnforcement("omniroute_tool_search", (args) => {
+      const parsed = toolSearchInput.parse(args ?? {});
+      const result = handleToolSearch(parsed);
+      return Promise.resolve({
+        content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
+      });
+    })
   );
 
   // ── Memory Tools ──────────────────────────────
