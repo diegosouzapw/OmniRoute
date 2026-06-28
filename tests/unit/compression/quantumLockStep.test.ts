@@ -68,3 +68,44 @@ test("input body is not mutated (pure)", () => {
   applyQuantumLock(input, ON);
   assert.equal(JSON.stringify(input), before);
 });
+
+import {
+  resolveQuantumLock,
+  withQuantumLock,
+  withQuantumLockAsync,
+} from "../../../open-sse/services/compression/quantumLock/strategyWrap.ts";
+
+const CACHING = { isCachingProvider: true };
+const NOT_CACHING = { isCachingProvider: false };
+const runEcho = (b: Record<string, unknown>) => ({ body: b, compressed: false, stats: { techniquesUsed: [] } as Record<string, unknown> });
+
+test("resolveQuantumLock returns the config only when enabled", () => {
+  assert.equal(resolveQuantumLock({ config: { quantumLock: { enabled: false } } as never }), undefined);
+  assert.ok(resolveQuantumLock({ config: { quantumLock: { enabled: true } } as never }));
+  assert.equal(resolveQuantumLock(undefined), undefined);
+});
+
+test("withQuantumLock: disabled ⇒ body passes through untouched", () => {
+  const body = sys("id 550e8400-e29b-41d4-a716-446655440000");
+  const r = withQuantumLock(body, undefined, CACHING, runEcho);
+  assert.equal(sysText(r.body), sysText(body));
+});
+
+test("withQuantumLock: non-caching provider ⇒ no-op", () => {
+  const body = sys("id 550e8400-e29b-41d4-a716-446655440000");
+  const r = withQuantumLock(body, { enabled: true }, NOT_CACHING, runEcho);
+  assert.equal(sysText(r.body), sysText(body));
+});
+
+test("withQuantumLock: enabled + caching ⇒ stabilizes + attaches stats", () => {
+  const body = sys("id 550e8400-e29b-41d4-a716-446655440000");
+  const r = withQuantumLock(body, { enabled: true }, CACHING, runEcho);
+  assert.ok(sysText(r.body).includes(TAIL_DELIM));
+  assert.equal((r.stats as { quantumLock?: { fragments: number } }).quantumLock?.fragments, 1);
+});
+
+test("withQuantumLockAsync mirrors the sync wrapper", async () => {
+  const body = sys("id 550e8400-e29b-41d4-a716-446655440000");
+  const r = await withQuantumLockAsync(body, { enabled: true }, CACHING, async (b) => runEcho(b));
+  assert.ok(sysText(r.body).includes(TAIL_DELIM));
+});
