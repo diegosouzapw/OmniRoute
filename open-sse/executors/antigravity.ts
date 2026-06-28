@@ -904,7 +904,7 @@ export class AntigravityExecutor extends BaseExecutor {
       return {
         accessToken: typeof tokens.access_token === "string" ? tokens.access_token : undefined,
         refreshToken:
-          typeof tokens.refresh_token === "string"
+          typeof tokens.refresh_token === "string" && tokens.refresh_token
             ? tokens.refresh_token
             : credentials.refreshToken,
         expiresIn: typeof tokens.expires_in === "number" ? tokens.expires_in : undefined,
