@@ -977,10 +977,6 @@ test("Chat -> Responses: shell function stays caller-side and does not leak loca
 // --- Issue #2893: orphaned tool results from empty/missing call_id ---
 
 test("Responses -> Chat: function_call with empty call_id is dropped together with its output (issue #2893)", () => {
-  // Codex can emit a function_call without a usable call_id; its
-  // function_call_output then becomes an orphan tool message that the upstream
-  // rejects ("role 'tool' must be a response to a preceding message with
-  // 'tool_calls'"). Both must be dropped.
   const result = openaiResponsesToOpenAIRequest(
     "gpt-4o",
     {
@@ -995,13 +991,11 @@ test("Responses -> Chat: function_call with empty call_id is dropped together wi
   ) as Record<string, unknown>;
 
   const messages = result.messages as any[];
-  // No orphan tool message.
   assert.equal(
     messages.some((m) => m.role === "tool"),
     false,
     "tool result with empty tool_call_id must be dropped"
   );
-  // No dangling assistant tool_call with an empty id.
   const danglingEmptyId = messages.some(
     (m) =>
       m.role === "assistant" &&
