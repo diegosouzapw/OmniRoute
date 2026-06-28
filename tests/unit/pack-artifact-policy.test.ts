@@ -101,6 +101,7 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
     "dist/webdav-handler.mjs",
     "scripts/build/colocateOptionals.mjs",
     "scripts/build/native-binary-compat.mjs",
+    "scripts/build/runtime-env.mjs",
     "src/shared/utils/nodeRuntimeSupport.ts",
   ]);
 });
