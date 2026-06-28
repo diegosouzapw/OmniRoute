@@ -9,6 +9,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { marked } from "marked";
 import { sanitizeDocsHtml } from "@/lib/docsSanitizer";
+import { resolveSafeI18nSectionDir } from "@/lib/docsI18nPath";
 
 // ── Locale detection ────────────────────────────────────────────────────────
 
@@ -29,21 +30,12 @@ function getDocsLocale(): string {
 function tryI18nFallback(slug: string[], locale: string): string | null {
   if (!locale || locale === "en") return null;
 
-  // 🛡️ Sentinel: Path traversal prevention
-  // 1. Validate locale and slug characters (only alphanumeric, dashes, underscores)
-  if (!/^[a-z0-9-]+$/i.test(locale)) return null;
-  if (!slug.every((s) => /^[a-z0-9-]+$/i.test(s))) return null;
-
+  // 🛡️ Path traversal prevention — `locale` is a user-controllable cookie, so
+  // validate segments + confine the resolved dir to docs/i18n before any fs read.
+  // Centralized in resolveSafeI18nSectionDir (pure, unit-tested).
   const docsRoot = path.resolve(process.cwd(), "docs");
-  const i18nRoot = path.join(docsRoot, "i18n");
-
-  // 2. Resolve target directory absolute path
-  const sectionDir = path.resolve(i18nRoot, locale, "docs", ...slug.slice(0, -1));
-
-  // 3. Ensure the resolved path remains within docs/i18n to prevent traversal
-  if (!sectionDir.startsWith(i18nRoot)) {
-    return null;
-  }
+  const sectionDir = resolveSafeI18nSectionDir(docsRoot, locale, slug);
+  if (!sectionDir) return null;
 
   if (!fs.existsSync(sectionDir)) return null;
 
