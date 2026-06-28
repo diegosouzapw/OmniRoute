@@ -637,11 +637,18 @@ test("Gemini and Antigravity run mocked browser OAuth exchanges and post-exchang
   );
   const antigravityExtra = await PROVIDERS.antigravity.postExchange(antigravityTokens);
   const antigravityMapped = PROVIDERS.antigravity.mapTokens(antigravityTokens, antigravityExtra);
+  // postExchange runs onboarding fire-and-forget now (it must never block the OAuth
+  // login response); give the background onboard call a tick to consume its mocked
+  // fetch so the sequence drains deterministically.
   await new Promise((r) => setTimeout(r, 50));
 
   assert.equal(geminiMapped.email, "gemini@example.com");
   assert.equal(geminiMapped.projectId, "gemini-project");
   assert.equal(antigravityMapped.email, "anti@example.com");
+  // projectId comes from loadCodeAssist ("anti-project"), NOT the backgrounded
+  // onboardUser response ("anti-project-final"). Onboarding is fire-and-forget, so it
+  // no longer updates the returned projectId synchronously — matching the 9router web
+  // flow, which also returns the loadCodeAssist project id.
   assert.equal(antigravityMapped.projectId, "anti-project");
 });
 

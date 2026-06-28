@@ -849,6 +849,15 @@ export default function OAuthModal({
                       </strong>
                     </div>
                   )}
+                  {/* Actionable remote paste instruction — shown for ALL remote providers,
+                      including Google OAuth (antigravity/agy/gemini-cli). The Google
+                      loopback creds redirect to 127.0.0.1:<port>/callback, which on a
+                      remotely-accessed dashboard lands on the operator's own machine and
+                      shows a "can't reach this page" error. That is expected: the URL bar
+                      still carries ?code=…, and pasting it below completes the login. Before
+                      this, Google providers only saw the discouraging loopback warning and
+                      never the "copy the URL and paste it" step, so remote login appeared to
+                      hang. */}
                   {!isTrueLocalhost && (
                     <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-200">
                       <span className="material-symbols-outlined text-sm align-middle mr-1">

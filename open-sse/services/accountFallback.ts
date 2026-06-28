@@ -47,7 +47,9 @@ export type ProviderProfile = {
   maxBackoffLevel: number;
   circuitBreakerThreshold: number;
   circuitBreakerReset: number;
+  // Adaptive circuit breaker fields
   degradationThreshold?: number;
+  // Provider-level cooldown fields
   providerFailureThreshold: number;
   providerFailureWindowMs: number;
   providerCooldownMs: number;
@@ -84,6 +86,8 @@ function toJsonRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
 
+// Provider-level failure tracking for circuit breaker behavior
+// Error codes that count toward provider-level failure threshold.
 // 429 is included: per-error-type cooldowns (rate_limit: 60s, quota_exhausted: 1h)
 // prevent cascading provider trips at scale (Issue #1846 concern addressed),
 // while still allowing the circuit breaker to open on sustained 429s and
