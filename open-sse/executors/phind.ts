@@ -14,7 +14,7 @@ import { makeExecutorErrorResult as makeErrorResult, normalizeCookie } from "../
 const BASE_URL = "https://www.phind.com";
 const CHAT_URL = `${BASE_URL}/api/agent`;
 const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
 export class PhindExecutor extends BaseExecutor {
   constructor() {
@@ -188,8 +188,7 @@ export class PhindExecutor extends BaseExecutor {
               }
               try {
                 const parsed = JSON.parse(data);
-                const text =
-                  parsed.choices?.[0]?.delta?.content || parsed.content || "";
+                const text = parsed.choices?.[0]?.delta?.content || parsed.content || "";
                 if (text) {
                   const chunk = {
                     id: `chatcmpl-ph-${Date.now()}`,

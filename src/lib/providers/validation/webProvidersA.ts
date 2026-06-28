@@ -36,7 +36,7 @@ export async function validateDeepSeekWebProvider({ apiKey }: any) {
         Origin: "https://chat.deepseek.com",
         Referer: "https://chat.deepseek.com/",
         "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
         "X-App-Version": "20241129.1",
         "X-Client-Platform": "web",
       },
@@ -95,7 +95,7 @@ export async function validateQwenWebProvider({ apiKey }: any) {
     const headers: Record<string, string> = {
       Accept: "*/*",
       "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
       Origin: "https://chat.qwen.ai",
       Referer: "https://chat.qwen.ai/",
       source: "web",
@@ -225,14 +225,14 @@ export async function validateGrokWebProvider({ apiKey, providerSpecificData = {
             Origin: "https://grok.com",
             Pragma: "no-cache",
             Referer: "https://grok.com/",
-            "Sec-Ch-Ua": '"Google Chrome";v="147", "Chromium";v="147", "Not(A:Brand";v="24"',
+            "Sec-Ch-Ua": '"Google Chrome";v="149", "Chromium";v="149", "Not(A:Brand";v="24"',
             "Sec-Ch-Ua-Mobile": "?0",
             "Sec-Ch-Ua-Platform": '"macOS"',
             "Sec-Fetch-Dest": "empty",
             "Sec-Fetch-Mode": "cors",
             "Sec-Fetch-Site": "same-origin",
             "User-Agent":
-              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
             "x-statsig-id": btoa(statsigMsg),
             "x-xai-request-id": crypto.randomUUID(),
             traceparent: `00-${traceId}-${spanId}-00`,
@@ -385,7 +385,7 @@ export async function validateChatGptWebProvider({ apiKey, providerSpecificData 
             "Sec-Fetch-Mode": "cors",
             "Sec-Fetch-Site": "same-origin",
             "User-Agent":
-              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:148.0) Gecko/20100101 Firefox/148.0",
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:152.0) Gecko/20100101 Firefox/152.0",
           },
           providerSpecificData
         ),
@@ -480,7 +480,7 @@ export async function validatePerplexityWebProvider({ apiKey, providerSpecificDa
         Referer: "https://www.perplexity.ai/",
         // Firefox 148 — must match the firefox_148 TLS profile of perplexityTlsClient (issue #2459).
         "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:148.0) Gecko/20100101 Firefox/148.0",
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:152.0) Gecko/20100101 Firefox/152.0",
         "X-App-ApiClient": "default",
         "X-App-ApiVersion": "client-1.11.0",
         ...(bearerToken
@@ -577,7 +577,7 @@ export async function validateBlackboxWebProvider({ apiKey, providerSpecificData
         Origin: "https://app.blackbox.ai",
         Referer: "https://app.blackbox.ai/",
         "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/147.0.0.0",
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
       },
       providerSpecificData
     );
@@ -607,7 +607,7 @@ export async function validateBlackboxWebProvider({ apiKey, providerSpecificData
         Origin: "https://app.blackbox.ai",
         Referer: "https://app.blackbox.ai/",
         "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/147.0.0.0",
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
       },
       providerSpecificData
     );
@@ -678,4 +678,3 @@ export async function validateBlackboxWebProvider({ apiKey, providerSpecificData
     return toValidationErrorResult(error);
   }
 }
-

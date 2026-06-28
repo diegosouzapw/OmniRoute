@@ -35,7 +35,7 @@ const BASE_URL = "https://chat.qwen.ai";
 const CHATS_NEW_URL = `${BASE_URL}/api/v2/chats/new`;
 const CHAT_COMPLETIONS_URL = `${BASE_URL}/api/v2/chat/completions`;
 const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
 // Anti-bot headers the v2 endpoint expects. `bx-umidtoken` is normally minted
 // per-session from sg-wum.alibaba.com; a captured value travels with the cookie

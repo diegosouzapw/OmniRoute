@@ -407,6 +407,10 @@ const QODER_JOB_TOKEN_MIN_TTL_MS = 60 * 1000;
 
 type QoderJobTokenCacheEntry = { jobToken: string; expiresAt: number };
 const qoderJobTokenCache = new Map<string, QoderJobTokenCacheEntry>();
+const qoderJobTokenPending = new Map<
+  string,
+  Promise<{ jobToken: string; expiresInMs: number } | null>
+>();
 
 type FetchLike = (input: string, init?: Record<string, unknown>) => Promise<Response>;
 
@@ -482,7 +486,14 @@ export async function resolveQoderJobToken(
   const cached = qoderJobTokenCache.get(trimmed);
   if (cached && cached.expiresAt > now) return cached.jobToken;
 
-  const exchanged = await exchangeQoderJobToken(trimmed, options);
+  let pending = qoderJobTokenPending.get(trimmed);
+  if (!pending) {
+    pending = exchangeQoderJobToken(trimmed, options).finally(() => {
+      qoderJobTokenPending.delete(trimmed);
+    });
+    qoderJobTokenPending.set(trimmed, pending);
+  }
+  const exchanged = await pending;
   if (!exchanged) return trimmed; // graceful fallback — keep prior behavior
   qoderJobTokenCache.set(trimmed, {
     jobToken: exchanged.jobToken,
@@ -494,6 +505,7 @@ export async function resolveQoderJobToken(
 /** Test-only: clear the job-token cache so unit tests don't leak state. */
 export function __clearQoderJobTokenCache(): void {
   qoderJobTokenCache.clear();
+  qoderJobTokenPending.clear();
 }
 
 export async function validateQoderCliPat({

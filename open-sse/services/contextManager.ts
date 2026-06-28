@@ -2,7 +2,7 @@
  * Context Manager — Phase 4
  *
  * Pre-flight context compression to prevent "prompt too long" errors.
- * 3 layers: trim tool messages, compress thinking, aggressive purification.
+ * 3 layers: trim tool messages, compress structured thinking, aggressive purification.
  */
 
 import { REGISTRY } from "../config/providerRegistry.ts";
@@ -147,7 +147,7 @@ export function resolveComboContextLimit(options: {
  * Operates in 3 layers of increasing aggressiveness:
  *
  * Layer 1: Trim tool_result messages (truncate long outputs)
- * Layer 2: Compress thinking blocks (remove from history, keep last)
+ * Layer 2: Compress structured thinking blocks (remove from history, keep last)
  * Layer 3: Aggressive purification (drop old messages until fitting)
  *
  * @param {object} body - Request body with messages[]
@@ -194,7 +194,7 @@ export function compressContext(
     };
   }
 
-  // Layer 2: Compress thinking blocks (remove from non-last assistant messages)
+  // Layer 2: Compress structured thinking blocks (remove from non-last assistant messages)
   messages = compressThinking(messages);
   currentTokens = estimateTokens(JSON.stringify(messages));
   stats.layers.push({ name: "compress_thinking", tokens: currentTokens });
@@ -249,7 +249,7 @@ function trimToolMessages(messages: Record<string, unknown>[], maxChars: number)
   });
 }
 
-// ─── Layer 2: Compress Thinking Blocks ──────────────────────────────────────
+// ─── Layer 2: Compress Structured Thinking Blocks ───────────────────────────
 
 function compressThinking(messages: Record<string, unknown>[]) {
   // Find last assistant message index
@@ -272,28 +272,6 @@ function compressThinking(messages: Record<string, unknown>[]) {
         return { ...msg, content: "[thinking compressed]" };
       }
       return { ...msg, content: filtered };
-    }
-
-    // Remove thinking XML tags from string content
-    if (typeof msg.content === "string") {
-      let cleaned = msg.content;
-      for (const [start, end] of [
-        ["<thinking>", "</thinking>"],
-        ["<antThinking>", "</antThinking>"],
-      ]) {
-        while (true) {
-          const s = cleaned.indexOf(start);
-          if (s === -1) break;
-          const e = cleaned.indexOf(end, s + start.length);
-          if (e === -1) {
-            cleaned = cleaned.slice(0, s);
-            break;
-          }
-          cleaned = cleaned.slice(0, s) + cleaned.slice(e + end.length);
-        }
-      }
-      cleaned = cleaned.trim();
-      return { ...msg, content: cleaned || "[thinking compressed]" };
     }
 
     return msg;

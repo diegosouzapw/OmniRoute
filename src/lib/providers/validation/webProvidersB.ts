@@ -88,7 +88,7 @@ export async function validateAdaptaWebProvider({ apiKey, providerSpecificData =
         {
           Cookie: `__client=${clientJwt}`,
           "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
           Origin: "https://agent.adapta.one",
         },
         providerSpecificData
@@ -149,7 +149,7 @@ export async function validateClaudeWebProvider({ apiKey, providerSpecificData =
             "Sec-Fetch-Mode": "cors",
             "Sec-Fetch-Site": "same-origin",
             "User-Agent":
-              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
             "anthropic-client-platform": "web_claude_ai",
           },
           providerSpecificData

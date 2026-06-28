@@ -10,6 +10,7 @@ import {
   getCodexResetTime,
   getCodexUpstreamModel,
   isCodexResponsesWebSocketRequired,
+  normalizeCodexTools,
   parseCodexQuotaHeaders,
 } from "../../open-sse/executors/codex.ts";
 import {
@@ -827,7 +828,10 @@ test("CodexExecutor.transformRequest passes GPT 5.4 Mini xhigh reasoning through
 
   assert.equal(sanitized.model, "gpt-5.4-mini");
   assert.deepEqual(reasoning, { effort: "xhigh", summary: "detailed" });
-  assert.deepEqual(sanitized.include, ["code_interpreter_call.outputs", "reasoning.encrypted_content"]);
+  assert.deepEqual(sanitized.include, [
+    "code_interpreter_call.outputs",
+    "reasoning.encrypted_content",
+  ]);
   assert.equal(sanitized.reasoning_effort, undefined);
 });
 
@@ -1056,9 +1060,6 @@ test("CodexExecutor.execute skips identity headers for unsafe session ids", asyn
 });
 
 test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted tool types", () => {
-  // Regression: PR #1581 đã vô tình xoá nhánh `namespace` + whitelist hosted tools
-  // trong normalizeCodexTools, khiến MCP tool group (vd. mcp__atlassian__) bị strip
-  // trước khi forward lên Codex Responses API. Test này khoá lại hành vi đúng.
   const executor = new CodexExecutor();
   const result = executor.transformRequest(
     "gpt-5.4",
@@ -1079,6 +1080,7 @@ test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted to
         { type: "image_generation", output_format: "png" },
         { type: "tool_search" },
         { type: "web_search" },
+        { type: "local_shell" },
         { type: "unknown_hosted_tool" },
       ],
       tool_choice: { type: "function", name: "jira_get_issue" },
@@ -1102,9 +1104,14 @@ test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted to
   assert.equal((namespaceTool as { name: string }).name, "mcp__atlassian__");
   assert.equal(((namespaceTool as { tools: unknown[] }).tools ?? []).length, 2);
 
-  // tool_choice trỏ vào sub-tool của namespace phải được giữ nguyên (không bị xoá
-  // do tên nằm trong namespace.tools[*].name đã được đăng ký vào validToolNames).
   assert.deepEqual(result.tool_choice, { type: "function", name: "jira_get_issue" });
+
+  const body = {
+    tools: [{ type: "function", name: "exec_command", parameters: { type: "object" } }],
+    tool_choice: { type: "local_shell" },
+  };
+  normalizeCodexTools(body);
+  assert.equal(body.tool_choice, undefined);
 });
 
 test("CodexExecutor.transformRequest preserves native Codex custom tools", () => {

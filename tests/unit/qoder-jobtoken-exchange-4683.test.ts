@@ -76,6 +76,34 @@ test("#4683 resolveQoderJobToken exchanges a pt-* once and caches the jt-*", asy
   __clearQoderJobTokenCache();
 });
 
+test("#4683 resolveQoderJobToken coalesces concurrent pt-* exchanges", async () => {
+  __clearQoderJobTokenCache();
+  let fetchCount = 0;
+  let releaseExchange: (() => void) | undefined;
+  let markExchangeStarted: (() => void) | undefined;
+  const exchangeStarted = new Promise<void>((resolveStarted) => {
+    markExchangeStarted = resolveStarted;
+  });
+  const fetchImpl = async () => {
+    fetchCount += 1;
+    markExchangeStarted?.();
+    await new Promise<void>((release) => {
+      releaseExchange = release;
+    });
+    return jsonResponse({ job_token: "jt-shared", expires_in: 86400 });
+  };
+
+  const resolves = Array.from({ length: 8 }, () =>
+    resolveQoderJobToken("pt-concurrent", { fetchImpl, now: 1_000 })
+  );
+  await exchangeStarted;
+  releaseExchange?.();
+  const tokens = await Promise.all(resolves);
+  assert.deepEqual(tokens, Array(8).fill("jt-shared"));
+  assert.equal(fetchCount, 1, "concurrent resolves must share one upstream exchange");
+  __clearQoderJobTokenCache();
+});
+
 test("#4683 resolveQoderJobToken passes a jt-* through without exchanging", async () => {
   __clearQoderJobTokenCache();
   let fetchCount = 0;

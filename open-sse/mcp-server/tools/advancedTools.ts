@@ -14,11 +14,10 @@
  *   9. omniroute_get_session_snapshot — Full session state snapshot
  *  10. omniroute_db_health_check   — Diagnose and repair DB state drift
  *  11. omniroute_sync_pricing      — Sync provider pricing from external source
- *  12. omniroute_cache_stats       — Cache statistics and hit rates
- *  13. omniroute_cache_flush       — Flush/invalidate cache entries
  */
 
 import { logToolCall } from "../audit.ts";
+import { getMcpHttpAuthHeadersForInternalFetch } from "../httpAuthContext.ts";
 import { normalizeQuotaResponse } from "../../../src/shared/contracts/quota.ts";
 import { resolveOmniRouteBaseUrl } from "../../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
 import {
@@ -39,6 +38,7 @@ async function apiFetch(path: string, options: RequestInit = {}): Promise<unknow
   const url = `${OMNIROUTE_BASE_URL}${path}`;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    ...getMcpHttpAuthHeadersForInternalFetch(),
     ...(OMNIROUTE_API_KEY ? { Authorization: `Bearer ${OMNIROUTE_API_KEY}` } : {}),
     ...((options.headers as Record<string, string>) || {}),
   };

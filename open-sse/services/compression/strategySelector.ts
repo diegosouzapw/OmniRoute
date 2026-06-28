@@ -33,6 +33,12 @@ import {
 } from "./planResolution.ts";
 import { resolveAdaptivePlan } from "./adaptiveCompression/resolveAdaptivePlan.ts";
 import type { AdaptiveTelemetry } from "./adaptiveCompression/types.ts";
+import type { RiskGateConfig } from "./riskGate/riskGate.ts";
+import {
+  resolveRiskGate,
+  withRiskGate,
+  withRiskGateAsync,
+} from "./riskGate/strategyWrap.ts";
 
 // Re-export so existing importers (resolver test + chatCore dynamic import) keep resolving.
 export { planFromHeader, formatCompressionMeta, buildNamedComboLookup };
@@ -260,6 +266,23 @@ export function applyCompression(
      * skipped instead of silently dropping the target. Flows through to applyStackedCompression.
      */
     bailout?: BailoutConfig;
+    /** Risk-gate mask/restore wrapper (opt-in, default off). Read via resolveRiskGate. */
+    riskGate?: RiskGateConfig;
+  }
+): CompressionResult {
+  return withRiskGate(body, resolveRiskGate(options), (b) => runCompression(b, mode, options));
+}
+
+function runCompression(
+  body: Record<string, unknown>,
+  mode: CompressionMode,
+  options?: {
+    model?: string;
+    supportsVision?: boolean | null;
+    config?: CompressionConfig;
+    principalId?: string;
+    bailout?: BailoutConfig;
+    riskGate?: RiskGateConfig;
   }
 ): CompressionResult {
   if (mode === "off") {
@@ -556,6 +579,8 @@ interface StackOptions {
   bailout?: BailoutConfig;
   /** Opt-in per-step fidelity gate (default disabled). */
   fidelityGate?: FidelityGateConfig;
+  /** Risk-gate mask/restore wrapper (opt-in, default off). Read via resolveRiskGate. */
+  riskGate?: RiskGateConfig;
   /** Authenticated principal id — threaded through to CCR engine for store scoping. */
   principalId?: string;
   /** F3.3: called once per engine as it completes (live per-engine streaming). */
@@ -714,6 +739,16 @@ export function applyStackedCompression(
   pipeline?: Array<CompressionPipelineStep | string>,
   options?: StackOptions
 ): CompressionResult {
+  return withRiskGate(body, resolveRiskGate(options), (b) =>
+    runStackedCompression(b, pipeline, options)
+  );
+}
+
+function runStackedCompression(
+  body: Record<string, unknown>,
+  pipeline?: Array<CompressionPipelineStep | string>,
+  options?: StackOptions
+): CompressionResult {
   const steps = resolveStackSteps(pipeline);
   registerBuiltinCompressionEngines();
 
@@ -783,6 +818,16 @@ export function applyStackedCompression(
  * telemetry, same final stats — so sync-only pipelines yield the same result.
  */
 export async function applyStackedCompressionAsync(
+  body: Record<string, unknown>,
+  pipeline?: Array<CompressionPipelineStep | string>,
+  options?: StackOptions
+): Promise<CompressionResult> {
+  return withRiskGateAsync(body, resolveRiskGate(options), (b) =>
+    runStackedCompressionAsync(b, pipeline, options)
+  );
+}
+
+async function runStackedCompressionAsync(
   body: Record<string, unknown>,
   pipeline?: Array<CompressionPipelineStep | string>,
   options?: StackOptions

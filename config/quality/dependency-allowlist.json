@@ -46,6 +46,7 @@
     "concurrently",
     "cross-env",
     "csv-stringify",
+    "dompurify",
     "dpdm",
     "electron",
     "electron-builder",

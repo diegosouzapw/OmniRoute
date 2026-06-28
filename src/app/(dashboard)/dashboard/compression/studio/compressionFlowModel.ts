@@ -45,6 +45,13 @@ export interface EncoderComparison {
   winner: "gcf" | "toon" | "json";
 }
 
+// ── Risk-gate (protected-span stats) ──────────────────────────────────────
+
+export interface RiskGateStats {
+  spansProtected: number;
+  categories: Partial<Record<string, number>>;
+}
+
 // ── Preview API response ──────────────────────────────────────────────────
 
 export interface PreviewResponse {
@@ -60,6 +67,7 @@ export interface PreviewResponse {
   preservedBlocks: Array<{ kind: string; preview: string }>;
   ruleRemovals: string[];
   encoderComparison?: EncoderComparison | null;
+  riskGate?: RiskGateStats | null;
 }
 
 // ── Run Model ─────────────────────────────────────────────────────────────

@@ -1818,7 +1818,7 @@ export async function GET(
         const innerAiHeaders: Record<string, string> = {
           "USER-TOKEN": innerAiToken,
           "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
           Origin: "https://app.innerai.com",
           Referer: "https://app.innerai.com/",
         };

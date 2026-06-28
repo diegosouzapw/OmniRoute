@@ -510,7 +510,7 @@ test("Responses→Chat streaming: Copilot mode emits reasoning_text for summary 
   assert.equal(result.choices[0].delta.reasoning, undefined);
 });
 
-test("Chat→Responses streaming: multiple <think> tags in one chunk handled", () => {
+test("Chat→Responses streaming: generic prompt-format <think> tags remain text", () => {
   const state = initState(FORMATS.OPENAI_RESPONSES);
 
   // Chunk with multiple think tags
@@ -523,14 +523,44 @@ test("Chat→Responses streaming: multiple <think> tags in one chunk handled", (
       },
     ],
     id: "c1",
+    model: "gpt-4.1",
   };
   const events = openaiToOpenAIResponsesResponse(chunk, state);
-  // Should not have literal <think> in any text delta
   const textDeltas = events
     .filter((e) => e.event === "response.output_text.delta")
     .map((e) => e.data.delta);
   const combined = textDeltas.join("");
-  assert.ok(!combined.includes("<think>"), `text should not contain <think> tag, got: ${combined}`);
+  assert.equal(combined, "<think>first</think>middle<think>second</think>end");
+  assert.equal(
+    events.some((e) => e.event === "response.reasoning_summary_text.delta"),
+    false
+  );
+});
+
+test("Chat→Responses streaming: tag-native models still split <think> tags", () => {
+  const state = initState(FORMATS.OPENAI_RESPONSES);
+
+  const chunk = {
+    choices: [
+      {
+        index: 0,
+        delta: { content: "<think>first</think>end" },
+        finish_reason: null,
+      },
+    ],
+    id: "c1",
+    model: "deepseek-r1",
+  };
+  const events = openaiToOpenAIResponsesResponse(chunk, state);
+  const textDeltas = events
+    .filter((e) => e.event === "response.output_text.delta")
+    .map((e) => e.data.delta);
+  const reasoningDeltas = events
+    .filter((e) => e.event === "response.reasoning_summary_text.delta")
+    .map((e) => e.data.delta);
+
+  assert.deepEqual(reasoningDeltas, ["first"]);
+  assert.equal(textDeltas.join(""), "end");
 });
 
 // Regression: a tool call was announced (response.output_item.added set currentToolCallId)

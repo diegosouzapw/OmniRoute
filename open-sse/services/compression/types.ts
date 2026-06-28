@@ -12,6 +12,8 @@
 import { ENGINE_IDS } from "./engineCatalog.ts";
 import type { ContextBudgetConfig } from "./adaptiveCompression/types.ts";
 import type { FidelityGateConfig } from "./fidelityGate.ts";
+import type { RiskGateConfig } from "./riskGate/riskGate.ts";
+import type { RiskGateStats } from "./riskGate/riskGateStep.ts";
 
 // Re-export so consumers that already import from this module (e.g. src/lib/db/compression.ts)
 // can get ENGINE_IDS without a second bare `@omniroute/open-sse/...engineCatalog.ts` specifier.
@@ -144,6 +146,8 @@ export interface CompressionConfig {
   stackedPipeline?: CompressionPipelineStep[];
   /** Opt-in per-step fidelity gate (default disabled). */
   fidelityGate?: FidelityGateConfig;
+  /** Opt-in risk-gate pre-pass: shields sensitive spans from compression (default disabled). */
+  riskGate?: RiskGateConfig;
   cavemanConfig?: CavemanConfig;
   cavemanOutputMode?: CavemanOutputModeConfig;
   /** Phase 4A: selected output styles (supersedes cavemanOutputMode via a back-compat shim). */
@@ -200,6 +204,7 @@ export interface CompressionStats {
   validationWarnings?: string[];
   validationErrors?: string[];
   fallbackApplied?: boolean;
+  riskGate?: RiskGateStats;
   /**
    * Phase 4 (B): which `ultra` tier actually ran for this request.
    * "slm" — Tier-B ran and produced the output.
