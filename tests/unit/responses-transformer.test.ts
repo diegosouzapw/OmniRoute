@@ -83,9 +83,30 @@ test("createResponsesApiTransformStream converts plain chat deltas into Response
   assert.equal(doneMarker.data, "[DONE]");
 });
 
-test("createResponsesApiTransformStream converts think tags into reasoning summaries", async () => {
+test("createResponsesApiTransformStream preserves prompt-format think tags by default", async () => {
   const output = await runTransformStream([
-    'data: {"choices":[{"index":0,"delta":{"content":"<think>plan"}}]}\n\n',
+    'data: {"id":"chatcmpl_1","model":"gpt-4.1","choices":[{"index":0,"delta":{"content":"<think>plan"}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{"content":"ning</think>answer"}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n',
+  ]);
+
+  const events = parseSseOutput(output);
+  const reasoningDeltas = events
+    .filter((event) => event.event === "response.reasoning_summary_text.delta")
+    .map((event) => JSON.parse(event.data).delta);
+  const completed = JSON.parse(
+    events.find((event) => event.event === "response.completed").data
+  ).response;
+
+  assert.deepEqual(reasoningDeltas, []);
+  assert.deepEqual(completed.output[0].content, [
+    { type: "output_text", annotations: [], logprobs: [], text: "<think>planning</think>answer" },
+  ]);
+});
+
+test("createResponsesApiTransformStream extracts think tags for tag-native models", async () => {
+  const output = await runTransformStream([
+    'data: {"id":"chatcmpl_1","model":"deepseek-ai/DeepSeek-R1","choices":[{"index":0,"delta":{"content":"<think>plan"}}]}\n\n',
     'data: {"choices":[{"index":0,"delta":{"content":"ning</think>answer"}}]}\n\n',
     'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n',
   ]);
@@ -99,11 +120,7 @@ test("createResponsesApiTransformStream converts think tags into reasoning summa
   ).response;
 
   assert.deepEqual(reasoningDeltas, ["plan", "ning"]);
-  assert.deepEqual(completed.output[0], {
-    id: completed.output[0].id,
-    type: "reasoning",
-    summary: [{ type: "summary_text", text: "planning" }],
-  });
+  assert.equal(completed.output[0].type, "reasoning");
   assert.deepEqual(completed.output[1].content, [
     { type: "output_text", annotations: [], logprobs: [], text: "answer" },
   ]);

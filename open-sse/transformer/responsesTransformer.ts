@@ -1,4 +1,5 @@
 import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
+import { shouldParseTextualReasoningTags } from "../handlers/responseSanitizer.ts";
 import * as fs from "fs";
 import * as path from "path";
 /**
@@ -92,6 +93,7 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
     reasoningPartAdded: false,
     reasoningDone: false,
     inThinking: false,
+    parseTextualReasoningTags: false,
     funcArgsBuf: {},
     funcNames: {},
     funcCallIds: {},
@@ -407,6 +409,13 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
           const choice = parsed.choices[0];
           const idx = choice.index || 0;
           const delta = choice.delta || {};
+          if (state.parseTextualReasoningTags !== true && typeof parsed.model === "string") {
+            state.parseTextualReasoningTags = shouldParseTextualReasoningTags(
+              undefined,
+              parsed.model
+            );
+          }
+          const parseTextualReasoningTags = state.parseTextualReasoningTags === true;
 
           // Emit initial events
           if (!state.started) {
@@ -443,41 +452,45 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
             emitReasoningDelta(controller, delta.reasoning_content);
           }
 
-          // Handle text content (may contain <think> tags)
+          // Handle text content. Generic prompt-format tags are visible text;
+          // only tag-native models opt into textual reasoning extraction.
           if (delta.content) {
             // Close reasoning if it was opened via native reasoning_content
             // and is still open, before emitting message content. Without this
             // the reasoning item is never closed and the message reuses the
             // reasoning output_index, producing a protocol-invalid stream.
-            // Guard on !inThinking: reasoning opened via <think> tags is closed by
-            // its matching </think> below — force-closing it here would snapshot a
-            // partial buffer (dense output records the item at close time). (#4848 + #4906)
-            if (state.reasoningId && !state.reasoningDone && !state.inThinking) {
+            if (
+              state.reasoningId &&
+              !state.reasoningDone &&
+              (!parseTextualReasoningTags || !state.inThinking)
+            ) {
               closeReasoning(controller);
             }
 
             let content = delta.content;
 
-            if (content.includes("<think>")) {
-              state.inThinking = true;
-              content = content.replaceAll("<think>", "");
-              startReasoning(controller, idx);
-            }
+            if (parseTextualReasoningTags) {
+              if (content.includes("<think>")) {
+                state.inThinking = true;
+                content = content.replaceAll("<think>", "");
+                startReasoning(controller, idx);
+              }
 
-            if (content.includes("</think>")) {
-              const parts = content.split("</think>");
-              const thinkPart = parts[0];
-              const textPart = parts.slice(1).join("</think>");
+              if (content.includes("</think>")) {
+                const parts = content.split("</think>");
+                const thinkPart = parts[0];
+                const textPart = parts.slice(1).join("</think>");
 
-              if (thinkPart) emitReasoningDelta(controller, thinkPart);
-              closeReasoning(controller);
-              state.inThinking = false;
-              content = textPart;
-            }
+                if (thinkPart) emitReasoningDelta(controller, thinkPart);
+                closeReasoning(controller);
+                state.inThinking = false;
+                content = textPart;
+              }
 
-            if (state.inThinking && content) {
-              emitReasoningDelta(controller, content);
-              continue;
+              if (state.inThinking && content) {
+                emitReasoningDelta(controller, content);
+                continue;
+              }
             }
 
             // Regular text content
