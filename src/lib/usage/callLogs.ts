@@ -578,6 +578,7 @@ function mapSummaryRow(row: CallLogSummaryRow) {
     hasRequestBody: toNumber(row.has_request_body) === 1,
     hasResponseBody: toNumber(row.has_response_body) === 1,
     hasPipelineDetails: toNumber(row.has_pipeline_details) === 1,
+    correlationId: row.correlation_id || null,
   };
 }
 
@@ -659,6 +660,7 @@ export async function saveCallLog(entry: any) {
       comboStepId: toStringOrNull(entry.comboStepId),
       comboExecutionKey:
         toStringOrNull(entry.comboExecutionKey) || toStringOrNull(entry.comboStepId),
+      correlationId: entry.correlationId || null,
     };
 
     const requestSummary = noLogEnabled
@@ -705,7 +707,8 @@ export async function saveCallLog(entry: any) {
         cache_source, request_type, source_format, target_format, api_key_id, api_key_name,
         combo_name, combo_step_id, combo_execution_key, error_summary, detail_state,
         artifact_relpath, artifact_size_bytes, artifact_sha256,
-        has_request_body, has_response_body, has_pipeline_details, request_summary
+        has_request_body, has_response_body, has_pipeline_details, request_summary,
+        correlation_id
       )
       VALUES (
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
@@ -714,7 +717,8 @@ export async function saveCallLog(entry: any) {
         @cacheSource, @requestType, @sourceFormat, @targetFormat, @apiKeyId, @apiKeyName,
         @comboName, @comboStepId, @comboExecutionKey, @errorSummary, @detailState,
         @artifactRelPath, @artifactSizeBytes, @artifactSha256,
-        @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary
+        @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary,
+        @correlationId
       )
     `
     ).run({
@@ -831,6 +835,10 @@ export async function getCallLogs(filter: any = {}) {
     conditions.push("(cl.api_key_name LIKE @apiKeyQ OR cl.api_key_id LIKE @apiKeyQ)");
     params.apiKeyQ = `%${filter.apiKey}%`;
   }
+  if (filter.correlationId) {
+    conditions.push("cl.correlation_id = @correlationId");
+    params.correlationId = filter.correlationId;
+  }
   if (filter.combo) {
     conditions.push("cl.combo_name IS NOT NULL");
   }
@@ -851,6 +859,7 @@ export async function getCallLogs(filter: any = {}) {
       cl.combo_name LIKE @searchQ OR CAST(cl.status AS TEXT) LIKE @searchQ
       OR cl.combo_step_id LIKE @searchQ OR cl.combo_execution_key LIKE @searchQ
       OR cl.error_summary LIKE @searchQ
+      OR cl.correlation_id LIKE @searchQ
     )`);
     params.searchQ = `%${filter.search}%`;
   }

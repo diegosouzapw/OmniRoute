@@ -341,10 +341,12 @@ const SCHEMA_SQL = `
     has_request_body INTEGER DEFAULT 0,
     has_response_body INTEGER DEFAULT 0,
     has_pipeline_details INTEGER DEFAULT 0,
-    request_summary TEXT
+    request_summary TEXT,
+    correlation_id TEXT
   );
   CREATE INDEX IF NOT EXISTS idx_cl_timestamp ON call_logs(timestamp);
   CREATE INDEX IF NOT EXISTS idx_cl_status ON call_logs(status);
+  CREATE INDEX IF NOT EXISTS idx_cl_correlation_id ON call_logs(correlation_id);
 
   CREATE TABLE IF NOT EXISTS proxy_logs (
     id TEXT PRIMARY KEY,

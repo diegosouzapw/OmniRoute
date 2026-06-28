@@ -62,7 +62,7 @@ export async function POST(request) {
       return estimated;
     }
 
-    const executor = getExecutor(modelInfo.provider);
+    const executor = await getExecutor(modelInfo.provider);
     // The provider-side count is a real upstream call — it must honor the
     // connection's proxy assignment exactly like chat execution does.
     const proxyInfo = await safeResolveProxy(credentials.connectionId);

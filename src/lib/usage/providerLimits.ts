@@ -291,7 +291,7 @@ export async function refreshAndUpdateCredentials(
   if (!shouldAttemptRotatingRefresh(connection.provider, opts.allowRotatingRefresh)) {
     return { connection, refreshed: false };
   }
-  const executor = getExecutor(connection.provider);
+  const executor = await getExecutor(connection.provider);
   const credentials = {
     connectionId: connection.id,
     accessToken: connection.accessToken,
