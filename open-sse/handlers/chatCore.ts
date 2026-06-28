@@ -156,6 +156,7 @@ import {
 import { stageTrace } from "./chatCore/stageTrace.ts";
 import { attachCompressionUsageReceiptAfterAnalytics as attachCompressionUsageReceiptAfterAnalyticsFor } from "./chatCore/compressionUsageReceipt.ts";
 import { prepareUpstreamBody } from "./chatCore/upstreamBody.ts";
+import { getQuotaScopeLabelForProvider } from "../services/antigravityQuotaFamily.ts";
 
 import {
   getCallLogPipelineCaptureStreamChunks,
@@ -3079,8 +3080,9 @@ export async function handleChatCore({
               quotaCooldownMs
             )
           ) {
+            const quotaScope = getQuotaScopeLabelForProvider(provider, model);
             console.warn(
-              `[provider] Node ${errorConnectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
+              `[provider] Node ${errorConnectionId} ${quotaScope}-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (cooldown_scope=${quotaScope}, ttl_source=${retryAfterMs ? "upstream" : "inferred"}, connection stays active)`
             );
           } else {
             await updateProviderConnection(errorConnectionId, {

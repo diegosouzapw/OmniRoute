@@ -57,6 +57,15 @@ const MODELS_WITHOUT_SYSTEM_ROLE = [
   "ernie-", // Baidu ERNIE models
 ];
 
+const PROVIDER_SCOPED_MODELS_WITHOUT_SYSTEM_ROLE: Record<string, RegExp[]> = {
+  // ZenMux exposes Z.AI GLM through OpenAI-compatible model ids such as
+  // "z-ai/glm-5.2". Z.AI rejects compressed histories that start with a
+  // system summary followed by an assistant/tool bundle, while OpenRouter
+  // tolerates the same shape. Treat these vendor-prefixed GLM ids like native
+  // GLM so normalizeSystemRole moves system/developer content into a user turn.
+  zenmux: [/(?:^|\/)glm(?:-|$)/i],
+};
+
 interface MessageContentPart {
   type?: string;
   text?: string;
@@ -88,9 +97,15 @@ function extractTextFromContent(content: unknown): string {
  * Check if a provider+model combo supports the system role.
  */
 function supportsSystemRole(provider: string, model: string): boolean {
-  if (PROVIDERS_WITHOUT_SYSTEM_ROLE.has(provider)) return false;
+  const providerLower = (provider || "").trim().toLowerCase();
+  if (PROVIDERS_WITHOUT_SYSTEM_ROLE.has(providerLower)) return false;
 
   const modelLower = (model || "").toLowerCase();
+
+  for (const pattern of PROVIDER_SCOPED_MODELS_WITHOUT_SYSTEM_ROLE[providerLower] ?? []) {
+    if (pattern.test(modelLower)) return false;
+  }
+
   for (const prefix of MODELS_WITHOUT_SYSTEM_ROLE) {
     if (modelLower.startsWith(prefix)) return false;
   }

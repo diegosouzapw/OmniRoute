@@ -12,9 +12,14 @@
 // which is semantically a no-op and does not signal "thinking complete" to clients
 // such as Claude Code).
 //
-// The fix emits a `content: "</think>"` chunk on close — matching the convention
-// already used throughout OmniRoute (see openai-responses.ts / responsesTransformer.ts
-// which split on `</think>` to separate reasoning from final content).
+// PR #4633 added an immediate `content: "</think>"` chunk on close.
+//
+// PR #5123 refined this to DEFERRED emission: instead of emitting at content_block_stop
+// (which caused the marker to leak before tool_calls in tool-use streams), the marker is
+// now queued and flushed either:
+//   • at the first text_delta that follows (preserving #4633 for Claude Code / Cursor), or
+//   • at message_delta finish when there are no tool_calls (pure thinking-only responses).
+// This test covers the message_delta flush path (thinking block with no subsequent text).
 
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -33,7 +38,7 @@ function newState() {
   };
 }
 
-test("claudeToOpenAIResponse emits </think> close marker on thinking content_block_stop", () => {
+test("claudeToOpenAIResponse emits </think> close marker on message finish (deferred from content_block_stop)", () => {
   const state = newState();
 
   // Open thinking block.
@@ -56,28 +61,44 @@ test("claudeToOpenAIResponse emits </think> close marker on thinking content_blo
     state
   );
 
-  // Close the thinking block.
+  // Close the thinking block — marker is now DEFERRED (not emitted here).
   const closeChunks = claudeToOpenAIResponse(
     { type: "content_block_stop", index: 0 },
     state
   );
-
-  assert.ok(Array.isArray(closeChunks), "stop event must return an array of chunks");
-  assert.ok(
-    closeChunks.length >= 1,
-    "stop event for thinking block must emit at least one close-marker chunk"
+  // content_block_stop for a thinking block no longer emits </think> immediately
+  // (the marker is deferred to prevent leaking before tool_calls — see #5123).
+  const immediateClose = Array.isArray(closeChunks) ? closeChunks : [];
+  const hasImmediateMarker = immediateClose.some(
+    (chunk) => chunk?.choices?.[0]?.delta?.content === "</think>"
+  );
+  assert.equal(
+    hasImmediateMarker,
+    false,
+    "content_block_stop must NOT emit </think> immediately (deferred — see #5123)"
   );
 
-  const hasCloseMarker = closeChunks.some(
+  // After close, the thinking-block flag is cleared and the pending marker is queued.
+  assert.equal(state.inThinkingBlock, false);
+  assert.equal(state.pendingThinkClose, true, "pendingThinkClose must be set after thinking block stop");
+
+  // message_delta with stop_reason=end_turn and no tool_calls → marker must be flushed here.
+  const finishChunks = claudeToOpenAIResponse(
+    { type: "message_delta", delta: { stop_reason: "end_turn" }, usage: { output_tokens: 5 } },
+    state
+  );
+
+  const arr = Array.isArray(finishChunks) ? finishChunks : [];
+  const hasCloseMarker = arr.some(
     (chunk) => chunk?.choices?.[0]?.delta?.content === "</think>"
   );
   assert.ok(
     hasCloseMarker,
-    `expected a chunk with delta.content === "</think>"; got ${JSON.stringify(closeChunks)}`
+    `expected a chunk with delta.content === "</think>" in message_delta result; got ${JSON.stringify(arr)}`
   );
 
-  // After close, state flag must be cleared so subsequent thinking blocks are tracked correctly.
-  assert.equal(state.inThinkingBlock, false);
+  // pendingThinkClose must be cleared after flush.
+  assert.equal(state.pendingThinkClose, false, "pendingThinkClose must be cleared after flush");
 });
 
 test("claudeToOpenAIResponse does not emit </think> on stop of non-thinking blocks", () => {
