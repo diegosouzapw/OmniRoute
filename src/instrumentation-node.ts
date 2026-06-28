@@ -70,7 +70,7 @@ async function ensureSecrets(): Promise<void> {
 
 export async function registerNodejs(): Promise<void> {
   // Initialize proxy fetch patch FIRST (before any HTTP requests)
-  await import("@omniroute/open-sse/index.ts");
+  await import("@omniroute/open-sse/utils/proxyFetch.ts");
   console.log("[STARTUP] Global fetch proxy patch initialized");
 
   await ensureSecrets();
@@ -149,7 +149,15 @@ export async function registerNodejs(): Promise<void> {
     console.log(
       `[STARTUP] Cloud/model sync background bootstrap ${cloudSyncInitialized ? "initialized" : "skipped"}`
     );
-    const { initBatchProcessor } = await import("@omniroute/open-sse/services/batchProcessor");
+    // webpack traces ALL import() in the file, including lazy ones inside functions.
+    // batchProcessor → dispatch → 7 route handlers → full open-sse workspace → OOM.
+    // The /* webpackIgnore */ comments below hide both imports from webpack's static
+    // analysis; at runtime tsx resolves @/ aliases and .ts extensions for the
+    // webpack-ignored batchProcessor import. (No new Function() — Hard Rule #3.)
+    await import(/* webpackIgnore: true */ "tsx");
+    const { initBatchProcessor } = await import(
+      /* webpackIgnore: true */ "@omniroute/open-sse/services/batchProcessor.ts"
+    );
     initBatchProcessor();
     console.log("[STARTUP] Batch processor started");
   }

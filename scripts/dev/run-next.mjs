@@ -112,6 +112,26 @@ async function start() {
     // Stamp the real TCP peer IP before Next sees the request, so the authz
     // middleware can decide LOCAL_ONLY locality without trusting the Host header.
     stampPeerIp(req);
+
+    // In dev mode, prevent the browser from caching HTML (including the page
+    // shell with embedded chunk URLs). Without this, a dev restart leaves the
+    // browser holding stale HTML that references old turbopack chunk hashes,
+    // causing ChunkLoadError → infinite reload loop.
+    if (dev) {
+      const origWriteHead = res.writeHead.bind(res);
+      res.writeHead = function (statusCode, ...args) {
+        if (!res.headersSent) {
+          const ct = res.getHeader("content-type");
+          if (!ct || String(ct).includes("text/html")) {
+            res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            res.setHeader("Pragma", "no-cache");
+            res.setHeader("Expires", "0");
+          }
+        }
+        return origWriteHead(statusCode, ...args);
+      };
+    }
+
     return requestHandler(req, res);
   });
   server.on("upgrade", async (req, socket, head) => {
