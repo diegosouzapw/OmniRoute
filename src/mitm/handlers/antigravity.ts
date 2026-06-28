@@ -43,7 +43,35 @@ interface GeminiRequestBody {
   systemInstruction?: GeminiContent;
   contents?: GeminiContent[];
   generationConfig?: GeminiGenerationConfig;
+  /**
+   * Antigravity IDE talks to `cloudcode-pa.googleapis.com/v1internal:generateContent`,
+   * whose envelope nests the real Gemini request one level down:
+   *   `{ project, model, userAgent, requestType, request: { contents, systemInstruction,
+   *      generationConfig, … } }`
+   * (see `open-sse/translator/request/antigravity-to-openai.ts`). The legacy
+   * `/v1beta/models/<model>:generateContent` path instead carries those fields at the top
+   * level. We must read whichever level actually holds the conversation (#4294).
+   */
+  request?: GeminiRequestBody;
   [key: string]: unknown;
+}
+
+/**
+ * Return the object that actually holds the Gemini conversation fields. Antigravity's
+ * cloudcode-pa envelope wraps them under `.request`; the legacy `/v1beta` path puts them at
+ * the top level. Without this unwrap, a real Antigravity request yields zero messages, so
+ * the upstream gets an empty conversation and the IDE prompt hangs (#4294).
+ */
+function resolveGeminiSource(body: GeminiRequestBody): GeminiRequestBody {
+  const inner = body.request;
+  if (
+    inner &&
+    typeof inner === "object" &&
+    ("contents" in inner || "systemInstruction" in inner || "generationConfig" in inner)
+  ) {
+    return inner;
+  }
+  return body;
 }
 
 interface OpenAIChatMessage {
@@ -81,16 +109,20 @@ export function convertGeminiToOpenAI(
   model: string,
   stream: boolean,
 ): OpenAIChatBody {
+  // Unwrap the cloudcode-pa envelope (`.request`) used by the real Antigravity IDE; fall
+  // back to the top level for the legacy `/v1beta` shape. (#4294)
+  const src = resolveGeminiSource(geminiBody);
+
   const messages: OpenAIChatMessage[] = [];
 
   // System instruction
-  if (geminiBody.systemInstruction) {
-    const systemText = joinPartsText(geminiBody.systemInstruction.parts);
+  if (src.systemInstruction) {
+    const systemText = joinPartsText(src.systemInstruction.parts);
     if (systemText) messages.push({ role: "system", content: systemText });
   }
 
   // Chat turns
-  for (const content of geminiBody.contents || []) {
+  for (const content of src.contents || []) {
     const role: OpenAIChatMessage["role"] = content.role === "model" ? "assistant" : "user";
     messages.push({ role, content: joinPartsText(content.parts) });
   }
@@ -101,7 +133,7 @@ export function convertGeminiToOpenAI(
     stream: !!stream,
   };
 
-  const cfg = geminiBody.generationConfig || {};
+  const cfg = src.generationConfig || {};
   if (cfg.maxOutputTokens != null) openaiBody.max_tokens = cfg.maxOutputTokens;
   if (cfg.temperature != null) openaiBody.temperature = cfg.temperature;
   if (cfg.topP != null) openaiBody.top_p = cfg.topP;
