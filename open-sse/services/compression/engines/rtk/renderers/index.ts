@@ -2,6 +2,7 @@ import type { CommandDetectionResult } from "../commandDetector.ts";
 import type { RtkConfig } from "../../../types.ts";
 import { type RenderResult, NO_RENDER } from "./types.ts";
 import { renderGitDiff } from "./gitDiff.ts";
+import { renderTestGreen } from "./testGreen.ts";
 
 // preenchido nas tasks 2–5
 const REGISTRY: Record<string, (text: string, d: CommandDetectionResult) => RenderResult> = {};
@@ -10,6 +11,13 @@ const REGISTRY: Record<string, (text: string, d: CommandDetectionResult) => Rend
 // Note: "git-show" is not a real detection type in commandDetector.ts DETECTORS array,
 // so only "git-diff" is registered here.
 REGISTRY["git-diff"] = renderGitDiff;
+
+// Task 3: test-green renderer
+// Note: "test-eslint" is not a real detection type; the real type is "build-eslint".
+REGISTRY["test-pytest"] = renderTestGreen;
+REGISTRY["test-jest"] = renderTestGreen;
+REGISTRY["test-vitest"] = renderTestGreen;
+REGISTRY["build-eslint"] = renderTestGreen;
 
 export function applyRenderer(
   text: string,
