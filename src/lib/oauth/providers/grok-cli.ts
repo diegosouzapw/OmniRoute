@@ -62,35 +62,44 @@ function extractTokenAndRefresh(input: unknown): {
   refreshToken: string | null;
   rawAuthJson: Record<string, unknown> | null;
 } {
+  // Direct JWT string
   if (typeof input === "string")
     return { accessToken: input, refreshToken: null, rawAuthJson: null };
 
   if (input && typeof input === "object") {
-    // auth.json format: first entry's "key" and "refresh_token" fields
-    const keys = Object.keys(input);
-    if (
-      keys.length > 0 &&
-      (input as Record<string, unknown>)[keys[0]] &&
-      typeof (input as Record<string, unknown>)[keys[0]] === "object"
-    ) {
-      const entry = (input as Record<string, Record<string, unknown>>)[keys[0]];
-      if (entry.key) {
-        return {
-          accessToken: String(entry.key),
-          refreshToken: typeof entry.refresh_token === "string" ? entry.refresh_token : null,
-          rawAuthJson: input as Record<string, unknown>,
-        };
+    const obj = input as Record<string, unknown>;
+
+    // The route handler wraps the token: { accessToken: <token> }.
+    // Unwrap once before checking the inner value.
+    const inner =
+      typeof obj.accessToken === "object" && obj.accessToken !== null
+        ? (obj.accessToken as Record<string, unknown>)
+        : obj;
+
+    // auth.json format: { "https://auth.x.ai::...": { key: "eyJ...", refresh_token: "..." } }
+    if (inner && typeof inner === "object") {
+      const innerKeys = Object.keys(inner);
+      for (const k of innerKeys) {
+        const entry = inner[k];
+        if (entry && typeof entry === "object" && "key" in entry) {
+          const e = entry as Record<string, unknown>;
+          if (typeof e.key === "string" && e.key.startsWith("eyJ")) {
+            return {
+              accessToken: e.key,
+              refreshToken: typeof e.refresh_token === "string" ? e.refresh_token : null,
+              rawAuthJson: inner as Record<string, unknown>,
+            };
+          }
+        }
       }
     }
-    // Already has accessToken
-    if ((input as Record<string, unknown>).accessToken) {
+
+    // Raw JWT passed as { accessToken: "eyJ..." }
+    if (typeof obj.accessToken === "string" && obj.accessToken.startsWith("eyJ")) {
       return {
-        accessToken: String((input as Record<string, unknown>).accessToken),
-        refreshToken:
-          typeof (input as Record<string, unknown>).refreshToken === "string"
-            ? ((input as Record<string, unknown>).refreshToken as string)
-            : null,
-        rawAuthJson: input as Record<string, unknown>,
+        accessToken: obj.accessToken,
+        refreshToken: typeof obj.refreshToken === "string" ? obj.refreshToken : null,
+        rawAuthJson: null,
       };
     }
   }
