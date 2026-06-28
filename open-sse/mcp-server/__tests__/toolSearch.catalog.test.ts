@@ -18,4 +18,10 @@ describe("getAllToolDefinitions", () => {
     const names = all.map((t) => t.name);
     expect(new Set(names).size).toBe(names.length);
   });
+  it("includes compressionTools-only entries (omniroute_ccr_retrieve, not in MCP_TOOLS)", () => {
+    // Regression: compressionTools carries omniroute_ccr_retrieve, which is absent from
+    // MCP_TOOLS — if the collection is dropped from the catalog, tool_search can never
+    // surface it. Guards against the catalog omission caught in core review.
+    expect(all.find((t) => t.name === "omniroute_ccr_retrieve")).toBeTruthy();
+  });
 });

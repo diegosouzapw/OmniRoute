@@ -39,17 +39,6 @@ function countOccurrences(haystack: string, needle: string): number {
   return count;
 }
 
-function scoreHaystack(haystack: string, normalizedQuery: string, tokens: string[]): number {
-  let score = 0;
-  if (haystack.includes(normalizedQuery)) {
-    score += normalizedQuery === haystack || haystack.startsWith(normalizedQuery) ? NAME_PHRASE_BONUS : DESC_PHRASE_BONUS;
-  }
-  for (const token of tokens) {
-    score += countOccurrences(haystack, token) * DESC_TOKEN_BONUS;
-  }
-  return score;
-}
-
 function scoreEntry(entry: ToolCatalogEntry, normalizedQuery: string, tokens: string[]): number {
   const nameLower = entry.name.toLowerCase();
   const descLower = entry.description.toLowerCase();
