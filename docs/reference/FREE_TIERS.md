@@ -1,7 +1,7 @@
 ---
 title: "Free Tiers & Free-Token Budget"
-version: 3.8.28
-lastUpdated: 2026-06-17
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Free Tiers & Free-Token Budget
@@ -13,15 +13,15 @@ lastUpdated: 2026-06-17
 
 ## TL;DR — how much free inference does OmniRoute actually aggregate?
 
-| Metric | Tokens / month | Meaning |
-|---|---|---|
-| **Documented recurring grant (steady)** | **~1.54B** | Free-tier **pools** (per-model catalog), each shared pool counted **once**. The live source behind `/api/free-tier/summary` and the dashboard's Free-Tier Budget page. **Use this number.** |
-| **+ first month with signup credits** | **~2.15B** | Steady + one-time signup credits (Together $25, Z.AI 20M, DeepSeek 5M, …), deduped per account. **First month only** — does not recur. |
-| **+ permanently free, no published cap** | *un-quantifiable* | `siliconflow`, `glm-cn` (GLM-4-Flash), `tencent`, `baidu`, `kilo-gateway`, `opencode-zen` — real recurring access, rate/concurrency-limited, **no token cap to count**. Listed, never summed (counting them at `RPM×24/7` is the inflation we reject). |
-| **+ deposit-unlock boost** | **+~24M** | A one-time **$10** OpenRouter top-up raises its free pool from 50 → 1000 req/day. Reported separately so it never inflates the steady number. |
-| Theoretical ceiling (all rate limits, 24/7) | ~10B | Sum of every provider rate limit extrapolated to non-stop use. **Not a guarantee** — do not headline this. |
+| Metric                                      | Tokens / month    | Meaning                                                                                                                                                                                                                                                |
+| ------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Documented recurring grant (steady)**     | **~1.54B**        | Free-tier **pools** (per-model catalog), each shared pool counted **once**. The live source behind `/api/free-tier/summary` and the dashboard's Free-Tier Budget page. **Use this number.**                                                            |
+| **+ first month with signup credits**       | **~2.15B**        | Steady + one-time signup credits (Together $25, Z.AI 20M, DeepSeek 5M, …), deduped per account. **First month only** — does not recur.                                                                                                                 |
+| **+ permanently free, no published cap**    | _un-quantifiable_ | `siliconflow`, `glm-cn` (GLM-4-Flash), `tencent`, `baidu`, `kilo-gateway`, `opencode-zen` — real recurring access, rate/concurrency-limited, **no token cap to count**. Listed, never summed (counting them at `RPM×24/7` is the inflation we reject). |
+| **+ deposit-unlock boost**                  | **+~24M**         | A one-time **$10** OpenRouter top-up raises its free pool from 50 → 1000 req/day. Reported separately so it never inflates the steady number.                                                                                                          |
+| Theoretical ceiling (all rate limits, 24/7) | ~10B              | Sum of every provider rate limit extrapolated to non-stop use. **Not a guarantee** — do not headline this.                                                                                                                                             |
 
-**Honest headline:** *OmniRoute aggregates **~1.6B documented free tokens per month** (up to ~2.1B in your first month with signup credits) across 40+ free-tier pools — plus a long tail of permanently-free, no-cap providers — and RTK + Caveman compression (15–95% token savings) stretches that further.*
+**Honest headline:** _OmniRoute aggregates **~1.6B documented free tokens per month** (up to ~2.1B in your first month with signup credits) across 40+ free-tier pools — plus a long tail of permanently-free, no-cap providers — and RTK + Caveman compression (15–95% token savings) stretches that further._
 
 > **Why this dropped from the previous ~1.94B.** The 2026-06-17 refresh is an honesty correction, not a loss: `gemini` is now pool-deduped (was inflated by counting each Flash variant separately, 462M → 60M), `cloudflare-ai` corrected to its real 10k-Neurons/day (122M → 30M), `doubao` reclassified as a one-time signup credit (not recurring), and shut-down tiers removed (`github-models` closed to new signups, `chutes`/`phind`/`kluster`/`glhf` discontinued). Partly offset by `llm7` (correct 5M/day → 150M) and new free providers (Kilo, OpenCode Zen, Z.AI GLM-Flash).
 
@@ -40,7 +40,7 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 - **Gemini** — `2.0 Flash` / `2.0 Flash-Lite` shut down 2026-06-01 and `2.5 Pro` left the free tier (2026-04); free tier is now **Flash-family only** (2.5/3/3.1/3.5 Flash + Gemma). The catalog now **pools** the Flash family (was inflated by counting each variant separately: 462M → 60M).
 - **Corrected numbers:** `cloudflare-ai` 122M → **30M** (real 10k-Neurons/day), `doubao` reclassified as a one-time signup credit (not recurring), `llm7` 4M → **150M** (documented 5M tokens/day), `together` "-Free" endpoints discontinued → only the **$25** signup credit remains, `longcat` retired 6 legacy models → **LongCat-2.0-Preview** only.
 - **New free providers discovered:** ⭐ **Kilo Code** (`kilo-gateway` — rotating "Auto Free" set: NVIDIA Nemotron 3 family, StepFun, Poolside, Nex-N2-Pro), ⭐ **OpenCode Zen** (`opencode-zen` — 6 rotating free coding models), ⭐ **Z.AI / Zhipu** (`glm-cn` — GLM-4-Flash / 4.5-Flash / 4.7-Flash permanently free + 20M signup bonus), and `arcee-ai` Trinity Large Preview.
-- **New honest tiers** (see Methodology): a *permanently-free-but-uncapped* category (real recurring access, no token cap to count) and a *deposit-unlock boost* (OpenRouter $10 → +24M/mo), both surfaced **separately** so they never inflate the headline.
+- **New honest tiers** (see Methodology): a _permanently-free-but-uncapped_ category (real recurring access, no token cap to count) and a _deposit-unlock boost_ (OpenRouter $10 → +24M/mo), both surfaced **separately** so they never inflate the headline.
 
 > The detailed per-provider table further down is the **2026-06-05 snapshot**; the deltas above supersede it. The live, canonical source is the per-model catalog `open-sse/config/freeModelCatalog.ts`.
 
@@ -64,14 +64,13 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 
 > Their free access is real and OmniRoute can route to them; the clauses below are just worth knowing. The OAuth/keyless ones aren't token-quantifiable, so they're not in the headline number (not because they're unusable).
 
-
-| Provider | Note |
-|---|---|
-| `agy` | Google Antigravity ToS explicitly prohibits using third-party software, tools, or services (including proxies) to access the service via OAuth; doing… |
-| `ai21` | ToS §4.2/§8.2 prohibits sublicensing or distributing API access to third parties; §3.3 restricts trial/evaluation products to "internal evaluation on… |
-| `amazon-q` | Product is discontinued for new signups; existing users are subject to AWS Customer Agreement which governs use of managed services — self-hosted pro… |
-| `blackbox` | ToS explicitly prohibits sublicensing, reselling, making the service available to third parties, and building derivative services — a self-hosted per… |
-| `coze` | Coze ToS explicitly restricts use to "personal and non-commercial use" and prohibits renting, distributing, sublicensing, or reselling the service; a… |
+| Provider         | Note                                                                                                                                                   |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `agy`            | Google Antigravity ToS explicitly prohibits using third-party software, tools, or services (including proxies) to access the service via OAuth; doing… |
+| `ai21`           | ToS §4.2/§8.2 prohibits sublicensing or distributing API access to third parties; §3.3 restricts trial/evaluation products to "internal evaluation on… |
+| `amazon-q`       | Product is discontinued for new signups; existing users are subject to AWS Customer Agreement which governs use of managed services — self-hosted pro… |
+| `blackbox`       | ToS explicitly prohibits sublicensing, reselling, making the service available to third parties, and building derivative services — a self-hosted per… |
+| `coze`           | Coze ToS explicitly restricts use to "personal and non-commercial use" and prohibits renting, distributing, sublicensing, or reselling the service; a… |
 | `duckduckgo-web` | Duck.ai ToS (duckduckgo.com/duckai/privacy-terms) explicitly prohibits "automated querying and developing or offering AI services" and circumventing … |
 | `featherless-ai` | Individual plans explicitly restricted to "interactive use or proto-typing and experimentation by the purchaser" — inference resale and proxy use req… |
 | `fireworks` | ToS explicitly prohibits proxy/intermediary use, API key transfers, and sublicensing (Sections 2.1 and 2.2(i)(j)); self-hosted personal proxies are n… |
@@ -80,10 +79,10 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 | `kiro` | Kiro FAQ explicitly prohibits use with "OpenClaw and similar tools that leverage third-party harnesses" — a self-hosted AI proxy (like OmniRoute) rou… |
 | `modal` | ToS Section 1.3 explicitly prohibits "rent, resell or otherwise allow any third party direct access to or use of the Service" — building a self-hoste… |
 | `muse-spark-web` | Meta ToS explicitly prohibits automated access without prior permission, reverse engineering without written permission, and circumventing technologi… |
-| `nlpcloud` | ToS explicitly prohibits "setting up a proxy or other device that allows others to access the Service through it" and grants only a non-transferable,… |
-| `opencode` | ToS (Anomaly Innovations, Inc.) explicitly restricts use to "your own internal use, and not on behalf of or for the benefit of any third party" — ope… |
-| `qwen-web` | The free OAuth tier is discontinued; no ToS permits a self-hosted proxy using session tokens against chat.qwen.ai. Even before shutdown, automated/pr… |
-| `t3-web` | ToS explicitly restricts accounts to personal use only, prohibits credential sharing with third parties, and bans automated/bot/scraping access — a s… |
+| `nlpcloud`       | ToS explicitly prohibits "setting up a proxy or other device that allows others to access the Service through it" and grants only a non-transferable,… |
+| `opencode`       | ToS (Anomaly Innovations, Inc.) explicitly restricts use to "your own internal use, and not on behalf of or for the benefit of any third party" — ope… |
+| `qwen-web`       | The free OAuth tier is discontinued; no ToS permits a self-hosted proxy using session tokens against chat.qwen.ai. Even before shutdown, automated/pr… |
+| `t3-web`         | ToS explicitly restricts accounts to personal use only, prohibits credential sharing with third parties, and bans automated/bot/scraping access — a s… |
 
 ### ✅ Generally permissive — caution / ambiguous / ok (the rest)
 
@@ -336,12 +335,12 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 
 ## Glossary
 
-| Term | Meaning |
-|---|---|
-| **RPM / RPD / RPH** | Requests per minute / day / hour |
-| **TPM / TPD** | Tokens per minute / day |
-| **Documented grant** | Provider publishes an explicit daily/monthly token cap (defensible budget) |
-| **Theoretical ceiling** | `rate-limit × 24/7 × 30d` — a maximum, not a granted budget |
-| **Neuron** | Cloudflare compute unit (~1 output token) |
+| Term                    | Meaning                                                                    |
+| ----------------------- | -------------------------------------------------------------------------- |
+| **RPM / RPD / RPH**     | Requests per minute / day / hour                                           |
+| **TPM / TPD**           | Tokens per minute / day                                                    |
+| **Documented grant**    | Provider publishes an explicit daily/monthly token cap (defensible budget) |
+| **Theoretical ceiling** | `rate-limit × 24/7 × 30d` — a maximum, not a granted budget                |
+| **Neuron**              | Cloudflare compute unit (~1 output token)                                  |
 
 > Generated from per-provider research on 2026-06-05. Re-run the research workflow (see `_tasks/features-v3.8.12`) to refresh.

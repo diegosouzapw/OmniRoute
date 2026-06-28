@@ -123,8 +123,7 @@ Guardrails, compliance, stealth, and the mandatory patterns for handling public 
 - [PUBLIC_CREDS.md](security/PUBLIC_CREDS.md) — **mandatory** pattern for embedding public upstream OAuth client_id/secret + Firebase Web keys without tripping secret scanners.
 - [ERROR_SANITIZATION.md](security/ERROR_SANITIZATION.md) — **mandatory** pattern for routing every error response through `sanitizeErrorMessage` to prevent stack-trace exposure.
 - [ROUTE_GUARD_TIERS.md](security/ROUTE_GUARD_TIERS.md) — route-guard classification tiers.
-- [CLI_TOKEN.md](security/CLI_TOKEN.md) — CLI machine-ID token (HMAC) auth.
-- [CLI_TOKEN_AUTH.md](security/CLI_TOKEN_AUTH.md) — CLI machine-ID token (legacy format) reference.
+- [CLI_TOKEN.md](security/CLI_TOKEN.md) — CLI machine-ID token (HMAC + legacy SHA-256) auth.
 - [EGRESS_POLICY.md](security/EGRESS_POLICY.md) — egress IP family (IPv4/IPv6) policy.
 - [MITM-TPROXY-DECRYPT.md](security/MITM-TPROXY-DECRYPT.md) — transparent MITM decrypt.
 - [SUPPLY_CHAIN.md](security/SUPPLY_CHAIN.md) — supply-chain gates (SLSA, SBOM, Trivy, osv-scanner, Scorecard).

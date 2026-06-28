@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # Release Checklist
 
-> **Last updated:** 2026-05-13 — v3.8.0
+> **Last updated:** 2026-06-28 — v3.8.40
 > Streamlined release flow that leverages Claude Code skills for automation.
 >
 > **Manter a fila/branch verdes entre releases:** veja [RELEASE_GREEN.md](./RELEASE_GREEN.md)

@@ -1,14 +1,14 @@
 ---
 title: "Public Credentials Handling"
-version: 3.8.2
-lastUpdated: 2026-05-14
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Public Credentials Handling
 
 > **Source of truth:** `open-sse/utils/publicCreds.ts`
 > **Tests:** `tests/unit/publicCreds.test.ts`
-> **Last updated:** 2026-05-14 — v3.8.0
+> **Last updated:** 2026-06-28 — v3.8.40
 > **Audience:** Engineers integrating providers that ship public OAuth client_id / client_secret / Firebase Web API keys in their public CLIs.
 > **Status:** **MANDATORY** for all new code that embeds upstream identifiers.
 

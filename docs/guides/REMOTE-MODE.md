@@ -1,7 +1,7 @@
 ---
 title: "Remote Mode — Drive a remote OmniRoute from your laptop"
-version: 3.8.29
-lastUpdated: 2026-06-19
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Remote Mode
@@ -84,11 +84,11 @@ The CLI validates it via `GET /api/cli/whoami` and saves it as the active contex
 
 Three levels, hierarchical (`admin ⊃ write ⊃ read`):
 
-| Scope | Can do |
-|-------|--------|
-| `read`  | list/inspect — `models list`, `providers status`, `logs`, `usage`, `cost` |
+| Scope   | Can do                                                                       |
+| ------- | ---------------------------------------------------------------------------- |
+| `read`  | list/inspect — `models list`, `providers status`, `logs`, `usage`, `cost`    |
 | `write` | read **+** configure/apply — `setup-codex`, `keys add`, `config set`, combos |
-| `admin` | write **+** manage — `tokens` CRUD, add providers, services, policy, oauth |
+| `admin` | write **+** manage — `tokens` CRUD, add providers, services, policy, oauth   |
 
 The server infers the scope each route requires from the HTTP method
 (`GET`→read, mutations→write) plus an admin allowlist for sensitive surfaces
@@ -336,12 +336,12 @@ omniroute contexts remove 192-168-0-15 --yes   # drop the local context (even if
 
 ## API endpoints (reference)
 
-| Method | Route | Auth | Scope |
-|--------|-------|------|-------|
-| POST | `/api/cli/connect` | management password | — (public, password-gated) |
-| GET  | `/api/cli/whoami` | access token | read |
-| GET  | `/api/cli/tokens` | access token | admin |
-| POST | `/api/cli/tokens` | access token | admin |
-| DELETE | `/api/cli/tokens/:id` | access token | admin |
+| Method | Route                 | Auth                | Scope                      |
+| ------ | --------------------- | ------------------- | -------------------------- |
+| POST   | `/api/cli/connect`    | management password | — (public, password-gated) |
+| GET    | `/api/cli/whoami`     | access token        | read                       |
+| GET    | `/api/cli/tokens`     | access token        | admin                      |
+| POST   | `/api/cli/tokens`     | access token        | admin                      |
+| DELETE | `/api/cli/tokens/:id` | access token        | admin                      |
 
 See [openapi.yaml](../openapi.yaml) for full schemas.

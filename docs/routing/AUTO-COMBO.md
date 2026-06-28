@@ -1,7 +1,7 @@
 ---
 title: "OmniRoute Auto-Combo Engine"
-version: 3.8.31
-lastUpdated: 2026-06-20
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # OmniRoute Auto-Combo Engine
@@ -552,19 +552,11 @@ Including the bare `auto` (default) plus the 6 `AutoVariant` values declared in 
 
 ## How tiers fit Auto-Combo
 
-The 9-factor scoring function (`open-sse/services/autoCombo/scoring.ts`) treats tier
-membership as one signal via the `tierPriority` weight. Default weights (from `DEFAULT_WEIGHTS`):
-
-| Factor                   | Default weight | Notes                                                          |
-| ------------------------ | -------------- | -------------------------------------------------------------- |
-| Tier priority            | 0.05           | Tier 1 premium → higher score                                  |
-| Latency (p50 inverse)    | 0.35           | Fastest wins                                                   |
-| Cost ($/1M inverse)      | 0.20           | Cheapest **blended** price wins (60% input + 40% output ratio) |
-| Recent health/error rate | 0.15           | Unhealthy deprioritized                                        |
-| Quota remaining          | 0.10           | Near-exhausted deprioritized                                   |
-| Context window match     | 0.08           | Penalizes short windows                                        |
-| Task fitness             | 0.10           | Coding → coding-specialist models                              |
-| Stability                | 0.00           | Disabled by default                                            |
+The 12-factor scoring function (`open-sse/services/autoCombo/scoring.ts`) treats tier
+membership as two signals: `tierPriority` (0.05) and `tierAffinity` (0.05). See the
+canonical [scoring factor table](#how-it-works-persisted-auto-combos) above for the full
+`DEFAULT_WEIGHTS` set — the per-pack overrides (ship-fast/cost-saver/quality-first/
+offline-friendly) are listed in the "Weight profiles per pack" table.
 
 Tier alone does **not** force Tier 1 first — if Tier 1 latency is bad or
 cost-vs-quality is suboptimal, Tier 2 wins. To force tier ordering, use combo

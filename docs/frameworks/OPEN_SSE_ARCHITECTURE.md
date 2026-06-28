@@ -1,7 +1,7 @@
 ---
 title: "open-sse Architecture"
-version: 3.8.16
-lastUpdated: 2026-06-08
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # open-sse Architecture

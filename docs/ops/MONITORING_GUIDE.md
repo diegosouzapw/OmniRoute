@@ -1,7 +1,7 @@
 ---
 title: "Monitoring & Observability Guide"
-version: 3.8.16
-lastUpdated: 2026-06-08
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Monitoring & Observability Guide

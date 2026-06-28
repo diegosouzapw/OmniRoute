@@ -1,13 +1,13 @@
 ---
 title: "Agent Protocols Guide"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Agent Protocols Guide
 
 > **Source:** `src/lib/{a2a,acp,cloudAgent}/`, `src/app/api/{a2a,acp,cloud}/`, `src/app/api/v1/agents/`
-> **Last updated:** 2026-05-13 — v3.8.0
+> **Last updated:** 2026-06-28 — v3.8.40
 
 OmniRoute exposes three different agent-related surfaces. They look similar at first glance but solve different problems. Use this page to pick the right one.
 

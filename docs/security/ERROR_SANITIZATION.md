@@ -8,7 +8,7 @@ lastUpdated: 2026-06-28
 
 > **Source of truth:** `open-sse/utils/error.ts` — `sanitizeErrorMessage`, `buildErrorBody`, `createErrorResult`
 > **Tests:** `tests/unit/error-message-sanitization.test.ts`
-> **Last updated:** 2026-05-14 — v3.8.0
+> **Last updated:** 2026-06-28 — v3.8.40
 > **Audience:** Any engineer touching error responses (HTTP routes, SSE streams, executors, MCP handlers).
 > **Status:** **MANDATORY** for every code path that returns an error message to a client.
 

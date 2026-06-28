@@ -1,7 +1,7 @@
 ---
 title: "Monitoring & Costs — Navigation Structure"
-version: 3.8.6
-lastUpdated: 2026-05-28
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Monitoring & Costs — Navigation Structure
@@ -32,13 +32,13 @@ Monitoring     ← REORGANIZED (Group B, plan 16)
 
 Path prefix: `/dashboard/costs/`
 
-| Item | URL | Description |
-|------|-----|-------------|
-| Overview | `/dashboard/costs` | Aggregated cost dashboard (moved from Analytics) |
-| Pricing | `/dashboard/costs/pricing` | Per-model pricing table |
-| Budget | `/dashboard/costs/budget` | Budget thresholds + alerts |
-| Quota Sharing | `/dashboard/costs/quota-share` | Quota Share pools + usage |
-| Plan Config | `/dashboard/costs/quota-share/plans` | Per-provider plan overrides |
+| Item          | URL                                  | Description                                      |
+| ------------- | ------------------------------------ | ------------------------------------------------ |
+| Overview      | `/dashboard/costs`                   | Aggregated cost dashboard (moved from Analytics) |
+| Pricing       | `/dashboard/costs/pricing`           | Per-model pricing table                          |
+| Budget        | `/dashboard/costs/budget`            | Budget thresholds + alerts                       |
+| Quota Sharing | `/dashboard/costs/quota-share`       | Quota Share pools + usage                        |
+| Plan Config   | `/dashboard/costs/quota-share/plans` | Per-provider plan overrides                      |
 
 **Rationale**: Pricing, Budget, and Quota Sharing were previously under
 `Monitoring > Costs Parameters`. Moving them to a dedicated top-level section
@@ -68,11 +68,11 @@ Monitoring
 
 ### What changed from the old structure
 
-| Before | After |
-|--------|-------|
-| Activity = tab inside Logs that rendered the Audit Log | Activity = dedicated feed (`/dashboard/activity`) |
-| Costs Parameters group in Monitoring | Moved to Costs section |
-| Flat list: Logs, Activity (logs), Audit, Health, Runtime, Pricing, Budget, Quota | Structured 3-group + dedicated Costs section |
+| Before                                                                           | After                                             |
+| -------------------------------------------------------------------------------- | ------------------------------------------------- |
+| Activity = tab inside Logs that rendered the Audit Log                           | Activity = dedicated feed (`/dashboard/activity`) |
+| Costs Parameters group in Monitoring                                             | Moved to Costs section                            |
+| Flat list: Logs, Activity (logs), Audit, Health, Runtime, Pricing, Budget, Quota | Structured 3-group + dedicated Costs section      |
 
 ---
 
@@ -80,15 +80,15 @@ Monitoring
 
 These two are now distinct:
 
-| Dimension | Activity (`/dashboard/activity`) | Audit Log (`/dashboard/audit`) |
-|-----------|----------------------------------|-------------------------------|
-| **Purpose** | User-facing event feed ("what happened recently") | Compliance / security log |
-| **Data source** | `GET /api/compliance/audit-log?level=high` | `GET /api/compliance/audit-log?level=all` |
-| **Format** | Timeline, grouped by day, human-readable verbs + icons | Dense paginaged table, 50/page |
-| **Filters** | Event type category | Action, severity, actor, date range |
-| **Export** | Not available | JSON export |
-| **Actor filter** | Not applicable | Filterable by actor |
-| **Events shown** | High-level actions only (allowlist) | All audit events |
+| Dimension        | Activity (`/dashboard/activity`)                       | Audit Log (`/dashboard/audit`)            |
+| ---------------- | ------------------------------------------------------ | ----------------------------------------- |
+| **Purpose**      | User-facing event feed ("what happened recently")      | Compliance / security log                 |
+| **Data source**  | `GET /api/compliance/audit-log?level=high`             | `GET /api/compliance/audit-log?level=all` |
+| **Format**       | Timeline, grouped by day, human-readable verbs + icons | Dense paginaged table, 50/page            |
+| **Filters**      | Event type category                                    | Action, severity, actor, date range       |
+| **Export**       | Not available                                          | JSON export                               |
+| **Actor filter** | Not applicable                                         | Filterable by actor                       |
+| **Events shown** | High-level actions only (allowlist)                    | All audit events                          |
 
 ### High-Level Actions allowlist
 
@@ -133,14 +133,14 @@ reference the old ID.
 
 Namespaces added by Group B:
 
-| Namespace key | Covers |
-|---------------|--------|
-| `sidebar.costsSection` | Costs section label |
-| `sidebar.activity` | Activity sidebar item |
-| `sidebar.logsGroup` | Logs subgroup label |
-| `sidebar.systemGroup` | System subgroup label |
-| `sidebar.costsOverview` | Costs overview item |
-| `activity.*` | All Activity page strings (title, verbs, filters, empty state) |
+| Namespace key           | Covers                                                         |
+| ----------------------- | -------------------------------------------------------------- |
+| `sidebar.costsSection`  | Costs section label                                            |
+| `sidebar.activity`      | Activity sidebar item                                          |
+| `sidebar.logsGroup`     | Logs subgroup label                                            |
+| `sidebar.systemGroup`   | System subgroup label                                          |
+| `sidebar.costsOverview` | Costs overview item                                            |
+| `activity.*`            | All Activity page strings (title, verbs, filters, empty state) |
 
 Source-of-truth locales: `pt-BR` and `en`. All other 39 locales fall back to
 English via the `next-intl` fallback mechanism (configured in `src/i18n/config.ts`).

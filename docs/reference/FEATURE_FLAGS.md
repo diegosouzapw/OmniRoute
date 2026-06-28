@@ -1,7 +1,7 @@
 ---
 title: "Feature Flags"
-version: 3.8.26
-lastUpdated: 2026-06-16
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Feature Flags

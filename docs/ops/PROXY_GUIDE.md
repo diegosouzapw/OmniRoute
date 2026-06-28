@@ -1,7 +1,7 @@
 ---
 title: "🌐 OmniRoute Proxy Guide"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # 🌐 OmniRoute Proxy Guide
@@ -620,19 +620,19 @@ Without this, a dead proxy would block every request for the full `PROXY_TIMEOUT
 
 ### Tunable Environment Variables
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `PROXY_FAST_FAIL_TIMEOUT_MS` | `2000` | TCP connection timeout per health check |
-| `PROXY_HEALTH_CACHE_TTL_MS` | `30000` | How long a health result is cached |
+| Variable                     | Default | Purpose                                 |
+| ---------------------------- | ------- | --------------------------------------- |
+| `PROXY_FAST_FAIL_TIMEOUT_MS` | `2000`  | TCP connection timeout per health check |
+| `PROXY_HEALTH_CACHE_TTL_MS`  | `30000` | How long a health result is cached      |
 
 **Recommended values:**
 
-| Scenario | Fast-fail timeout | Cache TTL | Reasoning |
-|----------|-------------------|-----------|-----------|
-| High-throughput API gateway | 1500ms | 60000ms | Aggressive fail-fast, longer cache to reduce checks |
-| Geo-distributed nodes | 3000ms | 15000ms | Slower networks need more time; shorter cache for fast failover |
-| Dev / testing | 1000ms | 10000ms | Quick iteration on local proxies |
-| Stealth / anti-detection | 2500ms | 45000ms | Avoid rapid probing that could trigger rate limits |
+| Scenario                    | Fast-fail timeout | Cache TTL | Reasoning                                                       |
+| --------------------------- | ----------------- | --------- | --------------------------------------------------------------- |
+| High-throughput API gateway | 1500ms            | 60000ms   | Aggressive fail-fast, longer cache to reduce checks             |
+| Geo-distributed nodes       | 3000ms            | 15000ms   | Slower networks need more time; shorter cache for fast failover |
+| Dev / testing               | 1000ms            | 10000ms   | Quick iteration on local proxies                                |
+| Stealth / anti-detection    | 2500ms            | 45000ms   | Avoid rapid probing that could trigger rate limits              |
 
 ### Inspecting Proxy Health
 
@@ -654,11 +654,11 @@ The `stale` flag is `true` when the cache entry has exceeded `HEALTH_CACHE_TTL_M
 
 The health check uses sensible defaults based on the URL scheme:
 
-| Scheme | Default port |
-|--------|-------------|
-| `http://` | 8080 |
-| `https://` | 443 |
-| `socks5://` / `socks5h://` | 1080 |
+| Scheme                     | Default port |
+| -------------------------- | ------------ |
+| `http://`                  | 8080         |
+| `https://`                 | 443          |
+| `socks5://` / `socks5h://` | 1080         |
 
 Custom ports in the URL (`http://host:9999`) always take precedence over the scheme default.
 
@@ -672,15 +672,15 @@ OmniRoute tracks per-proxy usage to help operators diagnose routing patterns, la
 
 For every request through a configured proxy, OmniRoute records:
 
-| Metric | Description |
-|--------|-------------|
-| `proxy_url` | Full proxy URL (with auth credentials masked) |
-| `provider` | Upstream provider ID (openai, anthropic, etc.) |
+| Metric       | Description                                     |
+| ------------ | ----------------------------------------------- |
+| `proxy_url`  | Full proxy URL (with auth credentials masked)   |
+| `provider`   | Upstream provider ID (openai, anthropic, etc.)  |
 | `latency_ms` | Total round-trip time including proxy handshake |
-| `connect_ms` | TCP connect time only |
-| `status` | HTTP status code from upstream |
-| `error` | Error class if request failed |
-| `timestamp` | ISO 8601 UTC |
+| `connect_ms` | TCP connect time only                           |
+| `status`     | HTTP status code from upstream                  |
+| `error`      | Error class if request failed                   |
+| `timestamp`  | ISO 8601 UTC                                    |
 
 ### Accessing the Data
 
@@ -736,11 +736,11 @@ When multiple proxies are assigned to a scope, OmniRoute uses a **rotation strat
 
 ### Available Strategies
 
-| Strategy | When to use | Trade-off |
-|----------|-------------|-----------|
-| `quality` (default) | Production with mixed-quality proxies | Favors high-rated proxies; may starve low-rated ones |
-| `random` | Load distribution, privacy | Even distribution; ignores quality signals |
-| `sequential` | Debugging, deterministic testing | Cycles through proxies in order; easy to reason about |
+| Strategy            | When to use                           | Trade-off                                             |
+| ------------------- | ------------------------------------- | ----------------------------------------------------- |
+| `quality` (default) | Production with mixed-quality proxies | Favors high-rated proxies; may starve low-rated ones  |
+| `random`            | Load distribution, privacy            | Even distribution; ignores quality signals            |
+| `sequential`        | Debugging, deterministic testing      | Cycles through proxies in order; easy to reason about |
 
 ### Decision Tree
 
@@ -763,7 +763,7 @@ When multiple proxies are assigned to a scope, OmniRoute uses a **rotation strat
    │         │              builds quality
    │         │              data over time)
    │         │
-   │    Use `quality` 
+   │    Use `quality`
    │    (best for
    │    mixed quality)
    │
@@ -795,6 +795,7 @@ resetSequentialIndex();
 ```
 
 Useful when:
+
 - Restarting a load test
 - Recovering from a proxy outage (so you don't cycle through dead ones first)
 - Manually rebalancing after adding new proxies

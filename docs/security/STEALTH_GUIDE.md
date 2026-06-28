@@ -1,13 +1,13 @@
 ---
 title: "Stealth Guide"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Stealth Guide
 
 > **Source of truth:** `open-sse/utils/tlsClient.ts`, `open-sse/services/{chatgptTlsClient,claudeCodeCCH,claudeCodeFingerprint,claudeCodeObfuscation,claudeCodeCompatible,antigravityObfuscation}.ts`, `open-sse/config/cliFingerprints.ts`, `src/mitm/`
-> **Last updated:** 2026-05-13 — v3.8.0
+> **Last updated:** 2026-06-28 — v3.8.40
 > **Audience:** Engineers maintaining provider-specific stealth integrations.
 
 OmniRoute integrates with providers whose edges actively fingerprint non-official clients (TLS JA3/JA4, header ordering, JSON body shape, integrity tokens). This page documents the stealth surfaces OmniRoute exposes and where they are implemented.

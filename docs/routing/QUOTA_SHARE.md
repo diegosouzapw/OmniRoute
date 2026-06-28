@@ -1,7 +1,7 @@
 ---
 title: "Quota Sharing Engine"
-version: 3.8.6
-lastUpdated: 2026-05-28
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Quota Sharing Engine
@@ -36,10 +36,10 @@ Implemented in `src/lib/quota/fairShare.ts`.
 
 ### Modes
 
-| Condition | Mode | Behaviour |
-|-----------|------|-----------|
-| `globalUsedPercent < saturationThreshold` | **Generous** | Key may borrow up to global limit minus consumed-total |
-| `globalUsedPercent >= saturationThreshold` | **Strict** | Enforce individual fair share strictly |
+| Condition                                  | Mode         | Behaviour                                              |
+| ------------------------------------------ | ------------ | ------------------------------------------------------ |
+| `globalUsedPercent < saturationThreshold`  | **Generous** | Key may borrow up to global limit minus consumed-total |
+| `globalUsedPercent >= saturationThreshold` | **Strict**   | Enforce individual fair share strictly                 |
 
 Default `saturationThreshold = 0.5` (env `QUOTA_SATURATION_THRESHOLD`).
 
@@ -142,6 +142,7 @@ DB setting has precedence over env. If `driver=redis` but URL is absent or
 `ioredis` is not installed, the factory falls back to SQLite and logs a warning.
 
 Driver selection order:
+
 1. DB setting `quotaStore.driver`
 2. Env `QUOTA_STORE_DRIVER`
 3. Default: `sqlite`
@@ -164,8 +165,8 @@ QuotaDimension {
 
 ```json
 [
-  { "unit": "percent", "window": "5h",    "limit": 100 },
-  { "unit": "percent", "window": "weekly","limit": 100 }
+  { "unit": "percent", "window": "5h", "limit": 100 },
+  { "unit": "percent", "window": "weekly", "limit": 100 }
 ]
 ```
 
@@ -185,15 +186,15 @@ Precedence (highest to lowest):
 
 ### Known catalog
 
-| Provider | Dimensions |
-|----------|-----------|
-| `codex` | `percent/5h/100`, `percent/weekly/100` |
-| `glm` | `tokens/5h` (limit=0, unknown), `tokens/weekly` |
-| `minimax` | `tokens/5h`, `tokens/weekly` |
-| `bailian` | `percent/5h/100`, `percent/weekly/100`, `percent/monthly/100` |
-| `kimi` | `requests/hourly/1500` |
-| `alibaba` | `requests/monthly/90000` |
-| `openai`, `anthropic` | No default — manual configuration required |
+| Provider              | Dimensions                                                    |
+| --------------------- | ------------------------------------------------------------- |
+| `codex`               | `percent/5h/100`, `percent/weekly/100`                        |
+| `glm`                 | `tokens/5h` (limit=0, unknown), `tokens/weekly`               |
+| `minimax`             | `tokens/5h`, `tokens/weekly`                                  |
+| `bailian`             | `percent/5h/100`, `percent/weekly/100`, `percent/monthly/100` |
+| `kimi`                | `requests/hourly/1500`                                        |
+| `alibaba`             | `requests/monthly/90000`                                      |
+| `openai`, `anthropic` | No default — manual configuration required                    |
 
 ---
 
@@ -238,7 +239,7 @@ When `decision.deprioritize === true`:
 
 ```ts
 if (candidate.quotaSoftPenalty) {
-  score *= QUOTA_SOFT_DEPRIORITIZE_FACTOR;  // default 0.7
+  score *= QUOTA_SOFT_DEPRIORITIZE_FACTOR; // default 0.7
 }
 ```
 
@@ -253,17 +254,18 @@ probability of selecting a saturated key without hard-blocking it.
 
 Components (all in `src/app/(dashboard)/dashboard/costs/quota-share/`):
 
-| Component | Purpose |
-|-----------|---------|
-| `QuotaConceptCard` | Introductory card explaining quota sharing to new users |
-| `CreatePoolModal` | Create a new quota pool (connection + name + initial allocations) |
-| `PoolCard` | Per-pool summary: name, connection, allocation count |
-| `DimensionBar` | Per-dimension stacked bar: each key's share + global usage |
-| `AllocationTable` | Table with consumed, fair share, deficit/surplus, borrowing flag |
-| `BurnRateChart` | EMA burn-rate line chart (lazy Recharts via `dynamic()`) |
-| `EditAllocationsModal` | Edit allocation weights, caps, and policies for a pool |
+| Component              | Purpose                                                           |
+| ---------------------- | ----------------------------------------------------------------- |
+| `QuotaConceptCard`     | Introductory card explaining quota sharing to new users           |
+| `CreatePoolModal`      | Create a new quota pool (connection + name + initial allocations) |
+| `PoolCard`             | Per-pool summary: name, connection, allocation count              |
+| `DimensionBar`         | Per-dimension stacked bar: each key's share + global usage        |
+| `AllocationTable`      | Table with consumed, fair share, deficit/surplus, borrowing flag  |
+| `BurnRateChart`        | EMA burn-rate line chart (lazy Recharts via `dynamic()`)          |
+| `EditAllocationsModal` | Edit allocation weights, caps, and policies for a pool            |
 
 The page hooks:
+
 - `usePools` — fetches `GET /api/quota/pools` every 30s.
 - `usePoolUsage` — fetches `GET /api/quota/pools/[id]/usage` on demand.
 - `useLocalStoragePoolMigration` — runs once on mount to migrate legacy LS data.
@@ -279,13 +281,13 @@ The page hooks:
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `QUOTA_STORE_DRIVER` | `sqlite` | Driver to use: `sqlite` or `redis` |
-| `QUOTA_STORE_REDIS_URL` | _(empty)_ | Redis URL, e.g. `redis://localhost:6379` |
-| `QUOTA_SATURATION_THRESHOLD` | `0.5` | 0..1; `>= threshold` activates strict mode |
-| `QUOTA_SOFT_DEPRIORITIZE_FACTOR` | `0.7` | 0..1; multiplier for soft-policy combo score |
-| `QUOTA_CONSUMPTION_RETENTION_DAYS` | `14` | Days before GC removes old `quota_consumption` buckets |
+| Variable                           | Default   | Description                                            |
+| ---------------------------------- | --------- | ------------------------------------------------------ |
+| `QUOTA_STORE_DRIVER`               | `sqlite`  | Driver to use: `sqlite` or `redis`                     |
+| `QUOTA_STORE_REDIS_URL`            | _(empty)_ | Redis URL, e.g. `redis://localhost:6379`               |
+| `QUOTA_SATURATION_THRESHOLD`       | `0.5`     | 0..1; `>= threshold` activates strict mode             |
+| `QUOTA_SOFT_DEPRIORITIZE_FACTOR`   | `0.7`     | 0..1; multiplier for soft-policy combo score           |
+| `QUOTA_CONSUMPTION_RETENTION_DAYS` | `14`      | Days before GC removes old `quota_consumption` buckets |
 
 DB settings (`quotaStore.*`) override env vars.
 
@@ -347,10 +349,10 @@ appears as a user-selectable option in the UI or API.
 
 Two layers of automated coverage ship with the quota-share engine:
 
-| Suite | Command | What it covers |
-| :--- | :--- | :--- |
-| Unit (29 tests) | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR scheduler, saturation gating, concurrency caps, fairShare math, backlog queueing |
-| Integration matrix | `npm run test:combo:matrix` | End-to-end routing decision through the real combo pipeline; DRR fairness + saturation deprioritization via live seams (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
+| Suite              | Command                                                                | What it covers                                                                                                                                                                                       |
+| :----------------- | :--------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit (29 tests)    | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR scheduler, saturation gating, concurrency caps, fairShare math, backlog queueing                                                                                                                 |
+| Integration matrix | `npm run test:combo:matrix`                                            | End-to-end routing decision through the real combo pipeline; DRR fairness + saturation deprioritization via live seams (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
 The integration matrix runs in CI alongside the other 17 public strategies. The unit suite
 can be run standalone.

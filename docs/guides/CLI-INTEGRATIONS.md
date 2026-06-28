@@ -1,7 +1,7 @@
 ---
 title: "CLI Integrations — point any coding CLI at OmniRoute"
-version: 3.8.31
-lastUpdated: 2026-06-20
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # CLI Integrations

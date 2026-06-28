@@ -1,13 +1,13 @@
 ---
 title: "Authorization Guide"
-version: 3.8.2
-lastUpdated: 2026-06-05
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Authorization Guide
 
 > **Source of truth:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Last updated:** 2026-06-05 — v3.8.2
+> **Last updated:** 2026-06-28 — v3.8.40
 
 OmniRoute has a route-aware authorization pipeline that gates every API request. Classification is **deterministic** and **fail-closed** — anything that cannot be classified ends up as `MANAGEMENT` and demands a session or management-grade token. This page explains the model for engineers maintaining routes or designing new endpoints.
 

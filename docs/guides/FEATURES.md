@@ -1,7 +1,7 @@
 ---
 title: "OmniRoute — Dashboard Features Gallery"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # OmniRoute — Dashboard Features Gallery
@@ -10,7 +10,7 @@ lastUpdated: 2026-05-13
 
 Visual guide to every section of the OmniRoute dashboard.
 
-> 📅 **Last updated:** 2026-05-13 — **v3.8.0**
+> 📅 **Last updated:** 2026-06-28 — **v3.8.40**
 
 ---
 

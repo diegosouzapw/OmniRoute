@@ -1,13 +1,13 @@
 ---
 title: "Repository Map"
-version: 3.8.26
-lastUpdated: 2026-06-15
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Repository Map
 
 > **One-line description for every directory and root file.**
-> Last updated: 2026-06-15 — OmniRoute v3.8.26
+> Last updated: 2026-06-28 — OmniRoute v3.8.40
 >
 > Use this map to navigate the codebase quickly. For deep dives, follow links to dedicated docs.
 

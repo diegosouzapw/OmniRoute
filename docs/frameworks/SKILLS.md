@@ -1,13 +1,13 @@
 ---
 title: "Skills Framework"
-version: 3.8.6
-lastUpdated: 2026-05-28
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Skills Framework
 
 > **Source of truth:** `src/lib/skills/` and `src/app/api/skills/`
-> **Last updated:** 2026-05-28 — v3.8.6
+> **Last updated:** 2026-06-28 — v3.8.40
 
 OmniRoute exposes an extensible Skills framework that lets language models (and operators) compose reusable capabilities — from filesystem reads and HTTP requests to sandboxed code execution and curated marketplace skills.
 

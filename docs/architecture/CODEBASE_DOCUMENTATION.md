@@ -1,13 +1,13 @@
 ---
 title: "OmniRoute Codebase Documentation"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # OmniRoute Codebase Documentation
 
 > **Version:** v3.8.0
-> **Last updated:** 2026-05-13
+> **Last updated:** 2026-06-28
 > **Audience:** Engineers contributing to OmniRoute or building integrations on top of it.
 >
 > For high-level architecture diagrams and the reasoning behind each subsystem, read

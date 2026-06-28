@@ -1,7 +1,7 @@
 ---
 title: "Resilience Guide"
-version: 3.8.31
-lastUpdated: 2026-06-20
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Resilience Guide
