@@ -126,6 +126,10 @@ interface CooldownInspectionState {
 const MIN_QUOTA_THRESHOLD_PERCENT = 1;
 const MAX_QUOTA_THRESHOLD_PERCENT = 100;
 const NON_RETRYABLE_MODEL_LOCKOUT_REASONS = new Set(["not_found", "not_found_local"]);
+// Antigravity Gemini family 429 with no parseable upstream hint: seed the backoff at
+// this base. Real upstream Retry-After hints still win — they flow through
+// `exactCooldownMs` (usedUpstreamRetryHint), not this base. (#5222)
+const ANTIGRAVITY_FAMILY_INFERRED_BASE_COOLDOWN_MS = 30_000;
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -1994,7 +1998,9 @@ export async function markAccountUnavailable(
               : "server_error";
       const quotaScope = getQuotaScopeLabelForProvider(provider, model);
       const antigravityFamilyInferredBaseCooldownMs =
-        provider === "antigravity" && quotaScope === "family" && status === 429 ? 30_000 : null;
+        provider === "antigravity" && quotaScope === "family" && status === 429
+          ? ANTIGRAVITY_FAMILY_INFERRED_BASE_COOLDOWN_MS
+          : null;
       const lockout = recordModelLockoutFailure(
         provider,
         connectionId,

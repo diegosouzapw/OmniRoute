@@ -32,7 +32,7 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("round-robin same-model retry treats multi-exclude as fallback and skips all excluded accounts", async () => {
+test("round-robin same-model retry treats multi-exclude as fallback LRU and skips all excluded accounts", async () => {
   await resetStorage();
 
   const first = await providersDb.createProviderConnection({
@@ -53,30 +53,53 @@ test("round-robin same-model retry treats multi-exclude as fallback and skips al
     testStatus: "active",
     priority: 2,
   });
-  const third = await providersDb.createProviderConnection({
+  // Two NON-excluded eligible accounts with diverging lastUsedAt so sticky
+  // (most-recently-used) and fallback LRU (least-recently-used) pick different
+  // accounts — this is what makes the test discriminate the
+  // `excludedConnectionIds.size > 0` fallback branch. `recent` is the sticky
+  // pick; `stale` is the LRU pick.
+  const recent = await providersDb.createProviderConnection({
     provider: "antigravity",
     authType: "oauth",
-    email: "third@example.test",
-    accessToken: "tok-third",
+    email: "recent@example.test",
+    accessToken: "tok-recent",
     isActive: true,
     testStatus: "active",
     priority: 3,
   });
+  const stale = await providersDb.createProviderConnection({
+    provider: "antigravity",
+    authType: "oauth",
+    email: "stale@example.test",
+    accessToken: "tok-stale",
+    isActive: true,
+    testStatus: "active",
+    priority: 4,
+  });
 
   const firstId = connectionId(first);
   const secondId = connectionId(second);
-  const thirdId = connectionId(third);
+  const recentId = connectionId(recent);
+  const staleId = connectionId(stale);
 
   await providersDb.updateProviderConnection(firstId, {
-    lastUsedAt: new Date(Date.now() - 1_000).toISOString(),
+    lastUsedAt: new Date(Date.now() - 5_000).toISOString(),
     consecutiveUseCount: 1,
   });
   await providersDb.updateProviderConnection(secondId, {
-    lastUsedAt: new Date(Date.now() - 60_000).toISOString(),
+    lastUsedAt: new Date(Date.now() - 4_000).toISOString(),
     consecutiveUseCount: 1,
   });
-  await providersDb.updateProviderConnection(thirdId, {
-    lastUsedAt: new Date(Date.now() - 30_000).toISOString(),
+  // `recent` is the most-recently-used eligible account: WITHOUT the fallback
+  // change, sticky routing (count 1 < limit 3) would stay on it.
+  await providersDb.updateProviderConnection(recentId, {
+    lastUsedAt: new Date(Date.now() - 1_000).toISOString(),
+    consecutiveUseCount: 1,
+  });
+  // `stale` is the least-recently-used eligible account: the fallback LRU branch
+  // must pick this one.
+  await providersDb.updateProviderConnection(staleId, {
+    lastUsedAt: new Date(Date.now() - 90_000).toISOString(),
     consecutiveUseCount: 1,
   });
 
@@ -87,7 +110,14 @@ test("round-robin same-model retry treats multi-exclude as fallback and skips al
   });
 
   assert.ok(selected, "expected an eligible non-excluded Antigravity account");
-  assert.equal(selected.connectionId, thirdId);
+  // Excluded accounts must never be selected.
+  assert.notEqual(selected.connectionId, firstId);
+  assert.notEqual(selected.connectionId, secondId);
+  // The fallback (excludedConnectionIds.size > 0) must route to the LRU account
+  // (`stale`), NOT the sticky most-recently-used one (`recent`). Without the
+  // `excludedConnectionIds.size > 0` fallback trigger this assertion gets
+  // `recentId` and fails.
+  assert.equal(selected.connectionId, staleId);
 });
 
 test("Antigravity inferred Gemini family cooldown starts around 30s when no upstream hint exists", async () => {
