@@ -9,6 +9,7 @@ import { applyLineFilter } from "./lineFilter.ts";
 import { smartTruncate } from "./smartTruncate.ts";
 import { normalizeCodeLanguage, stripCode } from "./codeStripper.ts";
 import { maybePersistRtkRawOutput, type RtkRawOutputPointer } from "./rawOutput.ts";
+import { applyRenderer } from "./renderers/index.ts";
 import { isTextBlock } from "../../messageContent.ts";
 import { adaptBodyForCompression } from "../../bodyAdapter.ts";
 import { isAnthropicToolResultBlock } from "../../toolResultCompressor.ts";
@@ -369,6 +370,20 @@ export function processRtkText(
         }
         matchedFilterPatterns = filter.priorityPatterns;
       }
+    }
+  }
+
+  // #10: semantic renderers — opt-in via enableRenderers flag (default OFF), fail-open
+  if (config.enableRenderers) {
+    try {
+      const rendered = applyRenderer(result, detection, config);
+      if (rendered.changed) {
+        result = rendered.text;
+        techniquesUsed.push(`rtk-render:${rendered.renderer}`);
+        rulesApplied.push(`rtk:render:${rendered.renderer}`);
+      }
+    } catch {
+      // fail-open: renderer never brings down the request
     }
   }
 
