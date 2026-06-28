@@ -804,9 +804,6 @@ export function openaiToOpenAIResponsesRequest(
       if (tool.type === "function") {
         const fn = toRecord(tool.function);
         const name = toString(fn.name);
-        if (name === "shell") {
-          return { type: "local_shell" };
-        }
         return {
           type: "function",
           name,
@@ -827,11 +824,7 @@ export function openaiToOpenAIResponsesRequest(
       const tc = toRecord(root.tool_choice);
       if (tc.type === "function" && tc.function) {
         const fn = toRecord(tc.function);
-        if (toString(fn.name) === "shell") {
-          result.tool_choice = { type: "local_shell" };
-        } else {
-          result.tool_choice = { type: "function", name: fn.name };
-        }
+        result.tool_choice = { type: "function", name: fn.name };
       } else {
         result.tool_choice = root.tool_choice;
       }
