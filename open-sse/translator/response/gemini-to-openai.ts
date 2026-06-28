@@ -441,16 +441,18 @@ export function geminiToOpenAIResponse(chunk, state) {
         }
 
         if (hasFunctionCall) {
-          // Flush any still-open textual reasoning wrapper as reasoning_content BEFORE
-          // the tool call. A signed native functionCall arriving while a `<thinking>`
-          // (etc.) tag opened in an earlier chunk is still buffered must not silently
-          // drop that buffered reasoning — flushOpenTextualReasoning emits it and clears
-          // the active-tag/content buffers. (LEDGER-4 / #3821-review)
-          flushOpenTextualReasoning(state, results);
-          // Also drop any partial open-tag fragment buffered at a chunk boundary
-          // (flushOpenTextualReasoning early-returns when only this is set), matching the
-          // pre-fix branch which cleared all three buffers. (#3821-review convergence)
-          state.textualReasoningTagBuffer = undefined;
+          if (parseTextualReasoningTags) {
+            // Flush any still-open textual reasoning wrapper as reasoning_content BEFORE
+            // the tool call. A signed native functionCall arriving while a `<thinking>`
+            // (etc.) tag opened in an earlier chunk is still buffered must not silently
+            // drop that buffered reasoning — flushOpenTextualReasoning emits it and clears
+            // the active-tag/content buffers. (LEDGER-4 / #3821-review)
+            flushOpenTextualReasoning(state, results);
+            // Also drop any partial open-tag fragment buffered at a chunk boundary
+            // (flushOpenTextualReasoning early-returns when only this is set), matching the
+            // pre-fix branch which cleared all three buffers. (#3821-review convergence)
+            state.textualReasoningTagBuffer = undefined;
+          }
           emitFunctionCallPart(part, state, results);
         }
         continue;
@@ -462,7 +464,9 @@ export function geminiToOpenAIResponse(chunk, state) {
       // back to a structured OpenAI tool call so clients/tools do not see it as
       // assistant prose.
       if (part.text !== undefined && part.text !== "") {
-        const afterReasoning = consumeTextualReasoningTags(part.text, state, results);
+        const afterReasoning = parseTextualReasoningTags
+          ? consumeTextualReasoningTags(part.text, state, results)
+          : part.text;
         if (!afterReasoning) continue;
 
         let accumulated = (state.textualToolCallBuffer || "") + afterReasoning;
