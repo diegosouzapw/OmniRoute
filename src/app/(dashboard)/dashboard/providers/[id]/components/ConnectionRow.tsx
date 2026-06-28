@@ -331,7 +331,6 @@ export default function ConnectionRow({
   isOAuth,
   isClaude,
   isCodex,
-  isGeminiCli,
   codexGlobalServiceMode,
   isCcCompatible,
   cliproxyapiEnabled,

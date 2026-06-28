@@ -1012,7 +1012,7 @@ Target formats include:
 
 - OpenAI chat/Responses
 - Claude
-- Gemini/Gemini-CLI/Antigravity envelope
+- Gemini/Antigravity envelope
 - Kiro
 - Cursor
 
