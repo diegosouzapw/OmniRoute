@@ -11,7 +11,10 @@ import path from "node:path";
 // strategy (round-robin rotated) → upstream prompt-cache misses, cold high-reasoning
 // starts, intermittent 504s. The fix derives a stable per-conversation key from the
 // request body when no session id is present, so a combo re-pins to the same model
-// across turns of the same conversation — but ONLY when context_cache_protection is on.
+// across turns of the same conversation. This per-conversation stickiness is now the
+// DEFAULT (restoring the pre-#3399 <omniModel>-tag contract) — it no longer requires
+// context_cache_protection to be on. Turn 1 always runs the strategy, so different
+// conversations still spread across models; only turns 2+ re-pin within a conversation.
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-pin-3825-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
@@ -131,14 +134,16 @@ test("context_cache_protection ON + NO sessionId: combo re-pins to the same mode
   );
 });
 
-test("context_cache_protection OFF + NO sessionId: no pin, strategy re-runs each turn, no <omniModel> tag (#3825 scope guard)", async () => {
+test("context_cache_protection OFF + NO sessionId: sessionless pin engages by DEFAULT, no <omniModel> tag (#3825)", async () => {
   const calls: string[] = [];
   const forwardedContents: string[] = [];
   // Identical priority+failover setup as the positive case, but with the toggle OFF.
+  // #3825: per-conversation stickiness is now the default and must engage even with the
+  // toggle off — this replaces the former scope-guard that asserted toggle-off rotation.
   const combo = {
     name: "unprotected-priority",
     strategy: "priority",
-    // context_cache_protection intentionally omitted (falsy) — #3399 behavior preserved.
+    // context_cache_protection intentionally omitted (falsy) — must still re-pin.
     models: ["model-a", "model-b"],
     config: { maxRetries: 0 },
   };
@@ -170,15 +175,77 @@ test("context_cache_protection OFF + NO sessionId: no pin, strategy re-runs each
     await waitForBackgroundWork();
   }
 
-  // Toggle OFF → no pin is recorded or read → turn 2 re-runs priority from the top,
-  // re-trying model-a before falling through to model-b → [a, b, a, b].
+  // Toggle OFF → turn 1 records model-b (the model that actually succeeded); turn 2 reads
+  // that pin via the derived sessionless key and dispatches model-b DIRECTLY, skipping
+  // model-a → [a, b, b]. This is the v3.8.14 per-conversation stickiness, now default-on.
   assert.deepEqual(
     calls,
-    ["model-a", "model-b", "model-a", "model-b"],
-    "with protection OFF the combo must re-run strategy each turn (no sessionless pin)"
+    ["model-a", "model-b", "model-b"],
+    "with the toggle OFF the combo must STILL re-pin to turn 1's model (sessionless stickiness is default)"
   );
   assert.ok(
     forwardedContents.every((c) => !c.includes("<omniModel>")),
     "no <omniModel> tag may be injected into the forwarded body (#454/#3399)"
+  );
+});
+
+test("two DIFFERENT sessionless conversations pin independently — no global pin bleed (#3825 spreading guard)", async () => {
+  // Locks the cross-conversation-spreading invariant: conversation A pinning to model-b
+  // must NOT leak into conversation B, which has a different first message and must start
+  // fresh from the strategy on its own turn 1. If the pin were global (not per-conversation),
+  // B's first call would jump straight to model-b — this guard fails in that case.
+  const combo = {
+    name: "isolation-priority",
+    strategy: "priority",
+    models: ["model-a", "model-b"],
+    config: { maxRetries: 0 },
+  };
+
+  const makeHandler = (calls: string[]) => async (_body: any, modelStr: string) => {
+    calls.push(modelStr);
+    if (modelStr === "model-a") {
+      return okResponse({ choices: [{ message: { content: "" } }] }); // empty → fall through
+    }
+    return okResponse({ choices: [{ message: { content: "fallback ok" } }] });
+  };
+
+  const bodyA = { messages: [{ role: "user", content: "Conversation A: optimize the parser." }] };
+  const bodyB = { messages: [{ role: "user", content: "Conversation B: write integration tests." }] };
+
+  // Drive conversation A twice so it records + re-pins to model-b.
+  const callsA: string[] = [];
+  for (let turn = 0; turn < 2; turn += 1) {
+    const r = await handleComboChat({
+      body: bodyA,
+      combo,
+      handleSingleModel: makeHandler(callsA) as any,
+      isModelAvailable: async () => true,
+      log: createLog(),
+      settings: null,
+      relayOptions: null as any,
+      allCombos: null,
+    });
+    assert.equal(r.ok, true);
+    await waitForBackgroundWork();
+  }
+  assert.deepEqual(callsA, ["model-a", "model-b", "model-b"], "A must pin to model-b on turn 2");
+
+  // Conversation B's FIRST turn must start fresh at model-a (A's pin must not bleed in).
+  const callsB: string[] = [];
+  const rB = await handleComboChat({
+    body: bodyB,
+    combo,
+    handleSingleModel: makeHandler(callsB) as any,
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+  assert.equal(rB.ok, true);
+  assert.deepEqual(
+    callsB,
+    ["model-a", "model-b"],
+    "conversation B must run the strategy from the top (no bleed from A's pin)"
   );
 });

@@ -2078,12 +2078,14 @@ export async function handleComboChat({
               fallbackCount,
             });
 
-            // Context cache pinning: record model usage for session-based pinning
-            // (independent of universal handoff — always fires when context_cache_protection is on)
-            // #3825: write under the SAME effectiveSessionId used by the read site so a
-            // sessionless conversation re-pins to this model on its next turn.
+            // Context cache pinning: record model usage for session-based pinning.
+            // #3825: write under the SAME effectiveSessionId the read site
+            // (resolveContextCachePin) computes so a sessionless conversation re-pins to this
+            // model on its next turn. effectiveSessionId carries the scoping: it is the derived
+            // fingerprint for sessionless clients (default-on stickiness, the #3825 fix), the
+            // real session id only when context_cache_protection is on, and null otherwise — so
+            // this write fires for exactly the cases the read site (resolveContextCachePin) pins.
             if (
-              combo.context_cache_protection &&
               effectiveSessionId &&
               !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
             ) {

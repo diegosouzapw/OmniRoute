@@ -47,8 +47,9 @@ export interface ComboSetup {
  *
  * #3825: when the client sends no session id (most OpenAI-compatible clients), fall back to a
  * stable conversation fingerprint derived from the body so the combo still re-pins across
- * turns. ONLY engaged when context_cache_protection is truthy — when off, behaviour is
- * unchanged (combos rotate as before, no pin read/write, no <omniModel> tag).
+ * turns. This per-conversation stickiness is the DEFAULT (restoring the pre-#3399 <omniModel>-tag
+ * contract) and no longer requires context_cache_protection — turn 1 still runs the strategy
+ * (so different conversations spread across models); only turns 2+ re-pin within a conversation.
  *
  * Extracted from phaseComboSetup to keep that function under the complexity ceiling and to
  * further the combo god-file decomposition.
@@ -58,12 +59,22 @@ function resolveContextCachePin(ctx: ComboContext): {
   pinnedModel: string | null;
 } {
   const { combo, relayOptions, log } = ctx;
-  const effectiveSessionId: string | null = combo.context_cache_protection
-    ? (relayOptions?.sessionId ?? deriveComboSessionKey(ctx.body))
-    : null;
+  // #3825: restore per-conversation stickiness for SESSIONLESS clients (most
+  // OpenAI-compatible tools — Codex CLI, Claude Code) that lost it in #3399. The fix is
+  // intentionally scoped to the sessionless path: when no client session id is present we
+  // derive a stable conversation fingerprint (deriveComboSessionKey) and engage the pin by
+  // DEFAULT — context_cache_protection is no longer required. When a real session id IS
+  // present the prior behavior is unchanged (pin stays opt-in via context_cache_protection;
+  // universal handoff owns session_model_history), so the with-sessionId pin/handoff paths
+  // are untouched. Turn 1 always runs the strategy, so cross-conversation spreading holds;
+  // only turns 2+ of one conversation re-pin to the model turn 1 picked.
+  const effectiveSessionId: string | null = relayOptions?.sessionId
+    ? combo.context_cache_protection
+      ? relayOptions.sessionId
+      : null
+    : deriveComboSessionKey(ctx.body);
   let pinnedModel: string | null = null;
   if (
-    combo.context_cache_protection &&
     effectiveSessionId &&
     !(ctx.body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
   ) {

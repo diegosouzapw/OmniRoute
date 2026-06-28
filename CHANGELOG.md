@@ -11,6 +11,7 @@ _In development — bullets added per PR; finalized at release._
 ### 🔧 Bug Fixes
 
 - **command-code:** omit `max_tokens` when the client omits it so the upstream applies the model's native default, fixing `400 "expected <=200000"` on `/alpha/generate` for high-cap models; an explicit oversized client value is clamped to the 200k endpoint ceiling (#5221 — thanks @adivekar-utexas)
+- **combo:** restore per-conversation model stickiness for sessionless clients (Codex CLI, Claude Code, and most OpenAI-compatible tools that send no session id). #3399 gated the server-side context-cache pin on a client session id, so these clients re-ran the routing strategy every turn → upstream prompt-cache misses → cold high-reasoning starts and intermittent `504`/throughput collapse under concurrency. Combos now derive a stable per-conversation fingerprint and re-pin by default (no `context_cache_protection` toggle required), restoring the pre-#3399 behavior. Turn 1 still runs the strategy, so cross-conversation load spreading is unchanged; only turns 2+ of the same conversation stick. The with-session-id pin and universal-handoff paths are untouched (#3825 — thanks @bypanghu, @jpsn123, @xz-dev)
 
 ---
 
