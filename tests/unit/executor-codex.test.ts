@@ -824,7 +824,10 @@ test("CodexExecutor.transformRequest passes GPT 5.4 Mini xhigh reasoning through
 
   assert.equal(sanitized.model, "gpt-5.4-mini");
   assert.deepEqual(reasoning, { effort: "xhigh", summary: "detailed" });
-  assert.deepEqual(sanitized.include, ["code_interpreter_call.outputs", "reasoning.encrypted_content"]);
+  assert.deepEqual(sanitized.include, [
+    "code_interpreter_call.outputs",
+    "reasoning.encrypted_content",
+  ]);
   assert.equal(sanitized.reasoning_effort, undefined);
 });
 
@@ -1102,6 +1105,48 @@ test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted to
   // tool_choice trỏ vào sub-tool của namespace phải được giữ nguyên (không bị xoá
   // do tên nằm trong namespace.tools[*].name đã được đăng ký vào validToolNames).
   assert.deepEqual(result.tool_choice, { type: "function", name: "jira_get_issue" });
+});
+
+test("CodexExecutor.transformRequest drops Codex local_shell tool (no longer supported upstream)", () => {
+  // Regression: OpenAI removed the `local_shell` hosted tool from the Responses API.
+  // Upstream now returns 400 "The local_shell tool is no longer supported." when
+  // Codex CLI injects `{ type: "local_shell" }` into body.tools or body.tool_choice.
+  // The executor must strip both before forwarding.
+  const executor = new CodexExecutor();
+
+  // 1) body.tools entry is dropped; sibling tools are preserved.
+  const withTool = executor.transformRequest(
+    "gpt-5.4",
+    {
+      model: "gpt-5.4",
+      input: [],
+      tools: [
+        { type: "function", name: "exec_command", parameters: { type: "object" } },
+        { type: "local_shell" },
+        { type: "image_generation", output_format: "png" },
+      ],
+    },
+    false,
+    {}
+  );
+
+  const toolTypes = (withTool.tools as Array<Record<string, unknown>>).map((t) => t.type);
+  assert.deepEqual(toolTypes, ["function", "image_generation"]);
+
+  // 2) body.tool_choice of type "local_shell" is dropped rather than forwarded.
+  const withChoice = executor.transformRequest(
+    "gpt-5.4",
+    {
+      model: "gpt-5.4",
+      input: [],
+      tools: [{ type: "function", name: "exec_command", parameters: { type: "object" } }],
+      tool_choice: { type: "local_shell" },
+    },
+    false,
+    {}
+  );
+
+  assert.equal(withChoice.tool_choice, undefined);
 });
 
 test("CodexExecutor.transformRequest preserves native Codex custom tools", () => {
