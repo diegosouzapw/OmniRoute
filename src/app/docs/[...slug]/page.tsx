@@ -8,6 +8,7 @@ import { DEFAULT_LOCALE, LOCALE_COOKIE } from "@/i18n/config";
 import fs from "node:fs";
 import path from "node:path";
 import { marked } from "marked";
+import { sanitizeDocsHtml } from "@/lib/docsSanitizer";
 
 // ── Locale detection ────────────────────────────────────────────────────────
 
@@ -28,8 +29,22 @@ function getDocsLocale(): string {
 function tryI18nFallback(slug: string[], locale: string): string | null {
   if (!locale || locale === "en") return null;
 
+  // 🛡️ Sentinel: Path traversal prevention
+  // 1. Validate locale and slug characters (only alphanumeric, dashes, underscores)
+  if (!/^[a-z0-9-]+$/i.test(locale)) return null;
+  if (!slug.every((s) => /^[a-z0-9-]+$/i.test(s))) return null;
+
   const docsRoot = path.resolve(process.cwd(), "docs");
-  const sectionDir = path.join(docsRoot, "i18n", locale, "docs", ...slug.slice(0, -1));
+  const i18nRoot = path.join(docsRoot, "i18n");
+
+  // 2. Resolve target directory absolute path
+  const sectionDir = path.resolve(i18nRoot, locale, "docs", ...slug.slice(0, -1));
+
+  // 3. Ensure the resolved path remains within docs/i18n to prevent traversal
+  if (!sectionDir.startsWith(i18nRoot)) {
+    return null;
+  }
+
   if (!fs.existsSync(sectionDir)) return null;
 
   // Fumadocs lowercases slugs — match case-insensitively against i18n dir
@@ -55,7 +70,9 @@ function tryI18nFallback(slug: string[], locale: string): string | null {
       ? raw.slice(bodyMatch.index + bodyMatch[0].length).trim()
       : raw;
 
-  return marked.parse(body) as string;
+  // 🛡️ Sentinel: XSS protection via server-side sanitization of rendered markdown
+  const html = marked.parse(body) as string;
+  return sanitizeDocsHtml(html);
 }
 
 // ── Page component ──────────────────────────────────────────────────────────
