@@ -40,6 +40,10 @@ export const PreviewRequestSchema = z.object({
   // / checkDiffHunks on FidelityGateConfig) use their conservative defaults until the studio gets
   // a config panel for them.
   fidelityGate: z.object({ enabled: z.boolean() }).optional(),
+  // Playground risk-gate toggle → masks high-risk spans (secrets/keys) before compression and
+  // restores them verbatim after, so they pass through byte-identical. Reported via
+  // result.stats.riskGate (spansProtected + per-category counts).
+  riskGate: z.object({ enabled: z.boolean() }).optional(),
   // Playground fuzzy near-duplicate toggle → injects `{ fuzzy: { enabled: true } }` into the
   // session-dedup step config (see buildStep).
   fuzzyDedup: z.object({ enabled: z.boolean() }).optional(),
@@ -87,13 +91,18 @@ async function dispatchCompression(
     config?: unknown;
     fidelityGate?: { enabled: boolean };
     fuzzyDedup?: { enabled: boolean };
+    riskGate?: { enabled: boolean };
   }
 ) {
+  // resolveRiskGate reads `options.riskGate ?? options.config.riskGate`. applyCompressionAsync
+  // does not surface a top-level `riskGate` option, so thread it through the synthesized config
+  // (CompressionConfig.riskGate) — uniform across all three branches and type-safe.
   if (opts.engineId) {
     return applyCompressionAsync(requestBody, "stacked", {
       config: {
         stackedPipeline: [buildStep(opts.engineId, opts.fuzzyDedup)],
         ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
+        ...(opts.riskGate ? { riskGate: opts.riskGate } : {}),
       } as CompressionConfig,
     });
   }
@@ -102,6 +111,7 @@ async function dispatchCompression(
       config: {
         stackedPipeline: opts.pipeline.map((engine) => buildStep(engine, opts.fuzzyDedup)),
         ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
+        ...(opts.riskGate ? { riskGate: opts.riskGate } : {}),
       } as CompressionConfig,
     });
   }
@@ -109,6 +119,7 @@ async function dispatchCompression(
     config: {
       ...(opts.config as CompressionConfig | undefined),
       ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
+      ...(opts.riskGate ? { riskGate: opts.riskGate } : {}),
     } as CompressionConfig | undefined,
   });
 }
@@ -132,7 +143,8 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages, mode, engineId, pipeline, config, fidelityGate, fuzzyDedup } = parsed.data;
+  const { messages, mode, engineId, pipeline, config, fidelityGate, fuzzyDedup, riskGate } =
+    parsed.data;
   const effectiveMode: CompressionMode =
     engineId || pipeline ? "stacked" : (mode as CompressionMode);
   const originalText = messagesToText(messages);
@@ -148,6 +160,7 @@ export async function POST(req: Request) {
       config,
       fidelityGate,
       fuzzyDedup,
+      riskGate,
     });
     const durationMs = Date.now() - start;
 
@@ -177,6 +190,7 @@ export async function POST(req: Request) {
       savingsPct,
       techniquesUsed,
       engineBreakdown,
+      riskGate: result.stats?.riskGate ?? null,
       durationMs,
       mode: effectiveMode,
       intensity: null,
