@@ -32,12 +32,20 @@ function builderStageRange(): { start: number; end: number } {
   return { start, end };
 }
 
+/**
+ * Index of the first *instruction* line matching `re`, ignoring Dockerfile
+ * comment lines (those whose trimmed text starts with `#`). #4076: a comment in
+ * the builder stage that merely mentions `npm run build` must not be mistaken for
+ * the real `RUN … npm run build` step when checking instruction ordering.
+ */
+function findInstructionIndex(stage: string[], re: RegExp): number {
+  return stage.findIndex((l) => !l.trim().startsWith("#") && re.test(l));
+}
+
 test("#4076 builder stage raises the Node heap ceiling via NODE_OPTIONS", () => {
   const { start, end } = builderStageRange();
   const stage = lines.slice(start, end);
-  const heapLineIdx = stage.findIndex(
-    (l) => /NODE_OPTIONS/.test(l) && /--max-old-space-size/.test(l)
-  );
+  const heapLineIdx = findInstructionIndex(stage, /NODE_OPTIONS.*--max-old-space-size/);
   assert.ok(
     heapLineIdx >= 0,
     "builder stage must set NODE_OPTIONS with --max-old-space-size to avoid the #4076 build OOM"
@@ -47,10 +55,8 @@ test("#4076 builder stage raises the Node heap ceiling via NODE_OPTIONS", () => 
 test("#4076 the heap ceiling is set BEFORE `npm run build` so it reaches `next build`", () => {
   const { start, end } = builderStageRange();
   const stage = lines.slice(start, end);
-  const heapLineIdx = stage.findIndex(
-    (l) => /NODE_OPTIONS/.test(l) && /--max-old-space-size/.test(l)
-  );
-  const buildLineIdx = stage.findIndex((l) => /npm run build\b/.test(l));
+  const heapLineIdx = findInstructionIndex(stage, /NODE_OPTIONS.*--max-old-space-size/);
+  const buildLineIdx = findInstructionIndex(stage, /npm run build\b/);
   assert.ok(buildLineIdx >= 0, "builder stage must run `npm run build`");
   assert.ok(heapLineIdx >= 0, "builder stage must set the heap ceiling");
   assert.ok(

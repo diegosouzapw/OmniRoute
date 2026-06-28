@@ -344,6 +344,15 @@ jobs:
 
       # Visibility scan: reports HIGH + CRITICAL into the SARIF (Security tab) but
       # never blocks (exit-code 0). The blocking gate below narrows to CRITICAL.
+      #
+      # ignore-unfixed mirrors the blocking gate: the Security tab must surface only
+      # ACTIONABLE vulnerabilities — ones with a published fix we can pull by rebuilding
+      # on a patched base or bumping the dep. Without it the advisory upload floods the
+      # tab with unfixable base-image OS CVEs (Debian trixie packages with no upstream
+      # patch yet, overwhelmingly local-only and not reachable from the proxy request
+      # surface), which is noise an operator cannot act on. trivyignores points at the
+      # repo-root .trivyignore so accepted-risk fixable CVEs have one auditable home.
+      # See docs/security/SUPPLY_CHAIN.md.
       - name: Trivy image scan (SARIF, advisory)
         if: needs.prepare.outputs.version != 'main'
         continue-on-error: true
@@ -353,6 +362,8 @@ jobs:
           format: sarif
           output: trivy-results.sarif
           severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          trivyignores: .trivyignore
           exit-code: "0"
 
       # BLOCKING gate (v3.8.27 cycle-end): fail the release on a CRITICAL CVE in the

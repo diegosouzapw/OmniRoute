@@ -72,10 +72,10 @@ test("usage service covers GitHub free-plan parsing, auth denial and unsupported
   assert.equal(freeUsage.quotas.completions.used, 0);
   assert.equal(freeUsage.quotas.completions.remainingPercentage, 100);
   assert.equal(calls[0].headers.Authorization, "token gho-free");
-  assert.equal(calls[0].headers["User-Agent"], "GitHubCopilotChat/0.45.1");
-  assert.equal(calls[0].headers["Editor-Version"], "vscode/1.117.0");
-  assert.equal(calls[0].headers["Editor-Plugin-Version"], "copilot-chat/0.45.1");
-  assert.equal(calls[0].headers["X-GitHub-Api-Version"], "2025-04-01");
+  assert.equal(calls[0].headers["User-Agent"], "GitHubCopilotChat/0.54.0");
+  assert.equal(calls[0].headers["Editor-Version"], "vscode/1.126.0");
+  assert.equal(calls[0].headers["Editor-Plugin-Version"], "copilot-chat/0.54.0");
+  assert.equal(calls[0].headers["X-GitHub-Api-Version"], "2026-06-01");
 
   globalThis.fetch = async () => new Response("forbidden", { status: 403 });
   const forbidden: any = await usageService.getUsageForProvider({

@@ -6,6 +6,7 @@ import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
+import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
 
 function normalizeToolName(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -87,6 +88,10 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
   const choice = chunk.choices[0];
   const idx = choice.index || 0;
   const delta = choice.delta || {};
+  if (state.parseTextualReasoningTags !== true && typeof chunk.model === "string") {
+    state.parseTextualReasoningTags = shouldParseTextualReasoningTags(undefined, chunk.model);
+  }
+  const parseTextualReasoningTags = state.parseTextualReasoningTags === true;
 
   // Emit initial events
   if (!state.started) {
@@ -117,50 +122,45 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     });
   }
 
-  // Handle reasoning_content
   if (delta.reasoning_content) {
     startReasoning(state, emit, idx);
     emitReasoningDelta(state, emit, delta.reasoning_content);
   }
-
-  // Handle text content
   if (delta.content) {
-    // Close reasoning if it was opened via native reasoning_content and is
-    // still open, before emitting message content. Otherwise the reasoning
-    // item is never closed and the message reuses its output_index.
-    // Guard on !inThinking: reasoning opened via <think> tags is closed by its
-    // matching </think> below — force-closing it here would snapshot a partial
-    // buffer (dense output records the item at close time). (#4848 + #4906)
-    if (state.reasoningId && !state.reasoningDone && !state.inThinking) {
+    if (
+      state.reasoningId &&
+      !state.reasoningDone &&
+      (!parseTextualReasoningTags || !state.inThinking)
+    ) {
       closeReasoning(state, emit);
     }
 
     let content = delta.content;
 
-    if (content.includes("<think>")) {
-      state.inThinking = true;
-      content = content.replaceAll("<think>", "");
-      startReasoning(state, emit, idx);
-    }
+    if (parseTextualReasoningTags) {
+      if (content.includes("<think>")) {
+        state.inThinking = true;
+        content = content.replaceAll("<think>", "");
+        startReasoning(state, emit, idx);
+      }
 
-    if (content.includes("</think>")) {
-      const parts = content.split("</think>");
-      const thinkPart = parts[0];
-      const textPart = parts.slice(1).join("</think>");
-      if (thinkPart) emitReasoningDelta(state, emit, thinkPart);
-      closeReasoning(state, emit);
-      state.inThinking = false;
-      content = textPart;
-    }
+      if (content.includes("</think>")) {
+        const parts = content.split("</think>");
+        const thinkPart = parts[0];
+        const textPart = parts.slice(1).join("</think>");
+        if (thinkPart) emitReasoningDelta(state, emit, thinkPart);
+        closeReasoning(state, emit);
+        state.inThinking = false;
+        content = textPart;
+      }
 
-    if (state.inThinking && content) {
-      emitReasoningDelta(state, emit, content);
-      return events;
+      if (state.inThinking && content) {
+        emitReasoningDelta(state, emit, content);
+        return events;
+      }
     }
 
     if (content) {
-      // Use a distinct output_index for the message when reasoning was
-      // emitted, so the message item does not collide with the reasoning item.
       const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
       emitTextContent(state, emit, msgIdx, content);
     }

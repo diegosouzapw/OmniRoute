@@ -12,7 +12,7 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 
 // ---------- Versions ------------------------------------------------------
 
-export const CLAUDE_CODE_VERSION = "2.1.187";
+export const CLAUDE_CODE_VERSION = "2.1.195";
 /** Bundled @anthropic-ai/sdk version for the pinned CLI release. */
 export const CLAUDE_CODE_STAINLESS_VERSION = "0.94.0";
 

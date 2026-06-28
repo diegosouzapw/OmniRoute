@@ -50,11 +50,17 @@ export function mergeClientAnthropicBeta(
   clientBeta: string | null | undefined,
   allow: readonly string[] = FORWARDABLE_CLIENT_BETAS
 ): string {
-  const baseList = base.split(",").map((s) => s.trim()).filter(Boolean);
+  const baseList = base
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   if (typeof clientBeta !== "string" || !clientBeta.trim()) return baseList.join(",");
   const seen = new Set(baseList.map((s) => s.toLowerCase()));
   const allowSet = new Set(allow.map((s) => s.toLowerCase()));
-  for (const token of clientBeta.split(",").map((s) => s.trim()).filter(Boolean)) {
+  for (const token of clientBeta
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)) {
     const lower = token.toLowerCase();
     if (allowSet.has(lower) && !seen.has(lower)) {
       baseList.push(token);
@@ -115,7 +121,7 @@ export function normalizeAnthropicHeaderVariants(headers: Record<string, string>
   }
 }
 
-export const CLAUDE_CLI_VERSION = "2.1.187";
+export const CLAUDE_CLI_VERSION = "2.1.195";
 export const CLAUDE_CLI_USER_AGENT = `claude-cli/${CLAUDE_CLI_VERSION} (external, cli)`;
 export const CLAUDE_CLI_STAINLESS_PACKAGE_VERSION = "0.94.0";
 export const CLAUDE_CLI_STAINLESS_RUNTIME_VERSION = "v24.3.0";
