@@ -5,7 +5,7 @@
  * local-usage fallback, code-assist tier/plan mapping, credit-balance probing, the user-quota
  * + available-models fetchers (with their module-level caches), and getAntigravityUsage. The
  * 4 data caches + their proactive TTL-purge setInterval move here as a self-contained unit
- * (previously the purge timer was shared with the Gemini CLI cache in usage.ts; that timer was
+ * (previously the purge timer lived in usage.ts; that timer was
  * split so each module owns its own caches + cleanup). usage.ts imports getAntigravityUsage
  * (dispatcher) + getAntigravityPlanLabel/mapCodeAssist* (__testing). Behavior-preserving move.
  */

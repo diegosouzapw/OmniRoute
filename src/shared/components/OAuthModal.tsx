@@ -9,7 +9,7 @@ import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { parseResponseBody, getErrorMessage } from "@/shared/utils/api";
 import { isCredentialBlob, submitCredentialBlob } from "@/shared/components/oauthBlobSubmit";
 
-const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy", "gemini-cli"]);
+const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy"]);
 
 /** Providers that use a local callback server on a random port (PKCE browser flow). */
 const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex"]);
@@ -160,9 +160,7 @@ export default function OAuthModal({
           setError(
             "redirect_uri_mismatch: The default Google OAuth credentials only work on localhost. " +
               "For remote use, configure your own OAuth credentials via environment variables: " +
-              (provider === "antigravity"
-                ? "ANTIGRAVITY_OAUTH_CLIENT_ID and ANTIGRAVITY_OAUTH_CLIENT_SECRET"
-                : "GEMINI_CLI_OAUTH_CLIENT_ID and GEMINI_CLI_OAUTH_CLIENT_SECRET") +
+              "ANTIGRAVITY_OAUTH_CLIENT_ID and ANTIGRAVITY_OAUTH_CLIENT_SECRET" +
               ". See the README section 'OAuth on a Remote Server'."
           );
         } else {
@@ -393,7 +391,7 @@ export default function OAuthModal({
       // - Codex/OpenAI: always port 1455 (registered in OAuth app)
       // - Windsurf/Devin CLI (remote fallback): use localhost with OmniRoute port + /auth/callback
       //   (on true localhost the callback server handles it; this is only reached on remote)
-      // - Google OAuth providers (antigravity, gemini-cli): default to loopback so the
+      // - Google OAuth providers (antigravity/agy): default to loopback so the
       //   bundled native/desktop credentials keep working. Prefer 127.0.0.1 over
       //   localhost for the Google native-app handoff; Google documents that localhost
       //   can run into local firewall/name-resolution edge cases. The authorize route
@@ -854,7 +852,7 @@ export default function OAuthModal({
                     </div>
                   )}
                   {/* Actionable remote paste instruction — shown for ALL remote providers,
-                      including Google OAuth (antigravity/agy/gemini-cli). The Google
+                      including Google OAuth (antigravity/agy). The Google
                       loopback creds redirect to 127.0.0.1:<port>/callback, which on a
                       remotely-accessed dashboard lands on the operator's own machine and
                       shows a "can't reach this page" error. That is expected: the URL bar

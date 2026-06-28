@@ -8,20 +8,9 @@ import {
   isBedrockNativeApiError,
   isBedrockNativeAuthError,
 } from "@omniroute/open-sse/services/bedrock.ts";
-import {
-  addModelsSuffix,
-  normalizeBaseUrl,
-  resolveChatUrl,
-} from "./urlHelpers";
-import {
-  applyCustomUserAgent,
-  buildBearerHeaders,
-} from "./headers";
-import {
-  toValidationErrorResult,
-  validationRead,
-  validationWrite,
-} from "./transport";
+import { addModelsSuffix, normalizeBaseUrl, resolveChatUrl } from "./urlHelpers";
+import { applyCustomUserAgent, buildBearerHeaders } from "./headers";
+import { toValidationErrorResult, validationRead, validationWrite } from "./transport";
 import { validateDirectChatProvider } from "./directChatProbe";
 
 export async function validateBedrockProvider({ apiKey, providerSpecificData = {} }: any) {
@@ -64,7 +53,6 @@ export async function validateBedrockProvider({ apiKey, providerSpecificData = {
     return toValidationErrorResult(error);
   }
 }
-
 
 export async function validateOpenAILikeProvider({
   provider = "openai",
@@ -173,7 +161,6 @@ export async function validateOpenAILikeProvider({
   }
 }
 
-
 export async function validateCommandCodeProvider({ apiKey, providerSpecificData = {} }: any) {
   const entry = getRegistryEntry("command-code");
   const baseUrl = normalizeBaseUrl(entry?.baseUrl || "https://api.commandcode.ai");
@@ -225,7 +212,6 @@ export async function validateCommandCodeProvider({ apiKey, providerSpecificData
     },
   });
 }
-
 
 // HuggingFace fine-grained Inference-Provider tokens are valid even when
 // model/task endpoints reject them, so the generic OpenAI-like probe against
@@ -282,16 +268,15 @@ export async function validateGeminiLikeProvider({
         : `${baseForModels}/models`;
 
     // Use the correct auth header based on provider config:
-    // - gemini / gemini-cli (API key): x-goog-api-key
-    // - gemini-cli (OAuth): Bearer token
+    // - gemini (API key): x-goog-api-key
+    // - Google OAuth access tokens (ya29.*): Bearer token
     const headers: Record<string, string> = {};
     let urlWithKey = requestUrl;
 
     if (typeof apiKey === "string" && apiKey.startsWith("ya29.")) {
       // A Google OAuth access token (ya29.*) must use Bearer auth even when the
-      // connection is configured as an API-key provider — gemini-cli OAuth stores the
-      // access token in the apiKey field. Checked first so authType "apikey"/"header"
-      // doesn't shadow it with x-goog-api-key.
+      // connection is configured as an API-key provider. Checked first so authType
+      // "apikey"/"header" doesn't shadow it with x-goog-api-key.
       headers["Authorization"] = `Bearer ${apiKey}`;
     } else if (normalizedAuthType === "header" || normalizedAuthType === "apikey") {
       headers["x-goog-api-key"] = apiKey;
@@ -361,7 +346,6 @@ export async function validateGeminiLikeProvider({
 }
 
 // ── Specialty providers (non-standard APIs) ──
-
 
 export async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData = {} }: any) {
   const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
@@ -499,4 +483,3 @@ export async function validateOpenAICompatibleProvider({ apiKey, providerSpecifi
     return toValidationErrorResult(error);
   }
 }
-

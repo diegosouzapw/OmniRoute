@@ -2,7 +2,7 @@
  * Paste-safe credential blob codec for the remote OAuth login helper.
  *
  * Why this exists: Google's `firstparty/nativeapp` consent for embedded desktop
- * clients (Antigravity, gemini-cli) only releases the authorization code when the
+ * clients (Antigravity/agy) only releases the authorization code when the
  * loopback redirect (127.0.0.1:<port>) is reachable. On a remote VPS install the
  * loopback is unreachable, so the consent hangs and never emits a code — there is
  * nothing for the user to paste back. (The same flow works locally and over an SSH

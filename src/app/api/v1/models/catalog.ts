@@ -79,7 +79,6 @@ const FALLBACK_ALIAS_TO_PROVIDER = {
   cl: "cline",
   cu: "cursor",
   cx: "codex",
-  gc: "gemini-cli",
   gh: "github",
   kc: "kilocode",
   kmc: "kimi-coding",
@@ -172,7 +171,11 @@ function getVisionCapabilityFields(modelId: string) {
 export function getCustomVisionCapabilityFields(
   entry: { supportsVision?: boolean } | null | undefined,
   ...candidateIds: Array<string | null | undefined>
-): { capabilities: { vision: true }; input_modalities: string[]; output_modalities: string[] } | null {
+): {
+  capabilities: { vision: true };
+  input_modalities: string[];
+  output_modalities: string[];
+} | null {
   if (entry && entry.supportsVision === false) return null;
   if (entry && entry.supportsVision === true) {
     return {
@@ -1302,9 +1305,7 @@ export async function getUnifiedModelsResponse(
             continue;
           }
           const visionFields =
-            modelType === "chat"
-              ? getCustomVisionCapabilityFields(model, aliasId, modelId)
-              : null;
+            modelType === "chat" ? getCustomVisionCapabilityFields(model, aliasId, modelId) : null;
 
           if (includeAlias) {
             models.push({

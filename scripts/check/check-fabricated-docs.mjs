@@ -107,8 +107,6 @@ const ENV_VAR_ALLOWLIST = new Set([
   "NINEROUTER_API_KEY", // injected into the 9router subprocess at spawn (EMBEDDED-SERVICES.md)
   "CLAUDE_CODE_MAX_OUTPUT_TOKENS", // Claude Code CLI's own env var (CODEX-CLI-CONFIGURATION.md)
   "CODEX_HOME", // Codex CLI's own config-home env var (CODEX-CLI-CONFIGURATION.md)
-  "GEMINI_API_KEY", // Gemini CLI's own API-key env var, set by `omniroute setup-gemini` (REMOTE-MODE.md)
-  "GOOGLE_GEMINI_BASE_URL", // Gemini CLI's own base-URL env var, set by `omniroute setup-gemini` (REMOTE-MODE.md)
   "OPENAI_API_BASE", // legacy OpenAI base-URL env var some downstream tools (e.g. Aider) read (CLI-INTEGRATIONS.md)
   "PROMPTFOO_PROVIDER_KEY", // promptfoo's own provider-key env var, used by the red-team suite (GUARDRAILS.md)
   "REDIS_PORT", // docker-compose host-port override (DOCKER_GUIDE.md)

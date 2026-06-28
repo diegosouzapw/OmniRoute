@@ -24,7 +24,7 @@ function isSafeEntryName(name: string): boolean {
   return true;
 }
 
-export function extractGeminiAuthZip(
+export function extractJsonZip(
   zipBuffer: Buffer,
   options: ExtractZipOptions = {}
 ): ExtractedZipFile[] {

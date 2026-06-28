@@ -702,7 +702,7 @@ export const testComboTool: McpToolDefinition<typeof testComboInput, typeof test
 
 // --- Tool 14: omniroute_get_provider_metrics ---
 export const getProviderMetricsInput = z.object({
-  provider: z.string().describe("Provider name (e.g., 'claude', 'gemini-cli', 'codex')"),
+  provider: z.string().describe("Provider name (e.g., 'claude', 'antigravity', 'codex')"),
 });
 
 export const getProviderMetricsOutput = z.object({

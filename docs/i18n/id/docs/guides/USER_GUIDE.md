@@ -26,7 +26,6 @@ Panduan lengkap untuk mengonfigurasi penyedia, membuat combo, mengintegrasikan a
 | ------------------- | ----------------- | ----------- | ---------------- | -------------------------- |
 | **💳 LANGGANAN**    | Claude Code (Pro) | $20/bln     | 5j + mingguan    | Sudah berlangganan         |
 |                     | Codex (Plus/Pro)  | $20-200/bln | 5j + mingguan    | Pengguna OpenAI            |
-|                     | Gemini CLI        | **GRATIS**  | 180K/bln + 1K/hr | Semua orang!               |
 |                     | GitHub Copilot    | $10-19/bln  | Bulanan          | Pengguna GitHub            |
 | **🔑 KUNCI API**    | DeepSeek          | Bayar pakai | Tidak ada        | Penalaran murah            |
 |                     | Groq              | Bayar pakai | Tidak ada        | Inferensi sangat cepat     |
@@ -45,7 +44,6 @@ Panduan lengkap untuk mengonfigurasi penyedia, membuat combo, mengintegrasikan a
 |                     | Qwen              | $0          | Tidak terbatas   | 3 model gratis             |
 |                     | Kiro              | $0          | Tidak terbatas   | Claude gratis              |
 
-**💡 Tips Pro:** Mulai dengan combo Gemini CLI (180K gratis/bulan) + Qoder (gratis tanpa batas) = biaya $0!
 
 ---
 
@@ -142,10 +140,8 @@ Models:
   cx/gpt-5.1-codex-max
 ```
 
-#### Gemini CLI (GRATIS 180K/bulan!)
 
 ```bash
-Dashboard → Providers → Connect Gemini CLI
 → Google OAuth
 → 180K completions/month + 1K/day
 
@@ -558,7 +554,6 @@ Untuk referensi variabel lingkungan lengkap, lihat [README](../README.md).
 
 **Codex (`cx/`)** — Plus/Pro: `cx/gpt-5.2-codex`, `cx/gpt-5.1-codex-max`
 
-**Gemini CLI (`gc/`)** — GRATIS: `gc/gemini-3-flash-preview`, `gc/gemini-2.5-pro`
 
 **GitHub Copilot (`gh/`)**: `gh/gpt-5`, `gh/claude-4.5-sonnet`
 

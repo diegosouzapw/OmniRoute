@@ -18,7 +18,7 @@ test("FREE_TIER_BUDGETS holds positive integer monthly-token budgets", () => {
 });
 
 test("FREE_TIER_TOS marks proxy-prohibited providers as avoid", () => {
-  for (const id of ["kiro", "gemini-cli", "amazon-q", "blackbox", "fireworks"]) {
+  for (const id of ["kiro", "amazon-q", "blackbox", "fireworks"]) {
     assert.equal(FREE_TIER_TOS[id], "avoid", `${id} must be flagged avoid`);
   }
 });

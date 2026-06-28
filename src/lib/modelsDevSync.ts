@@ -153,7 +153,7 @@ const MODELS_DEV_PROVIDER_MAP: Record<string, string[]> = {
   // Major providers
   openai: ["openai", "cx"], // cx = Codex (uses OpenAI models)
   anthropic: ["anthropic", "cc"], // cc = Claude Code
-  google: ["gemini", "gemini-cli"],
+  google: ["gemini"],
   "google-vertex": ["gemini", "vertex"],
   "google-vertex-anthropic": ["anthropic", "cc", "vertex"],
   vertex_ai: ["gemini", "vertex"],

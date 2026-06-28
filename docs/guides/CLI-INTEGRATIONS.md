@@ -49,7 +49,6 @@ server and writes the config locally.
 | `omniroute setup-goose` | Goose | `~/.config/goose/config.yaml` (`GOOSE_PROVIDER`/`OPENAI_HOST`/`GOOSE_MODEL`) + prints env recipe | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path` | Both |
 | `omniroute setup-qwen` | Qwen Code | `~/.qwen/settings.json` — openai `modelProvider`, key via `envKey` (`OMNIROUTE_API_KEY`) | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path` | Both |
 | `omniroute setup-aider` | Aider | `~/.aider.conf.yml` (`openai-api-base` + `model: openai/<id>`) + prints env recipe | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path` | Both |
-| `omniroute setup-gemini` | Gemini CLI (native) | `~/.gemini/settings.json` (`model`) + prints env recipe; base URL is env-only | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path` | Both |
 | `omniroute launch` | Claude Code | Nothing — spawns `claude` with `ANTHROPIC_BASE_URL`/`ANTHROPIC_AUTH_TOKEN` injected | `--remote` `--api-key` `--token` `--profile` `--port` | Both |
 | `omniroute launch-codex` | OpenAI Codex CLI | Nothing — spawns `codex` with the `omniroute` provider injected via `-c` flags | `--remote` `--api-key` `--profile` (`-p`) `--port` | Both |
 
@@ -65,7 +64,7 @@ Notes on flags (verified in the command source):
   filesystem. Available on every `setup-*` command **except** `setup-cursor`
   (which never writes a file).
 - `--model <id>` — required (or picked interactively) for the tools that have no
-  model auto-discovery: Cline, Kilo, Roo, Goose, Qwen, Aider, Gemini. Those tools
+  model auto-discovery: Cline, Kilo, Roo, Goose, Qwen, Aider. Those tools
   also accept `--yes` for non-interactive runs (which then requires `--model`).
   `setup-opencode` takes `--model` to set the default top-level model.
 - `--port <port>` — local OmniRoute port (default `20128`, ignored when `--remote`
@@ -165,11 +164,6 @@ tool expects (verified in the command source):
 | `setup-kilo`, `setup-roo`, `setup-continue`, `setup-crush`, `setup-qwen`, `setup-cursor` | with `/v1` | Yes |
 | `setup-claude` (`ANTHROPIC_BASE_URL`), `launch` | root | No — Claude Code appends `/v1/messages` |
 | `setup-codex`, `launch-codex` (`model_providers.omniroute.base_url`) | with `/v1` | Yes |
-| `setup-gemini` (`GOOGLE_GEMINI_BASE_URL`) | root | No — the genai SDK appends `/v1beta` |
-
-> Gemini CLI caveat: a cached Google login can make the CLI ignore
-> `GOOGLE_GEMINI_BASE_URL`. Run it logged-out / API-key-only so the base URL takes
-> effect (`setup-gemini` prints this warning too).
 
 ---
 

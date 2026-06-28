@@ -51,7 +51,6 @@ The v3.7.x → v3.8.0 cycle added zero-config auto routing, new providers, OAuth
 
 ## 🔌 Providers
 
-Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
 
 OpenRouter connections can store a per-connection `preset` in Advanced Settings. When set, OmniRoute sends it as the OpenRouter top-level request field, for example `"preset": "email-copywriter"`, unless the client request already supplied its own `preset`.
 
@@ -128,7 +127,6 @@ Comprehensive settings panel with **7 tabs**:
 
 ## 🔧 CLI Tools
 
-One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
 
 ![CLI Tools Dashboard](../screenshots/07-cli-tools.png)
 
@@ -136,7 +134,6 @@ One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI,
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 18 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
 
 - **Installation status** — Installed / Not Found with version detection
 - **Protocol badges** — stdio, HTTP, etc.

@@ -912,7 +912,6 @@ Each provider has a specialized executor extending `BaseExecutor` (in `open-sse/
 | `CommandCodeExecutor`    | Command Code                                                                                                                                                | OAuth + per-session header rotation                                  |
 | `CursorExecutor`         | Cursor IDE                                                                                                                                                  | ConnectRPC protocol, Protobuf encoding, request signing via checksum |
 | `DevinCliExecutor`       | Devin CLI                                                                                                                                                   | Devin task lifecycle bridging via cloud agent module                 |
-| `GeminiCLIExecutor`      | Gemini CLI                                                                                                                                                  | Google OAuth token refresh cycle                                     |
 | `GithubExecutor`         | GitHub Copilot                                                                                                                                              | Copilot token refresh, VSCode-mimicking headers                      |
 | `GitlabExecutor`         | GitLab Duo                                                                                                                                                  | GitLab OAuth + project-scoped routing                                |
 | `GlmExecutor`            | Z.AI GLM (incl. `glmt` preset)                                                                                                                              | Thinking-budget aware, GLMT preset constants                         |
@@ -943,7 +942,6 @@ All other providers (including custom compatible nodes) use the `DefaultExecutor
 | ----------------- | ---------------- | --------------------- | ---------------- | ---------- | ------------- | ------------------ |
 | Claude            | claude           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Admin only      |
 | Gemini            | gemini           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
-| Gemini CLI        | gemini-cli       | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
 | Antigravity       | antigravity      | OAuth                 | ✅               | ✅         | ✅            | ✅ Full quota API  |
 | OpenAI            | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
 | Codex             | openai-responses | OAuth                 | ✅ forced        | ❌         | ✅            | ✅ Rate limits     |

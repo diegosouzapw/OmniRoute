@@ -1478,29 +1478,6 @@
       "stream": "https://generativelanguage.googleapis.com/v1beta/models/test-model:streamGenerateContent?alt=sse"
     }
   },
-  "gemini-cli": {
-    "format": "gemini-cli",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Content-Type": "application/json",
-        "x-goog-api-key": "<CRED>"
-      },
-      "nonStream": {
-        "Content-Type": "application/json",
-        "x-goog-api-key": "<CRED>"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      }
-    },
-    "url": {
-      "nonStream": "https://cloudcode-pa.googleapis.com/v1internal:generateContent",
-      "stream": "https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse"
-    }
-  },
   "gemini-web": {
     "format": "openai",
     "headers": {

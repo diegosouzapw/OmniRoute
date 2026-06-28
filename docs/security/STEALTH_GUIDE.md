@@ -222,7 +222,6 @@ All MITM endpoints require management auth (`requireCliToolsAuth`). The sudo pas
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                   |
 | `QWEN_USER_AGENT`        | `QwenCode/0.15.9 (linux; x64)`                |
 | `CURSOR_USER_AGENT`      | `Cursor/3.3`                                  |
-| `GEMINI_CLI_USER_AGENT`  | `google-api-nodejs-client/10.3.0`             |
 
 Consumed by `open-sse/executors/base.ts::buildHeaders()` via dynamic lookup. **Bump these when providers release new CLI versions** — stale UA strings start getting rejected as outdated clients.
 

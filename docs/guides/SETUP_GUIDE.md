@@ -162,7 +162,6 @@ Chat URL: http://localhost:20128/api/v1/vscode/YOUR_KEY/chat/completions
 Ollama Tags URL: http://localhost:20128/api/v1/vscode/YOUR_KEY/api/tags
 ```
 
-Works with Claude Code, Codex CLI, Gemini CLI, Cursor, Cline, OpenClaw, OpenCode, and OpenAI-compatible SDKs.
 
 #### Auto-configure with `setup-*`
 
@@ -182,7 +181,6 @@ omniroute setup-crush        # ~/.config/crush/crush.json
 omniroute setup-goose        # ~/.config/goose/config.yaml
 omniroute setup-qwen         # ~/.qwen/settings.json
 omniroute setup-aider        # ~/.aider.conf.yml
-omniroute setup-gemini       # Gemini CLI (native /v1beta endpoint)
 ```
 
 Each accepts `--remote <url> --api-key <key>` to configure a local tool against a

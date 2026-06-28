@@ -53,7 +53,6 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 - Daily token cap → `monthly = daily × 30`. Only RPD documented → `RPD × ~800 output tokens × 30`. Only RPM/TPM (no daily cap) → **uncapped** (see below).
 - **Permanently free, but no published token cap** (`siliconflow`, `glm-cn`, `tencent`, `baidu`, `kilo-gateway`, `opencode-zen`): these are real recurring free access, rate/concurrency-limited. We classify them `recurring-uncapped` and **never sum them** — multiplying `RPM × 24/7 × 30d` would produce a fantasy ceiling (the inflation we reject). They are listed so you know they exist.
 - **Deposit-unlock boost:** a one-time small top-up that permanently raises a free quota (OpenRouter: $10 → 1000 req/day ≈ +24M/mo). Reported as a separate figure, kept out of the steady headline.
-- **A note on terms.** Some providers have personal-use or proxy clauses worth a glance before you lean on them (see the [provider-terms table](#tos-attention-table)). Their access is real — we simply don't fold the **un-quantifiable** OAuth/keyless ones (e.g. `gemini-cli`, `agy`, `amazon-q` — they share quota already counted under the base provider) into the headline. None of this is legal advice; you decide.
 
 ---
 
@@ -77,7 +76,6 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 | `featherless-ai` | Individual plans explicitly restricted to "interactive use or proto-typing and experimentation by the purchaser" — inference resale and proxy use req… |
 | `fireworks` | ToS explicitly prohibits proxy/intermediary use, API key transfers, and sublicensing (Sections 2.1 and 2.2(i)(j)); self-hosted personal proxies are n… |
 | `friendliai` | ToS Section 8(e) and 8(f) explicitly prohibit using FriendliAI as a proxy or allowing third-party access on a standalone basis, and forbid reselling/… |
-| `gemini-cli` | Google explicitly prohibits using Gemini CLI's OAuth authentication with third-party software/proxies; violations result in account bans (mass bans w… |
 | `iflytek` | Section 2.4(3) of the iFlytek Spark LLM Service Agreement explicitly prohibits "using any automated or programmatic methods to extract data or output… |
 | `kiro` | Kiro FAQ explicitly prohibits use with "OpenClaw and similar tools that leverage third-party harnesses" — a self-hosted AI proxy (like OmniRoute) rou… |
 | `modal` | ToS Section 1.3 explicitly prohibits "rent, resell or otherwise allow any third party direct access to or use of the Service" — building a self-hoste… |
@@ -103,7 +101,6 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 | `nous-research` | ambiguous | Nous Portal itself is an aggregator/proxy service; using it as a backend for another self-hosted proxy creates a proxy-… |
 | `ollama-cloud` | ambiguous | ToS prohibits using the service "to develop competing products" but has no explicit ban on self-hosted personal proxies… |
 | `stepfun` | ambiguous | No explicit prohibition on self-hosted personal proxy found, but the Step Plan ToS targets developers using specific co… |
-| `agentrouter` | caution | No published ToS found; platform restricts accepted clients to specific AI coding tools (Claude Code, Codex, Gemini CLI… |
 | `api-airforce` | caution | ToS explicitly prohibits "building competing services without permission" and "credential sharing" — a self-hosted pers… |
 | `arcee-ai` | caution | Free access is via OpenRouter's :free routing layer (not Arcee's direct API terms); OpenRouter ToS permits personal dev… |
 | `baidu` | caution | ToS not explicitly reviewed for proxy/resale clauses, but platform requires real-name authentication (Chinese ID typica… |
@@ -229,7 +226,6 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 | `duckduckgo-web` | keyless | — | — | avoid | 6 |
 | `freemodel-dev` | keyless | — | — | unknown | 4 |
 | `friendliai` | keyless | — | — | avoid | 2 |
-| `gemini-cli` | keyless | — | — | avoid | 9 |
 | `hackclub` | keyless | — | — | caution | 3 |
 | `iflytek` | keyless | — | — | avoid | 1 |
 | `inference-net` | keyless | — | — | caution | 3 |
@@ -286,7 +282,6 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 - **`freemodel-dev`** — Our shipped freeNote is "(none)" — this was likely a placeholder meaning the provider was not yet cataloged. In reality the provider does have a $300 one-time trial credit offer. However, this is a o…
 - **`friendliai`** — The shipped freeNote ("Free tier for serverless inference") is partially accurate but misleading. There is free access via Tier 0 and free-designated models, but the rate limits are undefined and ada…
 - **`gemini`** — The shipped freeNote says "1,500 req/day for Gemini 2.5 Flash" — this was accurate before December 2025. Google cut free-tier limits by 50-80% in December 2025, reducing Gemini 2.5 Flash from 1,500 R…
-- **`gemini-cli`** — Catalog ships "(none)" implying no free tier was recognized. In reality, Gemini CLI did have a notable free OAuth tier (1,000 RPD via Google Account) until recently, but it is now being shut down (Ju…
 - **`github-models`** — Catalog note "Free GPT-5, o-series, DeepSeek-R1, Llama 4, Grok 3" is directionally correct about model availability but omits the daily rate limits (50 RPD for high-tier models, 150 RPD for low-tier)…
 - **`gitlawb`** — The shipped freeNote "Free tier available" is effectively stale. The original free MiMo access was removed in May 2026; the only remaining "free" option is a temporary promotional model (Nemotron 3 U…
 - **`gitlawb-gmi`** — Partially still accurate — free tier exists but is now narrowed to a single model (Nemotron 3 Ultra) after MiMo free access was revoked in late May 2026. The shipped note "Free tier available" unders…

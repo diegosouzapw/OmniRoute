@@ -56,7 +56,6 @@ omniroute setup-codex        omniroute setup-claude       omniroute setup-openco
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
-omniroute setup-gemini
 ```
 
 Each accepts `--remote <url> --api-key <key>` (configure a local tool against a
@@ -111,7 +110,6 @@ Tools that support custom base URL and appear in `/dashboard/cli-code`:
 | opencode | OpenCode | Anomaly (ex-SST) | full | guide | true |
 | droid | Factory Droid | Factory AI | partial | guide | false |
 | copilot | GitHub Copilot CLI | GitHub/MS | full | custom | false |
-| gemini-cli | Gemini CLI | Google | partial | guide | true |
 | cursor-cli | Cursor CLI | Anysphere | partial | guide | true |
 | smelt | Smelt | leonardcser (OSS) | full | custom | false |
 | pi | Pi (pi-coding-agent) | M. Zechner (OSS) | full | custom | false |
@@ -140,7 +138,6 @@ Autonomous agents that appear in `/dashboard/cli-agents`:
 
 This page (renamed from `/dashboard/agents`) shows CLIs that OmniRoute can **spawn** as backend execution engines via stdio/ACP protocol. The catalog is maintained separately in `src/lib/acp/registry.ts` and is **not** the same as `CLI_TOOLS`.
 
-Current ACP-spawnable CLIs (from `acpSpawnable: true` in `CLI_TOOLS` + ACP registry): codex, claude, goose, gemini-cli, openclaw, aider, opencode, cline, qwen-code, forge, interpreter, cursor-cli, warp.
 
 ---
 

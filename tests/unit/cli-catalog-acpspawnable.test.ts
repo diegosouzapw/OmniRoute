@@ -12,7 +12,6 @@ const ACP_SPAWNABLE_IDS = [
   "codex",
   "claude",
   "goose",
-  "gemini-cli",
   "openclaw",
   "aider",
   "opencode",

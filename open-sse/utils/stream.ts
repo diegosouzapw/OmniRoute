@@ -1934,9 +1934,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           // Cloud Code API wraps in { response: { candidates: [...] } }, so unwrap.
           // Only applies to Gemini-family formats — skip for OpenAI, Claude, etc.
           const isGeminiFormat =
-            targetFormat === FORMATS.GEMINI ||
-            targetFormat === FORMATS.GEMINI_CLI ||
-            targetFormat === FORMATS.ANTIGRAVITY;
+            targetFormat === FORMATS.GEMINI || targetFormat === FORMATS.ANTIGRAVITY;
           const geminiChunk = isGeminiFormat ? unwrapGeminiChunk(parsed) : parsed;
           if (geminiChunk.candidates?.[0]?.content?.parts) {
             for (const part of geminiChunk.candidates[0].content.parts) {

@@ -132,7 +132,6 @@ This document catalogs every known method for accessing LLMs without paying — 
 
 | Tool | Token Location | Token Type | Feasibility | Notes |
 |------|---------------|------------|-------------|-------|
-| `gemini-cli` | `~/.gemini/oauth_creds.json` | OAuth refresh token | 5 | Already used by gemini-cli provider |
 | `claude-code` | `~/.claude/credentials` | OAuth token | 5 | Already used by claude-code provider |
 | `copilot-cli` | `~/.config/github-copilot/` | OAuth token | 4 | Used by copilot provider |
 | `codex-cli` | `~/.codex/` | OAuth token | 4 | Used by codex provider |

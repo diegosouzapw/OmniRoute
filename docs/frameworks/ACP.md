@@ -4,7 +4,6 @@ title: ACP (Agent Client Protocol)
 
 # ACP (Agent Client Protocol)
 
-> **TL;DR**: ACP lets OmniRoute spawn CLI agents (like Claude Code, Codex, Gemini CLI) as child processes instead of using HTTP APIs. This gives you "CLI-as-backend" transport.
 
 ---
 
@@ -34,7 +33,6 @@ ACP supports **14 built-in CLI agents** out of the box:
 | `codex`       | OpenAI Codex CLI   | `codex`       | stdio    |
 | `claude`      | Claude Code CLI    | `claude`      | stdio    |
 | `goose`       | Goose CLI          | `goose`       | stdio    |
-| `gemini-cli`  | Gemini CLI         | `gemini`      | stdio    |
 | `openclaw`    | OpenClaw           | `openclaw`    | stdio    |
 | `aider`       | Aider              | `aider`       | stdio    |
 | `opencode`    | OpenCode           | `opencode`    | stdio    |

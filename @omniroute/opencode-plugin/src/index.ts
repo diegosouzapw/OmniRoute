@@ -1225,7 +1225,7 @@ export interface OmniRouteEnrichmentEntry {
     cacheWrite?: number;
   };
   /**
-   * Provider alias prefix seen in `/v1/models` ids (e.g. `cc`, `gemini-cli`).
+   * Provider alias prefix seen in `/v1/models` ids (e.g. `cc`, `gemini`).
    * Populated by `defaultOmniRouteEnrichmentFetcher` from
    * `/api/pricing/models` keys. Drives the `usableOnly` alias↔canonical
    * resolution.
@@ -1233,7 +1233,7 @@ export interface OmniRouteEnrichmentEntry {
   providerAlias?: string;
   /**
    * Canonical provider id used by `/api/providers` connections (e.g.
-   * `claude`, `gemini-cli`, `kiro`). Populated from the per-provider
+   * `claude`, `gemini`, `kiro`). Populated from the per-provider
    * `entry.id` field inside `/api/pricing/models`.
    */
   providerCanonical?: string;
@@ -2046,7 +2046,7 @@ export function formatCompressionPipeline(pipeline: OmniRouteCompressionStep[]):
 export interface OmniRouteProviderConnection {
   /** Connection UUID. */
   id: string;
-  /** Canonical provider id, e.g. `claude`, `gemini-cli`, `kiro`. Matches `entry.id` in `/api/pricing/models`. */
+  /** Canonical provider id, e.g. `claude`, `gemini`, `kiro`. Matches `entry.id` in `/api/pricing/models`. */
   provider: string;
   /** Connection auth flavor, e.g. `apikey`, `oauth`, `cookie`. */
   authType?: string;
@@ -2125,7 +2125,7 @@ export const defaultOmniRouteProvidersFetcher: OmniRouteProvidersFetcher = async
  * walk only the namespaced keys to derive the alias↔canonical mapping).
  *
  * Returns:
- *   - `aliases`: set of alias prefixes safe to keep (e.g. `cc`, `gemini-cli`).
+ *   - `aliases`: set of alias prefixes safe to keep (e.g. `cc`, `gemini`).
  *   - `canonicals`: set of canonical provider ids (e.g. `claude`, `kiro`).
  *
  * Callers should treat membership in EITHER set as "usable" — raw model
@@ -2174,7 +2174,7 @@ export function usableProviderAliasSet(
   }
   // Always include every usable canonical as an alias too — handles the
   // common case where `/v1/models` ids use the canonical id directly
-  // (e.g. `gemini-cli/gemini-1.5-pro`).
+  // (e.g. `gemini/gemini-1.5-pro`).
   for (const canonical of usableCanonicals) aliases.add(canonical);
   return { aliases, canonicals: usableCanonicals, knownAliases };
 }
@@ -3174,7 +3174,6 @@ export function sanitizeGeminiToolSchemas(payload: unknown): unknown {
  *     `gemini-2.5-flash`, etc.)
  *   - `models/gemini-…` (Google Generative AI canonical id form)
  *   - `google-vertex/gemini-…` (OpenCode + AI-SDK Vertex routing prefix)
- *   - `gemini-cli/…` (real OmniRoute alias surfaced on b35 prod `/v1/models`)
  *
  * Liberal by design: a false positive (cleaning a payload that didn't
  * need cleaning) costs only a structuredClone + one walk; a false negative

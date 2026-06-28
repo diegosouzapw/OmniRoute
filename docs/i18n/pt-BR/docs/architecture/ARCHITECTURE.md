@@ -893,7 +893,6 @@ Cada provedor tem um executor especializado que estende `BaseExecutor` (em `open
 | `CommandCodeExecutor`    | Código de Comando                                                                                                                                           | Rotação de cabeçalho por sessão + OAuth                                              |
 | `CursorExecutor`         | Cursor IDE                                                                                                                                                  | Protocolo ConnectRPC, codificação Protobuf, assinatura de requisições via checksum   |
 | `DevinCliExecutor`       | Devin CLI                                                                                                                                                   | Conexão do ciclo de vida da tarefa Devin via módulo de agente em nuvem               |
-| `GeminiCLIExecutor`      | Gemini CLI                                                                                                                                                  | Ciclo de atualização de token OAuth do Google                                        |
 | `GithubExecutor`         | GitHub Copilot                                                                                                                                              | Atualização de token do Copilot, cabeçalhos imitando VSCode                          |
 | `GitlabExecutor`         | GitLab Duo                                                                                                                                                  | Roteamento baseado em projeto + OAuth do GitLab                                      |
 | `GlmExecutor`            | Z.AI GLM (incl. preset `glmt`)                                                                                                                              | Consciente do orçamento de pensamento, constantes do preset GLMT                     |
@@ -924,7 +923,6 @@ Todos os outros provedores (incluindo nós compatíveis personalizados) usam o `
 | ----------------- | ---------------- | -------------------------- | ---------------- | ---------- | -------------------- | -------------------- |
 | Claude            | claude           | Chave de API / OAuth       | ✅               | ✅         | ✅                   | ⚠️ Somente Admin     |
 | Gemini            | gemini           | Chave de API / OAuth       | ✅               | ✅         | ✅                   | ⚠️ Console da Nuvem  |
-| Gemini CLI        | gemini-cli       | OAuth                      | ✅               | ✅         | ✅                   | ⚠️ Console da Nuvem  |
 | Antigravity       | antigravity      | OAuth                      | ✅               | ✅         | ✅                   | ✅ API de cota total |
 | OpenAI            | openai           | Chave de API               | ✅               | ✅         | ❌                   | ❌                   |
 | Codex             | openai-responses | OAuth                      | ✅ forçado       | ❌         | ✅                   | ✅ Limites de taxa   |

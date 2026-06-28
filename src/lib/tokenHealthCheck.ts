@@ -553,8 +553,8 @@ export async function checkConnection(conn) {
       isActive: false,
       // Only rotating-token providers (Codex/OpenAI/etc.) have single-use refresh
       // tokens that are genuinely consumed and worthless after a failed refresh, so
-      // clearing them is safe. For non-rotating providers (Google: gemini-cli /
-      // antigravity / gemini) the stored refresh_token is the user's only recovery
+      // clearing them is safe. For non-rotating providers (Google: antigravity /
+      // gemini) the stored refresh_token is the user's only recovery
       // artifact — nulling it caused #3679 (the connection reports "No valid refresh
       // token available" and can never recover even after re-activation). Preserve it.
       ...(isRotatingProvider ? { refreshToken: null } : {}),

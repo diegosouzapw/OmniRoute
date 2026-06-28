@@ -52,7 +52,6 @@ the task's capability filter (vision, JSON mode, tools, max-context).
 | Kiro AI          | Free Claude tier (generous fair-use) |
 | OpenCode Free    | No auth, generous rate limits        |
 | Qoder            | Free OAuth                           |
-| Gemini CLI OAuth | Generous daily quota                 |
 | Google Vertex AI | $300 new-account credits             |
 | Amazon Q         | Free tier for AWS users              |
 | Pollinations     | Open public API                      |
