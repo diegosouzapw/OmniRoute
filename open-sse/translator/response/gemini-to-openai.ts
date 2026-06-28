@@ -8,6 +8,7 @@ import {
   parseTextualToolCallCandidate,
   containsTextualToolCallMarker,
 } from "../../utils/textualToolCall.ts";
+import { normalizeOpenAICompatibleFinishReasonString } from "../../utils/finishReason.ts";
 
 type GeminiToOpenAIState = {
   functionIndex: number;
@@ -711,20 +712,12 @@ export function geminiToOpenAIResponse(chunk, state) {
       }
     }
 
-    let finishReason = candidate.finishReason.toLowerCase();
+    // normalizeOpenAICompatibleFinishReasonString lowercases, maps max_tokens→length,
+    // and folds Gemini safety reasons (safety/recitation/blocklist/...) → content_filter
+    // so downstream clients can distinguish a blocked completion from a normal stop.
+    let finishReason = normalizeOpenAICompatibleFinishReasonString(candidate.finishReason);
     if (finishReason === "stop" && state.toolCalls.size > 0) {
       finishReason = "tool_calls";
-    } else if (finishReason === "max_tokens") {
-      finishReason = "length";
-    }
-    // Content blocked by Gemini safety filters — pass through as "content_filter"
-    // so downstream clients can distinguish from normal completion.
-    if (
-      finishReason === "safety" ||
-      finishReason === "recitation" ||
-      finishReason === "blocklist"
-    ) {
-      finishReason = "content_filter";
     }
 
     const finalChunk: Record<string, unknown> = {

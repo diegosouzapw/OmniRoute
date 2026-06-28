@@ -2,6 +2,7 @@ import {
   copyOpenAICompatibleReasoningFields,
   getReadableReasoningValue,
 } from "../utils/reasoningFields.ts";
+import { normalizeOpenAICompatibleFinishReason } from "../utils/finishReason.ts";
 
 /**
  * Response Sanitizer — Normalizes LLM responses to strict OpenAI SDK format.
@@ -437,7 +438,7 @@ function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
   }
 
   if (choiceRecord?.finish_reason !== undefined) {
-    sanitized.finish_reason = choiceRecord.finish_reason;
+    sanitized.finish_reason = normalizeOpenAICompatibleFinishReason(choiceRecord.finish_reason);
   }
 
   // Sanitize message (non-streaming) or delta (streaming)
@@ -1070,7 +1071,9 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
         }
       }
 
-      if (choiceRecord.finish_reason !== undefined) c.finish_reason = choiceRecord.finish_reason;
+      if (choiceRecord.finish_reason !== undefined) {
+        c.finish_reason = normalizeOpenAICompatibleFinishReason(choiceRecord.finish_reason);
+      }
       if (choiceRecord.logprobs !== undefined) c.logprobs = choiceRecord.logprobs;
       return c;
     });
