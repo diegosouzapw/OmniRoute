@@ -168,6 +168,9 @@ export function synthResponsesFailure(reason?: MalformedReason): string {
  * - Tool-call responses (content=null + tool_calls=[…]) are also valid.
  * - Responses API function_call / other structural items count as output even
  *   when they carry no user-visible text.
+ * - Claude Messages shape (type:"message" + content[]) is checked directly,
+ *   since a Claude client receives the body in that shape (no
+ *   `choices`/`object:"response"`).
  */
 export function detectMalformedNonStream(resp: unknown): MalformedReason | null {
   if (!resp || typeof resp !== "object") return "empty_choices";
@@ -213,16 +216,25 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
       // throws on `null.type` (that would crash the whole non-stream classifier).
       if (block === null || typeof block !== "object") return false;
       const b = block as Record<string, unknown>;
-      // Text block with visible text.
-      if (b.type === "text" && typeof b.text === "string" && (b.text as string).length > 0) {
+      // Text block with visible text. `convertOpenAINonStreamingToClaude` emits
+      // "(empty response)" as a placeholder when the upstream produced no content,
+      // so treat that sentinel as empty — a genuinely empty completion still trips
+      // the guard (parity with the OpenAI `content:""` path).
+      if (
+        b.type === "text" &&
+        typeof b.text === "string" &&
+        (b.text as string).length > 0 &&
+        b.text !== "(empty response)"
+      ) {
         return true;
       }
-      // Extended-thinking block: a non-empty `signature` is cryptographic proof the
-      // thinking step ran, so it is a valid completion even when the thinking text is "".
+      // Extended-thinking block: valid when it carries visible thinking text OR a
+      // non-empty `signature` (cryptographic proof the thinking step ran, so it is a
+      // valid completion even when the thinking text is "").
       if (
         b.type === "thinking" &&
-        typeof b.signature === "string" &&
-        (b.signature as string).length > 0
+        ((typeof b.thinking === "string" && (b.thinking as string).length > 0) ||
+          (typeof b.signature === "string" && (b.signature as string).length > 0))
       ) {
         return true;
       }

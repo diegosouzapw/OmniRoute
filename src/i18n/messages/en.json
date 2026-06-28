@@ -7749,7 +7749,7 @@
     "deviceCodeVerificationUrl": "Verification URL",
     "deviceCodeYourCode": "Your code",
     "deviceCodeWaiting": "Waiting for authorization...",
-    "googleOAuthWarning": "Remote access + Google OAuth: bundled credentials only accept loopback redirects like <code>127.0.0.1</code>. The browser that approves Google must be able to reach OmniRoute on that local port, usually by opening OmniRoute locally or using an SSH/local-forward tunnel. For fully remote use without this local callback, <a>configure your own OAuth credentials</a>.",
+    "googleOAuthWarning": "Remote access + Google OAuth: bundled credentials only accept loopback redirects like <code>127.0.0.1</code>. The browser that approves Google must be able to reach OmniRoute on that local port, usually by opening OmniRoute locally or using an SSH/local-forward tunnel. Recommended for remote installs: on your own computer run <code>npx omniroute login antigravity</code> and paste the credential blob it prints into the field below. For fully remote use without this local callback, <a>configure your own OAuth credentials</a>.",
     "remoteAccessInfo": "Remote access: Since you're accessing OmniRoute remotely, after authorization you'll see an error page (localhost not found). This is normal — just copy the full URL from your browser address bar and paste it below.",
     "step1OpenUrl": "Step 1: Open this URL in your browser",
     "copy": "Copy",
