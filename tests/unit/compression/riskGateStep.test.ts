@@ -6,6 +6,10 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
 import { applyRiskMask, restoreRiskBlocks } from "../../../open-sse/services/compression/riskGate/riskGateStep.ts";
+import {
+  DEFAULT_COMPRESSION_CONFIG,
+  type CompressionConfig,
+} from "../../../open-sse/services/compression/types.ts";
 
 const PEM = "-----BEGIN PRIVATE KEY-----\nMIIBVQbody\n-----END PRIVATE KEY-----";
 
@@ -43,5 +47,15 @@ describe("applyRiskMask / restoreRiskBlocks", () => {
       (restored.messages as Array<{ content: Array<{ text?: string }> }>)[0].content[0].text,
       `key:\n${PEM}`
     );
+  });
+});
+
+describe("risk-gate config defaults", () => {
+  it("ships disabled by default", () => {
+    assert.equal(DEFAULT_COMPRESSION_CONFIG.riskGate?.enabled ?? false, false);
+  });
+  it("accepts a riskGate field on CompressionConfig", () => {
+    const cfg: CompressionConfig = { ...DEFAULT_COMPRESSION_CONFIG, riskGate: { enabled: true } };
+    assert.equal(cfg.riskGate?.enabled, true);
   });
 });
