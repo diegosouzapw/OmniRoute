@@ -11,6 +11,7 @@ _In development — bullets added per PR; finalized at release._
 ### 🔧 Bug Fixes
 
 - **command-code:** omit `max_tokens` when the client omits it so the upstream applies the model's native default, fixing `400 "expected <=200000"` on `/alpha/generate` for high-cap models; an explicit oversized client value is clamped to the 200k endpoint ceiling (#5221 — thanks @adivekar-utexas)
+- **combo:** wire session stickiness into the round-robin dispatch path. Multi-turn conversations from clients that send no session id (Codex CLI, Claude Code, most OpenAI-compatible tools) were rotated to a different connection on every turn by round-robin combos, busting the upstream prompt-cache → cold high-reasoning starts, intermittent `504`s and throughput collapse under concurrency. The weighted/priority paths already honored per-conversation stickiness; the round-robin handler returned before reaching it. Round-robin now starts the rotation at the conversation's sticky connection (failover to the other targets is preserved), and different conversations still spread across connections — only intra-conversation rotation is removed (#3825 — thanks @bypanghu, @jpsn123, @xz-dev)
 
 ---
 
