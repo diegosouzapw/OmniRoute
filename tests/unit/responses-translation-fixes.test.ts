@@ -5,7 +5,7 @@ const { convertResponsesApiFormat } =
   await import("../../open-sse/translator/helpers/responsesApiHelper.ts");
 const { openaiResponsesToOpenAIRequest, openaiToOpenAIResponsesRequest } =
   await import("../../open-sse/translator/request/openai-responses.ts");
-const { normalizeCodexResponsesInput } =
+const { normalizeCodexResponsesInput, normalizeResponsesInputForChat } =
   await import("../../open-sse/utils/responsesInputNormalization.ts");
 
 test("convertResponsesApiFormat filters orphaned function_call_output items", () => {
@@ -117,6 +117,17 @@ test("Codex Responses input: object input becomes a single item", () => {
   assert.deepEqual(body.input, [
     { type: "message", role: "user", content: [{ type: "input_text", text: "ship it" }] },
   ]);
+});
+
+test("Codex Responses input: null input normalizes to an empty list (not [null])", () => {
+  const body: Record<string, unknown> = { input: null };
+  normalizeCodexResponsesInput(body);
+
+  assert.deepEqual(body.input, []);
+});
+
+test("Responses→Chat: null input normalizes to an empty list (not [null])", () => {
+  assert.deepEqual(normalizeResponsesInputForChat(null), []);
 });
 
 test("Responses→Chat: input_image without detail omits detail field", () => {

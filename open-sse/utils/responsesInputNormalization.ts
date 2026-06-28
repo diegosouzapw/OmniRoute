@@ -13,6 +13,19 @@ function normalizeCodexMessageContentPart(part: unknown, role: string): unknown 
   return record;
 }
 
+function buildCodexMessageContent(item: JsonRecord, role: string): unknown[] {
+  if (Array.isArray(item.content)) {
+    return item.content.map((part) => normalizeCodexMessageContentPart(part, role));
+  }
+  if (typeof item.content === "string") {
+    return [{ type: textPartTypeForRole(role), text: item.content }];
+  }
+  if (typeof item.text === "string") {
+    return [{ type: textPartTypeForRole(role), text: item.text }];
+  }
+  return [];
+}
+
 function normalizeCodexResponsesInputItem(itemValue: unknown): unknown {
   if (typeof itemValue === "string") {
     return { type: "message", role: "user", content: [{ type: "input_text", text: itemValue }] };
@@ -31,13 +44,7 @@ function normalizeCodexResponsesInputItem(itemValue: unknown): unknown {
   if (!type && role) item.type = "message";
   if (item.type === "message" || (!type && item.content !== undefined)) {
     item.role = role;
-    item.content = Array.isArray(item.content)
-      ? item.content.map((part) => normalizeCodexMessageContentPart(part, role))
-      : typeof item.content === "string"
-        ? [{ type: textPartTypeForRole(role), text: item.content }]
-        : typeof item.text === "string"
-          ? [{ type: textPartTypeForRole(role), text: item.text }]
-          : [];
+    item.content = buildCodexMessageContent(item, role);
     item.type = "message";
   }
 
@@ -50,7 +57,10 @@ export function normalizeCodexResponsesInput(body: JsonRecord): void {
     return;
   }
 
-  if (body.input !== undefined) body.input = [normalizeCodexResponsesInputItem(body.input)];
+  // undefined → leave as-is; null → empty list (not [null], which would surface a bogus
+  // item downstream); anything else → wrap the single item.
+  if (body.input === undefined) return;
+  body.input = body.input === null ? [] : [normalizeCodexResponsesInputItem(body.input)];
 }
 
 function normalizeResponsesInputItemForChat(value: unknown): unknown {
@@ -77,7 +87,8 @@ function normalizeResponsesInputItemForChat(value: unknown): unknown {
 }
 
 export function normalizeResponsesInputForChat(input: unknown): unknown[] {
-  if (input === undefined) return [];
+  // == null matches both undefined and null (neither is a spec-valid input) → empty list.
+  if (input == null) return [];
   if (Array.isArray(input)) return input.map(normalizeResponsesInputItemForChat);
   return [normalizeResponsesInputItemForChat(input)];
 }
