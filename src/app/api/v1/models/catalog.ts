@@ -171,11 +171,7 @@ function getVisionCapabilityFields(modelId: string) {
 export function getCustomVisionCapabilityFields(
   entry: { supportsVision?: boolean } | null | undefined,
   ...candidateIds: Array<string | null | undefined>
-): {
-  capabilities: { vision: true };
-  input_modalities: string[];
-  output_modalities: string[];
-} | null {
+): { capabilities: { vision: true }; input_modalities: string[]; output_modalities: string[] } | null {
   if (entry && entry.supportsVision === false) return null;
   if (entry && entry.supportsVision === true) {
     return {
