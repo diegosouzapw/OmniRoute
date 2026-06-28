@@ -7,6 +7,7 @@ import Button from "./Button";
 import Input from "./Input";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { parseResponseBody, getErrorMessage } from "@/shared/utils/api";
+import { isCredentialBlob, submitCredentialBlob } from "@/shared/components/oauthBlobSubmit";
 
 const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy", "gemini-cli"]);
 
@@ -653,7 +654,10 @@ export default function OAuthModal({
   const handleManualSubmit = async () => {
     try {
       setError(null);
-
+      if (isCredentialBlob(callbackUrl)) {
+        await submitCredentialBlob(provider, callbackUrl, reauthConnection, setStep, onSuccess);
+        return;
+      }
       if (!authData) {
         throw new Error(
           "OAuth session not initialized. Restart the connection flow and try again."
@@ -908,7 +912,7 @@ export default function OAuthModal({
                   <Button
                     onClick={handleManualSubmit}
                     fullWidth
-                    disabled={!callbackUrl || !authData}
+                    disabled={!callbackUrl || (!authData && !isCredentialBlob(callbackUrl))}
                   >
                     {t("connect")}
                   </Button>
