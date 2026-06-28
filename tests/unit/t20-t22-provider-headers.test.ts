@@ -47,10 +47,10 @@ test("T25: anthropic API-key config includes the full Anthropic beta header set"
 
 test("T22: github headers include updated editor/plugin versions and required fields", () => {
   const github = REGISTRY.github;
-  assert.equal(github.headers["editor-version"], "vscode/1.117.0");
-  assert.equal(github.headers["editor-plugin-version"], "copilot-chat/0.45.1");
-  assert.equal(github.headers["user-agent"], "GitHubCopilotChat/0.45.1");
-  assert.equal(github.headers["x-github-api-version"], "2025-04-01");
+  assert.equal(github.headers["editor-version"], "vscode/1.126.0");
+  assert.equal(github.headers["editor-plugin-version"], "copilot-chat/0.54.0");
+  assert.equal(github.headers["user-agent"], "GitHubCopilotChat/0.54.0");
+  assert.equal(github.headers["x-github-api-version"], "2026-06-01");
   assert.equal(github.headers["x-vscode-user-agent-library-version"], "electron-fetch");
   assert.equal(github.headers["X-Initiator"], "user");
 });

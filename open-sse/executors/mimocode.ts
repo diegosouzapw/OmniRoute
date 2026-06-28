@@ -66,9 +66,9 @@ function injectSystemMarker(body: Record<string, unknown>): Record<string, unkno
 }
 
 const USER_AGENTS = [
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
 ];
 
 // ── Account State ──────────────────────────────────────────────────────────
@@ -233,8 +233,9 @@ export class MimocodeExecutor extends BaseExecutor {
       }
     }
 
-    const accountProxies = credentials?.providerSpecificData
-      ?.accountProxies as AccountProxyConfig[] | undefined;
+    const accountProxies = credentials?.providerSpecificData?.accountProxies as
+      | AccountProxyConfig[]
+      | undefined;
     const proxyMap = Array.isArray(accountProxies)
       ? new Map(accountProxies.map((ap) => [ap.fingerprint, ap.proxy] as const))
       : null;

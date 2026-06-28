@@ -88,7 +88,7 @@ Applied to: `system` blocks, all `messages[].content`, and `tools[].description`
 
 For third-party Anthropic relays that only accept "real Claude Code" traffic:
 
-- `CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.187 (external, sdk-cli)"`
+- `CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.195 (external, sdk-cli)"`
 - `CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.94.0"`
 - `CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION = "v24.3.0"`
 - `anthropic-beta = "claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24"` by default
@@ -214,13 +214,13 @@ All MITM endpoints require management auth (`requireCliToolsAuth`). The sudo pas
 
 | Variable                 | Default                                       |
 | ------------------------ | --------------------------------------------- |
-| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.187 (external, cli)`          |
+| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.195 (external, cli)`          |
 | `CODEX_USER_AGENT`       | `codex-cli/0.142.0 (Windows 10.0.26200; x64)` |
-| `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.45.1`                    |
+| `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                    |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 darwin/arm64`              |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`             |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                   |
-| `QWEN_USER_AGENT`        | `QwenCode/0.15.9 (linux; x64)`                |
+| `QWEN_USER_AGENT`        | `QwenCode/0.19.3 (linux; x64)`                |
 | `CURSOR_USER_AGENT`      | `Cursor/3.3`                                  |
 | `GEMINI_CLI_USER_AGENT`  | `google-api-nodejs-client/10.3.0`             |
 

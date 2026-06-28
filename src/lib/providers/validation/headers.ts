@@ -3,10 +3,9 @@
 // which delegates to safeOutboundFetch with bypassProxyPatch. Behavior is byte-identical.
 import { safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
 
-
 // Standardized desktop Chrome UA for web-cookie/no-auth session probes (minimizes anti-bot detection).
 export const STANDARD_USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
 export function getCustomUserAgent(providerSpecificData: any = {}) {
   if (typeof providerSpecificData?.customUserAgent !== "string") return null;
@@ -14,7 +13,10 @@ export function getCustomUserAgent(providerSpecificData: any = {}) {
   return customUserAgent || null;
 }
 
-export function applyCustomUserAgent(headers: Record<string, string>, providerSpecificData: any = {}) {
+export function applyCustomUserAgent(
+  headers: Record<string, string>,
+  providerSpecificData: any = {}
+) {
   const customUserAgent = getCustomUserAgent(providerSpecificData);
   if (!customUserAgent) return headers;
   headers["User-Agent"] = customUserAgent;

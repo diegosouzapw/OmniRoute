@@ -34,7 +34,7 @@ import { makeExecutorErrorResult as makeErrorResult } from "../utils/error.ts";
 const GEMINI_BUSINESS_FETCH_TIMEOUT_MS = 60_000;
 
 const GEMINI_BUSINESS_USER_AGENT =
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
 // Default entry URL — user can override via providerSpecificData.entryUrl
 const DEFAULT_ENTRY_URL = "https://business.gemini.google/home";
@@ -82,8 +82,10 @@ export class GeminiBusinessExecutor extends BaseExecutor {
     // A user with only __Secure-1PSID (no PSIDTS) is still valid.
     const directCookie =
       readCredentialString(credentials?.apiKey) || readCredentialString(credentials?.cookie);
-    const psid =
-      readProviderSpecificString(credentials?.providerSpecificData, ["__Secure-1PSID", "cookie"]);
+    const psid = readProviderSpecificString(credentials?.providerSpecificData, [
+      "__Secure-1PSID",
+      "cookie",
+    ]);
     const psidts = readProviderSpecificString(credentials?.providerSpecificData, [
       "__Secure-1PSIDTS",
     ]);
@@ -110,7 +112,12 @@ export class GeminiBusinessExecutor extends BaseExecutor {
     const lastUserMsg = messages.filter((m) => m.role === "user").pop();
     const prompt = extractTextContent(lastUserMsg?.content);
     if (!prompt) {
-      return makeErrorResult(400, "No user message found in request body.", body, DEFAULT_ENTRY_URL);
+      return makeErrorResult(
+        400,
+        "No user message found in request body.",
+        body,
+        DEFAULT_ENTRY_URL
+      );
     }
 
     // Resolve model and its MODE_CATEGORY
@@ -137,7 +144,8 @@ export class GeminiBusinessExecutor extends BaseExecutor {
     };
 
     // Add SAPISID hash auth header if we can compute it (improves reliability on enterprise)
-    const sapisid = extractCookieValue(cookie, "SAPISID") || extractCookieValue(cookie, "__Secure-3PAPISID");
+    const sapisid =
+      extractCookieValue(cookie, "SAPISID") || extractCookieValue(cookie, "__Secure-3PAPISID");
     if (sapisid) {
       headers["Authorization"] = computeSapisidHash(sapisid, baseOrigin);
     }
@@ -272,9 +280,7 @@ export function parseStreamResponse(raw: string): string {
       const inner = JSON.parse(payload);
       const responseArray = inner?.[4]?.[0]?.[1];
       if (!Array.isArray(responseArray)) continue;
-      const chunkText = responseArray
-        .filter((c: unknown) => typeof c === "string")
-        .join("");
+      const chunkText = responseArray.filter((c: unknown) => typeof c === "string").join("");
       if (chunkText) textChunks.push(chunkText);
     } catch {
       // Skip unparseable lines (binary chunks, etc.)
@@ -359,10 +365,7 @@ function readCredentialString(value: unknown): string {
   return trimmed;
 }
 
-function readProviderSpecificString(
-  providerSpecificData: unknown,
-  keys: string[]
-): string {
+function readProviderSpecificString(providerSpecificData: unknown, keys: string[]): string {
   if (!providerSpecificData || typeof providerSpecificData !== "object") return "";
   const data = providerSpecificData as Record<string, unknown>;
   for (const key of keys) {

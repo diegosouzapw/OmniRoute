@@ -101,7 +101,7 @@ test("CLI fingerprint preserves Codex executor User-Agent and maps legacy Copilo
     { model: "gpt-4o", messages: [] }
   );
 
-  assert.equal(copilot.headers["User-Agent"], "GitHubCopilotChat/0.45.1");
+  assert.equal(copilot.headers["User-Agent"], "GitHubCopilotChat/0.54.0");
 
   const geminiCli = applyFingerprint(
     "gemini-cli",

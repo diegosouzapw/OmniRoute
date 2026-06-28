@@ -97,7 +97,7 @@ const CURSOR_USAGE_CONFIG = {
   origin: "https://cursor.com",
   referer: "https://cursor.com/dashboard/spending",
   userAgent:
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
 };
 
 type JsonRecord = Record<string, unknown>;
