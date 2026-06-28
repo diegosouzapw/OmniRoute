@@ -103,6 +103,10 @@ export interface RtkConfig {
   stripCodeComments?: boolean;
   /** R1/N3: keep JSDoc/docstring block comments when removing comments. Default: true. */
   preserveDocstrings?: boolean;
+  /** #10: semantic command-output renderers (default off) */
+  enableRenderers?: boolean;
+  /** #10: whitelist por command-type; vazio/undefined = todos */
+  renderers?: string[];
 }
 
 export interface CompressionLanguageConfig {
@@ -314,6 +318,7 @@ export const DEFAULT_RTK_CONFIG: RtkConfig = {
   groupingThreshold: 3,
   stripCodeComments: false,
   preserveDocstrings: true,
+  enableRenderers: false,
 };
 
 export const DEFAULT_COMPRESSION_LANGUAGE_CONFIG: CompressionLanguageConfig = {

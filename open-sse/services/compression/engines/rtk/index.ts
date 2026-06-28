@@ -127,6 +127,12 @@ const RTK_SCHEMA: EngineConfigField[] = [
       { value: "always", label: "always" },
     ],
   },
+  {
+    key: "enableRenderers",
+    type: "boolean",
+    label: "Semantic renderers",
+    defaultValue: DEFAULT_RTK_CONFIG.enableRenderers,
+  },
 ];
 
 function validateRtkEngineConfig(config: Record<string, unknown>): EngineValidationResult {
