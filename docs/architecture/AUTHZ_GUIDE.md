@@ -1,13 +1,13 @@
 ---
 title: "Authorization Guide"
-version: 3.8.2
-lastUpdated: 2026-06-05
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Authorization Guide
 
 > **Source of truth:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
-> **Last updated:** 2026-06-05 — v3.8.2
+> **Last updated:** 2026-06-28 — v3.8.40
 
 OmniRoute has a route-aware authorization pipeline that gates every API request. Classification is **deterministic** and **fail-closed** — anything that cannot be classified ends up as `MANAGEMENT` and demands a session or management-grade token. This page explains the model for engineers maintaining routes or designing new endpoints.
 
@@ -43,11 +43,11 @@ Some management routes accept **either** mode: cookie OR `Bearer <key>` when the
 
 `src/server/authz/types.ts` defines three classes; any route that cannot be classified deterministically falls back to `MANAGEMENT`.
 
-| Class        | Description                                                                                                            | Auth required                                                           |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `PUBLIC`     | Explicitly safe routes — login, logout, status, init, health, onboarding bootstrap.                                    | None                                                                    |
-| `CLIENT_API` | Model-serving endpoints — `/api/v1/*`, plus aliases `/v1/*`, `/chat/completions`, `/responses`, `/models`, `/codex/*`. | Bearer key when the effective `REQUIRE_API_KEY` feature flag is enabled |
-| `MANAGEMENT` | Dashboard pages, settings, providers, keys, admin and diagnostics endpoints.                                           | Dashboard session OR Bearer with `manage` scope                         |
+| Class        | Description                                                                                                                                          | Auth required                                                           |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `PUBLIC`     | Explicitly safe routes — login, logout, status, init, health, onboarding bootstrap.                                                                  | None                                                                    |
+| `CLIENT_API` | Model-serving endpoints — `/api/v1/*`, `/api/v1beta/*`, plus aliases `/v1/*`, `/v1beta/*`, `/chat/completions`, `/responses`, `/models`, `/codex/*`. | Bearer key when the effective `REQUIRE_API_KEY` feature flag is enabled |
+| `MANAGEMENT` | Dashboard pages, settings, providers, keys, admin and diagnostics endpoints.                                                                         | Dashboard session OR Bearer with `manage` scope                         |
 
 ## Pipeline
 
@@ -73,7 +73,7 @@ Trusted internal headers (defined in `src/server/authz/headers.ts`) are **stripp
 Each route class has a policy in `src/server/authz/policies/`:
 
 - **`publicPolicy`** (`policies/public.ts`) — always returns `allow({ kind: "anonymous", id: "anonymous" })`.
-- **`clientApiPolicy`** (`policies/clientApi.ts`) — extracts Bearer, validates via `validateApiKey()`. Falls through to anonymous only when the effective `REQUIRE_API_KEY` feature flag is disabled. The effective flag is resolved through `isRequireApiKeyEnabled()` (`DB feature flag override > process.env.REQUIRE_API_KEY > default`) so Dashboard Feature Flags and environment variables govern `/api/v1/*` and aliases consistently; resolver failures fail closed. Allows dashboard-session requests on client API routes (including `/api/v1/models`, used by the dashboard model catalog).
+- **`clientApiPolicy`** (`policies/clientApi.ts`) — extracts Bearer, validates via `validateApiKey()`. Falls through to anonymous only when the effective `REQUIRE_API_KEY` feature flag is disabled. The effective flag is resolved through `isRequireApiKeyEnabled()` (`DB feature flag override > process.env.REQUIRE_API_KEY > default`) so Dashboard Feature Flags and environment variables govern `/api/v1/*`, `/api/v1beta/*`, and aliases consistently; resolver failures fail closed. Allows dashboard-session requests on client API routes (including `/api/v1/models`, used by the dashboard model catalog).
 - **`managementPolicy`** (`policies/management.ts`) — accepts dashboard session, internal model-sync requests (matched against `/api/providers/[name]/(sync-models|models)`), or skips entirely if `isAuthRequired()` returns false. Returns 403 (`AUTH_001`) when a Bearer token is present but invalid, 401 otherwise. Also enforces the route-guard tiers (LOCAL_ONLY / ALWAYS_PROTECTED) before any auth branch — see [Route Guard Tiers](../security/ROUTE_GUARD_TIERS.md). LOCAL_ONLY paths in `LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES` (today: `/api/mcp/`) may be accessed from non-loopback when the Bearer key carries the `manage` scope; all other LOCAL_ONLY paths remain strict-loopback regardless of scope.
 
 A successful policy returns `AuthSubject` with `kind ∈ { client_api_key, dashboard_session, management_key, anonymous }`. Downstream handlers can read it via `assertAuth(request, "CLIENT_API")` in `src/server/authz/assertAuth.ts` instead of re-running auth logic.
@@ -99,13 +99,13 @@ PUBLIC_READONLY_API_ROUTE_PREFIXES = ["/api/monitoring/health", "/api/settings/r
 PUBLIC_READONLY_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 ```
 
-Read-only prefixes are public **only** for safe methods. Note: `classifyRoute()` excludes `/api/v1/*` from the PUBLIC fall-through — those are always `CLIENT_API` so the Bearer-key policy still applies.
+Read-only prefixes are public **only** for safe methods. Note: `classifyRoute()` excludes `/api/v1/*` and `/api/v1beta/*` from the PUBLIC fall-through — those are always `CLIENT_API` so the Bearer-key policy still applies.
 
 ## Adding a New Route
 
 ### Pattern 1 — Public client API endpoint (Bearer-auth)
 
-Routes under `/api/v1/` are classified `CLIENT_API` automatically. The middleware enforces the Bearer check; route handlers don't need to redo it but can read the subject if useful.
+Routes under `/api/v1/` and `/api/v1beta/` are classified `CLIENT_API` automatically. The middleware enforces the Bearer check; route handlers don't need to redo it but can read the subject if useful.
 
 ```typescript
 // src/app/api/v1/your-route/route.ts
@@ -173,7 +173,7 @@ Preset bundles (`MCP_SCOPE_PRESETS`): `readonly`, `full`, `monitor`, `agent`. Us
 - No password configured **and** no `INITIAL_PASSWORD` env var → bootstrap mode allows the onboarding wizard and loopback requests, but exposed network requests still need credentials.
 - Any DB error → fails closed (secure-by-default).
 
-Client API key enforcement uses `isRequireApiKeyEnabled()` in `src/shared/utils/featureFlags.ts`, not a direct `process.env.REQUIRE_API_KEY` read. This matters for deployed instances: toggling `REQUIRE_API_KEY` in Dashboard → Feature Flags stores a DB override and immediately affects `/v1/*`, `/models`, `/responses`, `/chat/completions`, `/codex/*`, and other client-API auth checks that share this helper. If the feature flag store cannot be read, client API auth fails closed and requires a key.
+Client API key enforcement uses `isRequireApiKeyEnabled()` in `src/shared/utils/featureFlags.ts`, not a direct `process.env.REQUIRE_API_KEY` read. This matters for deployed instances: toggling `REQUIRE_API_KEY` in Dashboard → Feature Flags stores a DB override and immediately affects `/v1/*`, `/v1beta/*`, `/models`, `/responses`, `/chat/completions`, `/codex/*`, and other client-API auth checks that share this helper. If the feature flag store cannot be read, client API auth fails closed and requires a key.
 
 ## Breaking Change — v3.8.0
 

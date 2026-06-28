@@ -22,7 +22,12 @@ const MANAGEMENT_TIER_PREFIXES: ReadonlyArray<string> = [
   "/api/api-keys",
 ];
 
-const CLIENT_API_TIER_PREFIXES: ReadonlyArray<string> = ["/v1/", "/api/v1/"];
+const CLIENT_API_TIER_PREFIXES: ReadonlyArray<string> = [
+  "/v1/",
+  "/api/v1/",
+  "/v1beta/",
+  "/api/v1beta/",
+];
 
 const PUBLIC_TIER_PREFIXES: ReadonlyArray<string> = ["/api/health", "/api/version", "/_next/"];
 
