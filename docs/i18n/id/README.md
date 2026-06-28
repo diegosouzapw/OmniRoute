@@ -143,10 +143,6 @@ _Hubungkan IDE atau alat CLI berbasis AI apa pun melalui OmniRoute — gateway A
         <sub>⭐ 67.3K</sub>
       </td>
       <td align="center" width="110">
-        </a><br/>
-        <sub>⭐ 94.7K</sub>
-      </td>
-      <td align="center" width="110">
         <a href="https://github.com/Kilo-Org/kilocode">
           <img src="./public/providers/kilocode.svg" alt="Kilo Code" width="48"/><br/>
           <b>Kilo Code</b>
@@ -203,6 +199,7 @@ Perintah ini menghasilkan `system-info.txt` berisi versi Node.js, versi OmniRout
 
 ```
 ┌─────────────┐
+│  Your CLI   │  (Claude Code, Codex, OpenClaw, Cursor, Cline...)
 │   Tool      │
 └──────┬──────┘
        │ http://localhost:20128/v1
@@ -289,7 +286,7 @@ Tidak semua orang bisa membayar $20–200/bulan untuk langganan AI. Pelajar, dev
 **Cara OmniRoute menyelesaikannya:**
 
 - **Ollama Cloud** — Model Ollama yang di-host di cloud pada `api.ollama.com` dengan tier "Light usage" gratis; gunakan prefix `ollamacloud/<model>`
-- **Combo Hanya Gratis** — Rantai `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/bulan tanpa downtime
+- **Combo Hanya Gratis** — Rantai `if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/bulan tanpa downtime
 - **Akses Gratis NVIDIA NIM** — ~40 RPM akses gratis selamanya untuk 70+ model di build.nvidia.com (beralih dari kredit ke batas rate murni)
 - **Strategi Optimasi Biaya** — Strategi routing yang secara otomatis memilih penyedia termurah yang tersedia
 
@@ -701,9 +698,8 @@ Outcome: higher quality, near-zero interruption
 
 ```txt
 Combo: "free-forever"
-  1. gc/gemini-3-flash
-  2. if/kimi-k2-thinking
-  3. qw/qwen3-coder-plus
+  1. if/kimi-k2-thinking       (unlimited free)
+  2. qw/qwen3-coder-plus       (unlimited free)
 
 Monthly cost: $0
 Outcome: stable free coding workflow
@@ -742,7 +738,7 @@ Outcome: deep fallback depth for deadline-critical workloads
 | 1    | Connect **Kiro** (AWS Builder ID OAuth)            | Claude Sonnet 4.5, Haiku 4.5 — **unlimited**                       |
 | 2    | Connect **Qoder** (Google OAuth)                   | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **unlimited** |
 | 3    | Connect **Qwen** (Device Code)                     | qwen3-coder-plus, qwen3-coder-flash... — **unlimited**             |
-| 5    | `/dashboard/combos` → **Templat Tumpukan Gratis ($0)** | Round-robin semua penyedia gratis secara otomatis                       |
+| 4    | `/dashboard/combos` → **Templat Tumpukan Gratis ($0)** | Round-robin semua penyedia gratis secara otomatis                       |
 
 **Arahkan IDE/CLI apa pun ke:** `http://localhost:20128/v1` · Kunci API: `any-string` · Selesai.
 
@@ -1223,12 +1219,6 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `qwen3-coder-next`  | `qw/`  | **Unlimited** | No reported cap     |
 | `vision-model`      | `qw/`  | **Unlimited** | Multimodal (images) |
 
-### 🟣 GEMINI CLI (Google OAuth)
-
-| Model                    | Prefix | Limit                       | Rate Limit    |
-| ------------------------ | ------ | --------------------------- | ------------- |
-| `gemini-3-flash-preview` | `gc/`  | **180K tok/month** + 1K/day | Monthly reset |
-| `gemini-2.5-pro`         | `gc/`  | 180K/month (shared pool)    | High quality  |
 
 ### ⚫ NVIDIA NIM (Kunci API Gratis — build.nvidia.com)
 
@@ -1689,16 +1679,6 @@ Scenarios:
 - `resetAt` lolos: akun masuk kembali ke rotasi secara otomatis (tidak ada pengaktifan ulang secara manual).
 
 
-```bash
-→ Google OAuth
-→ 180K completions/month + 1K/day
-
-Models:
-  gc/gemini-3-flash-preview
-  gc/gemini-2.5-pro
-```
-
-**Nilai Terbaik:** Tingkat gratis yang sangat besar! Gunakan ini sebelum tingkatan berbayar.
 
 ### GitHub Copilot
 
@@ -1862,9 +1842,8 @@ Use in CLI: premium-coding
 ```
 Name: free-combo
 Models:
-  1. gc/gemini-3-flash-preview (180K free/month)
-  2. if/kimi-k2-thinking (unlimited)
-  3. qw/qwen3-coder-plus (unlimited)
+  1. if/kimi-k2-thinking (unlimited)
+  2. qw/qwen3-coder-plus (unlimited)
 
 Cost: $0 forever!
 ```
