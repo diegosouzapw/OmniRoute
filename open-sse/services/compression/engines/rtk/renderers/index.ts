@@ -3,6 +3,7 @@ import type { RtkConfig } from "../../../types.ts";
 import { type RenderResult, NO_RENDER } from "./types.ts";
 import { renderGitDiff } from "./gitDiff.ts";
 import { renderTestGreen } from "./testGreen.ts";
+import { renderTerraformPlan } from "./terraformPlan.ts";
 
 // preenchido nas tasks 2–5
 const REGISTRY: Record<string, (text: string, d: CommandDetectionResult) => RenderResult> = {};
@@ -18,6 +19,10 @@ REGISTRY["test-pytest"] = renderTestGreen;
 REGISTRY["test-jest"] = renderTestGreen;
 REGISTRY["test-vitest"] = renderTestGreen;
 REGISTRY["build-eslint"] = renderTestGreen;
+
+// Task 4: terraform-plan renderer
+REGISTRY["terraform-plan"] = renderTerraformPlan;
+REGISTRY["tofu-plan"] = renderTerraformPlan;
 
 export function applyRenderer(
   text: string,
