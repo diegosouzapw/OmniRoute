@@ -33,8 +33,12 @@ import {
 } from "./planResolution.ts";
 import { resolveAdaptivePlan } from "./adaptiveCompression/resolveAdaptivePlan.ts";
 import type { AdaptiveTelemetry } from "./adaptiveCompression/types.ts";
-import { applyRiskMask, restoreRiskBlocks } from "./riskGate/riskGateStep.ts";
 import type { RiskGateConfig } from "./riskGate/riskGate.ts";
+import {
+  resolveRiskGate,
+  withRiskGate,
+  withRiskGateAsync,
+} from "./riskGate/strategyWrap.ts";
 
 // Re-export so existing importers (resolver test + chatCore dynamic import) keep resolving.
 export { planFromHeader, formatCompressionMeta, buildNamedComboLookup };
@@ -730,37 +734,6 @@ function finalizeStackedResult(
   return { body: currentBody, compressed, stats };
 }
 
-/**
- * Resolve the effective risk-gate config from either an explicit `riskGate` option
- * or the compression config, honoring `enabled`. Returns undefined (no-op) otherwise.
- */
-function resolveRiskGate(options?: {
-  riskGate?: RiskGateConfig;
-  config?: CompressionConfig;
-}): RiskGateConfig | undefined {
-  const rg = options?.riskGate ?? options?.config?.riskGate;
-  return rg?.enabled ? rg : undefined;
-}
-
-/**
- * OUTER wrapper around a sync compression entry point: masks risky spans BEFORE the
- * pipeline, runs the existing logic on the masked body, then restores the spans in the
- * result and attaches `stats.riskGate`. When the gate is absent, behavior is byte-identical
- * (run is called with the original body and nothing is attached).
- */
-function withRiskGate(
-  body: Record<string, unknown>,
-  riskGate: RiskGateConfig | undefined,
-  run: (b: Record<string, unknown>) => CompressionResult
-): CompressionResult {
-  if (!riskGate) return run(body);
-  const mask = applyRiskMask(body, riskGate);
-  const result = run(mask.maskedBody);
-  if (mask.blocks.length) result.body = restoreRiskBlocks(result.body, mask.blocks);
-  if (result.stats) result.stats.riskGate = mask.stats;
-  return result;
-}
-
 export function applyStackedCompression(
   body: Record<string, unknown>,
   pipeline?: Array<CompressionPipelineStep | string>,
@@ -849,13 +822,9 @@ export async function applyStackedCompressionAsync(
   pipeline?: Array<CompressionPipelineStep | string>,
   options?: StackOptions
 ): Promise<CompressionResult> {
-  const riskGate = resolveRiskGate(options);
-  if (!riskGate) return runStackedCompressionAsync(body, pipeline, options);
-  const mask = applyRiskMask(body, riskGate);
-  const result = await runStackedCompressionAsync(mask.maskedBody, pipeline, options);
-  if (mask.blocks.length) result.body = restoreRiskBlocks(result.body, mask.blocks);
-  if (result.stats) result.stats.riskGate = mask.stats;
-  return result;
+  return withRiskGateAsync(body, resolveRiskGate(options), (b) =>
+    runStackedCompressionAsync(b, pipeline, options)
+  );
 }
 
 async function runStackedCompressionAsync(

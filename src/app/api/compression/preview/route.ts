@@ -53,6 +53,10 @@ function countTokens(text: string): number {
   return countTextTokens(text);
 }
 
+function riskGateStatsOf(result: { stats?: { riskGate?: unknown } }): unknown {
+  return result.stats?.riskGate ?? null;
+}
+
 function messagesToText(messages: Array<{ role: string; content: unknown }>): string {
   return messages
     .map((m) => {
@@ -190,7 +194,7 @@ export async function POST(req: Request) {
       savingsPct,
       techniquesUsed,
       engineBreakdown,
-      riskGate: result.stats?.riskGate ?? null,
+      riskGate: riskGateStatsOf(result),
       durationMs,
       mode: effectiveMode,
       intensity: null,
