@@ -34,7 +34,22 @@ test("#3884 streaming request still injects stream_options.include_usage", () =>
   const executor = new DefaultExecutor("openai");
   const body = { model: "gpt-4.1", messages: [{ role: "user", content: "hi" }] };
   const result = executor.transformRequest("gpt-4.1", body, true, {}) as Record<string, unknown>;
+  assert.equal(result.stream, true);
   assert.deepEqual(result.stream_options, { include_usage: true });
+});
+
+test("#3884 internal streaming strips stream_options when body explicitly disables stream", () => {
+  const executor = new DefaultExecutor("openai-compatible-deepseek");
+  const body = {
+    model: "deepseek-chat",
+    messages: [{ role: "user", content: "hi" }],
+    stream: false,
+  };
+  const result = executor.transformRequest("deepseek-chat", body, true, {
+    providerSpecificData: { baseUrl: "https://proxy.example/v1" },
+  }) as Record<string, unknown>;
+  assert.equal(result.stream, false);
+  assert.equal(result.stream_options, undefined);
 });
 
 test("#3884 non-streaming request without stream_options stays clean", () => {

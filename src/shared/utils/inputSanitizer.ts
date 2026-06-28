@@ -137,13 +137,18 @@ function getConfig() {
 function extractMessageContents(body) {
   const contents = [];
 
-  const messages = body.messages || body.input || [];
+  const messageSource = body.messages !== undefined ? body.messages : body.input;
+  const messages = Array.isArray(messageSource)
+    ? messageSource
+    : messageSource === undefined || messageSource === null
+      ? []
+      : [messageSource];
   for (const msg of messages) {
     if (typeof msg === "string") {
       contents.push(msg);
-    } else if (typeof msg.content === "string") {
+    } else if (msg && typeof msg.content === "string") {
       contents.push(msg.content);
-    } else if (Array.isArray(msg.content)) {
+    } else if (msg && Array.isArray(msg.content)) {
       for (const part of msg.content) {
         if (typeof part === "string") {
           contents.push(part);
@@ -300,7 +305,12 @@ export function sanitizeRequest(body, logger = console) {
  */
 function redactBody(body) {
   const clone = JSON.parse(JSON.stringify(body));
-  const messages = clone.messages || clone.input || [];
+  const messageSource = clone.messages !== undefined ? clone.messages : clone.input;
+  const messages = Array.isArray(messageSource)
+    ? messageSource
+    : messageSource && typeof messageSource === "object"
+      ? [messageSource]
+      : [];
 
   for (const msg of messages) {
     if (typeof msg.content === "string") {

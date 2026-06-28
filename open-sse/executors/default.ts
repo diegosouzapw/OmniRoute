@@ -691,12 +691,11 @@ export class DefaultExecutor extends BaseExecutor {
         // injection when `thinking` / `enable_thinking` is set. Skip injection in
         // those cases instead of unconditionally adding `stream_options`.
         const defaultsRecord = withDefaults as Record<string, unknown>;
+        const bodyDisablesStreamOptions = defaultsRecord.stream !== undefined && defaultsRecord.stream !== true;
         const qwenBlocksStreamOptions =
           this.provider === "qwen" &&
-          (defaultsRecord.stream === false ||
-            Boolean(defaultsRecord.thinking) ||
-            Boolean(defaultsRecord.enable_thinking));
-        if (qwenBlocksStreamOptions) {
+          (Boolean(defaultsRecord.thinking) || Boolean(defaultsRecord.enable_thinking));
+        if (bodyDisablesStreamOptions || qwenBlocksStreamOptions) {
           if (Object.prototype.hasOwnProperty.call(defaultsRecord, "stream_options")) {
             const withoutStreamOptions = { ...defaultsRecord };
             delete withoutStreamOptions.stream_options;
@@ -705,6 +704,7 @@ export class DefaultExecutor extends BaseExecutor {
         } else if (!credentials?.providerSpecificData?.disableStreamOptions) {
           withDefaults = {
             ...withDefaults,
+            stream: true,
             stream_options: {
               ...((defaultsRecord.stream_options as object) || {}),
               include_usage: true,

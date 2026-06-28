@@ -8,7 +8,7 @@ import { isOpenAIResponsesStoreEnabled } from "@/lib/providers/requestDefaults";
 import { FORMATS } from "../formats.ts";
 import { generateToolCallId } from "../helpers/toolCallHelper.ts";
 import { register } from "../registry.ts";
-
+import { normalizeResponsesInputForChat } from "../../utils/responsesInputNormalization.ts";
 type JsonRecord = Record<string, unknown>;
 const RESPONSES_STORE_MARKER = "_omnirouteResponsesStore";
 const COPILOT_REASONING_SUMMARY_MARKER = "_omnirouteCopilotReasoningSummary";
@@ -166,7 +166,7 @@ export function openaiResponsesToOpenAIRequest(
   // Upstream providers reject messages:[] with "400: at least one message is required".
   // When the client sends input:[] (empty), inject a placeholder user message — mirrors
   // upstream 9router#419 (and the existing empty-string handling elsewhere in this file).
-  const rawInputItems = toArray(root.input);
+  const rawInputItems = normalizeResponsesInputForChat(root.input);
   const inputItems: unknown[] =
     rawInputItems.length === 0
       ? [{ type: "message", role: "user", content: [{ type: "input_text", text: "..." }] }]

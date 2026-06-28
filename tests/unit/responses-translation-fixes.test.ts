@@ -5,6 +5,8 @@ const { convertResponsesApiFormat } =
   await import("../../open-sse/translator/helpers/responsesApiHelper.ts");
 const { openaiResponsesToOpenAIRequest, openaiToOpenAIResponsesRequest } =
   await import("../../open-sse/translator/request/openai-responses.ts");
+const { normalizeCodexResponsesInput } =
+  await import("../../open-sse/utils/responsesInputNormalization.ts");
 
 test("convertResponsesApiFormat filters orphaned function_call_output items", () => {
   const body = {
@@ -55,6 +57,66 @@ test("Responses→Chat: input_image converted to image_url with detail", () => {
   assert.ok(imgPart, "should have image_url content part");
   assert.equal(imgPart.image_url.url, "https://example.com/img.png");
   assert.equal(imgPart.image_url.detail, "high");
+});
+
+test("Responses→Chat: string input becomes a user message instead of an empty prompt", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    null,
+    { model: "gpt-4", input: "Responda apenas: OK", max_output_tokens: 80 },
+    null,
+    null
+  );
+
+  assert.equal((result as any).input, undefined);
+  assert.equal((result as any).messages.length, 1);
+  assert.equal((result as any).messages[0].role, "user");
+  assert.deepEqual((result as any).messages[0].content, [
+    { type: "text", text: "Responda apenas: OK" },
+  ]);
+});
+
+test("Responses→Chat: object input becomes a single user message", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    null,
+    { model: "gpt-4", input: { text: "Ping" } },
+    null,
+    null
+  );
+
+  assert.equal((result as any).messages.length, 1);
+  assert.equal((result as any).messages[0].role, "user");
+  assert.deepEqual((result as any).messages[0].content, [{ type: "text", text: "Ping" }]);
+});
+
+test("Responses→Chat: role/content object input becomes a single user message", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    null,
+    { model: "gpt-4", input: { role: "user", content: "Ping" } },
+    null,
+    null
+  );
+
+  assert.equal((result as any).messages.length, 1);
+  assert.equal((result as any).messages[0].role, "user");
+  assert.equal((result as any).messages[0].content, "Ping");
+});
+
+test("Codex Responses input: string input becomes a list-shaped user message", () => {
+  const body: Record<string, unknown> = { input: "ship it" };
+  normalizeCodexResponsesInput(body);
+
+  assert.deepEqual(body.input, [
+    { type: "message", role: "user", content: [{ type: "input_text", text: "ship it" }] },
+  ]);
+});
+
+test("Codex Responses input: object input becomes a single item", () => {
+  const body: Record<string, unknown> = { input: { role: "user", text: "ship it" } };
+  normalizeCodexResponsesInput(body);
+
+  assert.deepEqual(body.input, [
+    { type: "message", role: "user", content: [{ type: "input_text", text: "ship it" }] },
+  ]);
 });
 
 test("Responses→Chat: input_image without detail omits detail field", () => {
