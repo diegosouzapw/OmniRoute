@@ -95,7 +95,7 @@ function extractTokenAndRefresh(input: unknown): {
     }
 
     // Raw JWT passed as { accessToken: "eyJ..." }
-    if (typeof obj.accessToken === "string" && obj.accessToken.startsWith("eyJ")) {
+    if (typeof obj.accessToken === "string" && obj.accessToken.length > 0) {
       return {
         accessToken: obj.accessToken,
         refreshToken: typeof obj.refreshToken === "string" ? obj.refreshToken : null,

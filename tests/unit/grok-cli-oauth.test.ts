@@ -65,3 +65,55 @@ test("Grok Build OAuth Provider - mapTokens from object with accessToken", () =>
   const result = grokCli.mapTokens(input, null);
   assert.equal(result.accessToken, "direct-token");
 });
+
+test("Grok Build OAuth Provider - mapTokens from route-wrapped auth.json", () => {
+  // The route handler wraps the token: { accessToken: <token> }.
+  // This simulates what the import-token endpoint passes to mapTokens.
+  const authJson = {
+    "https://auth.x.ai::b1a00492-073a-47ea-816f-4c329264a828": {
+      key: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20ifQ.signature",
+      refresh_token: "test-refresh-token-wrapped",
+      expires_at: "2026-12-31T00:00:00Z",
+    },
+  };
+  const wrapped = { accessToken: authJson };
+  const result = grokCli.mapTokens(wrapped, null);
+
+  assert.ok(
+    result.accessToken.startsWith("eyJ"),
+    "accessToken should be JWT from wrapped auth.json"
+  );
+  assert.equal(result.refreshToken, "test-refresh-token-wrapped");
+  assert.equal(result.email, "test@example.com");
+  assert.ok(result.providerSpecificData?.rawAuthJson, "rawAuthJson should be populated");
+  assert.deepEqual(
+    result.providerSpecificData?.rawAuthJson,
+    authJson,
+    "rawAuthJson should equal the original auth.json"
+  );
+});
+
+test("Grok Build OAuth Provider - mapTokens from direct auth.json has rawAuthJson", () => {
+  const authJson = {
+    "https://auth.x.ai::clientId": {
+      key: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20ifQ.signature",
+      refresh_token: "direct-refresh",
+    },
+  };
+  const result = grokCli.mapTokens(authJson, null);
+
+  assert.ok(result.accessToken.startsWith("eyJ"));
+  assert.equal(result.refreshToken, "direct-refresh");
+  assert.deepEqual(result.providerSpecificData?.rawAuthJson, authJson);
+});
+
+test("Grok Build OAuth Provider - mapTokens from raw JWT has no rawAuthJson", () => {
+  const payload = { sub: "12345", email: "test@example.com" };
+  const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const mockJwt = `eyJhbGciOiJFUzI1NiJ9.${payloadBase64}.signature`;
+  const result = grokCli.mapTokens(mockJwt, null);
+
+  assert.equal(result.accessToken, mockJwt);
+  assert.equal(result.refreshToken, null);
+  assert.equal(result.providerSpecificData?.rawAuthJson, undefined);
+});
