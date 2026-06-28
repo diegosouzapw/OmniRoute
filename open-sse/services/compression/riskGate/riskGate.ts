@@ -1,4 +1,4 @@
-import { RISK_PATTERNS, SELF_EVIDENT, type RiskCategory } from "./riskPatterns.ts";
+import { RISK_PATTERNS, type RiskCategory } from "./riskPatterns.ts";
 
 export interface RiskGateConfig {
   enabled: boolean;
@@ -20,7 +20,7 @@ interface Hit {
 
 const SHORT_SECTION = 200;
 const MIN_DDL = 2;
-const VCS_LINE = /^(?:commit [0-9a-f]{7,40}|Author:|Date:|diff --git |@@ |[+-]{3} )/m;
+const VCS_LINE = /^(?:commit [0-9a-f]{7,40}|diff --git |@@ |[+-]{3} )/m;
 const DIFF_HUNK_LINE = /^[+-]/;
 
 function isLikelyVcsContext(text: string): boolean {
@@ -92,6 +92,7 @@ function mergeSpans(spans: RiskSpan[]): RiskSpan[] {
  */
 export function detectRiskSpans(text: string, cfg: RiskGateConfig): RiskSpan[] {
   try {
+    if (!cfg.enabled) return [];
     if (!text) return [];
     const enabled = new Set<RiskCategory>(
       cfg.categories?.length
@@ -112,6 +113,8 @@ export function detectRiskSpans(text: string, cfg: RiskGateConfig): RiskSpan[] {
     const guarded = regexHits.filter(
       (h) => h.category === "secret_assignment" || h.category === "stack_trace" || h.category === "legal"
     );
+    // private_key is the only regex-hit self-evident category; k8s_secret and
+    // db_migration self-promote via their own structural paths below.
     const selfEvident = regexHits.filter((h) => h.category === "private_key");
 
     // Count corroborating signals (self-evident + promoted-ddl + k8s + guarded).

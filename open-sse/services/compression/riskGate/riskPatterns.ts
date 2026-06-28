@@ -41,7 +41,7 @@ export const RISK_PATTERNS: RiskPattern[] = [
   {
     category: "secret_assignment",
     regex:
-      /\b(?:api[_-]?key|secret|token|password|passwd|bearer|authorization|client[_-]?secret)\b\s*[:=]\s*["']?[A-Za-z0-9._\-+/]{8,200}/gi,
+      /\b(?:api[_-]?key|secret|token|password|passwd|bearer|authorization|client[_-]?secret)\b[ \t]{0,20}[:=][ \t]{0,20}["']?[A-Za-z0-9._\-+/]{8,200}/gi,
   },
   {
     category: "stack_trace",
