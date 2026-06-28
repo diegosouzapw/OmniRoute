@@ -27,6 +27,16 @@ export const PRE_SCREEN_CONCURRENCY = 5;
 export const DEFAULT_COMBO_TARGET_TIMEOUT_MS = 120_000;
 
 /**
+ * Streaming-specific per-target timeout. For streaming requests the combo only
+ * needs to wait for the first headers — once the stream starts, data flows
+ * indefinitely. This timeout catches "provider never responds" without aborting
+ * healthy long-running streams. The timeout is cancelled as soon as
+ * `handleSingleModel` resolves (which happens after `ensureStreamReadiness`
+ * confirms the stream has data).
+ */
+export const STREAMING_TARGET_TIMEOUT_MS = 30_000;
+
+/**
  * Default pre-cascade semaphore queue depth for round-robin combos (#3872). When a
  * combo member's concurrency slot is saturated, this many requests wait in the
  * member's queue before `SEMAPHORE_QUEUE_FULL` triggers a cascade to the next member.
@@ -103,6 +113,15 @@ const DEFAULT_COMBO_CONFIG = {
     qualityWeight: 0.85,
     latencyWeight: 0.15,
     cacheTtlMs: 60000,
+  },
+  // Stream pre-buffer: hold streaming response chunks before sending to client.
+  // If an error occurs before the threshold is met, the combo can retry with
+  // another provider. Once the threshold is met, chunks flush to the client
+  // and no more retries are possible.
+  streamPreBuffer: {
+    enabled: false,
+    mode: "tokens" as "time" | "tokens",
+    threshold: 100, // seconds if mode=time, token count if mode=tokens
   },
 };
 

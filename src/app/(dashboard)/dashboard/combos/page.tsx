@@ -3828,6 +3828,93 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                       />
                     </div>
                   </div>
+                  {/* Stream Pre-Buffer */}
+                  <div className="col-span-2 pt-2 border-t border-black/5 dark:border-white/5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <input
+                        type="checkbox"
+                        id="streamPreBuffer"
+                        checked={!!config.streamPreBuffer?.enabled}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            streamPreBuffer: e.target.checked
+                              ? { enabled: true, mode: "tokens", threshold: 100 }
+                              : undefined,
+                          })
+                        }
+                        className="rounded"
+                      />
+                      <label htmlFor="streamPreBuffer" className="text-xs font-medium">
+                        Cache stream before sending to client
+                      </label>
+                      <Tooltip
+                        position="bottom"
+                        content="Hold streaming chunks before sending to client. If an error occurs before the threshold, the combo retries with another provider. Once the threshold is met, chunks flush to the client and no more retries are possible."
+                      >
+                        <span className="material-symbols-outlined text-[12px] text-text-muted cursor-help">
+                          help
+                        </span>
+                      </Tooltip>
+                    </div>
+                    {config.streamPreBuffer?.enabled && (
+                      <div className="grid grid-cols-2 gap-2 ml-6">
+                        <div>
+                          <FieldLabelWithHelp
+                            label="Buffer mode"
+                            help="'Time' buffers for N seconds. 'Tokens' buffers until N tokens arrive."
+                            showHelp={!isExpertMode}
+                          />
+                          <select
+                            value={config.streamPreBuffer?.mode || "tokens"}
+                            onChange={(e) =>
+                              setConfig({
+                                ...config,
+                                streamPreBuffer: {
+                                  ...config.streamPreBuffer!,
+                                  mode: e.target.value as "time" | "tokens",
+                                },
+                              })
+                            }
+                            className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                          >
+                            <option value="tokens">Tokens</option>
+                            <option value="time">Time (seconds)</option>
+                          </select>
+                        </div>
+                        <div>
+                          <FieldLabelWithHelp
+                            label={
+                              config.streamPreBuffer?.mode === "time" ? "Seconds" : "Token count"
+                            }
+                            help={
+                              config.streamPreBuffer?.mode === "time"
+                                ? "Buffer for this many seconds before releasing to client."
+                                : "Buffer until this many tokens arrive before releasing to client."
+                            }
+                            showHelp={!isExpertMode}
+                          />
+                          <input
+                            type="number"
+                            min="1"
+                            max={config.streamPreBuffer?.mode === "time" ? 600 : 100000}
+                            value={config.streamPreBuffer?.threshold ?? ""}
+                            placeholder={config.streamPreBuffer?.mode === "time" ? "30" : "100"}
+                            onChange={(e) =>
+                              setConfig({
+                                ...config,
+                                streamPreBuffer: {
+                                  ...config.streamPreBuffer!,
+                                  threshold: e.target.value ? Number(e.target.value) : 100,
+                                },
+                              })
+                            }
+                            className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   {strategy === "round-robin" && (
                     <div className="grid grid-cols-2 gap-2 pt-2 border-t border-black/5 dark:border-white/5">
                       <div>
@@ -4118,7 +4205,11 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                       </div>
                       <div>
                         <FieldLabelWithHelp
-                          label={getI18nOrFallback(t, "fusionStragglerGraceMs", "Straggler grace (ms)")}
+                          label={getI18nOrFallback(
+                            t,
+                            "fusionStragglerGraceMs",
+                            "Straggler grace (ms)"
+                          )}
                           help={getI18nOrFallback(
                             t,
                             "fusionStragglerGraceMsHelp",
@@ -4133,7 +4224,9 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                           value={config.fusionTuning?.stragglerGraceMs ?? ""}
                           placeholder="8000"
                           onChange={(e) =>
-                            setConfig(updateFusionTuning(config, "stragglerGraceMs", e.target.value))
+                            setConfig(
+                              updateFusionTuning(config, "stragglerGraceMs", e.target.value)
+                            )
                           }
                           className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
                         />

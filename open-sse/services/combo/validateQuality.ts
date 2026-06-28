@@ -99,6 +99,8 @@ export async function validateResponseQuality(
     let hasMessageStart = false;
     let hasContentBlock = false;
     let hasLifecycleEnd = false;
+    let hasRealContent = false;
+    let hasOnlyErrors = true;
     const sseLineNormalizer = createSSEDataLineNormalizer();
     let pendingEventType = "";
 
@@ -143,7 +145,40 @@ export async function validateResponseQuality(
         pendingEventType = "";
 
         if (isKnownNonClaudeStreamPayload(parsed, eventType)) {
+          // Check for Gemini malformed_response — the stream delivered a 200
+          // but the content is unusable (e.g. truncated, garbled, or empty).
+          const fr = (parsed.choices as any[])?.[0]?.finish_reason;
+          if (fr === "malformed_response" || fr === "MALFORMED_RESPONSE") {
+            hasOnlyErrors = true;
+            continue;
+          }
+          hasRealContent = true;
+          hasOnlyErrors = false;
           return true;
+        }
+
+        // Detect error-only streams: the provider returned 200 but the stream
+        // body is an error (e.g. Gemini "server exhausted"). The translator may
+        // wrap this in an OpenAI-format chunk with empty choices + error field.
+        if (parsed.error) {
+          const hasMeaningfulContent = isKnownNonClaudeStreamPayload(parsed, eventType);
+          if (!hasMeaningfulContent) {
+            // Error with no real content — skip this chunk but track it.
+            continue;
+          }
+        }
+
+        // Any other non-error, non-Claude, non-protocol payload counts as real content.
+        // Skip protocol markers ([DONE] is already handled above, but other
+        // non-content fields like bare event IDs shouldn't count either).
+        if (isKnownNonClaudeStreamPayload(parsed, eventType)) {
+          hasRealContent = true;
+          hasOnlyErrors = false;
+          return true;
+        }
+        if (eventType || parsed.id || parsed.object) {
+          hasRealContent = true;
+          hasOnlyErrors = false;
         }
 
         switch (eventType) {
@@ -236,6 +271,25 @@ export async function validateResponseQuality(
             return { valid: false, reason: "streaming empty content block" };
           }
 
+          if (hasOnlyErrors && !hasRealContent) {
+            // Stream contained only error objects (e.g. Gemini "server exhausted")
+            // with no real content — treat as invalid for combo failover.
+            log.warn?.(
+              "COMBO",
+              "Streaming response contained only error objects, no real content — marking as invalid for combo failover"
+            );
+            return { valid: false, reason: "streaming error-only response" };
+          }
+
+          // If stream ended without any recognized content or errors, treat as invalid.
+          if (!hasRealContent && !hasMessageStart) {
+            log.warn?.(
+              "COMBO",
+              `Streaming response ended without any recognized content (hasOnlyErrors=${hasOnlyErrors}) — marking as invalid`
+            );
+            return { valid: false, reason: "streaming no recognized content" };
+          }
+
           // Incomplete lifecycle or non-Claude stream — replay all buffered
           // bytes. The reader is exhausted so the forwarding reader will
           // immediately signal done.
@@ -308,7 +362,8 @@ export async function validateResponseQuality(
 
   const choices = json?.choices;
   if (json?.object === "response") {
-    if (!responsesApiOutputHasContent(json.output)) return { valid: false, reason: "empty_choices" };
+    if (!responsesApiOutputHasContent(json.output))
+      return { valid: false, reason: "empty_choices" };
     const status = typeof json.status === "string" ? json.status : "";
     if (status && !["completed", "done"].includes(status)) {
       return { valid: false, reason: "no_terminal" };
@@ -331,6 +386,11 @@ export async function validateResponseQuality(
         valid: false,
         reason: `upstream error in 200 body: ${err?.message || JSON.stringify(json.error).substring(0, 200)}`,
       };
+    }
+    // Empty JSON body (no choices, no output, no error) — treat as invalid.
+    const topLevelKeys = Object.keys(json).filter((k) => !k.startsWith("_"));
+    if (topLevelKeys.length === 0) {
+      return { valid: false, reason: "empty JSON response body" };
     }
     return { valid: true };
   }

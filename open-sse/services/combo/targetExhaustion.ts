@@ -26,7 +26,10 @@ import type { ComboLogger, ResolvedComboTarget } from "./types.ts";
 
 // Connection-level failure statuses: the provider connection itself is likely bad (upstream
 // unreachable, proxy/gateway error), so remaining same-connection targets are skipped.
-const CONNECTION_LEVEL_ERROR_STATUSES = [408, 500, 502, 503, 504, 524];
+// 502/503/504 are excluded — they often indicate model-specific or transient upstream issues,
+// not a broken connection. Different models on the same connection may still succeed.
+// The provider circuit breaker handles provider-wide outages with the sameProviderNext guard.
+const CONNECTION_LEVEL_ERROR_STATUSES = [408, 524];
 
 // #5085: an "empty content" 502 is the synthetic status chatCore assigns to a provider that
 // answered HTTP 200 with no usable completion (isEmptyContentResponse). The connection is
@@ -112,9 +115,15 @@ export function applyComboTargetExhaustion(
 
 /**
  * #1731v2: connection-level errors (408/5xx, excluding the OmniRoute circuit-open signal) suggest
- * the provider connection itself is bad → skip remaining same-connection (or same-provider, when
- * no connectionId) targets this request. Only runs when the provider was NOT already marked fully
- * exhausted above. Split out to keep applyComboTargetExhaustion under the complexity ceiling.
+ * the provider connection itself is bad → skip remaining same-connection targets this request.
+ * Only runs when the provider was NOT already marked fully exhausted above. Split out to keep
+ * applyComboTargetExhaustion under the complexity ceiling.
+ *
+ * When there is no connectionId (common for combos configured with just model names), we do NOT
+ * mark the entire provider as exhausted — a 503 from one model (e.g. gemma-4-31b-it) does not
+ * mean another model on the same provider (e.g. gemma-4-26b-a4b-it) is also down. The provider
+ * circuit breaker (shouldRecordProviderBreakerFailure) already handles provider-level failure
+ * tracking with the sameProviderNext guard.
  */
 function markConnectionLevelExhaustion(
   target: ResolvedComboTarget,
@@ -141,11 +150,8 @@ function markConnectionLevelExhaustion(
       tag,
       `Provider ${provider} connection ${connId} error (${result.status}) — marking for skip on remaining targets (#1731v2)`
     );
-  } else {
-    sets.exhaustedProviders.add(provider);
-    log.info(
-      tag,
-      `Provider ${provider} connection error (${result.status}) — marking for skip on remaining targets (#1731)`
-    );
   }
+  // When there is no connectionId, do NOT add the provider to exhaustedProviders.
+  // Different models on the same provider may still succeed — let the combo loop
+  // try the next target normally. The provider circuit breaker handles provider-wide outages.
 }

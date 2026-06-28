@@ -89,6 +89,7 @@ export type HandleComboChatOptions = {
   signal?: AbortSignal | null;
   apiKeyAllowedConnections?: string[] | null;
   nesting?: ComboNestingContext | null;
+  correlationId?: string | null;
 };
 
 export type HandleRoundRobinOptions = Omit<

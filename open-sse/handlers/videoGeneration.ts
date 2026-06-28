@@ -342,7 +342,7 @@ async function handleVertexVeoGeneration({ model, body, credentials, log }) {
  * Submits an AnimateDiff or SVD workflow, polls for completion, fetches output video
  */
 async function handleVeoAiFreeVideoGeneration({ model, provider, body, credentials, log }) {
-  const executor = getExecutor(provider);
+  const executor = await getExecutor(provider);
   if (!executor) {
     return { success: false, status: 400, error: `Unknown video provider: ${provider}` };
   }

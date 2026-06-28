@@ -218,6 +218,13 @@ export const comboRuntimeConfigSchema = z
       })
       .strict()
       .optional(),
+    streamPreBuffer: z
+      .object({
+        enabled: z.boolean().optional(),
+        mode: z.enum(["time", "tokens"]).optional(),
+        threshold: z.coerce.number().int().min(1).max(600).optional(),
+      })
+      .optional(),
   })
   .passthrough()
   .transform((config) => {
@@ -267,7 +274,11 @@ export const createComboSchema = z.object({
   // the `dimensions` field (and translated to `outputDimensionality` for Gemini).
   // Stored as a string to match the OpenAI API convention; coerced to number
   // by the embedding handler. Leave unset to use each model's default.
-  dimensions: z.string().regex(/^\d+$/, "dimensions must be a positive integer string").optional().nullable(),
+  dimensions: z
+    .string()
+    .regex(/^\d+$/, "dimensions must be a positive integer string")
+    .optional()
+    .nullable(),
 });
 
 export const updateComboDefaultsSchema = z
@@ -317,7 +328,11 @@ export const updateComboSchema = z
     context_cache_protection: z.boolean().optional(),
     context_length: z.number().int().min(1000).max(2000000).optional().nullable(),
     compressionOverride: comboCompressionOverrideSchema.optional(),
-    dimensions: z.string().regex(/^\d+$/, "dimensions must be a positive integer string").optional().nullable(),
+    dimensions: z
+      .string()
+      .regex(/^\d+$/, "dimensions must be a positive integer string")
+      .optional()
+      .nullable(),
   })
   .superRefine((value, ctx) => {
     if (
