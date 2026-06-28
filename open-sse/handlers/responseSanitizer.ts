@@ -32,6 +32,7 @@ const ALLOWED_RESPONSES_USAGE_FIELDS = new Set([
 ]);
 
 type JsonRecord = Record<string, unknown>;
+type ParseOptions = { parseTextualReasoningTags?: boolean };
 
 export const OMIT_STREAMING_CHUNK_MARKER = "__omniroute_omit_streaming_chunk";
 
@@ -301,23 +302,30 @@ function normalizeReasoningRouteId(value: unknown): string {
   return typeof value === "string" ? value.toLowerCase() : "";
 }
 
-export function shouldParseTextualReasoningTags(provider?: unknown, model?: unknown): boolean {
-  const providerId = normalizeReasoningRouteId(provider);
-  const modelId = normalizeReasoningRouteId(model);
-  if (
+function isAntigravityReasoningRoute(providerId: string, modelId: string): boolean {
+  return (
     providerId.includes("antigravity") ||
     providerId === "agy" ||
     modelId.includes("antigravity/") ||
     modelId.startsWith("agy/")
-  ) {
-    return false;
-  }
+  );
+}
 
+function isTextualReasoningTagNativeRoute(providerId: string, modelId: string): boolean {
   const routeId = `${providerId}/${modelId}`;
   return (
     /deepseek[-_/]?r1\b/.test(routeId) ||
     /r1[-_/]?distill\b/.test(routeId) ||
     /(?:^|[/:_-])qwq(?:[/._:-]|$)/.test(routeId)
+  );
+}
+
+export function shouldParseTextualReasoningTags(provider?: unknown, model?: unknown): boolean {
+  const providerId = normalizeReasoningRouteId(provider);
+  const modelId = normalizeReasoningRouteId(model);
+  return (
+    !isAntigravityReasoningRoute(providerId, modelId) &&
+    isTextualReasoningTagNativeRoute(providerId, modelId)
   );
 }
 
@@ -460,7 +468,7 @@ export function sanitizeResponsesApiResponse(body: unknown): unknown {
 function sanitizeChoice(
   choice: unknown,
   defaultIndex: number,
-  options: Pick<SanitizeOpenAIResponseOptions, "parseTextualReasoningTags"> = {}
+  options: ParseOptions = {}
 ): JsonRecord {
   const choiceRecord = toRecord(choice);
   const sanitized: JsonRecord = {
@@ -476,7 +484,6 @@ function sanitizeChoice(
     sanitized.finish_reason = normalizeOpenAICompatibleFinishReason(choiceRecord.finish_reason);
   }
 
-  // Sanitize message (non-streaming) or delta (streaming)
   if (choiceRecord?.message !== undefined) {
     sanitized.message = sanitizeMessage(choiceRecord.message, options);
   }
@@ -484,7 +491,6 @@ function sanitizeChoice(
     sanitized.delta = sanitizeMessage(choiceRecord.delta, options);
   }
 
-  // Keep logprobs if present
   if (choiceRecord?.logprobs !== undefined) {
     sanitized.logprobs = choiceRecord.logprobs;
   }
@@ -492,19 +498,7 @@ function sanitizeChoice(
   return sanitized;
 }
 
-function sanitizeMessage(
-  msg: unknown,
-  options: Pick<SanitizeOpenAIResponseOptions, "parseTextualReasoningTags"> = {}
-): unknown {
-  const msgRecord = toRecord(msg);
-  if (!msgRecord) return msg;
-
-  const sanitized: JsonRecord = {};
-
-  // Copy only allowed fields
-  if (msgRecord.role) sanitized.role = msgRecord.role;
-  if (msgRecord.refusal !== undefined) sanitized.refusal = msgRecord.refusal;
-
+function sanitizeMessageContent(msgRecord: JsonRecord, options: ParseOptions = {}): JsonRecord {
   if (typeof msgRecord.content === "string") {
     const strippedContent = stripInternalToolEnvelopeText(msgRecord.content);
     const nativeReasoning = getReadableReasoningValue(msgRecord);
@@ -512,17 +506,15 @@ function sanitizeMessage(
       options.parseTextualReasoningTags === true && !nativeReasoning
         ? extractThinkingFromContent(strippedContent)
         : { content: strippedContent, thinking: null };
-    sanitized.content = collapseExcessiveNewlines(content);
-
-    if (thinking) {
-      sanitized.reasoning_content = thinking;
-    }
-  } else if (msgRecord.content !== undefined) {
-    sanitized.content = msgRecord.content;
+    const sanitized: JsonRecord = { content: collapseExcessiveNewlines(content) };
+    if (thinking) sanitized.reasoning_content = thinking;
+    return sanitized;
   }
 
-  copyOpenAICompatibleReasoningFields(msgRecord, sanitized);
+  return msgRecord.content !== undefined ? { content: msgRecord.content } : {};
+}
 
+function applyTextualToolCallSanitization(sanitized: JsonRecord, msgRecord: JsonRecord): void {
   const textualToolCall = parseTextualToolCallContent(sanitized.content);
   if (textualToolCall && !msgRecord.tool_calls) {
     sanitized.content = null;
@@ -539,13 +531,26 @@ function sanitizeMessage(
   } else if (containsTextualToolCallContent(sanitized.content) && !msgRecord.tool_calls) {
     sanitized.content = null;
   }
+}
 
-  // Preserve tool_calls
+function sanitizeMessage(msg: unknown, options: ParseOptions = {}): unknown {
+  const msgRecord = toRecord(msg);
+  if (!msgRecord) return msg;
+
+  const sanitized: JsonRecord = {};
+
+  if (msgRecord.role) sanitized.role = msgRecord.role;
+  if (msgRecord.refusal !== undefined) sanitized.refusal = msgRecord.refusal;
+
+  Object.assign(sanitized, sanitizeMessageContent(msgRecord, options));
+
+  copyOpenAICompatibleReasoningFields(msgRecord, sanitized);
+  applyTextualToolCallSanitization(sanitized, msgRecord);
+
   if (msgRecord.tool_calls) {
     sanitized.tool_calls = msgRecord.tool_calls;
   }
 
-  // Preserve function_call (legacy)
   if (msgRecord.function_call) {
     sanitized.function_call = msgRecord.function_call;
   }
