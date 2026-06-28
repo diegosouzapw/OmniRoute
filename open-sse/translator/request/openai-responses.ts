@@ -51,6 +51,30 @@ function toString(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : fallback;
 }
 
+function mapChatResponseFormatToResponsesText(body: JsonRecord, result: JsonRecord): void {
+  const existingText = { ...toRecord(body.text), ...toRecord(result.text) };
+  if (existingText.format !== undefined) {
+    result.text = existingText;
+    return;
+  }
+
+  const responseFormat = toRecord(body.response_format);
+  if (responseFormat.type !== "json_schema") return;
+
+  const jsonSchema = toRecord(responseFormat.json_schema);
+  if (jsonSchema.schema === undefined) return;
+
+  const format: JsonRecord = {
+    type: "json_schema",
+    name: toString(jsonSchema.name, "codex_output_schema"),
+    schema: jsonSchema.schema,
+  };
+  if (jsonSchema.description !== undefined) format.description = jsonSchema.description;
+  if (jsonSchema.strict !== undefined) format.strict = jsonSchema.strict;
+
+  result.text = { ...existingText, format };
+}
+
 function imageUrlToText(value: unknown): string {
   if (typeof value === "string") return value;
   const record = toRecord(value);
@@ -864,6 +888,7 @@ export function openaiToOpenAIResponsesRequest(
     result.max_output_tokens = root.max_tokens;
   }
   if (root.top_p !== undefined) result.top_p = root.top_p;
+  mapChatResponseFormatToResponsesText(root, result);
   // GPT-5 verbosity: Chat Completions `verbosity` → Responses `text.verbosity`.
   const chatVerbosity = normalizeVerbosity(root.verbosity);
   if (chatVerbosity) {

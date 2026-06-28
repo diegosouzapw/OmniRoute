@@ -229,7 +229,11 @@ test("Responses -> Chat strips safety_identifier (LobeHub #2770)", () => {
     null
   ) as Record<string, unknown>;
 
-  assert.equal(result.safety_identifier, undefined, "safety_identifier must be stripped before forwarding to Chat Completions");
+  assert.equal(
+    result.safety_identifier,
+    undefined,
+    "safety_identifier must be stripped before forwarding to Chat Completions"
+  );
   assert.ok(Array.isArray(result.messages), "translation must still produce messages");
 });
 
@@ -247,7 +251,11 @@ test("Responses -> Chat strips client_metadata (Mistral 422 fix)", () => {
     null
   ) as Record<string, unknown>;
 
-  assert.equal(result.client_metadata, undefined, "client_metadata must be stripped before forwarding to Chat Completions");
+  assert.equal(
+    result.client_metadata,
+    undefined,
+    "client_metadata must be stripped before forwarding to Chat Completions"
+  );
   assert.ok(Array.isArray(result.messages), "translation must still produce messages");
   assert.equal((result.messages as unknown[]).length, 1, "user message must be preserved");
 });
@@ -383,6 +391,63 @@ test("Chat -> Responses converts messages, tool calls, tool outputs, tools and p
   assert.equal((result as any).temperature, 0.2);
   assert.equal((result as any).max_output_tokens, 100);
   assert.equal((result as any).top_p, 0.9);
+});
+
+test("Chat -> Responses converts json_schema response_format to text.format", () => {
+  const schema = {
+    type: "object",
+    additionalProperties: false,
+    properties: { answer: { type: "string" } },
+    required: ["answer"],
+  };
+
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.2-codex",
+    {
+      messages: [{ role: "user", content: "Return the answer as JSON" }],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "answer_schema",
+          description: "A structured answer",
+          strict: true,
+          schema,
+        },
+      },
+    },
+    false,
+    null
+  ) as any;
+
+  assert.deepEqual(result.text, {
+    format: {
+      type: "json_schema",
+      name: "answer_schema",
+      description: "A structured answer",
+      strict: true,
+      schema,
+    },
+  });
+  assert.equal(result.response_format, undefined);
+});
+
+test("Chat -> Responses keeps existing text.format over response_format conversion", () => {
+  const existingFormat = { type: "json_schema", name: "native", schema: { type: "object" } };
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.2-codex",
+    {
+      messages: [{ role: "user", content: "Return JSON" }],
+      text: { format: existingFormat, verbosity: "low" },
+      response_format: {
+        type: "json_schema",
+        json_schema: { name: "chat", schema: { type: "object", properties: {} } },
+      },
+    },
+    false,
+    null
+  ) as any;
+
+  assert.deepEqual(result.text, { format: existingFormat, verbosity: "low" });
 });
 
 test("Responses round-trip preserves store and previous_response_id when opt-in is enabled", () => {
@@ -1038,9 +1103,7 @@ test("Responses -> Chat: a valid function_call/output pair is preserved (issue #
   ) as Record<string, unknown>;
 
   const messages = result.messages as any[];
-  const assistant = messages.find(
-    (m) => m.role === "assistant" && Array.isArray(m.tool_calls)
-  );
+  const assistant = messages.find((m) => m.role === "assistant" && Array.isArray(m.tool_calls));
   assert.ok(assistant, "assistant message with tool_calls must be present");
   assert.equal(assistant.tool_calls[0].id, "c1");
   const toolMsg = messages.find((m) => m.role === "tool");
