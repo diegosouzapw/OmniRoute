@@ -244,7 +244,7 @@ src/
 
 | Module                           | Purpose                                                                |
 | -------------------------------- | ---------------------------------------------------------------------- |
-| `constants/providers.ts`         | **237 providers** with Zod validation (source of truth)                |
+| `constants/providers.ts`         | **236 providers** with Zod validation (source of truth)                |
 | `constants/cliTools.ts`          | External CLI tool registry                                             |
 | `constants/routingStrategies.ts` | **17 routing strategies** with priorities                              |
 | `constants/publicApiRoutes.ts`   | Routes that require Bearer (vs management) auth                        |
@@ -266,7 +266,7 @@ Separate npm workspace (`@omniroute/open-sse`). Handles request processing + pro
 ```
 open-sse/
 ├── handlers/            # 16 files (12 handlers + 4 helpers): chatCore, responsesHandler, embeddings, audio, image, video, music, rerank, moderations, search, etc.
-├── executors/           # 68 provider-specific executors (extend BaseExecutor)
+├── executors/           # 67 provider-specific executors (extend BaseExecutor)
 ├── translator/          # Format converters (9 request, 9 response, 9 helpers)
 ├── transformer/         # Responses API ↔ Chat Completions (TransformStream)
 ├── services/            # ~80+ service modules (combo, accountFallback, autoCombo, reasoningCache, claude code/chatgpt stealth, modelDeprecation, taskAwareRouter, workflowFSM, etc.)
@@ -400,7 +400,7 @@ open-sse/
 | `CLI-TOOLS.md`              | External CLI integrations + Internal OmniRoute CLI                                    |
 | `I18N.md`                   | i18n architecture, adding a language, 30 locales                                      |
 | `UNINSTALL.md`              | Clean uninstall steps                                                                 |
-| `PROVIDER_REFERENCE.md`     | **Auto-generated** catalog of 237 providers (regen: `npm run gen:provider-reference`) |
+| `PROVIDER_REFERENCE.md`     | **Auto-generated** catalog of 236 providers (regen: `npm run gen:provider-reference`) |
 
 ### Subsystem deep-dives
 
