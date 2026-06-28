@@ -162,6 +162,7 @@ Chat URL: http://localhost:20128/api/v1/vscode/YOUR_KEY/chat/completions
 Ollama Tags URL: http://localhost:20128/api/v1/vscode/YOUR_KEY/api/tags
 ```
 
+Works with Claude Code, Codex CLI, Cursor, Cline, OpenClaw, OpenCode, and OpenAI-compatible SDKs.
 
 #### Auto-configure with `setup-*`
 

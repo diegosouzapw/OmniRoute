@@ -4,6 +4,7 @@ title: ACP (Agent Client Protocol)
 
 # ACP (Agent Client Protocol)
 
+> **TL;DR**: ACP lets OmniRoute spawn CLI agents (like Claude Code, Codex) as child processes instead of using HTTP APIs. This gives you "CLI-as-backend" transport.
 
 ---
 

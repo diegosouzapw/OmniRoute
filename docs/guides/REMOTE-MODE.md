@@ -102,7 +102,7 @@ A token with insufficient scope gets `403` with a clear message.
 
 ## Connecting Antigravity on a remote install
 
-Antigravity (and other Google "native/desktop" OAuth providers such as
+Antigravity uses Google's firstparty/nativeapp consent screen. Google only
 releases the authorization code when the **loopback redirect**
 (`http://127.0.0.1:<port>/callback`) is **reachable from the browser that
 approves the sign-in**. On a remote VPS install that loopback lives on the

@@ -211,6 +211,7 @@ Perintah ini menghasilkan `system-info.txt` berisi versi Node.js, versi OmniRout
 │  • Refresh token otomatis               │
 └──────┬──────────────────────────────────┘
        │
+       ├─→ [Tier 1: LANGGANAN] Claude Code, Codex
        │   ↓ kuota habis
        ├─→ [Tier 2: KUNCI API] DeepSeek, Groq, xAI, Mistral, NVIDIA NIM, dll.
        │   ↓ batas anggaran
