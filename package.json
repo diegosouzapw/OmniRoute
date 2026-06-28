@@ -25,6 +25,7 @@
     "bin/cli/runtime/",
     "scripts/postinstall.mjs",
     "scripts/build/postinstallSupport.mjs",
+    "scripts/build/runtime-env.mjs",
     "scripts/build/colocateOptionals.mjs",
     "scripts/build/sync-env.mjs",
     "scripts/dev/responses-ws-proxy.mjs",
