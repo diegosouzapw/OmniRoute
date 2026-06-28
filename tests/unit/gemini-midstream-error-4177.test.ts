@@ -11,7 +11,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { antigravityToOpenAIResponse, geminiToOpenAIResponse } =
+const { geminiToOpenAIResponse } =
   await import("../../open-sse/translator/response/gemini-to-openai.ts");
 
 type StreamState = {
@@ -73,7 +73,7 @@ test("#4177 Gemini RESOURCE_EXHAUSTED maps to a 429 rate-limit upstreamError", (
 
 test("#4177 Antigravity/Cloud Code error wrapped in a `response` envelope is detected", () => {
   const state = createStreamingState();
-  const result = antigravityToOpenAIResponse(
+  const result = geminiToOpenAIResponse(
     {
       response: {
         error: { code: 503, message: "overloaded", status: "UNAVAILABLE" },
