@@ -338,6 +338,13 @@ test("SEARCH_CACHE_DEFAULT_TTL_MS is positive", () => {
 
 // ─── Validation Schema Tests ────────────────────────────────
 
+test("shared validation exports the v1 search request schema", async () => {
+  const schemas = await import("../../src/shared/validation/schemas.ts");
+
+  assert.equal("v1SearchSchema" in schemas, true);
+  assert.equal(typeof schemas.v1SearchSchema.safeParse, "function");
+});
+
 test("v1SearchSchema validates correct input", async () => {
   const { v1SearchSchema } = await import("../../src/shared/validation/schemas.ts");
 
