@@ -12,7 +12,8 @@ process.env.APP_LOG_TO_FILE = "true";
 process.env.APP_LOG_FILE_PATH = logFile;
 process.env.APP_LOG_LEVEL = "debug";
 
-const { createLogger } = await import("../../src/shared/utils/logger.ts");
+const loggerModule = await import("../../src/shared/utils/logger.ts");
+const { createLogger } = loggerModule;
 
 /** Poll the (worker-thread-written) log file until the predicate holds or timeout. */
 async function readLogWhen(
@@ -38,10 +39,18 @@ test("logger redacts a Bearer secret in a free-form message and an error stack (
   log.error({ err }, "request failed");
 
   const contents = await readLogWhen(
-    (c) => c.includes("[REDACTED]") && !c.includes("sk-superSecretKey") && !c.includes("sk-anotherSecret")
+    (c) =>
+      c.includes("[REDACTED]") &&
+      !c.includes("sk-superSecretKey") &&
+      !c.includes("sk-anotherSecret")
   );
 
   assert.match(contents, /\[REDACTED\]/, "redaction marker must appear in the log output");
   assert.doesNotMatch(contents, /sk-superSecretKey/, "message secret must be redacted");
   assert.doesNotMatch(contents, /sk-anotherSecret/, "error-stack secret must be redacted");
+});
+
+test("shared logger module exposes named logger helpers", () => {
+  assert.equal(typeof loggerModule.logger.info, "function");
+  assert.equal(typeof loggerModule.createLogger, "function");
 });
