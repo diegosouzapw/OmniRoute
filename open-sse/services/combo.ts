@@ -1881,8 +1881,11 @@ export async function handleComboChat({
           });
 
           // Deep clone the body to ensure context preservation and prevent mutations
-          // from affecting other targets in the combo
-          let attemptBody = JSON.parse(JSON.stringify(body));
+          // from affecting other targets in the combo. structuredClone avoids the
+          // full intermediate JSON string that JSON.parse(JSON.stringify(...)) builds
+          // (a second multi-hundred-KB allocation per target on large agent payloads),
+          // halving the per-target transient heap on the hot path (#5152).
+          let attemptBody = structuredClone(body);
 
           // Proactive Context Compression for fallbacks (Zero-Latency optimization)
           if (
