@@ -1,0 +1,185 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { applyHardBudget } from "../../../open-sse/services/compression/hardBudget.ts";
+import { countTextTokens } from "../../../src/shared/utils/tiktokenCounter.ts";
+import { applyStackedCompression } from "../../../open-sse/services/compression/strategySelector.ts";
+
+// ~400-token prose fixture (longer sentences to ensure measurable token count)
+const PROSE = [
+  "The quick brown fox jumps over the lazy dog and runs through the forest.",
+  "Artificial intelligence systems can process large amounts of information efficiently.",
+  "Machine learning models require substantial computational resources for training.",
+  "Error: something went wrong in the processing pipeline at line 42.",
+  "Natural language processing enables computers to understand human language semantically.",
+  "Deep learning architectures consist of multiple interconnected layers of neurons.",
+  "The database contains approximately 1234567 records from the past fiscal year.",
+  "Transformer models have revolutionized the field of natural language understanding.",
+  "Reinforcement learning allows agents to learn optimal policies through experience.",
+  "The gradient descent algorithm iteratively minimizes the loss function during training.",
+  "Convolutional neural networks excel at image recognition and classification tasks.",
+  "Transfer learning leverages pre-trained models to accelerate new task learning.",
+  "Data preprocessing steps include normalization, tokenization, and feature extraction.",
+  "Hyperparameter tuning is essential for optimizing model performance and generalization.",
+  "The attention mechanism allows models to focus on relevant input sequence parts.",
+  "Batch normalization stabilizes training by normalizing activations within mini-batches.",
+  "Dropout regularization helps prevent overfitting in deep neural network architectures.",
+  "The validation set monitors model performance and guides hyperparameter selection.",
+  "Cross-entropy loss measures the difference between predicted and actual probability distributions.",
+  "Stochastic gradient descent updates model parameters using randomly sampled mini-batches.",
+].join("\n");
+
+function makeBody(content: string) {
+  return {
+    messages: [
+      { role: "user", content },
+    ],
+  };
+}
+
+test("targetTokens: cuts body to ≤ targetTokens", () => {
+  const body = makeBody(PROSE);
+  const proseTokens = countTextTokens(PROSE);
+  assert.ok(proseTokens > 200, `Fixture too small: ${proseTokens} tokens`);
+
+  const result = applyHardBudget(body, { targetTokens: 200 });
+  assert.ok(result.compressed, "should be compressed");
+
+  const msgs = result.body.messages as Array<{ content: string }>;
+  const outTokens = countTextTokens(msgs.map((m) => m.content).join(" "));
+  assert.ok(
+    outTokens <= 200,
+    `Output tokens ${outTokens} exceed targetTokens 200`
+  );
+});
+
+test("targetTokens: preserves highest-saliency sentences", () => {
+  const body = makeBody(PROSE);
+  const result = applyHardBudget(body, { targetTokens: 200 });
+  const msgs = result.body.messages as Array<{ content: string }>;
+  const out = msgs.map((m) => m.content).join("\n");
+  // The error line must be preserved (FORCE_PRESERVE_RE: "Error:")
+  assert.ok(out.includes("Error:"), "Error: line must be preserved");
+});
+
+test("targetRatio:0.5 halves the token count", () => {
+  const body = makeBody(PROSE);
+  const proseTokens = countTextTokens(PROSE);
+
+  const result = applyHardBudget(body, { targetRatio: 0.5 });
+  const msgs = result.body.messages as Array<{ content: string }>;
+  const outTokens = countTextTokens(msgs.map((m) => m.content).join(" "));
+
+  assert.ok(result.compressed, "should be compressed");
+  assert.ok(
+    outTokens <= Math.ceil(proseTokens * 0.5),
+    `Output tokens ${outTokens} exceed ratio target ${Math.ceil(proseTokens * 0.5)}`
+  );
+});
+
+test("no target → byte-identical no-op", () => {
+  const body = makeBody(PROSE);
+  const result = applyHardBudget(body, {});
+  assert.equal(result.compressed, false);
+  assert.equal(JSON.stringify(result.body), JSON.stringify(body));
+  assert.equal(result.stats, null);
+});
+
+test("already-under-target → no-op", () => {
+  const short = "Hello world.";
+  const body = makeBody(short);
+  const result = applyHardBudget(body, { targetTokens: 1000 });
+  assert.equal(result.compressed, false);
+  assert.equal(JSON.stringify(result.body), JSON.stringify(body));
+});
+
+test("never drops a line matching FORCE_PRESERVE_RE (Error:, number, https://)", () => {
+  const sensitive = [
+    "Error: critical failure occurred",
+    "The quick brown fox jumps over the lazy dog and runs.",
+    "Amount: 99999",
+    "Irrelevant filler text here.",
+    "Another line of boring unimportant low-signal content.",
+    "https://example.com/api/endpoint",
+    "More filler words to pad the token count here.",
+    "And yet more words that are clearly not important at all.",
+  ].join("\n");
+
+  const body = makeBody(sensitive);
+  const totalTokens = countTextTokens(sensitive);
+  // Force aggressive cut to half
+  const result = applyHardBudget(body, { targetTokens: Math.floor(totalTokens * 0.4) });
+
+  const out = (result.body.messages as Array<{ content: string }>).map((m) => m.content).join("\n");
+  assert.ok(out.includes("Error:"), "Error: line must survive");
+  assert.ok(out.includes("99999"), "Number line must survive");
+  assert.ok(out.includes("https://"), "URL line must survive");
+});
+
+test("determinism: same input always produces same output", () => {
+  const body = makeBody(PROSE);
+  const r1 = applyHardBudget(body, { targetTokens: 200 });
+  const r2 = applyHardBudget(body, { targetTokens: 200 });
+  assert.equal(JSON.stringify(r1.body), JSON.stringify(r2.body));
+});
+
+test("targetTokens wins when both targetTokens and targetRatio are set", () => {
+  const body = makeBody(PROSE);
+  const proseTokens = countTextTokens(PROSE);
+
+  // targetTokens=200 vs targetRatio=0.9 → targetTokens (200) should win
+  const result = applyHardBudget(body, { targetTokens: 200, targetRatio: 0.9 });
+  const msgs = result.body.messages as Array<{ content: string }>;
+  const outTokens = countTextTokens(msgs.map((m) => m.content).join(" "));
+  // If ratio=0.9 won, output would be ~90% of original; targetTokens=200 is more aggressive
+  const ratioTarget = Math.ceil(proseTokens * 0.9);
+  assert.ok(
+    outTokens <= 200,
+    `targetTokens should win: outTokens=${outTokens} should be ≤200, not ≤${ratioTarget}`
+  );
+});
+
+test("techniquesUsed includes hard-budget", () => {
+  const body = makeBody(PROSE);
+  const result = applyHardBudget(body, { targetTokens: 200 });
+  assert.ok(result.stats !== null, "stats should be present");
+  assert.ok(
+    result.stats!.techniquesUsed.includes("hard-budget"),
+    `techniquesUsed should include 'hard-budget', got: ${result.stats!.techniquesUsed}`
+  );
+});
+
+test("integration: applyStackedCompression with config.targetTokens cuts at end of pipeline", () => {
+  const body = makeBody(PROSE);
+  const proseTokens = countTextTokens(PROSE);
+  assert.ok(proseTokens > 150, `Fixture too small: ${proseTokens} tokens`);
+
+  const config = {
+    enabled: true,
+    defaultMode: "stacked" as const,
+    autoTriggerMode: "lite" as const,
+    autoTriggerTokens: 0,
+    cacheMinutes: 5,
+    preserveSystemPrompt: true,
+    comboOverrides: {},
+    compressionComboId: null,
+    stackedPipeline: [{ engine: "caveman" as const, intensity: "lite" as const }],
+    engines: {},
+    activeComboId: null,
+    targetTokens: 150,
+  };
+
+  const result = applyStackedCompression(body, config.stackedPipeline, { config });
+  const msgs = result.body.messages as Array<{ content: string }>;
+  const outTokens = countTextTokens(msgs.map((m) => m.content).join(" "));
+  assert.ok(
+    outTokens <= 150,
+    `Integration: output tokens ${outTokens} exceed targetTokens 150`
+  );
+  assert.ok(result.compressed, "Integration: result should be compressed");
+
+  const techniques = result.stats?.techniquesUsed ?? [];
+  assert.ok(
+    techniques.includes("hard-budget"),
+    `Integration: techniquesUsed should include 'hard-budget', got: ${techniques}`
+  );
+});
