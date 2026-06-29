@@ -3,11 +3,15 @@
   "version": "3.8.37",
   "description": "Express SSE sidecar for OmniRoute — handles streaming, protocol translation, and provider orchestration",
   "type": "module",
+  "packageManager": "bun@1.2+",
   "main": "index.js",
   "types": "types.d.ts",
   "private": true,
   "exports": {
     ".": "./index.js",
     "./*": "./*"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
   }
 }
