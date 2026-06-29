@@ -22,6 +22,7 @@ import type { KeyStatus, KeyType } from "./apiManagerPageUtils";
 import { readActiveOnlyPreference, writeActiveOnlyPreference } from "./apiManagerPageStorage";
 import { buildApiKeyCreateScopes, mergeApiKeyPermissionScopes } from "./apiManagerScopes";
 import { SELF_ACCOUNT_QUOTA_SCOPE, SELF_USAGE_SCOPE } from "@/shared/constants/selfServiceScopes";
+import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 import { UsageLimitSettings } from "./components/UsageLimitSettings";
 
 // Constants for validation
@@ -550,7 +551,7 @@ export default function ApiManagerPageClient() {
         setNewKeyAllowUsageCommand(false);
         setShowAddModal(false);
       } else {
-        setCreateError(data.error || t("failedCreateKey"));
+        setCreateError(extractApiErrorMessage(data, t("failedCreateKey")));
       }
     } catch (error) {
       console.error("Error creating key:", error);
@@ -585,7 +586,7 @@ export default function ApiManagerPageClient() {
         setVisibleKeys((prev) => (prev.has(id) ? toggleKeyVisibility(prev, id) : prev));
       } else {
         const data = await res.json();
-        setPageError(data.error || t("failedDeleteKey"));
+        setPageError(extractApiErrorMessage(data, t("failedDeleteKey")));
       }
     } catch (error) {
       console.error("Error deleting key:", error);
@@ -609,7 +610,7 @@ export default function ApiManagerPageClient() {
         setCreatedKey(data.key);
         await fetchData();
       } else {
-        setPageError(data.error || t("failedRegenerateKey"));
+        setPageError(extractApiErrorMessage(data, t("failedRegenerateKey")));
       }
     } catch (error) {
       console.error("Error regenerating key:", error);
@@ -785,7 +786,7 @@ export default function ApiManagerPageClient() {
         setEditingKey(null);
       } else {
         const data = await res.json();
-        setPageError(data.error || t("failedUpdatePermissions"));
+        setPageError(extractApiErrorMessage(data, t("failedUpdatePermissions")));
       }
     } catch (error) {
       console.error("Error updating permissions:", error);

@@ -174,7 +174,9 @@ function invalidOriginResponse(requestId: string): NextResponse {
     {
       error: {
         code: "INVALID_ORIGIN",
-        message: "Invalid request origin",
+        message:
+          "Invalid request origin. If you reach the dashboard over a custom host or an HTTPS proxy, " +
+          "set OMNIROUTE_PUBLIC_BASE_URL to that exact URL and restart. Direct loopback/LAN-IP access works without it.",
         correlation_id: requestId,
       },
     },

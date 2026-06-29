@@ -343,7 +343,8 @@ test("runAuthzPipeline rejects dashboard mutations from invalid browser origin",
 
   assert.equal(response.status, 403);
   assert.equal(body.error.code, "INVALID_ORIGIN");
-  assert.equal(body.error.message, "Invalid request origin");
+  assert.match(body.error.message, /^Invalid request origin\./);
+  assert.match(body.error.message, /OMNIROUTE_PUBLIC_BASE_URL/);
 });
 
 test("runAuthzPipeline refreshes dashboard JWTs near expiry", async () => {

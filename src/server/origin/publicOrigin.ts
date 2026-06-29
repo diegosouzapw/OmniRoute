@@ -2,7 +2,11 @@ import { classifyHostLocality } from "@/server/authz/routeGuard";
 import { PEER_IP_HEADER } from "@/server/authz/headers";
 import { resolveStampedPeer } from "@/server/authz/peerStamp";
 
-export type PublicOriginSource = "configured" | "trusted-forwarded" | "request-url";
+export type PublicOriginSource =
+  | "configured"
+  | "trusted-forwarded"
+  | "request-url"
+  | "direct-local-host";
 
 export interface PublicOriginCandidate {
   origin: string;
@@ -162,6 +166,56 @@ function requestUrlOrigin(request: Request): string | null {
   }
 }
 
+function requestUrlProtocol(request: Request): "http" | "https" {
+  try {
+    return new URL(request.url).protocol === "https:" ? "https" : "http";
+  } catch {
+    return "http";
+  }
+}
+
+/**
+ * Direct (no-proxy) LAN/loopback access (#5340). When the dashboard is reached
+ * over a private-network host — e.g. `http://192.168.0.15:20128` instead of the
+ * configured `localhost` base URL — Next.js standalone reports the internal bind
+ * host in `request.url`, so the browser's same-origin `Origin` matches no
+ * candidate and every mutation is rejected with INVALID_ORIGIN.
+ *
+ * This accepts the request `Host` (or a trusted `X-Forwarded-Host`) as a valid
+ * mutation origin, gated by TWO independent checks so it cannot be abused:
+ *   1. The token-stamped socket peer must be loopback or private-LAN (a public
+ *      client never matches — it presents a public source IP).
+ *   2. The Host itself must be a loopback/private-LAN IP literal. A DNS-rebinding
+ *      attacker carries a *domain* in the Host (classifies as "remote"), so a
+ *      rebind to a loopback/LAN socket cannot turn an attacker domain into a
+ *      trusted origin. Direct IP access over the LAN/loopback still works.
+ * The protocol is pinned to the actual connection (or a trusted forwarded proto),
+ * never derived from the attacker-controllable Origin.
+ */
+function directLocalHostOrigin(request: Request): string | null {
+  const peer = resolveStampedPeer(
+    request.headers.get(PEER_IP_HEADER),
+    process.env.OMNIROUTE_PEER_STAMP_TOKEN
+  );
+  if (classifyHostLocality(peer) === "remote") return null;
+
+  const rawHost = trustsForwardedHeaders(request)
+    ? firstHeaderValue(request.headers.get("x-forwarded-host")) ?? request.headers.get("host")
+    : request.headers.get("host");
+  const host = sanitizeForwardedHost(rawHost);
+  if (!host) return null;
+  if (classifyHostLocality(host) === "remote") return null;
+
+  const proto =
+    sanitizeForwardedProto(firstHeaderValue(request.headers.get("x-forwarded-proto"))) ??
+    requestUrlProtocol(request);
+  try {
+    return normalizeOrigin(`${proto}://${host}`);
+  } catch {
+    return null;
+  }
+}
+
 export function getPublicOriginCandidates(request: Request): PublicOriginCandidate[] {
   const candidates: PublicOriginCandidate[] = [];
 
@@ -175,6 +229,9 @@ export function getPublicOriginCandidates(request: Request): PublicOriginCandida
     const forwarded = trustedForwardedOrigin(request);
     if (forwarded) candidates.push({ origin: forwarded, source: "trusted-forwarded" });
   }
+
+  const directLocal = directLocalHostOrigin(request);
+  if (directLocal) candidates.push({ origin: directLocal, source: "direct-local-host" });
 
   return uniqueCandidates(candidates);
 }

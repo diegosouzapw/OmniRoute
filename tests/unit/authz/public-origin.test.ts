@@ -219,3 +219,102 @@ describe("public origin resolution", () => {
     });
   });
 });
+
+describe("direct LAN/loopback host origin (#5340)", () => {
+  it("accepts a direct LAN-IP host even when a localhost public base URL is configured", () => {
+    process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:20128";
+    const request = new Request("http://omniroute:20128/api/keys", {
+      method: "POST",
+      headers: {
+        ...stampedPeer("192.168.0.50"),
+        host: "192.168.0.15:20128",
+        origin: "http://192.168.0.15:20128",
+        "sec-fetch-site": "same-origin",
+      },
+    });
+
+    assert.equal(
+      getPublicOriginCandidates(request).some(
+        (candidate) => candidate.origin === "http://192.168.0.15:20128"
+      ),
+      true
+    );
+    assert.equal(validateBrowserMutationOrigin(request).ok, true);
+  });
+
+  it("accepts a direct loopback-IP host with no configured public origin", () => {
+    const request = new Request("http://omniroute:20128/api/keys", {
+      method: "POST",
+      headers: {
+        ...stampedPeer("127.0.0.1"),
+        host: "127.0.0.1:20128",
+        origin: "http://127.0.0.1:20128",
+      },
+    });
+
+    assert.equal(validateBrowserMutationOrigin(request).ok, true);
+  });
+
+  it("rejects a DNS-rebinding domain host even when the peer is loopback", () => {
+    // evil.example rebinds to a loopback socket; the Host header carries the
+    // attacker domain, which classifies as remote → no trusted candidate.
+    const request = new Request("http://omniroute:20128/api/keys", {
+      method: "POST",
+      headers: {
+        ...stampedPeer("127.0.0.1"),
+        host: "evil.example:20128",
+        origin: "http://evil.example:20128",
+        "sec-fetch-site": "same-origin",
+      },
+    });
+
+    assert.equal(
+      getPublicOriginCandidates(request).some(
+        (candidate) => candidate.origin === "http://evil.example:20128"
+      ),
+      false
+    );
+    assert.equal(validateBrowserMutationOrigin(request).ok, false);
+  });
+
+  it("does not widen the origin for a remote peer even when the Host is a LAN IP", () => {
+    const request = new Request("http://omniroute:20128/api/keys", {
+      method: "POST",
+      headers: {
+        ...stampedPeer("203.0.113.7"),
+        host: "192.168.0.15:20128",
+        origin: "http://192.168.0.15:20128",
+        "sec-fetch-site": "same-origin",
+      },
+    });
+
+    assert.equal(validateBrowserMutationOrigin(request).ok, false);
+  });
+
+  it("does not trust the Host header when the peer stamp is absent", () => {
+    const request = new Request("http://omniroute:20128/api/keys", {
+      method: "POST",
+      headers: {
+        host: "192.168.0.15:20128",
+        origin: "http://192.168.0.15:20128",
+        "sec-fetch-site": "same-origin",
+      },
+    });
+
+    assert.equal(validateBrowserMutationOrigin(request).ok, false);
+  });
+
+  it("pins the protocol to the connection — a mismatched https origin is rejected", () => {
+    const request = new Request("http://omniroute:20128/api/keys", {
+      method: "POST",
+      headers: {
+        ...stampedPeer("192.168.0.50"),
+        host: "192.168.0.15:20128",
+        origin: "https://192.168.0.15:20128",
+        "sec-fetch-site": "same-origin",
+      },
+    });
+
+    assert.equal(validateBrowserMutationOrigin(request).ok, false);
+  });
+});
