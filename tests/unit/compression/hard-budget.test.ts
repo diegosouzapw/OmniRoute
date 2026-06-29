@@ -30,9 +30,7 @@ const PROSE = [
 
 function makeBody(content: string) {
   return {
-    messages: [
-      { role: "user", content },
-    ],
+    messages: [{ role: "user", content }],
   };
 }
 
@@ -46,10 +44,7 @@ test("targetTokens: cuts body to ≤ targetTokens", () => {
 
   const msgs = result.body.messages as Array<{ content: string }>;
   const outTokens = countTextTokens(msgs.map((m) => m.content).join(" "));
-  assert.ok(
-    outTokens <= 200,
-    `Output tokens ${outTokens} exceed targetTokens 200`
-  );
+  assert.ok(outTokens <= 200, `Output tokens ${outTokens} exceed targetTokens 200`);
 });
 
 test("targetTokens: preserves highest-saliency sentences", () => {
@@ -234,10 +229,7 @@ test("review#2: aggregate target keeps TOTAL ≤ target across multiple messages
   const msgs = result.body.messages as Array<{ content: string }>;
   const total = msgs.reduce((s, m) => s + countTextTokens(m.content), 0);
   assert.ok(result.compressed, "should be compressed");
-  assert.ok(
-    total <= target,
-    `aggregate TOTAL ${total} must stay ≤ target ${target}`
-  );
+  assert.ok(total <= target, `aggregate TOTAL ${total} must stay ≤ target ${target}`);
 });
 
 // --- Review fix #3: signal a warning when target is impossible ---
@@ -325,15 +317,43 @@ test("integration: applyStackedCompression with config.targetTokens cuts at end 
   const result = applyStackedCompression(body, config.stackedPipeline, { config });
   const msgs = result.body.messages as Array<{ content: string }>;
   const outTokens = countTextTokens(msgs.map((m) => m.content).join(" "));
-  assert.ok(
-    outTokens <= 150,
-    `Integration: output tokens ${outTokens} exceed targetTokens 150`
-  );
+  assert.ok(outTokens <= 150, `Integration: output tokens ${outTokens} exceed targetTokens 150`);
   assert.ok(result.compressed, "Integration: result should be compressed");
 
   const techniques = result.stats?.techniquesUsed ?? [];
   assert.ok(
     techniques.includes("hard-budget"),
     `Integration: techniquesUsed should include 'hard-budget', got: ${techniques}`
+  );
+});
+
+test("review#3: unreachable-budget warning propagates through applyStackedCompression", () => {
+  // Every line is preserve-guarded (numbers) => hard-budget drops nothing => hbResult.compressed
+  // is false. The seam still surfaces the warning instead of swallowing it (the gate is on
+  // `compressed`, so the warning must be merged on the else branch).
+  const lines = ["Value 11111", "Value 22222", "Value 33333", "Value 44444", "Value 55555"].join(
+    "\n"
+  );
+  const body = makeBody(lines);
+  const totalTokens = countTextTokens(lines);
+  const config = {
+    enabled: true,
+    defaultMode: "stacked" as const,
+    autoTriggerMode: "lite" as const,
+    autoTriggerTokens: 0,
+    cacheMinutes: 5,
+    preserveSystemPrompt: true,
+    comboOverrides: {},
+    compressionComboId: null,
+    stackedPipeline: [{ engine: "caveman" as const, intensity: "lite" as const }],
+    engines: {},
+    activeComboId: null,
+    targetTokens: Math.floor(totalTokens * 0.3),
+  };
+  const result = applyStackedCompression(body, config.stackedPipeline, { config });
+  const warnings = result.stats?.validationWarnings ?? [];
+  assert.ok(
+    warnings.some((w) => w.includes("hard-budget") && w.includes("could not reach target")),
+    `warning must propagate through the stacked seam, got: ${JSON.stringify(warnings)}`
   );
 });

@@ -870,6 +870,11 @@ function runStackedCompression(
       mergeStackStep(acc, "hard-budget", hbResult);
       currentBody = hbResult.body;
       compressed = true;
+    } else {
+      // No unit could be dropped (e.g. every unit is preserve-guarded): surface the
+      // unreachable-budget validationWarnings instead of dropping them silently (#17 fix #3).
+      // mergeStackStep is gated on `compressed`, so propagate the warnings here directly.
+      hbResult.stats?.validationWarnings?.forEach((w) => acc.validationWarnings.add(w));
     }
   }
 
@@ -972,6 +977,11 @@ async function runStackedCompressionAsync(
       mergeStackStep(acc, "hard-budget", hbResult);
       currentBody = hbResult.body;
       compressed = true;
+    } else {
+      // No unit could be dropped (e.g. every unit is preserve-guarded): surface the
+      // unreachable-budget validationWarnings instead of dropping them silently (#17 fix #3).
+      // mergeStackStep is gated on `compressed`, so propagate the warnings here directly.
+      hbResult.stats?.validationWarnings?.forEach((w) => acc.validationWarnings.add(w));
     }
   }
 
