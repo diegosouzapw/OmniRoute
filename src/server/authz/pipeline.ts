@@ -5,6 +5,7 @@ import { isDraining } from "../../lib/gracefulShutdown";
 import { checkBodySize, getBodySizeLimit } from "../../shared/middleware/bodySizeGuard";
 import { generateRequestId } from "../../shared/utils/requestId";
 import { applyCorsHeaders } from "../cors/origins";
+import { validateBrowserMutationOrigin } from "../origin/publicOrigin";
 import { classifyRoute } from "./classify";
 import { classifyStampedPeerLocality } from "./peerStamp";
 import { clientApiPolicy } from "./policies/clientApi";
@@ -168,6 +169,25 @@ function drainingResponse(requestId: string): NextResponse {
   return response;
 }
 
+function invalidOriginResponse(requestId: string): NextResponse {
+  const response = NextResponse.json(
+    {
+      error: {
+        code: "INVALID_ORIGIN",
+        message: "Invalid request origin",
+        correlation_id: requestId,
+      },
+    },
+    { status: 403 }
+  );
+  response.headers.set(AUTHZ_HEADER_REQUEST_ID, requestId);
+  return response;
+}
+
+function isUnsafeMutationMethod(method: string): boolean {
+  return !["GET", "HEAD", "OPTIONS"].includes(method.toUpperCase());
+}
+
 function stampRouteResponse(
   response: Response,
   requestId: string,
@@ -285,6 +305,20 @@ export async function runAuthzPipeline(
     const rejection = rejectionResponse(outcome, classification, requestId);
     applyCorsHeaders(rejection, request);
     return rejection;
+  }
+
+  if (
+    classification.routeClass === "MANAGEMENT" &&
+    outcome.subject.kind === "dashboard_session" &&
+    isUnsafeMutationMethod(method)
+  ) {
+    const originVerdict = validateBrowserMutationOrigin(request);
+    if (!originVerdict.ok) {
+      const rejection = invalidOriginResponse(requestId);
+      rejection.headers.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
+      applyCorsHeaders(rejection, request);
+      return rejection;
+    }
   }
 
   stampSubject(requestHeaders, outcome.subject);

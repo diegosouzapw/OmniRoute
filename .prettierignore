@@ -1,0 +1,2 @@
+# Long reference tables are manually aligned; formatting the whole file causes noisy diffs.
+docs/reference/ENVIRONMENT.md

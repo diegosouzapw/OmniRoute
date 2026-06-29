@@ -190,7 +190,11 @@ services:
       - omniroute-data:/app/data
     environment:
       - PORT=20128
+      # Browser-facing origin for OAuth callbacks, dashboard links, and same-origin checks.
       - NEXT_PUBLIC_BASE_URL=https://your-domain.com
+      # Internal server-to-server URL for scheduled jobs / self-fetches.
+      - BASE_URL=http://omniroute:20128
+      - AUTH_COOKIE_SECURE=true
 
   caddy:
     image: caddy:latest
@@ -204,6 +208,11 @@ services:
 volumes:
   omniroute-data:
 ```
+
+Caddy sets the standard forwarding headers for the upstream container. OmniRoute uses
+`NEXT_PUBLIC_BASE_URL` as the canonical public origin; only enable `OMNIROUTE_TRUST_PROXY` for
+advanced deployments where you intentionally want OmniRoute to derive the public origin from
+trusted forwarded headers instead of explicit configuration.
 
 ## Cloudflare Quick Tunnel
 
