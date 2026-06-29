@@ -19,6 +19,7 @@ import {
 import { getModelInfo, getComboForModel } from "../services/model";
 import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
 import { isSelfInflictedUpstreamTimeout } from "@omniroute/open-sse/handlers/chatCore/cooldownClassification.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
@@ -243,17 +244,13 @@ export async function handleChat(
     clientRawRequest = buildClientRawRequest(request, rawClientBody);
   }
 
-  // T01 — Accept header negotiation
-  // If client asks for text/event-stream via the Accept header AND the JSON body
-  // does not explicitly set stream=false, treat it as stream=true.
-  // This ensures compatibility with curl/httpx and similar non-OpenAI clients.
-  //
-  // FIX #302: OpenAI Python SDK sends Accept: application/json, text/event-stream
-  // in every request — even when called with stream=False. We must NOT override
-  // an explicit stream=false body field, as that silently breaks tool_calls and
-  // structured completions for SDK users who rely on non-streaming mode.
+  // T01 — Accept-header streaming opt-in (#302 / #5305). A bare `Accept:
+  // text/event-stream` with `stream` omitted opts a curl/httpx-style client into
+  // SSE; a client that ALSO lists application/json (OpenAI / Vercel AI SDK
+  // non-stream signature) does NOT — it expects a JSON object. An explicit body
+  // `stream` value (true or false) always wins. See acceptHeaderForcesStream.
   const acceptHeader = request.headers.get("accept") || "";
-  if (acceptHeader.includes("text/event-stream") && body.stream === undefined) {
+  if (acceptHeaderForcesStream(acceptHeader, body.stream)) {
     body = { ...body, stream: true };
     log.debug(
       "STREAM",
