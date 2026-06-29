@@ -200,6 +200,69 @@ test("review#1: plain prose ending in a period is still droppable", () => {
   );
 });
 
+// --- Review fix #2: aggregate target distributed across messages ---
+
+test("review#2: aggregate target keeps TOTAL ≤ target across multiple messages", () => {
+  // 4 messages of distinct, splittable droppable prose (multi-line so each
+  // message can be cut independently). Pre-fix, the full target was passed to
+  // EACH message, letting the total come back ~N× over budget.
+  const block = (tag: string) =>
+    [
+      `The ${tag} alpha system processes large amounts of information efficiently every day.`,
+      `The ${tag} beta module requires substantial computational resources for routine training.`,
+      `The ${tag} gamma layer enables programs to understand structured language semantically here.`,
+      `The ${tag} delta network consists of multiple interconnected processing components today.`,
+      `The ${tag} epsilon routine accelerates new task learning through transfer of prior knowledge.`,
+      `The ${tag} zeta pipeline stabilizes throughput by normalizing activations within batches.`,
+    ].join("\n");
+  const body = {
+    messages: [
+      { role: "user", content: block("one") },
+      { role: "assistant", content: block("two") },
+      { role: "user", content: block("three") },
+      { role: "assistant", content: block("four") },
+    ],
+  };
+  const target = 200;
+  const totalBefore = (body.messages as Array<{ content: string }>).reduce(
+    (s, m) => s + countTextTokens(m.content),
+    0
+  );
+  assert.ok(totalBefore > target, `Fixture too small: ${totalBefore} tokens`);
+
+  const result = applyHardBudget(body, { targetTokens: target });
+  const msgs = result.body.messages as Array<{ content: string }>;
+  const total = msgs.reduce((s, m) => s + countTextTokens(m.content), 0);
+  assert.ok(result.compressed, "should be compressed");
+  assert.ok(
+    total <= target,
+    `aggregate TOTAL ${total} must stay ≤ target ${target}`
+  );
+});
+
+// --- Review fix #3: signal a warning when target is impossible ---
+
+test("review#3: warns when preserved content exceeds budget", () => {
+  // Every line is preserve-guarded (numbers), so the target cannot be reached.
+  const lines = [
+    "Value 11111 is here",
+    "Value 22222 is here",
+    "Value 33333 is here",
+    "Value 44444 is here",
+    "Value 55555 is here",
+    "Value 66666 is here",
+  ].join("\n");
+  const body = makeBody(lines);
+  const totalTokens = countTextTokens(lines);
+  const result = applyHardBudget(body, { targetTokens: Math.floor(totalTokens * 0.3) });
+  assert.ok(result.stats !== null, "stats should be present");
+  const warnings = result.stats!.validationWarnings ?? [];
+  assert.ok(
+    warnings.some((w) => w.includes("hard-budget") && w.includes("could not reach target")),
+    `expected a hard-budget warning, got: ${JSON.stringify(warnings)}`
+  );
+});
+
 test("integration: applyStackedCompression with config.targetTokens cuts at end of pipeline", () => {
   const body = makeBody(PROSE);
   const proseTokens = countTextTokens(PROSE);

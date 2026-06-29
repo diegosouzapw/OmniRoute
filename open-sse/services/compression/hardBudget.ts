@@ -153,20 +153,44 @@ export function applyHardBudget(
     return { body, compressed: false, stats: null };
   }
 
-  // Apply compression to each string message content
+  // Distribute the aggregate budget proportionally per message so the SUM stays
+  // ≤ target (passing the full target to each message would let an N-message body
+  // come back N× over budget).
   const newMessages = messages.map((m) => {
     if (typeof m.content !== "string") return m;
-    const out = compressText(m.content, effectiveTarget);
+    const msgTokens = countTextTokens(m.content);
+    const perMsgTarget =
+      totalTokens > 0 ? Math.floor(effectiveTarget * (msgTokens / totalTokens)) : effectiveTarget;
+    const out = compressText(m.content, perMsgTarget);
     return out === m.content ? m : { ...m, content: out };
   });
 
   const changed = newMessages.some(
     (m, i) => JSON.stringify(m) !== JSON.stringify(messages[i])
   );
-  if (!changed) return { body, compressed: false, stats: null };
 
-  const newBody = { ...body, messages: newMessages };
+  // Measure the result to detect when preserve-guarded content makes the target
+  // unreachable, so callers are not silently left over budget.
+  const usedMessages = changed ? newMessages : messages;
+  const resultTokens = countTextTokens(
+    usedMessages
+      .map((m) => (typeof m.content === "string" ? m.content : JSON.stringify(m.content)))
+      .join(" ")
+  );
+  const overBudget = resultTokens > effectiveTarget;
+
+  // Nothing changed and we are within budget → genuine no-op.
+  if (!changed && !overBudget) {
+    return { body, compressed: false, stats: null };
+  }
+
+  const newBody = changed ? { ...body, messages: newMessages } : body;
   const stats = createCompressionStats(body, newBody, "stacked", ["hard-budget"]);
 
-  return { body: newBody, compressed: true, stats };
+  if (overBudget) {
+    const warning = `hard-budget: could not reach target (${resultTokens} > ${effectiveTarget}; preserved content exceeds budget)`;
+    stats.validationWarnings = [...(stats.validationWarnings ?? []), warning];
+  }
+
+  return { body: newBody, compressed: changed, stats };
 }
