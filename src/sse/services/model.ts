@@ -8,12 +8,7 @@ import {
   getCustomModels,
 } from "@/lib/localDb";
 import { getCachedSettings } from "@/lib/localDb";
-import { getComboStepTarget } from "@/lib/combos/steps";
-import {
-  parseModel,
-  resolveModelAliasFromMap,
-  getModelInfoCore,
-} from "@omniroute/open-sse/services/model.ts";
+import { parseModel, getModelInfoCore } from "@omniroute/open-sse/services/model.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 
 export { parseModel };
@@ -65,14 +60,6 @@ async function getCombinedModelAliases(): Promise<Record<string, unknown>> {
 
   // Settings-based aliases win over DB-namespace aliases on key collision
   return { ...dbAliases, ...settingsAliases };
-}
-
-/**
- * Resolve model alias from localDb
- */
-export async function resolveModelAlias(alias) {
-  const aliases = await getModelAliases();
-  return resolveModelAliasFromMap(alias, aliases);
 }
 
 /**
@@ -264,16 +251,4 @@ export async function getComboForModel(modelStr) {
   }
 
   return null;
-}
-
-/**
- * Legacy: get combo models as string array
- * @returns {Promise<string[]|null>}
- */
-export async function getComboModels(modelStr) {
-  const combo = await getCombo(modelStr);
-  if (!combo) return null;
-  return (combo.models || [])
-    .map((entry) => getComboStepTarget(entry))
-    .filter((entry): entry is string => typeof entry === "string" && entry.length > 0);
 }
