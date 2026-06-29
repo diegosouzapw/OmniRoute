@@ -44,7 +44,9 @@ describe("applyComboTargetExhaustion", () => {
     const log = makeLogger();
     const exhausted = applyComboTargetExhaustion(makeTarget(), {
       result: { status: 429 },
-      fallbackResult: { error: { code: "quota_exhausted" } },
+      // isProviderExhaustedReason reads `reason`/`creditsExhausted`/`dailyQuotaExhausted`
+      // (NOT `error.code`), so signal full-account exhaustion via creditsExhausted.
+      fallbackResult: { creditsExhausted: true },
       errorText: "",
       rawModel: "gpt-4",
       isTokenLimitBreach: false,
@@ -66,7 +68,8 @@ describe("applyComboTargetExhaustion", () => {
     const exhausted = applyComboTargetExhaustion(makeTarget(), {
       result: { status: 429 },
       fallbackResult: {} as any,
-      errorText: "You have exhausted your quota. Please retry later.",
+      // classifyErrorText flags "quota exceeded" as QUOTA_EXHAUSTED.
+      errorText: "Quota exceeded — please retry later.",
       rawModel: "gpt-4",
       isTokenLimitBreach: false,
       allAccountsRateLimited: false,
@@ -101,10 +104,12 @@ describe("applyComboTargetExhaustion", () => {
   it("does NOT mark provider exhausted for per-model-quota providers (different model)", () => {
     const sets = makeSets();
     const log = makeLogger();
-    const target = makeTarget({ provider: "openai" });
+    // gemini has per-model quotas (hasPerModelQuota === true): a model-scoped quota
+    // 429 must NOT mark the whole provider exhausted — other models may still work.
+    const target = makeTarget({ provider: "gemini" });
     const exhausted = applyComboTargetExhaustion(target, {
       result: { status: 429 },
-      fallbackResult: { error: { code: "quota_exhausted" } },
+      fallbackResult: { reason: "quota_exhausted" } as any,
       errorText: "quota exceeded for model gpt-4",
       rawModel: "gpt-4",
       isTokenLimitBreach: false,
@@ -115,8 +120,8 @@ describe("applyComboTargetExhaustion", () => {
       exhaustedLogLevel: "info",
     });
     expect(exhausted).toBe(false);
-    expect(sets.exhaustedProviders.has("openai")).toBe(false);
-    expect(sets.transientRateLimitedProviders.has("openai")).toBe(true);
+    expect(sets.exhaustedProviders.has("gemini")).toBe(false);
+    expect(sets.transientRateLimitedProviders.has("gemini")).toBe(true);
   });
 
   it("does NOT mark provider exhausted for unknown providers", () => {
