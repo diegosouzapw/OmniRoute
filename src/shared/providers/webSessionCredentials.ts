@@ -94,6 +94,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: false,
     storageKeys: ["token", "access_token", "accessToken"],
   },
+  "copilot-m365-web": {
+    kind: "token",
+    credentialName: "access_token + chathubPath",
+    placeholder: "access_token=...; chathubPath=redacted",
+    acceptsFullCookieHeader: false,
+    storageKeys: ["token", "access_token", "accessToken", "chathubPath", "userTenant"],
+  },
   "t3-web": {
     kind: "cookie",
     credentialName: "convex-session-id + Cookie header",

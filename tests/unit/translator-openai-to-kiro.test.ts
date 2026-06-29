@@ -202,7 +202,7 @@ test("OpenAI -> Kiro maps invalid or empty assistant tool call arguments to empt
   );
 });
 
-test("OpenAI -> Kiro uses Continue currentMessage when the request ends with assistant history", () => {
+test("OpenAI -> Kiro uses a neutral filler currentMessage when the request ends with assistant history (#5231)", () => {
   const result = buildKiroPayload(
     "claude-sonnet-4",
     {
@@ -217,7 +217,7 @@ test("OpenAI -> Kiro uses Continue currentMessage when the request ends with ass
 
   assert.match(
     result.conversationState.currentMessage.userInputMessage.content,
-    /^\[Context: Current time is .*Z\]\n\nContinue$/
+    /^\[Context: Current time is .*Z\]\n\n\.\.\.$/
   );
   assert.deepEqual(result.conversationState.history, [
     {

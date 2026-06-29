@@ -285,7 +285,7 @@ export function buildProviderUrl(
       if (entry.urlBuilder) return entry.urlBuilder(baseUrl, model, stream);
       return baseUrl;
     }
-    // Custom URL builder (e.g. gemini, gemini-cli)
+    // Custom URL builder (e.g. gemini, antigravity)
     if (entry.urlBuilder) {
       const baseUrl = entry.baseUrl || config.baseUrl;
       if (baseUrl) {

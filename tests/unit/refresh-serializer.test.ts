@@ -78,7 +78,7 @@ test("non-rotating providers are not serialized", async () => {
       active--;
     });
 
-  await Promise.all([run("gemini-cli"), run("gemini-cli"), run("antigravity")]);
+  await Promise.all([run("antigravity"), run("antigravity"), run("claude")]);
   assert.equal(maxActive, 3, "non-rotating providers must keep running in parallel");
 });
 
@@ -97,7 +97,7 @@ test("an error in one refresh does not deadlock the group queue", async () => {
 test("rotationGroupFor maps the OpenAI Auth0 family together", () => {
   assert.equal(rotationGroupFor("codex"), rotationGroupFor("openai"));
   assert.notEqual(rotationGroupFor("codex"), rotationGroupFor("claude"));
-  assert.equal(rotationGroupFor("gemini-cli"), null);
+  assert.equal(rotationGroupFor("antigravity"), null);
 });
 
 // Front 3 — reuse-race tolerance: only keep a connection active after an

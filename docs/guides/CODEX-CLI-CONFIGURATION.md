@@ -1,7 +1,7 @@
 ---
 title: "Codex CLI — Configuration with OmniRoute"
-version: 3.8.29
-lastUpdated: 2026-06-18
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Codex CLI — Configuration with OmniRoute
@@ -38,11 +38,11 @@ export OMNIROUTE_API_KEY="<YOUR_KEY>"
 
 > **Common host options**
 >
-> | Access | URL |
-> |--------|-----|
+> | Access        | URL                           |
+> | ------------- | ----------------------------- |
 > | Local network | `http://192.168.0.1:20128/v1` |
-> | Tailscale | `http://100.x.x.x:20128/v1` |
-> | Loopback | `http://localhost:20128/v1` |
+> | Tailscale     | `http://100.x.x.x:20128/v1`   |
+> | Loopback      | `http://localhost:20128/v1`   |
 
 ---
 
@@ -72,36 +72,36 @@ You never need a separate translation proxy when using OmniRoute. **All models u
 
 ### Token configuration fields
 
-| Field | Description |
-|-------|-------------|
-| `model_context_window` | Total token budget for the active model. Set to the model's advertised limit. |
-| `model_auto_compact_token_limit` | Threshold that triggers automatic history compaction. **Maximum: 90% of `model_context_window`** — values above 90% are silently ignored. |
-| `tool_output_token_limit` | Cap on tokens stored per tool call output in history. Prevents a single large tool response from filling the window. **This is not the max output** — it is a history storage cap. |
-| `compact_prompt` | Inline override for the system prompt used during compaction (v0.138+). |
+| Field                            | Description                                                                                                                                                                        |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model_context_window`           | Total token budget for the active model. Set to the model's advertised limit.                                                                                                      |
+| `model_auto_compact_token_limit` | Threshold that triggers automatic history compaction. **Maximum: 90% of `model_context_window`** — values above 90% are silently ignored.                                          |
+| `tool_output_token_limit`        | Cap on tokens stored per tool call output in history. Prevents a single large tool response from filling the window. **This is not the max output** — it is a history storage cap. |
+| `compact_prompt`                 | Inline override for the system prompt used during compaction (v0.138+).                                                                                                            |
 
 > **Note on `model_max_output_tokens`**: This field is **not part of the Codex CLI config schema** (absent from the Codex Rust codebase). It is silently ignored if set. Do not rely on it — use `tool_output_token_limit` to control how much tool output is stored in history.
 
 ### Context windows by model
 
-| Model | OmniRoute ID | Context window | `auto_compact` | `tool_output_limit` |
-|-------|-------------|----------------|----------------|----------------------|
-| GPT-5.5 | `cx/gpt-5.5` | 400k reliable (1M max) | 350,000 | 32,768 |
-| Kimi K2.7 (thinking) | `kmc/kimi-k2.7` | 131,072 | 112,000 | 32,768 |
-| Kimi K2.6 | `kmc/kimi-k2.6` | 131,072 | 112,000 | 32,768 |
-| GLM-5.2 / 5.2-max (thinking) | `glm/glm-5.2` | 131,072 | 112,000 | 32,768 |
-| MiMo V2.5 Pro (thinking) | `opencode-go/mimo-v2.5-pro` | 131,072 | 112,000 | 32,768 |
-| Qwen 3.7 Plus (thinking) | `opencode-go/qwen3.7-plus` | 32,768 | 28,000 | 16,384 |
-| DeepSeek V4 Pro (OllamaCloud) | `ollamacloud/deepseek-v4-pro` | 131,072 | 112,000 | 32,768 |
-| DeepSeek V4 Pro | `ds/deepseek-v4-pro` | 1,000,000 | 900,000 | 65,536 |
-| MiMo V2.5 | `opencode-go/mimo-v2.5` | 131,072 | 112,000 | 32,768 |
-| Gemma 4 31B (OllamaCloud) | `ollamacloud/gemma4:31b` | 32,768 | 28,000 | 16,384 |
-| Nemotron 3 Super (OllamaCloud) | `ollamacloud/nemotron-3-super` | 32,768 | 28,000 | 16,384 |
-| GPT-OSS 20B (OllamaCloud) | `ollamacloud/gpt-oss:20b` | 32,768 | 28,000 | 16,384 |
-| DeepSeek V4 Flash (OllamaCloud) | `ollamacloud/deepseek-v4-flash` | 65,536 | 56,000 | 16,384 |
-| Gemini 3 Flash Preview (OllamaCloud) | `ollamacloud/gemini-3-flash-preview` | 1,000,000 | 850,000 | 32,768 |
-| GLM-5 Turbo | `glm/glm-5-turbo` | 131,072 | 112,000 | 16,384 |
-| GLM-4.7 Flash | `glm/glm-4.7-flash` | 131,072 | 112,000 | 16,384 |
-| Mistral Large Latest | `mistral/mistral-large-latest` | 262,144 | 220,000 | 16,384 |
+| Model                                | OmniRoute ID                         | Context window         | `auto_compact` | `tool_output_limit` |
+| ------------------------------------ | ------------------------------------ | ---------------------- | -------------- | ------------------- |
+| GPT-5.5                              | `cx/gpt-5.5`                         | 400k reliable (1M max) | 350,000        | 32,768              |
+| Kimi K2.7 (thinking)                 | `kmc/kimi-k2.7`                      | 131,072                | 112,000        | 32,768              |
+| Kimi K2.6                            | `kmc/kimi-k2.6`                      | 131,072                | 112,000        | 32,768              |
+| GLM-5.2 / 5.2-max (thinking)         | `glm/glm-5.2`                        | 131,072                | 112,000        | 32,768              |
+| MiMo V2.5 Pro (thinking)             | `opencode-go/mimo-v2.5-pro`          | 131,072                | 112,000        | 32,768              |
+| Qwen 3.7 Plus (thinking)             | `opencode-go/qwen3.7-plus`           | 32,768                 | 28,000         | 16,384              |
+| DeepSeek V4 Pro (OllamaCloud)        | `ollamacloud/deepseek-v4-pro`        | 131,072                | 112,000        | 32,768              |
+| DeepSeek V4 Pro                      | `ds/deepseek-v4-pro`                 | 1,000,000              | 900,000        | 65,536              |
+| MiMo V2.5                            | `opencode-go/mimo-v2.5`              | 131,072                | 112,000        | 32,768              |
+| Gemma 4 31B (OllamaCloud)            | `ollamacloud/gemma4:31b`             | 32,768                 | 28,000         | 16,384              |
+| Nemotron 3 Super (OllamaCloud)       | `ollamacloud/nemotron-3-super`       | 32,768                 | 28,000         | 16,384              |
+| GPT-OSS 20B (OllamaCloud)            | `ollamacloud/gpt-oss:20b`            | 32,768                 | 28,000         | 16,384              |
+| DeepSeek V4 Flash (OllamaCloud)      | `ollamacloud/deepseek-v4-flash`      | 65,536                 | 56,000         | 16,384              |
+| Gemini 3 Flash Preview (OllamaCloud) | `ollamacloud/gemini-3-flash-preview` | 1,000,000              | 850,000        | 32,768              |
+| GLM-5 Turbo                          | `glm/glm-5-turbo`                    | 131,072                | 112,000        | 16,384              |
+| GLM-4.7 Flash                        | `glm/glm-4.7-flash`                  | 131,072                | 112,000        | 16,384              |
+| Mistral Large Latest                 | `mistral/mistral-large-latest`       | 262,144                | 220,000        | 16,384              |
 
 > **Compaction formula:** `effective_window = model_context_window - min(tool_output_token_limit, 20000)`. Values above 20k do not change the compaction trigger.
 
@@ -113,11 +113,11 @@ You never need a separate translation proxy when using OmniRoute. **All models u
 
 All Codex models in OmniRoute use the `cx/` prefix:
 
-| Codex CLI name | OmniRoute model |
-|----------------|-----------------|
-| `cx/gpt-5.5` | GPT-5.5 standard |
-| `cx/gpt-5.4` | GPT-5.4 standard |
-| `cx/gpt-5.4-mini` | GPT-5.4 mini |
+| Codex CLI name          | OmniRoute model    |
+| ----------------------- | ------------------ |
+| `cx/gpt-5.5`            | GPT-5.5 standard   |
+| `cx/gpt-5.4`            | GPT-5.4 standard   |
+| `cx/gpt-5.4-mini`       | GPT-5.4 mini       |
 | `cx/gpt-5.1-codex-mini` | GPT-5.1 Codex mini |
 
 Other providers use their own prefix (`kmc/`, `glm/`, `ds/`, `ollamacloud/`, `opencode-go/`, `mistral/`) — the prefix matches the OmniRoute provider alias.
@@ -128,13 +128,13 @@ Other providers use their own prefix (`kmc/`, `glm/`, `ds/`, `ollamacloud/`, `op
 
 Controls how much the model "thinks" before responding.
 
-| Value | Use for |
-|-------|---------|
-| `none` | No reasoning — direct response |
-| `low` | Trivial tasks (rename, format) |
-| `medium` | **Server default** when not specified |
-| `high` | Intermediate tasks (refactoring, debug) |
-| `xhigh` | Architecture, deep analysis, complex problems |
+| Value    | Use for                                       |
+| -------- | --------------------------------------------- |
+| `none`   | No reasoning — direct response                |
+| `low`    | Trivial tasks (rename, format)                |
+| `medium` | **Server default** when not specified         |
+| `high`   | Intermediate tasks (refactoring, debug)       |
+| `xhigh`  | Architecture, deep analysis, complex problems |
 
 ```bash
 # Per invocation override
@@ -170,53 +170,53 @@ codex -p chat     # cx/gpt-5.5, no effort set (server default)
 
 ### Thinking models (alto pensamento) — xhigh + detailed summary
 
-| Profile | Model | Context | Use for |
-|---------|-------|---------|---------|
-| `kimi-k27` | `kmc/kimi-k2.7` | 128k | Best thinking quality (Kimi) |
-| `glm52` | `glm/glm-5.2` | 128k | GLM thinking |
-| `glm52max` | `glm/glm-5.2-max` | 128k | GLM thinking max |
-| `mimo-pro` | `opencode-go/mimo-v2.5-pro` | 128k | MiMo thinking |
-| `qwen37plus` | `opencode-go/qwen3.7-plus` | 32k | Qwen thinking |
+| Profile      | Model                       | Context | Use for                      |
+| ------------ | --------------------------- | ------- | ---------------------------- |
+| `kimi-k27`   | `kmc/kimi-k2.7`             | 128k    | Best thinking quality (Kimi) |
+| `glm52`      | `glm/glm-5.2`               | 128k    | GLM thinking                 |
+| `glm52max`   | `glm/glm-5.2-max`           | 128k    | GLM thinking max             |
+| `mimo-pro`   | `opencode-go/mimo-v2.5-pro` | 128k    | MiMo thinking                |
+| `qwen37plus` | `opencode-go/qwen3.7-plus`  | 32k     | Qwen thinking                |
 
 ### Good models (bons) — high effort
 
-| Profile | Model | Context | Use for |
-|---------|-------|---------|---------|
-| `kimi-k26` | `kmc/kimi-k2.6` | 128k | General purpose (Kimi) |
-| `deepseek-pro` | `ollamacloud/deepseek-v4-pro` | 128k | DeepSeek Pro via OllamaCloud |
-| `deepseek` | `ds/deepseek-v4-pro` | 1M | DeepSeek Pro direct, huge context |
-| `mimo` | `opencode-go/mimo-v2.5` | 128k | MiMo general |
+| Profile        | Model                         | Context | Use for                           |
+| -------------- | ----------------------------- | ------- | --------------------------------- |
+| `kimi-k26`     | `kmc/kimi-k2.6`               | 128k    | General purpose (Kimi)            |
+| `deepseek-pro` | `ollamacloud/deepseek-v4-pro` | 128k    | DeepSeek Pro via OllamaCloud      |
+| `deepseek`     | `ds/deepseek-v4-pro`          | 1M      | DeepSeek Pro direct, huge context |
+| `mimo`         | `opencode-go/mimo-v2.5`       | 128k    | MiMo general                      |
 
 ### Simple models (simples) — no reasoning effort
 
-| Profile | Model | Context | Use for |
-|---------|-------|---------|---------|
-| `gemma4` | `ollamacloud/gemma4:31b` | 32k | Cost-effective, capable |
-| `nemotron` | `ollamacloud/nemotron-3-super` | 32k | NVIDIA Nemotron |
-| `gptoss` | `ollamacloud/gpt-oss:20b` | 32k | Open-source GPT |
+| Profile    | Model                          | Context | Use for                 |
+| ---------- | ------------------------------ | ------- | ----------------------- |
+| `gemma4`   | `ollamacloud/gemma4:31b`       | 32k     | Cost-effective, capable |
+| `nemotron` | `ollamacloud/nemotron-3-super` | 32k     | NVIDIA Nemotron         |
+| `gptoss`   | `ollamacloud/gpt-oss:20b`      | 32k     | Open-source GPT         |
 
 ### Fast models (rápidos) — low effort
 
-| Profile | Model | Context | Use for |
-|---------|-------|---------|---------|
-| `deepseek-flash` | `ollamacloud/deepseek-v4-flash` | 64k | Quick tasks |
-| `gemini-flash` | `ollamacloud/gemini-3-flash-preview` | 1M | Very fast, huge context |
-| `glm5turbo` | `glm/glm-5-turbo` | 128k | GLM Turbo |
-| `glm47flash` | `glm/glm-4.7-flash` | 128k | GLM Flash |
-| `mistral` | `mistral/mistral-large-latest` | 256k | Mistral Large |
+| Profile          | Model                                | Context | Use for                 |
+| ---------------- | ------------------------------------ | ------- | ----------------------- |
+| `deepseek-flash` | `ollamacloud/deepseek-v4-flash`      | 64k     | Quick tasks             |
+| `gemini-flash`   | `ollamacloud/gemini-3-flash-preview` | 1M      | Very fast, huge context |
+| `glm5turbo`      | `glm/glm-5-turbo`                    | 128k    | GLM Turbo               |
+| `glm47flash`     | `glm/glm-4.7-flash`                  | 128k    | GLM Flash               |
+| `mistral`        | `mistral/mistral-large-latest`       | 256k    | Mistral Large           |
 
 ### Quick decision table
 
-| Task | Recommended profile |
-|------|---------------------|
-| Rename, format, boilerplate | `--profile deepseek-flash` or `-p low` |
-| Explain, light review | `-p chat` or `-p gemini-flash` |
-| Debug, moderate refactor | `-p medium` or `-p kimi-k26` |
-| New feature, complex tests | `-p high` or `-p mimo` |
-| Architecture, deep analysis | `-p kimi-k27` or `-p glm52` or `-p xhigh` |
+| Task                             | Recommended profile                              |
+| -------------------------------- | ------------------------------------------------ |
+| Rename, format, boilerplate      | `--profile deepseek-flash` or `-p low`           |
+| Explain, light review            | `-p chat` or `-p gemini-flash`                   |
+| Debug, moderate refactor         | `-p medium` or `-p kimi-k26`                     |
+| New feature, complex tests       | `-p high` or `-p mimo`                           |
+| Architecture, deep analysis      | `-p kimi-k27` or `-p glm52` or `-p xhigh`        |
 | Codebase analysis (needs 1M ctx) | `--profile deepseek` or `--profile gemini-flash` |
-| Maximum thinking quality | `-p glm52max` or `-p mimo-pro` |
-| Cost-conscious | `-p gemma4` or `-p gptoss` |
+| Maximum thinking quality         | `-p glm52max` or `-p mimo-pro`                   |
+| Cost-conscious                   | `-p gemma4` or `-p gptoss`                       |
 
 ---
 
@@ -267,12 +267,12 @@ omniroute launch-codex --profile glm52 -- --yolo "fix this bug"
 
 ## New Codex CLI features (v0.138–v0.141)
 
-| Version | Feature |
-|---------|---------|
-| v0.138 | Desktop app handoff (`/app`), v2 personal access tokens, `--profile` as the exclusive profile selector (legacy in-file `[profiles]` tables crash on startup) |
-| v0.139 | `web_search = "live"` — native web search from code mode; `oneOf`/`allOf` in MCP tool schemas; `codex doctor` env diagnostics |
-| v0.140 | `/usage` token view in-session; `/import` from Claude Code sessions; `codex delete <SESSION_ID>` subcommand; Amazon Bedrock auth via `aws` object in provider config |
-| v0.141 | E2E encrypted Noise relay for remote executors; SQLite WAL fix; P-521 TLS support |
+| Version | Feature                                                                                                                                                              |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v0.138  | Desktop app handoff (`/app`), v2 personal access tokens, `--profile` as the exclusive profile selector (legacy in-file `[profiles]` tables crash on startup)         |
+| v0.139  | `web_search = "live"` — native web search from code mode; `oneOf`/`allOf` in MCP tool schemas; `codex doctor` env diagnostics                                        |
+| v0.140  | `/usage` token view in-session; `/import` from Claude Code sessions; `codex delete <SESSION_ID>` subcommand; Amazon Bedrock auth via `aws` object in provider config |
+| v0.141  | E2E encrypted Noise relay for remote executors; SQLite WAL fix; P-521 TLS support                                                                                    |
 
 ### New `config.toml` fields (post-v0.137)
 
@@ -343,11 +343,11 @@ env_key  = "OMNIROUTE_API_KEY"
 
 ## Claude Code — equivalent configuration
 
-| Codex CLI (`config.toml`) | Claude Code (env var) | Effect |
-|---------------------------|-----------------------|--------|
-| `tool_output_token_limit = 32768` | *(not directly exposed)* | Per-tool history cap |
-| `model_context_window = 400000` | *(determined by the model)* | Context window |
-| — | `CLAUDE_CODE_MAX_OUTPUT_TOKENS=65536` | Max tokens per response |
+| Codex CLI (`config.toml`)         | Claude Code (env var)                 | Effect                  |
+| --------------------------------- | ------------------------------------- | ----------------------- |
+| `tool_output_token_limit = 32768` | _(not directly exposed)_              | Per-tool history cap    |
+| `model_context_window = 400000`   | _(determined by the model)_           | Context window          |
+| —                                 | `CLAUDE_CODE_MAX_OUTPUT_TOKENS=65536` | Max tokens per response |
 
 ```bash
 # ~/.bashrc — Claude Code token cap
@@ -358,16 +358,17 @@ export CLAUDE_CODE_MAX_OUTPUT_TOKENS=65536
 
 ## Quick reference — CLI flags
 
-| Flag | Short | Effect |
-|------|-------|--------|
-| `--model <id>` | `-m` | Overrides `model` for this invocation |
-| `--profile <name>` | `-p` | Loads `~/.codex/<name>.config.toml` |
-| `--config key=value` | `-c` | Overrides any config.toml field (repeatable) |
-| `--enable <feature>` | — | Force-enables a feature flag |
-| `--disable <feature>` | — | Force-disables a feature flag |
-| `--search` | — | Enable live web search for this invocation |
+| Flag                  | Short | Effect                                       |
+| --------------------- | ----- | -------------------------------------------- |
+| `--model <id>`        | `-m`  | Overrides `model` for this invocation        |
+| `--profile <name>`    | `-p`  | Loads `~/.codex/<name>.config.toml`          |
+| `--config key=value`  | `-c`  | Overrides any config.toml field (repeatable) |
+| `--enable <feature>`  | —     | Force-enables a feature flag                 |
+| `--disable <feature>` | —     | Force-disables a feature flag                |
+| `--search`            | —     | Enable live web search for this invocation   |
 
 New in v0.140:
+
 ```bash
 codex delete <SESSION_ID>          # delete a session
 codex delete <SESSION_ID> --force  # skip confirmation
@@ -376,13 +377,13 @@ codex debug models --bundled       # list bundled model catalog as JSON
 
 Inside an interactive session:
 
-| Command | Effect |
-|---------|--------|
-| `/model` | Opens the model picker |
-| `/usage` | Shows token usage for this session (v0.140) |
-| `/app` | Hands off to the desktop app (v0.138) |
-| `/import` | Import a Claude Code session (v0.140) |
-| `/help` | Lists all slash commands |
+| Command   | Effect                                      |
+| --------- | ------------------------------------------- |
+| `/model`  | Opens the model picker                      |
+| `/usage`  | Shows token usage for this session (v0.140) |
+| `/app`    | Hands off to the desktop app (v0.138)       |
+| `/import` | Import a Claude Code session (v0.140)       |
+| `/help`   | Lists all slash commands                    |
 
 ---
 

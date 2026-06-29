@@ -15,6 +15,10 @@ import { stripIpv6Brackets } from "@omniroute/open-sse/utils/proxyFamily";
 // Configurable via env vars
 const FAST_FAIL_TIMEOUT_MS = parseInt(process.env.PROXY_FAST_FAIL_TIMEOUT_MS ?? "2000", 10);
 const HEALTH_CACHE_TTL_MS = parseInt(process.env.PROXY_HEALTH_CACHE_TTL_MS ?? "30000", 10);
+const UNHEALTHY_CACHE_TTL_MS = parseInt(
+  process.env.PROXY_HEALTH_UNHEALTHY_CACHE_TTL_MS ?? "2000",
+  10
+);
 
 interface ProxyHealthEntry {
   healthy: boolean;
@@ -79,7 +83,11 @@ export async function isProxyReachable(
   }
 
   const probe = tcpCheckImpl(host, port, timeoutMs).then((healthy) => {
-    proxyHealthCache.set(proxyUrl, { healthy, checkedAt: Date.now(), ttlMs: cacheTtlMs });
+    proxyHealthCache.set(proxyUrl, {
+      healthy,
+      checkedAt: Date.now(),
+      ttlMs: healthy ? cacheTtlMs : Math.min(cacheTtlMs, UNHEALTHY_CACHE_TTL_MS),
+    });
     return healthy;
   });
 

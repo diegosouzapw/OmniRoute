@@ -47,6 +47,30 @@ export function isNoAuthProviderBlocked(
   );
 }
 
+/**
+ * Partition a list of no-auth provider entries into the ones that are visible
+ * (not blocked) and the ones currently in `blockedProviders`, matched by either
+ * the provider id or its alias. Blocked entries are RETURNED (in `blocked`),
+ * never discarded — the dashboard surfaces them with a "Disabled" badge + an
+ * Enable button instead of silently hiding them (#5166/#5183: a disabled no-auth
+ * provider used to vanish from the All Providers page with no in-place restore).
+ * Order within each bucket is preserved.
+ */
+export function partitionNoAuthEntriesByBlocked<
+  T extends { providerId: string; provider: { alias?: string } },
+>(entries: T[], blockedProviders: unknown): { visible: T[]; blocked: T[] } {
+  const blockedProviderSet = normalizeBlockedProviderSet(blockedProviders);
+  const visible: T[] = [];
+  const blocked: T[] = [];
+  for (const entry of entries) {
+    const alias = typeof entry.provider.alias === "string" ? entry.provider.alias : null;
+    const isBlocked =
+      blockedProviderSet.has(entry.providerId) || (alias !== null && blockedProviderSet.has(alias));
+    (isBlocked ? blocked : visible).push(entry);
+  }
+  return { visible, blocked };
+}
+
 export function isNoAuthRawProviderPrefix(providerId: string, prefix: string): boolean {
   const provider = noAuthProviderEntries.find((entry) => entry.id === providerId);
   return (

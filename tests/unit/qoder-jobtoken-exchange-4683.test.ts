@@ -76,6 +76,73 @@ test("#4683 resolveQoderJobToken exchanges a pt-* once and caches the jt-*", asy
   __clearQoderJobTokenCache();
 });
 
+test("#4683 resolveQoderJobToken coalesces concurrent pt-* exchanges", async () => {
+  __clearQoderJobTokenCache();
+  let fetchCount = 0;
+  let releaseExchange: (() => void) | undefined;
+  let markExchangeStarted: (() => void) | undefined;
+  const exchangeStarted = new Promise<void>((resolveStarted) => {
+    markExchangeStarted = resolveStarted;
+  });
+  const fetchImpl = async () => {
+    fetchCount += 1;
+    markExchangeStarted?.();
+    await new Promise<void>((release) => {
+      releaseExchange = release;
+    });
+    return jsonResponse({ job_token: "jt-shared", expires_in: 86400 });
+  };
+
+  const resolves = Array.from({ length: 8 }, () =>
+    resolveQoderJobToken("pt-concurrent", { fetchImpl, now: 1_000 })
+  );
+  await exchangeStarted;
+  releaseExchange?.();
+  const tokens = await Promise.all(resolves);
+  assert.deepEqual(tokens, Array(8).fill("jt-shared"));
+  assert.equal(fetchCount, 1, "concurrent resolves must share one upstream exchange");
+  __clearQoderJobTokenCache();
+});
+
+test("#4683 resolveQoderJobToken does not let the first caller abort poison shared waiters", async () => {
+  __clearQoderJobTokenCache();
+  let fetchCount = 0;
+  let releaseExchange: (() => void) | undefined;
+  let markExchangeStarted: (() => void) | undefined;
+  const exchangeStarted = new Promise<void>((resolveStarted) => {
+    markExchangeStarted = resolveStarted;
+  });
+  const firstCaller = new AbortController();
+  const fetchImpl = async (_url: string, init?: Record<string, unknown>) => {
+    fetchCount += 1;
+    markExchangeStarted?.();
+    await new Promise<void>((resolve, reject) => {
+      releaseExchange = resolve;
+      const signal = init?.signal as AbortSignal | undefined;
+      signal?.addEventListener("abort", () => reject(signal.reason ?? new Error("aborted")), {
+        once: true,
+      });
+    });
+    return jsonResponse({ job_token: "jt-unpoisoned", expires_in: 86400 });
+  };
+
+  const first = resolveQoderJobToken("pt-abort-shared", {
+    fetchImpl,
+    now: 1_000,
+    signal: firstCaller.signal,
+  }).catch((error: unknown) => error);
+  await exchangeStarted;
+  const second = resolveQoderJobToken("pt-abort-shared", { fetchImpl, now: 1_000 });
+
+  firstCaller.abort(new Error("caller went away"));
+  releaseExchange?.();
+
+  assert.equal(await second, "jt-unpoisoned");
+  assert.equal(fetchCount, 1, "the unaffected waiter must share the original exchange");
+  await first;
+  __clearQoderJobTokenCache();
+});
+
 test("#4683 resolveQoderJobToken passes a jt-* through without exchanging", async () => {
   __clearQoderJobTokenCache();
   let fetchCount = 0;

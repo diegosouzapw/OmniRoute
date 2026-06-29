@@ -323,7 +323,8 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
     name: "Hermes",
     icon: "terminal",
     color: "#8B5CF6",
-    description: "Nous Research Hermes — generic OpenAI-compatible setup (use hermes-agent for full agent)",
+    description:
+      "Nous Research Hermes — generic OpenAI-compatible setup (use hermes-agent for full agent)",
     docsUrl: "/docs?section=cli-tools&tool=hermes",
     configType: "guide",
     category: "code",
@@ -583,38 +584,6 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
     defaultCommand: "forge",
   },
 
-  // ── Code entries — gemini-cli ─────────────────────────────────────────────
-  "gemini-cli": {
-    id: "gemini-cli",
-    name: "Google Gemini CLI",
-    icon: "terminal",
-    color: "#4285F4",
-    description: "Google Gemini CLI — OpenAI-compatible base URL via GEMINI_API_BASE_URL env",
-    docsUrl: "https://github.com/google-gemini/gemini-cli",
-    configType: "guide",
-    category: "code",
-    vendor: "Google",
-    acpSpawnable: true,
-    baseUrlSupport: "partial",
-    defaultCommand: "gemini",
-    guideSteps: [
-      {
-        step: 1,
-        title: "Install Gemini CLI",
-        desc: "npm install -g @google/gemini-cli",
-      },
-      { step: 2, title: "API Key", type: "apiKeySelector" },
-      { step: 3, title: "Base URL", value: "{{baseUrl}}", copyable: true },
-      { step: 4, title: "Select Model", type: "modelSelector" },
-    ],
-    codeBlock: {
-      language: "bash",
-      code: `export GEMINI_API_KEY="{{apiKey}}"
-export GEMINI_API_BASE_URL="{{baseUrl}}"
-gemini --model "{{model}}"`,
-    },
-  },
-
   // ── Code entries — cursor-cli ─────────────────────────────────────────────
   "cursor-cli": {
     id: "cursor-cli",
@@ -850,14 +819,16 @@ export function getCliTool(id: string): CliToolEntry | undefined {
 // ─── Provider model mapping helper ───────────────────────────────────────────
 
 // Get all provider models for mapping dropdown
-export const getProviderModelsForMapping = (providers: Array<{
-  id: string;
-  isActive: boolean;
-  testStatus: string;
-  provider: string;
-  name: string;
-  models?: string[];
-}>) => {
+export const getProviderModelsForMapping = (
+  providers: Array<{
+    id: string;
+    isActive: boolean;
+    testStatus: string;
+    provider: string;
+    name: string;
+    models?: string[];
+  }>
+) => {
   const result: Array<{ connectionId: string; provider: string; name: string; models: string[] }> =
     [];
   providers.forEach((conn) => {

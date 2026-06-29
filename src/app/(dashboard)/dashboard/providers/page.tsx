@@ -10,6 +10,7 @@ import {
   IMAGE_ONLY_PROVIDER_IDS,
   VIDEO_PROVIDER_IDS,
 } from "@/shared/constants/providers";
+import { partitionNoAuthEntriesByBlocked } from "@/shared/utils/noAuthProviders";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
@@ -37,6 +38,7 @@ import {
 } from "@/lib/providers/codexFastTier";
 import AddCompatibleProviderModal from "./components/AddCompatibleProviderModal";
 import { CategoryDot } from "./components/CategoryDot";
+import NoAuthProvidersSection from "./components/NoAuthProvidersSection";
 import ProviderCard from "./components/ProviderCard";
 import ProviderCountBadge from "./components/ProviderCountBadge";
 import ProviderSummaryCard from "./components/ProviderSummaryCard";
@@ -512,12 +514,14 @@ export default function ProvidersPage() {
     activeServiceKind
   );
 
-  const blockedProviderSet = useMemo(() => new Set(blockedProviders), [blockedProviders]);
   const rawNoAuthEntriesAll = buildStaticProviderEntries("no-auth", getProviderStats);
-  const noAuthEntriesAll = rawNoAuthEntriesAll.filter(({ providerId, provider }) => {
-    const alias = typeof provider.alias === "string" ? provider.alias : null;
-    return !blockedProviderSet.has(providerId) && !(alias && blockedProviderSet.has(alias));
-  });
+  // Partition rather than drop: blocked no-auth providers stay surfaced on the page
+  // (rendered with a "Disabled" badge + Enable button) instead of silently vanishing,
+  // which left users unable to find/restore a disabled no-auth provider (#5166/#5183).
+  // `noAuthEntriesAll` keeps only the visible (non-blocked) entries, so every downstream
+  // aggregate/count/model list that consumes it is unchanged.
+  const { visible: noAuthEntriesAll, blocked: blockedNoAuthEntries } =
+    partitionNoAuthEntriesByBlocked(rawNoAuthEntriesAll, blockedProviders);
   const noAuthEntries = filterConfiguredProviderEntries(
     noAuthEntriesAll,
     effectiveShowConfiguredOnly,
@@ -952,7 +956,9 @@ export default function ProvidersPage() {
                       }`}
                       title={t("testAllCompatible")}
                     >
-                      <span className={`material-symbols-outlined text-[14px]${testingMode === "compatible" ? " animate-spin" : ""}`}>
+                      <span
+                        className={`material-symbols-outlined text-[14px]${testingMode === "compatible" ? " animate-spin" : ""}`}
+                      >
                         play_arrow
                       </span>
                       {testingMode === "compatible" ? t("testing") : t("testAll")}
@@ -1047,7 +1053,9 @@ export default function ProvidersPage() {
                     title={t("testAllOAuth")}
                     aria-label={t("testAllOAuth")}
                   >
-                    <span className={`material-symbols-outlined text-[14px]${testingMode === "oauth" ? " animate-spin" : ""}`}>
+                    <span
+                      className={`material-symbols-outlined text-[14px]${testingMode === "oauth" ? " animate-spin" : ""}`}
+                    >
                       play_arrow
                     </span>
                     {testingMode === "oauth" ? t("testing") : t("testAll")}
@@ -1097,7 +1105,9 @@ export default function ProvidersPage() {
                   title={t("testAll")}
                   aria-label={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "ide" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "ide" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "ide" ? t("testing") : t("testAll")}
@@ -1154,7 +1164,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "web-cookie" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "web-cookie" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "web-cookie" ? t("testing") : t("testAll")}
@@ -1198,7 +1210,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "free" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "free" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "free" ? t("testing") : t("testAll")}
@@ -1243,7 +1257,9 @@ export default function ProvidersPage() {
                   title={t("testAllApiKey")}
                   aria-label={t("testAllApiKey")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "apikey" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "apikey" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "apikey" ? t("testing") : t("testAll")}
@@ -1277,45 +1293,21 @@ export default function ProvidersPage() {
           )}
 
           {/* No Auth Providers */}
-          {showSection("noauth") && !showFreeOnly && noAuthEntriesAll.length > 0 && (
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-                  {t("noAuthProviders")}{" "}
-                  <span className="size-2.5 rounded-full bg-stone-500" title={t("noAuthLabel")} />
-                  <ProviderCountBadge {...countConfigured(noAuthEntriesAll)} />
-                </h2>
-                <button
-                  onClick={() => handleBatchTest("no-auth")}
-                  disabled={!!testingMode}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                    testingMode === "no-auth"
-                      ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
-                      : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
-                  }`}
-                  title={t("testAll")}
-                >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "no-auth" ? " animate-spin" : ""}`}>
-                    play_arrow
-                  </span>
-                  {testingMode === "no-auth" ? t("testing") : t("testAll")}
-                </button>
-              </div>
-              <p className="text-sm text-text-muted -mt-2">{t("noAuthProvidersDesc")}</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
-                {noAuthEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
-                  <ProviderCard
-                    key={providerId}
-                    providerId={providerId}
-                    provider={provider}
-                    stats={stats}
-                    authType="no-auth"
-                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+          {showSection("noauth") &&
+            !showFreeOnly &&
+            (noAuthEntriesAll.length > 0 || blockedNoAuthEntries.length > 0) && (
+              <NoAuthProvidersSection
+                visibleEntries={noAuthEntries}
+                count={countConfigured(noAuthEntriesAll)}
+                blockedEntries={blockedNoAuthEntries}
+                blockedProviders={blockedProviders}
+                onBlockedChange={setBlockedProviders}
+                onError={(msg) => notify.error(msg)}
+                testingMode={testingMode}
+                onBatchTest={handleBatchTest}
+                onToggleProvider={handleToggleProvider}
+              />
+            )}
 
           {/* Upstream Proxy Providers */}
           {showSection("proxy") && upstreamProxyEntries.length > 0 && (
@@ -1339,7 +1331,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "upstream-proxy" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "upstream-proxy" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "upstream-proxy" ? t("testing") : t("testAll")}
@@ -1482,7 +1476,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "cloud-agent" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "cloud-agent" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "cloud-agent" ? t("testing") : t("testAll")}
@@ -1530,7 +1526,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "local" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "local" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "local" ? t("testing") : t("testAll")}
@@ -1574,7 +1572,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "search" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "search" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "search" ? t("testing") : t("testAll")}
@@ -1684,7 +1684,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "audio" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "audio" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "audio" ? t("testing") : t("testAll")}

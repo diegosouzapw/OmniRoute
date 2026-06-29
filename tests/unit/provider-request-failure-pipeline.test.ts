@@ -24,6 +24,8 @@ const { clearModelLock } = await import("../../open-sse/services/accountFallback
 const { getCallLogs, getCallLogById } = await import("../../src/lib/usage/callLogs.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
 const { resetPayloadRulesConfigForTests } = await import("../../open-sse/services/payloadRules.ts");
+const { CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA, CONTEXT_1M_BETA_HEADER } =
+  await import("../../open-sse/services/claudeCodeCompatible.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -286,7 +288,11 @@ test("successful response includes both providerRequest and providerResponse in 
       }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "cf-ray": "response-ray",
+          server: "cloudflare",
+        },
       }
     );
   };
@@ -317,4 +323,173 @@ test("successful response includes both providerRequest and providerResponse in 
     detail.pipelinePayloads.providerResponse,
     "providerResponse must be present on success"
   );
+  assert.equal(
+    detail.pipelinePayloads.providerRequest.headers["cf-ray"],
+    undefined,
+    "providerRequest headers must not be overwritten with upstream response headers"
+  );
+  assert.equal(
+    detail.pipelinePayloads.providerRequest.headers.server,
+    undefined,
+    "providerRequest headers must not include upstream response server header"
+  );
+  assert.equal(detail.pipelinePayloads.providerRequest.headers.Accept, "application/json");
+  assert.equal(detail.pipelinePayloads.providerRequest.headers["Content-Type"], "application/json");
+  assert.equal(detail.pipelinePayloads.providerRequest.headers.Authorization, "[REDACTED]");
+});
+
+test("streaming response preserves request headers in providerRequest pipeline payload", async () => {
+  const body = {
+    model: "gpt-4o-mini",
+    stream: true,
+    messages: [{ role: "user", content: "hello" }],
+  };
+
+  const upstreamPayload = [
+    `data: ${JSON.stringify({
+      id: "chatcmpl-stream",
+      object: "chat.completion.chunk",
+      model: "gpt-4o-mini",
+      choices: [{ index: 0, delta: { role: "assistant", content: "world" } }],
+    })}`,
+    "",
+    `data: ${JSON.stringify({
+      id: "chatcmpl-stream",
+      object: "chat.completion.chunk",
+      model: "gpt-4o-mini",
+      choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
+    })}`,
+    "",
+    "data: [DONE]",
+    "",
+  ].join("\n");
+
+  globalThis.fetch = async () => {
+    return new Response(upstreamPayload, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/event-stream",
+        "cf-ray": "stream-response-ray",
+        server: "cloudflare",
+      },
+    });
+  };
+
+  const result = await handleChatCore({
+    body: structuredClone(body),
+    modelInfo: { provider: "openai", model: "gpt-4o-mini", extendedContext: false },
+    credentials: { apiKey: "sk-test", providerSpecificData: {} },
+    log: noopLog(),
+    clientRawRequest: {
+      endpoint: "/v1/chat/completions",
+      body: structuredClone(body),
+      headers: new Headers({ accept: "text/event-stream" }),
+    },
+    userAgent: "unit-test",
+  } as any);
+
+  assert.equal(result.success, true);
+  await result.response.text();
+  await waitForAsyncSideEffects();
+
+  const detail = await waitFor(getLatestCallLog);
+  assert.ok(detail, "expected a call log to be persisted");
+  assert.ok(detail.pipelinePayloads, "expected pipeline payloads");
+
+  const providerRequest = detail.pipelinePayloads.providerRequest;
+  assert.ok(providerRequest, "providerRequest must be present on streaming success");
+  assert.equal(
+    providerRequest.headers["cf-ray"],
+    undefined,
+    "streaming providerRequest headers must not be response headers"
+  );
+  assert.equal(providerRequest.headers.server, undefined);
+  assert.equal(providerRequest.headers.Accept, "text/event-stream");
+  assert.equal(providerRequest.headers["Content-Type"], "application/json");
+  assert.equal(providerRequest.headers.Authorization, "[REDACTED]");
+});
+
+test("CC-compatible providerRequest log keeps request beta headers and summarized thinking body", async () => {
+  const body = {
+    model: "claude-opus-4-6",
+    messages: [{ role: "user", content: "hello" }],
+    stream: false,
+  };
+
+  const upstreamPayload = [
+    "event: message_start",
+    'data: {"type":"message_start","message":{"id":"msg_1","type":"message","role":"assistant","model":"claude-opus-4-6","usage":{"input_tokens":7,"output_tokens":0}}}',
+    "",
+    "event: content_block_start",
+    'data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}',
+    "",
+    "event: content_block_delta",
+    'data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"ok"}}',
+    "",
+    "event: message_delta",
+    'data: {"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":1}}',
+    "",
+    "event: message_stop",
+    'data: {"type":"message_stop"}',
+    "",
+  ].join("\n");
+
+  globalThis.fetch = async () => {
+    return new Response(upstreamPayload, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/event-stream",
+        "cf-ray": "cc-response-ray",
+        server: "cloudflare",
+      },
+    });
+  };
+
+  const result = await handleChatCore({
+    body: structuredClone(body),
+    modelInfo: {
+      provider: "anthropic-compatible-cc-test",
+      model: "claude-opus-4-6",
+      extendedContext: false,
+    },
+    credentials: {
+      apiKey: "sk-test",
+      providerSpecificData: {
+        baseUrl: "https://proxy.example.com",
+        requestDefaults: {
+          context1m: true,
+          redactThinking: true,
+          summarizeThinking: true,
+        },
+      },
+    },
+    log: noopLog(),
+    clientRawRequest: {
+      endpoint: "/v1/chat/completions",
+      body: structuredClone(body),
+      headers: new Headers({ accept: "application/json" }),
+    },
+    userAgent: "unit-test",
+  } as any);
+
+  assert.equal(result.success, true);
+  await result.response.json();
+  await waitForAsyncSideEffects();
+
+  const detail = await waitFor(getLatestCallLog);
+  assert.ok(detail, "expected a call log to be persisted");
+  assert.ok(detail.pipelinePayloads, "expected pipeline payloads");
+
+  const providerRequest = detail.pipelinePayloads.providerRequest;
+  assert.ok(providerRequest, "providerRequest must be present on CC-compatible success");
+  assert.equal(providerRequest.headers["cf-ray"], undefined);
+  assert.equal(providerRequest.headers.server, undefined);
+  assert.equal(providerRequest.headers.Accept, "application/json");
+  assert.match(providerRequest.headers["anthropic-beta"], new RegExp(CONTEXT_1M_BETA_HEADER));
+  assert.match(
+    providerRequest.headers["anthropic-beta"],
+    new RegExp(CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA)
+  );
+  assert.equal(providerRequest.body.thinking.display, "summarized");
 });

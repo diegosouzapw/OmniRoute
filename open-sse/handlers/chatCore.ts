@@ -82,6 +82,7 @@ import {
   refreshWithRetry,
   isUnrecoverableRefreshError,
   runWithOnPersist,
+  runWithCasGuard,
 } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { createPreparedRequestLogger, runWithCapture } from "../utils/providerRequestLogging.ts";
@@ -183,7 +184,10 @@ import {
   type RuntimeCompressionCombo,
 } from "./chatCore/compressionComboPredicates.ts";
 import { emitOutputStyleTelemetry } from "./chatCore/outputStyleTelemetry.ts";
-import { writeCompressionAnalytics } from "./chatCore/compressionAnalyticsWrite.ts";
+import {
+  writeCompressionAnalytics,
+  writeCompressionSkip,
+} from "./chatCore/compressionAnalyticsWrite.ts";
 import { runPluginOnRequestHook } from "./chatCore/pluginOnRequest.ts";
 import { recordContextEditingTelemetryHook } from "./chatCore/contextEditingTelemetry.ts";
 import { recordCompressionCacheStats } from "./chatCore/compressionCacheStats.ts";
@@ -234,7 +238,11 @@ import { buildCodexQuotaPersistence } from "./chatCore/codexQuota.ts";
 import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
-import { sanitizeOpenAIResponse, sanitizeResponsesApiResponse } from "./responseSanitizer.ts";
+import {
+  sanitizeOpenAIResponse,
+  sanitizeResponsesApiResponse,
+  shouldParseTextualReasoningTags,
+} from "./responseSanitizer.ts";
 import {
   withRateLimit,
   updateFromHeaders,
@@ -349,6 +357,7 @@ export async function handleChatCore({
   cachedSettings = null,
   skipUpstreamRetry = false,
   createPiiTransform = null,
+  correlationId = null,
 }) {
   let { provider, model, extendedContext } = modelInfo;
   // ── Memory pressure guard ────────────────────────────────────────────
@@ -653,6 +662,7 @@ export async function handleChatCore({
       clientRequest: clientRawRequest?.body ?? body,
       providerRequest: initialProviderRequest,
       stage: "registered",
+      correlationId,
     }) || generateRequestId();
 
   // Initialize rate limit settings from persisted DB (once, lazy)
@@ -738,6 +748,7 @@ export async function handleChatCore({
       tokensCompressed,
       apiKeyInfo,
       noLogEnabled,
+      correlationId,
     });
 
   // Primary path: merge client model id + alias target so config on either key applies; resolved
@@ -919,6 +930,7 @@ export async function handleChatCore({
         resolveCacheAwareConfig,
         formatCompressionMeta,
         buildNamedComboLookup,
+        formatCompressionAnnotation,
       } = await import("../services/compression/strategySelector.ts");
       const { trackCompressionStats } = await import("../services/compression/stats.ts");
       let config: CompressionConfig = compressionSettings ?? {
@@ -1216,14 +1228,12 @@ export async function handleChatCore({
         // #3890: in a caching context, never compress the system prompt (cacheable prefix)
         // even if the operator disabled preserveSystemPrompt — honors the cache-aware flag
         // that selectCompressionStrategy can only partially apply via the mode string.
-        const compressionConfig = resolveCacheAwareConfig(config, compressionInputBody, {
-          provider,
-          targetFormat,
-          model: effectiveModel,
-        });
+        const cacheCtx = { provider, targetFormat, model: effectiveModel };
+        const compressionConfig = resolveCacheAwareConfig(config, compressionInputBody, cacheCtx);
         const result = await applyCompressionAsync(compressionInputBody, mode, {
           model: effectiveModel,
           config: compressionConfig,
+          cachingContext: cacheCtx,
           principalId: apiKeyInfo?.id ? String(apiKeyInfo.id) : undefined,
           // F3.3: stream per-engine progress live (best-effort) before compression.completed.
           onEngineStep: (s) => {
@@ -1250,6 +1260,10 @@ export async function handleChatCore({
           },
         });
         if (result.stats) {
+          const annotation = formatCompressionAnnotation(result.stats);
+          if (annotation) {
+            compressionResponseMeta = `${compressionResponseMeta}; ${annotation}`;
+          }
           if (result.compressed) {
             body = result.body as typeof body;
             estimatedTokens = result.stats.compressedTokens;
@@ -1310,6 +1324,28 @@ export async function handleChatCore({
               cavemanOutputModeIntensity,
               log,
             });
+          } else {
+            // Compression was attempted (mode active, engines ran) but produced no
+            // recordable saving — e.g. a Stacked RTK→Caveman pipeline on already-compact
+            // context. Record a skip row so analytics can distinguish "ran but saved
+            // nothing" from "never ran" instead of dropping it silently (#4268).
+            compressionAnalyticsRecorded = true;
+            compressionAnalyticsWritePromise = writeCompressionSkip(
+              {
+                stats: result.stats,
+                provider,
+                effectiveModel,
+                effectiveServiceTier,
+                comboName,
+                mode,
+                compressionComboId: config.compressionComboId,
+                skillRequestId,
+                cavemanOutputModeApplied,
+                cavemanOutputModeIntensity,
+                log,
+              },
+              "no_savings"
+            );
           }
 
           if (result.compressed) {
@@ -2497,9 +2533,8 @@ export async function handleChatCore({
                   response: new Response(clientBody, {
                     status: res.response.status,
                     statusText: res.response.statusText,
-                    headers: res.response.headers,
+                    headers: new Headers(normalizeHeaders(res.response.headers)),
                   }),
-                  headers: res.response.headers,
                 };
               }
 
@@ -2536,9 +2571,9 @@ export async function handleChatCore({
 
         const statusText = rawResult.response.statusText;
         const headersObj = normalizeHeaders(rawResult.response.headers);
-        const headers = new Headers(headersObj);
-        stripStaleForwardingHeaders(headers);
-        const contentType = (headers.get("content-type") || "").toLowerCase();
+        const responseHeaders = new Headers(headersObj);
+        stripStaleForwardingHeaders(responseHeaders);
+        const contentType = (responseHeaders.get("content-type") || "").toLowerCase();
         const payload = await readNonStreamingResponseBody(
           rawResult.response,
           contentType,
@@ -2549,14 +2584,13 @@ export async function handleChatCore({
 
         return {
           ...rawResult,
-          response: new Response(payload, { status, statusText, headers }),
-          headers,
+          response: new Response(payload, { status, statusText, headers: responseHeaders }),
           _dedupSnapshot: {
             status,
             statusText,
             headers: (() => {
               const arr: [string, string][] = [];
-              headers.forEach((v, k) => arr.push([k, v]));
+              responseHeaders.forEach((v, k) => arr.push([k, v]));
               return arr;
             })(),
             payload,
@@ -2870,8 +2904,25 @@ export async function handleChatCore({
         }
       : undefined;
 
+    // #4038: build a compare-and-swap reread so getAccessToken can skip the persist if a
+    // concurrent writer (sibling request / HealthCheck / replica) already rotated this
+    // connection's refresh_token past the one we presented — overwriting would revert it
+    // and revoke the token family. No connectionId ⇒ no guard (behavior unchanged).
+    const casConnectionId =
+      typeof credentials?.connectionId === "string" ? credentials.connectionId.trim() : "";
+    const casReread = casConnectionId
+      ? async () => {
+          const latest = await getProviderConnectionById(casConnectionId);
+          return typeof latest?.refreshToken === "string" ? latest.refreshToken : null;
+        }
+      : null;
+
     const newCredentials = (await refreshWithRetry(
-      () => runWithOnPersist(persistFn, () => executor.refreshCredentials(credentials, log)),
+      () =>
+        runWithCasGuard(
+          casReread ? { expectedRefreshToken: attemptedRefreshToken, reread: casReread } : null,
+          () => runWithOnPersist(persistFn, () => executor.refreshCredentials(credentials, log))
+        ),
       3,
       log,
       provider // Explicitly pass the provider to avoid universally tripping the "unknown" circuit breaker
@@ -3613,7 +3664,10 @@ export async function handleChatCore({
       // that non-standard field. Reasoning replay cache is captured above this
       // sanitize step, so the cache feature is unaffected.
       const stripReasoning = isStripReasoningRequested(clientRawRequest?.headers ?? null);
-      translatedResponse = sanitizeOpenAIResponse(translatedResponse, { stripReasoning });
+      translatedResponse = sanitizeOpenAIResponse(translatedResponse, {
+        stripReasoning,
+        parseTextualReasoningTags: shouldParseTextualReasoningTags(provider, model),
+      });
     }
 
     applyClientUsageBuffer(translatedResponse, body, clientResponseFormat);

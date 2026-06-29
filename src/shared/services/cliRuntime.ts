@@ -182,17 +182,6 @@ const CLI_TOOLS: Record<string, any> = {
       env: ".qwen/.env",
     },
   },
-  "gemini-cli": {
-    defaultCommand: "gemini",
-    envBinKey: "CLI_GEMINI_BIN",
-    requiresBinary: true,
-    healthcheckTimeoutMs: 8000,
-    paths: {
-      auth: ".gemini/oauth_creds.json",
-      accounts: ".gemini/google_accounts.json",
-      settings: ".gemini/settings.json",
-    },
-  },
   // ── Plan 14 — new "custom" configType tools ───────────────────────────────
   forge: {
     defaultCommand: "forge",

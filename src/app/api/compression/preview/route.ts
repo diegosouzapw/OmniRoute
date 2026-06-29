@@ -10,7 +10,10 @@ import type {
   CompressionConfig,
   CompressionMode,
 } from "@omniroute/open-sse/services/compression/types";
-import { buildCompressionPreviewDiff } from "@omniroute/open-sse/services/compression/diffHelper";
+import {
+  buildCompressionPreviewDiff,
+  type HeatmapMode,
+} from "@omniroute/open-sse/services/compression/diffHelper";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { countTextTokens } from "@/shared/utils/tiktokenCounter";
 import { ensureEngineBreakdown } from "@omniroute/open-sse/services/compression/engineBreakdown";
@@ -40,13 +43,42 @@ export const PreviewRequestSchema = z.object({
   // / checkDiffHunks on FidelityGateConfig) use their conservative defaults until the studio gets
   // a config panel for them.
   fidelityGate: z.object({ enabled: z.boolean() }).optional(),
+  // Playground risk-gate toggle → masks high-risk spans (secrets/keys) before compression and
+  // restores them verbatim after, so they pass through byte-identical. Reported via
+  // result.stats.riskGate (spansProtected + per-category counts).
+  riskGate: z.object({ enabled: z.boolean() }).optional(),
   // Playground fuzzy near-duplicate toggle → injects `{ fuzzy: { enabled: true } }` into the
   // session-dedup step config (see buildStep).
   fuzzyDedup: z.object({ enabled: z.boolean() }).optional(),
+  // Playground QuantumLock toggle. The studio is a dry-run, so when enabled we force a caching
+  // context (provider: "anthropic") so the operator can SEE what would be stabilized; real
+  // cache-hit gains only show in production provider telemetry.
+  quantumLock: z.object({ enabled: z.boolean() }).optional(),
+  // Saliency heatmap mode. When set, the response includes a per-token heatmap.
+  // "ultra" uses scoreToken (0–1); "universal" uses kept/removed from the diff.
+  // Omit to skip heatmap computation (normal preview path — no extra cost).
+  heatmap: z.enum(["ultra", "universal"]).optional(),
 });
 
 function countTokens(text: string): number {
   return countTextTokens(text);
+}
+
+function riskGateStatsOf(result: { stats?: { riskGate?: unknown } }): unknown {
+  return result.stats?.riskGate ?? null;
+}
+
+function quantumLockStatsOf(result: { stats?: { quantumLock?: unknown } | null }): unknown {
+  return result.stats?.quantumLock ?? null;
+}
+
+function quantumExtras(quantumLock?: { enabled: boolean }) {
+  return quantumLock?.enabled
+    ? {
+        configPatch: { quantumLock: { enabled: true } },
+        applyOpts: { cachingContext: { provider: "anthropic" } },
+      }
+    : { configPatch: {}, applyOpts: {} };
 }
 
 function messagesToText(messages: Array<{ role: string; content: unknown }>): string {
@@ -87,29 +119,48 @@ async function dispatchCompression(
     config?: unknown;
     fidelityGate?: { enabled: boolean };
     fuzzyDedup?: { enabled: boolean };
+    riskGate?: { enabled: boolean };
+    quantumLock?: { enabled: boolean };
   }
 ) {
+  // resolveRiskGate reads `options.riskGate ?? options.config.riskGate`. applyCompressionAsync
+  // does not surface a top-level `riskGate` option, so thread it through the synthesized config
+  // (CompressionConfig.riskGate) — uniform across all three branches and type-safe.
+  // QuantumLock uses the same pattern: when enabled the studio forces cachingContext so the dry-run
+  // badge shows what WOULD be stabilized in production (real caching gains show in telemetry only).
   if (opts.engineId) {
+    const q = quantumExtras(opts.quantumLock);
     return applyCompressionAsync(requestBody, "stacked", {
       config: {
         stackedPipeline: [buildStep(opts.engineId, opts.fuzzyDedup)],
         ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
+        ...(opts.riskGate ? { riskGate: opts.riskGate } : {}),
+        ...q.configPatch,
       } as CompressionConfig,
+      ...q.applyOpts,
     });
   }
   if (opts.pipeline) {
+    const q = quantumExtras(opts.quantumLock);
     return applyCompressionAsync(requestBody, "stacked", {
       config: {
         stackedPipeline: opts.pipeline.map((engine) => buildStep(engine, opts.fuzzyDedup)),
         ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
+        ...(opts.riskGate ? { riskGate: opts.riskGate } : {}),
+        ...q.configPatch,
       } as CompressionConfig,
+      ...q.applyOpts,
     });
   }
+  const q = quantumExtras(opts.quantumLock);
   return applyCompression(requestBody, opts.effectiveMode, {
     config: {
       ...(opts.config as CompressionConfig | undefined),
       ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
+      ...(opts.riskGate ? { riskGate: opts.riskGate } : {}),
+      ...q.configPatch,
     } as CompressionConfig | undefined,
+    ...q.applyOpts,
   });
 }
 
@@ -132,7 +183,8 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages, mode, engineId, pipeline, config, fidelityGate, fuzzyDedup } = parsed.data;
+  const { messages, mode, engineId, pipeline, config, fidelityGate, fuzzyDedup, riskGate, quantumLock, heatmap: heatmapMode } =
+    parsed.data;
   const effectiveMode: CompressionMode =
     engineId || pipeline ? "stacked" : (mode as CompressionMode);
   const originalText = messagesToText(messages);
@@ -148,6 +200,8 @@ export async function POST(req: Request) {
       config,
       fidelityGate,
       fuzzyDedup,
+      riskGate,
+      quantumLock,
     });
     const durationMs = Date.now() - start;
 
@@ -161,7 +215,13 @@ export async function POST(req: Request) {
     const savingsPct = originalTokens > 0 ? Math.round((tokensSaved / originalTokens) * 100) : 0;
     const techniquesUsed: string[] = result.stats?.techniquesUsed ?? [];
     const engineBreakdown = result.stats ? ensureEngineBreakdown(result.stats) : [];
-    const diff = buildCompressionPreviewDiff(originalText, compressedText, result.stats);
+    const diff = buildCompressionPreviewDiff(
+      originalText,
+      compressedText,
+      result.stats,
+      {},
+      heatmapMode as HeatmapMode | undefined
+    );
 
     const encoderComparison = headroomParticipates(engineId, pipeline, effectiveMode)
       ? summarizeEncoderCandidates(messages, DEFAULT_MIN_ROWS, countTextTokens)
@@ -177,6 +237,8 @@ export async function POST(req: Request) {
       savingsPct,
       techniquesUsed,
       engineBreakdown,
+      riskGate: riskGateStatsOf(result),
+      quantumLock: quantumLockStatsOf(result),
       durationMs,
       mode: effectiveMode,
       intensity: null,
@@ -195,6 +257,7 @@ export async function POST(req: Request) {
       validationWarnings: diff.validationWarnings,
       validationErrors: diff.validationErrors,
       fallbackApplied: diff.fallbackApplied,
+      ...(diff.heatmap ? { heatmap: diff.heatmap } : {}),
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);

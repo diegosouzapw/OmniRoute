@@ -1,7 +1,7 @@
 ---
 title: "Playground Studio"
-version: 3.8.7
-lastUpdated: 2026-05-30
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Playground Studio
@@ -82,14 +82,14 @@ Tools/function calling and structured output UI:
 
 `StudioConfigPane.tsx` — always visible, collapsible.
 
-| Field | Component | Notes |
-|-------|-----------|-------|
-| Endpoint | `<select>` | 10 options matching `PlaygroundEndpoint` |
-| Model | `<input>` | free text, e.g. `openai/gpt-4o` |
-| System prompt | `<textarea>` | fed into all tabs |
-| Parameters | `ParamSliders` | temperature, max_tokens, top_p, presence/frequency penalty, seed, stop |
-| Presets | `PresetPicker` | load/save named config snapshots (persisted in DB) |
-| Improve prompt | `ImprovePromptButton` | opens quota-warning modal, calls `/api/playground/improve-prompt` |
+| Field          | Component             | Notes                                                                  |
+| -------------- | --------------------- | ---------------------------------------------------------------------- |
+| Endpoint       | `<select>`            | 10 options matching `PlaygroundEndpoint`                               |
+| Model          | `<input>`             | free text, e.g. `openai/gpt-4o`                                        |
+| System prompt  | `<textarea>`          | fed into all tabs                                                      |
+| Parameters     | `ParamSliders`        | temperature, max_tokens, top_p, presence/frequency penalty, seed, stop |
+| Presets        | `PresetPicker`        | load/save named config snapshots (persisted in DB)                     |
+| Improve prompt | `ImprovePromptButton` | opens quota-warning modal, calls `/api/playground/improve-prompt`      |
 
 State is lifted to `PlaygroundStudio.tsx` and passed down to all tabs. Switching tabs
 preserves config state.
@@ -149,14 +149,14 @@ from the current `PlaygroundState`. API key placeholder is always `$OMNIROUTE_AP
 
 ## Backend Routes
 
-| Method | Path | Handler |
-|--------|------|---------|
-| `POST` | `/api/playground/improve-prompt` | Zod-validates `ImprovePromptRequestSchema`; calls `/v1/chat/completions` with meta-prompt |
-| `GET` | `/api/playground/presets` | Returns `{ presets: PlaygroundPresetListItem[] }` |
-| `POST` | `/api/playground/presets` | Creates preset; validates `PlaygroundPresetCreateSchema` |
-| `GET` | `/api/playground/presets/:id` | Returns one preset or 404 |
-| `PUT` | `/api/playground/presets/:id` | Partial update |
-| `DELETE` | `/api/playground/presets/:id` | 204 |
+| Method   | Path                             | Handler                                                                                   |
+| -------- | -------------------------------- | ----------------------------------------------------------------------------------------- |
+| `POST`   | `/api/playground/improve-prompt` | Zod-validates `ImprovePromptRequestSchema`; calls `/v1/chat/completions` with meta-prompt |
+| `GET`    | `/api/playground/presets`        | Returns `{ presets: PlaygroundPresetListItem[] }`                                         |
+| `POST`   | `/api/playground/presets`        | Creates preset; validates `PlaygroundPresetCreateSchema`                                  |
+| `GET`    | `/api/playground/presets/:id`    | Returns one preset or 404                                                                 |
+| `PUT`    | `/api/playground/presets/:id`    | Partial update                                                                            |
+| `DELETE` | `/api/playground/presets/:id`    | 204                                                                                       |
 
 Auth: optional (`REQUIRE_API_KEY`). Errors via `buildErrorBody()` (Hard Rule #12).
 
@@ -164,42 +164,42 @@ Auth: optional (`REQUIRE_API_KEY`). Errors via `buildErrorBody()` (Hard Rule #12
 
 ## Key Files
 
-| Path | Purpose |
-|------|---------|
-| `src/app/(dashboard)/dashboard/playground/PlaygroundStudio.tsx` | Shell component, tab orchestrator |
-| `src/app/(dashboard)/dashboard/playground/components/StudioTopBar.tsx` | Tabs + counter + export button |
-| `src/app/(dashboard)/dashboard/playground/components/StudioConfigPane.tsx` | Shared config panel |
-| `src/app/(dashboard)/dashboard/playground/components/tabs/ChatTab.tsx` | Chat workbench |
-| `src/app/(dashboard)/dashboard/playground/components/tabs/CompareTab.tsx` | Multi-model compare |
-| `src/app/(dashboard)/dashboard/playground/components/tabs/ApiTab.tsx` | Monaco editor (preserved) |
-| `src/app/(dashboard)/dashboard/playground/components/tabs/BuildTab.tsx` | Tools + structured output |
-| `src/app/(dashboard)/dashboard/playground/components/ExportCodeModal.tsx` | Code export modal |
-| `src/app/(dashboard)/dashboard/playground/components/CompareColumn.tsx` | Single compare column |
-| `src/app/(dashboard)/dashboard/playground/components/ProviderMetrics.tsx` | TTFT/TPS display |
-| `src/app/(dashboard)/dashboard/playground/hooks/useStreamMetrics.ts` | Client-side metric hook |
-| `src/app/(dashboard)/dashboard/playground/hooks/usePresets.ts` | Presets CRUD hook |
-| `src/app/(dashboard)/dashboard/playground/hooks/useImprovePrompt.ts` | Improve-prompt hook |
-| `src/lib/playground/codeExport.ts` | curl/Python/TS generator (shared with Search Tools) |
-| `src/lib/playground/promptImprover.ts` | Meta-prompt builder |
-| `src/lib/playground/streamMetrics.ts` | Pure metrics computation |
-| `src/lib/db/playgroundPresets.ts` | DB module (CRUD) |
-| `src/app/api/playground/improve-prompt/route.ts` | Improve-prompt REST route |
-| `src/app/api/playground/presets/route.ts` | Presets list + create |
-| `src/app/api/playground/presets/[id]/route.ts` | Presets get/update/delete |
-| `src/lib/db/migrations/084_playground_presets.sql` | DB migration |
+| Path                                                                       | Purpose                                             |
+| -------------------------------------------------------------------------- | --------------------------------------------------- |
+| `src/app/(dashboard)/dashboard/playground/PlaygroundStudio.tsx`            | Shell component, tab orchestrator                   |
+| `src/app/(dashboard)/dashboard/playground/components/StudioTopBar.tsx`     | Tabs + counter + export button                      |
+| `src/app/(dashboard)/dashboard/playground/components/StudioConfigPane.tsx` | Shared config panel                                 |
+| `src/app/(dashboard)/dashboard/playground/components/tabs/ChatTab.tsx`     | Chat workbench                                      |
+| `src/app/(dashboard)/dashboard/playground/components/tabs/CompareTab.tsx`  | Multi-model compare                                 |
+| `src/app/(dashboard)/dashboard/playground/components/tabs/ApiTab.tsx`      | Monaco editor (preserved)                           |
+| `src/app/(dashboard)/dashboard/playground/components/tabs/BuildTab.tsx`    | Tools + structured output                           |
+| `src/app/(dashboard)/dashboard/playground/components/ExportCodeModal.tsx`  | Code export modal                                   |
+| `src/app/(dashboard)/dashboard/playground/components/CompareColumn.tsx`    | Single compare column                               |
+| `src/app/(dashboard)/dashboard/playground/components/ProviderMetrics.tsx`  | TTFT/TPS display                                    |
+| `src/app/(dashboard)/dashboard/playground/hooks/useStreamMetrics.ts`       | Client-side metric hook                             |
+| `src/app/(dashboard)/dashboard/playground/hooks/usePresets.ts`             | Presets CRUD hook                                   |
+| `src/app/(dashboard)/dashboard/playground/hooks/useImprovePrompt.ts`       | Improve-prompt hook                                 |
+| `src/lib/playground/codeExport.ts`                                         | curl/Python/TS generator (shared with Search Tools) |
+| `src/lib/playground/promptImprover.ts`                                     | Meta-prompt builder                                 |
+| `src/lib/playground/streamMetrics.ts`                                      | Pure metrics computation                            |
+| `src/lib/db/playgroundPresets.ts`                                          | DB module (CRUD)                                    |
+| `src/app/api/playground/improve-prompt/route.ts`                           | Improve-prompt REST route                           |
+| `src/app/api/playground/presets/route.ts`                                  | Presets list + create                               |
+| `src/app/api/playground/presets/[id]/route.ts`                             | Presets get/update/delete                           |
+| `src/lib/db/migrations/084_playground_presets.sql`                         | DB migration                                        |
 
 ---
 
 ## Troubleshooting
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| Monaco editor not rendering in API tab | SSR loaded Monaco | Verify `ApiTab` uses `dynamic(..., { ssr: false })` |
-| Compare streams fire sequentially | Wrong `Promise.all` usage | All stream starts must be dispatched in one `Promise.all` call |
-| Metrics show `null` TTFT | First chunk handler not wired | Check `useStreamMetrics.onFirstChunk()` is called in the SSE reader loop |
-| Preset not persisting | DB migration not run | Run `npm run db:migrate` or restart the server (migration auto-runs on startup) |
-| Improve prompt returns 502 | Model not set in Config | User must enter a model name in the Config pane before improving |
-| Export code shows `MISSING_API_KEY` | Placeholder not inserted | `codeExport.ts` always uses `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` |
+| Symptom                                | Cause                         | Fix                                                                             |
+| -------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------- |
+| Monaco editor not rendering in API tab | SSR loaded Monaco             | Verify `ApiTab` uses `dynamic(..., { ssr: false })`                             |
+| Compare streams fire sequentially      | Wrong `Promise.all` usage     | All stream starts must be dispatched in one `Promise.all` call                  |
+| Metrics show `null` TTFT               | First chunk handler not wired | Check `useStreamMetrics.onFirstChunk()` is called in the SSE reader loop        |
+| Preset not persisting                  | DB migration not run          | Run `npm run db:migrate` or restart the server (migration auto-runs on startup) |
+| Improve prompt returns 502             | Model not set in Config       | User must enter a model name in the Config pane before improving                |
+| Export code shows `MISSING_API_KEY`    | Placeholder not inserted      | `codeExport.ts` always uses `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`        |
 
 ---
 

@@ -1,10 +1,24 @@
 import type { CompressionStats } from "./types.ts";
 import { extractPreservedBlocks } from "./preservation.ts";
 import { validateCompression } from "./validation.ts";
+import { scoreToken } from "./ultraHeuristic.ts";
 
 export interface CompressionDiffSegment {
   type: "same" | "removed" | "added";
   text: string;
+}
+
+export type HeatmapMode = "ultra" | "universal";
+
+export interface HeatmapToken {
+  text: string;
+  score: number;
+  kept: boolean;
+}
+
+export interface CompressionHeatmap {
+  mode: HeatmapMode;
+  tokens: HeatmapToken[];
 }
 
 export interface CompressionPreviewDiff {
@@ -14,6 +28,7 @@ export interface CompressionPreviewDiff {
   validationWarnings: string[];
   validationErrors: string[];
   fallbackApplied: boolean;
+  heatmap?: CompressionHeatmap;
 }
 
 export interface CompressionPreviewDiffOptions {
@@ -87,11 +102,80 @@ export function buildCompressionDiff(
   return segments;
 }
 
+/**
+ * Walk original-side diff segments (same + removed; skip added) to build a
+ * Set of token indices that survived into the compressed output.
+ */
+function keptIndicesFromSegments(segments: CompressionDiffSegment[]): Set<number> {
+  const keptSet = new Set<number>();
+  let cursor = 0;
+  for (const seg of segments) {
+    if (seg.type === "added") continue;
+    const segLen = tokenize(seg.text).length;
+    if (seg.type === "same") {
+      for (let k = 0; k < segLen; k++) keptSet.add(cursor + k);
+    }
+    cursor += segLen;
+  }
+  return keptSet;
+}
+
+/**
+ * Walk original-side diff segments to build [lo, hi] index ranges for removed spans.
+ */
+function removedRangesFromSegments(segments: CompressionDiffSegment[]): Array<[number, number]> {
+  const ranges: Array<[number, number]> = [];
+  let cursor = 0;
+  for (const seg of segments) {
+    if (seg.type === "added") continue;
+    const segLen = tokenize(seg.text).length;
+    if (seg.type === "removed") ranges.push([cursor, cursor + segLen - 1]);
+    cursor += segLen;
+  }
+  return ranges;
+}
+
+/**
+ * Build a per-token saliency heatmap for the original text.
+ *
+ * ultra: score each token using scoreToken (0–1); kept = token not in a removed-only diff segment.
+ * universal: score is binary (1 = kept, 0 = removed); kept derived from diff segments.
+ */
+function buildHeatmap(
+  mode: HeatmapMode,
+  original: string,
+  segments: CompressionDiffSegment[]
+): CompressionHeatmap {
+  const rawTokens = tokenize(original);
+
+  if (mode === "universal") {
+    const keptSet = keptIndicesFromSegments(segments);
+    return {
+      mode,
+      tokens: rawTokens.map((text, idx) => {
+        const kept = keptSet.has(idx);
+        return { text, score: kept ? 1 : 0, kept };
+      }),
+    };
+  }
+
+  // ultra mode: use scoreToken; kept = not in a purely removed segment position
+  const removedRanges = removedRangesFromSegments(segments);
+  return {
+    mode,
+    tokens: rawTokens.map((text, idx) => {
+      const removed = removedRanges.some(([lo, hi]) => idx >= lo && idx <= hi);
+      return { text, score: scoreToken(text), kept: !removed };
+    }),
+  };
+}
+
 export function buildCompressionPreviewDiff(
   original: string,
   compressed: string,
   stats: CompressionStats | null | undefined,
-  options: CompressionPreviewDiffOptions = {}
+  options: CompressionPreviewDiffOptions = {},
+  heatmapMode?: HeatmapMode
 ): CompressionPreviewDiff {
   const validation = validateCompression(original, compressed);
   const preserved = extractPreservedBlocks(original).blocks.map((block) => ({
@@ -99,11 +183,12 @@ export function buildCompressionPreviewDiff(
     preview: block.content.replace(/\s+/g, " ").slice(0, 120),
   }));
   const diffSkipWarning = getDiffSkipWarning(original, compressed, options);
+  const segments: CompressionDiffSegment[] = diffSkipWarning
+    ? [{ type: "same", text: "[diff omitted: input too large]" }]
+    : buildCompressionDiff(original, compressed);
 
-  return {
-    segments: diffSkipWarning
-      ? [{ type: "same", text: "[diff omitted: input too large]" }]
-      : buildCompressionDiff(original, compressed),
+  const result: CompressionPreviewDiff = {
+    segments,
     preservedBlocks: preserved,
     ruleRemovals: stats?.rulesApplied ?? [],
     validationWarnings: [
@@ -114,4 +199,10 @@ export function buildCompressionPreviewDiff(
     validationErrors: [...(stats?.validationErrors ?? []), ...validation.errors],
     fallbackApplied: Boolean(stats?.fallbackApplied || validation.fallbackApplied),
   };
+
+  if (heatmapMode) {
+    result.heatmap = buildHeatmap(heatmapMode, original, segments);
+  }
+
+  return result;
 }

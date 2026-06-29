@@ -17,7 +17,6 @@ import {
   recordProviderFailure,
   selectLockoutCooldownMs,
 } from "./accountFallback.ts";
-import { RateLimitReason } from "../config/constants.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import {
   recordComboIntent,
@@ -2345,8 +2344,7 @@ export async function handleComboChat({
             fallbackResult.shouldFallback &&
             !isContextOverflow400(errorText) &&
             !isParamValidation400(errorText) &&
-            (fallbackResult.reason === RateLimitReason.MODEL_CAPACITY ||
-              errorText.toLowerCase().includes("context") ||
+            (errorText.toLowerCase().includes("context") ||
               errorText.toLowerCase().includes("prompt") ||
               errorText.toLowerCase().includes("token") ||
               errorText.toLowerCase().includes("malformed") ||
@@ -2849,6 +2847,23 @@ async function handleRoundRobinCombo({
     rrCounters.set(combo.name, counter + 1);
   }
 
+  // #3825: per-conversation session stickiness for round-robin. weighted/priority honor a
+  // sticky connection via applySessionStickiness, but this RR handler returns before that
+  // call — so sessionless RR combos rotated every turn, busting the upstream prompt-cache.
+  // Reuse the SAME mechanism: start the rotation at the conversation's sticky connection
+  // (the loop still falls through to the other targets on failure → failover preserved).
+  const _rrSessionSticky = await applySessionStickiness(
+    filteredTargets,
+    body?.messages as Array<{ role?: string; content?: unknown }>
+  );
+  let rrStartIndex = startIndex;
+  if (_rrSessionSticky.stuck) {
+    const stickyIdx = filteredTargets.findIndex(
+      (t) => t.connectionId === _rrSessionSticky.targets[0]?.connectionId
+    );
+    if (stickyIdx >= 0) rrStartIndex = stickyIdx;
+  }
+
   const clientRequestedStream = body?.stream === true;
   const startTime = Date.now();
   let lastError: string | null = null;
@@ -2867,7 +2882,7 @@ async function handleRoundRobinCombo({
 
   // Try each model starting from the round-robin target
   for (let offset = 0; offset < modelCount; offset++) {
-    const modelIndex = (startIndex + offset) % modelCount;
+    const modelIndex = (rrStartIndex + offset) % modelCount;
     const target = filteredTargets[modelIndex];
     const modelStr = target.modelStr;
     const provider = target.provider;
@@ -3057,6 +3072,12 @@ async function handleRoundRobinCombo({
 
           if (stickyRoundRobinEnabled) {
             recordStickyRoundRobinSuccess(combo.name, target, stickyLimit, filteredTargets);
+          }
+
+          // #3825: (re)record the sticky binding so the next turn re-pins (prompt-cache).
+          if (_rrSessionSticky.messageHash) {
+            const stickyConn = effectiveConnectionId || target.connectionId;
+            if (stickyConn) recordStickyBinding(_rrSessionSticky.messageHash, stickyConn);
           }
 
           if (provider) {

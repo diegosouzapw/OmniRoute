@@ -328,18 +328,6 @@ export default function ConnectionsHeaderToolbar({
                       : "Import auth"}
                   </Button>
                 )}
-                {providerId === "gemini-cli" && (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    icon="upload_file"
-                    onClick={() => gateConnectionFlow(onOpenImportGemini)}
-                  >
-                    {typeof (t as any).has === "function" && (t as any).has("importGeminiAuth")
-                      ? t("importGeminiAuth")
-                      : "Import auth"}
-                  </Button>
-                )}
                 {providerId === "grok-cli" && (
                   <Button
                     size="sm"

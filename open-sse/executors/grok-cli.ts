@@ -220,9 +220,9 @@ export class GrokCliExecutor extends BaseExecutor {
     }
 
     headers["Accept"] = stream ? "text/event-stream" : "application/json";
-    headers["x-grok-client-version"] = "0.2.64";
+    headers["x-grok-client-version"] = "0.2.72";
     headers["x-grok-client-identifier"] = "grok_cli_rs";
-    headers["User-Agent"] = "grok-cli/0.2.64 (Windows 10.0.26200; x64)";
+    headers["User-Agent"] = "grok-cli/0.2.72 (Windows 10.0.26200; x64)";
 
     return headers;
   }
@@ -239,6 +239,15 @@ export class GrokCliExecutor extends BaseExecutor {
       transformed.model = model || "grok-composer-2.5-fast";
     }
     transformed.stream = !!stream;
+
+    // Grok Build rejects unsupported parameters with 400.
+    const UNSUPPORTED = ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"];
+    for (const param of UNSUPPORTED) {
+      if (param in transformed) {
+        delete transformed[param];
+      }
+    }
+
     return transformed;
   }
 }

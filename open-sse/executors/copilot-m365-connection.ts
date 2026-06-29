@@ -24,10 +24,61 @@ export const M365_INDIVIDUAL_DEFAULTS = {
   scenario: "OfficeWebPaidConsumerCopilot",
 } as const;
 
+export const M365_DEFAULT_VARIANTS = [
+  "EnableMcpServerWidgets",
+  "feature.EnableMcpServerWidgets",
+  "feature.EnableLuForChatCIQ",
+  "feature.enableChatCIQPlugin",
+  "EnableRequestPlugins",
+  "feature.EnableSensitivityLabels",
+  "EnableUnsupportedUrlDetector",
+  "feature.IsCustomEngineCopilotEnabled",
+  "feature.bizchatfluxv3",
+  "feature.enablechatpages",
+  "feature.enableCodeCanvas",
+  "feature.turnOnDARecommendation",
+  "feature.IsStreamingModeInChatRequestEnabled",
+  "IncludeSourceAttributionsConcise",
+  "SkipPublishEmptyMessage",
+  "feature.EnableDeduplicatingSourceAttributions",
+  "Enable3PActionProgressMessages",
+  "feature.enableClientWebRtc",
+  "feature.EnableMeetingRecapOfSeriesMeetingWithCiq",
+  "feature.cwcfluxv3fe",
+  "feature.cwcfluxv3fem",
+  "feature.EnableReferencesListCompleteSignal",
+  "feature.StorageMessageSplitDisabled",
+  "feature.EnableCuaTakeControlApi",
+  "SingletonEnvOn",
+  "EnableComposeWidget",
+  "feature.cwcallowedos",
+  "feature.EnableMergingPureDeltas",
+  "feature.disabledisallowedmsgs",
+  "feature.enableCitationsForSynthesisData",
+  "feature.EnableConversationShareApis",
+  "feature.enableGenerateGraphicArtOptionsSet",
+  "cdximagen",
+  "feature.EnableUpdatedUXForConfirmationDialog",
+  "feature.EnableContentApiandDocTypeHtmlInRichAnswers",
+  "cdxgrounding_api_v2_rich_web_answers_reference_bottom_force",
+  "cdxenablerenderforisocomp",
+  "feature.EnableClientFileURLSupportForOfficeWebPaidCopilot",
+  "feature.EnableDesignEditorImageGrounding",
+  "feature.EnableDesignerEditor",
+  "feature.EnableSkipRehydrationForSpeCIdImages",
+  "feature.EnablePersonalizationForMSA",
+  "agt_bizchat_enableRichResponses",
+  "feature.EnableBase64DataInMessageAnnotations",
+  "feature.EnableSkipEmittingMessageOnFlush",
+  "feature.EnableRemoveEmptySourceAttributions",
+  "feature.EnableRemoveStreamingMode",
+] as const;
+
 export interface M365ConnectionParams {
   host: string;
   chathubPath: string; // "<user-oid>@<tenant-id>"
   accessToken: string;
+  variants?: string;
 }
 
 /** A new 32-hex chat session id (== XRoutingParameterSessionKey == clientrequestid). */
@@ -63,7 +114,8 @@ export function resolveConnectionParams(
     };
   }
   const host = (typeof psd.host === "string" && psd.host) || M365_INDIVIDUAL_DEFAULTS.host;
-  return { host, chathubPath, accessToken };
+  const variants = typeof psd.variants === "string" && psd.variants ? psd.variants : undefined;
+  return { host, chathubPath, accessToken, variants };
 }
 
 /**
@@ -80,6 +132,7 @@ export function buildWsUrl(params: M365ConnectionParams): string {
     "X-SessionId": randomUUID(),
     ConversationId: randomUUID(),
     access_token: params.accessToken,
+    variants: params.variants ?? M365_DEFAULT_VARIANTS.join(","),
     source: M365_INDIVIDUAL_DEFAULTS.source,
     product: M365_INDIVIDUAL_DEFAULTS.product,
     agentHost: M365_INDIVIDUAL_DEFAULTS.agentHost,

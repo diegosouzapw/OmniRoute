@@ -36,7 +36,7 @@ class AmeliaClient {
     const res = await fetch(`${BASE_URL}/Amelia/api/init`, {
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
         Origin: BASE_URL,
         Referer: `${BASE_URL}/Amelia/ui/chipotle/chat?embed=iframe`,
       },
@@ -79,17 +79,13 @@ class AmeliaClient {
     const wsUrl = `wss://amelia.chipotle.com/Amelia/api/sock/${server}/${sessionId}/websocket`;
 
     return new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(
-        () => reject(new Error("WS connect timeout")),
-        15_000,
-      );
+      const timeout = setTimeout(() => reject(new Error("WS connect timeout")), 15_000);
 
       const ws = new WebSocket(wsUrl, {
         headers: {
           Cookie: this.session!.cookieHeader,
           Origin: BASE_URL,
-          "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
         },
       });
 
@@ -118,7 +114,7 @@ class AmeliaClient {
     frame: string,
     resolveConnect: () => void,
     rejectConnect: (e: Error) => void,
-    timeout: NodeJS.Timeout,
+    timeout: NodeJS.Timeout
   ): void {
     if (frame === "o") {
       this.sendSockJS(this.buildStompConnect());
@@ -141,21 +137,14 @@ class AmeliaClient {
     frame: string,
     resolveConnect: () => void,
     rejectConnect: (e: Error) => void,
-    timeout: NodeJS.Timeout,
+    timeout: NodeJS.Timeout
   ): void {
     const command = frame.split("\n")[0].replace(/\r$/, "");
 
     if (command === "CONNECTED") {
       this.stompConnected = true;
-      this.sendSockJS(
-        this.buildStompSubscribe(
-          `/queue/session.${this.session!.userId}`,
-          "sub-0",
-        ),
-      );
-      this.sendSockJS(
-        this.buildStompSubscribe("/user/queue/session", "sub-1"),
-      );
+      this.sendSockJS(this.buildStompSubscribe(`/queue/session.${this.session!.userId}`, "sub-0"));
+      this.sendSockJS(this.buildStompSubscribe("/user/queue/session", "sub-1"));
       clearTimeout(timeout);
       resolveConnect();
       return;
@@ -176,9 +165,7 @@ class AmeliaClient {
     const nullIdx = frame.indexOf("\0");
     let bodyStart = frame.indexOf("\n\n");
     if (bodyStart === -1) bodyStart = frame.indexOf("\r\n\r\n");
-    const headerLen = bodyStart !== -1
-      ? (frame[bodyStart + 2] === "\r" ? 4 : 2)
-      : 0;
+    const headerLen = bodyStart !== -1 ? (frame[bodyStart + 2] === "\r" ? 4 : 2) : 0;
     let body = "";
     if (bodyStart !== -1) {
       body = frame
@@ -343,9 +330,9 @@ export class ChipotleExecutor extends BaseExecutor {
                 type: "abort",
                 code: "ABORTED",
               },
-            }),
+            })
           ),
-          { status: 499, headers: { "Content-Type": "application/json" } },
+          { status: 499, headers: { "Content-Type": "application/json" } }
         ),
         url: this.buildUrl(model, stream),
         headers: this.buildHeaders(input.credentials),
@@ -353,8 +340,8 @@ export class ChipotleExecutor extends BaseExecutor {
       };
     }
 
-    const messages = (body as { messages?: Array<{ role: string; content: string }> })
-      ?.messages ?? [];
+    const messages =
+      (body as { messages?: Array<{ role: string; content: string }> })?.messages ?? [];
     const lastUser = [...messages].reverse().find((m) => m.role === "user");
     const prompt = lastUser?.content ?? "";
 
@@ -430,9 +417,9 @@ export class ChipotleExecutor extends BaseExecutor {
                 type: "upstream_error",
                 code: "CHIPOTLE_ERROR",
               },
-            }),
+            })
           ),
-          { status: 502, headers: { "Content-Type": "application/json" } },
+          { status: 502, headers: { "Content-Type": "application/json" } }
         ),
         url: this.buildUrl(model, stream),
         headers: this.buildHeaders(input.credentials),

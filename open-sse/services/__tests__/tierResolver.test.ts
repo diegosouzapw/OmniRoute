@@ -231,7 +231,6 @@ describe("TierResolver", () => {
         "longcat",
         "cloudflare-ai",
         "qwen",
-        "gemini-cli",
         "nvidia-nim",
         "cerebras",
         "groq",

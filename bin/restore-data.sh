@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # bin/restore-data.sh — restore the OmniRoute SQLite data volume from a snapshot
-# created by bin/snapshot-data.sh. Used by the data-layer incident runbook
-# (docs/INCIDENT_RESPONSE.md §4.4) after stopping writers.
+# created by bin/snapshot-data.sh. Used by the data-layer incident-recovery
+# flow after stopping writers.
 #
 # Safety: takes a pre-restore snapshot of the CURRENT data, refuses to run
 # unattended without --yes, and verifies the snapshot before overwriting.

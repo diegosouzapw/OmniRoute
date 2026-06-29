@@ -198,19 +198,6 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
     ],
     userAgent: getAntigravityUserAgent,
   },
-  "gemini-cli": {
-    headerOrder: [
-      "Host",
-      "Content-Type",
-      "User-Agent",
-      "X-Goog-Api-Client",
-      "Accept",
-      "Accept-Encoding",
-      "Connection",
-      "Authorization",
-    ],
-    bodyFieldOrder: ["model", "project", "user_prompt_id", "request"],
-  },
   qwen: {
     headerOrder: [
       "Host",

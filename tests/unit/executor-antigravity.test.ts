@@ -239,7 +239,7 @@ test("AntigravityExecutor.transformRequest returns a structured error response w
 
 // #2334/#2541: a freshly re-added Antigravity account can have an empty stored projectId
 // even when its Google account already owns a Cloud Code project. transformRequest must
-// auto-discover it via loadCodeAssist (mirroring gemini-cli.ts) instead of hard-failing.
+// auto-discover it via loadCodeAssist instead of hard-failing.
 test("AntigravityExecutor.transformRequest auto-discovers a missing projectId via loadCodeAssist (#2334)", async () => {
   clearAntigravityProjectCache();
   seedAntigravityVersionCache("2026.04.17-test");

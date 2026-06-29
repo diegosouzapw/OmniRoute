@@ -43,7 +43,6 @@ export const FREE_TIER_BUDGETS: Record<string, number> = {
 export const FREE_TIER_TOS: Record<string, TosVerdict> = {
   opencode: "avoid",
   "duckduckgo-web": "avoid",
-  "gemini-cli": "avoid",
   agy: "avoid",
   kiro: "avoid",
   "amazon-q": "avoid",
@@ -83,9 +82,7 @@ function billions(n: number): string {
  * ~1.54B). This per-provider aggregator is retained only for reference; the
  * `FREE_TIER_TOS` map below is still used as the ToS source of truth.
  */
-export function computeFreeTierTotals(
-  opts: { excludeTosAvoid?: boolean } = {}
-): FreeTierTotals {
+export function computeFreeTierTotals(opts: { excludeTosAvoid?: boolean } = {}): FreeTierTotals {
   const byProvider = Object.entries(FREE_TIER_BUDGETS)
     .map(([id, monthlyTokens]) => ({
       id,

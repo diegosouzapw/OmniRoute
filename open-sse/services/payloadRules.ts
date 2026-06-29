@@ -399,7 +399,7 @@ export function resolvePayloadRuleProtocols({
   if (targetFormat === "openai-responses" || targetFormat === "openai-response") {
     protocols.add("openai");
   }
-  if (targetFormat === "gemini-cli" || targetFormat === "antigravity") {
+  if (targetFormat === "antigravity") {
     protocols.add("gemini");
   }
 

@@ -413,7 +413,9 @@ interface ContentChunk {
 // (older builds used names merely containing "markdown"). All converge on the
 // same answer, so we lock onto a single primary usage to avoid double-counting.
 function isAnswerTextUsage(usage: string): boolean {
-  return usage === "ask_text" || /^ask_text_\d+_markdown$/.test(usage) || usage.includes("markdown");
+  return (
+    usage === "ask_text" || /^ask_text_\d+_markdown$/.test(usage) || usage.includes("markdown")
+  );
 }
 
 // Reconstructed state for one answer-text block, built up from diff patches
@@ -721,7 +723,9 @@ function buildStreamingResponse(
           );
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         } finally {
-          try { controller.close(); } catch {}
+          try {
+            controller.close();
+          } catch {}
         }
       },
     },
@@ -800,9 +804,7 @@ export class PerplexityWebExecutor extends BaseExecutor {
 
   async execute({ model, body, stream, credentials, signal, log }: ExecuteInput) {
     const bodyObj = (body || {}) as Record<string, unknown>;
-    const rawMessages = bodyObj.messages as
-      | Array<Record<string, unknown>>
-      | undefined;
+    const rawMessages = bodyObj.messages as Array<Record<string, unknown>> | undefined;
     if (!rawMessages || !Array.isArray(rawMessages) || rawMessages.length === 0) {
       const errResp = new Response(
         JSON.stringify({
@@ -813,7 +815,10 @@ export class PerplexityWebExecutor extends BaseExecutor {
       return { response: errResp, url: PPLX_SSE_ENDPOINT, headers: {}, transformedBody: body };
     }
 
-    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, rawMessages as Array<{ role: string; content: unknown }>);
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(
+      bodyObj,
+      rawMessages as Array<{ role: string; content: unknown }>
+    );
 
     // Resolve thinking mode
     const thinking =
@@ -854,7 +859,14 @@ export class PerplexityWebExecutor extends BaseExecutor {
 
     // Build Perplexity request
     const requestId = crypto.randomUUID();
-    const pplxBody = buildPplxRequestBody(query, parsed.currentMsg, pplxMode, modelPref, followUpUuid, requestId);
+    const pplxBody = buildPplxRequestBody(
+      query,
+      parsed.currentMsg,
+      pplxMode,
+      modelPref,
+      followUpUuid,
+      requestId
+    );
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -989,7 +1001,11 @@ export class PerplexityWebExecutor extends BaseExecutor {
       try {
         const json = JSON.parse(bodyText);
         const rawContent = json?.choices?.[0]?.message?.content || "";
-        const { content, toolCalls, finishReason } = buildToolAwareResult(rawContent, requestedTools, "pplx");
+        const { content, toolCalls, finishReason } = buildToolAwareResult(
+          rawContent,
+          requestedTools,
+          "pplx"
+        );
         if (toolCalls) {
           json.choices[0].message = { role: "assistant", content: null, tool_calls: toolCalls };
           json.choices[0].finish_reason = finishReason;
@@ -997,9 +1013,12 @@ export class PerplexityWebExecutor extends BaseExecutor {
           json.choices[0].message.content = content;
         }
         finalResponse = new Response(JSON.stringify(json), {
-          status: 200, headers: { "Content-Type": "application/json" },
+          status: 200,
+          headers: { "Content-Type": "application/json" },
         });
-      } catch { /* keep original response */ }
+      } catch {
+        /* keep original response */
+      }
     }
 
     return {

@@ -35,22 +35,22 @@ For full test matrix, see `CONTRIBUTING.md` → "Running Tests". For deep archit
 
 ## Project at a Glance
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 231 LLM providers, auto-fallback.
+**OmniRoute** — unified AI proxy/router. One endpoint, 237 LLM providers, auto-fallback.
 
-| Layer         | Location                | Purpose                                                                                                                                |
-| ------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| API Routes    | `src/app/api/v1/`       | Next.js App Router — entry points                                                                                                      |
-| Handlers      | `open-sse/handlers/`    | Request processing (chat, embeddings, etc)                                                                                             |
-| Executors     | `open-sse/executors/`   | Provider-specific HTTP dispatch                                                                                                        |
-| Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                               |
-| Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                       |
-| Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                               |
-| Database      | `src/lib/db/`           | SQLite domain modules (83 files, 97 migrations)                                                                                        |
-| Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                              |
-| MCP Server    | `open-sse/mcp-server/`  | 87 tools (33 base + memory/skill/notion/obsidian/gamification/plugin modules), 3 transports (stdio / SSE / Streamable HTTP), 30 scopes |
-| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                            |
-| Skills        | `src/lib/skills/`       | Extensible skill framework                                                                                                             |
-| Memory        | `src/lib/memory/`       | Persistent conversational memory                                                                                                       |
+| Layer         | Location                | Purpose                                                                                                                                                |
+| ------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| API Routes    | `src/app/api/v1/`       | Next.js App Router — entry points                                                                                                                      |
+| Handlers      | `open-sse/handlers/`    | Request processing (chat, embeddings, etc)                                                                                                             |
+| Executors     | `open-sse/executors/`   | Provider-specific HTTP dispatch                                                                                                                        |
+| Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                                               |
+| Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                                       |
+| Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                                               |
+| Database      | `src/lib/db/`           | SQLite domain modules (94 files, 106 migrations)                                                                                                       |
+| Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                                              |
+| MCP Server    | `open-sse/mcp-server/`  | 94 tools (34 base + memory/skill/agentSkill/pool/notion/obsidian/gamification/plugin modules), 3 transports (stdio / SSE / Streamable HTTP), 30 scopes |
+| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                                            |
+| Skills        | `src/lib/skills/`       | Extensible skill framework                                                                                                                             |
+| Memory        | `src/lib/memory/`       | Persistent conversational memory                                                                                                                       |
 
 Monorepo: `src/` (Next.js 16 app), `open-sse/` (streaming engine workspace), `electron/` (desktop app), `tests/`, `bin/` (CLI entry point).
 
@@ -72,7 +72,7 @@ Client → /v1/chat/completions (Next.js route)
 
 API routes follow a consistent pattern: `Route → CORS preflight → Zod body validation → Optional auth (extractApiKey/isValidApiKey) → API key policy enforcement → Handler delegation (open-sse)`. No global Next.js middleware — interception is route-specific.
 
-**Combo routing** (`open-sse/services/combo.ts`): 17 strategies (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, context-relay, fusion). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks. The `fusion` strategy is the exception: it fans out to a panel of models in parallel, then a judge model synthesizes one final answer (`open-sse/services/fusion.ts`). See `docs/routing/AUTO-COMBO.md` for the 9-factor Auto-Combo scoring + the full strategy table and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
+**Combo routing** (`open-sse/services/combo.ts`): 17 strategies (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, context-relay, fusion). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks. The `fusion` strategy is the exception: it fans out to a panel of models in parallel, then a judge model synthesizes one final answer (`open-sse/services/fusion.ts`). See `docs/routing/AUTO-COMBO.md` for the 12-factor Auto-Combo scoring + the full strategy table and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -327,33 +327,33 @@ connection continue serving other models.
 
 For any non-trivial change, read the matching deep-dive first:
 
-| Area                                          | Doc                                                               |
-| --------------------------------------------- | ----------------------------------------------------------------- |
-| Repo navigation                               | `docs/architecture/REPOSITORY_MAP.md`                             |
-| Architecture                                  | `docs/architecture/ARCHITECTURE.md`                               |
-| Engineering reference                         | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (9-factor scoring, 17 strategies)  | `docs/routing/AUTO-COMBO.md`                                      |
-| Resilience (3 mechanisms)                     | `docs/architecture/RESILIENCE_GUIDE.md`                           |
-| Reasoning replay                              | `docs/routing/REASONING_REPLAY.md`                                |
-| Skills framework                              | `docs/frameworks/SKILLS.md`                                       |
-| Memory system (FTS5 + Qdrant)                 | `docs/frameworks/MEMORY.md`                                       |
-| Cloud agents                                  | `docs/frameworks/CLOUD_AGENT.md`                                  |
-| Guardrails (PII / injection / vision)         | `docs/security/GUARDRAILS.md`                                     |
-| Public upstream credentials (Gemini/etc.)     | `docs/security/PUBLIC_CREDS.md`                                   |
-| Error message sanitization                    | `docs/security/ERROR_SANITIZATION.md`                             |
-| Evals                                         | `docs/frameworks/EVALS.md`                                        |
-| Compliance / audit                            | `docs/security/COMPLIANCE.md`                                     |
-| Webhooks                                      | `docs/frameworks/WEBHOOKS.md`                                     |
-| Authorization pipeline                        | `docs/architecture/AUTHZ_GUIDE.md`                                |
-| Stealth (TLS / fingerprint)                   | `docs/security/STEALTH_GUIDE.md`                                  |
-| Agent protocols (A2A / ACP / Cloud)           | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
-| MCP server                                    | `docs/frameworks/MCP-SERVER.md`                                   |
-| A2A server                                    | `docs/frameworks/A2A-SERVER.md`                                   |
+| Area                                          | Doc                                                     |
+| --------------------------------------------- | ------------------------------------------------------- |
+| Repo navigation                               | `docs/architecture/REPOSITORY_MAP.md`                   |
+| Architecture                                  | `docs/architecture/ARCHITECTURE.md`                     |
+| Engineering reference                         | `docs/architecture/CODEBASE_DOCUMENTATION.md`           |
+| Auto-Combo (12-factor scoring, 17 strategies) | `docs/routing/AUTO-COMBO.md`                            |
+| Resilience (3 mechanisms)                     | `docs/architecture/RESILIENCE_GUIDE.md`                 |
+| Reasoning replay                              | `docs/routing/REASONING_REPLAY.md`                      |
+| Skills framework                              | `docs/frameworks/SKILLS.md`                             |
+| Memory system (FTS5 + Qdrant)                 | `docs/frameworks/MEMORY.md`                             |
+| Cloud agents                                  | `docs/frameworks/CLOUD_AGENT.md`                        |
+| Guardrails (PII / injection / vision)         | `docs/security/GUARDRAILS.md`                           |
+| Public upstream credentials (Gemini/etc.)     | `docs/security/PUBLIC_CREDS.md`                         |
+| Error message sanitization                    | `docs/security/ERROR_SANITIZATION.md`                   |
+| Evals                                         | `docs/frameworks/EVALS.md`                              |
+| Compliance / audit                            | `docs/security/COMPLIANCE.md`                           |
+| Webhooks                                      | `docs/frameworks/WEBHOOKS.md`                           |
+| Authorization pipeline                        | `docs/architecture/AUTHZ_GUIDE.md`                      |
+| Stealth (TLS / fingerprint)                   | `docs/security/STEALTH_GUIDE.md`                        |
+| Agent protocols (A2A / ACP / Cloud)           | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`              |
+| MCP server                                    | `docs/frameworks/MCP-SERVER.md`                         |
+| A2A server                                    | `docs/frameworks/A2A-SERVER.md`                         |
 | API reference + OpenAPI                       | `docs/reference/API_REFERENCE.md` + `docs/openapi.yaml` |
-| Provider catalog (auto-generated)             | `docs/reference/PROVIDER_REFERENCE.md`                            |
-| Release flow                                  | `docs/ops/RELEASE_CHECKLIST.md`                                   |
-| Embedded services                             | `docs/frameworks/EMBEDDED-SERVICES.md`                            |
-| Quality gates (~48 scripts, allowlist policy) | `docs/architecture/QUALITY_GATES.md`                              |
+| Provider catalog (auto-generated)             | `docs/reference/PROVIDER_REFERENCE.md`                  |
+| Release flow                                  | `docs/ops/RELEASE_CHECKLIST.md`                         |
+| Embedded services                             | `docs/frameworks/EMBEDDED-SERVICES.md`                  |
+| Quality gates (~48 scripts, allowlist policy) | `docs/architecture/QUALITY_GATES.md`                    |
 
 ---
 
@@ -387,6 +387,31 @@ Why this matters: fixing bug A while opening bug B is worse than not fixing at a
 **Copilot coverage policy**: When a PR changes production code and coverage is below 60% (statements/lines/functions/branches), do not just report — add or update tests, rerun the coverage gate, then ask for confirmation. Include commands run, changed test files, and final coverage result in the PR report.
 
 ---
+
+## Planning & Research Artifacts (superpowers, deep-research)
+
+`_tasks/` is a **separate, isolated git repository** that is gitignored by the main
+repo (`.gitignore` → `_tasks/`). It is the canonical home for working artifacts —
+plans, specs/designs, research, hand-offs — so they stay **versioned in their own
+repo** instead of polluting the main OmniRoute tree.
+
+**Hard rule — never write superpowers / planning / research output under `docs/` or
+the repo root.** The superpowers skills ship with defaults that point at `docs/…`
+(`writing-plans` → `docs/superpowers/plans/`, `brainstorming` → `docs/superpowers/specs/`).
+Those defaults are **overridden here**. Whenever you invoke superpowers (or any
+plan/spec/research generator) in this project, save to `_tasks/` instead, using the
+same filename convention:
+
+| Artifact (skill)                   | Default (do NOT use)      | Save here instead                                             |
+| ---------------------------------- | ------------------------- | ------------------------------------------------------------- |
+| Plans (`writing-plans`)            | `docs/superpowers/plans/` | `_tasks/superpowers/plans/YYYY-MM-DD-<feature>.md`            |
+| Specs / design (`brainstorming`)   | `docs/superpowers/specs/` | `_tasks/superpowers/specs/YYYY-MM-DD-<topic>-design.md`       |
+| Research (`deep-research`, ad-hoc) | `docs/research/`          | `_tasks/research/…`                                           |
+| Hand-offs (`/handoff`)             | —                         | `_tasks/hands-off/<YYYY-MM-DD>_<branch>_v<versão>_sess-<id>/` |
+
+When a superpowers skill announces a path like "saved to `docs/superpowers/plans/…`",
+rewrite it to the `_tasks/…` equivalent before writing. Commit those artifacts inside
+the `_tasks/` repo (`git -C _tasks …`), never in the main repo.
 
 ## Git Workflow
 

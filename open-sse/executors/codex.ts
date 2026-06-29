@@ -416,7 +416,6 @@ const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
   "computer_use_preview",
   "code_interpreter",
   "mcp",
-  "local_shell",
 ]);
 
 // #2980: a free-plan Codex account (workspacePlanType === "free", from the OAuth
@@ -559,6 +558,8 @@ export function normalizeCodexTools(
       if (!rawName || !validToolNames.has(rawName)) {
         delete body.tool_choice;
       }
+    } else if (toolChoice.type === "local_shell") {
+      delete body.tool_choice;
     }
   }
 }
@@ -606,7 +607,6 @@ function normalizeServiceTierValue(value: unknown): string | undefined {
  */
 const MAX_EFFORT_BY_MODEL: Record<string, EffortLevel> = {
   "gpt-5.3-codex": "xhigh",
-  "gpt-5.2-codex": "xhigh",
   "gpt-5.1-codex-max": "xhigh",
   "gpt-5-mini": "high",
   "gpt-5.1-mini": "high",

@@ -405,14 +405,14 @@ function convertMessages(messages, tools, model) {
 
   // Kiro requires currentMessage to be a user turn. If the request ends with a
   // user turn, move that final turn into currentMessage. If it ends with an
-  // assistant/tool turn, keep chronological history intact and ask Kiro to
-  // continue instead of reordering prior turns.
+  // assistant/tool turn, synthesize a neutral filler ("...") instead of the
+  // literal "Continue", which Kiro can read as a real instruction (#5231).
   if (history.length > 0 && history[history.length - 1].userInputMessage) {
     currentMessage = history.pop();
   } else {
     currentMessage = {
       userInputMessage: {
-        content: "Continue",
+        content: "...",
         modelId: model,
       },
     };
@@ -435,7 +435,7 @@ function convertMessages(messages, tools, model) {
 
   // Fallback: if the schema was never attached to any user turn (e.g. the
   // input contained no user messages and currentMessage is a synthesized
-  // "Continue" turn), attach the provided tools directly to currentMessage so
+  // neutral-filler turn), attach the provided tools directly to currentMessage so
   // Kiro still sees the schema it needs to validate assistant.toolUses in
   // history.
   if (

@@ -1,18 +1,18 @@
 ---
 title: "OmniRoute MCP Server Documentation"
-version: 3.8.31
-lastUpdated: 2026-06-20
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # OmniRoute MCP Server Documentation
 
-> Model Context Protocol server with 87 tools across routing, cache, compression, memory, skills, proxy, and context source operations.
+> Model Context Protocol server with 94 tools across routing, cache, compression, memory, skills, proxy, pool, and context source operations.
 >
-> Source of truth: `open-sse/mcp-server/schemas/tools.ts` (33 base) + `memoryTools.ts` (3) + `skillTools.ts` (4) + `agentSkillTools.ts` (3) + `gamificationTools.ts` (8) + `pluginTools.ts` (8) + `notionTools.ts` (6) + `obsidianTools.ts` (22) = **87** (`TOTAL_MCP_TOOL_COUNT`). Tool registration and scope wiring lives in `open-sse/mcp-server/server.ts`.
+> Source of truth: `open-sse/mcp-server/schemas/tools.ts` (34 base) + `memoryTools.ts` (3) + `skillTools.ts` (4) + `agentSkillTools.ts` (3) + `poolTools.ts` (6) + `gamificationTools.ts` (8) + `pluginTools.ts` (8) + `notionTools.ts` (6) + `obsidianTools.ts` (22) = **94** (`TOTAL_MCP_TOOL_COUNT`). Tool registration and scope wiring lives in `open-sse/mcp-server/server.ts`.
 
-![MCP tool inventory (87 tools by category)](../diagrams/exported/mcp-tools-87.svg)
+![MCP tool inventory (94 tools by category)](../diagrams/exported/mcp-tools-94.svg)
 
-> Source: [diagrams/mcp-tools-87.mmd](../diagrams/mcp-tools-87.mmd) (regenerate via `npm run docs:render-diagrams`).
+> Source: [diagrams/mcp-tools-94.mmd](../diagrams/mcp-tools-94.mmd) (regenerate via `npm run docs:render-diagrams`).
 
 ## Installation
 
@@ -194,14 +194,14 @@ curl http://localhost:20128/api/settings/notion
 curl -X DELETE http://localhost:20128/api/settings/notion
 ```
 
-| Tool                              | Scopes         | Description                                                    |
-| :-------------------------------- | :------------- | :------------------------------------------------------------- |
-| `omniroute_notion_search`         | `read:notion`  | Full-text search across all pages and databases                |
-| `omniroute_notion_list_databases` | `read:notion`  | List all accessible databases with schema metadata             |
-| `omniroute_notion_get_database`   | `read:notion`  | Get database schema by ID                                      |
-| `omniroute_notion_query_database` | `read:notion`  | Query a database with filters, sorts, and pagination           |
-| `omniroute_notion_read`           | `read:notion`  | Read a page or block by ID with its content                    |
-| `omniroute_notion_append_blocks`  | `write:notion` | Append children blocks to a parent block (max 100 per request) |
+| Tool                         | Scopes         | Description                                                    |
+| :--------------------------- | :------------- | :------------------------------------------------------------- |
+| `notion_search`              | `read:notion`  | Full-text search across all pages and databases                |
+| `notion_get_page`            | `read:notion`  | Get a page by ID with its properties                           |
+| `notion_list_block_children` | `read:notion`  | List the child blocks of a page or block                       |
+| `notion_query_database`      | `read:notion`  | Query a database with filters, sorts, and pagination           |
+| `notion_get_database`        | `read:notion`  | Get database schema by ID                                      |
+| `notion_append_blocks`       | `write:notion` | Append children blocks to a parent block (max 100 per request) |
 
 ## Agent Skill Catalog Tools (3)
 
@@ -217,7 +217,7 @@ See [AGENT-SKILLS.md](./AGENT-SKILLS.md) for the full catalog and how external a
 
 ## Related Frameworks (v3.8.0)
 
-The MCP tool inventory above (87 tools = 33 core + 3 memory + 4 skills + 3 agent-skills + 8 gamification + 8 plugins + 6 notion + 22 obsidian) is intentionally
+The MCP tool inventory above (94 tools = 34 core + 3 memory + 4 skills + 3 agent-skills + 6 pool + 8 gamification + 8 plugins + 6 notion + 22 obsidian) is intentionally
 scoped to runtime routing/cache/compression/memory/skills/proxy/context-source operations. Two adjacent
 frameworks ship alongside the MCP server in v3.8.0 and are documented separately:
 
@@ -329,9 +329,9 @@ MCP tool, prompt, and resource registries can compress descriptions at registrat
 
 ## Tool Cardinality Reduction (F4.3)
 
-Description compression shrinks each tool's metadata; **tool-cardinality reduction** goes one step further by reducing *how many* tools are announced at all. Advertising fewer tools in the `tools/list` manifest cuts the per-request token cost the client's model pays for the tool catalog ("layer 5" compression). The implementation is a pure, stateless filter in `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), wired into the registration loop in `createMcpServer()` (`open-sse/mcp-server/server.ts`).
+Description compression shrinks each tool's metadata; **tool-cardinality reduction** goes one step further by reducing _how many_ tools are announced at all. Advertising fewer tools in the `tools/list` manifest cuts the per-request token cost the client's model pays for the tool catalog ("layer 5" compression). The implementation is a pure, stateless filter in `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), wired into the registration loop in `createMcpServer()` (`open-sse/mcp-server/server.ts`).
 
-**Opt-in, off by default.** The filter only runs when at least one of two environment variables is set; with neither set, all 87 tools are announced unchanged.
+**Opt-in, off by default.** The filter only runs when at least one of two environment variables is set; with neither set, all 94 tools are announced unchanged.
 
 | Variable         | Mode                                                                                    |
 | :--------------- | :-------------------------------------------------------------------------------------- |
@@ -398,7 +398,7 @@ Use the dashboard or the `/api/mcp/audit` and `/api/mcp/audit/stats` REST endpoi
 | `open-sse/mcp-server/audit.ts`                                           | Tool call audit logging (`mcp_tool_audit`)                       |
 | `open-sse/mcp-server/runtimeHeartbeat.ts`                                | stdio heartbeat writer (`mcp-heartbeat.json`)                    |
 | `open-sse/mcp-server/descriptionCompressor.ts`                           | Description compression for tool / prompt / resource registries  |
-| `open-sse/mcp-server/schemas/tools.ts`                                   | Zod schemas + tool registry (`MCP_TOOLS`, 30 entries)            |
+| `open-sse/mcp-server/schemas/tools.ts`                                   | Zod schemas + tool registry (`MCP_TOOLS`, 34 entries)            |
 | `open-sse/mcp-server/tools/advancedTools.ts`                             | Phase 2 + cache + 1proxy tool handlers                           |
 | `open-sse/mcp-server/tools/compressionTools.ts`                          | Compression tool handlers                                        |
 | `open-sse/mcp-server/tools/memoryTools.ts`                               | Memory tool definitions (3 tools)                                |

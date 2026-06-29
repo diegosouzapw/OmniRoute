@@ -22,7 +22,6 @@ const PROVIDER_NAME_OVERRIDES: Record<string, string> = {
   cx: "Codex",
   github: "GitHub",
   gh: "GitHub",
-  "gemini-cli": "Gemini",
   gemini: "Gemini",
 };
 
@@ -86,7 +85,7 @@ function humanizeModelIdentifier(modelId: string) {
   return identifier
     .split(/[-_]+/)
     .filter(Boolean)
-    .map(part => {
+    .map((part) => {
       if (/^gpt$/i.test(part)) return "GPT";
       if (/^[0-9]+(?:\.[0-9]+)*$/.test(part)) return part;
       if (/^[a-z][0-9]$/i.test(part)) return part.toUpperCase();

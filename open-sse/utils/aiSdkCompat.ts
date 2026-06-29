@@ -41,6 +41,22 @@ export function clientWantsJsonResponse(acceptHeader: unknown): boolean {
 }
 
 /**
+ * Route-level Accept-header streaming opt-in (#302). A client that OMITS `stream`
+ * in the body but sends `Accept: text/event-stream` is asking for SSE (curl/httpx
+ * and similar non-SDK clients). But a client that ALSO lists `application/json`
+ * is using the OpenAI / Vercel AI SDK non-stream signature
+ * (`Accept: application/json, text/event-stream` with the body omitting `stream`)
+ * and expects a JSON object — do NOT force SSE for it (#5305). An explicit body
+ * `stream` value (true or false) always wins and is never overridden.
+ */
+export function acceptHeaderForcesStream(acceptHeader: unknown, bodyStream: unknown): boolean {
+  if (bodyStream !== undefined) return false;
+  if (typeof acceptHeader !== "string") return false;
+  const normalized = acceptHeader.toLowerCase();
+  return normalized.includes("text/event-stream") && !normalized.includes("application/json");
+}
+
+/**
  * Resolves stream behavior from request body + Accept header.
  * Priority: explicit `stream: true/false` in body wins, UNLESS the provider
  * requires streaming (`providerRequiresStreaming: true`) — in that case the
@@ -100,6 +116,17 @@ export function resolveStreamFlag(
   // omit `stream`. This preserves legacy behavior by default while allowing an
   // API key to use the OpenAI-compatible JSON default unless SSE is explicit.
   if (streamDefaultMode === "json" && !acceptsEventStream) {
+    return false;
+  }
+
+  // An Accept header that explicitly lists `application/json` is a JSON opt-in,
+  // even when it ALSO lists `text/event-stream`. That is the OpenAI / Vercel AI
+  // SDK non-stream signature (`Accept: application/json, text/event-stream` with
+  // the body omitting `stream`): doGenerate()/generateText() send it and parse
+  // the response as JSON. Default such requests to non-stream so they don't get
+  // an SSE body they can't parse (#5305). Pure-SSE clients (text/event-stream
+  // with no application/json) and clients with no/`*/*` Accept still stream.
+  if (typeof acceptHeader === "string" && /application\/json/i.test(acceptHeader)) {
     return false;
   }
 

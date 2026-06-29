@@ -6,7 +6,7 @@ description: "Reference for 9Router and CLIProxyAPI"
 # Embedded Services
 
 > **Version:** v3.8.4
-> **Last updated:** 2026-05-25
+> **Last updated:** 2026-06-28
 > **Audience:** Engineers adding, maintaining, or debugging embedded services (9Router, CLIProxyAPI).
 
 Embedded services are locally-installed process sidecar tools that OmniRoute installs, supervises, and

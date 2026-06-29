@@ -80,7 +80,7 @@ Client → API Route (/v1/chat/completions)
 
 ### 3.1 Providers (212+)
 Registered in src/shared/constants/providers.ts. Categories:
-- **Free** (4): Qoder AI, Qwen Code, Gemini CLI, Kiro AI
+- **Free** (3): Qoder AI, Qwen Code, Kiro AI
 - **OAuth** (14): Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, etc.
 - **API Key** (120+): OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, etc.
 - **Self-Hosted** (8+): LM Studio, vLLM, Ollama, etc.

@@ -4,7 +4,8 @@
  * When a direct fetch to a provider fails and no explicit proxy was configured,
  * this module automatically gathers proxy candidates from all available sources,
  * tests them in parallel against the provider URL, and returns the first working one.
- * Results are cached per hostname to avoid repeated probing.
+ * Results are cached per target URL to avoid repeated probing without letting
+ * a failed path poison a different endpoint on the same API host.
  */
 
 import { fetch as undiciFetch } from "undici";
@@ -36,12 +37,27 @@ interface ProxyShape {
 const PROXY_FALLBACK_CACHE = new Map<string, CacheEntry>();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
+type ProxyFallbackTestHooks = {
+  getProxyCandidates?: (targetUrl?: string) => Promise<string[]>;
+  testSingleProxy?: (
+    proxyUrl: string,
+    targetUrl: string,
+    timeoutMs?: number
+  ) => Promise<{ ok: boolean; latencyMs: number | null }>;
+};
+
+let proxyFallbackTestHooks: ProxyFallbackTestHooks | null = null;
+
 /**
  * Clear the in-memory proxy fallback cache.
  * Useful for testing or admin operations.
  */
 export function clearProxyFallbackCache(): void {
   PROXY_FALLBACK_CACHE.clear();
+}
+
+export function __setProxyFallbackTestHooks(hooks: ProxyFallbackTestHooks | null): void {
+  proxyFallbackTestHooks = hooks;
 }
 
 // ---------------------------------------------------------------------------
@@ -57,6 +73,16 @@ function proxyRecordToUrl(proxy: ProxyShape): string {
       ? `${encodeURIComponent(proxy.username)}:${encodeURIComponent(proxy.password || "")}@`
       : "";
   return `${proxy.type}://${auth}${proxy.host}:${proxy.port}`;
+}
+
+function cacheKeyForTarget(targetHostname: string, targetUrl: string): string {
+  try {
+    const url = new URL(targetUrl);
+    const normalizedPath = `${url.pathname || "/"}${url.search}`;
+    return `${url.protocol}//${url.host}${normalizedPath}`;
+  } catch {
+    return targetHostname.toLowerCase();
+  }
 }
 
 /**
@@ -266,8 +292,9 @@ export async function testProxiesAgainstTarget(
  * Find a working proxy for the given target hostname and URL.
  *
  * Collects all proxy candidates, tests them in parallel against the provider
- * URL, and returns the first one that responds. Results are cached per
- * hostname for 5 minutes to avoid repeated probing.
+ * URL, and returns the first one that responds. Results are cached per target
+ * URL for 5 minutes to avoid repeated probing while keeping different
+ * endpoints on a shared host independent.
  *
  * @param targetHostname The provider hostname (used as cache key)
  * @param targetUrl      The full provider URL to test against
@@ -278,20 +305,23 @@ export async function findWorkingProxy(
   targetUrl: string
 ): Promise<string | null> {
   if (!targetHostname) return null;
+  const cacheKey = cacheKeyForTarget(targetHostname, targetUrl);
 
   // Check cache first
-  const cached = PROXY_FALLBACK_CACHE.get(targetHostname);
+  const cached = PROXY_FALLBACK_CACHE.get(cacheKey);
   if (cached) {
     if (cached.expiresAt > Date.now()) {
       // Cached hit — return the proxy (or null if previously all failed)
       return cached.proxyUrl || null;
     }
     // Expired entry — remove it and re-probe
-    PROXY_FALLBACK_CACHE.delete(targetHostname);
+    PROXY_FALLBACK_CACHE.delete(cacheKey);
   }
 
   // Collect candidates
-  const candidates = await getProxyCandidates(targetUrl);
+  const candidates = await (proxyFallbackTestHooks?.getProxyCandidates ?? getProxyCandidates)(
+    targetUrl
+  );
   if (candidates.length === 0) {
     return null;
   }
@@ -299,7 +329,10 @@ export async function findWorkingProxy(
   // Test all in parallel, return first that works
   const results = await Promise.allSettled(
     candidates.map(async (proxyUrl) => {
-      const { ok } = await testSingleProxy(proxyUrl, targetUrl);
+      const { ok } = await (proxyFallbackTestHooks?.testSingleProxy ?? testSingleProxy)(
+        proxyUrl,
+        targetUrl
+      );
       return { proxyUrl, ok };
     })
   );
@@ -311,7 +344,7 @@ export async function findWorkingProxy(
   if (working && working.status === "fulfilled") {
     const proxyUrl = working.value.proxyUrl;
     // Cache the working proxy
-    PROXY_FALLBACK_CACHE.set(targetHostname, {
+    PROXY_FALLBACK_CACHE.set(cacheKey, {
       proxyUrl,
       expiresAt: Date.now() + CACHE_TTL_MS,
     });
@@ -319,7 +352,7 @@ export async function findWorkingProxy(
   }
 
   // All failed — cache the negative result to avoid re-probing too often
-  PROXY_FALLBACK_CACHE.set(targetHostname, {
+  PROXY_FALLBACK_CACHE.set(cacheKey, {
     proxyUrl: "",
     expiresAt: Date.now() + CACHE_TTL_MS,
   });

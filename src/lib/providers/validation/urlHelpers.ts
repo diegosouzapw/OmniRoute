@@ -8,7 +8,7 @@ import {
 import { isOpenAICompatibleProvider } from "@/shared/constants/providers";
 
 export const OPENAI_LIKE_FORMATS = new Set(["openai", "openai-responses"]);
-export const GEMINI_LIKE_FORMATS = new Set(["gemini", "gemini-cli"]);
+export const GEMINI_LIKE_FORMATS = new Set(["gemini"]);
 
 export function normalizeBaseUrl(baseUrl: string) {
   // Guard against a non-string baseUrl reaching .trim() / .replace() — see #2463

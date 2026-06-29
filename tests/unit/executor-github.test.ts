@@ -166,14 +166,22 @@ test("GithubExecutor.transformRequest sanitizes Anthropic-shape content parts (t
 
   // assistant: thinking + tool_use serialized to text type — no unknown type leaks to wire
   for (const part of result.messages[1].content) {
-    assert.ok(part.type === "text" || part.type === "image_url", `unsupported type leaked: ${part.type}`);
+    assert.ok(
+      part.type === "text" || part.type === "image_url",
+      `unsupported type leaked: ${part.type}`
+    );
   }
   assert.ok(result.messages[1].content.some((p: any) => /let me search/.test(p.text)));
-  assert.ok(result.messages[1].content.some((p: any) => /search/.test(p.text) && /"q":"X"/.test(p.text)));
+  assert.ok(
+    result.messages[1].content.some((p: any) => /search/.test(p.text) && /"q":"X"/.test(p.text))
+  );
 
   // tool message: tool_result serialized to text — no unknown type leaks
   for (const part of result.messages[2].content) {
-    assert.ok(part.type === "text" || part.type === "image_url", `unsupported type leaked: ${part.type}`);
+    assert.ok(
+      part.type === "text" || part.type === "image_url",
+      `unsupported type leaked: ${part.type}`
+    );
   }
 });
 
@@ -187,7 +195,9 @@ test("GithubExecutor.transformRequest collapses assistant content to null when e
       {
         role: "assistant",
         content: [{ type: "tool_use", id: "call_x", name: "noop", input: {} }],
-        tool_calls: [{ id: "call_x", type: "function", function: { name: "noop", arguments: "{}" } }],
+        tool_calls: [
+          { id: "call_x", type: "function", function: { name: "noop", arguments: "{}" } },
+        ],
       },
     ],
   };
@@ -211,7 +221,10 @@ test("GithubExecutor.transformRequest leaves string content and missing content 
   const body = {
     messages: [
       { role: "user", content: "plain string" },
-      { role: "assistant", tool_calls: [{ id: "c1", type: "function", function: { name: "f", arguments: "{}" } }] },
+      {
+        role: "assistant",
+        tool_calls: [{ id: "c1", type: "function", function: { name: "f", arguments: "{}" } }],
+      },
     ],
   };
   const result = executor.transformRequest("claude-sonnet-4.6", body, true, {});
@@ -232,10 +245,10 @@ test("GithubExecutor.buildHeaders prefers Copilot token and sets GitHub-specific
 
   assert.equal(headers.Authorization, "Bearer copilot-token");
   assert.equal(headers.Accept, "text/event-stream");
-  assert.equal(headers["editor-version"], "vscode/1.117.0");
-  assert.equal(headers["editor-plugin-version"], "copilot-chat/0.45.1");
-  assert.equal(headers["user-agent"], "GitHubCopilotChat/0.45.1");
-  assert.equal(headers["x-github-api-version"], "2025-04-01");
+  assert.equal(headers["editor-version"], "vscode/1.126.0");
+  assert.equal(headers["editor-plugin-version"], "copilot-chat/0.54.0");
+  assert.equal(headers["user-agent"], "GitHubCopilotChat/0.54.0");
+  assert.equal(headers["x-github-api-version"], "2026-06-01");
   assert.equal(headers["openai-intent"], "conversation-panel");
   assert.equal(headers["X-Initiator"], "user");
   assert.ok(headers["x-request-id"]);

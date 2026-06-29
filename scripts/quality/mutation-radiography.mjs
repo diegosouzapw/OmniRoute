@@ -4,8 +4,7 @@
  *
  * Classifies every COVERING test file by its mutation-kill contribution, using the
  * `killedBy` attribution that the Stryker tap-runner emits per mutant
- * (`coverageAnalysis: perTest`, validated by the Task 12 spike — see
- * docs/ops/MUTATION_GATE_SPIKE_VERDICT.md):
+ * (`coverageAnalysis: perTest`, validated by the Task 12 spike):
  *
  *   🔴 empty       — the test file never appears in any `killedBy` (kills no mutant
  *                    of the mutated modules). Prime R1-prune candidate (Task 2).
@@ -279,7 +278,9 @@ function main(argv) {
   const reports = paths.map(loadMutationReport);
   const universe = useConfUniverse ? tapTestFilesUniverse() : null;
   if (wantCandidates) {
-    process.stdout.write(renderCandidates(redundancyCandidates(reports, universe || undefined)) + "\n");
+    process.stdout.write(
+      renderCandidates(redundancyCandidates(reports, universe || undefined)) + "\n"
+    );
     return;
   }
   const classification = aggregateRadiography(reports, universe || undefined);
