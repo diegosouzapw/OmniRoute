@@ -44,17 +44,18 @@ export function normalizeOrigin(origin: string): string {
   return parsed.origin.toLowerCase();
 }
 
-function configuredPublicOrigin(): string | null {
+function configuredPublicOrigins(): PublicOriginCandidate[] {
+  const candidates: PublicOriginCandidate[] = [];
   for (const name of PUBLIC_BASE_URL_ENV) {
     const value = process.env[name]?.trim();
     if (!value) continue;
     try {
-      return normalizeOrigin(value);
+      candidates.push({ origin: normalizeOrigin(value), source: "configured" });
     } catch {
       continue;
     }
   }
-  return null;
+  return candidates;
 }
 
 function forwardedHeaderPart(value: string | undefined): string | null {
@@ -169,10 +170,10 @@ export function getPublicOriginCandidates(request: Request): PublicOriginCandida
   const requestOrigin = requestUrlOrigin(request);
   if (requestOrigin) candidates.push({ origin: requestOrigin, source: "request-url" });
 
-  const configured = configuredPublicOrigin();
-  if (configured) candidates.push({ origin: configured, source: "configured" });
+  const configured = configuredPublicOrigins();
+  candidates.push(...configured);
 
-  if (!configured) {
+  if (configured.length === 0) {
     const forwarded = trustedForwardedOrigin(request);
     if (forwarded) candidates.push({ origin: forwarded, source: "trusted-forwarded" });
   }

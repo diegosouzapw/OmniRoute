@@ -67,6 +67,27 @@ describe("public origin resolution", () => {
     );
   });
 
+  it("accepts all configured public origins while resolving the highest-priority one", () => {
+    process.env.OMNIROUTE_PUBLIC_BASE_URL = "https://assets.example.test/images";
+    process.env.NEXT_PUBLIC_BASE_URL = "https://gateway.example.test/app";
+    const request = new Request("http://omniroute:20128/api/providers/health-autopilot/actions", {
+      headers: { origin: "https://gateway.example.test" },
+    });
+
+    assert.deepEqual(resolvePublicOrigin(request), {
+      origin: "https://assets.example.test",
+      source: "configured",
+    });
+    assert.deepEqual(
+      getPublicOriginCandidates(request).filter((candidate) => candidate.source === "configured"),
+      [
+        { origin: "https://assets.example.test", source: "configured" },
+        { origin: "https://gateway.example.test", source: "configured" },
+      ]
+    );
+    assert.equal(validateBrowserMutationOrigin(request).ok, true);
+  });
+
   it("keeps the internal request URL as an accepted candidate", () => {
     const request = new Request("http://omniroute:20128/api/providers/health-autopilot/actions");
 
