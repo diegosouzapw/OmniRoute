@@ -11,6 +11,7 @@ import {
   getModelAliases,
 } from "@/lib/localDb";
 import { extractAliasBackedModels } from "./aliasBackedModels";
+import { computeModelLimitFields } from "./modelLimits";
 import { appendNoThinkingVariants } from "@omniroute/open-sse/utils/noThinkingAlias";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry";
 import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry";
@@ -825,42 +826,7 @@ export async function getUnifiedModelsResponse(
 
         const visionFields =
           getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(model.id);
-
-        // #5161 — emit context_length / max_input_tokens / max_output_tokens on
-        // per-platform entries so @ai-sdk/openai-compatible (and other clients
-        // that read /v1/models entry.context_length) get the real window instead
-        // of falling back to 0. Source order matches getComboTargetCatalogMetadata
-        // above: synced limits → registry contextLength → model spec → token map.
-        const synced = getSyncedCapability(canonicalProviderId, model.id);
-        const spec = getModelSpec(model.id);
-        const syncedContext = isPositiveFiniteNumber(synced?.limit_context)
-          ? synced.limit_context
-          : undefined;
-        const registryContext = isPositiveFiniteNumber(model?.contextLength)
-          ? model.contextLength
-          : undefined;
-        const specContext = isPositiveFiniteNumber(spec?.contextWindow)
-          ? spec.contextWindow
-          : undefined;
-        const contextLength =
-          syncedContext ??
-          registryContext ??
-          specContext ??
-          (getTokenLimit(canonicalProviderId, model.id) || undefined);
-        const maxInputTokens = isPositiveFiniteNumber(synced?.limit_input)
-          ? synced.limit_input
-          : contextLength;
-        const maxOutputTokens = isPositiveFiniteNumber(synced?.limit_output)
-          ? synced.limit_output
-          : isPositiveFiniteNumber(spec?.maxOutputTokens)
-            ? spec.maxOutputTokens
-            : undefined;
-        const limitFields = {
-          ...(contextLength ? { context_length: contextLength } : {}),
-          ...(maxInputTokens ? { max_input_tokens: maxInputTokens } : {}),
-          ...(maxOutputTokens ? { max_output_tokens: maxOutputTokens } : {}),
-        };
-
+        const limitFields = computeModelLimitFields(canonicalProviderId, model);
         if (includeAlias) {
           models.push({
             id: aliasId,
