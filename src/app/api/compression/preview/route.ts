@@ -10,7 +10,10 @@ import type {
   CompressionConfig,
   CompressionMode,
 } from "@omniroute/open-sse/services/compression/types";
-import { buildCompressionPreviewDiff } from "@omniroute/open-sse/services/compression/diffHelper";
+import {
+  buildCompressionPreviewDiff,
+  type HeatmapMode,
+} from "@omniroute/open-sse/services/compression/diffHelper";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { countTextTokens } from "@/shared/utils/tiktokenCounter";
 import { ensureEngineBreakdown } from "@omniroute/open-sse/services/compression/engineBreakdown";
@@ -51,6 +54,10 @@ export const PreviewRequestSchema = z.object({
   // context (provider: "anthropic") so the operator can SEE what would be stabilized; real
   // cache-hit gains only show in production provider telemetry.
   quantumLock: z.object({ enabled: z.boolean() }).optional(),
+  // Saliency heatmap mode. When set, the response includes a per-token heatmap.
+  // "ultra" uses scoreToken (0–1); "universal" uses kept/removed from the diff.
+  // Omit to skip heatmap computation (normal preview path — no extra cost).
+  heatmap: z.enum(["ultra", "universal"]).optional(),
 });
 
 function countTokens(text: string): number {
@@ -176,7 +183,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages, mode, engineId, pipeline, config, fidelityGate, fuzzyDedup, riskGate, quantumLock } =
+  const { messages, mode, engineId, pipeline, config, fidelityGate, fuzzyDedup, riskGate, quantumLock, heatmap: heatmapMode } =
     parsed.data;
   const effectiveMode: CompressionMode =
     engineId || pipeline ? "stacked" : (mode as CompressionMode);
@@ -208,7 +215,13 @@ export async function POST(req: Request) {
     const savingsPct = originalTokens > 0 ? Math.round((tokensSaved / originalTokens) * 100) : 0;
     const techniquesUsed: string[] = result.stats?.techniquesUsed ?? [];
     const engineBreakdown = result.stats ? ensureEngineBreakdown(result.stats) : [];
-    const diff = buildCompressionPreviewDiff(originalText, compressedText, result.stats);
+    const diff = buildCompressionPreviewDiff(
+      originalText,
+      compressedText,
+      result.stats,
+      {},
+      heatmapMode as HeatmapMode | undefined
+    );
 
     const encoderComparison = headroomParticipates(engineId, pipeline, effectiveMode)
       ? summarizeEncoderCandidates(messages, DEFAULT_MIN_ROWS, countTextTokens)
@@ -244,6 +257,7 @@ export async function POST(req: Request) {
       validationWarnings: diff.validationWarnings,
       validationErrors: diff.validationErrors,
       fallbackApplied: diff.fallbackApplied,
+      ...(diff.heatmap ? { heatmap: diff.heatmap } : {}),
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
