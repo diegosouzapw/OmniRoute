@@ -140,14 +140,14 @@ test("handleChat redacts PII before sending the upstream request", async () => {
   assert.equal(json.choices[0].message.content, "Redacted response");
 });
 
-test("handleChat treats Accept text/event-stream as stream=true and returns a session header", async () => {
+test("handleChat treats a pure Accept: text/event-stream as stream=true and returns a session header", async () => {
   await seedConnection("openai", { apiKey: "sk-openai-stream" });
 
   globalThis.fetch = async () => buildOpenAIStreamResponse("Accept header stream");
 
   const response = await handleChat(
     buildRequest({
-      headers: { Accept: "application/json, text/event-stream" },
+      headers: { Accept: "text/event-stream" },
       body: {
         model: "openai/gpt-4.1",
         messages: [{ role: "user", content: "stream please" }],
@@ -161,6 +161,27 @@ test("handleChat treats Accept text/event-stream as stream=true and returns a se
   assert.ok(response.headers.get("X-OmniRoute-Session-Id"));
   assert.match(raw, /Accept header stream/);
   assert.match(raw, /\[DONE\]/);
+});
+
+test("handleChat returns JSON (not SSE) for the OpenAI/Vercel SDK non-stream signature — Accept: application/json, text/event-stream with stream omitted (#5305)", async () => {
+  await seedConnection("openai", { apiKey: "sk-openai-5305" });
+
+  globalThis.fetch = async () => buildOpenAIResponse("non-stream json");
+
+  const response = await handleChat(
+    buildRequest({
+      headers: { Accept: "application/json, text/event-stream" },
+      body: {
+        model: "openai/gpt-4.1",
+        messages: [{ role: "user", content: "no stream field" }],
+      },
+    })
+  );
+
+  const json = (await response.json()) as any;
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("Content-Type") || "", /application\/json/);
+  assert.equal(json.choices[0].message.content, "non-stream json");
 });
 
 test("handleChat rejects requests without a model", async () => {
