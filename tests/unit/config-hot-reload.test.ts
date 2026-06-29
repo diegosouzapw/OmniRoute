@@ -11,8 +11,8 @@ process.env.OMNIROUTE_CONFIG_HOT_RELOAD_MS = "100";
 const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const { getDbInstance } = core;
-const { applyRuntimeSettings, resetRuntimeSettingsStateForTests } =
-  await import("../../src/lib/config/runtimeSettings.ts");
+const runtimeSettings = await import("../../src/lib/config/runtimeSettings.ts");
+const { applyRuntimeSettings, resetRuntimeSettingsStateForTests } = runtimeSettings;
 const { startRuntimeConfigHotReload, stopRuntimeConfigHotReloadForTests } =
   await import("../../src/lib/config/hotReload.ts");
 const { getCliCompatProviders } = await import("../../open-sse/config/cliFingerprints.ts");
@@ -64,6 +64,16 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   await resetStorage();
+});
+
+test("runtime settings public surface excludes removed snapshot inspection helper", () => {
+  assert.equal(
+    Object.hasOwn(runtimeSettings, "getLastAppliedRuntimeSettingsSnapshotForTests"),
+    false
+  );
+  assert.equal(typeof runtimeSettings.applyRuntimeSettings, "function");
+  assert.equal(typeof runtimeSettings.getAuthzBypassSnapshot, "function");
+  assert.equal(typeof runtimeSettings.resetRuntimeSettingsStateForTests, "function");
 });
 
 test("updateSettings applies runtime settings incrementally without restart", async () => {

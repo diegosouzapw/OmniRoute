@@ -1,15 +1,23 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  getCachedLoginShellPath,
   getLoginShellPath,
   mergeShellPath,
   parseShellPathOutput,
 } from "../../src/shared/services/loginShellPath.ts";
+import * as loginShellPath from "../../src/shared/services/loginShellPath.ts";
 
 // Regression guards for #3321: macOS GUI/Electron apps don't inherit the login-shell PATH,
 // so Homebrew/nvm/volta CLIs were reported "not installed". We recover the real PATH from
 // the login shell and merge it into the lookup env. The pure helpers are tested here with
 // an injected shell runner (no macOS / no real shell needed).
+
+test("login shell path public surface excludes removed cache reset helper", () => {
+  assert.equal(Object.hasOwn(loginShellPath, "__resetLoginShellPathCacheForTesting"), false);
+  assert.equal(typeof getCachedLoginShellPath, "function");
+  assert.equal(typeof getLoginShellPath, "function");
+});
 
 test("mergeShellPath unions and de-dupes, keeping base entries first", () => {
   assert.equal(
