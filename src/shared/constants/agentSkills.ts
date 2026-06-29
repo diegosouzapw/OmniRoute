@@ -8,7 +8,6 @@ const REPO = "diegosouzapw/OmniRoute";
 const BRANCH = "main";
 const SKILL_PATH = "skills";
 
-export const AGENT_SKILLS_REPO_URL = `https://github.com/${REPO}`;
 export const AGENT_SKILLS_RAW_BASE = `https://raw.githubusercontent.com/${REPO}/refs/heads/${BRANCH}/${SKILL_PATH}`;
 export const AGENT_SKILLS_BLOB_BASE = `https://github.com/${REPO}/blob/${BRANCH}/${SKILL_PATH}`;
 
@@ -443,4 +442,3 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     isNew: true,
   },
 ];
-
