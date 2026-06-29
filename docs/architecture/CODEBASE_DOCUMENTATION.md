@@ -482,7 +482,7 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-67 provider executors, each extending `BaseExecutor` (`base.ts`):
+68 provider executors, each extending `BaseExecutor` (`base.ts`):
 
 `antigravity`, `azure-openai`, `blackbox-web`, `chatgpt-web`, `cliproxyapi`,
 `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
@@ -491,7 +491,7 @@ open-sse/
 (shared identity helper) and `index.ts` (registry).
 
 > Note: providers not listed here are served by `default.ts` using the generic
-> OpenAI-compatible executor. The full provider catalog (236 entries) lives in
+> OpenAI-compatible executor. The full provider catalog (237 entries) lives in
 > `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`

@@ -1,16 +1,16 @@
 ---
 title: "Provider Reference"
 version: 3.8.40
-lastUpdated: 2026-06-28
+lastUpdated: 2026-06-29
 ---
 
 # Provider Reference
 
 > **Auto-generated** from `src/shared/constants/providers.ts` — do not edit by hand.
 > Regenerate with: `npm run gen:provider-reference`
-> **Last generated:** 2026-06-28
+> **Last generated:** 2026-06-29
 
-Total providers: **236**. See category breakdown below.
+Total providers: **237**. See category breakdown below.
 
 ## Categories
 
@@ -56,7 +56,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `windsurf` | `ws` | Windsurf (Devin CLI) | OAuth | [link](https://windsurf.com) | In the Windsurf / VS Code IDE, open the command palette and run `Windsurf: Provide Auth Token` (or click the Jupyter "Get Windsurf Authentication Token" button), then copy the shown token and paste it here. Note: opening windsurf.com/show-auth-token directly only renders a "Redirecting" page — the IDE must initiate the flow (it adds a `?state=...` param) for the token to appear. |
 | `zed` | `zd` | Zed IDE | OAuth | [link](https://zed.dev) | Zed stores LLM provider credentials (OpenAI, Anthropic, Google, Mistral, xAI) in the OS keychain. Use the Import button below to discover and import them automatically. |
 
-## Web Cookie Providers (23)
+## Web Cookie Providers (24)
 
 | ID | Alias | Name | Tags | Website | Notes |
 |----|-------|------|------|---------|-------|
@@ -64,6 +64,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `blackbox-web` | `bb-web` | Blackbox Web (Subscription) | Web cookie | [link](https://app.blackbox.ai) | Paste your __Secure-authjs.session-token value or full cookie header from app.blackbox.ai |
 | `chatgpt-web` | `cgpt-web` | ChatGPT Web (Plus/Pro) | Web cookie | [link](https://chatgpt.com) | Paste your __Secure-next-auth.session-token cookie value from chatgpt.com |
 | `claude-web` | `cw` | Claude Web | Web cookie | [link](https://claude.ai) | Paste your session cookie from claude.ai |
+| `copilot-m365-web` | `m365copilot` | Microsoft 365 Copilot (BizChat) | Web cookie | [link](https://m365.cloud.microsoft/chat) | Paste the access_token and account-specific Chathub path from the Microsoft 365 Copilot WebSocket URL. |
 | `copilot-web` | `copilot` | Microsoft Copilot Web | Web cookie | [link](https://copilot.microsoft.com) | Paste your access_token from copilot.microsoft.com (or export a .har file from DevTools while logged in) |
 | `deepseek-web` | `ds-web` | DeepSeek Web | Web cookie | [link](https://chat.deepseek.com) | Paste your userToken from chat.deepseek.com — DevTools → Application → Local Storage → userToken |
 | `doubao-web` | `db` | Doubao Web (ByteDance) | Web cookie | [link](https://www.doubao.com) | Paste your session cookie from doubao.com (DevTools → Application → Cookies) |
