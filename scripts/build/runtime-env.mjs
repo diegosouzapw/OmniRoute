@@ -36,6 +36,55 @@ export function calibrateHeapFallbackMb(totalmemBytes) {
   return Math.min(4096, Math.max(512, target));
 }
 
+const MAX_OLD_SPACE_FLAG = "--max-old-space-size";
+
+/**
+ * True when the caller already pinned the V8 heap via NODE_OPTIONS
+ * (`--max-old-space-size=…`). Used to decide whether `omniroute serve` may
+ * append/inject the calibrated default — a user-set value must always win.
+ * @param {NodeJS.ProcessEnv | Record<string, string | undefined>} [env]
+ */
+export function envHasExplicitHeapFlag(env = process.env) {
+  return String(env?.NODE_OPTIONS || "").includes(MAX_OLD_SPACE_FLAG);
+}
+
+/**
+ * Assemble the NODE_OPTIONS string for the spawned server, preserving any flags
+ * the user already exported. #5238: `omniroute serve` used to UNCONDITIONALLY
+ * overwrite NODE_OPTIONS with the calibrated `--max-old-space-size`, silently
+ * discarding a user-set `NODE_OPTIONS=--max-old-space-size=8192` (reporter set
+ * 8192 and still OOM'd at ~505MB). Mirrors the Electron (electron/main.js) and
+ * standalone (scripts/dev/run-standalone.mjs) launchers:
+ *   - if NODE_OPTIONS already contains `--max-old-space-size`, keep it as-is
+ *     (the user's value wins);
+ *   - otherwise append the calibrated `--max-old-space-size=<memoryLimit>` to
+ *     the existing NODE_OPTIONS, preserving unrelated flags (e.g.
+ *     `--enable-source-maps`).
+ * @param {NodeJS.ProcessEnv | Record<string, string | undefined>} [env]
+ * @param {number} memoryLimit — calibrated V8 heap ceiling (MB)
+ * @returns {string} the NODE_OPTIONS value to pass to the child process
+ */
+export function buildServerNodeOptions(env = process.env, memoryLimit) {
+  const existing = String(env?.NODE_OPTIONS || "").trim();
+  if (existing.includes(MAX_OLD_SPACE_FLAG)) return existing;
+  return `${existing} ${MAX_OLD_SPACE_FLAG}=${memoryLimit}`.trim();
+}
+
+/**
+ * Build the leading `node` CLI args that pin the V8 heap. When the user already
+ * pinned the heap via NODE_OPTIONS, return `[]` so we do NOT inject a
+ * conflicting/shadowing CLI `--max-old-space-size` (CLI args override
+ * NODE_OPTIONS, which would re-introduce #5238). Otherwise return the calibrated
+ * flag — NODE_OPTIONS already carries the same value, so this stays redundant
+ * (identical value), never conflicting.
+ * @param {NodeJS.ProcessEnv | Record<string, string | undefined>} [env]
+ * @param {number} memoryLimit — calibrated V8 heap ceiling (MB)
+ * @returns {string[]}
+ */
+export function buildNodeHeapArgs(env = process.env, memoryLimit) {
+  return envHasExplicitHeapFlag(env) ? [] : [`${MAX_OLD_SPACE_FLAG}=${memoryLimit}`];
+}
+
 /**
  * @param {NodeJS.ProcessEnv | Record<string, string | undefined>} [fromEnv]
  *        Defaults to process.env. Pass bootstrap `merged` so project `.env` PORT applies before spawn.

@@ -10,6 +10,8 @@ import { isTermux } from "../../../scripts/build/postinstallSupport.mjs";
 import {
   resolveMaxOldSpaceMb,
   calibrateHeapFallbackMb,
+  buildServerNodeOptions,
+  buildNodeHeapArgs,
 } from "../../../scripts/build/runtime-env.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -146,7 +148,10 @@ export async function runServe(opts = {}) {
     API_PORT: String(apiPort),
     HOSTNAME: process.env.HOSTNAME || "0.0.0.0",
     NODE_ENV: "production",
-    NODE_OPTIONS: `--max-old-space-size=${memoryLimit}`,
+    // #5238: preserve a user-set NODE_OPTIONS (incl. their own
+    // `--max-old-space-size=…`) instead of clobbering it with the calibrated
+    // default — mirror the Electron/standalone launchers.
+    NODE_OPTIONS: buildServerNodeOptions(process.env, memoryLimit),
   };
 
   const isDaemon = opts.daemon === true;
@@ -174,7 +179,9 @@ export async function runServe(opts = {}) {
 }
 
 function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
-  const server = spawn("node", [`--max-old-space-size=${memoryLimit}`, serverJs], {
+  // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
+  // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
+  const server = spawn("node", [...buildNodeHeapArgs(process.env, memoryLimit), serverJs], {
     cwd: APP_DIR,
     env,
     stdio: "ignore",
@@ -188,7 +195,9 @@ function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
 }
 
 function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, noOpen) {
-  const server = spawn("node", [`--max-old-space-size=${memoryLimit}`, serverJs], {
+  // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
+  // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
+  const server = spawn("node", [...buildNodeHeapArgs(process.env, memoryLimit), serverJs], {
     cwd: APP_DIR,
     env,
     stdio: "pipe",
