@@ -98,11 +98,13 @@ jobs:
             PROMOTE="${PROMOTE_INPUT:-false}"
           else
             git fetch --tags --quiet || true
-            HIGHEST=$(git tag -l 'v[0-9]*' | sed 's/^v//' | grep -vE -- '-(rc|alpha|beta|pre|next)' | sort -V | tail -1 || echo "")
-            if [ -n "$HIGHEST" ] && [ "$VERSION" = "$HIGHEST" ]; then
-              PROMOTE="true"
-            else
-              echo "Version $VERSION is not the highest semver tag (highest=${HIGHEST:-<none>}). Not promoting :latest."
+            # Decide via the extracted helper, which folds VERSION into the
+            # candidate set so the result is independent of git-tag sync timing
+            # on `release` events (#5301). Without that, the freshly-created tag
+            # is often not yet visible here and :latest stays a release behind.
+            PROMOTE=$(git tag -l 'v[0-9]*' | bash scripts/ci/should-promote-latest.sh "$VERSION")
+            if [ "$PROMOTE" != "true" ]; then
+              echo "Version $VERSION is not the highest stable semver. Not promoting :latest."
             fi
           fi
           echo "promote_latest=$PROMOTE" >> "$GITHUB_OUTPUT"
