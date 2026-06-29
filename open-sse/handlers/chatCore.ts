@@ -183,7 +183,10 @@ import {
   type RuntimeCompressionCombo,
 } from "./chatCore/compressionComboPredicates.ts";
 import { emitOutputStyleTelemetry } from "./chatCore/outputStyleTelemetry.ts";
-import { writeCompressionAnalytics } from "./chatCore/compressionAnalyticsWrite.ts";
+import {
+  writeCompressionAnalytics,
+  writeCompressionSkip,
+} from "./chatCore/compressionAnalyticsWrite.ts";
 import { runPluginOnRequestHook } from "./chatCore/pluginOnRequest.ts";
 import { recordContextEditingTelemetryHook } from "./chatCore/contextEditingTelemetry.ts";
 import { recordCompressionCacheStats } from "./chatCore/compressionCacheStats.ts";
@@ -1314,6 +1317,28 @@ export async function handleChatCore({
               cavemanOutputModeIntensity,
               log,
             });
+          } else {
+            // Compression was attempted (mode active, engines ran) but produced no
+            // recordable saving — e.g. a Stacked RTK→Caveman pipeline on already-compact
+            // context. Record a skip row so analytics can distinguish "ran but saved
+            // nothing" from "never ran" instead of dropping it silently (#4268).
+            compressionAnalyticsRecorded = true;
+            compressionAnalyticsWritePromise = writeCompressionSkip(
+              {
+                stats: result.stats,
+                provider,
+                effectiveModel,
+                effectiveServiceTier,
+                comboName,
+                mode,
+                compressionComboId: config.compressionComboId,
+                skillRequestId,
+                cavemanOutputModeApplied,
+                cavemanOutputModeIntensity,
+                log,
+              },
+              "no_savings"
+            );
           }
 
           if (result.compressed) {
