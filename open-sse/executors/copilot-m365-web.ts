@@ -1,5 +1,14 @@
 import WebSocket from "ws";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
+
+// Test seam: the WebSocket constructor is injectable so unit tests can drive the wsChat
+// stream lifecycle (open/message/error/close) with a fake instead of a live `wss://` peer.
+// Defaults to the real `ws` implementation; production never overrides it.
+let WebSocketImpl: typeof WebSocket = WebSocket;
+/** @internal — test-only seam. Pass null to restore the real `ws` implementation. */
+export function __setWebSocketImplForTests(impl: typeof WebSocket | null): void {
+  WebSocketImpl = impl ?? WebSocket;
+}
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import {
@@ -85,7 +94,9 @@ export class CopilotM365WebExecutor extends BaseExecutor {
             if (settled) return;
             settled = true;
             cleanup();
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: { message: reason } })}\n\n`));
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ error: { message: reason } })}\n\n`)
+            );
             controller.close();
           };
 
@@ -98,10 +109,12 @@ export class CopilotM365WebExecutor extends BaseExecutor {
 
           try {
             const wsUrlParts = new URL(input.wsUrl);
-            const traceId = wsUrlParts.searchParams.get("clientrequestid") ?? crypto.randomUUID().replace(/-/g, "");
+            const traceId =
+              wsUrlParts.searchParams.get("clientrequestid") ??
+              crypto.randomUUID().replace(/-/g, "");
             const sessionId = wsUrlParts.searchParams.get("X-SessionId") ?? crypto.randomUUID();
 
-            ws = new WebSocket(input.wsUrl, {
+            ws = new WebSocketImpl(input.wsUrl, {
               headers: {
                 Origin: "https://m365.cloud.microsoft",
                 "User-Agent":
@@ -139,7 +152,7 @@ export class CopilotM365WebExecutor extends BaseExecutor {
                   const err = handshakeError(frame);
                   if (err) {
                     clearTimeout(timeout);
-                    abort(`Microsoft 365 Copilot handshake failed: ${err}`);
+                    abort(sanitizeErrorMessage(`Microsoft 365 Copilot handshake failed: ${err}`));
                     return;
                   }
                   handshakeComplete = true;
@@ -166,7 +179,11 @@ export class CopilotM365WebExecutor extends BaseExecutor {
 
             ws.on("error", (err) => {
               clearTimeout(timeout);
-              abort(err instanceof Error ? err.message : "Microsoft 365 Copilot WebSocket error");
+              abort(
+                sanitizeErrorMessage(
+                  err instanceof Error ? err.message : "Microsoft 365 Copilot WebSocket error"
+                )
+              );
             });
 
             ws.on("close", () => {
@@ -175,7 +192,11 @@ export class CopilotM365WebExecutor extends BaseExecutor {
             });
           } catch (err) {
             clearTimeout(timeout);
-            abort(err instanceof Error ? err.message : "Failed to connect to Microsoft 365 Copilot");
+            abort(
+              sanitizeErrorMessage(
+                err instanceof Error ? err.message : "Failed to connect to Microsoft 365 Copilot"
+              )
+            );
           }
         },
       },
@@ -216,7 +237,12 @@ export class CopilotM365WebExecutor extends BaseExecutor {
     const wsUrl = buildWsUrl(connectionParams);
 
     try {
-      const wsStream = await this.wsChat({ wsUrl, prompt, model, signal: input.signal ?? undefined });
+      const wsStream = await this.wsChat({
+        wsUrl,
+        prompt,
+        model,
+        signal: input.signal ?? undefined,
+      });
 
       if (stream) {
         return {
