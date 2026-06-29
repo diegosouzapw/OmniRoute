@@ -73,6 +73,7 @@ import {
   withBodyTimeout,
 } from "../utils/stream.ts";
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
+import { shouldSuppressThinkCloseMarker } from "../utils/thinkCloseMarker.ts";
 import { resolveStreamReadinessTimeout } from "../utils/streamReadinessPolicy.ts";
 import { createStreamController } from "../utils/streamHandler.ts";
 import * as streamFailure from "../utils/streamFailureFinalization.ts";
@@ -4188,7 +4189,10 @@ export async function handleChatCore({
       onStreamComplete,
       apiKeyInfo,
       handleStreamFailure,
-      copilotCompatibleReasoning
+      copilotCompatibleReasoning,
+      // Suppress the `</think>` close marker for clients that render it verbatim
+      // (e.g. OpenCode); preserved for Claude Code / Cursor and unknown clients (#5245).
+      shouldSuppressThinkCloseMarker(streamUserAgent)
     );
   } else {
     log?.debug?.("STREAM", `Standard passthrough mode`);

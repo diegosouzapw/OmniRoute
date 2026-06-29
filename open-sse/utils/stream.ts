@@ -117,6 +117,8 @@ type StreamOptions = {
   sourceFormat?: string;
   clientResponseFormat?: string | null;
   copilotCompatibleReasoning?: boolean;
+  /** Suppress the `</think>` close marker for clients that render it verbatim (#5245). */
+  suppressThinkClose?: boolean;
   provider?: string | null;
   reqLogger?: StreamLogger | null;
   toolNameMap?: unknown;
@@ -135,6 +137,8 @@ type TranslateState = ReturnType<typeof initState> & {
   usage?: unknown;
   finishReason?: unknown;
   copilotCompatibleReasoning?: boolean;
+  /** Suppress the `</think>` close marker for clients that render it verbatim (#5245). */
+  suppressThinkClose?: boolean;
   /** Accumulated message content for call log response body */
   accumulatedContent?: string;
   upstreamError?: {
@@ -607,6 +611,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     sourceFormat,
     clientResponseFormat = null,
     copilotCompatibleReasoning = false,
+    suppressThinkClose = false,
     provider = null,
     reqLogger = null,
     toolNameMap = null,
@@ -660,6 +665,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           toolNameMap,
           signatureNamespace,
           copilotCompatibleReasoning,
+          suppressThinkClose,
           accumulatedContent: "",
         }
       : null;
@@ -2636,7 +2642,8 @@ export function createSSETransformStreamWithLogger(
   onComplete: ((payload: StreamCompletePayload) => void) | null = null,
   apiKeyInfo: unknown = null,
   onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null,
-  copilotCompatibleReasoning = false
+  copilotCompatibleReasoning = false,
+  suppressThinkClose = false
 ) {
   return createSSEStream({
     mode: STREAM_MODE.TRANSLATE,
@@ -2652,6 +2659,7 @@ export function createSSETransformStreamWithLogger(
     onComplete,
     onFailure,
     copilotCompatibleReasoning,
+    suppressThinkClose,
   });
 }
 
