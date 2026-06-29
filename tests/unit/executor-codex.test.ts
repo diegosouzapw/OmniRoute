@@ -1107,6 +1107,57 @@ test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted to
   assert.deepEqual(result.tool_choice, { type: "function", name: "jira_get_issue" });
 });
 
+test("CodexExecutor.transformRequest drops local_shell tool + tool_choice (#5251)", () => {
+  // Regression: OpenAI removed the `local_shell` hosted tool type from the Responses
+  // API. The Codex CLI still injects `{ type: "local_shell", ... }` into body.tools
+  // and `tool_choice: { type: "local_shell" }` on every request, which upstream
+  // rejects with 400 "The local_shell tool is no longer supported.". We must drop
+  // the tool entry and clear the request-level tool_choice before forwarding.
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.4",
+    {
+      model: "gpt-5.4",
+      input: [],
+      tools: [
+        { type: "function", name: "exec_command", parameters: { type: "object" } },
+        { type: "local_shell" },
+        { type: "image_generation", output_format: "png" },
+      ],
+      tool_choice: { type: "local_shell" },
+    },
+    false,
+    {}
+  );
+
+  const types = (result.tools as Array<Record<string, unknown>>).map((tool) => tool.type);
+  // local_shell must be filtered out; hosted tools still whitelisted by OpenAI stay.
+  assert.deepEqual(types, ["function", "image_generation"]);
+  assert.equal("tool_choice" in result, false);
+});
+
+test("CodexExecutor.transformRequest drops local_shell tool_choice while preserving function tool_choice", () => {
+  // Ensures the local_shell tool_choice branch does not nuke legitimate function
+  // tool_choice values when both are present (mixed-shape request from translators).
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.4",
+    {
+      model: "gpt-5.4",
+      input: [],
+      tools: [
+        { type: "function", name: "exec_command", parameters: { type: "object" } },
+      ],
+      // tool_choice is invalid (function points to an unknown name) AND local_shell
+      // is present — neither should survive normalization.
+      tool_choice: { type: "function", name: "ghost_tool" },
+    },
+    false,
+    {}
+  );
+  assert.equal("tool_choice" in result, false);
+});
+
 test("CodexExecutor.transformRequest preserves native Codex custom tools", () => {
   const executor = new CodexExecutor();
   const result = executor.transformRequest(

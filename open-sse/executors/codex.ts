@@ -409,6 +409,11 @@ function repairMissingCodexFunctionCallOutputs(body: Record<string, unknown>): v
 // e.g. Codex CLI injects `{ type: "image_generation", output_format: "png" }` or
 // `{ type: "namespace", name: "mcp__atlassian__", tools: [...] }` for MCP tool groups.
 // Keep them through `normalizeCodexTools` so upstream can execute them.
+//
+// NOTE: `local_shell` is intentionally NOT whitelisted. OpenAI removed it from the
+// Responses API (upstream 400s with "The local_shell tool is no longer supported."),
+// so Codex CLI's injected `local_shell` entry must be dropped before forwarding.
+// See: codex executor transformRequest + tool_choice cleanup below.
 const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
   "tool_search",
   "image_generation",
@@ -419,7 +424,6 @@ const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
   "computer_use_preview",
   "code_interpreter",
   "mcp",
-  "local_shell",
 ]);
 
 // #2980: a free-plan Codex account (workspacePlanType === "free", from the OAuth
@@ -562,6 +566,10 @@ export function normalizeCodexTools(
       if (!rawName || !validToolNames.has(rawName)) {
         delete body.tool_choice;
       }
+    } else if (toolChoice.type === "local_shell") {
+      // OpenAI removed `local_shell` from the Responses API; upstream 400s.
+      // Drop the request-level tool_choice rather than forwarding an invalid type.
+      delete body.tool_choice;
     }
   }
 }
