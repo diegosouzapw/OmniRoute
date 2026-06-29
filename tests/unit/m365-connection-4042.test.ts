@@ -65,6 +65,7 @@ test("buildWsUrl targets the substrate Chathub with the individual-tier query", 
   assert.equal(qs.get("agent"), "web");
   assert.equal(qs.get("scenario"), "OfficeWebPaidConsumerCopilot");
   assert.equal(qs.get("source"), "officeweb");
+  assert.ok(qs.get("variants")?.includes("feature.bizchatfluxv3"));
   assert.equal(qs.get("access_token"), "TOK");
   // chatsessionid == XRoutingParameterSessionKey == clientrequestid (same value)
   const sid = qs.get("chatsessionid");
