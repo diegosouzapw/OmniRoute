@@ -253,24 +253,6 @@ export function setCachedResponse(signature, model, response, tokensSaved = 0, t
   }
 }
 
-// ─── Maintenance ─────────────────
-
-/**
- * Remove expired entries from SQLite.
- * @returns {number} Number of entries removed
- */
-export function cleanExpiredEntries() {
-  try {
-    const db = getDbInstance();
-    const result = db
-      .prepare("DELETE FROM semantic_cache WHERE expires_at <= datetime('now')")
-      .run();
-    return result.changes;
-  } catch {
-    return 0;
-  }
-}
-
 /**
  * Invalidate cache entries by model name.
  * Useful when a model is updated/changed and cached responses are stale.
