@@ -97,6 +97,17 @@ describe("RTK command detector", () => {
     }
   });
 
+  it("detects git-status when command is a composite like 'cd /x && git status'", () => {
+    assert.equal(
+      detectCommandType(fixture("git-status-sample.txt"), "cd /x && git status").type,
+      "git-status"
+    );
+    assert.equal(
+      detectCommandType(fixture("git-diff-sample.txt"), "cd /repo && git diff").type,
+      "git-diff"
+    );
+  });
+
   it("returns unknown for generic text and exposes planned alias", () => {
     const detection = detectCommandOutput("ordinary prose without command output");
 
