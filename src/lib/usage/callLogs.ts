@@ -425,28 +425,40 @@ function listReferencedArtifacts() {
   );
 }
 
+// #5217: SQLite caps a statement at SQLITE_MAX_VARIABLE_NUMBER bound params
+// (~999 on many builds). Callers like trimCallLogsToMaxRows() passed up to 5000
+// ids in one `IN (...)` → "too many SQL variables" aborted trimming. Chunk well
+// under the limit so each DELETE/SELECT stays valid.
+const DELETE_ID_CHUNK_SIZE = 500;
+
 function deleteCallLogRowsByIds(ids: string[]): DeleteResult {
   if (ids.length === 0) {
     return { deletedRows: 0, deletedArtifacts: 0 };
   }
 
   const db = getDbInstance();
-  const placeholders = ids.map(() => "?").join(", ");
-  const rows = db
-    .prepare(`SELECT artifact_relpath FROM call_logs WHERE id IN (${placeholders})`)
-    .all(...ids) as Array<{ artifact_relpath: string | null }>;
-
-  const result = db.prepare(`DELETE FROM call_logs WHERE id IN (${placeholders})`).run(...ids);
+  let deletedRows = 0;
   let deletedArtifacts = 0;
-  for (const row of rows) {
-    if (deleteCallArtifact(row.artifact_relpath)) {
-      deletedArtifacts++;
+
+  for (let i = 0; i < ids.length; i += DELETE_ID_CHUNK_SIZE) {
+    const chunk = ids.slice(i, i + DELETE_ID_CHUNK_SIZE);
+    const placeholders = chunk.map(() => "?").join(", ");
+    const rows = db
+      .prepare(`SELECT artifact_relpath FROM call_logs WHERE id IN (${placeholders})`)
+      .all(...chunk) as Array<{ artifact_relpath: string | null }>;
+
+    const result = db.prepare(`DELETE FROM call_logs WHERE id IN (${placeholders})`).run(...chunk);
+    deletedRows += result.changes;
+    for (const row of rows) {
+      if (deleteCallArtifact(row.artifact_relpath)) {
+        deletedArtifacts++;
+      }
     }
   }
   cleanupEmptyCallLogDirs();
 
   return {
-    deletedRows: result.changes,
+    deletedRows,
     deletedArtifacts,
   };
 }

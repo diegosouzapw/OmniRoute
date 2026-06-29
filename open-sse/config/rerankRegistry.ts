@@ -71,6 +71,39 @@ export const RERANK_PROVIDERS = {
       { id: "jina-reranker-m0", name: "Jina Reranker m0" },
     ],
   },
+
+  // SiliconFlow rerank is Cohere-compatible (POST /v1/rerank, {model,query,documents}). The
+  // reranker models arrive in /v1/models via live model-sync; without this entry the rerank
+  // router rejected them with "Invalid rerank model" (#5332). Model IDs keep their vendor slash
+  // (e.g. "Qwen/Qwen3-Reranker-8B") — parseRerankModel splits on the FIRST slash, so it's safe.
+  siliconflow: {
+    id: "siliconflow",
+    baseUrl: "https://api.siliconflow.com/v1/rerank",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "Qwen/Qwen3-Reranker-8B", name: "Qwen3 Reranker 8B" },
+      { id: "Qwen/Qwen3-Reranker-4B", name: "Qwen3 Reranker 4B" },
+      { id: "Qwen/Qwen3-Reranker-0.6B", name: "Qwen3 Reranker 0.6B" },
+      { id: "BAAI/bge-reranker-v2-m3", name: "BGE Reranker v2 m3" },
+    ],
+  },
+
+  // DeepInfra rerank is NOT Cohere-shaped: POST /v1/inference/<MODEL> with {queries:[q],documents}
+  // returning {scores:[…]} (one score per document, positional). The `deepinfra` format adapter in
+  // open-sse/handlers/rerank.ts builds the per-model URL and maps scores → Cohere results (#5332).
+  deepinfra: {
+    id: "deepinfra",
+    baseUrl: "https://api.deepinfra.com/v1/inference",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "deepinfra",
+    models: [
+      { id: "Qwen/Qwen3-Reranker-8B", name: "Qwen3 Reranker 8B" },
+      { id: "Qwen/Qwen3-Reranker-4B", name: "Qwen3 Reranker 4B" },
+      { id: "Qwen/Qwen3-Reranker-0.6B", name: "Qwen3 Reranker 0.6B" },
+    ],
+  },
 };
 
 const RERANK_PROVIDER_ALIASES = {

@@ -81,7 +81,11 @@ export function claudeToOpenAIResponse(chunk, state) {
         // immediately before the assistant reply begins — but NOT in tool-use streams
         // where no text_delta ever arrives (#5123).
         if (state.pendingThinkClose) {
-          results.push(createChunk(state, { content: "</think>" }));
+          // Suppressed for clients that render the marker verbatim (#5245);
+          // still clear the flag so it never re-fires later in the stream.
+          if (!state.suppressThinkClose) {
+            results.push(createChunk(state, { content: "</think>" }));
+          }
           state.pendingThinkClose = false;
         }
         results.push(createChunk(state, { content: delta.text }));
@@ -195,7 +199,10 @@ export function claudeToOpenAIResponse(chunk, state) {
         // responses that had no text_delta (edge case: thinking-only with
         // immediate stop) still receive the marker here.
         if (state.pendingThinkClose && state.toolCalls.size === 0) {
-          results.push(createChunk(state, { content: "</think>" }));
+          // Suppressed for clients that render the marker verbatim (#5245).
+          if (!state.suppressThinkClose) {
+            results.push(createChunk(state, { content: "</think>" }));
+          }
           state.pendingThinkClose = false;
         }
         state.finishReason = convertStopReason(chunk.delta.stop_reason);
