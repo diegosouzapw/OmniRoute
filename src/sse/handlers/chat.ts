@@ -238,10 +238,8 @@ export async function handleChat(
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
   }
 
-  // Build clientRawRequest for logging (if not provided). buildClientRawRequest
-  // deep-clones the body itself, so pass `body` directly — pre-cloning here was a
-  // redundant second full-body copy (and pure waste when clientRawRequest is already
-  // provided), inflating per-request heap residency on the hot path (#5152).
+  // buildClientRawRequest already deep-clones the body, so pass `body` directly — the
+  // prior local clone was a redundant second full-body copy on the hot path (#5152).
   if (!clientRawRequest) {
     clientRawRequest = buildClientRawRequest(request, body);
   }
