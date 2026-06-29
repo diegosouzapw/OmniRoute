@@ -70,6 +70,7 @@ import {
   handleNoCredentials,
   safeResolveProxy,
   safeLogEvents,
+  applyExecutorProxyToInfo,
   shouldRetryStreamEarlyEof,
   withSessionHeader,
   withSelectedConnectionHeader,
@@ -1227,6 +1228,9 @@ async function handleSingleModelChat(
         );
       }
       const proxyInfo = await safeResolveProxy(credentials.connectionId, apiKeyInfo?.id);
+      // #5217: sink for the proxy the executor pins internally (e.g. OpencodeExecutor
+      // rotation) so the egress log below reflects the real egress, not "direct".
+      const appliedProxySink: { proxy: unknown } = { proxy: null };
       const proxyStartTime = Date.now();
 
       // 4. Execute chat via core after breaker gate checks (with optional TLS tracking)
@@ -1239,6 +1243,7 @@ async function handleSingleModelChat(
         model: effectiveModel,
         refreshedCredentials,
         proxyInfo,
+        appliedProxySink,
         log,
         clientRawRequest,
         credentials,
@@ -1266,9 +1271,10 @@ async function handleSingleModelChat(
         targetFormat;
 
       // 5. Log proxy + translation events (fire-and-forget; never blocks the response)
+      // #5217: reflect the proxy the executor actually applied (per-account rotation).
       void safeLogEvents({
         result,
-        proxyInfo,
+        proxyInfo: applyExecutorProxyToInfo(proxyInfo, appliedProxySink.proxy),
         proxyLatency,
         provider,
         model,

@@ -28,6 +28,31 @@ function isTlsFingerprintEnabled() {
 type TlsFingerprintStore = { used: boolean };
 const tlsFingerprintContext = new AsyncLocalStorage<TlsFingerprintStore>();
 
+/**
+ * #5217 (Gap-secondary): a mutable sink that records the proxy actually applied
+ * by `runWithProxyContext` for the in-flight request. Executors that pin their
+ * own per-account proxy *internally* (e.g. OpencodeExecutor wraps its dispatch
+ * in `runWithProxyContext(account.proxy, …)`) never propagate that choice back
+ * to the caller's `proxyInfo`, so the post-execution `[ProxyEgress]` line logged
+ * `proxy=direct` even though `[ProxyFetch] Applied request proxy context: …`
+ * fired. Wrapping the execution in `runWithAppliedProxyCapture(sink, fn)` lets
+ * the egress logger read the innermost applied proxy (the last writer wins, which
+ * is the executor's per-account proxy).
+ */
+export type AppliedProxySink = { proxy: unknown };
+const appliedProxyContext = new AsyncLocalStorage<AppliedProxySink>();
+
+/**
+ * Run `fn` with an applied-proxy capture sink in context. Any
+ * `runWithProxyContext` call inside `fn` that ends up applying a proxy records
+ * that proxy config into `sink.proxy` (innermost wins). The sink is a plain
+ * mutable object the caller retains, so it can read `sink.proxy` after `fn`
+ * resolves. Pure plumbing — no behavioral change to the request itself.
+ */
+export function runWithAppliedProxyCapture<T>(sink: AppliedProxySink, fn: () => T): T {
+  return appliedProxyContext.run(sink, fn);
+}
+
 type FetchWithDispatcherOptions = RequestInit & { dispatcher?: unknown };
 type FetchWithDispatcher = (
   input: RequestInfo | URL,
@@ -333,6 +358,14 @@ export async function runWithProxyContext(
       console.log(
         `[ProxyFetch] Applied request proxy context: ${proxyUrlForLogs(resolvedProxyUrl)}`
       );
+    }
+    // #5217: record the proxy actually applied so a post-execution egress logger
+    // reflects the real egress (executors that pin a per-account proxy internally
+    // otherwise leave proxyInfo reading "direct"). Innermost runWithProxyContext
+    // wins, which is exactly the per-account proxy the executor selected.
+    if (effectiveProxyConfig) {
+      const sink = appliedProxyContext.getStore();
+      if (sink) sink.proxy = effectiveProxyConfig;
     }
     return fn();
   });
