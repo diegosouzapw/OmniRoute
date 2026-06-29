@@ -33,9 +33,7 @@ export default function CodexToolCard({
     "gpt-5.5",
     "gpt-5.3-codex",
     "gpt-5.4",
-    "gpt-5.2-codex",
     "gpt-5.1-codex-max",
-    "gpt-5.2",
     "gpt-5.1-codex-mini",
   ];
   const [modelMappings, setModelMappings] = useState<Record<string, string>>({});
