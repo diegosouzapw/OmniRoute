@@ -165,7 +165,7 @@ test("requestTimeout: getProviderTimeout returns provider-specific value", () =>
 // ─── Correlation ID Tests ────────────────────────────
 
 import * as correlationId from "../../src/shared/middleware/correlationId.ts";
-import { getCorrelationId, runWithCorrelation } from "../../src/shared/middleware/correlationId.ts";
+const { getCorrelationId, runWithCorrelation } = correlationId;
 
 test("correlationId: public surface excludes unused wrapper helpers", () => {
   assert.equal(Object.hasOwn(correlationId, "correlationMiddleware"), false);
