@@ -66,6 +66,9 @@ test("MemorySettingsExtendedSchema: rejects invalid embeddingSource value", () =
 test("MemoryUpdatePutSchema: accepts valid partial update (content only)", () => {
   const result = MemoryUpdatePutSchema.safeParse({ content: "updated content" });
   assert.equal(result.success, true, "Should accept partial update with only content");
+  if (result.success) {
+    assert.equal(result.data.content, "updated content");
+  }
 });
 
 test("MemoryUpdatePutSchema: rejects extra field (strict)", () => {

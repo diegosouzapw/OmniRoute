@@ -138,10 +138,5 @@ export const RetrievePreviewResultSchema = z.object({
 });
 
 export type MemorySettingsExtended = z.infer<typeof MemorySettingsExtendedSchema>;
-export type MemoryUpdatePut = z.infer<typeof MemoryUpdatePutSchema>;
-export type RetrievePreview = z.infer<typeof RetrievePreviewSchema>;
-export type MemoryReindex = z.infer<typeof MemoryReindexSchema>;
-export type MemorySummarize = z.infer<typeof MemorySummarizeSchema>;
-export type EmbeddingProviderListings = z.infer<typeof EmbeddingProviderListingSchema>;
 export type MemoryEngineStatus = z.infer<typeof MemoryEngineStatusSchema>;
 export type RetrievePreviewResult = z.infer<typeof RetrievePreviewResultSchema>;
