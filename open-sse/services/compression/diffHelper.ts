@@ -103,6 +103,39 @@ export function buildCompressionDiff(
 }
 
 /**
+ * Walk original-side diff segments (same + removed; skip added) to build a
+ * Set of token indices that survived into the compressed output.
+ */
+function keptIndicesFromSegments(segments: CompressionDiffSegment[]): Set<number> {
+  const keptSet = new Set<number>();
+  let cursor = 0;
+  for (const seg of segments) {
+    if (seg.type === "added") continue;
+    const segLen = tokenize(seg.text).length;
+    if (seg.type === "same") {
+      for (let k = 0; k < segLen; k++) keptSet.add(cursor + k);
+    }
+    cursor += segLen;
+  }
+  return keptSet;
+}
+
+/**
+ * Walk original-side diff segments to build [lo, hi] index ranges for removed spans.
+ */
+function removedRangesFromSegments(segments: CompressionDiffSegment[]): Array<[number, number]> {
+  const ranges: Array<[number, number]> = [];
+  let cursor = 0;
+  for (const seg of segments) {
+    if (seg.type === "added") continue;
+    const segLen = tokenize(seg.text).length;
+    if (seg.type === "removed") ranges.push([cursor, cursor + segLen - 1]);
+    cursor += segLen;
+  }
+  return ranges;
+}
+
+/**
  * Build a per-token saliency heatmap for the original text.
  *
  * ultra: score each token using scoreToken (0–1); kept = token not in a removed-only diff segment.
@@ -116,21 +149,7 @@ function buildHeatmap(
   const rawTokens = tokenize(original);
 
   if (mode === "universal") {
-    // Walk original tokens in parallel with "removed" and "same" segments to determine kept status.
-    // "added" segments have no original counterpart — skip them.
-    const keptSet = new Set<number>();
-    let cursor = 0;
-    for (const seg of segments) {
-      if (seg.type === "added") continue;
-      const segTokens = tokenize(seg.text);
-      if (seg.type === "same") {
-        for (let k = 0; k < segTokens.length; k++) {
-          keptSet.add(cursor + k);
-        }
-      }
-      cursor += segTokens.length;
-    }
-
+    const keptSet = keptIndicesFromSegments(segments);
     return {
       mode,
       tokens: rawTokens.map((text, idx) => {
@@ -141,17 +160,7 @@ function buildHeatmap(
   }
 
   // ultra mode: use scoreToken; kept = not in a purely removed segment position
-  const removedRanges: Array<[number, number]> = [];
-  let cursor = 0;
-  for (const seg of segments) {
-    if (seg.type === "added") continue;
-    const segTokens = tokenize(seg.text);
-    if (seg.type === "removed") {
-      removedRanges.push([cursor, cursor + segTokens.length - 1]);
-    }
-    cursor += segTokens.length;
-  }
-
+  const removedRanges = removedRangesFromSegments(segments);
   return {
     mode,
     tokens: rawTokens.map((text, idx) => {
