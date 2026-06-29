@@ -23,8 +23,7 @@ export const KIRO_UNSUPPORTED_CONTEXT_1M_MESSAGE =
  */
 export function hasUnsupportedKiroContextSuffix(model: unknown): boolean {
   return (
-    typeof model === "string" &&
-    model.toLowerCase().includes(KIRO_UNSUPPORTED_CONTEXT_1M_SUFFIX)
+    typeof model === "string" && model.toLowerCase().includes(KIRO_UNSUPPORTED_CONTEXT_1M_SUFFIX)
   );
 }
 
@@ -412,7 +411,7 @@ function convertMessages(messages, tools, model) {
   } else {
     currentMessage = {
       userInputMessage: {
-        content: "Continue",
+        content: "...",
         modelId: model,
       },
     };
@@ -435,7 +434,7 @@ function convertMessages(messages, tools, model) {
 
   // Fallback: if the schema was never attached to any user turn (e.g. the
   // input contained no user messages and currentMessage is a synthesized
-  // "Continue" turn), attach the provided tools directly to currentMessage so
+  // filler turn), attach the provided tools directly to currentMessage so
   // Kiro still sees the schema it needs to validate assistant.toolUses in
   // history.
   if (
