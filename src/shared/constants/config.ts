@@ -1,21 +1,5 @@
 export { APP_CONFIG, THEME_CONFIG } from "./appConfig";
 
-// Subscription
-export const SUBSCRIPTION_CONFIG = {
-  price: 1.0,
-  currency: "USD",
-  interval: "month",
-  planName: "Pro Plan",
-};
-
-// API endpoints
-export const API_ENDPOINTS = {
-  users: "/api/users",
-  providers: "/api/providers",
-  payments: "/api/payments",
-  auth: "/api/auth",
-};
-
 // Provider API endpoints (for display only)
 export const PROVIDER_ENDPOINTS = {
   agentrouter: "https://agentrouter.org/v1/chat/completions",

@@ -129,21 +129,6 @@ export function getProxyStatusStyle(status) {
 }
 
 /**
- * Get default fallback for a provider color lookup.
- * @param {string} provider - Provider key
- * @returns {{ bg: string, text: string, label: string }}
- */
-export function getProviderColor(provider) {
-  return (
-    PROVIDER_COLORS[provider] || {
-      bg: "#374151",
-      text: "#fff",
-      label: (provider || "-").toUpperCase(),
-    }
-  );
-}
-
-/**
  * Get default fallback for a protocol color lookup.
  * @param {string} protocol - Protocol key
  * @param {string} fallbackProvider - Provider key to use as a secondary protocol key
