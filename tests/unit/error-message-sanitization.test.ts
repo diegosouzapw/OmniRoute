@@ -342,6 +342,21 @@ test("createErrorResult — exposes error code/type on the result object", async
   assert.equal(result.errorType, "timeout");
 });
 
+test("buildModelCooldownBody returns the public cooldown error payload shape", async () => {
+  const { buildModelCooldownBody } = await import("../../open-sse/utils/error.ts");
+  const body = buildModelCooldownBody({ model: "gpt-4o", retryAfterSec: 1.2 });
+
+  assert.deepEqual(body, {
+    error: {
+      message: "All credentials for model gpt-4o are cooling down",
+      type: "rate_limit_error",
+      code: "model_cooldown",
+      model: "gpt-4o",
+      reset_seconds: 2,
+    },
+  });
+});
+
 test("regression: upstream_details never contains stack trace text", async () => {
   const { createErrorResult } = await import("../../open-sse/utils/error.ts");
   const upstream = { error: { message: "err" }, stack: "Error\n    at /abs/path.ts:1:2" };
