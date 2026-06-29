@@ -1,20 +1,20 @@
 ---
 title: "CLI Tools — OmniRoute"
-version: 3.8.31
-lastUpdated: 2026-06-20
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # CLI Tools — OmniRoute
 
-Last updated: 2026-06-20
+Last updated: 2026-06-28
 
 OmniRoute integrates with three categories of CLI tools spread across three dedicated dashboard pages:
 
-| Page | Route | Concept | Count |
-|------|-------|---------|-------|
-| **CLI Code's** | `/dashboard/cli-code` | Coding tools you point at OmniRoute (Client → CLI → OmniRoute → Provider) | 19 |
-| **CLI Agents** | `/dashboard/cli-agents` | Autonomous agents you point at OmniRoute (same flow, broader scope) | 6 |
-| **ACP Agents** | `/dashboard/acp-agents` | CLIs that OmniRoute spawns as backend via stdio/ACP (reverse flow) | see registry |
+| Page           | Route                   | Concept                                                                   | Count        |
+| -------------- | ----------------------- | ------------------------------------------------------------------------- | ------------ |
+| **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at OmniRoute (Client → CLI → OmniRoute → Provider) | 19           |
+| **CLI Agents** | `/dashboard/cli-agents` | Autonomous agents you point at OmniRoute (same flow, broader scope)       | 6            |
+| **ACP Agents** | `/dashboard/acp-agents` | CLIs that OmniRoute spawns as backend via stdio/ACP (reverse flow)        | see registry |
 
 Legacy routes redirect via 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
 
@@ -56,7 +56,6 @@ omniroute setup-codex        omniroute setup-claude       omniroute setup-openco
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
-omniroute setup-gemini
 ```
 
 Each accepts `--remote <url> --api-key <key>` (configure a local tool against a
@@ -78,14 +77,14 @@ The unified catalog lives in `src/shared/constants/cliTools.ts` as `CLI_TOOLS: R
 
 Each entry has these fields (defined in `src/shared/schemas/cliCatalog.ts`):
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `category` | `"code" \| "agent"` | Which page the tool appears on |
-| `vendor` | `string` | Tool origin ("Anthropic", "OSS (P. Gauthier)") |
-| `acpSpawnable` | `boolean` | Also usable as an ACP Agent (badge shown) |
-| `baseUrlSupport` | `"full" \| "partial" \| "none"` | Custom endpoint support level. `"none"` = MITM backlog |
-| `configType` | `"env" \| "custom" \| "guide" \| "custom-builder" \| "mitm"` | Configuration mechanism |
-| `id`, `name`, `color`, `description`, `docsUrl` | standard | Core display fields |
+| Field                                           | Type                                                         | Description                                            |
+| ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------ |
+| `category`                                      | `"code" \| "agent"`                                          | Which page the tool appears on                         |
+| `vendor`                                        | `string`                                                     | Tool origin ("Anthropic", "OSS (P. Gauthier)")         |
+| `acpSpawnable`                                  | `boolean`                                                    | Also usable as an ACP Agent (badge shown)              |
+| `baseUrlSupport`                                | `"full" \| "partial" \| "none"`                              | Custom endpoint support level. `"none"` = MITM backlog |
+| `configType`                                    | `"env" \| "custom" \| "guide" \| "custom-builder" \| "mitm"` | Configuration mechanism                                |
+| `id`, `name`, `color`, `description`, `docsUrl` | standard                                                     | Core display fields                                    |
 
 Entries with `baseUrlSupport: "none"` are **not shown** in the dashboard pages — they are registered in the MITM backlog for plan 11 (see `_tasks/features-v3.8.6/refactorpages/_orchestration/_plan11-mitm-backlog.md`).
 
@@ -111,7 +110,6 @@ Tools that support custom base URL and appear in `/dashboard/cli-code`:
 | opencode | OpenCode | Anomaly (ex-SST) | full | guide | true |
 | droid | Factory Droid | Factory AI | partial | guide | false |
 | copilot | GitHub Copilot CLI | GitHub/MS | full | custom | false |
-| gemini-cli | Gemini CLI | Google | partial | guide | true |
 | cursor-cli | Cursor CLI | Anysphere | partial | guide | true |
 | smelt | Smelt | leonardcser (OSS) | full | custom | false |
 | pi | Pi (pi-coding-agent) | M. Zechner (OSS) | full | custom | false |
@@ -125,14 +123,14 @@ Tools with `baseUrlSupport: "partial"` show a badge "⚠ Base URL parcial" in th
 
 Autonomous agents that appear in `/dashboard/cli-agents`:
 
-| id | name | vendor | baseUrlSupport | acpSpawnable |
-|----|------|--------|---------------|-------------|
-| hermes-agent | Hermes Agent | Nous Research | full | false |
-| openclaw | OpenClaw | OSS (P. Steinberger) | full | true |
-| goose | Goose | Block / Linux Foundation | full | true |
-| interpreter | Open Interpreter | OSS | full | true |
-| warp | Warp AI | Warp Inc. | partial | true |
-| agent-deck | Agent Deck | asheshgoplani (OSS) | full | false |
+| id           | name             | vendor                   | baseUrlSupport | acpSpawnable |
+| ------------ | ---------------- | ------------------------ | -------------- | ------------ |
+| hermes-agent | Hermes Agent     | Nous Research            | full           | false        |
+| openclaw     | OpenClaw         | OSS (P. Steinberger)     | full           | true         |
+| goose        | Goose            | Block / Linux Foundation | full           | true         |
+| interpreter  | Open Interpreter | OSS                      | full           | true         |
+| warp         | Warp AI          | Warp Inc.                | partial        | true         |
+| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | full           | false        |
 
 ---
 
@@ -140,7 +138,6 @@ Autonomous agents that appear in `/dashboard/cli-agents`:
 
 This page (renamed from `/dashboard/agents`) shows CLIs that OmniRoute can **spawn** as backend execution engines via stdio/ACP protocol. The catalog is maintained separately in `src/lib/acp/registry.ts` and is **not** the same as `CLI_TOOLS`.
 
-Current ACP-spawnable CLIs (from `acpSpawnable: true` in `CLI_TOOLS` + ACP registry): codex, claude, goose, gemini-cli, openclaw, aider, opencode, cline, qwen-code, forge, interpreter, cursor-cli, warp.
 
 ---
 
@@ -148,12 +145,12 @@ Current ACP-spawnable CLIs (from `acpSpawnable: true` in `CLI_TOOLS` + ACP regis
 
 The following CLIs do not support custom base URL natively and are **not listed** in CLI Code's or CLI Agents pages. They are candidates for MITM interception in plan 11:
 
-| CLI | Reason |
-|-----|--------|
-| windsurf | BYOK limited to select Claude models + corporate URL/token |
-| amp | Closed ecosystem (Sourcegraph) |
-| amazon-q / kiro-cli | AWS SSO auth, no custom URL |
-| cowork | Anthropic Desktop, no configurable endpoint |
+| CLI                 | Reason                                                     |
+| ------------------- | ---------------------------------------------------------- |
+| windsurf            | BYOK limited to select Claude models + corporate URL/token |
+| amp                 | Closed ecosystem (Sourcegraph)                             |
+| amazon-q / kiro-cli | AWS SSO auth, no custom URL                                |
+| cowork              | Anthropic Desktop, no configurable endpoint                |
 
 See `_tasks/features-v3.8.6/refactorpages/_orchestration/_plan11-mitm-backlog.md` for the full cross-reference.
 
@@ -171,6 +168,7 @@ All tool detection is aggregated via a single endpoint:
 - Cache: in-memory LRU indexed by config file `mtime`. Cache invalidated when mtime changes. Reset on server restart.
 
 Response shape per tool:
+
 ```ts
 interface ToolBatchStatus {
   detection: {
@@ -186,7 +184,7 @@ interface ToolBatchStatus {
     endpoint?: string | null;
     lastConfiguredAt?: string | null;
   };
-  error?: string;  // sanitized, no stack traces
+  error?: string; // sanitized, no stack traces
 }
 ```
 
@@ -196,13 +194,13 @@ interface ToolBatchStatus {
 
 New tools with `configType: "custom"` have dedicated settings API routes:
 
-| Route | Tool |
-|-------|------|
-| `POST /api/cli-tools/forge-settings` | ForgeCode (.forge.toml) |
-| `POST /api/cli-tools/jcode-settings` | jcode (--base-url flag) |
+| Route                                       | Tool                           |
+| ------------------------------------------- | ------------------------------ |
+| `POST /api/cli-tools/forge-settings`        | ForgeCode (.forge.toml)        |
+| `POST /api/cli-tools/jcode-settings`        | jcode (--base-url flag)        |
 | `POST /api/cli-tools/deepseek-tui-settings` | DeepSeek TUI (OPENAI_BASE_URL) |
-| `POST /api/cli-tools/smelt-settings` | Smelt |
-| `POST /api/cli-tools/pi-settings` | Pi coding agent |
+| `POST /api/cli-tools/smelt-settings`        | Smelt                          |
+| `POST /api/cli-tools/pi-settings`           | Pi coding agent                |
 
 All routes use `sanitizeErrorMessage()` for error responses (Hard Rule #12).
 
@@ -211,32 +209,37 @@ All routes use `sanitizeErrorMessage()` for error responses (Hard Rule #12).
 ## 7. Dashboard Pages Architecture
 
 ### CLI Code's (`/dashboard/cli-code`)
+
 - `src/app/(dashboard)/dashboard/cli-code/page.tsx` — server component
 - `src/app/(dashboard)/dashboard/cli-code/CliCodePageClient.tsx` — client grid
 - `src/app/(dashboard)/dashboard/cli-code/[id]/page.tsx` — tool detail page
 - `src/app/(dashboard)/dashboard/cli-code/components/` — 12 specialized tool cards + `ToolDetailClient.tsx`
 
 ### CLI Agents (`/dashboard/cli-agents`)
+
 - `src/app/(dashboard)/dashboard/cli-agents/page.tsx` — server component
 - `src/app/(dashboard)/dashboard/cli-agents/CliAgentsPageClient.tsx` — client grid
 - `src/app/(dashboard)/dashboard/cli-agents/[id]/page.tsx` — reuses `ToolDetailClient`
 
 ### ACP Agents (`/dashboard/acp-agents`)
+
 - `src/app/(dashboard)/dashboard/acp-agents/page.tsx` — server component (moved from `agents/`)
 
 ### Shared UI Components (`src/shared/components/cli/`)
-| File | Purpose |
-|------|---------|
-| `CliToolCard.tsx` | Smart status card (detection + config + endpoint) |
-| `CliConceptCard.tsx` | Per-page concept explanation card |
-| `CliComparisonCard.tsx` | Three-column comparison across CLI types |
-| `BaseUrlSelect.tsx` | Endpoint dropdown (Local/Cloud/Custom) |
-| `ApiKeySelect.tsx` | API key selector |
-| `ManualConfigModal.tsx` | Copiable config snippet modal |
+
+| File                    | Purpose                                           |
+| ----------------------- | ------------------------------------------------- |
+| `CliToolCard.tsx`       | Smart status card (detection + config + endpoint) |
+| `CliConceptCard.tsx`    | Per-page concept explanation card                 |
+| `CliComparisonCard.tsx` | Three-column comparison across CLI types          |
+| `BaseUrlSelect.tsx`     | Endpoint dropdown (Local/Cloud/Custom)            |
+| `ApiKeySelect.tsx`      | API key selector                                  |
+| `ManualConfigModal.tsx` | Copiable config snippet modal                     |
 
 ### Shared Hook (`src/shared/hooks/cli/`)
-| File | Purpose |
-|------|---------|
+
+| File                      | Purpose                                                              |
+| ------------------------- | -------------------------------------------------------------------- |
 | `useToolBatchStatuses.ts` | Fetches `/api/cli-tools/all-statuses`, manages loading/refresh state |
 
 ---
@@ -245,12 +248,12 @@ All routes use `sanitizeErrorMessage()` for error responses (Hard Rule #12).
 
 New namespaces added in plan 14 F9:
 
-| Namespace | Purpose |
-|-----------|---------|
+| Namespace   | Purpose                                                                    |
+| ----------- | -------------------------------------------------------------------------- |
 | `cliCommon` | Shared strings (card labels, concept/comparison texts, detail page labels) |
-| `cliCode` | CLI Code's page strings |
-| `cliAgents` | CLI Agents page strings |
-| `acpAgents` | ACP Agents page strings |
+| `cliCode`   | CLI Code's page strings                                                    |
+| `cliAgents` | CLI Agents page strings                                                    |
+| `acpAgents` | ACP Agents page strings                                                    |
 
 Full PT-BR and EN translations are provided. 39 other locales fall back to EN automatically via namespace-level merge in `src/i18n/request.ts`.
 
@@ -270,7 +273,7 @@ Full PT-BR and EN translations are provided. 39 other locales fall back to EN au
 
 ### Step 2 — Install CLI Tools
 
-All npm-based tools require Node.js 20.20.2+, 22.22.2+ or 24.x:
+All npm-based tools require Node.js 22.22.2+ or 24.x:
 
 ```bash
 # Claude Code (Anthropic)
@@ -598,10 +601,10 @@ omniroute setup --add-provider \
 
 Recognized environment variables for non-interactive setup:
 
-| Var                | Purpose                                                            |
-| ------------------ | ----------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Provider API key (bound to `--api-key` via Commander `.env()`)   |
-| `DATA_DIR`         | Override the OmniRoute data directory                             |
+| Var                 | Purpose                                                        |
+| ------------------- | -------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | Provider API key (bound to `--api-key` via Commander `.env()`) |
+| `DATA_DIR`          | Override the OmniRoute data directory                          |
 
 All other non-interactive inputs are passed as flags, not environment variables:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
@@ -725,12 +728,12 @@ Ollama chat: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070
 
 ## Troubleshooting
 
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `Connection refused` | OmniRoute not running | `omniroute serve` |
-| `401 Unauthorized` | Wrong API key | Check in `/dashboard/api-manager` |
-| `No combo configured` | No active routing combo | Set up in `/dashboard/combos` |
-| CLI shows "not installed" | Binary not in PATH | Check `which <command>` |
-| Dashboard shows "not detected" after install | Cache stale | Click "⟳ Refresh detection" in dashboard |
-| Old link `/dashboard/cli-tools` | Pre-v3.8.6 bookmark | Auto-redirected to `/dashboard/cli-code` (308) |
-| Old link `/dashboard/agents` | Pre-v3.8.6 bookmark | Auto-redirected to `/dashboard/acp-agents` (308) |
+| Error                                        | Cause                   | Fix                                              |
+| -------------------------------------------- | ----------------------- | ------------------------------------------------ |
+| `Connection refused`                         | OmniRoute not running   | `omniroute serve`                                |
+| `401 Unauthorized`                           | Wrong API key           | Check in `/dashboard/api-manager`                |
+| `No combo configured`                        | No active routing combo | Set up in `/dashboard/combos`                    |
+| CLI shows "not installed"                    | Binary not in PATH      | Check `which <command>`                          |
+| Dashboard shows "not detected" after install | Cache stale             | Click "⟳ Refresh detection" in dashboard         |
+| Old link `/dashboard/cli-tools`              | Pre-v3.8.6 bookmark     | Auto-redirected to `/dashboard/cli-code` (308)   |
+| Old link `/dashboard/agents`                 | Pre-v3.8.6 bookmark     | Auto-redirected to `/dashboard/acp-agents` (308) |

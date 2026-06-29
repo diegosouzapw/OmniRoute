@@ -508,7 +508,7 @@ export class DefaultExecutor extends BaseExecutor {
           // Use registry authHeader if available, otherwise default to bearer
           const entry = getRegistryEntry(this.provider);
           const authHeader = entry?.authHeader || "bearer";
-          const token = effectiveKey || credentials.accessToken;
+          const token = effectiveKey || credentials.accessToken || entry?.anonymousApiKey;
           if (token) {
             if (authHeader === "x-api-key") {
               headers["x-api-key"] = token;

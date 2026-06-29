@@ -58,9 +58,6 @@ import {
 
 // Quota / usage upstream URLs (overridable for testing or relays).
 const CROF_USAGE_URL = process.env.OMNIROUTE_CROF_USAGE_URL ?? "https://crof.ai/usage_api/";
-const GEMINI_CLI_USAGE_URL =
-  process.env.OMNIROUTE_GEMINI_CLI_USAGE_URL ??
-  "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist";
 const CODEWHISPERER_BASE_URL =
   process.env.OMNIROUTE_CODEWHISPERER_BASE_URL ?? "https://codewhisperer.us-east-1.amazonaws.com";
 
@@ -97,7 +94,7 @@ const CURSOR_USAGE_CONFIG = {
   origin: "https://cursor.com",
   referer: "https://cursor.com/dashboard/spending",
   userAgent:
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
 };
 
 type JsonRecord = Record<string, unknown>;
@@ -109,10 +106,6 @@ type UsageProviderConnection = JsonRecord & {
   providerSpecificData?: JsonRecord;
   projectId?: string;
   email?: string;
-};
-type SubscriptionCacheEntry = {
-  data: unknown;
-  fetchedAt: number;
 };
 
 function shouldDisplayGitHubQuota(quota: UsageQuota | null): quota is UsageQuota {
@@ -698,7 +691,6 @@ async function getCursorUsage(accessToken: string, providerSpecificData?: unknow
  */
 export const USAGE_FETCHER_PROVIDERS = [
   "github",
-  "gemini-cli",
   "antigravity",
   "agy",
   "claude",
@@ -745,8 +737,6 @@ export async function getUsageForProvider(
   switch (provider) {
     case "github":
       return await getGitHubUsage(accessToken, providerSpecificData);
-    case "gemini-cli":
-      return await getGeminiUsage(accessToken, providerSpecificData, projectId);
     case "antigravity":
     case "agy":
       return await getAntigravityUsage(
@@ -1020,187 +1010,6 @@ function inferGitHubPlanName(data: JsonRecord, premiumQuota: UsageQuota | null):
   }
   return "GitHub Copilot";
 }
-
-// ── Gemini CLI subscription info cache ──────────────────────────────────────
-// Prevents duplicate loadCodeAssist calls within the same quota cycle.
-// Key: accessToken → { data, fetchedAt }
-const _geminiCliSubCache = new Map<string, SubscriptionCacheEntry>();
-const GEMINI_CLI_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-
-/**
- * Normalize a Cloud Code project value into a trimmed string (or null).
- * The upstream `loadCodeAssist` endpoint returns the project either as a bare
- * string or as an object of the form `{ id: "..." }`, and stored connection
- * project ids can carry stray whitespace. Centralized here so the Gemini CLI
- * usage path matches the executor/oauth normalization already shipped in
- * `open-sse/executors/gemini-cli.ts` and `src/lib/oauth/services/gemini.ts`.
- */
-function normalizeCloudCodeProjectId(project: unknown): string | null {
-  if (typeof project === "string") return project.trim() || null;
-  if (project && typeof project === "object") {
-    const candidate = (project as { id?: unknown }).id;
-    if (typeof candidate === "string") return candidate.trim() || null;
-  }
-  return null;
-}
-
-/**
- * Gemini CLI Usage — fetch per-model quota from Cloud Code Assist API.
- * Gemini CLI and Antigravity share the same upstream (cloudcode-pa.googleapis.com),
- * so this follows the same pattern as getAntigravityUsage().
- */
-async function getGeminiUsage(
-  accessToken?: string,
-  providerSpecificData?: JsonRecord,
-  connectionProjectId?: string
-) {
-  if (!accessToken) {
-    return { plan: "Free", message: "Gemini CLI access token not available." };
-  }
-
-  try {
-    // #1271: the OAuth save path stores `projectId` on the connection (not always in
-    // `providerSpecificData`), and `loadCodeAssist` may return the project either as a
-    // bare string or wrapped in `{ id: "..." }`. Normalize both so the quota lookup
-    // reuses the stored project id and skips a redundant `loadCodeAssist` round-trip
-    // when it is already known.
-    let projectId =
-      normalizeCloudCodeProjectId(connectionProjectId) ||
-      normalizeCloudCodeProjectId(providerSpecificData?.projectId);
-    let plan = "Free";
-
-    if (!projectId) {
-      const subscriptionInfo = await getGeminiCliSubscriptionInfoCached(accessToken);
-      projectId = normalizeCloudCodeProjectId(toRecord(subscriptionInfo).cloudaicompanionProject);
-      plan = getGeminiCliPlanLabel(subscriptionInfo);
-    }
-
-    if (!projectId) {
-      return {
-        plan,
-        message:
-          "Gemini CLI project ID not available. Reconnect Gemini CLI, or configure a Google Cloud project with Gemini Code Assist access before checking quota.",
-      };
-    }
-
-    // Use retrieveUserQuota (same endpoint as Gemini CLI /stats command).
-    // Returns per-model buckets with remainingFraction and resetTime.
-    const response = await fetch(
-      "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ project: projectId }),
-        signal: AbortSignal.timeout(10000),
-      }
-    );
-
-    if (!response.ok) {
-      return { plan, message: `Gemini CLI quota error (${response.status}).` };
-    }
-
-    const data = await response.json();
-    const quotas: Record<string, UsageQuota> = {};
-
-    const dataRecord = toRecord(data);
-    if (Array.isArray(dataRecord.buckets)) {
-      for (const bucketValue of dataRecord.buckets) {
-        const bucket = toRecord(bucketValue);
-        if (!bucket.modelId || bucket.remainingFraction == null) continue;
-
-        const remainingFraction = toNumber(bucket.remainingFraction, 0);
-        const remainingPercentage = remainingFraction * 100;
-        const QUOTA_NORMALIZED_BASE = 1000;
-        const total = QUOTA_NORMALIZED_BASE;
-        const remaining = Math.round(total * remainingFraction);
-        const used = Math.max(0, total - remaining);
-
-        quotas[String(bucket.modelId)] = {
-          used,
-          total,
-          resetAt: parseResetTime(bucket.resetTime),
-          remainingPercentage,
-          unlimited: false,
-        };
-      }
-    }
-
-    return { plan, quotas };
-  } catch (error) {
-    return { message: `Gemini CLI error: ${(error as Error).message}` };
-  }
-}
-
-/**
- * Get Gemini CLI subscription info (cached, 5 min TTL)
- */
-async function getGeminiCliSubscriptionInfoCached(accessToken: string): Promise<unknown> {
-  const cacheKey = accessToken;
-  const cached = _geminiCliSubCache.get(cacheKey);
-
-  if (cached && Date.now() - cached.fetchedAt < GEMINI_CLI_CACHE_TTL_MS) {
-    return cached.data;
-  }
-
-  const data = await getGeminiCliSubscriptionInfo(accessToken);
-  _geminiCliSubCache.set(cacheKey, { data, fetchedAt: Date.now() });
-  return data;
-}
-
-/**
- * Get Gemini CLI subscription info using correct headers.
- */
-async function getGeminiCliSubscriptionInfo(accessToken: string): Promise<unknown | null> {
-  try {
-    const response = await fetch(GEMINI_CLI_USAGE_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        metadata: {
-          ideType: "IDE_UNSPECIFIED",
-          platform: "PLATFORM_UNSPECIFIED",
-          pluginType: "GEMINI",
-        },
-      }),
-    });
-
-    if (!response.ok) return null;
-
-    return await response.json();
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Map Gemini CLI subscription tier to display label (same tiers as Antigravity).
- */
-function getGeminiCliPlanLabel(subscriptionInfo: unknown): string {
-  return mapCodeAssistSubscriptionToPlanLabel(subscriptionInfo);
-}
-
-// ── Antigravity subscription info cache ──────────────────────────────────────
-// ── Proactive TTL purging for the Gemini CLI subscription cache ────────────
-// Passive TTL evicts on read; this interval proactively purges stale entries so
-// keys accessed once and never again don't leak memory. The Antigravity caches
-// + their own purge timer were split out into ./usage/antigravity.ts (god-file
-// decomposition), so each module now owns its caches and their cleanup.
-const _geminiCacheCleanupTimer = setInterval(
-  () => {
-    const now = Date.now();
-    for (const [key, entry] of _geminiCliSubCache) {
-      if (now - entry.fetchedAt > GEMINI_CLI_CACHE_TTL_MS) _geminiCliSubCache.delete(key);
-    }
-  },
-  5 * 60 * 1000
-); // every 5 minutes
-_geminiCacheCleanupTimer.unref?.(); // Don't prevent process exit
 
 /**
  * Claude Usage - Try to fetch from Anthropic API
@@ -1886,7 +1695,6 @@ export const __testing = {
   parseResetTime,
   formatGitHubQuotaSnapshot,
   inferGitHubPlanName,
-  getGeminiCliPlanLabel,
   getAntigravityPlanLabel,
   extractCodeAssistSubscriptionTier,
   extractCodeAssistOnboardTierId,

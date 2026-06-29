@@ -85,10 +85,7 @@ test("extracts an /api path from inline code and strips trailing prose punctuati
 
 test("keeps balanced [param] / {param} segments intact", () => {
   const md = "DELETE | `/api/shadow/[id]` | and `/api/tools/agent-bridge/agents/{id}/state`";
-  assert.deepEqual(extract(md), [
-    "/api/shadow/[id]",
-    "/api/tools/agent-bridge/agents/{id}/state",
-  ]);
+  assert.deepEqual(extract(md), ["/api/shadow/[id]", "/api/tools/agent-bridge/agents/{id}/state"]);
 });
 
 test("does NOT capture a source-file path tail (src/lib/api/..., @/app/api/...)", () => {
@@ -164,10 +161,10 @@ test("KNOWN_STALE_DOC_REFS is a frozen, documented allowlist (non-empty)", () =>
   for (const p of allowlist) assert.match(p, /^\/api\//);
 });
 
-// NOTE: the gate currently exits 1 due to 2 pre-existing failures in
-// docs/research/compression/ that are NOT in the allowlist (intentional — those docs
-// reference planned routes not yet implemented). The integration smoke is skipped to
-// avoid false failures from those pre-existing issues.
+// NOTE: the compression research docs that used to live in docs/research/compression/
+// moved to the isolated, gitignored _tasks/research/compression/ repo, so the gate no
+// longer scans them. The integration smoke stays skipped to keep this unit suite hermetic
+// (it asserts the pure helpers, not the live filesystem walk).
 
 // --- stale-allowlist enforcement (6A.3) ---
 

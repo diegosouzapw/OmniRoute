@@ -31,7 +31,7 @@
         "Anthropic-Dangerous-Direct-Browser-Access": "true",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.187 (external, cli)",
+        "User-Agent": "claude-cli/2.1.195 (external, cli)",
         "X-App": "cli",
         "X-Stainless-Arch": "x64",
         "X-Stainless-Helper-Method": "stream",
@@ -49,7 +49,7 @@
         "Anthropic-Dangerous-Direct-Browser-Access": "true",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.187 (external, cli)",
+        "User-Agent": "claude-cli/2.1.195 (external, cli)",
         "X-App": "cli",
         "X-Stainless-Arch": "x64",
         "X-Stainless-Helper-Method": "stream",
@@ -68,7 +68,7 @@
         "Anthropic-Dangerous-Direct-Browser-Access": "true",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.187 (external, cli)",
+        "User-Agent": "claude-cli/2.1.195 (external, cli)",
         "X-App": "cli",
         "X-Stainless-Arch": "x64",
         "X-Stainless-Helper-Method": "stream",
@@ -94,18 +94,18 @@
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/132.0.6834.160 Electron/39.2.3"
+        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/132.0.6834.160 Electron/39.2.3"
+        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
       },
       "oauth": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/132.0.6834.160 Electron/39.2.3"
+        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
       }
     },
     "url": {
@@ -241,18 +241,18 @@
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/132.0.6834.160 Electron/39.2.3"
+        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/132.0.6834.160 Electron/39.2.3"
+        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
       },
       "oauth": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/132.0.6834.160 Electron/39.2.3"
+        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
       }
     },
     "url": {
@@ -643,7 +643,7 @@
         "Anthropic-Dangerous-Direct-Browser-Access": "true",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.187 (external, cli)",
+        "User-Agent": "claude-cli/2.1.195 (external, cli)",
         "X-App": "cli",
         "X-Stainless-Arch": "x64",
         "X-Stainless-Helper-Method": "stream",
@@ -661,7 +661,7 @@
         "Anthropic-Dangerous-Direct-Browser-Access": "true",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.187 (external, cli)",
+        "User-Agent": "claude-cli/2.1.195 (external, cli)",
         "X-App": "cli",
         "X-Stainless-Arch": "x64",
         "X-Stainless-Helper-Method": "stream",
@@ -680,7 +680,7 @@
         "Anthropic-Dangerous-Direct-Browser-Access": "true",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.187 (external, cli)",
+        "User-Agent": "claude-cli/2.1.195 (external, cli)",
         "X-App": "cli",
         "X-Stainless-Arch": "x64",
         "X-Stainless-Helper-Method": "stream",
@@ -1016,14 +1016,14 @@
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/connect+proto",
-        "User-Agent": "Cursor/3.3",
+        "User-Agent": "Cursor/3.9",
         "connect-accept-encoding": "gzip",
         "connect-protocol-version": "1"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/connect+proto",
-        "User-Agent": "Cursor/3.3",
+        "User-Agent": "Cursor/3.9",
         "connect-accept-encoding": "gzip",
         "connect-protocol-version": "1"
       },
@@ -1031,7 +1031,7 @@
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/connect+proto",
-        "User-Agent": "Cursor/3.3",
+        "User-Agent": "Cursor/3.9",
         "connect-accept-encoding": "gzip",
         "connect-protocol-version": "1"
       }
@@ -1478,29 +1478,6 @@
       "stream": "https://generativelanguage.googleapis.com/v1beta/models/test-model:streamGenerateContent?alt=sse"
     }
   },
-  "gemini-cli": {
-    "format": "gemini-cli",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Content-Type": "application/json",
-        "x-goog-api-key": "<CRED>"
-      },
-      "nonStream": {
-        "Content-Type": "application/json",
-        "x-goog-api-key": "<CRED>"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      }
-    },
-    "url": {
-      "nonStream": "https://cloudcode-pa.googleapis.com/v1internal:generateContent",
-      "stream": "https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse"
-    }
-  },
   "gemini-web": {
     "format": "openai",
     "headers": {
@@ -1556,11 +1533,11 @@
         "Content-Type": "application/json",
         "X-Initiator": "user",
         "copilot-integration-id": "vscode-chat",
-        "editor-plugin-version": "copilot-chat/0.45.1",
-        "editor-version": "vscode/1.117.0",
+        "editor-plugin-version": "copilot-chat/0.54.0",
+        "editor-version": "vscode/1.126.0",
         "openai-intent": "conversation-panel",
-        "user-agent": "GitHubCopilotChat/0.45.1",
-        "x-github-api-version": "2025-04-01",
+        "user-agent": "GitHubCopilotChat/0.54.0",
+        "x-github-api-version": "2026-06-01",
         "x-request-id": "<UUID>",
         "x-vscode-user-agent-library-version": "electron-fetch"
       },
@@ -1570,11 +1547,11 @@
         "Content-Type": "application/json",
         "X-Initiator": "user",
         "copilot-integration-id": "vscode-chat",
-        "editor-plugin-version": "copilot-chat/0.45.1",
-        "editor-version": "vscode/1.117.0",
+        "editor-plugin-version": "copilot-chat/0.54.0",
+        "editor-version": "vscode/1.126.0",
         "openai-intent": "conversation-panel",
-        "user-agent": "GitHubCopilotChat/0.45.1",
-        "x-github-api-version": "2025-04-01",
+        "user-agent": "GitHubCopilotChat/0.54.0",
+        "x-github-api-version": "2026-06-01",
         "x-request-id": "<UUID>",
         "x-vscode-user-agent-library-version": "electron-fetch"
       },
@@ -1584,11 +1561,11 @@
         "Content-Type": "application/json",
         "X-Initiator": "user",
         "copilot-integration-id": "vscode-chat",
-        "editor-plugin-version": "copilot-chat/0.45.1",
-        "editor-version": "vscode/1.117.0",
+        "editor-plugin-version": "copilot-chat/0.54.0",
+        "editor-version": "vscode/1.126.0",
         "openai-intent": "conversation-panel",
-        "user-agent": "GitHubCopilotChat/0.45.1",
-        "x-github-api-version": "2025-04-01",
+        "user-agent": "GitHubCopilotChat/0.54.0",
+        "x-github-api-version": "2026-06-01",
         "x-request-id": "<UUID>",
         "x-vscode-user-agent-library-version": "electron-fetch"
       }
@@ -2178,16 +2155,19 @@
       "apiKey": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-KILOCODE-EDITORNAME": "OmniRoute"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-KILOCODE-EDITORNAME": "OmniRoute"
       },
       "oauth": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-KILOCODE-EDITORNAME": "OmniRoute"
       }
     },
     "url": {
@@ -3369,10 +3349,10 @@
         "Connection": "keep-alive",
         "Content-Type": "application/json",
         "Sec-Fetch-Mode": "cors",
-        "User-Agent": "QwenCode/0.15.9 (linux; x64)",
+        "User-Agent": "QwenCode/0.19.3 (linux; x64)",
         "X-Dashscope-AuthType": "qwen-oauth",
         "X-Dashscope-CacheControl": "enable",
-        "X-Dashscope-UserAgent": "QwenCode/0.15.9 (linux; x64)",
+        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (linux; x64)",
         "X-Stainless-Arch": "x64",
         "X-Stainless-Lang": "js",
         "X-Stainless-Os": "Linux",
@@ -3387,10 +3367,10 @@
         "Connection": "keep-alive",
         "Content-Type": "application/json",
         "Sec-Fetch-Mode": "cors",
-        "User-Agent": "QwenCode/0.15.9 (linux; x64)",
+        "User-Agent": "QwenCode/0.19.3 (linux; x64)",
         "X-Dashscope-AuthType": "qwen-oauth",
         "X-Dashscope-CacheControl": "enable",
-        "X-Dashscope-UserAgent": "QwenCode/0.15.9 (linux; x64)",
+        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (linux; x64)",
         "X-Stainless-Arch": "x64",
         "X-Stainless-Lang": "js",
         "X-Stainless-Os": "Linux",
@@ -3406,10 +3386,10 @@
         "Connection": "keep-alive",
         "Content-Type": "application/json",
         "Sec-Fetch-Mode": "cors",
-        "User-Agent": "QwenCode/0.15.9 (linux; x64)",
+        "User-Agent": "QwenCode/0.19.3 (linux; x64)",
         "X-Dashscope-AuthType": "qwen-oauth",
         "X-Dashscope-CacheControl": "enable",
-        "X-Dashscope-UserAgent": "QwenCode/0.15.9 (linux; x64)",
+        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (linux; x64)",
         "X-Stainless-Arch": "x64",
         "X-Stainless-Lang": "js",
         "X-Stainless-Os": "Linux",

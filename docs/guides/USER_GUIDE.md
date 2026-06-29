@@ -1,7 +1,7 @@
 ---
 title: "User Guide"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # User Guide
@@ -39,7 +39,6 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 | ------------------- | ----------------- | ----------- | ---------------- | -------------------- |
 | **💳 SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly      | Already subscribed   |
 |                     | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly      | OpenAI users         |
-|                     | Gemini CLI        | **FREE**    | 180K/mo + 1K/day | Everyone!            |
 |                     | GitHub Copilot    | $10-19/mo   | Monthly          | GitHub users         |
 | **🔑 API KEY**      | DeepSeek          | Pay per use | None             | Cheap reasoning      |
 |                     | Groq              | Pay per use | None             | Ultra-fast inference |
@@ -59,7 +58,6 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 |                     | Qwen              | $0          | Unlimited        | 3 models free        |
 |                     | Kiro              | $0          | ~50 credits/mo   | Claude free          |
 
-**💡 Pro Tip:** Start with Gemini CLI (180K free/month) + Qoder (unlimited free) combo = $0 cost!
 
 ---
 
@@ -85,9 +83,8 @@ vs. $20 + hitting limits = frustration
 
 ```
 Combo: "free-forever"
-  1. gemini-cli/gemini-3-flash-preview  (180K free/month)
-  2. if/kimi-k2       (unlimited free)
-  3. qw/qwen3-coder-plus       (unlimited free)
+  1. if/kimi-k2       (unlimited free)
+  2. qw/qwen3-coder-plus       (unlimited free)
 
 Monthly cost: $0
 Quality: Production-ready models
@@ -162,20 +159,6 @@ Models:
   cx/gpt-5.3-codex-spark
 ```
 
-#### Gemini CLI (FREE 180K/month!)
-
-```bash
-Dashboard → Providers → Connect Gemini CLI
-→ Google OAuth
-→ 180K completions/month + 1K/day
-
-Models:
-  gemini-cli/gemini-3.1-pro-preview
-  gemini-cli/gemini-3-flash-preview
-  gemini-cli/gemini-3.1-flash-lite-preview
-```
-
-**Best Value:** Huge free tier! Use this before paid tiers.
 
 #### GitHub Copilot
 
@@ -270,9 +253,8 @@ Use in CLI: premium-coding
 ```
 Name: free-combo
 Models:
-  1. gemini-cli/gemini-3-flash-preview (180K free/month)
-  2. if/kimi-k2 (unlimited)
-  3. qw/coder-model (unlimited)
+  1. if/kimi-k2 (unlimited)
+  2. qw/coder-model (unlimited)
 
 Cost: $0 forever!
 ```
@@ -590,7 +572,6 @@ For the full environment variable reference, see the [README](../README.md).
 
 **Codex (`cx/`)** — Plus/Pro OAuth: `cx/gpt-5.5` (+ effort tiers: `gpt-5.5-xhigh`, `gpt-5.5-high`, `gpt-5.5-medium`, `gpt-5.5-low`), `cx/gpt-5.4`, `cx/gpt-5.4-mini`, `cx/gpt-5.3-codex`, `cx/gpt-5.3-codex-spark`, `cx/gpt-5.2`
 
-**Gemini CLI (`gemini-cli/`)** — FREE OAuth: `gemini-cli/gemini-3.1-pro-preview`, `gemini-cli/gemini-3.1-pro-preview-customtools`, `gemini-cli/gemini-3-flash-preview`, `gemini-cli/gemini-3.1-flash-lite-preview`
 
 **GitHub Copilot (`gh/`)** — OAuth: `gh/gpt-5.5`, `gh/gpt-5.4`, `gh/gpt-5.4-mini`, `gh/gpt-5-mini`, `gh/gpt-5.3-codex`, `gh/claude-opus-4.7`, `gh/claude-opus-4.6`, `gh/claude-opus-4-5-20251101`, `gh/claude-sonnet-4.6`, `gh/claude-sonnet-4.5`, `gh/claude-haiku-4.5`, `gh/gemini-3.1-pro-preview`, `gh/gemini-3-flash-preview`, `gh/oswe-vscode-prime`
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# bin/cold-start-bench.sh — measure OmniRoute cold-start against the budgets in
-# docs/PERF_BUDGETS.md §5 (container start → HTTP listening ≤ 800 ms; first warm
+# bin/cold-start-bench.sh — measure OmniRoute cold-start against the target
+# budgets (container start → HTTP listening ≤ 800 ms; first warm
 # TTFB ≤ 200 ms). Boots the server on a throwaway port, times until
 # /api/health/ping answers 200, measures a warm request, and reports PASS/FAIL.
 set -euo pipefail
@@ -13,7 +13,7 @@ Usage: bin/cold-start-bench.sh [--port <n>] [--start-cmd "<cmd>"] [--url <base>]
                                [--listen-budget-ms <n>] [--ttfb-budget-ms <n>] [-h|--help]
 
 Boots OmniRoute, times cold-start to the first /api/health/ping 200, measures
-warm TTFB, and compares against the PERF_BUDGETS.md §5 budgets
+warm TTFB, and compares against the cold-start budgets
 (listen ≤ 800 ms, TTFB ≤ 200 ms). Exits non-zero if a budget is exceeded.
 
 --url benches an already-running server instead of booting one (skips the boot

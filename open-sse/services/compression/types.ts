@@ -12,6 +12,9 @@
 import { ENGINE_IDS } from "./engineCatalog.ts";
 import type { ContextBudgetConfig } from "./adaptiveCompression/types.ts";
 import type { FidelityGateConfig } from "./fidelityGate.ts";
+import type { RiskGateConfig } from "./riskGate/riskGate.ts";
+import type { RiskGateStats } from "./riskGate/riskGateStep.ts";
+import type { QuantumLockConfig, QuantumLockStats } from "./quantumLock/quantumPatterns.ts";
 
 // Re-export so consumers that already import from this module (e.g. src/lib/db/compression.ts)
 // can get ENGINE_IDS without a second bare `@omniroute/open-sse/...engineCatalog.ts` specifier.
@@ -101,6 +104,10 @@ export interface RtkConfig {
   stripCodeComments?: boolean;
   /** R1/N3: keep JSDoc/docstring block comments when removing comments. Default: true. */
   preserveDocstrings?: boolean;
+  /** #10: semantic command-output renderers (default off) */
+  enableRenderers?: boolean;
+  /** #10: whitelist por command-type; vazio/undefined = todos */
+  renderers?: string[];
 }
 
 export interface CompressionLanguageConfig {
@@ -142,8 +149,12 @@ export interface CompressionConfig {
   comboOverrides: Record<string, CompressionMode>;
   compressionComboId?: string | null;
   stackedPipeline?: CompressionPipelineStep[];
+  /** Opt-in QuantumLock cache-prefix stabilization (default off). */
+  quantumLock?: QuantumLockConfig;
   /** Opt-in per-step fidelity gate (default disabled). */
   fidelityGate?: FidelityGateConfig;
+  /** Opt-in risk-gate pre-pass: shields sensitive spans from compression (default disabled). */
+  riskGate?: RiskGateConfig;
   cavemanConfig?: CavemanConfig;
   cavemanOutputMode?: CavemanOutputModeConfig;
   /** Phase 4A: selected output styles (supersedes cavemanOutputMode via a back-compat shim). */
@@ -200,6 +211,7 @@ export interface CompressionStats {
   validationWarnings?: string[];
   validationErrors?: string[];
   fallbackApplied?: boolean;
+  riskGate?: RiskGateStats;
   /**
    * Phase 4 (B): which `ultra` tier actually ran for this request.
    * "slm" — Tier-B ran and produced the output.
@@ -238,6 +250,8 @@ export interface CompressionStats {
     rejected?: boolean;
     rejectReason?: string;
   }>;
+  /** Present only when QuantumLock stabilized ≥1 fragment this run. */
+  quantumLock?: QuantumLockStats;
 }
 
 export interface CompressionResult {
@@ -309,6 +323,7 @@ export const DEFAULT_RTK_CONFIG: RtkConfig = {
   groupingThreshold: 3,
   stripCodeComments: false,
   preserveDocstrings: true,
+  enableRenderers: false,
 };
 
 export const DEFAULT_COMPRESSION_LANGUAGE_CONFIG: CompressionLanguageConfig = {

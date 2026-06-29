@@ -74,7 +74,7 @@ test("guide-settings POST creates new qwen settings.json if it doesn't exist", a
   const req = await buildRequest({
     baseUrl: "http://my-omni",
     apiKey: "sk-123",
-    model: "gemini-cli/gemini-3.1-pro-preview",
+    model: "qwen/qwen3-coder-plus",
   });
   const response = (await guideSettingsRoute.POST(req, { params: { toolId: "qwen" } })) as Response;
   const data = (await response.json()) as any;
@@ -87,7 +87,7 @@ test("guide-settings POST creates new qwen settings.json if it doesn't exist", a
   assert.equal(content.security?.auth?.selectedType, "openai");
   assert.ok(content.security?.auth?.apiKey.startsWith("sk-"));
   assert.equal(content.security?.auth?.baseUrl, "http://my-omni");
-  assert.equal(content.model?.name, "gemini-cli/gemini-3.1-pro-preview");
+  assert.equal(content.model?.name, "qwen/qwen3-coder-plus");
 });
 
 test("guide-settings POST creates new hermes config.yaml if it doesn't exist", async () => {

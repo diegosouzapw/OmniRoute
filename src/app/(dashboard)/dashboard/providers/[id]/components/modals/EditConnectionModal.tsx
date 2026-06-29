@@ -164,9 +164,8 @@ export default function EditConnectionModal({
   const setOpenRouterPreset = openRouterPreset.setValue;
   const isCodex = provider === "codex";
   const isClaude = provider === "claude";
-  const isGeminiCli = provider === "gemini-cli";
   const isAntigravity = provider === "antigravity";
-  const supportsGoogleProjectId = isGeminiCli || isAntigravity;
+  const supportsGoogleProjectId = isAntigravity;
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = provider === "google-pse-search";
@@ -703,15 +702,11 @@ export default function EditConnectionModal({
               />
             )}
             <Input
-              label={isAntigravity ? t("antigravityProjectIdLabel") : t("geminiCliProjectIdLabel")}
+              label={t("antigravityProjectIdLabel")}
               value={formData.cloudCodeProjectId}
               onChange={(e) => setFormData({ ...formData, cloudCodeProjectId: e.target.value })}
-              placeholder={
-                isAntigravity
-                  ? t("antigravityProjectIdPlaceholder")
-                  : t("geminiCliProjectIdPlaceholder")
-              }
-              hint={isAntigravity ? t("antigravityProjectIdHint") : t("geminiCliProjectIdHint")}
+              placeholder={t("antigravityProjectIdPlaceholder")}
+              hint={t("antigravityProjectIdHint")}
               className="font-mono text-xs"
             />
           </div>

@@ -23,12 +23,8 @@ const vscodeV1ModelsRoute = await import("../../src/app/api/v1/vscode/[token]/v1
 const vscodeVersionRoute = await import("../../src/app/api/v1/vscode/[token]/api/version/route.ts");
 const vscodeShowRoute = await import("../../src/app/api/v1/vscode/[token]/api/show/route.ts");
 const vscodeTagsRoute = await import("../../src/app/api/v1/vscode/[token]/api/tags/route.ts");
-const vscodeV1ChatCompletionsRoute = await import(
-  "../../src/app/api/v1/vscode/[token]/v1/chat/completions/route.ts"
-);
-const vscodeChatCompletionsRoute = await import(
-  "../../src/app/api/v1/vscode/[token]/chat/completions/route.ts"
-);
+const vscodeV1ChatCompletionsRoute = await import("../../src/app/api/v1/vscode/[token]/v1/chat/completions/route.ts");
+const vscodeChatCompletionsRoute = await import("../../src/app/api/v1/vscode/[token]/chat/completions/route.ts");
 const vscodeResponsesRoute = await import("../../src/app/api/v1/vscode/[token]/responses/route.ts");
 const serviceTierVariants = await import("../../src/app/api/v1/vscode/[token]/serviceTierVariants.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
@@ -637,7 +633,7 @@ test("vscode tokenized models route prefixes the provider without duplicating br
     password: "hashed-password",
     requireAuthForModels: true,
   });
-  await seedConnection("gemini-cli", { name: "gemini-cli-vscode-models-labels" });
+  await seedConnection("gemini", { name: "gemini-vscode-models-labels" });
   const key = await apiKeysDb.createApiKey(
     "vscode-models-provider-prefix",
     "machine-vscode-models-provider-prefix"
@@ -647,10 +643,10 @@ test("vscode tokenized models route prefixes the provider without duplicating br
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/models`)
   );
   const body = (await response.json()) as any;
-  const model = (body.data || []).find((entry: any) => entry.id === "gemini-cli/gemini-1.5-pro");
+  const model = (body.data || []).find((entry: any) => entry.id === "gemini/gemini-1.5-pro");
 
   assert.equal(response.status, 200);
-  assert.ok(model, "missing gemini-cli/gemini-1.5-pro in tokenized VS Code models route");
+  assert.ok(model, "missing gemini/gemini-1.5-pro in tokenized VS Code models route");
   assert.equal(model.name, "Gemini 1.5 Pro");
 });
 
@@ -754,12 +750,8 @@ test("vscode tokenized tags route only exposes usable canonical chat models", as
   assert.equal(modelsResponse.status, 200);
   assert.equal(rawModelsResponse.status, 200);
 
-  const catalogById = new Map(
-    (modelsBody.data || []).map((model: any) => [model.id, model])
-  );
-  const rawCatalogById = new Map(
-    (rawModelsBody.data || []).map((model: any) => [model.id, model])
-  );
+  const catalogById = new Map((modelsBody.data || []).map((model: any) => [model.id, model]));
+  const rawCatalogById = new Map((rawModelsBody.data || []).map((model: any) => [model.id, model]));
   type CatalogLike = {
     parent?: string | null;
     type?: string;
@@ -1056,10 +1048,7 @@ test("vscode tokenized api/show route exposes explicit reasoning effort metadata
   assert.equal(body.model_info["codex.context_length"], 200000);
   assert.deepEqual(body.model_info.supports_reasoning_effort, ["none", "low", "medium", "high", "xhigh"]);
   assert.equal(body.model_info.selected_reasoning_effort, "none");
-  assert.deepEqual(
-    body.model_info.capabilities.supports_reasoning_effort,
-    ["none", "low", "medium", "high", "xhigh"]
-  );
+  assert.deepEqual(body.model_info.capabilities.supports_reasoning_effort, ["none", "low", "medium", "high", "xhigh"]);
 });
 
 test("vscode tokenized api/show route exposes service tier variants with suffixed display names", async () => {

@@ -416,7 +416,6 @@ const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
   "computer_use_preview",
   "code_interpreter",
   "mcp",
-  "local_shell",
 ]);
 
 // #2980: a free-plan Codex account (workspacePlanType === "free", from the OAuth
@@ -559,6 +558,8 @@ export function normalizeCodexTools(
       if (!rawName || !validToolNames.has(rawName)) {
         delete body.tool_choice;
       }
+    } else if (toolChoice.type === "local_shell") {
+      delete body.tool_choice;
     }
   }
 }

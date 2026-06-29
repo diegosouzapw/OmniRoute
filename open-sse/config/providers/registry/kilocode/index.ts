@@ -10,6 +10,15 @@ export const kilocodeProvider: RegistryEntry = {
   authType: "oauth",
   authHeader: "Authorization",
   authPrefix: "Bearer ",
+  // #4019: Kilo's gateway serves its free models anonymously when no account is
+  // connected. Paired with `anonymousFallback: true` on the dashboard provider
+  // entry, a request with no OAuth credential falls back to `Bearer anonymous`
+  // (see DefaultExecutor) so the free tier works without signup. The editor-name
+  // header is required by the gateway and is harmless on the authenticated path.
+  anonymousApiKey: "anonymous",
+  headers: {
+    "X-KILOCODE-EDITORNAME": "OmniRoute",
+  },
   oauth: {
     initiateUrl: "https://api.kilo.ai/api/device-auth/codes",
     pollUrlBase: "https://api.kilo.ai/api/device-auth/codes",

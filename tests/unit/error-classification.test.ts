@@ -22,7 +22,6 @@ test("getProviderCategory: OAuth providers return 'oauth'", () => {
 });
 
 test("getProviderCategory: API key providers return 'apikey'", () => {
-  assert.equal(getProviderCategory("gemini-cli"), "apikey");
   assert.equal(getProviderCategory("groq"), "apikey");
   assert.equal(getProviderCategory("fireworks"), "apikey");
   assert.equal(getProviderCategory("cerebras"), "apikey");

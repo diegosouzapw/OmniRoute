@@ -7,7 +7,6 @@ export { DEFAULT_PRICING } from "./pricing/default-pricing";
 
 // Shared pricing constants to reduce duplication
 
-
 type ProviderPricingTable = Record<string, Record<string, unknown>>;
 type PricingRow = {
   input: number;
@@ -20,7 +19,7 @@ type TokenUsage = Record<string, number | undefined>;
 
 /**
  * Get pricing for a specific provider and model
- * @param {string} provider - Provider ID (e.g., "openai", "cc", "gemini-cli")
+ * @param {string} provider - Provider ID (e.g., "openai", "cc", "antigravity")
  * @param {string} model - Model ID
  * @returns {object|null} Pricing object or null if not found
  */

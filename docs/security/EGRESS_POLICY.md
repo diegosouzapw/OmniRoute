@@ -1,7 +1,7 @@
 ---
 title: "Egress IP Family Policy (IPv4/IPv6)"
-version: 3.8.24
-lastUpdated: 2026-06-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Egress IP Family Policy (IPv4/IPv6)

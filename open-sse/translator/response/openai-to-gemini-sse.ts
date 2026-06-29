@@ -1,7 +1,7 @@
 /**
  * Convert an OpenAI Chat Completions stream/response into the Gemini
  * `:streamGenerateContent` / `:generateContent` shape used by the
- * `@google/genai` SDK (Gemini CLI).
+ * `@google/genai` SDK.
  *
  * Why this exists
  * ---------------
@@ -20,7 +20,7 @@
  *            "finishReason":"STOP","index":0}],"usageMetadata":{...},"modelVersion":"..."}
  *   (stream closes — no [DONE])
  *
- * Forwarding the raw OpenAI SSE to Gemini CLI made it crash with
+ * Forwarding the raw OpenAI SSE to the Gemini SDK made it crash with
  * `SyntaxError: Unexpected token 'D', "[DONE]" is not valid JSON`, because
  * the SDK tries to `JSON.parse("[DONE]")`.
  *
@@ -124,8 +124,7 @@ export function openAIChunkToGeminiChunk(
   };
 
   if (choice.finish_reason) {
-    candidate.finishReason =
-      OPENAI_TO_GEMINI_FINISH_REASON[choice.finish_reason] ?? "STOP";
+    candidate.finishReason = OPENAI_TO_GEMINI_FINISH_REASON[choice.finish_reason] ?? "STOP";
   }
 
   const out: GeminiStreamChunk = { candidates: [candidate] };
@@ -156,10 +155,7 @@ export function openAIChunkToGeminiChunk(
  * Non-OK / no-body responses are passed through unchanged so that callers
  * upstream of the route can surface the error to the client untouched.
  */
-export function transformOpenAISSEToGeminiSSE(
-  upstreamResponse: Response,
-  model: string
-): Response {
+export function transformOpenAISSEToGeminiSSE(upstreamResponse: Response, model: string): Response {
   if (!upstreamResponse.ok || !upstreamResponse.body) {
     return upstreamResponse;
   }
@@ -317,8 +313,7 @@ export async function convertOpenAIResponseToGemini(
   }
   parts.push({ text: String(message.content ?? "") });
 
-  const finishReason =
-    OPENAI_TO_GEMINI_FINISH_REASON[finish_reason ?? "stop"] ?? "STOP";
+  const finishReason = OPENAI_TO_GEMINI_FINISH_REASON[finish_reason ?? "stop"] ?? "STOP";
 
   const geminiResponse: GeminiNonStreamResponse = {
     candidates: [

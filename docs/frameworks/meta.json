@@ -13,6 +13,8 @@
     "OBSIDIAN_CONTEXT",
     "OPENCODE",
     "PLUGIN_MARKETPLACE",
+    "PLUGINS",
+    "PLUGIN_SDK",
     "SKILLS",
     "WEBHOOKS"
   ]

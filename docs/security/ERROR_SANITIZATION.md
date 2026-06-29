@@ -1,14 +1,14 @@
 ---
 title: "Error Message Sanitization"
-version: 3.8.2
-lastUpdated: 2026-05-14
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Error Message Sanitization
 
 > **Source of truth:** `open-sse/utils/error.ts` — `sanitizeErrorMessage`, `buildErrorBody`, `createErrorResult`
 > **Tests:** `tests/unit/error-message-sanitization.test.ts`
-> **Last updated:** 2026-05-14 — v3.8.0
+> **Last updated:** 2026-06-28 — v3.8.40
 > **Audience:** Any engineer touching error responses (HTTP routes, SSE streams, executors, MCP handlers).
 > **Status:** **MANDATORY** for every code path that returns an error message to a client.
 
@@ -124,7 +124,7 @@ const safe = String(err).split("\n")[0];
 - `sanitizeErrorMessage` handles `null`/`undefined`/`Error` instance inputs safely.
 - `buildErrorBody` never exposes stack traces in its `message` field.
 
-When adding a new route or executor, copy the assertion pattern from this file. The coverage gate (`npm run test:coverage`) enforces ≥75% statements/lines/functions and ≥70% branches — error paths must be covered.
+When adding a new route or executor, copy the assertion pattern from this file. The coverage gate (`npm run test:coverage`) enforces ≥60% statements/lines/functions/branches — error paths must be covered.
 
 ## Related controls
 

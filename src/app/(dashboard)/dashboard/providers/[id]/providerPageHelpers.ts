@@ -96,7 +96,6 @@ const TARGET_FORMAT_BADGE_I18N_KEYS: Record<string, string> = {
   "openai-responses": "compatProtocolOpenAIResponses",
   claude: "compatProtocolClaude",
   gemini: "targetFormatGemini",
-  "gemini-cli": "targetFormatGeminiCli",
   antigravity: "targetFormatAntigravity",
 };
 

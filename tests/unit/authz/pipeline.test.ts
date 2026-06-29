@@ -18,6 +18,7 @@ const pipeline = await import("../../../src/server/authz/pipeline.ts");
 const ORIGINAL_JWT = process.env.JWT_SECRET;
 const ORIGINAL_INITIAL = process.env.INITIAL_PASSWORD;
 const ORIGINAL_AUTH_COOKIE_SECURE = process.env.AUTH_COOKIE_SECURE;
+const ORIGINAL_REQUIRE_API_KEY = process.env.REQUIRE_API_KEY;
 
 function resetEnvironment() {
   core.resetDbInstance();
@@ -26,6 +27,7 @@ function resetEnvironment() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   process.env.JWT_SECRET = "pipeline-jwt-secret";
   process.env.INITIAL_PASSWORD = "pipeline-initial-password";
+  process.env.REQUIRE_API_KEY = "true";
   delete process.env.AUTH_COOKIE_SECURE;
   globalThis.__omnirouteShutdown = { init: false, shuttingDown: false, activeRequests: 0 };
 }
@@ -59,6 +61,8 @@ test.after(() => {
   else process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL;
   if (ORIGINAL_AUTH_COOKIE_SECURE === undefined) delete process.env.AUTH_COOKIE_SECURE;
   else process.env.AUTH_COOKIE_SECURE = ORIGINAL_AUTH_COOKIE_SECURE;
+  if (ORIGINAL_REQUIRE_API_KEY === undefined) delete process.env.REQUIRE_API_KEY;
+  else process.env.REQUIRE_API_KEY = ORIGINAL_REQUIRE_API_KEY;
   globalThis.__omnirouteShutdown = { init: false, shuttingDown: false, activeRequests: 0 };
 });
 
@@ -191,6 +195,34 @@ test("runAuthzPipeline rejects oversized rewritten alias API bodies before auth"
   assert.equal(response.status, 413);
   assert.equal(response.headers.get("x-omniroute-route-class"), "CLIENT_API");
   assert.ok(response.headers.get("x-request-id"));
+});
+
+test("runAuthzPipeline rejects unauthenticated v1beta Gemini aliases as client API", async () => {
+  const response = await pipeline.runAuthzPipeline(
+    request("http://localhost/v1beta/models/gemini-pro:generateContent", {
+      method: "POST",
+    }),
+    { enforce: true }
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 401);
+  assert.equal(response.headers.get("x-omniroute-route-class"), "CLIENT_API");
+  assert.equal(body.error.code, "AUTH_002");
+});
+
+test("runAuthzPipeline rejects unauthenticated internal api v1beta routes as client API", async () => {
+  const response = await pipeline.runAuthzPipeline(
+    request("http://localhost/api/v1beta/models/gemini-pro:generateContent", {
+      method: "POST",
+    }),
+    { enforce: true }
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 401);
+  assert.equal(response.headers.get("x-omniroute-route-class"), "CLIENT_API");
+  assert.equal(body.error.code, "AUTH_002");
 });
 
 test("runAuthzPipeline rejects new API requests during shutdown drain", async () => {

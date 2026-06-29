@@ -1,7 +1,7 @@
 ---
 title: "Remote Mode — Drive a remote OmniRoute from your laptop"
-version: 3.8.29
-lastUpdated: 2026-06-19
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Remote Mode
@@ -84,11 +84,11 @@ The CLI validates it via `GET /api/cli/whoami` and saves it as the active contex
 
 Three levels, hierarchical (`admin ⊃ write ⊃ read`):
 
-| Scope | Can do |
-|-------|--------|
-| `read`  | list/inspect — `models list`, `providers status`, `logs`, `usage`, `cost` |
+| Scope   | Can do                                                                       |
+| ------- | ---------------------------------------------------------------------------- |
+| `read`  | list/inspect — `models list`, `providers status`, `logs`, `usage`, `cost`    |
 | `write` | read **+** configure/apply — `setup-codex`, `keys add`, `config set`, combos |
-| `admin` | write **+** manage — `tokens` CRUD, add providers, services, policy, oauth |
+| `admin` | write **+** manage — `tokens` CRUD, add providers, services, policy, oauth   |
 
 The server infers the scope each route requires from the HTTP method
 (`GET`→read, mutations→write) plus an admin allowlist for sensitive surfaces
@@ -102,8 +102,7 @@ A token with insufficient scope gets `403` with a clear message.
 
 ## Connecting Antigravity on a remote install
 
-Antigravity (and other Google "native/desktop" OAuth providers such as
-`gemini-cli`) use Google's `firstparty/nativeapp` consent screen. Google only
+Antigravity uses Google's firstparty/nativeapp consent screen. Google only
 releases the authorization code when the **loopback redirect**
 (`http://127.0.0.1:<port>/callback`) is **reachable from the browser that
 approves the sign-in**. On a remote VPS install that loopback lives on the
@@ -218,7 +217,6 @@ context, or `--remote <url> --api-key <key>`):
 | Goose | `omniroute setup-goose` | `~/.config/goose/config.yaml` (`GOOSE_PROVIDER=openai` + `OPENAI_HOST` **without** `/v1` + `GOOSE_MODEL`) + env recipe |
 | Qwen Code | `omniroute setup-qwen` | `~/.qwen/settings.json` — openai `modelProvider`, `baseUrl` **with** `/v1`, key via `envKey` (OMNIROUTE_API_KEY) |
 | Aider | `omniroute setup-aider` | `~/.aider.conf.yml` (`openai-api-base` **without** `/v1` + `model: openai/<id>`) + env recipe (`aider --message --yes`) |
-| Gemini CLI | `omniroute setup-gemini` | **native** Gemini API (not OpenAI-compatible) → `GOOGLE_GEMINI_BASE_URL` (root, SDK appends `/v1beta`) + `GEMINI_API_KEY` + `~/.gemini/settings.json` (`model`). ⚠ a cached Google login can override the base URL — run API-key-only |
 
 ```bash
 # OpenCode (openai-compatible provider, all catalog models, remote VPS)
@@ -338,12 +336,12 @@ omniroute contexts remove 192-168-0-15 --yes   # drop the local context (even if
 
 ## API endpoints (reference)
 
-| Method | Route | Auth | Scope |
-|--------|-------|------|-------|
-| POST | `/api/cli/connect` | management password | — (public, password-gated) |
-| GET  | `/api/cli/whoami` | access token | read |
-| GET  | `/api/cli/tokens` | access token | admin |
-| POST | `/api/cli/tokens` | access token | admin |
-| DELETE | `/api/cli/tokens/:id` | access token | admin |
+| Method | Route                 | Auth                | Scope                      |
+| ------ | --------------------- | ------------------- | -------------------------- |
+| POST   | `/api/cli/connect`    | management password | — (public, password-gated) |
+| GET    | `/api/cli/whoami`     | access token        | read                       |
+| GET    | `/api/cli/tokens`     | access token        | admin                      |
+| POST   | `/api/cli/tokens`     | access token        | admin                      |
+| DELETE | `/api/cli/tokens/:id` | access token        | admin                      |
 
 See [openapi.yaml](../openapi.yaml) for full schemas.

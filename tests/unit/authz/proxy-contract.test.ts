@@ -59,6 +59,7 @@ test("proxy.ts config.matcher covers every /api/* route plus dashboard and v1 al
     '"/api/:path*"',
     '"/dashboard/:path*"',
     '"/v1/:path*"',
+    '"/v1beta/:path*"',
     '"/chat/:path*"',
     '"/responses/:path*"',
     '"/codex/:path*"',

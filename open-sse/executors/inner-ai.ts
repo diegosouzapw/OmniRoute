@@ -8,7 +8,7 @@ const INNER_AI_PROFILE_URL = "https://platformapi.innerai.com/api/v1/users/profi
 const INNER_AI_MODELS_URL = "https://platformapi.innerai.com/api/v1/ai_models";
 
 const INNER_AI_USER_AGENT =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
 const MODELS_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
@@ -607,7 +607,10 @@ export class InnerAiExecutor extends BaseExecutor {
 
     // Build message content from OpenAI messages array
     const rawMessages = Array.isArray(bodyObj.messages) ? bodyObj.messages : [];
-    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, rawMessages);
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(
+      bodyObj,
+      rawMessages
+    );
     const messages = effectiveMessages as Array<Record<string, unknown>>;
     const messageContent = buildMessageContent(messages);
     if (!messageContent.trim()) {
@@ -704,18 +707,32 @@ export class InnerAiExecutor extends BaseExecutor {
     const completionId = `chatcmpl-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
     if (hasTools) {
-      const { content: cleaned, toolCalls, finishReason } = buildToolAwareResult(content, requestedTools, "inner");
+      const {
+        content: cleaned,
+        toolCalls,
+        finishReason,
+      } = buildToolAwareResult(content, requestedTools, "inner");
       if (toolCalls) {
         return {
           response: new Response(
             JSON.stringify({
-              id: completionId, object: "chat.completion",
-              created: Math.floor(Date.now() / 1000), model: resolvedModel,
-              choices: [{ index: 0, message: { role: "assistant", content: null, tool_calls: toolCalls }, finish_reason: finishReason }],
+              id: completionId,
+              object: "chat.completion",
+              created: Math.floor(Date.now() / 1000),
+              model: resolvedModel,
+              choices: [
+                {
+                  index: 0,
+                  message: { role: "assistant", content: null, tool_calls: toolCalls },
+                  finish_reason: finishReason,
+                },
+              ],
             }),
             { status: 200, headers: { "Content-Type": "application/json" } }
           ),
-          url: INNER_AI_CHAT_URL, headers: reqHeaders, transformedBody: innerAiBody,
+          url: INNER_AI_CHAT_URL,
+          headers: reqHeaders,
+          transformedBody: innerAiBody,
         };
       }
       content = cleaned;

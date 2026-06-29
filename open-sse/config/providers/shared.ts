@@ -132,6 +132,15 @@ export interface RegistryEntry {
    * OmniRoute accumulates the stream and converts it to a JSON body for the client. (#2081)
    */
   forceStream?: boolean;
+  /**
+   * Literal API key sent as the bearer token when the request has no real
+   * credential (synthetic noauth fallback). Lets a primarily-authenticated
+   * provider expose its free tier anonymously: e.g. Kilo's gateway accepts
+   * `Authorization: Bearer anonymous` for its free models (#4019). Only the
+   * DefaultExecutor honors it, and only when no effectiveKey/accessToken exists,
+   * so the authenticated path is never affected.
+   */
+  anonymousApiKey?: string;
 }
 
 export interface LegacyProvider {

@@ -79,7 +79,6 @@ const FALLBACK_ALIAS_TO_PROVIDER = {
   cl: "cline",
   cu: "cursor",
   cx: "codex",
-  gc: "gemini-cli",
   gh: "github",
   kc: "kilocode",
   kmc: "kimi-coding",
@@ -1302,9 +1301,7 @@ export async function getUnifiedModelsResponse(
             continue;
           }
           const visionFields =
-            modelType === "chat"
-              ? getCustomVisionCapabilityFields(model, aliasId, modelId)
-              : null;
+            modelType === "chat" ? getCustomVisionCapabilityFields(model, aliasId, modelId) : null;
 
           if (includeAlias) {
             models.push({

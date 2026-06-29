@@ -1,3 +1,9 @@
+---
+title: "Zed IDE Integration in Docker Environments"
+version: 3.8.40
+lastUpdated: 2026-06-28
+---
+
 # Zed IDE Integration in Docker Environments
 
 When OmniRoute runs inside Docker, the standard "Import from Zed Keychain" flow fails

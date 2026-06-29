@@ -467,7 +467,7 @@ export const providerModelMutationSchema = z.object({
   // #2905: optional per-model wire format override for custom models (e.g. a
   // custom opencode-go model that must use the Anthropic Messages shape).
   targetFormat: z
-    .enum(["openai", "openai-responses", "claude", "gemini", "gemini-cli", "antigravity"])
+    .enum(["openai", "openai-responses", "claude", "gemini", "antigravity"])
     .optional(),
   // #1294: optional token limits set in the "add custom model" form. The wire
   // shape uses max_input_tokens / max_output_tokens (mirrors the /v1/models

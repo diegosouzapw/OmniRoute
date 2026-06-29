@@ -1,7 +1,7 @@
 ---
 title: "Claude Code CLI — Configuration with OmniRoute"
-version: 3.8.30
-lastUpdated: 2026-06-19
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Claude Code CLI — Configuration with OmniRoute
@@ -32,15 +32,15 @@ omniroute launch --profile glm52  # Claude Code using glm/glm-5.2 via OmniRoute
 Claude Code talks the **Anthropic Messages API** and is pointed at a custom
 endpoint with environment variables (it has no `--base-url` flag):
 
-| Variable | Purpose |
-|----------|---------|
-| `ANTHROPIC_BASE_URL` | Gateway root URL (Claude Code appends `/v1/messages`). **No `/v1` suffix.** |
-| `ANTHROPIC_AUTH_TOKEN` | Sent as `Authorization: Bearer …` — use your OmniRoute access token / API key |
-| `ANTHROPIC_API_KEY` | Alternative: sent as `x-api-key`. If both set, `ANTHROPIC_AUTH_TOKEN` wins |
-| `ANTHROPIC_MODEL` | Force a specific model (overrides the `/model` picker default) |
+| Variable                                     | Purpose                                                                                |
+| -------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `ANTHROPIC_BASE_URL`                         | Gateway root URL (Claude Code appends `/v1/messages`). **No `/v1` suffix.**            |
+| `ANTHROPIC_AUTH_TOKEN`                       | Sent as `Authorization: Bearer …` — use your OmniRoute access token / API key          |
+| `ANTHROPIC_API_KEY`                          | Alternative: sent as `x-api-key`. If both set, `ANTHROPIC_AUTH_TOKEN` wins             |
+| `ANTHROPIC_MODEL`                            | Force a specific model (overrides the `/model` picker default)                         |
 | `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY` | `1` → the native `/model` picker lists `claude*`/`anthropic*` models from `/v1/models` |
-| `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | Cap output tokens per response (e.g. `65536`) |
-| `CLAUDE_CODE_AUTO_COMPACT_WINDOW` | Token threshold for auto-compaction |
+| `CLAUDE_CODE_MAX_OUTPUT_TOKENS`              | Cap output tokens per response (e.g. `65536`)                                          |
+| `CLAUDE_CODE_AUTO_COMPACT_WINDOW`            | Token threshold for auto-compaction                                                    |
 
 > Env vars are read **once at startup** — restart Claude Code after changing them.
 
@@ -70,8 +70,8 @@ profile per model at `~/.claude/profiles/<name>/settings.json`, reusing the
     "ANTHROPIC_BASE_URL": "http://192.168.0.15:20128",
     "ANTHROPIC_MODEL": "glm/glm-5.2",
     "CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY": "1",
-    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "190000"
-  }
+    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "190000",
+  },
 }
 ```
 

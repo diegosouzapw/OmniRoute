@@ -41,7 +41,7 @@ function getReservedProviderPrefixes(): Set<string> {
 /**
  * Build a combined model alias map that merges both alias stores:
  * 1. DB-namespace aliases (key_value WHERE namespace='modelAliases') — set via
- *    /api/models/alias/ and seeded at startup (e.g. gemini-cli default aliases).
+ *    /api/models/alias/ and seeded at startup.
  * 2. Settings-based aliases (settings.modelAliases) — set via the Settings UI and
  *    /api/settings/model-aliases/ (stored as a JSON blob in namespace='settings').
  *
@@ -134,8 +134,7 @@ export async function getModelInfo(modelStr) {
     // are never in the reserved set, so the #2778 combo path still works.
     // Ported from upstream 9router 047fdc89.
     const reserved = getReservedProviderPrefixes();
-    const isReservedPrefix =
-      typeof prefixToCheck === "string" && reserved.has(prefixToCheck);
+    const isReservedPrefix = typeof prefixToCheck === "string" && reserved.has(prefixToCheck);
 
     if (!isReservedPrefix) {
       // Check OpenAI Compatible nodes

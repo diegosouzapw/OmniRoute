@@ -1,11 +1,8 @@
 /**
- * Pricing data — oauth-subscriptions family (OAuth / IDE subscription aliases (cc, codex, gemini-cli, antigravity, copilot, kiro…)).
+ * Pricing data — oauth-subscriptions family (OAuth / IDE subscription aliases (cc, codex, antigravity, copilot, kiro…)).
  * Pure data; merged by default-pricing.ts via spread (god-file decomposition; semantic split).
  */
-import {
-  GPT_5_3_CODEX_PRICING,
-  GPT_5_5_PRICING,
-} from "./shared-tiers";
+import { GPT_5_3_CODEX_PRICING, GPT_5_5_PRICING } from "./shared-tiers";
 
 export const DEFAULT_PRICING_OAUTH = {
   cc: {
@@ -182,59 +179,6 @@ export const DEFAULT_PRICING_OAUTH = {
       cached: 0.5,
       reasoning: 6.0,
       cache_creation: 1.0,
-    },
-  },
-  "gemini-cli": {
-    "gemini-3-flash-preview": {
-      input: 0.5,
-      output: 3.0,
-      cached: 0.03,
-      reasoning: 4.5,
-      cache_creation: 0.5,
-    },
-    "gemini-3.1-flash-lite-preview": {
-      input: 0.5,
-      output: 3.0,
-      cached: 0.03,
-      reasoning: 4.5,
-      cache_creation: 0.5,
-    },
-    "gemini-3-pro-preview": {
-      input: 2.0,
-      output: 12.0,
-      cached: 0.25,
-      reasoning: 18.0,
-      cache_creation: 2.0,
-    },
-    "gemini-3.1-pro-preview": {
-      input: 2.0,
-      output: 12.0,
-      cached: 0.25,
-      reasoning: 18.0,
-      cache_creation: 2.0,
-    },
-
-    "gemini-2.5-pro": {
-      input: 2.0,
-      output: 12.0,
-      cached: 0.25,
-      reasoning: 18.0,
-      cache_creation: 2.0,
-    },
-    "gemini-2.5-flash": {
-      input: 0.3,
-      output: 2.5,
-      cached: 0.03,
-      reasoning: 3.75,
-      cache_creation: 0.3,
-    },
-    // Gemini 2.5 Flash Lite — preco corrigido via ClawRouter: $0.10/$0.40 (era $0.15/$1.25)
-    "gemini-2.5-flash-lite": {
-      input: 0.1,
-      output: 0.4,
-      cached: 0.025,
-      reasoning: 0.6,
-      cache_creation: 0.1,
     },
   },
   qw: {

@@ -77,6 +77,13 @@ test("AC-1: GET returns 5 tiers with prefixes + bypass state envelope", async ()
   assert.ok(alwaysProtected!.prefixes.includes("/api/shutdown"));
   assert.equal(alwaysProtected!.bypassable, false);
 
+  const clientApi = body.tiers.find((t) => t.name === "CLIENT_API");
+  assert.ok(clientApi);
+  assert.ok(clientApi!.prefixes.includes("/v1/"));
+  assert.ok(clientApi!.prefixes.includes("/api/v1/"));
+  assert.ok(clientApi!.prefixes.includes("/v1beta/"));
+  assert.ok(clientApi!.prefixes.includes("/api/v1beta/"));
+
   // Every tier carries a non-empty description.
   for (const tier of body.tiers) {
     assert.ok(tier.description.length > 0, `tier ${tier.name} missing description`);

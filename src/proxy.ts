@@ -14,6 +14,8 @@ export const config = {
     "/api/:path*",
     "/v1/:path*",
     "/v1",
+    "/v1beta/:path*",
+    "/v1beta",
     "/chat/:path*",
     "/responses/:path*",
     "/responses",

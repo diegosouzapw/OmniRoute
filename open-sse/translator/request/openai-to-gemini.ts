@@ -16,12 +16,6 @@ import {
   getDefaultThinkingBudget,
 } from "../../../src/lib/modelCapabilities.ts";
 
-import * as crypto from "node:crypto";
-
-function generateUUID() {
-  return crypto.randomUUID();
-}
-
 import {
   DEFAULT_SAFETY_SETTINGS,
   convertOpenAIContentToParts,
@@ -113,7 +107,6 @@ type CloudCodeEnvelope = {
 
 type GeminiToolNameOptions = {
   stripNamespace?: boolean;
-  functionResponseShape?: "result" | "output";
   signatureNamespace?: string | null;
   signaturelessToolCallMode?: "native" | "text" | "context";
   // Vertex AI's FunctionCall/FunctionResponse protos have no `id` field; emitting it
@@ -121,7 +114,7 @@ type GeminiToolNameOptions = {
   // Gemini API DOES use `id` for Gemini 3+ signature matching, so this is scoped to
   // the vertex provider only.
   stripFunctionCallId?: boolean;
-  /** Only Antigravity/Gemini CLI support the thoughtSignature field. Standard Gemini rejects it with 400. */
+  /** Antigravity supports the thoughtSignature field. Standard Gemini rejects it with 400. */
   supportsSignatureBypass?: boolean;
 };
 
@@ -549,10 +542,7 @@ function openaiToGeminiBase(
                 functionResponse: {
                   ...(toolNameOptions.stripFunctionCallId ? {} : { id: fid }),
                   name: name,
-                  response:
-                    toolNameOptions.functionResponseShape === "output"
-                      ? { output: typeof resp === "string" ? resp : JSON.stringify(resp) }
-                      : { result: parsedResp },
+                  response: { result: parsedResp },
                 },
               });
             }
@@ -677,31 +667,25 @@ export function openaiToGeminiRequest(
   });
 }
 
-// OpenAI -> Gemini CLI (Cloud Code Assist)
-export function openaiToGeminiCLIRequest(
+// OpenAI -> Cloud Code Gemini payload used by Antigravity.
+export function openaiToCloudCodeGeminiRequest(
   model: string,
   body: Record<string, unknown>,
   stream: boolean,
   options: {
-    functionResponseShape?: "result" | "output";
     signatureNamespace?: string | null;
     signaturelessToolCallMode?: "native" | "text" | "context";
   } = {}
 ) {
   return openaiToGeminiBase(model, body, stream, {
     stripNamespace: true,
-    functionResponseShape: options.functionResponseShape,
     signatureNamespace: options.signatureNamespace,
     signaturelessToolCallMode: options.signaturelessToolCallMode,
     supportsSignatureBypass: true,
   });
 }
 
-// Wrap Gemini CLI format in Cloud Code wrapper
-function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigravity = false) {
-  // Both Antigravity and Gemini CLI need the project field for the Cloud Code API.
-  // For Gemini CLI, the stored projectId may be stale; the executor's transformRequest
-  // refreshes it via loadCodeAssist before the request is sent to the API.
+function wrapInCloudCodeEnvelope(model, cloudCodeRequest, credentials = null) {
   // Fall back to providerSpecificData.projectId — some connections (and post-refresh
   // credentials) store it there rather than at the top level, which otherwise produced a
   // spurious 422 "Missing Google projectId" on the Antigravity /v1beta path (#2480).
@@ -714,7 +698,7 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
 
   if (!projectId) {
     console.warn(
-      `[OmniRoute] ${isAntigravity ? "Antigravity" : "GeminiCLI"} account is missing projectId. ` +
+      `[OmniRoute] Antigravity account is missing projectId. ` +
         `Attempting request with empty project — reconnect OAuth to resolve.`
     );
     projectId = "";
@@ -722,83 +706,61 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
 
   const cleanModel = model.includes("/") ? model.split("/").pop()! : model;
 
-  const envelope: CloudCodeEnvelope = isAntigravity
-    ? {
-        project: projectId,
-        requestId: generateAntigravityRequestId(),
-        request: {
-          sessionId: getAntigravitySessionId(credentials),
-          contents: geminiCLI.contents,
-          systemInstruction: geminiCLI.systemInstruction,
-          generationConfig: applyAntigravityGenerationDefaults(geminiCLI.generationConfig),
-          tools: geminiCLI.tools,
-        },
-        model: cleanModel,
-        userAgent: getAntigravityEnvelopeUserAgent(credentials),
-        requestType: "agent",
-        enabledCreditTypes: ["GOOGLE_ONE_AI"],
-      }
-    : {
-        model: cleanModel,
-        project: projectId,
-        user_prompt_id: generateUUID(),
-        request: {
-          contents: geminiCLI.contents,
-          systemInstruction: geminiCLI.systemInstruction,
-          generationConfig: geminiCLI.generationConfig,
-          tools: geminiCLI.tools,
-        },
-      };
-  if (geminiCLI._toolNameMap instanceof Map && geminiCLI._toolNameMap.size > 0) {
-    envelope._toolNameMap = geminiCLI._toolNameMap;
+  const envelope: CloudCodeEnvelope = {
+    project: projectId,
+    requestId: generateAntigravityRequestId(),
+    request: {
+      sessionId: getAntigravitySessionId(credentials),
+      contents: cloudCodeRequest.contents,
+      systemInstruction: cloudCodeRequest.systemInstruction,
+      generationConfig: applyAntigravityGenerationDefaults(cloudCodeRequest.generationConfig),
+      tools: cloudCodeRequest.tools,
+    },
+    model: cleanModel,
+    userAgent: getAntigravityEnvelopeUserAgent(credentials),
+    requestType: "agent",
+    enabledCreditTypes: ["GOOGLE_ONE_AI"],
+  };
+  if (cloudCodeRequest._toolNameMap instanceof Map && cloudCodeRequest._toolNameMap.size > 0) {
+    envelope._toolNameMap = cloudCodeRequest._toolNameMap;
   }
 
-  // Antigravity specific fields
-  if (isAntigravity) {
-    // Inject required default system prompt for Antigravity
-    const defaultPart: GeminiPart = { text: ANTIGRAVITY_DEFAULT_SYSTEM };
-    if (envelope.request.systemInstruction?.parts) {
-      envelope.request.systemInstruction.parts.unshift(defaultPart);
-    } else {
-      envelope.request.systemInstruction = { role: "system", parts: [defaultPart] };
-    }
-
-    // Strip Gemini built-in tool *names* out of functionDeclarations: Antigravity's
-    // v1internal endpoint returns 400 when a built-in tool (google_search etc.) is
-    // mixed with functionDeclarations in the same request. Native grounding entries
-    // (e.g. `{ googleSearch: {} }`) are left intact; only the functionDeclarations
-    // arrays are cleaned, and a declarations entry that becomes empty is dropped.
-    if (envelope.request.tools && envelope.request.tools.length > 0) {
-      const cleanedTools = envelope.request.tools
-        .map((tool) => {
-          if (!Array.isArray(tool.functionDeclarations)) {
-            return tool;
-          }
-          const customDecls = tool.functionDeclarations.filter(
-            (fn) => !GEMINI_BUILTIN_TOOL_NAMES.has(fn.name)
-          );
-          return { ...tool, functionDeclarations: customDecls };
-        })
-        .filter(
-          (tool) =>
-            !Array.isArray(tool.functionDeclarations) || tool.functionDeclarations.length > 0
-        );
-      envelope.request.tools = cleanedTools.length > 0 ? cleanedTools : undefined;
-    }
-
-    // Add toolConfig for Antigravity only when custom functionDeclarations remain.
-    const hasCustomTools = envelope.request.tools?.some(
-      (tool) => (tool.functionDeclarations?.length ?? 0) > 0
-    );
-    if (hasCustomTools) {
-      envelope.request.toolConfig = {
-        functionCallingConfig: { mode: "VALIDATED" },
-      };
-    }
+  const defaultPart: GeminiPart = { text: ANTIGRAVITY_DEFAULT_SYSTEM };
+  if (envelope.request.systemInstruction?.parts) {
+    envelope.request.systemInstruction.parts.unshift(defaultPart);
   } else {
-    // Gemini CLI's native Cloud Code envelope uses snake_case identifiers.
-    envelope.request.session_id = envelope.user_prompt_id;
-    envelope.request.safetySettings = geminiCLI.safetySettings;
+    envelope.request.systemInstruction = { role: "system", parts: [defaultPart] };
+  }
+
+  // Strip Gemini built-in tool *names* out of functionDeclarations: Antigravity's
+  // v1internal endpoint returns 400 when a built-in tool (google_search etc.) is
+  // mixed with functionDeclarations in the same request. Native grounding entries
+  // (e.g. `{ googleSearch: {} }`) are left intact; only the functionDeclarations
+  // arrays are cleaned, and a declarations entry that becomes empty is dropped.
+  if (envelope.request.tools && envelope.request.tools.length > 0) {
+    const cleanedTools = envelope.request.tools
+      .map((tool) => {
+        if (!Array.isArray(tool.functionDeclarations)) {
+          return tool;
+        }
+        const customDecls = tool.functionDeclarations.filter(
+          (fn) => !GEMINI_BUILTIN_TOOL_NAMES.has(fn.name)
+        );
+        return { ...tool, functionDeclarations: customDecls };
+      })
+      .filter(
+        (tool) => !Array.isArray(tool.functionDeclarations) || tool.functionDeclarations.length > 0
+      );
+    envelope.request.tools = cleanedTools.length > 0 ? cleanedTools : undefined;
+  }
+
+  const hasCustomTools = envelope.request.tools?.some(
+    (tool) => (tool.functionDeclarations?.length ?? 0) > 0
+  );
+  if (hasCustomTools) {
+    envelope.request.toolConfig = {
+      functionCallingConfig: { mode: "VALIDATED" },
+    };
   }
 
   return envelope;
@@ -831,16 +793,16 @@ export function openaiToAntigravityRequest(model, body, stream, credentials = nu
     typeof (credentials as Record<string, unknown>)._signatureNamespace === "string"
       ? ((credentials as Record<string, unknown>)._signatureNamespace as string)
       : null;
-  const geminiCLI = openaiToGeminiCLIRequest(model, body, stream, {
+  const cloudCodeRequest = openaiToCloudCodeGeminiRequest(model, body, stream, {
     signatureNamespace,
     signaturelessToolCallMode: isThinkingGemini ? "context" : "native",
   });
 
   if (isClaude) {
-    geminiCLI.generationConfig.maxOutputTokens = getAntigravityClaudeOutputTokens(body);
+    cloudCodeRequest.generationConfig.maxOutputTokens = getAntigravityClaudeOutputTokens(body);
   }
 
-  const envelope = wrapInCloudCodeEnvelope(model, geminiCLI, credentials, true);
+  const envelope = wrapInCloudCodeEnvelope(model, cloudCodeRequest, credentials);
 
   // Match real Antigravity client: don't send maxOutputTokens when the user
   // hasn't explicitly specified max_tokens / max_completion_tokens.
@@ -880,26 +842,6 @@ register(
     openaiToGeminiRequest(model, body, stream, credentials, {
       signaturelessToolCallMode: "context",
     }),
-  null
-);
-register(
-  FORMATS.OPENAI,
-  FORMATS.GEMINI_CLI,
-  (model, body, stream, credentials) =>
-    wrapInCloudCodeEnvelope(
-      model,
-      openaiToGeminiCLIRequest(model, body, stream, {
-        functionResponseShape: "output",
-        // Forward the signature namespace so streaming thoughtSignatures round-trip (#2504).
-        signatureNamespace:
-          credentials &&
-          typeof credentials === "object" &&
-          typeof credentials["_signatureNamespace"] === "string"
-            ? (credentials["_signatureNamespace"] as string)
-            : null,
-      }),
-      credentials
-    ),
   null
 );
 register(FORMATS.OPENAI, FORMATS.ANTIGRAVITY, openaiToAntigravityRequest, null);

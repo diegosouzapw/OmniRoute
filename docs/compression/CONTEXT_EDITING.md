@@ -1,14 +1,14 @@
 ---
 title: "Delegated Context Editing (Anthropic)"
-version: 3.8.31
-lastUpdated: 2026-06-20
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Delegated Context Editing (Anthropic)
 
 Delegated **Context Editing** is a Claude-only context-management feature. Unlike OmniRoute's local
 compression engines (Caveman, RTK, LLMLingua, stacked pipelines) — which rewrite the request body
-*before* it leaves the proxy — Context Editing asks the **provider** to clear stale
+_before_ it leaves the proxy — Context Editing asks the **provider** to clear stale
 tool-use / tool-result blocks from its own running context window. OmniRoute only attaches a body
 parameter (`context_management.edits[]`); Claude does the actual clearing against its own tokenizer.
 
@@ -114,7 +114,10 @@ if (
   !contextEditingDisabled &&
   transformedBody?.context_management !== undefined
 ) {
-  const errText = await response.clone().text().catch(() => "");
+  const errText = await response
+    .clone()
+    .text()
+    .catch(() => "");
   if (/context[_-]management|context editing/i.test(errText)) {
     contextEditingDisabled = true;
     delete transformedBody.context_management;
@@ -172,14 +175,14 @@ So delegated clearing shows up in compression analytics alongside the local engi
 
 ## Relationship to the local compression engines
 
-| Aspect            | Local engines (Caveman / RTK / LLMLingua / stacked) | Delegated Context Editing                  |
-| ----------------- | --------------------------------------------------- | ------------------------------------------ |
-| Where it runs     | In OmniRoute, before the request leaves the proxy   | In the provider (Claude), server-side      |
-| What it edits     | Prompt / context / tool-result text                 | Old tool-use / tool-result blocks          |
+| Aspect            | Local engines (Caveman / RTK / LLMLingua / stacked) | Delegated Context Editing                   |
+| ----------------- | --------------------------------------------------- | ------------------------------------------- |
+| Where it runs     | In OmniRoute, before the request leaves the proxy   | In the provider (Claude), server-side       |
+| What it edits     | Prompt / context / tool-result text                 | Old tool-use / tool-result blocks           |
 | Provider scope    | All providers                                       | `claude` + `anthropic-compatible-cc-*` only |
-| Toggle            | Compression mode settings                           | `contextEditing.enabled`                   |
-| Failure mode      | Fail-open (original text)                           | 400-fallback: strip param, retry once      |
-| Savings telemetry | `engine: <engine id>`                               | `engine: "context-editing"`                |
+| Toggle            | Compression mode settings                           | `contextEditing.enabled`                    |
+| Failure mode      | Fail-open (original text)                           | 400-fallback: strip param, retry once       |
+| Savings telemetry | `engine: <engine id>`                               | `engine: "context-editing"`                 |
 
 The two are complementary: local engines compress the bytes OmniRoute sends; Context Editing lets
 Claude prune the running context across turns. They can be enabled together.

@@ -192,7 +192,6 @@ classDiagram
     BaseExecutor <|-- CursorExecutor
     BaseExecutor <|-- KiroExecutor
     BaseExecutor <|-- CodexExecutor
-    BaseExecutor <|-- GeminiCLIExecutor
     BaseExecutor <|-- GithubExecutor
 ```
 
@@ -203,7 +202,6 @@ classDiagram
 | `antigravity.ts` | Google Cloud Code                          | Project/session ID generation, multi-URL fallback, custom retry parsing from error messages ("reset after 2h7m23s") |
 | `cursor.ts`      | Cursor IDE                                 | **Most complex**: SHA-256 checksum auth, Protobuf request encoding, binary EventStream → SSE response parsing       |
 | `codex.ts`       | OpenAI Codex                               | Injects system instructions, manages thinking levels, removes unsupported parameters                                |
-| `gemini-cli.ts`  | Google Gemini CLI                          | Custom URL building (`streamGenerateContent`), Google OAuth token refresh                                           |
 | `github.ts`      | GitHub Copilot                             | Dual token system (GitHub OAuth + Copilot token), VSCode header mimicking                                           |
 | `kiro.ts`        | AWS CodeWhisperer                          | AWS EventStream binary parsing, AMZN event frames, token estimation                                                 |
 | `index.ts`       | —                                          | Factory: maps provider name → executor class, with default fallback                                                 |
@@ -520,7 +518,6 @@ A 2000-token buffer is added to reported usage to prevent clients from hitting c
 | OpenAI Responses API    | source + target | `openai-responses` |
 | Anthropic Claude        | source + target | `claude`           |
 | Google Gemini           | source + target | `gemini`           |
-| Google Gemini CLI       | target only     | `gemini-cli`       |
 | Antigravity             | source + target | `antigravity`      |
 | AWS Kiro                | target only     | `kiro`             |
 | Cursor                  | target only     | `cursor`           |
@@ -533,7 +530,6 @@ A 2000-token buffer is added to reported usage to prevent clients from hitting c
 | ------------------------ | ---------------------- | ----------- | --------------------------------------------- |
 | Anthropic Claude         | API key or OAuth       | Default     | Uses `x-api-key` header                       |
 | Google Gemini            | API key or OAuth       | Default     | Uses `x-goog-api-key` header                  |
-| Google Gemini CLI        | OAuth                  | GeminiCLI   | Uses `streamGenerateContent` endpoint         |
 | Antigravity              | OAuth                  | Antigravity | Multi-URL fallback, custom retry parsing      |
 | OpenAI                   | API key                | Default     | Standard Bearer auth                          |
 | Codex                    | OAuth                  | Codex       | Injects system instructions, manages thinking |

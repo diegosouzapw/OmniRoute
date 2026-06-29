@@ -10,7 +10,7 @@ function normalizeCloudCodeModel(model: string): string {
   return String(model || "")
     .trim()
     .replace(/^models\//i, "")
-    .replace(/^(?:antigravity|gemini-cli)\//i, "");
+    .replace(/^antigravity\//i, "");
 }
 
 function stripGeminiThinkingConfig(value: unknown): unknown {

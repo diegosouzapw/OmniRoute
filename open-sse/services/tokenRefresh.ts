@@ -43,7 +43,6 @@ export const REFRESH_LEAD_MS: Record<string, number> = {
   iflow: 24 * 60 * 60 * 1000, // 24 hours
   // Google OAuth refresh_tokens are permanent (non-rotating) — longer lead
   // is safe and reduces unnecessary upstream chatter.
-  "gemini-cli": 15 * 60 * 1000,
   antigravity: 15 * 60 * 1000,
   agy: 15 * 60 * 1000, // same Google backend as antigravity (non-rotating refresh tokens)
 };
@@ -537,10 +536,7 @@ export async function refreshCodebuddyCnToken(
       expiresIn: data.data.expiresIn,
     };
   } catch (error) {
-    log?.error?.(
-      "TOKEN_REFRESH",
-      `Network error refreshing CodeBuddy CN token: ${error?.message}`
-    );
+    log?.error?.("TOKEN_REFRESH", `Network error refreshing CodeBuddy CN token: ${error?.message}`);
     return null;
   }
 }
@@ -1496,7 +1492,6 @@ export async function refreshCopilotToken(githubAccessToken, log, proxyConfig: u
 async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: unknown = null) {
   switch (provider) {
     case "gemini":
-    case "gemini-cli":
     case "antigravity":
     case "agy":
       return await refreshGoogleToken(
@@ -1574,7 +1569,6 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
 export function supportsTokenRefresh(provider) {
   const explicitlySupported = new Set([
     "gemini",
-    "gemini-cli",
     "antigravity",
     "agy",
     "claude",
@@ -1890,7 +1884,6 @@ export function formatProviderCredentials(provider, credentials, log) {
 
     case "antigravity":
     case "agy":
-    case "gemini-cli":
       return {
         accessToken: credentials.accessToken,
         refreshToken: credentials.refreshToken,
