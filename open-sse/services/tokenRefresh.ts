@@ -4,7 +4,7 @@ import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getGitHubCopilotRefreshHeaders } from "../config/providerHeaderProfiles.ts";
 import { pbkdf2Sync } from "node:crypto";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
-import { serializeRefresh } from "./refreshSerializer.ts";
+import { serializeRefresh, wasRefreshTokenRotated } from "./refreshSerializer.ts";
 import { WINDSURF_CONFIG } from "@/lib/oauth/constants/oauth";
 import { buildGitLabOAuthEndpoints, resolveGitLabOAuthBaseUrl } from "@/lib/oauth/gitlab";
 
@@ -169,6 +169,81 @@ export function runWithOnPersist<T>(
 
 export function getActiveOnPersist(): RefreshPersistFn | undefined {
   return onPersistStore.getStore();
+}
+
+// ── #4038: compare-and-swap (CAS) guard on the refresh persist ───────────────
+// Fix A makes [network refresh + DB write] atomic *for a single connection's
+// mutex*. It does NOT protect against a THIRD writer (a sibling process, a
+// concurrent HealthCheck, or a replica) landing a fresher rotation on the same
+// `connection_id` between the moment the caller read the row and the moment this
+// persist runs. Overwriting that fresher row reverts the sibling's rotation, the
+// next caller loads the reverted (now-consumed) refresh_token, and Auth0/Anthropic
+// revoke the whole token family (the 1352× claude/aa5dd5cf invalidation storm).
+//
+// The CAS guard carries the refresh_token the caller PRESENTED (the version token,
+// since refresh_tokens rotate on every refresh) plus a `reread` of the row's
+// current refresh_token. Right before persisting, `getAccessToken` re-reads and, if
+// a concurrent writer already rotated the row past the presented token, SKIPS the
+// persist so the DB stays at the fresher state. The caller still receives the new
+// accessToken — upstream already authenticated the request; only the DB write is
+// skipped. No active guard ⇒ behavior is byte-identical to before (opt-in).
+type CasGuard = {
+  /** The refresh_token the caller presented for this refresh (CAS version token). */
+  expectedRefreshToken: string | null;
+  /** Re-reads the CURRENT persisted refresh_token for this connection (decrypted). */
+  reread: () => Promise<string | null | undefined>;
+};
+const casGuardStore = new AsyncLocalStorage<CasGuard>();
+const casGuardStats = { skipped: 0, persisted: 0 };
+
+export function runWithCasGuard<T>(
+  guard: CasGuard | undefined | null,
+  fn: () => Promise<T>
+): Promise<T> {
+  if (!guard) return fn();
+  return casGuardStore.run(guard, fn);
+}
+
+export function getActiveCasGuard(): CasGuard | undefined {
+  return casGuardStore.getStore();
+}
+
+/** Skip/persist counters for observability + tests. */
+export function getCasGuardStats(): { skipped: number; persisted: number } {
+  return { ...casGuardStats };
+}
+
+/** Test-only: reset the CAS counters between cases. */
+export function _resetCasGuardStats(): void {
+  casGuardStats.skipped = 0;
+  casGuardStats.persisted = 0;
+}
+
+/**
+ * Returns true when the persist should be SKIPPED because a concurrent writer
+ * already rotated the row's refresh_token past the one we presented (CAS mismatch).
+ * Best-effort: any reread failure falls through to persist (never blocks recovery).
+ */
+async function casGuardShouldSkipPersist(log?: RefreshLogger): Promise<boolean> {
+  const guard = getActiveCasGuard();
+  if (!guard || !guard.expectedRefreshToken) return false;
+  let current: string | null | undefined;
+  try {
+    current = await guard.reread();
+  } catch {
+    return false; // reread failed — fall through to persist (best-effort)
+  }
+  // wasRefreshTokenRotated is true iff both are non-empty AND current !== expected.
+  if (wasRefreshTokenRotated(guard.expectedRefreshToken, current)) {
+    casGuardStats.skipped++;
+    log?.warn?.(
+      "TOKEN_REFRESH",
+      "CAS guard: skipping persist — a concurrent writer already rotated the refresh_token (#4038)"
+    );
+    return true;
+  }
+  casGuardStats.persisted++;
+  return false;
 }
 
 type RefreshLogger = {
@@ -1670,6 +1745,11 @@ export async function getAccessToken(
       // Invoke onPersist INSIDE the mutex so [network call + DB write] are one atomic step.
       // This prevents a concurrent waiter from reading stale credentials before the DB is updated.
       if (result?.accessToken && effectiveOnPersist) {
+        // #4038: skip the persist if a concurrent writer already rotated this row past the
+        // refresh_token we presented (compare-and-swap) — overwriting would revert it.
+        if (await casGuardShouldSkipPersist(log)) {
+          return result;
+        }
         try {
           await effectiveOnPersist(result);
         } catch (persistErr) {
@@ -1707,6 +1787,11 @@ export async function getAccessToken(
   )
     .then(async (result) => {
       if (result?.accessToken && effectiveOnPersist) {
+        // #4038: same compare-and-swap guard as Layer 1 — skip the persist if a concurrent
+        // writer already rotated this row past the refresh_token we presented.
+        if (await casGuardShouldSkipPersist(log)) {
+          return result;
+        }
         try {
           await effectiveOnPersist(result);
         } catch (persistErr) {

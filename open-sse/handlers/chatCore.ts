@@ -82,6 +82,7 @@ import {
   refreshWithRetry,
   isUnrecoverableRefreshError,
   runWithOnPersist,
+  runWithCasGuard,
 } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { createPreparedRequestLogger, runWithCapture } from "../utils/providerRequestLogging.ts";
@@ -2903,8 +2904,25 @@ export async function handleChatCore({
         }
       : undefined;
 
+    // #4038: build a compare-and-swap reread so getAccessToken can skip the persist if a
+    // concurrent writer (sibling request / HealthCheck / replica) already rotated this
+    // connection's refresh_token past the one we presented — overwriting would revert it
+    // and revoke the token family. No connectionId ⇒ no guard (behavior unchanged).
+    const casConnectionId =
+      typeof credentials?.connectionId === "string" ? credentials.connectionId.trim() : "";
+    const casReread = casConnectionId
+      ? async () => {
+          const latest = await getProviderConnectionById(casConnectionId);
+          return typeof latest?.refreshToken === "string" ? latest.refreshToken : null;
+        }
+      : null;
+
     const newCredentials = (await refreshWithRetry(
-      () => runWithOnPersist(persistFn, () => executor.refreshCredentials(credentials, log)),
+      () =>
+        runWithCasGuard(
+          casReread ? { expectedRefreshToken: attemptedRefreshToken, reread: casReread } : null,
+          () => runWithOnPersist(persistFn, () => executor.refreshCredentials(credentials, log))
+        ),
       3,
       log,
       provider // Explicitly pass the provider to avoid universally tripping the "unknown" circuit breaker
