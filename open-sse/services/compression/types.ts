@@ -110,6 +110,13 @@ export interface RtkConfig {
   renderers?: string[];
 }
 
+export interface RelevanceConfig {
+  enabled: boolean;
+  overlapThreshold: number;
+  budgetPercent: number;
+  boilerplateWeight: number;
+}
+
 export interface CompressionLanguageConfig {
   enabled: boolean;
   defaultLanguage: string;
@@ -160,6 +167,7 @@ export interface CompressionConfig {
   /** Phase 4A: selected output styles (supersedes cavemanOutputMode via a back-compat shim). */
   outputStyles?: OutputStyleSelectionEntry[];
   rtkConfig?: RtkConfig;
+  relevanceConfig?: RelevanceConfig;
   languageConfig?: CompressionLanguageConfig;
   aggressive?: AggressiveConfig;
   ultra?: UltraConfig;
