@@ -70,24 +70,6 @@ export const CloudAgentSourceSchema = z.object({
   branch: z.string().optional(),
 });
 
-export const CloudAgentResultSchema = z.object({
-  prUrl: z.string().url().optional(),
-  prNumber: z.number().int().positive().optional(),
-  commitMessage: z.string().optional(),
-  diffUrl: z.string().url().optional(),
-  summary: z.string().optional(),
-  duration: z.number().int().positive().optional(),
-  cost: z.number().positive().optional(),
-});
-
-export const CloudAgentActivitySchema = z.object({
-  id: z.string(),
-  type: z.enum(["plan", "command", "code_change", "message", "error", "completion"]),
-  content: z.string(),
-  timestamp: z.string().datetime(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
-});
-
 export const CloudAgentTaskOptionsSchema = z.object({
   autoCreatePr: z.boolean().optional(),
   planApprovalRequired: z.boolean().optional(),
