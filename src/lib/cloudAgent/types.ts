@@ -88,6 +88,3 @@ export const UpdateCloudAgentTaskSchema = z.object({
   action: z.enum(["approve", "reject", "cancel", "message"]),
   message: z.string().optional(),
 });
-
-export type CreateCloudAgentTaskInput = z.infer<typeof CreateCloudAgentTaskSchema>;
-export type UpdateCloudAgentTaskInput = z.infer<typeof UpdateCloudAgentTaskSchema>;
