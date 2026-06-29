@@ -16,6 +16,77 @@ import { SPAWN_CAPABLE_PREFIXES } from "@/server/authz/routeGuard";
 
 const signatureCacheModeValues = ["enabled", "bypass", "bypass-strict"] as const;
 
+const transformDropParagraphIfContainsSchema = z.object({
+  kind: z.literal("drop_paragraph_if_contains"),
+  needles: z.array(z.string().max(500)).max(50),
+  caseSensitive: z.boolean().optional(),
+});
+
+const transformDropParagraphIfStartsWithSchema = z.object({
+  kind: z.literal("drop_paragraph_if_starts_with"),
+  prefixes: z.array(z.string().max(500)).max(50),
+  caseSensitive: z.boolean().optional(),
+});
+
+const transformReplaceTextSchema = z.object({
+  kind: z.literal("replace_text"),
+  match: z.string().min(1).max(500),
+  replacement: z.string().max(500),
+  allOccurrences: z.boolean().optional(),
+});
+
+const transformReplaceRegexSchema = z.object({
+  kind: z.literal("replace_regex"),
+  pattern: z.string().min(1).max(500),
+  flags: z.string().max(10).optional(),
+  replacement: z.string().max(500),
+});
+
+const transformDropBlockIfContainsSchema = z.object({
+  kind: z.literal("drop_block_if_contains"),
+  needles: z.array(z.string().max(500)).max(50),
+});
+
+const transformPrependSystemBlockSchema = z.object({
+  kind: z.literal("prepend_system_block"),
+  text: z.string().min(1).max(2000),
+  idempotencyKey: z.string().max(100).optional(),
+});
+
+const transformAppendSystemBlockSchema = z.object({
+  kind: z.literal("append_system_block"),
+  text: z.string().min(1).max(2000),
+  idempotencyKey: z.string().max(100).optional(),
+});
+
+const transformInjectBillingHeaderSchema = z.object({
+  kind: z.literal("inject_billing_header"),
+  entrypoint: z.string().min(1).max(50),
+  versionFormat: z.enum(["ex-machina", "omniroute-daystamp"]),
+  cchAlgo: z.enum(["sha256-first-user", "xxhash64-body", "static-zero"]),
+  version: z.string().max(50).optional(),
+});
+
+const commonSystemTransformOperationSchemas = [
+  transformDropParagraphIfContainsSchema,
+  transformDropParagraphIfStartsWithSchema,
+  transformReplaceTextSchema,
+  transformReplaceRegexSchema,
+  transformDropBlockIfContainsSchema,
+  transformPrependSystemBlockSchema,
+  transformAppendSystemBlockSchema,
+  transformInjectBillingHeaderSchema,
+] as const;
+
+const transformObfuscateWordsSchema = z.object({
+  kind: z.literal("obfuscate_words"),
+  words: z.array(z.string().max(100)).max(200),
+  targets: z
+    .array(z.enum(["system", "messages", "tools"]))
+    .max(3)
+    .optional(),
+});
+
 export const updateSettingsSchema = z.object({
   newPassword: z.string().min(1).max(200).optional(),
   currentPassword: z.string().max(200).optional(),
@@ -131,53 +202,7 @@ export const updateSettingsSchema = z.object({
     .object({
       enabled: z.boolean(),
       pipeline: z
-        .array(
-          z.discriminatedUnion("kind", [
-            z.object({
-              kind: z.literal("drop_paragraph_if_contains"),
-              needles: z.array(z.string().max(500)).max(50),
-              caseSensitive: z.boolean().optional(),
-            }),
-            z.object({
-              kind: z.literal("drop_paragraph_if_starts_with"),
-              prefixes: z.array(z.string().max(500)).max(50),
-              caseSensitive: z.boolean().optional(),
-            }),
-            z.object({
-              kind: z.literal("replace_text"),
-              match: z.string().min(1).max(500),
-              replacement: z.string().max(500),
-              allOccurrences: z.boolean().optional(),
-            }),
-            z.object({
-              kind: z.literal("replace_regex"),
-              pattern: z.string().min(1).max(500),
-              flags: z.string().max(10).optional(),
-              replacement: z.string().max(500),
-            }),
-            z.object({
-              kind: z.literal("drop_block_if_contains"),
-              needles: z.array(z.string().max(500)).max(50),
-            }),
-            z.object({
-              kind: z.literal("prepend_system_block"),
-              text: z.string().min(1).max(2000),
-              idempotencyKey: z.string().max(100).optional(),
-            }),
-            z.object({
-              kind: z.literal("append_system_block"),
-              text: z.string().min(1).max(2000),
-              idempotencyKey: z.string().max(100).optional(),
-            }),
-            z.object({
-              kind: z.literal("inject_billing_header"),
-              entrypoint: z.string().min(1).max(50),
-              versionFormat: z.enum(["ex-machina", "omniroute-daystamp"]),
-              cchAlgo: z.enum(["sha256-first-user", "xxhash64-body", "static-zero"]),
-              version: z.string().max(50).optional(),
-            }),
-          ])
-        )
+        .array(z.discriminatedUnion("kind", commonSystemTransformOperationSchemas))
         .max(50),
     })
     .optional(),
@@ -193,57 +218,8 @@ export const updateSettingsSchema = z.object({
           pipeline: z
             .array(
               z.discriminatedUnion("kind", [
-                z.object({
-                  kind: z.literal("drop_paragraph_if_contains"),
-                  needles: z.array(z.string().max(500)).max(50),
-                  caseSensitive: z.boolean().optional(),
-                }),
-                z.object({
-                  kind: z.literal("drop_paragraph_if_starts_with"),
-                  prefixes: z.array(z.string().max(500)).max(50),
-                  caseSensitive: z.boolean().optional(),
-                }),
-                z.object({
-                  kind: z.literal("replace_text"),
-                  match: z.string().min(1).max(500),
-                  replacement: z.string().max(500),
-                  allOccurrences: z.boolean().optional(),
-                }),
-                z.object({
-                  kind: z.literal("replace_regex"),
-                  pattern: z.string().min(1).max(500),
-                  flags: z.string().max(10).optional(),
-                  replacement: z.string().max(500),
-                }),
-                z.object({
-                  kind: z.literal("drop_block_if_contains"),
-                  needles: z.array(z.string().max(500)).max(50),
-                }),
-                z.object({
-                  kind: z.literal("prepend_system_block"),
-                  text: z.string().min(1).max(2000),
-                  idempotencyKey: z.string().max(100).optional(),
-                }),
-                z.object({
-                  kind: z.literal("append_system_block"),
-                  text: z.string().min(1).max(2000),
-                  idempotencyKey: z.string().max(100).optional(),
-                }),
-                z.object({
-                  kind: z.literal("inject_billing_header"),
-                  entrypoint: z.string().min(1).max(50),
-                  versionFormat: z.enum(["ex-machina", "omniroute-daystamp"]),
-                  cchAlgo: z.enum(["sha256-first-user", "xxhash64-body", "static-zero"]),
-                  version: z.string().max(50).optional(),
-                }),
-                z.object({
-                  kind: z.literal("obfuscate_words"),
-                  words: z.array(z.string().max(100)).max(200),
-                  targets: z
-                    .array(z.enum(["system", "messages", "tools"]))
-                    .max(3)
-                    .optional(),
-                }),
+                ...commonSystemTransformOperationSchemas,
+                transformObfuscateWordsSchema,
               ])
             )
             .max(50),
