@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+import * as classifyPublicApi from "../../../src/server/authz/classify.ts";
 import { classifyRoute } from "../../../src/server/authz/classify.ts";
 import type { RouteClass } from "../../../src/server/authz/types.ts";
 
@@ -208,4 +209,11 @@ test("classifyRoute treats /api/v1 prefix exactly", () => {
   assert.equal(classifyRoute("/api/v1/x").routeClass, "CLIENT_API");
   assert.equal(classifyRoute("/api/v1betamax").routeClass, "MANAGEMENT");
   assert.equal(classifyRoute("/api/v1beta/models").routeClass, "CLIENT_API");
+});
+
+test("classify module public surface only exposes route classification", () => {
+  assert.equal("classifyRoute" in classifyPublicApi, true);
+  assert.equal("isClientApi" in classifyPublicApi, false);
+  assert.equal("isManagement" in classifyPublicApi, false);
+  assert.equal("isPublic" in classifyPublicApi, false);
 });

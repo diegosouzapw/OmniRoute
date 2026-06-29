@@ -3,7 +3,7 @@ import {
   PUBLIC_READONLY_API_ROUTE_PREFIXES,
   PUBLIC_READONLY_METHODS,
 } from "../../shared/constants/publicApiRoutes";
-import type { ClassificationReason, RouteClass, RouteClassification } from "./types";
+import type { ClassificationReason, RouteClassification } from "./types";
 
 const CLIENT_API_ALIAS_PREFIXES: ReadonlyArray<{ alias: string; canonical: string }> = [
   { alias: "/chat/completions", canonical: "/api/v1/chat/completions" },
@@ -138,16 +138,4 @@ function isClassifiedAsPublic(path: string, method: string): boolean {
     return true;
   }
   return matchesReadonlyPublic(path, method);
-}
-
-export function isClientApi(routeClass: RouteClass): boolean {
-  return routeClass === "CLIENT_API";
-}
-
-export function isManagement(routeClass: RouteClass): boolean {
-  return routeClass === "MANAGEMENT";
-}
-
-export function isPublic(routeClass: RouteClass): boolean {
-  return routeClass === "PUBLIC";
 }
