@@ -47,6 +47,7 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   "scripts/dev/tls-options.mjs",
   "server.js",
   "server-ws.mjs",
+  "tls-options.mjs",
   "webdav-handler.mjs",
 ];
 
@@ -141,6 +142,7 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "dist/open-sse/services/compression/rules/en/filler.json",
   "dist/server.js",
   "dist/server-ws.mjs",
+  "dist/tls-options.mjs",
   "dist/responses-ws-proxy.mjs",
   "dist/peer-stamp.mjs",
   "dist/http-method-guard.cjs",
