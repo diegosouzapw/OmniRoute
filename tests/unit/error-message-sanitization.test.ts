@@ -18,6 +18,9 @@ const mappingsRoute = await import("../../src/app/api/model-combo-mappings/route
 const mappingsIdRoute = await import("../../src/app/api/model-combo-mappings/[id]/route.ts");
 const syncTokens = await import("../../src/lib/sync/tokens.ts");
 
+const repoRoot = path.resolve(import.meta.dirname, "../..");
+const read = (relPath: string) => fs.readFileSync(path.join(repoRoot, relPath), "utf8");
+
 function makeRequest(url: string, options: { method?: string; body?: unknown } = {}) {
   const { method = "GET", body } = options;
   return new Request(url, {
@@ -238,6 +241,13 @@ test("buildErrorBody never exposes stack traces in its message", async () => {
   );
   assert.equal(body.error.message, "Internal error");
   assert.ok(!body.error.message.includes("at /opt"));
+});
+
+test("types barrel keeps the model cooldown payload export only", async () => {
+  const src = await read("src/types/index.ts");
+  assert.match(src, /ModelCooldownErrorPayload/);
+  assert.doesNotMatch(src, /ProviderConnection/);
+  assert.doesNotMatch(src, /ProviderNode/);
 });
 
 // ── sanitizeUpstreamDetails ──────────────────────────────────────────────────
