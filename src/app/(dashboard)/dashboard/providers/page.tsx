@@ -6,7 +6,6 @@ import {
   AGGREGATOR_PROVIDER_IDS,
   EMBEDDING_RERANK_PROVIDER_IDS,
   ENTERPRISE_CLOUD_PROVIDER_IDS,
-  getProviderAlias,
   IDE_PROVIDER_IDS,
   IMAGE_ONLY_PROVIDER_IDS,
   VIDEO_PROVIDER_IDS,
@@ -39,6 +38,7 @@ import {
 } from "@/lib/providers/codexFastTier";
 import AddCompatibleProviderModal from "./components/AddCompatibleProviderModal";
 import { CategoryDot } from "./components/CategoryDot";
+import NoAuthProvidersSection from "./components/NoAuthProvidersSection";
 import ProviderCard from "./components/ProviderCard";
 import ProviderCountBadge from "./components/ProviderCountBadge";
 import ProviderSummaryCard from "./components/ProviderSummaryCard";
@@ -436,33 +436,6 @@ export default function ProvidersPage() {
         })
       )
     );
-  };
-
-  // Re-enable a no-auth provider that was disabled (i.e. present in
-  // `blockedProviders`). Mirrors the per-provider toggle on the provider detail
-  // page so a blocked no-auth provider can be restored in-place from the list
-  // instead of forcing a trip to Settings → Security → Blocked Providers (#5183).
-  const handleUnblockProvider = async (providerId: string) => {
-    const alias = getProviderAlias(providerId);
-    const keysToRemove = new Set([providerId, alias].filter(Boolean) as string[]);
-    const previous = blockedProviders;
-    const next = previous.filter((p) => !keysToRemove.has(p));
-    setBlockedProviders(next);
-    try {
-      const response = await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blockedProviders: next }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data?.error?.message || data?.error || "Failed to update provider");
-      }
-      setBlockedProviders(Array.isArray(data.blockedProviders) ? data.blockedProviders : next);
-    } catch (error) {
-      setBlockedProviders(previous);
-      notify.error(error instanceof Error ? error.message : t("repairEnvFailed"));
-    }
   };
 
   const handleBatchTest = async (mode, providerId = null) => {
@@ -983,7 +956,9 @@ export default function ProvidersPage() {
                       }`}
                       title={t("testAllCompatible")}
                     >
-                      <span className={`material-symbols-outlined text-[14px]${testingMode === "compatible" ? " animate-spin" : ""}`}>
+                      <span
+                        className={`material-symbols-outlined text-[14px]${testingMode === "compatible" ? " animate-spin" : ""}`}
+                      >
                         play_arrow
                       </span>
                       {testingMode === "compatible" ? t("testing") : t("testAll")}
@@ -1078,7 +1053,9 @@ export default function ProvidersPage() {
                     title={t("testAllOAuth")}
                     aria-label={t("testAllOAuth")}
                   >
-                    <span className={`material-symbols-outlined text-[14px]${testingMode === "oauth" ? " animate-spin" : ""}`}>
+                    <span
+                      className={`material-symbols-outlined text-[14px]${testingMode === "oauth" ? " animate-spin" : ""}`}
+                    >
                       play_arrow
                     </span>
                     {testingMode === "oauth" ? t("testing") : t("testAll")}
@@ -1128,7 +1105,9 @@ export default function ProvidersPage() {
                   title={t("testAll")}
                   aria-label={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "ide" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "ide" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "ide" ? t("testing") : t("testAll")}
@@ -1185,7 +1164,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "web-cookie" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "web-cookie" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "web-cookie" ? t("testing") : t("testAll")}
@@ -1229,7 +1210,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "free" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "free" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "free" ? t("testing") : t("testAll")}
@@ -1274,7 +1257,9 @@ export default function ProvidersPage() {
                   title={t("testAllApiKey")}
                   aria-label={t("testAllApiKey")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "apikey" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "apikey" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "apikey" ? t("testing") : t("testAll")}
@@ -1311,79 +1296,18 @@ export default function ProvidersPage() {
           {showSection("noauth") &&
             !showFreeOnly &&
             (noAuthEntriesAll.length > 0 || blockedNoAuthEntries.length > 0) && (
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-                  {t("noAuthProviders")}{" "}
-                  <span className="size-2.5 rounded-full bg-stone-500" title={t("noAuthLabel")} />
-                  <ProviderCountBadge {...countConfigured(noAuthEntriesAll)} />
-                </h2>
-                <button
-                  onClick={() => handleBatchTest("no-auth")}
-                  disabled={!!testingMode}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                    testingMode === "no-auth"
-                      ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
-                      : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
-                  }`}
-                  title={t("testAll")}
-                >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "no-auth" ? " animate-spin" : ""}`}>
-                    play_arrow
-                  </span>
-                  {testingMode === "no-auth" ? t("testing") : t("testAll")}
-                </button>
-              </div>
-              <p className="text-sm text-text-muted -mt-2">{t("noAuthProvidersDesc")}</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
-                {noAuthEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
-                  <ProviderCard
-                    key={providerId}
-                    providerId={providerId}
-                    provider={provider}
-                    stats={stats}
-                    authType="no-auth"
-                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-                  />
-                ))}
-              </div>
-              {/* Disabled no-auth providers — surfaced (not hidden) so they can be
-                  re-enabled in place instead of vanishing from the page (#5183). */}
-              {blockedNoAuthEntries.length > 0 && (
-                <div className="flex flex-col gap-2">
-                  <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
-                    {t("disabled")}
-                  </p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
-                    {blockedNoAuthEntries.map(({ providerId, provider }) => (
-                      <div
-                        key={providerId}
-                        className="flex items-center justify-between gap-2 rounded-xl border border-border bg-bg-subtle px-3 py-2.5 opacity-80"
-                      >
-                        <div className="flex min-w-0 flex-col">
-                          <span className="truncate text-sm font-medium text-text-main">
-                            {provider.name}
-                          </span>
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-red-600 dark:text-red-400">
-                            <span className="size-1.5 rounded-full bg-red-500" />
-                            {t("disabled")}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleUnblockProvider(providerId)}
-                          className="shrink-0 rounded-md border border-border px-2 py-1 text-xs font-medium text-text-muted transition-colors hover:border-primary/40 hover:text-text-primary"
-                          title={t("enableProvider")}
-                        >
-                          {t("enableProvider")}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+              <NoAuthProvidersSection
+                visibleEntries={noAuthEntries}
+                count={countConfigured(noAuthEntriesAll)}
+                blockedEntries={blockedNoAuthEntries}
+                blockedProviders={blockedProviders}
+                onBlockedChange={setBlockedProviders}
+                onError={(msg) => notify.error(msg)}
+                testingMode={testingMode}
+                onBatchTest={handleBatchTest}
+                onToggleProvider={handleToggleProvider}
+              />
+            )}
 
           {/* Upstream Proxy Providers */}
           {showSection("proxy") && upstreamProxyEntries.length > 0 && (
@@ -1407,7 +1331,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "upstream-proxy" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "upstream-proxy" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "upstream-proxy" ? t("testing") : t("testAll")}
@@ -1550,7 +1476,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "cloud-agent" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "cloud-agent" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "cloud-agent" ? t("testing") : t("testAll")}
@@ -1598,7 +1526,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "local" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "local" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "local" ? t("testing") : t("testAll")}
@@ -1642,7 +1572,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "search" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "search" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "search" ? t("testing") : t("testAll")}
@@ -1752,7 +1684,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "audio" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "audio" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "audio" ? t("testing") : t("testAll")}
