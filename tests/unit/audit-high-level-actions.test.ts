@@ -5,6 +5,13 @@ import { HIGH_LEVEL_ACTIONS, isHighLevelAction } from "../../src/lib/audit/highL
 
 const ALL = HIGH_LEVEL_ACTIONS as readonly string[];
 
+test("high-level actions module exposes runtime allowlist helpers", async () => {
+  const mod = await import("../../src/lib/audit/highLevelActions");
+
+  assert.equal(Array.isArray(mod.HIGH_LEVEL_ACTIONS), true);
+  assert.equal(typeof mod.isHighLevelAction, "function");
+});
+
 // B/G3: allowlist aligned with logAuditEvent emitters (27 after batch_updated).
 test("HIGH_LEVEL_ACTIONS has exactly 27 entries", () => {
   assert.equal(ALL.length, 27);

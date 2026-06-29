@@ -50,8 +50,6 @@ export const HIGH_LEVEL_ACTIONS = [
   "quota.store.driver_changed",
 ] as const;
 
-export type HighLevelAction = (typeof HIGH_LEVEL_ACTIONS)[number];
-
 const SET: ReadonlySet<string> = new Set<string>(HIGH_LEVEL_ACTIONS);
 
 export function isHighLevelAction(action: string): boolean {
