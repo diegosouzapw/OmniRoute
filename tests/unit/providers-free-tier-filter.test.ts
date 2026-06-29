@@ -6,6 +6,7 @@ import {
   type ProviderCatalogMetadata,
   type StaticProviderCatalogCategory,
 } from "@/lib/providers/catalog";
+import * as providerCatalog from "@/lib/providers/catalog";
 
 const CATALOG_CATEGORIES = [
   "no-auth",
@@ -88,6 +89,12 @@ function countByCategory(entries: ProviderFilterEntry[]) {
     cloudAgent: filterByCategory(entries, "cloud-agent").length,
   };
 }
+
+test("provider catalog public surface excludes removed categories helper", () => {
+  assert.equal(Object.hasOwn(providerCatalog, "getStaticProviderCategories"), false);
+  assert.equal(typeof providerCatalog.getStaticProviderCatalogGroup, "function");
+  assert.equal(typeof providerCatalog.resolveStaticProviderCatalogEntry, "function");
+});
 
 test('filterByCategory("free") returns every hasFree provider across native categories', () => {
   const entries = buildCatalogEntries();
