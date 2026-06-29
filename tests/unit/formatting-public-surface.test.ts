@@ -18,5 +18,8 @@ test("formatting utilities public surface excludes removed display helpers", () 
 test("sse logger wrapper no longer re-exports formatting maskKey", () => {
   assert.equal(Object.hasOwn(sseLogger, "maskKey"), false);
   assert.equal(typeof sseLogger.debug, "function");
+  assert.equal(typeof sseLogger.info, "function");
   assert.equal(typeof sseLogger.warn, "function");
+  assert.equal(typeof sseLogger.error, "function");
+  assert.equal(typeof sseLogger.request, "function");
 });
