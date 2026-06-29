@@ -940,6 +940,29 @@
       "stream": "https://api.commandcode.ai"
     }
   },
+  "copilot-m365-web": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "wss://substrate.office.com/m365Copilot/Chathub",
+      "stream": "wss://substrate.office.com/m365Copilot/Chathub"
+    }
+  },
   "copilot-web": {
     "format": "openai",
     "headers": {
