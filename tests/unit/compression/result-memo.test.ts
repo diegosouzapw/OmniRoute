@@ -171,6 +171,41 @@ describe("isDeterministicMode", () => {
     assert.equal(isDeterministicMode("stacked", cfg), false);
   });
 
+  // Stateful engines write to the cross-request CCR store (storeBlock): caching their
+  // output would skip the side-effect on a HIT, leaving CCR markers pointing at blocks
+  // that were never stored → broken `retrieve`. These MUST stay excluded from the memo.
+  it("stacked with ccr engine is NOT deterministic (writes cross-request CCR store)", () => {
+    const cfg = {
+      ...DEFAULT_COMPRESSION_CONFIG,
+      stackedPipeline: [{ engine: "ccr" as const }, { engine: "caveman" as const }],
+    };
+    assert.equal(isDeterministicMode("stacked", cfg), false);
+  });
+
+  it("stacked with session-dedup engine is NOT deterministic (storeBlock side-effect)", () => {
+    const cfg = {
+      ...DEFAULT_COMPRESSION_CONFIG,
+      stackedPipeline: [{ engine: "session-dedup" as const }, { engine: "rtk" as const }],
+    };
+    assert.equal(isDeterministicMode("stacked", cfg), false);
+  });
+
+  it("stacked with ionizer engine is NOT deterministic (storeBlock side-effect)", () => {
+    const cfg = {
+      ...DEFAULT_COMPRESSION_CONFIG,
+      stackedPipeline: [{ engine: "ionizer" as const }, { engine: "lite" as const }],
+    };
+    assert.equal(isDeterministicMode("stacked", cfg), false);
+  });
+
+  it("stacked with headroom engine is NOT deterministic (excluded until vetted)", () => {
+    const cfg = {
+      ...DEFAULT_COMPRESSION_CONFIG,
+      stackedPipeline: [{ engine: "headroom" as const }, { engine: "lite" as const }],
+    };
+    assert.equal(isDeterministicMode("stacked", cfg), false);
+  });
+
   it("stacked with empty/undefined pipeline is NOT deterministic (safe default)", () => {
     const cfg = { ...DEFAULT_COMPRESSION_CONFIG, stackedPipeline: undefined };
     assert.equal(isDeterministicMode("stacked", cfg), false);
@@ -253,19 +288,28 @@ describe("resultMemo — core review hardening", () => {
   it("stacked pipeline with a stateful engine (ccr/session-dedup) is NOT deterministic", () => {
     // ccr + session-dedup write to the cross-request CCR store → output depends on prior
     // state → must never be cached, even though they are not model-backed.
-    const cfgCcr = { ...memoConfig, stackedPipeline: [{ engine: "rtk" as const }, { engine: "ccr" as const }] };
+    const cfgCcr = {
+      ...memoConfig,
+      stackedPipeline: [{ engine: "rtk" as const }, { engine: "ccr" as const }],
+    };
     const cfgDedup = { ...memoConfig, stackedPipeline: [{ engine: "session-dedup" as const }] };
     assert.equal(isDeterministicMode("stacked", cfgCcr), false);
     assert.equal(isDeterministicMode("stacked", cfgDedup), false);
     // the pure default pipeline [rtk, caveman] stays cacheable
-    const cfgPure = { ...memoConfig, stackedPipeline: [{ engine: "rtk" as const }, { engine: "caveman" as const }] };
+    const cfgPure = {
+      ...memoConfig,
+      stackedPipeline: [{ engine: "rtk" as const }, { engine: "caveman" as const }],
+    };
     assert.equal(isDeterministicMode("stacked", cfgPure), true);
     // an unknown/new mode is NOT cached by default (opt-in whitelist)
     assert.equal(isDeterministicMode("totally-new-mode" as never, memoConfig), false);
   });
 
   it("a missing principalId is never memoized (no anonymous↔authenticated key collision)", () => {
-    const body = { messages: [{ role: "user", content: "no principal here please" }], model: "gpt-4" };
+    const body = {
+      messages: [{ role: "user", content: "no principal here please" }],
+      model: "gpt-4",
+    };
     applyCompression(body, "lite", { config: memoConfig }); // no principalId
     const key = makeMemoKey(body, "lite", memoConfig, undefined);
     assert.equal(memoLookup(key), null);
