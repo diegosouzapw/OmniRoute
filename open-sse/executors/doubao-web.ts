@@ -13,7 +13,7 @@ import { makeExecutorErrorResult as makeErrorResult, normalizeCookie } from "../
 const BASE_URL = "https://www.doubao.com";
 const CHAT_URL = `${BASE_URL}/api/chat`;
 const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
 export class DoubaoWebExecutor extends BaseExecutor {
   constructor() {
@@ -95,7 +95,10 @@ export class DoubaoWebExecutor extends BaseExecutor {
     const stream = new ReadableStream({
       async start(controller) {
         const reader = upstream.body?.getReader();
-        if (!reader) { controller.close(); return; }
+        if (!reader) {
+          controller.close();
+          return;
+        }
         let buffer = "";
         try {
           while (true) {
@@ -107,7 +110,10 @@ export class DoubaoWebExecutor extends BaseExecutor {
             for (const line of lines) {
               if (!line.startsWith("data:")) continue;
               const data = line.slice(5).trim();
-              if (data === "[DONE]") { controller.enqueue(encoder.encode("data: [DONE]\n\n")); continue; }
+              if (data === "[DONE]") {
+                controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+                continue;
+              }
               try {
                 const parsed = JSON.parse(data);
                 const text = parsed.choices?.[0]?.delta?.content || "";
@@ -135,7 +141,11 @@ export class DoubaoWebExecutor extends BaseExecutor {
 
     return {
       response: new Response(stream, {
-        headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive" },
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        },
       }),
       url: CHAT_URL,
       headers: reqHeaders,

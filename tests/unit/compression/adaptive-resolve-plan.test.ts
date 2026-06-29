@@ -1,0 +1,150 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import {
+  DEFAULT_LADDER,
+  aggressivenessOf,
+  expectedReductionFactor,
+} from "@omniroute/open-sse/services/compression/adaptiveCompression/ladder.ts";
+
+test("default ladder is cheapest → most aggressive (stackPriority order)", () => {
+  assert.deepEqual(
+    DEFAULT_LADDER.map((s) => s.engine),
+    ["session-dedup", "rtk", "headroom", "lite", "caveman", "aggressive", "ultra"]
+  );
+});
+
+test("aggressivenessOf increases monotonically along the ladder", () => {
+  const ranks = DEFAULT_LADDER.map((s) => aggressivenessOf(s.engine));
+  for (let i = 1; i < ranks.length; i++) {
+    assert.ok(ranks[i] > ranks[i - 1], `rank must increase at index ${i}`);
+  }
+  // a base "lite" plan ranks below caveman/aggressive/ultra (so floor escalates beyond it)
+  assert.ok(aggressivenessOf("lite") < aggressivenessOf("caveman"));
+  assert.ok(aggressivenessOf("standard") === aggressivenessOf("caveman")); // mode-name alias
+});
+
+test("expectedReductionFactor is in (0,1) and heavier engines reduce more", () => {
+  assert.ok(expectedReductionFactor("rtk") < 1 && expectedReductionFactor("rtk") > 0);
+  assert.ok(expectedReductionFactor("ultra") < expectedReductionFactor("rtk"));
+});
+
+import { resolveAdaptivePlan } from "@omniroute/open-sse/services/compression/adaptiveCompression/resolveAdaptivePlan.ts";
+import { DEFAULT_CONTEXT_BUDGET } from "@omniroute/open-sse/services/compression/adaptiveCompression/types.ts";
+
+const cfg = (over = {}) => ({ ...DEFAULT_CONTEXT_BUDGET, mode: "floor" as const, ...over });
+const basePlan = { mode: "off", stackedPipeline: [] as Array<{ engine: string; intensity?: string }> };
+
+test("already fits → base plan unchanged, fit=true, no stages", () => {
+  const { plan, telemetry } = resolveAdaptivePlan({
+    basePlan,
+    estimatedTokens: 1000,        // well under target
+    modelContextLimit: 200000,
+    requestMaxTokens: 8000,
+    config: cfg(),
+  });
+  assert.deepEqual(plan, basePlan);
+  assert.ok(telemetry);
+  assert.equal(telemetry!.fit, true);
+  assert.deepEqual(telemetry!.stagesApplied, []);
+  assert.equal(telemetry!.target, 200000 - 8000 - 1024);
+  assert.ok(telemetry!.headroomBefore > 0);
+  assert.equal(telemetry!.headroomAfter, telemetry!.headroomBefore);
+});
+
+test("over target → escalates and stops at first fitting stage (no over-escalation)", () => {
+  // Injected estimator: each stage halves the prompt. target = 200000-8000-1024 = 190976.
+  // Start over target at 400000: stage1 → 200000 (still over), stage2 → 100000 (fits) → STOP.
+  const halve = (prior: number) => Math.round(prior / 2);
+  const { plan, telemetry } = resolveAdaptivePlan({
+    basePlan: { mode: "off", stackedPipeline: [] },
+    estimatedTokens: 400000,
+    modelContextLimit: 200000,
+    requestMaxTokens: 8000,
+    config: cfg(),
+    estimate: halve,
+  });
+  assert.equal(telemetry!.fit, true);
+  assert.equal(telemetry!.stagesApplied.length, 2); // stopped after the 2nd stage
+  assert.equal(plan.mode, "stacked");
+  assert.equal(plan.stackedPipeline.length, 2);
+  // first two ladder engines above "off": session-dedup then rtk
+  assert.deepEqual(telemetry!.stagesApplied, ["session-dedup", "rtk"]);
+  assert.ok(telemetry!.headroomAfter >= 0);
+});
+
+test("floor escalates beyond a light base plan (base lite → starts above lite)", () => {
+  const halve = (prior: number) => Math.round(prior / 2);
+  const { telemetry } = resolveAdaptivePlan({
+    basePlan: { mode: "lite", stackedPipeline: [] },
+    estimatedTokens: 400000,
+    modelContextLimit: 200000,
+    requestMaxTokens: 8000,
+    config: cfg(),
+    estimate: halve,
+  });
+  // base "lite" rank=4; ladder stages above rank 4 = caveman(5), aggressive(6), ultra(7).
+  assert.equal(telemetry!.stagesApplied[0], "caveman");
+  assert.ok(!telemetry!.stagesApplied.includes("session-dedup")); // did NOT restart below lite
+  assert.ok(!telemetry!.stagesApplied.includes("rtk"));
+});
+
+test("ladder exhausted, still over target → fit=false, all stages applied, plan still set", () => {
+  const noop = (prior: number) => prior; // estimator never reduces → never fits
+  const { plan, telemetry } = resolveAdaptivePlan({
+    basePlan: { mode: "off", stackedPipeline: [] },
+    estimatedTokens: 999999,
+    modelContextLimit: 200000,
+    requestMaxTokens: 8000,
+    config: cfg(),
+    estimate: noop,
+  });
+  assert.equal(telemetry!.fit, false);                 // budget-exceeded
+  assert.equal(telemetry!.stagesApplied.length, 7);    // entire DEFAULT_LADDER above "off"
+  assert.equal(plan.mode, "stacked");
+  assert.ok(plan.stackedPipeline.length >= 7);          // best-effort plan, content NOT dropped
+  assert.ok(telemetry!.headroomAfter < 0);
+});
+
+test("replace-autotrigger: fires on bare off base, defers to an explicit base plan", () => {
+  const halve = (prior: number) => Math.round(prior / 2);
+  // bare off base → it acts
+  const acts = resolveAdaptivePlan({
+    basePlan: { mode: "off", stackedPipeline: [] },
+    estimatedTokens: 400000, modelContextLimit: 200000, requestMaxTokens: 8000,
+    config: cfg({ mode: "replace-autotrigger" }), estimate: halve,
+  });
+  assert.ok(acts.telemetry!.stagesApplied.length > 0);
+
+  // explicit aggressive base → defer (choice wins, may overflow)
+  const defers = resolveAdaptivePlan({
+    basePlan: { mode: "aggressive", stackedPipeline: [] },
+    estimatedTokens: 400000, modelContextLimit: 200000, requestMaxTokens: 8000,
+    config: cfg({ mode: "replace-autotrigger" }), estimate: halve,
+  });
+  assert.deepEqual(defers.plan, { mode: "aggressive", stackedPipeline: [] });
+  assert.deepEqual(defers.telemetry!.stagesApplied, []);
+  assert.equal(defers.telemetry!.fit, false); // 400000 > target, recorded as not fitting
+});
+
+test("unknown model context limit → skip adaptive (null telemetry, base unchanged)", () => {
+  for (const lim of [null, 0, -1]) {
+    const { plan, telemetry } = resolveAdaptivePlan({
+      basePlan, estimatedTokens: 999999, modelContextLimit: lim,
+      requestMaxTokens: 8000, config: cfg(),
+    });
+    assert.equal(telemetry, null);
+    assert.deepEqual(plan, basePlan);
+  }
+});
+
+test("hard-off: floor still escalates an overflowing 'off' base plan (spec §9)", () => {
+  const halve = (prior: number) => Math.round(prior / 2);
+  const { telemetry } = resolveAdaptivePlan({
+    basePlan: { mode: "off", stackedPipeline: [] }, // explicit off (header off resolves to this)
+    estimatedTokens: 400000, modelContextLimit: 200000, requestMaxTokens: 8000,
+    config: cfg(), // mode: "floor"
+    estimate: halve,
+  });
+  assert.ok(telemetry!.stagesApplied.length > 0); // floor escalated despite off
+  assert.equal(telemetry!.fit, true);
+});

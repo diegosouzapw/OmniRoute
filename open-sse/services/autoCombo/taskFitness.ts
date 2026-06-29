@@ -199,11 +199,7 @@ const TIER_TASK_FITNESS: Record<string, Record<string, number>> = {
 
 const _intelligenceCache = new Map<string, number | null>();
 
-function queryModelIntelligence(
-  model: string,
-  category: string,
-  source: string,
-): number | null {
+function queryModelIntelligence(model: string, category: string, source: string): number | null {
   const cacheKey = `${model}:${category}:${source}`;
   if (_intelligenceCache.has(cacheKey)) {
     return _intelligenceCache.get(cacheKey)!;
@@ -233,8 +229,7 @@ interface ModelCapRow {
 
 function deriveTierFromCapabilities(cap: ModelCapRow): string {
   if (cap.reasoning === true) return "premium";
-  if (cap.tool_call === true && (cap.limit_context ?? 0) >= 128000)
-    return "standard";
+  if (cap.tool_call === true && (cap.limit_context ?? 0) >= 128000) return "standard";
   if (cap.tool_call === true) return "fast";
   return "budget";
 }
@@ -244,10 +239,7 @@ function loadModelCapabilities(): Record<string, ModelCapRow> | null {
 
   try {
     const db = getDbInstance();
-    const rows = db.prepare("SELECT * FROM model_capabilities").all() as Record<
-      string,
-      unknown
-    >[];
+    const rows = db.prepare("SELECT * FROM model_capabilities").all() as Record<string, unknown>[];
     const cache: Record<string, ModelCapRow> = {};
 
     for (const row of rows) {
@@ -267,8 +259,7 @@ function loadModelCapabilities(): Record<string, ModelCapRow> | null {
             : row.reasoning === false || row.reasoning === 0
               ? false
               : null,
-        limit_context:
-          typeof row.limit_context === "number" ? row.limit_context : null,
+        limit_context: typeof row.limit_context === "number" ? row.limit_context : null,
       };
     }
 
@@ -279,18 +270,11 @@ function loadModelCapabilities(): Record<string, ModelCapRow> | null {
   }
 }
 
-export function getModelsDevTierFitness(
-  model: string,
-  taskType: string,
-): number | null {
+export function getModelsDevTierFitness(model: string, taskType: string): number | null {
   const normalizedModel = model.toLowerCase();
   const normalizedTask = taskType.toLowerCase();
 
-  const dbScore = queryModelIntelligence(
-    normalizedModel,
-    normalizedTask,
-    "models_dev_tier",
-  );
+  const dbScore = queryModelIntelligence(normalizedModel, normalizedTask, "models_dev_tier");
   if (dbScore !== null) return dbScore;
 
   const caps = loadModelCapabilities();
@@ -308,10 +292,7 @@ export function getModelsDevTierFitness(
 
 // ─── Resolution chain ───────────────────────────────────────────────────
 
-function lookupStaticFitnessTable(
-  normalizedModel: string,
-  normalizedTask: string,
-): number | null {
+function lookupStaticFitnessTable(normalizedModel: string, normalizedTask: string): number | null {
   const table = FITNESS_TABLE[normalizedTask] || FITNESS_TABLE.default;
   for (const [pattern, score] of Object.entries(table)) {
     if (normalizedModel.includes(pattern)) return score;
@@ -319,10 +300,7 @@ function lookupStaticFitnessTable(
   return null;
 }
 
-function lookupWildcardBoosts(
-  normalizedModel: string,
-  normalizedTask: string,
-): number {
+function lookupWildcardBoosts(normalizedModel: string, normalizedTask: string): number {
   let baseScore = 0.5;
   for (const wc of WILDCARD_BOOSTS) {
     if (normalizedModel.includes(wc.pattern) && normalizedTask === wc.taskType) {
@@ -338,27 +316,30 @@ export function getTaskFitness(model: string, taskType: string): number {
 
 export function getTaskFitnessWithSource(
   model: string,
-  taskType: string,
+  taskType: string
 ): { score: number; source: string } {
   const normalizedModel = model.toLowerCase();
   const normalizedTask = taskType.toLowerCase();
 
-  const userOverride = queryModelIntelligence(
-    normalizedModel,
-    normalizedTask,
-    "user_override",
-  );
+  const userOverride = queryModelIntelligence(normalizedModel, normalizedTask, "user_override");
   if (userOverride !== null) {
     return { score: userOverride, source: "user_override" };
   }
 
-  const arenaElo = queryModelIntelligence(
-    normalizedModel,
-    normalizedTask,
-    "arena_elo",
-  );
+  // Try arena_elo with the literal model id first (e.g. "mimo-v2.5"). If that's
+  // a miss and the model id carries a "-free" suffix (e.g. "mimo-v2.5-free"),
+  // try the un-suffixed base id so free-tier variants inherit the arena_elo
+  // score of their paid counterpart. This is what operators expect: the
+  // upstream's `mimo-v2.5` is benchmarked once, and `mimo-v2.5-free` should
+  // pick up the same signal rather than falling through to the wildcard 0.5
+  // and losing every free-vs-paid comparison.
+  const arenaElo = queryModelIntelligence(normalizedModel, normalizedTask, "arena_elo");
   if (arenaElo !== null) {
     return { score: arenaElo, source: "arena_elo" };
+  }
+  const arenaEloBase = lookupFreeAliasArenaElo(normalizedModel, normalizedTask);
+  if (arenaEloBase !== null) {
+    return { score: arenaEloBase, source: "arena_elo_free_alias" };
   }
 
   const tierScore = getModelsDevTierFitness(normalizedModel, normalizedTask);
@@ -366,10 +347,7 @@ export function getTaskFitnessWithSource(
     return { score: tierScore, source: "models_dev_tier" };
   }
 
-  const staticScore = lookupStaticFitnessTable(
-    normalizedModel,
-    normalizedTask,
-  );
+  const staticScore = lookupStaticFitnessTable(normalizedModel, normalizedTask);
   if (staticScore !== null) {
     return { score: staticScore, source: "fitness_table" };
   }
@@ -377,35 +355,44 @@ export function getTaskFitnessWithSource(
   return { score: lookupWildcardBoosts(normalizedModel, normalizedTask), source: "wildcard_boost" };
 }
 
-export function setUserFitnessOverride(
-  model: string,
-  category: string,
-  score: number,
-): void {
+/** Suffix used to mark free-tier model variants (e.g. "mimo-v2.5-free"). */
+const FREE_SUFFIX = "-free";
+
+/**
+ * Strip a trailing "-free" suffix from the model id and re-query arena_elo.
+ * Returns `null` when the original id has no "-free" suffix, when the base id
+ * is identical to the original, or when no arena_elo row exists for the base.
+ *
+ * Examples:
+ *   "mimo-v2.5-free"   → look up "mimo-v2.5"
+ *   "deepseek-v4-flash-free" → look up "deepseek-v4-flash"
+ *   "big-pickle"       → no "-free" suffix → return null (skip)
+ */
+function lookupFreeAliasArenaElo(normalizedModel: string, normalizedTask: string): number | null {
+  if (!normalizedModel.endsWith(FREE_SUFFIX)) return null;
+  const baseId = normalizedModel.slice(0, -FREE_SUFFIX.length);
+  if (baseId.length === 0 || baseId === normalizedModel) return null;
+  return queryModelIntelligence(baseId, normalizedTask, "arena_elo");
+}
+
+export function setUserFitnessOverride(model: string, category: string, score: number): void {
   try {
-    setUserFitnessOverrideEntry(
-      model.toLowerCase(),
-      category.toLowerCase(),
-      score,
-    );
+    setUserFitnessOverrideEntry(model.toLowerCase(), category.toLowerCase(), score);
     invalidateFitnessCache();
   } catch (err) {
     throw new Error(
-      `Failed to set user fitness override for ${model}/${category}: ${err instanceof Error ? err.message : String(err)}`,
+      `Failed to set user fitness override for ${model}/${category}: ${err instanceof Error ? err.message : String(err)}`
     );
   }
 }
 
-export function clearUserFitnessOverride(
-  model: string,
-  category: string,
-): void {
+export function clearUserFitnessOverride(model: string, category: string): void {
   try {
     deleteUserFitnessOverrideEntry(model.toLowerCase(), category.toLowerCase());
     invalidateFitnessCache();
   } catch (err) {
     throw new Error(
-      `Failed to clear user fitness override for ${model}/${category}: ${err instanceof Error ? err.message : String(err)}`,
+      `Failed to clear user fitness override for ${model}/${category}: ${err instanceof Error ? err.message : String(err)}`
     );
   }
 }

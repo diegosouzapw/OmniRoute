@@ -18,7 +18,7 @@ const DB_KEY = "cursorupdate.lastUpdatedAndShown.version";
  * `CURSOR_REGISTRY_VERSION` in providerHeaderProfiles.ts. Exported so tests
  * assert against the single source of truth instead of a drifting literal.
  */
-export const FALLBACK_VERSION = "3.3";
+export const FALLBACK_VERSION = "3.9";
 
 let cachedVersion: string | null = null;
 let cachedAt = 0;

@@ -17,11 +17,6 @@ test("T28: gemini AI Studio catalog includes current preview models", () => {
   assert.ok(geminiIds.includes("gemini-2.5-flash"));
   assert.ok(geminiIds.includes("gemini-2.5-pro"));
   assert.equal(geminiIds[0], "gemini-2.0-flash", "preserve the existing Gemini default");
-
-  // gemini-cli still has hardcoded models (Cloud Code doesn't have a models API)
-  const geminiCliIds = REGISTRY["gemini-cli"].models.map((m) => m.id);
-  assert.ok(geminiCliIds.includes("gemini-3.1-flash-lite-preview"));
-  assert.ok(geminiCliIds.includes("gemini-3-flash-preview"));
 });
 
 test("T28: antigravity static catalog exposes client-visible Gemini tier IDs", () => {
@@ -70,6 +65,20 @@ test("T28: vertex catalog includes partner models when vertex executor is availa
   assert.ok(vertexIds.includes("DeepSeek-V4-Pro"));
   assert.ok(vertexIds.includes("Qwen3.6-35B-A3B"));
   assert.ok(vertexIds.includes("GLM-5.1-FP8"));
+});
+
+test("T28: volcengine (Ark) catalog includes DeepSeek V4 models", () => {
+  const volcengineIds = REGISTRY.volcengine.models.map((m) => m.id);
+
+  assert.ok(
+    volcengineIds.includes("DeepSeek-V4-Flash"),
+    "volcengine Ark must list DeepSeek-V4-Flash"
+  );
+  assert.ok(volcengineIds.includes("DeepSeek-V4-Pro"), "volcengine Ark must list DeepSeek-V4-Pro");
+  // Existing models must still be present
+  assert.ok(volcengineIds.includes("deepseek-v3-2-251201"));
+  assert.ok(volcengineIds.includes("kimi-k2-5-260127"));
+  assert.ok(volcengineIds.includes("glm-4-7-251222"));
 });
 
 test("T28: new catalog models resolve through getModelInfoCore", async () => {

@@ -4,12 +4,10 @@
  * Covers:
  * 1. Module exports the expected public API.
  * 2. getState() returns the documented shape before any init/run.
- * 3. init() is idempotent (safe to call from instrumentation-node.ts).
- * 4. stop() is safe before init() and idempotent.
+ * 3. init() honors Storage's scheduledVacuum/vacuumHour settings.
+ * 4. refresh() applies Storage setting changes without a restart.
  * 5. runNow() succeeds on a healthy DB, persists lastRunAt, clears isRunning.
- * 6. runNow() called twice concurrently yields exactly one success and one
- *    "already_running".
- * 7. lastRunAt survives a simulated restart (__resetForTests + init reloads the
+ * 6. lastRunAt survives a simulated restart (__resetForTests + init reloads the
  *    persisted state from key_value).
  *
  * Rebuild note (PR #4480): the original PR test was authored against the Vitest
@@ -29,19 +27,28 @@ import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-vacuum-scheduler-"));
 const originalDataDir = process.env.DATA_DIR;
-const originalEnabled = process.env.OMNIROUTE_VACUUM_ENABLED;
 
 process.env.DATA_DIR = TEST_DATA_DIR;
-// Keep the scheduler from arming a real interval timer during unit tests.
-process.env.OMNIROUTE_VACUUM_ENABLED = "0";
 
 const core = await import("../../../src/lib/db/core.ts");
 core.resetDbInstance();
 
 const scheduler = await import("../../../src/lib/db/vacuumScheduler.ts");
 
+function setOptimizationSettings(values: { scheduledVacuum?: string; vacuumHour?: number }) {
+  const db = core.getDbInstance();
+  const insert = db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
+  );
+  for (const [key, value] of Object.entries(values)) {
+    insert.run("databaseSettings", `optimization.${key}`, JSON.stringify(value));
+  }
+}
+
 test.beforeEach(() => {
   scheduler.__resetForTests();
+  const db = core.getDbInstance();
+  db.prepare("DELETE FROM key_value WHERE namespace IN ('scheduler', 'databaseSettings')").run();
 });
 
 test.after(() => {
@@ -50,8 +57,6 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   if (originalDataDir === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = originalDataDir;
-  if (originalEnabled === undefined) delete process.env.OMNIROUTE_VACUUM_ENABLED;
-  else process.env.OMNIROUTE_VACUUM_ENABLED = originalEnabled;
 });
 
 test("module loads and exports the expected public API", () => {
@@ -59,6 +64,8 @@ test("module loads and exports the expected public API", () => {
   assert.equal(typeof scheduler.stop, "function");
   assert.equal(typeof scheduler.runNow, "function");
   assert.equal(typeof scheduler.getState, "function");
+  assert.equal(typeof scheduler.refresh, "function");
+  assert.equal(typeof scheduler.resolveNextRunAt, "function");
 });
 
 test("getState() returns the documented shape before any init/run", () => {
@@ -72,13 +79,69 @@ test("getState() returns the documented shape before any init/run", () => {
   assert.equal(state.nextRunAt, null);
 });
 
+test("resolveNextRunAt respects Storage frequency and vacuumHour", () => {
+  const nowBeforeHour = new Date(2026, 0, 1, 1, 30, 0, 0).getTime();
+  const todayAtTwo = new Date(2026, 0, 1, 2, 0, 0, 0).getTime();
+  assert.equal(
+    scheduler.resolveNextRunAt({ scheduledVacuum: "daily", vacuumHour: 2 }, null, nowBeforeHour),
+    todayAtTwo
+  );
+
+  const nowAfterHour = new Date(2026, 0, 1, 3, 0, 0, 0).getTime();
+  const tomorrowAtTwo = new Date(2026, 0, 2, 2, 0, 0, 0).getTime();
+  assert.equal(
+    scheduler.resolveNextRunAt({ scheduledVacuum: "daily", vacuumHour: 2 }, null, nowAfterHour),
+    tomorrowAtTwo
+  );
+
+  const lastRun = new Date(2026, 0, 1, 3, 0, 0, 0).getTime();
+  const nextWeekAtTwo = new Date(2026, 0, 8, 2, 0, 0, 0).getTime();
+  assert.equal(
+    scheduler.resolveNextRunAt({ scheduledVacuum: "weekly", vacuumHour: 2 }, lastRun, lastRun),
+    nextWeekAtTwo
+  );
+
+  assert.equal(
+    scheduler.resolveNextRunAt({ scheduledVacuum: "never", vacuumHour: 2 }, null, nowBeforeHour),
+    null
+  );
+});
+
+test("init() honors Storage scheduledVacuum=never", () => {
+  setOptimizationSettings({ scheduledVacuum: "never", vacuumHour: 4 });
+  const state = scheduler.init();
+  assert.equal(state.enabled, false);
+  assert.equal(state.intervalMs, 0);
+  assert.equal(state.nextRunAt, null);
+});
+
+test("init() honors Storage schedule settings", () => {
+  setOptimizationSettings({ scheduledVacuum: "weekly", vacuumHour: 4 });
+  const state = scheduler.init();
+  assert.equal(state.enabled, true);
+  assert.equal(state.intervalMs, 7 * 24 * 60 * 60 * 1000);
+  assert.notEqual(state.nextRunAt, null);
+});
+
+test("refresh() applies Storage setting changes without restart", () => {
+  setOptimizationSettings({ scheduledVacuum: "daily", vacuumHour: 1 });
+  assert.equal(scheduler.init().enabled, true);
+
+  setOptimizationSettings({ scheduledVacuum: "never" });
+  const state = scheduler.refresh();
+  assert.equal(state.enabled, false);
+  assert.equal(state.nextRunAt, null);
+});
+
 test("init() is idempotent — calling it twice does not throw", () => {
+  setOptimizationSettings({ scheduledVacuum: "never" });
   assert.doesNotThrow(() => scheduler.init());
   assert.doesNotThrow(() => scheduler.init());
   scheduler.stop();
 });
 
 test("stop() is safe to call before init() and is idempotent", () => {
+  setOptimizationSettings({ scheduledVacuum: "never" });
   assert.doesNotThrow(() => scheduler.stop());
   scheduler.init();
   assert.doesNotThrow(() => scheduler.stop());
@@ -86,6 +149,7 @@ test("stop() is safe to call before init() and is idempotent", () => {
 });
 
 test("runNow() succeeds on a healthy DB and persists lastRunAt", async () => {
+  setOptimizationSettings({ scheduledVacuum: "never" });
   scheduler.init();
   try {
     const result = await scheduler.runNow();
@@ -107,6 +171,7 @@ test("runNow() can be called repeatedly; each run succeeds and refreshes lastRun
   // run — the isRunning guard (which returns "already_running") cannot be
   // triggered by overlapping awaits in-process. The realistic contract is that
   // sequential runs each succeed and update lastRunAt.
+  setOptimizationSettings({ scheduledVacuum: "never" });
   scheduler.init();
   try {
     const first = await scheduler.runNow();
@@ -121,6 +186,7 @@ test("runNow() can be called repeatedly; each run succeeds and refreshes lastRun
 });
 
 test("lastRunAt survives a simulated restart (state reloaded from key_value)", async () => {
+  setOptimizationSettings({ scheduledVacuum: "never" });
   scheduler.init();
   await scheduler.runNow();
   const beforeRestart = scheduler.getState().lastRunAt;

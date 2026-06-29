@@ -20,6 +20,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const poolsDb = await import("../../src/lib/db/quotaPools.ts");
+const { getDbInstance } = core;
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -259,4 +260,62 @@ test("allocation stores optional capValue and capUnit correctly", () => {
   const alloc = found.allocations.find((a) => a.apiKeyId === "k-cap")!;
   assert.equal(alloc.capValue, 1000);
   assert.equal(alloc.capUnit, "requests");
+});
+
+// ---------------------------------------------------------------------------
+// Guard A (issue #10): corrupted/unknown policy in the DB must be normalized to
+// the most restrictive policy ('hard') at the read boundary — never trusted via
+// `row.policy as Policy`. A garbage policy reaching the fair-share engine would
+// fall through every switch case and silently ALLOW (fail-OPEN).
+//
+// The schema has CHECK (policy IN ('hard','soft','burst')), so we bypass it with
+// PRAGMA ignore_check_constraints to simulate a legacy/corrupted row.
+// ---------------------------------------------------------------------------
+
+test("rowToAllocation normalizes an unknown DB policy to 'hard' (Guard A)", () => {
+  const pool = poolsDb.createPool({
+    connectionId: "c-guardA",
+    name: "Corrupt Policy Pool",
+    allocations: [{ apiKeyId: "k-corrupt", weight: 100, policy: "soft" }],
+  });
+
+  // Inject a corrupted policy directly, bypassing the CHECK constraint.
+  const db = getDbInstance() as unknown as {
+    pragma: (s: string) => unknown;
+    prepare: (sql: string) => { run: (...p: unknown[]) => unknown };
+  };
+  db.pragma("ignore_check_constraints = ON");
+  db.prepare("UPDATE quota_allocations SET policy = ? WHERE pool_id = ? AND api_key_id = ?").run(
+    "bogus-policy",
+    pool.id,
+    "k-corrupt"
+  );
+  db.pragma("ignore_check_constraints = OFF");
+
+  // Read through the domain module — the unknown policy must become 'hard'.
+  const found = poolsDb.getPool(pool.id)!;
+  const alloc = found.allocations.find((a) => a.apiKeyId === "k-corrupt")!;
+  assert.equal(alloc.policy, "hard", "unknown DB policy must be normalized to 'hard'");
+
+  // Same expectation via listAllocationsForApiKey (the other read path).
+  const list = poolsDb.listAllocationsForApiKey("k-corrupt");
+  assert.equal(list.length, 1);
+  assert.equal(list[0].allocation.policy, "hard");
+});
+
+test("rowToAllocation preserves valid policies unchanged (Guard A regression)", () => {
+  const pool = poolsDb.createPool({
+    connectionId: "c-guardA-valid",
+    name: "Valid Policy Pool",
+    allocations: [
+      { apiKeyId: "k-hard", weight: 34, policy: "hard" },
+      { apiKeyId: "k-soft", weight: 33, policy: "soft" },
+      { apiKeyId: "k-burst", weight: 33, policy: "burst" },
+    ],
+  });
+
+  const found = poolsDb.getPool(pool.id)!;
+  assert.equal(found.allocations.find((a) => a.apiKeyId === "k-hard")!.policy, "hard");
+  assert.equal(found.allocations.find((a) => a.apiKeyId === "k-soft")!.policy, "soft");
+  assert.equal(found.allocations.find((a) => a.apiKeyId === "k-burst")!.policy, "burst");
 });

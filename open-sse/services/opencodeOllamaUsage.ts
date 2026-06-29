@@ -283,7 +283,7 @@ async function fetchOpenCodeGoDashboardUsage(
     headers: {
       Accept: "text/html",
       Cookie: `auth=${normalizeOpenCodeGoAuthCookie(config.authCookie)}`,
-      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Gecko/20100101 Firefox/148.0",
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Gecko/20100101 Firefox/152.0",
     },
     signal: AbortSignal.timeout(10_000),
   });
@@ -508,7 +508,7 @@ async function fetchOllamaCloudUsageFromSettings(
     headers: {
       Accept: "text/html",
       Cookie: `${OLLAMA_CLOUD_SESSION_COOKIE}=${normalizeOllamaCloudCookie(config.cookie)}`,
-      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Gecko/20100101 Firefox/148.0",
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Gecko/20100101 Firefox/152.0",
     },
     signal: AbortSignal.timeout(10_000),
   });

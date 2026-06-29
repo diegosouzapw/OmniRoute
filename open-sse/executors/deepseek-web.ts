@@ -19,7 +19,7 @@ const FAKE_HEADERS: Record<string, string> = {
   Origin: DEEPSEEK_WEB_BASE,
   Referer: `${DEEPSEEK_WEB_BASE}/`,
   "User-Agent":
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
   "X-App-Version": "20241129.1",
   "X-Client-Locale": "en-US",
   "X-Client-Platform": "web",
@@ -511,13 +511,14 @@ function extractMessageText(content: unknown): string {
  * is the last line of the transcript.
  */
 export function messagesToPrompt(
-  messages: Array<{ role: string; content: string }>,
+  messages: Array<{ role: string; content: string; tool_call_id?: string; name?: string }>,
   historyWindow = 0
 ): string {
   if (messages.length === 0) return "";
 
   const systemParts: string[] = [];
   const conversation: Array<{ role: string; text: string }> = [];
+  const callNameById = new Map<string, string>();
   let lastUserContent = "";
   for (const m of messages) {
     const text = extractMessageText(m.content).trim();
@@ -526,6 +527,22 @@ export function messagesToPrompt(
     } else if (m.role === "user" || m.role === "assistant") {
       if (text) conversation.push({ role: m.role, text });
       if (m.role === "user") lastUserContent = text;
+      const calls = Array.isArray((m as { tool_calls?: unknown }).tool_calls)
+        ? (m as { tool_calls: Array<{ id?: string; function?: { name?: string } }> }).tool_calls
+        : [];
+      for (const c of calls) {
+        if (c?.id && typeof c.function?.name === "string") callNameById.set(c.id, c.function.name);
+      }
+    } else if (m.role === "tool") {
+      // Tool results have no native slot in deepseek-web's single-prompt format. Without
+      // this branch they were silently dropped (#4712) — the model never saw the tool
+      // output and either re-called the tool endlessly or answered "I don't have that
+      // information". Fold them into the transcript as plain text, mirroring the agentic
+      // buildToolConversationPrompt() path.
+      if (text) {
+        const name = (m.tool_call_id && callNameById.get(m.tool_call_id)) || m.name || "tool";
+        conversation.push({ role: "tool", text: `(${name}) ${text}` });
+      }
     }
   }
 
@@ -538,7 +555,13 @@ export function messagesToPrompt(
     // Rolling-window transcript of the most recent turns (#2942).
     const recent = conversation.slice(-historyWindow);
     const transcript = recent
-      .map((turn) => `${turn.role === "assistant" ? "Assistant" : "User"}: ${turn.text}`)
+      .map((turn) =>
+        turn.role === "assistant"
+          ? `Assistant: ${turn.text}`
+          : turn.role === "tool"
+            ? `Tool result ${turn.text}`
+            : `User: ${turn.text}`
+      )
       .join("\n\n");
     parts.push(transcript);
   } else if (lastUserContent) {

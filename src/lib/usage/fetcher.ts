@@ -2,7 +2,6 @@
  * Usage Fetcher - Get usage data from provider APIs
  */
 
-import { GEMINI_CONFIG } from "@/lib/oauth/constants/oauth";
 import {
   getGitHubCopilotInternalUserHeaders,
   getKiroServiceHeaders,
@@ -34,8 +33,6 @@ export async function getUsageForProvider(connection) {
   switch (provider) {
     case "github":
       return await getGitHubUsage(accessToken, providerSpecificData);
-    case "gemini-cli":
-      return await getGeminiUsage(accessToken);
     case "antigravity":
     case "agy":
       return await getAntigravityUsage(
@@ -133,36 +130,6 @@ function formatGitHubQuotaSnapshot(quota) {
     remaining: quota.remaining,
     unlimited: quota.unlimited || false,
   };
-}
-
-/**
- * Gemini CLI Usage (Google Cloud)
- */
-async function getGeminiUsage(accessToken) {
-  try {
-    // Gemini CLI uses Google Cloud quotas
-    // Try to get quota info from Cloud Resource Manager
-    const response = await fetch(
-      "https://cloudresourcemanager.googleapis.com/v1/projects?filter=lifecycleState:ACTIVE",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          Accept: "application/json",
-        },
-      }
-    );
-
-    if (!response.ok) {
-      // Quota API may not be accessible, return generic message
-      return {
-        message: "Gemini CLI uses Google Cloud quotas. Check Google Cloud Console for details.",
-      };
-    }
-
-    return { message: "Gemini CLI connected. Usage tracked via Google Cloud Console." };
-  } catch (error) {
-    return { message: "Unable to fetch Gemini usage. Check Google Cloud Console." };
-  }
 }
 
 /**

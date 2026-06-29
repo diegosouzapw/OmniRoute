@@ -8,6 +8,7 @@ import { validateComboDAG, clampComboDepth } from "@omniroute/open-sse/services/
 import { createComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { comboErrorResponse } from "@/lib/api/comboErrorResponse";
 
 // GET /api/combos - Get all combos
 export async function GET(request: Request) {
@@ -39,7 +40,11 @@ export async function POST(request) {
     const allCombos = await getCombos();
     const normalizedModels = normalizeComboModels(validation.data.models, {
       comboName: validation.data.name,
-      allCombos,
+      // `allCombos` from `getCombos()` is typed as the DB-shaped record
+      // (JsonRecord & { version: 2; models: ComboStep[] }) which is
+      // structurally compatible with the local ComboCollectionLike in
+      // `normalizeComboModels` but TS does not infer the relationship.
+      allCombos: allCombos as never,
     });
     const comboInput = {
       ...validation.data,
@@ -47,8 +52,17 @@ export async function POST(request) {
     };
     const { name, strategy, config } = comboInput;
     const compositeValidation = validateCompositeTiersConfig(comboInput);
-    if (!compositeValidation.success) {
-      return NextResponse.json({ error: compositeValidation.error }, { status: 400 });
+    if (compositeValidation.success === false) {
+      const failure = compositeValidation as {
+        success: false;
+        error: { message: string; details: unknown[] };
+      };
+      return comboErrorResponse(
+        "COMBO_003",
+        400,
+        { reason: failure.error.message, details: failure.error.details },
+        request
+      );
     }
 
     // Check if name already exists

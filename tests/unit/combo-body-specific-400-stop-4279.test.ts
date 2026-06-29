@@ -1,18 +1,26 @@
 /**
- * #4279 — A combo full of targets that all reject the request body with a
- * body-specific 400 (e.g. a Codex combo whose models are "not supported when
- * using Codex with a ChatGPT account") must STOP at the first such 400 instead
- * of marching through every target with the same body-rejected request.
+ * #4279 — A combo whose targets all reject the request body with the SAME
+ * genuinely body-specific 400 (malformed/invalid payload, context overflow,
+ * bad-request) must STOP at the first such 400 instead of marching through
+ * every target with an identical, guaranteed-to-fail request.
  *
  * The #2101 guard in combo.ts logs "skipping fallback to other targets to
  * prevent infinite loop" / "stopping combo", but it executed a bare `break`,
  * which only exits the inner retry loop — `executeTarget` then returns `null`,
  * and the outer target loop treats `null` as "this target produced nothing" and
- * advances to the next model. So a 143-model Codex combo tried all 143 targets
+ * advances to the next model. So a 143-model combo tried all 143 targets
  * (the report's symptom), wasting work + per-attempt processing.
  *
  * The guard must surface the 400 via the `{ ok, response }` contract (mirroring
  * the 499 client-disconnect path) so the outer loop resolves the combo and stops.
+ *
+ * NOTE (#5249 reconciliation): a *model-specific* 400 ("model X is not supported
+ * with this account") is NO LONGER body-specific for STOP purposes — #5249
+ * deliberately made those advance to the next combo target, since a different
+ * model in the combo may well be supported. This test therefore exercises a
+ * genuinely body-specific malformed 400 ("invalid message format"), which is
+ * the case that still recurs identically on every target and must STOP. The
+ * advance-on-model-400 behavior is covered by combo-strategies.test.ts.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -29,12 +37,15 @@ const { handleComboChat } = await import("../../open-sse/services/combo.ts");
 const noop = () => {};
 const log = { info: noop, warn: noop, debug: noop, error: noop };
 
-// "model is not supported" matches MODEL_ACCESS_DENIED_PATTERNS in
-// accountFallback.ts → reason MODEL_CAPACITY → the #2101 body-specific guard fires.
-function bodySpecific400(model: string) {
+// "invalid message format" matches MALFORMED_REQUEST_PATTERNS in accountFallback.ts
+// → reason MODEL_CAPACITY (shouldFallback), and the errorText carries the
+// "invalid"/"malformed" substrings combo.ts requires → the #2101 body-specific
+// stop guard fires. This is request-shape-specific, so it would fail identically
+// on every combo target.
+function bodySpecific400() {
   return new Response(
     JSON.stringify({
-      detail: `The '${model}' model is not supported when using Codex with a ChatGPT account.`,
+      detail: "Invalid message format: the request body is malformed.",
     }),
     { status: 400, headers: { "Content-Type": "application/json" } }
   );
@@ -52,8 +63,7 @@ test("#4279 combo stops at the first body-specific 400 instead of trying every t
   const modelsCalled: string[] = [];
   const handleSingleModel = async (_body: unknown, modelStr: string) => {
     modelsCalled.push(modelStr);
-    const bare = String(modelStr).split("/").pop() || String(modelStr);
-    return bodySpecific400(bare);
+    return bodySpecific400();
   };
 
   const result = await handleComboChat({

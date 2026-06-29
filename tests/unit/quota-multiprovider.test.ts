@@ -15,8 +15,8 @@
  * (one step pinned to connA). That assertion encoded the OLD COLLISION BUG — a
  * second same-provider connection would overwrite the combo, leaving only the last
  * connId's step. Task 4 fixes this by grouping all connections into one N-step
- * fill-first combo per model. D2.5 and D2.6 now assert the CORRECT behavior:
- * models.length === 2 (both connections) and strategy === "fill-first". This is
+ * quota-share combo per model. D2.5 and D2.6 now assert the CORRECT behavior:
+ * models.length === 2 (both connections) and strategy === "quota-share". This is
  * alignment to the corrected implementation, NOT masking — the prior assertions
  * encoded the bug, not the desired behavior.
  *
@@ -30,7 +30,7 @@
  *  D2.4 — enforce: pool with connectionIds [connA, connB]; enforce with connA
  *          (the primary) still finds the pool — no regression on primary.
  *  D2.5 — combos: syncQuotaCombos for a 2-connection same-provider pool creates
- *          one combo per model with 2 steps (both connIds) + strategy fill-first.
+ *          one combo per model with 2 steps (both connIds) + strategy quota-share.
  *  D2.6 — combos: prune — after removing connB from the pool (→ only connA),
  *          re-sync collapses each combo to 1 step (connA only).
  */
@@ -55,9 +55,8 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
 const { resolveQuotaKeyScope } = await import("../../src/lib/quota/quotaKey.ts");
 const { syncQuotaCombos } = await import("../../src/lib/quota/quotaCombos.ts");
-const { isQuotaModelName, parseQuotaModelName, quotaModelName } = await import(
-  "../../src/lib/quota/quotaModelNaming.ts"
-);
+const { isQuotaModelName, parseQuotaModelName, quotaModelName } =
+  await import("../../src/lib/quota/quotaModelNaming.ts");
 const { PROVIDER_MODELS } = await import("../../open-sse/config/providerModels.ts");
 
 // Trigger migration once at module load so the schema is ready for the first
@@ -124,7 +123,9 @@ test.after(() => {
 // Helpers
 // ---------------------------------------------------------------------------
 
-async function listQuotaCombos(): Promise<Array<{ name: string; models: unknown[]; strategy: unknown }>> {
+async function listQuotaCombos(): Promise<
+  Array<{ name: string; models: unknown[]; strategy: unknown }>
+> {
   const all = await combosDb.getCombos();
   return all
     .filter((c) => typeof c.name === "string" && isQuotaModelName(c.name))
@@ -263,9 +264,7 @@ test("D2.3: enforceQuotaShare — input connectionId matching a non-primary memb
 
   // Assign an API key to the pool.
   const API_KEY_ID = "test-key-d23";
-  poolsDb.upsertAllocations(pool.id, [
-    { apiKeyId: API_KEY_ID, weight: 50, policy: "hard" },
-  ]);
+  poolsDb.upsertAllocations(pool.id, [{ apiKeyId: API_KEY_ID, weight: 50, policy: "hard" }]);
 
   // Confirm allocation exists.
   const allocations = listAllocationsForApiKey(API_KEY_ID);
@@ -320,9 +319,7 @@ test("D2.4: enforceQuotaShare — input connectionId matching the PRIMARY member
   });
 
   const API_KEY_ID = "test-key-d24";
-  poolsDb.upsertAllocations(pool.id, [
-    { apiKeyId: API_KEY_ID, weight: 50, policy: "hard" },
-  ]);
+  poolsDb.upsertAllocations(pool.id, [{ apiKeyId: API_KEY_ID, weight: 50, policy: "hard" }]);
 
   // Enforce with connA (the primary).
   const resultA = await enforceQuotaShare({
@@ -342,9 +339,9 @@ test("D2.4: enforceQuotaShare — input connectionId matching the PRIMARY member
 // D2.5 — combos: syncQuotaCombos for 2-connection same-provider pool
 // ---------------------------------------------------------------------------
 
-test("D2.5: syncQuotaCombos — 2-connection same-provider pool creates one combo per model with 2 steps + fill-first (Task 4)", async () => {
+test("D2.5: syncQuotaCombos — 2-connection same-provider pool creates one combo per model with 2 steps + quota-share (Task 4)", async () => {
   // Task 4: N same-provider connections must produce ONE combo per model with
-  // ALL connections' steps + strategy "fill-first". The old behavior (single step
+  // ALL connections' steps + strategy "quota-share". The old behavior (single step
   // pinned to connA, strategy "priority") was the collision bug — last upsert won.
   const connA = await providersDb.createProviderConnection({
     provider: PROVIDER_A,
@@ -384,7 +381,7 @@ test("D2.5: syncQuotaCombos — 2-connection same-provider pool creates one comb
   const quotaCombos = await listQuotaCombos();
   const comboMap = new Map(quotaCombos.map((c) => [c.name, c]));
 
-  // ── Verify PROVIDER_A combos exist with N-step fill-first ─────────────────
+  // ── Verify PROVIDER_A combos exist with N-step quota-share ─────────────────
   for (const modelId of modelsA) {
     // Combos are named with the GROUP name ("GroupDemo", from group-demo), not pool name.
     const expectedName = quotaModelName("GroupDemo", PROVIDER_A, modelId);
@@ -398,11 +395,11 @@ test("D2.5: syncQuotaCombos — 2-connection same-provider pool creates one comb
       `combo ${expectedName} should have 2 steps (both connections), got ${combo.models.length}`
     );
 
-    // Task 4: strategy must be fill-first.
+    // Task 4: strategy must be quota-share.
     assert.equal(
       combo.strategy,
-      "fill-first",
-      `combo ${expectedName} strategy should be "fill-first", got "${combo.strategy}"`
+      "quota-share",
+      `combo ${expectedName} strategy should be "quota-share", got "${combo.strategy}"`
     );
 
     // Both connIds must appear across steps.
@@ -429,7 +426,7 @@ test("D2.5: syncQuotaCombos — 2-connection same-provider pool creates one comb
 // ---------------------------------------------------------------------------
 
 test("D2.6: syncQuotaCombos — after removing connB from same-provider pool, re-sync collapses each combo to 1 step (connA only)", async () => {
-  // Task 4: initially a 2-connection pool produces 2-step fill-first combos.
+  // Task 4: initially a 2-connection pool produces 2-step quota-share combos.
   // After removing connB (pool → only connA), re-sync rebuilds each combo with
   // a single step pinned to connA. The combo names are unchanged (same provider/
   // model), so no prune happens — the combos are updated in-place.
@@ -498,7 +495,10 @@ test("D2.6: syncQuotaCombos — after removing connB from same-provider pool, re
   const afterProviders = new Set(
     after.map((c) => parseQuotaModelName(c.name)?.provider).filter(Boolean)
   );
-  assert.ok(afterProviders.has(PROVIDER_A), `${PROVIDER_A} combos should survive after connB removal`);
+  assert.ok(
+    afterProviders.has(PROVIDER_A),
+    `${PROVIDER_A} combos should survive after connB removal`
+  );
   for (const modelId of modelsA) {
     const expectedName = quotaModelName("GroupDemo", PROVIDER_A, modelId);
     const found = after.find((c) => c.name === expectedName);

@@ -223,13 +223,28 @@ async function proxyUpgrade(req: IncomingMessage, socket: net.Socket, head: Buff
 }
 
 /**
+ * Resolve the bind host for the embed WS proxy.
+ *
+ * `EMBED_WS_PROXY_HOST` takes precedence, but we fall back to `LIVE_WS_HOST`
+ * so a single env var exposes BOTH WebSocket sockets (the Live dashboard server
+ * on :20129 and this embed proxy on :20131) in Docker / behind a reverse proxy
+ * or tunnel. Without this fallback the embed proxy stayed bound to 127.0.0.1
+ * even when the operator set `LIVE_WS_HOST=0.0.0.0`, so the Live view was
+ * permanently "disconnected" in headless deployments (#5110). Defaults to
+ * loopback for safety when neither is set.
+ */
+export function resolveEmbedWsHost(): string {
+  return process.env.EMBED_WS_PROXY_HOST ?? process.env.LIVE_WS_HOST ?? DEFAULT_HOST;
+}
+
+/**
  * Start the embed WebSocket proxy server.
  * Idempotent — safe to call multiple times.
  */
 export function initEmbedWsProxy(): void {
   if (globalThis.__omnirouteEmbedWsStarted) return;
 
-  const host = process.env.EMBED_WS_PROXY_HOST ?? DEFAULT_HOST;
+  const host = resolveEmbedWsHost();
   const port = parseInt(process.env.EMBED_WS_PROXY_PORT ?? String(DEFAULT_PORT), 10);
 
   const server = http.createServer((_req, res) => {

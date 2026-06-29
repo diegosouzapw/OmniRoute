@@ -6,6 +6,12 @@ import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./ba
 type JsonRecord = Record<string, unknown>;
 
 export const COMMAND_CODE_VERSION = process.env.COMMAND_CODE_VERSION?.trim() || "0.33.2";
+// Hard server-side ceiling enforced by Command Code's /alpha/generate endpoint:
+// any request with params.max_tokens > 200_000 is rejected with a 400
+// "Too big: expected number to be <=200000 at params.max_tokens". We only use
+// this to clamp a CLIENT-SUPPLIED max_tokens down to a value the endpoint will
+// accept; we never fabricate this number for requests that omit the field (see
+// clampMaxTokens / buildCommandCodeBody).
 const MAX_COMMAND_CODE_TOKENS = 200_000;
 const encoder = new TextEncoder();
 
@@ -95,7 +101,7 @@ function convertMessages(messages: unknown): { system: string; messages: unknown
     }
 
     if (role === "user") {
-      out.push({ role: "user", content: message.content ?? "" });
+      out.push({ role: "user", content: normalizeContentText(message.content) });
       continue;
     }
 
@@ -140,23 +146,16 @@ function convertMessages(messages: unknown): { system: string; messages: unknown
   return { system: system.join("\n\n"), messages: out };
 }
 
-function clampMaxTokens(value: unknown, cap: number = MAX_COMMAND_CODE_TOKENS): number {
-  const numeric = numberValue(value) ?? cap;
-  return Math.max(1, Math.min(Math.floor(numeric), cap));
-}
-
-// Resolve the per-model max_tokens cap for a given CommandCode model id.
-// Falls back to MAX_COMMAND_CODE_TOKENS when the model isn't registered or
-// when the registry entry omits maxOutputTokens. Without this, GLM-5.x
-// requests get capped at 200_000 and rejected with "限制数值范围[1,131072]".
-function getModelMaxTokensCap(modelId: string): number {
-  const entry = REGISTRY["command-code"];
-  if (!entry) return MAX_COMMAND_CODE_TOKENS;
-  const model = entry.models?.find((m: { id: string }) => m.id === modelId);
-  const registryCap = (model as { maxOutputTokens?: number } | undefined)?.maxOutputTokens;
-  return typeof registryCap === "number" && registryCap > 0
-    ? registryCap
-    : MAX_COMMAND_CODE_TOKENS;
+// Clamp a client-supplied max_tokens to the endpoint ceiling, mirroring the
+// provider-driven clamp in antigravity.ts: we only intervene when the value is
+// present AND would otherwise be rejected (> 200_000). A valid value is
+// returned floored; anything absent or non-numeric returns undefined so the
+// caller can OMIT the field entirely and let Command Code's upstream apply the
+// model's own native default (rather than us inventing a number).
+function clampMaxTokens(value: unknown): number | undefined {
+  const numeric = numberValue(value);
+  if (numeric === undefined) return undefined;
+  return Math.max(1, Math.min(Math.floor(numeric), MAX_COMMAND_CODE_TOKENS));
 }
 
 // Reasoning/thinking fields that payload rules or clients may inject and that
@@ -188,12 +187,19 @@ function buildCommandCodeBody(model: string, body: unknown, stream = false): Jso
     messages: converted.messages,
     tools: convertTools(input.tools),
     system,
-    max_tokens: clampMaxTokens(
-      input.max_tokens ?? input.max_completion_tokens,
-      getModelMaxTokensCap(resolvedModel)
-    ),
     stream: true,
   };
+
+  // Only forward max_tokens when the client actually supplied one. Omitting it
+  // lets Command Code's upstream apply the model's own native default, so we
+  // never invent a value (the old behavior, which sent the wrong number and got
+  // DeepSeek V4 rejected with "Too big: expected number to be <=200000"). When
+  // present, it is clamped to the endpoint ceiling so an oversized client value
+  // degrades gracefully instead of 400ing.
+  const maxTokens = clampMaxTokens(input.max_tokens ?? input.max_completion_tokens);
+  if (maxTokens !== undefined) {
+    params.max_tokens = maxTokens;
+  }
 
   for (const field of COMMAND_CODE_PASSTHROUGH_FIELDS) {
     const value = input[field];

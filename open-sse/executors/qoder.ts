@@ -11,8 +11,104 @@ import {
   QODER_DEFAULT_USER_AGENT,
 } from "../config/providerHeaderProfiles.ts";
 import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
-import { buildCosyHeadersForValidation } from "../services/qoderCli.ts";
+import { buildCosyHeadersForValidation, resolveQoderJobToken } from "../services/qoderCli.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+
+function truncate(text: string, max: number): string {
+  if (text.length <= max) return text;
+  return `${text.slice(0, max)}…`;
+}
+
+/**
+ * Peek at the first SSE event from a Qoder response to detect upstream errors
+ * that Qoder wraps inside an HTTP 200 SSE envelope ({statusCodeValue, body}).
+ * Returns a proper HTTP error Response when found, so downstream fallback
+ * logic (combo routing, account fallback) can trigger. For success, re-creates
+ * the stream with the first chunk prepended so the body passes through
+ * transparently.
+ */
+async function unwrapQoderEnvelope(response: Response): Promise<Response> {
+  if (!response.ok || !response.body) {
+    return response;
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+
+  const { done, value } = await reader.read();
+  if (done) {
+    reader.cancel();
+    return new Response(
+      JSON.stringify({ error: { message: "[qoder] empty response", type: "provider_error" } }),
+      { status: 502, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  const text = decoder.decode(value, { stream: true });
+
+  let errorStatus: number | null = null;
+  let errorMsg = "";
+  for (const line of text.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("data:")) continue;
+    const jsonStr = trimmed.slice(5).trim();
+    if (jsonStr === "[DONE]") break;
+    try {
+      const envelope = JSON.parse(jsonStr) as Record<string, unknown>;
+      const statusVal =
+        typeof envelope.statusCodeValue === "number" ? envelope.statusCodeValue : 200;
+      if (statusVal !== 200) {
+        errorStatus = statusVal >= 400 ? statusVal : 502;
+        errorMsg =
+          typeof envelope.body === "string" ? envelope.body : `upstream status ${statusVal}`;
+      }
+    } catch {
+      // Malformed JSON — treat as non-error; downstream handling parses it.
+    }
+    break;
+  }
+
+  if (errorStatus) {
+    reader.cancel();
+    const errType =
+      errorStatus === 401 || errorStatus === 403 ? "authentication_error" : "provider_error";
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: `[qoder error ${errorStatus}: ${sanitizeErrorMessage(truncate(errorMsg, 200))}]`,
+          type: errType,
+        },
+      }),
+      { status: errorStatus, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  // Re-create the stream with the first chunk prepended so the success body
+  // passes through unchanged.
+  const restStream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(value);
+    },
+    pull(controller) {
+      return reader.read().then(({ done, value }) => {
+        if (done) {
+          controller.close();
+          return;
+        }
+        controller.enqueue(value);
+      });
+    },
+    cancel() {
+      reader.cancel();
+    },
+  });
+
+  return new Response(restStream, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: new Headers(response.headers),
+  });
+}
 
 function getAuthToken(credentials: ProviderCredentials): string {
   if (typeof credentials.apiKey === "string" && credentials.apiKey.trim()) {
@@ -131,7 +227,10 @@ export class QoderExecutor extends BaseExecutor {
       // PAT tokens (pt-*) are not accepted as Bearer tokens by api.qoder.com/v1/chat/completions.
       // They return 401 TOKEN_INVALID. Fallback to Cosy auth against api1.qoder.sh.
       if (!response.ok && response.status === 401 && isPatToken) {
-        const cosyHeaders = buildCosyHeadersForValidation(bodyStr, token);
+        // #4683: exchange the PAT (pt-*) for a job token (jt-*) before the Cosy call;
+        // Cosy rejects a raw pt-* in security_oauth_token with a generic 500.
+        const cosyToken = await resolveQoderJobToken(token, { signal });
+        const cosyHeaders = buildCosyHeadersForValidation(bodyStr, cosyToken);
         const cosyEndpoint =
           "https://api1.qoder.sh/algo/api/v2/service/pro/sse/agent_chat_generation?AgentId=agent_common";
         const cosyRes = await fetch(cosyEndpoint, {
@@ -211,13 +310,12 @@ export class QoderExecutor extends BaseExecutor {
         };
       }
 
-      const newHeaders = new Headers(response.headers);
+      // Qoder wraps upstream errors inside an HTTP 200 SSE envelope
+      // ({statusCodeValue}). Peek at the first event to detect this and return
+      // a proper HTTP error so combo/account fallback logic can trigger.
+      const unwrapped = await unwrapQoderEnvelope(response);
       return {
-        response: new Response(response.body, {
-          status: response.status,
-          statusText: response.statusText,
-          headers: newHeaders,
-        }),
+        response: unwrapped,
         url: endpointUrl,
         headers,
         transformedBody: payload,
@@ -246,3 +344,8 @@ export class QoderExecutor extends BaseExecutor {
 }
 
 export default QoderExecutor;
+
+export const __test__ = {
+  unwrapQoderEnvelope,
+  truncate,
+};

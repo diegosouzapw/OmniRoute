@@ -12,6 +12,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const dbCore = await import("../../src/lib/db/core.ts");
 const { handleComboChat } = await import("../../open-sse/services/combo.ts");
+const { clearAllStickyBindings } =
+  await import("../../open-sse/services/combo/sessionStickiness.ts");
 const { invalidateCodexQuotaCache, registerCodexConnection, registerCodexQuotaFetcher } =
   await import("../../open-sse/services/codexQuotaFetcher.ts");
 const { registerQuotaFetcher } = await import("../../open-sse/services/quotaPreflight.ts");
@@ -171,6 +173,10 @@ async function selectedConnectionFor(
   combo: Record<string, unknown>,
   options: { apiKeyAllowedConnections?: string[] | null } = {}
 ) {
+  // Isolate strategy/round-robin assertions from session stickiness (#5): this helper
+  // reuses the same body, so a sticky binding from a prior call would pin the connection
+  // and break tie-break rotation. Stickiness has its own suite (combo-session-stickiness).
+  clearAllStickyBindings();
   const calls: Array<string | null> = [];
   const response = await handleComboChat({
     body: reqBodyTextArray,
@@ -701,4 +707,40 @@ test("reset-aware strategy scores provider-specific weekly windows when availabl
   };
 
   assert.equal(await selectedConnectionFor(combo), soon);
+});
+
+test("priority combo advances to next model when first returns 400 'model not supported'", async () => {
+  const name = `model-not-supported-${randomUUID()}`;
+  const combo = await combosDb.createCombo({
+    name,
+    strategy: "priority",
+    models: ["openai/gpt-4", "openai/gpt-3.5-turbo"],
+  });
+
+  const calls: string[] = [];
+  const response = await handleComboChat({
+    body: reqBodyTextArray,
+    combo,
+    allCombos: [combo],
+    isModelAvailable: undefined,
+    relayOptions: undefined,
+    signal: undefined,
+    settings: {},
+    log: makeLog(),
+    handleSingleModel: async (_body: unknown, modelStr: string) => {
+      calls.push(modelStr);
+      if (modelStr === "openai/gpt-4") {
+        return Response.json(
+          { error: { message: "requested model is not supported" } },
+          { status: 400 }
+        );
+      }
+      return okResponse(modelStr);
+    },
+  });
+
+  assert.equal(response.status, 200, "combo should advance to second model and return 200");
+  assert.equal(calls.length, 2, "combo should have tried both models");
+  assert.equal(calls[0], "openai/gpt-4", "first model should be tried first");
+  assert.equal(calls[1], "openai/gpt-3.5-turbo", "second model should be tried after 400");
 });

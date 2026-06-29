@@ -63,7 +63,7 @@ const BROWSER_DEVICE_FLOW_PROVIDERS = new Set(["codex"]);
 const RETIRED_PKCE_PROVIDERS = new Set(["windsurf", "devin-cli"]);
 
 /** Providers that allow direct import of a raw API token (no OAuth exchange). */
-const IMPORT_TOKEN_PROVIDERS = new Set(["windsurf", "devin-cli"]);
+const IMPORT_TOKEN_PROVIDERS = new Set(["windsurf", "devin-cli", "grok-cli"]);
 
 /**
  * Constant-time string comparison to prevent timing-oracle attacks (CWE-208).
@@ -112,7 +112,7 @@ export async function GET(
   // The action permanently does not exist for these providers regardless of who
   // is asking — answering 401 first would mislead callers into thinking the
   // route is gated rather than gone. See spec
-  // docs/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
+  // _tasks/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
   try {
     const earlyParams = await params;
     if (
@@ -196,7 +196,8 @@ export async function GET(
         provider === "kiro" ||
         provider === "amazon-q" ||
         provider === "kimi-coding" ||
-        provider === "kilocode"
+        provider === "kilocode" ||
+        provider === "codebuddy-cn"
       ) {
         // GitHub, Kiro/Amazon Q, Kimi Coding, and KiloCode don't use PKCE for device code
         if ((provider === "kiro" || provider === "amazon-q") && startUrl) {
@@ -527,7 +528,12 @@ export async function POST(
 
       // Poll for token (through proxy if configured)
       let result;
-      if (provider === "github" || provider === "kimi-coding" || provider === "kilocode") {
+      if (
+        provider === "github" ||
+        provider === "kimi-coding" ||
+        provider === "kilocode" ||
+        provider === "codebuddy-cn"
+      ) {
         // For providers that don't use PKCE (GitHub, Kimi Coding, KiloCode), don't pass codeVerifier
         result = await runWithProxyContextOrDirect(proxy, () =>
           (pollForToken as any)(provider, deviceCode)

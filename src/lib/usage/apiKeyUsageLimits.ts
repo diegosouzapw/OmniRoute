@@ -1,5 +1,6 @@
 import { getDbInstance } from "@/lib/db/core";
 import type { ProviderLimitsCacheEntry } from "@/lib/db/providerLimits";
+import { getProviderQuotaWindowStartIso } from "@/lib/db/quotaResetEvents";
 import { calculateCost } from "./costCalculator";
 import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
@@ -258,6 +259,20 @@ function getObservedWeeklyWindowStartIso(
   }
 }
 
+// Prefer the persisted, provider-observed window start (recorded by
+// quotaResetEvents on real reset transitions); fall back to inferring it from
+// historical snapshots when no observed event is available yet.
+function getWeeklyWindowStartIso(
+  connectionId: string,
+  targetResetAtIso: string,
+  nowMs: number
+): string | null {
+  return (
+    getProviderQuotaWindowStartIso(connectionId, targetResetAtIso, nowMs) ??
+    getObservedWeeklyWindowStartIso(connectionId, targetResetAtIso, nowMs)
+  );
+}
+
 async function resolveDeps(deps: ApiKeyUsageLimitDeps): Promise<Required<ApiKeyUsageLimitDeps>> {
   const providers =
     deps.getProviderConnectionById && deps.getProviderConnections
@@ -301,7 +316,7 @@ async function getProviderWeeklyWindow(
         resetCandidates.push({
           connectionId: connection.id,
           resetAtIso: resetAt,
-          observedWindowStartIso: getObservedWeeklyWindowStartIso(connection.id, resetAt, nowMs),
+          observedWindowStartIso: getWeeklyWindowStartIso(connection.id, resetAt, nowMs),
         });
       }
     }
@@ -316,7 +331,7 @@ async function getProviderWeeklyWindow(
         resetCandidates.push({
           connectionId: connection.id,
           resetAtIso: resetAt,
-          observedWindowStartIso: getObservedWeeklyWindowStartIso(connection.id, resetAt, nowMs),
+          observedWindowStartIso: getWeeklyWindowStartIso(connection.id, resetAt, nowMs),
         });
       }
     }

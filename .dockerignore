@@ -77,6 +77,8 @@ bun.lock
 # Agent config
 .agents
 .gemini
+.claude
+.source
 
 # Misc
 llm.txt

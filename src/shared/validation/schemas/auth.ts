@@ -78,23 +78,7 @@ export const importClaudeAuthBulkSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
-// ──── Gemini CLI Auth Import Schema ────
-
-export const importGeminiAuthSchema = z.object({
-  source: z.discriminatedUnion("kind", [
-    z.object({ kind: z.literal("json"), json: z.unknown() }),
-    z.object({
-      kind: z.literal("text"),
-      text: z.string().max(256 * 1024, "oauth_creds.json content exceeds 256KB"),
-    }),
-  ]),
-  name: z.string().min(1).max(200).optional(),
-  email: z.string().email("Must be a valid email").optional(),
-  overwriteExisting: z.boolean().optional(),
-});
-
 // ──── Antigravity CLI (`agy`) Auth Import Schema ────
-// Same source/options shape as gemini-cli; the parser handles the agy-specific token JSON.
 
 export const importAgyAuthSchema = z.object({
   source: z.discriminatedUnion("kind", [
@@ -115,22 +99,6 @@ export const importAgyAuthSchema = z.object({
 export const applyLocalAgyAuthSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   email: z.string().email("Must be a valid email").optional(),
-  overwriteExisting: z.boolean().optional(),
-});
-
-// ──── Gemini CLI Auth Import Bulk Schema ────
-
-export const importGeminiAuthBulkSchema = z.object({
-  entries: z
-    .array(
-      z.object({
-        json: z.unknown(),
-        name: z.string().min(1).max(200).optional(),
-        email: z.string().email("Must be a valid email").optional(),
-      })
-    )
-    .min(1, "At least one entry is required")
-    .max(50, "At most 50 entries per bulk import"),
   overwriteExisting: z.boolean().optional(),
 });
 
@@ -165,7 +133,7 @@ export const oauthPollSchema = z.object({
 
 /** Import a raw API token (e.g. WINDSURF_API_KEY) without going through the browser OAuth flow. */
 export const oauthImportTokenSchema = z.object({
-  token: z.string().trim().min(1, "Token is required"),
+  token: z.union([z.string().trim().min(1, "Token is required"), z.record(z.string(), z.unknown())]),
   connectionId: z.string().optional(),
 });
 
@@ -182,6 +150,19 @@ export const oauthDeviceCompleteSchema = z.object({
   refresh_token: z.string().trim().optional(),
   id_token: z.string().trim().optional(),
   expires_in: z.number().int().positive().optional(),
+  connectionId: z.string().optional(),
+});
+
+/**
+ * Persist credentials obtained by the local remote-login helper. Google's
+ * `firstparty/nativeapp` consent only releases the auth code when the loopback
+ * redirect is reachable, which never happens on a remote VPS install — so the
+ * helper (`omniroute login antigravity`) runs the OAuth on the user's own machine
+ * and emits a single-line credential blob. The dashboard pastes that blob here;
+ * the server decodes + finalizes + persists. See src/lib/oauth/credentialBlob.ts.
+ */
+export const oauthPasteCredentialsSchema = z.object({
+  blob: z.string().trim().min(1, "credential blob is required"),
   connectionId: z.string().optional(),
 });
 
@@ -203,6 +184,12 @@ export const traeImportSchema = z.object({
 export const kiroImportSchema = z.object({
   refreshToken: z.string().trim().min(1, "Refresh token is required"),
   region: z.string().trim().default("us-east-1"),
+  // IDC (organization) token fields — present when auto-detected from an IDC SSO
+  // cache token with a clientIdHash (#2059). Optional for backward compatibility.
+  clientId: z.string().optional(),
+  clientSecret: z.string().optional(),
+  authMethod: z.string().optional(),
+  profileArn: z.string().optional(),
 });
 
 export const kiroSocialExchangeSchema = z.object({

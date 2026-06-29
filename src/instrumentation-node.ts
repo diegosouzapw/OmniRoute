@@ -239,10 +239,8 @@ export async function registerNodejs(): Promise<void> {
 
   await import("@/lib/db/core").then(({ ensureDbInitialized }) => ensureDbInitialized());
 
-  // Scheduled VACUUM (#4437): the previous compressionScheduler.ts was orphaned
-  // (read the wrong settings namespace, never imported anywhere). This call wires
-  // the new vacuumScheduler into the lifecycle: registers the timer and persists
-  // lastVacuumAt to the key_value table so the UI's "Last vacuum" card can read it.
+  // Storage-configured scheduled VACUUM (#4437): registers the timer from
+  // Settings > System & Storage and persists lastVacuumAt for the UI.
   try {
     const { initVacuumScheduler } = await import("@/lib/db/vacuumScheduler");
     initVacuumScheduler();
@@ -276,6 +274,18 @@ export async function registerNodejs(): Promise<void> {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.warn("[STARTUP] Auto-refresh daemon failed to start (non-fatal):", msg);
+    }
+
+    // Proactive connection-cooldown recovery (#8): re-validate connections whose
+    // transient `rate_limited_until` window has elapsed OUTSIDE the request hot
+    // path, so the first request after a cooldown does not pay the probe latency.
+    // Lazy/self-recovery still happens in getProviderCredentials; this front-runs it.
+    try {
+      const { initConnectionRecoveryScheduler } = await import("@/lib/quota/connectionRecovery");
+      initConnectionRecoveryScheduler();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] Connection recovery scheduler failed to start (non-fatal):", msg);
     }
 
     try {

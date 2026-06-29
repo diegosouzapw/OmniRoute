@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { Card, Button, EmptyState } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
+import { useProviderNodeMap, resolveProviderName } from "@/lib/display/useProviderNodeMap";
 import CacheEntriesTab from "./components/CacheEntriesTab";
 import ReasoningCacheTab from "./components/ReasoningCacheTab";
 
@@ -351,6 +352,7 @@ export default function CachePage() {
   const tSettings = useTranslations("settings");
   const tRoot = useTranslations();
   const notify = useNotificationStore();
+  const nodeMap = useProviderNodeMap();
 
   const [stats, setStats] = useState<CacheStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -600,7 +602,9 @@ export default function CachePage() {
                                 className="border-b border-border/15 last:border-b-0"
                               >
                                 <td className="px-4 py-3">
-                                  <div className="font-medium text-text-main">{provider}</div>
+                                  <div className="font-medium text-text-main">
+                                    {resolveProviderName(provider, nodeMap)}
+                                  </div>
                                   <div className="mt-1 text-xs text-text-muted">
                                     {totalRequests.toLocaleString()} {t("requests").toLowerCase()}
                                   </div>

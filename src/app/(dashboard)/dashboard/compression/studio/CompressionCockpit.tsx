@@ -8,6 +8,7 @@ import { IoNode } from "./nodes/IoNode";
 import { compressionRunToFlow, type CompressionRunModel } from "./compressionFlowModel";
 import { useCompressionReplay, type ReplaySpeed } from "./useCompressionReplay";
 import { WaterfallInspector } from "./WaterfallInspector";
+import { CompressionAnnotation } from "./CompressionAnnotation";
 
 // ── View modes ────────────────────────────────────────────────────────────
 
@@ -179,6 +180,17 @@ export function CompressionCockpit({ run: runProp }: CompressionCockpitProps) {
           </span>
         )}
         <span className="text-xs text-muted font-mono opacity-70 truncate">{run.requestId}</span>
+        <CompressionAnnotation
+          stats={{
+            originalTokens: run.originalTokens,
+            compressedTokens: run.compressedTokens,
+            savingsPercent: run.savingsPercent,
+            techniquesUsed: [],
+            mode: run.mode as "off",
+            timestamp: run.timestamp,
+            rulesApplied: run.steps.flatMap((s) => s.rulesApplied ?? []),
+          }}
+        />
         <div className="ml-auto flex items-center gap-2">
           {/* View toggle: ReactFlow canvas (A2) ↔ waterfall list (A1) */}
           <div className="flex items-center gap-1" role="group" aria-label="Cockpit view">

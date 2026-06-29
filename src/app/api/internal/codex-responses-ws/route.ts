@@ -411,7 +411,7 @@ async function prepare(body: JsonRecord) {
   return NextResponse.json({
     ok: true,
     upstreamUrl: CODEX_RESPONSES_WS_URL,
-    browser: "chrome_142",
+    browser: "chrome_149",
     os: "windows",
     connectionId: refreshedCredentials.connectionId,
     provider,
@@ -513,6 +513,7 @@ async function persistResponsesWsCallHistory(body: JsonRecord) {
     latencyMs: durationMs,
     timeToFirstTokenMs: durationMs,
     errorCode,
+    endpoint: "/v1/responses",
   });
 
   logProxyEvent({

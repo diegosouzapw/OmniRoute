@@ -2,7 +2,64 @@ import { NextResponse } from "next/server";
 import { access, constants, readFile } from "fs/promises";
 import { homedir } from "os";
 import { join } from "path";
+import { execFile } from "child_process";
+import { promisify } from "util";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
+
+const execFileAsync = promisify(execFile);
+
+/**
+ * Probe dependencies for {@link verifyLinuxCursorInstalled}. Injectable so the
+ * guard can be unit-tested without spawning a real `which` process or touching
+ * the filesystem — mirrors the `__setExecFileImpl` pattern in
+ * `src/lib/cli-helper/tool-detector.ts`.
+ */
+export interface CursorInstallProbe {
+  /** Runs `which <binary>`; rejects when the binary is not on PATH. */
+  execFile?: (
+    file: string,
+    args: string[],
+    options: { timeout: number }
+  ) => Promise<{ stdout: string; stderr: string }>;
+  /** Resolves when the path is readable; rejects otherwise (e.g. `fs.access`). */
+  access?: (path: string, mode: number) => Promise<void>;
+  /** Override the home directory used to locate the `.desktop` fallback. */
+  home?: string;
+}
+
+/**
+ * On Linux, verify that the Cursor IDE is actually installed before trusting
+ * leftover config files (state.vscdb). A removed Cursor install can leave its
+ * `~/.config/Cursor/...` directory behind, which would otherwise trigger a
+ * false-positive auto-import and create a phantom Cursor provider connection.
+ *
+ * The check prefers `which cursor` and falls back to a readable
+ * `~/.local/share/applications/cursor.desktop` entry (the desktop launcher a
+ * package install drops even when the CLI shim is not on PATH).
+ *
+ * Port of decolua/9router#313 — only the linux probe is added; macOS/Windows
+ * keep their existing behavior (no install probe).
+ */
+export async function verifyLinuxCursorInstalled(
+  probe: CursorInstallProbe = {}
+): Promise<boolean> {
+  const exec = probe.execFile ?? execFileAsync;
+  const canAccess = probe.access ?? access;
+  const home = probe.home ?? homedir();
+
+  try {
+    await exec("which", ["cursor"], { timeout: 5000 });
+    return true;
+  } catch {
+    try {
+      const desktopFile = join(home, ".local/share/applications/cursor.desktop");
+      await canAccess(desktopFile, constants.R_OK);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
 
 /**
  * Known key names Cursor IDE has used over time to persist the auth token
@@ -184,6 +241,17 @@ async function tryIdeAuth(): Promise<{
       };
     }
   } else {
+    // On Linux, verify Cursor is actually installed before trusting leftover
+    // config files — a removed install can leave ~/.config/Cursor behind and
+    // would otherwise create a phantom Cursor connection (port: 9router#313).
+    if (platform === "linux" && !(await verifyLinuxCursorInstalled())) {
+      return {
+        found: false,
+        error:
+          "Cursor config files found but Cursor IDE does not appear to be " +
+          "installed. Skipping auto-import.",
+      };
+    }
     dbPath = candidates[0];
   }
 

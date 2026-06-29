@@ -5,7 +5,7 @@ import path from "node:path";
 import * as yaml from "js-yaml";
 
 const ROOT = process.cwd();
-const OPENAPI_PATH = path.join(ROOT, "docs", "reference", "openapi.yaml");
+const OPENAPI_PATH = path.join(ROOT, "docs", "openapi.yaml");
 
 const { LOCAL_ONLY_API_PREFIXES, ALWAYS_PROTECTED_API_PATHS } =
   await import("../../src/server/authz/routeGuard.ts");

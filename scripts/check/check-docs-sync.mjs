@@ -5,7 +5,7 @@ import path from "node:path";
 
 const cwd = process.cwd();
 const packageJsonPath = path.resolve(cwd, "package.json");
-const openApiPath = path.resolve(cwd, "docs/reference/openapi.yaml");
+const openApiPath = path.resolve(cwd, "docs/openapi.yaml");
 const changelogPath = path.resolve(cwd, "CHANGELOG.md");
 const llmPath = path.resolve(cwd, "llm.txt");
 const i18nDocsPath = path.resolve(cwd, "docs/i18n");
@@ -209,7 +209,7 @@ try {
 
   const openApiVersion = extractOpenApiVersion(readText(openApiPath));
   if (!openApiVersion) {
-    fail("could not extract docs/reference/openapi.yaml info.version");
+    fail("could not extract docs/openapi.yaml info.version");
   } else if (openApiVersion !== packageVersion) {
     fail(`OpenAPI version (${openApiVersion}) differs from package.json (${packageVersion})`);
   } else {

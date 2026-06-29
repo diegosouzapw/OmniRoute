@@ -2,11 +2,27 @@
 FROM node:24-trixie-slim AS base
 WORKDIR /app
 
+# `apt-get upgrade` pulls the security-patched versions of the Debian (trixie)
+# base-image packages at build time — clears the subset of container-scan CVEs
+# (perl / util-linux / systemd / ncurses / zlib / tar / sqlite / shadow / pam …)
+# that already have a fix published in trixie. CVEs without an upstream fix yet
+# (local-only TOCTOU, etc.) remain until the distro patches them and the image
+# is rebuilt; none are reachable from the proxy's request surface at runtime.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=shared \
   --mount=type=cache,target=/var/lib/apt/lists,sharing=shared \
   apt-get update \
+  && apt-get upgrade -y \
   && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates \
   && rm -rf /var/lib/apt/lists/*
+
+# Refresh the globally-installed npm so its *bundled* node_modules (undici, tar)
+# ship the patched versions. These are npm's own internals — not application
+# dependencies (our app already resolves undici@8.5.0 / tar@7.5.16, both fixed) —
+# but the container scanner flags the stale copies under
+# /usr/local/lib/node_modules/npm/node_modules. npm is not invoked at runtime in
+# the runner stages, so this is hygiene, not an exploitable runtime path.
+RUN npm install -g npm@latest \
+  && npm cache clean --force
 
 # ── Builder ────────────────────────────────────────────────────────────────
 FROM base AS builder
@@ -20,6 +36,12 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=shared \
   && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
+# Workspace package manifests MUST be present before `npm ci` so npm materializes
+# the workspace and installs its *workspace-only* deps (e.g. safe-regex,
+# @toon-format/toon — declared in open-sse/package.json, not hoisted to root).
+# Without this, `npm ci` skips them and `npm run build` fails with "Module not
+# found" (root cause of the v3.8.39 Docker build break). workspaces = ["open-sse"].
+COPY open-sse/package.json ./open-sse/package.json
 COPY scripts/build/postinstall.mjs ./scripts/build/postinstall.mjs
 COPY scripts/build/postinstallSupport.mjs ./scripts/build/postinstallSupport.mjs
 COPY scripts/build/native-binary-compat.mjs ./scripts/build/native-binary-compat.mjs
@@ -49,8 +71,8 @@ ENV OMNIROUTE_USE_TURBOPACK=0
 # Raise the V8 heap ceiling for the build. The webpack production optimization
 # pass (forced above since Turbopack panics) needs more than V8's default ceiling
 # (~2 GB) for a codebase this size; a memory-constrained Docker build otherwise
-# dies with "FATAL ERROR: ... JavaScript heap out of memory" at `[builder] npm run
-# build` (#4076). NODE_OPTIONS propagates to the spawned `next build` child
+# dies with "FATAL ERROR: ... JavaScript heap out of memory" during the builder
+# stage (#4076). NODE_OPTIONS propagates to the spawned `next build` child
 # (build-next-isolated.mjs → resolveNextBuildEnv spreads process.env). Build-only;
 # the runtime heap is set separately on the runner stage (OMNIROUTE_MEMORY_MB).
 # Override for hosts with more/less RAM: `--build-arg OMNIROUTE_BUILD_MEMORY_MB=6144`.

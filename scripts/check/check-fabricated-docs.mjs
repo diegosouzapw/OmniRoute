@@ -85,6 +85,7 @@ const ENV_VAR_ALLOWLIST = new Set([
   "NODE_ENV",
   "NODE_PATH",
   "NODE_OPTIONS",
+  "NODE_EXTRA_CA_CERTS", // Node runtime CA var: read by Node itself + passed to a spawned subprocess (cloudflaredTunnel.ts), not via process.env.X (AGENTBRIDGE.md)
   "DEBUG",
   "VERBOSE",
   "LOG_LEVEL",
@@ -106,8 +107,6 @@ const ENV_VAR_ALLOWLIST = new Set([
   "NINEROUTER_API_KEY", // injected into the 9router subprocess at spawn (EMBEDDED-SERVICES.md)
   "CLAUDE_CODE_MAX_OUTPUT_TOKENS", // Claude Code CLI's own env var (CODEX-CLI-CONFIGURATION.md)
   "CODEX_HOME", // Codex CLI's own config-home env var (CODEX-CLI-CONFIGURATION.md)
-  "GEMINI_API_KEY", // Gemini CLI's own API-key env var, set by `omniroute setup-gemini` (REMOTE-MODE.md)
-  "GOOGLE_GEMINI_BASE_URL", // Gemini CLI's own base-URL env var, set by `omniroute setup-gemini` (REMOTE-MODE.md)
   "OPENAI_API_BASE", // legacy OpenAI base-URL env var some downstream tools (e.g. Aider) read (CLI-INTEGRATIONS.md)
   "PROMPTFOO_PROVIDER_KEY", // promptfoo's own provider-key env var, used by the red-team suite (GUARDRAILS.md)
   "REDIS_PORT", // docker-compose host-port override (DOCKER_GUIDE.md)
@@ -358,11 +357,8 @@ const ENDPOINT_ALLOWLIST = new Set([
 /** Doc files to skip (auto-generated, vendored, or third-party). */
 const SKIP_DOC_FILES = new Set([
   "docs/reference/PROVIDER_REFERENCE.md", // auto-generated from providers.ts
-  "docs/reference/openapi.yaml",
+  "docs/openapi.yaml",
   "docs/i18n", // translations — separate workflow
-  // Point-in-time documentation audit (v3.8.24): intentionally references drift,
-  // counts, and not-yet-existing files as part of documenting them — not living docs.
-  "docs/ops/DOCUMENTATION_AUDIT_REPORT.md",
   // Design / research / plan docs: by definition describe not-yet-built files and
   // proposed (not-yet-shipped) endpoints (each carries a `Status: Design`/`Active
   // research`/`Plano` header). Same rationale as the audit report above — these are
@@ -370,6 +366,7 @@ const SKIP_DOC_FILES = new Set([
   // expected, not fabrications.
   "docs/research", // DISCOVERY_TOOL_DESIGN.md, UNLIMITED_LLM_ACCESS.md, …
   "docs/superpowers/plans", // dated implementation plans (files described before they exist)
+  "docs/superpowers/specs", // dated research/spec reports (point-in-time findings, may cite proposed/not-yet-built endpoints, env vars, and files) — same rationale as the plans/research dirs above
   // Release notes are historical, point-in-time records: they intentionally describe
   // modules/paths as they were at that release (e.g. a module later moved or renamed).
   // Rewriting them to today's layout would falsify history — out of scope for a

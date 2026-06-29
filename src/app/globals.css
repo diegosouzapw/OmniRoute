@@ -496,3 +496,15 @@ select option {
 .react-flow__controls-button svg {
   fill: var(--color-text-main);
 }
+
+/* Desktop sidebar visibility must not depend on Tailwind's hidden/lg:flex cascade
+   (ordering/specificity can collapse it). Explicit class + 1024px media query. */
+.dashboard-sidebar-desktop {
+  display: none;
+  min-height: 0;
+}
+@media (min-width: 1024px) {
+  .dashboard-sidebar-desktop {
+    display: flex;
+  }
+}

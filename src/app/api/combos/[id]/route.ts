@@ -15,8 +15,66 @@ import { validateComboDAG, clampComboDepth } from "@omniroute/open-sse/services/
 import { updateComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { QUOTA_MODEL_PREFIX } from "@/lib/quota/quotaModelNaming";
+import { comboErrorResponse } from "@/lib/api/comboErrorResponse";
+
+// Minimal shape for the fields we read off a combo row in this route.
+// `getComboById` returns a structurally `JsonRecord`-typed object, so we
+// narrow at the call sites rather than change the DB helper's return type.
+type ComboRowShape = {
+  name: string;
+  id?: string;
+  config?: unknown;
+  models?: unknown;
+  strategy?: string;
+  isActive?: boolean;
+  allowedProviders?: string[];
+  system_message?: string;
+  tool_filter_regex?: string;
+  context_cache_protection?: boolean;
+  context_length?: number | null;
+};
+
+/**
+ * Keys that were present in older combo configs (≤ v3.8.31) but have since been
+ * removed from comboRuntimeConfigSchema. The dashboard modal sanitises the three
+ * UI-level keys (timeoutMs, healthCheckEnabled, healthCheckTimeoutMs) before PUT,
+ * but v3.8.31-era stored configs also carry these 12 keys which were spread back
+ * into the body on edit+save. We strip them server-side so removed keys don't
+ * accumulate in `combos.data` and so the next read produces a clean config.
+ *
+ * Idempotent — running twice is a no-op.
+ */
+const LEGACY_REMOVED_COMBO_CONFIG_KEYS = Object.freeze([
+  "queueDepth",
+  "fallbackDelayMs",
+  "handoffProviders",
+  "maxComboDepth",
+  "manifestRouting",
+  "complexityAwareRouting",
+  "pipeline_enabled",
+  "pipelineConcurrency",
+  "shadowRouting",
+  "evalRouting",
+  "resetAwareEnabled",
+  "resetAwareWindow",
+]);
+
+function stripLegacyComboConfigKeys(rawConfig) {
+  if (!rawConfig || typeof rawConfig !== "object" || Array.isArray(rawConfig)) {
+    return rawConfig;
+  }
+  let mutated = false;
+  const next = {};
+  for (const [key, value] of Object.entries(rawConfig)) {
+    if (LEGACY_REMOVED_COMBO_CONFIG_KEYS.includes(key)) {
+      mutated = true;
+      continue;
+    }
+    next[key] = value;
+  }
+  return mutated ? next : rawConfig;
+}
 
 // GET /api/combos/[id] - Get combo by ID
 export async function GET(request, { params }) {
@@ -28,13 +86,13 @@ export async function GET(request, { params }) {
     const combo = await getComboById(id);
 
     if (!combo) {
-      return NextResponse.json({ error: "Combo not found" }, { status: 404 });
+      return comboErrorResponse("COMBO_007", 404, { id }, request);
     }
 
     return NextResponse.json(combo);
   } catch (error) {
     console.log("Error fetching combo:", error);
-    return NextResponse.json({ error: "Failed to fetch combo" }, { status: 500 });
+    return comboErrorResponse("INTERNAL_001", 500, undefined, request);
   }
 }
 
@@ -47,14 +105,11 @@ export async function PUT(request, { params }) {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json(
-      {
-        error: {
-          message: "Invalid request",
-          details: [{ field: "body", message: "Invalid JSON body" }],
-        },
-      },
-      { status: 400 }
+    return comboErrorResponse(
+      "COMBO_001",
+      400,
+      { field: "body", reason: "Invalid JSON body" },
+      request
     );
   }
 
@@ -62,19 +117,30 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     const validation = validateBody(updateComboSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      // Surface the first field-level issue so clients can highlight the
+      // offending field without parsing the full issues array (#5083 Bug 3).
+      const firstDetail = validation.error.details?.[0] ?? null;
+      return comboErrorResponse(
+        "COMBO_002",
+        400,
+        {
+          issues: validation.error,
+          firstField: firstDetail?.field ?? null,
+          firstMessage: firstDetail?.message ?? null,
+        },
+        request
+      );
     }
-    const currentCombo = await getComboById(id);
+    const currentCombo = (await getComboById(id)) as ComboRowShape | null;
     if (!currentCombo) {
-      return NextResponse.json({ error: "Combo not found" }, { status: 404 });
+      return comboErrorResponse("COMBO_007", 404, { id }, request);
     }
     if (currentCombo.name.startsWith(QUOTA_MODEL_PREFIX)) {
-      return NextResponse.json(
-        buildErrorBody(
-          409,
-          "This combo is managed by Quota Share and cannot be edited here. Manage it from the Quota Share page."
-        ),
-        { status: 409 }
+      return comboErrorResponse(
+        "COMBO_006",
+        409,
+        { name: currentCombo.name, source: "quota-share" },
+        request
       );
     }
     const allCombos = await getCombos();
@@ -83,27 +149,34 @@ export async function PUT(request, { params }) {
     const normalizedUpdate = { ...validation.data };
     if (normalizedUpdate.compressionOverride !== undefined) {
       const legacyCompressionOverride = normalizedUpdate.compressionOverride;
-      const nextConfig =
-        currentCombo.config &&
-        typeof currentCombo.config === "object" &&
-        !Array.isArray(currentCombo.config)
-          ? { ...currentCombo.config }
-          : {};
-      if (legacyCompressionOverride) {
-        nextConfig.compressionMode = legacyCompressionOverride;
-      } else {
-        delete nextConfig.compressionMode;
-      }
+    const nextConfig: Record<string, unknown> =
+      currentCombo.config &&
+      typeof currentCombo.config === "object" &&
+      !Array.isArray(currentCombo.config)
+        ? { ...(currentCombo.config as Record<string, unknown>) }
+        : {};
+    if (legacyCompressionOverride) {
+      nextConfig.compressionMode = legacyCompressionOverride;
+    } else {
+      delete nextConfig.compressionMode;
+    }
       normalizedUpdate.config = nextConfig;
       delete normalizedUpdate.compressionOverride;
+    }
+    if (normalizedUpdate.config && typeof normalizedUpdate.config === "object") {
+      normalizedUpdate.config = stripLegacyComboConfigKeys(normalizedUpdate.config);
     }
 
     const body = normalizedUpdate.models
       ? {
           ...normalizedUpdate,
           models: normalizeComboModels(normalizedUpdate.models, {
-            comboName,
-            allCombos,
+            comboName: String(comboName),
+            // `allCombos` from `getCombos()` is typed as the DB-shaped record
+            // (JsonRecord & { version: 2; models: ComboStep[] }) which is
+            // structurally compatible with the local ComboCollectionLike in
+            // `normalizeComboModels` but TS does not infer the relationship.
+            allCombos: allCombos as never,
           }),
         }
       : normalizedUpdate;
@@ -113,15 +186,29 @@ export async function PUT(request, { params }) {
       name: comboName,
     };
     const compositeValidation = validateCompositeTiersConfig(nextComboState);
-    if (!compositeValidation.success) {
-      return NextResponse.json({ error: compositeValidation.error }, { status: 400 });
+    if (compositeValidation.success === false) {
+      const failure = compositeValidation as {
+        success: false;
+        error: { message: string; details: unknown[] };
+      };
+      return comboErrorResponse(
+        "COMBO_003",
+        400,
+        { reason: failure.error.message, details: failure.error.details },
+        request
+      );
     }
 
     // Check if name already exists (exclude current combo)
     if (body.name) {
       const existing = await getComboByName(body.name);
       if (existing && existing.id !== id) {
-        return NextResponse.json({ error: "Combo name already exists" }, { status: 400 });
+        return comboErrorResponse(
+          "COMBO_004",
+          400,
+          { name: body.name, conflictingId: existing.id },
+          request
+        );
       }
     }
 
@@ -134,9 +221,24 @@ export async function PUT(request, { params }) {
           (nextComboState as { config?: { maxComboDepth?: unknown } }).config?.maxComboDepth
         );
         try {
-          validateComboDAG(comboName, updatedCombos, new Set(), 0, configuredDepth);
+          validateComboDAG(String(comboName), updatedCombos, new Set(), 0, configuredDepth);
         } catch (dagError) {
-          return NextResponse.json({ error: dagError.message }, { status: 400 });
+          // Sanitize the raw `dagError.message` — it can leak internal combo
+          // names. Log full error server-side for debugging, return a
+          // sanitized generic message to the client with a short reason tag.
+          console.warn("Combo DAG validation failed:", dagError);
+          const reason =
+            dagError instanceof Error && /cycle/i.test(dagError.message)
+              ? "cycle-detected"
+              : dagError instanceof Error && /depth/i.test(dagError.message)
+                ? "max-depth-exceeded"
+                : "invalid-graph";
+          return comboErrorResponse(
+            "COMBO_005",
+            400,
+            { comboName, reason },
+            request
+          );
         }
       }
     }
@@ -149,7 +251,7 @@ export async function PUT(request, { params }) {
     return NextResponse.json(combo);
   } catch (error) {
     console.log("Error updating combo:", error);
-    return NextResponse.json({ error: "Failed to update combo" }, { status: 500 });
+    return comboErrorResponse("INTERNAL_001", 500, undefined, request);
   }
 }
 
@@ -160,23 +262,22 @@ export async function DELETE(request, { params }) {
 
   try {
     const { id } = await params;
-    const existingCombo = await getComboById(id);
+    const existingCombo = (await getComboById(id)) as ComboRowShape | null;
     if (!existingCombo) {
-      return NextResponse.json({ error: "Combo not found" }, { status: 404 });
+      return comboErrorResponse("COMBO_007", 404, { id }, request);
     }
     if (existingCombo.name.startsWith(QUOTA_MODEL_PREFIX)) {
-      return NextResponse.json(
-        buildErrorBody(
-          409,
-          "This combo is managed by Quota Share and cannot be deleted here. Manage it from the Quota Share page."
-        ),
-        { status: 409 }
+      return comboErrorResponse(
+        "COMBO_006",
+        409,
+        { name: existingCombo.name, source: "quota-share" },
+        request
       );
     }
     const success = await deleteCombo(id);
 
     if (!success) {
-      return NextResponse.json({ error: "Combo not found" }, { status: 404 });
+      return comboErrorResponse("COMBO_007", 404, { id }, request);
     }
 
     // Auto sync to Cloud if enabled
@@ -185,7 +286,7 @@ export async function DELETE(request, { params }) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.log("Error deleting combo:", error);
-    return NextResponse.json({ error: "Failed to delete combo" }, { status: 500 });
+    return comboErrorResponse("INTERNAL_001", 500, undefined, request);
   }
 }
 

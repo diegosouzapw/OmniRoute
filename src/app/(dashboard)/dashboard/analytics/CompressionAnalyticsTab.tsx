@@ -9,15 +9,21 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useProviderNodeMap, resolveProviderName } from "@/lib/display/useProviderNodeMap";
 
 interface CompressionAnalyticsSummary {
   totalRequests: number;
   totalTokensSaved: number;
   avgSavingsPct: number;
   avgDurationMs: number;
-  byMode: Record<string, { count: number; tokensSaved: number; avgSavingsPct: number }>;
+  byMode: Record<
+    string,
+    { count: number; tokensSaved: number; avgSavingsPct: number; skipped?: number }
+  >;
   byProvider: Record<string, { count: number; tokensSaved: number }>;
   last24h: Array<{ hour: string; count: number; tokensSaved: number }>;
+  totalSkipped?: number;
+  bySkipReason?: Record<string, number>;
   validationFallbacks: number;
   realUsage: {
     requestsWithReceipts: number;
@@ -59,11 +65,13 @@ function ModeBar({
   count,
   total,
   tokensSaved,
+  skipped = 0,
 }: {
   mode: string;
   count: number;
   total: number;
   tokensSaved: number;
+  skipped?: number;
 }) {
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
   return (
@@ -72,6 +80,11 @@ function ModeBar({
         <span className="font-medium text-text capitalize">{mode}</span>
         <span className="text-text-muted">
           {count} requests · {tokensSaved.toLocaleString()} tokens saved
+          {skipped > 0 && (
+            // #4268: attempted-but-no-op runs (e.g. Stacked saved nothing) are
+            // recorded now, so this mode is visible even when count is 0.
+            <span className="text-text-muted/70"> · {skipped.toLocaleString()} skipped (no-op)</span>
+          )}
         </span>
       </div>
       <div className="h-2 rounded-full bg-bg-muted overflow-hidden">
@@ -122,6 +135,7 @@ export default function CompressionAnalyticsTab() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [since, setSince] = useState<"24h" | "7d" | "30d" | "all">("24h");
+  const nodeMap = useProviderNodeMap();
 
   useEffect(() => {
     fetch(`/api/analytics/compression?since=${since}`)
@@ -286,6 +300,7 @@ export default function CompressionAnalyticsTab() {
                 count={data.count}
                 total={stats.totalRequests}
                 tokensSaved={data.tokensSaved}
+                skipped={data.skipped ?? 0}
               />
             ))}
           </div>
@@ -303,7 +318,7 @@ export default function CompressionAnalyticsTab() {
             {providers.map(([prov, data]) => (
               <ProviderBar
                 key={prov}
-                provider={prov}
+                provider={resolveProviderName(prov, nodeMap)}
                 count={data.count}
                 total={stats.totalRequests}
                 tokensSaved={data.tokensSaved}

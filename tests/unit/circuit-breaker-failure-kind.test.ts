@@ -219,7 +219,11 @@ test("invalid cooldownByKind values (NaN, Infinity, negative) fall back to reset
     cb.reset();
     cb._onFailure(kind);
     const t = cb._timeUntilReset();
-    assert.ok(t > 29_000 && t <= 30_000, `expected resetTimeout fallback for ${kind}, got ${t}`);
+    // _timeUntilReset() = resetTimeout - elapsed-since-failure, so the lower bound
+    // must tolerate real wall-clock drift on slow/loaded CI runners (this loop took
+    // ~1.6s once → t=28401, flaking the old `> 29_000`). Any t well above the invalid
+    // cooldown values (NaN/Infinity/negative) and <= resetTimeout proves the fallback.
+    assert.ok(t > 25_000 && t <= 30_000, `expected resetTimeout fallback for ${kind}, got ${t}`);
   }
   cb.reset();
 });

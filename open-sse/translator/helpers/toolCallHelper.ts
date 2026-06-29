@@ -2,6 +2,12 @@
 
 const ALPHANUM9 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
+// Fallback streaming tool_call id when a provider response omits one (index optional).
+// `call_<ts>` when no index is given; `call_<index>_<ts>` when an index is supplied.
+export function fallbackToolCallId(index?: number): string {
+  return index === undefined ? `call_${Date.now()}` : `call_${index}_${Date.now()}`;
+}
+
 // Generate unique tool call ID (default long form)
 export function generateToolCallId() {
   return `call_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 9)}`;

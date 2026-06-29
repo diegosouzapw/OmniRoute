@@ -119,7 +119,7 @@ function coverageByModule() {
 // 4) OpenAPI coverage: percentage of implemented routes documented in openapi.yaml
 function openapiCoverage() {
   const API_ROOT = path.join(cwd, "src", "app", "api");
-  const OPENAPI_PATH = path.join(cwd, "docs", "reference", "openapi.yaml");
+  const OPENAPI_PATH = path.join(cwd, "docs", "openapi.yaml");
   if (!fs.existsSync(API_ROOT) || !fs.existsSync(OPENAPI_PATH)) return;
 
   function collectRoutePaths(dir) {

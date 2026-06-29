@@ -10,7 +10,7 @@ import * as yaml from "js-yaml";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
-const SPEC_PATH = process.env.OPENAPI_SPEC || join(ROOT, "docs/reference/openapi.yaml");
+const SPEC_PATH = process.env.OPENAPI_SPEC || join(ROOT, "docs/openapi.yaml");
 const OUT_DIR = join(ROOT, "bin/cli/api-commands");
 
 // Operations already covered by hand-crafted commands — skip in generated output.

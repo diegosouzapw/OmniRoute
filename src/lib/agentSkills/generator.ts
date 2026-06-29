@@ -124,7 +124,7 @@ function buildApiBody(skill: AgentSkill, sources: BuildSources): string {
   lines.push("## Payloads\n");
   lines.push(
     "See the full OpenAPI specification at `GET /api/openapi/spec` or " +
-      "`docs/reference/openapi.yaml` for detailed request/response schemas.",
+      "`docs/openapi.yaml` for detailed request/response schemas.",
   );
   lines.push("");
 

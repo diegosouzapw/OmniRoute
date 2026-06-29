@@ -12,13 +12,23 @@ import { CORS_HEADERS } from "@/shared/utils/cors";
 
 type CatalogModel = { id?: unknown } & Record<string, unknown>;
 
-/** Find a model entry in the unified catalog `data` array by its exact id. */
+/**
+ * Find a model entry in the unified catalog `data` array by id.
+ *
+ * Exact-case matches win; failing that we fall back to a case-insensitive match
+ * so clients that normalise the model id (#5082 — OpenCode requesting
+ * `minimax/minimax-m3` for the canonical `minimax/MiniMax-M3`) still resolve the
+ * real entry — and its `context_length` — instead of falling back to 0.
+ */
 export function findModelById(
   data: CatalogModel[] | null | undefined,
   requestedId: string
 ): CatalogModel | null {
   if (!Array.isArray(data)) return null;
-  return data.find((m) => typeof m?.id === "string" && m.id === requestedId) ?? null;
+  const exact = data.find((m) => typeof m?.id === "string" && m.id === requestedId);
+  if (exact) return exact;
+  const lower = requestedId.toLowerCase();
+  return data.find((m) => typeof m?.id === "string" && m.id.toLowerCase() === lower) ?? null;
 }
 
 /**

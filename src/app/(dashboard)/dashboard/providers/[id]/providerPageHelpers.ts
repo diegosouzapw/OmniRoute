@@ -96,7 +96,6 @@ const TARGET_FORMAT_BADGE_I18N_KEYS: Record<string, string> = {
   "openai-responses": "compatProtocolOpenAIResponses",
   claude: "compatProtocolClaude",
   gemini: "targetFormatGemini",
-  "gemini-cli": "targetFormatGeminiCli",
   antigravity: "targetFormatAntigravity",
 };
 
@@ -696,12 +695,12 @@ export function getCodexRequestDefaults(providerSpecificData: unknown): {
     ...(defaults.serviceTier ? { serviceTier: defaults.serviceTier } : {}),
   };
 }
-
 export function getClaudeCodeCompatibleRequestDefaults(providerSpecificData: unknown) {
   const defaults = _getClaudeCodeCompatibleRequestDefaults(providerSpecificData);
   return {
     context1m: defaults.context1m === true,
     redactThinking: defaults.redactThinking === true,
+    summarizeThinking: defaults.summarizeThinking === true,
   };
 }
 

@@ -39,9 +39,16 @@ test("worker.ts CODE never uses import.meta.url / createRequire (both die in the
     !code.includes('from "node:module"'),
     "worker.ts must not import from node:module (createRequire)"
   );
-  assert.ok(
-    !code.includes('from "node:url"'),
-    "worker.ts must not import from node:url (fileURLToPath)"
+  // pathToFileURL from node:url is safe — it's a pure path→URL converter with no
+  // import.meta.url or createRequire dependency. It's needed to fix "File URL path
+  // must be absolute" errors when the Worker constructor receives a path that needs
+  // explicit file: URL conversion.
+  const urlImports = code.match(/from\s+["']node:url["']/g) ?? [];
+  const safeUrlImports = urlImports.filter((imp) => code.includes("pathToFileURL"));
+  assert.equal(
+    urlImports.length,
+    safeUrlImports.length,
+    "worker.ts must not import fileURLToPath or other unsafe node:url APIs (pathToFileURL is allowed)"
   );
 });
 

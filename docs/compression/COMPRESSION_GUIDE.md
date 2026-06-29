@@ -1,7 +1,7 @@
 ---
 title: "🗜️ Prompt Compression Guide — OmniRoute"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # 🗜️ Prompt Compression Guide — OmniRoute
@@ -181,8 +181,8 @@ Combo: "free-forever"
   Compression Combo: "coding-agent-stack"
   Pipeline: RTK -> Caveman
   Targets:
-    1. gc/gemini-3-flash
-    2. if/kimi-k2-thinking
+    1. if/kimi-k2-thinking
+    2. qw/qwen3-coder-plus
 ```
 
 This lets you use stacked compression on free/coding providers while keeping lite mode on paid
@@ -196,12 +196,12 @@ auto-trigger, and the panel Default. Unknown values are ignored (the request is 
 the global master switch still gates everything: when compression is off globally, the header cannot
 turn it on. Values:
 
-| Value | Effect |
-|-------|--------|
-| `off` | No compression for this request. |
-| `default` | The panel-derived Default profile (ignores the active profile). |
-| `engine:<id>` | A single engine when enabled, e.g. `engine:rtk`. |
-| `<combo>` | A named combo, matched by name (case-insensitive) first, then by id. |
+| Value         | Effect                                                               |
+| ------------- | -------------------------------------------------------------------- |
+| `off`         | No compression for this request.                                     |
+| `default`     | The panel-derived Default profile (ignores the active profile).      |
+| `engine:<id>` | A single engine when enabled, e.g. `engine:rtk`.                     |
+| `<combo>`     | A named combo, matched by name (case-insensitive) first, then by id. |
 
 The applied plan is echoed back in the `X-OmniRoute-Compression: <mode>; source=<source>` response
 header, where `<source>` is one of `request-header`, `routing-override`, `active-profile`,
@@ -273,12 +273,12 @@ Every compressed request includes stats in the server logs:
 
 ## Phase Roadmap
 
-| Phase   | Modes                                | Status     |
-| ------- | ------------------------------------ | ---------- |
-| Phase 1 | Off, Lite                            | ✅ Shipped |
-| Phase 2 | Standard, Aggressive, Ultra          | ✅ Shipped |
-| Phase 3 | RTK, Stacked, Compression Combos     | ✅ Shipped |
-| Phase 4 | Per-model adaptive, ML-based pruning | 🗓️ Planned |
+| Phase   | Modes                                                                | Status     |
+| ------- | -------------------------------------------------------------------- | ---------- |
+| Phase 1 | Off, Lite                                                            | ✅ Shipped |
+| Phase 2 | Standard, Aggressive, Ultra                                          | ✅ Shipped |
+| Phase 3 | RTK, Stacked, Compression Combos                                     | ✅ Shipped |
+| Phase 4 | Output Styles, SLM-tier Ultra, adaptive context-budget, eval harness | ✅ Shipped |
 
 ---
 
@@ -316,7 +316,10 @@ The `cachingAware.ts` module solves this by **detecting caching context** and
 #### Code example
 
 ```ts
-import { detectCachingContext, getCacheAwareStrategy } from "@omniroute/open-sse/services/compression/cachingAware";
+import {
+  detectCachingContext,
+  getCacheAwareStrategy,
+} from "@omniroute/open-sse/services/compression/cachingAware";
 
 const body = {
   model: "anthropic/claude-sonnet-4.5",
@@ -335,6 +338,7 @@ const strategy = getCacheAwareStrategy("aggressive", ctx);
 
 Cache-aware compression is **always on** — no configuration needed. It only kicks in
 when:
+
 - The request has `cache_control` markers
 - The target provider supports prompt caching (Anthropic, OpenAI, etc.)
 
@@ -361,9 +365,9 @@ const messages = [
 ];
 
 const { messages: aged, saved } = applyAging(messages, {
-  verbatim: 3,   // First 3 turns: verbatim
-  light: 8,      // Turns 4-8: lite compression
-  moderate: 20,  // Turns 9-20: caveman compression
+  verbatim: 3, // First 3 turns: verbatim
+  light: 8, // Turns 4-8: lite compression
+  moderate: 20, // Turns 9-20: caveman compression
   // Turns 21+: heavy summarization
 });
 
@@ -374,6 +378,7 @@ const { messages: aged, saved } = applyAging(messages, {
 
 Progressive aging is **always on** for `aggressive` and `ultra` modes. It's
 particularly effective for:
+
 - Long-running coding sessions
 - Multi-day conversations
 - Agentic workflows with many tool calls
@@ -386,9 +391,11 @@ model itself produce compressed, terse output (a "caveman" style).
 #### How it works
 
 Instead of compressing the input, this mode adds a system prompt like:
+
 > "Reply in minimal words. Skip pleasantries. Use short sentences."
 
 This works particularly well for:
+
 - Code generation (terser output = fewer tokens)
 - Quick Q&A (no need for elaborate explanations)
 - Batch processing (maximize throughput)
@@ -396,6 +403,7 @@ This works particularly well for:
 #### When to use
 
 Caveman output mode is **opt-in** — set it via the combo config:
+
 ```json
 {
   "strategy": "auto",
@@ -441,11 +449,13 @@ Input (1000 tokens)
 #### When to use
 
 Use stacked mode for:
+
 - Tool-heavy workflows (agentic coding, research)
 - Cost-sensitive batch processing
 - When you need maximum token savings
 
 Configure via combo:
+
 ```json
 {
   "strategy": "auto",
@@ -483,6 +493,7 @@ for different use cases:
 ```
 
 This is useful for:
+
 - **Coding combos**: Use `aggressive` mode for long sessions
 - **Quick Q&A combos**: Use `lite` mode for fast responses
 - **Tool-heavy combos**: Use `stacked` mode for max savings

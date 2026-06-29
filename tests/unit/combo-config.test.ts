@@ -213,9 +213,12 @@ test("combo config schema accepts explicit zero-latency opt-in controls", () => 
   assert.equal(parsed.config.predictiveTtftMs, 1800);
 });
 
-test("combo config schema rejects enabled zero-latency subfeatures without opt-in", () => {
+test("combo config schema auto-promotes the zero-latency gate for legacy configs without opt-in", () => {
+  // Pre-3.8.33 combos carry zero-latency subfeatures without the
+  // zeroLatencyOptimizationsEnabled gate. The schema now auto-promotes the gate
+  // (instead of 400-ing on the first GUI edit) so they round-trip. See #4774/#4382.
   const result = createComboSchema.safeParse({
-    name: "zero-latency-noop",
+    name: "zero-latency-legacy",
     models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
     config: {
       hedging: true,
@@ -224,11 +227,45 @@ test("combo config schema rejects enabled zero-latency subfeatures without opt-i
     },
   });
 
-  assert.equal(result.success, false);
-  assert.deepEqual(
-    result.error.issues.map((issue) => issue.path.join(".")),
-    ["config.hedging", "config.predictiveTtftMs", "config.fallbackCompressionMode"]
-  );
+  assert.equal(result.success, true);
+  assert.equal(result.data.config.zeroLatencyOptimizationsEnabled, true);
+  // The enabled subfeatures are preserved verbatim.
+  assert.equal(result.data.config.hedging, true);
+  assert.equal(result.data.config.fallbackCompressionMode, "lite");
+  assert.equal(result.data.config.predictiveTtftMs, 1800);
+});
+
+test("combo config schema leaves the zero-latency gate untouched when no subfeature is enabled", () => {
+  // A plain config with no zero-latency subfeature must NOT be auto-promoted —
+  // the gate stays at its default (false) so we don't silently flip optimizations on.
+  const result = createComboSchema.safeParse({
+    name: "no-zero-latency",
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
+    config: {
+      fallbackCompressionMode: "off",
+    },
+  });
+
+  assert.equal(result.success, true);
+  assert.notEqual(result.data.config.zeroLatencyOptimizationsEnabled, true);
+});
+
+test("combo config schema no longer rejects v3.8.31-era removed config keys (#4382 round-trip)", () => {
+  // Keys dropped after v3.8.31 still live in stored JSON. The schema switched
+  // .strict() (which 400'd) → .passthrough(); the route + migration 103 scrub them.
+  const result = createComboSchema.safeParse({
+    name: "legacy-removed-keys",
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
+    config: {
+      queueDepth: 4,
+      fallbackDelayMs: 200,
+      maxComboDepth: 3,
+      shadowRouting: { enabled: false },
+      resetAwareEnabled: true,
+    },
+  });
+
+  assert.equal(result.success, true);
 });
 
 test("combo config schema allows zero-latency tuning fields when subfeatures stay disabled", () => {
@@ -758,4 +795,86 @@ test("createComboSchema rejects queueDepth outside the supported range", () => {
     config: { queueDepth: -1 },
   });
   assert.equal(negative.success, false);
+});
+
+// ─── Fusion strategy config (judgeModel + fusionTuning) ──────────────────
+// Backs the dashboard combo-editor Fusion fields (judge model + tuning). The
+// editor only writes these; the backend (open-sse/services/fusion.ts) reads
+// config.judgeModel / config.fusionTuning. The schema must accept + bound them.
+
+test("createComboSchema accepts judgeModel and fusionTuning for a fusion combo", () => {
+  const result = createComboSchema.safeParse({
+    name: "fusion-panel",
+    models: ["cc/claude-opus-4-7", "cx/gpt-5.5", "glm/glm-5.1"],
+    strategy: "fusion",
+    config: {
+      judgeModel: "cc/claude-opus-4-7",
+      fusionTuning: { minPanel: 2, stragglerGraceMs: 8000, panelHardTimeoutMs: 90000 },
+    },
+  });
+  assert.equal(result.success, true);
+  assert.equal(result.data.config.judgeModel, "cc/claude-opus-4-7");
+  assert.deepEqual(result.data.config.fusionTuning, {
+    minPanel: 2,
+    stragglerGraceMs: 8000,
+    panelHardTimeoutMs: 90000,
+  });
+});
+
+test("createComboSchema accepts a fusion combo with no fusion config (defaults apply at runtime)", () => {
+  const result = createComboSchema.safeParse({
+    name: "fusion-bare",
+    models: ["cc/claude-opus-4-7", "cx/gpt-5.5"],
+    strategy: "fusion",
+    config: {},
+  });
+  assert.equal(result.success, true);
+});
+
+test("createComboSchema coerces numeric-string fusionTuning values", () => {
+  const result = createComboSchema.safeParse({
+    name: "fusion-coerce",
+    models: ["a/m1", "b/m2"],
+    strategy: "fusion",
+    config: { fusionTuning: { minPanel: "3", stragglerGraceMs: "5000" } },
+  });
+  assert.equal(result.success, true);
+  assert.equal(result.data.config.fusionTuning.minPanel, 3);
+  assert.equal(result.data.config.fusionTuning.stragglerGraceMs, 5000);
+});
+
+test("createComboSchema rejects out-of-range fusionTuning values", () => {
+  const minPanelTooHigh = createComboSchema.safeParse({
+    name: "fusion-bad-minpanel",
+    models: ["a/m1", "b/m2"],
+    strategy: "fusion",
+    config: { fusionTuning: { minPanel: 51 } },
+  });
+  assert.equal(minPanelTooHigh.success, false);
+
+  const graceNegative = createComboSchema.safeParse({
+    name: "fusion-bad-grace",
+    models: ["a/m1", "b/m2"],
+    strategy: "fusion",
+    config: { fusionTuning: { stragglerGraceMs: -1 } },
+  });
+  assert.equal(graceNegative.success, false);
+
+  const hardTimeoutTooLow = createComboSchema.safeParse({
+    name: "fusion-bad-hardtimeout",
+    models: ["a/m1", "b/m2"],
+    strategy: "fusion",
+    config: { fusionTuning: { panelHardTimeoutMs: 500 } },
+  });
+  assert.equal(hardTimeoutTooLow.success, false);
+});
+
+test("createComboSchema rejects unknown keys inside fusionTuning (strict object)", () => {
+  const result = createComboSchema.safeParse({
+    name: "fusion-unknown-key",
+    models: ["a/m1", "b/m2"],
+    strategy: "fusion",
+    config: { fusionTuning: { minPanel: 2, bogusKey: 1 } },
+  });
+  assert.equal(result.success, false);
 });

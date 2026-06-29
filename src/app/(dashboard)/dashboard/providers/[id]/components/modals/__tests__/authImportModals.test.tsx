@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 //
 // Phase 1a regression test for Issue #3501. The three auth-import modal clusters
-// (Codex/Claude/Gemini) were extracted out of the 12.8K-LOC god-component into
+// (Codex/Claude) were extracted out of the 12.8K-LOC god-component into
 // standalone files. This proves each now mounts in isolation with its clean
 // { onClose, onSuccess } interface — the payoff of the extraction (Hard Rule #8).
 import React, { act } from "react";
@@ -9,7 +9,6 @@ import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ImportCodexAuthModal } from "../ImportCodexAuthModal";
 import { ImportClaudeAuthModal } from "../ImportClaudeAuthModal";
-import { ImportGeminiAuthModal } from "../ImportGeminiAuthModal";
 
 vi.mock("next/navigation", () => ({
   useParams: () => ({ id: "openai" }),
@@ -61,11 +60,6 @@ describe("auth-import modals (Phase 1a extraction)", () => {
 
   it("ImportClaudeAuthModal mounts standalone", () => {
     const c = renderModal(<ImportClaudeAuthModal onClose={vi.fn()} onSuccess={vi.fn()} />);
-    expect(c.querySelector("*")).not.toBeNull();
-  });
-
-  it("ImportGeminiAuthModal mounts standalone", () => {
-    const c = renderModal(<ImportGeminiAuthModal onClose={vi.fn()} onSuccess={vi.fn()} />);
     expect(c.querySelector("*")).not.toBeNull();
   });
 });

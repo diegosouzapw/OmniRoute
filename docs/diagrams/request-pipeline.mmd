@@ -13,7 +13,7 @@ flowchart LR
   Cache -->|yes| Return["Return cached"]
   Cache -->|no| Rate["Rate limit<br/>(per-key, per-IP)"]
   Rate --> Combo{"Combo<br/>target?"}
-  Combo -->|combo| Resolve["resolveComboTargets<br/>(14 strategies)"]
+  Combo -->|combo| Resolve["resolveComboTargets<br/>(17 strategies)"]
   Resolve --> Single["handleSingleModel<br/>(per target)"]
   Combo -->|single| Single
   Single --> Translate["translateRequest<br/>(OpenAI↔Claude↔Gemini)"]

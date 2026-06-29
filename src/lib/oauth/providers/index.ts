@@ -12,7 +12,6 @@
 
 import { claude } from "./claude";
 import { codex } from "./codex";
-import { gemini } from "./gemini";
 import { antigravity } from "./antigravity";
 import { agy } from "./agy";
 import { qoder } from "./qoder";
@@ -26,11 +25,12 @@ import { trae } from "./trae";
 import { kilocode } from "./kilocode";
 import { cline } from "./cline";
 import { windsurf } from "./windsurf";
+import { grokCli } from "./grok-cli";
+import { codebuddyCn } from "./codebuddy-cn";
 
 export const PROVIDERS = {
   claude,
   codex,
-  "gemini-cli": gemini,
   antigravity,
   agy,
   qoder,
@@ -47,6 +47,8 @@ export const PROVIDERS = {
   windsurf,
   // devin-cli shares the same token format as windsurf (WINDSURF_API_KEY / devin auth login)
   "devin-cli": windsurf,
+  "grok-cli": grokCli,
+  "codebuddy-cn": codebuddyCn,
 };
 
 export default PROVIDERS;

@@ -170,6 +170,16 @@ export function validateProviderSpecificData(
           path: ["requestDefaults", "context1m"],
         });
       }
+
+      for (const booleanKey of ["redactThinking", "summarizeThinking"] as const) {
+        const value = requestDefaultsRecord[booleanKey];
+        if (value === undefined || value === null || typeof value === "boolean") continue;
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `providerSpecificData.requestDefaults.${booleanKey} must be a boolean`,
+          path: ["requestDefaults", booleanKey],
+        });
+      }
     }
   }
 
@@ -457,7 +467,7 @@ export const providerModelMutationSchema = z.object({
   // #2905: optional per-model wire format override for custom models (e.g. a
   // custom opencode-go model that must use the Anthropic Messages shape).
   targetFormat: z
-    .enum(["openai", "openai-responses", "claude", "gemini", "gemini-cli", "antigravity"])
+    .enum(["openai", "openai-responses", "claude", "gemini", "antigravity"])
     .optional(),
   // #1294: optional token limits set in the "add custom model" form. The wire
   // shape uses max_input_tokens / max_output_tokens (mirrors the /v1/models

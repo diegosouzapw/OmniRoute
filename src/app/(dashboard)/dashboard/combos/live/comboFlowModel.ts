@@ -25,6 +25,7 @@
  *   *into* each target node carries the target's state colour.
  */
 
+import type { CSSProperties } from "react";
 import type { Node, Edge } from "@xyflow/react";
 import { edgeStyle } from "@/shared/components/flow/edgeStyles";
 
@@ -285,7 +286,7 @@ export function comboRunToFlow(run: ComboRunModel): { nodes: Node[]; edges: Edge
 
   // Edge: request → strategy (always active/idle depending on run state)
   const runActive = run.outcome === "running";
-  const reqStratStyle = edgeStyle(runActive, !runActive, false);
+  const reqStratStyle = edgeStyle(runActive, !runActive, false) as unknown as CSSProperties;
   edges.push({
     id: `e-${requestId}-${strategyId}`,
     source: requestId,
@@ -324,7 +325,7 @@ export function comboRunToFlow(run: ComboRunModel): { nodes: Node[]; edges: Edge
     const isError = t.state === "failed";
     const isActive = t.state === "succeeded";
     const isLast = t.state === "attempting";
-    const targetEdgeStyle = edgeStyle(isActive, isLast, isError);
+    const targetEdgeStyle = edgeStyle(isActive, isLast, isError) as unknown as CSSProperties;
 
     edges.push({
       id: `e-${prevId}-${nodeId}`,
@@ -351,7 +352,7 @@ export function comboRunToFlow(run: ComboRunModel): { nodes: Node[]; edges: Edge
 
   // Edge: last target → response — green if succeeded, muted otherwise
   const succeeded = run.outcome === "succeeded";
-  const responseEdgeStyle = edgeStyle(succeeded, false, false);
+  const responseEdgeStyle = edgeStyle(succeeded, false, false) as unknown as CSSProperties;
   edges.push({
     id: `e-${prevId}-${responseId}`,
     source: prevId,

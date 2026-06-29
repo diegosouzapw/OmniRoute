@@ -5,6 +5,7 @@ import {
   extractCursorTokensFromRows,
   fuzzyExtractCursorTokensFromRows,
   cursorDbCandidatePaths,
+  verifyLinuxCursorInstalled,
 } from "../../src/app/api/oauth/cursor/auto-import/route";
 
 describe("normalizeVscDbValue", () => {
@@ -136,5 +137,69 @@ describe("cursorDbCandidatePaths", () => {
 
   it("returns empty array for unsupported platforms", () => {
     assert.deepEqual(cursorDbCandidatePaths("freebsd" as NodeJS.Platform, { home: "/x" }), []);
+  });
+});
+
+describe("verifyLinuxCursorInstalled (port: 9router#313)", () => {
+  const okExec = async () => ({ stdout: "/usr/bin/cursor\n", stderr: "" });
+  const failExec = async () => {
+    throw new Error("which: no cursor in PATH");
+  };
+  const okAccess = async () => {};
+  const failAccess = async () => {
+    throw Object.assign(new Error("ENOENT"), { code: "ENOENT" });
+  };
+
+  it("returns true when `which cursor` succeeds (does not probe the .desktop file)", async () => {
+    let accessCalled = false;
+    const installed = await verifyLinuxCursorInstalled({
+      execFile: okExec,
+      access: async () => {
+        accessCalled = true;
+      },
+      home: "/home/test",
+    });
+    assert.equal(installed, true);
+    assert.equal(accessCalled, false);
+  });
+
+  it("falls back to the cursor.desktop launcher when `which` fails", async () => {
+    let probedPath = "";
+    const installed = await verifyLinuxCursorInstalled({
+      execFile: failExec,
+      access: async (p) => {
+        probedPath = p;
+      },
+      home: "/home/test",
+    });
+    assert.equal(installed, true);
+    assert.equal(probedPath, "/home/test/.local/share/applications/cursor.desktop");
+  });
+
+  it("returns false when neither `which` nor the .desktop file resolve (phantom config)", async () => {
+    const installed = await verifyLinuxCursorInstalled({
+      execFile: failExec,
+      access: failAccess,
+      home: "/home/test",
+    });
+    assert.equal(installed, false);
+  });
+
+  it("probes `which cursor` with a fixed binary name and a bounded timeout", async () => {
+    let calledWith: { file: string; args: string[]; timeout: number } | null = null;
+    const installed = await verifyLinuxCursorInstalled({
+      execFile: async (file, args, options) => {
+        calledWith = { file, args, timeout: options.timeout };
+        return { stdout: "/usr/bin/cursor", stderr: "" };
+      },
+      access: okAccess,
+      home: "/home/test",
+    });
+    assert.equal(installed, true);
+    assert.deepEqual(calledWith, {
+      file: "which",
+      args: ["cursor"],
+      timeout: 5000,
+    });
   });
 });

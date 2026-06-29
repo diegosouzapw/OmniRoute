@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // scripts/check/check-openapi-routes.mjs
-// Gate anti-alucinação (docs): toda `path` documentada em docs/reference/openapi.yaml
+// Gate anti-alucinação (docs): toda `path` documentada em docs/openapi.yaml
 // deve resolver para um route.ts real em src/app/api/. Pega endpoint INVENTADO/obsoleto
 // na spec (a IA escreve docs descrevendo rota que não existe). Complementa
 // check-openapi-coverage.mjs (que mede a direção inversa: % de rotas documentadas).
@@ -14,7 +14,7 @@ import { assertNoStale } from "./lib/allowlist.mjs";
 
 const ROOT = process.cwd();
 const API_ROOT = path.join(ROOT, "src", "app", "api");
-const OPENAPI_PATH = path.join(ROOT, "docs", "reference", "openapi.yaml");
+const OPENAPI_PATH = path.join(ROOT, "docs", "openapi.yaml");
 
 // Entradas da spec sem rota real, congeladas para triagem (catraca: bloqueia NOVAS).
 export const KNOWN_STALE_SPEC = new Set([

@@ -50,6 +50,23 @@ const cases: Case[] = [
     expectedNormalized: "/api/v1/chat/completions",
   },
   {
+    name: "/v1beta alias",
+    path: "/v1beta",
+    expectedClass: "CLIENT_API",
+    expectedNormalized: "/api/v1beta",
+  },
+  {
+    name: "/v1beta generateContent alias",
+    path: "/v1beta/models/gemini-pro:generateContent",
+    expectedClass: "CLIENT_API",
+    expectedNormalized: "/api/v1beta/models/gemini-pro:generateContent",
+  },
+  {
+    name: "/api/v1beta generateContent",
+    path: "/api/v1beta/models/gemini-pro:generateContent",
+    expectedClass: "CLIENT_API",
+  },
+  {
     name: "/v1/v1 double-prefix",
     path: "/v1/v1",
     expectedClass: "CLIENT_API",
@@ -189,4 +206,6 @@ test("classifyRoute strips trailing slash on root only when not '/'", () => {
 test("classifyRoute treats /api/v1 prefix exactly", () => {
   assert.equal(classifyRoute("/api/v1abc").routeClass, "MANAGEMENT");
   assert.equal(classifyRoute("/api/v1/x").routeClass, "CLIENT_API");
+  assert.equal(classifyRoute("/api/v1betamax").routeClass, "MANAGEMENT");
+  assert.equal(classifyRoute("/api/v1beta/models").routeClass, "CLIENT_API");
 });

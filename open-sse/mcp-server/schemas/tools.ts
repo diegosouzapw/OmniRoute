@@ -10,33 +10,18 @@
  */
 
 import { z } from "zod";
+import { toolSearchTool } from "./toolSearch.ts";
 import {
   AUTO_ROUTING_STRATEGY_VALUES,
   ROUTING_STRATEGY_VALUES,
 } from "../../../src/shared/constants/routingStrategies.ts";
 
 // ============ Shared Types ============
-
-export type AuditLevel = "none" | "basic" | "full";
-
-export interface McpToolDefinition<TInput extends z.ZodTypeAny, TOutput extends z.ZodTypeAny> {
-  /** Tool name (MCP identifier) */
-  name: string;
-  /** Human-readable description for AI agents */
-  description: string;
-  /** Zod schema for input validation */
-  inputSchema: TInput;
-  /** Zod schema for output validation */
-  outputSchema: TOutput;
-  /** Required API key scopes */
-  scopes: readonly string[];
-  /** Audit logging level */
-  auditLevel: AuditLevel;
-  /** Phase: 1 = essential, 2 = advanced */
-  phase: 1 | 2;
-  /** Source endpoints on OmniRoute that this tool wraps */
-  sourceEndpoints: readonly string[];
-}
+// AuditLevel + McpToolDefinition live in the leaf ./toolDefinition.ts so that
+// toolSearch.ts can import the type without forming a tools.ts ↔ toolSearch.ts cycle.
+// Re-exported here for backward compatibility (many modules import them from ./tools.ts).
+export type { AuditLevel, McpToolDefinition } from "./toolDefinition.ts";
+import type { McpToolDefinition } from "./toolDefinition.ts";
 
 // ============ Phase 1: Essential Tools (8) ============
 
@@ -702,7 +687,7 @@ export const testComboTool: McpToolDefinition<typeof testComboInput, typeof test
 
 // --- Tool 14: omniroute_get_provider_metrics ---
 export const getProviderMetricsInput = z.object({
-  provider: z.string().describe("Provider name (e.g., 'claude', 'gemini-cli', 'codex')"),
+  provider: z.string().describe("Provider name (e.g., 'claude', 'antigravity', 'codex')"),
 });
 
 export const getProviderMetricsOutput = z.object({
@@ -1443,10 +1428,10 @@ export const agentSkillsCoverageTool: McpToolDefinition<
   sourceEndpoints: ["/api/agent-skills"],
 };
 
-// ============ Tool Registry ============
+export { toolSearchInput, toolSearchOutput, toolSearchTool } from "./toolSearch.ts";
 
-/** All MCP tool definitions, ordered by phase then name */
 export const MCP_TOOLS = [
+  toolSearchTool,
   getHealthTool,
   listCombosTool,
   getComboMetricsTool,
@@ -1483,13 +1468,10 @@ export const MCP_TOOLS = [
   agentSkillsCoverageTool,
 ] as const;
 
-/** Essential tools only (Phase 1) */
 export const MCP_ESSENTIAL_TOOLS = MCP_TOOLS.filter((t) => t.phase === 1);
 
-/** Advanced tools only (Phase 2) */
 export const MCP_ADVANCED_TOOLS = MCP_TOOLS.filter((t) => t.phase === 2);
 
-/** Map of tool name → tool definition */
 export const MCP_TOOL_MAP = Object.fromEntries(MCP_TOOLS.map((t) => [t.name, t])) as Record<
   string,
   (typeof MCP_TOOLS)[number]

@@ -139,4 +139,19 @@ describe("updateCompressionSettings", () => {
     assert.equal(settings.ultra?.modelPath, "/tmp/model.onnx");
     assert.equal(settings.ultra?.maxTokensPerMessage, 512);
   });
+
+  it("round-trips ultraEngine + ultraSlmPrewarm (Phase 4 B), defaulting off", async () => {
+    const before = await getCompressionSettings();
+    assert.equal(before.ultraEngine, "heuristic");
+    assert.equal(before.ultraSlmPrewarm, false);
+
+    await updateCompressionSettings({
+      ultraEngine: "slm",
+      ultraSlmPrewarm: true,
+    } as any);
+
+    const after = await getCompressionSettings();
+    assert.equal(after.ultraEngine, "slm");
+    assert.equal(after.ultraSlmPrewarm, true);
+  });
 });

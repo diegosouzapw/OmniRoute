@@ -33,6 +33,13 @@ export const cavemanOutputModeSchema = z
   })
   .strict();
 
+export const outputStyleSelectionSchema = z
+  .object({
+    id: z.string().trim().min(1),
+    level: cavemanIntensitySchema,
+  })
+  .strict();
+
 export const rtkConfigSchema = z
   .object({
     enabled: z.boolean().optional(),
@@ -170,6 +177,26 @@ export const stackedPipelineStepSchema = z.discriminatedUnion("engine", [
     .strict(),
 ]);
 
+/**
+ * Canonical engine → selectable-intensities map for the named-combos pipeline editor
+ * (Engine Combos UI). This is the SINGLE source of truth shared by the dashboard
+ * dropdowns and `stackedPipelineStepSchema`: every engine/intensity offered here is,
+ * by construction, accepted by the API update schema.
+ *
+ * Do NOT add an engine here that is not a branch of `stackedPipelineStepSchema` — the
+ * `PUT /api/context/combos/[id]` route validates against that discriminated union and
+ * would reject the payload with HTTP 400 (#4955: the UI previously offered `headroom`,
+ * `session-dedup`, `ccr`, `llmlingua`, none of which the union accepts, so selecting
+ * one silently failed the save). The parity is guarded by a unit test.
+ */
+export const STACKED_PIPELINE_ENGINE_INTENSITIES: Record<string, readonly string[]> = {
+  rtk: ["minimal", "standard", "aggressive"],
+  caveman: ["lite", "full", "ultra"],
+  lite: ["lite"],
+  aggressive: ["standard"],
+  ultra: ["ultra"],
+};
+
 export const engineToggleSchema = z.object({
   enabled: z.boolean(),
   level: z.string().optional(),
@@ -189,6 +216,7 @@ export const compressionSettingsUpdateSchema = z
     stackedPipeline: z.array(stackedPipelineStepSchema).optional(),
     cavemanConfig: cavemanConfigSchema.optional(),
     cavemanOutputMode: cavemanOutputModeSchema.optional(),
+    outputStyles: z.array(outputStyleSelectionSchema).optional(),
     rtkConfig: rtkConfigSchema.optional(),
     languageConfig: languageConfigSchema.optional(),
     aggressive: aggressiveConfigSchema.optional(),
@@ -197,6 +225,8 @@ export const compressionSettingsUpdateSchema = z
     engines: z.record(z.string(), engineToggleSchema).optional(),
     enginesExplicit: z.boolean().optional(),
     activeComboId: z.string().nullable().optional(),
+    ultraEngine: z.enum(["heuristic", "slm"]).optional(),
+    ultraSlmPrewarm: z.boolean().optional(),
   })
   .strict();
 

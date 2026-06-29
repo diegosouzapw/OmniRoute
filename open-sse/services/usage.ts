@@ -2,16 +2,6 @@
  * Usage Fetcher - Get usage data from provider APIs
  */
 
-import { PROVIDERS } from "../config/constants.ts";
-import {
-  getAntigravityFetchAvailableModelsUrls,
-  ANTIGRAVITY_BASE_URLS,
-} from "../config/antigravityUpstream.ts";
-import {
-  isUserCallableAntigravityModelId,
-  toClientAntigravityQuotaModelId,
-} from "../config/antigravityModelAliases.ts";
-import { isUserCallableAgyModelId } from "../config/agyModels.ts";
 import { buildCodexUsageQuotas } from "./codexUsageQuotas.ts";
 import { getGlmQuotaUrl } from "../config/glmProvider.ts";
 import { getGitHubCopilotInternalUserHeaders } from "../config/providerHeaderProfiles.ts";
@@ -21,52 +11,55 @@ import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuota
 import { fetchDeepseekQuota, type DeepseekQuota } from "./deepseekQuotaFetcher.ts";
 import { fetchOpencodeQuota, type OpencodeTripleWindowQuota } from "./opencodeQuotaFetcher.ts";
 import { getOllamaCloudUsage, getOpenCodeGoUsage } from "./opencodeOllamaUsage.ts";
-import {
-  applyAntigravityClientProfileHeaders,
-  getAntigravityBootstrapHeaders,
-  getAntigravityClientProfile,
-} from "./antigravityClientProfile.ts";
-import {
-  antigravityUserAgent,
-  getAntigravityHeaders,
-  getAntigravityLoadCodeAssistMetadata,
-} from "./antigravityHeaders.ts";
-import {
-  getAntigravityRemainingCredits,
-  updateAntigravityRemainingCredits,
-} from "../executors/antigravity.ts";
-import { getCreditsMode } from "./antigravityCredits.ts";
+import { getCodeBuddyCnUsage } from "./usage/codebuddy-cn.ts";
 import { CLAUDE_CODE_VERSION, fetchClaudeBootstrap } from "../executors/claudeIdentity.ts";
-import { generateAntigravityRequestId, getAntigravitySessionId } from "./antigravityIdentity.ts";
+import { isClaudeOauthUsageCoolingDown, markClaudeOauthUsage429 } from "./claudeUsageCooldown.ts";
 import {
   extractCodeAssistOnboardTierId,
   extractCodeAssistSubscriptionTier,
 } from "./codeAssistSubscription.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import {
+  toRecord,
+  toNumber,
+  toPercentage,
+  toTitleCase,
+  getFieldValue,
+  clampPercentage,
+  roundCurrency,
+  toDisplayLabel,
+  pickFirstNonEmptyString,
+} from "./usage/scalars.ts";
+import { type UsageQuota, parseResetTime, createQuotaFromUsage } from "./usage/quota.ts";
+import {
+  getMiniMaxUsage,
+  getMiniMaxPlanLabel,
+  getMiniMaxSessionTotal,
+  inferMiniMaxPlanLabelFromTotals,
+  getMiniMaxQuotaResetAt,
+  isMiniMaxTextQuotaModel,
+  getMiniMaxWeeklyTotal,
+  createMiniMaxQuotaFromCount,
+  createMiniMaxQuotaFromPercent,
+  getMiniMaxRemainingPercent,
+  getMiniMaxAuthErrorMessage,
+  getMiniMaxErrorSummary,
+} from "./usage/minimax.ts";
+import { getGlmUsage } from "./usage/glm.ts";
+// Re-exported para o teste glm-coding-plan-monthly (importa de services/usage).
+export { glmMonthlyRemainingPercentage } from "./usage/glm.ts";
+import {
+  getAntigravityUsage,
+  getAntigravityPlanLabel,
+  mapCodeAssistSubscriptionToPlanLabel,
+  mapCodeAssistTierIdToLabel,
+  mapSubscriptionTierStringToPlanLabel,
+} from "./usage/antigravity.ts";
 
 // Quota / usage upstream URLs (overridable for testing or relays).
 const CROF_USAGE_URL = process.env.OMNIROUTE_CROF_USAGE_URL ?? "https://crof.ai/usage_api/";
-const GEMINI_CLI_USAGE_URL =
-  process.env.OMNIROUTE_GEMINI_CLI_USAGE_URL ??
-  "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist";
 const CODEWHISPERER_BASE_URL =
   process.env.OMNIROUTE_CODEWHISPERER_BASE_URL ?? "https://codewhisperer.us-east-1.amazonaws.com";
-
-// Antigravity API config (credentials from PROVIDERS via credential loader)
-const ANTIGRAVITY_CONFIG = {
-  quotaApiUrls: getAntigravityFetchAvailableModelsUrls(),
-  loadProjectApiUrl: "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:loadCodeAssist",
-  tokenUrl: "https://oauth2.googleapis.com/token",
-  get clientId() {
-    return PROVIDERS.antigravity.clientId;
-  },
-  get clientSecret() {
-    return PROVIDERS.antigravity.clientSecret;
-  },
-  get userAgent() {
-    return antigravityUserAgent();
-  },
-};
 
 // Codex (OpenAI) API config
 const CODEX_CONFIG = {
@@ -101,48 +94,10 @@ const CURSOR_USAGE_CONFIG = {
   origin: "https://cursor.com",
   referer: "https://cursor.com/dashboard/spending",
   userAgent:
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
 };
-
-const MINIMAX_USAGE_CONFIG = {
-  minimax: {
-    usageUrls: [
-      "https://www.minimax.io/v1/token_plan/remains",
-      "https://api.minimax.io/v1/api/openplatform/coding_plan/remains",
-    ],
-  },
-  "minimax-cn": {
-    usageUrls: [
-      "https://www.minimaxi.com/v1/api/openplatform/coding_plan/remains",
-      "https://api.minimaxi.com/v1/api/openplatform/coding_plan/remains",
-    ],
-  },
-} as const;
 
 type JsonRecord = Record<string, unknown>;
-type UsageQuota = {
-  used: number;
-  total: number;
-  remaining?: number;
-  remainingPercentage?: number;
-  resetAt: string | null;
-  unlimited: boolean;
-  /**
-   * True when the upstream provider reported the remaining fraction. False
-   * means the API didn't include the field and the 0 value here is a sentinel,
-   * NOT a confirmed-exhausted state. Antigravity-specific.
-   */
-  fractionReported?: boolean;
-  quotaSource?: "retrieveUserQuota" | "fetchAvailableModels" | "localUsageHistory";
-  displayName?: string;
-  details?: Array<{
-    name: string;
-    used: number;
-  }>;
-  currency?: string;
-  grantedBalance?: number;
-  toppedUpBalance?: number;
-};
 type UsageProviderConnection = JsonRecord & {
   id?: string;
   provider?: string;
@@ -152,83 +107,6 @@ type UsageProviderConnection = JsonRecord & {
   projectId?: string;
   email?: string;
 };
-type SubscriptionCacheEntry = {
-  data: unknown;
-  fetchedAt: number;
-};
-
-function toRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
-
-function toNumber(value: unknown, fallback = 0): number {
-  const parsed =
-    typeof value === "number"
-      ? value
-      : typeof value === "string" && value.trim().length > 0
-        ? Number(value)
-        : Number.NaN;
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function toPercentage(value: unknown): number {
-  return Math.max(0, Math.min(100, toNumber(value, 0)));
-}
-
-function toTitleCase(value: string): string {
-  return value
-    .trim()
-    .split(/[\s_-]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join(" ");
-}
-
-function getGlmTokenQuotaName(
-  limit: JsonRecord,
-  existingQuotas: Record<string, UsageQuota>
-): string {
-  const unit = toNumber(limit.unit, 0);
-  const number = toNumber(limit.number, 0);
-
-  if (unit === 3 && number === 5) return "session";
-  if ((unit === 4 && number === 7) || (unit === 3 && number >= 24 * 7)) return "weekly";
-
-  return existingQuotas.session ? "weekly" : "session";
-}
-
-function getGlmQuotaDisplayName(quotaName: string): string {
-  if (quotaName === "session") return "5 Hours Quota";
-  if (quotaName === "weekly") return "Weekly Quota";
-  return quotaName;
-}
-function getFieldValue(source: unknown, snakeKey: string, camelKey: string): unknown {
-  const obj = toRecord(source);
-  return obj[snakeKey] ?? obj[camelKey] ?? null;
-}
-
-function clampPercentage(value: number): number {
-  return Math.max(0, Math.min(100, value));
-}
-
-function roundCurrency(value: number): number {
-  return Math.round(value * 100) / 100;
-}
-
-function toDisplayLabel(value: string): string {
-  return value
-    .replace(/^copilot[_\s-]*/i, "")
-    .split(/[\s_-]+/)
-    .filter(Boolean)
-    .map((part) => {
-      if (/^pro\+$/i.test(part)) return "Pro+";
-      if (/^[a-z]{2,}$/.test(part))
-        return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
-      return part;
-    })
-    .join(" ")
-    .trim();
-}
 
 function shouldDisplayGitHubQuota(quota: UsageQuota | null): quota is UsageQuota {
   if (!quota) return false;
@@ -271,47 +149,6 @@ function buildKiroQuota(
   };
 }
 
-function pickFirstNonEmptyString(...values: unknown[]): string | undefined {
-  for (const value of values) {
-    if (typeof value !== "string") continue;
-    const trimmed = value.trim();
-    if (trimmed) return trimmed;
-  }
-  return undefined;
-}
-
-function inferMiniMaxPlanLabelFromTotals(models: JsonRecord[]): string | null {
-  const maxSessionTotal = models.reduce(
-    (maxTotal, model) => Math.max(maxTotal, getMiniMaxSessionTotal(model)),
-    0
-  );
-
-  if (maxSessionTotal >= 15_000) return "Max";
-  if (maxSessionTotal >= 4_500) return "Plus";
-  if (maxSessionTotal >= 1_500) return "Starter";
-  return null;
-}
-
-function getMiniMaxPlanLabel(payload: JsonRecord, models: JsonRecord[] = []): string {
-  const raw = pickFirstNonEmptyString(
-    getFieldValue(payload, "current_subscribe_title", "currentSubscribeTitle"),
-    getFieldValue(payload, "plan_name", "planName"),
-    getFieldValue(payload, "plan", "plan"),
-    getFieldValue(payload, "current_plan_title", "currentPlanTitle"),
-    getFieldValue(payload, "combo_title", "comboTitle")
-  );
-
-  if (!raw) return inferMiniMaxPlanLabelFromTotals(models) || "Coding Plan";
-
-  const cleaned = raw
-    .replace(/^minimax\s+/i, "")
-    .replace(/\bcoding\s+plan\b/gi, "")
-    .replace(/\s{2,}/g, " ")
-    .trim();
-
-  return cleaned || inferMiniMaxPlanLabelFromTotals(models) || "Coding Plan";
-}
-
 function getClaudePlanLabel(...candidates: Array<string | null | undefined>): string | null {
   for (const candidate of candidates) {
     if (typeof candidate !== "string") continue;
@@ -326,309 +163,6 @@ function getClaudePlanLabel(...candidates: Array<string | null | undefined>): st
     return trimmed;
   }
   return null;
-}
-
-function createQuotaFromUsage(
-  usedValue: unknown,
-  totalValue: unknown,
-  resetValue: unknown
-): UsageQuota {
-  const total = Math.max(0, toNumber(totalValue, 0));
-  const used = total > 0 ? Math.min(Math.max(0, toNumber(usedValue, 0)), total) : 0;
-  const remaining = total > 0 ? Math.max(total - used, 0) : 0;
-
-  return {
-    used,
-    total,
-    remaining,
-    remainingPercentage: total > 0 ? clampPercentage((remaining / total) * 100) : 0,
-    resetAt: parseResetTime(resetValue),
-    unlimited: false,
-  };
-}
-
-function getMiniMaxQuotaResetAt(
-  model: JsonRecord,
-  capturedAtMs: number,
-  remainsTimeSnakeKey: string,
-  remainsTimeCamelKey: string,
-  endTimeSnakeKey: string,
-  endTimeCamelKey: string
-): string | null {
-  const remainsMs = toNumber(getFieldValue(model, remainsTimeSnakeKey, remainsTimeCamelKey), 0);
-  if (remainsMs > 0) {
-    return new Date(capturedAtMs + remainsMs).toISOString();
-  }
-
-  return parseResetTime(getFieldValue(model, endTimeSnakeKey, endTimeCamelKey));
-}
-
-function isMiniMaxTextQuotaModel(modelName: string): boolean {
-  const normalized = modelName.trim().toLowerCase();
-  return (
-    normalized.startsWith("minimax-m") ||
-    normalized.startsWith("coding-plan") ||
-    // MiniMax Coding Plan surfaces the text/coding quota under model "general"
-    // (media buckets like "video"/"image"/"music" are excluded).
-    normalized === "general"
-  );
-}
-
-function getMiniMaxSessionTotal(model: JsonRecord): number {
-  return Math.max(
-    0,
-    toNumber(getFieldValue(model, "current_interval_total_count", "currentIntervalTotalCount"), 0)
-  );
-}
-
-function getMiniMaxWeeklyTotal(model: JsonRecord): number {
-  return Math.max(
-    0,
-    toNumber(getFieldValue(model, "current_weekly_total_count", "currentWeeklyTotalCount"), 0)
-  );
-}
-
-function pickMiniMaxRepresentativeModel(
-  models: JsonRecord[],
-  getTotal: (model: JsonRecord) => number
-): JsonRecord | null {
-  const withQuota = models.filter((model) => getTotal(model) > 0);
-  const pool = withQuota.length > 0 ? withQuota : models;
-  if (pool.length === 0) return null;
-
-  return pool.reduce((best, current) => (getTotal(current) > getTotal(best) ? current : best));
-}
-
-function createMiniMaxQuotaFromCount(
-  total: number,
-  count: number,
-  resetAt: string | null,
-  countMeansRemaining: boolean
-): UsageQuota {
-  const used = countMeansRemaining ? Math.max(total - count, 0) : count;
-  return createQuotaFromUsage(used, total, resetAt);
-}
-
-/**
- * MiniMax Coding Plan exposes per-window remaining as a 0–100 percent
- * (`current_interval_remaining_percent` / `current_weekly_remaining_percent`)
- * with zero request counts. Read it defensively (string-encoded numbers ok).
- */
-function getMiniMaxRemainingPercent(
-  model: JsonRecord,
-  snakeKey: string,
-  camelKey: string
-): number | null {
-  const raw = getFieldValue(model, snakeKey, camelKey);
-  if (raw === null || raw === undefined || raw === "") return null;
-  const parsed = toNumber(raw, NaN);
-  return Number.isFinite(parsed) ? Math.max(0, Math.min(100, parsed)) : null;
-}
-
-/** Build a 0–100 percent-based window quota (used = 100 − remaining). */
-function createMiniMaxQuotaFromPercent(
-  remainingPercent: number,
-  resetAt: string | null
-): UsageQuota {
-  const clamped = Math.max(0, Math.min(100, remainingPercent));
-  return createQuotaFromUsage(100 - clamped, 100, resetAt);
-}
-
-/**
- * Build one MiniMax usage window (session or weekly) from the representative
- * model. Token Plan keys report request counts (`*_total_count`); Coding Plan
- * keys report zero counts and a `*_remaining_percent` instead — fall back to
- * that so the Coding Plan still surfaces a quota. The percent signal is keyed
- * off "counts == 0 + percent present", NOT the endpoint URL, because the
- * `token_plan/remains` and `coding_plan/remains` endpoints return identical
- * Coding-Plan payloads for a Coding Plan key.
- */
-function buildMiniMaxWindow(
-  models: JsonRecord[],
-  getTotal: (model: JsonRecord) => number,
-  usageCountKeys: [string, string],
-  percentKeys: [string, string],
-  resetKeys: [string, string, string, string],
-  capturedAtMs: number,
-  countMeansRemaining: boolean
-): UsageQuota | null {
-  const model = pickMiniMaxRepresentativeModel(models, getTotal);
-  if (!model) return null;
-
-  const resetAt = getMiniMaxQuotaResetAt(model, capturedAtMs, ...resetKeys);
-  const total = getTotal(model);
-
-  if (total > 0) {
-    const count = Math.max(0, toNumber(getFieldValue(model, ...usageCountKeys), 0));
-    return createMiniMaxQuotaFromCount(total, count, resetAt, countMeansRemaining);
-  }
-
-  const remainingPercent = getMiniMaxRemainingPercent(model, ...percentKeys);
-  return remainingPercent !== null
-    ? createMiniMaxQuotaFromPercent(remainingPercent, resetAt)
-    : null;
-}
-
-function getMiniMaxAuthErrorMessage(message: string): string {
-  const normalized = message.toLowerCase();
-  if (
-    normalized.includes("token plan") ||
-    normalized.includes("coding plan") ||
-    normalized.includes("active period") ||
-    normalized.includes("invalid api key") ||
-    normalized.includes("invalid key") ||
-    normalized.includes("subscription")
-  ) {
-    return "MiniMax Token Plan API key invalid or inactive. Use an active Token Plan key.";
-  }
-
-  return "MiniMax access denied. Confirm the key is an active Token Plan API key.";
-}
-
-function getMiniMaxErrorSummary(status: number, message: string): string {
-  const compact = message.replace(/\s+/g, " ").trim();
-  if (!compact) {
-    return `MiniMax usage endpoint error (${status}).`;
-  }
-  if (compact.length <= 160) {
-    return `MiniMax usage endpoint error (${status}): ${compact}`;
-  }
-  return `MiniMax usage endpoint error (${status}): ${compact.slice(0, 157)}...`;
-}
-
-async function getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn") {
-  if (!apiKey) {
-    return { message: "MiniMax API key not available. Add a Token Plan API key." };
-  }
-
-  const usageUrls = MINIMAX_USAGE_CONFIG[provider].usageUrls;
-  let lastErrorMessage = "";
-
-  for (let index = 0; index < usageUrls.length; index += 1) {
-    const usageUrl = usageUrls[index];
-    const canFallback = index < usageUrls.length - 1;
-
-    try {
-      const response = await fetch(usageUrl, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      });
-
-      const rawText = await response.text();
-      let payload: JsonRecord = {};
-      if (rawText) {
-        try {
-          payload = toRecord(JSON.parse(rawText));
-        } catch {
-          payload = {};
-        }
-      }
-
-      const baseResp = toRecord(getFieldValue(payload, "base_resp", "baseResp"));
-      const apiStatusCode = toNumber(getFieldValue(baseResp, "status_code", "statusCode"), 0);
-      const apiStatusMessage = String(
-        getFieldValue(baseResp, "status_msg", "statusMsg") ?? ""
-      ).trim();
-      const combinedMessage = `${apiStatusMessage} ${rawText}`.trim();
-      const authLikeStatusMessage =
-        /token plan|coding plan|invalid api key|invalid key|unauthorized|inactive/i;
-
-      if (
-        response.status === 401 ||
-        response.status === 403 ||
-        apiStatusCode === 1004 ||
-        authLikeStatusMessage.test(apiStatusMessage)
-      ) {
-        return { message: getMiniMaxAuthErrorMessage(apiStatusMessage || combinedMessage) };
-      }
-
-      if (!response.ok) {
-        lastErrorMessage = getMiniMaxErrorSummary(response.status, combinedMessage);
-        if (
-          (response.status === 404 || response.status === 405 || response.status >= 500) &&
-          canFallback
-        ) {
-          continue;
-        }
-        return { message: `MiniMax connected. ${lastErrorMessage}` };
-      }
-
-      if (rawText && Object.keys(payload).length === 0) {
-        return { message: "MiniMax connected. Unable to parse usage response." };
-      }
-
-      if (apiStatusCode !== 0) {
-        if (apiStatusMessage) {
-          return { message: `MiniMax connected. ${apiStatusMessage}` };
-        }
-        return { message: "MiniMax connected. Upstream quota API returned an error." };
-      }
-
-      const capturedAtMs = Date.now();
-      const modelRemains = getFieldValue(payload, "model_remains", "modelRemains");
-      const allModels = Array.isArray(modelRemains)
-        ? modelRemains.map((item) => toRecord(item))
-        : [];
-      const textModels = allModels.filter((model) => {
-        const modelName = String(getFieldValue(model, "model_name", "modelName") ?? "");
-        return isMiniMaxTextQuotaModel(modelName);
-      });
-
-      if (textModels.length === 0) {
-        return { message: "MiniMax connected. No text quota data was returned." };
-      }
-
-      const countMeansRemaining = usageUrl.includes("/coding_plan/remains");
-      const quotas: Record<string, UsageQuota> = {};
-
-      const sessionQuota = buildMiniMaxWindow(
-        textModels,
-        getMiniMaxSessionTotal,
-        ["current_interval_usage_count", "currentIntervalUsageCount"],
-        ["current_interval_remaining_percent", "currentIntervalRemainingPercent"],
-        ["remains_time", "remainsTime", "end_time", "endTime"],
-        capturedAtMs,
-        countMeansRemaining
-      );
-      if (sessionQuota) {
-        quotas["session (5h)"] = sessionQuota;
-      }
-
-      const weeklyQuota = buildMiniMaxWindow(
-        textModels,
-        getMiniMaxWeeklyTotal,
-        ["current_weekly_usage_count", "currentWeeklyUsageCount"],
-        ["current_weekly_remaining_percent", "currentWeeklyRemainingPercent"],
-        ["weekly_remains_time", "weeklyRemainsTime", "weekly_end_time", "weeklyEndTime"],
-        capturedAtMs,
-        countMeansRemaining
-      );
-      if (weeklyQuota) {
-        quotas["weekly (7d)"] = weeklyQuota;
-      }
-
-      if (Object.keys(quotas).length === 0) {
-        return { message: "MiniMax connected. Unable to extract text quota usage." };
-      }
-
-      return { plan: getMiniMaxPlanLabel(payload, textModels), quotas };
-    } catch (error) {
-      lastErrorMessage = (error as Error).message;
-      if (!canFallback) {
-        break;
-      }
-    }
-  }
-
-  return {
-    message: lastErrorMessage
-      ? `MiniMax connected. Unable to fetch usage: ${lastErrorMessage}`
-      : "MiniMax connected. Unable to fetch usage.",
-  };
 }
 
 // CrofAI surfaces a tiny endpoint with two signals:
@@ -734,153 +268,6 @@ async function getCrofUsage(apiKey: string) {
   };
 
   return { quotas };
-}
-
-const GLM_QUOTA_ORDER = ["5 Hours Quota", "Weekly Quota", "Monthly Tools", "Tokens", "Time Limit"];
-
-function getGlmQuotaLabel(type: unknown, unit: unknown): string | null {
-  const normalized = typeof type === "string" ? type.trim().toUpperCase() : "";
-  const unitValue = toNumber(unit, -1);
-
-  switch (normalized) {
-    case "TOKENS_LIMIT":
-    case "TOKEN_LIMIT":
-      if (unitValue === 3) return "5 Hours Quota";
-      if (unitValue === 6) return "Weekly Quota";
-      return "Tokens";
-    case "TIME_LIMIT":
-    case "TIME_USAGE_LIMIT":
-      if (unitValue === 5) return "Monthly Tools";
-      return "Time Limit";
-    default:
-      return null;
-  }
-}
-
-function orderGlmQuotas(quotas: Record<string, UsageQuota>): Record<string, UsageQuota> {
-  const ordered: Record<string, UsageQuota> = {};
-
-  for (const key of GLM_QUOTA_ORDER) {
-    if (quotas[key]) ordered[key] = quotas[key];
-  }
-
-  for (const [key, quota] of Object.entries(quotas)) {
-    if (!ordered[key]) ordered[key] = quota;
-  }
-
-  return ordered;
-}
-
-/**
- * Remaining-percentage for a GLM/z.ai TIME_LIMIT ("Monthly") quota. With an absolute
- * monthly cap (`total > 0`) it is `remaining / total`. Coding plans that have no
- * monthly cap (only 5-hour windows) report `total = 0`; in that case fall back to the
- * percentage-derived remaining so "no monthly cap" renders as full/100% instead of a
- * misleading 0% (#3580).
- */
-export function glmMonthlyRemainingPercentage(total: number, remaining: number): number {
-  if (total > 0) {
-    return Math.max(0, Math.min(100, Math.round((remaining / total) * 100)));
-  }
-  return Math.max(0, Math.min(100, Math.round(remaining)));
-}
-
-async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string, unknown>) {
-  if (!apiKey) {
-    return { message: "API key not available. Add a coding plan API key to view usage." };
-  }
-
-  const quotaUrl = getGlmQuotaUrl(providerSpecificData);
-
-  const res = await fetch(quotaUrl, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      Accept: "application/json",
-    },
-  });
-
-  if (!res.ok) {
-    if (res.status === 401) throw new Error("Invalid API key");
-    throw new Error(`GLM quota API error (${res.status})`);
-  }
-
-  const json = await res.json();
-  if (toNumber(json.code, 200) === 401 || json.success === false) {
-    throw new Error("Invalid API key");
-  }
-
-  const data = toRecord(json.data);
-  const limits: unknown[] = Array.isArray(data.limits) ? data.limits : [];
-  const quotas: Record<string, UsageQuota> = {};
-
-  for (const limit of limits) {
-    const src = toRecord(limit);
-    const type = String(src.type || "").toUpperCase();
-    const resetMs = toNumber(src.nextResetTime, 0);
-    const resetAt = resetMs > 0 ? new Date(resetMs).toISOString() : null;
-
-    if (type === "TOKENS_LIMIT") {
-      const quotaName = getGlmTokenQuotaName(src, quotas);
-      const usedPercent = toPercentage(src.percentage);
-      const remaining = Math.max(0, 100 - usedPercent);
-
-      quotas[quotaName] = {
-        used: usedPercent,
-        total: 100,
-        remaining,
-        remainingPercentage: remaining,
-        resetAt,
-        displayName: getGlmQuotaDisplayName(quotaName),
-        details: Array.isArray(src.models)
-          ? (src.models as unknown[]).map((m) => {
-              const modelInfo = toRecord(m);
-              return {
-                name: String(modelInfo.model || ""),
-                used: toNumber(modelInfo.percentage, 0),
-              };
-            })
-          : [],
-        unlimited: false,
-      };
-      continue;
-    }
-
-    if (type === "TIME_LIMIT") {
-      const total = toNumber(src.usage, toNumber(src.total, 0));
-      const remaining = toNumber(src.remaining, Math.max(0, 100 - toPercentage(src.percentage)));
-      const used = toNumber(src.currentValue, Math.max(0, total - remaining));
-      const remainingPercentage = glmMonthlyRemainingPercentage(total, remaining);
-
-      quotas["mcp_monthly"] = {
-        used,
-        total,
-        remaining,
-        remainingPercentage,
-        resetAt,
-        unlimited: false,
-        displayName: "Monthly",
-        details: Array.isArray(src.usageDetails)
-          ? src.usageDetails.map((item) => {
-              const detail = toRecord(item);
-              return {
-                name: String(detail.modelCode || detail.name || "usage"),
-                used: toNumber(detail.usage, 0),
-              };
-            })
-          : undefined,
-      };
-    }
-  }
-
-  const levelRaw =
-    typeof data.planName === "string"
-      ? data.planName
-      : typeof data.level === "string"
-        ? data.level
-        : "";
-  const plan = levelRaw ? toTitleCase(levelRaw.replace(/\s*plan$/i, "")) : null;
-
-  return { plan, quotas: orderGlmQuotas(quotas) };
 }
 
 /**
@@ -1304,7 +691,6 @@ async function getCursorUsage(accessToken: string, providerSpecificData?: unknow
  */
 export const USAGE_FETCHER_PROVIDERS = [
   "github",
-  "gemini-cli",
   "antigravity",
   "agy",
   "claude",
@@ -1332,6 +718,7 @@ export const USAGE_FETCHER_PROVIDERS = [
   "xiaomi-mimo",
   "vertex",
   "vertex-partner",
+  "codebuddy-cn",
 ] as const;
 
 export type UsageFetcherProvider = (typeof USAGE_FETCHER_PROVIDERS)[number];
@@ -1350,8 +737,6 @@ export async function getUsageForProvider(
   switch (provider) {
     case "github":
       return await getGitHubUsage(accessToken, providerSpecificData);
-    case "gemini-cli":
-      return await getGeminiUsage(accessToken, providerSpecificData, projectId);
     case "antigravity":
     case "agy":
       return await getAntigravityUsage(
@@ -1410,6 +795,8 @@ export async function getUsageForProvider(
       return await getOpencodeUsage(id || "", apiKey || "");
     case "xiaomi-mimo":
       return await getXiaomiMimoUsage(id || "");
+    case "codebuddy-cn":
+      return await getCodeBuddyCnUsage(accessToken, apiKey, providerSpecificData);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
@@ -1419,37 +806,6 @@ export async function getUsageForProvider(
  * Parse reset date/time to ISO string
  * Handles multiple formats: Unix timestamp (ms), ISO date string, etc.
  */
-function parseResetTime(resetValue: unknown): string | null {
-  if (!resetValue) return null;
-
-  try {
-    let date: Date;
-    if (resetValue instanceof Date) {
-      date = resetValue;
-    } else if (typeof resetValue === "number") {
-      date = new Date(resetValue < 1e12 ? resetValue * 1000 : resetValue);
-    } else if (typeof resetValue === "string") {
-      // Numeric strings are Unix timestamps too (seconds or milliseconds).
-      // `new Date("1700000000")` otherwise returns Invalid Date.
-      if (/^\d+$/.test(resetValue)) {
-        const ts = Number(resetValue);
-        date = new Date(ts < 1e12 ? ts * 1000 : ts);
-      } else {
-        date = new Date(resetValue);
-      }
-    } else {
-      return null;
-    }
-
-    // Epoch-zero (1970-01-01) means no scheduled reset — treat as null
-    if (date.getTime() <= 0) return null;
-
-    return date.toISOString();
-  } catch (error) {
-    return null;
-  }
-}
-
 /**
  * GitHub Copilot Usage
  * Uses GitHub accessToken (not copilotToken) to call copilot_internal/user API
@@ -1655,905 +1011,6 @@ function inferGitHubPlanName(data: JsonRecord, premiumQuota: UsageQuota | null):
   return "GitHub Copilot";
 }
 
-// ── Gemini CLI subscription info cache ──────────────────────────────────────
-// Prevents duplicate loadCodeAssist calls within the same quota cycle.
-// Key: accessToken → { data, fetchedAt }
-const _geminiCliSubCache = new Map<string, SubscriptionCacheEntry>();
-const GEMINI_CLI_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-
-/**
- * Normalize a Cloud Code project value into a trimmed string (or null).
- * The upstream `loadCodeAssist` endpoint returns the project either as a bare
- * string or as an object of the form `{ id: "..." }`, and stored connection
- * project ids can carry stray whitespace. Centralized here so the Gemini CLI
- * usage path matches the executor/oauth normalization already shipped in
- * `open-sse/executors/gemini-cli.ts` and `src/lib/oauth/services/gemini.ts`.
- */
-function normalizeCloudCodeProjectId(project: unknown): string | null {
-  if (typeof project === "string") return project.trim() || null;
-  if (project && typeof project === "object") {
-    const candidate = (project as { id?: unknown }).id;
-    if (typeof candidate === "string") return candidate.trim() || null;
-  }
-  return null;
-}
-
-/**
- * Gemini CLI Usage — fetch per-model quota from Cloud Code Assist API.
- * Gemini CLI and Antigravity share the same upstream (cloudcode-pa.googleapis.com),
- * so this follows the same pattern as getAntigravityUsage().
- */
-async function getGeminiUsage(
-  accessToken?: string,
-  providerSpecificData?: JsonRecord,
-  connectionProjectId?: string
-) {
-  if (!accessToken) {
-    return { plan: "Free", message: "Gemini CLI access token not available." };
-  }
-
-  try {
-    // #1271: the OAuth save path stores `projectId` on the connection (not always in
-    // `providerSpecificData`), and `loadCodeAssist` may return the project either as a
-    // bare string or wrapped in `{ id: "..." }`. Normalize both so the quota lookup
-    // reuses the stored project id and skips a redundant `loadCodeAssist` round-trip
-    // when it is already known.
-    let projectId =
-      normalizeCloudCodeProjectId(connectionProjectId) ||
-      normalizeCloudCodeProjectId(providerSpecificData?.projectId);
-    let plan = "Free";
-
-    if (!projectId) {
-      const subscriptionInfo = await getGeminiCliSubscriptionInfoCached(accessToken);
-      projectId = normalizeCloudCodeProjectId(toRecord(subscriptionInfo).cloudaicompanionProject);
-      plan = getGeminiCliPlanLabel(subscriptionInfo);
-    }
-
-    if (!projectId) {
-      return {
-        plan,
-        message:
-          "Gemini CLI project ID not available. Reconnect Gemini CLI, or configure a Google Cloud project with Gemini Code Assist access before checking quota.",
-      };
-    }
-
-    // Use retrieveUserQuota (same endpoint as Gemini CLI /stats command).
-    // Returns per-model buckets with remainingFraction and resetTime.
-    const response = await fetch(
-      "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ project: projectId }),
-        signal: AbortSignal.timeout(10000),
-      }
-    );
-
-    if (!response.ok) {
-      return { plan, message: `Gemini CLI quota error (${response.status}).` };
-    }
-
-    const data = await response.json();
-    const quotas: Record<string, UsageQuota> = {};
-
-    const dataRecord = toRecord(data);
-    if (Array.isArray(dataRecord.buckets)) {
-      for (const bucketValue of dataRecord.buckets) {
-        const bucket = toRecord(bucketValue);
-        if (!bucket.modelId || bucket.remainingFraction == null) continue;
-
-        const remainingFraction = toNumber(bucket.remainingFraction, 0);
-        const remainingPercentage = remainingFraction * 100;
-        const QUOTA_NORMALIZED_BASE = 1000;
-        const total = QUOTA_NORMALIZED_BASE;
-        const remaining = Math.round(total * remainingFraction);
-        const used = Math.max(0, total - remaining);
-
-        quotas[String(bucket.modelId)] = {
-          used,
-          total,
-          resetAt: parseResetTime(bucket.resetTime),
-          remainingPercentage,
-          unlimited: false,
-        };
-      }
-    }
-
-    return { plan, quotas };
-  } catch (error) {
-    return { message: `Gemini CLI error: ${(error as Error).message}` };
-  }
-}
-
-/**
- * Get Gemini CLI subscription info (cached, 5 min TTL)
- */
-async function getGeminiCliSubscriptionInfoCached(accessToken: string): Promise<unknown> {
-  const cacheKey = accessToken;
-  const cached = _geminiCliSubCache.get(cacheKey);
-
-  if (cached && Date.now() - cached.fetchedAt < GEMINI_CLI_CACHE_TTL_MS) {
-    return cached.data;
-  }
-
-  const data = await getGeminiCliSubscriptionInfo(accessToken);
-  _geminiCliSubCache.set(cacheKey, { data, fetchedAt: Date.now() });
-  return data;
-}
-
-/**
- * Get Gemini CLI subscription info using correct headers.
- */
-async function getGeminiCliSubscriptionInfo(accessToken: string): Promise<unknown | null> {
-  try {
-    const response = await fetch(GEMINI_CLI_USAGE_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        metadata: {
-          ideType: "IDE_UNSPECIFIED",
-          platform: "PLATFORM_UNSPECIFIED",
-          pluginType: "GEMINI",
-        },
-      }),
-    });
-
-    if (!response.ok) return null;
-
-    return await response.json();
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Map Gemini CLI subscription tier to display label (same tiers as Antigravity).
- */
-function getGeminiCliPlanLabel(subscriptionInfo: unknown): string {
-  return mapCodeAssistSubscriptionToPlanLabel(subscriptionInfo);
-}
-
-// ── Antigravity subscription info cache ──────────────────────────────────────
-// Prevents duplicate loadCodeAssist calls within the same quota cycle.
-// Key: truncated accessToken → { data, fetchedAt }
-const _antigravitySubCache = new Map<string, SubscriptionCacheEntry>();
-const ANTIGRAVITY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-const ANTIGRAVITY_MODELS_CACHE_TTL_MS = 60 * 1000;
-const ANTIGRAVITY_CREDIT_PROBE_TTL_MS = 5 * 60 * 1000;
-const _antigravityAvailableModelsCache = new Map<string, { data: unknown; fetchedAt: number }>();
-const _antigravityAvailableModelsInflight = new Map<string, Promise<unknown>>();
-const _antigravityUserQuotaCache = new Map<string, { data: unknown; fetchedAt: number }>();
-const _antigravityUserQuotaInflight = new Map<string, Promise<unknown>>();
-const _antigravityCreditProbeCache = new Map<string, { data: number | null; fetchedAt: number }>();
-const _antigravityCreditProbeInflight = new Map<string, Promise<number | null>>();
-
-// ── Proactive TTL purging for module-level caches ──────────────────────────
-// All 4 data caches only evict on read (passive TTL). This interval proactively
-// purges stale entries so keys accessed once and never again don't leak memory.
-// The 2 inflight Maps (availableModelsInflight, creditProbeInflight) self-clean
-// when the Promise resolves/rejects, so they are NOT touched here.
-const _usageCacheCleanupTimer = setInterval(
-  () => {
-    const now = Date.now();
-    for (const [key, entry] of _geminiCliSubCache) {
-      if (now - entry.fetchedAt > GEMINI_CLI_CACHE_TTL_MS) _geminiCliSubCache.delete(key);
-    }
-    for (const [key, entry] of _antigravitySubCache) {
-      if (now - entry.fetchedAt > ANTIGRAVITY_CACHE_TTL_MS) _antigravitySubCache.delete(key);
-    }
-    for (const [key, entry] of _antigravityAvailableModelsCache) {
-      if (now - entry.fetchedAt > ANTIGRAVITY_MODELS_CACHE_TTL_MS)
-        _antigravityAvailableModelsCache.delete(key);
-    }
-    for (const [key, entry] of _antigravityUserQuotaCache) {
-      if (now - entry.fetchedAt > ANTIGRAVITY_MODELS_CACHE_TTL_MS)
-        _antigravityUserQuotaCache.delete(key);
-    }
-    for (const [key, entry] of _antigravityCreditProbeCache) {
-      if (now - entry.fetchedAt > ANTIGRAVITY_CREDIT_PROBE_TTL_MS)
-        _antigravityCreditProbeCache.delete(key);
-    }
-  },
-  5 * 60 * 1000
-); // every 5 minutes
-_usageCacheCleanupTimer.unref?.(); // Don't prevent process exit
-
-interface AntigravityUsageOptions {
-  forceRefresh?: boolean;
-}
-
-const ANTIGRAVITY_LOCAL_USAGE_WINDOW_MS = 5 * 60 * 60 * 1000;
-const ANTIGRAVITY_LOCAL_USAGE_TOKENS_PER_UNIT = 1000;
-
-// `toClientAntigravityQuotaModelId` was an inline if-ladder here; it is now the single
-// source of truth in open-sse/config/antigravityModelAliases.ts (imported above), shared
-// with the provider-limits cache sanitizer. (#3821-review LEDGER-5)
-
-function getAntigravityLocalUsageUnits(
-  provider: "antigravity" | "agy",
-  connectionId: string | undefined,
-  modelId: string,
-  resetAt: string | null
-): number {
-  if (!connectionId || !modelId || !resetAt) return 0;
-
-  const resetMs = Date.parse(resetAt);
-  if (!Number.isFinite(resetMs)) return 0;
-
-  const windowStart = new Date(resetMs - ANTIGRAVITY_LOCAL_USAGE_WINDOW_MS).toISOString();
-  const windowEnd = new Date(resetMs).toISOString();
-
-  try {
-    const db = getDbInstance() as unknown as {
-      prepare: (sql: string) => { get: (...params: unknown[]) => unknown };
-    };
-    const row = db
-      .prepare(
-        `SELECT COALESCE(SUM(
-           COALESCE(tokens_input, 0) + COALESCE(tokens_output, 0) + COALESCE(tokens_reasoning, 0)
-         ), 0) AS tokens
-         FROM usage_history
-         WHERE provider = ?
-           AND connection_id = ?
-           AND model = ?
-           AND success = 1
-           AND timestamp >= ?
-           AND timestamp < ?`
-      )
-      .get(provider, connectionId, modelId, windowStart, windowEnd) as
-      | { tokens?: unknown }
-      | undefined;
-
-    const tokens = Number(row?.tokens || 0);
-    if (!Number.isFinite(tokens) || tokens <= 0) return 0;
-    return Math.max(1, Math.ceil(tokens / ANTIGRAVITY_LOCAL_USAGE_TOKENS_PER_UNIT));
-  } catch {
-    return 0;
-  }
-}
-
-function applyLocalUsageFallback(
-  quota: UsageQuota,
-  provider: "antigravity" | "agy",
-  connectionId: string | undefined,
-  modelId: string
-): UsageQuota {
-  if (quota.quotaSource !== "fetchAvailableModels" || quota.used > 0 || quota.unlimited) {
-    return quota;
-  }
-
-  const localUsed = getAntigravityLocalUsageUnits(provider, connectionId, modelId, quota.resetAt);
-  if (localUsed <= 0 || quota.total <= 0) return quota;
-
-  const used = Math.min(quota.total, localUsed);
-  return {
-    ...quota,
-    used,
-    remainingPercentage: Math.max(0, ((quota.total - used) / quota.total) * 100),
-    quotaSource: "localUsageHistory",
-  };
-}
-
-function buildAntigravityUsageCacheKey(accessToken: string, projectId?: string | null): string {
-  return `${accessToken.substring(0, 16)}:${projectId || "default"}`;
-}
-
-async function fetchAntigravityAvailableModelsCached(
-  accessToken: string,
-  projectId?: string | null,
-  options: AntigravityUsageOptions = {}
-): Promise<unknown> {
-  if (!accessToken) throw new Error("Access token is required");
-
-  const cacheKey = buildAntigravityUsageCacheKey(accessToken, projectId);
-  const cached = _antigravityAvailableModelsCache.get(cacheKey);
-  if (
-    !options.forceRefresh &&
-    cached &&
-    Date.now() - cached.fetchedAt < ANTIGRAVITY_MODELS_CACHE_TTL_MS
-  ) {
-    return cached.data;
-  }
-
-  const inflight = _antigravityAvailableModelsInflight.get(cacheKey);
-  if (inflight) return inflight;
-
-  const promise = (async () => {
-    let response: Response | null = null;
-    let lastError: Error | null = null;
-
-    for (const quotaApiUrl of ANTIGRAVITY_CONFIG.quotaApiUrls) {
-      try {
-        response = await fetch(quotaApiUrl, {
-          method: "POST",
-          headers: getAntigravityHeaders("fetchAvailableModels", accessToken),
-          body: JSON.stringify(projectId ? { project: projectId } : {}),
-          signal: AbortSignal.timeout(10000),
-        });
-
-        if (response.ok || response.status === 401 || response.status === 403) {
-          break;
-        }
-      } catch (error) {
-        lastError = error as Error;
-      }
-    }
-
-    if (!response) {
-      throw lastError || new Error("Antigravity API unavailable");
-    }
-
-    if (response.status === 403) {
-      return { __antigravityForbidden: true };
-    }
-
-    if (!response.ok) {
-      throw new Error(`Antigravity API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    _antigravityAvailableModelsCache.set(cacheKey, { data, fetchedAt: Date.now() });
-    return data;
-  })().finally(() => {
-    _antigravityAvailableModelsInflight.delete(cacheKey);
-  });
-
-  _antigravityAvailableModelsInflight.set(cacheKey, promise);
-  return promise;
-}
-
-async function fetchAntigravityUserQuotaCached(
-  accessToken: string,
-  projectId?: string | null,
-  options: AntigravityUsageOptions = {}
-): Promise<unknown | null> {
-  if (!accessToken || !projectId) return null;
-
-  const cacheKey = buildAntigravityUsageCacheKey(accessToken, projectId);
-  const cached = _antigravityUserQuotaCache.get(cacheKey);
-  if (
-    !options.forceRefresh &&
-    cached &&
-    Date.now() - cached.fetchedAt < ANTIGRAVITY_MODELS_CACHE_TTL_MS
-  ) {
-    return cached.data;
-  }
-
-  const inflight = _antigravityUserQuotaInflight.get(cacheKey);
-  if (inflight) return inflight;
-
-  const promise = (async () => {
-    try {
-      const response = await fetch(
-        "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ project: projectId }),
-          signal: AbortSignal.timeout(10000),
-        }
-      );
-
-      if (!response.ok) return null;
-
-      const data = await response.json();
-      _antigravityUserQuotaCache.set(cacheKey, { data, fetchedAt: Date.now() });
-      return data;
-    } catch {
-      return null;
-    }
-  })().finally(() => {
-    _antigravityUserQuotaInflight.delete(cacheKey);
-  });
-
-  _antigravityUserQuotaInflight.set(cacheKey, promise);
-  return promise;
-}
-
-function extractCodeAssistTierId(subscription: JsonRecord): string {
-  const tierId = extractCodeAssistOnboardTierId(subscription);
-  if (tierId === "legacy-tier") return "";
-  const upper = tierId.toUpperCase();
-  return mapCodeAssistTierIdToLabel(upper) ? upper : "";
-}
-
-function mapCodeAssistTierIdToLabel(tierId: string): string | null {
-  const upper = tierId.toUpperCase();
-  if (upper.includes("ULTRA")) return "Ultra";
-  if (
-    upper.includes("PRO") ||
-    upper.includes("PREMIUM") ||
-    upper.includes("GOOGLE_ONE") ||
-    upper.includes("ONE_AI")
-  )
-    return "Pro";
-  if (upper.includes("ENTERPRISE")) return "Enterprise";
-  if (upper.includes("BUSINESS") || upper.includes("STANDARD")) return "Business";
-  if (upper.includes("PLUS")) return "Plus";
-  if (upper.includes("LITE") || upper.includes("LIGHT")) return "Lite";
-  if (upper.includes("FREE") || upper.includes("INDIVIDUAL") || upper.includes("LEGACY"))
-    return "Free";
-  return null;
-}
-
-function mapSubscriptionTierStringToPlanLabel(tierText: string): string | null {
-  const upper = tierText.toUpperCase();
-  if (upper.includes("ULTRA")) return "Ultra";
-  if (upper.includes("PRO") || upper.includes("PREMIUM") || upper.includes("GOOGLE ONE"))
-    return "Pro";
-  if (upper.includes("ENTERPRISE")) return "Enterprise";
-  if (upper.includes("STANDARD") || upper.includes("BUSINESS")) return "Business";
-  if (upper.includes("PLUS")) return "Plus";
-  if (upper.includes("LITE")) return "Lite";
-  if (upper.includes("INDIVIDUAL") || upper.includes("FREE")) return "Free";
-  // Strip a trailing "(RESTRICTED)" marker. Match the fixed literal anywhere then
-  // trim, instead of /\s*\(RESTRICTED\)\s*$/ whose overlapping \s* runs backtrack
-  // polynomially on whitespace-heavy upstream input (js/polynomial-redos).
-  const normalizedId = upper.replace(/\(RESTRICTED\)/i, "").trim();
-  if (normalizedId) {
-    const mapped = mapCodeAssistTierIdToLabel(normalizedId);
-    if (mapped) return mapped;
-  }
-  return null;
-}
-
-function mapCodeAssistSubscriptionToPlanLabel(subscriptionInfo: unknown): string {
-  const subscription = toRecord(subscriptionInfo);
-  if (Object.keys(subscription).length === 0) return "Free";
-
-  const subscriptionTier = extractCodeAssistSubscriptionTier(subscriptionInfo);
-  if (subscriptionTier) {
-    const mapped = mapSubscriptionTierStringToPlanLabel(subscriptionTier);
-    if (mapped) return mapped;
-    if (subscriptionTier.toLowerCase() !== "free") {
-      return subscriptionTier.charAt(0).toUpperCase() + subscriptionTier.slice(1).toLowerCase();
-    }
-  }
-
-  const currentTier = toRecord(subscription.currentTier);
-  const tierName = String(
-    getFieldValue(currentTier, "name", "displayName") ||
-      subscription.subscriptionType ||
-      subscription.tier ||
-      ""
-  );
-  const mappedName = tierName ? mapSubscriptionTierStringToPlanLabel(tierName) : null;
-  if (mappedName) return mappedName;
-
-  const tierId = extractCodeAssistTierId(subscription);
-  if (tierId) {
-    const mapped = mapCodeAssistTierIdToLabel(tierId);
-    if (mapped) return mapped;
-  }
-  if (currentTier.upgradeSubscriptionType) return "Free";
-  if (tierName) return tierName.charAt(0).toUpperCase() + tierName.slice(1).toLowerCase();
-  return "Free";
-}
-
-const KNOWN_ANTIGRAVITY_PLAN_LABELS = new Set([
-  "Ultra",
-  "Pro",
-  "Enterprise",
-  "Business",
-  "Plus",
-  "Lite",
-]);
-
-/**
- * Map raw loadCodeAssist tier data to short display labels (Antigravity Manager parity).
- */
-function getAntigravityPlanLabel(subscriptionInfo: unknown, fallbackInfo?: unknown): string {
-  const livePlan = mapCodeAssistSubscriptionToPlanLabel(subscriptionInfo);
-  const fallbackPlan = mapCodeAssistSubscriptionToPlanLabel(fallbackInfo);
-
-  if (KNOWN_ANTIGRAVITY_PLAN_LABELS.has(livePlan)) return livePlan;
-  if (KNOWN_ANTIGRAVITY_PLAN_LABELS.has(fallbackPlan)) return fallbackPlan;
-  if (livePlan !== "Free") return livePlan;
-  return fallbackPlan !== "Free" ? fallbackPlan : livePlan;
-}
-
-/**
- * Proactive credit balance probe for Antigravity.
- *
- * Fires a minimal streamGenerateContent request with GOOGLE_ONE_AI credits enabled
- * and maxOutputTokens=1 to extract the `remainingCredits` field from the SSE stream.
- * This uses ~1 credit but lets us show the balance on the dashboard without waiting
- * for a real user request.
- *
- * Returns the credit balance, or null if the probe failed.
- */
-async function probeAntigravityCreditBalance(
-  accessToken: string,
-  accountId: string,
-  projectId?: string | null,
-  options: AntigravityUsageOptions = {},
-  providerSpecificData: JsonRecord = {}
-): Promise<number | null> {
-  if (!accessToken) return null;
-
-  const cacheKey = buildAntigravityUsageCacheKey(accessToken, projectId || accountId);
-  const cached = _antigravityCreditProbeCache.get(cacheKey);
-  if (
-    !options.forceRefresh &&
-    cached &&
-    Date.now() - cached.fetchedAt < ANTIGRAVITY_CREDIT_PROBE_TTL_MS
-  ) {
-    return cached.data;
-  }
-
-  const inflight = _antigravityCreditProbeInflight.get(cacheKey);
-  if (inflight) return inflight;
-
-  const promise = probeAntigravityCreditBalanceUncached(
-    accessToken,
-    accountId,
-    projectId,
-    providerSpecificData
-  )
-    .then(
-      (data) => {
-        _antigravityCreditProbeCache.set(cacheKey, { data, fetchedAt: Date.now() });
-        return data;
-      },
-      (error) => {
-        _antigravityCreditProbeCache.set(cacheKey, { data: null, fetchedAt: Date.now() });
-        throw error;
-      }
-    )
-    .finally(() => {
-      _antigravityCreditProbeInflight.delete(cacheKey);
-    });
-
-  _antigravityCreditProbeInflight.set(cacheKey, promise);
-  return promise;
-}
-
-async function probeAntigravityCreditBalanceUncached(
-  accessToken: string,
-  accountId: string,
-  projectId?: string | null,
-  providerSpecificData: JsonRecord = {}
-): Promise<number | null> {
-  try {
-    if (!projectId) return null;
-
-    // Try all base URLs (some accounts only work with specific endpoints)
-    for (const baseUrl of ANTIGRAVITY_BASE_URLS) {
-      const url = `${baseUrl}/v1internal:streamGenerateContent?alt=sse`;
-
-      const sessionId = getAntigravitySessionId({ connectionId: accountId, projectId });
-      const body = {
-        project: projectId,
-        model: "gemini-2-flash",
-        userAgent: "antigravity",
-        requestType: "agent",
-        requestId: generateAntigravityRequestId(),
-        enabledCreditTypes: ["GOOGLE_ONE_AI"],
-        request: {
-          model: "gemini-2-flash",
-          contents: [{ role: "user", parts: [{ text: "hi" }] }],
-          generationConfig: { maxOutputTokens: 1 },
-          sessionId,
-        },
-      };
-
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-        Accept: "text/event-stream",
-      };
-      applyAntigravityClientProfileHeaders(
-        headers,
-        { connectionId: accountId, projectId, providerSpecificData },
-        body
-      );
-
-      try {
-        const res = await fetch(url, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(body),
-          signal: AbortSignal.timeout(10_000),
-        });
-
-        if (!res.ok) continue;
-
-        // Read the full SSE response and scan for remainingCredits
-        const rawSSE = await res.text();
-        const lines = rawSSE.split("\n");
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed.startsWith("data:")) continue;
-          const payload = trimmed.slice(5).trim();
-          if (payload === "[DONE]") break;
-          try {
-            const parsed = JSON.parse(payload);
-            if (Array.isArray(parsed?.remainingCredits)) {
-              const googleCredit = parsed.remainingCredits.find(
-                (c: { creditType?: string }) => c?.creditType === "GOOGLE_ONE_AI"
-              );
-              if (googleCredit) {
-                const balance = parseInt(googleCredit.creditAmount, 10);
-                if (!isNaN(balance)) {
-                  updateAntigravityRemainingCredits(accountId, balance);
-                  return balance;
-                }
-              }
-            }
-          } catch {
-            // Skip malformed SSE lines
-          }
-        }
-      } catch {
-        // Individual endpoint failure; try next
-      }
-    }
-
-    return null;
-  } catch {
-    // Probe is best-effort — don't let it break the usage fetch
-    return null;
-  }
-}
-
-/**
- * Antigravity Usage - Fetch quota from Google Cloud Code API.
- * fetchAvailableModels is catalog/eligibility data and may keep reporting full buckets
- * after real usage. retrieveUserQuota is the consumption signal for Gemini-family
- * buckets, so prefer it when present and fall back to fetchAvailableModels only for
- * models that have no retrieveUserQuota entry (for example Claude/GPT OSS buckets).
- */
-async function getAntigravityUsage(
-  provider: "antigravity" | "agy",
-  accessToken?: string,
-  providerSpecificData?: JsonRecord,
-  connectionProjectId?: string,
-  connectionId?: string,
-  options: AntigravityUsageOptions = {}
-) {
-  if (!accessToken) {
-    return { plan: "Free", message: "Antigravity access token not available." };
-  }
-
-  let subscriptionInfo: unknown = null;
-  try {
-    subscriptionInfo = await getAntigravitySubscriptionInfoCached(
-      accessToken,
-      providerSpecificData,
-      options
-    );
-    const savedProjectId =
-      typeof providerSpecificData?.projectId === "string" && providerSpecificData.projectId.trim()
-        ? providerSpecificData.projectId.trim()
-        : null;
-    const subscriptionProject = toRecord(subscriptionInfo).cloudaicompanionProject;
-    const projectId =
-      savedProjectId ||
-      connectionProjectId ||
-      (typeof subscriptionProject === "string"
-        ? subscriptionProject
-        : typeof toRecord(subscriptionProject).id === "string"
-          ? (toRecord(subscriptionProject).id as string)
-          : null);
-
-    // Derive accountId for credit balance cache.
-    // Must match executor key: credentials.connectionId
-    const accountId: string = connectionId || "unknown";
-
-    // Read cached credit balance (hydrated from DB on first access)
-    let creditBalance = getAntigravityRemainingCredits(accountId);
-
-    // If no cached balance and credits mode is enabled, fire a minimal probe
-    const creditsMode = getCreditsMode();
-    if ((options.forceRefresh || creditBalance === null) && creditsMode !== "off") {
-      creditBalance = await probeAntigravityCreditBalance(
-        accessToken,
-        accountId,
-        projectId,
-        options,
-        providerSpecificData || {}
-      );
-    }
-
-    const [data, userQuotaData] = await Promise.all([
-      fetchAntigravityAvailableModelsCached(accessToken, projectId, options),
-      fetchAntigravityUserQuotaCached(accessToken, projectId, options),
-    ]);
-    const dataObj = toRecord(data);
-    if (dataObj.__antigravityForbidden === true) {
-      return { message: "Antigravity access forbidden. Check subscription." };
-    }
-    const modelEntries = toRecord(dataObj.models);
-    const userQuotaEntries = new Map<string, JsonRecord>();
-    const userQuotaObj = toRecord(userQuotaData);
-    if (Array.isArray(userQuotaObj.buckets)) {
-      for (const bucketValue of userQuotaObj.buckets) {
-        const bucket = toRecord(bucketValue);
-        const modelId = toClientAntigravityQuotaModelId(String(bucket.modelId || "").trim());
-        if (!modelId) continue;
-        userQuotaEntries.set(modelId, bucket);
-      }
-    }
-    const quotas: Record<string, UsageQuota> = {};
-
-    // Parse per-model quota info from fetchAvailableModels response.
-    for (const [rawModelKey, infoValue] of Object.entries(modelEntries)) {
-      const info = toRecord(infoValue);
-      const quotaInfo = toRecord(info.quotaInfo);
-      const modelKey = toClientAntigravityQuotaModelId(rawModelKey);
-
-      // Skip internal, excluded, and models without quota info
-      if (
-        !modelKey ||
-        info.isInternal === true ||
-        !(provider === "agy"
-          ? isUserCallableAgyModelId(modelKey)
-          : isUserCallableAntigravityModelId(modelKey)) ||
-        Object.keys(quotaInfo).length === 0
-      ) {
-        continue;
-      }
-
-      const liveQuota = userQuotaEntries.get(modelKey);
-      const quotaSource = liveQuota || quotaInfo;
-      const rawFraction = toNumber(quotaSource.remainingFraction, -1);
-      const resetAt = parseResetTime(quotaSource.resetTime);
-      // Distinguish "upstream did not report remainingFraction" from "remaining is 0%".
-      // fetchAvailableModels is a catalog view and can be stale/full; retrieveUserQuota is
-      // the source of truth for actual Gemini consumption when it includes the model.
-      const fractionReported = rawFraction >= 0;
-      if (!fractionReported) {
-        console.warn(
-          `[Antigravity] model ${modelKey} returned no remainingFraction — quota unknown`
-        );
-      }
-      const remainingFraction = fractionReported ? Math.max(0, Math.min(1, rawFraction)) : 0;
-      // Models with no resetTime AND a reported full fraction are unlimited
-      // (e.g. tab-completion models). Unreported fraction is NEVER unlimited.
-      const isUnlimited = fractionReported && !resetAt && remainingFraction >= 1;
-      const remainingPercentage = remainingFraction * 100;
-      const QUOTA_NORMALIZED_BASE = 1000;
-      const total = QUOTA_NORMALIZED_BASE;
-      const remaining = Math.round(total * remainingFraction);
-      const used = isUnlimited ? 0 : Math.max(0, total - remaining);
-
-      quotas[modelKey] = applyLocalUsageFallback(
-        {
-          used,
-          total: isUnlimited ? 0 : total,
-          resetAt,
-          remainingPercentage: isUnlimited ? 100 : remainingPercentage,
-          unlimited: isUnlimited,
-          fractionReported,
-          quotaSource: liveQuota ? "retrieveUserQuota" : "fetchAvailableModels",
-        },
-        provider,
-        connectionId,
-        modelKey
-      );
-    }
-
-    // Include retrieveUserQuota buckets not listed in the static/public Antigravity catalog yet.
-    // This keeps Provider Limits honest when Google adds a new Gemini tier before our catalog is
-    // updated. Hidden/internal catalog entries above are still filtered by the public pass.
-    for (const [modelKey, bucket] of userQuotaEntries) {
-      if (
-        quotas[modelKey] ||
-        !(provider === "agy"
-          ? isUserCallableAgyModelId(modelKey)
-          : isUserCallableAntigravityModelId(modelKey))
-      ) {
-        continue;
-      }
-      const rawFraction = toNumber(bucket.remainingFraction, -1);
-      if (rawFraction < 0) continue;
-      const remainingFraction = Math.max(0, Math.min(1, rawFraction));
-      const resetAt = parseResetTime(bucket.resetTime);
-      const isUnlimited = !resetAt && remainingFraction >= 1;
-      const QUOTA_NORMALIZED_BASE = 1000;
-      const total = QUOTA_NORMALIZED_BASE;
-      const remaining = Math.round(total * remainingFraction);
-      quotas[modelKey] = {
-        used: isUnlimited ? 0 : Math.max(0, total - remaining),
-        total: isUnlimited ? 0 : total,
-        resetAt,
-        remainingPercentage: isUnlimited ? 100 : remainingFraction * 100,
-        unlimited: isUnlimited,
-        fractionReported: true,
-        quotaSource: "retrieveUserQuota",
-      };
-    }
-
-    return {
-      plan: getAntigravityPlanLabel(subscriptionInfo, providerSpecificData),
-      quotas: {
-        ...quotas,
-        ...(creditBalance !== null && {
-          credits: {
-            used: 0,
-            total: 0,
-            remaining: creditBalance,
-            unlimited: false,
-            resetAt: null,
-          },
-        }),
-      },
-      subscriptionInfo,
-    };
-  } catch (error) {
-    return {
-      plan: getAntigravityPlanLabel(subscriptionInfo, providerSpecificData),
-      subscriptionInfo,
-      message: `Antigravity error: ${(error as Error).message}`,
-    };
-  }
-}
-
-/**
- * Get Antigravity subscription info (cached, 5 min TTL)
- * Prevents duplicate loadCodeAssist calls within the same quota cycle.
- */
-async function getAntigravitySubscriptionInfoCached(
-  accessToken: string,
-  providerSpecificData?: JsonRecord,
-  options: AntigravityUsageOptions = {}
-): Promise<unknown> {
-  const profile = getAntigravityClientProfile({ providerSpecificData });
-  const cacheKey = `${accessToken.substring(0, 16)}:${profile}`;
-
-  if (options.forceRefresh) {
-    _antigravitySubCache.delete(cacheKey);
-  } else {
-    const cached = _antigravitySubCache.get(cacheKey);
-    if (cached && Date.now() - cached.fetchedAt < ANTIGRAVITY_CACHE_TTL_MS) {
-      return cached.data;
-    }
-  }
-
-  const data = await getAntigravitySubscriptionInfo(accessToken, providerSpecificData);
-  if (data != null) {
-    _antigravitySubCache.set(cacheKey, { data, fetchedAt: Date.now() });
-  }
-  return data;
-}
-
-/**
- * Get Antigravity subscription info using correct Antigravity headers.
- * Must match the headers used in providers.js postExchange (not CLI headers).
- */
-async function getAntigravitySubscriptionInfo(
-  accessToken: string,
-  providerSpecificData?: JsonRecord
-): Promise<unknown | null> {
-  try {
-    const profile = getAntigravityClientProfile({ providerSpecificData });
-    const response = await fetch(ANTIGRAVITY_CONFIG.loadProjectApiUrl, {
-      method: "POST",
-      headers:
-        profile === "harness"
-          ? getAntigravityBootstrapHeaders(profile, accessToken)
-          : getAntigravityHeaders("loadCodeAssist", accessToken),
-      body: JSON.stringify({ metadata: getAntigravityLoadCodeAssistMetadata() }),
-    });
-
-    if (!response.ok) return null;
-
-    return await response.json();
-  } catch {
-    return null;
-  }
-}
-
 /**
  * Claude Usage - Try to fetch from Anthropic API
  */
@@ -2564,6 +1021,12 @@ async function getClaudeUsage(accessToken?: string) {
 
   // Refresh bootstrap in parallel; best-effort, failure non-fatal.
   const bootstrapPromise = fetchClaudeBootstrap(accessToken).catch(() => null);
+  // Skip OAuth usage call while this token is cooling down from a recent 429
+  // (chat with the same token still works — only the quota endpoint is throttled).
+  if (isClaudeOauthUsageCoolingDown(accessToken)) {
+    const legacy = await getClaudeUsageLegacy(accessToken);
+    return { ...legacy, bootstrap: await bootstrapPromise };
+  }
   try {
     // Real CLI uses axios here, not Stainless — UA is `claude-code/<version>`
     // (not `claude-cli/...`) and the shape is simpler than /v1/messages.
@@ -2647,6 +1110,11 @@ async function getClaudeUsage(accessToken?: string) {
         extraUsage: data.extra_usage ?? null,
         bootstrap,
       };
+    }
+
+    // Cool down OAuth usage polling after a 429 (quota endpoint only — chat is unaffected).
+    if (oauthResponse.status === 429) {
+      markClaudeOauthUsage429(accessToken);
     }
 
     // Fallback: OAuth endpoint returned non-OK, try legacy settings/org endpoint
@@ -3227,7 +1695,6 @@ export const __testing = {
   parseResetTime,
   formatGitHubQuotaSnapshot,
   inferGitHubPlanName,
-  getGeminiCliPlanLabel,
   getAntigravityPlanLabel,
   extractCodeAssistSubscriptionTier,
   extractCodeAssistOnboardTierId,

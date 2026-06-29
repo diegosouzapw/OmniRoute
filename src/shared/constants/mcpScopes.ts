@@ -73,6 +73,8 @@ export const MCP_TOOL_SCOPES: Record<string, readonly McpScope[]> = {
   omniroute_pool_health: ["read:health"],
   omniroute_pool_reset: ["write:resilience"],
   omniroute_pool_warm: ["write:resilience"],
+  // Stealth browser pool observability (#3368 PR7)
+  omniroute_browser_pool_status: ["read:health"],
 } as const;
 
 // ============ Scope Groups ============

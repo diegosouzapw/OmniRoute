@@ -204,6 +204,64 @@ export function isAutostartEnabled() {
   return false;
 }
 
+/**
+ * Pure parse of `launchctl list <label>` output: true only when the agent's
+ * "PID" line matches the given process id. launchctl prints the running PID for
+ * a managed Aqua agent; a loaded-but-not-running agent omits the key entirely.
+ *
+ * Exported for unit testing — the darwin branch can't execute on the Linux CI.
+ */
+export function parseAgentSelfFromLaunchctl(output, pid) {
+  if (!output) return false;
+  const match = output.match(/"PID"\s*=\s*(\d+)/);
+  return !!(match && parseInt(match[1], 10) === pid);
+}
+
+/**
+ * True when `runList()` (which should run `launchctl list <label>`) succeeds,
+ * i.e. launchd actually recognizes the agent. A plist sitting on disk that
+ * launchd never loaded must NOT count as enabled — checking file existence
+ * alone makes the tray menu lie ("✓ Enabled" while launchd has the agent in a
+ * failed state or never loaded it).
+ *
+ * `runList` is injectable so the parse/branch logic is testable without a real
+ * launchctl on the (Linux) CI runner.
+ */
+export function isLaunchdAgentLoaded(runList) {
+  try {
+    runList();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Returns true when the current Node process IS the running instance launchd is
+ * managing under our agent label.
+ *
+ * `launchctl unload`/`load -w` for a user-domain agent sends SIGTERM to the
+ * running process. When the running OmniRoute cli was itself spawned by the
+ * autostart launchd agent (autostart was enabled, then the machine rebooted,
+ * then the user clicked the tray "Disable Autostart" item), an unload would
+ * kill the very process executing the click handler — the tray icon would
+ * silently disappear instead of the menu label flipping. Enable/disable skip
+ * launchctl in that case; the on-disk plist change is what matters for the next
+ * login, and launchd already has us loaded under our own PID.
+ */
+function isAgentSelfMac() {
+  try {
+    const output = execFileSync("launchctl", ["list", APP_LABEL], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      timeout: 3000,
+    });
+    return parseAgentSelfFromLaunchctl(output, process.pid);
+  } catch {
+    return false;
+  }
+}
+
 function enableMac() {
   const plistDir = join(homedir(), "Library", "LaunchAgents");
   mkdirSync(plistDir, { recursive: true });
@@ -225,6 +283,10 @@ function enableMac() {
   <key>KeepAlive</key><false/>
 </dict></plist>`;
   writeFileSync(plistPath, plist, { mode: 0o644 });
+  // If we're already the running agent, launchctl load/unload would SIGTERM us.
+  // The plist is updated on disk and launchd already has us loaded under our own
+  // PID — nothing more to do for the current session.
+  if (isAgentSelfMac()) return existsSync(plistPath);
   try {
     execSync("launchctl load -w " + JSON.stringify(plistPath), { stdio: "ignore" });
   } catch {}
@@ -233,9 +295,15 @@ function enableMac() {
 
 function disableMac() {
   const plistPath = join(homedir(), "Library", "LaunchAgents", `${APP_LABEL}.plist`);
-  try {
-    execSync("launchctl unload -w " + JSON.stringify(plistPath), { stdio: "ignore" });
-  } catch {}
+  // Don't kill ourselves: when the current process is the running agent,
+  // `launchctl unload` sends SIGTERM and a user clicking "Disable Autostart"
+  // from the tray would lose the tray icon instead of just flipping the label.
+  // Removing the plist file is enough to stop the agent at the next login.
+  if (!isAgentSelfMac()) {
+    try {
+      execSync("launchctl unload -w " + JSON.stringify(plistPath), { stdio: "ignore" });
+    } catch {}
+  }
   try {
     unlinkSync(plistPath);
   } catch {}
@@ -243,7 +311,16 @@ function disableMac() {
 }
 
 function isEnabledMac() {
-  return existsSync(join(homedir(), "Library", "LaunchAgents", `${APP_LABEL}.plist`));
+  const plistPath = join(homedir(), "Library", "LaunchAgents", `${APP_LABEL}.plist`);
+  if (!existsSync(plistPath)) return false;
+  // The plist file existing is not enough — launchd must actually recognize the
+  // agent, otherwise the tray menu reports "Enabled" for an inert/failed agent.
+  return isLaunchdAgentLoaded(() =>
+    execFileSync("launchctl", ["list", APP_LABEL], {
+      stdio: ["ignore", "ignore", "ignore"],
+      timeout: 3000,
+    })
+  );
 }
 
 function enableWin() {

@@ -17,4 +17,4 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 _No endpoints mapped for this area yet._
 ## Payloads
 
-See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/reference/openapi.yaml` for detailed request/response schemas.
+See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.

@@ -10,6 +10,11 @@
  */
 
 import { ENGINE_IDS } from "./engineCatalog.ts";
+import type { ContextBudgetConfig } from "./adaptiveCompression/types.ts";
+import type { FidelityGateConfig } from "./fidelityGate.ts";
+import type { RiskGateConfig } from "./riskGate/riskGate.ts";
+import type { RiskGateStats } from "./riskGate/riskGateStep.ts";
+import type { QuantumLockConfig, QuantumLockStats } from "./quantumLock/quantumPatterns.ts";
 
 // Re-export so consumers that already import from this module (e.g. src/lib/db/compression.ts)
 // can get ENGINE_IDS without a second bare `@omniroute/open-sse/...engineCatalog.ts` specifier.
@@ -69,6 +74,13 @@ export interface CavemanOutputModeConfig {
   autoClarity: boolean;
 }
 
+export type OutputStyleLevel = "lite" | "full" | "ultra";
+
+export interface OutputStyleSelectionEntry {
+  id: string;
+  level: OutputStyleLevel;
+}
+
 export interface RtkConfig {
   enabled: boolean;
   intensity: RtkIntensity;
@@ -92,6 +104,17 @@ export interface RtkConfig {
   stripCodeComments?: boolean;
   /** R1/N3: keep JSDoc/docstring block comments when removing comments. Default: true. */
   preserveDocstrings?: boolean;
+  /** #10: semantic command-output renderers (default off) */
+  enableRenderers?: boolean;
+  /** #10: whitelist por command-type; vazio/undefined = todos */
+  renderers?: string[];
+}
+
+export interface RelevanceConfig {
+  enabled: boolean;
+  overlapThreshold: number;
+  budgetPercent: number;
+  boilerplateWeight: number;
 }
 
 export interface CompressionLanguageConfig {
@@ -133,9 +156,18 @@ export interface CompressionConfig {
   comboOverrides: Record<string, CompressionMode>;
   compressionComboId?: string | null;
   stackedPipeline?: CompressionPipelineStep[];
+  /** Opt-in QuantumLock cache-prefix stabilization (default off). */
+  quantumLock?: QuantumLockConfig;
+  /** Opt-in per-step fidelity gate (default disabled). */
+  fidelityGate?: FidelityGateConfig;
+  /** Opt-in risk-gate pre-pass: shields sensitive spans from compression (default disabled). */
+  riskGate?: RiskGateConfig;
   cavemanConfig?: CavemanConfig;
   cavemanOutputMode?: CavemanOutputModeConfig;
+  /** Phase 4A: selected output styles (supersedes cavemanOutputMode via a back-compat shim). */
+  outputStyles?: OutputStyleSelectionEntry[];
   rtkConfig?: RtkConfig;
+  relevanceConfig?: RelevanceConfig;
   languageConfig?: CompressionLanguageConfig;
   aggressive?: AggressiveConfig;
   ultra?: UltraConfig;
@@ -152,6 +184,39 @@ export interface CompressionConfig {
    * change for installs that predate the panel). Set by `getCompressionSettings`.
    */
   enginesExplicit?: boolean;
+  /**
+   * Context-budget adaptive compression (Sub-project C). Absent / mode:"off" = legacy
+   * binary auto-trigger (byte-identical). When mode is "floor" or "replace-autotrigger"
+   * the adaptive resolver owns automatic-by-size escalation and the legacy
+   * shouldAutoTrigger branch is bypassed.
+   */
+  contextBudget?: ContextBudgetConfig;
+  /**
+   * Hard-budget post-pass (#17): compress to at most this many cl100k tokens.
+   * Runs after all stacked engines. Absent → no-op.
+   * When both targetTokens and targetRatio are set, targetTokens wins.
+   */
+  targetTokens?: number;
+  /**
+   * Hard-budget post-pass (#17): compress to at most this fraction (0–1) of original tokens.
+   * Runs after all stacked engines. Absent → no-op.
+   * When both targetTokens and targetRatio are set, targetTokens wins.
+   */
+  targetRatio?: number;
+  /**
+   * Phase 4 (B): which tier the `ultra` mode uses.
+   * "heuristic" = Tier-A token pruner (`pruneByScore`, default, byte-identical to pre-B).
+   * "slm" = Tier-B LLMLingua-2 ONNX worker when available, else fail-open to Tier-A.
+   */
+  ultraEngine?: "heuristic" | "slm";
+  /**
+   * Phase 4 (B): best-effort pre-warm of the SLM model on the enable transition
+   * and on a cold restart when `ultraEngine: "slm"` is already set. Failures are
+   * swallowed; the lazy first-call path still applies. Default false.
+   */
+  ultraSlmPrewarm?: boolean;
+  /** Opt-in result memoization for deterministic engines only (default off). */
+  memoizeCompressionResults?: boolean;
 }
 
 export interface CompressionStats {
@@ -168,6 +233,15 @@ export interface CompressionStats {
   validationWarnings?: string[];
   validationErrors?: string[];
   fallbackApplied?: boolean;
+  riskGate?: RiskGateStats;
+  /**
+   * Phase 4 (B): which `ultra` tier actually ran for this request.
+   * "slm" — Tier-B ran and produced the output.
+   * "heuristic-fallback" — Tier-B was selected but failed/timed out → Tier-A used.
+   * "heuristic" — Tier-A used directly (ultraEngine !== "slm" or SLM unavailable).
+   * Consumed by D0's persister as `CompressionRunTelemetry.ultraTier`.
+   */
+  ultraTier?: "slm" | "heuristic-fallback" | "heuristic";
   preservedBlockCount?: number;
   rtkRawOutputPointers?: Array<{
     id: string;
@@ -195,7 +269,11 @@ export interface CompressionStats {
     techniquesUsed: string[];
     rulesApplied?: string[];
     durationMs?: number;
+    rejected?: boolean;
+    rejectReason?: string;
   }>;
+  /** Present only when QuantumLock stabilized ≥1 fragment this run. */
+  quantumLock?: QuantumLockStats;
 }
 
 export interface CompressionResult {
@@ -220,6 +298,8 @@ export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
   ],
   engines: Object.fromEntries(ENGINE_IDS.map((id) => [id, { enabled: false }])),
   activeComboId: null,
+  ultraEngine: "heuristic",
+  ultraSlmPrewarm: false,
 };
 
 export const DEFAULT_CAVEMAN_CONFIG: CavemanConfig = {
@@ -265,6 +345,7 @@ export const DEFAULT_RTK_CONFIG: RtkConfig = {
   groupingThreshold: 3,
   stripCodeComments: false,
   preserveDocstrings: true,
+  enableRenderers: false,
 };
 
 export const DEFAULT_COMPRESSION_LANGUAGE_CONFIG: CompressionLanguageConfig = {

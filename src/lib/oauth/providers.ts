@@ -11,16 +11,12 @@ import { generatePKCE, generateState } from "./utils/pkce";
 import { PROVIDERS } from "./providers/index";
 import { resolvePublicCred } from "@omniroute/open-sse/utils/publicCreds.ts";
 
-const GOOGLE_BROWSER_PROVIDERS = new Set(["antigravity", "agy", "gemini-cli"]);
+const GOOGLE_BROWSER_PROVIDERS = new Set(["antigravity", "agy"]);
 
 type OAuthRedirectEnv = Record<string, string | undefined>;
 
 function hasValue(value: string | undefined): boolean {
   return typeof value === "string" && value.trim().length > 0;
-}
-
-function firstValue(...values: Array<string | undefined>): string | undefined {
-  return values.find(hasValue);
 }
 
 function normalizeBaseUrl(value: unknown): string {
@@ -41,19 +37,6 @@ function hasCustomGoogleOAuthCredentials(
       hasValue(clientId) &&
       hasValue(clientSecret) &&
       clientId !== resolvePublicCred("antigravity_id")
-    );
-  }
-
-  if (providerName === "gemini-cli") {
-    const clientId = firstValue(env?.GEMINI_CLI_OAUTH_CLIENT_ID, env?.GEMINI_OAUTH_CLIENT_ID);
-    const clientSecret = firstValue(
-      env?.GEMINI_CLI_OAUTH_CLIENT_SECRET,
-      env?.GEMINI_OAUTH_CLIENT_SECRET
-    );
-    return (
-      hasValue(clientId) &&
-      hasValue(clientSecret) &&
-      clientId !== resolvePublicCred("gemini_id")
     );
   }
 

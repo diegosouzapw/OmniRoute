@@ -301,8 +301,6 @@ Built-in credentials for **localhost development**. For remote deployments, regi
 | `CODEX_OAUTH_CLIENT_ID`           | Codex / OpenAI          | Public client.                                                                    |
 | `GEMINI_OAUTH_CLIENT_ID`          | Gemini (Google)         | Requires matching `_SECRET`.                                                      |
 | `GEMINI_OAUTH_CLIENT_SECRET`      | Gemini (Google)         | —                                                                                 |
-| `GEMINI_CLI_OAUTH_CLIENT_ID`      | Gemini CLI              | Usually same as Gemini.                                                           |
-| `GEMINI_CLI_OAUTH_CLIENT_SECRET`  | Gemini CLI              | —                                                                                 |
 | `QWEN_OAUTH_CLIENT_ID`            | Qwen (Alibaba)          | Public client.                                                                    |
 | `KIMI_CODING_OAUTH_CLIENT_ID`     | Kimi Coding (Moonshot)  | Public client.                                                                    |
 | `ANTIGRAVITY_OAUTH_CLIENT_ID`     | Antigravity (Google)    | Requires matching `_SECRET`.                                                      |
@@ -318,7 +316,6 @@ Built-in credentials for **localhost development**. For remote deployments, regi
 | `OMNIROUTE_QODER_WORKSPACE`       | Qoder                   | Alias for `QODER_CLI_WORKSPACE`.                                                  |
 
 > [!WARNING]
-> **Google OAuth** (Antigravity, Gemini CLI) credentials **only work on localhost**. For remote servers:
 >
 > 1. Go to [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials)
 > 2. Create an OAuth 2.0 Client ID (type: "Web application")
@@ -348,7 +345,6 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                   | When Qoder CLI updates                                        |
 | `QWEN_USER_AGENT`        | `QwenCode/0.15.11 (linux; x64)`               | When Qwen Code updates                                        |
 | `CURSOR_USER_AGENT`      | `connect-es/1.6.1`                            | When Cursor updates                                           |
-| `GEMINI_CLI_USER_AGENT`  | `google-api-nodejs-client/10.3.0`             | When Google API client updates                                |
 
 > [!TIP]
 > You can add User-Agent overrides for **any** provider using the pattern `{PROVIDER_ID}_USER_AGENT`. The executor dynamically constructs the env var name.

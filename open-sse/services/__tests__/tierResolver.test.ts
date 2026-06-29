@@ -13,6 +13,12 @@ import {
   classifyTiers,
 } from "../tierResolver.ts";
 import { PROVIDER_TIER } from "../tierTypes.ts";
+import {
+  DEFAULT_TIER_CONFIG,
+  LEGACY_FREE_PROVIDERS,
+  deriveNoAuthFreeProviders,
+} from "../tierConfig.ts";
+import { NOAUTH_PROVIDERS } from "@/shared/constants/providers.ts";
 
 describe("TierResolver", () => {
   // Reset cache between tests
@@ -211,6 +217,77 @@ describe("TierResolver", () => {
       const stats = getTierStats();
       assert.ok(stats[PROVIDER_TIER.FREE] >= 1);
       assert.ok(stats[PROVIDER_TIER.CHEAP] >= 1);
+    });
+  });
+
+  describe("freeProviders from NOAUTH_PROVIDERS (#4517)", () => {
+    beforeEach(() => clearTierCache());
+
+    it("LEGACY_FREE_PROVIDERS keeps the historical explicit list", () => {
+      for (const id of [
+        "kiro",
+        "qoder",
+        "pollinations",
+        "longcat",
+        "cloudflare-ai",
+        "qwen",
+        "nvidia-nim",
+        "cerebras",
+        "groq",
+      ]) {
+        assert.ok(LEGACY_FREE_PROVIDERS.includes(id), `expected ${id} in LEGACY_FREE_PROVIDERS`);
+      }
+    });
+
+    it("deriveNoAuthFreeProviders includes all chat-tier noAuth providers", () => {
+      const derived = deriveNoAuthFreeProviders();
+      // opencode + mimocode are the ones the bug report called out
+      assert.ok(derived.includes("opencode"), "opencode should be in derived noAuth-free list");
+      assert.ok(derived.includes("mimocode"), "mimocode should be in derived noAuth-free list");
+      assert.ok(derived.includes("duckduckgo-web"));
+    });
+
+    it("deriveNoAuthFreeProviders excludes non-LLM noAuth providers", () => {
+      const derived = deriveNoAuthFreeProviders();
+      assert.ok(
+        !derived.includes("veoaifree-web"),
+        "veoaifree-web (serviceKinds: video) must not be classified as chat-free"
+      );
+    });
+
+    it("DEFAULT_TIER_CONFIG.freeProviders contains the union of legacy + noAuth-derived", () => {
+      const expected = new Set([...LEGACY_FREE_PROVIDERS, ...deriveNoAuthFreeProviders()]);
+      const actual = new Set(DEFAULT_TIER_CONFIG.freeProviders);
+      assert.deepEqual(actual, expected, "freeProviders must be the union, deduplicated");
+    });
+
+    it("classifyTier classifies opencode/big-pickle as free via noAuth derivation", () => {
+      // No provider override, no cost-based match (big-pickle has no KNOWN_MODEL_PRICING row).
+      // The fix is that 'opencode' is now in freeProviders.
+      const result = classifyTier("opencode", "big-pickle");
+      assert.equal(result.tier, PROVIDER_TIER.FREE);
+      assert.equal(result.hasFreeTier, true);
+    });
+
+    it("classifyTier classifies mimocode/mimo-auto as free via noAuth derivation", () => {
+      const result = classifyTier("mimocode", "mimo-auto");
+      assert.equal(result.tier, PROVIDER_TIER.FREE);
+      assert.equal(result.hasFreeTier, true);
+    });
+
+    it("classifyTier still returns cheap for paid glm-5.1 (no regression)", () => {
+      // glm-5.1 is not in freeProviders, costs $0.50/M → cheap tier.
+      // Make sure the new noAuth derivation didn't accidentally pull it into free.
+      const result = classifyTier("opencode-go", "glm-5.1");
+      assert.equal(result.tier, PROVIDER_TIER.CHEAP);
+    });
+
+    it("userConfig.freeProviders is merged on top of the noAuth-derived list", () => {
+      // Re-merge with a new free provider (e.g. local-llama) and confirm it's added.
+      setTierConfig({ freeProviders: ["local-llama"] });
+      const result = classifyTier("local-llama", "anything");
+      assert.equal(result.tier, PROVIDER_TIER.FREE);
+      clearTierCache();
     });
   });
 });

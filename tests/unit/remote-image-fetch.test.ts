@@ -3,6 +3,11 @@ import test from "node:test";
 
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
 
+// Stub DNS resolver: every (unused) hostname resolves to a public IP. The
+// rebinding guard (GHSA-cmhj-wh2f-9cgx) needs a non-empty resolution; without
+// it, fictitious hosts like `cdn.example.com` would correctly be rejected.
+const publicLookup = async () => [{ address: "203.0.113.5" as string, family: 4 }];
+
 test("fetchRemoteImage reads public image bytes", async () => {
   const result = await fetchRemoteImage("https://cdn.example.com/image.png", {
     fetchImpl: async () =>
@@ -11,6 +16,7 @@ test("fetchRemoteImage reads public image bytes", async () => {
         headers: { "content-type": "image/png" },
       }),
     guard: "public-only",
+    lookup: publicLookup,
   });
 
   assert.equal(result.buffer.toString("base64"), "AQID");
@@ -45,6 +51,7 @@ test("fetchRemoteImage blocks redirects to private image hosts", async () => {
             headers: { location: "http://169.254.169.254/latest/meta-data" },
           }),
         guard: "public-only",
+        lookup: publicLookup,
       }),
     /Blocked private or local provider URL/
   );

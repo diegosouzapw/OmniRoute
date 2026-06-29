@@ -14,6 +14,7 @@ import { copyToClipboard } from "@/shared/utils/clipboard";
 import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import { useIsElectron, useOpenExternal } from "@/shared/hooks/useElectron";
 import { HomeProviderTopologySection } from "./HomeProviderTopologySection";
+import { shouldShowProviderTopologyOnHome } from "./homeAppearance";
 
 const ProviderQuotaWidget = dynamic(() => import("../home/ProviderQuotaWidget"), { ssr: false });
 import type { NewsAnnouncement } from "@/shared/utils/releaseNotes";
@@ -114,8 +115,11 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
     Array<{ id?: string; prefix?: string; name?: string }>
   >([]);
 
-  // Live in-flight requests for Provider Topology pulse animation (#3507)
-  const { activeRequests: liveActiveRequests } = useLiveRequests();
+  // The live in-flight request feed for the Provider Topology pulse animation is owned by
+  // <HomeProviderTopologySection>, which subscribes to it (gated by the `enabled` prop)
+  // only when the topology is actually shown. HomePageClient must NOT open its own
+  // unconditional live socket: the binding here was unused (ReferenceError in prod,
+  // #4759/#4745) and the socket opened even when topology was hidden (#4596).
 
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [updating, setUpdating] = useState(false);
@@ -215,9 +219,15 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           if (typeof data.showQuickStartOnHome === "boolean") {
             setShowQuickStartOnHome(data.showQuickStartOnHome);
           }
-          if (typeof data.showProviderTopologyOnHome === "boolean") {
-            setShowProviderTopologyOnHome(data.showProviderTopologyOnHome);
-          }
+          // #4596 regression fix: the topology card defaults ON (matches the
+          // AppearanceTab toggle's `!== false`). Honoring only an explicit boolean
+          // left the card hidden whenever the setting was never persisted
+          // (undefined), silently removing it for most installs. The live-WS
+          // connection is still gated by `appearanceSettingsLoaded` in the data
+          // effect, so it is never opened before settings load.
+          setShowProviderTopologyOnHome(
+            shouldShowProviderTopologyOnHome(data.showProviderTopologyOnHome)
+          );
           if (typeof data.autoRefreshProviderQuota === "boolean") {
             setAutoRefreshProviderQuota(data.autoRefreshProviderQuota);
           }
@@ -832,7 +842,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                         error
                       </span>
                     ) : (
-                      <span className="material-symbols-outlined text-yellow-500 text-[18px]">
+                      <span className="material-symbols-outlined text-amber-500 text-[18px]">
                         warning
                       </span>
                     )}

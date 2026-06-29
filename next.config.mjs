@@ -21,7 +21,11 @@ const contentSecurityPolicy = [
   "font-src 'self' https://fonts.gstatic.com data:",
   "img-src 'self' data: blob: https:",
   "media-src 'self' data: blob:",
-  "connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https: wss:",
+  // `ws:` is permitted scheme-wide (mirroring the bare `wss:` already allowed) so the
+  // dashboard can open `ws://<lan-or-tailscale-host>:*` to its own Live WS server when
+  // OmniRoute is reached from a non-loopback host. Same-origin HTTP fetches stay covered
+  // by `'self'`; the loopback origins remain listed explicitly for clarity. (#5083)
+  "connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https: ws: wss:",
   "worker-src 'self' blob:",
   "manifest-src 'self'",
 ].join("; ");
@@ -113,6 +117,17 @@ const nextConfig = {
     // PR-2 of diegosouzapw/OmniRoute#3932: tree-shake barrel re-exports so
     // route bundles don't pull in 14 locale files, every lucide-react icon,
     // or the full date-fns surface when only one helper is used.
+    //
+    // NOTE: this list must only contain EXTERNAL barrel libraries. Do NOT add
+    // the internal `@omniroute/open-sse` workspace here: optimizePackageImports
+    // makes Next.js resolve every export of the package's barrel at build time,
+    // and open-sse's `index.ts` re-exports the entire streaming engine
+    // (executors/translators/services/handlers/mcp-server — thousands of
+    // modules). Combined with the #3501 god-file splits (which multiplied the
+    // re-export edges), this drove the webpack production pass into a heap
+    // runaway that OOM'd even at a 28 GB --max-old-space-size (RSS pinned at the
+    // ceiling in a GC death-spiral). Removing it keeps the build's heap bounded.
+    // optimizePackageImports is designed for external libs, not workspaces.
     optimizePackageImports: [
       "lobehub/icons",
       "@lobehub/icons",
@@ -122,7 +137,6 @@ const nextConfig = {
       "lodash-es",
       "material-symbols",
       "next-intl",
-      "@omniroute/open-sse",
     ],
   },
   outputFileTracingRoot: projectRoot,
@@ -136,6 +150,10 @@ const nextConfig = {
       "./open-sse/services/compression/rules/**/*.json",
       "./open-sse/lib/sha3_wasm_bg.wasm",
       "./open-sse/lib/deepseek-pow-solver.cjs",
+      // sql.js WASM is loaded at runtime by the sqljsAdapter fallback tier
+      // (better-sqlite3 → node:sqlite → sql.js). Next traces sql-wasm.js but can
+      // omit the runtime sql-wasm.wasm asset from the standalone bundle.
+      "./node_modules/sql.js/dist/sql-wasm.wasm",
     ],
   },
   outputFileTracingExcludes: {

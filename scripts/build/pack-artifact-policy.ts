@@ -34,7 +34,7 @@ export const APP_STAGING_REMOVAL_PATHS: string[] = [
 export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   ".env.example",
   "BUILD_SHA",
-  "docs/reference/openapi.yaml",
+  "docs/openapi.yaml",
   "http-method-guard.cjs",
   "open-sse/mcp-server/server.js",
   // LLMLingua ONNX worker — esbuild'd standalone .js spawned via worker_threads
@@ -79,6 +79,16 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "bin/nodeRuntimeSupport.mjs",
   "bin/omniroute.mjs",
   "bin/reset-password.mjs",
+  // Operator incident-recovery / cold-start shell tooling (rollback, snapshot,
+  // restore, cold-start bench) shipped in bin/ for self-hosters — not imported by
+  // the runtime. Included via the package.json "files": ["bin/"] entry, so they
+  // must be allowed here. Each script is self-documenting via --help.
+  "bin/_ops-common.sh",
+  "bin/cold-start-bench.sh",
+  "bin/restore-data.sh",
+  "bin/restore-policies.sh",
+  "bin/rollback.sh",
+  "bin/snapshot-data.sh",
   "open-sse/mcp-server/README.md",
   "open-sse/mcp-server/audit.ts",
   "open-sse/mcp-server/httpTransport.ts",
@@ -96,6 +106,8 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "scripts/build/postinstall.mjs",
   "scripts/build/postinstallSupport.mjs",
   "scripts/build/colocateOptionals.mjs",
+  // #5227: imported at runtime by bin/cli/commands/serve.mjs (heap auto-calibration).
+  "scripts/build/runtime-env.mjs",
   "scripts/build/sync-env.mjs",
   "scripts/dev/responses-ws-proxy.mjs",
   "scripts/dev/sync-env.mjs",
@@ -138,6 +150,7 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "scripts/build/postinstall.mjs",
   "scripts/build/postinstallSupport.mjs",
   "scripts/build/colocateOptionals.mjs",
+  "scripts/build/runtime-env.mjs",
   "src/shared/utils/nodeRuntimeSupport.ts",
 ];
 

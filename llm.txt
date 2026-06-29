@@ -12,7 +12,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 ## Tech Stack
 
-- **Runtime:** Node.js `>=20.20.2 <21 || >=22.22.2 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
+- **Runtime:** Node.js `>=22.22.2 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
 - **Framework:** Next.js 16 (App Router) with TypeScript 5.9
 - **Database:** SQLite via better-sqlite3 (local, zero-config, 55 migrations)
 - **State management:** Zustand (client), SQLite (server persistence)
@@ -40,7 +40,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   │       ├── audit/        # Audit logs
 │   │   │       ├── auto-combo/   # Auto-combo engine dashboard
 │   │   │       ├── cache/        # Cache dashboard (semantic cache stats)
-│   │   │       ├── cli-tools/    # CLI tool configuration (Claude Code, Codex, Gemini CLI, etc.)
+│   │   │       ├── cli-tools/    # CLI tool configuration (Claude Code, Codex, etc.)
 │   │   │       ├── combos/       # Model combo management (14 strategies + 4 templates)
 │   │   │       ├── costs/        # Cost tracking per provider/model
 │   │   │       ├── endpoint/     # Unified: Endpoint Proxy, MCP, A2A, API Endpoints tabs
@@ -189,7 +189,6 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   ├── codex.ts              # OpenAI Codex CLI
 │   │   ├── antigravity.ts        # Antigravity IDE
 │   │   ├── github.ts             # GitHub Copilot
-│   │   ├── gemini-cli.ts         # Gemini CLI
 │   │   ├── kiro.ts               # Kiro AI
 │   │   ├── qoder.ts              # Qoder AI
 │   │   ├── vertex.ts             # Vertex AI (Service Account JSON)
@@ -361,7 +360,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 ### Provider Categories
 
-**Free Providers (5):** Qoder AI, Qwen Code (deprecated), Gemini CLI, Kiro AI, Windsurf
+**Free Providers (4):** Qoder AI, Qwen Code (deprecated), Kiro AI, Windsurf
 
 **OAuth Providers (14):** Claude Code, Antigravity, OpenAI Codex, GitHub Copilot, Cursor IDE, Kimi Coding, Kilo Code, Cline, Qwen, Kiro, Qoder, Gemini, Windsurf, GitLab Duo
 

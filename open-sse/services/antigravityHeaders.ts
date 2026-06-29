@@ -17,7 +17,7 @@ type AntigravityHeaderProfile = "loadCodeAssist" | "fetchAvailableModels" | "mod
 
 const ANTIGRAVITY_VERSION = ANTIGRAVITY_FALLBACK_VERSION;
 // IDE desktop fingerprint synced with Antigravity-Manager v4.2.0 constants.rs.
-export const ANTIGRAVITY_CHROME_VERSION = "132.0.6834.160";
+export const ANTIGRAVITY_CHROME_VERSION = "142.0.7444.175";
 export const ANTIGRAVITY_ELECTRON_VERSION = "39.2.3";
 export const ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT = `vscode/1.X.X (Antigravity/${ANTIGRAVITY_FALLBACK_VERSION})`;
 export const ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT = "";
@@ -50,7 +50,7 @@ function getAntigravityPlatformInfo(platform: NodeJS.Platform = process.platform
 
 /**
  * Antigravity desktop User-Agent:
- * "Antigravity/VERSION (PLATFORM) Chrome/132... Electron/39..."
+ * "Antigravity/VERSION (PLATFORM) Chrome/142... Electron/39..."
  */
 export function antigravityUserAgent(
   version = getCachedAntigravityVersion(),

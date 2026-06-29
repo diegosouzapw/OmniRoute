@@ -1,4 +1,5 @@
 import { DefaultExecutor } from "./default.ts";
+import type { ProviderCredentials } from "./base.ts";
 import { stripTrailingSlashes } from "../utils/urlSanitize.ts";
 
 const DEFAULT_API_VERSION = "2024-12-01-preview";
@@ -17,7 +18,12 @@ export class AzureOpenAIExecutor extends DefaultExecutor {
     super("azure-openai");
   }
 
-  buildUrl(model: string, stream: boolean, urlIndex = 0, credentials: any = null) {
+  buildUrl(
+    model: string,
+    stream: boolean,
+    urlIndex = 0,
+    credentials: ProviderCredentials | null = null
+  ) {
     void urlIndex;
 
     const providerSpecificData = credentials?.providerSpecificData || {};
@@ -29,7 +35,7 @@ export class AzureOpenAIExecutor extends DefaultExecutor {
     return `${baseUrl}/openai/deployments/${encodeURIComponent(model)}/chat/completions?api-version=${encodeURIComponent(apiVersion)}`;
   }
 
-  buildHeaders(credentials: any, stream = true) {
+  buildHeaders(credentials: ProviderCredentials | null, stream = true) {
     const apiKey = credentials?.apiKey || credentials?.accessToken || "";
     const headers: Record<string, string> = {
       "Content-Type": "application/json",

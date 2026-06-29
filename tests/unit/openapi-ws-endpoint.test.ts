@@ -11,7 +11,7 @@ import * as yaml from "js-yaml";
 // in the spec, so it was invisible in the endpoints reference.
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
-const spec = yaml.load(readFileSync(ROOT + "docs/reference/openapi.yaml", "utf8")) as {
+const spec = yaml.load(readFileSync(ROOT + "docs/openapi.yaml", "utf8")) as {
   paths: Record<string, Record<string, { tags?: string[]; security?: unknown[]; responses?: Record<string, unknown> }>>;
 };
 

@@ -8,6 +8,8 @@ import { DEFAULT_LOCALE, LOCALE_COOKIE } from "@/i18n/config";
 import fs from "node:fs";
 import path from "node:path";
 import { marked } from "marked";
+import { sanitizeDocsHtml } from "@/lib/docsSanitizer";
+import { resolveSafeI18nSectionDir } from "@/lib/docsI18nPath";
 
 // ── Locale detection ────────────────────────────────────────────────────────
 
@@ -28,8 +30,13 @@ function getDocsLocale(): string {
 function tryI18nFallback(slug: string[], locale: string): string | null {
   if (!locale || locale === "en") return null;
 
+  // 🛡️ Path traversal prevention — `locale` is a user-controllable cookie, so
+  // validate segments + confine the resolved dir to docs/i18n before any fs read.
+  // Centralized in resolveSafeI18nSectionDir (pure, unit-tested).
   const docsRoot = path.resolve(process.cwd(), "docs");
-  const sectionDir = path.join(docsRoot, "i18n", locale, "docs", ...slug.slice(0, -1));
+  const sectionDir = resolveSafeI18nSectionDir(docsRoot, locale, slug);
+  if (!sectionDir) return null;
+
   if (!fs.existsSync(sectionDir)) return null;
 
   // Fumadocs lowercases slugs — match case-insensitively against i18n dir
@@ -55,7 +62,9 @@ function tryI18nFallback(slug: string[], locale: string): string | null {
       ? raw.slice(bodyMatch.index + bodyMatch[0].length).trim()
       : raw;
 
-  return marked.parse(body) as string;
+  // 🛡️ Sentinel: XSS protection via server-side sanitization of rendered markdown
+  const html = marked.parse(body) as string;
+  return sanitizeDocsHtml(html);
 }
 
 // ── Page component ──────────────────────────────────────────────────────────

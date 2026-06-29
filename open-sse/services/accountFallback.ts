@@ -18,6 +18,7 @@ import {
   DEFAULT_RESILIENCE_SETTINGS,
   resolveResilienceSettings,
 } from "../../src/lib/resilience/settings";
+import { resolveModelLockoutSettings } from "../../src/lib/resilience/modelLockoutSettings";
 import {
   getAllCircuitBreakerStatuses,
   getCircuitBreaker,
@@ -30,13 +31,14 @@ import {
 import { resolveProviderId } from "../../src/shared/constants/providers";
 import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
 import { getCodexModelScope } from "../config/codexQuotaScopes.ts";
+import { getQuotaScopedModelForProvider } from "./antigravityQuotaFamily.ts";
 import { isRpdExhausted, isRpmExhausted } from "./geminiRateLimitTracker.ts";
 
 export type ProviderProfile = {
   baseCooldownMs: number;
   useUpstreamRetryHints: boolean;
-  /** Issue #2100 follow-up. Stored override; undefined → per-provider default. */
   useUpstream429BreakerHints?: boolean;
+  maxCooldownMs: number;
   maxBackoffSteps: number;
   failureThreshold: number;
   resetTimeoutMs: number;
@@ -251,6 +253,20 @@ const MALFORMED_REQUEST_PATTERNS = [
   /tool_call.*name.*(?:blank|empty|missing)/i,
 ];
 
+// Rate-limit text on a 400 — some providers (e.g. MiMoCode) signal throttling with a
+// non-standard 400 status whose body carries rate-limit semantics instead of a 429
+// (#4976). When detected, the request is fallback-worthy at connection-cooldown scope
+// (NOT a whole-provider breaker) so combo routing can fail over to another free target.
+// Bounded, non-overlapping patterns only (ReDoS-safe — no nested quantifiers).
+const RATE_LIMIT_TEXT_PATTERNS = [
+  /high.?frequency/i,
+  /non-compliant/i,
+  /too many requests/i,
+  /rate.?limit/i,
+  /频繁/, // "frequent" (zh) — high-frequency request throttling
+  /频率/, // "frequency" (zh) — request-frequency throttling
+];
+
 // Parameter validation errors — model-specific constraints (different models = different limits)
 const PARAM_VALIDATION_PATTERNS = [
   /max_tokens.*illegal/i,
@@ -309,9 +325,8 @@ function buildProviderProfile(
   return {
     baseCooldownMs: connectionCooldown.baseCooldownMs,
     useUpstreamRetryHints: connectionCooldown.useUpstreamRetryHints,
-    // Issue #2100 follow-up: propagate stored override (boolean | undefined)
-    // so the runtime resolver picks user setting first, then per-provider default.
     useUpstream429BreakerHints: connectionCooldown.useUpstream429BreakerHints,
+    maxCooldownMs: resolveModelLockoutSettings(settings).maxCooldownMs,
     maxBackoffSteps: connectionCooldown.maxBackoffSteps,
     failureThreshold: providerBreaker.failureThreshold,
     resetTimeoutMs: providerBreaker.resetTimeoutMs,
@@ -376,7 +391,10 @@ function getCanonicalLockProvider(provider: string): string {
 
 function getModelLockKey(provider: string, connectionId: string, model: string) {
   const canonicalProvider = getCanonicalLockProvider(provider);
-  const lockModel = canonicalProvider === "codex" ? getCodexModelScope(model) : model;
+  const lockModel =
+    canonicalProvider === "codex"
+      ? getCodexModelScope(model)
+      : getQuotaScopedModelForProvider(canonicalProvider, model) || model;
   return `${canonicalProvider}:${connectionId}:${lockModel}`;
 }
 
@@ -1580,6 +1598,16 @@ export function checkFallbackError(
         cooldownMs: 0,
         reason: RateLimitReason.MODEL_CAPACITY,
       };
+    }
+
+    // Some providers (e.g. MiMoCode) signal throttling with a non-standard 400 whose
+    // body carries rate-limit semantics ("Detected high-frequency non-compliant
+    // requests from you.") instead of a 429. Detected here (AFTER malformed/overflow
+    // detection above, so a genuinely malformed 400 still wins and keeps its #2101
+    // zero-cooldown MODEL_CAPACITY classification), it is fallback-worthy at
+    // connection-cooldown scope so combo can fail over to another target (#4976).
+    if (RATE_LIMIT_TEXT_PATTERNS.some((p) => p.test(errorStr))) {
+      return buildRetryableFallback(RateLimitReason.RATE_LIMIT_EXCEEDED);
     }
 
     // Generic 400 is not account-fallback-worthy. Combo routing may still try a

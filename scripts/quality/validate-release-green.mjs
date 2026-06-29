@@ -12,21 +12,32 @@
 // the real state of the release branch at any time.
 //
 // DESIGN — never blocking to contributors:
-//   • HARD checks (typecheck, lint errors, unit, vitest, db-rules, public-creds,
-//     optionally package-artifact) → a failure here is a real defect; exit 1.
-//   • DRIFT checks (eslint WARNINGS, cognitive-complexity, file-size) → ratchet
-//     drift accrued across the cycle is NOT a contributor's fault; it is reported
-//     and rebaselined by the maintainer at release. Drift NEVER changes the exit
-//     code, so wiring this as a check can never block anyone on drift.
+//   • HARD checks (typecheck, lint errors, db-rules, public-creds, docs-all,
+//     unit, vitest, integration, optionally package-artifact) → a failure here is
+//     a real defect; exit 1.
+//   • DRIFT checks (eslint WARNINGS, cognitive-complexity, file-size, cyclomatic
+//     complexity, dead-code, type-coverage, compression-budget, openapi-coverage,
+//     workflow-lint/zizmor, codeql-ratchet) → ratchet drift accrued across the
+//     cycle is NOT a contributor's fault; it is reported and rebaselined by the
+//     maintainer at release. Drift NEVER changes the exit code, so wiring this as
+//     a check can never block anyone on drift.
+//
+// COMPLETENESS: this mirrors the FULL release-PR gate set (quality-gate +
+// quality-extended + docs-sync-strict + integration), not a subset — and reports
+// EVERY red in one pass (the report is collected, not fail-fast), so the release
+// PR is green on its first CI run instead of revealing reds in ~40-min layers. The
+// only release-PR gates it cannot reproduce locally are GitHub-side CodeQL semantic
+// analysis and SonarQube/SonarCloud (external services).
 //
 // This script DIAGNOSES + REPORTS only (no auto-fix). The fix-to-green
-// orchestration lives in the (future) /green-prs + review-prs flows that call it.
+// orchestration lives in the /green-prs + review-prs flows that call it.
 //
 // Usage:
 //   node scripts/quality/validate-release-green.mjs [--json] [--with-build] [--quick]
 //     --json        emit machine-readable JSON to stdout (report goes to stderr)
 //     --with-build  also run check:pack-artifact (needs a dist/ build — slow)
-//     --quick       skip the slow unit + vitest suites (drift + typecheck + lint only)
+//     --quick       skip the slow unit + vitest + integration suites (drift + fast
+//                   gates only)
 
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -144,6 +155,16 @@ function main() {
     record({ id, label, kind: "hard", ok: code === 0, detail: code === 0 ? "pass" : firstFailureLine(out) });
   };
 
+  // A ratchet command (check:complexity, check:dead-code, …) exits 1 ONLY on a
+  // measured regression and self-skips (exit 0) when its tooling is absent — so a
+  // non-zero exit here is drift to rebaseline at release, never a contributor block.
+  // ALL checks run regardless of earlier failures (the report is collected, not
+  // fail-fast) so one pass surfaces every red instead of revealing them in layers.
+  const driftCmd = (id, label, cmd, cmdArgs, okDetail = "within baseline") => {
+    const { code, out } = run(cmd, cmdArgs);
+    record({ id, label, kind: "drift", ok: code === 0, detail: code === 0 ? okDetail : firstFailureLine(out) });
+  };
+
   process.stderr.write("🔎 Release-green validation (current working tree)\n\n");
 
   hardCmd("typecheck", "Typecheck (core)", npmCmd, ["run", "typecheck:core"]);
@@ -205,9 +226,29 @@ function main() {
     });
   }
 
+  // Remaining quality-gate / quality-extended ratchets that the PR→release
+  // fast-gates skip and that historically surfaced — one at a time, because the
+  // CI Quality Ratchet job is fail-fast — only on the release PR. Running them all
+  // here (drift, never blocking) means a single rebaseline pass at release.
+  driftCmd("complexity", "Cyclomatic complexity (ratchet)", npmCmd, ["run", "check:complexity"]);
+  driftCmd("dead-code", "Dead-code (ratchet)", npmCmd, ["run", "check:dead-code"]);
+  driftCmd("type-coverage", "Type coverage (ratchet)", npmCmd, ["run", "check:type-coverage"]);
+  driftCmd("compression-budget", "Compression budget (ratchet)", npmCmd, ["run", "check:compression-budget"]);
+  driftCmd("openapi-coverage", "OpenAPI route coverage (ratchet)", npmCmd, ["run", "check:openapi-coverage"]);
+  driftCmd("workflow-lint", "Workflow lint (zizmor ratchet)", npmCmd, ["run", "check:workflows", "--", "--ratchet"]);
+  driftCmd("codeql-ratchet", "CodeQL alerts (ratchet)", npmCmd, ["run", "check:codeql-ratchet"]);
+
+  // Docs sync + fabricated-docs (strict) is a real-defect gate (invented env vars /
+  // routes, i18n mirror drift) — HARD.
+  hardCmd("docs-all", "Docs sync + fabricated-docs (strict)", npmCmd, ["run", "check:docs-all"]);
+
   if (!QUICK) {
     hardCmd("unit", "Unit tests (full, CI concurrency)", npmCmd, ["run", "test:unit:ci"]);
     hardCmd("vitest", "Vitest (MCP / autoCombo / cache)", npmCmd, ["run", "test:vitest"]);
+    // Integration tests run ONLY on the release PR full CI (PR→main), so an assertion
+    // regression here (e.g. a contributor flipping a Codex fingerprint key order) is
+    // invisible until release — run them in the pre-flight as a HARD gate.
+    hardCmd("integration", "Integration tests", npmCmd, ["run", "test:integration"]);
   }
   if (WITH_BUILD) {
     hardCmd("pack-artifact", "Package artifact (npm pack policy)", npmCmd, ["run", "check:pack-artifact"]);

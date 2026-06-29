@@ -8,7 +8,7 @@ import { isOpenAIResponsesStoreEnabled } from "@/lib/providers/requestDefaults";
 import { FORMATS } from "../formats.ts";
 import { generateToolCallId } from "../helpers/toolCallHelper.ts";
 import { register } from "../registry.ts";
-
+import { normalizeResponsesInputForChat } from "../../utils/responsesInputNormalization.ts";
 type JsonRecord = Record<string, unknown>;
 const RESPONSES_STORE_MARKER = "_omnirouteResponsesStore";
 const COPILOT_REASONING_SUMMARY_MARKER = "_omnirouteCopilotReasoningSummary";
@@ -166,7 +166,7 @@ export function openaiResponsesToOpenAIRequest(
   // Upstream providers reject messages:[] with "400: at least one message is required".
   // When the client sends input:[] (empty), inject a placeholder user message — mirrors
   // upstream 9router#419 (and the existing empty-string handling elsewhere in this file).
-  const rawInputItems = toArray(root.input);
+  const rawInputItems = normalizeResponsesInputForChat(root.input);
   const inputItems: unknown[] =
     rawInputItems.length === 0
       ? [{ type: "message", role: "user", content: [{ type: "input_text", text: "..." }] }]
@@ -294,6 +294,66 @@ export function openaiResponsesToOpenAIRequest(
       continue;
     }
 
+    if (itemType === "custom_tool_call") {
+      // Codex custom tool call (e.g. apply_patch): `input` is a raw string, not JSON
+      // arguments. Map it onto the assistant tool_calls list as a function call whose
+      // arguments wrap the raw string as { input }, matching the { input: string }
+      // schema the request-side tools normalization advertises for custom tools.
+      const fnName = toString(item.name).trim();
+      if (!fnName) {
+        continue;
+      }
+      if (!currentAssistantMsg) {
+        currentAssistantMsg = {
+          role: "assistant",
+          content: null,
+          tool_calls: [],
+        };
+      }
+      const toolCalls = Array.isArray(currentAssistantMsg.tool_calls)
+        ? currentAssistantMsg.tool_calls
+        : [];
+      toolCalls.push({
+        id: toString(item.call_id),
+        type: "function",
+        function: {
+          name: fnName,
+          arguments: JSON.stringify({ input: item.input }),
+        },
+      });
+      currentAssistantMsg.tool_calls = toolCalls;
+      continue;
+    }
+
+    if (itemType === "custom_tool_call_output") {
+      // Result of a custom tool call — translate the same way as function_call_output.
+      if (currentAssistantMsg) {
+        messages.push(currentAssistantMsg);
+        currentAssistantMsg = null;
+      }
+      if (pendingToolResults.length > 0) {
+        for (const toolResult of pendingToolResults) {
+          messages.push(toolResult);
+        }
+        pendingToolResults = [];
+      }
+      // Unwrap JSON-wrapped output {"output":"...","metadata":{...}} → plain string.
+      const rawOut = typeof item.output === "string" ? item.output : JSON.stringify(item.output);
+      let toolContent = rawOut;
+      try {
+        const parsed = JSON.parse(rawOut);
+        if (parsed && typeof parsed.output === "string") toolContent = parsed.output;
+      } catch {
+        // Not JSON — keep the raw output as the tool content.
+      }
+      messages.push({
+        role: "tool",
+        tool_call_id: toString(item.call_id),
+        content: toolContent,
+      });
+      continue;
+    }
+
     if (itemType === "reasoning") {
       // Skip reasoning items - they are display-only metadata
       continue;
@@ -342,10 +402,11 @@ export function openaiResponsesToOpenAIRequest(
               function: {
                 name: toString(sub.name),
                 description: toString(sub.description),
-                parameters: sub.parameters ?? sub.input_schema ?? {
-                  type: "object",
-                  properties: {},
-                },
+                parameters: sub.parameters ??
+                  sub.input_schema ?? {
+                    type: "object",
+                    properties: {},
+                  },
               },
             }));
         }
@@ -381,10 +442,42 @@ export function openaiResponsesToOpenAIRequest(
             },
           };
         }
+        // Responses API "hosted" tools (e.g. Codex's request_user_input,
+        // { type: "request_user_input" }) carry no explicit `name` and cannot be
+        // represented as a Chat Completions function declaration. Emitting them with
+        // an empty name produces an anonymous functionDeclaration that downstream
+        // providers such as Gemini reject with a 400 ("Invalid function name").
+        // Skip any tool without a non-empty string name; named tools are unaffected.
+        const name = tool.name;
+        if (typeof name !== "string" || name.trim() === "") return [];
+
+        // Custom/freeform tools (e.g. Codex apply_patch with type:"custom" and a grammar
+        // format) carry no `parameters` field. Converting them to an empty function schema
+        // makes downstream models invoke them with {}, but the Codex runtime expects
+        // { input: string }. Normalize all custom tools to a well-defined { input: string }
+        // schema so the model produces valid arguments. (#1007)
+        if (toolType === "custom") {
+          return {
+            type: "function",
+            function: {
+              name: toString(tool.name),
+              description: toString(tool.description),
+              parameters: {
+                type: "object",
+                properties: {
+                  input: { type: "string" },
+                },
+                required: ["input"],
+                additionalProperties: false,
+              },
+              strict: tool.strict,
+            },
+          };
+        }
         return {
           type: "function",
           function: {
-            name: toString(tool.name),
+            name,
             description: toString(tool.description),
             parameters: tool.parameters,
             strict: tool.strict,
@@ -445,21 +538,23 @@ export function openaiResponsesToOpenAIRequest(
   }
   delete result.store;
 
-  // Copilot-only: promote Responses `reasoning.{effort,summary}` to Chat fields
-  // so the downstream openai-to-claude translator can enable extended thinking.
-  // Gated by the UA marker from translateRequest; other clients see `reasoning` dropped.
-  if (
-    credentialRecord._copilotClient === true &&
-    root.reasoning &&
-    typeof root.reasoning === "object" &&
-    !Array.isArray(root.reasoning)
-  ) {
+  // Promote Responses `reasoning.effort` to the Chat-Completions-native
+  // `reasoning_effort` field so OpenAI-family upstreams (and the downstream
+  // openai-to-claude translator's extended-thinking path) keep the hint when a
+  // Responses client is routed across formats. The Copilot-only `summary` ->
+  // Claude summarized-thinking marker stays behind the UA gate from
+  // translateRequest because it is Copilot-specific glue, not an OpenAI-native
+  // field. Ported from upstream PR decolua/9router#1817 (ryanngit).
+  if (root.reasoning && typeof root.reasoning === "object" && !Array.isArray(root.reasoning)) {
     const reasoningRec = toRecord(root.reasoning);
     const effort = toString(reasoningRec.effort);
     if (effort && result.reasoning_effort === undefined) {
       result.reasoning_effort = normalizeResponsesReasoningEffort(effort);
     }
-    if (shouldRequestClaudeSummarizedThinking(reasoningRec.summary)) {
+    if (
+      credentialRecord._copilotClient === true &&
+      shouldRequestClaudeSummarizedThinking(reasoningRec.summary)
+    ) {
       result[COPILOT_REASONING_SUMMARY_MARKER] = "summarized";
     }
   }
@@ -537,6 +632,19 @@ export function openaiToOpenAIResponsesRequest(
                   if (typeof imgUrl === "object" && imgUrl?.detail !== undefined) {
                     imgResult.detail = imgUrl.detail;
                   }
+                  return imgResult;
+                }
+                if (
+                  contentItem.type === "image" &&
+                  typeof contentItem.image === "string" &&
+                  /^data:([^;]+);base64,(.+)$/.test(contentItem.image)
+                ) {
+                  // AI SDK-style image part: { type: "image", image: "data:...;base64,..." } (#1330)
+                  const imgResult: JsonRecord = {
+                    type: "input_image",
+                    image_url: contentItem.image,
+                    detail: contentItem.detail !== undefined ? contentItem.detail : "auto",
+                  };
                   return imgResult;
                 }
                 if (contentItem.type === "file" || contentItem.type === "document") {
@@ -696,9 +804,6 @@ export function openaiToOpenAIResponsesRequest(
       if (tool.type === "function") {
         const fn = toRecord(tool.function);
         const name = toString(fn.name);
-        if (name === "shell") {
-          return { type: "local_shell" };
-        }
         return {
           type: "function",
           name,
@@ -719,11 +824,7 @@ export function openaiToOpenAIResponsesRequest(
       const tc = toRecord(root.tool_choice);
       if (tc.type === "function" && tc.function) {
         const fn = toRecord(tc.function);
-        if (toString(fn.name) === "shell") {
-          result.tool_choice = { type: "local_shell" };
-        } else {
-          result.tool_choice = { type: "function", name: fn.name };
-        }
+        result.tool_choice = { type: "function", name: fn.name };
       } else {
         result.tool_choice = root.tool_choice;
       }

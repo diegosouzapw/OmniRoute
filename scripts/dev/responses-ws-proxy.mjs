@@ -616,7 +616,7 @@ class ResponsesWsSession {
       };
 
       const upstream = await this.wsFactory(prepared.json.upstreamUrl, {
-        browser: prepared.json.browser || "chrome_142",
+        browser: prepared.json.browser || "chrome_149",
         os: prepared.json.os || "windows",
         headers: prepared.json.headers || {},
       });

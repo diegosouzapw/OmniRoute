@@ -13,10 +13,7 @@ import {
   GITHUB_COPILOT_CHAT_USER_AGENT,
   GITHUB_COPILOT_EDITOR_VERSION,
 } from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
-import {
-  resolvePublicCred,
-  resolvePublicCredMulti,
-} from "@omniroute/open-sse/utils/publicCreds.ts";
+import { resolvePublicCred } from "@omniroute/open-sse/utils/publicCreds.ts";
 import { buildGitLabOAuthEndpoints, GITLAB_DUO_DEFAULT_BASE_URL } from "../gitlab";
 
 /**
@@ -74,28 +71,6 @@ export const CODEX_CONFIG = {
   },
 };
 
-// Gemini (Google) OAuth Configuration (Standard OAuth2)
-// clientId/clientSecret are public values shipped in the Gemini CLI binary;
-// resolved through resolvePublicCred so they don't appear as literals here.
-export const GEMINI_CONFIG = {
-  clientId: resolvePublicCredMulti("gemini_id", [
-    "GEMINI_CLI_OAUTH_CLIENT_ID",
-    "GEMINI_OAUTH_CLIENT_ID",
-  ]),
-  clientSecret: resolvePublicCredMulti("gemini_alt", [
-    "GEMINI_CLI_OAUTH_CLIENT_SECRET",
-    "GEMINI_OAUTH_CLIENT_SECRET",
-  ]),
-  authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
-  tokenUrl: "https://oauth2.googleapis.com/token",
-  userInfoUrl: "https://www.googleapis.com/oauth2/v1/userinfo",
-  scopes: [
-    "https://www.googleapis.com/auth/cloud-platform",
-    "https://www.googleapis.com/auth/userinfo.email",
-    "https://www.googleapis.com/auth/userinfo.profile",
-  ],
-};
-
 // Qwen OAuth Configuration (Device Code Flow with PKCE)
 export const QWEN_CONFIG = {
   clientId: resolvePublicCred("qwen_id", "QWEN_OAUTH_CLIENT_ID"),
@@ -131,6 +106,26 @@ export const QODER_CONFIG = {
   },
 };
 
+// CodeBuddy CN (Tencent — copilot.tencent.com) OAuth Configuration
+// (Custom Device-Auth Flow: POST stateUrl → open authUrl → GET pollUrl?state=).
+// No client_id/secret — the upstream CLI ships none.
+export const CODEBUDDY_CN_CONFIG = {
+  baseUrl: "https://copilot.tencent.com",
+  stateUrl: "https://copilot.tencent.com/v2/plugin/auth/state",
+  tokenUrl: "https://copilot.tencent.com/v2/plugin/auth/token",
+  refreshUrl: "https://copilot.tencent.com/v2/plugin/auth/token/refresh",
+  userAgent: "CLI/2.63.2 CodeBuddy/2.63.2",
+  platform: "CLI",
+  pollInterval: 5000,
+};
+
+// Grok Build (xAI) OAuth Configuration (Import-Token Flow with refresh)
+// Public client_id resolved through resolvePublicCred so it is never a literal.
+export const GROK_CLI_CONFIG = {
+  clientId: resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID"),
+  tokenUrl: "https://auth.x.ai/oauth2/token",
+};
+
 // Kimi Coding OAuth Configuration (Device Code Flow)
 export const KIMI_CODING_CONFIG = {
   clientId: resolvePublicCred("kimi_id", "KIMI_CODING_OAUTH_CLIENT_ID"),
@@ -163,8 +158,10 @@ export const ANTIGRAVITY_CONFIG = {
   authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
   tokenUrl: "https://oauth2.googleapis.com/token",
   userInfoUrl: "https://www.googleapis.com/oauth2/v1/userinfo",
+  // No "openid" scope — the working 9router flow requests only the Cloud Code /
+  // userinfo scopes below. "openid" (with PKCE) routed Google into the hanging
+  // `firstparty/nativeapp` consent. Match 9router exactly (antigravity login fix).
   scopes: [
-    "openid",
     "https://www.googleapis.com/auth/cloud-platform",
     "https://www.googleapis.com/auth/userinfo.email",
     "https://www.googleapis.com/auth/userinfo.profile",
@@ -261,6 +258,22 @@ export const GITLAB_DUO_CONFIG = {
   scope: "ai_features read_user",
   codeChallengeMethod: "S256",
 };
+
+// AWS region allowlist — prevents SSRF via region injection into upstream URLs
+// (GHSA-6mwv-4mrm-5p3m). Region values flow user-supplied through the kiro OAuth
+// import surfaces (request body, providerSpecificData) and are interpolated into
+// URLs like `https://oidc.${region}.amazonaws.com/...`. Without this guard, a
+// region like "127.0.0.1" or "evil.com" would redirect the proxy's outbound
+// fetch to an attacker-controlled host. Canonical AWS region shape only:
+// two letters, dash, one-or-more letters, dash, one-or-two digits.
+export const AWS_REGION_PATTERN = /^[a-z]{2}-[a-z]+-\d{1,2}$/;
+
+export function assertValidAwsRegion(region: string): string {
+  if (typeof region !== "string" || !AWS_REGION_PATTERN.test(region)) {
+    throw new Error("Invalid region");
+  }
+  return region;
+}
 
 // Kiro OAuth Configuration
 // Supports multiple auth methods:
@@ -374,7 +387,7 @@ export const TRAE_CONFIG = {
 //
 //   Phase 2 will reintroduce browser login via Firebase OAuth + RegisterUser
 //   (ported from fendoushaonian/WindSurf-gRPC-API).
-//   Spec: docs/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
+//   Spec: _tasks/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
 //
 // Active fields:
 //   - inferenceUrl       → used by WindsurfExecutor (open-sse/executors/windsurf.ts)
@@ -423,7 +436,7 @@ export const OAUTH_TIMEOUT = 300000;
 export const PROVIDERS = {
   CLAUDE: "claude",
   CODEX: "codex",
-  GEMINI: "gemini-cli",
+  GEMINI: "gemini",
   QWEN: "qwen",
   QODER: "qoder",
   ANTIGRAVITY: "antigravity",
@@ -440,4 +453,6 @@ export const PROVIDERS = {
   WINDSURF: "windsurf",
   DEVIN_CLI: "devin-cli",
   TRAE: "trae",
+  CODEBUDDY_CN: "codebuddy-cn",
+  GROK_CLI: "grok-cli",
 };

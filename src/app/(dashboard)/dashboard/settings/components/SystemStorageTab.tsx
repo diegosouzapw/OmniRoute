@@ -1030,18 +1030,18 @@ export default function SystemStorageTab() {
               />
             </div>
             <div>
-              <label className="block text-xs text-text-muted mb-1">
-                Cache Size (KB, negative = % of RAM)
-              </label>
+              <label className="block text-xs text-text-muted mb-1">Cache Size (KB)</label>
               <input
                 type="number"
+                min="1"
+                step="1024"
                 value={dbSettings.optimization.cacheSize}
                 onChange={(e) =>
                   setDbSettings({
                     ...dbSettings,
                     optimization: {
                       ...dbSettings.optimization,
-                      cacheSize: parseInt(e.target.value) || -2000,
+                      cacheSize: parseInt(e.target.value) || 16384,
                     },
                   })
                 }

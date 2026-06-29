@@ -1,3 +1,5 @@
+import { lastCommandSegment } from "./splitCompositeCommand.ts";
+
 export interface CommandDetectionResult {
   type: string;
   command: string | null;
@@ -412,14 +414,15 @@ export function detectCommandFromText(text: string): string | null {
     const trimmed = line.trim().replace(/^\$\s+/, "");
     if (!trimmed) continue;
     if (COMMAND_PREFIX_PATTERN.test(trimmed)) {
-      return trimmed;
+      return lastCommandSegment(trimmed);
     }
   }
   return null;
 }
 
 export function detectCommandType(text: string, command?: string | null): CommandDetectionResult {
-  const detectedCommand = command?.trim() || detectCommandFromText(text);
+  const detectedCommand =
+    lastCommandSegment(command?.trim() || detectCommandFromText(text) || "") || null;
   let best: CommandDetectionResult | null = null;
 
   for (const detector of DETECTORS) {

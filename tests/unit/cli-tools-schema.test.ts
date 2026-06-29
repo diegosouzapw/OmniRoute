@@ -1,16 +1,40 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-test("CLI_TOOLS registry contains all expected tools (plan 14 — 29 total)", async () => {
+test("CLI_TOOLS registry contains all expected tools (plan 14 — 28 total)", async () => {
   const { CLI_TOOLS } = await import("../../src/shared/constants/cliTools.ts");
   // windsurf and amp removed per plan 14 D17 (MITM backlog plan 11)
-  // 10 new entries added: roo, jcode, deepseek-tui, smelt, pi, aider, forge,
-  //   gemini-cli, cursor-cli, goose, interpreter, warp, agent-deck (+ hermes-agent already existed)
+  // New entries added: roo, jcode, deepseek-tui, smelt, pi, aider, forge,
+  //   cursor-cli, goose, interpreter, warp, agent-deck (+ hermes-agent already existed)
   const expected = [
-    "claude", "codex", "droid", "openclaw", "cursor", "cline", "kilo", "continue",
-    "antigravity", "copilot", "opencode", "hermes", "hermes-agent", "kiro", "qwen", "custom",
-    "aider", "forge", "gemini-cli", "cursor-cli", "roo", "jcode", "deepseek-tui", "smelt", "pi",
-    "goose", "interpreter", "warp", "agent-deck",
+    "claude",
+    "codex",
+    "droid",
+    "openclaw",
+    "cursor",
+    "cline",
+    "kilo",
+    "continue",
+    "antigravity",
+    "copilot",
+    "opencode",
+    "hermes",
+    "hermes-agent",
+    "kiro",
+    "qwen",
+    "custom",
+    "aider",
+    "forge",
+    "cursor-cli",
+    "roo",
+    "jcode",
+    "deepseek-tui",
+    "smelt",
+    "pi",
+    "goose",
+    "interpreter",
+    "warp",
+    "agent-deck",
   ];
   for (const id of expected) {
     assert.ok(id in CLI_TOOLS, `Missing tool: ${id}`);

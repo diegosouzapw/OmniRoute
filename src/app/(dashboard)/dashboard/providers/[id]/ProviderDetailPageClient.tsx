@@ -71,6 +71,7 @@ export default function ProviderDetailPageClient() {
   const [codexCliGuideOpen, setCodexCliGuideOpen] = useState(false);
   const [importClaudeModalOpen, setImportClaudeModalOpen] = useState(false);
   const [importGeminiModalOpen, setImportGeminiModalOpen] = useState(false);
+  const [importGrokCliModalOpen, setImportGrokCliModalOpen] = useState(false);
   const isOpenAICompatible = isOpenAICompatibleProvider(providerId);
   const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
   const isCommandCode = providerId === "command-code";
@@ -359,12 +360,6 @@ export default function ProviderDetailPageClient() {
     exportingClaudeAuthId,
     handleApplyClaudeAuthLocal,
     handleExportClaudeAuthFile,
-    applyingGeminiAuthId,
-    applyGeminiModalConnectionId,
-    setApplyGeminiModalConnectionId,
-    exportingGeminiAuthId,
-    handleApplyGeminiAuthLocal,
-    handleExportGeminiAuthFile,
   } = useAuthFileHandlers({ parseApiErrorMessage, getAttachmentFilename, notify, t });
 
   // Phase 1e: compat-state derivations
@@ -520,6 +515,7 @@ export default function ProviderDetailPageClient() {
             onOpenImportCodex={() => setImportCodexModalOpen(true)}
             onOpenImportClaude={() => setImportClaudeModalOpen(true)}
             onOpenImportGemini={() => setImportGeminiModalOpen(true)}
+            onOpenImportGrokCli={() => setImportGrokCliModalOpen(true)}
             t={t}
           />
 
@@ -539,6 +535,7 @@ export default function ProviderDetailPageClient() {
               onOpenImportCodex={() => setImportCodexModalOpen(true)}
               onOpenImportClaude={() => setImportClaudeModalOpen(true)}
               onOpenImportGemini={() => setImportGeminiModalOpen(true)}
+              onOpenImportGrokCli={() => setImportGrokCliModalOpen(true)}
               t={t}
             />
           ) : (
@@ -565,8 +562,6 @@ export default function ProviderDetailPageClient() {
               exportingCodexAuthId={exportingCodexAuthId}
               applyingClaudeAuthId={applyingClaudeAuthId}
               exportingClaudeAuthId={exportingClaudeAuthId}
-              applyingGeminiAuthId={applyingGeminiAuthId}
-              exportingGeminiAuthId={exportingGeminiAuthId}
               emailsVisible={emailsVisible}
               setSelectedIds={setSelectedIds}
               setPage={setPage}
@@ -599,8 +594,6 @@ export default function ProviderDetailPageClient() {
               onExportCodexAuthFile={handleExportCodexAuthFile}
               onOpenApplyClaudeModal={setApplyClaudeModalConnectionId}
               onExportClaudeAuthFile={handleExportClaudeAuthFile}
-              onOpenApplyGeminiModal={setApplyGeminiModalConnectionId}
-              onExportGeminiAuthFile={handleExportGeminiAuthFile}
               gateConnectionFlow={gateConnectionFlow}
               t={t}
             />
@@ -753,12 +746,8 @@ export default function ProviderDetailPageClient() {
         handleApplyClaudeAuthLocal={handleApplyClaudeAuthLocal}
         importClaudeModalOpen={importClaudeModalOpen}
         setImportClaudeModalOpen={setImportClaudeModalOpen}
-        applyGeminiModalConnectionId={applyGeminiModalConnectionId}
-        setApplyGeminiModalConnectionId={setApplyGeminiModalConnectionId}
-        applyingGeminiAuthId={applyingGeminiAuthId}
-        handleApplyGeminiAuthLocal={handleApplyGeminiAuthLocal}
-        importGeminiModalOpen={importGeminiModalOpen}
-        setImportGeminiModalOpen={setImportGeminiModalOpen}
+        importGrokCliModalOpen={importGrokCliModalOpen}
+        setImportGrokCliModalOpen={setImportGrokCliModalOpen}
         batchTestResults={batchTestResults}
         setBatchTestResults={setBatchTestResults}
         emailsVisible={emailsVisible}

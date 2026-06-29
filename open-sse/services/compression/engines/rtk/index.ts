@@ -1,7 +1,8 @@
 import { createCompressionStats, estimateCompressionTokens } from "../../stats.ts";
 import { DEFAULT_RTK_CONFIG, type CompressionResult, type RtkConfig } from "../../types.ts";
-import type { CompressionEngine, EngineConfigField, EngineValidationResult } from "../types.ts";
+import type { CompressionEngine } from "../types.ts";
 import { detectCommandType } from "./commandDetector.ts";
+import { RTK_SCHEMA, validateRtkEngineConfig } from "./configSchema.ts";
 import { deduplicateRepeatedLines } from "./deduplicator.ts";
 import { groupSimilarLines } from "./grouper.ts";
 import { matchRtkFilter } from "./filterLoader.ts";
@@ -9,6 +10,7 @@ import { applyLineFilter } from "./lineFilter.ts";
 import { smartTruncate } from "./smartTruncate.ts";
 import { normalizeCodeLanguage, stripCode } from "./codeStripper.ts";
 import { maybePersistRtkRawOutput, type RtkRawOutputPointer } from "./rawOutput.ts";
+import { applyRenderer } from "./renderers/index.ts";
 import { isTextBlock } from "../../messageContent.ts";
 import { adaptBodyForCompression } from "../../bodyAdapter.ts";
 import { isAnthropicToolResultBlock } from "../../toolResultCompressor.ts";
@@ -60,115 +62,6 @@ function resolveToolMeta(
     return { command: meta.command, skipFilters: false };
   }
   return { command: null, skipFilters: true };
-}
-
-const RTK_SCHEMA: EngineConfigField[] = [
-  {
-    key: "intensity",
-    type: "select",
-    label: "Intensity",
-    defaultValue: DEFAULT_RTK_CONFIG.intensity,
-    options: [
-      { value: "minimal", label: "minimal" },
-      { value: "standard", label: "standard" },
-      { value: "aggressive", label: "aggressive" },
-    ],
-  },
-  {
-    key: "applyToToolResults",
-    type: "boolean",
-    label: "Apply to tool results",
-    defaultValue: DEFAULT_RTK_CONFIG.applyToToolResults,
-  },
-  {
-    key: "applyToAssistantMessages",
-    type: "boolean",
-    label: "Apply to assistant messages",
-    defaultValue: DEFAULT_RTK_CONFIG.applyToAssistantMessages,
-  },
-  {
-    key: "applyToCodeBlocks",
-    type: "boolean",
-    label: "Apply to code blocks",
-    defaultValue: DEFAULT_RTK_CONFIG.applyToCodeBlocks,
-  },
-  {
-    key: "maxLinesPerResult",
-    type: "number",
-    label: "Max lines per result",
-    defaultValue: DEFAULT_RTK_CONFIG.maxLinesPerResult,
-    min: 0,
-    max: 5000,
-  },
-  {
-    key: "maxCharsPerResult",
-    type: "number",
-    label: "Max chars per result",
-    defaultValue: DEFAULT_RTK_CONFIG.maxCharsPerResult,
-    min: 0,
-    max: 500000,
-  },
-  {
-    key: "deduplicateThreshold",
-    type: "number",
-    label: "Deduplicate threshold",
-    defaultValue: DEFAULT_RTK_CONFIG.deduplicateThreshold,
-    min: 2,
-    max: 100,
-  },
-  {
-    key: "rawOutputRetention",
-    type: "select",
-    label: "Raw output retention",
-    defaultValue: DEFAULT_RTK_CONFIG.rawOutputRetention,
-    options: [
-      { value: "never", label: "never" },
-      { value: "failures", label: "failures" },
-      { value: "always", label: "always" },
-    ],
-  },
-];
-
-function validateRtkEngineConfig(config: Record<string, unknown>): EngineValidationResult {
-  const errors: string[] = [];
-  if (
-    config.intensity !== undefined &&
-    config.intensity !== "minimal" &&
-    config.intensity !== "standard" &&
-    config.intensity !== "aggressive"
-  ) {
-    errors.push("intensity must be minimal, standard, or aggressive");
-  }
-  for (const key of [
-    "enabled",
-    "applyToToolResults",
-    "applyToAssistantMessages",
-    "applyToCodeBlocks",
-  ]) {
-    if (config[key] !== undefined && typeof config[key] !== "boolean") {
-      errors.push(`${key} must be a boolean`);
-    }
-  }
-  for (const key of ["maxLinesPerResult", "maxCharsPerResult", "deduplicateThreshold"]) {
-    if (config[key] !== undefined && (typeof config[key] !== "number" || config[key] < 0)) {
-      errors.push(`${key} must be a non-negative number`);
-    }
-  }
-  if (config.enabledFilters !== undefined && !Array.isArray(config.enabledFilters)) {
-    errors.push("enabledFilters must be an array");
-  }
-  if (config.disabledFilters !== undefined && !Array.isArray(config.disabledFilters)) {
-    errors.push("disabledFilters must be an array");
-  }
-  if (
-    config.rawOutputRetention !== undefined &&
-    config.rawOutputRetention !== "never" &&
-    config.rawOutputRetention !== "failures" &&
-    config.rawOutputRetention !== "always"
-  ) {
-    errors.push("rawOutputRetention must be never, failures, or always");
-  }
-  return { valid: errors.length === 0, errors };
 }
 
 export interface RtkProcessResult {
@@ -331,8 +224,21 @@ export function processRtkText(
   let result = text;
 
   const detection = detectCommandType(text, options.command);
+  // #4559: A document/file read (e.g. a Read tool returning a ~147-line code/prose
+  // file) is NOT repetitive command output, but the generic-output *fallback* filter
+  // and the final line/char hard-cap (designed for npm/make/docker logs) silently drop
+  // its middle. Treat content as a document read when RTK recognized no command,
+  // classified it "unknown", and it carries none of the generic error markers the
+  // generic-output filter keys on — then skip the truncating fallbacks. Genuine logs
+  // detect as a known command type (or carry a command / error markers), so RTK's
+  // value on those is preserved.
+  const hasGenericErrorMarkers = /Error:|Exception:|Traceback \(most recent call last\):/.test(
+    text
+  );
+  const isDocumentLikeRead =
+    detection.type === "unknown" && !detection.command && !hasGenericErrorMarkers;
   let matchedFilterPatterns: string[] = [];
-  if (!options.skipFilters) {
+  if (!options.skipFilters && !isDocumentLikeRead) {
     const filter = matchRtkFilter(text, detection.command, {
       customFiltersEnabled: config.customFiltersEnabled,
       trustProjectFilters: config.trustProjectFilters,
@@ -350,6 +256,20 @@ export function processRtkText(
         }
         matchedFilterPatterns = filter.priorityPatterns;
       }
+    }
+  }
+
+  // #10: semantic renderers — opt-in via enableRenderers flag (default OFF), fail-open
+  if (config.enableRenderers) {
+    try {
+      const rendered = applyRenderer(result, detection, config);
+      if (rendered.changed) {
+        result = rendered.text;
+        techniquesUsed.push(`rtk-render:${rendered.renderer}`);
+        rulesApplied.push(`rtk:render:${rendered.renderer}`);
+      }
+    } catch {
+      // fail-open: renderer never brings down the request
     }
   }
 
@@ -403,13 +323,17 @@ export function processRtkText(
       return [];
     }
   });
-  const truncated = smartTruncate(result, {
-    maxLines: effectiveMaxLines(config.maxLinesPerResult, config.intensity),
-    maxChars: config.maxCharsPerResult,
-    preserveHead: config.intensity === "aggressive" ? 16 : 24,
-    preserveTail: config.intensity === "aggressive" ? 16 : 24,
-    priorityPatterns: [...defaultPriorityPatterns, ...filterPriorityPatterns],
-  });
+  // #4559: skip the generic line/char hard-cap for document/file reads (see
+  // isDocumentLikeRead above) so the middle of a code/prose read is not dropped.
+  const truncated = isDocumentLikeRead
+    ? { text: result, truncated: false, droppedLines: 0 }
+    : smartTruncate(result, {
+        maxLines: effectiveMaxLines(config.maxLinesPerResult, config.intensity),
+        maxChars: config.maxCharsPerResult,
+        preserveHead: config.intensity === "aggressive" ? 16 : 24,
+        preserveTail: config.intensity === "aggressive" ? 16 : 24,
+        priorityPatterns: [...defaultPriorityPatterns, ...filterPriorityPatterns],
+      });
   if (truncated.truncated) {
     result = truncated.text;
     techniquesUsed.push("rtk-truncate");

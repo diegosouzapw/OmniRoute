@@ -25,6 +25,28 @@ import {
 } from "../../lib/db/domainState";
 import type { FailureKind } from "./classify429";
 
+/**
+ * #4602 — Detect a LOCAL stream-lifecycle error that must NOT count as a
+ * whole-provider failure. The Codex WebSocket→SSE bridge can throw a bare
+ * `Invalid state: Controller is already closed` (an enqueue-after-close on our
+ * own ReadableStream controller). It carries no `statusCode`, so it defaults to
+ * HTTP 502 and would otherwise trip the provider circuit breaker — blacklisting
+ * the entire Codex provider for a bug that lives in our bridge, not upstream.
+ * Use this with the breaker's `isFailure` option so the bridge error is ignored
+ * by the provider breaker while genuine upstream 5xx failures still count.
+ */
+export function isLocalStreamLifecycleError(error: unknown): boolean {
+  if (!error) return false;
+  const message =
+    typeof error === "string"
+      ? error
+      : typeof (error as { message?: unknown }).message === "string"
+        ? ((error as { message: string }).message as string)
+        : "";
+  if (!message) return false;
+  return /controller is already closed/i.test(message);
+}
+
 export const STATE = {
   CLOSED: "CLOSED",
   DEGRADED: "DEGRADED",

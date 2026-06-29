@@ -5,7 +5,8 @@ import path from "node:path";
 import os from "node:os";
 
 // Dynamic import to pick up ESM module
-const { parseOpenapi, getEndpointsForArea } = await import("../../src/lib/agentSkills/openapiParser.ts");
+const { parseOpenapi, getEndpointsForArea } =
+  await import("../../src/lib/agentSkills/openapiParser.ts");
 
 // ─── Fixture helpers ──────────────────────────────────────────────────────────
 
@@ -15,7 +16,9 @@ const { parseOpenapi, getEndpointsForArea } = await import("../../src/lib/agentS
  */
 function withFixtureOpenapi(yamlContent: string): { cleanup: () => void } {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-openapi-test-"));
-  const docsDir = path.join(tmpDir, "docs", "reference");
+  // openapiParser reads docs/openapi.yaml (consolidated location since #4781,
+  // previously docs/reference/openapi.yaml) — the fixture must mirror that path.
+  const docsDir = path.join(tmpDir, "docs");
   fs.mkdirSync(docsDir, { recursive: true });
   fs.writeFileSync(path.join(docsDir, "openapi.yaml"), yamlContent, "utf-8");
 
@@ -118,7 +121,7 @@ test("parseOpenapi() groups /api/providers/* under 'providers' area", () => {
     assert.ok(providerOps, "Expected 'providers' area to exist");
     assert.ok(
       providerOps!.length >= 5,
-      `Expected at least 5 provider endpoints, got ${providerOps!.length}`,
+      `Expected at least 5 provider endpoints, got ${providerOps!.length}`
     );
 
     const paths = providerOps!.map((op) => op.path);
@@ -150,11 +153,11 @@ test("parseOpenapi() groups /api/v1/* under 'inference' area", () => {
     assert.ok(inferenceOps, "Expected 'inference' area to exist");
     assert.ok(
       inferenceOps!.length >= 1,
-      `Expected at least 1 inference endpoint, got ${inferenceOps!.length}`,
+      `Expected at least 1 inference endpoint, got ${inferenceOps!.length}`
     );
     assert.ok(
       inferenceOps!.some((op) => op.path === "/api/v1/chat/completions"),
-      "Expected /api/v1/chat/completions in inference area",
+      "Expected /api/v1/chat/completions in inference area"
     );
   } finally {
     cleanup();
@@ -184,7 +187,7 @@ test("parseOpenapi() throws if openapi.yaml is missing", () => {
     assert.throws(
       () => parseOpenapi(),
       /openapiParser: could not read/,
-      "Expected error when openapi.yaml is missing",
+      "Expected error when openapi.yaml is missing"
     );
   } finally {
     process.chdir(originalCwd);
@@ -225,9 +228,9 @@ test(
     assert.ok(providerOps, "Expected 'providers' area in real OpenAPI spec");
     assert.ok(
       providerOps!.length >= 5,
-      `Expected ≥5 provider endpoints in real spec, got ${providerOps!.length}`,
+      `Expected ≥5 provider endpoints in real spec, got ${providerOps!.length}`
     );
-  },
+  }
 );
 
 test(
@@ -237,11 +240,11 @@ test(
     const endpoints = getEndpointsForArea("providers");
     assert.ok(
       endpoints.length >= 5,
-      `Expected ≥5 provider endpoint strings, got ${endpoints.length}: ${endpoints.join(", ")}`,
+      `Expected ≥5 provider endpoint strings, got ${endpoints.length}: ${endpoints.join(", ")}`
     );
     // Each entry should match "METHOD /path"
     for (const ep of endpoints) {
       assert.match(ep, /^[A-Z]+ \//, `Endpoint "${ep}" does not match METHOD /path format`);
     }
-  },
+  }
 );
