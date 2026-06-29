@@ -418,3 +418,12 @@ describe("featureFlagUpdateSchema validation", () => {
     );
   });
 });
+
+describe("settings schema public surface", () => {
+  it("uses databaseSettingsSchema as the canonical database settings export", async () => {
+    const settingsSchemas = await import("../../src/shared/validation/settingsSchemas.ts");
+    assert.equal("DatabaseSettingsSchema" in settingsSchemas, false);
+    assert.equal("featureFlagUpdateSchema" in settingsSchemas, false);
+    assert.equal(typeof settingsSchemas.databaseSettingsSchema.safeParse, "function");
+  });
+});
