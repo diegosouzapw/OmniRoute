@@ -159,6 +159,12 @@ export const CREDITS_EXHAUSTED_SIGNALS = [
   "out of credits",
   "payment required",
   "free tier of the model has been exhausted",
+  // #5239: providers (e.g. DeepSeek/GLM-style) return "Insufficient account balance"
+  // on a depleted key. 402 is already terminalized by status, but catch non-402
+  // out-of-credit bodies here too.
+  "insufficient balance",
+  "insufficient_balance",
+  "insufficient account balance",
 ];
 
 // T11: Signals that indicate OAuth token is invalid/expired (not permanent deactivation)

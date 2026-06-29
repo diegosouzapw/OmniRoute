@@ -103,8 +103,8 @@ export function ModelVisibilityToolbar({
   t,
   filterValue,
   onFilterChange,
-  activeCount: _activeCount,
-  totalCount: _totalCount,
+  activeCount,
+  totalCount,
   onSelectAll,
   onDeselectAll,
   selectAllDisabled,
@@ -245,6 +245,12 @@ export function ModelVisibilityToolbar({
         <span className="material-symbols-outlined text-[16px]">visibility_off</span>
         <span>{providerText(t, "hideAllModels", "Hide all")}</span>
       </button>
+      <span className="whitespace-nowrap text-xs text-text-muted">
+        {providerText(t, "modelsActiveCount", "{active}/{total} active", {
+          active: activeCount,
+          total: totalCount,
+        })}
+      </span>
     </div>
   );
 }

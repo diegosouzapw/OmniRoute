@@ -190,6 +190,29 @@ export function recordKeyFailure(connectionId: string, keyId: string): KeyHealth
 }
 
 /**
+ * Record a terminal failure for a key — e.g. HTTP 402 "Insufficient account
+ * balance". Unlike recordKeyFailure() (which only invalidates after
+ * FAILURE_THRESHOLD consecutive failures), this marks the key "invalid"
+ * immediately in a single call, because the condition will not recover
+ * mid-session (the depleted key must not be returned by the rotator again
+ * until credits are added / an operator resets it).
+ *
+ * @param connectionId - Connection scope for health state isolation
+ * @param keyId - Key identifier ("primary" | "extra_0" | ...)
+ * @returns Updated health status
+ */
+export function recordKeyTerminal(connectionId: string, keyId: string): KeyHealth {
+  const health = getOrCreateHealth(connectionId, keyId);
+  health.failures = Math.max(health.failures + 1, FAILURE_THRESHOLD);
+  health.totalRequests++;
+  health.totalFailures++;
+  health.lastFailure = new Date().toISOString();
+  health.status = "invalid";
+
+  return { ...health };
+}
+
+/**
  * Record a successful authentication attempt for a key.
  * Resets failure count and marks as "active".
  *
