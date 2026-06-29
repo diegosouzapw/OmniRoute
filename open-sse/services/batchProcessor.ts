@@ -11,6 +11,7 @@ import {
   listFiles,
   updateBatch,
 } from "@/lib/localDb";
+import { dispatch } from "@/lib/batches/dispatch";
 import type { SupportedBatchEndpoint } from "@/shared/constants/batchEndpoints";
 import { DEFAULT_BATCH_EXPIRATION_SECONDS } from "@/shared/constants/batch";
 
@@ -421,9 +422,7 @@ async function processSingleItemWithRetry(item: BatchRequestItem, apiKey: string
 async function processSingleItem(item: BatchRequestItem, apiKey: string) {
   const body = buildRequestBody(item);
 
-  // Lazy import to avoid webpack tracing 7 route handlers during instrumentation compilation.
-  const { dispatch: batchDispatch } = await import("@/lib/batches/dispatch");
-  return await batchDispatch.dispatchBatchApiRequest({
+  return await dispatch.dispatchBatchApiRequest({
     endpoint: item.url,
     body,
     apiKey,

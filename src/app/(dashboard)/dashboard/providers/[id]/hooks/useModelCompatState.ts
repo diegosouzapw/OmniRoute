@@ -9,7 +9,6 @@
  * Leaf module: imports ONLY from providerPageHelpers and React.
  * No import from ProviderDetailPageClient → zero cycle risk.
  */
-"use client";
 import { useMemo, useCallback } from "react";
 import { MODEL_COMPAT_PROTOCOL_KEYS } from "@/shared/constants/modelCompat";
 import {

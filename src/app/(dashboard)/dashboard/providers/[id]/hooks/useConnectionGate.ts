@@ -1,4 +1,3 @@
-"use client";
 // Phase 1t.3 extraction — Issue #3501
 // Encapsulates gateConnectionFlow + risk-notice modal state + confirm/cancel handlers.
 import { useState, useRef, useCallback } from "react";

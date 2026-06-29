@@ -1,4 +1,3 @@
-"use client";
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";

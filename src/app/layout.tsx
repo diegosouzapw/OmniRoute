@@ -86,14 +86,6 @@ export default async function RootLayout({ children }) {
                   };
                 }
               }
-              window.addEventListener('unhandledrejection', function(e) {
-                if (e.reason && e.reason.name === 'ChunkLoadError' && !sessionStorage.getItem('omniroute:cr')) {
-                  e.preventDefault();
-                  sessionStorage.setItem('omniroute:cr', '1');
-                  location.href = '/?cr=' + Date.now();
-                }
-              });
-              sessionStorage.removeItem('omniroute:cr');
               try {
                 const stored = localStorage.getItem('theme');
                 const parsed = stored ? JSON.parse(stored) : null;

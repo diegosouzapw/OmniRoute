@@ -5,7 +5,6 @@
  */
 "use client";
 
-"use client";
 import { useState, useEffect, useRef } from "react";
 import { Card } from "@/shared/components";
 
