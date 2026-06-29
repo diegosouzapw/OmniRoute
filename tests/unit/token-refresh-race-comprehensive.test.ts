@@ -87,6 +87,13 @@ test("Fix C reverted: codexAuthImport does NOT refresh tokens on import (avoids 
   );
 });
 
+test("codexAuthImport public surface keeps only consumed auth import types", async () => {
+  const src = await read("src/lib/oauth/utils/codexAuthImport.ts");
+  assert.doesNotMatch(src, /export interface CodexAuthFileInput\b/);
+  assert.match(src, /export interface ParsedCodexAuth\b/);
+  assert.match(src, /export interface CreateConnectionOptions\b/);
+});
+
 test("Fix D: staleness fallback returns absolute expiresAt, not raw expiresIn", async () => {
   const src = await read("open-sse/services/tokenRefresh.ts");
   // Locate the actual return statement, not the JSDoc mention.
