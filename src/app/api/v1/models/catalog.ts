@@ -39,7 +39,7 @@ import {
   getCatalogDiagnosticsHeaders,
   disambiguateCatalogModelNames,
 } from "@/lib/modelMetadataRegistry";
-import { getSyncedCapability } from "@/lib/modelsDevSync";
+import { getSyncedCapability, getSyncedCapabilities } from "@/lib/modelsDevSync";
 import { getModelSpec } from "@/shared/constants/modelSpecs";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
 import {
@@ -357,6 +357,10 @@ export async function getUnifiedModelsResponse(
   request: Request,
   corsHeaders: Record<string, string> = {}
 ) {
+  // #5314 review — warm the full synced_capabilities cache once per request so the
+  // N+ subsequent getSyncedCapability() calls in the combo/per-platform loops below
+  // hit the in-memory map instead of N individual SQLite reads.
+  getSyncedCapabilities();
   const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
   try {
     let settings: Record<string, any> = {};
@@ -545,28 +549,14 @@ export async function getUnifiedModelsResponse(
       const syncedInputModalities = parseJsonStringArray(synced?.modalities_input);
       const syncedOutputModalities = parseJsonStringArray(synced?.modalities_output);
 
-      const syncedContext = isPositiveFiniteNumber(synced?.limit_context)
-        ? synced.limit_context
-        : undefined;
-      const registryContext = isPositiveFiniteNumber(registryModel?.contextLength)
-        ? registryModel.contextLength
-        : undefined;
-      const specContext = isPositiveFiniteNumber(spec?.contextWindow)
-        ? spec.contextWindow
-        : undefined;
-      const contextLength =
-        syncedContext ??
-        registryContext ??
-        specContext ??
-        (getTokenLimit(providerId, modelId) || undefined);
-      const maxInputTokens = isPositiveFiniteNumber(synced?.limit_input)
-        ? synced.limit_input
-        : contextLength;
-      const maxOutputTokens = isPositiveFiniteNumber(synced?.limit_output)
-        ? synced.limit_output
-        : isPositiveFiniteNumber(spec?.maxOutputTokens)
-          ? spec.maxOutputTokens
-          : undefined;
+      // #5314 review — shared limit-precedence chain with per-platform path.
+      const limitFields = computeModelLimitFields(providerId, {
+        id: modelId,
+        contextLength: registryModel?.contextLength,
+      });
+      const contextLength = limitFields.context_length;
+      const maxInputTokens = limitFields.max_input_tokens;
+      const maxOutputTokens = limitFields.max_output_tokens;
 
       const syncedVision =
         typeof synced?.attachment === "boolean"
