@@ -6,6 +6,10 @@
 
 ## [3.8.42] — TBD
 
+### 🔧 Bug Fixes
+
+- **services (installer):** fix `spawn EINVAL` when installing an embedded service (9Router / CLIProxy) on **Windows + Node.js 24+**. Node 24 stopped letting `child_process.execFile()` run `.cmd` batch files without a shell (nodejs/node#52554), and npm on Windows is `npm.cmd`, so `runNpm()` threw `EINVAL` the moment a user clicked **Install**. `runNpm` now enables `shell` on win32 only. To keep Hard Rule #13 intact under a shell — where the shell, not `execFile`, parses argv — the install `--prefix` (a `DATA_DIR` path that can legitimately contain spaces, e.g. `C:\Users\John Doe\.omniroute\…`) is now passed via the `npm_config_prefix` **environment variable** instead of an argv path, and the user-supplied install `version` is constrained to a dist-tag/semver shape (`SERVICE_VERSION_PATTERN`) at the route boundary so it can never carry shell metacharacters. With the prefix in the environment and the version validated, every remaining argv entry is a static flag. Regression guards: `tests/unit/services/installers/runNpm-shell-5379.test.ts` (+ existing `ninerouter.test.ts` aligned to npm's `npm_config_prefix` env). ([#5379](https://github.com/diegosouzapw/OmniRoute/issues/5379))
+
 ---
 
 ## [3.8.41] — 2026-06-29

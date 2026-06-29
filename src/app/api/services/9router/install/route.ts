@@ -1,11 +1,15 @@
 import { z } from "zod";
 import { install, InstallResult } from "@/lib/services/installers/ninerouter";
-import { InstallError } from "@/lib/services/installers/utils";
+import { InstallError, SERVICE_VERSION_PATTERN } from "@/lib/services/installers/utils";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const BodySchema = z.object({
-  version: z.string().optional().default("latest"),
+  version: z
+    .string()
+    .regex(SERVICE_VERSION_PATTERN, "Invalid version: only letters, digits and . _ + - are allowed")
+    .optional()
+    .default("latest"),
 });
 
 export async function POST(request: Request): Promise<Response> {

@@ -24,11 +24,14 @@ set -e
 CMD="$1"
 shift
 if [ "$CMD" = "install" ]; then
-  # Find --prefix arg value
+  # Resolve the install prefix like real npm: an explicit --prefix arg wins,
+  # otherwise fall back to the npm_config_prefix env var (#5379 passes the
+  # prefix via env instead of argv so paths with spaces survive the win shell).
   PREFIX=""
   while [ $# -gt 0 ]; do
     if [ "$1" = "--prefix" ]; then PREFIX="$2"; shift 2; else shift; fi
   done
+  if [ -z "$PREFIX" ]; then PREFIX="$npm_config_prefix"; fi
   PKG_DIR="$PREFIX/node_modules/9router"
   mkdir -p "$PKG_DIR/app"
   echo '{"name":"9router","version":"0.4.59"}' > "$PKG_DIR/package.json"

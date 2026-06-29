@@ -73,10 +73,68 @@ function classifyError(
   return new InstallError(raw, `Falha na instalação: ${raw}`, 500);
 }
 
-/** Runs npm with the given args array. Never uses shell interpolation. */
+/**
+ * Validates a user-supplied service version (npm dist-tag or semver). Constrained
+ * to letters, digits and `. _ + -`, with a leading alphanumeric, so the value can
+ * never carry shell metacharacters once `runNpm` runs under a shell on Windows
+ * (see `buildNpmExecOptions`). Accepts `latest`, `next`, `1.2.3`, `1.2.3-beta.1`,
+ * `1.2.3+build.5`; rejects `latest && calc`, `$(id)`, spaces, leading `-`, etc.
+ */
+export const SERVICE_VERSION_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._+-]*$/;
+
+export interface NpmExecOptions {
+  cwd?: string;
+  timeout: number;
+  env: NodeJS.ProcessEnv;
+  maxBuffer: number;
+  shell?: boolean;
+}
+
+/**
+ * Builds the `execFile` options for {@link runNpm}.
+ *
+ * On Windows, npm is `npm.cmd` (a batch wrapper). Node 24 refuses to `execFile`
+ * a `.cmd` without a shell (nodejs/node#52554 — manifests as `spawn EINVAL`, see
+ * issue #5379), so we enable `shell` on win32 only.
+ *
+ * Enabling the shell means the shell — not `execFile` — splits the command line,
+ * so NO runtime value may be interpolated into argv (Hard Rule #13). The install
+ * prefix (a DATA_DIR path that can legitimately contain spaces, e.g.
+ * `C:\Users\John Doe\.omniroute\…`) is therefore exported as the
+ * `npm_config_prefix` environment variable — npm's documented env form of
+ * `--prefix` — never as an argv entry. With the prefix moved to the environment
+ * and the version constrained by {@link SERVICE_VERSION_PATTERN}, every remaining
+ * argv entry is a static, metacharacter-free flag.
+ */
+export function buildNpmExecOptions(
+  platform: NodeJS.Platform,
+  options: { cwd?: string; timeoutMs: number; prefix?: string }
+): NpmExecOptions {
+  const env: NodeJS.ProcessEnv = { ...process.env };
+  if (options.prefix) {
+    env.npm_config_prefix = options.prefix;
+  }
+  const execOptions: NpmExecOptions = {
+    cwd: options.cwd,
+    timeout: options.timeoutMs,
+    env,
+    maxBuffer: 10 * 1024 * 1024, // 10 MB for npm output
+  };
+  if (platform === "win32") {
+    execOptions.shell = true;
+  }
+  return execOptions;
+}
+
+/**
+ * Runs npm with the given args array. Never uses shell interpolation: argv holds
+ * only static flags, and any install prefix is passed via `options.prefix`
+ * (exported as `npm_config_prefix`), not as an argv path. See
+ * {@link buildNpmExecOptions} for the Windows/Node-24 shell handling.
+ */
 export function runNpm(
   args: string[],
-  options: { cwd?: string; timeoutMs?: number } = {}
+  options: { cwd?: string; timeoutMs?: number; prefix?: string } = {}
 ): Promise<NpmRunResult> {
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   // On Windows, npm is npm.cmd; on Unix it's npm.
@@ -86,12 +144,11 @@ export function runNpm(
     execFile(
       npmBin,
       args,
-      {
+      buildNpmExecOptions(process.platform, {
         cwd: options.cwd,
-        timeout: timeoutMs,
-        env: process.env,
-        maxBuffer: 10 * 1024 * 1024, // 10 MB for npm output
-      },
+        timeoutMs,
+        prefix: options.prefix,
+      }),
       (err, stdout, stderr) => {
         if (err) {
           const classified = classifyError(
