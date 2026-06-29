@@ -12,6 +12,16 @@ const {
   StreamMetricsSchema,
 } = await import("../../src/shared/schemas/playground.ts");
 
+test("playground schema module keeps runtime schemas exported", () => {
+  assert.equal(typeof PlaygroundPresetRowSchema.safeParse, "function");
+  assert.equal(typeof PlaygroundPresetCreateSchema.safeParse, "function");
+  assert.equal(typeof PlaygroundPresetUpdateSchema.safeParse, "function");
+  assert.equal(typeof PlaygroundPresetListItemSchema.safeParse, "function");
+  assert.equal(typeof ToolDefinitionSchema.safeParse, "function");
+  assert.equal(typeof StructuredOutputSchema.safeParse, "function");
+  assert.equal(typeof StreamMetricsSchema.safeParse, "function");
+});
+
 // ── PlaygroundPresetRowSchema ──────────────────────────────────────────────────
 
 test("PlaygroundPresetRowSchema: valid row parses correctly", () => {
