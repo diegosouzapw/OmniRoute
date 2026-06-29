@@ -22,6 +22,8 @@ const BUILT_IN_ALIASES: Record<string, string> = {
   "gemini-3.1-flash-lite-preview": "gemini-3.1-flash-lite",
   "gemini-3-pro-high": "gemini-3.1-pro-high",
   "gemini-3-pro-low": "gemini-3.1-pro-low",
+  // Retired free Gemma (was in the gemini-free pool) → current gemini-free model
+  "gemma-4": "gemini-3.1-flash-lite",
 
   // Claude legacy → current
   "claude-3-opus-20240229": "claude-opus-4-20250514",

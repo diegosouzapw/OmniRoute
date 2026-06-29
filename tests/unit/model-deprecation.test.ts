@@ -27,6 +27,9 @@ test("resolveModelAlias: resolves deprecated Gemini model", () => {
   // both forward to the live GA gemini-3.1-flash-lite.
   assert.equal(resolveModelAlias("gemini-2.0-flash-lite"), "gemini-3.1-flash-lite");
   assert.equal(resolveModelAlias("gemini-3.1-flash-lite-preview"), "gemini-3.1-flash-lite");
+  // Retired free Gemma (was in the gemini-free pool) forwards to the current
+  // gemini-free model instead of erroring with model-not-found.
+  assert.equal(resolveModelAlias("gemma-4"), "gemini-3.1-flash-lite");
 });
 
 test("resolveModelAlias: resolves deprecated Claude model", () => {
