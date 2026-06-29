@@ -34,7 +34,7 @@ import {
 import { resolveAdaptivePlan } from "./adaptiveCompression/resolveAdaptivePlan.ts";
 import type { AdaptiveTelemetry } from "./adaptiveCompression/types.ts";
 import type { RiskGateConfig } from "./riskGate/riskGate.ts";
-import { resolveRiskGate, withRiskGateAsync } from "./riskGate/strategyWrap.ts";
+import { resolveRiskGate, withRiskGate, withRiskGateAsync } from "./riskGate/strategyWrap.ts";
 import {
   withCompressionEntrypointGuards,
   withCompressionEntrypointGuardsAsync,
