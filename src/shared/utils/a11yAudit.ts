@@ -123,26 +123,6 @@ export function getContrastRatio(fgHex, bgHex) {
 }
 
 /**
- * Check WCAG AA contrast compliance between foreground and background colors.
- *
- * @param {string} fgHex - Foreground color (#RRGGBB)
- * @param {string} bgHex - Background color (#RRGGBB)
- * @param {{ largeText?: boolean }} [options={}] - Options
- * @returns {{ ratio: number, aa: boolean, aaa: boolean }}
- */
-export function checkContrast(fgHex, bgHex, options: any = {}) {
-  const ratio = getContrastRatio(fgHex, bgHex);
-  const minAA = options.largeText ? 3 : 4.5;
-  const minAAA = options.largeText ? 4.5 : 7;
-
-  return {
-    ratio: Math.round(ratio * 100) / 100,
-    aa: ratio >= minAA,
-    aaa: ratio >= minAAA,
-  };
-}
-
-/**
  * Generate a summary report from a list of violations.
  *
  * @param {Violation[]} violations

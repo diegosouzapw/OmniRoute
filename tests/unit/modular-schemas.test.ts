@@ -33,3 +33,10 @@ test("modular schemas: loginSchema validates correctly", () => {
   });
   assert.equal(invalid.success, false);
 });
+
+test("validation helpers only export request-body helper APIs", async () => {
+  const helpers = await import("../../src/shared/validation/helpers.ts");
+  assert.equal("loginSchema" in helpers, false);
+  assert.equal(typeof helpers.validateBody, "function");
+  assert.equal(typeof helpers.isValidationFailure, "function");
+});

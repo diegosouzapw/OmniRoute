@@ -77,3 +77,8 @@ test("getCliTool returns correct tool by id", async () => {
   const missing = getCliTool("nonexistent");
   assert.equal(missing, undefined);
 });
+
+test("CLI tools registry does not export provider model mapping helper", async () => {
+  const registry = await import("../../src/shared/constants/cliTools.ts");
+  assert.equal("getProviderModelsForMapping" in registry, false);
+});
