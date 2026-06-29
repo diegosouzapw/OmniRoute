@@ -11,7 +11,7 @@ const BodySchema = z.object({
 export async function POST(request: Request): Promise<Response> {
   let body: unknown;
   try {
-    body = await request.json();
+    body = request.body === null ? {} : await request.json();
   } catch {
     return createErrorResponse({ status: 400, message: "Invalid JSON body" });
   }

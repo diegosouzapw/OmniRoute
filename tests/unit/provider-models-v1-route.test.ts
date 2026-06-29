@@ -15,6 +15,7 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-v1-provid
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
+const serviceModelsDb = await import("../../src/lib/db/serviceModels.ts");
 const routeModule = await import(
   "../../src/app/api/v1/providers/[provider]/models/route.ts"
 );
@@ -69,6 +70,28 @@ test("GET /v1/providers/:provider/models accepts anthropic-compatible connection
     const body = await res.json();
     assert.notEqual(body.error?.code, "invalid_provider");
   }
+});
+
+test("GET /v1/providers/:provider/models returns synced embedded service models", async () => {
+  serviceModelsDb.saveServiceModels("cliproxyapi", [
+    { id: "cli/gpt-5", name: "GPT-5 via CLIProxyAPI" },
+    { id: "old-model" },
+  ]);
+  serviceModelsDb.saveServiceModels("cliproxyapi", [
+    { id: "cli/gpt-5", name: "GPT-5 via CLIProxyAPI" },
+  ]);
+
+  const res = await callGET("cliproxyapi");
+  const body = await res.json();
+
+  assert.equal(res.status, 200);
+  assert.equal(body.object, "list");
+  assert.deepEqual(
+    body.data.map((model: any) => model.id),
+    ["cli/gpt-5"]
+  );
+  assert.equal(body.data[0].owned_by, "cliproxyapi");
+  assert.equal(body.data[0].parent, null);
 });
 
 test("GET /v1/providers/:provider/models rejects non-matching connection-like strings", async () => {

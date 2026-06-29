@@ -139,6 +139,7 @@ export function classifyHostLocality(ip: string | null): "loopback" | "lan" | "r
  */
 const PRIVATE_LAN_PATTERNS: ReadonlyArray<RegExp> = [
   /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/,
+  /^100\.(6[4-9]|[78]\d|9\d|1[01]\d|12[0-7])\.\d{1,3}\.\d{1,3}$/,
   /^192\.168\.\d{1,3}\.\d{1,3}$/,
   /^172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}$/,
   /^f[cd][0-9a-f]{2}:/i, // IPv6 ULA fc00::/7
