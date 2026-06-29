@@ -79,6 +79,7 @@ type CallLogSummaryRow = {
   request_summary: string | null;
   provider_node_prefix?: string | null;
   resolved_account?: string | null;
+  correlation_id?: string | null;
 };
 
 const RESOLVED_ACCOUNT_SQL = "COALESCE(NULLIF(pc.name, ''), NULLIF(pc.email, ''), cl.account)";
