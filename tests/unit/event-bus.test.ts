@@ -9,7 +9,7 @@ import {
   type HistoryEntry,
 } from "../../src/lib/events/eventBus.ts";
 
-const eventBusPublicApi = await import("../../src/lib/events/eventBus.ts");
+import * as eventBusPublicApi from "../../src/lib/events/eventBus.ts";
 
 const requestStartedPayload = {
   id: "req-1",
