@@ -131,17 +131,20 @@ export function checkChatAdmission(
     return null;
   }
 
-  const heapUsedBytes = heapOverride?.heapUsedBytes ?? process.memoryUsage().heapUsed;
-  const heapLimitBytes = heapOverride?.heapLimitBytes ?? HEAP_LIMIT_BYTES;
-  const decision = evaluateChatBodyAdmission({
-    contentLength,
-    heapUsedBytes,
-    heapLimitBytes,
-  });
+  const {
+    heapUsedBytes = process.memoryUsage().heapUsed,
+    heapLimitBytes = HEAP_LIMIT_BYTES,
+  } = heapOverride ?? {};
+  const decision = evaluateChatBodyAdmission({ contentLength, heapUsedBytes, heapLimitBytes });
 
   if (decision.admit) return null;
 
+  const headers: Record<string, string> = {
+    ...CORS_HEADERS,
+    "Content-Type": "application/json",
+  };
   if (decision.status === 503) {
+    headers["Retry-After"] = "2";
     console.warn(
       `[chat-admission] shedding large body (${contentLength}B) under heap pressure: ` +
         `heapUsed=${Math.round(heapUsedBytes / 1048576)}MB / limit=${Math.round(
@@ -150,20 +153,9 @@ export function checkChatAdmission(
     );
   }
 
-  const headers: Record<string, string> = {
-    ...CORS_HEADERS,
-    "Content-Type": "application/json",
-  };
-  if (decision.status === 503) headers["Retry-After"] = "2";
-
+  const type = decision.status === 413 ? "payload_too_large" : "server_error";
   return new Response(
-    JSON.stringify({
-      error: {
-        message: decision.message,
-        type: decision.status === 413 ? "payload_too_large" : "server_error",
-        code: decision.code,
-      },
-    }),
+    JSON.stringify({ error: { message: decision.message, type, code: decision.code } }),
     { status: decision.status, headers }
   );
 }
