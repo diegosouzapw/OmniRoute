@@ -315,6 +315,98 @@ function addModelOption(
   );
 }
 
+function buildModelOptions(
+  providerId: string,
+  builtInModels: RegistryModel[],
+  syncedModels: SyncedModelLike[],
+  customModels: CustomModelLike[]
+): Map<string, ComboBuilderModelOption> {
+  const modelMap = new Map<string, ComboBuilderModelOption>();
+  const fallbackModels = getCompatibleFallbackModels(providerId, builtInModels);
+
+  for (const model of syncedModels) {
+    const resolved = getResolvedModelCapabilities({
+      provider: providerId,
+      model: toStringOrNull(model.id),
+    });
+    addModelOption(modelMap, providerId, {
+      id: toStringOrNull(model.id),
+      name: toStringOrNull(model.name),
+      source: "imported",
+      supportedEndpoints: toStringArray(model.supportedEndpoints),
+      contextLength: toNumberOrNull(model.inputTokenLimit) ?? resolved.contextWindow,
+      outputTokenLimit: toNumberOrNull(model.outputTokenLimit) ?? resolved.maxOutputTokens,
+      supportsThinking:
+        typeof model.supportsThinking === "boolean"
+          ? model.supportsThinking
+          : (resolved.supportsThinking ?? undefined),
+    });
+  }
+
+  for (const model of builtInModels) {
+    const resolved = getResolvedModelCapabilities({
+      provider: providerId,
+      model: toStringOrNull(model.id),
+    });
+    addModelOption(modelMap, providerId, {
+      id: toStringOrNull(model.id),
+      name: toStringOrNull(model.name),
+      source: "system",
+      contextLength: toNumberOrNull(model.contextLength) ?? resolved.contextWindow,
+      outputTokenLimit: resolved.maxOutputTokens,
+      supportsThinking: resolved.supportsThinking ?? undefined,
+    });
+  }
+
+  for (const model of customModels) {
+    if (model.isHidden === true) continue;
+    const source = ["api-sync", "auto-sync", "imported"].includes(
+      toStringOrNull(model.source)?.toLowerCase() || ""
+    )
+      ? "imported"
+      : ("custom" as BuilderModelSource);
+    const resolved = getResolvedModelCapabilities({
+      provider: providerId,
+      model: toStringOrNull(model.id),
+    });
+    addModelOption(modelMap, providerId, {
+      id: toStringOrNull(model.id),
+      name: toStringOrNull(model.name),
+      source,
+      supportedEndpoints: toStringArray(model.supportedEndpoints),
+      apiFormat: toStringOrNull(model.apiFormat),
+      contextLength: toNumberOrNull(model.inputTokenLimit) ?? resolved.contextWindow,
+      outputTokenLimit: toNumberOrNull(model.outputTokenLimit) ?? resolved.maxOutputTokens,
+      supportsThinking:
+        typeof model.supportsThinking === "boolean"
+          ? model.supportsThinking
+          : (resolved.supportsThinking ?? undefined),
+    });
+  }
+
+  if (Array.isArray(fallbackModels)) {
+    for (const model of fallbackModels) {
+      const resolved = getResolvedModelCapabilities({
+        provider: providerId,
+        model: toStringOrNull(model.id),
+      });
+      addModelOption(modelMap, providerId, {
+        id: toStringOrNull(model.id),
+        name: toStringOrNull(model.name),
+        source: "fallback",
+        contextLength:
+          typeof (model as { contextLength?: number }).contextLength === "number"
+            ? (model as { contextLength?: number }).contextLength || null
+            : resolved.contextWindow,
+        outputTokenLimit: resolved.maxOutputTokens,
+        supportsThinking: resolved.supportsThinking ?? undefined,
+      });
+    }
+  }
+
+  return modelMap;
+}
+
 function compareConnections(
   left: ComboBuilderConnectionOption,
   right: ComboBuilderConnectionOption
@@ -398,7 +490,6 @@ export async function getComboBuilderOptions(): Promise<ComboBuilderOptionsPaylo
   for (const [providerId, providerConnections] of connectionsByProvider) {
     const providerNode = providerNodeMap.get(providerId) || null;
     const providerVisual = getProviderVisual(providerId, providerNode);
-    const modelMap = new Map<string, ComboBuilderModelOption>();
     const builtInModels = getModelsByProviderId(providerId);
     const syncedModels = normalizeSyncedModels(
       (syncedModelsMap as Record<string, unknown>)[providerId]
@@ -406,92 +497,17 @@ export async function getComboBuilderOptions(): Promise<ComboBuilderOptionsPaylo
     const customModels = normalizeCustomModels(
       (customModelsMap as Record<string, unknown>)[providerId]
     );
-    const fallbackModels = getCompatibleFallbackModels(providerId, builtInModels);
     const acceptsArbitraryModel =
       Boolean((AI_PROVIDERS[providerId] as JsonRecord | undefined)?.passthroughModels) ||
       isOpenAICompatibleProvider(providerId) ||
       isAnthropicCompatibleProvider(providerId) ||
       isClaudeCodeCompatibleProvider(providerId);
-
-    for (const model of syncedModels) {
-      const resolved = getResolvedModelCapabilities({
-        provider: providerId,
-        model: toStringOrNull(model.id),
-      });
-      addModelOption(modelMap, providerId, {
-        id: toStringOrNull(model.id),
-        name: toStringOrNull(model.name),
-        source: "imported",
-        supportedEndpoints: toStringArray(model.supportedEndpoints),
-        contextLength: toNumberOrNull(model.inputTokenLimit) ?? resolved.contextWindow,
-        outputTokenLimit: toNumberOrNull(model.outputTokenLimit) ?? resolved.maxOutputTokens,
-        supportsThinking:
-          typeof model.supportsThinking === "boolean"
-            ? model.supportsThinking
-            : (resolved.supportsThinking ?? undefined),
-      });
-    }
-
-    for (const model of builtInModels as RegistryModel[]) {
-      const resolved = getResolvedModelCapabilities({
-        provider: providerId,
-        model: toStringOrNull(model.id),
-      });
-      addModelOption(modelMap, providerId, {
-        id: toStringOrNull(model.id),
-        name: toStringOrNull(model.name),
-        source: "system",
-        contextLength: toNumberOrNull(model.contextLength) ?? resolved.contextWindow,
-        outputTokenLimit: resolved.maxOutputTokens,
-        supportsThinking: resolved.supportsThinking ?? undefined,
-      });
-    }
-
-    for (const model of customModels) {
-      if (model.isHidden === true) continue;
-      const source = ["api-sync", "auto-sync", "imported"].includes(
-        toStringOrNull(model.source)?.toLowerCase() || ""
-      )
-        ? "imported"
-        : ("custom" as BuilderModelSource);
-      const resolved = getResolvedModelCapabilities({
-        provider: providerId,
-        model: toStringOrNull(model.id),
-      });
-      addModelOption(modelMap, providerId, {
-        id: toStringOrNull(model.id),
-        name: toStringOrNull(model.name),
-        source,
-        supportedEndpoints: toStringArray(model.supportedEndpoints),
-        apiFormat: toStringOrNull(model.apiFormat),
-        contextLength: toNumberOrNull(model.inputTokenLimit) ?? resolved.contextWindow,
-        outputTokenLimit: toNumberOrNull(model.outputTokenLimit) ?? resolved.maxOutputTokens,
-        supportsThinking:
-          typeof model.supportsThinking === "boolean"
-            ? model.supportsThinking
-            : (resolved.supportsThinking ?? undefined),
-      });
-    }
-
-    if (Array.isArray(fallbackModels)) {
-      for (const model of fallbackModels) {
-        const resolved = getResolvedModelCapabilities({
-          provider: providerId,
-          model: toStringOrNull(model.id),
-        });
-        addModelOption(modelMap, providerId, {
-          id: toStringOrNull(model.id),
-          name: toStringOrNull(model.name),
-          source: "fallback",
-          contextLength:
-            typeof (model as { contextLength?: number }).contextLength === "number"
-              ? (model as { contextLength?: number }).contextLength || null
-              : resolved.contextWindow,
-          outputTokenLimit: resolved.maxOutputTokens,
-          supportsThinking: resolved.supportsThinking ?? undefined,
-        });
-      }
-    }
+    const modelMap = buildModelOptions(
+      providerId,
+      builtInModels as RegistryModel[],
+      syncedModels,
+      customModels
+    );
 
     const normalizedConnections = providerConnections
       .map((connection) => buildConnectionOption(connection))
@@ -536,7 +552,6 @@ export async function getComboBuilderOptions(): Promise<ComboBuilderOptionsPaylo
     if (connectionsByProvider.has(providerId)) continue;
 
     const providerVisual = getProviderVisual(providerId, null);
-    const modelMap = new Map<string, ComboBuilderModelOption>();
     const builtInModels = getModelsByProviderId(providerId);
     const syncedModels = normalizeSyncedModels(
       (syncedModelsMap as Record<string, unknown>)[providerId]
@@ -544,92 +559,17 @@ export async function getComboBuilderOptions(): Promise<ComboBuilderOptionsPaylo
     const customModels = normalizeCustomModels(
       (customModelsMap as Record<string, unknown>)[providerId]
     );
-    const fallbackModels = getCompatibleFallbackModels(providerId, builtInModels);
     const acceptsArbitraryModel =
       Boolean((AI_PROVIDERS[providerId] as JsonRecord | undefined)?.passthroughModels) ||
       isOpenAICompatibleProvider(providerId) ||
       isAnthropicCompatibleProvider(providerId) ||
       isClaudeCodeCompatibleProvider(providerId);
-
-    for (const model of syncedModels) {
-      const resolved = getResolvedModelCapabilities({
-        provider: providerId,
-        model: toStringOrNull(model.id),
-      });
-      addModelOption(modelMap, providerId, {
-        id: toStringOrNull(model.id),
-        name: toStringOrNull(model.name),
-        source: "imported",
-        supportedEndpoints: toStringArray(model.supportedEndpoints),
-        contextLength: toNumberOrNull(model.inputTokenLimit) ?? resolved.contextWindow,
-        outputTokenLimit: toNumberOrNull(model.outputTokenLimit) ?? resolved.maxOutputTokens,
-        supportsThinking:
-          typeof model.supportsThinking === "boolean"
-            ? model.supportsThinking
-            : (resolved.supportsThinking ?? undefined),
-      });
-    }
-
-    for (const model of builtInModels as RegistryModel[]) {
-      const resolved = getResolvedModelCapabilities({
-        provider: providerId,
-        model: toStringOrNull(model.id),
-      });
-      addModelOption(modelMap, providerId, {
-        id: toStringOrNull(model.id),
-        name: toStringOrNull(model.name),
-        source: "system",
-        contextLength: toNumberOrNull(model.contextLength) ?? resolved.contextWindow,
-        outputTokenLimit: resolved.maxOutputTokens,
-        supportsThinking: resolved.supportsThinking ?? undefined,
-      });
-    }
-
-    for (const model of customModels) {
-      if (model.isHidden === true) continue;
-      const source = ["api-sync", "auto-sync", "imported"].includes(
-        toStringOrNull(model.source)?.toLowerCase() || ""
-      )
-        ? "imported"
-        : ("custom" as BuilderModelSource);
-      const resolved = getResolvedModelCapabilities({
-        provider: providerId,
-        model: toStringOrNull(model.id),
-      });
-      addModelOption(modelMap, providerId, {
-        id: toStringOrNull(model.id),
-        name: toStringOrNull(model.name),
-        source,
-        supportedEndpoints: toStringArray(model.supportedEndpoints),
-        apiFormat: toStringOrNull(model.apiFormat),
-        contextLength: toNumberOrNull(model.inputTokenLimit) ?? resolved.contextWindow,
-        outputTokenLimit: toNumberOrNull(model.outputTokenLimit) ?? resolved.maxOutputTokens,
-        supportsThinking:
-          typeof model.supportsThinking === "boolean"
-            ? model.supportsThinking
-            : (resolved.supportsThinking ?? undefined),
-      });
-    }
-
-    if (Array.isArray(fallbackModels)) {
-      for (const model of fallbackModels) {
-        const resolved = getResolvedModelCapabilities({
-          provider: providerId,
-          model: toStringOrNull(model.id),
-        });
-        addModelOption(modelMap, providerId, {
-          id: toStringOrNull(model.id),
-          name: toStringOrNull(model.name),
-          source: "fallback",
-          contextLength:
-            typeof (model as { contextLength?: number }).contextLength === "number"
-              ? (model as { contextLength?: number }).contextLength || null
-              : resolved.contextWindow,
-          outputTokenLimit: resolved.maxOutputTokens,
-          supportsThinking: resolved.supportsThinking ?? undefined,
-        });
-      }
-    }
+    const modelMap = buildModelOptions(
+      providerId,
+      builtInModels as RegistryModel[],
+      syncedModels,
+      customModels
+    );
 
     // #2901: no-auth providers must route under their alias (e.g. "oc"), not
     // their id — "opencode/<model>" misroutes to the opencode-zen api-key tier
