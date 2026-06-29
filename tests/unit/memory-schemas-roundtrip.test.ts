@@ -19,6 +19,17 @@ import {
   QdrantHealthResultSchema,
 } from "../../src/shared/schemas/qdrant.ts";
 
+test("memory schema module keeps the runtime request/response schemas exported", () => {
+  assert.equal(typeof MemorySettingsExtendedSchema.safeParse, "function");
+  assert.equal(typeof MemoryUpdatePutSchema.safeParse, "function");
+  assert.equal(typeof RetrievePreviewSchema.safeParse, "function");
+  assert.equal(typeof MemoryReindexSchema.safeParse, "function");
+  assert.equal(typeof MemorySummarizeSchema.safeParse, "function");
+  assert.equal(typeof EmbeddingProviderListingSchema.safeParse, "function");
+  assert.equal(typeof MemoryEngineStatusSchema.safeParse, "function");
+  assert.equal(typeof RetrievePreviewResultSchema.safeParse, "function");
+});
+
 // ---------------------------------------------------------------------------
 // 1. MemorySettingsExtendedSchema
 // ---------------------------------------------------------------------------
