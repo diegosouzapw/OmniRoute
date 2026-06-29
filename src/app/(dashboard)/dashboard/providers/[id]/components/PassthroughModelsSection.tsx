@@ -19,6 +19,7 @@ import {
   normalizeModelCatalogSource,
 } from "@/shared/utils/modelCatalogSearch";
 import { useNotificationStore } from "@/store/notificationStore";
+import { withDashboardCsrfHeader } from "@/shared/utils/dashboardCsrf";
 import {
   buildCompatMap,
   providerText,
@@ -158,7 +159,7 @@ export default function PassthroughModelsSection({
           >;
         } = await fetch("/api/models/test-all", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: await withDashboardCsrfHeader({ "Content-Type": "application/json" }),
           // Bug #3610 fix 2: pass autoHideFailed so the server persists the hide
           body: JSON.stringify(
             buildPassthroughTestBody({

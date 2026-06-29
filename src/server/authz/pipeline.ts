@@ -7,6 +7,7 @@ import { generateRequestId } from "../../shared/utils/requestId";
 import { applyCorsHeaders } from "../cors/origins";
 import { validateBrowserMutationOrigin } from "../origin/publicOrigin";
 import { classifyRoute } from "./classify";
+import { validateDashboardCsrfToken } from "./csrf";
 import { classifyStampedPeerLocality } from "./peerStamp";
 import { clientApiPolicy } from "./policies/clientApi";
 import { managementPolicy } from "./policies/management";
@@ -329,7 +330,7 @@ export async function runAuthzPipeline(
     isUnsafeMutationMethod(method)
   ) {
     const originVerdict = validateBrowserMutationOrigin(request);
-    if (!originVerdict.ok) {
+    if (!originVerdict.ok && !validateDashboardCsrfToken(request)) {
       const rejection = invalidOriginResponse(requestId);
       rejection.headers.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
       applyCorsHeaders(rejection, request);

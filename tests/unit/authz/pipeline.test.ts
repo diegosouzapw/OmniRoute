@@ -14,6 +14,8 @@ const core = await import("../../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../../src/lib/db/apiKeys.ts");
 const settingsDb = await import("../../../src/lib/db/settings.ts");
 const pipeline = await import("../../../src/server/authz/pipeline.ts");
+const csrf = await import("../../../src/server/authz/csrf.ts");
+const dashboardCsrfConstants = await import("../../../src/shared/constants/dashboardCsrf.ts");
 
 const ORIGINAL_JWT = process.env.JWT_SECRET;
 const ORIGINAL_INITIAL = process.env.INITIAL_PASSWORD;
@@ -321,6 +323,94 @@ test("runAuthzPipeline accepts dashboard mutations from configured public origin
 
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("x-omniroute-route-class"), "MANAGEMENT");
+});
+
+test("runAuthzPipeline rejects dashboard test mutations from dynamic public origins without CSRF", async () => {
+  await forceAuthRequired();
+
+  const response = await pipeline.runAuthzPipeline(
+    request("http://127.0.0.1:20128/api/models/test", {
+      method: "POST",
+      headers: {
+        cookie: await dashboardCookie(),
+        host: "127.0.0.1:20128",
+        origin: "https://random-tunnel.example.test",
+        "content-type": "application/json",
+        "sec-fetch-site": "same-origin",
+      },
+      body: "{}",
+    }),
+    { enforce: true }
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 403);
+  assert.equal(body.error.code, "INVALID_ORIGIN");
+});
+
+test("runAuthzPipeline accepts dashboard test mutations from dynamic public origins with CSRF", async () => {
+  await forceAuthRequired();
+
+  const cookie = await dashboardCookie();
+  const issued = csrf.issueDashboardCsrfToken(
+    request("http://127.0.0.1:20128/api/auth/csrf", {
+      headers: { cookie },
+    })
+  );
+  assert.ok(issued);
+
+  for (const path of ["/api/combos/test", "/api/models/test", "/api/models/test-all"]) {
+    const response = await pipeline.runAuthzPipeline(
+      request(`http://127.0.0.1:20128${path}`, {
+        method: "POST",
+        headers: {
+          cookie,
+          host: "127.0.0.1:20128",
+          origin: "https://random-tunnel.example.test",
+          "content-type": "application/json",
+          [dashboardCsrfConstants.DASHBOARD_CSRF_HEADER]: issued.token,
+          "sec-fetch-site": "same-origin",
+        },
+        body: "{}",
+      }),
+      { enforce: true }
+    );
+
+    assert.equal(response.status, 200, path);
+    assert.equal(response.headers.get("x-omniroute-route-class"), "MANAGEMENT");
+  }
+});
+
+test("runAuthzPipeline keeps non-test management mutations pinned to known origins with CSRF", async () => {
+  await forceAuthRequired();
+
+  const cookie = await dashboardCookie();
+  const issued = csrf.issueDashboardCsrfToken(
+    request("http://127.0.0.1:20128/api/auth/csrf", {
+      headers: { cookie },
+    })
+  );
+  assert.ok(issued);
+
+  const response = await pipeline.runAuthzPipeline(
+    request("http://127.0.0.1:20128/api/keys", {
+      method: "POST",
+      headers: {
+        cookie,
+        host: "127.0.0.1:20128",
+        origin: "https://random-tunnel.example.test",
+        "content-type": "application/json",
+        [dashboardCsrfConstants.DASHBOARD_CSRF_HEADER]: issued.token,
+        "sec-fetch-site": "same-origin",
+      },
+      body: "{}",
+    }),
+    { enforce: true }
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 403);
+  assert.equal(body.error.code, "INVALID_ORIGIN");
 });
 
 test("runAuthzPipeline rejects dashboard mutations from invalid browser origin", async () => {
