@@ -111,8 +111,14 @@ const HEAP_LIMIT_BYTES = v8.getHeapStatistics().heap_size_limit;
  * null to proceed. Only samples the heap for large bodies, so ordinary requests pay
  * nothing. The heap figure is logged for INTERNAL telemetry only and never placed in the
  * client response (Hard Rule #12).
+ *
+ * @param heapOverride test-only seam to inject heap figures; production omits it and the
+ *        live heap is sampled lazily (never for small bodies).
  */
-export function checkChatAdmission(request: Request): Response | null {
+export function checkChatAdmission(
+  request: Request,
+  heapOverride?: { heapUsedBytes: number; heapLimitBytes: number }
+): Response | null {
   const clHeader = request.headers.get("content-length");
   const contentLength = clHeader ? Number.parseInt(clHeader, 10) : null;
 
@@ -125,11 +131,12 @@ export function checkChatAdmission(request: Request): Response | null {
     return null;
   }
 
-  const heapUsedBytes = process.memoryUsage().heapUsed;
+  const heapUsedBytes = heapOverride?.heapUsedBytes ?? process.memoryUsage().heapUsed;
+  const heapLimitBytes = heapOverride?.heapLimitBytes ?? HEAP_LIMIT_BYTES;
   const decision = evaluateChatBodyAdmission({
     contentLength,
     heapUsedBytes,
-    heapLimitBytes: HEAP_LIMIT_BYTES,
+    heapLimitBytes,
   });
 
   if (decision.admit) return null;
@@ -138,7 +145,7 @@ export function checkChatAdmission(request: Request): Response | null {
     console.warn(
       `[chat-admission] shedding large body (${contentLength}B) under heap pressure: ` +
         `heapUsed=${Math.round(heapUsedBytes / 1048576)}MB / limit=${Math.round(
-          HEAP_LIMIT_BYTES / 1048576
+          heapLimitBytes / 1048576
         )}MB`
     );
   }

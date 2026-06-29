@@ -92,6 +92,35 @@ test("checkChatAdmission returns null for a small-body request (fast path, no he
   assert.equal(checkChatAdmission(request), null);
 });
 
+test("checkChatAdmission sheds a large body with 503 + Retry-After under injected heap pressure", async () => {
+  const request = new Request("http://x/v1/chat/completions", {
+    method: "POST",
+    headers: { "content-length": "746578" },
+  });
+  const res = checkChatAdmission(request, {
+    heapUsedBytes: 0.9 * HEAP_LIMIT,
+    heapLimitBytes: HEAP_LIMIT,
+  });
+  assert.ok(res, "expected a 503 rejection");
+  assert.equal(res.status, 503);
+  assert.equal(res.headers.get("Retry-After"), "2");
+  const body = await res.json();
+  assert.equal(body.error.code, "heap_pressure");
+  assert.ok(!String(body.error.message).includes("at /"), "must not leak a stack trace");
+});
+
+test("checkChatAdmission admits a large body when injected heap is healthy", () => {
+  const request = new Request("http://x/v1/chat/completions", {
+    method: "POST",
+    headers: { "content-length": "746578" },
+  });
+  const res = checkChatAdmission(request, {
+    heapUsedBytes: 0.1 * HEAP_LIMIT,
+    heapLimitBytes: HEAP_LIMIT,
+  });
+  assert.equal(res, null);
+});
+
 test("checkChatAdmission 413 response does not leak a stack trace", async () => {
   // Force a pathological size via the hard-cap env so we exercise the real wrapper.
   const request = new Request("http://x/v1/chat/completions", {
