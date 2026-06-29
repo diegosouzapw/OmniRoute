@@ -148,14 +148,17 @@ function convertMessages(messages: unknown): { system: string; messages: unknown
 
 // Clamp a client-supplied max_tokens to the endpoint ceiling, mirroring the
 // provider-driven clamp in antigravity.ts: we only intervene when the value is
-// present AND would otherwise be rejected (> 200_000). A valid value is
-// returned floored; anything absent or non-numeric returns undefined so the
-// caller can OMIT the field entirely and let Command Code's upstream apply the
-// model's own native default (rather than us inventing a number).
+// present, positive AND would otherwise be rejected (> 200_000). A valid value
+// is returned floored; anything absent, non-numeric or non-positive returns
+// undefined so the caller can OMIT the field entirely and let Command Code's
+// upstream apply the model's own native default (rather than us inventing a
+// number). A non-positive value such as Zoo Code's max_tokens:-1 ("let the
+// server choose") must be omitted, NOT forced to 1 — the old Math.max(1,...)
+// truncated output to a single token (#5166).
 function clampMaxTokens(value: unknown): number | undefined {
   const numeric = numberValue(value);
-  if (numeric === undefined) return undefined;
-  return Math.max(1, Math.min(Math.floor(numeric), MAX_COMMAND_CODE_TOKENS));
+  if (numeric === undefined || numeric <= 0) return undefined;
+  return Math.min(Math.floor(numeric), MAX_COMMAND_CODE_TOKENS);
 }
 
 // Reasoning/thinking fields that payload rules or clients may inject and that
