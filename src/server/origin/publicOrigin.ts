@@ -113,9 +113,12 @@ function sanitizeForwardedHost(host: string | null): string | null {
 
 function trustProxyMode(): "none" | "loopback" | "private" {
   const raw = process.env.OMNIROUTE_TRUST_PROXY?.trim().toLowerCase();
-  if (!raw || raw === "0" || raw === "false" || raw === "none") return "none";
+  if (!raw || ["0", "false", "none", "off", "no", "disable", "disabled"].includes(raw)) {
+    return "none";
+  }
+  if (["true", "1", "loopback"].includes(raw)) return "loopback";
   if (raw === "private" || raw === "lan") return "private";
-  return "loopback";
+  return "none";
 }
 
 export function trustsForwardedHeaders(request: Request): boolean {

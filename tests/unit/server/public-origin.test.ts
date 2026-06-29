@@ -88,6 +88,21 @@ describe("public origin resolution", () => {
     assert.equal(validateBrowserMutationOrigin(request).ok, false);
   });
 
+  it("fails closed for unknown proxy trust mode values", () => {
+    process.env.OMNIROUTE_TRUST_PROXY = "flase";
+    const request = new Request("http://omniroute:20128/api/providers/health-autopilot/actions", {
+      headers: {
+        ...stampedPeer("127.0.0.1"),
+        origin: "https://gateway.example.test",
+        "x-forwarded-host": "gateway.example.test",
+        "x-forwarded-proto": "https",
+      },
+    });
+
+    assert.equal(trustsForwardedHeaders(request), false);
+    assert.equal(validateBrowserMutationOrigin(request).ok, false);
+  });
+
   it("can trust forwarded headers from a token-stamped loopback proxy when explicitly enabled", () => {
     process.env.OMNIROUTE_TRUST_PROXY = "true";
     const request = new Request("http://omniroute:20128/api/providers/health-autopilot/actions", {
