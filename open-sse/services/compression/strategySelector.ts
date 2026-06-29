@@ -861,7 +861,7 @@ function runStackedCompression(
   }
 
   // Hard-budget post-pass (#17): runs after all engines, before finalize.
-  if (options?.config?.targetTokens || options?.config?.targetRatio) {
+  if (options?.config?.targetTokens != null || options?.config?.targetRatio != null) {
     const hbResult = applyHardBudget(currentBody, {
       targetTokens: options.config.targetTokens,
       targetRatio: options.config.targetRatio,
@@ -963,7 +963,7 @@ async function runStackedCompressionAsync(
   }
 
   // Hard-budget post-pass (#17): runs after all engines, before finalize.
-  if (options?.config?.targetTokens || options?.config?.targetRatio) {
+  if (options?.config?.targetTokens != null || options?.config?.targetRatio != null) {
     const hbResult = applyHardBudget(currentBody, {
       targetTokens: options.config.targetTokens,
       targetRatio: options.config.targetRatio,

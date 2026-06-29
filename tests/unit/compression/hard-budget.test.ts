@@ -263,6 +263,45 @@ test("review#3: warns when preserved content exceeds budget", () => {
   );
 });
 
+// --- Review fix #4: targetTokens:0 must NOT silently skip ---
+
+test("review#4: targetTokens:0 attempts compression (not a silent no-op)", () => {
+  const body = makeBody(PROSE);
+  const result = applyHardBudget(body, { targetTokens: 0 });
+  // Target 0 is impossible to fully reach (preserved lines remain), but the
+  // post-pass MUST engage: either it cut something, or it emitted a warning.
+  const warnings = result.stats?.validationWarnings ?? [];
+  assert.ok(
+    result.compressed || warnings.length > 0,
+    "targetTokens:0 must engage the post-pass, not silently skip"
+  );
+});
+
+test("review#4: seam runs hard-budget post-pass when config.targetTokens is 0 (falsy)", () => {
+  // The seam gate must use != null, not ||, or targetTokens:0 silently skips.
+  const body = makeBody(PROSE);
+  const config = {
+    enabled: true,
+    defaultMode: "stacked" as const,
+    autoTriggerMode: "lite" as const,
+    autoTriggerTokens: 0,
+    cacheMinutes: 5,
+    preserveSystemPrompt: true,
+    comboOverrides: {},
+    compressionComboId: null,
+    stackedPipeline: [{ engine: "caveman" as const, intensity: "lite" as const }],
+    engines: {},
+    activeComboId: null,
+    targetTokens: 0,
+  };
+  const result = applyStackedCompression(body, config.stackedPipeline, { config });
+  const techniques = result.stats?.techniquesUsed ?? [];
+  assert.ok(
+    techniques.includes("hard-budget"),
+    `seam must run hard-budget for targetTokens:0, got techniques: ${techniques}`
+  );
+});
+
 test("integration: applyStackedCompression with config.targetTokens cuts at end of pipeline", () => {
   const body = makeBody(PROSE);
   const proseTokens = countTextTokens(PROSE);
