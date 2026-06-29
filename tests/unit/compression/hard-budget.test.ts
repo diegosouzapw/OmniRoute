@@ -148,6 +148,58 @@ test("techniquesUsed includes hard-budget", () => {
   );
 });
 
+// --- Review fix #1: digit-less sensitive lines must be preserved ---
+
+// Filler made of very common words → low saliency → first to be dropped
+// unless a unit is explicitly preserve-guarded. This forces the regex to
+// be the thing that protects the sensitive line (not its saliency score).
+const LOW_SIGNAL_FILLER = [
+  "the and the for and the with the and to the of the in the on the by the.",
+  "to the for the and the of the with the and the in the on the and the by.",
+  "and the of the to the for the with the in the on the and the by the the.",
+  "for the and the to the of the with the and the on the in the by the the.",
+  "of the to the and the for the with the on the and the in the by the the.",
+  "in the and the to the for the of the with the by the and the on the the.",
+];
+
+// Target=1 forces EVERY droppable unit out; only preserve-guarded units can
+// survive. This makes the regex (not the saliency score) the thing under test.
+test("review#1: never drops a stack-trace at-frame line (digit-less)", () => {
+  const lines = ["at processTicksAndRemainders foo bar baz qux", ...LOW_SIGNAL_FILLER].join("\n");
+  const body = makeBody(lines);
+  const result = applyHardBudget(body, { targetTokens: 1 });
+  const out = (result.body.messages as Array<{ content: string }>).map((m) => m.content).join("\n");
+  assert.ok(out.includes("at processTicksAndRemainders"), "at-frame must survive target=1");
+});
+
+test("review#1: never drops a KEY=value credential line (digit-less)", () => {
+  const lines = ["SECRET_KEY=abc the the the the the", ...LOW_SIGNAL_FILLER].join("\n");
+  const body = makeBody(lines);
+  const result = applyHardBudget(body, { targetTokens: 1 });
+  const out = (result.body.messages as Array<{ content: string }>).map((m) => m.content).join("\n");
+  assert.ok(out.includes("SECRET_KEY=abc"), "KEY=value must survive target=1");
+});
+
+test("review#1: never drops a multi-slash path line (digit-less)", () => {
+  const lines = ["/usr/local/lib/foo the the the the the", ...LOW_SIGNAL_FILLER].join("\n");
+  const body = makeBody(lines);
+  const result = applyHardBudget(body, { targetTokens: 1 });
+  const out = (result.body.messages as Array<{ content: string }>).map((m) => m.content).join("\n");
+  assert.ok(out.includes("/usr/local/lib/foo"), "multi-slash path must survive target=1");
+});
+
+test("review#1: plain prose ending in a period is still droppable", () => {
+  // Regression guard for the deviation: end-of-sentence period must NOT match.
+  const proseLine = "This is plain prose here.";
+  assert.equal(
+    /\d|https?:\/\/|(?:Error|Exception|TypeError|RangeError|SyntaxError|ReferenceError|Traceback):|```|^\s*at\s|\/[\w.-]+\/|[A-Za-z_]\w*=\S/i.test(
+      proseLine
+    ),
+    false,
+    "plain prose with a trailing period must remain droppable"
+  );
+});
+
 test("integration: applyStackedCompression with config.targetTokens cuts at end of pipeline", () => {
   const body = makeBody(PROSE);
   const proseTokens = countTextTokens(PROSE);

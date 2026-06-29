@@ -20,11 +20,18 @@ interface HardBudgetOptions {
 
 /**
  * Units containing these patterns must never be dropped.
- * Anchored to meaningful signals: digits (numbers), URLs, error patterns, code fences.
- * Does NOT match mere punctuation like `.` at end of prose sentences.
+ * Anchored to meaningful signals only — never matches a bare end-of-sentence
+ * period (which would make every prose line "preserve" → permanent no-op):
+ *   - `\d`                      digits (numbers, line refs, ports)
+ *   - `https?:\/\/`             URLs
+ *   - `(?:Error|…|Traceback):`  error/exception headers
+ *   - "```"                    code fences
+ *   - `^\s*at\s`                stack-trace frames (digit-less)
+ *   - `\/[\w.-]+\/`             real multi-segment paths (but NOT "and/or")
+ *   - `[A-Za-z_]\w*=\S`         key=value (credential/config lines, digit-less)
  */
 const UNIT_PRESERVE_RE =
-  /\d+|https?:\/\/|(?:Error|Exception|TypeError|RangeError|SyntaxError|ReferenceError):|```/i;
+  /\d|https?:\/\/|(?:Error|Exception|TypeError|RangeError|SyntaxError|ReferenceError|Traceback):|```|^\s*at\s|\/[\w.-]+\/|[A-Za-z_]\w*=\S/i;
 
 /** Average scoreToken for each word in the unit (sentence/line). */
 function scoreUnit(unit: string): number {
