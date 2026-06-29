@@ -180,12 +180,16 @@ export function getPublicOriginCandidates(request: Request): PublicOriginCandida
 }
 
 export function resolvePublicOrigin(request: Request): PublicOriginCandidate {
-  const candidates = getPublicOriginCandidates(request);
-  return (
-    candidates.find((candidate) => candidate.source === "configured") ??
-    candidates.find((candidate) => candidate.source === "trusted-forwarded") ??
-    candidates[0] ?? { origin: "http://localhost:20128", source: "request-url" }
-  );
+  const configured = uniqueCandidates(configuredPublicOrigins());
+  if (configured.length > 0) return configured[0];
+
+  const forwarded = trustedForwardedOrigin(request);
+  if (forwarded) return { origin: forwarded, source: "trusted-forwarded" };
+
+  const requestOrigin = requestUrlOrigin(request);
+  if (requestOrigin) return { origin: requestOrigin, source: "request-url" };
+
+  return { origin: "http://localhost:20128", source: "request-url" };
 }
 
 export function validateBrowserMutationOrigin(request: Request): BrowserMutationOriginVerdict {
