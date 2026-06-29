@@ -39,6 +39,7 @@ import {
   withCompressionEntrypointGuards,
   withCompressionEntrypointGuardsAsync,
 } from "./entrypointWrap.ts";
+import { makeMemoKey, memoLookup, memoStore, isDeterministicMode } from "./resultMemo.ts";
 export { resolveCacheAwareConfig } from "./cacheAwareConfig.ts";
 
 // Re-export so existing importers (resolver test + chatCore dynamic import) keep resolving.
@@ -266,6 +267,14 @@ function runCompression(
   if (mode === "off") {
     return { body, compressed: false, stats: null };
   }
+  if (options?.config?.memoizeCompressionResults === true && isDeterministicMode(mode, options.config)) {
+    const key = makeMemoKey(body, mode, options.config, options.principalId);
+    const hit = memoLookup(key);
+    if (hit) return hit;
+    const result = runCompression({ ...body }, mode, { ...options, config: { ...options.config, memoizeCompressionResults: false } });
+    memoStore(key, result);
+    return memoLookup(key)!;
+  }
   if (mode === "rtk") {
     return applyRtkCompression(body, {
       // Selecting the "rtk" mode IS the enable signal — run it even if the per-engine
@@ -415,6 +424,14 @@ async function runCompressionAsync(
     cachingContext?: CachingDetectionContext;
   }
 ): Promise<CompressionResult> {
+  if (options?.config?.memoizeCompressionResults === true && isDeterministicMode(mode, options.config)) {
+    const key = makeMemoKey(body, mode, options.config, options.principalId);
+    const hit = memoLookup(key);
+    if (hit) return hit;
+    const result = await runCompressionAsync({ ...body }, mode, { ...options, config: { ...options.config, memoizeCompressionResults: false } });
+    memoStore(key, result);
+    return memoLookup(key)!;
+  }
   if (mode === "stacked") {
     const adapter = adaptBodyForCompression(body);
     const result = await applyStackedCompressionAsync(

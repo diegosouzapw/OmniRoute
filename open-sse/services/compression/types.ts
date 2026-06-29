@@ -195,6 +195,8 @@ export interface CompressionConfig {
    * swallowed; the lazy first-call path still applies. Default false.
    */
   ultraSlmPrewarm?: boolean;
+  /** Opt-in result memoization for deterministic engines only (default off). */
+  memoizeCompressionResults?: boolean;
 }
 
 export interface CompressionStats {
