@@ -101,7 +101,7 @@
       "_rebaseline_2026_06_28_v3839_release": "78.4 -> 77.5 (-0.9, beyond the 0.5 eps). v3.8.39 cycle drift surfaced ONLY on the release PR (i18n-ui-coverage does NOT run on PR->release fast-gates). The cycle added new UI strings (compression studio TOON A/B table, antigravity remote-login dashboard field, amber warning icon) to the en denominator faster than the 37 non-en locales were translated; those locales need `npm run i18n:run` with OMNIROUTE_TRANSLATION_API_KEY (unavailable locally) — same precedent as _rebaseline_2026_06_18_v3828_cycle_close + _quality_rebaseline_2026_06_20_ci_ratchet. Measured by CI collect-metrics (run 28317145160) = 77.5. My release-finalize tree changes no src/i18n/messages/*.json. Tightening is tracked as follow-up (run i18n:run with creds)."
     },
     "deadExports": {
-      "value": 346,
+      "value": 310,
       "direction": "down",
       "dedicatedGate": true,
       "_rebaseline_2026_06_27_v3838_release": "345->346 (+1). v3.8.38 cycle drift surfaced by the release-green pre-flight (Quality Ratchet does NOT run on PR->release fast-gates). Net +1 inherited from this cycle's feature/fix merges (new executors/providers, compression fidelity-gate module) minus #5138's removal of dead legacy store modules. Release-finalize working tree touches ONLY CHANGELOG.md + i18n mirrors + README + baselines — 0 production-code change. Structural cleanup tracked as debt.",
