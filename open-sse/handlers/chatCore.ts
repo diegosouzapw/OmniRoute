@@ -9,6 +9,7 @@ import { applyClientUsageBuffer } from "./chatCore/clientUsageBuffer.ts";
 import { buildPostCallGuardrailContext } from "./chatCore/postCallGuardrailContext.ts";
 import { storeSemanticCacheResponse } from "./chatCore/semanticCacheStore.ts";
 import { buildNonStreamingResponseHeaders } from "./chatCore/nonStreamingResponseHeaders.ts";
+import { buildNonStreamingJsonResponse } from "./chatCore/nonStreamingJsonResponse.ts";
 import { maybeConvertJsonBodyToSse } from "./chatCore/jsonBodyToSse.ts";
 import { assembleStreamingResponseHeaders } from "./chatCore/streamingResponseHeaders.ts";
 import { storeStreamingSemanticCacheResponse } from "./chatCore/streamingSemanticCacheStore.ts";
@@ -3897,9 +3898,7 @@ export async function handleChatCore({
     if (echoModel) echoModelInObject(translatedResponse, echoModel);
     return {
       success: true,
-      response: new Response(JSON.stringify(translatedResponse), {
-        headers: responseHeaders,
-      }),
+      response: buildNonStreamingJsonResponse(translatedResponse, responseHeaders),
     };
   }
 
