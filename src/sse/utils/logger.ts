@@ -40,9 +40,6 @@ export function stream(event: string, data?: unknown) {
   log.debug({ tag: "STREAM", event, ...spreadData(data) }, `🌊 ${event}`);
 }
 
-// Mask sensitive data (kept for backward compat; prefer shared maskKey)
-export { maskKey } from "@/shared/utils/formatting";
-
 // Helper to spread data into structured fields
 function spreadData(data: unknown): Record<string, unknown> {
   if (!data) return {};
