@@ -58,7 +58,10 @@ export function formatCompressionMeta(plan: DerivedPlan): string {
 /**
  * Builds the annotation suffix for X-OmniRoute-Compression from compression stats.
  * Returns "" when there are no rules to aggregate (caller skips the append).
- * Format: `tokens=<orig>→<comp>; rules: <name>×<count>, ...` sorted by count desc.
+ * Format: `tokens=<orig>-><comp>; rules: <name>x<count>, ...` sorted by count desc.
+ * ASCII-only: this string is appended to the X-OmniRoute-Compression HTTP header,
+ * whose value is a latin-1 ByteString — a non-ASCII char (e.g. U+2192 →) throws at
+ * Response/Headers construction (500). Keep the UI badge's arrow in the JSX, not here.
  */
 export function formatCompressionAnnotation(stats: CompressionStats): string {
   const rules = stats.rulesApplied;
@@ -70,8 +73,8 @@ export function formatCompressionAnnotation(stats: CompressionStats): string {
   }
 
   const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-  const agg = sorted.map(([name, n]) => `${name}×${n}`).join(", ");
-  return `tokens=${stats.originalTokens}→${stats.compressedTokens}; rules: ${agg}`;
+  const agg = sorted.map(([name, n]) => `${name}x${n}`).join(", ");
+  return `tokens=${stats.originalTokens}->${stats.compressedTokens}; rules: ${agg}`;
 }
 
 /**

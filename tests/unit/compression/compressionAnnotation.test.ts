@@ -35,9 +35,27 @@ describe("formatCompressionAnnotation", () => {
       techniquesUsed: ["caveman"],
     });
     const result = formatCompressionAnnotation(stats);
-    assert.ok(result.includes("tokens=847→312"), `missing token range in: ${result}`);
-    assert.ok(result.includes("filler×8"), `missing filler×8 in: ${result}`);
-    assert.ok(result.includes("dedup×2"), `missing dedup×2 in: ${result}`);
+    assert.ok(result.includes("tokens=847->312"), `missing token range in: ${result}`);
+    assert.ok(result.includes("fillerx8"), `missing fillerx8 in: ${result}`);
+    assert.ok(result.includes("dedupx2"), `missing dedupx2 in: ${result}`);
+  });
+
+  it("is ASCII-only so it survives HTTP header (X-OmniRoute-Compression) construction", () => {
+    // Regression: the annotation is appended to the X-OmniRoute-Compression response
+    // header, a latin-1 ByteString. A non-ASCII char (e.g. U+2192 →) throws at
+    // Headers/Response construction → 500 on every compressed response with rules.
+    const stats = makeStats({
+      rulesApplied: ["filler", "filler", "dedup"],
+      techniquesUsed: ["caveman"],
+    });
+    const value = `standard; source=auto; ${formatCompressionAnnotation(stats)}`;
+    for (const ch of value) {
+      assert.ok(ch.codePointAt(0)! <= 0xff, `non-latin1 char ${JSON.stringify(ch)} in header value: ${value}`);
+    }
+    // Must not throw at real Headers/Response construction.
+    assert.doesNotThrow(() => new Headers({ "X-OmniRoute-Compression": value }));
+    const res = new Response(null, { headers: { "X-OmniRoute-Compression": value } });
+    assert.equal(res.headers.get("X-OmniRoute-Compression"), value);
   });
 
   it("orders rule counts descending by count", () => {
@@ -46,8 +64,8 @@ describe("formatCompressionAnnotation", () => {
       techniquesUsed: [],
     });
     const result = formatCompressionAnnotation(stats);
-    const fillerIdx = result.indexOf("filler×3");
-    const dedupIdx = result.indexOf("dedup×1");
+    const fillerIdx = result.indexOf("fillerx3");
+    const dedupIdx = result.indexOf("dedupx1");
     assert.ok(fillerIdx < dedupIdx, `filler (count=3) should appear before dedup (count=1): ${result}`);
   });
 
