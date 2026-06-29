@@ -5,21 +5,23 @@ export const MEMO_CAP = 5_000;
 
 const memoMap = new Map<string, CompressionResult>();
 
-/** Non-deterministic engine IDs — any stacked pipeline containing these is excluded. */
-const NON_DETERMINISTIC_ENGINES = new Set(["ultra", "aggressive", "llmlingua"]);
+// Opt-IN whitelist (NOT opt-out): cache only engines proven pure + STATELESS across
+// requests. Excluded on purpose: `ccr` and `session-dedup` write to the cross-request
+// CCR store (`ccr/index.ts` ccrStore; session-dedup imports storeBlock), so their output
+// depends on prior state → not safe to memoize; `ultra`/`aggressive`/`llmlingua` are
+// model-backed/non-deterministic. Any NEW engine is excluded until explicitly vetted.
+const DETERMINISTIC_ENGINES = new Set(["lite", "caveman", "rtk"]);
 
-/** Non-deterministic top-level modes — never cached even with flag on. */
-const NON_DETERMINISTIC_MODES = new Set<CompressionMode>(["off", "ultra", "aggressive"]);
+/** Top-level modes safe to cache (whitelist — any unknown/new mode defaults to false). */
+const DETERMINISTIC_MODES = new Set<CompressionMode>(["lite", "standard", "rtk"]);
 
 export function isDeterministicMode(mode: CompressionMode, config?: CompressionConfig): boolean {
-  if (NON_DETERMINISTIC_MODES.has(mode)) return false;
   if (mode === "stacked") {
     const pipeline = config?.stackedPipeline;
     if (!pipeline || pipeline.length === 0) return false;
-    return pipeline.every((step) => !NON_DETERMINISTIC_ENGINES.has(step.engine));
+    return pipeline.every((step) => DETERMINISTIC_ENGINES.has(step.engine));
   }
-  // lite, standard, rtk are deterministic
-  return true;
+  return DETERMINISTIC_MODES.has(mode);
 }
 
 function sha256hex(text: string): string {
@@ -54,7 +56,10 @@ export function memoLookup(key: string): CompressionResult | null {
 }
 
 export function memoStore(key: string, result: CompressionResult): void {
-  boundedSet(key, result);
+  // Clone on STORE too (memoLookup already clones on read). Storing the caller's live
+  // object would let a later mutation of it (e.g. an async engine holding a sub-ref)
+  // corrupt the cached entry. Both ends isolated ⇒ the cache is immutable once stored.
+  boundedSet(key, JSON.parse(JSON.stringify(result)) as CompressionResult);
 }
 
 /** For tests only — clears the in-process memo store. */

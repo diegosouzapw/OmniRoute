@@ -150,10 +150,7 @@ describe("isDeterministicMode", () => {
   it("stacked with ultra engine is NOT deterministic", () => {
     const cfg = {
       ...DEFAULT_COMPRESSION_CONFIG,
-      stackedPipeline: [
-        { engine: "ultra" as const },
-        { engine: "caveman" as const },
-      ],
+      stackedPipeline: [{ engine: "ultra" as const }, { engine: "caveman" as const }],
     };
     assert.equal(isDeterministicMode("stacked", cfg), false);
   });
@@ -161,10 +158,7 @@ describe("isDeterministicMode", () => {
   it("stacked with aggressive engine is NOT deterministic", () => {
     const cfg = {
       ...DEFAULT_COMPRESSION_CONFIG,
-      stackedPipeline: [
-        { engine: "aggressive" as const },
-        { engine: "rtk" as const },
-      ],
+      stackedPipeline: [{ engine: "aggressive" as const }, { engine: "rtk" as const }],
     };
     assert.equal(isDeterministicMode("stacked", cfg), false);
   });
@@ -172,9 +166,7 @@ describe("isDeterministicMode", () => {
   it("stacked with llmlingua engine is NOT deterministic", () => {
     const cfg = {
       ...DEFAULT_COMPRESSION_CONFIG,
-      stackedPipeline: [
-        { engine: "llmlingua" as const },
-      ],
+      stackedPipeline: [{ engine: "llmlingua" as const }],
     };
     assert.equal(isDeterministicMode("stacked", cfg), false);
   });
@@ -197,7 +189,7 @@ describe("applyCompression with memoization", () => {
     // Use a body that will be lightly compressed.
     const body = {
       messages: [
-        { role: "user", content: "The quick brown fox jumps over the lazy dog. " .repeat(20) },
+        { role: "user", content: "The quick brown fox jumps over the lazy dog. ".repeat(20) },
       ],
       model: "gpt-4",
     };
@@ -214,9 +206,7 @@ describe("applyCompression with memoization", () => {
 
   it("flag ON + deterministic mode: 2nd call hits memo (stats identical)", () => {
     const body = {
-      messages: [
-        { role: "user", content: "Memoization test content. ".repeat(15) },
-      ],
+      messages: [{ role: "user", content: "Memoization test content. ".repeat(15) }],
       model: "gpt-4",
     };
 
@@ -253,5 +243,45 @@ describe("applyCompression with memoization", () => {
     applyCompression(body, "ultra", { config: memoConfig, principalId: "u1" });
     const key = makeMemoKey(body, "ultra", memoConfig, "u1");
     assert.equal(memoLookup(key), null);
+  });
+});
+
+// ── Core-review hardening regressions ──────────────────────────────────────
+describe("resultMemo — core review hardening", () => {
+  beforeEach(() => clearMemoStore());
+
+  it("stacked pipeline with a stateful engine (ccr/session-dedup) is NOT deterministic", () => {
+    // ccr + session-dedup write to the cross-request CCR store → output depends on prior
+    // state → must never be cached, even though they are not model-backed.
+    const cfgCcr = { ...memoConfig, stackedPipeline: [{ engine: "rtk" as const }, { engine: "ccr" as const }] };
+    const cfgDedup = { ...memoConfig, stackedPipeline: [{ engine: "session-dedup" as const }] };
+    assert.equal(isDeterministicMode("stacked", cfgCcr), false);
+    assert.equal(isDeterministicMode("stacked", cfgDedup), false);
+    // the pure default pipeline [rtk, caveman] stays cacheable
+    const cfgPure = { ...memoConfig, stackedPipeline: [{ engine: "rtk" as const }, { engine: "caveman" as const }] };
+    assert.equal(isDeterministicMode("stacked", cfgPure), true);
+    // an unknown/new mode is NOT cached by default (opt-in whitelist)
+    assert.equal(isDeterministicMode("totally-new-mode" as never, memoConfig), false);
+  });
+
+  it("a missing principalId is never memoized (no anonymous↔authenticated key collision)", () => {
+    const body = { messages: [{ role: "user", content: "no principal here please" }], model: "gpt-4" };
+    applyCompression(body, "lite", { config: memoConfig }); // no principalId
+    const key = makeMemoKey(body, "lite", memoConfig, undefined);
+    assert.equal(memoLookup(key), null);
+  });
+
+  it("mutating the result after store does not corrupt the cache (clone-on-store)", () => {
+    const key = "mutate-after-store";
+    const result: CompressionResult = {
+      body: { messages: [{ role: "user", content: "original" }] },
+      compressed: true,
+      stats: null,
+    };
+    memoStore(key, result);
+    // mutate the caller's object AFTER storing
+    (result.body.messages as Array<{ content: string }>)[0].content = "TAMPERED";
+    const got = memoLookup(key);
+    assert.equal((got!.body.messages as Array<{ content: string }>)[0].content, "original");
   });
 });
