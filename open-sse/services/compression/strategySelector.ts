@@ -5,6 +5,7 @@ import type {
   CompressionResult,
   CompressionStats,
 } from "./types.ts";
+import { applyHardBudget } from "./hardBudget.ts";
 import { type FidelityGateConfig } from "./fidelityGate.ts";
 import { gateAdvance } from "./fidelityGateStep.ts";
 import type { CompressionEngineApplyOptions } from "./engines/types.ts";
@@ -859,6 +860,19 @@ function runStackedCompression(
     }
   }
 
+  // Hard-budget post-pass (#17): runs after all engines, before finalize.
+  if (options?.config?.targetTokens || options?.config?.targetRatio) {
+    const hbResult = applyHardBudget(currentBody, {
+      targetTokens: options.config.targetTokens,
+      targetRatio: options.config.targetRatio,
+    });
+    if (hbResult.compressed) {
+      mergeStackStep(acc, "hard-budget", hbResult);
+      currentBody = hbResult.body;
+      compressed = true;
+    }
+  }
+
   return finalizeStackedResult(
     body,
     currentBody,
@@ -945,6 +959,19 @@ async function runStackedCompressionAsync(
         compressed = true;
       }
       reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
+    }
+  }
+
+  // Hard-budget post-pass (#17): runs after all engines, before finalize.
+  if (options?.config?.targetTokens || options?.config?.targetRatio) {
+    const hbResult = applyHardBudget(currentBody, {
+      targetTokens: options.config.targetTokens,
+      targetRatio: options.config.targetRatio,
+    });
+    if (hbResult.compressed) {
+      mergeStackStep(acc, "hard-budget", hbResult);
+      currentBody = hbResult.body;
+      compressed = true;
     }
   }
 

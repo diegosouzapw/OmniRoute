@@ -184,6 +184,18 @@ export interface CompressionConfig {
    */
   contextBudget?: ContextBudgetConfig;
   /**
+   * Hard-budget post-pass (#17): compress to at most this many cl100k tokens.
+   * Runs after all stacked engines. Absent → no-op.
+   * When both targetTokens and targetRatio are set, targetTokens wins.
+   */
+  targetTokens?: number;
+  /**
+   * Hard-budget post-pass (#17): compress to at most this fraction (0–1) of original tokens.
+   * Runs after all stacked engines. Absent → no-op.
+   * When both targetTokens and targetRatio are set, targetTokens wins.
+   */
+  targetRatio?: number;
+  /**
    * Phase 4 (B): which tier the `ultra` mode uses.
    * "heuristic" = Tier-A token pruner (`pruneByScore`, default, byte-identical to pre-B).
    * "slm" = Tier-B LLMLingua-2 ONNX worker when available, else fail-open to Tier-A.
