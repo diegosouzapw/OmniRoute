@@ -116,7 +116,13 @@ function getMemoryCache() {
  * @param {string} [apiKeyId] - API key ID for per-key isolation (prevents cross-user cache hits)
  * @returns {string} hex signature
  */
-export function generateSignature(model, conversation, temperature = 0, topP = 1, apiKeyId?: string) {
+export function generateSignature(
+  model,
+  conversation,
+  temperature = 0,
+  topP = 1,
+  apiKeyId?: string
+) {
   const payload = JSON.stringify({
     model,
     messages: normalizeConversation(conversation),
@@ -308,48 +314,6 @@ export function invalidateStale(maxAgeMs: number): number {
   try {
     const db = getDbInstance();
     const cutoff = new Date(Date.now() - maxAgeMs).toISOString();
-    const result = db.prepare("DELETE FROM semantic_cache WHERE created_at < ?").run(cutoff);
-    return result.changes || 0;
-  } catch {
-    return 0;
-  }
-}
-
-// ── Auto-cleanup timer ──
-
-let _cleanupTimer: ReturnType<typeof setInterval> | null = null;
-
-/**
- * Start periodic auto-cleanup of expired entries.
- * @param {number} intervalMs - Cleanup interval (default: 5 minutes)
- */
-export function startAutoCleanup(intervalMs = 300_000): void {
-  stopAutoCleanup();
-  _cleanupTimer = setInterval(() => {
-    const removed = cleanExpiredEntries();
-    if (removed > 0) {
-      console.log(`[SemanticCache] Auto-cleaned ${removed} expired entries`);
-    }
-  }, intervalMs);
-  if (_cleanupTimer && typeof _cleanupTimer === "object" && "unref" in _cleanupTimer) {
-    (_cleanupTimer as { unref?: () => void }).unref?.();
-  }
-}
-
-/**
- * Stop periodic auto-cleanup.
- */
-export function stopAutoCleanup(): void {
-  if (_cleanupTimer) {
-    clearInterval(_cleanupTimer);
-    _cleanupTimer = null;
-  }
-}
-
-export function cleanOldMetrics(retentionDays = 90): number {
-  try {
-    const db = getDbInstance();
-    const cutoff = new Date(Date.now() - retentionDays * 86400000).toISOString();
     const result = db.prepare("DELETE FROM semantic_cache WHERE created_at < ?").run(cutoff);
     return result.changes || 0;
   } catch {

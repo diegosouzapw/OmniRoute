@@ -6,7 +6,15 @@ import {
   isCacheableForWrite,
 } from "../../src/lib/semanticCache.ts";
 
+const semanticCachePublicApi = await import("../../src/lib/semanticCache.ts");
+
 describe("Semantic Cache", () => {
+  it("public surface excludes unused maintenance timer helpers", () => {
+    assert.equal("startAutoCleanup" in semanticCachePublicApi, false);
+    assert.equal("stopAutoCleanup" in semanticCachePublicApi, false);
+    assert.equal("cleanOldMetrics" in semanticCachePublicApi, false);
+  });
+
   describe("generateSignature", () => {
     it("generates consistent signatures for same inputs", () => {
       const messages = [{ role: "user", content: "hello" }];
@@ -77,7 +85,11 @@ describe("Semantic Cache", () => {
       const messages = [{ role: "user", content: "what is 2+2?" }];
       const sigKeyA = generateSignature("gpt-4o", messages, 0, 1, "key-id-alice");
       const sigKeyB = generateSignature("gpt-4o", messages, 0, 1, "key-id-bob");
-      assert.notEqual(sigKeyA, sigKeyB, "different API keys must produce different cache signatures");
+      assert.notEqual(
+        sigKeyA,
+        sigKeyB,
+        "different API keys must produce different cache signatures"
+      );
     });
 
     it("generates consistent signatures for same API key ID (#3740)", () => {
