@@ -926,6 +926,7 @@ export async function handleChatCore({
         resolveCacheAwareConfig,
         formatCompressionMeta,
         buildNamedComboLookup,
+        formatCompressionAnnotation,
       } = await import("../services/compression/strategySelector.ts");
       const { trackCompressionStats } = await import("../services/compression/stats.ts");
       let config: CompressionConfig = compressionSettings ?? {
@@ -1255,6 +1256,10 @@ export async function handleChatCore({
           },
         });
         if (result.stats) {
+          const annotation = formatCompressionAnnotation(result.stats);
+          if (annotation) {
+            compressionResponseMeta = `${compressionResponseMeta}; ${annotation}`;
+          }
           if (result.compressed) {
             body = result.body as typeof body;
             estimatedTokens = result.stats.compressedTokens;

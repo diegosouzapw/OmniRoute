@@ -1,4 +1,4 @@
-import type { CompressionConfig, CompressionPipelineStep } from "./types.ts";
+import type { CompressionConfig, CompressionPipelineStep, CompressionStats } from "./types.ts";
 import { resolveCompressionPlan } from "./resolveCompressionPlan.ts";
 import {
   deriveDefaultPlan,
@@ -53,6 +53,25 @@ export function planFromHeader(
 /** Renders the X-OmniRoute-Compression response header value. */
 export function formatCompressionMeta(plan: DerivedPlan): string {
   return `${plan.mode}; source=${plan.source ?? "off"}`;
+}
+
+/**
+ * Builds the annotation suffix for X-OmniRoute-Compression from compression stats.
+ * Returns "" when there are no rules to aggregate (caller skips the append).
+ * Format: `tokens=<orig>→<comp>; rules: <name>×<count>, ...` sorted by count desc.
+ */
+export function formatCompressionAnnotation(stats: CompressionStats): string {
+  const rules = stats.rulesApplied;
+  if (!rules || rules.length === 0) return "";
+
+  const counts = new Map<string, number>();
+  for (const rule of rules) {
+    counts.set(rule, (counts.get(rule) ?? 0) + 1);
+  }
+
+  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const agg = sorted.map(([name, n]) => `${name}×${n}`).join(", ");
+  return `tokens=${stats.originalTokens}→${stats.compressedTokens}; rules: ${agg}`;
 }
 
 /**
