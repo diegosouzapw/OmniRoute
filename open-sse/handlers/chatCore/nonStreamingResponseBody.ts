@@ -16,16 +16,56 @@ import {
   type NonStreamingSseTerminalState,
 } from "./nonStreamingSse.ts";
 
+/**
+ * Thrown when a non-streaming upstream body exceeds the hard cap. Buffering an unbounded
+ * SSE/NDJSON or JSON response in non-streaming mode was an OOM path (`rawBody += chunk`
+ * with no ceiling): a single multi-hundred-MB upstream response could fill the V8 heap.
+ * Callers treat this like any other upstream error rather than crashing the process.
+ */
+export class NonStreamingResponseTooLargeError extends Error {
+  readonly bytesSeen: number;
+  readonly maxBytes: number;
+  constructor(bytesSeen: number, maxBytes: number) {
+    super(
+      `Upstream non-streaming response exceeded the ${maxBytes}-byte cap (saw at least ${bytesSeen} bytes)`
+    );
+    this.name = "NonStreamingResponseTooLargeError";
+    this.bytesSeen = bytesSeen;
+    this.maxBytes = maxBytes;
+  }
+}
+
+const DEFAULT_MAX_NONSTREAMING_RESPONSE_BYTES = 64 * 1024 * 1024; // 64 MB
+
+/**
+ * Hard cap for a non-streaming response buffered fully into memory. Generous by default so
+ * legitimate large completions pass; bounds only pathological/runaway upstream bodies.
+ * Override with `OMNIROUTE_MAX_NONSTREAMING_RESPONSE_BYTES`.
+ */
+export const MAX_NONSTREAMING_RESPONSE_BYTES = (() => {
+  const parsed = Number.parseInt(
+    String(process.env.OMNIROUTE_MAX_NONSTREAMING_RESPONSE_BYTES),
+    10
+  );
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_NONSTREAMING_RESPONSE_BYTES;
+})();
+
 export async function readNonStreamingResponseBody(
   response: Response,
   contentType: string,
-  upstreamStream: boolean
+  upstreamStream: boolean,
+  maxBytes: number = MAX_NONSTREAMING_RESPONSE_BYTES
 ): Promise<string> {
   if (
     !upstreamStream ||
     !response.body ||
     (!contentType.includes("text/event-stream") && !contentType.includes("application/x-ndjson"))
   ) {
+    // Reject before buffering when the upstream declares an over-cap Content-Length.
+    const declared = Number.parseInt(response.headers.get("content-length") ?? "", 10);
+    if (Number.isFinite(declared) && declared > maxBytes) {
+      throw new NonStreamingResponseTooLargeError(declared, maxBytes);
+    }
     return withBodyTimeout<string>(response.text());
   }
 
@@ -36,6 +76,7 @@ export async function readNonStreamingResponseBody(
     pendingLine: "",
   };
   let rawBody = "";
+  let bytesSeen = 0;
   const deadline = FETCH_BODY_TIMEOUT_MS > 0 ? Date.now() + FETCH_BODY_TIMEOUT_MS : 0;
 
   try {
@@ -48,6 +89,14 @@ export async function readNonStreamingResponseBody(
       const { done, value } = await readStreamChunkWithTimeout(reader, timeoutMs);
       if (done) break;
       if (!value) continue;
+
+      // Bound the buffer: cancel the upstream and fail fast past the cap rather than
+      // growing `rawBody` until the V8 heap is exhausted.
+      bytesSeen += value.byteLength;
+      if (bytesSeen > maxBytes) {
+        await reader.cancel("non-streaming response exceeded byte cap").catch(() => {});
+        throw new NonStreamingResponseTooLargeError(bytesSeen, maxBytes);
+      }
 
       const decodedChunk = decoder.decode(value, { stream: true });
       rawBody += decodedChunk;
