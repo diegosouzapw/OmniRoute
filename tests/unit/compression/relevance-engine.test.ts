@@ -198,3 +198,164 @@ test("engine metadata is correct", () => {
   assert.ok(Array.isArray(relevanceEngine.targets));
   assert.ok(relevanceEngine.getConfigSchema().length > 0);
 });
+
+// ── Issue 1: overlapThreshold must actually drop zero-overlap sentences ──────
+test("zero-overlap sentences below overlapThreshold are dropped even with budget room", () => {
+  // Context user message with 5 relevant + 5 zero-overlap sentences. Generous
+  // budget (0.9) so budget alone would keep everything; overlapThreshold must
+  // still drop the zero-overlap ones.
+  const relevant = "alpha beta gamma delta epsilon configuration database query.";
+  const zero = "zzqqxx vvbbnn mmllkk poiuyt qwerty.";
+  const context =
+    `${relevant} ${zero} ${relevant} ${zero} ${relevant} ` +
+    `${zero} ${relevant} ${zero} ${relevant} ${zero}`;
+  const body = {
+    messages: [
+      { role: "user", content: context },
+      { role: "user", content: "alpha beta gamma delta epsilon configuration database query" },
+    ],
+  };
+  const result = relevanceEngine.apply(body, {
+    stepConfig: { enabled: true, budgetPercent: 0.9, overlapThreshold: 0.1 },
+  });
+  assert.equal(result.compressed, true);
+  const messages = result.body.messages as Array<{ content: string }>;
+  // The dropped message is the CONTEXT (index 0), not the query (Issue 5).
+  const compressed = messages[0].content;
+  assert.ok(
+    !compressed.includes("zzqqxx"),
+    `zero-overlap sentence should be dropped, got: ${compressed}`
+  );
+  assert.ok(compressed.includes("alpha beta gamma"), "relevant sentence should survive");
+});
+
+// ── Issue 2: multimodal with multiple text blocks must not be corrupted ──────
+test("multimodal content with multiple text blocks is returned unchanged", () => {
+  const body = {
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "Sentence A about cats. Another A sentence here." },
+          { type: "image_url", image_url: { url: "data:image/png;base64,xxx" } },
+          { type: "text", text: "Sentence B about dogs. Another B sentence here." },
+        ],
+      },
+      { role: "user", content: "cats dogs animals query text" },
+    ],
+  };
+  const result = relevanceEngine.apply(body, {
+    stepConfig: { enabled: true, budgetPercent: 0.2, overlapThreshold: 0.0 },
+  });
+  const messages = result.body.messages as Array<{
+    content: Array<{ type: string; text?: string }>;
+  }>;
+  const blocks = messages[0].content;
+  // Neither text block may be overwritten with the other's (joined) content.
+  assert.equal(blocks[0].text, "Sentence A about cats. Another A sentence here.");
+  assert.equal(blocks[2].text, "Sentence B about dogs. Another B sentence here.");
+});
+
+test("multimodal content with a single text block compresses that block in place", () => {
+  const body = {
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text:
+              "The database host is configured in settings. " +
+              "Completely unrelated filler about random topics here. " +
+              "The database port defaults to five four three two.",
+          },
+        ],
+      },
+      { role: "user", content: "database host port configuration settings" },
+    ],
+  };
+  const result = relevanceEngine.apply(body, {
+    stepConfig: { enabled: true, budgetPercent: 0.6, overlapThreshold: 0.05 },
+  });
+  if (result.compressed) {
+    const messages = result.body.messages as Array<{
+      content: Array<{ type: string; text?: string }>;
+    }>;
+    const text = messages[0].content[0].text ?? "";
+    assert.match(text, /database/i);
+  }
+});
+
+// ── Issue 3: force-preserved content must not starve high-relevance sentences ─
+test("force-preserved sentences are free and do not starve top-relevance sentence", () => {
+  // Many force-preserved sentences (contain digits/Error: → FORCE_PRESERVE_RE)
+  // would fill a tiny budget; the single highest-relevance non-force sentence
+  // must still be kept.
+  const forced =
+    "Error: code 100. Error: code 200. Error: code 300. Error: code 400. Error: code 500.";
+  const relevant = "The quantum entanglement relevance signal token here.";
+  const filler = "Totally unrelated padding sentence with nothing useful.";
+  const context = `${forced} ${relevant} ${filler}`;
+  const body = {
+    messages: [
+      { role: "user", content: context },
+      { role: "user", content: "quantum entanglement relevance signal token" },
+    ],
+  };
+  const result = relevanceEngine.apply(body, {
+    stepConfig: { enabled: true, budgetPercent: 0.05, overlapThreshold: 0.01 },
+  });
+  assert.equal(result.compressed, true);
+  const messages = result.body.messages as Array<{ content: string }>;
+  const compressed = messages[0].content;
+  assert.ok(
+    compressed.includes("quantum entanglement relevance signal"),
+    `top-relevance sentence must survive despite forced content, got: ${compressed}`
+  );
+  // Forced content also survives.
+  assert.ok(compressed.includes("Error: code 100"));
+});
+
+// ── Issue 4: whitespace / paragraph breaks must be preserved ─────────────────
+test("paragraph breaks (double newline) survive between kept sentences", () => {
+  const context =
+    "The database connection requires a host parameter.\n\n" +
+    "Unrelated filler sentence about random nothing.\n\n" +
+    "The connection also requires a port number setting.";
+  const body = {
+    messages: [
+      { role: "user", content: context },
+      { role: "user", content: "database connection host port setting" },
+    ],
+  };
+  const result = relevanceEngine.apply(body, {
+    stepConfig: { enabled: true, budgetPercent: 0.7, overlapThreshold: 0.05 },
+  });
+  if (result.compressed) {
+    const messages = result.body.messages as Array<{ content: string }>;
+    const compressed = messages[0].content;
+    assert.match(compressed, /\n\n/, `expected paragraph break to survive, got: ${compressed}`);
+  }
+});
+
+// ── Issue 5: the query message itself must never be compressed ───────────────
+test("the last user (query) message is returned byte-identical", () => {
+  const queryText =
+    "What is the host? Also the port? And the database name? " +
+    "Plus the username and the password and the timeout setting too?";
+  const body = {
+    messages: [
+      { role: "user", content: "Some prior context. More prior context here. Even more." },
+      { role: "user", content: queryText },
+    ],
+  };
+  const result = relevanceEngine.apply(body, {
+    stepConfig: { enabled: true, budgetPercent: 0.3, overlapThreshold: 0.0 },
+  });
+  const messages = result.body.messages as Array<{ content: string }>;
+  assert.equal(
+    messages[messages.length - 1].content,
+    queryText,
+    "the query message must be left untouched"
+  );
+});
