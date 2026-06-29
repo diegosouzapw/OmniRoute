@@ -28,8 +28,8 @@ const OPENAI_ADDED_IDS = [
 ] as const;
 
 const GEMINI_ADDED_IDS = [
-  "gemini-3-flash-lite-preview",
-  "gemini-2.0-flash-lite",
+  "gemini-3.1-flash-lite",
+  "gemini-2.5-flash-lite",
 ] as const;
 
 test("openai registry exposes gpt-4.1 mini/nano and o3-mini/o4-mini reasoning variants", () => {
@@ -69,7 +69,7 @@ test("port did not regress previously curated openai/gemini ids", () => {
     "gemini-2.5-pro",
     "gemini-2.5-flash",
     "gemini-3.1-pro-preview",
-    "gemini-1.5-pro",
+    "gemini-3.5-flash",
   ] as const) {
     assert.ok(geminiIds.has(id), `existing gemini model ${id} must remain`);
   }

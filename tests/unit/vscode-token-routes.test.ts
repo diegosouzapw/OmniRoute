@@ -643,11 +643,11 @@ test("vscode tokenized models route prefixes the provider without duplicating br
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/models`)
   );
   const body = (await response.json()) as any;
-  const model = (body.data || []).find((entry: any) => entry.id === "gemini/gemini-1.5-pro");
+  const model = (body.data || []).find((entry: any) => entry.id === "gemini/gemini-2.5-pro");
 
   assert.equal(response.status, 200);
-  assert.ok(model, "missing gemini/gemini-1.5-pro in tokenized VS Code models route");
-  assert.equal(model.name, "Gemini 1.5 Pro");
+  assert.ok(model, "missing gemini/gemini-2.5-pro in tokenized VS Code models route");
+  assert.equal(model.name, "Gemini 2.5 Pro");
 });
 
 test("vscode tokenized tags route mirrors the Ollama tags payload", async () => {

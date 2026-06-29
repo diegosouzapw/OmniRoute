@@ -205,7 +205,10 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/embeddings",
     authType: "apikey",
     authHeader: "bearer",
-    models: [{ id: "text-embedding-004", name: "Text Embedding 004", dimensions: 768 }],
+    models: [
+      { id: "gemini-embedding-2", name: "Gemini Embedding 2", dimensions: 768 },
+      { id: "gemini-embedding-001", name: "Gemini Embedding 001", dimensions: 768 },
+    ],
   },
 
   "voyage-ai": {

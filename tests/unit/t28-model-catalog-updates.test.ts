@@ -12,11 +12,11 @@ test("T28: gemini AI Studio catalog includes current preview models", () => {
   const geminiIds = REGISTRY.gemini.models.map((m) => m.id);
   assert.ok(geminiIds.includes("gemini-3.1-pro-preview"));
   assert.ok(geminiIds.includes("gemini-3-flash-preview"));
-  assert.ok(geminiIds.includes("gemini-3.1-flash-lite-preview"));
+  assert.ok(geminiIds.includes("gemini-3.1-flash-lite"));
   assert.ok(geminiIds.includes("gemini-3.5-flash"));
   assert.ok(geminiIds.includes("gemini-2.5-flash"));
   assert.ok(geminiIds.includes("gemini-2.5-pro"));
-  assert.equal(geminiIds[0], "gemini-2.0-flash", "preserve the existing Gemini default");
+  assert.equal(geminiIds[0], "gemini-3.1-pro-preview", "preserve the existing Gemini default");
 });
 
 test("T28: antigravity static catalog exposes client-visible Gemini tier IDs", () => {

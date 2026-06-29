@@ -23,6 +23,10 @@ test("resolveModelAlias: resolves deprecated Gemini model", () => {
   assert.equal(resolveModelAlias("gemini-pro"), "gemini-2.5-pro");
   assert.equal(resolveModelAlias("gemini-1.5-pro"), "gemini-2.5-pro");
   assert.equal(resolveModelAlias("gemini-1.5-flash"), "gemini-2.5-flash");
+  // Retired 2.0 Flash-Lite (Google shutdown 2026-06-01) + renamed flash-lite preview
+  // both forward to the live GA gemini-3.1-flash-lite.
+  assert.equal(resolveModelAlias("gemini-2.0-flash-lite"), "gemini-3.1-flash-lite");
+  assert.equal(resolveModelAlias("gemini-3.1-flash-lite-preview"), "gemini-3.1-flash-lite");
 });
 
 test("resolveModelAlias: resolves deprecated Claude model", () => {
