@@ -73,7 +73,10 @@ import {
   withBodyTimeout,
 } from "../utils/stream.ts";
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
-import { shouldSuppressThinkCloseMarker } from "../utils/thinkCloseMarker.ts";
+import {
+  resolveSuppressThinkClose,
+  THINKING_MARKER_HEADER,
+} from "../utils/thinkCloseMarker.ts";
 import { resolveStreamReadinessTimeout } from "../utils/streamReadinessPolicy.ts";
 import { createStreamController } from "../utils/streamHandler.ts";
 import * as streamFailure from "../utils/streamFailureFinalization.ts";
@@ -787,6 +790,15 @@ export async function handleChatCore({
   ]
     .filter(Boolean)
     .join(" ");
+
+  // Explicit per-request opt-in/out for the `</think>` close marker
+  // (#5312 / #5245): `x-omniroute-thinking-marker: off` suppresses it for
+  // reasoning_content-native clients (e.g. Cursor's OpenAI path) that the UA
+  // allowlist does not cover; absent the header, the UA policy applies.
+  const thinkingMarkerHeader = getHeaderValueCaseInsensitive(
+    clientRawRequest?.headers ?? null,
+    THINKING_MARKER_HEADER
+  );
 
   const explicitStreamAlias = resolveExplicitStreamAlias(body);
 
@@ -4191,8 +4203,13 @@ export async function handleChatCore({
       handleStreamFailure,
       copilotCompatibleReasoning,
       // Suppress the `</think>` close marker for clients that render it verbatim
-      // (e.g. OpenCode); preserved for Claude Code / Cursor and unknown clients (#5245).
-      shouldSuppressThinkCloseMarker(streamUserAgent)
+      // (e.g. OpenCode by UA; any client via `x-omniroute-thinking-marker: off`);
+      // preserved for Claude Code / Cursor and unknown clients by default (#5245 /
+      // #5312). The header wins over the UA allowlist.
+      resolveSuppressThinkClose({
+        userAgent: streamUserAgent,
+        thinkingMarkerHeader,
+      })
     );
   } else {
     log?.debug?.("STREAM", `Standard passthrough mode`);

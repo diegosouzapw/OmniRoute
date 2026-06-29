@@ -447,7 +447,10 @@ test("grok-web validator: full DevTools cookie blob is parsed for the sso value"
   const result = await validateProviderApiKey({ provider: "grok-web", apiKey: blob });
 
   assert.equal(result.valid, true);
-  assert.equal(capturedCookie, "sso=eyJTARGET.abc.def");
+  // #5350 — the outbound cookie now forwards the Cloudflare cookies too.
+  assert.match(capturedCookie, /(?:^|;\s*)sso=eyJTARGET\.abc\.def(?:;|$)/);
+  assert.match(capturedCookie, /(?:^|;\s*)cf_clearance=baz(?:;|$)/);
+  assert.match(capturedCookie, /(?:^|;\s*)__cf_bm=bar(?:;|$)/);
 });
 
 test("grok-web validator: empty/missing sso in input returns 'Missing sso cookie'", async () => {
@@ -592,6 +595,45 @@ test("grok-web validator: 403 with credential-rejection body is treated as auth-
   const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "bad-cookie" });
   assert.equal(result.valid, false);
   assert.match(result.error || "", /Invalid SSO cookie/i);
+});
+
+// #5350 — when the user DID supply a cf_clearance, an auth-shaped 401 / invalid-credentials 403
+// is almost always an IP-reputation block (cf_clearance is IP+TLS+UA-pinned and cannot be
+// replayed from a different machine), NOT a bad cookie. Surface the IP guidance instead of the
+// misleading "Invalid SSO cookie" verdict.
+test("grok-web validator: 401 WITH a cf_clearance maps to IP-reputation guidance, not 'invalid cookie' (#5350)", async () => {
+  __setGrokTlsFetchOverride(async () => {
+    return { status: 401, headers: new Headers(), text: "Unauthorized", body: null };
+  });
+
+  const blob = "sso=eyJTARGET.abc.def; sso-rw=RW; cf_clearance=CF; __cf_bm=BM";
+  const result = await validateProviderApiKey({ provider: "grok-web", apiKey: blob });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /residential IP|proxy/i);
+  assert.doesNotMatch(result.error || "", /invalid SSO cookie/i);
+});
+
+test("grok-web validator: invalid-credentials 403 WITH a cf_clearance maps to IP-reputation guidance (#5350)", async () => {
+  __setGrokTlsFetchOverride(async () => {
+    return {
+      status: 403,
+      headers: new Headers(),
+      text: JSON.stringify({
+        error: {
+          code: 16,
+          message: "Failed to look up session ID. [WKE=unauthenticated:invalid-credentials]",
+          details: [],
+        },
+      }),
+      body: null,
+    };
+  });
+
+  const blob = "sso=eyJTARGET.abc.def; cf_clearance=CF";
+  const result = await validateProviderApiKey({ provider: "grok-web", apiKey: blob });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /residential IP|proxy/i);
+  assert.doesNotMatch(result.error || "", /invalid SSO cookie/i);
 });
 
 test("grok-web validator: TLS client unavailable surfaces actionable error", async () => {

@@ -10,6 +10,7 @@ import { startCleanupScheduler } from "./lib/db/cleanup";
 import { getSettings } from "./lib/db/settings";
 import { applyRuntimeSettings } from "./lib/config/runtimeSettings";
 import { setSystemPromptConfig } from "@omniroute/open-sse/services/systemPrompt.ts";
+import { hydrateThinkingBudgetConfig } from "@omniroute/open-sse/services/thinkingBudget.ts";
 import { startRuntimeConfigHotReload } from "./lib/config/hotReload";
 import { startSpendBatchWriter } from "./lib/spend/batchWriter";
 import { registerDefaultGuardrails } from "./lib/guardrails";
@@ -84,6 +85,14 @@ async function startServer() {
     if (settings.systemPrompt) {
       setSystemPromptConfig(settings.systemPrompt);
       startupLog.info("Global System Prompt restored from settings");
+    }
+
+    // Restore the proxy-level Thinking-Budget config (#5312). It lives in
+    // `settings.thinkingBudget` and is NOT covered by applyRuntimeSettings, so
+    // without this the dashboard mode (auto/custom/adaptive) silently reverts to
+    // the passthrough default on every restart.
+    if (hydrateThinkingBudgetConfig(settings)) {
+      startupLog.info("Thinking-Budget config restored from settings");
     }
 
     // Initialize cloud sync

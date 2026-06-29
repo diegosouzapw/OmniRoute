@@ -12,6 +12,7 @@ describe("Semantic Cache", () => {
   it("public surface excludes unused maintenance timer helpers", () => {
     assert.equal("startAutoCleanup" in semanticCachePublicApi, false);
     assert.equal("stopAutoCleanup" in semanticCachePublicApi, false);
+    assert.equal("cleanExpiredEntries" in semanticCachePublicApi, false);
     assert.equal("cleanOldMetrics" in semanticCachePublicApi, false);
   });
 

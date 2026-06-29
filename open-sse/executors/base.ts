@@ -7,6 +7,7 @@ import { applyContextEditingToBody } from "../config/contextEditing.ts";
 import { findOffendingField, stripGroqUnsupportedFields } from "../config/providerFieldStrips.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
+import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 import type { Session } from "../services/sessionPool/session.ts";
 import { SessionPool } from "../services/sessionPool/sessionPool.ts";
@@ -1059,18 +1060,39 @@ export class BaseExecutor {
           } else if (!effThinking && !headerEffort) {
             // Default CC logic when no override headers are present
             const isHaiku = typeof tb.model === "string" && tb.model.includes("haiku");
+            // #5312 RC-B: honor the operator's proxy-level Thinking-Budget mode.
+            // `auto` means "strip — let the provider decide", so suppress the default
+            // adaptive injection. Passthrough/no-config keeps the native Claude Code
+            // behavior (adaptive) so #4633 does not regress (request-side only).
+            const tbMode = getThinkingBudgetConfig().mode;
             if (isHaiku) {
               // Keep tb.thinking — real Claude Desktop keeps thinking enabled for Haiku
               // (issue #2454). Only strip output_config (effort) which Haiku rejects;
               // context_management is re-paired with the preserved thinking below.
               delete tb.output_config;
               delete tb.context_management;
+            } else if (tbMode === ThinkingMode.AUTO) {
+              delete tb.thinking;
+              delete tb.context_management;
+              delete tb.output_config;
             } else if (tb.thinking === undefined && tb.output_config === undefined) {
               tb.thinking = { type: "adaptive" };
               tb.context_management = {
                 edits: [{ type: "clear_thinking_20251015", keep: "all" }],
               };
               tb.output_config = { effort: "high" };
+            }
+            // #5312: Opus 4.7/4.8 accept only thinking.type="adaptive" ("enabled" → 400).
+            // When an operator budget (custom/adaptive mode) produced an enabled block
+            // upstream, remap it to adaptive + output_config.effort here.
+            const th = tb.thinking as Record<string, unknown> | undefined;
+            if (th?.type === "enabled" && tbMode !== ThinkingMode.PASSTHROUGH) {
+              const b = typeof th.budget_tokens === "number" ? th.budget_tokens : 0;
+              tb.thinking = { type: "adaptive" };
+              tb.output_config = {
+                effort: b <= 1024 ? "low" : b <= 10240 ? "medium" : b >= 131072 ? "max" : "high",
+              };
+              tb.context_management = { edits: [{ type: "clear_thinking_20251015", keep: "all" }] };
             }
           }
 

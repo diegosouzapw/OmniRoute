@@ -29,6 +29,7 @@
     "scripts/build/colocateOptionals.mjs",
     "scripts/build/sync-env.mjs",
     "scripts/dev/responses-ws-proxy.mjs",
+    "scripts/dev/tls-options.mjs",
     "scripts/check/check-supported-node-runtime.ts",
     "scripts/dev/sync-env.mjs",
     "scripts/build/native-binary-compat.mjs",

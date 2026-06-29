@@ -61,6 +61,7 @@ import {
 } from "@/shared/constants/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 import { isNoAuthProviderBlockedBySettings } from "./noAuthProviderSettings";
+import { resolveAccountProxiesFromRegistry } from "./noAuthProxyResolution";
 import * as log from "../utils/logger";
 import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
 
@@ -831,14 +832,10 @@ function buildSyntheticNoAuthCredentials(providerSpecificData: JsonRecord = {}):
 }
 
 /**
- * #4954 — A no-auth provider ("OpenCode Free", MiMoCode, …) has no DB-backed
- * credential, but its NoAuthAccountCard DOES persist a real connection row whose
- * `providerSpecificData` carries the per-account proxy/rotation config
- * (`fingerprints` + `accountProxies`). The synthetic credentials returned above
- * default to an empty `providerSpecificData`, so without hydration the executor
- * never sees those proxies and every request egresses direct. Pull just the
- * rotation-relevant fields off the active connection so the executor can honor
- * them. Best-effort: any read failure falls back to empty (historical behavior).
+ * #4954 / #5217 (Gap 1) — no-auth providers persist a connection row whose
+ * `providerSpecificData` carries `fingerprints` + `accountProxies`. Hydrate those
+ * and resolve by-id Proxy Pool references to live records (./noAuthProxyResolution)
+ * so the executor gets a resolved inline `proxy`. Best-effort: failures → empty.
  */
 async function loadNoAuthProviderSpecificData(providerId: string): Promise<JsonRecord> {
   try {
@@ -856,6 +853,9 @@ async function loadNoAuthProviderSpecificData(providerId: string): Promise<JsonR
       if (Array.isArray(psd.accountProxies) && !Array.isArray(hydrated.accountProxies)) {
         hydrated.accountProxies = psd.accountProxies;
       }
+    }
+    if (Array.isArray(hydrated.accountProxies)) {
+      hydrated.accountProxies = await resolveAccountProxiesFromRegistry(hydrated.accountProxies);
     }
     return hydrated;
   } catch {

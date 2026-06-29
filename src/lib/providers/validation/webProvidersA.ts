@@ -182,6 +182,17 @@ export function isGrokAntiBotBlock(body: string | null | undefined): boolean {
   return false;
 }
 
+// Shared IP-reputation / anti-bot guidance (#3474, #5350). The request was rejected
+// before (or independently of) auth — the cookie itself is likely fine. cf_clearance
+// is pinned to the IP + TLS fingerprint + User-Agent that earned it and cannot be
+// replayed from a different machine/IP, so an auth-shaped rejection after a
+// cf_clearance was supplied is almost always this block, not a bad cookie.
+const GROK_IP_REPUTATION_GUIDANCE =
+  "Your sso cookie is likely fine — this is an IP-reputation block on the request, not an " +
+  "auth failure. cf_clearance is pinned to the IP + TLS fingerprint + User-Agent that earned " +
+  "it and cannot be replayed from a different machine/IP. Retry from a residential IP or " +
+  "configure a proxy for grok-web.";
+
 export async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
     const token = extractCookieValue(apiKey, "sso");
@@ -291,7 +302,17 @@ export async function validateGrokWebProvider({ apiKey, providerSpecificData = {
       return { valid: true, error: null };
     }
 
+    // Did the user actually supply a cf_clearance cookie? Detect it from the raw
+    // input blob via a real cookie-pair match — NOT extractCookieValue, which
+    // returns the whole bare value for any name when the input has no ";" (#5350).
+    const suppliedCfClearance = /(?:^|;\s*)cf_clearance=[^;\s]+/.test(String(apiKey || ""));
+
     if (response.status === 401) {
+      // With a cf_clearance supplied, a 401 is almost always an IP-reputation block
+      // (the clearance can't be replayed from a different machine), not a bad cookie.
+      if (suppliedCfClearance) {
+        return { valid: false, error: `Grok returned 401. ${GROK_IP_REPUTATION_GUIDANCE}` };
+      }
       return {
         valid: false,
         error: "Invalid SSO cookie — re-paste from grok.com DevTools → Cookies → sso",
@@ -304,8 +325,14 @@ export async function validateGrokWebProvider({ apiKey, providerSpecificData = {
       // messaging — a misleading "invalid cookie" verdict on an IP-reputation
       // block (issue #3474) sends users chasing a cookie that is actually fine.
       //
-      // 1. Auth-shaped → the cookie/session is the problem; re-paste it.
+      // 1. Auth-shaped → the cookie/session is the problem; re-paste it. But when a
+      //    cf_clearance was supplied, this is almost always an IP-reputation block the
+      //    edge surfaced as an auth failure — the clearance can't be replayed from a
+      //    different machine, so re-pasting the cookie will not help (#5350).
       if (/invalid-credentials|unauthenticated|unauthorized/i.test(errorDetail)) {
+        if (suppliedCfClearance) {
+          return { valid: false, error: `Grok returned 403. ${GROK_IP_REPUTATION_GUIDANCE}` };
+        }
         return {
           valid: false,
           error: "Invalid SSO cookie — re-paste from grok.com DevTools → Cookies → sso",
@@ -319,10 +346,7 @@ export async function validateGrokWebProvider({ apiKey, providerSpecificData = {
       if (isCloudflareChallenge(errorDetail) || isGrokAntiBotBlock(errorDetail)) {
         return {
           valid: false,
-          error:
-            "Grok returned 403 (anti-bot/Cloudflare block). Your sso cookie is likely fine — " +
-            "this is an IP-reputation block on the request, not an auth failure. Retry from a " +
-            "residential IP or configure a proxy for grok-web.",
+          error: `Grok returned 403 (anti-bot/Cloudflare block). ${GROK_IP_REPUTATION_GUIDANCE}`,
         };
       }
       // 3. Structured upstream error (e.g. probe model renamed) → surface the body

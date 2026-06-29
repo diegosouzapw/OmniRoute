@@ -13,8 +13,13 @@ import {
   buildServerNodeOptions,
   buildNodeHeapArgs,
 } from "../../../scripts/build/runtime-env.mjs";
+import { resolveTlsOptions } from "../../../scripts/dev/tls-options.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// URL scheme for the "OmniRoute is running" banner — flipped to https when
+// opt-in TLS (#5242) is active. Process-scoped: one `serve` run = one scheme.
+let urlScheme = "http";
 const ROOT = join(__dirname, "..", "..", "..");
 // The standalone bundle ships in `dist/` (since the build-output-isolation
 // refactor). Fall back to the legacy `app/` location so an upgrade over a
@@ -41,6 +46,14 @@ export function registerServe(program) {
     .option("--max-restarts <n>", t("serve.max_restarts"), parseInt, 2)
     .option("--tray", t("serve.tray") || "Show system tray icon (desktop only)")
     .option("--no-tray", t("serve.no_tray") || "Disable system tray icon")
+    .option(
+      "--tls-cert <path>",
+      t("serve.tls_cert") || "Path to a TLS certificate (PEM) to serve HTTPS (also OMNIROUTE_TLS_CERT)"
+    )
+    .option(
+      "--tls-key <path>",
+      t("serve.tls_key") || "Path to the TLS private key (PEM) to serve HTTPS (also OMNIROUTE_TLS_KEY)"
+    )
     .action(async (opts) => {
       await runServe(opts);
     });
@@ -140,6 +153,11 @@ export async function runServe(opts = {}) {
     calibrateHeapFallbackMb(totalmem())
   );
 
+  // #5242: opt-in native HTTPS. CLI flags take precedence over env; the child
+  // server (server-ws.mjs) reads these and terminates TLS on the same listener.
+  const tlsCert = opts.tlsCert ?? process.env.OMNIROUTE_TLS_CERT;
+  const tlsKey = opts.tlsKey ?? process.env.OMNIROUTE_TLS_KEY;
+
   const env = {
     ...process.env,
     OMNIROUTE_PORT: String(port),
@@ -152,7 +170,14 @@ export async function runServe(opts = {}) {
     // `--max-old-space-size=…`) instead of clobbering it with the calibrated
     // default — mirror the Electron/standalone launchers.
     NODE_OPTIONS: buildServerNodeOptions(process.env, memoryLimit),
+    ...(tlsCert ? { OMNIROUTE_TLS_CERT: tlsCert } : {}),
+    ...(tlsKey ? { OMNIROUTE_TLS_KEY: tlsKey } : {}),
   };
+
+  // Validate the TLS pair up front so the operator sees a clear warning in the
+  // CLI (the child re-validates authoritatively). Drives the banner scheme;
+  // when null we fall through to identical plain-HTTP behavior as before.
+  urlScheme = resolveTlsOptions(env) ? "https" : "http";
 
   const isDaemon = opts.daemon === true;
   const useTray = opts.tray === true;
@@ -190,8 +215,8 @@ function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
   writePidFile("server", server.pid);
   server.unref();
   console.log(`\x1b[32m✔ OmniRoute started in background (PID: ${server.pid})\x1b[0m`);
-  console.log(`  \x1b[1mDashboard:\x1b[0m  http://localhost:${dashboardPort}`);
-  console.log(`  \x1b[1mAPI Base:\x1b[0m   http://localhost:${apiPort}/v1`);
+  console.log(`  \x1b[1mDashboard:\x1b[0m  ${urlScheme}://localhost:${dashboardPort}`);
+  console.log(`  \x1b[1mAPI Base:\x1b[0m   ${urlScheme}://localhost:${apiPort}/v1`);
 }
 
 function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, noOpen) {
@@ -321,7 +346,7 @@ async function maybeStartTray(port, apiPort, supervisor) {
     const { initTray, isTraySupported } = await import("../tray/index.mjs");
     if (!isTraySupported()) return;
     const { default: open } = await import("open").catch(() => ({ default: null }));
-    const dashboardUrl = `http://localhost:${port}`;
+    const dashboardUrl = `${urlScheme}://localhost:${port}`;
     const tray = await initTray({
       port,
       onQuit: () => {
@@ -348,8 +373,8 @@ async function maybeStartTray(port, apiPort, supervisor) {
 }
 
 async function onReady(dashboardPort, apiPort, noOpen) {
-  const dashboardUrl = `http://localhost:${dashboardPort}`;
-  const apiUrl = `http://localhost:${apiPort}`;
+  const dashboardUrl = `${urlScheme}://localhost:${dashboardPort}`;
+  const apiUrl = `${urlScheme}://localhost:${apiPort}`;
 
   console.log(`
   \x1b[32m✔ OmniRoute is running!\x1b[0m

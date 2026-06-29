@@ -639,12 +639,19 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
       }
     }
   } else if (msg.role === "assistant") {
-    // Add reasoning_content as thinking block (OpenAI extended thinking format)
+    // Add reasoning_content as a replay placeholder (OpenAI extended thinking format).
+    // #5312 RC-D: reasoning_content carries NO real Claude signature. Emitting a
+    // `thinking` block with the fabricated DEFAULT signature makes Anthropic reject the
+    // replay with 400 "Invalid signature in thinking block" — and claudeHelper's
+    // latest-assistant guard (prepareClaudeRequest) preserves it verbatim, so the fake
+    // signature leaks upstream. Emit a signature-less redacted_thinking block instead
+    // (the same shape prepareClaudeRequest produces for Anthropic-native replay);
+    // Anthropic accepts it without signature validation and non-Anthropic Claude-shape
+    // upstreams re-hydrate the real text downstream from reasoningCache.
     if (msg.reasoning_content) {
       blocks.push({
-        type: "thinking",
-        thinking: msg.reasoning_content,
-        signature: DEFAULT_THINKING_CLAUDE_SIGNATURE,
+        type: "redacted_thinking",
+        data: DEFAULT_THINKING_CLAUDE_SIGNATURE,
       });
     }
 

@@ -242,40 +242,6 @@ export function decryptConnectionFields<T extends ConnectionFields | null | unde
 }
 
 /**
- * Validate encryption configuration at startup.
- * Returns { valid: true } or { valid: false, error: string } with actionable guidance.
- */
-export function validateEncryptionConfig(): { valid: boolean; error?: string } {
-  const secret = process.env.STORAGE_ENCRYPTION_KEY;
-
-  // No key set — passthrough mode is fine
-  if (!secret) return { valid: true };
-
-  if (typeof secret !== "string" || secret.trim().length === 0) {
-    return {
-      valid: false,
-      error:
-        "STORAGE_ENCRYPTION_KEY is set but empty. " +
-        "Either remove it (passthrough mode) or set a valid key: openssl rand -base64 32",
-    };
-  }
-
-  // Try deriving a key to verify it works
-  try {
-    scryptSync(secret, STATIC_SALT, KEY_LENGTH);
-    return { valid: true };
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    return {
-      valid: false,
-      error:
-        `STORAGE_ENCRYPTION_KEY is invalid (${message}). ` +
-        `Generate a valid key with: openssl rand -base64 32`,
-    };
-  }
-}
-
-/**
  * Specifically tests a ciphertext against the legacy key. If it succeeds, it
  * re-encrypts the decrypted value with the canonical static key.
  * Used exclusively by the startup migration script.

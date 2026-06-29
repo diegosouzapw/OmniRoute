@@ -5,10 +5,22 @@ import { createResponsesWsProxy } from "./responses-ws-proxy.mjs";
 import { ensurePeerStampToken, wrapRequestListenerWithPeerStamp } from "./peer-stamp.mjs";
 import { maybeHandleWebdav } from "./webdav-handler.mjs";
 import methodGuard from "./http-method-guard.cjs";
+import { resolveTlsOptions, createServerListener } from "./tls-options.mjs";
 
 const originalCreateServer = http.createServer.bind(http);
 const proxiesByPort = new Map();
 const { wrapRequestListenerWithMethodGuard } = methodGuard;
+
+// Opt-in native HTTPS (#5242). Resolved once at boot: when both OMNIROUTE_TLS_CERT
+// and OMNIROUTE_TLS_KEY point at readable files we terminate TLS on the same
+// listener Next binds to (so WS `upgrade` / request wrappers keep working over
+// TLS). Absent or misconfigured → null → identical plain-HTTP behavior as before.
+const tlsOptions = resolveTlsOptions(process.env);
+if (tlsOptions) {
+  console.log(
+    `[omniroute][tls] HTTPS enabled — terminating TLS with cert=${tlsOptions.certPath}`
+  );
+}
 
 process.env.OMNIROUTE_WS_BRIDGE_SECRET ||= randomUUID();
 // Per-process secret proving the trusted peer-IP stamp came from this server.
@@ -107,7 +119,10 @@ http.createServer = function createServerWithResponsesWs(...args) {
     );
   }
 
-  const server = originalCreateServer(...args);
+  // When TLS is configured, return an https.Server (terminating TLS on the same
+  // listener); otherwise the original http.Server. The downstream .on/.addListener
+  // patches below apply identically to both (https.Server extends http.Server).
+  const server = createServerListener(args, tlsOptions, { createHttp: originalCreateServer });
   const originalOn = server.on.bind(server);
   const originalAddListener = server.addListener.bind(server);
 
