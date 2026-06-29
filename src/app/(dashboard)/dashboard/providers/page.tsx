@@ -6,10 +6,12 @@ import {
   AGGREGATOR_PROVIDER_IDS,
   EMBEDDING_RERANK_PROVIDER_IDS,
   ENTERPRISE_CLOUD_PROVIDER_IDS,
+  getProviderAlias,
   IDE_PROVIDER_IDS,
   IMAGE_ONLY_PROVIDER_IDS,
   VIDEO_PROVIDER_IDS,
 } from "@/shared/constants/providers";
+import { partitionNoAuthEntriesByBlocked } from "@/shared/utils/noAuthProviders";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
@@ -436,6 +438,33 @@ export default function ProvidersPage() {
     );
   };
 
+  // Re-enable a no-auth provider that was disabled (i.e. present in
+  // `blockedProviders`). Mirrors the per-provider toggle on the provider detail
+  // page so a blocked no-auth provider can be restored in-place from the list
+  // instead of forcing a trip to Settings → Security → Blocked Providers (#5183).
+  const handleUnblockProvider = async (providerId: string) => {
+    const alias = getProviderAlias(providerId);
+    const keysToRemove = new Set([providerId, alias].filter(Boolean) as string[]);
+    const previous = blockedProviders;
+    const next = previous.filter((p) => !keysToRemove.has(p));
+    setBlockedProviders(next);
+    try {
+      const response = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blockedProviders: next }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data?.error?.message || data?.error || "Failed to update provider");
+      }
+      setBlockedProviders(Array.isArray(data.blockedProviders) ? data.blockedProviders : next);
+    } catch (error) {
+      setBlockedProviders(previous);
+      notify.error(error instanceof Error ? error.message : t("repairEnvFailed"));
+    }
+  };
+
   const handleBatchTest = async (mode, providerId = null) => {
     if (testingMode) return;
     setTestingMode(mode === "provider" ? providerId : mode);
@@ -512,12 +541,14 @@ export default function ProvidersPage() {
     activeServiceKind
   );
 
-  const blockedProviderSet = useMemo(() => new Set(blockedProviders), [blockedProviders]);
   const rawNoAuthEntriesAll = buildStaticProviderEntries("no-auth", getProviderStats);
-  const noAuthEntriesAll = rawNoAuthEntriesAll.filter(({ providerId, provider }) => {
-    const alias = typeof provider.alias === "string" ? provider.alias : null;
-    return !blockedProviderSet.has(providerId) && !(alias && blockedProviderSet.has(alias));
-  });
+  // Partition rather than drop: blocked no-auth providers stay surfaced on the page
+  // (rendered with a "Disabled" badge + Enable button) instead of silently vanishing,
+  // which left users unable to find/restore a disabled no-auth provider (#5166/#5183).
+  // `noAuthEntriesAll` keeps only the visible (non-blocked) entries, so every downstream
+  // aggregate/count/model list that consumes it is unchanged.
+  const { visible: noAuthEntriesAll, blocked: blockedNoAuthEntries } =
+    partitionNoAuthEntriesByBlocked(rawNoAuthEntriesAll, blockedProviders);
   const noAuthEntries = filterConfiguredProviderEntries(
     noAuthEntriesAll,
     effectiveShowConfiguredOnly,
@@ -1277,7 +1308,9 @@ export default function ProvidersPage() {
           )}
 
           {/* No Auth Providers */}
-          {showSection("noauth") && !showFreeOnly && noAuthEntriesAll.length > 0 && (
+          {showSection("noauth") &&
+            !showFreeOnly &&
+            (noAuthEntriesAll.length > 0 || blockedNoAuthEntries.length > 0) && (
             <div className="flex flex-col gap-4">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
@@ -1314,6 +1347,41 @@ export default function ProvidersPage() {
                   />
                 ))}
               </div>
+              {/* Disabled no-auth providers — surfaced (not hidden) so they can be
+                  re-enabled in place instead of vanishing from the page (#5183). */}
+              {blockedNoAuthEntries.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
+                    {t("disabled")}
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                    {blockedNoAuthEntries.map(({ providerId, provider }) => (
+                      <div
+                        key={providerId}
+                        className="flex items-center justify-between gap-2 rounded-xl border border-border bg-bg-subtle px-3 py-2.5 opacity-80"
+                      >
+                        <div className="flex min-w-0 flex-col">
+                          <span className="truncate text-sm font-medium text-text-main">
+                            {provider.name}
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-red-600 dark:text-red-400">
+                            <span className="size-1.5 rounded-full bg-red-500" />
+                            {t("disabled")}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleUnblockProvider(providerId)}
+                          className="shrink-0 rounded-md border border-border px-2 py-1 text-xs font-medium text-text-muted transition-colors hover:border-primary/40 hover:text-text-primary"
+                          title={t("enableProvider")}
+                        >
+                          {t("enableProvider")}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

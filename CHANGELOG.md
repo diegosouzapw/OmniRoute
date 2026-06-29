@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### 🔧 Bug Fixes
+
+- **fix(dashboard): disabled no-auth providers no longer vanish from the All Providers page** — disabling a no-auth provider (the "No authentication required" toggle, which adds it to `blockedProviders`) silently removed its card from the providers page, because the page _dropped_ any blocked no-auth entry from its render list. The only way to restore it was buried under Settings → Security → Blocked Providers, so users reported the provider "disappearing" with no obvious way back. The page now **partitions** no-auth entries instead of dropping them: visible (non-blocked) providers render as before, while blocked ones are surfaced in a "Disabled" sub-group with an **Enable** button that un-blocks them in place. Aggregates, counts, the free section and `/v1/models` are unaffected (they still consume the visible-only list, so blocked providers stay out of routing). Regression guard: `tests/unit/noauth-blocked-partition-5183.test.ts` (pure `partitionNoAuthEntriesByBlocked` helper — blocked entries are returned, never discarded, matched by id or alias). ([#5183](https://github.com/diegosouzapw/OmniRoute/issues/5183), follow-up from [#5166](https://github.com/diegosouzapw/OmniRoute/issues/5166) — thanks @WslzGmzs)
+
 ---
 
 ## [3.8.39] — 2026-06-28
