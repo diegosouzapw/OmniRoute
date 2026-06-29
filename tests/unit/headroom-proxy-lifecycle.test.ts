@@ -6,6 +6,7 @@ import {
   parsePortFromHeadroomUrl,
   buildHeadroomStatus,
 } from "../../src/lib/headroom/detect";
+import { getManagedPid, isPidAlive } from "../../src/lib/headroom/process";
 import { isLocalOnlyPath } from "../../src/server/authz/routeGuard";
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -87,4 +88,10 @@ test("buildHeadroomStatus: nothing installed and proxy unreachable → all false
   assert.equal(status.running, false);
   assert.equal(status.localUrl, true);
   assert.equal(status.canStart, false);
+});
+
+test("process status helpers are safe for absent managed processes", () => {
+  assert.equal(isPidAlive(null), false);
+  assert.equal(isPidAlive(undefined), false);
+  assert.equal(getManagedPid(), null);
 });
