@@ -245,5 +245,3 @@ export function createNotionClient(apiKey: string) {
 
   return client;
 }
-
-export type NotionClient = ReturnType<typeof createNotionClient>;
