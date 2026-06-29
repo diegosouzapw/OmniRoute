@@ -44,7 +44,12 @@ import { makeMemoKey, memoLookup, memoStore, isDeterministicMode } from "./resul
 export { resolveCacheAwareConfig } from "./cacheAwareConfig.ts";
 
 // Re-export so existing importers (resolver test + chatCore dynamic import) keep resolving.
-export { planFromHeader, formatCompressionMeta, formatCompressionAnnotation, buildNamedComboLookup };
+export {
+  planFromHeader,
+  formatCompressionMeta,
+  formatCompressionAnnotation,
+  buildNamedComboLookup,
+};
 
 /** Named-combo map: combo id → its stacked pipeline (operator-defined profiles). */
 type NamedCombos = Record<string, CompressionPipelineStep[]>;
@@ -277,7 +282,14 @@ function runCompression(
     options.principalId.length > 0 &&
     isDeterministicMode(mode, options.config)
   ) {
-    const key = makeMemoKey(body, mode, options.config, options.principalId);
+    const key = makeMemoKey(
+      body,
+      mode,
+      options.config,
+      options.principalId,
+      options.model,
+      options.supportsVision
+    );
     const hit = memoLookup(key);
     if (hit) return hit;
     const result = runCompression({ ...body }, mode, {
@@ -445,7 +457,14 @@ async function runCompressionAsync(
     options.principalId.length > 0 &&
     isDeterministicMode(mode, options.config)
   ) {
-    const key = makeMemoKey(body, mode, options.config, options.principalId);
+    const key = makeMemoKey(
+      body,
+      mode,
+      options.config,
+      options.principalId,
+      options.model,
+      options.supportsVision
+    );
     const hit = memoLookup(key);
     if (hit) return hit;
     const result = await runCompressionAsync({ ...body }, mode, {

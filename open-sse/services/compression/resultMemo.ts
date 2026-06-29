@@ -32,10 +32,25 @@ export function makeMemoKey(
   body: Record<string, unknown>,
   mode: CompressionMode,
   config: CompressionConfig,
-  principalId?: string
+  principalId?: string,
+  model?: string,
+  supportsVision?: boolean | null
 ): string {
   const bodyHash = sha256hex(JSON.stringify(body));
-  return sha256hex(JSON.stringify({ bodyHash, mode, config, principalId: principalId ?? null }));
+  // model + supportsVision MUST be part of the key: the `lite` engine strips data:image
+  // URLs only when vision is unsupported (replaceImageUrls / modelSupportsVision), so the
+  // same (body, config) yields a DIFFERENT result per target — omitting them returns a
+  // wrong (image-stripped or image-kept) cached body across vision/non-vision targets.
+  return sha256hex(
+    JSON.stringify({
+      bodyHash,
+      mode,
+      config,
+      principalId: principalId ?? null,
+      model: model ?? null,
+      supportsVision: supportsVision ?? null,
+    })
+  );
 }
 
 function boundedSet(key: string, value: CompressionResult): void {

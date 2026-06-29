@@ -328,4 +328,16 @@ describe("resultMemo — core review hardening", () => {
     const got = memoLookup(key);
     assert.equal((got!.body.messages as Array<{ content: string }>)[0].content, "original");
   });
+
+  it("key folds in model + supportsVision (lite image-strip depends on vision capability)", () => {
+    // Regression: lite strips data:image URLs only when vision is unsupported, so the same
+    // (body, config, principal) yields a DIFFERENT result per target. The key MUST include
+    // model + supportsVision, else a non-vision target's image-stripped body is served to a
+    // vision-capable target (and vice-versa).
+    const k = (model?: string, vision?: boolean | null) =>
+      makeMemoKey(baseBody, "lite", memoConfig, "p1", model, vision);
+    assert.notEqual(k("gpt-4", false), k("gpt-4", true), "supportsVision must change the key");
+    assert.notEqual(k("gpt-4", true), k("gemini-2", true), "model must change the key");
+    assert.equal(k("gpt-4", true), k("gpt-4", true), "same inputs => same key (deterministic)");
+  });
 });
