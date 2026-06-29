@@ -379,6 +379,7 @@ export async function executeChatWithBreaker({
   cachedSettings,
   skipUpstreamRetry = false,
   trafficType = "production",
+  correlationId = null,
 }: ExecuteChatWithBreakerOptions): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
   let tlsFingerprintUsed = false;
   const normalizedTrafficType: TrafficType =
@@ -407,6 +408,7 @@ export async function executeChatWithBreaker({
           cachedSettings,
           skipUpstreamRetry,
           trafficType: normalizedTrafficType,
+          correlationId,
           onCredentialsRefreshed: async (newCreds: any) => {
             await updateProviderCredentials(credentials.connectionId, {
               accessToken: newCreds.accessToken,
@@ -766,6 +768,23 @@ export function withSessionHeader(response: Response, sessionId: string | null):
       headers: response.headers,
     });
     cloned.headers.set("X-OmniRoute-Session-Id", sessionId);
+    return cloned;
+  }
+}
+
+export function withCorrelationId(response: Response, correlationId: string | null): Response {
+  if (!response || !correlationId) return response;
+
+  try {
+    response.headers.set("X-Correlation-Id", correlationId);
+    return response;
+  } catch {
+    const cloned = new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+    cloned.headers.set("X-Correlation-Id", correlationId);
     return cloned;
   }
 }
