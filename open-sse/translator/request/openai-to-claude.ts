@@ -557,6 +557,17 @@ export function openaiToClaudeRequest(model, body, stream) {
     result._toolNameMap = toolNameMap;
   }
 
+  // Empty-messages guard. Claude's Messages API rejects an empty `messages`
+  // array with `400 messages: at least one message is required`. This happens
+  // when the incoming OpenAI request carried only `system`/`developer` turns
+  // (e.g. an all-system compaction or title-generation request from a client
+  // like OpenCode): those are hoisted into `result.system` above, leaving
+  // `messages` empty. Synthesize a minimal user turn so the request stays
+  // valid — the system instructions still drive the response. (#5245)
+  if (result.messages.length === 0) {
+    result.messages.push({ role: "user", content: [{ type: "text", text: "." }] });
+  }
+
   return result;
 }
 
