@@ -7,6 +7,7 @@ import { EncoderComparisonTable } from "./EncoderComparisonTable";
 import { PlaygroundInput, LANE_ENGINES } from "./PlaygroundInput";
 import { RiskGateBadge } from "./RiskGateBadge";
 import { QuantumLockBadge } from "./QuantumLockBadge";
+import { SaliencyHeatmap } from "./SaliencyHeatmap";
 export interface PlayViewProps {
   text: string;
   onText: (t: string) => void;
@@ -49,10 +50,17 @@ export function PlayView({ text, onText, laneEngines = LANE_ENGINES }: PlayViewP
   const [fidelityGate, setFidelityGate] = useState(false);
   const [riskGate, setRiskGate] = useState(false);
   const [quantumLock, setQuantumLock] = useState(false);
+  const [heatmapMode, setHeatmapMode] = useState<"ultra" | "universal" | false>(false);
   const { batch, loading, run } = usePreviewCompression();
   const messages = [{ role: "user", content: text }];
   const toggle = (e: string) =>
     setActive((a) => (a.includes(e) ? a.filter((x) => x !== e) : [...a, e]));
+  const toggleHeatmap = () =>
+    setHeatmapMode((m) => {
+      if (!m) return "ultra";
+      if (m === "ultra") return "universal";
+      return false;
+    });
   const onRun = () =>
     run({
       messages,
@@ -62,6 +70,7 @@ export function PlayView({ text, onText, laneEngines = LANE_ENGINES }: PlayViewP
       fuzzyDedup,
       riskGate,
       quantumLock,
+      ...(heatmapMode ? { heatmap: heatmapMode } : {}),
     });
   const activeDiff = resolveActiveDiff(batch, selectedLane);
   return (
@@ -82,6 +91,8 @@ export function PlayView({ text, onText, laneEngines = LANE_ENGINES }: PlayViewP
           onToggleRisk={() => setRiskGate((v) => !v)}
           quantumLock={quantumLock}
           onToggleQuantum={() => setQuantumLock((v) => !v)}
+          heatmap={heatmapMode}
+          onToggleHeatmap={toggleHeatmap}
         />
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-auto">
@@ -110,6 +121,14 @@ export function PlayView({ text, onText, laneEngines = LANE_ENGINES }: PlayViewP
           <section>
             <header className="text-xs font-semibold">Diff — {selectedLane ?? "combinado"}</header>
             <DiffPane segments={activeDiff} preservedBlocks={[]} />
+          </section>
+        )}
+        {batch?.heatmap && (
+          <section data-testid="play-heatmap">
+            <header className="text-xs font-semibold">
+              Saliency heatmap — {batch.heatmap.mode}
+            </header>
+            <SaliencyHeatmap heatmap={batch.heatmap} />
           </section>
         )}
       </div>

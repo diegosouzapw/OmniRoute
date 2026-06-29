@@ -356,6 +356,7 @@ export async function handleChatCore({
   cachedSettings = null,
   skipUpstreamRetry = false,
   createPiiTransform = null,
+  correlationId = null,
 }) {
   let { provider, model, extendedContext } = modelInfo;
   // ── Memory pressure guard ────────────────────────────────────────────
@@ -660,6 +661,7 @@ export async function handleChatCore({
       clientRequest: clientRawRequest?.body ?? body,
       providerRequest: initialProviderRequest,
       stage: "registered",
+      correlationId,
     }) || generateRequestId();
 
   // Initialize rate limit settings from persisted DB (once, lazy)
@@ -745,6 +747,7 @@ export async function handleChatCore({
       tokensCompressed,
       apiKeyInfo,
       noLogEnabled,
+      correlationId,
     });
 
   // Primary path: merge client model id + alias target so config on either key applies; resolved
