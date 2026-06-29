@@ -136,7 +136,14 @@ test("CircuitBreaker: calls onStateChange callback", async () => {
 
 // ─── Request Timeout Tests ───────────────────────────
 
+import * as requestTimeout from "../../src/shared/utils/requestTimeout.ts";
 import { withTimeout, getProviderTimeout } from "../../src/shared/utils/requestTimeout.ts";
+
+test("requestTimeout: public surface excludes removed fetch wrapper", () => {
+  assert.equal(Object.hasOwn(requestTimeout, "fetchWithTimeout"), false);
+  assert.equal(typeof requestTimeout.withTimeout, "function");
+  assert.equal(typeof requestTimeout.getProviderTimeout, "function");
+});
 
 test("requestTimeout: withTimeout resolves before timeout", async () => {
   const result = await withTimeout(async () => "fast", 1000, "test");
