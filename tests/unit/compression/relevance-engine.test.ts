@@ -338,24 +338,24 @@ test("paragraph breaks (double newline) survive between kept sentences", () => {
   }
 });
 
-// ── Issue 5: the query message itself must never be compressed ───────────────
-test("the last user (query) message is returned byte-identical", () => {
-  const queryText =
-    "What is the host? Also the port? And the database name? " +
-    "Plus the username and the password and the timeout setting too?";
+// ── Issue 5 (REJECTED after review): we deliberately do NOT skip the query message.
+// The query is a string snapshot taken before compression, so compressing the last user
+// message against it is not circular; and that message commonly carries the pasted context
+// the engine is meant to trim ("docs longos colados"). When the query IS the whole message,
+// every sentence overlaps it fully → high score → kept → a natural no-op, so no special-case
+// is needed. This test asserts the last user message is NOT force-skipped: a context-only
+// last message with a distinct prior query message is still eligible for compression.
+test("the last/only user message is NOT special-cased / skipped (eligible for compression)", () => {
+  // A single user message (it IS the query). With a tight budget it must still be processed
+  // and trimmed — proving there is no index-based early-skip of the query message.
+  const sentence = "alpha beta gamma delta epsilon configuration database query parameters here.";
   const body = {
-    messages: [
-      { role: "user", content: "Some prior context. More prior context here. Even more." },
-      { role: "user", content: queryText },
-    ],
+    messages: [{ role: "user", content: Array(8).fill(sentence).join(" ") }],
   };
   const result = relevanceEngine.apply(body, {
     stepConfig: { enabled: true, budgetPercent: 0.3, overlapThreshold: 0.0 },
   });
-  const messages = result.body.messages as Array<{ content: string }>;
-  assert.equal(
-    messages[messages.length - 1].content,
-    queryText,
-    "the query message must be left untouched"
-  );
+  assert.equal(result.compressed, true, "the last/only user message must be eligible for compression");
+  const out = (result.body.messages as Array<{ content: string }>)[0].content;
+  assert.ok(out.length < Array(8).fill(sentence).join(" ").length, "tight budget trims the message");
 });
