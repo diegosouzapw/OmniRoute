@@ -30,6 +30,7 @@ test("PlaygroundPresetRowSchema: valid row parses correctly", () => {
     assert.equal(result.data.id, row.id);
     assert.equal(result.data.name, row.name);
     assert.equal(result.data.system, "You are helpful.");
+    assert.equal(result.data.params_json, row.params_json);
   }
 });
 
