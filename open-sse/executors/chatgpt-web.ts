@@ -79,22 +79,15 @@ function deviceIdFor(cookie: string): string {
 // /backend-api/models on a logged-in account; "gpt-5-4-t-mini" is ChatGPT's
 // abbreviated slug for "GPT-5.4 Thinking Mini".
 const MODEL_MAP: Record<string, string> = {
-  "gpt-5.3-instant": "gpt-5-3-instant",
-  "gpt-5.3": "gpt-5-3",
-  "gpt-5.3-mini": "gpt-5-3-mini",
   "gpt-5.5-pro": "gpt-5-5-pro",
   "gpt-5.5-thinking": "gpt-5-5-thinking",
   "gpt-5.5": "gpt-5-5",
   "gpt-5.4-pro": "gpt-5-4-pro",
   "gpt-5.4-thinking": "gpt-5-4-thinking",
   "gpt-5.4-thinking-mini": "gpt-5-4-t-mini",
-  "gpt-5.2-pro": "gpt-5-2-pro",
-  "gpt-5.2-instant": "gpt-5-2-instant",
-  "gpt-5.2": "gpt-5-2",
-  "gpt-5.2-thinking": "gpt-5-2-thinking",
-  "gpt-5.1": "gpt-5-1",
-  "gpt-5": "gpt-5",
-  "gpt-5-mini": "gpt-5-mini",
+  "gpt-5.3-instant": "gpt-5-3-instant",
+  "gpt-5.3": "gpt-5-3",
+  "gpt-5.3-mini": "gpt-5-3-mini",
   o3: "o3",
 };
 

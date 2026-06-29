@@ -72,6 +72,7 @@ import {
   shouldRetryStreamEarlyEof,
   withSessionHeader,
   withSelectedConnectionHeader,
+  withCorrelationId,
 } from "./chatHelpers";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 
@@ -229,13 +230,12 @@ export async function handleChat(
   // a clear OmniRoute-level error before any routing or upstream call (#5110).
   // Responses-API requests use `input` (not `messages`) so they are unaffected,
   // and an absent `messages` field is left to downstream validation.
-  if (Array.isArray((body as { messages?: unknown }).messages) &&
-    (body as { messages: unknown[] }).messages.length === 0) {
+  if (
+    Array.isArray((body as { messages?: unknown }).messages) &&
+    (body as { messages: unknown[] }).messages.length === 0
+  ) {
     log.warn("CHAT", "Rejecting request with empty messages array");
-    return errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
-      "messages: at least one message is required"
-    );
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
   }
 
   // Build clientRawRequest for logging (if not provided)
@@ -689,6 +689,7 @@ export async function handleChat(
             ),
             cachedSettings: settings,
             providerId: target?.providerId ?? null,
+            correlationId: reqId,
           },
           target?.effectiveComboStrategy ?? combo.strategy,
           true
@@ -716,6 +717,7 @@ export async function handleChat(
             }
           : undefined,
       signal: request?.signal ?? null,
+      correlationId: reqId,
     });
 
     // ── Global Fallback Provider (#689) ────────────────────────────────────
@@ -766,7 +768,30 @@ export async function handleChat(
 
     // Record telemetry
     recordTelemetry(telemetry);
-    return withSessionHeader(response, sessionId);
+    // Log combo failures that bypassed handleChatCore (e.g. all targets skipped by circuit breaker)
+    if (!response.ok) {
+      try {
+        const { saveCallLog } = await import("@/lib/usageDb");
+        saveCallLog({
+          id: undefined,
+          method: "POST",
+          path: clientRawRequest?.endpoint || "/v1/chat/completions",
+          status: response.status,
+          model: body?.model || resolvedModelStr,
+          requestedModel: body?.model || resolvedModelStr,
+          provider: "-",
+          connectionId: undefined,
+          duration: Date.now() - (telemetry?.startTime || Date.now()),
+          tokens: {},
+          error: `[${response.status}] Combo "${combo.name}" failed — all targets exhausted`,
+          comboName: combo.name,
+          comboStepId: null,
+          comboExecutionKey: null,
+          correlationId: reqId,
+        }).catch(() => {});
+      } catch {}
+    }
+    return withCorrelationId(withSessionHeader(response, sessionId), reqId);
   }
   telemetry.endPhase();
 
@@ -784,12 +809,13 @@ export async function handleChat(
       sessionAffinityKey,
       forceLiveComboTest: isComboLiveTest,
       forcedConnectionId: requestedConnectionId,
+      correlationId: reqId,
     },
     null,
     false
   );
   recordTelemetry(telemetry);
-  return withSessionHeader(response, sessionId);
+  return withCorrelationId(withSessionHeader(response, sessionId), reqId);
 }
 
 export function buildClientRawRequest(request: Request, body: unknown) {
@@ -831,6 +857,7 @@ async function handleSingleModelChat(
     preselectedCredentials?: any;
     cachedSettings?: any;
     providerId?: string | null;
+    correlationId?: string | null;
   } = {},
   comboStrategy: string | null = null,
   isCombo: boolean = false
@@ -849,6 +876,10 @@ async function handleSingleModelChat(
   // resolveModelOrError found a combo but the main handler's combo lookup missed it.
   if ((resolved as any).combo) {
     const redirectCombo = (resolved as any).combo;
+    log.info(
+      "ROUTING",
+      `Safety-net combo redirect for "${modelStr}" → combo="${redirectCombo.name}"`
+    );
     log.info("ROUTING", `Auto-combo redirect from handleSingleModelChat for "${modelStr}"`);
     log.info("ROUTING", `Auto-combo redirect to combo flow for "${modelStr}"`);
     return handleComboChat({
@@ -885,6 +916,7 @@ async function handleSingleModelChat(
             skipUpstreamRetry: target?.failoverBeforeRetry ?? false,
             allowRateLimitedConnection: target?.allowRateLimitedConnection === true,
             providerId: target?.providerId ?? null,
+            correlationId: runtimeOptions?.correlationId ?? null,
           },
           target?.effectiveComboStrategy ?? redirectCombo.strategy ?? "priority",
           false
@@ -895,6 +927,7 @@ async function handleSingleModelChat(
       allCombos: [],
       relayOptions: undefined,
       signal: request?.signal ?? null,
+      correlationId: reqId,
     });
   }
 
@@ -957,7 +990,30 @@ async function handleSingleModelChat(
     providerProfile,
     ...(bypassReason ? { bypassReason } : {}),
   });
-  if (gate) return gate;
+  if (gate) {
+    // Log the rejected request so it appears in /dashboard/logs
+    try {
+      const { saveCallLog } = await import("@/lib/usageDb");
+      saveCallLog({
+        id: undefined,
+        method: "POST",
+        path: clientRawRequest?.endpoint || "/v1/chat/completions",
+        status: gate.status,
+        model,
+        requestedModel: body?.model || modelStr,
+        provider,
+        connectionId: undefined,
+        duration: Date.now() - (telemetry?.startTime || Date.now()),
+        tokens: {},
+        error: `[${gate.status}] Pipeline gate rejected`,
+        comboName: isCombo ? comboName : null,
+        comboStepId: isCombo ? (runtimeOptions?.comboStepId ?? null) : null,
+        comboExecutionKey: isCombo ? (runtimeOptions?.comboExecutionKey ?? null) : null,
+        correlationId: runtimeOptions?.correlationId ?? null,
+      }).catch(() => {});
+    } catch {}
+    return gate;
+  }
 
   // Issue #2100 follow-up: opt-in upstream 429 hint trust per provider.
   const useHints429 = resolveUseUpstream429BreakerHints(
@@ -1201,6 +1257,7 @@ async function handleSingleModelChat(
         providerProfile,
         cachedSettings: runtimeOptions.cachedSettings,
         skipUpstreamRetry: runtimeOptions.skipUpstreamRetry ?? false,
+        correlationId: runtimeOptions?.correlationId ?? null,
       });
       if (telemetry) telemetry.endPhase();
 

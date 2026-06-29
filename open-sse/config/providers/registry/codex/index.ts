@@ -97,6 +97,5 @@ export const codexProvider: RegistryEntry = {
       supportsReasoning: true,
       supportsXHighEffort: true,
     },
-    { id: "gpt-5.2", name: "GPT 5.2" },
   ],
 };

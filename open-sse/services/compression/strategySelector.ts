@@ -28,6 +28,7 @@ import {
   withSource,
   planFromHeader,
   formatCompressionMeta,
+  formatCompressionAnnotation,
   deriveDefaultPlanFromConfig,
   buildNamedComboLookup,
 } from "./planResolution.ts";
@@ -43,7 +44,7 @@ import { makeMemoKey, memoLookup, memoStore, isDeterministicMode } from "./resul
 export { resolveCacheAwareConfig } from "./cacheAwareConfig.ts";
 
 // Re-export so existing importers (resolver test + chatCore dynamic import) keep resolving.
-export { planFromHeader, formatCompressionMeta, buildNamedComboLookup };
+export { planFromHeader, formatCompressionMeta, formatCompressionAnnotation, buildNamedComboLookup };
 
 /** Named-combo map: combo id → its stacked pipeline (operator-defined profiles). */
 type NamedCombos = Record<string, CompressionPipelineStep[]>;

@@ -54,6 +54,21 @@ export interface RiskGateStats {
 
 // ── Preview API response ──────────────────────────────────────────────────
 
+// ── Saliency heatmap ─────────────────────────────────────────────────────
+
+export interface HeatmapToken {
+  text: string;
+  score: number;
+  kept: boolean;
+}
+
+export interface PreviewHeatmap {
+  mode: "ultra" | "universal";
+  tokens: HeatmapToken[];
+}
+
+// ── Preview API response ──────────────────────────────────────────────────
+
 export interface PreviewResponse {
   original: string;
   compressed: string;
@@ -69,6 +84,7 @@ export interface PreviewResponse {
   encoderComparison?: EncoderComparison | null;
   riskGate?: RiskGateStats | null;
   quantumLock?: { fragments: number; categories: Record<string, number> } | null;
+  heatmap?: PreviewHeatmap | null;
 }
 
 // ── Run Model ─────────────────────────────────────────────────────────────

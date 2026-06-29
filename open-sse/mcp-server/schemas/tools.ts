@@ -17,27 +17,11 @@ import {
 } from "../../../src/shared/constants/routingStrategies.ts";
 
 // ============ Shared Types ============
-
-export type AuditLevel = "none" | "basic" | "full";
-
-export interface McpToolDefinition<TInput extends z.ZodTypeAny, TOutput extends z.ZodTypeAny> {
-  /** Tool name (MCP identifier) */
-  name: string;
-  /** Human-readable description for AI agents */
-  description: string;
-  /** Zod schema for input validation */
-  inputSchema: TInput;
-  /** Zod schema for output validation */
-  outputSchema: TOutput;
-  /** Required API key scopes */
-  scopes: readonly string[];
-  /** Audit logging level */
-  auditLevel: AuditLevel;
-  /** Phase: 1 = essential, 2 = advanced */
-  phase: 1 | 2;
-  /** Source endpoints on OmniRoute that this tool wraps */
-  sourceEndpoints: readonly string[];
-}
+// AuditLevel + McpToolDefinition live in the leaf ./toolDefinition.ts so that
+// toolSearch.ts can import the type without forming a tools.ts ↔ toolSearch.ts cycle.
+// Re-exported here for backward compatibility (many modules import them from ./tools.ts).
+export type { AuditLevel, McpToolDefinition } from "./toolDefinition.ts";
+import type { McpToolDefinition } from "./toolDefinition.ts";
 
 // ============ Phase 1: Essential Tools (8) ============
 
