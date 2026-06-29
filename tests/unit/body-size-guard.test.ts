@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import * as bodySizeGuard from "../../src/shared/middleware/bodySizeGuard.ts";
 import {
   MAX_BODY_BYTES_AUDIO,
   MAX_BODY_BYTES_FILE,
@@ -7,6 +8,12 @@ import {
   checkBodySize,
 } from "../../src/shared/middleware/bodySizeGuard.ts";
 import { requestBodyLimitMbToBytes } from "../../src/shared/constants/bodySize.ts";
+
+test("body size guard public surface excludes the removed default MB helper", () => {
+  assert.equal(Object.hasOwn(bodySizeGuard, "getDefaultRequestBodyLimitMb"), false);
+  assert.equal(typeof bodySizeGuard.getBodySizeLimit, "function");
+  assert.equal(typeof bodySizeGuard.checkBodySize, "function");
+});
 
 test("body size guard uses maxBodySizeMb from settings for regular API routes", () => {
   assert.equal(
@@ -53,7 +60,10 @@ test("/api/v1/files route guard allows 500 MB file upload", () => {
     method: "POST",
     headers: { "content-length": String(thirtyMb) },
   });
-  assert.equal(checkBodySize(request, getBodySizeLimit("/api/v1/files", { maxBodySizeMb: 10 })), null);
+  assert.equal(
+    checkBodySize(request, getBodySizeLimit("/api/v1/files", { maxBodySizeMb: 10 })),
+    null
+  );
 });
 
 test("/api/v1/files route guard rejects >512 MB file upload", async () => {

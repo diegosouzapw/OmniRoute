@@ -13,6 +13,12 @@ const { getProvider } = oauthHandlers;
 // Registration
 // ---------------------------------------------------------------------------
 
+test("oauth provider helpers public surface excludes removed provider-name list helper", () => {
+  assert.equal(Object.hasOwn(oauthHandlers, "getProviderNames"), false);
+  assert.equal(typeof oauthHandlers.getProvider, "function");
+  assert.equal(typeof oauthHandlers.generateAuthData, "function");
+});
+
 test("PROVIDERS map includes a 'trae' entry", () => {
   assert.ok("trae" in PROVIDERS, "PROVIDERS must contain trae");
 });

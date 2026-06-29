@@ -100,13 +100,6 @@ export function getProvider(name) {
 }
 
 /**
- * Get all provider names
- */
-export function getProviderNames() {
-  return Object.keys(PROVIDERS);
-}
-
-/**
  * Generate auth data for a provider.
  *
  * Returns `{ supported: false, error }` (no `authUrl`) for providers whose

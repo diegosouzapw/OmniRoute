@@ -23,6 +23,13 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
+test("proxy logger public surface excludes removed stats helper", () => {
+  assert.equal(Object.hasOwn(proxyLogger, "getProxyLogStats"), false);
+  assert.equal(typeof proxyLogger.getProxyLogs, "function");
+  assert.equal(typeof proxyLogger.clearProxyLogs, "function");
+  assert.equal(typeof proxyLogger.logProxyEvent, "function");
+});
+
 test("GET /api/usage/proxy-logs returns filtered proxy logs", async () => {
   proxyLogger.logProxyEvent({
     status: "success",
