@@ -6,6 +6,8 @@ import {
   getComboStepTarget,
 } from "../../src/lib/combos/steps.ts";
 
+import { registerToolSearchTool } from "./toolSearch/register.ts";
+
 import {
   MCP_TOOLS,
   getHealthInput,
@@ -1197,6 +1199,8 @@ export function createMcpServer(): McpServer {
       handleOneproxyStats(oneproxyStatsInput.parse(args))
     )
   );
+
+  registerToolSearchTool(server, withScopeEnforcement);
 
   // ── Memory Tools ──────────────────────────────
   Object.values(memoryTools).forEach((toolDef: any) => {
