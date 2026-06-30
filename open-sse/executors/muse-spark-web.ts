@@ -629,7 +629,7 @@ function classifyMetaAiError(errorMessage: string | null, content: string) {
   if (/authentication required to send messages|login is required|sign in/i.test(combined)) {
     return {
       status: 401,
-      message: "Meta AI auth failed — your meta.ai abra_sess cookie may be missing or expired.",
+      message: "Meta AI auth failed — your meta.ai ecto_1_sess cookie may be missing or expired.",
     };
   }
 
