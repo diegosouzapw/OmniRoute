@@ -859,6 +859,8 @@ Allow users to report issues directly from the Dashboard.
 
 ## Deployment Scenarios
 
+For relay backend SRE guidance (ts/bifrost/auto behavior, 9router vs CLIProxyAPI placement, and high-throughput fallback strategy), see [Relay Backend Strategy](/docs/reference/RELAY_BACKEND_STRATEGY.md).
+
 ### Minimal Local Development
 
 ```bash
