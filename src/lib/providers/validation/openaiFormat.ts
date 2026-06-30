@@ -12,6 +12,7 @@ import { addModelsSuffix, normalizeBaseUrl, resolveChatUrl } from "./urlHelpers"
 import { applyCustomUserAgent, buildBearerHeaders } from "./headers";
 import { toValidationErrorResult, validationRead, validationWrite } from "./transport";
 import { validateDirectChatProvider } from "./directChatProbe";
+import { extractCozeValidationError } from "./cozeError";
 
 export async function validateBedrockProvider({ apiKey, providerSpecificData = {} }: any) {
   if (!apiKey) {
@@ -141,6 +142,20 @@ export async function validateOpenAILikeProvider({
 
     if (chatRes.ok) {
       return { valid: true, error: null };
+    }
+
+    // #5426: Coze answers the chat probe with a JSON envelope ({ code, msg,
+    // logId, from }) on a bad key. Translate it into a friendly message so the
+    // raw envelope (logId included) never leaks into the connection UI. Scoped
+    // to provider === "coze" so a non-Coze error body that happens to carry a
+    // `msg` field is never mislabeled, and other providers' response bodies are
+    // never consumed here — they fall through to the canned handling below.
+    if (provider === "coze") {
+      const chatErrorBody = await chatRes.text().catch(() => "");
+      const cozeError = extractCozeValidationError(chatErrorBody);
+      if (cozeError) {
+        return { valid: false, error: cozeError };
+      }
     }
 
     if (chatRes.status === 401 || chatRes.status === 403) {

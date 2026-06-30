@@ -19,6 +19,8 @@ import {
   compatibleProviderSupportsModelImport,
   getCompatibleFallbackModels,
 } from "@/lib/providers/managedAvailableModels";
+import { getProviderServiceKinds } from "@/lib/providers/serviceKindIndex";
+import { providerLacksModelListing } from "@/lib/providers/modelListingCapability";
 import { normalizeModelCatalogSource } from "@/shared/utils/modelCatalogSearch";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
@@ -79,7 +81,17 @@ export default function ProviderDetailPageClient() {
     isAnthropicCompatibleProvider(providerId) && !isClaudeCodeCompatibleProvider(providerId);
   const isCompatible = isOpenAICompatible || isAnthropicCompatible || isCcCompatible;
   const isAnthropicProtocolCompatible = isAnthropicCompatible || isCcCompatible;
-  const isSearchProvider = providerId.endsWith("-search");
+  // #5420: hide model listing for tool-only providers (web search / web fetch),
+  // not just `-search`-suffixed ids. Declared serviceKinds come from the static
+  // provider catalog (e.g. firecrawl → ["webFetch"]); compatible providers resolve
+  // to null here and fall through to the empty-kinds check (model listing stays on).
+  const declaredServiceKinds = (
+    resolveDashboardProviderInfo(providerId) as { serviceKinds?: readonly string[] } | null
+  )?.serviceKinds;
+  const isSearchProvider = providerLacksModelListing(
+    providerId,
+    getProviderServiceKinds(providerId, declaredServiceKinds)
+  );
 
   // ── Phase 1f hooks ────────────────────────────────────────────────────────
   const {
