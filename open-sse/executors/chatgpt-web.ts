@@ -20,6 +20,7 @@ import { describeChatGptWebHttpError } from "./chatgptWebErrors.ts";
 import { prepareToolMessages } from "../translator/webTools.ts";
 import { buildToolModeResponse } from "./chatgptWebTools.ts";
 import { createHash, randomUUID, randomBytes } from "node:crypto";
+import { sha3_512Hex } from "../utils/sha3-512.ts";
 import {
   tlsFetchChatGpt,
   TlsClientUnavailableError,
@@ -885,9 +886,8 @@ async function solvePow(opts: PowOptions): Promise<string> {
     cfg[3] = i;
     const json = JSON.stringify(cfg);
     const b64 = Buffer.from(json).toString("base64");
-    const hash = createHash("sha3-512")
-      .update(opts.seed + b64)
-      .digest("hex");
+    // Portable SHA3-512 — pure-JS fallback under Electron/BoringSSL (#5531).
+    const hash = sha3_512Hex(opts.seed + b64);
     if (opts.target && hash.slice(0, opts.target.length) <= opts.target) {
       return `${opts.prefix}${b64}`;
     }
