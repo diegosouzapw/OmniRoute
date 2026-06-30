@@ -238,6 +238,27 @@ function buildHistoricalToolResultContext(name: string, response: unknown): stri
   ].join("\n");
 }
 
+// Gemini-family APIs (incl. Antigravity / Vertex) reject a `contents[]` array that
+// has two adjacent entries with the same role:
+//   400 INVALID_ARGUMENT "Request contains consecutive messages with the same role".
+// Client history that carries consecutive user turns — or a tool-result turn (mapped
+// to role:"user") immediately followed by a plain user turn — would otherwise leak
+// that invalid alternation through. Merge adjacent same-role entries by concatenating
+// their parts, the same normalization the Kiro and Claude request paths already apply
+// (9router#2191).
+function mergeConsecutiveSameRoleContents(contents: GeminiContent[]): GeminiContent[] {
+  const merged: GeminiContent[] = [];
+  for (const entry of contents) {
+    const last = merged[merged.length - 1];
+    if (last && last.role === entry.role) {
+      last.parts.push(...entry.parts);
+    } else {
+      merged.push(entry);
+    }
+  }
+  return merged;
+}
+
 // Core: Convert OpenAI request to Gemini format (base for all variants)
 function openaiToGeminiBase(
   model: string,
@@ -584,6 +605,9 @@ function openaiToGeminiBase(
       }
     }
   }
+
+  // Collapse any consecutive same-role contents Gemini would reject (9router#2191).
+  result.contents = mergeConsecutiveSameRoleContents(result.contents ?? []);
 
   // Convert tools
   const bodyTools = body.tools as Array<Record<string, unknown>> | undefined;
