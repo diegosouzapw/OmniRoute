@@ -122,7 +122,7 @@
     "i18n:sync-ui": "node scripts/i18n/sync-ui-keys.mjs",
     "i18n:sync-ui:dry": "node scripts/i18n/sync-ui-keys.mjs --dry-run",
     "i18n:check-ui-coverage": "node scripts/i18n/check-ui-keys-coverage.mjs",
-    "check:node-runtime": "node --import tsx scripts/check/check-supported-node-runtime.ts",
+    "check:node-runtime": "bun scripts/check/check-supported-node-runtime.ts",
     "check:pack-artifact": "node --import tsx scripts/build/validate-pack-artifact.ts",
     "check:pack-policy": "node --import tsx scripts/build/validate-pack-artifact.ts --policy-only",
     "check:cli-i18n": "node scripts/check/check-cli-i18n.mjs",
