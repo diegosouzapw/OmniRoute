@@ -97,7 +97,7 @@ export default function AddApiKeyModal({
       }[commandCodeAuthState.phase]
     : null;
   const [formData, setFormData] = useState({
-    name: "",
+    name: "main", // #5421: required field; default resists autofill garbage (was "" → "wiw")
     apiKey: "",
     defaultModel: "",
     priority: 1,

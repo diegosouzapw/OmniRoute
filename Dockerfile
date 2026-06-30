@@ -39,7 +39,7 @@ COPY package*.json ./
 # Workspace package manifests MUST be present before `npm ci` so npm materializes
 # the workspace and installs its *workspace-only* deps (e.g. safe-regex,
 # @toon-format/toon — declared in open-sse/package.json, not hoisted to root).
-# Without this, `npm ci` skips them and `npm run build` fails with "Module not
+# Without this, `npm ci` skips them and the application build fails with "Module not
 # found" (root cause of the v3.8.39 Docker build break). workspaces = ["open-sse"].
 COPY open-sse/package.json ./open-sse/package.json
 COPY scripts/build/postinstall.mjs ./scripts/build/postinstall.mjs

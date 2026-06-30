@@ -202,3 +202,35 @@ test("after 429 teardown, next withRateLimit must get a fresh limiter and succee
   );
   assert.equal(result, "post-429", "post-429 request must return its value");
 });
+
+test("request queue refresh treats zero limits as unbounded for existing limiters", async () => {
+  await flushBackgroundWork();
+
+  const provider = "openai";
+  const connectionId = "lifecycle-test-conn-d";
+
+  rateLimitManager.enableRateLimitProtection(connectionId);
+  assert.equal(
+    await rateLimitManager.withRateLimit(
+      provider,
+      connectionId,
+      null,
+      async () => "before-refresh"
+    ),
+    "before-refresh"
+  );
+
+  await rateLimitManager.applyRequestQueueSettings({
+    enabled: true,
+    autoEnableApiKeyProviders: false,
+    maxWaitMs: 100,
+    requestsPerMinute: 0,
+    concurrentRequests: 0,
+    minTimeBetweenRequestsMs: 0,
+  });
+
+  assert.equal(
+    await rateLimitManager.withRateLimit(provider, connectionId, null, async () => "after-refresh"),
+    "after-refresh"
+  );
+});

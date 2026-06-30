@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { executeProviderHealthAutopilotAction } from "@/lib/monitoring/providerHealthAutopilot";
+import { validateBrowserMutationOrigin } from "@/server/origin/publicOrigin";
 import { validateBody } from "@/shared/validation/helpers";
 
 const actionSchema = z.object({
@@ -27,6 +28,11 @@ const actionSchema = z.object({
 export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
+
+  const originVerdict = validateBrowserMutationOrigin(request);
+  if (!originVerdict.ok) {
+    return NextResponse.json({ error: { message: "Invalid request origin" } }, { status: 403 });
+  }
 
   try {
     let rawBody: unknown;

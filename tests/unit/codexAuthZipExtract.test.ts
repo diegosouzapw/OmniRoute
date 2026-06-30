@@ -1,25 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { zipSync, strToU8 } from "fflate";
-
-// Mirror the safety logic from codexAuthZipExtract.ts so we can test without
-// importing the module (which is fine since it has no external DB deps, but
-// we test the pure logic to keep the test surface clear).
-
-interface ExtractedZipFile {
-  name: string;
-  content: string;
-}
-
-interface ExtractZipOptions {
-  maxFiles?: number;
-  maxFileSizeBytes?: number;
-  maxTotalSizeBytes?: number;
-}
-
-// Local re-implementation of the exported function to exercise it without
-// importing Node-only code in the test runner.
 import { extractCodexAuthZip } from "../../src/lib/oauth/utils/codexAuthZipExtract.ts";
+import { extractClaudeAuthZip } from "../../src/lib/oauth/utils/claudeAuthZipExtract.ts";
+import { extractJsonZip } from "../../src/lib/oauth/utils/jsonZipExtract.ts";
 
 // ──── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -45,6 +29,17 @@ test("extractCodexAuthZip: happy path — returns all .json entries", () => {
   assert.equal(files.length, 3);
   const names = files.map((f) => f.name).sort();
   assert.deepEqual(names, ["auth-a.json", "auth-b.json", "auth-c.json"]);
+});
+
+test("auth ZIP extractors share the generic JSON ZIP behavior", () => {
+  const zip = makeZip({
+    "auth-a.json": VALID_AUTH,
+    "nested/auth-b.json": VALID_AUTH,
+    "README.md": "# Readme",
+  });
+
+  assert.deepEqual(extractCodexAuthZip(zip), extractJsonZip(zip));
+  assert.deepEqual(extractClaudeAuthZip(zip), extractJsonZip(zip));
 });
 
 test("extractCodexAuthZip: ignores non-.json entries", () => {

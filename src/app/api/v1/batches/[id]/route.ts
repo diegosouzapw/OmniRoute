@@ -2,37 +2,7 @@ import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { getBatch, deleteBatch } from "@/lib/localDb";
 import { NextResponse } from "next/server";
 import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
-
-function formatBatchResponse(batch: any) {
-  return {
-    id: batch.id,
-    object: "batch",
-    endpoint: batch.endpoint,
-    errors: batch.errors || null,
-    input_file_id: batch.inputFileId,
-    completion_window: batch.completionWindow,
-    status: batch.status,
-    output_file_id: batch.outputFileId || null,
-    error_file_id: batch.errorFileId || null,
-    created_at: batch.createdAt,
-    in_progress_at: batch.inProgressAt || null,
-    expires_at: batch.expiresAt || null,
-    finalizing_at: batch.finalizingAt || null,
-    completed_at: batch.completedAt || null,
-    failed_at: batch.failedAt || null,
-    expired_at: batch.expiredAt || null,
-    cancelling_at: batch.cancellingAt || null,
-    cancelled_at: batch.cancelledAt || null,
-    request_counts: {
-      total: batch.requestCountsTotal || 0,
-      completed: batch.requestCountsCompleted || 0,
-      failed: batch.requestCountsFailed || 0,
-    },
-    metadata: batch.metadata || null,
-    model: batch.model || null,
-    usage: batch.usage || null,
-  };
-}
+import { formatBatchResponse } from "../formatBatchResponse";
 
 export async function OPTIONS() {
   return handleCorsOptions();

@@ -2,33 +2,14 @@
 
 import { NextResponse } from "next/server";
 import { getSupervisor } from "@/lib/services/registry";
-import { versionManagerToolSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
-const SUPERVISOR_TOOLS = new Set(["cliproxy", "cliproxyapi"]);
+import { parseVersionManagerToolRequest } from "../request";
 
 export async function POST(request: Request) {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
-
-  let rawBody;
-  try {
-    rawBody = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
-  const validation = validateBody(versionManagerToolSchema, rawBody);
-  if (isValidationFailure(validation)) {
-    return NextResponse.json({ error: validation.error }, { status: 400 });
-  }
-
-  const { tool } = validation.data;
-
-  if (!SUPERVISOR_TOOLS.has(tool)) {
-    return NextResponse.json({ error: `Unknown tool: ${tool}` }, { status: 400 });
+  const parsed = await parseVersionManagerToolRequest(request);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
