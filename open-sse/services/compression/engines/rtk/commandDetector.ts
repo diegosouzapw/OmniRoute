@@ -27,6 +27,9 @@ type Detector = {
 const COMMAND_PREFIXES = [
   "git",
   "make",
+  "gradle",
+  "gradlew",
+  "dotnet",
   "terraform",
   "tofu",
   "opentofu",
@@ -113,6 +116,18 @@ const DETECTORS: Detector[] = [
     category: "build",
     commandPatterns: [/^make\b/i],
     contentPatterns: [/^make\[\d+\]: (?:Entering|Leaving) directory/m, /make: \*\*\* /],
+  },
+  {
+    type: "gradle",
+    category: "build",
+    commandPatterns: [/^(?:gradle|gradlew|\.\/gradlew)\b/i],
+    contentPatterns: [/^> Task :/m, /^BUILD (?:SUCCESSFUL|FAILED)\b/m],
+  },
+  {
+    type: "dotnet",
+    category: "build",
+    commandPatterns: [/^dotnet\s+(?:build|test|run|restore|publish|pack|msbuild)\b/i, /^dotnet\b/i],
+    contentPatterns: [/^Build (?:succeeded|FAILED)\b/m, /\b(?:error|warning) CS\d+\b/m],
   },
   {
     type: "terraform-plan",
