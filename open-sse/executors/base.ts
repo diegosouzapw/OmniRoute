@@ -66,6 +66,52 @@ import {
   stripProxyToolPrefix,
 } from "./claudeIdentity.ts";
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function shouldForceResponsesUpstream(
+  provider: string,
+  body: unknown,
+  credentials: ProviderCredentials | null
+): boolean {
+  if (!provider.startsWith("openai-compatible-")) return false;
+  if (!isRecord(body)) return false;
+
+  const providerSpecificData = credentials?.providerSpecificData ?? null;
+  if (providerSpecificData?._omnirouteForceResponsesUpstream === true) return true;
+  if (getOpenAICompatibleType(provider, providerSpecificData) === "responses") return false;
+
+  const hasResponsesShape =
+    body.input !== undefined ||
+    body.previous_response_id !== undefined ||
+    body.max_output_tokens !== undefined ||
+    body.reasoning !== undefined;
+  if (!hasResponsesShape) return false;
+
+  const tools = Array.isArray(body.tools) ? body.tools : [];
+  return tools.some((toolValue) => {
+    if (!isRecord(toolValue)) return false;
+    const toolType = typeof toolValue.type === "string" ? toolValue.type : "";
+    return toolType === "namespace" || /^tool_search/.test(toolType);
+  });
+}
+
+function withForcedResponsesUpstream(
+  provider: string,
+  body: unknown,
+  credentials: ProviderCredentials
+): ProviderCredentials {
+  if (!shouldForceResponsesUpstream(provider, body, credentials)) return credentials;
+  return {
+    ...credentials,
+    providerSpecificData: {
+      ...credentials.providerSpecificData,
+      _omnirouteForceResponsesUpstream: true,
+    },
+  };
+}
+
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
  * Valid paths must start with '/', contain no '..' segments,
@@ -233,7 +279,10 @@ export function stripStainlessHeadersForOpenAICompat(
   // Normalize User-Agent: SDK-based clients send verbose product strings that some
   // upstreams block. Replace with a clean browser-like UA only when it looks SDK-derived.
   const ua = (headers["User-Agent"] || headers["user-agent"] || "").toLowerCase();
-  if (ua.includes("openai") && (ua.includes("node") || ua.includes("axios") || ua.includes("undici"))) {
+  if (
+    ua.includes("openai") &&
+    (ua.includes("node") || ua.includes("axios") || ua.includes("undici"))
+  ) {
     setUserAgentHeader(headers, "Mozilla/5.0 (compatible; OpenAI Compatible)");
   }
 
@@ -863,9 +912,14 @@ export class BaseExecutor {
     const strippedFields = new Set<string>();
 
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
-      const url = this.buildUrl(model, stream, urlIndex, activeCredentials);
-      const headers = this.buildHeaders(activeCredentials, stream, clientHeaders, model);
-      applyConfiguredUserAgent(headers, activeCredentials?.providerSpecificData);
+      const requestCredentials = withForcedResponsesUpstream(
+        this.provider,
+        body,
+        activeCredentials
+      );
+      const url = this.buildUrl(model, stream, urlIndex, requestCredentials);
+      const headers = this.buildHeaders(requestCredentials, stream, clientHeaders, model);
+      applyConfiguredUserAgent(headers, requestCredentials?.providerSpecificData);
 
       // Strip OpenAI SDK (X-Stainless-*) metadata + normalize SDK-derived User-Agent
       // on OpenAI-compatible passthrough requests — some upstream gateways 403 on them.
@@ -878,7 +932,7 @@ export class BaseExecutor {
       }
 
       const ccRequestDefaults = isClaudeCodeCompatible(this.provider)
-        ? getClaudeCodeCompatibleRequestDefaults(activeCredentials?.providerSpecificData)
+        ? getClaudeCodeCompatibleRequestDefaults(requestCredentials?.providerSpecificData)
         : {};
       const shouldForwardExtendedContext =
         extendedContext &&
@@ -894,7 +948,7 @@ export class BaseExecutor {
         model,
         body,
         stream,
-        activeCredentials
+        requestCredentials
       );
       let transformedBody = sanitizeReasoningEffortForProvider(
         rawTransformedBody,
