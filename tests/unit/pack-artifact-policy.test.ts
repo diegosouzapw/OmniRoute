@@ -64,6 +64,22 @@ test("webdav-handler.mjs is allowed in staging dist/ (server-ws.mjs dependency, 
   assert.deepEqual(unexpectedPaths, []);
 });
 
+test("tls-options.mjs is allowed in staging dist/ (server-ws.mjs dependency, missed in 3.8.41 build — #5452)", () => {
+  const unexpectedPaths = findUnexpectedArtifactPaths(["tls-options.mjs"], {
+    exactPaths: APP_STAGING_ALLOWED_EXACT_PATHS,
+    prefixPaths: APP_STAGING_ALLOWED_PATH_PREFIXES,
+  });
+  assert.deepEqual(unexpectedPaths, []);
+});
+
+test("dist/tls-options.mjs is a required tarball path (regression guard for #5452)", () => {
+  const missingPaths = findMissingArtifactPaths([], PACK_ARTIFACT_REQUIRED_PATHS);
+  assert.ok(
+    missingPaths.includes("dist/tls-options.mjs"),
+    "dist/tls-options.mjs must be enforced by the pack-artifact gate"
+  );
+});
+
 test("setupPolyfill.ts is allowed in the tarball (bin/omniroute.mjs imports it at startup)", () => {
   const unexpectedPaths = findUnexpectedArtifactPaths(["open-sse/utils/setupPolyfill.ts"], {
     exactPaths: PACK_ARTIFACT_ALLOWED_EXACT_PATHS,
@@ -98,6 +114,7 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
     "dist/peer-stamp.mjs",
     "dist/responses-ws-proxy.mjs",
     "dist/server-ws.mjs",
+    "dist/tls-options.mjs",
     "dist/webdav-handler.mjs",
     "scripts/build/colocateOptionals.mjs",
     "scripts/build/native-binary-compat.mjs",

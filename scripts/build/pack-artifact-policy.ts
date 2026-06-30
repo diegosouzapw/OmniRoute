@@ -47,6 +47,11 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   "scripts/dev/tls-options.mjs",
   "server.js",
   "server-ws.mjs",
+  // #5452: dist/tls-options.mjs is copied by assembleStandalone (EXTRA_MODULE_ENTRIES)
+  // and imported by dist/server-ws.mjs for opt-in native HTTPS/TLS (#5361). Without
+  // this bare entry the prepublish prune (Step 10.7) deletes it → `omniroute serve`
+  // crashes with ERR_MODULE_NOT_FOUND (regressed in the published 3.8.41 tarball).
+  "tls-options.mjs",
   "webdav-handler.mjs",
 ];
 
@@ -144,6 +149,9 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "dist/responses-ws-proxy.mjs",
   "dist/peer-stamp.mjs",
   "dist/http-method-guard.cjs",
+  // #5452: regression guard — make check:pack-artifact fail loudly if the TLS
+  // opt-in sidecar (imported by dist/server-ws.mjs) ever vanishes from the tarball.
+  "dist/tls-options.mjs",
   "dist/webdav-handler.mjs",
   "bin/cli/program.mjs",
   "bin/mcp-server.mjs",
