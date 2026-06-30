@@ -353,7 +353,8 @@ export async function checkConnection(conn) {
     //   - transient cooldown state (unavailable) owned by the request path
     const refreshCapableNeedsReauth =
       supportsTokenRefresh(conn.provider) &&
-      (!conn.testStatus || conn.testStatus === "active");
+      (!conn.testStatus || conn.testStatus === "active") &&
+      !(conn.apiKey && conn.apiKey.length > 0); // API-key-only connections don't need refresh tokens
     if (refreshCapableNeedsReauth) {
       const now = new Date().toISOString();
       await updateProviderConnection(conn.id, {

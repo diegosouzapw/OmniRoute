@@ -1,8 +1,9 @@
 /**
- * tests/integration/live-gemini-workload.test.ts
+ * tests/integration/live-gemini-nonstream.test.ts
  *
- * Streaming live Gemini workload test. Reuses shared generators from
- * liveGeminiShared.ts. For non-streaming, see live-gemini-nonstream.test.ts.
+ * Non-streaming variant of live-gemini-workload.test.ts.
+ * Reuses the same CASE_BUILDERS payload generators but sends stream: false.
+ * Validates that non-streaming responses return content and complete without errors.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -21,22 +22,19 @@ test.before(async () => {
   await ensureTestEnvironment();
 });
 
-// --------------------------------------------------------------------------
-// Concurrent load — 5 parallel threads × 15 iterations
-// --------------------------------------------------------------------------
+// ── Non-streaming concurrent load — 5 parallel threads × 5 iterations ──
 
-test("[26] concurrent load — 2 threads × 2 iterations", { skip }, async () => {
-  const THREAD_COUNT = 2;
+test("[00] non-streaming: concurrent load — 5 threads × 2 iterations", { skip }, async () => {
+  const THREAD_COUNT = 5;
   const SET_COUNT = 2;
   const TOTAL_REQUESTS = THREAD_COUNT * SET_COUNT;
 
   console.log(
-    `\n  Concurrent load: ${THREAD_COUNT} threads × ${SET_COUNT} iterations = ${TOTAL_REQUESTS} requests`
+    `\n  Non-streaming concurrent: ${THREAD_COUNT} threads × ${SET_COUNT} iterations = ${TOTAL_REQUESTS} requests`
   );
 
   const start = performance.now();
 
-  // Shared state for parallel-request detection across threads
   const requestWindows: { cid: string; start: number; end: number }[] = [];
   let parallelViolation: string | null = null;
 
@@ -51,16 +49,15 @@ test("[26] concurrent load — 2 threads × 2 iterations", { skip }, async () =>
           correlationId: string;
         }[] = [];
         for (let set = 1; set <= SET_COUNT; set++) {
-          if (parallelViolation) break; // another thread detected a violation
+          if (parallelViolation) break;
 
           const idx = randomInt(0, CASE_BUILDERS.length - 1);
           const tc = CASE_BUILDERS[idx];
-          const label = `t${threadIdx + 1}-i${set}: ${tc.name}`;
+          const label = `ns-t${threadIdx + 1}-i${set}: ${tc.name}`;
           const requestStart = Date.now();
-          const r = await sendAndValidate(label, tc.build);
+          const r = await sendAndValidate(label, tc.build, false);
           const requestEnd = Date.now();
 
-          // Check for parallel requests with the same correlationId
           const cid = r.correlationId;
           const myWindow = { cid, start: requestStart, end: requestEnd };
           const siblings = requestWindows.filter((w) => w.cid === cid);
@@ -102,7 +99,7 @@ test("[26] concurrent load — 2 threads × 2 iterations", { skip }, async () =>
       : 0;
 
   console.log(
-    `\n  Concurrent summary: ${fulfilled.length}/${THREAD_COUNT} threads completed | ` +
+    `\n  Non-streaming concurrent summary: ${fulfilled.length}/${THREAD_COUNT} threads completed | ` +
       `${allResults.length}/${TOTAL_REQUESTS} requests succeeded | ` +
       `${Math.round(totalDuration)}ms wall clock | ` +
       `${avgDuration}ms avg per request | ` +
@@ -129,16 +126,23 @@ test("[26] concurrent load — 2 threads × 2 iterations", { skip }, async () =>
     `expected ${TOTAL_REQUESTS} total requests, got ${allResults.length}`
   );
   assert.ok(!parallelViolation, parallelViolation);
+
+  // Verify all correlation IDs are unique
+  const cids = allResults.map((r) => r.correlationId);
+  const uniqueCids = new Set(cids);
+  assert.equal(
+    uniqueCids.size,
+    cids.length,
+    `expected ${cids.length} unique CIDs, got ${uniqueCids.size}`
+  );
 });
 
-// --------------------------------------------------------------------------
-// Single-thread sequential — 1 thread × 5 iterations
-// --------------------------------------------------------------------------
+// ── Non-streaming sequential test ───────────────────────────────────────
 
-test("[27] single-thread sequential — 1 thread × 5 iterations", { skip }, async () => {
+test("[01] non-streaming: sequential — 1 thread × 5 iterations", { skip }, async () => {
   const SET_COUNT = 5;
 
-  console.log(`\n  Single-thread sequential: 1 thread × ${SET_COUNT} iterations`);
+  console.log(`\n  Non-streaming sequential: 1 thread × ${SET_COUNT} iterations`);
 
   const start = performance.now();
   const results: {
@@ -152,10 +156,10 @@ test("[27] single-thread sequential — 1 thread × 5 iterations", { skip }, asy
   for (let i = 1; i <= SET_COUNT; i++) {
     const idx = randomInt(0, CASE_BUILDERS.length - 1);
     const tc = CASE_BUILDERS[idx];
-    const label = `seq-i${i}: ${tc.name}`;
+    const label = `ns-i${i}: ${tc.name}`;
     try {
       if (i > 1) await new Promise((r) => setTimeout(r, DELAY_BETWEEN_REQUESTS_MS));
-      const r = await sendAndValidate(label, tc.build);
+      const r = await sendAndValidate(label, tc.build, false);
       results.push(r);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -172,33 +176,32 @@ test("[27] single-thread sequential — 1 thread × 5 iterations", { skip }, asy
       : 0;
 
   console.log(
-    `\n  Sequential summary: ${results.length}/${SET_COUNT} succeeded | ` +
+    `\n  Non-streaming summary: ${results.length}/${SET_COUNT} succeeded | ` +
       `${Math.round(totalDuration)}ms wall clock | ` +
       `${avgDuration}ms avg per request | ` +
       `${totalTokens} total tokens`
   );
 
-  // Verify no duplicate correlation IDs (no retries created parallel entries)
   const cids = results.map((r) => r.correlationId);
   const uniqueCids = new Set(cids);
   assert.equal(
     uniqueCids.size,
     cids.length,
-    `expected ${cids.length} unique correlation IDs, got ${uniqueCids.size} — duplicates detected`
+    `expected ${cids.length} unique CIDs, got ${uniqueCids.size}`
   );
   assert.equal(results.length, SET_COUNT, `expected ${SET_COUNT} results, got ${results.length}`);
 });
 
-// ── Streaming-specific tests ────────────────────────────────────────────
+// ── Non-streaming: all payloads return content ──────────────────────────
 
-test("[28] streaming: all payloads return content", { skip }, async () => {
+test("[02] non-streaming: all payloads return content", { skip }, async () => {
   const failures: string[] = [];
 
   for (let i = 0; i < CASE_BUILDERS.length; i++) {
     const tc = CASE_BUILDERS[i];
-    const label = `stream-${String(i + 1).padStart(2, "0")}: ${tc.name}`;
+    const label = `ns-${String(i + 1).padStart(2, "0")}: ${tc.name}`;
     try {
-      const r = await sendAndValidate(label, tc.build);
+      const r = await sendAndValidate(label, tc.build, false);
       if (r.contentLength === 0) {
         failures.push(`${tc.name}: 0 bytes content`);
       }
@@ -211,24 +214,26 @@ test("[28] streaming: all payloads return content", { skip }, async () => {
   }
 
   if (failures.length > 0) {
-    console.log(`\n  Streaming failures (${failures.length}):`);
+    console.log(`\n  Non-streaming failures (${failures.length}):`);
     for (const f of failures) console.log(`    ${f}`);
   }
 
   assert.equal(
     failures.length,
     0,
-    `${failures.length}/${CASE_BUILDERS.length} streaming payloads failed`
+    `${failures.length}/${CASE_BUILDERS.length} non-streaming payloads failed`
   );
 });
 
-test("[29] streaming: correlation IDs are unique per request", { skip }, async () => {
+// ── Non-streaming: correlation IDs are unique ───────────────────────────
+
+test("[03] non-streaming: correlation IDs are unique per request", { skip }, async () => {
   const cids: string[] = [];
   const count = 5;
 
   for (let i = 0; i < count; i++) {
     const tc = CASE_BUILDERS[i % CASE_BUILDERS.length];
-    const r = await sendAndValidate(`cid-${i + 1}: ${tc.name}`, tc.build);
+    const r = await sendAndValidate(`ns-cid-${i + 1}: ${tc.name}`, tc.build, false);
     cids.push(r.correlationId);
   }
 
