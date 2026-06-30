@@ -888,6 +888,7 @@
     "restart": "Restart",
     "shutdownConfirm": "Shut down OmniRoute?",
     "restartConfirm": "Restart OmniRoute?",
+    "gamificationGroup": "Gamification",
     "version": "v{version}",
     "debug": "Debug",
     "system": "System",
