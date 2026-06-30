@@ -76,7 +76,7 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://www.meta.ai",
     hasFree: true,
     freeNote: "Free with login — Meta AI platform with Llama models.",
-    authHint: "Paste your abra_sess value or full cookie header from meta.ai",
+    authHint: "Paste your ecto_1_sess value or full cookie header from meta.ai",
   },
   "claude-web": {
     id: "claude-web",
