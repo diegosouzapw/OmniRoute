@@ -145,6 +145,10 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "dist/peer-stamp.mjs",
   "dist/http-method-guard.cjs",
   "dist/webdav-handler.mjs",
+  // #5452: dist/server-ws.mjs (and dist/open-sse/mcp-server/server.js) import "./tls-options.mjs"
+  // (opt-in HTTPS/TLS resolver, added in #5242). Required so the published tarball can never omit
+  // it again — 3.8.41 shipped without it and `omniroute serve` crashed with ERR_MODULE_NOT_FOUND.
+  "dist/tls-options.mjs",
   "bin/cli/program.mjs",
   "bin/mcp-server.mjs",
   "bin/nodeRuntimeSupport.mjs",

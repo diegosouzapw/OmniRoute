@@ -98,10 +98,38 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
     "dist/peer-stamp.mjs",
     "dist/responses-ws-proxy.mjs",
     "dist/server-ws.mjs",
+    "dist/tls-options.mjs",
     "dist/webdav-handler.mjs",
     "scripts/build/colocateOptionals.mjs",
     "scripts/build/native-binary-compat.mjs",
     "scripts/build/runtime-env.mjs",
     "src/shared/utils/nodeRuntimeSupport.ts",
   ]);
+});
+
+test("dist/tls-options.mjs is a required pack artifact (server-ws.mjs imports it — #5452)", () => {
+  // dist/server-ws.mjs does `import ... from "./tls-options.mjs"` (added in #5242). It is a peer
+  // of the other server-ws sidecars (peer-stamp / responses-ws-proxy / webdav-handler), all of
+  // which are already required — but tls-options.mjs was omitted from the required set, so the
+  // 3.8.41 npm tarball shipped without it and `omniroute serve` crashed with ERR_MODULE_NOT_FOUND.
+  assert.ok(
+    PACK_ARTIFACT_REQUIRED_PATHS.includes("dist/tls-options.mjs"),
+    "dist/tls-options.mjs must be a required pack artifact (imported by dist/server-ws.mjs)"
+  );
+});
+
+test("findMissingArtifactPaths flags the #5452 omission (every required path except tls-options.mjs)", () => {
+  // Simulate the broken 3.8.41 tarball: everything that should be packed, minus tls-options.mjs.
+  const tarballWithoutTlsOptions = PACK_ARTIFACT_REQUIRED_PATHS.filter(
+    (requiredPath) => requiredPath !== "dist/tls-options.mjs"
+  );
+
+  const missingPaths = findMissingArtifactPaths(
+    tarballWithoutTlsOptions,
+    PACK_ARTIFACT_REQUIRED_PATHS
+  );
+
+  // The guard must fire on exactly the file the 3.8.41 publish dropped, so check:pack-artifact
+  // would fail the publish instead of shipping a crashing tarball.
+  assert.deepEqual(missingPaths, ["dist/tls-options.mjs"]);
 });
