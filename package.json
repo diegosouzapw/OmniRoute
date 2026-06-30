@@ -145,7 +145,7 @@
     "check:public-creds": "node scripts/check/check-public-creds.mjs",
     "check:db-rules": "node scripts/check/check-db-rules.mjs",
     "check:docs-symbols": "node scripts/check/check-docs-symbols.mjs",
-    "check:known-symbols": "node --import tsx scripts/check/check-known-symbols.ts",
+    "check:known-symbols": "bun scripts/check/check-known-symbols.ts",
     "check:route-guard-membership": "node --import tsx scripts/check/check-route-guard-membership.ts",
     "check:test-discovery": "node scripts/check/check-test-discovery.mjs",
     "check:complexity": "node scripts/check/check-complexity.mjs",
