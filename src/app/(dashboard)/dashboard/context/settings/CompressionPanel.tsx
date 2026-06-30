@@ -51,6 +51,7 @@ interface CompressionConfig {
   enabled: boolean;
   autoTriggerTokens: number;
   preserveSystemPrompt: boolean;
+  preserveSystemPromptMode?: "always" | "whenNoCache" | "never";
   engines: Record<string, EngineToggle>;
   activeComboId: string | null;
   cavemanOutputMode?: CavemanOutputModeConfig;
@@ -458,15 +459,25 @@ export default function CompressionPanel() {
         </label>
         <label className="flex items-center justify-between">
           <span className="text-sm text-text-muted">{t("compressionPreserveSystem")}</span>
-          <span data-testid="preserve-system-toggle">
-            <Toggle
-              size="sm"
-              checked={config.preserveSystemPrompt}
-              onChange={(preserveSystemPrompt) => save({ preserveSystemPrompt })}
-              disabled={saving}
-              ariaLabel={t("compressionPreserveSystem")}
-            />
-          </span>
+          <select
+            value={
+              config.preserveSystemPromptMode ??
+              (config.preserveSystemPrompt === false ? "whenNoCache" : "always")
+            }
+            onChange={(e) =>
+              save({
+                preserveSystemPromptMode: e.target.value as "always" | "whenNoCache" | "never",
+              })
+            }
+            disabled={saving}
+            aria-label={t("compressionPreserveSystem")}
+            data-testid="preserve-system-mode-select"
+            className="w-36 rounded border border-border bg-surface px-2 py-1 text-sm text-text-main"
+          >
+            <option value="always">{t("compressionPreserveSystemAlways")}</option>
+            <option value="whenNoCache">{t("compressionPreserveSystemWhenNoCache")}</option>
+            <option value="never">{t("compressionPreserveSystemNever")}</option>
+          </select>
         </label>
       </div>
     </Card>

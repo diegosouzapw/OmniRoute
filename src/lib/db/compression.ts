@@ -28,6 +28,7 @@ import {
   type RtkConfig,
   type UltraConfig,
 } from "@omniroute/open-sse/services/compression/types.ts";
+import { isPreserveSystemPromptMode } from "@omniroute/open-sse/services/compression/preserveSystemPromptMode.ts";
 import { maybePrewarmUltraSlmOnConfig } from "@omniroute/open-sse/services/compression/ultra.ts";
 
 const NAMESPACE = "compression";
@@ -586,6 +587,12 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         break;
       case "preserveSystemPrompt":
         config.preserveSystemPrompt = parsed !== false;
+        break;
+      case "preserveSystemPromptMode":
+        // T05/C5 — authoritative intent; ignore unknown tokens (keep the default mode).
+        if (isPreserveSystemPromptMode(parsed)) {
+          config.preserveSystemPromptMode = parsed;
+        }
         break;
       case "mcpDescriptionCompressionEnabled":
         config.mcpDescriptionCompressionEnabled = parsed !== false;
