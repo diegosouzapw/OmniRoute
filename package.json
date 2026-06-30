@@ -308,6 +308,7 @@
     "@types/safe-regex": "^1.1.6",
     "@types/ws": "^8.18.0",
     "@vitejs/plugin-react": "^6.0.2",
+    "bun": "1.3.10",
     "c8": "^11.0.0",
     "concurrently": "^10.0.3",
     "cross-env": "^10.1.0",
