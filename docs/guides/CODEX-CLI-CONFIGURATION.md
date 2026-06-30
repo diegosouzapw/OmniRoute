@@ -241,7 +241,7 @@ omniroute setup-codex --only glm,kimi
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-The command fetches `/v1/models`, categorises each model (thinking / good / simple / fast) and writes `~/.codex/<name>.config.toml` for each. Idempotent — safe to re-run.
+The command fetches `/v1/models`, uses tuned profiles for known models, falls back to catalog metadata for other compatible text models, and writes `~/.codex/<name>.config.toml` for each. Idempotent — safe to re-run.
 
 ---
 
