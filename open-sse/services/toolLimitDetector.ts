@@ -4,6 +4,10 @@ const DETECTED_LIMITS = new Map<string, { limit: number; timestamp: number }>();
 const TTL_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_LIMIT = MAX_TOOLS_LIMIT;
 
+const PROVIDER_TOOL_LIMITS: Record<string, number> = {
+  "grok-cli": 200,
+};
+
 const _detectedLimitsSweep = setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of DETECTED_LIMITS) {
@@ -15,6 +19,10 @@ if (typeof _detectedLimitsSweep === "object" && "unref" in _detectedLimitsSweep)
 }
 
 export function getEffectiveToolLimit(provider: string): number {
+  const proactiveLimit = PROVIDER_TOOL_LIMITS[provider];
+  if (proactiveLimit !== undefined) {
+    return proactiveLimit;
+  }
   const cached = DETECTED_LIMITS.get(provider);
   if (cached && Date.now() - cached.timestamp < TTL_MS) {
     return cached.limit;
@@ -33,6 +41,7 @@ const TOOL_LIMIT_PATTERNS = [
   /'tools':\s*maximum\s+number\s+of\s+items\s+is\s+(\d+)/i,
   /Maximum\s+number\s+of\s+tools\s+(?:allowed\s+)?(?:is\s+)?(\d+)/i,
   /Too\s+many\s+tools\.?\s*(?:Maximum\s+)?(\d+)/i,
+  /\d+\s+tools\s+have\s+been\s+provided\s+but\s+(?:the\s+)?maximum\s+is\s+(\d+)/i,
   /tool.*limit.*(\d+)/i,
   /tools.*exceeded.*(\d+)/i,
 ];
