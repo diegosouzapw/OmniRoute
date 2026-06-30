@@ -9,6 +9,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
 import { getDbInstance } from "../db/core";
+import { collectReferencedArtifacts, selectCallLogIdsBefore } from "./callLogsBoundedQueries";
 import { getRequestDetailLogByCallLogId } from "../db/detailedLogs";
 import { shouldPersistToDisk } from "./migrations";
 import {
@@ -415,14 +416,8 @@ function clearArtifactReference(relativePath: string, nextState: CallLogDetailSt
 }
 
 function listReferencedArtifacts() {
-  const db = getDbInstance();
-  const rows = db
-    .prepare("SELECT artifact_relpath FROM call_logs WHERE artifact_relpath IS NOT NULL")
-    .all() as Array<{ artifact_relpath: string | null }>;
-
-  return new Set(
-    rows.map((row) => row.artifact_relpath).filter((value): value is string => Boolean(value))
-  );
+  // #5618: paged to avoid an unbounded `.all()` OOM on large call_logs tables.
+  return collectReferencedArtifacts();
 }
 
 // #5217: SQLite caps a statement at SQLITE_MAX_VARIABLE_NUMBER bound params
@@ -510,13 +505,18 @@ export function cleanupOverflowCallLogFiles(baseDir = CALL_LOGS_DIR, maxEntries?
 }
 
 export function deleteCallLogsBefore(cutoff: string): DeleteResult {
-  const db = getDbInstance();
-  const ids = db
-    .prepare("SELECT id FROM call_logs WHERE timestamp < ? ORDER BY timestamp ASC")
-    .all(cutoff)
-    .map((row) => String((row as { id: string }).id));
-
-  return deleteCallLogRowsByIds(ids);
+  // #5618: page the id selection so a large backlog never loads in one `.all()`.
+  let deletedRows = 0;
+  let deletedArtifacts = 0;
+  for (;;) {
+    const ids = selectCallLogIdsBefore(cutoff);
+    if (ids.length === 0) break;
+    const result = deleteCallLogRowsByIds(ids);
+    deletedRows += result.deletedRows;
+    deletedArtifacts += result.deletedArtifacts;
+    if (result.deletedRows === 0) break;
+  }
+  return { deletedRows, deletedArtifacts };
 }
 
 export function trimCallLogsToMaxRows(maxRows = getCallLogsTableMaxRows()) {
