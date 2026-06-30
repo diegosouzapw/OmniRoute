@@ -10,10 +10,7 @@ import {
   providerAllowsOptionalApiKey,
   WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
-import {
-  SAFE_OUTBOUND_FETCH_PRESETS,
-  safeOutboundFetch,
-} from "@/shared/network/safeOutboundFetch";
+import { SAFE_OUTBOUND_FETCH_PRESETS, safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { resolveNvidiaValidationModel } from "@/lib/providers/nvidiaValidationModel";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
@@ -26,16 +23,8 @@ import {
   addModelsSuffix,
   resolveBaseUrl,
 } from "./validation/urlHelpers";
-import {
-  STANDARD_USER_AGENT,
-  directHttpsRequest,
-  buildBearerHeaders,
-} from "./validation/headers";
-import {
-  validationRead,
-  validationWrite,
-  toValidationErrorResult,
-} from "./validation/transport";
+import { STANDARD_USER_AGENT, directHttpsRequest, buildBearerHeaders } from "./validation/headers";
+import { validationRead, validationWrite, toValidationErrorResult } from "./validation/transport";
 import {
   validateDeepSeekWebProvider,
   validateQwenWebProvider,
@@ -81,10 +70,7 @@ import {
   validateNousResearchProvider,
   validatePoeProvider,
 } from "./validation/audioMiscProviders";
-import {
-  validateSearchProvider,
-  SEARCH_VALIDATOR_CONFIGS,
-} from "./validation/searchProviders";
+import { validateSearchProvider, SEARCH_VALIDATOR_CONFIGS } from "./validation/searchProviders";
 import {
   validateClarifaiProvider,
   validateEmbeddingApiProvider,
@@ -162,6 +148,38 @@ export async function validateWebCookieProvider({
     // for web-cookie auth, so a non-auth status is treated as a valid session.
     return { valid: true, error: null, unsupported: false };
   } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+// #5422: Bytez key validation cannot use a chat probe. A Bytez account only serves models
+// that have been added to its catalog, so even Bytez's own documented model ids return 404
+// ("Model does not exist or has yet to be added to the Bytez catalog") for a fresh/free key —
+// the generic OpenAI-like chat probe misreads that 404 as "endpoint not supported". Validate
+// against the model-independent, auth-only tasks endpoint instead (verified live):
+//   GET …/models/v2/list/tasks → 200 (valid key) | 401 { error: "Unauthorized" } (invalid).
+// The pure status→result mapping is factored out so it is unit-testable without network.
+export function bytezValidationResultFromStatus(status: number): {
+  valid: boolean;
+  error: string | null;
+} {
+  if (status === 200) {
+    return { valid: true, error: null };
+  }
+  if (status === 401 || status === 403) {
+    return { valid: false, error: "Invalid API key" };
+  }
+  return { valid: false, error: `Validation failed: ${status}` };
+}
+
+export async function validateBytezProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const res = await validationRead("https://api.bytez.com/models/v2/list/tasks", {
+      method: "GET",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+    });
+    return bytezValidationResultFromStatus(res.status);
+  } catch (error: unknown) {
     return toValidationErrorResult(error);
   }
 }
@@ -282,6 +300,9 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     },
     "command-code": validateCommandCodeProvider,
     huggingface: validateHuggingFaceProvider,
+    // #5422: auth-only probe — Bytez 404s on every chat model until the account adds it to
+    // its catalog, so the generic chat probe can't validate a fresh key.
+    bytez: validateBytezProvider,
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
     "fal-ai": ({ apiKey, providerSpecificData }: any) =>
