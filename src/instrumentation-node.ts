@@ -188,6 +188,18 @@ export async function registerNodejs(): Promise<void> {
       console.log("[STARTUP] Global System Prompt restored from settings");
     }
 
+    // Restore the proxy-level Thinking-Budget config (#5312 RC-A). It lives in
+    // `settings.thinkingBudget` and is NOT covered by applyRuntimeSettings, so
+    // without this the dashboard mode (auto/custom/adaptive) silently reverts to
+    // the passthrough default on every restart. Previously this was only wired into
+    // the unused `server-init.ts`, so it never ran in production.
+    const { hydrateThinkingBudgetConfig } = await import(
+      "@omniroute/open-sse/services/thinkingBudget.ts"
+    );
+    if (hydrateThinkingBudgetConfig(settings)) {
+      console.log("[STARTUP] Thinking-Budget config restored from settings");
+    }
+
     const seededModelAliases = await seedDefaultModelAliases();
     console.log(
       `[STARTUP] Model alias seed: applied=${seededModelAliases.applied.length}, skipped=${seededModelAliases.skipped.length}, failed=${seededModelAliases.failed.length}`
