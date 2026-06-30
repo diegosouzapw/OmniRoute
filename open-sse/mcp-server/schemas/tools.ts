@@ -10,6 +10,7 @@
  */
 
 import { z } from "zod";
+import { toolSearchTool } from "./toolSearch.ts";
 import {
   AUTO_ROUTING_STRATEGY_VALUES,
   ROUTING_STRATEGY_VALUES,
@@ -1443,52 +1444,8 @@ export const agentSkillsCoverageTool: McpToolDefinition<
   sourceEndpoints: ["/api/agent-skills"],
 };
 
-// ============ Tool Search ============
+export { toolSearchInput, toolSearchOutput, toolSearchTool } from "./toolSearch.ts";
 
-export const toolSearchInput = z
-  .object({
-    query: z
-      .string()
-      .min(1)
-      .describe("Natural-language or keyword query over tool names/descriptions"),
-    limit: z
-      .number()
-      .int()
-      .min(1)
-      .max(25)
-      .optional()
-      .describe("Max results (default 8)"),
-  })
-  .describe("Search available MCP tools by keyword");
-
-export const toolSearchOutput = z.object({
-  query: z.string(),
-  count: z.number(),
-  tools: z.array(
-    z.object({
-      name: z.string(),
-      description: z.string(),
-      scopes: z.array(z.string()),
-      signature: z.string(),
-    })
-  ),
-});
-
-export const toolSearchTool: McpToolDefinition<typeof toolSearchInput, typeof toolSearchOutput> = {
-  name: "omniroute_tool_search",
-  description:
-    "Search the available MCP tools by keyword and return the most relevant ones as compact one-line TypeScript signatures (token-efficient discovery instead of loading every tool schema).",
-  inputSchema: toolSearchInput,
-  outputSchema: toolSearchOutput,
-  scopes: ["read:tools"],
-  auditLevel: "basic",
-  phase: 1,
-  sourceEndpoints: [],
-};
-
-// ============ Tool Registry ============
-
-/** All MCP tool definitions, ordered by phase then name */
 export const MCP_TOOLS = [
   toolSearchTool,
   getHealthTool,
@@ -1527,13 +1484,10 @@ export const MCP_TOOLS = [
   agentSkillsCoverageTool,
 ] as const;
 
-/** Essential tools only (Phase 1) */
 export const MCP_ESSENTIAL_TOOLS = MCP_TOOLS.filter((t) => t.phase === 1);
 
-/** Advanced tools only (Phase 2) */
 export const MCP_ADVANCED_TOOLS = MCP_TOOLS.filter((t) => t.phase === 2);
 
-/** Map of tool name → tool definition */
 export const MCP_TOOL_MAP = Object.fromEntries(MCP_TOOLS.map((t) => [t.name, t])) as Record<
   string,
   (typeof MCP_TOOLS)[number]
