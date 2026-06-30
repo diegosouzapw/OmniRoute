@@ -186,8 +186,9 @@ export class DefaultExecutor extends BaseExecutor {
       const normalized = baseUrl.replace(/\/$/, "");
       const customPath = typeof psd?.chatPath === "string" && psd.chatPath ? psd.chatPath : null;
       if (customPath) return `${normalized}${customPath}`;
+      const forceResponses = psd?._omnirouteForceResponsesUpstream === true;
       const path =
-        getOpenAICompatibleType(this.provider, psd) === "responses"
+        forceResponses || getOpenAICompatibleType(this.provider, psd) === "responses"
           ? "/responses"
           : "/chat/completions";
       return `${normalized}${path}`;
