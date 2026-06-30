@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   getBifrostRoutingConfig,
+  getRoutingFallbackHeader,
   resolveRelayRoutingBackend,
   shouldTryBifrost,
 } from "../../../../src/app/api/v1/relay/chat/completions/routingBackend.ts";
@@ -65,4 +66,35 @@ test("relay routing backend falls back on invalid timeout values", () => {
   };
 
   assert.equal(getBifrostRoutingConfig(env)?.timeoutMs, 30000);
+});
+
+test("relay routing backend exposes TS fallback header only for enabled auto bifrost fallback", () => {
+  const config = getBifrostRoutingConfig({
+    BIFROST_BASE_URL: "http://127.0.0.1:8080",
+  });
+
+  assert.equal(getRoutingFallbackHeader("auto", config), "bifrost");
+  assert.equal(getRoutingFallbackHeader("ts", config), undefined);
+  assert.equal(getRoutingFallbackHeader("bifrost", config), undefined);
+  assert.equal(
+    getRoutingFallbackHeader(
+      "auto",
+      getBifrostRoutingConfig({
+        BIFROST_BASE_URL: "http://127.0.0.1:8080",
+        BIFROST_ENABLED: "0",
+      })
+    ),
+    undefined
+  );
+  assert.equal(getRoutingFallbackHeader("auto", null), undefined);
+});
+
+test("relay routing backend keeps strict bifrost failures out of auto fallback accounting", () => {
+  const config = getBifrostRoutingConfig({
+    BIFROST_BASE_URL: "http://127.0.0.1:8080",
+  });
+
+  assert.equal(shouldTryBifrost("bifrost", config), true);
+  assert.equal(getRoutingFallbackHeader("bifrost", config), undefined);
+  assert.equal(resolveRelayRoutingBackend({ OMNIROUTE_RELAY_BACKEND: "bifrost" }), "bifrost");
 });

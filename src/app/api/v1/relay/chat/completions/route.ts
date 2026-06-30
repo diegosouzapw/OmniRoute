@@ -20,6 +20,7 @@ import {
 } from "./relaySecurity";
 import {
   getBifrostRoutingConfig,
+  getRoutingFallbackHeader,
   resolveRelayRoutingBackend,
   shouldTryBifrost,
   type BifrostRoutingConfig,
@@ -335,8 +336,9 @@ export async function POST(request: Request) {
     const newHeaders = new Headers(response.headers);
     newHeaders.set("X-Relay-Token", token.tokenPrefix + "...");
     newHeaders.set("X-Routing-Backend", "ts");
-    if (backend === "auto" && bifrostConfig?.enabled) {
-      newHeaders.set("X-Routing-Fallback", "bifrost");
+    const routingFallback = getRoutingFallbackHeader(backend, bifrostConfig);
+    if (routingFallback) {
+      newHeaders.set("X-Routing-Fallback", routingFallback);
     }
 
     return new Response(response.body, {

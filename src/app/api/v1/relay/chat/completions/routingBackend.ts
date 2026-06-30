@@ -10,7 +10,9 @@ export interface BifrostRoutingConfig {
   enabled: boolean;
 }
 
-export function getBifrostRoutingConfig(env: NodeJS.ProcessEnv = process.env): BifrostRoutingConfig | null {
+export function getBifrostRoutingConfig(
+  env: NodeJS.ProcessEnv = process.env
+): BifrostRoutingConfig | null {
   const baseUrl = env.BIFROST_BASE_URL?.replace(/\/$/, "");
   if (!baseUrl) return null;
   const timeoutMs = Number.parseInt(env.BIFROST_TIMEOUT_MS || "", 10);
@@ -24,7 +26,9 @@ export function getBifrostRoutingConfig(env: NodeJS.ProcessEnv = process.env): B
   };
 }
 
-export function resolveRelayRoutingBackend(env: NodeJS.ProcessEnv = process.env): RelayRoutingBackend {
+export function resolveRelayRoutingBackend(
+  env: NodeJS.ProcessEnv = process.env
+): RelayRoutingBackend {
   const configured = env.OMNIROUTE_RELAY_BACKEND || env.RELAY_ROUTING_BACKEND;
   if (configured && VALID_BACKENDS.has(configured as RelayRoutingBackend)) {
     return configured as RelayRoutingBackend;
@@ -38,4 +42,11 @@ export function shouldTryBifrost(
   config: BifrostRoutingConfig | null
 ): config is BifrostRoutingConfig {
   return Boolean(config?.enabled && backend !== "ts");
+}
+
+export function getRoutingFallbackHeader(
+  backend: RelayRoutingBackend,
+  config: BifrostRoutingConfig | null
+): "bifrost" | undefined {
+  return backend === "auto" && config?.enabled ? "bifrost" : undefined;
 }
