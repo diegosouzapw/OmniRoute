@@ -16,6 +16,7 @@
 import React, { useState } from "react";
 import type { ProviderMessageTranslator } from "../providerPageHelpers";
 import { useNotificationStore } from "@/store/notificationStore";
+import { extractImportWarning } from "./modelImportWarning";
 
 type NotifyStore = ReturnType<typeof useNotificationStore>;
 
@@ -36,7 +37,11 @@ export interface UseModelImportHandlersParams {
   models: Array<{ id: string; name?: string }>;
   modelMeta: { customModels: Array<{ id: string }>; modelCompatOverrides?: unknown[] };
   modelAliases: Record<string, string>;
-  connections: Array<{ id?: string; isActive?: boolean; providerSpecificData?: Record<string, unknown> }>;
+  connections: Array<{
+    id?: string;
+    isActive?: boolean;
+    providerSpecificData?: Record<string, unknown>;
+  }>;
   isFreeNoAuth: boolean;
   handleSetAlias: (modelId: string, alias: string, providerAlias: string) => Promise<void>;
   fetchAliases: () => Promise<void>;
@@ -128,6 +133,7 @@ export function useModelImportHandlers({
         return;
       }
       const fetchedModels = data.models || [];
+      const importWarning = extractImportWarning(data);
       if (fetchedModels.length === 0) {
         setImportProgress((prev) => ({
           ...prev,
@@ -151,7 +157,10 @@ export function useModelImportHandlers({
           ...prev,
           phase: "done",
           status: t("allModelsAlreadyImported") || "All models already imported",
-          logs: [t("noNewModelsToImport") || "No new models to import"],
+          logs: [
+            ...(importWarning ? [importWarning] : []),
+            t("noNewModelsToImport") || "No new models to import",
+          ],
           importedCount: 0,
           total: 0,
           current: 0,
@@ -166,6 +175,7 @@ export function useModelImportHandlers({
         current: 0,
         status: t("importingModelsProgress", { current: 0, total: newModels.length }),
         logs: [
+          ...(importWarning ? [importWarning] : []),
           t("foundModelsStartingImport", { count: newModels.length }),
           ...(newModels.length < fetchedModels.length
             ? [

@@ -97,7 +97,10 @@ export default function AddApiKeyModal({
       }[commandCodeAuthState.phase]
     : null;
   const [formData, setFormData] = useState({
-    name: "",
+    // #5421/#5429/#5430/#5431/#5435: the connection name is required (submit is gated on it),
+    // so default it to a sensible "main" instead of "" — this also pre-fills the controlled
+    // input, resisting the browser autofill that injected garbage values (e.g. "wiw").
+    name: "main",
     apiKey: "",
     defaultModel: "",
     priority: 1,
