@@ -421,7 +421,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
             method: "POST",
             headers: buildBearerHeaders(apiKey, providerSpecificData),
             body: JSON.stringify({
-              model: "longcat",
+              model: "LongCat-2.0",
               messages: [{ role: "user", content: "test" }],
               max_tokens: 1,
             }),

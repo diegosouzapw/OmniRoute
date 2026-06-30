@@ -13,7 +13,6 @@ export type TosVerdict = "ok" | "caution" | "ambiguous" | "avoid" | "unknown";
 
 export const FREE_TIER_BUDGETS: Record<string, number> = {
   mistral: 1_000_000_000,
-  longcat: 150_000_000,
   "cloudflare-ai": 122_000_000,
   gemini: 60_000_000,
   doubao: 60_000_000,

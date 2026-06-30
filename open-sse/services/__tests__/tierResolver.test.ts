@@ -44,7 +44,7 @@ describe("TierResolver", () => {
     });
 
     it("classifies LongCat as free", () => {
-      const result = classifyTier("longcat", "flash-lite");
+      const result = classifyTier("longcat", "LongCat-2.0");
       assert.equal(result.tier, PROVIDER_TIER.FREE);
       assert.equal(result.hasFreeTier, true);
     });

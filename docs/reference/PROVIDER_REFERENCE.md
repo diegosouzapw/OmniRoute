@@ -1,14 +1,14 @@
 ---
 title: "Provider Reference"
-version: 3.8.40
-lastUpdated: 2026-06-29
+version: 3.8.42
+lastUpdated: 2026-06-30
 ---
 
 # Provider Reference
 
 > **Auto-generated** from `src/shared/constants/providers.ts` — do not edit by hand.
 > Regenerate with: `npm run gen:provider-reference`
-> **Last generated:** 2026-06-29
+> **Last generated:** 2026-06-30
 
 Total providers: **237**. See category breakdown below.
 
@@ -175,7 +175,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `liquid` | `liquid` | Liquid AI | API key | [link](https://liquid.ai) | Get API key at liquid.ai |
 | `llamagate` | `llamagate` | LlamaGate | API key | [link](https://llamagate.ai) | — |
 | `llm7` | `llm7` | LLM7.io | API key | [link](https://llm7.io) | No signup required - 2 req/s, 20 RPM, 100 req/hr free tier |
-| `longcat` | `lc` | LongCat AI | API key | [link](https://longcat.chat/platform/docs) | Free: 5M tokens/day on LongCat-2.0-Preview (Flash models retired 2026-05-29); up to 120M/day via feedback. |
+| `longcat` | `lc` | LongCat AI | API key | [link](https://longcat.chat/platform/docs) | Free: one-time 10M-token grant after account signup + KYC verification (LongCat-2.0). One-time only — not a recurring daily/monthly allowance. |
 | `maritalk` | `maritalk` | Maritalk | API key | [link](https://www.maritaca.ai) | — |
 | `meta-llama` | `meta` | Meta Llama API | API key | [link](https://llama.developer.meta.com) | — |
 | `minimax` | `minimax` | Minimax Coding | API key, video | [link](https://www.minimax.io) | — |

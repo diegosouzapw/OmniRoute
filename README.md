@@ -359,7 +359,7 @@ Result: 4 layers of fallback = zero downtime
     <td align="center" width="150"><img src="https://img.shields.io/badge/AgentRouter-FF6600?style=flat-square" alt="AgentRouter"/><br/><sub>GPT-5, Claude, Gemini<br/>$100 free credits</sub></td>
     <td align="center" width="150"><img src="https://img.shields.io/badge/Qoder_AI-6366F1?style=flat-square" alt="Qoder AI"/><br/><sub>Kimi-K2, DeepSeek-R1<br/>Unlimited FREE</sub></td>
     <td align="center" width="150"><img src="https://img.shields.io/badge/Pollinations-10B981?style=flat-square" alt="Pollinations"/><br/><sub>GPT-5, Claude, Llama 4<br/>No key needed</sub></td>
-    <td align="center" width="150"><img src="https://img.shields.io/badge/LongCat-FF7A00?style=flat-square" alt="LongCat"/><br/><sub>Flash-Lite<br/>50M tokens/day 🔥</sub></td>
+    <td align="center" width="150"><img src="https://img.shields.io/badge/LongCat-FF7A00?style=flat-square" alt="LongCat"/><br/><sub>LongCat-2.0<br/>10M tokens one-time (KYC) 🔑</sub></td>
   </tr>
   <tr>
     <td align="center" width="150"><img src="https://img.shields.io/badge/Cloudflare_AI-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare AI"/><br/><sub>50+ models<br/>10K neurons/day</sub></td>
@@ -726,7 +726,7 @@ podman compose --profile base up -d
 | **Qoder**         | `if/`       | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 | ♾️ Unlimited      |
 | **Qwen**          | `qw/`       | qwen3-coder-plus/flash/next                     | ♾️ Unlimited      |
 | **Pollinations**  | `pol/`      | GPT-5, Claude, Gemini, DeepSeek, Llama 4        | No key needed     |
-| **LongCat**       | `lc/`       | LongCat-Flash-Lite                              | 50M tokens/day 🔥 |
+| **LongCat**       | `lc/`       | LongCat-2.0                                     | 10M one-time (KYC) |
 | **Cloudflare AI** | `cf/`       | 50+ models                                      | 10K neurons/day   |
 | **NVIDIA NIM**    | `nvidia/`   | 129 models                                      | ~40 RPM           |
 | **Cerebras**      | `cerebras/` | Qwen3 235B, GPT-OSS 120B                        | 1M tok/day        |
@@ -748,7 +748,7 @@ podman compose --profile base up -d
 1. kr/claude-sonnet-4.5   (Kiro — ~50 credits/mo per acct)
 2. if/kimi-k2-thinking    (Qoder — unlimited)
 3. pol/gpt-5              (Pollinations — no key)
-4. lc/longcat-flash-lite  (50M tok/day backup)
+4. lc/LongCat-2.0         (10M one-time backup, KYC)
 Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 ```
 
