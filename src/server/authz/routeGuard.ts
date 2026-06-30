@@ -22,6 +22,7 @@
  */
 
 import { getAuthzBypassSnapshot } from "@/lib/config/runtimeSettings";
+import { SPAWN_CAPABLE_PREFIXES } from "@/shared/constants/spawnCapablePrefixes";
 
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 
@@ -59,31 +60,13 @@ export const LOCAL_ONLY_API_PATTERNS: ReadonlyArray<RegExp> = [
   /^\/api\/providers\/[^/]+\/login\/?$/,
 ];
 
-/**
- * Compile-time deny-list: route prefixes that can spawn arbitrary local
- * subprocesses on behalf of the caller. These MUST NEVER appear in the
- * manage-scope bypass list — regardless of DB state — because reaching them
- * from non-loopback would re-introduce the GHSA-fhh6-4qxv-rpqj surface that
- * the LOCAL_ONLY tier exists to close.
- *
- * Enforced at two layers:
- *   1. zod schema (`settingsSchemas.ts`): rejects `PATCH /api/settings` with
- *      error code `BYPASS_PREFIX_NOT_ALLOWED` if any entry in
- *      `localOnlyManageScopeBypassPrefixes` falls inside this set.
- *   2. runtime (`isLocalOnlyBypassableByManageScope` below): even if a
- *      malformed DB row somehow claims a spawn-capable path is bypassable,
- *      the policy still refuses to honour it.
- */
-export const SPAWN_CAPABLE_PREFIXES: ReadonlyArray<string> = [
-  "/api/cli-tools/runtime/",
-  "/api/services/", // T-10: can run npm install + spawn node processes
-  "/api/tools/agent-bridge/", // start/stop MITM server + DNS edits (Hard Rules #15 + #17)
-  "/api/tools/traffic-inspector/", // http-proxy listener + system proxy (Hard Rules #15 + #17)
-  "/api/plugins/", // plugins: load/execute via worker_threads + child_process (Hard Rules #15 + #17)
-  "/api/local/", // T-12: 1-click local service launchers (Redis today) — must never be whitelistable via manage-scope bypass (Hard Rules #15 + #17)
-  "/api/headroom/start", // spawns headroom-ai python CLI — must never be bypassable (Hard Rules #15 + #17)
-  "/api/headroom/stop", // kills tracked PID — must never be bypassable (Hard Rules #15 + #17)
-];
+// `SPAWN_CAPABLE_PREFIXES` (the spawn-capable deny-list) now lives in the
+// server-free leaf module `@/shared/constants/spawnCapablePrefixes` so that
+// client-reachable validation schemas can import it without pulling this module's
+// server runtime (runtimeSettings → localDb → ioredis) into the browser bundle.
+// Imported above for the runtime check in `isLocalOnlyBypassableByManageScope`;
+// re-exported here so existing `@/server/authz/routeGuard` importers keep working.
+export { SPAWN_CAPABLE_PREFIXES };
 
 /**
  * Compile-time default of the manage-scope bypass list. Kept as an exported

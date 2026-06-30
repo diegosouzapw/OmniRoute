@@ -12,7 +12,10 @@ import { HIDEABLE_SIDEBAR_GROUP_IDS } from "@/shared/constants/sidebarGroupVisib
 import { HIDEABLE_SIDEBAR_ITEM_IDS, SIDEBAR_SECTIONS } from "@/shared/constants/sidebarVisibility";
 import { ACCOUNT_FALLBACK_STRATEGY_VALUES } from "@/shared/constants/routingStrategies";
 import { RESPONSES_PREVIOUS_RESPONSE_ID_MODES } from "@/shared/constants/responsesPreviousResponseId";
-import { SPAWN_CAPABLE_PREFIXES } from "@/server/authz/routeGuard";
+// Import from the server-free constants leaf, NOT from `@/server/authz/routeGuard`:
+// this schema is reachable from client components (dashboard onboarding wizard), and
+// routeGuard drags in server runtime (→ ioredis) that breaks the client/CLI build.
+import { SPAWN_CAPABLE_PREFIXES } from "@/shared/constants/spawnCapablePrefixes";
 
 const signatureCacheModeValues = ["enabled", "bypass", "bypass-strict"] as const;
 
