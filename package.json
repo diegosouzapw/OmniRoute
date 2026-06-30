@@ -150,6 +150,7 @@
     "check:known-symbols": "node --import tsx scripts/check/check-known-symbols.ts",
     "check:route-guard-membership": "node --import tsx scripts/check/check-route-guard-membership.ts",
     "check:test-discovery": "node scripts/check/check-test-discovery.mjs",
+    "check:mutation-test-coverage": "node scripts/check/check-mutation-test-coverage.mjs --strict",
     "check:complexity": "node scripts/check/check-complexity.mjs",
     "check:dead-code": "node scripts/check/check-dead-code.mjs",
     "check:cognitive-complexity": "node scripts/check/check-cognitive-complexity.mjs",
