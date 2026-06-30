@@ -10,6 +10,8 @@
 
 ### 🔧 Bug Fixes
 
+- **providers (GLM):** GLM **5.1 / 5.2** now keep the `system` role instead of having the system prompt folded into the first user turn. `roleNormalizer.ts` matched every `glm*` id with a blanket `startsWith("glm")` / `startsWith("glm-")` prefix, so the next-generation models — which z.ai documents as supporting the `system` role (GLM > 5.0) — were normalized as if they rejected it, degrading instruction-following. The matcher is now version-aware: it strips the system role only for bare `glm`, the 4.x family, and the 5.0 generation, and preserves it for `glm-5.1`/`glm-5.2` (and the Fireworks `glm-5p1` point alias). The ZenMux vendor-prefixed `z-ai/glm-*` compressed-history rule and the ERNIE rule are unchanged. Regression guards in `tests/unit/role-normalizer.test.ts`. ([#5610](https://github.com/diegosouzapw/OmniRoute/issues/5610))
+
 - **Security hardening follow-ups (v3.8.15):** the `auth_token` cookie now sets an explicit 30-day `maxAge` so sessions persist as intended (Seg3); the management bootstrap warns at boot when `INITIAL_PASSWORD` is left at the insecure `CHANGEME` default (Seg2); VS Code path-token endpoints (`/api/v1/vscode/raw/[token]`) emit a once-per-process security warning since the API key travels in the URL and can leak via logs/proxies (Seg4); the system version route resolves the real global install path via `npm root -g` instead of a hardcoded `/app` (Bug3); and auto-update mode detection segment-matches `node_modules` instead of substring-matching, eliminating false "global install" positives (Bug1).
 
 ### 📝 Maintenance
