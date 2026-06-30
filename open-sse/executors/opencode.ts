@@ -1,10 +1,4 @@
-import { randomUUID } from "crypto";
-import {
-  BaseExecutor,
-  setUserAgentHeader,
-  type ExecuteInput,
-  type ProviderCredentials,
-} from "./base.ts";
+import { BaseExecutor, type ExecuteInput, type ProviderCredentials } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
@@ -12,6 +6,7 @@ import {
   isThinkingMessageModel,
 } from "../utils/reasoningContentInjector.ts";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
+import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
 
 /**
  * Per-account proxy configuration, persisted by NoAuthAccountCard under
@@ -41,6 +36,22 @@ interface OpencodeAccountState {
 
 const OPENCODE_COOLDOWN_BASE_MS = 5_000;
 const OPENCODE_COOLDOWN_MAX_MS = 60_000;
+
+const EFFORT_LEVELS = ["low", "medium", "high", "max"] as const;
+
+/**
+ * Parse a DeepSeek V4 Pro model string with an effort-level suffix.
+ * e.g. "deepseek-v4-pro-low" → { baseModel: "deepseek-v4-pro", effort: "low" }
+ * Returns null if the model doesn't match the pattern.
+ */
+function parseDeepSeekEffortLevel(model: string): { baseModel: string; effort: string } | null {
+  const m = String(model || "");
+  const matchedLevel = EFFORT_LEVELS.find((level) => m.endsWith(`-${level}`));
+  if (!matchedLevel) return null;
+  const baseModel = m.slice(0, -matchedLevel.length - 1);
+  if (baseModel.toLowerCase() !== "deepseek-v4-pro") return null;
+  return { baseModel: "deepseek-v4-pro", effort: matchedLevel };
+}
 
 export class OpencodeExecutor extends BaseExecutor {
   _requestFormat: string | null = null;
@@ -159,7 +170,9 @@ export class OpencodeExecutor extends BaseExecutor {
         log?.info?.(
           "OPENCODE",
           `dispatch via account ${masked} (idx ${attempt + 1}/${this.accounts.length})` +
-            (account.proxy ? ` through proxy ${account.proxy.host}:${account.proxy.port}` : " direct")
+            (account.proxy
+              ? ` through proxy ${account.proxy.host}:${account.proxy.port}`
+              : " direct")
         );
 
         // Pin egress to this account's proxy for the whole BaseExecutor dispatch
@@ -173,10 +186,7 @@ export class OpencodeExecutor extends BaseExecutor {
         const status = result.response.status;
         if (status === 429) {
           this.markCooldown(account);
-          log?.warn?.(
-            "OPENCODE",
-            `Rate limited (429) on account ${masked}, rotating to next…`
-          );
+          log?.warn?.("OPENCODE", `Rate limited (429) on account ${masked}, rotating to next…`);
           continue;
         }
 
@@ -239,59 +249,16 @@ export class OpencodeExecutor extends BaseExecutor {
     }
 
     if (clientHeaders) {
-      const clientUA = clientHeaders["User-Agent"] || clientHeaders["user-agent"];
-      if (clientUA) {
-        setUserAgentHeader(headers, clientUA);
-      }
+      forwardOpencodeClientHeaders(headers, clientHeaders, {
+        synthesizeRequestId: true,
+      });
+    }
 
-      // Forward OpenCode request metadata headers from client
-      const findClientHeader = (name: string) =>
-        Object.entries(clientHeaders).find(
-          ([key]) => key.toLowerCase() === name.toLowerCase()
-        )?.[1];
-
-      const opencodeHeaderKeys = [
-        "x-opencode-session",
-        "x-opencode-request",
-        "x-opencode-project",
-        "x-opencode-client",
-      ];
-      for (const headerName of opencodeHeaderKeys) {
-        const value = findClientHeader(headerName);
-        if (value) {
-          headers[headerName] = value;
-        }
-      }
-
-      // #4022: OpenCode CLI only emits x-opencode-* headers when the provider id
-      // starts with "opencode". For a custom-named provider (e.g. "omniroute") it
-      // instead sends x-session-affinity / X-Session-Id, which both carry the same
-      // OpenCode sessionID. Map that session id onto x-opencode-session so session
-      // continuity to the opencode.ai upstream works regardless of how the user
-      // named the provider. Scoped to this executor (opencode.ai/zen upstreams
-      // only) — the generic DefaultExecutor intentionally does NOT do this, to
-      // avoid leaking the client session id to arbitrary third-party upstreams.
-      if (!headers["x-opencode-session"]) {
-        const sessionAffinity =
-          findClientHeader("x-session-affinity") || findClientHeader("x-session-id");
-        if (sessionAffinity) {
-          headers["x-opencode-session"] = sessionAffinity;
-
-          // #4465: a custom-named provider only reaches this fallback because the
-          // OpenCode CLI did NOT emit the x-opencode-* set (it only does so when the
-          // provider id starts with "opencode"). It therefore also dropped
-          // x-opencode-request, a per-request correlation id. Synthesize one so these
-          // users are not disadvantaged versus opencode-prefixed providers on the
-          // opencode.ai upstream. x-opencode-client / x-opencode-project are NOT
-          // fabricated: their valid values are opencode-internal and inventing them
-          // could be rejected upstream — they remain forward-only above. Scoped to this
-          // executor (opencode.ai/zen) and only to the fallback path, so the direct
-          // OpenCode CLI flow (which controls its own request id) is untouched.
-          if (!headers["x-opencode-request"]) {
-            headers["x-opencode-request"] = randomUUID();
-          }
-        }
-      }
+    if (!headers["User-Agent"] && !headers["user-agent"]) {
+      headers["User-Agent"] = "opencode/local";
+    }
+    if (!headers["x-opencode-client"]) {
+      headers["x-opencode-client"] = "cli";
     }
 
     void model;
@@ -316,16 +283,11 @@ export class OpencodeExecutor extends BaseExecutor {
     }
     if (modifiedBody && typeof modifiedBody === "object" && !Array.isArray(modifiedBody)) {
       const mb = modifiedBody as Record<string, unknown>;
-      const m = String(model || "");
-      const effortLevels = ["low", "medium", "high", "max"] as const;
-      const matchedLevel = effortLevels.find((level) => m.endsWith(`-${level}`));
-      if (matchedLevel) {
-        const base = m.slice(0, -matchedLevel.length - 1);
-        if (base.toLowerCase() === "deepseek-v4-pro") {
-          mb.model = "deepseek-v4-pro";
-          if (mb.reasoning_effort === undefined) {
-            mb.reasoning_effort = matchedLevel;
-          }
+      const parsed = parseDeepSeekEffortLevel(model);
+      if (parsed) {
+        mb.model = parsed.baseModel;
+        if (mb.reasoning_effort === undefined) {
+          mb.reasoning_effort = parsed.effort;
         }
       }
     }

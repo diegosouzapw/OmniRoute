@@ -1,18 +1,6 @@
-/**
- * Service kind — declarative tag for what a provider can do beyond basic LLM chat.
- * Affects UI filtering and playground routing; does not influence request routing.
- */
-export type ServiceKind =
-  | "llm"
-  | "embedding"
-  | "image"
-  | "imageToText"
-  | "tts"
-  | "stt"
-  | "webSearch"
-  | "webFetch"
-  | "video"
-  | "music";
+// Re-export service kinds from leaf module (avoids circular dep with providerSchema)
+export type { ServiceKind } from "./serviceKinds";
+export { SERVICE_KIND_VALUES } from "./serviceKinds";
 
 export type RiskNoticeVariant = "oauth" | "webCookie" | "deprecated" | "embedded-service";
 
