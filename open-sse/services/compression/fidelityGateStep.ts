@@ -1,7 +1,7 @@
 import { extractTextContent } from "./messageContent.ts";
 import { checkFidelity, type FidelityGateConfig } from "./fidelityGate.ts";
 import type { CompressionResult } from "./types.ts";
-import type { StackAccumulator } from "./strategySelector.ts";
+import type { StackAccumulator } from "./stackedStepCore.ts";
 import { getCompressionEngine } from "./engines/registry.ts";
 
 function bodyToText(body: Record<string, unknown>): string {
