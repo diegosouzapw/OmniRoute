@@ -843,7 +843,7 @@ export async function retrievePreview(
           }
           // Qdrant returned nothing — fall through to sqlite-vec for parity
           // with production (so the Playground reflects the same fallback).
-          fallbackReason = "Qdrant retornou 0 resultados — fallback p/ sqlite-vec";
+          fallbackReason = "Qdrant returned 0 results — falling back to sqlite-vec";
         } catch (err: unknown) {
           fallbackReason = sanitizeErrorMessage(
             err instanceof Error ? err.message : String(err)
@@ -969,7 +969,7 @@ export async function retrievePreview(
             log.warn("memory.preview.vector.fail", { error: fallbackReason });
           }
         } else {
-          fallbackReason = "sqlite-vec não disponível (degradado para FTS5)";
+          fallbackReason = "sqlite-vec not available (degraded to FTS5)";
         }
       } else {
         // EmbeddingError
@@ -1073,7 +1073,7 @@ export async function engineStatus(): Promise<MemoryEngineStatus> {
   let vecAvailable = false;
   let vecRowCount = 0;
   let vecNeedsReindex = 0;
-  let vecReason = "sqlite-vec não disponível";
+  let vecReason = "sqlite-vec not available";
 
   if (vec) {
     vecBackend = "sqlite-vec";
@@ -1082,12 +1082,12 @@ export async function engineStatus(): Promise<MemoryEngineStatus> {
       const s = await vec.stats();
       vecRowCount = s.rowCount;
       vecNeedsReindex = s.needsReindex;
-      vecReason = `sqlite-vec ativo, dim=${s.activeDim ?? "null"}`;
+      vecReason = `sqlite-vec active, dim=${s.activeDim ?? "null"}`;
     } catch {
-      vecReason = "sqlite-vec ativo mas stats falharam";
+      vecReason = "sqlite-vec active but stats failed";
     }
   } else {
-    vecReason = "sqlite-vec não disponível — usando apenas FTS5";
+    vecReason = "sqlite-vec not available — using FTS5 only";
   }
 
   // Qdrant
@@ -1112,7 +1112,7 @@ export async function engineStatus(): Promise<MemoryEngineStatus> {
       if (qdrantHealthy && settings.vectorStore === "qdrant") {
         vecBackend = "qdrant";
         vecAvailable = true;
-        vecReason = `Qdrant configurado em ${qdrantCfg.host}:${qdrantCfg.port}`;
+        vecReason = `Qdrant configured at ${qdrantCfg.host}:${qdrantCfg.port}`;
       }
     }
   } catch (err: unknown) {
@@ -1121,12 +1121,12 @@ export async function engineStatus(): Promise<MemoryEngineStatus> {
 
   // Rerank
   let rerankAvailable = false;
-  let rerankReason = "rerank desabilitado";
+  let rerankReason = "rerank disabled";
   if (settings.rerankEnabled && settings.rerankProviderModel) {
     rerankAvailable = true;
-    rerankReason = `rerank ativo: ${settings.rerankProviderModel}`;
+    rerankReason = `rerank active: ${settings.rerankProviderModel}`;
   } else if (settings.rerankEnabled && !settings.rerankProviderModel) {
-    rerankReason = "rerank habilitado mas provider não configurado";
+    rerankReason = "rerank enabled but provider not configured";
   }
 
   const rerankParts = settings.rerankProviderModel?.split("/") ?? [];
