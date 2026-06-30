@@ -323,5 +323,16 @@ export async function registerNodejs(): Promise<void> {
       const msg = err instanceof Error ? err.message : String(err);
       console.warn("[STARTUP] models.dev sync failed to start (non-fatal):", msg);
     }
+
+    // Context-window self-correction (5004): periodically reconcile provider-declared
+    // windows (from /models discovery) into auto:discovery overrides. Reuses already-synced
+    // data (no new fetch); disable via CONTEXT_WINDOW_RECONCILE_INTERVAL=0. Never fatal.
+    try {
+      const { startContextWindowReconcile } = await import("@/lib/contextWindowResolver");
+      startContextWindowReconcile();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] context-window reconcile failed to start (non-fatal):", msg);
+    }
   }
 }

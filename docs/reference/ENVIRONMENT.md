@@ -744,9 +744,10 @@ Automatic model pricing data synchronization from external sources.
 
 ## 19. Model Sync (Dev)
 
-| Variable                   | Default       | Source File                | Description                                              |
-| -------------------------- | ------------- | -------------------------- | -------------------------------------------------------- |
-| `MODELS_DEV_SYNC_INTERVAL` | `86400` (24h) | `src/lib/modelsDevSync.ts` | Development-time model catalog sync interval in seconds. |
+| Variable                            | Default       | Source File                        | Description                                                                                                                                                                                                                                                                                            |
+| ----------------------------------- | ------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MODELS_DEV_SYNC_INTERVAL`          | `86400` (24h) | `src/lib/modelsDevSync.ts`         | Development-time model catalog sync interval in seconds.                                                                                                                                                                                                                                              |
+| `CONTEXT_WINDOW_RECONCILE_INTERVAL` | `86400` (24h) | `src/lib/contextWindowResolver.ts` | Interval (seconds) for the self-correcting context-window reconciler (5004): pins provider-declared windows from `/models` discovery as `auto:discovery` overrides when they diverge from the catalog. Set to `0` to disable. Reuses already-synced data (no new fetch); never overwrites `manual` overrides. |
 
 ---
 
