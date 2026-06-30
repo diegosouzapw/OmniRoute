@@ -17,11 +17,16 @@ const __filename: string = fileURLToPath(import.meta.url);
 const __dirname: string = dirname(__filename);
 const ROOT: string = join(__dirname, "..", "..");
 const npmCommand: string = process.platform === "win32" ? "npm.cmd" : "npm";
+function isBunExecutable(path: string): boolean {
+  return /[\\/]bun\.exe$/i.test(path) || /(^|[\\/])bun$/i.test(path);
+}
 
 function runNpm(args: string[], stdio: "inherit" | "pipe" = "pipe"): string {
   const npmExecPath = process.env.npm_execpath;
-  const command = npmExecPath ? process.execPath : npmCommand;
-  return execFileSync(command, [...(npmExecPath ? [npmExecPath] : []), ...args], {
+  const usingBunExecPath = Boolean(npmExecPath && isBunExecutable(npmExecPath));
+  const command = npmExecPath && !usingBunExecPath ? process.execPath : npmCommand;
+  const normalizedArgs = usingBunExecPath ? args : [...(npmExecPath ? [npmExecPath] : []), ...args];
+  return execFileSync(command, normalizedArgs, {
     cwd: ROOT,
     encoding: "utf8",
     stdio: stdio === "inherit" ? "inherit" : ["ignore", "pipe", "pipe"],
