@@ -99,6 +99,8 @@ security-analysis/
 
 # Deploy workflow (contains sensitive VPS credentials)
 clipr/
+# Local credential store — never commit
+.credentials.json
 app.log
 *.tgz
 .gh-discussions.json
