@@ -155,7 +155,7 @@
   <tr>
     <td width="33%" valign="top"><b>🔌 Every tool works</b><br/><sub>24+ coding agents — Claude Code, Codex, Cursor, Cline, Copilot, Antigravity — through one config.</sub></td>
     <td width="33%" valign="top"><b>🧩 One endpoint</b><br/><sub>OpenAI ↔ Claude ↔ Gemini ↔ Responses API translation. Point any tool at <code>/v1</code> and it just works.</sub></td>
-    <td width="33%" valign="top"><b>🛡️ Production-grade</b><br/><sub>Circuit breakers, TLS stealth, MCP (94 tools), A2A, memory, guardrails, evals. 21,000+ tests.</sub></td>
+    <td width="33%" valign="top"><b>🛡️ Production-grade</b><br/><sub>Circuit breakers, TLS stealth, MCP (95 tools), A2A, memory, guardrails, evals. 21,000+ tests.</sub></td>
   </tr>
 </table>
 
@@ -312,7 +312,7 @@ Result: 4 layers of fallback = zero downtime
 | 🆓 Free providers                      | **90+ (11 free forever)**                                           | 1–5           |
 | 🔀 Routing strategies                  | **17** (priority, weighted, cost-optimized, context-relay, fusion…) | 1–3           |
 | 🗜️ Token compression                   | **RTK + Caveman stacked (15–95%)**                                  | None / 20–40% |
-| 🧰 Built-in MCP server                 | **94 tools, 3 transports, 30 scopes**                               | Rare          |
+| 🧰 Built-in MCP server                 | **95 tools, 3 transports, 30 scopes**                               | Rare          |
 | 🤝 A2A agent protocol                  | **6 skills, JSON-RPC 2.0**                                          | None          |
 | 🧠 Memory (FTS5 + vector)              | **Yes**                                                             | Rare          |
 | 🛡️ Guardrails (PII, injection, vision) | **Yes**                                                             | Rare          |
@@ -536,7 +536,7 @@ Expose OmniRoute over **MCP** or **A2A** and any capable agent gets the keys to 
 | Protocol           | Endpoint                                        | Use it for                                             |
 | ------------------ | ----------------------------------------------- | ------------------------------------------------------ |
 | 🧰 **MCP (stdio)** | `omniroute --mcp`                               | Plug into Claude Desktop, Cursor, any MCP client       |
-| 🌊 **MCP (HTTP)**  | `http://localhost:20128/api/mcp/stream`         | Remote MCP — **94 tools**, 30 scopes, full audit trail |
+| 🌊 **MCP (HTTP)**  | `http://localhost:20128/api/mcp/stream`         | Remote MCP — **95 tools**, 30 scopes, full audit trail |
 | 📡 **MCP (SSE)**   | `http://localhost:20128/api/mcp/sse`            | Streaming MCP transport                                |
 | 🤝 **A2A**         | `http://localhost:20128/.well-known/agent.json` | Agent-to-agent, **JSON-RPC 2.0** + SSE, 6 skills       |
 
@@ -855,9 +855,9 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 
 <br/>
 
-**Routing:** 15 strategies · task-aware smart routing · thinking budget controls · wildcard routing · system prompt injection.
+**Routing:** 17 strategies · task-aware smart routing · thinking budget controls · wildcard routing · system prompt injection.
 **Compatibility:** OpenAI ↔ Claude ↔ Gemini ↔ Responses API · auto OAuth refresh (PKCE, 8 providers) · multi-account round-robin · Batch + Files API · live OpenAPI 3.0.
-**Protocols:** MCP (94 tools, 3 transports, 30 scopes) · A2A (JSON-RPC 2.0, SSE, 6 skills) · ACP · cloud agents (Codex, Cursor, Devin, Jules).
+**Protocols:** MCP (95 tools, 3 transports, 30 scopes) · A2A (JSON-RPC 2.0, SSE, 6 skills) · ACP · cloud agents (Codex, Cursor, Devin, Jules).
 **Plugins:** custom plugin marketplace (system-configured registry URL with SSRF-guarded fetch) · install / enable / disable · Notion + Obsidian knowledge-base integrations (WebDAV file server, vault search, note CRUD).
 **Embedded services:** one-click install & lifecycle management of local sidecar services (CLIProxy, NineRouter).
 **Quality & Ops:** built-in **Evals** (golden-set: exact/contains/regex/custom) · guardrails (PII, injection, vision) · health dashboard · p50/p95/p99 telemetry · webhooks · compliance audit.
@@ -1014,7 +1014,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 | ------------------------------------------------- | --------------------------------------------------- |
 | [API Reference](docs/reference/API_REFERENCE.md)  | All endpoints with examples                         |
 | [OpenAPI Spec](docs/openapi.yaml)                 | OpenAPI 3.0 specification                           |
-| [MCP Server](open-sse/mcp-server/README.md)       | 94 MCP tools, IDE configs, Python/TS/Go clients     |
+| [MCP Server](open-sse/mcp-server/README.md)       | 95 MCP tools, IDE configs, Python/TS/Go clients     |
 | [MCP Server Guide](docs/frameworks/MCP-SERVER.md) | MCP installation, transports, and tool reference    |
 | [A2A Server](src/lib/a2a/README.md)               | JSON-RPC 2.0 protocol, skills, streaming, task mgmt |
 | [A2A Server Guide](docs/frameworks/A2A-SERVER.md) | A2A agent card, tasks, skills, and streaming        |
