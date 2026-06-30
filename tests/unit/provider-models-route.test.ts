@@ -61,6 +61,25 @@ test.after(async () => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
+test("provider models route returns a static local catalog for non-LLM search/agent providers (#5569/#5571/#5573/#5575)", async () => {
+  const cases = [
+    { provider: "jules", expectId: "jules" },
+    { provider: "linkup-search", expectId: "standard" },
+    { provider: "ollama-search", expectId: "web_search" },
+    { provider: "searchapi-search", expectId: "google" },
+  ];
+  for (const { provider, expectId } of cases) {
+    const connection = await seedConnection(provider, { apiKey: `${provider}-key` });
+    const response = await callRoute(connection.id);
+    // RED before the fix: these had no static catalog → 400 "does not support models listing".
+    assert.equal(response.status, 200, `${provider} should not 400 on model import`);
+    const body = await response.json();
+    assert.equal(body.source, "local_catalog", `${provider} should serve a local catalog`);
+    const ids = (body.models || []).map((m) => m.id);
+    assert.ok(ids.includes(expectId), `${provider} should list "${expectId}"; got: ${ids.join(", ")}`);
+  }
+});
+
 test("provider models route returns 404 for unknown connections", async () => {
   const response = await callRoute("missing-connection");
 
