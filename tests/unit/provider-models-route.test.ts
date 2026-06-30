@@ -80,6 +80,61 @@ test("provider models route returns a static local catalog for non-LLM search/ag
   }
 });
 
+test("provider models route fetches the live AI/ML API catalog from the auth-free /models endpoint (#5570)", async () => {
+  const connection = await seedConnection("aimlapi", { apiKey: "aiml-key" });
+  let calledUrl = "";
+  globalThis.fetch = async (url) => {
+    calledUrl = String(url);
+    return Response.json([
+      { id: "openai/gpt-5.5", type: "chat-completion", info: { name: "GPT-5.5" } },
+      { id: "zhipu/glm-5.2", type: "chat-completion", info: { name: "GLM 5.2" } },
+      { id: "flux/flux-pro", type: "image", info: { name: "FLUX Pro" } },
+    ]);
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  // RED before the fix: aimlapi had no PROVIDER_MODELS_CONFIG entry → stale
+  // 6-model local seed (source "local_catalog"), live endpoint never called.
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "api");
+  assert.equal(calledUrl, "https://api.aimlapi.com/models");
+  const ids = body.models.map((m: any) => m.id);
+  assert.ok(ids.includes("openai/gpt-5.5") && ids.includes("zhipu/glm-5.2"));
+  assert.ok(!ids.includes("flux/flux-pro"), "non-chat model types are filtered out");
+});
+
+test("provider models route falls back to the local AI/ML API catalog when the live fetch fails (#5570)", async () => {
+  const connection = await seedConnection("aimlapi", { apiKey: "aiml-key" });
+  globalThis.fetch = async () => new Response("upstream down", { status: 500 });
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "local_catalog");
+  assert.ok(body.models.length > 0);
+});
+
+test("cablyai is flagged deprecated (domain NXDOMAIN) and no longer 500s on model import (#5568)", async () => {
+  const { APIKEY_PROVIDERS_GATEWAYS } = await import(
+    "../../src/shared/constants/providers/apikey/gateways.ts"
+  );
+  const cablyai = (APIKEY_PROVIDERS_GATEWAYS as Record<string, any>).cablyai;
+  assert.equal(cablyai?.deprecated, true, "cablyai must be marked deprecated (domain is NXDOMAIN)");
+  assert.ok(
+    typeof cablyai?.deprecationReason === "string" && cablyai.deprecationReason.length > 0,
+    "cablyai must carry a deprecationReason"
+  );
+
+  // Removed from PROVIDER_MODELS_CONFIG → no live fetch to the dead domain → a
+  // controlled 400 instead of an unhandled 500 crash.
+  const connection = await seedConnection("cablyai", { apiKey: "dead-key" });
+  const response = await callRoute(connection.id);
+  assert.notEqual(response.status, 500, "cablyai must not 500-crash on a dead domain");
+});
+
 test("provider models route returns 404 for unknown connections", async () => {
   const response = await callRoute("missing-connection");
 

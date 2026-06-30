@@ -520,13 +520,21 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
-  cablyai: {
-    url: "https://cablyai.com/v1/models",
+  aimlapi: {
+    // #5570: AI/ML API's live catalog (400+ models) lives at the public,
+    // auth-free /models database endpoint (NOT /v1/models). The registry has no
+    // modelsUrl, so without this entry the route fell back to a stale 6-model
+    // seed. Response is a bare array of { id, type, info: { name } }.
+    url: "https://api.aimlapi.com/models",
     method: "GET",
     headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
+    parseResponse: (data) => {
+      const all = Array.isArray(data) ? data : [];
+      const chat = all.filter((m) => m?.type === "chat-completion");
+      return (chat.length > 0 ? chat : all)
+        .map((m) => ({ id: m?.id, name: m?.info?.name || m?.id }))
+        .filter((m) => typeof m.id === "string" && m.id);
+    },
   },
   thebai: {
     url: "https://api.theb.ai/v1/models",
