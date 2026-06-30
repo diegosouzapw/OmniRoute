@@ -107,3 +107,29 @@ test("auth login route lazily migrates INITIAL_PASSWORD to a persisted hash befo
     true
   );
 });
+
+test("auth login route sets a bounded maxAge on the auth_token cookie (Seg3)", async () => {
+  process.env.INITIAL_PASSWORD = "bootstrap-secret";
+  const setCalls: unknown[][] = [];
+  loginRoute.authRouteInternals.getCookieStore = async () => ({
+    set: (...args: unknown[]) => setCalls.push(args),
+  });
+
+  const response = await loginRoute.POST(
+    new Request("http://localhost/api/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ password: "bootstrap-secret" }),
+    })
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(setCalls.length, 1);
+  const [cookieName, , options] = setCalls[0] as [string, string, Record<string, unknown>];
+  assert.equal(cookieName, "auth_token");
+  // 30 days in seconds — must match the JWT 30d expiry so the cookie is not an open-ended
+  // session cookie outliving its token.
+  assert.equal(options.maxAge, 60 * 60 * 24 * 30);
+  assert.equal(options.httpOnly, true);
+  assert.equal(options.path, "/");
+});

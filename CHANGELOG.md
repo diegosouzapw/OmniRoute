@@ -10,6 +10,8 @@
 
 ### 🔧 Bug Fixes
 
+- **Security hardening follow-ups (v3.8.15):** the `auth_token` cookie now sets an explicit 30-day `maxAge` so sessions persist as intended (Seg3); the management bootstrap warns at boot when `INITIAL_PASSWORD` is left at the insecure `CHANGEME` default (Seg2); VS Code path-token endpoints (`/api/v1/vscode/raw/[token]`) emit a once-per-process security warning since the API key travels in the URL and can leak via logs/proxies (Seg4); the system version route resolves the real global install path via `npm root -g` instead of a hardcoded `/app` (Bug3); and auto-update mode detection segment-matches `node_modules` instead of substring-matching, eliminating false "global install" positives (Bug1).
+
 ### 📝 Maintenance
 
 ---
