@@ -5637,6 +5637,7 @@
     "compressionPreserveSystem": "Preserve System Prompt",
     "compressionCavemanConfig": "Caveman Engine Configuration",
     "compressionCavemanConfigDesc": "Fine-tune the rule-based compression engine",
+    "compressionCavemanPanelHint": "Its on/off and level are set in the panel:",
     "compressionRoles": "Compress Message Roles",
     "compressionRoleUser": "User",
     "compressionRoleAssistant": "Assistant",

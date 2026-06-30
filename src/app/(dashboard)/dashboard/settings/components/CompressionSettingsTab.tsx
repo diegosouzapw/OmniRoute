@@ -416,38 +416,20 @@ export default function CompressionSettingsTab() {
           config.defaultMode !== "lite" &&
           config.cavemanConfig && (
             <div className="space-y-3 pt-4 border-t border-border/30">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-medium text-text-main">
-                    {t("compressionCavemanConfig")}
-                  </h4>
-                  <p className="text-xs text-text-muted mt-0.5">
-                    {t("compressionCavemanConfigDesc")}
-                  </p>
-                </div>
-                <button
-                  onClick={() =>
-                    save({
-                      cavemanConfig: {
-                        ...config.cavemanConfig!,
-                        enabled: !config.cavemanConfig!.enabled,
-                      },
-                    })
-                  }
-                  className={`relative w-10 h-5 rounded-full transition-colors ${
-                    config.cavemanConfig.enabled ? "bg-green-500" : "bg-border"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                      config.cavemanConfig.enabled ? "left-5" : "left-0.5"
-                    }`}
-                  />
-                </button>
+              {/* Engine on/off is owned by the single-source panel (/dashboard/context/settings):
+                  the panel's `engines.caveman.enabled` is authoritative (planResolution.ts). This tab
+                  keeps only the advanced caveman tuning the panel does not expose. */}
+              <div data-testid="caveman-panel-note">
+                <h4 className="text-sm font-medium text-text-main">
+                  {t("compressionCavemanConfig")}
+                </h4>
+                <p className="text-xs text-text-muted mt-0.5">
+                  {t("compressionCavemanConfigDesc")} {t("compressionCavemanPanelHint")}{" "}
+                  <code className="text-text-muted">/dashboard/context/settings</code>
+                </p>
               </div>
 
-              {config.cavemanConfig.enabled && (
-                <>
+              <>
                   <div className="space-y-2">
                     <p className="text-sm text-text-muted">{t("compressionRoles")}</p>
                     <div className="flex flex-wrap gap-2">
@@ -534,8 +516,7 @@ export default function CompressionSettingsTab() {
                       className="w-full min-h-[80px] px-3 py-2 text-sm rounded-lg border border-border bg-surface text-text-main font-mono resize-y"
                     />
                   </div>
-                </>
-              )}
+              </>
             </div>
           )}
 
