@@ -62,7 +62,7 @@ export function registerServe(program) {
 }
 
 export async function runServe(opts = {}) {
-  const startedAt = Date.now();
+  const startedAt = performance.now();
 
   const { isNativeBinaryCompatible } =
     await import("../../../scripts/build/native-binary-compat.mjs");
@@ -187,7 +187,7 @@ export async function runServe(opts = {}) {
   const useTray = opts.tray === true;
 
   if (isDaemon) {
-    return runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort, startedAt);
+    return runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort);
   }
 
   if (opts.noRecovery) {
@@ -211,12 +211,12 @@ export async function runServe(opts = {}) {
     noOpen,
     opts.log === true,
     opts.maxRestarts ?? 2,
-    useTray,
-    startedAt
+    startedAt,
+    useTray
   );
 }
 
-function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort, startedAt) {
+function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
   // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
   // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
   const server = spawn("node", [...buildNodeHeapArgs(process.env, memoryLimit), serverJs], {
@@ -301,8 +301,8 @@ async function runWithSupervisor(
   noOpen,
   showLog,
   maxRestarts,
-  useTray = false,
-  startedAt
+  startedAt,
+  useTray = false
 ) {
   if (showLog) process.env.OMNIROUTE_SHOW_LOG = "1";
 
@@ -387,7 +387,7 @@ async function maybeStartTray(port, apiPort, supervisor) {
 async function onReady(dashboardPort, apiPort, noOpen, startedAt) {
   const dashboardUrl = `${urlScheme}://localhost:${dashboardPort}`;
   const apiUrl = `${urlScheme}://localhost:${apiPort}`;
-  const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+  const elapsed = ((performance.now() - startedAt) / 1000).toFixed(1);
 
   console.log(`
   \x1b[32m✔ OmniRoute is running!\x1b[0m \x1b[2m(started in ${elapsed}s)\x1b[0m
