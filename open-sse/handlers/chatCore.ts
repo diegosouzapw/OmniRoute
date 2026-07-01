@@ -5,6 +5,10 @@ import { extractSystemRoleMessages } from "./chatCore/claudeSystemRole.ts";
 export { extractSystemRoleMessages } from "./chatCore/claudeSystemRole.ts";
 import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
+import {
+  shouldDefaultAllowClassifier,
+  buildDefaultAllowClaudeMessage,
+} from "./chatCore/claudeClassifierCompat.ts";
 import { applyClientUsageBuffer } from "./chatCore/clientUsageBuffer.ts";
 import { buildPostCallGuardrailContext } from "./chatCore/postCallGuardrailContext.ts";
 import { storeSemanticCacheResponse } from "./chatCore/semanticCacheStore.ts";
@@ -565,6 +569,30 @@ export async function handleChatCore({
   const bypassResponse = handleBypassRequest(body, model, userAgent);
   if (bypassResponse) {
     return bypassResponse;
+  }
+
+  // ── Claude Code auto-mode classifier compat (opt-in, default "off") ──
+  // Claude Code's `--permission-mode auto` sends an internal classifier request that
+  // requires the response to START with `<block>no</block>`/`<block>yes</block>`.
+  // When a combo/fallback route sends that call to a cheap model returning 200 with
+  // empty content, Claude Code fails closed on every gated action. Detect the
+  // classifier request and short-circuit with a synthetic ALLOW response, WITHOUT
+  // calling the upstream provider. See chatCore/claudeClassifierCompat.ts.
+  {
+    const classifierSettings = cachedSettings ?? (await getCachedSettings());
+    if (
+      shouldDefaultAllowClassifier(
+        sourceFormat,
+        body as Record<string, unknown>,
+        classifierSettings.claudeClassifierCompat as string | undefined
+      )
+    ) {
+      log?.warn?.(
+        "CHAT",
+        `classifier compat=${classifierSettings.claudeClassifierCompat} | short-circuit default-allow`
+      );
+      return buildDefaultAllowClaudeMessage(requestedModel);
+    }
   }
 
   // Detect source format and get target format

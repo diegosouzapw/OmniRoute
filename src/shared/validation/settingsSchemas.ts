@@ -112,6 +112,11 @@ export const updateSettingsSchema = z.object({
   hideEndpointTailscaleFunnel: z.boolean().optional(),
   hideEndpointNgrokTunnel: z.boolean().optional(),
   preferClaudeCodeForUnprefixedClaudeModels: z.boolean().optional(),
+  // Opt-in (default "off"): short-circuits Claude Code's `--permission-mode auto`
+  // internal security-classifier request with a synthetic ALLOW response instead of
+  // calling the upstream provider. "auto" only fires on detected classifier requests;
+  // "always" applies the short-circuit to every Claude-format request.
+  claudeClassifierCompat: z.enum(["off", "auto", "always"]).optional(),
   autoRefreshProviderQuota: z.boolean().optional(),
   autoRefreshProviderQuotaInterval: z.number().int().min(10).max(3600).optional(),
   pinProviderQuotaToHome: z.boolean().optional(),
