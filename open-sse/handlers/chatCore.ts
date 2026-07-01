@@ -4049,6 +4049,20 @@ export async function handleChatCore({
     }
     effectiveServiceTier = resolveReportedServiceTier(streamResponseBody) ?? effectiveServiceTier;
 
+    // Context Editing telemetry (streaming): the reconstructed stream body now carries
+    // context_management.applied_edits from the final message_delta snapshot. Mirror the
+    // non-streaming hook so streaming context-clear savings also surface under engine
+    // "context-editing" in compression analytics. Best-effort, Claude-only.
+    if (normalizedStreamStatus === 200) {
+      recordContextEditingTelemetryHook({
+        contextEditingEnabled,
+        provider,
+        responseBody: streamResponseBody,
+        skillRequestId,
+        log,
+      });
+    }
+
     streamFailure.finalizeStreamRequestLog({
       pendingRequestId,
       model,
