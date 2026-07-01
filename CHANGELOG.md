@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### 🔧 Bug Fixes
+
+- **fix(usage):** preserve (bounded) tool definitions in request logs even when the request body is truncated, so the request-details view can still show available tools. (thanks @noir017)
+
 ---
 
 ## [3.8.43] — TBD
