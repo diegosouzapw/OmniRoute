@@ -65,13 +65,22 @@ export async function validateDeepSeekWebProvider({ apiKey }: any) {
 }
 
 // qwen-web has no `modelsUrl` in its registry entry, so the generic OpenAI-compatible
-// validator derived a probe URL of `https://chat.qwen.ai/api/v2/models` (via
+// validator used to derive a probe URL of `https://chat.qwen.ai/api/v2/models` (via
 // addModelsSuffix) — a non-existent path that answers with a 307 redirect, which the
 // outbound guard blocked and the route then mislabeled as an SSRF block (#3288/#3758).
-// This specialty validator probes the real session-validity endpoint instead
-// (`GET /api/v2/user`, the same one Chat2API uses), mirroring the executor's anti-bot
-// headers + cookie-jar replay. It uses plain fetch (like the other web-cookie
-// validators) so it never hits the addModelsSuffix/redirect path.
+//
+// History of the session probe:
+//   - Originally `GET /api/v2/user` (Chat2API-derived). Upstream retired the path
+//     in mid-2026: it now returns `{"success":false,"data":{"code":"not found"}}`
+//     regardless of credentials, so the body-shape check (#3958) always fails.
+//   - Current probe: `GET /api/v1/auths/` (note the trailing slash — without it
+//     the path returns 401). This is the endpoint Qwen's own SPA hits right after
+//     login to fetch the user profile. It returns the user object directly at the
+//     top level: `{ id, email, name, role, ... }`.
+//
+// The validator mirrors the executor's anti-bot headers + cookie-jar replay and uses
+// plain fetch (like the other web-cookie validators) so it never hits the
+// addModelsSuffix/redirect path.
 export async function validateQwenWebProvider({ apiKey }: any) {
   const rawCred = String(apiKey ?? "").trim();
   if (!rawCred) {
@@ -104,7 +113,9 @@ export async function validateQwenWebProvider({ apiKey }: any) {
     if (token) headers["Authorization"] = `Bearer ${token}`;
     if (cookieHeader) headers["Cookie"] = cookieHeader;
 
-    const resp = await fetch("https://chat.qwen.ai/api/v2/user", { headers });
+    // The trailing slash is significant: `/api/v1/auths` (no slash) answers 401,
+    // `/api/v1/auths/` returns the user profile.
+    const resp = await fetch("https://chat.qwen.ai/api/v1/auths/", { headers });
     const contentType = resp.headers.get("content-type") || "";
 
     if (resp.status === 401 || resp.status === 403) {
@@ -127,11 +138,13 @@ export async function validateQwenWebProvider({ apiKey }: any) {
       return { valid: false, error: `Qwen returned HTTP ${resp.status}` };
     }
 
-    // Parse JSON response and verify we have a real user object
-    // Qwen returns HTTP 200 even for invalid tokens, so we must check the body
+    // Parse JSON response and verify we have a real user object.
+    // /api/v1/auths/ returns the user at the top level ({id, email, name, role, ...}).
+    // Keep the legacy nested checks (data.user, user) for robustness in case the
+    // upstream shape changes again.
     try {
       const data = await resp.json();
-      const user = data?.user || data?.data?.user;
+      const user = data?.id ? data : data?.user || data?.data?.user;
 
       if (!user) {
         return {
