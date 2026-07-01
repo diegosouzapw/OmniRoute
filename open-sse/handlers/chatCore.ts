@@ -74,10 +74,7 @@ import {
   withBodyTimeout,
 } from "../utils/stream.ts";
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
-import {
-  resolveSuppressThinkClose,
-  THINKING_MARKER_HEADER,
-} from "../utils/thinkCloseMarker.ts";
+import { resolveSuppressThinkClose, THINKING_MARKER_HEADER } from "../utils/thinkCloseMarker.ts";
 import { resolveStreamReadinessTimeout } from "../utils/streamReadinessPolicy.ts";
 import { createStreamController } from "../utils/streamHandler.ts";
 import * as streamFailure from "../utils/streamFailureFinalization.ts";
@@ -126,6 +123,7 @@ import {
   FETCH_BODY_TIMEOUT_MS,
   PROVIDER_MAX_TOKENS,
   STREAM_IDLE_TIMEOUT_MS,
+  STREAM_READINESS_MAX_TIMEOUT_MS,
   STREAM_READINESS_TIMEOUT_MS,
   ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
   STREAM_RECOVERY,
@@ -1143,8 +1141,7 @@ export async function handleChatCore({
       }
       // Phase 4A: unified output styles (supersedes cavemanOutputMode via the back-compat shim).
       let outputStyleResult:
-        | import("../services/compression/outputStyles/apply.ts").OutputStylesResult
-        | null = null;
+        import("../services/compression/outputStyles/apply.ts").OutputStylesResult | null = null;
       if (config.enabled) {
         try {
           const { resolveOutputStyleSelection } =
@@ -1196,8 +1193,8 @@ export async function handleChatCore({
           ? ((compressionInputBody as Record<string, unknown>).max_tokens as number)
           : null;
       let adaptiveTelemetry:
-        | import("../services/compression/adaptiveCompression/types.ts").AdaptiveTelemetry
-        | null = null;
+        import("../services/compression/adaptiveCompression/types.ts").AdaptiveTelemetry | null =
+        null;
       const compressionPlan = selectCompressionPlan(
         config,
         compressionComboKey,
@@ -2116,8 +2113,7 @@ export async function handleChatCore({
 
   let onPipelineStreamError: streamFailure.PipelineStreamErrorHandler | null = null;
   let onClientDisconnectFinalize:
-    | ((event: { reason: string; duration: number }) => boolean)
-    | null = null;
+    ((event: { reason: string; duration: number }) => boolean) | null = null;
 
   // Create stream controller for disconnect detection
   const streamController = createStreamController({
@@ -3916,6 +3912,7 @@ export async function handleChatCore({
     provider,
     model,
     body: (finalBody || translatedBody) as Record<string, unknown> | null | undefined,
+    maxTimeoutMs: STREAM_READINESS_MAX_TIMEOUT_MS,
   });
   if (streamReadinessPolicy.timeoutMs !== streamReadinessPolicy.baseTimeoutMs) {
     log?.debug?.(
