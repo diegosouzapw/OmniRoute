@@ -80,5 +80,5 @@ test("execute(): empty apiKey still returns a 400 error response", async () => {
   } as never);
   assert.equal(result.response.status, 400);
   const body = await result.response.json();
-  assert.equal(body.error.code, "HTTP_400");
+  assert.equal(body.error.code, "bad_request");
 });
