@@ -1475,7 +1475,7 @@
     "quickStartDesc": "Get up and running in 4 steps. Connect providers, route models, monitor everything.",
     "fullDocs": "Full Docs",
     "step1Title": "1. Create API key",
-    "step1Desc": "Go to <endpoint>Endpoint</endpoint> -> Registered Keys. Generate one key per environment.",
+    "step1Desc": "Go to <endpoint>API Keys</endpoint>. Generate one key per environment.",
     "step2Title": "2. Connect providers",
     "step2Desc": "Add accounts in <providers>Providers</providers>. Supports OAuth, API Key, and free tiers.",
     "step3Title": "3. Point your client",
