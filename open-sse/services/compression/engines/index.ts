@@ -8,6 +8,7 @@ import { llmlinguaEngine } from "./llmlingua/index.ts";
 import { ionizerEngine } from "./ionizer/index.ts";
 import { relevanceEngine } from "./relevance/index.ts";
 import { llmCompressorEngine } from "./llm/index.ts";
+import { readLifecycleEngine } from "./readLifecycle/index.ts";
 
 let registered = false;
 
@@ -32,6 +33,7 @@ export function registerBuiltinCompressionEngines(): void {
     { id: "ionizer", engine: ionizerEngine },
     { id: "relevance", engine: relevanceEngine },
     { id: "llm", engine: llmCompressorEngine },
+    { id: "read-lifecycle", engine: readLifecycleEngine },
   ];
 
   for (const { id, engine } of engines) {
