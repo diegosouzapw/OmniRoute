@@ -404,27 +404,45 @@ test("v0 Vercel Web: error response returns error result", async () => {
 
 // ── Kimi Web Execution Tests ─────────────────────────────────────────────────
 
-test("Kimi Web: streaming passes through SSE", async () => {
-  const sseData = ['data: {"choices":[{"delta":{"content":"你好"}}]}'];
-  const restore = mockFetchCapture(200, mockSSEStream(sseData));
+test("Kimi Web: targets www.kimi.com (international)", async () => {
+  // The new executor talks to the Connect-RPC streaming endpoint on the
+  // international domain. A bare empty credential is rejected before the
+  // fetch fires, so we feed a fake JWT and let the mock absorb the request.
+  const restore = mockFetchCapture(200);
   try {
     const executor = new KimiWebExecutor();
     const result = await executor.execute({
       ...noopExecuteInput,
       model: "kimi-default",
+      credentials: { apiKey: "kimi-auth=eyJ.eyJzdWI.signature" },
     });
     assert.ok(result.response instanceof Response);
-    assert.ok(result.url.includes("kimi.moonshot.cn"));
+    assert.ok(result.url.includes("www.kimi.com"), `got ${result.url}`);
+    assert.ok(!result.url.includes("moonshot.cn"));
   } finally {
     restore.restore();
   }
+});
+
+test("Kimi Web: missing JWT returns a 400 before fetching", async () => {
+  const executor = new KimiWebExecutor();
+  const result = await executor.execute({
+    ...noopExecuteInput,
+    model: "kimi-default",
+    credentials: { apiKey: "" },
+  });
+  assert.equal(result.response.status, 400);
 });
 
 test("Kimi Web: error response returns error result", async () => {
   const restore = mockFetchCapture(401, "Unauthorized");
   try {
     const executor = new KimiWebExecutor();
-    const result = await executor.execute(noopExecuteInput);
+    const result = await executor.execute({
+      ...noopExecuteInput,
+      model: "kimi-default",
+      credentials: { apiKey: "kimi-auth=eyJ.eyJzdWI.signature" },
+    });
     assert.ok(result.response instanceof Response);
     assert.equal(result.response.status, 401);
   } finally {
