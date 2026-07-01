@@ -1,5 +1,4 @@
 import type { RegistryEntry } from "../../shared.ts";
-
 export const sensenovaProvider: RegistryEntry = {
   id: "sensenova",
   alias: "sensenova",
@@ -12,16 +11,67 @@ export const sensenovaProvider: RegistryEntry = {
   // V6.5-Pro is the heavyweight flagship; the 6.7 generation so far ships only flash-lite.
   // Note the casing split: V6.5 models are PascalCase-dotted, 6.7 is lowercase-dotted.
   models: [
-    { id: "SenseNova-V6.5-Pro", name: "SenseNova V6.5 Pro", contextLength: 131072 },
-    { id: "SenseNova-V6.5-Turbo", name: "SenseNova V6.5 Turbo", contextLength: 131072 },
-    { id: "sensenova-6.7-flash-lite", name: "SenseNova 6.7 Flash-Lite" },
+    {
+      id: "SenseNova-V6.5-Pro",
+      name: "SenseNova V6.5 Pro",
+      capabilities: {
+        contextWindow: 131072,
+      },
+    },
+    {
+      id: "SenseNova-V6.5-Turbo",
+      name: "SenseNova V6.5 Turbo",
+      capabilities: {
+        contextWindow: 131072,
+      },
+    },
+    {
+      id: "sensenova-6.7-flash-lite",
+      name: "SenseNova 6.7 Flash-Lite",
+    },
     // DeepSeek V4 Flash is served on SenseNova's free Token Plan (9router#2233).
-    { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash" },
-    { id: "SenseChat-5", name: "SenseChat 5", contextLength: 131072 },
-    { id: "SenseChat-5-Cantonese", name: "SenseChat 5 Cantonese", contextLength: 32768 },
-    { id: "SenseChat-Turbo", name: "SenseChat Turbo", contextLength: 4096 },
-    { id: "SenseChat-Vision", name: "SenseChat Vision", contextLength: 4096 },
-    { id: "SenseChat-Character", name: "SenseChat Character", contextLength: 8192 },
-    { id: "sensechat", name: "SenseChat" },
+    {
+      id: "deepseek-v4-flash",
+      name: "DeepSeek V4 Flash",
+    },
+    {
+      id: "SenseChat-5",
+      name: "SenseChat 5",
+      capabilities: {
+        contextWindow: 131072,
+      },
+    },
+    {
+      id: "SenseChat-5-Cantonese",
+      name: "SenseChat 5 Cantonese",
+      capabilities: {
+        contextWindow: 32768,
+      },
+    },
+    {
+      id: "SenseChat-Turbo",
+      name: "SenseChat Turbo",
+      capabilities: {
+        contextWindow: 4096,
+      },
+    },
+    {
+      id: "SenseChat-Vision",
+      name: "SenseChat Vision",
+      capabilities: {
+        contextWindow: 4096,
+      },
+    },
+    {
+      id: "SenseChat-Character",
+      name: "SenseChat Character",
+      capabilities: {
+        contextWindow: 8192,
+      },
+    },
+    {
+      id: "sensechat",
+      name: "SenseChat",
+    },
   ],
 };

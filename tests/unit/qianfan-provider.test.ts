@@ -42,7 +42,10 @@ test("qianfan exposes ERNIE chat models in the local model catalog", () => {
   assert.ok(modelIds.includes("ernie-5.1"));
   assert.ok(modelIds.includes("ernie-5.0-thinking-latest"));
   assert.ok(modelIds.includes("ernie-x1.1"));
-  assert.equal(models.find((model) => model.id === "ernie-x1.1")?.contextLength, 64000);
+  assert.equal(
+    models.find((model) => model.id === "ernie-x1.1")?.capabilities?.contextWindow,
+    64000
+  );
   assert.ok(models.every((model) => typeof model.name === "string" && model.name.length > 0));
 });
 

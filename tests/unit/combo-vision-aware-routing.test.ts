@@ -2,21 +2,9 @@
  * Regression: combo routing must not send an image request to a model that is
  * not confirmed vision-capable.
  *
- * Root cause: `getResolvedModelCapabilities` returned `supportsVision: null` for
- * every Mistral model — including Pixtral, which IS multimodal — because Mistral
- * ships no models.dev `attachment` flag and the provider registry sets no
- * `supportsVision`. The combo compatibility filter only dropped a target when
- * `supportsVision === false`, so a `null` (unknown) text model like
- * `ministral-14b` slipped through and received the image, replying
- * "IMAGEM_INDISPONIVEL" / "image not provided".
- *
- * Two-part fix, both asserted here:
- *  A) resolveVisionCapability falls back to a conservative model-id heuristic so
- *     known-multimodal families (pixtral, llava, qwen-vl, gpt-4o, …) resolve to
- *     `true` when there is no synced/registry/spec data.
- *  B) the combo filter treats anything that is not confirmed `=== true` as
- *     vision-incompatible for image requests, while the existing
- *     "keep all when none qualify" fallback prevents any regression.
+ * The combo filter treats anything that is not confirmed `=== true` as
+ * vision-incompatible for image requests, while the existing "keep all when none
+ * qualify" fallback prevents any regression.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -30,6 +18,7 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-vis
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
+const modelsDb = await import("../../src/lib/db/models.ts");
 const { getResolvedModelCapabilities } = await import("../../src/lib/modelCapabilities.ts");
 const { filterTargetsByRequestCompatibility } = await import("../../open-sse/services/combo.ts");
 
@@ -40,8 +29,8 @@ test.after(() => {
 
 // --- Part A: capability resolution -----------------------------------------
 
-test("Pixtral resolves supportsVision=true via model-id heuristic (no synced data)", () => {
-  assert.equal(getResolvedModelCapabilities("mistral/pixtral-12b-latest").supportsVision, true);
+test("Pixtral stays unknown without provider-first or synced capability data", () => {
+  assert.equal(getResolvedModelCapabilities("mistral/pixtral-12b-latest").supportsVision, null);
 });
 
 test("a text-only Mistral model is NOT a vision false-positive", () => {
@@ -84,14 +73,23 @@ const imageBody = {
   ],
 };
 
-test("image request: combo drops the non-vision target, keeps the vision target", () => {
+test("image request: combo drops non-vision targets, keeps confirmed vision targets", async () => {
+  await modelsDb.replaceSyncedAvailableModelsForConnection("mistral", "conn-a", [
+    {
+      id: "pixtral-explicit-vision",
+      name: "Pixtral Explicit Vision",
+      source: "imported",
+      capabilities: { supportsVision: true },
+    },
+  ]);
+
   const out = filterTargetsByRequestCompatibility(
-    [target("mistral/pixtral-12b-latest"), target("mistral/ministral-14b-latest")],
+    [target("mistral/pixtral-explicit-vision"), target("mistral/ministral-14b-latest")],
     imageBody,
     noopLog
   );
   const ids = out.map((t) => t.modelStr);
-  assert.ok(ids.includes("mistral/pixtral-12b-latest"), "vision target must be kept");
+  assert.ok(ids.includes("mistral/pixtral-explicit-vision"), "vision target must be kept");
   assert.ok(!ids.includes("mistral/ministral-14b-latest"), "non-vision target must be dropped");
 });
 
@@ -111,6 +109,21 @@ test("text-only request: targets are untouched by the vision filter", () => {
     noopLog
   );
   assert.equal(out.length, 1);
+});
+
+test("tools request only drops targets with explicit tools=false", () => {
+  modelsDb.mergeModelCompatOverride("openai-compatible-local", "no-tools", {
+    capabilities: { supportsTools: false },
+  });
+
+  const out = filterTargetsByRequestCompatibility(
+    [target("openai-compatible-local/unknown-tools"), target("openai-compatible-local/no-tools")],
+    { messages: [{ role: "user", content: "hello" }], tools: [{ type: "function" }] },
+    noopLog
+  );
+  const ids = out.map((t) => t.modelStr);
+
+  assert.deepEqual(ids, ["openai-compatible-local/unknown-tools"]);
 });
 
 test("large output request: unknown maxOutputTokens does not filter a target", () => {

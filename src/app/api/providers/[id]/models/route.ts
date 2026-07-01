@@ -7,7 +7,7 @@ import {
 } from "@/shared/constants/providers";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getModelsByProviderId } from "@/shared/constants/models";
-import { getStaticModelsForProvider } from "@/lib/providers/staticModels";
+import { getStaticModelsForProvider, type LocalCatalogModel } from "@/lib/providers/staticModels";
 import { isProviderBlockedByIdOrAlias } from "@/shared/utils/noAuthProviders";
 import {
   getProviderConnectionById,
@@ -71,7 +71,7 @@ import {
   parseGeminiModelsList,
   type GeminiDiscoveryModel,
 } from "@/lib/providerModels/geminiModelsParser";
-import { getSyncedAvailableModels } from "@/lib/db/models";
+import { getSyncedAvailableModels, type SyncedAvailableModel } from "@/lib/db/models";
 import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
 import {
   type JsonRecord,
@@ -96,6 +96,118 @@ import {
   type ProviderModelsConfigEntry,
   PROVIDER_MODELS_CONFIG,
 } from "./discovery/providerModelsConfig";
+
+type SyncedLocalCatalogModel = LocalCatalogModel &
+  Pick<SyncedAvailableModel, "capabilities" | "capabilityOverrides" | "compat">;
+
+function toSyncedLocalCatalogModel(model: SyncedAvailableModel): SyncedLocalCatalogModel {
+  const out: SyncedLocalCatalogModel = {
+    id: model.id,
+    name: model.name || model.id,
+    ...(model.apiFormat ? { apiFormat: model.apiFormat } : {}),
+    ...(model.supportedEndpoints ? { supportedEndpoints: model.supportedEndpoints } : {}),
+    ...(model.capabilities ? { capabilities: model.capabilities } : {}),
+    ...(model.capabilityOverrides ? { capabilityOverrides: model.capabilityOverrides } : {}),
+    ...(model.compat ? { compat: model.compat } : {}),
+  };
+  return out;
+}
+
+function assignLocalCatalogField(
+  target: Record<string, unknown>,
+  key: string,
+  value: unknown,
+  include = true
+) {
+  if (!include || value === undefined || value === null) return;
+  target[key] = value;
+}
+function toLocalCatalogResponseModel(
+  model: LocalCatalogModel,
+  provider: string,
+  ownedByProvider: boolean,
+  includeProviderFirstMetadata: boolean
+) {
+  const record = model as Record<string, unknown>;
+  const out: Record<string, unknown> = {
+    id: model.id,
+    name: model.name || model.id,
+  };
+  assignLocalCatalogField(out, "apiFormat", record.apiFormat);
+  assignLocalCatalogField(out, "supportedEndpoints", record.supportedEndpoints);
+  assignLocalCatalogField(out, "capabilities", record.capabilities, includeProviderFirstMetadata);
+  assignLocalCatalogField(
+    out,
+    "capabilityOverrides",
+    record.capabilityOverrides,
+    includeProviderFirstMetadata
+  );
+  assignLocalCatalogField(out, "compat", record.compat, includeProviderFirstMetadata);
+  assignLocalCatalogField(out, "owned_by", provider, ownedByProvider);
+  return out;
+}
+
+const DISCOVERY_MODEL_CANONICAL_FIELDS = new Set([
+  "id",
+  "name",
+  "display_name",
+  "displayName",
+  "model",
+  "object",
+  "provider",
+  "capabilities",
+  "capabilityOverrides",
+  "compat",
+  "contextLength",
+  "inputTokenLimit",
+  "outputTokenLimit",
+  "supportsVision",
+  "supportsTools",
+  "toolCalling",
+  "supportsThinking",
+  "supportsReasoning",
+  "supportsXHighEffort",
+  "supportsMaxEffort",
+  "defaultThinkingBudget",
+  "thinkingBudgetCap",
+  "maxThinkingBudget",
+  "thinkingOverhead",
+  "adaptiveMaxTokens",
+  "interleavedField",
+  "targetFormat",
+  "unsupportedParams",
+  "normalizeToolCallId",
+  "preserveOpenAIDeveloperRole",
+  "compatByProtocol",
+  "upstreamHeaders",
+]);
+
+function getDiscoveryModelId(model: unknown): string | null {
+  const record = asRecord(model);
+  return (
+    toNonEmptyString(record.id) || toNonEmptyString(record.name) || toNonEmptyString(record.model)
+  );
+}
+
+function toApiDiscoveryResponseModel(
+  rawModel: unknown,
+  persistedModel: SyncedAvailableModel
+): Record<string, unknown> {
+  const raw = asRecord(rawModel);
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (!DISCOVERY_MODEL_CANONICAL_FIELDS.has(key) && value !== undefined) out[key] = value;
+  }
+  out.id = persistedModel.id;
+  out.name = persistedModel.name || persistedModel.id;
+  assignLocalCatalogField(out, "apiFormat", persistedModel.apiFormat);
+  assignLocalCatalogField(out, "supportedEndpoints", persistedModel.supportedEndpoints);
+  assignLocalCatalogField(out, "description", persistedModel.description);
+  assignLocalCatalogField(out, "capabilities", persistedModel.capabilities);
+  assignLocalCatalogField(out, "capabilityOverrides", persistedModel.capabilityOverrides);
+  assignLocalCatalogField(out, "compat", persistedModel.compat);
+  return out;
+}
 
 /**
  * GET /api/providers/[id]/models - Get models list from provider
@@ -220,21 +332,11 @@ export async function GET(
     // Check for synced models from ANY connection of this provider.
     // When sync has been performed (even on a different connection),
     // use the synced list as the authoritative source instead of static models.
-    let providerSyncedModels: Array<{
-      id: string;
-      name: string;
-      apiFormat?: string;
-      supportedEndpoints?: string[];
-    }> | null = null;
+    let providerSyncedModels: SyncedLocalCatalogModel[] | null = null;
     try {
       const allSynced = await getSyncedAvailableModels(provider);
       if (Array.isArray(allSynced) && allSynced.length > 0) {
-        providerSyncedModels = allSynced.map((m) => ({
-          id: m.id,
-          name: m.name || m.id,
-          ...(m.apiFormat ? { apiFormat: m.apiFormat } : {}),
-          ...(m.supportedEndpoints ? { supportedEndpoints: m.supportedEndpoints } : {}),
-        }));
+        providerSyncedModels = allSynced.map(toSyncedLocalCatalogModel);
       }
     } catch {
       // DB unavailable — fall through to static catalog
@@ -247,20 +349,14 @@ export async function GET(
 
     const toLocalCatalogModels = () => {
       const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
-      return localCatalog.map((model) => ({
-        id: model.id,
-        name: model.name || model.id,
-        ...((model as Record<string, unknown>).apiFormat
-          ? { apiFormat: (model as Record<string, unknown>).apiFormat as string | undefined }
-          : {}),
-        ...((model as Record<string, unknown>).supportedEndpoints
-          ? {
-              supportedEndpoints: (model as Record<string, unknown>).supportedEndpoints as
-                string[] | undefined,
-            }
-          : {}),
-        ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
-      }));
+      return localCatalog.map((model) =>
+        toLocalCatalogResponseModel(
+          model,
+          provider,
+          registryCatalogModels.length > 0,
+          Boolean(providerSyncedModels)
+        )
+      );
     };
 
     const buildCachedDiscoveryResponse = (warning?: string) =>
@@ -337,24 +433,46 @@ export async function GET(
     };
 
     const buildApiDiscoveryResponse = async (models: any[], warning?: string) => {
-      const discoveredModels = await persistDiscoveredModels(provider, connectionId, models);
-      if (discoveredModels.length > 0) {
+      if (!Array.isArray(models) || models.length === 0) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "No remote models discovered — using cached catalog",
+          localWarning: "No remote models discovered — using local catalog",
+        });
+        if (fallback) return fallback;
         return buildResponse({
           provider,
           connectionId,
-          models,
+          models: [],
           source: "api",
           ...(warning ? { warning } : {}),
         });
       }
 
-      // Empty discovery just cleared THIS connection's synced cache (via
-      // persistDiscoveredModels([])). `providerSyncedModels` was read at the top
-      // of the handler and is now stale, so it must not leak the just-cleared
-      // models back into the response (#3148 made synced authoritative for the
-      // normal path; here we re-read the current state instead). Re-derive the
-      // local catalog from the provider's remaining synced models (union across
-      // its other connections) or the static catalog when none remain.
+      const persistedModels = await persistDiscoveredModels(provider, connectionId, models);
+      if (persistedModels.length > 0) {
+        const persistedById = new Map(persistedModels.map((model) => [model.id, model]));
+        const responseModels = models
+          .map((model) => {
+            const id = getDiscoveryModelId(model);
+            const persisted = id ? persistedById.get(id) : undefined;
+            return persisted ? toApiDiscoveryResponseModel(model, persisted) : null;
+          })
+          .filter((model): model is Record<string, unknown> => Boolean(model));
+        return buildResponse({
+          provider,
+          connectionId,
+          models: responseModels,
+          source: "api",
+          ...(warning ? { warning } : {}),
+        });
+      }
+
+      // Empty or unusable discovery just cleared THIS connection's synced cache
+      // (via persistDiscoveredModels([])). `providerSyncedModels` was read at the
+      // top of the handler and is now stale, so it must not leak the just-cleared
+      // models back into the response (#3148). Re-derive the local catalog from
+      // the provider's remaining synced models (union across its other
+      // connections) or the static catalog when none remain.
       let freshSynced: Awaited<ReturnType<typeof getSyncedAvailableModels>> = [];
       try {
         freshSynced = await getSyncedAvailableModels(provider);
@@ -362,28 +480,17 @@ export async function GET(
         /* DB unavailable — fall through to static catalog */
       }
       const freshRegistry = freshSynced.length
-        ? freshSynced.map((m) => ({
-            id: m.id,
-            name: m.name || m.id,
-            ...(m.apiFormat ? { apiFormat: m.apiFormat } : {}),
-            ...(m.supportedEndpoints ? { supportedEndpoints: m.supportedEndpoints } : {}),
-          }))
+        ? freshSynced.map(toSyncedLocalCatalogModel)
         : getModelsByProviderId(provider) || [];
       const freshSpecialty = freshSynced.length ? [] : getStaticModelsForProvider(provider) || [];
-      const freshLocal = mergeLocalCatalogModels(freshRegistry, freshSpecialty).map((model) => ({
-        id: model.id,
-        name: model.name || model.id,
-        ...((model as Record<string, unknown>).apiFormat
-          ? { apiFormat: (model as Record<string, unknown>).apiFormat as string | undefined }
-          : {}),
-        ...((model as Record<string, unknown>).supportedEndpoints
-          ? {
-              supportedEndpoints: (model as Record<string, unknown>).supportedEndpoints as
-                string[] | undefined,
-            }
-          : {}),
-        ...(freshRegistry.length > 0 ? { owned_by: provider } : {}),
-      }));
+      const freshLocal = mergeLocalCatalogModels(freshRegistry, freshSpecialty).map((model) =>
+        toLocalCatalogResponseModel(
+          model,
+          provider,
+          freshRegistry.length > 0,
+          freshSynced.length > 0
+        )
+      );
       if (freshLocal.length > 0) {
         return buildResponse({
           provider,
@@ -394,12 +501,12 @@ export async function GET(
         });
       }
 
-      return buildResponse({
-        provider,
-        connectionId,
-        models: [],
-        source: "api",
+      const fallback = buildDiscoveryFallbackResponse({
+        cacheWarning: "No usable remote models discovered — using cached catalog",
+        localWarning: "No usable remote models discovered — using local catalog",
       });
+      if (fallback) return fallback;
+      return buildResponse({ provider, connectionId, models: [], source: "api" });
     };
 
     if (provider === "reka") {
@@ -1670,7 +1777,8 @@ export async function GET(
           ...((m as Record<string, unknown>).supportedEndpoints
             ? {
                 supportedEndpoints: (m as Record<string, unknown>).supportedEndpoints as
-                  string[] | undefined,
+                  | string[]
+                  | undefined,
               }
             : {}),
           ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),

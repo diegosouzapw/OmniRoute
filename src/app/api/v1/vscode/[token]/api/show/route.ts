@@ -14,7 +14,10 @@ import {
   expandVscodeServiceTierModels,
   parseVscodeServiceTierVariantModelId,
 } from "@/app/api/v1/vscode/[token]/serviceTierVariants";
-import { getFamilyFirstModelCandidates, getFamilyFirstPublishedModelId } from "@/app/api/v1/vscode/[token]/familyFirstModelIds";
+import {
+  getFamilyFirstModelCandidates,
+  getFamilyFirstPublishedModelId,
+} from "@/app/api/v1/vscode/[token]/familyFirstModelIds";
 import { withPathTokenApiKey } from "@/app/api/v1/vscode/[token]/tokenizedRequest";
 
 type OpenAiCatalogModel = {
@@ -67,7 +70,11 @@ function getCatalogModelId(model: OpenAiCatalogModel) {
 }
 
 function normalizeArchitectureKey(value: string) {
-  const normalized = value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
   return normalized || "model";
 }
 
@@ -88,7 +95,9 @@ function getRequestedModelName(payload: unknown): string | null {
 function getOllamaModelFamily(model: OpenAiCatalogModel, canonicalFamily?: string | null) {
   const rawModelId = getCatalogModelId(model).trim();
   const { baseModelId } = parseVscodeServiceTierVariantModelId(rawModelId);
-  const modelFamily = baseModelId.includes("/") ? baseModelId.split("/").slice(1).join("/") : baseModelId;
+  const modelFamily = baseModelId.includes("/")
+    ? baseModelId.split("/").slice(1).join("/")
+    : baseModelId;
 
   if (modelFamily) {
     return modelFamily;
@@ -125,8 +134,15 @@ function buildCapabilities(model: OpenAiCatalogModel): string[] {
   const capabilities = ["completion"];
   if (model.capabilities?.vision) capabilities.push("vision");
   if (model.capabilities?.tool_calling) capabilities.push("tools");
-  if (model.capabilities?.reasoning || model.capabilities?.thinking) capabilities.push("thinking");
+  if (model.capabilities?.reasoning) capabilities.push("thinking");
   return capabilities;
+}
+
+function sanitizeVscodeCapabilities(modelCapabilities: Record<string, boolean> | undefined) {
+  if (!modelCapabilities) return undefined;
+  const sanitized = { ...modelCapabilities };
+  delete sanitized.thinking;
+  return Object.keys(sanitized).length > 0 ? sanitized : undefined;
 }
 
 function buildShowPayload(model: OpenAiCatalogModel, responseModelId?: string) {
@@ -138,13 +154,14 @@ function buildShowPayload(model: OpenAiCatalogModel, responseModelId?: string) {
   });
   const family = getOllamaModelFamily(model, canonicalMetadata?.metadata.family || null);
   const modelId = responseModelId || getFamilyFirstPublishedModelId(actualModelId, family);
-  const architectureSource =
-    normalizeArchitectureSource(
-      canonicalMetadata?.providerAlias || canonicalMetadata?.provider || model.owned_by || family || "model"
-    );
-  const architecture = normalizeArchitectureKey(
-    architectureSource
+  const architectureSource = normalizeArchitectureSource(
+    canonicalMetadata?.providerAlias ||
+      canonicalMetadata?.provider ||
+      model.owned_by ||
+      family ||
+      "model"
   );
+  const architecture = normalizeArchitectureKey(architectureSource);
   const reasoningEffortValues = getReasoningEffortValues(model as VscodeCatalogModel);
   const selectedReasoningEffort = reasoningEffortValues
     ? inferSelectedReasoningEffort(model as VscodeCatalogModel, reasoningEffortValues) || "none"
@@ -160,13 +177,12 @@ function buildShowPayload(model: OpenAiCatalogModel, responseModelId?: string) {
     reasoningEffortValues && defaultReasoningEffort
       ? buildReasoningConfigSchema(reasoningEffortValues, defaultReasoningEffort)
       : undefined;
-  let modelCapabilities = model.capabilities ? { ...model.capabilities } : undefined;
+  let modelCapabilities = sanitizeVscodeCapabilities(model.capabilities);
 
   if (reasoningEffortValues) {
     modelCapabilities = modelCapabilities || {};
     Object.assign(modelCapabilities, {
       reasoning: true,
-      thinking: true,
       supports_reasoning_effort: reasoningEffortValues,
       supportsReasoningEffort: reasoningEffortValues,
       supportedReasoningEfforts,
@@ -304,7 +320,7 @@ export async function POST(
     : [];
 
   const model = Array.isArray(expandedModels)
-  ? expandedModels.find((entry) => matchesRequestedModel(entry, requestedName))
+    ? expandedModels.find((entry) => matchesRequestedModel(entry, requestedName))
     : undefined;
 
   if (!model) {

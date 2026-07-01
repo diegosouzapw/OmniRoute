@@ -30,8 +30,16 @@ test("kmca kimi-k2.7-code has 262144 context length and maxOutputTokens", () => 
   const models = getModelsByProviderId("kmca");
   const model = models.find((m) => m.id === "moonshotai/kimi-k2.7-code");
   assert.ok(model, "moonshotai/kimi-k2.7-code not found in kmca catalog");
-  assert.equal(model.contextLength, 262144, "kimi-k2.7-code contextLength must be 262144");
-  assert.equal(model.maxOutputTokens, 262144, "kimi-k2.7-code maxOutputTokens must be 262144");
+  assert.equal(
+    model.capabilities?.contextWindow,
+    262144,
+    "kimi-k2.7-code contextWindow must be 262144"
+  );
+  assert.equal(
+    model.capabilities?.maxOutputTokens,
+    262144,
+    "kimi-k2.7-code maxOutputTokens must be 262144"
+  );
 });
 
 test("kmca still exposes kimi-k2.6 and kimi-k2.6-thinking alongside the new model", () => {

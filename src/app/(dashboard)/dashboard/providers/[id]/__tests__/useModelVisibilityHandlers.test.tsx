@@ -35,11 +35,14 @@ const baseProps = {
   providerNode: { id: "anthropic-compatible-cc-test" },
 };
 
-function renderHook(): { get: () => HookResult } {
+function renderHook(overrides: Partial<Parameters<typeof useModelVisibilityHandlers>[0]> = {}): {
+  get: () => HookResult;
+} {
   let latestResult: HookResult | null = null;
+  const props = { ...baseProps, ...overrides };
 
   function Wrapper() {
-    const result = useModelVisibilityHandlers(baseProps);
+    const result = useModelVisibilityHandlers(props);
     React.useEffect(() => {
       latestResult = result;
     });
@@ -118,5 +121,43 @@ describe("useModelVisibilityHandlers", () => {
       fetchMock.mock.calls.some(([url]) => String(url).startsWith("/api/provider-models"))
     ).toBe(false);
     expect(hook.get().modelTestStatus["claude-opus-4-8"]).toBe("error");
+  });
+
+  it("does not send default compat flags when saving custom model capabilities", async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ ok: true }),
+      text: () => Promise.resolve(""),
+    } as Response);
+    const hook = renderHook({
+      customMap: new Map([
+        [
+          "local-model",
+          {
+            id: "local-model",
+            name: "Local Model",
+            source: "manual",
+            apiFormat: "chat-completions",
+            supportedEndpoints: ["chat"],
+          },
+        ],
+      ]),
+    });
+
+    await act(async () => {
+      await hook.get().saveModelCompatFlags("local-model", {
+        capabilities: { supportsVision: true },
+      });
+    });
+
+    const providerModelsCall = fetchMock.mock.calls.find(
+      ([url, init]) => url === "/api/provider-models" && init?.method === "PUT"
+    );
+    expect(providerModelsCall).toBeDefined();
+    const payload = JSON.parse(String(providerModelsCall![1]?.body));
+    expect(payload.capabilities).toEqual({ supportsVision: true });
+    expect(payload.normalizeToolCallId).toBeUndefined();
+    expect(payload.preserveOpenAIDeveloperRole).toBeUndefined();
   });
 });

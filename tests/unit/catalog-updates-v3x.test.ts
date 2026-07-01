@@ -56,8 +56,8 @@ test("Fable 5 catalog exposes claude-fable-5 in cc and kiro providers with match
   assert.ok(kiroIds.has("claude-fable-5"), "kiro must expose claude-fable-5");
 
   const fable = kiroModels.find((m) => m.id === "claude-fable-5");
-  assert.equal(fable?.contextLength, 1000000);
-  assert.equal(fable?.maxOutputTokens, 128000);
+  assert.equal(fable?.capabilities?.contextWindow, 1000000);
+  assert.equal(fable?.capabilities?.maxOutputTokens, 128000);
 
   const ccPricing = (DEFAULT_PRICING as Record<string, Record<string, unknown>>).cc;
   assert.ok(ccPricing["claude-fable-5"], "cc pricing must include claude-fable-5");
@@ -97,8 +97,8 @@ test("Kiro catalog exposes Claude Opus 4.8 alongside 4.7 with matching pricing",
   assert.ok(ids.has("claude-opus-4.7"), "kiro must still expose claude-opus-4.7");
 
   const opus48 = models.find((model) => model.id === "claude-opus-4.8");
-  assert.equal(opus48?.contextLength, 1000000);
-  assert.equal(opus48?.maxOutputTokens, 128000);
+  assert.equal(opus48?.capabilities?.contextWindow, 1000000);
+  assert.equal(opus48?.capabilities?.maxOutputTokens, 128000);
 
   // Pricing for the Kiro channel must cover the new model so usage cost is non-zero.
   const kiroPricing = (DEFAULT_PRICING as Record<string, Record<string, unknown>>).kiro;

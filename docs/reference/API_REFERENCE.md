@@ -428,15 +428,32 @@ Response example:
 
 ### Provider Management
 
-| Endpoint                     | Method                | Description                                    |
-| ---------------------------- | --------------------- | ---------------------------------------------- |
-| `/api/providers`             | GET/POST              | List / create providers                        |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | Manage a provider                              |
-| `/api/providers/[id]/test`   | POST                  | Test provider connection                       |
-| `/api/providers/[id]/models` | GET                   | List provider models                           |
-| `/api/providers/validate`    | POST                  | Validate provider config                       |
-| `/api/provider-nodes*`       | Various               | Provider node management                       |
-| `/api/provider-models`       | GET/POST/PATCH/DELETE | Custom models (add, update, hide/show, delete) |
+| Endpoint                     | Method                    | Description                                                        |
+| ---------------------------- | ------------------------- | ------------------------------------------------------------------ |
+| `/api/providers`             | GET/POST                  | List / create providers                                            |
+| `/api/providers/[id]`        | GET/PUT/DELETE            | Manage a provider                                                  |
+| `/api/providers/[id]/test`   | POST                      | Test provider connection                                           |
+| `/api/providers/[id]/models` | GET                       | List provider models                                               |
+| `/api/providers/validate`    | POST                      | Validate provider config                                           |
+| `/api/provider-nodes*`       | Various                   | Provider node management                                           |
+| `/api/provider-models`       | GET/POST/PUT/PATCH/DELETE | Custom and managed model metadata (add, update, hide/show, delete) |
+| `/api/provider-models/reset` | POST                      | Reset one provider model back to its synced or registry baseline   |
+
+`/api/provider-models` stores provider-first model metadata. `POST` and `PUT` accept
+`capabilities` for model behavior such as `contextWindow`, `maxInputTokens`,
+`maxOutputTokens`, `supportsVision`, `supportsTools`, `supportsReasoning`,
+`supportsXHighEffort`, and `supportsMaxEffort`; compatibility fields such as
+`targetFormat`, `unsupportedParams`, and `compatByProtocol` are stored with the
+same provider/model entry. `targetFormat` participates in chat request format routing, and
+`unsupportedParams` is merged with registry metadata before upstream dispatch. Legacy
+`supportsThinking` input is normalized to `supportsReasoning`. Sending `null` for boolean
+capability fields means `Unknown`: OmniRoute stores an explicit unknown marker so the model
+does not inherit or advertise that capability from the synced or registry baseline. Sending
+`null` for numeric token-limit fields such as `contextWindow`, `maxInputTokens`, or
+`maxOutputTokens` uses the same explicit unknown marker for token limits.
+`POST /api/provider-models/reset` clears local capability and compatibility overrides for a
+`{ provider, modelId }` pair while preserving model visibility state. Request routing,
+compression, and token-capping keep the pre-existing capability resolution order.
 
 ### OAuth Flows
 

@@ -10,6 +10,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
+const modelsDb = await import("../../src/lib/db/models.ts");
 const {
   resolveModelOrError,
   checkPipelineGates,
@@ -19,6 +20,8 @@ const {
   safeLogEvents,
   withSessionHeader,
 } = await import("../../src/sse/handlers/chatHelpers.ts");
+const { resolveExecutionModelRoutingMetadata } =
+  await import("../../src/sse/handlers/modelConfigMetadata.ts");
 const { getCircuitBreaker, resetAllCircuitBreakers, STATE } =
   await import("../../src/shared/utils/circuitBreaker.ts");
 
@@ -199,6 +202,79 @@ test("resolveModelOrError keeps bare gpt-5.5 on OpenAI when OpenAI is the only a
 
   assert.equal(result.provider, "openai");
   assert.equal(result.model, "gpt-5.5");
+});
+
+test("resolveModelOrError preserves provider-first target format and unsupported params", async () => {
+  await modelsDb.addCustomModel(
+    "openai-compatible-chat-review",
+    "review-model",
+    "Review Model",
+    "manual",
+    "chat-completions",
+    ["chat"],
+    "claude",
+    {},
+    { compat: { unsupportedParams: ["temperature"] } }
+  );
+
+  const result = await resolveModelOrError(
+    "openai-compatible-chat-review/review-model",
+    {
+      model: "openai-compatible-chat-review/review-model",
+      messages: [{ role: "user", content: "hello" }],
+    },
+    "/v1/chat/completions"
+  );
+
+  assert.equal(result.provider, "openai-compatible-chat-review");
+  assert.equal(result.model, "review-model");
+  assert.equal(result.targetFormat, "claude");
+  assert.equal(result.modelConfigTargetFormat, "claude");
+  assert.deepEqual(result.unsupportedParams, ["temperature"]);
+});
+
+test("execution routing metadata is scoped to the final provider override", async () => {
+  const calls: Array<{ providerId: string; modelId: string }> = [];
+  const metadata = await resolveExecutionModelRoutingMetadata({
+    provider: "opengate",
+    model: "claude-opus-4-7",
+    resolvedProvider: "anthropic",
+    resolvedModel: "claude-opus-4-7",
+    resolvedMetadata: {
+      targetFormat: "claude",
+      unsupportedParams: ["temperature"],
+    },
+    loadProviderModelMeta: async (providerId, modelId) => {
+      calls.push({ providerId, modelId });
+      return { targetFormat: "openai", unsupportedParams: ["top_p"] };
+    },
+  });
+
+  assert.deepEqual(calls, [{ providerId: "opengate", modelId: "claude-opus-4-7" }]);
+  assert.equal(metadata.targetFormat, "openai");
+  assert.deepEqual(metadata.unsupportedParams, ["top_p"]);
+});
+
+test("execution routing metadata preserves resolved metadata without provider override", async () => {
+  let loaded = false;
+  const metadata = await resolveExecutionModelRoutingMetadata({
+    provider: "anthropic",
+    model: "claude-opus-4-7",
+    resolvedProvider: "anthropic",
+    resolvedModel: "claude-opus-4-7",
+    resolvedMetadata: {
+      targetFormat: "claude",
+      unsupportedParams: ["temperature"],
+    },
+    loadProviderModelMeta: async () => {
+      loaded = true;
+      return {};
+    },
+  });
+
+  assert.equal(loaded, false);
+  assert.equal(metadata.targetFormat, "claude");
+  assert.deepEqual(metadata.unsupportedParams, ["temperature"]);
 });
 
 test("checkPipelineGates blocks providers with an open circuit breaker", async () => {
@@ -416,6 +492,72 @@ test("executeChatWithBreaker converts proxy fast-fail errors", async () => {
 
     assert.equal(proxyResult.result.status, 502);
     assert.match(String(proxyResult.result.error || ""), /Proxy unreachable/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("executeChatWithBreaker forwards provider-first unsupported params to chatCore", async () => {
+  const originalFetch = globalThis.fetch;
+  let upstreamBody: Record<string, unknown> | null = null;
+  globalThis.fetch = async (_input, init) => {
+    upstreamBody = JSON.parse(String(init?.body || "{}"));
+    return new Response(
+      JSON.stringify({
+        id: "chatcmpl_helper",
+        object: "chat.completion",
+        created: 1,
+        model: "gpt-4o-mini",
+        choices: [
+          {
+            index: 0,
+            message: { role: "assistant", content: "ok" },
+            finish_reason: "stop",
+          },
+        ],
+        usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const credentials = {
+      connectionId: "conn_helper",
+      apiKey: "sk-openai-helper",
+      providerSpecificData: {},
+    };
+    const breaker = getCircuitBreaker("openai");
+    const proxyResult = await executeChatWithBreaker({
+      bypassCircuitBreaker: false,
+      breaker,
+      body: {
+        model: "openai/gpt-4o-mini",
+        messages: [{ role: "user", content: "hello" }],
+        temperature: 0.7,
+      },
+      provider: "openai",
+      model: "gpt-4o-mini",
+      refreshedCredentials: credentials,
+      proxyInfo: null,
+      log: console,
+      clientRawRequest: null,
+      credentials,
+      apiKeyInfo: null,
+      userAgent: "",
+      comboName: null,
+      comboStrategy: null,
+      isCombo: false,
+      extendedContext: false,
+      comboStepId: null,
+      comboExecutionKey: null,
+      modelUnsupportedParams: ["temperature"],
+    });
+
+    assert.equal(proxyResult.result.success, true);
+    await proxyResult.result.response.text();
+    assert.ok(upstreamBody);
+    assert.equal(Object.prototype.hasOwnProperty.call(upstreamBody, "temperature"), false);
   } finally {
     globalThis.fetch = originalFetch;
   }

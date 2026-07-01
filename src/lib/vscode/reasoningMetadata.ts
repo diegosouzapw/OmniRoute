@@ -1,5 +1,5 @@
-import { supportsXHighEffort } from "@omniroute/open-sse/config/providerModels";
 import { parseModel } from "@omniroute/open-sse/services/model";
+import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import { stripVscodeServiceTierVariantModelId } from "@/lib/vscode/serviceTierVariants";
 
 export type VscodeCatalogModel = {
@@ -15,9 +15,9 @@ export type VscodeCatalogModel = {
   default_reasoning_effort?: string;
 };
 
-const EFFORT_SUFFIX_PATTERN = /-(xhigh|high|medium|low|none)$/i;
+const EFFORT_SUFFIX_PATTERN = /-(max|xhigh|high|medium|low|none)$/i;
 const DEFAULT_REASONING_EFFORT = "none";
-const KNOWN_REASONING_EFFORTS = new Set(["none", "low", "medium", "high", "xhigh"]);
+const KNOWN_REASONING_EFFORTS = new Set(["none", "low", "medium", "high", "xhigh", "max"]);
 
 export type VscodeModelConfigSchema = {
   type: "object";
@@ -44,6 +44,7 @@ function normalizeReasoningEffortValue(value: string) {
     .toLowerCase()
     .replace(/[_\s-]+/g, "");
   if (normalized === "xhigh") return "xhigh";
+  if (normalized === "max") return "max";
   if (KNOWN_REASONING_EFFORTS.has(normalized)) return normalized;
   return undefined;
 }
@@ -81,7 +82,6 @@ function getNativeReasoningEffortValues(model: VscodeCatalogModel) {
 export function isReasoningCapableModel(model: VscodeCatalogModel) {
   return (
     model.capabilities?.reasoning === true ||
-    model.capabilities?.thinking === true ||
     (getNativeReasoningEffortValues(model)?.length || 0) > 0
   );
 }
@@ -96,12 +96,20 @@ export function getReasoningEffortValues(model: VscodeCatalogModel) {
 
   const modelId = getCatalogModelName(model);
   const parsed = parseModel(modelId, "");
-  const providerId = parsed.provider || model.owned_by || "";
-  const providerModelId = parsed.model || model.root || modelId.split("/").pop() || modelId;
+  const providerId = model.owned_by || parsed.provider || "";
+  const providerModelId =
+    providerId === "cc-compatible"
+      ? modelId
+      : parsed.model || model.root || modelId.split("/").pop() || modelId;
   const values = ["none", "low", "medium", "high"];
 
-  if (providerId && providerModelId && supportsXHighEffort(providerId, providerModelId)) {
-    values.push("xhigh");
+  if (providerId && providerModelId) {
+    const capabilities = getResolvedModelCapabilities({
+      provider: providerId,
+      model: providerModelId,
+    });
+    if (capabilities.supportsXHighEffort === true) values.push("xhigh");
+    if (capabilities.supportsMaxEffort === true) values.push("max");
   }
 
   return values;
@@ -109,6 +117,7 @@ export function getReasoningEffortValues(model: VscodeCatalogModel) {
 
 export function formatReasoningEffortLabel(level: string) {
   if (level === "xhigh") return "XHigh";
+  if (level === "max") return "Max";
   return level.charAt(0).toUpperCase() + level.slice(1);
 }
 
@@ -123,6 +132,8 @@ function describeReasoningEffort(level: string) {
     case "high":
       return "Uses an extended amount of reasoning.";
     case "xhigh":
+      return "Uses an extra-high amount of reasoning.";
+    case "max":
       return "Uses the maximum available reasoning effort.";
     default:
       return `Uses ${formatReasoningEffortLabel(level)} reasoning effort.`;

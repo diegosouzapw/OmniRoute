@@ -1,5 +1,4 @@
 import type { RegistryEntry } from "../../shared.ts";
-
 export const tencentProvider: RegistryEntry = {
   id: "tencent",
   alias: "tencent",
@@ -15,11 +14,35 @@ export const tencentProvider: RegistryEntry = {
   // hunyuan-standard/-256K/-code/-role and the pinned turbos-20250226 snapshot were
   // dropped from the live catalog and are intentionally omitted.
   models: [
-    { id: "hunyuan-turbos-latest", name: "Hunyuan TurboS Latest", contextLength: 200000 },
-    { id: "hunyuan-t1-latest", name: "Hunyuan T1 Latest", contextLength: 256000 },
-    { id: "hunyuan-pro", name: "Hunyuan Pro" },
-    { id: "hunyuan-vision", name: "Hunyuan Vision" },
-    { id: "hunyuan-functioncall", name: "Hunyuan FunctionCall" },
-    { id: "hunyuan-lite", name: "Hunyuan Lite" },
+    {
+      id: "hunyuan-turbos-latest",
+      name: "Hunyuan TurboS Latest",
+      capabilities: {
+        contextWindow: 200000,
+      },
+    },
+    {
+      id: "hunyuan-t1-latest",
+      name: "Hunyuan T1 Latest",
+      capabilities: {
+        contextWindow: 256000,
+      },
+    },
+    {
+      id: "hunyuan-pro",
+      name: "Hunyuan Pro",
+    },
+    {
+      id: "hunyuan-vision",
+      name: "Hunyuan Vision",
+    },
+    {
+      id: "hunyuan-functioncall",
+      name: "Hunyuan FunctionCall",
+    },
+    {
+      id: "hunyuan-lite",
+      name: "Hunyuan Lite",
+    },
   ],
 };

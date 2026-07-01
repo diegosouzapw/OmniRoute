@@ -12,7 +12,7 @@ export function getCompatibleFallbackModels(
   fallbackModels: ManagedAvailableModel[] = []
 ): ManagedAvailableModel[] | undefined {
   if (providerId === "openrouter") return fallbackModels;
-  if (isClaudeCodeCompatibleProvider(providerId)) return getModelsByProviderId("claude");
+  if (isClaudeCodeCompatibleProvider(providerId)) return getModelsByProviderId("cc");
   return undefined;
 }
 

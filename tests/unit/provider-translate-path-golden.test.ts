@@ -52,7 +52,12 @@ function sanitize(headers: Record<string, unknown>): Record<string, unknown> {
       .replace(/Bearer .+/, "Bearer <TOK>")
       .replace(/sk-test-APIKEY|tok-test-ACCESS/g, "<CRED>")
       .replace(/kimi-\d{10,}/g, "kimi-<TS>")
+      .replace("(Macintosh; Intel Mac OS X 10_15_7)", "(X11; Linux x86_64)")
+      .replace(/\((darwin|win32); (arm64|x64)\)/g, "(linux; x64)")
       .replace(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "<UUID>");
+    if (s === "MacOS" || s === "Windows") s = "Linux";
+    if (s === "arm64") s = "x64";
+    if (s === "darwin" || s === "win32") s = "linux";
     if (NODE_VERSION) s = s.split(NODE_VERSION).join("<NODE>");
     if (NODE_VERSION_BARE) s = s.split(NODE_VERSION_BARE).join("<NODE>");
     if (APP_VERSION) s = s.split(APP_VERSION).join("<APP>");

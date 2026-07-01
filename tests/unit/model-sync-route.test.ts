@@ -6,7 +6,6 @@ import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-model-sync-route-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
-// FASE-01: API_KEY_SECRET is required for CRC operations (no hardcoded fallback)
 if (!process.env.API_KEY_SECRET) {
   process.env.API_KEY_SECRET = "test-model-sync-secret-" + Date.now();
 }
@@ -24,13 +23,8 @@ const originalFetch = globalThis.fetch;
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
   globalThis.fetch = originalFetch;
-  // Reset the shared loopback readiness gate between tests so the cached
-  // promise from a previous test doesn't poison this one (PR #2221 adds
-  // an __loopbackReadyPromise module-level cache that, once resolved, is
-  // reused for the rest of the process). Without this reset, the very
-  // first test's mock-fetch resolution (or rejection) leaks into every
-  // subsequent test, causing the route to use in-process fallback instead
-  // of the test's mocked self-fetch.
+  // Reset the shared loopback readiness gate so one test's cached probe result
+  // cannot force later tests down the in-process fallback path.
   modelSyncRoute.__resetLoopbackReadinessForTests();
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
@@ -409,10 +403,13 @@ test("model sync route writes synced available models for Gemini connections", a
       name: "Gemini Custom Preview",
       source: "imported",
       supportedEndpoints: ["chat", "embeddings"],
-      inputTokenLimit: 32768,
-      outputTokenLimit: 8192,
       description: "Custom Gemini preview model",
-      supportsThinking: true,
+      capabilities: {
+        contextWindow: 32768,
+        maxInputTokens: 32768,
+        maxOutputTokens: 8192,
+        supportsReasoning: true,
+      },
     },
   ]);
   assert.equal(logs.length, 1);
@@ -466,7 +463,10 @@ test("model sync route writes synced available models for non-Gemini providers t
       name: "GLM 5.1",
       source: "imported",
       supportedEndpoints: ["chat"],
-      inputTokenLimit: 262144,
+      capabilities: {
+        contextWindow: 262144,
+        maxInputTokens: 262144,
+      },
     },
   ]);
 });
@@ -512,10 +512,13 @@ test("model sync route import mode merges discovered models without deleting man
   assert.equal(body.updatedCount, 0);
   assert.equal(body.syncedAliases, 1);
   assert.deepEqual(body.modelChanges, { added: 1, removed: 0, updated: 0, total: 1 });
-  assert.deepEqual(body.customModelChanges, { added: 0, removed: 1, updated: 0, total: 1 });
+  assert.deepEqual(body.customModelChanges, { added: 0, removed: 0, updated: 0, total: 0 });
   assert.deepEqual(
     body.models.map((model) => ({ id: model.id, source: model.source })),
-    [{ id: "manual-only", source: "manual" }]
+    [
+      { id: "manual-only", source: "manual" },
+      { id: "router-v4", source: "manual" },
+    ]
   );
   assert.deepEqual(
     body.importedModels.map((model) => ({ id: model.id, source: model.source })),
@@ -858,10 +861,13 @@ test("model sync route reports synced managed models separately from preserved m
   assert.equal(body.availableModelsCount, 2);
   assert.equal(body.importedCount, 1);
   assert.equal(body.updatedCount, 0);
-  assert.deepEqual(body.customModelChanges, { added: 0, removed: 1, updated: 0, total: 1 });
+  assert.deepEqual(body.customModelChanges, { added: 0, removed: 0, updated: 0, total: 0 });
   assert.deepEqual(
     body.models.map((model) => ({ id: model.id, source: model.source })),
-    [{ id: "manual-only", source: "manual" }]
+    [
+      { id: "manual-only", source: "manual" },
+      { id: "router-v4", source: "manual" },
+    ]
   );
   assert.deepEqual(
     (await modelsDb.getSyncedAvailableModels("openrouter")).map((model) => ({
@@ -998,11 +1004,7 @@ test("model sync route falls back to in-process discovery when internal self-fet
     availableModels.map((model) => ({ id: model.id, source: model.source })),
     [{ id: "aio-model", source: "imported" }]
   );
-  // selfFetchWithRetry default maxRetries=3: all 3 attempts throw, then in-process
-  // fallback fires (which triggers the upstream bltcy.ai fetch). So fetchCalls
-  // contains 3 self-fetch URLs followed by 1 upstream URL.
-  // Route forces IPv4 origin (http://127.0.0.1:PORT) — never "localhost" — to avoid
-  // ::1 (IPv6) resolution issues in containers. PORT defaults to 20128 when env unset.
+  // Three self-fetch retries should use IPv4 loopback before upstream fallback.
   const expectedPort = process.env.OMNIROUTE_PORT || process.env.PORT || "20128";
   const selfFetchUrl = `http://127.0.0.1:${expectedPort}/api/providers/${connection.id}/models?refresh=true`;
   assert.equal(

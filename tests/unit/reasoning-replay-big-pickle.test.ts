@@ -30,8 +30,10 @@ const { requiresReasoningReplay } = await import("../../open-sse/services/reason
 
 type ModelEntry = {
   id: string;
-  supportsReasoning?: boolean;
-  interleavedField?: string;
+  capabilities?: {
+    supportsReasoning?: boolean;
+    interleavedField?: string;
+  };
   [key: string]: unknown;
 };
 
@@ -45,7 +47,7 @@ for (const providerId of ["opencode", "opencode-zen"]) {
     const model = getModel(providerId, "big-pickle");
     assert.ok(model, `big-pickle must be registered in ${providerId}`);
     assert.strictEqual(
-      model.interleavedField,
+      model.capabilities?.interleavedField,
       "reasoning_content",
       `${providerId}/big-pickle must declare interleavedField:"reasoning_content" to trigger replay`
     );

@@ -15,24 +15,41 @@ import {
 } from "@/shared/utils/modelCatalogSearch";
 import { resolveManagedModelAlias } from "@/shared/utils/providerModelAliases";
 import { useNotificationStore } from "@/store/notificationStore";
+import { buildCompatMap, providerText, type CompatModelRow } from "../providerPageHelpers";
 import {
-  buildCompatMap,
-  providerText,
-  type CompatModelRow,
-} from "../providerPageHelpers";
-import { ModelVisibilityToolbar } from "./ModelRow";
+  editableModelConfigRow,
+  effectiveModelCapabilitiesFromRows,
+  hasModelConfigOverride,
+  modelCapabilitiesFromRow,
+  shouldUseRowModelConfig,
+} from "../modelConfigHelpers";
+import { ModelVisibilityToolbar, type ModelCompatSavePatch } from "./ModelRow";
 import { sortModelsFreeFirst, isFreeModel } from "@/shared/utils/freeModels";
 import PassthroughModelRow, { type PassthroughModelRowProps } from "./PassthroughModelRow";
+import type { ProviderModelCapabilities } from "@/shared/types/modelConfig";
+
+function ownUnsupportedParams(row: CompatModelRow | null | undefined): string[] | undefined {
+  if (!row || typeof row !== "object") return undefined;
+  if (Object.prototype.hasOwnProperty.call(row, "unsupportedParams")) {
+    return Array.isArray(row.unsupportedParams) ? row.unsupportedParams : [];
+  }
+  const compat = row.compat;
+  if (
+    compat &&
+    typeof compat === "object" &&
+    Object.prototype.hasOwnProperty.call(compat, "unsupportedParams")
+  ) {
+    return Array.isArray(compat.unsupportedParams) ? [...compat.unsupportedParams] : [];
+  }
+  return undefined;
+}
 
 // ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
 
-export type CompatibleModelsSaveFlags = {
-  normalizeToolCallId?: boolean;
+export type CompatibleModelsSaveFlags = ModelCompatSavePatch & {
   preserveDeveloperRole?: boolean;
-  preserveOpenAIDeveloperRole?: boolean;
-  isHidden?: boolean;
 };
 
 export interface CompatibleModelsSectionProps {
@@ -41,6 +58,7 @@ export interface CompatibleModelsSectionProps {
   modelAliases: Record<string, string>;
   availableModels?: CompatModelRow[];
   customModels?: CompatModelRow[];
+  modelCompatOverrides?: Array<CompatModelRow & { id: string }>;
   fallbackModels?: CompatModelRow[];
   allowImport: boolean;
   description: string;
@@ -57,10 +75,8 @@ export interface CompatibleModelsSectionProps {
   effectiveModelNormalize: (alias: string) => boolean;
   effectiveModelPreserveDeveloper: (alias: string) => boolean;
   getUpstreamHeadersRecord: (modelId: string, protocol: string) => Record<string, string>;
-  saveModelCompatFlags: (
-    modelId: string,
-    flags: CompatibleModelsSaveFlags
-  ) => Promise<void>;
+  saveModelCompatFlags: (modelId: string, flags: CompatibleModelsSaveFlags) => Promise<void>;
+  resetModelConfig: (modelId: string) => Promise<void>;
   compatSavingModelId?: string;
   onModelsChanged?: () => void;
   isModelHidden: (modelId: string) => boolean;
@@ -88,6 +104,7 @@ export default function CompatibleModelsSection({
   modelAliases,
   availableModels = [],
   customModels = [],
+  modelCompatOverrides = [],
   fallbackModels = [],
   description,
   inputLabel,
@@ -104,6 +121,7 @@ export default function CompatibleModelsSection({
   effectiveModelPreserveDeveloper,
   getUpstreamHeadersRecord,
   saveModelCompatFlags,
+  resetModelConfig,
   compatSavingModelId,
   onModelsChanged,
   allowImport,
@@ -130,6 +148,7 @@ export default function CompatibleModelsSection({
   const [sortFreeFirst, setSortFreeFirst] = useState(false);
   const notify = useNotificationStore();
   const customModelMap = useMemo(() => buildCompatMap(customModels), [customModels]);
+  const overrideMap = useMemo(() => buildCompatMap(modelCompatOverrides), [modelCompatOverrides]);
 
   const providerAliases = useMemo(
     () =>
@@ -149,6 +168,13 @@ export default function CompatibleModelsSection({
       source: string;
       isFree: boolean;
       isHidden: boolean;
+      capabilities: ProviderModelCapabilities;
+      configuredCapabilities: ProviderModelCapabilities;
+      targetFormat: string | null;
+      configuredTargetFormat: string | null;
+      unsupportedParams: string[];
+      configuredUnsupportedParams: string[];
+      hasModelConfigOverride: boolean;
     }> = [];
     const seenModelIds = new Set<string>();
 
@@ -158,8 +184,14 @@ export default function CompatibleModelsSection({
       aliasByModelId.set(modelId, alias as string);
     }
 
-    const addModel = (model: CompatModelRow, source: string) => {
+    const addModel = (model: CompatModelRow, source: string, includeModelConfig = false) => {
       if (!model?.id || seenModelIds.has(model.id)) return;
+      const override = overrideMap.get(model.id);
+      const editableConfig = editableModelConfigRow(
+        model,
+        override,
+        includeModelConfig || shouldUseRowModelConfig(model)
+      );
       rows.push({
         modelId: model.id,
         alias: aliasByModelId.get(model.id) || null,
@@ -171,6 +203,24 @@ export default function CompatibleModelsSection({
           /\bgr[aá]tis\b|\bfree\b/i.test(model.name || "") ||
           isFreeModel(providerStorageAlias, { id: model.id }),
         isHidden: isModelHidden(model.id),
+        capabilities: effectiveModelCapabilitiesFromRows(
+          providerStorageAlias,
+          model.id,
+          model,
+          override
+        ),
+        configuredCapabilities: modelCapabilitiesFromRow(editableConfig),
+        targetFormat:
+          override?.targetFormat ??
+          override?.compat?.targetFormat ??
+          model.compat?.targetFormat ??
+          model.targetFormat ??
+          null,
+        configuredTargetFormat:
+          editableConfig?.compat?.targetFormat ?? editableConfig?.targetFormat ?? null,
+        unsupportedParams: ownUnsupportedParams(override) ?? ownUnsupportedParams(model) ?? [],
+        configuredUnsupportedParams: ownUnsupportedParams(editableConfig) ?? [],
+        hasModelConfigOverride: hasModelConfigOverride(model, override),
       });
       seenModelIds.add(model.id);
     };
@@ -182,7 +232,8 @@ export default function CompatibleModelsSection({
     for (const model of customModels) {
       addModel(
         model,
-        normalizeModelCatalogSource(model.source) === "imported" ? "imported" : "custom"
+        normalizeModelCatalogSource(model.source) === "imported" ? "imported" : "custom",
+        true
       );
     }
 
@@ -195,6 +246,13 @@ export default function CompatibleModelsSection({
       const modelId = fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr;
       if (!modelId || seenModelIds.has(modelId)) continue;
       const customModel = customModelMap.get(modelId);
+      const baseModel = customModel || ({ id: modelId } as CompatModelRow);
+      const override = overrideMap.get(modelId);
+      const editableConfig = editableModelConfigRow(
+        baseModel,
+        override,
+        Boolean(customModel) || shouldUseRowModelConfig(baseModel)
+      );
       rows.push({
         modelId,
         alias: alias as string,
@@ -206,6 +264,24 @@ export default function CompatibleModelsSection({
           /\bgr[aá]tis\b|\bfree\b/i.test(customModel?.name || alias || "") ||
           isFreeModel(providerStorageAlias, { id: modelId }),
         isHidden: isModelHidden(modelId),
+        capabilities: effectiveModelCapabilitiesFromRows(
+          providerStorageAlias,
+          modelId,
+          baseModel,
+          override
+        ),
+        configuredCapabilities: modelCapabilitiesFromRow(editableConfig),
+        targetFormat:
+          override?.targetFormat ??
+          override?.compat?.targetFormat ??
+          baseModel.compat?.targetFormat ??
+          baseModel.targetFormat ??
+          null,
+        configuredTargetFormat:
+          editableConfig?.compat?.targetFormat ?? editableConfig?.targetFormat ?? null,
+        unsupportedParams: ownUnsupportedParams(override) ?? ownUnsupportedParams(baseModel) ?? [],
+        configuredUnsupportedParams: ownUnsupportedParams(editableConfig) ?? [],
+        hasModelConfigOverride: hasModelConfigOverride(customModel, override),
       });
       seenModelIds.add(modelId);
     }
@@ -217,6 +293,7 @@ export default function CompatibleModelsSection({
     customModels,
     fallbackModels,
     isModelHidden,
+    overrideMap,
     providerAliases,
     providerStorageAlias,
   ]);
@@ -428,42 +505,65 @@ export default function CompatibleModelsSection({
             onAutoHideFailedChange={onAutoHideFailedChange}
           />
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-            {displayModels.map(({ modelId, alias, isHidden, source, isFree }) => {
-              const fullModel = `${providerDisplayAlias}/${modelId}`;
-              return (
-                <PassthroughModelRow
-                  key={`${providerStorageAlias}:${modelId}`}
-                  modelId={modelId}
-                  fullModel={fullModel}
-                  alias={alias}
-                  source={source}
-                  isFree={isFree}
-                  isHidden={isHidden}
-                  copied={copied}
-                  onCopy={onCopy}
-                  onDeleteAlias={
-                    source === "custom" || source === "manual"
-                      ? () => handleDeleteModel(modelId, alias)
-                      : source === "alias" && alias
-                        ? () => onDeleteAlias(alias)
-                        : undefined
-                  }
-                  onSetAlias={(a) => onSetAlias(modelId, a, providerStorageAlias)}
-                  t={t}
-                  showDeveloperToggle={!isAnthropic}
-                  effectiveModelNormalize={effectiveModelNormalize}
-                  effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
-                  getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
-                  saveModelCompatFlags={saveModelCompatFlags}
-                  compatDisabled={compatSavingModelId === modelId}
-                  onToggleHidden={onToggleHidden}
-                  togglingHidden={togglingModelId === modelId}
-                  onTestModel={onTestModel}
-                  testStatus={modelTestStatus?.[modelId] || null}
-                  testingModel={testingModelId === modelId}
-                />
-              );
-            })}
+            {displayModels.map(
+              ({
+                modelId,
+                alias,
+                isHidden,
+                source,
+                isFree,
+                capabilities,
+                configuredCapabilities,
+                targetFormat,
+                configuredTargetFormat,
+                unsupportedParams,
+                configuredUnsupportedParams,
+                hasModelConfigOverride,
+              }) => {
+                const fullModel = `${providerDisplayAlias}/${modelId}`;
+                return (
+                  <PassthroughModelRow
+                    key={`${providerStorageAlias}:${modelId}`}
+                    modelId={modelId}
+                    fullModel={fullModel}
+                    alias={alias}
+                    source={source}
+                    isFree={isFree}
+                    isHidden={isHidden}
+                    capabilities={capabilities}
+                    configuredCapabilities={configuredCapabilities}
+                    targetFormat={targetFormat}
+                    configuredTargetFormat={configuredTargetFormat}
+                    unsupportedParams={unsupportedParams}
+                    configuredUnsupportedParams={configuredUnsupportedParams}
+                    hasModelConfigOverride={hasModelConfigOverride}
+                    copied={copied}
+                    onCopy={onCopy}
+                    onDeleteAlias={
+                      source === "custom" || source === "manual"
+                        ? () => handleDeleteModel(modelId, alias)
+                        : source === "alias" && alias
+                          ? () => onDeleteAlias(alias)
+                          : undefined
+                    }
+                    onSetAlias={(a) => onSetAlias(modelId, a, providerStorageAlias)}
+                    t={t}
+                    showDeveloperToggle={!isAnthropic}
+                    effectiveModelNormalize={effectiveModelNormalize}
+                    effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+                    getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
+                    saveModelCompatFlags={saveModelCompatFlags}
+                    resetModelConfig={resetModelConfig}
+                    compatDisabled={compatSavingModelId === modelId}
+                    onToggleHidden={onToggleHidden}
+                    togglingHidden={togglingModelId === modelId}
+                    onTestModel={onTestModel}
+                    testStatus={modelTestStatus?.[modelId] || null}
+                    testingModel={testingModelId === modelId}
+                  />
+                );
+              }
+            )}
           </div>
           {filteredModels.length === 0 && modelFilter && (
             <p className="py-2 text-sm text-text-muted">

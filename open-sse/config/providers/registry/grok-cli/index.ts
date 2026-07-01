@@ -1,6 +1,5 @@
 import type { RegistryEntry } from "../../shared.ts";
 import { resolvePublicCred } from "../../shared.ts";
-
 export const grok_cliProvider: RegistryEntry = {
   id: "grok-cli",
   alias: "gc",
@@ -14,14 +13,22 @@ export const grok_cliProvider: RegistryEntry = {
     {
       id: "grok-build",
       name: "Grok Build",
-      contextLength: 128000,
-      unsupportedParams: ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"],
+      capabilities: {
+        contextWindow: 128000,
+      },
+      compat: {
+        unsupportedParams: ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"],
+      },
     },
     {
       id: "grok-composer-2.5-fast",
       name: "Grok Composer 2.5 Fast",
-      contextLength: 128000,
-      unsupportedParams: ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"],
+      capabilities: {
+        contextWindow: 128000,
+      },
+      compat: {
+        unsupportedParams: ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"],
+      },
     },
   ],
   oauth: {

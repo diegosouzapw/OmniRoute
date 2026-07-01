@@ -9,7 +9,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
-
+const modelCapabilities = await import("../../src/lib/modelCapabilities.ts");
 async function resetStorage() {
   core.resetDbInstance();
 
@@ -121,10 +121,11 @@ test("replaceCustomModels preserves compat fields and respects the empty-list gu
   ]);
   const guarded = await modelsDb.replaceCustomModels("openai", []);
 
-  assert.equal(replaced[0].normalizeToolCallId, true);
-  assert.equal(replaced[0].preserveOpenAIDeveloperRole, false);
-  assert.deepEqual(replaced[0].upstreamHeaders, { "X-Test": "enabled" });
-  assert.equal(replaced[0].supportsThinking, true);
+  assert.equal(replaced[0].compat?.normalizeToolCallId, true);
+  assert.equal(replaced[0].compat?.preserveOpenAIDeveloperRole, false);
+  assert.deepEqual(replaced[0].compat?.upstreamHeaders, { "X-Test": "enabled" });
+  assert.equal(replaced[0].capabilities?.supportsReasoning, true);
+  assert.equal((replaced[0].capabilities as any)?.supportsThinking, undefined);
   assert.equal(guarded.length, 1);
 
   await modelsDb.replaceCustomModels("openai", [], { allowEmpty: true });
@@ -163,6 +164,186 @@ test("synced available models are unioned across connections and cleaned per con
     "gpt-4.1-mini",
     "o3-mini",
   ]);
+});
+
+test("provider-first capability override survives sync and reset returns to baseline", async () => {
+  await modelsDb.replaceSyncedAvailableModelsForConnection("openrouter", "conn-a", [
+    {
+      id: "provider/model-a",
+      name: "Provider Model A",
+      source: "imported",
+      capabilities: {
+        contextWindow: 200000,
+        maxOutputTokens: 8192,
+        supportsVision: true,
+        supportsTools: true,
+      },
+    },
+  ]);
+
+  modelsDb.mergeModelCompatOverride("openrouter", "provider/model-a", {
+    capabilities: {
+      supportsVision: false,
+      supportsReasoning: true,
+    },
+  });
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection("openrouter", "conn-a", [
+    {
+      id: "provider/model-a",
+      name: "Provider Model A",
+      source: "imported",
+      capabilities: {
+        contextWindow: 256000,
+        maxOutputTokens: 16384,
+        supportsVision: true,
+        supportsTools: true,
+      },
+    },
+  ]);
+
+  let snapshot = modelsDb.getProviderModelConfigSnapshot("openrouter", "provider/model-a");
+  assert.equal(snapshot.capabilities?.supportsVision, false);
+  assert.equal(snapshot.capabilities?.supportsReasoning, true);
+  assert.equal(snapshot.capabilities?.contextWindow, 256000);
+  const runtime = modelCapabilities.getResolvedModelCapabilities({
+    provider: "openrouter",
+    model: "provider/model-a",
+  });
+  assert.equal(runtime.supportsVision, false);
+  assert.equal(runtime.supportsThinking, true);
+  assert.equal(runtime.contextWindow, 256000);
+
+  const resetModel = await modelsDb.resetProviderModelConfig("openrouter", "provider/model-a");
+  const resetCapabilities = (resetModel as any)?.capabilities;
+  assert.equal(resetModel?.id, "provider/model-a");
+  assert.equal(resetCapabilities?.supportsVision, true);
+  assert.equal(resetCapabilities?.maxOutputTokens, 16384);
+
+  snapshot = modelsDb.getProviderModelConfigSnapshot("openrouter", "provider/model-a");
+  assert.equal(snapshot.capabilities?.supportsVision, true);
+  assert.equal(snapshot.capabilities?.supportsReasoning, undefined);
+  assert.equal(snapshot.capabilities?.maxOutputTokens, 16384);
+});
+
+test("reset clears deleted synced model marker and immediately restores the model", async () => {
+  await modelsDb.replaceSyncedAvailableModelsForConnection("openrouter", "conn-a", [
+    {
+      id: "provider/model-deleted",
+      name: "Provider Model Deleted",
+      source: "imported",
+    },
+  ]);
+  assert.deepEqual(
+    (await modelsDb.getSyncedAvailableModels("openrouter")).map((model) => model.id),
+    ["provider/model-deleted"]
+  );
+
+  modelsDb.mergeModelCompatOverride("openrouter", "provider/model-deleted", {
+    isDeleted: true,
+    isHidden: true,
+  });
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection("openrouter", "conn-a", [
+    {
+      id: "provider/model-deleted",
+      name: "Provider Model Deleted",
+      source: "imported",
+    },
+  ]);
+  assert.deepEqual(await modelsDb.getSyncedAvailableModels("openrouter"), []);
+
+  await modelsDb.resetProviderModelConfig("openrouter", "provider/model-deleted");
+
+  assert.deepEqual(
+    (await modelsDb.getSyncedAvailableModels("openrouter")).map((model) => model.id),
+    ["provider/model-deleted"]
+  );
+  assert.equal(
+    modelsDb
+      .getModelCompatOverrides("openrouter")
+      .find((model) => model.id === "provider/model-deleted"),
+    undefined
+  );
+});
+
+test("reset clears legacy capability fields when a custom model has no baseline", async () => {
+  core
+    .getDbInstance()
+    .prepare("INSERT INTO key_value (namespace, key, value) VALUES ('customModels', ?, ?)")
+    .run(
+      "openrouter",
+      JSON.stringify([
+        {
+          id: "legacy/model",
+          name: "Legacy Model",
+          source: "manual",
+          inputTokenLimit: 32000,
+          outputTokenLimit: 4096,
+          supportsVision: false,
+          supportsTools: false,
+          supportsThinking: true,
+          targetFormat: "claude",
+          unsupportedParams: ["temperature"],
+        },
+      ])
+    );
+
+  let snapshot = modelsDb.getProviderModelConfigSnapshot("openrouter", "legacy/model");
+  assert.equal(snapshot.capabilities?.supportsReasoning, true);
+  assert.equal(snapshot.capabilities?.contextWindow, 32000);
+  assert.equal(snapshot.compat?.targetFormat, "claude");
+  assert.deepEqual(snapshot.compat?.unsupportedParams, ["temperature"]);
+
+  await modelsDb.resetProviderModelConfig("openrouter", "legacy/model");
+
+  snapshot = modelsDb.getProviderModelConfigSnapshot("openrouter", "legacy/model");
+  assert.equal(snapshot.capabilities, undefined);
+  assert.equal(snapshot.compat, undefined);
+});
+
+test("reset sanitizes legacy capability fields restored from a custom model baseline", async () => {
+  core
+    .getDbInstance()
+    .prepare("INSERT INTO key_value (namespace, key, value) VALUES ('customModels', ?, ?)")
+    .run(
+      "openrouter",
+      JSON.stringify([
+        {
+          id: "legacy/baseline-model",
+          name: "Legacy Baseline Model",
+          source: "manual",
+          supportsThinking: false,
+          capabilities: {
+            supportsThinking: false,
+            reasoningEfforts: ["low", "max"],
+          },
+          baseline: {
+            id: "legacy/baseline-model",
+            name: "Legacy Baseline Model",
+            source: "manual",
+            supportsThinking: true,
+            capabilities: {
+              supportsThinking: true,
+              reasoningEfforts: ["xhigh"],
+            },
+          },
+        },
+      ])
+    );
+
+  await modelsDb.resetProviderModelConfig("openrouter", "legacy/baseline-model");
+
+  const [model] = (await modelsDb.getCustomModels("openrouter")) as any[];
+  assert.equal(model.supportsThinking, undefined);
+  assert.equal(model.reasoningEfforts, undefined);
+  assert.equal(model.supportsReasoning, undefined);
+  assert.equal(model.capabilities?.supportsThinking, undefined);
+  assert.equal(model.capabilities?.reasoningEfforts, undefined);
+  assert.equal(model.capabilities?.supportsReasoning, true);
+  assert.equal(model.baseline?.supportsThinking, undefined);
+  assert.equal(model.baseline?.capabilities?.supportsThinking, undefined);
+  assert.equal(model.baseline?.capabilities?.supportsReasoning, true);
 });
 
 test("compat overrides expose per-protocol getters and removable extra headers", async () => {

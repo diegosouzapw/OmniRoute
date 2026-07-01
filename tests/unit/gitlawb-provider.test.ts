@@ -42,7 +42,7 @@ describe("Gitlawb Opengateway providers", () => {
       );
       const pro = entry.models.find((m: any) => m.id === "mimo-v2.5-pro");
       assert.ok(pro, "mimo-v2.5-pro should be listed");
-      assert.strictEqual(pro.contextLength, 1048576);
+      assert.strictEqual(pro.capabilities?.contextWindow, 1048576);
     });
   });
 

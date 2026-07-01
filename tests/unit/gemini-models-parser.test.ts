@@ -58,7 +58,7 @@ test("parseGeminiModelsList strips the models/ prefix and maps display name", ()
   assert.equal(flash!.name, "Gemini 2.5 Flash");
   assert.equal(flash!.inputTokenLimit, 1048576);
   assert.equal(flash!.outputTokenLimit, 65536);
-  assert.equal(flash!.supportsThinking, true);
+  assert.equal(flash!.supportsReasoning, true);
   assert.deepEqual(flash!.supportedEndpoints, ["chat"]);
 });
 

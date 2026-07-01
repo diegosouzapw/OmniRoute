@@ -16,10 +16,7 @@
  * Part of: Group B — Quota Sharing Engine (plan 22, frente F6).
  */
 
-import {
-  getPool,
-  listAllocationsForApiKey,
-} from "@/lib/localDb";
+import { getPool, listAllocationsForApiKey } from "@/lib/localDb";
 import { WINDOW_MS, dimensionKeyToString } from "./dimensions";
 import type { DimensionKey } from "./dimensions";
 import type { QuotaStore, PoolUsageSnapshot } from "./types";
@@ -39,6 +36,7 @@ interface RedisLike {
   eval(script: string, numkeys: number, ...args: unknown[]): Promise<unknown>;
   del(...keys: string[]): Promise<number>;
   quit(): Promise<string>;
+  disconnect?(): void;
 }
 
 /**
@@ -65,7 +63,18 @@ export async function getRedisClient(url: string): Promise<RedisLike> {
 
 /** Test-only: reset the Redis singleton. */
 export function resetRedisClient(): void {
+  const client = _redisClient as RedisLike | null;
+  if (client) {
+    try {
+      client.disconnect?.();
+    } catch {}
+  }
   _redisClient = null;
+}
+
+export function __setRedisClientForTests(client: RedisLike | null): void {
+  resetRedisClient();
+  _redisClient = client;
 }
 
 // ---------------------------------------------------------------------------

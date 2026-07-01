@@ -12,8 +12,28 @@ import {
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
 import { openaiToAntigravityRequest } from "../../open-sse/translator/request/openai-to-gemini.ts";
 
-function getPublicModel(id: string) {
-  return ANTIGRAVITY_PUBLIC_MODELS.find((model) => model.id === id) as any;
+type AntigravityPublicModel = (typeof ANTIGRAVITY_PUBLIC_MODELS)[number];
+type AntigravityRequestForTest = {
+  contents?: unknown;
+  generationConfig: {
+    maxOutputTokens?: number;
+    temperature?: number;
+    topK?: number;
+    topP?: number;
+    thinkingConfig?: unknown;
+  };
+  messages?: unknown;
+  system?: unknown;
+  max_tokens?: unknown;
+  stream?: unknown;
+  temperature?: unknown;
+  thinking?: unknown;
+};
+
+function getPublicModel(id: string): AntigravityPublicModel {
+  const model = ANTIGRAVITY_PUBLIC_MODELS.find((entry) => entry.id === id);
+  assert.ok(model, `expected public Antigravity model ${id}`);
+  return model;
 }
 
 // #3821-review LEDGER-5 — the upstream quota-bucket → client-tier remap is now the single
@@ -101,21 +121,25 @@ test("ANTIGRAVITY_PUBLIC_MODELS exposes captured Antigravity 2.0.1 names and cap
   assert.deepEqual(getPublicModel("claude-opus-4-6-thinking"), {
     id: "claude-opus-4-6-thinking",
     name: "Claude Opus 4.6 (Thinking)",
-    contextLength: 200000,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
+    capabilities: {
+      contextWindow: 200000,
+      maxOutputTokens: 65536,
+      supportsReasoning: true,
+      supportsVision: true,
+      supportsTools: true,
+    },
   });
   assert.equal(getPublicModel("claude-sonnet-4-6").name, "Claude Sonnet 4.6 (Thinking)");
   assert.deepEqual(getPublicModel("gemini-3.5-flash-high"), {
     id: "gemini-3.5-flash-high",
     name: "Gemini 3.5 Flash (High)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
+    capabilities: {
+      contextWindow: 1048576,
+      maxOutputTokens: 65536,
+      supportsReasoning: true,
+      supportsVision: true,
+      supportsTools: true,
+    },
   });
   assert.equal(
     getClientVisibleAntigravityModelName("gemini-3.5-flash-medium"),
@@ -133,14 +157,16 @@ test("ANTIGRAVITY_PUBLIC_MODELS exposes captured Antigravity 2.0.1 names and cap
   assert.deepEqual(getPublicModel("gpt-oss-120b-medium"), {
     id: "gpt-oss-120b-medium",
     name: "GPT-OSS 120B (Medium)",
-    contextLength: 131072,
-    maxOutputTokens: 32768,
-    supportsReasoning: true,
-    toolCalling: true,
+    capabilities: {
+      contextWindow: 131072,
+      maxOutputTokens: 32768,
+      supportsReasoning: true,
+      supportsTools: true,
+    },
   });
-  assert.equal(getPublicModel("gemini-3-pro-image-preview").contextLength, undefined);
+  assert.equal(getPublicModel("gemini-3-pro-image-preview").capabilities?.contextWindow, undefined);
   assert.equal(
-    getPublicModel("gemini-2.5-computer-use-preview-10-2025").maxOutputTokens,
+    getPublicModel("gemini-2.5-computer-use-preview-10-2025").capabilities?.maxOutputTokens,
     undefined
   );
 });
@@ -206,7 +232,7 @@ test("AntigravityExecutor.transformRequest sends Claude through Gemini-compatibl
       reasoning_effort: "high",
     },
     true,
-    { projectId: "project-1" } as any
+    { projectId: "project-1" } as { projectId: string }
   );
 
   const result = await executor.transformRequest(
@@ -219,7 +245,7 @@ test("AntigravityExecutor.transformRequest sends Claude through Gemini-compatibl
   );
 
   if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
-  const request = result.request as any;
+  const request = result.request as AntigravityRequestForTest;
   assert.deepEqual(request.contents, [{ role: "user", parts: [{ text: "Hello" }] }]);
   // Capped to MAX_ANTIGRAVITY_OUTPUT_TOKENS (16384) by the executor (#4636) to avoid
   // the Antigravity Cloud Code 400 on maxOutputTokens > 16384, overriding the

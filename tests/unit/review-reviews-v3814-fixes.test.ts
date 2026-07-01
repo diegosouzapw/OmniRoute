@@ -135,16 +135,19 @@ test("LEDGER-2: valid custom headers still pass", () => {
 
 // ── LEDGER-4: every minimax-m3 registry entry is flagged multimodal ──
 test("LEDGER-4: all minimax-m3 registry entries set supportsVision (matches lite.ts)", () => {
-  const entries: { id: string; supportsVision?: boolean }[] = [];
+  const entries: { id: string; capabilities?: { supportsVision?: boolean } }[] = [];
   for (const provider of Object.values(
-    REGISTRY as Record<string, { models?: { id: string; supportsVision?: boolean }[] }>
+    REGISTRY as Record<
+      string,
+      { models?: { id: string; capabilities?: { supportsVision?: boolean } }[] }
+    >
   )) {
     for (const m of provider.models || []) {
       if (/minimax-m3/i.test(m.id)) entries.push(m);
     }
   }
   assert.ok(entries.length >= 6, `expected several minimax-m3 entries, got ${entries.length}`);
-  const unflagged = entries.filter((m) => m.supportsVision !== true).map((m) => m.id);
+  const unflagged = entries.filter((m) => m.capabilities?.supportsVision !== true).map((m) => m.id);
   assert.deepEqual(
     unflagged,
     [],

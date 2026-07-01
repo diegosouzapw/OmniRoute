@@ -1,55 +1,372 @@
 /**
- * db/models.ts — Custom models, synced available models, and model-flag queries.
- * Compat overrides, model aliases, and MITM aliases have moved to sub-modules under
- * models/; this file re-exports their public APIs for backward compatibility.
+ * db/models.js — Model aliases, MITM aliases, and custom models.
  */
 
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
-import { type JsonRecord, asRecord, toNonEmptyString, getKeyValue } from "./models/shared";
 import {
-  readCompatList,
-  writeCompatList,
-  deepMergeCompatByProtocol,
+  applyCapabilityPatchDeletes,
+  buildTokenLimitDeleteMarkers,
+  capabilityPatchHasNonNull,
+  cloneJsonRecord,
   compatByProtocolHasEntries,
-  isCompatProtocolKey,
-  sanitizeUpstreamHeadersMap,
-  removeModelCompatOverride,
-  type CompatByProtocolMap,
-  type ModelCompatProtocolKey,
-  type ModelCompatOverride,
-  type ModelCompatPerProtocol,
-} from "./models/compat";
-
-export {
-  sanitizeUpstreamHeadersMap,
+  deepMergeCompatByProtocol,
+  getModelIsDeleted,
   getModelCompatOverrides,
   mergeModelCompatOverride,
+  modelCapabilitiesHasEntries,
+  normalizeModelCapabilities,
+  normalizeModelCapabilitiesFromRow,
   removeModelCompatOverride,
-  MODEL_COMPAT_PROTOCOL_KEYS,
-  type ModelCompatProtocolKey,
+  resetModelConfigOverride,
+  sanitizeUpstreamHeadersMap,
+  type CompatByProtocolMap,
   type ModelCompatPerProtocol,
-  type ModelCompatOverride,
-  type ModelCompatPatch,
-} from "./models/compat";
+  type ModelCompatProtocolKey,
+} from "./modelCompat";
+import {
+  buildCompatConfigFromRow,
+  buildModelCompatFields,
+  canonicalizeModelConfigRow,
+  clearLegacyCapabilityFields,
+  clearLegacyCompatFields,
+  sanitizeModelConfigBaseline,
+} from "./modelConfigRows";
+import { getCustomModelRow, getSyncedAvailableModelRow } from "./modelConfigSnapshot";
 export {
-  getModelAliases,
-  setModelAlias,
-  deleteModelAlias,
-  deleteModelAliasesForProvider,
-} from "./models/aliases";
-export { getMitmAlias, setMitmAliasAll } from "./models/mitmAlias";
+  MODEL_COMPAT_PROTOCOL_KEYS,
+  getHiddenModelsByProvider,
+  getModelCompatOverrides,
+  getModelIsDeleted,
+  getModelIsHidden,
+  getModelNormalizeToolCallId,
+  getModelPreserveOpenAIDeveloperRole,
+  getModelUpstreamExtraHeaders,
+  mergeModelCompatOverride,
+  removeModelCompatOverride,
+  resetModelConfigOverride,
+  sanitizeUpstreamHeadersMap,
+  setModelIsHidden,
+  type ModelCompatPatch,
+  type ModelCompatPerProtocol,
+  type ModelCompatProtocolKey,
+} from "./modelCompat";
+export { getProviderModelConfigSnapshot } from "./modelConfigSnapshot";
+import {
+  type ProviderModelCapabilities,
+  type ProviderModelCapabilitiesPatch,
+  type ProviderModelConfig,
+} from "@/shared/types/modelConfig";
+
+type JsonRecord = Record<string, unknown>;
+
+const CONTEXT_CAPABILITY_KEYS = [
+  "contextWindow",
+  "contextLength",
+  "maxInputTokens",
+  "inputTokenLimit",
+] as const;
+const OUTPUT_CAPABILITY_KEYS = ["maxOutputTokens", "outputTokenLimit"] as const;
+
+function asRecord(value: unknown): JsonRecord {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
+}
+
+function toNonEmptyString(value: unknown): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function normalizeStringList(value: unknown, sort = false): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const list = Array.from(
+    new Set(
+      value
+        .map((entry) => toNonEmptyString(entry))
+        .filter((entry): entry is string => Boolean(entry))
+    )
+  );
+  return sort ? list.sort() : list;
+}
+
+function getSyncedModelIdentity(record: JsonRecord): { id: string; name: string } | null {
+  const id =
+    toNonEmptyString(record.id) || toNonEmptyString(record.name) || toNonEmptyString(record.model);
+  if (!id) return null;
+
+  return {
+    id,
+    name:
+      toNonEmptyString(record.name) ||
+      toNonEmptyString(record.displayName) ||
+      toNonEmptyString(record.model) ||
+      id,
+  };
+}
+
+function assignNumberField(target: JsonRecord, key: string, value: unknown) {
+  if (typeof value === "number") target[key] = value;
+}
+
+function assignStringField(target: JsonRecord, key: string, value: unknown) {
+  if (typeof value === "string") target[key] = value;
+}
+
+function assignNonEmptyStringField(target: JsonRecord, key: string, value: unknown) {
+  const normalized = toNonEmptyString(value);
+  if (normalized) target[key] = normalized;
+}
+
+function getKeyValue(row: unknown): { key: string | null; value: string | null } {
+  const record = asRecord(row);
+  return {
+    key: typeof record.key === "string" ? record.key : null,
+    value: typeof record.value === "string" ? record.value : null,
+  };
+}
+
+function parseJsonValue(value: string | null | undefined): unknown {
+  if (!value) return undefined;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return undefined;
+  }
+}
+
+function parseJsonArray(value: string | null | undefined): unknown[] {
+  const parsed = parseJsonValue(value);
+  return Array.isArray(parsed) ? parsed : [];
+}
+
+function parseJsonRecordArray(value: string | null | undefined): JsonRecord[] {
+  return parseJsonArray(value).filter((entry): entry is JsonRecord =>
+    Boolean(entry && typeof entry === "object" && !Array.isArray(entry))
+  );
+}
+
+function clearModelConfigFields(target: JsonRecord, includeCompat = false): void {
+  for (const key of [
+    "capabilities",
+    "capabilityOverrides",
+    "inputTokenLimit",
+    "outputTokenLimit",
+    "supportsVision",
+    "supportsThinking",
+    "supportsTools",
+    "supportsReasoning",
+    "supportsXHighEffort",
+    "supportsMaxEffort",
+    "reasoningEfforts",
+    "defaultThinkingBudget",
+    "thinkingBudgetCap",
+    "thinkingOverhead",
+    "adaptiveMaxTokens",
+    "interleavedField",
+    ...(includeCompat
+      ? [
+          "targetFormat",
+          "unsupportedParams",
+          "normalizeToolCallId",
+          "preserveOpenAIDeveloperRole",
+          "compatByProtocol",
+          "upstreamHeaders",
+        ]
+      : []),
+  ]) {
+    delete target[key];
+  }
+}
+
+function deleteCapabilityRowFields(target: JsonRecord, rawCapabilities: JsonRecord): void {
+  const drop = (...keys: string[]) => keys.forEach((key) => delete target[key]);
+  if (
+    rawCapabilities.contextWindow === null ||
+    rawCapabilities.contextLength === null ||
+    rawCapabilities.maxInputTokens === null ||
+    rawCapabilities.inputTokenLimit === null
+  ) {
+    drop("contextWindow", "contextLength", "maxInputTokens", "inputTokenLimit");
+  }
+  if (rawCapabilities.maxOutputTokens === null || rawCapabilities.outputTokenLimit === null) {
+    drop("maxOutputTokens", "outputTokenLimit");
+  }
+  if (rawCapabilities.supportsTools === null || rawCapabilities.toolCalling === null) {
+    drop("supportsTools", "toolCalling");
+  }
+  if (rawCapabilities.supportsReasoning === null || rawCapabilities.supportsThinking === null) {
+    drop("supportsReasoning", "supportsThinking");
+  }
+  if (rawCapabilities.thinkingBudgetCap === null || rawCapabilities.maxThinkingBudget === null) {
+    drop("thinkingBudgetCap", "maxThinkingBudget");
+  }
+  for (const key of [
+    "supportsVision",
+    "supportsXHighEffort",
+    "supportsMaxEffort",
+    "defaultThinkingBudget",
+    "thinkingOverhead",
+    "adaptiveMaxTokens",
+    "interleavedField",
+  ]) {
+    if (rawCapabilities[key] === null) drop(key);
+  }
+  if (
+    rawCapabilities.reasoningEfforts === null ||
+    (Array.isArray(rawCapabilities.reasoningEfforts) &&
+      rawCapabilities.reasoningEfforts.length === 0)
+  ) {
+    drop("reasoningEfforts");
+  }
+}
+
+function updateCustomCapabilityDeleteMarkers(
+  target: JsonRecord,
+  rawCapabilities: JsonRecord
+): void {
+  const nextOverrides = applyCapabilityPatchDeletes(
+    { ...asRecord(target.capabilityOverrides) },
+    rawCapabilities,
+    true
+  );
+  const clear = (...keys: string[]) => keys.forEach((key) => delete nextOverrides[key]);
+
+  if (capabilityPatchHasNonNull(rawCapabilities, CONTEXT_CAPABILITY_KEYS)) {
+    clear("contextWindow", "maxInputTokens");
+  }
+  if (capabilityPatchHasNonNull(rawCapabilities, OUTPUT_CAPABILITY_KEYS)) {
+    clear("maxOutputTokens");
+  }
+  for (const key of [
+    "defaultThinkingBudget",
+    "thinkingOverhead",
+    "adaptiveMaxTokens",
+    "interleavedField",
+  ]) {
+    if (capabilityPatchHasNonNull(rawCapabilities, [key])) clear(key);
+  }
+  if (capabilityPatchHasNonNull(rawCapabilities, ["thinkingBudgetCap", "maxThinkingBudget"])) {
+    clear("thinkingBudgetCap", "maxThinkingBudget");
+  }
+  for (const key of ["supportsVision", "supportsXHighEffort", "supportsMaxEffort"]) {
+    if (capabilityPatchHasNonNull(rawCapabilities, [key])) clear(key);
+  }
+  if (capabilityPatchHasNonNull(rawCapabilities, ["supportsTools", "toolCalling"])) {
+    clear("supportsTools", "toolCalling");
+  }
+  if (capabilityPatchHasNonNull(rawCapabilities, ["supportsReasoning", "supportsThinking"])) {
+    clear("supportsReasoning", "supportsThinking");
+  }
+
+  if (Object.keys(nextOverrides).length > 0) {
+    target.capabilityOverrides = nextOverrides;
+  } else {
+    delete target.capabilityOverrides;
+  }
+}
+
+// ──────────────── Model Aliases ────────────────
+
+export async function getModelAliases() {
+  const db = getDbInstance();
+  const rows = db
+    .prepare("SELECT key, value FROM key_value WHERE namespace = 'modelAliases'")
+    .all();
+  const result: Record<string, unknown> = {};
+  for (const row of rows) {
+    const { key, value } = getKeyValue(row);
+    if (!key || value === null) continue;
+    const parsed = parseJsonValue(value);
+    if (parsed !== undefined) result[key] = parsed;
+  }
+  return result;
+}
+
+export async function setModelAlias(alias: string, model: unknown) {
+  const db = getDbInstance();
+  db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('modelAliases', ?, ?)"
+  ).run(alias, JSON.stringify(model));
+  backupDbFile("pre-write");
+}
+
+export async function deleteModelAlias(alias: string) {
+  const db = getDbInstance();
+  db.prepare("DELETE FROM key_value WHERE namespace = 'modelAliases' AND key = ?").run(alias);
+  backupDbFile("pre-write");
+}
+
+/**
+ * Cascade-delete every model-alias row that resolves to the given provider.
+ *
+ * Managed/imported aliases are stored as `key = <alias>`, `value = "<providerId>/<model>"`
+ * (e.g. `setModelAlias("x-fast", "providerX/fast-model")`). When a custom provider is
+ * removed, its connections and node are deleted but these alias rows are left behind,
+ * which then block re-importing the same provider ("already exists" / no new models) — see
+ * #1409. This removes every alias whose stored value begins with `<providerId>/`, so a
+ * fresh import is unblocked.
+ *
+ * Only string values starting with the exact `"<providerId>/"` prefix match, so unrelated
+ * providers and user-facing settings aliases (whose value is the bare alias, not a
+ * `<providerId>/<model>` string) are left untouched.
+ *
+ * @returns the list of alias keys that were removed.
+ */
+export async function deleteModelAliasesForProvider(providerId: string): Promise<string[]> {
+  const prefix = `${providerId}/`;
+  const aliases = await getModelAliases();
+  const removed: string[] = [];
+  for (const [alias, value] of Object.entries(aliases)) {
+    if (typeof value !== "string" || !value.startsWith(prefix)) continue;
+    await deleteModelAlias(alias);
+    removed.push(alias);
+  }
+  return removed;
+}
+
+// ──────────────── MITM Alias ────────────────
+
+export async function getMitmAlias(toolName?: string) {
+  const db = getDbInstance();
+  if (toolName) {
+    const row = db
+      .prepare("SELECT value FROM key_value WHERE namespace = 'mitmAlias' AND key = ?")
+      .get(toolName);
+    const value = getKeyValue(row).value;
+    return asRecord(parseJsonValue(value));
+  }
+  const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = 'mitmAlias'").all();
+  const result: Record<string, unknown> = {};
+  for (const row of rows) {
+    const { key, value } = getKeyValue(row);
+    if (!key || value === null) continue;
+    const parsed = parseJsonValue(value);
+    if (parsed !== undefined) result[key] = parsed;
+  }
+  return result;
+}
+
+export async function setMitmAliasAll(toolName: string, mappings: unknown) {
+  const db = getDbInstance();
+  db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('mitmAlias', ?, ?)"
+  ).run(toolName, JSON.stringify(mappings || {}));
+  backupDbFile("pre-write");
+}
 
 // ──────────────── Custom Models ────────────────
 
-export async function getCustomModels(providerId?: string) {
+export async function getCustomModels(providerId: string): Promise<JsonRecord[]>;
+export async function getCustomModels(): Promise<Record<string, unknown>>;
+export async function getCustomModels(
+  providerId?: string
+): Promise<JsonRecord[] | Record<string, unknown>> {
   const db = getDbInstance();
   if (providerId) {
     const row = db
       .prepare("SELECT value FROM key_value WHERE namespace = 'customModels' AND key = ?")
       .get(providerId);
     const value = getKeyValue(row).value;
-    return value ? JSON.parse(value) : [];
+    return parseJsonRecordArray(value).map((model) => canonicalizeModelConfigRow(model));
   }
   const rows = db
     .prepare("SELECT key, value FROM key_value WHERE namespace = 'customModels'")
@@ -58,7 +375,14 @@ export async function getCustomModels(providerId?: string) {
   for (const row of rows) {
     const { key, value } = getKeyValue(row);
     if (!key || value === null) continue;
-    result[key] = JSON.parse(value);
+    const parsed = parseJsonValue(value);
+    if (Array.isArray(parsed)) {
+      result[key] = parsed
+        .filter((entry): entry is JsonRecord =>
+          Boolean(entry && typeof entry === "object" && !Array.isArray(entry))
+        )
+        .map((model) => canonicalizeModelConfigRow(model));
+    }
   }
   return result;
 }
@@ -72,9 +396,47 @@ export async function getAllCustomModels() {
   for (const row of rows) {
     const { key, value } = getKeyValue(row);
     if (!key || value === null) continue;
-    result[key] = JSON.parse(value);
+    const parsed = parseJsonValue(value);
+    if (Array.isArray(parsed)) {
+      result[key] = parsed
+        .filter((entry): entry is JsonRecord =>
+          Boolean(entry && typeof entry === "object" && !Array.isArray(entry))
+        )
+        .map((model) => canonicalizeModelConfigRow(model));
+    }
   }
   return result;
+}
+
+function getCustomModelRowsRaw(providerId: string): JsonRecord[] {
+  const db = getDbInstance();
+  const row = db
+    .prepare("SELECT value FROM key_value WHERE namespace = 'customModels' AND key = ?")
+    .get(providerId);
+  return parseJsonRecordArray(getKeyValue(row).value);
+}
+
+function writeCustomModelRowsRaw(providerId: string, models: JsonRecord[]): void {
+  const db = getDbInstance();
+  if (models.length === 0) {
+    db.prepare("DELETE FROM key_value WHERE namespace = 'customModels' AND key = ?").run(
+      providerId
+    );
+    return;
+  }
+  db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('customModels', ?, ?)"
+  ).run(providerId, JSON.stringify(models));
+}
+
+function removeCustomModelRowOnly(providerId: string, modelId: string): JsonRecord | null {
+  const models = getCustomModelRowsRaw(providerId);
+  const index = models.findIndex((m: JsonRecord) => m.id === modelId);
+  if (index === -1) return null;
+  const [removed] = models.splice(index, 1);
+  writeCustomModelRowsRaw(providerId, models);
+  backupDbFile("pre-write");
+  return removed || null;
 }
 
 export async function addCustomModel(
@@ -97,38 +459,55 @@ export async function addCustomModel(
   targetFormat?: string,
   // #1294: optional per-model token limits supplied from the "add custom model"
   // form. Persisted under the same keys the /v1/models catalog reads back.
-  tokenLimits: { inputTokenLimit?: number; outputTokenLimit?: number } = {}
+  tokenLimits: { inputTokenLimit?: number; outputTokenLimit?: number } = {},
+  modelConfig: ProviderModelConfig = {}
 ) {
   const db = getDbInstance();
   const row = db
     .prepare("SELECT value FROM key_value WHERE namespace = 'customModels' AND key = ?")
     .get(providerId);
   const value = getKeyValue(row).value;
-  const models = value ? JSON.parse(value) : [];
+  const models = parseJsonRecordArray(value);
 
   const exists = models.find((m: JsonRecord) => m.id === modelId);
-  if (exists) return exists;
+  if (exists) return canonicalizeModelConfigRow(exists);
 
-  const model = {
+  const rawCapabilities = {
+    ...(modelConfig.capabilities || {}),
+    ...(tokenLimits.inputTokenLimit != null
+      ? { contextWindow: tokenLimits.inputTokenLimit, maxInputTokens: tokenLimits.inputTokenLimit }
+      : {}),
+    ...(tokenLimits.outputTokenLimit != null
+      ? { maxOutputTokens: tokenLimits.outputTokenLimit }
+      : {}),
+  };
+  const capabilities = normalizeModelCapabilities(rawCapabilities);
+  const capabilityOverrides = buildTokenLimitDeleteMarkers({
+    capabilities: rawCapabilities,
+    capabilityOverrides: modelConfig.capabilityOverrides,
+  });
+  const compat = asRecord(modelConfig.compat);
+  const compatFields = buildModelCompatFields({
+    ...compat,
+    ...(targetFormat ? { targetFormat } : {}),
+  });
+  const model: JsonRecord = {
     id: modelId,
     name: modelName || modelId,
     source,
     apiFormat,
     supportedEndpoints,
-    ...(targetFormat ? { targetFormat } : {}),
-    ...(tokenLimits.inputTokenLimit != null
-      ? { inputTokenLimit: tokenLimits.inputTokenLimit }
-      : {}),
-    ...(tokenLimits.outputTokenLimit != null
-      ? { outputTokenLimit: tokenLimits.outputTokenLimit }
-      : {}),
+    ...(capabilities ? { capabilities } : {}),
+    ...(Object.keys(capabilityOverrides).length > 0 ? { capabilityOverrides } : {}),
+    ...(Object.keys(compatFields).length > 0 ? { compat: compatFields } : {}),
   };
+  model.baseline = cloneJsonRecord(model);
   models.push(model);
   db.prepare(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('customModels', ?, ?)"
   ).run(providerId, JSON.stringify(models));
   backupDbFile("pre-write");
-  return model;
+  return canonicalizeModelConfigRow(model);
 }
 
 /**
@@ -147,6 +526,13 @@ export async function replaceCustomModels(
     outputTokenLimit?: number;
     description?: string;
     supportsThinking?: boolean;
+    supportsVision?: boolean;
+    supportsTools?: boolean;
+    supportsReasoning?: boolean;
+    supportsXHighEffort?: boolean;
+    supportsMaxEffort?: boolean;
+    capabilities?: ProviderModelCapabilities;
+    unsupportedParams?: string[];
     targetFormat?: string;
   }>,
   { allowEmpty = false }: { allowEmpty?: boolean } = {}
@@ -160,64 +546,58 @@ export async function replaceCustomModels(
   }
 
   const db = getDbInstance();
-  const existing = await getCustomModels(providerId);
+  const existing = getCustomModelRowsRaw(providerId);
   const existingMap = new Map<string, JsonRecord>();
-  if (Array.isArray(existing)) {
-    for (const m of existing) {
-      if (m && typeof m === "object" && m.id) existingMap.set(m.id, m);
-    }
+  for (const m of existing) {
+    if (m.id) existingMap.set(String(m.id), m);
   }
 
   // Merge: keep existing per-model compat flags if model still exists
   const merged = models.map((m) => {
     const prev = existingMap.get(m.id);
-    return {
-      id: m.id,
-      name: m.name || m.id,
-      source: m.source || "auto-sync",
-      apiFormat: m.apiFormat || (prev as any)?.apiFormat || "chat-completions",
-      supportedEndpoints: m.supportedEndpoints || (prev as any)?.supportedEndpoints || ["chat"],
-      // #2905: preserve a per-model targetFormat override (new value wins, else prev).
+    const incomingCapabilities = normalizeModelCapabilitiesFromRow(m as JsonRecord);
+    const previousCapabilities = prev ? normalizeModelCapabilitiesFromRow(prev) : undefined;
+    const capabilities = incomingCapabilities || previousCapabilities;
+    const capabilityOverrides = {
+      ...asRecord((prev as any)?.capabilityOverrides),
+      ...asRecord((m as any)?.capabilityOverrides),
+    };
+    const compat = buildModelCompatFields({
+      ...asRecord(prev?.compat),
+      ...(prev ? buildCompatConfigFromRow(prev) : {}),
+      ...asRecord((m as JsonRecord).compat),
       ...(m.targetFormat
         ? { targetFormat: m.targetFormat }
         : (prev as any)?.targetFormat
           ? { targetFormat: (prev as any).targetFormat }
           : {}),
-      // Preserve metadata from provider API (or previous sync)
-      ...(m.inputTokenLimit != null
-        ? { inputTokenLimit: m.inputTokenLimit }
-        : (prev as any)?.inputTokenLimit != null
-          ? { inputTokenLimit: (prev as any).inputTokenLimit }
+      ...(Array.isArray(m.unsupportedParams) && m.unsupportedParams.length > 0
+        ? { unsupportedParams: m.unsupportedParams }
+        : Array.isArray((prev as any)?.unsupportedParams) &&
+            (prev as any).unsupportedParams.length > 0
+          ? { unsupportedParams: (prev as any).unsupportedParams }
           : {}),
-      ...(m.outputTokenLimit != null
-        ? { outputTokenLimit: m.outputTokenLimit }
-        : (prev as any)?.outputTokenLimit != null
-          ? { outputTokenLimit: (prev as any).outputTokenLimit }
-          : {}),
+    });
+    const next: JsonRecord = {
+      id: m.id,
+      name: m.name || m.id,
+      source: m.source || "auto-sync",
+      apiFormat: m.apiFormat || (prev as any)?.apiFormat || "chat-completions",
+      supportedEndpoints: m.supportedEndpoints || (prev as any)?.supportedEndpoints || ["chat"],
+      ...(capabilities ? { capabilities } : {}),
+      ...(Object.keys(capabilityOverrides).length > 0 ? { capabilityOverrides } : {}),
+      ...(Object.keys(compat).length > 0 ? { compat } : {}),
       ...(m.description != null
         ? { description: m.description }
         : (prev as any)?.description != null
           ? { description: (prev as any).description }
           : {}),
-      ...(m.supportsThinking != null
-        ? { supportsThinking: m.supportsThinking }
-        : (prev as any)?.supportsThinking != null
-          ? { supportsThinking: (prev as any).supportsThinking }
-          : {}),
-      // Preserve existing compat flags
-      ...(prev && (prev as any).normalizeToolCallId !== undefined
-        ? { normalizeToolCallId: (prev as any).normalizeToolCallId }
-        : {}),
-      ...(prev && (prev as any).preserveOpenAIDeveloperRole !== undefined
-        ? { preserveOpenAIDeveloperRole: (prev as any).preserveOpenAIDeveloperRole }
-        : {}),
-      ...(prev && (prev as any).compatByProtocol
-        ? { compatByProtocol: (prev as any).compatByProtocol }
-        : {}),
-      ...(prev && (prev as any).upstreamHeaders
-        ? { upstreamHeaders: (prev as any).upstreamHeaders }
+      ...(prev && (prev as any).baseline
+        ? { baseline: sanitizeModelConfigBaseline(asRecord((prev as any).baseline)) }
         : {}),
     };
+    if (!next.baseline) next.baseline = sanitizeModelConfigBaseline(next);
+    return next;
   });
 
   if (merged.length === 0) {
@@ -231,7 +611,7 @@ export async function replaceCustomModels(
   }
 
   backupDbFile("pre-write");
-  return merged;
+  return merged.map((model) => canonicalizeModelConfigRow(model));
 }
 
 export async function removeCustomModel(providerId: string, modelId: string) {
@@ -243,7 +623,7 @@ export async function removeCustomModel(providerId: string, modelId: string) {
 
   const value = getKeyValue(row).value;
   if (!value) return false;
-  const models = JSON.parse(value);
+  const models = parseJsonRecordArray(value);
   const before = models.length;
   const filtered = models.filter((m: JsonRecord) => m.id !== modelId);
 
@@ -276,13 +656,10 @@ export interface SyncedAvailableModel {
   source: "imported";
   apiFormat?: string;
   supportedEndpoints?: string[];
-  inputTokenLimit?: number;
-  outputTokenLimit?: number;
   description?: string;
-  supportsThinking?: boolean;
-  // #4264: image-input capability captured at sync time (e.g. OpenRouter
-  // `architecture.input_modalities`/`modality`) so the catalog can surface vision.
-  supportsVision?: boolean;
+  capabilities?: ProviderModelCapabilities;
+  capabilityOverrides?: ProviderModelCapabilitiesPatch;
+  compat?: ProviderModelConfig["compat"];
 }
 
 type SyncedAvailableModelInput = Omit<SyncedAvailableModel, "source"> & {
@@ -291,43 +668,33 @@ type SyncedAvailableModelInput = Omit<SyncedAvailableModel, "source"> & {
 
 function normalizeSyncedAvailableModel(model: unknown): SyncedAvailableModel | null {
   const record = asRecord(model);
-  const id =
-    toNonEmptyString(record.id) || toNonEmptyString(record.name) || toNonEmptyString(record.model);
-  if (!id) return null;
+  const identity = getSyncedModelIdentity(record);
+  if (!identity) return null;
+  const capabilities = normalizeModelCapabilitiesFromRow(record);
+  const capabilityOverrides = buildTokenLimitDeleteMarkers(record);
+  const targetFormat = toNonEmptyString(record.targetFormat);
+  const supportedEndpoints = normalizeStringList(record.supportedEndpoints, true);
+  const unsupportedParams = normalizeStringList(record.unsupportedParams);
+  const compat = buildModelCompatFields({
+    ...asRecord(record.compat),
+    ...(targetFormat ? { targetFormat } : {}),
+    ...(unsupportedParams?.length ? { unsupportedParams } : {}),
+  });
 
-  const name =
-    toNonEmptyString(record.name) ||
-    toNonEmptyString(record.displayName) ||
-    toNonEmptyString(record.model) ||
-    id;
-  const supportedEndpoints = Array.isArray(record.supportedEndpoints)
-    ? Array.from(
-        new Set(
-          record.supportedEndpoints
-            .map((endpoint) => toNonEmptyString(endpoint))
-            .filter((endpoint): endpoint is string => Boolean(endpoint))
-        )
-      ).sort()
-    : undefined;
-
-  return {
-    id,
-    name,
+  const normalized: JsonRecord = {
+    id: identity.id,
+    name: identity.name,
     source: "imported",
-    ...(toNonEmptyString(record.apiFormat)
-      ? { apiFormat: toNonEmptyString(record.apiFormat)! }
-      : {}),
-    ...(supportedEndpoints && supportedEndpoints.length > 0 ? { supportedEndpoints } : {}),
-    ...(typeof record.inputTokenLimit === "number"
-      ? { inputTokenLimit: record.inputTokenLimit }
-      : {}),
-    ...(typeof record.outputTokenLimit === "number"
-      ? { outputTokenLimit: record.outputTokenLimit }
-      : {}),
-    ...(typeof record.description === "string" ? { description: record.description } : {}),
-    ...(record.supportsThinking === true ? { supportsThinking: true } : {}),
-    ...(record.supportsVision === true ? { supportsVision: true } : {}),
   };
+  assignNonEmptyStringField(normalized, "apiFormat", record.apiFormat);
+  assignStringField(normalized, "description", record.description);
+  if (supportedEndpoints?.length) normalized.supportedEndpoints = supportedEndpoints;
+  if (capabilities) normalized.capabilities = capabilities;
+  if (Object.keys(capabilityOverrides).length > 0) {
+    normalized.capabilityOverrides = capabilityOverrides;
+  }
+  if (Object.keys(compat).length > 0) normalized.compat = compat;
+  return normalized as unknown as SyncedAvailableModel;
 }
 
 function normalizeSyncedAvailableModels(models: unknown): SyncedAvailableModel[] {
@@ -338,6 +705,13 @@ function normalizeSyncedAvailableModels(models: unknown): SyncedAvailableModel[]
     if (normalized) deduped.set(normalized.id, normalized);
   }
   return Array.from(deduped.values());
+}
+
+function filterVisibleSyncedAvailableModels(
+  providerId: string,
+  models: SyncedAvailableModel[]
+): SyncedAvailableModel[] {
+  return models.filter((model) => !getModelIsDeleted(providerId, model.id));
 }
 
 /**
@@ -354,12 +728,10 @@ export async function getSyncedAvailableModelsForConnection(
     .get(key);
   const value = getKeyValue(row).value;
   if (!value) return [];
-  try {
-    const models = JSON.parse(value);
-    return normalizeSyncedAvailableModels(models);
-  } catch {
-    return [];
-  }
+  return filterVisibleSyncedAvailableModels(
+    providerId,
+    normalizeSyncedAvailableModels(parseJsonArray(value))
+  );
 }
 
 /**
@@ -378,7 +750,10 @@ export async function getSyncedAvailableModels(
   for (const row of rows) {
     const { key, value } = getKeyValue(row);
     if (!key || value === null) continue;
-    const models = normalizeSyncedAvailableModels(JSON.parse(value));
+    const models = filterVisibleSyncedAvailableModels(
+      providerId,
+      normalizeSyncedAvailableModels(parseJsonArray(value))
+    );
     for (const m of models) {
       if (m.id) map.set(m.id, m);
     }
@@ -403,12 +778,11 @@ export async function getSyncedAvailableModelsByConnection(
   for (const row of rows) {
     const { key, value } = getKeyValue(row);
     if (!key || value === null || !key.startsWith(prefix)) continue;
-    try {
-      const connectionId = key.slice(prefix.length);
-      result[connectionId] = normalizeSyncedAvailableModels(JSON.parse(value));
-    } catch {
-      // Ignore malformed legacy entries.
-    }
+    const connectionId = key.slice(prefix.length);
+    result[connectionId] = filterVisibleSyncedAvailableModels(
+      providerId,
+      normalizeSyncedAvailableModels(parseJsonArray(value))
+    );
   }
   return result;
 }
@@ -430,7 +804,10 @@ export async function getAllSyncedAvailableModels(): Promise<
     if (!key || value === null) continue;
     const providerId = key.split(":")[0];
     if (!byProvider.has(providerId)) byProvider.set(providerId, new Map());
-    const models = normalizeSyncedAvailableModels(JSON.parse(value));
+    const models = filterVisibleSyncedAvailableModels(
+      providerId,
+      normalizeSyncedAvailableModels(parseJsonArray(value))
+    );
     const map = byProvider.get(providerId)!;
     for (const m of models) {
       if (m.id) map.set(m.id, m);
@@ -454,6 +831,12 @@ export async function replaceSyncedAvailableModelsForConnection(
 ): Promise<SyncedAvailableModel[]> {
   const db = getDbInstance();
   const key = `${providerId}:${connectionId}`;
+  const existingRow = db
+    .prepare("SELECT value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?")
+    .get(key);
+  const existingModels = normalizeSyncedAvailableModels(
+    parseJsonArray(getKeyValue(existingRow).value)
+  );
   // #3199: drop ids the operator DELETED (trash) so a re-fetch does not re-import
   // a model that was explicitly removed.
   // #3782: key ONLY on the distinct `isDeleted` marker — NOT on `isHidden`.
@@ -461,17 +844,22 @@ export async function replaceSyncedAvailableModelsForConnection(
   // the synced store so they remain listed-but-hidden across re-syncs instead of
   // churning back on through the managed-alias path ("Auto Sync Enabling all
   // Models"). See getModelIsDeleted for the legacy-row caveat.
-  const normalizedModels = normalizeSyncedAvailableModels(models).filter(
+  const visibleIncomingModels = normalizeSyncedAvailableModels(models).filter(
     (m) => !getModelIsDeleted(providerId, m.id)
   );
-  if (normalizedModels.length === 0) {
+  const visibleIncomingIds = new Set(visibleIncomingModels.map((model) => model.id));
+  const deletedExistingModels = existingModels.filter(
+    (model) => getModelIsDeleted(providerId, model.id) && !visibleIncomingIds.has(model.id)
+  );
+  const modelsToStore = [...visibleIncomingModels, ...deletedExistingModels];
+  if (modelsToStore.length === 0) {
     db.prepare("DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?").run(
       key
     );
   } else {
     db.prepare(
       "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('syncedAvailableModels', ?, ?)"
-    ).run(key, JSON.stringify(normalizedModels));
+    ).run(key, JSON.stringify(modelsToStore));
   }
   backupDbFile("pre-write");
   // Return the full unioned list for the provider
@@ -500,15 +888,7 @@ export async function removeSyncedAvailableModel(
       const { key, value } = getKeyValue(row);
       if (!key || value === null) continue;
 
-      let parsedModels: unknown;
-      try {
-        parsedModels = JSON.parse(value);
-      } catch (error) {
-        console.warn(`[DB] Skipping malformed syncedAvailableModels entry for key ${key}:`, error);
-        continue;
-      }
-
-      const models = normalizeSyncedAvailableModels(parsedModels);
+      const models = normalizeSyncedAvailableModels(parseJsonArray(value));
       const filtered = models.filter((m) => m.id !== modelId);
       if (filtered.length !== models.length) {
         removedAny = true;
@@ -602,12 +982,14 @@ export async function updateCustomModel(
   const value = getKeyValue(row).value;
   if (!value) return null;
 
-  const models = JSON.parse(value);
+  const models = parseJsonRecordArray(value);
   const index = models.findIndex((m: JsonRecord) => m.id === modelId);
   if (index === -1) return null;
 
   const current = models[index];
-  const currentCompat = (current as JsonRecord).compatByProtocol as CompatByProtocolMap | undefined;
+  const currentCompatConfig = buildCompatConfigFromRow(current);
+  const currentCompat = currentCompatConfig?.compatByProtocol as CompatByProtocolMap | undefined;
+  const nextCompat: JsonRecord = { ...(currentCompatConfig || {}) };
   let mergedCompat: CompatByProtocolMap | undefined = currentCompat;
   if (
     updates.compatByProtocol !== undefined &&
@@ -628,40 +1010,86 @@ export async function updateCustomModel(
     ...current,
     ...(updates.modelName !== undefined ? { name: updates.modelName || current.name } : {}),
     ...(updates.apiFormat !== undefined ? { apiFormat: updates.apiFormat } : {}),
-    ...(updates.targetFormat !== undefined ? { targetFormat: updates.targetFormat } : {}),
     ...(updates.supportedEndpoints !== undefined
       ? { supportedEndpoints: updates.supportedEndpoints }
       : {}),
-    ...(updates.normalizeToolCallId !== undefined
-      ? { normalizeToolCallId: Boolean(updates.normalizeToolCallId) }
-      : {}),
     ...(updates.isHidden !== undefined ? { isHidden: Boolean(updates.isHidden) } : {}),
   };
+  clearLegacyCompatFields(next);
+  if (updates.normalizeToolCallId !== undefined) {
+    nextCompat.normalizeToolCallId = Boolean(updates.normalizeToolCallId);
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, "targetFormat")) {
+    const targetFormat =
+      typeof updates.targetFormat === "string" ? updates.targetFormat.trim() : "";
+    if (targetFormat) nextCompat.targetFormat = targetFormat;
+    else delete nextCompat.targetFormat;
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, "capabilities")) {
+    if (updates.capabilities === null) {
+      clearModelConfigFields(next);
+    } else {
+      const rawCapabilities = asRecord(updates.capabilities);
+      deleteCapabilityRowFields(next, rawCapabilities);
+      updateCustomCapabilityDeleteMarkers(next, rawCapabilities);
+      const mergedCapabilities = applyCapabilityPatchDeletes(
+        { ...(normalizeModelCapabilitiesFromRow(next) || {}) },
+        rawCapabilities
+      );
+      const capabilities = normalizeModelCapabilities(rawCapabilities);
+      if (capabilities) Object.assign(mergedCapabilities, capabilities);
+      if (modelCapabilitiesHasEntries(mergedCapabilities as ProviderModelCapabilities)) {
+        const normalizedCapabilities = mergedCapabilities as ProviderModelCapabilities;
+        next.capabilities = normalizedCapabilities;
+      } else {
+        delete next.capabilities;
+      }
+      clearLegacyCapabilityFields(next);
+    }
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, "unsupportedParams")) {
+    if (Array.isArray(updates.unsupportedParams)) {
+      const params = Array.from(
+        new Set(
+          updates.unsupportedParams
+            .map((entry) => (typeof entry === "string" ? entry.trim() : ""))
+            .filter(Boolean)
+        )
+      );
+      if (params.length > 0) nextCompat.unsupportedParams = params;
+      else delete nextCompat.unsupportedParams;
+    } else {
+      delete nextCompat.unsupportedParams;
+    }
+  }
   if (Object.prototype.hasOwnProperty.call(updates, "preserveOpenAIDeveloperRole")) {
     if (updates.preserveOpenAIDeveloperRole === null) {
-      delete next.preserveOpenAIDeveloperRole;
+      delete nextCompat.preserveOpenAIDeveloperRole;
     } else {
-      next.preserveOpenAIDeveloperRole = Boolean(updates.preserveOpenAIDeveloperRole);
+      nextCompat.preserveOpenAIDeveloperRole = Boolean(updates.preserveOpenAIDeveloperRole);
     }
   }
   if (updates.compatByProtocol !== undefined) {
     if (mergedCompat && compatByProtocolHasEntries(mergedCompat)) {
-      next.compatByProtocol = mergedCompat;
+      nextCompat.compatByProtocol = mergedCompat;
     } else {
-      delete next.compatByProtocol;
+      delete nextCompat.compatByProtocol;
     }
   }
 
   if (Object.prototype.hasOwnProperty.call(updates, "upstreamHeaders")) {
     const uh = updates.upstreamHeaders;
     if (uh === null || uh === undefined) {
-      delete next.upstreamHeaders;
+      delete nextCompat.upstreamHeaders;
     } else if (typeof uh === "object" && !Array.isArray(uh)) {
       const s = sanitizeUpstreamHeadersMap(uh as Record<string, unknown>);
-      if (Object.keys(s).length === 0) delete next.upstreamHeaders;
-      else next.upstreamHeaders = s;
+      if (Object.keys(s).length === 0) delete nextCompat.upstreamHeaders;
+      else nextCompat.upstreamHeaders = s;
     }
   }
+
+  if (Object.keys(nextCompat).length > 0) next.compat = nextCompat;
+  else delete next.compat;
 
   models[index] = next;
 
@@ -671,266 +1099,64 @@ export async function updateCustomModel(
   );
 
   backupDbFile("pre-write");
-  return next;
+  return canonicalizeModelConfigRow(next);
 }
 
-/** Single custom model row from key_value customModels, or null */
-function getCustomModelRow(providerId: string, modelId: string): JsonRecord | null {
+export async function resetCustomModelToBaseline(providerId: string, modelId: string) {
   const db = getDbInstance();
   const row = db
     .prepare("SELECT value FROM key_value WHERE namespace = 'customModels' AND key = ?")
     .get(providerId);
   const value = getKeyValue(row).value;
   if (!value) return null;
-  try {
-    const models = JSON.parse(value) as unknown;
-    if (!Array.isArray(models)) return null;
-    const m = models.find((x: unknown) => {
-      if (!x || typeof x !== "object" || Array.isArray(x)) return false;
-      return (x as { id?: string }).id === modelId;
-    }) as JsonRecord | undefined;
-    return m ?? null;
-  } catch {
-    return null;
+
+  const models = parseJsonRecordArray(value);
+  const index = models.findIndex((m: JsonRecord) => m.id === modelId);
+  if (index === -1) return null;
+
+  const current = asRecord(models[index]);
+  const baseline = asRecord(current.baseline);
+  const hasBaseline = Object.keys(baseline).length > 0 && baseline.id === modelId;
+  const next: JsonRecord = hasBaseline
+    ? sanitizeModelConfigBaseline(baseline)
+    : {
+        ...current,
+      };
+
+  if (!hasBaseline) {
+    clearModelConfigFields(next, true);
   }
+
+  if (Object.prototype.hasOwnProperty.call(current, "isHidden")) {
+    next.isHidden = current.isHidden;
+  }
+  next.baseline = hasBaseline ? sanitizeModelConfigBaseline(baseline) : cloneJsonRecord(next);
+  models[index] = next;
+
+  db.prepare("UPDATE key_value SET value = ? WHERE namespace = 'customModels' AND key = ?").run(
+    JSON.stringify(models),
+    providerId
+  );
+  resetModelConfigOverride(providerId, modelId);
+  backupDbFile("pre-write");
+  return canonicalizeModelConfigRow(next);
 }
 
-/**
- * Whether the given provider/model has "normalize tool call id" (9-char Mistral-style) enabled.
- * Custom model row wins; otherwise {@link getModelCompatOverrides}.
- * When `sourceFormat` is one of `openai` | `openai-responses` | `claude`, per-protocol
- * `compatByProtocol[sourceFormat].normalizeToolCallId` overrides the legacy top-level flag.
- */
-export function getModelNormalizeToolCallId(
-  providerId: string,
-  modelId: string,
-  sourceFormat?: string | null
-): boolean {
-  const m = getCustomModelRow(providerId, modelId);
-  const protocol = sourceFormat && isCompatProtocolKey(sourceFormat) ? sourceFormat : null;
+export async function resetProviderModelConfig(providerId: string, modelId: string) {
+  const existingCustom = getCustomModelRow(providerId, modelId);
+  const synced = getSyncedAvailableModelRow(providerId, modelId);
 
-  if (m) {
-    if (protocol) {
-      const pc = (m.compatByProtocol as CompatByProtocolMap | undefined)?.[protocol];
-      if (pc && Object.prototype.hasOwnProperty.call(pc, "normalizeToolCallId")) {
-        return Boolean(pc.normalizeToolCallId);
-      }
+  if (existingCustom && synced) {
+    removeCustomModelRowOnly(providerId, modelId);
+    resetModelConfigOverride(providerId, modelId);
+    if (Object.prototype.hasOwnProperty.call(existingCustom, "isHidden")) {
+      mergeModelCompatOverride(providerId, modelId, { isHidden: Boolean(existingCustom.isHidden) });
     }
-    return Boolean(m.normalizeToolCallId);
-  }
-  const co = readCompatList(providerId).find((e) => e.id === modelId);
-  if (protocol && co?.compatByProtocol?.[protocol]) {
-    const pc = co.compatByProtocol[protocol]!;
-    if (Object.prototype.hasOwnProperty.call(pc, "normalizeToolCallId")) {
-      return Boolean(pc.normalizeToolCallId);
-    }
-  }
-  return Boolean(co?.normalizeToolCallId);
-}
-
-/**
- * Explicit preserve-openai-developer preference for this provider/model.
- * `undefined` = unset → routing keeps legacy default (preserve developer for OpenAI format).
- * `false` = map developer → system (e.g. MiniMax). `true` = keep developer.
- * Per-protocol overrides live under `compatByProtocol[sourceFormat]` when `sourceFormat` matches.
- */
-export function getModelPreserveOpenAIDeveloperRole(
-  providerId: string,
-  modelId: string,
-  sourceFormat?: string | null
-): boolean | undefined {
-  const m = getCustomModelRow(providerId, modelId);
-  const protocol = sourceFormat && isCompatProtocolKey(sourceFormat) ? sourceFormat : null;
-
-  if (m) {
-    if (protocol) {
-      const pc = (m.compatByProtocol as CompatByProtocolMap | undefined)?.[protocol];
-      if (pc && Object.prototype.hasOwnProperty.call(pc, "preserveOpenAIDeveloperRole")) {
-        return Boolean(pc.preserveOpenAIDeveloperRole);
-      }
-    }
-    if (Object.prototype.hasOwnProperty.call(m, "preserveOpenAIDeveloperRole")) {
-      return Boolean(m.preserveOpenAIDeveloperRole);
-    }
-    return undefined;
-  }
-  const co = readCompatList(providerId).find((e) => e.id === modelId);
-  if (protocol && co?.compatByProtocol?.[protocol]) {
-    const pc = co.compatByProtocol[protocol]!;
-    if (Object.prototype.hasOwnProperty.call(pc, "preserveOpenAIDeveloperRole")) {
-      return Boolean(pc.preserveOpenAIDeveloperRole);
-    }
-  }
-  if (co && Object.prototype.hasOwnProperty.call(co, "preserveOpenAIDeveloperRole")) {
-    return Boolean(co.preserveOpenAIDeveloperRole);
-  }
-  return undefined;
-}
-
-/**
- * Check if the model is flagged as hidden from the public catalog.
- */
-export function getModelIsHidden(providerId: string, modelId: string): boolean {
-  const m = getCustomModelRow(providerId, modelId);
-  if (m && Object.prototype.hasOwnProperty.call(m, "isHidden")) {
-    return Boolean(m.isHidden);
-  }
-  const co = readCompatList(providerId).find((e) => e.id === modelId);
-  return Boolean(co?.isHidden);
-}
-
-/**
- * Get a map of provider ID → set of hidden model IDs from all modelCompatOverrides
- * and customModels. Used by auto-combo candidate building to skip user-hidden models.
- * Single bulk DB query — not N+1 per model.
- */
-export function getHiddenModelsByProvider(): Map<string, Set<string>> {
-  const db = getDbInstance();
-  const result = new Map<string, Set<string>>();
-
-  // Query all rows from key_value for both namespaces
-  const rows = db
-    .prepare(
-      "SELECT key, value FROM key_value WHERE namespace IN ('modelCompatOverrides', 'customModels')"
-    )
-    .all() as Array<{ key: string; value: string | null }>;
-
-  for (const row of rows) {
-    if (!row.value) continue;
-    try {
-      const parsed = JSON.parse(row.value);
-      if (!Array.isArray(parsed)) continue;
-      for (const entry of parsed) {
-        if (entry && typeof entry === "object" && entry.isHidden) {
-          const modelId = entry.id;
-          if (typeof modelId === "string" && modelId.length > 0) {
-            if (!result.has(row.key)) result.set(row.key, new Set());
-            result.get(row.key)!.add(modelId);
-          }
-        }
-      }
-    } catch {
-      // Skip malformed entries
-    }
+    return canonicalizeModelConfigRow(synced);
   }
 
-  return result;
-}
-
-/**
- * #3782 — Check if a model was DELETED (trash) rather than merely eye-hidden.
- *
- * Only the DELETE route sets `isDeleted`. The sync re-import filter keys on this
- * (not on `isHidden`) so eye-hidden models survive a re-sync while deleted ones
- * stay dropped.
- *
- * Legacy caveat: rows written by the DELETE route BEFORE this change carry only
- * `isHidden:true` (no `isDeleted`). Treating bare legacy `isHidden:true` as
- * deleted here would resurrect the #3782 bug for eye-hidden models; treating it
- * as "kept" would resurrect previously-deleted models. Resurrecting a deleted
- * model is the less-surprising, recoverable outcome (the operator can re-hide or
- * re-delete it), whereas silently dropping an eye-hidden model is the reported
- * regression — so we deliberately key ONLY on the explicit `isDeleted` flag and
- * accept that a handful of pre-existing deleted rows may reappear once after the
- * upgrade. Going forward both paths write the correct distinct markers.
- */
-export function getModelIsDeleted(providerId: string, modelId: string): boolean {
-  const co = readCompatList(providerId).find((e) => e.id === modelId);
-  return Boolean(co?.isDeleted);
-}
-
-/**
- * Persist the hidden flag for a model. Stores the override on the custom-model
- * row when one exists, otherwise on the compat-override list. Setting
- * `hidden = false` is a no-op when the model is already visible.
- */
-export function setModelIsHidden(providerId: string, modelId: string, hidden: boolean): void {
-  const customRow = getCustomModelRow(providerId, modelId);
-  if (customRow) {
-    if (hidden) {
-      updateCustomModel(providerId, modelId, { isHidden: true });
-    } else if (Object.prototype.hasOwnProperty.call(customRow, "isHidden")) {
-      updateCustomModel(providerId, modelId, { isHidden: false });
-    }
-    return;
-  }
-
-  const list = readCompatList(providerId);
-  const idx = list.findIndex((e) => e.id === modelId);
-  if (hidden) {
-    const prev = idx >= 0 ? list[idx] : { id: modelId };
-    const next: ModelCompatOverride = { ...prev, id: modelId, isHidden: true };
-    if (idx >= 0) list[idx] = next;
-    else list.push(next);
-    writeCompatList(providerId, list);
-    return;
-  }
-
-  if (idx < 0) return;
-  if (Object.keys(list[idx]).length <= 1) {
-    // Only `id` left; drop the entry entirely.
-    const filtered = list.filter((_, i) => i !== idx);
-    writeCompatList(providerId, filtered);
-    return;
-  }
-  delete list[idx].isHidden;
-  writeCompatList(providerId, list);
-}
-
-function readUpstreamFromJsonRecord(
-  row: JsonRecord | null | undefined,
-  key: "upstreamHeaders"
-): Record<string, string> | undefined {
-  if (!row) return undefined;
-  const raw = row[key];
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
-  const s = sanitizeUpstreamHeadersMap(raw as Record<string, unknown>);
-  return Object.keys(s).length > 0 ? s : undefined;
-}
-
-/**
- * Extra HTTP headers to send to the upstream provider for this model (after executor auth headers).
- * Order: top-level `upstreamHeaders` on the custom model row (override list merged under custom),
- * then per-protocol `compatByProtocol[sourceFormat].upstreamHeaders` (wins on key conflict).
- * Use for gateways that expect `Authentication`, `X-API-Key`, etc. alongside Bearer.
- *
- * `modelId` should be the **canonical** model id when known. Callers that accept client aliases
- * (e.g. chat proxy) should merge results for both alias and `resolveModelAlias(alias)` so UI
- * config on the resolved id still applies — see `chatCore` merge.
- */
-export function getModelUpstreamExtraHeaders(
-  providerId: string,
-  modelId: string,
-  sourceFormat?: string | null
-): Record<string, string> {
-  const protocol = sourceFormat && isCompatProtocolKey(sourceFormat) ? sourceFormat : null;
-  const m = getCustomModelRow(providerId, modelId);
-
-  const base: Record<string, string> = {};
-  if (m) {
-    const fromModel = readUpstreamFromJsonRecord(m, "upstreamHeaders");
-    if (fromModel) Object.assign(base, fromModel);
-    if (protocol) {
-      const pc = (m.compatByProtocol as CompatByProtocolMap | undefined)?.[protocol];
-      const fromProto = pc?.upstreamHeaders;
-      if (fromProto && typeof fromProto === "object") {
-        Object.assign(base, sanitizeUpstreamHeadersMap(fromProto as Record<string, unknown>));
-      }
-    }
-    return base;
-  }
-
-  const co = readCompatList(providerId).find((e) => e.id === modelId);
-  if (co?.upstreamHeaders) {
-    Object.assign(base, sanitizeUpstreamHeadersMap(co.upstreamHeaders as Record<string, unknown>));
-  }
-  if (protocol && co?.compatByProtocol?.[protocol]?.upstreamHeaders) {
-    Object.assign(
-      base,
-      sanitizeUpstreamHeadersMap(
-        co.compatByProtocol[protocol]!.upstreamHeaders as Record<string, unknown>
-      )
-    );
-  }
-  return base;
+  const custom = await resetCustomModelToBaseline(providerId, modelId);
+  if (custom) return custom;
+  resetModelConfigOverride(providerId, modelId);
+  return synced ? canonicalizeModelConfigRow(synced) : null;
 }

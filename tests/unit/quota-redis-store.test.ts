@@ -93,7 +93,6 @@ function createMockRedisClient() {
       return keys.map((k) => store.get(k) ?? null);
     },
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async eval(...args: unknown[]): Promise<unknown> {
       record("eval", ...args);
       return null;
@@ -121,27 +120,15 @@ function createMockRedisClient() {
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
 test("redisQuotaStore: consume calls INCRBYFLOAT + EXPIRE and returns sliding window value", async () => {
-  const { RedisQuotaStore, resetRedisClient } = await import("../../src/lib/quota/redisQuotaStore.ts");
+  const { RedisQuotaStore, __setRedisClientForTests, resetRedisClient } =
+    await import("../../src/lib/quota/redisQuotaStore.ts");
   resetRedisClient();
 
   const mock = createMockRedisClient();
-
-  // Monkey-patch the getRedisClient function by setting the internal singleton
-  // We do this via resetRedisClient then overriding the import
-  // Since we can't easily inject, we test via the real store with a patched mock.
-  // Instead, we validate the sliding window math directly using the mock's
-  // incrbyfloat return value.
-
-  // Build a RedisQuotaStore and inject the mock by overriding the module's singleton
-  // via the resetRedisClient export + a closure trick:
-
-  // Alternative: test RedisQuotaStore indirectly by verifying behavior with real
-  // in-memory Redis or by creating a wrapper. For unit tests we test the formula.
+  __setRedisClientForTests(mock);
 
   const dim = { poolId: "pool1", unit: "tokens" as const, window: "hourly" as const };
-
-  // Create store - it won't try to connect until first call because getRedisClient is lazy
-  const store = new RedisQuotaStore("redis://localhost:6399"); // non-existent port
+  const store = new RedisQuotaStore("redis://unit-test");
 
   // Verify the class implements the interface
   assert.ok(typeof store.consume === "function");
@@ -149,25 +136,22 @@ test("redisQuotaStore: consume calls INCRBYFLOAT + EXPIRE and returns sliding wi
   assert.ok(typeof store.poolUsage === "function");
   assert.ok(typeof store.clear === "function");
 
-  // The store will fail to connect (no real Redis) but that's expected in unit tests.
-  // Test that it throws an appropriate error (connection refused or ioredis not installed)
-  // rather than a nonsensical error.
+  const effective = await store.consume("key-test", dim, 100);
+  assert.ok(effective > 0, `Expected a positive effective value, got ${effective}`);
+  assert.ok(effective <= 100, `Expected effective value <= 100, got ${effective}`);
+
+  assert.deepEqual(
+    mock._calls.map((call) => call.method),
+    ["incrbyfloat", "expire", "expire", "mget"]
+  );
+  assert.ok(String(mock._calls[0]?.args[0]).startsWith("omniroute:quota:key-test:pool1:tokens:"));
+  assert.equal(mock._calls[0]?.args[1], 100);
+
   try {
-    await store.consume("key-test", dim, 100);
-    // If it somehow succeeds (e.g. Redis is running locally), that's fine too
-  } catch (err) {
-    const msg = (err as Error).message;
-    // Should be either "ioredis not installed" or a connection error, NOT an internal bug
-    const isExpectedError =
-      msg.includes("ioredis") ||
-      msg.includes("ECONNREFUSED") ||
-      msg.includes("connect") ||
-      msg.includes("ETIMEDOUT") ||
-      msg.includes("Redis") ||
-      msg.includes("maxRetriesPerRequest") ||
-      msg.includes("Reached the max retries") ||
-      msg.includes("retry");
-    assert.ok(isExpectedError, `Unexpected error: ${msg}`);
+    await store.clear("key-test", dim);
+    assert.equal(mock._calls.at(-1)?.method, "del");
+  } finally {
+    resetRedisClient();
   }
 });
 
@@ -183,7 +167,8 @@ test("redisQuotaStore: getRedisClient throws clear error if ioredis not installe
   }
 
   if (!ioredisAvailable) {
-    const { getRedisClient, resetRedisClient } = await import("../../src/lib/quota/redisQuotaStore.ts");
+    const { getRedisClient, resetRedisClient } =
+      await import("../../src/lib/quota/redisQuotaStore.ts");
     resetRedisClient();
 
     await assert.rejects(
@@ -195,51 +180,51 @@ test("redisQuotaStore: getRedisClient throws clear error if ioredis not installe
     );
   } else {
     // ioredis is installed — just verify getRedisClient returns a client object
-    const { getRedisClient, resetRedisClient } = await import("../../src/lib/quota/redisQuotaStore.ts");
+    const { getRedisClient, resetRedisClient } =
+      await import("../../src/lib/quota/redisQuotaStore.ts");
     resetRedisClient();
 
     const client = await getRedisClient("redis://localhost:6399");
     assert.ok(client, "Should return a client when ioredis is available");
-    // Try to quit to avoid hanging connections
-    try {
-      await client.quit();
-    } catch {
-      // ignore — redis not running
-    }
     resetRedisClient();
   }
 });
 
 // ─── Real Redis integration (gated) ─────────────────────────────────────────
 
-test("redisQuotaStore: real Redis integration (skipped unless RUN_QUOTA_REDIS_INT=1)", {
-  skip: process.env.RUN_QUOTA_REDIS_INT !== "1",
-}, async () => {
-  const { RedisQuotaStore, resetRedisClient } = await import("../../src/lib/quota/redisQuotaStore.ts");
-  resetRedisClient();
+test(
+  "redisQuotaStore: real Redis integration (skipped unless RUN_QUOTA_REDIS_INT=1)",
+  {
+    skip: process.env.RUN_QUOTA_REDIS_INT !== "1",
+  },
+  async () => {
+    const { RedisQuotaStore, resetRedisClient } =
+      await import("../../src/lib/quota/redisQuotaStore.ts");
+    resetRedisClient();
 
-  const REDIS_URL = process.env.QUOTA_STORE_REDIS_URL ?? "redis://localhost:6379";
-  const store = new RedisQuotaStore(REDIS_URL);
-  const dim = { poolId: "it-pool", unit: "tokens" as const, window: "hourly" as const };
+    const REDIS_URL = process.env.QUOTA_STORE_REDIS_URL ?? "redis://localhost:6379";
+    const store = new RedisQuotaStore(REDIS_URL);
+    const dim = { poolId: "it-pool", unit: "tokens" as const, window: "hourly" as const };
 
-  // Clear before test
-  await store.clear("it-key", dim);
+    // Clear before test
+    await store.clear("it-key", dim);
 
-  await store.consume("it-key", dim, 100);
-  await store.consume("it-key", dim, 200);
-  const effective = await store.peek("it-key", dim);
+    await store.consume("it-key", dim, 100);
+    await store.consume("it-key", dim, 200);
+    const effective = await store.peek("it-key", dim);
 
-  // In same bucket, prev=0 → effective≈300
-  assert.ok(effective > 290, `Expected >290, got ${effective}`);
-  assert.ok(effective <= 300, `Expected <=300, got ${effective}`);
+    // In same bucket, prev=0 → effective≈300
+    assert.ok(effective > 290, `Expected >290, got ${effective}`);
+    assert.ok(effective <= 300, `Expected <=300, got ${effective}`);
 
-  // Cleanup
-  await store.clear("it-key", dim);
-  const afterClear = await store.peek("it-key", dim);
-  assert.equal(afterClear, 0);
+    // Cleanup
+    await store.clear("it-key", dim);
+    const afterClear = await store.peek("it-key", dim);
+    assert.equal(afterClear, 0);
 
-  resetRedisClient();
-});
+    resetRedisClient();
+  }
+);
 
 test("redisQuotaStore: sliding window decay formula is correct", async () => {
   // Unit test for the math without real Redis.
@@ -265,7 +250,8 @@ test("redisQuotaStore: sliding window decay formula is correct", async () => {
 });
 
 test("redisQuotaStore: resetRedisQuotaStore resets the store singleton", async () => {
-  const { getRedisQuotaStore, resetRedisQuotaStore } = await import("../../src/lib/quota/redisQuotaStore.ts");
+  const { getRedisQuotaStore, resetRedisQuotaStore } =
+    await import("../../src/lib/quota/redisQuotaStore.ts");
 
   const store1 = getRedisQuotaStore("redis://localhost:6399");
   resetRedisQuotaStore();

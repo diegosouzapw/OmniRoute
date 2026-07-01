@@ -21,6 +21,17 @@ const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const modelDiscovery = await import("../../src/lib/providerModels/modelDiscovery.ts");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 
+type CatalogModelEntry = {
+  id?: string;
+  capabilities?: {
+    vision?: boolean;
+  };
+};
+
+type CatalogModelsBody = {
+  data: CatalogModelEntry[];
+};
+
 async function resetStorage() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
@@ -63,12 +74,13 @@ test("#4264 normalizeDiscoveredModels captures vision from OpenRouter architectu
       input_modalities: ["text", "image"],
     },
   ]);
-  const byId = Object.fromEntries(out.map((m: any) => [m.id, m]));
+  const byId = new Map(out.map((model) => [model.id, model]));
 
-  assert.equal(byId["nex-agi/nex-n2-pro:free"].supportsVision, true);
-  assert.equal(byId["modality/string-only"].supportsVision, true);
-  assert.equal(byId["toplevel/vision"].supportsVision, true);
-  assert.equal(byId["some/text-only"].supportsVision, undefined);
+  assert.equal(byId.get("nex-agi/nex-n2-pro:free")?.capabilities?.supportsVision, true);
+  assert.equal(byId.get("modality/string-only")?.capabilities?.supportsVision, true);
+  assert.equal(byId.get("toplevel/vision")?.capabilities?.supportsVision, true);
+  assert.equal(byId.get("some/text-only")?.capabilities?.supportsVision, false);
+  assert.equal("supportsVision" in (byId.get("nex-agi/nex-n2-pro:free") ?? {}), false);
 });
 
 test("#4264 synced OpenRouter vision model surfaces capabilities.vision in /v1/models", async () => {
@@ -105,19 +117,16 @@ test("#4264 synced OpenRouter vision model surfaces capabilities.vision in /v1/m
     new Request("http://localhost/api/v1/models")
   );
   assert.equal(response.status, 200);
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as CatalogModelsBody;
 
-  const visionModel = body.data.find((m: any) =>
-    String(m.id).endsWith("nex-agi/nex-n2-pro:free")
+  const visionModel = body.data.find((model) =>
+    String(model.id).endsWith("nex-agi/nex-n2-pro:free")
   );
   assert.ok(visionModel, `expected the synced vision model in the catalog`);
   // RED before the fix: synced models carried no capabilities at all.
   assert.equal(visionModel.capabilities?.vision, true);
 
-  const textModel = body.data.find((m: any) => String(m.id).endsWith("some/text-only-model"));
+  const textModel = body.data.find((model) => String(model.id).endsWith("some/text-only-model"));
   assert.ok(textModel, `expected the synced text-only model in the catalog`);
-  assert.ok(
-    !textModel.capabilities || textModel.capabilities.vision !== true,
-    `text-only model must not be marked vision-capable`
-  );
+  assert.equal(textModel.capabilities?.vision, false);
 });

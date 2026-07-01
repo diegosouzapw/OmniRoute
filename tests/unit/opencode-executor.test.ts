@@ -75,7 +75,7 @@ describe("OpencodeExecutor", () => {
       const model = models?.find((m) => m.id === "deepseek-v4-flash-free");
       assert.ok(model, "deepseek-v4-flash-free should be in opencode-zen model list");
       assert.equal(model.name, "DeepSeek V4 Flash Free");
-      assert.equal(model.supportsReasoning, true);
+      assert.equal(model.capabilities?.supportsReasoning, true);
     });
 
     it("exposes DeepSeek V4 Pro effort variants on opencode-go only", () => {
@@ -85,7 +85,7 @@ describe("OpencodeExecutor", () => {
       for (const variant of variants) {
         const model = goModels.find((m) => m.id === variant);
         assert.ok(model, `${variant} should be in opencode-go model list`);
-        assert.equal(model?.supportsReasoning, true);
+        assert.equal(model?.capabilities?.supportsReasoning, true);
         assert.equal(
           zenModels.some((m) => m.id === variant),
           false,
@@ -128,7 +128,7 @@ describe("OpencodeExecutor", () => {
       registerModel("opencode-zen", {
         id: "gpt-5-responses",
         name: "GPT 5 Responses",
-        targetFormat: "openai-responses",
+        compat: { targetFormat: "openai-responses" },
       });
 
       const result = await zenExecutor.execute(createInput("gpt-5-responses"));
@@ -141,7 +141,7 @@ describe("OpencodeExecutor", () => {
       registerModel("opencode-zen", {
         id: "gemini-2.5-pro",
         name: "Gemini 2.5 Pro",
-        targetFormat: "gemini",
+        compat: { targetFormat: "gemini" },
       });
 
       const result = await zenExecutor.execute(createInput("gemini-2.5-pro"));
@@ -160,7 +160,7 @@ describe("OpencodeExecutor", () => {
       registerModel("opencode-zen", {
         id: "gemini-2.5-pro",
         name: "Gemini 2.5 Pro",
-        targetFormat: "gemini",
+        compat: { targetFormat: "gemini" },
       });
 
       const result = await zenExecutor.execute(createInput("gemini-2.5-pro", false));
@@ -226,7 +226,11 @@ describe("OpencodeExecutor", () => {
 
     it("routes opencode-go new models to chat completions", async () => {
       // Register new models
-      registerModel("opencode-go", { id: "glm-5.1", name: "GLM-5.1", contextLength: 204800 });
+      registerModel("opencode-go", {
+        id: "glm-5.1",
+        name: "GLM-5.1",
+        capabilities: { contextWindow: 204800 },
+      });
       registerModel("opencode-go", { id: "kimi-k2.6", name: "Kimi K2.6" });
       registerModel("opencode-go", { id: "mimo-v2-pro", name: "MiMo V2 Pro" });
       registerModel("opencode-go", { id: "mimo-v2-omni", name: "MiMo V2 Omni" });

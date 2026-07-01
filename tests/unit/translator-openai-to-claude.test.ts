@@ -374,6 +374,36 @@ test("OpenAI -> Claude preserves max effort except for Haiku models", () => {
   assert.equal(haiku.max_tokens, 64000);
 });
 
+test("OpenAI -> Claude preserves max effort for routed Claude models with unknown max support", () => {
+  const result = openaiToClaudeRequest(
+    "claude-opus-4-7",
+    {
+      messages: [{ role: "user", content: "Think at max" }],
+      reasoning_effort: "max",
+    },
+    false,
+    { _provider: "openrouter" }
+  );
+
+  assert.deepEqual(result.thinking, { type: "adaptive" });
+  assert.deepEqual(result.output_config, { effort: "max" });
+});
+
+test("OpenAI -> Claude preserves max effort for unknown Anthropic-compatible Claude models", () => {
+  const result = openaiToClaudeRequest(
+    "claude-opus-4-7",
+    {
+      messages: [{ role: "user", content: "Think at max" }],
+      reasoning_effort: "max",
+    },
+    false,
+    { _provider: "anthropic-compatible-test" }
+  );
+
+  assert.deepEqual(result.thinking, { type: "adaptive" });
+  assert.deepEqual(result.output_config, { effort: "max" });
+});
+
 test("OpenAI -> Claude fits thinking budget within a 128k output cap (regression)", () => {
   // Real-world OpenCode scenario: caller asks for max_tokens=32000 with high effort.
   // High effort maps to budget=131072. The previous naive

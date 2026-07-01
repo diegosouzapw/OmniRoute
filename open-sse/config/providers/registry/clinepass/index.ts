@@ -23,14 +23,18 @@ export const clinepassProvider: RegistryEntry = {
     {
       id: "cline-pass/deepseek-v4-pro",
       name: "DeepSeek V4 Pro (ClinePass)",
-      supportsReasoning: true,
-      maxOutputTokens: 50000,
+      capabilities: {
+        supportsReasoning: true,
+        maxOutputTokens: 50000,
+      },
     },
     {
       id: "cline-pass/deepseek-v4-flash",
       name: "DeepSeek V4 Flash (ClinePass)",
-      supportsReasoning: true,
-      maxOutputTokens: 50000,
+      capabilities: {
+        supportsReasoning: true,
+        maxOutputTokens: 50000,
+      },
     },
     { id: "cline-pass/mimo-v2.5", name: "MiMo-V2.5 (ClinePass)" },
     { id: "cline-pass/mimo-v2.5-pro", name: "MiMo-V2.5-Pro (ClinePass)" },

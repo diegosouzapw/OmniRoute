@@ -232,7 +232,7 @@ Management domains:
 - Auth/settings: `src/app/api/auth/*`, `src/app/api/settings/*`
 - Providers/connections: `src/app/api/providers*`
 - Provider nodes: `src/app/api/provider-nodes*`
-- Custom models: `src/app/api/provider-models` (GET/POST/DELETE)
+- Custom and managed model metadata: `src/app/api/provider-models` (GET/POST/PUT/PATCH/DELETE)
 - Model catalog: `src/app/api/models/route.ts` (GET)
 - Proxy config: `src/app/api/settings/proxy` (GET/PUT/DELETE) + `src/app/api/settings/proxy/test` (POST)
 - OAuth: `src/app/api/oauth/*`
@@ -267,6 +267,8 @@ Main flow modules:
 - Entry: `src/sse/handlers/chat.ts`
 - Core orchestration: `open-sse/handlers/chatCore.ts`
 - Provider execution adapters: `open-sse/executors/*`
+- Provider/model registry: `open-sse/config/providers/registry/*` — provider-first model
+  entries keep capability metadata under `capabilities` and protocol compatibility under `compat`
 - Format detection/provider config: `open-sse/services/provider.ts`
 - Model parse/resolve: `src/sse/services/model.ts`, `open-sse/services/model.ts`
 - Account fallback logic: `open-sse/services/accountFallback.ts`
@@ -844,7 +846,7 @@ flowchart LR
 - `src/app/api/v1/providers/[provider]/*`: dedicated per-provider routes (chat, embeddings, images)
 - `src/app/api/providers*`: provider CRUD, validation, testing
 - `src/app/api/provider-nodes*`: custom compatible node management
-- `src/app/api/provider-models`: custom model management (CRUD)
+- `src/app/api/provider-models`: custom and managed model metadata management
 - `src/app/api/models/route.ts`: model catalog API (aliases + custom models)
 - `src/app/api/oauth/*`: OAuth/device-code flows
 - `src/app/api/keys*`: local API key lifecycle
@@ -1033,25 +1035,26 @@ Additional processing layers in the translation pipeline:
 
 ## Supported API Endpoints
 
-| Endpoint                                           | Format             | Handler                                                             |
-| -------------------------------------------------- | ------------------ | ------------------------------------------------------------------- |
-| `POST /v1/chat/completions`                        | OpenAI Chat        | `src/sse/handlers/chat.ts`                                          |
-| `POST /v1/messages`                                | Claude Messages    | Same handler (auto-detected)                                        |
-| `POST /v1/responses`                               | OpenAI Responses   | `open-sse/handlers/responsesHandler.ts`                             |
-| `POST /v1/embeddings`                              | OpenAI Embeddings  | `open-sse/handlers/embeddings.ts`                                   |
-| `GET /v1/embeddings`                               | Model listing      | API route                                                           |
-| `POST /v1/images/generations`                      | OpenAI Images      | `open-sse/handlers/imageGeneration.ts`                              |
-| `GET /v1/images/generations`                       | Model listing      | API route                                                           |
-| `POST /v1/providers/{provider}/chat/completions`   | OpenAI Chat        | Dedicated per-provider with model validation                        |
-| `POST /v1/providers/{provider}/embeddings`         | OpenAI Embeddings  | Dedicated per-provider with model validation                        |
-| `POST /v1/providers/{provider}/images/generations` | OpenAI Images      | Dedicated per-provider with model validation                        |
-| `POST /v1/messages/count_tokens`                   | Claude Token Count | API route                                                           |
-| `GET /v1/models`                                   | OpenAI Models list | API route (chat + embedding + image + custom models)                |
-| `GET /api/models/catalog`                          | Catalog            | All models grouped by provider + type                               |
-| `POST /v1beta/models/*:streamGenerateContent`      | Gemini native      | API route                                                           |
-| `GET/PUT/DELETE /api/settings/proxy`               | Proxy Config       | Network proxy configuration                                         |
-| `POST /api/settings/proxy/test`                    | Proxy Connectivity | Proxy health/connectivity test endpoint                             |
-| `GET/POST/DELETE /api/provider-models`             | Provider Models    | Provider model metadata backing custom and managed available models |
+| Endpoint                                           | Format             | Handler                                                                              |
+| -------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------ |
+| `POST /v1/chat/completions`                        | OpenAI Chat        | `src/sse/handlers/chat.ts`                                                           |
+| `POST /v1/messages`                                | Claude Messages    | Same handler (auto-detected)                                                         |
+| `POST /v1/responses`                               | OpenAI Responses   | `open-sse/handlers/responsesHandler.ts`                                              |
+| `POST /v1/embeddings`                              | OpenAI Embeddings  | `open-sse/handlers/embeddings.ts`                                                    |
+| `GET /v1/embeddings`                               | Model listing      | API route                                                                            |
+| `POST /v1/images/generations`                      | OpenAI Images      | `open-sse/handlers/imageGeneration.ts`                                               |
+| `GET /v1/images/generations`                       | Model listing      | API route                                                                            |
+| `POST /v1/providers/{provider}/chat/completions`   | OpenAI Chat        | Dedicated per-provider with model validation                                         |
+| `POST /v1/providers/{provider}/embeddings`         | OpenAI Embeddings  | Dedicated per-provider with model validation                                         |
+| `POST /v1/providers/{provider}/images/generations` | OpenAI Images      | Dedicated per-provider with model validation                                         |
+| `POST /v1/messages/count_tokens`                   | Claude Token Count | API route                                                                            |
+| `GET /v1/models`                                   | OpenAI Models list | API route (chat + embedding + image + custom models)                                 |
+| `GET /api/models/catalog`                          | Catalog            | All models grouped by provider + type                                                |
+| `POST /v1beta/models/*:streamGenerateContent`      | Gemini native      | API route                                                                            |
+| `GET/PUT/DELETE /api/settings/proxy`               | Proxy Config       | Network proxy configuration                                                          |
+| `POST /api/settings/proxy/test`                    | Proxy Connectivity | Proxy health/connectivity test endpoint                                              |
+| `GET/POST/PUT/PATCH/DELETE /api/provider-models`   | Provider Models    | Provider model metadata backing custom and managed available models                  |
+| `POST /api/provider-models/reset`                  | Provider Models    | Reset one provider model's local config overrides to its synced or registry baseline |
 
 ## Bypass Handler
 

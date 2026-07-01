@@ -20,7 +20,11 @@ import assert from "node:assert/strict";
 const { REGISTRY } = await import("../../open-sse/config/providerRegistry.ts");
 const { getModelsByProviderId } = await import("../../open-sse/config/providerModels.ts");
 
-type ModelEntry = { id: string; targetFormat?: string; [k: string]: unknown };
+type ModelEntry = {
+  id: string;
+  compat?: { targetFormat?: string };
+  [k: string]: unknown;
+};
 
 function githubModel(id: string): ModelEntry | undefined {
   const provider = (REGISTRY as Record<string, { models?: ModelEntry[] }>)["github"];
@@ -40,7 +44,7 @@ for (const id of MUST_NOT_BE_RESPONSES) {
     const model = githubModel(id);
     assert.ok(model, `${id} must be registered under github`);
     assert.notEqual(
-      model.targetFormat,
+      model.compat?.targetFormat,
       "openai-responses",
       `github/${id} must route via chat/completions (Copilot Responses API rejects it)`
     );
@@ -50,7 +54,7 @@ for (const id of MUST_NOT_BE_RESPONSES) {
 test("#2911 github/claude-opus-4.6 baseline stays on chat/completions (no targetFormat)", () => {
   const model = githubModel("claude-opus-4.6");
   assert.ok(model, "claude-opus-4.6 must be registered");
-  assert.notEqual(model.targetFormat, "openai-responses");
+  assert.notEqual(model.compat?.targetFormat, "openai-responses");
 });
 
 // Regression guard: native OpenAI models keep the Responses API.
@@ -59,7 +63,7 @@ for (const id of ["gpt-5.4", "gpt-5.4-mini"]) {
     const model = githubModel(id);
     assert.ok(model, `${id} must be registered`);
     assert.equal(
-      model.targetFormat,
+      model.compat?.targetFormat,
       "openai-responses",
       `github/${id} is OpenAI-native and must keep the Responses API`
     );
@@ -71,5 +75,5 @@ test("#2911 getModelsByProviderId(github) reflects the targetFormat changes", ()
   const models = getModelsByProviderId("github") as ModelEntry[];
   const opus47 = models.find((m) => m.id === "claude-opus-4.7");
   assert.ok(opus47, "claude-opus-4.7 resolvable via getModelsByProviderId");
-  assert.notEqual(opus47.targetFormat, "openai-responses");
+  assert.notEqual(opus47.compat?.targetFormat, "openai-responses");
 });

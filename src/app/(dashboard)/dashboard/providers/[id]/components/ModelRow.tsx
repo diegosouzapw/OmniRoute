@@ -16,6 +16,12 @@ import {
   normalizeModelCatalogSource,
 } from "@/shared/utils/modelCatalogSearch";
 import { providerText } from "../providerPageHelpers";
+import { modelCapabilitiesFromRow } from "../modelConfigHelpers";
+import type {
+  ProviderModelCapabilities,
+  ProviderModelCapabilitiesPatch,
+  ProviderModelCompatConfig,
+} from "@/shared/types/modelConfig";
 import ModelCompatPopover from "./ModelCompatPopover";
 
 // ---------------------------------------------------------------------------
@@ -27,6 +33,9 @@ export type ModelCompatSavePatch = {
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean;
   upstreamHeaders?: Record<string, string>;
+  capabilities?: ProviderModelCapabilitiesPatch;
+  targetFormat?: string | null;
+  unsupportedParams?: string[] | null;
   compatByProtocol?: Record<
     string,
     {
@@ -260,7 +269,25 @@ export function ModelVisibilityToolbar({
 // ---------------------------------------------------------------------------
 
 export interface ModelRowProps {
-  model: { id: string; name?: string; source?: string; isHidden?: boolean };
+  model: {
+    id: string;
+    name?: string;
+    source?: string;
+    isHidden?: boolean;
+    capabilities?: ProviderModelCapabilities;
+    compat?: ProviderModelCompatConfig;
+    targetFormat?: string | null;
+    unsupportedParams?: string[];
+    hasModelConfigOverride?: boolean;
+    inputTokenLimit?: number;
+    outputTokenLimit?: number;
+    supportsVision?: boolean;
+    supportsTools?: boolean;
+    supportsThinking?: boolean;
+    supportsReasoning?: boolean;
+    supportsXHighEffort?: boolean;
+    supportsMaxEffort?: boolean;
+  };
   fullModel: string;
   provider: string;
   alias?: string;
@@ -273,6 +300,7 @@ export interface ModelRowProps {
   effectiveModelNormalize: (modelId: string, protocol?: string) => boolean;
   effectiveModelPreserveDeveloper: (modelId: string, protocol?: string) => boolean;
   saveModelCompatFlags: (modelId: string, patch: ModelCompatSavePatch) => void;
+  resetModelConfig?: (modelId: string) => Promise<void>;
   getUpstreamHeadersRecord: (protocol: string) => Record<string, string>;
   compatDisabled?: boolean;
   onToggleHidden?: (modelId: string, hidden: boolean) => Promise<void>;
@@ -280,6 +308,13 @@ export interface ModelRowProps {
   onTestModel?: (modelId: string, fullModel: string) => Promise<void>;
   testStatus?: "ok" | "error" | null;
   testingModel?: boolean;
+  capabilities?: ProviderModelCapabilities;
+  configuredCapabilities?: ProviderModelCapabilities;
+  targetFormat?: string | null;
+  configuredTargetFormat?: string | null;
+  unsupportedParams?: string[];
+  configuredUnsupportedParams?: string[];
+  hasModelConfigOverride?: boolean;
 }
 
 export default function ModelRow({
@@ -296,12 +331,20 @@ export default function ModelRow({
   effectiveModelPreserveDeveloper,
   getUpstreamHeadersRecord,
   saveModelCompatFlags,
+  resetModelConfig,
   compatDisabled,
   onToggleHidden,
   togglingHidden,
   onTestModel,
   testStatus,
   testingModel,
+  capabilities,
+  configuredCapabilities,
+  targetFormat,
+  configuredTargetFormat,
+  unsupportedParams,
+  configuredUnsupportedParams,
+  hasModelConfigOverride = false,
 }: ModelRowProps) {
   const isHidden = Boolean(model.isHidden);
   const [editing, setEditing] = useState(false);
@@ -354,7 +397,10 @@ export default function ModelRow({
         >
           smart_toy
         </span>
-        <code className="rounded bg-sidebar px-1.5 py-0.5 font-mono text-xs text-text-muted">
+        <code
+          className="min-w-0 max-w-full truncate rounded bg-sidebar px-1.5 py-0.5 font-mono text-xs text-text-muted"
+          title={fullModel}
+        >
           {fullModel}
         </code>
         <ModelSourceBadge source={model.source} />
@@ -408,9 +454,9 @@ export default function ModelRow({
               testingModel
                 ? t("testingModel")
                 : testStatus === "ok"
-                  ? "OK"
+                  ? providerText(t, "modelTestOk", "OK")
                   : testStatus === "error"
-                    ? "Error"
+                    ? providerText(t, "modelTestError", "Error")
                     : t("testModel")
             }
           >
@@ -448,6 +494,20 @@ export default function ModelRow({
           effectiveModelNormalize={(p) => effectiveModelNormalize(model.id, p)}
           effectiveModelPreserveDeveloper={(p) => effectiveModelPreserveDeveloper(model.id, p)}
           getUpstreamHeadersRecord={getUpstreamHeadersRecord}
+          capabilities={capabilities || modelCapabilitiesFromRow(model)}
+          configuredCapabilities={configuredCapabilities ?? {}}
+          targetFormat={targetFormat ?? model.compat?.targetFormat ?? model.targetFormat ?? null}
+          configuredTargetFormat={configuredTargetFormat}
+          unsupportedParams={
+            unsupportedParams || model.compat?.unsupportedParams || model.unsupportedParams || []
+          }
+          configuredUnsupportedParams={configuredUnsupportedParams}
+          onCapabilitiesPatch={(payload) =>
+            saveModelCompatFlags(model.id, { capabilities: payload })
+          }
+          onModelConfigPatch={(payload) => saveModelCompatFlags(model.id, payload)}
+          onReset={resetModelConfig ? () => resetModelConfig(model.id) : undefined}
+          hasModelConfigOverride={hasModelConfigOverride}
           onCompatPatch={(protocol, payload) =>
             saveModelCompatFlags(model.id, { compatByProtocol: { [protocol]: payload } })
           }

@@ -1,18 +1,10 @@
 "use client";
-/**
- * CustomModelsSection — Issue #3501 Phase 1e
- *
- * Extracted from ProviderDetailPageClient.tsx. Renders the "custom models"
- * panel for ALL providers. This section is self-contained: it fetches its
- * own model state from the API and manages local loading/saving state.
- *
- * Never imports from ProviderDetailPageClient.
- */
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 import {
+  providerText,
   buildCompatMap,
   anyNormalizeCompatBadge,
   anyNoPreserveCompatBadge,
@@ -21,15 +13,23 @@ import {
   effectivePreserveForProtocol,
   effectiveUpstreamHeadersForProtocol,
   formatProviderModelsErrorResponse,
-  targetFormatBadgeI18nKey,
   type CompatModelRow,
   type CompatByProtocolMap,
 } from "../providerPageHelpers";
+import {
+  effectiveModelCapabilitiesFromRows,
+  hasModelConfigOverride,
+  mergeModelConfigRow,
+  modelCapabilitiesFromRow,
+  targetFormatBadgeI18nKey,
+} from "../modelConfigHelpers";
+import {
+  buildNewModelCapabilities,
+  parseUnsupportedParamsDraft,
+  type BooleanCapabilityChoice,
+} from "../customModelFormHelpers";
+import AddCustomModelForm from "./AddCustomModelForm";
 import ModelCompatPopover from "./ModelCompatPopover";
-
-// ---------------------------------------------------------------------------
-// Props
-// ---------------------------------------------------------------------------
 
 export interface CustomModelsSectionProps {
   providerId: string;
@@ -37,21 +37,13 @@ export interface CustomModelsSectionProps {
   copied?: string;
   onCopy: (text: string, key: string) => void;
   onModelsChanged?: () => void;
+  onResetModelConfig?: (modelId: string) => Promise<void>;
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** Map a targetFormat value to its display label, used for the model row badge. */
 function targetFormatLabel(value: string, t: (key: string) => string): string {
   const key = targetFormatBadgeI18nKey(value);
-  return key ? t(key) : value;
+  return key ? providerText(t, key, value) : value;
 }
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 
 export default function CustomModelsSection({
   providerId,
@@ -59,6 +51,7 @@ export default function CustomModelsSection({
   copied,
   onCopy,
   onModelsChanged,
+  onResetModelConfig,
 }: CustomModelsSectionProps) {
   const t = useTranslations("providers");
   const notify = useNotificationStore();
@@ -70,14 +63,22 @@ export default function CustomModelsSection({
   const [newModelName, setNewModelName] = useState("");
   const [newApiFormat, setNewApiFormat] = useState("chat-completions");
   const [newEndpoints, setNewEndpoints] = useState(["chat"]);
+  const [newUnsupportedParams, setNewUnsupportedParams] = useState("");
+  const [newSupportsVision, setNewSupportsVision] = useState<BooleanCapabilityChoice>("unknown");
+  const [newSupportsTools, setNewSupportsTools] = useState<BooleanCapabilityChoice>("unknown");
+  const [newSupportsThinking, setNewSupportsThinking] =
+    useState<BooleanCapabilityChoice>("unknown");
+  const [newSupportsXHigh, setNewSupportsXHigh] = useState<BooleanCapabilityChoice>("unknown");
+  const [newSupportsMax, setNewSupportsMax] = useState<BooleanCapabilityChoice>("unknown");
+  const [newContextWindow, setNewContextWindow] = useState("");
+  const [newMaxOutputTokens, setNewMaxOutputTokens] = useState("");
+  const [newDefaultThinkingBudget, setNewDefaultThinkingBudget] = useState("");
+  const [newThinkingBudgetCap, setNewThinkingBudgetCap] = useState("");
   const [adding, setAdding] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editingModelId, setEditingModelId] = useState<string | null>(null);
   const [editingApiFormat, setEditingApiFormat] = useState("chat-completions");
   const [editingEndpoints, setEditingEndpoints] = useState<string[]>(["chat"]);
-  // #2905: per-model upstream wire-format override (empty string = no override,
-  // use provider default). Round-trips through the targetFormat field on the
-  // custom model record.
   const [editingTargetFormat, setEditingTargetFormat] = useState("");
   const [newTargetFormat, setNewTargetFormat] = useState("");
   const [savingModelId, setSavingModelId] = useState<string | null>(null);
@@ -85,6 +86,11 @@ export default function CustomModelsSection({
 
   const customMap = useMemo(() => buildCompatMap(customModels), [customModels]);
   const overrideMap = useMemo(() => buildCompatMap(modelCompatOverrides), [modelCompatOverrides]);
+  const capabilityChoiceLabels = {
+    unknownLabel: providerText(t, "modelCapabilityUnknown", "Unknown"),
+    yesLabel: providerText(t, "modelCapabilityYes", "Supported"),
+    noLabel: providerText(t, "modelCapabilityNo", "Unsupported"),
+  };
 
   const fetchCustomModels = useCallback(async () => {
     try {
@@ -102,13 +108,31 @@ export default function CustomModelsSection({
   }, [providerId]);
 
   useEffect(() => {
-    fetchCustomModels();
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void fetchCustomModels();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [fetchCustomModels]);
 
   const handleAdd = async () => {
     if (!newModelId.trim() || adding) return;
     setAdding(true);
     try {
+      const capabilities = buildNewModelCapabilities({
+        supportsVision: newSupportsVision,
+        supportsTools: newSupportsTools,
+        supportsThinking: newSupportsThinking,
+        supportsXHigh: newSupportsXHigh,
+        supportsMax: newSupportsMax,
+        contextWindow: newContextWindow,
+        maxOutputTokens: newMaxOutputTokens,
+        defaultThinkingBudget: newDefaultThinkingBudget,
+        thinkingBudgetCap: newThinkingBudgetCap,
+      });
+      const unsupportedParams = parseUnsupportedParamsDraft(newUnsupportedParams);
       const res = await fetch("/api/provider-models", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -119,6 +143,8 @@ export default function CustomModelsSection({
           apiFormat: newApiFormat,
           supportedEndpoints: newEndpoints,
           ...(newTargetFormat ? { targetFormat: newTargetFormat } : {}),
+          ...(unsupportedParams.length > 0 ? { unsupportedParams } : {}),
+          ...(Object.keys(capabilities).length > 0 ? { capabilities } : {}),
         }),
       });
       if (res.ok) {
@@ -127,6 +153,16 @@ export default function CustomModelsSection({
         setNewApiFormat("chat-completions");
         setNewEndpoints(["chat"]);
         setNewTargetFormat("");
+        setNewUnsupportedParams("");
+        setNewSupportsVision("unknown");
+        setNewSupportsTools("unknown");
+        setNewSupportsThinking("unknown");
+        setNewSupportsXHigh("unknown");
+        setNewSupportsMax("unknown");
+        setNewContextWindow("");
+        setNewMaxOutputTokens("");
+        setNewDefaultThinkingBudget("");
+        setNewThinkingBudgetCap("");
         await fetchCustomModels();
         onModelsChanged?.();
       }
@@ -182,7 +218,7 @@ export default function CustomModelsSection({
         ? model.supportedEndpoints
         : ["chat"]
     );
-    setEditingTargetFormat(model.targetFormat || "");
+    setEditingTargetFormat(model.compat?.targetFormat || model.targetFormat || "");
   };
 
   const cancelEdit = () => {
@@ -195,7 +231,12 @@ export default function CustomModelsSection({
 
   const saveCustomCompat = async (
     modelId: string,
-    patch: { compatByProtocol?: CompatByProtocolMap }
+    patch: {
+      compatByProtocol?: CompatByProtocolMap;
+      capabilities?: Record<string, unknown>;
+      targetFormat?: string | null;
+      unsupportedParams?: string[] | null;
+    }
   ) => {
     setSavingModelId(modelId);
     try {
@@ -227,8 +268,19 @@ export default function CustomModelsSection({
 
   const saveEdit = async (modelId: string) => {
     if (!editingModelId || editingModelId !== modelId) return;
+    const endpointSettingsError = providerText(
+      t,
+      "failedSaveModelEndpointSettings",
+      "Failed to save model endpoint settings"
+    );
     if (!editingEndpoints.length) {
-      notify.error("Select at least one supported endpoint");
+      notify.error(
+        providerText(
+          t,
+          "selectAtLeastOneSupportedEndpoint",
+          "Select at least one supported endpoint"
+        )
+      );
       return;
     }
 
@@ -245,27 +297,24 @@ export default function CustomModelsSection({
           source: model?.source || "manual",
           apiFormat: editingApiFormat,
           supportedEndpoints: editingEndpoints,
-          // #2905: send targetFormat only when set; the API treats the field
-          // as optional. Sending an empty string would fail Zod's enum check,
-          // so we omit it entirely when the user picks "Default (auto)".
-          ...(editingTargetFormat ? { targetFormat: editingTargetFormat } : {}),
+          targetFormat: editingTargetFormat || null,
         }),
       });
 
       if (!res.ok) {
         const detail = await formatProviderModelsErrorResponse(res);
-        throw new Error(detail || "Failed to save model endpoint settings");
+        throw new Error(detail || endpointSettingsError);
       }
 
       await fetchCustomModels();
       onModelsChanged?.();
-      notify.success("Saved model endpoint settings");
+      notify.success(
+        providerText(t, "savedModelEndpointSettings", "Saved model endpoint settings")
+      );
       cancelEdit();
     } catch (e) {
       console.error("Failed to save custom model:", e);
-      notify.error(
-        e instanceof Error && e.message ? e.message : "Failed to save model endpoint settings"
-      );
+      notify.error(e instanceof Error && e.message ? e.message : endpointSettingsError);
     } finally {
       setSavingModelId(null);
     }
@@ -279,121 +328,42 @@ export default function CustomModelsSection({
       </h3>
       <p className="text-xs text-text-muted mb-3">{t("customModelsHint")}</p>
 
-      {/* Add form */}
-      <div className="flex flex-col gap-3 mb-3">
-        <div className="flex items-end gap-2">
-          <div className="flex-1">
-            <label htmlFor="custom-model-id" className="text-xs text-text-muted mb-1 block">
-              {t("modelId")}
-            </label>
-            <input
-              id="custom-model-id"
-              type="text"
-              value={newModelId}
-              onChange={(e) => setNewModelId(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-              placeholder={t("customModelPlaceholder")}
-              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
-            />
-          </div>
-          <div className="w-40">
-            <label htmlFor="custom-model-name" className="text-xs text-text-muted mb-1 block">
-              {t("displayName")}
-            </label>
-            <input
-              id="custom-model-name"
-              type="text"
-              value={newModelName}
-              onChange={(e) => setNewModelName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-              placeholder={t("optional")}
-              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
-            />
-          </div>
-          <Button size="sm" icon="add" onClick={handleAdd} disabled={!newModelId.trim() || adding}>
-            {adding ? t("adding") : t("add")}
-          </Button>
-        </div>
+      <AddCustomModelForm
+        adding={adding}
+        newModelId={newModelId}
+        newModelName={newModelName}
+        newApiFormat={newApiFormat}
+        newTargetFormat={newTargetFormat}
+        newEndpoints={newEndpoints}
+        newUnsupportedParams={newUnsupportedParams}
+        newSupportsVision={newSupportsVision}
+        newSupportsTools={newSupportsTools}
+        newSupportsThinking={newSupportsThinking}
+        newSupportsXHigh={newSupportsXHigh}
+        newSupportsMax={newSupportsMax}
+        newContextWindow={newContextWindow}
+        newMaxOutputTokens={newMaxOutputTokens}
+        newDefaultThinkingBudget={newDefaultThinkingBudget}
+        newThinkingBudgetCap={newThinkingBudgetCap}
+        capabilityChoiceLabels={capabilityChoiceLabels}
+        onAdd={handleAdd}
+        setNewModelId={setNewModelId}
+        setNewModelName={setNewModelName}
+        setNewApiFormat={setNewApiFormat}
+        setNewTargetFormat={setNewTargetFormat}
+        setNewEndpoints={setNewEndpoints}
+        setNewUnsupportedParams={setNewUnsupportedParams}
+        setNewSupportsVision={setNewSupportsVision}
+        setNewSupportsTools={setNewSupportsTools}
+        setNewSupportsThinking={setNewSupportsThinking}
+        setNewSupportsXHigh={setNewSupportsXHigh}
+        setNewSupportsMax={setNewSupportsMax}
+        setNewContextWindow={setNewContextWindow}
+        setNewMaxOutputTokens={setNewMaxOutputTokens}
+        setNewDefaultThinkingBudget={setNewDefaultThinkingBudget}
+        setNewThinkingBudgetCap={setNewThinkingBudgetCap}
+      />
 
-        {/* API Format + Supported Endpoints */}
-        <div className="flex items-end gap-4 flex-wrap">
-          <div className="w-48">
-            <label htmlFor="custom-api-format" className="text-xs text-text-muted mb-1 block">
-              API Format
-            </label>
-            <select
-              id="custom-api-format"
-              value={newApiFormat}
-              onChange={(e) => setNewApiFormat(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
-            >
-              <option value="chat-completions">{t("chatCompletions")}</option>
-              <option value="responses">{t("responsesApi")}</option>
-              <option value="embeddings">{t("embeddings")}</option>
-              <option value="rerank">Rerank</option>
-              <option value="audio-transcriptions">{t("audioTranscriptions")}</option>
-              <option value="audio-speech">{t("audioSpeech")}</option>
-              <option value="images-generations">{t("imagesGenerations")}</option>
-            </select>
-          </div>
-          <div className="w-48">
-            <label htmlFor="custom-target-format" className="text-xs text-text-muted mb-1 block">
-              {t("targetFormatLabel")}
-            </label>
-            <select
-              id="custom-target-format"
-              value={newTargetFormat}
-              onChange={(e) => setNewTargetFormat(e.target.value)}
-              title={t("targetFormatHint")}
-              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
-            >
-              <option value="">{t("targetFormatAuto")}</option>
-              <option value="openai">{t("compatProtocolOpenAI")}</option>
-              <option value="openai-responses">{t("compatProtocolOpenAIResponses")}</option>
-              <option value="claude">{t("compatProtocolClaude")}</option>
-              <option value="gemini">{t("targetFormatGemini")}</option>
-              <option value="antigravity">{t("targetFormatAntigravity")}</option>
-            </select>
-          </div>
-          <div className="flex-1">
-            <span className="text-xs text-text-muted mb-1 block">
-              {t("supportedEndpointsLabel")}
-            </span>
-            <div className="flex items-center gap-3">
-              {["chat", "embeddings", "rerank", "images", "audio"].map((ep) => (
-                <label
-                  key={ep}
-                  className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={newEndpoints.includes(ep)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setNewEndpoints((prev) => [...prev, ep]);
-                      } else {
-                        setNewEndpoints((prev) => prev.filter((x) => x !== ep));
-                      }
-                    }}
-                    className="rounded border-border"
-                  />
-                  {ep === "chat"
-                    ? `💬 ${t("supportedEndpointChat")}`
-                    : ep === "embeddings"
-                      ? `📐 ${t("supportedEndpointEmbeddings")}`
-                      : ep === "rerank"
-                        ? "Rerank"
-                        : ep === "images"
-                          ? `🖼️ ${t("supportedEndpointImages")}`
-                          : `🔊 ${t("supportedEndpointAudio")}`}
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* List */}
       {loading ? (
         <p className="text-xs text-text-muted">{t("loading")}</p>
       ) : customModels.length > 0 ? (
@@ -404,7 +374,7 @@ export default function CustomModelsSection({
             return (
               <div
                 key={model.id}
-                className="flex items-center gap-3 rounded-lg border border-border p-3 hover:bg-sidebar/50"
+                className="flex flex-col gap-3 rounded-lg border border-border p-3 hover:bg-sidebar/50 sm:flex-row sm:items-center"
               >
                 {editingModelId !== model.id && (
                   <span className="material-symbols-outlined text-base text-primary shrink-0">
@@ -414,7 +384,10 @@ export default function CustomModelsSection({
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium truncate">{model.name || model.id}</p>
                   <div className="flex items-center gap-1 mt-1 flex-wrap">
-                    <code className="text-xs text-text-muted font-mono bg-sidebar px-1.5 py-0.5 rounded">
+                    <code
+                      className="min-w-0 max-w-full truncate rounded bg-sidebar px-1.5 py-0.5 font-mono text-xs text-text-muted"
+                      title={fullModel}
+                    >
                       {fullModel}
                     </code>
                     <button
@@ -431,12 +404,16 @@ export default function CustomModelsSection({
                         {t("responses")}
                       </span>
                     )}
-                    {model.targetFormat && (
+                    {(model.compat?.targetFormat || model.targetFormat) && (
                       <span
                         className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-medium"
-                        title={t("targetFormatHint")}
+                        title={providerText(
+                          t,
+                          "targetFormatHint",
+                          "Override the upstream wire format"
+                        )}
                       >
-                        {`→ ${targetFormatLabel(model.targetFormat, t)}`}
+                        {`→ ${targetFormatLabel(model.compat?.targetFormat || model.targetFormat || "", t)}`}
                       </span>
                     )}
                     {model.supportedEndpoints?.includes("embeddings") && (
@@ -485,7 +462,7 @@ export default function CustomModelsSection({
                       <div className="flex min-w-0 flex-wrap items-end gap-x-3 gap-y-2">
                         <div className="w-[11rem] shrink-0 min-w-0">
                           <label className="text-xs text-text-muted mb-1 block">
-                            {t("apiFormatLabel")}
+                            {providerText(t, "apiFormatLabel", "API format")}
                           </label>
                           <select
                             value={editingApiFormat}
@@ -495,7 +472,9 @@ export default function CustomModelsSection({
                             <option value="chat-completions">{t("chatCompletions")}</option>
                             <option value="responses">{t("responsesApi")}</option>
                             <option value="embeddings">{t("embeddings")}</option>
-                            <option value="rerank">Rerank</option>
+                            <option value="rerank">
+                              {providerText(t, "apiFormatRerank", "Rerank")}
+                            </option>
                             <option value="audio-transcriptions">{t("audioTranscriptions")}</option>
                             <option value="audio-speech">{t("audioSpeech")}</option>
                             <option value="images-generations">{t("imagesGenerations")}</option>
@@ -503,22 +482,36 @@ export default function CustomModelsSection({
                         </div>
                         <div className="w-[11rem] shrink-0 min-w-0">
                           <label className="text-xs text-text-muted mb-1 block">
-                            {t("targetFormatLabel")}
+                            {providerText(t, "targetFormatLabel", "Target format")}
                           </label>
                           <select
                             value={editingTargetFormat}
                             onChange={(e) => setEditingTargetFormat(e.target.value)}
-                            title={t("targetFormatHint")}
+                            title={providerText(
+                              t,
+                              "targetFormatHint",
+                              "Override the upstream wire format"
+                            )}
                             className="w-full px-2.5 py-2 text-xs border border-border rounded-lg bg-background text-text-main focus:outline-none focus:border-primary"
                           >
-                            <option value="">{t("targetFormatAuto")}</option>
-                            <option value="openai">{t("compatProtocolOpenAI")}</option>
-                            <option value="openai-responses">
-                              {t("compatProtocolOpenAIResponses")}
+                            <option value="">
+                              {providerText(t, "targetFormatUnset", "No override")}
                             </option>
-                            <option value="claude">{t("compatProtocolClaude")}</option>
-                            <option value="gemini">{t("targetFormatGemini")}</option>
-                            <option value="antigravity">{t("targetFormatAntigravity")}</option>
+                            <option value="openai">
+                              {providerText(t, "compatProtocolOpenAI", "OpenAI")}
+                            </option>
+                            <option value="openai-responses">
+                              {providerText(t, "compatProtocolOpenAIResponses", "OpenAI Responses")}
+                            </option>
+                            <option value="claude">
+                              {providerText(t, "compatProtocolClaude", "Claude")}
+                            </option>
+                            <option value="gemini">
+                              {providerText(t, "targetFormatGemini", "Gemini")}
+                            </option>
+                            <option value="antigravity">
+                              {providerText(t, "targetFormatAntigravity", "Antigravity")}
+                            </option>
                           </select>
                         </div>
                         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 overflow-x-auto overflow-y-visible [scrollbar-width:thin]">
@@ -550,7 +543,7 @@ export default function CustomModelsSection({
                                   : ep === "embeddings"
                                     ? `📐 ${t("supportedEndpointEmbeddings")}`
                                     : ep === "rerank"
-                                      ? "Rerank"
+                                      ? providerText(t, "supportedEndpointRerank", "Rerank")
                                       : ep === "images"
                                         ? `🖼️ ${t("supportedEndpointImages")}`
                                         : `🔊 ${t("supportedEndpointAudio")}`}
@@ -574,33 +567,92 @@ export default function CustomModelsSection({
                     </div>
                   )}
                 </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  <button
-                    onClick={() => beginEdit(model)}
-                    className="rounded p-1 text-text-muted hover:bg-sidebar hover:text-primary"
-                    title={t("edit")}
-                  >
-                    <span className="material-symbols-outlined text-sm">edit</span>
-                  </button>
-                  <ModelCompatPopover
-                    t={t}
-                    effectiveModelNormalize={(p) =>
-                      effectiveNormalizeForProtocol(model.id!, p, customMap, overrideMap)
-                    }
-                    effectiveModelPreserveDeveloper={(p) =>
-                      effectivePreserveForProtocol(model.id!, p, customMap, overrideMap)
-                    }
-                    getUpstreamHeadersRecord={(p) =>
-                      effectiveUpstreamHeadersForProtocol(model.id!, p, customMap, overrideMap)
-                    }
-                    onCompatPatch={(protocol, payload) =>
-                      saveCustomCompat(model.id!, {
-                        compatByProtocol: { [protocol]: payload },
-                      })
-                    }
-                    showDeveloperToggle
-                    disabled={savingModelId === model.id}
-                  />
+                <div className="flex shrink-0 items-center gap-1 self-end sm:self-auto">
+                  {(() => {
+                    const override = model.id ? overrideMap.get(model.id) : undefined;
+                    const effectiveConfig = mergeModelConfigRow(model, override);
+                    return (
+                      <>
+                        <button
+                          onClick={() => beginEdit(model)}
+                          className="rounded p-1 text-text-muted hover:bg-sidebar hover:text-primary"
+                          title={t("edit")}
+                        >
+                          <span className="material-symbols-outlined text-sm">edit</span>
+                        </button>
+                        <ModelCompatPopover
+                          t={t}
+                          effectiveModelNormalize={(p) =>
+                            effectiveNormalizeForProtocol(model.id!, p, customMap, overrideMap)
+                          }
+                          effectiveModelPreserveDeveloper={(p) =>
+                            effectivePreserveForProtocol(model.id!, p, customMap, overrideMap)
+                          }
+                          getUpstreamHeadersRecord={(p) =>
+                            effectiveUpstreamHeadersForProtocol(
+                              model.id!,
+                              p,
+                              customMap,
+                              overrideMap
+                            )
+                          }
+                          capabilities={effectiveModelCapabilitiesFromRows(
+                            providerId,
+                            model.id!,
+                            model,
+                            override
+                          )}
+                          configuredCapabilities={modelCapabilitiesFromRow(effectiveConfig)}
+                          targetFormat={
+                            effectiveConfig.compat?.targetFormat ??
+                            effectiveConfig.targetFormat ??
+                            null
+                          }
+                          configuredTargetFormat={
+                            effectiveConfig.compat?.targetFormat ??
+                            effectiveConfig.targetFormat ??
+                            null
+                          }
+                          unsupportedParams={
+                            effectiveConfig.compat?.unsupportedParams ||
+                            effectiveConfig.unsupportedParams ||
+                            []
+                          }
+                          configuredUnsupportedParams={
+                            effectiveConfig.compat?.unsupportedParams ||
+                            effectiveConfig.unsupportedParams ||
+                            []
+                          }
+                          onCapabilitiesPatch={(payload) =>
+                            saveCustomCompat(model.id!, { capabilities: payload })
+                          }
+                          onModelConfigPatch={(payload) => saveCustomCompat(model.id!, payload)}
+                          onReset={
+                            onResetModelConfig
+                              ? async () => {
+                                  setSavingModelId(model.id!);
+                                  try {
+                                    await onResetModelConfig(model.id!);
+                                    await fetchCustomModels();
+                                    onModelsChanged?.();
+                                  } finally {
+                                    setSavingModelId(null);
+                                  }
+                                }
+                              : undefined
+                          }
+                          hasModelConfigOverride={hasModelConfigOverride(model, override)}
+                          onCompatPatch={(protocol, payload) =>
+                            saveCustomCompat(model.id!, {
+                              compatByProtocol: { [protocol]: payload },
+                            })
+                          }
+                          showDeveloperToggle
+                          disabled={savingModelId === model.id}
+                        />
+                      </>
+                    );
+                  })()}
                   <button
                     onClick={() => handleToggleHidden(model.id!, !model.isHidden)}
                     disabled={togglingModelId === model.id}

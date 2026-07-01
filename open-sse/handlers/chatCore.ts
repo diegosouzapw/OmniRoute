@@ -1,5 +1,5 @@
 import { injectMemoryAndSkills } from "./chatCore/memorySkillsInjection.ts";
-import { resolveChatCoreRequestSetup } from "./chatCore/requestSetup.ts";
+import { mergeUnsupportedParams, resolveChatCoreRequestSetup } from "./chatCore/requestSetup.ts";
 import { buildFailureUsageRecord } from "./chatCore/failureUsage.ts";
 import { extractSystemRoleMessages } from "./chatCore/claudeSystemRole.ts";
 export { extractSystemRoleMessages } from "./chatCore/claudeSystemRole.ts";
@@ -387,11 +387,8 @@ export async function handleChatCore({
   }
 
   // Per-request model-routing metadata (first extracted slice of the request-setup phase).
-  const { apiFormat, customModelTargetFormat, requestedModel } = resolveChatCoreRequestSetup(
-    modelInfo,
-    body,
-    model
-  );
+  const { apiFormat, customModelTargetFormat, customModelUnsupportedParams, requestedModel } =
+    resolveChatCoreRequestSetup(modelInfo, body, model);
   const isModelScope = () => isModelScopeProvider(provider, credentials?.providerSpecificData);
   const startTime = Date.now();
   // Per-request trace id + checkpoint helper. Lets us see exactly which await
@@ -1193,7 +1190,8 @@ export async function handleChatCore({
       }
       // Phase 4A: unified output styles (supersedes cavemanOutputMode via the back-compat shim).
       let outputStyleResult:
-        import("../services/compression/outputStyles/apply.ts").OutputStylesResult | null = null;
+        | import("../services/compression/outputStyles/apply.ts").OutputStylesResult
+        | null = null;
       if (config.enabled) {
         try {
           const { resolveOutputStyleSelection } =
@@ -1245,8 +1243,8 @@ export async function handleChatCore({
           ? ((compressionInputBody as Record<string, unknown>).max_tokens as number)
           : null;
       let adaptiveTelemetry:
-        import("../services/compression/adaptiveCompression/types.ts").AdaptiveTelemetry | null =
-        null;
+        | import("../services/compression/adaptiveCompression/types.ts").AdaptiveTelemetry
+        | null = null;
       const compressionPlan = selectCompressionPlan(
         config,
         compressionComboKey,
@@ -1483,10 +1481,12 @@ export async function handleChatCore({
             comboConfig as unknown as { name: string; models: unknown[] },
             allCombosData as unknown as { name: string; models: unknown[] }[]
           );
-          comboTargetLimits = targets.map((t: { modelStr?: string }) => {
-            const parsed = parseModel(t.modelStr);
-            return getTokenLimit(parsed.provider, parsed.model);
-          });
+          comboTargetLimits = targets
+            .map((t: { modelStr?: string }) => {
+              const parsed = parseModel(t.modelStr);
+              return getTokenLimit(parsed.provider, parsed.model);
+            })
+            .filter((limit): limit is number => typeof limit === "number");
         }
         // chatCore executes per concrete target (handleSingleModel resolves
         // provider/effectiveModel before delegating). Compress against THIS
@@ -1508,66 +1508,73 @@ export async function handleChatCore({
       }
     }
 
-    const COMPRESSION_THRESHOLD = 0.7;
-    let reservedTokens = 0;
-    if (Array.isArray(body.tools)) {
-      reservedTokens = estimateTokens(body.tools);
-    }
-    const threshold = Math.max(
-      1,
-      Math.floor((Math.max(1, contextLimit) - reservedTokens) * COMPRESSION_THRESHOLD)
-    );
-
-    log?.debug?.(
-      "CONTEXT",
-      `Checking compression: ${estimatedTokens} tokens vs ${threshold} threshold (${contextLimit} limit, ${reservedTokens} reserved)`
-    );
-
     // Capture pre-compression body so translators can access original message
     // content even after compression alters it (e.g. stable Kiro conversationId).
     preCompressionBody = body;
 
-    if (promptCompressionEnabled && estimatedTokens > threshold) {
-      log?.info?.(
+    if (contextLimit == null) {
+      log?.debug?.(
         "CONTEXT",
-        `Proactive compression triggered: ${estimatedTokens} tokens > ${threshold} threshold (${contextLimit} limit)`
+        "Skipping proactive context compression: no context limit configured"
+      );
+    } else {
+      const COMPRESSION_THRESHOLD = 0.7;
+      let reservedTokens = 0;
+      if (Array.isArray(body.tools)) {
+        reservedTokens = estimateTokens(body.tools);
+      }
+      const threshold = Math.max(
+        1,
+        Math.floor((Math.max(1, contextLimit) - reservedTokens) * COMPRESSION_THRESHOLD)
       );
 
-      const compressionResult = compressContext(body, {
-        provider,
-        model: effectiveModel,
-        maxTokens: threshold,
-        reserveTokens: 0,
-      });
+      log?.debug?.(
+        "CONTEXT",
+        `Checking compression: ${estimatedTokens} tokens vs ${threshold} threshold (${contextLimit} limit, ${reservedTokens} reserved)`
+      );
 
-      if (compressionResult.compressed) {
-        body = compressionResult.body;
-        const stats = compressionResult.stats;
-        tokensCompressed = Math.max(0, (stats?.original ?? 0) - (stats?.final ?? 0));
-        const layersInfo =
-          stats && "layers" in stats && Array.isArray(stats.layers)
-            ? ` (layers: ${stats.layers.map((l: { name: string }) => l.name).join(", ")})`
-            : "";
-
+      if (promptCompressionEnabled && estimatedTokens > threshold) {
         log?.info?.(
           "CONTEXT",
-          `Context compressed: ${stats.original} → ${stats.final} tokens${layersInfo}`
+          `Proactive compression triggered: ${estimatedTokens} tokens > ${threshold} threshold (${contextLimit} limit)`
         );
 
-        logAuditEvent({
-          action: "context.proactive_compression",
-          actor: apiKeyInfo?.name || "system",
-          target: connectionId || provider || "chat",
-          details: {
-            provider,
-            model: effectiveModel,
-            original_tokens: stats.original,
-            final_tokens: stats.final,
-            layers: "layers" in stats ? stats.layers : undefined,
-          },
+        const compressionResult = compressContext(body, {
+          provider,
+          model: effectiveModel,
+          maxTokens: threshold,
+          reserveTokens: 0,
         });
-      } else {
-        log?.debug?.("CONTEXT", `Compression not applied: context already fits within target`);
+
+        if (compressionResult.compressed) {
+          body = compressionResult.body;
+          const stats = compressionResult.stats;
+          tokensCompressed = Math.max(0, (stats?.original ?? 0) - (stats?.final ?? 0));
+          const layersInfo =
+            stats && "layers" in stats && Array.isArray(stats.layers)
+              ? ` (layers: ${stats.layers.map((l: { name: string }) => l.name).join(", ")})`
+              : "";
+
+          log?.info?.(
+            "CONTEXT",
+            `Context compressed: ${stats.original} → ${stats.final} tokens${layersInfo}`
+          );
+
+          logAuditEvent({
+            action: "context.proactive_compression",
+            actor: apiKeyInfo?.name || "system",
+            target: connectionId || provider || "chat",
+            details: {
+              provider,
+              model: effectiveModel,
+              original_tokens: stats.original,
+              final_tokens: stats.final,
+              layers: "layers" in stats ? stats.layers : undefined,
+            },
+          });
+        } else {
+          log?.debug?.("CONTEXT", `Compression not applied: context already fits within target`);
+        }
       }
     }
   } else {
@@ -1679,6 +1686,7 @@ export async function handleChatCore({
         sourceBody: body,
         normalizedBody: normalizedForCc,
         claudeBody: sourceFormat === FORMATS.CLAUDE ? body : null,
+        provider,
         model,
         stream: upstreamStream,
         sessionId: ccSessionId,
@@ -2023,7 +2031,10 @@ export async function handleChatCore({
   }
 
   // Strip unsupported parameters for reasoning models (o1, o3, etc.)
-  const unsupported = getUnsupportedParams(provider, model);
+  const unsupported = mergeUnsupportedParams(
+    getUnsupportedParams(provider, model),
+    customModelUnsupportedParams
+  );
   if (unsupported.length > 0) {
     const stripped: string[] = [];
     for (const param of unsupported) {
@@ -2175,7 +2186,8 @@ export async function handleChatCore({
 
   let onPipelineStreamError: streamFailure.PipelineStreamErrorHandler | null = null;
   let onClientDisconnectFinalize:
-    ((event: { reason: string; duration: number }) => boolean) | null = null;
+    | ((event: { reason: string; duration: number }) => boolean)
+    | null = null;
 
   // Create stream controller for disconnect detection
   const streamController = createStreamController({

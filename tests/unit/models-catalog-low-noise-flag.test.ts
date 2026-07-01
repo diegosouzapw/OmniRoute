@@ -110,6 +110,7 @@ test("?prefix=canonical query param overrides flag to canonical-only mode", asyn
   featureFlagsDb.setFeatureFlagOverride("MODELS_CATALOG_PREFIX_MODE", "dual");
   try {
     await seedConnection("claude", "claude-access");
+    await seedConnection("openai", "openai-access");
     const ids = await getIds("http://localhost/api/v1/models?prefix=canonical");
     assert.equal(
       ids.has("cc/claude-sonnet-4-6"),
@@ -120,6 +121,33 @@ test("?prefix=canonical query param overrides flag to canonical-only mode", asyn
       ids.has("claude/claude-sonnet-4-6"),
       "canonical prefix present with ?prefix=canonical"
     );
+    assert.ok(
+      ids.has("openai/gpt-4o"),
+      "canonical provider id equal to alias should still be present with ?prefix=canonical"
+    );
+  } finally {
+    featureFlagsDb.removeFeatureFlagOverride("MODELS_CATALOG_PREFIX_MODE");
+  }
+});
+
+test("?prefix=canonical includes synced and custom models when provider id equals alias", async () => {
+  featureFlagsDb.setFeatureFlagOverride("MODELS_CATALOG_PREFIX_MODE", "dual");
+  try {
+    const connection = await seedConnection("openai", "openai-access");
+    await modelsDb.replaceSyncedAvailableModelsForConnection("openai", connection.id, [
+      {
+        id: "synced-review-model",
+        name: "Synced Review Model",
+        source: "imported",
+        capabilities: { supportsVision: true },
+      },
+    ]);
+    await modelsDb.addCustomModel("openai", "review-custom", "Review Custom");
+
+    const ids = await getIds("http://localhost/api/v1/models?prefix=canonical");
+
+    assert.ok(ids.has("openai/synced-review-model"));
+    assert.ok(ids.has("openai/review-custom"));
   } finally {
     featureFlagsDb.removeFeatureFlagOverride("MODELS_CATALOG_PREFIX_MODE");
   }

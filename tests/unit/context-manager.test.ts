@@ -30,8 +30,13 @@ test("getTokenLimit: uses GPT-5.5 Codex model context", () => {
   assert.equal(getTokenLimit("codex", "gpt-5.5"), 400000);
 });
 
-test("getTokenLimit: default fallback", () => {
-  assert.equal(getTokenLimit("unknown"), 128000);
+test("getTokenLimit: unknown provider/model stays unknown", () => {
+  assert.equal(getTokenLimit("unknown"), null);
+});
+
+test("getTokenLimit: compatible providers do not infer limits from model names", () => {
+  assert.equal(getTokenLimit("openai-compatible-review", "gpt-4o"), null);
+  assert.equal(getTokenLimit("anthropic-compatible-review", "claude-sonnet-4"), null);
 });
 
 // ─── compressContext ────────────────────────────────────────────────────────

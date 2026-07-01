@@ -6,7 +6,6 @@ import {
 import { applyContextEditingToBody } from "../config/contextEditing.ts";
 import { findOffendingField, stripGroqUnsupportedFields } from "../config/providerFieldStrips.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
-import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 import type { Session } from "../services/sessionPool/session.ts";
@@ -876,11 +875,10 @@ export class BaseExecutor {
             delete tb.thinking;
             delete tb.context_management;
             appliedThinking = "off";
-          } else if (!effThinking && !headerEffort && isClaudeCodeClient) {
-            // Default Claude Code logic when no override headers are present.
-            // Generic OpenAI-compatible clients that route through native Claude OAuth
-            // must opt in with x-omniroute-thinking; force-injecting adaptive thinking
-            // leaks non-standard reasoning replay fields back into those clients.
+          } else if (!effThinking && !headerEffort && (isClaudeCodeClient || hasClaudeOAuthToken)) {
+            // Default Claude Code wire-image logic when no override headers are present.
+            // Anthropic OAuth tokens with user:sessions:claude_code scope require the
+            // same request shape even when the caller did not send Claude CLI headers.
             const isHaiku = typeof tb.model === "string" && tb.model.includes("haiku");
             // #5312 RC-B: honor the operator's proxy-level Thinking-Budget mode.
             // `auto` means "strip — let the provider decide", so suppress the default
@@ -929,11 +927,14 @@ export class BaseExecutor {
 
           const seed = activeCredentials?.accessToken || activeCredentials?.apiKey || "anon";
           const psd = activeCredentials?.providerSpecificData as
-            Record<string, unknown> | undefined;
+            | Record<string, unknown>
+            | undefined;
 
           let identitySource:
-            "upstream-metadata" | "upstream-header" | "synthesized" | "synthesized-cloaked" =
-            "synthesized";
+            | "upstream-metadata"
+            | "upstream-header"
+            | "synthesized"
+            | "synthesized-cloaked" = "synthesized";
           let sessionId: string;
           let deviceId: string;
           let accountUUID: string;
