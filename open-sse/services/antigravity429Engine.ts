@@ -21,10 +21,7 @@
 export type Category = "unknown" | "rate_limited" | "quota_exhausted" | "soft_rate_limit";
 
 export type DecisionKind =
-  | "soft_retry"
-  | "instant_retry_same_auth"
-  | "short_cooldown_switch_auth"
-  | "full_quota_exhausted";
+  "soft_retry" | "instant_retry_same_auth" | "short_cooldown_switch_auth" | "full_quota_exhausted";
 
 export interface Decision {
   kind: DecisionKind;
@@ -53,6 +50,8 @@ const CREDITS_EXHAUSTED_KEYWORDS = [
   "minimumcreditamountforusage",
   "minimum credit amount for usage",
   "minimum credit",
+  "insufficient_g1_credits_balance",
+  "g1_credits",
 ];
 
 const SHORT_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
