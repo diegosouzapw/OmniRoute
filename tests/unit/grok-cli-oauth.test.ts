@@ -117,3 +117,38 @@ test("Grok Build OAuth Provider - mapTokens from raw JWT has no rawAuthJson", ()
   assert.equal(result.refreshToken, null);
   assert.equal(result.providerSpecificData?.rawAuthJson, undefined);
 });
+
+test("Grok Build OAuth Provider - mapTokens extracts expiresIn from JWT exp (dynamic)", () => {
+  const futureSec = Math.floor(Date.now() / 1000) + 1200; // 20 minutes from now
+  const payload = { sub: "12345", email: "test@example.com", exp: futureSec };
+  const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const mockJwt = `eyJhbGciOiJFUzI1NiJ9.${payloadBase64}.signature`;
+  const result = grokCli.mapTokens(mockJwt, null);
+
+  assert.ok(result.expiresIn > 0);
+  assert.ok(Math.abs(result.expiresIn - 1200) <= 2);
+});
+
+test("Grok Build OAuth Provider - mapTokens extracts expiresIn from JSON expires_at (dynamic)", () => {
+  const futureDateStr = new Date(Date.now() + 1800 * 1000).toISOString(); // 30 minutes from now
+  const authJson = {
+    "https://auth.x.ai::clientId": {
+      key: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20ifQ.signature",
+      refresh_token: "test-refresh-token",
+      expires_at: futureDateStr,
+    },
+  };
+  const result = grokCli.mapTokens(authJson, null);
+
+  assert.ok(result.expiresIn > 0);
+  assert.ok(Math.abs(result.expiresIn - 1800) <= 2);
+});
+
+test("Grok Build OAuth Provider - mapTokens falls back to 21600 if no exp or expires_at", () => {
+  const payload = { sub: "12345", email: "test@example.com" };
+  const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const mockJwt = `eyJhbGciOiJFUzI1NiJ9.${payloadBase64}.signature`;
+  const result = grokCli.mapTokens(mockJwt, null);
+
+  assert.equal(result.expiresIn, 21600);
+});
