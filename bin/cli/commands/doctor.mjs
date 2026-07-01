@@ -3,7 +3,7 @@ import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { createDecipheriv, scryptSync } from "node:crypto";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { resolveDataDir, resolveStoragePath } from "../data-dir.mjs";
 import { printHeading } from "../io.mjs";
 import { t } from "../i18n.mjs";
@@ -397,7 +397,7 @@ async function checkServerLiveness(options = {}) {
 export async function collectDoctorChecks(context = {}, options = {}) {
   const rootDir =
     context.rootDir ||
-    path.resolve(path.dirname(new URL(import.meta.url).pathname), "..", "..", "..");
+    path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
   const dataDir = resolveDataDir();
   const dbPath = resolveStoragePath(dataDir);
 
