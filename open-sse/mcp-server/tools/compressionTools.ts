@@ -250,6 +250,7 @@ import {
   commandToId,
 } from "../../services/compression/engines/rtk/index.ts";
 import { resolveCallerScopeContext } from "../scopeEnforcement.ts";
+import { resolveMcpCallerApiKeyId } from "../mcpCallerIdentity.ts";
 
 const ccrRetrieveInput = z.object({
   hash: z
@@ -410,9 +411,19 @@ export const compressionTools = {
       "Scope: read:compression. Always available (sticky-on).",
     scopes: ["read:compression"],
     inputSchema: ccrRetrieveInput,
-    handler: (args: z.infer<typeof ccrRetrieveInput>, extra?: McpToolExtraLike) => {
-      // Derive caller identity from MCP auth context so the retrieve is scoped to the
-      // same principal that stored the block. This closes the cross-tenant IDOR (HIGH).
+    handler: async (args: z.infer<typeof ccrRetrieveInput>, extra?: McpToolExtraLike) => {
+      // Retrieve must use the SAME principal the CCR store used at compression time:
+      // `String(apiKeyInfo.id)` (chatCore → getApiKeyMetadata(rawKey)). On MCP HTTP
+      // transports the raw key lives in httpAuthContext (not in extra.authInfo, since
+      // OmniRoute auth is API-key not OAuth-clientId) — resolve it to the same key id
+      // so the block is found. Without this the caller resolved to "anonymous" and the
+      // store-key never matched (#5649). Cross-tenant IDOR stays closed: a different
+      // key → different id → miss; no key → undefined → anonymous bucket only.
+      const apiKeyPrincipal = await resolveMcpCallerApiKeyId();
+      if (apiKeyPrincipal) {
+        return handleCcrRetrieve(args, apiKeyPrincipal);
+      }
+      // Fallback (unchanged): OAuth clientId / session scope context, then anonymous.
       const { callerId } = resolveCallerScopeContext(extra, ["read:compression"]);
       return handleCcrRetrieve(args, callerId === "anonymous" ? undefined : callerId);
     },
