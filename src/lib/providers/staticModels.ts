@@ -71,6 +71,31 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
       name: model.name || model.id,
     })),
   qoder: () => getStaticQoderModels(),
+  // Non-LLM providers with no /v1/models endpoint — expose their selectable
+  // capability ids as a static catalog so the model-import step shows a usable
+  // list instead of a red "does not support models listing" failure.
+  jules: () => [
+    // Google Labs async coding agent — single async session, no model selection.
+    { id: "jules", name: "Jules (Google Labs coding agent)" },
+  ],
+  "linkup-search": () => [
+    // Linkup web search — the "model" is the search depth (docs.linkup.so #5571).
+    { id: "standard", name: "Standard (single-iteration agentic search)" },
+    { id: "deep", name: "Deep (multi-iteration search & scrape)" },
+    { id: "fast", name: "Fast (sub-second, no LLM)" },
+  ],
+  "ollama-search": () => [
+    // ollama.com/api/web_search (cloud web search, not the local Ollama LLM) #5573.
+    { id: "web_search", name: "Ollama Web Search" },
+  ],
+  "searchapi-search": () => [
+    // SearchAPI (searchapi.io) is a SERP API — the "model" is the engine #5575.
+    { id: "google", name: "Google" },
+    { id: "bing", name: "Bing" },
+    { id: "youtube", name: "YouTube" },
+    { id: "google_scholar", name: "Google Scholar" },
+    { id: "duckduckgo", name: "DuckDuckGo" },
+  ],
 };
 
 export function getStaticModelsForProvider(provider: string): LocalCatalogModel[] | undefined {

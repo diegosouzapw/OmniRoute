@@ -37,7 +37,7 @@ server and writes the config locally.
 
 | Command | Tool | What it writes | Key flags | Local vs remote |
 |---------|------|----------------|-----------|-----------------|
-| `omniroute setup-codex` | OpenAI Codex CLI | `~/.codex/<name>.config.toml` — one profile per matched model (`codex --profile <name>`) | `--remote` `--api-key` `--only` `--dry-run` `--port` `--codex-home` | Both |
+| `omniroute setup-codex` | OpenAI Codex CLI | `~/.codex/<name>.config.toml` — one profile per compatible text model (`codex --profile <name>`) | `--remote` `--api-key` `--only` `--dry-run` `--port` `--codex-home` | Both |
 | `omniroute setup-claude` | Claude Code | `~/.claude/profiles/<name>/settings.json` — one profile per matched model (`CLAUDE_CONFIG_DIR`) | `--remote` `--api-key` `--only` `--dry-run` `--port` `--claude-home` | Both |
 | `omniroute setup-opencode` | OpenCode (openai-compatible) | `~/.config/opencode/opencode.json` — `omniroute` provider with every catalog model (`opencode -m omniroute/<model>`) | `--remote` `--api-key` `--only` `--model` `--dry-run` `--port` | Both |
 | `omniroute setup-cline` | Cline | `~/.cline/data/{globalState,secrets}.json` (CLI mode) + prints VS Code extension settings | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--cline-dir` | Both |

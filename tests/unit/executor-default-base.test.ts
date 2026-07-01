@@ -112,10 +112,7 @@ test("DefaultExecutor.buildUrl honors a custom providerSpecificData.baseUrl for 
   const openai = new DefaultExecutor("openai");
 
   // No override → hardcoded OpenAI endpoint (unchanged behavior).
-  assert.equal(
-    openai.buildUrl("gpt-4o", true),
-    "https://api.openai.com/v1/chat/completions"
-  );
+  assert.equal(openai.buildUrl("gpt-4o", true), "https://api.openai.com/v1/chat/completions");
 
   // Custom base URL (e.g. a proxy/gateway) must be used instead of api.openai.com.
   assert.equal(
@@ -167,6 +164,15 @@ test("DefaultExecutor.buildUrl handles openai-compatible and anthropic-compatibl
   assert.equal(
     openAIResponsesCompat.buildUrl("gpt-4.1", true, 0, {
       providerSpecificData: { baseUrl: "https://proxy.example/v1/" },
+    }),
+    "https://proxy.example/v1/responses"
+  );
+  assert.equal(
+    openAICompat.buildUrl("gpt-4.1", true, 0, {
+      providerSpecificData: {
+        baseUrl: "https://proxy.example/v1/",
+        _omnirouteForceResponsesUpstream: true,
+      },
     }),
     "https://proxy.example/v1/responses"
   );
@@ -869,6 +875,46 @@ test("DefaultExecutor.transformRequest only injects stream usage for OpenAI chat
 
   assert.deepEqual((chatResult as any).stream_options, { include_usage: true });
   assert.equal((responsesResult as any).stream_options, undefined);
+});
+
+test("DefaultExecutor.execute routes Responses-shaped MCP requests to /responses for OpenAI-compatible providers", async () => {
+  const originalFetch = globalThis.fetch;
+  const calls: Array<{ url: string; body: any }> = [];
+
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({
+      url: String(url),
+      body: JSON.parse(String(init.body)),
+    });
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const executor = new DefaultExecutor("openai-compatible-test");
+    await executor.execute({
+      model: "gpt-4.1",
+      body: {
+        model: "gpt-4.1",
+        input: "find tools",
+        tools: [{ type: "tool_search" }],
+      },
+      stream: false,
+      credentials: {
+        apiKey: "test-key",
+        providerSpecificData: { baseUrl: "https://proxy.example/v1/" },
+      },
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://proxy.example/v1/responses");
+  assert.equal(calls[0].body.stream_options, undefined);
+  assert.deepEqual(calls[0].body.tools, [{ type: "tool_search" }]);
 });
 
 test("DefaultExecutor.transformRequest respects disableStreamOptions for OpenAI chat targets", () => {

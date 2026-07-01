@@ -252,6 +252,7 @@ export default function AddApiKeyModal({
 
       let isValid = Boolean(isNoAuthWebSessionCredential && !credentialInput);
       let validationError: string | null = null;
+      let isUnsupported = false; // #5565/#5567: no live validator → save anyway
       if (!isValid) {
         try {
           setValidating(true);
@@ -271,6 +272,7 @@ export default function AddApiKeyModal({
           });
           const data = await res.json();
           isValid = !!data.valid;
+          isUnsupported = !!data.unsupported;
           if (!isValid && data.error) {
             validationError = data.error;
           }
@@ -283,8 +285,8 @@ export default function AddApiKeyModal({
       }
 
       if (!isValid) {
-        if (apiKeyOptional && !credentialInput) {
-          console.debug("Validation failed but apiKey is optional; proceeding to save.");
+        if (isUnsupported || (apiKeyOptional && !credentialInput)) {
+          console.debug("Validation unsupported/optional; proceeding to save as-is.");
         } else {
           setSaveError(validationError || credentialValidationFailedMessage);
           return;

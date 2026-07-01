@@ -14,6 +14,7 @@ import Toggle from "@/shared/components/Toggle";
 import Tooltip from "@/shared/components/Tooltip";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { FieldLabelWithHelp, WeightTotalBar } from "./parts";
+import { ResponseValidationEditor, type ResponseValidationValue } from "./ResponseValidationEditor";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -4174,6 +4175,23 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                 </div>
               )}
             </>
+          )}
+
+          {/* Response Validation (4985) */}
+          {showStrategySection && (
+            <div className="flex flex-col gap-2 p-3 bg-black/[0.02] dark:bg-white/[0.02] rounded-lg border border-black/5 dark:border-white/5">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="material-symbols-outlined text-[14px] text-primary">rule</span>
+                <p className="text-xs font-medium">
+                  {getI18nOrFallback(t, "responseValidationTitle", "Response validation")}
+                </p>
+              </div>
+              <ResponseValidationEditor
+                value={config.responseValidation as ResponseValidationValue | undefined}
+                onChange={(next) => setConfig({ ...config, responseValidation: next })}
+                t={t}
+              />
+            </div>
           )}
 
           {/* Agent Features (#399 / #401 / #454) */}

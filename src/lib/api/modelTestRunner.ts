@@ -24,14 +24,45 @@ function getErrorName(error: unknown): string {
   return error instanceof Error ? error.name : "";
 }
 
-function extractProviderErrorMessage(body: unknown, fallback: string) {
+function extractUpstreamDetailMessage(value: unknown): string | null {
+  const record = asRecord(value);
+  const message = record.message;
+  if (typeof message === "string" && message.trim()) return message.trim();
+
+  const error = record.error;
+  if (typeof error === "string" && error.trim()) return error.trim();
+
+  const errorRecord = asRecord(error);
+  const nestedMessage = errorRecord.message;
+  if (typeof nestedMessage === "string" && nestedMessage.trim()) return nestedMessage.trim();
+
+  const body = record.body;
+  if (typeof body === "string" && body.trim()) return body.trim();
+
+  return null;
+}
+
+function isGenericHttpProviderError(message: string): boolean {
+  return /\b(?:returned|provider returned)\s+HTTP\s+\d{3}\b/i.test(message);
+}
+
+export function extractProviderErrorMessage(body: unknown, fallback: string) {
   const record = asRecord(body);
   const error = record.error;
   if (typeof error === "string" && error.trim()) return error;
 
   const errorRecord = asRecord(error);
   const message = errorRecord.message;
-  return typeof message === "string" && message.trim() ? message : fallback;
+  const baseMessage = typeof message === "string" && message.trim() ? message.trim() : fallback;
+  const upstreamMessage = extractUpstreamDetailMessage(record.upstream_details);
+  if (
+    upstreamMessage &&
+    upstreamMessage !== baseMessage &&
+    (isGenericHttpProviderError(baseMessage) || baseMessage === fallback)
+  ) {
+    return `${baseMessage}: ${sanitizeErrorMessage(upstreamMessage)}`;
+  }
+  return baseMessage;
 }
 
 function stripFirstSegment(modelId: string): string | null {

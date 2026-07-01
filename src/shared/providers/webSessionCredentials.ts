@@ -124,8 +124,9 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
   },
   huggingchat: {
     kind: "cookie",
-    credentialName: "hf-chat",
-    placeholder: "hf-chat=... or full Cookie header from huggingface.co",
+    credentialName: "full Cookie header (hf-chat + token)",
+    placeholder:
+      "hf-chat=...; token=...; aws-waf-token=... (full Cookie header from huggingface.co)",
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "hf-chat"],
   },

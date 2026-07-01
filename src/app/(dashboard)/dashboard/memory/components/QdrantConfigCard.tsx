@@ -205,6 +205,11 @@ export default function QdrantConfigCard() {
         </span>
       </div>
 
+      {/* Tier 1 vs Tier 2 guidance */}
+      <div className="mb-4 p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20 text-xs text-text-muted leading-relaxed">
+        {t("qdrant.banner")}
+      </div>
+
       {/* Enable toggle + test connection */}
       <div className="flex items-center justify-between p-4 rounded-lg bg-surface/30 border border-border/30 mb-4">
         <div>
@@ -271,6 +276,7 @@ export default function QdrantConfigCard() {
             placeholder="http://127.0.0.1"
             className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500"
           />
+          <p className="text-[11px] text-text-muted mt-1.5">{t("qdrant.hostHelp")}</p>
         </div>
         <div className="p-3 rounded-lg bg-surface/30 border border-border/30">
           <label className="text-xs font-medium block mb-1.5">{t("qdrant.portLabel")}</label>
@@ -292,6 +298,7 @@ export default function QdrantConfigCard() {
             placeholder="omniroute_memory"
             className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500"
           />
+          <p className="text-[11px] text-text-muted mt-1.5">{t("qdrant.collectionHelp")}</p>
         </div>
         <div className="p-3 rounded-lg bg-surface/30 border border-border/30">
           <label className="text-xs font-medium block mb-1.5">
@@ -319,6 +326,7 @@ export default function QdrantConfigCard() {
             placeholder="openai/text-embedding-3-small"
             className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500"
           />
+          <p className="text-[11px] text-text-muted mt-1.5">{t("qdrant.embeddingModelHelp")}</p>
         </div>
         <div className="p-3 rounded-lg bg-surface/30 border border-border/30 md:col-span-2">
           <label className="text-xs font-medium block mb-1.5">

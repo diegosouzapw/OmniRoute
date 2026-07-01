@@ -3,6 +3,19 @@
  * Pure data literal; re-exported by the providers.ts barrel. No behavior change.
  */
 export const LOCAL_PROVIDERS = {
+  "ollama-local": {
+    id: "ollama-local",
+    alias: "ollama",
+    name: "Ollama",
+    icon: "pets",
+    color: "#58A6FF",
+    textIcon: "OL",
+    website: "https://ollama.com",
+    authHint:
+      "No API key required. Ollama runs locally — configure its OpenAI-compatible base URL (default: http://localhost:11434/v1) and make sure Ollama is running before connecting.",
+    localDefault: "http://localhost:11434/v1",
+    passthroughModels: true,
+  },
   "lm-studio": {
     id: "lm-studio",
     alias: "lmstudio",

@@ -1,13 +1,15 @@
 import { extractTextContent } from "./messageContent.ts";
 import { checkFidelity, type FidelityGateConfig } from "./fidelityGate.ts";
 import type { CompressionResult } from "./types.ts";
-import type { StackAccumulator } from "./strategySelector.ts";
+import type { StackAccumulator } from "./stackedStepCore.ts";
 import { getCompressionEngine } from "./engines/registry.ts";
 
 function bodyToText(body: Record<string, unknown>): string {
   const messages = body.messages;
   if (!Array.isArray(messages)) return "";
-  return messages.map((m) => extractTextContent((m as { content?: unknown }).content as never)).join("\n");
+  return messages
+    .map((m) => extractTextContent((m as { content?: unknown }).content as never))
+    .join("\n");
 }
 
 /**

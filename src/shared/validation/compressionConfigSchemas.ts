@@ -210,6 +210,7 @@ export const compressionSettingsUpdateSchema = z
     autoTriggerTokens: z.number().int().min(0).optional(),
     cacheMinutes: z.number().int().min(1).max(60).optional(),
     preserveSystemPrompt: z.boolean().optional(),
+    preserveSystemPromptMode: z.enum(["always", "whenNoCache", "never"]).optional(),
     mcpDescriptionCompressionEnabled: z.boolean().optional(),
     comboOverrides: z.record(z.string(), compressionModeSchema).optional(),
     compressionComboId: z.string().trim().min(1).nullable().optional(),

@@ -2443,6 +2443,37 @@ test("copilot-web validator: empty input → paste prompt", async () => {
   assert.match(result.error || "", /Paste your access_token/i);
 });
 
+// ─── copilot-m365-web validator ──────────────────────────────────────────────
+
+test("copilot-m365-web validator: accepts pasted OmniRoute credential without /models probe", async () => {
+  globalThis.fetch = async () => {
+    throw new Error("should not fetch");
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "copilot-m365-web",
+    apiKey: "access_token=tok; chathubPath=redacted-account@redacted-tenant",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+  assert.match(result.warning || "", /verified when the provider sends a chat/i);
+});
+
+test("copilot-m365-web validator: requires chathubPath", async () => {
+  globalThis.fetch = async () => {
+    throw new Error("should not fetch");
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "copilot-m365-web",
+    apiKey: "access_token=tok",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Chathub path/i);
+});
+
 // ─── t3-web validator ────────────────────────────────────────────────────────
 
 test("t3-web validator: valid cookies → valid", async () => {

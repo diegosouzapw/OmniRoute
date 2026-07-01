@@ -88,7 +88,7 @@ export const APIKEY_PROVIDERS_INFERENCE = {
     icon: "cloud",
     color: "#58A6FF",
     textIcon: "OC",
-    website: "https://ollama.com/settings/api-keys",
+    website: "https://ollama.com/settings/keys",
     hasFree: true,
   },
   huggingface: {
