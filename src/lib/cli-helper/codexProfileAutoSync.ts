@@ -16,8 +16,11 @@ type SyncResult =
     };
 
 function isAutoSyncEnabled() {
-  const raw = String(process.env.OMNIROUTE_AUTO_SYNC_CODEX_PROFILES ?? "true").toLowerCase();
-  return !["0", "false", "no", "off"].includes(raw);
+  // Opt-in, default OFF. Auto-writing profile files into ~/.codex is a side effect on the
+  // operator's machine, so it must be explicitly enabled (via env, or a settings/UI toggle
+  // that sets this env at runtime) — never silently on. An unset flag means disabled.
+  const raw = String(process.env.OMNIROUTE_AUTO_SYNC_CODEX_PROFILES ?? "false").toLowerCase();
+  return ["1", "true", "yes", "on"].includes(raw);
 }
 
 function forwardAuthHeaders(request: Request): Record<string, string> {
