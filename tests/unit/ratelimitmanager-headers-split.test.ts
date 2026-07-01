@@ -60,7 +60,11 @@ test("rateLimitManager/headers — STANDARD/ANTHROPIC header maps are objects wi
 
 // ── 2. host public API surface (17) ──────────────────────────────────────────
 
-const host = await import("../../open-sse/services/rateLimitManager.ts");
+let host: Awaited<typeof import("../../open-sse/services/rateLimitManager.ts")>;
+
+test.before(async () => {
+  host = await import("../../open-sse/services/rateLimitManager.ts");
+});
 
 test.after(async () => {
   // release watchdog timers / limiter state so the runner exits cleanly
