@@ -181,6 +181,13 @@ function spawnQoderCli(options: SpawnQoderCliOptions): Promise<QoderCliRunResult
     child.on("error", (err: Error) => {
       finish({ ok: false, code: null, stdout, stderr, timedOut, error: err.message });
     });
+    // If qodercli exits or closes stdin before we finish writing the prompt, the
+    // write/end below can emit an ASYNC EPIPE/EINVAL on the stream (not caught by
+    // the surrounding try/catch). Without a listener that becomes an unhandled
+    // 'error' event that crashes the whole process — attach no-op handlers.
+    child.stdin?.on("error", () => {});
+    child.stdout?.on("error", () => {});
+    child.stderr?.on("error", () => {});
     child.stdout?.on("data", (chunk: Buffer) => {
       stdout += chunk.toString("utf8");
     });

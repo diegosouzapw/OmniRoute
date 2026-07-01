@@ -371,3 +371,28 @@ test("parseQoderCliFailure classifies qodercli auth output as 401", () => {
     assert.equal(failure.code, "upstream_auth_error", msg);
   }
 });
+
+test("runQoderCli survives qodercli exiting before it reads a large stdin (async EPIPE)", async () => {
+  const prevBin = process.env.CLI_QODER_BIN;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "qodercli-stub-"));
+  const stub = path.join(dir, "qodercli");
+  // Exits immediately WITHOUT reading stdin. Writing a >pipe-buffer prompt then
+  // races an async EPIPE/EINVAL on the closed stdin; without a stream 'error'
+  // listener that crashes the whole process (gemini-code-assist review).
+  fs.writeFileSync(stub, "#!/bin/sh\nexit 0\n", { mode: 0o755 });
+  process.env.CLI_QODER_BIN = stub;
+  try {
+    const run = await qoderCli.runQoderCli({
+      token: "pt-x",
+      prompt: "x".repeat(1_000_000),
+      stream: false,
+      model: "auto",
+    });
+    // The assertion is simply that we get here — a resolved result, no crash.
+    assert.equal(typeof run.ok, "boolean");
+  } finally {
+    if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
+    else process.env.CLI_QODER_BIN = prevBin;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
