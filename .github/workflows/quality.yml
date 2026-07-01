@@ -51,6 +51,7 @@ jobs:
       - run: npm run check:known-symbols
       - run: npm run check:route-guard-membership
       - run: npm run check:test-discovery
+      - run: npm run test:unit:memory:typed-decay
       - run: npm run check:test-runner-api
       # Guards tap.testFiles drift: a covering unit test absent from stryker.conf.json
       # tap.testFiles makes its module's mutants survive on a cold nightly-mutation run,
