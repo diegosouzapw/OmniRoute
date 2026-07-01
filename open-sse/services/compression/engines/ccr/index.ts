@@ -55,6 +55,12 @@ const DEFAULT_MIN_CHARS = 600;
 /** Number of retrievals before a block is flagged "do-not-compress" for that principal. */
 const RETRIEVAL_THRESHOLD = 3;
 /**
+ * H8 — default retrieval ramp factor. Each prior retrieval (below the threshold) raises a block's
+ * effective `minChars` linearly, so hot content is compressed progressively less; `1` disables the
+ * ramp (only the >= threshold cliff remains — the legacy binary behavior).
+ */
+const RETRIEVAL_RAMP_FACTOR_DEFAULT = 2;
+/**
  * Maximum number of entries in each bounded store.
  * When inserting beyond this cap, the oldest entry (Map insertion order) is evicted.
  * 5 000 entries × ~2 KB average ≈ 10 MB upper bound for each map.
@@ -142,6 +148,35 @@ export function shouldSkipCompression(hash: string, principalId?: string): boole
 }
 
 /**
+ * H8 — retrieval-aware minimum block size (graduated feedback). A frequently-retrieved
+ * `(principal, hash)` block is compressed progressively less: each prior retrieval (below the
+ * threshold) raises the size bar linearly, and once the retrieval count reaches
+ * `RETRIEVAL_THRESHOLD` the block is never compressed (`Infinity` — this subsumes the previous
+ * binary `shouldSkipCompression` cliff). Pure function of the retrieval counter; `rampFactor <= 1`
+ * disables the ramp so only the `>= threshold` cliff remains (byte-identical to the legacy path).
+ */
+export function effectiveMinChars(
+  baseMinChars: number,
+  hash: string,
+  principalId: string | undefined,
+  rampFactor: number
+): number {
+  const count = retrievalCounts.get(buildStoreKey(hash, principalId)) ?? 0;
+  if (count >= RETRIEVAL_THRESHOLD) return Number.POSITIVE_INFINITY;
+  if (count <= 0 || rampFactor <= 1) return baseMinChars;
+  // Linear ramp: count=1 → base·rampFactor; count=2 → base·(1 + 2·(rampFactor−1)); …
+  return Math.round(baseMinChars * (1 + (rampFactor - 1) * count));
+}
+
+/** Resolve the H8 ramp factor from the env (`COMPRESSION_CCR_RETRIEVAL_RAMP_FACTOR`), default 2. */
+export function resolveRetrievalRampFactor(env: NodeJS.ProcessEnv = process.env): number {
+  const raw = env.COMPRESSION_CCR_RETRIEVAL_RAMP_FACTOR;
+  if (raw === undefined) return RETRIEVAL_RAMP_FACTOR_DEFAULT;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 1 ? n : RETRIEVAL_RAMP_FACTOR_DEFAULT;
+}
+
+/**
  * Reset the CCR store and retrieval counts (for testing).
  */
 export function resetCcrStore(): void {
@@ -202,16 +237,20 @@ function buildMarker(hash: string, charCount: number): string {
 function maybeCcrReplace(
   text: string,
   minChars: number,
-  principalId?: string
+  principalId: string | undefined,
+  rampFactor: number
 ): { text: string; replaced: boolean; hash: string | null } {
+  // Base floor first (no hash cost for tiny blocks that could never compress anyway).
   if (text.length < minChars) {
     return { text, replaced: false, hash: null };
   }
 
   const hash = hashContent(text);
 
-  // Skip if this (principal, hash) pair is flagged as do-not-compress
-  if (shouldSkipCompression(hash, principalId)) {
+  // H8: retrieved blocks demand an ever-larger size before compressing; at/above the retrieval
+  // threshold the effective minimum is Infinity, so the block is excluded (subsumes the former
+  // binary shouldSkipCompression cliff).
+  if (text.length < effectiveMinChars(minChars, hash, principalId, rampFactor)) {
     return { text, replaced: false, hash: null };
   }
 
@@ -232,7 +271,8 @@ function maybeCcrReplace(
 function processMessages(
   messages: MessageLike[],
   minChars: number,
-  principalId?: string
+  principalId: string | undefined,
+  rampFactor: number
 ): { messages: MessageLike[]; replacedCount: number } {
   let replacedCount = 0;
 
@@ -240,7 +280,7 @@ function processMessages(
     if (msg.role === "system") return { ...msg };
 
     if (typeof msg.content === "string") {
-      const { text, replaced } = maybeCcrReplace(msg.content, minChars, principalId);
+      const { text, replaced } = maybeCcrReplace(msg.content, minChars, principalId, rampFactor);
       if (replaced) {
         replacedCount++;
         return { ...msg, content: text };
@@ -252,7 +292,12 @@ function processMessages(
       let changed = false;
       const newContent = msg.content.map((part) => {
         if (part["type"] !== "text" || typeof part["text"] !== "string") return part;
-        const { text, replaced } = maybeCcrReplace(part["text"] as string, minChars, principalId);
+        const { text, replaced } = maybeCcrReplace(
+          part["text"] as string,
+          minChars,
+          principalId,
+          rampFactor
+        );
         if (replaced) {
           changed = true;
           replacedCount++;
@@ -290,6 +335,18 @@ const CCR_SCHEMA: EngineConfigField[] = [
     min: 100,
     max: 1_000_000,
   },
+  {
+    key: "retrievalRampFactor",
+    type: "number",
+    label: "Retrieval ramp factor (H8)",
+    description:
+      "How steeply frequently-retrieved blocks resist compression. Each prior retrieval raises " +
+      "the effective minimum block size linearly; 1 disables the ramp (binary skip at the " +
+      "threshold only).",
+    defaultValue: RETRIEVAL_RAMP_FACTOR_DEFAULT,
+    min: 1,
+    max: 100,
+  },
 ];
 
 function validateCcrConfig(config: Record<string, unknown>): EngineValidationResult {
@@ -301,6 +358,12 @@ function validateCcrConfig(config: Record<string, unknown>): EngineValidationRes
     const v = config["minChars"];
     if (typeof v !== "number" || !Number.isFinite(v) || v < 1) {
       errors.push("minChars must be a positive number");
+    }
+  }
+  if (config["retrievalRampFactor"] !== undefined) {
+    const v = config["retrievalRampFactor"];
+    if (typeof v !== "number" || !Number.isFinite(v) || v < 1) {
+      errors.push("retrievalRampFactor must be a number >= 1");
     }
   }
   return { valid: errors.length === 0, errors };
@@ -346,6 +409,12 @@ export const ccrEngine: CompressionEngine = {
         ? (stepConfig["minChars"] as number)
         : DEFAULT_MIN_CHARS;
 
+    // H8: retrieval-aware ramp factor — stepConfig wins, else env (default 2). 1 = binary cliff only.
+    const rampFactor =
+      typeof stepConfig["retrievalRampFactor"] === "number"
+        ? (stepConfig["retrievalRampFactor"] as number)
+        : resolveRetrievalRampFactor();
+
     const messages = body["messages"];
     if (!Array.isArray(messages) || messages.length === 0) {
       return { body, compressed: false, stats: null };
@@ -355,7 +424,8 @@ export const ccrEngine: CompressionEngine = {
     const { messages: newMessages, replacedCount } = processMessages(
       messages as MessageLike[],
       minChars,
-      options?.principalId
+      options?.principalId,
+      rampFactor
     );
 
     if (replacedCount === 0) {

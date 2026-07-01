@@ -5,6 +5,7 @@ import {
 import { parseModel, resolveCanonicalProviderModel } from "@omniroute/open-sse/services/model.ts";
 import { MODEL_SPECS, getModelSpec, type ModelSpec } from "@/shared/constants/modelSpecs";
 import { getSyncedCapability } from "@/lib/modelsDevSync";
+import { getModelContextOverride } from "@/lib/db/modelContextOverrides";
 import { isVisionModelId } from "@/shared/constants/visionModels";
 
 const TOOL_CALLING_UNSUPPORTED_PATTERNS: string[] = [];
@@ -440,5 +441,9 @@ export function getModelContextLimit(
     typeof providerOrInput === "string" && modelId !== undefined
       ? getResolvedModelCapabilities({ provider: providerOrInput, model: modelId })
       : getResolvedModelCapabilities(providerOrInput);
-  return resolved.contextWindow;
+  // Feature 5004: a persisted override (operator-set or auto-discovered) wins over the
+  // static catalog / models.dev sync. `getResolvedModelCapabilities` stays override-free
+  // so the reconciler can compare the catalog value against provider-declared windows.
+  const override = getModelContextOverride(resolved.provider, resolved.model);
+  return override ?? resolved.contextWindow;
 }

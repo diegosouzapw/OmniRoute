@@ -1,6 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildProfileSettings } from "../../../bin/cli/commands/setup-claude.mjs";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import {
+  buildProfileSettings,
+  syncClaudeProfilesFromModels,
+} from "../../../bin/cli/commands/setup-claude.mjs";
 import { buildClaudeEnv, resolveLaunchTarget } from "../../../bin/cli/commands/launch.mjs";
 import { categoriseModel } from "../../../bin/cli/commands/setup-codex.mjs";
 
@@ -32,6 +38,52 @@ test("buildProfileSettings omits effortLevel for the simple tier", () => {
 test("profile names match setup-codex (cross-CLI consistency)", () => {
   assert.equal(categoriseModel("glm/glm-5.2").name, "glm52");
   assert.equal(categoriseModel("kmc/kimi-k2.7").name, "kimi-k27");
+});
+
+test("syncClaudeProfilesFromModels writes directory-per-profile settings + threads baseUrl, skips non-ids", async () => {
+  const claudeHome = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-claude-profiles-"));
+  try {
+    const result = await syncClaudeProfilesFromModels([{ id: "glm/glm-5.2" }, { id: "" }], {
+      claudeHome,
+      baseUrl: "http://vps:20128",
+    });
+
+    assert.equal(result.written, 1);
+    assert.equal(result.skipped, 1);
+    assert.deepEqual(
+      result.profiles.map((p) => p.name),
+      ["glm52"]
+    );
+
+    // Directory-per-profile: <claudeHome>/profiles/<name>/settings.json
+    const settingsPath = path.join(claudeHome, "profiles", "glm52", "settings.json");
+    const json = JSON.parse(await fs.readFile(settingsPath, "utf8"));
+    assert.equal(json.model, "glm/glm-5.2");
+    assert.equal(json.env.ANTHROPIC_BASE_URL, "http://vps:20128");
+    assert.equal(json.env.CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY, "1");
+    // The auth token must never be written to disk.
+    assert.equal(JSON.stringify(json).includes("ANTHROPIC_AUTH_TOKEN"), false);
+  } finally {
+    await fs.rm(claudeHome, { recursive: true, force: true });
+  }
+});
+
+test("syncClaudeProfilesFromModels dry-run writes nothing", async () => {
+  const claudeHome = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-claude-dry-"));
+  try {
+    const result = await syncClaudeProfilesFromModels([{ id: "glm/glm-5.2" }], {
+      claudeHome,
+      baseUrl: "http://vps:20128",
+      dryRun: true,
+    });
+    assert.equal(result.written, 1);
+    await assert.rejects(
+      fs.stat(path.join(claudeHome, "profiles", "glm52", "settings.json")),
+      /ENOENT/
+    );
+  } finally {
+    await fs.rm(claudeHome, { recursive: true, force: true });
+  }
 });
 
 // ── launch env (Claude Code) ─────────────────────────────────────────────────

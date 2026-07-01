@@ -15,7 +15,11 @@
  * The only standardization is the log MESSAGE wording (round-robin previously dropped the
  * "on remaining targets" suffix) — diagnostic text only, same #code + provider info.
  */
-import { classifyErrorText, hasPerModelQuota, isProviderExhaustedReason } from "../accountFallback.ts";
+import {
+  classifyErrorText,
+  hasPerModelQuota,
+  isProviderExhaustedReason,
+} from "../accountFallback.ts";
 import { RateLimitReason } from "../../config/constants.ts";
 import { isProviderCircuitOpenResult } from "./comboPredicates.ts";
 import type { ComboLogger, ResolvedComboTarget } from "./types.ts";
@@ -51,6 +55,8 @@ export type ApplyComboTargetExhaustionOptions = {
   log: ComboLogger;
   tag: string;
   exhaustedLogLevel: "info" | "debug";
+  /** Structured error object from upstream response — preferred over raw errorText for classification */
+  structuredError?: { code?: string; type?: string; message?: string };
 };
 
 /**
@@ -73,6 +79,7 @@ export function applyComboTargetExhaustion(
     log,
     tag,
     exhaustedLogLevel,
+    structuredError,
   } = opts;
   const { exhaustedProviders, exhaustedConnections, transientRateLimitedProviders } = sets;
   const provider = target.provider;
@@ -84,12 +91,15 @@ export function applyComboTargetExhaustion(
     Boolean(provider && provider !== "unknown") &&
     !hasPerModelQuota(provider, rawModel) &&
     (isProviderExhaustedReason(fallbackResult) ||
-      classifyErrorText(errorText) === RateLimitReason.QUOTA_EXHAUSTED ||
+      classifyErrorText(structuredError?.code || errorText) === RateLimitReason.QUOTA_EXHAUSTED ||
       allAccountsRateLimited);
   if (providerExhausted) {
     exhaustedProviders.add(provider);
     const emit = exhaustedLogLevel === "debug" ? log.debug : log.info;
-    emit?.(tag, `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`);
+    emit?.(
+      tag,
+      `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`
+    );
   } else {
     if (result.status === 429 && !isTokenLimitBreach && provider && provider !== "unknown") {
       transientRateLimitedProviders.add(provider);

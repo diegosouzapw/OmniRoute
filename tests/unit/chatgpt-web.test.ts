@@ -842,7 +842,7 @@ test("GPT-5.5 Pro non-streaming: stream_handoff polls conversation detail for fi
   try {
     const executor = new ChatGptWebExecutor();
     const result = await executor.execute({
-      model: "gpt-5-5-pro-extended",
+      model: "gpt-5.5-pro-extended",
       body: { messages: [{ role: "user", content: "hard problem" }] },
       stream: false,
       credentials: { apiKey: "cookie-pro-poll" },
@@ -904,7 +904,7 @@ test("GPT-5.5 Pro streaming: preserves interim reasoning and appends final polle
   try {
     const executor = new ChatGptWebExecutor();
     const result = await executor.execute({
-      model: "gpt-5-5-pro-extended",
+      model: "gpt-5.5-pro-extended",
       body: { messages: [{ role: "user", content: "hard problem" }], stream: true },
       stream: true,
       credentials: { apiKey: "cookie-pro-stream" },
@@ -1271,18 +1271,19 @@ test("Provider registry: chatgpt-web exposes the current ChatGPT Web model catal
   assert.equal(entry.authHeader, "cookie");
 
   const ids = (entry.models || []).map((m) => m.id);
-  // Mirrors /backend-api/models for ChatGPT Web. Retired GPT-5/GPT-5.1
-  // entries should stay out of this list.
+  // Public OmniRoute ids stay in historical dot form even though ChatGPT's
+  // backend routes use dash-form slugs. Retired GPT-5/GPT-5.1 entries should
+  // stay out of this list.
   assert.deepEqual(ids, [
-    "gpt-5-5-pro",
-    "gpt-5-5-pro-extended",
-    "gpt-5-5-thinking",
-    "gpt-5-5",
-    "gpt-5-4-pro",
-    "gpt-5-4-thinking",
-    "gpt-5-4-t-mini",
-    "gpt-5-3",
-    "gpt-5-3-mini",
+    "gpt-5.5-pro",
+    "gpt-5.5-pro-extended",
+    "gpt-5.5-thinking",
+    "gpt-5.5",
+    "gpt-5.4-pro",
+    "gpt-5.4-thinking",
+    "gpt-5.4-thinking-mini",
+    "gpt-5.3",
+    "gpt-5.3-mini",
     "o3",
   ]);
 });
@@ -1292,19 +1293,21 @@ test("Executor MODEL_MAP: OmniRoute IDs translate to ChatGPT backend slugs", asy
   const m = installMockFetch();
   try {
     const cases: Array<[string, string]> = [
-      ["gpt-5-3", "gpt-5-3"],
-      ["gpt-5-5-thinking", "gpt-5-5-thinking"],
-      ["gpt-5-4-t-mini", "gpt-5-4-t-mini"],
-      ["gpt-5-5-pro", "gpt-5-5-pro"],
-      ["gpt-5-5-pro-extended", "gpt-5-5-pro"],
-      ["o3", "o3"],
-      // Legacy dot-form ids are still accepted for direct provider/model callers.
+      // Public catalog ids.
       ["gpt-5.3", "gpt-5-3"],
       ["gpt-5.5-thinking", "gpt-5-5-thinking"],
       ["gpt-5.4-thinking-mini", "gpt-5-4-t-mini"],
       ["gpt-5.5", "gpt-5-5"],
       ["gpt-5.5-pro", "gpt-5-5-pro"],
+      ["gpt-5.5-pro-extended", "gpt-5-5-pro"],
       ["gpt-5.4-pro", "gpt-5-4-pro"],
+      ["o3", "o3"],
+      // Backend dash-form slugs are still accepted for direct provider/model callers.
+      ["gpt-5-3", "gpt-5-3"],
+      ["gpt-5-5-thinking", "gpt-5-5-thinking"],
+      ["gpt-5-4-t-mini", "gpt-5-4-t-mini"],
+      ["gpt-5-5-pro", "gpt-5-5-pro"],
+      ["gpt-5-5-pro-extended", "gpt-5-5-pro"],
     ];
     for (const [omniId, expectedSlug] of cases) {
       m.calls.urls.length = 0;
@@ -1331,6 +1334,18 @@ test("MODEL_MAP drift guard: every advertised catalog id reaches ChatGPT as a ba
   reset();
   const { getRegistryEntry } = await import("../../open-sse/config/providerRegistry.ts");
   const ids = (getRegistryEntry("chatgpt-web")?.models || []).map((m) => m.id);
+  const expectedSlugById: Record<string, string> = {
+    "gpt-5.5-pro": "gpt-5-5-pro",
+    "gpt-5.5-pro-extended": "gpt-5-5-pro",
+    "gpt-5.5-thinking": "gpt-5-5-thinking",
+    "gpt-5.5": "gpt-5-5",
+    "gpt-5.4-pro": "gpt-5-4-pro",
+    "gpt-5.4-thinking": "gpt-5-4-thinking",
+    "gpt-5.4-thinking-mini": "gpt-5-4-t-mini",
+    "gpt-5.3": "gpt-5-3",
+    "gpt-5.3-mini": "gpt-5-3-mini",
+    o3: "o3",
+  };
   const m = installMockFetch();
   try {
     for (const omniId of ids) {
@@ -1351,11 +1366,7 @@ test("MODEL_MAP drift guard: every advertised catalog id reaches ChatGPT as a ba
         !body.model.includes("."),
         `${omniId} reached the backend as "${body.model}" (still dot-form)`
       );
-      if (omniId.endsWith("-extended")) {
-        assert.equal(body.model, "gpt-5-5-pro", `${omniId} should select the base Pro slug`);
-      } else {
-        assert.equal(body.model, omniId, `${omniId} should pass through as its backend slug`);
-      }
+      assert.equal(body.model, expectedSlugById[omniId], `${omniId} should map to backend slug`);
     }
   } finally {
     m.restore();
@@ -1370,7 +1381,7 @@ test("GPT-5.5 Pro Extended sends base slug with extended effort and Temporary Ch
   try {
     const executor = new ChatGptWebExecutor();
     const result = await executor.execute({
-      model: "gpt-5-5-pro-extended",
+      model: "gpt-5.5-pro-extended",
       body: { messages: [{ role: "user", content: "hi" }] },
       stream: false,
       credentials: { apiKey: "cookie-pro-extended" },
@@ -1399,7 +1410,7 @@ test("GPT-5.5 Pro standard sends standard effort", async () => {
   try {
     const executor = new ChatGptWebExecutor();
     await executor.execute({
-      model: "gpt-5-5-pro",
+      model: "gpt-5.5-pro",
       body: { messages: [{ role: "user", content: "hi" }] },
       stream: false,
       credentials: { apiKey: "cookie-pro-standard" },
@@ -1422,7 +1433,7 @@ test("GPT-5.5 Pro store:false keeps Temporary Chat enabled for background utilit
   try {
     const executor = new ChatGptWebExecutor();
     const result = await executor.execute({
-      model: "gpt-5-5-pro-extended",
+      model: "gpt-5.5-pro-extended",
       body: {
         store: false,
         messages: [

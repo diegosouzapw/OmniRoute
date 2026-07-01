@@ -27,8 +27,8 @@ describe("resolveEmbeddingSource", () => {
     assert.strictEqual(res.source, null);
     // The reason must indicate the lack of any source — not just be non-empty.
     assert.ok(
-      res.reason.toLowerCase().includes("nenhuma"),
-      `expected reason to mention "nenhuma", got: ${res.reason}`
+      res.reason.toLowerCase().includes("no embedding source"),
+      `expected reason to mention "no embedding source", got: ${res.reason}`
     );
   });
 
@@ -77,8 +77,8 @@ describe("resolveEmbeddingSource", () => {
     assert.strictEqual(res.source, null);
     // The reason must reference the missing key, not just be non-empty.
     assert.ok(
-      res.reason.includes("no_key") || res.reason.includes("configurado"),
-      `expected reason to mention "no_key" or "configurado", got: ${res.reason}`
+      res.reason.includes("no_key") || res.reason.includes("configured"),
+      `expected reason to mention "no_key" or "configured", got: ${res.reason}`
     );
   });
 

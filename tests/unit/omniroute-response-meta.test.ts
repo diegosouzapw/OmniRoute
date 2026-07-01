@@ -50,6 +50,40 @@ test("buildOmniRouteResponseMetaHeaders formats provider alias, tokens, latency,
   assert.equal(headers["X-OmniRoute-Response-Cost"], "0.0012345679");
 });
 
+test("buildOmniRouteResponseMetaHeaders keeps ASCII model header values unchanged", () => {
+  const headers = buildOmniRouteResponseMetaHeaders({
+    provider: "openai",
+    model: "gpt-4o-mini",
+  });
+
+  assert.equal(headers[OMNIROUTE_RESPONSE_HEADERS.model], "gpt-4o-mini");
+});
+
+test("buildOmniRouteResponseMetaHeaders percent-encodes non-ASCII model header values", () => {
+  const model = "free-mix/[假流式]gemini-3.5-flash";
+  const headers = buildOmniRouteResponseMetaHeaders({
+    provider: "openai",
+    model,
+  });
+
+  assert.equal(headers[OMNIROUTE_RESPONSE_HEADERS.model], encodeURIComponent(model));
+  assert.doesNotThrow(() => new Headers(headers));
+});
+
+test("buildOmniRouteResponseMetaHeaders strips control characters from string header values", () => {
+  const headers = buildOmniRouteResponseMetaHeaders({
+    provider: "openai",
+    model: "free\r\nX-Injected: yes\u0000-model",
+    requestId: "req-1\nreq-2\rreq-3\u0007",
+  });
+
+  assert.doesNotMatch(headers[OMNIROUTE_RESPONSE_HEADERS.model], /[\r\n\u0000-\u001f\u007f]/);
+  assert.doesNotMatch(headers[OMNIROUTE_RESPONSE_HEADERS.requestId], /[\r\n\u0000-\u001f\u007f]/);
+  assert.equal(headers[OMNIROUTE_RESPONSE_HEADERS.model], "freeX-Injected: yes-model");
+  assert.equal(headers[OMNIROUTE_RESPONSE_HEADERS.requestId], "req-1req-2req-3");
+  assert.doesNotThrow(() => new Headers(headers));
+});
+
 test("buildOmniRouteResponseMetaHeaders always emits X-OmniRoute-Version", () => {
   const headers = buildOmniRouteResponseMetaHeaders({ provider: "openai", model: "gpt" });
   assert.equal(headers[OMNIROUTE_RESPONSE_HEADERS.version], APP_CONFIG.version);

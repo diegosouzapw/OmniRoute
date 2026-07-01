@@ -115,7 +115,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     icon: "cloud_queue",
     color: "#FF6600",
     textIcon: "AL",
-    website: "https://dashscope-intl.aliyuncs.com",
+    website: "https://bailian.console.alibabacloud.com/",
     hasFree: false,
   },
   "alibaba-cn": {
@@ -125,7 +125,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     icon: "cloud_queue",
     color: "#FF6600",
     textIcon: "AL",
-    website: "https://dashscope.aliyuncs.com",
+    website: "https://dashscope.console.aliyun.com/",
     hasFree: false,
   },
   longcat: {

@@ -1,34 +1,19 @@
 import { getDbInstance } from "../db/core";
-import { Memory, MemoryConfig, MemoryType } from "./types";
+import { Memory, MemoryConfig } from "./types";
 import { MemoryConfigSchema } from "./schemas";
 import { logger } from "../../../open-sse/utils/logger.ts";
 import { sanitizeErrorMessage } from "../../../open-sse/utils/error.ts";
 import { resolveEmbeddingSource, embed } from "./embedding";
 import { getVectorStore } from "./vectorStore";
 import { getMemorySettings } from "./settings";
+import { recordMemoryAccess } from "./store";
 import { stats as embeddingCacheStats } from "./embedding/cache";
 import { getQdrantConfig, checkQdrantHealth, searchSemanticMemory } from "./qdrant";
 import type { MemoryEngineStatus } from "@/shared/schemas/memory";
+import { estimateTokens, parseMetadata, rowToMemory, getRelevanceScore } from "./retrieval/scoring";
+import type { MemoryRow } from "./retrieval/scoring";
 
 const log = logger("MEMORY_RETRIEVAL");
-
-interface MemoryRow {
-  id: string;
-  api_key_id?: string;
-  apiKeyId?: string;
-  session_id?: string | null;
-  sessionId?: string | null;
-  type: MemoryType;
-  key?: string | null;
-  content: string;
-  metadata?: string | null;
-  created_at?: string;
-  createdAt?: string;
-  updated_at?: string;
-  updatedAt?: string;
-  expires_at?: string | null;
-  expiresAt?: string | null;
-}
 
 interface RetrievalOptions extends Partial<MemoryConfig> {
   query?: string;
@@ -62,15 +47,9 @@ export interface RetrievePreviewBundle {
   budgetMaxTokens: number;
 }
 
-// ──────────────── Helpers ────────────────
+export { estimateTokens } from "./retrieval/scoring";
 
-/**
- * Simple token estimation function (roughly 1 token per 4 characters)
- */
-export function estimateTokens(text: string): number {
-  if (!text || typeof text !== "string") return 0;
-  return Math.ceil(text.length / 4);
-}
+// ──────────────── Helpers ────────────────
 
 function hasTable(tableName: string): boolean {
   const db = getDbInstance();
@@ -78,79 +57,6 @@ function hasTable(tableName: string): boolean {
     .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
     .get(tableName) as { name?: string } | undefined;
   return row?.name === tableName;
-}
-
-function parseMetadata(raw: unknown): Record<string, unknown> {
-  if (!raw || typeof raw !== "string") return {};
-  try {
-    const parsed = JSON.parse(raw);
-    return typeof parsed === "object" && parsed !== null ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-function rowToMemory(row: MemoryRow): Memory {
-  const createdAt = row.created_at || row.createdAt || new Date().toISOString();
-  const updatedAt = row.updated_at || row.updatedAt || createdAt;
-  const expiresAt = row.expires_at ?? row.expiresAt ?? null;
-
-  return {
-    id: String(row.id),
-    apiKeyId: String(row.api_key_id || row.apiKeyId || ""),
-    sessionId: String(row.session_id ?? row.sessionId ?? ""),
-    type: row.type as MemoryType,
-    key: String(row.key || ""),
-    content: String(row.content || ""),
-    metadata: parseMetadata(row.metadata),
-    createdAt: new Date(createdAt),
-    updatedAt: new Date(updatedAt),
-    expiresAt: expiresAt ? new Date(String(expiresAt)) : null,
-  };
-}
-
-/**
- * Score a memory against a query using simple string matching (no dynamic RegExp).
- * Uses indexOf() for full-phrase matches and split-token substring checks only,
- * so there is no ReDoS risk — no user input is passed to RegExp().
- */
-function getRelevanceScore(memory: Memory, query: string): number {
-  const normalizedQuery = query.trim().toLowerCase();
-  if (!normalizedQuery) return 0;
-
-  const haystacks = [
-    memory.content.toLowerCase(),
-    memory.key.toLowerCase(),
-    JSON.stringify(memory.metadata).toLowerCase(),
-  ];
-  const tokens = normalizedQuery.split(/\s+/).filter(Boolean);
-
-  let score = 0;
-  for (const haystack of haystacks) {
-    // Full phrase match (safe: literal string, not regex)
-    if (haystack.includes(normalizedQuery)) {
-      score += 20;
-    }
-
-    for (const token of tokens) {
-      if (!token) continue;
-      // Token-level substring count using indexOf loop (no RegExp on user input)
-      if (haystack === memory.key.toLowerCase() && haystack.includes(token)) {
-        score += 6;
-        continue;
-      }
-      // Count occurrences via indexOf loop — avoids new RegExp(token)
-      let pos = 0;
-      let matchCount = 0;
-      while ((pos = haystack.indexOf(token, pos)) !== -1) {
-        matchCount++;
-        pos += token.length;
-      }
-      score += matchCount * 3;
-    }
-  }
-
-  return score;
 }
 
 /**
@@ -258,7 +164,8 @@ async function applyRerank<T extends { memory: Memory; score: number }>(
       top_n: items.length,
     };
 
-    const res = await fetch(RERANK_LOOPBACK_URL, { // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
+    const res = await fetch(RERANK_LOOPBACK_URL, {
+      // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
@@ -315,7 +222,24 @@ async function applyRerank<T extends { memory: Memory; score: number }>(
  * Signature PRESERVED: retrieveMemories(apiKeyId: string, config: RetrievalOptions = {})
  * Hot path: open-sse/handlers/chatCore.ts calls this unchanged.
  */
+/**
+ * Public retrieval entry point. Delegates to the tiered retrieval below, then records a
+ * TV6 access bump for every memory actually injected (best-effort, fire-and-forget — never
+ * blocks or fails the retrieval). `retrievePreview` deliberately does NOT call this, so a
+ * dry-run preview never inflates access counts.
+ */
 export async function retrieveMemories(
+  apiKeyId: string,
+  config: RetrievalOptions = {}
+): Promise<Memory[]> {
+  const result = await retrieveMemoriesInternal(apiKeyId, config);
+  if (result.length > 0) {
+    recordMemoryAccess(result.map((m) => m.id));
+  }
+  return result;
+}
+
+async function retrieveMemoriesInternal(
   apiKeyId: string,
   config: RetrievalOptions = {}
 ): Promise<Memory[]> {
@@ -423,19 +347,13 @@ export async function retrieveMemories(
               if (qres.ok && qres.results && qres.results.length > 0) {
                 const hitIds = qres.results.map((r) => r.id);
                 const hitMemories = fetchMemoriesByIds(hitIds);
-                const scoreMap = new Map(
-                  qres.results.map((r) => [r.id, r.score])
-                );
+                const scoreMap = new Map(qres.results.map((r) => [r.id, r.score]));
                 let qdrantItems = hitMemories.map((m) => ({
                   memory: m,
                   score: scoreMap.get(m.id) ?? 0,
                   tier: "qdrant" as const,
                 }));
-                if (
-                  settings.rerankEnabled &&
-                  settings.rerankProviderModel &&
-                  config.query
-                ) {
+                if (settings.rerankEnabled && settings.rerankProviderModel && config.query) {
                   qdrantItems = (await applyRerank(
                     qdrantItems,
                     config.query,
@@ -463,9 +381,7 @@ export async function retrieveMemories(
               }
             } catch (err: unknown) {
               log.warn("memory.retrieval.qdrant.fail", {
-                error: sanitizeErrorMessage(
-                  err instanceof Error ? err.message : String(err)
-                ),
+                error: sanitizeErrorMessage(err instanceof Error ? err.message : String(err)),
               });
               // fall through to sqlite-vec degradation
             }
@@ -559,19 +475,13 @@ export async function retrieveMemories(
               if (qres.ok && qres.results && qres.results.length > 0) {
                 const hitIds = qres.results.map((r) => r.id);
                 const hitMemories = fetchMemoriesByIds(hitIds);
-                const scoreMap = new Map(
-                  qres.results.map((r) => [r.id, r.score])
-                );
+                const scoreMap = new Map(qres.results.map((r) => [r.id, r.score]));
                 let qdrantItems = hitMemories.map((m) => ({
                   memory: m,
                   score: scoreMap.get(m.id) ?? 0,
                   tier: "qdrant" as const,
                 }));
-                if (
-                  settings.rerankEnabled &&
-                  settings.rerankProviderModel &&
-                  config.query
-                ) {
+                if (settings.rerankEnabled && settings.rerankProviderModel && config.query) {
                   qdrantItems = (await applyRerank(
                     qdrantItems,
                     config.query,
@@ -599,9 +509,7 @@ export async function retrieveMemories(
               }
             } catch (err: unknown) {
               log.warn("memory.retrieval.qdrant.fail", {
-                error: sanitizeErrorMessage(
-                  err instanceof Error ? err.message : String(err)
-                ),
+                error: sanitizeErrorMessage(err instanceof Error ? err.message : String(err)),
               });
               // fall through to sqlite-vec hybrid RRF
             }
@@ -793,9 +701,7 @@ export async function retrievePreview(
           if (qres.ok && qres.results && qres.results.length > 0) {
             const hitIds = qres.results.map((r) => r.id);
             const hitMemories = fetchMemoriesByIds(hitIds).slice(0, limit);
-            const scoreMap = new Map(
-              qres.results.map((r) => [r.id, r.score])
-            );
+            const scoreMap = new Map(qres.results.map((r) => [r.id, r.score]));
             let items: Array<{
               memory: Memory;
               score: number;
@@ -843,11 +749,9 @@ export async function retrievePreview(
           }
           // Qdrant returned nothing — fall through to sqlite-vec for parity
           // with production (so the Playground reflects the same fallback).
-          fallbackReason = "Qdrant retornou 0 resultados — fallback p/ sqlite-vec";
+          fallbackReason = "Qdrant returned 0 results — falling back to sqlite-vec";
         } catch (err: unknown) {
-          fallbackReason = sanitizeErrorMessage(
-            err instanceof Error ? err.message : String(err)
-          );
+          fallbackReason = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
           log.warn("memory.preview.qdrant.fail", { error: fallbackReason });
         }
       }
@@ -963,13 +867,11 @@ export async function retrievePreview(
               budgetMaxTokens: maxTokens,
             };
           } catch (err: unknown) {
-            fallbackReason = sanitizeErrorMessage(
-              err instanceof Error ? err.message : String(err)
-            );
+            fallbackReason = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
             log.warn("memory.preview.vector.fail", { error: fallbackReason });
           }
         } else {
-          fallbackReason = "sqlite-vec não disponível (degradado para FTS5)";
+          fallbackReason = "sqlite-vec not available (degraded to FTS5)";
         }
       } else {
         // EmbeddingError
@@ -1073,7 +975,7 @@ export async function engineStatus(): Promise<MemoryEngineStatus> {
   let vecAvailable = false;
   let vecRowCount = 0;
   let vecNeedsReindex = 0;
-  let vecReason = "sqlite-vec não disponível";
+  let vecReason = "sqlite-vec not available";
 
   if (vec) {
     vecBackend = "sqlite-vec";
@@ -1082,12 +984,12 @@ export async function engineStatus(): Promise<MemoryEngineStatus> {
       const s = await vec.stats();
       vecRowCount = s.rowCount;
       vecNeedsReindex = s.needsReindex;
-      vecReason = `sqlite-vec ativo, dim=${s.activeDim ?? "null"}`;
+      vecReason = `sqlite-vec active, dim=${s.activeDim ?? "null"}`;
     } catch {
-      vecReason = "sqlite-vec ativo mas stats falharam";
+      vecReason = "sqlite-vec active but stats failed";
     }
   } else {
-    vecReason = "sqlite-vec não disponível — usando apenas FTS5";
+    vecReason = "sqlite-vec not available — using FTS5 only";
   }
 
   // Qdrant
@@ -1112,7 +1014,7 @@ export async function engineStatus(): Promise<MemoryEngineStatus> {
       if (qdrantHealthy && settings.vectorStore === "qdrant") {
         vecBackend = "qdrant";
         vecAvailable = true;
-        vecReason = `Qdrant configurado em ${qdrantCfg.host}:${qdrantCfg.port}`;
+        vecReason = `Qdrant configured at ${qdrantCfg.host}:${qdrantCfg.port}`;
       }
     }
   } catch (err: unknown) {
@@ -1121,12 +1023,12 @@ export async function engineStatus(): Promise<MemoryEngineStatus> {
 
   // Rerank
   let rerankAvailable = false;
-  let rerankReason = "rerank desabilitado";
+  let rerankReason = "rerank disabled";
   if (settings.rerankEnabled && settings.rerankProviderModel) {
     rerankAvailable = true;
-    rerankReason = `rerank ativo: ${settings.rerankProviderModel}`;
+    rerankReason = `rerank active: ${settings.rerankProviderModel}`;
   } else if (settings.rerankEnabled && !settings.rerankProviderModel) {
-    rerankReason = "rerank habilitado mas provider não configurado";
+    rerankReason = "rerank enabled but provider not configured";
   }
 
   const rerankParts = settings.rerankProviderModel?.split("/") ?? [];

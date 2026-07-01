@@ -548,6 +548,19 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     ],
     supportedSizes: ["1024x1024", "1024x1280", "1280x1024"],
   },
+
+  // SenseNova (商汤日日新) Text-to-Image on the free Token Plan. OpenAI-compatible
+  // `/v1/images/generations`, so the generic OpenAI image handler routes it — same
+  // SenseNova api-key/connection as the chat provider. (9router#2233)
+  sensenova: {
+    id: "sensenova",
+    baseUrl: "https://api.sensenova.cn/v1/images/generations",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "openai",
+    models: [{ id: "sensenova-u1-fast", name: "SenseNova U1 Fast" }],
+    supportedSizes: ["1024x1024"],
+  },
 };
 
 /**

@@ -168,7 +168,20 @@ test("callLogs.ts wires no-log and PII sanitization before persistence", () => {
     content.includes('from "../compliance"') || content.includes('from "../compliance/noLog"'),
     "callLogs.ts should import compliance module"
   );
-  assert.ok(content.includes('from "../piiSanitizer"'), "callLogs.ts should import piiSanitizer");
+  // PII sanitization for error strings was extracted to callLogs/format.ts by #5725
+  // (sanitizeErrorForLog); callLogs.ts still wires it in before persistence, and the
+  // extracted helper keeps the piiSanitizer dependency — so the "sanitize before
+  // persist" invariant holds post-refactor (verified on both the helper and the file).
+  assert.ok(
+    content.includes("sanitizeErrorForLog") && content.includes('from "./callLogs/format"'),
+    "callLogs.ts should wire the extracted PII-sanitizing error helper (sanitizeErrorForLog)"
+  );
+  const formatHelperContent = readIfExists("src/lib/usage/callLogs/format.ts");
+  assert.ok(formatHelperContent, "src/lib/usage/callLogs/format.ts should exist");
+  assert.ok(
+    formatHelperContent.includes('from "../../piiSanitizer"'),
+    "callLogs/format.ts should import piiSanitizer (PII sanitization still wired post-#5725)"
+  );
   assert.ok(content.includes("isNoLog("), "callLogs.ts should check no-log policy");
 
   const payloadHelperContent = readIfExists("src/lib/logPayloads.ts");

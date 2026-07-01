@@ -265,6 +265,18 @@ async function stopProcess(child: ReturnType<typeof spawn>) {
   }
 }
 
+async function removeDirWithRetry(dir: string) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+      return;
+    } catch (error) {
+      if (attempt === 4) throw error;
+      await sleep(250);
+    }
+  }
+}
+
 /* ---------- Test ---------- */
 const relay = createFakeEmbeddingRelay();
 let app: ReturnType<typeof createServerProcess>;
@@ -305,7 +317,7 @@ test.after(async () => {
     await relay.stop();
   } catch {}
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    await removeDirWithRetry(TEST_DATA_DIR);
   }
 });
 
