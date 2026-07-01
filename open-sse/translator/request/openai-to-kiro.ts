@@ -669,8 +669,11 @@ export function buildKiroPayload(model, body, stream, credentials) {
 
   // Normalize model name: Claude Code sends dashes (claude-sonnet-4-6),
   // Kiro API expects dots (claude-sonnet-4.6). Convert trailing version segment.
+  // The minor group is bounded to 1-2 digits so date-suffixed ids (e.g.
+  // claude-opus-4-20250514) are never mistaken for a dash-separated minor
+  // version and corrupted into claude-opus-4.20250514 (upstream 9router #2270).
   const normalizedModel = model.replace(
-    /^(claude-(?:opus|sonnet|haiku|3-\d+)-\d+)-(\d+)$/,
+    /^(claude-(?:opus|sonnet|haiku|3-\d+)-\d+)-(\d{1,2})$/,
     "$1.$2"
   );
   const messages = body.messages || [];
