@@ -4,7 +4,7 @@ export const xaiProvider: RegistryEntry = {
   id: "xai",
   alias: "xai",
   format: "openai",
-  executor: "default",
+  executor: "xai",
   baseUrl: "https://api.x.ai/v1/chat/completions",
   authType: "apikey",
   authHeader: "bearer",
