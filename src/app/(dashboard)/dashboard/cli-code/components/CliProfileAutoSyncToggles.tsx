@@ -13,10 +13,10 @@ function isOn(value: string | undefined): boolean {
 }
 
 /**
- * Providers-dashboard toggle card for the opt-in "auto-sync CLI profiles after model
- * discovery" feature. Reads/writes the OMNIROUTE_AUTO_SYNC_{CODEX,CLAUDE}_PROFILES feature
- * flags via /api/settings/feature-flags. Both default off; enabling one makes a provider
- * model sync regenerate that tool's profile files from the live catalog.
+ * Toggle card for the opt-in "auto-sync CLI profiles after model discovery" feature.
+ * Reads/writes the OMNIROUTE_AUTO_SYNC_{CODEX,CLAUDE}_PROFILES feature flags via
+ * /api/settings/feature-flags. Both default off; enabling one makes a provider model
+ * sync regenerate that tool's profile files from the live catalog.
  */
 export default function CliProfileAutoSyncToggles() {
   const [codexOn, setCodexOn] = useState(false);
