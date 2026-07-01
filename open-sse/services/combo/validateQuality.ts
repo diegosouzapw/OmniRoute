@@ -10,6 +10,10 @@ import {
   createSSEDataLineNormalizer,
   isKnownNonClaudeStreamPayload,
 } from "../../utils/streamHelpers.ts";
+import {
+  evaluateResponseValidation,
+  type ResponseValidationConfig,
+} from "./responseValidation.ts";
 import { getReasoningTokens } from "../../../src/lib/usage/tokenAccounting.ts";
 import type { ComboRetryAfter } from "./types.ts";
 
@@ -57,7 +61,8 @@ function responsesApiOutputHasContent(output: unknown): boolean {
 export async function validateResponseQuality(
   response: Response,
   isStreaming: boolean,
-  log: { warn?: (...args: unknown[]) => void }
+  log: { warn?: (...args: unknown[]) => void },
+  responseValidation?: ResponseValidationConfig | null
 ): Promise<{ valid: boolean; reason?: string; clonedResponse?: Response }> {
   // Issue #3685: For Claude SSE streaming responses, use a BOUNDED PEEK to
   // detect the empty-content-block pattern (content_filter stop_reason with
@@ -290,6 +295,15 @@ export async function validateResponseQuality(
   } catch {
     if (text.startsWith("data:") || text.startsWith("event:")) return { valid: true };
     return { valid: false, reason: "response is not valid JSON" };
+  }
+
+  // Feature 4985: apply the combo's configured response-body predicate. A failure here
+  // fails over to the next target via the same path as the built-in empty-content checks.
+  if (responseValidation) {
+    const verdict = evaluateResponseValidation(json, responseValidation);
+    if (!verdict.valid) {
+      return { valid: false, reason: verdict.reason };
+    }
   }
 
   const choices = json?.choices;

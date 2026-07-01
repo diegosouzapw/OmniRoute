@@ -84,6 +84,44 @@ test("normalizeSystemRole merges system and developer content into the first use
   ]);
 });
 
+test("normalizeSystemRole preserves the system role for GLM > 5.0 (glm-5.1/5.2 support it, #5610)", () => {
+  const messages = [
+    { role: "system", content: "be helpful" },
+    { role: "user", content: "hello" },
+  ];
+  for (const model of [
+    "glm-5.1",
+    "glm-5.2",
+    "glm-5.1-precision",
+    "glm-5.2-high",
+    "glm-5.2-max",
+    "glm-5p1",
+  ]) {
+    assert.deepEqual(
+      normalizeSystemRole(messages, "glm", model),
+      messages,
+      `expected system role preserved for ${model}`
+    );
+  }
+});
+
+test("normalizeSystemRole still strips the system role for pre-5.1 GLM and bare glm (#5610 guard)", () => {
+  const messages = [
+    { role: "system", content: "policy" },
+    { role: "user", content: "ok" },
+  ];
+  const merged = [
+    { role: "user", content: "[System Instructions]\npolicy\n\n[User Message]\nok" },
+  ];
+  for (const model of ["glm", "glm-4.7", "glm-5", "glm-5-turbo", "glm-5.0", "glm-5.0-turbo"]) {
+    assert.deepEqual(
+      normalizeSystemRole(messages, "openai", model),
+      merged,
+      `expected system role stripped for ${model}`
+    );
+  }
+});
+
 test("normalizeSystemRole inserts a user message when no user exists and drops empty system payloads", () => {
   const messages = [
     { role: "system", content: [{ type: "image_url", image_url: { url: "ignored" } }] },

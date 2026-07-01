@@ -62,6 +62,7 @@ import { checkHeapPressureGuard } from "../utils/heapPressure.ts";
 import { normalizeHeaders } from "../utils/headers.ts";
 import { resolveChatCoreRequestFormat } from "./chatCore/requestFormat.ts";
 import { resolveChatCoreTargetFormat } from "./chatCore/targetFormat.ts";
+import { defaultClaudeToolType } from "./chatCore/claudeToolDefaults.ts";
 import { injectSystemPrompt, injectCustomSystemPrompt } from "../services/systemPrompt.ts";
 import { translateRequest, needsTranslation } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
@@ -1874,6 +1875,16 @@ export async function handleChatCore({
         translatedBody._toolNameMap = existing;
       }
     }
+  }
+
+  // Claude: strict Anthropic-compatible gateways (e.g. MiniMax) reject tool
+  // definitions that omit the required `type` discriminator with HTTP 400. Default
+  // a missing `type` to "custom" before dispatch, mirroring Anthropic's own
+  // inference, so legacy Claude-format tool payloads survive strict gateways (#2195).
+  if (targetFormat === FORMATS.CLAUDE && Array.isArray(translatedBody.tools)) {
+    translatedBody.tools = defaultClaudeToolType(
+      translatedBody.tools
+    ) as typeof translatedBody.tools;
   }
 
   // Extract toolNameMap for response translation (Claude OAuth)
@@ -4037,6 +4048,20 @@ export async function handleChatCore({
       }
     }
     effectiveServiceTier = resolveReportedServiceTier(streamResponseBody) ?? effectiveServiceTier;
+
+    // Context Editing telemetry (streaming): the reconstructed stream body now carries
+    // context_management.applied_edits from the final message_delta snapshot. Mirror the
+    // non-streaming hook so streaming context-clear savings also surface under engine
+    // "context-editing" in compression analytics. Best-effort, Claude-only.
+    if (normalizedStreamStatus === 200) {
+      recordContextEditingTelemetryHook({
+        contextEditingEnabled,
+        provider,
+        responseBody: streamResponseBody,
+        skillRequestId,
+        log,
+      });
+    }
 
     streamFailure.finalizeStreamRequestLog({
       pendingRequestId,

@@ -82,6 +82,42 @@ export interface BatchRecord {
   outputExpiresAfterAnchor?: string | null;
 }
 
+export type BatchItemCheckpointStatus = "pending" | "processing" | "completed" | "errored";
+
+export interface BatchItemCheckpoint {
+  batchId: string;
+  lineNumber: number;
+  customId: string | null;
+  status: BatchItemCheckpointStatus;
+  result: any | null;
+  error: any | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
+function parseJsonColumn(value: unknown): any | null {
+  if (value == null) return null;
+  if (typeof value !== "string") return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function parseBatchItemCheckpoint(row: any): BatchItemCheckpoint {
+  return {
+    batchId: row.batch_id,
+    lineNumber: Number(row.line_number),
+    customId: row.custom_id ?? null,
+    status: row.status,
+    result: parseJsonColumn(row.result_json),
+    error: parseJsonColumn(row.error_json),
+    createdAt: Number(row.created_at),
+    updatedAt: Number(row.updated_at),
+  };
+}
+
 export function createBatch(
   batch: Omit<
     BatchRecord,
@@ -156,6 +192,128 @@ export function updateBatch(id: string, updates: Partial<BatchRecord>): boolean 
   return result.changes > 0;
 }
 
+export function ensureBatchItemCheckpoints(
+  batchId: string,
+  items: Array<{ lineNumber: number; customId: string | null }>
+): void {
+  if (items.length === 0) return;
+
+  const db = getDbInstance();
+  const now = Math.floor(Date.now() / 1000);
+  const insert = db.prepare(`
+    INSERT OR IGNORE INTO batch_item_checkpoints (
+      batch_id,
+      line_number,
+      custom_id,
+      status,
+      result_json,
+      error_json,
+      created_at,
+      updated_at
+    )
+    VALUES (?, ?, ?, 'pending', NULL, NULL, ?, ?)
+  `);
+
+  const tx = db.transaction(() => {
+    for (const item of items) {
+      insert.run(batchId, item.lineNumber, item.customId, now, now);
+    }
+  });
+  tx();
+}
+
+export function countBatchItemCheckpoints(batchId: string): number {
+  const db = getDbInstance();
+  const row = db
+    .prepare("SELECT COUNT(*) AS c FROM batch_item_checkpoints WHERE batch_id = ?")
+    .get(batchId) as { c: number } | undefined;
+  return row ? Number(row.c) : 0;
+}
+
+export function listBatchItemCheckpoints(batchId: string): BatchItemCheckpoint[] {
+  const db = getDbInstance();
+  const rows = db
+    .prepare(
+      `
+      SELECT batch_id, line_number, custom_id, status, result_json, error_json, created_at, updated_at
+      FROM batch_item_checkpoints
+      WHERE batch_id = ?
+      ORDER BY line_number ASC
+    `
+    )
+    .all(batchId);
+  return rows.map((row) => parseBatchItemCheckpoint(row));
+}
+
+export function markBatchItemProcessing(
+  batchId: string,
+  item: { lineNumber: number; customId: string | null }
+): void {
+  const db = getDbInstance();
+  const now = Math.floor(Date.now() / 1000);
+  db.prepare(
+    `
+    INSERT INTO batch_item_checkpoints (
+      batch_id,
+      line_number,
+      custom_id,
+      status,
+      result_json,
+      error_json,
+      created_at,
+      updated_at
+    )
+    VALUES (?, ?, ?, 'processing', NULL, NULL, ?, ?)
+    ON CONFLICT(batch_id, line_number) DO UPDATE SET
+      custom_id = excluded.custom_id,
+      status = 'processing',
+      result_json = NULL,
+      error_json = NULL,
+      updated_at = excluded.updated_at
+  `
+  ).run(batchId, item.lineNumber, item.customId, now, now);
+}
+
+export function markBatchItemResult(
+  batchId: string,
+  item: { lineNumber: number; customId: string | null },
+  result: any
+): void {
+  const db = getDbInstance();
+  const now = Math.floor(Date.now() / 1000);
+  db.prepare(
+    `
+    UPDATE batch_item_checkpoints
+    SET custom_id = ?,
+        status = 'completed',
+        result_json = ?,
+        error_json = NULL,
+        updated_at = ?
+    WHERE batch_id = ? AND line_number = ?
+  `
+  ).run(item.customId, JSON.stringify(result), now, batchId, item.lineNumber);
+}
+
+export function markBatchItemError(
+  batchId: string,
+  item: { lineNumber: number; customId: string | null },
+  error: any
+): void {
+  const db = getDbInstance();
+  const now = Math.floor(Date.now() / 1000);
+  db.prepare(
+    `
+    UPDATE batch_item_checkpoints
+    SET custom_id = ?,
+        status = 'errored',
+        result_json = NULL,
+        error_json = ?,
+        updated_at = ?
+    WHERE batch_id = ? AND line_number = ?
+  `
+  ).run(item.customId, JSON.stringify(error), now, batchId, item.lineNumber);
+}
+
 export function listBatches(apiKeyId?: string, limit: number = 20, after?: string): BatchRecord[] {
   const db = getDbInstance();
   const afterBatch = after ? getBatch(after) : null;
@@ -224,6 +382,8 @@ export function deleteBatch(id: string): boolean {
   const batch = getBatch(id);
   if (!batch) return false;
 
+  db.prepare("DELETE FROM batch_item_checkpoints WHERE batch_id = ?").run(id);
+
   // Soft-delete associated files (input, output, error)
   if (batch.inputFileId) {
     try {
@@ -280,6 +440,10 @@ export function deleteCompletedBatches(): { deletedBatches: number; deletedFiles
       /* ignore */
     }
   }
+
+  db.prepare(
+    "DELETE FROM batch_item_checkpoints WHERE batch_id IN (SELECT id FROM batches WHERE status = 'completed')"
+  ).run();
 
   const result = db.prepare("DELETE FROM batches WHERE status = 'completed'").run();
   return { deletedBatches: result.changes, deletedFiles };

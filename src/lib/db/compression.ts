@@ -28,6 +28,10 @@ import {
   type RtkConfig,
   type UltraConfig,
 } from "@omniroute/open-sse/services/compression/types.ts";
+import {
+  isPreserveSystemPromptMode,
+  normalizePreserveSystemPromptMode,
+} from "@omniroute/open-sse/services/compression/preserveSystemPromptMode.ts";
 import { maybePrewarmUltraSlmOnConfig } from "@omniroute/open-sse/services/compression/ultra.ts";
 
 const NAMESPACE = "compression";
@@ -550,6 +554,11 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
   // we derive the engines map from the legacy fields below so behavior is preserved.
   let storedEngines: Record<string, EngineToggle> | null = null;
 
+  // Tracks whether an authoritative `preserveSystemPromptMode` row was persisted. When absent
+  // (legacy install that only stored the `preserveSystemPrompt` boolean) the mode is derived
+  // from that boolean below so it keeps its old behaviour instead of inheriting the new default.
+  let sawPreserveSystemPromptModeRow = false;
+
   for (const row of rows) {
     const record = toRecord(row);
     const key = typeof record.key === "string" ? record.key : null;
@@ -586,6 +595,13 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         break;
       case "preserveSystemPrompt":
         config.preserveSystemPrompt = parsed !== false;
+        break;
+      case "preserveSystemPromptMode":
+        // T05/C5 — authoritative intent; ignore unknown tokens (keep the default mode).
+        if (isPreserveSystemPromptMode(parsed)) {
+          config.preserveSystemPromptMode = parsed;
+          sawPreserveSystemPromptModeRow = true;
+        }
         break;
       case "mcpDescriptionCompressionEnabled":
         config.mcpDescriptionCompressionEnabled = parsed !== false;
@@ -650,6 +666,18 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         config.ultraSlmPrewarm = parsed === true;
         break;
     }
+  }
+
+  // T05/C5 back-compat: a legacy install persisted only the `preserveSystemPrompt` boolean and no
+  // `preserveSystemPromptMode` row. The DEFAULT spread above seeds the new `always` mode, which would
+  // otherwise shadow that boolean (an explicit mode wins in normalizePreserveSystemPromptMode) and
+  // silently flip `preserveSystemPrompt=false` installs from "compress unless cached" to "always
+  // preserve". When no mode row was stored, derive the authoritative mode from the boolean instead.
+  if (!sawPreserveSystemPromptModeRow) {
+    config.preserveSystemPromptMode = normalizePreserveSystemPromptMode({
+      preserveSystemPrompt: config.preserveSystemPrompt,
+      preserveSystemPromptMode: undefined,
+    });
   }
 
   // Engines map: prefer the stored row; otherwise derive from the legacy fields (migration 102

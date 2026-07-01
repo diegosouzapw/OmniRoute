@@ -102,6 +102,31 @@ test("detectMalformedNonStream returns null for valid chat completion", () => {
   assert.equal(detectMalformedNonStream(body), null);
 });
 
+test("detectMalformedNonStream returns null for OpenAI choices whose content is a text-block array (#5559)", () => {
+  // Cline (OAuth) returns choices[].message.content as an array of Anthropic-style
+  // blocks inside an OpenAI envelope; this must count as real output, not empty_choices.
+  const body = {
+    id: "chatcmpl-kimi",
+    object: "chat.completion",
+    model: "moonshotai/kimi-k2.6",
+    choices: [
+      {
+        index: 0,
+        message: { role: "assistant", content: [{ type: "text", text: "Here is my analysis." }] },
+        finish_reason: "stop",
+      },
+    ],
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream returns 'empty_choices' for an OpenAI choice with an empty text-block array (#5559 guard)", () => {
+  const body = {
+    choices: [{ message: { role: "assistant", content: [{ type: "text", text: "" }] }, finish_reason: "stop" }],
+  };
+  assert.equal(detectMalformedNonStream(body), "empty_choices");
+});
+
 test("detectMalformedNonStream returns null for a valid Claude-native message (#4942 regression)", () => {
   const body = {
     type: "message",

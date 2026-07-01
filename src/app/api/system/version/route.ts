@@ -18,6 +18,7 @@ import {
 } from "@/lib/system/autoUpdate";
 import { NEWS_JSON_URL, parseActiveNewsPayload } from "@/shared/utils/releaseNotes";
 import { isNewer, resolveLatestVersion } from "@/lib/system/versionCheck";
+import { resolveGlobalOmniroutePath } from "@/lib/system/globalPackagePath";
 
 const execFileAsync = promisify(execFile);
 
@@ -302,10 +303,7 @@ export async function POST(req: NextRequest) {
           status: "running",
           message: "Rebuilding native modules (better-sqlite3)...",
         });
-          const globalRoot = (
-            await execFileAsync("npm", ["root", "-g"], { timeout: 10000, cwd: PROJECT_ROOT })
-          ).stdout.trim();
-        const omniPath = `${globalRoot}/omniroute/app`;
+        const omniPath = await resolveGlobalOmniroutePath();
         await execFileAsync(
           "npm",
           ["rebuild", "better-sqlite3"],

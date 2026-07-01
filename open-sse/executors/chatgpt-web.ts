@@ -79,13 +79,13 @@ function deviceIdFor(cookie: string): string {
   return id;
 }
 
-// OmniRoute model ID → ChatGPT internal slug. OmniRoute uses dot-form IDs
-// (e.g. "gpt-5.3-instant"), ChatGPT's web routes use dash-form
-// (e.g. "gpt-5-3-instant"). The slug catalog comes from
-// /backend-api/models on a logged-in account; "gpt-5-4-t-mini" is ChatGPT's
-// abbreviated slug for "GPT-5.4 Thinking Mini".
+// OmniRoute model ID → ChatGPT internal slug. The public ChatGPT Web catalog
+// keeps OmniRoute's historical dot-form IDs (e.g. "gpt-5.5-pro"), while
+// ChatGPT's backend routes use dash-form slugs (e.g. "gpt-5-5-pro"). The slug
+// catalog comes from /backend-api/models on a logged-in account;
+// "gpt-5-4-t-mini" is ChatGPT's abbreviated slug for "GPT-5.4 Thinking Mini".
 const MODEL_MAP: Record<string, string> = {
-  // Current ChatGPT Web slugs (these are what the provider catalog exposes).
+  // ChatGPT backend slugs are also accepted directly for power users / tests.
   "gpt-5-5-pro": "gpt-5-5-pro",
   "gpt-5-5-pro-extended": "gpt-5-5-pro",
   "gpt-5-5-thinking": "gpt-5-5-thinking",
@@ -96,7 +96,7 @@ const MODEL_MAP: Record<string, string> = {
   "gpt-5-3": "gpt-5-3",
   "gpt-5-3-mini": "gpt-5-3-mini",
 
-  // Legacy OmniRoute dot-form aliases kept for direct provider/model callers.
+  // Public OmniRoute dot-form ids exposed by the provider catalog.
   "gpt-5.5-pro": "gpt-5-5-pro",
   "gpt-5.5-pro-extended": "gpt-5-5-pro",
   "gpt-5.5-thinking": "gpt-5-5-thinking",

@@ -52,6 +52,10 @@ jobs:
       - run: npm run check:route-guard-membership
       - run: npm run check:test-discovery
       - run: npm run check:test-runner-api
+      # Guards tap.testFiles drift: a covering unit test absent from stryker.conf.json
+      # tap.testFiles makes its module's mutants survive on a cold nightly-mutation run,
+      # false-failing the blocking mutationScore ratchet. See check-mutation-test-coverage.mjs.
+      - run: npm run check:mutation-test-coverage
       - run: npm run check:any-budget:t11
       # Build-scope guard: fails if worktrees/cruft leak into the tsconfig include
       # scope (would OOM `next build`). Instant. See incident 2026-06-25 / #5031.

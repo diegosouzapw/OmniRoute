@@ -19,10 +19,11 @@ interface GrokCliAuthInfo {
 function parseJwtPayload(token: string): {
   email: string | null;
   authInfo: GrokCliAuthInfo | null;
+  exp: number | null;
 } {
   try {
     const parts = token.split(".");
-    if (parts.length !== 3) return { email: null, authInfo: null };
+    if (parts.length !== 3) return { email: null, authInfo: null, exp: null };
 
     let base64 = parts[1];
     switch (base64.length % 4) {
@@ -45,9 +46,10 @@ function parseJwtPayload(token: string): {
         tier: payload.tier || 1,
         principal_type: payload.principal_type || "User",
       },
+      exp: typeof payload.exp === "number" ? payload.exp : null,
     };
   } catch {
-    return { email: null, authInfo: null };
+    return { email: null, authInfo: null, exp: null };
   }
 }
 
@@ -61,10 +63,11 @@ function extractTokenAndRefresh(input: unknown): {
   accessToken: string;
   refreshToken: string | null;
   rawAuthJson: Record<string, unknown> | null;
+  expiresAt: string | null;
 } {
   // Direct JWT string
   if (typeof input === "string")
-    return { accessToken: input, refreshToken: null, rawAuthJson: null };
+    return { accessToken: input, refreshToken: null, rawAuthJson: null, expiresAt: null };
 
   if (input && typeof input === "object") {
     const obj = input as Record<string, unknown>;
@@ -88,6 +91,7 @@ function extractTokenAndRefresh(input: unknown): {
               accessToken: e.key,
               refreshToken: typeof e.refresh_token === "string" ? e.refresh_token : null,
               rawAuthJson: inner as Record<string, unknown>,
+              expiresAt: typeof e.expires_at === "string" ? e.expires_at : null,
             };
           }
         }
@@ -100,24 +104,37 @@ function extractTokenAndRefresh(input: unknown): {
         accessToken: obj.accessToken,
         refreshToken: typeof obj.refreshToken === "string" ? obj.refreshToken : null,
         rawAuthJson: null,
+        expiresAt: null,
       };
     }
   }
 
-  return { accessToken: "", refreshToken: null, rawAuthJson: null };
+  return { accessToken: "", refreshToken: null, rawAuthJson: null, expiresAt: null };
 }
 
 export const grokCli = {
   config: GROK_CLI_CONFIG,
   flowType: "import_token",
-  mapTokens: (token: unknown) => {
-    const { accessToken, refreshToken, rawAuthJson } = extractTokenAndRefresh(token);
-    const { email, authInfo } = parseJwtPayload(accessToken);
+  mapTokens: (token: unknown, extra?: unknown) => {
+    const { accessToken, refreshToken, rawAuthJson, expiresAt } = extractTokenAndRefresh(token);
+    const { email, authInfo, exp } = parseJwtPayload(accessToken);
+
+    const currentSec = Math.floor(Date.now() / 1000);
+    let expiresIn = 21600;
+
+    if (expiresAt) {
+      const parsed = Date.parse(expiresAt);
+      if (!isNaN(parsed)) {
+        expiresIn = Math.floor(parsed / 1000) - currentSec;
+      }
+    } else if (typeof exp === "number" && exp > 0) {
+      expiresIn = exp - currentSec;
+    }
 
     return {
       accessToken,
       refreshToken,
-      expiresIn: 21600,
+      expiresIn,
       email,
       providerSpecificData: {
         userId: authInfo?.user_id || null,

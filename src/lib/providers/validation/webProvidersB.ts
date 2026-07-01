@@ -291,6 +291,82 @@ export async function validateCopilotWebProvider({ apiKey, providerSpecificData 
   }
 }
 
+function extractM365CredentialParts(raw: string, providerSpecificData: Record<string, unknown>) {
+  const text = raw.trim();
+  const parts: Record<string, string> = {};
+
+  for (const segment of text.split(/[;\n]/)) {
+    const index = segment.indexOf("=");
+    if (index <= 0) continue;
+    const key = segment.slice(0, index).trim();
+    const value = segment.slice(index + 1).trim();
+    if (key && value) parts[key] = value;
+  }
+
+  if (/^wss:\/\/substrate\.office\.com\/m365Copilot\/Chathub\//i.test(text)) {
+    try {
+      const url = new URL(text);
+      parts.access_token ||= url.searchParams.get("access_token") || "";
+      parts.chathubPath ||= decodeURIComponent(
+        url.pathname.split("/m365Copilot/Chathub/")[1] || ""
+      );
+    } catch {
+      // Fall through to the structured key/value parser result.
+    }
+  }
+
+  return {
+    accessToken:
+      parts.access_token ||
+      parts.accessToken ||
+      (typeof providerSpecificData.access_token === "string"
+        ? providerSpecificData.access_token
+        : "") ||
+      (typeof providerSpecificData.accessToken === "string" ? providerSpecificData.accessToken : ""),
+    chathubPath:
+      parts.chathubPath ||
+      parts.userTenant ||
+      (typeof providerSpecificData.chathubPath === "string"
+        ? providerSpecificData.chathubPath
+        : "") ||
+      (typeof providerSpecificData.userTenant === "string" ? providerSpecificData.userTenant : ""),
+  };
+}
+
+// ── Microsoft 365 Copilot Web token validator ──
+export async function validateCopilotM365WebProvider({
+  apiKey,
+  providerSpecificData = {},
+}: any) {
+  const { accessToken, chathubPath } = extractM365CredentialParts(
+    String(apiKey || ""),
+    providerSpecificData
+  );
+
+  if (!accessToken) {
+    return {
+      valid: false,
+      error: "Could not extract access_token from the Microsoft 365 Copilot credential",
+    };
+  }
+
+  if (!chathubPath || !chathubPath.includes("@")) {
+    return {
+      valid: false,
+      error: "Could not extract the account-specific Chathub path from the credential",
+    };
+  }
+
+  // The live provider uses a SignalR WebSocket. The generic web-cookie /models
+  // probe builds an invalid wss://.../models URL, so validation here confirms
+  // the captured credential shape and lets the executor perform the live check.
+  return {
+    valid: true,
+    error: null,
+    warning: "Credential format accepted. The session is verified when the provider sends a chat.",
+  };
+}
+
 // ── t3.chat Web cookie validator ──
 export async function validateT3WebProvider({ apiKey, providerSpecificData = {} }: any) {
   try {

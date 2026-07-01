@@ -197,7 +197,7 @@ export const WEB_COOKIE_PROVIDERS = {
     hasFree: true,
     freeNote: "Free LLM chat — no subscription required. Rate limits apply.",
     authHint:
-      "Paste your hf-chat cookie value from huggingface.co/chat (DevTools → Application → Cookies → hf-chat). Optional — works without auth for basic use.",
+      "Paste the full Cookie header from huggingface.co/chat (DevTools → Network → /chat/conversation → Request Headers → Cookie). It should include hf-chat and may also include token / aws-waf-token.",
     riskNoticeVariant: "webCookie",
   },
   "poe-web": {
