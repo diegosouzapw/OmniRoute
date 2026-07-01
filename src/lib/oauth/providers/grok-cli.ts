@@ -131,6 +131,13 @@ export const grokCli = {
       expiresIn = exp - currentSec;
     }
 
+    // #5775 follow-up: guard against an already-expired token yielding a negative
+    // expiresIn. A negative value is truthy downstream (import-token route) and maps
+    // to a PAST expiresAt, which AutoCombo reads as "already expired" and excludes the
+    // connection instead of refreshing it. Clamp to a tiny positive TTL so the token is
+    // treated as due-for-refresh.
+    expiresIn = Math.max(1, expiresIn);
+
     return {
       accessToken,
       refreshToken,

@@ -152,3 +152,32 @@ test("Grok Build OAuth Provider - mapTokens falls back to 21600 if no exp or exp
 
   assert.equal(result.expiresIn, 21600);
 });
+
+// #5775 follow-up: an already-expired token must NOT produce a negative expiresIn.
+// A negative value is truthy in the import-token route (route.ts), yielding a PAST
+// expiresAt that AutoCombo (virtualFactory.ts) reads as "already expired" and excludes
+// the connection immediately — instead of clamping to a tiny positive TTL so the token
+// is treated as due-for-refresh. Clamp with Math.max(1, …).
+test("Grok Build OAuth Provider - mapTokens clamps expired JWT exp to a positive expiresIn", () => {
+  const pastSec = Math.floor(Date.now() / 1000) - 3600; // expired 1h ago
+  const payload = { sub: "12345", email: "test@example.com", exp: pastSec };
+  const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const mockJwt = `eyJhbGciOiJFUzI1NiJ9.${payloadBase64}.signature`;
+  const result = grokCli.mapTokens(mockJwt, null);
+
+  assert.ok(result.expiresIn >= 1, `expected expiresIn >= 1, got ${result.expiresIn}`);
+});
+
+test("Grok Build OAuth Provider - mapTokens clamps expired JSON expires_at to a positive expiresIn", () => {
+  const pastDateStr = new Date(Date.now() - 3600 * 1000).toISOString(); // expired 1h ago
+  const authJson = {
+    "https://auth.x.ai::clientId": {
+      key: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20ifQ.signature",
+      refresh_token: "test-refresh-token",
+      expires_at: pastDateStr,
+    },
+  };
+  const result = grokCli.mapTokens(authJson, null);
+
+  assert.ok(result.expiresIn >= 1, `expected expiresIn >= 1, got ${result.expiresIn}`);
+});
