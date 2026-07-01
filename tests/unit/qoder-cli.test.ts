@@ -120,6 +120,9 @@ test("qoder cli static models are copied and model-to-level mapping covers major
   assert.equal(qoderCli.mapQoderModelToLevel("kimi-k2-0905"), "kmodel");
   assert.equal(qoderCli.mapQoderModelToLevel("qwen3-coder-plus"), "qmodel");
   assert.equal(qoderCli.mapQoderModelToLevel("qoder-rome-30ba3b"), "qmodel");
+  assert.equal(qoderCli.mapQoderModelToLevel("glm-5.2"), "gm51model");
+  assert.equal(qoderCli.mapQoderModelToLevel("minimax-m3"), "mmodel");
+  assert.equal(qoderCli.mapQoderModelToLevel("gm51model"), "gm51model");
   assert.equal(qoderCli.mapQoderModelToLevel("totally-unknown"), "auto");
   assert.equal(qoderCli.mapQoderModelToLevel(""), null);
 });

@@ -10,6 +10,8 @@ const QODER_DEFAULT_MODEL = "qoder-rome-30ba3b";
 
 export const QODER_STATIC_MODELS = [
   { id: "qoder-rome-30ba3b", name: "Qoder ROME" },
+  { id: "glm-5.2", name: "GLM-5.2" },
+  { id: "minimax-m3", name: "MiniMax M3" },
   { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
   { id: "qwen3-max", name: "Qwen3 Max" },
   { id: "qwen3-vl-plus", name: "Qwen3 Vision Plus" },
@@ -349,12 +351,33 @@ export function getStaticQoderModels() {
   return QODER_STATIC_MODELS.map((model) => ({ ...model }));
 }
 
+/** qodercli's `-m` accepts these level keys (see `qodercli --list-models`). */
+const QODER_LEVEL_KEYS = new Set([
+  "auto",
+  "ultimate",
+  "performance",
+  "efficient",
+  "lite",
+  "q35model_preview",
+  "qmodel_latest",
+  "qmodel",
+  "gm51model",
+  "kmodel",
+  "dmodel",
+  "dfmodel",
+  "mmodel",
+]);
+
 export function mapQoderModelToLevel(model: string | null | undefined): string | null {
   const normalized = String(model || "")
     .trim()
     .toLowerCase();
   if (!normalized) return null;
+  // A caller may pass a qodercli level key directly (e.g. "gm51model") — honor it.
+  if (QODER_LEVEL_KEYS.has(normalized)) return normalized;
   if (normalized.includes("deepseek-r1")) return "ultimate";
+  if (normalized.includes("glm")) return "gm51model"; // GLM-5.2 (`qoder/glm-5.2`)
+  if (normalized.includes("minimax")) return "mmodel";
   if (normalized.includes("qwen3-max")) return "performance";
   if (normalized.includes("kimi-k2")) return "kmodel";
   if (normalized.includes("qwen3-coder")) return "qmodel";
