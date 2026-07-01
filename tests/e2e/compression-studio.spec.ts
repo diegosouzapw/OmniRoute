@@ -29,8 +29,13 @@ test.describe("Compression Studio (Tela A)", () => {
 
     const playTab = page.locator('[data-testid="tab-play"]');
     await expect(playTab).toBeVisible({ timeout: 30_000 });
-    // Play view is the default tab → its lane proves the studio body mounted.
-    await expect(page.locator('[data-testid="play-lane"]').first()).toBeVisible({
+    // Play view is the default tab → its playground input proves the studio body mounted.
+    // NOTE: the per-lane `play-lane` buttons only render AFTER a preview-compression run
+    // populates `batch.lanes` (usePreviewCompression keeps `batch` null until `run()` is
+    // called — there is no mount auto-run). This smoke test intentionally does not drive a
+    // compression cascade (see the "Out of scope" note above), so asserting `play-lane`
+    // here can never become visible. Anchor on the always-present input panel instead.
+    await expect(page.locator('[data-testid="play-input"]')).toBeVisible({
       timeout: 30_000,
     });
   });

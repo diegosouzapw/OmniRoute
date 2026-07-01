@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import Button from "./Button";
 import Input from "./Input";
+import LinkifiedText from "./LinkifiedText";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { parseResponseBody, getErrorMessage } from "@/shared/utils/api";
 import { isCredentialBlob, submitCredentialBlob } from "@/shared/components/oauthBlobSubmit";
@@ -948,7 +949,9 @@ export default function OAuthModal({
               <span className="material-symbols-outlined text-3xl text-red-600">error</span>
             </div>
             <h3 className="text-lg font-semibold mb-2">{t("error")}</h3>
-            <p className="text-sm text-red-600 mb-4">{error}</p>
+            <p className="text-sm text-red-600 mb-4">
+              <LinkifiedText text={error} />
+            </p>
             <div className="flex gap-2">
               <Button onClick={startOAuthFlow} variant="secondary" fullWidth>
                 {t("tryAgain")}
