@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach, after } from "node:test";
+import { describe, it, before, beforeEach, after } from "node:test";
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -119,8 +119,8 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-compressi
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const core = await import("../../../../src/lib/db/core.ts");
-const route = await import("../../../../src/app/api/settings/compression/route.ts");
+let core: Awaited<typeof import("../../../../src/lib/db/core.ts")>;
+let route: Awaited<typeof import("../../../../src/app/api/settings/compression/route.ts")>;
 
 function makeRequest(method: string, body?: unknown): Request {
   return new Request("http://localhost/api/settings/compression", {
@@ -132,6 +132,11 @@ function makeRequest(method: string, body?: unknown): Request {
 }
 
 describe("settings/compression route — engines + activeComboId", () => {
+  before(async () => {
+    core = await import("../../../../src/lib/db/core.ts");
+    route = await import("../../../../src/app/api/settings/compression/route.ts");
+  });
+
   beforeEach(() => {
     core.resetDbInstance();
     fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
