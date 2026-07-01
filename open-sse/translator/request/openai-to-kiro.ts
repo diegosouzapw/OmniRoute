@@ -158,7 +158,15 @@ function convertMessages(messages, tools, model) {
 
   const flushPending = () => {
     if (currentRole === "user") {
-      const content = pendingUserContent.join("\n\n").trim() || "(empty)";
+      // Kiro accepts an empty user `content` when the turn carries toolResults or
+      // images (the agentic tool-loop case), so the "(empty)" placeholder is only
+      // needed for a genuinely bare turn. Without this check, a trailing
+      // tool-result-only turn (no follow-up user text) would get the literal
+      // "(empty)" injected as if the user had typed it, which can confuse Kiro.
+      // See decolua/9router#2183 for the same bug class.
+      const text = pendingUserContent.join("\n\n").trim();
+      const hasContext = pendingToolResults.length > 0 || pendingImages.length > 0;
+      const content = text || (hasContext ? "" : "(empty)");
       const userMsg: {
         userInputMessage: {
           content: string;
