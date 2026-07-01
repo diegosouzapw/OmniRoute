@@ -3,6 +3,8 @@ import { callCloudWithMachineId } from "@/shared/utils/cloud";
 import { handleChat } from "@/sse/handlers/chat";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
+import { withEarlyStreamKeepalive } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
+import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
 
 let initPromise = null;
 
@@ -68,6 +70,14 @@ export async function POST(request) {
     }
   } catch (error) {
     console.error("[SECURITY] Prompt injection guard failed:", error);
+  }
+
+  const wantsStreaming = parsedBody?.stream !== false;
+  if (wantsStreaming) {
+    return await withEarlyStreamKeepalive(handleChat(request, null, parsedBody), {
+      signal: request.signal,
+      thresholdMs: resolveKeepaliveThreshold(parsedBody?.model),
+    });
   }
 
   return await handleChat(request, null, parsedBody);
