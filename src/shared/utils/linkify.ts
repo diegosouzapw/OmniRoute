@@ -12,6 +12,22 @@ export type TextSegment = { text: string; href?: string };
 
 const URL_RE = /https?:\/\/[^\s"'<>)]+/g;
 
+// Defense-in-depth scheme allowlist. URL_RE already requires an http(s):// prefix, but
+// validate the scheme EXPLICITLY before exposing `href` so the http(s)-only guarantee is
+// enforced on the value itself — not merely implied by the regex. A non-parseable or
+// non-http(s) match degrades to plain text (no `href`). This also makes the sink safe to
+// static analysis: `href` provably can never carry a javascript:/data:/vbscript: scheme
+// (CodeQL js/xss + js/client-side-unvalidated-url-redirection).
+function safeHttpHref(url: string): string | undefined {
+  let protocol: string;
+  try {
+    protocol = new URL(url).protocol;
+  } catch {
+    return undefined;
+  }
+  return protocol === "http:" || protocol === "https:" ? url : undefined;
+}
+
 export function linkifyText(input: string): TextSegment[] {
   if (!input) return [];
   const segments: TextSegment[] = [];
@@ -28,7 +44,8 @@ export function linkifyText(input: string): TextSegment[] {
       trailing = url.slice(-1) + trailing;
       url = url.slice(0, -1);
     }
-    segments.push({ text: url, href: url });
+    const href = safeHttpHref(url);
+    segments.push(href ? { text: url, href } : { text: url });
     if (trailing) segments.push({ text: trailing });
     last = match.index + match[0].length;
   }
