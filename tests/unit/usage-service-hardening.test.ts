@@ -893,11 +893,13 @@ test("usage service covers Qwen, Qoder, GLM, Z.AI and GLMT branches", async () =
   });
   assert.match(qwen.message, /Usage tracked per request/i);
 
+  // Qoder now reads its PAT from `apiKey` (not `accessToken`); with no PAT the
+  // usage fetcher returns a friendly prompt instead of hitting the network.
   const qoder: any = await usageService.getUsageForProvider({
     provider: "qoder",
     accessToken: "qoder-token",
   });
-  assert.match(qoder.message, /Usage tracked per request/i);
+  assert.match(qoder.message, /Personal Access Token/i);
 
   const glmMissingKey: any = await usageService.getUsageForProvider({
     provider: "glm",
