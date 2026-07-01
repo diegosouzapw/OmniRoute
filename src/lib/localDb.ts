@@ -85,6 +85,7 @@ export * from "./db/modelCompat";
 export * from "./db/modelCompatCapabilities";
 export * from "./db/modelConfigSnapshot";
 export * from "./db/modelConfigRows";
+export * from "./db/modelContextOverrides";
 
 export {
   // Combos
