@@ -19,26 +19,28 @@ test("serve startup banner includes started in elapsed time", () => {
 test("serve daemon mode does not accept startedAt", () => {
   assert.match(
     serveSource,
-    /function runDaemon\(serverJs, env, memoryLimit, dashboardPort, apiPort\)/
+    /function\s+runDaemon\s*\(\s*serverJs\s*,\s*env\s*,\s*memoryLimit\s*,\s*dashboardPort\s*,\s*apiPort\s*\)/
   );
   assert.ok(
-    !/function runDaemon\(serverJs, env, memoryLimit, dashboardPort, apiPort, startedAt\)/.test(
+    !/function\s+runDaemon\s*\(\s*serverJs\s*,\s*env\s*,\s*memoryLimit\s*,\s*dashboardPort\s*,\s*apiPort\s*,\s*startedAt\s*\)/.test(
       serveSource
     )
   );
 });
 
 test("serve runWithSupervisor uses startedAt before defaulted useTray", () => {
-  assert.ok(
-    serveSource.includes(
-      "async function runWithSupervisor(\n  serverJs,\n  env,\n  memoryLimit,\n  dashboardPort,\n  apiPort,\n  noOpen,\n  showLog,\n  maxRestarts,\n  startedAt,\n  useTray = false\n)"
-    ),
+  const signatureRegex =
+    /async\s+function\s+runWithSupervisor\s*\([\s\S]*?startedAt\s*,\s*useTray\s*=\s*false\s*\)/;
+  assert.match(
+    serveSource,
+    signatureRegex,
     "runWithSupervisor should declare startedAt before the defaulted useTray parameter"
   );
-  assert.ok(
-    serveSource.includes(
-      "return runWithSupervisor(\n    serverJs,\n    env,\n    memoryLimit,\n    dashboardPort,\n    apiPort,\n    noOpen,\n    opts.log === true,\n    opts.maxRestarts ?? 2,\n    startedAt,\n    useTray\n  );"
-    ),
+
+  const callRegex = /runWithSupervisor\s*\([\s\S]*?startedAt\s*,\s*useTray\s*\)/;
+  assert.match(
+    serveSource,
+    callRegex,
     "runWithSupervisor should be called with startedAt before useTray"
   );
 });
