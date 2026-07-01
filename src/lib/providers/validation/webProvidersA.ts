@@ -12,6 +12,100 @@ import {
   normalizeSessionCookieHeader,
 } from "@/lib/providers/webCookieAuth";
 
+// kimi-web uses the international `www.kimi.com` Connect-RPC API. The legacy
+// `kimi.moonshot.cn` domain now 307-redirects every non-CN visitor, and even
+// if you bypass the redirect the old `/api/chat` REST endpoint is gone. The
+// SPA exposes a profile probe at `GET /api/user` that returns the user object
+// at the top level when the `Authorization: Bearer <JWT>` header is valid.
+//
+// Auth source: the `kimi-auth` cookie set after login. The user pastes the
+// full Cookie header; we extract `kimi-auth` and send it as both the Bearer
+// token and a `Cookie: kimi-auth=<jwt>` replay (the latter is what the SPA
+// does, though the upstream only consults the Authorization header in
+// practice — verified by stripping one of the two at a time).
+export async function validateKimiWebProvider({ apiKey }: any) {
+  const rawCred = String(apiKey ?? "").trim();
+  if (!rawCred) {
+    return {
+      valid: false,
+      error:
+        "Missing Kimi session — paste the full Cookie header from www.kimi.com (must contain kimi-auth=<JWT>)",
+    };
+  }
+
+  const jwt = extractKimiJwtFromCookie(rawCred);
+  if (!jwt) {
+    return {
+      valid: false,
+      error:
+        "Could not find a kimi-auth JWT in the pasted value. Re-login at https://www.kimi.com and copy the full Cookie header.",
+    };
+  }
+
+  try {
+    const resp = await fetch("https://www.kimi.com/api/user", {
+      headers: {
+        Accept: "application/json, text/plain, */*",
+        Authorization: `Bearer ${jwt}`,
+        Cookie: `kimi-auth=${jwt}`,
+        Origin: "https://www.kimi.com",
+        Referer: "https://www.kimi.com/",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      },
+    });
+
+    if (resp.status === 401 || resp.status === 403) {
+      return {
+        valid: false,
+        error:
+          "Kimi session is invalid or expired — re-login at https://www.kimi.com and paste a fresh Cookie header",
+      };
+    }
+    if (!resp.ok) {
+      return { valid: false, error: `Kimi returned HTTP ${resp.status}` };
+    }
+
+    // Profile response: `{ id, name, email, region, ... }` at the top level.
+    try {
+      const data = await resp.json();
+      if (!data?.id) {
+        return {
+          valid: false,
+          error:
+            "Kimi session token is invalid or expired — re-login at https://www.kimi.com and paste a fresh Cookie header",
+        };
+      }
+    } catch {
+      return { valid: false, error: "Kimi returned invalid JSON response" };
+    }
+
+    return { valid: true, error: null };
+  } catch (error) {
+    return toValidationErrorResult(error);
+  }
+}
+
+/**
+ * Pull the `kimi-auth` JWT value out of whatever the user pasted. Mirrors the
+ * executor's parser so the validator and executor agree on accepted inputs.
+ * Kept local rather than imported from the executor so the validation layer
+ * (src/lib/providers/...) does not depend on open-sse/.
+ */
+function extractKimiJwtFromCookie(rawValue: string): string {
+  const trimmed = String(rawValue ?? "").trim();
+  if (!trimmed) return "";
+  const noLabel = trimmed
+    .replace(/^cookie\s*:\s*/i, "")
+    .replace(/^authorization\s*:\s*bearer\s+/i, "");
+  if (/^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(noLabel)) {
+    return noLabel;
+  }
+  const match = noLabel.match(/(?:^|[\s;])kimi-auth=([^;\s]+)/);
+  if (match) return match[1];
+  return "";
+}
+
 export async function validateDeepSeekWebProvider({ apiKey }: any) {
   if (!apiKey) {
     return {

@@ -32,6 +32,7 @@ import {
   validateChatGptWebProvider,
   validatePerplexityWebProvider,
   validateBlackboxWebProvider,
+  validateKimiWebProvider,
 } from "./validation/webProvidersA";
 import {
   validateMuseSparkWebProvider,
@@ -348,6 +349,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     "deepseek-web": validateDeepSeekWebProvider,
     "grok-web": validateGrokWebProvider,
     "qwen-web": validateQwenWebProvider,
+    "kimi-web": validateKimiWebProvider,
     "chatgpt-web": validateChatGptWebProvider,
     "perplexity-web": validatePerplexityWebProvider,
     "blackbox-web": validateBlackboxWebProvider,
