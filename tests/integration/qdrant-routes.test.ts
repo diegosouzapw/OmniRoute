@@ -143,6 +143,68 @@ test("PUT /api/settings/qdrant — updates settings and returns new masked shape
   assert.strictEqual(body.apiKey, undefined, "raw apiKey must not be in response");
 });
 
+// ── #5597: enabling Qdrant must also activate it as the engine ──
+// Regression: retrieval only routes to Qdrant when memoryVectorStore === "qdrant"
+// (retrieval.ts:342/470/694). The card only wrote `qdrantEnabled` and never the
+// engine selector, so enabling Qdrant was inert — it stayed on the default "auto"
+// (which never selects Qdrant). Enabling now also sets memoryVectorStore=qdrant.
+
+test("PUT enabled=true also activates Qdrant as the engine (memoryVectorStore=qdrant)", async () => {
+  const req = await makeAuthRequest("PUT", "http://localhost/api/settings/qdrant", {
+    enabled: true,
+    host: "qdrant-server",
+    collection: "c",
+  });
+  const res = await qdrantSettingsRoute.PUT(req as any);
+  assert.strictEqual(res.status, 200);
+
+  const s = (await localDb.getSettings()) as Record<string, unknown>;
+  assert.strictEqual(
+    s.memoryVectorStore,
+    "qdrant",
+    "enabling Qdrant must select it as the active vector store, else it stays inert"
+  );
+});
+
+test("PUT enabled=false resets the engine back to auto (sqlite-vec)", async () => {
+  await qdrantSettingsRoute.PUT(
+    (await makeAuthRequest("PUT", "http://localhost/api/settings/qdrant", {
+      enabled: true,
+      host: "qdrant-server",
+      collection: "c",
+    })) as any
+  );
+  await qdrantSettingsRoute.PUT(
+    (await makeAuthRequest("PUT", "http://localhost/api/settings/qdrant", {
+      enabled: false,
+    })) as any
+  );
+
+  const s = (await localDb.getSettings()) as Record<string, unknown>;
+  assert.strictEqual(
+    s.memoryVectorStore,
+    "auto",
+    "disabling Qdrant must fall back to auto (sqlite-vec), not stay on qdrant"
+  );
+});
+
+test("PUT without the enabled field must not change memoryVectorStore", async () => {
+  // User already on qdrant; editing only the collection must not reset the engine.
+  await localDb.updateSettings({ memoryVectorStore: "qdrant", qdrantEnabled: true });
+  await qdrantSettingsRoute.PUT(
+    (await makeAuthRequest("PUT", "http://localhost/api/settings/qdrant", {
+      collection: "renamed",
+    })) as any
+  );
+
+  const s = (await localDb.getSettings()) as Record<string, unknown>;
+  assert.strictEqual(
+    s.memoryVectorStore,
+    "qdrant",
+    "editing other fields must leave the engine selection untouched"
+  );
+});
+
 test("PUT /api/settings/qdrant — 400 invalid settings (invalid port type in strict schema)", async () => {
   const req = await makeAuthRequest("PUT", "http://localhost/api/settings/qdrant", {
     port: "not-a-number",

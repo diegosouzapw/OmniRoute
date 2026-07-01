@@ -68,7 +68,14 @@ export async function PUT(request: NextRequest) {
 
   try {
     const updates: Record<string, unknown> = {};
-    if (body.enabled !== undefined) updates.qdrantEnabled = body.enabled;
+    if (body.enabled !== undefined) {
+      updates.qdrantEnabled = body.enabled;
+      // #5597: enabling Qdrant here was inert — retrieval only routes to Qdrant when
+      // memoryVectorStore === "qdrant" (the default "auto" never selects it), and no UI
+      // wrote that. Activate/deactivate the engine alongside the toggle so "enabled"
+      // actually means "Qdrant is the primary vector store" (matching the UI copy).
+      updates.memoryVectorStore = body.enabled ? "qdrant" : "auto";
+    }
     if (body.host !== undefined) updates.qdrantHost = body.host;
     if (body.port !== undefined) updates.qdrantPort = body.port;
     if (body.collection !== undefined) updates.qdrantCollection = body.collection;
