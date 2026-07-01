@@ -227,6 +227,29 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
   };
 }
 
+/**
+ * True when the operator has an explicit stream-recovery configuration —
+ * either a DB/settings override (`resilienceSettings.streamRecovery.enabled`
+ * present as a boolean) or a non-empty `STREAM_RECOVERY_ENABLED` env var.
+ *
+ * `ResilienceSettings` has no `isExplicit`/`source` field to distinguish
+ * "default off" from "operator explicitly turned it off", so callers that
+ * need to respect an explicit operator choice (e.g. the agent-goal-policy
+ * override in chatCore.ts) must check this before layering any heuristic
+ * on top of `resolveResilienceSettings(...).streamRecovery.enabled`.
+ */
+export function isStreamRecoveryExplicitlyConfigured(
+  settings: Record<string, unknown> | null | undefined
+): boolean {
+  const record = asRecord(settings);
+  const current = asRecord(record.resilienceSettings);
+  const streamRecoveryRecord = asRecord(current.streamRecovery);
+  if (typeof streamRecoveryRecord.enabled === "boolean") {
+    return true;
+  }
+  return (process.env.STREAM_RECOVERY_ENABLED || "").trim().length > 0;
+}
+
 export function resolveResilienceSettings(
   settings: Record<string, unknown> | null | undefined
 ): ResilienceSettings {

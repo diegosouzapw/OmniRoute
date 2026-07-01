@@ -80,6 +80,20 @@ export function resolveAgentGoalPolicy(
   headers: HeaderLike = null,
   env: EnvSource = process.env
 ): AgentGoalPolicy {
+  // Kill-switch (default ON — preserves existing behavior). When explicitly
+  // disabled, the whole heuristic is a no-op: it never elevates readiness
+  // timeouts or stream recovery, regardless of request body/headers. This
+  // mitigates client-controlled timeout amplification when an operator does
+  // not want request bodies/headers to influence upstream timeout budgets.
+  const policyEnabled = parseBoolean(env.OMNIROUTE_AGENT_GOAL_POLICY_ENABLED, true);
+  if (!policyEnabled) {
+    return {
+      detected: false,
+      readinessMaxTimeoutMs: DEFAULT_AGENT_GOAL_READINESS_MAX_TIMEOUT_MS,
+      streamRecoveryEnabled: false,
+    };
+  }
+
   const forcedByHeader = parseBoolean(readHeader(headers, "x-omniroute-agent-goal"), false);
   const detected = forcedByHeader || isAgentGoalRequestBody(body);
   const readinessMaxTimeoutMs = readPositiveMs(

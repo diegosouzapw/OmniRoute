@@ -131,7 +131,10 @@ import {
   STREAM_RECOVERY,
 } from "../config/constants.ts";
 import { createRecoverableStream, makeContinuationBody } from "../services/streamRecovery.ts";
-import { resolveResilienceSettings } from "@/lib/resilience/settings";
+import {
+  resolveResilienceSettings,
+  isStreamRecoveryExplicitlyConfigured,
+} from "@/lib/resilience/settings";
 import {
   classifyProviderError,
   PROVIDER_ERROR_TYPES,
@@ -2457,10 +2460,23 @@ export async function handleChatCore({
                     // Reuse the request-consolidated settings read (see line ~2076) — no
                     // second DB/cache hit. Default OFF when the setting is absent.
                     const sr = resolveResilienceSettings(settings).streamRecovery;
-                    streamRecoveryEnabled = sr.enabled || agentGoalPolicy.streamRecoveryEnabled;
+                    // Fail-closed: the agent-goal-policy heuristic may only ADD recovery
+                    // when the operator has no explicit configuration. If the operator
+                    // explicitly configured stream recovery (env var or DB/settings
+                    // override), that value always wins — the goal policy must never
+                    // re-enable recovery the operator explicitly turned off.
+                    const operatorExplicit = isStreamRecoveryExplicitlyConfigured(settings);
+                    const goalOverride = !operatorExplicit && agentGoalPolicy.streamRecoveryEnabled;
+                    streamRecoveryEnabled = sr.enabled || goalOverride;
                     continueMidStreamEnabled = sr.continueMidStream === true;
+                    if (goalOverride && !sr.enabled) {
+                      log?.info?.(
+                        "AGENT_GOAL",
+                        `agentGoalPolicy override: stream recovery enabled for goal request requestId=${traceId} model=${modelToCall || model || requestedModel || "unknown"}`
+                      );
+                    }
                   } catch {
-                    streamRecoveryEnabled = agentGoalPolicy.streamRecoveryEnabled;
+                    streamRecoveryEnabled = false;
                     continueMidStreamEnabled = false;
                   }
                 }
