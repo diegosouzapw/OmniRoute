@@ -8,6 +8,7 @@ import {
   buildGrokCookieHeader,
   buildQwenCookieHeader,
   extractCookieValue,
+  extractKimiJwt,
   extractQwenToken,
   normalizeSessionCookieHeader,
 } from "@/lib/providers/webCookieAuth";
@@ -33,7 +34,7 @@ export async function validateKimiWebProvider({ apiKey }: any) {
     };
   }
 
-  const jwt = extractKimiJwtFromCookie(rawCred);
+  const jwt = extractKimiJwt(rawCred);
   if (!jwt) {
     return {
       valid: false,
@@ -84,26 +85,6 @@ export async function validateKimiWebProvider({ apiKey }: any) {
   } catch (error) {
     return toValidationErrorResult(error);
   }
-}
-
-/**
- * Pull the `kimi-auth` JWT value out of whatever the user pasted. Mirrors the
- * executor's parser so the validator and executor agree on accepted inputs.
- * Kept local rather than imported from the executor so the validation layer
- * (src/lib/providers/...) does not depend on open-sse/.
- */
-function extractKimiJwtFromCookie(rawValue: string): string {
-  const trimmed = String(rawValue ?? "").trim();
-  if (!trimmed) return "";
-  const noLabel = trimmed
-    .replace(/^cookie\s*:\s*/i, "")
-    .replace(/^authorization\s*:\s*bearer\s+/i, "");
-  if (/^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(noLabel)) {
-    return noLabel;
-  }
-  const match = noLabel.match(/(?:^|[\s;])kimi-auth=([^;\s]+)/);
-  if (match) return match[1];
-  return "";
 }
 
 export async function validateDeepSeekWebProvider({ apiKey }: any) {

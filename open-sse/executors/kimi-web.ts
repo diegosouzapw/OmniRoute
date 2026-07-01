@@ -27,6 +27,7 @@
  */
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { makeExecutorErrorResult as makeErrorResult, sanitizeErrorMessage } from "../utils/error.ts";
+import { extractKimiJwt } from "@/lib/providers/webCookieAuth";
 
 const BASE_URL = "https://www.kimi.com";
 const CHAT_URL = `${BASE_URL}/apiv2/kimi.gateway.chat.v1.ChatService/Chat`;
@@ -35,42 +36,8 @@ const USER_AGENT =
 
 const DEFAULT_SCENARIO = "SCENARIO_K2D5";
 
-/**
- * Pull the `kimi-auth` JWT value out of whatever the user pasted.
- *
- * Accepts:
- *   - Bare JWT (header.payload.sig)            → returned as-is
- *   - `kimi-auth=<jwt>; other=...` cookie blob → extracts kimi-auth value
- *   - `Authorization: Bearer <jwt>`            → extracts bearer value
- */
-export function extractKimiJwt(rawValue: string): string {
-  const trimmed = String(rawValue ?? "").trim();
-  if (!trimmed) return "";
-
-  // Strip a leading "Cookie:" / "Authorization:" label if the user pasted the
-  // full header line.
-  const noLabel = trimmed
-    .replace(/^cookie\s*:\s*/i, "")
-    .replace(/^authorization\s*:\s*bearer\s+/i, "");
-
-  // Bare JWT — three base64url segments separated by dots.
-  if (/^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(noLabel)) {
-    return noLabel;
-  }
-
-  // Cookie-style pair: pull `kimi-auth=<value>` out of the blob.
-  const match = noLabel.match(/(?:^|[\s;])kimi-auth=([^;\s]+)/);
-  if (match) return match[1];
-
-  // Last resort: a `Bearer <jwt>` pasted without the header label.
-  const bearer = noLabel.match(/bearer\s+(eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/i);
-  if (bearer) return bearer[1];
-
-  return "";
-}
-
 /** Wrap a JSON message in the 5-byte Connect streaming envelope (flags + length). */
-function frameConnectMessage(json: string): Uint8Array {
+export function frameConnectMessage(json: string): Uint8Array {
   const payload = new TextEncoder().encode(json);
   const framed = new Uint8Array(5 + payload.length);
   framed[0] = 0; // flags: 0 = uncompressed
@@ -89,11 +56,25 @@ interface ConnectFrame {
 }
 
 /**
- * Decode one Connect frame from a stream buffer.
- * Returns the consumed byte count and the parsed frame, or `null` if there
- * isn't enough data yet.
+ * ponytail: cap a single Connect frame at 8 MiB. Kimi's largest legitimate
+ * event is well under 1 KiB (a delta or stage transition); anything bigger
+ * means the upstream is misbehaving or an attacker controls the response and
+ * is trying to OOM the proxy by sending a header claiming a huge length.
+ * The non-streaming accumulator would otherwise grow unbounded. If you ever
+ * see this tripping in production, raise the ceiling and add a regression
+ * test — but never remove it.
  */
-function decodeConnectFrame(buf: Uint8Array, byteOffset: number): { consumed: number; frame: ConnectFrame | null } {
+const MAX_FRAME_LEN = 8 * 1024 * 1024;
+
+/**
+ * Decode one Connect frame from a stream buffer.
+ * Returns:
+ *   - `consumed: 0` if there isn't enough data yet (need more bytes)
+ *   - `consumed: -1` if the frame header claims a length above MAX_FRAME_LEN
+ *     (caller must treat this as a stream-fatal protocol error)
+ *   - `consumed: N` + the parsed frame otherwise
+ */
+export function decodeConnectFrame(buf: Uint8Array, byteOffset: number): { consumed: number; frame: ConnectFrame | null } {
   if (byteOffset + 5 > buf.length) return { consumed: 0, frame: null };
   const flags = buf[byteOffset];
   const len =
@@ -103,6 +84,7 @@ function decodeConnectFrame(buf: Uint8Array, byteOffset: number): { consumed: nu
     buf[byteOffset + 4];
   // Sign-extend the high bit back to negative when len was read as signed.
   const msgLen = len < 0 ? len + 0x100000000 : len;
+  if (msgLen > MAX_FRAME_LEN) return { consumed: -1, frame: null };
   if (byteOffset + 5 + msgLen > buf.length) return { consumed: 0, frame: null };
 
   const payload = buf.subarray(byteOffset + 5, byteOffset + 5 + msgLen);
@@ -129,7 +111,7 @@ type DeltaKind = "text" | "think" | null;
  * Anything else (heartbeats, chat/message metadata, stage transitions) is
  * suppressed; we only surface text to the client.
  */
-function extractDelta(msg: Record<string, unknown> | null): { kind: DeltaKind; text: string } | null {
+export function extractDelta(msg: Record<string, unknown> | null): { kind: DeltaKind; text: string } | null {
   if (!msg) return null;
   const op = String(msg.op ?? "");
   const mask = String(msg.mask ?? "");
@@ -162,7 +144,7 @@ function extractDelta(msg: Record<string, unknown> | null): { kind: DeltaKind; t
   return null;
 }
 
-function isEndOfStream(msg: Record<string, unknown> | null): boolean {
+export function isEndOfStream(msg: Record<string, unknown> | null): boolean {
   if (!msg) return false;
   // Assistant message flipped to COMPLETED.
   const message = (msg.message ?? null) as Record<string, unknown> | null;
@@ -172,8 +154,18 @@ function isEndOfStream(msg: Record<string, unknown> | null): boolean {
   return false;
 }
 
-/** Fold a multi-turn OpenAI `messages` array into a single Kimi user turn. */
-function foldMessages(messages: Array<{ role: string; content: unknown }>): string {
+/**
+ * Fold a multi-turn OpenAI `messages` array into a single Kimi user turn.
+ *
+ * Limitations (kimi-web is a single-turn consumer chat, not an agentic API):
+ *   - `tool` and `function` role messages are silently dropped — Kimi's web
+ *     chat has no concept of tool results, so agentic flows should use the
+ *     `kimi-coding` (api.kimi.com) provider instead.
+ *   - Assistant `tool_calls` and image content parts are stringified into
+ *     text, which loses structure. Acceptable for free-text continuation,
+ *     unacceptable for tool-round-trip — same workaround: use kimi-coding.
+ */
+export function foldMessages(messages: Array<{ role: string; content: unknown }>): string {
   let system = "";
   let user = "";
   for (const m of messages) {
@@ -242,9 +234,11 @@ export class KimiWebExecutor extends BaseExecutor {
 
     const messages = (bodyObj.messages as Array<{ role: string; content: unknown }>) || [];
     const modelId = (bodyObj.model as string) || "kimi-default";
-    // Theorize "thinking" intent from model id — matches how Kimi's own UI
-    // toggles between thinking and non-thinking variants.
-    const wantThinking = /think|reason|k2\.6|k2-6/i.test(modelId) ? true : bodyObj.reasoning_effort !== "none";
+    // Decide thinking intent. A user sending `reasoning_effort: "none"` is
+    // explicit — honour it even when the model id suggests a thinking variant.
+    // Otherwise thinking models (kimi-k2.6 etc.) default to thinking on.
+    const modelWantsThinking = /k2\.6|k2-6|think/i.test(modelId);
+    const wantThinking = bodyObj.reasoning_effort === "none" ? false : modelWantsThinking;
 
     const prompt = foldMessages(messages);
     const reqBody = this.buildRequestBody(prompt, wantThinking);
@@ -319,6 +313,11 @@ export class KimiWebExecutor extends BaseExecutor {
                 let offset = 0;
                 while (offset < buffer.length) {
                   const { consumed, frame } = decodeConnectFrame(buffer, offset);
+                  if (consumed === -1) {
+                    // Frame header claims a length above MAX_FRAME_LEN — stream-fatal.
+                    controller.error(new Error("Kimi Connect frame exceeded MAX_FRAME_LEN"));
+                    return;
+                  }
                   if (consumed === 0) break; // need more bytes
                   offset += consumed;
                   if (!frame?.message) continue;
@@ -397,6 +396,7 @@ export class KimiWebExecutor extends BaseExecutor {
         let offset = 0;
         while (offset < buffer.length) {
           const { consumed, frame } = decodeConnectFrame(buffer, offset);
+          if (consumed === -1) break; // oversized frame — abort, return what we have
           if (consumed === 0) break;
           offset += consumed;
           if (!frame?.message) continue;
