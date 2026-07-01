@@ -1049,3 +1049,39 @@ test("buildCompatibleProviderGroups partitions nodes by type + claude-code prefi
     "anthropic-compatible nodes with the cc- prefix land in the claudeCode bucket"
   );
 });
+
+test("connectionMatchesProviderCard counts a dual-auth provider's PAT (apikey) connection on its OAuth card", () => {
+  const { connectionMatchesProviderCard } = providerPageUtils;
+
+  // qoder is OAuth-categorized but its working auth is a PAT (authType "apikey").
+  // Regression: the OAuth card must count the PAT connection, else the dashboard
+  // shows a connected qoder as "not connected".
+  assert.equal(
+    connectionMatchesProviderCard({ provider: "qoder", authType: "apikey" }, "qoder", "oauth"),
+    true
+  );
+  assert.equal(
+    connectionMatchesProviderCard({ provider: "qoder", authType: "oauth" }, "qoder", "oauth"),
+    true
+  );
+
+  // A normal OAuth-only provider must NOT count an apikey connection on its OAuth card.
+  assert.equal(
+    connectionMatchesProviderCard({ provider: "claude", authType: "apikey" }, "claude", "oauth"),
+    false
+  );
+  assert.equal(
+    connectionMatchesProviderCard({ provider: "claude", authType: "oauth" }, "claude", "oauth"),
+    true
+  );
+
+  // Provider mismatch and the "free" card (counts everything) behave as expected.
+  assert.equal(
+    connectionMatchesProviderCard({ provider: "openai", authType: "apikey" }, "qoder", "oauth"),
+    false
+  );
+  assert.equal(
+    connectionMatchesProviderCard({ provider: "qoder", authType: "apikey" }, "qoder", "free"),
+    true
+  );
+});

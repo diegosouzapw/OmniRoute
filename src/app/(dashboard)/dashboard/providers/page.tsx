@@ -20,6 +20,7 @@ import { useTranslations } from "next-intl";
 import {
   buildStaticProviderEntries,
   buildCompatibleProviderGroups,
+  connectionMatchesProviderCard,
   filterConfiguredProviderEntries,
   shouldFilterProviderEntriesForDisplayMode,
   shouldShowFirstProviderHint,
@@ -326,11 +327,9 @@ export default function ProvidersPage() {
   };
 
   const getProviderStats = (providerId, authType) => {
-    const providerConnections = connections.filter((c) => {
-      if (c.provider !== providerId) return false;
-      if (authType === "free") return true;
-      return c.authType === authType;
-    });
+    const providerConnections = connections.filter((c) =>
+      connectionMatchesProviderCard(c, providerId, authType)
+    );
 
     // Helper: check if connection is effectively active (cooldown expired)
     const getEffectiveStatus = (conn) => {
@@ -393,8 +392,7 @@ export default function ProvidersPage() {
     // Count API keys in "warning" state across all connections
     const warning = providerConnections.reduce((warnCount, conn) => {
       const health = (conn as any).providerSpecificData?.apiKeyHealth as
-        | Record<string, { status: string }>
-        | undefined;
+        Record<string, { status: string }> | undefined;
       if (!health) return warnCount;
       return warnCount + Object.values(health).filter((h) => h.status === "warning").length;
     }, 0);
@@ -414,18 +412,14 @@ export default function ProvidersPage() {
 
   // Toggle all connections for a provider on/off
   const handleToggleProvider = async (providerId: string, authType: string, newActive: boolean) => {
-    const providerConns = connections.filter((c) => {
-      if (c.provider !== providerId) return false;
-      if (authType === "free") return true;
-      return c.authType === authType;
-    });
+    // Mirror getProviderStats: dual-auth providers (qoder, …) toggle BOTH their
+    // oauth and apikey/PAT connections from the single OAuth card.
+    const matchesToggle = (c: { provider: string; authType?: string }) =>
+      connectionMatchesProviderCard(c, providerId, authType as "oauth" | "free" | "apikey");
+    const providerConns = connections.filter(matchesToggle);
     // Optimistically update UI
     setConnections((prev) =>
-      prev.map((c) =>
-        c.provider === providerId && (authType === "free" || c.authType === authType)
-          ? { ...c, isActive: newActive }
-          : c
-      )
+      prev.map((c) => (matchesToggle(c) ? { ...c, isActive: newActive } : c))
     );
     // Fire API calls in parallel
     await Promise.allSettled(
