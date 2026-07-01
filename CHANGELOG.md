@@ -88,6 +88,8 @@
 
 - **Security hardening follow-ups (v3.8.15):** the `auth_token` cookie now sets an explicit 30-day `maxAge` so sessions persist as intended (Seg3); the management bootstrap warns at boot when `INITIAL_PASSWORD` is left at the insecure `CHANGEME` default (Seg2); VS Code path-token endpoints (`/api/v1/vscode/raw/[token]`) emit a once-per-process security warning since the API key travels in the URL and can leak via logs/proxies (Seg4); the system version route resolves the real global install path via `npm root -g` instead of a hardcoded `/app` (Bug3); and auto-update mode detection segment-matches `node_modules` instead of substring-matching, eliminating false "global install" positives (Bug1).
 
+- **dashboard (model picker):** guard against null model-alias values so opening Create Combo for a custom provider node no longer crashes. `ModelSelectModal`'s custom-provider branch filtered `modelAliases` entries with a raw `fullModel.startsWith(...)`, which threw a `TypeError` whenever an alias value was `null`/`undefined` (a stale/partial entry persisted to settings). The filter/map logic is extracted into a new `buildNodeAliasModels` helper (mirroring the sibling passthrough-alias guard, #485) that requires `typeof fullModel === "string"` before calling `.startsWith`. Regression guard: `tests/unit/model-select-null-alias-guard-2247.test.ts`. (thanks @wahyuzero)
+
 ### 📝 Maintenance
 
 ---
