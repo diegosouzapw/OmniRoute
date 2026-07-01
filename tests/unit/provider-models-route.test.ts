@@ -842,7 +842,7 @@ test("provider models route falls back to cached models when a refresh fails", a
   assert.equal(fetchCalls, 2);
 });
 
-test("provider models route clears cached discovery when a refresh returns no remote models", async () => {
+test("provider models route preserves cached discovery when a refresh returns no remote models", async () => {
   const connection = await seedConnection("opencode-go", {
     apiKey: "opencode-go-key",
   });
@@ -862,10 +862,50 @@ test("provider models route clears cached discovery when a refresh returns no re
   );
 
   assert.equal(response.status, 200);
-  assert.equal(body.source, "local_catalog");
+  assert.equal(body.source, "cache");
   assert.match(body.warning, /no remote models discovered/i);
-  assert.ok(body.models.every((model) => model.id !== "cached-go"));
-  assert.deepEqual(cachedModels, []);
+  assert.deepEqual(
+    body.models.map((model) => model.id),
+    ["cached-go"]
+  );
+  assert.deepEqual(
+    cachedModels.map((model) => model.id),
+    ["cached-go"]
+  );
+});
+
+test("provider models route does not return deleted synced models from refresh responses", async () => {
+  const connection = await seedConnection("opencode-go", {
+    apiKey: "opencode-go-key",
+  });
+  modelsDb.mergeModelCompatOverride("opencode-go", "deleted-go", { isDeleted: true } as any);
+
+  globalThis.fetch = async () => {
+    return Response.json({
+      data: [
+        { id: "deleted-go", name: "Deleted Go" },
+        { id: "active-go", name: "Active Go" },
+      ],
+    });
+  };
+
+  const response = await callRoute(connection.id, "?refresh=true");
+  const body = (await response.json()) as any;
+  const cachedModels = await modelsDb.getSyncedAvailableModelsForConnection(
+    "opencode-go",
+    connection.id
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "api");
+  assert.deepEqual(
+    body.models.map((model) => model.id),
+    ["active-go"]
+  );
+  assert.deepEqual(
+    cachedModels.map((model) => model.id),
+    ["active-go"]
+  );
 });
 
 test("provider models route honors autoFetchModels=false and skips remote discovery", async () => {
@@ -1479,9 +1519,12 @@ test("provider models route discovers native Bedrock foundation models and infer
       owned_by: "Anthropic",
       source: "foundation",
       supportsStreaming: true,
-      supportsVision: true,
-      inputTokenLimit: 1000000,
-      outputTokenLimit: 64000,
+      capabilities: {
+        contextWindow: 1000000,
+        maxInputTokens: 1000000,
+        maxOutputTokens: 64000,
+        supportsVision: true,
+      },
     },
     {
       id: "eu.anthropic.claude-sonnet-4-6",
@@ -1489,8 +1532,11 @@ test("provider models route discovers native Bedrock foundation models and infer
       owned_by: "bedrock",
       source: "inference_profile",
       supportsStreaming: true,
-      inputTokenLimit: 1000000,
-      outputTokenLimit: 64000,
+      capabilities: {
+        contextWindow: 1000000,
+        maxInputTokens: 1000000,
+        maxOutputTokens: 64000,
+      },
     },
   ]);
 });

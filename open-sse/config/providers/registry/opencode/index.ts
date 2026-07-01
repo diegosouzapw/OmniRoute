@@ -1,5 +1,4 @@
 import type { RegistryEntry } from "../../shared.ts";
-
 export const opencodeProvider: RegistryEntry = {
   id: "opencode",
   alias: "oc",
@@ -19,33 +18,67 @@ export const opencodeProvider: RegistryEntry = {
     {
       id: "big-pickle",
       name: "Big Pickle",
-      supportsReasoning: true,
-      interleavedField: "reasoning_content",
+      capabilities: {
+        supportsReasoning: true,
+        interleavedField: "reasoning_content",
+      },
     },
-    { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
+    {
+      id: "deepseek-v4-flash-free",
+      name: "DeepSeek V4 Flash Free",
+      capabilities: {
+        supportsReasoning: true,
+      },
+    },
     // #3110: MiniMax M3 free tier via OpenCode
     // #3328: MiniMax M3 is multimodal (verified: describes base64 images via the
     // opencode upstream) — flag it so vision requests aren't gated/stripped.
     {
       id: "minimax-m3-free",
       name: "MiniMax M3 Free",
-      contextLength: 1048576,
-      supportsVision: true,
+      capabilities: {
+        contextWindow: 1048576,
+        supportsVision: true,
+      },
     },
-    { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", contextLength: 204800 },
-    { id: "ling-2.6-1t-free", name: "Ling 2.6 Free", contextLength: 262000 },
+    {
+      id: "minimax-m2.5-free",
+      name: "MiniMax M2.5 Free",
+      capabilities: {
+        contextWindow: 204800,
+      },
+    },
+    {
+      id: "ling-2.6-1t-free",
+      name: "Ling 2.6 Free",
+      capabilities: {
+        contextWindow: 262000,
+      },
+    },
     {
       id: "trinity-large-preview-free",
       name: "Trinity Large Preview Free",
-      contextLength: 131000,
+      capabilities: {
+        contextWindow: 131000,
+      },
     },
-    { id: "nemotron-3-super-free", name: "Nemotron 3 Super Free", contextLength: 1000000 },
+    {
+      id: "nemotron-3-super-free",
+      name: "Nemotron 3 Super Free",
+      capabilities: {
+        contextWindow: 1000000,
+      },
+    },
     {
       id: "qwen3.6-plus-free",
       name: "Qwen3.6 Plus Free",
-      targetFormat: "claude",
-      supportsVision: false,
-      contextLength: 200000,
+      capabilities: {
+        supportsVision: false,
+        contextWindow: 200000,
+      },
+      compat: {
+        targetFormat: "claude",
+      },
     },
   ],
 };

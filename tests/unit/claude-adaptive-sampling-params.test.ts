@@ -51,6 +51,18 @@ test("pre-4.7 Claude models still accept sampling params (regression guard)", ()
   }
 });
 
+test("provider-first unsupported params do not leak Anthropic restrictions to same-id gateways", () => {
+  for (const provider of ["github", "kiro", "bazaarlink"] as const) {
+    const unsupported = getUnsupportedParams(provider, "claude-opus-4.7");
+    for (const param of SAMPLING) {
+      assert.ok(
+        !unsupported.includes(param),
+        `${provider}/claude-opus-4.7 must not inherit Anthropic ${param} stripping`
+      );
+    }
+  }
+});
+
 test("isAdaptiveThinkingOnly is true only for Opus 4.7+/Fable 5", () => {
   for (const model of ["claude-opus-4-8", "claude-opus-4-7", "claude-fable-5"]) {
     assert.equal(isAdaptiveThinkingOnly(model), true, `${model} is adaptive-only`);

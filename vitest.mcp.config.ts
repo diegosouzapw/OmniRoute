@@ -19,6 +19,7 @@ export default defineConfig({
       "src/shared/components/**/*.test.tsx",
       "src/shared/hooks/__tests__/**/*.test.tsx",
       "src/app/(dashboard)/**/__tests__/**/*.test.tsx",
+      "src/app/*/dashboard/providers/**/__tests__/**/*.test.tsx",
     ],
     exclude: ["**/node_modules/**", "**/.git/**"],
     coverage: {

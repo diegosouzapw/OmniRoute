@@ -1,7 +1,7 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 // CLAUDE_SYSTEM_PROMPT import removed — no longer injected unconditionally (#1966/#2130)
-import { supportsClaudeMaxEffort, supportsXHighEffort } from "../../config/providerModels.ts";
+import { getResolvedModelCapabilities } from "../../services/modelCapabilities.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
 import { safeParseJSON } from "../helpers/jsonUtil.ts";
@@ -113,7 +113,15 @@ export function normalizeContentToString(content: string | unknown[] | null | un
 }
 
 // Convert OpenAI request to Claude format
-export function openaiToClaudeRequest(model, body, stream) {
+export function openaiToClaudeRequest(model, body, stream, credentials = null) {
+  const credentialRecord =
+    credentials && typeof credentials === "object" && !Array.isArray(credentials)
+      ? (credentials as Record<string, unknown>)
+      : null;
+  const providerHint = credentialRecord?._provider;
+  const routedProvider =
+    typeof providerHint === "string" && providerHint.trim() ? providerHint.trim() : "claude";
+
   // Check if tool prefix should be disabled (configured per-provider or global)
   const disableToolPrefix = body?._disableToolPrefix === true;
 
@@ -181,10 +189,11 @@ export function openaiToClaudeRequest(model, body, stream) {
     // Convert OpenAI reasoning_effort to Claude thinking format (#627)
     // Clients like OpenCode send reasoning_effort via @ai-sdk/openai-compatible
     const requestedEffort = String(body.reasoning_effort).toLowerCase();
+    const capabilities = getResolvedModelCapabilities({ provider: routedProvider, model });
     const normalizedEffort =
-      requestedEffort === "max" && !supportsClaudeMaxEffort(model)
+      requestedEffort === "max" && capabilities.supportsMaxEffort === false
         ? "high"
-        : requestedEffort === "xhigh" && !supportsXHighEffort("claude", model)
+        : requestedEffort === "xhigh" && capabilities.supportsXHighEffort === false
           ? "high"
           : requestedEffort;
     if (isAdaptiveThinkingOnly(model)) {
@@ -232,7 +241,12 @@ export function openaiToClaudeRequest(model, body, stream) {
   // Replaces the previous unconditional `budget + 8192` inflation, which
   // could exceed model caps (e.g. Opus 4.7's 128000 ceiling) and trigger
   // HTTP 400 from Anthropic.
-  const fitted = fitThinkingToMaxTokens(model, Number(result.max_tokens) || 0, result.thinking);
+  const fitted = fitThinkingToMaxTokens(
+    model,
+    Number(result.max_tokens) || 0,
+    result.thinking,
+    routedProvider
+  );
   result.max_tokens = fitted.maxTokens;
   if (fitted.thinking === undefined) {
     delete result.thinking;
@@ -648,7 +662,12 @@ function getContentBlocksFromMessage(
       (b) => b.type === "thinking" || b.type === "redacted_thinking"
     );
     const hasToolUseBlock = blocks.some((b) => b.type === "tool_use");
-    if (msg.reasoning_content && thinkingEnabledForRequest && hasToolUseBlock && !hasThinkingBlock) {
+    if (
+      msg.reasoning_content &&
+      thinkingEnabledForRequest &&
+      hasToolUseBlock &&
+      !hasThinkingBlock
+    ) {
       blocks.unshift({
         type: "redacted_thinking",
         data: DEFAULT_THINKING_CLAUDE_SIGNATURE,

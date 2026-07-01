@@ -41,7 +41,7 @@ export interface PublicCombo {
 /** Capability subset projectCombo needs; injectable so tests stay DB-free + deterministic. */
 export type ComboCapabilityResolver = (model: string) => {
   supportsVision: boolean | null;
-  reasoning: boolean;
+  supportsThinking: boolean | null;
 };
 
 export interface ProjectComboOptions {
@@ -53,7 +53,7 @@ export interface ProjectComboOptions {
 
 const defaultCapabilityResolver: ComboCapabilityResolver = (model) => {
   const caps = getResolvedModelCapabilities(model);
-  return { supportsVision: caps.supportsVision, reasoning: caps.reasoning };
+  return { supportsVision: caps.supportsVision, supportsThinking: caps.supportsThinking };
 };
 
 export function projectComboStep(step: Record<string, unknown>): PublicComboStep | null {
@@ -105,7 +105,7 @@ export function computeComboCapabilities(
     for (const id of modelIds) {
       const caps = resolve(id);
       if (caps.supportsVision !== true) multimodal = false;
-      if (caps.reasoning !== true) reasoning = false;
+      if (caps.supportsThinking !== true) reasoning = false;
     }
   }
 

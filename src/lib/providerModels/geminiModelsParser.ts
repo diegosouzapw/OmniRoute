@@ -46,7 +46,7 @@ export interface GeminiDiscoveryModel {
   inputTokenLimit?: number;
   outputTokenLimit?: number;
   description?: string;
-  supportsThinking?: boolean;
+  supportsReasoning?: boolean;
   [key: string]: unknown;
 }
 
@@ -85,7 +85,7 @@ export function parseGeminiModelsList(data: any): GeminiDiscoveryModel[] {
       ...(typeof m.inputTokenLimit === "number" ? { inputTokenLimit: m.inputTokenLimit } : {}),
       ...(typeof m.outputTokenLimit === "number" ? { outputTokenLimit: m.outputTokenLimit } : {}),
       ...(typeof m.description === "string" ? { description: m.description } : {}),
-      ...(m.thinking === true ? { supportsThinking: true } : {}),
+      ...(m.thinking === true ? { supportsReasoning: true } : {}),
     } as GeminiDiscoveryModel;
   });
 }

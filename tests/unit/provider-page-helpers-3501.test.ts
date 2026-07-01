@@ -29,7 +29,6 @@ import {
   headerRowsToRecord,
   effectiveUpstreamHeadersForProtocol,
   anyUpstreamHeadersBadge,
-  getProtoSlice,
   CODEX_REASONING_STRENGTH_OPTIONS,
   CODEX_ACCOUNT_SERVICE_TIER_VALUES,
   CODEX_GLOBAL_SERVICE_MODE_VALUES,
@@ -45,6 +44,7 @@ import {
   type CompatModelRow,
   type CompatModelMap,
 } from "../../src/app/(dashboard)/dashboard/providers/[id]/providerPageHelpers.ts";
+import { getProtoSlice } from "../../src/app/(dashboard)/dashboard/providers/[id]/providerCompatAccessors.ts";
 
 const tStub = Object.assign((key: string) => key, { has: (_k: string) => false });
 

@@ -10,6 +10,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
 const localDb = await import("../../src/lib/localDb.ts");
+const modelCapabilities = await import("../../src/lib/modelCapabilities.ts");
 const { importManagedModels } = await import("../../src/lib/providerModels/managedModelImport.ts");
 
 async function resetStorage() {
@@ -63,6 +64,221 @@ test("merge mode builds aliases from discovered models without pruning missing p
   assert.equal(aliases.existing, "openrouter/shared/existing");
   assert.equal(aliases["model-a"], undefined);
   assert.equal(aliases["model-b"], "openrouter/shared/model-b");
+});
+
+test("sync import preserves legacy custom model capability overrides", async () => {
+  await modelsDb.replaceCustomModels("openrouter", [
+    {
+      id: "shared/model-a",
+      name: "Legacy Imported Model",
+      source: "imported",
+      inputTokenLimit: 32000,
+      outputTokenLimit: 4096,
+      supportsVision: false,
+      supportsTools: false,
+      targetFormat: "claude",
+    },
+  ]);
+
+  await importManagedModels({
+    providerId: "openrouter",
+    connectionId: "conn-a",
+    mode: "sync",
+    fetchedModels: [
+      {
+        id: "shared/model-a",
+        name: "Remote Model A",
+        capabilities: {
+          contextWindow: 128000,
+          maxOutputTokens: 8192,
+          supportsVision: true,
+          supportsTools: true,
+        },
+      },
+    ],
+  });
+
+  const snapshot = modelsDb.getProviderModelConfigSnapshot("openrouter", "shared/model-a");
+
+  assert.equal(snapshot.capabilities?.contextWindow, 32000);
+  assert.equal(snapshot.capabilities?.maxOutputTokens, 4096);
+  assert.equal(snapshot.capabilities?.supportsVision, false);
+  assert.equal(snapshot.capabilities?.supportsTools, false);
+  assert.equal(snapshot.compat?.targetFormat, "claude");
+});
+
+test("sync import preserves custom capability null markers when migrating to synced rows", async () => {
+  await modelsDb.replaceCustomModels("openrouter", [
+    {
+      id: "shared/model-a",
+      name: "Legacy Imported Model",
+      source: "imported",
+      inputTokenLimit: 32000,
+      outputTokenLimit: 4096,
+    },
+  ]);
+  await modelsDb.updateCustomModel("openrouter", "shared/model-a", {
+    capabilities: { contextWindow: null, maxOutputTokens: null },
+  });
+
+  await importManagedModels({
+    providerId: "openrouter",
+    connectionId: "conn-a",
+    mode: "sync",
+    fetchedModels: [
+      {
+        id: "shared/model-a",
+        name: "Remote Model A",
+        capabilities: { contextWindow: 128000, maxOutputTokens: 8192 },
+      },
+    ],
+  });
+
+  const customModels = await modelsDb.getCustomModels("openrouter");
+  const snapshot = modelsDb.getProviderModelConfigSnapshot("openrouter", "shared/model-a");
+  const runtime = modelCapabilities.getResolvedModelCapabilities({
+    provider: "openrouter",
+    model: "shared/model-a",
+  });
+
+  assert.deepEqual(customModels, []);
+  assert.deepEqual(snapshot.capabilityOverrides, {
+    contextWindow: null,
+    maxInputTokens: null,
+    maxOutputTokens: null,
+  });
+  assert.equal(snapshot.capabilities?.contextWindow, undefined);
+  assert.equal(snapshot.capabilities?.maxOutputTokens, undefined);
+  assert.equal(runtime.contextWindow, null);
+  assert.equal(runtime.maxOutputTokens, null);
+});
+
+test("sync import preserves explicit remote null token limits as unknown markers", async () => {
+  await importManagedModels({
+    providerId: "openrouter",
+    connectionId: "conn-a",
+    mode: "sync",
+    fetchedModels: [
+      {
+        id: "shared/model-null",
+        name: "Remote Null Model",
+        capabilities: { contextWindow: null, maxOutputTokens: null },
+      },
+    ],
+  });
+
+  const snapshot = modelsDb.getProviderModelConfigSnapshot("openrouter", "shared/model-null");
+  const runtime = modelCapabilities.getResolvedModelCapabilities({
+    provider: "openrouter",
+    model: "shared/model-null",
+  });
+
+  assert.deepEqual(snapshot.capabilityOverrides, {
+    contextWindow: null,
+    maxInputTokens: null,
+    maxOutputTokens: null,
+  });
+  assert.equal(snapshot.capabilities, undefined);
+  assert.equal(runtime.contextWindow, null);
+  assert.equal(runtime.maxOutputTokens, null);
+  assert.equal(runtime.contextWindowExplicitlyUnset, true);
+  assert.equal(runtime.maxOutputTokensExplicitlyUnset, true);
+});
+
+test("sync import preserves snake_case null token limits as unknown markers", async () => {
+  await importManagedModels({
+    providerId: "openrouter",
+    connectionId: "conn-a",
+    mode: "sync",
+    fetchedModels: [
+      {
+        id: "shared/snake-null",
+        name: "Remote Snake Null Model",
+        max_input_tokens: null,
+        max_output_tokens: null,
+      },
+    ],
+  });
+
+  const snapshot = modelsDb.getProviderModelConfigSnapshot("openrouter", "shared/snake-null");
+  const runtime = modelCapabilities.getResolvedModelCapabilities({
+    provider: "openrouter",
+    model: "shared/snake-null",
+  });
+
+  assert.deepEqual(snapshot.capabilityOverrides, {
+    contextWindow: null,
+    maxInputTokens: null,
+    maxOutputTokens: null,
+  });
+  assert.equal(runtime.contextWindow, null);
+  assert.equal(runtime.maxInputTokens, null);
+  assert.equal(runtime.maxOutputTokens, null);
+});
+
+test("sync import preserves legacy imported custom models when upstream returns an empty list", async () => {
+  await modelsDb.replaceCustomModels("openrouter", [
+    {
+      id: "shared/legacy-imported",
+      name: "Legacy Imported Model",
+      source: "imported",
+      inputTokenLimit: 32000,
+      supportsVision: false,
+    },
+    {
+      id: "manual-model",
+      name: "Manual Model",
+      source: "manual",
+    },
+  ]);
+
+  const result = await importManagedModels({
+    providerId: "openrouter",
+    connectionId: "conn-a",
+    mode: "sync",
+    fetchedModels: [],
+  });
+
+  const customModels = await modelsDb.getCustomModels("openrouter");
+  const importedModel = customModels.find((model) => model.id === "shared/legacy-imported");
+  const manualModel = customModels.find((model) => model.id === "manual-model");
+
+  assert.equal(result.discoveredModels.length, 0);
+  assert.equal(result.persistedModels.length, 2);
+  assert.equal(importedModel?.source, "imported");
+  assert.equal(importedModel?.capabilities?.contextWindow, 32000);
+  assert.equal(importedModel?.capabilities?.supportsVision, false);
+  assert.equal(manualModel?.source, "manual");
+});
+
+test("sync import keeps same-id manual custom model metadata", async () => {
+  await modelsDb.replaceCustomModels("openrouter", [
+    {
+      id: "shared/manual-same-id",
+      name: "Manual Display Name",
+      source: "manual",
+      apiFormat: "responses",
+      supportedEndpoints: ["responses"],
+      description: "Manual description",
+    },
+  ]);
+
+  await importManagedModels({
+    providerId: "openrouter",
+    connectionId: "conn-a",
+    mode: "sync",
+    fetchedModels: [{ id: "shared/manual-same-id", name: "Remote Name" }],
+  });
+
+  const customModels = await modelsDb.getCustomModels("openrouter");
+  const manualModel = customModels.find((model) => model.id === "shared/manual-same-id");
+  const snapshot = modelsDb.getProviderModelConfigSnapshot("openrouter", "shared/manual-same-id");
+
+  assert.equal(manualModel?.name, "Manual Display Name");
+  assert.equal(manualModel?.apiFormat, "responses");
+  assert.deepEqual(manualModel?.supportedEndpoints, ["responses"]);
+  assert.equal(manualModel?.description, "Manual description");
+  assert.equal(snapshot.source, "custom");
 });
 
 test("provider-level synced model deletion removes only that provider", async () => {

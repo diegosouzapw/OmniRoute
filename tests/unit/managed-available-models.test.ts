@@ -34,10 +34,10 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("CC compatible fallback models mirror the OAuth Claude Code registry list", () => {
+test("CC compatible fallback models mirror the CC registry list", () => {
   assert.deepEqual(
     getCompatibleFallbackModels("anthropic-compatible-cc-demo"),
-    getModelsByProviderId("claude")
+    getModelsByProviderId("cc")
   );
 });
 

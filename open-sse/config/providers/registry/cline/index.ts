@@ -1,5 +1,4 @@
 import type { RegistryEntry } from "../../shared.ts";
-
 export const clineProvider: RegistryEntry = {
   id: "cline",
   alias: "cl",
@@ -19,21 +18,60 @@ export const clineProvider: RegistryEntry = {
     "X-Title": "Cline",
   },
   models: [
-    { id: "moonshotai/kimi-k2.6", name: "Kimi K2.6 (Free)" },
-    { id: "anthropic/claude-sonnet-4.6", name: "Claude Sonnet 4.6" },
-    { id: "anthropic/claude-opus-4.7", name: "Claude Opus 4.7" },
-    { id: "google/gemini-3.1-pro-preview", name: "Gemini 3.1 Pro" },
-    { id: "google/gemini-3-flash-preview", name: "Gemini 3 Flash" },
-    { id: "openai/gpt-5.5", name: "GPT-5.5" },
-    { id: "deepseek/deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
-    { id: "deepseek/deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
+    {
+      id: "moonshotai/kimi-k2.6",
+      name: "Kimi K2.6 (Free)",
+    },
+    {
+      id: "anthropic/claude-sonnet-4.6",
+      name: "Claude Sonnet 4.6",
+    },
+    {
+      id: "anthropic/claude-opus-4.7",
+      name: "Claude Opus 4.7",
+    },
+    {
+      id: "google/gemini-3.1-pro-preview",
+      name: "Gemini 3.1 Pro",
+    },
+    {
+      id: "google/gemini-3-flash-preview",
+      name: "Gemini 3 Flash",
+    },
+    {
+      id: "openai/gpt-5.5",
+      name: "GPT-5.5",
+    },
+    {
+      id: "deepseek/deepseek-v4-flash",
+      name: "DeepSeek V4 Flash",
+      capabilities: {
+        supportsReasoning: true,
+      },
+    },
+    {
+      id: "deepseek/deepseek-v4-pro",
+      name: "DeepSeek V4 Pro",
+      capabilities: {
+        supportsReasoning: true,
+      },
+    },
     // #3321 — free OpenRouter-served models Cline exposes; were missing from the picker.
-    { id: "minimax/minimax-m3", name: "MiniMax M3", contextLength: 1048576, supportsVision: true },
+    {
+      id: "minimax/minimax-m3",
+      name: "MiniMax M3",
+      capabilities: {
+        contextWindow: 1048576,
+        supportsVision: true,
+      },
+    },
     {
       id: "nvidia/nemotron-3-ultra-550b-a55b",
       name: "Nemotron 3 Ultra 550B",
-      contextLength: 1048576,
-      supportsReasoning: true,
+      capabilities: {
+        contextWindow: 1048576,
+        supportsReasoning: true,
+      },
     },
   ],
   passthroughModels: true,

@@ -38,8 +38,8 @@ test("T12: codex catalog includes GPT 5.5 variations", () => {
   assert.ok(codexModels.has("gpt-5.5-medium"), "missing codex/gpt-5.5-medium");
   assert.ok(codexModels.has("gpt-5.5-xhigh"), "missing codex/gpt-5.5-xhigh");
   assert.equal(codexModels.get("gpt-5.5-medium")?.name, "GPT 5.5 (Medium)");
-  assert.equal(codexModels.get("gpt-5.5-medium")?.targetFormat, "openai-responses");
-  assert.equal(codexModels.get("gpt-5.5-xhigh")?.targetFormat, "openai-responses");
+  assert.equal(codexModels.get("gpt-5.5-medium")?.compat?.targetFormat, "openai-responses");
+  assert.equal(codexModels.get("gpt-5.5-xhigh")?.compat?.targetFormat, "openai-responses");
 });
 
 test("T12: pricing table includes MiniMax-M3 (canonical + lowercase alias)", () => {

@@ -80,7 +80,7 @@ function providerCapabilities(providerId: string): string[] {
     capabilities.add("local");
     capabilities.add("chat");
   }
-  if (registryEntry?.models?.some((model) => model.supportsVision)) {
+  if (registryEntry?.models?.some((model) => model.capabilities?.supportsVision === true)) {
     capabilities.add("vision");
   }
 

@@ -352,7 +352,10 @@ function buildModelOptions(
       id: toStringOrNull(model.id),
       name: toStringOrNull(model.name),
       source: "system",
-      contextLength: toNumberOrNull(model.contextLength) ?? resolved.contextWindow,
+      contextLength:
+        toNumberOrNull(model.capabilities?.contextWindow) ??
+        toNumberOrNull(model.capabilities?.maxInputTokens) ??
+        resolved.contextWindow,
       outputTokenLimit: resolved.maxOutputTokens,
       supportsThinking: resolved.supportsThinking ?? undefined,
     });

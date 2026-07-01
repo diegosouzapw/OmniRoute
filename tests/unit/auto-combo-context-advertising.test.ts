@@ -88,7 +88,7 @@ test("computeAdvertisedLimits returns null limits for an empty candidate pool", 
   assert.equal(result.maxOutputTokens, null);
 });
 
-test("computeAdvertisedLimits never returns 0 for a non-empty pool (unknown models fall back)", () => {
+test("computeAdvertisedLimits keeps fully unknown candidates unknown", () => {
   const { computeAdvertisedLimits } = virtualFactory as unknown as {
     computeAdvertisedLimits: (candidates: Array<{ provider: string; model: string }>) => {
       contextLength: number | null;
@@ -98,10 +98,8 @@ test("computeAdvertisedLimits never returns 0 for a non-empty pool (unknown mode
   const result = computeAdvertisedLimits([
     { provider: "totally-unknown-provider", model: "mystery-model" },
   ]);
-  assert.ok(
-    typeof result.contextLength === "number" && result.contextLength > 0,
-    `unknown candidates should fall back to a positive default, got ${result.contextLength}`
-  );
+  assert.equal(result.contextLength, null);
+  assert.equal(result.maxOutputTokens, null);
 });
 
 // ── GET /api/combos/auto advertises context_length ──────────────────────────
@@ -175,24 +173,24 @@ test("resolveComboContextLimit regression: claude target must not be compressed 
   assert.equal(result.source, "target");
 });
 
-test("resolveComboContextLimit falls back to combo min when the target has no specific limit", () => {
+test("resolveComboContextLimit keeps an unknown target unknown even when siblings have limits", () => {
   const { resolveComboContextLimit } = contextManager as unknown as {
     resolveComboContextLimit: (opts: {
       provider: string;
       model: string | null;
       comboTargetLimits: number[];
-    }) => { limit: number; source: string };
+    }) => { limit: number | null; source: string };
   };
   const result = resolveComboContextLimit({
     provider: "totally-unknown-provider",
     model: "mystery-model",
     comboTargetLimits: [32000, 200000],
   });
-  assert.equal(result.limit, 32000, "unknown target should defensively use min of combo targets");
-  assert.equal(result.source, "combo-min");
+  assert.equal(result.limit, null, "unknown target must not be compressed at a sibling limit");
+  assert.equal(result.source, "fallback");
 });
 
-test("resolveComboContextLimit uses generic fallback when nothing else is known", () => {
+test("resolveComboContextLimit keeps the limit unknown when nothing else is known", () => {
   const { resolveComboContextLimit } = contextManager as unknown as {
     resolveComboContextLimit: (opts: {
       provider: string;
@@ -205,6 +203,6 @@ test("resolveComboContextLimit uses generic fallback when nothing else is known"
     model: "mystery-model",
     comboTargetLimits: [],
   });
-  assert.equal(result.limit, 128000, "generic default fallback");
+  assert.equal(result.limit, null, "no generic default fallback");
   assert.equal(result.source, "fallback");
 });

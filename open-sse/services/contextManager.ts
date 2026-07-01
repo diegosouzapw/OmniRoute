@@ -6,7 +6,14 @@
  */
 
 import { REGISTRY } from "../config/providerRegistry.ts";
-import { getModelContextLimit } from "../../src/lib/modelCapabilities.ts";
+import {
+  getModelContextLimit,
+  isModelContextLimitExplicitlyUnset,
+} from "../../src/lib/modelCapabilities.ts";
+import {
+  isAnthropicCompatibleProvider,
+  isOpenAICompatibleProvider,
+} from "../../src/shared/constants/providers.ts";
 
 // Default token limits per provider (fallbacks when not in registry)
 const DEFAULT_LIMITS: Record<string, number> = {
@@ -44,6 +51,10 @@ function getReserveTokensOverride(): number | null {
   return null;
 }
 
+function allowsModelNameLimitHeuristic(provider: string): boolean {
+  return !isOpenAICompatibleProvider(provider) && !isAnthropicCompatibleProvider(provider);
+}
+
 // Rough chars-per-token ratio for quick estimation
 const CHARS_PER_TOKEN = 4;
 
@@ -58,28 +69,28 @@ export function estimateTokens(text: string | object | null | undefined): number
 
 /**
  * Get token limit for a provider/model combination
- * Priority: Env override > models.dev DB > Registry defaultContextLength > DEFAULT_LIMITS
+ * Priority: Env override > models.dev DB > Registry defaultContextLength > curated fallback
  */
-export function getTokenLimit(provider: string, model: string | null = null): number {
+export function getTokenLimit(provider: string, model: string | null = null): number | null {
   return resolveTokenLimit(provider, model).limit;
 }
 
 /**
  * Same chain as getTokenLimit, but also reports whether the limit came from
  * a provider/model-specific source (env override, synced DB, registry,
- * name heuristic, curated per-provider default) or only from the generic
- * catch-all default.
+ * name heuristic, or curated per-provider default).
  */
 function resolveTokenLimit(
   provider: string,
   model: string | null = null
-): { limit: number; specific: boolean } {
+): { limit: number | null; specific: boolean } {
   // 1. Check environment variable override first
   const envOverride = getEnvOverride(provider);
   if (envOverride) return { limit: envOverride, specific: true };
 
   // 2. Check models.dev synced DB for per-model context limit
   if (model) {
+    if (isModelContextLimitExplicitlyUnset(provider, model)) return { limit: null, specific: true };
     const dbLimit = getModelContextLimit(provider, model);
     if (dbLimit && dbLimit > 0) return { limit: dbLimit, specific: true };
   }
@@ -91,7 +102,7 @@ function resolveTokenLimit(
   }
 
   // 4. Check if model name hints at a known limit
-  if (model) {
+  if (model && allowsModelNameLimitHeuristic(provider)) {
     const lower = model.toLowerCase();
     if (lower.includes("claude")) return { limit: DEFAULT_LIMITS.claude, specific: true };
     if (lower.includes("gemini")) return { limit: DEFAULT_LIMITS.gemini, specific: true };
@@ -105,9 +116,10 @@ function resolveTokenLimit(
       return { limit: DEFAULT_LIMITS.codex, specific: true };
   }
 
-  // 5. Fallback to DEFAULT_LIMITS or default
+  // 5. Fallback to curated provider defaults only. Unknown provider/model
+  // combinations stay unknown instead of receiving the generic 128k default.
   if (DEFAULT_LIMITS[provider]) return { limit: DEFAULT_LIMITS[provider], specific: true };
-  return { limit: DEFAULT_LIMITS.default, specific: false };
+  return { limit: null, specific: false };
 }
 
 /**
@@ -121,23 +133,17 @@ function resolveTokenLimit(
  * window even when running on the largest target, destructively purging
  * history long before the real window filled ("agent keeps forgetting").
  *
- * min(...comboTargetLimits) is kept only as a defensive fallback for the
- * case where the current provider/model resolves no specific limit at all.
+ * Unknown target limits stay unknown. Compressing an unknown/custom compatible
+ * target at a sibling's smaller window is a behavior change, not a safe fallback.
  */
 export function resolveComboContextLimit(options: {
   provider: string;
   model: string | null;
   comboTargetLimits: number[];
-}): { limit: number; source: "target" | "combo-min" | "fallback" } {
+}): { limit: number | null; source: "target" | "combo-min" | "fallback" } {
   const own = resolveTokenLimit(options.provider, options.model ?? null);
   if (own.specific) {
     return { limit: own.limit, source: "target" };
-  }
-  const knownTargets = (options.comboTargetLimits || []).filter(
-    (value) => Number.isFinite(value) && value > 0
-  );
-  if (knownTargets.length > 0) {
-    return { limit: Math.min(...knownTargets), source: "combo-min" };
   }
   return { limit: own.limit, source: "fallback" };
 }
@@ -165,6 +171,7 @@ export function compressContext(
   const provider = options.provider || "default";
   const maxTokens =
     options.maxTokens || getTokenLimit(provider, (body.model as string) || options.model || null);
+  if (maxTokens == null || maxTokens <= 0) return { body, compressed: false, stats: {} };
   const defaultReserveTokens = Math.min(16000, Math.max(256, Math.floor(maxTokens * 0.15)));
   const reserveTokens = Math.min(
     options.reserveTokens ?? getReserveTokensOverride() ?? defaultReserveTokens,

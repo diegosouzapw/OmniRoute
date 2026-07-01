@@ -1,9 +1,4 @@
-// Pure, shared helpers for the provider-detail page and its extracted modals
-// (Issue #3501 strangler-fig decomposition, Phase 2). Leaf module — imports only
-// from @/shared, @/lib and colocated sibling modules that are themselves acyclic,
-// so the page client AND colocated modals can import these without a circular
-// dependency. Extracting them here unblocks moving the heavier modals
-// (AddApiKeyModal / EditConnectionModal) out of the god-component in later phases.
+// Pure shared helpers for the provider-detail page and its extracted modals.
 import { LOCAL_PROVIDERS, isSelfHostedChatProvider } from "@/shared/constants/providers";
 import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
 import {
@@ -15,9 +10,20 @@ import {
   getCodexRequestDefaults as _getCodexRequestDefaults,
   type CodexServiceTier,
 } from "@/lib/providers/requestDefaults";
+import type {
+  ProviderModelCapabilities,
+  ProviderModelCapabilitiesPatch,
+  ProviderModelCompatConfig,
+} from "@/shared/types/modelConfig";
 import { type CodexGlobalServiceMode } from "@/lib/providers/codexFastTier";
 import { type WebSessionCredentialRequirement } from "./webSessionCredentials";
 import { CC_COMPATIBLE_DEFAULT_CHAT_PATH } from "./providerDetailConstants";
+import {
+  getProtoSlice,
+  readCompatNormalize,
+  readCompatPreserveDeveloper,
+  readCompatUpstreamHeaders,
+} from "./providerCompatAccessors";
 
 // ---------------------------------------------------------------------------
 // Types shared between page + modals
@@ -38,7 +44,14 @@ export type LocalProviderMetadata = {
 
 export type CommandCodeAuthFlowState = {
   phase:
-    "idle" | "starting" | "polling" | "received" | "applying" | "applied" | "expired" | "error";
+    | "idle"
+    | "starting"
+    | "polling"
+    | "received"
+    | "applying"
+    | "applied"
+    | "expired"
+    | "error";
   state: string;
   authUrl: string;
   callbackUrl: string;
@@ -70,32 +83,32 @@ export type CompatModelRow = {
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean;
   isHidden?: boolean;
+  inputTokenLimit?: number;
+  outputTokenLimit?: number;
+  supportsVision?: boolean;
+  supportsTools?: boolean;
+  supportsThinking?: boolean;
+  supportsReasoning?: boolean;
+  supportsXHighEffort?: boolean;
+  supportsMaxEffort?: boolean;
+  defaultThinkingBudget?: number;
+  thinkingBudgetCap?: number;
+  thinkingOverhead?: number;
+  adaptiveMaxTokens?: number;
+  interleavedField?: string;
+  capabilities?: ProviderModelCapabilities;
+  capabilityOverrides?: ProviderModelCapabilitiesPatch;
+  compat?: ProviderModelCompatConfig;
+  unsupportedParams?: string[];
   upstreamHeaders?: Record<string, string>;
   compatByProtocol?: CompatByProtocolMap;
   /** #2905: per-model upstream wire-format override. */ targetFormat?: string;
+  baseline?: CompatModelRow;
 };
 
 export type CompatModelMap = Map<string, CompatModelRow>;
 
 export type HeaderDraftRow = { id: string; name: string; value: string };
-
-// ---------------------------------------------------------------------------
-// #2905 — per-model targetFormat badge label mapping (pure, so it can be unit-tested
-// outside the .tsx). Returns the i18n key for a targetFormat value, or null when the
-// value is unknown (the caller then renders the raw value verbatim).
-// ---------------------------------------------------------------------------
-
-const TARGET_FORMAT_BADGE_I18N_KEYS: Record<string, string> = {
-  openai: "compatProtocolOpenAI",
-  "openai-responses": "compatProtocolOpenAIResponses",
-  claude: "compatProtocolClaude",
-  gemini: "targetFormatGemini",
-  antigravity: "targetFormatAntigravity",
-};
-
-export function targetFormatBadgeI18nKey(value: string): string | null {
-  return TARGET_FORMAT_BADGE_I18N_KEYS[value] ?? null;
-}
 
 // ---------------------------------------------------------------------------
 // Utility — message translation with fallback
@@ -108,7 +121,10 @@ export function providerText(
   values?: Record<string, unknown>
 ): string {
   if (typeof t.has === "function" && t.has(key)) {
-    return t(key, values);
+    const translated = t(key, values);
+    if (translated && !translated.startsWith("__MISSING__:")) {
+      return translated;
+    }
   }
   if (values) {
     return Object.entries(values).reduce(
@@ -496,16 +512,6 @@ export function headerRowsToRecord(rows: HeaderDraftRow[]): Record<string, strin
   return out;
 }
 
-// Internal helper: returns the per-protocol compat slice for a model (custom
-// overrides take precedence over overrideMap).
-export function getProtoSlice(
-  c: CompatModelRow | undefined,
-  o: CompatModelRow | undefined,
-  protocol: string
-) {
-  return c?.compatByProtocol?.[protocol] ?? o?.compatByProtocol?.[protocol];
-}
-
 export function effectiveUpstreamHeadersForProtocol(
   modelId: string,
   protocol: string,
@@ -515,10 +521,12 @@ export function effectiveUpstreamHeadersForProtocol(
   const c = customMap.get(modelId);
   const o = overrideMap.get(modelId);
   const base: Record<string, string> = {};
-  if (c?.upstreamHeaders && typeof c.upstreamHeaders === "object") {
-    Object.assign(base, c.upstreamHeaders);
-  } else if (o?.upstreamHeaders && typeof o.upstreamHeaders === "object") {
-    Object.assign(base, o.upstreamHeaders);
+  const customHeaders = readCompatUpstreamHeaders(c);
+  const overrideHeaders = readCompatUpstreamHeaders(o);
+  if (customHeaders && typeof customHeaders === "object") {
+    Object.assign(base, customHeaders);
+  } else if (overrideHeaders && typeof overrideHeaders === "object") {
+    Object.assign(base, overrideHeaders);
   }
   const pc = getProtoSlice(c, o, protocol);
   if (pc?.upstreamHeaders && typeof pc.upstreamHeaders === "object") {
@@ -536,7 +544,7 @@ export function anyUpstreamHeadersBadge(
   const o = overrideMap.get(modelId);
   const nonempty = (u: unknown) =>
     u && typeof u === "object" && !Array.isArray(u) && Object.keys(u as object).length > 0;
-  if (nonempty(c?.upstreamHeaders) || nonempty(o?.upstreamHeaders)) return true;
+  if (nonempty(readCompatUpstreamHeaders(c)) || nonempty(readCompatUpstreamHeaders(o))) return true;
   for (const p of MODEL_COMPAT_PROTOCOL_KEYS) {
     const pc = getProtoSlice(c, o, p);
     if (nonempty(pc?.upstreamHeaders)) return true;
@@ -585,8 +593,9 @@ export function effectiveNormalizeForProtocol(
   if (pc && Object.prototype.hasOwnProperty.call(pc, "normalizeToolCallId")) {
     return Boolean(pc.normalizeToolCallId);
   }
-  if (c?.normalizeToolCallId) return true;
-  return Boolean(o?.normalizeToolCallId);
+  const customNormalize = readCompatNormalize(c);
+  if (customNormalize !== undefined) return customNormalize;
+  return Boolean(readCompatNormalize(o));
 }
 
 export function effectivePreserveForProtocol(
@@ -601,12 +610,10 @@ export function effectivePreserveForProtocol(
   if (pc && Object.prototype.hasOwnProperty.call(pc, "preserveOpenAIDeveloperRole")) {
     return Boolean(pc.preserveOpenAIDeveloperRole);
   }
-  if (c && Object.prototype.hasOwnProperty.call(c, "preserveOpenAIDeveloperRole")) {
-    return Boolean(c.preserveOpenAIDeveloperRole);
-  }
-  if (o && Object.prototype.hasOwnProperty.call(o, "preserveOpenAIDeveloperRole")) {
-    return Boolean(o.preserveOpenAIDeveloperRole);
-  }
+  const customPreserve = readCompatPreserveDeveloper(c);
+  if (customPreserve !== undefined) return customPreserve;
+  const overridePreserve = readCompatPreserveDeveloper(o);
+  if (overridePreserve !== undefined) return overridePreserve;
   return true;
 }
 
@@ -617,7 +624,7 @@ export function anyNormalizeCompatBadge(
 ): boolean {
   const c = customMap.get(modelId);
   const o = overrideMap.get(modelId);
-  if (c?.normalizeToolCallId || o?.normalizeToolCallId) return true;
+  if (readCompatNormalize(c) || readCompatNormalize(o)) return true;
   for (const p of MODEL_COMPAT_PROTOCOL_KEYS) {
     const pc = getProtoSlice(c, o, p);
     if (pc?.normalizeToolCallId) return true;
@@ -632,18 +639,10 @@ export function anyNoPreserveCompatBadge(
 ): boolean {
   const c = customMap.get(modelId);
   const o = overrideMap.get(modelId);
-  if (
-    c &&
-    Object.prototype.hasOwnProperty.call(c, "preserveOpenAIDeveloperRole") &&
-    c.preserveOpenAIDeveloperRole === false
-  ) {
+  if (readCompatPreserveDeveloper(c) === false) {
     return true;
   }
-  if (
-    o &&
-    Object.prototype.hasOwnProperty.call(o, "preserveOpenAIDeveloperRole") &&
-    o.preserveOpenAIDeveloperRole === false
-  ) {
+  if (readCompatPreserveDeveloper(o) === false) {
     return true;
   }
   for (const p of MODEL_COMPAT_PROTOCOL_KEYS) {

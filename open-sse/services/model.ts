@@ -1,4 +1,8 @@
-import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "../config/providerModels.ts";
+import {
+  PROVIDER_ID_TO_ALIAS,
+  PROVIDER_MODELS,
+  getProviderModels,
+} from "../config/providerModels.ts";
 import { resolveWildcardAlias } from "./wildcardRouter.ts";
 
 type ProviderModelAliasMap = Record<string, Record<string, string>>;
@@ -226,8 +230,7 @@ function hasKnownProviderModel(providerOrAlias: string | null | undefined, model
 
   const providerId = resolveProviderAlias(providerOrAlias);
   if (typeof providerId !== "string") return false;
-  const providerAlias = PROVIDER_ID_TO_ALIAS[providerId] || providerId;
-  const models = PROVIDER_MODELS[providerAlias] || PROVIDER_MODELS[providerId] || [];
+  const models = getProviderModels(providerId);
 
   if (models.some((entry) => entry?.id === modelId)) return true;
 
@@ -244,8 +247,7 @@ function hasCodexPreferredUnprefixedModel(modelId: string) {
   const canonicalModel = CODEX_PREFERRED_UNPREFIXED_MODEL_ALIASES.get(modelId);
   if (!canonicalModel) return false;
 
-  const providerAlias = PROVIDER_ID_TO_ALIAS.codex || "codex";
-  const models = PROVIDER_MODELS[providerAlias] || PROVIDER_MODELS.codex || [];
+  const models = getProviderModels("codex");
   return models.some((entry) => entry?.id === canonicalModel);
 }
 

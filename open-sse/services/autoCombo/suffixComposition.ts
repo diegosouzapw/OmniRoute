@@ -19,7 +19,6 @@
 import type { AutoVariant } from "./autoPrefix";
 import { classifyTier } from "../tierResolver";
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
-import { isVisionModelId } from "@/shared/constants/visionModels";
 
 export type AutoCategory = "coding" | "reasoning" | "vision" | "chat" | "multimodal";
 export type AutoTier = "fast" | "cheap" | "floor" | "free" | "reliable" | "pro";
@@ -111,9 +110,9 @@ export function buildAutoCandidateFilter(
     checks.push((c) => {
       try {
         const caps = getResolvedModelCapabilities({ provider: c.provider, model: c.model });
-        return caps.supportsVision === true || isVisionModelId(c.model);
+        return caps.supportsVision === true;
       } catch {
-        return isVisionModelId(c.model);
+        return false;
       }
     });
   }
@@ -121,7 +120,7 @@ export function buildAutoCandidateFilter(
     checks.push((c) => {
       try {
         const caps = getResolvedModelCapabilities({ provider: c.provider, model: c.model });
-        return caps.reasoning === true || caps.supportsThinking === true;
+        return caps.supportsThinking !== false;
       } catch {
         return false;
       }

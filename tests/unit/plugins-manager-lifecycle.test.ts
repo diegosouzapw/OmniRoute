@@ -1,4 +1,4 @@
-import { describe, it, beforeEach } from "node:test";
+import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
@@ -23,8 +23,13 @@ function makeTmpPlugin(name: string, manifest: Record<string, unknown> = {}) {
   return pluginDir;
 }
 
-function cleanup(name: string) {
-  try { db.deletePlugin(name); } catch {}
+async function cleanupPlugin(name: string) {
+  try {
+    await mod.pluginManager.deactivate(name);
+  } catch {}
+  try {
+    db.deletePlugin(name);
+  } catch {}
 }
 
 describe("pluginManager lifecycle", () => {
@@ -37,7 +42,16 @@ describe("pluginManager lifecycle", () => {
     getDbInstance();
     // Clean up test plugins
     for (const name of testPlugins) {
-      try { db.deletePlugin(name); } catch {}
+      try {
+        db.deletePlugin(name);
+      } catch {}
+    }
+    testPlugins.length = 0;
+  });
+
+  afterEach(async () => {
+    for (const name of testPlugins) {
+      await cleanupPlugin(name);
     }
     testPlugins.length = 0;
   });

@@ -69,7 +69,7 @@ import {
   type ProviderCandidate,
   type ScoringWeights,
 } from "./autoCombo/scoring.ts";
-import { supportsToolCalling } from "./modelCapabilities.ts";
+import { getResolvedModelCapabilities } from "./modelCapabilities.ts";
 import { estimateTokens } from "./contextManager.ts";
 import { getSessionConnection } from "./sessionManager.ts";
 import { applySessionStickiness, recordStickyBinding } from "./combo/sessionStickiness.ts";
@@ -643,7 +643,7 @@ async function isPinnedModelDurablyUnhealthy(pinnedModel: string): Promise<boole
 // output limits, so the request should fall through to the next target instead of
 // being short-circuited. Exported as pure predicates so the guard is unit-testable.
 /** @param {string} errorText */
-export function isContextOverflow400(errorText) {
+export function isContextOverflow400(errorText: string) {
   return (
     /\bcontext.*(?:length_exceeded|too long|overflow|exceeded|window|limit)\b/i.test(errorText) ||
     /exceeds.*context/i.test(errorText) ||
@@ -651,7 +651,7 @@ export function isContextOverflow400(errorText) {
   );
 }
 /** @param {string} errorText */
-export function isParamValidation400(errorText) {
+export function isParamValidation400(errorText: string) {
   return (
     /\bmax_tokens\b.*(?:illegal|must|range|invalid)/i.test(errorText) ||
     /\bparameter is illegal\b/i.test(errorText) ||
@@ -1134,7 +1134,9 @@ export async function handleComboChat({
     let eligibleTargets = [...orderedTargets];
 
     if (requestHasTools) {
-      const filtered = eligibleTargets.filter((target) => supportsToolCalling(target.modelStr));
+      const filtered = eligibleTargets.filter(
+        (target) => getResolvedModelCapabilities(target.modelStr).supportsTools !== false
+      );
       if (filtered.length > 0) {
         eligibleTargets = filtered;
       } else {

@@ -383,7 +383,7 @@ test("v1 models catalog derives combo metadata from known targets conservatively
     assert.equal(combo.capabilities.temperature, false);
     assert.equal(combo.capabilities.tool_calling, true);
     assert.equal(combo.capabilities.reasoning, true);
-    assert.equal(combo.capabilities.thinking, true);
+    assert.equal("thinking" in combo.capabilities, false);
     assert.equal("vision" in combo.capabilities, false);
     assert.equal("attachment" in combo.capabilities, false);
     assert.equal("architecture" in combo, false);
@@ -1366,18 +1366,19 @@ test("v1 models catalog includes context_length for individual chat models", asy
 
   assert.equal(response.status, 200);
   assert.ok(chatModels.length > 0, "should have at least one chat model");
+  assert.ok(
+    chatModels.some(
+      (model) => typeof model.context_length === "number" && model.context_length > 0
+    ),
+    "known chat models should still publish positive context_length"
+  );
 
-  for (const model of chatModels) {
-    assert.ok(
-      typeof model.context_length === "number" && model.context_length > 0,
-      `chat model ${model.id} should have a positive context_length, got ${model.context_length}`
-    );
-  }
+  const pepper = chatModels.find((model) => model.id === "pepper/pepper-1");
+  assert.ok(pepper, "registered noAuth model should appear");
+  assert.equal("context_length" in pepper, false);
 });
 
-test("v1 models catalog falls back to getTokenLimit for models without registry defaultContextLength", async () => {
-  // opencode-go has defaultContextLength in REGISTRY, but we test the fallback
-  // path by verifying models from the synced path still get context_length
+test("v1 models catalog uses provider default context for synced models without model limits", async () => {
   const connection = await seedConnection("opencode-go", {
     name: "opencode-go-context-fallback",
     apiKey: "go-key",
@@ -1402,7 +1403,7 @@ test("v1 models catalog falls back to getTokenLimit for models without registry 
   assert.ok(model, "synced model should appear");
   assert.ok(
     typeof model.context_length === "number" && model.context_length > 0,
-    `synced model without inputTokenLimit should get context_length via getTokenLimit fallback, got ${model.context_length}`
+    `synced model without inputTokenLimit should get provider default context_length, got ${model.context_length}`
   );
 });
 
@@ -1427,7 +1428,7 @@ test("v1 models catalog prefers manual combo context_length over auto-calculated
   assert.equal(comboModel.context_length, 64000, "manual context_length should override auto-calc");
 });
 
-test("v1 models catalog computes combo context_length from known targets when some targets have unknown context", async () => {
+test("v1 models catalog omits derived combo limits when any target is unknown", async () => {
   await seedConnection("openai", { name: "openai-mixed-context" });
   await seedConnection("claude", {
     authType: "oauth",
@@ -1436,8 +1437,6 @@ test("v1 models catalog computes combo context_length from known targets when so
     accessToken: "claude-access",
   });
 
-  // Create a combo with targets: one known (gpt-4o = 128K), one unknown (nonexistent-model).
-  // The combo should still compute context_length = 128K from the known target.
   const combo = await combosDb.createCombo({
     name: "mixed-context-combo",
     strategy: "priority",
@@ -1452,11 +1451,10 @@ test("v1 models catalog computes combo context_length from known targets when so
 
   assert.equal(response.status, 200);
   assert.ok(comboModel);
-  assert.equal(
-    comboModel.context_length,
-    128000,
-    "combo context_length should be the MIN of known target model limits, ignoring targets with no registry/spec/synced source"
-  );
+  assert.equal("context_length" in comboModel, false);
+  assert.equal("max_input_tokens" in comboModel, false);
+  assert.equal("max_output_tokens" in comboModel, false);
+  assert.equal("capabilities" in comboModel, false);
 });
 
 // Regression test for Issue #2798: noAuth providers (opencode/oc) have no DB connection rows

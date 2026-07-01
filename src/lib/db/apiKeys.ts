@@ -1332,11 +1332,15 @@ export async function isModelAllowedForKey(
       const syncedModelsByConnection = await getSyncedAvailableModelsByConnection(providerId);
       const customModels = await getCustomModels(providerId);
 
-      // Combine synced and custom models
-      const allDiscoveredModels = Object.values(syncedModelsByConnection)
-        .flat()
-        .concat(customModels);
-      const discovered = allDiscoveredModels.some((m) => m.id === shortModelId);
+      const discoveredModelIds = new Set(
+        [
+          ...Object.values(syncedModelsByConnection)
+            .flat()
+            .map((m) => m.id),
+          ...customModels.map((m) => (typeof m.id === "string" ? m.id : null)),
+        ].filter((value): value is string => Boolean(value))
+      );
+      const discovered = discoveredModelIds.has(shortModelId);
       if (!discovered) return false;
 
       const isPublic = !getModelIsHidden(providerId, shortModelId);

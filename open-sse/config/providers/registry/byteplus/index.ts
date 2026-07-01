@@ -13,9 +13,24 @@ export const byteplusProvider: RegistryEntry = {
   authHeader: "bearer",
   defaultContextLength: 128000,
   models: [
-    { id: "seed-2.0", name: "Seed 2.0" },
-    { id: "kimi-k2-thinking", name: "Kimi K2 Thinking", supportsReasoning: true },
-    { id: "glm-4.7", name: "GLM 4.7" },
-    { id: "gpt-oss-120b", name: "GPT-OSS-120B" },
+    {
+      id: "seed-2.0",
+      name: "Seed 2.0",
+    },
+    {
+      id: "kimi-k2-thinking",
+      name: "Kimi K2 Thinking",
+      capabilities: {
+        supportsReasoning: true,
+      },
+    },
+    {
+      id: "glm-4.7",
+      name: "GLM 4.7",
+    },
+    {
+      id: "gpt-oss-120b",
+      name: "GPT-OSS-120B",
+    },
   ],
 };

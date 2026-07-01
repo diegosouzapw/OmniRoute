@@ -1,14 +1,18 @@
 // tests/unit/chatcore-target-format.test.ts
 // Characterization of resolveChatCoreTargetFormat — the wire target-format resolution extracted
 // from handleChatCore (chatCore god-file decomposition, #3501). Resolves the provider alias and the
-// upstream target format: apiFormat==="responses" forces OpenAI Responses; otherwise the model's
-// registry target format, then the custom-model override, then the provider default. Returns both
+// upstream target format: apiFormat==="responses" forces OpenAI Responses; otherwise the
+// provider-first per-model override, then the model's registry target format, then the provider
+// default. Returns both
 // `alias` (reused downstream when stripping the alias/ prefix off the upstream model) and
 // `targetFormat`. Asserted against the inline composition so the delegation stays byte-identical.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { resolveChatCoreTargetFormat } from "../../open-sse/handlers/chatCore/targetFormat.ts";
-import { PROVIDER_ID_TO_ALIAS, getModelTargetFormat } from "../../open-sse/config/providerModels.ts";
+import {
+  PROVIDER_ID_TO_ALIAS,
+  getModelTargetFormat,
+} from "../../open-sse/config/providerModels.ts";
 import { getTargetFormat } from "../../open-sse/services/provider.ts";
 import { FORMATS } from "../../open-sse/translator/formats.ts";
 
@@ -24,7 +28,9 @@ function expected(
   const targetFormat =
     apiFormat === "responses"
       ? FORMATS.OPENAI_RESPONSES
-      : modelTargetFormat || customModelTargetFormat || getTargetFormat(provider, providerSpecificData);
+      : customModelTargetFormat ||
+        modelTargetFormat ||
+        getTargetFormat(provider, providerSpecificData);
   return { alias, targetFormat };
 }
 
@@ -58,6 +64,19 @@ test("customModelTargetFormat is used when the model has no registry target form
   const r = resolveChatCoreTargetFormat({
     provider: "openai",
     resolvedModel: customModel,
+    apiFormat: undefined,
+    customModelTargetFormat: "claude",
+    providerSpecificData: undefined,
+  });
+  assert.equal(r.targetFormat, "claude");
+});
+
+test("customModelTargetFormat overrides a static registry target format", () => {
+  const registryResponsesModel = "gpt-5.3-codex";
+  assert.equal(getModelTargetFormat("gh", registryResponsesModel), FORMATS.OPENAI_RESPONSES);
+  const r = resolveChatCoreTargetFormat({
+    provider: "github",
+    resolvedModel: registryResponsesModel,
     apiFormat: undefined,
     customModelTargetFormat: "claude",
     providerSpecificData: undefined,

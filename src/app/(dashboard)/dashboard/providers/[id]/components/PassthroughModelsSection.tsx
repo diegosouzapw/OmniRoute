@@ -29,18 +29,40 @@ import {
   type CompatModelRow,
   type CompatByProtocolMap,
 } from "../providerPageHelpers";
-import { ModelVisibilityToolbar } from "./ModelRow";
+import {
+  editableModelConfigRow,
+  effectiveModelCapabilitiesFromRows,
+  hasModelConfigOverride,
+  modelCapabilitiesFromRow,
+  shouldUseRowModelConfig,
+} from "../modelConfigHelpers";
+import { ModelVisibilityToolbar, type ModelCompatSavePatch } from "./ModelRow";
 import { sortModelsFreeFirst, isFreeModel } from "@/shared/utils/freeModels";
 import PassthroughModelRow from "./PassthroughModelRow";
+import type { ProviderModelCapabilities } from "@/shared/types/modelConfig";
+
+function ownUnsupportedParams(row: CompatModelRow | null | undefined): string[] | undefined {
+  if (!row || typeof row !== "object") return undefined;
+  if (Object.prototype.hasOwnProperty.call(row, "unsupportedParams")) {
+    return Array.isArray(row.unsupportedParams) ? row.unsupportedParams : [];
+  }
+  const compat = row.compat;
+  if (
+    compat &&
+    typeof compat === "object" &&
+    Object.prototype.hasOwnProperty.call(compat, "unsupportedParams")
+  ) {
+    return Array.isArray(compat.unsupportedParams) ? [...compat.unsupportedParams] : [];
+  }
+  return undefined;
+}
 
 // ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
 
-export type ModelCompatSavePatchPassthrough = {
-  normalizeToolCallId?: boolean;
+export type ModelCompatSavePatchPassthrough = ModelCompatSavePatch & {
   preserveDeveloperRole?: boolean;
-  preserveOpenAIDeveloperRole?: boolean;
 };
 
 export interface PassthroughModelsSectionProps {
@@ -48,6 +70,7 @@ export interface PassthroughModelsSectionProps {
   modelAliases: Record<string, string>;
   availableModels?: CompatModelRow[];
   customModels?: CompatModelRow[];
+  modelCompatOverrides?: Array<CompatModelRow & { id: string }>;
   description: string;
   inputLabel: string;
   inputPlaceholder: string;
@@ -60,6 +83,7 @@ export interface PassthroughModelsSectionProps {
   effectiveModelPreserveDeveloper: (alias: string) => boolean;
   getUpstreamHeadersRecord: (modelId: string, protocol: string) => Record<string, string>;
   saveModelCompatFlags: (modelId: string, flags: ModelCompatSavePatchPassthrough) => Promise<void>;
+  resetModelConfig: (modelId: string) => Promise<void>;
   compatSavingModelId?: string;
   isModelHidden: (modelId: string) => boolean;
   onToggleHidden: (modelId: string, hidden: boolean) => Promise<void>;
@@ -87,6 +111,7 @@ export default function PassthroughModelsSection({
   modelAliases,
   availableModels = [],
   customModels = [],
+  modelCompatOverrides = [],
   description,
   inputLabel,
   inputPlaceholder,
@@ -99,6 +124,7 @@ export default function PassthroughModelsSection({
   effectiveModelPreserveDeveloper,
   getUpstreamHeadersRecord,
   saveModelCompatFlags,
+  resetModelConfig,
   compatSavingModelId,
   isModelHidden,
   onToggleHidden,
@@ -130,6 +156,7 @@ export default function PassthroughModelsSection({
   const [sortFreeFirst, setSortFreeFirst] = useState(false);
   const notify = useNotificationStore();
   const customModelMap = useMemo(() => buildCompatMap(customModels), [customModels]);
+  const overrideMap = useMemo(() => buildCompatMap(modelCompatOverrides), [modelCompatOverrides]);
 
   const handleTestAll = async () => {
     const modelsToTest = filteredModels.filter((m) => !m.isHidden);
@@ -222,6 +249,13 @@ export default function PassthroughModelsSection({
       source: string;
       isFree: boolean;
       isHidden: boolean;
+      capabilities: ProviderModelCapabilities;
+      configuredCapabilities: ProviderModelCapabilities;
+      targetFormat: string | null;
+      configuredTargetFormat: string | null;
+      unsupportedParams: string[];
+      configuredUnsupportedParams: string[];
+      hasModelConfigOverride: boolean;
     }> = [];
     const seenModelIds = new Set<string>();
 
@@ -232,9 +266,15 @@ export default function PassthroughModelsSection({
       fullModelByModelId.set(modelId, fmStr);
     }
 
-    const addModel = (model: CompatModelRow, source: string) => {
+    const addModel = (model: CompatModelRow, source: string, includeModelConfig = false) => {
       if (!model?.id || seenModelIds.has(model.id)) return;
       const fullModel = fullModelByModelId.get(model.id) || `${providerAlias}/${model.id}`;
+      const override = overrideMap.get(model.id);
+      const editableConfig = editableModelConfigRow(
+        model,
+        override,
+        includeModelConfig || shouldUseRowModelConfig(model)
+      );
       rows.push({
         modelId: model.id,
         fullModel,
@@ -247,6 +287,19 @@ export default function PassthroughModelsSection({
           /\bgr[aá]tis\b|\bfree\b/i.test(model.name || "") ||
           isFreeModel(providerId, { id: model.id }),
         isHidden: isModelHidden(model.id),
+        capabilities: effectiveModelCapabilitiesFromRows(providerId, model.id, model, override),
+        configuredCapabilities: modelCapabilitiesFromRow(editableConfig),
+        targetFormat:
+          override?.targetFormat ??
+          override?.compat?.targetFormat ??
+          model.compat?.targetFormat ??
+          model.targetFormat ??
+          null,
+        configuredTargetFormat:
+          editableConfig?.compat?.targetFormat ?? editableConfig?.targetFormat ?? null,
+        unsupportedParams: ownUnsupportedParams(override) ?? ownUnsupportedParams(model) ?? [],
+        configuredUnsupportedParams: ownUnsupportedParams(editableConfig) ?? [],
+        hasModelConfigOverride: hasModelConfigOverride(model, override),
       });
       seenModelIds.add(model.id);
     };
@@ -258,7 +311,8 @@ export default function PassthroughModelsSection({
     for (const model of customModels) {
       addModel(
         model,
-        normalizeModelCatalogSource(model.source) === "imported" ? "imported" : "custom"
+        normalizeModelCatalogSource(model.source) === "imported" ? "imported" : "custom",
+        true
       );
     }
 
@@ -267,6 +321,13 @@ export default function PassthroughModelsSection({
       const modelId = fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr;
       if (!modelId || seenModelIds.has(modelId)) continue;
       const customModel = customModelMap.get(modelId);
+      const baseModel = customModel || ({ id: modelId } as CompatModelRow);
+      const override = overrideMap.get(modelId);
+      const editableConfig = editableModelConfigRow(
+        baseModel,
+        override,
+        Boolean(customModel) || shouldUseRowModelConfig(baseModel)
+      );
       rows.push({
         modelId,
         fullModel: fmStr,
@@ -279,6 +340,19 @@ export default function PassthroughModelsSection({
           /\bgr[aá]tis\b|\bfree\b/i.test(customModel?.name || alias || "") ||
           isFreeModel(providerId, { id: modelId }),
         isHidden: isModelHidden(modelId),
+        capabilities: effectiveModelCapabilitiesFromRows(providerId, modelId, baseModel, override),
+        configuredCapabilities: modelCapabilitiesFromRow(editableConfig),
+        targetFormat:
+          override?.targetFormat ??
+          override?.compat?.targetFormat ??
+          baseModel.compat?.targetFormat ??
+          baseModel.targetFormat ??
+          null,
+        configuredTargetFormat:
+          editableConfig?.compat?.targetFormat ?? editableConfig?.targetFormat ?? null,
+        unsupportedParams: ownUnsupportedParams(override) ?? ownUnsupportedParams(baseModel) ?? [],
+        configuredUnsupportedParams: ownUnsupportedParams(editableConfig) ?? [],
+        hasModelConfigOverride: hasModelConfigOverride(customModel, override),
       });
       seenModelIds.add(modelId);
     }
@@ -289,6 +363,7 @@ export default function PassthroughModelsSection({
     customModelMap,
     customModels,
     isModelHidden,
+    overrideMap,
     providerAlias,
     providerAliases,
     providerId,
@@ -407,33 +482,59 @@ export default function PassthroughModelsSection({
             onSortFreeFirstChange={setSortFreeFirst}
           />
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-            {displayModels.map(({ modelId, fullModel, alias, isHidden, source, isFree }) => (
-              <PassthroughModelRow
-                key={fullModel as string}
-                modelId={modelId}
-                fullModel={fullModel}
-                alias={alias}
-                source={source}
-                isFree={isFree}
-                isHidden={isHidden}
-                copied={copied}
-                onCopy={onCopy}
-                onDeleteAlias={source === "alias" && alias ? () => onDeleteAlias(alias) : undefined}
-                onSetAlias={(a) => onSetAlias(modelId, a)}
-                t={t}
-                showDeveloperToggle
-                effectiveModelNormalize={effectiveModelNormalize}
-                effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
-                getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
-                saveModelCompatFlags={saveModelCompatFlags}
-                compatDisabled={compatSavingModelId === modelId}
-                onToggleHidden={onToggleHidden}
-                togglingHidden={togglingModelId === modelId}
-                onTestModel={onTestModel}
-                testStatus={modelTestStatus?.[modelId] || null}
-                testingModel={testingModelId === modelId}
-              />
-            ))}
+            {displayModels.map(
+              ({
+                modelId,
+                fullModel,
+                alias,
+                isHidden,
+                source,
+                isFree,
+                capabilities,
+                configuredCapabilities,
+                targetFormat,
+                configuredTargetFormat,
+                unsupportedParams,
+                configuredUnsupportedParams,
+                hasModelConfigOverride,
+              }) => (
+                <PassthroughModelRow
+                  key={fullModel as string}
+                  modelId={modelId}
+                  fullModel={fullModel}
+                  alias={alias}
+                  source={source}
+                  isFree={isFree}
+                  isHidden={isHidden}
+                  capabilities={capabilities}
+                  configuredCapabilities={configuredCapabilities}
+                  targetFormat={targetFormat}
+                  configuredTargetFormat={configuredTargetFormat}
+                  unsupportedParams={unsupportedParams}
+                  configuredUnsupportedParams={configuredUnsupportedParams}
+                  hasModelConfigOverride={hasModelConfigOverride}
+                  copied={copied}
+                  onCopy={onCopy}
+                  onDeleteAlias={
+                    source === "alias" && alias ? () => onDeleteAlias(alias) : undefined
+                  }
+                  onSetAlias={(a) => onSetAlias(modelId, a)}
+                  t={t}
+                  showDeveloperToggle
+                  effectiveModelNormalize={effectiveModelNormalize}
+                  effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+                  getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
+                  saveModelCompatFlags={saveModelCompatFlags}
+                  resetModelConfig={resetModelConfig}
+                  compatDisabled={compatSavingModelId === modelId}
+                  onToggleHidden={onToggleHidden}
+                  togglingHidden={togglingModelId === modelId}
+                  onTestModel={onTestModel}
+                  testStatus={modelTestStatus?.[modelId] || null}
+                  testingModel={testingModelId === modelId}
+                />
+              )
+            )}
           </div>
           {filteredModels.length === 0 && modelFilter && (
             <p className="py-2 text-sm text-text-muted">

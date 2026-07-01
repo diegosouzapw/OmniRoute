@@ -65,9 +65,9 @@ test("codebuddy-cn glm-5.2 carries 1M context and openai-style reasoning that ca
   const r = REGISTRY["codebuddy-cn"];
   const m = r.models.find((x) => x.id === "glm-5.2");
   assert.ok(m, "glm-5.2 must exist");
-  // contextLength is the OmniRoute analogue of upstream's contextWindow
-  assert.equal(m.contextLength, 1000000);
-  assert.equal(m.supportsReasoning, true);
+  // contextWindow is the OmniRoute analogue of upstream's contextWindow.
+  assert.equal(m.capabilities?.contextWindow, 1000000);
+  assert.equal(m.capabilities?.supportsReasoning, true);
 });
 
 test("codebuddy-cn vision flag is set on the visual models", () => {
@@ -75,7 +75,7 @@ test("codebuddy-cn vision flag is set on the visual models", () => {
   for (const id of ["glm-5v-turbo", "minimax-m3", "kimi-k2.7", "deepseek-v4-pro"]) {
     const m = r.models.find((x) => x.id === id);
     assert.ok(m, `${id} must exist`);
-    assert.equal(m.supportsVision, true, `${id} should have vision`);
+    assert.equal(m.capabilities?.supportsVision, true, `${id} should have vision`);
   }
 });
 
@@ -105,7 +105,11 @@ test("CodeBuddyCnExecutor.transformRequest forces stream:true and leaves reasoni
     false,
     "plain request must not inject reasoning_effort (opt-in only)"
   );
-  assert.notEqual(body.reasoning_summary, "auto", "plain request must not inject reasoning_summary");
+  assert.notEqual(
+    body.reasoning_summary,
+    "auto",
+    "plain request must not inject reasoning_summary"
+  );
 });
 
 test("CodeBuddyCnExecutor preserves explicit reasoning_effort", () => {
@@ -136,13 +140,17 @@ test("CodeBuddyCnExecutor strips reasoning_effort when caller asks for none/off"
       false,
       `reasoning_effort must be omitted for ${effort}`
     );
-    assert.notEqual(body.reasoning_summary, "auto", `reasoning_summary must not be auto for ${effort}`);
+    assert.notEqual(
+      body.reasoning_summary,
+      "auto",
+      `reasoning_summary must not be auto for ${effort}`
+    );
   }
 });
 
 test("codebuddy-cn OAuth provider is wired with device_code flow and GET-poll on state", async () => {
   assert.equal(OAUTH_PROVIDER_IDS.CODEBUDDY_CN, "codebuddy-cn");
-  const map = (PROVIDERS_MAP as Record<string, any>);
+  const map = PROVIDERS_MAP as Record<string, any>;
   const cb = map["codebuddy-cn"];
   assert.ok(cb, "PROVIDERS map must include 'codebuddy-cn'");
   assert.equal(cb.flowType, "device_code");
@@ -187,9 +195,7 @@ test("codebuddy-cn token refresh handler is wired in tokenRefresh.ts", () => {
 
 test("codebuddy-cn is in USAGE_SUPPORTED_PROVIDERS and quota handler parses Tencent accounts", async () => {
   assert.ok(USAGE_SUPPORTED_PROVIDERS.includes("codebuddy-cn"));
-  const { getCodeBuddyCnUsage } = await import(
-    "../../open-sse/services/usage/codebuddy-cn.ts"
-  );
+  const { getCodeBuddyCnUsage } = await import("../../open-sse/services/usage/codebuddy-cn.ts");
 
   const origFetch = globalThis.fetch;
   // Compose a mixed payload: one refill (CycleEndTime << DeductionEndTime) and

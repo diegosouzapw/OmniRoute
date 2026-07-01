@@ -20,6 +20,13 @@ export const openadapterProvider: RegistryEntry = {
   authHeader: "bearer",
   defaultContextLength: 128000,
   models: [
-    { id: "glm-4.7", name: "GLM 4.7 (OpenAdapter)", contextLength: 128000, toolCalling: true },
+    {
+      id: "glm-4.7",
+      name: "GLM 4.7 (OpenAdapter)",
+      capabilities: {
+        contextWindow: 128000,
+        supportsTools: true,
+      },
+    },
   ],
 };

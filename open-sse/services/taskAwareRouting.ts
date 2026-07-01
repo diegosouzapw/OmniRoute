@@ -298,9 +298,9 @@ export function modelPowerScore(modelStr: string): number {
   const caps = getResolvedModelCapabilities(modelStr);
 
   let score = 35;
-  if (caps.reasoning) score += 18;
+  if (caps.supportsThinking === true) score += 18;
   if (caps.supportsVision === true) score += 3;
-  if (caps.toolCalling) score += 3;
+  if (caps.supportsTools === true) score += 3;
 
   const ctx = caps.contextWindow ?? 0;
   if (ctx >= 1_000_000) score += 22;
@@ -350,9 +350,12 @@ export function scoreModelForTask(
     if (cap === "vision" && caps.supportsVision !== true) score -= 10000;
   }
 
-  if ((required.has("reasoning") || task.weight >= TASK_LEVEL_WEIGHT.heavy) && !caps.reasoning)
+  if (
+    (required.has("reasoning") || task.weight >= TASK_LEVEL_WEIGHT.heavy) &&
+    caps.supportsThinking !== true
+  )
     score -= 120;
-  if (required.has("search") && !caps.toolCalling) score -= 30;
+  if (required.has("search") && caps.supportsTools !== true) score -= 30;
 
   const estimatedPromptTokens = Math.ceil((task.promptChars ?? 0) / 4);
   const ctxLimit = caps.contextWindow ?? 0;

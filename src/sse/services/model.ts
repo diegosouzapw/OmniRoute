@@ -6,9 +6,14 @@ import {
   getComboByNameInsensitive,
   getProviderNodes,
   getCustomModels,
+  getProviderModelConfigSnapshot,
 } from "@/lib/localDb";
 import { getCachedSettings } from "@/lib/localDb";
-import { parseModel, getModelInfoCore } from "@omniroute/open-sse/services/model.ts";
+import {
+  parseModel,
+  resolveModelAliasFromMap,
+  getModelInfoCore,
+} from "@omniroute/open-sse/services/model.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 
 export { parseModel };
@@ -63,25 +68,47 @@ async function getCombinedModelAliases(): Promise<Record<string, unknown>> {
 }
 
 /**
- * Look up custom-model metadata from the DB in a single read:
- *  - apiFormat: "responses" when the model is configured for the Responses API.
- *  - targetFormat: the optional per-model wire format override (#2905).
+ * Resolve model alias from localDb
  */
-async function lookupCustomModelMeta(
+export async function resolveModelAlias(alias) {
+  const aliases = await getModelAliases();
+  return resolveModelAliasFromMap(alias, aliases);
+}
+
+/**
+ * Look up per-model metadata from the DB in a single read:
+ *  - apiFormat: "responses" when the model is configured for the Responses API.
+ *  - targetFormat / unsupportedParams: provider-first model compatibility config.
+ */
+export async function getProviderModelRoutingMeta(
   providerId: string,
   modelId: string
-): Promise<{ apiFormat?: string; targetFormat?: string }> {
+): Promise<{ apiFormat?: string; targetFormat?: string; unsupportedParams?: string[] }> {
+  let apiFormat: string | undefined;
   try {
     const models = await getCustomModels(providerId);
-    if (!Array.isArray(models)) return {};
-    const match = models.find((m: any) => m.id === modelId);
-    if (!match) return {};
+    if (Array.isArray(models)) {
+      const match = models.find((m: any) => m.id === modelId);
+      if (match?.apiFormat === "responses") apiFormat = "responses";
+    }
+  } catch {
+    // Ignore custom-model lookup failures and still try the provider-first snapshot below.
+  }
+
+  try {
+    const snapshot = getProviderModelConfigSnapshot(providerId, modelId);
     return {
-      apiFormat: match.apiFormat === "responses" ? "responses" : undefined,
-      targetFormat: typeof match.targetFormat === "string" ? match.targetFormat : undefined,
+      ...(apiFormat ? { apiFormat } : {}),
+      ...(typeof snapshot.compat?.targetFormat === "string"
+        ? { targetFormat: snapshot.compat.targetFormat }
+        : {}),
+      ...(Array.isArray(snapshot.compat?.unsupportedParams) &&
+      snapshot.compat.unsupportedParams.length > 0
+        ? { unsupportedParams: [...snapshot.compat.unsupportedParams] }
+        : {}),
     };
   } catch {
-    return {};
+    return apiFormat ? { apiFormat } : {};
   }
 }
 
@@ -92,17 +119,18 @@ export async function getModelInfo(modelStr) {
   const parsed = parseModel(modelStr);
   const { extendedContext } = parsed;
 
-  const attachCustomApiFormat = async (info: any) => {
+  const attachModelConfigMeta = async (info: any) => {
     if (!info?.provider || !info?.model) return info;
-    const { apiFormat, targetFormat } = await lookupCustomModelMeta(
+    const { apiFormat, targetFormat, unsupportedParams } = await getProviderModelRoutingMeta(
       String(info.provider),
       String(info.model)
     );
-    if (apiFormat || targetFormat) {
+    if (apiFormat || targetFormat || unsupportedParams) {
       return {
         ...info,
         ...(apiFormat && { apiFormat }),
         ...(targetFormat && { targetFormat }),
+        ...(unsupportedParams && { unsupportedParams }),
       };
     }
     return info;
@@ -133,7 +161,7 @@ export async function getModelInfo(modelStr) {
         (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
       );
       if (matchedOpenAI) {
-        const { apiFormat, targetFormat } = await lookupCustomModelMeta(
+        const { apiFormat, targetFormat, unsupportedParams } = await getProviderModelRoutingMeta(
           matchedOpenAI.id as string,
           parsed.model as string
         );
@@ -143,6 +171,7 @@ export async function getModelInfo(modelStr) {
           extendedContext,
           ...(apiFormat && { apiFormat }),
           ...(targetFormat && { targetFormat }),
+          ...(unsupportedParams && { unsupportedParams }),
         };
       }
 
@@ -152,7 +181,7 @@ export async function getModelInfo(modelStr) {
         (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
       );
       if (matchedAnthropic) {
-        const { apiFormat, targetFormat } = await lookupCustomModelMeta(
+        const { apiFormat, targetFormat, unsupportedParams } = await getProviderModelRoutingMeta(
           matchedAnthropic.id as string,
           parsed.model as string
         );
@@ -162,6 +191,7 @@ export async function getModelInfo(modelStr) {
           extendedContext,
           ...(apiFormat && { apiFormat }),
           ...(targetFormat && { targetFormat }),
+          ...(unsupportedParams && { unsupportedParams }),
         };
       }
     }
@@ -172,7 +202,7 @@ export async function getModelInfo(modelStr) {
       const settings = await getCachedSettings();
       if (settings.stripModelPrefix === true) {
         const strippedResult = await getModelInfoCore(parsed.model, getCombinedModelAliases);
-        return { ...strippedResult, extendedContext };
+        return await attachModelConfigMeta({ ...strippedResult, extendedContext });
       }
     } catch {
       // If settings read fails, fall through to normal resolution
@@ -180,10 +210,10 @@ export async function getModelInfo(modelStr) {
   }
 
   if (!parsed.isAlias) {
-    return await attachCustomApiFormat(await getModelInfoCore(modelStr, null));
+    return await attachModelConfigMeta(await getModelInfoCore(modelStr, null));
   }
 
-  return await attachCustomApiFormat(await getModelInfoCore(modelStr, getCombinedModelAliases));
+  return await attachModelConfigMeta(await getModelInfoCore(modelStr, getCombinedModelAliases));
 }
 
 /**

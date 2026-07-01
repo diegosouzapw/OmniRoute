@@ -1,4 +1,8 @@
-import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
+import {
+  PROVIDER_MODELS,
+  PROVIDER_ID_TO_ALIAS,
+  getProviderModels,
+} from "@/shared/constants/models";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import {
   getAllCustomModels,
@@ -8,6 +12,85 @@ import {
 import { getProviderConnections } from "@/lib/localDb";
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import { getSyncedCapabilities } from "@/lib/modelsDevSync";
+
+function readNestedCapabilities(model: Record<string, unknown>): Record<string, unknown> {
+  const capabilities = model.capabilities;
+  return capabilities && typeof capabilities === "object" && !Array.isArray(capabilities)
+    ? (capabilities as Record<string, unknown>)
+    : {};
+}
+
+function readNumericCapability(
+  model: Record<string, unknown>,
+  keys: readonly string[]
+): number | undefined {
+  const capabilities = readNestedCapabilities(model);
+  for (const key of keys) {
+    const value = capabilities[key] ?? model[key];
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+  }
+  return undefined;
+}
+
+function readThinkingCapability(
+  model: Record<string, unknown>,
+  resolved: ReturnType<typeof getResolvedModelCapabilities>
+): boolean {
+  const capabilities = readNestedCapabilities(model);
+  return (
+    capabilities.supportsReasoning === true ||
+    capabilities.supportsThinking === true ||
+    model.supportsReasoning === true ||
+    model.supportsThinking === true ||
+    resolved.supportsReasoning === true ||
+    resolved.supportsThinking === true
+  );
+}
+
+function buildGeminiModelEntry(params: {
+  provider: string;
+  id: string;
+  displayName: unknown;
+  description?: unknown;
+  resolved: ReturnType<typeof getResolvedModelCapabilities>;
+  metadata?: Record<string, unknown>;
+}) {
+  const metadata = params.metadata ?? {};
+  const inputTokenLimit =
+    readNumericCapability(metadata, ["maxInputTokens", "contextWindow", "inputTokenLimit"]) ??
+    params.resolved.maxInputTokens ??
+    params.resolved.contextWindow ??
+    undefined;
+  const outputTokenLimit =
+    readNumericCapability(metadata, ["maxOutputTokens", "outputTokenLimit"]) ??
+    params.resolved.maxOutputTokens ??
+    undefined;
+
+  return {
+    name: `models/${params.provider}/${params.id}`,
+    displayName:
+      typeof params.displayName === "string" && params.displayName ? params.displayName : params.id,
+    ...(typeof params.description === "string" ? { description: params.description } : {}),
+    supportedGenerationMethods: ["generateContent"],
+    ...(typeof inputTokenLimit === "number" ? { inputTokenLimit } : {}),
+    ...(typeof outputTokenLimit === "number" ? { outputTokenLimit } : {}),
+    ...(readThinkingCapability(metadata, params.resolved) ? { thinking: true } : {}),
+  };
+}
+
+function getStaticProviderModelKeys(activeKeys: Set<string>): string[] {
+  const keys = new Set<string>();
+  for (const provider of Object.keys(PROVIDER_MODELS)) {
+    if (activeKeys.has(provider)) keys.add(provider);
+  }
+  for (const provider of activeKeys) {
+    if (PROVIDER_MODELS[provider]) continue;
+    const alias = (PROVIDER_ID_TO_ALIAS as Record<string, string>)[provider];
+    if (alias && activeKeys.has(alias) && PROVIDER_MODELS[alias]) continue;
+    if (getProviderModels(provider).length > 0) keys.add(provider);
+  }
+  return [...keys];
+}
 
 /**
  * Build the set of provider keys (raw id + alias) that have at least one active/validated
@@ -59,21 +142,21 @@ export async function GET() {
     const activeKeys = await getActiveProviderKeys();
 
     // Built-in models (hardcoded defaults)
-    for (const [provider, providerModels] of Object.entries(PROVIDER_MODELS)) {
-      if (!activeKeys.has(provider)) continue;
+    for (const provider of getStaticProviderModelKeys(activeKeys)) {
+      const providerModels = getProviderModels(provider);
       for (const model of providerModels) {
         const name = `models/${provider}/${model.id}`;
         if (existingNames.has(name)) continue;
         const resolved = getResolvedModelCapabilities({ provider, model: model.id });
-        models.push({
-          name,
-          displayName: model.name || model.id,
-          description: `${provider} model: ${model.name || model.id}`,
-          supportedGenerationMethods: ["generateContent"],
-          inputTokenLimit: resolved.maxInputTokens || resolved.contextWindow || 128000,
-          outputTokenLimit: resolved.maxOutputTokens || 8192,
-          ...(resolved.supportsThinking === true ? { thinking: true } : {}),
-        });
+        models.push(
+          buildGeminiModelEntry({
+            provider,
+            id: model.id,
+            displayName: model.name,
+            description: `${provider} model: ${model.name || model.id}`,
+            resolved,
+          })
+        );
         existingNames.add(name);
       }
     }
@@ -93,15 +176,17 @@ export async function GET() {
         ? await getSyncedAvailableModels("gemini")
         : [];
       for (const m of syncedGeminiModels) {
-        models.push({
-          name: `models/gemini/${m.id}`,
-          displayName: m.name || m.id,
-          ...(typeof m.description === "string" ? { description: m.description } : {}),
-          supportedGenerationMethods: ["generateContent"],
-          inputTokenLimit: typeof m.inputTokenLimit === "number" ? m.inputTokenLimit : 128000,
-          outputTokenLimit: typeof m.outputTokenLimit === "number" ? m.outputTokenLimit : 8192,
-          ...(m.supportsThinking === true ? { thinking: true } : {}),
-        });
+        const metadata = m as Record<string, unknown>;
+        models.push(
+          buildGeminiModelEntry({
+            provider: "gemini",
+            id: m.id,
+            displayName: m.name,
+            description: m.description,
+            metadata,
+            resolved: getResolvedModelCapabilities({ provider: "gemini", model: m.id }),
+          })
+        );
       }
     } catch (err) {
       console.error("[v1beta/models] Error fetching synced Gemini models:", err);
@@ -122,23 +207,17 @@ export async function GET() {
             provider: providerId,
             model: m.id,
           });
-          models.push({
-            name,
-            displayName: m.name || m.id,
-            ...(typeof m.description === "string" ? { description: m.description } : {}),
-            supportedGenerationMethods: ["generateContent"],
-            inputTokenLimit:
-              typeof m.inputTokenLimit === "number"
-                ? m.inputTokenLimit
-                : resolved.maxInputTokens || resolved.contextWindow || 128000,
-            outputTokenLimit:
-              typeof m.outputTokenLimit === "number"
-                ? m.outputTokenLimit
-                : resolved.maxOutputTokens || 8192,
-            ...(m.supportsThinking === true || resolved.supportsThinking === true
-              ? { thinking: true }
-              : {}),
-          });
+          const metadata = m as Record<string, unknown>;
+          models.push(
+            buildGeminiModelEntry({
+              provider: providerId,
+              id: m.id,
+              displayName: m.name,
+              description: m.description,
+              metadata,
+              resolved,
+            })
+          );
           existingNames.add(name);
         }
       }
@@ -165,23 +244,16 @@ export async function GET() {
           });
           const name = `models/${providerId}/${m.id}`;
           if (existingNames.has(name)) continue;
-          models.push({
-            name,
-            displayName: m.name || m.id,
-            ...(typeof m.description === "string" ? { description: m.description } : {}),
-            supportedGenerationMethods: ["generateContent"],
-            inputTokenLimit:
-              typeof m.inputTokenLimit === "number"
-                ? m.inputTokenLimit
-                : resolved.maxInputTokens || resolved.contextWindow || 128000,
-            outputTokenLimit:
-              typeof m.outputTokenLimit === "number"
-                ? m.outputTokenLimit
-                : resolved.maxOutputTokens || 8192,
-            ...(m.supportsThinking === true || resolved.supportsThinking === true
-              ? { thinking: true }
-              : {}),
-          });
+          models.push(
+            buildGeminiModelEntry({
+              provider: providerId,
+              id: String(m.id),
+              displayName: m.name,
+              description: m.description,
+              metadata: m,
+              resolved,
+            })
+          );
           existingNames.add(name);
         }
       }

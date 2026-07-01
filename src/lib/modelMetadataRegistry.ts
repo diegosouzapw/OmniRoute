@@ -8,7 +8,16 @@ import {
   resolveModelAlias as resolveStaticModelAlias,
 } from "@/shared/constants/modelSpecs";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
-import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "@/shared/constants/models";
+import {
+  PROVIDER_ID_TO_ALIAS,
+  PROVIDER_MODELS,
+  getProviderModels,
+} from "@/shared/constants/models";
+import {
+  isAnthropicCompatibleProvider,
+  isClaudeCodeCompatibleProvider,
+  isOpenAICompatibleProvider,
+} from "@/shared/constants/providers";
 import { getSyncStatus, getSyncedCapability } from "@/lib/modelsDevSync";
 
 const MODEL_METADATA_SCHEMA_VERSION = "model-metadata-v1";
@@ -34,8 +43,8 @@ export interface CanonicalModelMetadata {
   displayName: string;
   aliases: string[];
   capabilities: {
-    toolCalling: boolean;
-    reasoning: boolean;
+    toolCalling: boolean | null;
+    reasoning: boolean | null;
     supportsThinking: boolean | null;
     supportsTools: boolean | null;
     vision: boolean | null;
@@ -113,9 +122,18 @@ function toQualifiedId(
 
 function getRegistryModel(providerOrAlias: string | null, modelId: string | null) {
   if (!providerOrAlias || !modelId) return null;
-  const alias = PROVIDER_ID_TO_ALIAS[providerOrAlias] || providerOrAlias;
-  const models = PROVIDER_MODELS[alias] || PROVIDER_MODELS[providerOrAlias] || [];
+  const models = getProviderModels(providerOrAlias);
   return models.find((entry) => entry?.id === modelId) || null;
+}
+
+function isGenericCompatibleProvider(provider: string | null): boolean {
+  if (!provider) return false;
+  if (isOpenAICompatibleProvider(provider)) return true;
+  return isAnthropicCompatibleProvider(provider) && !isClaudeCodeCompatibleProvider(provider);
+}
+
+function allowsStaticModelSpecFallback(provider: string | null): boolean {
+  return !isGenericCompatibleProvider(provider);
 }
 
 function buildModalities(
@@ -188,10 +206,14 @@ export function getCanonicalModelMetadata(input: {
   const provider = resolved.provider;
   const providerAlias = provider ? PROVIDER_ID_TO_ALIAS[provider] || provider : null;
   const registryModel = getRegistryModel(providerAlias || provider, resolved.model || modelId);
-  const staticSpec = getModelSpec(resolved.model || modelId);
+  const staticSpec = allowsStaticModelSpecFallback(provider)
+    ? getModelSpec(resolved.model || modelId)
+    : undefined;
   const syncedCapability =
     provider && resolved.model ? getSyncedCapability(provider, resolved.model) : null;
-  const canonicalStaticAlias = resolveStaticModelAlias(resolved.model || modelId);
+  const canonicalStaticAlias = staticSpec
+    ? resolveStaticModelAlias(resolved.model || modelId)
+    : resolved.model || modelId;
   const modalities = buildModalities(
     resolved.modalitiesInput,
     resolved.modalitiesOutput,
@@ -212,8 +234,8 @@ export function getCanonicalModelMetadata(input: {
       ...(staticSpec?.aliases || []),
     ]),
     capabilities: {
-      toolCalling: resolved.toolCalling,
-      reasoning: resolved.reasoning,
+      toolCalling: resolved.supportsTools,
+      reasoning: resolved.supportsThinking,
       supportsThinking: resolved.supportsThinking,
       supportsTools: resolved.supportsTools,
       vision: resolved.supportsVision,
@@ -273,30 +295,52 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
 
   const nextEntry: JsonRecord = { ...entry };
   const existingName = asNonEmptyString(entry.name);
-  const capabilityFields = {
-    ...(typeof metadata.capabilities.vision === "boolean"
-      ? { vision: metadata.capabilities.vision }
-      : {}),
-    tool_calling: metadata.capabilities.toolCalling,
-    reasoning: metadata.capabilities.reasoning,
-    ...(typeof metadata.capabilities.supportsThinking === "boolean"
-      ? { thinking: metadata.capabilities.supportsThinking }
-      : {}),
-    ...(typeof metadata.capabilities.attachment === "boolean"
-      ? { attachment: metadata.capabilities.attachment }
-      : {}),
-    ...(typeof metadata.capabilities.structuredOutput === "boolean"
-      ? { structured_output: metadata.capabilities.structuredOutput }
-      : {}),
-    ...(typeof metadata.capabilities.temperature === "boolean"
-      ? { temperature: metadata.capabilities.temperature }
-      : {}),
-  };
+  const existingCapabilities: JsonRecord =
+    entry.capabilities && typeof entry.capabilities === "object"
+      ? { ...(entry.capabilities as JsonRecord) }
+      : {};
+  const hasMetadataSource =
+    metadata.metadata.source.providerRegistry ||
+    metadata.metadata.source.staticSpec ||
+    metadata.metadata.source.syncedCapability;
+  const canPublishResolvedCapabilities =
+    !isGenericCompatibleProvider(provider) || hasMetadataSource;
+  let capabilityFields: JsonRecord = {};
+  if (canPublishResolvedCapabilities) {
+    delete existingCapabilities.thinking;
+    if (typeof metadata.capabilities.vision !== "boolean") {
+      delete existingCapabilities.vision;
+    }
+    if (typeof metadata.capabilities.supportsTools !== "boolean") {
+      delete existingCapabilities.tool_calling;
+    }
+    if (typeof metadata.capabilities.supportsThinking !== "boolean") {
+      delete existingCapabilities.reasoning;
+    }
+    capabilityFields = {
+      ...(typeof metadata.capabilities.vision === "boolean"
+        ? { vision: metadata.capabilities.vision }
+        : {}),
+      ...(typeof metadata.capabilities.supportsTools === "boolean"
+        ? { tool_calling: metadata.capabilities.supportsTools }
+        : {}),
+      ...(typeof metadata.capabilities.supportsThinking === "boolean"
+        ? { reasoning: metadata.capabilities.supportsThinking }
+        : {}),
+      ...(typeof metadata.capabilities.attachment === "boolean"
+        ? { attachment: metadata.capabilities.attachment }
+        : {}),
+      ...(typeof metadata.capabilities.structuredOutput === "boolean"
+        ? { structured_output: metadata.capabilities.structuredOutput }
+        : {}),
+      ...(typeof metadata.capabilities.temperature === "boolean"
+        ? { temperature: metadata.capabilities.temperature }
+        : {}),
+    };
+  }
 
   nextEntry.capabilities = {
-    ...(entry.capabilities && typeof entry.capabilities === "object"
-      ? (entry.capabilities as JsonRecord)
-      : {}),
+    ...existingCapabilities,
     ...capabilityFields,
   };
 

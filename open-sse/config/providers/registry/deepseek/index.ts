@@ -1,5 +1,4 @@
 import type { RegistryEntry } from "../../shared.ts";
-
 export const deepseekProvider: RegistryEntry = {
   id: "deepseek",
   alias: "ds",
@@ -9,7 +8,21 @@ export const deepseekProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "bearer",
   models: [
-    { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
-    { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
+    {
+      id: "deepseek-v4-pro",
+      name: "DeepSeek V4 Pro",
+      capabilities: {
+        supportsReasoning: true,
+        supportsMaxEffort: true,
+      },
+    },
+    {
+      id: "deepseek-v4-flash",
+      name: "DeepSeek V4 Flash",
+      capabilities: {
+        supportsReasoning: true,
+        supportsMaxEffort: true,
+      },
+    },
   ],
 };

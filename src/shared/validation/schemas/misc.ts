@@ -14,7 +14,6 @@ import {
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 
-
 export function isHttpUrl(value: string): boolean {
   try {
     const parsed = new URL(value);
@@ -90,6 +89,39 @@ export const modelCompatPerProtocolSchema = z
     upstreamHeaders: upstreamHeadersRecordSchema.optional(),
   })
   .strict();
+
+const positiveIntCapabilitySchema = z.number().int().positive();
+const clearablePositiveIntCapabilitySchema = positiveIntCapabilitySchema.nullable();
+const nonNegativeIntCapabilitySchema = z.number().int().min(0);
+const clearableNonNegativeIntCapabilitySchema = nonNegativeIntCapabilitySchema.nullable();
+const clearableTextCapabilitySchema = z.string().trim().max(120).nullable();
+
+export const providerModelCapabilitiesSchema = z
+  .object({
+    contextWindow: clearablePositiveIntCapabilitySchema.optional(),
+    maxInputTokens: clearablePositiveIntCapabilitySchema.optional(),
+    maxOutputTokens: clearablePositiveIntCapabilitySchema.optional(),
+    supportsVision: z.boolean().nullable().optional(),
+    supportsTools: z.boolean().nullable().optional(),
+    supportsReasoning: z.boolean().nullable().optional(),
+    supportsXHighEffort: z.boolean().nullable().optional(),
+    supportsMaxEffort: z.boolean().nullable().optional(),
+    defaultThinkingBudget: clearableNonNegativeIntCapabilitySchema.optional(),
+    thinkingBudgetCap: clearableNonNegativeIntCapabilitySchema.optional(),
+    thinkingOverhead: clearablePositiveIntCapabilitySchema.optional(),
+    adaptiveMaxTokens: clearablePositiveIntCapabilitySchema.optional(),
+    interleavedField: clearableTextCapabilitySchema.optional(),
+  })
+  .strict();
+
+export const legacyProviderModelCapabilitiesInputSchema = providerModelCapabilitiesSchema.extend({
+  contextLength: clearablePositiveIntCapabilitySchema.optional(),
+  inputTokenLimit: clearablePositiveIntCapabilitySchema.optional(),
+  outputTokenLimit: clearablePositiveIntCapabilitySchema.optional(),
+  toolCalling: z.boolean().nullable().optional(),
+  supportsThinking: z.boolean().nullable().optional(),
+  maxThinkingBudget: clearableNonNegativeIntCapabilitySchema.optional(),
+});
 
 export const toggleRateLimitSchema = z.object({
   connectionId: z.string().trim().min(1, "connectionId is required"),

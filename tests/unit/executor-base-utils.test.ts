@@ -128,6 +128,17 @@ test("sanitizeReasoningEffortForProvider preserves xhigh unless explicitly unsup
   assert.equal(result.reasoning_effort, "xhigh");
 });
 
+test("sanitizeReasoningEffortForProvider preserves max when support is unknown", () => {
+  const body = { reasoning_effort: "max", reasoning: { effort: "max" } };
+  const result = base.sanitizeReasoningEffortForProvider(
+    body,
+    "openai-compatible-audit",
+    "future-model"
+  ) as any;
+  assert.equal(result.reasoning_effort, "max");
+  assert.equal(result.reasoning.effort, "max");
+});
+
 test("sanitizeReasoningEffortForProvider preserves high effort", () => {
   const body = { reasoning_effort: "high" };
   const result = base.sanitizeReasoningEffortForProvider(body, "openai", "gpt-4o") as any;

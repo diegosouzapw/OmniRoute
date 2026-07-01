@@ -37,9 +37,9 @@ test.after(async () => {
 });
 
 // #1294: POST /api/provider-models must persist max_input_tokens / max_output_tokens
-// (stored as inputTokenLimit / outputTokenLimit) so the token limits set in the
-// "add custom model" form survive into the catalog round-trip.
-test("POST persists max_input_tokens / max_output_tokens as inputTokenLimit / outputTokenLimit", async () => {
+// as canonical capabilities so the token limits set in the "add custom model"
+// form survive into the catalog round-trip.
+test("POST persists max_input_tokens / max_output_tokens as canonical capabilities", async () => {
   const response = await providerModelsRoute.POST(
     buildPostRequest({
       provider: "openai-compatible-demo",
@@ -53,14 +53,20 @@ test("POST persists max_input_tokens / max_output_tokens as inputTokenLimit / ou
 
   assert.equal(response.status, 200);
   assert.equal(body.model?.id, "custom-long-context");
-  assert.equal(body.model?.inputTokenLimit, 200000);
-  assert.equal(body.model?.outputTokenLimit, 16384);
+  assert.equal(body.model?.capabilities?.contextWindow, 200000);
+  assert.equal(body.model?.capabilities?.maxInputTokens, 200000);
+  assert.equal(body.model?.capabilities?.maxOutputTokens, 16384);
+  assert.equal("inputTokenLimit" in body.model, false);
+  assert.equal("outputTokenLimit" in body.model, false);
 
   const stored = await modelsDb.getCustomModels("openai-compatible-demo");
   const persisted = stored.find((model) => model.id === "custom-long-context");
   assert.ok(persisted, "custom model should be persisted");
-  assert.equal(persisted.inputTokenLimit, 200000);
-  assert.equal(persisted.outputTokenLimit, 16384);
+  assert.equal(persisted.capabilities?.contextWindow, 200000);
+  assert.equal(persisted.capabilities?.maxInputTokens, 200000);
+  assert.equal(persisted.capabilities?.maxOutputTokens, 16384);
+  assert.equal("inputTokenLimit" in persisted, false);
+  assert.equal("outputTokenLimit" in persisted, false);
 });
 
 test("POST omits token limits when they are not provided", async () => {
@@ -75,6 +81,7 @@ test("POST omits token limits when they are not provided", async () => {
 
   assert.equal(response.status, 200);
   assert.equal(body.model?.id, "custom-no-limits");
+  assert.equal("capabilities" in body.model, false);
   assert.equal("inputTokenLimit" in body.model, false);
   assert.equal("outputTokenLimit" in body.model, false);
 });

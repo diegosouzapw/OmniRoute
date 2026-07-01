@@ -244,6 +244,7 @@ export default function ProviderDetailPageClient() {
     const customExtras = modelMeta.customModels
       .filter((cm: any) => cm.id && !knownIds.has(cm.id))
       .map((cm: any) => ({
+        ...cm,
         id: cm.id,
         name: cm.name || cm.id,
         source: normalizeModelCatalogSource(cm.source) === "imported" ? "imported" : "custom",
@@ -254,7 +255,7 @@ export default function ProviderDetailPageClient() {
       if (m.id && !deduped.has(m.id)) deduped.set(m.id, m);
     }
     return Array.from(deduped.values());
-  }, [providerId, registryModels, syncedAvailableModels, modelMeta.customModels]);
+  }, [registryModels, syncedAvailableModels, modelMeta.customModels]);
   const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
   // isSearchProvider declared earlier (before hooks)
   const isUpstreamProxyProvider = providerInfo?.category === "upstream-proxy";
@@ -405,6 +406,7 @@ export default function ProviderDetailPageClient() {
     setAutoHideFailed,
     setVisibilityFilter,
     saveModelCompatFlags,
+    resetModelConfig,
     handleToggleModelHidden,
     handleBulkToggleModelHidden,
     handleClearAllModels,
@@ -666,6 +668,7 @@ export default function ProviderDetailPageClient() {
             setAutoHideFailed={setAutoHideFailed}
             setVisibilityFilter={setVisibilityFilter}
             saveModelCompatFlags={saveModelCompatFlags}
+            resetModelConfig={resetModelConfig}
             handleToggleModelHidden={handleToggleModelHidden}
             handleBulkToggleModelHidden={handleBulkToggleModelHidden}
             handleClearAllModels={handleClearAllModels}
@@ -685,6 +688,7 @@ export default function ProviderDetailPageClient() {
             copied={copied}
             onCopy={copy}
             onModelsChanged={fetchProviderModelMeta}
+            onResetModelConfig={resetModelConfig}
           />
         </Card>
       )}

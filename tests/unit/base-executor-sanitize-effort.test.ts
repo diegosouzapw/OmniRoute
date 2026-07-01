@@ -57,7 +57,7 @@ test("sanitizeReasoningEffortForProvider: explicit xhigh opt-out downgrades to h
   );
 });
 
-test("sanitizeReasoningEffortForProvider: Anthropic-compatible dynamic provider honors xhigh opt-out", () => {
+test("sanitizeReasoningEffortForProvider: generic Anthropic-compatible provider preserves unknown xhigh", () => {
   const body = {
     model: "claude-opus-4-6",
     reasoning_effort: "xhigh",
@@ -69,11 +69,11 @@ test("sanitizeReasoningEffortForProvider: Anthropic-compatible dynamic provider 
     "claude-opus-4-6",
     null
   );
-  assert.notEqual(result, body, "must return a new object when mutating");
-  assert.equal((result as any).reasoning_effort, "high");
+  assert.equal(result, body, "generic compatible effort support is unknown and passes through");
+  assert.equal((result as any).reasoning_effort, "xhigh");
 });
 
-test("sanitizeReasoningEffortForProvider: xiaomi-mimo normalizes max → xhigh by default", () => {
+test("sanitizeReasoningEffortForProvider: xiaomi-mimo downgrades unsupported max to high", () => {
   const log = makeLog();
   const body = {
     model: "mimo-v2.5-pro",
@@ -81,10 +81,10 @@ test("sanitizeReasoningEffortForProvider: xiaomi-mimo normalizes max → xhigh b
     messages: [{ role: "user", content: "hi" }],
   };
   const result = sanitizeReasoningEffortForProvider(body, "xiaomi-mimo", "mimo-v2.5-pro", log);
-  assert.equal((result as any).reasoning_effort, "xhigh");
+  assert.equal((result as any).reasoning_effort, "high");
   assert.ok(
-    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /max → xhigh/.test(m)),
-    "logs the normalization"
+    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /max → high/.test(m)),
+    "logs the downgrade"
   );
 });
 
@@ -113,7 +113,7 @@ test("sanitizeReasoningEffortForProvider: Ollama Cloud preserves nested max", ()
   assert.equal((result as any).reasoning.summary, "auto");
 });
 
-test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek normalizes max → xhigh", () => {
+test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek preserves unknown max", () => {
   const log = makeLog();
   const body = {
     model: "deepseek/deepseek-v4-pro",
@@ -126,15 +126,12 @@ test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek normalizes max →
     "deepseek/deepseek-v4-pro",
     log
   );
-  assert.notEqual(result, body, "must return a new object when mutating");
-  assert.equal((result as any).reasoning_effort, "xhigh");
-  assert.ok(
-    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /max → xhigh/.test(m)),
-    "logs the normalization"
-  );
+  assert.equal(result, body, "unknown OpenRouter max support must pass through");
+  assert.equal((result as any).reasoning_effort, "max");
+  assert.equal(log.messages.length, 0);
 });
 
-test("sanitizeReasoningEffortForProvider: OpenRouter Claude opt-out aliases downgrade max → high", () => {
+test("sanitizeReasoningEffortForProvider: OpenRouter Claude preserves unknown max", () => {
   const log = makeLog();
   const body = {
     model: "anthropic/claude-opus-4.6",
@@ -147,15 +144,12 @@ test("sanitizeReasoningEffortForProvider: OpenRouter Claude opt-out aliases down
     "anthropic/claude-opus-4.6",
     log
   );
-  assert.notEqual(result, body, "must return a new object when mutating");
-  assert.equal((result as any).reasoning_effort, "high");
-  assert.ok(
-    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /max → high/.test(m)),
-    "logs the downgrade"
-  );
+  assert.equal(result, body, "unknown routed Claude max support must pass through");
+  assert.equal((result as any).reasoning_effort, "max");
+  assert.equal(log.messages.length, 0);
 });
 
-test("sanitizeReasoningEffortForProvider: OpenAI-compatible Gemini normalizes max → xhigh", () => {
+test("sanitizeReasoningEffortForProvider: OpenAI-compatible Gemini preserves unknown max", () => {
   const log = makeLog();
   const body = {
     model: "gemini-3.1-pro-preview",
@@ -168,15 +162,12 @@ test("sanitizeReasoningEffortForProvider: OpenAI-compatible Gemini normalizes ma
     "gemini-3.1-pro-preview",
     log
   );
-  assert.notEqual(result, body, "must return a new object when mutating");
-  assert.equal((result as any).reasoning_effort, "xhigh");
-  assert.ok(
-    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /max → xhigh/.test(m)),
-    "logs the normalization"
-  );
+  assert.equal(result, body);
+  assert.equal((result as any).reasoning_effort, "max");
+  assert.equal(log.messages.length, 0);
 });
 
-test("sanitizeReasoningEffortForProvider: nested OpenAI reasoning max normalizes to xhigh", () => {
+test("sanitizeReasoningEffortForProvider: nested OpenAI-compatible reasoning max preserves unknown max", () => {
   const body = {
     model: "gemini-3.1-pro-preview",
     reasoning: { effort: "max", summary: "auto" },
@@ -188,7 +179,8 @@ test("sanitizeReasoningEffortForProvider: nested OpenAI reasoning max normalizes
     "gemini-3.1-pro-preview",
     null
   );
-  assert.equal((result as any).reasoning.effort, "xhigh");
+  assert.equal(result, body);
+  assert.equal((result as any).reasoning.effort, "max");
   assert.equal((result as any).reasoning.summary, "auto", "other reasoning fields preserved");
   assert.equal((result as any).reasoning_effort, undefined);
 });
@@ -312,9 +304,9 @@ test("sanitizeReasoningEffortForProvider: rejecting providers strip max before n
   assert.equal((mistralResult as any).reasoning_effort, undefined);
 
   // Pre-#791: github stripped reasoning_effort entirely for every Claude model.
-  // Post-#791: Opus 4.6 keeps reasoning_effort; `max` downgrades to `high`
-  // because github is not Claude/CC-compatible (so supportsMax=false) and
-  // the canonical Claude Opus 4.6 model opts out of xhigh.
+  // Post-#791: Opus 4.6 keeps reasoning_effort. Literal `max` is not inferred
+  // unsupported from the Claude-looking id; only explicit provider metadata can
+  // downgrade it.
   const githubBody = {
     model: "claude-opus-4-6",
     reasoning_effort: "max",
@@ -326,7 +318,7 @@ test("sanitizeReasoningEffortForProvider: rejecting providers strip max before n
     "claude-opus-4-6",
     null
   );
-  assert.equal((githubResult as any).reasoning_effort, "high");
+  assert.equal((githubResult as any).reasoning_effort, "max");
 
   // Pre-#791 strip is preserved for github Claude models that DO NOT opt in
   // (Haiku 4.5, Opus 4.7, older Sonnet, etc.).
@@ -531,9 +523,9 @@ test("sanitizeReasoningEffortForProvider: opencode-go DeepSeek V4 Pro preserves 
   }
 });
 
-test("sanitizeReasoningEffortForProvider: opencode-go with non-DeepSeek model still normalizes max → xhigh", () => {
+test("sanitizeReasoningEffortForProvider: opencode-go with non-DeepSeek model downgrades max to high", () => {
   // The opt-in must be scoped to DeepSeek models on opencode-go only — other
-  // opencode-go models (e.g. glm/kimi/mimo) follow the default xhigh policy.
+  // opencode-go models (e.g. glm/kimi/mimo) still do not claim max support.
   const body = {
     model: "mimo-v2.5-pro",
     reasoning_effort: "max",
@@ -541,5 +533,5 @@ test("sanitizeReasoningEffortForProvider: opencode-go with non-DeepSeek model st
   };
   const result = sanitizeReasoningEffortForProvider(body, "opencode-go", "mimo-v2.5-pro", null);
   assert.notEqual(result, body);
-  assert.equal((result as any).reasoning_effort, "xhigh");
+  assert.equal((result as any).reasoning_effort, "high");
 });
