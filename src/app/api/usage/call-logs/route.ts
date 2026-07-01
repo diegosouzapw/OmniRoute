@@ -131,7 +131,6 @@ export async function GET(request: Request) {
     if (searchParams.get("combo")) filter.combo = searchParams.get("combo");
     if (searchParams.get("search")) filter.search = searchParams.get("search");
     if (searchParams.get("correlationId")) filter.correlationId = searchParams.get("correlationId");
-    if (searchParams.get("groupByCorrelationId")) filter.groupByCorrelationId = true;
     if (searchParams.get("limit")) filter.limit = parseInt(searchParams.get("limit"));
     if (searchParams.get("offset")) filter.offset = parseInt(searchParams.get("offset"));
 

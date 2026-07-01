@@ -243,7 +243,7 @@ export default function RequestLoggerDetail({
   const requestJson = detail?.requestBody ? toPrettyJson(detail.requestBody) : null;
   const responseJson = detail?.responseBody ? toPrettyJson(detail.responseBody) : null;
   const streamChunks = (() => {
-    if (!detail?.pipelinePayloads?.streamChunks) return null;
+    if (!debugEnabled || !detail?.pipelinePayloads?.streamChunks) return null;
     let chunks: StreamChunks = detail.pipelinePayloads.streamChunks;
     if (typeof chunks === "string") {
       try {
