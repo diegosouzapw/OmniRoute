@@ -2691,16 +2691,21 @@ test("gitlawb-gmi validator: accepts custom baseUrl override", async () => {
 // OpenAI-compatible validator, which probed a non-existent `/api/v2/models` URL that
 // answered with a 307 redirect — blocked by the outbound guard and mislabeled as an
 // SSRF block. A specialty validator now probes the real session endpoint instead.
-test("qwen-web validator probes /api/v2/user (not /api/v2/models) and returns valid on 200", async () => {
+//
+// History of the probe URL:
+//   - Originally `GET /api/v2/user` (returned `{ user: { ... } }`).
+//   - As of mid-2026, `/api/v2/user` is retired and answers `not found` regardless
+//     of credentials. The probe moved to `GET /api/v1/auths/` (trailing slash
+//     required), which returns the user object at the top level.
+test("qwen-web validator probes /api/v1/auths/ (not /api/v2/models) and returns valid on 200", async () => {
   let probedUrl = "";
   let sentHeaders: Record<string, string> = {};
   globalThis.fetch = async (url, init = {}) => {
     probedUrl = String(url);
     sentHeaders = toPlainHeaders(init.headers);
-    // Qwen's /api/v2/user returns a real user object for a valid session. Since
-    // #3958 the validator inspects the body for `user` (Qwen answers 200 even for
-    // invalid tokens), so a valid response must carry one.
-    return new Response(JSON.stringify({ user: { id: "u-1", name: "Tester" } }), {
+    // /api/v1/auths/ returns the user object at the top level when the
+    // Authorization header is valid.
+    return new Response(JSON.stringify({ id: "u-1", email: "tester@example.com", name: "Tester", role: "user" }), {
       status: 200,
       headers: { "content-type": "application/json" },
     });
@@ -2711,8 +2716,9 @@ test("qwen-web validator probes /api/v2/user (not /api/v2/models) and returns va
     apiKey: "token=eyJqwen; cna=abc; ssxmod_itna=def",
   });
 
-  assert.equal(probedUrl, "https://chat.qwen.ai/api/v2/user");
+  assert.equal(probedUrl, "https://chat.qwen.ai/api/v1/auths/");
   assert.ok(!probedUrl.includes("/api/v2/models"), "must not probe the bogus /api/v2/models URL");
+  assert.ok(!probedUrl.includes("/api/v2/user"), "must not probe the retired /api/v2/user URL");
   assert.equal(sentHeaders.Authorization, "Bearer eyJqwen");
   assert.equal(sentHeaders.source, "web");
   assert.match(sentHeaders.Cookie, /token=eyJqwen/);

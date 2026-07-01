@@ -109,6 +109,12 @@ export async function validateQwenWebProvider({ apiKey }: any) {
       Referer: "https://chat.qwen.ai/",
       source: "web",
       "bx-v": "2.5.36",
+      // The Qwen SPA's `version` header is required by the v2 chat completion
+      // endpoint; the validator sends it too so the probe matches a real
+      // browser request as closely as possible. (The session probe endpoint
+      // doesn't enforce it, but consistency with the executor avoids surprises
+      // if Qwen ever tightens its WAF rules.)
+      version: "0.2.66",
     };
     if (token) headers["Authorization"] = `Bearer ${token}`;
     if (cookieHeader) headers["Cookie"] = cookieHeader;
@@ -139,14 +145,20 @@ export async function validateQwenWebProvider({ apiKey }: any) {
     }
 
     // Parse JSON response and verify we have a real user object.
-    // /api/v1/auths/ returns the user at the top level ({id, email, name, role, ...}).
-    // Keep the legacy nested checks (data.user, user) for robustness in case the
-    // upstream shape changes again.
+    // /api/v1/auths/ returns the user at the top level: {id, email, name, role, ...}.
+    // We require `id` to be a non-empty string AND look like a real identifier
+    // (uuid-ish or otherwise ≥8 chars) to avoid false-positives from upstream
+    // error envelopes that happen to ship a top-level `id: "not_found"` style
+    // field. Keep the legacy nested checks (data.user, user) for robustness in
+    // case the upstream shape changes again.
     try {
       const data = await resp.json();
-      const user = data?.id ? data : data?.user || data?.data?.user;
-
-      if (!user) {
+      const hasTopLevelUser =
+        typeof data?.id === "string" && data.id.length >= 8 && typeof data?.email === "string";
+      const hasNestedUser =
+        (typeof data?.user?.id === "string" && data.user.id.length > 0) ||
+        (typeof data?.data?.user?.id === "string" && data.data.user.id.length > 0);
+      if (!hasTopLevelUser && !hasNestedUser) {
         return {
           valid: false,
           error:
