@@ -80,6 +80,56 @@ test("latency — error rate penalizes a fast-but-flaky candidate", () => {
   assert.equal(getStrategy("latency").select(pool, ctx).provider, "steady");
 });
 
+test("latency — uses TTFT, TPS, and E2E metrics to pick the fastest provider-model pair", () => {
+  const pool = [
+    cand({
+      provider: "low-p95-slow-stream",
+      p95LatencyMs: 120,
+      avgTtftMs: 160,
+      avgE2ELatencyMs: 1_600,
+      avgTokensPerSecond: 18,
+      latencyStdDev: 120,
+      failureRate: 0.01,
+    }),
+    cand({
+      provider: "fast-streaming",
+      p95LatencyMs: 180,
+      avgTtftMs: 40,
+      avgE2ELatencyMs: 480,
+      avgTokensPerSecond: 120,
+      latencyStdDev: 20,
+      failureRate: 0.01,
+    }),
+  ];
+  const decision = getStrategy("latency").select(pool, ctx);
+  assert.equal(decision.provider, "fast-streaming");
+  assert.match(decision.reason, /ttft=40ms/);
+  assert.match(decision.reason, /tps=120/);
+});
+
+test("latency — failure rate can outweigh excellent raw speed", () => {
+  const pool = [
+    cand({
+      provider: "fast-flaky",
+      p95LatencyMs: 80,
+      avgTtftMs: 20,
+      avgE2ELatencyMs: 260,
+      avgTokensPerSecond: 160,
+      failureRate: 0.9,
+    }),
+    cand({
+      provider: "reliable",
+      p95LatencyMs: 120,
+      avgTtftMs: 80,
+      avgE2ELatencyMs: 400,
+      avgTokensPerSecond: 120,
+      failureRate: 0,
+      latencyStdDev: 10,
+    }),
+  ];
+  assert.equal(getStrategy("latency").select(pool, ctx).provider, "reliable");
+});
+
 test("latency — 'fast' alias resolves to the latency strategy", () => {
   assert.equal(getStrategy("fast").name, "latency");
 });

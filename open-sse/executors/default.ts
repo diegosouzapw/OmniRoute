@@ -186,8 +186,9 @@ export class DefaultExecutor extends BaseExecutor {
       const normalized = baseUrl.replace(/\/$/, "");
       const customPath = typeof psd?.chatPath === "string" && psd.chatPath ? psd.chatPath : null;
       if (customPath) return `${normalized}${customPath}`;
+      const forceResponses = psd?._omnirouteForceResponsesUpstream === true;
       const path =
-        getOpenAICompatibleType(this.provider, psd) === "responses"
+        forceResponses || getOpenAICompatibleType(this.provider, psd) === "responses"
           ? "/responses"
           : "/chat/completions";
       return `${normalized}${path}`;
@@ -270,6 +271,7 @@ export class DefaultExecutor extends BaseExecutor {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeOpenAIChatUrl(baseUrl);
       }
+      case "ollama-local":
       case "llama-cpp":
       case "lm-studio":
       case "modal":
@@ -596,8 +598,7 @@ export class DefaultExecutor extends BaseExecutor {
 
     const record = body as Record<string, unknown>;
     const rf = record.response_format as
-      | { type?: string; json_schema?: { schema?: unknown } }
-      | undefined;
+      { type?: string; json_schema?: { schema?: unknown } } | undefined;
     if (rf?.type !== "json_schema" || !rf.json_schema?.schema) return body;
 
     const schemaJson = JSON.stringify(rf.json_schema.schema, null, 2);
@@ -691,7 +692,8 @@ export class DefaultExecutor extends BaseExecutor {
         // injection when `thinking` / `enable_thinking` is set. Skip injection in
         // those cases instead of unconditionally adding `stream_options`.
         const defaultsRecord = withDefaults as Record<string, unknown>;
-        const bodyDisablesStreamOptions = defaultsRecord.stream !== undefined && defaultsRecord.stream !== true;
+        const bodyDisablesStreamOptions =
+          defaultsRecord.stream !== undefined && defaultsRecord.stream !== true;
         const qwenBlocksStreamOptions =
           this.provider === "qwen" &&
           (Boolean(defaultsRecord.thinking) || Boolean(defaultsRecord.enable_thinking));
@@ -768,8 +770,7 @@ export class DefaultExecutor extends BaseExecutor {
     // ../translator/paramSupport.ts so adding one means editing one table.
     if (typeof withDefaults === "object" && withDefaults !== null) {
       const bodyRecord = withDefaults as Record<string, unknown>;
-      const outboundModel =
-        typeof bodyRecord.model === "string" ? bodyRecord.model : model;
+      const outboundModel = typeof bodyRecord.model === "string" ? bodyRecord.model : model;
       stripUnsupportedParams(this.provider, outboundModel, bodyRecord);
     }
 

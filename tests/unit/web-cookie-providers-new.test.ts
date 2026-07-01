@@ -37,6 +37,23 @@ function mockJSONLStream(lines: string[]) {
   });
 }
 
+const HUGGINGCHAT_ROOT_ID = "00000000-0000-4000-8000-000000000001";
+
+function mockHuggingChatConversationDetail(rootId = HUGGINGCHAT_ROOT_ID) {
+  return new Response(
+    JSON.stringify({
+      json: {
+        rootMessageId: rootId,
+        messages: [{ id: rootId, from: "system" }],
+      },
+    }),
+    {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+}
+
 function mockFetchCapture(status = 200, responseBody?: ReadableStream | string) {
   const original = globalThis.fetch;
   let capturedUrl: string | null = null;
@@ -202,7 +219,10 @@ test("HuggingChat: streaming returns SSE chunks", async () => {
         headers: { "Content-Type": "application/json" },
       });
     }
-    // Second call: send message (returns JSONL stream)
+    if (callCount === 2) {
+      return mockHuggingChatConversationDetail();
+    }
+
     return new Response(mockJSONLStream(jsonlData), {
       status: 200,
       headers: { "Content-Type": "text/plain; charset=utf-8" },
@@ -226,6 +246,221 @@ test("HuggingChat: streaming returns SSE chunks", async () => {
   }
 });
 
+test("HuggingChat: sends current web data payload with the root parent id", async () => {
+  const original = globalThis.fetch;
+  let sentData: Record<string, unknown> | null = null;
+  let callCount = 0;
+  globalThis.fetch = async (_url: any, opts: any) => {
+    callCount++;
+    if (callCount === 1) {
+      return new Response(JSON.stringify({ conversationId: "test-conv-123" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (callCount === 2) {
+      return mockHuggingChatConversationDetail();
+    }
+
+    const form = opts.body as FormData;
+    sentData = JSON.parse(String(form.get("data")));
+    return new Response(
+      mockJSONLStream([JSON.stringify({ type: "finalAnswer", text: "Hello world" })]),
+      {
+        status: 200,
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      }
+    );
+  };
+
+  try {
+    const executor = new HuggingChatExecutor();
+    const result = await executor.execute({
+      ...noopExecuteInput,
+      model: "meta-llama/Llama-3.3-70B-Instruct",
+    });
+    await result.response.text();
+
+    assert.equal(sentData?.inputs, "hello");
+    assert.equal(sentData?.id, HUGGINGCHAT_ROOT_ID);
+    assert.equal(sentData?.is_retry, false);
+    assert.equal(sentData?.is_continue, false);
+    assert.equal(typeof sentData?.generationId, "string");
+    assert.deepEqual(sentData?.selectedMcpServerNames, []);
+    assert.deepEqual(sentData?.selectedMcpServers, []);
+    assert.equal(typeof sentData?.timezone, "string");
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("HuggingChat: carries create response Set-Cookie into message send", async () => {
+  const original = globalThis.fetch;
+  let sendCookie = "";
+  let callCount = 0;
+  globalThis.fetch = async (_url: any, opts: any) => {
+    callCount++;
+    if (callCount === 1) {
+      return new Response(JSON.stringify({ conversationId: "test-conv-123" }), {
+        status: 200,
+        headers: [
+          ["Content-Type", "application/json"],
+          ["Set-Cookie", "hf-chat=fresh-session; Path=/; HttpOnly"],
+          ["Set-Cookie", "aws-waf-token=fresh-waf; Path=/; HttpOnly"],
+        ],
+      });
+    }
+
+    if (callCount === 2) {
+      return mockHuggingChatConversationDetail();
+    }
+
+    sendCookie = opts.headers.Cookie;
+    return new Response(
+      mockJSONLStream([JSON.stringify({ type: "finalAnswer", text: "Hello world" })]),
+      {
+        status: 200,
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      }
+    );
+  };
+
+  try {
+    const executor = new HuggingChatExecutor();
+    const result = await executor.execute({
+      ...noopExecuteInput,
+      credentials: { apiKey: "hf-chat=stale-session; token=login-token" },
+      model: "baidu/ERNIE-4.5-VL-424B-A47B-Base-PT",
+    });
+    await result.response.text();
+
+    assert.match(sendCookie, /(?:^|;\s*)hf-chat=fresh-session(?:;|$)/);
+    assert.match(sendCookie, /(?:^|;\s*)aws-waf-token=fresh-waf(?:;|$)/);
+    assert.match(sendCookie, /(?:^|;\s*)token=login-token(?:;|$)/);
+    assert.doesNotMatch(sendCookie, /hf-chat=stale-session/);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("HuggingChat: default model is a current concrete catalog model", async () => {
+  const original = globalThis.fetch;
+  let createModel: unknown = null;
+  let callCount = 0;
+  globalThis.fetch = async (_url: any, opts: any) => {
+    callCount++;
+    if (callCount === 1) {
+      createModel = JSON.parse(String(opts.body)).model;
+      return new Response(JSON.stringify({ conversationId: "test-conv-123" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (callCount === 2) {
+      return mockHuggingChatConversationDetail();
+    }
+
+    return new Response(
+      mockJSONLStream([JSON.stringify({ type: "finalAnswer", text: "Hello world" })]),
+      {
+        status: 200,
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      }
+    );
+  };
+
+  try {
+    const executor = new HuggingChatExecutor();
+    const result = await executor.execute({
+      ...noopExecuteInput,
+      model: "",
+    });
+    await result.response.text();
+
+    assert.equal(createModel, "baidu/ERNIE-4.5-VL-424B-A47B-Base-PT");
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("HuggingChat: message send errors include sanitized upstream details", async () => {
+  const original = globalThis.fetch;
+  let callCount = 0;
+  globalThis.fetch = async () => {
+    callCount++;
+    if (callCount === 1) {
+      return new Response(JSON.stringify({ conversationId: "test-conv-123" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (callCount === 2) {
+      return mockHuggingChatConversationDetail();
+    }
+    return new Response(JSON.stringify({ message: "invalid parent message id", status: "error" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const executor = new HuggingChatExecutor();
+    const result = await executor.execute({
+      ...noopExecuteInput,
+      stream: false,
+    });
+    assert.equal(result.response.status, 400);
+    const parsed = JSON.parse(await result.response.text());
+    assert.match(parsed.error.message, /invalid parent message id/i);
+    assert.equal(parsed.upstream_details.message, "invalid parent message id");
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("HuggingChat: message send errors preserve the attempted send payload", async () => {
+  const original = globalThis.fetch;
+  let callCount = 0;
+  globalThis.fetch = async () => {
+    callCount++;
+    if (callCount === 1) {
+      return new Response(JSON.stringify({ conversationId: "test-conv-123" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (callCount === 2) {
+      return mockHuggingChatConversationDetail();
+    }
+    return new Response(JSON.stringify({ message: "An error occurred" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const executor = new HuggingChatExecutor();
+    const result = await executor.execute({
+      ...noopExecuteInput,
+      model: "baidu/ERNIE-4.5-VL-424B-A47B-Base-PT",
+      stream: false,
+    });
+
+    assert.equal(result.response.status, 500);
+    assert.equal(result.transformedBody.inputs, "hello");
+    assert.equal(result.transformedBody.id, HUGGINGCHAT_ROOT_ID);
+    assert.equal(result.transformedBody.is_retry, false);
+    assert.equal(result.transformedBody.is_continue, false);
+    assert.equal(typeof result.transformedBody.generationId, "string");
+    assert.deepEqual(result.transformedBody.selectedMcpServerNames, []);
+    assert.deepEqual(result.transformedBody.selectedMcpServers, []);
+    assert.equal(typeof result.transformedBody.timezone, "string");
+    assert.ok(!JSON.stringify(result.transformedBody).includes("test-cookie"));
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
 test("HuggingChat: non-streaming returns JSON completion", async () => {
   const jsonlData = [
     JSON.stringify({ type: "stream", token: "Hello " }),
@@ -242,6 +477,9 @@ test("HuggingChat: non-streaming returns JSON completion", async () => {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });
+    }
+    if (callCount === 2) {
+      return mockHuggingChatConversationDetail();
     }
     return new Response(mockJSONLStream(jsonlData), {
       status: 200,
@@ -281,6 +519,30 @@ test("HuggingChat: error response returns error result", async () => {
     });
     assert.ok(result.response instanceof Response);
     assert.equal(result.response.status, 401);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("HuggingChat: encrypted credential blob fails before upstream fetch", async () => {
+  const original = globalThis.fetch;
+  let fetchCalled = false;
+  globalThis.fetch = async () => {
+    fetchCalled = true;
+    return new Response("should not fetch", { status: 500 });
+  };
+
+  try {
+    const executor = new HuggingChatExecutor();
+    const result = await executor.execute({
+      ...noopExecuteInput,
+      credentials: { apiKey: "enc:v1:fake-iv:fake-ciphertext:fake-tag" },
+    });
+    const body = await result.response.json();
+
+    assert.equal(fetchCalled, false);
+    assert.equal(result.response.status, 401);
+    assert.match(body.error.message, /STORAGE_ENCRYPTION_KEY/);
   } finally {
     globalThis.fetch = original;
   }

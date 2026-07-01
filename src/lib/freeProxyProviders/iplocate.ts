@@ -8,12 +8,6 @@ const PROTOCOLS = ["http", "https", "socks4", "socks5"] as const;
 let lastFetchAt = 0;
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 min
 
-type IplocateProxy = {
-  ip: string;
-  port: number;
-  country: string;
-};
-
 export class IplocateProvider implements FreeProxyProvider {
   readonly id = "iplocate" as const;
   readonly name = "IPLocate";
@@ -46,7 +40,11 @@ export class IplocateProvider implements FreeProxyProvider {
 
     for (const proto of PROTOCOLS) {
       try {
-        const url = `${baseUrl}/${proto}.json`;
+        // #5595: the iplocate/free-proxy-list repo serves plain-text `ip:port`
+        // lists at `<proto>.txt` — the previous `<proto>.json` path 404'd on every
+        // protocol (and `res.json()` would fail even if it didn't, since the
+        // payload is not JSON).
+        const url = `${baseUrl}/${proto}.txt`;
         const res = await fetch(url, {
           signal: AbortSignal.timeout(15000),
           headers:
@@ -59,21 +57,25 @@ export class IplocateProvider implements FreeProxyProvider {
           continue;
         }
 
-        const data = (await res.json()) as IplocateProxy[];
-        if (!Array.isArray(data)) continue;
-
-        for (const p of data) {
-          if (!p.ip || !p.port) continue;
-          if (isPrivateHost(p.ip)) {
-            errors.push(`${proto}: skipped private/loopback host ${p.ip}`);
+        const text = await res.text();
+        for (const line of text.split(/\r?\n/)) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith("#")) continue;
+          const sep = trimmed.lastIndexOf(":");
+          if (sep <= 0) continue;
+          const host = trimmed.slice(0, sep).trim();
+          const port = Number(trimmed.slice(sep + 1).trim());
+          if (!host || !Number.isInteger(port) || port < 1 || port > 65535) continue;
+          if (isPrivateHost(host)) {
+            errors.push(`${proto}: skipped private/loopback host ${host}`);
             continue;
           }
           const item: FreeProxyItem = {
             source: "iplocate",
-            host: p.ip,
-            port: Number(p.port),
+            host,
+            port,
             type: proto,
-            countryCode: p.country?.slice(0, 2).toUpperCase() || null,
+            countryCode: null, // the txt list carries no country data
             qualityScore: null,
             latencyMs: null,
             anonymity: null,

@@ -175,7 +175,7 @@ async function waitForServer(baseUrl: string, proc: ReturnType<typeof createServ
       );
     }
     try {
-      const resp = await fetch(`${baseUrl}/api/monitoring/health`, {
+      const resp = await fetch(`${baseUrl}/api/health/ping`, {
         signal: AbortSignal.timeout(5_000),
       });
       if (resp.ok) return;
@@ -205,6 +205,18 @@ async function stopProcess(child: ReturnType<typeof spawn>) {
   if (!exited && !child.killed) {
     child.kill("SIGKILL");
     await new Promise<void>((resolve) => child.once("exit", () => resolve()));
+  }
+}
+
+async function removeDirWithRetry(dir: string) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+      return;
+    } catch (error) {
+      if (attempt === 4) throw error;
+      await sleep(250);
+    }
   }
 }
 
@@ -248,7 +260,7 @@ test.after(async () => {
     await relay.stop();
   } catch {}
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    await removeDirWithRetry(TEST_DATA_DIR);
   }
 });
 

@@ -7,6 +7,8 @@
  * @module lib/usage/costCalculator
  */
 
+import { isFlatRateProvider } from "./flatRateProviders";
+
 /**
  * Normalize model name — strip provider path prefixes.
  * Examples:
@@ -26,6 +28,13 @@ export type CostCalculationOptions = {
   provider?: string | null;
   model?: string | null;
   serviceTier?: string | null;
+  /**
+   * When true, return $0 for flat-rate (subscription / cookie-web) providers
+   * instead of the per-token estimate (#5552). Opt-in so only analytics/display
+   * surfaces zero out; budget / quota / routing keep estimating. Requires
+   * `provider` to be set.
+   */
+  flatRateAsZero?: boolean;
 };
 
 function toNumber(value: unknown, fallback = 0): number {
@@ -87,6 +96,10 @@ export function computeCostFromPricing(
   options: CostCalculationOptions = {}
 ): number {
   if (!pricing || !tokens) return 0;
+  // Flat-rate (subscription / cookie-web) providers don't bill per token — their
+  // per-token pricing rows exist only for estimation, so display surfaces opt in
+  // to show $0 instead of an inflated estimate (#5552).
+  if (options.flatRateAsZero && isFlatRateProvider(options.provider)) return 0;
   const inputPrice = toNumber(pricing.input, 0);
   const cachedPrice = toNumber(pricing.cached, inputPrice);
   const outputPrice = toNumber(pricing.output, 0);

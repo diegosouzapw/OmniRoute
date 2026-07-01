@@ -13,6 +13,7 @@ import { getProxyById } from "@/lib/localDb";
 import { extractRelayAuth } from "@/lib/db/proxies";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { buildRelayTestResult } from "./relayTestResult";
 
 const BASE_SUPPORTED_PROXY_TYPES = new Set(["http", "https"]);
 
@@ -121,19 +122,28 @@ export async function POST(request: Request) {
         try {
           parsedIp = JSON.parse(text) as { ip?: string };
         } catch {}
-        return Response.json({
-          success: res.statusCode === 200,
+        const relayResult = buildRelayTestResult({
+          statusCode: res.statusCode,
           publicIp: parsedIp.ip || null,
           latencyMs: Date.now() - start,
-          proxyUrl: relayUrl,
+          relayUrl,
+          relayAuthPresent: relayAuth.length > 0,
         });
+        // #5716: a relay that *responds* non-200 (e.g. 401 auth mismatch) used to
+        // return `success:false` with no reason and no log — a silent failure.
+        if (!relayResult.success) {
+          console.warn(`[ProxyTest] relay ${relayHost}: ${relayResult.error}`);
+        }
+        return Response.json(relayResult);
       } catch (relayErr) {
+        const message =
+          relayErr instanceof Error && relayErr.name === "AbortError"
+            ? "Connection timeout (10s)"
+            : getErrorMessage(relayErr, "Relay test failed");
+        console.warn(`[ProxyTest] relay ${relayHost} request failed: ${message}`);
         return Response.json({
           success: false,
-          error:
-            relayErr instanceof Error && relayErr.name === "AbortError"
-              ? "Connection timeout (10s)"
-              : getErrorMessage(relayErr, "Relay test failed"),
+          error: message,
           latencyMs: Date.now() - start,
           proxyUrl: relayUrl,
         });
@@ -228,12 +238,15 @@ export async function POST(request: Request) {
         proxyUrl: publicProxyUrl,
       });
     } catch (fetchError) {
+      const message =
+        fetchError instanceof Error && fetchError.name === "AbortError"
+          ? "Connection timeout (10s)"
+          : getErrorMessage(fetchError, "Connection failed");
+      // #5716: surface the reason in server logs — a failing proxy test was silent.
+      console.warn(`[ProxyTest] ${proxyType} proxy ${publicProxyUrl} failed: ${message}`);
       return Response.json({
         success: false,
-        error:
-          fetchError instanceof Error && fetchError.name === "AbortError"
-            ? "Connection timeout (10s)"
-            : getErrorMessage(fetchError, "Connection failed"),
+        error: message,
         latencyMs: Date.now() - startTime,
         proxyUrl: publicProxyUrl,
       });

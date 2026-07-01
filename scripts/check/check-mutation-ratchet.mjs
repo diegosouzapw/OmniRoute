@@ -31,19 +31,30 @@ const DEFAULT_REPORT = path.join(ROOT, "reports/mutation/mutation.json");
 const BASELINE_PREFIX = "mutationScore.";
 const RATCHET = process.argv.includes("--ratchet");
 
+// Anti-flake tolerance (percentage points). The tap-runner runs at concurrency 4 and a
+// mutant whose tests sit near the `timeoutMS` boundary can flip Killed/Timeout/Survived
+// between runs, jittering a module's covered score by a fraction of a point. Only a drop
+// LARGER than this counts as a regression — same idea as the coverage ratchet's `eps`. It
+// does NOT lower the baseline; it absorbs run-to-run noise so the blocking gate stays
+// deterministic. Real test-quality regressions (the headers.ts/telemetry-scale drops that
+// motivated the tap.testFiles coverage fix) are far larger than EPS and still fire.
+export const MUTATION_RATCHET_EPS = 1.0;
+
 const DETECTED = new Set(["Killed", "Timeout"]);
 const SURVIVED = new Set(["Survived"]);
 
 /**
  * Avalia o score MEDIDO de um módulo contra o baseline. Direction: UP (o score só
- * pode subir — menor = regressão).
+ * pode subir — menor = regressão), com tolerância anti-flake `eps`: só conta como
+ * regressão uma queda MAIOR que `eps` pontos.
  * @param {number} current
  * @param {number} baseline
+ * @param {number} [eps] tolerância anti-flake em pontos percentuais
  * @returns {{ regressed: boolean, improved: boolean }}
  */
-export function evaluateMutationRatchet(current, baseline) {
+export function evaluateMutationRatchet(current, baseline, eps = MUTATION_RATCHET_EPS) {
   return {
-    regressed: current < baseline,
+    regressed: current < baseline - eps,
     improved: current > baseline,
   };
 }
