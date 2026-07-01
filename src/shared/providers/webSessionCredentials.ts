@@ -152,10 +152,10 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
   },
   "kimi-web": {
     kind: "cookie",
-    credentialName: "session",
-    placeholder: "session=... or full Cookie header from kimi.moonshot.cn",
+    credentialName: "kimi-auth",
+    placeholder: "kimi-auth=eyJ... (full Cookie header from www.kimi.com)",
     acceptsFullCookieHeader: true,
-    storageKeys: ["cookie", "session"],
+    storageKeys: ["cookie", "kimi-auth", "session"],
   },
   "doubao-web": {
     kind: "cookie",

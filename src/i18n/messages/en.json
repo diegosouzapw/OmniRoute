@@ -4825,7 +4825,7 @@
     "v0VercelWebLabel": "v0 Vercel Web",
     "v0VercelWebDesc": "AI code generation via v0.dev",
     "kimiWebLabel": "Kimi Web",
-    "kimiWebDesc": "Chinese market AI chat via kimi.moonshot.cn",
+    "kimiWebDesc": "Moonshot AI consumer chat via www.kimi.com (international, Connect-RPC API)",
     "doubaoWebLabel": "Doubao Web",
     "doubaoWebDesc": "ByteDance AI chat via doubao.com"
   },
