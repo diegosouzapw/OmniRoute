@@ -19,6 +19,7 @@
 - **feat(usage):** add on-demand period-scoped usage-data reset (Settings → System Storage) with a purge API and time-window selector.
 - **feat(claude-code):** add an opt-in auto-permission classifier compat mode (off/auto/always) for Claude Code, toggleable from the CLI Code settings.
 - **feat(providers):** add optional client-identity header profiles for compatible nodes — preset User-Agent/fingerprint headers (e.g. matching a known CLI) merged into the existing customHeaders field.
+- **feat(xai):** surface Grok usage on the quota dashboard via local usage-history aggregation. (thanks @DevEstacion)
 
 ### 🔧 Bug Fixes
 
