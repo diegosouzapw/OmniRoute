@@ -26,6 +26,10 @@ const STUB_KEYS: Array<[string, string]> = [
   ["accountIdLabel", "Account Id Label"],
   ["accountIdPlaceholder", "Account Id Placeholder"],
   ["accountIdHint", "Account Id Hint"],
+  // #5487 — Qoder PAT form keys shipped the same auto-generated stub placeholders.
+  ["personalAccessTokenLabel", "Personal Access Token Label"],
+  ["qoderPatHint", "Qoder Pat Hint"],
+  ["qoderPatPlaceholder", "Qoder Pat Placeholder"],
 ];
 
 for (const [key, stub] of STUB_KEYS) {

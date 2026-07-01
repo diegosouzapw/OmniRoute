@@ -118,6 +118,22 @@ export function providerText(
   return fallback;
 }
 
+/**
+ * #5442 — Badge variant + i18n label key for an add-credential validation result.
+ * A provider with no live validator returns `unsupported` (Save still succeeds);
+ * previously the modal only had success/failed states, so it rendered a red
+ * "Invalid" badge for those providers even though saving worked (LMArena, PiAPI…).
+ * "unsupported" now maps to a neutral `info` badge ("N/A"), not "Invalid".
+ */
+export function validationBadgeProps(result: string): {
+  variant: "success" | "error" | "info";
+  labelKey: string;
+} {
+  if (result === "success") return { variant: "success", labelKey: "valid" };
+  if (result === "unsupported") return { variant: "info", labelKey: "notApplicable" };
+  return { variant: "error", labelKey: "invalid" };
+}
+
 /** A single model's outcome from a `/api/models/test-all` response. */
 export interface TestAllModelOutcome {
   status: "ok" | "error";
