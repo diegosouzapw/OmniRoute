@@ -232,7 +232,10 @@ function spawnQoderCli(options: SpawnQoderCliOptions): Promise<QoderCliRunResult
  * process result; use {@link parseQoderCliResult} to extract the reply text.
  */
 export async function runQoderCli(options: QoderCliRunOptions): Promise<QoderCliRunResult> {
-  const level = mapQoderModelToLevel(options.model) || "auto";
+  const level = await resolveQoderCliModel(options.model, options.token, {
+    command: options.command,
+    signal: options.signal,
+  });
   const configDir = ensureQoderCliConfigDir();
   const cwd = String(options.workspace || "").trim() || configDir;
   const args = [
@@ -280,6 +283,104 @@ export async function listQoderCliModels(
     command: options.command,
     cwd: configDir,
   });
+}
+
+/** Normalize a model id / display name so "glm-5.2" and "GLM-5.2" compare equal. */
+export function normalizeQoderModelKey(value: unknown): string {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+/** Extract the display names from a `qodercli --list-models` table. */
+export function parseQoderCliModelNames(stdout: string): string[] {
+  return String(stdout || "")
+    .split("\n")
+    .map((line) => line.replace(/\[[0-9;]*m/g, "").trim()) // strip ANSI colors
+    .filter(
+      (line) =>
+        line.length > 0 &&
+        line.toLowerCase() !== "model" && // header row
+        !/invalid model|not logged in|please run|available model keys/i.test(line)
+    );
+}
+
+/**
+ * Resolve an OmniRoute model id to the exact value to pass to `qodercli -m`.
+ * Pure (no I/O) so it can be unit-tested against a captured model list.
+ *
+ * Preference order:
+ *  1. A live `--list-models` display name (case-insensitive, punctuation-insensitive)
+ *     — qodercli accepts these directly and they track upstream renames of the
+ *     opaque internal level keys.
+ *  2. The static family map (level keys) — used when the live list is unavailable
+ *     or has no match.
+ *  3. "Auto".
+ */
+export function resolveQoderModelName(
+  requested: string | null | undefined,
+  availableNames: string[]
+): string {
+  const normalized = normalizeQoderModelKey(requested);
+  if (!normalized) return "auto";
+  const match = (availableNames || []).find((name) => normalizeQoderModelKey(name) === normalized);
+  if (match) return match;
+  return mapQoderModelToLevel(requested) || "auto";
+}
+
+// Per-token cache of the `--list-models` display names (the catalog is stable and
+// per-account); TTL keeps it fresh without a CLI spawn on every request.
+const QODER_MODEL_LIST_TTL_MS = 10 * 60 * 1000;
+type QoderModelNamesCacheEntry = { names: string[]; expiresAt: number };
+const qoderModelNamesCache = new Map<string, QoderModelNamesCacheEntry>();
+const qoderModelNamesPending = new Map<string, Promise<string[]>>();
+
+async function getCachedQoderCliModelNames(
+  token?: string | null,
+  options: { command?: string | null; signal?: AbortSignal | null; now?: number } = {}
+): Promise<string[]> {
+  const key = String(token || "").trim() || "default";
+  const now = options.now ?? Date.now();
+  const cached = qoderModelNamesCache.get(key);
+  if (cached && cached.expiresAt > now) return cached.names;
+
+  let pending = qoderModelNamesPending.get(key);
+  if (!pending) {
+    pending = listQoderCliModels({ token, command: options.command, signal: options.signal })
+      .then((run) => {
+        const names = run.ok ? parseQoderCliModelNames(run.stdout) : [];
+        // Only cache a non-empty success; a failed/empty list should retry next time.
+        if (names.length > 0) {
+          qoderModelNamesCache.set(key, { names, expiresAt: now + QODER_MODEL_LIST_TTL_MS });
+        }
+        return names;
+      })
+      .catch(() => [] as string[])
+      .finally(() => qoderModelNamesPending.delete(key));
+    qoderModelNamesPending.set(key, pending);
+  }
+  return pending;
+}
+
+/** Async resolver: matches the request against the live (cached) `--list-models`. */
+export async function resolveQoderCliModel(
+  requested: string | null | undefined,
+  token?: string | null,
+  options: { command?: string | null; signal?: AbortSignal | null } = {}
+): Promise<string> {
+  let names: string[] = [];
+  try {
+    names = await getCachedQoderCliModelNames(token, options);
+  } catch {
+    names = [];
+  }
+  return resolveQoderModelName(requested, names);
+}
+
+/** Test-only: drop the cached `--list-models` names so unit tests don't leak state. */
+export function __clearQoderModelNamesCache(): void {
+  qoderModelNamesCache.clear();
+  qoderModelNamesPending.clear();
 }
 
 /**

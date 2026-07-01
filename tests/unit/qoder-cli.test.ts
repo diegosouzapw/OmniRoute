@@ -426,3 +426,67 @@ test("runQoderCli preserves multi-byte UTF-8 output (Chinese) via stream setEnco
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("parseQoderCliModelNames extracts display names, dropping header/noise", () => {
+  const names = qoderCli.parseQoderCliModelNames(
+    "MODEL\nAuto\nGLM-5.2\nKimi-K2.7-Code\n\nDeepSeek-V4-Pro\n"
+  );
+  assert.deepEqual(names, ["Auto", "GLM-5.2", "Kimi-K2.7-Code", "DeepSeek-V4-Pro"]);
+  // Auth/error lines must not be mistaken for model names.
+  assert.deepEqual(qoderCli.parseQoderCliModelNames("Not logged in · Please run /login"), []);
+});
+
+test("resolveQoderModelName prefers a live display name, then static, then Auto", () => {
+  const live = ["Auto", "GLM-5.2", "Kimi-K2.7-Code"];
+  // punctuation/case-insensitive match against the live list
+  assert.equal(qoderCli.resolveQoderModelName("glm-5.2", live), "GLM-5.2");
+  assert.equal(qoderCli.resolveQoderModelName("GLM-5.2", live), "GLM-5.2");
+  assert.equal(qoderCli.resolveQoderModelName("kimi-k2.7-code", live), "Kimi-K2.7-Code");
+  // not in the live list → static family map (level key)
+  assert.equal(qoderCli.resolveQoderModelName("qwen3-coder-plus", live), "qmodel");
+  // unknown → Auto; empty → Auto
+  assert.equal(qoderCli.resolveQoderModelName("totally-unknown", live), "auto");
+  assert.equal(qoderCli.resolveQoderModelName("", live), "auto");
+  // no live list at all → falls back to the static map
+  assert.equal(qoderCli.resolveQoderModelName("glm-5.2", []), "gm51model");
+});
+
+test("runQoderCli resolves the request against live --list-models and passes the display name to -m", async () => {
+  qoderCli.__clearQoderModelNamesCache();
+  const prevBin = process.env.CLI_QODER_BIN;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "qodercli-stub-"));
+  const stub = path.join(dir, "qodercli");
+  // --list-models → a live catalog; --print → echo back the -m value it received.
+  fs.writeFileSync(
+    stub,
+    [
+      "#!/bin/sh",
+      'case "$*" in',
+      '  *--list-models*) printf "MODEL\\nAuto\\nGLM-5.2\\nKimi-K2.7-Code\\n"; exit 0;;',
+      "esac",
+      'model=""',
+      'while [ $# -gt 0 ]; do if [ "$1" = "--model" ]; then model="$2"; fi; shift; done',
+      "cat >/dev/null",
+      'printf \'{"type":"result","is_error":false,"result":"%s"}\\n\' "$model"',
+      "exit 0",
+    ].join("\n"),
+    { mode: 0o755 }
+  );
+  process.env.CLI_QODER_BIN = stub;
+  try {
+    const run = await qoderCli.runQoderCli({
+      token: "pt-model-resolve",
+      prompt: "hi",
+      stream: false,
+      model: "glm-5.2",
+    });
+    assert.equal(run.ok, true);
+    // The stub echoed the -m value → proves runQoderCli sent the resolved display name.
+    assert.equal(qoderCli.parseQoderCliResult(run.stdout).text, "GLM-5.2");
+  } finally {
+    qoderCli.__clearQoderModelNamesCache();
+    if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
+    else process.env.CLI_QODER_BIN = prevBin;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
