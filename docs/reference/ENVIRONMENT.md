@@ -571,6 +571,7 @@ REQUEST_TIMEOUT_MS (global override)
 │   └── FETCH_KEEPALIVE_TIMEOUT_MS (independent, default: 4000)
 ├─→ STREAM_IDLE_TIMEOUT_MS (inherits from REQUEST_TIMEOUT_MS, default: 600000)
 ├─→ STREAM_READINESS_TIMEOUT_MS (inherits from REQUEST_TIMEOUT_MS, default: 80000)
+├─→ STREAM_READINESS_MAX_TIMEOUT_MS (caps adaptive readiness extensions, default: 180000)
 └─→ API_BRIDGE_PROXY_TIMEOUT_MS (inherits from REQUEST_TIMEOUT_MS, default: 30000)
     ├─→ API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS (derived, default: 300000)
     ├── API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS (default: 60000)
@@ -584,6 +585,9 @@ REQUEST_TIMEOUT_MS (global override)
 | `FETCH_TIMEOUT_MS`                        | `600000`             | Total HTTP request timeout for upstream provider calls.                                                                                                         |
 | `STREAM_IDLE_TIMEOUT_MS`                  | `600000`             | Max silence between SSE chunks before aborting. Extended-thinking models rarely pause >90s.                                                                     |
 | `STREAM_READINESS_TIMEOUT_MS`             | `80000`              | Time to receive the first non-ping SSE event. Inherits `REQUEST_TIMEOUT_MS` when set.                                                                           |
+| `STREAM_READINESS_MAX_TIMEOUT_MS`         | `180000`             | Maximum adaptive first-event readiness window for large, tool-heavy, or high-reasoning streaming requests.                                                       |
+| `OMNIROUTE_AGENT_GOAL_READINESS_MAX_TIMEOUT_MS` | `600000`      | Maximum first-event readiness window for detected `/goal` agent runs or requests forced with `x-omniroute-agent-goal`.                                          |
+| `OMNIROUTE_AGENT_GOAL_STREAM_RECOVERY`    | `true`               | Enable early stream recovery automatically for detected `/goal` agent runs. Set `false`/`0`/`off` to disable the goal-specific opt-in.                          |
 | `OMNIROUTE_CODEX_DROP_NONSTANDARD_EVENTS` | _(off)_              | Strip non-standard `codex.*` SSE events (e.g. `codex.rate_limits`) that break the OpenAI SDK's `responses.stream()` with a 502. Set `true`/`1`/`yes` to enable. |
 | `FETCH_HEADERS_TIMEOUT_MS`                | = `FETCH_TIMEOUT_MS` | Time to receive response headers.                                                                                                                               |
 | `FETCH_BODY_TIMEOUT_MS`                   | = `FETCH_TIMEOUT_MS` | Time to receive the full response body.                                                                                                                         |
