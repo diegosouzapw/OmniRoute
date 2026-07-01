@@ -777,3 +777,129 @@ test("sanitizeResponsesApiResponse strips leaked multi_tool_use envelopes from R
   assert.equal(JSON.stringify(sanitized).includes("to=multi_tool_use.parallel"), false);
   assert.equal(JSON.stringify(sanitized).includes("recipient_name"), false);
 });
+
+test("sanitizeStreamingChunk strips zero-width joiners from delta content", () => {
+  const sanitized = sanitizeStreamingChunk({
+    choices: [
+      {
+        index: 0,
+        delta: {
+          content: "o\u200dpencode",
+        },
+      },
+    ],
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.choices[0].delta.content, "opencode");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk leaves delta content without zero-width joiners unchanged", () => {
+  const sanitized = sanitizeStreamingChunk({
+    choices: [
+      {
+        index: 0,
+        delta: {
+          content: "opncode",
+        },
+      },
+    ],
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.choices[0].delta.content, "opncode");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips inline zero-width joiners from sentence content", () => {
+  const sanitized = sanitizeStreamingChunk({
+    choices: [
+      {
+        index: 0,
+        delta: {
+          content: "hello o\u200dpencode world",
+        },
+      },
+    ],
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.choices[0].delta.content, "hello opencode world");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from reasoning_content deltas", () => {
+  const sanitized = sanitizeStreamingChunk({
+    choices: [
+      {
+        index: 0,
+        delta: {
+          reasoning_content: "c\u200dursor plan",
+        },
+      },
+    ],
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.choices[0].delta.reasoning_content, "cursor plan");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from Responses reasoning summaries", () => {
+  const sanitized = sanitizeStreamingChunk({
+    type: "response.output_item.done",
+    item: {
+      id: "rs_1",
+      type: "reasoning",
+      summary: [{ type: "summary_text", text: "a\u200dider note" }],
+    },
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.item.summary[0].text, "aider note");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from native response.output_text.delta", () => {
+  const sanitized = sanitizeStreamingChunk({
+    type: "response.output_text.delta",
+    delta: "o\u200dpencode",
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.delta, "opencode");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from native response.output_text.done", () => {
+  const sanitized = sanitizeStreamingChunk({
+    type: "response.output_text.done",
+    text: "c\u200dursor done",
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.text, "cursor done");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from response.reasoning_summary_text.delta", () => {
+  const sanitized = sanitizeStreamingChunk({
+    type: "response.reasoning_summary_text.delta",
+    delta: "a\u200dider",
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.delta, "aider");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk leaves function_call_arguments.delta byte-exact (tool args must not be corrupted)", () => {
+  const sanitized = sanitizeStreamingChunk({
+    type: "response.function_call_arguments.delta",
+    delta: '{"path":"o\u200dpencode"}',
+  }) as any;
+
+  assert.equal(sanitized.delta, '{"path":"o\u200dpencode"}');
+  assert.equal((sanitized.delta as string).includes("\u200d"), true);
+});
