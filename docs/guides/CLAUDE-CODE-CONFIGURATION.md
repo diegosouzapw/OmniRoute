@@ -83,7 +83,7 @@ profile per model at `~/.claude/profiles/<name>/settings.json`, reusing the
 **Auto-sync after model discovery (opt-in).** OmniRoute can regenerate these same
 `~/.claude/profiles/<name>/settings.json` files automatically whenever a provider model
 sync changes the live catalog — so new/renamed models get profiles without re-running the
-command. It is **off by default**: toggle it from the **providers dashboard** ("CLI profile
+command. It is **off by default**: toggle it from the **CLI Code dashboard** ("CLI profile
 auto-sync" → Claude Code), or set `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (it also honors
 `CLI_ALLOW_CONFIG_WRITES`, on by default). When enabled it only writes profile files; it never
 changes your active/default Claude config, auth, or the `~/.claude/settings.json`.

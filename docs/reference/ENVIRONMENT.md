@@ -353,6 +353,16 @@ Controls how OmniRoute discovers and launches CLI sidecars (Claude Code, Codex, 
 | `CLI_DEVIN_BIN`           | `devin`     | `open-sse/executors/devin-cli.ts`                   | Custom path to the Devin CLI binary (v3.8.0). Used by the Windsurf/Devin executor.                                                                                             |
 | `HERMES_HOME`             | `~/.hermes` | `src/lib/cli-helper/config-generator/hermesHome.ts` | Hermes Agent home directory where OmniRoute reads/writes the Hermes CLI config. Matches the env var the Hermes PowerShell installer sets on Windows (`%LOCALAPPDATA%\hermes`). |
 
+### CLI Profile Auto-Sync
+
+These feature flags are opt-in and default off. They can also be toggled from
+the CLI Code dashboard.
+
+| Variable                                | Default | Source File                                     | Description                                                                                                                                                                                                                                         |
+| --------------------------------------- | ------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES`    | `false` | `src/shared/constants/featureFlagDefinitions.ts` | After a provider model sync, automatically rewrites `~/.codex/*.config.toml` profile files from the live catalog. Requires `CLI_ALLOW_CONFIG_WRITES`; never changes the active/default Codex config, auth, Codex-lb settings, or provider choice.     |
+| `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES`   | `false` | `src/shared/constants/featureFlagDefinitions.ts` | After a provider model sync, automatically rewrites `~/.claude/profiles/<name>/settings.json` Claude Code profile files from the live catalog. Requires `CLI_ALLOW_CONFIG_WRITES`; never changes the active/default Claude config, auth, or provider choice. |
+
 ### Docker Example
 
 ```bash
