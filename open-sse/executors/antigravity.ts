@@ -1388,7 +1388,14 @@ export class AntigravityExecutor extends BaseExecutor {
             try {
               const errorBody = await response.clone().text();
               const errorJson = JSON.parse(errorBody);
-              const errorMessage = errorJson?.error?.message || errorJson?.message || "";
+              let errorMessage = errorJson?.error?.message || errorJson?.message || "";
+              if (errorJson?.error?.details && Array.isArray(errorJson.error.details)) {
+                for (const detail of errorJson.error.details) {
+                  if (detail?.reason) {
+                    errorMessage += ` ${detail.reason}`;
+                  }
+                }
+              }
 
               // 1. Try to parse explicit retry time from message
               const parsedRetryMs = this.parseRetryFromErrorMessage(errorMessage);

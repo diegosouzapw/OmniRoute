@@ -2020,7 +2020,9 @@ export async function markAccountUnavailable(
         {
           ...modelLockoutOptions,
           exactCooldownMs:
-            fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
+            fallbackResult.usedUpstreamRetryHint === true
+              ? fallbackResult.cooldownMs
+              : (fallbackResult.quotaResetHintMs ?? null),
           maxCooldownMs: mlSettings.maxCooldownMs,
         }
       );
