@@ -47,7 +47,6 @@ import {
   normalizeIntelligentRoutingConfig,
 } from "@/lib/combos/intelligentRouting";
 import { resolveServerErrorMessage } from "@/lib/api/serverErrorMessage";
-import { withDashboardCsrfHeader } from "@/shared/utils/dashboardCsrf";
 import { useTranslations } from "next-intl";
 
 const ModelSelectModal = dynamic(() => import("@/shared/components/ModelSelectModal"), {
@@ -868,7 +867,7 @@ export default function CombosPage() {
     try {
       const res = await fetch("/api/combos/test", {
         method: "POST",
-        headers: await withDashboardCsrfHeader({ "Content-Type": "application/json" }),
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ comboName: combo.name }),
       });
       const data = await res.json();

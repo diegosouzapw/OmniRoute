@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useInsertionEffect, useState } from "react";
 import Sidebar from "../Sidebar";
 import Header from "../Header";
 import NotificationToast from "../NotificationToast";
@@ -9,6 +9,10 @@ import MaintenanceBanner from "../MaintenanceBanner";
 import CommandPalette from "../CommandPalette";
 import NavigationProgress from "../NavigationProgress";
 import { useIsElectron } from "@/shared/hooks/useElectron";
+import {
+  installDashboardCsrfFetch,
+  prefetchDashboardCsrfToken,
+} from "@/shared/utils/dashboardCsrf";
 
 const SIDEBAR_COLLAPSED_KEY = "sidebar-collapsed";
 const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
@@ -40,6 +44,12 @@ export default function DashboardLayout({ children }) {
       document.body.classList.remove("electron-macos");
     };
   }, [isMacElectron]);
+
+  useInsertionEffect(() => {
+    const uninstallDashboardCsrfFetch = installDashboardCsrfFetch();
+    void prefetchDashboardCsrfToken();
+    return uninstallDashboardCsrfFetch;
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -107,9 +117,7 @@ export default function DashboardLayout({ children }) {
               1280px cap that left big empty margins on wide screens. */}
           <div className="max-w-[3840px] mx-auto w-full h-full min-h-0 flex flex-col">
             <Breadcrumbs />
-            <div className="flex-1 min-h-0">
-              {children}
-            </div>
+            <div className="flex-1 min-h-0">{children}</div>
           </div>
         </div>
       </main>
