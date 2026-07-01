@@ -65,9 +65,14 @@ upstream error response
 - The permanent `banned` terminalization fires on a banned-signal body at **any
   HTTP status** (via `markAccountUnavailable` → `checkFallbackError`). The
   narrower **`deactivated`** label (`isActive=false` when the connection has no
-  spare API keys) is produced specifically on **HTTP 401 / 403** through
-  `classifyProviderError`. (The older code comment says "when a 401 body contains
-  these strings" — that understates the current behavior.)
+  spare API keys) is written by the inline `chatCore.ts` path on **HTTP 401 / 403**
+  (classified via `classifyProviderError` → `ACCOUNT_DEACTIVATED`). Note the
+  `markAccountUnavailable()` path writes a *different* terminal status —
+  **`expired`** — for the same `ACCOUNT_DEACTIVATED` signal (via
+  `resolveTerminalConnectionStatus`), so the same ban can surface as either
+  `deactivated` or `expired` depending on which path handled the response. (The
+  older code comment says "when a 401 body contains these strings" — that
+  understates the current behavior.)
 - A `banned` connection is excluded from selection everywhere terminal statuses
   are filtered (`isTerminalConnectionStatus`, combo `QUOTA_BLOCKING_CONNECTION_STATUSES`).
 
