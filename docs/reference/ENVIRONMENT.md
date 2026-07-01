@@ -800,6 +800,8 @@ Automatic model pricing data synchronization from external sources.
 | `CLIPROXYAPI_PORT`                             | `5544`                                 | `open-sse/executors/cliproxyapi.ts`                                                | CLIProxyAPI bridge port.                                                                                    |
 | `CLIPROXYAPI_CONFIG_DIR`                       | `~/.cli-proxy-api`                     | `src/lib/versionManager/processManager.ts`                                         | CLIProxyAPI config directory.                                                                               |
 | `LOCAL_HOSTNAMES`                              | _(empty)_                              | `open-sse/config/providerRegistry.ts`                                              | Comma-separated additional hostnames treated as "local" (Docker service names, etc.).                       |
+| `FIRECRAWL_BASE_URL`                           | `https://api.firecrawl.dev`            | `open-sse/executors/firecrawl-fetch.ts`                                            | Point the Firecrawl web-fetch executor at a self-hosted instance. When custom, the API key becomes optional. |
+| `FIRECRAWL_TIMEOUT_MS`                         | `30000`                                | `open-sse/executors/firecrawl-fetch.ts`                                            | Request timeout for Firecrawl scrape calls, in milliseconds.                                                |
 
 `ENABLE_CC_COMPATIBLE_PROVIDER` is only for third-party relays that accept Claude Code clients
 exclusively. OmniRoute rewrites requests so those relays accept them. If you only want to use

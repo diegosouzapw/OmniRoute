@@ -8,6 +8,8 @@
 
 ### ✨ New Features
 
+- **feat(webfetch):** support self-hosted FireCrawl via `FIRECRAWL_BASE_URL`, with the API key optional for custom instances. (thanks @bloodf)
+
 - **providers (CLI profile auto-sync):** opt-in toggles to auto-regenerate CLI tool profiles after a provider model sync. When enabled, a model-catalog change (re)writes that tool's profile files from the live catalog — Codex (`~/.codex/*.config.toml`) and now **Claude Code** (`~/.claude/profiles/<name>/settings.json`, via an extracted `syncClaudeProfilesFromModels` + a new `claudeProfileAutoSync.ts` mirroring the Codex path). Both are **off by default** and never touch the active/default CLI config; they are backed by the `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES` / `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES` feature flags (DB/dashboard override > env > default "false") and additionally gated behind the existing `CLI_ALLOW_CONFIG_WRITES` write-guard. A **"CLI profile auto-sync"** card on the CLI Code dashboard toggles each (moved from the providers dashboard in [#5778](https://github.com/diegosouzapw/OmniRoute/pull/5778) — thanks [@rdself](https://github.com/rdself)). Regression guards: `tests/unit/claude-profile-auto-sync-gate.test.ts`, `tests/unit/codex-profile-auto-sync-gate.test.ts`, `tests/unit/cli/setup-claude.test.ts` (follow-up to #5737).
 
 - **cli (startup banner):** the `serve` startup banner now prints the running OmniRoute version (`v3.8.x`) beneath the ASCII logo, so the active version is visible at a glance without a separate `--version` call. Regression guard: `tests/unit/cli-serve-version-banner.test.ts`. Thanks [@chirag127](https://github.com/chirag127) ([#5752](https://github.com/diegosouzapw/OmniRoute/pull/5752)).
