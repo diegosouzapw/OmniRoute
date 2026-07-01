@@ -748,6 +748,7 @@ test("compatible catalog entries keep dynamic compatible metadata", () => {
         type: "openai-compatible",
         apiType: "responses",
         baseUrl: "https://example.test",
+        iconUrl: "https://cdn.example.com/icons/lab.png",
       },
       compatibleLabels: {
         ccCompatibleName: "CC Compatible",
@@ -762,6 +763,8 @@ test("compatible catalog entries keep dynamic compatible metadata", () => {
   assert.equal(compatibleProvider?.toggleAuthType, "apikey");
   assert.equal(compatibleProvider?.apiType, "responses");
   assert.equal(compatibleProvider?.baseUrl, "https://example.test");
+  // #2166: custom remote icon URL passthrough.
+  assert.equal(compatibleProvider?.iconUrl, "https://cdn.example.com/icons/lab.png");
 });
 
 test("model search filter matches providers by model id", async () => {
@@ -1015,7 +1018,13 @@ test("buildCompatibleProviderGroups partitions nodes by type + claude-code prefi
 
   const groups = providerPageUtils.buildCompatibleProviderGroups(
     [
-      { id: "my-oai", name: "My OAI", type: "openai-compatible", apiType: "responses" },
+      {
+        id: "my-oai",
+        name: "My OAI",
+        type: "openai-compatible",
+        apiType: "responses",
+        iconUrl: "https://cdn.example.com/icons/my-oai.png",
+      },
       { id: "my-anthropic", name: "My Claude", type: "anthropic-compatible" },
       { id: "anthropic-compatible-cc-acme", name: "Acme CC", type: "anthropic-compatible" },
       { id: "ignored-node", name: "Ignored", type: "unsupported-provider" },
@@ -1036,6 +1045,14 @@ test("buildCompatibleProviderGroups partitions nodes by type + claude-code prefi
     labels.openaiCompatibleName,
     "missing name falls back to the openai-compatible label"
   );
+
+  // #2166: custom remote icon URL passthrough.
+  assert.equal(
+    groups.openai[0].iconUrl,
+    "https://cdn.example.com/icons/my-oai.png",
+    "iconUrl is preserved for nodes that set it"
+  );
+  assert.equal(groups.openai[1].iconUrl, undefined, "iconUrl is undefined when the node has none");
 
   assert.deepEqual(
     groups.anthropic.map((p) => p.id),

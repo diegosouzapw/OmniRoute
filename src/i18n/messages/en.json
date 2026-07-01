@@ -4085,6 +4085,8 @@
     "prefixHint": "Required. Unique prefix for model names.",
     "nameHint": "Required. A friendly label for this node.",
     "baseUrlHint": "Required. Provider API base URL.",
+    "iconUrlLabel": "Icon URL (optional)",
+    "iconUrlHint": "Optional. A square image URL shown as this provider's icon. Falls back to a text badge if unset or it fails to load.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",

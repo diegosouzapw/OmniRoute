@@ -11,6 +11,7 @@ interface EditCompatibleNodeModalNode {
   baseUrl?: string;
   chatPath?: string;
   modelsPath?: string;
+  iconUrl?: string;
 }
 
 interface EditCompatibleNodeModalProps {
@@ -38,6 +39,7 @@ export default function EditCompatibleNodeModal({
     baseUrl: "https://api.openai.com/v1",
     chatPath: "",
     modelsPath: "",
+    iconUrl: "",
   });
   const [saving, setSaving] = useState(false);
   const [checkKey, setCheckKey] = useState("");
@@ -63,6 +65,7 @@ export default function EditCompatibleNodeModal({
               : "https://api.openai.com/v1"),
         chatPath: node.chatPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_CHAT_PATH : ""),
         modelsPath: isCcCompatible ? "" : node.modelsPath || "",
+        iconUrl: node.iconUrl || "",
       });
       setShowAdvanced(
         !!(
@@ -93,6 +96,7 @@ export default function EditCompatibleNodeModal({
         baseUrl: formData.baseUrl,
         chatPath: formData.chatPath || (isCcCompatible ? CC_COMPATIBLE_DEFAULT_CHAT_PATH : ""),
         modelsPath: isCcCompatible ? "" : formData.modelsPath,
+        iconUrl: formData.iconUrl.trim(),
       };
       if (!isAnthropic) {
         payload.apiType = formData.apiType;
@@ -207,6 +211,13 @@ export default function EditCompatibleNodeModal({
                   type: isAnthropic ? t("anthropic") : t("openai"),
                 })
           }
+        />
+        <Input
+          label={t("iconUrlLabel")}
+          value={formData.iconUrl}
+          onChange={(e) => setFormData({ ...formData, iconUrl: e.target.value })}
+          placeholder="https://example.com/logo.png"
+          hint={t("iconUrlHint")}
         />
         <button
           type="button"

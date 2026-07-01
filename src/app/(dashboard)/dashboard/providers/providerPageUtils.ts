@@ -32,6 +32,8 @@ export type CompatibleProviderInfo = {
   color: string;
   textIcon: string;
   apiType?: string;
+  /** Optional operator-supplied remote icon URL (#2166). */
+  iconUrl?: string;
 };
 
 export type CompatibleProviderGroups = {
@@ -126,7 +128,13 @@ export function buildStaticProviderEntries(
 }
 
 export function buildCompatibleProviderGroups(
-  providerNodes: Array<{ id: string; name?: string; type?: string; apiType?: string }>,
+  providerNodes: Array<{
+    id: string;
+    name?: string;
+    type?: string;
+    apiType?: string;
+    iconUrl?: string | null;
+  }>,
   labels: {
     openaiCompatibleName: string;
     anthropicCompatibleName: string;
@@ -145,6 +153,7 @@ export function buildCompatibleProviderGroups(
         color: "#10A37F",
         textIcon: "OC",
         apiType: node.apiType,
+        iconUrl: node.iconUrl || undefined,
       });
       continue;
     }
@@ -157,6 +166,7 @@ export function buildCompatibleProviderGroups(
         name: node.name || labels.claudeCodeCompatibleName,
         color: "#B45309",
         textIcon: "CC",
+        iconUrl: node.iconUrl || undefined,
       });
       continue;
     }
@@ -166,6 +176,7 @@ export function buildCompatibleProviderGroups(
       name: node.name || labels.anthropicCompatibleName,
       color: "#D97757",
       textIcon: "AC",
+      iconUrl: node.iconUrl || undefined,
     });
   }
 
