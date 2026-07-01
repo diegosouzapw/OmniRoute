@@ -65,12 +65,27 @@ const DEFAULT_DEGRADATION_MAP: Record<string, string> = {
 
 // ── State ───────────────────────────────────────────────────────────────────
 
-let _config: DegradationConfig = {
-  enabled: false, // Disabled by default — user must opt in
-  degradationMap: { ...DEFAULT_DEGRADATION_MAP },
-  detectionPatterns: [...DEFAULT_DETECTION_PATTERNS],
-  stats: { detected: 0, tokensSaved: 0 },
-};
+// Backed by globalThis so the singleton is shared across the SEPARATE webpack
+// module graphs Next.js builds for `instrumentation.ts` (boot-time hydration via
+// applyRuntimeSettings → setBackgroundDegradationConfig) and the app-route /
+// open-sse executors (per-request reads in the chat handler). A module-local `let`
+// is duplicated per graph, so the operator's opt-in (`enabled:true`) applied at boot
+// never reaches the request path — the degradation silently never fires (the
+// #5312-class module-graph bug). Mirrors systemPrompt.ts (#2470) and thinkingBudget.ts.
+const GLOBAL_KEY = "__omniroute_backgroundDegradation_config__";
+const _store = globalThis as unknown as Record<string, DegradationConfig | undefined>;
+
+function getConfig(): DegradationConfig {
+  if (!_store[GLOBAL_KEY]) {
+    _store[GLOBAL_KEY] = {
+      enabled: false, // Disabled by default — user must opt in
+      degradationMap: { ...DEFAULT_DEGRADATION_MAP },
+      detectionPatterns: [...DEFAULT_DETECTION_PATTERNS],
+      stats: { detected: 0, tokensSaved: 0 },
+    };
+  }
+  return _store[GLOBAL_KEY]!;
+}
 
 // ── Config Management ───────────────────────────────────────────────────────
 
@@ -78,10 +93,10 @@ let _config: DegradationConfig = {
  * Set the background degradation config (called from settings API or startup).
  */
 export function setBackgroundDegradationConfig(config: Partial<DegradationConfig>): void {
-  _config = {
-    ..._config,
+  _store[GLOBAL_KEY] = {
+    ...getConfig(),
     ...config,
-    stats: _config.stats, // preserve stats across config changes
+    stats: getConfig().stats, // preserve stats across config changes
   };
 }
 
@@ -90,10 +105,10 @@ export function setBackgroundDegradationConfig(config: Partial<DegradationConfig
  */
 export function getBackgroundDegradationConfig(): DegradationConfig {
   return {
-    ..._config,
-    degradationMap: { ..._config.degradationMap },
-    detectionPatterns: [..._config.detectionPatterns],
-    stats: { ..._config.stats },
+    ...getConfig(),
+    degradationMap: { ...getConfig().degradationMap },
+    detectionPatterns: [...getConfig().detectionPatterns],
+    stats: { ...getConfig().stats },
   };
 }
 
@@ -101,7 +116,7 @@ export function getBackgroundDegradationConfig(): DegradationConfig {
  * Reset stats counters.
  */
 export function resetStats(): void {
-  _config.stats = { detected: 0, tokensSaved: 0 };
+  getConfig().stats = { detected: 0, tokensSaved: 0 };
 }
 
 // ── Detection ───────────────────────────────────────────────────────────────
@@ -187,7 +202,7 @@ export function getBackgroundTaskReason(
   if (!systemContent) return null;
 
   // Check against detection patterns
-  const matched = _config.detectionPatterns.some((pattern) =>
+  const matched = getConfig().detectionPatterns.some((pattern) =>
     systemContent.includes(pattern.toLowerCase())
   );
 
@@ -224,9 +239,9 @@ export function isBackgroundTask(
 export function getDegradedModel(originalModel: string): string {
   if (!originalModel) return originalModel;
 
-  const degraded = _config.degradationMap[originalModel];
+  const degraded = getConfig().degradationMap[originalModel];
   if (degraded) {
-    _config.stats.detected++;
+    getConfig().stats.detected++;
     return degraded;
   }
 
