@@ -5952,6 +5952,12 @@
       "description": "5-tier route classification with live bypass policy. Read shows the full taxonomy; mutations re-prompt for the management password.",
       "loading": "Loading inventory…",
       "loadError": "Failed to load authz inventory",
+      "cors": {
+        "wildcard": {
+          "title": "Wildcard CORS enabled via env",
+          "desc": "CORS_ALLOW_ALL=true — any browser origin may call this server. Safe for local-only dev; remove it in production and use an explicit CORS origin list. See docs/security/CORS.md."
+        }
+      },
       "tier": {
         "LOCAL_ONLY": "Local only",
         "ALWAYS_PROTECTED": "Always protected",

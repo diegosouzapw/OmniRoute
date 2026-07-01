@@ -13,11 +13,17 @@ interface TierEntry {
   bypassable: boolean;
 }
 
+interface CorsStatus {
+  allowAll: boolean;
+  allowedOrigins: string[];
+}
+
 interface InventoryPayload {
   tiers: TierEntry[];
   bypassEnabled: boolean;
   bypassPrefixes: string[];
   spawnCapablePrefixes: string[];
+  cors?: CorsStatus;
 }
 
 interface StatusMessage {
@@ -241,6 +247,24 @@ export default function AuthzSection() {
 
   return (
     <>
+      {/* #5602: persistent wildcard-CORS warning — only visible while
+          CORS_ALLOW_ALL=true is live. See docs/security/CORS.md. */}
+      {inventory.cors?.allowAll && (
+        <div
+          data-testid="cors-wildcard-banner"
+          role="alert"
+          className="flex items-start gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-amber-700 dark:text-amber-300"
+        >
+          <span className="material-symbols-outlined text-[20px] mt-0.5" aria-hidden="true">
+            warning
+          </span>
+          <div className="flex flex-col gap-1">
+            <p className="font-semibold">{t("authz.cors.wildcard.title")}</p>
+            <p className="text-sm">{t("authz.cors.wildcard.desc")}</p>
+          </div>
+        </div>
+      )}
+
       {/* Bypass policy editor */}
       <Card>
         <div className="flex items-center gap-3 mb-4">

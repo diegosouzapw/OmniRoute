@@ -167,6 +167,7 @@ without also implementing the enforcement logic.
 
 ## See also
 
+- `docs/security/CORS.md` — browser-origin allowlist (a separate, complementary control)
 - `docs/security/CLI_TOKEN.md` — CLI machine-ID token
 - `docs/architecture/AUTHZ_GUIDE.md` — full authorization pipeline
 - `docs/frameworks/MCP-SERVER.md` — MCP server transports and scopes

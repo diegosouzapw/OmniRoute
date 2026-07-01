@@ -19,6 +19,7 @@ process.env.OMNIROUTE_DISABLE_REDIS_AUTH_CACHE = "1";
 
 const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+const ORIGINAL_CORS_ALLOW_ALL = process.env.CORS_ALLOW_ALL;
 
 const core = await import("../../../src/lib/db/core.ts");
 const settingsDb = await import("../../../src/lib/db/settings.ts");
@@ -39,6 +40,8 @@ test.after(() => {
   else process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
   if (ORIGINAL_INITIAL_PASSWORD === undefined) delete process.env.INITIAL_PASSWORD;
   else process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+  if (ORIGINAL_CORS_ALLOW_ALL === undefined) delete process.env.CORS_ALLOW_ALL;
+  else process.env.CORS_ALLOW_ALL = ORIGINAL_CORS_ALLOW_ALL;
 });
 
 // ─── AC-1 — shape ─────────────────────────────────────────────────────────
@@ -151,6 +154,44 @@ test("AC-2: bypassPrefixes additions land in the inventory", async () => {
   assert.equal(response.status, 200);
   const body = (await response.json()) as { bypassPrefixes: string[] };
   assert.deepEqual(body.bypassPrefixes, ["/api/mcp/", "/api/mcp/v2/"]);
+});
+
+// ─── #5602 — CORS status surfaced for the dashboard wildcard warning ──────
+
+test("#5602: cors.allowAll is false by default (no CORS_ALLOW_ALL)", async () => {
+  process.env.JWT_SECRET = "test-jwt-secret-authz-inventory";
+  process.env.INITIAL_PASSWORD = "initial-pass-cors-a";
+  delete process.env.CORS_ALLOW_ALL;
+  await settingsDb.updateSettings({ requireLogin: true });
+
+  const response = await inventoryRoute.GET(
+    await makeManagementSessionRequest("http://localhost/api/settings/authz-inventory", {
+      method: "GET",
+    })
+  );
+  assert.equal(response.status, 200);
+  const body = (await response.json()) as {
+    cors: { allowAll: boolean; allowedOrigins: string[] };
+  };
+  assert.ok(body.cors, "response should carry a cors envelope");
+  assert.equal(body.cors.allowAll, false);
+  assert.deepEqual(body.cors.allowedOrigins, []);
+});
+
+test("#5602: cors.allowAll reflects CORS_ALLOW_ALL=true", async () => {
+  process.env.JWT_SECRET = "test-jwt-secret-authz-inventory";
+  process.env.INITIAL_PASSWORD = "initial-pass-cors-b";
+  process.env.CORS_ALLOW_ALL = "true";
+  await settingsDb.updateSettings({ requireLogin: true });
+
+  const response = await inventoryRoute.GET(
+    await makeManagementSessionRequest("http://localhost/api/settings/authz-inventory", {
+      method: "GET",
+    })
+  );
+  assert.equal(response.status, 200);
+  const body = (await response.json()) as { cors: { allowAll: boolean } };
+  assert.equal(body.cors.allowAll, true);
 });
 
 // ─── AC-12 — anonymous request rejected (no inventory leak) ───────────────
