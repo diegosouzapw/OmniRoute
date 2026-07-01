@@ -12,6 +12,7 @@ import {
   buildModelSyncInternalHeaders,
   isModelSyncInternalRequest,
 } from "@/shared/services/modelSyncScheduler";
+import { autoSyncCodexProfilesFromLiveCatalog } from "@/lib/cli-helper/codexProfileAutoSync";
 import { GET as getProviderModels } from "../models/route";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
@@ -520,6 +521,27 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const importedCount = importedChanges.added;
     const updatedCount = importedChanges.updated;
     const shouldLog = modelChanges.total > 0 || customModelChanges.total > 0;
+
+    if (shouldLog) {
+      void autoSyncCodexProfilesFromLiveCatalog(request, `model-sync:${logProvider}`)
+        .then((syncResult) => {
+          if (syncResult.ok) {
+            console.log(
+              `[ModelSync] Codex profile auto-sync wrote ${syncResult.written} profile(s), skipped ${syncResult.skipped} (${logProvider})`
+            );
+          } else {
+            console.log(
+              `[ModelSync] Codex profile auto-sync skipped for ${logProvider}: ${syncResult.reason}`
+            );
+          }
+        })
+        .catch((err) => {
+          console.log(
+            `[ModelSync] Codex profile auto-sync failed for ${logProvider}:`,
+            err?.message || err
+          );
+        });
+    }
 
     if (shouldLog) {
       await saveCallLog({

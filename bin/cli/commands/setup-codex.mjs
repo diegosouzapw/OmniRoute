@@ -187,6 +187,52 @@ function buildProfileToml(modelId, cfg) {
   return lines.join("\n") + "\n";
 }
 
+export async function syncCodexProfilesFromModels(models, opts = {}) {
+  const codexHome = opts.codexHome || join(os.homedir(), ".codex");
+  const dryRun = Boolean(opts.dryRun);
+  const onlyFilter = opts.only ? opts.only.split(",").map((s) => s.trim()) : null;
+
+  if (!dryRun && !existsSync(codexHome)) {
+    mkdirSync(codexHome, { recursive: true });
+  }
+
+  let written = 0;
+  let skipped = 0;
+  const profiles = [];
+
+  for (const m of models) {
+    const id = typeof m === "string" ? m : (m.id ?? "");
+    if (!id) {
+      skipped++;
+      continue;
+    }
+    if (onlyFilter && !onlyFilter.some((f) => id.includes(f))) {
+      skipped++;
+      continue;
+    }
+
+    const cfg = categoriseModel(id) ?? fallbackCodexProfile(id, m);
+    if (!cfg) {
+      skipped++;
+      continue;
+    }
+
+    const filePath = join(codexHome, `${cfg.name}.config.toml`);
+    const content = buildProfileToml(id, cfg);
+
+    if (dryRun) {
+      console.log(`\n── [dry-run] ${filePath} ──`);
+      console.log(content);
+    } else {
+      writeFileSync(filePath, content, "utf8");
+    }
+    profiles.push({ name: cfg.name, model: id, filePath });
+    written++;
+  }
+
+  return { written, skipped, profiles };
+}
+
 // ── Command ───────────────────────────────────────────────────────────────────
 
 /**
@@ -228,39 +274,17 @@ export async function runSetupCodexCommand(opts = {}) {
 
   printInfo(`Received ${models.length} models from ${baseUrl}`);
 
-  // ── Ensure codex home exists ──────────────────────────────────────────────
-  if (!dryRun && !existsSync(codexHome)) {
-    mkdirSync(codexHome, { recursive: true });
-  }
-
   // ── Generate profiles ─────────────────────────────────────────────────────
-  let written = 0;
-  let skipped = 0;
-
-  for (const m of models) {
-    const id = typeof m === "string" ? m : (m.id ?? "");
-    if (!id) continue;
-    if (onlyFilter && !onlyFilter.some((f) => id.includes(f))) continue;
-
-    const cfg = categoriseModel(id) ?? fallbackCodexProfile(id, m);
-    if (!cfg) continue;
-
-    const filePath = join(codexHome, `${cfg.name}.config.toml`);
-    const content = buildProfileToml(id, cfg);
-
-    if (dryRun) {
-      console.log(`\n── [dry-run] ${filePath} ──`);
-      console.log(content);
-    } else {
-      writeFileSync(filePath, content, "utf8");
-      printSuccess(`  ✓ ${cfg.name}.config.toml  (${id})`);
-    }
-    written++;
-  }
-
-  skipped = models.length - written;
+  const { written, skipped, profiles } = await syncCodexProfilesFromModels(models, {
+    codexHome,
+    dryRun,
+    only: opts.only,
+  });
 
   if (!dryRun) {
+    for (const profile of profiles) {
+      printSuccess(`  ✓ ${profile.name}.config.toml  (${profile.model})`);
+    }
     console.log("");
     printSuccess(`${written} profiles written to ${codexHome}`);
     if (skipped > 0) {

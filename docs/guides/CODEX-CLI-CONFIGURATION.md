@@ -243,6 +243,8 @@ omniroute setup-codex --codex-home /path/to/.codex
 
 The command fetches `/v1/models`, uses tuned profiles for known models, falls back to catalog metadata for other compatible text models, and writes `~/.codex/<name>.config.toml` for each. Idempotent — safe to re-run.
 
+When `CLI_ALLOW_CONFIG_WRITES=true`, OmniRoute also auto-syncs these same profile files after a successful provider model discovery/import changes the live catalog. This only writes separate `~/.codex/*.config.toml` profile files; it does not change the active/default `~/.codex/config.toml`, Codex-lb settings, auth, or provider selection. Disable with `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=false`.
+
 ---
 
 ## Launching Codex with `omniroute launch-codex`
