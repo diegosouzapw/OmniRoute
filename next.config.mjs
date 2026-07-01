@@ -82,6 +82,16 @@ const minimalBuildAliases = isMinimalBuild
     }
   : {};
 
+function readTimeoutMs(...values) {
+  for (const value of values) {
+    const normalized = typeof value === "string" ? value.trim() : value;
+    if (normalized == null || normalized === "") continue;
+    const parsed = Number(normalized);
+    if (Number.isFinite(parsed) && parsed >= 0) return Math.floor(parsed);
+  }
+  return 600_000;
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   distDir,
@@ -114,6 +124,10 @@ const nextConfig = {
     // uploads (OpenAI-compatible /v1/files) routinely exceed this. Match the
     // 512 MB server-side cap; tune via env if needed.
     proxyClientMaxBodySize: process.env.NEXT_PROXY_BODY_LIMIT || "512mb",
+    // Next's internal router proxy defaults to 30s when this is unset. OmniRoute
+    // can legitimately hold non-streaming chat requests open for minutes while an
+    // upstream provider finishes, so reuse the existing request-timeout knobs.
+    proxyTimeout: readTimeoutMs(process.env.REQUEST_TIMEOUT_MS, process.env.FETCH_TIMEOUT_MS),
     // PR-2 of diegosouzapw/OmniRoute#3932: tree-shake barrel re-exports so
     // route bundles don't pull in 14 locale files, every lucide-react icon,
     // or the full date-fns surface when only one helper is used.

@@ -65,6 +65,7 @@ import {
   stainlessRuntimeVersion,
   stripProxyToolPrefix,
 } from "./claudeIdentity.ts";
+import { withForcedResponsesUpstream } from "./forceResponsesUpstream.ts";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
@@ -863,9 +864,10 @@ export class BaseExecutor {
     const strippedFields = new Set<string>();
 
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
-      const url = this.buildUrl(model, stream, urlIndex, activeCredentials);
-      const headers = this.buildHeaders(activeCredentials, stream, clientHeaders, model);
-      applyConfiguredUserAgent(headers, activeCredentials?.providerSpecificData);
+      const requestCredentials = withForcedResponsesUpstream(this.provider, body, activeCredentials);
+      const url = this.buildUrl(model, stream, urlIndex, requestCredentials);
+      const headers = this.buildHeaders(requestCredentials, stream, clientHeaders, model);
+      applyConfiguredUserAgent(headers, requestCredentials?.providerSpecificData);
 
       // Strip OpenAI SDK (X-Stainless-*) metadata + normalize SDK-derived User-Agent
       // on OpenAI-compatible passthrough requests — some upstream gateways 403 on them.
@@ -878,7 +880,7 @@ export class BaseExecutor {
       }
 
       const ccRequestDefaults = isClaudeCodeCompatible(this.provider)
-        ? getClaudeCodeCompatibleRequestDefaults(activeCredentials?.providerSpecificData)
+        ? getClaudeCodeCompatibleRequestDefaults(requestCredentials?.providerSpecificData)
         : {};
       const shouldForwardExtendedContext =
         extendedContext &&
@@ -894,7 +896,7 @@ export class BaseExecutor {
         model,
         body,
         stream,
-        activeCredentials
+        requestCredentials
       );
       let transformedBody = sanitizeReasoningEffortForProvider(
         rawTransformedBody,

@@ -151,6 +151,7 @@ export function isLocalProvider(providerId: unknown): boolean {
 }
 
 export const SELF_HOSTED_CHAT_PROVIDER_IDS = new Set([
+  "ollama-local",
   "lm-studio",
   "vllm",
   "lemonade",

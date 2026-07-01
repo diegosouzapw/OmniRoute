@@ -43,6 +43,7 @@ import NoAuthProvidersSection from "./components/NoAuthProvidersSection";
 import ProviderCard from "./components/ProviderCard";
 import ProviderCountBadge from "./components/ProviderCountBadge";
 import ProviderSummaryCard from "./components/ProviderSummaryCard";
+import CliProfileAutoSyncToggles from "./components/CliProfileAutoSyncToggles";
 import {
   buildCompactProviderEntriesForPage,
   getCompactProviderAuthType,
@@ -393,8 +394,7 @@ export default function ProvidersPage() {
     // Count API keys in "warning" state across all connections
     const warning = providerConnections.reduce((warnCount, conn) => {
       const health = (conn as any).providerSpecificData?.apiKeyHealth as
-        | Record<string, { status: string }>
-        | undefined;
+        Record<string, { status: string }> | undefined;
       if (!health) return warnCount;
       return warnCount + Object.values(health).filter((h) => h.status === "warning").length;
     }, 0);
@@ -864,6 +864,8 @@ export default function ProvidersPage() {
         tc={tc}
         testingMode={testingMode}
       />
+
+      <CliProfileAutoSyncToggles />
 
       {/* Expiration Banner */}
       {expirations?.summary &&

@@ -267,6 +267,7 @@ function computeUsageRowCost(
       provider,
       model,
       serviceTier,
+      flatRateAsZero: true,
     }
   );
 }

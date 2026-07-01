@@ -8,6 +8,7 @@ import {
   mutationScoreForFile,
   measureMutationScores,
   readBaselineMutationScores,
+  MUTATION_RATCHET_EPS,
 } from "../../../scripts/check/check-mutation-ratchet.mjs";
 
 // ── evaluateMutationRatchet: direction UP (score can only improve) ───────────
@@ -17,6 +18,17 @@ test("mutation ratchet flags a drop (direction up)", () => {
   assert.equal(evaluateMutationRatchet(76.0, 75.0).improved, true);
   assert.equal(evaluateMutationRatchet(75.0, 75.0).regressed, false); // equal holds
   assert.equal(evaluateMutationRatchet(75.0, 75.0).improved, false);
+});
+
+// ── eps anti-flake: a drop WITHIN eps holds; a drop BEYOND eps regresses ──────
+test("mutation ratchet tolerates sub-eps jitter but catches real drops", () => {
+  assert.ok(MUTATION_RATCHET_EPS > 0);
+  // drop of 0.5pt with default eps 1.0 -> within tolerance, not a regression
+  assert.equal(evaluateMutationRatchet(74.5, 75.0).regressed, false);
+  // drop just past eps -> regression
+  assert.equal(evaluateMutationRatchet(75.0 - MUTATION_RATCHET_EPS - 0.01, 75.0).regressed, true);
+  // explicit eps argument is honored (0 eps = strict)
+  assert.equal(evaluateMutationRatchet(74.99, 75.0, 0).regressed, true);
 });
 
 // ── mutationScoreForFile: covered score = detected/(detected+survived),

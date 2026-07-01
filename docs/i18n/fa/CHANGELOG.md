@@ -6,6 +6,16 @@
 
 ## [3.8.31] — 2026-06-20
 
+## [3.8.43] — TBD
+
+### ✨ New Features
+
+### 🔧 Bug Fixes
+
+### 📝 Maintenance
+
+---
+
 ## [3.8.42] — 2026-06-30
 
 ### ✨ New Features

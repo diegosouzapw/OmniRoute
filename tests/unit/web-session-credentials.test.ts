@@ -45,7 +45,21 @@ test("web session credential metadata identifies cookie, token, and no-auth prov
     placeholder:
       "Paste the full Cookie header from lmarena.ai (the session is now split across arena-auth-prod-v1.0, .1, …)",
     acceptsFullCookieHeader: true,
-    storageKeys: ["cookie", "arena-auth-prod-v1", "arena-auth-prod-v1.0", "arena-auth-prod-v1.1", "session"],
+    storageKeys: [
+      "cookie",
+      "arena-auth-prod-v1",
+      "arena-auth-prod-v1.0",
+      "arena-auth-prod-v1.1",
+      "session",
+    ],
+  });
+  assert.deepEqual(webSessionCredentials.getWebSessionCredentialRequirement("huggingchat"), {
+    kind: "cookie",
+    credentialName: "full Cookie header (hf-chat + token)",
+    placeholder:
+      "hf-chat=...; token=...; aws-waf-token=... (full Cookie header from huggingface.co)",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "hf-chat"],
   });
   // veoaifree-web is now a NOAUTH provider — not in WEB_SESSION_CREDENTIAL_REQUIREMENTS
   assert.equal(webSessionCredentials.getWebSessionCredentialRequirement("veoaifree-web"), null);

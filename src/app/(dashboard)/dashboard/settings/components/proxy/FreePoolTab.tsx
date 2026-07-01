@@ -30,6 +30,8 @@ export default function FreePoolTab() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [addingIds, setAddingIds] = useState<Set<string>>(new Set());
   const [bulkProgress, setBulkProgress] = useState<string | null>(null);
+  // #5595: per-source sync errors so a "Total: 0" result is never silent.
+  const [syncErrors, setSyncErrors] = useState<Record<string, string[]> | null>(null);
 
   // Load persisted disabled-sources from localStorage on mount
   useEffect(() => {
@@ -83,14 +85,27 @@ export default function FreePoolTab() {
 
   const handleSync = async () => {
     setSyncing(true);
+    setSyncErrors(null);
     try {
       const enabledSources = ALL_SOURCE_IDS.filter((s) => !disabledSources.has(s));
       const body = enabledSources.length < ALL_SOURCE_IDS.length ? { sources: enabledSources } : {};
-      await fetch("/api/settings/free-proxies/sync", {
+      const res = await fetch("/api/settings/free-proxies/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+      // #5595: surface per-source errors the route already returns so a
+      // partial/empty sync explains itself instead of silently showing "Total: 0".
+      const data = await res.json().catch(() => null);
+      if (data?.results) {
+        const errs: Record<string, string[]> = {};
+        for (const [src, r] of Object.entries(
+          data.results as Record<string, { errors?: string[] }>
+        )) {
+          if (Array.isArray(r?.errors) && r.errors.length > 0) errs[src] = r.errors;
+        }
+        if (Object.keys(errs).length > 0) setSyncErrors(errs);
+      }
       await loadData();
     } catch {}
     setSyncing(false);
@@ -205,6 +220,20 @@ export default function FreePoolTab() {
               {t("lastSync")}: {new Date(stats.lastSyncAt).toLocaleTimeString()}
             </span>
           )}
+        </div>
+      )}
+
+      {syncErrors && (
+        <div
+          className="text-xs text-red-500 flex flex-col gap-1"
+          role="alert"
+          data-testid="free-pool-sync-errors"
+        >
+          {Object.entries(syncErrors).map(([src, errs]) => (
+            <span key={src}>
+              {src}: {errs.join("; ")}
+            </span>
+          ))}
         </div>
       )}
 

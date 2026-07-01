@@ -48,6 +48,31 @@ describe("toolLimitDetector", () => {
     assert.strictEqual(result, null);
   });
 
+  it("should parse Grok-style error capturing the maximum (200), not the provided count (427)", () => {
+    const result = parseToolLimitFromError(
+      "Maximum tools limit reached. 427 tools have been provided but the maximum is 200."
+    );
+    assert.strictEqual(result, 200);
+  });
+
+  it("should parse Grok-style error without 'the' before maximum", () => {
+    const result = parseToolLimitFromError("427 tools have been provided but maximum is 150");
+    assert.strictEqual(result, 150);
+  });
+
+  it("should return proactive limit for grok-cli (200) without any detection", () => {
+    assert.strictEqual(getEffectiveToolLimit("grok-cli"), 200);
+  });
+
+  it("should not override proactive limit with setDetectedToolLimit", () => {
+    setDetectedToolLimit("grok-cli", 150);
+    assert.strictEqual(getEffectiveToolLimit("grok-cli"), 200);
+  });
+
+  it("should still return default (128) for unknown providers", () => {
+    assert.strictEqual(getEffectiveToolLimit("some-new-provider"), 128);
+  });
+
   it("should detect tool limit errors for 400 status", () => {
     assert.strictEqual(shouldDetectLimit("Maximum number of tools is 128", 400), true);
     assert.strictEqual(shouldDetectLimit("Too many tools provided", 400), true);
