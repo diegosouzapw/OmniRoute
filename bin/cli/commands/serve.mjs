@@ -387,7 +387,10 @@ async function maybeStartTray(port, apiPort, supervisor) {
 async function onReady(dashboardPort, apiPort, noOpen, startedAt) {
   const dashboardUrl = `${urlScheme}://localhost:${dashboardPort}`;
   const apiUrl = `${urlScheme}://localhost:${apiPort}`;
-  const elapsed = ((performance.now() - startedAt) / 1000).toFixed(1);
+  const elapsed =
+    typeof startedAt === "number" && Number.isFinite(startedAt)
+      ? ((performance.now() - startedAt) / 1000).toFixed(1)
+      : "0.0";
 
   console.log(`
   \x1b[32m✔ OmniRoute is running!\x1b[0m \x1b[2m(started in ${elapsed}s)\x1b[0m
