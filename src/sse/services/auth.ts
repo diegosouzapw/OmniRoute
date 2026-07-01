@@ -1918,14 +1918,18 @@ export async function markAccountUnavailable(
     // If this connection was ALREADY marked unavailable by a prior concurrent
     // request (within the mutex window), skip re-marking to avoid resetting
     // the cooldown timer or double-incrementing the backoff level.
-    if (conn?.rateLimitedUntil && new Date(conn.rateLimitedUntil).getTime() > Date.now()) {
+    // Uses cooldownUntilMs (not a raw `new Date()`) because `rate_limited_until`
+    // can hold a numeric-epoch string (e.g. the Antigravity full-quota path) —
+    // see #3954.
+    const existingCooldownMs = conn?.rateLimitedUntil ? cooldownUntilMs(conn.rateLimitedUntil) : NaN;
+    if (Number.isFinite(existingCooldownMs) && existingCooldownMs > Date.now()) {
       log.info(
         "AUTH",
-        `${connectionId.slice(0, 8)} already marked unavailable (until ${conn.rateLimitedUntil}), skipping duplicate mark`
+        `${connectionId.slice(0, 8)} already marked unavailable (until ${conn?.rateLimitedUntil}), skipping duplicate mark`
       );
       return {
         shouldFallback: true,
-        cooldownMs: new Date(conn.rateLimitedUntil).getTime() - Date.now(),
+        cooldownMs: existingCooldownMs - Date.now(),
       };
     }
 
