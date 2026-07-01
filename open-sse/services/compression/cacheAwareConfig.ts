@@ -5,6 +5,27 @@ import {
   normalizePreserveSystemPromptMode,
   resolvePreserveSystemPrompt,
 } from "./preserveSystemPromptMode.ts";
+import {
+  resolvePrefixFreezeConfig,
+  extractStablePrefixHash,
+  observePrefix,
+  isPrefixFrozen,
+} from "./prefixFreeze.ts";
+
+/**
+ * T08/H5 — augment the static cache signal with usage-observed prefix freeze. Opt-in
+ * (default off): when a system prompt has recurred `>= threshold` times, treat it as a stable
+ * cacheable prefix to preserve even for a provider the static check does not flag as caching.
+ * "Freeze" only *preserves* the prefix, so it never corrupts a payload.
+ */
+function observeAndCheckPrefixFreeze(body: Record<string, unknown>): boolean {
+  const cfg = resolvePrefixFreezeConfig();
+  if (!cfg.enabled) return false;
+  const hash = extractStablePrefixHash(body);
+  if (!hash) return false;
+  observePrefix(hash);
+  return isPrefixFrozen(hash, cfg.threshold);
+}
 
 /**
  * #3890/#3955 + T05/C5: materialize the engine-facing `preserveSystemPrompt`
@@ -27,9 +48,11 @@ export function resolveCacheAwareConfig(
 ): CompressionConfig {
   const mode = normalizePreserveSystemPromptMode(config);
   // No request body → no cacheable prefix to detect; honor the mode at its no-cache baseline.
-  const hasCache = body
+  // The signal is the static caching heuristic OR (H5, opt-in) a usage-observed stable prefix.
+  const staticCache = body
     ? getCacheAwareStrategy(config.defaultMode, detectCachingContext(body, context)).skipSystemPrompt
     : false;
+  const hasCache = staticCache || (body ? observeAndCheckPrefixFreeze(body) : false);
   const effective = resolvePreserveSystemPrompt(mode, { hasCache });
   if (effective === config.preserveSystemPrompt) return config;
   return { ...config, preserveSystemPrompt: effective };
