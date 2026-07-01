@@ -10,6 +10,8 @@
 
 - **feat(api):** add `/v1/ocr` endpoint (Mistral OCR), an OCR provider category, and Mistral moderation support. (thanks @waguriagentic)
 
+- **providers (model capability registry):** centralize provider-first model capability metadata in one shared registry and expose the data in the provider compatibility editor. Built-in and custom/imported models now share the same editable capability surface for context/output limits, default and max thinking budgets, vision/tool/reasoning support, xhigh/max effort support, target format, unsupported params, and protocol compatibility. User overrides persist across provider model syncs, while `POST /api/provider-models/reset` restores a model to the synced/default registry baseline. Intentional behavior changes: unknown (`null`) max-effort support now passes `max` through instead of normalizing `max` to `xhigh`, saved `targetFormat` overrides win over static registry entries, and Antigravity reasoning is now registry-driven via `supportsReasoning` instead of the legacy deny-list. Regression guards: `tests/unit/db-model-capabilities.test.ts`, `tests/unit/db-models-crud.test.ts`, `tests/unit/provider-models-config.test.ts`, `tests/unit/provider-models-management-route.test.ts`, and `tests/unit/provider-models-route.test.ts`. ([#5774](https://github.com/diegosouzapw/OmniRoute/pull/5774))
+
 ### 🔧 Bug Fixes
 
 _TBD_
