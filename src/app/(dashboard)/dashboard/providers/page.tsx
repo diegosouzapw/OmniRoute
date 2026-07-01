@@ -43,6 +43,7 @@ import NoAuthProvidersSection from "./components/NoAuthProvidersSection";
 import ProviderCard from "./components/ProviderCard";
 import ProviderCountBadge from "./components/ProviderCountBadge";
 import ProviderSummaryCard from "./components/ProviderSummaryCard";
+import CliProfileAutoSyncToggles from "./components/CliProfileAutoSyncToggles";
 import {
   buildCompactProviderEntriesForPage,
   getCompactProviderAuthType,
@@ -864,6 +865,8 @@ export default function ProvidersPage() {
         tc={tc}
         testingMode={testingMode}
       />
+
+      <CliProfileAutoSyncToggles />
 
       {/* Expiration Banner */}
       {expirations?.summary &&

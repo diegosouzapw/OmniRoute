@@ -51,6 +51,65 @@ export function buildProfileSettings(modelId, baseUrl, cfg) {
 }
 
 /**
+ * Generate Claude Code profile files for a live model catalog. Shared by the
+ * `setup-claude` CLI command and the post-model-sync auto-sync so both stay
+ * behaviorally identical. Writes `<claudeHome>/profiles/<name>/settings.json`
+ * (directory-per-profile); never touches the active/default Claude config.
+ * @param {Array} models
+ * @param {{claudeHome?:string, baseUrl:string, dryRun?:boolean, only?:string}} opts
+ * @returns {Promise<{written:number, skipped:number, profiles:Array<{name:string, model:string, filePath:string}>}>}
+ */
+export async function syncClaudeProfilesFromModels(models, opts = {}) {
+  const claudeHome = opts.claudeHome || join(os.homedir(), ".claude");
+  const profilesRoot = join(claudeHome, "profiles");
+  const baseUrl = opts.baseUrl;
+  const dryRun = Boolean(opts.dryRun);
+  const onlyFilter = opts.only ? opts.only.split(",").map((s) => s.trim()) : null;
+
+  if (!dryRun && !existsSync(profilesRoot)) {
+    mkdirSync(profilesRoot, { recursive: true });
+  }
+
+  let written = 0;
+  let skipped = 0;
+  const profiles = [];
+
+  for (const m of models) {
+    const id = typeof m === "string" ? m : m.id ?? "";
+    if (!id) {
+      skipped++;
+      continue;
+    }
+    if (onlyFilter && !onlyFilter.some((f) => id.includes(f))) {
+      skipped++;
+      continue;
+    }
+
+    const cfg = categoriseModel(id);
+    if (!cfg) {
+      skipped++;
+      continue;
+    }
+
+    const dir = join(profilesRoot, cfg.name);
+    const filePath = join(dir, "settings.json");
+    const content = buildProfileSettings(id, baseUrl, cfg);
+
+    if (dryRun) {
+      console.log(`\n── [dry-run] ${filePath} ──`);
+      console.log(content);
+    } else {
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(filePath, content, "utf8");
+    }
+    profiles.push({ name: cfg.name, model: id, filePath });
+    written++;
+  }
+
+  return { written, skipped, profiles };
+}
+
+/**
  * @param {{remote?:string, port?:string, apiKey?:string, claudeHome?:string, dryRun?:boolean, only?:string}} opts
  * @returns {Promise<number>}
  */
@@ -61,7 +120,6 @@ export async function runSetupClaudeCommand(opts = {}) {
   const claudeHome = opts.claudeHome ?? opts["claude-home"] ?? join(os.homedir(), ".claude");
   const profilesRoot = join(claudeHome, "profiles");
   const dryRun = Boolean(opts.dryRun ?? opts["dry-run"]);
-  const onlyFilter = opts.only ? opts.only.split(",").map((s) => s.trim()) : null;
 
   printHeading("OmniRoute → Claude Code profile generator");
   printInfo(`Connecting to ${baseUrl} …`);
@@ -89,36 +147,17 @@ export async function runSetupClaudeCommand(opts = {}) {
 
   printInfo(`Received ${models.length} models from ${baseUrl}`);
 
-  if (!dryRun && !existsSync(profilesRoot)) {
-    mkdirSync(profilesRoot, { recursive: true });
-  }
+  const { written, skipped, profiles } = await syncClaudeProfilesFromModels(models, {
+    claudeHome,
+    baseUrl,
+    dryRun,
+    only: opts.only,
+  });
 
-  let written = 0;
-  for (const m of models) {
-    const id = typeof m === "string" ? m : m.id ?? "";
-    if (!id) continue;
-    if (onlyFilter && !onlyFilter.some((f) => id.includes(f))) continue;
-
-    const cfg = categoriseModel(id);
-    if (!cfg) continue;
-
-    const dir = join(profilesRoot, cfg.name);
-    const filePath = join(dir, "settings.json");
-    const content = buildProfileSettings(id, baseUrl, cfg);
-
-    if (dryRun) {
-      console.log(`\n── [dry-run] ${filePath} ──`);
-      console.log(content);
-    } else {
-      mkdirSync(dir, { recursive: true });
-      writeFileSync(filePath, content, "utf8");
-      printSuccess(`  ✓ profiles/${cfg.name}/settings.json  (${id})`);
-    }
-    written++;
-  }
-
-  const skipped = models.length - written;
   if (!dryRun) {
+    for (const profile of profiles) {
+      printSuccess(`  ✓ profiles/${profile.name}/settings.json  (${profile.model})`);
+    }
     console.log("");
     printSuccess(`${written} Claude Code profiles written to ${profilesRoot}`);
     if (skipped > 0) printInfo(`${skipped} models skipped (no matching profile pattern)`);

@@ -17,11 +17,11 @@ type SyncResult =
     };
 
 function isAutoSyncEnabled() {
-  // Opt-in, default OFF. Backed by the OMNIROUTE_AUTO_SYNC_CODEX_PROFILES feature flag
+  // Opt-in, default OFF. Backed by the OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES feature flag
   // (resolver precedence: DB/dashboard-toggle override > env > default "false"), so a
-  // provider model sync never silently writes ~/.codex/*.config.toml unless the operator
-  // turned it on — via the providers-dashboard toggle or the env var.
-  return isFeatureFlagEnabled("OMNIROUTE_AUTO_SYNC_CODEX_PROFILES");
+  // provider model sync never silently writes ~/.claude/profiles/<name>/settings.json
+  // unless the operator turned it on — via the providers-dashboard toggle or the env var.
+  return isFeatureFlagEnabled("OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES");
 }
 
 function forwardAuthHeaders(request: Request): Record<string, string> {
@@ -33,7 +33,7 @@ function forwardAuthHeaders(request: Request): Record<string, string> {
   return headers;
 }
 
-export async function autoSyncCodexProfilesFromLiveCatalog(
+export async function autoSyncClaudeProfilesFromLiveCatalog(
   request: Request,
   reason: string
 ): Promise<SyncResult> {
@@ -46,8 +46,8 @@ export async function autoSyncCodexProfilesFromLiveCatalog(
     return { ok: false, skipped: true, reason: writeGuard };
   }
 
-  const baseUrl = getModelSyncInternalBaseUrl().replace(/\/$/, "");
-  const res = await fetch(`${baseUrl}/v1/models`, {
+  const internalBase = getModelSyncInternalBaseUrl().replace(/\/$/, "");
+  const res = await fetch(`${internalBase}/v1/models`, {
     headers: forwardAuthHeaders(request),
     signal: AbortSignal.timeout(10_000),
   });
@@ -59,17 +59,28 @@ export async function autoSyncCodexProfilesFromLiveCatalog(
   const body = await res.json();
   const candidateModels = Array.isArray(body) ? body : body.data || body.models || [];
   const models = Array.isArray(candidateModels) ? candidateModels : [];
-  const codexPaths = getCliConfigPaths("codex");
-  if (!codexPaths?.config) {
-    return { ok: false, skipped: true, reason: "codex_config_path_unavailable" };
-  }
-  const codexHome = path.dirname(codexPaths.config);
 
-  // Reuse the CLI generator so automatic sync and `omniroute setup-codex`
-  // stay behaviorally identical.
+  // Claude Code has no flat config file; its per-tool config lives at ~/.claude/settings.json,
+  // so getCliConfigPaths("claude") exposes `settings` (NOT `config`). The profiles are written
+  // under <claudeHome>/profiles/<name>/settings.json, where claudeHome = dirname(settings).
+  const claudePaths = getCliConfigPaths("claude");
+  if (!claudePaths?.settings) {
+    return { ok: false, skipped: true, reason: "claude_config_path_unavailable" };
+  }
+  const claudeHome = path.dirname(claudePaths.settings);
+
+  // Each generated profile points ANTHROPIC_BASE_URL at the OmniRoute this server serves.
+  // Strip a trailing /v1 (Claude Code appends the version segment itself).
+  const profileBaseUrl = internalBase.replace(/\/v1$/, "");
+
+  // Reuse the CLI generator so automatic sync and `omniroute setup-claude` stay
+  // behaviorally identical.
   // @ts-ignore - bin CLI modules are shipped as ESM JavaScript, without TS declarations.
-  const { syncCodexProfilesFromModels } = await import("../../../bin/cli/commands/setup-codex.mjs");
-  const result = await syncCodexProfilesFromModels(models, { codexHome });
+  const { syncClaudeProfilesFromModels } = await import("../../../bin/cli/commands/setup-claude.mjs");
+  const result = await syncClaudeProfilesFromModels(models, {
+    claudeHome,
+    baseUrl: profileBaseUrl,
+  });
 
   return {
     ok: true,
