@@ -24,8 +24,8 @@ test("drains an SSE stream chunk-by-chunk and concatenates until close", async (
   const enc = new TextEncoder();
   const body = new ReadableStream({
     start(controller) {
-      controller.enqueue(enc.encode("data: {\"a\":1}\n\n"));
-      controller.enqueue(enc.encode("data: {\"b\":2}\n\n"));
+      controller.enqueue(enc.encode('data: {"a":1}\n\n'));
+      controller.enqueue(enc.encode('data: {"b":2}\n\n'));
       controller.close();
     },
   });
@@ -33,6 +33,33 @@ test("drains an SSE stream chunk-by-chunk and concatenates until close", async (
   const out = await readNonStreamingResponseBody(response, "text/event-stream", true);
   assert.ok(out.includes('"a":1'));
   assert.ok(out.includes('"b":2'));
+});
+
+test("returns after terminal SSE even when underlying cancel never resolves", async () => {
+  const enc = new TextEncoder();
+  let cancelled = false;
+  const body = new ReadableStream({
+    start(controller) {
+      controller.enqueue(enc.encode('data: {"id":"x","choices":[{"delta":{"content":"ok"}}]}\n\n'));
+      controller.enqueue(enc.encode("data: [DONE]\n\n"));
+    },
+    cancel() {
+      cancelled = true;
+      return new Promise(() => {});
+    },
+  });
+  const response = new Response(body, { headers: { "Content-Type": "text/event-stream" } });
+
+  const out = await Promise.race([
+    readNonStreamingResponseBody(response, "text/event-stream", true),
+    new Promise<string>((_, reject) =>
+      setTimeout(() => reject(new Error("read timed out after terminal SSE")), 1000)
+    ),
+  ]);
+
+  assert.ok(out.includes('"content":"ok"'));
+  assert.ok(out.includes("[DONE]"));
+  assert.equal(cancelled, true);
 });
 
 // #5152: bound the non-streaming buffer so a runaway upstream body cannot fill the V8 heap.

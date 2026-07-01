@@ -43,10 +43,7 @@ const DEFAULT_MAX_NONSTREAMING_RESPONSE_BYTES = 64 * 1024 * 1024; // 64 MB
  * Override with `OMNIROUTE_MAX_NONSTREAMING_RESPONSE_BYTES`.
  */
 export const MAX_NONSTREAMING_RESPONSE_BYTES = (() => {
-  const parsed = Number.parseInt(
-    String(process.env.OMNIROUTE_MAX_NONSTREAMING_RESPONSE_BYTES),
-    10
-  );
+  const parsed = Number.parseInt(String(process.env.OMNIROUTE_MAX_NONSTREAMING_RESPONSE_BYTES), 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_NONSTREAMING_RESPONSE_BYTES;
 })();
 
@@ -77,10 +74,18 @@ export async function readNonStreamingResponseBody(
  * by `maxBytes` (cancels the upstream and throws {@link NonStreamingResponseTooLargeError}
  * past the cap) and by the body timeout, cancelling early on a terminal SSE signal.
  */
-type NonStreamingChunk =
-  | { kind: "done" }
-  | { kind: "skip" }
-  | { kind: "chunk"; value: Uint8Array };
+type NonStreamingChunk = { kind: "done" } | { kind: "skip" } | { kind: "chunk"; value: Uint8Array };
+
+function cancelNonStreamingReader(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  reason: unknown
+): void {
+  try {
+    void reader.cancel(reason).catch(() => {});
+  } catch {
+    // The caller is already unwinding or returning a complete terminal response.
+  }
+}
 
 /** Read the next chunk under the body-timeout deadline, normalizing end/empty cases. */
 async function readNextNonStreamingChunk(
@@ -110,6 +115,12 @@ async function drainNonStreamingSseBody(
   let rawBody = "";
   let bytesSeen = 0;
   const deadline = FETCH_BODY_TIMEOUT_MS > 0 ? Date.now() + FETCH_BODY_TIMEOUT_MS : 0;
+  let cancelRequested = false;
+  const requestCancel = (reason: unknown) => {
+    if (cancelRequested) return;
+    cancelRequested = true;
+    cancelNonStreamingReader(reader, reason);
+  };
 
   try {
     while (true) {
@@ -121,19 +132,19 @@ async function drainNonStreamingSseBody(
       // growing `rawBody` until the V8 heap is exhausted.
       bytesSeen += next.value.byteLength;
       if (bytesSeen > maxBytes) {
-        await reader.cancel("non-streaming response exceeded byte cap").catch(() => {});
+        requestCancel("non-streaming response exceeded byte cap");
         throw new NonStreamingResponseTooLargeError(bytesSeen, maxBytes);
       }
 
       const decodedChunk = decoder.decode(next.value, { stream: true });
       rawBody += decodedChunk;
       if (appendNonStreamingSseTerminalSignal(terminalState, decodedChunk)) {
-        await reader.cancel("non-streaming bridge consumed terminal SSE event").catch(() => {});
+        requestCancel("non-streaming bridge consumed terminal SSE event");
         break;
       }
     }
   } catch (error) {
-    await reader.cancel(error).catch(() => {});
+    requestCancel(error);
     throw error;
   } finally {
     rawBody += decoder.decode();
