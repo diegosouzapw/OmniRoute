@@ -69,6 +69,8 @@ test("web session credential metadata identifies cookie, token, and no-auth prov
     placeholder: "convex-session-id=abc123...; Cookie: ...",
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "convex-session-id", "convexSessionId"],
+    // #5465 — t3.chat ships a step-by-step DevTools copy hint (localStorage + Cookie header).
+    hintKey: "t3ChatWebCookieHint",
   });
 });
 
