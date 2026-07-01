@@ -396,3 +396,30 @@ test("runQoderCli survives qodercli exiting before it reads a large stdin (async
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("runQoderCli preserves multi-byte UTF-8 output (Chinese) via stream setEncoding", async () => {
+  const prevBin = process.env.CLI_QODER_BIN;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "qodercli-stub-"));
+  const stub = path.join(dir, "qodercli");
+  // qodercli commonly returns Chinese; stream chunk boundaries must not corrupt it.
+  fs.writeFileSync(
+    stub,
+    '#!/bin/sh\ncat >/dev/null\nprintf \'{"type":"result","is_error":false,"result":"你好世界，测试"}\\n\'\nexit 0\n',
+    { mode: 0o755 }
+  );
+  process.env.CLI_QODER_BIN = stub;
+  try {
+    const run = await qoderCli.runQoderCli({
+      token: "pt-x",
+      prompt: "hi",
+      stream: false,
+      model: "auto",
+    });
+    assert.equal(run.ok, true);
+    assert.equal(qoderCli.parseQoderCliResult(run.stdout).text, "你好世界，测试");
+  } finally {
+    if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
+    else process.env.CLI_QODER_BIN = prevBin;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

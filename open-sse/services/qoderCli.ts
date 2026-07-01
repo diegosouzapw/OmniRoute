@@ -89,11 +89,17 @@ export function getQoderCliConfigDir(): string {
   return path.join(base, "qoder-cli");
 }
 
+// Memoized per resolved path so we don't hit synchronous disk I/O
+// (fs.mkdirSync blocks the event loop) on every chat/quota request.
+const ensuredQoderCliConfigDirs = new Set<string>();
+
 /** Ensure the qodercli config dir exists so it is a valid spawn cwd + cache root. */
 function ensureQoderCliConfigDir(): string {
   const dir = getQoderCliConfigDir();
+  if (ensuredQoderCliConfigDirs.has(dir)) return dir;
   try {
     fs.mkdirSync(dir, { recursive: true });
+    ensuredQoderCliConfigDirs.add(dir);
   } catch {
     /* best-effort — spawn will surface a real failure */
   }
@@ -188,11 +194,16 @@ function spawnQoderCli(options: SpawnQoderCliOptions): Promise<QoderCliRunResult
     child.stdin?.on("error", () => {});
     child.stdout?.on("error", () => {});
     child.stderr?.on("error", () => {});
-    child.stdout?.on("data", (chunk: Buffer) => {
-      stdout += chunk.toString("utf8");
+    // Decode with a stateful UTF-8 reader so a multi-byte character (e.g. Chinese,
+    // common in Qoder output) split across two chunks is not corrupted — Buffer
+    // per-chunk toString() would mangle the boundary bytes.
+    child.stdout?.setEncoding("utf8");
+    child.stderr?.setEncoding("utf8");
+    child.stdout?.on("data", (chunk: string) => {
+      stdout += chunk;
     });
-    child.stderr?.on("data", (chunk: Buffer) => {
-      stderr += chunk.toString("utf8");
+    child.stderr?.on("data", (chunk: string) => {
+      stderr += chunk;
     });
     child.on("close", (code: number | null) => {
       finish({
