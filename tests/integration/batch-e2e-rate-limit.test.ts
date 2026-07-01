@@ -338,6 +338,11 @@ test("batch E2E: upload file, create batch, verify rate-limit logs appear", asyn
     method: "POST",
     body: formData,
   });
+  assert.match(
+    uploadResp.headers.get("content-type") || "",
+    /json/i,
+    "File upload should return JSON"
+  );
   const uploadBody = await readJsonForTest<FileUploadResponse>(uploadResp, "File upload", app);
   const fileId = uploadBody.id;
   assert.ok(fileId, "file id missing from upload response");
