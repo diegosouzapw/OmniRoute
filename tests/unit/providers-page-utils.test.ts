@@ -1084,4 +1084,8 @@ test("connectionMatchesProviderCard counts a dual-auth provider's PAT (apikey) c
     connectionMatchesProviderCard({ provider: "qoder", authType: "apikey" }, "qoder", "free"),
     true
   );
+
+  // Defensive: a null/undefined connection must not throw (gemini-code-assist).
+  assert.equal(connectionMatchesProviderCard(null, "qoder", "oauth"), false);
+  assert.equal(connectionMatchesProviderCard(undefined, "qoder", "oauth"), false);
 });

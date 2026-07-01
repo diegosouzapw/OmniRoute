@@ -76,11 +76,11 @@ type ProviderRecord<TProvider = Record<string, unknown>> = Record<string, TProvi
  * "not connected" on the dashboard.
  */
 export function connectionMatchesProviderCard(
-  conn: { provider?: string; authType?: string },
+  conn: { provider?: string; authType?: string } | null | undefined,
   providerId: string,
   cardAuthType: "oauth" | "free" | "apikey"
 ): boolean {
-  if (conn.provider !== providerId) return false;
+  if (!conn || conn.provider !== providerId) return false;
   if (cardAuthType === "free") return true;
   if (supportsApiKeyOnFreeProvider(providerId)) {
     return conn.authType === "oauth" || conn.authType === "apikey";
