@@ -125,7 +125,7 @@ export const WEB_COOKIE_PROVIDERS = {
     textIcon: "M365",
     website: "https://m365.cloud.microsoft/chat",
     authHint:
-      "Paste the access_token and account-specific Chathub path from the Microsoft 365 Copilot WebSocket URL.",
+      "Sign in at m365.cloud.microsoft/chat, then open DevTools → Network → filter 'WS' → click the Chathub WebSocket connection. Copy both the access_token query parameter AND the account-specific Chathub path segment from its request URL (wss://…/Chathub/<path>?…&access_token=…). It is NOT an Authorization: Bearer header on an XHR/Fetch request. The token is short-lived; this is an unofficial integration.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
