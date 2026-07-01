@@ -1,7 +1,46 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 const qoderCli = await import("../../open-sse/services/qoderCli.ts");
+
+/**
+ * Write a fake `qodercli` binary and point CLI_QODER_BIN at it (see the twin
+ * helper in qoder-executor.test.ts). The stub authenticates unless the PAT
+ * contains "bad", covering both `--list-models` (validation) and `--print`.
+ */
+function withStubQoderCli(fn: () => void | Promise<void>) {
+  const prevBin = process.env.CLI_QODER_BIN;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "qodercli-stub-"));
+  const stub = path.join(dir, "qodercli");
+  fs.writeFileSync(
+    stub,
+    [
+      "#!/bin/sh",
+      'is_bad() { case "$QODER_PERSONAL_ACCESS_TOKEN" in *bad*) return 0;; *) return 1;; esac; }',
+      'case "$*" in',
+      "  *--list-models*)",
+      '    if is_bad; then echo "Not logged in · Please run /login"; exit 0; fi',
+      '    printf "MODEL\\nAuto\\nQwen3-Coder\\n"; exit 0;;',
+      "  *--print*)",
+      "    cat >/dev/null;",
+      '    if is_bad; then printf \'{"type":"result","subtype":"success","is_error":true,"result":"Not logged in · Please run /login"}\\n\'; exit 0; fi',
+      '    printf \'{"type":"result","subtype":"success","is_error":false,"result":"OK from stub"}\\n\'; exit 0;;',
+      "esac",
+      "exit 0",
+    ].join("\n"),
+    { mode: 0o755 }
+  );
+  process.env.CLI_QODER_BIN = stub;
+  const restore = () => {
+    if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
+    else process.env.CLI_QODER_BIN = prevBin;
+    fs.rmSync(dir, { recursive: true, force: true });
+  };
+  return Promise.resolve().then(fn).finally(restore);
+}
 
 function withEnv(
   overrides: Record<string, string | undefined | null>,
@@ -243,184 +282,92 @@ test("qoder cli failure parsing classifies auth, timeout and generic upstream er
   });
 });
 
-test("validateQoderCliPat builds COSY headers and handles success, HTTP failures and fetch errors", async () => {
-  const originalFetch = globalThis.fetch;
-
-  // Test 1: Success path (ping OK + validation OK)
-  {
-    let callIndex = 0;
-    globalThis.fetch = async (url, options = {}) => {
-      callIndex++;
-      const urlStr = String(url);
-      // Ping request
-      if (urlStr.includes("/ping")) {
-        return new Response("pong", { status: 200 });
-      }
-      // Validation request
-      return new Response("ok", { status: 200 });
-    };
-
-    const success = await qoderCli.validateQoderCliPat({
-      apiKey: "pat-token",
-      providerSpecificData: { validationModelId: "kimi-k2" },
-    });
-    assert.equal(success.valid, true);
-    assert.equal(success.error, null);
-    assert.equal(success.unsupported, false);
-  }
-
-  // Test 2: Auth failure (ping OK + validation 403)
-  {
-    globalThis.fetch = async (url) => {
-      if (String(url).includes("/ping")) {
-        return new Response("pong", { status: 200 });
-      }
-      return new Response("denied", { status: 403 });
-    };
-
-    const denied = await qoderCli.validateQoderCliPat({
-      apiKey: "pat-token",
-      providerSpecificData: { modelId: "qwen3-max" },
-    });
-    assert.equal(denied.valid, false);
-    assert.match(denied.error!, /Authentication failed/);
-    assert.equal(denied.unsupported, false);
-  }
-
-  // Test 3: Network error (ping fails)
-  {
-    globalThis.fetch = async () => {
-      throw new Error("network down");
-    };
-
-    const failed = await qoderCli.validateQoderCliPat({ apiKey: "pat-token" });
-    assert.equal(failed.valid, false);
-    assert.match(failed.error!, /Cannot reach Qoder API/);
-    assert.equal(failed.unsupported, false);
-  }
-
-  // Test 4: Non-auth 4xx treated as auth-pass
-  {
-    globalThis.fetch = async (url) => {
-      if (String(url).includes("/ping")) {
-        return new Response("pong", { status: 200 });
-      }
-      return new Response("bad request", { status: 400 });
-    };
-
-    const badRequest = await qoderCli.validateQoderCliPat({ apiKey: "pat-token" });
-    assert.equal(badRequest.valid, true);
-    assert.equal(badRequest.error, null);
-  }
-
-  // Test 5: Empty token returns clear error
-  {
-    await withEnv({ QODER_PERSONAL_ACCESS_TOKEN: undefined }, async () => {
-      const noToken = await qoderCli.validateQoderCliPat({ apiKey: "" });
-      assert.equal(noToken.valid, false);
-      assert.match(noToken.error!, /No Qoder token provided/);
-    });
-  }
-
-  // Test 6: Encrypted blob token is rejected with guidance
-  {
-    const blobToken = "x".repeat(600);
-    const blobResult = await qoderCli.validateQoderCliPat({ apiKey: blobToken });
-    assert.equal(blobResult.valid, false);
-    assert.match(blobResult.error!, /encrypted auth blob/);
-  }
-
-  globalThis.fetch = originalFetch;
-});
-
-test("validateQoderCliPat succeeds when the validation endpoint returns OK", async () => {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url) => {
-    if (String(url).includes("/ping")) return new Response("pong", { status: 200 });
-    return new Response("ok", { status: 200 });
-  };
-
-  try {
-    const result = await qoderCli.validateQoderCliPat({ apiKey: "valid-pat" });
-    assert.equal(result.valid, true);
-    assert.equal(result.error, null);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-});
-
-test("validateQoderCliPat treats 5xx HTTP failures as valid bypass", async () => {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url) => {
-    if (String(url).includes("/ping")) return new Response("pong", { status: 200 });
-    return new Response("server error", { status: 500 });
-  };
-
-  try {
-    const result = await qoderCli.validateQoderCliPat({ apiKey: "valid-pat" });
-    assert.equal(result.valid, true);
-    assert.match(result.error!, /HTTP 500.*treating PAT as valid/);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-});
-
-// #3247: a generic Cosy 500 (`{"success":false,...,"msgCode":500,"message":"Internal
-// Server Error"}`) is a SERVER fault, not a reliable auth verdict — a PAT that works in
-// the Qoder CLI was being wrongly marked "expired". Per the older #1391 rule, a generic
-// 5xx is now a valid bypass; only an explicit auth signal in the body marks it invalid.
-test("validateQoderCliPat treats a generic Cosy 500 (no auth signal) as a valid bypass (#3247)", async () => {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url) => {
-    if (String(url).includes("/ping")) return new Response("pong", { status: 200 });
-    return new Response(
-      '{"success":false,"traceId":"a4e5de61929400b9243b4f6e49756906","msgCode":500,"msgInfo":"Internal Server Error","message":"Internal Server Error"}',
-      { status: 500 }
-    );
-  };
-
-  try {
+test("validateQoderCliPat returns valid when qodercli lists models for the PAT", async () => {
+  await withStubQoderCli(async () => {
     const result = await qoderCli.validateQoderCliPat({ apiKey: "pt-valid-token" });
-    assert.equal(result.valid, true);
-    assert.match(result.error!, /treating PAT as valid/);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
+    assert.deepEqual(result, { valid: true, error: null, unsupported: false });
+  });
 });
 
-test("validateQoderCliPat treats a generic 'Internal Server Error' 500 as a valid bypass (#3247)", async () => {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url) => {
-    if (String(url).includes("/ping")) return new Response("pong", { status: 200 });
-    return new Response(' { "success"  :  false, "error": "Internal   Server    Error" } ', {
-      status: 500,
-    });
-  };
-
-  try {
-    const result = await qoderCli.validateQoderCliPat({ apiKey: "pt-valid-token" });
-    assert.equal(result.valid, true);
-    assert.match(result.error!, /treating PAT as valid/);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-});
-
-test("validateQoderCliPat still rejects a Cosy 500 that carries an explicit auth signal (#2860)", async () => {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url) => {
-    if (String(url).includes("/ping")) return new Response("pong", { status: 200 });
-    return new Response(
-      '{"success":false,"msgCode":500,"message":"token invalid or unauthorized"}',
-      { status: 500 }
-    );
-  };
-
-  try {
+test("validateQoderCliPat rejects a PAT that qodercli reports as not logged in", async () => {
+  await withStubQoderCli(async () => {
     const result = await qoderCli.validateQoderCliPat({ apiKey: "pt-bad-token" });
     assert.equal(result.valid, false);
-    assert.match(result.error!, /Authentication failed \(HTTP 500\)/);
+    assert.match(result.error!, /not authorized|integrations/i);
+  });
+});
+
+test("validateQoderCliPat rejects an encrypted auth blob without spawning", async () => {
+  const blobToken = "x".repeat(600);
+  const result = await qoderCli.validateQoderCliPat({ apiKey: blobToken });
+  assert.equal(result.valid, false);
+  assert.match(result.error!, /encrypted auth blob/i);
+});
+
+test("validateQoderCliPat requires a token", async () => {
+  const result = await qoderCli.validateQoderCliPat({ apiKey: "" });
+  assert.equal(result.valid, false);
+  assert.match(result.error!, /No Qoder token/i);
+});
+
+test("validateQoderCliPat surfaces a clear error when qodercli is missing", async () => {
+  const prevBin = process.env.CLI_QODER_BIN;
+  process.env.CLI_QODER_BIN = "/nonexistent/qodercli-please-fail";
+  try {
+    const result = await qoderCli.validateQoderCliPat({ apiKey: "pt-valid-token" });
+    assert.equal(result.valid, false);
+    assert.match(result.error!, /qodercli|CLI_QODER_BIN|not found/i);
   } finally {
-    globalThis.fetch = originalFetch;
+    if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
+    else process.env.CLI_QODER_BIN = prevBin;
+  }
+});
+
+test("runQoderCli drives the stub binary and returns its JSON envelope", async () => {
+  await withStubQoderCli(async () => {
+    const run = await qoderCli.runQoderCli({
+      token: "pt-valid-token",
+      prompt: "hello",
+      stream: false,
+      model: "qwen3-coder-plus",
+    });
+    assert.equal(run.ok, true);
+    const parsed = qoderCli.parseQoderCliResult(run.stdout);
+    assert.equal(parsed.isError, false);
+    assert.equal(parsed.text, "OK from stub");
+  });
+});
+
+test("parseQoderCliResult extracts text, flags errors and tolerates banner noise", () => {
+  assert.deepEqual(
+    qoderCli.parseQoderCliResult('{"type":"result","is_error":false,"result":"pong"}'),
+    { text: "pong", isError: false, errorMessage: "" }
+  );
+
+  const errored = qoderCli.parseQoderCliResult(
+    '{"type":"result","is_error":true,"result":"Not logged in"}'
+  );
+  assert.equal(errored.isError, true);
+  assert.equal(errored.errorMessage, "Not logged in");
+
+  // Leading banner/log lines before the JSON envelope must still parse.
+  const noisy = qoderCli.parseQoderCliResult(
+    'starting qodercli...\nwarming up\n{"type":"result","is_error":false,"result":"hi"}'
+  );
+  assert.equal(noisy.text, "hi");
+  assert.equal(noisy.isError, false);
+
+  const empty = qoderCli.parseQoderCliResult("   ");
+  assert.equal(empty.isError, true);
+});
+
+test("parseQoderCliFailure classifies qodercli auth output as 401", () => {
+  for (const msg of [
+    "Not logged in · Please run /login",
+    "Failed to fetch model list: auth.exchangeJobToken failed: invalid personal token format",
+  ]) {
+    const failure = qoderCli.parseQoderCliFailure(msg);
+    assert.equal(failure.status, 401, msg);
+    assert.equal(failure.code, "upstream_auth_error", msg);
   }
 });

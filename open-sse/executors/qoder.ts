@@ -10,13 +10,49 @@ import {
   getQoderDashscopeCompatHeaders,
   QODER_DEFAULT_USER_AGENT,
 } from "../config/providerHeaderProfiles.ts";
+import { randomUUID } from "node:crypto";
 import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
-import { buildCosyHeadersForValidation, resolveQoderJobToken } from "../services/qoderCli.ts";
+import {
+  buildQoderChunk,
+  buildQoderCompletionPayload,
+  buildQoderPrompt,
+  createQoderErrorResponse,
+  parseQoderCliFailure,
+  parseQoderCliResult,
+  runQoderCli,
+} from "../services/qoderCli.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 
 function truncate(text: string, max: number): string {
   if (text.length <= max) return text;
   return `${text.slice(0, max)}…`;
+}
+
+/**
+ * Wrap a full qodercli reply as an OpenAI-compatible SSE stream (role chunk →
+ * content chunk → stop chunk → [DONE]). qodercli's `--print` mode returns the
+ * whole answer at once, so there are no incremental deltas to forward.
+ */
+function buildQoderCliSseStream(model: string, text: string): ReadableStream<Uint8Array> {
+  const id = `chatcmpl-${randomUUID()}`;
+  const created = Math.floor(Date.now() / 1000);
+  const encoder = new TextEncoder();
+  const send = (obj: unknown) => encoder.encode(`data: ${JSON.stringify(obj)}\n\n`);
+  return new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(
+        send(buildQoderChunk({ id, model, created, delta: { role: "assistant", content: "" } }))
+      );
+      if (text) {
+        controller.enqueue(send(buildQoderChunk({ id, model, created, delta: { content: text } })));
+      }
+      controller.enqueue(
+        send(buildQoderChunk({ id, model, created, delta: {}, finishReason: "stop" }))
+      );
+      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      controller.close();
+    },
+  });
 }
 
 /**
@@ -174,22 +210,23 @@ export class QoderExecutor extends BaseExecutor {
 
     const resolvedModel = model || "qwen3-coder-plus";
 
-    // Detect token type: PAT (Personal Access Token) starts with "pt-"
+    // Detect token type: PAT (Personal Access Token) starts with "pt-".
+    // PATs are driven through the local qodercli binary (see executeViaQoderCli);
+    // only the qodercli binary can produce the WASM-signed Cosy request the raw
+    // HTTP path can no longer replicate.
     const isPatToken = token.startsWith("pt-");
-
-    let mappedModel = resolvedModel;
-    let endpointUrl: string;
-
     if (isPatToken) {
-      endpointUrl = "https://api.qoder.com/v1/chat/completions";
-    } else {
-      if (resolvedModel === "qwen3.5-plus" || resolvedModel === "qwen3.6-plus") {
-        mappedModel = "coder-model";
-      } else if (resolvedModel === "vision-model") {
-        mappedModel = "qwen3-vl-plus";
-      }
-      endpointUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
+      return this.executeViaQoderCli({ model: resolvedModel, body, stream, token, signal });
     }
+
+    // Non-PAT tokens (OAuth apiKey / DashScope key) → DashScope OpenAI-compatible API.
+    let mappedModel = resolvedModel;
+    if (resolvedModel === "qwen3.5-plus" || resolvedModel === "qwen3.6-plus") {
+      mappedModel = "coder-model";
+    } else if (resolvedModel === "vision-model") {
+      mappedModel = "qwen3-vl-plus";
+    }
+    let endpointUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
 
     // Check for custom API base via credentials (overrides the default)
     let credentialsApiBase: unknown;
@@ -207,90 +244,22 @@ export class QoderExecutor extends BaseExecutor {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
-      ...(isPatToken ? {} : getQoderDashscopeCompatHeaders()),
+      ...getQoderDashscopeCompatHeaders(),
     };
 
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
 
-    const payload = this.transformRequest(mappedModel, body, stream, credentials);
+    const payload = this.transformRequest(mappedModel, body);
 
     const bodyStr = JSON.stringify(payload);
 
     try {
-      let response = await fetch(endpointUrl, {
+      const response = await fetch(endpointUrl, {
         method: "POST",
         headers,
         body: bodyStr,
         signal,
       });
-
-      // PAT tokens (pt-*) are not accepted as Bearer tokens by api.qoder.com/v1/chat/completions.
-      // They return 401 TOKEN_INVALID. Fallback to Cosy auth against api1.qoder.sh.
-      if (!response.ok && response.status === 401 && isPatToken) {
-        // #4683: exchange the PAT (pt-*) for a job token (jt-*) before the Cosy call;
-        // Cosy rejects a raw pt-* in security_oauth_token with a generic 500.
-        const cosyToken = await resolveQoderJobToken(token, { signal });
-        const cosyHeaders = buildCosyHeadersForValidation(bodyStr, cosyToken);
-        const cosyEndpoint =
-          "https://api1.qoder.sh/algo/api/v2/service/pro/sse/agent_chat_generation?AgentId=agent_common";
-        const cosyRes = await fetch(cosyEndpoint, {
-          method: "POST",
-          headers: cosyHeaders,
-          body: bodyStr,
-          signal,
-        });
-
-        if (cosyRes.ok || cosyRes.status === 200) {
-          // Cosy SSE response - read full body and parse
-          const rawText = await cosyRes.text();
-          const lines = rawText.split("\n").filter((l) => l.startsWith("data: "));
-          let fullContent = "";
-          for (const line of lines) {
-            try {
-              const jsonData = JSON.parse(line.slice(6));
-              const { extractTextFromQoderEnvelope } = await import("../services/qoderCli.ts");
-              const chunkText = extractTextFromQoderEnvelope(jsonData);
-              if (chunkText) fullContent += chunkText;
-            } catch {
-              // skip unparseable chunks
-            }
-          }
-          const { buildQoderCompletionPayload } = await import("../services/qoderCli.ts");
-          const cosyPayload = buildQoderCompletionPayload({
-            model: mappedModel || resolvedModel,
-            text: fullContent,
-          });
-          return {
-            response: new Response(JSON.stringify(cosyPayload), {
-              status: 200,
-              headers: { "Content-Type": "application/json" },
-            }),
-            url: cosyEndpoint,
-            headers: cosyHeaders,
-            transformedBody: payload,
-          };
-        }
-
-        // Cosy also failed - return the original 401 error
-        let errText = await cosyRes.text();
-        return {
-          response: new Response(
-            JSON.stringify({
-              error: {
-                message:
-                  `Qoder API (Cosy) failed with status ${cosyRes.status}: ${errText}. Your PAT token may not be valid for the chat API.` +
-                  " Try using an OAuth token or a different auth method.",
-                type: "authentication_error",
-                code: "token_invalid",
-              },
-            }),
-            { status: 401, headers: { "Content-Type": "application/json" } }
-          ),
-          url: cosyEndpoint,
-          headers: cosyHeaders,
-          transformedBody: payload,
-        };
-      }
 
       if (!response.ok) {
         let errText = await response.text();
@@ -340,6 +309,102 @@ export class QoderExecutor extends BaseExecutor {
         transformedBody: payload,
       };
     }
+  }
+
+  /**
+   * Drive a PAT (`pt-*`) completion through the local qodercli binary. The CLI
+   * performs Qoder's WASM-signed Cosy auth internally, so this is the only path
+   * that works for PATs now that the pure-HTTP Cosy reimplementation is dead.
+   */
+  private async executeViaQoderCli({
+    model,
+    body,
+    stream,
+    token,
+    signal,
+  }: {
+    model: string;
+    body: unknown;
+    stream: boolean;
+    token: string;
+    signal?: AbortSignal | null;
+  }): Promise<{
+    response: Response;
+    url: string;
+    headers: Record<string, string>;
+    transformedBody: unknown;
+  }> {
+    const url = "qodercli://stdio";
+    const prompt = buildQoderPrompt(body);
+
+    const run = await runQoderCli({ token, prompt, stream: false, model, signal });
+
+    // Honor client cancellation the same way the HTTP path does.
+    if (signal?.aborted) {
+      const abortError = new Error("Aborted");
+      abortError.name = "AbortError";
+      throw abortError;
+    }
+
+    if (run.error && /enoent|not found|no such file|spawn/i.test(run.error)) {
+      return {
+        response: createQoderErrorResponse({
+          status: 502,
+          message:
+            `Qoder CLI (qodercli) was not found on the OmniRoute host (${run.error}). ` +
+            "Install it from https://qoder.com or set CLI_QODER_BIN to its path.",
+          code: "cli_not_found",
+        }),
+        url,
+        headers: {},
+        transformedBody: body,
+      };
+    }
+
+    if (!run.ok) {
+      return {
+        response: createQoderErrorResponse(parseQoderCliFailure(run.stderr, run.stdout)),
+        url,
+        headers: {},
+        transformedBody: body,
+      };
+    }
+
+    const { text, isError, errorMessage } = parseQoderCliResult(run.stdout);
+    if (isError) {
+      return {
+        response: createQoderErrorResponse(parseQoderCliFailure(errorMessage)),
+        url,
+        headers: {},
+        transformedBody: body,
+      };
+    }
+
+    if (stream) {
+      return {
+        response: new Response(buildQoderCliSseStream(model, text), {
+          status: 200,
+          headers: {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            Connection: "keep-alive",
+          },
+        }),
+        url,
+        headers: {},
+        transformedBody: body,
+      };
+    }
+
+    return {
+      response: new Response(JSON.stringify(buildQoderCompletionPayload({ model, text })), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+      url,
+      headers: {},
+      transformedBody: body,
+    };
   }
 }
 

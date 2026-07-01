@@ -1,5 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 import { QoderExecutor } from "../../open-sse/executors/qoder.ts";
 import { getQwenCliUserAgent } from "../../open-sse/config/providerHeaderProfiles.ts";
@@ -11,6 +14,43 @@ import {
   parseQoderCliFailure,
   validateQoderCliPat,
 } from "../../open-sse/services/qoderCli.ts";
+
+/**
+ * Write a fake `qodercli` binary and point CLI_QODER_BIN at it. The stub mimics
+ * the two invocations OmniRoute makes: `--print --output-format json` (chat) and
+ * `--list-models` (validation). It fails auth when the PAT contains "bad" so a
+ * single stub covers both the happy and the rejection path. Returns a cleanup fn.
+ */
+function withStubQoderCli(fn: () => void | Promise<void>) {
+  const prevBin = process.env.CLI_QODER_BIN;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "qodercli-stub-"));
+  const stub = path.join(dir, "qodercli");
+  fs.writeFileSync(
+    stub,
+    [
+      "#!/bin/sh",
+      'is_bad() { case "$QODER_PERSONAL_ACCESS_TOKEN" in *bad*) return 0;; *) return 1;; esac; }',
+      'case "$*" in',
+      "  *--list-models*)",
+      '    if is_bad; then echo "Not logged in · Please run /login"; exit 0; fi',
+      '    printf "MODEL\\nAuto\\nQwen3-Coder\\n"; exit 0;;',
+      "  *--print*)",
+      "    cat >/dev/null;",
+      '    if is_bad; then printf \'{"type":"result","subtype":"success","is_error":true,"result":"Not logged in · Please run /login"}\\n\'; exit 0; fi',
+      '    printf \'{"type":"result","subtype":"success","is_error":false,"result":"OK from stub"}\\n\'; exit 0;;',
+      "esac",
+      "exit 0",
+    ].join("\n"),
+    { mode: 0o755 }
+  );
+  process.env.CLI_QODER_BIN = stub;
+  const restore = () => {
+    if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
+    else process.env.CLI_QODER_BIN = prevBin;
+    fs.rmSync(dir, { recursive: true, force: true });
+  };
+  return Promise.resolve().then(fn).finally(restore);
+}
 
 test("QoderExecutor: constructor sets provider to qoder", () => {
   const executor = new QoderExecutor();
@@ -127,45 +167,32 @@ test("parseQoderCliFailure classifies auth, upstream and timeout failures", () =
   });
 });
 
-test("validateQoderCliPat succeeds when the validation endpoint returns OK", async () => {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url, options) => {
-    const urlStr = String(url);
-    // Handle ping check
-    if (urlStr.includes("/ping")) {
-      return new Response("pong", { status: 200 });
-    }
-    assert.match(
-      urlStr,
-      /api1\.qoder\.sh\/algo\/api\/v2\/service\/pro\/sse\/agent_chat_generation/
-    );
-    assert.equal(options.method, "POST");
-    assert.match(String(options.headers.Authorization), /^Bearer COSY\./);
-    return new Response("{}", { status: 200 });
-  };
-
-  try {
-    const result = await validateQoderCliPat({ apiKey: "pat_test" });
+test("validateQoderCliPat succeeds when qodercli lists models for the PAT", async () => {
+  await withStubQoderCli(async () => {
+    const result = await validateQoderCliPat({ apiKey: "pt-good-token" });
     assert.deepEqual(result, { valid: true, error: null, unsupported: false });
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
+  });
 });
 
 test("validateQoderCliPat returns auth failures with actionable error", async () => {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url) => {
-    if (String(url).includes("/ping")) return new Response("pong", { status: 200 });
-    return new Response("Invalid API key", { status: 401 });
-  };
-
-  try {
-    const result = await validateQoderCliPat({ apiKey: "pat_bad" });
+  await withStubQoderCli(async () => {
+    const result = await validateQoderCliPat({ apiKey: "pt-bad-token" });
     assert.equal(result.valid, false);
-    assert.match(result.error, /Authentication failed/);
+    assert.match(result.error, /not authorized|integrations/i);
     assert.equal(result.unsupported, false);
+  });
+});
+
+test("validateQoderCliPat reports a clear error when qodercli is missing", async () => {
+  const prevBin = process.env.CLI_QODER_BIN;
+  process.env.CLI_QODER_BIN = "/nonexistent/qodercli-please-fail";
+  try {
+    const result = await validateQoderCliPat({ apiKey: "pt-good-token" });
+    assert.equal(result.valid, false);
+    assert.match(result.error, /qodercli|CLI_QODER_BIN|not found/i);
   } finally {
-    globalThis.fetch = originalFetch;
+    if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
+    else process.env.CLI_QODER_BIN = prevBin;
   }
 });
 
@@ -184,50 +211,63 @@ test("QoderExecutor: missing tokens return an authentication error response", as
   assert.equal(payload.error.code, "token_required");
 });
 
-test("QoderExecutor: non-stream calls target Qoder native API for PAT tokens", async () => {
-  const executor = new QoderExecutor();
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url, options) => {
-    assert.equal(String(url), "https://api.qoder.com/v1/chat/completions");
-    assert.equal(options.method, "POST");
-    assert.equal(options.headers.Authorization, "Bearer pt-0pUI-test-token");
-    assert.equal(options.headers["x-dashscope-authtype"], undefined);
-    const parsedBody = JSON.parse(String(options.body));
-    assert.equal(parsedBody.model, "qwen3.5-plus");
-    return new Response(
-      JSON.stringify({
-        id: "chatcmpl-qoder",
-        object: "chat.completion",
-        choices: [
-          {
-            index: 0,
-            message: { role: "assistant", content: "OK" },
-            finish_reason: "stop",
-          },
-        ],
-      }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
-  };
-
-  try {
-    const { response, url, transformedBody } = await executor.execute({
-      model: "qwen3.5-plus",
+test("QoderExecutor: non-stream PAT completions route through the local qodercli binary", async () => {
+  await withStubQoderCli(async () => {
+    const executor = new QoderExecutor();
+    const { response, url } = await executor.execute({
+      model: "qwen3-coder-plus",
       body: { messages: [{ role: "user", content: "Reply with OK only." }] },
       stream: false,
       credentials: { apiKey: "pt-0pUI-test-token" },
     });
 
-    assert.equal(url, "https://api.qoder.com/v1/chat/completions");
-    assert.equal((transformedBody as any).model, "qwen3.5-plus");
+    assert.equal(url, "qodercli://stdio");
     assert.equal(response.status, 200);
-    const payload = (await response.json()) as any;
+    const payload = (await response.json()) as {
+      object: string;
+      choices: { message: { role: string; content: string } }[];
+    };
     assert.equal(payload.object, "chat.completion");
     assert.equal(payload.choices[0].message.role, "assistant");
-    assert.equal(payload.choices[0].message.content, "OK");
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
+    assert.equal(payload.choices[0].message.content, "OK from stub");
+  });
+});
+
+test("QoderExecutor: streaming PAT completions emit OpenAI-compatible SSE via qodercli", async () => {
+  await withStubQoderCli(async () => {
+    const executor = new QoderExecutor();
+    const { response, url } = await executor.execute({
+      model: "qwen3-coder-plus",
+      body: { messages: [{ role: "user", content: "Reply with OK only." }] },
+      stream: true,
+      credentials: { apiKey: "pt-0pUI-test-token" },
+    });
+
+    assert.equal(url, "qodercli://stdio");
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get("Content-Type") || "", /text\/event-stream/);
+    const body = await response.text();
+    assert.match(body, /"content":"OK from stub"/);
+    assert.match(body, /"finish_reason":"stop"/);
+    assert.match(body, /\[DONE\]/);
+  });
+});
+
+test("QoderExecutor: PAT auth failure from qodercli surfaces a 401", async () => {
+  await withStubQoderCli(async () => {
+    const executor = new QoderExecutor();
+    const { response, url } = await executor.execute({
+      model: "qwen3-coder-plus",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: { apiKey: "pt-bad-token" },
+    });
+
+    assert.equal(url, "qodercli://stdio");
+    assert.equal(response.status, 401);
+    const payload = (await response.json()) as { error: { type: string } };
+    assert.equal(payload.error.type, "authentication_error");
+  });
 });
 
 test("QoderExecutor: non-stream calls target DashScope for non-PAT tokens and map alias models", async () => {
@@ -278,63 +318,29 @@ test("QoderExecutor: non-stream calls target DashScope for non-PAT tokens and ma
   }
 });
 
-test("QoderExecutor: PAT token falls back to Cosy auth when Bearer returns 401", async () => {
-  const executor = new QoderExecutor();
-  const originalFetch = globalThis.fetch;
-  let callCount = 0;
-
-  globalThis.fetch = async (url, options) => {
-    callCount++;
-    const u = String(url);
-    if (u === "https://api.qoder.com/v1/chat/completions") {
-      // First call to api.qoder.com returns 401 TOKEN_INVALID
-      assert.equal(options.headers.Authorization, "Bearer pt-0pUI-test-token");
-      return new Response(JSON.stringify({ code: "TOKEN_INVALID", message: "invalid apikey" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
+test("QoderExecutor: PAT completions never touch the (dead) Cosy HTTP endpoints", async () => {
+  await withStubQoderCli(async () => {
+    const executor = new QoderExecutor();
+    const originalFetch = globalThis.fetch;
+    let fetchCalls = 0;
+    globalThis.fetch = async (...args) => {
+      fetchCalls++;
+      return originalFetch(...(args as Parameters<typeof fetch>));
+    };
+    try {
+      const { response } = await executor.execute({
+        model: "qwen3-coder-plus",
+        body: { messages: [{ role: "user", content: "Reply with OK only." }] },
+        stream: false,
+        credentials: { apiKey: "pt-0pUI-test-token" },
       });
+      assert.equal(response.status, 200);
+      // No HTTP at all: PATs are served entirely by the local qodercli binary.
+      assert.equal(fetchCalls, 0);
+    } finally {
+      globalThis.fetch = originalFetch;
     }
-    if (u.includes("/jobToken/exchange")) {
-      // #4683: the PAT is exchanged for a short-lived jt-* job token before the Cosy call.
-      assert.deepEqual(JSON.parse(String(options.body)), { personal_token: "pt-0pUI-test-token" });
-      return new Response(JSON.stringify({ job_token: "jt-from-exchange", expires_in: 86400 }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    // Cosy fallback call to api1.qoder.sh returns SSE response
-    assert.ok(u.includes("api1.qoder.sh"));
-    assert.ok(u.includes("agent_chat_generation"));
-    assert.ok(options.headers["Cosy-Key"]);
-    assert.ok(options.headers["Cosy-User"]);
-    assert.ok(options.headers["Cosy-Date"]);
-    assert.ok(options.headers.Authorization.startsWith("Bearer COSY."));
-    return new Response('data: {"message":{"content":"Hello from Cosy"}}\n\ndata: [DONE]\n\n', {
-      status: 200,
-      headers: { "Content-Type": "text/event-stream" },
-    });
-  };
-
-  try {
-    const { response, url } = await executor.execute({
-      model: "qwen3.5-plus",
-      body: { messages: [{ role: "user", content: "Reply with OK only." }] },
-      stream: false,
-      credentials: { apiKey: "pt-0pUI-test-token" },
-    });
-
-    assert.equal(
-      callCount,
-      3,
-      "Should have made 3 fetch calls (1 Bearer + 1 jobToken exchange + 1 Cosy)"
-    );
-    assert.equal(response.status, 200);
-    const payload = await response.json();
-    assert.equal(payload.object, "chat.completion");
-    assert.equal(payload.choices[0].message.content, "Hello from Cosy");
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
+  });
 });
 
 test("QoderExecutor: stream calls pass through successful SSE responses", async () => {
