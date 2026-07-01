@@ -37,14 +37,7 @@ export type LocalProviderMetadata = {
 
 export type CommandCodeAuthFlowState = {
   phase:
-    | "idle"
-    | "starting"
-    | "polling"
-    | "received"
-    | "applying"
-    | "applied"
-    | "expired"
-    | "error";
+    "idle" | "starting" | "polling" | "received" | "applying" | "applied" | "expired" | "error";
   state: string;
   authUrl: string;
   callbackUrl: string;
@@ -400,6 +393,20 @@ export function getWebSessionCredentialHint(
           "Leave blank to keep the current session cookie. Required cookie: {credential}.",
           values
         );
+  }
+
+  // #5465 — a provider-specific hint (e.g. t3.chat's step-by-step DevTools copy)
+  // replaces the generic one-line cookie/token template when that template is
+  // unclear for the provider (t3.chat needs a localStorage value AND the Cookie
+  // header, so "Required cookie: convex-session-id + Cookie header…" reads
+  // circular). The override key ships translated in every locale.
+  if (requirement.hintKey) {
+    return providerText(
+      t,
+      requirement.hintKey,
+      "Open the provider's web session in DevTools, copy the required credential(s), and paste them in the fields below.",
+      values
+    );
   }
 
   return requirement.kind === "token"

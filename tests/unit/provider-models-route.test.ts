@@ -76,7 +76,10 @@ test("provider models route returns a static local catalog for non-LLM search/ag
     const body = await response.json();
     assert.equal(body.source, "local_catalog", `${provider} should serve a local catalog`);
     const ids = (body.models || []).map((m) => m.id);
-    assert.ok(ids.includes(expectId), `${provider} should list "${expectId}"; got: ${ids.join(", ")}`);
+    assert.ok(
+      ids.includes(expectId),
+      `${provider} should list "${expectId}"; got: ${ids.join(", ")}`
+    );
   }
 });
 
@@ -118,9 +121,8 @@ test("provider models route falls back to the local AI/ML API catalog when the l
 });
 
 test("cablyai is flagged deprecated (domain NXDOMAIN) and no longer 500s on model import (#5568)", async () => {
-  const { APIKEY_PROVIDERS_GATEWAYS } = await import(
-    "../../src/shared/constants/providers/apikey/gateways.ts"
-  );
+  const { APIKEY_PROVIDERS_GATEWAYS } =
+    await import("../../src/shared/constants/providers/apikey/gateways.ts");
   const cablyai = (APIKEY_PROVIDERS_GATEWAYS as Record<string, any>).cablyai;
   assert.equal(cablyai?.deprecated, true, "cablyai must be marked deprecated (domain is NXDOMAIN)");
   assert.ok(
@@ -500,6 +502,37 @@ test("provider models route returns the local catalog for embedding and rerank p
     )
   );
   assert.ok(jinaBody.models.some((model) => model.id === "jina-reranker-m0"));
+});
+
+test("provider models route flags intentional local-catalog-only providers so model-sync imports them (#5460/#5465)", async () => {
+  // reka + voyage-ai never do a remote /models fetch — their local catalog is
+  // the intended source, so the response must carry `intentional: true` for the
+  // sync route to import instead of 502-ing ("local catalog fallback not synced").
+  const reka = await seedConnection("reka", { apiKey: "reka-key" });
+  const voyage = await seedConnection("voyage-ai", { apiKey: "voyage-key" });
+
+  const [rekaBody, voyageBody] = await Promise.all([
+    callRoute(reka.id).then((r) => r.json() as any),
+    callRoute(voyage.id).then((r) => r.json() as any),
+  ]);
+
+  assert.equal(rekaBody.source, "local_catalog");
+  assert.equal(rekaBody.intentional, true, "reka local catalog must be flagged intentional");
+  assert.equal(voyageBody.source, "local_catalog");
+  assert.equal(voyageBody.intentional, true, "voyage-ai local catalog must be flagged intentional");
+});
+
+test("provider models route does NOT flag a degraded remote-fetch fallback as intentional (#5460/#5465)", async () => {
+  // aimlapi normally discovers remotely; when the live fetch fails it falls back
+  // to the local catalog — that IS degraded and must NOT be flagged intentional,
+  // so model-sync still surfaces the failure (502) for it.
+  const connection = await seedConnection("aimlapi", { apiKey: "aiml-key" });
+  globalThis.fetch = async () => new Response("upstream down", { status: 500 });
+
+  const body = (await (await callRoute(connection.id)).json()) as any;
+
+  assert.equal(body.source, "local_catalog");
+  assert.notEqual(body.intentional, true, "degraded fallback must not be flagged intentional");
 });
 
 test("provider models route returns the local catalog for Runway video models", async () => {

@@ -7,6 +7,13 @@ export type WebSessionCredentialRequirement =
       placeholder: string;
       acceptsFullCookieHeader: boolean;
       storageKeys: readonly string[];
+      /**
+       * #5465 — Optional i18n key for a provider-specific credential hint that
+       * REPLACES the generic "Required cookie: {credential}…" copy. Use when the
+       * generic template is confusing (e.g. t3.chat needs a localStorage value
+       * AND the Cookie header, so the one-line cookie hint reads circular).
+       */
+      hintKey?: string;
     }
   | {
       kind: "none";
@@ -107,6 +114,10 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     placeholder: "convex-session-id=abc123...; Cookie: ...",
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "convex-session-id", "convexSessionId"],
+    // #5465 — the generic cookie hint reads circular for t3.chat (needs a
+    // localStorage value AND the Cookie header); use the step-by-step DevTools
+    // copy that already ships translated in every locale.
+    hintKey: "t3ChatWebCookieHint",
   },
   "adapta-web": {
     kind: "cookie",

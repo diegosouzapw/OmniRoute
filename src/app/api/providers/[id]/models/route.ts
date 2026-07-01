@@ -272,7 +272,7 @@ export async function GET(
         ...(warning ? { warning } : {}),
       });
 
-    const buildLocalCatalogResponse = (warning?: string) => {
+    const buildLocalCatalogResponse = (warning?: string, intentional = false) => {
       const localModels = toLocalCatalogModels();
       if (localModels.length === 0) return null;
       return buildResponse({
@@ -280,6 +280,10 @@ export async function GET(
         connectionId,
         models: localModels,
         source: "local_catalog",
+        // #5460/#5465 — flag catalogs that are the provider's ONLY discovery
+        // source (no remote /models endpoint). model-sync imports these instead
+        // of treating them as a degraded remote-fetch failure (502).
+        ...(intentional ? { intentional: true } : {}),
         ...(warning ? { warning } : {}),
       });
     };
@@ -399,7 +403,9 @@ export async function GET(
     };
 
     if (provider === "reka") {
-      const localCatalog = buildLocalCatalogResponse();
+      // reka has no remote model-discovery endpoint — the local catalog is the
+      // intended source, not a degraded fallback (#5460).
+      const localCatalog = buildLocalCatalogResponse(undefined, true);
       if (localCatalog) return localCatalog;
     }
 
@@ -1632,6 +1638,9 @@ export async function GET(
           owned_by: "qwen",
         })),
         source: "local_catalog",
+        // #5460/#5465 — Qwen OAuth has no OAuth-compatible remote /models list;
+        // the static catalog is intentional, so model-sync should import it.
+        intentional: true,
       });
     }
 
@@ -1655,6 +1664,10 @@ export async function GET(
           ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
         })),
         source: "local_catalog",
+        // #5460/#5465 — providers with no discovery config (embedding/rerank/
+        // web-cookie providers like voyage-ai, jina-ai, t3-web) are
+        // intentionally local-catalog-only; model-sync imports rather than 502s.
+        intentional: true,
         warning: "API unavailable — using local catalog",
       });
     }
