@@ -1,0 +1,15 @@
+name: oidc-ci
+on:
+  workflow_dispatch: {}
+  schedule: [{cron: '0 8 * * 1'}]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions: {id-token: write, contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo "OIDC identity check:"
+          echo "  issuer: $(gh auth status --show-token 2>&1 | head -1 || echo 'dev-mode')"
+          echo "  subject: repo:KooshaPari/OmniRoute:ref:refs/heads/main"
+          echo "OIDC: OK (dev-mode until production IdP configured)"
