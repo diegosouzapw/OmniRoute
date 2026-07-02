@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from "react";
 import { STACKED_PIPELINE_ENGINE_INTENSITIES } from "@/shared/validation/compressionConfigSchemas";
+import { CompressionPipelineEditor } from "@/shared/components/compression/CompressionPipelineEditor";
 import CompressionHub from "./CompressionHub";
 
 type PipelineStep = { engine: string; intensity?: string };
@@ -158,20 +159,6 @@ function NamedCombosManager() {
     if (res.ok) refresh();
   };
 
-  const updateStep = (index: number, patch: Partial<PipelineStep>) => {
-    setPipeline((current) =>
-      current.map((step, stepIndex) => {
-        if (stepIndex !== index) return step;
-        const next = { ...step, ...patch };
-        const allowed = ENGINE_INTENSITIES[next.engine] ?? ["standard"];
-        return {
-          ...next,
-          intensity: allowed.includes(next.intensity ?? "") ? next.intensity : allowed[0],
-        };
-      })
-    );
-  };
-
   const togglePack = (language: string, enabled: boolean) => {
     setSelectedPacks((current) =>
       enabled
@@ -211,51 +198,12 @@ function NamedCombosManager() {
           />
         </div>
 
-        <div className="mt-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-text-main">Pipeline</h3>
-            <button
-              onClick={() =>
-                setPipeline((current) => [...current, { engine: "caveman", intensity: "full" }])
-              }
-              className="rounded-lg border border-border px-3 py-1.5 text-xs text-text-main"
-            >
-              Add step
-            </button>
-          </div>
-          {pipeline.map((step, index) => (
-            <div key={index} className="grid grid-cols-[1fr_1fr_auto] gap-2">
-              <select
-                value={step.engine}
-                onChange={(event) => updateStep(index, { engine: event.target.value })}
-                className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text-main"
-              >
-                {Object.keys(ENGINE_INTENSITIES).map((engine) => (
-                  <option key={engine} value={engine}>
-                    {engine}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={step.intensity ?? ""}
-                onChange={(event) => updateStep(index, { intensity: event.target.value })}
-                className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text-main"
-              >
-                {(ENGINE_INTENSITIES[step.engine] ?? ["standard"]).map((intensity) => (
-                  <option key={intensity} value={intensity}>
-                    {intensity}
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={() => setPipeline((current) => current.filter((_, i) => i !== index))}
-                className="rounded-lg border border-border px-3 py-2 text-sm text-text-main"
-                disabled={pipeline.length <= 1}
-              >
-                Remove
-              </button>
-            </div>
-          ))}
+        <div className="mt-4">
+          <CompressionPipelineEditor
+            steps={pipeline}
+            onChange={setPipeline}
+            engineIntensities={ENGINE_INTENSITIES}
+          />
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">

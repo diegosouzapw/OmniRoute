@@ -90,6 +90,7 @@ export interface ApiKeyMetadata {
   throttleDelayMs?: number | null;
   maxSessions?: number | null;
   rateLimits?: RateLimitRule[] | null;
+  scopes?: string[];
   allowedEndpoints?: string[];
   disableNonPublicModels?: boolean;
   allowUsageCommand?: boolean;

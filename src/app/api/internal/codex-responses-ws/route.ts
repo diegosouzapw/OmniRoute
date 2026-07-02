@@ -18,6 +18,8 @@ import {
 } from "@/lib/memory/settings";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import { logger } from "@omniroute/open-sse/utils/logger.ts";
+import { resolveProxy } from "@omniroute/open-sse/utils/networkProxy.ts";
+import { proxyConfigToUrl } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
 
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 const executor = new CodexExecutor();
@@ -408,16 +410,32 @@ async function prepare(body: JsonRecord) {
 
   const headers = normalizeUpstreamHeaders(executor.buildHeaders(refreshedCredentials, true));
 
+  // #5611: apply the configured Global/provider proxy to the upstream Codex
+  // Responses WebSocket too. The downstream client→OmniRoute hop works, but the
+  // upstream wreq-js.websocket() connect previously ignored the Proxy Registry,
+  // so a no-direct-egress container failed with a DNS lookup error.
+  let proxy: string | undefined;
+  try {
+    proxy = proxyConfigToUrl(await resolveProxy(provider)) || undefined;
+  } catch (err) {
+    logger.warn(`[codex-responses-ws] proxy resolution failed: ${sanitizeErrorMessage(err)}`);
+  }
+
   return NextResponse.json({
     ok: true,
     upstreamUrl: CODEX_RESPONSES_WS_URL,
-    browser: "chrome_149",
+    // #5591: chrome_149 does not exist in wreq-js 2.3.1 (max chrome_147) → the
+    // native layer yields a degenerate TLS fingerprint and ChatGPT rejects the
+    // upgrade ("Invalid JSON body"). chrome_142 is the profile that shipped in
+    // v3.8.39 and is confirmed working against this upstream.
+    browser: "chrome_142",
     os: "windows",
     connectionId: refreshedCredentials.connectionId,
     provider,
     account: refreshedCredentials.email || null,
     model,
     headers,
+    proxy,
     response: transformed,
   });
 }

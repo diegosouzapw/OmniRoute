@@ -644,6 +644,51 @@ function computeFinishReason(state): "tool_calls" | "stop" {
   return (state.toolCallIndex || 0) > 0 || state.currentToolCallId ? "tool_calls" : "stop";
 }
 
+// #5786 — remember that a reasoning delta was streamed for a given reasoning item, so
+// the terminal `response.output_item.done` snapshot for that item is NOT re-emitted
+// (which would duplicate the reasoning channel). Keyed by item_id when present, with a
+// global fallback for streams whose deltas carry no item_id.
+function markResponsesReasoningDeltaEmitted(state, itemId) {
+  state.reasoningDeltaEmitted = true;
+  const id = itemId != null ? String(itemId) : "";
+  if (!id) return;
+  if (!(state.reasoningItemsWithDelta instanceof Set)) {
+    state.reasoningItemsWithDelta = new Set();
+  }
+  state.reasoningItemsWithDelta.add(id);
+}
+
+// #5786 — build a Chat-format reasoning delta chunk in the shape the client renders in
+// its thinking panel (`reasoning_content`, or `reasoning_text` for Copilot-compatible
+// clients). Mirrors the `response.reasoning_summary_text.delta` branch.
+function buildResponsesReasoningDeltaChunk(state, text) {
+  const delta = state.copilotCompatibleReasoning
+    ? { reasoning_text: text }
+    : { reasoning_content: text };
+  return {
+    id: state.chatId,
+    object: "chat.completion.chunk",
+    created: state.created,
+    model: state.model || "gpt-4",
+    choices: [
+      {
+        index: 0,
+        delta,
+        finish_reason: null,
+      },
+    ],
+  };
+}
+
+function extractResponsesReasoningSummaryText(item) {
+  if (!item || !Array.isArray(item.summary)) return "";
+  return item.summary
+    .map((part) =>
+      part && typeof part === "object" && typeof part.text === "string" ? part.text : ""
+    )
+    .join("");
+}
+
 /**
  * Translate OpenAI Responses API chunk to OpenAI Chat Completions format
  * This is for when Codex returns data and we need to send it to an OpenAI-compatible client
@@ -983,6 +1028,7 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
   ) {
     const reasoningDelta = data.delta || "";
     if (!reasoningDelta) return null;
+    markResponsesReasoningDeltaEmitted(state, data.item_id);
     return {
       id: state.chatId,
       object: "chat.completion.chunk",
@@ -1007,22 +1053,33 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
   if (eventType === "response.reasoning_summary_text.delta") {
     const reasoningDelta = data.delta || "";
     if (!reasoningDelta) return null;
-    const reasoningDeltaShape = state.copilotCompatibleReasoning
-      ? { reasoning_text: reasoningDelta }
-      : { reasoning_content: reasoningDelta };
-    return {
-      id: state.chatId,
-      object: "chat.completion.chunk",
-      created: state.created,
-      model: state.model || "gpt-4",
-      choices: [
-        {
-          index: 0,
-          delta: reasoningDeltaShape,
-          finish_reason: null,
-        },
-      ],
-    };
+    markResponsesReasoningDeltaEmitted(state, data.item_id);
+    return buildResponsesReasoningDeltaChunk(state, reasoningDelta);
+  }
+
+  // #5786 — reasoning summary exposed ONLY as a terminal snapshot on
+  // `response.output_item.done` (no preceding reasoning_summary_text.delta events — e.g.
+  // Codex reasoning models that surface the summary once at item close). Without this the
+  // reasoning channel is silently dropped and never reaches the client's thinking panel.
+  // Only synthesize when NO reasoning delta was already streamed for this item, so normal
+  // delta streams are never duplicated.
+  if (eventType === "response.output_item.done" && data.item?.type === "reasoning") {
+    const item = data.item;
+    const itemId = item.id != null ? String(item.id) : "";
+    const emittedForItem =
+      state.reasoningItemsWithDelta instanceof Set &&
+      itemId &&
+      state.reasoningItemsWithDelta.has(itemId);
+    // Deltas were streamed but carried no item_id: fall back to the global flag and
+    // suppress synthesis to avoid duplicating that same reasoning text.
+    const emittedWithoutItemId =
+      state.reasoningDeltaEmitted &&
+      !(state.reasoningItemsWithDelta instanceof Set && state.reasoningItemsWithDelta.size > 0);
+    if (emittedForItem || emittedWithoutItemId) return null;
+
+    const summaryText = extractResponsesReasoningSummaryText(item);
+    if (!summaryText) return null;
+    return buildResponsesReasoningDeltaChunk(state, summaryText);
   }
 
   // Ignore other events

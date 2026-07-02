@@ -143,6 +143,24 @@ export interface RegistryEntry {
   anonymousApiKey?: string;
 }
 
+/**
+ * Build a standard OpenAI-compatible provider registry entry.
+ * Eliminates the 4-field boilerplate (format, executor, authType, authHeader)
+ * repeated across 40+ provider files.
+ */
+export function buildOpenAiCompatibleRegistryEntry(
+  overrides: Pick<RegistryEntry, "id"> &
+    Partial<Omit<RegistryEntry, "id" | "format" | "executor" | "authType" | "authHeader">>
+): RegistryEntry {
+  return {
+    format: "openai",
+    executor: "default",
+    authType: "apikey",
+    authHeader: "bearer",
+    ...overrides,
+  } as RegistryEntry;
+}
+
 export interface LegacyProvider {
   format: string;
   baseUrl?: string;

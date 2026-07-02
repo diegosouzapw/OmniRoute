@@ -2292,8 +2292,8 @@
       }
     },
     "url": {
-      "nonStream": "https://kimi.moonshot.cn/api/chat",
-      "stream": "https://kimi.moonshot.cn/api/chat"
+      "nonStream": "https://www.kimi.com",
+      "stream": "https://www.kimi.com"
     }
   },
   "kiro": {
