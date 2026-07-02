@@ -8,7 +8,7 @@
 
 ### ✨ New Features
 
-_TBD_
+- **feat(server):** support reverse-proxy subpath deployment via OMNIROUTE_BASE_PATH (basePath-aware auth redirects). (thanks @SillyHippy)
 
 ### 🔧 Bug Fixes
 
