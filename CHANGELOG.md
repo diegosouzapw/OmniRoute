@@ -46,6 +46,8 @@
 
 ### 🔧 Bug Fixes
 
+- **dashboard (token badge):** the red "Token Expired" connection badge no longer flashes for OAuth refresh-capable providers (Antigravity/Gemini) whose access token merely lapsed but is auto-refreshed — it now shows only when the connection is terminally expired (`testStatus === "expired"`). Continuation of #5326. Regression guard: `tests/unit/ui/connection-row-token-badge-5836.test.tsx`. ([#5836](https://github.com/diegosouzapw/OmniRoute/issues/5836))
+
 - **db (auto backup toggle):** full pre-write SQLite backups now honor the persisted `backup.autoBackupEnabled` dashboard setting — previously only the `DISABLE_SQLITE_AUTO_BACKUP` env var was checked, so disabling auto-backup in the UI had no effect and ~70MB pre-write snapshots kept firing. Manual and pre-restore backups still always run. Regression guard: `tests/unit/db-backup-autobackup-setting-5871.test.ts`. ([#5871](https://github.com/diegosouzapw/OmniRoute/issues/5871))
 
 - **providers (auto/ routing for custom providers):** custom OpenAI-/Anthropic-compatible providers (dynamic `*-compatible-*` connection IDs) are no longer excluded from `auto/` routing — the Auto-Combo virtual factory previously skipped any connection whose provider was absent from the static registry. It now falls back to the connection's `defaultModel`. Regression guard: `tests/unit/auto-custom-provider-5873.test.ts`. ([#5873](https://github.com/diegosouzapw/OmniRoute/issues/5873))
