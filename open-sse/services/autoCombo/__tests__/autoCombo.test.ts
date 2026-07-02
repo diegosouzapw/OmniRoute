@@ -628,9 +628,12 @@ describe("Task Fitness DB Resolution Chain", () => {
   });
 
   it("getTaskFitnessWithSource identifies fitness_table as source for known models", () => {
-    const result = getTaskFitnessWithSource("gpt-4o", "coding");
+    const model = "claude-sonnet";
+    const category = "coding";
+
+    const result = getTaskFitnessWithSource(model, category);
     expect(result.source).toBe("fitness_table");
-    expect(result.score).toBe(0.9);
+    expect(result.score).toBe(0.95);
   });
 
   it("case insensitivity: model names are lowercased before lookup", () => {
