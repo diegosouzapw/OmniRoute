@@ -9,6 +9,7 @@ import {
 } from "../services/claudeCodeCompatible.ts";
 import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
+import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
   mergeClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,
@@ -182,6 +183,24 @@ export class DefaultExecutor extends BaseExecutor {
       return `${normalized}${customPath || "/messages"}`;
     }
     switch (this.provider) {
+      case "openai": {
+        // #5842: responses-only models (o1-pro / gpt-5.x-pro) 404 on
+        // /v1/chat/completions ("only supported in v1/responses"). Route them to
+        // the native /responses endpoint — the per-model targetFormat (registry tag
+        // + the -pro heuristic in getModelTargetFormat) is the single source of
+        // truth, keeping the URL in lockstep with the chatCore body translation.
+        // Mirrors the gh executor's targetFormat-driven routing (9router#102).
+        const customBaseUrl =
+          typeof credentials?.providerSpecificData?.baseUrl === "string" &&
+          credentials.providerSpecificData.baseUrl.trim()
+            ? (credentials.providerSpecificData.baseUrl as string)
+            : null;
+        const chatUrl = customBaseUrl ? normalizeOpenAIChatUrl(customBaseUrl) : this.config.baseUrl;
+        if (getModelTargetFormat("openai", model) === "openai-responses") {
+          return chatUrl.replace(/\/chat\/completions\/?$/, "/responses");
+        }
+        return chatUrl;
+      }
       case "bailian-coding-plan": {
         const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeBailianMessagesUrl(baseUrl);

@@ -14,6 +14,8 @@
 
 - **fix(usage):** preserve (bounded) tool definitions in request logs even when the request body is truncated, so the request-details view can still show available tools. (thanks @noir017)
 
+- **fix(providers):** route OpenAI responses-only models to `/v1/responses` instead of 404ing on `/v1/chat/completions`. The curated `gpt-5.5-pro` / `gpt-5.4-pro` entries never worked (OpenAI only serves `*-pro` reasoning models via the Responses API), and "Test all models" surfaced the same 404s. The registry entries now carry `targetFormat: "openai-responses"` (reusing the existing per-model translation plumbing shared with `gh`/`codex`), `DefaultExecutor.buildUrl` swaps the `openai` endpoint to `/responses` in lockstep (honoring custom base URLs), and a `-pro` suffix heuristic covers dynamically-synced ids such as `o1-pro` / `gpt-5.2-pro` (same spirit as the gh executor's `/codex/i` routing, 9router#102). Legacy completions-only ids (e.g. `gpt-3.5-turbo-instruct`) are out of scope — they are not in the catalog and OmniRoute has no legacy `/v1/completions` upstream. Regression guard: `tests/unit/openai-responses-only-models-5842.test.ts` (8). Thanks [@maikokan](https://github.com/maikokan). ([#5842](https://github.com/diegosouzapw/OmniRoute/issues/5842))
+
 ---
 
 ## [3.8.43] — TBD
