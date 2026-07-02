@@ -186,6 +186,7 @@
       "tests/unit/middleware-header-strip-5849.test.ts",
       "tests/unit/authz/route-guard-local-prefix.test.ts",
       "tests/unit/authz/route-guard-version-get-exemption.test.ts",
+      "tests/unit/authz/discovery-routes-local-only.test.ts",
       "tests/unit/chat-combo-live-test.test.ts",
       "tests/unit/chatcore-executor-proxy.test.ts",
       "tests/unit/chatcore-request-format.test.ts",
