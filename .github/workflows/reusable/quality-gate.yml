@@ -51,12 +51,14 @@ jobs:
     name: Quality Gate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Parse not-applicable gates
         id: parse-na
+        # Bind workflow_call input to env var before use in shell — prevents script injection.
+        env:
+          NA_GATES: ${{ inputs.not-applicable }}
         run: |
-          NA_GATES="${{ inputs.not-applicable }}"
           echo "na_gates=${NA_GATES}" >> $GITHUB_OUTPUT
           [[ "$NA_GATES" == *"a11y"* ]] && echo "skip_a11y=true" >> $GITHUB_OUTPUT || echo "skip_a11y=false" >> $GITHUB_OUTPUT
           [[ "$NA_GATES" == *"e2e"* ]] && echo "skip_e2e=true" >> $GITHUB_OUTPUT || echo "skip_e2e=false" >> $GITHUB_OUTPUT
@@ -67,8 +69,10 @@ jobs:
 
       - name: Validate coverage report
         if: ${{ !contains(steps.parse-na.outputs.na_gates, 'coverage') }}
+        # Bind workflow_call input to env var before use in shell — prevents script injection.
+        env:
+          REPORT: ${{ inputs.coverage-report }}
         run: |
-          REPORT="${{ inputs.coverage-report }}"
           if [ ! -f "$REPORT" ]; then
             echo "❌ Coverage report not found: $REPORT"
             exit 1
@@ -78,10 +82,12 @@ jobs:
       - name: Parse coverage threshold
         if: ${{ !contains(steps.parse-na.outputs.na_gates, 'coverage') }}
         id: coverage
+        # Bind workflow_call inputs to env vars before use in shell — prevents script injection.
+        env:
+          THRESHOLD: ${{ inputs.threshold }}
+          FORMAT: ${{ inputs.coverage-format }}
+          REPORT: ${{ inputs.coverage-report }}
         run: |
-          THRESHOLD="${{ inputs.threshold }}"
-          FORMAT="${{ inputs.coverage-format }}"
-          REPORT="${{ inputs.coverage-report }}"
           if [ "$FORMAT" = "lcov" ]; then
             LINES_HIT=$(grep '^LH:' "$REPORT" | awk -F: '{sum += $2} END {print sum}')
             LINES_FOUND=$(grep '^LF:' "$REPORT" | awk -F: '{sum += $2} END {print sum}')
