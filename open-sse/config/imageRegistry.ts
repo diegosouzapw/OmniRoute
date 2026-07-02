@@ -561,6 +561,27 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     models: [{ id: "sensenova-u1-fast", name: "SenseNova U1 Fast" }],
     supportedSizes: ["1024x1024"],
   },
+
+  // HuggingFace Hub Inference API text-to-image task. Returns raw image bytes
+  // (not JSON), so it uses a dedicated "huggingface-image" format handled by
+  // handleHuggingFaceImageGeneration. Same base URL convention as the HF
+  // STT/TTS entries in audioRegistry.ts. Model list is deliberately small —
+  // the dashboard's "suggested models" chip row (GET
+  // /api/v1/providers/suggested-models) surfaces additional HF Hub models
+  // beyond this seed list.
+  huggingface: {
+    id: "huggingface",
+    baseUrl: "https://api-inference.huggingface.co/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "huggingface-image",
+    models: [
+      { id: "black-forest-labs/FLUX.1-dev", name: "FLUX.1 Dev (HF)" },
+      { id: "black-forest-labs/FLUX.1-schnell", name: "FLUX.1 Schnell (HF)" },
+      { id: "stabilityai/stable-diffusion-xl-base-1.0", name: "Stable Diffusion XL (HF)" },
+    ],
+    supportedSizes: ["1024x1024"],
+  },
 };
 
 /**

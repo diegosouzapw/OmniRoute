@@ -1863,7 +1863,8 @@
     "backToProviders": "Back to Providers",
     "connections": "{count} Connections",
     "noConnections": "No connections yet — add one from the provider page.",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "suggestedModels": "Suggested models from provider"
   },
   "search": {
     "searchQuery": "Search Query",

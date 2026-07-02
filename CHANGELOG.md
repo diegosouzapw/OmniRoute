@@ -8,7 +8,7 @@
 
 ### ✨ New Features
 
-_TBD_
+- **feat(dashboard):** suggest HuggingFace Hub media models in the media provider view. (thanks @yicone)
 
 ### 🔧 Bug Fixes
 
