@@ -87,24 +87,23 @@ export async function POST(request) {
     console.error("[SECURITY] Prompt injection guard failed:", error);
   }
 
+  // Gate the early SSE keepalive wrapper: only wrap when the client explicitly
+  // asks for streaming (body `stream: true`) or the Accept header forces SSE.
+  // The parsed body is passed through UNTOUCHED — the actual stream/JSON framing
+  // stays decided by chatCore/resolveStreamFlag (legacy streaming default and the
+  // per-key `streamDefaultMode: "json"` opt-in are preserved).
   const parsedBodyIsRecord = isRecord(parsedBody);
-  const hasExplicitStream =
-    parsedBodyIsRecord && Object.prototype.hasOwnProperty.call(parsedBody, "stream");
   const acceptHeader = request.headers.get("accept") || "";
   const acceptForcesStream =
     parsedBodyIsRecord && acceptHeaderForcesStream(acceptHeader, parsedBody.stream);
-  const wantsStreaming = parsedBody?.stream === true || acceptForcesStream;
-  const bodyForChat =
-    parsedBodyIsRecord && !hasExplicitStream && !acceptForcesStream
-      ? { ...parsedBody, stream: false }
-      : parsedBody;
+  const wantsStreaming = (parsedBodyIsRecord && parsedBody.stream === true) || acceptForcesStream;
 
   if (wantsStreaming) {
-    return await withEarlyStreamKeepalive(handleChat(request, null, bodyForChat), {
+    return await withEarlyStreamKeepalive(handleChat(request, null, parsedBody), {
       signal: request.signal,
-      thresholdMs: resolveKeepaliveThreshold(bodyForChat?.model),
+      thresholdMs: resolveKeepaliveThreshold(parsedBody?.model),
     });
   }
 
-  return await handleChat(request, null, bodyForChat);
+  return await handleChat(request, null, parsedBody);
 }

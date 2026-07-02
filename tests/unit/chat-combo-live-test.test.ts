@@ -279,7 +279,7 @@ test("chat completions route emits early keepalive while waiting for stream read
   assert.match(body, /\[DONE\]/);
 });
 
-test("chat completions route does not treat omitted stream as streaming", async () => {
+test("chat completions route returns JSON without early SSE framing when stream is omitted and Accept is application/json", async () => {
   await seedHealthyConnection();
 
   globalThis.fetch = async () => {
@@ -299,6 +299,7 @@ test("chat completions route does not treat omitted stream as streaming", async 
 
   const response = await chatRoute.POST(
     makeRequestWithoutStreamFlag({
+      Accept: "application/json",
       "X-OmniRoute-No-Cache": "true",
       "X-Request-Id": "chat-route-omitted-stream-json",
     })

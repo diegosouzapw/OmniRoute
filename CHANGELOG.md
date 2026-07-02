@@ -38,6 +38,8 @@
 
 ### 🔧 Bug Fixes
 
+- **api (chat completions — early SSE keepalive gate):** the `/v1/chat/completions` route wrapped the response in the early-stream keepalive whenever `stream` was not explicitly `false`, so a client that omitted `stream` and asked for JSON (`Accept: application/json`) could receive premature SSE framing. The keepalive wrapper is now gated on an explicit `stream: true` in the body or an Accept header that forces SSE (`acceptHeaderForcesStream`); the parsed body is passed to the chat handler untouched, so the actual stream/JSON framing stays decided by `chatCore`/`resolveStreamFlag` — preserving OmniRoute's legacy streaming default when `stream` is omitted and the per-key `streamDefaultMode: "json"` opt-in. Regression guard: `tests/unit/chat-combo-live-test.test.ts` ("returns JSON without early SSE framing when stream is omitted and Accept is application/json"). ([#5866](https://github.com/diegosouzapw/OmniRoute/pull/5866) by [@rdself](https://github.com/rdself))
+
 - **fix(github):** drop a trailing assistant prefill before dispatching to GitHub Copilot chat to avoid 400 errors. (thanks @baslr)
 
 - **fix(oauth):** prevent cross-IdP account overwrites by disambiguating OAuth connections on `username` when present, not email alone. (thanks @KunN-21)
