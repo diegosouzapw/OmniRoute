@@ -533,7 +533,9 @@ export async function GET(
         base = base.slice(0, -17);
       } else if (base.endsWith("/completions")) {
         base = base.slice(0, -12);
-      } else if (base.endsWith("/v1")) {
+      }
+
+      if (base.endsWith("/v1") && !base.endsWith("://v1")) {
         base = base.slice(0, -3);
       }
 
@@ -576,6 +578,11 @@ export async function GET(
           }
         } catch (err: any) {
           if (err.message === "auth_failed") break; // Don't try other endpoints if auth failed
+
+          if (err?.code === "REDIRECT_BLOCKED") {
+            continue; // Try next endpoint
+          }
+
           const status = getSafeOutboundFetchErrorStatus(err);
           if (status) {
             throw err;
