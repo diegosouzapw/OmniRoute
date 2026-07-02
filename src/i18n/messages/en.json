@@ -1761,6 +1761,8 @@
     "copyMaskedKey": "Copy masked key",
     "keyOnlyAvailableAtCreation": "Full key available only at creation time — copy it when you first create the key",
     "modelsCount": "{count, plural, one {# model} other {# models}}",
+    "devicesCount": "{count, plural, one {# device} other {# devices}}",
+    "devicesTooltip": "{count, plural, one {# distinct IP/User-Agent device seen with this key (last 30 min)} other {# distinct IP/User-Agent devices seen with this key (last 30 min)}}",
     "lastUsedOn": "Last: {date}",
     "viewCostsFor": "View costs for {name}",
     "editPermissions": "Edit permissions",

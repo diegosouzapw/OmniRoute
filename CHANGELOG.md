@@ -8,7 +8,7 @@
 
 ### ✨ New Features
 
-_TBD_
+- **feat(api-keys):** track devices/connections per API key (masked IP + user-agent). (thanks @mugnimaestra)
 
 ### 🔧 Bug Fixes
 
