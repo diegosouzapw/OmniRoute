@@ -920,6 +920,8 @@ export async function __resetRateLimitManagerForTests() {
   lastDispatchAt.clear();
   limiterLastUsed.clear();
   shutdownHandlersRegistered = false;
+  tpmBuckets.clear();
+  tpdBuckets.clear();
 
   for (const key of Object.keys(learnedLimits)) {
     delete learnedLimits[key];
@@ -1032,3 +1034,119 @@ export function updateFromResponseBody(provider, connectionId, responseBody, sta
     });
   }
 }
+
+// ── TokenBucket — lightweight token-based rate limiter ────────────────────────
+//
+// Bottleneck's reservoir is request-count based, not token-count based.
+// This class provides a simple token bucket that refills continuously over time,
+// suitable for TPM (tokens-per-minute) and TPD (tokens-per-day) enforcement.
+
+export class TokenBucket {
+  private _capacity: number;
+  private _refillRatePerMs: number;
+  private _tokens: number;
+  private _lastRefillAt: number;
+
+  /**
+   * @param capacity       Maximum token count (bucket ceiling).
+   * @param refillRatePerMs Tokens added per millisecond (e.g. 1/60000 for 1 TPM).
+   */
+  constructor(capacity: number, refillRatePerMs: number) {
+    this._capacity = capacity;
+    this._refillRatePerMs = refillRatePerMs;
+    this._tokens = capacity;
+    this._lastRefillAt = Date.now();
+  }
+
+  /** Current available tokens (lazily refilled on read). */
+  get currentTokens(): number {
+    this._refill();
+    return this._tokens;
+  }
+
+  /**
+   * Attempt to consume `tokens` from the bucket.
+   * Returns `true` if successful, `false` if insufficient tokens.
+   */
+  tryConsume(tokens: number): boolean {
+    this._refill();
+    if (tokens <= 0) {
+      // Zero or negative consumption always allowed; no state change needed
+      // unless the bucket itself has zero capacity.
+      return this._capacity > 0 || this._tokens >= 0;
+    }
+    if (this._tokens < tokens) return false;
+    this._tokens -= tokens;
+    return true;
+  }
+
+  private _refill(): void {
+    if (this._refillRatePerMs <= 0) return;
+    const now = Date.now();
+    const elapsed = now - this._lastRefillAt;
+    if (elapsed <= 0) return;
+    this._tokens = Math.min(this._capacity, this._tokens + elapsed * this._refillRatePerMs);
+    this._lastRefillAt = now;
+  }
+}
+
+// Per-connection TPM/TPD token buckets (keyed by connectionId)
+const tpmBuckets = new Map<string, TokenBucket>();
+const tpdBuckets = new Map<string, TokenBucket>();
+
+/**
+ * Attempt to consume `tokenCount` tokens for a given provider+connection.
+ *
+ * Checks TPM and TPD overrides from `connectionRateLimitOverrides`. If no
+ * overrides are set (or rate limiting is not enabled for the connection),
+ * the call always returns `{ allowed: true }`.
+ *
+ * Returns `{ allowed: false, retryAfterMs: number, reason: string }` when a
+ * limit is exceeded.
+ */
+export function tryConsumeTokens(
+  _provider: string,
+  connectionId: string,
+  _model: string,
+  tokenCount: number,
+): { allowed: true } | { allowed: false; retryAfterMs: number; reason: string } {
+  if (!enabledConnections.has(connectionId)) return { allowed: true };
+  if (tokenCount <= 0) return { allowed: true };
+
+  const overrides = connectionRateLimitOverrides.get(connectionId);
+  if (!overrides) return { allowed: true };
+
+  const tpm: number | undefined =
+    typeof overrides.tpm === "number" && overrides.tpm > 0 ? overrides.tpm : undefined;
+  const tpd: number | undefined =
+    typeof overrides.tpd === "number" && overrides.tpd > 0 ? overrides.tpd : undefined;
+
+  if (tpm !== undefined) {
+    if (!tpmBuckets.has(connectionId)) {
+      // TPM: refill capacity every minute (1/60000 tokens per ms)
+      tpmBuckets.set(connectionId, new TokenBucket(tpm, tpm / 60_000));
+    }
+    const bucket = tpmBuckets.get(connectionId)!;
+    if (!bucket.tryConsume(tokenCount)) {
+      return { allowed: false, retryAfterMs: 60_000, reason: "tpm_exceeded" };
+    }
+  }
+
+  if (tpd !== undefined) {
+    if (!tpdBuckets.has(connectionId)) {
+      // TPD: refill capacity every day (1/86400000 tokens per ms)
+      tpdBuckets.set(connectionId, new TokenBucket(tpd, tpd / 86_400_000));
+    }
+    const bucket = tpdBuckets.get(connectionId)!;
+    if (!bucket.tryConsume(tokenCount)) {
+      return { allowed: false, retryAfterMs: 86_400_000, reason: "tpd_exceeded" };
+    }
+  }
+
+  return { allowed: true };
+}
+
+// ── Test-only exports ─────────────────────────────────────────────────────────
+
+/** Exposed for unit tests only — do not import in production code. */
+export const __TokenBucketForTests = TokenBucket;

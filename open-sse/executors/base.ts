@@ -1374,3 +1374,6 @@ export class BaseExecutor {
 }
 
 export default BaseExecutor;
+
+// Re-export so sibling executors can import setUserAgentHeader from "./base.ts"
+export { setUserAgentHeader } from "./userAgentHeader.ts";
