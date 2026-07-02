@@ -21,8 +21,12 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (error: any) {
-      if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
+    } catch (error: unknown) {
+      const code =
+        error && typeof error === "object" && "code" in error
+          ? (error as { code?: unknown }).code
+          : null;
+      if ((code === "EBUSY" || code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
         throw error;
@@ -30,6 +34,11 @@ async function resetStorage() {
     }
   }
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+}
+
+function getCreatedConnectionId(connection: { id?: unknown }): string {
+  assert.equal(typeof connection.id, "string");
+  return connection.id;
 }
 
 test.after(async () => {
@@ -58,7 +67,7 @@ test("checkConnection marks refresh-capable provider with no refresh token as ex
 
   await tokenHealthCheck.checkConnection(connection);
 
-  const updated = await providersDb.getProviderConnectionById((connection as any).id);
+  const updated = await providersDb.getProviderConnectionById(getCreatedConnectionId(connection));
   assert.equal(updated?.testStatus, "expired");
   assert.equal(updated?.errorCode, "no_refresh_token");
   assert.ok(updated?.lastHealthCheckAt);
@@ -85,7 +94,7 @@ test("checkConnection leaves a connection WITH a refresh token untouched (#5326)
 
   await tokenHealthCheck.checkConnection(connection);
 
-  const updated = await providersDb.getProviderConnectionById((connection as any).id);
+  const updated = await providersDb.getProviderConnectionById(getCreatedConnectionId(connection));
   assert.equal(updated?.testStatus, "active");
   assert.notEqual(updated?.errorCode, "no_refresh_token");
 });
@@ -108,7 +117,60 @@ test("checkConnection leaves a non-refresh provider with no refresh token untouc
 
   await tokenHealthCheck.checkConnection(connection);
 
-  const updated = await providersDb.getProviderConnectionById((connection as any).id);
+  const updated = await providersDb.getProviderConnectionById(getCreatedConnectionId(connection));
   assert.equal(updated?.testStatus, "active");
   assert.notEqual(updated?.errorCode, "no_refresh_token");
+});
+
+test("checkConnection keeps GitHub Copilot access-token-only connections active", async () => {
+  await resetStorage();
+
+  const connection = await providersDb.createProviderConnection({
+    provider: "github",
+    authType: "oauth",
+    name: "GitHub Access Token Account",
+    accessToken: "github-access-token",
+    refreshToken: null,
+    providerSpecificData: {
+      copilotToken: "copilot-token",
+      copilotTokenExpiresAt: Math.floor((Date.now() + 60 * 60 * 1000) / 1000),
+    },
+    testStatus: "active",
+    isActive: true,
+  });
+
+  await tokenHealthCheck.checkConnection(connection);
+
+  const updated = await providersDb.getProviderConnectionById(getCreatedConnectionId(connection));
+  assert.equal(updated?.testStatus, "active");
+  assert.notEqual(updated?.errorCode, "no_refresh_token");
+  assert.ok(updated?.lastHealthCheckAt);
+});
+
+test("checkConnection clears stale no_refresh_token state for usable GitHub Copilot connections", async () => {
+  await resetStorage();
+
+  const connection = await providersDb.createProviderConnection({
+    provider: "github",
+    authType: "oauth",
+    name: "GitHub False Expired Account",
+    accessToken: "github-access-token",
+    refreshToken: null,
+    providerSpecificData: {
+      copilotToken: "copilot-token",
+      copilotTokenExpiresAt: Math.floor((Date.now() + 60 * 60 * 1000) / 1000),
+    },
+    testStatus: "expired",
+    errorCode: "no_refresh_token",
+    lastError: "No refresh token available — re-authenticate this account.",
+    isActive: true,
+  });
+
+  await tokenHealthCheck.checkConnection(connection);
+
+  const updated = await providersDb.getProviderConnectionById(getCreatedConnectionId(connection));
+  assert.equal(updated?.testStatus, "active");
+  assert.equal(updated?.errorCode ?? null, null);
+  assert.equal(updated?.lastError ?? null, null);
+  assert.ok(updated?.lastHealthCheckAt);
 });

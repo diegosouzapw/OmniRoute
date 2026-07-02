@@ -76,6 +76,35 @@ function getEffectiveTokenExpiryMs(conn: any): number {
   return Number.isFinite(expiryMs) ? expiryMs : 0;
 }
 
+const TOKEN_EXPIRY_BUFFER = 5 * 60 * 1000; // 5 minutes
+
+function getCopilotTokenExpiryMs(expiresAt: unknown): number {
+  if (typeof expiresAt === "number" && Number.isFinite(expiresAt)) {
+    return expiresAt < 1e12 ? expiresAt * 1000 : expiresAt;
+  }
+  if (typeof expiresAt === "string" && expiresAt.trim()) {
+    const parsed = new Date(expiresAt).getTime();
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+}
+
+function isGitHubAccessTokenOnlyConnection(conn: any): boolean {
+  return (
+    String(conn?.provider || "").toLowerCase() === "github" &&
+    typeof conn?.accessToken === "string" &&
+    conn.accessToken.trim().length > 0
+  );
+}
+
+function canClearGitHubNoRefreshTokenState(conn: any): boolean {
+  return (
+    !conn?.testStatus ||
+    conn.testStatus === "active" ||
+    (conn.testStatus === "expired" && conn.errorCode === "no_refresh_token")
+  );
+}
+
 // ── Refresh circuit breaker ───────────────────────────────────────────────
 // A refresh that returns null (network blip, dead proxy, unclassified error)
 // leaves the connection active, so the next 60s sweep retries immediately —
@@ -248,8 +277,7 @@ export function clearHealthCheckLogCache() {
 
 declare global {
   var __omnirouteTokenHC:
-    | { initialized: boolean; interval: ReturnType<typeof setInterval> | null }
-    | undefined;
+    { initialized: boolean; interval: ReturnType<typeof setInterval> | null } | undefined;
 }
 
 function getHCState() {
@@ -342,6 +370,86 @@ export async function checkConnection(conn) {
   if (intervalMin <= 0) return;
   if (!conn.isActive) return;
   if (!conn.refreshToken || typeof conn.refreshToken !== "string") {
+    if (isGitHubAccessTokenOnlyConnection(conn)) {
+      const now = new Date().toISOString();
+      const providerSpecificData = conn.providerSpecificData || {};
+      const hasCopilotToken =
+        typeof providerSpecificData.copilotToken === "string" &&
+        providerSpecificData.copilotToken.trim().length > 0;
+      const copilotExpiresAtMs = getCopilotTokenExpiryMs(
+        providerSpecificData.copilotTokenExpiresAt
+      );
+      const copilotAboutToExpire =
+        !hasCopilotToken ||
+        !copilotExpiresAtMs ||
+        copilotExpiresAtMs - Date.now() < TOKEN_EXPIRY_BUFFER;
+
+      let refreshedProviderSpecificData: Record<string, unknown> | null = null;
+      if (copilotAboutToExpire) {
+        const hideLogs = await shouldHideLogs();
+        const proxyResolution = await resolveProxyForConnection(conn.id);
+        const proxyConfig = extractResolvedProxyConfig(proxyResolution);
+        const healthCheckLog = {
+          info: (tag: string, msg: string) => {
+            if (!hideLogs) console.log(LOG_PREFIX, `[${tag}]`, msg);
+          },
+          warn: (tag: string, msg: string) => {
+            if (!hideLogs) console.warn(LOG_PREFIX, `[${tag}]`, msg);
+          },
+          error: (tag: string, msg: string, extra?: Record<string, unknown>) => {
+            if (!hideLogs) console.error(LOG_PREFIX, `[${tag}]`, msg, extra || "");
+          },
+        };
+
+        const copilotResult = await refreshCopilotToken(
+          conn.accessToken,
+          healthCheckLog,
+          proxyConfig
+        );
+        if (copilotResult?.token) {
+          refreshedProviderSpecificData = {
+            ...providerSpecificData,
+            copilotToken: copilotResult.token,
+            copilotTokenExpiresAt: copilotResult.expiresAt,
+          };
+        }
+      }
+
+      if (canClearGitHubNoRefreshTokenState(conn)) {
+        await updateProviderConnection(conn.id, {
+          lastHealthCheckAt: now,
+          testStatus: "active",
+          lastError:
+            copilotAboutToExpire && !refreshedProviderSpecificData
+              ? "Health check: Copilot token refresh failed"
+              : null,
+          lastErrorAt: copilotAboutToExpire && !refreshedProviderSpecificData ? now : null,
+          lastErrorType:
+            copilotAboutToExpire && !refreshedProviderSpecificData ? "token_refresh_failed" : null,
+          lastErrorSource: copilotAboutToExpire && !refreshedProviderSpecificData ? "oauth" : null,
+          errorCode:
+            copilotAboutToExpire && !refreshedProviderSpecificData ? "refresh_failed" : null,
+          expiredRetryCount: null,
+          expiredRetryAt: null,
+          ...(refreshedProviderSpecificData
+            ? { providerSpecificData: refreshedProviderSpecificData }
+            : {}),
+        });
+      } else {
+        await updateProviderConnection(conn.id, {
+          lastHealthCheckAt: now,
+          ...(refreshedProviderSpecificData
+            ? { providerSpecificData: refreshedProviderSpecificData }
+            : {}),
+        });
+      }
+
+      log(
+        `${LOG_PREFIX} ${conn.provider}/${getConnectionLogLabel(conn)} has no refresh token but has a GitHub access token; keeping connection active`
+      );
+      return;
+    }
+
     // #5326: a refresh-CAPABLE provider (e.g. antigravity/gemini) with no usable
     // refresh token can never self-heal via the sweep — it genuinely needs re-auth.
     // Silently skipping here left the row at testStatus="active" while the dashboard
@@ -402,7 +510,6 @@ export async function checkConnection(conn) {
   // Prefer expiry-driven refresh when the provider returns a concrete expiry timestamp.
   // Rotating-token providers such as Codex should not be refreshed on a fixed hourly
   // cadence while the access token is still valid for days.
-  const TOKEN_EXPIRY_BUFFER = 5 * 60 * 1000; // 5 minutes
   const tokenExpiresAt = getEffectiveTokenExpiryMs(conn);
   const hasKnownExpiry = tokenExpiresAt > 0;
   const isAboutToExpire = hasKnownExpiry && tokenExpiresAt - Date.now() < TOKEN_EXPIRY_BUFFER;
