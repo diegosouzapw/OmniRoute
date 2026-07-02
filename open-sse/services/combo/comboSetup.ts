@@ -69,6 +69,20 @@ function resolveContextCachePin(ctx: ComboContext): {
   ) {
     const pinned = getLastSessionModel(effectiveSessionId, combo.name);
     if (pinned) {
+      // Validate pinned model is within the combo's candidatePool
+      const candidatePool = Array.isArray((combo.config as any)?.candidatePool)
+        ? ((combo.config as any).candidatePool as string[])
+        : null;
+      if (candidatePool && candidatePool.length > 0) {
+        const pinnedProvider = pinned.includes("/") ? pinned.split("/")[0] : "";
+        if (pinnedProvider && !candidatePool.includes(pinnedProvider)) {
+          log.warn(
+            "COMBO",
+            `Context cache: ignoring pinned model=${pinned} — provider "${pinnedProvider}" not in candidatePool [${candidatePool}]`
+          );
+          return { effectiveSessionId, pinnedModel: null };
+        }
+      }
       ctx.body = { ...ctx.body, model: pinned };
       pinnedModel = pinned;
       log.info("COMBO", `[#401] Context cache: pinned model=${pinned} (server-side)`);

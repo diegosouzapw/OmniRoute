@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "checkJs": false,
     "skipLibCheck": true,
@@ -21,15 +17,9 @@
     "incremental": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@omniroute/open-sse": [
-        "./open-sse"
-      ],
-      "@omniroute/open-sse/*": [
-        "./open-sse/*"
-      ]
+      "@/*": ["./src/*"],
+      "@omniroute/open-sse": ["./open-sse"],
+      "@omniroute/open-sse/*": ["./open-sse/*"]
     },
     "plugins": [
       {
@@ -39,10 +29,10 @@
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    "**/*.js",
-    "**/*.jsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.js",
+    "src/**/*.jsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     ".next/dev/dev/types/**/*.ts",

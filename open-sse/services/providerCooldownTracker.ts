@@ -61,27 +61,32 @@ export function cleanupExpiredCooldownEntries(now = Date.now()): void {
 }
 
 /**
- * Build a cooldown key from provider and optional connectionId.
+ * Build a cooldown key from provider, optional connectionId, and optional model.
+ * When modelStr is provided the key is model-scoped (e.g. "gemini:conn:gemma-4-31b-it"),
+ * allowing per-model rate limits (Gemini) to cool down independently.
  */
-function cooldownKey(provider: string, connectionId?: string): string {
-  return connectionId ? `${provider}:${connectionId}` : provider;
+function cooldownKey(provider: string, connectionId?: string, modelStr?: string): string {
+  const base = connectionId ? `${provider}:${connectionId}` : provider;
+  return modelStr ? `${base}@${modelStr}` : base;
 }
 
 /**
- * Record a failure for a provider/connection.
+ * Record a failure for a provider/connection/model.
  *
  * @param provider - Provider ID (e.g. "openai", "anthropic")
  * @param connectionId - Optional connection ID for per-connection tracking
  * @param settings - Resilience settings for cooldown configuration
+ * @param modelStr - Optional model string for per-model cooldown (e.g. "gemma-4-31b-it")
  */
 export function recordProviderCooldown(
   provider: string,
   connectionId: string | undefined,
-  settings?: ResilienceSettings
+  settings?: ResilienceSettings,
+  modelStr?: string
 ): void {
   if (!provider || provider === "unknown") return;
 
-  const key = cooldownKey(provider, connectionId);
+  const key = cooldownKey(provider, connectionId, modelStr);
   const existing = cooldownMap.get(key);
   const now = Date.now();
   const retentionMs = getEntryRetentionMs(settings);
@@ -98,21 +103,23 @@ export function recordProviderCooldown(
 }
 
 /**
- * Check if a provider/connection is currently in cooldown and should be skipped.
+ * Check if a provider/connection/model is currently in cooldown and should be skipped.
  *
  * @param provider - Provider ID
  * @param connectionId - Optional connection ID
  * @param settings - Resilience settings for cooldown configuration
+ * @param modelStr - Optional model string for per-model cooldown check
  * @returns true if the provider should be skipped (still in cooldown)
  */
 export function isProviderInCooldown(
   provider: string,
   connectionId: string | undefined,
-  settings?: ResilienceSettings
+  settings?: ResilienceSettings,
+  modelStr?: string
 ): boolean {
   if (!provider || provider === "unknown") return false;
 
-  const key = cooldownKey(provider, connectionId);
+  const key = cooldownKey(provider, connectionId, modelStr);
   const entry = cooldownMap.get(key);
   if (!entry) return false;
 
@@ -136,17 +143,18 @@ export function isProviderInCooldown(
 }
 
 /**
- * Get the remaining cooldown time for a provider/connection.
+ * Get the remaining cooldown time for a provider/connection/model.
  * Returns 0 if not in cooldown.
  */
 export function getRemainingCooldownMs(
   provider: string,
   connectionId: string | undefined,
-  settings?: ResilienceSettings
+  settings?: ResilienceSettings,
+  modelStr?: string
 ): number {
   if (!provider || provider === "unknown") return 0;
 
-  const key = cooldownKey(provider, connectionId);
+  const key = cooldownKey(provider, connectionId, modelStr);
   const entry = cooldownMap.get(key);
   if (!entry) return 0;
 
@@ -169,13 +177,17 @@ export function getRemainingCooldownMs(
 }
 
 /**
- * Record a successful request for a provider/connection.
+ * Record a successful request for a provider/connection/model.
  * Resets the failure count (but keeps the entry for reference).
  */
-export function recordProviderSuccess(provider: string, connectionId: string | undefined): void {
+export function recordProviderSuccess(
+  provider: string,
+  connectionId: string | undefined,
+  modelStr?: string
+): void {
   if (!provider || provider === "unknown") return;
 
-  const key = cooldownKey(provider, connectionId);
+  const key = cooldownKey(provider, connectionId, modelStr);
   const entry = cooldownMap.get(key);
   if (entry) {
     // Reset failure count but keep the entry

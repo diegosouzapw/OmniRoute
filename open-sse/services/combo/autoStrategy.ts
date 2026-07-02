@@ -413,6 +413,16 @@ export async function expandAutoComboCandidatePool(
 
   if (Array.isArray(localAutoConfig?.candidatePool) && localAutoConfig.candidatePool.length > 0)
     return eligibleTargets;
+  console.error(
+    "[DEBUG-EXPAND] NO early return! localAutoConfig keys:",
+    Object.keys(localAutoConfig),
+    "candidatePool:",
+    localAutoConfig?.candidatePool,
+    "combo.autoConfig:",
+    combo?.autoConfig,
+    "combo.config?.auto:",
+    (combo?.config as any)?.auto
+  );
 
   try {
     const allConnections = await getProviderConnections({ isActive: true });
