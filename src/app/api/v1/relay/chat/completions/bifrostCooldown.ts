@@ -1,14 +1,12 @@
-interface CooldownEntry {
-  until: number;
-  reason: string;
-}
+import {
+  clearBackendFailure,
+  getActiveBackendFailure,
+  recordBackendFailure,
+  resetBackendFailures,
+  type ActiveBackendFailure,
+} from "./backendFailureState.ts";
 
-const cooldowns = new Map<string, CooldownEntry>();
-
-export interface ActiveBifrostCooldown {
-  remainingMs: number;
-  reason: string;
-}
+export type ActiveBifrostCooldown = ActiveBackendFailure;
 
 export function getBifrostFailureCooldownMs(env: NodeJS.ProcessEnv = process.env): number {
   const parsed = Number.parseInt(env.OMNIROUTE_BIFROST_FAILURE_COOLDOWN_MS || "", 10);
@@ -19,17 +17,7 @@ export function getActiveBifrostCooldown(
   baseUrl: string,
   now = Date.now()
 ): ActiveBifrostCooldown | null {
-  const entry = cooldowns.get(baseUrl);
-  if (!entry) return null;
-  if (entry.until <= now) {
-    cooldowns.delete(baseUrl);
-    return null;
-  }
-
-  return {
-    remainingMs: entry.until - now,
-    reason: entry.reason,
-  };
+  return getActiveBackendFailure(baseUrl, now);
 }
 
 export function recordBifrostFailure(
@@ -38,17 +26,13 @@ export function recordBifrostFailure(
   now = Date.now(),
   cooldownMs = getBifrostFailureCooldownMs()
 ): void {
-  if (cooldownMs <= 0) {
-    cooldowns.delete(baseUrl);
-    return;
-  }
-  cooldowns.set(baseUrl, { until: now + cooldownMs, reason });
+  recordBackendFailure(baseUrl, reason, now, cooldownMs);
 }
 
 export function clearBifrostFailure(baseUrl: string): void {
-  cooldowns.delete(baseUrl);
+  clearBackendFailure(baseUrl);
 }
 
 export function resetBifrostCooldowns(): void {
-  cooldowns.clear();
+  resetBackendFailures();
 }
