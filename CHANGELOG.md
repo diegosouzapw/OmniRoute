@@ -9,6 +9,7 @@
 ### ✨ New Features
 
 - **feat(api):** add `/v1/ocr` endpoint (Mistral OCR), an OCR provider category, and Mistral moderation support. (thanks @waguriagentic)
+- **feat(i18n):** auto-detect the browser language on first visit. (thanks @ayanmw)
 
 ### 🔧 Bug Fixes
 
