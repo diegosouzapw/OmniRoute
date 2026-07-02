@@ -16,7 +16,9 @@ _TBD_
 
 ### 📝 Maintenance
 
-_TBD_
+- **chore(release):** release-pipeline hardening — `check:test-masking` (vs `origin/main`) is now a HARD gate in the release-green pre-flight (`validate-release-green.mjs`), so a non-allowlisted net-assert reduction surfaces locally instead of in a ~40-min CI layer on the release PR; plus two reconciliation helpers — `npm run release:contributors` (reproducible `### 🙌 Contributors` table via a parenthetical-group parser) and `npm run release:uncovered` (lists commits with no CHANGELOG bullet). ([#5926](https://github.com/diegosouzapw/OmniRoute/pull/5926) — thanks @diegosouzapw)
+
+- **chore(ci):** the `check:pr-evidence` FAIL report now tells you that editing the PR body does not re-run the gate (`ci.yml` ignores the `edited` event) — push a commit to re-validate. ([#5944](https://github.com/diegosouzapw/OmniRoute/pull/5944) — thanks @diegosouzapw)
 
 ---
 
