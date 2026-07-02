@@ -7,6 +7,7 @@ import {
   createProxyDispatcher,
   getDefaultDispatcher,
   getRetryDispatcher,
+  isRelayType,
   normalizeProxyUrl,
   proxyConfigToUrl,
   proxyUrlForLogs,
@@ -26,6 +27,31 @@ function isTlsFingerprintEnabled() {
 /** Per-request tracking of whether TLS fingerprint was used */
 type TlsFingerprintStore = { used: boolean };
 const tlsFingerprintContext = new AsyncLocalStorage<TlsFingerprintStore>();
+
+/**
+ * #5217 (Gap-secondary): a mutable sink that records the proxy actually applied
+ * by `runWithProxyContext` for the in-flight request. Executors that pin their
+ * own per-account proxy *internally* (e.g. OpencodeExecutor wraps its dispatch
+ * in `runWithProxyContext(account.proxy, …)`) never propagate that choice back
+ * to the caller's `proxyInfo`, so the post-execution `[ProxyEgress]` line logged
+ * `proxy=direct` even though `[ProxyFetch] Applied request proxy context: …`
+ * fired. Wrapping the execution in `runWithAppliedProxyCapture(sink, fn)` lets
+ * the egress logger read the innermost applied proxy (the last writer wins, which
+ * is the executor's per-account proxy).
+ */
+export type AppliedProxySink = { proxy: unknown };
+const appliedProxyContext = new AsyncLocalStorage<AppliedProxySink>();
+
+/**
+ * Run `fn` with an applied-proxy capture sink in context. Any
+ * `runWithProxyContext` call inside `fn` that ends up applying a proxy records
+ * that proxy config into `sink.proxy` (innermost wins). The sink is a plain
+ * mutable object the caller retains, so it can read `sink.proxy` after `fn`
+ * resolves. Pure plumbing — no behavioral change to the request itself.
+ */
+export function runWithAppliedProxyCapture<T>(sink: AppliedProxySink, fn: () => T): T {
+  return appliedProxyContext.run(sink, fn);
+}
 
 type FetchWithDispatcherOptions = RequestInit & { dispatcher?: unknown };
 type FetchWithDispatcher = (
@@ -79,6 +105,29 @@ export function describeFetchCause(err: unknown): string {
     cur = e.cause;
   }
   return parts.join(" | ") || String(err);
+}
+
+
+function isStreamLikeBody(body: unknown): boolean {
+  return (
+    body !== null &&
+    body !== undefined &&
+    typeof body === "object" &&
+    (typeof (body as Record<string, unknown>).getReader === "function" ||
+      typeof (body as Record<string, unknown>).stream === "function")
+  );
+}
+
+function requestHasNonReplayableBody(
+  input: RequestInfo | URL,
+  options: FetchWithDispatcherOptions
+): boolean {
+  if (isStreamLikeBody(options.body as unknown)) return true;
+  if (typeof Request !== "undefined" && input instanceof Request) {
+    if (input.bodyUsed) return true;
+    if (input.body !== null) return true;
+  }
+  return false;
 }
 
 /** Injectable dependencies for testability (Approach B DI). */
@@ -277,9 +326,10 @@ export async function runWithProxyContext(
 
   // T14: Proxy Fast-Fail
   // Perform a short TCP reachability check before issuing upstream requests.
-  // Skip for vercel-relay type: proxyConfigToUrl returns "https://<host>" which is the
-  // relay endpoint itself, not a proxy — the actual routing is handled via relay headers.
-  const isVercelRelay = (effectiveProxyConfig as { type?: string })?.type === "vercel";
+  // Skip for edge-relay types (vercel / deno): proxyConfigToUrl returns
+  // "https://<host>" which is the relay endpoint itself, not an HTTP proxy —
+  // the actual routing is handled via x-relay-* headers below.
+  const isVercelRelay = isRelayType((effectiveProxyConfig as { type?: string })?.type);
   if (resolvedProxyUrl && !isVercelRelay) {
     const reachable = await isProxyReachable(resolvedProxyUrl);
     if (!reachable) {
@@ -331,6 +381,14 @@ export async function runWithProxyContext(
       console.log(
         `[ProxyFetch] Applied request proxy context: ${proxyUrlForLogs(resolvedProxyUrl)}`
       );
+    }
+    // #5217: record the proxy actually applied so a post-execution egress logger
+    // reflects the real egress (executors that pin a per-account proxy internally
+    // otherwise leave proxyInfo reading "direct"). Innermost runWithProxyContext
+    // wins, which is exactly the per-account proxy the executor selected.
+    if (effectiveProxyConfig) {
+      const sink = appliedProxyContext.getStore();
+      if (sink) sink.proxy = effectiveProxyConfig;
     }
     return fn();
   });
@@ -401,17 +459,13 @@ async function patchedFetch(
     // Falls back to original native fetch if dispatcher initialization fails (#1054).
     // Retries once on transient dispatcher errors before falling back (fix: proxyfetch-undici-retry).
     //
-    // ReadableStream/Blob body guard: if the body is non-replayable, skip the retry because
-    // the first attempt drains the stream; a second attempt would silently send an empty body.
-    // ReadableStream check: cast through unknown to avoid explicit-any budget (T11).
-    const _bodyUnknown = options.body as unknown;
-    const bodyIsStream =
-      _bodyUnknown !== null &&
-      _bodyUnknown !== undefined &&
-      typeof _bodyUnknown === "object" &&
-      (typeof (_bodyUnknown as Record<string, unknown>).getReader === "function" || // ReadableStream
-        typeof (_bodyUnknown as Record<string, unknown>).stream === "function"); // Blob
-    const maxAttempts = bodyIsStream ? 1 : 2;
+    // Non-replayable body guard: if the body is stream-like (ReadableStream/Blob)
+    // or the input is a Request that carries a body, the first dispatcher attempt
+    // owns that body. Retrying or falling back to native fetch would replay a
+    // consumed/locked body and can mask the original transport error with
+    // "Response body object should not be disturbed or locked".
+    const hasNonReplayableBody = requestHasNonReplayableBody(input, options);
+    const maxAttempts = hasNonReplayableBody ? 1 : 2;
     const _undiciDirect =
       deps.undiciFetch ?? (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>);
     const _nativeFallback =
@@ -457,6 +511,17 @@ async function patchedFetch(
             await new Promise((r) => setTimeout(r, 25 + Math.random() * 50));
             continue;
           }
+          if (hasNonReplayableBody) {
+            const detail = `dispatcher=[${describeFetchCause(dispatcherError)}] native=[skipped: non-replayable request body]`;
+            console.warn(
+              `[ProxyFetch] skipping native fetch fallback for non-replayable body: ${detail}`
+            );
+            if (dispatcherError instanceof Error) {
+              (dispatcherError as Error & { proxyFetchDetail?: string }).proxyFetchDetail = detail;
+            }
+            throw dispatcherError;
+          }
+
           // All attempts exhausted — try proxy fallback before native fetch
           if (source === "direct" && isFeatureFlagEnabled("PROXY_AUTO_SELECT_ENABLED")) {
             let targetHostname = "";
@@ -506,20 +571,22 @@ async function patchedFetch(
     throw lastDispatcherError;
   }
 
-  // Vercel Relay: instead of routing through an HTTP proxy dispatcher, we send
-  // relay headers to the Vercel edge function which forwards the request upstream.
+  // Edge relay (vercel / deno): instead of routing through an HTTP proxy
+  // dispatcher, we send x-relay-* headers to the edge function which forwards
+  // the request upstream. Both backends share the same envelope shape.
   const contextProxy = proxyContext.getStore();
   if (
     contextProxy &&
     typeof contextProxy === "object" &&
-    (contextProxy as { type?: string }).type === "vercel"
+    isRelayType((contextProxy as { type?: string }).type)
   ) {
-    const vc = contextProxy as { host?: string; relayAuth?: string };
+    const vc = contextProxy as { type?: string; host?: string; relayAuth?: string };
     if (!vc.relayAuth) {
       // Generic message without internal labels — this throw can bubble up to
       // catch blocks that put error.message in response bodies (combo per-model
       // timeout, executor catch-all). Don't leak "[ProxyFetch]" diagnostics.
-      throw new Error("Vercel relay configuration error: missing relayAuth");
+      const label = vc.type === "vercel" ? "Vercel relay" : `${vc.type || "Edge"} relay`;
+      throw new Error(`${label} configuration error: missing relayAuth`);
     }
     const targetUrl = getTargetUrl(input);
     const relayHeaders = buildVercelRelayHeaders(targetUrl, vc.relayAuth);
@@ -529,7 +596,7 @@ async function patchedFetch(
     // to relay routing logs (the rest of this module already follows that rule).
     const hostForLogs = proxyUrlForLogs(vc.host ? `https://${vc.host}` : "");
     if (process.env.OMNIROUTE_PROXY_FETCH_DEBUG === "true") {
-      console.debug(`[ProxyFetch] Routing via Vercel relay: ${hostForLogs}`);
+      console.debug(`[ProxyFetch] Routing via ${vc.type || "edge"} relay: ${hostForLogs}`);
     }
     return await originalFetch(`https://${vc.host}`, {
       ...options,

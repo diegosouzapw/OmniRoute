@@ -2,8 +2,16 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 // Dynamic imports to pick up ESM modules with tsx
-const { getCatalog, getSkillById, filterCatalog, computeCoverage, refreshCatalog, API_SKILL_IDS, CLI_SKILL_IDS } =
-  await import("../../src/lib/agentSkills/catalog.ts");
+const {
+  getCatalog,
+  getSkillById,
+  filterCatalog,
+  computeCoverage,
+  refreshCatalog,
+  API_SKILL_IDS,
+  CLI_SKILL_IDS,
+} = await import("../../src/lib/agentSkills/catalog.ts");
+const agentSkillsConstants = await import("../../src/shared/constants/agentSkills.ts");
 
 // ─── Counts ───────────────────────────────────────────────────────────────────
 
@@ -36,11 +44,7 @@ test("getCatalog() contains exactly 20 cli skills", () => {
 test("all skill IDs match regex ^[a-z][a-z0-9-]*$", () => {
   const ID_REGEX = /^[a-z][a-z0-9-]*$/;
   for (const skill of getCatalog()) {
-    assert.match(
-      skill.id,
-      ID_REGEX,
-      `Skill ID "${skill.id}" does not match expected format`,
-    );
+    assert.match(skill.id, ID_REGEX, `Skill ID "${skill.id}" does not match expected format`);
   }
 });
 
@@ -50,7 +54,7 @@ test("all skill IDs are unique (no duplicates)", () => {
   assert.equal(
     uniqueIds.size,
     ids.length,
-    `Duplicate IDs found: ${ids.filter((id, i) => ids.indexOf(id) !== i).join(", ")}`,
+    `Duplicate IDs found: ${ids.filter((id, i) => ids.indexOf(id) !== i).join(", ")}`
   );
 });
 
@@ -67,17 +71,23 @@ test("all skills have rawUrl and githubUrl as valid GitHub URLs", () => {
   for (const skill of getCatalog()) {
     assert.ok(
       skill.rawUrl.startsWith("https://raw.githubusercontent.com/"),
-      `Skill ${skill.id}: rawUrl "${skill.rawUrl}" is not a GitHub raw URL`,
+      `Skill ${skill.id}: rawUrl "${skill.rawUrl}" is not a GitHub raw URL`
     );
     assert.ok(
       skill.githubUrl.startsWith("https://github.com/"),
-      `Skill ${skill.id}: githubUrl "${skill.githubUrl}" is not a GitHub blob URL`,
+      `Skill ${skill.id}: githubUrl "${skill.githubUrl}" is not a GitHub blob URL`
     );
     assert.ok(
       skill.rawUrl.endsWith("/SKILL.md"),
-      `Skill ${skill.id}: rawUrl does not end with /SKILL.md`,
+      `Skill ${skill.id}: rawUrl does not end with /SKILL.md`
     );
   }
+});
+
+test("agent skills constants expose URL builders without the unused repository URL", () => {
+  assert.equal(typeof agentSkillsConstants.getAgentSkillRawUrl, "function");
+  assert.equal(typeof agentSkillsConstants.getAgentSkillBlobUrl, "function");
+  assert.equal("AGENT_SKILLS_REPO_URL" in agentSkillsConstants, false);
 });
 
 test("api skills have area matching API_SKILL_IDS derived IDs", () => {
@@ -85,7 +95,11 @@ test("api skills have area matching API_SKILL_IDS derived IDs", () => {
   for (const id of API_SKILL_IDS) {
     const skill = catalog.find((s) => s.id === id);
     assert.ok(skill, `API skill ID "${id}" not found in catalog`);
-    assert.equal(skill!.category, "api", `Skill "${id}" expected category api, got ${skill!.category}`);
+    assert.equal(
+      skill!.category,
+      "api",
+      `Skill "${id}" expected category api, got ${skill!.category}`
+    );
   }
 });
 
@@ -94,7 +108,11 @@ test("cli skills have area matching CLI_SKILL_IDS derived IDs", () => {
   for (const id of CLI_SKILL_IDS) {
     const skill = catalog.find((s) => s.id === id);
     assert.ok(skill, `CLI skill ID "${id}" not found in catalog`);
-    assert.equal(skill!.category, "cli", `Skill "${id}" expected category cli, got ${skill!.category}`);
+    assert.equal(
+      skill!.category,
+      "cli",
+      `Skill "${id}" expected category cli, got ${skill!.category}`
+    );
   }
 });
 
@@ -203,7 +221,10 @@ test("computeCoverage() returns valid SkillCoverage shape", () => {
   assert.equal(cov.totalSkills, cov.api.have + cov.cli.have + (cov.config?.have ?? 0));
 
   // generatedAt must be a valid ISO datetime string
-  assert.ok(!isNaN(Date.parse(cov.generatedAt)), `generatedAt "${cov.generatedAt}" is not a valid ISO date`);
+  assert.ok(
+    !isNaN(Date.parse(cov.generatedAt)),
+    `generatedAt "${cov.generatedAt}" is not a valid ISO date`
+  );
 });
 
 test("computeCoverage() api.have + cli.have = totalSkills", () => {

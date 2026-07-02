@@ -45,6 +45,7 @@ type ConnectionsHeaderToolbarProps = {
   onOpenImportCodex: () => void;
   onOpenImportClaude: () => void;
   onOpenImportGemini: () => void;
+  onOpenImportGrokCli: () => void;
   t: ProviderMessageTranslator;
 };
 
@@ -87,6 +88,7 @@ export default function ConnectionsHeaderToolbar({
   onOpenImportCodex,
   onOpenImportClaude,
   onOpenImportGemini,
+  onOpenImportGrokCli,
   t,
 }: ConnectionsHeaderToolbarProps) {
   return (
@@ -326,16 +328,14 @@ export default function ConnectionsHeaderToolbar({
                       : "Import auth"}
                   </Button>
                 )}
-                {providerId === "gemini-cli" && (
+                {providerId === "grok-cli" && (
                   <Button
                     size="sm"
                     variant="secondary"
                     icon="upload_file"
-                    onClick={() => gateConnectionFlow(onOpenImportGemini)}
+                    onClick={() => gateConnectionFlow(onOpenImportGrokCli)}
                   >
-                    {typeof (t as any).has === "function" && (t as any).has("importGeminiAuth")
-                      ? t("importGeminiAuth")
-                      : "Import auth"}
+                    Import auth
                   </Button>
                 )}
               </>

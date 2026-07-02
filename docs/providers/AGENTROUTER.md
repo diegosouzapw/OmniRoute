@@ -1,3 +1,9 @@
+---
+title: "AgentRouter Setup Guide"
+version: 3.8.40
+lastUpdated: 2026-06-28
+---
+
 # AgentRouter Setup Guide
 
 [AgentRouter](https://agentrouter.org) is an Anthropic-compatible relay that resells
@@ -121,16 +127,17 @@ provider.
 For reference, the cc-compatible bridge sends the following on each upstream
 request (see `open-sse/services/claudeCodeCompatible.ts`):
 
-| Header                                      | Value                                                                                               |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `Authorization`                             | `Bearer <api-key>`                                                                                  |
-| `User-Agent`                                | `claude-cli/2.1.158 (external, sdk-cli)`                                                            |
-| `anthropic-version`                         | `2023-06-01`                                                                                        |
-| `anthropic-beta`                            | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                            |
-| Per-connection redact-thinking beta toggle  | Adds `redact-thinking-2026-02-12` for upstreams that specifically require redacted thinking streams |
-| `anthropic-dangerous-direct-browser-access` | `true`                                                                                              |
-| `x-app`                                     | `cli`                                                                                               |
-| `X-Stainless-*`                             | Various Stainless SDK headers (lang, package version, OS, arch, etc.)                               |
+| Header                                      | Value                                                                                                   |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `Authorization`                             | `Bearer <api-key>`                                                                                      |
+| `User-Agent`                                | `claude-cli/2.1.195 (external, sdk-cli)`                                                                |
+| `anthropic-version`                         | `2023-06-01`                                                                                            |
+| `anthropic-beta`                            | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                                |
+| Per-connection redact-thinking beta toggle  | Adds `redact-thinking-2026-02-12` for upstreams that specifically require redacted thinking streams     |
+| Per-connection summarized thinking toggle   | Adds `display: "summarized"` to CC Compatible thinking requests that did not already set a display mode |
+| `anthropic-dangerous-direct-browser-access` | `true`                                                                                                  |
+| `x-app`                                     | `cli`                                                                                                   |
+| `X-Stainless-*`                             | Various Stainless SDK headers (lang, package version, OS, arch, etc.)                                   |
 
 This is what allows requests to pass the upstream WAF / client whitelist.
 
@@ -168,7 +175,7 @@ and the feature flag is enabled.
 
 ## See also
 
-- [`docs/PROVIDERS.md`](../PROVIDERS.md) — Other provider integration notes
+- [`docs/providers/CLAUDE_WEB.md`](./CLAUDE_WEB.md) — Claude Web provider integration notes
 - [`docs/reference/FREE_TIERS.md`](../reference/FREE_TIERS.md) — Free-tier provider
   catalog
 - [`open-sse/services/claudeCodeCompatible.ts`](../../open-sse/services/claudeCodeCompatible.ts)

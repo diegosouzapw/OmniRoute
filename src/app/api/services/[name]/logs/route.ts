@@ -23,6 +23,23 @@ const MAX_FILTER_LEN = 200;
 
 const encoder = new TextEncoder();
 
+async function getOrInitNamedSupervisor(name: string) {
+  const existing = getSupervisor(name);
+  if (existing) return existing;
+
+  if (name === "cliproxy") {
+    const { getOrInitSupervisor } = await import("../../cliproxy/_lib");
+    return getOrInitSupervisor();
+  }
+
+  if (name === "9router") {
+    const { getOrInitSupervisor } = await import("../../9router/_lib");
+    return getOrInitSupervisor();
+  }
+
+  return null;
+}
+
 function sseChunk(event: string, data: unknown): Uint8Array {
   return encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 }
@@ -30,7 +47,7 @@ function sseChunk(event: string, data: unknown): Uint8Array {
 export async function GET(request: NextRequest, { params }: { params: Promise<{ name: string }> }) {
   const { name } = await params;
 
-  const supervisor = getSupervisor(name);
+  const supervisor = await getOrInitNamedSupervisor(name);
   if (!supervisor) {
     return createErrorResponse({ status: 404, message: `Service '${name}' not found` });
   }

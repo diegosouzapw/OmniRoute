@@ -13,6 +13,7 @@ import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
 import { getProviderNodes, getComboByName, getCombos, getDatabaseSettings } from "@/lib/localDb";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
+import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { findEmbeddingComboDimensionConflict } from "./familyGuard";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
@@ -71,8 +72,22 @@ export async function createEmbeddingResponse(
           settings = getDatabaseSettings();
         } catch {}
 
+        // Inject the combo's configured dimensions into the request body so that
+        // every upstream embedding call within this combo receives the same
+        // dimensions override. The client's own dimensions value takes precedence
+        // if already set. Ported from decolua/9router#1530.
+        const comboRecord = combo as Record<string, unknown>;
+        const comboDimensions =
+          comboRecord.dimensions !== undefined && comboRecord.dimensions !== null
+            ? String(comboRecord.dimensions)
+            : undefined;
+        const bodyWithDimensions =
+          comboDimensions !== undefined && body.dimensions === undefined
+            ? { ...body, dimensions: comboDimensions }
+            : body;
+
         return handleComboChat({
-          body,
+          body: bodyWithDimensions,
           combo: combo as any,
           handleSingleModel: async (reqBody: any, targetModelStr: string, target?: any) => {
             const newBody = { ...reqBody, model: targetModelStr };
@@ -191,15 +206,29 @@ export async function createEmbeddingResponse(
     }
   }
 
+  // #474: when the request used a bare model name (no "/" — e.g. an alias that
+  // resolved to "auto") and the selected connection declares a defaultModel,
+  // resolve the bare name to that real model ID before the upstream call so the
+  // provider receives a concrete model. A "/"-qualified name is left untouched.
+  const connectionDefaultModel =
+    credentials && typeof (credentials as { defaultModel?: unknown }).defaultModel === "string"
+      ? ((credentials as { defaultModel?: string }).defaultModel as string)
+      : null;
+  const effectiveModel = resolveBareModelToConnectionDefault(
+    modelStr,
+    resolvedModel,
+    connectionDefaultModel
+  );
+
   const result = await handleEmbedding({
-    body,
+    body: effectiveModel !== resolvedModel ? { ...body, model: `${provider}/${effectiveModel}` } : body,
     // getProviderCredentials returns a richer connection object; handleEmbedding
     // only reads apiKey/accessToken, both present at runtime. Bridge the wider
     // selection type to the handler's narrow credential shape.
     credentials: credentials as { apiKey?: string; accessToken?: string } | null,
     log,
     resolvedProvider: providerConfig,
-    resolvedModel,
+    resolvedModel: effectiveModel,
     clientRawRequest: options.clientRawRequest || null,
     apiKeyId: options.apiKeyId || null,
     apiKeyName: options.apiKeyName || null,
@@ -212,10 +241,10 @@ export async function createEmbeddingResponse(
     if (credentials) await clearRecoveredProviderState(credentials);
     responseHeaders.set("Content-Type", "application/json");
     const usage = (result.data as { usage?: Record<string, number> })?.usage ?? null;
-    const costUsd = usage ? await calculateCost(provider, resolvedModel ?? "", usage) : 0;
+    const costUsd = usage ? await calculateCost(provider, effectiveModel ?? "", usage) : 0;
     attachOmniRouteMetaHeaders(responseHeaders, {
       provider,
-      model: resolvedModel,
+      model: effectiveModel,
       usage,
       costUsd,
       latencyMs: Date.now() - startTime,

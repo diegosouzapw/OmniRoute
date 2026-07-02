@@ -43,19 +43,31 @@ test("kmca still exposes kimi-k2.6 and kimi-k2.6-thinking alongside the new mode
 
 // ── Bug #3 / issue #3931: qwen-web in PROVIDER_MODELS_CONFIG ──────────────────
 
-const ROUTE_FILE = path.join("src", "app", "api", "providers", "[id]", "models", "route.ts");
+// PROVIDER_MODELS_CONFIG was extracted from the discovery route into the
+// discovery/ leaf (refactor: split provider-models discovery route). The
+// source-guard follows the config to its new home.
+const CONFIG_FILE = path.join(
+  "src",
+  "app",
+  "api",
+  "providers",
+  "[id]",
+  "models",
+  "discovery",
+  "providerModelsConfig.ts"
+);
 
 test("PROVIDER_MODELS_CONFIG contains a qwen-web entry (issue #3931 bug #3)", () => {
-  const src = fs.readFileSync(ROUTE_FILE, "utf-8");
+  const src = fs.readFileSync(CONFIG_FILE, "utf-8");
   assert.match(
     src,
     /"qwen-web"\s*:/,
-    '"qwen-web" key missing from PROVIDER_MODELS_CONFIG in models/route.ts'
+    '"qwen-web" key missing from PROVIDER_MODELS_CONFIG in discovery/providerModelsConfig.ts'
   );
 });
 
 test("qwen-web PROVIDER_MODELS_CONFIG entry targets chat.qwen.ai/api/v2/models", () => {
-  const src = fs.readFileSync(ROUTE_FILE, "utf-8");
+  const src = fs.readFileSync(CONFIG_FILE, "utf-8");
   assert.match(
     src,
     /chat\.qwen\.ai\/api\/v2\/models/,

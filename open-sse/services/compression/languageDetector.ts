@@ -17,6 +17,14 @@ const LANGUAGE_HINTS: Record<string, RegExp[]> = {
  * zero hits → English. (B-LANG-DETECTOR)
  */
 export function detectCompressionLanguage(text: string): string {
+  // CJK disambiguation: Han ideographs (U+4E00–U+9FFF) are shared by Chinese and Japanese, but
+  // kana (U+3040–U+30FF) is Japanese-exclusive. Text with Han and no kana is Chinese (zh); text
+  // with kana falls through to the scorer below, where the `ja` kana hint catches it. Keeping zh
+  // out of the additive scorer means a Han-heavy Japanese sentence is never misread as Chinese.
+  if (/[一-鿿]/.test(text) && !/[぀-ヿ]/.test(text)) {
+    return "zh";
+  }
+
   let best = "en";
   let bestScore = 0;
   for (const [language, patterns] of Object.entries(LANGUAGE_HINTS)) {
@@ -37,5 +45,7 @@ export function detectCompressionLanguage(text: string): string {
 }
 
 export function listSupportedCompressionLanguages(): string[] {
-  return ["en", ...Object.keys(LANGUAGE_HINTS)];
+  // zh is detected via the CJK Han/kana disambiguation in detectCompressionLanguage rather than a
+  // keyword hint (so it stays out of the additive scorer), hence it is listed explicitly here.
+  return ["en", "zh", ...Object.keys(LANGUAGE_HINTS)];
 }

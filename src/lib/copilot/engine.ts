@@ -86,7 +86,7 @@ Use \`createCombo\` tool or \`runOmniRouteCli\` to create them.`;
     return `## Providers (212+)
 
 OmniRoute supports 212+ providers across categories:
-- **Free**: Qoder AI, Qwen Code, Gemini CLI, Kiro AI
+- **Free**: Qoder AI, Qwen Code, Kiro AI
 - **OAuth** (14): Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, Kimi Coding, Windsurf, etc.
 - **API Key** (120+): OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, etc.
 - **Self-Hosted** (8+): LM Studio, vLLM, Ollama, Triton, etc.

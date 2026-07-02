@@ -90,6 +90,10 @@ export function createProgressTransform({
           }
         }
       },
+
+      cancel() {
+        clearInterval(intervalId);
+      },
     },
     { highWaterMark: 16384 },
     { highWaterMark: 16384 }

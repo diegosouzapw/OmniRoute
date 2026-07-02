@@ -88,6 +88,31 @@ test("sanitizeReasoningEffortForProvider: xiaomi-mimo normalizes max → xhigh b
   );
 });
 
+test("sanitizeReasoningEffortForProvider: Ollama Cloud preserves max", () => {
+  const log = makeLog();
+  const body = {
+    model: "glm-5.2",
+    reasoning_effort: "max",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "ollama-cloud", "glm-5.2", log);
+  assert.equal(result, body, "Ollama Cloud accepts max literally");
+  assert.equal((result as any).reasoning_effort, "max");
+  assert.equal(log.messages.length, 0);
+});
+
+test("sanitizeReasoningEffortForProvider: Ollama Cloud preserves nested max", () => {
+  const body = {
+    model: "glm-5.2",
+    reasoning: { effort: "max", summary: "auto" },
+    input: [],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "ollama-cloud", "glm-5.2", null);
+  assert.equal(result, body, "Ollama Cloud accepts max literally");
+  assert.equal((result as any).reasoning.effort, "max");
+  assert.equal((result as any).reasoning.summary, "auto");
+});
+
 test("sanitizeReasoningEffortForProvider: OpenRouter DeepSeek normalizes max → xhigh", () => {
   const log = makeLog();
   const body = {

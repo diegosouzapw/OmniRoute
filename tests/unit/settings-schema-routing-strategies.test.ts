@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { SETTINGS_FALLBACK_STRATEGY_VALUES } from "@/shared/constants/routingStrategies";
 import { updateSettingsSchema as settingsRouteSchema } from "@/shared/validation/settingsSchemas";
+import * as sharedSchemaModule from "@/shared/validation/schemas";
 import { updateSettingsSchema as sharedSettingsSchema } from "@/shared/validation/schemas";
 
 for (const strategy of SETTINGS_FALLBACK_STRATEGY_VALUES) {
@@ -21,6 +22,10 @@ test("settings schemas reject combo-only strategies as account fallback strategi
     assert.equal(settingsRouteSchema.safeParse({ fallbackStrategy: strategy }).success, false);
     assert.equal(sharedSettingsSchema.safeParse({ fallbackStrategy: strategy }).success, false);
   }
+});
+
+test("shared settings schema module omits the unused fallback strategy sub-schema export", () => {
+  assert.equal("settingsFallbackStrategySchema" in sharedSchemaModule, false);
 });
 
 test("settings schemas accept cooldown-aware retry knobs", () => {

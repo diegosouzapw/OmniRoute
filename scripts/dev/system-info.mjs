@@ -90,7 +90,6 @@ lines.push(section("Agent CLI Tools"));
 
 const cliTools = [
   { name: "qoder-cli", cmd: "qoder", args: "--version" },
-  { name: "gemini-cli", cmd: "gemini", args: "--version" },
   { name: "claude-code", cmd: "claude", args: "--version" },
   { name: "openai-codex", cmd: "codex", args: "--version" },
   { name: "antigravity", cmd: "antigravity", args: "--version" },

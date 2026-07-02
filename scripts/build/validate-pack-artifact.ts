@@ -20,8 +20,11 @@ const npmCommand: string = process.platform === "win32" ? "npm.cmd" : "npm";
 
 function runNpm(args: string[], stdio: "inherit" | "pipe" = "pipe"): string {
   const npmExecPath = process.env.npm_execpath;
-  const command = npmExecPath ? process.execPath : npmCommand;
-  return execFileSync(command, [...(npmExecPath ? [npmExecPath] : []), ...args], {
+  const isBunRuntime = "Bun" in globalThis;
+  const command = npmExecPath && !isBunRuntime ? process.execPath : npmCommand;
+  const commandArgs = npmExecPath && !isBunRuntime ? [npmExecPath, ...args] : args;
+
+  return execFileSync(command, commandArgs, {
     cwd: ROOT,
     encoding: "utf8",
     stdio: stdio === "inherit" ? "inherit" : ["ignore", "pipe", "pipe"],
@@ -74,18 +77,25 @@ function formatBytes(bytes: number): string {
   return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[unitIndex]}`;
 }
 
+// --policy-only: skip the build (ensureAppStagingReady → build:cli) and the
+// required-runtime-files check (which needs the built dist/), running ONLY the
+// unexpected-files allowlist check. The unexpected files (e.g. stray bin/*.sh) are
+// SOURCE files that `npm pack --dry-run` lists regardless of build, so this catches
+// the "new file leaked into the tarball" regression cheaply on the fast-path (PR→release),
+// instead of only on the release PR's full Package Artifact job. See incident v3.8.36 (#5029).
+const POLICY_ONLY = process.argv.includes("--policy-only");
+
 try {
-  ensureAppStagingReady();
+  if (!POLICY_ONLY) ensureAppStagingReady();
   const packReport = runPackDryRun();
   const artifactPaths: string[] = packReport.files.map((file: any) => file.path);
   const unexpectedPaths: string[] = findUnexpectedArtifactPaths(artifactPaths, {
     exactPaths: PACK_ARTIFACT_ALLOWED_EXACT_PATHS,
     prefixPaths: PACK_ARTIFACT_ALLOWED_PATH_PREFIXES,
   });
-  const missingRequiredPaths: string[] = findMissingArtifactPaths(
-    artifactPaths,
-    PACK_ARTIFACT_REQUIRED_PATHS
-  );
+  const missingRequiredPaths: string[] = POLICY_ONLY
+    ? []
+    : findMissingArtifactPaths(artifactPaths, PACK_ARTIFACT_REQUIRED_PATHS);
 
   console.log("📦 npm pack artifact summary");
   console.log(`   File:          ${packReport.filename}`);

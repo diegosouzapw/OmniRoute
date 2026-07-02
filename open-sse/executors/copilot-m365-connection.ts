@@ -24,15 +24,98 @@ export const M365_INDIVIDUAL_DEFAULTS = {
   scenario: "OfficeWebPaidConsumerCopilot",
 } as const;
 
+export const M365_DEFAULT_VARIANTS = [
+  "EnableMcpServerWidgets",
+  "feature.EnableMcpServerWidgets",
+  "feature.EnableLuForChatCIQ",
+  "feature.enableChatCIQPlugin",
+  "EnableRequestPlugins",
+  "feature.EnableSensitivityLabels",
+  "EnableUnsupportedUrlDetector",
+  "feature.IsCustomEngineCopilotEnabled",
+  "feature.bizchatfluxv3",
+  "feature.enablechatpages",
+  "feature.enableCodeCanvas",
+  "feature.turnOnDARecommendation",
+  "feature.IsStreamingModeInChatRequestEnabled",
+  "IncludeSourceAttributionsConcise",
+  "SkipPublishEmptyMessage",
+  "feature.EnableDeduplicatingSourceAttributions",
+  "Enable3PActionProgressMessages",
+  "feature.enableClientWebRtc",
+  "feature.EnableMeetingRecapOfSeriesMeetingWithCiq",
+  "feature.cwcfluxv3fe",
+  "feature.cwcfluxv3fem",
+  "feature.EnableReferencesListCompleteSignal",
+  "feature.StorageMessageSplitDisabled",
+  "feature.EnableCuaTakeControlApi",
+  "SingletonEnvOn",
+  "EnableComposeWidget",
+  "feature.cwcallowedos",
+  "feature.EnableMergingPureDeltas",
+  "feature.disabledisallowedmsgs",
+  "feature.enableCitationsForSynthesisData",
+  "feature.EnableConversationShareApis",
+  "feature.enableGenerateGraphicArtOptionsSet",
+  "cdximagen",
+  "feature.EnableUpdatedUXForConfirmationDialog",
+  "feature.EnableContentApiandDocTypeHtmlInRichAnswers",
+  "cdxgrounding_api_v2_rich_web_answers_reference_bottom_force",
+  "cdxenablerenderforisocomp",
+  "feature.EnableClientFileURLSupportForOfficeWebPaidCopilot",
+  "feature.EnableDesignEditorImageGrounding",
+  "feature.EnableDesignerEditor",
+  "feature.EnableSkipRehydrationForSpeCIdImages",
+  "feature.EnablePersonalizationForMSA",
+  "agt_bizchat_enableRichResponses",
+  "feature.EnableBase64DataInMessageAnnotations",
+  "feature.EnableSkipEmittingMessageOnFlush",
+  "feature.EnableRemoveEmptySourceAttributions",
+  "feature.EnableRemoveStreamingMode",
+] as const;
+
 export interface M365ConnectionParams {
   host: string;
   chathubPath: string; // "<user-oid>@<tenant-id>"
   accessToken: string;
+  variants?: string;
 }
 
 /** A new 32-hex chat session id (== XRoutingParameterSessionKey == clientrequestid). */
 export function newChatSessionId(): string {
   return randomBytes(16).toString("hex");
+}
+
+function parsePastedCredential(
+  raw: string
+): Partial<Pick<M365ConnectionParams, "accessToken" | "chathubPath">> {
+  const value = raw.trim();
+  const parts: Record<string, string> = {};
+
+  for (const segment of value.split(/[;\n]/)) {
+    const separator = segment.indexOf("=");
+    if (separator <= 0) continue;
+    const key = segment.slice(0, separator).trim();
+    const partValue = segment.slice(separator + 1).trim();
+    if (key && partValue) parts[key] = partValue;
+  }
+
+  if (/^wss:\/\/substrate\.office\.com\/m365Copilot\/Chathub\//i.test(value)) {
+    try {
+      const url = new URL(value);
+      parts.access_token ||= url.searchParams.get("access_token") || "";
+      parts.chathubPath ||= decodeURIComponent(
+        url.pathname.split("/m365Copilot/Chathub/")[1] || ""
+      );
+    } catch {
+      // Keep any key/value fields already parsed from the pasted text.
+    }
+  }
+
+  return {
+    accessToken: parts.access_token || parts.accessToken,
+    chathubPath: parts.chathubPath || parts.userTenant,
+  };
 }
 
 /**
@@ -44,8 +127,14 @@ export function resolveConnectionParams(
   credentials: ProviderCredentials | undefined
 ): M365ConnectionParams | { error: string } {
   const psd = (credentials?.providerSpecificData ?? {}) as JsonRecord;
+  const parsedApiKey =
+    typeof credentials?.apiKey === "string" ? parsePastedCredential(credentials.apiKey) : {};
   const accessToken =
-    (typeof credentials?.apiKey === "string" && credentials.apiKey) ||
+    parsedApiKey.accessToken ||
+    (typeof credentials?.apiKey === "string" &&
+      credentials.apiKey &&
+      !credentials.apiKey.includes("access_token=") &&
+      credentials.apiKey) ||
     (typeof psd.accessToken === "string" && psd.accessToken) ||
     (typeof psd.access_token === "string" && psd.access_token) ||
     "";
@@ -53,6 +142,7 @@ export function resolveConnectionParams(
     return { error: "Missing M365 Copilot access_token. Paste it as the provider credential." };
   }
   const chathubPath =
+    parsedApiKey.chathubPath ||
     (typeof psd.chathubPath === "string" && psd.chathubPath) ||
     (typeof psd.userTenant === "string" && psd.userTenant) ||
     "";
@@ -63,7 +153,8 @@ export function resolveConnectionParams(
     };
   }
   const host = (typeof psd.host === "string" && psd.host) || M365_INDIVIDUAL_DEFAULTS.host;
-  return { host, chathubPath, accessToken };
+  const variants = typeof psd.variants === "string" && psd.variants ? psd.variants : undefined;
+  return { host, chathubPath, accessToken, variants };
 }
 
 /**
@@ -80,6 +171,7 @@ export function buildWsUrl(params: M365ConnectionParams): string {
     "X-SessionId": randomUUID(),
     ConversationId: randomUUID(),
     access_token: params.accessToken,
+    variants: params.variants ?? M365_DEFAULT_VARIANTS.join(","),
     source: M365_INDIVIDUAL_DEFAULTS.source,
     product: M365_INDIVIDUAL_DEFAULTS.product,
     agentHost: M365_INDIVIDUAL_DEFAULTS.agentHost,

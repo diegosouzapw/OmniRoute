@@ -64,8 +64,8 @@ test("getKnownPlan('') returns null", () => {
   assert.equal(getKnownPlan(""), null);
 });
 
-test("knownProviders() returns exactly 10 entries", () => {
-  assert.equal(knownProviders().length, 10);
+test("knownProviders() returns exactly 11 entries", () => {
+  assert.equal(knownProviders().length, 11);
 });
 
 test("knownProviders() includes the full registry set", () => {
@@ -81,6 +81,7 @@ test("knownProviders() includes the full registry set", () => {
     "kimi-coding",
     "xiaomi-mimo",
     "alibaba",
+    "grok-cli",
   ]) {
     assert.ok(list.includes(p), `missing ${p}`);
   }

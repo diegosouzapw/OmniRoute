@@ -238,14 +238,3 @@ export function clearProxyLogs() {
     }
   }
 }
-
-// ──────────────── Stats ────────────────
-
-export function getProxyLogStats() {
-  const total = proxyLogs.length;
-  const success = proxyLogs.filter((l) => l.status === "success").length;
-  const error = proxyLogs.filter((l) => l.status === "error").length;
-  const timeout = proxyLogs.filter((l) => l.status === "timeout").length;
-  const direct = proxyLogs.filter((l) => l.level === "direct").length;
-  return { total, success, error, timeout, direct };
-}

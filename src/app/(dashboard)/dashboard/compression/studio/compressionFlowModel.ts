@@ -21,6 +21,70 @@ export interface CompressionEngineStep {
   techniquesUsed: string[];
   rulesApplied?: string[];
   durationMs?: number;
+  rejected?: boolean;
+  rejectReason?: string;
+}
+
+// ── Diff ─────────────────────────────────────────────────────────────────
+
+export type DiffSegment = { type: "same" | "removed" | "added"; text: string };
+
+// ── Encoder comparison (TOON/GCF/JSON A/B) ────────────────────────────────
+
+export interface EncoderSize {
+  bytes: number;
+  tokens: number;
+}
+
+export interface EncoderComparison {
+  arraysCompared: number;
+  json: EncoderSize;
+  gcf: EncoderSize;
+  toon: EncoderSize;
+  toonAvailable: boolean;
+  winner: "gcf" | "toon" | "json";
+}
+
+// ── Risk-gate (protected-span stats) ──────────────────────────────────────
+
+export interface RiskGateStats {
+  spansProtected: number;
+  categories: Partial<Record<string, number>>;
+}
+
+// ── Preview API response ──────────────────────────────────────────────────
+
+// ── Saliency heatmap ─────────────────────────────────────────────────────
+
+export interface HeatmapToken {
+  text: string;
+  score: number;
+  kept: boolean;
+}
+
+export interface PreviewHeatmap {
+  mode: "ultra" | "universal";
+  tokens: HeatmapToken[];
+}
+
+// ── Preview API response ──────────────────────────────────────────────────
+
+export interface PreviewResponse {
+  original: string;
+  compressed: string;
+  originalTokens: number;
+  compressedTokens: number;
+  savingsPct: number;
+  mode: string;
+  durationMs?: number;
+  engineBreakdown: CompressionEngineStep[];
+  diff: DiffSegment[];
+  preservedBlocks: Array<{ kind: string; preview: string }>;
+  ruleRemovals: string[];
+  encoderComparison?: EncoderComparison | null;
+  riskGate?: RiskGateStats | null;
+  quantumLock?: { fragments: number; categories: Record<string, number> } | null;
+  heatmap?: PreviewHeatmap | null;
 }
 
 // ── Run Model ─────────────────────────────────────────────────────────────
@@ -34,6 +98,27 @@ export interface CompressionRunModel {
   savingsPercent: number;
   steps: CompressionEngineStep[];
   timestamp: number;
+  diff?: DiffSegment[];
+  encoderComparison?: EncoderComparison | null;
+  quantumLock?: { fragments: number; categories: Record<string, number> } | null;
+}
+
+// ── previewToRunModel ─────────────────────────────────────────────────────
+
+export function previewToRunModel(res: PreviewResponse, label: string): CompressionRunModel {
+  return {
+    requestId: `preview-${label}`,
+    comboId: null,
+    mode: res.mode,
+    originalTokens: res.originalTokens,
+    compressedTokens: res.compressedTokens,
+    savingsPercent: res.savingsPct,
+    steps: res.engineBreakdown,
+    timestamp: 0,
+    diff: res.diff,
+    encoderComparison: res.encoderComparison ?? null,
+    quantumLock: res.quantumLock ?? null,
+  };
 }
 
 // ── compressionEventToModel ───────────────────────────────────────────────

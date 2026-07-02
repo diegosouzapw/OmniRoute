@@ -17,7 +17,12 @@ import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
 import { getProviderConnectionById, resolveProxyForConnection } from "@/lib/localDb";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { safePercentage } from "@/shared/utils/formatting";
-import { saveQuotaSnapshot, cleanupOldSnapshots } from "@/lib/db/quotaSnapshots";
+import {
+  saveQuotaSnapshot,
+  cleanupOldSnapshots,
+  getLatestQuotaSnapshotsForConnection,
+} from "@/lib/db/quotaSnapshots";
+import { recordProviderQuotaResetEventIfChanged } from "@/lib/db/quotaResetEvents";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -232,6 +237,19 @@ export function setQuotaCache(
         (quotaInfo.total > 0
           ? Math.round(((quotaInfo.total - (quotaInfo.used || 0)) / quotaInfo.total) * 100)
           : 0);
+      recordProviderQuotaResetEventIfChanged({
+        provider,
+        connectionId,
+        windowKey,
+        currentResetAt: quotaInfo.resetAt ?? null,
+        currentRemainingPercentage: remainingPercentage,
+        previousObservation: prior?.quotas?.[windowKey]
+          ? {
+              resetAt: prior.quotas[windowKey].resetAt,
+              remainingPercentage: prior.quotas[windowKey].remainingPercentage,
+            }
+          : null,
+      });
       // #4438 — only persist on the first observation or a real change.
       if (!quotaSnapshotChanged(prior, windowKey, remainingPercentage, entry.exhausted)) continue;
       try {
@@ -259,12 +277,73 @@ export function getQuotaCache(connectionId: string): QuotaCacheEntry | null {
   return cache.get(connectionId) || null;
 }
 
+function hydrateQuotaCacheFromSnapshots(connectionId: string): QuotaCacheEntry | null {
+  if (cache.has(connectionId)) return cache.get(connectionId) || null;
+
+  let snapshots;
+  try {
+    snapshots = getLatestQuotaSnapshotsForConnection(connectionId);
+  } catch {
+    return null;
+  }
+  if (!snapshots.length) return null;
+
+  const quotas: Record<string, QuotaInfo> = {};
+  let provider = "";
+  let fetchedAt = 0;
+  let exhausted = false;
+  let windowDurationMs: number | null = null;
+
+  for (const snapshot of snapshots) {
+    const camelSnapshot = snapshot as unknown as {
+      windowKey?: string;
+      remainingPercentage?: number | null;
+      isExhausted?: number;
+      nextResetAt?: string | null;
+      windowDurationMs?: number | null;
+      createdAt?: string;
+    };
+    const windowKey = camelSnapshot.windowKey ?? snapshot.window_key;
+    if (!windowKey) continue;
+    provider = provider || snapshot.provider || "";
+    quotas[windowKey] = {
+      remainingPercentage: clampPercent(
+        Number(camelSnapshot.remainingPercentage ?? snapshot.remaining_percentage ?? 0)
+      ),
+      resetAt: camelSnapshot.nextResetAt ?? snapshot.next_reset_at ?? null,
+    };
+    exhausted = exhausted || (camelSnapshot.isExhausted ?? snapshot.is_exhausted) === 1;
+    const snapshotWindowDurationMs =
+      camelSnapshot.windowDurationMs ?? snapshot.window_duration_ms ?? null;
+    if (snapshotWindowDurationMs && snapshotWindowDurationMs > 0) {
+      windowDurationMs = snapshotWindowDurationMs;
+    }
+    const createdAtVal = camelSnapshot.createdAt ?? snapshot.created_at;
+    const createdAtMs = createdAtVal ? parseDate(createdAtVal) : null;
+    if (createdAtMs !== null) fetchedAt = Math.max(fetchedAt, createdAtMs);
+  }
+
+  if (Object.keys(quotas).length === 0) return null;
+
+  const entry: QuotaCacheEntry = {
+    connectionId,
+    provider,
+    quotas,
+    fetchedAt: fetchedAt || Date.now(),
+    exhausted,
+    nextResetAt: exhausted ? earliestResetAt(quotas) : null,
+    windowDurationMs,
+  };
+  cache.set(connectionId, entry);
+  return entry;
+}
+
 /**
  * Check if an account's quota is exhausted based on cached data.
  * Returns false if no cache entry exists (unknown = assume available).
  */
 export function isAccountQuotaExhausted(connectionId: string): boolean {
-  const entry = cache.get(connectionId);
+  const entry = cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return false;
   if (!entry.exhausted) return false;
 
@@ -296,7 +375,7 @@ export function getQuotaWindowStatus(
   windowName: string,
   thresholdPercent = DEFAULT_QUOTA_THRESHOLD_PERCENT
 ): QuotaWindowStatus | null {
-  const entry = cache.get(connectionId);
+  const entry = cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return null;
 
   const now = Date.now();

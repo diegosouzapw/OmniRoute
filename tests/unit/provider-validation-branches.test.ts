@@ -168,7 +168,10 @@ test("anthropic-compatible validation requires a base URL", async () => {
   assert.match(result.error, /No base URL configured/i);
 });
 
-test("anthropic-compatible validation rejects invalid keys from /models", async () => {
+test("anthropic-compatible validation rejects invalid keys (auth-fail on both /models and /messages)", async () => {
+  // After the 584cf66a port, /models alone is not authoritative — many compatible
+  // proxies 401/403 on /models even with a valid key. To prove the key is bad we
+  // require an auth-shaped failure on POST /v1/messages too.
   const calls = [];
   globalThis.fetch = async (url) => {
     calls.push(String(url));
@@ -183,7 +186,10 @@ test("anthropic-compatible validation rejects invalid keys from /models", async 
 
   assert.equal(result.valid, false);
   assert.equal(result.error, "Invalid API key");
-  assert.deepEqual(calls, ["https://api.example.com/v1/models"]);
+  assert.deepEqual(calls, [
+    "https://api.example.com/v1/models",
+    "https://api.example.com/v1/messages",
+  ]);
 });
 
 test("anthropic-compatible validation falls back to /messages and treats 400 as auth success", async () => {
@@ -406,50 +412,4 @@ test("gemini validation rejects invalid keys via UNAUTHENTICATED status", async 
 
   assert.equal(result.valid, false);
   assert.equal(result.error, "Invalid API key");
-});
-
-test("gemini-cli validation uses x-goog-api-key by default", async () => {
-  const calls = [];
-  globalThis.fetch = async (url, init) => {
-    calls.push({ url: String(url), headers: init?.headers });
-    return new Response(
-      JSON.stringify({
-        models: [{ name: "models/gemini-2.5-flash" }],
-      }),
-      { status: 200 }
-    );
-  };
-
-  const result = await validateProviderApiKey({
-    provider: "gemini-cli",
-    apiKey: "gcli-api-key",
-  });
-
-  assert.equal(result.valid, true);
-  assert.equal(result.error, null);
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0].headers["x-goog-api-key"], "gcli-api-key");
-  assert.equal(calls[0].headers["Authorization"], undefined);
-});
-
-test("gemini-cli validation supports Bearer auth if token starts with ya29.", async () => {
-  const calls = [];
-  globalThis.fetch = async (url, init) => {
-    calls.push({ url: String(url), headers: init?.headers });
-    return new Response(
-      JSON.stringify({
-        models: [{ name: "models/gemini-2.5-flash" }],
-      }),
-      { status: 200 }
-    );
-  };
-
-  const result = await validateProviderApiKey({
-    provider: "gemini-cli",
-    apiKey: "ya29.oauth-access-token",
-  });
-
-  assert.equal(result.valid, true);
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0].headers["Authorization"], "Bearer ya29.oauth-access-token");
 });

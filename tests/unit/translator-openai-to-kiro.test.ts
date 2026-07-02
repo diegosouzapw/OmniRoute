@@ -202,7 +202,7 @@ test("OpenAI -> Kiro maps invalid or empty assistant tool call arguments to empt
   );
 });
 
-test("OpenAI -> Kiro uses Continue currentMessage when the request ends with assistant history", () => {
+test("OpenAI -> Kiro uses a neutral filler currentMessage when the request ends with assistant history (#5231)", () => {
   const result = buildKiroPayload(
     "claude-sonnet-4",
     {
@@ -217,7 +217,7 @@ test("OpenAI -> Kiro uses Continue currentMessage when the request ends with ass
 
   assert.match(
     result.conversationState.currentMessage.userInputMessage.content,
-    /^\[Context: Current time is .*Z\]\n\nContinue$/
+    /^\[Context: Current time is .*Z\]\n\n\.\.\.$/
   );
   assert.deepEqual(result.conversationState.history, [
     {
@@ -832,6 +832,50 @@ test("OpenAI -> Kiro toolUseId round-trips between tool_use and tool_result in 2
   assert.equal(tr!.status, "success");
 });
 
+test("OpenAI -> Kiro does not inject the '(empty)' placeholder on a trailing tool-result-only turn", () => {
+  // Regression for the same bug class as upstream decolua/9router#2183: an agentic
+  // loop that ends in a tool-result turn with no follow-up user text must not have
+  // its (otherwise legitimately-empty) user content replaced by a placeholder —
+  // toolResults already give Kiro all the context it needs for this turn.
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "What is 2+2? Use the calc tool." },
+        {
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "call_1",
+              type: "function",
+              function: { name: "calc", arguments: '{"expr":"2+2"}' },
+            },
+          ],
+        },
+        { role: "tool", tool_call_id: "call_1", content: "4" },
+      ],
+    },
+    false,
+    null
+  );
+
+  const current = result.conversationState.currentMessage.userInputMessage;
+  const ctx = current.userInputMessageContext as {
+    toolResults?: Array<{ toolUseId: string }>;
+  };
+
+  // The trailing tool-result turn must still carry its toolResults...
+  assert.ok(ctx?.toolResults, "toolResults must be present in currentMessage context");
+  assert.equal(ctx.toolResults![0].toolUseId, "call_1");
+
+  // ...and the turn's own body (content minus the injected "[Context: ...]" time
+  // prefix, which buildKiroPayload always prepends) must be empty — NOT the
+  // literal "(empty)" placeholder, since tool-result context is present.
+  const body = current.content.replace(/^\[Context: Current time is [^\]]*\]\n\n/, "");
+  assert.equal(body, "");
+  assert.ok(!current.content.includes("(empty)"), "must not contain the '(empty)' placeholder");
+});
+
 test("OpenAI -> Kiro generates stable non-random toolUseId when tool_call has no id", () => {
   const makePayload = () =>
     buildKiroPayload(
@@ -914,4 +958,130 @@ test("OpenAI -> Kiro serializes non-string role:tool content to non-empty text (
   const text = result0.content[0].text as string;
   assert.notEqual(text, "", "non-string tool content must not collapse to empty string");
   assert.match(text, /entry A/, "serialized content preserves the structured text blocks");
+});
+
+// Only Claude models support images in Kiro. Non-Claude Kiro models
+// (deepseek-3.2, minimax-m2.5, glm-5, qwen3-coder-next, auto-kiro) must NOT
+// receive image attachments — attaching them is wrong for those models.
+const PNG_DATA_URL = "data:image/png;base64,aGVsbG8=";
+
+function buildImageRequest(model: string) {
+  return buildKiroPayload(
+    model,
+    {
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Describe this picture" },
+            { type: "image_url", image_url: { url: PNG_DATA_URL } },
+            { type: "image", source: { type: "base64", media_type: "image/png", data: "aGk=" } },
+            { type: "image", image: PNG_DATA_URL },
+          ],
+        },
+      ],
+    },
+    false,
+    null
+  );
+}
+
+test("OpenAI -> Kiro attaches images for Claude models", () => {
+  const result = buildImageRequest("claude-sonnet-4.6");
+  const images = result.conversationState.currentMessage.userInputMessage.images;
+  assert.ok(Array.isArray(images), "Claude models must keep image attachments");
+  // Three image blocks (image_url + Anthropic base64 + AI SDK-style) → 3 entries
+  assert.equal(images.length, 3, "all three supported image part shapes are attached");
+  assert.equal(images[0].format, "png");
+  assert.ok(images[0].source.bytes, "image bytes are preserved for Claude");
+});
+
+test("OpenAI -> Kiro drops images for non-Claude models (deepseek)", () => {
+  const result = buildImageRequest("deepseek-3.2");
+  const images = result.conversationState.currentMessage.userInputMessage.images;
+  assert.ok(
+    images === undefined || images.length === 0,
+    `non-Claude Kiro models must NOT receive image attachments, got: ${JSON.stringify(images)}`
+  );
+  // The accompanying text must still survive.
+  assert.match(
+    result.conversationState.currentMessage.userInputMessage.content,
+    /Describe this picture/,
+    "text content is preserved even when images are dropped"
+  );
+});
+
+test("OpenAI -> Kiro drops images for non-Claude models (glm / auto-kiro)", () => {
+  for (const model of ["glm-5", "minimax-m2.5", "qwen3-coder-next", "auto-kiro"]) {
+    const result = buildImageRequest(model);
+    const images = result.conversationState.currentMessage.userInputMessage.images;
+    assert.ok(
+      images === undefined || images.length === 0,
+      `${model} must NOT receive image attachments, got: ${JSON.stringify(images)}`
+    );
+  }
+});
+
+test("buildKiroPayload rejects the Anthropic-only [1m] context suffix before Bedrock", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  assert.throws(
+    () => buildKiroPayload("claude-opus-4.7-thinking-agentic[1m]", body, true, {}),
+    /\[1m\]' suffix is not supported by Kiro upstream/,
+    "kr/* model ids carrying [1m] must be rejected, not forwarded to AWS Bedrock"
+  );
+});
+
+test("buildKiroPayload accepts kr/* model ids without the [1m] suffix", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  assert.doesNotThrow(
+    () => buildKiroPayload("claude-sonnet-4.5", body, true, {}),
+    "model ids without [1m] must continue to build normally"
+  );
+});
+
+// Regression for upstream decolua/9router PR #2270: the dash->dot normalization's
+// trailing minor-version group must be bounded (1-2 digits), otherwise a
+// date-suffixed Claude model id (e.g. claude-opus-4-20250514) gets corrupted into
+// "claude-opus-4.20250514" because the unbounded `-(\d+)$` group swallows the
+// 8-digit date as if it were a minor version.
+test("buildKiroPayload normalizes short dash-suffixed minor versions to dots", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  const opus = buildKiroPayload("claude-opus-4-8", body, false, null);
+  assert.equal(
+    opus.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-opus-4.8",
+    "1-digit minor version should normalize dash to dot"
+  );
+
+  const sonnet = buildKiroPayload("claude-sonnet-4-6", body, false, null);
+  assert.equal(
+    sonnet.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-sonnet-4.6",
+    "1-digit minor version should normalize dash to dot (sonnet)"
+  );
+});
+
+test("buildKiroPayload does not corrupt date-suffixed Claude model ids (#2270)", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  const result = buildKiroPayload("claude-opus-4-20250514", body, false, null);
+  assert.equal(
+    result.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-opus-4-20250514",
+    "date-suffixed model ids (3+ digit trailing group) must NOT be dash->dot normalized"
+  );
+});
+
+test("buildKiroPayload leaves already-two-dash Claude ids unchanged (#2270)", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  const result = buildKiroPayload("claude-opus-4-1-20250805", body, false, null);
+  assert.equal(
+    result.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-opus-4-1-20250805",
+    "two-dash form (patch + date) must remain unchanged"
+  );
 });

@@ -34,6 +34,7 @@ import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer
 import { normalizeCodexVerbosity } from "../services/codexVerbosity.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
+import { normalizeCodexResponsesInput } from "../utils/responsesInputNormalization.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
 import { createRequire } from "module";
 
@@ -52,11 +53,7 @@ type WreqWebSocket = {
   onclose: (() => void) | null;
 };
 type WebsocketFn = (url: string, opts?: Record<string, unknown>) => Promise<WreqWebSocket>;
-type ResponsesMessageInput = {
-  role?: unknown;
-  phase?: unknown;
-  content?: unknown;
-};
+type ResponsesMessageInput = { role?: unknown; phase?: unknown; content?: unknown };
 
 let _websocketFn: WebsocketFn | null = null;
 let _wreqChecked = false;
@@ -296,7 +293,7 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
  *      server-generated prefix (rs_, fc_, resp_, msg_) — so the content is
  *      preserved but the backend won't try to look it up
  */
-function stripStoredItemReferences(body: Record<string, unknown>): void {
+export function stripStoredItemReferences(body: Record<string, unknown>): void {
   if (Array.isArray(body.input) && body.input.length === 0) {
     body.input = [
       {
@@ -325,6 +322,19 @@ function stripStoredItemReferences(body: Record<string, unknown>): void {
       typeof item === "object" &&
       !Array.isArray(item) &&
       (item as Record<string, unknown>).type === "item_reference"
+    ) {
+      strippedCount++;
+      return false;
+    }
+
+    // Reasoning blobs (encrypted_content) are unusable with store=false since
+    // previous_response_id is deleted — strip them to avoid wasting context
+    // tokens (O(n^2) growth across agentic turns).
+    if (
+      item &&
+      typeof item === "object" &&
+      !Array.isArray(item) &&
+      (item as Record<string, unknown>).type === "reasoning"
     ) {
       strippedCount++;
       return false;
@@ -406,7 +416,6 @@ const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
   "computer_use_preview",
   "code_interpreter",
   "mcp",
-  "local_shell",
 ]);
 
 // #2980: a free-plan Codex account (workspacePlanType === "free", from the OAuth
@@ -549,6 +558,8 @@ export function normalizeCodexTools(
       if (!rawName || !validToolNames.has(rawName)) {
         delete body.tool_choice;
       }
+    } else if (toolChoice.type === "local_shell") {
+      delete body.tool_choice;
     }
   }
 }
@@ -596,7 +607,6 @@ function normalizeServiceTierValue(value: unknown): string | undefined {
  */
 const MAX_EFFORT_BY_MODEL: Record<string, EffortLevel> = {
   "gpt-5.3-codex": "xhigh",
-  "gpt-5.2-codex": "xhigh",
   "gpt-5.1-codex-max": "xhigh",
   "gpt-5-mini": "high",
   "gpt-5.1-mini": "high",
@@ -754,6 +764,57 @@ function toCodexResponseFailedEvent(parsed: Record<string, unknown>): Record<str
   };
 }
 
+// Env-gated kill-switch: drop ALL non-standard `codex.*` SSE events (notably
+// `codex.rate_limits`) from the Responses stream. These events are NOT part of
+// the OpenAI Responses API — strict clients (e.g. the OpenAI SDK's
+// `responses.stream()`) choke on the unknown event type / empty data field and
+// tear the stream down, surfacing as "Invalid state: Controller is already
+// closed". Opt-in so the default still forwards them for clients that want them.
+function codexDropNonstandardEvents(): boolean {
+  const v = process.env.OMNIROUTE_CODEX_DROP_NONSTANDARD_EVENTS;
+  return v === "true" || v === "1" || v === "yes";
+}
+
+// SSE block filter for the HTTP Responses path (super.execute). The HTTP
+// transport forwards the upstream stream verbatim — including the non-standard
+// `event: codex.rate_limits` frame (no data line) — so the WS-only filter in
+// encodeResponseSseEvent never runs for it. When the kill-switch is on, strip
+// every `codex.*` event block from the byte stream before it reaches the client.
+// Exported for unit testing (#4715). Strips `codex.*` SSE event blocks from a
+// streaming Response when the OMNIROUTE_CODEX_DROP_NONSTANDARD_EVENTS kill-switch is on.
+export function filterNonstandardCodexSse(response: Response): Response {
+  const contentType = response.headers.get("content-type") || "";
+  if (!response.body || !contentType.includes("text/event-stream")) {
+    return response;
+  }
+  const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+  let buffer = "";
+  const dropBlock = (block: string): boolean => {
+    const match = /^event:\s*(.+)$/m.exec(block);
+    return !!match && match[1].trim().startsWith("codex.");
+  };
+  const transform = new TransformStream<Uint8Array, Uint8Array>({
+    transform(chunk, controller) {
+      buffer += decoder.decode(chunk, { stream: true });
+      let sep: number;
+      while ((sep = buffer.indexOf("\n\n")) !== -1) {
+        const block = buffer.slice(0, sep + 2);
+        buffer = buffer.slice(sep + 2);
+        if (!dropBlock(block)) controller.enqueue(encoder.encode(block));
+      }
+    },
+    flush(controller) {
+      if (buffer && !dropBlock(buffer)) controller.enqueue(encoder.encode(buffer));
+    },
+  });
+  return new Response(response.body.pipeThrough(transform), {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+}
+
 export function encodeResponseSseEvent(raw: string): { sse: string; terminal: boolean } {
   let eventType = "message";
   let payload = raw;
@@ -773,6 +834,27 @@ export function encodeResponseSseEvent(raw: string): { sse: string; terminal: bo
   } catch {
     console.warn("[codex] SSE payload parse failed, using raw payload");
     // Keep message as the generic SSE event for non-JSON upstream payloads.
+  }
+
+  // Env-gated: drop non-standard `codex.*` events (notably `codex.rate_limits`)
+  // before they reach the client. They are NOT part of the OpenAI Responses API
+  // and break strict consumers: the OpenAI SDK's responses.stream() chokes on
+  // the unknown event type / empty data and tears the stream down, surfacing as
+  // "Invalid state: Controller is already closed". The earlier empty-payload
+  // check below never caught codex.rate_limits — over WS the frame carries a
+  // non-empty JSON payload (`{"type":"codex.rate_limits", ...}`), so
+  // `!payload.trim()` is false. Match by event type instead. Opt-in via
+  // OMNIROUTE_CODEX_DROP_NONSTANDARD_EVENTS (the HTTP transport is handled
+  // separately by filterNonstandardCodexSse, since super.execute forwards the
+  // upstream stream verbatim and never runs this function).
+  if (eventType.startsWith("codex.") && codexDropNonstandardEvents()) {
+    return { sse: "", terminal };
+  }
+
+  // Drop frames whose raw payload is empty (defensive; non-JSON / blank upstream
+  // chunks). Frames that carry a payload are preserved.
+  if (!payload.trim()) {
+    return { sse: "", terminal };
   }
 
   return { sse: `event: ${eventType}\ndata: ${payload}\n\n`, terminal };
@@ -840,7 +922,14 @@ export class CodexExecutor extends BaseExecutor {
     const nextInput = { ...input, credentials };
 
     if (!isCodexResponsesWebSocketRequired(nextInput.model, nextInput.credentials)) {
-      return super.execute(nextInput);
+      const httpResult = await super.execute(nextInput);
+      if (codexDropNonstandardEvents()) {
+        const resp = (httpResult as { response?: Response }).response;
+        if (resp?.body) {
+          (httpResult as { response: Response }).response = filterNonstandardCodexSse(resp);
+        }
+      }
+      return httpResult;
     }
 
     const url = CODEX_RESPONSES_WS_URL;
@@ -973,15 +1062,19 @@ export class CodexExecutor extends BaseExecutor {
                 : Buffer.from(event.data as Buffer).toString("utf8");
             const sseEvent = encodeResponseSseEvent(raw);
             if (closed) return;
-            try {
-              controller.enqueue(encoder.encode(sseEvent.sse));
-            } catch {
-              finishStream({
-                reason: "downstream_closed",
-                emitDone: false,
-                closeController: false,
-              });
-              return;
+            // Filtered events (codex.* / empty payload) return an empty `sse` —
+            // skip them so no empty frame reaches the client.
+            if (sseEvent.sse) {
+              try {
+                controller.enqueue(encoder.encode(sseEvent.sse));
+              } catch {
+                finishStream({
+                  reason: "downstream_closed",
+                  emitDone: false,
+                  closeController: false,
+                });
+                return;
+              }
             }
             if (sseEvent.terminal) {
               finishStream({ reason: "terminal_event" });
@@ -1230,6 +1323,8 @@ export class CodexExecutor extends BaseExecutor {
         content: [{ type: "input_text", text: typeof p === "string" ? p : JSON.stringify(p) }],
       }));
     }
+
+    normalizeCodexResponsesInput(body);
 
     if (Array.isArray(body.input)) {
       body.input = sanitizeResponsesInputItems(body.input, false, {

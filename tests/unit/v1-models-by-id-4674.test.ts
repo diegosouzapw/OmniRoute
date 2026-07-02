@@ -38,6 +38,28 @@ test("findModelById returns null for an unknown model", () => {
   assert.equal(findModelById(CATALOG, "does-not-exist"), null);
 });
 
+// #5082 — OpenCode (and other @ai-sdk/openai-compatible clients) may request a
+// model id with different casing than the canonical catalog entry
+// (e.g. `minimax/minimax-m3` vs the registered `minimax/MiniMax-M3`). A
+// case-sensitive lookup misses, the client falls back to `context_length: 0`.
+// The single-model lookup must resolve case-insensitively so the real entry
+// (with its context window) is returned.
+test("findModelById resolves a differently-cased id (case-insensitive)", () => {
+  const found = findModelById(CATALOG, "CLAUDE/Claude-Sonnet-4-6");
+  assert.ok(found, "lowercase/uppercase variants must resolve to the canonical entry");
+  assert.equal(found.id, "claude/claude-sonnet-4-6");
+});
+
+test("findModelById prefers an exact-case match over a case-insensitive one", () => {
+  const data = [
+    { id: "Model-X", object: "model", context_length: 111 },
+    { id: "model-x", object: "model", context_length: 222 },
+  ];
+  // Exact case must win when present, not the first case-insensitive hit.
+  assert.equal(findModelById(data, "model-x")?.context_length, 222);
+  assert.equal(findModelById(data, "Model-X")?.context_length, 111);
+});
+
 test("findModelById tolerates a non-array catalog", () => {
   assert.equal(findModelById(undefined, "gpt-5"), null);
   assert.equal(findModelById(null, "gpt-5"), null);

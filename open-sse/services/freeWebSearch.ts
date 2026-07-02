@@ -20,7 +20,7 @@ export interface FreeSearchResult {
 const DUCKDUCKGO_LITE_URL = "https://lite.duckduckgo.com/lite/";
 // A browser-like UA — the lite endpoint rejects obvious bot agents.
 const DDG_USER_AGENT =
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36";
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0 Safari/537.36";
 
 // Real lite shape: `<a ... href="URL" class='result-link'>Title</a>` (href usually
 // before class; quotes may be single or double) and `<td class='result-snippet'>…</td>`.

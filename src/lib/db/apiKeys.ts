@@ -17,6 +17,34 @@ import {
 import { setNoLog } from "../compliance/noLog";
 import { resolveModelAlias } from "@omniroute/open-sse/services/modelDeprecation.ts";
 import { getSyncedAvailableModelsByConnection, getCustomModels, getModelIsHidden } from "./models";
+import {
+  CLAUDE_CODE_PROVIDER_PREFIXES,
+  preferClaudeCodeForUnprefixedClaudeModels,
+  stripExtendedContextSuffix,
+  isPotentialUnprefixedClaudeCodeModel,
+  addModelCandidate,
+  modelPatternMatches,
+  hasClaudeCodeWildcardPermission,
+  matchesWildcardPattern,
+} from "./apiKeys/modelPermissions";
+import {
+  parseAllowedModels,
+  parseAllowedCombos,
+  parseNoLog,
+  parseAutoResolve,
+  parseDisableNonPublicModels,
+  parseAllowUsageCommand,
+  parseIsActive,
+  parseAccessSchedule,
+  parseRateLimits,
+  parseAllowedConnections,
+  parseAllowedQuotas,
+  parseStringList,
+  parseNullableTimestamp,
+  parseIsBanned,
+  parseStreamDefaultMode,
+} from "./apiKeys/rowParsers";
+import type { AccessSchedule, RateLimitRule } from "./apiKeys/types";
 
 // ──────────────── Performance Optimizations ────────────────
 
@@ -30,18 +58,8 @@ interface CacheEntry<TValue> {
   value: TValue;
 }
 
-export interface RateLimitRule {
-  limit: number;
-  window: number;
-}
-
-export interface AccessSchedule {
-  enabled: boolean;
-  from: string;
-  until: string;
-  days: number[];
-  tz: string;
-}
+// Re-exported for the historical public surface (moved to ./apiKeys/types).
+export type { AccessSchedule, RateLimitRule } from "./apiKeys/types";
 
 interface ApiKeyMetadata {
   id: string;
@@ -171,8 +189,6 @@ const _lastUsedUpdateCache = new Map<string, number>();
 const CACHE_TTL = 60 * 1000; // 1 minute TTL
 const LAST_USED_UPDATE_TTL = 5 * 60 * 1000;
 const MAX_CACHE_SIZE = 1000;
-const CLAUDE_CODE_PROVIDER_PREFIXES = new Set(["cc", "claude"]);
-const CLAUDE_CODE_SHORT_ALIASES = new Set(["sonnet", "opus", "haiku", "fable"]);
 
 // Wildcard scope matching is now handled by `matchesWildcardPattern`
 // (deterministic, no RegExp from dynamic strings).
@@ -269,39 +285,6 @@ function evictIfNeeded<TKey, TValue>(cache: Map<TKey, TValue>) {
   }
 }
 
-function isTruthyEnvFlag(value: string | undefined): boolean {
-  return typeof value === "string" && /^(1|true|yes|on)$/i.test(value.trim());
-}
-
-async function preferClaudeCodeForUnprefixedClaudeModels(): Promise<boolean> {
-  try {
-    const { getCachedSettings } = await import("./readCache");
-    const settings = await getCachedSettings();
-    if (typeof settings.preferClaudeCodeForUnprefixedClaudeModels === "boolean") {
-      return settings.preferClaudeCodeForUnprefixedClaudeModels;
-    }
-  } catch {
-    // Standalone DB usage may not have the settings cache ready.
-  }
-  return isTruthyEnvFlag(process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS);
-}
-
-function stripExtendedContextSuffix(modelId: string): string {
-  return modelId.endsWith("[1m]") ? modelId.slice(0, -4) : modelId;
-}
-
-function isPotentialUnprefixedClaudeCodeModel(modelId: string): boolean {
-  const clean = stripExtendedContextSuffix(modelId.trim());
-  return /^claude-/i.test(clean) || CLAUDE_CODE_SHORT_ALIASES.has(clean.toLowerCase());
-}
-
-function addModelCandidate(candidates: Set<string>, modelId: string): void {
-  const clean = modelId.trim();
-  if (!clean) return;
-  candidates.add(clean);
-  candidates.add(stripExtendedContextSuffix(clean));
-}
-
 async function getModelPermissionCandidates(modelId: string): Promise<string[]> {
   const candidates = new Set<string>();
   addModelCandidate(candidates, modelId);
@@ -332,34 +315,6 @@ async function getModelPermissionCandidates(modelId: string): Promise<string[]> 
   return Array.from(candidates);
 }
 
-function modelPatternMatches(pattern: string, candidates: string[]): boolean {
-  for (const candidate of candidates) {
-    if (pattern === candidate) return true;
-    if (pattern.endsWith("/*")) {
-      const prefix = pattern.slice(0, -2);
-      if (candidate.startsWith(prefix + "/") || candidate.startsWith(prefix)) {
-        return true;
-      }
-    }
-    if (pattern.includes("*") && matchesWildcardPattern(pattern, candidate)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function hasClaudeCodeWildcardPermission(
-  allowedModels: string[] | undefined,
-  candidates: string[]
-): boolean {
-  if (!allowedModels || allowedModels.length === 0) return false;
-  return allowedModels.some(
-    (pattern) =>
-      (pattern === "cc/*" || pattern === "claude/*") &&
-      candidates.some((candidate) => modelPatternMatches(pattern, [candidate]))
-  );
-}
-
 async function getPublishedModelLookupTarget(
   modelId: string
 ): Promise<{ providerId: string; modelId: string } | null> {
@@ -385,60 +340,6 @@ async function getPublishedModelLookupTarget(
   }
 
   return null;
-}
-
-/**
- * Match an API-key wildcard scope pattern against a model id without
- * compiling a RegExp from string concatenation (avoid ReDoS exposure on
- * operator-supplied patterns and silence the Semgrep `js/regex-injection`
- * advisory for `new RegExp(<dynamic>)`).
- *
- * Supported pattern syntax (only what real scopes use):
- *   - literal segments
- *   - `*` matches any run of characters, but does NOT cross `/`
- *
- * Walks the pattern token-by-token: each `*` consumes the longest possible
- * run within the current path segment, then the next literal anchor must
- * appear before the segment boundary. Worst-case complexity is O(n*m)
- * where n = pattern length, m = candidate length — there is no nested
- * backtracking that could explode adversarially.
- */
-function matchesWildcardPattern(pattern: string, candidate: string): boolean {
-  const pSegs = pattern.split("/");
-  const cSegs = candidate.split("/");
-  if (pSegs.length !== cSegs.length) return false;
-  for (let i = 0; i < pSegs.length; i++) {
-    if (!segmentMatchesWildcard(pSegs[i], cSegs[i])) return false;
-  }
-  return true;
-}
-
-function segmentMatchesWildcard(pattern: string, segment: string): boolean {
-  if (pattern === segment) return true;
-  if (!pattern.includes("*")) return false;
-  const parts = pattern.split("*");
-  // Anchor first literal to the start.
-  let cursor = 0;
-  const first = parts[0];
-  if (first) {
-    if (!segment.startsWith(first)) return false;
-    cursor = first.length;
-  }
-  // Anchor last literal to the end.
-  const last = parts[parts.length - 1];
-  const endLimit = segment.length - last.length;
-  if (last) {
-    if (!segment.endsWith(last)) return false;
-  }
-  // Each middle literal must appear in order between cursor and endLimit.
-  for (let i = 1; i < parts.length - 1; i++) {
-    const piece = parts[i];
-    if (!piece) continue;
-    const idx = segment.indexOf(piece, cursor);
-    if (idx === -1 || idx + piece.length > endLimit) return false;
-    cursor = idx + piece.length;
-  }
-  return cursor <= endLimit;
 }
 
 function ensureApiKeyColumn(
@@ -582,156 +483,6 @@ export async function getApiKeyById(id: string) {
     setNoLog(camelRow.id, camelRow.noLog === true);
   }
   return camelRow;
-}
-
-/**
- * Helper function to safely parse allowed_models JSON
- */
-function parseAllowedModels(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") {
-    return [];
-  }
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function parseAllowedCombos(value: unknown): string[] {
-  return parseStringList(value);
-}
-
-function parseNoLog(value: unknown): boolean {
-  return value === true || value === 1 || value === "1";
-}
-
-function parseAutoResolve(value: unknown): boolean {
-  return value === true || value === 1 || value === "1";
-}
-
-function parseDisableNonPublicModels(value: unknown): boolean {
-  return value === true || value === 1 || value === "1";
-}
-
-function parseAllowUsageCommand(value: unknown): boolean {
-  return value === true || value === 1 || value === "1";
-}
-
-function parseIsActive(value: unknown): boolean {
-  // DEFAULT 1 — active unless explicitly set to 0
-  if (value === 0 || value === "0" || value === false) return false;
-  return true;
-}
-
-function parseAccessSchedule(value: unknown): AccessSchedule | null {
-  if (!value || typeof value !== "string" || value.trim() === "") return null;
-  try {
-    const parsed: unknown = JSON.parse(value);
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
-    const obj = parsed as Record<string, unknown>;
-    if (
-      typeof obj["enabled"] !== "boolean" ||
-      typeof obj["from"] !== "string" ||
-      typeof obj["until"] !== "string" ||
-      !Array.isArray(obj["days"]) ||
-      typeof obj["tz"] !== "string"
-    ) {
-      return null;
-    }
-    const days = (obj["days"] as unknown[]).filter(
-      (d): d is number => typeof d === "number" && Number.isInteger(d) && d >= 0 && d <= 6
-    );
-    return {
-      enabled: obj["enabled"],
-      from: obj["from"],
-      until: obj["until"],
-      days,
-      tz: obj["tz"],
-    };
-  } catch {
-    return null;
-  }
-}
-
-function parseRateLimits(value: unknown): RateLimitRule[] | null {
-  if (!value || typeof value !== "string" || value.trim() === "") return null;
-  try {
-    const parsed = JSON.parse(value);
-    if (!Array.isArray(parsed)) return null;
-    return parsed.filter(
-      (rule: RateLimitRule) =>
-        typeof rule === "object" &&
-        rule !== null &&
-        typeof rule.limit === "number" &&
-        typeof rule.window === "number"
-    ) as RateLimitRule[];
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Helper function to safely parse allowed_connections JSON
- */
-function parseAllowedConnections(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") {
-    return [];
-  }
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Helper function to safely parse allowed_quotas JSON
- */
-function parseAllowedQuotas(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") {
-    return [];
-  }
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function parseStringList(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") return [];
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function parseNullableTimestamp(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  return trimmed === "" ? null : trimmed;
-}
-
-function parseIsBanned(value: unknown): boolean {
-  return value === 1 || value === "1" || value === true;
-}
-
-function parseStreamDefaultMode(value: unknown): "legacy" | "json" {
-  return value === "json" ? "json" : "legacy";
 }
 
 async function hashKey(key: string): Promise<string> {

@@ -6,9 +6,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { CLI_TOOLS } = await import("../../src/shared/constants/cliTools.ts");
-const { EXPECTED_CODE_COUNT, EXPECTED_AGENT_COUNT } = await import(
-  "../../src/shared/schemas/cliCatalog.ts"
-);
+const { EXPECTED_CODE_COUNT, EXPECTED_AGENT_COUNT } =
+  await import("../../src/shared/schemas/cliCatalog.ts");
 
 const all = Object.values(CLI_TOOLS);
 const codeAll = all.filter((t) => t.category === "code");
@@ -31,7 +30,7 @@ test(`CLI_TOOLS has exactly ${EXPECTED_AGENT_COUNT} agent entries`, () => {
   );
 });
 
-test("CLI_TOOLS total code entries (including none) equals 23 (19 visible + 4 none)", () => {
+test("CLI_TOOLS total code entries (including none) equals 22 (18 visible + 4 none)", () => {
   // code-none entries: antigravity, kiro, cursor (app), hermes (simple guide)
   const codeNone = codeAll.filter((t) => t.baseUrlSupport === "none");
   assert.equal(
@@ -39,15 +38,11 @@ test("CLI_TOOLS total code entries (including none) equals 23 (19 visible + 4 no
     4,
     `Expected 4 code entries with baseUrlSupport='none', got ${codeNone.length}: ${codeNone.map((t) => t.id).join(", ")}`
   );
-  assert.equal(
-    codeAll.length,
-    23,
-    `Expected 23 total code entries, got ${codeAll.length}`
-  );
+  assert.equal(codeAll.length, 22, `Expected 22 total code entries, got ${codeAll.length}`);
 });
 
-test("CLI_TOOLS total (code + agent) = 29", () => {
-  assert.equal(all.length, 29, `Expected 29 total entries, got ${all.length}`);
+test("CLI_TOOLS total (code + agent) = 28", () => {
+  assert.equal(all.length, 28, `Expected 28 total entries, got ${all.length}`);
 });
 
 test("All code-none entries have configType mitm OR are legacy excluded entries", () => {
@@ -71,11 +66,26 @@ test("All agent entries have baseUrlSupport 'full' or 'partial' (no agent is 'no
   }
 });
 
-test("The 19 visible code entries match D15 list exactly", () => {
+test("The 18 visible code entries match D15 list exactly", () => {
   const d15List = new Set([
-    "claude", "codex", "cline", "kilo", "roo", "continue", "qwen",
-    "aider", "forge", "jcode", "deepseek-tui", "opencode", "droid",
-    "copilot", "gemini-cli", "cursor-cli", "smelt", "pi", "custom",
+    "claude",
+    "codex",
+    "cline",
+    "kilo",
+    "roo",
+    "continue",
+    "qwen",
+    "aider",
+    "forge",
+    "jcode",
+    "deepseek-tui",
+    "opencode",
+    "droid",
+    "copilot",
+    "cursor-cli",
+    "smelt",
+    "pi",
+    "custom",
   ]);
   const visibleIds = new Set(codeVisible.map((t) => t.id));
   for (const id of d15List) {
@@ -87,7 +97,14 @@ test("The 19 visible code entries match D15 list exactly", () => {
 });
 
 test("The 6 agent entries match D15 list exactly", () => {
-  const d15Agents = new Set(["hermes-agent", "openclaw", "goose", "interpreter", "warp", "agent-deck"]);
+  const d15Agents = new Set([
+    "hermes-agent",
+    "openclaw",
+    "goose",
+    "interpreter",
+    "warp",
+    "agent-deck",
+  ]);
   const agentIds = new Set(agentAll.map((t) => t.id));
   for (const id of d15Agents) {
     assert.ok(agentIds.has(id), `D15 agent '${id}' not found in agent entries`);

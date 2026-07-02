@@ -93,7 +93,6 @@ const KNOWN_SVGS = new Set([
   "claude-web",
   "docker-model-runner",
   "droid",
-  "gemini-cli",
   "gitlab",
   "gitlab-duo",
   "inworld",

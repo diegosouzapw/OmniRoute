@@ -86,3 +86,14 @@ export function writeProviderDisplayModePreference(
 
   storage.setItem(PROVIDER_DISPLAY_MODE_STORAGE_KEY, mode);
 }
+
+/**
+ * Gate for the provider display-mode persistence effects. They must NOT run while the
+ * connections fetch is still in flight (`loading`), or they would coerce a saved
+ * "configured" preference to "all" against an empty connections list before the real
+ * data arrives — silently dropping the user's filter across reloads (#5510). Returns
+ * true only once the stored preference has been read (`ready`) AND loading has settled.
+ */
+export function shouldSyncProviderDisplayMode(ready: boolean, loading: boolean): boolean {
+  return ready && !loading;
+}

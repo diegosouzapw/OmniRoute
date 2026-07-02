@@ -9,18 +9,23 @@ import assert from "node:assert";
 describe("2026 discontinued free tiers — providers.ts hasFree reconciliation", () => {
   it("APIKEY_PROVIDERS dead tiers no longer advertise a free tier", async () => {
     const { APIKEY_PROVIDERS } = await import("../../src/shared/constants/providers.ts");
-    for (const id of ["chutes", "kluster", "glhf", "phind", "gitlawb", "gitlawb-gmi", "aimlapi", "yi"]) {
+    // These providers still operate (an API key works) but lost their free tier, so
+    // they are KEPT with hasFree:false. phind is NOT here: the whole phind.com service
+    // shut down 2026-01-16, so it was removed entirely (registry/executor/catalogs),
+    // matching the dead-service-removal precedent (#5246 Gemini CLI).
+    for (const id of ["chutes", "kluster", "glhf", "gitlawb", "gitlawb-gmi", "aimlapi", "yi"]) {
       const p = (APIKEY_PROVIDERS as Record<string, { hasFree?: boolean }>)[id];
       assert.ok(p, `${id} should still exist in APIKEY_PROVIDERS (provider not removed, only its free flag)`);
       assert.strictEqual(p.hasFree, false, `${id} should have hasFree:false (discontinued in 2026)`);
     }
   });
 
-  it("WEB_COOKIE_PROVIDERS phind (web/cookie path) no longer advertises a free tier", async () => {
-    const { WEB_COOKIE_PROVIDERS } = await import("../../src/shared/constants/providers.ts");
-    const p = (WEB_COOKIE_PROVIDERS as Record<string, { hasFree?: boolean }>)["phind"];
-    assert.ok(p, "phind should still exist in WEB_COOKIE_PROVIDERS");
-    assert.strictEqual(p.hasFree, false, "phind web/cookie should have hasFree:false (phind.com shut down 2026-01)");
+  it("phind is fully removed (service shut down 2026-01) from both catalogs", async () => {
+    const { APIKEY_PROVIDERS, WEB_COOKIE_PROVIDERS } = await import(
+      "../../src/shared/constants/providers.ts"
+    );
+    assert.ok(!("phind" in APIKEY_PROVIDERS), "phind must not be in APIKEY_PROVIDERS");
+    assert.ok(!("phind" in WEB_COOKIE_PROVIDERS), "phind must not be in WEB_COOKIE_PROVIDERS");
   });
 
   it("intentionally-kept providers still advertise free (genuinely free / ToS-flagged, not flipped)", async () => {

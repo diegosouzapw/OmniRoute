@@ -60,7 +60,6 @@ const FAKE_CREDS: Record<string, string> = {
   "inner-ai": "fake-audit-sweep user@example.com",
   "adapta-web": "__client=fake-audit-sweep",
   huggingchat: "hf-chat=fake-audit-sweep",
-  phind: "fake-audit-sweep",
   "poe-web": "p-b=fake-audit-sweep",
   "venice-web": "fake-audit-sweep",
   "v0-vercel-web": "fake-audit-sweep",

@@ -18,6 +18,12 @@ const {
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 const { createRequestLogger } = await import("../../open-sse/utils/requestLogger.ts");
 
+// Retained stream chunks are prefixed with a fixed-width per-chunk arrival timestamp
+// ("[HH:MM:SS.mmm] ", 15 chars) by the request logger for streaming-latency
+// observability (added in #5834). Strip it before comparing raw chunk payloads.
+const STREAM_CHUNK_TS_PREFIX_LEN = "[HH:MM:SS.mmm] ".length;
+const stripChunkTs = (chunk: string): string => chunk.replace(/^\[\d{2}:\d{2}:\d{2}\.\d{3}\] /, "");
+
 const textEncoder = new TextEncoder();
 // PR #3399 intentionally changed the synthetic empty-response text to "" so that
 // proxy internals no longer leak into chat history. Tests assert on the new behavior.
@@ -1286,7 +1292,7 @@ test("createSSEStream passthrough restores Claude tool names from the mapping ta
   assert.equal(text.includes("tool_alias"), false);
 });
 
-test("createSSEStream passthrough fixes generic ids and normalizes reasoning aliases", async () => {
+test("createSSEStream passthrough fixes generic ids and preserves readable reasoning aliases", async () => {
   const text = await readTransformed(
     [
       `data: ${JSON.stringify({
@@ -1314,10 +1320,11 @@ test("createSSEStream passthrough fixes generic ids and normalizes reasoning ali
   );
 
   assert.match(text, /"id":"chatcmpl-/);
-  assert.match(text, /"reasoning_content":"Let me think first"/);
+  assert.match(text, /"reasoning":"Let me think first"/);
+  assert.doesNotMatch(text, /"reasoning_content":"Let me think first"/);
 });
 
-test("createSSEStream passthrough reserializes reasoning aliases with valid ids", async () => {
+test("createSSEStream passthrough mirrors unsupported reasoning aliases with valid ids", async () => {
   const text = await readTransformed(
     [
       `data: ${JSON.stringify({
@@ -1329,7 +1336,7 @@ test("createSSEStream passthrough reserializes reasoning aliases with valid ids"
           {
             index: 0,
             delta: {
-              reasoning: "Alias-only reasoning",
+              reasoning_text: "Alias-only reasoning",
             },
           },
         ],
@@ -1345,7 +1352,6 @@ test("createSSEStream passthrough reserializes reasoning aliases with valid ids"
   );
 
   assert.match(text, /"reasoning_content":"Alias-only reasoning"/);
-  assert.doesNotMatch(text, /"reasoning":"Alias-only reasoning"/);
 });
 
 test("createSSEStream passthrough preserves OpenAI content thinking tags as content", async () => {
@@ -2093,16 +2099,21 @@ test("createRequestLogger skips disabled logs and caps retained stream chunk byt
   const logger = await createRequestLogger("openai", "openai", "gpt-test", {
     enabled: true,
     captureStreamChunks: true,
-    maxStreamChunkBytes: 5,
+    // The byte budget now also counts the 15-char timestamp prefix, so size it as
+    // prefix + 5 to keep the original intent: cap the *payload* to 5 bytes ("abcde").
+    maxStreamChunkBytes: STREAM_CHUNK_TS_PREFIX_LEN + 5,
   });
   logger.appendProviderChunk("abcdef");
   logger.appendProviderChunk("ghijkl");
   const payloads = logger.getPipelinePayloads();
 
-  assert.deepEqual(payloads.streamChunks.provider, [
-    "abcde",
-    "[stream chunk log truncated after 5 bytes]",
-  ]);
+  // First chunk retained but its payload truncated to 5 bytes; second replaced by marker.
+  assert.equal(stripChunkTs(payloads.streamChunks.provider[0]), "abcde");
+  assert.equal(
+    payloads.streamChunks.provider[1],
+    `[stream chunk log truncated after ${STREAM_CHUNK_TS_PREFIX_LEN + 5} bytes]`
+  );
+  assert.equal(payloads.streamChunks.provider.length, 2);
 });
 
 test("createRequestLogger caps retained stream chunk item count", async () => {
@@ -2118,10 +2129,9 @@ test("createRequestLogger caps retained stream chunk item count", async () => {
   logger.appendProviderChunk("three");
 
   const payloads = logger.getPipelinePayloads();
-  assert.deepEqual(payloads.streamChunks.provider, [
-    "one",
-    "[stream chunk log truncated after 2 chunks]",
-  ]);
+  assert.equal(stripChunkTs(payloads.streamChunks.provider[0]), "one");
+  assert.equal(payloads.streamChunks.provider[1], "[stream chunk log truncated after 2 chunks]");
+  assert.equal(payloads.streamChunks.provider.length, 2);
 });
 
 // T-VERIFY: passthrough mode failure decrements pending requests

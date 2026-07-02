@@ -71,10 +71,8 @@ export interface RetryPlan {
 // ── Provider catalog (D16 / D17) ─────────────────────────────────────────────
 
 export const BATCH_SUPPORTED_PROVIDERS = ["openai", "anthropic", "gemini"] as const;
-export type BatchProvider = (typeof BATCH_SUPPORTED_PROVIDERS)[number];
 
 // ── Re-exports ───────────────────────────────────────────────────────────────
 
 export type { SupportedBatchEndpoint };
 export { SUPPORTED_BATCH_ENDPOINTS };
-

@@ -13,6 +13,7 @@ type FormData = QuotaScrapingFieldValues & {
   apiRegion: string;
   ccCompatibleContext1m: boolean;
   ccCompatibleRedactThinking: boolean;
+  ccCompatibleSummarizeThinking: boolean;
   consoleApiKey: string;
   customUserAgent: string;
   cx: string;

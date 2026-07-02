@@ -65,10 +65,6 @@ const PROVIDER_MODEL_ALIASES: ProviderModelAliasMap = {
     "gemini-3.1-pro": "gemini-3.1-pro-preview",
     "gemini-3-1-pro": "gemini-3.1-pro-preview",
   },
-  "gemini-cli": {
-    "gemini-3.1-pro": "gemini-3.1-pro-preview",
-    "gemini-3-1-pro": "gemini-3.1-pro-preview",
-  },
   nvidia: {
     "gpt-oss-120b": "openai/gpt-oss-120b",
     "nvidia/gpt-oss-120b": "openai/gpt-oss-120b",
@@ -131,7 +127,13 @@ const CODEX_PREFERRED_UNPREFIXED_MODELS = new Set([
   "gpt-5.5-medium",
   "gpt-5.5-low",
 ]);
-const CODEX_PREFERRED_UNPREFIXED_MODEL_ALIASES = new Map([["gpt-5.5", "gpt-5.5-medium"]]);
+// Intentionally empty: an unprefixed codex-preferred model keeps its BARE id when
+// inferred to codex. #2877 established that baking a `-medium` effort suffix silently
+// overrides a client `reasoning.effort` (the Codex executor reads the suffix as an
+// explicit modelEffort). This map was dormant while bare `gpt-5.5` hit the OpenAI
+// short-circuit; #5887 makes the codex block reachable for bare `gpt-5.5`, so the
+// `gpt-5.5 → gpt-5.5-medium` entry is removed to preserve #2877's bare-id contract.
+const CODEX_PREFERRED_UNPREFIXED_MODEL_ALIASES = new Map<string, string>([]);
 export const CODEX_NATIVE_UNPREFIXED_MODELS = new Set(["codex-auto-review"]);
 
 interface ProviderConnectionLike {
@@ -146,6 +148,34 @@ interface ProviderConnectionLike {
 export function resolveProviderAlias(aliasOrId: string | null | undefined): string | null {
   if (typeof aliasOrId !== "string") return null;
   return ALIAS_TO_PROVIDER_ID[aliasOrId] || aliasOrId;
+}
+
+/**
+ * #474 — Resolve a bare model name to the selected connection's `defaultModel`.
+ *
+ * When the client requested a bare model name (no "/", e.g. an alias that
+ * resolved to "auto") and the chosen connection declares a `defaultModel`, the
+ * upstream provider must receive that concrete model ID instead of the
+ * placeholder. A "/"-qualified model name is an explicit provider/model choice
+ * and is always returned untouched.
+ *
+ * Pure function — `requestedModelStr` is the raw client-facing model string
+ * (used only to decide whether the name is "bare"); `resolvedModel` is the
+ * already-resolved model that would otherwise be sent upstream.
+ */
+export function resolveBareModelToConnectionDefault(
+  requestedModelStr: string | null | undefined,
+  resolvedModel: string | null | undefined,
+  connectionDefaultModel: string | null | undefined
+): string | null {
+  const fallback = typeof resolvedModel === "string" ? resolvedModel : null;
+  if (typeof requestedModelStr !== "string" || requestedModelStr.includes("/")) {
+    return fallback;
+  }
+  if (typeof connectionDefaultModel === "string" && connectionDefaultModel.length > 0) {
+    return connectionDefaultModel;
+  }
+  return fallback;
 }
 
 function isCrossProxyModelCompatEnabled() {
@@ -487,17 +517,11 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
     getPreferClaudeCodeForUnprefixedClaudeModels(),
   ]);
 
-  // Preserve historical behavior: OpenAI stays default when model exists there.
-  // Connection availability must not make unprefixed OpenAI models resolve to a
-  // different provider; callers can still force Codex with an explicit prefix.
-  if (providers.includes("openai")) {
-    return {
-      provider: "openai",
-      model: modelId,
-      extendedContext,
-    };
-  }
-
+  // Codex-only setups must keep auto-routing codex-preferred unprefixed models
+  // (e.g. `gpt-5.5`) to codex even after those ids were added to the OpenAI
+  // static catalog (#5887). This block is guarded by `!activeProviders.has("openai")`,
+  // so it must run BEFORE the OpenAI short-circuit below; users WITH an active
+  // OpenAI connection still fall through to the OpenAI default.
   if (
     activeProviders?.has("codex") &&
     !activeProviders.has("openai") &&
@@ -507,6 +531,17 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
     return {
       provider: "codex",
       model: resolveInferredProviderModel("codex", modelId),
+      extendedContext,
+    };
+  }
+
+  // Preserve historical behavior: OpenAI stays default when model exists there.
+  // Connection availability must not make unprefixed OpenAI models resolve to a
+  // different provider; callers can still force Codex with an explicit prefix.
+  if (providers.includes("openai")) {
+    return {
+      provider: "openai",
+      model: modelId,
       extendedContext,
     };
   }

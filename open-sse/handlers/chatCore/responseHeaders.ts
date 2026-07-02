@@ -11,13 +11,61 @@ const STREAMING_RESPONSE_HEADER_DENYLIST = new Set([
   "transfer-encoding",
 ]);
 
+/**
+ * Prefix of Next.js internal middleware control headers.
+ *
+ * When an upstream provider is itself hosted behind a Next.js middleware
+ * (e.g. synthetic.new), a perfectly successful `200 OK` response can still
+ * carry Next's own control headers such as `x-middleware-rewrite`,
+ * `x-middleware-next`, `x-middleware-override-headers`,
+ * `x-middleware-set-cookie`, and the `x-middleware-request-*` family.
+ *
+ * OmniRoute forwards upstream response headers verbatim. If we re-emit those
+ * headers from an App Router route handler, Next 16's `app-route` runtime
+ * interprets `x-middleware-rewrite` as a `NextResponse.rewrite()` call and
+ * throws `NextResponse.rewrite() was used in a app route handler` — turning a
+ * successful upstream call into a 500. This is provider-agnostic proxy
+ * hygiene: any upstream behind Next middleware can leak these headers.
+ *
+ * See issue #5849.
+ */
+const NEXTJS_MIDDLEWARE_HEADER_PREFIX = "x-middleware-";
+
+/**
+ * True when `headerName` is a Next.js internal middleware control header that
+ * must never be forwarded from a proxied upstream response.
+ */
+export function isNextMiddlewareControlHeader(headerName: string): boolean {
+  return headerName.toLowerCase().startsWith(NEXTJS_MIDDLEWARE_HEADER_PREFIX);
+}
+
+/**
+ * Strip the whole `x-middleware-*` family (see {@link isNextMiddlewareControlHeader})
+ * from a `Headers` instance. Used on the non-streaming JSON path alongside
+ * {@link stripStaleForwardingHeaders}.
+ */
+export function stripNextMiddlewareControlHeaders(headers: Headers): void {
+  const toDelete: string[] = [];
+  headers.forEach((_value, key) => {
+    if (isNextMiddlewareControlHeader(key)) {
+      toDelete.push(key);
+    }
+  });
+  for (const key of toDelete) {
+    headers.delete(key);
+  }
+}
+
 export function buildStreamingResponseHeaders(
   providerHeaders: Headers,
   meta: Parameters<typeof buildOmniRouteResponseMetaHeaders>[0]
 ): Record<string, string> {
   const forwardedHeaders: [string, string][] = [];
   providerHeaders.forEach((value, key) => {
-    if (!STREAMING_RESPONSE_HEADER_DENYLIST.has(key.toLowerCase())) {
+    if (
+      !STREAMING_RESPONSE_HEADER_DENYLIST.has(key.toLowerCase()) &&
+      !isNextMiddlewareControlHeader(key)
+    ) {
       forwardedHeaders.push([key, value]);
     }
   });

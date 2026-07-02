@@ -15,7 +15,11 @@
  * The only standardization is the log MESSAGE wording (round-robin previously dropped the
  * "on remaining targets" suffix) — diagnostic text only, same #code + provider info.
  */
-import { classifyErrorText, hasPerModelQuota, isProviderExhaustedReason } from "../accountFallback.ts";
+import {
+  classifyErrorText,
+  hasPerModelQuota,
+  isProviderExhaustedReason,
+} from "../accountFallback.ts";
 import { RateLimitReason } from "../../config/constants.ts";
 import { isProviderCircuitOpenResult } from "./comboPredicates.ts";
 import type { ComboLogger, ResolvedComboTarget } from "./types.ts";
@@ -23,6 +27,16 @@ import type { ComboLogger, ResolvedComboTarget } from "./types.ts";
 // Connection-level failure statuses: the provider connection itself is likely bad (upstream
 // unreachable, proxy/gateway error), so remaining same-connection targets are skipped.
 const CONNECTION_LEVEL_ERROR_STATUSES = [408, 500, 502, 503, 504, 524];
+
+// #5085: an "empty content" 502 is the synthetic status chatCore assigns to a provider that
+// answered HTTP 200 with no usable completion (isEmptyContentResponse). The connection is
+// HEALTHY — it just returned an empty body — so this must NOT be classified as a connection
+// failure (which would exhaust the whole provider/connection and skip every remaining
+// same-provider leg via #1731v2). It is a model-level transient failure: advance to the next
+// leg, leaving the rest of that provider's legs eligible.
+function isEmptyContentFailure(status: number, errorText: string): boolean {
+  return status === 502 && /empty content/i.test(errorText);
+}
 
 export type ComboExhaustionSets = {
   exhaustedProviders: Set<string>;
@@ -41,6 +55,8 @@ export type ApplyComboTargetExhaustionOptions = {
   log: ComboLogger;
   tag: string;
   exhaustedLogLevel: "info" | "debug";
+  /** Structured error object from upstream response — preferred over raw errorText for classification */
+  structuredError?: { code?: string; type?: string; message?: string };
 };
 
 /**
@@ -63,6 +79,7 @@ export function applyComboTargetExhaustion(
     log,
     tag,
     exhaustedLogLevel,
+    structuredError,
   } = opts;
   const { exhaustedProviders, exhaustedConnections, transientRateLimitedProviders } = sets;
   const provider = target.provider;
@@ -74,12 +91,15 @@ export function applyComboTargetExhaustion(
     Boolean(provider && provider !== "unknown") &&
     !hasPerModelQuota(provider, rawModel) &&
     (isProviderExhaustedReason(fallbackResult) ||
-      classifyErrorText(errorText) === RateLimitReason.QUOTA_EXHAUSTED ||
+      classifyErrorText(structuredError?.code || errorText) === RateLimitReason.QUOTA_EXHAUSTED ||
       allAccountsRateLimited);
   if (providerExhausted) {
     exhaustedProviders.add(provider);
     const emit = exhaustedLogLevel === "debug" ? log.debug : log.info;
-    emit?.(tag, `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`);
+    emit?.(
+      tag,
+      `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`
+    );
   } else {
     if (result.status === 429 && !isTokenLimitBreach && provider && provider !== "unknown") {
       transientRateLimitedProviders.add(provider);
@@ -106,7 +126,11 @@ function markConnectionLevelExhaustion(
     !provider ||
     provider === "unknown" ||
     !CONNECTION_LEVEL_ERROR_STATUSES.includes(result.status) ||
-    isProviderCircuitOpenResult(result, errorText)
+    isProviderCircuitOpenResult(result, errorText) ||
+    // #5085: empty-content 502 is a healthy connection returning no body — model-level, not
+    // connection-level. Don't exhaust the provider; let the remaining legs (incl. same-provider)
+    // be tried in-request.
+    isEmptyContentFailure(result.status, errorText)
   ) {
     return;
   }

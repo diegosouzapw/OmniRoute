@@ -22,9 +22,9 @@ describe("MCP Essential Tools", () => {
   });
 
   describe("Tool schema validation", () => {
-    it("should have exactly 10 essential tools (includes web_search + web_fetch)", () => {
+    it("should have exactly 11 essential tools (includes web_search + web_fetch + tool_search)", () => {
       const schemas = MCP_ESSENTIAL_TOOLS;
-      expect(schemas).toHaveLength(10);
+      expect(schemas).toHaveLength(11);
     });
 
     it("all tools should have omniroute_ prefix", () => {

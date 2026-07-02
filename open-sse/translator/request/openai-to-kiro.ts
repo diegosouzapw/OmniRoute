@@ -6,6 +6,28 @@ import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { v4 as uuidv4, v5 as uuidv5 } from "uuid";
 
+/**
+ * Anthropic's direct-provider `[1m]` context-1m beta suffix. Kiro is AWS
+ * Bedrock-backed and does not honor it, so forwarding a `kr/*` model id that
+ * carries `[1m]` produces a malformed upstream model id at Bedrock.
+ */
+export const KIRO_UNSUPPORTED_CONTEXT_1M_SUFFIX = "[1m]";
+export const KIRO_UNSUPPORTED_CONTEXT_1M_MESSAGE =
+  "[kr/*] '[1m]' suffix is not supported by Kiro upstream. Kiro is AWS " +
+  "Bedrock-backed and does not honor Anthropic's context-1m beta. Use a " +
+  "direct-Anthropic provider for 1M-context routing.";
+
+/**
+ * Kiro is AWS Bedrock-backed, so Anthropic's direct-provider `[1m]` context
+ * beta cannot be forwarded as part of a `kr/*` model id.
+ */
+export function hasUnsupportedKiroContextSuffix(model: unknown): boolean {
+  return (
+    typeof model === "string" &&
+    model.toLowerCase().includes(KIRO_UNSUPPORTED_CONTEXT_1M_SUFFIX)
+  );
+}
+
 function parseToolInput(value: unknown) {
   if (value && typeof value === "object" && !Array.isArray(value)) {
     return value;
@@ -128,9 +150,23 @@ function convertMessages(messages, tools, model) {
   let currentRole = null;
   let toolsAttached = false;
 
+  // Only Claude models support images in Kiro. Kiro also routes non-Claude
+  // models (deepseek, minimax, glm, qwen3-coder-next, auto-kiro) that do not
+  // accept image attachments — gate image extraction behind a Claude check so
+  // we never attach images those models would reject.
+  const supportsImages = typeof model === "string" && model.toLowerCase().includes("claude");
+
   const flushPending = () => {
     if (currentRole === "user") {
-      const content = pendingUserContent.join("\n\n").trim() || "(empty)";
+      // Kiro accepts an empty user `content` when the turn carries toolResults or
+      // images (the agentic tool-loop case), so the "(empty)" placeholder is only
+      // needed for a genuinely bare turn. Without this check, a trailing
+      // tool-result-only turn (no follow-up user text) would get the literal
+      // "(empty)" injected as if the user had typed it, which can confuse Kiro.
+      // See decolua/9router#2183 for the same bug class.
+      const text = pendingUserContent.join("\n\n").trim();
+      const hasContext = pendingToolResults.length > 0 || pendingImages.length > 0;
+      const content = text || (hasContext ? "" : "(empty)");
       const userMsg: {
         userInputMessage: {
           content: string;
@@ -250,9 +286,10 @@ function convertMessages(messages, tools, model) {
           .map((c) => c.text || "");
         content = textParts.join("\n");
 
-        // Extract images (OpenAI image_url and Anthropic image formats)
+        // Extract images (OpenAI image_url and Anthropic image formats).
+        // Skip entirely for models that do not support images — see supportsImages.
         for (const block of msg.content) {
-          if (block.type === "image_url") {
+          if (supportsImages && block.type === "image_url") {
             const url: string = block.image_url?.url || "";
             if (url.startsWith("data:")) {
               // data:image/jpeg;base64,<data>
@@ -261,11 +298,11 @@ function convertMessages(messages, tools, model) {
               const format = mediaType.split("/")[1] || "jpeg";
               if (bytes) pendingImages.push({ format, source: { bytes } });
             }
-          } else if (block.type === "image" && block.source?.type === "base64") {
+          } else if (supportsImages && block.type === "image" && block.source?.type === "base64") {
             const format = (block.source.media_type || "image/jpeg").split("/")[1] || "jpeg";
             if (block.source.data)
               pendingImages.push({ format, source: { bytes: block.source.data } });
-          } else if (block.type === "image" && typeof block.image === "string") {
+          } else if (supportsImages && block.type === "image" && typeof block.image === "string") {
             // AI SDK-style image part: { type: "image", image: "data:...;base64,..." } (#1330)
             const url = block.image;
             if (url.startsWith("data:")) {
@@ -376,14 +413,14 @@ function convertMessages(messages, tools, model) {
 
   // Kiro requires currentMessage to be a user turn. If the request ends with a
   // user turn, move that final turn into currentMessage. If it ends with an
-  // assistant/tool turn, keep chronological history intact and ask Kiro to
-  // continue instead of reordering prior turns.
+  // assistant/tool turn, synthesize a neutral filler ("...") instead of the
+  // literal "Continue", which Kiro can read as a real instruction (#5231).
   if (history.length > 0 && history[history.length - 1].userInputMessage) {
     currentMessage = history.pop();
   } else {
     currentMessage = {
       userInputMessage: {
-        content: "Continue",
+        content: "...",
         modelId: model,
       },
     };
@@ -406,7 +443,7 @@ function convertMessages(messages, tools, model) {
 
   // Fallback: if the schema was never attached to any user turn (e.g. the
   // input contained no user messages and currentMessage is a synthesized
-  // "Continue" turn), attach the provided tools directly to currentMessage so
+  // neutral-filler turn), attach the provided tools directly to currentMessage so
   // Kiro still sees the schema it needs to validate assistant.toolUses in
   // history.
   if (
@@ -632,10 +669,19 @@ function convertMessages(messages, tools, model) {
  * Build Kiro payload from OpenAI format
  */
 export function buildKiroPayload(model, body, stream, credentials) {
+  // Reject the Anthropic-only `[1m]` context beta before it reaches Bedrock —
+  // Kiro cannot honor it and a forwarded `kr/*[1m]` id is malformed upstream.
+  if (hasUnsupportedKiroContextSuffix(model)) {
+    throw new Error(KIRO_UNSUPPORTED_CONTEXT_1M_MESSAGE);
+  }
+
   // Normalize model name: Claude Code sends dashes (claude-sonnet-4-6),
   // Kiro API expects dots (claude-sonnet-4.6). Convert trailing version segment.
+  // The minor group is bounded to 1-2 digits so date-suffixed ids (e.g.
+  // claude-opus-4-20250514) are never mistaken for a dash-separated minor
+  // version and corrupted into claude-opus-4.20250514 (upstream 9router #2270).
   const normalizedModel = model.replace(
-    /^(claude-(?:opus|sonnet|haiku|3-\d+)-\d+)-(\d+)$/,
+    /^(claude-(?:opus|sonnet|haiku|3-\d+)-\d+)-(\d{1,2})$/,
     "$1.$2"
   );
   const messages = body.messages || [];

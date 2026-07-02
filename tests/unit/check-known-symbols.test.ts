@@ -32,7 +32,7 @@ const REPO_ROOT = path.resolve(fileURLToPath(import.meta.url), "../../..");
 // (2) COMBO STRATEGIES — extractHandledStrategies + diffComboStrategies
 // ───────────────────────────────────────────────────────────────────────────
 
-test("extractHandledStrategies pulls every `strategy === \"...\"` literal, deduped", () => {
+test('extractHandledStrategies pulls every `strategy === "..."` literal, deduped', () => {
   const src = [
     'if (strategy === "round-robin") {',
     '} else if (strategy === "p2c") {',
@@ -96,18 +96,12 @@ test("extractExecutorAliases parses quoted and bare keys from the executors lite
     'import { Foo } from "./foo.ts";',
     "const executors = {",
     "  antigravity: new Foo(),",
-    '  "gemini-cli": new Foo(),',
     "  agy: new Foo(), // Alias",
     '  "amazon-q": new Foo("amazon-q"),',
     "};",
     "export function getExecutor() {}",
   ].join("\n");
-  assert.deepEqual(extractExecutorAliases(src), [
-    "antigravity",
-    "gemini-cli",
-    "agy",
-    "amazon-q",
-  ]);
+  assert.deepEqual(extractExecutorAliases(src), ["antigravity", "agy", "amazon-q"]);
 });
 
 test("extractExecutorAliases throws when the executors map cannot be located", () => {
@@ -185,7 +179,10 @@ test("IMPLICIT_DEFAULT_STRATEGIES: every documented key carries a non-trivial ju
   // The map may be empty (all canonical strategies are referenced in combo.ts), but any
   // entry that DOES exist must explain why the strategy has no explicit dispatch branch.
   for (const [key, justification] of Object.entries(IMPLICIT_DEFAULT_STRATEGIES)) {
-    assert.ok(typeof justification === "string" && justification.length > 20, `weak/missing justification for "${key}"`);
+    assert.ok(
+      typeof justification === "string" && justification.length > 20,
+      `weak/missing justification for "${key}"`
+    );
   }
 });
 

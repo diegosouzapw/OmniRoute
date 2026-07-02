@@ -73,3 +73,14 @@ export const cliModelConfigSchema = z.object({
   wireApi: z.enum(["chat", "responses"]).optional(),
   modelMappings: z.record(z.string().trim().min(1), z.string().trim().min(1)).optional(),
 });
+
+/**
+ * Multi-model variant of `cliModelConfigSchema`. Adds optional `models`
+ * (array of strings, takes precedence over `model`) and `activeModel`
+ * (string id to promote to first position). Ported from upstream PR
+ * decolua/9router#618 for the Factory Droid CLI tool.
+ */
+export const cliMultiModelConfigSchema = cliModelConfigSchema.extend({
+  models: z.array(z.string().trim().min(1)).optional(),
+  activeModel: z.string().optional(),
+});

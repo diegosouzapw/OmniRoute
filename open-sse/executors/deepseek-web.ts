@@ -19,7 +19,7 @@ const FAKE_HEADERS: Record<string, string> = {
   Origin: DEEPSEEK_WEB_BASE,
   Referer: `${DEEPSEEK_WEB_BASE}/`,
   "User-Agent":
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
   "X-App-Version": "20241129.1",
   "X-Client-Locale": "en-US",
   "X-Client-Platform": "web",

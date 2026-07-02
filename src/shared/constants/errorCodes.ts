@@ -144,6 +144,50 @@ export const ERROR_CODES: Record<string, ErrorCodeDef> = {
     category: "VALIDATION",
   },
 
+  // ── Combos (T-22.b — 400-shape standardization for /api/combos/{id}) ──
+  COMBO_001: {
+    code: "COMBO_001",
+    message: "Request body is not valid JSON",
+    httpStatus: 400,
+    category: "COMBO",
+  },
+  COMBO_002: {
+    code: "COMBO_002",
+    message: "One or more combo fields are invalid",
+    httpStatus: 400,
+    category: "COMBO",
+  },
+  COMBO_003: {
+    code: "COMBO_003",
+    message: "Composite tier configuration is invalid",
+    httpStatus: 400,
+    category: "COMBO",
+  },
+  COMBO_004: {
+    code: "COMBO_004",
+    message: "A combo with this name already exists",
+    httpStatus: 400,
+    category: "COMBO",
+  },
+  COMBO_005: {
+    code: "COMBO_005",
+    message: "Combo reference graph is invalid (cycle or excessive depth)",
+    httpStatus: 400,
+    category: "COMBO",
+  },
+  COMBO_006: {
+    code: "COMBO_006",
+    message: "This combo is managed by Quota Share and cannot be modified here",
+    httpStatus: 409,
+    category: "COMBO",
+  },
+  COMBO_007: {
+    code: "COMBO_007",
+    message: "Combo not found",
+    httpStatus: 404,
+    category: "COMBO",
+  },
+
   // ── Internal ──
   INTERNAL_001: {
     code: "INTERNAL_001",

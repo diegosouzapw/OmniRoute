@@ -1,13 +1,13 @@
 ---
 title: "Compliance & Audit"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Compliance & Audit
 
 > **Source of truth:** `src/lib/compliance/`, `src/app/api/compliance/`
-> **Last updated:** 2026-05-13 — v3.8.0
+> **Last updated:** 2026-06-28 — v3.8.40
 
 OmniRoute records administrative actions, authentication events, provider
 credential lifecycle changes, and MCP tool invocations to SQLite-backed audit

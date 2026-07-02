@@ -7,7 +7,7 @@
  */
 import { AgentBridgeServerActionSchema } from "@/shared/schemas/agentBridge";
 import { startMitm, stopMitm, getMitmStatus, setCachedPassword, getCachedPassword } from "@/mitm/manager";
-import { installCert, checkCertInstalled } from "@/mitm/cert/install";
+import { installCertResult, checkCertInstalled } from "@/mitm/cert/install";
 import { generateCert } from "@/mitm/cert/generate";
 import { resolveMitmDataDir } from "@/mitm/dataDir";
 import path from "path";
@@ -63,9 +63,24 @@ export async function POST(request: Request): Promise<Response> {
     if (action === "trust-cert") {
       const certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
       const pwd = sudoPassword || getCachedPassword() || "";
-      await installCert(pwd, certPath);
-      const trusted = await checkCertInstalled(certPath);
-      return Response.json({ ok: true, trusted });
+      const result = await installCertResult(pwd, certPath);
+      if (result.installed) {
+        const trusted = await checkCertInstalled(certPath);
+        return Response.json({ ok: true, trusted });
+      }
+      if (result.reason === "canceled") {
+        return createErrorResponse({ status: 409, message: "User canceled authorization" });
+      }
+      // Environment failure (container / headless): not an error — return the
+      // manual-install guide so the UI can let the operator trust the CA by hand.
+      return Response.json({
+        ok: false,
+        trusted: false,
+        skippable: true,
+        reason: result.reason,
+        message: sanitizeErrorMessage(result.message ?? "Certificate install failed"),
+        manualGuide: result.manualGuide,
+      });
     }
 
     if (action === "regenerate-cert") {

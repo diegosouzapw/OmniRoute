@@ -3,6 +3,7 @@ import { FetchTimeoutError, fetchWithTimeout } from "@/shared/utils/fetchTimeout
 import {
   OutboundUrlGuardError,
   type OutboundUrlGuardMode,
+  parseAndValidateNonMetadataUrl,
   parseAndValidatePublicUrl,
   parseOutboundUrl,
 } from "@/shared/network/outboundUrlGuard";
@@ -157,10 +158,16 @@ function normalizeUrl(input: string | URL) {
 }
 
 function applyUrlGuard(targetUrl: URL, guard: SafeOutboundFetchGuard, method: string) {
-  if (guard !== "public-only") return;
+  if (guard === "none") return;
 
   try {
-    parseAndValidatePublicUrl(targetUrl);
+    // "public-only" rejects every private host; "block-metadata" (#5066) allows private/LAN
+    // hosts but still rejects cloud-metadata / link-local endpoints.
+    if (guard === "block-metadata") {
+      parseAndValidateNonMetadataUrl(targetUrl);
+    } else {
+      parseAndValidatePublicUrl(targetUrl);
+    }
   } catch (error) {
     if (error instanceof OutboundUrlGuardError) {
       throw new SafeOutboundFetchError(error.message, {

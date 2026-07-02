@@ -257,17 +257,6 @@ describe("inferMiniMaxPlanLabelFromTotals", () => {
 });
 
 /* ------------------------------------------------------------------ */
-/*  getGeminiCliPlanLabel                                              */
-/* ------------------------------------------------------------------ */
-describe("getGeminiCliPlanLabel", () => {
-  it("returns a string label", () => {
-    const label = __testing.getGeminiCliPlanLabel();
-    assert.ok(typeof label === "string");
-    assert.ok(label.length > 0);
-  });
-});
-
-/* ------------------------------------------------------------------ */
 /*  getAntigravityPlanLabel                                            */
 /* ------------------------------------------------------------------ */
 describe("getAntigravityPlanLabel", () => {

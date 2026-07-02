@@ -56,13 +56,37 @@ export const NEW_PAGE_EXCLUDE = new Set([
 // Acronyms kept upper-case when minting a NEW page name (existing pages keep their
 // curated name via fuzzy match, so this only affects brand-new pages).
 const ACRONYMS = new Set([
-  "api", "mcp", "a2a", "acp", "cli", "sse", "i18n", "pii", "oauth", "vm", "ai",
-  "llm", "sdk", "ide", "ui", "ux", "tls", "mitm", "ws", "cors", "jwt", "db", "vps",
+  "api",
+  "mcp",
+  "a2a",
+  "acp",
+  "cli",
+  "sse",
+  "i18n",
+  "pii",
+  "oauth",
+  "vm",
+  "ai",
+  "llm",
+  "sdk",
+  "ide",
+  "ui",
+  "ux",
+  "tls",
+  "mitm",
+  "ws",
+  "cors",
+  "jwt",
+  "db",
+  "vps",
 ]);
 
 /** Normalized matching key: lowercase, drop extension + every non-alphanumeric char. */
 export function normKey(s) {
-  return s.toLowerCase().replace(/\.md$/, "").replace(/[^a-z0-9]/g, "");
+  return s
+    .toLowerCase()
+    .replace(/\.md$/, "")
+    .replace(/[^a-z0-9]/g, "");
 }
 
 /** Deterministic wiki page name for a brand-new page (acronym-aware Title-Case-dashed). */
@@ -71,7 +95,11 @@ export function toWikiName(basename) {
     .replace(/\.md$/, "")
     .split(/[_\-\s]+/)
     .filter(Boolean)
-    .map((t) => (ACRONYMS.has(t.toLowerCase()) ? t.toUpperCase() : t[0].toUpperCase() + t.slice(1).toLowerCase()))
+    .map((t) =>
+      ACRONYMS.has(t.toLowerCase())
+        ? t.toUpperCase()
+        : t[0].toUpperCase() + t.slice(1).toLowerCase()
+    )
     .join("-");
 }
 
@@ -124,13 +152,19 @@ export function syncHomeCounts(home, counts) {
   let out = home;
   if (counts.providers) {
     out = out
-      .replace(/Connect every AI tool to \d+ providers/g, `Connect every AI tool to ${counts.providers} providers`)
+      .replace(
+        /Connect every AI tool to \d+ providers/g,
+        `Connect every AI tool to ${counts.providers} providers`
+      )
       .replace(/\*\*\d+ AI Providers\*\*/g, `**${counts.providers} AI Providers**`)
       .replace(/All \d+ supported providers/g, `All ${counts.providers} supported providers`)
       .replace(/\b\d+ providers\b/g, `${counts.providers} providers`);
   }
   if (counts.strategies) {
-    out = out.replace(/\*\*\d+ Routing Strategies\*\*/g, `**${counts.strategies} Routing Strategies**`);
+    out = out.replace(
+      /\*\*\d+ Routing Strategies\*\*/g,
+      `**${counts.strategies} Routing Strategies**`
+    );
   }
   if (counts.mcpTools) {
     out = out.replace(/(\|\s*\*\*MCP Server\*\*\s*\|\s*)\d+( tools)/g, `$1${counts.mcpTools}$2`);
@@ -251,7 +285,7 @@ function main() {
   // ARCHITECTURE.md still says "177 providers / 37 MCP tools" while the wiki cover was
   // hand-patched to 226/87). Overwriting from a staler source would REGRESS the wiki, so
   // by default we only ADD missing pages and sync Home counts. Pass --update-existing
-  // once the docs sources are regenerated (see docs/ops/DOCUMENTATION_AUDIT_REPORT.md).
+  // once the docs sources are regenerated.
   const updates = updateExisting ? plan.update : [];
   const total = updates.length + plan.add.length + (plan.countsChanged ? 1 : 0);
   console.log(`[wiki-sync] counts: ${JSON.stringify(counts)}`);
@@ -263,7 +297,10 @@ function main() {
     if (plan.add.length) console.log(`  add → ${plan.add.map((a) => a.page).join(", ")}`);
     if (plan.update.length)
       console.log(
-        `  ${updateExisting ? "update" : "would-update (skipped)"} → ${plan.update.map((u) => u.page).slice(0, 60).join(", ")}${plan.update.length > 60 ? " …" : ""}`
+        `  ${updateExisting ? "update" : "would-update (skipped)"} → ${plan.update
+          .map((u) => u.page)
+          .slice(0, 60)
+          .join(", ")}${plan.update.length > 60 ? " …" : ""}`
       );
     if (check) {
       if (total > 0) {
@@ -277,7 +314,10 @@ function main() {
 
   // ---- write ----
   for (const { page, srcFile } of [...updates, ...plan.add]) {
-    fs.writeFileSync(path.join(wikiDir, `${page}.md`), toWikiContent(fs.readFileSync(srcFile, "utf8")));
+    fs.writeFileSync(
+      path.join(wikiDir, `${page}.md`),
+      toWikiContent(fs.readFileSync(srcFile, "utf8"))
+    );
   }
   if (plan.countsChanged && homeAfter != null) fs.writeFileSync(homePath, homeAfter);
   console.log(

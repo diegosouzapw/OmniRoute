@@ -101,10 +101,32 @@ export function resolveAllowedOrigin(requestOrigin: string | null | undefined): 
  * (rejections, preflight, normal `next()` continuations). When the origin
  * is not allowed, no `Access-Control-Allow-Origin` is added — browsers
  * will block the response, which is the desired fail-closed behavior.
+ *
+ * `relaxForTokenAuth` opts the response into a permissive origin fallback for
+ * the token-authenticated API surface (OpenAI/Anthropic-compatible `/v1/*` and
+ * `/v1beta/*`, plus read-only public endpoints). Those routes authenticate via
+ * `Authorization` / `x-api-key` headers that browsers NEVER auto-attach, so a
+ * permissive `Access-Control-Allow-Origin` there carries none of the
+ * credentialed-session / CSRF risk that the fail-closed default protects (that
+ * risk lives in cookie-authenticated MANAGEMENT/dashboard routes, which must
+ * pass `relaxForTokenAuth = false` and stay exactly fail-closed). When the
+ * explicit allowlist (`CORS_ALLOW_ALL` / `CORS_ALLOWED_ORIGINS` / runtime
+ * settings) does not match, the caller's `Origin` is echoed back (with
+ * `Vary: Origin`) so browser/Electron renderers can read the response, or `*`
+ * is returned when there is no `Origin` header. This is NEVER paired with
+ * `Access-Control-Allow-Credentials` (these routes are not cookie-authed), so
+ * the echo/wildcard stays safe.
  */
-export function applyCorsHeaders(response: Response, request: Request): void {
+export function applyCorsHeaders(
+  response: Response,
+  request: Request,
+  relaxForTokenAuth: boolean = false
+): void {
   const requestOrigin = request.headers.get("origin");
-  const allowed = resolveAllowedOrigin(requestOrigin);
+  let allowed = resolveAllowedOrigin(requestOrigin);
+  if (allowed === null && relaxForTokenAuth) {
+    allowed = requestOrigin && requestOrigin.length > 0 ? requestOrigin : "*";
+  }
   if (allowed !== null) {
     response.headers.set("Access-Control-Allow-Origin", allowed);
     response.headers.append("Vary", "Origin");

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import { useProviderNodeMap, resolveProviderName } from "@/lib/display/useProviderNodeMap";
 import { Card, EmptyState, SegmentedControl, CardSkeleton } from "@/shared/components";
 import {
   getServiceTierDisplayLabel,
@@ -282,6 +283,7 @@ function downloadFile(content: string, filename: string, mimeType: string) {
 export default function CostOverviewTab() {
   const t = useTranslations("costs");
   const locale = useLocale();
+  const nodeMap = useProviderNodeMap();
   const searchParams = useSearchParams();
   const apiKeyIdsParam = searchParams.get("apiKeyIds");
   const selectedApiKeyIds = useMemo(() => parseApiKeyIds(apiKeyIdsParam), [apiKeyIdsParam]);
@@ -377,7 +379,8 @@ export default function CostOverviewTab() {
 
   const providersByCost = [...(analytics?.byProvider || [])]
     .filter((provider) => (hasCostData ? provider.cost > 0 : provider.requests > 0))
-    .sort((left, right) => (hasCostData ? right.cost - left.cost : right.requests - left.requests));
+    .sort((left, right) => (hasCostData ? right.cost - left.cost : right.requests - left.requests))
+    .map((row) => ({ ...row, provider: resolveProviderName(row.provider, nodeMap) }));
   const modelsByCost = [...(analytics?.byModel || [])]
     .filter((model) => (hasCostData ? model.cost > 0 : model.requests > 0))
     .sort((left, right) => (hasCostData ? right.cost - left.cost : right.requests - left.requests));

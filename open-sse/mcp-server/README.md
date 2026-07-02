@@ -48,7 +48,7 @@ export OMNIROUTE_API_KEY="your-api-key"
 
 # Optional: Scope enforcement (default: disabled)
 export OMNIROUTE_MCP_ENFORCE_SCOPES="true"
-export OMNIROUTE_MCP_SCOPES="read:health,read:combos,read:quota,read:usage,read:models,read:cache,read:compression,execute:completions,write:combos,write:budget,write:resilience,write:cache,write:compression"
+export OMNIROUTE_MCP_SCOPES="read:health,read:combos,read:quota,read:usage,read:models,read:cache,read:compression,read:tools,execute:completions,write:combos,write:budget,write:resilience,write:cache,write:compression"
 ```
 
 ### 2. stdio Transport (IDE Integration)

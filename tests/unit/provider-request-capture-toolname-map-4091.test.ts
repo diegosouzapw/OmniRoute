@@ -1,6 +1,6 @@
 /**
- * #4091 — MCP tool dispatch broken in Claude Code ("No such tool available")
- * on native Claude OAuth, regression from v3.8.27.
+ * #4091 — third-party tool-name cloak map must survive the request-capture
+ * round-trip (native Claude OAuth; original symptom: "No such tool available").
  *
  * Root cause: the native-Claude tool-name cloak stores the per-request
  * alias→original map as a NON-ENUMERABLE `_toolNameMap` on the request body.
@@ -10,8 +10,13 @@
  * `finalBody = providerRequestCapture.body(transformedBody)` then resolves to
  * that round-tripped copy, so the response-side un-cloak
  * (`mergeResponseToolNameMap` → `remapToolNamesInResponse`) sees an empty map
- * and the cloaked PascalCase name (`McpN8nMcpSearchWorkflows`) streams verbatim
- * to Claude Code, which rejects it client-side.
+ * and the cloaked PascalCase name streams verbatim to Claude Code, which
+ * rejects it client-side.
+ *
+ * The example tool is a generic third-party name (`search_workflows`), not an
+ * `mcp__…` name: #4861 deliberately exempts the `mcp__` namespace from cloaking
+ * (Anthropic accepts those natively), so only non-`mcp__` third-party tools are
+ * cloaked and exercise this map-preservation path.
  *
  * These tests pin the lossy boundary: `createPreparedRequestLogger().body()`
  * must preserve the cloak map from the real (fallback) transformed body even
@@ -40,8 +45,8 @@ function makeCapture() {
   return { capture: createPreparedRequestLogger(reqLogger, scope), logged };
 }
 
-const ALIAS = "McpN8nMcpSearchWorkflows";
-const ORIGINAL = "mcp__n8n-mcp__search_workflows";
+const ALIAS = "SearchWorkflows";
+const ORIGINAL = "search_workflows";
 
 function makeCloakedClaudeBody(): Record<string, unknown> {
   const body: Record<string, unknown> = {

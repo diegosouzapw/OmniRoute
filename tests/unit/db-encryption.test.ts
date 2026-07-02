@@ -39,6 +39,7 @@ test("encryption stays in passthrough mode when no storage key is configured", a
   assert.equal(encryption.encrypt(""), "");
   assert.equal(encryption.decrypt(null), null);
   assert.equal(encryption.decrypt(undefined), undefined);
+  assert.equal("validateEncryptionConfig" in encryption, false);
 });
 
 test("encrypt/decrypt round-trip uses the expected serialized format", async () => {

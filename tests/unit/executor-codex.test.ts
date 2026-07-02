@@ -10,6 +10,7 @@ import {
   getCodexResetTime,
   getCodexUpstreamModel,
   isCodexResponsesWebSocketRequired,
+  normalizeCodexTools,
   parseCodexQuotaHeaders,
 } from "../../open-sse/executors/codex.ts";
 import {
@@ -48,7 +49,6 @@ test.afterEach(() => {
 
 async function withEnv<T>(entries: Record<string, string | undefined>, fn: () => T | Promise<T>) {
   const previous = new Map();
-
   for (const [key, value] of Object.entries(entries)) {
     previous.set(key, process.env[key]);
     if (value === undefined) {
@@ -57,7 +57,6 @@ async function withEnv<T>(entries: Record<string, string | undefined>, fn: () =>
       process.env[key] = value;
     }
   }
-
   try {
     return await fn();
   } finally {
@@ -80,7 +79,6 @@ test("Codex helper functions isolate rate-limit scopes and parse quota headers",
     "x-codex-7d-limit": "5000",
     "x-codex-7d-reset-at": new Date(Date.now() + 120_000).toISOString(),
   });
-
   assert.equal(getCodexModelScope("codex-spark-mini"), "spark");
   assert.equal(getCodexModelScope("gpt-5.3-codex-spark"), "spark");
   assert.equal(getCodexModelScope("codex-bengalfox"), "spark");
@@ -153,7 +151,6 @@ test("isCodexResponsesWebSocketRequired: OMNIROUTE_CODEX_WS_ENABLED=false forces
 
 test("CodexExecutor.buildUrl honors /responses subpaths and compact mode", () => {
   const executor = new CodexExecutor();
-
   assert.equal(
     executor.buildUrl("gpt-5.3-codex", true, 0, {}),
     "https://chatgpt.com/backend-api/codex/responses"
@@ -188,10 +185,10 @@ test("CodexExecutor.buildHeaders binds workspace ids and disables SSE accept for
   assert.equal(standardHeaders.Authorization, "Bearer codex-token");
   assert.equal(standardHeaders.Accept, "text/event-stream");
   assert.equal(standardHeaders["chatgpt-account-id"], "workspace-1");
-  assert.equal(standardHeaders.Version, "0.132.0");
+  assert.equal(standardHeaders.Version, "0.142.0");
   assert.equal(standardHeaders["Openai-Beta"], "responses=experimental");
   assert.equal(standardHeaders["X-Codex-Beta-Features"], "responses_websockets");
-  assert.equal(standardHeaders["User-Agent"], "codex-cli/0.132.0 (Windows 10.0.26200; x64)");
+  assert.equal(standardHeaders["User-Agent"], "codex-cli/0.142.0 (Windows 10.0.26200; x64)");
   assert.equal(compactHeaders.Accept, "application/json");
 });
 
@@ -200,13 +197,13 @@ test("CodexExecutor.buildHeaders honors safe env overrides for Version and User-
 
   await withEnv(
     {
-      CODEX_CLIENT_VERSION: "0.132.0",
+      CODEX_CLIENT_VERSION: "0.142.0",
       CODEX_USER_AGENT: undefined,
     },
     () => {
       const headers = executor.buildHeaders({ accessToken: "codex-token" }, true);
-      assert.equal(headers.Version, "0.132.0");
-      assert.equal(headers["User-Agent"], "codex-cli/0.132.0 (Windows 10.0.26200; x64)");
+      assert.equal(headers.Version, "0.142.0");
+      assert.equal(headers["User-Agent"], "codex-cli/0.142.0 (Windows 10.0.26200; x64)");
     }
   );
 
@@ -217,7 +214,7 @@ test("CodexExecutor.buildHeaders honors safe env overrides for Version and User-
     },
     () => {
       const headers = executor.buildHeaders({ accessToken: "codex-token" }, true);
-      assert.equal(headers.Version, "0.132.0");
+      assert.equal(headers.Version, "0.142.0");
       assert.equal(headers["User-Agent"], "custom-codex/9.9.9");
     }
   );
@@ -530,9 +527,12 @@ test("CodexExecutor.transformRequest preserves native assistant commentary histo
     ),
     true
   );
+  // Reasoning items are stripped from the Responses input — encrypted_content is
+  // unusable with store=false (previous_response_id deleted) and the summary blob
+  // only inflates context on every subsequent agentic turn (decolua/9router#1599).
   assert.equal(
     result.input.some((item) => item.type === "reasoning"),
-    true
+    false
   );
   assert.equal(
     result.input.some((item) => item.type === "function_call"),
@@ -824,7 +824,10 @@ test("CodexExecutor.transformRequest passes GPT 5.4 Mini xhigh reasoning through
 
   assert.equal(sanitized.model, "gpt-5.4-mini");
   assert.deepEqual(reasoning, { effort: "xhigh", summary: "detailed" });
-  assert.deepEqual(sanitized.include, ["code_interpreter_call.outputs", "reasoning.encrypted_content"]);
+  assert.deepEqual(sanitized.include, [
+    "code_interpreter_call.outputs",
+    "reasoning.encrypted_content",
+  ]);
   assert.equal(sanitized.reasoning_effort, undefined);
 });
 
@@ -1053,9 +1056,6 @@ test("CodexExecutor.execute skips identity headers for unsafe session ids", asyn
 });
 
 test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted tool types", () => {
-  // Regression: PR #1581 đã vô tình xoá nhánh `namespace` + whitelist hosted tools
-  // trong normalizeCodexTools, khiến MCP tool group (vd. mcp__atlassian__) bị strip
-  // trước khi forward lên Codex Responses API. Test này khoá lại hành vi đúng.
   const executor = new CodexExecutor();
   const result = executor.transformRequest(
     "gpt-5.4",
@@ -1076,6 +1076,7 @@ test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted to
         { type: "image_generation", output_format: "png" },
         { type: "tool_search" },
         { type: "web_search" },
+        { type: "local_shell" },
         { type: "unknown_hosted_tool" },
       ],
       tool_choice: { type: "function", name: "jira_get_issue" },
@@ -1099,9 +1100,11 @@ test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted to
   assert.equal((namespaceTool as { name: string }).name, "mcp__atlassian__");
   assert.equal(((namespaceTool as { tools: unknown[] }).tools ?? []).length, 2);
 
-  // tool_choice trỏ vào sub-tool của namespace phải được giữ nguyên (không bị xoá
-  // do tên nằm trong namespace.tools[*].name đã được đăng ký vào validToolNames).
   assert.deepEqual(result.tool_choice, { type: "function", name: "jira_get_issue" });
+
+  const body = { tools: [], tool_choice: { type: "local_shell" } };
+  normalizeCodexTools(body);
+  assert.equal(body.tool_choice, undefined);
 });
 
 test("CodexExecutor.transformRequest preserves native Codex custom tools", () => {

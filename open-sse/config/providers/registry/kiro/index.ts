@@ -42,15 +42,14 @@ export const kiroProvider: RegistryEntry = {
       maxOutputTokens: 128000,
     },
     {
+      id: "claude-sonnet-5",
+      name: "Claude Sonnet 5",
+      contextLength: 1000000,
+      maxOutputTokens: 128000,
+    },
+    {
       id: "claude-sonnet-4.6",
       name: "Claude Sonnet 4.6",
-      contextLength: 200000,
-      maxOutputTokens: 64000,
-    },
-    // models for kiro free tier
-    {
-      id: "claude-sonnet-4.5",
-      name: "Claude Sonnet 4.5",
       contextLength: 200000,
       maxOutputTokens: 64000,
     },

@@ -316,48 +316,16 @@ describe("encryption module", () => {
     });
   });
 
-  describe("validateEncryptionConfig() with various key states", () => {
-    it("should return valid when no key is set (passthrough mode)", async () => {
+  describe("validateEncryptionConfig() removed as dead code (#5364)", () => {
+    // The unused `validateEncryptionConfig` export was removed in #5364 (no
+    // production caller). Guard that it stays gone, mirroring the sibling
+    // node:test assertion in db-encryption.test.ts.
+    it("no longer exports validateEncryptionConfig", async () => {
       vi.resetModules();
 
-      const { validateEncryptionConfig } = await import("@/lib/db/encryption");
+      const mod = await import("@/lib/db/encryption");
 
-      const result = validateEncryptionConfig();
-      expect(result.valid).toBe(true);
-      expect(result.error).toBeUndefined();
-    });
-
-    it("should return valid when a proper key is set", async () => {
-      vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
-      vi.resetModules();
-
-      const { validateEncryptionConfig } = await import("@/lib/db/encryption");
-
-      const result = validateEncryptionConfig();
-      expect(result.valid).toBe(true);
-      expect(result.error).toBeUndefined();
-    });
-
-    it("should return valid when key is empty string (treated as not set)", async () => {
-      vi.stubEnv("STORAGE_ENCRYPTION_KEY", "");
-      vi.resetModules();
-
-      const { validateEncryptionConfig } = await import("@/lib/db/encryption");
-
-      const result = validateEncryptionConfig();
-      expect(result.valid).toBe(true);
-      expect(result.error).toBeUndefined();
-    });
-
-    it("should return invalid when key is whitespace only", async () => {
-      vi.stubEnv("STORAGE_ENCRYPTION_KEY", "   ");
-      vi.resetModules();
-
-      const { validateEncryptionConfig } = await import("@/lib/db/encryption");
-
-      const result = validateEncryptionConfig();
-      expect(result.valid).toBe(false);
-      expect(result.error).toContain("empty");
+      expect("validateEncryptionConfig" in mod).toBe(false);
     });
   });
 

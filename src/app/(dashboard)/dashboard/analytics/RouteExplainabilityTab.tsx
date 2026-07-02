@@ -6,6 +6,7 @@ import Badge from "@/shared/components/Badge";
 import Card from "@/shared/components/Card";
 import { Skeleton } from "@/shared/components/Loading";
 import { cn } from "@/shared/utils/cn";
+import { useProviderNodeMap, resolveProviderName } from "@/lib/display/useProviderNodeMap";
 
 type CallLogOption = {
   id: string;
@@ -247,6 +248,7 @@ function FactorCard({ factor }: { factor: ExplanationFactor }) {
 }
 
 function TargetTimeline({ targets }: { targets: ExplainTarget[] }) {
+  const nodeMap = useProviderNodeMap();
   if (targets.length === 0) {
     return <div className="text-sm text-text-muted">No related target evidence persisted yet.</div>;
   }
@@ -267,7 +269,7 @@ function TargetTimeline({ targets }: { targets: ExplainTarget[] }) {
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="truncate text-sm font-medium text-text-main">
-                  {target.provider || "unknown"} / {target.model || "unknown"}
+                  {resolveProviderName(target.provider, nodeMap)} / {target.model || "unknown"}
                 </span>
                 {target.outcome === "selected" ? (
                   <Badge variant="primary" size="sm">
@@ -308,6 +310,7 @@ function replayAlignmentVariant(alignment: NonNullable<DecisionReplay["recompute
 }
 
 function WhyThisTargetCard({ replay }: { replay: DecisionReplay | undefined }) {
+  const nodeMap = useProviderNodeMap();
   if (!replay) return null;
   const recompute = replay.recompute;
   const candidates = recompute?.candidates ?? [];
@@ -324,7 +327,8 @@ function WhyThisTargetCard({ replay }: { replay: DecisionReplay | undefined }) {
             <div className="min-w-0">
               <div className="text-sm font-semibold text-text-main">Exact runtime log</div>
               <div className="mt-1 truncate text-xs text-text-muted">
-                {replay.runtime.provider || "unknown"} / {replay.runtime.model || "unknown"}
+                {resolveProviderName(replay.runtime.provider, nodeMap)} /{" "}
+                {replay.runtime.model || "unknown"}
               </div>
               <div className="mt-1 text-xs text-text-muted">
                 {formatDate(replay.runtime.timestamp)} · {replay.runtime.comboStepId || "no step"}
@@ -400,7 +404,7 @@ function WhyThisTargetCard({ replay }: { replay: DecisionReplay | undefined }) {
                     <div className="flex flex-wrap items-center gap-2 text-sm font-medium text-text-main">
                       <span>#{candidate.rank}</span>
                       <span className="truncate">
-                        {candidate.provider} / {candidate.model}
+                        {resolveProviderName(candidate.provider, nodeMap)} / {candidate.model}
                       </span>
                       {candidate.isRuntimeSelected ? (
                         <Badge variant="primary" size="sm">
@@ -447,6 +451,7 @@ export default function RouteExplainabilityTab({
   initialRequestId?: string;
 }) {
   const t = useTranslations("analytics") as AnalyticsTranslator;
+  const nodeMap = useProviderNodeMap();
   const [logs, setLogs] = useState<CallLogOption[]>([]);
   const [selectedId, setSelectedId] = useState(initialRequestId);
   const [explanation, setExplanation] = useState<RouteExplainabilityResponse | null>(null);
@@ -564,7 +569,7 @@ export default function RouteExplainabilityTab({
             {logs.map((log) => (
               <option key={log.id} value={log.id}>
                 {formatDate(log.timestamp)} · HTTP {log.status} ·{" "}
-                {log.comboName || log.provider || "direct"} ·{" "}
+                {log.comboName || resolveProviderName(log.provider, nodeMap) || "direct"} ·{" "}
                 {log.model || log.requestedModel || log.id}
               </option>
             ))}
@@ -662,7 +667,7 @@ export default function RouteExplainabilityTab({
             <Card title="Selected target" icon="my_location">
               <div className="grid gap-3 text-sm">
                 {[
-                  ["Provider", explanation.selectedTarget.provider || "n/a"],
+                  ["Provider", resolveProviderName(explanation.selectedTarget.provider, nodeMap)],
                   ["Model", explanation.selectedTarget.model || "n/a"],
                   ["Account", explanation.selectedTarget.account || "n/a"],
                   ["Connection", explanation.selectedTarget.connectionId || "n/a"],

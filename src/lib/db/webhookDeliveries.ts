@@ -75,12 +75,3 @@ export function getDeliveries(webhookId: string, limit: number): WebhookDelivery
     )
     .all(webhookId, limit) as WebhookDeliverySafe[];
 }
-
-/** Fetch one delivery including `payload_snapshot` — used for opt-in detail view. */
-export function getDeliveryDetail(webhookId: string, deliveryId: number): WebhookDelivery | null {
-  const db = getDbInstance();
-  const row = db
-    .prepare(`SELECT * FROM webhook_deliveries WHERE webhook_id = ? AND id = ? LIMIT 1`)
-    .get(webhookId, deliveryId);
-  return (row as WebhookDelivery | undefined) ?? null;
-}

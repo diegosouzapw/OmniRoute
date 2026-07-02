@@ -4,9 +4,10 @@ import { FORMATS } from "../formats.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../../config/providerModels.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
+import { safeParseJSON } from "../helpers/jsonUtil.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
-import { capMaxOutputTokens } from "../../../src/lib/modelCapabilities.ts";
 import { isAdaptiveThinkingOnly } from "../../../src/shared/constants/modelSpecs.ts";
+import { fitThinkingToMaxTokens } from "./openai-to-claude/thinkingBudget.ts";
 
 // Reasoning-effort levels Anthropic accepts on `output_config.effort`. Used to steer
 // adaptive-only Claude models (Opus 4.7+/Fable 5) without ever emitting a manual budget.
@@ -35,93 +36,9 @@ function applyCopilotSummarizedThinkingDisplay(
   };
 }
 
-// Anthropic constraints for the thinking + max_tokens contract:
-//   - thinking.budget_tokens must be >= 1024 when thinking is enabled
-//   - max_tokens must be > thinking.budget_tokens (covers thinking + response)
-//   - max_tokens must be <= model output cap (e.g. 128000 for Opus 4.7)
-const MIN_CLAUDE_THINKING_BUDGET = 1024;
-const MIN_RESPONSE_ROOM = 1024;
-
-function safeCapMaxOutputTokens(model: string): number | null {
-  try {
-    const cap = capMaxOutputTokens(model);
-    return typeof cap === "number" && cap > 0 ? cap : null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Fit Claude thinking budget within the model's max output cap.
- *
- * Replaces the previous unconditional `max_tokens = budget + 8192` inflation,
- * which could exceed the model output cap (e.g. Opus 4.7's 128000 ceiling) and
- * trigger HTTP 400 from Anthropic ("max_tokens > 128000").
- *
- * Strategy (preserves caller intent up to the model cap):
- *   - Preserve caller's max_tokens as response room (floored to MIN_RESPONSE_ROOM)
- *   - Target max_tokens = responseRoom + requestedBudget, capped at modelCap
- *   - fittedBudget = max_tokens - responseRoom (the thinking budget actually used)
- *   - If the cap squeezes fittedBudget below the Anthropic minimum, retry with
- *     responseRoom shrunk to MIN_RESPONSE_ROOM; if still below MIN, disable
- *     thinking entirely (cap too tight for any reasoning).
- *
- * Worked example (real-world Opus 4.7 case that previously 400'd):
- *   caller max_tokens = 32000, reasoning_effort=high → budget = 131072,
- *   model cap = 128000.
- *   responseRoom = max(32000, 1024) = 32000
- *   target       = min(32000 + 131072, 128000) = 128000
- *   fittedBudget = 128000 - 32000 = 96000  (>= 1024, OK)
- *   → max_tokens=128000, budget_tokens=96000 (vs. the old buggy 139264 / 131072).
- */
-export function fitThinkingToMaxTokens(
-  model: string,
-  callerMaxTokens: number,
-  thinking: Record<string, unknown> | undefined
-): { maxTokens: number; thinking: Record<string, unknown> | undefined } {
-  const modelCap = safeCapMaxOutputTokens(model);
-  const requestedBudget = Number(thinking?.budget_tokens) || 0;
-
-  // No budgeted thinking — just cap max_tokens to the model output ceiling.
-  if (!thinking || requestedBudget <= 0) {
-    return {
-      maxTokens:
-        modelCap === null
-          ? Math.max(callerMaxTokens, 1)
-          : Math.min(Math.max(callerMaxTokens, 1), modelCap),
-      thinking,
-    };
-  }
-
-  let responseRoom = Math.max(callerMaxTokens, MIN_RESPONSE_ROOM);
-  let target =
-    modelCap === null
-      ? responseRoom + requestedBudget
-      : Math.min(responseRoom + requestedBudget, modelCap);
-  let fittedBudget = target - responseRoom;
-
-  // If the cap squeezed thinking below Anthropic's floor, try shrinking
-  // response room to MIN_RESPONSE_ROOM to recover budget.
-  if (fittedBudget < MIN_CLAUDE_THINKING_BUDGET && responseRoom > MIN_RESPONSE_ROOM) {
-    responseRoom = MIN_RESPONSE_ROOM;
-    target =
-      modelCap === null
-        ? responseRoom + requestedBudget
-        : Math.min(responseRoom + requestedBudget, modelCap);
-    fittedBudget = target - responseRoom;
-  }
-
-  // Cap too tight for any thinking — disable rather than send an invalid request.
-  if (fittedBudget < MIN_CLAUDE_THINKING_BUDGET) {
-    return { maxTokens: modelCap ?? Math.max(callerMaxTokens, 1), thinking: undefined };
-  }
-
-  const adjustedThinking: Record<string, unknown> = { ...thinking };
-  if (fittedBudget < requestedBudget) {
-    adjustedThinking.budget_tokens = fittedBudget;
-  }
-  return { maxTokens: target, thinking: adjustedThinking };
-}
+// Thinking-budget fitting extracted to a pure leaf; re-exported for external
+// importers (tests). Host also uses fitThinkingToMaxTokens internally.
+export { fitThinkingToMaxTokens } from "./openai-to-claude/thinkingBudget.ts";
 
 type ClaudeContentBlock = Record<string, unknown>;
 type ClaudeMessage = {
@@ -222,7 +139,23 @@ export function openaiToClaudeRequest(model, body, stream) {
   };
 
   // Temperature
-  if (body.temperature !== undefined) {
+  //
+  // Claude's Messages API rejects `temperature` when extended thinking is active.
+  // Two cases where thinking is on:
+  //   (a) Caller passes `body.thinking` or `body.reasoning_effort` (handled later —
+  //       `result.thinking` becomes truthy, and we strip temperature at the end).
+  //   (b) The request targets Claude OAuth (claude-code), which always sends
+  //       `Anthropic-Beta: ...,interleaved-thinking-2025-05-14,...` in headers.
+  //       The model is forced into thinking server-side, but neither `body.thinking`
+  //       nor `result.thinking` will be set, so we detect this by model name. This
+  //       affects claude-opus-4.x and claude-sonnet-4.x (the families that support
+  //       extended thinking).
+  //
+  // For models that don't force thinking (haiku, older sonnets), preserve temperature.
+  // Note: Opus 4.7+/Fable 5 already drop sampling params upstream of the translator via
+  // the registry `unsupportedParams` strip; this covers the remaining 4.x families.
+  const modelForcesThinking = /claude-(?:opus|sonnet)-4/i.test(String(model));
+  if (body.temperature !== undefined && !modelForcesThinking) {
     result.temperature = body.temperature;
   }
   if (body.temperature === undefined && body.top_p !== undefined) {
@@ -526,9 +459,29 @@ export function openaiToClaudeRequest(model, body, stream) {
 
   delete result[COPILOT_REASONING_SUMMARY_MARKER];
 
+  // Final guard: Claude rejects `temperature` whenever extended thinking is
+  // enabled. If `result.thinking` was set above from `body.thinking` or
+  // `body.reasoning_effort` (manual budget or adaptive effort), drop temperature
+  // defensively. The model-name strip earlier already covers Claude OAuth's
+  // forced-thinking case (claude-opus-4.x / claude-sonnet-4.x).
+  if (result.thinking && result.temperature !== undefined) {
+    delete result.temperature;
+  }
+
   // Attach toolNameMap to result for response translation
   if (toolNameMap.size > 0) {
     result._toolNameMap = toolNameMap;
+  }
+
+  // Empty-messages guard. Claude's Messages API rejects an empty `messages`
+  // array with `400 messages: at least one message is required`. This happens
+  // when the incoming OpenAI request carried only `system`/`developer` turns
+  // (e.g. an all-system compaction or title-generation request from a client
+  // like OpenCode): those are hoisted into `result.system` above, leaving
+  // `messages` empty. Synthesize a minimal user turn so the request stays
+  // valid — the system instructions still drive the response. (#5245)
+  if (result.messages.length === 0) {
+    result.messages.push({ role: "user", content: [{ type: "text", text: "." }] });
   }
 
   return result;
@@ -602,12 +555,19 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
       }
     }
   } else if (msg.role === "assistant") {
-    // Add reasoning_content as thinking block (OpenAI extended thinking format)
+    // Add reasoning_content as a replay placeholder (OpenAI extended thinking format).
+    // #5312 RC-D: reasoning_content carries NO real Claude signature. Emitting a
+    // `thinking` block with the fabricated DEFAULT signature makes Anthropic reject the
+    // replay with 400 "Invalid signature in thinking block" — and claudeHelper's
+    // latest-assistant guard (prepareClaudeRequest) preserves it verbatim, so the fake
+    // signature leaks upstream. Emit a signature-less redacted_thinking block instead
+    // (the same shape prepareClaudeRequest produces for Anthropic-native replay);
+    // Anthropic accepts it without signature validation and non-Anthropic Claude-shape
+    // upstreams re-hydrate the real text downstream from reasoningCache.
     if (msg.reasoning_content) {
       blocks.push({
-        type: "thinking",
-        thinking: msg.reasoning_content,
-        signature: DEFAULT_THINKING_CLAUDE_SIGNATURE,
+        type: "redacted_thinking",
+        data: DEFAULT_THINKING_CLAUDE_SIGNATURE,
       });
     }
 
@@ -701,14 +661,9 @@ function extractTextContent(content) {
   return "";
 }
 
-// Try parse JSON
-function tryParseJSON(str) {
-  if (typeof str !== "string") return str;
-  try {
-    return JSON.parse(str);
-  } catch {
-    return str;
-  }
+// Try parse JSON (passthrough fallback: return the raw input string on parse error).
+function tryParseJSON(str: unknown): unknown {
+  return safeParseJSON(str, str);
 }
 
 function stripCacheControl(value: unknown): unknown {

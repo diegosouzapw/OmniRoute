@@ -120,7 +120,12 @@ export function resolveNextBuildEnv(baseEnv = process.env) {
   // was left unprotected. Respect an existing --max-old-space-size (Docker already
   // sets one — don't clobber/duplicate) and let OMNIROUTE_BUILD_MEMORY_MB override.
   if (!/--max-old-space-size/.test(env.NODE_OPTIONS || "")) {
-    const heapMb = Number(baseEnv.OMNIROUTE_BUILD_MEMORY_MB) || 4096;
+    // Default 8 GB (was 4 GB): the clean module graph peaks ~3.9 GB during the webpack
+    // production pass, which brushed the old 4 GB ceiling on a borderline OOM. 8 GB gives
+    // headroom without risk. NOTE: heap size does NOT fix a poisoned scope — if the build
+    // OOMs/livelocks far above this, check for worktrees/cruft leaking into the tsconfig
+    // scope (run `npm run check:build-scope`), not for "more heap". See incident 2026-06-25.
+    const heapMb = Number(baseEnv.OMNIROUTE_BUILD_MEMORY_MB) || 8192;
     env.NODE_OPTIONS = `${env.NODE_OPTIONS || ""} --max-old-space-size=${heapMb}`.trim();
   }
 

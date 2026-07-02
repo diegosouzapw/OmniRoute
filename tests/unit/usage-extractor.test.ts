@@ -332,3 +332,88 @@ test("extractUsage reads flat cached_tokens and reasoning_tokens from streaming 
   assert.equal(usage.cached_tokens, 192);
   assert.equal(usage.reasoning_tokens, 49);
 });
+
+// ── Ollama raw NDJSON streaming usage ──
+// Ollama sends a final NDJSON line { done: true, prompt_eval_count, eval_count }
+// (raw from the provider, before any OpenAI translation). Without a dedicated
+// branch, extractUsage returns null and Ollama streaming usage is dropped.
+
+test("extractUsage reads Ollama raw NDJSON final chunk (done + prompt_eval_count/eval_count)", () => {
+  const usage = extractUsage({
+    model: "llama3.1",
+    done: true,
+    prompt_eval_count: 26,
+    eval_count: 298,
+  });
+
+  assert.ok(usage, "expected usage to be extracted from the Ollama final chunk");
+  assert.equal(usage.prompt_tokens, 26);
+  assert.equal(usage.completion_tokens, 298);
+  assert.equal(usage.total_tokens, 324);
+});
+
+test("extractUsage defaults missing Ollama eval counts to zero", () => {
+  const usage = extractUsage({
+    model: "llama3.1",
+    done: true,
+    prompt_eval_count: 12,
+  });
+
+  assert.ok(usage, "expected usage to be extracted even with only prompt_eval_count");
+  assert.equal(usage.prompt_tokens, 12);
+  assert.equal(usage.completion_tokens, 0);
+  assert.equal(usage.total_tokens, 12);
+});
+
+test("extractUsage ignores non-final Ollama NDJSON chunks (done=false)", () => {
+  const usage = extractUsage({
+    model: "llama3.1",
+    done: false,
+    response: "partial",
+  });
+
+  assert.equal(usage, null);
+});
+
+// ── Antigravity (Gemini) streaming usageMetadata tests ──
+
+test("extractUsage reads top-level Gemini usageMetadata from a streaming chunk", () => {
+  const usage = extractUsage({
+    usageMetadata: {
+      promptTokenCount: 120,
+      candidatesTokenCount: 60,
+      totalTokenCount: 180,
+      cachedContentTokenCount: 30,
+      thoughtsTokenCount: 12,
+    },
+  });
+
+  assert.equal(usage.prompt_tokens, 120);
+  assert.equal(usage.completion_tokens, 60);
+  assert.equal(usage.total_tokens, 180);
+  assert.equal(usage.cached_tokens, 30);
+  assert.equal(usage.reasoning_tokens, 12);
+});
+
+test("extractUsage reads Antigravity usageMetadata wrapped inside a response envelope", () => {
+  // Antigravity (AG MITM) shapes usage as { response: { usageMetadata: {...} } }.
+  // Without the response.usageMetadata fallback, token usage is silently dropped.
+  const usage = extractUsage({
+    response: {
+      usageMetadata: {
+        promptTokenCount: 200,
+        candidatesTokenCount: 75,
+        totalTokenCount: 275,
+        cachedContentTokenCount: 40,
+        thoughtsTokenCount: 18,
+      },
+    },
+  });
+
+  assert.notEqual(usage, null);
+  assert.equal(usage.prompt_tokens, 200);
+  assert.equal(usage.completion_tokens, 75);
+  assert.equal(usage.total_tokens, 275);
+  assert.equal(usage.cached_tokens, 40);
+  assert.equal(usage.reasoning_tokens, 18);
+});

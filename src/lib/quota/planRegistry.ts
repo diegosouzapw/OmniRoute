@@ -84,6 +84,18 @@ const KNOWN_PLANS: Record<string, KnownPlanShape> = {
     provider: "alibaba",
     dimensions: [{ unit: "requests", window: "monthly", limit: 90_000 }],
   },
+  // Grok Build (xAI) — rate limits from x-ratelimit-* headers:
+  // Daily: 864 requests, 18M tokens (from API headers)
+  // Weekly: derived from daily * 7
+  "grok-cli": {
+    provider: "grok-cli",
+    dimensions: [
+      { unit: "requests", window: "daily", limit: 864 },
+      { unit: "tokens", window: "daily", limit: 18_000_000 },
+      { unit: "requests", window: "weekly", limit: 6048 },
+      { unit: "tokens", window: "weekly", limit: 126_000_000 },
+    ],
+  },
 };
 
 export function getKnownPlan(provider: string): KnownPlanShape | null {

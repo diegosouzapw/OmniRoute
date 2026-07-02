@@ -257,6 +257,65 @@ test("config: with valid auth.json + apiKey + baseURL → mutates input.provider
 });
 
 // ────────────────────────────────────────────────────────────────────────────
+// 1b. Dual-key fallback (#5027) — auth.json stored under the BARE providerId
+//     (pre-auto-prefix login) must still resolve when the active providerId is
+//     prefixed (`opencode-omniroute`). Without the fallback the lookup misses
+//     the stored key and the user is forced to re-auth.
+// ────────────────────────────────────────────────────────────────────────────
+
+test("config: auth.json under bare key (pre-prefix login) resolves via dual-key fallback", async () => {
+  // Stored under bare `omniroute` (the key OC wrote before the auto-prefix fix),
+  // but the resolved providerId is now `opencode-omniroute`.
+  const readAuthJson = stubReadAuthJson({
+    omniroute: { type: "api", key: "sk-bare-1", baseURL: "https://or.example.com/v1" },
+  });
+  const fetcher = stubModelsFetcher([MODEL_CLAUDE]);
+  const combosFetcher = stubCombosFetcher([]);
+  const logger = captureWarn();
+
+  const hook = createOmniRouteConfigHook(
+    { providerId: "omniroute" }, // resolves to opencode-omniroute internally
+    { readAuthJson, fetcher, combosFetcher, logger }
+  );
+  const input = makeInput();
+  await hook(input);
+
+  const provider = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider;
+  const entry = provider["opencode-omniroute"];
+  assert.ok(entry, "provider entry published from bare-key apiKey");
+  assert.equal(entry.options.apiKey, "sk-bare-1", "apiKey resolved from the bare auth.json key");
+  assert.equal(entry.options.baseURL, "https://or.example.com/v1");
+});
+
+test("config: prefixed key wins over bare key when both present (dual-key precedence)", async () => {
+  const readAuthJson = stubReadAuthJson({
+    "opencode-omniroute": { type: "api", key: "sk-prefixed", baseURL: "https://pref.example/v1" },
+    omniroute: { type: "api", key: "sk-bare", baseURL: "https://bare.example/v1" },
+  });
+  const fetcher = stubModelsFetcher([MODEL_CLAUDE]);
+  const combosFetcher = stubCombosFetcher([]);
+  const logger = captureWarn();
+
+  const hook = createOmniRouteConfigHook(
+    { providerId: "omniroute" },
+    { readAuthJson, fetcher, combosFetcher, logger }
+  );
+  const input = makeInput();
+  await hook(input);
+
+  const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider[
+    "opencode-omniroute"
+  ];
+  assert.ok(entry);
+  assert.equal(
+    entry.options.apiKey,
+    "sk-prefixed",
+    "prefixed key takes precedence (looked up first)"
+  );
+  assert.equal(entry.options.baseURL, "https://pref.example/v1");
+});
+
+// ────────────────────────────────────────────────────────────────────────────
 // 2. Missing auth.json → no-op, no throw, no mutation
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -1252,9 +1311,9 @@ test("config: providerTag (default-on) prepends '<provider> - ' to enriched raw-
         "gemini-3-flash",
         {
           name: "Gemini 3 Flash",
-          providerAlias: "gemini-cli",
-          providerCanonical: "gemini-cli",
-          providerDisplayName: "Gemini-cli",
+          providerAlias: "gemini",
+          providerCanonical: "gemini",
+          providerDisplayName: "Gemini",
         },
       ],
     ])
@@ -1276,10 +1335,7 @@ test("config: providerTag (default-on) prepends '<provider> - ' to enriched raw-
     entry.models["opencode-omniroute/claude-sonnet-4-6"].name,
     "Claude - Claude Sonnet 4.6"
   );
-  assert.equal(
-    entry.models["opencode-omniroute/gemini-3-flash"].name,
-    "Gemini-cli - Gemini 3 Flash"
-  );
+  assert.equal(entry.models["opencode-omniroute/gemini-3-flash"].name, "Gemini - Gemini 3 Flash");
   // Combos stay untouched — `Combo: ` prefix already conveys multi-upstream.
   assert.equal(entry.models["opencode-omniroute/claude-tier"].name, "Claude Tier");
 });

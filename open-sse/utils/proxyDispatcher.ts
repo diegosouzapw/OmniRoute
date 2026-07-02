@@ -4,20 +4,31 @@ import { socksDispatcher } from "fetch-socks";
 import { getUpstreamTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
 import { stripIpv6Brackets, detectIpLiteralFamily, parseProxyFamily } from "./proxyFamily.ts";
 import { createSocksDispatcherWithFamily } from "./socksConnectorWithFamily.ts";
+import {
+  clearDispatcherCache,
+  createRoundRobinDispatcher,
+  getDefaultCachedDispatcher,
+  getDispatcherCache,
+  getRetryCachedDispatcher,
+  setDefaultCachedDispatcher,
+  setRetryCachedDispatcher,
+} from "./proxyDispatcherCache.ts";
 
-const DISPATCHER_CACHE_KEY = Symbol.for("omniroute.proxyDispatcher.cache");
-const DEFAULT_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.default");
-const RETRY_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.retry");
+export { __cacheProxyDispatcherForTest, clearDispatcherCache } from "./proxyDispatcherCache.ts";
+
 const SUPPORTED_PROTOCOLS = new Set(["http:", "https:", "socks5:"]);
+// Edge-relay proxy types. These do NOT go through an HTTP/SOCKS dispatcher —
+// the caller wraps the upstream URL with buildRelayHeaders() and fetches the
+// relay endpoint directly. Keep this set as the single source of truth so
+// every dispatch decision stays in sync when a new relay backend lands.
+export const RELAY_TYPES: ReadonlySet<string> = new Set(["vercel", "deno", "cloudflare"]);
+
+export function isRelayType(type: string | undefined | null): boolean {
+  return typeof type === "string" && RELAY_TYPES.has(type);
+}
 const DEFAULT_PROXY_DISPATCHER_CONNECTIONS = 32;
 const MAX_PROXY_DISPATCHER_CONNECTIONS = 256;
 
-type DispatcherCache = Map<string, Dispatcher>;
-type GlobalWithDispatcherCache = typeof globalThis & {
-  [DISPATCHER_CACHE_KEY]?: DispatcherCache;
-  [DEFAULT_DISPATCHER_KEY]?: Dispatcher;
-  [RETRY_DISPATCHER_KEY]?: Dispatcher;
-};
 type SocksDispatcherOptions = {
   type: number;
   host: string;
@@ -33,27 +44,6 @@ type ProxyConfigObject = {
   password?: string;
   family?: string;
 };
-
-function getDispatcherCache(): DispatcherCache {
-  const globalWithCache = globalThis as GlobalWithDispatcherCache;
-  if (!globalWithCache[DISPATCHER_CACHE_KEY]) {
-    globalWithCache[DISPATCHER_CACHE_KEY] = new Map();
-  }
-  return globalWithCache[DISPATCHER_CACHE_KEY];
-}
-
-/**
- * Clear all cached proxy dispatchers.
- * Call this when proxy configuration changes to avoid stale connections.
- */
-export function clearDispatcherCache() {
-  const cache = getDispatcherCache();
-  cache.clear();
-
-  const globalWithCache = globalThis as GlobalWithDispatcherCache;
-  delete globalWithCache[DEFAULT_DISPATCHER_KEY];
-  delete globalWithCache[RETRY_DISPATCHER_KEY];
-}
 
 function getDispatcherOptions() {
   const timeouts = getUpstreamTimeoutConfig(process.env, (message) => {
@@ -127,12 +117,11 @@ export function getDefaultDispatcherConnectionLimit(
 
 function getDefaultDispatcherOptions(env: Record<string, string | undefined> = process.env) {
   const options = getDispatcherOptions();
-  // #4580 — On the direct egress path, undici's default pipelining (1) lets a long
-  // SSE stream monopolize the single pooled socket per origin, serializing every
-  // other concurrent request to that same provider. Mirror the proxy fix (#4288):
-  // disable pipelining and keep several connections available. Unlike the proxy
-  // path we KEEP keep-alive — the 1ms TTL there is a cheap-proxy-socket workaround,
-  // not needed (and harmful to perf) for direct connections.
+  // #4580 — On the direct egress path, undici's default pipelining (1) let a long
+  // SSE stream monopolize the single pooled socket per origin. Keep the public
+  // connection-limit option here, but getDefaultDispatcher() fans it out across
+  // independent one-connection Agents; in production traces, one multi-connection
+  // Agent could still queue same-origin Codex streams behind prior trailers.
   return {
     ...options,
     connections: getDefaultDispatcherConnectionLimit(env),
@@ -140,12 +129,24 @@ function getDefaultDispatcherOptions(env: Record<string, string | undefined> = p
   };
 }
 
+function createRoundRobinDirectDispatcher(connectionLimit: number): Dispatcher {
+  const baseOptions = getDispatcherOptions();
+  const perAgentOptions = {
+    ...baseOptions,
+    connections: 1,
+    pipelining: 0,
+  };
+  const dispatchers = Array.from({ length: connectionLimit }, () => new Agent(perAgentOptions));
+  return createRoundRobinDispatcher(dispatchers);
+}
+
 export function getDefaultDispatcher(): Dispatcher {
-  const globalWithCache = globalThis as GlobalWithDispatcherCache;
-  if (!globalWithCache[DEFAULT_DISPATCHER_KEY]) {
-    globalWithCache[DEFAULT_DISPATCHER_KEY] = new Agent(getDefaultDispatcherOptions());
+  let dispatcher = getDefaultCachedDispatcher();
+  if (!dispatcher) {
+    dispatcher = createRoundRobinDirectDispatcher(getDefaultDispatcherConnectionLimit());
+    setDefaultCachedDispatcher(dispatcher);
   }
-  return globalWithCache[DEFAULT_DISPATCHER_KEY];
+  return dispatcher;
 }
 
 /**
@@ -162,16 +163,17 @@ export function getDefaultDispatcher(): Dispatcher {
  * the first attempt is preserved — only the retry pays the fresh-socket cost.
  */
 export function getRetryDispatcher(): Dispatcher {
-  const globalWithCache = globalThis as GlobalWithDispatcherCache;
-  if (!globalWithCache[RETRY_DISPATCHER_KEY]) {
-    globalWithCache[RETRY_DISPATCHER_KEY] = new Agent({
+  let dispatcher = getRetryCachedDispatcher();
+  if (!dispatcher) {
+    dispatcher = new Agent({
       ...getDispatcherOptions(),
       keepAliveTimeout: 1,
       keepAliveMaxTimeout: 1,
       pipelining: 0,
     });
+    setRetryCachedDispatcher(dispatcher);
   }
-  return globalWithCache[RETRY_DISPATCHER_KEY];
+  return dispatcher;
 }
 
 /**
@@ -317,6 +319,11 @@ export function buildVercelRelayHeaders(
   };
 }
 
+// Vercel + Deno Deploy share the same x-relay-{target,path,auth} envelope.
+// Use this alias when the call is intentionally backend-agnostic; the named
+// vercel-specific export above stays for direct callers that already use it.
+export const buildRelayHeaders = buildVercelRelayHeaders;
+
 export function proxyConfigToUrl(
   proxyConfig: unknown,
   { allowSocks5 = isSocks5ProxyEnabled() } = {}
@@ -337,9 +344,12 @@ export function proxyConfigToUrl(
   if (!config.host) return null;
   const type = String(config.type || "http").toLowerCase();
 
-  // Vercel Relay entries carry the relay URL in `host` — no dispatcher needed;
-  // callers should use buildVercelRelayHeaders() and fetch directly.
-  if (type === "vercel") {
+  // Edge-relay entries (vercel / deno / cloudflare) carry the relay URL in
+  // `host` — no dispatcher needed; callers should use buildRelayHeaders() and
+  // fetch the relay endpoint directly. All relay types share the exact same
+  // x-relay-target / x-relay-path / x-relay-auth header spec (only the
+  // deployment target differs).
+  if (RELAY_TYPES.has(type)) {
     return config.host ? `https://${config.host}` : null;
   }
 
@@ -398,6 +408,10 @@ export function __getDefaultDispatcherOptionsForTest(
   env: Record<string, string | undefined> = process.env
 ) {
   return getDefaultDispatcherOptions(env);
+}
+
+export function __createRoundRobinDispatcherForTest(dispatchers: Dispatcher[]): Dispatcher {
+  return createRoundRobinDispatcher(dispatchers);
 }
 
 export function createProxyDispatcher(proxyUrl: string): Dispatcher {

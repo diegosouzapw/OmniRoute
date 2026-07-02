@@ -1,0 +1,38 @@
+{
+  "language": "ja",
+  "category": "dedup",
+  "rules": [
+    {
+      "name": "ja_repeated_context",
+      "pattern": "(?:前述のとおり|前に述べたように|以前述べたように|先ほど言ったように)",
+      "replacement": "（上記参照）",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "ja_repeated_question",
+      "pattern": "(?:前と同じ質問ですが|これは前と同じ質問です|先ほどと同じ質問ですが)",
+      "replacement": "［同じ質問］",
+      "context": "user",
+      "category": "dedup",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "ja_reestablished_context",
+      "pattern": "(?:上記のコードに戻ると|先ほどの話に戻ると)",
+      "replacement": "Re: ",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "ja_summary_replacement",
+      "pattern": "(?:これまでの議論を要約すると|会話を要約すると|まとめると)",
+      "replacement": "要約：",
+      "context": "assistant",
+      "category": "dedup",
+      "minIntensity": "lite"
+    }
+  ]
+}

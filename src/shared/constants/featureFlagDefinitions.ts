@@ -175,6 +175,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
   {
+    key: "OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS",
+    label: "Allow Local Provider URLs",
+    description:
+      "Allow adding and validating providers on local/private addresses (127.0.0.1, localhost, LAN, private IP ranges) — needed for local OpenAI-compatible models. Enabled by default (OmniRoute is local-first); turn it OFF to enforce strict public-only blocking if you only use public providers. Cloud-metadata endpoints (e.g. 169.254.169.254) stay blocked either way.",
+    descriptionI18nKey: "featureFlagOmnirouteAllowLocalProviderUrlsDescription",
+    category: "network",
+    defaultValue: "true",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
     key: "ENABLE_CC_COMPATIBLE_PROVIDER",
     label: "CC Compatible Provider",
     description: "Enable Claude Code compatible provider mode",
@@ -374,7 +386,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
 
-  // ──────────────── CLI (3) ────────────────
+  // ──────────────── CLI (5) ────────────────
   {
     key: "CLI_COMPAT_ALL",
     label: "CLI Compat All",
@@ -408,6 +420,30 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     type: "boolean",
     requiresRestart: false,
     warningLevel: "info",
+  },
+  {
+    key: "OMNIROUTE_AUTO_SYNC_CODEX_PROFILES",
+    label: "Auto-Sync Codex Profiles",
+    description:
+      "After a provider model sync, automatically (re)write ~/.codex/*.config.toml profile files from the live catalog. Never changes the active/default Codex config. Off by default.",
+    descriptionI18nKey: "featureFlagOmnirouteAutoSyncCodexProfilesDescription",
+    category: "cli",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
+    key: "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES",
+    label: "Auto-Sync Claude Code Profiles",
+    description:
+      "After a provider model sync, automatically (re)write ~/.claude/profiles/<name>/settings.json Claude Code profiles from the live catalog. Never changes the active/default Claude config. Off by default.",
+    descriptionI18nKey: "featureFlagOmnirouteAutoSyncClaudeProfilesDescription",
+    category: "cli",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
   },
 
   // ──────────────── Health (3) ────────────────

@@ -125,6 +125,24 @@ export async function getComboByName(name: string) {
   return normalizeStoredCombo(combo, db, [name]);
 }
 
+// #4446: case-insensitive name lookup. The opencode dispatch path forwards a
+// lowercased combo slug (e.g. "master-light") for a combo provisioned as
+// "MASTER-LIGHT"; the default BINARY collation of getComboByName misses it.
+// Used only as a fallback after the exact match fails, so it cannot change the
+// resolution of any combo that already resolves today.
+export async function getComboByNameInsensitive(name: string) {
+  const db = getDbInstance();
+  const row = db
+    .prepare(
+      "SELECT data, sort_order, context_cache_protection FROM combos WHERE name = ? COLLATE NOCASE"
+    )
+    .get(name);
+  const combo = parseComboRow(row);
+  if (!combo) return null;
+  const storedName = typeof combo.name === "string" ? combo.name : name;
+  return normalizeStoredCombo(combo, db, [storedName]);
+}
+
 export async function createCombo(data: JsonRecord) {
   const db = getDbInstance();
   const now = new Date().toISOString();

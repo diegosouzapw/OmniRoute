@@ -203,14 +203,17 @@ export function openaiToClaudeResponse(chunk, state) {
             continue;
           }
 
-          // Fix #1852: Strip empty string and array placeholders from streaming tool arguments
-          if (deltaStr.includes('""') || deltaStr.includes("[]") || deltaStr.includes("[ ]")) {
-            deltaStr = deltaStr
-              .replace(/,"[a-zA-Z0-9_]+":""/g, "")
-              .replace(/"[a-zA-Z0-9_]+":"",/g, "")
-              .replace(/,"[a-zA-Z0-9_]+":\s*\[\s*\]/g, "")
-              .replace(/"[a-zA-Z0-9_]+":\s*\[\s*\],?/g, "");
-          }
+          // NOTE: The regex-based "Fix #1852" strip that previously ran here was
+          // removed in #4951. That strip matched patterns like `"key":""` and
+          // `"key":[]` to remove spurious placeholder fields that some models emit
+          // as noise. However, since #3762 the snapshot-dedup logic in
+          // appendToolCallArgumentDelta already collapses repeated/growing snapshots
+          // into a single delta, so noise-only chunks are naturally suppressed.
+          // More critically, the regex unconditionally deleted any field whose value
+          // happened to be "" or [], silently corrupting intentional empty-string or
+          // empty-array arguments (e.g. {"file_path":"","content":"text"} →
+          // {"content":"text"}). Emit deltaStr as-is; the Claude client parses the
+          // assembled partial_json fragments and tolerates unknown extra fields.
 
           results.push({
             type: "content_block_delta",
@@ -222,8 +225,15 @@ export function openaiToClaudeResponse(chunk, state) {
     }
   }
 
-  // Finish
-  if (choice.finish_reason) {
+  // Finish — guard against duplicate finish_reason chunks (common with OpenAI-compatible models).
+  // Use a dedicated `claudeFinishEmitted` flag rather than `state.finishReason`: in the
+  // Responses→Claude hub path the shared `state` object is also written by the
+  // openai-responses→openai translator, which sets `state.finishReason` on
+  // `response.completed` BEFORE this openai→claude step runs. Reusing `finishReason` as the
+  // guard therefore misfired and silently dropped the terminal message_delta/message_stop
+  // for Responses→Claude streams (#5828 regression).
+  if (choice.finish_reason && !state.claudeFinishEmitted) {
+    state.claudeFinishEmitted = true;
     stopThinkingBlock(state, results);
     stopTextBlock(state, results);
 

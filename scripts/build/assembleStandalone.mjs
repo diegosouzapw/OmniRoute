@@ -150,6 +150,12 @@ const EXTRA_MODULE_ENTRIES = [
     dest: ["webdav-handler.mjs"],
   },
   {
+    // #5242: opt-in HTTPS/TLS resolver (server-ws.mjs dependency).
+    label: "tls-options (server-ws.mjs dependency)",
+    src: ["scripts", "dev", "tls-options.mjs"],
+    dest: ["tls-options.mjs"],
+  },
+  {
     label: "runtime-env script",
     src: ["scripts", "build", "runtime-env.mjs"],
     dest: ["build", "runtime-env.mjs"],

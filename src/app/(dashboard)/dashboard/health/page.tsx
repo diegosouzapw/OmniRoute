@@ -16,6 +16,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/shared/components";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { getProviderDisplayName } from "@/lib/display/names";
+import { useProviderNodeMap, resolveProviderName } from "@/lib/display/useProviderNodeMap";
 import { compareTr } from "@/shared/utils/turkishText";
 import { useTranslations } from "next-intl";
 import TelemetryCard from "./TelemetryCard";
@@ -59,6 +60,7 @@ export default function HealthPage() {
   const t = useTranslations("health");
   const tc = useTranslations("common");
   const tp = useTranslations("providers");
+  const nodeMap = useProviderNodeMap();
   const [data, setData] = useState(null);
   const [dbHealth, setDbHealth] = useState(null);
   const [dbHealthError, setDbHealthError] = useState(null);
@@ -763,7 +765,10 @@ export default function HealthPage() {
                     {unhealthy.map(([provider, cb]: [string, any]) => {
                       const style = CB_STYLES[cb.state] || CB_STYLES.OPEN;
                       const providerInfo = AI_PROVIDERS[provider];
-                      const displayName = getProviderDisplayName(provider, providerInfo);
+                      const displayName = getProviderDisplayName(
+                        provider,
+                        nodeMap.get(provider) ?? providerInfo
+                      );
                       return (
                         <div
                           key={provider}
@@ -821,7 +826,10 @@ export default function HealthPage() {
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
                       {healthy.map(([provider]) => {
                         const providerInfo = AI_PROVIDERS[provider];
-                        const displayName = getProviderDisplayName(provider, providerInfo);
+                        const displayName = getProviderDisplayName(
+                          provider,
+                          nodeMap.get(provider) ?? providerInfo
+                        );
                         return (
                           <div
                             key={provider}
@@ -857,25 +865,9 @@ export default function HealthPage() {
             const connectionId = parts[1] || "";
             const model = parts.slice(2).join(":") || null;
 
-            // Resolve friendly name
-            let displayName;
+            // Resolve friendly name — prefer user-given name from provider node map
             let providerInfo = AI_PROVIDERS[providerId];
-
-            if (providerId.startsWith("openai-compatible-")) {
-              const customName = providerId.replace("openai-compatible-", "");
-              displayName = tp("openaiCompatibleName");
-              providerInfo = { color: "#10A37F", textIcon: "OC" };
-              if (customName.length > 12) displayName += ` (${customName.slice(0, 8)}…)`;
-              else if (customName) displayName += ` (${customName})`;
-            } else if (providerId.startsWith("anthropic-compatible-")) {
-              const customName = providerId.replace("anthropic-compatible-", "");
-              displayName = tp("anthropicCompatibleName");
-              providerInfo = { color: "#D97757", textIcon: "AC" };
-              if (customName.length > 12) displayName += ` (${customName.slice(0, 8)}…)`;
-              else if (customName) displayName += ` (${customName})`;
-            } else {
-              displayName = getProviderDisplayName(providerId, providerInfo);
-            }
+            const displayName = resolveProviderName(providerId, nodeMap);
 
             return { providerId, displayName, providerInfo, connectionId, model };
           };

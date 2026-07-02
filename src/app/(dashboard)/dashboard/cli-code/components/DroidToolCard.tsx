@@ -28,7 +28,12 @@ export default function DroidToolCard({
   const [restoring, setRestoring] = useState(false);
   const [message, setMessage] = useState(null);
   const [selectedApiKeyId, setSelectedApiKeyId] = useState("");
-  const [selectedModel, setSelectedModel] = useState("");
+  // (#618) Multi-model support: list of model ids + input box for the next entry.
+  // `selectedModel` is derived as the first entry so existing call sites
+  // (manual-config preview, ModelSelectModal) continue to work.
+  const [modelList, setModelList] = useState([]);
+  const [modelInput, setModelInput] = useState("");
+  const selectedModel = modelList[0] || "";
   const [modalOpen, setModalOpen] = useState(false);
   const [modelAliases, setModelAliases] = useState({});
   const [showManualConfigModal, setShowManualConfigModal] = useState(false);
@@ -40,11 +45,12 @@ export default function DroidToolCard({
   const [restoringBackup, setRestoringBackup] = useState(null);
   const cliReady = !!(droidStatus?.installed && droidStatus?.runnable);
 
+  // (#618) Match any custom:OmniRoute-<i> entry (multi-model).
+  const isOmniRouteEntry = (m) => typeof m?.id === "string" && m.id.startsWith("custom:OmniRoute");
+
   const getConfigStatus = () => {
     if (!cliReady) return null;
-    const currentConfig = droidStatus.settings?.customModels?.find(
-      (m) => m.id === "custom:OmniRoute-0"
-    );
+    const currentConfig = droidStatus.settings?.customModels?.find(isOmniRouteEntry);
     if (!currentConfig) return "not_configured";
     const localMatch =
       currentConfig.baseUrl?.includes("localhost") || currentConfig.baseUrl?.includes("127.0.0.1");
@@ -87,15 +93,19 @@ export default function DroidToolCard({
   useEffect(() => {
     if (droidStatus?.installed && !hasInitializedModel.current) {
       hasInitializedModel.current = true;
-      const customModel = droidStatus.settings?.customModels?.find(
-        (m) => m.id === "custom:OmniRoute-0"
-      );
-      if (customModel) {
-        if (customModel.model) setSelectedModel(customModel.model);
-        if (customModel.apiKey) {
+      // (#618) Pre-fill the multi-model list from every custom:OmniRoute-<i>
+      // entry, preserving the original index order.
+      const existing = (droidStatus.settings?.customModels || [])
+        .filter(isOmniRouteEntry)
+        .slice()
+        .sort((a, b) => (a.index || 0) - (b.index || 0));
+      if (existing.length > 0) {
+        setModelList(existing.map((m) => m.model).filter(Boolean));
+        const first = existing[0];
+        if (first?.apiKey) {
           // (#523) Keys from /api/keys are masked. Match by prefix/suffix.
-          const fileKeyPrefix = customModel.apiKey.slice(0, 8);
-          const fileKeySuffix = customModel.apiKey.slice(-4);
+          const fileKeyPrefix = first.apiKey.slice(0, 8);
+          const fileKeySuffix = first.apiKey.slice(-4);
           const matchedKey = apiKeys?.find(
             (k) => k.key && k.key.startsWith(fileKeyPrefix) && k.key.endsWith(fileKeySuffix)
           );
@@ -104,6 +114,15 @@ export default function DroidToolCard({
       }
     }
   }, [droidStatus, apiKeys]);
+
+  // (#618) Multi-model list manipulation helpers.
+  const addModel = (value) => {
+    const v = (value ?? modelInput).trim();
+    if (!v || modelList.includes(v)) return;
+    setModelList((prev) => [...prev, v]);
+    setModelInput("");
+  };
+  const removeModel = (id) => setModelList((prev) => prev.filter((m) => m !== id));
 
   const checkDroidStatus = async () => {
     setCheckingDroid(true);
@@ -143,7 +162,12 @@ export default function DroidToolCard({
           baseUrl: getEffectiveBaseUrl(),
           apiKey: !cloudEnabled ? "sk_omniroute" : null,
           keyId: selectedKeyId,
+          // (#618) Send both `model` (legacy, first entry) and `models` (array).
+          // Backend prefers `models` when present; `model` keeps Zod happy
+          // for callers still on the single-model contract.
           model: selectedModel,
+          models: modelList,
+          activeModel: selectedModel,
         }),
       });
       const data = await res.json();
@@ -173,7 +197,7 @@ export default function DroidToolCard({
       const data = await res.json();
       if (res.ok) {
         setMessage({ type: "success", text: t("settingsReset") });
-        setSelectedModel("");
+        setModelList([]);
         setSelectedApiKeyId("");
         checkDroidStatus();
       } else {
@@ -192,7 +216,12 @@ export default function DroidToolCard({
   };
 
   const handleModelSelect = (model) => {
-    setSelectedModel(model.value);
+    // (#618) Append to the model list rather than replacing the single slot.
+    if (!model?.value || modelList.includes(model.value)) {
+      setModalOpen(false);
+      return;
+    }
+    setModelList((prev) => [...prev, model.value]);
     setModalOpen(false);
   };
 
@@ -242,20 +271,21 @@ export default function DroidToolCard({
     const keyToDisplay =
       selectedKeyObj?.key || (!cloudEnabled ? "sk_omniroute" : "<API_KEY_FROM_DASHBOARD>");
 
+    // (#618) Render one entry per requested model; fall back to a placeholder
+    // when the list is empty so manual-config preview still shows the shape.
+    const modelsForPreview = modelList.length > 0 ? modelList : ["provider/model-id"];
     const settingsContent = {
-      customModels: [
-        {
-          model: selectedModel || "provider/model-id",
-          id: "custom:OmniRoute-0",
-          index: 0,
-          baseUrl: getEffectiveBaseUrl(),
-          apiKey: keyToDisplay,
-          displayName: selectedModel || "provider/model-id",
-          maxOutputTokens: 131072,
-          noImageSupport: false,
-          provider: "openai",
-        },
-      ],
+      customModels: modelsForPreview.map((m, i) => ({
+        model: m,
+        id: `custom:OmniRoute-${i}`,
+        index: i,
+        baseUrl: getEffectiveBaseUrl(),
+        apiKey: keyToDisplay,
+        displayName: m,
+        maxOutputTokens: 131072,
+        noImageSupport: false,
+        provider: "openai",
+      })),
     };
 
     const platform = typeof navigator !== "undefined" && navigator.platform;
@@ -332,9 +362,8 @@ export default function DroidToolCard({
           {!checkingDroid && cliReady && (
             <>
               <div className="flex flex-col gap-2">
-                {/* Current Base URL */}
-                {droidStatus?.settings?.customModels?.find((m) => m.id === "custom:OmniRoute-0")
-                  ?.baseUrl && (
+                {/* Current Base URL — first OmniRoute entry, any index (#618) */}
+                {droidStatus?.settings?.customModels?.find(isOmniRouteEntry)?.baseUrl && (
                   <div className="flex items-center gap-2">
                     <span className="w-32 shrink-0 text-sm font-semibold text-text-main text-right">
                       {t("current")}
@@ -343,10 +372,7 @@ export default function DroidToolCard({
                       arrow_forward
                     </span>
                     <span className="flex-1 px-2 py-1.5 text-xs text-text-muted truncate">
-                      {
-                        droidStatus.settings.customModels.find((m) => m.id === "custom:OmniRoute-0")
-                          .baseUrl
-                      }
+                      {droidStatus.settings.customModels.find(isOmniRouteEntry).baseUrl}
                     </span>
                   </div>
                 )}
@@ -404,37 +430,68 @@ export default function DroidToolCard({
                   )}
                 </div>
 
-                {/* Model */}
-                <div className="flex items-center gap-2">
-                  <span className="w-32 shrink-0 text-sm font-semibold text-text-main text-right">
+                {/* Models — multi-model support (#618) */}
+                <div className="flex items-start gap-2">
+                  <span className="w-32 shrink-0 text-sm font-semibold text-text-main text-right pt-1.5">
                     {t("model")}
+                    {modelList.length > 0 && (
+                      <span className="text-primary"> ({modelList.length})</span>
+                    )}
                   </span>
-                  <span className="material-symbols-outlined text-text-muted text-[14px]">
+                  <span className="material-symbols-outlined text-text-muted text-[14px] pt-2">
                     arrow_forward
                   </span>
-                  <input
-                    type="text"
-                    value={selectedModel}
-                    onChange={(e) => setSelectedModel(e.target.value)}
-                    placeholder={t("providerModelPlaceholder")}
-                    className="flex-1 px-2 py-1.5 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
-                  />
-                  <button
-                    onClick={() => setModalOpen(true)}
-                    disabled={!hasActiveProviders}
-                    className={`px-2 py-1.5 rounded border text-xs transition-colors shrink-0 whitespace-nowrap ${hasActiveProviders ? "bg-surface border-border text-text-main hover:border-primary cursor-pointer" : "opacity-50 cursor-not-allowed border-border"}`}
-                  >
-                    {t("selectModel")}
-                  </button>
-                  {selectedModel && (
-                    <button
-                      onClick={() => setSelectedModel("")}
-                      className="p-1 text-text-muted hover:text-red-500 rounded transition-colors"
-                      title={t("clear")}
-                    >
-                      <span className="material-symbols-outlined text-[14px]">close</span>
-                    </button>
-                  )}
+                  <div className="flex-1 flex flex-col gap-1">
+                    {modelList.length > 0 && (
+                      <div className="flex flex-col gap-0.5 mb-1">
+                        {modelList.map((id) => (
+                          <div
+                            key={id}
+                            className="flex items-center gap-1.5 px-2 py-1 bg-bg-secondary rounded border border-border"
+                          >
+                            <span className="flex-1 text-xs font-mono truncate">{id}</span>
+                            <button
+                              onClick={() => removeModel(id)}
+                              className="text-text-muted hover:text-red-500 transition-colors shrink-0"
+                              title={t("clear")}
+                            >
+                              <span className="material-symbols-outlined text-[12px]">close</span>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="text"
+                        value={modelInput}
+                        onChange={(e) => setModelInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addModel();
+                          }
+                        }}
+                        placeholder={t("providerModelPlaceholder")}
+                        className="flex-1 px-2 py-1.5 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
+                      />
+                      <button
+                        onClick={() => setModalOpen(true)}
+                        disabled={!hasActiveProviders}
+                        className={`px-2 py-1.5 rounded border text-xs transition-colors shrink-0 whitespace-nowrap ${hasActiveProviders ? "bg-surface border-border text-text-main hover:border-primary cursor-pointer" : "opacity-50 cursor-not-allowed border-border"}`}
+                      >
+                        {t("selectModel")}
+                      </button>
+                      <button
+                        onClick={() => addModel()}
+                        disabled={!modelInput.trim() || modelList.includes(modelInput.trim())}
+                        className="px-2 py-1.5 rounded border bg-surface border-border hover:border-primary text-xs shrink-0 disabled:opacity-50"
+                        title="Add model"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">add</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -454,7 +511,7 @@ export default function DroidToolCard({
                   variant="primary"
                   size="sm"
                   onClick={handleApplySettings}
-                  disabled={!selectedModel}
+                  disabled={modelList.length === 0}
                   loading={applying}
                 >
                   <span className="material-symbols-outlined text-[14px] mr-1">save</span>

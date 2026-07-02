@@ -6,6 +6,7 @@ import {
   getGitHubCopilotRefreshHeaders,
 } from "../config/providerHeaderProfiles.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
+import { stripUnsupportedParams } from "../translator/paramSupport.ts";
 
 export class GithubExecutor extends BaseExecutor {
   constructor() {
@@ -24,9 +25,31 @@ export class GithubExecutor extends BaseExecutor {
     );
   }
 
+  // GitHub Copilot's /responses endpoint only serves OpenAI (gpt/codex) models.
+  // Gemini and Claude variants on Copilot reject with HTTP 400
+  //   "model <id> does not support Responses API." (unsupported_api_for_model)
+  // Pin a defensive invariant: even if a future registry edit (or an upstream
+  // model-discovery refresh) tagged a Claude/Gemini entry as openai-responses,
+  // the executor must still route it to /chat/completions. Port of 9router#1536
+  // (follow-up to #663); also reinforces the existing comments on the gh
+  // registry entries (claude-opus-4-5-20251101, claude-opus-4.7, gemini-*).
+  supportsResponsesEndpoint(model: string | null | undefined): boolean {
+    const m = (model || "").toLowerCase();
+    if (!m) return true;
+    return !(m.includes("gemini") || m.includes("claude"));
+  }
+
   buildUrl(model: string, _stream: boolean, _urlIndex = 0) {
     const targetFormat = getModelTargetFormat("gh", model);
-    if (targetFormat === "openai-responses") {
+    // 9router#102: Copilot Codex models advertise supported_endpoints: ["/responses"]
+    // and 400 on /chat/completions. Route any *-codex id to /responses even when it
+    // isn't in the curated registry, so newly-shipped Codex models work out of the box.
+    // 9router#1536: but never route Gemini/Claude variants to /responses (they 400) —
+    // gate the whole decision on supportsResponsesEndpoint().
+    if (
+      (targetFormat === "openai-responses" || /codex/i.test(model)) &&
+      this.supportsResponsesEndpoint(model)
+    ) {
       return (
         this.config.responsesBaseUrl ||
         this.config.baseUrl?.replace(/\/chat\/completions\/?$/, "/responses") ||
@@ -126,6 +149,25 @@ export class GithubExecutor extends BaseExecutor {
       );
     }
 
+    // GitHub Copilot's /chat/completions endpoint rejects a conversation that ends
+    // with an assistant message: "This model does not support assistant message
+    // prefill. The conversation must end with a user message." (HTTP 400). Anthropic
+    // clients such as newest Claude Desktop send a trailing assistant turn as a
+    // prefill seed — the Anthropic API honors it, but Copilot does not. Drop it here,
+    // scoped to the GitHub executor only (the shared translator/contextManager and
+    // other providers that DO honor prefill are untouched).
+    // Port of 9router#2143 (author: Manuel <baslr@users.noreply.github.com>).
+    if (Array.isArray(modifiedBody.messages)) {
+      modifiedBody.messages = this.dropTrailingAssistantPrefill(modifiedBody.messages);
+    }
+
+    // Config-driven strip of params unsupported by the target provider/model.
+    // For GitHub Copilot this removes Claude-style `thinking` and
+    // `reasoning_effort` for Claude models that reject them upstream
+    // (Haiku 4.5 / Opus 4.7 — Opus 4.6 / Sonnet 4.6 keep them).
+    // Port from 9router#7ae9fff6 (fixes upstream #1748, #713).
+    stripUnsupportedParams("github", model, modifiedBody);
+
     return modifiedBody;
   }
 
@@ -156,6 +198,19 @@ export class GithubExecutor extends BaseExecutor {
     // If every part stripped to empty (e.g. tool_use with no text), collapse to null so
     // GitHub does not reject an empty-array body. tool_calls ride alongside content.
     return { ...msg, content: cleanContent.length > 0 ? cleanContent : null };
+  }
+
+  // Remove trailing assistant message(s). GitHub Copilot's /chat/completions endpoint
+  // can't honor an assistant prefill and 400s unless the conversation ends with a
+  // non-assistant (user/tool) message. Never empties the array — an assistant-only
+  // conversation keeps its last message. No-op (same array reference) when the
+  // conversation already ends with a non-assistant message.
+  // Port of 9router#2143 (author: Manuel <baslr@users.noreply.github.com>).
+  dropTrailingAssistantPrefill(messages: any): any {
+    if (!Array.isArray(messages) || messages.length === 0) return messages;
+    let end = messages.length;
+    while (end > 1 && messages[end - 1]?.role === "assistant") end--;
+    return end === messages.length ? messages : messages.slice(0, end);
   }
 
   async execute(input: ExecuteInput) {

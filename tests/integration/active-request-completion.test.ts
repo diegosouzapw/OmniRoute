@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 const API_KEY = process.env.OMNIROUTE_API_KEY;
 const BASE_URL = process.env.OMNIROUTE_URL || "http://localhost:20128";
-const MODEL = process.env.TEST_GEMINI_MODEL || "default";
+const MODEL = "default";
 
 const skip = !API_KEY ? "OMNIROUTE_API_KEY not set — skipping live test" : undefined;
 
@@ -54,7 +54,14 @@ async function readSSEStream(response: Response, onChunk?: (chunk: string) => vo
 }
 
 test("live request returns streamChunks", { skip }, async () => {
-  console.log("[TEST] BASE_URL=", BASE_URL, "OMNIROUTE_URL=", process.env.OMNIROUTE_URL, "API_KEY set=", !!API_KEY);
+  console.log(
+    "[TEST] BASE_URL=",
+    BASE_URL,
+    "OMNIROUTE_URL=",
+    process.env.OMNIROUTE_URL,
+    "API_KEY set=",
+    !!API_KEY
+  );
 
   const messages = [
     { role: "system", content: "Execute the user prompt and provide a detailed explanation." },
@@ -106,9 +113,10 @@ test("live request returns streamChunks", { skip }, async () => {
         );
         if (activeRequestResponse.ok) {
           let activeRequest = await activeRequestResponse.json();
-          if (activeRequest.active &&
-              Array.isArray(activeRequest.pipelinePayloads.streamChunks.provider) &&
-              activeRequest.pipelinePayloads.streamChunks.provider.length > 0
+          if (
+            activeRequest.active &&
+            Array.isArray(activeRequest.pipelinePayloads.streamChunks.provider) &&
+            activeRequest.pipelinePayloads.streamChunks.provider.length > 0
           ) {
             console.log("Stream chunks:", activeRequest.pipelinePayloads.streamChunks.provider);
             sawLogChunksWhileStreaming = true;
@@ -140,9 +148,13 @@ test("live request returns streamChunks", { skip }, async () => {
     let finishedRequest = await logDetailResponse.json();
 
     assert.equal(finishedRequest.id, requestId, "log detail id should match request id");
-    assert.equal(finishedRequest.active, false, "request should be marked as inactive after completion");
+    assert.equal(
+      finishedRequest.active,
+      false,
+      "request should be marked as inactive after completion"
+    );
 
-    assert.ok(Array.isArray(finishedRequest.pipelinePayloads.streamChunks.provider) );
+    assert.ok(Array.isArray(finishedRequest.pipelinePayloads.streamChunks.provider));
     assert.ok(Array.isArray(finishedRequest.pipelinePayloads.streamChunks.client));
 
     assert.ok(finishedRequest.pipelinePayloads.streamChunks.provider.length > 0);

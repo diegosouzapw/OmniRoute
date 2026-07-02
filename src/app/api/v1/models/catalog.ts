@@ -1,6 +1,5 @@
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
-import { AI_PROVIDERS, NOAUTH_PROVIDERS } from "@/shared/constants/providers";
-import { isVisionModelId } from "@/shared/constants/visionModels";
+import { NOAUTH_PROVIDERS } from "@/shared/constants/providers";
 import {
   getProviderConnections,
   getCombos,
@@ -8,7 +7,9 @@ import {
   getSettings,
   getProviderNodes,
   getModelIsHidden,
+  getModelAliases,
 } from "@/lib/localDb";
+import { extractAliasBackedModels } from "./aliasBackedModels";
 import { appendNoThinkingVariants } from "@omniroute/open-sse/utils/noThinkingAlias";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry";
 import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry";
@@ -38,7 +39,6 @@ import {
 } from "@/lib/modelMetadataRegistry";
 import { getSyncedCapability } from "@/lib/modelsDevSync";
 import { getModelSpec } from "@/shared/constants/modelSpecs";
-import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
 import {
   isModelCatalogNamesEnabled,
   getModelsCatalogPrefixMode,
@@ -54,259 +54,33 @@ import { parseModel } from "@omniroute/open-sse/services/model";
 import { getTokenLimit } from "@omniroute/open-sse/services/contextManager";
 import { extractApiKey } from "@/sse/services/auth";
 import type { ComboModelStep } from "@/lib/combos/steps";
+import {
+  type CustomModelEntry,
+  type ComboCatalogTarget,
+  type ComboTargetCatalogMetadata,
+  isPositiveFiniteNumber,
+  parseJsonStringArray,
+  intersectStringArrays,
+  minKnownNumber,
+  maybeOmitCatalogModelName,
+} from "./catalogHelpers";
+import {
+  qualifyOpenRouterModelId,
+  normalizeOpenRouterModalities,
+  getOpenRouterModelType,
+  isOpenRouterFreeModel,
+  getOpenRouterDisplayName,
+} from "./catalogOpenrouter";
+import { getVisionCapabilityFields, getCustomVisionCapabilityFields } from "./catalogVision";
+import { FALLBACK_ALIAS_TO_PROVIDER, buildAliasMaps } from "./catalogProviderMaps";
+import { getModelCatalogAuthRejection, isCodexModelCatalogClient } from "./catalogRequest";
 
-interface CustomModelEntry {
-  id?: string;
-  name?: string;
-  source?: string;
-  apiFormat?: string;
-  supportedEndpoints?: string[];
-  inputTokenLimit?: number;
-  isHidden?: boolean;
-}
-
-const FALLBACK_ALIAS_TO_PROVIDER = {
-  ag: "antigravity",
-  cc: "claude",
-  cl: "cline",
-  cu: "cursor",
-  cx: "codex",
-  gc: "gemini-cli",
-  gh: "github",
-  kc: "kilocode",
-  kmc: "kimi-coding",
-  kr: "kiro",
-  qw: "qwen",
-};
-
-type ComboCatalogTarget = {
-  modelStr?: string;
-  provider?: string | null;
-};
-
-type ComboTargetCatalogMetadata = {
-  contextLength?: number;
-  maxInputTokens?: number;
-  maxOutputTokens?: number;
-  inputModalities?: string[];
-  outputModalities?: string[];
-  capabilities: Record<string, boolean>;
-};
-
-function isPositiveFiniteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value) && value > 0;
-}
-
-function parseJsonStringArray(value: unknown): string[] {
-  if (typeof value !== "string" || value.trim().length === 0) return [];
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string" && entry.length > 0)
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function maybeOmitCatalogModelName<T extends Record<string, unknown>>(
-  model: T,
-  includeNames: boolean
-): T | Omit<T, "name"> {
-  if (includeNames || !Object.prototype.hasOwnProperty.call(model, "name")) return model;
-
-  const { name: omittedName, ...nextModel } = model;
-  void omittedName;
-  return nextModel;
-}
-
-function intersectStringArrays(arrays: string[][]): string[] {
-  if (arrays.length === 0 || arrays.some((values) => values.length === 0)) return [];
-  const [first, ...rest] = arrays;
-  return first.filter((value, index) => {
-    if (first.indexOf(value) !== index) return false;
-    return rest.every((values) => values.includes(value));
-  });
-}
-
-function minKnownNumber(values: Array<number | undefined>): number | undefined {
-  const knownValues = values.filter(isPositiveFiniteNumber);
-  if (knownValues.length === 0) return undefined;
-  return Math.min(...knownValues);
-}
-
-// Vision detection is centralized in `@/shared/constants/visionModels` (#4072) so
-// this listing path, the routing fallback, and lite compression share one verdict.
-// Re-exported for callers/tests that imported it from here.
-export { isVisionModelId };
-
-function getVisionCapabilityFields(modelId: string) {
-  if (!isVisionModelId(modelId)) return null;
-  return {
-    capabilities: { vision: true },
-    input_modalities: ["text", "image"],
-    output_modalities: ["text"],
-  };
-}
-
-function qualifyOpenRouterModelId(modelId: string): string {
-  return modelId.startsWith("openrouter/") ? modelId : `openrouter/${modelId}`;
-}
-
-function normalizeOpenRouterModalities(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.filter((entry): entry is string => typeof entry === "string" && entry.length > 0)
-    : [];
-}
-
-function getOpenRouterModelType(inputModalities: string[], outputModalities: string[]) {
-  if (outputModalities.includes("image")) return "image";
-  if (outputModalities.includes("audio")) return "audio";
-  if (outputModalities.includes("video")) return "video";
-  if (outputModalities.includes("embedding")) return "embedding";
-  return "chat";
-}
-
-function isZeroPrice(value: unknown) {
-  if (typeof value === "number") return value === 0;
-  if (typeof value !== "string") return false;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed === 0;
-}
-
-function isOpenRouterFreeModel(model: {
-  id?: string;
-  pricing?: { prompt?: string; completion?: string };
-}) {
-  if (typeof model.id === "string" && model.id.endsWith(":free")) return true;
-  return isZeroPrice(model.pricing?.prompt) && isZeroPrice(model.pricing?.completion);
-}
-
-function getOpenRouterDisplayName(model: {
-  id?: string;
-  name?: string;
-  pricing?: { prompt?: string; completion?: string };
-}) {
-  const name = model.name || model.id || "OpenRouter model";
-  return isOpenRouterFreeModel(model) && !/\bgr[aá]tis\b/i.test(name) ? `${name} (Grátis)` : name;
-}
-
-async function validateCatalogApiKey(apiKey: string): Promise<boolean> {
-  const { validateApiKey } = await import("@/lib/db/apiKeys");
-  return validateApiKey(apiKey);
-}
-
-async function getModelCatalogAuthRejection(
-  request: Request,
-  settings: Record<string, any>,
-  headers: Record<string, string>
-): Promise<Response | null> {
-  if (settings.requireAuthForModels !== true || !(await isAuthRequired(request))) return null;
-
-  const apiKey = extractApiKey(request);
-  if (apiKey) {
-    if (await validateCatalogApiKey(apiKey)) return null;
-    return Response.json(
-      {
-        error: {
-          message: "Invalid API key",
-          type: "invalid_api_key",
-          code: "invalid_api_key",
-        },
-      },
-      {
-        status: 401,
-        headers,
-      }
-    );
-  }
-
-  if (await isDashboardSessionAuthenticated(request)) return null;
-
-  return Response.json(
-    {
-      error: {
-        message: "Authentication required",
-        type: "invalid_api_key",
-        code: "invalid_api_key",
-      },
-    },
-    {
-      status: 401,
-      headers,
-    }
-  );
-}
-
-function buildAliasMaps() {
-  const aliasToProviderId: Record<string, string> = {};
-  const providerIdToAlias: Record<string, string> = {};
-
-  // Canonical source for ID/alias pairs used across dashboard/provider config.
-  for (const provider of Object.values(AI_PROVIDERS)) {
-    const providerId = provider?.id;
-    const alias = provider?.alias || providerId;
-    if (!providerId) continue;
-    aliasToProviderId[providerId] = providerId;
-    aliasToProviderId[alias] = providerId;
-    if (!providerIdToAlias[providerId]) {
-      providerIdToAlias[providerId] = alias;
-    }
-  }
-
-  for (const [left, right] of Object.entries(PROVIDER_ID_TO_ALIAS)) {
-    // Handle both possible directions:
-    // - providerId -> alias
-    // - alias -> providerId
-    if (PROVIDER_MODELS[left]) {
-      aliasToProviderId[left] = aliasToProviderId[left] || right;
-      continue;
-    }
-    if (PROVIDER_MODELS[right]) {
-      aliasToProviderId[right] = aliasToProviderId[right] || left;
-      continue;
-    }
-    aliasToProviderId[right] = aliasToProviderId[right] || left;
-  }
-
-  for (const alias of Object.keys(PROVIDER_MODELS)) {
-    if (!aliasToProviderId[alias]) {
-      aliasToProviderId[alias] = alias;
-    }
-  }
-
-  for (const [alias, providerId] of Object.entries(aliasToProviderId)) {
-    if (!providerIdToAlias[providerId]) {
-      providerIdToAlias[providerId] = alias;
-    }
-  }
-
-  // Safety net for environments where alias maps are partially loaded during
-  // module initialization/circular imports.
-  for (const [alias, providerId] of Object.entries(FALLBACK_ALIAS_TO_PROVIDER)) {
-    if (!aliasToProviderId[alias]) aliasToProviderId[alias] = providerId;
-    if (!aliasToProviderId[providerId]) aliasToProviderId[providerId] = providerId;
-    if (!providerIdToAlias[providerId]) providerIdToAlias[providerId] = alias;
-  }
-
-  return { aliasToProviderId, providerIdToAlias };
-}
-
-/**
- * Detect the Codex CLI's model-catalog refresh client. Codex sends an `originator` header
- * of `codex_exec` (codex exec) / `codex_cli_rs` (interactive TUI) — see openai/codex
- * login/src/auth/default_client.rs DEFAULT_ORIGINATOR — and a matching `codex_*`
- * User-Agent on its `GET /v1/models?client_version=...` catalog refresh. We only augment
- * the response shape for these clients so every other OpenAI consumer keeps the
- * byte-identical `{object,data}` payload.
- */
-function isCodexModelCatalogClient(request: Request): boolean {
-  const headers = request.headers;
-  const originator = headers.get("originator")?.toLowerCase() ?? "";
-  if (originator.startsWith("codex")) return true;
-  const userAgent = headers.get("user-agent")?.toLowerCase() ?? "";
-  return userAgent.startsWith("codex");
-}
+// Public API of this module is preserved after the catalog helper extraction:
+// `isVisionModelId` (vision-detection-consistency.test.ts) and
+// `getCustomVisionCapabilityFields` (llm-selector-custom-vision-models.test.ts)
+// are still importable from here.
+export { isVisionModelId } from "@/shared/constants/visionModels";
+export { getCustomVisionCapabilityFields };
 
 /**
  * Build unified OpenAI-compatible model catalog response.
@@ -676,7 +450,7 @@ export async function getUnifiedModelsResponse(
     // #4164 entry is emitted instead, so the id is never dropped.
     // #4235 Phase B: also advertise the curated `auto/<category>[:<tier>]` combos.
     for (const autoId of [...Object.keys(AUTO_TEMPLATE_VARIANTS), ...AUTO_SUFFIX_VARIANTS]) {
-      if (listedIds.has(autoId)) continue;
+      if (blockedProviders.has("auto") || listedIds.has(autoId)) continue; // #5192
       listedIds.add(autoId);
       const baseAutoEntry = {
         id: autoId,
@@ -1261,9 +1035,7 @@ export async function getUnifiedModelsResponse(
             continue;
           }
           const visionFields =
-            modelType === "chat"
-              ? getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId)
-              : null;
+            modelType === "chat" ? getCustomVisionCapabilityFields(model, aliasId, modelId) : null;
 
           if (includeAlias) {
             models.push({
@@ -1295,8 +1067,7 @@ export async function getUnifiedModelsResponse(
             if (models.some((m) => m.id === providerPrefixedId)) continue;
             const providerVisionFields =
               modelType === "chat"
-                ? getVisionCapabilityFields(providerPrefixedId) ||
-                  getVisionCapabilityFields(modelId)
+                ? getCustomVisionCapabilityFields(model, providerPrefixedId, modelId)
                 : null;
             models.push({
               id: providerPrefixedId,
@@ -1321,6 +1092,88 @@ export async function getUnifiedModelsResponse(
       }
     } catch (e) {
       console.log("Could not fetch custom models");
+    }
+
+    // Port of decolua/9router#730 — surface models registered ONLY through a model
+    // alias (`key_value` namespace `modelAliases`, value `"<providerKey>/<modelId>"`).
+    // Without this walk, a compatible-provider entry like `setModelAlias("kimi-k2.6",
+    // "custom/kimi-k2.6")` resolves at request time but never shows up in `/v1/models`.
+    // We respect the same gating as the static/custom listing path: provider must be
+    // active (or noAuth+unblocked), model must not be hidden, and the canonical alias
+    // entry must not already exist (so we don't shadow combo / synced / custom rows).
+    try {
+      const modelAliases = await getModelAliases();
+      const aliasBacked = extractAliasBackedModels(modelAliases);
+      for (const { providerKey, modelId } of aliasBacked) {
+        const canonicalProviderId = resolveCanonicalProviderId(providerKey);
+        if (!canonicalProviderId) continue;
+        if (
+          blockedProviders.has(providerKey) ||
+          blockedProviders.has(canonicalProviderId) ||
+          isNoAuthProviderBlocked(blockedProviders, canonicalProviderId, providerKey)
+        ) {
+          continue;
+        }
+
+        const alias = providerIdToAlias[canonicalProviderId] || providerKey;
+        if (
+          !activeAliases.has(alias) &&
+          !activeAliases.has(canonicalProviderId) &&
+          !activeAliases.has(providerKey)
+        ) {
+          continue;
+        }
+
+        if (getModelIsHidden(canonicalProviderId, modelId)) continue;
+
+        const aliasId = `${alias}/${modelId}`;
+        const rawPrefixedId = `${providerKey}/${modelId}`;
+        if (
+          models.some((m: any) => m?.id === aliasId) ||
+          models.some((m: any) => m?.id === rawPrefixedId)
+        ) {
+          continue;
+        }
+
+        const visionFields =
+          getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId);
+
+        if (includeAlias) {
+          models.push({
+            id: aliasId,
+            object: "model",
+            created: timestamp,
+            owned_by: canonicalProviderId,
+            permission: [],
+            root: modelId,
+            parent: null,
+            ...(visionFields || {}),
+          });
+        }
+        if (
+          includeCanonical &&
+          canonicalProviderId !== alias &&
+          !isNoAuthProviderKey(canonicalProviderId) &&
+          prefixRoutesToProvider(canonicalProviderId, canonicalProviderId)
+        ) {
+          const providerPrefixedId = `${canonicalProviderId}/${modelId}`;
+          if (models.some((m: any) => m?.id === providerPrefixedId)) continue;
+          const providerVisionFields =
+            getVisionCapabilityFields(providerPrefixedId) || getVisionCapabilityFields(modelId);
+          models.push({
+            id: providerPrefixedId,
+            object: "model",
+            created: timestamp,
+            owned_by: canonicalProviderId,
+            permission: [],
+            root: modelId,
+            parent: includeAlias ? aliasId : null,
+            ...(providerVisionFields || {}),
+          });
+        }
+      }
+    } catch (e) {
+      console.log("Could not fetch model aliases");
     }
 
     // Add managed fallback models for compatible providers that don't import a model list.
@@ -1370,15 +1223,18 @@ export async function getUnifiedModelsResponse(
     if (apiKey) {
       const { isModelAllowedForKey, getApiKeyMetadata } = await import("@/lib/db/apiKeys");
 
-      // Quota-exclusive keys (allowedQuotas non-empty): show only the
-      // quotaShared-* virtual models for the key's assigned pools (Phase B3).
-      // This takes precedence over the normal allowedModels filter.
+      // Quota-exclusive keys (allowedQuotas non-empty): list ONLY the pool's qtSd/*
+      // virtual models. #4806: build from the hidden qtSd/* combos directly — the base
+      // `models` list drops hidden combos, so filtering it returned nothing (0 models).
       const keyMeta = await getApiKeyMetadata(apiKey);
       if (keyMeta && keyMeta.allowedQuotas && keyMeta.allowedQuotas.length > 0) {
-        const { resolveQuotaKeyScope } = await import("@/lib/quota/quotaKey");
-        const { filterModelsToQuotaPools } = await import("@/lib/quota/quotaCombos");
-        const scope = await resolveQuotaKeyScope(keyMeta.allowedQuotas);
-        finalModels = filterModelsToQuotaPools(models, scope.poolSlugs);
+        const { buildQuotaExclusiveModels } = await import("@/lib/quota/quotaCombos");
+        finalModels = await buildQuotaExclusiveModels(
+          keyMeta.allowedQuotas,
+          combos,
+          timestamp,
+          (c) => buildComboCatalogMetadata(c, combos)
+        );
       } else {
         const filtered = [];
         for (const m of models) {

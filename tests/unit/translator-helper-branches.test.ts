@@ -599,6 +599,26 @@ test("fixMissingToolResponses keeps OpenAI role:tool when assistant uses OpenAI 
   assert.equal(fixed.messages[2].tool_call_id, "call_b");
 });
 
+test("fallbackToolCallId returns the right id shape with and without an index", () => {
+  const noIndex = toolCallHelper.fallbackToolCallId();
+  assert.match(
+    noIndex,
+    /^call_\d+$/,
+    "no-index form must be `call_<ts>` (matches kiro/openai-responses fallback shape)"
+  );
+
+  const withIndex = toolCallHelper.fallbackToolCallId(2);
+  assert.match(
+    withIndex,
+    /^call_2_\d+$/,
+    "index form must be `call_<i>_<ts>` (matches indexed fallback shape)"
+  );
+
+  // index 0 is falsy but defined — must still produce the indexed form, not the no-index form.
+  const zeroIndex = toolCallHelper.fallbackToolCallId(0);
+  assert.match(zeroIndex, /^call_0_\d+$/, "index 0 must use the indexed form, not the bare form");
+});
+
 test("translateRequest replays cached reasoning-only messages when interleaved field is reasoning_content", () => {
   clearReasoningCacheAll();
   clearModelsDevCapabilities();

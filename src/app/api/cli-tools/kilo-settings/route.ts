@@ -11,21 +11,17 @@ import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db
 import { cliModelConfigSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { resolveApiKey } from "@/shared/services/apiKeyResolver";
+import { readJsoncConfig } from "../_lib/jsoncConfig";
 
 const KILO_DATA_DIR = path.join(os.homedir(), ".local", "share", "kilo");
 const AUTH_PATH = path.join(KILO_DATA_DIR, "auth.json");
 const KILO_CONFIG_DIR = path.join(os.homedir(), ".config", "kilo");
 
-// Read auth.json
-const readAuth = async () => {
-  try {
-    const content = await fs.readFile(AUTH_PATH, "utf-8");
-    return JSON.parse(content);
-  } catch (error) {
-    if (error.code === "ENOENT") return null;
-    throw error;
-  }
-};
+// Read auth.json.
+// Ported from upstream decolua/9router@6c10edf8: tolerate JSONC (trailing
+// commas) and return null on any parse error so the dashboard renders
+// "installed but not configured" instead of a 500 misread as "not installed".
+const readAuth = async () => readJsoncConfig(AUTH_PATH);
 
 // Check if OmniRoute OpenAI-compatible provider is configured
 const hasOmniRouteConfig = (auth) => {
