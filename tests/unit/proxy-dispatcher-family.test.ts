@@ -7,6 +7,7 @@ import {
   proxyConfigToUrl,
   normalizeProxyUrl,
   clearDispatcherCache,
+  __cacheProxyDispatcherForTest,
 } from "../../open-sse/utils/proxyDispatcher.ts";
 
 afterEach(() => clearDispatcherCache());
@@ -76,5 +77,23 @@ describe("proxyDispatcher connection pool", () => {
       OMNIROUTE_PROXY_DISPATCHER_CONNECTIONS: "9999",
     });
     assert.equal(options.connections, 256);
+  });
+
+  it("closes cached proxy dispatchers when the proxy cache is cleared", () => {
+    let closeCount = 0;
+    const dispatcher = {
+      dispatch() {
+        return true;
+      },
+      close() {
+        closeCount += 1;
+      },
+      destroy() {},
+    };
+
+    __cacheProxyDispatcherForTest("http://proxy.example.com:8080", dispatcher as never);
+    clearDispatcherCache();
+
+    assert.equal(closeCount, 1);
   });
 });

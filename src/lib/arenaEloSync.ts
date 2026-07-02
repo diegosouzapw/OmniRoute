@@ -132,7 +132,6 @@ const VENDOR_PREFIXES = [
   "alibaba/",
   "nvidia/",
   "01-ai/",
-  "phind/",
   "zerox/",
   "together/",
   "fireworks/",

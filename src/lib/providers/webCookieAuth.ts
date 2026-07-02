@@ -49,6 +49,12 @@ export function extractCookieValue(rawValue: string, cookieName: string): string
  * only appended when it appears as a real cookie pair in the input, so a bare
  * `sso` value (no `;`/`=`) is never mistaken for an `sso-rw` value.
  *
+ * The Cloudflare cookies `cf_clearance` and `__cf_bm` are forwarded the same
+ * way when present (#5350) — Cloudflare on grok.com expects the same clearance
+ * the browser earned, and AIClient2API forwards them too. Like `sso-rw`, each is
+ * appended only when it appears as a real cookie pair, so a bare `sso` blob
+ * still produces exactly `sso=<value>` (no phantom cf keys).
+ *
  * Returns "" when no `sso` value can be extracted.
  */
 export function buildGrokCookieHeader(rawValue: string): string {
@@ -56,9 +62,11 @@ export function buildGrokCookieHeader(rawValue: string): string {
   if (!sso) return "";
 
   const parts = [`sso=${sso}`];
-  if (/(?:^|;\s*)sso-rw=/.test(rawValue)) {
-    const ssoRw = extractCookieValue(rawValue, "sso-rw");
-    if (ssoRw) parts.push(`sso-rw=${ssoRw}`);
+  for (const name of ["sso-rw", "cf_clearance", "__cf_bm"]) {
+    if (new RegExp("(?:^|;\\s*)" + name + "=").test(rawValue)) {
+      const value = extractCookieValue(rawValue, name);
+      if (value) parts.push(`${name}=${value}`);
+    }
   }
   return parts.join("; ");
 }
@@ -96,6 +104,38 @@ export function extractQwenToken(rawValue: string): string {
   if (!trimmed.includes("=")) return trimmed;
   const match = trimmed.match(/(?:^|;\s*)token=([^;\s]+)/);
   return match ? match[1] : "";
+}
+
+/**
+ * Pull the `kimi-auth` JWT out of whatever the user pasted for the
+ * international Kimi consumer chat (www.kimi.com).
+ *
+ * Accepts (all return the same JWT string):
+ *   - bare JWT                       `eyJhbGci...sig`
+ *   - full Cookie header             `_ga=...; kimi-auth=eyJ...; theme=dark`
+ *   - `Cookie:` / `Authorization: Bearer` prefixed forms
+ *   - stray `Bearer eyJ...` without a header label
+ *
+ * Returns "" if no JWT can be located.
+ */
+export function extractKimiJwt(rawValue: string): string {
+  const trimmed = stripCookieInputPrefix(rawValue);
+  if (!trimmed) return "";
+
+  // Bare JWT — three base64url segments separated by dots.
+  if (/^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  // Cookie-style pair: pull `kimi-auth=<value>` out of the blob.
+  const match = trimmed.match(/(?:^|[\s;])kimi-auth=([^;\s]+)/);
+  if (match) return match[1];
+
+  // Last resort: a `Bearer <jwt>` pasted without the header label.
+  const bearer = trimmed.match(/bearer\s+(eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/i);
+  if (bearer) return bearer[1];
+
+  return "";
 }
 
 export function normalizeSessionCookieHeaders(

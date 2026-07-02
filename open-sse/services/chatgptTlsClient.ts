@@ -14,7 +14,7 @@
 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { mkdtemp, open, unlink, rmdir, stat } from "node:fs/promises";
+import { mkdtemp, open, unlink, rmdir, stat, readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 
 let clientPromise: Promise<unknown> | null = null;
@@ -31,6 +31,8 @@ const DEFAULT_TIMEOUT_MS =
 // longer than the configured timeout when the binding is dead.
 const HARD_TIMEOUT_GRACE_MS =
   Number.parseInt(process.env.OMNIROUTE_CHATGPT_TLS_GRACE_MS || "", 10) || 10_000;
+const STREAM_FIRST_BYTE_TIMEOUT_MS =
+  Number.parseInt(process.env.OMNIROUTE_CHATGPT_STREAM_FIRST_BYTE_TIMEOUT_MS || "", 10) || 30_000;
 
 function installExitHook(): void {
   if (exitHookInstalled) return;
@@ -293,7 +295,8 @@ export async function tlsFetchChatGpt(
       requestOptions,
       options.streamEofSymbol,
       options.signal ?? null,
-      (options.timeoutMs ?? DEFAULT_TIMEOUT_MS) + HARD_TIMEOUT_GRACE_MS
+      (options.timeoutMs ?? DEFAULT_TIMEOUT_MS) + HARD_TIMEOUT_GRACE_MS,
+      STREAM_FIRST_BYTE_TIMEOUT_MS
     );
   }
 
@@ -350,7 +353,8 @@ async function tlsFetchStreaming(
   requestOptions: Record<string, unknown>,
   eofSymbol = "[DONE]",
   signal: AbortSignal | null = null,
-  hardTimeoutMs: number = DEFAULT_TIMEOUT_MS + HARD_TIMEOUT_GRACE_MS
+  hardTimeoutMs: number = DEFAULT_TIMEOUT_MS + HARD_TIMEOUT_GRACE_MS,
+  firstByteTimeoutMs: number = STREAM_FIRST_BYTE_TIMEOUT_MS
 ): Promise<TlsFetchResult> {
   const dir = await mkdtemp(join(tmpdir(), "cgpt-stream-"));
   const path = join(dir, `${randomUUID()}.sse`);
@@ -392,16 +396,21 @@ async function tlsFetchStreaming(
   // that race; if the request actually fails before producing any bytes,
   // the timeout falls through to the requestPromise drain below (returning
   // the real upstream status).
-  const ready = await waitForContent(path, 5_000, requestPromise);
+  const ready = await waitForContent(path, firstByteTimeoutMs, requestPromise);
   if (!ready) {
     const r = await requestPromise.catch(
       (e) => ({ status: 502, headers: {}, body: String(e) }) as TlsResponseLike
     );
+    // If the first byte arrived after our first-byte wait but before the
+    // request settled, tls-client-node may have written the full SSE body to
+    // streamOutputPath while leaving r.body empty. Prefer those captured bytes
+    // over misclassifying a successful delayed stream as "empty response body".
+    const fileText = await readTextFileIfExists(path);
     await cleanupTempPath(path);
     return {
       status: r.status,
       headers: toHeaders(r.headers),
-      text: r.body,
+      text: fileText || r.body,
       body: null,
     };
   }
@@ -417,11 +426,12 @@ async function tlsFetchStreaming(
     const r = await requestPromise.catch(
       (e) => ({ status: 502, headers: {}, body: String(e) }) as TlsResponseLike
     );
+    const fileText = await readTextFileIfExists(path);
     await cleanupTempPath(path);
     return {
       status: r.status,
       headers: toHeaders(r.headers),
-      text: r.body,
+      text: r.body || fileText,
       body: null,
     };
   }
@@ -455,6 +465,34 @@ async function cleanupTempPath(path: string): Promise<void> {
   await unlink(path).catch(() => {});
   const dir = path.substring(0, path.lastIndexOf("/"));
   await rmdir(dir).catch(() => {});
+}
+
+async function readTextFileIfExists(path: string): Promise<string> {
+  try {
+    return await readFile(path, "utf8");
+  } catch {
+    return "";
+  }
+}
+
+export async function __tlsFetchStreamingForTesting(
+  client: { request: (url: string, opts: Record<string, unknown>) => Promise<unknown> },
+  url: string,
+  requestOptions: Record<string, unknown>,
+  eofSymbol = "[DONE]",
+  signal: AbortSignal | null = null,
+  hardTimeoutMs: number = DEFAULT_TIMEOUT_MS + HARD_TIMEOUT_GRACE_MS,
+  firstByteTimeoutMs: number = STREAM_FIRST_BYTE_TIMEOUT_MS
+): Promise<TlsFetchResult> {
+  return tlsFetchStreaming(
+    client as { request: (url: string, opts: Record<string, unknown>) => Promise<TlsResponseLike> },
+    url,
+    requestOptions,
+    eofSymbol,
+    signal,
+    hardTimeoutMs,
+    firstByteTimeoutMs
+  );
 }
 
 async function readFirstBytes(path: string, n: number): Promise<string> {

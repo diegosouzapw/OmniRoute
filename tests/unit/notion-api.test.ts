@@ -45,6 +45,14 @@ test("NotionTimeoutError has correct name", () => {
 test("createNotionClient returns object with expected methods", async () => {
   const { createNotionClient } = await import("../../src/lib/notion/api.ts");
   const client = createNotionClient("test-token");
+  assert.deepEqual(Object.keys(client), [
+    "searchPagesAndDatabases",
+    "getPage",
+    "listBlockChildren",
+    "queryDatabase",
+    "getDatabase",
+    "appendBlocks",
+  ]);
   assert.equal(typeof client.searchPagesAndDatabases, "function");
   assert.equal(typeof client.getPage, "function");
   assert.equal(typeof client.listBlockChildren, "function");

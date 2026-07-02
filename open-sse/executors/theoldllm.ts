@@ -5,7 +5,7 @@ const API_BASE = "https://theoldllm.vercel.app";
 const API_PATH = "/api/chatgpt";
 const API_URL = `${API_BASE}${API_PATH}`;
 const CHROME_UA =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
 // ── Model name mapping ────────────────────────────────────────────────────
 
@@ -15,25 +15,25 @@ const GPT_MODELS: Record<string, string> = {
   "gpt-5.2": "GPT_5_2",
   "gpt-5.1": "GPT_5_1",
   "gpt-5": "GPT_5",
-  "gpt5_4": "GPT_5_4",
-  "gpt5_3": "GPT_5_3",
-  "gpt5_2": "GPT_5_2",
-  "gpt5_1": "GPT_5_1",
-  "gpt_4o": "GPT_4O",
+  gpt5_4: "GPT_5_4",
+  gpt5_3: "GPT_5_3",
+  gpt5_2: "GPT_5_2",
+  gpt5_1: "GPT_5_1",
+  gpt_4o: "GPT_4O",
   "gpt-4o": "GPT_4O",
-  "gpt_5_3": "GPT_5_3",
-  "gpt_5_2": "GPT_5_2",
-  "gpt_5_1": "GPT_5_1",
-  "gpt_5": "GPT_5",
+  gpt_5_3: "GPT_5_3",
+  gpt_5_2: "GPT_5_2",
+  gpt_5_1: "GPT_5_1",
+  gpt_5: "GPT_5",
 };
 
 const CLAUDE_NAMES: Record<string, string> = {
   "claude-4.6-opus": "CLAUDE_4_6_OPUS",
   "claude-4.6-sonnet": "CLAUDE_4_6_SONNET",
   "claude-4.5-haiku": "CLAUDE_4_5_HAIKU",
-  "claude_opus_4": "CLAUDE_4_6_OPUS",
-  "claude_sonnet_4": "CLAUDE_4_6_SONNET",
-  "claude_haiku_3_5": "CLAUDE_4_5_HAIKU",
+  claude_opus_4: "CLAUDE_4_6_OPUS",
+  claude_sonnet_4: "CLAUDE_4_6_SONNET",
+  claude_haiku_3_5: "CLAUDE_4_5_HAIKU",
   "claude opus 4": "CLAUDE_4_6_OPUS",
   "claude sonnet 4": "CLAUDE_4_6_SONNET",
   "claude haiku 3.5": "CLAUDE_4_5_HAIKU",
@@ -92,13 +92,11 @@ export const tokenCache: { value: string; expiresAt: number } = { value: "", exp
 
 async function directFetch(
   reqBody: Record<string, unknown>,
-  signal?: AbortSignal | null,
+  signal?: AbortSignal | null
 ): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 120_000);
-  const onSignal = signal
-    ? () => controller.abort(signal.reason)
-    : undefined;
+  const onSignal = signal ? () => controller.abort(signal.reason) : undefined;
   signal?.addEventListener("abort", onSignal!, { once: true });
 
   try {
@@ -164,7 +162,10 @@ function buildErrorResponse(status: number, body: string): string {
     if (line.startsWith("data: ") && line !== "data: [DONE]") {
       try {
         const p = JSON.parse(line.slice(6));
-        if (p.error) { detail = JSON.stringify(p.error); break; }
+        if (p.error) {
+          detail = JSON.stringify(p.error);
+          break;
+        }
       } catch {}
     }
   }
@@ -202,7 +203,7 @@ export class TheOldLlmExecutor extends BaseExecutor {
   async testConnection(
     _credentials: ProviderCredentials,
     _signal?: AbortSignal | null,
-    log?: ExecuteInput["log"],
+    log?: ExecuteInput["log"]
   ): Promise<boolean> {
     try {
       const resp = await fetch(API_URL, {
@@ -238,9 +239,14 @@ export class TheOldLlmExecutor extends BaseExecutor {
 
     if (signal?.aborted) {
       return {
-        response: new Response(encoder.encode(JSON.stringify({
-          error: { message: "Request aborted", type: "abort", code: "ABORTED" },
-        })), { status: 499, headers: { "Content-Type": "application/json" } }),
+        response: new Response(
+          encoder.encode(
+            JSON.stringify({
+              error: { message: "Request aborted", type: "abort", code: "ABORTED" },
+            })
+          ),
+          { status: 499, headers: { "Content-Type": "application/json" } }
+        ),
         url: API_URL,
         headers: this.buildHeaders(input.credentials),
         transformedBody: body,
@@ -264,9 +270,7 @@ export class TheOldLlmExecutor extends BaseExecutor {
       }
 
       if (upstream.status === 200 && finalBody) {
-        const payload = stream
-          ? finalBody
-          : buildChatCompletion(parseSseContent(finalBody), model);
+        const payload = stream ? finalBody : buildChatCompletion(parseSseContent(finalBody), model);
         return {
           response: new Response(encoder.encode(payload), {
             status: 200,
@@ -298,9 +302,9 @@ export class TheOldLlmExecutor extends BaseExecutor {
           encoder.encode(
             JSON.stringify({
               error: { message: msg, type: "upstream_error", code: "EXECUTOR_ERROR" },
-            }),
+            })
           ),
-          { status: 502, headers: { "Content-Type": "application/json" } },
+          { status: 502, headers: { "Content-Type": "application/json" } }
         ),
         url: API_URL,
         headers: this.buildHeaders(input.credentials),

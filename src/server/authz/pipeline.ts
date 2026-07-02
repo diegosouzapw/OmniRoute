@@ -5,7 +5,9 @@ import { isDraining } from "../../lib/gracefulShutdown";
 import { checkBodySize, getBodySizeLimit } from "../../shared/middleware/bodySizeGuard";
 import { generateRequestId } from "../../shared/utils/requestId";
 import { applyCorsHeaders } from "../cors/origins";
+import { validateBrowserMutationOrigin } from "../origin/publicOrigin";
 import { classifyRoute } from "./classify";
+import { validateDashboardCsrfToken } from "./csrf";
 import { classifyStampedPeerLocality } from "./peerStamp";
 import { clientApiPolicy } from "./policies/clientApi";
 import { managementPolicy } from "./policies/management";
@@ -168,6 +170,27 @@ function drainingResponse(requestId: string): NextResponse {
   return response;
 }
 
+function invalidOriginResponse(requestId: string): NextResponse {
+  const response = NextResponse.json(
+    {
+      error: {
+        code: "INVALID_ORIGIN",
+        message:
+          "Invalid request origin. Same-origin dashboard writes must include a valid dashboard CSRF token. " +
+          "Refresh the dashboard and retry, or set OMNIROUTE_PUBLIC_BASE_URL for non-dashboard browser integrations.",
+        correlation_id: requestId,
+      },
+    },
+    { status: 403 }
+  );
+  response.headers.set(AUTHZ_HEADER_REQUEST_ID, requestId);
+  return response;
+}
+
+function isUnsafeMutationMethod(method: string): boolean {
+  return !["GET", "HEAD", "OPTIONS"].includes(method.toUpperCase());
+}
+
 function stampRouteResponse(
   response: Response,
   requestId: string,
@@ -208,10 +231,23 @@ export async function runAuthzPipeline(
   const guardedPathname = classification.normalizedPath;
   const managementDashboardRoute = isManagementDashboardRoute(classification, pathname);
 
+  // Relax the CORS origin fallback ONLY for the token-authenticated API
+  // surface (CLIENT_API: /v1/*, /v1beta/*, codex/responses aliases) and
+  // read-only PUBLIC endpoints. These authenticate via Authorization /
+  // x-api-key headers that browsers never auto-attach, so echoing the caller's
+  // Origin (or `*`) there carries no credentialed-session / CSRF risk — it just
+  // lets browser/Electron clients (issue #5242) read responses they are already
+  // entitled to. MANAGEMENT (cookie-authed dashboard) and non-read-only PUBLIC
+  // routes (e.g. /api/cloud/, which sets Allow-Credentials in its own handler)
+  // stay exactly fail-closed.
+  const corsRelaxOrigin =
+    classification.routeClass === "CLIENT_API" ||
+    (classification.routeClass === "PUBLIC" && classification.reason === "public_readonly_prefix");
+
   if (guardedPathname.startsWith("/api/") && isDraining()) {
     const response = drainingResponse(requestId);
     stampRouteResponse(response, requestId, classification.routeClass);
-    applyCorsHeaders(response, request);
+    applyCorsHeaders(response, request, corsRelaxOrigin);
     return response;
   }
 
@@ -223,7 +259,7 @@ export async function runAuthzPipeline(
     );
     if (bodySizeRejection) {
       stampRouteResponse(bodySizeRejection, requestId, classification.routeClass);
-      applyCorsHeaders(bodySizeRejection, request);
+      applyCorsHeaders(bodySizeRejection, request, corsRelaxOrigin);
       return bodySizeRejection;
     }
   }
@@ -262,7 +298,7 @@ export async function runAuthzPipeline(
     const preflight = new NextResponse(null, { status: 204 });
     preflight.headers.set(AUTHZ_HEADER_REQUEST_ID, requestId);
     preflight.headers.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
-    applyCorsHeaders(preflight, request);
+    applyCorsHeaders(preflight, request, corsRelaxOrigin);
     return preflight;
   }
 
@@ -270,7 +306,7 @@ export async function runAuthzPipeline(
     const response = NextResponse.next({ request: { headers: requestHeaders } });
     response.headers.set(AUTHZ_HEADER_REQUEST_ID, requestId);
     response.headers.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
-    applyCorsHeaders(response, request);
+    applyCorsHeaders(response, request, corsRelaxOrigin);
     return response;
   }
 
@@ -283,8 +319,24 @@ export async function runAuthzPipeline(
     }
 
     const rejection = rejectionResponse(outcome, classification, requestId);
-    applyCorsHeaders(rejection, request);
+    applyCorsHeaders(rejection, request, corsRelaxOrigin);
     return rejection;
+  }
+
+  if (
+    classification.routeClass === "MANAGEMENT" &&
+    outcome.subject.kind === "dashboard_session" &&
+    isUnsafeMutationMethod(method)
+  ) {
+    const originVerdict = validateBrowserMutationOrigin(request);
+    const csrfOriginFallback =
+      originVerdict.reason === "invalid-origin" && validateDashboardCsrfToken(request);
+    if (!originVerdict.ok && !csrfOriginFallback) {
+      const rejection = invalidOriginResponse(requestId);
+      rejection.headers.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
+      applyCorsHeaders(rejection, request);
+      return rejection;
+    }
   }
 
   stampSubject(requestHeaders, outcome.subject);
@@ -292,7 +344,7 @@ export async function runAuthzPipeline(
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set(AUTHZ_HEADER_REQUEST_ID, requestId);
   response.headers.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
-  applyCorsHeaders(response, request);
+  applyCorsHeaders(response, request, corsRelaxOrigin);
   if (managementDashboardRoute) {
     await refreshDashboardSessionIfNeeded(response, request);
   }

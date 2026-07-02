@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto";
 import { CORS_HEADERS } from "../utils/cors.ts";
 import { stripTrailingSlashes } from "../utils/urlSanitize.ts";
 /**
@@ -35,22 +34,27 @@ import { signAwsRequest } from "../utils/awsSigV4.ts";
 /**
  * Return a CORS error response from an upstream fetch failure
  */
+function extractUpstreamErrorMessage(parsed) {
+  const detail = parsed?.detail;
+  const candidates = [
+    parsed?.err_msg,
+    parsed?.error?.message,
+    typeof parsed?.error === "string" ? parsed.error : null,
+    parsed?.message,
+    typeof detail === "string" ? detail : detail?.message,
+  ];
+
+  const raw = candidates.find(Boolean);
+  return raw ? String(raw) : null;
+}
+
 function upstreamErrorResponse(res, errText) {
   // Always return JSON so the client can detect 401/credential errors reliably
   let errorMessage: string;
   try {
     const parsed = JSON.parse(errText);
-    // Extract a human-readable message from various error response shapes.
-    // Guard against `parsed.error` being an object (e.g. ElevenLabs returns
-    // { error: { message: "...", status_code: 401 } } or { detail: { ... } })
-    const raw =
-      parsed?.err_msg ||
-      parsed?.error?.message ||
-      (typeof parsed?.error === "string" ? parsed.error : null) ||
-      parsed?.message ||
-      (typeof parsed?.detail === "string" ? parsed.detail : parsed?.detail?.message) ||
-      null;
-    errorMessage = raw ? String(raw) : errText || `Upstream error (${res.status})`;
+    errorMessage =
+      extractUpstreamErrorMessage(parsed) || errText || `Upstream error (${res.status})`;
   } catch {
     errorMessage = errText || `Upstream error (${res.status})`;
   }
@@ -791,8 +795,7 @@ function hexToBytes(audioHex) {
 }
 
 async function handleMinimaxSpeech(providerConfig, body, modelId, token) {
-  const voiceId =
-    (typeof body.voice === "string" && body.voice) || "English_expressive_narrator";
+  const voiceId = (typeof body.voice === "string" && body.voice) || "English_expressive_narrator";
   const res = await fetch(providerConfig.baseUrl, {
     method: "POST",
     headers: {
@@ -835,12 +838,9 @@ async function handleMinimaxSpeech(providerConfig, body, modelId, token) {
     return upstreamErrorResponse(res, rawText);
   }
 
-  const baseResp =
-    ((data.base_resp || data.baseResp) as Record<string, unknown> | undefined) || {};
+  const baseResp = ((data.base_resp || data.baseResp) as Record<string, unknown> | undefined) || {};
   const statusCode = Number(baseResp.status_code ?? baseResp.statusCode ?? 0);
-  const statusMessage = String(
-    baseResp.status_msg || baseResp.statusMsg || data.message || ""
-  );
+  const statusMessage = String(baseResp.status_msg || baseResp.statusMsg || data.message || "");
   if (statusCode !== 0) {
     return errorResponse(502, `MiniMax TTS: ${statusMessage || "upstream error"}`);
   }

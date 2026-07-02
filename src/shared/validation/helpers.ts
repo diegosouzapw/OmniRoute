@@ -1,37 +1,56 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 
+type ValidationErrorDetail = {
+  field: string;
+  message: string;
+};
+
+type ValidationErrorPayload = {
+  message: string;
+  details: ValidationErrorDetail[];
+};
+
+type ValidationSuccess<TData> = {
+  success: true;
+  data: TData;
+};
+
+type ValidationFailure = {
+  success: false;
+  error: ValidationErrorPayload;
+};
+
+export type ValidationResult<TData> = ValidationSuccess<TData> | ValidationFailure;
+
+// ──── Helper ────
+
 /**
- * Validate a request body against a Zod schema.
- * Returns either the parsed data (success) or the error details object (failure).
- *
- * On failure: `{ success: false, error: { message, details } }` — route handlers
- * should return `NextResponse.json({ error: v.error }, { status: 400 })`.
+ * Parse and validate request body with a Zod schema.
+ * Returns { success: true, data } or { success: false, error }.
  */
-export function validateBody<T extends z.ZodTypeAny>(
-  schema: T,
+export function validateBody<TSchema extends z.ZodTypeAny>(
+  schema: TSchema,
   body: unknown
-): { success: true; data: z.infer<T> } | { success: false; error: { message: string; details: Array<{ field: string; message: string }> } } {
+): ValidationResult<z.infer<TSchema>> {
   const result = schema.safeParse(body);
   if (result.success) {
     return { success: true, data: result.data };
   }
+  const issues = Array.isArray(result.error?.issues) ? result.error.issues : [];
   return {
     success: false,
     error: {
       message: "Invalid request",
-      details: result.error.issues.map((i) => ({
-        field: i.path.join("."),
-        message: i.message,
+      details: issues.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
       })),
     },
   };
 }
 
-export function isValidationFailure<T>(
-  v:
-    | { success: true; data: T }
-    | { success: false; error: { message: string; details: Array<{ field: string; message: string }> } }
-): v is { success: false; error: { message: string; details: Array<{ field: string; message: string }> } } {
-  return !v.success;
+export function isValidationFailure<TData>(
+  validation: ValidationResult<TData>
+): validation is ValidationFailure {
+  return validation.success === false;
 }

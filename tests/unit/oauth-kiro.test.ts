@@ -46,6 +46,11 @@ test("KIRO_CONFIG.socialClientId default matches the public CLI identifier 'kiro
   }
 });
 
+test("auth schemas keep the supported Kiro import schema exported", async () => {
+  const { kiroImportSchema } = await import("../../src/shared/validation/schemas/auth.ts");
+  assert.equal(typeof kiroImportSchema.safeParse, "function");
+});
+
 test("Kiro social-flow routes do not duplicate the AWS auth URL or 'kiro-cli' literal", () => {
   // Catches future refactors that copy a hard-coded URL/identifier back into
   // either route. The string "kiro-cli" may still appear as an env-var name

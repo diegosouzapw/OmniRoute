@@ -7,6 +7,7 @@ export const minimaxProvider: RegistryEntry = {
   format: "claude",
   executor: "default",
   baseUrl: "https://api.minimax.io/anthropic/v1/messages",
+  modelsUrl: "https://api.minimax.io/v1/models",
   urlSuffix: "?beta=true",
   authType: "apikey",
   authHeader: "bearer",

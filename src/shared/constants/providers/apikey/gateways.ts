@@ -362,6 +362,11 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     website: "https://cablyai.com",
     authHint: "Bearer API key for the CablyAI OpenAI-compatible gateway.",
     passthroughModels: true,
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    deprecated: true,
+    deprecationReason:
+      "cablyai.com no longer resolves (DNS NXDOMAIN, verified 2026-06-30) — the domain is gone and every request fails with a DNS error (#5568).",
   },
   thebai: {
     id: "thebai",
@@ -423,6 +428,23 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     freeNote:
       "No free tier as of 2026 — Chutes moved to pay-as-you-go (free Early Access ended 2026-03).",
     authHint: "Bearer API key for the Chutes OpenAI-compatible gateway.",
+    passthroughModels: true,
+  },
+  // Factory AI ("Factory Droids") subscription gateway — the same backend the
+  // local `droid` CLI shells into, exposed here as an OpenAI-compatible HTTP
+  // endpoint. Auth surface per https://github.com/Factory-AI/droid-sdk-typescript
+  // is `FACTORY_API_KEY` (Bearer). Subscription tier uses app.factory.ai quota.
+  factory: {
+    id: "factory",
+    alias: "factory",
+    name: "Factory",
+    icon: "smart_toy",
+    color: "#0F172A",
+    textIcon: "FA",
+    website: "https://factory.ai",
+    authHint: "Bearer API key for the Factory OpenAI-compatible gateway.",
+    apiHint:
+      "Get your Factory API key at https://app.factory.ai/settings/api-keys, then paste it as a Bearer token. OpenAI-compatible endpoint at https://api.factory.ai/v1.",
     passthroughModels: true,
   },
   bluesminds: {

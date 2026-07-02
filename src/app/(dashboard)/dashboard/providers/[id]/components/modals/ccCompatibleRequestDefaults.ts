@@ -1,11 +1,13 @@
 type CcCompatibleRequestDefaultsForm = {
   ccCompatibleContext1m: boolean;
   ccCompatibleRedactThinking: boolean;
+  ccCompatibleSummarizeThinking: boolean;
 };
 
 const CC_COMPATIBLE_BOOLEAN_DEFAULTS = [
   ["context1m", "ccCompatibleContext1m"],
   ["redactThinking", "ccCompatibleRedactThinking"],
+  ["summarizeThinking", "ccCompatibleSummarizeThinking"],
 ] as const;
 
 function asRecord(value: unknown): Record<string, unknown> {

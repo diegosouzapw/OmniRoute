@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { executeProviderHealthAutopilotAction } from "@/lib/monitoring/providerHealthAutopilot";
+import { validateBrowserMutationOrigin } from "@/server/origin/publicOrigin";
 import { validateBody } from "@/shared/validation/helpers";
 
 const actionSchema = z.object({
@@ -24,25 +25,12 @@ const actionSchema = z.object({
   confirm: z.boolean().optional(),
 });
 
-function hasSafeMutationOrigin(request: Request): boolean {
-  const fetchSite = request.headers.get("sec-fetch-site")?.toLowerCase();
-  if (fetchSite && !["same-origin", "same-site", "none"].includes(fetchSite)) return false;
-
-  const origin = request.headers.get("origin");
-  if (!origin) return true;
-
-  try {
-    return new URL(origin).origin === new URL(request.url).origin;
-  } catch {
-    return false;
-  }
-}
-
 export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
-  if (!hasSafeMutationOrigin(request)) {
+  const originVerdict = validateBrowserMutationOrigin(request);
+  if (!originVerdict.ok) {
     return NextResponse.json({ error: { message: "Invalid request origin" } }, { status: 403 });
   }
 

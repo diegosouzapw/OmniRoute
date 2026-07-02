@@ -115,7 +115,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     icon: "cloud_queue",
     color: "#FF6600",
     textIcon: "AL",
-    website: "https://dashscope-intl.aliyuncs.com",
+    website: "https://bailian.console.alibabacloud.com/",
     hasFree: false,
   },
   "alibaba-cn": {
@@ -125,7 +125,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     icon: "cloud_queue",
     color: "#FF6600",
     textIcon: "AL",
-    website: "https://dashscope.aliyuncs.com",
+    website: "https://dashscope.console.aliyun.com/",
     hasFree: false,
   },
   longcat: {
@@ -138,7 +138,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     website: "https://longcat.chat/platform/docs",
     hasFree: true,
     freeNote:
-      "Free: 5M tokens/day on LongCat-2.0-Preview (Flash models retired 2026-05-29); up to 120M/day via feedback.",
+      "Free: one-time 10M-token grant after account signup + KYC verification (LongCat-2.0). One-time only — not a recurring daily/monthly allowance.",
   },
   moonshot: {
     id: "moonshot",

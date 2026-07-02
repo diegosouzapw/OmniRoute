@@ -796,3 +796,85 @@ test("createComboSchema rejects queueDepth outside the supported range", () => {
   });
   assert.equal(negative.success, false);
 });
+
+// ─── Fusion strategy config (judgeModel + fusionTuning) ──────────────────
+// Backs the dashboard combo-editor Fusion fields (judge model + tuning). The
+// editor only writes these; the backend (open-sse/services/fusion.ts) reads
+// config.judgeModel / config.fusionTuning. The schema must accept + bound them.
+
+test("createComboSchema accepts judgeModel and fusionTuning for a fusion combo", () => {
+  const result = createComboSchema.safeParse({
+    name: "fusion-panel",
+    models: ["cc/claude-opus-4-7", "cx/gpt-5.5", "glm/glm-5.1"],
+    strategy: "fusion",
+    config: {
+      judgeModel: "cc/claude-opus-4-7",
+      fusionTuning: { minPanel: 2, stragglerGraceMs: 8000, panelHardTimeoutMs: 90000 },
+    },
+  });
+  assert.equal(result.success, true);
+  assert.equal(result.data.config.judgeModel, "cc/claude-opus-4-7");
+  assert.deepEqual(result.data.config.fusionTuning, {
+    minPanel: 2,
+    stragglerGraceMs: 8000,
+    panelHardTimeoutMs: 90000,
+  });
+});
+
+test("createComboSchema accepts a fusion combo with no fusion config (defaults apply at runtime)", () => {
+  const result = createComboSchema.safeParse({
+    name: "fusion-bare",
+    models: ["cc/claude-opus-4-7", "cx/gpt-5.5"],
+    strategy: "fusion",
+    config: {},
+  });
+  assert.equal(result.success, true);
+});
+
+test("createComboSchema coerces numeric-string fusionTuning values", () => {
+  const result = createComboSchema.safeParse({
+    name: "fusion-coerce",
+    models: ["a/m1", "b/m2"],
+    strategy: "fusion",
+    config: { fusionTuning: { minPanel: "3", stragglerGraceMs: "5000" } },
+  });
+  assert.equal(result.success, true);
+  assert.equal(result.data.config.fusionTuning.minPanel, 3);
+  assert.equal(result.data.config.fusionTuning.stragglerGraceMs, 5000);
+});
+
+test("createComboSchema rejects out-of-range fusionTuning values", () => {
+  const minPanelTooHigh = createComboSchema.safeParse({
+    name: "fusion-bad-minpanel",
+    models: ["a/m1", "b/m2"],
+    strategy: "fusion",
+    config: { fusionTuning: { minPanel: 51 } },
+  });
+  assert.equal(minPanelTooHigh.success, false);
+
+  const graceNegative = createComboSchema.safeParse({
+    name: "fusion-bad-grace",
+    models: ["a/m1", "b/m2"],
+    strategy: "fusion",
+    config: { fusionTuning: { stragglerGraceMs: -1 } },
+  });
+  assert.equal(graceNegative.success, false);
+
+  const hardTimeoutTooLow = createComboSchema.safeParse({
+    name: "fusion-bad-hardtimeout",
+    models: ["a/m1", "b/m2"],
+    strategy: "fusion",
+    config: { fusionTuning: { panelHardTimeoutMs: 500 } },
+  });
+  assert.equal(hardTimeoutTooLow.success, false);
+});
+
+test("createComboSchema rejects unknown keys inside fusionTuning (strict object)", () => {
+  const result = createComboSchema.safeParse({
+    name: "fusion-unknown-key",
+    models: ["a/m1", "b/m2"],
+    strategy: "fusion",
+    config: { fusionTuning: { minPanel: 2, bogusKey: 1 } },
+  });
+  assert.equal(result.success, false);
+});

@@ -8,6 +8,8 @@
     "routing",
     "security",
     "compression",
+    "providers",
+    "comparison",
     "ops"
   ]
 }

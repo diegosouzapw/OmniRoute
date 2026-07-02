@@ -92,9 +92,7 @@ function buildMinimaxRules(): ProviderErrorRule[] {
         // If any model reports 0 remaining, the request was rejected for that
         // model. We classify as quota_exhausted so lockModel is called with
         // scope=model instead of poisoning the whole connection.
-        const exhausted = headerVal
-          .split(",")
-          .some((pair) => pair.split("=")[1]?.trim() === "0");
+        const exhausted = headerVal.split(",").some((pair) => pair.split("=")[1]?.trim() === "0");
         if (exhausted) {
           return { reason: "quota_exhausted", scope: "model" };
         }
@@ -129,7 +127,7 @@ export function getProviderErrorRuleMatch(
   body?: unknown
 ): ProviderErrorRuleMatch | null {
   if (!provider) return null;
-  const rules = providerRuleRegistry.get(provider);
+  const rules = providerRuleRegistry.get(provider.toLowerCase());
   if (!rules) return null;
   // Normalize headers: accept either a `Headers` object (from `fetch()`) or
   // a plain record. Provider rules access headers via plain object indexing.
@@ -137,7 +135,12 @@ export function getProviderErrorRuleMatch(
     ? {}
     : typeof (headers as Headers).get === "function"
       ? Object.fromEntries((headers as Headers).entries())
-      : (headers as Record<string, string>);
+      : Object.fromEntries(
+          Object.entries(headers as Record<string, string>).map(([key, value]) => [
+            key.toLowerCase(),
+            value,
+          ])
+        );
   for (const rule of rules) {
     const match = rule.match({ status, headers: safeHeaders, body });
     if (match) return match;

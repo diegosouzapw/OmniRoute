@@ -1,7 +1,7 @@
 "use client";
 
 // Phase 1j extraction — Issue #3501
-// Manages Codex / Claude / Gemini auth-file apply+export state and handlers.
+// Manages Codex / Claude auth-file apply+export state and handlers.
 
 import { useState } from "react";
 
@@ -33,13 +33,6 @@ export function useAuthFileHandlers({
     null
   );
   const [exportingClaudeAuthId, setExportingClaudeAuthId] = useState<string | null>(null);
-
-  // ── Gemini ─────────────────────────────────────────────────────────────────
-  const [applyingGeminiAuthId, setApplyingGeminiAuthId] = useState<string | null>(null);
-  const [applyGeminiModalConnectionId, setApplyGeminiModalConnectionId] = useState<string | null>(
-    null
-  );
-  const [exportingGeminiAuthId, setExportingGeminiAuthId] = useState<string | null>(null);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
@@ -197,83 +190,6 @@ export function useAuthFileHandlers({
     }
   };
 
-  const handleApplyGeminiAuthLocal = async (connectionId: string) => {
-    if (applyingGeminiAuthId) return;
-    setApplyingGeminiAuthId(connectionId);
-
-    const defaultSuccess =
-      typeof (t as any).has === "function" && (t as any).has("geminiAuthAppliedLocal")
-        ? t("geminiAuthAppliedLocal")
-        : "Gemini auth applied locally";
-    const defaultError =
-      typeof (t as any).has === "function" && (t as any).has("geminiAuthApplyFailed")
-        ? t("geminiAuthApplyFailed")
-        : "Failed to apply Gemini auth locally";
-
-    try {
-      const res = await fetch(`/api/providers/${connectionId}/gemini-cli-auth/apply-local`, {
-        method: "POST",
-      });
-
-      if (!res.ok) {
-        notify.error(await parseApiErrorMessage(res, defaultError));
-        return;
-      }
-
-      notify.success(defaultSuccess);
-      setApplyGeminiModalConnectionId(null);
-    } catch (error) {
-      console.error("Error applying Gemini auth locally:", error);
-      notify.error(defaultError);
-    } finally {
-      setApplyingGeminiAuthId(null);
-    }
-  };
-
-  const handleExportGeminiAuthFile = async (connectionId: string) => {
-    if (exportingGeminiAuthId) return;
-    setExportingGeminiAuthId(connectionId);
-
-    const defaultSuccess =
-      typeof (t as any).has === "function" && (t as any).has("geminiAuthExported")
-        ? t("geminiAuthExported")
-        : "Gemini auth file exported";
-    const defaultError =
-      typeof (t as any).has === "function" && (t as any).has("geminiAuthExportFailed")
-        ? t("geminiAuthExportFailed")
-        : "Failed to export Gemini auth file";
-
-    try {
-      const res = await fetch(`/api/providers/${connectionId}/gemini-cli-auth/export`, {
-        method: "POST",
-      });
-
-      if (!res.ok) {
-        notify.error(await parseApiErrorMessage(res, defaultError));
-        return;
-      }
-
-      const blob = await res.blob();
-      const filename = getAttachmentFilename(res, "gemini-auth.json");
-      const objectUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = objectUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
-
-      notify.success(defaultSuccess);
-    } catch (error) {
-      console.error("Error exporting Gemini auth file:", error);
-      notify.error(defaultError);
-    } finally {
-      setExportingGeminiAuthId(null);
-    }
-  };
-
   return {
     // Codex
     applyingCodexAuthId,
@@ -289,12 +205,5 @@ export function useAuthFileHandlers({
     exportingClaudeAuthId,
     handleApplyClaudeAuthLocal,
     handleExportClaudeAuthFile,
-    // Gemini
-    applyingGeminiAuthId,
-    applyGeminiModalConnectionId,
-    setApplyGeminiModalConnectionId,
-    exportingGeminiAuthId,
-    handleApplyGeminiAuthLocal,
-    handleExportGeminiAuthFile,
   };
 }

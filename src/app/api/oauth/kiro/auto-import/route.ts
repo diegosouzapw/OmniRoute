@@ -207,6 +207,11 @@ async function tryAwsSsoCache(targetProvider: string): Promise<{
   triedPath?: string;
   refreshToken?: string;
   source?: string;
+  clientId?: string | null;
+  clientSecret?: string | null;
+  region?: string | null;
+  authMethod?: string | null;
+  profileArn?: string | null;
 }> {
   const { readFile, readdir } = await import("fs/promises");
   const cachePath = join(homedir(), ".aws/sso/cache");
@@ -231,7 +236,77 @@ async function tryAwsSsoCache(targetProvider: string): Promise<{
       const content = await readFile(join(cachePath, file), "utf-8");
       const data = JSON.parse(content);
       if (data.refreshToken?.startsWith("aorAAAAAG")) {
-        return { found: true, refreshToken: data.refreshToken, source: file };
+        const region: string | null = data.region || null;
+        const authMethod: string | null = data.authMethod || null;
+
+        // For IDC/organization tokens, resolve clientId and clientSecret from
+        // the linked client registration file (referenced by clientIdHash).
+        let clientId: string | null = null;
+        let clientSecret: string | null = null;
+        if (data.clientIdHash) {
+          const clientFile = `${data.clientIdHash}.json`;
+          try {
+            const clientContent = await readFile(join(cachePath, clientFile), "utf-8");
+            const clientData = JSON.parse(clientContent);
+            if (clientData.clientId && clientData.clientSecret) {
+              clientId = clientData.clientId;
+              clientSecret = clientData.clientSecret;
+            }
+          } catch {
+            // Client registration file not found — continue without it
+          }
+        }
+
+        // Read profileArn from Kiro IDE's profile.json.
+        // The runtime gateway requires us-east-1 in the ARN regardless of the IDC
+        // region, so we normalize the ARN region to us-east-1 (#2059).
+        let profileArn: string | null = null;
+        const kiroProfilePaths = [
+          join(
+            process.env.APPDATA || join(homedir(), "AppData", "Roaming"),
+            "Kiro",
+            "User",
+            "globalStorage",
+            "kiro.kiroagent",
+            "profile.json"
+          ),
+          join(
+            homedir(),
+            ".config",
+            "Kiro",
+            "User",
+            "globalStorage",
+            "kiro.kiroagent",
+            "profile.json"
+          ),
+        ];
+        for (const profilePath of kiroProfilePaths) {
+          try {
+            const profileContent = await readFile(profilePath, "utf-8");
+            const profileData = JSON.parse(profileContent);
+            if (profileData.arn) {
+              // Normalize region to us-east-1 for the runtime gateway
+              profileArn = profileData.arn.replace(
+                /arn:aws:codewhisperer:[^:]+:/,
+                "arn:aws:codewhisperer:us-east-1:"
+              );
+              break;
+            }
+          } catch {
+            continue;
+          }
+        }
+
+        return {
+          found: true,
+          refreshToken: data.refreshToken,
+          source: file,
+          clientId,
+          clientSecret,
+          region,
+          authMethod,
+          profileArn,
+        };
       }
     } catch {
       // skip
@@ -296,8 +371,13 @@ export function findKiroConnectionByProfileArn(
 
 // ── Save to OmniRoute DB ──────────────────────────────────────────────────────
 
+type SaveAndRespondResult = Awaited<ReturnType<typeof tryKiroCliSqlite>> & {
+  // Fields added by tryAwsSsoCache for IDC tokens (#2059)
+  authMethod?: string | null;
+};
+
 async function saveAndRespond(
-  result: Awaited<ReturnType<typeof tryKiroCliSqlite>>,
+  result: SaveAndRespondResult,
   targetProvider: string,
   request: Request
 ) {
@@ -311,8 +391,19 @@ async function saveAndRespond(
     let expiresAt = result.expiresAt;
     let profileArn = result.profileArn;
 
+    // Determine authMethod: prefer the value from the SSO cache token (e.g. "idc")
+    // so that kiroService.refreshToken() takes the correct OIDC path for IDC tokens
+    // (#2059). Fall back to "kiro-cli" for the SQLite path and "imported" for plain
+    // social SSO cache tokens (no clientIdHash → no IDC client creds).
+    const resolvedAuthMethod =
+      result.source === "kiro-cli-sqlite"
+        ? "kiro-cli"
+        : result.clientId
+          ? result.authMethod || "idc"
+          : "imported";
+
     const providerSpecificData: Record<string, any> = {
-      authMethod: result.source === "kiro-cli-sqlite" ? "kiro-cli" : "imported",
+      authMethod: resolvedAuthMethod,
       provider: result.source === "kiro-cli-sqlite" ? "kiro-cli SQLite" : "AWS SSO Cache",
     };
 

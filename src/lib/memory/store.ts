@@ -30,6 +30,7 @@ interface MemoryRow {
   created_at: string;
   updated_at: string;
   expires_at: string | null;
+  // TV6 typed-decay columns (migration 111). Optional so a pre-migration row still maps.
   access_count?: number | null;
   last_accessed_at?: string | null;
 }
@@ -194,6 +195,7 @@ export async function createMemory(
       createdAt: new Date(String(existing.created_at)),
       updatedAt: new Date(now),
       expiresAt: memory.expiresAt ?? null,
+      // Preserve the existing access telemetry on UPSERT (an update is not a fresh access).
       accessCount: typeof existing.access_count === "number" ? existing.access_count : 0,
       lastAccessedAt: existing.last_accessed_at
         ? new Date(String(existing.last_accessed_at))
@@ -577,4 +579,43 @@ export function recordMemoryAccess(ids: string[]): void {
   } catch {
     // intentional swallow — access tracking is opportunistic telemetry, never load-bearing
   }
+}
+
+/**
+ * TV6: lightweight candidate rows for the decay sweep. Returns only the fields the decay
+ * predicates read (no content/metadata), ordered oldest-first and bounded by `limit`, so a
+ * sweep never materializes whole memories or scans unboundedly.
+ */
+export function listMemoriesForDecay(filters: {
+  apiKeyId?: string;
+  limit: number;
+}): {
+  id: string;
+  type: MemoryType;
+  accessCount: number;
+  createdAt: Date;
+  lastAccessedAt: Date | null;
+}[] {
+  const db = getDbInstance();
+  const where = filters.apiKeyId ? " WHERE api_key_id = ?" : "";
+  const params: unknown[] = filters.apiKeyId ? [filters.apiKeyId] : [];
+  params.push(Math.max(1, Math.floor(filters.limit)));
+  const stmt = db.prepare(
+    `SELECT id, type, access_count, created_at, last_accessed_at FROM memories${where} ` +
+      `ORDER BY created_at ASC LIMIT ?`
+  );
+  const rows = stmt.all(...params) as {
+    id: string;
+    type: string;
+    access_count: number | null;
+    created_at: string;
+    last_accessed_at: string | null;
+  }[];
+  return rows.map((r) => ({
+    id: String(r.id),
+    type: r.type as MemoryType,
+    accessCount: typeof r.access_count === "number" ? r.access_count : 0,
+    createdAt: new Date(String(r.created_at)),
+    lastAccessedAt: r.last_accessed_at ? new Date(String(r.last_accessed_at)) : null,
+  }));
 }

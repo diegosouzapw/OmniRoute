@@ -9,7 +9,7 @@ name: Wiki Sync
 # It does NOT overwrite existing wiki pages by default: several docs sources still carry
 # stale counts (e.g. ARCHITECTURE.md says "177 providers" while the wiki cover is 226),
 # so blind overwrite would regress the wiki. Full content parity (--update-existing) is
-# gated on regenerating those sources — see docs/ops/DOCUMENTATION_AUDIT_REPORT.md.
+# gated on regenerating those sources first.
 
 on:
   push:

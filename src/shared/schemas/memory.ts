@@ -68,9 +68,9 @@ export const EmbeddingProviderListingSchema = z.object({
           id: z.string(), // `provider/model`
           name: z.string(),
           dimensions: z.number().nullable(),
-        }),
+        })
       ),
-    }),
+    })
   ),
 });
 
@@ -123,7 +123,7 @@ export const RetrievePreviewResultSchema = z.object({
       tier: z.enum(["fts5", "vector", "hybrid-rrf", "qdrant"]),
       vecScore: z.number().nullable(),
       ftsScore: z.number().nullable(),
-    }),
+    })
   ),
   resolution: z.object({
     embeddingSource: z.enum(["remote", "static", "transformers"]).nullable(),
@@ -138,10 +138,5 @@ export const RetrievePreviewResultSchema = z.object({
 });
 
 export type MemorySettingsExtended = z.infer<typeof MemorySettingsExtendedSchema>;
-export type MemoryUpdatePut = z.infer<typeof MemoryUpdatePutSchema>;
-export type RetrievePreview = z.infer<typeof RetrievePreviewSchema>;
-export type MemoryReindex = z.infer<typeof MemoryReindexSchema>;
-export type MemorySummarize = z.infer<typeof MemorySummarizeSchema>;
-export type EmbeddingProviderListings = z.infer<typeof EmbeddingProviderListingSchema>;
 export type MemoryEngineStatus = z.infer<typeof MemoryEngineStatusSchema>;
 export type RetrievePreviewResult = z.infer<typeof RetrievePreviewResultSchema>;

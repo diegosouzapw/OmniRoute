@@ -1,0 +1,26 @@
+%% Auto-Combo 12-factor scoring
+%% Reflects: open-sse/services/autoCombo/scoring.ts (DEFAULT_WEIGHTS, sum = 1.0)
+%% v3.8.40
+flowchart TB
+  Request["Incoming request"] --> Candidates["Eligible candidates<br/>(provider × model × account)"]
+  Candidates --> Score["Compute composite score<br/>per candidate"]
+
+  subgraph Factors["12-factor scoring weights (sum = 1.0)"]
+    f1["health (0.20)"]
+    f2["quota (0.15)"]
+    f3["costInv (0.15)"]
+    f4["latencyInv (0.12)"]
+    f5["taskFit (0.08)"]
+    f6["stability (0.05)"]
+    f7["tierPriority (0.05)"]
+    f8["tierAffinity (0.05)"]
+    f9["specificityMatch (0.05)"]
+    f10["contextAffinity (0.05)"]
+    f11["connectionDensity (0.05)"]
+    f12["resetWindowAffinity (0.00)"]
+  end
+
+  Score --> Factors
+  Factors --> Final["Sort by score<br/>(desc)"]
+  Final --> Top["Pick top-N targets"]
+  Top --> Dispatch["Dispatch sequentially<br/>(short-circuit on success)"]

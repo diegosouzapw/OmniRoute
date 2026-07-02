@@ -192,6 +192,19 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     format: "runwayml",
     models: RUNWAYML_SUPPORTED_VIDEO_MODELS,
   },
+
+  alibaba: {
+    id: "alibaba",
+    alias: "ali",
+    // DashScope (Alibaba Cloud Model Studio) async video-synthesis API. Reuses
+    // the stored alibaba provider Bearer apiKey — no separate credential flow.
+    baseUrl: "https://dashscope-intl.aliyuncs.com/api/v1",
+    statusUrl: "https://dashscope-intl.aliyuncs.com/api/v1/tasks",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "dashscope-video",
+    models: [{ id: "wan2.7-t2v", name: "Wan 2.7 T2V" }],
+  },
 };
 
 /**

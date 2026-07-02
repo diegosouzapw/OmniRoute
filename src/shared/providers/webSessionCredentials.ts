@@ -7,6 +7,13 @@ export type WebSessionCredentialRequirement =
       placeholder: string;
       acceptsFullCookieHeader: boolean;
       storageKeys: readonly string[];
+      /**
+       * #5465 — Optional i18n key for a provider-specific credential hint that
+       * REPLACES the generic "Required cookie: {credential}…" copy. Use when the
+       * generic template is confusing (e.g. t3.chat needs a localStorage value
+       * AND the Cookie header, so the one-line cookie hint reads circular).
+       */
+      hintKey?: string;
     }
   | {
       kind: "none";
@@ -17,6 +24,13 @@ export type WebSessionCredentialRequirement =
     };
 
 export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
+  "zenmux-free": {
+    kind: "cookie",
+    credentialName: "Cookie header (full)",
+    placeholder: "paste the full Cookie header from zenmux.ai",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie"],
+  },
   "chatgpt-web": {
     kind: "cookie",
     credentialName: "__Secure-next-auth.session-token",
@@ -87,12 +101,23 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: false,
     storageKeys: ["token", "access_token", "accessToken"],
   },
+  "copilot-m365-web": {
+    kind: "token",
+    credentialName: "access_token + chathubPath",
+    placeholder: "access_token=...; chathubPath=redacted",
+    acceptsFullCookieHeader: false,
+    storageKeys: ["token", "access_token", "accessToken", "chathubPath", "userTenant"],
+  },
   "t3-web": {
     kind: "cookie",
     credentialName: "convex-session-id + Cookie header",
     placeholder: "convex-session-id=abc123...; Cookie: ...",
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "convex-session-id", "convexSessionId"],
+    // #5465 — the generic cookie hint reads circular for t3.chat (needs a
+    // localStorage value AND the Cookie header); use the step-by-step DevTools
+    // copy that already ships translated in every locale.
+    hintKey: "t3ChatWebCookieHint",
   },
   "adapta-web": {
     kind: "cookie",
@@ -110,17 +135,11 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
   },
   huggingchat: {
     kind: "cookie",
-    credentialName: "hf-chat",
-    placeholder: "hf-chat=... or full Cookie header from huggingface.co",
+    credentialName: "full Cookie header (hf-chat + token)",
+    placeholder:
+      "hf-chat=...; token=...; aws-waf-token=... (full Cookie header from huggingface.co)",
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "hf-chat"],
-  },
-  phind: {
-    kind: "cookie",
-    credentialName: "phind_session",
-    placeholder: "phind_session=... or full Cookie header from phind.com",
-    acceptsFullCookieHeader: true,
-    storageKeys: ["cookie", "phind_session"],
   },
   "poe-web": {
     kind: "cookie",
@@ -145,10 +164,10 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
   },
   "kimi-web": {
     kind: "cookie",
-    credentialName: "session",
-    placeholder: "session=... or full Cookie header from kimi.moonshot.cn",
+    credentialName: "kimi-auth",
+    placeholder: "kimi-auth=eyJ... (full Cookie header from www.kimi.com)",
     acceptsFullCookieHeader: true,
-    storageKeys: ["cookie", "session"],
+    storageKeys: ["cookie", "kimi-auth", "session"],
   },
   "doubao-web": {
     kind: "cookie",
@@ -210,7 +229,8 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     // `arena-auth-prod-v1.0`, `arena-auth-prod-v1.1`, … Users must paste the FULL
     // Cookie header so the executor can reconstruct the single cookie from chunks.
     credentialName: "arena-auth-prod-v1",
-    placeholder: "Paste the full Cookie header from lmarena.ai (the session is now split across arena-auth-prod-v1.0, .1, …)",
+    placeholder:
+      "Paste the full Cookie header from lmarena.ai (the session is now split across arena-auth-prod-v1.0, .1, …)",
     acceptsFullCookieHeader: true,
     storageKeys: [
       "cookie",

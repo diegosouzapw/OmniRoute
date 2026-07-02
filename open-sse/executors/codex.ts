@@ -34,6 +34,7 @@ import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer
 import { normalizeCodexVerbosity } from "../services/codexVerbosity.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
+import { normalizeCodexResponsesInput } from "../utils/responsesInputNormalization.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
 import { createRequire } from "module";
 
@@ -52,11 +53,7 @@ type WreqWebSocket = {
   onclose: (() => void) | null;
 };
 type WebsocketFn = (url: string, opts?: Record<string, unknown>) => Promise<WreqWebSocket>;
-type ResponsesMessageInput = {
-  role?: unknown;
-  phase?: unknown;
-  content?: unknown;
-};
+type ResponsesMessageInput = { role?: unknown; phase?: unknown; content?: unknown };
 
 let _websocketFn: WebsocketFn | null = null;
 let _wreqChecked = false;
@@ -419,7 +416,6 @@ const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
   "computer_use_preview",
   "code_interpreter",
   "mcp",
-  "local_shell",
 ]);
 
 // #2980: a free-plan Codex account (workspacePlanType === "free", from the OAuth
@@ -562,6 +558,8 @@ export function normalizeCodexTools(
       if (!rawName || !validToolNames.has(rawName)) {
         delete body.tool_choice;
       }
+    } else if (toolChoice.type === "local_shell") {
+      delete body.tool_choice;
     }
   }
 }
@@ -609,7 +607,6 @@ function normalizeServiceTierValue(value: unknown): string | undefined {
  */
 const MAX_EFFORT_BY_MODEL: Record<string, EffortLevel> = {
   "gpt-5.3-codex": "xhigh",
-  "gpt-5.2-codex": "xhigh",
   "gpt-5.1-codex-max": "xhigh",
   "gpt-5-mini": "high",
   "gpt-5.1-mini": "high",
@@ -1326,6 +1323,8 @@ export class CodexExecutor extends BaseExecutor {
         content: [{ type: "input_text", text: typeof p === "string" ? p : JSON.stringify(p) }],
       }));
     }
+
+    normalizeCodexResponsesInput(body);
 
     if (Array.isArray(body.input)) {
       body.input = sanitizeResponsesInputItems(body.input, false, {

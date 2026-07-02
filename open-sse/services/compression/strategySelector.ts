@@ -3,14 +3,31 @@ import type {
   CompressionMode,
   CompressionPipelineStep,
   CompressionResult,
-  CompressionStats,
 } from "./types.ts";
+import { applyHardBudget } from "./hardBudget.ts";
+import { type FidelityGateConfig } from "./fidelityGate.ts";
+import { gateAdvance } from "./fidelityGateStep.ts";
 import type { CompressionEngineApplyOptions } from "./engines/types.ts";
 import { applyLiteCompression } from "./lite.ts";
 import { cavemanCompress } from "./caveman.ts";
 import { compressAggressive } from "./aggressive.ts";
 import { ultraCompress, ultraCompressHeuristic } from "./ultra.ts";
 import { createCompressionStats } from "./stats.ts";
+import { guardPipelineInflation } from "./pipelineGuards.ts";
+import {
+  resolvePipelineBreakerConfig,
+  canRunEngine,
+  recordEngineFailure,
+  recordEngineSuccess,
+  type PipelineCircuitBreakerConfig,
+} from "./pipelineEngineBreaker.ts";
+import {
+  type BailoutConfig,
+  type StackAccumulator,
+  createStackAccumulator,
+  decideStep,
+  mergeStackStep,
+} from "./stackedStepCore.ts";
 import { registerBuiltinCompressionEngines } from "./engines/index.ts";
 import { getCompressionEngine, getEngineEntry } from "./engines/registry.ts";
 import { applyRtkCompression } from "./engines/rtk/index.ts";
@@ -26,14 +43,28 @@ import {
   withSource,
   planFromHeader,
   formatCompressionMeta,
+  formatCompressionAnnotation,
   deriveDefaultPlanFromConfig,
   buildNamedComboLookup,
 } from "./planResolution.ts";
 import { resolveAdaptivePlan } from "./adaptiveCompression/resolveAdaptivePlan.ts";
 import type { AdaptiveTelemetry } from "./adaptiveCompression/types.ts";
+import type { RiskGateConfig } from "./riskGate/riskGate.ts";
+import { resolveRiskGate, withRiskGate, withRiskGateAsync } from "./riskGate/strategyWrap.ts";
+import {
+  withCompressionEntrypointGuards,
+  withCompressionEntrypointGuardsAsync,
+} from "./entrypointWrap.ts";
+import { makeMemoKey, memoLookup, memoStore, isDeterministicMode } from "./resultMemo.ts";
+export { resolveCacheAwareConfig } from "./cacheAwareConfig.ts";
 
 // Re-export so existing importers (resolver test + chatCore dynamic import) keep resolving.
-export { planFromHeader, formatCompressionMeta, buildNamedComboLookup };
+export {
+  planFromHeader,
+  formatCompressionMeta,
+  formatCompressionAnnotation,
+  buildNamedComboLookup,
+};
 
 /** Named-combo map: combo id → its stacked pipeline (operator-defined profiles). */
 type NamedCombos = Record<string, CompressionPipelineStep[]>;
@@ -218,32 +249,6 @@ export function selectCompressionStrategy(
     .mode as CompressionMode;
 }
 
-/**
- * #3890: honor the cache-aware `skipSystemPrompt` decision that `getCacheAwareStrategy`
- * already computes but that `selectCompressionStrategy` (which can only return a mode
- * string) previously discarded. In a caching context the system prompt is part of the
- * cacheable prefix, so compressing it breaks the upstream prompt cache. This forces
- * `preserveSystemPrompt` on for caching requests even when the operator turned it off,
- * and leaves non-caching requests untouched.
- */
-export function resolveCacheAwareConfig(
-  config: CompressionConfig,
-  body?: Record<string, unknown>,
-  context?: CachingDetectionContext
-): CompressionConfig {
-  if (!body) return config;
-  const ctx = detectCachingContext(body, context);
-  // Only `skipSystemPrompt` is consumed here, and it depends solely on `ctx.isCachingProvider`
-  // (NOT on the strategy arg — see getCacheAwareStrategy), so the stored `defaultMode` is a safe
-  // input even though it may be "off" for a panel-configured install. If getCacheAwareStrategy is
-  // ever extended to key `skipSystemPrompt` on the mode, pass the resolved effective mode instead.
-  const cacheAware = getCacheAwareStrategy(config.defaultMode, ctx);
-  if (cacheAware.skipSystemPrompt && config.preserveSystemPrompt === false) {
-    return { ...config, preserveSystemPrompt: true };
-  }
-  return config;
-}
-
 export function applyCompression(
   body: Record<string, unknown>,
   mode: CompressionMode,
@@ -258,10 +263,56 @@ export function applyCompression(
      * skipped instead of silently dropping the target. Flows through to applyStackedCompression.
      */
     bailout?: BailoutConfig;
+    /** Risk-gate mask/restore wrapper (opt-in, default off). Read via resolveRiskGate. */
+    riskGate?: RiskGateConfig;
+    /** Force/override the caching gate (studio dry-run, or chatCore's resolved context). */
+    cachingContext?: CachingDetectionContext;
+  }
+): CompressionResult {
+  return withCompressionEntrypointGuards(body, options, (b) => runCompression(b, mode, options));
+}
+
+function runCompression(
+  body: Record<string, unknown>,
+  mode: CompressionMode,
+  options?: {
+    model?: string;
+    supportsVision?: boolean | null;
+    config?: CompressionConfig;
+    principalId?: string;
+    bailout?: BailoutConfig;
+    riskGate?: RiskGateConfig;
+    cachingContext?: CachingDetectionContext;
   }
 ): CompressionResult {
   if (mode === "off") {
     return { body, compressed: false, stats: null };
+  }
+  if (
+    options?.config?.memoizeCompressionResults === true &&
+    // Only memoize for an explicit principal — a missing principalId would collapse
+    // authenticated callers into the shared anonymous (null) key space and let one
+    // principal receive another's cached body. No principal ⇒ skip the cache.
+    typeof options?.principalId === "string" &&
+    options.principalId.length > 0 &&
+    isDeterministicMode(mode, options.config)
+  ) {
+    const key = makeMemoKey(
+      body,
+      mode,
+      options.config,
+      options.principalId,
+      options.model,
+      options.supportsVision
+    );
+    const hit = memoLookup(key);
+    if (hit) return hit;
+    const result = runCompression({ ...body }, mode, {
+      ...options,
+      config: { ...options.config, memoizeCompressionResults: false },
+    });
+    memoStore(key, result);
+    return memoLookup(key)!;
   }
   if (mode === "rtk") {
     return applyRtkCompression(body, {
@@ -392,8 +443,52 @@ export async function applyCompressionAsync(
     config?: CompressionConfig;
     principalId?: string;
     onEngineStep?: (step: StackedCompressionStep) => void;
+    cachingContext?: CachingDetectionContext;
   }
 ): Promise<CompressionResult> {
+  return withCompressionEntrypointGuardsAsync(body, options, (b) =>
+    runCompressionAsync(b, mode, options)
+  );
+}
+
+async function runCompressionAsync(
+  body: Record<string, unknown>,
+  mode: CompressionMode,
+  options?: {
+    model?: string;
+    supportsVision?: boolean | null;
+    config?: CompressionConfig;
+    principalId?: string;
+    onEngineStep?: (step: StackedCompressionStep) => void;
+    cachingContext?: CachingDetectionContext;
+  }
+): Promise<CompressionResult> {
+  if (
+    options?.config?.memoizeCompressionResults === true &&
+    // Only memoize for an explicit principal — a missing principalId would collapse
+    // authenticated callers into the shared anonymous (null) key space and let one
+    // principal receive another's cached body. No principal ⇒ skip the cache.
+    typeof options?.principalId === "string" &&
+    options.principalId.length > 0 &&
+    isDeterministicMode(mode, options.config)
+  ) {
+    const key = makeMemoKey(
+      body,
+      mode,
+      options.config,
+      options.principalId,
+      options.model,
+      options.supportsVision
+    );
+    const hit = memoLookup(key);
+    if (hit) return hit;
+    const result = await runCompressionAsync({ ...body }, mode, {
+      ...options,
+      config: { ...options.config, memoizeCompressionResults: false },
+    });
+    memoStore(key, result);
+    return memoLookup(key)!;
+  }
   if (mode === "stacked") {
     const adapter = adaptBodyForCompression(body);
     const result = await applyStackedCompressionAsync(
@@ -521,18 +616,6 @@ function normalizePipelineStep(step: CompressionPipelineStep | string): Compress
   return { engine: "caveman" };
 }
 
-/**
- * TV1 — Opt-in bail-out configuration for the stacked pipeline.
- * When enabled: a step that throws is silently skipped (verbatim kept);
- * a step whose gain is below minGainPercent is also skipped.
- * DEFAULT = disabled — behaviour is byte-identical to pre-TV1 when absent.
- */
-interface BailoutConfig {
-  enabled: boolean;
-  /** Minimum savings percent required to advance currentBody. Default: 10. */
-  minGainPercent?: number;
-}
-
 /** Per-engine progress emitted mid-pipeline by the stacked loops (F3.3 live streaming). */
 export interface StackedCompressionStep {
   stepIndex: number;
@@ -552,6 +635,12 @@ interface StackOptions {
   compressionComboId?: string | null;
   /** TV1 bail-out discipline (opt-in, default disabled). */
   bailout?: BailoutConfig;
+  /** T02 per-engine circuit-breaker (opt-in, default disabled). Falls back to config + env. */
+  circuitBreaker?: Partial<PipelineCircuitBreakerConfig>;
+  /** Opt-in per-step fidelity gate (default disabled). */
+  fidelityGate?: FidelityGateConfig;
+  /** Risk-gate mask/restore wrapper (opt-in, default off). Read via resolveRiskGate. */
+  riskGate?: RiskGateConfig;
   /** Authenticated principal id — threaded through to CCR engine for store scoping. */
   principalId?: string;
   /** F3.3: called once per engine as it completes (live per-engine streaming). */
@@ -580,29 +669,6 @@ function reportEngineStep(
   });
 }
 
-/** Accumulates per-step telemetry across a stacked run (shared sync/async). */
-interface StackAccumulator {
-  techniques: Set<string>;
-  rules: Set<string>;
-  breakdown: NonNullable<CompressionStats["engineBreakdown"]>;
-  rtkRawOutputPointers: NonNullable<CompressionStats["rtkRawOutputPointers"]>;
-  validationWarnings: Set<string>;
-  validationErrors: Set<string>;
-  fallbackApplied: boolean;
-}
-
-function createStackAccumulator(): StackAccumulator {
-  return {
-    techniques: new Set<string>(),
-    rules: new Set<string>(),
-    breakdown: [],
-    rtkRawOutputPointers: [],
-    validationWarnings: new Set<string>(),
-    validationErrors: new Set<string>(),
-    fallbackApplied: false,
-  };
-}
-
 function resolveStackSteps(
   pipeline?: Array<CompressionPipelineStep | string>
 ): CompressionPipelineStep[] {
@@ -627,43 +693,6 @@ function buildStepOptions(
       ...(step.intensity ? { intensity: step.intensity } : {}),
     },
   };
-}
-
-/**
- * TV1 — Pure helper that decides whether a completed step should advance
- * `currentBody`. Called only when bailout is ENABLED; the sync/async loops
- * bypass this entirely on the default-off path (zero cost, zero behaviour change).
- *
- * Returns `{ advance: true }` when the step should be accepted, or
- * `{ advance: false }` when it should be skipped (verbatim kept).
- */
-function decideStep(result: CompressionResult, bailout: BailoutConfig): { advance: boolean } {
-  if (!result.compressed) return { advance: false };
-  // Clamp: a negative minGainPercent would mean "always advance" (invalid state).
-  const minGain = Math.max(0, bailout.minGainPercent ?? 10);
-  const gain = result.stats?.savingsPercent ?? 0;
-  if (gain < minGain) return { advance: false };
-  return { advance: true };
-}
-
-/** Folds one engine result into the accumulator (telemetry + breakdown entry). */
-function mergeStackStep(acc: StackAccumulator, engineId: string, result: CompressionResult): void {
-  if (!result.stats) return;
-  result.stats.techniquesUsed.forEach((technique) => acc.techniques.add(technique));
-  result.stats.rulesApplied?.forEach((rule) => acc.rules.add(rule));
-  result.stats.rtkRawOutputPointers?.forEach((pointer) => acc.rtkRawOutputPointers.push(pointer));
-  result.stats.validationWarnings?.forEach((warning) => acc.validationWarnings.add(warning));
-  result.stats.validationErrors?.forEach((error) => acc.validationErrors.add(error));
-  acc.fallbackApplied = acc.fallbackApplied || result.stats.fallbackApplied === true;
-  acc.breakdown.push({
-    engine: engineId,
-    originalTokens: result.stats.originalTokens,
-    compressedTokens: result.stats.compressedTokens,
-    savingsPercent: result.stats.savingsPercent,
-    techniquesUsed: result.stats.techniquesUsed,
-    ...(result.stats.rulesApplied ? { rulesApplied: result.stats.rulesApplied } : {}),
-    ...(result.stats.durationMs !== undefined ? { durationMs: result.stats.durationMs } : {}),
-  });
 }
 
 function finalizeStackedResult(
@@ -702,10 +731,90 @@ function finalizeStackedResult(
       return true;
     });
   }
+
+  // T02 / H1: honest aggregate inflation guard. If the fully-stacked body did not actually shrink
+  // (its token count is >= the original), discard it and return the verbatim original — safe by
+  // construction, since the original request body is always a valid payload.
+  const inflation = guardPipelineInflation({
+    originalBody,
+    compressedBody: currentBody,
+    originalTokens: stats.originalTokens,
+    compressedTokens: stats.compressedTokens,
+  });
+  if (inflation.inflated) {
+    const inflatedTokens = stats.compressedTokens;
+    const warnings = new Set(stats.validationWarnings ?? []);
+    warnings.add(
+      `pipeline-inflation-guard: stacked output (${inflatedTokens} tok) did not shrink input ` +
+        `(${stats.originalTokens} tok); reverted to original`
+    );
+    stats.validationWarnings = Array.from(warnings);
+    stats.fallbackApplied = true;
+    stats.compressedTokens = stats.originalTokens;
+    stats.savingsPercent = 0;
+    return { body: inflation.body, compressed: false, stats };
+  }
+
   return { body: currentBody, compressed, stats };
 }
 
+// ── Shared per-step helpers (used by the sync + async stacked loops; keep them in lockstep) ──
+
+interface StepCommitCtx {
+  bailout?: BailoutConfig;
+  breakerOn: boolean;
+  breaker: PipelineCircuitBreakerConfig;
+  fidelityGate?: FidelityGateConfig;
+}
+
+/** Failure path: record the breaker failure (when on) + keep the verbatim body, surfacing it in telemetry. */
+function recordStepFailure(
+  acc: StackAccumulator,
+  engineId: string,
+  err: unknown,
+  ctx: StepCommitCtx
+): void {
+  if (ctx.breakerOn) recordEngineFailure(engineId, ctx.breaker);
+  acc.validationErrors.add(
+    `${engineId}: bailed out — ${err instanceof Error ? err.message : String(err)}`
+  );
+  acc.fallbackApplied = true;
+}
+
+/**
+ * Success path: record the breaker success (when on), merge telemetry, and decide whether to
+ * advance `currentBody`. Advance rule: TV1 bail-out uses min-gain (`decideStep`); otherwise the
+ * legacy `result.compressed`. Returns the (possibly unchanged) body + whether it advanced.
+ */
+function commitStepResult(
+  acc: StackAccumulator,
+  step: CompressionPipelineStep,
+  result: CompressionResult,
+  currentBody: Record<string, unknown>,
+  ctx: StepCommitCtx
+): { body: Record<string, unknown>; advanced: boolean } {
+  if (ctx.breakerOn) recordEngineSuccess(step.engine, ctx.breaker);
+  mergeStackStep(acc, step.engine, result);
+  const advance = ctx.bailout?.enabled
+    ? decideStep(result, ctx.bailout).advance
+    : result.compressed;
+  if (advance && gateAdvance(result, currentBody, ctx.fidelityGate, acc, step.engine)) {
+    return { body: result.body, advanced: true };
+  }
+  return { body: currentBody, advanced: false };
+}
+
 export function applyStackedCompression(
+  body: Record<string, unknown>,
+  pipeline?: Array<CompressionPipelineStep | string>,
+  options?: StackOptions
+): CompressionResult {
+  return withRiskGate(body, resolveRiskGate(options), (b) =>
+    runStackedCompression(b, pipeline, options)
+  );
+}
+
+function runStackedCompression(
   body: Record<string, unknown>,
   pipeline?: Array<CompressionPipelineStep | string>,
   options?: StackOptions
@@ -719,6 +828,11 @@ export function applyStackedCompression(
   const start = performance.now();
 
   const bailout = options?.bailout;
+  const breaker = resolvePipelineBreakerConfig(
+    options?.circuitBreaker ?? options?.config?.pipelineCircuitBreaker
+  );
+  const breakerOn = breaker.enabled;
+  const fidelityGate = options?.fidelityGate ?? options?.config?.fidelityGate;
   const onStep = options?.onEngineStep;
   const totalSteps = steps.length;
   let stepIdx = 0;
@@ -729,35 +843,48 @@ export function applyStackedCompression(
     // Respect the registry enabled flag: a step naming a disabled engine is skipped, so an
     // operator can turn an engine off (setEngineEnabled) without editing every pipeline.
     if (getEngineEntry(step.engine)?.enabled === false) continue;
+    // T02: when the per-engine breaker is OPEN, skip this step (verbatim body kept — fail-open).
+    if (breakerOn && !canRunEngine(step.engine, breaker)) {
+      acc.validationWarnings.add(`${step.engine}: skipped (pipeline circuit-breaker open)`);
+      continue;
+    }
 
-    // TV1: when bail-out is ENABLED, wrap apply() and apply skip rules.
-    // When DISABLED (default), the code path below is identical to pre-TV1.
-    if (bailout?.enabled) {
-      let result: CompressionResult;
+    // TV1 bail-out (per-request) OR T02 breaker (cross-request) wrap the call so a throwing engine
+    // is caught + recorded; when neither is on, a throw propagates (byte-identical to legacy).
+    const ctx = { bailout, breakerOn, breaker, fidelityGate };
+    let result: CompressionResult;
+    if (bailout?.enabled || breakerOn) {
       try {
         result = engine.apply(currentBody, buildStepOptions(step, options));
       } catch (err) {
-        // Failure bail-out: keep the verbatim body for this step, but RECORD the
-        // failure so a crashing engine is visible in telemetry (not silently gone).
-        acc.validationErrors.add(
-          `${step.engine}: bailed out — ${err instanceof Error ? err.message : String(err)}`
-        );
-        acc.fallbackApplied = true;
+        recordStepFailure(acc, step.engine, err, ctx);
         continue;
       }
-      mergeStackStep(acc, step.engine, result);
-      if (decideStep(result, bailout).advance) {
-        currentBody = result.body;
-        compressed = true;
-      }
     } else {
-      const result = engine.apply(currentBody, buildStepOptions(step, options));
-      mergeStackStep(acc, step.engine, result);
-      if (result.compressed) {
-        currentBody = result.body;
-        compressed = true;
-      }
-      reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
+      result = engine.apply(currentBody, buildStepOptions(step, options));
+    }
+    const committed = commitStepResult(acc, step, result, currentBody, ctx);
+    currentBody = committed.body;
+    if (committed.advanced) compressed = true;
+    // The pre-existing bail-out path did not stream per-step; everything else does.
+    if (!bailout?.enabled) reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
+  }
+
+  // Hard-budget post-pass (#17): runs after all engines, before finalize.
+  if (options?.config?.targetTokens != null || options?.config?.targetRatio != null) {
+    const hbResult = applyHardBudget(currentBody, {
+      targetTokens: options.config.targetTokens,
+      targetRatio: options.config.targetRatio,
+    });
+    if (hbResult.compressed) {
+      mergeStackStep(acc, "hard-budget", hbResult);
+      currentBody = hbResult.body;
+      compressed = true;
+    } else {
+      // No unit could be dropped (e.g. every unit is preserve-guarded): surface the
+      // unreachable-budget validationWarnings instead of dropping them silently (#17 fix #3).
+      // mergeStackStep is gated on `compressed`, so propagate the warnings here directly.
+      hbResult.stats?.validationWarnings?.forEach((w) => acc.validationWarnings.add(w));
     }
   }
 
@@ -782,6 +909,16 @@ export async function applyStackedCompressionAsync(
   pipeline?: Array<CompressionPipelineStep | string>,
   options?: StackOptions
 ): Promise<CompressionResult> {
+  return withRiskGateAsync(body, resolveRiskGate(options), (b) =>
+    runStackedCompressionAsync(b, pipeline, options)
+  );
+}
+
+async function runStackedCompressionAsync(
+  body: Record<string, unknown>,
+  pipeline?: Array<CompressionPipelineStep | string>,
+  options?: StackOptions
+): Promise<CompressionResult> {
   const steps = resolveStackSteps(pipeline);
   registerBuiltinCompressionEngines();
 
@@ -791,6 +928,11 @@ export async function applyStackedCompressionAsync(
   const start = performance.now();
 
   const bailout = options?.bailout;
+  const breaker = resolvePipelineBreakerConfig(
+    options?.circuitBreaker ?? options?.config?.pipelineCircuitBreaker
+  );
+  const breakerOn = breaker.enabled;
+  const fidelityGate = options?.fidelityGate ?? options?.config?.fidelityGate;
   const onStep = options?.onEngineStep;
   const totalSteps = steps.length;
   let stepIdx = 0;
@@ -800,39 +942,51 @@ export async function applyStackedCompressionAsync(
     if (!engine) continue;
     // Respect the registry enabled flag (same as the sync loop) — keep both in lockstep.
     if (getEngineEntry(step.engine)?.enabled === false) continue;
+    // T02: skip an engine whose breaker is OPEN (verbatim body kept — fail-open). Lockstep w/ sync.
+    if (breakerOn && !canRunEngine(step.engine, breaker)) {
+      acc.validationWarnings.add(`${step.engine}: skipped (pipeline circuit-breaker open)`);
+      continue;
+    }
     const stepOptions = buildStepOptions(step, options);
 
-    // TV1: same bail-out discipline as the sync loop (opt-in, default off).
-    if (bailout?.enabled) {
-      let result: CompressionResult;
+    // TV1 bail-out (per-request) OR T02 breaker (cross-request) wrap the call (lockstep w/ sync).
+    const ctx = { bailout, breakerOn, breaker, fidelityGate };
+    let result: CompressionResult;
+    if (bailout?.enabled || breakerOn) {
       try {
         result = engine.applyAsync
           ? await engine.applyAsync(currentBody, stepOptions)
           : engine.apply(currentBody, stepOptions);
       } catch (err) {
-        // Failure bail-out: keep the verbatim body, but RECORD the failure so a
-        // crashing engine is visible in telemetry (not silently gone).
-        acc.validationErrors.add(
-          `${step.engine}: bailed out — ${err instanceof Error ? err.message : String(err)}`
-        );
-        acc.fallbackApplied = true;
+        recordStepFailure(acc, step.engine, err, ctx);
         continue;
       }
-      mergeStackStep(acc, step.engine, result);
-      if (decideStep(result, bailout).advance) {
-        currentBody = result.body;
-        compressed = true;
-      }
     } else {
-      const result = engine.applyAsync
+      result = engine.applyAsync
         ? await engine.applyAsync(currentBody, stepOptions)
         : engine.apply(currentBody, stepOptions);
-      mergeStackStep(acc, step.engine, result);
-      if (result.compressed) {
-        currentBody = result.body;
-        compressed = true;
-      }
-      reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
+    }
+    const committed = commitStepResult(acc, step, result, currentBody, ctx);
+    currentBody = committed.body;
+    if (committed.advanced) compressed = true;
+    if (!bailout?.enabled) reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
+  }
+
+  // Hard-budget post-pass (#17): runs after all engines, before finalize.
+  if (options?.config?.targetTokens != null || options?.config?.targetRatio != null) {
+    const hbResult = applyHardBudget(currentBody, {
+      targetTokens: options.config.targetTokens,
+      targetRatio: options.config.targetRatio,
+    });
+    if (hbResult.compressed) {
+      mergeStackStep(acc, "hard-budget", hbResult);
+      currentBody = hbResult.body;
+      compressed = true;
+    } else {
+      // No unit could be dropped (e.g. every unit is preserve-guarded): surface the
+      // unreachable-budget validationWarnings instead of dropping them silently (#17 fix #3).
+      // mergeStackStep is gated on `compressed`, so propagate the warnings here directly.
+      hbResult.stats?.validationWarnings?.forEach((w) => acc.validationWarnings.add(w));
     }
   }
 

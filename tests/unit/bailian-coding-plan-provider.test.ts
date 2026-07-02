@@ -124,6 +124,28 @@ test("createProviderSchema rejects baseUrl with non-string value", () => {
   assert.equal(validation.success, false, "Should reject non-string baseUrl");
 });
 
+test("createProviderSchema rejects non-boolean Codex context1m request default", () => {
+  const validation = validateBody(createProviderSchema, {
+    provider: "codex",
+    apiKey: "sk-test-key",
+    name: "Test Codex",
+    providerSpecificData: {
+      requestDefaults: {
+        context1m: "yes",
+      },
+    },
+  });
+
+  assert.equal(validation.success, false, "Should reject non-boolean context1m");
+  if (!validation.success && typeof validation.error === "object" && validation.error !== null) {
+    const details = Array.isArray(validation.error.details) ? validation.error.details : [];
+    assert.ok(
+      details.some((detail) => String(detail.message || "").includes("context1m")),
+      "Error should mention context1m"
+    );
+  }
+});
+
 test("updateProviderConnectionSchema accepts valid baseUrl in providerSpecificData", () => {
   const validation = validateBody(updateProviderConnectionSchema, {
     providerSpecificData: {

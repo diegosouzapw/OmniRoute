@@ -18,7 +18,9 @@ test("getUsageForProvider returns error for unsupported provider", async () => {
     apiKey: "key",
   });
   assert.ok(result);
-  assert.ok((result as any).error || (result as any).quotas === undefined || typeof result === "object");
+  assert.ok(
+    (result as any).error || (result as any).quotas === undefined || typeof result === "object"
+  );
 });
 
 test("getUsageForProvider handles github provider with 403", async () => {
@@ -34,7 +36,9 @@ test("getUsageForProvider handles github provider with 403", async () => {
 });
 
 test("getUsageForProvider handles github provider with network error", async () => {
-  globalThis.fetch = async () => { throw new Error("network down"); };
+  globalThis.fetch = async () => {
+    throw new Error("network down");
+  };
   try {
     const result = await usageModule.getUsageForProvider({
       id: "test-gh-err",
@@ -46,17 +50,6 @@ test("getUsageForProvider handles github provider with network error", async () 
   } catch (err) {
     assert.ok(err instanceof Error);
   }
-});
-
-test("getUsageForProvider handles gemini-cli with 401", async () => {
-  globalThis.fetch = async () => new Response("unauthorized", { status: 401 });
-  const result = await usageModule.getUsageForProvider({
-    id: "test-gem",
-    provider: "gemini-cli",
-    accessToken: "ya_test",
-    apiKey: "key",
-  });
-  assert.ok(result);
 });
 
 test("getUsageForProvider handles codex provider", async () => {

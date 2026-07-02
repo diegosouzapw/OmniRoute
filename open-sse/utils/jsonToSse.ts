@@ -13,11 +13,53 @@
  * Returns "" when the text is not a parseable chat-completion object with at
  * least one choice — callers then fall back to the original (error) handling.
  */
+import { normalizeOpenAICompatibleFinishReasonString } from "./finishReason.ts";
+import { getUnsupportedReasoningValue } from "./reasoningFields.ts";
 
 type JsonRecord = Record<string, unknown>;
 
 function isRecord(value: unknown): value is JsonRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function nonEmptyString(value: unknown): string {
+  return typeof value === "string" && value.length > 0 ? value : "";
+}
+
+function addReadableReasoning(message: JsonRecord, delta: JsonRecord): boolean {
+  const reasoningContent = nonEmptyString(message.reasoning_content);
+  if (reasoningContent) {
+    delta.reasoning_content = reasoningContent;
+    return true;
+  }
+
+  const reasoning = nonEmptyString(message.reasoning);
+  if (reasoning) {
+    delta.reasoning = reasoning;
+    return true;
+  }
+
+  return false;
+}
+
+function addUnsupportedReasoning(message: JsonRecord, delta: JsonRecord) {
+  const reasoningContent = getUnsupportedReasoningValue(message);
+  if (reasoningContent) {
+    delta.reasoning_content = reasoningContent;
+  }
+}
+
+function buildReasoningDelta(message: JsonRecord): JsonRecord | null {
+  const delta: JsonRecord = {};
+  if (Array.isArray(message.reasoning_details)) {
+    delta.reasoning_details = message.reasoning_details;
+  }
+
+  if (!addReadableReasoning(message, delta)) {
+    addUnsupportedReasoning(message, delta);
+  }
+
+  return Object.keys(delta).length > 0 ? delta : null;
 }
 
 function sseEvent(payload: JsonRecord): string {
@@ -60,8 +102,9 @@ export function synthesizeOpenAiSseFromJson(jsonText: string): string {
     };
 
     emitDelta({ role });
-    if (typeof message.reasoning_content === "string" && message.reasoning_content.length > 0) {
-      emitDelta({ reasoning_content: message.reasoning_content });
+    const reasoningDelta = buildReasoningDelta(message);
+    if (reasoningDelta) {
+      emitDelta(reasoningDelta);
     }
     if (typeof message.content === "string" && message.content.length > 0) {
       emitDelta({ content: message.content });
@@ -70,8 +113,7 @@ export function synthesizeOpenAiSseFromJson(jsonText: string): string {
       emitDelta({ tool_calls: message.tool_calls });
     }
 
-    const finishReason =
-      typeof choice.finish_reason === "string" && choice.finish_reason ? choice.finish_reason : "stop";
+    const finishReason = normalizeOpenAICompatibleFinishReasonString(choice.finish_reason);
     const finalChoice: JsonRecord = { index, delta: {}, finish_reason: finishReason };
     const finalChunk: JsonRecord = { ...base, choices: [finalChoice] };
     if (isRecord(parsed.usage)) finalChunk.usage = parsed.usage;

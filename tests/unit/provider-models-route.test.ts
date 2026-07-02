@@ -61,6 +61,82 @@ test.after(async () => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
+test("provider models route returns a static local catalog for non-LLM search/agent providers (#5569/#5571/#5573/#5575)", async () => {
+  const cases = [
+    { provider: "jules", expectId: "jules" },
+    { provider: "linkup-search", expectId: "standard" },
+    { provider: "ollama-search", expectId: "web_search" },
+    { provider: "searchapi-search", expectId: "google" },
+  ];
+  for (const { provider, expectId } of cases) {
+    const connection = await seedConnection(provider, { apiKey: `${provider}-key` });
+    const response = await callRoute(connection.id);
+    // RED before the fix: these had no static catalog → 400 "does not support models listing".
+    assert.equal(response.status, 200, `${provider} should not 400 on model import`);
+    const body = await response.json();
+    assert.equal(body.source, "local_catalog", `${provider} should serve a local catalog`);
+    const ids = (body.models || []).map((m) => m.id);
+    assert.ok(
+      ids.includes(expectId),
+      `${provider} should list "${expectId}"; got: ${ids.join(", ")}`
+    );
+  }
+});
+
+test("provider models route fetches the live AI/ML API catalog from the auth-free /models endpoint (#5570)", async () => {
+  const connection = await seedConnection("aimlapi", { apiKey: "aiml-key" });
+  let calledUrl = "";
+  globalThis.fetch = async (url) => {
+    calledUrl = String(url);
+    return Response.json([
+      { id: "openai/gpt-5.5", type: "chat-completion", info: { name: "GPT-5.5" } },
+      { id: "zhipu/glm-5.2", type: "chat-completion", info: { name: "GLM 5.2" } },
+      { id: "flux/flux-pro", type: "image", info: { name: "FLUX Pro" } },
+    ]);
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  // RED before the fix: aimlapi had no PROVIDER_MODELS_CONFIG entry → stale
+  // 6-model local seed (source "local_catalog"), live endpoint never called.
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "api");
+  assert.equal(calledUrl, "https://api.aimlapi.com/models");
+  const ids = body.models.map((m: any) => m.id);
+  assert.ok(ids.includes("openai/gpt-5.5") && ids.includes("zhipu/glm-5.2"));
+  assert.ok(!ids.includes("flux/flux-pro"), "non-chat model types are filtered out");
+});
+
+test("provider models route falls back to the local AI/ML API catalog when the live fetch fails (#5570)", async () => {
+  const connection = await seedConnection("aimlapi", { apiKey: "aiml-key" });
+  globalThis.fetch = async () => new Response("upstream down", { status: 500 });
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "local_catalog");
+  assert.ok(body.models.length > 0);
+});
+
+test("cablyai is flagged deprecated (domain NXDOMAIN) and no longer 500s on model import (#5568)", async () => {
+  const { APIKEY_PROVIDERS_GATEWAYS } =
+    await import("../../src/shared/constants/providers/apikey/gateways.ts");
+  const cablyai = (APIKEY_PROVIDERS_GATEWAYS as Record<string, any>).cablyai;
+  assert.equal(cablyai?.deprecated, true, "cablyai must be marked deprecated (domain is NXDOMAIN)");
+  assert.ok(
+    typeof cablyai?.deprecationReason === "string" && cablyai.deprecationReason.length > 0,
+    "cablyai must carry a deprecationReason"
+  );
+
+  // Removed from PROVIDER_MODELS_CONFIG → no live fetch to the dead domain → a
+  // controlled 400 instead of an unhandled 500 crash.
+  const connection = await seedConnection("cablyai", { apiKey: "dead-key" });
+  const response = await callRoute(connection.id);
+  assert.notEqual(response.status, 500, "cablyai must not 500-crash on a dead domain");
+});
+
 test("provider models route returns 404 for unknown connections", async () => {
   const response = await callRoute("missing-connection");
 
@@ -428,6 +504,37 @@ test("provider models route returns the local catalog for embedding and rerank p
   assert.ok(jinaBody.models.some((model) => model.id === "jina-reranker-m0"));
 });
 
+test("provider models route flags intentional local-catalog-only providers so model-sync imports them (#5460/#5465)", async () => {
+  // reka + voyage-ai never do a remote /models fetch — their local catalog is
+  // the intended source, so the response must carry `intentional: true` for the
+  // sync route to import instead of 502-ing ("local catalog fallback not synced").
+  const reka = await seedConnection("reka", { apiKey: "reka-key" });
+  const voyage = await seedConnection("voyage-ai", { apiKey: "voyage-key" });
+
+  const [rekaBody, voyageBody] = await Promise.all([
+    callRoute(reka.id).then((r) => r.json() as any),
+    callRoute(voyage.id).then((r) => r.json() as any),
+  ]);
+
+  assert.equal(rekaBody.source, "local_catalog");
+  assert.equal(rekaBody.intentional, true, "reka local catalog must be flagged intentional");
+  assert.equal(voyageBody.source, "local_catalog");
+  assert.equal(voyageBody.intentional, true, "voyage-ai local catalog must be flagged intentional");
+});
+
+test("provider models route does NOT flag a degraded remote-fetch fallback as intentional (#5460/#5465)", async () => {
+  // aimlapi normally discovers remotely; when the live fetch fails it falls back
+  // to the local catalog — that IS degraded and must NOT be flagged intentional,
+  // so model-sync still surfaces the failure (502) for it.
+  const connection = await seedConnection("aimlapi", { apiKey: "aiml-key" });
+  globalThis.fetch = async () => new Response("upstream down", { status: 500 });
+
+  const body = (await (await callRoute(connection.id)).json()) as any;
+
+  assert.equal(body.source, "local_catalog");
+  assert.notEqual(body.intentional, true, "degraded fallback must not be flagged intentional");
+});
+
 test("provider models route returns the local catalog for Runway video models", async () => {
   const connection = await seedConnection("runwayml", {
     apiKey: "runway-key",
@@ -702,103 +809,6 @@ test("provider models route uses synced models as the authoritative local catalo
     false,
     "static catalog should be superseded by the synced list"
   );
-});
-
-test("provider models route validates Gemini CLI credentials before fetching quota buckets", async () => {
-  const missingToken = await seedConnection("gemini-cli", {
-    authType: "oauth",
-    apiKey: null,
-  });
-  const missingProject = await seedConnection("gemini-cli", {
-    authType: "oauth",
-    name: "gemini-cli-projectless",
-    accessToken: "gemini-cli-access",
-    apiKey: null,
-  });
-
-  const missingTokenResponse = await callRoute(missingToken.id);
-  const missingProjectResponse = await callRoute(missingProject.id);
-
-  assert.equal(missingTokenResponse.status, 400);
-  assert.match((await missingTokenResponse.json()).error, /No access token/i);
-  assert.equal(missingProjectResponse.status, 400);
-  assert.match((await missingProjectResponse.json()).error, /project ID not available/i);
-});
-
-test("provider models route maps Gemini CLI quota buckets into a model list", async () => {
-  const connection = await seedConnection("gemini-cli", {
-    authType: "oauth",
-    accessToken: "gemini-cli-access",
-    apiKey: null,
-    projectId: "projects/demo-123",
-  });
-
-  globalThis.fetch = async (url, init = {}) => {
-    assert.equal(String(url), "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota");
-    assert.equal(init.headers.Authorization, "Bearer gemini-cli-access");
-    assert.deepEqual(JSON.parse(String(init.body)), { project: "projects/demo-123" });
-    return Response.json({
-      buckets: [{ modelId: "gemini-3-pro-preview" }, { modelId: "gemini-3-flash" }],
-    });
-  };
-
-  const response = await callRoute(connection.id);
-  const body = (await response.json()) as any;
-
-  assert.equal(response.status, 200);
-  assert.deepEqual(body.models, [
-    { id: "gemini-3-pro-preview", name: "gemini-3-pro-preview", owned_by: "google" },
-    { id: "gemini-3-flash", name: "gemini-3-flash", owned_by: "google" },
-  ]);
-});
-
-test("provider models route prefers providerSpecificData projectId over default-project", async () => {
-  const connection = await seedConnection("gemini-cli", {
-    authType: "oauth",
-    accessToken: "gemini-cli-access",
-    apiKey: null,
-    projectId: "default-project",
-    providerSpecificData: {
-      projectId: "projects/custom-psd-456",
-    },
-  });
-
-  globalThis.fetch = async (url, init = {}) => {
-    assert.equal(String(url), "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota");
-    assert.equal(init.headers.Authorization, "Bearer gemini-cli-access");
-    assert.deepEqual(JSON.parse(String(init.body)), { project: "projects/custom-psd-456" });
-    return Response.json({ buckets: [{ modelId: "gemini-3.1-pro-preview" }] });
-  };
-
-  const response = await callRoute(connection.id);
-  const body = (await response.json()) as any;
-
-  assert.equal(response.status, 200);
-  assert.deepEqual(body.models, [
-    { id: "gemini-3.1-pro-preview", name: "gemini-3.1-pro-preview", owned_by: "google" },
-  ]);
-});
-
-test("provider models route rejects projects/default-project placeholders", async () => {
-  const connection = await seedConnection("gemini-cli", {
-    authType: "oauth",
-    accessToken: "gemini-cli-access",
-    apiKey: null,
-    projectId: "projects/default-project",
-    providerSpecificData: {
-      projectId: "default-project",
-    },
-  });
-
-  globalThis.fetch = async () => {
-    throw new Error("retrieveUserQuota should not be called for placeholder project IDs");
-  };
-
-  const response = await callRoute(connection.id);
-  const body = (await response.json()) as any;
-
-  assert.equal(response.status, 400);
-  assert.equal(body.error, "Gemini CLI project ID not available. Please reconnect OAuth.");
 });
 
 test("provider models route retries Antigravity discovery endpoints before returning remote models", async () => {

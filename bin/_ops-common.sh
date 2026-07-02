@@ -1,8 +1,8 @@
 # bin/_ops-common.sh — shared helpers for the OmniRoute ops runbook scripts.
 #
 # Sourced (not executed) by rollback.sh / snapshot-data.sh / restore-data.sh /
-# restore-policies.sh / cold-start-bench.sh. The runbook context lives in
-# docs/INCIDENT_RESPONSE.md and docs/PERF_BUDGETS.md.
+# restore-policies.sh / cold-start-bench.sh — the self-hoster incident-recovery
+# and cold-start ops tooling. Each script documents its own contract via --help.
 #
 # Path resolution mirrors the app (src/lib/db/core.ts): the SQLite store is
 # $DATA_DIR/storage.sqlite and managed backups go to $DATA_DIR/db_backups

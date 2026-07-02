@@ -143,7 +143,7 @@ export const APIKEY_PROVIDERS_ENTERPRISE = {
     icon: "cloud",
     color: "#4F0599",
     textIcon: "SCW",
-    website: "https://www.scaleway.com/en/ai/generative-apis",
+    website: "https://www.scaleway.com/en/docs/ai-data/generative-apis/",
     hasFree: true,
     freeNote: "1M free tokens for new accounts — EU/GDPR compliant (Paris), Qwen3 235B & Llama 70B",
   },

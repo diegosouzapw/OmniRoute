@@ -18,7 +18,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { PROVIDER_ID_TO_ALIAS } from "../../open-sse/config/providerModels.ts";
-import { resolveProviderId, getProviderAlias } from "../../src/shared/constants/providers.ts";
+import {
+  resolveProviderId,
+  getProviderAlias,
+  APIKEY_PROVIDERS,
+  WEB_COOKIE_PROVIDERS,
+} from "../../src/shared/constants/providers.ts";
 
 test("no two provider IDs share the same alias in the open-sse registry", () => {
   const aliasToIds = new Map<string, string[]>();
@@ -61,4 +66,20 @@ test("src/shared providers map resolves the same aliases unambiguously", () => {
   assert.equal(getProviderAlias("qwen"), "qw");
   assert.equal(getProviderAlias("kimi"), "kimi");
   assert.equal(getProviderAlias("hackclub"), "hc");
+});
+
+test("no provider id is registered in both the API-key and web-cookie catalogs", () => {
+  // A provider belongs to exactly one auth category; the same id in both catalogs
+  // renders the provider twice in the dashboard (once per section). huggingchat
+  // regressed this way (its API-key counterpart is the separate `huggingface`
+  // Inference API id), so it must live ONLY in WEB_COOKIE_PROVIDERS.
+  const apikeyIds = new Set(Object.keys(APIKEY_PROVIDERS));
+  const overlap = Object.keys(WEB_COOKIE_PROVIDERS).filter((id) => apikeyIds.has(id));
+  assert.deepEqual(overlap, [], `Providers duplicated across catalogs: ${overlap.join(", ")}`);
+
+  assert.ok("huggingchat" in WEB_COOKIE_PROVIDERS, "huggingchat must be in the web-cookie catalog");
+  assert.ok(
+    !("huggingchat" in APIKEY_PROVIDERS),
+    "huggingchat must NOT be in the API-key catalog (use `huggingface` for the API key path)"
+  );
 });

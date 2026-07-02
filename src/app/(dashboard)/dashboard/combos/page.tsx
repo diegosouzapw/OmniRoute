@@ -14,6 +14,7 @@ import Toggle from "@/shared/components/Toggle";
 import Tooltip from "@/shared/components/Tooltip";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { FieldLabelWithHelp, WeightTotalBar } from "./parts";
+import { ResponseValidationEditor, type ResponseValidationValue } from "./ResponseValidationEditor";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -46,6 +47,7 @@ import {
   normalizeIntelligentRoutingFilter,
   normalizeIntelligentRoutingConfig,
 } from "@/lib/combos/intelligentRouting";
+import { resolveServerErrorMessage } from "@/lib/api/serverErrorMessage";
 import { useTranslations } from "next-intl";
 
 const ModelSelectModal = dynamic(() => import("@/shared/components/ModelSelectModal"), {
@@ -55,7 +57,6 @@ const ProxyConfigModal = dynamic(() => import("@/shared/components/ProxyConfigMo
   ssr: false,
 });
 
-// Validate combo name: letters, numbers, spaces, -, _, /, ., [ and ].
 const VALID_NAME_REGEX = /^[a-zA-Z0-9_/.\-\[\] ]+$/;
 
 const STRATEGY_OPTIONS = ROUTING_STRATEGIES.map((strategy) => ({
@@ -175,19 +176,10 @@ const ADVANCED_FIELD_HELP_FALLBACK = {
 };
 
 const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
-  // UI-removed knobs (replaced by per-target timeoutMs on each step)
   "timeoutMs",
   "healthCheckEnabled",
   "healthCheckTimeoutMs",
-  // queueTimeoutMs is still in the schema but the dashboard UI no longer surfaces
-  // it; carrying it forward through edit+save leaves a stale knob in the modal
-  // that surprises operators. Strip it pre-PUT so the persisted config matches
-  // what the UI is currently able to display.
   "queueTimeoutMs",
-  // Keys that were present in v3.8.31-era combo configs but have since been
-  // removed from comboRuntimeConfigSchema. Mirrors the server-side strip list
-  // in src/app/api/combos/[id]/route.ts so the modal never re-introduces them
-  // when the user clicks Save. See #4382 (combo update returns 400).
   "queueDepth",
   "fallbackDelayMs",
   "handoffProviders",
@@ -246,6 +238,19 @@ function sanitizeComboRuntimeConfig(config) {
         (allowed.size === 0 || allowed.has(key))
     )
   );
+}
+
+// Build the next combo config when a Fusion tuning field changes. Prunes empty /
+// non-finite entries and drops the whole `fusionTuning` object when no field is
+// set, so an empty `{}` is never persisted (sanitizeComboRuntimeConfig keeps any
+// non-null object as-is).
+function updateFusionTuning(config, field, rawValue) {
+  const value = rawValue === "" ? undefined : Number(rawValue);
+  const next = { ...(config.fusionTuning || {}), [field]: value };
+  const pruned = Object.fromEntries(
+    Object.entries(next).filter(([, v]) => typeof v === "number" && Number.isFinite(v))
+  );
+  return { ...config, fusionTuning: Object.keys(pruned).length > 0 ? pruned : undefined };
 }
 
 const STRATEGY_RECOMMENDATIONS_FALLBACK = {
@@ -425,7 +430,7 @@ const COMBO_TEMPLATE_FALLBACK = {
   balancedDesc: "Least-used routing to spread demand over time.",
   freeStackTitle: "Free Stack ($0)",
   freeStackDesc:
-    "Round-robin across all free providers: Kiro, Qoder, Qwen, Gemini CLI. Zero cost, never stops.",
+    "Round-robin across free providers: Kiro, Qoder, Qwen, Antigravity CLI. Zero cost, never stops.",
   paidPremiumTitle: "Paid Premium",
   paidPremiumDesc:
     "Round-robin across paid subscriptions: Cursor, Antigravity. Top-tier models, distributed load.",
@@ -577,9 +582,6 @@ function getStrategyRecommendationText(t, strategy, field) {
   );
 }
 
-// ─────────────────────────────────────────────
-// Helper: normalize model entry (legacy string ↔ new object)
-// ─────────────────────────────────────────────
 function normalizeModelEntry(entry) {
   if (typeof entry === "string") return { model: entry, weight: 0 };
   if (entry?.kind === "combo-ref") {
@@ -615,6 +617,24 @@ function findBuilderProviderByIdentifier(builderProviders, providerIdentifier) {
       provider.alias === providerIdentifier ||
       provider.prefix === providerIdentifier
   );
+}
+
+function deriveCandidatePoolFromModels(models) {
+  const providerIds = new Set<string>();
+
+  for (const entry of models || []) {
+    if (!entry) continue;
+    if (entry.kind === "combo-ref") continue;
+    const modelValue = getModelString(entry);
+    const parsed = typeof modelValue === "string" ? parseQualifiedModel(modelValue) : null;
+    const providerId =
+      typeof entry.providerId === "string" && entry.providerId.trim().length > 0
+        ? entry.providerId.trim()
+        : parsed?.providerId;
+    if (providerId) providerIds.add(providerId);
+  }
+
+  return Array.from(providerIds);
 }
 
 function formatComboEntryDisplay(
@@ -671,9 +691,6 @@ function formatComboEntryDisplay(
   return `${providerLabel}/${modelLabel}`;
 }
 
-// ─────────────────────────────────────────────
-// Main Page
-// ─────────────────────────────────────────────
 export default function CombosPage() {
   const t = useTranslations("combos");
   const tc = useTranslations("common");
@@ -886,18 +903,28 @@ export default function CombosPage() {
 
   const handleToggleCombo = async (combo) => {
     const newActive = combo.isActive === false ? true : false;
+    const previousActive = combo.isActive !== false;
     // Optimistic update
     setCombos((prev) => prev.map((c) => (c.id === combo.id ? { ...c, isActive: newActive } : c)));
     try {
-      await fetch(`/api/combos/${combo.id}`, {
+      const res = await fetch(`/api/combos/${combo.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isActive: newActive }),
       });
+      if (!res.ok) {
+        // The server rejected the toggle (4xx/5xx). Surface its message instead
+        // of silently reverting with a generic toast — never swallow the error.
+        const errorBody = await res.json().catch(() => null);
+        setCombos((prev) =>
+          prev.map((c) => (c.id === combo.id ? { ...c, isActive: previousActive } : c))
+        );
+        notify.error(resolveServerErrorMessage(errorBody, t("failedToggle")));
+      }
     } catch (error) {
-      // Revert on error
+      // Revert on network error
       setCombos((prev) =>
-        prev.map((c) => (c.id === combo.id ? { ...c, isActive: !newActive } : c))
+        prev.map((c) => (c.id === combo.id ? { ...c, isActive: previousActive } : c))
       );
       notify.error(t("failedToggle"));
     }
@@ -1148,7 +1175,6 @@ export default function CombosPage() {
         />
       )}
 
-      {/* Combos List */}
       {combos.length === 0 ? (
         <EmptyState
           icon="🧩"
@@ -1227,7 +1253,6 @@ export default function CombosPage() {
         </div>
       )}
 
-      {/* Test Results Modal */}
       {testResults && (
         <Modal
           isOpen={!!testResults}
@@ -1241,7 +1266,6 @@ export default function CombosPage() {
         </Modal>
       )}
 
-      {/* Create Modal */}
       <ComboFormModal
         key="create"
         isOpen={showCreateModal}
@@ -1252,7 +1276,6 @@ export default function CombosPage() {
         comboConfigMode={comboConfigMode}
       />
 
-      {/* Edit Modal */}
       <ComboFormModal
         key={editingCombo?.id || "new"}
         isOpen={!!editingCombo}
@@ -1263,7 +1286,6 @@ export default function CombosPage() {
         comboConfigMode={comboConfigMode}
       />
 
-      {/* Proxy Config Modal */}
       {proxyTargetCombo && (
         <ProxyConfigModal
           isOpen={!!proxyTargetCombo}
@@ -1554,9 +1576,6 @@ function ComboReadinessPanel({ checks, blockers, showDescription = true }) {
   );
 }
 
-// ─────────────────────────────────────────────
-// Combo Card
-// ─────────────────────────────────────────────
 function ComboCard({
   combo,
   metrics,
@@ -1655,12 +1674,10 @@ function ComboCard({
             <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
           </button>
 
-          {/* Icon */}
           <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <span className="material-symbols-outlined text-primary text-[18px]">layers</span>
           </div>
           <div className="min-w-0 flex-1">
-            {/* Name + Strategy Badge + Copy */}
             <div className="flex items-center gap-2">
               <code className="text-sm font-medium font-mono truncate">{combo.name}</code>
               <Tooltip content={strategyDescription}>
@@ -1695,7 +1712,6 @@ function ComboCard({
               </button>
             </div>
 
-            {/* Model tags with weights */}
             <div className="flex items-center gap-1 mt-0.5 flex-wrap">
               {models.length === 0 ? (
                 <span className="text-xs text-text-muted italic">{t("noModels")}</span>
@@ -1724,7 +1740,6 @@ function ComboCard({
               )}
             </div>
 
-            {/* Metrics row */}
             {metrics && (
               <div className="flex items-center gap-3 mt-1">
                 <span className="text-[10px] text-text-muted">
@@ -1745,7 +1760,6 @@ function ComboCard({
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center justify-between md:justify-end gap-1.5 shrink-0 ml-0 md:ml-2 w-full md:w-auto mt-2 md:mt-0 pt-2 md:pt-0 border-t border-black/5 dark:border-white/5 md:border-t-0">
           <div className="flex items-center gap-2">
             <Toggle
@@ -1842,9 +1856,6 @@ function ComboCard({
   );
 }
 
-// ─────────────────────────────────────────────
-// Test Results View
-// ─────────────────────────────────────────────
 function TestResultsView({ results }) {
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
 
@@ -1930,9 +1941,6 @@ function TestResultsView({ results }) {
   );
 }
 
-// ─────────────────────────────────────────────
-// Combo Form Modal
-// ─────────────────────────────────────────────
 function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, comboConfigMode }) {
   type CreateDraftSnapshot = {
     name: string;
@@ -2583,11 +2591,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
   // identity).
   const handleDeselectModel = (model) => {
     const value =
-      typeof model?.value === "string"
-        ? model.value
-        : typeof model === "string"
-          ? model
-          : "";
+      typeof model?.value === "string" ? model.value : typeof model === "string" ? model : "";
     if (!value) return;
     setModels(models.filter((m) => m.model !== value));
     setBuilderError("");
@@ -2661,7 +2665,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
   };
 
   const FREE_STACK_PRESET_MODELS = [
-    { model: "gemini-cli/gemini-3-flash-preview", weight: 0 },
+    { model: "agy/gemini-3.5-flash-medium", weight: 0 },
     { model: "kr/claude-sonnet-4.5", weight: 0 },
     { model: "if/kimi-k2-thinking", weight: 0 },
     { model: "if/qwen3-coder-plus", weight: 0 },
@@ -2783,6 +2787,16 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     }
     if (strategy === "weighted" && config.stickyWeightedLimit !== undefined) {
       configToSave.stickyWeightedLimit = config.stickyWeightedLimit;
+    }
+    if (
+      usesIntelligentBuilderStage &&
+      !isExpertMode &&
+      (!Array.isArray(configToSave.candidatePool) || configToSave.candidatePool.length === 0)
+    ) {
+      const derivedCandidatePool = deriveCandidatePoolFromModels(models);
+      if (derivedCandidatePool.length > 0) {
+        configToSave.candidatePool = derivedCandidatePool;
+      }
     }
     const hasConfigToSave = Object.keys(configToSave).length > 0;
     const hadExistingConfig = Object.keys(sanitizeComboRuntimeConfig(combo?.config)).length > 0;
@@ -3096,7 +3110,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
             <BuilderIntelligentStep
               t={t}
               config={config}
-              activeProviders={activeProviders}
+              activeProviders={builderProviders}
               onChange={(nextIntelligentConfig: any) =>
                 setConfig((previousConfig) => ({
                   ...previousConfig,
@@ -4081,12 +4095,125 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                       )}
                     </div>
                   )}
+                  {strategy === "fusion" && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-2 border-t border-black/5 dark:border-white/5">
+                      <div className="md:col-span-2">
+                        <FieldLabelWithHelp
+                          label={getI18nOrFallback(t, "fusionJudgeModel", "Judge model")}
+                          help={getI18nOrFallback(
+                            t,
+                            "fusionJudgeModelHelp",
+                            "Model that synthesizes the panel answers into one final response. Leave empty to use the first panel model."
+                          )}
+                          showHelp={!isExpertMode}
+                        />
+                        <input
+                          type="text"
+                          value={config.judgeModel ?? ""}
+                          placeholder={models[0]?.model || "openai/gpt-5.5"}
+                          onChange={(e) =>
+                            setConfig({ ...config, judgeModel: e.target.value || undefined })
+                          }
+                          className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <FieldLabelWithHelp
+                          label={getI18nOrFallback(t, "fusionMinPanel", "Min panel")}
+                          help={getI18nOrFallback(
+                            t,
+                            "fusionMinPanelHelp",
+                            "Successful panel answers required before stragglers get a grace window (default 2)."
+                          )}
+                          showHelp={!isExpertMode}
+                        />
+                        <input
+                          type="number"
+                          min="1"
+                          max="50"
+                          value={config.fusionTuning?.minPanel ?? ""}
+                          placeholder="2"
+                          onChange={(e) =>
+                            setConfig(updateFusionTuning(config, "minPanel", e.target.value))
+                          }
+                          className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <FieldLabelWithHelp
+                          label={getI18nOrFallback(t, "fusionStragglerGraceMs", "Straggler grace (ms)")}
+                          help={getI18nOrFallback(
+                            t,
+                            "fusionStragglerGraceMsHelp",
+                            "How long to wait for slow panel models once quorum is reached (default 8000)."
+                          )}
+                          showHelp={!isExpertMode}
+                        />
+                        <input
+                          type="number"
+                          min="0"
+                          max="120000"
+                          value={config.fusionTuning?.stragglerGraceMs ?? ""}
+                          placeholder="8000"
+                          onChange={(e) =>
+                            setConfig(updateFusionTuning(config, "stragglerGraceMs", e.target.value))
+                          }
+                          className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <FieldLabelWithHelp
+                          label={getI18nOrFallback(
+                            t,
+                            "fusionPanelHardTimeoutMs",
+                            "Panel hard timeout (ms)"
+                          )}
+                          help={getI18nOrFallback(
+                            t,
+                            "fusionPanelHardTimeoutMsHelp",
+                            "Absolute cap so one hung model can't stall the whole panel (default 90000)."
+                          )}
+                          showHelp={!isExpertMode}
+                        />
+                        <input
+                          type="number"
+                          min="1000"
+                          max="600000"
+                          value={config.fusionTuning?.panelHardTimeoutMs ?? ""}
+                          placeholder="90000"
+                          onChange={(e) =>
+                            setConfig(
+                              updateFusionTuning(config, "panelHardTimeoutMs", e.target.value)
+                            )
+                          }
+                          className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  )}
                   {!isExpertMode && (
                     <p className="text-[10px] text-text-muted">{t("advancedHint")}</p>
                   )}
                 </div>
               )}
             </>
+          )}
+
+          {/* Response Validation (4985) */}
+          {showStrategySection && (
+            <div className="flex flex-col gap-2 p-3 bg-black/[0.02] dark:bg-white/[0.02] rounded-lg border border-black/5 dark:border-white/5">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="material-symbols-outlined text-[14px] text-primary">rule</span>
+                <p className="text-xs font-medium">
+                  {getI18nOrFallback(t, "responseValidationTitle", "Response validation")}
+                </p>
+              </div>
+              <ResponseValidationEditor
+                value={config.responseValidation as ResponseValidationValue | undefined}
+                onChange={(next) => setConfig({ ...config, responseValidation: next })}
+                t={t}
+              />
+            </div>
           )}
 
           {/* Agent Features (#399 / #401 / #454) */}
@@ -4485,7 +4612,6 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
         </div>
       </Modal>
 
-      {/* Model Select Modal */}
       <ModelSelectModal
         isOpen={showModelSelect}
         onClose={() => setShowModelSelect(false)}
@@ -4501,7 +4627,3 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     </>
   );
 }
-
-// ─────────────────────────────────────────────
-// WeightTotalBar moved to ./WeightTotalBar.tsx (re-exported via ./parts).
-// PR-1 of diegosouzapw/OmniRoute#3932 — pure presentational component.

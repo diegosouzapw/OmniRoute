@@ -1,21 +1,17 @@
 // Characterization of the pricing.ts split (god-file decomposition): the host became a barrel that
 // re-exports DEFAULT_PRICING (now merged from 4 semantic family files that import shared tier consts)
-// and keeps the 3 helper functions. Pure-data move → behavior identical. Locks: public surface, the
+// and keeps the helper functions. Pure-data move → behavior identical. Locks: public surface, the
 // spread-merge integrity, and that lookups/cost math resolve unchanged.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
 const P = await import("../../src/shared/constants/pricing.ts");
 
-test("barrel still exports DEFAULT_PRICING + the 3 helpers", () => {
-  for (const name of [
-    "DEFAULT_PRICING",
-    "getPricingForModel",
-    "getDefaultPricing",
-    "calculateCostFromTokens",
-  ]) {
+test("barrel still exports DEFAULT_PRICING + supported helpers", () => {
+  for (const name of ["DEFAULT_PRICING", "getPricingForModel", "getDefaultPricing"]) {
     assert.ok(name in P, `missing export: ${name}`);
   }
+  assert.equal(Object.hasOwn(P, "calculateCostFromTokens"), false);
 });
 
 test("DEFAULT_PRICING merges the 4 family files; families partition all entries", async () => {
@@ -49,8 +45,7 @@ test("shared tier consts feed the parts (a known model resolves to a shared rate
   assert.equal(typeof (pricing as { input?: number }).input, "number");
 });
 
-test("calculateCostFromTokens stays callable and numeric", () => {
-  const fn = (P as Record<string, (...a: unknown[]) => unknown>).calculateCostFromTokens;
-  const out = fn("openai", "gpt-4o", { prompt_tokens: 1000, completion_tokens: 1000 });
-  assert.equal(typeof out, "number");
+test("formatCost remains re-exported from the pricing barrel", () => {
+  const fn = (P as Record<string, (value: number) => string>).formatCost;
+  assert.equal(fn(0.0123), "$0.0123");
 });

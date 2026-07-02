@@ -168,6 +168,9 @@ export function synthResponsesFailure(reason?: MalformedReason): string {
  * - Tool-call responses (content=null + tool_calls=[…]) are also valid.
  * - Responses API function_call / other structural items count as output even
  *   when they carry no user-visible text.
+ * - Claude Messages shape (type:"message" + content[]) is checked directly,
+ *   since a Claude client receives the body in that shape (no
+ *   `choices`/`object:"response"`).
  */
 export function detectMalformedNonStream(resp: unknown): MalformedReason | null {
   if (!resp || typeof resp !== "object") return "empty_choices";
@@ -200,6 +203,51 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
     return null;
   }
 
+  // ── Claude / Anthropic Messages shape ──
+  // A `/v1/messages` request to a Claude provider keeps the response in Claude shape
+  // (no translation when client and provider formats both = Claude), so it reaches here
+  // as `{ type:"message", content:[…] }` — which has neither `object:"response"` nor
+  // `choices`. Without this branch every non-streaming Claude response (incl. plain text)
+  // falls through to `empty_choices` → a false 502 (#5108, regression from #4942).
+  if (body.type === "message" && Array.isArray(body.content)) {
+    const hasOutput = (body.content as unknown[]).some((block) => {
+      // A malformed/partial provider response could carry a null (or non-object)
+      // entry in `content`; guard before type-asserting so the detector never
+      // throws on `null.type` (that would crash the whole non-stream classifier).
+      if (block === null || typeof block !== "object") return false;
+      const b = block as Record<string, unknown>;
+      // Text block with visible text. `convertOpenAINonStreamingToClaude` emits
+      // "(empty response)" as a placeholder when the upstream produced no content,
+      // so treat that sentinel as empty — a genuinely empty completion still trips
+      // the guard (parity with the OpenAI `content:""` path).
+      if (
+        b.type === "text" &&
+        typeof b.text === "string" &&
+        (b.text as string).length > 0 &&
+        b.text !== "(empty response)"
+      ) {
+        return true;
+      }
+      // Extended-thinking block: valid when it carries visible thinking text OR a
+      // non-empty `signature` (cryptographic proof the thinking step ran, so it is a
+      // valid completion even when the thinking text is "").
+      if (
+        b.type === "thinking" &&
+        ((typeof b.thinking === "string" && (b.thinking as string).length > 0) ||
+          (typeof b.signature === "string" && (b.signature as string).length > 0))
+      ) {
+        return true;
+      }
+      // Redacted thinking and tool_use are valid structural output.
+      if (b.type === "redacted_thinking") return true;
+      if (b.type === "tool_use" && typeof b.id === "string" && (b.id as string).length > 0) {
+        return true;
+      }
+      return false;
+    });
+    return hasOutput ? null : "empty_choices";
+  }
+
   // ── Chat Completions shape ──
   const choices = body.choices;
   if (!Array.isArray(choices) || choices.length === 0) return "empty_choices";
@@ -208,6 +256,24 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
     const c = choice as Record<string, unknown>;
     const msg = c?.message as Record<string, unknown> | undefined;
     if (typeof msg?.content === "string" && (msg.content as string).length > 0) return true;
+    // #5559: some OpenAI-compatible upstreams (e.g. Cline via OAuth) return
+    // `message.content` as an array of Anthropic-style content blocks rather than
+    // a plain string. An array with at least one non-empty text block is real
+    // output — without this it was falsely flagged as empty_choices → 502 + cooldown.
+    if (
+      Array.isArray(msg?.content) &&
+      (msg.content as unknown[]).some((block) => {
+        const b = block as Record<string, unknown> | null;
+        return (
+          !!b &&
+          typeof b === "object" &&
+          b.type === "text" &&
+          typeof b.text === "string" &&
+          (b.text as string).length > 0
+        );
+      })
+    )
+      return true;
     if (Array.isArray(msg?.tool_calls) && (msg.tool_calls as unknown[]).length > 0) return true;
     if (typeof msg?.reasoning_content === "string" && (msg.reasoning_content as string).length > 0)
       return true;

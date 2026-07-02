@@ -205,10 +205,10 @@ async function readStateFile(): Promise<PersistedTunnelState> {
     return {};
   }
 }
-
 async function writeStateFileNow(state: PersistedTunnelState) {
-  await ensureTunnelDir();
-  await fs.writeFile(getStateFilePath(), JSON.stringify(state, null, 2) + "\n", "utf8");
+  const stateFilePath = getStateFilePath();
+  await fs.mkdir(path.dirname(stateFilePath), { recursive: true });
+  await fs.writeFile(stateFilePath, JSON.stringify(state, null, 2) + "\n", "utf8");
 }
 
 async function withStateFileLock<T>(operation: () => Promise<T>): Promise<T> {

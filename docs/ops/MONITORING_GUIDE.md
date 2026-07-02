@@ -1,7 +1,7 @@
 ---
 title: "Monitoring & Observability Guide"
-version: 3.8.16
-lastUpdated: 2026-06-08
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Monitoring & Observability Guide
@@ -9,6 +9,7 @@ lastUpdated: 2026-06-08
 > **TL;DR**: OmniRoute ships with built-in health monitoring, provider autopilot, quota tracking, and observability hooks. This guide covers the dashboard, alerts, and troubleshooting.
 
 **Sources:**
+
 - `src/lib/monitoring/observability.ts` — observability snapshot
 - `src/lib/monitoring/comboHealthAutopilot.ts` — combo health autopilot
 - `src/lib/monitoring/providerHealthAutopilot.ts` — provider autopilot
@@ -50,30 +51,31 @@ OmniRoute has **3 layers of monitoring**:
 
 The top-level health dashboard shows:
 
-| Section | What it shows |
-|---------|---------------|
-| **Server status** | Uptime, version, port, active connections |
-| **Database** | Connection, integrity, WAL size, recent migrations |
-| **Provider summary** | Active count, healthy count, breaker open count |
-| **Quota monitors** | Active sessions, alerting, exhausted |
-| **Recent errors** | Last 10 errors with stack traces |
-| **Resource usage** | Memory, CPU, heap pressure indicator |
+| Section              | What it shows                                      |
+| -------------------- | -------------------------------------------------- |
+| **Server status**    | Uptime, version, port, active connections          |
+| **Database**         | Connection, integrity, WAL size, recent migrations |
+| **Provider summary** | Active count, healthy count, breaker open count    |
+| **Quota monitors**   | Active sessions, alerting, exhausted               |
+| **Recent errors**    | Last 10 errors with stack traces                   |
+| **Resource usage**   | Memory, CPU, heap pressure indicator               |
 
 ### `/dashboard/providers` (Provider Health)
 
 Per-provider dashboard:
 
-| Column | Description |
-|--------|-------------|
-| Provider | Provider ID + display name |
-| Health | Green/yellow/red status |
-| Circuit | Open/closed/half-open state |
-| Connections | Count of connections, last refresh |
-| Models | Available models, health per model |
-| Cost | Today's cost, 7-day trend |
-| Errors | Last 24h error count, top error class |
+| Column      | Description                           |
+| ----------- | ------------------------------------- |
+| Provider    | Provider ID + display name            |
+| Health      | Green/yellow/red status               |
+| Circuit     | Open/closed/half-open state           |
+| Connections | Count of connections, last refresh    |
+| Models      | Available models, health per model    |
+| Cost        | Today's cost, 7-day trend             |
+| Errors      | Last 24h error count, top error class |
 
 Click a provider to see:
+
 - Recent requests with latency breakdown
 - Per-connection health scores
 - Per-model lockouts
@@ -153,27 +155,27 @@ The `providerHealthAutopilot.ts` module is a **self-healing system** that:
 
 ### Issue Types Detected
 
-| Issue kind | Severity | Example condition |
-|------------|----------|-------------------|
-| `provider_circuit_open` | critical | Circuit breaker open after 5 failures |
-| `provider_circuit_half_open` | warning | Circuit testing recovery |
-| `connection_cooldown` | warning | Connection in cooldown after 429 |
-| `stale_connection_error` | warning | Last refresh failed 30+ minutes ago |
-| `terminal_connection_error` | critical | OAuth revoked, key invalid |
-| `inactive_connection` | info | Connection disabled in settings |
-| `model_lockout` | warning | Specific model in quarantine |
-| `quota_monitor_warning` | warning | Quota at 80%+ usage |
+| Issue kind                   | Severity | Example condition                     |
+| ---------------------------- | -------- | ------------------------------------- |
+| `provider_circuit_open`      | critical | Circuit breaker open after 5 failures |
+| `provider_circuit_half_open` | warning  | Circuit testing recovery              |
+| `connection_cooldown`        | warning  | Connection in cooldown after 429      |
+| `stale_connection_error`     | warning  | Last refresh failed 30+ minutes ago   |
+| `terminal_connection_error`  | critical | OAuth revoked, key invalid            |
+| `inactive_connection`        | info     | Connection disabled in settings       |
+| `model_lockout`              | warning  | Specific model in quarantine          |
+| `quota_monitor_warning`      | warning  | Quota at 80%+ usage                   |
 
 ### Action Types Generated
 
-| Action | Risk | Description |
-|--------|------|-------------|
-| `clear_provider_breaker` | medium | Reset the circuit breaker to closed |
-| `clear_connection_cooldown` | low | Remove cooldown from a connection |
-| `clear_stale_connection_error` | low | Clear stale error flag |
-| `clear_model_lockout` | low | Re-enable a quarantined model |
-| `reactivate_connection` | medium | Re-enable a deactivated connection |
-| `deactivate_connection` | high | Disable a problematic connection |
+| Action                         | Risk   | Description                         |
+| ------------------------------ | ------ | ----------------------------------- |
+| `clear_provider_breaker`       | medium | Reset the circuit breaker to closed |
+| `clear_connection_cooldown`    | low    | Remove cooldown from a connection   |
+| `clear_stale_connection_error` | low    | Clear stale error flag              |
+| `clear_model_lockout`          | low    | Re-enable a quarantined model       |
+| `reactivate_connection`        | medium | Re-enable a deactivated connection  |
+| `deactivate_connection`        | high   | Disable a problematic connection    |
 
 ### API
 
@@ -217,7 +219,7 @@ interface QuotaMonitorSnapshot {
   provider: string;
   accountId: string;
   status: "starting" | "idle" | "healthy" | "warning" | "exhausted" | "error";
-  lastQuotaPercent: number | null;  // 0-100
+  lastQuotaPercent: number | null; // 0-100
   lastQuotaUsed: number | null;
   lastQuotaTotal: number | null;
   lastResetAt: string | null;
@@ -230,14 +232,14 @@ interface QuotaMonitorSnapshot {
 
 ### Status Meanings
 
-| Status | When | UI action |
-|--------|------|-----------|
-| `starting` | Initial poll in progress | Spinner |
-| `idle` | No recent activity | Hidden from dashboard |
-| `healthy` | Quota > 50% remaining | Green dot |
-| `warning` | Quota < 50% remaining | Yellow alert |
-| `exhausted` | Quota = 0% | Red block, route to next provider |
-| `error` | Polling failed | Red dot, retry soon |
+| Status      | When                     | UI action                         |
+| ----------- | ------------------------ | --------------------------------- |
+| `starting`  | Initial poll in progress | Spinner                           |
+| `idle`      | No recent activity       | Hidden from dashboard             |
+| `healthy`   | Quota > 50% remaining    | Green dot                         |
+| `warning`   | Quota < 50% remaining    | Yellow alert                      |
+| `exhausted` | Quota = 0%               | Red block, route to next provider |
+| `error`     | Polling failed           | Red dot, retry soon               |
 
 ### API
 
@@ -270,7 +272,9 @@ The MCP tool `observability_snapshot` returns a **complete system snapshot** for
       "ageMs": 109
     }
   ],
-  "quotaMonitors": { /* see above */ },
+  "quotaMonitors": {
+    /* see above */
+  },
   "uptime": 12345,
   "version": "3.8.16"
 }
@@ -318,11 +322,11 @@ Token health check configuration is handled internally by `tokenHealthCheck.ts`.
 
 OmniRoute supports **3 alert channels**:
 
-| Channel | Setup | Use case |
-|---------|-------|----------|
-| Dashboard banner | Always on | In-app notifications |
-| Webhook | Configure URL | Slack, Discord, PagerDuty |
-| Log | Default | For external log aggregation |
+| Channel          | Setup         | Use case                     |
+| ---------------- | ------------- | ---------------------------- |
+| Dashboard banner | Always on     | In-app notifications         |
+| Webhook          | Configure URL | Slack, Discord, PagerDuty    |
+| Log              | Default       | For external log aggregation |
 
 ### Webhook Configuration
 
@@ -330,17 +334,17 @@ OmniRoute supports **3 alert channels**:
 
 ### Alert Types
 
-| Alert | When | Default severity |
-|-------|------|------------------|
-| `provider_circuit_open` | Circuit opens | critical |
-| `provider_circuit_half_open` | Circuit testing recovery | info |
-| `quota_warning` | Quota at 80%+ | warning |
-| `quota_exhausted` | Quota at 100% | critical |
-| `token_refresh_failed` | 3+ consecutive refresh failures | warning |
-| `token_expired` | Token past expiry | critical |
-| `combo_target_unhealthy` | Combo target in cooldown for 1h+ | warning |
-| `db_integrity_warning` | FK violations > 0 | warning |
-| `heap_pressure` | Heap usage > 80% of threshold | warning |
+| Alert                        | When                             | Default severity |
+| ---------------------------- | -------------------------------- | ---------------- |
+| `provider_circuit_open`      | Circuit opens                    | critical         |
+| `provider_circuit_half_open` | Circuit testing recovery         | info             |
+| `quota_warning`              | Quota at 80%+                    | warning          |
+| `quota_exhausted`            | Quota at 100%                    | critical         |
+| `token_refresh_failed`       | 3+ consecutive refresh failures  | warning          |
+| `token_expired`              | Token past expiry                | critical         |
+| `combo_target_unhealthy`     | Combo target in cooldown for 1h+ | warning          |
+| `db_integrity_warning`       | FK violations > 0                | warning          |
+| `heap_pressure`              | Heap usage > 80% of threshold    | warning          |
 
 ---
 
@@ -348,18 +352,18 @@ OmniRoute supports **3 alert channels**:
 
 ### Tracked Metrics
 
-| Metric | Type | Source |
-|--------|------|--------|
-| `request_count` | counter | `services/usage.ts` |
-| `request_latency_ms` | histogram | `services/usage.ts` |
-| `tokens_consumed` | counter | `services/usage.ts` |
-| `cost_usd` | counter | `services/usage.ts` |
-| `provider_errors` | counter | `services/errorClassifier.ts` |
-| `circuit_state_changes` | counter | `services/resilience.ts` |
-| `cache_hits` | counter | `services/signatureCache.ts` |
-| `compression_savings` | histogram | `services/compression/stats.ts` |
-| `quota_used` | gauge | `services/quotaMonitor.ts` |
-| `memory_used_mb` | gauge | `observability.ts` |
+| Metric                  | Type      | Source                          |
+| ----------------------- | --------- | ------------------------------- |
+| `request_count`         | counter   | `services/usage.ts`             |
+| `request_latency_ms`    | histogram | `services/usage.ts`             |
+| `tokens_consumed`       | counter   | `services/usage.ts`             |
+| `cost_usd`              | counter   | `services/usage.ts`             |
+| `provider_errors`       | counter   | `services/errorClassifier.ts`   |
+| `circuit_state_changes` | counter   | `services/resilience.ts`        |
+| `cache_hits`            | counter   | `services/signatureCache.ts`    |
+| `compression_savings`   | histogram | `services/compression/stats.ts` |
+| `quota_used`            | gauge     | `services/quotaMonitor.ts`      |
+| `memory_used_mb`        | gauge     | `observability.ts`              |
 
 ### Latency Percentiles (p50/p95/p99)
 
@@ -376,12 +380,19 @@ For now, scrape `/api/monitoring/health` with any HTTP-based monitoring system (
 ## Alerting Recipes
 
 ### Slack
+
 > **Note:** Webhook alerting is configured through the dashboard Settings page — there are no dedicated webhook env vars (`grep -rn` returns zero hits). See the Settings UI for webhook URL, event filtering, and payload customization.
+
 ### Discord
+
 > Webhook alerting uses the same Settings UI flow as Slack. Discord accepts the same JSON payload shape.
+
 ### PagerDuty
+
 > Webhook alerting uses the same Settings UI flow. PagerDuty Events API v2 routing keys are configured in the Settings UI.
+
 ### Custom Webhook (JSON)
+
 > Any HTTP endpoint that accepts POST with JSON body will work. Configure the URL in the Settings UI.
 
 ---
@@ -395,13 +406,7 @@ Create a `~/.omniroute/dashboard.json`:
 ```json
 {
   "health": {
-    "sections": [
-      "server_status",
-      "database",
-      "providers",
-      "quota_monitors",
-      "recent_errors"
-    ],
+    "sections": ["server_status", "database", "providers", "quota_monitors", "recent_errors"],
     "refresh_interval_ms": 5000
   }
 }
@@ -463,7 +468,7 @@ node --expose-gc -e "global.gc(); console.log(process.memoryUsage())"
 
 ## See Also
 
-- [USAGE_QUOTA_GUIDE.md](../features/USAGE_QUOTA_GUIDE.md) — usage & cost tracking
+- [USAGE_QUOTA_GUIDE.md](../guides/USAGE_QUOTA_GUIDE.md) — usage & cost tracking
 - [DATABASE_GUIDE.md](./DATABASE_GUIDE.md) — DB schema + health
 - [PROXY_GUIDE.md](./PROXY_GUIDE.md) — proxy health (separate cache)
 - [ARCHITECTURE.md](../architecture/ARCHITECTURE.md) — system architecture

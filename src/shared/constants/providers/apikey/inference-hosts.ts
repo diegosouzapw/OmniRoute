@@ -11,9 +11,11 @@ export const APIKEY_PROVIDERS_INFERENCE = {
     color: "#0F6FFF",
     textIcon: "TG",
     website: "https://www.together.ai",
-    hasFree: true,
-    freeNote:
-      "$25 signup credits + 3 permanently free models: Llama 3.3 70B, Vision, DeepSeek-R1 distill",
+    hasFree: false,
+    notice: {
+      text: "No free tier — Together AI is fully prepaid and requires a minimum $5 credit purchase (valid payment method) before API calls work. The former $25 signup credit was retired.",
+      apiKeyUrl: "https://api.together.ai/settings/api-keys",
+    },
   },
   fireworks: {
     id: "fireworks",
@@ -88,7 +90,7 @@ export const APIKEY_PROVIDERS_INFERENCE = {
     icon: "cloud",
     color: "#58A6FF",
     textIcon: "OC",
-    website: "https://ollama.com/settings/api-keys",
+    website: "https://ollama.com/settings/keys",
     hasFree: true,
   },
   huggingface: {
@@ -248,19 +250,6 @@ export const APIKEY_PROVIDERS_INFERENCE = {
     website: "https://bytez.com",
     hasFree: true,
     freeNote: "$1 free credits, refreshes every 4 weeks",
-  },
-  huggingchat: {
-    id: "huggingchat",
-    alias: "huggingchat",
-    name: "HuggingChat",
-    icon: "chat",
-    color: "#FFD21E",
-    textIcon: "HC",
-    website: "https://huggingface.co/chat",
-    hasFree: true,
-    freeNote: "Free chat with open models (Llama, Mistral, etc.).",
-    passthroughModels: true,
-    authHint: "No API key required for basic access.",
   },
   monsterapi: {
     id: "monsterapi",

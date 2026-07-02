@@ -17,7 +17,6 @@ import {
   recordProviderFailure,
   selectLockoutCooldownMs,
 } from "./accountFallback.ts";
-import { RateLimitReason } from "../config/constants.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import {
   recordComboIntent,
@@ -203,19 +202,13 @@ import {
   reorderByTaskWeight,
 } from "./taskAwareRouting.ts";
 
-// Backward-compatible re-exports — these were public from combo.ts before the
-// types extraction (Quality Gate v2 / Fase 9). Keep the external surface stable.
 export { RESET_WINDOW_NAMES };
-// chatCore.ts's dynamic `import("../services/combo")` reads these two — keep them
-// re-exported from combo.ts after the auto-strategy extraction (combo split D8).
 export { QUOTA_SOFT_DEPRIORITIZE_FACTOR, setCandidateQuotaSoftPenalty };
 export { scoreAutoTargets, expandAutoComboCandidatePool };
 export type { SingleModelTarget, ResolvedComboTarget };
 export { validateResponseQuality };
 export { clampComboDepth, shouldSkipForPredictedTtft, shouldRecordProviderBreakerFailure };
 export { resolveShadowTargets, scheduleShadowRouting };
-// preScreenTargets was public from combo.ts before the reset-aware quota
-// extraction (combo split D7b). Keep the external surface stable.
 export { preScreenTargets };
 export { resolveComboRuntimeUnits, resolveComboTargets, filterTargetsByRequestCompatibility };
 export {
@@ -226,15 +219,6 @@ export {
   validateComboDAG,
 } from "./combo/comboStructure.ts";
 
-// Reset-aware / reset-window quota config, scoring, and window-math helpers were
-// extracted to combo/quotaScoring.ts (pure) and the stateful cache + strategy
-// orderers to combo/quotaStrategies.ts (combo split D7b). The two cache Maps
-// (resetAwareConnectionCache, resetAwareQuotaCache) live as single instances in
-// quotaStrategies.ts alongside their only readers/writers (state cohesion).
-// combo.ts imports back the three reset-window helpers buildAutoCandidates +
-// orchestration need, plus the strategy orderers and preScreenTargets (above).
-
-// Bootstrap defaults from ClawRouter benchmark (used when no local latency history exists yet)
 const DEFAULT_MODEL_P95_MS: Record<string, number> = {
   "grok-4-fast-non-reasoning": 1143,
   "grok-4-1-fast-non-reasoning": 1244,
@@ -246,9 +230,6 @@ const DEFAULT_MODEL_P95_MS: Record<string, number> = {
   "deepseek-chat": 2000,
 };
 const MIN_HISTORY_SAMPLES = 10;
-// Assumed fraction of tokens that are output when blending input+output prices
-// for auto-combo cost scoring. 0.4 = 40% output, 60% input.
-// Matches the example in GitHub issue #1812 (e.g. o3-like model: $3 input/$15 output).
 const OUTPUT_TOKEN_RATIO = 0.4;
 
 function normalizeNestedComboMode(value: unknown): NestedComboMode {
@@ -444,11 +425,22 @@ export async function buildAutoCandidates(
     const connectionIds = providerConnections
       .map((c) => (c && typeof c === "object" && typeof c.id === "string" ? c.id : null))
       .filter((id): id is string => id !== null);
-    if (connectionIds.length === 0) {
+    const allowedConnectionIds = Array.isArray(target.allowedConnectionIds)
+      ? new Set(
+          target.allowedConnectionIds.filter(
+            (connectionId): connectionId is string =>
+              typeof connectionId === "string" && connectionId.trim().length > 0
+          )
+        )
+      : null;
+    const scopedConnectionIds = allowedConnectionIds
+      ? connectionIds.filter((connectionId) => allowedConnectionIds.has(connectionId))
+      : connectionIds;
+    if (scopedConnectionIds.length === 0) {
       expandedTargets.push(target);
       continue;
     }
-    for (const connectionId of connectionIds) {
+    for (const connectionId of scopedConnectionIds) {
       expandedTargets.push({
         ...target,
         connectionId,
@@ -727,10 +719,6 @@ export async function handleComboChat({
   apiKeyAllowedConnections = null,
   nesting = null,
 }: HandleComboChatOptions): Promise<Response> {
-  // Combo setup phase (god-file decomposition fase 1): strategy / relay / resilience /
-  // universal-handoff / context-cache pinning / agent middleware / config cascade / timeout.
-  // phaseComboSetup rewrites ctx.body (pinning + middleware); rebind `body` from it so the
-  // rest of handleComboChat is unchanged. See combo/comboSetup.ts + combo/context.ts.
   const comboCtx = createComboContext({ body, combo, settings, relayOptions, log });
   const {
     strategy,
@@ -746,16 +734,6 @@ export async function handleComboChat({
   } = phaseComboSetup(comboCtx);
   body = comboCtx.body;
 
-  // ── Per-model timeout wrapper ────────────────────────────────────────────
-  // Combo target timeouts inherit FETCH_TIMEOUT_MS by default. Operators can
-  // configure targetTimeoutMs to shorten fallback latency, but never to extend
-  // beyond the current upstream request timeout.
-  //
-  // The timeoutController is forwarded to the inner caller via target.modelAbortSignal.
-  // When the timeout fires we (a) resolve the race with a synthetic 524 and
-  // (b) abort the inner request so its upstream fetch is cancelled and downstream
-  // cooldown/breaker/usage mutations stop — preventing "ghost" state mutations
-  // that diverge from the routing decision the operator sees.
   const handleSingleModelWithTimeout = async (
     b: Record<string, unknown>,
     modelStr: string,
@@ -777,9 +755,6 @@ export async function handleComboChat({
           "COMBO",
           `Model ${modelStr} exceeded ${comboTargetTimeoutMs}ms timeout — falling back`
         );
-        // Abort the inner request so its upstream fetch is cancelled and
-        // downstream cooldown/breaker/usage mutations don't continue mutating
-        // state behind the routing decision's back.
         timeoutController.abort(new Error("combo-per-model-timeout"));
         resolve(
           new Response(JSON.stringify({ error: { message: `Model ${modelStr} timed out` } }), {
@@ -820,9 +795,6 @@ export async function handleComboChat({
       ]);
     } finally {
       clearTimeout(timeoutId);
-      // Detach our listener from the SHARED parent hedge signal. Without this, every target
-      // attempt left a listener on the long-lived parent signal for the whole request, so a
-      // request that tries many combo targets accumulated listeners on one signal.
       if (parentHedgeSignal && onParentHedgeAbort) {
         parentHedgeSignal.removeEventListener("abort", onParentHedgeAbort);
       }
@@ -1306,12 +1278,22 @@ export async function handleComboChat({
       log.warn("COMBO", "Failed to retrieve Last Known Good Provider. This is non-fatal.", { err });
     }
 
+    const autoCandidateResilienceSettings =
+      relayOptions?.bypassProviderQuotaPolicy === true
+        ? {
+            ...resilienceSettings,
+            quotaPreflight: {
+              ...resilienceSettings.quotaPreflight,
+              enabled: false,
+            },
+          }
+        : resilienceSettings;
     const candidates = await buildAutoCandidates(
       eligibleTargets,
       combo.name,
       relayOptions?.sessionId,
       resetWindowConfig,
-      resilienceSettings
+      autoCandidateResilienceSettings
     );
     const routableCandidates = candidates.filter(
       (candidate) => candidate.quotaCutoffBlocked !== true
@@ -1909,8 +1891,11 @@ export async function handleComboChat({
           });
 
           // Deep clone the body to ensure context preservation and prevent mutations
-          // from affecting other targets in the combo
-          let attemptBody = JSON.parse(JSON.stringify(body));
+          // from affecting other targets in the combo. structuredClone avoids the
+          // full intermediate JSON string that JSON.parse(JSON.stringify(...)) builds
+          // (a second multi-hundred-KB allocation per target on large agent payloads),
+          // halving the per-target transient heap on the hot path (#5152).
+          let attemptBody = structuredClone(body);
 
           // Proactive Context Compression for fallbacks (Zero-Latency optimization)
           if (
@@ -1996,7 +1981,12 @@ export async function handleComboChat({
               undefined;
             const effectiveConnectionId = selectedConnectionId || target.connectionId || "";
 
-            const quality = await validateResponseQuality(result, clientRequestedStream, log);
+            const quality = await validateResponseQuality(
+              result,
+              clientRequestedStream,
+              log,
+              config.responseValidation
+            );
             if (!quality.valid) {
               log.warn(
                 "COMBO",
@@ -2358,6 +2348,7 @@ export async function handleComboChat({
             log,
             tag: "COMBO",
             exhaustedLogLevel: "info",
+            structuredError,
           });
 
           // #2101: Prevent infinite fallback loops with 400 Bad Request errors that are genuinely
@@ -2372,8 +2363,7 @@ export async function handleComboChat({
             fallbackResult.shouldFallback &&
             !isContextOverflow400(errorText) &&
             !isParamValidation400(errorText) &&
-            (fallbackResult.reason === RateLimitReason.MODEL_CAPACITY ||
-              errorText.toLowerCase().includes("context") ||
+            (errorText.toLowerCase().includes("context") ||
               errorText.toLowerCase().includes("prompt") ||
               errorText.toLowerCase().includes("token") ||
               errorText.toLowerCase().includes("malformed") ||
@@ -2876,6 +2866,23 @@ async function handleRoundRobinCombo({
     rrCounters.set(combo.name, counter + 1);
   }
 
+  // #3825: per-conversation session stickiness for round-robin. weighted/priority honor a
+  // sticky connection via applySessionStickiness, but this RR handler returns before that
+  // call — so sessionless RR combos rotated every turn, busting the upstream prompt-cache.
+  // Reuse the SAME mechanism: start the rotation at the conversation's sticky connection
+  // (the loop still falls through to the other targets on failure → failover preserved).
+  const _rrSessionSticky = await applySessionStickiness(
+    filteredTargets,
+    body?.messages as Array<{ role?: string; content?: unknown }>
+  );
+  let rrStartIndex = startIndex;
+  if (_rrSessionSticky.stuck) {
+    const stickyIdx = filteredTargets.findIndex(
+      (t) => t.connectionId === _rrSessionSticky.targets[0]?.connectionId
+    );
+    if (stickyIdx >= 0) rrStartIndex = stickyIdx;
+  }
+
   const clientRequestedStream = body?.stream === true;
   const startTime = Date.now();
   let lastError: string | null = null;
@@ -2894,7 +2901,7 @@ async function handleRoundRobinCombo({
 
   // Try each model starting from the round-robin target
   for (let offset = 0; offset < modelCount; offset++) {
-    const modelIndex = (startIndex + offset) % modelCount;
+    const modelIndex = (rrStartIndex + offset) % modelCount;
     const target = filteredTargets[modelIndex];
     const modelStr = target.modelStr;
     const provider = target.provider;
@@ -3024,7 +3031,12 @@ async function handleRoundRobinCombo({
 
         // Success — validate response quality before returning
         if (result.ok) {
-          const quality = await validateResponseQuality(result, clientRequestedStream, log);
+          const quality = await validateResponseQuality(
+            result,
+            clientRequestedStream,
+            log,
+            config.responseValidation
+          );
           if (!quality.valid) {
             log.warn(
               "COMBO-RR",
@@ -3084,6 +3096,12 @@ async function handleRoundRobinCombo({
 
           if (stickyRoundRobinEnabled) {
             recordStickyRoundRobinSuccess(combo.name, target, stickyLimit, filteredTargets);
+          }
+
+          // #3825: (re)record the sticky binding so the next turn re-pins (prompt-cache).
+          if (_rrSessionSticky.messageHash) {
+            const stickyConn = effectiveConnectionId || target.connectionId;
+            if (stickyConn) recordStickyBinding(_rrSessionSticky.messageHash, stickyConn);
           }
 
           if (provider) {
@@ -3243,6 +3261,7 @@ async function handleRoundRobinCombo({
           log,
           tag: "COMBO-RR",
           exhaustedLogLevel: "debug",
+          structuredError,
         });
 
         // Transient errors → mark in semaphore so round-robin stops stampeding this target.

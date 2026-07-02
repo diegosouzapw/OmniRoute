@@ -1,18 +1,6 @@
-/**
- * Service kind — declarative tag for what a provider can do beyond basic LLM chat.
- * Affects UI filtering and playground routing; does not influence request routing.
- */
-export type ServiceKind =
-  | "llm"
-  | "embedding"
-  | "image"
-  | "imageToText"
-  | "tts"
-  | "stt"
-  | "webSearch"
-  | "webFetch"
-  | "video"
-  | "music";
+// Re-export service kinds from leaf module (avoids circular dep with providerSchema)
+export type { ServiceKind } from "./serviceKinds";
+export { SERVICE_KIND_VALUES } from "./serviceKinds";
 
 export type RiskNoticeVariant = "oauth" | "webCookie" | "deprecated" | "embedded-service";
 
@@ -50,8 +38,6 @@ export const FREE_APIKEY_PROVIDER_IDS = new Set([
 export function supportsApiKeyOnFreeProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && FREE_APIKEY_PROVIDER_IDS.has(providerId);
 }
-
-// OAuth Providers
 
 // Web / Cookie Providers
 
@@ -141,8 +127,6 @@ export function isAnthropicCompatibleProvider(providerId: unknown): providerId i
   return typeof providerId === "string" && providerId.startsWith(ANTHROPIC_COMPATIBLE_PREFIX);
 }
 
-
-
 export function isClaudeCodeCompatibleProvider(providerId: unknown): providerId is string {
   return typeof providerId === "string" && providerId.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX);
 }
@@ -155,6 +139,7 @@ export function isLocalProvider(providerId: unknown): boolean {
 }
 
 export const SELF_HOSTED_CHAT_PROVIDER_IDS = new Set([
+  "ollama-local",
   "lm-studio",
   "vllm",
   "lemonade",
@@ -403,7 +388,6 @@ export const ID_TO_ALIAS = new Proxy({} as Record<string, string>, {
 export const USAGE_SUPPORTED_PROVIDERS = [
   "antigravity",
   "agy",
-  "gemini-cli",
   "kiro",
   "amazon-q",
   "github",

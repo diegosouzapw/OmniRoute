@@ -81,7 +81,6 @@ import { monsterapiProvider } from "./registry/monsterapi/index.ts";
 import { sensenovaProvider } from "./registry/sensenova/index.ts";
 import { hyperbolicProvider } from "./registry/hyperbolic/index.ts";
 import { lambda_aiProvider } from "./registry/lambda-ai/index.ts";
-import { phindProvider } from "./registry/phind/index.ts";
 import { t3_webProvider } from "./registry/t3-web/index.ts";
 import { klusterProvider } from "./registry/kluster/index.ts";
 import { iflytekProvider } from "./registry/iflytek/index.ts";
@@ -103,6 +102,7 @@ import { openrouterProvider } from "./registry/openrouter/index.ts";
 import { orcarouterProvider } from "./registry/orcarouter/index.ts";
 import { glhfProvider } from "./registry/glhf/index.ts";
 import { copilot_webProvider } from "./registry/copilot-web/index.ts";
+import { copilot_m365_webProvider } from "./registry/copilot-m365-web/index.ts";
 import { stepfunProvider } from "./registry/stepfun/index.ts";
 import { freemodel_devProvider } from "./registry/freemodel-dev/index.ts";
 import { gitlawb_gmiProvider } from "./registry/gitlawb/gmi/index.ts";
@@ -142,6 +142,7 @@ import { bailian_coding_planProvider } from "./registry/bailian-coding-plan/inde
 import { gigachatProvider } from "./registry/gigachat/index.ts";
 import { devin_cliProvider } from "./registry/devin-cli/index.ts";
 import { chutesProvider } from "./registry/chutes/index.ts";
+import { factoryProvider } from "./registry/factory/index.ts";
 import { databricksProvider } from "./registry/databricks/index.ts";
 import { rekaProvider } from "./registry/reka/index.ts";
 import { vercel_ai_gatewayProvider } from "./registry/vercel-ai-gateway/index.ts";
@@ -151,7 +152,6 @@ import { opencode_goProvider } from "./registry/opencode/go/index.ts";
 import { opencodeProvider } from "./registry/opencode/index.ts";
 import { maritalkProvider } from "./registry/maritalk/index.ts";
 import { basetenProvider } from "./registry/baseten/index.ts";
-import { gemini_cliProvider } from "./registry/gemini/cli/index.ts";
 import { geminiProvider } from "./registry/gemini/index.ts";
 import { gemini_webProvider } from "./registry/gemini/web/index.ts";
 import { clineProvider } from "./registry/cline/index.ts";
@@ -167,8 +167,10 @@ import { kiroProvider } from "./registry/kiro/index.ts";
 import { openadapterProvider } from "./registry/openadapter/index.ts";
 import { ditProvider } from "./registry/dit/index.ts";
 import { tokenrouterProvider } from "./registry/tokenrouter/index.ts";
+import { grok_cliProvider } from "./registry/grok-cli/index.ts";
 import { codebuddy_cnProvider } from "./registry/codebuddy-cn/index.ts";
 import { pioneerProvider } from "./registry/pioneer/index.ts";
+import { zenmux_freeProvider } from "./registry/zenmux-free/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -250,7 +252,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   sensenova: sensenovaProvider,
   hyperbolic: hyperbolicProvider,
   "lambda-ai": lambda_aiProvider,
-  phind: phindProvider,
   "t3-web": t3_webProvider,
   kluster: klusterProvider,
   iflytek: iflytekProvider,
@@ -272,6 +273,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   orcarouter: orcarouterProvider,
   glhf: glhfProvider,
   "copilot-web": copilot_webProvider,
+  "copilot-m365-web": copilot_m365_webProvider,
   stepfun: stepfunProvider,
   "freemodel-dev": freemodel_devProvider,
   "gitlawb-gmi": gitlawb_gmiProvider,
@@ -310,6 +312,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   gigachat: gigachatProvider,
   "devin-cli": devin_cliProvider,
   chutes: chutesProvider,
+  factory: factoryProvider,
   databricks: databricksProvider,
   reka: rekaProvider,
   "vercel-ai-gateway": vercel_ai_gatewayProvider,
@@ -319,7 +322,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   opencode: opencodeProvider,
   maritalk: maritalkProvider,
   baseten: basetenProvider,
-  "gemini-cli": gemini_cliProvider,
   gemini: geminiProvider,
   "gemini-web": gemini_webProvider,
   cline: clineProvider,
@@ -338,6 +340,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   openadapter: openadapterProvider,
   dit: ditProvider,
   tokenrouter: tokenrouterProvider,
+  "grok-cli": grok_cliProvider,
   "codebuddy-cn": codebuddy_cnProvider,
   pioneer: pioneerProvider,
+  "zenmux-free": zenmux_freeProvider,
 };

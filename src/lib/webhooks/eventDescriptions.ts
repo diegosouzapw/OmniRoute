@@ -74,12 +74,3 @@ export const EVENT_DESCRIPTIONS: Record<WebhookEvent, EventDescription> = {
     exampleData: { message: "Test ping from OmniRoute", webhookId: "preview" },
   },
 };
-
-export function buildExamplePayload(event: WebhookEvent): Record<string, unknown> {
-  return {
-    event,
-    webhook_id: "preview",
-    timestamp: new Date().toISOString(),
-    data: EVENT_DESCRIPTIONS[event].exampleData,
-  };
-}

@@ -94,6 +94,119 @@ const resilienceTabSettingsKeys = [
   "resilienceMaxWaitPerAttempt",
 ];
 
+const quotaShareResilienceSettingsMessages = {
+  resilienceComboCooldownWaitTitle: "Quota-share combo cooldown wait",
+  resilienceComboCooldownWaitDesc:
+    "For quota-share combos only: wait out a short transient cooldown and re-dispatch instead of returning a 429 immediately. Never waits on quota_exhausted.",
+  resilienceComboCooldownWaitToggleDesc: "Quota-share combos only; never waits on quota_exhausted.",
+  resilienceComboCooldownMaxWaitMs: "Maximum wait per attempt",
+  resilienceComboCooldownBudgetMs: "Total wait budget",
+  resilienceQuotaShareConcurrencyTitle: "Quota-share per-connection concurrency",
+  resilienceQuotaShareConcurrencyDesc:
+    "For quota-share combos only: when a connection sets a Max Concurrent cap, serialize concurrent requests to that subscription account so it is never flooded past its ceiling. Excess requests wait in the queue instead of getting a 429. The cap comes from each connection's Max Concurrent field; this switch only enables or disables honoring it.",
+  resilienceQuotaShareConcurrencyToggleDesc:
+    "Quota-share combos only; honors each connection's Max Concurrent cap.",
+};
+
+const sourceScanSkipDirs = new Set([
+  ".build",
+  ".git",
+  ".next",
+  "coverage",
+  "dist",
+  "docs",
+  "node_modules",
+]);
+
+function lookupMessage(messages, dottedKey) {
+  let cursor = messages;
+  for (const segment of dottedKey.split(".")) {
+    if (
+      !cursor ||
+      typeof cursor !== "object" ||
+      !Object.prototype.hasOwnProperty.call(cursor, segment)
+    ) {
+      return undefined;
+    }
+    cursor = cursor[segment];
+  }
+  return cursor;
+}
+
+function stripSourceComments(source) {
+  return source.replace(
+    /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`|\/\*[\s\S]*?\*\/|\/\/[^\r\n]*)/g,
+    (match) => (match.startsWith("//") || match.startsWith("/*") ? " ".repeat(match.length) : match)
+  );
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function walkSourceFiles(dir, files = []) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (sourceScanSkipDirs.has(entry.name)) continue;
+    const absolute = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      walkSourceFiles(absolute, files);
+    } else if (/\.(tsx?|jsx?)$/.test(entry.name)) {
+      files.push(absolute);
+    }
+  }
+  return files;
+}
+
+function collectMissingEnglishDirectTranslationKeys() {
+  const srcDir = path.resolve(process.cwd(), "src");
+  const missing = [];
+
+  for (const file of walkSourceFiles(srcDir)) {
+    const raw = fs.readFileSync(file, "utf8");
+    if (!raw.includes("useTranslations") && !raw.includes("getTranslations")) continue;
+
+    const source = stripSourceComments(raw);
+    const bindings = [];
+    const bindingPattern =
+      /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:await\s+)?(?:useTranslations|getTranslations)\s*\(\s*(?:["']([^"']*)["'])?\s*\)/g;
+    for (const match of source.matchAll(bindingPattern)) {
+      bindings.push({ varName: match[1], namespace: match[2] ?? "", position: match.index ?? 0 });
+    }
+    if (bindings.length === 0) continue;
+
+    const variableAlternation = [...new Set(bindings.map((binding) => binding.varName))]
+      .sort((a, b) => b.length - a.length)
+      .map(escapeRegExp)
+      .join("|");
+    const callPattern = new RegExp(
+      String.raw`(?<![\w$.])(${variableAlternation})(?:\.(?:rich|markup|raw))?\s*\(\s*(["'])([^"'\\]*(?:\\.[^"'\\]*)*)\2`,
+      "g"
+    );
+
+    for (const match of source.matchAll(callPattern)) {
+      const beforeCall = source.slice(Math.max(0, (match.index ?? 0) - 25), match.index);
+      if (/\.has\s*$/.test(beforeCall)) continue;
+
+      const binding = [...bindings]
+        .reverse()
+        .find(
+          (candidate) => candidate.varName === match[1] && candidate.position < (match.index ?? 0)
+        );
+      if (!binding) continue;
+
+      const key = match[3].replace(/\\(['"\\])/g, "$1");
+      const fullKey = binding.namespace ? `${binding.namespace}.${key}` : key;
+      if (typeof lookupMessage(en, fullKey) === "string") continue;
+
+      const relative = path.relative(process.cwd(), file);
+      const line = raw.slice(0, match.index).split(/\r?\n/).length;
+      missing.push(`${fullKey} (${relative}:${line})`);
+    }
+  }
+
+  return missing;
+}
+
 const resilienceTabPortugueseFragments = [
   "Fila de Requisições",
   "Escopo:",
@@ -186,6 +299,32 @@ test("all locales include translated resilience tab labels", () => {
       assert.ok(!value.startsWith("__MISSING__:"), `${file}: settings.${key} should be translated`);
     }
   }
+});
+
+test("English includes quota-share resilience labels", () => {
+  for (const [key, expected] of Object.entries(quotaShareResilienceSettingsMessages)) {
+    assert.equal(en.settings?.[key], expected, `en.settings.${key} should render correctly`);
+    assert.ok(!en.settings[key].startsWith("__MISSING__:"), `en.settings.${key} is not a marker`);
+  }
+});
+
+test("direct translation scanner preserves slashes inside strings", () => {
+  const source = [
+    'const url = "https://example.com/a//b"; // strip this comment',
+    "const text = 'literal // text';",
+    "const template = `literal // template`;",
+  ].join("\n");
+  const stripped = stripSourceComments(source);
+
+  assert.match(stripped, /https:\/\/example\.com\/a\/\/b/);
+  assert.match(stripped, /literal \/\/ text/);
+  assert.match(stripped, /literal \/\/ template/);
+  assert.doesNotMatch(stripped, /strip this comment/);
+});
+
+test("direct translation calls have English messages", () => {
+  const missing = collectMissingEnglishDirectTranslationKeys();
+  assert.deepEqual(missing, []);
 });
 
 test("resilience tab text is sourced from i18n messages", () => {

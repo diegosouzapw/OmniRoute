@@ -529,13 +529,13 @@ test("checkConnection preserves refresh_token for non-rotating providers on unre
 
 // Regression for #3850 (continuation of #3679): the #3679 test above uses a SYNTHETIC
 // provider that routes through the generic refreshAccessToken/tokenUrl path. The real
-// Google-family providers (gemini-cli / antigravity) instead dispatch through
+// Google-family providers (Antigravity) dispatch through
 // refreshGoogleToken() against the HARDCODED OAUTH_ENDPOINTS.google.token — a path the
 // synthetic test never exercised, which left #3766's correctness unproven for the
-// actual reported providers. This drives checkConnection through the REAL gemini-cli /
-// antigravity dispatch and asserts the refresh_token is preserved (NOT nulled) when
+// actual reported provider. This drives checkConnection through the REAL Antigravity
+// dispatch and asserts the refresh_token is preserved (NOT nulled) when
 // Google rejects the refresh with invalid_grant.
-for (const providerId of ["gemini-cli", "antigravity"]) {
+for (const providerId of ["antigravity"]) {
   test(`checkConnection preserves refresh_token for ${providerId} on invalid_grant (#3850)`, async () => {
     await resetStorage();
 
@@ -550,7 +550,7 @@ for (const providerId of ["gemini-cli", "antigravity"]) {
         res.end(JSON.stringify({ error: "invalid_grant", error_description: "Bad Request" }));
       },
       async (tokenServer) => {
-        // gemini-cli / antigravity refresh hits OAUTH_ENDPOINTS.google.token directly
+        // Antigravity refresh hits OAUTH_ENDPOINTS.google.token directly
         // (not a per-provider tokenUrl), so redirect that hardcoded endpoint.
         OAUTH_ENDPOINTS.google.token = `${tokenServer.url}/token`;
         try {

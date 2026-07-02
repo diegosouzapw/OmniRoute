@@ -24,7 +24,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
-const { handleComboChat } = await import("../../open-sse/services/combo.ts");
+const { buildAutoCandidates, handleComboChat } = await import("../../open-sse/services/combo.ts");
 const { getProviderCredentials } = await import("../../src/sse/services/auth.ts");
 const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
 const { buildPrecisionComboModelStep } = await import("../../src/lib/combos/builderDraft.ts");
@@ -153,6 +153,38 @@ test("handleComboChat propagates a step allowlist onto target.allowedConnectionI
   assert.equal(response.status, 200);
   assert.ok(captured, "target.allowedConnectionIds must be populated from the step");
   assert.deepEqual([...captured!].sort(), [foo1.id, foo2.id].sort());
+});
+
+test("buildAutoCandidates expands dynamic auto steps only within allowedConnectionIds", async () => {
+  const foo1 = await seedConn("foo1");
+  const foo2 = await seedConn("foo2");
+  const foo3 = await seedConn("foo3");
+  const foo4 = await seedConn("foo4");
+  const allowed = new Set([foo1.id, foo2.id]);
+  const forbidden = new Set([foo3.id, foo4.id]);
+
+  const candidates = await buildAutoCandidates(
+    [
+      {
+        kind: "model",
+        stepId: "openai/gpt-4o-mini",
+        executionKey: "openai/gpt-4o-mini",
+        modelStr: "openai/gpt-4o-mini",
+        provider: "openai",
+        providerId: "openai",
+        connectionId: null,
+        allowedConnectionIds: [foo1.id, foo2.id],
+        weight: 1,
+        label: null,
+      },
+    ],
+    "auto-allowlist"
+  );
+
+  const connectionIds = candidates.map((candidate) => candidate.connectionId).filter(Boolean);
+  assert.deepEqual([...connectionIds].sort(), [foo1.id, foo2.id].sort());
+  assert.ok(connectionIds.every((connectionId) => allowed.has(connectionId!)));
+  assert.ok(connectionIds.every((connectionId) => !forbidden.has(connectionId!)));
 });
 
 // ── 3. Acceptance: the credential selector never escapes the allowlist ───────

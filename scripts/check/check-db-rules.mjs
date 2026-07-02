@@ -70,6 +70,7 @@ export const INTENTIONALLY_INTERNAL = new Set([
   "stateReset", // db-internal: 3 callers dentro de src/lib/db/ (core, backup, apiKeys) para coordenação de reset
   "stats", // intentionally-internal: src/app/api/settings/database/refresh-stats/route.ts
   "tierConfig", // intentionally-internal: open-sse/services/tierResolver.ts (require() dinâmico)
+  "webSessionDedup", // db-internal: importado só por db/providers.ts (webSessionCredentialKey/parseProviderSpecificData — helpers puros de dedup de credencial web-session split do providers.ts, #3368 PR6)
 ]);
 
 // Alias para retrocompatibilidade com os testes existentes que importam KNOWN_UNEXPORTED.

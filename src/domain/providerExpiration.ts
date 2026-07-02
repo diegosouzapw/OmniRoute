@@ -19,7 +19,7 @@ export type ExpiryStatus = "active" | "expiring_soon" | "expired" | "unknown";
 export interface ProviderExpiration {
   /** Connection ID (matches ProviderConnection.id) */
   connectionId: string;
-  /** Provider name (e.g., "claude", "codex", "gemini-cli") */
+  /** Provider name (e.g., "claude", "codex", "antigravity") */
   provider: string;
   /** Human-readable connection name */
   connectionName: string;

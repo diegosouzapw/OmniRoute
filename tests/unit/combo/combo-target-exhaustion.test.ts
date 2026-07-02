@@ -118,6 +118,40 @@ test("an unknown provider is never marked (guard)", () => {
   assert.equal(s.exhaustedConnections.size, 0);
 });
 
+test("structuredError.code takes precedence over raw errorText for exhaustion classification", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target(), {
+    ...baseOpts,
+    errorText: "Resource has been exhausted (e.g. check quota).",
+    result: { status: 429 },
+    fallbackResult: {},
+    sets: s,
+    structuredError: { code: "rate_limit_exceeded" },
+  });
+  assert.equal(exhausted, false, "rate_limit_exceeded should NOT mark provider exhausted");
+  assert.ok(
+    s.transientRateLimitedProviders.has("test-dedup-provider"),
+    "should be in transientRateLimitedProviders"
+  );
+});
+
+test("structuredError.code with non-matching value falls back to classifyErrorText behavior", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target(), {
+    ...baseOpts,
+    errorText: "Rate limit reached",
+    result: { status: 429 },
+    fallbackResult: {},
+    sets: s,
+    structuredError: { code: "some_unknown_code" },
+  });
+  assert.equal(exhausted, false, "unknown code + non-quota errorText → not exhausted");
+  assert.ok(
+    s.transientRateLimitedProviders.has("test-dedup-provider"),
+    "should be in transientRateLimitedProviders"
+  );
+});
+
 test("a 200/benign status with no exhaustion mutates nothing and returns false", () => {
   const s = sets();
   const exhausted = applyComboTargetExhaustion(target(), {
@@ -127,5 +161,8 @@ test("a 200/benign status with no exhaustion mutates nothing and returns false",
     sets: s,
   });
   assert.equal(exhausted, false);
-  assert.equal(s.exhaustedProviders.size + s.exhaustedConnections.size + s.transientRateLimitedProviders.size, 0);
+  assert.equal(
+    s.exhaustedProviders.size + s.exhaustedConnections.size + s.transientRateLimitedProviders.size,
+    0
+  );
 });

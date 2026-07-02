@@ -76,7 +76,7 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://www.meta.ai",
     hasFree: true,
     freeNote: "Free with login — Meta AI platform with Llama models.",
-    authHint: "Paste your abra_sess value or full cookie header from meta.ai",
+    authHint: "Paste your ecto_1_sess value or full cookie header from meta.ai",
   },
   "claude-web": {
     id: "claude-web",
@@ -113,6 +113,19 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://copilot.microsoft.com",
     authHint:
       "Paste your access_token from copilot.microsoft.com (or export a .har file from DevTools while logged in)",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+  },
+  "copilot-m365-web": {
+    id: "copilot-m365-web",
+    alias: "m365copilot",
+    name: "Microsoft 365 Copilot (BizChat)",
+    icon: "business_center",
+    color: "#0078D4",
+    textIcon: "M365",
+    website: "https://m365.cloud.microsoft/chat",
+    authHint:
+      "Sign in at m365.cloud.microsoft/chat, then open DevTools → Network → filter 'WS' → click the Chathub WebSocket connection. Copy both the access_token query parameter AND the account-specific Chathub path segment from its request URL (wss://…/Chathub/<path>?…&access_token=…). It is NOT an Authorization: Bearer header on an XHR/Fetch request. The token is short-lived; this is an unofficial integration.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
@@ -184,26 +197,8 @@ export const WEB_COOKIE_PROVIDERS = {
     hasFree: true,
     freeNote: "Free LLM chat — no subscription required. Rate limits apply.",
     authHint:
-      "Paste your hf-chat cookie value from huggingface.co/chat (DevTools → Application → Cookies → hf-chat). Optional — works without auth for basic use.",
+      "Paste the full Cookie header from huggingface.co/chat (DevTools → Network → /chat/conversation → Request Headers → Cookie). It should include hf-chat and may also include token / aws-waf-token.",
     riskNoticeVariant: "webCookie",
-  },
-  phind: {
-    id: "phind",
-    alias: "ph",
-    name: "Phind (Free)",
-    icon: "auto_awesome",
-    color: "#000000",
-    textIcon: "PH",
-    website: "https://www.phind.com",
-    hasFree: false,
-    freeNote: "Discontinued 2026 — phind.com shut down (2026-01); no free tier.",
-    authHint:
-      "Paste your session cookie from phind.com (DevTools → Application → Cookies). Optional — works with free tier.",
-    subscriptionRisk: true,
-    riskNoticeVariant: "deprecated",
-    deprecated: true,
-    deprecationReason:
-      "Phind shut down its API (2026-01); the /api/chat endpoint no longer serves (sweep 2026-06-19).",
   },
   "poe-web": {
     id: "poe-web",
@@ -247,8 +242,8 @@ export const WEB_COOKIE_PROVIDERS = {
     icon: "auto_awesome",
     color: "#2563EB",
     textIcon: "KW",
-    website: "https://kimi.moonshot.cn",
-    authHint: "Paste your session cookie from kimi.moonshot.cn (DevTools → Application → Cookies)",
+    website: "https://www.kimi.com",
+    authHint: "Paste your Cookie header from www.kimi.com (must contain kimi-auth=...). Find it via DevTools → Network → request → Cookie.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
@@ -292,5 +287,19 @@ export const WEB_COOKIE_PROVIDERS = {
       "Free for Google Workspace enterprise accounts — enterprise Gemini models (Pro, Flash, image, video) via direct StreamGenerate HTTP API. No subscription required, just enterprise SSO.",
     authHint:
       "From your enterprise account: open business.gemini.google/home/cid/{your-cid}, then copy __Secure-1PSID and __Secure-1PSIDTS cookies from DevTools → Application → Cookies. Paste as a cookie header below.",
+  },
+  "zenmux-free": {
+    id: "zenmux-free",
+    alias: "zmf",
+    name: "ZenMux Free (Web)",
+    icon: "bolt",
+    color: "#667eea",
+    textIcon: "ZF",
+    website: "https://zenmux.ai",
+    hasFree: true,
+    freeNote:
+      "Free tier (5 Flows/5h, 38.64 Flows/week) — DeepSeek V3.2, GLM 4.7 Flash Free, MiMo V2 Flash Free and more. No subscription required.",
+    authHint:
+      "Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days.",
   },
 };

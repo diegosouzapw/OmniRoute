@@ -53,15 +53,6 @@ type ProviderCooldownSettings = {
   maxRetryCooldownMs: number;
 };
 
-type SelfHealingSettings = {
-  enabled: boolean;
-  windowSize: number;
-  zThreshold: number;
-  cooloffMs: number;
-  minSamples: number;
-  dryRun: boolean;
-};
-
 type ResilienceResponse = {
   requestQueue: RequestQueueSettings;
   connectionCooldown: {
@@ -76,8 +67,19 @@ type ResilienceResponse = {
   comboCooldownWait: ComboCooldownWaitSettings;
   quotaShareConcurrencyLimit: QuotaShareConcurrencyLimitSettings;
   providerCooldown: ProviderCooldownSettings;
-  selfHealing?: SelfHealingSettings;
 };
+
+function toResilienceResponse(json: ResilienceResponse): ResilienceResponse {
+  return {
+    requestQueue: json.requestQueue,
+    connectionCooldown: json.connectionCooldown,
+    providerBreaker: json.providerBreaker,
+    waitForCooldown: json.waitForCooldown,
+    comboCooldownWait: json.comboCooldownWait,
+    quotaShareConcurrencyLimit: json.quotaShareConcurrencyLimit,
+    providerCooldown: json.providerCooldown,
+  };
+}
 
 function formatMs(value: number | null | undefined) {
   if (typeof value !== "number") return "—";
@@ -1041,177 +1043,6 @@ function ProviderCooldownCard({
   );
 }
 
-function SelfHealingCard({
-  value,
-  onSave,
-  saving,
-}: {
-  value: SelfHealingSettings | undefined;
-  onSave: (next: SelfHealingSettings) => Promise<void>;
-  saving: boolean;
-}) {
-  const t = useTranslations("settings");
-  const fallback: SelfHealingSettings = {
-    enabled: false,
-    windowSize: 20,
-    zThreshold: 2.5,
-    cooloffMs: 60_000,
-    minSamples: 10,
-    dryRun: false,
-  };
-  const initial = value ?? fallback;
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(initial);
-
-  useEffect(() => {
-    setDraft(initial);
-  }, [value]);
-
-  const title =
-    t("resilienceSelfHealingTitle") || "Self-healing telemetry (auto-detect provider incidents)";
-  const desc =
-    t("resilienceSelfHealingDesc") ||
-    "When enabled, the server continuously samples per-provider latency and error rate. If a provider's recent sample is more than the configured z-score above its rolling window mean, the matched playbook is dispatched (cool-off prevents flapping). dryRun records the action but skips the side-effect.";
-
-  return (
-    <Card className="p-6">
-      <div className="mb-4 flex items-start justify-between gap-4">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-xl text-primary">healing</span>
-            <h2 className="text-lg font-bold">{title}</h2>
-          </div>
-          <SectionDescription
-            scope={t("resilienceSelfHealingScope") || "All autoCombo providers"}
-            trigger={t("resilienceSelfHealingTrigger") || "z-score > threshold on rolling window"}
-            effect={
-              t("resilienceSelfHealingEffect") ||
-              "Dispatches matched playbook (cooldown, retry, fail-open, etc.)"
-            }
-          />
-        </div>
-        <ActionRow
-          editing={editing}
-          saving={saving}
-          onEdit={() => setEditing(true)}
-          onCancel={() => {
-            setDraft(initial);
-            setEditing(false);
-          }}
-          onSave={async () => {
-            await onSave(draft);
-            setEditing(false);
-          }}
-        />
-      </div>
-
-      <p className="mb-4 text-sm text-text-muted">{desc}</p>
-
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-        {editing ? (
-          <>
-            <BooleanField
-              label={t("resilienceSelfHealingEnabled") || "Enable self-healing"}
-              description={
-                t("resilienceSelfHealingEnabledDesc") ||
-                "Also requires the OMNIROUTE_SELF_HEALING_ENABLED feature flag to be on."
-              }
-              checked={draft.enabled}
-              onChange={(enabled) => setDraft((prev) => ({ ...prev, enabled }))}
-            />
-            <NumberField
-              label={t("resilienceSelfHealingWindowSize") || "Rolling window size"}
-              value={draft.windowSize}
-              min={2}
-              onChange={(windowSize) => setDraft((prev) => ({ ...prev, windowSize }))}
-            />
-            <NumberField
-              label={t("resilienceSelfHealingZThreshold") || "Z-score threshold"}
-              value={draft.zThreshold}
-              min={1}
-              suffix="σ"
-              onChange={(zThreshold) => setDraft((prev) => ({ ...prev, zThreshold }))}
-            />
-            <NumberField
-              label={t("resilienceSelfHealingCooloffMs") || "Cool-off between dispatches"}
-              value={draft.cooloffMs}
-              min={0}
-              suffix="ms"
-              onChange={(cooloffMs) => setDraft((prev) => ({ ...prev, cooloffMs }))}
-            />
-            <NumberField
-              label={t("resilienceSelfHealingMinSamples") || "Min samples before detection"}
-              value={draft.minSamples}
-              min={1}
-              onChange={(minSamples) => setDraft((prev) => ({ ...prev, minSamples }))}
-            />
-            <BooleanField
-              label={t("resilienceSelfHealingDryRun") || "Dry-run (log, do not act)"}
-              description={
-                t("resilienceSelfHealingDryRunDesc") ||
-                "Useful for tuning thresholds without side-effects on real traffic."
-              }
-              checked={draft.dryRun}
-              onChange={(dryRun) => setDraft((prev) => ({ ...prev, dryRun }))}
-            />
-          </>
-        ) : (
-          <>
-            <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">
-                {t("resilienceSelfHealingEnabled") || "Enabled"}
-              </div>
-              <div className="mt-1 text-sm font-semibold text-text-main">
-                {initial.enabled ? t("statusEnabled") : t("statusDisabled")}
-              </div>
-            </div>
-            <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">
-                {t("resilienceSelfHealingWindowSize") || "Window"}
-              </div>
-              <div className="mt-1 text-sm font-semibold text-text-main">
-                {initial.windowSize}
-              </div>
-            </div>
-            <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">
-                {t("resilienceSelfHealingZThreshold") || "Z-score"}
-              </div>
-              <div className="mt-1 text-sm font-semibold text-text-main">
-                {initial.zThreshold}σ
-              </div>
-            </div>
-            <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">
-                {t("resilienceSelfHealingCooloffMs") || "Cool-off"}
-              </div>
-              <div className="mt-1 text-sm font-semibold text-text-main">
-                {formatMs(initial.cooloffMs)}
-              </div>
-            </div>
-            <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">
-                {t("resilienceSelfHealingMinSamples") || "Min samples"}
-              </div>
-              <div className="mt-1 text-sm font-semibold text-text-main">
-                {initial.minSamples}
-              </div>
-            </div>
-            <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">
-                {t("resilienceSelfHealingDryRun") || "Dry-run"}
-              </div>
-              <div className="mt-1 text-sm font-semibold text-text-main">
-                {initial.dryRun ? t("yes") : t("no")}
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-    </Card>
-  );
-}
-
 export default function ResilienceTab() {
   const notify = useNotificationStore();
   const t = useTranslations("settings");
@@ -1239,16 +1070,7 @@ export default function ResilienceTab() {
         }
         const json = await response.json();
         if (!mounted) return;
-        setData({
-          requestQueue: json.requestQueue,
-          connectionCooldown: json.connectionCooldown,
-          providerBreaker: json.providerBreaker,
-          waitForCooldown: json.waitForCooldown,
-          comboCooldownWait: json.comboCooldownWait,
-          quotaShareConcurrencyLimit: json.quotaShareConcurrencyLimit,
-          providerCooldown: json.providerCooldown,
-          selfHealing: json.selfHealing,
-        });
+        setData(toResilienceResponse(json));
       } catch (error) {
         notify.error(
           error instanceof Error
@@ -1278,16 +1100,7 @@ export default function ResilienceTab() {
       if (!response.ok) {
         throw new Error(json?.error?.message || json?.error || `HTTP ${response.status}`);
       }
-      setData({
-        requestQueue: json.requestQueue,
-        connectionCooldown: json.connectionCooldown,
-        providerBreaker: json.providerBreaker,
-        waitForCooldown: json.waitForCooldown,
-        comboCooldownWait: json.comboCooldownWait,
-        quotaShareConcurrencyLimit: json.quotaShareConcurrencyLimit,
-        providerCooldown: json.providerCooldown,
-        selfHealing: json.selfHealing,
-      });
+      setData(toResilienceResponse(json));
       notify.success(tx("savedSuccessfully", "Resilience settings updated."));
     } catch (error) {
       notify.error(
@@ -1362,11 +1175,6 @@ export default function ResilienceTab() {
         value={data.providerCooldown}
         saving={savingSection === "providerCooldown"}
         onSave={(providerCooldown) => savePatch("providerCooldown", { providerCooldown })}
-      />
-      <SelfHealingCard
-        value={data.selfHealing}
-        saving={savingSection === "selfHealing"}
-        onSave={(selfHealing) => savePatch("selfHealing", { selfHealing })}
       />
       <ModelLockoutCard />
     </div>

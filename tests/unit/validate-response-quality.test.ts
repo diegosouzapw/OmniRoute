@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "assert";
-import { validateResponseQuality } from "../../open-sse/services/combo";
+import { validateResponseQuality } from "../../open-sse/services/combo/validateQuality.ts";
 
 function makeResponse(body: string, contentType = "text/plain") {
   return {
@@ -24,4 +24,29 @@ test("returns valid=true for SSE with 'data:' lines", async () => {
 test("returns valid=false for non-JSON non-SSE text", async () => {
   const res = await validateResponseQuality(makeResponse("Hello world"), false, {});
   assert.strictEqual(res.valid, false);
+});
+
+test("returns valid=false for Responses API bodies with no output items", async () => {
+  const res = await validateResponseQuality(
+    makeResponse(JSON.stringify({ object: "response", status: "completed", output: [] }), "application/json"),
+    false,
+    {}
+  );
+  assert.strictEqual(res.valid, false);
+});
+
+test("returns valid=true for Responses API bodies with structural output", async () => {
+  const res = await validateResponseQuality(
+    makeResponse(
+      JSON.stringify({
+        object: "response",
+        status: "completed",
+        output: [{ type: "function_call", name: "lookup", arguments: "{}" }],
+      }),
+      "application/json"
+    ),
+    false,
+    {}
+  );
+  assert.strictEqual(res.valid, true);
 });

@@ -107,8 +107,6 @@ const ENV_VAR_ALLOWLIST = new Set([
   "NINEROUTER_API_KEY", // injected into the 9router subprocess at spawn (EMBEDDED-SERVICES.md)
   "CLAUDE_CODE_MAX_OUTPUT_TOKENS", // Claude Code CLI's own env var (CODEX-CLI-CONFIGURATION.md)
   "CODEX_HOME", // Codex CLI's own config-home env var (CODEX-CLI-CONFIGURATION.md)
-  "GEMINI_API_KEY", // Gemini CLI's own API-key env var, set by `omniroute setup-gemini` (REMOTE-MODE.md)
-  "GOOGLE_GEMINI_BASE_URL", // Gemini CLI's own base-URL env var, set by `omniroute setup-gemini` (REMOTE-MODE.md)
   "OPENAI_API_BASE", // legacy OpenAI base-URL env var some downstream tools (e.g. Aider) read (CLI-INTEGRATIONS.md)
   "PROMPTFOO_PROVIDER_KEY", // promptfoo's own provider-key env var, used by the red-team suite (GUARDRAILS.md)
   "REDIS_PORT", // docker-compose host-port override (DOCKER_GUIDE.md)
@@ -307,6 +305,7 @@ const ENV_VAR_DENYLIST = new Set([
   "KNOWN_STALE_DOC_REFS", // export const in check-docs-symbols.mjs
   "KNOWN_MISSING", // export const in check-fetch-targets.mjs
   "KNOWN_RAW_SQL", // export const in check-db-rules.mjs
+  "ROUTER_BACKENDS", // typed router-backend registry constant documented in the ADR (ROUTER_BACKENDS.md); code lands with PR #5868 (#5798)
   // ── Error / Node codes documented in prose (string-literal codes, not env vars) ──
   "URL_GUARD_BLOCKED", // HTTP 422 guard-violation code (ARCHITECTURE.md)
   "AUTHZ_NOT_INITIALIZED", // AuthzAssertionError code (AUTHZ_GUIDE.md)
@@ -361,9 +360,6 @@ const SKIP_DOC_FILES = new Set([
   "docs/reference/PROVIDER_REFERENCE.md", // auto-generated from providers.ts
   "docs/openapi.yaml",
   "docs/i18n", // translations — separate workflow
-  // Point-in-time documentation audit (v3.8.24): intentionally references drift,
-  // counts, and not-yet-existing files as part of documenting them — not living docs.
-  "docs/ops/DOCUMENTATION_AUDIT_REPORT.md",
   // Design / research / plan docs: by definition describe not-yet-built files and
   // proposed (not-yet-shipped) endpoints (each carries a `Status: Design`/`Active
   // research`/`Plano` header). Same rationale as the audit report above — these are

@@ -89,9 +89,7 @@ function safePort(port: unknown): number {
   return Number.isFinite(n) && n > 0 && n < 65536 ? n : DEFAULT_PORT;
 }
 
-export async function startHeadroomProxy(
-  opts: { port?: number } = {}
-): Promise<StartResult> {
+export async function startHeadroomProxy(opts: { port?: number } = {}): Promise<StartResult> {
   const binary = findHeadroomBinary();
   if (!binary) {
     throw new HeadroomError("Headroom CLI not installed", "NOT_INSTALLED");
@@ -125,10 +123,7 @@ export async function startHeadroomProxy(
       if (isPidAlive(child.pid!)) resolve();
       else
         reject(
-          new HeadroomError(
-            "headroom proxy exited during startup — see proxy.log",
-            "EARLY_EXIT"
-          )
+          new HeadroomError("headroom proxy exited during startup — see proxy.log", "EARLY_EXIT")
         );
     }, STARTUP_TIMEOUT_MS);
 
@@ -178,16 +173,5 @@ export function stopHeadroomProxy(): StopResult {
     clearPid();
     const msg = e instanceof Error ? e.message : String(e);
     throw new HeadroomError(`Failed to stop headroom proxy: ${msg}`, "STOP_FAILED");
-  }
-}
-
-export function getHeadroomLogTail(maxLines = 200): string {
-  try {
-    if (!fs.existsSync(LOG_FILE)) return "";
-    const content = fs.readFileSync(LOG_FILE, "utf8");
-    const lines = content.split(/\r?\n/).filter(Boolean);
-    return lines.slice(-maxLines).join("\n");
-  } catch {
-    return "";
   }
 }

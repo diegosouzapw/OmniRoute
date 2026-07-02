@@ -34,7 +34,7 @@ const META_AI_FRIENDLY_NAME = "useEctoSendMessageSubscription";
 const META_AI_REQUEST_ANALYTICS_TAGS = "graphservice";
 const META_AI_ASBD_ID = "129477";
 const META_AI_USER_AGENT =
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 const BASE62_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 type MuseSparkModelInfo = {
@@ -629,7 +629,7 @@ function classifyMetaAiError(errorMessage: string | null, content: string) {
   if (/authentication required to send messages|login is required|sign in/i.test(combined)) {
     return {
       status: 401,
-      message: "Meta AI auth failed — your meta.ai abra_sess cookie may be missing or expired.",
+      message: "Meta AI auth failed — your meta.ai ecto_1_sess cookie may be missing or expired.",
     };
   }
 
@@ -1174,7 +1174,11 @@ async function buildSuccessResult(
     try {
       const json = JSON.parse(bodyText);
       const rawContent = json?.choices?.[0]?.message?.content || "";
-      const { content, toolCalls, finishReason } = buildToolAwareResult(rawContent, requestedTools, "muse");
+      const { content, toolCalls, finishReason } = buildToolAwareResult(
+        rawContent,
+        requestedTools,
+        "muse"
+      );
       if (toolCalls) {
         json.choices[0].message = { role: "assistant", content: null, tool_calls: toolCalls };
         json.choices[0].finish_reason = finishReason;
@@ -1182,9 +1186,12 @@ async function buildSuccessResult(
         json.choices[0].message.content = content;
       }
       response = new Response(JSON.stringify(json), {
-        status: 200, headers: { "Content-Type": "application/json" },
+        status: 200,
+        headers: { "Content-Type": "application/json" },
       });
-    } catch { /* keep original response */ }
+    } catch {
+      /* keep original response */
+    }
   }
 
   return resultWithResponse(response, headers, transformedBody);
@@ -1210,7 +1217,10 @@ export class MuseSparkWebExecutor extends BaseExecutor {
       return errorResult(400, "Missing or empty messages array", "invalid_request", {}, body);
     }
 
-    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, rawMessages as Array<{ role: string; content: unknown }>);
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(
+      bodyObj,
+      rawMessages as Array<{ role: string; content: unknown }>
+    );
     const parsedHistory = parseOpenAIMessages(effectiveMessages);
     if (!parsedHistory.foldedPrompt) {
       return errorResult(400, "Empty query after processing messages", "invalid_request", {}, body);
@@ -1278,6 +1288,14 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     }
 
     rememberAssistantTurn(parsed, credentials, model, parsedHistory, conversationContext);
-    return buildSuccessResult(parsed, stream, model, headers, transformedBody, hasTools, requestedTools);
+    return buildSuccessResult(
+      parsed,
+      stream,
+      model,
+      headers,
+      transformedBody,
+      hasTools,
+      requestedTools
+    );
   }
 }

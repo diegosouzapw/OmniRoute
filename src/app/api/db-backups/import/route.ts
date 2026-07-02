@@ -5,7 +5,12 @@ import os from "os";
 import { getDbInstance, resetDbInstance, SQLITE_FILE } from "@/lib/db/core";
 import { openDatabaseAsync } from "@/lib/db/adapters/driverFactory";
 import type { SqliteAdapter } from "@/lib/db/adapters/types";
-import { backupDbFile, getTableNamesFromAdapter, countImportedRows } from "@/lib/db/backup";
+import {
+  backupDbFile,
+  getTableNamesFromAdapter,
+  countImportedRows,
+  unlinkFileWithRetry,
+} from "@/lib/db/backup";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { getSettings } from "@/lib/db/settings";
 import { setSystemPromptConfig } from "@omniroute/open-sse/services/systemPrompt.ts";
@@ -167,11 +172,12 @@ export async function POST(request: Request) {
       `${SQLITE_FILE}-shm`,
       `${SQLITE_FILE}-journal`,
     ];
+    // Delete with EBUSY/EPERM retry: after resetDbInstance() the OS may still
+    // hold the SQLite file handle for a moment (Windows mmap / antivirus), so a
+    // plain unlink races to EBUSY (#5406). Mirror the restore path's helper.
     for (const filePath of sqliteFilesToReplace) {
       if (!filePath) continue;
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
+      await unlinkFileWithRetry(filePath);
     }
 
     // Copy imported file over current DB

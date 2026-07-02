@@ -35,13 +35,20 @@ const BASE_URL = "https://chat.qwen.ai";
 const CHATS_NEW_URL = `${BASE_URL}/api/v2/chats/new`;
 const CHAT_COMPLETIONS_URL = `${BASE_URL}/api/v2/chat/completions`;
 const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
 // Anti-bot headers the v2 endpoint expects. `bx-umidtoken` is normally minted
 // per-session from sg-wum.alibaba.com; a captured value travels with the cookie
 // jar, but we also send a static fallback so the header is always present.
 const BX_VERSION = "2.5.36";
 const BX_UMIDTOKEN_FALLBACK = "T2gA0000000000000000000000000000000000000000";
+
+// Qwen SPA version — required by the v2 chat completion endpoint. Without this
+// header the upstream returns HTTP 200 with `{"success":false,"data":{"code":"Bad_Request"}}`
+// for every completion request, even with a valid session. The version string is
+// the SPA build identifier shipped in the React client's `version` request header.
+// Pinned from a live capture (2026-07); bump if Qwen ships a breaking change.
+const QWEN_SPA_VERSION = "0.2.66";
 
 const MODEL_ALIASES: Record<string, string> = {
   // Legacy OmniRoute ids → current upstream catalog (GET /api/models).
@@ -96,6 +103,7 @@ export class QwenWebExecutor extends BaseExecutor {
       Origin: BASE_URL,
       Referer: chatId ? `${BASE_URL}/c/${chatId}` : `${BASE_URL}/`,
       source: "web",
+      version: QWEN_SPA_VERSION,
       "x-request-id": uuid(),
       "bx-v": BX_VERSION,
       "bx-umidtoken": BX_UMIDTOKEN_FALLBACK,

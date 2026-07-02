@@ -393,8 +393,8 @@ describe("modelsDevSync — mapProviderId", () => {
     assert.deepEqual(mapProviderId("anthropic"), ["anthropic", "cc"]);
   });
 
-  it("maps google to [gemini, gemini-cli]", () => {
-    assert.deepEqual(mapProviderId("google"), ["gemini", "gemini-cli"]);
+  it("maps google to [gemini]", () => {
+    assert.deepEqual(mapProviderId("google"), ["gemini"]);
   });
 
   it("maps deepseek to [deepseek, if]", () => {

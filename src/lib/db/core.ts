@@ -341,7 +341,8 @@ const SCHEMA_SQL = `
     has_request_body INTEGER DEFAULT 0,
     has_response_body INTEGER DEFAULT 0,
     has_pipeline_details INTEGER DEFAULT 0,
-    request_summary TEXT
+    request_summary TEXT,
+    correlation_id TEXT
   );
   CREATE INDEX IF NOT EXISTS idx_cl_timestamp ON call_logs(timestamp);
   CREATE INDEX IF NOT EXISTS idx_cl_status ON call_logs(status);
@@ -1278,8 +1279,8 @@ export async function ensureDbInitialized(): Promise<void> {
     return;
   }
 
-  // Nenhum driver síncrono — pré-inicializar sql.js (WASM, async)
-  console.warn("[DB] Pré-inicializando sql.js WASM (drivers síncronos indisponíveis)...");
+  // No synchronous driver available — pre-initialize sql.js (WASM, async)
+  console.warn("[DB] Pre-initializing sql.js WASM (synchronous drivers unavailable)...");
   await preInitSqlJs(SQLITE_FILE);
   // Agora getSqlJsAdapter() retornará o adapter, e getDbInstance() vai usá-lo
   getDbInstance();

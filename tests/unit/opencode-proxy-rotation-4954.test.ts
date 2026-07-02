@@ -2,7 +2,10 @@ import { describe, it, beforeEach, afterEach, before, after } from "node:test";
 import assert from "node:assert";
 import net from "node:net";
 import { OpencodeExecutor } from "../../open-sse/executors/opencode.ts";
-import { resolveProxyForRequest } from "../../open-sse/utils/proxyFetch.ts";
+import {
+  resolveProxyForRequest,
+  runWithAppliedProxyCapture,
+} from "../../open-sse/utils/proxyFetch.ts";
 
 /**
  * #4954 — "OpenCode Free" exposes per-account proxy + multi-account rotation in
@@ -164,5 +167,79 @@ describe("OpencodeExecutor per-account proxy + rotation (#4954)", () => {
     for (const p of observed) {
       assert.strictEqual(p.source, "context", "every dispatch must egress through a proxy context");
     }
+  });
+
+  // #5217 (Gap 2): the per-request account/proxy selection log was log.debug, which
+  // is hidden at the default APP_LOG_LEVEL=info — operators could not see which
+  // account/proxy a request rotated to. It must be emitted at info level.
+  it("logs the account/proxy rotation selection at info level (#5217)", async () => {
+    const exec = new OpencodeExecutor("opencode-zen");
+    installFetchStub([200]);
+
+    const infoCalls: Array<{ tag: unknown; msg: string }> = [];
+    const debugCalls: Array<{ tag: unknown; msg: string }> = [];
+    const spyLog = {
+      debug: (tag: unknown, msg: string) => debugCalls.push({ tag, msg }),
+      info: (tag: unknown, msg: string) => infoCalls.push({ tag, msg }),
+      warn() {},
+      error() {},
+    };
+
+    await exec.execute({
+      model: "grok-code",
+      body: { messages: [{ role: "user", content: "hi" }], stream: false },
+      stream: false,
+      signal: null,
+      credentials: credentialsWithProxies(),
+      log: spyLog as any,
+    });
+
+    const dispatchInfo = infoCalls.find(
+      (c) => c.tag === "OPENCODE" && /dispatch via account/.test(c.msg)
+    );
+    assert.ok(
+      dispatchInfo,
+      `expected an info-level "dispatch via account …" log; info calls=${JSON.stringify(infoCalls)}`
+    );
+    // The selection line must carry the masked account id + rotation index, and
+    // must NOT be emitted at debug (where it would be invisible at default level).
+    assert.match(dispatchInfo!.msg, /account aaaaaaaa…|account bbbbbbbb…/);
+    assert.match(dispatchInfo!.msg, /idx \d+\/2/);
+    assert.ok(
+      !debugCalls.some((c) => /dispatch via account/.test(c.msg)),
+      "the selection log must not also/only be at debug level"
+    );
+    // Masking guard: never log the full 32-char account id.
+    assert.ok(
+      !/(a{32}|b{32})/.test(dispatchInfo!.msg),
+      "rotation log must keep the account id masked"
+    );
+  });
+
+  // #5217 (secondary): the per-account proxy the executor pins internally must be
+  // captured into an AppliedProxySink so the post-execution egress logger reflects
+  // the real egress (was "direct") rather than the pre-resolved connection proxy.
+  it("records the executor-applied account proxy into the AppliedProxySink (#5217)", async () => {
+    const exec = new OpencodeExecutor("opencode-zen");
+    installFetchStub([200]);
+
+    const sink: { proxy: any } = { proxy: null };
+    await runWithAppliedProxyCapture(sink, () =>
+      exec.execute({
+        model: "grok-code",
+        body: { messages: [{ role: "user", content: "hi" }], stream: false },
+        stream: false,
+        signal: null,
+        credentials: credentialsWithProxies(),
+        log,
+      })
+    );
+
+    assert.ok(sink.proxy, "sink must capture the proxy the executor actually applied");
+    assert.equal(sink.proxy.host, "127.0.0.1", "captured proxy host must match the account proxy");
+    assert.ok(
+      sink.proxy.port === portA || sink.proxy.port === portB,
+      `captured proxy port must be one of the configured account proxies, got ${sink.proxy.port}`
+    );
   });
 });

@@ -29,7 +29,7 @@ const HANDSHAKE_ACK = {}; // SignalR success ack
 const PROGRESS_UPDATE = {
   type: 1,
   target: "update",
-  arguments: [{ messages: [{ messageType: "Progress", author: "bot" }] }],
+  arguments: [{ messages: [{ text: "In progress…", messageType: "Progress", author: "bot" }] }],
 };
 const BOT_UPDATE = {
   type: 1,
@@ -128,6 +128,8 @@ test("buildChatInvocation produces a type:4 chat invocation carrying the user te
   assert.equal(arg.clientCorrelationId, "trace-id");
   assert.equal(arg.sessionId, "session-id");
   assert.equal(arg.isStartOfSession, true);
+  assert.ok(Array.isArray(arg.optionsSets));
+  assert.ok((arg.optionsSets as string[]).includes("rich_responses"));
   assert.ok(Array.isArray(arg.allowedMessageTypes));
   assert.ok((arg.allowedMessageTypes as string[]).includes("Chat"));
   const message = arg.message as Record<string, unknown>;

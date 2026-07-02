@@ -37,7 +37,6 @@ export type WizardProviderOption = {
 export const SUPPORTED_WIZARD_OAUTH_PROVIDER_IDS = new Set([
   "claude",
   "codex",
-  "gemini-cli",
   "antigravity",
   "agy",
   "qwen",

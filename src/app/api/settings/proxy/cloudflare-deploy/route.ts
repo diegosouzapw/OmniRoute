@@ -54,7 +54,11 @@ export async function POST(request: Request) {
     const formData = new FormData();
     formData.append(
       "index.js",
-      new Blob([workerScript], { type: "application/javascript+module" }),
+      // Cloudflare's script-upload API only accepts application/javascript,
+      // text/javascript, or multipart/form-data for the script part and rejects
+      // "application/javascript+module" outright (#5128). ES-module semantics
+      // come from `main_module` in the metadata blob below, not this MIME type.
+      new Blob([workerScript], { type: "application/javascript" }),
       "index.js"
     );
     formData.append(

@@ -46,6 +46,7 @@ import {
 } from "../services/cloudCodeThinking.ts";
 import { buildGeminiTools } from "../translator/helpers/geminiToolsSanitizer.ts";
 import { DEFAULT_SAFETY_SETTINGS } from "../translator/helpers/geminiHelper.ts";
+import { normalizeOpenAICompatibleFinishReasonString } from "../utils/finishReason.ts";
 import {
   applyAntigravityClientProfileHeaders,
   removeHeaderCaseInsensitive,
@@ -402,10 +403,9 @@ export function processAntigravitySSEPayload(
       }
     }
     if (candidate?.finishReason) {
-      collected.finishReason =
-        candidate.finishReason.toLowerCase() === "stop"
-          ? "stop"
-          : candidate.finishReason.toLowerCase();
+      collected.finishReason = normalizeOpenAICompatibleFinishReasonString(
+        String(candidate.finishReason).toLowerCase()
+      );
     }
     if (parsed?.response?.usageMetadata) {
       const um = parsed.response.usageMetadata;
@@ -679,7 +679,7 @@ export class AntigravityExecutor extends BaseExecutor {
     // Auto-discover a missing projectId via loadCodeAssist before failing (#2334/#2541).
     // A freshly re-added Antigravity account can have an empty stored projectId even when
     // its Google account already owns a Cloud Code project (the OAuth-time loadCodeAssist
-    // returned empty/transiently failed). Mirror gemini-cli.ts's bootstrap to recover it
+    // returned empty/transiently failed). Mirror the Cloud Code bootstrap to recover it
     // here — the helper memoizes per access-token, so this is a one-time round-trip.
     if (!projectId && credentials?.accessToken) {
       const discovered = await ensureAntigravityProjectAssigned(credentials.accessToken);
@@ -904,7 +904,7 @@ export class AntigravityExecutor extends BaseExecutor {
       return {
         accessToken: typeof tokens.access_token === "string" ? tokens.access_token : undefined,
         refreshToken:
-          typeof tokens.refresh_token === "string"
+          typeof tokens.refresh_token === "string" && tokens.refresh_token
             ? tokens.refresh_token
             : credentials.refreshToken,
         expiresIn: typeof tokens.expires_in === "number" ? tokens.expires_in : undefined,
@@ -1388,7 +1388,14 @@ export class AntigravityExecutor extends BaseExecutor {
             try {
               const errorBody = await response.clone().text();
               const errorJson = JSON.parse(errorBody);
-              const errorMessage = errorJson?.error?.message || errorJson?.message || "";
+              let errorMessage = errorJson?.error?.message || errorJson?.message || "";
+              if (errorJson?.error?.details && Array.isArray(errorJson.error.details)) {
+                for (const detail of errorJson.error.details) {
+                  if (detail?.reason) {
+                    errorMessage += ` ${detail.reason}`;
+                  }
+                }
+              }
 
               // 1. Try to parse explicit retry time from message
               const parsedRetryMs = this.parseRetryFromErrorMessage(errorMessage);

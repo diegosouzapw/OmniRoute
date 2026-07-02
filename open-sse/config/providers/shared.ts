@@ -126,6 +126,39 @@ export interface RegistryEntry {
   defaultContextLength?: number;
   /** Optional session pool config for rate limit management */
   poolConfig?: Record<string, unknown>;
+  /**
+   * When true, the provider rejects non-streaming requests (HTTP 400).
+   * resolveStreamFlag will keep streaming even when the client requests JSON;
+   * OmniRoute accumulates the stream and converts it to a JSON body for the client. (#2081)
+   */
+  forceStream?: boolean;
+  /**
+   * Literal API key sent as the bearer token when the request has no real
+   * credential (synthetic noauth fallback). Lets a primarily-authenticated
+   * provider expose its free tier anonymously: e.g. Kilo's gateway accepts
+   * `Authorization: Bearer anonymous` for its free models (#4019). Only the
+   * DefaultExecutor honors it, and only when no effectiveKey/accessToken exists,
+   * so the authenticated path is never affected.
+   */
+  anonymousApiKey?: string;
+}
+
+/**
+ * Build a standard OpenAI-compatible provider registry entry.
+ * Eliminates the 4-field boilerplate (format, executor, authType, authHeader)
+ * repeated across 40+ provider files.
+ */
+export function buildOpenAiCompatibleRegistryEntry(
+  overrides: Pick<RegistryEntry, "id"> &
+    Partial<Omit<RegistryEntry, "id" | "format" | "executor" | "authType" | "authHeader">>
+): RegistryEntry {
+  return {
+    format: "openai",
+    executor: "default",
+    authType: "apikey",
+    authHeader: "bearer",
+    ...overrides,
+  } as RegistryEntry;
 }
 
 export interface LegacyProvider {

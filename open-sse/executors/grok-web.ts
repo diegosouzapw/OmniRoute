@@ -33,7 +33,7 @@ import { generateTraceparent } from "../observability/traceparent.ts";
 
 const GROK_CHAT_API = "https://grok.com/rest/app-chat/conversations/new";
 const GROK_USER_AGENT =
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
 // ─── Model mappings ─────────────────────────────────────────────────────────
 // Grok Web exposes UI modes, not stable public model IDs. Keep OmniRoute model
@@ -1495,8 +1495,8 @@ function buildStreamingResponse(
                     index: 0,
                     delta: {
                       content: sanitizeErrorMessage(
-                `[Stream error: ${err instanceof Error ? err.message : String(err)}]`
-              ),
+                        `[Stream error: ${err instanceof Error ? err.message : String(err)}]`
+                      ),
                     },
                     finish_reason: "stop",
                     logprobs: null,
@@ -1507,7 +1507,9 @@ function buildStreamingResponse(
           );
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         } finally {
-          try { controller.close(); } catch {}
+          try {
+            controller.close();
+          } catch {}
         }
       },
     },
@@ -1726,7 +1728,7 @@ export class GrokWebExecutor extends BaseExecutor {
       Origin: "https://grok.com",
       Pragma: "no-cache",
       Referer: "https://grok.com/",
-      "Sec-Ch-Ua": '"Google Chrome";v="147", "Chromium";v="147", "Not(A:Brand";v="24"',
+      "Sec-Ch-Ua": '"Google Chrome";v="149", "Chromium";v="149", "Not(A:Brand";v="24"',
       "Sec-Ch-Ua-Mobile": "?0",
       "Sec-Ch-Ua-Platform": '"macOS"',
       "Sec-Fetch-Dest": "empty",

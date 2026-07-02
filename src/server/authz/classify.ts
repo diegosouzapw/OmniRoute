@@ -3,7 +3,7 @@ import {
   PUBLIC_READONLY_API_ROUTE_PREFIXES,
   PUBLIC_READONLY_METHODS,
 } from "../../shared/constants/publicApiRoutes";
-import type { ClassificationReason, RouteClass, RouteClassification } from "./types";
+import type { ClassificationReason, RouteClassification } from "./types";
 
 const CLIENT_API_ALIAS_PREFIXES: ReadonlyArray<{ alias: string; canonical: string }> = [
   { alias: "/chat/completions", canonical: "/api/v1/chat/completions" },
@@ -23,6 +23,11 @@ function normalizePathname(rawPath: string): { path: string; reason?: Classifica
   if (path === "/v1/v1" || path.startsWith("/v1/v1/")) {
     const tail = path.slice("/v1/v1".length) || "";
     return { path: "/api/v1" + tail, reason: "client_api_double_prefix" };
+  }
+
+  if (path === "/v1beta" || path.startsWith("/v1beta/")) {
+    const tail = path.slice("/v1beta".length) || "";
+    return { path: "/api/v1beta" + tail, reason: "client_api_alias" };
   }
 
   if (path === "/v1" || path.startsWith("/v1/")) {
@@ -87,6 +92,14 @@ export function classifyRoute(rawPath: string, method: string = "GET"): RouteCla
     };
   }
 
+  if (normalizedPath === "/api/v1beta" || normalizedPath.startsWith("/api/v1beta/")) {
+    return {
+      routeClass: "CLIENT_API",
+      reason: aliasReason ?? "client_api_v1",
+      normalizedPath,
+    };
+  }
+
   if (normalizedPath.startsWith("/api/")) {
     if (isClassifiedAsPublic(normalizedPath, method)) {
       return {
@@ -125,16 +138,4 @@ function isClassifiedAsPublic(path: string, method: string): boolean {
     return true;
   }
   return matchesReadonlyPublic(path, method);
-}
-
-export function isClientApi(routeClass: RouteClass): boolean {
-  return routeClass === "CLIENT_API";
-}
-
-export function isManagement(routeClass: RouteClass): boolean {
-  return routeClass === "MANAGEMENT";
-}
-
-export function isPublic(routeClass: RouteClass): boolean {
-  return routeClass === "PUBLIC";
 }

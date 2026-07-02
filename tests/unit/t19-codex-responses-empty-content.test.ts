@@ -9,7 +9,7 @@ test("T19: picks the last non-empty message content from Responses output", () =
   const responseBody = {
     object: "response",
     id: "resp_t19",
-    model: "gpt-5.2-codex",
+    model: "gpt-5.3-codex",
     created_at: 1710000000,
     output: [
       {
@@ -41,7 +41,7 @@ test("T19: falls back to last message block when all message texts are empty", (
   const responseBody = {
     object: "response",
     id: "resp_t19_empty",
-    model: "gpt-5.2-codex",
+    model: "gpt-5.3-codex",
     created_at: 1710000001,
     output: [
       {

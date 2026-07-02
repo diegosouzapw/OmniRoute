@@ -12,10 +12,6 @@ export function getSupervisor(tool: string): ServiceSupervisor | null {
   return supervisors.get(tool) ?? null;
 }
 
-export function listSupervisors(): ServiceSupervisor[] {
-  return Array.from(supervisors.values());
-}
-
 /** Remove a supervisor by tool name. Intended for use in tests. */
 export function unregisterSupervisor(tool: string): void {
   supervisors.delete(tool);

@@ -19,7 +19,7 @@ test("getEmbeddingDimension resolves known dimensions from the registry", () => 
   assert.equal(getEmbeddingDimension("openai/text-embedding-3-small"), 1536);
   assert.equal(getEmbeddingDimension("openai/text-embedding-3-large"), 3072);
   assert.equal(getEmbeddingDimension("nebius/Qwen/Qwen3-Embedding-8B"), 4096);
-  assert.equal(getEmbeddingDimension("gemini/text-embedding-004"), 768);
+  assert.equal(getEmbeddingDimension("gemini/gemini-embedding-001"), 768);
   // OpenRouter re-exports OpenAI ids under its own prefix at the same dimension.
   assert.equal(getEmbeddingDimension("openrouter/openai/text-embedding-3-small"), 1536);
 });

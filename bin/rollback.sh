@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # bin/rollback.sh — roll OmniRoute back to a previous release to mitigate a bad
-# deploy. Used by the incident runbook (docs/INCIDENT_RESPONSE.md §3 / §4).
+# deploy. Part of the deploy-rollback incident-recovery flow.
 #
 # Methods (auto-detected; override with --method):
 #   • npm    — `npm install -g omniroute@<version>` and, if PM2 manages it,

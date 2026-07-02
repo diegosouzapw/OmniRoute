@@ -162,33 +162,3 @@ export async function updateStreak(apiKeyId: string): Promise<number> {
 
   return newStreak;
 }
-
-/**
- * Check if a streak is still active (last activity within the last 2 days).
- * Does not modify any data.
- *
- * @param apiKeyId - The API key identifier
- * @returns true if the streak is still alive
- */
-export async function isStreakActive(apiKeyId: string): Promise<boolean> {
-  const streak = await getStreak(apiKeyId);
-  if (!streak.lastActiveDate) return false;
-
-  const last = new Date(streak.lastActiveDate + "T00:00:00Z").getTime();
-  const now = Date.now();
-  const daysSince = Math.floor((now - last) / MS_PER_DAY);
-
-  return daysSince <= 1; // Today or yesterday
-}
-
-/**
- * Reset streak data for an API key (admin/testing use).
- *
- * @param apiKeyId - The API key identifier
- */
-export async function resetStreak(apiKeyId: string): Promise<void> {
-  if (isBuildPhase || isCloud) return;
-
-  const db = getDbInstance() as unknown as DbLike;
-  db.prepare("DELETE FROM key_value WHERE namespace = ? AND key = ?").run(NAMESPACE, apiKeyId);
-}

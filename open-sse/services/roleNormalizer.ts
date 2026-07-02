@@ -49,26 +49,39 @@ function defaultPreserveDeveloperForProvider(provider: string): boolean {
 
 /**
  * Models that are known to reject the `system` role regardless of provider.
- * Uses prefix matching (e.g., "glm-" matches "glm-4.7", "glm-4.5", etc.)
+ * Uses prefix matching (e.g., "ernie-" matches "ernie-4.0").
  */
 const MODELS_WITHOUT_SYSTEM_ROLE = [
-  "glm", // Exact match for model id "glm" (e.g., Pollinations)
   "ernie-", // Baidu ERNIE models
 ];
 
-function isUnsupportedGlmSystemRoleModel(model: string): boolean {
-  // GLM 5.1+ models now support system-role injection. Older GLM generations do not.
-  const glmMatch = model.match(/^glm-(\d+)(?:\.(\d+))?/i);
-  if (!glmMatch) return true;
-
-  const major = Number(glmMatch[1] ?? "0");
-  const minor = Number(glmMatch[2] ?? "0");
-
-  if (Number.isNaN(major) || Number.isNaN(minor)) return true;
-  if (major > 5) return false;
-  if (major < 5) return true;
-  return minor < 1;
+/**
+ * ZhipuAI GLM rejects the `system` role EXCEPT generation > 5.0: per z.ai docs,
+ * GLM 5.1 / 5.2 (and newer) accept it, so their system prompt must NOT be folded
+ * into the first user turn (#5610). Everything else GLM — bare "glm" (Pollinations),
+ * the 4.x family, and the 5.0 generation — still needs the fold. The version is read
+ * from "glm-<major>.<minor>" or the Fireworks "glm-5p1" point alias.
+ */
+function isGlmWithoutSystemRole(modelLower: string): boolean {
+  if (!modelLower.startsWith("glm")) return false;
+  const match = modelLower.match(/glm-?(\d+)(?:[.p](\d+))?/);
+  if (match) {
+    const major = Number(match[1]);
+    const minor = match[2] ? Number(match[2]) : 0;
+    if (major > 5 || (major === 5 && minor >= 1)) return false;
+  }
+  return true;
 }
+
+const PROVIDER_SCOPED_MODELS_WITHOUT_SYSTEM_ROLE: Record<string, RegExp[]> = {
+  // ZenMux exposes Z.AI GLM through OpenAI-compatible model ids such as
+  // "z-ai/glm-5.2". Z.AI rejects compressed histories that start with a
+  // system summary followed by an assistant/tool bundle, while OpenRouter
+  // tolerates the same shape. Treat these vendor-prefixed GLM ids like native
+  // GLM so normalizeSystemRole moves system/developer content into a user turn.
+  zenmux: [/(?:^|\/)glm(?:-|$)/i],
+};
+
 
 interface MessageContentPart {
   type?: string;
@@ -101,21 +114,19 @@ function extractTextFromContent(content: unknown): string {
  * Check if a provider+model combo supports the system role.
  */
 function supportsSystemRole(provider: string, model: string): boolean {
-  if (PROVIDERS_WITHOUT_SYSTEM_ROLE.has(provider)) return false;
+  const providerLower = (provider || "").trim().toLowerCase();
+  if (PROVIDERS_WITHOUT_SYSTEM_ROLE.has(providerLower)) return false;
 
   const modelLower = (model || "").toLowerCase();
-  for (const prefix of MODELS_WITHOUT_SYSTEM_ROLE) {
-    if (prefix === "glm") {
-      // Bare "glm" is an exact-match id (e.g., Pollinations), not a prefix.
-      // Versioned GLM ids (glm-5.1, etc.) are gated separately below.
-      if (modelLower === "glm") return false;
-      continue;
-    }
-    if (modelLower.startsWith(prefix)) return false;
+
+  for (const pattern of PROVIDER_SCOPED_MODELS_WITHOUT_SYSTEM_ROLE[providerLower] ?? []) {
+    if (pattern.test(modelLower)) return false;
   }
 
-  if (modelLower.startsWith("glm-") && isUnsupportedGlmSystemRoleModel(modelLower)) {
-    return false;
+  if (isGlmWithoutSystemRole(modelLower)) return false;
+
+  for (const prefix of MODELS_WITHOUT_SYSTEM_ROLE) {
+    if (modelLower.startsWith(prefix)) return false;
   }
 
   return true;

@@ -8,6 +8,10 @@
  *
  * Pattern mirrors: tests/unit/quota-groups-ui.test.ts (readFileSync style)
  *
+ * Source location: the nav-item id definitions live in
+ * `src/shared/constants/sidebarVisibility/sections.ts` (extracted from the
+ * former monolithic `sidebarVisibility.ts` in the D1 god-file split, #5683).
+ *
  * Node.js native test runner — no DOM setup required.
  */
 
@@ -19,7 +23,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
-const SIDEBAR_PATH = join(ROOT, "src/shared/constants/sidebarVisibility.ts");
+const SIDEBAR_PATH = join(ROOT, "src/shared/constants/sidebarVisibility/sections.ts");
 
 const src = readFileSync(SIDEBAR_PATH, "utf8");
 

@@ -1,10 +1,15 @@
 import { FORMATS } from "./formats.ts";
-import { ensureToolCallIds, fixMissingToolResponses } from "./helpers/toolCallHelper.ts";
+import {
+  ensureToolCallIds,
+  fixMissingToolResponses,
+  stripOrphanedToolResults,
+} from "./helpers/toolCallHelper.ts";
 import {
   NON_ANTHROPIC_THINKING_PLACEHOLDER,
   prepareClaudeRequest,
 } from "./helpers/claudeHelper.ts";
 import { filterToOpenAIFormat } from "./helpers/openaiHelper.ts";
+import { providerHonorsOpenAIFormatCacheControl } from "../utils/cacheControlPolicy.ts";
 import {
   coerceToolSchemas,
   injectEmptyReasoningContentForToolCalls,
@@ -177,6 +182,9 @@ export function translateRequest(
   // Fix missing tool responses (insert empty tool_result if needed)
   fixMissingToolResponses(result);
 
+  // Strip orphaned tool results (tool_result/role:tool with no matching tool_call)
+  stripOrphanedToolResults(result);
+
   // Normalize roles: developer→system unless preserved, system→user for incompatible models.
   // This handles (1) sourceFormat openai with messages containing developer → non-openai target
   // or preserveDeveloperRole=false, and (2) all other paths where result.messages already exists.
@@ -213,12 +221,22 @@ export function translateRequest(
         if (toOpenAI) {
           // Forward Copilot UA marker to source→openai translators only.
           const hasTargetHint = targetFormat != null;
+          // #2069 — forward the cache_control-preservation intent so the
+          // source→openai translator (e.g. claudeToOpenAIRequest) keeps the
+          // client's breakpoints — but ONLY for providers that honor explicit
+          // OpenAI-format cache_control (DashScope/alibaba, Xiaomi MiMo). Generic
+          // / implicit-cache OpenAI providers (openai/codex/azure) must still be
+          // stripped.
+          const preserveCacheControl =
+            options?.preserveCacheControl === true &&
+            providerHonorsOpenAIFormatCacheControl(provider);
           const step1Credentials =
-            options?.copilotClient || hasTargetHint
+            options?.copilotClient || hasTargetHint || preserveCacheControl
               ? {
                   ...(credentials && typeof credentials === "object" ? credentials : {}),
                   ...(options?.copilotClient ? { _copilotClient: true } : {}),
                   ...(hasTargetHint ? { _targetFormat: targetFormat } : {}),
+                  ...(preserveCacheControl ? { _preserveCacheControl: true } : {}),
                 }
               : credentials;
           result = toOpenAI(model, result, stream, step1Credentials);
@@ -253,10 +271,35 @@ export function translateRequest(
     }
   }
 
+  // Resolve reasoning-replay status up-front: it gates both the reasoning_content
+  // strip in filterToOpenAIFormat below (#4849 must NOT strip client reasoning for
+  // replay providers) and the cache re-injection further down.
+  const normalizedProvider = String(provider ?? "");
+  const normalizedModel = String(model ?? "");
+  const resolvedCapabilities = getResolvedModelCapabilities({
+    provider: normalizedProvider,
+    model: normalizedModel,
+  });
+  const isReasoner = requiresReasoningReplay({
+    provider: normalizedProvider,
+    model: normalizedModel,
+    thinkingEnabled: hasThinkingConfig(result),
+    supportsReasoning: supportsReasoning({ provider: normalizedProvider, model: normalizedModel }),
+    interleavedField: resolvedCapabilities?.interleavedField ?? null,
+  });
+
   // Always normalize to clean OpenAI format when target is OpenAI
   // This handles hybrid requests (e.g., OpenAI messages + Claude tools)
   if (targetFormat === FORMATS.OPENAI) {
-    result = filterToOpenAIFormat(result);
+    // #2069 — preserve client cache_control breakpoints only for providers that
+    // honor explicit OpenAI-format markers (DashScope/alibaba, Xiaomi MiMo) when
+    // requested upstream; generic/implicit-cache OpenAI providers stay stripped.
+    result = filterToOpenAIFormat(result, {
+      preserveCacheControl:
+        options?.preserveCacheControl === true && providerHonorsOpenAIFormatCacheControl(provider),
+      // #4849 regression guard: keep client reasoning_content for replay providers.
+      preserveReasoningContent: isReasoner,
+    });
   }
 
   // Final step: prepare request for Claude format endpoints
@@ -304,6 +347,7 @@ export function translateRequest(
   // Ensure unique tool_call ids on final payload (translators may have introduced duplicates)
   ensureToolCallIds(result, { use9CharId });
   fixMissingToolResponses(result);
+  stripOrphanedToolResults(result);
 
   if (result.tools) {
     result.tools = coerceToolSchemas(result.tools);
@@ -315,19 +359,9 @@ export function translateRequest(
   // clients omit it from the conversation history. Without this, DeepSeek V4
   // returns 400: "The reasoning_content in the thinking mode must be passed
   // back to the API."
-  const normalizedProvider = String(provider ?? "");
-  const normalizedModel = String(model ?? "");
-  const resolvedCapabilities = getResolvedModelCapabilities({
-    provider: normalizedProvider,
-    model: normalizedModel,
-  });
-  const isReasoner = requiresReasoningReplay({
-    provider: normalizedProvider,
-    model: normalizedModel,
-    thinkingEnabled: hasThinkingConfig(result),
-    supportsReasoning: supportsReasoning({ provider: normalizedProvider, model: normalizedModel }),
-    interleavedField: resolvedCapabilities?.interleavedField ?? null,
-  });
+  // isReasoner / normalizedProvider / normalizedModel / resolvedCapabilities were
+  // resolved up-front (before the OpenAI-format filter) so the #4849 reasoning strip
+  // could honor reasoning-replay providers.
   if (isReasoner && result.messages && Array.isArray(result.messages)) {
     const canReplayReasoningOnly = isReasoningOnlyReplayTarget(normalizedProvider, normalizedModel);
 
@@ -560,6 +594,7 @@ export function initState(sourceFormat) {
       reasoningPartAdded: false,
       reasoningDone: false,
       inThinking: false,
+      parseTextualReasoningTags: false,
       funcArgsBuf: {},
       funcNames: {},
       funcCallIds: {},

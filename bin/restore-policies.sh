@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # bin/restore-policies.sh — restore ONLY the API-key policy tables from a
 # snapshot, leaving request/audit/runtime state intact. Used by the auth-layer
-# incident runbook (docs/INCIDENT_RESPONSE.md §4.3) when policies_active is empty
+# incident-recovery flow when policies_active is empty
 # but the rest of the database is healthy (so a full restore-data is overkill).
 #
 # "Policy" tables = api_key* definition tables (the key + its limits/allowed

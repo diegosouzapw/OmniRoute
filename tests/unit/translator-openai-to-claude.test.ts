@@ -196,9 +196,12 @@ test("OpenAI -> Claude converts multimodal content, tool declarations, tool call
 
   const assistantMessage = result.messages.find((message) => message.role === "assistant");
   assert.ok(assistantMessage, "expected an assistant message");
-  assert.equal(assistantMessage.content[0].type, "thinking");
-  assert.equal(assistantMessage.content[0].thinking, "Need a tool");
-  assert.equal(assistantMessage.content[0].signature, DEFAULT_THINKING_CLAUDE_SIGNATURE);
+  // #5312 RC-D: signature-less reasoning_content becomes a redacted_thinking
+  // placeholder (no fabricated signature), not a thinking block.
+  assert.equal(assistantMessage.content[0].type, "redacted_thinking");
+  assert.equal(assistantMessage.content[0].data, DEFAULT_THINKING_CLAUDE_SIGNATURE);
+  assert.equal(assistantMessage.content[0].signature, undefined);
+  assert.equal(assistantMessage.content[0].thinking, undefined);
   assert.equal(assistantMessage.content[1].text, "Calling tool");
   assert.equal(assistantMessage.content[2].type, "tool_use");
   assert.equal(assistantMessage.content[2].name, `${CLAUDE_OAUTH_TOOL_PREFIX}weather.get`);
@@ -551,13 +554,21 @@ test("OpenAI -> Claude preserves reasoning_content on assistant tool call messag
   assert.equal(assistantMsgs.length, 1, "expected exactly one assistant message");
 
   const assistantMsg = assistantMsgs[0];
-  const thinkingBlock = assistantMsg.content.find((b) => b.type === "thinking");
+  // #5312 RC-D: reasoning_content becomes a signature-less redacted_thinking
+  // placeholder; the real text is re-hydrated downstream (reasoningCache) for
+  // non-Anthropic upstreams, while Anthropic accepts it without signature validation.
+  const thinkingBlock = assistantMsg.content.find((b) => b.type === "redacted_thinking");
   const textBlock = assistantMsg.content.find((b) => b.type === "text");
   const toolUseBlock = assistantMsg.content.find((b) => b.type === "tool_use");
 
-  assert.ok(thinkingBlock, "expected thinking block from reasoning_content");
-  assert.equal(thinkingBlock.thinking, "I need to check the weather");
-  assert.equal(thinkingBlock.signature, DEFAULT_THINKING_CLAUDE_SIGNATURE);
+  assert.ok(thinkingBlock, "expected redacted_thinking placeholder from reasoning_content");
+  assert.equal(thinkingBlock.data, DEFAULT_THINKING_CLAUDE_SIGNATURE);
+  assert.equal(thinkingBlock.signature, undefined);
+  assert.equal(
+    assistantMsg.content.find((b) => b.type === "thinking"),
+    undefined,
+    "must NOT emit a thinking block with a fabricated signature (#5312)"
+  );
 
   assert.ok(textBlock, "expected text block");
   assert.equal(textBlock.text, "Let me check that for you.");

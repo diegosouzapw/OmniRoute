@@ -150,6 +150,141 @@ function getTargetConnectionIds(
   return connectionIds;
 }
 
+async function expandTargetsByQuotaAwareConnections(
+  targets: ResolvedComboTarget[],
+  comboName: string,
+  log: { warn?: (...args: unknown[]) => void },
+  apiKeyAllowedConnectionIds?: string[] | null
+): Promise<{
+  connectionById: Map<string, Record<string, unknown>>;
+  expandedTargets: ResolvedComboTarget[];
+}> {
+  const connectionCache = new Map<string, Array<Record<string, unknown>>>();
+  const connectionLoadPromises = new Map<string, Promise<Array<Record<string, unknown>>>>();
+  const connectionById = new Map<string, Record<string, unknown>>();
+  const expandedTargets: ResolvedComboTarget[] = [];
+
+  const targetsWithConnections = await Promise.all(
+    targets.map(async (target) => ({
+      connections: await getQuotaAwareConnectionsForTarget(
+        target,
+        connectionCache,
+        connectionLoadPromises,
+        comboName,
+        log
+      ),
+      target,
+    }))
+  );
+
+  for (const { target, connections } of targetsWithConnections) {
+    for (const connection of connections) {
+      if (typeof connection.id === "string") connectionById.set(connection.id, connection);
+    }
+
+    const unrestrictedConnectionIds = getTargetConnectionIds(target, connections);
+    const connectionIds = filterAllowedConnectionIds(
+      unrestrictedConnectionIds,
+      apiKeyAllowedConnectionIds
+    );
+    if (connectionIds.length === 0) {
+      if (
+        unrestrictedConnectionIds.length > 0 &&
+        normalizeConnectionIds(apiKeyAllowedConnectionIds)
+      ) {
+        continue;
+      }
+      expandedTargets.push(target);
+      continue;
+    }
+
+    for (const connectionId of connectionIds) {
+      expandedTargets.push({
+        ...target,
+        connectionId,
+        executionKey:
+          target.connectionId === connectionId
+            ? target.executionKey
+            : `${target.executionKey}@${connectionId}`,
+      });
+    }
+  }
+
+  return { connectionById, expandedTargets };
+}
+
+async function scoreQuotaAwareTargets<TScore extends object>({
+  comboName,
+  config,
+  connectionById,
+  expandedTargets,
+  log,
+  scoreQuota,
+}: {
+  comboName: string;
+  config: QuotaFetchCacheConfig;
+  connectionById: Map<string, Record<string, unknown>>;
+  expandedTargets: ResolvedComboTarget[];
+  log: { warn?: (...args: unknown[]) => void };
+  scoreQuota: (quota: unknown) => TScore;
+}): Promise<Array<{ target: ResolvedComboTarget; index: number } & TScore>> {
+  const quotaPromises = new Map<string, Promise<unknown>>();
+
+  return mapWithConcurrency(
+    expandedTargets,
+    RESET_AWARE_QUOTA_FETCH_CONCURRENCY,
+    async (target, index) => {
+      let quota: unknown = null;
+      const provider = getResetAwareProvider(target);
+      const fetcher = provider ? getQuotaFetcher(provider) : null;
+      if (fetcher && provider && target.connectionId) {
+        const quotaKey = `${provider}:${target.connectionId}`;
+        if (!quotaPromises.has(quotaKey)) {
+          quotaPromises.set(
+            quotaKey,
+            fetchResetAwareQuotaWithCache({
+              provider,
+              connectionId: target.connectionId,
+              connection: connectionById.get(target.connectionId),
+              fetcher,
+              config,
+              log,
+              comboName,
+            })
+          );
+        }
+        quota = await quotaPromises.get(quotaKey)!;
+      }
+
+      return { target, index, ...scoreQuota(quota) };
+    }
+  );
+}
+
+function rotateLeadingTies<T extends { target: ResolvedComboTarget }>(
+  sortedTargets: T[],
+  tiedTargets: T[],
+  key: string
+): T[] {
+  let orderedTiedTargets = tiedTargets;
+  if (tiedTargets.length > 1) {
+    const counter = rrCounters.get(key) || 0;
+    if (!rrCounters.has(key) && rrCounters.size >= MAX_RR_COUNTERS) {
+      const oldest = rrCounters.keys().next().value;
+      if (oldest !== undefined) rrCounters.delete(oldest);
+    }
+    rrCounters.set(key, counter + 1);
+    const startIndex = counter % tiedTargets.length;
+    orderedTiedTargets = [...tiedTargets.slice(startIndex), ...tiedTargets.slice(0, startIndex)];
+  }
+
+  const tiedExecutionKeys = new Set(orderedTiedTargets.map((entry) => entry.target.executionKey));
+  return [
+    ...orderedTiedTargets,
+    ...sortedTargets.filter((entry) => !tiedExecutionKeys.has(entry.target.executionKey)),
+  ];
+}
+
 async function mapWithConcurrency<T, R>(
   items: T[],
   concurrency: number,
@@ -329,87 +464,21 @@ export async function orderTargetsByResetAwareQuota(
   if (targets.length === 0) return targets;
 
   const config = resolveResetAwareConfig(configSource);
-  const connectionCache = new Map<string, Array<Record<string, unknown>>>();
-  const connectionLoadPromises = new Map<string, Promise<Array<Record<string, unknown>>>>();
-  const quotaPromises = new Map<string, Promise<unknown>>();
-  const connectionById = new Map<string, Record<string, unknown>>();
-  const expandedTargets: ResolvedComboTarget[] = [];
-
-  const targetsWithConnections = await Promise.all(
-    targets.map(async (target) => ({
-      connections: await getQuotaAwareConnectionsForTarget(
-        target,
-        connectionCache,
-        connectionLoadPromises,
-        comboName,
-        log
-      ),
-      target,
-    }))
+  const { connectionById, expandedTargets } = await expandTargetsByQuotaAwareConnections(
+    targets,
+    comboName,
+    log,
+    apiKeyAllowedConnectionIds
   );
 
-  for (const { target, connections } of targetsWithConnections) {
-    for (const connection of connections) {
-      if (typeof connection.id === "string") connectionById.set(connection.id, connection);
-    }
-
-    const unrestrictedConnectionIds = getTargetConnectionIds(target, connections);
-    const connectionIds = filterAllowedConnectionIds(
-      unrestrictedConnectionIds,
-      apiKeyAllowedConnectionIds
-    );
-    if (connectionIds.length === 0) {
-      if (
-        unrestrictedConnectionIds.length > 0 &&
-        normalizeConnectionIds(apiKeyAllowedConnectionIds)
-      ) {
-        continue;
-      }
-      expandedTargets.push(target);
-      continue;
-    }
-
-    for (const connectionId of connectionIds) {
-      expandedTargets.push({
-        ...target,
-        connectionId,
-        executionKey:
-          target.connectionId === connectionId
-            ? target.executionKey
-            : `${target.executionKey}@${connectionId}`,
-      });
-    }
-  }
-
-  const scoredTargets = await mapWithConcurrency(
+  const scoredTargets = await scoreQuotaAwareTargets({
+    comboName,
+    config,
+    connectionById,
     expandedTargets,
-    RESET_AWARE_QUOTA_FETCH_CONCURRENCY,
-    async (target, index) => {
-      let quota: unknown = null;
-      const provider = getResetAwareProvider(target);
-      const fetcher = provider ? getQuotaFetcher(provider) : null;
-      if (fetcher && provider && target.connectionId) {
-        const quotaKey = `${provider}:${target.connectionId}`;
-        if (!quotaPromises.has(quotaKey)) {
-          quotaPromises.set(
-            quotaKey,
-            fetchResetAwareQuotaWithCache({
-              provider,
-              connectionId: target.connectionId,
-              connection: connectionById.get(target.connectionId),
-              fetcher,
-              config,
-              log,
-              comboName,
-            })
-          );
-        }
-        quota = await quotaPromises.get(quotaKey)!;
-      }
-      const { score } = scoreResetAwareQuota(quota, config);
-      return { target, score, index };
-    }
-  );
+    log,
+    scoreQuota: (quota) => ({ score: scoreResetAwareQuota(quota, config).score }),
+  });
 
   scoredTargets.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
@@ -418,24 +487,9 @@ export async function orderTargetsByResetAwareQuota(
 
   const bestScore = scoredTargets[0]?.score ?? 0;
   const tiedTargets = scoredTargets.filter((entry) => bestScore - entry.score <= config.tieBand);
-  let orderedTiedTargets = tiedTargets;
-  if (tiedTargets.length > 1) {
-    const key = `reset-aware:${comboName}`;
-    const counter = rrCounters.get(key) || 0;
-    if (!rrCounters.has(key) && rrCounters.size >= MAX_RR_COUNTERS) {
-      const oldest = rrCounters.keys().next().value;
-      if (oldest !== undefined) rrCounters.delete(oldest);
-    }
-    rrCounters.set(key, counter + 1);
-    const startIndex = counter % tiedTargets.length;
-    orderedTiedTargets = [...tiedTargets.slice(startIndex), ...tiedTargets.slice(0, startIndex)];
-  }
-
-  const tiedExecutionKeys = new Set(orderedTiedTargets.map((entry) => entry.target.executionKey));
-  return [
-    ...orderedTiedTargets,
-    ...scoredTargets.filter((entry) => !tiedExecutionKeys.has(entry.target.executionKey)),
-  ].map((entry) => entry.target);
+  return rotateLeadingTies(scoredTargets, tiedTargets, `reset-aware:${comboName}`).map(
+    (entry) => entry.target
+  );
 }
 
 export async function orderTargetsByResetWindow(
@@ -448,91 +502,21 @@ export async function orderTargetsByResetWindow(
   if (targets.length === 0) return targets;
 
   const config = resolveResetWindowConfig(configSource);
-  const connectionCache = new Map<string, Array<Record<string, unknown>>>();
-  const connectionLoadPromises = new Map<string, Promise<Array<Record<string, unknown>>>>();
-  const quotaPromises = new Map<string, Promise<unknown>>();
-  const connectionById = new Map<string, Record<string, unknown>>();
-  const expandedTargets: ResolvedComboTarget[] = [];
-
-  const targetsWithConnections = await Promise.all(
-    targets.map(async (target) => ({
-      connections: await getQuotaAwareConnectionsForTarget(
-        target,
-        connectionCache,
-        connectionLoadPromises,
-        comboName,
-        log
-      ),
-      target,
-    }))
+  const { connectionById, expandedTargets } = await expandTargetsByQuotaAwareConnections(
+    targets,
+    comboName,
+    log,
+    apiKeyAllowedConnectionIds
   );
 
-  for (const { target, connections } of targetsWithConnections) {
-    for (const connection of connections) {
-      if (typeof connection.id === "string") connectionById.set(connection.id, connection);
-    }
-
-    const unrestrictedConnectionIds = getTargetConnectionIds(target, connections);
-    const connectionIds = filterAllowedConnectionIds(
-      unrestrictedConnectionIds,
-      apiKeyAllowedConnectionIds
-    );
-    if (connectionIds.length === 0) {
-      if (
-        unrestrictedConnectionIds.length > 0 &&
-        normalizeConnectionIds(apiKeyAllowedConnectionIds)
-      ) {
-        continue;
-      }
-      expandedTargets.push(target);
-      continue;
-    }
-
-    for (const connectionId of connectionIds) {
-      expandedTargets.push({
-        ...target,
-        connectionId,
-        executionKey:
-          target.connectionId === connectionId
-            ? target.executionKey
-            : `${target.executionKey}@${connectionId}`,
-      });
-    }
-  }
-
-  const scoredTargets = await mapWithConcurrency(
+  const scoredTargets = await scoreQuotaAwareTargets({
+    comboName,
+    config,
+    connectionById,
     expandedTargets,
-    RESET_AWARE_QUOTA_FETCH_CONCURRENCY,
-    async (target, index) => {
-      let quota: unknown = null;
-      const provider = getResetAwareProvider(target);
-      const fetcher = provider ? getQuotaFetcher(provider) : null;
-      if (fetcher && provider && target.connectionId) {
-        const quotaKey = `${provider}:${target.connectionId}`;
-        if (!quotaPromises.has(quotaKey)) {
-          quotaPromises.set(
-            quotaKey,
-            fetchResetAwareQuotaWithCache({
-              provider,
-              connectionId: target.connectionId,
-              connection: connectionById.get(target.connectionId),
-              fetcher,
-              config,
-              log,
-              comboName,
-            })
-          );
-        }
-        quota = await quotaPromises.get(quotaKey)!;
-      }
-
-      return {
-        target,
-        resetMs: getResetWindowTimestampMs(quota, config.windows),
-        index,
-      };
-    }
-  );
+    log,
+    scoreQuota: (quota) => ({ resetMs: getResetWindowTimestampMs(quota, config.windows) }),
+  });
 
   scoredTargets.sort((a, b) => {
     if (a.resetMs !== b.resetMs) return a.resetMs - b.resetMs;
@@ -549,24 +533,9 @@ export async function orderTargetsByResetWindow(
   );
   if (tiedTargets.length <= 1) return scoredTargets.map((entry) => entry.target);
 
-  const key = `reset-window:${comboName}`;
-  const counter = rrCounters.get(key) || 0;
-  if (!rrCounters.has(key) && rrCounters.size >= MAX_RR_COUNTERS) {
-    const oldest = rrCounters.keys().next().value;
-    if (oldest !== undefined) rrCounters.delete(oldest);
-  }
-  rrCounters.set(key, counter + 1);
-  const startIndex = counter % tiedTargets.length;
-  const orderedTiedTargets = [
-    ...tiedTargets.slice(startIndex),
-    ...tiedTargets.slice(0, startIndex),
-  ];
-  const tiedExecutionKeys = new Set(orderedTiedTargets.map((entry) => entry.target.executionKey));
-
-  return [
-    ...orderedTiedTargets,
-    ...scoredTargets.filter((entry) => !tiedExecutionKeys.has(entry.target.executionKey)),
-  ].map((entry) => entry.target);
+  return rotateLeadingTies(scoredTargets, tiedTargets, `reset-window:${comboName}`).map(
+    (entry) => entry.target
+  );
 }
 
 /**
@@ -616,53 +585,12 @@ export async function orderTargetsByHeadroom(
   if (targets.length <= 1) return targets;
 
   try {
-    const connectionCache = new Map<string, Array<Record<string, unknown>>>();
-    const connectionLoadPromises = new Map<string, Promise<Array<Record<string, unknown>>>>();
-    const expandedTargets: ResolvedComboTarget[] = [];
-
-    const targetsWithConnections = await Promise.all(
-      targets.map(async (target) => ({
-        connections: await getQuotaAwareConnectionsForTarget(
-          target,
-          connectionCache,
-          connectionLoadPromises,
-          comboName,
-          log
-        ),
-        target,
-      }))
+    const { expandedTargets } = await expandTargetsByQuotaAwareConnections(
+      targets,
+      comboName,
+      log,
+      apiKeyAllowedConnectionIds
     );
-
-    for (const { target, connections } of targetsWithConnections) {
-      const unrestrictedConnectionIds = getTargetConnectionIds(target, connections);
-      const connectionIds = filterAllowedConnectionIds(
-        unrestrictedConnectionIds,
-        apiKeyAllowedConnectionIds
-      );
-      if (connectionIds.length === 0) {
-        if (
-          unrestrictedConnectionIds.length > 0 &&
-          normalizeConnectionIds(apiKeyAllowedConnectionIds)
-        ) {
-          continue;
-        }
-        // No specific connection — keep the target with full headroom (it cannot
-        // be saturation-scored, so it should not be penalized).
-        expandedTargets.push(target);
-        continue;
-      }
-
-      for (const connectionId of connectionIds) {
-        expandedTargets.push({
-          ...target,
-          connectionId,
-          executionKey:
-            target.connectionId === connectionId
-              ? target.executionKey
-              : `${target.executionKey}@${connectionId}`,
-        });
-      }
-    }
 
     if (expandedTargets.length <= 1) return expandedTargets;
 
@@ -672,28 +600,32 @@ export async function orderTargetsByHeadroom(
     const satByConnection = new Map<string, Promise<HeadroomSaturation>>();
     const connKey = (target: ResolvedComboTarget) => `${target.provider}:${target.connectionId}`;
 
-    await mapWithConcurrency(expandedTargets, HEADROOM_SATURATION_FETCH_CONCURRENCY, async (target) => {
-      if (!target.connectionId) return;
-      const key = connKey(target);
-      if (satByConnection.has(key)) return;
-      satByConnection.set(
-        key,
-        (async () => {
-          const [util5h, util7d] = await Promise.all([
-            getSaturation(target.connectionId as string, target.provider, {
-              unit: "percent",
-              window: "5h",
-            }),
-            getSaturation(target.connectionId as string, target.provider, {
-              unit: "percent",
-              window: "weekly",
-            }),
-          ]);
-          return { util5h, util7d } satisfies HeadroomSaturation;
-        })()
-      );
-      await satByConnection.get(key);
-    });
+    await mapWithConcurrency(
+      expandedTargets,
+      HEADROOM_SATURATION_FETCH_CONCURRENCY,
+      async (target) => {
+        if (!target.connectionId) return;
+        const key = connKey(target);
+        if (satByConnection.has(key)) return;
+        satByConnection.set(
+          key,
+          (async () => {
+            const [util5h, util7d] = await Promise.all([
+              getSaturation(target.connectionId as string, target.provider, {
+                unit: "percent",
+                window: "5h",
+              }),
+              getSaturation(target.connectionId as string, target.provider, {
+                unit: "percent",
+                window: "weekly",
+              }),
+            ]);
+            return { util5h, util7d } satisfies HeadroomSaturation;
+          })()
+        );
+        await satByConnection.get(key);
+      }
+    );
 
     // Resolve the per-connection saturation, keyed by the per-target executionKey
     // for the pure ranker. Targets without a connection get full headroom.
@@ -706,7 +638,10 @@ export async function orderTargetsByHeadroom(
 
     return rankByHeadroom(expandedTargets, satByExecutionKey, (target) => target.executionKey);
   } catch (err) {
-    log.warn?.({ err: (err as Error)?.message, comboName }, "headroom ordering failed — keeping target order");
+    log.warn?.(
+      { err: (err as Error)?.message, comboName },
+      "headroom ordering failed — keeping target order"
+    );
     return targets;
   }
 }

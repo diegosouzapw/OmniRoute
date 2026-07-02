@@ -5,6 +5,8 @@ const { convertResponsesApiFormat } =
   await import("../../open-sse/translator/helpers/responsesApiHelper.ts");
 const { openaiResponsesToOpenAIRequest, openaiToOpenAIResponsesRequest } =
   await import("../../open-sse/translator/request/openai-responses.ts");
+const { normalizeCodexResponsesInput, normalizeResponsesInputForChat } =
+  await import("../../open-sse/utils/responsesInputNormalization.ts");
 
 test("convertResponsesApiFormat filters orphaned function_call_output items", () => {
   const body = {
@@ -55,6 +57,77 @@ test("Responses→Chat: input_image converted to image_url with detail", () => {
   assert.ok(imgPart, "should have image_url content part");
   assert.equal(imgPart.image_url.url, "https://example.com/img.png");
   assert.equal(imgPart.image_url.detail, "high");
+});
+
+test("Responses→Chat: string input becomes a user message instead of an empty prompt", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    null,
+    { model: "gpt-4", input: "Responda apenas: OK", max_output_tokens: 80 },
+    null,
+    null
+  );
+
+  assert.equal((result as any).input, undefined);
+  assert.equal((result as any).messages.length, 1);
+  assert.equal((result as any).messages[0].role, "user");
+  assert.deepEqual((result as any).messages[0].content, [
+    { type: "text", text: "Responda apenas: OK" },
+  ]);
+});
+
+test("Responses→Chat: object input becomes a single user message", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    null,
+    { model: "gpt-4", input: { text: "Ping" } },
+    null,
+    null
+  );
+
+  assert.equal((result as any).messages.length, 1);
+  assert.equal((result as any).messages[0].role, "user");
+  assert.deepEqual((result as any).messages[0].content, [{ type: "text", text: "Ping" }]);
+});
+
+test("Responses→Chat: role/content object input becomes a single user message", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    null,
+    { model: "gpt-4", input: { role: "user", content: "Ping" } },
+    null,
+    null
+  );
+
+  assert.equal((result as any).messages.length, 1);
+  assert.equal((result as any).messages[0].role, "user");
+  assert.equal((result as any).messages[0].content, "Ping");
+});
+
+test("Codex Responses input: string input becomes a list-shaped user message", () => {
+  const body: Record<string, unknown> = { input: "ship it" };
+  normalizeCodexResponsesInput(body);
+
+  assert.deepEqual(body.input, [
+    { type: "message", role: "user", content: [{ type: "input_text", text: "ship it" }] },
+  ]);
+});
+
+test("Codex Responses input: object input becomes a single item", () => {
+  const body: Record<string, unknown> = { input: { role: "user", text: "ship it" } };
+  normalizeCodexResponsesInput(body);
+
+  assert.deepEqual(body.input, [
+    { type: "message", role: "user", content: [{ type: "input_text", text: "ship it" }] },
+  ]);
+});
+
+test("Codex Responses input: null input normalizes to an empty list (not [null])", () => {
+  const body: Record<string, unknown> = { input: null };
+  normalizeCodexResponsesInput(body);
+
+  assert.deepEqual(body.input, []);
+});
+
+test("Responses→Chat: null input normalizes to an empty list (not [null])", () => {
+  assert.deepEqual(normalizeResponsesInputForChat(null), []);
 });
 
 test("Responses→Chat: input_image without detail omits detail field", () => {
@@ -437,7 +510,7 @@ test("Responses→Chat streaming: Copilot mode emits reasoning_text for summary 
   assert.equal(result.choices[0].delta.reasoning, undefined);
 });
 
-test("Chat→Responses streaming: multiple <think> tags in one chunk handled", () => {
+test("Chat→Responses streaming: generic prompt-format <think> tags remain text", () => {
   const state = initState(FORMATS.OPENAI_RESPONSES);
 
   // Chunk with multiple think tags
@@ -450,14 +523,44 @@ test("Chat→Responses streaming: multiple <think> tags in one chunk handled", (
       },
     ],
     id: "c1",
+    model: "gpt-4.1",
   };
   const events = openaiToOpenAIResponsesResponse(chunk, state);
-  // Should not have literal <think> in any text delta
   const textDeltas = events
     .filter((e) => e.event === "response.output_text.delta")
     .map((e) => e.data.delta);
   const combined = textDeltas.join("");
-  assert.ok(!combined.includes("<think>"), `text should not contain <think> tag, got: ${combined}`);
+  assert.equal(combined, "<think>first</think>middle<think>second</think>end");
+  assert.equal(
+    events.some((e) => e.event === "response.reasoning_summary_text.delta"),
+    false
+  );
+});
+
+test("Chat→Responses streaming: tag-native models still split <think> tags", () => {
+  const state = initState(FORMATS.OPENAI_RESPONSES);
+
+  const chunk = {
+    choices: [
+      {
+        index: 0,
+        delta: { content: "<think>first</think>end" },
+        finish_reason: null,
+      },
+    ],
+    id: "c1",
+    model: "deepseek-r1",
+  };
+  const events = openaiToOpenAIResponsesResponse(chunk, state);
+  const textDeltas = events
+    .filter((e) => e.event === "response.output_text.delta")
+    .map((e) => e.data.delta);
+  const reasoningDeltas = events
+    .filter((e) => e.event === "response.reasoning_summary_text.delta")
+    .map((e) => e.data.delta);
+
+  assert.deepEqual(reasoningDeltas, ["first"]);
+  assert.equal(textDeltas.join(""), "end");
 });
 
 // Regression: a tool call was announced (response.output_item.added set currentToolCallId)

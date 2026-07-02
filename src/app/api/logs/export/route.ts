@@ -1,6 +1,7 @@
 import { exportCallLogsSince } from "@/lib/usage/callLogs";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { exportProxyLogsSince } from "@/lib/db/proxyLogs";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 /**
  * GET /api/logs/export — export logs as JSON
@@ -47,7 +48,12 @@ export async function GET(request: Request) {
     );
   } catch (error) {
     return Response.json(
-      { error: { message: (error as Error).message, type: "server_error" } },
+      {
+        error: {
+          message: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
+          type: "server_error",
+        },
+      },
       { status: 500 }
     );
   }

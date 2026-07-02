@@ -71,8 +71,9 @@ function makeLowGainEngine(id = LOW_GAIN_ENGINE_ID): CompressionEngine {
     ...makeBaseEngine(id),
     apply: (body) => {
       const messages = (body.messages as Array<{ role: string; content: string }>) ?? [];
+      // Tag the user message; drop any padding (non-user) content so the body shrinks.
       const next = messages.map((m) =>
-        m.role === "user" ? { ...m, content: m.content + "|low" } : m
+        m.role === "user" ? { ...m, content: m.content + "|low" } : { ...m, content: "" }
       );
       return {
         body: { ...body, messages: next },
@@ -97,8 +98,9 @@ const highGainEngine: CompressionEngine = {
   ...makeBaseEngine(HIGH_GAIN_ENGINE_ID),
   apply: (body) => {
     const messages = (body.messages as Array<{ role: string; content: string }>) ?? [];
+    // Tag the user message; drop any padding (non-user) content so the body shrinks.
     const next = messages.map((m) =>
-      m.role === "user" ? { ...m, content: m.content + "|high" } : m
+      m.role === "user" ? { ...m, content: m.content + "|high" } : { ...m, content: "" }
     );
     return {
       body: { ...body, messages: next },
@@ -146,6 +148,22 @@ function userContent(result: CompressionResult): string {
 const BAILOUT_ON = { bailout: { enabled: true, minGainPercent: 10 } };
 const BAILOUT_OFF = {}; // default — no bailout field
 
+// A fixture body carrying a large droppable padding message. When an engine runs it
+// drops that padding (and tags the user message), so the FINAL stacked body genuinely
+// shrinks — keeping the #5527 (T02) inflation guard from reverting these advancement
+// fixtures. The guard only reverts a pipeline whose final body did NOT shrink in tokens;
+// these tests exercise bail-out/advancement, an orthogonal concern, so the body must
+// realistically shrink for the marker assertions to survive the guard.
+const PADDING = "padding tokens ".repeat(40);
+function mkBody(): { messages: Array<{ role: string; content: string }> } {
+  return {
+    messages: [
+      { role: "user", content: "hello" },
+      { role: "assistant", content: PADDING },
+    ],
+  };
+}
+
 // ── suite ────────────────────────────────────────────────────────────────────
 
 describe("TV1 — stacked pipeline bail-out discipline (OPT-IN)", () => {
@@ -169,7 +187,7 @@ describe("TV1 — stacked pipeline bail-out discipline (OPT-IN)", () => {
 
   describe("sync — applyStackedCompression", () => {
     it("bail-out ON: throwing engine → step skipped, pipeline does NOT throw", () => {
-      const body = { messages: [{ role: "user", content: "hello" }] };
+      const body = mkBody();
 
       // Must not throw and original body is kept (throw engine was the only step)
       const result = applyStackedCompression(body, pipeline(THROW_ENGINE_ID), BAILOUT_ON);
@@ -186,7 +204,7 @@ describe("TV1 — stacked pipeline bail-out discipline (OPT-IN)", () => {
     });
 
     it("bail-out ON: throwing engine before a good engine → good engine still runs", () => {
-      const body = { messages: [{ role: "user", content: "hello" }] };
+      const body = mkBody();
 
       // throw engine first, then high-gain engine — the high-gain must still run
       const result = applyStackedCompression(
@@ -201,7 +219,7 @@ describe("TV1 — stacked pipeline bail-out discipline (OPT-IN)", () => {
     });
 
     it("bail-out ON: low-gain engine (5%) → body NOT advanced (step skipped)", () => {
-      const body = { messages: [{ role: "user", content: "hello" }] };
+      const body = mkBody();
 
       const result = applyStackedCompression(body, pipeline(LOW_GAIN_ENGINE_ID), BAILOUT_ON);
 
@@ -212,7 +230,7 @@ describe("TV1 — stacked pipeline bail-out discipline (OPT-IN)", () => {
     });
 
     it("bail-out ON: high-gain engine (20%) → body IS advanced normally", () => {
-      const body = { messages: [{ role: "user", content: "hello" }] };
+      const body = mkBody();
 
       const result = applyStackedCompression(body, pipeline(HIGH_GAIN_ENGINE_ID), BAILOUT_ON);
 
@@ -221,7 +239,7 @@ describe("TV1 — stacked pipeline bail-out discipline (OPT-IN)", () => {
     });
 
     it("bail-out ON: low-gain then high-gain → only high-gain advances body", () => {
-      const body = { messages: [{ role: "user", content: "hello" }] };
+      const body = mkBody();
 
       const result = applyStackedCompression(
         body,
@@ -234,7 +252,7 @@ describe("TV1 — stacked pipeline bail-out discipline (OPT-IN)", () => {
     });
 
     it("bail-out OFF (default): low-gain engine IS applied (opt-in guard)", () => {
-      const body = { messages: [{ role: "user", content: "hello" }] };
+      const body = mkBody();
 
       // No bailout config at all — original behavior
       const result = applyStackedCompression(body, pipeline(LOW_GAIN_ENGINE_ID), BAILOUT_OFF);
@@ -245,7 +263,7 @@ describe("TV1 — stacked pipeline bail-out discipline (OPT-IN)", () => {
     });
 
     it("bail-out OFF (default): throwing engine propagates — unchanged existing behavior", () => {
-      const body = { messages: [{ role: "user", content: "hello" }] };
+      const body = mkBody();
 
       // Without bail-out, a throw is NOT caught → pipeline throws
       assert.throws(() => {
@@ -258,7 +276,7 @@ describe("TV1 — stacked pipeline bail-out discipline (OPT-IN)", () => {
 
   describe("async — applyStackedCompressionAsync", () => {
     it("bail-out ON: async throwing engine → step skipped, no throw", async () => {
-      const body = { messages: [{ role: "user", content: "hello" }] };
+      const body = mkBody();
 
       const result = await applyStackedCompressionAsync(body, pipeline(THROW_ASYNC_ID), BAILOUT_ON);
 
@@ -267,7 +285,7 @@ describe("TV1 — stacked pipeline bail-out discipline (OPT-IN)", () => {
     });
 
     it("bail-out ON: async low-gain engine (5%) → step skipped", async () => {
-      const body = { messages: [{ role: "user", content: "hello" }] };
+      const body = mkBody();
 
       const result = await applyStackedCompressionAsync(
         body,
@@ -280,7 +298,7 @@ describe("TV1 — stacked pipeline bail-out discipline (OPT-IN)", () => {
     });
 
     it("bail-out OFF (default): async low-gain engine IS applied", async () => {
-      const body = { messages: [{ role: "user", content: "hello" }] };
+      const body = mkBody();
 
       const result = await applyStackedCompressionAsync(
         body,
