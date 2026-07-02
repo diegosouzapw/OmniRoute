@@ -8,7 +8,7 @@
 
 ### ✨ New Features
 
-- **Discovery tool (Phase 2 — reporter):** add the `discoveryResults` DB module (CRUD over the `discovery_results` table, migration 074) and wire the opt-in provider-discovery service to persist and read findings through it. `scanProvider` results can now be stored (`persistDiscoveryResult`) and queried (`getDiscoveryResults`, `getDiscoveryResultById`, `markVerified`, `deleteDiscoveryResult`) with `(provider, method, endpoint)` upsert de-duplication. The service stays **opt-in / default-off**. The `/api/discovery/*` HTTP routes and dashboard UI tab are deferred to Phase 2b (they need the local-only enforcement model decided first).
+- **Discovery tool (Phase 2):** add the `discoveryResults` DB module (CRUD over the `discovery_results` table, migration 074) and wire the opt-in provider-discovery service to persist and read findings through it (`persistDiscoveryResult`, `getDiscoveryResults`, `getDiscoveryResultById`, `markVerified`, `deleteDiscoveryResult`) with `(provider, method, endpoint)` upsert de-duplication. Adds the `/api/discovery/*` HTTP surface — `GET /results`, `GET|DELETE /results/:id`, `POST /scan`, `POST /verify/:id` — under **strict loopback-only** authorization (`/api/discovery/` is in `LOCAL_ONLY_API_PREFIXES` and is NOT manage-scope-bypassable, so the `scan` route's outbound probes can never be reached from a tunnel/remote origin). The service stays **opt-in / default-off**; the dashboard UI tab is deferred to Phase 2c.
 
 ### 🔧 Bug Fixes
 
