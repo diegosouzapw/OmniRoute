@@ -231,7 +231,16 @@ if (isMain) {
   } else if (result === "pass") {
     reportLines.push("Result: PASS", "", reason);
   } else {
-    reportLines.push("Result: FAIL", "", reason);
+    reportLines.push(
+      "Result: FAIL",
+      "",
+      reason,
+      "",
+      "> ℹ️ Editing the PR body to add the evidence does NOT re-run this gate — `ci.yml` " +
+        "does not listen to the `edited` event. Add the `## Evidence` block, then **push a " +
+        "commit** (or re-run this job) to re-validate. For releases, put the Evidence block in " +
+        "the body BEFORE the first push (see the generate-release skill, Phase 0)."
+    );
   }
 
   const report = buildReport(reportLines);
