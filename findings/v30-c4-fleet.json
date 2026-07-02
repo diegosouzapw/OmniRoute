@@ -1,0 +1,16 @@
+{
+  "cycle": 20,
+  "plan": "v30-71-pillar-p2-lift",
+  "date": "2026-06-27",
+  "fleet": {
+    "KooshaPari/OmniRoute": {
+      "layers": [
+        {"name":"Presentation","containers":["AuthKit UI","Dashboard SPA","Ingress WebSocket"],"components":["oauth-login","provider-selector","stream-viewer"]},
+        {"name":"API Gateway","containers":["Next.js SSR","OpenSSE Broker","MCP Gateway"],"components":["chat-completions","responses-api","embeddings","images","audio","moderations","rerank","search"]},
+        {"name":"Routing Engine","containers":["open-sse Router","Bifrost Tier-1"],"components":["handleChatCore","combo.ts","autoCombo","executor-factory","translator-chain"]},
+        {"name":"Persistence","containers":["SQLite","Migration Runner"],"components":["getDbInstance","providers.ts","models.ts","bifrostModels.ts","migration_099"]},
+        {"name":"Governance","containers":["AuthZ Pipeline","Budget Guard","Compliance Engine"],"components":["apiKeyAuth","rateLimitManager","circuitBreaker","killSwitch"]}
+      ]
+    }
+  }
+}
