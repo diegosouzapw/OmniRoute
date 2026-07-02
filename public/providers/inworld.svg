@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" rx="18" fill="#0A0A1A"/>
+  <defs>
+    <linearGradient id="ig" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5B4FFF"/>
+      <stop offset="100%" stop-color="#00E5FF"/>
+    </linearGradient>
+  </defs>
+  <!-- Inworld "i" with dot - futuristic -->
+  <circle cx="50" cy="28" r="8" fill="url(#ig)"/>
+  <rect x="42" y="42" width="16" height="38" rx="5" fill="url(#ig)"/>
+</svg>

@@ -1,0 +1,96 @@
+name: Feature Request
+description: Suggest a new feature or improvement for OmniRoute
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please describe the problem you're trying to solve and how you'd like it to work.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / Use Case
+      description: "What problem does this feature solve? Why do you need it?"
+      placeholder: "I'm trying to ... but currently ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: "How would you like this to work?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: "Have you considered any workarounds or alternative approaches?"
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: "Describe the concrete behaviors or outcomes that should be validated before this is considered done."
+      placeholder: |
+        Example:
+        - API route returns 200 with valid payload
+        - Unit coverage added for the new branch
+        - Existing integrations remain green
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: "Which part of OmniRoute does this relate to?"
+      multiple: true
+      options:
+        - Dashboard / UI
+        - Proxy / Routing
+        - Provider Support
+        - CLI Tools Integration
+        - OAuth / Authentication
+        - Analytics / Usage Tracking
+        - Docker / Deployment
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: provider
+    attributes:
+      label: Related Provider(s)
+      description: "If this relates to specific providers, list them."
+      placeholder: "e.g. Antigravity, OpenRouter, Ollama"
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: "Any other context, mockups, or references."
+    validations:
+      required: false
+
+  - type: textarea
+    id: test-plan
+    attributes:
+      label: Expected Test Plan
+      description: "Which automated tests or coverage changes should accompany this work?"
+      placeholder: |
+        Example:
+        - Add unit tests for open-sse/services/combo.ts
+        - Extend integration coverage for /api/v1/models
+        - Keep npm run test:coverage at 60%+
+    validations:
+      required: false

@@ -1,0 +1,130 @@
+###
+# @name Gemini - Anthropics Messages API-format - streaming response test - max_tokens test
+POST {{omniroute-address}}/v1/messages
+x-api-key: {{OMNIROUTE_API_KEY}}
+anthropic-version: 2023-06-01
+Content-Type: text/event-stream
+
+{
+  "model": "default",
+  "max_tokens": 10,
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi"
+    }
+  ]
+}
+
+###
+# @name Gemini - Anthropics Messages API-format - non-streaming response test - max_tokens test
+POST {{omniroute-address}}/v1/messages
+x-api-key: {{OMNIROUTE_API_KEY}}
+anthropic-version: 2023-06-01
+Content-Type: application/json
+
+{
+  "model": "default",
+  "stream": false,
+  "max_tokens": 10,
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi"
+    }
+  ]
+}
+
+###
+# @name Gemini - Anthropics Messages API-format - streaming response test - thinking-budget not supported
+POST {{omniroute-address}}/v1/messages
+x-api-key: {{OMNIROUTE_API_KEY}}
+anthropic-version: 2023-06-01
+Content-Type: application/json
+
+{
+  "model": "gemini/gemma-4-31b-it",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi"
+    }
+  ],
+  "output_config": {
+    "effort": "high"
+  },
+  "stream": true
+}
+
+###
+# @name Gemini - Anthropics Messages API-format - streaming response test
+# @timeout 300
+POST {{omniroute-address}}/v1/messages
+x-api-key: {{OMNIROUTE_API_KEY}}
+anthropic-version: 2023-06-01
+Content-Type: text/event-stream
+
+{
+  "model": "default",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi"
+    }
+  ]
+}
+
+###
+# @name Gemini - Anthropics Messages API-format - non-streaming response test
+# @timeout 300
+POST {{omniroute-address}}/v1/messages
+x-api-key: {{OMNIROUTE_API_KEY}}
+anthropic-version: 2023-06-01
+Content-Type: application/json
+
+{
+  "model": "default",
+  "stream": false,
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi"
+    }
+  ]
+}
+
+###
+# @name Gemini - OpenAI API-format - streaming response test - max_tokens test
+POST {{omniroute-address}}/v1/chat/completions
+Content-Type: text/event-stream
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+
+{
+  "model": "default",
+  "max_tokens": 10,
+  "stream": true,
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi"
+    }
+  ]
+}
+
+###
+# @name Gemini - OpenAI API-format - non-streaming response test - max_tokens test
+POST {{omniroute-address}}/v1/chat/completions
+Content-Type: application/json
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+
+{
+  "model": "default",
+  "max_tokens": 10,
+  "stream": false,
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi"
+    }
+  ]
+}

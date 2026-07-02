@@ -1,0 +1,52 @@
+
+    <html>
+      <head>
+        <title>404</title>
+        <style>
+          @font-face {
+            font-family: 'colfax-web';
+            font-display: swap;
+            src: url('https://www.datocms.com/fonts/colfax-web-regular.woff2') format('woff2'), url('https://www.datocms.com/fonts/colfax-web-regular.woff') format('woff');
+          }
+
+          @font-face {
+            font-family: 'colfax-web';
+            font-display: swap;
+            font-weight: 700;
+            src: url('https://www.datocms.com/fonts/colfax-web-bold.woff2') format('woff2'), url('https://www.datocms.com/fonts/colfax-web-bold.woff') format('woff');
+          }
+
+          * {
+            margin: 0;
+          }
+
+          body {
+            box-sizing: border-box;
+            font-family: colfax;
+            display: grid;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            padding: 20px;
+          }
+
+          main {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+          }
+
+          h1 {
+            font-size: 50px;
+          }
+        </style>
+      </head>
+      <body>
+        <main>
+          <h1>404</h1>
+          <p>Not Found</p>
+        </main>
+      </body>
+    </html>
+  

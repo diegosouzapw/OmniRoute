@@ -1,0 +1,98 @@
+name: Deploy to VPS
+
+on:
+  workflow_run:
+    workflows: ["Publish to Docker Hub"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: >-
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+      && vars.DEPLOY_ENABLED == 'true'
+    name: Deploy OmniRoute to VPS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check VPS SSH reachability from runner
+        id: reach
+        env:
+          # Pass the host via env (never interpolate a secret straight into the
+          # script body) so /dev/tcp gets a shell variable, not inlined text.
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -uo pipefail
+          # A GitHub-hosted runner can only deploy when it can actually open a TCP
+          # connection to the VPS SSH port. The Local VPS lives on a private LAN and
+          # the Akamai host firewalls :22 to known IPs, so the runner is routinely
+          # unable to reach it (`dial tcp ***:22: i/o timeout`). Treat "unreachable
+          # from the runner" as a SKIP — the real deploys are run manually from an
+          # allowed network via the deploy-vps-local / deploy-vps-akamai skills — so
+          # an unreachable host no longer red-fails every release/push pipeline.
+          # When the host IS reachable, the deploy step below still runs in full and
+          # its health gate surfaces any genuine deploy failure.
+          if timeout 15 bash -c 'exec 3<>"/dev/tcp/${VPS_HOST}/22"' 2>/dev/null; then
+            echo "reachable=true" >> "$GITHUB_OUTPUT"
+            echo "✅ VPS_HOST:22 reachable from the runner — proceeding with deploy."
+          else
+            echo "reachable=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Auto-deploy skipped::VPS_HOST:22 is not reachable from this GitHub runner (private LAN / firewalled). Deploy manually with the deploy-vps-local or deploy-vps-akamai skill."
+          fi
+
+      - name: Deploy via SSH
+        if: steps.reach.outputs.reachable == 'true'
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          timeout: 60s
+          command_timeout: 15m
+          script: |
+            set -euo pipefail
+
+            echo "=== Updating OmniRoute ==="
+            npm install -g omniroute@latest
+            INSTALLED_VERSION=$(omniroute --version 2>/dev/null | tr -d '[:space:]' || echo "unknown")
+            echo "Installed CLI version: $INSTALLED_VERSION"
+
+            # Recreate the PM2 process instead of `pm2 restart`. A bare restart
+            # re-runs whatever script path was saved earlier; after the build-output
+            # reorg (app/ -> dist/, .next -> .build/next) a process pinned to the old
+            # app/server-ws.mjs path can no longer start, and the node process dies
+            # while PM2 still reports "online" — so the box never binds :20128.
+            # Always launch via the `omniroute` bin so .env is loaded and the dist/
+            # layout is resolved correctly.
+            echo "=== (Re)creating PM2 process via bin ==="
+            pm2 delete omniroute 2>/dev/null || true
+            pm2 start omniroute --name omniroute -- --port 20128
+            pm2 save
+
+            # Health gate: fail the deploy unless the box actually reports healthy.
+            # Poll /api/monitoring/health for "status":"healthy" (a deeper signal than
+            # a static page 200 — it confirms the app booted, not just that a port is
+            # bound). Boot can take a while after a native-module/build-layout change,
+            # so poll up to ~3min before giving up.
+            echo "=== Health Check (gates the deploy) ==="
+            ok=0
+            for i in $(seq 1 36); do
+              BODY=$(curl -sf -m 5 http://localhost:20128/api/monitoring/health 2>/dev/null || true)
+              if printf '%s' "$BODY" | grep -q '"status":"healthy"'; then
+                ok=1
+                echo "✅ /api/monitoring/health -> healthy (attempt $i) — version $INSTALLED_VERSION"
+                break
+              fi
+              echo "… not healthy yet (attempt $i/36), retrying in 5s"
+              sleep 5
+            done
+            if [ "$ok" != "1" ]; then
+              echo "❌ Health check failed — /api/monitoring/health never reported healthy after ~3min"
+              echo "--- recent PM2 logs ---"
+              pm2 logs omniroute --lines 40 --nostream || true
+              exit 1
+            fi
+            echo "=== Deploy complete ==="
