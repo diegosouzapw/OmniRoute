@@ -13,6 +13,7 @@ import {
 import { SAFE_OUTBOUND_FETCH_PRESETS, safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { resolveNvidiaValidationModel } from "@/lib/providers/nvidiaValidationModel";
+import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 import { validateImageProviderApiKey } from "@/lib/providers/imageValidation";
 
@@ -32,12 +33,14 @@ import {
   validateChatGptWebProvider,
   validatePerplexityWebProvider,
   validateBlackboxWebProvider,
+  validateKimiWebProvider,
 } from "./validation/webProvidersA";
 import {
   validateMuseSparkWebProvider,
   validateAdaptaWebProvider,
   validateClaudeWebProvider,
   validateGeminiWebProvider,
+  validateCopilotM365WebProvider,
   validateCopilotWebProvider,
   validateT3WebProvider,
   validateJulesProvider,
@@ -261,6 +264,39 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
 
   // ── Specialty provider validation ──
   const SPECIALTY_VALIDATORS = {
+    "v0-vercel": async ({ apiKey, providerSpecificData }: any) => {
+      try {
+        const configuredBaseUrl =
+          typeof providerSpecificData?.baseUrl === "string" && providerSpecificData.baseUrl.trim()
+            ? providerSpecificData.baseUrl.trim()
+            : "https://api.v0.dev";
+
+        const root = normalizeBaseUrl(configuredBaseUrl)
+          .replace(/\/v1\/chat\/completions$/, "")
+          .replace(/\/v1$/, "");
+
+        const res = await validationRead(
+          `${root}/v1/chats?limit=1`,
+          {
+            method: "GET",
+            headers: buildBearerHeaders(apiKey, providerSpecificData),
+          },
+          isLocal
+        );
+
+        if (res.ok) {
+          return { valid: true, error: null, method: "v0_platform_chats_list" };
+        }
+
+        if (res.status === 401 || res.status === 403) {
+          return { valid: false, error: "Invalid API key" };
+        }
+
+        return { valid: false, error: `v0 validation failed: ${res.status}` };
+      } catch (error: any) {
+        return toValidationErrorResult(error);
+      }
+    },
     jules: validateJulesProvider,
     qoder: async ({ apiKey, providerSpecificData }: any) => {
       // Bifurcate validation: PAT tokens use Cosy auth against api1.qoder.sh;
@@ -333,7 +369,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         apiKey,
         providerSpecificData,
         baseUrl: normalizeBaseUrl(providerSpecificData?.baseUrl || ""),
-        modelId: "Qwen/Qwen3-4B-Thinking-2507-FP8",
+        modelId: MODAL_DEFAULT_VALIDATION_MODEL_ID,
         isLocal,
       }),
     "nous-research": validateNousResearchProvider,
@@ -348,6 +384,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     "deepseek-web": validateDeepSeekWebProvider,
     "grok-web": validateGrokWebProvider,
     "qwen-web": validateQwenWebProvider,
+    "kimi-web": validateKimiWebProvider,
     "chatgpt-web": validateChatGptWebProvider,
     "perplexity-web": validatePerplexityWebProvider,
     "blackbox-web": validateBlackboxWebProvider,
@@ -356,6 +393,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     "adapta-web": validateAdaptaWebProvider,
     "claude-web": validateClaudeWebProvider,
     "gemini-web": validateGeminiWebProvider,
+    "copilot-m365-web": validateCopilotM365WebProvider,
     "copilot-web": validateCopilotWebProvider,
     "t3-web": validateT3WebProvider,
     "azure-openai": validateAzureOpenAIProvider,

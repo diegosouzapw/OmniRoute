@@ -87,7 +87,7 @@ export const SEARCH_PROVIDERS = {
     icon: "manage_search",
     color: "#2563EB",
     textIcon: "SA",
-    website: "https://www.searchapi.io/docs",
+    website: "https://www.searchapi.io/docs/google",
     authHint: "API key from SearchAPI (query param or Bearer auth)",
   },
   "youcom-search": {
@@ -97,7 +97,7 @@ export const SEARCH_PROVIDERS = {
     icon: "travel_explore",
     color: "#2563EB",
     textIcon: "YOU",
-    website: "https://you.com/docs/search/overview",
+    website: "https://you.com/business/api/",
     authHint: "X-API-Key from the You.com platform dashboard",
   },
   "searxng-search": {
@@ -119,7 +119,7 @@ export const SEARCH_PROVIDERS = {
     icon: "search",
     color: "#58A6FF",
     textIcon: "OS",
-    website: "https://ollama.com/settings/api-keys",
-    authHint: "Same API key as Ollama Cloud (from ollama.com/settings/api-keys)",
+    website: "https://ollama.com/settings/keys",
+    authHint: "Same API key as Ollama Cloud (from ollama.com/settings/keys)",
   },
 };

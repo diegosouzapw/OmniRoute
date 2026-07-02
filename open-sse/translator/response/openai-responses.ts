@@ -7,38 +7,16 @@ import { FORMATS } from "../formats.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
+import {
+  normalizeToolName,
+  stripEmptyOptionalToolArgs,
+  normalizeOutputIndex,
+  normalizeUpstreamFailure,
+  extractResponsesReasoningSummaryText,
+} from "./openai-responses/pureHelpers.ts";
 
-function normalizeToolName(value) {
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function stripEmptyOptionalToolArgs(value, toolName) {
-  if (value == null) return value;
-
-  if (typeof value === "string") {
-    // JSON-string cleanup is intentionally scoped to Claude Code's Read tool.
-    // For arbitrary tools, empty strings/arrays may be valid user payloads.
-    if (toolName !== "Read") return value;
-    try {
-      const parsed = JSON.parse(value);
-      if (Array.isArray(parsed) || typeof parsed !== "object" || parsed === null) return value;
-      const cleaned = stripEmptyOptionalToolArgs(parsed, toolName);
-      return JSON.stringify(cleaned ?? {});
-    } catch {
-      return value;
-    }
-  }
-
-  if (Array.isArray(value) || typeof value !== "object") return value;
-
-  const cleaned = { ...value };
-  for (const [key, entry] of Object.entries(cleaned)) {
-    if (entry === "" || (Array.isArray(entry) && entry.length === 0)) {
-      delete cleaned[key];
-    }
-  }
-  return cleaned;
-}
+// normalizeUpstreamFailure is re-exported for external importers (tests).
+export { normalizeUpstreamFailure } from "./openai-responses/pureHelpers.ts";
 
 /**
  * Translate OpenAI chunk to Responses API events
@@ -192,11 +170,6 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
 }
 
 // Normalize output_index to a non-negative integer (replaces fragile parseInt calls)
-function normalizeOutputIndex(outputIndex) {
-  const normalized = Number(outputIndex);
-  return Number.isInteger(normalized) && normalized >= 0 ? normalized : 0;
-}
-
 // Record a finalized item keyed by output_index so buildDenseOutput can sort later
 function recordCompletedItem(state, outputIndex, item) {
   if (!Array.isArray(state.completedOutputItems)) {
@@ -564,50 +537,6 @@ function flushEvents(state) {
   return events;
 }
 
-export function normalizeUpstreamFailure(data, fallbackType = "server_error") {
-  const response = data?.response && typeof data.response === "object" ? data.response : null;
-  const error =
-    response?.error && typeof response.error === "object"
-      ? response.error
-      : data?.error && typeof data.error === "object"
-        ? data.error
-        : null;
-
-  const code = typeof error?.code === "string" ? error.code : "";
-  const message =
-    typeof error?.message === "string"
-      ? error.message
-      : typeof data?.message === "string"
-        ? data.message
-        : "Upstream failure";
-
-  // Preserve upstream error semantics:
-  // - context_length_exceeded → 400 (client can retry with smaller context)
-  // - rate_limit_exceeded → 429 (client should back off)
-  // - Everything else → 502 (upstream failure)
-  const isContextOverflow = code === "context_length_exceeded";
-  const isRateLimit = code === "rate_limit_exceeded" || code === "rate_limited";
-  let status: number;
-  let type: string;
-  if (isRateLimit) {
-    status = 429;
-    type = "rate_limit_error";
-  } else if (isContextOverflow) {
-    status = 400;
-    type = "invalid_request_error";
-  } else {
-    status = 502;
-    type = fallbackType;
-  }
-
-  return {
-    status,
-    type,
-    code: code || (isRateLimit ? "rate_limit_exceeded" : "bad_gateway"),
-    message,
-  };
-}
-
 /**
  * OpenAI Chat Completions streams announce the assistant role on the FIRST delta
  * (e.g. `{ "role": "assistant", "content": "" }` or `{ "role": "assistant",
@@ -642,6 +571,42 @@ function withAssistantRoleOnFirstDelta(state, result) {
  */
 function computeFinishReason(state): "tool_calls" | "stop" {
   return (state.toolCallIndex || 0) > 0 || state.currentToolCallId ? "tool_calls" : "stop";
+}
+
+// #5786 — remember that a reasoning delta was streamed for a given reasoning item, so
+// the terminal `response.output_item.done` snapshot for that item is NOT re-emitted
+// (which would duplicate the reasoning channel). Keyed by item_id when present, with a
+// global fallback for streams whose deltas carry no item_id.
+function markResponsesReasoningDeltaEmitted(state, itemId) {
+  state.reasoningDeltaEmitted = true;
+  const id = itemId != null ? String(itemId) : "";
+  if (!id) return;
+  if (!(state.reasoningItemsWithDelta instanceof Set)) {
+    state.reasoningItemsWithDelta = new Set();
+  }
+  state.reasoningItemsWithDelta.add(id);
+}
+
+// #5786 — build a Chat-format reasoning delta chunk in the shape the client renders in
+// its thinking panel (`reasoning_content`, or `reasoning_text` for Copilot-compatible
+// clients). Mirrors the `response.reasoning_summary_text.delta` branch.
+function buildResponsesReasoningDeltaChunk(state, text) {
+  const delta = state.copilotCompatibleReasoning
+    ? { reasoning_text: text }
+    : { reasoning_content: text };
+  return {
+    id: state.chatId,
+    object: "chat.completion.chunk",
+    created: state.created,
+    model: state.model || "gpt-4",
+    choices: [
+      {
+        index: 0,
+        delta,
+        finish_reason: null,
+      },
+    ],
+  };
 }
 
 /**
@@ -983,6 +948,7 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
   ) {
     const reasoningDelta = data.delta || "";
     if (!reasoningDelta) return null;
+    markResponsesReasoningDeltaEmitted(state, data.item_id);
     return {
       id: state.chatId,
       object: "chat.completion.chunk",
@@ -1007,22 +973,33 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
   if (eventType === "response.reasoning_summary_text.delta") {
     const reasoningDelta = data.delta || "";
     if (!reasoningDelta) return null;
-    const reasoningDeltaShape = state.copilotCompatibleReasoning
-      ? { reasoning_text: reasoningDelta }
-      : { reasoning_content: reasoningDelta };
-    return {
-      id: state.chatId,
-      object: "chat.completion.chunk",
-      created: state.created,
-      model: state.model || "gpt-4",
-      choices: [
-        {
-          index: 0,
-          delta: reasoningDeltaShape,
-          finish_reason: null,
-        },
-      ],
-    };
+    markResponsesReasoningDeltaEmitted(state, data.item_id);
+    return buildResponsesReasoningDeltaChunk(state, reasoningDelta);
+  }
+
+  // #5786 — reasoning summary exposed ONLY as a terminal snapshot on
+  // `response.output_item.done` (no preceding reasoning_summary_text.delta events — e.g.
+  // Codex reasoning models that surface the summary once at item close). Without this the
+  // reasoning channel is silently dropped and never reaches the client's thinking panel.
+  // Only synthesize when NO reasoning delta was already streamed for this item, so normal
+  // delta streams are never duplicated.
+  if (eventType === "response.output_item.done" && data.item?.type === "reasoning") {
+    const item = data.item;
+    const itemId = item.id != null ? String(item.id) : "";
+    const emittedForItem =
+      state.reasoningItemsWithDelta instanceof Set &&
+      itemId &&
+      state.reasoningItemsWithDelta.has(itemId);
+    // Deltas were streamed but carried no item_id: fall back to the global flag and
+    // suppress synthesis to avoid duplicating that same reasoning text.
+    const emittedWithoutItemId =
+      state.reasoningDeltaEmitted &&
+      !(state.reasoningItemsWithDelta instanceof Set && state.reasoningItemsWithDelta.size > 0);
+    if (emittedForItem || emittedWithoutItemId) return null;
+
+    const summaryText = extractResponsesReasoningSummaryText(item);
+    if (!summaryText) return null;
+    return buildResponsesReasoningDeltaChunk(state, summaryText);
   }
 
   // Ignore other events

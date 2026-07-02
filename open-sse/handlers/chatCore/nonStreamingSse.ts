@@ -64,7 +64,9 @@ export function isTruthyStreamBody(body: unknown): boolean {
   return !!body && typeof body === "object" && (body as { stream?: unknown }).stream === true;
 }
 
-export function isEventStreamAccepted(headers: Record<string, unknown> | Headers | null | undefined) {
+export function isEventStreamAccepted(
+  headers: Record<string, unknown> | Headers | null | undefined
+) {
   return (getHeaderValueCaseInsensitive(headers, "accept") || "")
     .toLowerCase()
     .includes("text/event-stream");
@@ -88,10 +90,22 @@ const NON_STREAMING_SSE_TERMINAL_TYPES = new Set([
   "response.incomplete",
 ]);
 
+function isNonStreamingSseTerminalType(eventType: string): boolean {
+  return NON_STREAMING_SSE_TERMINAL_TYPES.has(eventType);
+}
+
 export type NonStreamingSseTerminalState = {
   currentEvent: string;
   pendingLine: string;
 };
+
+function hasClaudeTerminalMessageDelta(parsed: unknown, eventType: string): boolean {
+  if (eventType !== "message_delta" || !parsed || typeof parsed !== "object") return false;
+  const delta = (parsed as { delta?: unknown }).delta;
+  if (!delta || typeof delta !== "object") return false;
+  const stopReason = (delta as { stop_reason?: unknown }).stop_reason;
+  return typeof stopReason === "string" ? stopReason.length > 0 : stopReason != null;
+}
 
 function processNonStreamingSseTerminalLine(
   state: NonStreamingSseTerminalState,
@@ -99,8 +113,9 @@ function processNonStreamingSseTerminalLine(
 ): boolean {
   const trimmed = rawLine.trim();
   if (!trimmed || trimmed.startsWith(":")) {
+    const terminalEventOnly = !trimmed && isNonStreamingSseTerminalType(state.currentEvent);
     if (!trimmed) state.currentEvent = "";
-    return false;
+    return terminalEventOnly;
   }
 
   if (trimmed.startsWith("event:")) {
@@ -119,8 +134,11 @@ function processNonStreamingSseTerminalLine(
   // terminate with `[DONE]` (handled above), so parsing every one of them here is pure
   // waste that compounds into the CPU-runaway on large buffered responses. Skip the
   // JSON.parse unless the line could actually be a typed terminal.
-  if (!data.includes('"type"')) {
-    return NON_STREAMING_SSE_TERMINAL_TYPES.has(state.currentEvent);
+  if (
+    !data.includes('"type"') &&
+    !(state.currentEvent === "message_delta" && data.includes("stop_reason"))
+  ) {
+    return isNonStreamingSseTerminalType(state.currentEvent);
   }
 
   try {
@@ -129,7 +147,9 @@ function processNonStreamingSseTerminalLine(
       parsed && typeof parsed === "object" && typeof parsed.type === "string"
         ? parsed.type
         : state.currentEvent;
-    return NON_STREAMING_SSE_TERMINAL_TYPES.has(eventType);
+    return (
+      isNonStreamingSseTerminalType(eventType) || hasClaudeTerminalMessageDelta(parsed, eventType)
+    );
   } catch {
     // Keep reading malformed data so the parser can report a useful upstream error.
     return false;

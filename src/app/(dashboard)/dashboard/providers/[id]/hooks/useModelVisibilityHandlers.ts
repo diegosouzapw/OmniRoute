@@ -31,7 +31,6 @@ import {
   type CompatByProtocolMap,
 } from "../providerPageHelpers";
 import { useNotificationStore } from "@/store/notificationStore";
-import { withDashboardCsrfHeader } from "@/shared/utils/dashboardCsrf";
 
 type NotifyStore = ReturnType<typeof useNotificationStore>;
 
@@ -291,7 +290,7 @@ export function useModelVisibilityHandlers({
     try {
       const res = await fetch("/api/models/test", {
         method: "POST",
-        headers: await withDashboardCsrfHeader({ "Content-Type": "application/json" }),
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           providerId: selectedConnection?.provider || providerNode?.id || providerId,
           modelId: fullModel,
@@ -357,7 +356,7 @@ export function useModelVisibilityHandlers({
               >;
             } = await fetch("/api/models/test-all", {
               method: "POST",
-              headers: await withDashboardCsrfHeader({ "Content-Type": "application/json" }),
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 providerId: providerId,
                 connectionId: selectedConnection?.id,

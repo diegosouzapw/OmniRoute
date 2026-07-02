@@ -51,6 +51,7 @@ describe("getCompressionSettings", () => {
     assert.equal(settings.autoTriggerTokens, 0);
     assert.equal(settings.cacheMinutes, 5);
     assert.equal(settings.preserveSystemPrompt, true);
+    assert.equal(settings.preserveSystemPromptMode, "always");
     assert.deepEqual(settings.comboOverrides, {});
     assert.equal(settings.ultra?.enabled, false);
     assert.equal(settings.ultra?.compressionRate, 0.5);
@@ -75,6 +76,25 @@ describe("updateCompressionSettings", () => {
     assert.equal(settings.defaultMode, "lite");
     // Reset
     await updateCompressionSettings({ defaultMode: "off" } as any);
+  });
+
+  it("round-trips preserveSystemPromptMode and ignores unknown tokens (T05/C5)", async () => {
+    await updateCompressionSettings({ preserveSystemPromptMode: "never" } as any);
+    let settings = await getCompressionSettings();
+    assert.equal(settings.preserveSystemPromptMode, "never");
+
+    await updateCompressionSettings({ preserveSystemPromptMode: "whenNoCache" } as any);
+    settings = await getCompressionSettings();
+    assert.equal(settings.preserveSystemPromptMode, "whenNoCache");
+
+    // An unknown persisted token is rejected on read and falls back to the safe
+    // default mode ("always"), never crashing the settings load.
+    await updateCompressionSettings({ preserveSystemPromptMode: "garbage" } as any);
+    settings = await getCompressionSettings();
+    assert.equal(settings.preserveSystemPromptMode, "always");
+
+    // Reset
+    await updateCompressionSettings({ preserveSystemPromptMode: "always" } as any);
   });
 
   it("updates autoTriggerTokens", async () => {

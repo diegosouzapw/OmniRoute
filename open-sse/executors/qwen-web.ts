@@ -43,6 +43,13 @@ const USER_AGENT =
 const BX_VERSION = "2.5.36";
 const BX_UMIDTOKEN_FALLBACK = "T2gA0000000000000000000000000000000000000000";
 
+// Qwen SPA version — required by the v2 chat completion endpoint. Without this
+// header the upstream returns HTTP 200 with `{"success":false,"data":{"code":"Bad_Request"}}`
+// for every completion request, even with a valid session. The version string is
+// the SPA build identifier shipped in the React client's `version` request header.
+// Pinned from a live capture (2026-07); bump if Qwen ships a breaking change.
+const QWEN_SPA_VERSION = "0.2.66";
+
 const MODEL_ALIASES: Record<string, string> = {
   // Legacy OmniRoute ids → current upstream catalog (GET /api/models).
   "qwen-plus": "qwen3.7-plus",
@@ -96,6 +103,7 @@ export class QwenWebExecutor extends BaseExecutor {
       Origin: BASE_URL,
       Referer: chatId ? `${BASE_URL}/c/${chatId}` : `${BASE_URL}/`,
       source: "web",
+      version: QWEN_SPA_VERSION,
       "x-request-id": uuid(),
       "bx-v": BX_VERSION,
       "bx-umidtoken": BX_UMIDTOKEN_FALLBACK,

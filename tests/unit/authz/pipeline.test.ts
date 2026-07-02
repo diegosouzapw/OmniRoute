@@ -325,12 +325,12 @@ test("runAuthzPipeline accepts dashboard mutations from configured public origin
   assert.equal(response.headers.get("x-omniroute-route-class"), "MANAGEMENT");
 });
 
-test("runAuthzPipeline rejects dashboard test mutations from dynamic public origins without CSRF", async () => {
+test("runAuthzPipeline rejects dashboard mutations from dynamic public origins without CSRF", async () => {
   await forceAuthRequired();
 
   const response = await pipeline.runAuthzPipeline(
-    request("http://127.0.0.1:20128/api/models/test", {
-      method: "POST",
+    request("http://127.0.0.1:20128/api/settings", {
+      method: "PATCH",
       headers: {
         cookie: await dashboardCookie(),
         host: "127.0.0.1:20128",
@@ -348,7 +348,7 @@ test("runAuthzPipeline rejects dashboard test mutations from dynamic public orig
   assert.equal(body.error.code, "INVALID_ORIGIN");
 });
 
-test("runAuthzPipeline accepts dashboard test mutations from dynamic public origins with CSRF", async () => {
+test("runAuthzPipeline accepts dashboard mutations from dynamic public origins with CSRF", async () => {
   await forceAuthRequired();
 
   const cookie = await dashboardCookie();
@@ -359,10 +359,16 @@ test("runAuthzPipeline accepts dashboard test mutations from dynamic public orig
   );
   assert.ok(issued);
 
-  for (const path of ["/api/combos/test", "/api/models/test", "/api/models/test-all"]) {
+  for (const [method, path] of [
+    ["POST", "/api/models/test"],
+    ["POST", "/api/keys"],
+    ["PATCH", "/api/settings"],
+    ["PUT", "/api/combos/combo-1"],
+    ["DELETE", "/api/webhooks/webhook-1"],
+  ] as const) {
     const response = await pipeline.runAuthzPipeline(
       request(`http://127.0.0.1:20128${path}`, {
-        method: "POST",
+        method,
         headers: {
           cookie,
           host: "127.0.0.1:20128",
@@ -381,7 +387,7 @@ test("runAuthzPipeline accepts dashboard test mutations from dynamic public orig
   }
 });
 
-test("runAuthzPipeline keeps non-test management mutations pinned to known origins with CSRF", async () => {
+test("runAuthzPipeline does not let CSRF bypass cross-site fetch metadata", async () => {
   await forceAuthRequired();
 
   const cookie = await dashboardCookie();
@@ -393,15 +399,15 @@ test("runAuthzPipeline keeps non-test management mutations pinned to known origi
   assert.ok(issued);
 
   const response = await pipeline.runAuthzPipeline(
-    request("http://127.0.0.1:20128/api/keys", {
-      method: "POST",
+    request("http://127.0.0.1:20128/api/settings", {
+      method: "PATCH",
       headers: {
         cookie,
         host: "127.0.0.1:20128",
         origin: "https://random-tunnel.example.test",
         "content-type": "application/json",
         [dashboardCsrfConstants.DASHBOARD_CSRF_HEADER]: issued.token,
-        "sec-fetch-site": "same-origin",
+        "sec-fetch-site": "cross-site",
       },
       body: "{}",
     }),

@@ -55,6 +55,27 @@ test("resolveConnectionParams accepts access_token in providerSpecificData and a
   assert.equal(p.host, "substrate.svc.cloud.microsoft");
 });
 
+test("resolveConnectionParams parses the pasted OmniRoute credential line", () => {
+  const r = resolveConnectionParams({
+    apiKey: "access_token=tok3; chathubPath=redacted-account@redacted-tenant",
+  });
+  assert.ok(!("error" in r));
+  const p = r as { chathubPath: string; accessToken: string };
+  assert.equal(p.accessToken, "tok3");
+  assert.equal(p.chathubPath, "redacted-account@redacted-tenant");
+});
+
+test("resolveConnectionParams parses a pasted Chathub WebSocket URL", () => {
+  const r = resolveConnectionParams({
+    apiKey:
+      "wss://substrate.office.com/m365Copilot/Chathub/redacted-account%40redacted-tenant?access_token=tok4&source=officeweb",
+  });
+  assert.ok(!("error" in r));
+  const p = r as { chathubPath: string; accessToken: string };
+  assert.equal(p.accessToken, "tok4");
+  assert.equal(p.chathubPath, "redacted-account@redacted-tenant");
+});
+
 // ── WS URL building ──────────────────────────────────────────────────────
 
 test("buildWsUrl targets the substrate Chathub with the individual-tier query", () => {

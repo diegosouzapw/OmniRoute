@@ -100,32 +100,101 @@ class CostStrategyImpl implements RouterStrategy {
 
 // ── LatencyStrategy: prioritize low latency + reliability ───────────────────
 
+function positiveMetric(value: unknown): number | null {
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : null;
+}
+
+function boundedRate(value: unknown): number {
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) && numericValue >= 0 ? Math.min(1, numericValue) : 0;
+}
+
+function maxPositiveMetric(
+  candidates: ProviderCandidate[],
+  readMetric: (candidate: ProviderCandidate) => unknown,
+  fallback = 1
+): number {
+  return Math.max(
+    ...candidates.map((candidate) => positiveMetric(readMetric(candidate)) ?? 0),
+    fallback
+  );
+}
+
+function latencyMetricScore(value: number | null, maxValue: number): number {
+  if (value == null) return 0.5;
+  return inverseNormalized(value, maxValue);
+}
+
+function throughputMetricScore(value: number | null, maxValue: number): number {
+  if (value == null) return 0.5;
+  return clamp01(value / Math.max(maxValue, 0.000_001));
+}
+
 class LatencyStrategyImpl implements RouterStrategy {
   readonly name = "latency";
-  readonly description = "Prioritizes lowest p95 latency with reliability weighting";
+  readonly description =
+    "Prioritizes the fastest reliable provider-model pair using TTFT, TPS, E2E latency, health, fail rate, and stability";
 
   select(pool: ProviderCandidate[], context: RoutingContext): RoutingDecision {
     const healthy = pool.filter((c) => c.circuitBreakerState !== "OPEN");
     const candidates = healthy.length > 0 ? healthy : pool;
-    const sorted = [...candidates].sort((a, b) => {
-      const aPenalty = a.errorRate * 1000;
-      const bPenalty = b.errorRate * 1000;
-      return a.p95LatencyMs + aPenalty - (b.p95LatencyMs + bPenalty);
-    });
-    const best = sorted[0];
+    if (candidates.length === 0) throw new Error("[LatencyStrategy] No candidates available");
+
+    const maxP95 = maxPositiveMetric(candidates, (candidate) => candidate.p95LatencyMs);
+    const maxTtft = maxPositiveMetric(
+      candidates,
+      (candidate) => candidate.avgTtftMs ?? candidate.p95LatencyMs
+    );
+    const maxE2E = maxPositiveMetric(
+      candidates,
+      (candidate) => candidate.avgE2ELatencyMs ?? candidate.p95LatencyMs
+    );
+    const maxTps = maxPositiveMetric(candidates, (candidate) => candidate.avgTokensPerSecond);
+    const maxStdDev = maxPositiveMetric(candidates, (candidate) => candidate.latencyStdDev, 0.001);
+
+    const scored = candidates
+      .map((candidate) => {
+        const p95 = positiveMetric(candidate.p95LatencyMs);
+        const ttft = positiveMetric(candidate.avgTtftMs) ?? p95;
+        const e2e = positiveMetric(candidate.avgE2ELatencyMs) ?? p95;
+        const tps = positiveMetric(candidate.avgTokensPerSecond);
+        const failureRate = boundedRate(candidate.failureRate ?? candidate.errorRate);
+        const healthScore = getHealthScore(candidate);
+        const p95Score = latencyMetricScore(p95, maxP95);
+        const ttftScore = latencyMetricScore(ttft, maxTtft);
+        const e2eScore = latencyMetricScore(e2e, maxE2E);
+        const throughputScore = throughputMetricScore(tps, maxTps);
+        const reliabilityScore = 1 - failureRate;
+        const stabilityScore = latencyMetricScore(
+          positiveMetric(candidate.latencyStdDev),
+          maxStdDev
+        );
+        const rawScore =
+          ttftScore * 0.25 +
+          throughputScore * 0.2 +
+          e2eScore * 0.18 +
+          p95Score * 0.12 +
+          reliabilityScore * 0.15 +
+          healthScore * 0.05 +
+          stabilityScore * 0.05;
+        const reliabilityMultiplier = Math.max(0.05, reliabilityScore * reliabilityScore);
+        const score = rawScore * reliabilityMultiplier * Math.max(0.25, healthScore);
+
+        return { candidate, score, ttft, e2e, tps, failureRate };
+      })
+      .sort((a, b) => b.score - a.score);
+
+    const best = scored[0];
     if (!best) throw new Error("[LatencyStrategy] No candidates available");
 
-    const latencyScore = best.p95LatencyMs > 0 ? Math.max(0.001, 10_000 / best.p95LatencyMs) : 1;
-    const reliability = Math.max(0, 1 - best.errorRate);
-    const finalScore = latencyScore * 0.7 + reliability * 0.3;
-
     return {
-      provider: best.provider,
-      model: best.model,
+      provider: best.candidate.provider,
+      model: best.candidate.model,
       strategy: this.name,
-      reason: `LatencyStrategy: p95=${best.p95LatencyMs}ms, errorRate=${(best.errorRate * 100).toFixed(2)}%`,
+      reason: `LatencyStrategy: ttft=${best.ttft ?? "n/a"}ms, tps=${best.tps ?? "n/a"}, e2e=${best.e2e ?? "n/a"}ms, p95=${best.candidate.p95LatencyMs}ms, failRate=${(best.failureRate * 100).toFixed(2)}%`,
       candidatesConsidered: candidates.length,
-      finalScore,
+      finalScore: best.score,
     };
   }
 }

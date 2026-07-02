@@ -615,11 +615,17 @@ class ResponsesWsSession {
           toStringOrNull(responseBody.service_tier) || toStringOrNull(responseBody.serviceTier),
       };
 
-      const upstream = await this.wsFactory(prepared.json.upstreamUrl, {
-        browser: prepared.json.browser || "chrome_149",
+      const wsOptions = {
+        // #5591: chrome_149 is not a wreq-js 2.3.1 profile (max chrome_147); the
+        // prepare route now sends chrome_142, this fallback matches it.
+        browser: prepared.json.browser || "chrome_142",
         os: prepared.json.os || "windows",
         headers: prepared.json.headers || {},
-      });
+      };
+      // #5611: forward the configured proxy so the upstream WS connect honors the
+      // Proxy Registry in no-direct-egress deployments.
+      if (prepared.json.proxy) wsOptions.proxy = prepared.json.proxy;
+      const upstream = await this.wsFactory(prepared.json.upstreamUrl, wsOptions);
 
       upstream.onmessage = (event) => {
         if (this.closed) return;

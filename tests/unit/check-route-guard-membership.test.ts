@@ -39,6 +39,17 @@ test("routeFileToApiPath resolves dynamic [param] segments to a concrete placeho
   );
 });
 
+test("routeFileToApiPath normalizes Windows backslash separators before stripping prefixes", () => {
+  // On Windows, node:path join() yields backslash-separated paths; without the
+  // leading `.replace(/\\/g, "/")` the `^src\/app` strip never matches and the
+  // route-guard gate produces wrong API paths (false negatives that miss
+  // RCE-capable spawn routes). See PR #5613.
+  assert.equal(
+    routeFileToApiPath("src\\app\\api\\services\\9router\\install\\route.ts"),
+    "/api/services/9router/install"
+  );
+});
+
 test("no unclassified routes when every spawn-capable route is local-only", () => {
   const routes = [
     "/api/mcp/tools",

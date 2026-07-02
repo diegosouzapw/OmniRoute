@@ -243,7 +243,14 @@ import {
   compressionComboStatsInput,
 } from "../schemas/tools.ts";
 import { handleCcrRetrieve } from "../../services/compression/engines/ccr/index.ts";
+import {
+  listRtkCommandSamples,
+  discoverRepeatedNoise,
+  suggestFilter,
+  commandToId,
+} from "../../services/compression/engines/rtk/index.ts";
 import { resolveCallerScopeContext } from "../scopeEnforcement.ts";
+import { resolveMcpCallerApiKeyId } from "../mcpCallerIdentity.ts";
 
 const ccrRetrieveInput = z.object({
   hash: z
@@ -313,6 +320,48 @@ export async function handleCompressionComboStats(
   };
 }
 
+// T07 — RTK learn/discover exposed via MCP (read-only; suggestions only). Mines the opt-in
+// raw-output sample store, exactly like the /api/context/rtk/{discover,learn} routes.
+const rtkDiscoverInput = z.object({
+  limit: z.number().int().positive().max(2000).optional().describe("Max samples to scan (default 500)"),
+});
+
+const rtkLearnInput = z.object({
+  command: z.string().min(1).max(500).describe("The command to learn an RTK filter draft for"),
+  limit: z.number().int().positive().max(2000).optional().describe("Max samples to scan (default 500)"),
+});
+
+function resolveSampleLimit(limit?: number): number {
+  if (!Number.isFinite(limit) || !limit || limit <= 0) return 500;
+  return Math.min(2000, Math.floor(limit));
+}
+
+export async function handleRtkDiscover(
+  args: z.infer<typeof rtkDiscoverInput>
+): Promise<{ sampleCount: number; candidates: ReturnType<typeof discoverRepeatedNoise> }> {
+  const start = Date.now();
+  const samples = listRtkCommandSamples({ limit: resolveSampleLimit(args.limit) });
+  const candidates = discoverRepeatedNoise(samples);
+  const result = { sampleCount: samples.length, candidates };
+  await logToolCall("omniroute_rtk_discover", args, result, Date.now() - start, true);
+  return result;
+}
+
+export async function handleRtkLearn(
+  args: z.infer<typeof rtkLearnInput>
+): Promise<{ command: string; sampleCount: number; filter: ReturnType<typeof suggestFilter> }> {
+  const start = Date.now();
+  const command = args.command.trim();
+  const targetId = commandToId(command);
+  const matching = listRtkCommandSamples({ limit: resolveSampleLimit(args.limit) }).filter(
+    (sample) => commandToId(sample.command) === targetId
+  );
+  const filter = suggestFilter(command, matching);
+  const result = { command, sampleCount: matching.length, filter };
+  await logToolCall("omniroute_rtk_learn", args, result, Date.now() - start, true);
+  return result;
+}
+
 export const compressionTools = {
   omniroute_compression_status: {
     name: "omniroute_compression_status",
@@ -362,11 +411,41 @@ export const compressionTools = {
       "Scope: read:compression. Always available (sticky-on).",
     scopes: ["read:compression"],
     inputSchema: ccrRetrieveInput,
-    handler: (args: z.infer<typeof ccrRetrieveInput>, extra?: McpToolExtraLike) => {
-      // Derive caller identity from MCP auth context so the retrieve is scoped to the
-      // same principal that stored the block. This closes the cross-tenant IDOR (HIGH).
+    handler: async (args: z.infer<typeof ccrRetrieveInput>, extra?: McpToolExtraLike) => {
+      // Retrieve must use the SAME principal the CCR store used at compression time:
+      // `String(apiKeyInfo.id)` (chatCore → getApiKeyMetadata(rawKey)). On MCP HTTP
+      // transports the raw key lives in httpAuthContext (not in extra.authInfo, since
+      // OmniRoute auth is API-key not OAuth-clientId) — resolve it to the same key id
+      // so the block is found. Without this the caller resolved to "anonymous" and the
+      // store-key never matched (#5649). Cross-tenant IDOR stays closed: a different
+      // key → different id → miss; no key → undefined → anonymous bucket only.
+      const apiKeyPrincipal = await resolveMcpCallerApiKeyId();
+      if (apiKeyPrincipal) {
+        return handleCcrRetrieve(args, apiKeyPrincipal);
+      }
+      // Fallback (unchanged): OAuth clientId / session scope context, then anonymous.
       const { callerId } = resolveCallerScopeContext(extra, ["read:compression"]);
       return handleCcrRetrieve(args, callerId === "anonymous" ? undefined : callerId);
     },
+  },
+  omniroute_rtk_discover: {
+    name: "omniroute_rtk_discover",
+    description:
+      "Mine the opt-in RTK raw-output sample store for recurring noise lines and return them " +
+      "as ranked candidates the operator can turn into strip/collapse filters. Read-only; " +
+      "suggestions only. Scope: read:compression.",
+    scopes: ["read:compression"],
+    inputSchema: rtkDiscoverInput,
+    handler: (args: z.infer<typeof rtkDiscoverInput>) => handleRtkDiscover(args),
+  },
+  omniroute_rtk_learn: {
+    name: "omniroute_rtk_learn",
+    description:
+      "Suggest an RTK filter draft for a specific command, learned from that command's captured " +
+      "outputs in the opt-in raw-output sample store. Read-only; returns a draft for the operator " +
+      "to review and save. Scope: read:compression.",
+    scopes: ["read:compression"],
+    inputSchema: rtkLearnInput,
+    handler: (args: z.infer<typeof rtkLearnInput>) => handleRtkLearn(args),
   },
 };

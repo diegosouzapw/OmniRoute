@@ -13,6 +13,7 @@ import { ENGINE_IDS } from "./engineCatalog.ts";
 import type { ContextBudgetConfig } from "./adaptiveCompression/types.ts";
 import type { FidelityGateConfig } from "./fidelityGate.ts";
 import type { RiskGateConfig } from "./riskGate/riskGate.ts";
+import type { PipelineCircuitBreakerConfig } from "./pipelineEngineBreaker.ts";
 import type { RiskGateStats } from "./riskGate/riskGateStep.ts";
 import type { QuantumLockConfig, QuantumLockStats } from "./quantumLock/quantumPatterns.ts";
 
@@ -24,13 +25,7 @@ import type { QuantumLockConfig, QuantumLockStats } from "./quantumLock/quantumP
 export { ENGINE_IDS };
 
 export type CompressionMode =
-  | "off"
-  | "lite"
-  | "standard"
-  | "aggressive"
-  | "ultra"
-  | "rtk"
-  | "stacked";
+  "off" | "lite" | "standard" | "aggressive" | "ultra" | "rtk" | "stacked";
 export type CavemanIntensity = "lite" | "full" | "ultra";
 export type RtkIntensity = "minimal" | "standard" | "aggressive";
 export type RtkRawOutputRetention = "never" | "failures" | "always";
@@ -145,13 +140,34 @@ export interface EngineToggle {
   level?: string;
 }
 
+/** T05/C5 — system-prompt preservation intent (see `CompressionConfig.preserveSystemPromptMode`). */
+export type PreserveSystemPromptMode = "always" | "whenNoCache" | "never";
+
 export interface CompressionConfig {
   enabled: boolean;
   defaultMode: CompressionMode;
   autoTriggerMode?: CompressionMode;
   autoTriggerTokens: number;
   cacheMinutes: number;
+  /**
+   * Effective, engine-facing boolean: when truthy the system prompt is skipped
+   * (preserved, not compressed). Kept as the materialized value all engines read.
+   * Its authoritative *intent* is `preserveSystemPromptMode` (T05/C5); this boolean
+   * is the no-cache projection of that mode, refined up to `true` by
+   * `resolveCacheAwareConfig` when a cacheable prefix is detected.
+   */
   preserveSystemPrompt: boolean;
+  /**
+   * T05/C5 — authoritative system-prompt preservation intent:
+   * - `always`: never compress the system prompt.
+   * - `whenNoCache`: compress it only when there is no cache to protect
+   *   (preserve when the provider caches or `cache_control` is present). This is the
+   *   behaviour the legacy `preserveSystemPrompt: false` already had via the cache guard.
+   * - `never`: always compress the system prompt, even when it breaks a prompt cache.
+   * Optional/back-compat: absent → derived from the legacy boolean
+   * (`false → whenNoCache`, otherwise `always`).
+   */
+  preserveSystemPromptMode?: PreserveSystemPromptMode;
   mcpDescriptionCompressionEnabled?: boolean;
   comboOverrides: Record<string, CompressionMode>;
   compressionComboId?: string | null;
@@ -162,6 +178,8 @@ export interface CompressionConfig {
   fidelityGate?: FidelityGateConfig;
   /** Opt-in risk-gate pre-pass: shields sensitive spans from compression (default disabled). */
   riskGate?: RiskGateConfig;
+  /** T02 — opt-in per-engine circuit-breaker for the stacked pipeline (default disabled). */
+  pipelineCircuitBreaker?: PipelineCircuitBreakerConfig;
   cavemanConfig?: CavemanConfig;
   cavemanOutputMode?: CavemanOutputModeConfig;
   /** Phase 4A: selected output styles (supersedes cavemanOutputMode via a back-compat shim). */
@@ -289,6 +307,7 @@ export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
   autoTriggerTokens: 0,
   cacheMinutes: 5,
   preserveSystemPrompt: true,
+  preserveSystemPromptMode: "always",
   mcpDescriptionCompressionEnabled: true,
   comboOverrides: {},
   compressionComboId: null,

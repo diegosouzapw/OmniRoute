@@ -43,8 +43,7 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /out of credits/i,
   /hard.?limit/i,
   /plan.*limit/i,
-  /resource.*exhaust/i,
-  /check.*quota/i,
+
   // Antigravity / Cloud Code quota exhaustion ("Individual quota reached.
   // Contact your administrator to enable overages. Resets in 164h27m24s.").
   // None of the patterns above match it, so the 429 was misclassified as a
@@ -53,6 +52,7 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   // per-minute limits like "request quota reached, retry in 60s".
   /individual quota reached/i,
   /enable overages/i,
+  /INSUFFICIENT_G1_CREDITS_BALANCE/i,
 ];
 
 /**
