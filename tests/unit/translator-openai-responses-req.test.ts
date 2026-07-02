@@ -431,13 +431,15 @@ test("Chat -> Responses converts json_schema response_format to text.format", ()
   assert.equal(result.response_format, undefined);
 });
 
-test("Chat -> Responses keeps existing text.format over response_format conversion", () => {
-  const existingFormat = { type: "json_schema", name: "native", schema: { type: "object" } };
+test("Chat -> Responses uses response_format over nonstandard chat text.format", () => {
   const result = openaiToOpenAIResponsesRequest(
     "gpt-5.2-codex",
     {
       messages: [{ role: "user", content: "Return JSON" }],
-      text: { format: existingFormat, verbosity: "low" },
+      text: {
+        format: { type: "json_schema", name: "nonstandard", schema: { type: "object" } },
+        verbosity: "low",
+      },
       response_format: {
         type: "json_schema",
         json_schema: { name: "chat", schema: { type: "object", properties: {} } },
@@ -447,7 +449,23 @@ test("Chat -> Responses keeps existing text.format over response_format conversi
     null
   ) as any;
 
-  assert.deepEqual(result.text, { format: existingFormat, verbosity: "low" });
+  assert.deepEqual(result.text, {
+    format: { type: "json_schema", name: "chat", schema: { type: "object", properties: {} } },
+  });
+});
+
+test("Chat -> Responses ignores nonstandard chat text.format without response_format", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.2-codex",
+    {
+      messages: [{ role: "user", content: "Return JSON" }],
+      text: { format: { type: "json_schema", name: "nonstandard", schema: { type: "object" } } },
+    },
+    false,
+    null
+  ) as any;
+
+  assert.equal(result.text, undefined);
 });
 
 test("Responses round-trip preserves store and previous_response_id when opt-in is enabled", () => {

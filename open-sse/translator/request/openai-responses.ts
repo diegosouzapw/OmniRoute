@@ -52,14 +52,10 @@ function toString(value: unknown, fallback = ""): string {
 }
 
 function mapChatResponseFormatToResponsesText(body: JsonRecord, result: JsonRecord): void {
-  const existingText = { ...toRecord(body.text), ...toRecord(result.text) };
-  if (existingText.format !== undefined) {
-    result.text = existingText;
-    return;
-  }
-
   const responseFormat = toRecord(body.response_format);
   if (responseFormat.type !== "json_schema") return;
+
+  const existingText = toRecord(result.text);
 
   const jsonSchema = toRecord(responseFormat.json_schema);
   if (jsonSchema.schema === undefined) return;
