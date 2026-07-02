@@ -169,3 +169,56 @@ export function fixMissingToolResponses(body) {
   body.messages = newMessages;
   return body;
 }
+
+// Strip tool-result carriers whose id has no matching tool call anywhere in the
+// conversation. Mirrors fixMissingToolResponses on the result side: that helper
+// ensures every call has a result; this one ensures every result has a call.
+// Client-side history truncation/compaction can drop the assistant turn that
+// issued a tool call while leaving its stale tool result behind, which strict
+// upstream APIs reject before model execution. Handles both OpenAI-format
+// role:"tool" messages and Claude-format tool_result content blocks. Drops a
+// user message entirely if stripping empties its content array. Returns the
+// same body reference when nothing needs to change (no-op fast path).
+export function stripOrphanedToolResults(body) {
+  if (!body.messages || !Array.isArray(body.messages)) return body;
+
+  const knownCallIds = new Set<string>();
+  for (const msg of body.messages) {
+    for (const id of getToolCallIds(msg)) {
+      knownCallIds.add(id);
+    }
+  }
+
+  let changed = false;
+  const filteredMessages = [];
+
+  for (const msg of body.messages) {
+    if (msg.role === "tool" && msg.tool_call_id) {
+      if (knownCallIds.has(msg.tool_call_id)) {
+        filteredMessages.push(msg);
+      } else {
+        changed = true;
+      }
+      continue;
+    }
+
+    if (Array.isArray(msg.content)) {
+      const cleanedContent = msg.content.filter((block) => {
+        if (block?.type !== "tool_result") return true;
+        return typeof block.tool_use_id === "string" && knownCallIds.has(block.tool_use_id);
+      });
+
+      if (cleanedContent.length !== msg.content.length) {
+        changed = true;
+        if (cleanedContent.length === 0) continue;
+        msg.content = cleanedContent;
+      }
+    }
+
+    filteredMessages.push(msg);
+  }
+
+  if (!changed) return body;
+  body.messages = filteredMessages;
+  return body;
+}

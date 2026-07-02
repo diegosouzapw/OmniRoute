@@ -111,5 +111,9 @@ export function createSseHeartbeatTransform({
     flush() {
       stop();
     },
+
+    cancel() {
+      stop();
+    },
   });
 }

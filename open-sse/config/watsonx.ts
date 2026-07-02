@@ -1,10 +1,6 @@
-import { stripTrailingSlashes } from "../utils/urlSanitize.ts";
+import { stripTrailingSlashes, normalizeBaseUrl } from "../utils/urlSanitize.ts";
 
 export const WATSONX_DEFAULT_BASE_URL = "https://ca-tor.ml.cloud.ibm.com/ml/gateway/v1";
-
-function normalizeBaseUrl(value: string | null | undefined): string {
-  return stripTrailingSlashes((value || "").trim());
-}
 
 export function normalizeWatsonxBaseUrl(value: string | null | undefined): string {
   const normalized = normalizeBaseUrl(value || WATSONX_DEFAULT_BASE_URL);

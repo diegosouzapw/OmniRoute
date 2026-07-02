@@ -3,6 +3,7 @@ import { FORMATS } from "../translator/formats.ts";
 
 type StructuredSSEEvent = {
   index: number;
+  timestamp?: string;
   event?: string;
   data: unknown;
 };
@@ -660,6 +661,7 @@ export function createStructuredSSECollector(options: CollectorOptions = {}) {
 
       const event: StructuredSSEEvent = {
         index: events.length + droppedEvents,
+        timestamp: new Date().toISOString(),
         data: cloneLogPayload(payload),
       };
 

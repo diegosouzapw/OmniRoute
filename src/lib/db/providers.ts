@@ -170,13 +170,31 @@ export async function createProviderConnection(data: JsonRecord) {
       // For Codex with workspaceId, don't fall back to email-only check
       // This allows creating new connections for different workspaces
     } else {
-      // For other providers (or Codex without workspaceId), use email check
+      // For other providers (or Codex without workspaceId), match on email —
+      // disambiguated by providerSpecificData.username when present on both
+      // sides. Two different IdPs can share the same email address (e.g. a
+      // Google account and a HuggingFace account); matching on email alone
+      // would silently overwrite the other account's connection on the
+      // second login. Only fall back to the bare email-only match when
+      // neither side carries a username (legacy rows created before this
+      // disambiguation existed).
+      const incomingUsername = toStringOrNull(providerSpecificData.username);
+      const emailMatches = db
+        .prepare(
+          "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND email = ?"
+        )
+        .all(data.provider, data.email) as JsonRecord[];
       existing =
-        (db
-          .prepare(
-            "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND email = ?"
-          )
-          .get(data.provider, data.email) as JsonRecord | undefined) || null;
+        emailMatches.find((row) => {
+          const existingUsername = toStringOrNull(
+            parseProviderSpecificData(row.provider_specific_data)?.username
+          );
+          if (incomingUsername && existingUsername) {
+            return incomingUsername === existingUsername;
+          }
+          if (incomingUsername || existingUsername) return false;
+          return true;
+        }) || null;
     }
   } else if (data.authType === "apikey") {
     // Name-based upsert (existing behavior): same provider + same name → update.
@@ -300,6 +318,7 @@ export async function createProviderConnection(data: JsonRecord) {
     "perKeyProxyEnabled",
     "quotaWindowThresholds",
     "rateLimitOverrides",
+    "healthCheckInterval",
   ];
   for (const field of optionalFields) {
     if (data[field] !== undefined && data[field] !== null) {
@@ -392,7 +411,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
     lastErrorSource: conn.lastErrorSource || null,
     backoffLevel: conn.backoffLevel || 0,
     rateLimitedUntil: conn.rateLimitedUntil || null,
-    healthCheckInterval: conn.healthCheckInterval || null,
+    healthCheckInterval: conn.healthCheckInterval ?? null,
     lastHealthCheckAt: conn.lastHealthCheckAt || null,
     lastTested: conn.lastTested || null,
     apiKey: conn.apiKey || null,
@@ -470,7 +489,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
     lastErrorSource: data.lastErrorSource || null,
     backoffLevel: data.backoffLevel || 0,
     rateLimitedUntil: data.rateLimitedUntil || null,
-    healthCheckInterval: data.healthCheckInterval || null,
+    healthCheckInterval: data.healthCheckInterval ?? null,
     lastHealthCheckAt: data.lastHealthCheckAt || null,
     lastTested: data.lastTested || null,
     apiKey: data.apiKey || null,

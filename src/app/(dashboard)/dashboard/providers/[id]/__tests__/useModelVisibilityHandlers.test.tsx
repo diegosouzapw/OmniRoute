@@ -3,8 +3,6 @@ import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { DASHBOARD_CSRF_HEADER } from "@/shared/constants/dashboardCsrf";
-import { __resetDashboardCsrfTokenForTests } from "@/shared/utils/dashboardCsrf";
 import {
   useModelVisibilityHandlers,
   type UseModelVisibilityHandlersReturn,
@@ -72,7 +70,6 @@ beforeEach(() => {
   (
     globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
   ).IS_REACT_ACT_ENVIRONMENT = true;
-  __resetDashboardCsrfTokenForTests();
   vi.stubGlobal("fetch", vi.fn());
   vi.clearAllMocks();
 });
@@ -94,23 +91,14 @@ describe("useModelVisibilityHandlers", () => {
 
   it("does not hide a model when a single-model test fails", async () => {
     const fetchMock = vi.mocked(fetch);
-    fetchMock
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            token: "csrf-token",
-            expiresAt: new Date(Date.now() + 60_000).toISOString(),
-          }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: false,
-        json: () =>
-          Promise.resolve({
-            status: "error",
-            error: "model unavailable",
-          }),
-      } as Response);
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      json: () =>
+        Promise.resolve({
+          status: "error",
+          error: "model unavailable",
+        }),
+    } as Response);
 
     const hook = renderHook();
 
@@ -120,15 +108,12 @@ describe("useModelVisibilityHandlers", () => {
         .onTestModel("claude-opus-4-8", "anthropic-compatible-cc-test/claude-opus-4-8");
     });
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/auth/csrf", expect.any(Object));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
+      1,
       "/api/models/test",
       expect.objectContaining({ method: "POST" })
     );
-    const [, modelTestInit] = fetchMock.mock.calls[1];
-    expect((modelTestInit?.headers as Headers).get(DASHBOARD_CSRF_HEADER)).toBe("csrf-token");
     expect(
       fetchMock.mock.calls.some(([url]) => String(url).startsWith("/api/provider-models"))
     ).toBe(false);

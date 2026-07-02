@@ -148,6 +148,53 @@ test("OpenAI stream: tool calls strip Claude OAuth prefix and keep cache usage",
   assert.equal(result[5].usage.cache_creation_input_tokens, 1);
 });
 
+test("OpenAI stream: two finish_reason chunks emit finish events exactly once", () => {
+  // #2279: some OpenAI-compatible upstreams resend a terminal chunk that still
+  // carries finish_reason (e.g. an empty-delta echo of the finish chunk). Without
+  // a guard, the whole finish block (content_block_stop / message_delta /
+  // message_stop) re-runs and duplicates those events downstream.
+  const state = createState();
+  const first = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-4",
+      model: "gpt-4.1",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            tool_calls: [
+              {
+                index: 0,
+                id: "call_1",
+                type: "function",
+                function: { name: "read_file", arguments: '{"path":"/tmp/a"}' },
+              },
+            ],
+          },
+          finish_reason: "tool_calls",
+        },
+      ],
+      usage: { prompt_tokens: 5, completion_tokens: 2, total_tokens: 7 },
+    },
+    state
+  );
+  // Duplicate terminal chunk: empty delta, same finish_reason.
+  const second = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-4",
+      model: "gpt-4.1",
+      choices: [{ index: 0, delta: {}, finish_reason: "tool_calls" }],
+      usage: { prompt_tokens: 5, completion_tokens: 2, total_tokens: 7 },
+    },
+    state
+  );
+  const result = flatten([first, second]);
+
+  assert.equal(result.filter((e) => e.type === "content_block_stop").length, 1);
+  assert.equal(result.filter((e) => e.type === "message_delta").length, 1);
+  assert.equal(result.filter((e) => e.type === "message_stop").length, 1);
+});
+
 test("OpenAI non-stream: chat completion becomes Claude message with thinking and tool_use", () => {
   const result = translateNonStreamingResponse(
     {

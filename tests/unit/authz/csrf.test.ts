@@ -26,7 +26,7 @@ function request(path: string, cookie = "auth_token=session-a", token?: string):
 }
 
 describe("dashboard CSRF tokens", () => {
-  it("accepts a valid token for dashboard test mutation paths", () => {
+  it("accepts a valid token for dashboard management mutation paths", () => {
     const issued = issueDashboardCsrfToken(request("/api/auth/csrf"), 1_000);
 
     assert.ok(issued);
@@ -42,15 +42,13 @@ describe("dashboard CSRF tokens", () => {
       validateDashboardCsrfToken(request("/api/combos/test", undefined, issued.token), 1_000),
       true
     );
-  });
-
-  it("rejects tokens on non-test management paths", () => {
-    const issued = issueDashboardCsrfToken(request("/api/auth/csrf"), 1_000);
-
-    assert.ok(issued);
     assert.equal(
       validateDashboardCsrfToken(request("/api/keys", undefined, issued.token), 1_000),
-      false
+      true
+    );
+    assert.equal(
+      validateDashboardCsrfToken(request("/api/settings", undefined, issued.token), 1_000),
+      true
     );
   });
 

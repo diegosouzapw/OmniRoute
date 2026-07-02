@@ -594,7 +594,7 @@ function sanitizeResponsesStreamingOutputItem(item: unknown): JsonRecord | null 
             return {
               ...partRecord,
               type: toString(partRecord.type) || "summary_text",
-              text: collapseExcessiveNewlines(toString(partRecord.text) || ""),
+              text: collapseExcessiveNewlines(stripZeroWidthText(toString(partRecord.text) || "")),
             };
           })
           .filter((part) => part !== null)
@@ -624,7 +624,7 @@ function sanitizeResponsesStreamingOutputItem(item: unknown): JsonRecord | null 
       type: "function_call_output",
       output:
         typeof itemRecord.output === "string"
-          ? collapseExcessiveNewlines(itemRecord.output)
+          ? collapseExcessiveNewlines(stripZeroWidthText(itemRecord.output))
           : JSON.stringify(itemRecord.output ?? ""),
     };
   }
@@ -640,9 +640,38 @@ function sanitizeResponsesStreamingOutput(output: unknown): JsonRecord[] {
     .filter((item): item is JsonRecord => item !== null);
 }
 
+// Native Responses streaming events that carry raw model text directly on the
+// root `delta` field. These must get the same zero-width-joiner stripping as the
+// non-streaming path so agent words (opencode/cursor/aider) are not corrupted.
+// Scoped as an allow-list on purpose: `response.function_call_arguments.delta`
+// carries tool-call argument JSON that must pass through byte-exact.
+const RESPONSES_STREAMING_TEXT_DELTA_EVENTS = new Set([
+  "response.output_text.delta",
+  "response.reasoning_summary_text.delta",
+  "response.reasoning_text.delta",
+]);
+
+// Matching `*.done` events that carry the finalized text on the root `text` field.
+const RESPONSES_STREAMING_TEXT_DONE_EVENTS = new Set([
+  "response.output_text.done",
+  "response.reasoning_summary_text.done",
+  "response.reasoning_text.done",
+]);
+
 function sanitizeResponsesStreamingEvent(parsedRecord: JsonRecord): JsonRecord {
   const sanitized: JsonRecord = { ...parsedRecord };
   const eventType = toString(parsedRecord.type) || "";
+
+  // Root-level text events (output_text / reasoning_summary_text / reasoning_text)
+  // carry the model text directly on the event, not under item/output. Strip ZWJ
+  // there too. Only touch string values and only the allow-listed event types —
+  // never function-call argument events.
+  if (RESPONSES_STREAMING_TEXT_DELTA_EVENTS.has(eventType) && typeof sanitized.delta === "string") {
+    sanitized.delta = stripZeroWidthText(sanitized.delta);
+  }
+  if (RESPONSES_STREAMING_TEXT_DONE_EVENTS.has(eventType) && typeof sanitized.text === "string") {
+    sanitized.text = stripZeroWidthText(sanitized.text);
+  }
 
   if (parsedRecord.item !== undefined) {
     const sanitizedItem = sanitizeResponsesStreamingOutputItem(parsedRecord.item);
@@ -957,10 +986,18 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
           if (deltaRecord.content !== undefined) {
             delta.content =
               typeof deltaRecord.content === "string"
-                ? collapseExcessiveNewlines(deltaRecord.content)
+                ? collapseExcessiveNewlines(stripZeroWidthText(deltaRecord.content))
                 : deltaRecord.content;
           }
           copyOpenAICompatibleReasoningFields(deltaRecord, delta);
+          // Parity with the non-streaming path: strip the zero-width joiners that the
+          // request side injects into agent words. copyOpenAICompatibleReasoningFields
+          // is shared, so strip locally on the fields it writes (string values only).
+          for (const reasoningKey of ["reasoning_content", "reasoning", "reasoning_text"]) {
+            if (typeof delta[reasoningKey] === "string") {
+              delta[reasoningKey] = stripZeroWidthText(delta[reasoningKey] as string);
+            }
+          }
           if (deltaRecord.tool_calls !== undefined) {
             delta.tool_calls = Array.isArray(deltaRecord.tool_calls)
               ? deltaRecord.tool_calls.map((tc) => {

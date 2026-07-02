@@ -52,6 +52,7 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   // per-minute limits like "request quota reached, retry in 60s".
   /individual quota reached/i,
   /enable overages/i,
+  /INSUFFICIENT_G1_CREDITS_BALANCE/i,
 ];
 
 /**

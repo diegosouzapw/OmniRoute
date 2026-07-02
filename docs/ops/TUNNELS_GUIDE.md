@@ -218,6 +218,11 @@ build callback URLs against the **public** hostname, not `localhost`. Otherwise
 the OAuth provider redirects the user back to a URL its servers cannot reach,
 and the handshake fails.
 
+Dashboard edits and settings saves do not require pinning the tunnel hostname in
+`NEXT_PUBLIC_BASE_URL`. The authenticated dashboard sends same-origin unsafe
+requests with a session-bound CSRF token, so ephemeral Cloudflare Quick Tunnel
+hosts can still be used for normal UI management after logging in.
+
 Set:
 
 ```bash

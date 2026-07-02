@@ -176,8 +176,8 @@ function invalidOriginResponse(requestId: string): NextResponse {
       error: {
         code: "INVALID_ORIGIN",
         message:
-          "Invalid request origin. If you reach the dashboard over a custom host or an HTTPS proxy, " +
-          "set OMNIROUTE_PUBLIC_BASE_URL to that exact URL and restart. Direct loopback/LAN-IP access works without it.",
+          "Invalid request origin. Same-origin dashboard writes must include a valid dashboard CSRF token. " +
+          "Refresh the dashboard and retry, or set OMNIROUTE_PUBLIC_BASE_URL for non-dashboard browser integrations.",
         correlation_id: requestId,
       },
     },
@@ -242,8 +242,7 @@ export async function runAuthzPipeline(
   // stay exactly fail-closed.
   const corsRelaxOrigin =
     classification.routeClass === "CLIENT_API" ||
-    (classification.routeClass === "PUBLIC" &&
-      classification.reason === "public_readonly_prefix");
+    (classification.routeClass === "PUBLIC" && classification.reason === "public_readonly_prefix");
 
   if (guardedPathname.startsWith("/api/") && isDraining()) {
     const response = drainingResponse(requestId);
@@ -330,7 +329,9 @@ export async function runAuthzPipeline(
     isUnsafeMutationMethod(method)
   ) {
     const originVerdict = validateBrowserMutationOrigin(request);
-    if (!originVerdict.ok && !validateDashboardCsrfToken(request)) {
+    const csrfOriginFallback =
+      originVerdict.reason === "invalid-origin" && validateDashboardCsrfToken(request);
+    if (!originVerdict.ok && !csrfOriginFallback) {
       const rejection = invalidOriginResponse(requestId);
       rejection.headers.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
       applyCorsHeaders(rejection, request);
