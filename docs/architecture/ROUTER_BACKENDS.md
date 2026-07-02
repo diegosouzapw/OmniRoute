@@ -1,7 +1,14 @@
+---
+title: "Router Backends & Embedded Services (ADR)"
+version: 3.8.43
+lastUpdated: 2026-07-02
+---
+
 # Router Backends & Embedded Services — architecture contract (ADR)
 
 > **Status:** Accepted · **Context:** [#5670](https://github.com/diegosouzapw/OmniRoute/issues/5670),
-> [#5603](https://github.com/diegosouzapw/OmniRoute/issues/5603) · **Contract:** `src/domain/routing/routerBackends.ts`
+> [#5603](https://github.com/diegosouzapw/OmniRoute/issues/5603) · **Contract:** `domain/routing/routerBackends.ts`
+> (typed registry — code lands with [#5868](https://github.com/diegosouzapw/OmniRoute/pull/5868))
 
 This ADR pins down how `ts` (native), `bifrost`, `cliproxy`, `9router`, and
 VibeProxy-compatible engines relate to each other, so contributors stop
@@ -33,7 +40,8 @@ was `external`-only.
 
 ## The registry — single source of truth
 
-`src/domain/routing/routerBackends.ts` declares every engine once, with its
+The `domain/routing/routerBackends.ts` contract (code lands with
+[#5868](https://github.com/diegosouzapw/OmniRoute/pull/5868)) declares every engine once, with its
 lifecycle, capabilities, service identity, default port, health config, and
 telemetry support. Consumers look engines up via `getRouterBackend(id)`,
 `listRouterBackends()`, and `listRouterBackendsByCapability(cap)` instead of

@@ -537,7 +537,10 @@ export class BaseExecutor {
    * providerSpecificData.baseUrl over the static provider config baseUrl.
    */
   protected resolveBaseUrl(credentials: ProviderCredentials | null, fallback?: string): string {
-    return credentials?.providerSpecificData?.baseUrl || fallback || this.config.baseUrl || "";
+    const psdBaseUrl = credentials?.providerSpecificData?.baseUrl;
+    return (
+      (typeof psdBaseUrl === "string" ? psdBaseUrl : "") || fallback || this.config.baseUrl || ""
+    );
   }
 
   /**
@@ -549,7 +552,7 @@ export class BaseExecutor {
       (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
     const selectedKeyId = (credentials.providerSpecificData as Record<string, unknown> | undefined)
       ?.selectedKeyId as string | undefined;
-    let effectiveKey = credentials.apiKey;
+    let effectiveKey = credentials.apiKey ?? "";
     if (extraKeys.length > 0 && credentials.connectionId && credentials.apiKey) {
       const resolved = resolveKeyForRequest(
         credentials.connectionId,
