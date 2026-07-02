@@ -1,0 +1,68 @@
+# L66 k6 load-test CI (v29 T12).
+#
+# Manual trigger with scenario + target; daily 04:00 UTC defaults
+# to smoke test against localhost:8080. Fails if >1% http_req_failed.
+
+name: k6-load-test
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: 'Load-test scenario'
+        required: true
+        default: 'smoke'
+        type: choice
+        options:
+          - smoke
+          - soak
+          - stress
+      target:
+        description: 'Target base URL'
+        required: true
+        default: 'http://localhost:8080'
+        type: string
+  schedule:
+    - cron: '0 4 * * *'   # daily 04:00 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  k6-run:
+    name: k6 ${{ inputs.scenario || 'smoke' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SCENARIO: ${{ inputs.scenario || 'smoke' }}
+      TARGET:   ${{ inputs.target || 'http://localhost:8080' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install k6
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gpg
+          sudo mkdir -p /etc/apt/keyrings
+          curl -fsSL https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/k6.gpg
+          echo "deb [signed-by=/etc/apt/keyrings/k6.gpg] https://dl.k6.io/deb stable main" \
+            | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install -y k6
+
+      - name: Run ${{ env.SCENARIO }} test
+        id: k6
+        continue-on-error: false
+        run: |
+          k6 run k6-tests/${SCENARIO}-test.js \
+            --env TARGET="${TARGET}" \
+            --summary-export /tmp/k6-summary.json
+
+      - name: Fail on error budget breach
+        if: failure()
+        run: |
+          echo "## k6 load-test failure (${SCENARIO})" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "The ${SCENARIO} test against ${TARGET} breached the error budget." >> "$GITHUB_STEP_SUMMARY"
+          echo "Check the workflow logs or re-run with \`scenario: ${SCENARIO}\` and \`target: ${TARGET}\`." >> "$GITHUB_STEP_SUMMARY"
+          exit 1
