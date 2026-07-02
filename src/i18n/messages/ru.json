@@ -4475,6 +4475,8 @@
     "modelsPathLabel": "Путь эндпоинта моделей",
     "modelsPathPlaceholder": "/models",
     "modelsPathHint": "Пользовательский путь моделей для проверки (например, /v4/models)",
+    "clientIdentityLabel": "__MISSING__:Client Identity",
+    "clientIdentityHint": "__MISSING__:Optional. Adds client fingerprint headers (e.g. User-Agent) matching a known CLI for compatible gateways that expect one.",
     "statusDeactivated": "Отключено (вручную)",
     "statusBanned": "Заблокировано / нарушение песочницы",
     "statusCreditsExhausted": "Недостаточно баланса / квота исчерпана",

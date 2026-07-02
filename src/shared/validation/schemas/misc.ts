@@ -163,7 +163,7 @@ export const customHeadersSchema = upstreamHeadersRecordSchema
   .refine((rec) => !Object.keys(rec).some((k) => isForbiddenCustomHeaderName(k)), {
     message:
       "Custom headers cannot include hop-by-hop, framing, or auth headers " +
-      "(authorization / x-api-key / x-goog-api-key / api-key)",
+      "(authorization / x-api-key / x-goog-api-key / api-key / cookie)",
   })
   .nullable()
   .optional();

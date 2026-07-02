@@ -4103,6 +4103,8 @@
     "modelsPathLabel": "Cesta koncového bodu modelu",
     "modelsPathPlaceholder": "/models",
     "modelsPathHint": "Cesta k vlastním modelům pro validaci (např. /v4/models)",
+    "clientIdentityLabel": "__MISSING__:Client Identity",
+    "clientIdentityHint": "__MISSING__:Optional. Adds client fingerprint headers (e.g. User-Agent) matching a known CLI for compatible gateways that expect one.",
     "statusDeactivated": "Deaktivováno (Manuální)",
     "statusBanned": "Zablokováno / Porušení sandboxu",
     "statusCreditsExhausted": "Nedostatečný zůstatek / Kvóta vyčerpána",

@@ -26,9 +26,12 @@ export function isForbiddenUpstreamHeaderName(name: string): boolean {
  * operator-set per-provider custom headers. Kept here as the single source of
  * truth so the Zod `customHeadersSchema` (schemas.ts) and the executor's
  * apply-loop (open-sse/executors/default.ts) cannot drift apart.
+ * `cookie` is included alongside the API-key-style headers because a
+ * session cookie is just as capable of hijacking the upstream credential as
+ * `Authorization`/`x-api-key` would be.
  */
 const FORBIDDEN_AUTH = new Set(
-  ["authorization", "x-api-key", "x-goog-api-key", "api-key"].map((s) => s.toLowerCase())
+  ["authorization", "x-api-key", "x-goog-api-key", "api-key", "cookie"].map((s) => s.toLowerCase())
 );
 
 /**

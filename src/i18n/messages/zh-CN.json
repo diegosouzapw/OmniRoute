@@ -4345,6 +4345,8 @@
     "modelsPathLabel": "模型端点路径",
     "modelsPathPlaceholder": "/models",
     "modelsPathHint": "为验证流程自定义模型路径（例如：/v4/models）",
+    "clientIdentityLabel": "__MISSING__:Client Identity",
+    "clientIdentityHint": "__MISSING__:Optional. Adds client fingerprint headers (e.g. User-Agent) matching a known CLI for compatible gateways that expect one.",
     "statusDeactivated": "已停用（手动）",
     "statusBanned": "已封禁 / 沙箱违规",
     "statusCreditsExhausted": "余额不足 / 配额已耗尽",

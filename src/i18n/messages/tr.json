@@ -4103,6 +4103,8 @@
     "modelsPathLabel": "Model Uç Noktası Yolu",
     "modelsPathPlaceholder": "/models",
     "modelsPathHint": "Doğrulama için özel model yolu (ör. /v4/models)",
+    "clientIdentityLabel": "__MISSING__:Client Identity",
+    "clientIdentityHint": "__MISSING__:Optional. Adds client fingerprint headers (e.g. User-Agent) matching a known CLI for compatible gateways that expect one.",
     "statusDeactivated": "Deactivated (Manual)",
     "statusBanned": "Banned / Sandbox Violation",
     "statusCreditsExhausted": "Insufficient Balance / Quota Exhausted",

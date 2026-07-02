@@ -4,6 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { Badge, Button, Input, Modal, Select } from "@/shared/components";
+import {
+  CLIENT_IDENTITY_PROFILE_OPTIONS,
+  getClientIdentityProfileHeaders,
+} from "@/shared/constants/clientIdentityProfiles";
 
 type CompatibleMode = "openai" | "anthropic" | "cc";
 type CompatibleProviderNode = { id: string } & Record<string, unknown>;
@@ -23,6 +27,7 @@ interface CompatibleFormState {
   baseUrl: string;
   chatPath: string;
   modelsPath: string;
+  clientIdentityProfile: string;
 }
 
 const CC_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
@@ -75,6 +80,7 @@ function createInitialForm(mode: CompatibleMode): CompatibleFormState {
     baseUrl: defaults.baseUrl,
     chatPath: defaults.chatPath,
     modelsPath: "",
+    clientIdentityProfile: "default",
   };
 }
 
@@ -181,6 +187,12 @@ export default function AddCompatibleProviderModal({
       if (defaults.hasApiType) body.apiType = formData.apiType;
       if (defaults.hasModelsPath) body.modelsPath = formData.modelsPath || "";
       if (defaults.compatMode) body.compatMode = defaults.compatMode;
+      // Merge the selected identity profile's preset headers into the SAME
+      // `customHeaders` field the node already persists (see
+      // src/lib/db/providers/nodes.ts + open-sse/executors/default.ts
+      // `applyCustomHeaders`) — no separate profile field, no new pipeline.
+      const identityHeaders = getClientIdentityProfileHeaders(formData.clientIdentityProfile);
+      if (Object.keys(identityHeaders).length > 0) body.customHeaders = identityHeaders;
 
       const res = await fetch("/api/provider-nodes", {
         method: "POST",
@@ -310,6 +322,13 @@ export default function AddCompatibleProviderModal({
                 hint={t("modelsPathHint")}
               />
             )}
+            <Select
+              label={t("clientIdentityLabel")}
+              options={CLIENT_IDENTITY_PROFILE_OPTIONS.map((option) => ({ ...option }))}
+              value={formData.clientIdentityProfile}
+              onChange={(e) => setFormData({ ...formData, clientIdentityProfile: e.target.value })}
+              hint={t("clientIdentityHint")}
+            />
           </div>
         )}
 
