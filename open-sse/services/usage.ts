@@ -312,6 +312,43 @@ async function getXiaomiMimoUsage(connectionId: string) {
 }
 
 /**
+ * xAI (Grok) — SELF-TRACKED cumulative usage.
+ *
+ * xAI has no public per-account quota API (the billing console at console.x.ai
+ * requires a session cookie, not an API key), so — exactly like the Xiaomi
+ * MiMo self-track pattern above — OmniRoute sums the tokens it itself routed
+ * to this connection (from `usage_history`) instead of calling an upstream
+ * endpoint. Unlike Xiaomi MiMo, xAI has no fixed monthly cap, so the
+ * aggregate is reported as `unlimited: true` with `remaining: 100` — this
+ * renders the dashboard's green "100%" badge instead of a meaningless
+ * progress bar against a `total: 0`.
+ */
+async function getXaiUsage(connectionId: string) {
+  if (!connectionId) {
+    return { message: "xAI: connection id unavailable for self-tracked usage." };
+  }
+  try {
+    const { getMonthlyProviderTokensForConnection } = await import("@/lib/usage/usageStats");
+    const used = getMonthlyProviderTokensForConnection("xai", connectionId);
+    return {
+      plan: "xAI / Grok (OmniRoute-tracked)",
+      quotas: {
+        monthly: {
+          used,
+          total: 0,
+          remaining: 100,
+          remainingPercentage: 100,
+          resetAt: null,
+          unlimited: true,
+        } as UsageQuota,
+      },
+    };
+  } catch (error) {
+    return { message: `xAI self-tracked usage error: ${(error as Error).message}` };
+  }
+}
+
+/**
  * OpenCode Go / OpenCode / OpenCode Zen Usage
  * Delegates to the dedicated opencodeQuotaFetcher and shapes the result into
  * the standard `{ plan, quotas }` usage response expected by the limits page.
@@ -496,6 +533,7 @@ export const USAGE_FETCHER_PROVIDERS = [
   "opencode",
   "opencode-zen",
   "xiaomi-mimo",
+  "xai",
   "vertex",
   "vertex-partner",
   "codebuddy-cn",
@@ -575,6 +613,8 @@ export async function getUsageForProvider(
       return await getOpencodeUsage(id || "", apiKey || "");
     case "xiaomi-mimo":
       return await getXiaomiMimoUsage(id || "");
+    case "xai":
+      return await getXaiUsage(id || "");
     case "codebuddy-cn":
       return await getCodeBuddyCnUsage(accessToken, apiKey, providerSpecificData);
     default:
@@ -890,6 +930,7 @@ export const __testing = {
   getMiniMaxRemainingPercent,
   getMiniMaxUsage,
   getXiaomiMimoUsage,
+  getXaiUsage,
   getVertexUsage,
   getMiniMaxAuthErrorMessage,
   getMiniMaxErrorSummary,
