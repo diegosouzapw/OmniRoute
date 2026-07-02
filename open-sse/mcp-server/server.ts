@@ -86,6 +86,7 @@ import { poolTools } from "./tools/poolTools.ts";
 import { gamificationTools } from "./tools/gamificationTools.ts";
 import { notionTools } from "./tools/notionTools.ts";
 import { obsidianTools } from "./tools/obsidianTools.ts";
+import { dispatchTools } from "./tools/dispatchTools.ts";
 import { compressMcpRegistryMetadata } from "./descriptionCompressor.ts";
 import { reduceToolManifest, readMcpToolProfileFromEnv } from "./toolCardinality.ts";
 import { smartFilterText } from "../services/compression/engines/mcpAccessibility/index.ts";
@@ -120,7 +121,8 @@ const TOTAL_MCP_TOOL_COUNT =
   gamificationTools.length +
   pluginTools.length +
   notionTools.length +
-  obsidianTools.length;
+  obsidianTools.length +
+  dispatchTools.length;
 
 type JsonRecord = Record<string, unknown>;
 
@@ -896,6 +898,7 @@ export function createMcpServer(): McpServer {
     ...gamificationTools.map((t) => t.name),
     ...obsidianTools.map((t) => t.name),
     ...notionTools.map((t) => t.name),
+    ...dispatchTools.map((t) => t.name),
   ]);
 
   // Register essential tools
@@ -1308,6 +1311,30 @@ export function createMcpServer(): McpServer {
           }
         },
         toolDef.scopes
+      )
+    );
+  });
+
+  // ── Substrate Dispatch Tools ──────────────────
+  dispatchTools.forEach((toolDef) => {
+    server.registerTool(
+      toolDef.name,
+      {
+        description: toolDef.description,
+        inputSchema: toolDef.inputSchema,
+      },
+      withScopeEnforcement(
+        toolDef.name,
+        async (args) => {
+          try {
+            const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+            const result = await toolDef.handler(parsedArgs);
+            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+          }
+        }
       )
     );
   });
