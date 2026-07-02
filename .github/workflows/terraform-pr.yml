@@ -1,0 +1,40 @@
+name: terraform-pr
+
+on:
+  pull_request:
+    paths:
+      - "**/*.tf"
+      - "**/*.tfvars"
+      - "**/*.hcl"
+      - ".pre-commit-hooks/terraform-*.sh"
+      - ".github/workflows/terraform-pr.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e4311558cf03e74e50c0c7c
+        with:
+          terraform_version: 1.9
+          terraform_wrapper: false
+      - name: terraform fmt
+        run: ./.pre-commit-hooks/terraform-fmt.sh
+
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e4311558cf03e74e50c0c7c
+        with:
+          terraform_version: 1.9
+          terraform_wrapper: false
+      - name: terraform validate
+        run: ./.pre-commit-hooks/terraform-validate.sh
