@@ -379,6 +379,19 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     authHint: "Bearer API key for the TheB.AI OpenAI-compatible gateway.",
     passthroughModels: true,
   },
+  bai: {
+    id: "bai",
+    alias: "bai",
+    name: "b.ai",
+    icon: "hub",
+    color: "#6366F1",
+    textIcon: "BA",
+    website: "https://b.ai",
+    authHint:
+      "Bearer API key for the b.ai OpenAI-compatible LLM gateway (distinct from TheB.AI). " +
+      "Create a key at https://docs.b.ai, then use https://api.b.ai/v1 as the OpenAI-compatible base URL.",
+    passthroughModels: true,
+  },
   fenayai: {
     id: "fenayai",
     alias: "fenayai",

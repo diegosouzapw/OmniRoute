@@ -8,7 +8,7 @@
 
 ### ✨ New Features
 
-_TBD_
+- **feat(providers):** add b.ai as an OpenAI-compatible (API-key) provider. (thanks @DEYLNN)
 
 ### 🔧 Bug Fixes
 
