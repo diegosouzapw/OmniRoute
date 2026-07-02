@@ -146,7 +146,7 @@ function run(cmd, cmdArgs, opts = {}) {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
       maxBuffer: 256 * 1024 * 1024,
-      env: { ...process.env, FORCE_COLOR: "0" },
+      env: { ...process.env, FORCE_COLOR: "0", ...(opts.env || {}) },
       // A hard ceiling for the long, silent test suites (execFileSync buffers all output until
       // exit, so they show no progress while running). undefined = no timeout for fast gates.
       ...(opts.timeout ? { timeout: opts.timeout } : {}),
@@ -252,6 +252,27 @@ function main() {
       kind: "drift",
       ok: code === 0,
       detail: code === 0 ? "within frozen caps" : firstFailureLine(out),
+    });
+  }
+
+  // test-masking (hard) — a PR-context gate: it only runs on the release PR (PR→main) in CI, so
+  // net-assert reductions accrue unseen on release/** and explode on the release PR. Reproduce it
+  // here against origin/main so a non-allowlisted reduction surfaces in the pre-flight, not in a
+  // ~40-min CI layer (v3.8.43 cost 3 such round-trips). Legitimate reductions get allowlisted in
+  // config/quality/test-masking-allowlist.json; tautology/skip/deletion signals are never allowlistable.
+  if (!QUICK) {
+    announce("Test-masking (weakened-assert guard vs main)");
+    // best-effort fetch so the merge-base diff is accurate; ignore fetch failure (offline pre-flight)
+    run("git", ["fetch", "--no-tags", "origin", "main", "--depth=200"], { timeout: 60 * 1000 });
+    const { code, out } = run(npmCmd, ["run", "check:test-masking"], {
+      env: { GITHUB_BASE_REF: "main" },
+    });
+    record({
+      id: "test-masking",
+      label: "Test-masking (weakened-assert guard)",
+      kind: "hard",
+      ok: code === 0,
+      detail: code === 0 ? "no weakening" : firstFailureLine(out),
     });
   }
 
