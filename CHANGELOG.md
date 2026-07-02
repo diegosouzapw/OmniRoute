@@ -9,6 +9,7 @@
 ### ✨ New Features
 
 - **feat(api):** add `/v1/ocr` endpoint (Mistral OCR), an OCR provider category, and Mistral moderation support. (thanks @waguriagentic)
+- **feat(cli-tools):** add CodeWhale CLI tool (successor to DeepSeek TUI). (thanks @aristorinjuang)
 
 ### 🔧 Bug Fixes
 
