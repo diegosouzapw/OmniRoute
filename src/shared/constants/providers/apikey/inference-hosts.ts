@@ -61,6 +61,20 @@ export const APIKEY_PROVIDERS_INFERENCE = {
     hasFree: true,
     freeNote: "~$1 trial credits on signup for API testing",
   },
+  nube: {
+    id: "nube",
+    alias: "nube",
+    name: "Nube.sh",
+    icon: "cloud",
+    color: "#2563EB",
+    textIcon: "NB",
+    website: "https://nube.sh",
+    hasFree: false,
+    notice: {
+      text: "OpenAI-compatible gateway (LiteLLM). Bring your own API key — models are resolved live from the account (passthrough).",
+      apiKeyUrl: "https://nube.sh/dashboard/api-keys",
+    },
+  },
   siliconflow: {
     id: "siliconflow",
     alias: "siliconflow",
