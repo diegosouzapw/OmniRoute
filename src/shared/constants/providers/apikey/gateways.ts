@@ -547,4 +547,32 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "TokenRouter exposes an OpenAI-compatible chat completions endpoint at https://api.tokenrouter.com/v1/chat/completions, plus a working /v1/models catalog. OmniRoute uses the OpenAI protocol.",
   },
+  astraflow: {
+    id: "astraflow",
+    alias: "astraflow",
+    name: "Astraflow",
+    icon: "cloud",
+    color: "#0052D9",
+    textIcon: "AF",
+    passthroughModels: true,
+    website: "https://astraflow.ucloud-global.com",
+    authHint:
+      "Use your Astraflow API key in Authorization: Bearer <key>. Fully OpenAI-compatible — global endpoint.",
+    apiHint:
+      "Astraflow by UCloud exposes an OpenAI-compatible chat completions endpoint at https://api-us-ca.umodelverse.ai/v1/chat/completions. OmniRoute uses the OpenAI protocol.",
+  },
+  "astraflow-cn": {
+    id: "astraflow-cn",
+    alias: "astraflow-cn",
+    name: "Astraflow (China)",
+    icon: "cloud",
+    color: "#0052D9",
+    textIcon: "AFC",
+    passthroughModels: true,
+    website: "https://astraflow.ucloud.cn",
+    authHint:
+      "Use your Astraflow API key in Authorization: Bearer <key>. Fully OpenAI-compatible — China endpoint.",
+    apiHint:
+      "Astraflow by UCloud (China region) exposes an OpenAI-compatible chat completions endpoint at https://api.modelverse.cn/v1/chat/completions. OmniRoute uses the OpenAI protocol.",
+  },
 };

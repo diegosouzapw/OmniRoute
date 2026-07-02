@@ -13,6 +13,8 @@ export const PROVIDER_ENDPOINTS = {
   "kimi-coding-apikey": "https://api.kimi.com/coding/v1/messages",
   minimax: "https://api.minimax.io/anthropic/v1/messages",
   "minimax-cn": "https://api.minimaxi.com/anthropic/v1/messages",
+  astraflow: "https://api-us-ca.umodelverse.ai/v1/chat/completions",
+  "astraflow-cn": "https://api.modelverse.cn/v1/chat/completions",
   crof: "https://crof.ai/v1/chat/completions",
   zenmux: "https://zenmux.ai/api/v1/chat/completions",
   openadapter: "https://api.openadapter.in/v1/chat/completions",

@@ -8,7 +8,7 @@
 
 ### ✨ New Features
 
-_TBD_
+- **feat(providers):** add Astraflow (UCloud) as an OpenAI-compatible (API-key) provider with global and China endpoints. (thanks @ucloudnb666)
 
 ### 🔧 Bug Fixes
 
