@@ -1,13 +1,13 @@
 ---
 title: "Embedded Services"
-description: "Reference for 9Router and CLIProxyAPI"
+description: "Reference for 9Router, CLIProxyAPI, and Bifrost"
 ---
 
 # Embedded Services
 
-> **Version:** v3.8.4
-> **Last updated:** 2026-06-28
-> **Audience:** Engineers adding, maintaining, or debugging embedded services (9Router, CLIProxyAPI).
+> **Version:** v3.8.43
+> **Last updated:** 2026-07-01
+> **Audience:** Engineers adding, maintaining, or debugging embedded services (9Router, CLIProxyAPI, Bifrost).
 
 Embedded services are locally-installed process sidecar tools that OmniRoute installs, supervises, and
 exposes as first-class routing targets. Unlike external providers (which are reached over the internet
@@ -32,18 +32,19 @@ via API keys), embedded services run on the same machine as OmniRoute and commun
 
 ### Why embedded services?
 
-Two services are embedded as of v3.8.4:
+Three services are embedded as of v3.8.43:
 
 | Service         | npm package                                    | Default port | Purpose                                                                                              |
 | --------------- | ---------------------------------------------- | :----------: | ---------------------------------------------------------------------------------------------------- |
 | **9Router**     | `9router`                                      |    20130     | AI router that OmniRoute can use as a sub-provider. Models exposed as `9router/{sub}/{model}`        |
 | **CLIProxyAPI** | `@anthropic/cli-proxy` (via `cliproxy` binary) |     auto     | Local proxy adapter for Anthropic CLI auth flows. Provides fallback routing when OAuth tokens expire |
+| **Bifrost**     | `@maximhq/bifrost`                             |    8080      | Go AI-gateway relay backend. When running, auto-selected by the relay route (`/v1/relay/`)           |
 
-Both follow the same supervisory model:
+All follow the same supervisory model:
 
 - OmniRoute installs them under `DATA_DIR/services/{name}/` (isolated from OmniRoute's own `package.json`)
 - OmniRoute spawns and monitors them as child processes
-- OmniRoute injects an ephemeral API key into the child's environment and rotates it without downtime
+- OmniRoute injects an ephemeral API key into the child's environment and rotates it without downtime (where applicable)
 - All management routes (`/api/services/*`) are **LOCAL_ONLY** — accessible only from loopback (hard rule #17)
 
 ### Key decisions (from design plan)
@@ -434,12 +435,36 @@ config) and `status` includes fewer fields.
 | `GET`  | `/api/services/cliproxy/status`     | Live + DB status (no `apiKeyMasked`) |
 | `POST` | `/api/services/cliproxy/auto-start` | Toggle auto-start                    |
 
-The shared `GET /api/services/{name}/logs` endpoint (see §4.1) works for both
+The shared `GET /api/services/{name}/logs` endpoint (see §4.1) works for all
 services using the `[name]` dynamic segment.
 
 ---
 
-### 4.3 Reverse proxy (9Router dashboard embed)
+### 4.3 Bifrost endpoints (7 routes)
+
+Bifrost is a Go AI-gateway relay backend (`@maximhq/bifrost`). It uses the same
+endpoint shape as CLIProxyAPI (no `rotate-key` — Bifrost manages its own provider
+keys in `config.json` under its `-app-dir`).
+
+| Method | Path                               | Description                                            |
+| ------ | ---------------------------------- | ------------------------------------------------------ |
+| `POST` | `/api/services/bifrost/install`    | Install Bifrost from npm (`@maximhq/bifrost`)          |
+| `POST` | `/api/services/bifrost/start`      | Start Bifrost on port 8080 (default)                   |
+| `POST` | `/api/services/bifrost/stop`       | Stop Bifrost                                           |
+| `POST` | `/api/services/bifrost/restart`    | Restart Bifrost                                        |
+| `POST` | `/api/services/bifrost/update`     | Update to newer version                                |
+| `GET`  | `/api/services/bifrost/status`     | Live + DB status                                       |
+| `POST` | `/api/services/bifrost/auto-start` | Toggle auto-start                                      |
+| `GET`  | `/api/services/bifrost/logs`       | SSE log tail (via shared `[name]/logs` dynamic route)  |
+
+**Routing wiring:** When `BIFROST_BASE_URL` is unset and the supervised Bifrost
+instance is running, `getBifrostRoutingConfig()` (in `routingBackend.ts`) automatically
+uses `http://127.0.0.1:{port}` as the relay base URL. Explicit `BIFROST_BASE_URL` env
+always takes precedence.
+
+---
+
+### 4.4 Reverse proxy (9Router dashboard embed)
 
 The dashboard embeds the 9Router web UI inside an iframe via an internal reverse
 proxy at:

@@ -3444,6 +3444,116 @@ paths:
         "400":
           description: Invalid request body
 
+  /api/services/bifrost/install:
+    post:
+      tags: [Embedded Services]
+      summary: Install Bifrost
+      description: >-
+        Installs the `@maximhq/bifrost` npm package under DATA_DIR/services/bifrost/.
+        The package downloads the Go binary on first run. Accepts an optional `version`
+        field (semver or `latest`). **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+      responses:
+        "200":
+          description: Installation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  installedVersion:
+                    type: string
+                  installPath:
+                    type: string
+                  durationMs:
+                    type: number
+
+  /api/services/bifrost/start:
+    post:
+      tags: [Embedded Services]
+      summary: Start Bifrost
+      description: Starts the supervised Bifrost process. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service status after start
+        "409":
+          description: Bifrost is not installed
+
+  /api/services/bifrost/stop:
+    post:
+      tags: [Embedded Services]
+      summary: Stop Bifrost
+      description: Stops the supervised Bifrost process. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service status after stop
+
+  /api/services/bifrost/restart:
+    post:
+      tags: [Embedded Services]
+      summary: Restart Bifrost
+      description: Restarts the supervised Bifrost process. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service status after restart
+        "409":
+          description: Bifrost is not installed
+
+  /api/services/bifrost/update:
+    post:
+      tags: [Embedded Services]
+      summary: Update Bifrost
+      description: >-
+        Updates Bifrost to the latest npm version. Stops the running process,
+        installs the new version, and restarts if it was previously running.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Update result
+
+  /api/services/bifrost/status:
+    get:
+      tags: [Embedded Services]
+      summary: Get Bifrost status
+      description: Returns live and DB status for the supervised Bifrost service. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Bifrost service status
+
+  /api/services/bifrost/auto-start:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle Bifrost auto-start
+      description: >-
+        When enabled, Bifrost starts automatically on the next OmniRoute boot.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "204":
+          description: Auto-start flag updated
+        "400":
+          description: Invalid request body
+
   /api/services/{name}/logs:
     get:
       tags: [Embedded Services]
@@ -3459,7 +3569,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [9router, cliproxy]
+            enum: [9router, cliproxy, bifrost]
         - name: tail
           in: query
           schema:

@@ -4,12 +4,14 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { cn } from "@/shared/utils/cn";
 import { CliproxyServiceTab } from "./tabs/CliproxyServiceTab";
 import { NinerouterServiceTab } from "./tabs/NinerouterServiceTab";
+import { BifrostServiceTab } from "./tabs/BifrostServiceTab";
 
-type Tab = "cliproxy" | "9router";
+type Tab = "cliproxy" | "9router" | "bifrost";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "cliproxy", label: "CLIProxyAPI", icon: "swap_horiz" },
   { id: "9router", label: "9Router", icon: "route" },
+  { id: "bifrost", label: "Bifrost", icon: "bolt" },
 ];
 
 export default function ServicesPage() {
@@ -26,7 +28,7 @@ export default function ServicesPage() {
       <header>
         <h1 className="text-xl font-semibold text-text-primary">Embedded Services</h1>
         <p className="text-sm text-text-muted mt-1">
-          External engines managed on demand — CLIProxyAPI and 9Router. Accessible on loopback only.
+          External engines managed on demand — CLIProxyAPI, 9Router, and Bifrost. Accessible on loopback only.
         </p>
       </header>
 
@@ -55,6 +57,7 @@ export default function ServicesPage() {
       <div>
         {active === "cliproxy" && <CliproxyServiceTab />}
         {active === "9router" && <NinerouterServiceTab />}
+        {active === "bifrost" && <BifrostServiceTab />}
       </div>
     </div>
   );
