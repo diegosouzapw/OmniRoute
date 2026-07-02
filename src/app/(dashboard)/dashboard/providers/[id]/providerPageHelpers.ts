@@ -743,6 +743,23 @@ export function compatProtocolLabelKey(protocol: string): string {
   return "compatProtocolOpenAI";
 }
 
+/**
+ * #5446 — Modal authenticates with two credentials, a Token ID (`ak-…`) and a
+ * Token Secret (`as-…`), sent as `Authorization: Bearer <TOKEN_ID>:<TOKEN_SECRET>`.
+ * The add-connection form collects them in two fields and combines them here into
+ * the single encrypted `apiKey` value, so the generic bearer executor path emits
+ * `Bearer <id:secret>` with no provider-specific header code. When only the id
+ * field is filled, it is returned verbatim so users can still paste a pre-combined
+ * `id:secret` string into the single field.
+ */
+export function combineModalCredential(tokenId: string, tokenSecret: string): string {
+  const id = tokenId.trim();
+  const secret = tokenSecret.trim();
+  if (!secret) return id;
+  if (!id) return secret;
+  return `${id}:${secret}`;
+}
+
 export function extractCommandCodeCredentialInput(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return "";

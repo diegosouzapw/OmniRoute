@@ -18,6 +18,7 @@ import {
   getLocalProviderMetadata,
   normalizeAndValidateHttpBaseUrl,
   extractCommandCodeCredentialInput,
+  combineModalCredential,
   providerText,
   validationBadgeProps,
   type CommandCodeAuthFlowState,
@@ -72,6 +73,7 @@ export default function AddApiKeyModal({
   const isBedrock = provider === "bedrock";
   const showsRegion = isVertex || isBedrock;
   const defaultRegion = isBedrock ? "eu-west-2" : "us-central1";
+  const isModal = provider === "modal";
   const isGlm = isGlmProvider(provider);
   const isQoder = provider === "qoder";
   const openRouterPreset = useOpenRouterPresetControl(provider, t);
@@ -100,6 +102,7 @@ export default function AddApiKeyModal({
   const [formData, setFormData] = useState({
     name: "main", // #5421: required field; default resists autofill garbage (was "" → "wiw")
     apiKey: "",
+    tokenSecret: "", // #5446 — Modal Token Secret (joined with apiKey as id:secret)
     defaultModel: "",
     priority: 1,
     baseUrl: initialBaseUrl || defaultBaseUrl,
@@ -146,33 +149,43 @@ export default function AddApiKeyModal({
     errors: Array<{ index: number; name: string; message: string }>;
   } | null>(null);
   const [bulkWarnings, setBulkWarnings] = useState<string[]>([]);
-  const apiCredentialLabel = isQoder
-    ? t("personalAccessTokenLabel")
-    : webSessionCredential
-      ? getWebSessionCredentialLabel(t, webSessionCredential, apiKeyOptional)
-      : apiKeyOptional
-        ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
-        : t("apiKeyLabel");
-  const apiCredentialPlaceholder = isVertex
-    ? t("vertexServiceAccountPlaceholder")
-    : isWebSessionCredential
-      ? webSessionCredential.placeholder
-      : isQoder
-        ? t("qoderPatPlaceholder")
+  const apiCredentialLabel = isModal
+    ? providerText(t, "modalTokenIdLabel", "Token ID")
+    : isQoder
+      ? t("personalAccessTokenLabel")
+      : webSessionCredential
+        ? getWebSessionCredentialLabel(t, webSessionCredential, apiKeyOptional)
         : apiKeyOptional
-          ? t("optional")
-          : undefined;
-  const apiCredentialHint = isQoder
-    ? t("qoderPatHint")
-    : isWebSessionCredential
-      ? getWebSessionCredentialHint(t, webSessionCredential, providerDisplayName, false)
-      : isLocalSelfHostedProvider
-        ? t("localProviderApiKeyOptionalHint", {
-            provider: localProviderMetadata?.name || providerName || provider || "",
-          })
-        : apiKeyOptional
-          ? t("apiKeyOptionalHint")
-          : undefined;
+          ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
+          : t("apiKeyLabel");
+  const apiCredentialPlaceholder = isModal
+    ? "ak-xxxxxxxxxxxxxxxx"
+    : isVertex
+      ? t("vertexServiceAccountPlaceholder")
+      : isWebSessionCredential
+        ? webSessionCredential.placeholder
+        : isQoder
+          ? t("qoderPatPlaceholder")
+          : apiKeyOptional
+            ? t("optional")
+            : undefined;
+  const apiCredentialHint = isModal
+    ? providerText(
+        t,
+        "modalTokenIdHint",
+        "Modal auth uses a Token ID + Token Secret pair. Create one at https://modal.com/settings → API Tokens."
+      )
+    : isQoder
+      ? t("qoderPatHint")
+      : isWebSessionCredential
+        ? getWebSessionCredentialHint(t, webSessionCredential, providerDisplayName, false)
+        : isLocalSelfHostedProvider
+          ? t("localProviderApiKeyOptionalHint", {
+              provider: localProviderMetadata?.name || providerName || provider || "",
+            })
+          : apiKeyOptional
+            ? t("apiKeyOptionalHint")
+            : undefined;
   const credentialValidationFailedMessage = isWebSessionCredential
     ? providerText(
         t,
@@ -181,13 +194,20 @@ export default function AddApiKeyModal({
       )
     : t("apiKeyValidationFailed");
 
+  // Normalize the raw credential field(s) into the single value stored as `apiKey`.
+  // command-code providers extract a key from a pasted blob (#5088); Modal joins its
+  // Token ID + Token Secret into `id:secret` (#5446); everyone else uses the field verbatim.
+  const resolveCredentialInput = () => {
+    if (isCommandCode) return extractCommandCodeCredentialInput(formData.apiKey);
+    if (isModal) return combineModalCredential(formData.apiKey, formData.tokenSecret);
+    return formData.apiKey;
+  };
+
   const handleValidate = async () => {
     setValidating(true);
     setSaveError(null);
     try {
-      const credentialInput = isCommandCode
-        ? extractCommandCodeCredentialInput(formData.apiKey)
-        : formData.apiKey;
+      const credentialInput = resolveCredentialInput();
       const res = await fetch("/api/providers/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -228,9 +248,7 @@ export default function AddApiKeyModal({
   };
 
   const handleSubmit = async () => {
-    const credentialInput = isCommandCode
-      ? extractCommandCodeCredentialInput(formData.apiKey)
-      : formData.apiKey;
+    const credentialInput = resolveCredentialInput();
     if (!provider || (!isCompatible && !apiKeyOptional && !credentialInput)) return;
 
     setSaving(true);
@@ -664,6 +682,23 @@ export default function AddApiKeyModal({
                   </Button>
                 </div>
               </div>
+            )}
+            {isModal && (
+              <Input
+                label={providerText(t, "modalTokenSecretLabel", "Token Secret")}
+                type="password"
+                value={formData.tokenSecret}
+                onChange={(e) => setFormData({ ...formData, tokenSecret: e.target.value })}
+                placeholder="as-xxxxxxxxxxxxxxxx"
+                hint={providerText(
+                  t,
+                  "modalTokenSecretHint",
+                  "Paired with the Token ID above; combined as Bearer <id>:<secret>."
+                )}
+                autoComplete="off"
+                spellCheck={false}
+                autoCapitalize="off"
+              />
             )}
             {isGooglePse && (
               <Input
