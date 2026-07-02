@@ -1,0 +1,38 @@
+name: Pillar Drift Report
+description: Report a new pillar requirement that has emerged since the last cycle, or flag an existing pillar whose definition has drifted.
+title: "[pillar-drift] "
+labels: ["pillar-drift", "governance"]
+body:
+  - type: dropdown
+    id: drift-type
+    attributes:
+      label: Drift type
+      description: What kind of drift is this?
+      options:
+        - New pillar emerged (no existing pillar covers this concern)
+        - Existing pillar definition changed
+        - Pillar no longer applicable (deprecate)
+        - Pillar scope creep (needs splitting)
+    validations:
+      required: true
+  - type: input
+    id: pillar-id
+    attributes:
+      label: Proposed pillar ID (e.g. L72.1)
+      description: The pillar number per the 71-pillar audit schema (L1-L86)
+    validations:
+      required: false
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What is the new/changed/deprecated pillar, and why?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Links to incidents, ADRs, worklogs, or findings that motivate this drift report.
+    validations:
+      required: false

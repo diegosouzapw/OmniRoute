@@ -1,0 +1,16 @@
+name: cyclonedx-weekly
+on:
+  schedule: [{cron: '0 6 * * 1'}]
+  workflow_dispatch: {}
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - run: cargo install cargo-cyclonedx
+      - run: cargo cyclonedx --all --format json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: "*.cdx.json"
