@@ -1520,7 +1520,16 @@ export async function getProviderCredentials(
         const current = byRecency[0];
         const currentCount = current?.consecutiveUseCount || 0;
 
-        if (current && current.lastUsedAt && currentCount < stickyLimit) {
+        // Bypassing sticky limit if we are establishing a new session affinity
+        // so that new sessions distribute evenly instead of clumping on one connection.
+        const establishingNewSession = Boolean(options.sessionKey && sessionAffinityTtlMs > 0);
+
+        if (
+          !establishingNewSession &&
+          current &&
+          current.lastUsedAt &&
+          currentCount < stickyLimit
+        ) {
           // Stay with current account
           connection = current;
           log.debug(
