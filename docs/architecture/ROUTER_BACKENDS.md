@@ -1,3 +1,9 @@
+---
+title: "Router Backends & Embedded Services (ADR)"
+version: 3.8.43
+lastUpdated: 2026-07-02
+---
+
 # Router Backends & Embedded Services — architecture contract (ADR)
 
 > **Status:** Accepted · **Context:** [#5670](https://github.com/diegosouzapw/OmniRoute/issues/5670),
