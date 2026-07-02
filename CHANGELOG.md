@@ -8,7 +8,7 @@
 
 ### ✨ New Features
 
-_TBD_
+- **feat(oauth):** import a ChatGPT/Codex connection from a raw access token (no refresh token required). (thanks @ryanngit)
 
 ### 🔧 Bug Fixes
 
