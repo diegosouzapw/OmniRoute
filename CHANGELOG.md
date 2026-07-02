@@ -12,7 +12,7 @@ _TBD_
 
 ### 🔧 Bug Fixes
 
-_TBD_
+- **fix(translator):** antigravity→openai request now emits Anthropic-compliant content blocks — drops empty text blocks and preserves tool calls/text co-located with tool results. (thanks @SahrulRamadhanHardiansyah)
 
 ### 📝 Maintenance
 
