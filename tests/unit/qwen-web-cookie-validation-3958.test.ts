@@ -34,7 +34,9 @@ test("qwen-web validation is VALID when /api/v1/auths/ returns a top-level user 
   let probedUrl = "";
   globalThis.fetch = (async (url: any) => {
     probedUrl = String(url);
-    return jsonResponse(JSON.stringify({ id: "u-1", email: "tester@example.com", name: "tester", role: "user" }));
+    return jsonResponse(
+      JSON.stringify({ id: "u-1234567", email: "tester@example.com", name: "tester", role: "user" })
+    );
   }) as typeof fetch;
 
   const result = await validateProviderApiKey({ provider: "qwen-web", apiKey: "qwen-token-abc123" });
