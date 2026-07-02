@@ -12,7 +12,7 @@
  */
 
 import { deleteProxyById, listProxies, updateProxy } from "@/lib/localDb";
-import { createProxyDispatcher } from "@omniroute/open-sse/utils/proxyDispatcher";
+import { createProxyDispatcher, clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
 import { fetch as undiciFetch } from "undici";
 
 const TEST_TIMEOUT_MS = 5000;
@@ -67,9 +67,9 @@ function isBackgroundServicesDisabled(): boolean {
 
 async function testOneProxy(proxy: { id: string; type: string; host: string; port: number }): Promise<boolean> {
   const proxyUrl = `${proxy.type}://${proxy.host}:${proxy.port}`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), TEST_TIMEOUT_MS);
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), TEST_TIMEOUT_MS);
     const dispatcher = createProxyDispatcher(proxyUrl);
     const resp = await undiciFetch(TEST_URL, {
       method: "HEAD",
@@ -77,10 +77,11 @@ async function testOneProxy(proxy: { id: string; type: string; host: string; por
       dispatcher,
       headers: { "User-Agent": "OmniRoute/1.0" },
     });
-    clearTimeout(timeout);
     return resp.status < 500;
   } catch {
     return false;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -123,6 +124,7 @@ async function sweep(): Promise<void> {
           if (await deleteProxyById(id, { force: true }).catch(() => false)) {
             failureMap.delete(id);
             removed++;
+            try { clearDispatcherCache(); } catch { /* non-critical */ }
           }
         }
       }

@@ -24,17 +24,21 @@ async function testSingleProxy(proxy: { id: string; type: string; host: string; 
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), TEST_TIMEOUT_MS);
-    const dispatcher = createProxyDispatcher(proxyUrl);
-    const resp = await undiciFetch(TEST_URL, {
-      method: "HEAD",
-      signal: controller.signal,
-      dispatcher,
-      headers: { "User-Agent": "OmniRoute/1.0" },
-    });
-    clearTimeout(timeout);
-    const latencyMs = Date.now() - start;
-    await updateProxy(proxy.id, { status: alive ? "active" : "inactive" }).catch(() => {});
-    return { proxyId: proxy.id, host: proxy.host, port: proxy.port, alive, latencyMs };
+    try {
+      const dispatcher = createProxyDispatcher(proxyUrl);
+      const resp = await undiciFetch(TEST_URL, {
+        method: "HEAD",
+        signal: controller.signal,
+        dispatcher,
+        headers: { "User-Agent": "OmniRoute/1.0" },
+      });
+      const latencyMs = Date.now() - start;
+      const alive = resp.status < 500;
+      await updateProxy(proxy.id, { status: alive ? "active" : "inactive" }).catch(() => {});
+      return { proxyId: proxy.id, host: proxy.host, port: proxy.port, alive, latencyMs };
+    } finally {
+      clearTimeout(timeout);
+    }
   } catch (err) {
     const latencyMs = Date.now() - start;
     await updateProxy(proxy.id, { status: "inactive" }).catch(() => {});

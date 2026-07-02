@@ -707,7 +707,7 @@ export default function ProxyRegistryManager() {
             </Button>
             {selectedIds.size > 0 && (
               <>
-                <span className="text-xs text-text-muted">{selectedIds.size} selected</span>
+                <span className="text-xs text-text-muted">{t("batchSelectedCount", { count: selectedIds.size })}</span>
                 <Button
                   size="sm"
                   variant="secondary"
@@ -717,7 +717,7 @@ export default function ProxyRegistryManager() {
                   className="!text-red-400 !border-red-500/30"
                   data-testid="proxy-registry-batch-delete"
                 >
-                  {`Delete ${selectedIds.size} selected`}
+                  {t("batchDeleteSelected", { count: selectedIds.size })}
                 </Button>
               </>
             )}
@@ -818,7 +818,7 @@ export default function ProxyRegistryManager() {
                           {testById[item.id] ? (
                             testById[item.id]!.success ? (
                               <>
-                                <span className="text-emerald-400">✓ OK</span>
+                                <span className="text-emerald-400">{t("testPassed")}</span>
                                 {testById[item.id]!.latencyMs && (
                                   <span className={
                                     testById[item.id]!.latencyMs! < 1000 ? "text-emerald-400" :

@@ -7798,7 +7798,10 @@
     "clearAssignment": "(clear assignment)",
     "bulkProxyAssignment": "Bulk Proxy Assignment",
     "testAll": "Test All",
-    "errorTestFailed": "Failed to test proxies"
+    "errorTestFailed": "Failed to test proxies",
+    "batchSelectedCount": "{count} selected",
+    "batchDeleteSelected": "Delete {count} selected",
+    "testPassed": "✓ OK"
   },
   "playground": {
     "title": "Model Playground",

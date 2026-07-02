@@ -2,8 +2,8 @@
 #  OmniRoute — Docker Compose (Production)
 # ──────────────────────────────────────────────────────────────────────
 #
-#  Production instance on port 20128. Uses runner-web target for
-#  web-cookie providers (gemini-web, claude-web).
+#  Production instance on port 20128. Uses runner-base target.
+#  Set OMNIROUTE_DATA_DIR env var to your data directory (default: ~/.omniroute).
 #
 #  Usage:
 #    docker compose -f docker-compose.prod.yml up -d --build
@@ -46,7 +46,7 @@ services:
     ports:
       - "20128:20128"
     volumes:
-      - /home/openclaw/.omniroute:/app/data
+      - ${OMNIROUTE_DATA_DIR:-~/.omniroute}:/app/data
     healthcheck:
       test: ["CMD", "node", "healthcheck.mjs"]
       interval: 30s
