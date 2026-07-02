@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- **feat(usage):** add on-demand, period-scoped reset of usage analytics (5m…30d or all) from Settings → Storage. (thanks @teddytkz)
+
 ---
 
 ## [3.8.43] — 2026-07-02
