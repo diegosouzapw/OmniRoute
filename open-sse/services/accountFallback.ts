@@ -1036,6 +1036,44 @@ function parseDelayString(value: unknown): number | null {
 }
 
 /**
+ * Upstream PR #879: parse a Retry-After hint from a 429 response's JSON
+ * body — either a bare ISO 8601 timestamp (`retryAfter`) or an explicit
+ * millisecond duration (`retry_after_ms` / `retryAfterMs`). Fields may live
+ * at the top level or nested under `error`. Returns null when the body
+ * isn't JSON, has neither field, or the parsed value doesn't yield a
+ * positive future duration.
+ */
+function parseRetryHintFromJsonBody(msg: string): number | null {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(msg);
+  } catch {
+    return null;
+  }
+  if (!parsed || typeof parsed !== "object") return null;
+
+  const root = parsed as Record<string, unknown>;
+  const errorObj =
+    root.error && typeof root.error === "object" ? (root.error as Record<string, unknown>) : {};
+
+  const isoValue = errorObj.retryAfter ?? root.retryAfter;
+  if (typeof isoValue === "string") {
+    const parsedTs = Date.parse(isoValue);
+    if (Number.isFinite(parsedTs)) {
+      const waitMs = parsedTs - Date.now();
+      if (waitMs > 0) return Math.min(waitMs, MAX_PROVIDER_COOLDOWN_MS);
+    }
+  }
+
+  const msValue = errorObj.retry_after_ms ?? root.retry_after_ms ?? root.retryAfterMs;
+  if (typeof msValue === "number" && Number.isFinite(msValue) && msValue > 0) {
+    return Math.min(msValue, MAX_PROVIDER_COOLDOWN_MS);
+  }
+
+  return null;
+}
+
+/**
  * T07: Parse retry time from error text body with combined "XhYmZs" format.
  * Examples: "Your quota will reset after 2h30m14s", "reset after 45m", "reset after 30s"
  * Returns milliseconds or null if not parseable.
@@ -1046,6 +1084,14 @@ function parseDelayString(value: unknown): number | null {
 export function parseRetryFromErrorText(errorText: unknown): number | null {
   if (!errorText || typeof errorText !== "string") return null;
   const msg: string = String(errorText);
+
+  // Upstream PR #879: some providers surface the retry hint as structured
+  // fields on the 429 JSON body instead of (or in addition to) an HTTP
+  // header or prose text, e.g. `{"error":{"retryAfter":"<ISO>"}}` or
+  // `{"retry_after_ms":45000}`. Try that first — cheap to attempt and,
+  // when present, more precise than regex-matching prose.
+  const bodyHintMs = parseRetryHintFromJsonBody(msg);
+  if (bodyHintMs !== null) return bodyHintMs;
 
   // Issue #2321: Anthropic OAuth occasionally embeds an absolute ISO 8601
   // timestamp instead of a relative duration (e.g. "Try again at
