@@ -1117,7 +1117,9 @@
     "dragReorderItem": "Drag to reorder",
     "cannotHide": "This item cannot be hidden",
     "alwaysVisible": "Always visible",
-    "groupSeparatorLabel": "Separator"
+    "groupSeparatorLabel": "Separator",
+    "discovery": "Discovery",
+    "discoverySubtitle": "Scan providers for free access"
   },
   "webhooks": {
     "title": "Webhooks",
@@ -4686,7 +4688,7 @@
     "totalKeysRotating": "{count, plural, one {1 key rotating} other {# keys rotating}}",
     "unhideModel": "Unhide Model",
     "upstreamProxyProviders": "Upstream Proxy Providers",
-    "validationModelIdHint": "Model used to verify the API key. Leave blank to use the provider\u2019s first available model.",
+    "validationModelIdHint": "Model used to verify the API key. Leave blank to use the provider’s first available model.",
     "validationModelIdLabel": "Validation Model",
     "validationModelIdPlaceholder": "e.g. meta-llama/llama-3.1-8b-instruct",
     "vertexServiceAccountPlaceholder": "Paste your Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) or an OAuth access_token",
@@ -8991,5 +8993,30 @@
     "colAvgScore": "Avg Score",
     "colModels": "Models",
     "colType": "Type"
+  },
+  "discovery": {
+    "title": "Provider Discovery",
+    "subtitle": "Scan providers for free/unlimited access methods and review findings. Opt-in, local-only.",
+    "scanLabel": "Provider to scan",
+    "scanPlaceholder": "e.g. huggingchat",
+    "scan": "Scan",
+    "scanning": "Scanning…",
+    "scanQueued": "Scan complete for {provider}.",
+    "scanFailed": "Scan failed.",
+    "loadFailed": "Failed to load discovery results.",
+    "localOnlyNote": "This tool is local-only (loopback). Scans run from this machine and are never reachable remotely.",
+    "verify": "Verify",
+    "verifyFailed": "Failed to verify finding.",
+    "delete": "Delete",
+    "deleteFailed": "Failed to delete finding.",
+    "deleteTitle": "Delete discovery result",
+    "deleteConfirm": "Delete the discovery finding for {provider}? This cannot be undone.",
+    "emptyTitle": "No discovery results yet",
+    "emptyDescription": "Run a scan above to look for free access methods on a provider.",
+    "risk": "Risk",
+    "method": "Method",
+    "auth": "Auth",
+    "feasibility": "Feasibility",
+    "models": "Models"
   }
 }
