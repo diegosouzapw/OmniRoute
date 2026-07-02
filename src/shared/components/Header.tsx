@@ -15,6 +15,7 @@ import TokenHealthBadge from "./TokenHealthBadge";
 import DegradationBadge from "./DegradationBadge";
 import LanguageSelector from "./LanguageSelector";
 import ProviderIcon from "./ProviderIcon";
+import NewsTicker from "./NewsTicker";
 import { useTranslations } from "next-intl";
 import {
   OAUTH_PROVIDERS,
@@ -239,6 +240,8 @@ export default function Header({
           </div>
         )}
       </div>
+
+      {pathname === "/home" && <NewsTicker />}
 
       {/* Right actions */}
       <div className="flex items-center gap-3 ml-auto">

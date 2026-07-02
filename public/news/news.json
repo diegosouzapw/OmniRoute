@@ -1,0 +1,20 @@
+[
+  {
+    "id": "course",
+    "text": {
+      "pt-BR": "Curso Omniroute com Diego Souza: Aprenda e seja expert em omniroute",
+      "pt": "Curso Omniroute com Diego Souza: Aprenda e seja expert em omniroute",
+      "en": "Omniroute Course with Diego Souza: Learn and be an omniroute expert"
+    },
+    "link": "https://course.mundoautomaik.com"
+  },
+  {
+    "id": "whatsapp",
+    "text": {
+      "pt-BR": "Grupo Whatsapp Omnirouter Brazil",
+      "pt": "Grupo Whatsapp Omnirouter Brazil",
+      "en": "Omnirouter Brazil WhatsApp Group"
+    },
+    "link": "https://chat.whatsapp.com/BTGJXIyjeNIIgExvTMGGhI"
+  }
+]
