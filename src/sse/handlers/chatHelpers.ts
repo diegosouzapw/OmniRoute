@@ -22,8 +22,10 @@ import {
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import {
   runWithProxyContext,
+  runWithAppliedProxyCapture,
   runWithTlsTracking,
   isTlsFingerprintActive,
+  type AppliedProxySink,
 } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { resolveProxyForConnection } from "@/lib/localDb";
 import {
@@ -363,6 +365,7 @@ export async function executeChatWithBreaker({
   model,
   refreshedCredentials,
   proxyInfo,
+  appliedProxySink,
   log: handlerLog,
   clientRawRequest,
   credentials,
@@ -379,6 +382,7 @@ export async function executeChatWithBreaker({
   cachedSettings,
   skipUpstreamRetry = false,
   trafficType = "production",
+  correlationId = null,
 }: ExecuteChatWithBreakerOptions): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
   let tlsFingerprintUsed = false;
   const normalizedTrafficType: TrafficType =
@@ -387,8 +391,15 @@ export async function executeChatWithBreaker({
       : "production";
   const isShadowTraffic = normalizedTrafficType === "shadow";
 
+  // #5217: capture the proxy actually applied during execution so the caller can
+  // merge it into proxyInfo before the egress log (executors pinning a per-account
+  // proxy internally otherwise leave the egress log reading "direct").
+  const capture = <T>(fn: () => T): T =>
+    appliedProxySink ? runWithAppliedProxyCapture(appliedProxySink, fn) : fn();
+
   try {
     const chatFn = () =>
+      capture(() =>
       runWithProxyContext(proxyInfo?.proxy || null, () =>
         (handleChatCore as any)({
           body: { ...body, model: `${provider}/${model}` },
@@ -407,6 +418,7 @@ export async function executeChatWithBreaker({
           cachedSettings,
           skipUpstreamRetry,
           trafficType: normalizedTrafficType,
+          correlationId,
           onCredentialsRefreshed: async (newCreds: any) => {
             await updateProviderCredentials(credentials.connectionId, {
               accessToken: newCreds.accessToken,
@@ -462,6 +474,7 @@ export async function executeChatWithBreaker({
             );
           },
         })
+      )
       );
 
     if (isShadowTraffic) {
@@ -677,6 +690,26 @@ export async function safeResolveProxy(connectionId: string, apiKeyId?: string) 
   }
 }
 
+/**
+ * #5217: merge a proxy the executor applied internally (captured via
+ * AppliedProxySink) into the pre-execution proxyInfo so the egress logger reflects
+ * the real egress. No applied proxy → proxyInfo unchanged. A pre-existing
+ * non-direct level is preserved; otherwise reported as "account" (per-account
+ * proxy, e.g. OpenCode rotation). Pure + unit-testable.
+ */
+export function applyExecutorProxyToInfo(
+  proxyInfo: { proxy?: unknown; level?: string; levelId?: string | null } | null | undefined,
+  appliedProxy: unknown
+) {
+  if (!appliedProxy) return proxyInfo;
+  const priorLevel = proxyInfo?.level;
+  return {
+    ...(proxyInfo || {}),
+    proxy: appliedProxy,
+    level: priorLevel && priorLevel !== "direct" ? priorLevel : "account",
+  };
+}
+
 // Async because the egress-IP lookup lazy-imports proxyEgress; callers treat
 // this as fire-and-forget logging (the internal try/catch swallows everything).
 export async function safeLogEvents({
@@ -766,6 +799,23 @@ export function withSessionHeader(response: Response, sessionId: string | null):
       headers: response.headers,
     });
     cloned.headers.set("X-OmniRoute-Session-Id", sessionId);
+    return cloned;
+  }
+}
+
+export function withCorrelationId(response: Response, correlationId: string | null): Response {
+  if (!response || !correlationId) return response;
+
+  try {
+    response.headers.set("X-Correlation-Id", correlationId);
+    return response;
+  } catch {
+    const cloned = new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+    cloned.headers.set("X-Correlation-Id", correlationId);
     return cloned;
   }
 }

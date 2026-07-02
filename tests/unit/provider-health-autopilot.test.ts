@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { NextRequest } from "next/server";
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-health-autopilot-"));
@@ -19,6 +20,7 @@ const autopilot = await import("../../src/lib/monitoring/providerHealthAutopilot
 const actionsRoute = await import("../../src/app/api/providers/health-autopilot/actions/route.ts");
 const reportRoute = await import("../../src/app/api/providers/health-autopilot/route.ts");
 const routeGuard = await import("../../src/server/authz/routeGuard.ts");
+const authzPipeline = await import("../../src/server/authz/pipeline.ts");
 const accountFallback = await import("@omniroute/open-sse/services/accountFallback");
 
 const PROVIDER = "autopilot-test-provider";
@@ -173,6 +175,12 @@ test("provider health autopilot action clears cooldown with stale-state protecti
 });
 
 test("provider health autopilot action rejects cross-site mutations", async () => {
+  // Cross-site origin validation for browser mutations is centralized in the authz
+  // pipeline (#5278): the per-route same-origin check was removed from the actions
+  // handler and is now enforced by validateBrowserMutationOrigin inside runAuthzPipeline
+  // for MANAGEMENT routes with an unsafe method + dashboard session. Drive the request
+  // through the pipeline (the real enforcement point) and assert it is blocked with 403
+  // before the route runs, leaving the connection untouched.
   await enableManagementAuth();
   const connection = await createCooldownConnection();
   const report = await autopilot.buildProviderHealthAutopilotReport({
@@ -182,8 +190,9 @@ test("provider health autopilot action rejects cross-site mutations", async () =
   const action = findAction(report, "clear_connection_cooldown");
   assert.ok(action);
 
-  const response = await actionsRoute.POST(
-    await makeManagementSessionRequest("http://localhost/api/providers/health-autopilot/actions", {
+  const rawRequest = await makeManagementSessionRequest(
+    "http://localhost/api/providers/health-autopilot/actions",
+    {
       method: "POST",
       headers: { origin: "https://evil.example", "sec-fetch-site": "cross-site" },
       body: {
@@ -192,10 +201,15 @@ test("provider health autopilot action rejects cross-site mutations", async () =
         preconditionsHash: action.preconditionsHash,
         confirm: true,
       },
-    })
+    }
   );
+  const response = await authzPipeline.runAuthzPipeline(new NextRequest(rawRequest), {
+    enforce: true,
+  });
 
   assert.equal(response.status, 403);
+  assert.equal(response.headers.get("x-omniroute-route-class"), "MANAGEMENT");
+  // The pipeline blocks before the route handler runs, so the cooldown is untouched.
   const unchanged = (await providersDb.getProviderConnectionById(String(connection.id))) as Record<
     string,
     unknown

@@ -19,10 +19,11 @@ interface GrokCliAuthInfo {
 function parseJwtPayload(token: string): {
   email: string | null;
   authInfo: GrokCliAuthInfo | null;
+  exp: number | null;
 } {
   try {
     const parts = token.split(".");
-    if (parts.length !== 3) return { email: null, authInfo: null };
+    if (parts.length !== 3) return { email: null, authInfo: null, exp: null };
 
     let base64 = parts[1];
     switch (base64.length % 4) {
@@ -45,9 +46,10 @@ function parseJwtPayload(token: string): {
         tier: payload.tier || 1,
         principal_type: payload.principal_type || "User",
       },
+      exp: typeof payload.exp === "number" ? payload.exp : null,
     };
   } catch {
-    return { email: null, authInfo: null };
+    return { email: null, authInfo: null, exp: null };
   }
 }
 
@@ -57,47 +59,96 @@ function parseJwtPayload(token: string): {
  *   - Raw JWT string (no refresh_token available)
  *   - The entire auth.json object: { "https://auth.x.ai::...": { "key": "eyJ...", "refresh_token": "..." } }
  */
-function extractTokenAndRefresh(input: any): { accessToken: string; refreshToken: string | null } {
-  if (typeof input === "string") return { accessToken: input, refreshToken: null };
+function extractTokenAndRefresh(input: unknown): {
+  accessToken: string;
+  refreshToken: string | null;
+  rawAuthJson: Record<string, unknown> | null;
+  expiresAt: string | null;
+} {
+  // Direct JWT string
+  if (typeof input === "string")
+    return { accessToken: input, refreshToken: null, rawAuthJson: null, expiresAt: null };
 
   if (input && typeof input === "object") {
-    // auth.json format: first entry's "key" and "refresh_token" fields
-    const keys = Object.keys(input);
-    if (keys.length > 0 && input[keys[0]]?.key) {
-      return {
-        accessToken: input[keys[0]].key,
-        refreshToken: input[keys[0]].refresh_token || null,
-      };
+    const obj = input as Record<string, unknown>;
+
+    // The route handler wraps the token: { accessToken: <token> }.
+    // Unwrap once before checking the inner value.
+    const inner =
+      typeof obj.accessToken === "object" && obj.accessToken !== null
+        ? (obj.accessToken as Record<string, unknown>)
+        : obj;
+
+    // auth.json format: { "https://auth.x.ai::...": { key: "eyJ...", refresh_token: "..." } }
+    if (inner && typeof inner === "object") {
+      const innerKeys = Object.keys(inner);
+      for (const k of innerKeys) {
+        const entry = inner[k];
+        if (entry && typeof entry === "object" && "key" in entry) {
+          const e = entry as Record<string, unknown>;
+          if (typeof e.key === "string" && e.key.startsWith("eyJ")) {
+            return {
+              accessToken: e.key,
+              refreshToken: typeof e.refresh_token === "string" ? e.refresh_token : null,
+              rawAuthJson: inner as Record<string, unknown>,
+              expiresAt: typeof e.expires_at === "string" ? e.expires_at : null,
+            };
+          }
+        }
+      }
     }
-    // Already has accessToken
-    if (input.accessToken) {
+
+    // Raw JWT passed as { accessToken: "eyJ..." }
+    if (typeof obj.accessToken === "string" && obj.accessToken.length > 0) {
       return {
-        accessToken: input.accessToken,
-        refreshToken: input.refreshToken || null,
+        accessToken: obj.accessToken,
+        refreshToken: typeof obj.refreshToken === "string" ? obj.refreshToken : null,
+        rawAuthJson: null,
+        expiresAt: null,
       };
     }
   }
 
-  return { accessToken: "", refreshToken: null };
+  return { accessToken: "", refreshToken: null, rawAuthJson: null, expiresAt: null };
 }
 
 export const grokCli = {
   config: GROK_CLI_CONFIG,
   flowType: "import_token",
-  mapTokens: (token: any) => {
-    const { accessToken, refreshToken } = extractTokenAndRefresh(token);
-    const { email, authInfo } = parseJwtPayload(accessToken);
+  mapTokens: (token: unknown, extra?: unknown) => {
+    const { accessToken, refreshToken, rawAuthJson, expiresAt } = extractTokenAndRefresh(token);
+    const { email, authInfo, exp } = parseJwtPayload(accessToken);
+
+    const currentSec = Math.floor(Date.now() / 1000);
+    let expiresIn = 21600;
+
+    if (expiresAt) {
+      const parsed = Date.parse(expiresAt);
+      if (!isNaN(parsed)) {
+        expiresIn = Math.floor(parsed / 1000) - currentSec;
+      }
+    } else if (typeof exp === "number" && exp > 0) {
+      expiresIn = exp - currentSec;
+    }
+
+    // #5775 follow-up: guard against an already-expired token yielding a negative
+    // expiresIn. A negative value is truthy downstream (import-token route) and maps
+    // to a PAST expiresAt, which AutoCombo reads as "already expired" and excludes the
+    // connection instead of refreshing it. Clamp to a tiny positive TTL so the token is
+    // treated as due-for-refresh.
+    expiresIn = Math.max(1, expiresIn);
 
     return {
       accessToken,
       refreshToken,
-      expiresIn: 21600,
+      expiresIn,
       email,
       providerSpecificData: {
         userId: authInfo?.user_id || null,
         teamId: authInfo?.team_id || null,
         tier: authInfo?.tier || 1,
         principalType: authInfo?.principal_type || "User",
+        rawAuthJson: rawAuthJson || undefined,
       },
     };
   },

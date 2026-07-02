@@ -1,12 +1,7 @@
 import { handleVideoGeneration } from "@omniroute/open-sse/handlers/videoGeneration.ts";
 import { resolveVideoCredentialProvider } from "@omniroute/open-sse/handlers/videoGeneration/googleFlow.ts";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
-import {
-  getProviderCredentials,
-  clearRecoveredProviderState,
-  extractApiKey,
-  isValidApiKey,
-} from "@/sse/services/auth";
+import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
 import {
   parseVideoModel,
   getAllVideoModels,
@@ -15,74 +10,47 @@ import {
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
-import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
-import { v1ImageGenerationSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import {
   isAllRateLimitedCredentials,
   rateLimitedProviderResponse,
 } from "@/app/api/v1/_shared/rateLimit";
-import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
-import { calculateModalCost } from "@/lib/usage/costCalculator";
-import { generateRequestId } from "@/shared/utils/requestId";
+import {
+  failedMediaGenerationResponse,
+  mediaGenerationModelListResponse,
+  mediaGenerationOptionsResponse,
+  promptRequiredResponse,
+  readMediaGenerationBody,
+  successfulMediaGenerationResponse,
+} from "@/app/api/v1/_shared/mediaGenerationRoute";
 
 /**
  * Handle CORS preflight
  */
 export async function OPTIONS() {
-  return new Response(null, {
-    headers: {
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "*",
-    },
-  });
+  return mediaGenerationOptionsResponse();
 }
 
 /**
  * GET /v1/videos/generations — list available video models
  */
 export async function GET() {
-  const models = getAllVideoModels();
-  return new Response(
-    JSON.stringify({
-      object: "list",
-      data: models.map((m) => ({
-        id: m.id,
-        object: "model",
-        created: Math.floor(Date.now() / 1000),
-        owned_by: m.provider,
-        type: "video",
-      })),
-    }),
-    {
-      headers: { "Content-Type": "application/json" },
-    }
-  );
+  return mediaGenerationModelListResponse(getAllVideoModels(), "video");
 }
 
 /**
  * POST /v1/videos/generations — generate videos
  */
 async function postHandler(request, context) {
-  let rawBody;
-  try {
-    rawBody = await request.json();
-  } catch {
-    log.warn("VIDEO", "Invalid JSON body");
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
+  const parsed = await readMediaGenerationBody(request, log, "VIDEO");
+  if (!parsed.ok) {
+    return parsed.response;
   }
-
-  const validation = validateBody(v1ImageGenerationSchema, rawBody);
-  if (isValidationFailure(validation)) {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
-  }
-  const body = validation.data;
+  const body = parsed.body;
   const startTime = Date.now();
 
-  if (typeof body.prompt !== "string" || body.prompt.trim().length === 0) {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Prompt is required");
-  }
+  const promptError = promptRequiredResponse(body);
+  if (promptError) return promptError;
 
   // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);
@@ -121,27 +89,17 @@ async function postHandler(request, context) {
 
   if (result.success) {
     await clearRecoveredProviderState(credentials);
-    const seconds = Number(body.duration) || 0;
-    const costUsd = await calculateModalCost("video", provider, body.model, { seconds });
-    const headers = new Headers({ "Content-Type": "application/json" });
-    attachOmniRouteMetaHeaders(headers, {
+    return successfulMediaGenerationResponse({
+      result,
+      billingMode: "video",
       provider,
       model: body.model,
-      costUsd,
-      latencyMs: Date.now() - startTime,
-      requestId: generateRequestId(),
-    });
-    return new Response(JSON.stringify((result as { data: unknown }).data), {
-      status: 200,
-      headers,
+      startTime,
+      duration: body.duration,
     });
   }
 
-  const errorPayload = toJsonErrorPayload((result as any).error, "Video generation provider error");
-  return new Response(JSON.stringify(errorPayload), {
-    status: (result as any).status,
-    headers: { "Content-Type": "application/json" },
-  });
+  return failedMediaGenerationResponse(result, "Video generation provider error");
 }
 
 export const POST = withInjectionGuard(postHandler);

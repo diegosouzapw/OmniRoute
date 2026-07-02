@@ -23,7 +23,7 @@ These providers are **always free** with no limits:
 | **Kiro AI** | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6 | 50 credits/month | No auth needed |
 | **OpenCode Free** | GPT-4o, Claude, Gemini | Unlimited | No auth needed |
 | **Pollinations** | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | No key needed | No auth needed |
-| **LongCat** | LongCat-Flash-Lite | 50M tokens/day | No auth needed |
+| **LongCat** | LongCat-2.0 | 10M tokens (one-time) | API key + KYC |
 | **Cloudflare AI** | 50+ models | 10K neurons/day | No auth needed |
 | **Qwen** | Qwen3-coder-plus/flash/next | Unlimited | No auth needed |
 | **Qoder** | Kimi-K2, DeepSeek-R1, Qwen3-coder | Unlimited | No auth needed |
@@ -66,7 +66,7 @@ Connect these 4 providers for **unlimited free AI**:
 1. **Kiro AI** — 50 credits/month (Claude models)
 2. **OpenCode Free** — Unlimited (GPT models)
 3. **Pollinations** — No key needed (multiple models)
-4. **LongCat** — 50M tokens/day (backup)
+4. **LongCat** — 10M tokens one-time (backup, requires KYC)
 
 Then use `model: "auto"` and OmniRoute will:
 - Try Kiro first (best quality)
@@ -98,7 +98,7 @@ Browse the list and select one of these free providers:
 - **Kiro AI** — Free Claude models
 - **OpenCode Free** — Free GPT models
 - **Pollinations** — Free GPT-5, Claude, Gemini
-- **LongCat** — 50M tokens/day free
+- **LongCat** — 10M tokens free (one-time, requires KYC)
 - **Cloudflare AI** — 50+ models, 10K neurons/day
 
 ### Step 5: Click Connect
@@ -136,10 +136,10 @@ Connect 3-4 free providers for the best experience.
 
 ### LongCat
 
-- **Models**: LongCat-Flash-Lite
-- **Quota**: 50M tokens/day
-- **Auth**: No auth needed
-- **Best for**: High-volume usage
+- **Models**: LongCat-2.0
+- **Quota**: 10M tokens, one-time grant on signup (not recurring daily/monthly)
+- **Auth**: API key + KYC verification required to unlock the free grant
+- **Best for**: A one-off free allowance; pay-as-you-go beyond it
 
 ### Cloudflare AI
 
@@ -222,7 +222,7 @@ Let's calculate how much free AI you can get:
 | Kiro AI | ~1.7 credits | 50 credits |
 | OpenCode Free | Unlimited | Unlimited |
 | Pollinations | Unlimited | Unlimited |
-| LongCat | 50M tokens | 1.5B tokens |
+| LongCat | — (one-time) | 10M tokens (one-time, KYC) |
 | Cloudflare AI | 10K neurons | 300K neurons |
 | NVIDIA NIM | ~40 RPM | ~1.7M requests |
 | Cerebras | 1M tokens | 30M tokens |

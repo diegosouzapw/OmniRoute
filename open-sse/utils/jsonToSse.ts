@@ -13,6 +13,7 @@
  * Returns "" when the text is not a parseable chat-completion object with at
  * least one choice — callers then fall back to the original (error) handling.
  */
+import { normalizeOpenAICompatibleFinishReasonString } from "./finishReason.ts";
 import { getUnsupportedReasoningValue } from "./reasoningFields.ts";
 
 type JsonRecord = Record<string, unknown>;
@@ -112,10 +113,7 @@ export function synthesizeOpenAiSseFromJson(jsonText: string): string {
       emitDelta({ tool_calls: message.tool_calls });
     }
 
-    const finishReason =
-      typeof choice.finish_reason === "string" && choice.finish_reason
-        ? choice.finish_reason
-        : "stop";
+    const finishReason = normalizeOpenAICompatibleFinishReasonString(choice.finish_reason);
     const finalChoice: JsonRecord = { index, delta: {}, finish_reason: finishReason };
     const finalChunk: JsonRecord = { ...base, choices: [finalChoice] };
     if (isRecord(parsed.usage)) finalChunk.usage = parsed.usage;

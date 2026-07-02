@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+import * as classifyPublicApi from "../../../src/server/authz/classify.ts";
 import { classifyRoute } from "../../../src/server/authz/classify.ts";
 import type { RouteClass } from "../../../src/server/authz/types.ts";
 
@@ -48,6 +49,23 @@ const cases: Case[] = [
     path: "/v1/chat/completions",
     expectedClass: "CLIENT_API",
     expectedNormalized: "/api/v1/chat/completions",
+  },
+  {
+    name: "/v1beta alias",
+    path: "/v1beta",
+    expectedClass: "CLIENT_API",
+    expectedNormalized: "/api/v1beta",
+  },
+  {
+    name: "/v1beta generateContent alias",
+    path: "/v1beta/models/gemini-pro:generateContent",
+    expectedClass: "CLIENT_API",
+    expectedNormalized: "/api/v1beta/models/gemini-pro:generateContent",
+  },
+  {
+    name: "/api/v1beta generateContent",
+    path: "/api/v1beta/models/gemini-pro:generateContent",
+    expectedClass: "CLIENT_API",
   },
   {
     name: "/v1/v1 double-prefix",
@@ -159,6 +177,13 @@ const cases: Case[] = [
   { name: "/api/audit MANAGEMENT", path: "/api/audit", expectedClass: "MANAGEMENT" },
 
   {
+    name: "/api/usage/om-usage is PUBLIC (handler enforces its own API key auth)",
+    path: "/api/usage/om-usage",
+    method: "GET",
+    expectedClass: "PUBLIC",
+  },
+
+  {
     name: "Unknown top-level path defaults MANAGEMENT (fail-closed)",
     path: "/totally-unknown",
     expectedClass: "MANAGEMENT",
@@ -189,4 +214,13 @@ test("classifyRoute strips trailing slash on root only when not '/'", () => {
 test("classifyRoute treats /api/v1 prefix exactly", () => {
   assert.equal(classifyRoute("/api/v1abc").routeClass, "MANAGEMENT");
   assert.equal(classifyRoute("/api/v1/x").routeClass, "CLIENT_API");
+  assert.equal(classifyRoute("/api/v1betamax").routeClass, "MANAGEMENT");
+  assert.equal(classifyRoute("/api/v1beta/models").routeClass, "CLIENT_API");
+});
+
+test("classify module public surface only exposes route classification", () => {
+  assert.equal("classifyRoute" in classifyPublicApi, true);
+  assert.equal("isClientApi" in classifyPublicApi, false);
+  assert.equal("isManagement" in classifyPublicApi, false);
+  assert.equal("isPublic" in classifyPublicApi, false);
 });

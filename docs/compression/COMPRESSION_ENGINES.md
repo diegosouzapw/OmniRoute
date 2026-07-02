@@ -1,7 +1,7 @@
 ---
 title: "Compression Engines"
-version: 3.8.2
-lastUpdated: 2026-06-17
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Compression Engines
@@ -44,6 +44,18 @@ runtime compression, stacked mode, tests, and future engines use the same execut
 A separate registry compresses MCP tool description metadata at registry-level — see
 `open-sse/mcp-server/descriptionCompressor.ts` and [MCP-SERVER.md](../frameworks/MCP-SERVER.md). It reuses
 Caveman rules but operates on tool metadata, not request payloads.
+
+### Additional built-in engines
+
+Beyond Caveman, RTK, and LLMLingua-2, the registry ships several specialized lossless /
+structural engines (used by stacked pipelines, the playground, and tests):
+
+| Engine        | Id              | What it does                                                                                                                                                               |
+| ------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CCR           | `ccr`           | Content-Compress-Retrieve (H4): replaces large contiguous text blocks with content-addressed references, so repeated/large blocks are sent once and referenced thereafter. |
+| headroom      | `headroom`      | SmartCrusher (H3 + N5): lossless tabular compaction of homogeneous JSON-array payloads into a columnar `[N rows]` form.                                                    |
+| ionizer       | `ionizer`       | Head/middle/tail row sampling for very large homogeneous blocks, storing the elided middle as a CCR content-addressed reference.                                           |
+| session-dedup | `session-dedup` | Content-addressed cross-turn deduplication (TokenMizer-inspired): elides text already seen in earlier turns of the same session.                                           |
 
 ## Caveman
 

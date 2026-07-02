@@ -6,6 +6,9 @@ import { headroomEngine } from "./headroom/index.ts";
 import { ccrEngine } from "./ccr/index.ts";
 import { llmlinguaEngine } from "./llmlingua/index.ts";
 import { ionizerEngine } from "./ionizer/index.ts";
+import { relevanceEngine } from "./relevance/index.ts";
+import { llmCompressorEngine } from "./llm/index.ts";
+import { readLifecycleEngine } from "./readLifecycle/index.ts";
 
 let registered = false;
 
@@ -28,6 +31,9 @@ export function registerBuiltinCompressionEngines(): void {
     { id: "ccr", engine: ccrEngine },
     { id: "llmlingua", engine: llmlinguaEngine },
     { id: "ionizer", engine: ionizerEngine },
+    { id: "relevance", engine: relevanceEngine },
+    { id: "llm", engine: llmCompressorEngine },
+    { id: "read-lifecycle", engine: readLifecycleEngine },
   ];
 
   for (const { id, engine } of engines) {

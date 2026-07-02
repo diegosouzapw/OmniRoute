@@ -21,13 +21,6 @@ export const geminiProvider: RegistryEntry = {
     clientSecretDefault: resolvePublicCred("gemini_alt"),
   },
   models: [
-    { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash", toolCalling: true, supportsVision: true },
-    {
-      id: "gemini-2.0-flash-lite",
-      name: "Gemini 2.0 Flash Lite",
-      toolCalling: true,
-      supportsVision: true,
-    },
     {
       id: "gemini-3.1-pro-preview",
       name: "Gemini 3.1 Pro Preview",
@@ -41,14 +34,8 @@ export const geminiProvider: RegistryEntry = {
       supportsVision: true,
     },
     {
-      id: "gemini-3-flash-lite-preview",
-      name: "Gemini 3 Flash Lite Preview",
-      toolCalling: true,
-      supportsVision: true,
-    },
-    {
-      id: "gemini-3.1-flash-lite-preview",
-      name: "Gemini 3.1 Flash Lite Preview",
+      id: "gemini-3.1-flash-lite",
+      name: "Gemini 3.1 Flash Lite",
       toolCalling: true,
       supportsVision: true,
     },
@@ -72,18 +59,5 @@ export const geminiProvider: RegistryEntry = {
       toolCalling: true,
       supportsVision: true,
     },
-    {
-      id: "gemini-2.0-flash-thinking-exp-01-21",
-      name: "Gemini 2.0 Flash Thinking",
-      supportsReasoning: true,
-    },
-    {
-      id: "gemini-2.0-pro-exp-02-05",
-      name: "Gemini 2.0 Pro Experimental",
-      toolCalling: true,
-      supportsVision: true,
-    },
-    { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro", toolCalling: true, supportsVision: true },
-    { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash", toolCalling: true, supportsVision: true },
   ],
 };

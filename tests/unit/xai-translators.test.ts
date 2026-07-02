@@ -9,23 +9,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { budgetToEffort, applyThinking } = await import(
-  "../../src/lib/providers/xai/thinking.ts"
-);
-const { chatRequestToXaiResponses, xaiCompletedToChatJson } = await import(
-  "../../src/lib/providers/xai/translators/openai-chat.ts"
-);
-const {
-  openaiResponsesRequestToXai,
-  xaiCompletedToOpenaiResponses,
-  xaiSseEventToOpenaiResponses,
-} = await import("../../src/lib/providers/xai/translators/openai-responses.ts");
-const { claudeRequestToXaiResponses, xaiCompletedToClaudeJson } = await import(
-  "../../src/lib/providers/xai/translators/claude.ts"
-);
-const { geminiRequestToXaiResponses, xaiCompletedToGeminiJson } = await import(
-  "../../src/lib/providers/xai/translators/gemini.ts"
-);
+const { budgetToEffort, applyThinking, normalizeXaiReasoningEffort } =
+  await import("../../src/lib/providers/xai/thinking.ts");
+const { chatRequestToXaiResponses, xaiCompletedToChatJson } =
+  await import("../../src/lib/providers/xai/translators/openai-chat.ts");
+const { openaiResponsesRequestToXai, xaiCompletedToOpenaiResponses, xaiSseEventToOpenaiResponses } =
+  await import("../../src/lib/providers/xai/translators/openai-responses.ts");
+const { claudeRequestToXaiResponses, xaiCompletedToClaudeJson } =
+  await import("../../src/lib/providers/xai/translators/claude.ts");
+const { geminiRequestToXaiResponses, xaiCompletedToGeminiJson } =
+  await import("../../src/lib/providers/xai/translators/gemini.ts");
 
 // ─── budgetToEffort ──────────────────────────────────────────────────────────
 
@@ -67,10 +60,32 @@ test("applyThinking: honors xAI-native reasoning.effort verbatim", () => {
   assert.equal((out as Record<string, unknown>).foo, 1);
 });
 
+test("normalizeXaiReasoningEffort: downgrades max/xhigh to xAI-supported high", () => {
+  assert.equal(normalizeXaiReasoningEffort("max"), "high");
+  assert.equal(normalizeXaiReasoningEffort("xhigh"), "high");
+  assert.equal(normalizeXaiReasoningEffort("HIGH"), "high");
+  assert.equal(normalizeXaiReasoningEffort("ultra"), undefined);
+});
+
+test("applyThinking: normalizes xAI-native max/xhigh to high", () => {
+  const maxOut = applyThinking({ reasoning: { effort: "max", summary: "auto" } });
+  assert.deepStrictEqual(maxOut.reasoning, { effort: "high", summary: "auto" });
+
+  const xhighOut = applyThinking({ reasoning: { effort: "xhigh" } });
+  assert.deepStrictEqual(xhighOut.reasoning, { effort: "high" });
+});
+
 test("applyThinking: rewrites OpenAI Chat reasoning_effort into reasoning.effort", () => {
   const req = { reasoning_effort: "medium" };
   const out = applyThinking(req);
   assert.deepStrictEqual(out.reasoning, { effort: "medium" });
+  assert.equal(out.reasoning_effort, undefined);
+});
+
+test("applyThinking: rewrites OpenAI Chat max reasoning_effort into high", () => {
+  const req = { reasoning_effort: "max" };
+  const out = applyThinking(req);
+  assert.deepStrictEqual(out.reasoning, { effort: "high" });
   assert.equal(out.reasoning_effort, undefined);
 });
 
@@ -138,9 +153,7 @@ test("chatRequestToXaiResponses: converts system message to instructions", () =>
 test("chatRequestToXaiResponses: converts tool message to function_call_output", () => {
   const req = {
     model: "grok-4",
-    messages: [
-      { role: "tool", content: "result text", tool_call_id: "call_abc" },
-    ],
+    messages: [{ role: "tool", content: "result text", tool_call_id: "call_abc" }],
   };
   const out = chatRequestToXaiResponses(req);
   assert.equal(out.input[0].type, "function_call_output");
@@ -152,6 +165,18 @@ test("chatRequestToXaiResponses: promotes reasoning_effort to reasoning field", 
   const req = { model: "grok-4", messages: [], reasoning_effort: "high" };
   const out = chatRequestToXaiResponses(req);
   assert.deepStrictEqual(out.reasoning, { effort: "high" });
+});
+
+test("chatRequestToXaiResponses: normalizes max reasoning_effort for xAI", () => {
+  const req = { model: "grok-4.3", messages: [], reasoning_effort: "max" };
+  const out = chatRequestToXaiResponses(req);
+  assert.deepStrictEqual(out.reasoning, { effort: "high" });
+});
+
+test("chatRequestToXaiResponses: normalizes reasoning.effort for xAI", () => {
+  const req = { model: "grok-4.3", messages: [], reasoning: { effort: "max", summary: "auto" } };
+  const out = chatRequestToXaiResponses(req);
+  assert.deepStrictEqual(out.reasoning, { effort: "high", summary: "auto" });
 });
 
 test("chatRequestToXaiResponses: maps max_tokens to max_output_tokens", () => {

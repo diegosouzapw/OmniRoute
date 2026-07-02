@@ -17,6 +17,40 @@ function toNonNegativeInteger(value: unknown): number {
   return Math.max(0, Math.round(toFiniteNumber(value)));
 }
 
+const INVALID_HEADER_VALUE_CONTROL_CHARS = /[\u0000-\u001f\u007f]/g;
+const ASCII_HEADER_VALUE_PATTERN = /^[\u0020-\u007e]*$/;
+
+function toWellFormedUnicode(value: string): string {
+  let result = "";
+
+  for (let i = 0; i < value.length; i += 1) {
+    const code = value.charCodeAt(i);
+    if (code >= 0xd800 && code <= 0xdbff) {
+      const next = value.charCodeAt(i + 1);
+      if (next >= 0xdc00 && next <= 0xdfff) {
+        result += value[i] + value[i + 1];
+        i += 1;
+      } else {
+        result += "\uFFFD";
+      }
+      continue;
+    }
+    if (code >= 0xdc00 && code <= 0xdfff) {
+      result += "\uFFFD";
+      continue;
+    }
+    result += value[i];
+  }
+
+  return result;
+}
+
+function toHeaderValue(value: string): string {
+  const withoutControls = value.replace(INVALID_HEADER_VALUE_CONTROL_CHARS, "");
+  if (ASCII_HEADER_VALUE_PATTERN.test(withoutControls)) return withoutControls;
+  return encodeURIComponent(toWellFormedUnicode(withoutControls));
+}
+
 export function getOmniRouteTokenCounts(usage: UsageLike): { input: number; output: number } {
   if (!usage || typeof usage !== "object") {
     return { input: 0, output: 0 };
@@ -75,35 +109,37 @@ export function buildOmniRouteResponseMetaHeaders({
 }): Record<string, string> {
   const tokens = getOmniRouteTokenCounts(usage);
   const headers: Record<string, string> = {
-    [OMNIROUTE_RESPONSE_HEADERS.cacheHit]: String(cacheHit),
-    [OMNIROUTE_RESPONSE_HEADERS.latencyMs]: String(toNonNegativeInteger(latencyMs)),
-    [OMNIROUTE_RESPONSE_HEADERS.responseCost]: formatOmniRouteCost(costUsd),
-    [OMNIROUTE_RESPONSE_HEADERS.tokensIn]: String(tokens.input),
-    [OMNIROUTE_RESPONSE_HEADERS.tokensOut]: String(tokens.output),
-    [OMNIROUTE_RESPONSE_HEADERS.version]: APP_CONFIG.version,
+    [OMNIROUTE_RESPONSE_HEADERS.cacheHit]: toHeaderValue(String(cacheHit)),
+    [OMNIROUTE_RESPONSE_HEADERS.latencyMs]: toHeaderValue(String(toNonNegativeInteger(latencyMs))),
+    [OMNIROUTE_RESPONSE_HEADERS.responseCost]: toHeaderValue(formatOmniRouteCost(costUsd)),
+    [OMNIROUTE_RESPONSE_HEADERS.tokensIn]: toHeaderValue(String(tokens.input)),
+    [OMNIROUTE_RESPONSE_HEADERS.tokensOut]: toHeaderValue(String(tokens.output)),
+    [OMNIROUTE_RESPONSE_HEADERS.version]: toHeaderValue(APP_CONFIG.version),
   };
 
   if (typeof model === "string" && model.trim().length > 0) {
-    headers[OMNIROUTE_RESPONSE_HEADERS.model] = model;
+    headers[OMNIROUTE_RESPONSE_HEADERS.model] = toHeaderValue(model);
   }
 
   if (typeof requestId === "string" && requestId.trim().length > 0) {
-    headers[OMNIROUTE_RESPONSE_HEADERS.requestId] = requestId;
+    headers[OMNIROUTE_RESPONSE_HEADERS.requestId] = toHeaderValue(requestId);
   }
 
   if (typeof provider === "string" && provider.trim().length > 0) {
-    headers[OMNIROUTE_RESPONSE_HEADERS.provider] = getProviderAlias(provider);
+    headers[OMNIROUTE_RESPONSE_HEADERS.provider] = toHeaderValue(getProviderAlias(provider));
   }
 
   // Cache-saved cost: emitted only when the caller passes a value (cache HITs), so
   // non-cache responses keep their existing header shape. `0` is a valid saved cost.
   if (costSavedUsd != null) {
-    headers[OMNIROUTE_RESPONSE_HEADERS.costSaved] = formatOmniRouteCost(costSavedUsd);
+    headers[OMNIROUTE_RESPONSE_HEADERS.costSaved] = toHeaderValue(
+      formatOmniRouteCost(costSavedUsd)
+    );
   }
 
   const attempts = toNonNegativeInteger(fallbackAttempts);
   if (attempts > 0) {
-    headers[OMNIROUTE_RESPONSE_HEADERS.fallbackAttempts] = String(attempts);
+    headers[OMNIROUTE_RESPONSE_HEADERS.fallbackAttempts] = toHeaderValue(String(attempts));
   }
 
   return headers;

@@ -117,6 +117,8 @@ type StreamOptions = {
   sourceFormat?: string;
   clientResponseFormat?: string | null;
   copilotCompatibleReasoning?: boolean;
+  /** Suppress the `</think>` close marker for clients that render it verbatim (#5245). */
+  suppressThinkClose?: boolean;
   provider?: string | null;
   reqLogger?: StreamLogger | null;
   toolNameMap?: unknown;
@@ -135,6 +137,8 @@ type TranslateState = ReturnType<typeof initState> & {
   usage?: unknown;
   finishReason?: unknown;
   copilotCompatibleReasoning?: boolean;
+  /** Suppress the `</think>` close marker for clients that render it verbatim (#5245). */
+  suppressThinkClose?: boolean;
   /** Accumulated message content for call log response body */
   accumulatedContent?: string;
   upstreamError?: {
@@ -607,6 +611,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     sourceFormat,
     clientResponseFormat = null,
     copilotCompatibleReasoning = false,
+    suppressThinkClose = false,
     provider = null,
     reqLogger = null,
     toolNameMap = null,
@@ -660,6 +665,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           toolNameMap,
           signatureNamespace,
           copilotCompatibleReasoning,
+          suppressThinkClose,
           accumulatedContent: "",
         }
       : null;
@@ -678,6 +684,18 @@ export function createSSEStream(options: StreamOptions = {}) {
   let passthroughResponsesId: string | null = null;
   let passthroughResponsesCurrentFunctionCallKey: string | null = null;
   const passthroughResponsesReasoningSummarySeen = new Set<string>();
+  // #5786 — highest Responses-API `sequence_number` already forwarded on this stream.
+  // The Responses API guarantees a strictly increasing sequence_number, so any event at
+  // or below this watermark is an upstream reconnect/retry replay and must be dropped —
+  // otherwise the replayed deltas glue duplicated text into the client stream. Applies to
+  // both translate mode (openai-responses → claude/openai) and Responses passthrough.
+  let lastSeenResponsesSequenceNumber = -1;
+  const isDuplicateResponsesSequence = (value: unknown): boolean => {
+    if (typeof value !== "number" || !Number.isFinite(value)) return false;
+    if (value <= lastSeenResponsesSequenceNumber) return true;
+    lastSeenResponsesSequenceNumber = value;
+    return false;
+  };
   const streamStartedAt = Date.now();
 
   let lastToolCallChunkTime: number | null = null;
@@ -1178,6 +1196,18 @@ export function createSSEStream(options: StreamOptions = {}) {
                   eventType: passthroughEventPrefix.eventType(),
                 })
               : null;
+
+            // #5786 — drop replayed Responses-API events (a re-sent event carrying an
+            // already-seen sequence_number) so their deltas are not forwarded twice.
+            if (
+              parsedPassthroughData &&
+              typeof parsedPassthroughData.type === "string" &&
+              parsedPassthroughData.type.startsWith("response.") &&
+              isDuplicateResponsesSequence(parsedPassthroughData.sequence_number)
+            ) {
+              clearPendingPassthroughEvent();
+              continue;
+            }
 
             if (trimmed.startsWith("data:")) {
               const providerPayload = parsedPassthroughData ?? parseSSELine(trimmed);
@@ -1853,6 +1883,17 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           const parsed = parseSSELine(trimmed);
           if (!parsed) continue;
+
+          // #5786 — drop replayed Responses-API events (identical/lower sequence_number
+          // re-sent on an upstream reconnect) so their deltas are not glued twice into
+          // the translated client stream.
+          if (
+            targetFormat === FORMATS.OPENAI_RESPONSES &&
+            isDuplicateResponsesSequence((parsed as JsonRecord).sequence_number)
+          ) {
+            continue;
+          }
+
           providerPayloadCollector.push(parsed);
 
           if (parsed && parsed.done) {
@@ -1934,9 +1975,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           // Cloud Code API wraps in { response: { candidates: [...] } }, so unwrap.
           // Only applies to Gemini-family formats — skip for OpenAI, Claude, etc.
           const isGeminiFormat =
-            targetFormat === FORMATS.GEMINI ||
-            targetFormat === FORMATS.GEMINI_CLI ||
-            targetFormat === FORMATS.ANTIGRAVITY;
+            targetFormat === FORMATS.GEMINI || targetFormat === FORMATS.ANTIGRAVITY;
           const geminiChunk = isGeminiFormat ? unwrapGeminiChunk(parsed) : parsed;
           if (geminiChunk.candidates?.[0]?.content?.parts) {
             for (const part of geminiChunk.candidates[0].content.parts) {
@@ -2638,7 +2677,8 @@ export function createSSETransformStreamWithLogger(
   onComplete: ((payload: StreamCompletePayload) => void) | null = null,
   apiKeyInfo: unknown = null,
   onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null,
-  copilotCompatibleReasoning = false
+  copilotCompatibleReasoning = false,
+  suppressThinkClose = false
 ) {
   return createSSEStream({
     mode: STREAM_MODE.TRANSLATE,
@@ -2654,6 +2694,7 @@ export function createSSETransformStreamWithLogger(
     onComplete,
     onFailure,
     copilotCompatibleReasoning,
+    suppressThinkClose,
   });
 }
 

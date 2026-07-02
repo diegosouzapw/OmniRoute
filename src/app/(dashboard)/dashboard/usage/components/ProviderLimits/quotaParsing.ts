@@ -127,12 +127,6 @@ function parseClaude(data: any) {
   );
 }
 
-function parseGeminiCli(data: any) {
-  return quotaEntries(data).map(([modelKey, quota]) =>
-    normalizeQuotaEntry(modelKey, quota, { modelKey })
-  );
-}
-
 function parseDeepseekQuota(quotaKey: string, quota: any) {
   const match = quotaKey.match(/^credits(?:_([a-z]{3}))?$/);
   if (!match) return normalizeQuotaEntry(quotaKey, quota);
@@ -153,7 +147,6 @@ function parseProviderQuotas(providerId: string, data: any) {
   if (providerId === "antigravity" || providerId === "agy") return parseAntigravity(data);
   if (providerId === "codex") return parseCodex(data);
   if (providerId === "claude") return parseClaude(data);
-  if (providerId === "gemini-cli") return parseGeminiCli(data);
   if (providerId === "deepseek") return parseDeepseek(data);
   return parseGeneric(data);
 }

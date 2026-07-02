@@ -85,8 +85,3 @@ export function getCachedLoginShellPath(): string | null {
   if (cached === undefined) cached = getLoginShellPath();
   return cached;
 }
-
-/** Test-only: clear the module-level cache so a test can re-stub the runner. */
-export function __resetLoginShellPathCacheForTesting(value?: string | null): void {
-  cached = value;
-}

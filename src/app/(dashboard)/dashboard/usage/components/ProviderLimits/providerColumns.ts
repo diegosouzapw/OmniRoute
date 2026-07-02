@@ -25,7 +25,7 @@ const PROVIDER_COLUMNS: Record<string, string[]> = {
   "kimi-coding": ["session", "weekly"],
 };
 
-/** Hard cap for the dynamic schema (Antigravity, Gemini-CLI, fallback). */
+/** Hard cap for the dynamic schema (Antigravity and fallback providers). */
 export const MAX_DYNAMIC_COLUMNS = 3;
 
 export interface ResolvedColumn {

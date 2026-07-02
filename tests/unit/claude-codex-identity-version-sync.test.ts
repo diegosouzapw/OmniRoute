@@ -36,8 +36,8 @@ test("Claude CLI version constants are in lockstep across all 4 sources", () => 
   );
 });
 
-test("Claude CLI is pinned to the captured 2.1.187 release", () => {
-  assert.equal(id.CLAUDE_CODE_VERSION, "2.1.187");
+test("Claude CLI is pinned to the captured 2.1.195 release", () => {
+  assert.equal(id.CLAUDE_CODE_VERSION, "2.1.195");
 });
 
 test("Codex client is pinned to the captured 0.142.0 release", () => {

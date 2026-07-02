@@ -117,10 +117,17 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     const validation = validateBody(updateComboSchema, rawBody);
     if (isValidationFailure(validation)) {
+      // Surface the first field-level issue so clients can highlight the
+      // offending field without parsing the full issues array (#5083 Bug 3).
+      const firstDetail = validation.error.details?.[0] ?? null;
       return comboErrorResponse(
         "COMBO_002",
         400,
-        { issues: validation.error },
+        {
+          issues: validation.error,
+          firstField: firstDetail?.field ?? null,
+          firstMessage: firstDetail?.message ?? null,
+        },
         request
       );
     }

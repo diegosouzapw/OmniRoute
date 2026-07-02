@@ -8,9 +8,84 @@ import {
   buildGrokCookieHeader,
   buildQwenCookieHeader,
   extractCookieValue,
+  extractKimiJwt,
   extractQwenToken,
   normalizeSessionCookieHeader,
 } from "@/lib/providers/webCookieAuth";
+
+// kimi-web uses the international `www.kimi.com` Connect-RPC API. The legacy
+// `kimi.moonshot.cn` domain now 307-redirects every non-CN visitor, and even
+// if you bypass the redirect the old `/api/chat` REST endpoint is gone. The
+// SPA exposes a profile probe at `GET /api/user` that returns the user object
+// at the top level when the `Authorization: Bearer <JWT>` header is valid.
+//
+// Auth source: the `kimi-auth` cookie set after login. The user pastes the
+// full Cookie header; we extract `kimi-auth` and send it as both the Bearer
+// token and a `Cookie: kimi-auth=<jwt>` replay (the latter is what the SPA
+// does, though the upstream only consults the Authorization header in
+// practice — verified by stripping one of the two at a time).
+export async function validateKimiWebProvider({ apiKey }: any) {
+  const rawCred = String(apiKey ?? "").trim();
+  if (!rawCred) {
+    return {
+      valid: false,
+      error:
+        "Missing Kimi session — paste the full Cookie header from www.kimi.com (must contain kimi-auth=<JWT>)",
+    };
+  }
+
+  const jwt = extractKimiJwt(rawCred);
+  if (!jwt) {
+    return {
+      valid: false,
+      error:
+        "Could not find a kimi-auth JWT in the pasted value. Re-login at https://www.kimi.com and copy the full Cookie header.",
+    };
+  }
+
+  try {
+    const resp = await fetch("https://www.kimi.com/api/user", {
+      headers: {
+        Accept: "application/json, text/plain, */*",
+        Authorization: `Bearer ${jwt}`,
+        Cookie: `kimi-auth=${jwt}`,
+        Origin: "https://www.kimi.com",
+        Referer: "https://www.kimi.com/",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      },
+    });
+
+    if (resp.status === 401 || resp.status === 403) {
+      return {
+        valid: false,
+        error:
+          "Kimi session is invalid or expired — re-login at https://www.kimi.com and paste a fresh Cookie header",
+      };
+    }
+    if (!resp.ok) {
+      return { valid: false, error: `Kimi returned HTTP ${resp.status}` };
+    }
+
+    // Profile response: `{ id, name, email, region, ... }` at the top level.
+    try {
+      const data = await resp.json();
+      if (!data?.id) {
+        return {
+          valid: false,
+          error:
+            "Kimi session token is invalid or expired — re-login at https://www.kimi.com and paste a fresh Cookie header",
+        };
+      }
+    } catch {
+      return { valid: false, error: "Kimi returned invalid JSON response" };
+    }
+
+    return { valid: true, error: null };
+  } catch (error) {
+    return toValidationErrorResult(error);
+  }
+}
 
 export async function validateDeepSeekWebProvider({ apiKey }: any) {
   if (!apiKey) {
@@ -36,7 +111,7 @@ export async function validateDeepSeekWebProvider({ apiKey }: any) {
         Origin: "https://chat.deepseek.com",
         Referer: "https://chat.deepseek.com/",
         "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
         "X-App-Version": "20241129.1",
         "X-Client-Platform": "web",
       },
@@ -65,13 +140,22 @@ export async function validateDeepSeekWebProvider({ apiKey }: any) {
 }
 
 // qwen-web has no `modelsUrl` in its registry entry, so the generic OpenAI-compatible
-// validator derived a probe URL of `https://chat.qwen.ai/api/v2/models` (via
+// validator used to derive a probe URL of `https://chat.qwen.ai/api/v2/models` (via
 // addModelsSuffix) — a non-existent path that answers with a 307 redirect, which the
 // outbound guard blocked and the route then mislabeled as an SSRF block (#3288/#3758).
-// This specialty validator probes the real session-validity endpoint instead
-// (`GET /api/v2/user`, the same one Chat2API uses), mirroring the executor's anti-bot
-// headers + cookie-jar replay. It uses plain fetch (like the other web-cookie
-// validators) so it never hits the addModelsSuffix/redirect path.
+//
+// History of the session probe:
+//   - Originally `GET /api/v2/user` (Chat2API-derived). Upstream retired the path
+//     in mid-2026: it now returns `{"success":false,"data":{"code":"not found"}}`
+//     regardless of credentials, so the body-shape check (#3958) always fails.
+//   - Current probe: `GET /api/v1/auths/` (note the trailing slash — without it
+//     the path returns 401). This is the endpoint Qwen's own SPA hits right after
+//     login to fetch the user profile. It returns the user object directly at the
+//     top level: `{ id, email, name, role, ... }`.
+//
+// The validator mirrors the executor's anti-bot headers + cookie-jar replay and uses
+// plain fetch (like the other web-cookie validators) so it never hits the
+// addModelsSuffix/redirect path.
 export async function validateQwenWebProvider({ apiKey }: any) {
   const rawCred = String(apiKey ?? "").trim();
   if (!rawCred) {
@@ -95,16 +179,24 @@ export async function validateQwenWebProvider({ apiKey }: any) {
     const headers: Record<string, string> = {
       Accept: "*/*",
       "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
       Origin: "https://chat.qwen.ai",
       Referer: "https://chat.qwen.ai/",
       source: "web",
       "bx-v": "2.5.36",
+      // The Qwen SPA's `version` header is required by the v2 chat completion
+      // endpoint; the validator sends it too so the probe matches a real
+      // browser request as closely as possible. (The session probe endpoint
+      // doesn't enforce it, but consistency with the executor avoids surprises
+      // if Qwen ever tightens its WAF rules.)
+      version: "0.2.66",
     };
     if (token) headers["Authorization"] = `Bearer ${token}`;
     if (cookieHeader) headers["Cookie"] = cookieHeader;
 
-    const resp = await fetch("https://chat.qwen.ai/api/v2/user", { headers });
+    // The trailing slash is significant: `/api/v1/auths` (no slash) answers 401,
+    // `/api/v1/auths/` returns the user profile.
+    const resp = await fetch("https://chat.qwen.ai/api/v1/auths/", { headers });
     const contentType = resp.headers.get("content-type") || "";
 
     if (resp.status === 401 || resp.status === 403) {
@@ -127,13 +219,21 @@ export async function validateQwenWebProvider({ apiKey }: any) {
       return { valid: false, error: `Qwen returned HTTP ${resp.status}` };
     }
 
-    // Parse JSON response and verify we have a real user object
-    // Qwen returns HTTP 200 even for invalid tokens, so we must check the body
+    // Parse JSON response and verify we have a real user object.
+    // /api/v1/auths/ returns the user at the top level: {id, email, name, role, ...}.
+    // We require `id` to be a non-empty string AND look like a real identifier
+    // (uuid-ish or otherwise ≥8 chars) to avoid false-positives from upstream
+    // error envelopes that happen to ship a top-level `id: "not_found"` style
+    // field. Keep the legacy nested checks (data.user, user) for robustness in
+    // case the upstream shape changes again.
     try {
       const data = await resp.json();
-      const user = data?.user || data?.data?.user;
-
-      if (!user) {
+      const hasTopLevelUser =
+        typeof data?.id === "string" && data.id.length >= 8 && typeof data?.email === "string";
+      const hasNestedUser =
+        (typeof data?.user?.id === "string" && data.user.id.length > 0) ||
+        (typeof data?.data?.user?.id === "string" && data.data.user.id.length > 0);
+      if (!hasTopLevelUser && !hasNestedUser) {
         return {
           valid: false,
           error:
@@ -182,6 +282,17 @@ export function isGrokAntiBotBlock(body: string | null | undefined): boolean {
   return false;
 }
 
+// Shared IP-reputation / anti-bot guidance (#3474, #5350). The request was rejected
+// before (or independently of) auth — the cookie itself is likely fine. cf_clearance
+// is pinned to the IP + TLS fingerprint + User-Agent that earned it and cannot be
+// replayed from a different machine/IP, so an auth-shaped rejection after a
+// cf_clearance was supplied is almost always this block, not a bad cookie.
+const GROK_IP_REPUTATION_GUIDANCE =
+  "Your sso cookie is likely fine — this is an IP-reputation block on the request, not an " +
+  "auth failure. cf_clearance is pinned to the IP + TLS fingerprint + User-Agent that earned " +
+  "it and cannot be replayed from a different machine/IP. Retry from a residential IP or " +
+  "configure a proxy for grok-web.";
+
 export async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
     const token = extractCookieValue(apiKey, "sso");
@@ -225,14 +336,14 @@ export async function validateGrokWebProvider({ apiKey, providerSpecificData = {
             Origin: "https://grok.com",
             Pragma: "no-cache",
             Referer: "https://grok.com/",
-            "Sec-Ch-Ua": '"Google Chrome";v="147", "Chromium";v="147", "Not(A:Brand";v="24"',
+            "Sec-Ch-Ua": '"Google Chrome";v="149", "Chromium";v="149", "Not(A:Brand";v="24"',
             "Sec-Ch-Ua-Mobile": "?0",
             "Sec-Ch-Ua-Platform": '"macOS"',
             "Sec-Fetch-Dest": "empty",
             "Sec-Fetch-Mode": "cors",
             "Sec-Fetch-Site": "same-origin",
             "User-Agent":
-              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
             "x-statsig-id": btoa(statsigMsg),
             "x-xai-request-id": crypto.randomUUID(),
             traceparent: `00-${traceId}-${spanId}-00`,
@@ -291,7 +402,17 @@ export async function validateGrokWebProvider({ apiKey, providerSpecificData = {
       return { valid: true, error: null };
     }
 
+    // Did the user actually supply a cf_clearance cookie? Detect it from the raw
+    // input blob via a real cookie-pair match — NOT extractCookieValue, which
+    // returns the whole bare value for any name when the input has no ";" (#5350).
+    const suppliedCfClearance = /(?:^|;\s*)cf_clearance=[^;\s]+/.test(String(apiKey || ""));
+
     if (response.status === 401) {
+      // With a cf_clearance supplied, a 401 is almost always an IP-reputation block
+      // (the clearance can't be replayed from a different machine), not a bad cookie.
+      if (suppliedCfClearance) {
+        return { valid: false, error: `Grok returned 401. ${GROK_IP_REPUTATION_GUIDANCE}` };
+      }
       return {
         valid: false,
         error: "Invalid SSO cookie — re-paste from grok.com DevTools → Cookies → sso",
@@ -304,8 +425,14 @@ export async function validateGrokWebProvider({ apiKey, providerSpecificData = {
       // messaging — a misleading "invalid cookie" verdict on an IP-reputation
       // block (issue #3474) sends users chasing a cookie that is actually fine.
       //
-      // 1. Auth-shaped → the cookie/session is the problem; re-paste it.
+      // 1. Auth-shaped → the cookie/session is the problem; re-paste it. But when a
+      //    cf_clearance was supplied, this is almost always an IP-reputation block the
+      //    edge surfaced as an auth failure — the clearance can't be replayed from a
+      //    different machine, so re-pasting the cookie will not help (#5350).
       if (/invalid-credentials|unauthenticated|unauthorized/i.test(errorDetail)) {
+        if (suppliedCfClearance) {
+          return { valid: false, error: `Grok returned 403. ${GROK_IP_REPUTATION_GUIDANCE}` };
+        }
         return {
           valid: false,
           error: "Invalid SSO cookie — re-paste from grok.com DevTools → Cookies → sso",
@@ -319,10 +446,7 @@ export async function validateGrokWebProvider({ apiKey, providerSpecificData = {
       if (isCloudflareChallenge(errorDetail) || isGrokAntiBotBlock(errorDetail)) {
         return {
           valid: false,
-          error:
-            "Grok returned 403 (anti-bot/Cloudflare block). Your sso cookie is likely fine — " +
-            "this is an IP-reputation block on the request, not an auth failure. Retry from a " +
-            "residential IP or configure a proxy for grok-web.",
+          error: `Grok returned 403 (anti-bot/Cloudflare block). ${GROK_IP_REPUTATION_GUIDANCE}`,
         };
       }
       // 3. Structured upstream error (e.g. probe model renamed) → surface the body
@@ -385,7 +509,7 @@ export async function validateChatGptWebProvider({ apiKey, providerSpecificData 
             "Sec-Fetch-Mode": "cors",
             "Sec-Fetch-Site": "same-origin",
             "User-Agent":
-              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:148.0) Gecko/20100101 Firefox/148.0",
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:152.0) Gecko/20100101 Firefox/152.0",
           },
           providerSpecificData
         ),
@@ -480,7 +604,7 @@ export async function validatePerplexityWebProvider({ apiKey, providerSpecificDa
         Referer: "https://www.perplexity.ai/",
         // Firefox 148 — must match the firefox_148 TLS profile of perplexityTlsClient (issue #2459).
         "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:148.0) Gecko/20100101 Firefox/148.0",
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:152.0) Gecko/20100101 Firefox/152.0",
         "X-App-ApiClient": "default",
         "X-App-ApiVersion": "client-1.11.0",
         ...(bearerToken
@@ -577,7 +701,7 @@ export async function validateBlackboxWebProvider({ apiKey, providerSpecificData
         Origin: "https://app.blackbox.ai",
         Referer: "https://app.blackbox.ai/",
         "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/147.0.0.0",
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
       },
       providerSpecificData
     );
@@ -607,7 +731,7 @@ export async function validateBlackboxWebProvider({ apiKey, providerSpecificData
         Origin: "https://app.blackbox.ai",
         Referer: "https://app.blackbox.ai/",
         "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/147.0.0.0",
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
       },
       providerSpecificData
     );
@@ -678,4 +802,3 @@ export async function validateBlackboxWebProvider({ apiKey, providerSpecificData
     return toValidationErrorResult(error);
   }
 }
-

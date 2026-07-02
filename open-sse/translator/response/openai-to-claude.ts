@@ -225,8 +225,15 @@ export function openaiToClaudeResponse(chunk, state) {
     }
   }
 
-  // Finish
-  if (choice.finish_reason) {
+  // Finish — guard against duplicate finish_reason chunks (common with OpenAI-compatible models).
+  // Use a dedicated `claudeFinishEmitted` flag rather than `state.finishReason`: in the
+  // Responses→Claude hub path the shared `state` object is also written by the
+  // openai-responses→openai translator, which sets `state.finishReason` on
+  // `response.completed` BEFORE this openai→claude step runs. Reusing `finishReason` as the
+  // guard therefore misfired and silently dropped the terminal message_delta/message_stop
+  // for Responses→Claude streams (#5828 regression).
+  if (choice.finish_reason && !state.claudeFinishEmitted) {
+    state.claudeFinishEmitted = true;
     stopThinkingBlock(state, results);
     stopTextBlock(state, results);
 

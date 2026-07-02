@@ -973,9 +973,6 @@ test("Responses -> Chat: image_generation is stripped from output tools array (i
 // --- Codex CLI: local_shell built-in should be mapped to a function tool ---
 
 test("Responses -> Chat: local_shell does not throw", () => {
-  // Recent Codex CLI releases inject local_shell as a Responses API built-in.
-  // Non-OpenAI upstreams do not support this tool type directly, so OmniRoute
-  // must translate it instead of rejecting the request with 400.
   assert.doesNotThrow(() =>
     openaiResponsesToOpenAIRequest(
       "gpt-4o",
@@ -1024,7 +1021,7 @@ test("Responses -> Chat: local_shell tool_choice maps to shell function choice",
   assert.deepEqual(result.tool_choice, { type: "function", function: { name: "shell" } });
 });
 
-test("Chat -> Responses: shell function maps back to local_shell", () => {
+test("Chat -> Responses: shell function stays caller-side and does not leak local_shell", () => {
   const result = openaiToOpenAIResponsesRequest(
     "gpt-4o",
     {
@@ -1045,17 +1042,16 @@ test("Chat -> Responses: shell function maps back to local_shell", () => {
     null
   ) as Record<string, unknown>;
 
-  assert.deepEqual(result.tools, [{ type: "local_shell" }]);
-  assert.deepEqual(result.tool_choice, { type: "local_shell" });
+  assert.equal((result.tools as any[])[0].type, "function");
+  assert.equal((result.tools as any[])[0].name, "shell");
+  assert.equal((result.tools as any[])[0].description, "Run a shell command");
+  assert.deepEqual((result.tools as any[])[0].parameters, { type: "object" });
+  assert.deepEqual(result.tool_choice, { type: "function", name: "shell" });
 });
 
 // --- Issue #2893: orphaned tool results from empty/missing call_id ---
 
 test("Responses -> Chat: function_call with empty call_id is dropped together with its output (issue #2893)", () => {
-  // Codex can emit a function_call without a usable call_id; its
-  // function_call_output then becomes an orphan tool message that the upstream
-  // rejects ("role 'tool' must be a response to a preceding message with
-  // 'tool_calls'"). Both must be dropped.
   const result = openaiResponsesToOpenAIRequest(
     "gpt-4o",
     {
@@ -1070,13 +1066,11 @@ test("Responses -> Chat: function_call with empty call_id is dropped together wi
   ) as Record<string, unknown>;
 
   const messages = result.messages as any[];
-  // No orphan tool message.
   assert.equal(
     messages.some((m) => m.role === "tool"),
     false,
     "tool result with empty tool_call_id must be dropped"
   );
-  // No dangling assistant tool_call with an empty id.
   const danglingEmptyId = messages.some(
     (m) =>
       m.role === "assistant" &&

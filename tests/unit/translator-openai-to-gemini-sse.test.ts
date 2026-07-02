@@ -119,7 +119,7 @@ test("openAIChunkToGeminiChunk: final chunk attaches usageMetadata + modelVersio
 });
 
 test("transformOpenAISSEToGeminiSSE: full OpenAI SSE → Gemini SSE conversion (no [DONE] sentinel)", async () => {
-  // This is the original bug from upstream #225: the Gemini CLI SDK crashed on
+  // This is the original bug from upstream #225: the Gemini SDK crashed on
   // `[DONE]` because OpenAI SSE ends with that sentinel and Gemini SSE doesn't.
   const upstream = makeOpenAISSEResponse([
     'data: {"choices":[{"delta":{"role":"assistant"},"finish_reason":null}]}',

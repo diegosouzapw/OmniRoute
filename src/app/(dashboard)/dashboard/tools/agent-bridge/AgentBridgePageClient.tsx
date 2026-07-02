@@ -23,6 +23,14 @@ export interface AgentStateEntry {
   last_error: string | null;
 }
 
+/** Manual cert-install guide returned when auto-trust isn't possible (containers). */
+export interface CertManualGuide {
+  platform: string;
+  certPath: string;
+  downloadUrl: string;
+  steps: string[];
+}
+
 export interface AgentBridgeServerState {
   running: boolean;
   port: number;
@@ -62,6 +70,7 @@ export default function AgentBridgePageClient({
   const t = useTranslations("agentBridge");
   const { data, refresh } = useAgentBridgeState({ initialData });
   const [actionError, setActionError] = useState<string | null>(null);
+  const [certGuide, setCertGuide] = useState<CertManualGuide | null>(null);
 
   // ── Server actions ────────────────────────────────────────────────────────
 
@@ -74,11 +83,20 @@ export default function AgentBridgePageClient({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action }),
         });
+        const payload = (await res.json().catch(() => ({}))) as {
+          error?: { message?: string };
+          skippable?: boolean;
+          manualGuide?: CertManualGuide;
+        };
         if (!res.ok) {
-          const err = (await res.json().catch(() => ({ error: { message: `HTTP ${res.status}` } }))) as {
-            error?: { message?: string };
-          };
-          throw new Error(err.error?.message ?? `HTTP ${res.status}`);
+          throw new Error(payload.error?.message ?? `HTTP ${res.status}`);
+        }
+        // Cert couldn't be auto-installed (container / headless): not an error —
+        // surface the manual-install guide instead of blocking. (#4546)
+        if (payload.skippable && payload.manualGuide) {
+          setCertGuide(payload.manualGuide);
+        } else if (action === "trust-cert") {
+          setCertGuide(null);
         }
         await refresh();
       } catch (err) {
@@ -185,6 +203,43 @@ export default function AgentBridgePageClient({
           >
             <span className="material-symbols-outlined text-[16px]">close</span>
           </button>
+        </div>
+      )}
+
+      {/* Manual cert-install guide (container / headless fallback) */}
+      {certGuide && (
+        <div
+          role="status"
+          className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-700 dark:text-amber-300"
+        >
+          <div className="flex items-center gap-2 font-medium">
+            <span className="material-symbols-outlined text-[16px]">info</span>
+            {t("certManualTitle") ||
+              "Certificate couldn't be installed automatically (e.g. inside a container). The bridge can still run — trust the CA manually:"}
+            <button
+              type="button"
+              onClick={() => setCertGuide(null)}
+              className="ml-auto text-amber-600 hover:text-amber-500"
+              aria-label="Dismiss"
+            >
+              <span className="material-symbols-outlined text-[16px]">close</span>
+            </button>
+          </div>
+          <ol className="mt-2 list-decimal pl-6 space-y-1">
+            {certGuide.steps.map((step, i) => (
+              <li key={i} className="font-mono text-xs break-all">
+                {step}
+              </li>
+            ))}
+          </ol>
+          <a
+            href={certGuide.downloadUrl}
+            download
+            className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium underline hover:no-underline"
+          >
+            <span className="material-symbols-outlined text-[14px]">download</span>
+            {t("downloadCert") || "Download Cert"}
+          </a>
         </div>
       )}
 

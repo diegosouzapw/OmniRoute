@@ -87,6 +87,31 @@ export const v1ModerationSchema = z
   })
   .catchall(z.unknown());
 
+// Mistral OCR: `document` is a { type, document_url | image_url } object.
+// Keep the schema permissive-but-typed — validate model + that a non-empty
+// `document` object (or a document_url/image_url string shorthand) is present.
+export const v1OcrDocumentSchema = z.union([
+  z
+    .object({
+      type: z.string().trim().min(1).optional(),
+      document_url: z.string().trim().min(1).optional(),
+      image_url: z.union([z.string().trim().min(1), z.record(z.string(), z.unknown())]).optional(),
+    })
+    .catchall(z.unknown())
+    .refine(
+      (value) => value.document_url !== undefined || value.image_url !== undefined,
+      "document must include document_url or image_url"
+    ),
+  nonEmptyStringSchema,
+]);
+
+export const v1OcrSchema = z
+  .object({
+    model: modelIdSchema.optional(),
+    document: v1OcrDocumentSchema,
+  })
+  .catchall(z.unknown());
+
 export const v1RerankSchema = z
   .object({
     model: modelIdSchema,
@@ -229,42 +254,6 @@ export const searchResultSchema = z.object({
     rank: z.number().int().positive(),
   }),
   provider_raw: z.record(z.string(), z.unknown()).nullable().optional(),
-});
-
-export const v1SearchResponseSchema = z.object({
-  id: z.string(),
-  provider: z.string(),
-  query: z.string(),
-  results: z.array(searchResultSchema),
-  cached: z.boolean(),
-  answer: z
-    .object({
-      source: z.enum(["none", "provider", "internal"]).optional(),
-      text: z.string().nullable().optional(),
-      model: z.string().nullable().optional(),
-    })
-    .nullable()
-    .optional(),
-  usage: z.object({
-    queries_used: z.number().int().min(0),
-    search_cost_usd: z.number().min(0),
-    llm_tokens: z.number().int().min(0).optional(),
-  }),
-  metrics: z.object({
-    response_time_ms: z.number().int().min(0),
-    upstream_latency_ms: z.number().int().min(0).optional(),
-    gateway_latency_ms: z.number().int().min(0).optional(),
-    total_results_available: z.number().int().nullable(),
-  }),
-  errors: z
-    .array(
-      z.object({
-        provider: z.string(),
-        code: z.string(),
-        message: z.string(),
-      })
-    )
-    .optional(),
 });
 
 export const v1BatchCreateSchema = z.object({

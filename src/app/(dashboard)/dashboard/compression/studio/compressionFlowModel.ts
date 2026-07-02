@@ -29,6 +29,44 @@ export interface CompressionEngineStep {
 
 export type DiffSegment = { type: "same" | "removed" | "added"; text: string };
 
+// ── Encoder comparison (TOON/GCF/JSON A/B) ────────────────────────────────
+
+export interface EncoderSize {
+  bytes: number;
+  tokens: number;
+}
+
+export interface EncoderComparison {
+  arraysCompared: number;
+  json: EncoderSize;
+  gcf: EncoderSize;
+  toon: EncoderSize;
+  toonAvailable: boolean;
+  winner: "gcf" | "toon" | "json";
+}
+
+// ── Risk-gate (protected-span stats) ──────────────────────────────────────
+
+export interface RiskGateStats {
+  spansProtected: number;
+  categories: Partial<Record<string, number>>;
+}
+
+// ── Preview API response ──────────────────────────────────────────────────
+
+// ── Saliency heatmap ─────────────────────────────────────────────────────
+
+export interface HeatmapToken {
+  text: string;
+  score: number;
+  kept: boolean;
+}
+
+export interface PreviewHeatmap {
+  mode: "ultra" | "universal";
+  tokens: HeatmapToken[];
+}
+
 // ── Preview API response ──────────────────────────────────────────────────
 
 export interface PreviewResponse {
@@ -43,6 +81,10 @@ export interface PreviewResponse {
   diff: DiffSegment[];
   preservedBlocks: Array<{ kind: string; preview: string }>;
   ruleRemovals: string[];
+  encoderComparison?: EncoderComparison | null;
+  riskGate?: RiskGateStats | null;
+  quantumLock?: { fragments: number; categories: Record<string, number> } | null;
+  heatmap?: PreviewHeatmap | null;
 }
 
 // ── Run Model ─────────────────────────────────────────────────────────────
@@ -57,6 +99,8 @@ export interface CompressionRunModel {
   steps: CompressionEngineStep[];
   timestamp: number;
   diff?: DiffSegment[];
+  encoderComparison?: EncoderComparison | null;
+  quantumLock?: { fragments: number; categories: Record<string, number> } | null;
 }
 
 // ── previewToRunModel ─────────────────────────────────────────────────────
@@ -72,6 +116,8 @@ export function previewToRunModel(res: PreviewResponse, label: string): Compress
     steps: res.engineBreakdown,
     timestamp: 0,
     diff: res.diff,
+    encoderComparison: res.encoderComparison ?? null,
+    quantumLock: res.quantumLock ?? null,
   };
 }
 

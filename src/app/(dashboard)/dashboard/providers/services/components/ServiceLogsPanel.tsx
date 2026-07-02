@@ -29,7 +29,9 @@ function LogLineRow({ line }: { line: LogLine }) {
 
 export function ServiceLogsPanel({ name }: ServiceLogsPanelProps) {
   const [filterInput, setFilterInput] = useState("");
-  const { lines, isPaused, togglePause, clear, setFilter } = useServiceLogs(name, { tail: 200 });
+  const { lines, isPaused, error, togglePause, clear, setFilter } = useServiceLogs(name, {
+    tail: 200,
+  });
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom on new lines unless paused
@@ -89,7 +91,9 @@ export function ServiceLogsPanel({ name }: ServiceLogsPanelProps) {
         </button>
       </div>
       <div className="h-80 overflow-y-auto bg-bg-main py-1">
-        {lines.length === 0 ? (
+        {error ? (
+          <p className="text-xs text-red-600 dark:text-red-400 px-4 py-4">{error}</p>
+        ) : lines.length === 0 ? (
           <p className="text-xs text-text-muted px-4 py-4">No log output yet.</p>
         ) : (
           lines.map((l, i) => <LogLineRow key={i} line={l} />)

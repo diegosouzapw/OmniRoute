@@ -71,7 +71,7 @@ test("#4177 Gemini RESOURCE_EXHAUSTED maps to a 429 rate-limit upstreamError", (
   assert.equal(state.upstreamError.code, "RESOURCE_EXHAUSTED");
 });
 
-test("#4177 Gemini error wrapped in a `response` envelope (Antigravity/Cloud Code) is detected", () => {
+test("#4177 Antigravity/Cloud Code error wrapped in a `response` envelope is detected", () => {
   const state = createStreamingState();
   const result = geminiToOpenAIResponse(
     {

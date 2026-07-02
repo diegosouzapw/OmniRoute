@@ -1,27 +1,14 @@
 import { NextResponse } from "next/server";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 
 import { isLocalRequestAllowed } from "@/lib/security/localEndpoints";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
-const execFileAsync = promisify(execFile);
-
-const CONTAINER_NAME = process.env.OMNIROUTE_REDIS_CONTAINER_NAME || "omniroute-redis";
-
-const RUNTIME_PREFERENCE = ["podman", "docker"];
-
-async function detectRuntime(): Promise<string | null> {
-  for (const candidate of RUNTIME_PREFERENCE) {
-    try {
-      await execFileAsync(candidate, ["--version"], { timeout: 3000 });
-      return candidate;
-    } catch {
-      // try next
-    }
-  }
-  return null;
-}
+import {
+  REDIS_CONTAINER_NAME,
+  detectRedisContainerRuntime,
+  redisRuntimeUnavailableResponse,
+  runRedisRuntimeCommand,
+} from "../redisRuntime";
 
 export async function POST() {
   const guard = isLocalRequestAllowed();
@@ -29,17 +16,24 @@ export async function POST() {
     return NextResponse.json({ error: guard.reason }, { status: 403 });
   }
 
-  const runtime = await detectRuntime();
+  const runtime = await detectRedisContainerRuntime();
   if (!runtime) {
-    return NextResponse.json(
-      { ok: false, error: "No container runtime (podman or docker) found on PATH" },
-      { status: 503 }
-    );
+    return redisRuntimeUnavailableResponse();
   }
 
   try {
-    const { stdout, stderr } = await execFileAsync(runtime, ["stop", CONTAINER_NAME], { timeout: 15_000 });
-    return NextResponse.json({ ok: true, runtime, name: CONTAINER_NAME, stdout: stdout.trim(), stderr: stderr.trim() });
+    const { stdout, stderr } = await runRedisRuntimeCommand(
+      runtime,
+      ["stop", REDIS_CONTAINER_NAME],
+      15_000
+    );
+    return NextResponse.json({
+      ok: true,
+      runtime,
+      name: REDIS_CONTAINER_NAME,
+      stdout,
+      stderr,
+    });
   } catch (err) {
     const rawMessage = err instanceof Error ? err.message : String(err);
     // exit code != 0 from `stop` typically means "not running" — surface that as ok=false but don't 500

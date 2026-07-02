@@ -241,7 +241,9 @@
     "no_recovery": "Disable auto-restart on crash (debugging mode)",
     "max_restarts": "Max crash restarts within 30s before giving up (default: 2)",
     "tray": "Show system tray icon (desktop only, opt-in)",
-    "no_tray": "Disable system tray icon"
+    "no_tray": "Disable system tray icon",
+    "tls_cert": "Path to a TLS certificate (PEM) to serve HTTPS (also OMNIROUTE_TLS_CERT)",
+    "tls_key": "Path to the TLS private key (PEM) to serve HTTPS (also OMNIROUTE_TLS_KEY)"
   },
   "backup": {
     "title": "Backup",

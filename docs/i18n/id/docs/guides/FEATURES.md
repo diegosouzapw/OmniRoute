@@ -10,7 +10,6 @@ Panduan visual untuk setiap bagian dashboard OmniRoute.
 
 ## 🔌 Penyedia
 
-Kelola koneksi penyedia AI: penyedia OAuth (Claude Code, Codex, Gemini CLI), penyedia kunci API (Groq, DeepSeek, OpenRouter), dan penyedia gratis (Qoder, Qwen, Kiro). Akun Kiro menyertakan pelacakan saldo kredit — sisa kredit, total tunjangan, dan tanggal pembaruan terlihat di Dashboard → Penggunaan.
 
 ![Providers Dashboard](screenshots/01-providers.png)
 
@@ -84,7 +83,6 @@ Panel pengaturan komprehensif dengan tab:
 
 ## 🔧 Alat CLI
 
-Konfigurasi satu klik untuk alat pengkodean AI: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, dan Factory Droid. Dilengkapi penerapan/reset konfigurasi otomatis, profil koneksi, dan pemetaan model.
 
 ![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 
@@ -92,7 +90,6 @@ Konfigurasi satu klik untuk alat pengkodean AI: Claude Code, Codex CLI, Gemini C
 
 ## 🤖 Agen CLI _(v2.0.11+)_
 
-Dashboard untuk menemukan dan mengelola agen CLI. Menampilkan kisi 14 agen bawaan (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) dengan:
 
 - **Status instalasi** — Terpasang / Tidak Ditemukan dengan deteksi versi
 - **Lencana protokol** — stdio, HTTP, dll.

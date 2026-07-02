@@ -40,6 +40,34 @@ export const ALLOWED_MESSAGE_TYPES = [
   "GenerateContentQuery",
 ] as const;
 
+export const M365_DEFAULT_OPTION_SETS = [
+  "search_result_progress_messages_with_search_queries",
+  "update_textdoc_response_after_streaming",
+  "deepleo_networking_timeout_10minutes_canmore",
+  "cwc_flux_image",
+  "cwc_code_interpreter",
+  "cwc_code_interpreter_amsfix",
+  "enable_msa_user",
+  "cwcgptv",
+  "flux_v3_gptv_enable_upload_multi_image_in_turn_wo_ch",
+  "gptvnorm2048",
+  "pdnascan",
+  "cwc_code_interpreter_citation_fix",
+  "code_interpreter_interactive_charts",
+  "cwc_code_interpreter_interactive_charts_inline_image",
+  "code_interpreter_matplotlib_patching",
+  "cwc_fileupload_odb",
+  "update_memory_plugin",
+  "add_custom_instructions",
+  "cwc_flux_v3",
+  "flux_v3_progress_messages",
+  "enable_batch_token_processing",
+  "enable_gg_gpt",
+  "flux_v3_image_gen_enable_non_watermarked_storage",
+  "flux_v3_image_gen_enable_story",
+  "rich_responses",
+] as const;
+
 /** Append the record separator to a JSON-serializable frame. */
 export function encodeFrame(obj: unknown): string {
   return JSON.stringify(obj) + RECORD_SEPARATOR;
@@ -118,7 +146,7 @@ export function buildChatInvocation(opts: ChatInvocationOptions): Record<string,
         source: "officeweb",
         clientCorrelationId: opts.traceId,
         sessionId: opts.sessionId,
-        optionsSets: opts.optionsSets ?? [],
+        optionsSets: opts.optionsSets ?? [...M365_DEFAULT_OPTION_SETS],
         streamingMode: "ConciseWithPadding",
         spokenTextMode: "None",
         options: {},
@@ -180,6 +208,7 @@ export function extractBotText(frame: Record<string, unknown> | null): string | 
     if (!m) continue;
     const author = m.author;
     const text = m.text;
+    if (m.messageType === "Progress" || m.contentType === "EarlyProgress") continue;
     if ((author === "bot" || author === undefined) && typeof text === "string" && text.length > 0) {
       return text;
     }

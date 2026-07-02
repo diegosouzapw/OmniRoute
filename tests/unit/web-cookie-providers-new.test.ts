@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { HuggingChatExecutor } = await import("../../open-sse/executors/huggingchat.ts");
-const { PhindExecutor } = await import("../../open-sse/executors/phind.ts");
 const { PoeWebExecutor } = await import("../../open-sse/executors/poe-web.ts");
 const { VeniceWebExecutor } = await import("../../open-sse/executors/venice-web.ts");
 const { V0VercelWebExecutor } = await import("../../open-sse/executors/v0-vercel-web.ts");
@@ -36,6 +35,23 @@ function mockJSONLStream(lines: string[]) {
       controller.close();
     },
   });
+}
+
+const HUGGINGCHAT_ROOT_ID = "00000000-0000-4000-8000-000000000001";
+
+function mockHuggingChatConversationDetail(rootId = HUGGINGCHAT_ROOT_ID) {
+  return new Response(
+    JSON.stringify({
+      json: {
+        rootMessageId: rootId,
+        messages: [{ id: rootId, from: "system" }],
+      },
+    }),
+    {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }
+  );
 }
 
 function mockFetchCapture(status = 200, responseBody?: ReadableStream | string) {
@@ -97,13 +113,6 @@ test("HuggingChat executor is registered", () => {
   assert.ok(executor instanceof HuggingChatExecutor);
 });
 
-test("Phind executor is registered", () => {
-  assert.ok(hasSpecializedExecutor("phind"));
-  assert.ok(hasSpecializedExecutor("ph"));
-  const executor = getExecutor("phind");
-  assert.ok(executor instanceof PhindExecutor);
-});
-
 test("Poe Web executor is registered", () => {
   assert.ok(hasSpecializedExecutor("poe-web"));
   assert.ok(hasSpecializedExecutor("poe"));
@@ -147,11 +156,6 @@ test("Doubao Web executor is registered", () => {
 test("HuggingChat sets correct provider", () => {
   const executor = new HuggingChatExecutor();
   assert.equal(executor.getProvider(), "huggingchat");
-});
-
-test("Phind sets correct provider", () => {
-  const executor = new PhindExecutor();
-  assert.equal(executor.getProvider(), "phind");
 });
 
 test("Poe Web sets correct provider", () => {
@@ -215,7 +219,10 @@ test("HuggingChat: streaming returns SSE chunks", async () => {
         headers: { "Content-Type": "application/json" },
       });
     }
-    // Second call: send message (returns JSONL stream)
+    if (callCount === 2) {
+      return mockHuggingChatConversationDetail();
+    }
+
     return new Response(mockJSONLStream(jsonlData), {
       status: 200,
       headers: { "Content-Type": "text/plain; charset=utf-8" },
@@ -239,6 +246,221 @@ test("HuggingChat: streaming returns SSE chunks", async () => {
   }
 });
 
+test("HuggingChat: sends current web data payload with the root parent id", async () => {
+  const original = globalThis.fetch;
+  let sentData: Record<string, unknown> | null = null;
+  let callCount = 0;
+  globalThis.fetch = async (_url: any, opts: any) => {
+    callCount++;
+    if (callCount === 1) {
+      return new Response(JSON.stringify({ conversationId: "test-conv-123" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (callCount === 2) {
+      return mockHuggingChatConversationDetail();
+    }
+
+    const form = opts.body as FormData;
+    sentData = JSON.parse(String(form.get("data")));
+    return new Response(
+      mockJSONLStream([JSON.stringify({ type: "finalAnswer", text: "Hello world" })]),
+      {
+        status: 200,
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      }
+    );
+  };
+
+  try {
+    const executor = new HuggingChatExecutor();
+    const result = await executor.execute({
+      ...noopExecuteInput,
+      model: "meta-llama/Llama-3.3-70B-Instruct",
+    });
+    await result.response.text();
+
+    assert.equal(sentData?.inputs, "hello");
+    assert.equal(sentData?.id, HUGGINGCHAT_ROOT_ID);
+    assert.equal(sentData?.is_retry, false);
+    assert.equal(sentData?.is_continue, false);
+    assert.equal(typeof sentData?.generationId, "string");
+    assert.deepEqual(sentData?.selectedMcpServerNames, []);
+    assert.deepEqual(sentData?.selectedMcpServers, []);
+    assert.equal(typeof sentData?.timezone, "string");
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("HuggingChat: carries create response Set-Cookie into message send", async () => {
+  const original = globalThis.fetch;
+  let sendCookie = "";
+  let callCount = 0;
+  globalThis.fetch = async (_url: any, opts: any) => {
+    callCount++;
+    if (callCount === 1) {
+      return new Response(JSON.stringify({ conversationId: "test-conv-123" }), {
+        status: 200,
+        headers: [
+          ["Content-Type", "application/json"],
+          ["Set-Cookie", "hf-chat=fresh-session; Path=/; HttpOnly"],
+          ["Set-Cookie", "aws-waf-token=fresh-waf; Path=/; HttpOnly"],
+        ],
+      });
+    }
+
+    if (callCount === 2) {
+      return mockHuggingChatConversationDetail();
+    }
+
+    sendCookie = opts.headers.Cookie;
+    return new Response(
+      mockJSONLStream([JSON.stringify({ type: "finalAnswer", text: "Hello world" })]),
+      {
+        status: 200,
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      }
+    );
+  };
+
+  try {
+    const executor = new HuggingChatExecutor();
+    const result = await executor.execute({
+      ...noopExecuteInput,
+      credentials: { apiKey: "hf-chat=stale-session; token=login-token" },
+      model: "baidu/ERNIE-4.5-VL-424B-A47B-Base-PT",
+    });
+    await result.response.text();
+
+    assert.match(sendCookie, /(?:^|;\s*)hf-chat=fresh-session(?:;|$)/);
+    assert.match(sendCookie, /(?:^|;\s*)aws-waf-token=fresh-waf(?:;|$)/);
+    assert.match(sendCookie, /(?:^|;\s*)token=login-token(?:;|$)/);
+    assert.doesNotMatch(sendCookie, /hf-chat=stale-session/);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("HuggingChat: default model is a current concrete catalog model", async () => {
+  const original = globalThis.fetch;
+  let createModel: unknown = null;
+  let callCount = 0;
+  globalThis.fetch = async (_url: any, opts: any) => {
+    callCount++;
+    if (callCount === 1) {
+      createModel = JSON.parse(String(opts.body)).model;
+      return new Response(JSON.stringify({ conversationId: "test-conv-123" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (callCount === 2) {
+      return mockHuggingChatConversationDetail();
+    }
+
+    return new Response(
+      mockJSONLStream([JSON.stringify({ type: "finalAnswer", text: "Hello world" })]),
+      {
+        status: 200,
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      }
+    );
+  };
+
+  try {
+    const executor = new HuggingChatExecutor();
+    const result = await executor.execute({
+      ...noopExecuteInput,
+      model: "",
+    });
+    await result.response.text();
+
+    assert.equal(createModel, "baidu/ERNIE-4.5-VL-424B-A47B-Base-PT");
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("HuggingChat: message send errors include sanitized upstream details", async () => {
+  const original = globalThis.fetch;
+  let callCount = 0;
+  globalThis.fetch = async () => {
+    callCount++;
+    if (callCount === 1) {
+      return new Response(JSON.stringify({ conversationId: "test-conv-123" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (callCount === 2) {
+      return mockHuggingChatConversationDetail();
+    }
+    return new Response(JSON.stringify({ message: "invalid parent message id", status: "error" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const executor = new HuggingChatExecutor();
+    const result = await executor.execute({
+      ...noopExecuteInput,
+      stream: false,
+    });
+    assert.equal(result.response.status, 400);
+    const parsed = JSON.parse(await result.response.text());
+    assert.match(parsed.error.message, /invalid parent message id/i);
+    assert.equal(parsed.upstream_details.message, "invalid parent message id");
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("HuggingChat: message send errors preserve the attempted send payload", async () => {
+  const original = globalThis.fetch;
+  let callCount = 0;
+  globalThis.fetch = async () => {
+    callCount++;
+    if (callCount === 1) {
+      return new Response(JSON.stringify({ conversationId: "test-conv-123" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (callCount === 2) {
+      return mockHuggingChatConversationDetail();
+    }
+    return new Response(JSON.stringify({ message: "An error occurred" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const executor = new HuggingChatExecutor();
+    const result = await executor.execute({
+      ...noopExecuteInput,
+      model: "baidu/ERNIE-4.5-VL-424B-A47B-Base-PT",
+      stream: false,
+    });
+
+    assert.equal(result.response.status, 500);
+    assert.equal(result.transformedBody.inputs, "hello");
+    assert.equal(result.transformedBody.id, HUGGINGCHAT_ROOT_ID);
+    assert.equal(result.transformedBody.is_retry, false);
+    assert.equal(result.transformedBody.is_continue, false);
+    assert.equal(typeof result.transformedBody.generationId, "string");
+    assert.deepEqual(result.transformedBody.selectedMcpServerNames, []);
+    assert.deepEqual(result.transformedBody.selectedMcpServers, []);
+    assert.equal(typeof result.transformedBody.timezone, "string");
+    assert.ok(!JSON.stringify(result.transformedBody).includes("test-cookie"));
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
 test("HuggingChat: non-streaming returns JSON completion", async () => {
   const jsonlData = [
     JSON.stringify({ type: "stream", token: "Hello " }),
@@ -255,6 +477,9 @@ test("HuggingChat: non-streaming returns JSON completion", async () => {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });
+    }
+    if (callCount === 2) {
+      return mockHuggingChatConversationDetail();
     }
     return new Response(mockJSONLStream(jsonlData), {
       status: 200,
@@ -299,6 +524,30 @@ test("HuggingChat: error response returns error result", async () => {
   }
 });
 
+test("HuggingChat: encrypted credential blob fails before upstream fetch", async () => {
+  const original = globalThis.fetch;
+  let fetchCalled = false;
+  globalThis.fetch = async () => {
+    fetchCalled = true;
+    return new Response("should not fetch", { status: 500 });
+  };
+
+  try {
+    const executor = new HuggingChatExecutor();
+    const result = await executor.execute({
+      ...noopExecuteInput,
+      credentials: { apiKey: "enc:v1:fake-iv:fake-ciphertext:fake-tag" },
+    });
+    const body = await result.response.json();
+
+    assert.equal(fetchCalled, false);
+    assert.equal(result.response.status, 401);
+    assert.match(body.error.message, /STORAGE_ENCRYPTION_KEY/);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
 test("HuggingChat: fetch failure returns 502", async () => {
   const original = globalThis.fetch;
   globalThis.fetch = async () => {
@@ -311,41 +560,6 @@ test("HuggingChat: fetch failure returns 502", async () => {
     assert.equal(result.response.status, 502);
   } finally {
     globalThis.fetch = original;
-  }
-});
-
-// ── Phind Execution Tests ────────────────────────────────────────────────────
-
-test("Phind: streaming returns SSE chunks", async () => {
-  const sseData = [
-    'data: {"choices":[{"delta":{"content":"Hello "}}]}',
-    'data: {"choices":[{"delta":{"content":"world"}}]}',
-  ];
-  const restore = mockFetchCapture(200, mockSSEStream(sseData));
-  try {
-    const executor = new PhindExecutor();
-    const result = await executor.execute({
-      ...noopExecuteInput,
-      model: "phind-model",
-    });
-    assert.ok(result.response instanceof Response);
-    assert.ok(result.url.includes("phind.com"));
-    const text = await result.response.text();
-    assert.ok(text.includes("data:"));
-  } finally {
-    restore.restore();
-  }
-});
-
-test("Phind: error response returns error result", async () => {
-  const restore = mockFetchCapture(403, "Forbidden");
-  try {
-    const executor = new PhindExecutor();
-    const result = await executor.execute(noopExecuteInput);
-    assert.ok(result.response instanceof Response);
-    assert.equal(result.response.status, 403);
-  } finally {
-    restore.restore();
   }
 });
 
@@ -452,27 +666,50 @@ test("v0 Vercel Web: error response returns error result", async () => {
 
 // ── Kimi Web Execution Tests ─────────────────────────────────────────────────
 
-test("Kimi Web: streaming passes through SSE", async () => {
-  const sseData = ['data: {"choices":[{"delta":{"content":"你好"}}]}'];
-  const restore = mockFetchCapture(200, mockSSEStream(sseData));
+test("Kimi Web: targets www.kimi.com (international)", async () => {
+  // The new executor talks to the Connect-RPC streaming endpoint on the
+  // international domain. A bare empty credential is rejected before the
+  // fetch fires, so we feed a fake JWT and let the mock absorb the request.
+  const restore = mockFetchCapture(200);
   try {
     const executor = new KimiWebExecutor();
     const result = await executor.execute({
       ...noopExecuteInput,
       model: "kimi-default",
+      credentials: { apiKey: "kimi-auth=eyJ.eyJzdWI.signature" },
     });
     assert.ok(result.response instanceof Response);
-    assert.ok(result.url.includes("kimi.moonshot.cn"));
+    // Parse the URL and assert on the exact hostname rather than a substring
+    // match — `includes("www.kimi.com")` would also accept a hostile host like
+    // `www.kimi.com.evil.net` or `evil.net/?x=www.kimi.com` (CodeQL
+    // js/incomplete-url-substring-sanitization).
+    const host = new URL(result.url).hostname;
+    assert.equal(host, "www.kimi.com", `got ${result.url}`);
+    assert.notEqual(host, "www.moonshot.cn", `got ${result.url}`);
   } finally {
     restore.restore();
   }
+});
+
+test("Kimi Web: missing JWT returns a 400 before fetching", async () => {
+  const executor = new KimiWebExecutor();
+  const result = await executor.execute({
+    ...noopExecuteInput,
+    model: "kimi-default",
+    credentials: { apiKey: "" },
+  });
+  assert.equal(result.response.status, 400);
 });
 
 test("Kimi Web: error response returns error result", async () => {
   const restore = mockFetchCapture(401, "Unauthorized");
   try {
     const executor = new KimiWebExecutor();
-    const result = await executor.execute(noopExecuteInput);
+    const result = await executor.execute({
+      ...noopExecuteInput,
+      model: "kimi-default",
+      credentials: { apiKey: "kimi-auth=eyJ.eyJzdWI.signature" },
+    });
     assert.ok(result.response instanceof Response);
     assert.equal(result.response.status, 401);
   } finally {
@@ -515,7 +752,6 @@ test("Doubao Web: error response returns error result", async () => {
 test("All executors handle Cookie: prefix", async () => {
   const executors = [
     new HuggingChatExecutor(),
-    new PhindExecutor(),
     new PoeWebExecutor(),
     new VeniceWebExecutor(),
     new V0VercelWebExecutor(),
@@ -553,7 +789,6 @@ test("All executors handle Cookie: prefix", async () => {
 test("All executors handle bare cookie value", async () => {
   const executors = [
     new HuggingChatExecutor(),
-    new PhindExecutor(),
     new PoeWebExecutor(),
     new VeniceWebExecutor(),
     new V0VercelWebExecutor(),

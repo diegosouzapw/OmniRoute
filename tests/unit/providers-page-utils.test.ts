@@ -16,7 +16,7 @@ test("merged OAuth providers keep free-tier providers in the OAuth section", () 
   };
 
   const mockOauthProviders = { claude: { name: "Claude" } };
-  const mockFreeProviders = { "gemini-cli": { name: "Gemini CLI" } };
+  const mockFreeProviders = { qoder: { name: "Qoder" } };
 
   const entries = providerPageUtils.buildMergedOAuthProviderEntries(
     mockOauthProviders,
@@ -1018,7 +1018,7 @@ test("buildCompatibleProviderGroups partitions nodes by type + claude-code prefi
       { id: "my-oai", name: "My OAI", type: "openai-compatible", apiType: "responses" },
       { id: "my-anthropic", name: "My Claude", type: "anthropic-compatible" },
       { id: "anthropic-compatible-cc-acme", name: "Acme CC", type: "anthropic-compatible" },
-      { id: "ignored-node", name: "Ignored", type: "gemini-cli" },
+      { id: "ignored-node", name: "Ignored", type: "unsupported-provider" },
       // name omitted → falls back to the provided label
       { id: "anon-oai", type: "openai-compatible" },
     ],

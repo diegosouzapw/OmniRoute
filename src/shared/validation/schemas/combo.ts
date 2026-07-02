@@ -122,8 +122,29 @@ export const slaRoutingPolicySchema = z
   })
   .strict();
 
+// Feature 4985 — configurable response-body validation for combo routing. A 200 OK whose
+// body fails this predicate fails over to the next target (same path as an HTTP error).
+export const responseValidationSchema = z
+  .object({
+    forbiddenSubstrings: z.array(z.string().min(1).max(500)).max(50).optional(),
+    requiredSubstrings: z.array(z.string().min(1).max(500)).max(50).optional(),
+    minContentLength: z.coerce.number().int().min(0).max(1_000_000).optional(),
+    jsonPathPredicates: z
+      .array(
+        z.object({
+          path: z.string().trim().min(1).max(300),
+          condition: z.enum(["exists", "nonEmpty", "equals", "notEquals"]),
+          value: z.union([z.string().max(1000), z.number(), z.boolean()]).optional(),
+        })
+      )
+      .max(20)
+      .optional(),
+  })
+  .strict();
+
 export const comboRuntimeConfigSchema = z
   .object({
+    responseValidation: responseValidationSchema.optional(),
     strategy: comboStrategySchema.optional(),
     maxRetries: z.coerce.number().int().min(0).max(10).optional(),
     retryDelayMs: z.coerce.number().int().min(0).max(60000).optional(),

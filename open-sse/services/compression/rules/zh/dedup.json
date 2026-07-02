@@ -1,0 +1,38 @@
+{
+  "language": "zh",
+  "category": "dedup",
+  "rules": [
+    {
+      "name": "zh_repeated_context",
+      "pattern": "(?:如前所述|如之前所说|如先前提到|正如我之前所说)",
+      "replacement": "见上。",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "zh_repeated_question",
+      "pattern": "(?:和之前一样的问题|我之前问过这个问题|这是同一个问题)",
+      "replacement": "［同问］",
+      "context": "user",
+      "category": "dedup",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "zh_reestablished_context",
+      "pattern": "(?:回到上面的代码|关于之前提到的内容|回到之前的话题)",
+      "replacement": "Re: ",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "zh_summary_replacement",
+      "pattern": "(?:总结一下我们讨论的内容|总结我们的对话|概括来说)",
+      "replacement": "总结：",
+      "context": "assistant",
+      "category": "dedup",
+      "minIntensity": "lite"
+    }
+  ]
+}

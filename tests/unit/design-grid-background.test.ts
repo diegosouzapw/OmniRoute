@@ -98,6 +98,7 @@ test("Card / Modal / Input / Select adopt the radius scale and border token", ()
 
 test("status colors come from one canonical module", () => {
   const mod = read("../../src/shared/constants/statusColors.ts");
+  assert.match(mod, /export const STATUS_HEX/);
   assert.match(mod, /success:\s*"#22c55e"/);
   assert.match(mod, /warning:\s*"#f59e0b"/);
   assert.match(mod, /error:\s*"#ef4444"/);

@@ -65,3 +65,119 @@ test("Grok Build OAuth Provider - mapTokens from object with accessToken", () =>
   const result = grokCli.mapTokens(input, null);
   assert.equal(result.accessToken, "direct-token");
 });
+
+test("Grok Build OAuth Provider - mapTokens from route-wrapped auth.json", () => {
+  // The route handler wraps the token: { accessToken: <token> }.
+  // This simulates what the import-token endpoint passes to mapTokens.
+  const authJson = {
+    "https://auth.x.ai::b1a00492-073a-47ea-816f-4c329264a828": {
+      key: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20ifQ.signature",
+      refresh_token: "test-refresh-token-wrapped",
+      expires_at: "2026-12-31T00:00:00Z",
+    },
+  };
+  const wrapped = { accessToken: authJson };
+  const result = grokCli.mapTokens(wrapped, null);
+
+  assert.ok(
+    result.accessToken.startsWith("eyJ"),
+    "accessToken should be JWT from wrapped auth.json"
+  );
+  assert.equal(result.refreshToken, "test-refresh-token-wrapped");
+  assert.equal(result.email, "test@example.com");
+  assert.ok(result.providerSpecificData?.rawAuthJson, "rawAuthJson should be populated");
+  assert.deepEqual(
+    result.providerSpecificData?.rawAuthJson,
+    authJson,
+    "rawAuthJson should equal the original auth.json"
+  );
+});
+
+test("Grok Build OAuth Provider - mapTokens from direct auth.json has rawAuthJson", () => {
+  const authJson = {
+    "https://auth.x.ai::clientId": {
+      key: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20ifQ.signature",
+      refresh_token: "direct-refresh",
+    },
+  };
+  const result = grokCli.mapTokens(authJson, null);
+
+  assert.ok(result.accessToken.startsWith("eyJ"));
+  assert.equal(result.refreshToken, "direct-refresh");
+  assert.deepEqual(result.providerSpecificData?.rawAuthJson, authJson);
+});
+
+test("Grok Build OAuth Provider - mapTokens from raw JWT has no rawAuthJson", () => {
+  const payload = { sub: "12345", email: "test@example.com" };
+  const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const mockJwt = `eyJhbGciOiJFUzI1NiJ9.${payloadBase64}.signature`;
+  const result = grokCli.mapTokens(mockJwt, null);
+
+  assert.equal(result.accessToken, mockJwt);
+  assert.equal(result.refreshToken, null);
+  assert.equal(result.providerSpecificData?.rawAuthJson, undefined);
+});
+
+test("Grok Build OAuth Provider - mapTokens extracts expiresIn from JWT exp (dynamic)", () => {
+  const futureSec = Math.floor(Date.now() / 1000) + 1200; // 20 minutes from now
+  const payload = { sub: "12345", email: "test@example.com", exp: futureSec };
+  const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const mockJwt = `eyJhbGciOiJFUzI1NiJ9.${payloadBase64}.signature`;
+  const result = grokCli.mapTokens(mockJwt, null);
+
+  assert.ok(result.expiresIn > 0);
+  assert.ok(Math.abs(result.expiresIn - 1200) <= 2);
+});
+
+test("Grok Build OAuth Provider - mapTokens extracts expiresIn from JSON expires_at (dynamic)", () => {
+  const futureDateStr = new Date(Date.now() + 1800 * 1000).toISOString(); // 30 minutes from now
+  const authJson = {
+    "https://auth.x.ai::clientId": {
+      key: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20ifQ.signature",
+      refresh_token: "test-refresh-token",
+      expires_at: futureDateStr,
+    },
+  };
+  const result = grokCli.mapTokens(authJson, null);
+
+  assert.ok(result.expiresIn > 0);
+  assert.ok(Math.abs(result.expiresIn - 1800) <= 2);
+});
+
+test("Grok Build OAuth Provider - mapTokens falls back to 21600 if no exp or expires_at", () => {
+  const payload = { sub: "12345", email: "test@example.com" };
+  const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const mockJwt = `eyJhbGciOiJFUzI1NiJ9.${payloadBase64}.signature`;
+  const result = grokCli.mapTokens(mockJwt, null);
+
+  assert.equal(result.expiresIn, 21600);
+});
+
+// #5775 follow-up: an already-expired token must NOT produce a negative expiresIn.
+// A negative value is truthy in the import-token route (route.ts), yielding a PAST
+// expiresAt that AutoCombo (virtualFactory.ts) reads as "already expired" and excludes
+// the connection immediately — instead of clamping to a tiny positive TTL so the token
+// is treated as due-for-refresh. Clamp with Math.max(1, …).
+test("Grok Build OAuth Provider - mapTokens clamps expired JWT exp to a positive expiresIn", () => {
+  const pastSec = Math.floor(Date.now() / 1000) - 3600; // expired 1h ago
+  const payload = { sub: "12345", email: "test@example.com", exp: pastSec };
+  const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const mockJwt = `eyJhbGciOiJFUzI1NiJ9.${payloadBase64}.signature`;
+  const result = grokCli.mapTokens(mockJwt, null);
+
+  assert.ok(result.expiresIn >= 1, `expected expiresIn >= 1, got ${result.expiresIn}`);
+});
+
+test("Grok Build OAuth Provider - mapTokens clamps expired JSON expires_at to a positive expiresIn", () => {
+  const pastDateStr = new Date(Date.now() - 3600 * 1000).toISOString(); // expired 1h ago
+  const authJson = {
+    "https://auth.x.ai::clientId": {
+      key: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20ifQ.signature",
+      refresh_token: "test-refresh-token",
+      expires_at: pastDateStr,
+    },
+  };
+  const result = grokCli.mapTokens(authJson, null);
+
+  assert.ok(result.expiresIn >= 1, `expected expiresIn >= 1, got ${result.expiresIn}`);
+});

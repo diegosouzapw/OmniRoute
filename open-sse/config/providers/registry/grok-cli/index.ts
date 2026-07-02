@@ -11,8 +11,18 @@ export const grok_cliProvider: RegistryEntry = {
   authHeader: "bearer",
   passthroughModels: true,
   models: [
-    { id: "grok-build", name: "Grok Build", contextLength: 128000 },
-    { id: "grok-composer-2.5-fast", name: "Grok Composer 2.5 Fast", contextLength: 128000 },
+    {
+      id: "grok-build",
+      name: "Grok Build",
+      contextLength: 128000,
+      unsupportedParams: ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"],
+    },
+    {
+      id: "grok-composer-2.5-fast",
+      name: "Grok Composer 2.5 Fast",
+      contextLength: 128000,
+      unsupportedParams: ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"],
+    },
   ],
   oauth: {
     clientIdEnv: "GROK_OAUTH_CLIENT_ID",

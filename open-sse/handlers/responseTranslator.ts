@@ -3,6 +3,7 @@ import {
   buildGeminiThoughtSignatureKey,
   storeGeminiThoughtSignature,
 } from "../services/geminiThoughtSignatureStore.ts";
+import { normalizeOpenAICompatibleFinishReasonString } from "../utils/finishReason.ts";
 import { containsTextualToolCallMarker } from "../utils/textualToolCall.ts";
 
 type JsonRecord = Record<string, unknown>;
@@ -298,11 +299,7 @@ export function translateNonStreamingResponse(
   }
 
   // Handle Gemini/Antigravity format
-  else if (
-    targetFormat === FORMATS.GEMINI ||
-    targetFormat === FORMATS.ANTIGRAVITY ||
-    targetFormat === FORMATS.GEMINI_CLI
-  ) {
+  else if (targetFormat === FORMATS.GEMINI || targetFormat === FORMATS.ANTIGRAVITY) {
     const root = toRecord(responseBody);
     const response = toRecord(root.response ?? root);
     const candidates = Array.isArray(response.candidates) ? response.candidates : [];
@@ -423,16 +420,10 @@ export function translateNonStreamingResponse(
                 message.content = "";
               }
 
-              let finishReason = toString(candidate.finishReason, "stop").toLowerCase();
-              if (finishReason === "max_tokens") {
-                finishReason = "length";
-              } else if (
-                finishReason === "safety" ||
-                finishReason === "recitation" ||
-                finishReason === "blocklist"
-              ) {
-                finishReason = "content_filter";
-              } else if (finishReason === "stop" && toolCalls.length > 0) {
+              let finishReason = normalizeOpenAICompatibleFinishReasonString(
+                toString(candidate.finishReason, "stop")
+              );
+              if (finishReason === "stop" && toolCalls.length > 0) {
                 finishReason = "tool_calls";
               }
 

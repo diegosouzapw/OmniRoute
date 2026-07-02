@@ -10,6 +10,10 @@ import {
   createSSEDataLineNormalizer,
   isKnownNonClaudeStreamPayload,
 } from "../../utils/streamHelpers.ts";
+import {
+  evaluateResponseValidation,
+  type ResponseValidationConfig,
+} from "./responseValidation.ts";
 import { getReasoningTokens } from "../../../src/lib/usage/tokenAccounting.ts";
 import type { ComboRetryAfter } from "./types.ts";
 
@@ -19,6 +23,28 @@ export function toRetryAfterDisplayValue(value: ComboRetryAfter): string | Date 
     return new Date(Date.now() + value * 1000);
   }
   return new Date(value);
+}
+
+function responsesApiOutputHasContent(output: unknown): boolean {
+  return (
+    Array.isArray(output) &&
+    output.some((item) => {
+      if (!item || typeof item !== "object") return false;
+      const record = item as Record<string, unknown>;
+      if (record.type !== "message") return Boolean(record.type);
+      const content = record.content;
+      return (
+        Array.isArray(content) &&
+        content.some(
+          (part) =>
+            !!part &&
+            typeof part === "object" &&
+            typeof (part as Record<string, unknown>).text === "string" &&
+            ((part as Record<string, string>).text as string).length > 0
+        )
+      );
+    })
+  );
 }
 
 /**
@@ -35,7 +61,8 @@ export function toRetryAfterDisplayValue(value: ComboRetryAfter): string | Date 
 export async function validateResponseQuality(
   response: Response,
   isStreaming: boolean,
-  log: { warn?: (...args: unknown[]) => void }
+  log: { warn?: (...args: unknown[]) => void },
+  responseValidation?: ResponseValidationConfig | null
 ): Promise<{ valid: boolean; reason?: string; clonedResponse?: Response }> {
   // Issue #3685: For Claude SSE streaming responses, use a BOUNDED PEEK to
   // detect the empty-content-block pattern (content_filter stop_reason with
@@ -270,7 +297,32 @@ export async function validateResponseQuality(
     return { valid: false, reason: "response is not valid JSON" };
   }
 
+  // Feature 4985: apply the combo's configured response-body predicate. A failure here
+  // fails over to the next target via the same path as the built-in empty-content checks.
+  if (responseValidation) {
+    const verdict = evaluateResponseValidation(json, responseValidation);
+    if (!verdict.valid) {
+      return { valid: false, reason: verdict.reason };
+    }
+  }
+
   const choices = json?.choices;
+  if (json?.object === "response") {
+    if (!responsesApiOutputHasContent(json.output)) return { valid: false, reason: "empty_choices" };
+    const status = typeof json.status === "string" ? json.status : "";
+    if (status && !["completed", "done"].includes(status)) {
+      return { valid: false, reason: "no_terminal" };
+    }
+    return {
+      valid: true,
+      clonedResponse: new Response(text, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+      }),
+    };
+  }
+
   if (!Array.isArray(choices) || choices.length === 0) {
     if (json?.output || json?.result || json?.data || json?.response) return { valid: true };
     if (json?.error) {

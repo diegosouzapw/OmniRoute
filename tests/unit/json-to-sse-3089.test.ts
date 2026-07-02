@@ -155,6 +155,29 @@ describe("synthesizeOpenAiSseFromJson (#3089)", () => {
     assert.equal(toolDelta.tool_calls[0].id, "t1");
   });
 
+  test("normalizes prohibited content finish reasons in synthesized SSE", () => {
+    const sse = synthesizeOpenAiSseFromJson(
+      JSON.stringify({
+        choices: [
+          {
+            message: { role: "assistant", content: "partial text" },
+            finish_reason: "prohibited_content",
+          },
+        ],
+      })
+    );
+    const events = parseDataChunks(sse)
+      .filter((c) => c !== "[DONE]")
+      .map((c) => JSON.parse(c));
+    const finishChunk = events.at(-1);
+
+    assert.equal(finishChunk.choices[0].finish_reason, "content_filter");
+    assert.equal(
+      events.some((event) => event.choices[0].delta.content === "partial text"),
+      true
+    );
+  });
+
   test("returns empty string for non-completion JSON / invalid JSON", () => {
     assert.equal(synthesizeOpenAiSseFromJson('{"error":{"message":"x"}}'), "");
     assert.equal(synthesizeOpenAiSseFromJson("{not json"), "");

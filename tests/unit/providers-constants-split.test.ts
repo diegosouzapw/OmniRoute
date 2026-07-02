@@ -31,12 +31,12 @@ test("barrel still exports every catalog + key helpers", () => {
   }
 });
 
-test("APIKEY_PROVIDERS merges the 6 family files into 160 entries (no loss / no dup)", async () => {
+test("APIKEY_PROVIDERS merges the 6 family files into 159 entries (no loss / no dup)", async () => {
   const keys = Object.keys((P as Record<string, object>).APIKEY_PROVIDERS);
-  assert.equal(keys.length, 160);
-  assert.equal(new Set(keys).size, 160, "duplicate keys after spread-merge");
+  assert.equal(keys.length, 159);
+  assert.equal(new Set(keys).size, 159, "duplicate keys after spread-merge");
   // the merged object's entry-count equals the sum of the 6 semantic family files; families are a
-  // strict partition (every provider in exactly one), so the sum must be exactly 160.
+  // strict partition (every provider in exactly one), so the sum must be exactly 159.
   const families: [string, string][] = [
     ["gateways", "APIKEY_PROVIDERS_GATEWAYS"],
     ["frontier-labs", "APIKEY_PROVIDERS_FRONTIER"],
@@ -56,7 +56,7 @@ test("APIKEY_PROVIDERS merges the 6 family files into 160 entries (no loss / no 
       seen.add(k);
     }
   }
-  assert.equal(famTotal, 160, "families must partition all 160 providers");
+  assert.equal(famTotal, 159, "families must partition all 159 providers");
 });
 
 test("AI_PROVIDERS Proxy aggregates all sections; lookups resolve", () => {

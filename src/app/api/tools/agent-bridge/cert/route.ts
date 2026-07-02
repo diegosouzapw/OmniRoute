@@ -4,7 +4,7 @@
  * LOCAL_ONLY: registered in routeGuard.ts
  */
 import { z } from "zod";
-import { installCert, uninstallCert, checkCertInstalled } from "@/mitm/cert/install";
+import { installCertResult, uninstallCert, checkCertInstalled } from "@/mitm/cert/install";
 import { resolveMitmDataDir } from "@/mitm/dataDir";
 import { getCachedPassword } from "@/mitm/manager";
 import path from "path";
@@ -48,9 +48,24 @@ export async function POST(request: Request): Promise<Response> {
         message: "Certificate not found. Generate one first.",
       });
     }
-    await installCert(sudoPassword, crtPath);
-    const trusted = await checkCertInstalled(crtPath);
-    return Response.json({ ok: true, trusted });
+    const result = await installCertResult(sudoPassword, crtPath);
+    if (result.installed) {
+      const trusted = await checkCertInstalled(crtPath);
+      return Response.json({ ok: true, trusted });
+    }
+    if (result.reason === "canceled") {
+      return createErrorResponse({ status: 409, message: "User canceled authorization" });
+    }
+    // Environment failure (container / headless): not a 500 — surface the
+    // manual-install guide so the operator can trust the CA by hand. (#4546)
+    return Response.json({
+      ok: false,
+      trusted: false,
+      skippable: true,
+      reason: result.reason,
+      message: sanitizeErrorMessage(result.message ?? "Certificate install failed"),
+      manualGuide: result.manualGuide,
+    });
   } catch (err) {
     const msg = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
     return createErrorResponse({ status: 500, message: msg });

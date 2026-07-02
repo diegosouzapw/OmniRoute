@@ -36,18 +36,6 @@ export const OAUTH_PROVIDERS = {
     deprecationReason:
       "Qwen OAuth free tier was discontinued on 2026-04-15. Use 'bailian-coding-plan', 'alibaba', 'alibaba-cn', or 'openrouter' provider with API key instead.",
   },
-  "gemini-cli": {
-    id: "gemini-cli",
-    alias: "gemini-cli",
-    name: "Gemini CLI",
-    icon: "terminal",
-    color: "#4285F4",
-    subscriptionRisk: true,
-    riskNoticeVariant: "deprecated",
-    hasFree: true,
-    authHint:
-      "Uses Gemini CLI OAuth / Cloud Code credentials. Pro models require an eligible Google account or paid plan.",
-  },
   agy: {
     id: "agy",
     alias: "agy",
@@ -175,6 +163,10 @@ export const OAUTH_PROVIDERS = {
     textIcon: "KC",
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
+    // #4019: serve Kilo's free models without signup. With no account connected,
+    // getProviderCredentials synthesizes a noauth credential and the executor
+    // sends `Bearer anonymous` (see the kilocode registry `anonymousApiKey`).
+    anonymousFallback: true,
   },
   cline: {
     id: "cline",

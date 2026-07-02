@@ -11,10 +11,10 @@
 //   gemini-2.5-flash   → contextWindow 1 048 576
 //
 // context-relay: does NOT appear in the sorting if-else chain of combo.ts; targets are
-// dispatched in combo-definition order. The only extra behaviour is a codex-provider
-// handoff triggered by (strategy=context-relay && provider="codex" && sessionId in
-// relayOptions), which cannot be exercised in-process with openai/gemini providers.
-// That handoff path is covered by TODO(phase-2) below.
+// dispatched in combo-definition order. Two extra behaviours exist:
+// 1. Universal handoff (provider-agnostic) — covered by context-relay-handoff.test.ts.
+// 2. Codex-specific handoff — requires provider="codex" (see context-relay-handoff.test.ts
+//    for why the codex block is documented but not covered here).
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createComboRoutingHarness } from "../_comboRoutingHarness.ts";
@@ -111,12 +111,8 @@ test("context-optimized: largest-context model (gemini-2.5-flash 1048576) dispat
 // The only extra behaviour is a codex handoff at line 2144:
 //   strategy === "context-relay" && relayOptions?.sessionId && relayConfig &&
 //   relayConfig.handoffProviders.includes(provider) && provider === "codex"
-// This branch requires provider === "codex" and a live relayOptions.sessionId, which
-// cannot be injected in-process via the standard combo test harness.
-// TODO(phase-2): trigger the codex handoff path live on VPS or via a dedicated codex-
-// provider connection stub that satisfies the handoff condition.
-//
 // Assertion: context-relay preserves combo-definition order (first model dispatched first).
+// Universal handoff + codex block coverage: see context-relay-handoff.test.ts.
 test("context-relay: preserves combo-definition order (openai dispatched before gemini)", async () => {
   await seedConnection("openai", { apiKey: "sk-openai-relay" });
   await seedConnection("gemini", { apiKey: "sk-gemini-relay" });

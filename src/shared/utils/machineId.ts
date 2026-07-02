@@ -91,6 +91,33 @@ function getMachineIdRaw(): string {
   return "unknown-machine";
 }
 
+async function getRandomMachineFallbackId() {
+  try {
+    const cryptoFallback = await import("crypto");
+    return cryptoFallback.randomUUID();
+  } catch {
+    if (typeof globalThis !== "undefined" && globalThis.crypto && globalThis.crypto.randomUUID) {
+      return globalThis.crypto.randomUUID();
+    }
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+      let r = 0;
+      if (
+        typeof globalThis !== "undefined" &&
+        globalThis.crypto &&
+        globalThis.crypto.getRandomValues
+      ) {
+        const arr = new Uint8Array(1);
+        globalThis.crypto.getRandomValues(arr);
+        r = arr[0] % 16;
+      } else {
+        r = (Date.now() % 16) | 0;
+      }
+      const v = c === "x" ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
+}
+
 /**
  * Get consistent machine ID using native registry/OS query with salt
  * This ensures the same physical machine gets the same ID across runs
@@ -113,30 +140,7 @@ export async function getConsistentMachineId(salt = null) {
   } catch (error) {
     console.log("Error getting machine ID:", error);
     // Fallback to random ID if node-machine-id fails
-    try {
-      const cryptoFallback = await import("crypto");
-      return cryptoFallback.randomUUID();
-    } catch {
-      if (typeof globalThis !== "undefined" && globalThis.crypto && globalThis.crypto.randomUUID) {
-        return globalThis.crypto.randomUUID();
-      }
-      return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-        let r = 0;
-        if (
-          typeof globalThis !== "undefined" &&
-          globalThis.crypto &&
-          globalThis.crypto.getRandomValues
-        ) {
-          const arr = new Uint8Array(1);
-          globalThis.crypto.getRandomValues(arr);
-          r = arr[0] % 16;
-        } else {
-          r = (Date.now() % 16) | 0;
-        }
-        const v = c === "x" ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-      });
-    }
+    return getRandomMachineFallbackId();
   }
 }
 
@@ -150,30 +154,7 @@ export async function getRawMachineId() {
   } catch (error) {
     console.log("Error getting raw machine ID:", error);
     // Fallback to random ID if node-machine-id fails
-    try {
-      const cryptoFallback = await import("crypto");
-      return cryptoFallback.randomUUID();
-    } catch {
-      if (typeof globalThis !== "undefined" && globalThis.crypto && globalThis.crypto.randomUUID) {
-        return globalThis.crypto.randomUUID();
-      }
-      return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-        let r = 0;
-        if (
-          typeof globalThis !== "undefined" &&
-          globalThis.crypto &&
-          globalThis.crypto.getRandomValues
-        ) {
-          const arr = new Uint8Array(1);
-          globalThis.crypto.getRandomValues(arr);
-          r = arr[0] % 16;
-        } else {
-          r = (Date.now() % 16) | 0;
-        }
-        const v = c === "x" ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-      });
-    }
+    return getRandomMachineFallbackId();
   }
 }
 

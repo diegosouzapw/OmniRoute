@@ -27,6 +27,6 @@ test("openai format maps to openai provider and openai model id", () => {
 test("unknown / responses formats fall back to openai for both mappers", () => {
   assert.equal(getSkillsProviderForFormat("openai-responses"), "openai");
   assert.equal(getSkillsModelIdForFormat("openai-responses"), "openai");
-  assert.equal(getSkillsProviderForFormat("gemini-cli"), "openai");
+  assert.equal(getSkillsProviderForFormat("removed-google-cli"), "openai");
   assert.equal(getSkillsModelIdForFormat("totally-unknown"), "openai");
 });

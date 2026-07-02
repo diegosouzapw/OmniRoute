@@ -6,21 +6,6 @@ import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { withCustomUserAgent } from "./headers";
 import { toValidationErrorResult, validationWrite } from "./transport";
 
-export async function validateGenericProvider(
-  baseUrl: string,
-  apiKey: string,
-  providerSpecificData: any = {},
-  provider: string,
-  isLocal: boolean = false
-) {
-  const config = SEARCH_VALIDATOR_CONFIGS[provider];
-  if (!config) {
-    return { valid: false, error: "Validator not found", unsupported: true };
-  }
-  const { url, init } = config(apiKey, providerSpecificData);
-  return validateSearchProvider(url, init, providerSpecificData, isLocal);
-}
-
 export async function validateSearchProvider(
   url: string,
   init: RequestInit,

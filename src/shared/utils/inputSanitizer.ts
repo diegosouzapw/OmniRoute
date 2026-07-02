@@ -62,8 +62,8 @@ const INJECTION_PATTERNS = [
  * latency/GC source. Injection directives sit near the top of a prompt, so
  * scanning hundreds of KB of pasted code / RAG context buys only CPU. We bound
  * the scan to the first 16 KB (generous: real directives are far shorter) before
- * the regex loop. The 10 MB body-size cap that protects ingestion lives
- * elsewhere; this constant only bounds the regex scan. Refs #3932 / #4041.
+ * the regex loop. The body-size caps that protect ingestion live elsewhere;
+ * this constant only bounds the regex scan. Refs #3932 / #4041.
  */
 export const MAX_INJECTION_SCAN_BYTES = 16 * 1024;
 
@@ -137,13 +137,18 @@ function getConfig() {
 function extractMessageContents(body) {
   const contents = [];
 
-  const messages = body.messages || body.input || [];
+  const messageSource = body.messages !== undefined ? body.messages : body.input;
+  const messages = Array.isArray(messageSource)
+    ? messageSource
+    : messageSource === undefined || messageSource === null
+      ? []
+      : [messageSource];
   for (const msg of messages) {
     if (typeof msg === "string") {
       contents.push(msg);
-    } else if (typeof msg.content === "string") {
+    } else if (msg && typeof msg.content === "string") {
       contents.push(msg.content);
-    } else if (Array.isArray(msg.content)) {
+    } else if (msg && Array.isArray(msg.content)) {
       for (const part of msg.content) {
         if (typeof part === "string") {
           contents.push(part);
@@ -300,7 +305,12 @@ export function sanitizeRequest(body, logger = console) {
  */
 function redactBody(body) {
   const clone = JSON.parse(JSON.stringify(body));
-  const messages = clone.messages || clone.input || [];
+  const messageSource = clone.messages !== undefined ? clone.messages : clone.input;
+  const messages = Array.isArray(messageSource)
+    ? messageSource
+    : messageSource && typeof messageSource === "object"
+      ? [messageSource]
+      : [];
 
   for (const msg of messages) {
     if (typeof msg.content === "string") {

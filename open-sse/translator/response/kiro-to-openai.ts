@@ -92,7 +92,6 @@ export function convertKiroToOpenAI(chunk, state) {
     const content = data.reasoningContentEvent?.content || data.content || "";
     if (!content) return null;
 
-    // Convert to thinking block format (Claude-style)
     const openaiChunk = {
       id: state.responseId,
       object: "chat.completion.chunk",
@@ -103,7 +102,7 @@ export function convertKiroToOpenAI(chunk, state) {
           index: 0,
           delta: {
             ...(state.chunkIndex === 0 ? { role: "assistant" } : {}),
-            content: `<thinking>${content}</thinking>`,
+            reasoning_content: content,
           },
           finish_reason: null,
         },

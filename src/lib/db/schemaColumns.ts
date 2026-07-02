@@ -179,6 +179,10 @@ export function ensureCallLogsColumns(db: SqliteDatabase) {
       db.exec("ALTER TABLE call_logs ADD COLUMN request_summary TEXT DEFAULT NULL");
       console.log("[DB] Added call_logs.request_summary column");
     }
+    if (!columnNames.has("correlation_id")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN correlation_id TEXT DEFAULT NULL");
+      console.log("[DB] Added call_logs.correlation_id column");
+    }
 
     db.exec(
       "CREATE INDEX IF NOT EXISTS idx_call_logs_requested_model ON call_logs(requested_model)"
@@ -187,6 +191,7 @@ export function ensureCallLogsColumns(db: SqliteDatabase) {
     db.exec(
       "CREATE INDEX IF NOT EXISTS idx_cl_combo_target ON call_logs(combo_name, combo_execution_key, timestamp)"
     );
+    db.exec("CREATE INDEX IF NOT EXISTS idx_cl_correlation_id ON call_logs(correlation_id)");
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn("[DB] Failed to verify call_logs schema:", message);

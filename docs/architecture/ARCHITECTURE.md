@@ -1,14 +1,14 @@
 ---
 title: "OmniRoute Architecture"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # OmniRoute Architecture
 
 🌐 **Languages:** 🇺🇸 [English](./ARCHITECTURE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/architecture/ARCHITECTURE.md) | 🇪🇸 [Español](../i18n/es/docs/architecture/ARCHITECTURE.md) | 🇫🇷 [Français](../i18n/fr/docs/architecture/ARCHITECTURE.md) | 🇮🇹 [Italiano](../i18n/it/docs/architecture/ARCHITECTURE.md) | 🇷🇺 [Русский](../i18n/ru/docs/architecture/ARCHITECTURE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/architecture/ARCHITECTURE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [हिन्दी](../i18n/in/docs/architecture/ARCHITECTURE.md) | 🇹🇭 [ไทย](../i18n/th/docs/architecture/ARCHITECTURE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/architecture/ARCHITECTURE.md) | 🇸🇦 [العربية](../i18n/ar/docs/architecture/ARCHITECTURE.md) | 🇯🇵 [日本語](../i18n/ja/docs/architecture/ARCHITECTURE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/architecture/ARCHITECTURE.md) | 🇧🇬 [Български](../i18n/bg/docs/architecture/ARCHITECTURE.md) | 🇩🇰 [Dansk](../i18n/da/docs/architecture/ARCHITECTURE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/architecture/ARCHITECTURE.md) | 🇮🇱 [עברית](../i18n/he/docs/architecture/ARCHITECTURE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/architecture/ARCHITECTURE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/architecture/ARCHITECTURE.md) | 🇰🇷 [한국어](../i18n/ko/docs/architecture/ARCHITECTURE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/architecture/ARCHITECTURE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/architecture/ARCHITECTURE.md) | 🇳🇴 [Norsk](../i18n/no/docs/architecture/ARCHITECTURE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/architecture/ARCHITECTURE.md) | 🇷🇴 [Română](../i18n/ro/docs/architecture/ARCHITECTURE.md) | 🇵🇱 [Polski](../i18n/pl/docs/architecture/ARCHITECTURE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/architecture/ARCHITECTURE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/architecture/ARCHITECTURE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/architecture/ARCHITECTURE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/architecture/ARCHITECTURE.md)
 
-_Last updated: 2026-05-13_
+_Last updated: 2026-06-28_
 
 ## Executive Summary
 
@@ -17,13 +17,13 @@ It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic acr
 
 Core capabilities:
 
-- OpenAI-compatible API surface for CLI/tools (226 providers, 60 executors)
+- OpenAI-compatible API surface for CLI/tools (237 providers, 68 executors)
 - Request/response translation across provider formats
 - Model combo fallback (multi-model sequence)
 - Structured combo steps (`provider + model + connection`) with runtime ordering by `compositeTiers`
 - Account-level fallback (multi-account per provider)
 - Quota preflight and quota-aware P2C account selection in the main chat path
-- OAuth + API-key provider connection management (16 OAuth modules)
+- OAuth + API-key provider connection management (17 OAuth provider modules)
 - Embedding generation via `/v1/embeddings` (6 providers, 9 models)
 - Image generation via `/v1/images/generations` (10+ providers, 20+ models)
 - Audio transcription via `/v1/audio/transcriptions` (7 providers)
@@ -912,7 +912,6 @@ Each provider has a specialized executor extending `BaseExecutor` (in `open-sse/
 | `CommandCodeExecutor`    | Command Code                                                                                                                                                | OAuth + per-session header rotation                                  |
 | `CursorExecutor`         | Cursor IDE                                                                                                                                                  | ConnectRPC protocol, Protobuf encoding, request signing via checksum |
 | `DevinCliExecutor`       | Devin CLI                                                                                                                                                   | Devin task lifecycle bridging via cloud agent module                 |
-| `GeminiCLIExecutor`      | Gemini CLI                                                                                                                                                  | Google OAuth token refresh cycle                                     |
 | `GithubExecutor`         | GitHub Copilot                                                                                                                                              | Copilot token refresh, VSCode-mimicking headers                      |
 | `GitlabExecutor`         | GitLab Duo                                                                                                                                                  | GitLab OAuth + project-scoped routing                                |
 | `GlmExecutor`            | Z.AI GLM (incl. `glmt` preset)                                                                                                                              | Thinking-budget aware, GLMT preset constants                         |
@@ -934,7 +933,7 @@ All other providers (including custom compatible nodes) use the `DefaultExecutor
 
 ## Provider Compatibility Matrix
 
-> **Note:** The matrix below is a representative sample of the 226 registered providers in
+> **Note:** The matrix below is a representative sample of the 237 registered providers in
 > OmniRoute v3.8.0. For the canonical and continuously-updated list, refer to
 > [`docs/reference/PROVIDER_REFERENCE.md`](../reference/PROVIDER_REFERENCE.md) (auto-generated) or the source of
 > truth at `src/shared/constants/providers.ts` (Zod-validated at load).
@@ -943,7 +942,6 @@ All other providers (including custom compatible nodes) use the `DefaultExecutor
 | ----------------- | ---------------- | --------------------- | ---------------- | ---------- | ------------- | ------------------ |
 | Claude            | claude           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Admin only      |
 | Gemini            | gemini           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
-| Gemini CLI        | gemini-cli       | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
 | Antigravity       | antigravity      | OAuth                 | ✅               | ✅         | ✅            | ✅ Full quota API  |
 | OpenAI            | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
 | Codex             | openai-responses | OAuth                 | ✅ forced        | ❌         | ✅            | ✅ Rate limits     |
@@ -1014,7 +1012,7 @@ Target formats include:
 
 - OpenAI chat/Responses
 - Claude
-- Gemini/Gemini-CLI/Antigravity envelope
+- Gemini/Antigravity envelope
 - Kiro
 - Cursor
 

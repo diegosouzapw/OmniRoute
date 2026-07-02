@@ -134,7 +134,7 @@ def main():
     parser = argparse.ArgumentParser(description="OmniRoute Auto-Translator for i18n Markdown")
     parser.add_argument("--api-url", default="http://localhost:20128/v1", help="Base URL of OmniRoute or target provider")
     parser.add_argument("--api-key", default="sk-test", help="API Key for the provider")
-    parser.add_argument("--model", default="gc/gemini-3-flash", help="Model name to use")
+    parser.add_argument("--model", default="gemini/gemini-3-flash", help="Model name to use")
     parser.add_argument("--lang", default=None, help="Process only a specific language code (e.g. pt-BR)")
     
     args = parser.parse_args()

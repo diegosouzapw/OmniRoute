@@ -6,6 +6,7 @@ const {
   sanitizeOpenAIResponse,
   sanitizeResponsesApiResponse,
   sanitizeStreamingChunk,
+  shouldParseTextualReasoningTags,
 } = await import("../../open-sse/handlers/responseSanitizer.ts");
 
 test("extractThinkingFromContent separates think blocks from visible content", () => {
@@ -65,7 +66,7 @@ test("sanitizeOpenAIResponse strips non-standard fields and preserves required t
   });
 });
 
-test("sanitizeOpenAIResponse extracts thinking, collapses newlines, preserves reasoning_content with tool_calls, and preserves tool calls", () => {
+test("sanitizeOpenAIResponse preserves prompt-format thinking tags by default", () => {
   const sanitized = sanitizeOpenAIResponse({
     id: "chatcmpl_test",
     model: "gpt-4.1",
@@ -75,7 +76,7 @@ test("sanitizeOpenAIResponse extracts thinking, collapses newlines, preserves re
         finish_reason: "tool_calls",
         message: {
           role: "assistant",
-          content: "Hello\n\n\n<think>internal chain</think>\n\nworld",
+          content: "Hello\n\n\n<think>visible protocol</think>\n\nworld",
           tool_calls: [{ id: "call_1" }],
           function_call: { name: "legacy" },
         },
@@ -85,44 +86,76 @@ test("sanitizeOpenAIResponse extracts thinking, collapses newlines, preserves re
 
   assert.equal((sanitized as any).choices[0].index, 2);
   assert.equal((sanitized as any).choices[0].finish_reason, "tool_calls");
-  (assert as any).equal((sanitized as any).choices[0].message.content, "Hello\n\nworld");
-  assert.equal((sanitized as any).choices[0].message.reasoning_content, "internal chain");
+  (assert as any).equal(
+    (sanitized as any).choices[0].message.content,
+    "Hello\n\n<think>visible protocol</think>\n\nworld"
+  );
+  assert.equal((sanitized as any).choices[0].message.reasoning_content, undefined);
   (assert as any).deepEqual((sanitized as any).choices[0].message.tool_calls, [{ id: "call_1" }]);
   assert.deepEqual((sanitized as any).choices[0].message.function_call, { name: "legacy" });
 });
 
-test("sanitizeOpenAIResponse extracts unclosed reasoning wrappers into reasoning_content", () => {
-  const sanitized = sanitizeOpenAIResponse({
-    model: "gpt-4.1",
-    choices: [
-      {
-        message: {
-          role: "assistant",
-          content: "§54§ <thought\ninternal planning\n",
+test("sanitizeOpenAIResponse extracts textual reasoning only when explicitly enabled", () => {
+  const sanitized = sanitizeOpenAIResponse(
+    {
+      model: "deepseek-r1",
+      choices: [
+        {
+          message: {
+            role: "assistant",
+            content: "Hello\n\n\n<think>internal chain</think>\n\nworld",
+          },
         },
-      },
-    ],
-  });
+      ],
+    },
+    { parseTextualReasoningTags: true }
+  );
 
-  assert.equal((sanitized as any).choices[0].message.content, "");
+  assert.equal((sanitized as any).choices[0].message.content, "Hello\n\nworld");
+  assert.equal((sanitized as any).choices[0].message.reasoning_content, "internal chain");
+});
+
+test("sanitizeOpenAIResponse extracts unclosed reasoning wrappers only when enabled", () => {
+  const sanitized = sanitizeOpenAIResponse(
+    {
+      model: "deepseek-r1",
+      choices: [
+        {
+          message: {
+            role: "assistant",
+            content: "§54§ <thought\ninternal planning\n",
+          },
+        },
+      ],
+    },
+    { parseTextualReasoningTags: true }
+  );
+
+  assert.equal(((sanitized as any).choices[0].message as any).content, "");
   assert.equal((sanitized as any).choices[0].message.reasoning_content, "internal planning");
 });
 
-test("sanitizeOpenAIResponse preserves native reasoning_content when no visible content remains", () => {
-  const sanitized = sanitizeOpenAIResponse({
-    model: "gpt-4.1",
-    choices: [
-      {
-        message: {
-          role: "assistant",
-          content: "<think>discard me</think>",
-          reasoning_content: "provider reasoning",
+test("sanitizeOpenAIResponse preserves native reasoning_content without stripping content tags", () => {
+  const sanitized = sanitizeOpenAIResponse(
+    {
+      model: "gpt-4.1",
+      choices: [
+        {
+          message: {
+            role: "assistant",
+            content: "<think>visible protocol</think>",
+            reasoning_content: "provider reasoning",
+          },
         },
-      },
-    ],
-  });
+      ],
+    },
+    { parseTextualReasoningTags: true }
+  );
 
-  assert.equal(((sanitized as any).choices[0].message as any).content, "");
+  assert.equal(
+    ((sanitized as any).choices[0].message as any).content,
+    "<think>visible protocol</think>"
+  );
   assert.equal((sanitized as any).choices[0].message.reasoning_content, "provider reasoning");
 });
 
@@ -246,7 +279,10 @@ test("sanitizeOpenAIResponse preserves OpenRouter native reasoning and signature
   assert.deepEqual((sanitized as any).choices[0].message.reasoning_details, [
     { type: "reasoning.encrypted", data: "sig" },
   ]);
-  assert.equal((sanitized as any).choices[0].message.content, "<content>Visible answer</content>");
+  assert.equal(
+    (sanitized as any).choices[0].message.content,
+    "<thinking>tag-derived</thinking><content>Visible answer</content>"
+  );
 });
 
 test("sanitizeOpenAIResponse keeps reasoning_details-derived reasoning_content for reasoning-only messages", () => {
@@ -618,6 +654,18 @@ test("sanitize functions return non-object inputs unchanged", () => {
   assert.equal(sanitizeStreamingChunk("raw text"), "raw text");
 });
 
+test("shouldParseTextualReasoningTags is limited to tag-native model families", () => {
+  assert.equal(shouldParseTextualReasoningTags("together", "deepseek-ai/DeepSeek-R1"), true);
+  assert.equal(shouldParseTextualReasoningTags("cloudflare-ai", "@cf/qwen/qwq-32b"), true);
+  assert.equal(shouldParseTextualReasoningTags("openrouter", "deepseek/deepseek-v4-pro"), false);
+  assert.equal(shouldParseTextualReasoningTags("antigravity", "deepseek-r1"), false);
+  assert.equal(shouldParseTextualReasoningTags(undefined, "antigravity/deepseek-r1"), false);
+  assert.equal(
+    shouldParseTextualReasoningTags("openai-compatible-custom", "claude-opus-4.7"),
+    false
+  );
+});
+
 test("sanitizeOpenAIResponse converts textual pseudo tool-call content into structured tool_calls", () => {
   const sanitized = sanitizeOpenAIResponse({
     id: "chatcmpl_textual_tool_call",
@@ -728,4 +776,130 @@ test("sanitizeResponsesApiResponse strips leaked multi_tool_use envelopes from R
   assert.equal(sanitized.output_text, "Antes.\n\nDepois.");
   assert.equal(JSON.stringify(sanitized).includes("to=multi_tool_use.parallel"), false);
   assert.equal(JSON.stringify(sanitized).includes("recipient_name"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from delta content", () => {
+  const sanitized = sanitizeStreamingChunk({
+    choices: [
+      {
+        index: 0,
+        delta: {
+          content: "o\u200dpencode",
+        },
+      },
+    ],
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.choices[0].delta.content, "opencode");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk leaves delta content without zero-width joiners unchanged", () => {
+  const sanitized = sanitizeStreamingChunk({
+    choices: [
+      {
+        index: 0,
+        delta: {
+          content: "opncode",
+        },
+      },
+    ],
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.choices[0].delta.content, "opncode");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips inline zero-width joiners from sentence content", () => {
+  const sanitized = sanitizeStreamingChunk({
+    choices: [
+      {
+        index: 0,
+        delta: {
+          content: "hello o\u200dpencode world",
+        },
+      },
+    ],
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.choices[0].delta.content, "hello opencode world");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from reasoning_content deltas", () => {
+  const sanitized = sanitizeStreamingChunk({
+    choices: [
+      {
+        index: 0,
+        delta: {
+          reasoning_content: "c\u200dursor plan",
+        },
+      },
+    ],
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.choices[0].delta.reasoning_content, "cursor plan");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from Responses reasoning summaries", () => {
+  const sanitized = sanitizeStreamingChunk({
+    type: "response.output_item.done",
+    item: {
+      id: "rs_1",
+      type: "reasoning",
+      summary: [{ type: "summary_text", text: "a\u200dider note" }],
+    },
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.item.summary[0].text, "aider note");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from native response.output_text.delta", () => {
+  const sanitized = sanitizeStreamingChunk({
+    type: "response.output_text.delta",
+    delta: "o\u200dpencode",
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.delta, "opencode");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from native response.output_text.done", () => {
+  const sanitized = sanitizeStreamingChunk({
+    type: "response.output_text.done",
+    text: "c\u200dursor done",
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.text, "cursor done");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from response.reasoning_summary_text.delta", () => {
+  const sanitized = sanitizeStreamingChunk({
+    type: "response.reasoning_summary_text.delta",
+    delta: "a\u200dider",
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.delta, "aider");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk leaves function_call_arguments.delta byte-exact (tool args must not be corrupted)", () => {
+  const sanitized = sanitizeStreamingChunk({
+    type: "response.function_call_arguments.delta",
+    delta: '{"path":"o\u200dpencode"}',
+  }) as any;
+
+  assert.equal(sanitized.delta, '{"path":"o\u200dpencode"}');
+  assert.equal((sanitized.delta as string).includes("\u200d"), true);
 });

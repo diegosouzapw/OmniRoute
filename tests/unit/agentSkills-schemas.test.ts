@@ -4,6 +4,20 @@ import assert from "node:assert/strict";
 const { AgentSkillSchema, SkillCoverageSchema, ListQuerySchema, GenerateBodySchema } =
   await import("../../src/lib/agentSkills/schemas.ts");
 
+test("agent skills schemas module exposes runtime validators", async () => {
+  const schemas = await import("../../src/lib/agentSkills/schemas.ts");
+
+  for (const key of [
+    "AgentSkillSchema",
+    "GenerateBodySchema",
+    "ListQuerySchema",
+    "SkillCategorySchema",
+    "SkillCoverageSchema",
+  ]) {
+    assert.equal(typeof schemas[key].safeParse, "function", `${key} should stay exported`);
+  }
+});
+
 // ─── AgentSkillSchema ─────────────────────────────────────────────────────────
 
 test("AgentSkillSchema — valid api skill parses successfully", () => {
@@ -105,7 +119,15 @@ test("AgentSkillSchema — optional fields absent parses successfully", () => {
 
 test("AgentSkillSchema — .parse throws on invalid input", () => {
   assert.throws(() => {
-    AgentSkillSchema.parse({ id: "bad id", name: "", description: "", category: "api", area: "x", rawUrl: "x", githubUrl: "x" });
+    AgentSkillSchema.parse({
+      id: "bad id",
+      name: "",
+      description: "",
+      category: "api",
+      area: "x",
+      rawUrl: "x",
+      githubUrl: "x",
+    });
   });
 });
 

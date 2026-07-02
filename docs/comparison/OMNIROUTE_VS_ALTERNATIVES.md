@@ -1,7 +1,7 @@
 ---
 title: "OmniRoute vs Alternatives"
-version: 3.8.2
-lastUpdated: 2026-05-15
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # OmniRoute vs Alternatives
@@ -64,4 +64,4 @@ Objective feature comparison vs popular open-source AI routers.
 
 ---
 
-_Last updated: 2026-05-15. Submit corrections via PR to keep this table accurate._
+_Last updated: 2026-06-28. Submit corrections via PR to keep this table accurate._

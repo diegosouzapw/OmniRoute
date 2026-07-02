@@ -52,6 +52,11 @@ async function captureUpstreamBody(
       stream: false,
       // OAuth token (sk-ant-oat…) with NO apiKey => wire-image path fires.
       credentials: { accessToken: "sk-ant-oat-test-thinkguard" },
+      // #5480: the default adaptive-thinking injection is gated behind a real Claude Code
+      // client (`x-app: cli` / `claude-code` UA). A bare OAuth token (generic OpenAI-compat
+      // client) must opt in via x-omniroute-thinking and no longer gets force-injected, so
+      // these tests now identify as a Claude Code client to exercise the adaptive path.
+      clientHeaders: { "x-app": "cli" },
     });
   } finally {
     globalThis.fetch = originalFetch;

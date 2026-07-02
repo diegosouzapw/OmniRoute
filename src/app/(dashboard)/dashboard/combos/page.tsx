@@ -14,6 +14,7 @@ import Toggle from "@/shared/components/Toggle";
 import Tooltip from "@/shared/components/Tooltip";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { FieldLabelWithHelp, WeightTotalBar } from "./parts";
+import { ResponseValidationEditor, type ResponseValidationValue } from "./ResponseValidationEditor";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -406,7 +407,7 @@ const COMBO_TEMPLATE_FALLBACK = {
   balancedDesc: "Least-used routing to spread demand over time.",
   freeStackTitle: "Free Stack ($0)",
   freeStackDesc:
-    "Round-robin across all free providers: Kiro, Qoder, Qwen, Gemini CLI. Zero cost, never stops.",
+    "Round-robin across free providers: Kiro, Qoder, Qwen, Antigravity CLI. Zero cost, never stops.",
   paidPremiumTitle: "Paid Premium",
   paidPremiumDesc:
     "Round-robin across paid subscriptions: Cursor, Antigravity. Top-tier models, distributed load.",
@@ -2641,7 +2642,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
   };
 
   const FREE_STACK_PRESET_MODELS = [
-    { model: "gemini-cli/gemini-3-flash-preview", weight: 0 },
+    { model: "agy/gemini-3.5-flash-medium", weight: 0 },
     { model: "kr/claude-sonnet-4.5", weight: 0 },
     { model: "if/kimi-k2-thinking", weight: 0 },
     { model: "if/qwen3-coder-plus", weight: 0 },
@@ -4173,6 +4174,23 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                 </div>
               )}
             </>
+          )}
+
+          {/* Response Validation (4985) */}
+          {showStrategySection && (
+            <div className="flex flex-col gap-2 p-3 bg-black/[0.02] dark:bg-white/[0.02] rounded-lg border border-black/5 dark:border-white/5">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="material-symbols-outlined text-[14px] text-primary">rule</span>
+                <p className="text-xs font-medium">
+                  {getI18nOrFallback(t, "responseValidationTitle", "Response validation")}
+                </p>
+              </div>
+              <ResponseValidationEditor
+                value={config.responseValidation as ResponseValidationValue | undefined}
+                onChange={(next) => setConfig({ ...config, responseValidation: next })}
+                t={t}
+              />
+            </div>
           )}
 
           {/* Agent Features (#399 / #401 / #454) */}

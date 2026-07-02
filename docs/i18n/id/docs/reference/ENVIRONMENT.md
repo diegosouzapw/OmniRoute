@@ -301,8 +301,6 @@ Kredensial bawaan untuk **pengembangan localhost**. Untuk deployment jarak jauh,
 | `CODEX_OAUTH_CLIENT_ID`           | Codex / OpenAI          | Klien publik.                                                                             |
 | `GEMINI_OAUTH_CLIENT_ID`          | Gemini (Google)         | Memerlukan `_SECRET` yang sesuai.                                                         |
 | `GEMINI_OAUTH_CLIENT_SECRET`      | Gemini (Google)         | —                                                                                         |
-| `GEMINI_CLI_OAUTH_CLIENT_ID`      | Gemini CLI              | Biasanya sama dengan Gemini.                                                              |
-| `GEMINI_CLI_OAUTH_CLIENT_SECRET`  | Gemini CLI              | —                                                                                         |
 | `QWEN_OAUTH_CLIENT_ID`            | Qwen (Alibaba)          | Klien publik.                                                                             |
 | `KIMI_CODING_OAUTH_CLIENT_ID`     | Kimi Coding (Moonshot)  | Klien publik.                                                                             |
 | `ANTIGRAVITY_OAUTH_CLIENT_ID`     | Antigravity (Google)    | Memerlukan `_SECRET` yang sesuai.                                                         |
@@ -318,7 +316,6 @@ Kredensial bawaan untuk **pengembangan localhost**. Untuk deployment jarak jauh,
 | `OMNIROUTE_QODER_WORKSPACE`       | Qoder                   | Alias untuk `QODER_CLI_WORKSPACE`.                                                        |
 
 > [!WARNING]
-> Kredensial **Google OAuth** (Antigravity, Gemini CLI) **hanya berfungsi di localhost**. Untuk server jarak jauh:
 >
 > 1. Buka [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials)
 > 2. Buat OAuth 2.0 Client ID (tipe: "Web application")
@@ -348,7 +345,6 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                   | Saat CLI Qoder diperbarui                                              |
 | `QWEN_USER_AGENT`        | `QwenCode/0.15.11 (linux; x64)`               | Saat Qwen Code diperbarui                                              |
 | `CURSOR_USER_AGENT`      | `connect-es/1.6.1`                            | Saat Cursor diperbarui                                                 |
-| `GEMINI_CLI_USER_AGENT`  | `google-api-nodejs-client/10.3.0`             | Saat klien API Google diperbarui                                       |
 
 > [!TIP]
 > Anda dapat menambahkan override User-Agent untuk provider **mana pun** menggunakan pola `{PROVIDER_ID}_USER_AGENT`. Executor secara dinamis membangun nama variabel lingkungan.

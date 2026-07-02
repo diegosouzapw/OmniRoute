@@ -35,6 +35,60 @@ function toolUseEdits(body: Record<string, unknown> | undefined) {
   return (cm?.edits ?? []).filter((e) => e?.type === CLEAR_TOOL_USES_STRATEGY);
 }
 
+test("#5312: generic Claude OAuth clients do not get implicit adaptive thinking", async () => {
+  const { bodies, restore } = mockFetchCapture();
+  try {
+    await new DefaultExecutor("claude").execute({
+      model: "claude-opus-4-8",
+      body: {
+        model: "claude-opus-4-8",
+        messages: [{ role: "user", content: "hi" }],
+        max_tokens: 1,
+      },
+      stream: false,
+      credentials: { accessToken: "sk-ant-oat-generic-client-token" },
+      clientHeaders: {
+        "user-agent": "Cursor/1.0",
+      },
+      contextEditing: { enabled: false },
+    });
+  } finally {
+    restore();
+  }
+
+  assert.equal(bodies[0]?.thinking, undefined);
+  assert.equal(bodies[0]?.output_config, undefined);
+  assert.equal(bodies[0]?.context_management, undefined);
+});
+
+test("#5312: generic Claude OAuth clients can opt in to adaptive thinking", async () => {
+  const { bodies, restore } = mockFetchCapture();
+  try {
+    await new DefaultExecutor("claude").execute({
+      model: "claude-opus-4-8",
+      body: {
+        model: "claude-opus-4-8",
+        messages: [{ role: "user", content: "hi" }],
+        max_tokens: 1,
+      },
+      stream: false,
+      credentials: { accessToken: "sk-ant-oat-generic-client-token" },
+      clientHeaders: {
+        "user-agent": "Cursor/1.0",
+        "x-omniroute-thinking": "adaptive",
+      },
+      contextEditing: { enabled: false },
+    });
+  } finally {
+    restore();
+  }
+
+  assert.deepEqual(bodies[0]?.thinking, { type: "adaptive" });
+  assert.deepEqual(bodies[0]?.context_management, {
+    edits: [{ type: CLEAR_THINKING_STRATEGY, keep: "all" }],
+  });
+});
+
 test("Context Editing: enabled → genuine claude request gets clear_tool_uses with defaults", async () => {
   const { bodies, restore } = mockFetchCapture();
   try {

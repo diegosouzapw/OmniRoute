@@ -26,7 +26,7 @@ const DEFAULT_FE_VERSION = "serp_20260424_180649_ET-0bdc33b2a02ebf8f235def65d887
 export const FE_VERSION_PATTERN = /serp_\d{8}_\d{6}_[A-Z]{2}-[0-9a-f]{20,40}/;
 const DEFAULT_USER_AGENT =
   "Mozilla/5.0 (X11; Linux x86_64) " +
-  "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36";
+  "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
 export const FAKE_HEADERS: Record<string, string> = {
   Accept: "*/*",
@@ -37,7 +37,7 @@ export const FAKE_HEADERS: Record<string, string> = {
   Pragma: "no-cache",
   Referer: `${DUCKDUCKGO_BASE}/`,
   Priority: "u=1, i",
-  "Sec-Ch-Ua": '"Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"',
+  "Sec-Ch-Ua": '"Chromium";v="149", "Not-A.Brand";v="24", "Google Chrome";v="149"',
   "Sec-Ch-Ua-Mobile": "?0",
   "Sec-Ch-Ua-Platform": '"Linux"',
   "Sec-Fetch-Dest": "empty",

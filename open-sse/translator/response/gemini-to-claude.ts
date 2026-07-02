@@ -196,5 +196,4 @@ export function geminiToClaudeResponse(chunk, state) {
 
 // Register as direct path: Gemini → Claude
 register(FORMATS.GEMINI, FORMATS.CLAUDE, null, geminiToClaudeResponse);
-register(FORMATS.GEMINI_CLI, FORMATS.CLAUDE, null, geminiToClaudeResponse);
 register(FORMATS.ANTIGRAVITY, FORMATS.CLAUDE, null, geminiToClaudeResponse);

@@ -49,6 +49,7 @@ import { groqProvider } from "./registry/groq/index.ts";
 import { inference_netProvider } from "./registry/inference-net/index.ts";
 import { llm7Provider } from "./registry/llm7/index.ts";
 import { cerebrasProvider } from "./registry/cerebras/index.ts";
+import { clinepassProvider } from "./registry/clinepass/index.ts";
 import { sparkdeskProvider } from "./registry/sparkdesk/index.ts";
 import { nlpcloudProvider } from "./registry/nlpcloud/index.ts";
 import { nvidiaProvider } from "./registry/nvidia/index.ts";
@@ -81,7 +82,6 @@ import { monsterapiProvider } from "./registry/monsterapi/index.ts";
 import { sensenovaProvider } from "./registry/sensenova/index.ts";
 import { hyperbolicProvider } from "./registry/hyperbolic/index.ts";
 import { lambda_aiProvider } from "./registry/lambda-ai/index.ts";
-import { phindProvider } from "./registry/phind/index.ts";
 import { t3_webProvider } from "./registry/t3-web/index.ts";
 import { klusterProvider } from "./registry/kluster/index.ts";
 import { iflytekProvider } from "./registry/iflytek/index.ts";
@@ -103,6 +103,7 @@ import { openrouterProvider } from "./registry/openrouter/index.ts";
 import { orcarouterProvider } from "./registry/orcarouter/index.ts";
 import { glhfProvider } from "./registry/glhf/index.ts";
 import { copilot_webProvider } from "./registry/copilot-web/index.ts";
+import { copilot_m365_webProvider } from "./registry/copilot-m365-web/index.ts";
 import { stepfunProvider } from "./registry/stepfun/index.ts";
 import { freemodel_devProvider } from "./registry/freemodel-dev/index.ts";
 import { gitlawb_gmiProvider } from "./registry/gitlawb/gmi/index.ts";
@@ -152,7 +153,6 @@ import { opencode_goProvider } from "./registry/opencode/go/index.ts";
 import { opencodeProvider } from "./registry/opencode/index.ts";
 import { maritalkProvider } from "./registry/maritalk/index.ts";
 import { basetenProvider } from "./registry/baseten/index.ts";
-import { gemini_cliProvider } from "./registry/gemini/cli/index.ts";
 import { geminiProvider } from "./registry/gemini/index.ts";
 import { gemini_webProvider } from "./registry/gemini/web/index.ts";
 import { clineProvider } from "./registry/cline/index.ts";
@@ -221,6 +221,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "inference-net": inference_netProvider,
   llm7: llm7Provider,
   cerebras: cerebrasProvider,
+  clinepass: clinepassProvider,
   sparkdesk: sparkdeskProvider,
   nlpcloud: nlpcloudProvider,
   nvidia: nvidiaProvider,
@@ -253,7 +254,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   sensenova: sensenovaProvider,
   hyperbolic: hyperbolicProvider,
   "lambda-ai": lambda_aiProvider,
-  phind: phindProvider,
   "t3-web": t3_webProvider,
   kluster: klusterProvider,
   iflytek: iflytekProvider,
@@ -275,6 +275,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   orcarouter: orcarouterProvider,
   glhf: glhfProvider,
   "copilot-web": copilot_webProvider,
+  "copilot-m365-web": copilot_m365_webProvider,
   stepfun: stepfunProvider,
   "freemodel-dev": freemodel_devProvider,
   "gitlawb-gmi": gitlawb_gmiProvider,
@@ -323,7 +324,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   opencode: opencodeProvider,
   maritalk: maritalkProvider,
   baseten: basetenProvider,
-  "gemini-cli": gemini_cliProvider,
   gemini: geminiProvider,
   "gemini-web": gemini_webProvider,
   cline: clineProvider,

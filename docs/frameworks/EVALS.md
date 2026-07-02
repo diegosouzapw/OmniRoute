@@ -1,13 +1,13 @@
 ---
 title: "Evaluations (Evals)"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Evaluations (Evals)
 
 > **Source of truth:** `src/lib/evals/`, `src/lib/db/evals.ts`, `src/app/api/evals/`
-> **Last updated:** 2026-05-13 — v3.8.0
+> **Last updated:** 2026-06-28 — v3.8.40
 
 OmniRoute ships a generic evaluation framework you can use to benchmark routing
 configurations, single providers/models, or the bundled "golden set" suites.

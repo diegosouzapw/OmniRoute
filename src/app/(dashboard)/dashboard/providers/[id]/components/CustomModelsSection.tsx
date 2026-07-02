@@ -352,7 +352,6 @@ export default function CustomModelsSection({
               <option value="openai-responses">{t("compatProtocolOpenAIResponses")}</option>
               <option value="claude">{t("compatProtocolClaude")}</option>
               <option value="gemini">{t("targetFormatGemini")}</option>
-              <option value="gemini-cli">{t("targetFormatGeminiCli")}</option>
               <option value="antigravity">{t("targetFormatAntigravity")}</option>
             </select>
           </div>
@@ -519,7 +518,6 @@ export default function CustomModelsSection({
                             </option>
                             <option value="claude">{t("compatProtocolClaude")}</option>
                             <option value="gemini">{t("targetFormatGemini")}</option>
-                            <option value="gemini-cli">{t("targetFormatGeminiCli")}</option>
                             <option value="antigravity">{t("targetFormatAntigravity")}</option>
                           </select>
                         </div>

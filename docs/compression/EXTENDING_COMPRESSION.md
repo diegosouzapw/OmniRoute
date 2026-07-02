@@ -1,7 +1,7 @@
 ---
 title: "Extending the Compression Pipeline"
-version: 3.8.16
-lastUpdated: 2026-06-08
+version: 3.8.44
+lastUpdated: 2026-07-02
 ---
 
 # Extending the Compression Pipeline
@@ -9,6 +9,7 @@ lastUpdated: 2026-06-08
 > **TL;DR**: OmniRoute's compression engine is **pluggable** — you can register custom engines, ship language packs for new languages, and compose stacked pipelines. This guide shows how.
 
 **Related guides:**
+
 - [COMPRESSION_GUIDE.md](./COMPRESSION_GUIDE.md) — Full pipeline overview
 - [COMPRESSION_ENGINES.md](./COMPRESSION_ENGINES.md) — Engine registry and built-in engines
 - [RTK_COMPRESSION.md](./RTK_COMPRESSION.md) — RTK engine and custom filters
@@ -20,11 +21,11 @@ lastUpdated: 2026-06-08
 
 The compression system has **3 extension points**:
 
-| Extension point | Use case | Difficulty |
-|-----------------|----------|------------|
-| **Custom engine** | Add a brand-new compression algorithm (e.g., domain-specific summarizer) | Advanced |
-| **Language pack** | Add support for a new natural language (e.g., Hindi, Arabic) | Medium |
-| **Stacked pipeline** | Compose existing engines in a custom order | Beginner |
+| Extension point      | Use case                                                                 | Difficulty |
+| -------------------- | ------------------------------------------------------------------------ | ---------- |
+| **Custom engine**    | Add a brand-new compression algorithm (e.g., domain-specific summarizer) | Advanced   |
+| **Language pack**    | Add support for a new natural language (e.g., Hindi, Arabic)             | Medium     |
+| **Stacked pipeline** | Compose existing engines in a custom order                               | Beginner   |
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -63,15 +64,15 @@ The engine interface (`open-sse/services/compression/engines/types.ts`) is the c
 
 ```ts
 interface CompressionEngine {
-  id: string;                          // Unique engine ID
-  name: string;                        // Display name
-  description: string;                 // Short description
-  icon: string;                        // Icon (emoji or URL)
-  targets: CompressionEngineTarget[];  // ["messages", "tool_results", "code_blocks"]
-  stackable: boolean;                  // Can be used in a stacked pipeline
-  stackPriority: number;               // Order in stacked pipelines (lower = earlier)
+  id: string; // Unique engine ID
+  name: string; // Display name
+  description: string; // Short description
+  icon: string; // Icon (emoji or URL)
+  targets: CompressionEngineTarget[]; // ["messages", "tool_results", "code_blocks"]
+  stackable: boolean; // Can be used in a stacked pipeline
+  stackPriority: number; // Order in stacked pipelines (lower = earlier)
   metadata: CompressionEngineMetadata;
-  
+
   apply(body, options?): CompressionResult;
   compress(body, config?): CompressionResult;
   getConfigSchema(): EngineConfigField[];
@@ -83,7 +84,7 @@ interface CompressionEngine {
 
 The simplest possible engine — strip extra whitespace from messages.
 
-```ts
+````ts
 import type { CompressionEngine } from "omniroute/compression/engines/types";
 import { registerCompressionEngine } from "omniroute/compression/engines/registry";
 
@@ -107,8 +108,8 @@ const whitespaceEngine: CompressionEngine = {
   icon: "📝",
   targets: ["messages", "tool_results"],
   stackable: true,
-  stackPriority: 100,  // Run AFTER caveman/rtk
-  
+  stackPriority: 100, // Run AFTER caveman/rtk
+
   metadata: {
     id: "whitespace",
     name: "Whitespace Stripper",
@@ -118,11 +119,11 @@ const whitespaceEngine: CompressionEngine = {
     supportsPreview: true,
     stable: true,
   },
-  
+
   apply(body, options) {
     return this.compress(body, options?.config);
   },
-  
+
   compress(body, config = {}) {
     let originalLength = 0;
     let compressedLength = 0;
@@ -169,7 +170,6 @@ const whitespaceEngine: CompressionEngine = {
     };
   },
 
-  
   getConfigSchema() {
     return [
       {
@@ -181,7 +181,7 @@ const whitespaceEngine: CompressionEngine = {
       },
     ];
   },
-  
+
   validateConfig(config) {
     if (config.preserveCodeBlocks !== undefined && typeof config.preserveCodeBlocks !== "boolean") {
       return { valid: false, errors: ["preserveCodeBlocks must be a boolean"] };
@@ -192,7 +192,7 @@ const whitespaceEngine: CompressionEngine = {
 
 // Register globally
 registerCompressionEngine(whitespaceEngine);
-```
+````
 
 ### Where to Place Custom Engines
 
@@ -205,7 +205,10 @@ Or load programmatically from a plugin:
 
 ```ts
 // In your plugin
-import { registerCompressionEngine, unregisterCompressionEngine } from "@omniroute/open-sse/services/compression/engines/registry";
+import {
+  registerCompressionEngine,
+  unregisterCompressionEngine,
+} from "@omniroute/open-sse/services/compression/engines/registry";
 import { myEngine } from "./engines/my-engine";
 
 export default definePlugin({
@@ -258,15 +261,15 @@ Each rule has this shape (from `open-sse/services/compression/ruleLoader.ts`):
 
 ```ts
 interface FileRule {
-  name: string;             // Human-readable name (kebab-case)
-  pattern: string;          // JavaScript regex pattern
-  replacement?: string;     // What to replace the match with
-  replacementMap?: Record<string, string>;  // OR a key→replacement map
-  flags?: string;           // Regex flags ("gi" typically)
+  name: string; // Human-readable name (kebab-case)
+  pattern: string; // JavaScript regex pattern
+  replacement?: string; // What to replace the match with
+  replacementMap?: Record<string, string>; // OR a key→replacement map
+  flags?: string; // Regex flags ("gi" typically)
   context?: "all" | "user" | "system" | "assistant";
   category?: "filler" | "context" | "structural" | "dedup" | "terse" | "ultra";
-  minIntensity?: "lite" | "full" | "ultra";  // Skip below this intensity
-  description?: string;     // Documentation
+  minIntensity?: "lite" | "full" | "ultra"; // Skip below this intensity
+  description?: string; // Documentation
 }
 ```
 
@@ -394,15 +397,19 @@ The output of engine N becomes the input of engine N+1.
 OmniRoute selects **ONE mode per request** based on configuration, auto-trigger thresholds, and combo overrides.
 The available modes are defined in `open-sse/services/compression/types.ts` (type `CompressionMode`):
 
-| Mode | Engines | Use case |
-|------|---------|----------|
-| `off` | None | Disable all compression |
-| `rtk` | RTK only | Command-output heavy sessions (80%+ savings) |
-| `lite` | Lite only | Conservative compression (fast, safe) |
-| `standard` | Caveman | Prose compression with language packs |
-| `aggressive` | Caveman + Aggressive | Aggressive prose + aggressive final pass |
-| `ultra` | Ultra | Maximum compression (lossy, last resort) |
-| `stacked` | Custom pipeline | Compose engines in any order (see below) |
+| Mode         | Engines              | Use case                                                                                                                                                                                            |
+| ------------ | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `off`        | None                 | Disable all compression                                                                                                                                                                             |
+| `rtk`        | RTK only             | Command-output heavy sessions (80%+ savings)                                                                                                                                                        |
+| `lite`       | Lite only            | Conservative compression (fast, safe)                                                                                                                                                               |
+| `standard`   | Caveman              | Prose compression with language packs                                                                                                                                                               |
+| `aggressive` | Caveman + Aggressive | Aggressive prose + aggressive final pass                                                                                                                                                            |
+| `ultra`      | Ultra                | Maximum compression (lossy, last resort). Optionally routed through the **LLMLingua-2** SLM engine when `ultra.modelPath` is set (fail-opens to the rule-based path when the model is unavailable). |
+| `stacked`    | Custom pipeline      | Compose engines in any order (see below)                                                                                                                                                            |
+
+> Beyond the mode engines above, the registry also ships specialized stackable engines —
+> **CCR**, **headroom**, **ionizer**, and **session-dedup** — documented in
+> [COMPRESSION_ENGINES.md](./COMPRESSION_ENGINES.md#additional-built-in-engines).
 
 Mode selection is determined by `getEffectiveMode()` in `open-sse/services/compression/strategySelector.ts`:
 
@@ -456,16 +463,17 @@ The metadata is **read-only** — engines cannot mutate the request context, onl
 
 ### Execution Order Gotchas
 
-| Engine order | Effect |
-|--------------|--------|
-| RTK → Caveman → Lite | **Recommended** (strips noise first, then language, then whitespace) |
-| Lite → RTK → Caveman | Bad — Lite strips whitespace from raw output, making RTK pattern matching fail |
-| Caveman → RTK | Bad — Caveman may rewrite text in ways that RTK doesn't recognize |
-| Any order with `tool_results` first | Better — tool output is the noisiest content |
+| Engine order                        | Effect                                                                         |
+| ----------------------------------- | ------------------------------------------------------------------------------ |
+| RTK → Caveman → Lite                | **Recommended** (strips noise first, then language, then whitespace)           |
+| Lite → RTK → Caveman                | Bad — Lite strips whitespace from raw output, making RTK pattern matching fail |
+| Caveman → RTK                       | Bad — Caveman may rewrite text in ways that RTK doesn't recognize              |
+| Any order with `tool_results` first | Better — tool output is the noisiest content                                   |
 
 ### When NOT to Stack
 
 Stacking isn't always better:
+
 - **Simple messages** (no tool output) — single Caveman or Lite is enough
 - **Cost-sensitive** — each engine adds ~5-50ms latency
 - **Specific tools** — RTK alone is usually sufficient for shell output
@@ -504,6 +512,62 @@ To drive it from config, set `mode: "stacked"` and provide the step array under
 
 ---
 
+## Upstream Sync Policy
+
+OmniRoute's compression engines credit several upstream projects in the README
+("inspired by RTK, Caveman, LLMLingua-2, Troglodita"). A common contributor
+question is: **when upstream RTK adds a new tool filter or Caveman adds a rule
+pack, how does that reach OmniRoute?** This section is the authoritative answer.
+
+### Vendored copies vs. independent implementations
+
+| Engine                       | Relationship to upstream                                                                                                        | Location                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| **RTK**                      | **Independent reimplementation** (inspired-by, not a copy)                                                                      | `open-sse/services/compression/engines/rtk/`                        |
+| **Caveman**                  | **Independent reimplementation** (inspired-by)                                                                                  | `open-sse/services/compression/engines/cavemanAdapter.ts`           |
+| **Headroom**                 | Mostly internal; only the `gcf/` codec is **genuinely vendored** from `gcf-typescript` (MIT, SPDX-marked, generic profile only) | `open-sse/services/compression/engines/headroom/gcf/`               |
+| **LLMLingua-2 / Troglodita** | Inspired-by (drive the `llmlingua` + `session-dedup` engines)                                                                   | `open-sse/services/compression/engines/llmlingua/`, `session-dedup` |
+
+Key point: **RTK and Caveman are clean-room TypeScript implementations of the
+_ideas_ (filter rules, rule packs), not vendored source trees.** There is no
+upstream copy to `git pull` from — which is exactly why the README says
+"inspired by" rather than "bundled".
+
+### How upstream improvements are merged
+
+There is **no automated upstream-release tracking and no `compression-sync`
+label** — by design. Because the engines are reimplementations, an upstream RTK
+filter or Caveman rule pack is not merged as code; it is **re-expressed as a new
+rule/filter in OmniRoute's own format** (see
+[COMPRESSION_RULES_FORMAT.md](./COMPRESSION_RULES_FORMAT.md)) and lands ad-hoc via
+a normal PR. The extension points above (custom engine, language pack, RTK filter)
+are the sanctioned way to contribute one.
+
+Recent examples of exactly this flow:
+
+- RTK filters for Gradle & `dotnet` build output (v3.8.42)
+- RTK filters for kubectl / docker-build / composer / gh (#2824)
+- Caveman Indonesian language pack (#3975), plus German / French / Japanese / Chinese packs
+
+### Headroom (input-compression proxy)
+
+Headroom is **fully internal** — a pinned vendored `gcf` codec snapshot plus
+OmniRoute's own `smartcrusher` / `toon` / `tabular` layers. There is no live
+upstream to track beyond the vendored copy; updates to `gcf` are refreshed
+manually when the codec changes and re-validated against the compression budget
+gate (`check:compression-budget`).
+
+### Proposing an upstream-inspired improvement
+
+1. **Don't vendor** — re-express the upstream rule/filter in OmniRoute's format.
+2. Add it via the matching extension point below (language pack, RTK filter, or
+   custom engine).
+3. Reference the upstream project in the PR description (attribution), not by
+   copying its license-bearing source.
+4. Include tests and confirm the `check:compression-budget` gate still passes.
+
+---
+
 ## Best Practices
 
 ### Engine Development
@@ -533,13 +597,14 @@ To drive it from config, set `mode: "stacked"` and provide the step array under
 
 ## Reference: Built-in Engines
 
-| Engine ID | Stackable | Default stackPriority | Targets |
-|-----------|-----------|-----------------------|---------|
-| `lite` | Yes | 5 | messages, tool_results |
-| `rtk` | Yes | 10 | tool_results |
-| `standard` (caveman) | Yes | 20 | messages, tool_results, code_blocks |
-| `aggressive` | Yes | 30 | messages |
-| `ultra` | Yes | 40 | messages, code_blocks |
+| Engine ID            | Stackable | Default stackPriority | Targets                             |
+| -------------------- | --------- | --------------------- | ----------------------------------- |
+| `lite`               | Yes       | 5                     | messages, tool_results              |
+| `rtk`                | Yes       | 10                    | tool_results                        |
+| `standard` (caveman) | Yes       | 20                    | messages, tool_results, code_blocks |
+| `aggressive`         | Yes       | 30                    | messages                            |
+| `ultra`              | Yes       | 40                    | messages, code_blocks               |
+
 ### See Also
 
 - [COMPRESSION_GUIDE.md](./COMPRESSION_GUIDE.md) — Pipeline overview

@@ -109,7 +109,8 @@ describe("useModelVisibilityHandlers", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledWith(
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
       "/api/models/test",
       expect.objectContaining({ method: "POST" })
     );

@@ -139,7 +139,110 @@ describe("NoAuthAccountCard compact grid", () => {
     });
     await waitForCondition(() => el.textContent?.includes("Proxy for Account 1") ?? false);
     expect(el.textContent).toContain("Proxy for Account 1");
-    // The editor exposes a host input (the proxy configuration surface).
+    // No saved proxies in this fixture → editor falls back to the custom inputs.
     expect(el.querySelector("input[placeholder='Host']")).toBeTruthy();
+  });
+});
+
+// ── #5217 (Gap 1): Proxy Pool dropdown (by-id reference) ──────────────────────
+
+const SAVED_PROXIES = [
+  { id: "pool-1", name: "US East", type: "socks5", host: "1.2.3.4", port: 1080, status: "active" },
+  { id: "pool-2", name: "EU West", type: "http", host: "9.9.9.9", port: 8080, status: "active" },
+];
+
+function setupFetchWithProxies(fingerprints: string[], accountProxies: unknown[] = []) {
+  const connections = [
+    {
+      id: "conn-1",
+      provider: PROVIDER_ID,
+      providerSpecificData: { fingerprints, accountProxies },
+    },
+  ];
+  const putBodies: unknown[] = [];
+  const mockFetch = vi.fn((url: string, init?: RequestInit) => {
+    const u = String(url);
+    if (u.includes("/api/settings/proxies")) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ items: SAVED_PROXIES }),
+      } as Response);
+    }
+    if (u.includes("/api/providers")) {
+      if (init?.method === "PUT" && typeof init.body === "string") {
+        putBodies.push(JSON.parse(init.body));
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ connections }),
+      } as Response);
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({}) } as Response);
+  });
+  vi.stubGlobal("fetch", mockFetch);
+  return { mockFetch, putBodies };
+}
+
+describe("NoAuthAccountCard proxy pool dropdown (#5217 Gap 1)", () => {
+  it("defaults the editor to the Saved Proxy Pool dropdown when pool proxies exist", async () => {
+    setupFetchWithProxies(makeFingerprints(2));
+    const el = renderCard();
+    await waitForCondition(() => grid(el)?.querySelectorAll("[data-account-id]").length === 2);
+    const proxyBtn = grid(el)!
+      .querySelector<HTMLElement>("[data-account-id]")!
+      .querySelector<HTMLButtonElement>("button[title]")!;
+    act(() => proxyBtn.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    await waitForCondition(() => el.textContent?.includes("Proxy for Account 1") ?? false);
+    // The saved dropdown lists every pool proxy by name; the manual Host input is hidden.
+    const select = el.querySelector<HTMLSelectElement>("select")!;
+    expect(select).toBeTruthy();
+    expect(el.textContent).toContain("US East");
+    expect(el.textContent).toContain("EU West");
+    expect(el.querySelector("input[placeholder='Host']")).toBeNull();
+  });
+
+  it("persists a by-id reference {fingerprint, proxyId} when a pool proxy is selected", async () => {
+    const fps = makeFingerprints(2);
+    const { putBodies } = setupFetchWithProxies(fps);
+    const el = renderCard();
+    await waitForCondition(() => grid(el)?.querySelectorAll("[data-account-id]").length === 2);
+    const proxyBtn = grid(el)!
+      .querySelector<HTMLElement>("[data-account-id]")!
+      .querySelector<HTMLButtonElement>("button[title]")!;
+    act(() => proxyBtn.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    await waitForCondition(() => el.querySelector("select") !== null);
+
+    const select = el.querySelector<HTMLSelectElement>("select")!;
+    const setter = Object.getOwnPropertyDescriptor(
+      window.HTMLSelectElement.prototype,
+      "value"
+    )!.set!;
+    act(() => {
+      setter.call(select, "pool-2");
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    const saveBtn = Array.from(el.querySelectorAll("button")).find(
+      (b) => b.textContent?.trim() === "Save"
+    )!;
+    act(() => saveBtn.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+
+    await waitForCondition(() => putBodies.length > 0);
+    const body = putBodies.at(-1) as { providerSpecificData?: { accountProxies?: unknown[] } };
+    const stored = body.providerSpecificData?.accountProxies ?? [];
+    expect(stored).toEqual([{ fingerprint: fps[0], proxyId: "pool-2" }]);
+  });
+
+  it("lights the shield for an account stored as a by-id reference", async () => {
+    const fps = makeFingerprints(2);
+    setupFetchWithProxies(fps, [{ fingerprint: fps[0], proxyId: "pool-1" }]);
+    const el = renderCard();
+    await waitForCondition(() => grid(el)?.querySelectorAll("[data-account-id]").length === 2);
+    const firstShield = grid(el)!
+      .querySelector<HTMLElement>("[data-account-id]")!
+      .querySelector<HTMLButtonElement>("button[title]")!;
+    // Tooltip is resolved from the referenced pool record, not an inline proxy.
+    expect(firstShield.getAttribute("title")).toContain("1.2.3.4");
+    expect(firstShield.className).toContain("text-blue-400");
   });
 });

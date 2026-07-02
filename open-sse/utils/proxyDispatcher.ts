@@ -4,10 +4,18 @@ import { socksDispatcher } from "fetch-socks";
 import { getUpstreamTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
 import { stripIpv6Brackets, detectIpLiteralFamily, parseProxyFamily } from "./proxyFamily.ts";
 import { createSocksDispatcherWithFamily } from "./socksConnectorWithFamily.ts";
+import {
+  clearDispatcherCache,
+  createRoundRobinDispatcher,
+  getDefaultCachedDispatcher,
+  getDispatcherCache,
+  getRetryCachedDispatcher,
+  setDefaultCachedDispatcher,
+  setRetryCachedDispatcher,
+} from "./proxyDispatcherCache.ts";
 
-const DISPATCHER_CACHE_KEY = Symbol.for("omniroute.proxyDispatcher.cache");
-const DEFAULT_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.default");
-const RETRY_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.retry");
+export { __cacheProxyDispatcherForTest, clearDispatcherCache } from "./proxyDispatcherCache.ts";
+
 const SUPPORTED_PROTOCOLS = new Set(["http:", "https:", "socks5:"]);
 // Edge-relay proxy types. These do NOT go through an HTTP/SOCKS dispatcher —
 // the caller wraps the upstream URL with buildRelayHeaders() and fetches the
@@ -21,12 +29,6 @@ export function isRelayType(type: string | undefined | null): boolean {
 const DEFAULT_PROXY_DISPATCHER_CONNECTIONS = 32;
 const MAX_PROXY_DISPATCHER_CONNECTIONS = 256;
 
-type DispatcherCache = Map<string, Dispatcher>;
-type GlobalWithDispatcherCache = typeof globalThis & {
-  [DISPATCHER_CACHE_KEY]?: DispatcherCache;
-  [DEFAULT_DISPATCHER_KEY]?: Dispatcher;
-  [RETRY_DISPATCHER_KEY]?: Dispatcher;
-};
 type SocksDispatcherOptions = {
   type: number;
   host: string;
@@ -42,79 +44,6 @@ type ProxyConfigObject = {
   password?: string;
   family?: string;
 };
-
-/**
- * Direct upstream fan-out dispatcher.
- *
- * A single Undici Agent configured with `connections > 1` should be enough in
- * theory, but real Codex `/backend-api/codex/responses` streams on Node 24 have
- * still been observed queuing every subsequent same-origin request until the
- * previous stream emits trailers. Using several one-connection Agents gives
- * each long SSE stream an independent pool/client and prevents one stream from
- * monopolizing the effective queue while keeping pipelining disabled.
- */
-class RoundRobinDispatcher {
-  private readonly dispatchers: Dispatcher[];
-  private nextIndex = 0;
-
-  constructor(dispatchers: Dispatcher[]) {
-    this.dispatchers = dispatchers;
-  }
-
-  dispatch(options: Dispatcher.DispatchOptions, handler: Dispatcher.DispatchHandler): boolean {
-    const dispatcher = this.dispatchers[this.nextIndex % this.dispatchers.length];
-    this.nextIndex = (this.nextIndex + 1) % this.dispatchers.length;
-    return dispatcher.dispatch(options, handler);
-  }
-
-  close(callback?: () => void): Promise<void> | void {
-    const done = Promise.all(this.dispatchers.map((dispatcher) => dispatcher.close())).then(
-      () => undefined
-    );
-    if (callback) {
-      done.then(callback);
-      return;
-    }
-    return done;
-  }
-
-  destroy(
-    errorOrCallback?: Error | null | (() => void),
-    callback?: () => void
-  ): Promise<void> | void {
-    const callbackFn = typeof errorOrCallback === "function" ? errorOrCallback : callback;
-    const error = typeof errorOrCallback === "function" ? null : (errorOrCallback ?? null);
-    const done = Promise.all(this.dispatchers.map((dispatcher) => dispatcher.destroy(error))).then(
-      () => undefined
-    );
-    if (callbackFn) {
-      done.then(callbackFn);
-      return;
-    }
-    return done;
-  }
-}
-
-function getDispatcherCache(): DispatcherCache {
-  const globalWithCache = globalThis as GlobalWithDispatcherCache;
-  if (!globalWithCache[DISPATCHER_CACHE_KEY]) {
-    globalWithCache[DISPATCHER_CACHE_KEY] = new Map();
-  }
-  return globalWithCache[DISPATCHER_CACHE_KEY];
-}
-
-/**
- * Clear all cached proxy dispatchers.
- * Call this when proxy configuration changes to avoid stale connections.
- */
-export function clearDispatcherCache() {
-  const cache = getDispatcherCache();
-  cache.clear();
-
-  const globalWithCache = globalThis as GlobalWithDispatcherCache;
-  delete globalWithCache[DEFAULT_DISPATCHER_KEY];
-  delete globalWithCache[RETRY_DISPATCHER_KEY];
-}
 
 function getDispatcherOptions() {
   const timeouts = getUpstreamTimeoutConfig(process.env, (message) => {
@@ -208,17 +137,16 @@ function createRoundRobinDirectDispatcher(connectionLimit: number): Dispatcher {
     pipelining: 0,
   };
   const dispatchers = Array.from({ length: connectionLimit }, () => new Agent(perAgentOptions));
-  return new RoundRobinDispatcher(dispatchers) as unknown as Dispatcher;
+  return createRoundRobinDispatcher(dispatchers);
 }
 
 export function getDefaultDispatcher(): Dispatcher {
-  const globalWithCache = globalThis as GlobalWithDispatcherCache;
-  if (!globalWithCache[DEFAULT_DISPATCHER_KEY]) {
-    globalWithCache[DEFAULT_DISPATCHER_KEY] = createRoundRobinDirectDispatcher(
-      getDefaultDispatcherConnectionLimit()
-    );
+  let dispatcher = getDefaultCachedDispatcher();
+  if (!dispatcher) {
+    dispatcher = createRoundRobinDirectDispatcher(getDefaultDispatcherConnectionLimit());
+    setDefaultCachedDispatcher(dispatcher);
   }
-  return globalWithCache[DEFAULT_DISPATCHER_KEY];
+  return dispatcher;
 }
 
 /**
@@ -235,16 +163,17 @@ export function getDefaultDispatcher(): Dispatcher {
  * the first attempt is preserved — only the retry pays the fresh-socket cost.
  */
 export function getRetryDispatcher(): Dispatcher {
-  const globalWithCache = globalThis as GlobalWithDispatcherCache;
-  if (!globalWithCache[RETRY_DISPATCHER_KEY]) {
-    globalWithCache[RETRY_DISPATCHER_KEY] = new Agent({
+  let dispatcher = getRetryCachedDispatcher();
+  if (!dispatcher) {
+    dispatcher = new Agent({
       ...getDispatcherOptions(),
       keepAliveTimeout: 1,
       keepAliveMaxTimeout: 1,
       pipelining: 0,
     });
+    setRetryCachedDispatcher(dispatcher);
   }
-  return globalWithCache[RETRY_DISPATCHER_KEY];
+  return dispatcher;
 }
 
 /**
@@ -482,7 +411,7 @@ export function __getDefaultDispatcherOptionsForTest(
 }
 
 export function __createRoundRobinDispatcherForTest(dispatchers: Dispatcher[]): Dispatcher {
-  return new RoundRobinDispatcher(dispatchers) as unknown as Dispatcher;
+  return createRoundRobinDispatcher(dispatchers);
 }
 
 export function createProxyDispatcher(proxyUrl: string): Dispatcher {
