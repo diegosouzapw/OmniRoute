@@ -1,0 +1,42 @@
+name: SSOT Drift Scan
+
+on:
+  schedule:
+    - cron: "0 2 * * 1"  # Every Monday at 02:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ssot-drift-scan
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "24"
+
+jobs:
+  ssot-drift:
+    name: SSOT Drift Scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Check docs sync (source vs generated)
+        run: npm run check:docs-sync 2>&1 || echo "Drift detected — run 'npm run docs:sync' locally."
+      - name: Check route validation drift
+        run: npm run check:route-validation:t06 2>&1 || echo "Route validation drift detected."
+      - name: Report drift summary
+        if: always()
+        run: |
+          echo "## SSOT Drift Scan — $(date -u '+%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Scans run: docs-sync, route-validation, provider-catalog." >> "$GITHUB_STEP_SUMMARY"

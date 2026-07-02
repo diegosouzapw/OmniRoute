@@ -1,0 +1,44 @@
+name: Contract Tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "open-sse/**"
+      - "tests/contract/**"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "24"
+
+jobs:
+  contract-tests:
+    name: Contract Tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Run contract tests
+        run: |
+          if [ -d tests/contract ] && ls tests/contract/*.test.ts 2>/dev/null; then
+            node --import tsx --test --test-concurrency=1 tests/contract/*.test.ts
+          else
+            echo "No contract tests found — skipping. Add *.test.ts files under tests/contract/ to enable."
+          fi

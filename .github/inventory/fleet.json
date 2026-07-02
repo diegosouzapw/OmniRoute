@@ -1,0 +1,66 @@
+{
+  "$schema": "https://raw.githubusercontent.com/kooshapari/phenotype-registry/main/schemas/c4-fleet.schema.json",
+  "version": "1.0",
+  "generated": "2026-06-27",
+  "pillar_target": 3.55,
+  "systems": {
+    "omniroute": {
+      "name": "OmniRoute",
+      "description": "Unified AI proxy/router — route any LLM through one endpoint. 232 providers, 15 routing strategies, 87 MCP tools, 42 i18n locales.",
+      "type": "system",
+      "repo": "KooshaPari/OmniRoute",
+      "tags": ["ai-proxy", "router", "llm-gateway"],
+      "containers": [
+        {
+          "name": "Next.js App Router",
+          "type": "container",
+          "technology": "Next.js 16 / TypeScript 6 / Tailwind CSS v4",
+          "description": "API routes (v1 chat, embeddings, images, audio, video, search, rerank), dashboard UI, SSE streaming, i18n (42 locales)",
+          "responsibilities": ["HTTP API surface", "Dashboard rendering", "Authentication", "CORS enforcement"]
+        },
+        {
+          "name": "SQLite Database",
+          "type": "container",
+          "technology": "better-sqlite3 / WAL mode",
+          "description": "Persistence layer with 83 domain modules, 97 schema migrations, 17 base tables. Encryption at rest for sensitive fields.",
+          "responsibilities": ["Provider/model catalog storage", "Usage/billing tracking", "Combo routing config", "API key management", "MCP/A2A audit logs"]
+        },
+        {
+          "name": "open-sse Engine",
+          "type": "container",
+          "technology": "TypeScript / Node.js >=22",
+          "description": "Core streaming engine: handler pipeline, provider executors (20+), format translators, combo routing (15 strategies), prompt compression pipeline",
+          "responsibilities": ["Request translation (OpenAI↔Anthropic↔Gemini)", "Provider executor dispatch", "Combo resolution (priority/weighted/auto)", "Rate limiting & circuit breakers", "Prompt compression (lite/caveman/RTK/stacked)"]
+        },
+        {
+          "name": "MCP Server",
+          "type": "container",
+          "technology": "TypeScript / Zod",
+          "description": "87 MCP tools across 30 auth scopes. 3 transports (stdio/SSE/Streamable HTTP). Tool categories: core (20), cache, compression, 1proxy, memory, skills, gamification, plugins, Notion, Obsidian.",
+          "responsibilities": ["Tool registration & dispatch", "Scope-based authorization", "Invocation audit logging"]
+        },
+        {
+          "name": "A2A Server",
+          "type": "container",
+          "technology": "TypeScript / JSON-RPC 2.0",
+          "description": "Agent-to-Agent protocol server with SSE streaming, Task Manager (TTL cleanup), 8 skills (cost analysis, quota, routing, discovery, health, capabilities, dispatch).",
+          "responsibilities": ["Agent skill execution", "Task lifecycle management", "Agent Card discovery"]
+        },
+        {
+          "name": "Electron Desktop",
+          "type": "container",
+          "technology": "Electron",
+          "description": "Cross-platform desktop app (Windows, macOS, Linux) wrapping the Next.js UI and MCP server.",
+          "responsibilities": ["Local-first desktop experience", "Bundled MCP stdio transport"]
+        }
+      ],
+      "relationships": [
+        { "source": "Next.js App Router", "target": "open-sse Engine", "description": "Proxies API requests to handler pipeline" },
+        { "source": "open-sse Engine", "target": "SQLite Database", "description": "Reads/writes provider config, usage, audit" },
+        { "source": "open-sse Engine", "target": "Upstream LLM Providers", "description": "Forwards translated requests via executors" },
+        { "source": "MCP Server", "target": "SQLite Database", "description": "Audits all tool invocations" },
+        { "source": "A2A Server", "target": "SQLite Database", "description": "Reads quotas, pricing, health for skill results" }
+      ]
+    }
+  }
+}

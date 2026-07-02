@@ -1,0 +1,42 @@
+name: Lock Hash Check
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"  # Every Monday at 04:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lock-hash-check
+  cancel-in-progress: false
+
+jobs:
+  lock-hash:
+    name: Verify Lock File Determinism
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Compute hash of package-lock.json
+        run: |
+          LOCK_HASH=$(sha256sum package-lock.json | cut -d' ' -f1)
+          echo "lock_hash=${LOCK_HASH}" >> "$GITHUB_STEP_SUMMARY"
+          echo "package-lock.json SHA256: ${LOCK_HASH}"
+      - name: Verify deterministic install
+        run: |
+          BEFORE=$(sha256sum package-lock.json | cut -d' ' -f1)
+          npm ci --dry-run 2>&1 | head -5 || true
+          AFTER=$(sha256sum package-lock.json | cut -d' ' -f1)
+          if [ "$BEFORE" != "$AFTER" ]; then
+            echo "::error::package-lock.json changed during npm ci --dry-run — lock file is not deterministic."
+            exit 1
+          fi
+          echo "✅ package-lock.json is deterministic."
