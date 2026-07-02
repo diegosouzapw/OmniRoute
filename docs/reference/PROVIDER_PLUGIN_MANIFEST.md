@@ -15,6 +15,10 @@ executor code, OAuth defaults, headers, or process environment state.
 
 The same manifest is available over HTTP at
 `GET /api/v1/provider-plugin-manifest` for sidecars that run out-of-process.
+OmniRoute advertises that URL to Bifrost and CLIProxyAPI via the
+`X-OmniRoute-Provider-Manifest-Url` request header. Set
+`OMNIROUTE_PROVIDER_MANIFEST_URL` when the sidecar needs a public or container
+network URL instead of the local request origin.
 
 ## Goal
 
