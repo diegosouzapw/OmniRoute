@@ -172,6 +172,8 @@ import { grok_cliProvider } from "./registry/grok-cli/index.ts";
 import { codebuddy_cnProvider } from "./registry/codebuddy-cn/index.ts";
 import { pioneerProvider } from "./registry/pioneer/index.ts";
 import { zenmux_freeProvider } from "./registry/zenmux-free/index.ts";
+import { sumopodProvider } from "./registry/sumopod/index.ts";
+import { x5labProvider } from "./registry/x5lab/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -346,4 +348,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "codebuddy-cn": codebuddy_cnProvider,
   pioneer: pioneerProvider,
   "zenmux-free": zenmux_freeProvider,
+  sumopod: sumopodProvider,
+  x5lab: x5labProvider,
 };

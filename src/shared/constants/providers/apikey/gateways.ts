@@ -561,4 +561,32 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "TokenRouter exposes an OpenAI-compatible chat completions endpoint at https://api.tokenrouter.com/v1/chat/completions, plus a working /v1/models catalog. OmniRoute uses the OpenAI protocol.",
   },
+  sumopod: {
+    id: "sumopod",
+    alias: "sumopod",
+    name: "SumoPod",
+    icon: "router",
+    color: "#2563EB",
+    textIcon: "SP",
+    passthroughModels: true,
+    website: "https://ai.sumopod.com",
+    authHint:
+      "Use your SumoPod API key (sk-...) in Authorization: Bearer <key>. Fully OpenAI-compatible. API base URL: https://ai.sumopod.com/v1.",
+    apiHint:
+      "SumoPod exposes an OpenAI-compatible chat completions endpoint at https://ai.sumopod.com/v1/chat/completions, plus a live /v1/models catalog. OmniRoute uses the OpenAI protocol and lists models via passthrough.",
+  },
+  x5lab: {
+    id: "x5lab",
+    alias: "x5lab",
+    name: "X5Lab",
+    icon: "router",
+    color: "#7C3AED",
+    textIcon: "X5",
+    passthroughModels: true,
+    website: "https://x5lab.dev",
+    authHint:
+      "Use your X5Lab API key (x5-...) in Authorization: Bearer <key>. Fully OpenAI-compatible. API base URL: https://api.x5lab.dev/v1.",
+    apiHint:
+      "X5Lab exposes an OpenAI-compatible chat completions endpoint at https://api.x5lab.dev/v1/chat/completions, plus a live /v1/models catalog. OmniRoute uses the OpenAI protocol and lists models via passthrough.",
+  },
 };
