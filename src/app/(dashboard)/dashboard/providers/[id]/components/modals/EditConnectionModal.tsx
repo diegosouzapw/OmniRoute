@@ -165,7 +165,9 @@ export default function EditConnectionModal({
   const isCodex = provider === "codex";
   const isClaude = provider === "claude";
   const isAntigravity = provider === "antigravity";
-  const supportsGoogleProjectId = isAntigravity;
+  const isAgy = provider === "agy";
+  const isAntigravityFamily = isAntigravity || isAgy;
+  const supportsGoogleProjectId = isAntigravityFamily;
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = provider === "google-pse-search";
@@ -534,7 +536,7 @@ export default function EditConnectionModal({
           updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
         }
       }
-      if (isAntigravity) {
+      if (isAntigravityFamily) {
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
           ...(updates.providerSpecificData || {}),
@@ -687,7 +689,7 @@ export default function EditConnectionModal({
         />
         {supportsGoogleProjectId && (
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
-            {isAntigravity && (
+            {isAntigravityFamily && (
               <Select
                 label={t("antigravityClientProfileLabel")}
                 value={formData.antigravityClientProfile}
