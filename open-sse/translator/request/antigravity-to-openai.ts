@@ -229,14 +229,17 @@ function convertContent(content) {
       continue;
     }
 
-    // Text with thoughtSignature = regular text after thinking
+    // Text with thoughtSignature = regular text after thinking.
+    // Skip empty text — Anthropic rejects empty content blocks with a 400.
     if (part.thoughtSignature && part.text !== undefined) {
-      textParts.push({ type: "text", text: part.text });
+      if (part.text) {
+        textParts.push({ type: "text", text: part.text });
+      }
       continue;
     }
 
-    // Regular text
-    if (part.text !== undefined) {
+    // Regular text — skip empty strings (Anthropic rejects empty content blocks).
+    if (part.text !== undefined && part.text !== "") {
       textParts.push({ type: "text", text: part.text });
     }
 
@@ -274,8 +277,26 @@ function convertContent(content) {
     }
   }
 
-  // Content with only functionResponses → return array of tool messages
+  // Function responses may be co-located with function calls / text / reasoning in
+  // the same content. Emit the tool messages AND the accompanying assistant message so
+  // nothing is dropped (previously only the tool messages survived).
   if (toolResults.length > 0) {
+    if (toolCalls.length > 0 || textParts.length > 0 || reasoningContent) {
+      const assistantMsg: JsonRecord = { role: "assistant" };
+      if (textParts.length > 0) {
+        assistantMsg.content =
+          textParts.length === 1 && textParts[0].type === "text"
+            ? textParts[0].text
+            : textParts;
+      }
+      if (reasoningContent) {
+        assistantMsg.reasoning_content = reasoningContent;
+      }
+      if (toolCalls.length > 0) {
+        assistantMsg.tool_calls = toolCalls;
+      }
+      return [...toolResults, assistantMsg];
+    }
     return toolResults;
   }
 
