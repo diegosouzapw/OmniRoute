@@ -14,6 +14,8 @@ import {
   capMaxOutputTokens,
   capThinkingBudget,
   getDefaultThinkingBudget,
+  isDefaultThinkingBudgetExplicitlyUnset,
+  isThinkingBudgetCapExplicitlyUnset,
 } from "../../../src/lib/modelCapabilities.ts";
 
 import {
@@ -56,6 +58,7 @@ const GEMINI_BUILTIN_TOOL_NAMES = new Set<string>([
 
 type GeminiPart = Record<string, unknown>;
 type GeminiContent = { role: string; parts: GeminiPart[] };
+type ModelCapabilityInput = string | { provider?: string | null; model?: string | null };
 
 type GeminiFunctionDeclaration = {
   name: string;
@@ -106,6 +109,7 @@ type CloudCodeEnvelope = {
 };
 
 type GeminiToolNameOptions = {
+  provider?: string | null;
   stripNamespace?: boolean;
   signatureNamespace?: string | null;
   signaturelessToolCallMode?: "native" | "text" | "context";
@@ -118,6 +122,27 @@ type GeminiToolNameOptions = {
   supportsSignatureBypass?: boolean;
 };
 
+function modelCapabilityInput(provider: string | null | undefined, model: string) {
+  return provider ? { provider, model } : model;
+}
+
+function fallbackDefaultThinkingBudget(capabilityInput: ModelCapabilityInput): number | null {
+  if (isDefaultThinkingBudgetExplicitlyUnset(capabilityInput)) return null;
+  return getDefaultThinkingBudget(capabilityInput) || 8192;
+}
+
+function fallbackHighThinkingBudget(capabilityInput: ModelCapabilityInput): number | null {
+  if (isThinkingBudgetCapExplicitlyUnset(capabilityInput)) return null;
+  return capThinkingBudget(capabilityInput, 32768);
+}
+
+function fallbackAutoThinkingBudget(capabilityInput: ModelCapabilityInput): number | null {
+  if (isDefaultThinkingBudgetExplicitlyUnset(capabilityInput)) return null;
+  const defaultBudget = getDefaultThinkingBudget(capabilityInput);
+  if (defaultBudget > 0) return defaultBudget;
+  if (isThinkingBudgetCapExplicitlyUnset(capabilityInput)) return null;
+  return capThinkingBudget(capabilityInput, 24576);
+}
 // Gemini-family APIs (incl. Antigravity / Vertex) reject a `contents[]` array that
 // has two adjacent entries with the same role:
 //   400 INVALID_ARGUMENT "Request contains consecutive messages with the same role".
@@ -148,6 +173,7 @@ function openaiToGeminiBase(
   stream: boolean,
   toolNameOptions: GeminiToolNameOptions = {}
 ) {
+  const capabilityInput = modelCapabilityInput(toolNameOptions.provider, model);
   const result: GeminiRequest = {
     model: model,
     contents: [],
@@ -180,7 +206,7 @@ function openaiToGeminiBase(
     result.generationConfig.stopSequences = Array.isArray(body.stop) ? body.stop : [body.stop];
   }
   const maxOutputTokens = capMaxOutputTokens(
-    model,
+    capabilityInput,
     (body.max_tokens ?? body.max_completion_tokens) as number | undefined
   );
   if (maxOutputTokens !== null) {
@@ -194,21 +220,23 @@ function openaiToGeminiBase(
   // which maps to high. "max"/"xhigh" exceed Gemini's accepted range and are clamped.
   // Port of decolua/9router#2043 by @nguyenxvotanminh3.
   if (body.reasoning_effort) {
-    const highBudget = capThinkingBudget(model, 32768);
-    const budgetMap: Record<string, number> = {
+    const highBudget = fallbackHighThinkingBudget(capabilityInput);
+    const budgetMap: Record<string, number | null> = {
       low: 1024,
-      medium: getDefaultThinkingBudget(model) || 8192,
+      medium: fallbackDefaultThinkingBudget(capabilityInput),
       high: highBudget,
       auto: highBudget,
       max: highBudget,
       xhigh: highBudget,
     };
     const budget =
-      budgetMap[body.reasoning_effort as string] ?? getDefaultThinkingBudget(model) ?? 8192;
-    result.generationConfig.thinkingConfig = {
-      thinkingBudget: budget,
-      includeThoughts: true,
-    };
+      budgetMap[body.reasoning_effort as string] ?? fallbackDefaultThinkingBudget(capabilityInput);
+    if (budget !== null) {
+      result.generationConfig.thinkingConfig = {
+        thinkingBudget: budget,
+        includeThoughts: true,
+      };
+    }
   }
   // 2. Claude format: thinking (type: enabled, budget_tokens)
   const thinking = body.thinking as { type?: string; budget_tokens?: number } | undefined;
@@ -232,10 +260,13 @@ function openaiToGeminiBase(
       !modelLower.includes("gemini-1") &&
       (!modelLower.includes("gemini-2.0") || modelLower.includes("thinking"))
     ) {
-      result.generationConfig.thinkingConfig = {
-        thinkingBudget: getDefaultThinkingBudget(model) || capThinkingBudget(model, 24576),
-        includeThoughts: true,
-      };
+      const thinkingBudget = fallbackAutoThinkingBudget(capabilityInput);
+      if (thinkingBudget !== null) {
+        result.generationConfig.thinkingConfig = {
+          thinkingBudget,
+          includeThoughts: true,
+        };
+      }
     }
   }
 
@@ -567,6 +598,7 @@ export function openaiToGeminiRequest(
       ? credentials["_signatureNamespace"]
       : null;
   return openaiToGeminiBase(model, body, stream, {
+    provider: typeof credentials?._provider === "string" ? credentials._provider : null,
     signatureNamespace,
     signaturelessToolCallMode: options.signaturelessToolCallMode,
     stripFunctionCallId: isVertexGeminiProvider(credentials?._provider),
@@ -579,11 +611,13 @@ export function openaiToCloudCodeGeminiRequest(
   body: Record<string, unknown>,
   stream: boolean,
   options: {
+    provider?: string | null;
     signatureNamespace?: string | null;
     signaturelessToolCallMode?: "native" | "text" | "context";
   } = {}
 ) {
   return openaiToGeminiBase(model, body, stream, {
+    provider: options.provider || "antigravity",
     stripNamespace: true,
     signatureNamespace: options.signatureNamespace,
     signaturelessToolCallMode: options.signaturelessToolCallMode,
@@ -700,6 +734,11 @@ export function openaiToAntigravityRequest(model, body, stream, credentials = nu
       ? ((credentials as Record<string, unknown>)._signatureNamespace as string)
       : null;
   const cloudCodeRequest = openaiToCloudCodeGeminiRequest(model, body, stream, {
+    provider:
+      credentials && typeof credentials === "object"
+        ? ((credentials as Record<string, unknown>)._provider as string | undefined) ||
+          "antigravity"
+        : "antigravity",
     signatureNamespace,
     signaturelessToolCallMode: isThinkingGemini ? "context" : "native",
   });

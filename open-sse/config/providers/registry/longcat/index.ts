@@ -1,5 +1,4 @@
 import type { RegistryEntry } from "../../shared.ts";
-
 export const longcatProvider: RegistryEntry = {
   id: "longcat",
   alias: "lc",
@@ -18,7 +17,9 @@ export const longcatProvider: RegistryEntry = {
     {
       id: "LongCat-2.0",
       name: "LongCat 2.0 (10M tok free 🆓)",
-      contextLength: 1048576,
+      capabilities: {
+        contextWindow: 1048576,
+      },
     },
   ],
 };

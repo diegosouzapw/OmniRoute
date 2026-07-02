@@ -53,7 +53,7 @@ test("GithubExecutor.buildUrl routes response-format models to /responses", () =
   registerModel("gh", {
     id: "gpt-4.1-responses",
     name: "GPT 4.1 Responses",
-    targetFormat: "openai-responses",
+    compat: { targetFormat: "openai-responses" },
   });
 
   try {

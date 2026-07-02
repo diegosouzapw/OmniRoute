@@ -1,5 +1,4 @@
 import type { RegistryEntry } from "../../shared.ts";
-
 export const baichuanProvider: RegistryEntry = {
   id: "baichuan",
   alias: "baichuan",
@@ -11,10 +10,37 @@ export const baichuanProvider: RegistryEntry = {
   // Sweep 2026-06-19: confirmed against the official platform.baichuan-ai.com pricing
   // page. Baichuan4-Turbo is the current general-purpose flagship (no Baichuan5 yet).
   models: [
-    { id: "Baichuan4-Turbo", name: "Baichuan 4 Turbo", contextLength: 32768 },
-    { id: "Baichuan4-Air", name: "Baichuan 4 Air", contextLength: 32768 },
-    { id: "Baichuan4", name: "Baichuan 4" },
-    { id: "Baichuan3-Turbo", name: "Baichuan 3 Turbo", contextLength: 32768 },
-    { id: "Baichuan3-Turbo-128k", name: "Baichuan 3 Turbo 128k", contextLength: 131072 },
+    {
+      id: "Baichuan4-Turbo",
+      name: "Baichuan 4 Turbo",
+      capabilities: {
+        contextWindow: 32768,
+      },
+    },
+    {
+      id: "Baichuan4-Air",
+      name: "Baichuan 4 Air",
+      capabilities: {
+        contextWindow: 32768,
+      },
+    },
+    {
+      id: "Baichuan4",
+      name: "Baichuan 4",
+    },
+    {
+      id: "Baichuan3-Turbo",
+      name: "Baichuan 3 Turbo",
+      capabilities: {
+        contextWindow: 32768,
+      },
+    },
+    {
+      id: "Baichuan3-Turbo-128k",
+      name: "Baichuan 3 Turbo 128k",
+      capabilities: {
+        contextWindow: 131072,
+      },
+    },
   ],
 };

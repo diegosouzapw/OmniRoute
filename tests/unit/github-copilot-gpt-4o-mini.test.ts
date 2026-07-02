@@ -24,7 +24,7 @@ test("github (Copilot) provider exposes gpt-4o-mini next to gpt-4o", () => {
 
   const mini = entry.models!.find((m) => m.id === "gpt-4o-mini");
   assert.equal(mini?.name, "GPT-4o mini");
-  assert.equal(mini?.contextLength, 128000);
+  assert.equal(mini?.capabilities?.contextWindow, 128000);
 });
 
 test("Copilot gpt-4o-mini is distinct from the github-models openai/gpt-4o-mini", () => {

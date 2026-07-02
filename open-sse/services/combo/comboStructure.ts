@@ -493,10 +493,7 @@ function getTargetCompatibilityFailures(
   const capabilities = getResolvedModelCapabilities(target.modelStr);
   const failures: string[] = [];
 
-  if (
-    requirements.requiresTools &&
-    (capabilities.supportsTools === false || !capabilities.toolCalling)
-  ) {
+  if (requirements.requiresTools && capabilities.supportsTools === false) {
     failures.push("tools");
   }
 

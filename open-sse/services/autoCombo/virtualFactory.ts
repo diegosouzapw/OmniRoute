@@ -194,8 +194,8 @@ function getNoAuthCandidates(
  * of compacting prematurely — or, worse, receiving 0 and disabling
  * compaction entirely (the "agent keeps forgetting things" bug).
  *
- * Unknown candidates resolve through getTokenLimit()'s fallback chain, so a
- * non-empty pool always yields a positive contextLength.
+ * Unknown candidates stay unknown; advertised limits are emitted only from
+ * candidates with real registry/synced/spec/provider metadata.
  */
 export function computeAdvertisedLimits(candidates: Array<{ provider: string; model: string }>): {
   contextLength: number | null;
@@ -209,7 +209,7 @@ export function computeAdvertisedLimits(candidates: Array<{ provider: string; mo
   let maxOutputTokens: number | null = null;
   for (const candidate of candidates) {
     const limit = getTokenLimit(candidate.provider, candidate.model);
-    if (Number.isFinite(limit) && limit > 0) {
+    if (typeof limit === "number" && Number.isFinite(limit) && limit > 0) {
       contextLength = contextLength === null ? limit : Math.max(contextLength, limit);
     }
     const output = getResolvedModelCapabilities({

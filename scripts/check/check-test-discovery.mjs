@@ -56,6 +56,16 @@ export const COLLECTORS = [
     glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts",
     sources: ["package.json", ".github/workflows/ci.yml"],
   },
+  // Node native runner — typed memory decay uses an isolated DATA_DIR/DB singleton and
+  // must not share a process with the broader DB-touching unit suites.
+  {
+    glob: "tests/unit/memory/typed-decay.test.ts",
+    sources: ["package.json", ".github/workflows/quality.yml"],
+    anchors: {
+      "package.json": "tests/unit/memory/typed-decay.test.ts",
+      ".github/workflows/quality.yml": "test:unit:memory:typed-decay",
+    },
+  },
   // Node native runner — test:integration (top-level only; tests/integration/services/ NÃO roda)
   { glob: "tests/integration/*.test.ts", sources: ["package.json"] },
   // Node native runner — test:combo:matrix / test:integration (combo strategy decision matrix, 17 strategies)

@@ -4,7 +4,6 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-chatcore-translation-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
@@ -499,7 +498,9 @@ test("chatCore keeps Responses-native Codex payloads in native passthrough mode"
 
   assert.equal(result.success, true);
   assert.match(call.url, /\/responses$/);
-  assert.deepEqual(call.body.input, [{ type: "message", role: "user", content: [{ type: "input_text", text: "ship it" }] }]);
+  assert.deepEqual(call.body.input, [
+    { type: "message", role: "user", content: [{ type: "input_text", text: "ship it" }] },
+  ]);
   assert.equal(call.body.instructions, "custom system prompt");
   assert.equal(call.body.store, false);
   assert.deepEqual(call.body.metadata, { source: "codex-client" });

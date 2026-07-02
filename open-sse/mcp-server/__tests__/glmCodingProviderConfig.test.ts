@@ -110,21 +110,21 @@ describe("GLM Coding provider registry surfaces", () => {
     // Base model
     const base = get("glm-5.2");
     expect(base).toBeDefined();
-    expect(base?.contextLength).toBe(1000000);
-    expect(base?.maxOutputTokens).toBe(131072);
-    expect(base?.supportsReasoning).toBe(true);
-    expect(base?.toolCalling).toBe(true);
+    expect(base?.capabilities?.contextWindow).toBe(1000000);
+    expect(base?.capabilities?.maxOutputTokens).toBe(131072);
+    expect(base?.capabilities?.supportsReasoning).toBe(true);
+    expect(base?.capabilities?.supportsTools).toBe(true);
 
     // Effort tier aliases share the same specs
     const high = get("glm-5.2-high");
     expect(high).toBeDefined();
-    expect(high?.contextLength).toBe(1000000);
-    expect(high?.maxOutputTokens).toBe(131072);
+    expect(high?.capabilities?.contextWindow).toBe(1000000);
+    expect(high?.capabilities?.maxOutputTokens).toBe(131072);
 
     const max = get("glm-5.2-max");
     expect(max).toBeDefined();
-    expect(max?.contextLength).toBe(1000000);
-    expect(max?.maxOutputTokens).toBe(131072);
+    expect(max?.capabilities?.contextWindow).toBe(1000000);
+    expect(max?.capabilities?.maxOutputTokens).toBe(131072);
   });
 
   it("applies doc-backed context window overrides for GLM models", () => {
@@ -132,32 +132,32 @@ describe("GLM Coding provider registry surfaces", () => {
     const get = (id: string) => models.find((m) => m.id === id);
 
     // Models with explicit overrides (Z.AI docs)
-    expect(get("glm-5.1")?.contextLength).toBe(204800);
-    expect(get("glm-4.6v")?.contextLength).toBe(128000);
-    expect(get("glm-4.5v")?.contextLength).toBe(16000);
-    expect(get("glm-4.5")?.contextLength).toBe(128000);
-    expect(get("glm-4.5-air")?.contextLength).toBe(128000);
-    expect(get("glm-5.1")?.maxOutputTokens).toBe(131072);
-    expect(get("glm-4.6")?.maxOutputTokens).toBe(32768);
+    expect(get("glm-5.1")?.capabilities?.contextWindow).toBe(204800);
+    expect(get("glm-4.6v")?.capabilities?.contextWindow).toBe(128000);
+    expect(get("glm-4.5v")?.capabilities?.contextWindow).toBe(16000);
+    expect(get("glm-4.5")?.capabilities?.contextWindow).toBe(128000);
+    expect(get("glm-4.5-air")?.capabilities?.contextWindow).toBe(128000);
+    expect(get("glm-5.1")?.capabilities?.maxOutputTokens).toBe(131072);
+    expect(get("glm-4.6")?.capabilities?.maxOutputTokens).toBe(32768);
 
     // Models with explicit 200K defaults to avoid null capabilities in direct routes.
-    expect(get("glm-5")?.contextLength).toBe(200000);
-    expect(get("glm-5-turbo")?.contextLength).toBe(200000);
-    expect(get("glm-4.7-flash")?.contextLength).toBe(200000);
-    expect(get("glm-4.7")?.contextLength).toBe(200000);
-    expect(get("glm-4.6")?.contextLength).toBe(200000);
+    expect(get("glm-5")?.capabilities?.contextWindow).toBe(200000);
+    expect(get("glm-5-turbo")?.capabilities?.contextWindow).toBe(200000);
+    expect(get("glm-4.7-flash")?.capabilities?.contextWindow).toBe(200000);
+    expect(get("glm-4.7")?.capabilities?.contextWindow).toBe(200000);
+    expect(get("glm-4.6")?.capabilities?.contextWindow).toBe(200000);
   });
 
   it("keeps representative GLM Coding models tool-call capable and priced", () => {
     const models = getModelsByProviderId("glm");
     const get = (id: string) => models.find((m) => m.id === id);
 
-    expect(get("glm-5")?.toolCalling).toBe(true);
-    expect(get("glm-4.7-flash")?.toolCalling).toBe(true);
-    expect(get("glm-4.5-air")?.toolCalling).toBe(true);
-    expect(get("glm-5.2")?.toolCalling).toBe(true);
-    expect(get("glm-5.2-high")?.toolCalling).toBe(true);
-    expect(get("glm-5.2-max")?.toolCalling).toBe(true);
+    expect(get("glm-5")?.capabilities?.supportsTools).toBe(true);
+    expect(get("glm-4.7-flash")?.capabilities?.supportsTools).toBe(true);
+    expect(get("glm-4.5-air")?.capabilities?.supportsTools).toBe(true);
+    expect(get("glm-5.2")?.capabilities?.supportsTools).toBe(true);
+    expect(get("glm-5.2-high")?.capabilities?.supportsTools).toBe(true);
+    expect(get("glm-5.2-max")?.capabilities?.supportsTools).toBe(true);
 
     expect(getPricingForModel("glm", "glm-5")).toEqual({
       input: 1.0,

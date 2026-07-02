@@ -22,6 +22,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const { getModelInfo } = await import("../../src/sse/services/model.ts");
 
 test.before(async () => {
@@ -53,11 +54,11 @@ test("#2905 addCustomModel persists targetFormat", async () => {
   );
   const models = (await modelsDb.getCustomModels("openai-compatible-2905")) as Array<{
     id: string;
-    targetFormat?: string;
+    compat?: { targetFormat?: string };
   }>;
   const saved = models.find((m) => m.id === "my-claude-model");
   assert.ok(saved, "custom model must be saved");
-  assert.equal(saved.targetFormat, "claude", "targetFormat must be persisted");
+  assert.equal(saved.compat?.targetFormat, "claude", "targetFormat must be persisted");
 });
 
 test("#2905 getModelInfo surfaces the custom model targetFormat", async () => {
@@ -80,4 +81,41 @@ test("#2905 a custom model without targetFormat surfaces none (provider default 
   );
   const info = (await getModelInfo("g29/plain-model")) as { targetFormat?: string };
   assert.equal(info.targetFormat, undefined, "no targetFormat → falls back to provider default");
+});
+
+test("catalog model config overrides alter runtime targetFormat", async () => {
+  modelsDb.mergeModelCompatOverride("openai", "gpt-4o", {
+    targetFormat: "claude",
+    unsupportedParams: ["temperature"],
+  });
+
+  const info = (await getModelInfo("openai/gpt-4o")) as {
+    targetFormat?: string;
+    unsupportedParams?: string[];
+  };
+  assert.equal(info.targetFormat, "claude");
+  assert.deepEqual(info.unsupportedParams, ["temperature"]);
+});
+
+test("catalog model config survives stripModelPrefix re-resolution", async () => {
+  modelsDb.mergeModelCompatOverride("openai", "gpt-4.1", {
+    targetFormat: "claude",
+    unsupportedParams: ["temperature"],
+  });
+  await settingsDb.updateSettings({ stripModelPrefix: true });
+  try {
+    const info = (await getModelInfo("openai/gpt-4.1")) as {
+      provider?: string;
+      model?: string;
+      targetFormat?: string;
+      unsupportedParams?: string[];
+    };
+
+    assert.equal(info.provider, "openai");
+    assert.equal(info.model, "gpt-4.1");
+    assert.equal(info.targetFormat, "claude");
+    assert.deepEqual(info.unsupportedParams, ["temperature"]);
+  } finally {
+    await settingsDb.updateSettings({ stripModelPrefix: false });
+  }
 });

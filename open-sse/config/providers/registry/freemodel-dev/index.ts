@@ -1,5 +1,4 @@
 import type { RegistryEntry } from "../../shared.ts";
-
 export const freemodel_devProvider: RegistryEntry = {
   id: "freemodel-dev",
   alias: "fmd",
@@ -11,9 +10,27 @@ export const freemodel_devProvider: RegistryEntry = {
   authHeader: "bearer",
   defaultContextLength: 128000,
   models: [
-    { id: "gpt-5.5", name: "GPT-5.5", contextLength: 400000 },
-    { id: "gpt-5.4", name: "GPT-5.4", contextLength: 400000 },
-    { id: "gpt-5.4-mini", name: "GPT-5.4 Mini" },
-    { id: "gpt-5.3-codex", name: "GPT-5.3 Codex" },
+    {
+      id: "gpt-5.5",
+      name: "GPT-5.5",
+      capabilities: {
+        contextWindow: 400000,
+      },
+    },
+    {
+      id: "gpt-5.4",
+      name: "GPT-5.4",
+      capabilities: {
+        contextWindow: 400000,
+      },
+    },
+    {
+      id: "gpt-5.4-mini",
+      name: "GPT-5.4 Mini",
+    },
+    {
+      id: "gpt-5.3-codex",
+      name: "GPT-5.3 Codex",
+    },
   ],
 };

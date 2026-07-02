@@ -5,17 +5,15 @@
  * Gemini and Claude models reject with HTTP 400
  *   "[github/<model>] [400]: model <model> does not support Responses API."
  * (unsupported_api_for_model). They must therefore never be routed to
- * `/responses`, no matter what `targetFormat` a registry entry (or any future
- * misconfiguration) declares for them.
+ * `/responses`, no matter what `compat.targetFormat` a registry entry (or any
+ * future misconfiguration) declares for them.
  *
  * OmniRoute's GithubExecutor decides the endpoint inside `buildUrl()` purely
  * from `getModelTargetFormat("gh", model)`. The registry today (`open-sse/
  * config/providers/registry/github/index.ts`) correctly omits
- * `targetFormat: "openai-responses"` on every Claude/Gemini entry — but that is
- * a single-line away from regressing (the file's own comments on lines 60, 74,
- * 80 warn against it). This test pins the defensive invariant: even if a
- * Claude/Gemini variant ends up tagged `openai-responses`, the executor must
- * still build the chat/completions URL.
+ * `compat.targetFormat: "openai-responses"` on every Claude/Gemini entry. This
+ * test pins the defensive invariant: even if a Claude/Gemini variant ends up
+ * tagged `openai-responses`, the executor must still build the chat/completions URL.
  */
 
 import { describe, it } from "node:test";
@@ -53,18 +51,18 @@ describe("GithubExecutor — Gemini/Claude must never hit /responses (port 9rout
     const gemini = ghModels.find((m: any) => m.id === "gemini-3.1-pro-preview");
     assert.ok(claude && gemini, "claude-sonnet-4.6 and gemini-3.1-pro-preview must be registered");
 
-    const originalClaude = claude.targetFormat;
-    const originalGemini = gemini.targetFormat;
+    const originalClaude = { ...(claude.compat ?? {}) };
+    const originalGemini = { ...(gemini.compat ?? {}) };
     try {
       // Simulate a future misconfiguration. The guard must still hold.
-      (claude as any).targetFormat = "openai-responses";
-      (gemini as any).targetFormat = "openai-responses";
+      (claude as any).compat = { ...(claude.compat ?? {}), targetFormat: "openai-responses" };
+      (gemini as any).compat = { ...(gemini.compat ?? {}), targetFormat: "openai-responses" };
 
       assert.equal(exec.buildUrl("claude-sonnet-4.6", false), CHAT_URL);
       assert.equal(exec.buildUrl("gemini-3.1-pro-preview", false), CHAT_URL);
     } finally {
-      (claude as any).targetFormat = originalClaude;
-      (gemini as any).targetFormat = originalGemini;
+      (claude as any).compat = originalClaude;
+      (gemini as any).compat = originalGemini;
     }
   });
 
@@ -79,15 +77,15 @@ describe("GithubExecutor — Gemini/Claude must never hit /responses (port 9rout
     const exec = new GithubExecutor();
     const ghModels = PROVIDER_MODELS["gh"];
     const claude = ghModels.find((m: any) => m.id === "claude-sonnet-4.6");
-    const original = claude.targetFormat;
+    const original = { ...(claude.compat ?? {}) };
     try {
-      (claude as any).targetFormat = "openai-responses";
+      (claude as any).compat = { ...(claude.compat ?? {}), targetFormat: "openai-responses" };
       // Look up by the same id (registry is case-sensitive on lookup) but with a
       // mixed-case path through the guard. We rebuild with the registered id;
       // the guard normalizes before substring check, so it must still detect.
       assert.equal(exec.buildUrl("claude-sonnet-4.6", false), CHAT_URL);
     } finally {
-      (claude as any).targetFormat = original;
+      (claude as any).compat = original;
     }
   });
 });

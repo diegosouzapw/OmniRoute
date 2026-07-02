@@ -24,18 +24,22 @@ export const ditProvider: RegistryEntry = {
     {
       id: "gpt-5.4",
       name: "GPT-5.4 (DIT.ai)",
-      contextLength: 400000,
-      toolCalling: true,
-      supportsReasoning: true,
-      supportsVision: true,
+      capabilities: {
+        contextWindow: 400000,
+        supportsTools: true,
+        supportsReasoning: true,
+        supportsVision: true,
+      },
     },
     {
       id: "claude-sonnet-4-6",
       name: "Claude Sonnet 4.6 (DIT.ai)",
-      contextLength: 200000,
-      toolCalling: true,
-      supportsReasoning: true,
-      supportsVision: true,
+      capabilities: {
+        contextWindow: 200000,
+        supportsTools: true,
+        supportsReasoning: true,
+        supportsVision: true,
+      },
     },
   ],
 };

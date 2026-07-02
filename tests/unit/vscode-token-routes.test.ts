@@ -15,19 +15,33 @@ const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const vscodeRootRoute = await import("../../src/app/api/v1/vscode/[token]/route.ts");
 const vscodeModelsRoute = await import("../../src/app/api/v1/vscode/[token]/models/route.ts");
 const vscodeRawRootRoute = await import("../../src/app/api/v1/vscode/raw/[token]/route.ts");
-const vscodeRawModelsRoute = await import("../../src/app/api/v1/vscode/raw/[token]/models/route.ts");
-const vscodeRawVersionRoute = await import("../../src/app/api/v1/vscode/raw/[token]/api/version/route.ts");
-const vscodeRawShowRoute = await import("../../src/app/api/v1/vscode/raw/[token]/api/show/route.ts");
-const vscodeRawTagsRoute = await import("../../src/app/api/v1/vscode/raw/[token]/api/tags/route.ts");
+const vscodeRawModelsRoute =
+  await import("../../src/app/api/v1/vscode/raw/[token]/models/route.ts");
+const vscodeRawVersionRoute =
+  await import("../../src/app/api/v1/vscode/raw/[token]/api/version/route.ts");
+const vscodeRawShowRoute =
+  await import("../../src/app/api/v1/vscode/raw/[token]/api/show/route.ts");
+const vscodeRawTagsRoute =
+  await import("../../src/app/api/v1/vscode/raw/[token]/api/tags/route.ts");
 const vscodeV1ModelsRoute = await import("../../src/app/api/v1/vscode/[token]/v1/models/route.ts");
 const vscodeVersionRoute = await import("../../src/app/api/v1/vscode/[token]/api/version/route.ts");
 const vscodeShowRoute = await import("../../src/app/api/v1/vscode/[token]/api/show/route.ts");
 const vscodeTagsRoute = await import("../../src/app/api/v1/vscode/[token]/api/tags/route.ts");
-const vscodeV1ChatCompletionsRoute = await import("../../src/app/api/v1/vscode/[token]/v1/chat/completions/route.ts");
-const vscodeChatCompletionsRoute = await import("../../src/app/api/v1/vscode/[token]/chat/completions/route.ts");
+const vscodeV1ChatCompletionsRoute =
+  await import("../../src/app/api/v1/vscode/[token]/v1/chat/completions/route.ts");
+const vscodeChatCompletionsRoute =
+  await import("../../src/app/api/v1/vscode/[token]/chat/completions/route.ts");
 const vscodeResponsesRoute = await import("../../src/app/api/v1/vscode/[token]/responses/route.ts");
-const serviceTierVariants = await import("../../src/app/api/v1/vscode/[token]/serviceTierVariants.ts");
+const vscodeReasoningMetadata =
+  await import("../../src/app/api/v1/vscode/[token]/reasoningMetadata.ts");
+const vscodeRawReasoningMetadata =
+  await import("../../src/app/api/v1/vscode/raw/[token]/reasoningMetadata.ts");
+const serviceTierVariants =
+  await import("../../src/app/api/v1/vscode/[token]/serviceTierVariants.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
+
+const REASONING_WITH_MAX = ["none", "low", "medium", "high", "max"];
+const REASONING_WITH_XHIGH_AND_MAX = ["none", "low", "medium", "high", "xhigh", "max"];
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -49,6 +63,14 @@ async function seedConnection(provider: string, overrides: Record<string, unknow
   });
 }
 
+async function enableProtectedModels() {
+  await settingsDb.updateSettings({
+    requireLogin: true,
+    password: "hashed-password",
+    requireAuthForModels: true,
+  });
+}
+
 test.beforeEach(async () => {
   await resetStorage();
 });
@@ -60,11 +82,7 @@ test.after(async () => {
 });
 
 test("vscode tokenized root route mirrors the grouped VS Code catalog without combos", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("openai", { name: "openai-vscode-root" });
   const key = await apiKeysDb.createApiKey("vscode-root", "machine-vscode-root");
   await combosDb.createCombo({
@@ -82,19 +100,20 @@ test("vscode tokenized root route mirrors the grouped VS Code catalog without co
   assert.ok(Array.isArray(body.data));
   assert.ok(body.data.length > 0);
   assert.equal(
-    body.data.some((entry: any) => entry.id === "root-hidden-combo" || entry.name === "root-hidden-combo"),
+    body.data.some(
+      (entry: any) => entry.id === "root-hidden-combo" || entry.name === "root-hidden-combo"
+    ),
     false
   );
 });
 
 test("vscode tokenized root route exposes friendly model names alongside ids", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("codex", { name: "codex-vscode-root-friendly-name" });
-  const key = await apiKeysDb.createApiKey("vscode-root-friendly-name", "machine-vscode-root-friendly-name");
+  const key = await apiKeysDb.createApiKey(
+    "vscode-root-friendly-name",
+    "machine-vscode-root-friendly-name"
+  );
 
   const response = await vscodeRootRoute.GET(
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/`)
@@ -108,11 +127,7 @@ test("vscode tokenized root route exposes friendly model names alongside ids", a
 });
 
 test("vscode tokenized models route accepts path-scoped API keys", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("openai", { name: "openai-vscode-models" });
   const key = await apiKeysDb.createApiKey("vscode-models", "machine-vscode-models");
 
@@ -127,11 +142,7 @@ test("vscode tokenized models route accepts path-scoped API keys", async () => {
 });
 
 test("vscode tokenized combos route exposes configured combos via token alias", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
 
   await seedConnection("codex", { name: "codex-vscode-combos-root-basic" });
 
@@ -142,7 +153,8 @@ test("vscode tokenized combos route exposes configured combos via token alias", 
     models: [{ kind: "model", model: "codex/gpt-5.4-high", providerId: "codex" }],
   });
 
-  const combosRoute = await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
+  const combosRoute =
+    await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
   const response = await combosRoute.GET(
     new Request(`http://localhost/api/v1/vscode/combos/${encodeURIComponent(key.key)}`),
     { params: { token: key.key, slug: undefined } }
@@ -152,14 +164,21 @@ test("vscode tokenized combos route exposes configured combos via token alias", 
   assert.equal(response.status, 200);
   assert.equal(body.object, "list");
   assert.ok(Array.isArray(body.data), "expected data property to be an array");
-  assert.ok(body.data.some((combo: any) => combo.name === "test-combo"), "expected test combo in data response");
+  assert.ok(
+    body.data.some((combo: any) => combo.name === "test-combo"),
+    "expected test combo in data response"
+  );
   assert.equal("combos" in body, false, "did not expect legacy combos property in response");
 });
 
 test("vscode combos route responds to Ollama compatibility check (/api/version)", async () => {
-  const key = await apiKeysDb.createApiKey("vscode-combos-version", "machine-vscode-combos-version");
+  const key = await apiKeysDb.createApiKey(
+    "vscode-combos-version",
+    "machine-vscode-combos-version"
+  );
 
-  const combosRoute = await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
+  const combosRoute =
+    await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
   const response = await combosRoute.GET(
     new Request(`http://localhost/api/v1/vscode/combos/${encodeURIComponent(key.key)}/api/version`),
     { params: { token: key.key, slug: ["api", "version"] } }
@@ -172,11 +191,7 @@ test("vscode combos route responds to Ollama compatibility check (/api/version)"
 });
 
 test("vscode combos route exposes combos through Ollama api/tags", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
 
   await seedConnection("codex", { name: "codex-vscode-combos-tags" });
 
@@ -187,7 +202,8 @@ test("vscode combos route exposes combos through Ollama api/tags", async () => {
     models: [{ kind: "model", model: "codex/gpt-5.4-high", providerId: "codex" }],
   });
 
-  const combosRoute = await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
+  const combosRoute =
+    await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
   const response = await combosRoute.GET(
     new Request(`http://localhost/api/v1/vscode/combos/${encodeURIComponent(key.key)}/api/tags`),
     { params: { token: key.key, slug: ["api", "tags"] } }
@@ -199,15 +215,11 @@ test("vscode combos route exposes combos through Ollama api/tags", async () => {
   const combo = body.models.find((entry: any) => entry.name === "tags-combo");
   assert.ok(combo, "expected combo name in api/tags response");
   assert.equal(combo.details.family, "tags-combo");
-  assert.deepEqual(combo.supportsReasoningEffort, ["none", "low", "medium", "high", "xhigh"]);
+  assert.deepEqual(combo.supportsReasoningEffort, REASONING_WITH_XHIGH_AND_MAX);
 });
 
 test("vscode combos route resolves combo names through Ollama api/show", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
 
   await seedConnection("codex", { name: "codex-vscode-combos-show" });
 
@@ -218,7 +230,8 @@ test("vscode combos route resolves combo names through Ollama api/show", async (
     models: [{ kind: "model", model: "codex/gpt-5.4-high", providerId: "codex" }],
   });
 
-  const combosRoute = await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
+  const combosRoute =
+    await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
   const response = await combosRoute.POST(
     new Request(`http://localhost/api/v1/vscode/combos/${encodeURIComponent(key.key)}/api/show`, {
       method: "POST",
@@ -234,26 +247,27 @@ test("vscode combos route resolves combo names through Ollama api/show", async (
   assert.equal(body.modelfile, "FROM show-combo");
   assert.equal(body.details.family, "show-combo");
   assert.equal(body.model_info.context_length, 200000);
-  assert.deepEqual(body.supportsReasoningEffort, ["none", "low", "medium", "high", "xhigh"]);
+  assert.deepEqual(body.supportsReasoningEffort, REASONING_WITH_XHIGH_AND_MAX);
   assert.equal(body.model_info.capabilities.reasoning, true);
+  assert.equal(body.model_info.capabilities.thinking, undefined);
 });
 
 test("vscode tokenized combos root route exposes importable combo metadata", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
 
   await seedConnection("codex", { name: "codex-vscode-combos-root" });
-  const key = await apiKeysDb.createApiKey("vscode-combos-root-rich", "machine-vscode-combos-root-rich");
+  const key = await apiKeysDb.createApiKey(
+    "vscode-combos-root-rich",
+    "machine-vscode-combos-root-rich"
+  );
   await combosDb.createCombo({
     name: "balanced-load",
     strategy: "reset-aware",
     models: [{ kind: "model", model: "codex/gpt-5.4-high", providerId: "codex" }],
   });
 
-  const combosRoute = await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
+  const combosRoute =
+    await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
   const response = await combosRoute.GET(
     new Request(`http://localhost/api/v1/vscode/combos/${encodeURIComponent(key.key)}`),
     { params: { token: key.key, slug: undefined } }
@@ -265,17 +279,63 @@ test("vscode tokenized combos root route exposes importable combo metadata", asy
   assert.ok(combo, "expected balanced-load in combo root response");
   assert.equal(combo.url.includes("/responses#models.ai.azure.com"), true);
   assert.equal(combo.maxInputTokens, 200000);
-  assert.equal(combo.maxOutputTokens, 131072);
+  assert.equal(combo.maxOutputTokens, 128000);
   assert.equal(combo.toolCalling, true);
-  assert.deepEqual(combo.supportsReasoningEffort, ["none", "low", "medium", "high", "xhigh"]);
+  assert.deepEqual(combo.supportsReasoningEffort, REASONING_WITH_XHIGH_AND_MAX);
+});
+
+test("vscode reasoning metadata keeps max separate from xhigh and ignores legacy thinking", () => {
+  const model = {
+    id: "claude/claude-opus-4-6",
+    root: "claude-opus-4-6",
+    owned_by: "claude",
+    capabilities: { reasoning: true },
+  };
+
+  const values = vscodeReasoningMetadata.getReasoningEffortValues(model);
+  assert.deepEqual(values, REASONING_WITH_MAX);
+  assert.equal(
+    vscodeReasoningMetadata.inferSelectedReasoningEffort(
+      { ...model, id: `${model.id}-max` },
+      values
+    ),
+    "max"
+  );
+  assert.equal(
+    vscodeReasoningMetadata.isReasoningCapableModel({
+      id: "legacy-thinking-only",
+      capabilities: { thinking: true },
+    }),
+    false
+  );
+  assert.deepEqual(vscodeRawReasoningMetadata.getReasoningEffortValues(model), values);
+});
+
+test("vscode model enrichment omits unknown compatible boolean capabilities", () => {
+  const model = {
+    id: "custom/foo",
+    root: "foo",
+    owned_by: "openai-compatible-review",
+    object: "model",
+    created: 0,
+    permission: [],
+    parent: null,
+    custom: true,
+  };
+
+  const enriched = vscodeModelsRoute.enrichModelForVscode(
+    model,
+    new Request("http://localhost/api/v1/vscode/token/models")
+  ) as Record<string, unknown>;
+
+  assert.equal("toolCalling" in enriched, false);
+  assert.equal("vision" in enriched, false);
+  assert.equal("supportsReasoningEffort" in enriched, false);
+  assert.equal("supportedReasoningEfforts" in enriched, false);
 });
 
 test("vscode tokenized models route exposes reasoning effort metadata for importable chat models", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("github", {
     authType: "oauth",
     apiKey: null,
@@ -296,15 +356,12 @@ test("vscode tokenized models route exposes reasoning effort metadata for import
   assert.equal(response.status, 200);
   assert.ok(model, "missing gpt-5.4__provider_gh in tokenized VS Code models route");
   assert.equal(model.family, "gpt-5.4");
-  assert.deepEqual(model.supportsReasoningEffort, ["none", "low", "medium", "high"]);
-  assert.deepEqual(model.supportedReasoningEfforts, ["none", "low", "medium", "high", "xhigh"]);
-  assert.deepEqual(model.configurationSchema?.properties?.reasoningEffort?.enum, [
-    "none",
-    "low",
-    "medium",
-    "high",
-    "xhigh",
-  ]);
+  assert.deepEqual(model.supportsReasoningEffort, REASONING_WITH_MAX);
+  assert.deepEqual(model.supportedReasoningEfforts, REASONING_WITH_XHIGH_AND_MAX);
+  assert.deepEqual(
+    model.configurationSchema?.properties?.reasoningEffort?.enum,
+    REASONING_WITH_XHIGH_AND_MAX
+  );
   assert.equal(model.configurationSchema?.properties?.reasoningEffort?.default, "none");
   assert.equal(
     model.url,
@@ -313,11 +370,7 @@ test("vscode tokenized models route exposes reasoning effort metadata for import
 });
 
 test("vscode tokenized models route keeps xhigh for codex models that advertise it", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("codex", { name: "codex-vscode-models-reasoning" });
   const key = await apiKeysDb.createApiKey(
     "vscode-models-codex-reasoning",
@@ -329,28 +382,32 @@ test("vscode tokenized models route keeps xhigh for codex models that advertise 
   );
   const body = (await response.json()) as any;
   const model = (body.data || []).find((entry: any) => entry.id === "gpt-5.4__provider_cx");
-  const fastModel = (body.data || []).find((entry: any) => entry.id === "gpt-5.4__provider_cx__tier_priority");
-  const flexModel = (body.data || []).find((entry: any) => entry.id === "gpt-5.4__provider_cx__tier_flex");
+  const fastModel = (body.data || []).find(
+    (entry: any) => entry.id === "gpt-5.4__provider_cx__tier_priority"
+  );
+  const flexModel = (body.data || []).find(
+    (entry: any) => entry.id === "gpt-5.4__provider_cx__tier_flex"
+  );
 
   assert.equal(response.status, 200);
   assert.ok(model, "missing gpt-5.4__provider_cx in tokenized VS Code models route");
-  assert.ok(fastModel, "missing gpt-5.4__provider_cx__tier_priority in tokenized VS Code models route");
+  assert.ok(
+    fastModel,
+    "missing gpt-5.4__provider_cx__tier_priority in tokenized VS Code models route"
+  );
   assert.ok(flexModel, "missing gpt-5.4__provider_cx__tier_flex in tokenized VS Code models route");
   assert.equal(model.name, "Codex GPT 5.4 (Default)");
   assert.equal(fastModel.name, "Codex GPT 5.4 (Fast)");
   assert.equal(flexModel.name, "Codex GPT 5.4 (Flex)");
   assert.equal(model.toolCalling, true);
   assert.equal(model.vision, true);
-  assert.deepEqual(model.supportsReasoningEffort, ["none", "low", "medium", "high", "xhigh"]);
-  assert.deepEqual(model.supportedReasoningEfforts, ["none", "low", "medium", "high", "xhigh"]);
+  assert.deepEqual(model.supportsReasoningEffort, REASONING_WITH_XHIGH_AND_MAX);
+  assert.deepEqual(model.supportedReasoningEfforts, REASONING_WITH_XHIGH_AND_MAX);
   assert.equal(model.defaultReasoningEffort, "none");
-  assert.deepEqual(model.configSchema?.properties?.reasoningEffort?.enum, [
-    "none",
-    "low",
-    "medium",
-    "high",
-    "xhigh",
-  ]);
+  assert.deepEqual(
+    model.configSchema?.properties?.reasoningEffort?.enum,
+    REASONING_WITH_XHIGH_AND_MAX
+  );
   assert.equal(model.configSchema?.properties?.reasoningEffort?.default, "none");
   const importedIds = new Set((body.data || []).map((entry: any) => entry.id));
   assert.ok(!importedIds.has("cx/gpt-5.4"));
@@ -371,11 +428,7 @@ test("vscode tokenized models route keeps xhigh for codex models that advertise 
 });
 
 test("vscode tokenized raw models route exposes provider-native ids without family-first grouping", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("codex", { name: "codex-vscode-raw-models" });
   const key = await apiKeysDb.createApiKey(
     "vscode-raw-models-codex",
@@ -388,14 +441,20 @@ test("vscode tokenized raw models route exposes provider-native ids without fami
   const body = (await response.json()) as any;
   const importedIds = new Set((body.data || []).map((entry: any) => entry.id));
   const defaultModel = (body.data || []).find((entry: any) => entry.id === "cx/gpt-5.4");
-  const fastModel = (body.data || []).find((entry: any) => entry.id === "cx/gpt-5.4__tier_priority");
+  const fastModel = (body.data || []).find(
+    (entry: any) => entry.id === "cx/gpt-5.4__tier_priority"
+  );
   const flexModel = (body.data || []).find((entry: any) => entry.id === "cx/gpt-5.4__tier_flex");
 
   assert.equal(response.status, 200);
   assert.ok(defaultModel, "missing cx/gpt-5.4 in raw VS Code models route");
   assert.ok(fastModel, "missing cx/gpt-5.4__tier_priority in raw VS Code models route");
   assert.ok(flexModel, "missing cx/gpt-5.4__tier_flex in raw VS Code models route");
-  assert.equal(importedIds.size, (body.data || []).length, "raw VS Code models route should not duplicate model ids");
+  assert.equal(
+    importedIds.size,
+    (body.data || []).length,
+    "raw VS Code models route should not duplicate model ids"
+  );
   assert.ok(!importedIds.has("gpt-5.4__provider_cx"));
   assert.ok(!importedIds.has("gpt-5.4__provider_cx__tier_priority"));
   assert.ok(!importedIds.has("gpt-5.4__provider_cx__tier_flex"));
@@ -410,7 +469,6 @@ test("vscode tokenized raw models route exposes provider-native ids without fami
     vision: true,
     tool_calling: true,
     reasoning: true,
-    thinking: true,
   });
   assert.equal(defaultModel.url, undefined);
   assert.equal(defaultModel.toolCalling, undefined);
@@ -465,16 +523,11 @@ test("vscode tokenized raw models route exposes provider-native ids without fami
     vision: true,
     tool_calling: true,
     reasoning: true,
-    thinking: true,
   });
 });
 
 test("vscode tokenized raw root route mirrors the raw models catalog", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("codex", { name: "codex-vscode-raw-root" });
   const key = await apiKeysDb.createApiKey(
     "vscode-raw-root-codex",
@@ -494,11 +547,7 @@ test("vscode tokenized raw root route mirrors the raw models catalog", async () 
 });
 
 test("vscode tokenized raw routes do not publish combo entries", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("openai", { name: "openai-vscode-raw-hide-combos" });
   const key = await apiKeysDb.createApiKey(
     "vscode-raw-hide-combos",
@@ -527,11 +576,7 @@ test("vscode tokenized raw routes do not publish combo entries", async () => {
 });
 
 test("vscode tokenized raw tags route does not publish combo entries", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("codex", { name: "codex-vscode-raw-tags-no-combo" });
   const key = await apiKeysDb.createApiKey(
     "vscode-raw-tags-no-combo",
@@ -558,11 +603,7 @@ test("vscode tokenized raw tags route does not publish combo entries", async () 
 });
 
 test("vscode tokenized raw show route resolves reasoning and service-tier variants independently", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("codex", { name: "codex-vscode-raw-show-reasoning-tier" });
   const key = await apiKeysDb.createApiKey(
     "vscode-raw-show-reasoning-tier",
@@ -586,14 +627,11 @@ test("vscode tokenized raw show route resolves reasoning and service-tier varian
   assert.equal(body.selected_reasoning_effort, "low");
   assert.equal(body.details.selectedReasoningEffort, "low");
   assert.equal(body.details.selected_reasoning_effort, "low");
+  assert.equal(body.model_info.capabilities.thinking, undefined);
 });
 
 test("vscode tokenized raw api/show does not resolve combo names", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("codex", { name: "codex-vscode-raw-show-no-combo" });
   const key = await apiKeysDb.createApiKey(
     "vscode-raw-show-no-combo",
@@ -628,11 +666,7 @@ test("vscode tokenized raw version route returns Ollama-compatible version", asy
 });
 
 test("vscode tokenized models route prefixes the provider without duplicating brand names", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("gemini", { name: "gemini-vscode-models-labels" });
   const key = await apiKeysDb.createApiKey(
     "vscode-models-provider-prefix",
@@ -651,11 +685,7 @@ test("vscode tokenized models route prefixes the provider without duplicating br
 });
 
 test("vscode tokenized tags route mirrors the Ollama tags payload", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("openai", { name: "openai-vscode-tags" });
   const key = await apiKeysDb.createApiKey("vscode-tags", "machine-vscode-tags");
 
@@ -671,13 +701,12 @@ test("vscode tokenized tags route mirrors the Ollama tags payload", async () => 
 });
 
 test("vscode tokenized tags route exposes reasoning metadata for codex models", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("codex", { name: "codex-vscode-tags-reasoning" });
-  const key = await apiKeysDb.createApiKey("vscode-tags-reasoning", "machine-vscode-tags-reasoning");
+  const key = await apiKeysDb.createApiKey(
+    "vscode-tags-reasoning",
+    "machine-vscode-tags-reasoning"
+  );
 
   const response = await vscodeTagsRoute.GET(
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/api/tags`)
@@ -687,29 +716,23 @@ test("vscode tokenized tags route exposes reasoning metadata for codex models", 
 
   assert.equal(response.status, 200);
   assert.ok(model, "missing gpt-5.4__provider_cx in tokenized VS Code tags route");
-  assert.deepEqual(model.supportsReasoningEffort, ["none", "low", "medium", "high", "xhigh"]);
-  assert.deepEqual(model.supports_reasoning_effort, ["none", "low", "medium", "high", "xhigh"]);
-  assert.deepEqual(model.supportedReasoningEfforts, ["none", "low", "medium", "high", "xhigh"]);
+  assert.deepEqual(model.supportsReasoningEffort, REASONING_WITH_XHIGH_AND_MAX);
+  assert.deepEqual(model.supports_reasoning_effort, REASONING_WITH_XHIGH_AND_MAX);
+  assert.deepEqual(model.supportedReasoningEfforts, REASONING_WITH_XHIGH_AND_MAX);
   assert.equal(model.defaultReasoningEffort, "none");
   assert.equal(model.selectedReasoningEffort, "none");
   assert.equal(model.selected_reasoning_effort, "none");
   assert.equal(model.details.family, "gpt-5.4");
-  assert.deepEqual(model.configurationSchema?.properties?.reasoningEffort?.enum, [
-    "none",
-    "low",
-    "medium",
-    "high",
-    "xhigh",
-  ]);
+  assert.deepEqual(
+    model.configurationSchema?.properties?.reasoningEffort?.enum,
+    REASONING_WITH_XHIGH_AND_MAX
+  );
   assert.equal(model.configurationSchema?.properties?.reasoningEffort?.default, "none");
-  assert.deepEqual(model.details.configurationSchema?.properties?.reasoningEffort?.enum, [
-    "none",
-    "low",
-    "medium",
-    "high",
-    "xhigh",
-  ]);
-  assert.deepEqual(model.details.supports_reasoning_effort, ["none", "low", "medium", "high", "xhigh"]);
+  assert.deepEqual(
+    model.details.configurationSchema?.properties?.reasoningEffort?.enum,
+    REASONING_WITH_XHIGH_AND_MAX
+  );
+  assert.deepEqual(model.details.supports_reasoning_effort, REASONING_WITH_XHIGH_AND_MAX);
   assert.equal(model.details.selected_reasoning_effort, "none");
   assert.ok(
     !(body.models || []).some((entry: any) => entry.name === "cx/gpt-5.4-low"),
@@ -719,16 +742,16 @@ test("vscode tokenized tags route exposes reasoning metadata for codex models", 
     !(body.models || []).some((entry: any) => entry.name === "cx/gpt-5.4-low__tier_priority"),
     "tier reasoning variant leaked into grouped VS Code tags route"
   );
-  assert.ok((body.models || []).some((entry: any) => entry.name === "gpt-5.4__provider_cx__tier_priority"));
-  assert.ok((body.models || []).some((entry: any) => entry.name === "gpt-5.4__provider_cx__tier_flex"));
+  assert.ok(
+    (body.models || []).some((entry: any) => entry.name === "gpt-5.4__provider_cx__tier_priority")
+  );
+  assert.ok(
+    (body.models || []).some((entry: any) => entry.name === "gpt-5.4__provider_cx__tier_flex")
+  );
 });
 
 test("vscode tokenized tags route only exposes usable canonical chat models", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("openai", { name: "openai-vscode-tags-usable" });
   const key = await apiKeysDb.createApiKey("vscode-tags-usable", "machine-vscode-tags-usable");
 
@@ -802,11 +825,7 @@ test("vscode tokenized tags route only exposes usable canonical chat models", as
 });
 
 test("vscode tokenized grouped tags route does not publish combo entries", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("codex", { name: "codex-vscode-grouped-tags-no-combo" });
   const key = await apiKeysDb.createApiKey(
     "vscode-grouped-tags-no-combo",
@@ -832,13 +851,12 @@ test("vscode tokenized grouped tags route does not publish combo entries", async
 });
 
 test("vscode tokenized tags route prefers canonical codex models when codex is the only active provider", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("codex", { name: "codex-vscode-tags-canonical" });
-  const key = await apiKeysDb.createApiKey("vscode-tags-canonical", "machine-vscode-tags-canonical");
+  const key = await apiKeysDb.createApiKey(
+    "vscode-tags-canonical",
+    "machine-vscode-tags-canonical"
+  );
 
   const response = await vscodeTagsRoute.GET(
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/api/tags`)
@@ -881,11 +899,7 @@ test("vscode raw tokenized api/version route exposes Ollama compatibility versio
 });
 
 test("vscode tokenized api/show route resolves a catalog model through the path token", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("openai", { name: "openai-vscode-show" });
   const key = await apiKeysDb.createApiKey("vscode-show", "machine-vscode-show");
 
@@ -914,11 +928,7 @@ test("vscode tokenized api/show route resolves a catalog model through the path 
 });
 
 test("vscode tokenized tags names stay resolvable by api/show", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("openai", { name: "openai-vscode-tags-show" });
   const key = await apiKeysDb.createApiKey("vscode-tags-show", "machine-vscode-tags-show");
 
@@ -945,11 +955,7 @@ test("vscode tokenized tags names stay resolvable by api/show", async () => {
 });
 
 test("vscode tokenized grouped api/show does not resolve combo names", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("codex", { name: "codex-vscode-grouped-show-no-combo" });
   const key = await apiKeysDb.createApiKey(
     "vscode-grouped-show-no-combo",
@@ -975,11 +981,7 @@ test("vscode tokenized grouped api/show does not resolve combo names", async () 
 });
 
 test("vscode raw tokenized tags names stay resolvable by raw api/show", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("openai", { name: "openai-vscode-raw-tags-show" });
   const key = await apiKeysDb.createApiKey("vscode-raw-tags-show", "machine-vscode-raw-tags-show");
 
@@ -1008,13 +1010,12 @@ test("vscode raw tokenized tags names stay resolvable by raw api/show", async ()
 });
 
 test("vscode tokenized api/show route exposes explicit reasoning effort metadata", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("codex", { name: "codex-vscode-show-reasoning" });
-  const key = await apiKeysDb.createApiKey("vscode-show-reasoning", "machine-vscode-show-reasoning");
+  const key = await apiKeysDb.createApiKey(
+    "vscode-show-reasoning",
+    "machine-vscode-show-reasoning"
+  );
 
   const response = await vscodeShowRoute.POST(
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/api/show`, {
@@ -1029,36 +1030,36 @@ test("vscode tokenized api/show route exposes explicit reasoning effort metadata
   assert.equal(body.model, "gpt-5.4__provider_cx");
   assert.equal(body.remote_model, "Codex GPT 5.4 (Default)");
   assert.equal(body.details.family, "gpt-5.4");
-  assert.deepEqual(body.supportsReasoningEffort, ["none", "low", "medium", "high", "xhigh"]);
-  assert.deepEqual(body.supports_reasoning_effort, ["none", "low", "medium", "high", "xhigh"]);
-  assert.deepEqual(body.supportedReasoningEfforts, ["none", "low", "medium", "high", "xhigh"]);
+  assert.deepEqual(body.supportsReasoningEffort, REASONING_WITH_XHIGH_AND_MAX);
+  assert.deepEqual(body.supports_reasoning_effort, REASONING_WITH_XHIGH_AND_MAX);
+  assert.deepEqual(body.supportedReasoningEfforts, REASONING_WITH_XHIGH_AND_MAX);
   assert.equal(body.defaultReasoningEffort, "none");
   assert.equal(body.selectedReasoningEffort, "none");
   assert.equal(body.selected_reasoning_effort, "none");
-  assert.deepEqual(body.configurationSchema?.properties?.reasoningEffort?.enum, [
-    "none",
-    "low",
-    "medium",
-    "high",
-    "xhigh",
-  ]);
+  assert.deepEqual(
+    body.configurationSchema?.properties?.reasoningEffort?.enum,
+    REASONING_WITH_XHIGH_AND_MAX
+  );
   assert.equal(body.configurationSchema?.properties?.reasoningEffort?.default, "none");
   assert.equal(body.model_info["general.basename"], "Codex GPT 5.4 (Default)");
   assert.equal(body.model_info["general.architecture"], "codex");
   assert.equal(body.model_info["codex.context_length"], 200000);
-  assert.deepEqual(body.model_info.supports_reasoning_effort, ["none", "low", "medium", "high", "xhigh"]);
+  assert.deepEqual(body.model_info.supports_reasoning_effort, REASONING_WITH_XHIGH_AND_MAX);
   assert.equal(body.model_info.selected_reasoning_effort, "none");
-  assert.deepEqual(body.model_info.capabilities.supports_reasoning_effort, ["none", "low", "medium", "high", "xhigh"]);
+  assert.deepEqual(
+    body.model_info.capabilities.supports_reasoning_effort,
+    REASONING_WITH_XHIGH_AND_MAX
+  );
+  assert.equal(body.model_info.capabilities.thinking, undefined);
 });
 
 test("vscode tokenized api/show route exposes service tier variants with suffixed display names", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("codex", { name: "codex-vscode-show-tier-priority" });
-  const key = await apiKeysDb.createApiKey("vscode-show-tier-priority", "machine-vscode-show-tier-priority");
+  const key = await apiKeysDb.createApiKey(
+    "vscode-show-tier-priority",
+    "machine-vscode-show-tier-priority"
+  );
 
   const response = await vscodeShowRoute.POST(
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/api/show`, {
@@ -1076,19 +1077,20 @@ test("vscode tokenized api/show route exposes service tier variants with suffixe
 });
 
 test("vscode tokenized chat routes rewrite family-first ids back to the codex provider id", async () => {
-  const payload = serviceTierVariants.resolveVscodeServiceTierRequest({ model: "gpt-5.4__provider_cx__tier_priority" });
+  const payload = serviceTierVariants.resolveVscodeServiceTierRequest({
+    model: "gpt-5.4__provider_cx__tier_priority",
+  });
 
   assert.equal(payload.model, "cx/gpt-5.4");
   assert.equal(payload.service_tier, "priority");
 });
 
 test("vscode tokenized /chat/completions route applies the path token and codex tier rewrite", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
-  const key = await apiKeysDb.createApiKey("vscode-chat-completions-route", "machine-vscode-chat-completions-route");
+  await enableProtectedModels();
+  const key = await apiKeysDb.createApiKey(
+    "vscode-chat-completions-route",
+    "machine-vscode-chat-completions-route"
+  );
 
   const response = await vscodeChatCompletionsRoute.POST(
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/chat/completions`, {
@@ -1113,12 +1115,11 @@ test("vscode tokenized /chat/completions route applies the path token and codex 
 });
 
 test("vscode tokenized /responses route applies the path token and codex tier rewrite", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
-  const key = await apiKeysDb.createApiKey("vscode-responses-route", "machine-vscode-responses-route");
+  await enableProtectedModels();
+  const key = await apiKeysDb.createApiKey(
+    "vscode-responses-route",
+    "machine-vscode-responses-route"
+  );
 
   const response = await vscodeResponsesRoute.POST(
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/responses`, {
@@ -1141,11 +1142,7 @@ test("vscode tokenized /responses route applies the path token and codex tier re
 });
 
 test("vscode tokenized api/show route preserves the selected reasoning effort for codex variants", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("codex", { name: "codex-vscode-show-reasoning-low" });
   const key = await apiKeysDb.createApiKey(
     "vscode-show-reasoning-low",
@@ -1167,11 +1164,7 @@ test("vscode tokenized api/show route preserves the selected reasoning effort fo
 });
 
 test("vscode tokenized api/show route resolves canonical family aliases", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
+  await enableProtectedModels();
   await seedConnection("codex", { name: "codex-vscode-show-family-alias" });
   const key = await apiKeysDb.createApiKey(
     "vscode-show-family-alias",

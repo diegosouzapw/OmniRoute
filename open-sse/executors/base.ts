@@ -6,8 +6,8 @@ import {
 import { applyContextEditingToBody } from "../config/contextEditing.ts";
 import { findOffendingField, stripGroqUnsupportedFields } from "../config/providerFieldStrips.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
-import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
+import { getResolvedModelCapabilities } from "../services/modelCapabilities.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 import type { Session } from "../services/sessionPool/session.ts";
 import { SessionPool } from "../services/sessionPool/sessionPool.ts";
@@ -307,23 +307,6 @@ const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
 const GITHUB_REASONING_EFFORT_OPT_IN_PATTERN = /claude[-_.]?(?:opus|sonnet)[-_.]?4[-_.]6/i;
 const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;
 
-function supportsMaxEffortForProvider(provider: string, model: string): boolean {
-  const isClaude =
-    (provider === PROVIDER_CLAUDE || isClaudeCodeCompatible(provider)) &&
-    supportsClaudeMaxEffort(model);
-  // opencode-go proxies DeepSeek with the native DeepSeek API contract, which
-  // accepts {high, max} literally. Without this opt-in, max would be
-  // normalized to xhigh (the OmniRoute-internal top tier) and rejected by the
-  // upstream. Scoped to opencode-go deliberately: OpenRouter's DeepSeek path
-  // (pi#4055) is the documented inverse and expects xhigh, not max.
-  // Ollama Cloud also accepts literal max (for example GLM 5.2 supports
-  // low|medium|high|max|none) and rejects xhigh.
-  const isOpencodeGoDeepSeek =
-    provider === "opencode-go" && model.toLowerCase().includes("deepseek");
-  const isOllamaCloud = provider === "ollama-cloud";
-  return isClaude || isOpencodeGoDeepSeek || isOllamaCloud;
-}
-
 export function sanitizeReasoningEffortForProvider(
   body: unknown,
   provider: string,
@@ -387,27 +370,9 @@ export function sanitizeReasoningEffortForProvider(
     return body;
   }
 
-  const supportsXHigh = supportsXHighEffort(provider, modelStr);
-  const shouldDowngradeXHigh = effortStr === "xhigh" && !supportsXHigh;
-  const supportsXHighForMax = supportsXHigh;
-  const supportsMax = supportsMaxEffortForProvider(provider, modelStr);
-  const shouldNormalizeMaxToXHigh = effortStr === "max" && !supportsMax && supportsXHighForMax;
-  const shouldDowngradeMax = effortStr === "max" && !supportsMax && !supportsXHighForMax;
-
-  if (shouldNormalizeMaxToXHigh) {
-    log?.info?.(
-      "REASONING_SANITIZE",
-      `${provider}/${modelStr}: normalized reasoning_effort max → xhigh`
-    );
-    const next: Record<string, unknown> = { ...b };
-    if (hasTopLevelReasoningEffort) {
-      next.reasoning_effort = "xhigh";
-    }
-    if (reasoning) {
-      next.reasoning = { ...reasoning, effort: "xhigh" };
-    }
-    return next;
-  }
+  const capabilities = getResolvedModelCapabilities({ provider, model: modelStr });
+  const shouldDowngradeXHigh = effortStr === "xhigh" && capabilities.supportsXHighEffort === false;
+  const shouldDowngradeMax = effortStr === "max" && capabilities.supportsMaxEffort === false;
 
   if (shouldDowngradeXHigh || shouldDowngradeMax) {
     log?.info?.(
@@ -1100,11 +1065,10 @@ export class BaseExecutor {
             delete tb.thinking;
             delete tb.context_management;
             appliedThinking = "off";
-          } else if (!effThinking && !headerEffort && isClaudeCodeClient) {
-            // Default Claude Code logic when no override headers are present.
-            // Generic OpenAI-compatible clients that route through native Claude OAuth
-            // must opt in with x-omniroute-thinking; force-injecting adaptive thinking
-            // leaks non-standard reasoning replay fields back into those clients.
+          } else if (!effThinking && !headerEffort && (isClaudeCodeClient || hasClaudeOAuthToken)) {
+            // Default Claude Code wire-image logic when no override headers are present.
+            // Anthropic OAuth tokens with user:sessions:claude_code scope require the
+            // same request shape even when the caller did not send Claude CLI headers.
             const isHaiku = typeof tb.model === "string" && tb.model.includes("haiku");
             // #5312 RC-B: honor the operator's proxy-level Thinking-Budget mode.
             // `auto` means "strip — let the provider decide", so suppress the default
@@ -1153,11 +1117,14 @@ export class BaseExecutor {
 
           const seed = activeCredentials?.accessToken || activeCredentials?.apiKey || "anon";
           const psd = activeCredentials?.providerSpecificData as
-            Record<string, unknown> | undefined;
+            | Record<string, unknown>
+            | undefined;
 
           let identitySource:
-            "upstream-metadata" | "upstream-header" | "synthesized" | "synthesized-cloaked" =
-            "synthesized";
+            | "upstream-metadata"
+            | "upstream-header"
+            | "synthesized"
+            | "synthesized-cloaked" = "synthesized";
           let sessionId: string;
           let deviceId: string;
           let accountUUID: string;

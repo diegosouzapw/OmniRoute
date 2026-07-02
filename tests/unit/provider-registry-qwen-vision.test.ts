@@ -16,7 +16,9 @@ const { REGISTRY } = await import("../../open-sse/config/providerRegistry.ts");
 
 type ModelEntry = {
   id: string;
-  supportsVision?: boolean;
+  capabilities?: {
+    supportsVision?: boolean;
+  };
   [key: string]: unknown;
 };
 
@@ -37,12 +39,12 @@ test("#2822 opencode-go/qwen3.7-max deve ter supportsVision !== true", () => {
   const model = getModel("opencode-go", "qwen3.7-max");
   assert.ok(model, "qwen3.7-max deve estar registrado em opencode-go");
   assert.notEqual(
-    model.supportsVision,
+    model.capabilities?.supportsVision,
     true,
     "opencode-go/qwen3.7-max não suporta visão — supportsVision deve ser false ou ausente"
   );
   assert.strictEqual(
-    model.supportsVision,
+    model.capabilities?.supportsVision,
     false,
     "opencode-go/qwen3.7-max deve ter supportsVision: false explícito para bloquear seleção em combo com imagens"
   );
@@ -52,12 +54,12 @@ test("#2822 opencode-go/qwen3.6-plus deve ter supportsVision !== true", () => {
   const model = getModel("opencode-go", "qwen3.6-plus");
   assert.ok(model, "qwen3.6-plus deve estar registrado em opencode-go");
   assert.notEqual(
-    model.supportsVision,
+    model.capabilities?.supportsVision,
     true,
     "opencode-go/qwen3.6-plus não suporta visão — supportsVision deve ser false ou ausente"
   );
   assert.strictEqual(
-    model.supportsVision,
+    model.capabilities?.supportsVision,
     false,
     "opencode-go/qwen3.6-plus deve ter supportsVision: false explícito para bloquear seleção em combo com imagens"
   );
@@ -70,7 +72,7 @@ test("#3328 opencode/minimax-m3-free deve ter supportsVision: true", () => {
   const model = getModel("opencode", "minimax-m3-free");
   assert.ok(model, "minimax-m3-free deve estar registrado em opencode");
   assert.strictEqual(
-    model.supportsVision,
+    model.capabilities?.supportsVision,
     true,
     "opencode/minimax-m3-free é multimodal — supportsVision deve ser true"
   );
@@ -80,12 +82,12 @@ test("#2822 opencode-go/qwen3.5-plus deve ter supportsVision !== true", () => {
   const model = getModel("opencode-go", "qwen3.5-plus");
   assert.ok(model, "qwen3.5-plus deve estar registrado em opencode-go");
   assert.notEqual(
-    model.supportsVision,
+    model.capabilities?.supportsVision,
     true,
     "opencode-go/qwen3.5-plus não suporta visão — supportsVision deve ser false ou ausente"
   );
   assert.strictEqual(
-    model.supportsVision,
+    model.capabilities?.supportsVision,
     false,
     "opencode-go/qwen3.5-plus deve ter supportsVision: false explícito para bloquear seleção em combo com imagens"
   );
@@ -97,12 +99,12 @@ test("#2822 opencode-zen/qwen3.5-plus deve ter supportsVision !== true", () => {
   const model = getModel("opencode-zen", "qwen3.5-plus");
   assert.ok(model, "qwen3.5-plus deve estar registrado em opencode-zen");
   assert.notEqual(
-    model.supportsVision,
+    model.capabilities?.supportsVision,
     true,
     "opencode-zen/qwen3.5-plus não suporta visão — supportsVision deve ser false ou ausente"
   );
   assert.strictEqual(
-    model.supportsVision,
+    model.capabilities?.supportsVision,
     false,
     "opencode-zen/qwen3.5-plus deve ter supportsVision: false explícito para bloquear seleção em combo com imagens"
   );
@@ -112,12 +114,12 @@ test("#2822 opencode-zen/qwen3.6-plus deve ter supportsVision !== true", () => {
   const model = getModel("opencode-zen", "qwen3.6-plus");
   assert.ok(model, "qwen3.6-plus deve estar registrado em opencode-zen");
   assert.notEqual(
-    model.supportsVision,
+    model.capabilities?.supportsVision,
     true,
     "opencode-zen/qwen3.6-plus não suporta visão — supportsVision deve ser false ou ausente"
   );
   assert.strictEqual(
-    model.supportsVision,
+    model.capabilities?.supportsVision,
     false,
     "opencode-zen/qwen3.6-plus deve ter supportsVision: false explícito para bloquear seleção em combo com imagens"
   );

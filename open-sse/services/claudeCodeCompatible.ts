@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 
 import { getStainlessTimeoutSeconds } from "@/shared/utils/runtimeTimeouts";
 import { ANTHROPIC_VERSION_HEADER } from "../config/anthropicHeaders.ts";
-import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
+import { supportsMaxEffort, supportsXHighEffort } from "./modelCapabilities.ts";
 import { prepareClaudeRequest } from "../translator/helpers/claudeHelper.ts";
 import { signRequestBody } from "./claudeCodeCCH.ts";
 import { resolveClaudeCodeCompatibleAnthropicBeta } from "./claudeCodeCompatibleBeta.ts";
@@ -79,6 +79,7 @@ type BuildRequestOptions = {
   sourceBody?: Record<string, unknown> | null;
   normalizedBody?: Record<string, unknown> | null;
   claudeBody?: Record<string, unknown> | null;
+  provider?: string | null;
   model: string;
   stream?: boolean;
   cwd?: string;
@@ -89,10 +90,6 @@ type BuildRequestOptions = {
   redactThinking?: boolean;
   summarizeThinking?: boolean;
 };
-
-function supportsClaudeXHighEffort(model: string | null | undefined): boolean {
-  return typeof model === "string" && supportsXHighEffort("claude", model);
-}
 
 export function isClaudeCodeCompatibleProvider(provider: string | null | undefined): boolean {
   return typeof provider === "string" && provider.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX);
@@ -235,6 +232,7 @@ export function buildClaudeCodeCompatibleRequest({
   sourceBody,
   normalizedBody,
   claudeBody,
+  provider,
   model,
   stream = false,
   cwd = process.cwd(),
@@ -274,7 +272,7 @@ export function buildClaudeCodeCompatibleRequest({
     preserveCacheControl,
   });
   const resolvedSessionId = sessionId || randomUUID();
-  const effort = resolveClaudeCodeCompatibleEffort(sourceBody, normalizedBody, model);
+  const effort = resolveClaudeCodeCompatibleEffort(sourceBody, normalizedBody, model, provider);
   const maxTokens = resolveClaudeCodeCompatibleMaxTokens(sourceBody, normalizedBody);
   const tools = preparedClaudeBody?.tools
     ? buildClaudeCodeCompatibleToolsFromClaude(
@@ -305,7 +303,6 @@ export function buildClaudeCodeCompatibleRequest({
     claudeBody,
     sourceBody,
     normalizedBody,
-    model,
     effort,
   });
 
@@ -451,7 +448,8 @@ export type { TransformOp, CcBridgeTransformsConfig } from "./ccBridgeTransforms
 export function resolveClaudeCodeCompatibleEffort(
   sourceBody?: Record<string, unknown> | null,
   normalizedBody?: Record<string, unknown> | null,
-  model?: string | null
+  model?: string | null,
+  provider?: string | null
 ): "low" | "medium" | "high" | "xhigh" | "max" {
   const raw =
     readNestedString(sourceBody, ["output_config", "effort"]) ||
@@ -463,21 +461,24 @@ export function resolveClaudeCodeCompatibleEffort(
     "";
 
   const normalizedEffort = raw.toLowerCase();
+  const capabilityInput =
+    typeof model === "string" ? { provider: provider || "claude", model } : null;
+  const supportsXHigh = capabilityInput ? supportsXHighEffort(capabilityInput) : false;
 
   if (!normalizedEffort) {
-    return supportsClaudeXHighEffort(model) ? "xhigh" : "high";
+    return supportsXHigh ? "xhigh" : "high";
   }
   if (normalizedEffort === "low") return "low";
   if (normalizedEffort === "medium") return "medium";
   if (normalizedEffort === "high") return "high";
   if (normalizedEffort === "none" || normalizedEffort === "disabled") return "low";
   if (normalizedEffort === "xhigh") {
-    return supportsClaudeXHighEffort(model) ? "xhigh" : "high";
+    return supportsXHigh ? "xhigh" : "high";
   }
   if (normalizedEffort === "max") {
-    return supportsClaudeMaxEffort(model) ? "max" : "high";
+    return capabilityInput && supportsMaxEffort(capabilityInput) ? "max" : "high";
   }
-  return supportsClaudeXHighEffort(model) ? "xhigh" : "high";
+  return supportsXHigh ? "xhigh" : "high";
 }
 
 export function resolveClaudeCodeCompatibleMaxTokens(
@@ -1088,13 +1089,11 @@ function resolveClaudeCodeCompatibleOutputConfig({
   claudeBody,
   sourceBody,
   normalizedBody,
-  model,
   effort,
 }: {
   claudeBody?: Record<string, unknown> | null;
   sourceBody?: Record<string, unknown> | null;
   normalizedBody?: Record<string, unknown> | null;
-  model?: string | null;
   effort: "low" | "medium" | "high" | "xhigh" | "max";
 }) {
   const outputConfig =
@@ -1105,7 +1104,7 @@ function resolveClaudeCodeCompatibleOutputConfig({
 
   return {
     ...outputConfig,
-    effort: resolveClaudeCodeCompatibleEffort(sourceBody, normalizedBody, model) || effort,
+    effort,
   };
 }
 

@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "checkJs": false,
     "skipLibCheck": true,
@@ -21,15 +17,9 @@
     "incremental": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@omniroute/open-sse": [
-        "./open-sse"
-      ],
-      "@omniroute/open-sse/*": [
-        "./open-sse/*"
-      ]
+      "@/*": ["./src/*"],
+      "@omniroute/open-sse": ["./open-sse"],
+      "@omniroute/open-sse/*": ["./open-sse/*"]
     },
     "plugins": [
       {
@@ -57,6 +47,14 @@
     "open-sse",
     "dist",
     "coverage",
+    ".next/cache",
+    ".next/server",
+    ".next/static",
+    ".next/standalone",
+    ".build/next/cache",
+    ".build/next/server",
+    ".build/next/static",
+    ".build/next/standalone",
     ".source",
     ".tmp",
     ".claude",

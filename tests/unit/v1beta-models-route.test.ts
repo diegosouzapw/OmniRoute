@@ -86,3 +86,64 @@ test("v1beta models route excludes providers without an active connection (#2483
     "configured anthropic must be present"
   );
 });
+
+test("v1beta models route does not invent token limits for unknown custom models", async () => {
+  await addActiveConnection("openai-compatible-review");
+  await modelsDb.addCustomModel(
+    "openai-compatible-review",
+    "mystery-model",
+    "Mystery Model",
+    "manual"
+  );
+
+  const response = await v1betaModelsRoute.GET();
+  const body = (await response.json()) as { models: Array<Record<string, unknown>> };
+  const model = body.models.find(
+    (entry) => entry.name === "models/openai-compatible-review/mystery-model"
+  );
+
+  assert.equal(response.status, 200);
+  assert.ok(model, "custom model should be listed");
+  assert.equal("inputTokenLimit" in model, false);
+  assert.equal("outputTokenLimit" in model, false);
+});
+
+test("v1beta models route lists cc fallback models for active CC-compatible providers", async () => {
+  await addActiveConnection("anthropic-compatible-cc-review");
+
+  const response = await v1betaModelsRoute.GET();
+  const body = (await response.json()) as { models: Array<Record<string, unknown>> };
+  const names = body.models.map((entry) => entry.name);
+
+  assert.equal(response.status, 200);
+  assert.ok(
+    names.includes("models/anthropic-compatible-cc-review/claude-fable-5"),
+    "CC-compatible provider should share the cc fallback model list"
+  );
+});
+
+test("v1beta models route reads synced Gemini provider-first capabilities", async () => {
+  await addActiveConnection("gemini");
+  await modelsDb.replaceSyncedAvailableModelsForConnection("gemini", "conn-main", [
+    {
+      id: "gemini-custom-preview",
+      name: "Gemini Custom Preview",
+      source: "imported",
+      capabilities: {
+        contextWindow: 123456,
+        maxOutputTokens: 6543,
+        supportsReasoning: true,
+      },
+    },
+  ]);
+
+  const response = await v1betaModelsRoute.GET();
+  const body = (await response.json()) as { models: Array<Record<string, unknown>> };
+  const model = body.models.find((entry) => entry.name === "models/gemini/gemini-custom-preview");
+
+  assert.equal(response.status, 200);
+  assert.ok(model, "synced Gemini model should be listed");
+  assert.equal(model.inputTokenLimit, 123456);
+  assert.equal(model.outputTokenLimit, 6543);
+  assert.equal(model.thinking, true);
+});

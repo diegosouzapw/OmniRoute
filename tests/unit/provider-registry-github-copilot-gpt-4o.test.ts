@@ -15,7 +15,12 @@ import assert from "node:assert/strict";
 const { REGISTRY } = await import("../../open-sse/config/providerRegistry.ts");
 const { getModelsByProviderId } = await import("../../open-sse/config/providerModels.ts");
 
-type ModelEntry = { id: string; name?: string; targetFormat?: string; [k: string]: unknown };
+type ModelEntry = {
+  id: string;
+  name?: string;
+  compat?: { targetFormat?: string };
+  [k: string]: unknown;
+};
 
 function githubModel(id: string): ModelEntry | undefined {
   const provider = (REGISTRY as Record<string, { models?: ModelEntry[] }>)["github"];
@@ -32,7 +37,7 @@ test("9router#98 github/gpt-4o routes via chat/completions (no openai-responses)
   const model = githubModel("gpt-4o");
   assert.ok(model);
   assert.notEqual(
-    model.targetFormat,
+    model.compat?.targetFormat,
     "openai-responses",
     "GPT-4o on GitHub Copilot is a chat/completions model — Responses API would reject it"
   );

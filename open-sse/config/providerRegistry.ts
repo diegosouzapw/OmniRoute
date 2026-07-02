@@ -181,44 +181,39 @@ export function getRegisteredProviders(): string[] {
   return Object.keys(REGISTRY);
 }
 
-// Precomputed map: modelId → unsupportedParams (O(1) lookup instead of O(N×M) scan).
-// Built once at module load from all registry entries.
-const _unsupportedParamsMap = new Map<string, readonly string[]>();
-let _unsupportedParamsPopulated = false;
-function ensureUnsupportedParamsPopulated(): void {
-  if (_unsupportedParamsPopulated) return;
-  _unsupportedParamsPopulated = true;
-  for (const entry of Object.values(REGISTRY)) {
-    // Some entries (e.g. the `mimocode` proxy) legitimately have no model catalogue.
-    for (const model of entry.models ?? []) {
-      if (model.unsupportedParams && !_unsupportedParamsMap.has(model.id)) {
-        _unsupportedParamsMap.set(model.id, model.unsupportedParams);
-      }
-    }
-  }
+function getModelUnsupportedParams(model: RegistryModel | undefined): readonly string[] | null {
+  const raw = model?.compat?.unsupportedParams;
+  return Array.isArray(raw) && raw.every((entry) => typeof entry === "string") ? raw : null;
+}
+
+function getProviderModelUnsupportedParams(
+  entry: RegistryEntry | null,
+  modelId: string
+): readonly string[] | null {
+  const modelEntry = entry?.models?.find((m) => m.id === modelId);
+  return getModelUnsupportedParams(modelEntry);
 }
 
 /**
  * Get unsupported parameters for a specific model.
- * Uses O(1) precomputed lookup. Also handles prefixed model IDs
- * (e.g., "openai/o3" → strips prefix and looks up "o3").
+ * Provider-scoped by design: same model IDs under different providers may have
+ * different capabilities and request restrictions.
  * Returns empty array if no restrictions are defined.
  */
 export function getUnsupportedParams(provider: string, modelId: string): readonly string[] {
-  ensureUnsupportedParamsPopulated();
-  // 1. Check current provider's registry (exact match)
   const entry = getRegistryEntry(provider);
-  const modelEntry = entry?.models?.find((m) => m.id === modelId);
-  if (modelEntry?.unsupportedParams) return modelEntry.unsupportedParams;
+  const modelUnsupportedParams = getProviderModelUnsupportedParams(entry, modelId);
+  if (modelUnsupportedParams) return modelUnsupportedParams;
 
-  // 2. O(1) lookup in precomputed map (handles cross-provider routing)
-  const cached = _unsupportedParamsMap.get(modelId);
-  if (cached) return cached;
-
-  // 3. Handle prefixed model IDs (e.g., "openai/o3" → "o3")
   if (modelId.includes("/")) {
-    const bareId = modelId.split("/").pop() || "";
-    const bare = _unsupportedParamsMap.get(bareId);
+    const [prefix, ...rest] = modelId.split("/");
+    const prefixedEntry = prefix ? getRegistryEntry(prefix) : null;
+    const bareId = rest.join("/");
+    const sameProvider =
+      prefixedEntry !== null &&
+      entry !== null &&
+      (prefixedEntry.id === entry.id || prefixedEntry.alias === entry.alias);
+    const bare = sameProvider ? getProviderModelUnsupportedParams(entry, bareId) : null;
     if (bare) return bare;
   }
 

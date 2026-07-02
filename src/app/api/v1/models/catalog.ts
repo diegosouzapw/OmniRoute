@@ -1,4 +1,4 @@
-import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
+import { PROVIDER_MODELS, getProviderModels } from "@/shared/constants/models";
 import { NOAUTH_PROVIDERS } from "@/shared/constants/providers";
 import {
   getProviderConnections,
@@ -59,7 +59,7 @@ import {
   type ComboCatalogTarget,
   type ComboTargetCatalogMetadata,
   isPositiveFiniteNumber,
-  parseJsonStringArray,
+  firstPositiveNumber,
   intersectStringArrays,
   minKnownNumber,
   maybeOmitCatalogModelName,
@@ -71,16 +71,26 @@ import {
   isOpenRouterFreeModel,
   getOpenRouterDisplayName,
 } from "./catalogOpenrouter";
-import { getVisionCapabilityFields, getCustomVisionCapabilityFields } from "./catalogVision";
 import { FALLBACK_ALIAS_TO_PROVIDER, buildAliasMaps } from "./catalogProviderMaps";
 import { getModelCatalogAuthRejection, isCodexModelCatalogClient } from "./catalogRequest";
+import {
+  isModelContextLimitExplicitlyUnset,
+  isModelMaxOutputTokensExplicitlyUnset,
+  getResolvedModelCapabilities,
+} from "@/lib/modelCapabilities";
+import { applyExplicitUnknownLimitMasks, getDefaultContextFallback } from "./catalogLimitMasks";
+import {
+  buildVisionCapabilityFields,
+  getCustomVisionCapabilityFields,
+  getResolvedVisionCapabilityFields,
+  isVisionModelId,
+} from "./catalogVisionFields";
 
-// Public API of this module is preserved after the catalog helper extraction:
-// `isVisionModelId` (vision-detection-consistency.test.ts) and
-// `getCustomVisionCapabilityFields` (llm-selector-custom-vision-models.test.ts)
-// are still importable from here.
-export { isVisionModelId } from "@/shared/constants/visionModels";
-export { getCustomVisionCapabilityFields };
+// Public API of this module is preserved after the catalog helper extraction.
+export { getCustomVisionCapabilityFields, isVisionModelId };
+
+const AUTO_CATALOG_CONTEXT_FALLBACK = 128000;
+const AUTO_CATALOG_MAX_OUTPUT_FALLBACK = 8192;
 
 /**
  * Build unified OpenAI-compatible model catalog response.
@@ -213,8 +223,7 @@ export async function getUnifiedModelsResponse(
     };
 
     const getRegistryModel = (providerId: string, modelId: string) => {
-      const alias = providerIdToAlias[providerId] || PROVIDER_ID_TO_ALIAS[providerId] || providerId;
-      const providerModels = PROVIDER_MODELS[alias] || PROVIDER_MODELS[providerId] || [];
+      const providerModels = getProviderModels(providerId);
       return providerModels.find((model) => model?.id === modelId) || null;
     };
 
@@ -275,93 +284,74 @@ export async function getUnifiedModelsResponse(
       const synced = getSyncedCapability(providerId, modelId);
       const spec = getModelSpec(modelId);
       const registryModel = getRegistryModel(providerId, modelId);
-      const syncedInputModalities = parseJsonStringArray(synced?.modalities_input);
-      const syncedOutputModalities = parseJsonStringArray(synced?.modalities_output);
+      const registryCapabilities = registryModel?.capabilities;
+      const resolvedCapabilities = getResolvedModelCapabilities({
+        provider: providerId,
+        model: modelId,
+      });
+      const contextExplicitlyUnknown = isModelContextLimitExplicitlyUnset(providerId, modelId);
+      const maxOutputExplicitlyUnknown = isModelMaxOutputTokensExplicitlyUnset(providerId, modelId);
 
-      const syncedContext = isPositiveFiniteNumber(synced?.limit_context)
-        ? synced.limit_context
-        : undefined;
-      const registryContext = isPositiveFiniteNumber(registryModel?.contextLength)
-        ? registryModel.contextLength
-        : undefined;
-      const specContext = isPositiveFiniteNumber(spec?.contextWindow)
-        ? spec.contextWindow
-        : undefined;
-      const contextLength =
-        syncedContext ??
-        registryContext ??
-        specContext ??
-        (getTokenLimit(providerId, modelId) || undefined);
-      const maxInputTokens = isPositiveFiniteNumber(synced?.limit_input)
-        ? synced.limit_input
-        : contextLength;
-      const maxOutputTokens = isPositiveFiniteNumber(synced?.limit_output)
-        ? synced.limit_output
-        : isPositiveFiniteNumber(spec?.maxOutputTokens)
-          ? spec.maxOutputTokens
-          : undefined;
-
-      const syncedVision =
-        typeof synced?.attachment === "boolean"
-          ? synced.attachment
-          : syncedInputModalities.length > 0 || syncedOutputModalities.length > 0
-            ? [...syncedInputModalities, ...syncedOutputModalities].some((entry) =>
-                // eslint-disable-next-line no-restricted-syntax -- teknik string kontrolü, kullanıcı metni araması değil
-                entry.toLowerCase().includes("image")
-              )
-            : undefined;
-      const registryVision =
-        typeof registryModel?.supportsVision === "boolean"
-          ? registryModel.supportsVision
-          : undefined;
-      const specVision =
-        typeof spec?.supportsVision === "boolean" ? spec.supportsVision : undefined;
-      const knownVision = syncedVision ?? registryVision ?? specVision;
+      const syncedContext = firstPositiveNumber(synced?.limit_context);
+      const registryContext = firstPositiveNumber(
+        registryCapabilities?.contextWindow ?? registryCapabilities?.maxInputTokens
+      );
+      const specContext = firstPositiveNumber(spec?.contextWindow);
+      const contextLength = contextExplicitlyUnknown
+        ? undefined
+        : (syncedContext ??
+          registryContext ??
+          specContext ??
+          getTokenLimit(providerId, modelId) ??
+          undefined);
+      const maxInputTokens = contextExplicitlyUnknown
+        ? undefined
+        : (firstPositiveNumber(synced?.limit_input) ?? contextLength);
+      const maxOutputTokens = maxOutputExplicitlyUnknown
+        ? undefined
+        : firstPositiveNumber(
+            synced?.limit_output,
+            registryCapabilities?.maxOutputTokens ?? registryCapabilities?.outputTokenLimit,
+            spec?.maxOutputTokens
+          );
 
       const inputModalities =
-        syncedInputModalities.length > 0
-          ? syncedInputModalities
-          : knownVision === true
-            ? ["text", "image"]
-            : undefined;
+        canonical.modalities.input.length > 0 ? canonical.modalities.input : undefined;
       const outputModalities =
-        syncedOutputModalities.length > 0
-          ? syncedOutputModalities
-          : knownVision === true
-            ? ["text"]
-            : undefined;
+        canonical.modalities.output.length > 0 ? canonical.modalities.output : undefined;
 
       const capabilities: Record<string, boolean> = {};
-      if (typeof synced?.tool_call === "boolean") {
-        capabilities.tool_calling = synced.tool_call;
-      } else if (typeof registryModel?.toolCalling === "boolean") {
-        capabilities.tool_calling = registryModel.toolCalling;
-      } else if (typeof spec?.supportsTools === "boolean") {
-        capabilities.tool_calling = spec.supportsTools;
+      if (typeof canonical.capabilities.supportsTools === "boolean") {
+        capabilities.tool_calling = canonical.capabilities.supportsTools;
       }
-      if (typeof synced?.reasoning === "boolean") {
-        capabilities.reasoning = synced.reasoning;
-      } else if (typeof registryModel?.supportsReasoning === "boolean") {
-        capabilities.reasoning = registryModel.supportsReasoning;
-      } else if (typeof spec?.supportsThinking === "boolean") {
-        capabilities.reasoning = spec.supportsThinking;
+      if (typeof canonical.capabilities.supportsThinking === "boolean") {
+        capabilities.reasoning = canonical.capabilities.supportsThinking;
       }
-      if (typeof knownVision === "boolean") capabilities.vision = knownVision;
-      if (typeof synced?.attachment === "boolean") capabilities.attachment = synced.attachment;
-      if (typeof synced?.structured_output === "boolean") {
-        capabilities.structured_output = synced.structured_output;
+      if (typeof canonical.capabilities.vision === "boolean") {
+        capabilities.vision = canonical.capabilities.vision;
       }
-      if (typeof synced?.temperature === "boolean") capabilities.temperature = synced.temperature;
-      if (typeof synced?.reasoning === "boolean") {
-        capabilities.thinking = synced.reasoning;
-      } else if (typeof spec?.supportsThinking === "boolean") {
-        capabilities.thinking = spec.supportsThinking;
+      if (typeof canonical.capabilities.attachment === "boolean") {
+        capabilities.attachment = canonical.capabilities.attachment;
+      }
+      if (typeof canonical.capabilities.structuredOutput === "boolean") {
+        capabilities.structured_output = canonical.capabilities.structuredOutput;
+      }
+      if (typeof canonical.capabilities.temperature === "boolean") {
+        capabilities.temperature = canonical.capabilities.temperature;
       }
 
       return {
         ...(contextLength ? { contextLength } : {}),
         ...(maxInputTokens ? { maxInputTokens } : {}),
         ...(maxOutputTokens ? { maxOutputTokens } : {}),
+        ...(contextExplicitlyUnknown ? { contextExplicitlyUnknown: true } : {}),
+        ...(maxOutputExplicitlyUnknown ? { maxOutputExplicitlyUnknown: true } : {}),
+        ...(typeof resolvedCapabilities.supportsXHighEffort === "boolean"
+          ? { supportsXHighEffort: resolvedCapabilities.supportsXHighEffort }
+          : {}),
+        ...(typeof resolvedCapabilities.supportsMaxEffort === "boolean"
+          ? { supportsMaxEffort: resolvedCapabilities.supportsMaxEffort }
+          : {}),
         ...(inputModalities && inputModalities.length > 0 ? { inputModalities } : {}),
         ...(outputModalities && outputModalities.length > 0 ? { outputModalities } : {}),
         capabilities,
@@ -381,20 +371,28 @@ export async function getUnifiedModelsResponse(
       if (targets.length === 0) return baseMetadata;
 
       const targetMetadata = targets.map((target) => getComboTargetCatalogMetadata(target));
+      if (targetMetadata.some((metadata) => metadata === null)) return baseMetadata;
 
       const knownMetadata = targetMetadata.filter(
         (metadata): metadata is ComboTargetCatalogMetadata => metadata !== null
       );
       if (knownMetadata.length === 0) return baseMetadata;
-      const contextLength =
-        explicitContextLength ??
-        minKnownNumber(knownMetadata.map((metadata) => metadata.contextLength));
-      const maxInputTokens = minKnownNumber(
-        knownMetadata.map((metadata) => metadata.maxInputTokens)
+      const hasExplicitContextUnknown =
+        !explicitContextLength &&
+        knownMetadata.some((metadata) => metadata.contextExplicitlyUnknown);
+      const hasExplicitMaxOutputUnknown = knownMetadata.some(
+        (metadata) => metadata.maxOutputExplicitlyUnknown
       );
-      const maxOutputTokens = minKnownNumber(
-        knownMetadata.map((metadata) => metadata.maxOutputTokens)
-      );
+      const contextLength = hasExplicitContextUnknown
+        ? undefined
+        : (explicitContextLength ??
+          minKnownNumber(knownMetadata.map((metadata) => metadata.contextLength)));
+      const maxInputTokens = hasExplicitContextUnknown
+        ? undefined
+        : minKnownNumber(knownMetadata.map((metadata) => metadata.maxInputTokens));
+      const maxOutputTokens = hasExplicitMaxOutputUnknown
+        ? undefined
+        : minKnownNumber(knownMetadata.map((metadata) => metadata.maxOutputTokens));
 
       const inputModalities = knownMetadata.every(
         (metadata) => Array.isArray(metadata.inputModalities) && metadata.inputModalities.length > 0
@@ -416,7 +414,6 @@ export async function getUnifiedModelsResponse(
         "attachment",
         "structured_output",
         "temperature",
-        "thinking",
       ]) {
         const values = knownMetadata.map((metadata) => metadata.capabilities[key]);
         if (values.every((value): value is boolean => typeof value === "boolean")) {
@@ -424,6 +421,23 @@ export async function getUnifiedModelsResponse(
           if (values.every((value) => value === first)) capabilities[key] = first;
         }
       }
+      const supportsXHighEffort =
+        knownMetadata.length > 0 &&
+        knownMetadata.every((metadata) => metadata.supportsXHighEffort === true);
+      const supportsMaxEffort =
+        knownMetadata.length > 0 &&
+        knownMetadata.every((metadata) => metadata.supportsMaxEffort === true);
+      const supportedReasoningEfforts =
+        capabilities.reasoning === true
+          ? [
+              "none",
+              "low",
+              "medium",
+              "high",
+              ...(supportsXHighEffort ? ["xhigh"] : []),
+              ...(supportsMaxEffort ? ["max"] : []),
+            ]
+          : undefined;
 
       return {
         ...baseMetadata,
@@ -433,6 +447,7 @@ export async function getUnifiedModelsResponse(
         ...(inputModalities.length > 0 ? { input_modalities: inputModalities } : {}),
         ...(outputModalities.length > 0 ? { output_modalities: outputModalities } : {}),
         ...(Object.keys(capabilities).length > 0 ? { capabilities } : {}),
+        ...(supportedReasoningEfforts ? { supportedReasoningEfforts } : {}),
       };
     };
 
@@ -441,14 +456,7 @@ export async function getUnifiedModelsResponse(
     const timestamp = Math.floor(Date.now() / 1000);
     const listedIds = new Set<string>();
 
-    // #4164: advertise the built-in zero-setup `auto/*` combos at the very top.
-    // #4189: enrich each with the combo's advertised context/output limits (computed
-    // by createBuiltinAutoCombo from its candidate pool) + baseline capabilities, so
-    // OpenAI-compatible clients that build their picker from /v1/models (e.g. Hermes)
-    // receive token metadata before the first request instead of a bare entry. If the
-    // combo cannot be materialized (e.g. no eligible connections yet) the minimal
-    // #4164 entry is emitted instead, so the id is never dropped.
-    // #4235 Phase B: also advertise the curated `auto/<category>[:<tier>]` combos.
+    // Advertise built-in `auto/*` combo ids before provider models.
     for (const autoId of [...Object.keys(AUTO_TEMPLATE_VARIANTS), ...AUTO_SUFFIX_VARIANTS]) {
       if (blockedProviders.has("auto") || listedIds.has(autoId)) continue; // #5192
       listedIds.add(autoId);
@@ -464,8 +472,9 @@ export async function getUnifiedModelsResponse(
       try {
         const suffix = autoId.replace(/^auto\/?/, "");
         const virtualCombo = await createBuiltinAutoCombo(autoId, suffix);
-        const contextLength = virtualCombo.advertisedContextLength || 128000;
-        const maxOutputTokens = virtualCombo.advertisedMaxOutputTokens || 8192;
+        const contextLength = virtualCombo.advertisedContextLength ?? AUTO_CATALOG_CONTEXT_FALLBACK;
+        const maxOutputTokens =
+          virtualCombo.advertisedMaxOutputTokens ?? AUTO_CATALOG_MAX_OUTPUT_FALLBACK;
         models.push({
           ...baseAutoEntry,
           context_length: contextLength,
@@ -474,7 +483,6 @@ export async function getUnifiedModelsResponse(
           capabilities: {
             tool_calling: true,
             reasoning: true,
-            thinking: true,
             temperature: true,
           },
         });
@@ -557,8 +565,7 @@ export async function getUnifiedModelsResponse(
         const aliasId = `${alias}/${model.id}`;
         if (getModelIsHidden(canonicalProviderId, model.id)) continue;
 
-        const visionFields =
-          getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(model.id);
+        const visionFields = getResolvedVisionCapabilityFields(canonicalProviderId, model.id);
         if (includeAlias) {
           models.push({
             id: aliasId,
@@ -573,13 +580,15 @@ export async function getUnifiedModelsResponse(
         }
         if (
           includeCanonical &&
-          canonicalProviderId !== alias &&
+          (!includeAlias || canonicalProviderId !== alias) &&
           !isNoAuthProviderKey(canonicalProviderId) &&
           prefixRoutesToProvider(canonicalProviderId, canonicalProviderId)
         ) {
           const providerIdModel = `${canonicalProviderId}/${model.id}`;
-          const providerVisionFields =
-            getVisionCapabilityFields(providerIdModel) || getVisionCapabilityFields(model.id);
+          const providerVisionFields = getResolvedVisionCapabilityFields(
+            canonicalProviderId,
+            model.id
+          );
           models.push({
             id: providerIdModel,
             object: "model",
@@ -724,7 +733,7 @@ export async function getUnifiedModelsResponse(
             });
           }
 
-          if (includeCanonical && canonicalProviderId !== alias && !prefix) {
+          if (includeCanonical && !prefix) {
             const providerPrefixedId = `${canonicalProviderId}/${displayModelId}`;
             if (!models.some((model) => model.id === providerPrefixedId)) {
               models.push({
@@ -1034,8 +1043,10 @@ export async function getUnifiedModelsResponse(
           ) {
             continue;
           }
-          const visionFields =
-            modelType === "chat" ? getCustomVisionCapabilityFields(model, aliasId, modelId) : null;
+          const isChatModel = endpoints.includes("chat");
+          const visionFields = isChatModel
+            ? getCustomVisionCapabilityFields(model, aliasId, modelId)
+            : null;
 
           if (includeAlias) {
             models.push({
@@ -1062,13 +1073,12 @@ export async function getUnifiedModelsResponse(
             });
           }
 
-          if (includeCanonical && canonicalProviderId !== alias && !prefix && !isNoAuthProvider) {
+          if (includeCanonical && !prefix && !isNoAuthProvider) {
             const providerPrefixedId = `${canonicalProviderId}/${modelId}`;
             if (models.some((m) => m.id === providerPrefixedId)) continue;
-            const providerVisionFields =
-              modelType === "chat"
-                ? getCustomVisionCapabilityFields(model, providerPrefixedId, modelId)
-                : null;
+            const providerVisionFields = isChatModel
+              ? getCustomVisionCapabilityFields(model, providerPrefixedId, modelId)
+              : null;
             models.push({
               id: providerPrefixedId,
               object: "model",
@@ -1135,8 +1145,7 @@ export async function getUnifiedModelsResponse(
           continue;
         }
 
-        const visionFields =
-          getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId);
+        const visionFields = getResolvedVisionCapabilityFields(canonicalProviderId, modelId);
 
         if (includeAlias) {
           models.push({
@@ -1158,8 +1167,10 @@ export async function getUnifiedModelsResponse(
         ) {
           const providerPrefixedId = `${canonicalProviderId}/${modelId}`;
           if (models.some((m: any) => m?.id === providerPrefixedId)) continue;
-          const providerVisionFields =
-            getVisionCapabilityFields(providerPrefixedId) || getVisionCapabilityFields(modelId);
+          const providerVisionFields = getResolvedVisionCapabilityFields(
+            canonicalProviderId,
+            modelId
+          );
           models.push({
             id: providerPrefixedId,
             object: "model",
@@ -1198,10 +1209,11 @@ export async function getUnifiedModelsResponse(
         const aliasId = `${alias}/${modelId}`;
         if (models.some((m) => m.id === aliasId)) continue;
 
-        const visionFields =
-          getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId);
-        const contextLength =
-          typeof model.contextLength === "number" ? model.contextLength : undefined;
+        const visionFields = buildVisionCapabilityFields(model.capabilities?.supportsVision);
+        const contextLength = firstPositiveNumber(
+          model.capabilities?.contextWindow,
+          model.capabilities?.maxInputTokens
+        );
 
         models.push({
           id: aliasId,
@@ -1264,23 +1276,6 @@ export async function getUnifiedModelsResponse(
     // pair survives. Independent of MODELS_CATALOG_PREFIX_MODE; runs as the final guard.
     finalModels = dedupeExactCatalogIds(finalModels);
 
-    const getDefaultContextFallback = (model: any): number | undefined => {
-      if (typeof model.context_length === "number") return undefined;
-      if (model.owned_by === "combo") return undefined;
-      if (model.type && model.type !== "chat") return undefined;
-
-      const provider = typeof model.owned_by === "string" ? model.owned_by : null;
-      if (!provider) return undefined;
-      const canonicalId = aliasToProviderId[provider] || provider;
-
-      const registryFallback = REGISTRY[canonicalId]?.defaultContextLength;
-      if (registryFallback) return registryFallback;
-
-      const modelId =
-        model.root || (typeof model.id === "string" ? model.id.split("/").pop() : undefined);
-      return modelId ? getTokenLimit(canonicalId, modelId) : getTokenLimit(canonicalId);
-    };
-
     const includeModelNames = isModelCatalogNamesEnabled();
     const enrichedModels = disambiguateCatalogModelNames(
       finalModels.map((model) => {
@@ -1288,11 +1283,14 @@ export async function getUnifiedModelsResponse(
           return maybeOmitCatalogModelName(model, includeModelNames);
         }
         const enriched = enrichCatalogModelEntry(model);
-        const fallbackContextLength = getDefaultContextFallback(enriched);
+        const fallbackContextLength = getDefaultContextFallback(enriched, aliasToProviderId);
         const listedModel = fallbackContextLength
           ? { ...enriched, context_length: fallbackContextLength }
           : enriched;
-        return maybeOmitCatalogModelName(listedModel, includeModelNames);
+        return maybeOmitCatalogModelName(
+          applyExplicitUnknownLimitMasks(listedModel, aliasToProviderId),
+          includeModelNames
+        );
       })
     );
     // Codex CLI compatibility: its model-catalog refresh (codex_models_manager) does

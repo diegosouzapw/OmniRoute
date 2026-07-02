@@ -17,7 +17,7 @@ describe("MiniMax M3 model registration (#3110)", () => {
     const m3 = entry.models.find((m) => m.id === "MiniMax-M3");
     assert.ok(m3, "MiniMax-M3 must be in minimax models");
     assert.equal(m3.name, "MiniMax M3");
-    assert.equal(m3.contextLength, 1_048_576);
+    assert.equal(m3.capabilities?.contextWindow, 1_048_576);
   });
 
   it("minimax-cn provider has MiniMax-M3 with 1M context", () => {
@@ -26,7 +26,7 @@ describe("MiniMax M3 model registration (#3110)", () => {
     const m3 = entry.models.find((m) => m.id === "MiniMax-M3");
     assert.ok(m3, "MiniMax-M3 must be in minimax-cn models");
     assert.equal(m3.name, "MiniMax M3");
-    assert.equal(m3.contextLength, 1_048_576);
+    assert.equal(m3.capabilities?.contextWindow, 1_048_576);
   });
 
   it("opencode provider has minimax-m3-free with 1M context", () => {
@@ -35,7 +35,7 @@ describe("MiniMax M3 model registration (#3110)", () => {
     const m3 = entry.models.find((m) => m.id === "minimax-m3-free");
     assert.ok(m3, "minimax-m3-free must be in opencode models");
     assert.equal(m3.name, "MiniMax M3 Free");
-    assert.equal(m3.contextLength, 1_048_576);
+    assert.equal(m3.capabilities?.contextWindow, 1_048_576);
   });
 
   it("opencode-go provider has minimax-m3 with Claude targetFormat", () => {
@@ -44,8 +44,8 @@ describe("MiniMax M3 model registration (#3110)", () => {
     const m3 = entry.models.find((m) => m.id === "minimax-m3");
     assert.ok(m3, "minimax-m3 must be in opencode-go models");
     assert.equal(m3.name, "MiniMax M3");
-    assert.equal(m3.targetFormat, "claude");
-    assert.equal(m3.contextLength, 1_048_576);
+    assert.equal(m3.compat?.targetFormat, "claude");
+    assert.equal(m3.capabilities?.contextWindow, 1_048_576);
   });
 
   it("opencode-zen provider has minimax-m3 with 1M context", () => {
@@ -54,7 +54,7 @@ describe("MiniMax M3 model registration (#3110)", () => {
     const m3 = entry.models.find((m) => m.id === "minimax-m3");
     assert.ok(m3, "minimax-m3 must be in opencode-zen models");
     assert.equal(m3.name, "MiniMax M3");
-    assert.equal(m3.contextLength, 1_048_576);
+    assert.equal(m3.capabilities?.contextWindow, 1_048_576);
   });
 
   it("trae provider has minimax-m3 with 1M context", () => {
@@ -63,7 +63,7 @@ describe("MiniMax M3 model registration (#3110)", () => {
     const m3 = entry.models.find((m) => m.id === "minimax-m3");
     assert.ok(m3, "minimax-m3 must be in trae models");
     assert.equal(m3.name, "MiniMax M3");
-    assert.equal(m3.contextLength, 1_048_576);
+    assert.equal(m3.capabilities?.contextWindow, 1_048_576);
   });
 
   it("ollama-cloud provider has minimax-m3 with 1M context", () => {
@@ -72,7 +72,7 @@ describe("MiniMax M3 model registration (#3110)", () => {
     const m3 = entry.models.find((m) => m.id === "minimax-m3");
     assert.ok(m3, "minimax-m3 must be in ollama-cloud models");
     assert.equal(m3.name, "MiniMax M3");
-    assert.equal(m3.contextLength, 1_048_576);
+    assert.equal(m3.capabilities?.contextWindow, 1_048_576);
   });
 
   it("nvidia provider does NOT list minimaxai/minimax-m3 (removed in #3329 — 404 upstream)", () => {

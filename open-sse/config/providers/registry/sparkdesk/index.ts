@@ -1,5 +1,4 @@
 import type { RegistryEntry } from "../../shared.ts";
-
 export const sparkdeskProvider: RegistryEntry = {
   id: "sparkdesk",
   alias: "sparkdesk",
@@ -12,9 +11,30 @@ export const sparkdeskProvider: RegistryEntry = {
   // xfyun.cn Spark docs. `spark-x` was rejected — it lives on a separate /v2 (X1.5) /
   // /x2 (X2) endpoint and would 404 on this /v3.1 base.
   models: [
-    { id: "4.0Ultra", name: "Spark 4.0 Ultra", contextLength: 32768 },
-    { id: "generalv3", name: "Spark Pro", contextLength: 8192 },
-    { id: "pro-128k", name: "Spark Pro 128K", contextLength: 131072 },
-    { id: "general", name: "General" },
+    {
+      id: "4.0Ultra",
+      name: "Spark 4.0 Ultra",
+      capabilities: {
+        contextWindow: 32768,
+      },
+    },
+    {
+      id: "generalv3",
+      name: "Spark Pro",
+      capabilities: {
+        contextWindow: 8192,
+      },
+    },
+    {
+      id: "pro-128k",
+      name: "Spark Pro 128K",
+      capabilities: {
+        contextWindow: 131072,
+      },
+    },
+    {
+      id: "general",
+      name: "General",
+    },
   ],
 };

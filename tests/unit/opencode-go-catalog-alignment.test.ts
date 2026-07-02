@@ -11,9 +11,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { opencode_goProvider } = await import(
-  "../../open-sse/config/providers/registry/opencode/go/index.ts"
-);
+const { opencode_goProvider } =
+  await import("../../open-sse/config/providers/registry/opencode/go/index.ts");
 
 function modelIds(): string[] {
   return (opencode_goProvider.models ?? []).map((m) => m.id);
@@ -40,6 +39,12 @@ test("opencode-go preserves the pre-existing minimax-m3 and qwen routing via tar
   const byId = new Map(
     (opencode_goProvider.models ?? []).map((m) => [m.id, m as Record<string, unknown>])
   );
-  assert.equal(byId.get("minimax-m3")?.targetFormat, "claude");
-  assert.equal(byId.get("qwen3.7-max")?.targetFormat, "claude");
+  assert.equal(
+    (byId.get("minimax-m3")?.compat as { targetFormat?: string } | undefined)?.targetFormat,
+    "claude"
+  );
+  assert.equal(
+    (byId.get("qwen3.7-max")?.compat as { targetFormat?: string } | undefined)?.targetFormat,
+    "claude"
+  );
 });

@@ -16,7 +16,7 @@ import {
   recordModelLockoutFailure,
   isDailyQuotaExhausted,
 } from "@omniroute/open-sse/services/accountFallback.ts";
-import { getModelInfo, getComboForModel } from "../services/model";
+import { getModelInfo, getComboForModel, getProviderModelRoutingMeta } from "../services/model";
 import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
@@ -76,6 +76,7 @@ import {
   withSelectedConnectionHeader,
   withCorrelationId,
 } from "./chatHelpers";
+import { resolveExecutionModelRoutingMetadata } from "./modelConfigMetadata";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 
 // Pipeline integration — wired modules
@@ -834,13 +835,7 @@ export function buildClientRawRequest(request: Request, body: unknown) {
   };
 }
 
-/**
- * Handle single model chat request
- *
- * Refactored: model resolution, logging, pipeline gates, and chat execution
- * extracted to focused helpers. This function orchestrates the credential
- * retry loop.
- */
+/** Handle single model chat request and orchestrate the credential retry loop. */
 async function handleSingleModelChat(
   body: any,
   modelStr: string,
@@ -937,35 +932,30 @@ async function handleSingleModelChat(
     });
   }
 
-  const {
-    provider: resolvedProvider,
-    model,
-    sourceFormat,
-    targetFormat,
-    extendedContext,
-    apiFormat,
-  } = resolved;
-  // Prefer the combo target's providerId when available — the model string's
-  // provider prefix may differ from the credential provider ID (e.g. model
-  // "xiaomi/mimo-v2-flash" resolves to provider "xiaomi" but the combo target
-  // may specify providerId: "opengate" for credential lookup).
-  // Guard: if runtimeOptions.providerId is merely the prefix already encoded in
-  // the model string (e.g. "p2" from "p2/test-model"), and resolveModelOrError
-  // expanded it to a full custom-node ID (e.g. "openai-compatible-chat-e2e-p2"),
-  // trust resolvedProvider so the executor receives the full node ID and can
-  // correctly resolve the custom baseUrl. (#3058 follow-up)
+  const { provider: resolvedProvider, model, sourceFormat, extendedContext, apiFormat } = resolved;
+  // Prefer an intentional combo providerId override, but keep resolved custom-node
+  // ids when the model string already used that prefix (#3058 follow-up).
   const provider = (() => {
     if (!runtimeOptions.providerId) return resolvedProvider;
-    // If the override is identical to resolvedProvider, no-op.
     if (runtimeOptions.providerId === resolvedProvider) return resolvedProvider;
-    // If the model string already encodes runtimeOptions.providerId as its prefix,
-    // the override is implicit (not an intentional redirect) — use resolvedProvider.
     if (modelStr.startsWith(runtimeOptions.providerId + "/")) return resolvedProvider;
-    // Intentional override (e.g. providerId points to a different credential pool).
     return runtimeOptions.providerId;
   })();
   const forceLiveComboTest = runtimeOptions.forceLiveComboTest === true;
   const bypassProviderQuotaPolicy = hasProviderQuotaBypassScope(apiKeyInfo?.scopes);
+  const getExecutionModelRoutingMeta = (effectiveModel: string) =>
+    resolveExecutionModelRoutingMetadata({
+      provider,
+      model: effectiveModel,
+      resolvedProvider,
+      resolvedModel: model,
+      resolvedMetadata: {
+        apiFormat,
+        targetFormat: resolved.modelConfigTargetFormat,
+        unsupportedParams: resolved.unsupportedParams,
+      },
+      loadProviderModelMeta: getProviderModelRoutingMeta,
+    });
   const hasForcedConnection =
     typeof runtimeOptions.forcedConnectionId === "string" &&
     runtimeOptions.forcedConnectionId.trim().length > 0;
@@ -1185,6 +1175,7 @@ async function handleSingleModelChat(
       // placeholder. A "/"-qualified model name is always left untouched.
       const effectiveModel =
         resolveBareModelToConnectionDefault(modelStr, model, credentials.defaultModel) ?? model;
+      const executionModelRoutingMeta = await getExecutionModelRoutingMeta(effectiveModel);
       let requestBody =
         effectiveModel !== model ? { ...body, model: `${provider}/${effectiveModel}` } : body;
       let injectedHandoff = null;
@@ -1267,7 +1258,9 @@ async function handleSingleModelChat(
         comboStepId: runtimeOptions.comboStepId ?? null,
         comboExecutionKey: runtimeOptions.comboExecutionKey ?? runtimeOptions.comboStepId ?? null,
         extendedContext,
-        modelApiFormat: apiFormat,
+        modelApiFormat: executionModelRoutingMeta.apiFormat,
+        modelTargetFormat: executionModelRoutingMeta.targetFormat,
+        modelUnsupportedParams: executionModelRoutingMeta.unsupportedParams,
         providerProfile,
         cachedSettings: runtimeOptions.cachedSettings,
         skipUpstreamRetry: runtimeOptions.skipUpstreamRetry ?? false,
@@ -1278,9 +1271,10 @@ async function handleSingleModelChat(
       const proxyLatency = Date.now() - proxyStartTime;
       const providerAlias = PROVIDER_ID_TO_ALIAS[provider] || provider;
       const effectiveTargetFormat =
-        getModelTargetFormat(providerAlias, model) ||
-        getTargetFormat(provider, credentials.providerSpecificData) ||
-        targetFormat;
+        (executionModelRoutingMeta.apiFormat === "responses" ? "openai-responses" : undefined) ||
+        executionModelRoutingMeta.targetFormat ||
+        getModelTargetFormat(providerAlias, effectiveModel) ||
+        getTargetFormat(provider, credentials.providerSpecificData);
 
       // 5. Log proxy + translation events (fire-and-forget; never blocks the response)
       // #5217: reflect the proxy the executor actually applied (per-account rotation).

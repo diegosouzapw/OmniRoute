@@ -30,6 +30,7 @@ import {
   type ProviderMessageTranslator,
   type CompatByProtocolMap,
 } from "../providerPageHelpers";
+import type { ProviderModelCapabilitiesPatch } from "@/shared/types/modelConfig";
 import { useNotificationStore } from "@/store/notificationStore";
 
 type NotifyStore = ReturnType<typeof useNotificationStore>;
@@ -42,6 +43,9 @@ export interface ModelCompatSavePatch {
   preserveOpenAIDeveloperRole?: boolean;
   upstreamHeaders?: Record<string, string>;
   compatByProtocol?: CompatByProtocolMap;
+  capabilities?: ProviderModelCapabilitiesPatch;
+  unsupportedParams?: string[] | null;
+  targetFormat?: string | null;
   isHidden?: boolean;
 }
 
@@ -79,6 +83,7 @@ export interface UseModelVisibilityHandlersReturn {
   setAutoHideFailed: (v: boolean) => void;
   setVisibilityFilter: (v: "all" | "visible" | "hidden") => void;
   saveModelCompatFlags: (modelId: string, patch: ModelCompatSavePatch) => Promise<void>;
+  resetModelConfig: (modelId: string) => Promise<void>;
   handleToggleModelHidden: (providerKey: string, modelId: string, hidden: boolean) => Promise<void>;
   handleBulkToggleModelHidden: (
     providerKey: string,
@@ -158,18 +163,22 @@ export function useModelVisibilityHandlers({
               Array.isArray(c.supportedEndpoints) && (c.supportedEndpoints as unknown[]).length
                 ? c.supportedEndpoints
                 : ["chat"],
-            normalizeToolCallId:
-              patch.normalizeToolCallId !== undefined
-                ? patch.normalizeToolCallId
-                : Boolean(c.normalizeToolCallId),
-            preserveOpenAIDeveloperRole:
-              patch.preserveOpenAIDeveloperRole !== undefined
-                ? patch.preserveOpenAIDeveloperRole
-                : Object.prototype.hasOwnProperty.call(c, "preserveOpenAIDeveloperRole")
-                  ? Boolean(c.preserveOpenAIDeveloperRole)
-                  : true,
           };
+          if (patch.normalizeToolCallId !== undefined) {
+            body.normalizeToolCallId = patch.normalizeToolCallId;
+          } else if (Object.prototype.hasOwnProperty.call(c, "normalizeToolCallId")) {
+            body.normalizeToolCallId = Boolean(c.normalizeToolCallId);
+          }
+          if (patch.preserveOpenAIDeveloperRole !== undefined) {
+            body.preserveOpenAIDeveloperRole = patch.preserveOpenAIDeveloperRole;
+          } else if (Object.prototype.hasOwnProperty.call(c, "preserveOpenAIDeveloperRole")) {
+            body.preserveOpenAIDeveloperRole = Boolean(c.preserveOpenAIDeveloperRole);
+          }
           if (patch.compatByProtocol) body.compatByProtocol = patch.compatByProtocol;
+          if ("capabilities" in patch) body.capabilities = patch.capabilities;
+          if (patch.unsupportedParams !== undefined)
+            body.unsupportedParams = patch.unsupportedParams;
+          if (patch.targetFormat !== undefined) body.targetFormat = patch.targetFormat;
         }
       } else {
         body = { provider: providerId, modelId, ...patch };
@@ -196,6 +205,29 @@ export function useModelVisibilityHandlers({
       await fetchProviderModelMeta();
     } catch {
       /* refresh failure is non-critical — data was already saved */
+    }
+  };
+
+  const resetModelConfig = async (modelId: string) => {
+    setCompatSavingModelId(modelId);
+    try {
+      const res = await fetch("/api/provider-models/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: providerId, modelId }),
+      });
+      if (!res.ok) {
+        const detail = await formatProviderModelsErrorResponse(res);
+        notify.error(
+          detail ? `${t("failedSaveCustomModel")} — ${detail}` : t("failedSaveCustomModel")
+        );
+        return;
+      }
+      await fetchProviderModelMeta();
+    } catch {
+      notify.error(t("failedSaveCustomModel"));
+    } finally {
+      setCompatSavingModelId(null);
     }
   };
 
@@ -422,6 +454,7 @@ export function useModelVisibilityHandlers({
     setAutoHideFailed,
     setVisibilityFilter,
     saveModelCompatFlags,
+    resetModelConfig,
     handleToggleModelHidden,
     handleBulkToggleModelHidden,
     handleClearAllModels,

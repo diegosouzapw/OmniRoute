@@ -11,15 +11,42 @@
  * Cycle-safe: no import from ProviderDetailPageClient.
  */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/shared/components";
 import { matchesModelCatalogQuery } from "@/shared/utils/modelCatalogSearch";
 import { isFreeModel, sortModelsFreeFirst } from "@/shared/utils/freeModels";
-import { providerText, type ProviderMessageTranslator } from "../providerPageHelpers";
+import {
+  buildCompatMap,
+  providerText,
+  type ProviderMessageTranslator,
+} from "../providerPageHelpers";
+import {
+  editableModelConfigRow,
+  effectiveModelCapabilitiesFromRows,
+  hasModelConfigOverride,
+  modelCapabilitiesFromRow,
+  shouldUseRowModelConfig,
+} from "../modelConfigHelpers";
 import ModelRow, { ModelVisibilityToolbar } from "./ModelRow";
 import PassthroughModelsSection from "./PassthroughModelsSection";
 import CompatibleModelsSection from "./CompatibleModelsSection";
 import type { ModelCompatSavePatch } from "../hooks/useModelVisibilityHandlers";
+
+function ownUnsupportedParams(row: any): string[] | undefined {
+  if (!row || typeof row !== "object") return undefined;
+  if (Object.prototype.hasOwnProperty.call(row, "unsupportedParams")) {
+    return Array.isArray(row.unsupportedParams) ? row.unsupportedParams : [];
+  }
+  const compat = row.compat;
+  if (
+    compat &&
+    typeof compat === "object" &&
+    Object.prototype.hasOwnProperty.call(compat, "unsupportedParams")
+  ) {
+    return Array.isArray(compat.unsupportedParams) ? compat.unsupportedParams : [];
+  }
+  return undefined;
+}
 
 export interface ProviderModelsSectionProps {
   // Provider identity
@@ -86,11 +113,8 @@ export interface ProviderModelsSectionProps {
   setAutoHideFailed: (v: boolean) => void;
   setVisibilityFilter: (v: "all" | "visible" | "hidden") => void;
   saveModelCompatFlags: (modelId: string, patch: ModelCompatSavePatch) => Promise<void>;
-  handleToggleModelHidden: (
-    providerKey: string,
-    modelId: string,
-    hidden: boolean
-  ) => Promise<void>;
+  resetModelConfig: (modelId: string) => Promise<void>;
+  handleToggleModelHidden: (providerKey: string, modelId: string, hidden: boolean) => Promise<void>;
   handleBulkToggleModelHidden: (
     providerKey: string,
     modelIds: string[],
@@ -157,6 +181,7 @@ export default function ProviderModelsSection({
   setAutoHideFailed,
   setVisibilityFilter,
   saveModelCompatFlags,
+  resetModelConfig,
   handleToggleModelHidden,
   handleBulkToggleModelHidden,
   handleClearAllModels,
@@ -186,9 +211,12 @@ export default function ProviderModelsSection({
       <span className="text-text-main">{t("autoSync")}</span>
     </button>
   );
+  const modelCompatOverrideMap = useMemo(
+    () => buildCompatMap(modelMeta.modelCompatOverrides || []),
+    [modelMeta.modelCompatOverrides]
+  );
 
-  const clearAllButton = (modelMeta.customModels.length > 0 ||
-    providerAliasEntries.length > 0) && (
+  const clearAllButton = (modelMeta.customModels.length > 0 || providerAliasEntries.length > 0) && (
     <button
       onClick={handleClearAllModels}
       disabled={clearingModels}
@@ -231,6 +259,7 @@ export default function ProviderModelsSection({
           modelAliases={modelAliases}
           availableModels={syncedAvailableModels}
           customModels={modelMeta.customModels}
+          modelCompatOverrides={modelMeta.modelCompatOverrides || []}
           fallbackModels={compatibleFallbackModels}
           description={description}
           inputLabel={inputLabel}
@@ -247,13 +276,12 @@ export default function ProviderModelsSection({
           effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
           getUpstreamHeadersRecord={getUpstreamHeadersRecordForModel}
           saveModelCompatFlags={saveModelCompatFlags}
+          resetModelConfig={resetModelConfig}
           compatSavingModelId={compatSavingModelId}
           onModelsChanged={fetchProviderModelMeta}
           allowImport={compatibleSupportsModelImport}
           isModelHidden={effectiveModelHidden}
-          onToggleHidden={(modelId, hidden) =>
-            handleToggleModelHidden(providerId, modelId, hidden)
-          }
+          onToggleHidden={(modelId, hidden) => handleToggleModelHidden(providerId, modelId, hidden)}
           onBulkToggleHidden={(modelIds, hidden) =>
             handleBulkToggleModelHidden(providerId, modelIds, hidden)
           }
@@ -311,6 +339,7 @@ export default function ProviderModelsSection({
           modelAliases={modelAliases}
           availableModels={syncedAvailableModels}
           customModels={modelMeta.customModels}
+          modelCompatOverrides={modelMeta.modelCompatOverrides || []}
           description={passthroughDescription}
           inputLabel={passthroughInputLabel}
           inputPlaceholder={passthroughInputPlaceholder}
@@ -323,11 +352,10 @@ export default function ProviderModelsSection({
           effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
           getUpstreamHeadersRecord={getUpstreamHeadersRecordForModel}
           saveModelCompatFlags={saveModelCompatFlags}
+          resetModelConfig={resetModelConfig}
           compatSavingModelId={compatSavingModelId}
           isModelHidden={effectiveModelHidden}
-          onToggleHidden={(modelId, hidden) =>
-            handleToggleModelHidden(providerId, modelId, hidden)
-          }
+          onToggleHidden={(modelId, hidden) => handleToggleModelHidden(providerId, modelId, hidden)}
           onBulkToggleHidden={(modelIds, hidden) =>
             handleBulkToggleModelHidden(providerId, modelIds, hidden)
           }
@@ -456,6 +484,34 @@ export default function ProviderModelsSection({
       )}
       <div className="flex flex-wrap gap-3">
         {displayModels.map((model) => {
+          const override = modelCompatOverrideMap.get(model.id);
+          const effectiveCapabilities = effectiveModelCapabilitiesFromRows(
+            providerId,
+            model.id,
+            model,
+            override
+          );
+          const effectiveTargetFormat =
+            override?.targetFormat ??
+            override?.compat?.targetFormat ??
+            model.compat?.targetFormat ??
+            model.targetFormat ??
+            null;
+          const effectiveUnsupportedParams =
+            ownUnsupportedParams(override) ??
+            ownUnsupportedParams(model) ??
+            model.compat?.unsupportedParams ??
+            model.unsupportedParams ??
+            [];
+          const configuredConfig = editableModelConfigRow(
+            model,
+            override,
+            shouldUseRowModelConfig(model)
+          );
+          const configuredCapabilities = modelCapabilitiesFromRow(configuredConfig);
+          const configuredTargetFormat =
+            configuredConfig?.compat?.targetFormat ?? configuredConfig?.targetFormat ?? null;
+          const configuredUnsupportedParams = ownUnsupportedParams(configuredConfig) ?? [];
           return (
             <ModelRow
               key={model.id}
@@ -467,16 +523,22 @@ export default function ProviderModelsSection({
               onCopy={onCopy}
               onSetAlias={(a) => onSetAlias(model.id, a, providerDisplayAlias)}
               onDeleteAlias={
-                aliasByModelId[model.id]
-                  ? () => onDeleteAlias(aliasByModelId[model.id])
-                  : undefined
+                aliasByModelId[model.id] ? () => onDeleteAlias(aliasByModelId[model.id]) : undefined
               }
               t={t}
               showDeveloperToggle
               effectiveModelNormalize={effectiveModelNormalize}
               effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
               getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecordForModel(model.id, p)}
+              capabilities={effectiveCapabilities}
+              configuredCapabilities={configuredCapabilities}
+              targetFormat={effectiveTargetFormat}
+              configuredTargetFormat={configuredTargetFormat}
+              unsupportedParams={effectiveUnsupportedParams}
+              configuredUnsupportedParams={configuredUnsupportedParams}
+              hasModelConfigOverride={hasModelConfigOverride(model, override)}
               saveModelCompatFlags={saveModelCompatFlags}
+              resetModelConfig={resetModelConfig}
               compatDisabled={compatSavingModelId === model.id}
               onToggleHidden={(modelId, hidden) =>
                 handleToggleModelHidden(providerId, modelId, hidden)

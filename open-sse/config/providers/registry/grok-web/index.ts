@@ -1,5 +1,4 @@
 import type { RegistryEntry } from "../../shared.ts";
-
 export const grok_webProvider: RegistryEntry = {
   id: "grok-web",
   alias: "gw",
@@ -10,9 +9,33 @@ export const grok_webProvider: RegistryEntry = {
   authHeader: "cookie",
   passthroughModels: true,
   models: [
-    { id: "fast", name: "Grok 4.20", toolCalling: true },
-    { id: "expert", name: "Grok 4.20 Thinking", toolCalling: true },
-    { id: "heavy", name: "Grok 4.20 Multi Agent", toolCalling: true },
-    { id: "grok-420-computer-use-sa", name: "Grok 4.3 (Beta)", toolCalling: true },
+    {
+      id: "fast",
+      name: "Grok 4.20",
+      capabilities: {
+        supportsTools: true,
+      },
+    },
+    {
+      id: "expert",
+      name: "Grok 4.20 Thinking",
+      capabilities: {
+        supportsTools: true,
+      },
+    },
+    {
+      id: "heavy",
+      name: "Grok 4.20 Multi Agent",
+      capabilities: {
+        supportsTools: true,
+      },
+    },
+    {
+      id: "grok-420-computer-use-sa",
+      name: "Grok 4.3 (Beta)",
+      capabilities: {
+        supportsTools: true,
+      },
+    },
   ],
 };

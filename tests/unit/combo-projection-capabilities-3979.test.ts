@@ -8,18 +8,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { projectCombo, computeComboCapabilities } = await import(
-  "../../src/app/api/v1/combos/projectCombo.ts"
-);
+const { projectCombo, computeComboCapabilities } =
+  await import("../../src/app/api/v1/combos/projectCombo.ts");
 
 // Deterministic, DB-free capability stub.
-const caps: Record<string, { supportsVision: boolean | null; reasoning: boolean }> = {
-  "openai/gpt-5": { supportsVision: true, reasoning: true },
-  "anthropic/claude-opus": { supportsVision: true, reasoning: true },
-  "deepseek/v4": { supportsVision: false, reasoning: true },
-  "meta/llama-text": { supportsVision: false, reasoning: false },
+const caps: Record<string, { supportsVision: boolean | null; supportsThinking: boolean | null }> = {
+  "openai/gpt-5": { supportsVision: true, supportsThinking: true },
+  "anthropic/claude-opus": { supportsVision: true, supportsThinking: true },
+  "deepseek/v4": { supportsVision: false, supportsThinking: true },
+  "meta/llama-text": { supportsVision: false, supportsThinking: false },
 };
-const resolve = (m: string) => caps[m] ?? { supportsVision: null, reasoning: false };
+const resolve = (m: string) => caps[m] ?? { supportsVision: null, supportsThinking: null };
 
 test("#3979 default projection is unchanged — no capabilities field (preserves #2300)", () => {
   const out = projectCombo({

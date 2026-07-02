@@ -58,8 +58,12 @@ export {
   removeCustomModel,
   updateCustomModel,
   getModelCompatOverrides,
+  getProviderModelConfigSnapshot,
   mergeModelCompatOverride,
   removeModelCompatOverride,
+  resetModelConfigOverride,
+  resetCustomModelToBaseline,
+  resetProviderModelConfig,
   getModelNormalizeToolCallId,
   getModelPreserveOpenAIDeveloperRole,
   getModelUpstreamExtraHeaders,
@@ -77,6 +81,11 @@ export {
 } from "./db/models";
 
 export type { ModelCompatPerProtocol, ModelCompatPatch, SyncedAvailableModel } from "./db/models";
+export * from "./db/modelCompat";
+export * from "./db/modelCompatCapabilities";
+export * from "./db/modelConfigSnapshot";
+export * from "./db/modelConfigRows";
+export * from "./db/modelContextOverrides";
 
 export {
   // Combos

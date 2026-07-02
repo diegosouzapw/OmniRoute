@@ -9,6 +9,10 @@ import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingS
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
 import { capMaxOutputTokens, capThinkingBudget } from "../../../src/lib/modelCapabilities.ts";
 
+function modelCapabilityInput(provider: string | null | undefined, model: string) {
+  return provider ? { provider, model } : model;
+}
+
 /**
  * Direct Claude → Gemini request translator.
  * Converts Claude Messages API body directly to Gemini format,
@@ -25,6 +29,10 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
   // is scoped to the routed vertex provider only (threaded via credentials._provider).
   const provider = credentials && typeof credentials === "object" ? credentials._provider : null;
   const stripFunctionCallId = provider === "vertex" || provider === "vertex-partner";
+  const capabilityInput = modelCapabilityInput(
+    typeof provider === "string" ? provider : null,
+    model
+  );
   const result: {
     model: string;
     contents: Array<Record<string, unknown>>;
@@ -55,7 +63,7 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
     result.generationConfig.topK = body.top_k;
   }
   if (body.max_tokens !== undefined) {
-    const maxOutputTokens = capMaxOutputTokens(model, body.max_tokens);
+    const maxOutputTokens = capMaxOutputTokens(capabilityInput, body.max_tokens);
     if (maxOutputTokens !== null) {
       result.generationConfig.maxOutputTokens = maxOutputTokens;
     }
@@ -209,7 +217,8 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
     // Gemini target via output_config.effort="high" sent 32768 (> 24576) → 400.
     // capThinkingBudget narrows 32768 to e.g. gemini-2.5-flash's 24576 while leaving
     // pro-tier (real cap 32768) untouched.
-    const budget = rawBudget !== undefined ? capThinkingBudget(model, rawBudget) : undefined;
+    const budget =
+      rawBudget !== undefined ? capThinkingBudget(capabilityInput, rawBudget) : undefined;
     if (budget !== undefined && budget > 0) {
       result.generationConfig.thinkingConfig = {
         thinkingBudget: budget,

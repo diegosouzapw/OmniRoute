@@ -11,6 +11,8 @@ export interface CustomModelEntry {
   supportedEndpoints?: string[];
   inputTokenLimit?: number;
   isHidden?: boolean;
+  capabilities?: Record<string, unknown>;
+  capabilityOverrides?: Record<string, unknown>;
   // User-set "vision-capable" flag (persisted by addCustomModel / replaceCustomModels
   // in src/lib/db/models.ts). Surfaced into `/v1/models` via
   // getCustomVisionCapabilityFields so user-added vision models appear with
@@ -28,6 +30,10 @@ export type ComboTargetCatalogMetadata = {
   contextLength?: number;
   maxInputTokens?: number;
   maxOutputTokens?: number;
+  contextExplicitlyUnknown?: boolean;
+  maxOutputExplicitlyUnknown?: boolean;
+  supportsXHighEffort?: boolean;
+  supportsMaxEffort?: boolean;
   inputModalities?: string[];
   outputModalities?: string[];
   capabilities: Record<string, boolean>;
@@ -35,6 +41,10 @@ export type ComboTargetCatalogMetadata = {
 
 export function isPositiveFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
+export function firstPositiveNumber(...values: unknown[]): number | undefined {
+  return values.find(isPositiveFiniteNumber);
 }
 
 export function parseJsonStringArray(value: unknown): string[] {

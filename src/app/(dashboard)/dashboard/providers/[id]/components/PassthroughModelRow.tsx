@@ -13,6 +13,7 @@ import { Badge } from "@/shared/components";
 import { providerText } from "../providerPageHelpers";
 import ModelCompatPopover from "./ModelCompatPopover";
 import { ModelSourceBadge, type ModelCompatSavePatch } from "./ModelRow";
+import type { ProviderModelCapabilities } from "@/shared/types/modelConfig";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -25,6 +26,13 @@ export interface PassthroughModelRowProps {
   source?: string;
   isFree?: boolean;
   isHidden?: boolean;
+  capabilities?: ProviderModelCapabilities;
+  configuredCapabilities?: ProviderModelCapabilities;
+  targetFormat?: string | null;
+  configuredTargetFormat?: string | null;
+  unsupportedParams?: string[];
+  configuredUnsupportedParams?: string[];
+  hasModelConfigOverride?: boolean;
   copied?: string;
   onCopy: (text: string, key: string) => void;
   onDeleteAlias?: () => void;
@@ -34,6 +42,7 @@ export interface PassthroughModelRowProps {
   effectiveModelNormalize: (modelId: string, protocol?: string) => boolean;
   effectiveModelPreserveDeveloper: (modelId: string, protocol?: string) => boolean;
   saveModelCompatFlags: (modelId: string, patch: ModelCompatSavePatch) => void;
+  resetModelConfig?: (modelId: string) => Promise<void>;
   getUpstreamHeadersRecord: (protocol: string) => Record<string, string>;
   compatDisabled?: boolean;
   onToggleHidden?: (modelId: string, hidden: boolean) => Promise<void>;
@@ -54,6 +63,13 @@ export default function PassthroughModelRow({
   source,
   isFree,
   isHidden,
+  capabilities,
+  configuredCapabilities,
+  targetFormat,
+  configuredTargetFormat,
+  unsupportedParams,
+  configuredUnsupportedParams,
+  hasModelConfigOverride = false,
   copied,
   onCopy,
   onDeleteAlias,
@@ -64,6 +80,7 @@ export default function PassthroughModelRow({
   effectiveModelPreserveDeveloper,
   getUpstreamHeadersRecord,
   saveModelCompatFlags,
+  resetModelConfig,
   compatDisabled,
   onToggleHidden,
   togglingHidden,
@@ -186,9 +203,9 @@ export default function PassthroughModelRow({
                 testingModel
                   ? t("testingModel")
                   : testStatus === "ok"
-                    ? "OK"
+                    ? providerText(t, "modelTestOk", "OK")
                     : testStatus === "error"
-                      ? "Error"
+                      ? providerText(t, "modelTestError", "Error")
                       : t("testModel")
               }
             >
@@ -226,6 +243,18 @@ export default function PassthroughModelRow({
             effectiveModelNormalize={(p) => effectiveModelNormalize(modelId, p)}
             effectiveModelPreserveDeveloper={(p) => effectiveModelPreserveDeveloper(modelId, p)}
             getUpstreamHeadersRecord={getUpstreamHeadersRecord}
+            capabilities={capabilities}
+            configuredCapabilities={configuredCapabilities}
+            targetFormat={targetFormat ?? null}
+            configuredTargetFormat={configuredTargetFormat}
+            unsupportedParams={unsupportedParams || []}
+            configuredUnsupportedParams={configuredUnsupportedParams}
+            onCapabilitiesPatch={(payload) =>
+              saveModelCompatFlags(modelId, { capabilities: payload })
+            }
+            onModelConfigPatch={(payload) => saveModelCompatFlags(modelId, payload)}
+            onReset={resetModelConfig ? () => resetModelConfig(modelId) : undefined}
+            hasModelConfigOverride={hasModelConfigOverride}
             onCompatPatch={(protocol, payload) =>
               saveModelCompatFlags(modelId, { compatByProtocol: { [protocol]: payload } })
             }

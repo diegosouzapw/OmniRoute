@@ -14,9 +14,9 @@ test("#3321: Cline catalog exposes the verified OpenRouter free additions", () =
 
   const minimax = byId.get("minimax/minimax-m3");
   assert.ok(minimax, "cline must expose minimax/minimax-m3");
-  assert.equal(minimax.contextLength, 1048576);
+  assert.equal(minimax.capabilities?.contextWindow, 1048576);
 
   const nemotron = byId.get("nvidia/nemotron-3-ultra-550b-a55b");
   assert.ok(nemotron, "cline must expose nvidia/nemotron-3-ultra-550b-a55b");
-  assert.equal(nemotron.contextLength, 1048576);
+  assert.equal(nemotron.capabilities?.contextWindow, 1048576);
 });

@@ -18,6 +18,7 @@ import { validateProviderSpecificData } from "@/shared/validation/providerSpecif
 import {
   upstreamHeadersRecordSchema,
   modelCompatPerProtocolSchema,
+  legacyProviderModelCapabilitiesInputSchema,
   customHeadersSchema,
 } from "./misc.ts";
 
@@ -126,54 +127,84 @@ export const bulkWebSessionImportSchema = z.object({
   globalPriority: z.number().int().min(1).max(100).nullable().optional(),
 });
 
-export const providerModelMutationSchema = z.object({
-  provider: z.string().trim().min(1, "provider is required").max(120),
-  modelId: z.string().trim().min(1, "modelId is required").max(240),
-  modelName: z.string().trim().max(240).optional(),
-  source: z.string().trim().max(80).optional(),
-  apiFormat: z
-    .enum([
-      "chat-completions",
-      "responses",
-      "embeddings",
-      "rerank",
-      "audio-transcriptions",
-      "audio-speech",
-      "images-generations",
-    ])
-    .default("chat-completions"),
-  supportedEndpoints: z
-    .array(
-      z.enum([
-        "chat",
+export const providerModelMutationSchema = z
+  .object({
+    provider: z.string().trim().min(1, "provider is required").max(120),
+    modelId: z.string().trim().min(1, "modelId is required").max(240),
+    modelName: z.string().trim().max(240).optional(),
+    source: z.string().trim().max(80).optional(),
+    apiFormat: z
+      .enum([
+        "chat-completions",
+        "responses",
         "embeddings",
         "rerank",
-        "images",
-        "audio",
         "audio-transcriptions",
         "audio-speech",
         "images-generations",
       ])
-    )
-    .default(["chat"]),
-  // #2905: optional per-model wire format override for custom models (e.g. a
-  // custom opencode-go model that must use the Anthropic Messages shape).
-  targetFormat: z
-    .enum(["openai", "openai-responses", "claude", "gemini", "antigravity"])
-    .optional(),
-  // #1294: optional token limits set in the "add custom model" form. The wire
-  // shape uses max_input_tokens / max_output_tokens (mirrors the /v1/models
-  // catalog); they persist as inputTokenLimit / outputTokenLimit.
-  max_input_tokens: z.number().int().positive().optional(),
-  max_output_tokens: z.number().int().positive().optional(),
-  normalizeToolCallId: z.boolean().optional(),
-  preserveOpenAIDeveloperRole: z.boolean().nullable().optional(),
-  upstreamHeaders: upstreamHeadersRecordSchema.nullable().optional(),
-  /** Zod 4: `z.record(z.enum([...]), …)` requires every enum key; use `partialRecord` for sparse patches. */
-  compatByProtocol: z
-    .partialRecord(z.enum(["openai", "openai-responses", "claude"]), modelCompatPerProtocolSchema)
-    .optional(),
-});
+      .default("chat-completions"),
+    supportedEndpoints: z
+      .array(
+        z.enum([
+          "chat",
+          "embeddings",
+          "rerank",
+          "images",
+          "audio",
+          "audio-transcriptions",
+          "audio-speech",
+          "images-generations",
+        ])
+      )
+      .default(["chat"]),
+    // #2905: optional per-model wire format override for custom models (e.g. a
+    // custom opencode-go model that must use the Anthropic Messages shape).
+    targetFormat: z
+      .enum(["openai", "openai-responses", "claude", "gemini", "antigravity"])
+      .nullable()
+      .optional(),
+    // #1294: optional token limits set in the "add custom model" form. The wire
+    // shape uses max_input_tokens / max_output_tokens (mirrors the /v1/models
+    // catalog); they persist as inputTokenLimit / outputTokenLimit.
+    max_input_tokens: z.number().int().positive().nullable().optional(),
+    max_output_tokens: z.number().int().positive().nullable().optional(),
+    capabilities: legacyProviderModelCapabilitiesInputSchema.nullable().optional(),
+    supportsVision: z.boolean().nullable().optional(),
+    supportsTools: z.boolean().nullable().optional(),
+    supportsThinking: z.boolean().nullable().optional(),
+    supportsReasoning: z.boolean().nullable().optional(),
+    supportsXHighEffort: z.boolean().nullable().optional(),
+    supportsMaxEffort: z.boolean().nullable().optional(),
+    unsupportedParams: z.array(z.string().trim().min(1).max(120)).max(64).nullable().optional(),
+    compat: z
+      .object({
+        targetFormat: z
+          .enum(["openai", "openai-responses", "claude", "gemini", "antigravity"])
+          .nullable()
+          .optional(),
+        unsupportedParams: z.array(z.string().trim().min(1).max(120)).max(64).nullable().optional(),
+        normalizeToolCallId: z.boolean().optional(),
+        preserveOpenAIDeveloperRole: z.boolean().nullable().optional(),
+        upstreamHeaders: upstreamHeadersRecordSchema.nullable().optional(),
+        compatByProtocol: z
+          .partialRecord(
+            z.enum(["openai", "openai-responses", "claude"]),
+            modelCompatPerProtocolSchema
+          )
+          .optional(),
+      })
+      .strict()
+      .optional(),
+    normalizeToolCallId: z.boolean().optional(),
+    preserveOpenAIDeveloperRole: z.boolean().nullable().optional(),
+    upstreamHeaders: upstreamHeadersRecordSchema.nullable().optional(),
+    /** Zod 4: `z.record(z.enum([...]), …)` requires every enum key; use `partialRecord` for sparse patches. */
+    compatByProtocol: z
+      .partialRecord(z.enum(["openai", "openai-responses", "claude"]), modelCompatPerProtocolSchema)
+      .optional(),
+  })
+  .strict();
 
 export const updateModelAliasesSchema = z.object({
   aliases: z.record(z.string().trim().min(1), z.string().trim().min(1)),

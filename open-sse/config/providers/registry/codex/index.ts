@@ -5,7 +5,6 @@ import {
   getCodexDefaultHeaders,
   resolvePublicCred,
 } from "../../shared.ts";
-
 export const codexProvider: RegistryEntry = {
   id: "codex",
   alias: "cx",
@@ -32,36 +31,51 @@ export const codexProvider: RegistryEntry = {
       id: "gpt-5.5",
       name: "GPT 5.5",
       ...GPT_5_5_CODEX_CAPABILITIES,
-      contextLength: 400000,
-      maxOutputTokens: 128000,
+      capabilities: {
+        ...GPT_5_5_CODEX_CAPABILITIES.capabilities,
+        contextWindow: 400000,
+        maxOutputTokens: 128000,
+      },
     },
     {
       id: "gpt-5.5-xhigh",
       name: "GPT 5.5 (xHigh)",
       ...GPT_5_5_CODEX_CAPABILITIES,
-      contextLength: 400000,
-      maxOutputTokens: 128000,
+      capabilities: {
+        ...GPT_5_5_CODEX_CAPABILITIES.capabilities,
+        contextWindow: 400000,
+        maxOutputTokens: 128000,
+      },
     },
     {
       id: "gpt-5.5-high",
       name: "GPT 5.5 (High)",
       ...GPT_5_5_CODEX_CAPABILITIES,
-      contextLength: 400000,
-      maxOutputTokens: 128000,
+      capabilities: {
+        ...GPT_5_5_CODEX_CAPABILITIES.capabilities,
+        contextWindow: 400000,
+        maxOutputTokens: 128000,
+      },
     },
     {
       id: "gpt-5.5-medium",
       name: "GPT 5.5 (Medium)",
       ...GPT_5_5_CODEX_CAPABILITIES,
-      contextLength: 400000,
-      maxOutputTokens: 128000,
+      capabilities: {
+        ...GPT_5_5_CODEX_CAPABILITIES.capabilities,
+        contextWindow: 400000,
+        maxOutputTokens: 128000,
+      },
     },
     {
       id: "gpt-5.5-low",
       name: "GPT 5.5 (Low)",
       ...GPT_5_5_CODEX_CAPABILITIES,
-      contextLength: 400000,
-      maxOutputTokens: 128000,
+      capabilities: {
+        ...GPT_5_5_CODEX_CAPABILITIES.capabilities,
+        contextWindow: 400000,
+        maxOutputTokens: 128000,
+      },
     },
     {
       id: "gpt-5.4",
@@ -88,14 +102,27 @@ export const codexProvider: RegistryEntry = {
       name: "GPT 5.4 (Low)",
       ...GPT_5_4_CODEX_CAPABILITIES,
     },
-    { id: "gpt-5.4-mini", name: "GPT 5.4 Mini", targetFormat: "openai-responses" },
-    { id: "gpt-5.3-codex-spark", name: "GPT 5.3 Codex Spark" },
+    {
+      id: "gpt-5.4-mini",
+      name: "GPT 5.4 Mini",
+      compat: {
+        targetFormat: "openai-responses",
+      },
+    },
+    {
+      id: "gpt-5.3-codex-spark",
+      name: "GPT 5.3 Codex Spark",
+    },
     {
       id: "gpt-5.3-codex",
       name: "GPT 5.3 Codex",
-      targetFormat: "openai-responses",
-      supportsReasoning: true,
-      supportsXHighEffort: true,
+      capabilities: {
+        supportsReasoning: true,
+        supportsXHighEffort: true,
+      },
+      compat: {
+        targetFormat: "openai-responses",
+      },
     },
   ],
 };

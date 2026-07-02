@@ -33,9 +33,9 @@ describe("contextManager helpers", () => {
       assert.equal(typeof limit, "number");
     });
 
-    it("returns default limit for unknown provider", () => {
+    it("keeps fully unknown providers unknown", () => {
       const limit = mod.getTokenLimit("unknown-provider");
-      assert.ok(limit > 0);
+      assert.equal(limit, null);
     });
 
     it("uses model hints for known model families", () => {

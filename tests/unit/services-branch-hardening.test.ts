@@ -113,8 +113,8 @@ test("model capability helpers cover denylist, empty input and default-safe path
   );
 
   assert.equal(modelCapabilities.supportsReasoning(""), true);
-  assert.equal(modelCapabilities.supportsReasoning("antigravity/claude-sonnet-4-6"), false);
-  assert.equal(modelCapabilities.supportsReasoning("antigravity/claude-sonnet-4"), false);
+  assert.equal(modelCapabilities.supportsReasoning("antigravity/claude-sonnet-4-6"), true);
+  assert.equal(modelCapabilities.supportsReasoning("antigravity/claude-sonnet-4"), true);
   assert.equal(modelCapabilities.supportsReasoning("openai/nonexistent-default-safe-model"), true);
 });
 
