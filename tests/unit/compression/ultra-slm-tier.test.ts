@@ -10,7 +10,7 @@
  * The llmlingua backend is injectable (setLlmlinguaBackend), so the tier is testable
  * without the real ONNX model.
  */
-import { describe, it, after, afterEach } from "node:test";
+import { describe, it, after, afterEach, test } from "node:test";
 import assert from "node:assert/strict";
 
 import { applyCompressionAsync } from "../../../open-sse/services/compression/index.ts";
@@ -100,4 +100,253 @@ describe("ultra SLM tier — modelPath routes through llmlingua", () => {
     assert.equal((result.stats as { mode?: string } | null)?.mode, "ultra");
     assert.ok(!techniques(result.stats).includes("ultra-slm"));
   });
+});
+
+// ─── Phase 4 (B): SLM-tier resolver, probe, telemetry, pre-warm ──────────────
+// (Appended to the pre-existing legacy `modelPath` suite above, which must stay green.)
+
+import { DEFAULT_COMPRESSION_CONFIG } from "../../../open-sse/services/compression/types.ts";
+
+test("DEFAULT_COMPRESSION_CONFIG defaults ultraEngine to 'heuristic'", () => {
+  assert.equal(DEFAULT_COMPRESSION_CONFIG.ultraEngine, "heuristic");
+});
+
+test("DEFAULT_COMPRESSION_CONFIG defaults ultraSlmPrewarm to false", () => {
+  assert.equal(DEFAULT_COMPRESSION_CONFIG.ultraSlmPrewarm, false);
+});
+
+import type { CompressionStats } from "../../../open-sse/services/compression/types.ts";
+
+test("CompressionStats accepts an optional ultraTier signal", () => {
+  const s = {
+    originalTokens: 10,
+    compressedTokens: 5,
+    savingsPercent: 50,
+    techniquesUsed: ["ultra-heuristic-pruning"],
+    mode: "ultra" as const,
+    timestamp: 1,
+    ultraTier: "heuristic" as const,
+  } satisfies CompressionStats;
+  assert.equal(s.ultraTier, "heuristic");
+});
+
+import {
+  ultraCompress,
+  ultraCompressHeuristic,
+} from "../../../open-sse/services/compression/ultra.ts";
+
+test("ultraCompressHeuristic is a synchronous pure heuristic (no SLM)", () => {
+  const cfg = {
+    enabled: true,
+    compressionRate: 0.5,
+    minScoreThreshold: 0.3,
+    slmFallbackToAggressive: false,
+    maxTokensPerMessage: 0,
+  };
+  const r = ultraCompressHeuristic(
+    [{ role: "user", content: "the quick brown fox jumps over the lazy dog" }],
+    cfg
+  );
+  assert.equal(r.stats.mode, "ultra");
+  assert.equal(r.stats.ultraTier, "heuristic");
+  assert.ok(r.stats.techniquesUsed.includes("ultra-heuristic-pruning"));
+});
+
+test("ultraCompress with default config (no ultraEngine) uses heuristic tier", async () => {
+  const r = await ultraCompress([{ role: "user", content: "the quick brown fox jumps" }], {
+    enabled: true,
+    compressionRate: 0.5,
+    minScoreThreshold: 0.3,
+    slmFallbackToAggressive: false,
+    maxTokensPerMessage: 0,
+  });
+  assert.equal(r.stats.ultraTier, "heuristic");
+});
+
+import {
+  __setUltraSlmTestHooks,
+  __resetUltraEntryForTests,
+} from "../../../open-sse/services/compression/engines/llmlingua/ultraEntry.ts";
+
+test("ultraEngine:'slm' with available stub backend records ultraTier:'slm'", async () => {
+  __setUltraSlmTestHooks({
+    available: true,
+    run: async (text) => text.slice(0, Math.ceil(text.length / 2)),
+  });
+  try {
+    const r = await ultraCompress(
+      [{ role: "user", content: "the quick brown fox jumps over the lazy dog repeatedly today" }],
+      {
+        enabled: true,
+        compressionRate: 0.5,
+        minScoreThreshold: 0.3,
+        slmFallbackToAggressive: false,
+        maxTokensPerMessage: 0,
+        ultraEngine: "slm",
+      }
+    );
+    assert.equal(r.stats.ultraTier, "slm");
+    assert.ok(r.stats.techniquesUsed.includes("ultra-slm"));
+    assert.ok(r.stats.compressedTokens <= r.stats.originalTokens);
+  } finally {
+    __resetUltraEntryForTests();
+  }
+});
+
+test("ultraEngine:'slm' but backend throws → ultraTier:'heuristic-fallback'", async () => {
+  __setUltraSlmTestHooks({
+    available: true,
+    run: async () => {
+      throw new Error("worker timeout");
+    },
+  });
+  try {
+    const r = await ultraCompress(
+      [{ role: "user", content: "the quick brown fox jumps over the lazy dog repeatedly today" }],
+      {
+        enabled: true,
+        compressionRate: 0.5,
+        minScoreThreshold: 0.3,
+        slmFallbackToAggressive: false,
+        maxTokensPerMessage: 0,
+        ultraEngine: "slm",
+      }
+    );
+    assert.equal(r.stats.ultraTier, "heuristic-fallback");
+  } finally {
+    __resetUltraEntryForTests();
+  }
+});
+
+test("ultraEngine:'slm' but slmAvailable() false → heuristic tier (no SLM attempt)", async () => {
+  __setUltraSlmTestHooks({
+    available: false,
+    run: async () => {
+      throw new Error("should not be called");
+    },
+  });
+  try {
+    const r = await ultraCompress([{ role: "user", content: "the quick brown fox jumps" }], {
+      enabled: true,
+      compressionRate: 0.5,
+      minScoreThreshold: 0.3,
+      slmFallbackToAggressive: false,
+      maxTokensPerMessage: 0,
+      ultraEngine: "slm",
+    });
+    assert.equal(r.stats.ultraTier, "heuristic");
+  } finally {
+    __resetUltraEntryForTests();
+  }
+});
+
+test("SLM tier preserves fenced code + URLs verbatim (structure wrapper)", async () => {
+  // Stub the SLM to lowercase prose — any leakage of code/URL into it would show.
+  __setUltraSlmTestHooks({
+    available: true,
+    run: async (text) => (text.trim() ? text.toLowerCase() + " x" : text),
+  });
+  try {
+    const code = "```js\nconst A = 1; // KEEP\n```";
+    const url = "https://Example.com/Path";
+    // The fenced block must open at line-start for `extractPreservedBlocks` to tombstone
+    // it (the same rule the heuristic Tier-A already relies on); both tiers share that
+    // wrapper, so this proves the SLM tier preserves structure identically.
+    const content = `Some PROSE here and ${url} trailing PROSE\n${code}\nmore PROSE after`;
+    const r = await ultraCompress([{ role: "user", content }], {
+      enabled: true,
+      compressionRate: 0.5,
+      minScoreThreshold: 0.3,
+      slmFallbackToAggressive: false,
+      maxTokensPerMessage: 0,
+      ultraEngine: "slm",
+    });
+    const out = r.messages[0].content as string;
+    assert.ok(out.includes(code), "fenced code block must survive verbatim");
+    assert.ok(out.includes(url), "URL must survive verbatim");
+  } finally {
+    __resetUltraEntryForTests();
+  }
+});
+
+import { ultraEngine } from "../../../open-sse/services/compression/engines/cavemanAdapter.ts";
+
+test("stacked ultraEngine.apply stays synchronous and compresses via heuristic", () => {
+  const res = ultraEngine.apply(
+    { messages: [{ role: "user", content: "the quick brown fox jumps over the lazy dog" }] },
+    { config: { ultra: { compressionRate: 0.5 } } as never }
+  );
+  // Synchronous result object (not a Promise), with a real stats record.
+  assert.equal(typeof (res as { then?: unknown }).then, "undefined");
+  assert.ok(res.stats);
+});
+
+test("applyCompressionAsync ultra + ultraEngine:'slm' (stub) yields ultraTier in stats", async () => {
+  __setUltraSlmTestHooks({
+    available: true,
+    run: async (text) => text.slice(0, Math.ceil(text.length / 2)),
+  });
+  try {
+    const reqBody = {
+      messages: [
+        { role: "user", content: "the quick brown fox jumps over the lazy dog more than once" },
+      ],
+    };
+    const result = await applyCompressionAsync(reqBody, "ultra", {
+      config: {
+        enabled: true,
+        defaultMode: "ultra",
+        ultraEngine: "slm",
+        ultra: {
+          enabled: true,
+          compressionRate: 0.5,
+          minScoreThreshold: 0.3,
+          slmFallbackToAggressive: false,
+          maxTokensPerMessage: 0,
+        },
+      } as never,
+    });
+    assert.equal(result.stats?.ultraTier, "slm");
+  } finally {
+    __resetUltraEntryForTests();
+  }
+});
+
+import * as compression from "../../../open-sse/services/compression/index.ts";
+
+test("compression index re-exports the ultra-SLM surface", () => {
+  assert.equal(typeof compression.ultraCompressHeuristic, "function");
+  assert.equal(typeof compression.slmAvailable, "function");
+  assert.equal(typeof compression.runLlmlinguaUltra, "function");
+  assert.equal(typeof compression.prewarmLlmlinguaUltra, "function");
+});
+
+import { shouldPrewarmUltraSlm } from "../../../open-sse/services/compression/ultra.ts";
+
+test("shouldPrewarmUltraSlm: true only when slm + prewarm both on", () => {
+  assert.equal(shouldPrewarmUltraSlm({ ultraEngine: "slm", ultraSlmPrewarm: true }), true);
+  assert.equal(shouldPrewarmUltraSlm({ ultraEngine: "slm", ultraSlmPrewarm: false }), false);
+  assert.equal(shouldPrewarmUltraSlm({ ultraEngine: "heuristic", ultraSlmPrewarm: true }), false);
+  assert.equal(shouldPrewarmUltraSlm({}), false);
+});
+
+import { maybePrewarmUltraSlmOnConfig } from "../../../open-sse/services/compression/ultra.ts";
+
+test("maybePrewarmUltraSlmOnConfig fires prewarm when slm+prewarm on (stub)", async () => {
+  let warmed = 0;
+  __setUltraSlmTestHooks({
+    available: true,
+    run: async (t) => {
+      warmed++;
+      return t.slice(0, 1);
+    },
+  });
+  try {
+    await maybePrewarmUltraSlmOnConfig({ ultraEngine: "slm", ultraSlmPrewarm: true });
+    assert.equal(warmed, 1);
+    await maybePrewarmUltraSlmOnConfig({ ultraEngine: "heuristic", ultraSlmPrewarm: true });
+    assert.equal(warmed, 1); // unchanged — heuristic does not prewarm
+  } finally {
+    __resetUltraEntryForTests();
+  }
 });

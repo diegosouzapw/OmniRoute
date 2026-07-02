@@ -27,7 +27,7 @@ curl https://localhost:20128/api/monitoring/health \
 
 ## Payloads
 
-See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/reference/openapi.yaml` for detailed request/response schemas.
+See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.
 
 <!-- skill:custom-start -->
 <!-- Migrated from skills/omniroute-monitoring/SKILL.md (preserved curated content) -->

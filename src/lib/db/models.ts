@@ -544,14 +544,6 @@ export async function replaceCustomModels(
     ).run(providerId, JSON.stringify(merged));
   }
 
-  // Remove compat overrides for models that no longer exist
-  const newIds = new Set(models.map((m) => m.id));
-  const compatList = readCompatList(providerId);
-  const filteredCompat = compatList.filter((e) => newIds.has(e.id));
-  if (filteredCompat.length !== compatList.length) {
-    writeCompatList(providerId, filteredCompat);
-  }
-
   backupDbFile("pre-write");
   return merged;
 }

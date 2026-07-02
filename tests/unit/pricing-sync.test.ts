@@ -41,7 +41,7 @@ describe("transformToOmniRoute", () => {
     assert.strictEqual(result.cc["claude-sonnet-4-20250514"].output, 15);
   });
 
-  test("maps vertex_ai provider to gemini and gemini-cli aliases", () => {
+  test("maps vertex_ai provider to gemini alias", () => {
     const raw = {
       "vertex_ai/gemini-2.5-flash": {
         input_cost_per_token: 0.0000003,
@@ -54,9 +54,7 @@ describe("transformToOmniRoute", () => {
     const result = transformToOmniRoute(raw);
 
     assert.ok(result.gemini, "Should map to gemini alias");
-    assert.ok(result["gemini-cli"], "Should map to gemini-cli alias");
     assert.strictEqual(result.gemini["gemini-2.5-flash"].input, 0.3);
-    assert.strictEqual(result["gemini-cli"]["gemini-2.5-flash"].input, 0.3);
   });
 
   test("ingests non-chat models (embedding token + image per-image)", () => {

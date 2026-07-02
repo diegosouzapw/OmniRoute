@@ -175,6 +175,10 @@ export function buildGeminiTools(
   }
 
   const functionDeclarations: GeminiFunctionDeclaration[] = [];
+  // Track sanitized names already added to prevent Gemini rejection from duplicate
+  // function declaration names (two different raw names that collapse to the same
+  // sanitized form, or the same raw name repeated across tool groups).
+  const seenToolNames = new Set<string>();
   let googleSearchTool: GeminiTool | null = null;
 
   for (const rawTool of tools) {
@@ -194,8 +198,11 @@ export function buildGeminiTools(
           continue;
         }
 
+        const sanitizedName = sanitizeGeminiToolName(fn.name, options);
+        if (seenToolNames.has(sanitizedName)) continue;
+        seenToolNames.add(sanitizedName);
         functionDeclarations.push({
-          name: sanitizeGeminiToolName(fn.name, options),
+          name: sanitizedName,
           description: typeof fn.description === "string" ? fn.description : "",
           parameters: cleanJSONSchemaForAntigravity(toGeminiParametersSchema(fn.parameters)),
         });
@@ -204,11 +211,15 @@ export function buildGeminiTools(
     }
 
     if (typeof rawTool.name === "string" && rawTool.name.trim()) {
-      functionDeclarations.push({
-        name: sanitizeGeminiToolName(rawTool.name, options),
-        description: typeof rawTool.description === "string" ? rawTool.description : "",
-        parameters: cleanJSONSchemaForAntigravity(toGeminiParametersSchema(rawTool.input_schema)),
-      });
+      const sanitizedName = sanitizeGeminiToolName(rawTool.name, options);
+      if (!seenToolNames.has(sanitizedName)) {
+        seenToolNames.add(sanitizedName);
+        functionDeclarations.push({
+          name: sanitizedName,
+          description: typeof rawTool.description === "string" ? rawTool.description : "",
+          parameters: cleanJSONSchemaForAntigravity(toGeminiParametersSchema(rawTool.input_schema)),
+        });
+      }
       continue;
     }
 
@@ -218,11 +229,15 @@ export function buildGeminiTools(
         continue;
       }
 
-      functionDeclarations.push({
-        name: sanitizeGeminiToolName(fn.name, options),
-        description: typeof fn.description === "string" ? fn.description : "",
-        parameters: cleanJSONSchemaForAntigravity(toGeminiParametersSchema(fn.parameters)),
-      });
+      const sanitizedName = sanitizeGeminiToolName(fn.name, options);
+      if (!seenToolNames.has(sanitizedName)) {
+        seenToolNames.add(sanitizedName);
+        functionDeclarations.push({
+          name: sanitizedName,
+          description: typeof fn.description === "string" ? fn.description : "",
+          parameters: cleanJSONSchemaForAntigravity(toGeminiParametersSchema(fn.parameters)),
+        });
+      }
     }
   }
 

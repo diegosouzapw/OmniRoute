@@ -7,6 +7,7 @@ import {
   recordProviderSuccess,
   clearCooldownState,
   getCooldownEntryCount,
+  cleanupExpiredCooldownEntries,
 } from "../../../open-sse/services/providerCooldownTracker.ts";
 import {
   resolveResilienceSettings,
@@ -138,6 +139,33 @@ test("cooldown respects maxRetryCooldownMs cap", () => {
 
   const remaining = getRemainingCooldownMs("openai", "conn-1", settings);
   assert.ok(remaining <= 20000, "cooldown capped at maxRetryCooldownMs");
+});
+
+test("cleanup keeps entries for configured long maxRetryCooldownMs", () => {
+  const settings = makeSettings(5000, 60 * 60 * 1000);
+  const originalNow = Date.now;
+
+  try {
+    let fakeNow = Date.now();
+    Date.now = () => fakeNow;
+
+    recordProviderCooldown("openai", "conn-1", settings);
+    assert.equal(getCooldownEntryCount(), 1);
+
+    fakeNow += 31 * 60 * 1000;
+    cleanupExpiredCooldownEntries();
+    assert.equal(
+      getCooldownEntryCount(),
+      1,
+      "cleanup must not evict entries before configured maxRetryCooldownMs"
+    );
+
+    fakeNow += 30 * 60 * 1000;
+    cleanupExpiredCooldownEntries();
+    assert.equal(getCooldownEntryCount(), 0);
+  } finally {
+    Date.now = originalNow;
+  }
 });
 
 test("different connections have independent cooldowns", () => {

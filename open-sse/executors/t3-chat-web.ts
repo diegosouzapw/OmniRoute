@@ -25,7 +25,7 @@ export const T3_CHAT_BASE = "https://t3.chat";
 const SERVER_FN_PREFIX = `${T3_CHAT_BASE}/_serverFn/`;
 
 const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
 /** TanStack Start accepts these content types, in priority order */
 const TSS_ACCEPT = "application/x-tss-framed, application/x-ndjson, application/json";
@@ -151,90 +151,90 @@ function transformTSSStream(upstreamStream: ReadableStream, model: string): Read
 
   return new ReadableStream(
     {
-    async start(controller) {
-      const reader = upstreamStream.getReader();
-      let buffer = "";
+      async start(controller) {
+        const reader = upstreamStream.getReader();
+        let buffer = "";
 
-      const emit = (obj: object) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`));
-      };
+        const emit = (obj: object) => {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`));
+        };
 
-      const chunk = (delta: object, finish?: string | null) => {
-        emit({
-          id,
-          object: "chat.completion.chunk",
-          created,
-          model,
-          choices: [{ index: 0, delta, finish_reason: finish ?? null }],
-        });
-      };
+        const chunk = (delta: object, finish?: string | null) => {
+          emit({
+            id,
+            object: "chat.completion.chunk",
+            created,
+            model,
+            choices: [{ index: 0, delta, finish_reason: finish ?? null }],
+          });
+        };
 
-      const close = () => {
-        if (!emittedRole) {
-          emittedRole = true;
-          chunk({ role: "assistant", content: "" });
-        }
-        chunk({}, "stop");
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-        controller.close();
-      };
+        const close = () => {
+          if (!emittedRole) {
+            emittedRole = true;
+            chunk({ role: "assistant", content: "" });
+          }
+          chunk({}, "stop");
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
+        };
 
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-          buffer += decoder.decode(value, { stream: true });
+            buffer += decoder.decode(value, { stream: true });
 
-          // Handle both NDJSON (newline-delimited) and SSE (data: prefix) formats
-          const lines = buffer.split("\n");
-          buffer = lines.pop() || "";
+            // Handle both NDJSON (newline-delimited) and SSE (data: prefix) formats
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || "";
 
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed) continue;
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed) continue;
 
-            // SSE format: "data: {...}"
-            const payload = trimmed.startsWith("data: ") ? trimmed.slice(6).trim() : trimmed;
+              // SSE format: "data: {...}"
+              const payload = trimmed.startsWith("data: ") ? trimmed.slice(6).trim() : trimmed;
 
-            if (payload === "[DONE]") {
-              close();
-              return;
-            }
-
-            let data: Record<string, unknown>;
-            try {
-              data = JSON.parse(payload);
-            } catch {
-              continue;
-            }
-
-            // TSS format: extract text content from typed envelope
-            // t:10 = object with keys in p.k and values in p.v
-            // t:0 = number (value in s), t:2 = string (value in s), t:9 = array
-            const textContent = extractTextFromTSS(data);
-
-            if (typeof textContent === "string" && textContent.length > 0) {
-              if (!emittedRole) {
-                emittedRole = true;
-                chunk({ role: "assistant", content: "" });
+              if (payload === "[DONE]") {
+                close();
+                return;
               }
-              chunk({ content: textContent });
-            }
 
-            // Detect end-of-stream markers
-            if (isTSSDone(data)) {
-              close();
-              return;
+              let data: Record<string, unknown>;
+              try {
+                data = JSON.parse(payload);
+              } catch {
+                continue;
+              }
+
+              // TSS format: extract text content from typed envelope
+              // t:10 = object with keys in p.k and values in p.v
+              // t:0 = number (value in s), t:2 = string (value in s), t:9 = array
+              const textContent = extractTextFromTSS(data);
+
+              if (typeof textContent === "string" && textContent.length > 0) {
+                if (!emittedRole) {
+                  emittedRole = true;
+                  chunk({ role: "assistant", content: "" });
+                }
+                chunk({ content: textContent });
+              }
+
+              // Detect end-of-stream markers
+              if (isTSSDone(data)) {
+                close();
+                return;
+              }
             }
           }
+        } catch {
+          // Stream error — fall through to close
         }
-      } catch {
-        // Stream error — fall through to close
-      }
 
-      close();
-    },
+        close();
+      },
     },
     { highWaterMark: 16384 }
   );
@@ -349,7 +349,10 @@ export class T3ChatWebExecutor extends BaseExecutor {
       role: string;
       content: string | unknown;
     }>;
-    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(bodyObj, rawMessages);
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(
+      bodyObj,
+      rawMessages
+    );
     // 1. Parse + validate credentials. The credential pipeline stores the single
     // pasted string as `apiKey` (fallback `accessToken`); parse out the Cookie
     // header + convex-session-id (#3007) instead of expecting pre-structured fields.
@@ -492,31 +495,50 @@ export class T3ChatWebExecutor extends BaseExecutor {
       const rawContent = await collectStreamContent(resp.body);
 
       if (hasTools) {
-        const { content, toolCalls, finishReason } = buildToolAwareResult(rawContent, requestedTools, "t3");
+        const { content, toolCalls, finishReason } = buildToolAwareResult(
+          rawContent,
+          requestedTools,
+          "t3"
+        );
         if (toolCalls) {
           return {
             response: new Response(
               JSON.stringify({
-                id: `chatcmpl-t3-${Date.now()}`, object: "chat.completion",
-                created: Math.floor(Date.now() / 1000), model: model || "unknown",
-                choices: [{ index: 0, message: { role: "assistant", content: null, tool_calls: toolCalls }, finish_reason: finishReason }],
+                id: `chatcmpl-t3-${Date.now()}`,
+                object: "chat.completion",
+                created: Math.floor(Date.now() / 1000),
+                model: model || "unknown",
+                choices: [
+                  {
+                    index: 0,
+                    message: { role: "assistant", content: null, tool_calls: toolCalls },
+                    finish_reason: finishReason,
+                  },
+                ],
               }),
               { status: 200, headers: { "Content-Type": "application/json" } }
             ),
-            url: completionUrl, headers, transformedBody: requestPayload,
+            url: completionUrl,
+            headers,
+            transformedBody: requestPayload,
           };
         }
         const openaiResponse = {
-          id: `chatcmpl-t3-${Date.now()}`, object: "chat.completion",
-          created: Math.floor(Date.now() / 1000), model: model || "unknown",
+          id: `chatcmpl-t3-${Date.now()}`,
+          object: "chat.completion",
+          created: Math.floor(Date.now() / 1000),
+          model: model || "unknown",
           choices: [{ index: 0, message: { role: "assistant", content }, finish_reason: "stop" }],
           usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
         };
         return {
           response: new Response(JSON.stringify(openaiResponse), {
-            status: 200, headers: { "Content-Type": "application/json" },
+            status: 200,
+            headers: { "Content-Type": "application/json" },
           }),
-          url: completionUrl, headers, transformedBody: requestPayload,
+          url: completionUrl,
+          headers,
+          transformedBody: requestPayload,
         };
       }
 

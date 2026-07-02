@@ -136,7 +136,14 @@ test("CircuitBreaker: calls onStateChange callback", async () => {
 
 // ─── Request Timeout Tests ───────────────────────────
 
+import * as requestTimeout from "../../src/shared/utils/requestTimeout.ts";
 import { withTimeout, getProviderTimeout } from "../../src/shared/utils/requestTimeout.ts";
+
+test("requestTimeout: public surface excludes removed fetch wrapper", () => {
+  assert.equal(Object.hasOwn(requestTimeout, "fetchWithTimeout"), false);
+  assert.equal(typeof requestTimeout.withTimeout, "function");
+  assert.equal(typeof requestTimeout.getProviderTimeout, "function");
+});
 
 test("requestTimeout: withTimeout resolves before timeout", async () => {
   const result = await withTimeout(async () => "fast", 1000, "test");
@@ -164,7 +171,15 @@ test("requestTimeout: getProviderTimeout returns provider-specific value", () =>
 
 // ─── Correlation ID Tests ────────────────────────────
 
-import { getCorrelationId, runWithCorrelation } from "../../src/shared/middleware/correlationId.ts";
+import * as correlationId from "../../src/shared/middleware/correlationId.ts";
+const { getCorrelationId, runWithCorrelation } = correlationId;
+
+test("correlationId: public surface excludes unused wrapper helpers", () => {
+  assert.equal(Object.hasOwn(correlationId, "correlationMiddleware"), false);
+  assert.equal(Object.hasOwn(correlationId, "createCorrelatedLogger"), false);
+  assert.equal(typeof correlationId.getCorrelationId, "function");
+  assert.equal(typeof correlationId.runWithCorrelation, "function");
+});
 
 test("correlationId: getCorrelationId returns undefined outside context", () => {
   assert.equal(getCorrelationId(), undefined);

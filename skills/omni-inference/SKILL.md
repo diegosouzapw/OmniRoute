@@ -210,7 +210,7 @@ curl https://localhost:20128/api/v1/providers/{provider}/models \
 
 ## Payloads
 
-See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/reference/openapi.yaml` for detailed request/response schemas.
+See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.
 
 <!-- skill:custom-start -->
 <!-- Aggregated from: omniroute-chat, omniroute-image, omniroute-tts, omniroute-stt, omniroute-embeddings, omniroute-web-search, omniroute-web-fetch -->

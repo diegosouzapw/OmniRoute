@@ -5,6 +5,7 @@ import {
   prepareClaudeRequest,
 } from "./helpers/claudeHelper.ts";
 import { filterToOpenAIFormat } from "./helpers/openaiHelper.ts";
+import { providerHonorsOpenAIFormatCacheControl } from "../utils/cacheControlPolicy.ts";
 import {
   coerceToolSchemas,
   injectEmptyReasoningContentForToolCalls,
@@ -103,14 +104,24 @@ function hasNonEmptyReasoningContent(message: Record<string, unknown>): boolean 
   return typeof message.reasoning_content === "string" && message.reasoning_content.length > 0;
 }
 
-function isDeepSeekReplayTarget(provider: unknown, model: unknown): boolean {
+function isReasoningOnlyReplayTarget(provider: unknown, model: unknown): boolean {
   const normalizedProvider = String(provider ?? "")
     .trim()
     .toLowerCase();
   const normalizedModel = String(model ?? "")
     .trim()
     .toLowerCase();
-  return normalizedProvider === "deepseek" || /(^|\/)deepseek/i.test(normalizedModel);
+  // DeepSeek V4 and Xiaomi MiMo both enforce "pass reasoning_content back on
+  // subsequent turns" even on PLAIN (non-tool-call) assistant turns. Without
+  // replaying on those turns the upstream 400s with "Param Incorrect: The
+  // reasoning_content in the thinking mode must be passed back to the API."
+  // (deepseek #1682, xiaomi-mimo 9router#1321/#1337).
+  return (
+    normalizedProvider === "deepseek" ||
+    /(^|\/)deepseek/i.test(normalizedModel) ||
+    normalizedProvider === "xiaomi-mimo" ||
+    /(^|\/)mimo/i.test(normalizedModel)
+  );
 }
 
 /** @param options.normalizeToolCallId - When true, use 9-char tool call ids (e.g. Mistral); when false, leave ids as-is */
@@ -203,12 +214,22 @@ export function translateRequest(
         if (toOpenAI) {
           // Forward Copilot UA marker to source→openai translators only.
           const hasTargetHint = targetFormat != null;
+          // #2069 — forward the cache_control-preservation intent so the
+          // source→openai translator (e.g. claudeToOpenAIRequest) keeps the
+          // client's breakpoints — but ONLY for providers that honor explicit
+          // OpenAI-format cache_control (DashScope/alibaba, Xiaomi MiMo). Generic
+          // / implicit-cache OpenAI providers (openai/codex/azure) must still be
+          // stripped.
+          const preserveCacheControl =
+            options?.preserveCacheControl === true &&
+            providerHonorsOpenAIFormatCacheControl(provider);
           const step1Credentials =
-            options?.copilotClient || hasTargetHint
+            options?.copilotClient || hasTargetHint || preserveCacheControl
               ? {
                   ...(credentials && typeof credentials === "object" ? credentials : {}),
                   ...(options?.copilotClient ? { _copilotClient: true } : {}),
                   ...(hasTargetHint ? { _targetFormat: targetFormat } : {}),
+                  ...(preserveCacheControl ? { _preserveCacheControl: true } : {}),
                 }
               : credentials;
           result = toOpenAI(model, result, stream, step1Credentials);
@@ -243,10 +264,35 @@ export function translateRequest(
     }
   }
 
+  // Resolve reasoning-replay status up-front: it gates both the reasoning_content
+  // strip in filterToOpenAIFormat below (#4849 must NOT strip client reasoning for
+  // replay providers) and the cache re-injection further down.
+  const normalizedProvider = String(provider ?? "");
+  const normalizedModel = String(model ?? "");
+  const resolvedCapabilities = getResolvedModelCapabilities({
+    provider: normalizedProvider,
+    model: normalizedModel,
+  });
+  const isReasoner = requiresReasoningReplay({
+    provider: normalizedProvider,
+    model: normalizedModel,
+    thinkingEnabled: hasThinkingConfig(result),
+    supportsReasoning: supportsReasoning({ provider: normalizedProvider, model: normalizedModel }),
+    interleavedField: resolvedCapabilities?.interleavedField ?? null,
+  });
+
   // Always normalize to clean OpenAI format when target is OpenAI
   // This handles hybrid requests (e.g., OpenAI messages + Claude tools)
   if (targetFormat === FORMATS.OPENAI) {
-    result = filterToOpenAIFormat(result);
+    // #2069 — preserve client cache_control breakpoints only for providers that
+    // honor explicit OpenAI-format markers (DashScope/alibaba, Xiaomi MiMo) when
+    // requested upstream; generic/implicit-cache OpenAI providers stay stripped.
+    result = filterToOpenAIFormat(result, {
+      preserveCacheControl:
+        options?.preserveCacheControl === true && providerHonorsOpenAIFormatCacheControl(provider),
+      // #4849 regression guard: keep client reasoning_content for replay providers.
+      preserveReasoningContent: isReasoner,
+    });
   }
 
   // Final step: prepare request for Claude format endpoints
@@ -305,21 +351,11 @@ export function translateRequest(
   // clients omit it from the conversation history. Without this, DeepSeek V4
   // returns 400: "The reasoning_content in the thinking mode must be passed
   // back to the API."
-  const normalizedProvider = String(provider ?? "");
-  const normalizedModel = String(model ?? "");
-  const resolvedCapabilities = getResolvedModelCapabilities({
-    provider: normalizedProvider,
-    model: normalizedModel,
-  });
-  const isReasoner = requiresReasoningReplay({
-    provider: normalizedProvider,
-    model: normalizedModel,
-    thinkingEnabled: hasThinkingConfig(result),
-    supportsReasoning: supportsReasoning({ provider: normalizedProvider, model: normalizedModel }),
-    interleavedField: resolvedCapabilities?.interleavedField ?? null,
-  });
+  // isReasoner / normalizedProvider / normalizedModel / resolvedCapabilities were
+  // resolved up-front (before the OpenAI-format filter) so the #4849 reasoning strip
+  // could honor reasoning-replay providers.
   if (isReasoner && result.messages && Array.isArray(result.messages)) {
-    const canReplayReasoningOnly = isDeepSeekReplayTarget(normalizedProvider, normalizedModel);
+    const canReplayReasoningOnly = isReasoningOnlyReplayTarget(normalizedProvider, normalizedModel);
 
     for (const [messageIndex, msg] of result.messages.entries()) {
       if (msg.role !== "assistant") continue;
@@ -550,11 +586,13 @@ export function initState(sourceFormat) {
       reasoningPartAdded: false,
       reasoningDone: false,
       inThinking: false,
+      parseTextualReasoningTags: false,
       funcArgsBuf: {},
       funcNames: {},
       funcCallIds: {},
       funcArgsDone: {},
       funcItemDone: {},
+      completedOutputItems: [],
       completedSent: false,
     };
   }

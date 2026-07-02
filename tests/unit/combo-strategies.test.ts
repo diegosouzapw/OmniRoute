@@ -12,6 +12,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const dbCore = await import("../../src/lib/db/core.ts");
 const { handleComboChat } = await import("../../open-sse/services/combo.ts");
+const { clearAllStickyBindings } =
+  await import("../../open-sse/services/combo/sessionStickiness.ts");
 const { invalidateCodexQuotaCache, registerCodexConnection, registerCodexQuotaFetcher } =
   await import("../../open-sse/services/codexQuotaFetcher.ts");
 const { registerQuotaFetcher } = await import("../../open-sse/services/quotaPreflight.ts");
@@ -171,6 +173,10 @@ async function selectedConnectionFor(
   combo: Record<string, unknown>,
   options: { apiKeyAllowedConnections?: string[] | null } = {}
 ) {
+  // Isolate strategy/round-robin assertions from session stickiness (#5): this helper
+  // reuses the same body, so a sticky binding from a prior call would pin the connection
+  // and break tie-break rotation. Stickiness has its own suite (combo-session-stickiness).
+  clearAllStickyBindings();
   const calls: Array<string | null> = [];
   const response = await handleComboChat({
     body: reqBodyTextArray,
@@ -423,30 +429,32 @@ test("reset-aware strategy avoids accounts near 5h exhaustion", async (t) => {
   assert.equal(await selectedConnectionFor(combo), healthy5h.id);
 });
 
-test("reset-aware strategy rotates similar scores with round-robin tie breaking", async (t) => {
-  const first = { id: `first-${randomUUID()}`, token: `token-first-${randomUUID()}` };
-  const second = {
-    id: `second-${randomUUID()}`,
-    token: `token-second-${randomUUID()}`,
-  };
-  const reset5hAt = Math.floor((Date.now() + 2 * 3600 * 1000) / 1000);
-  const reset7dAt = Math.floor((Date.now() + 3 * 24 * 3600 * 1000) / 1000);
+test("reset-aware strategy rotates similar scores with round-robin tie breaking", async () => {
+  const provider = `tie-provider-${randomUUID()}`;
+  const first = `first-${randomUUID()}`;
+  const second = `second-${randomUUID()}`;
   const quota = {
-    rate_limit: {
-      primary_window: { used_percent: 50, reset_at: reset5hAt },
-      secondary_window: { used_percent: 50, reset_at: reset7dAt },
-    },
+    used: 50,
+    total: 100,
+    percentUsed: 0.5,
+    resetAt: "2099-01-01T00:00:00.000Z",
   };
-  t.after(
-    installCodexQuotaMock({
-      [first.token]: quota,
-      [second.token]: quota,
-    })
-  );
 
-  const combo = resetAwareCombo(`reset-aware-rr-${randomUUID()}`, [first, second], {
-    resetAwareTieBandPercent: 100,
-  });
+  registerQuotaFetcher(provider, async () => quota);
+
+  const combo = {
+    name: `reset-aware-rr-${randomUUID()}`,
+    strategy: "reset-aware",
+    config: { resetAwareTieBandPercent: 100 },
+    models: [first, second].map((connectionId, index) => ({
+      kind: "model",
+      provider,
+      providerId: provider,
+      model: "balanced-model",
+      connectionId,
+      id: `tie-${index}`,
+    })),
+  };
 
   const selections = [
     await selectedConnectionFor(combo),
@@ -454,8 +462,8 @@ test("reset-aware strategy rotates similar scores with round-robin tie breaking"
     await selectedConnectionFor(combo),
   ];
 
-  assert.equal(selections.includes(first.id), true);
-  assert.equal(selections.includes(second.id), true);
+  assert.equal(selections.includes(first), true);
+  assert.equal(selections.includes(second), true);
 });
 
 test("reset-aware strategy uses registered quota fetchers for non-Codex providers", async () => {
@@ -699,4 +707,40 @@ test("reset-aware strategy scores provider-specific weekly windows when availabl
   };
 
   assert.equal(await selectedConnectionFor(combo), soon);
+});
+
+test("priority combo advances to next model when first returns 400 'model not supported'", async () => {
+  const name = `model-not-supported-${randomUUID()}`;
+  const combo = await combosDb.createCombo({
+    name,
+    strategy: "priority",
+    models: ["openai/gpt-4", "openai/gpt-3.5-turbo"],
+  });
+
+  const calls: string[] = [];
+  const response = await handleComboChat({
+    body: reqBodyTextArray,
+    combo,
+    allCombos: [combo],
+    isModelAvailable: undefined,
+    relayOptions: undefined,
+    signal: undefined,
+    settings: {},
+    log: makeLog(),
+    handleSingleModel: async (_body: unknown, modelStr: string) => {
+      calls.push(modelStr);
+      if (modelStr === "openai/gpt-4") {
+        return Response.json(
+          { error: { message: "requested model is not supported" } },
+          { status: 400 }
+        );
+      }
+      return okResponse(modelStr);
+    },
+  });
+
+  assert.equal(response.status, 200, "combo should advance to second model and return 200");
+  assert.equal(calls.length, 2, "combo should have tried both models");
+  assert.equal(calls[0], "openai/gpt-4", "first model should be tried first");
+  assert.equal(calls[1], "openai/gpt-3.5-turbo", "second model should be tried after 400");
 });

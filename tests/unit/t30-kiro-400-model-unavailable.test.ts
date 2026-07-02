@@ -27,3 +27,11 @@ test("T30: model family helper returns a sibling candidate when available", () =
   assert.equal(typeof next, "string");
   assert.notEqual(next, "gemini-3.1-pro-high");
 });
+
+test('T30: Kiro exact "Invalid model. Please select a different model to continue." 400 is treated as model-unavailable', () => {
+  const unavailable = isModelUnavailableError(
+    400,
+    "Invalid model. Please select a different model to continue."
+  );
+  assert.equal(unavailable, true);
+});

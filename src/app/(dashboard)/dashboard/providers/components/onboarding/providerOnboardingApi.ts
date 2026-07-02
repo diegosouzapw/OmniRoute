@@ -4,7 +4,7 @@ import {
   createProviderNodeSchema,
   createProviderSchema,
   validateProviderApiKeySchema,
-} from "@/shared/validation/schemas";
+} from "@/shared/validation/schemas/provider";
 
 export type OnboardingConnection = {
   id: string;

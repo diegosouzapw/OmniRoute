@@ -16,7 +16,6 @@
 import {
   normalizeRequestBodyLimitMb,
   parseRequestBodyLimitBytes,
-  requestBodyLimitBytesToMb,
   requestBodyLimitMbToBytes,
 } from "../constants/bodySize";
 
@@ -39,10 +38,6 @@ const ROUTE_LIMITS: BodySizeRule[] = [
   { prefix: "/api/v1/audio/transcriptions", limit: MAX_BODY_BYTES_AUDIO },
   { prefix: "/api/v1/files", limit: MAX_BODY_BYTES_FILE },
 ];
-
-export function getDefaultRequestBodyLimitMb(): number {
-  return requestBodyLimitBytesToMb(MAX_BODY_BYTES);
-}
 
 export function getConfiguredBodySizeLimitBytes(settings?: Record<string, unknown>): number {
   const configuredMb = normalizeRequestBodyLimitMb(settings?.maxBodySizeMb);

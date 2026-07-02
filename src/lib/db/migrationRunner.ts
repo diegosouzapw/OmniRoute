@@ -264,7 +264,7 @@ function supportsFts5(db: SqliteAdapter): boolean {
   }
 
   try {
-    const probeTable = `__omniroute_fts5_probe_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const probeTable = `__omniroute_fts5_probe_${crypto.randomUUID().replace(/-/g, "_")}`;
     db.transaction(() => {
       db.exec(`CREATE VIRTUAL TABLE "${probeTable}" USING fts5(content);`);
       db.exec(`DROP TABLE "${probeTable}";`);

@@ -2978,8 +2978,8 @@ test("#3587 reasoning buffer is disabled without explicit model capability data"
   );
   assert.equal(
     resolveReasoningBufferedMaxTokens("openai/default-cap-reasoning", 100),
-    null,
-    "default-sized caps are treated as unknown because registry fallbacks use the same value"
+    1100,
+    "explicit default-sized caps are treated as real capability data"
   );
 });
 

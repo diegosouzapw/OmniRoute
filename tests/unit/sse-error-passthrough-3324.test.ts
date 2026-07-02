@@ -134,8 +134,10 @@ test("parseSSEToOpenAIResponse still returns null for an error-only SSE (boundar
 
 test("PART 1: windsurf authHint references the `Windsurf: Provide Auth Token` command", () => {
   const here = path.dirname(fileURLToPath(import.meta.url));
+  // After the providers.ts oauth-constants split, the windsurf authHint moved to
+  // src/shared/constants/providers/oauth.ts.
   const providers = readFileSync(
-    path.join(here, "../../src/shared/constants/providers.ts"),
+    path.join(here, "../../src/shared/constants/providers/oauth.ts"),
     "utf8"
   );
 

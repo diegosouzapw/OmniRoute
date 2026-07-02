@@ -192,7 +192,6 @@ classDiagram
     BaseExecutor <|-- CursorExecutor
     BaseExecutor <|-- KiroExecutor
     BaseExecutor <|-- CodexExecutor
-    BaseExecutor <|-- GeminiCLIExecutor
     BaseExecutor <|-- GithubExecutor
 ```
 
@@ -203,7 +202,6 @@ classDiagram
 | `antigravity.ts` | Google Cloud Code                          | Pembuatan ID proyek/sesi, fallback multi-URL, parsing percobaan ulang kustom dari pesan error ("reset after 2h7m23s") |
 | `cursor.ts`      | Cursor IDE                                 | **Paling kompleks**: autentikasi checksum SHA-256, encoding permintaan Protobuf, parsing binary EventStream → respons SSE |
 | `codex.ts`       | OpenAI Codex                               | Menyuntikkan instruksi sistem, mengelola tingkat berpikir, menghapus parameter yang tidak didukung                  |
-| `gemini-cli.ts`  | Google Gemini CLI                          | Pembangunan URL kustom (`streamGenerateContent`), pembaruan token OAuth Google                                      |
 | `github.ts`      | GitHub Copilot                             | Sistem token ganda (GitHub OAuth + token Copilot), peniruan header VSCode                                           |
 | `kiro.ts`        | AWS CodeWhisperer                          | Parsing binary AWS EventStream, frame event AMZN, estimasi token                                                   |
 | `index.ts`       | —                                          | Factory: memetakan nama penyedia → kelas executor, dengan fallback default                                          |
@@ -520,7 +518,6 @@ Buffer 2000 token ditambahkan ke penggunaan yang dilaporkan untuk mencegah klien
 | API Respons OpenAI    | sumber + target | `openai-responses` |
 | Anthropic Claude        | sumber + target | `claude`           |
 | Google Gemini           | sumber + target | `gemini`           |
-| Google Gemini CLI       | target saja     | `gemini-cli`       |
 | Antigravity             | sumber + target | `antigravity`      |
 | AWS Kiro                | target saja     | `kiro`             |
 | Cursor                  | target saja     | `cursor`           |
@@ -533,7 +530,6 @@ Buffer 2000 token ditambahkan ke penggunaan yang dilaporkan untuk mencegah klien
 | ------------------------ | ---------------------- | ----------- | ----------------------------------------------------- |
 | Anthropic Claude         | Kunci API atau OAuth     | Default     | Menggunakan header `x-api-key`                        |
 | Google Gemini            | Kunci API atau OAuth     | Default     | Menggunakan header `x-goog-api-key`                   |
-| Google Gemini CLI        | OAuth                  | GeminiCLI   | Menggunakan endpoint `streamGenerateContent`          |
 | Antigravity              | OAuth                  | Antigravity | Penggantian multi-URL, penguraian percobaan ulang kustom    |
 | OpenAI                   | API key                | Default     | Autentikasi Bearer standar                            |
 | Codex                    | OAuth                  | Codex       | Menyuntikkan instruksi sistem, mengelola berpikir     |

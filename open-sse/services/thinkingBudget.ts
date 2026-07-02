@@ -83,6 +83,23 @@ export function getThinkingBudgetConfig() {
 }
 
 /**
+ * Startup hydration (#5312 RC-A): the dashboard Thinking-Budget setting is persisted
+ * under `settings.thinkingBudget`, but nothing read it back at boot, so `_config`
+ * reset to DEFAULT (passthrough) on every restart. Call this once during server
+ * bootstrap with the loaded settings object to restore the operator's choice.
+ * Returns true when a valid config was applied, false otherwise (zero behavior
+ * change when the setting is unset).
+ */
+export function hydrateThinkingBudgetConfig(settings: unknown): boolean {
+  const tb = toRecord(settings).thinkingBudget;
+  if (tb && typeof tb === "object" && !Array.isArray(tb)) {
+    setThinkingBudgetConfig(tb as Partial<ThinkingBudgetConfig>);
+    return true;
+  }
+  return false;
+}
+
+/**
  * Normalize thinkingLevel string fields into numeric budget.
  * Handles: body.thinkingLevel, body.thinking_level,
  * and Gemini's generationConfig.thinkingConfig.thinkingLevel

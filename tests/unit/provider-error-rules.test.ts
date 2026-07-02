@@ -14,12 +14,9 @@ import assert from "node:assert/strict";
  *   - Anything else: falls back to global ERROR_RULES.
  */
 
-const { classifyError, checkFallbackError } = await import(
-  "../../open-sse/services/accountFallback.ts"
-);
-const { RateLimitReason } = await import(
-  "../../open-sse/config/constants.ts"
-);
+const { classifyError, checkFallbackError } =
+  await import("../../open-sse/services/accountFallback.ts");
+const { RateLimitReason } = await import("../../open-sse/config/constants.ts");
 
 test("S1: Opencode 429 with x-ratelimit-remaining-requests=0 → QUOTA_EXHAUSTED, not RATE_LIMIT_EXCEEDED", () => {
   // Opencode uses account-wide quota. The header `x-ratelimit-remaining-requests: 0`
@@ -43,9 +40,8 @@ test("S2: Minimax 429 with x-model-quota-remaining header → QUOTA_EXHAUSTED wi
   // signals ONLY that model is locked; other models on the same connection must
   // remain available. classifyError returns the reason; the caller (combo.ts)
   // reads the scope from providerRuleMatch to decide lockModel vs updateProviderConnection.
-  const { providerRuleRegistry, getProviderErrorRuleMatch } = await import(
-    "../../open-sse/config/providerErrorRules.ts"
-  );
+  const { providerRuleRegistry, getProviderErrorRuleMatch } =
+    await import("../../open-sse/config/providerErrorRules.ts");
 
   // The registry must be loaded for minimax
   const minimaxRules = providerRuleRegistry.get("minimax");
@@ -65,6 +61,24 @@ test("S2: Minimax 429 with x-model-quota-remaining header → QUOTA_EXHAUSTED wi
     "model",
     "Minimax per-model quota must scope the lock to the model only"
   );
+});
+
+test("S2b: provider error rules match canonical-cased plain header records", async () => {
+  const { getProviderErrorRuleMatch } = await import("../../open-sse/config/providerErrorRules.ts");
+
+  const opencodeMatch = getProviderErrorRuleMatch("OpenCode", 429, {
+    "X-RateLimit-Remaining-Requests": "0",
+  });
+  assert.ok(opencodeMatch, "Opencode quota headers must be case-insensitive");
+  assert.equal(opencodeMatch.reason, "quota_exhausted");
+  assert.equal(opencodeMatch.scope, "provider");
+
+  const minimaxMatch = getProviderErrorRuleMatch("Minimax", 429, {
+    "X-Model-Quota-Remaining": "haiku=0,sonnet=42",
+  });
+  assert.ok(minimaxMatch, "Minimax quota headers must be case-insensitive");
+  assert.equal(minimaxMatch.reason, "quota_exhausted");
+  assert.equal(minimaxMatch.scope, "model");
 });
 
 test("S3: Regression — provider with no rules falls back to global ERROR_RULES unchanged", () => {

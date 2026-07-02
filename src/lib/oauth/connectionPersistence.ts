@@ -27,6 +27,34 @@ function safeEqual(a: string | null | undefined, b: string | null | undefined): 
   return timingSafeEqual(ba, bb);
 }
 
+/**
+ * Build the create payload for a brand-new OAuth connection.
+ *
+ * #5326: mirror the freshly computed `expiresAt` into `tokenExpiresAt` at creation
+ * time. The dashboard token-health badge prefers `tokenExpiresAt` over `expiresAt`
+ * (ConnectionRow.tsx: `connection.tokenExpiresAt || connection.expiresAt`). If
+ * `tokenExpiresAt` stays null on a freshly created connection, the badge falls back
+ * to the original grant clock and can flash a false amber/"Token Expired" until the
+ * first background refresh writes both fields together. All refresh paths already
+ * persist `expiresAt` and `tokenExpiresAt` in lockstep
+ * (tokenHealthCheck onPersist, tokenRefresh.updateProviderCredentials); this makes
+ * creation consistent with them.
+ */
+export function buildOAuthConnectionCreatePayload(
+  provider: string,
+  tokenData: Record<string, any>,
+  expiresAt: string | null
+) {
+  return {
+    provider,
+    authType: "oauth" as const,
+    ...tokenData,
+    expiresAt,
+    tokenExpiresAt: expiresAt,
+    testStatus: "active" as const,
+  };
+}
+
 async function syncToCloudIfEnabled(): Promise<void> {
   try {
     const cloudEnabled = await isCloudEnabled();
@@ -76,13 +104,9 @@ export async function persistOAuthConnection(
     }
   }
   if (!connection) {
-    connection = await createProviderConnection({
-      provider,
-      authType: "oauth",
-      ...tokenData,
-      expiresAt,
-      testStatus: "active",
-    });
+    connection = await createProviderConnection(
+      buildOAuthConnectionCreatePayload(provider, tokenData, expiresAt)
+    );
   }
 
   await syncToCloudIfEnabled();

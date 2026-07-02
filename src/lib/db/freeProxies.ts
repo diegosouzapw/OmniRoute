@@ -270,6 +270,35 @@ export async function clearFreeProxiesBySource(source: FreeProxySourceId): Promi
   return result.changes;
 }
 
+// #4878: the displayed "last sync" used to be derived from MAX(last_validated),
+// which only advances when a provider returns at least one new/updated proxy. A
+// sync that returns zero rows (or whose providers all fail) left the timestamp
+// frozen, so "Sync All" appeared to do nothing. We persist an explicit sync
+// timestamp in the generic key_value store and prefer it in the stats.
+const FREE_PROXY_SYNC_NAMESPACE = "free_proxies";
+const FREE_PROXY_SYNC_KEY = "last_sync_at";
+
+/**
+ * Persist the moment a free-proxy sync completed. Returns the stored ISO string
+ * so the route can echo it back. `at` is overridable for deterministic tests.
+ */
+export async function recordFreeProxySync(at?: string): Promise<string> {
+  const db = getDbInstance();
+  const ts = at ?? new Date().toISOString();
+  db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
+  ).run(FREE_PROXY_SYNC_NAMESPACE, FREE_PROXY_SYNC_KEY, ts);
+  backupDbFile("pre-write");
+  return ts;
+}
+
+function getRecordedFreeProxySync(db: ReturnType<typeof getDbInstance>): string | null {
+  const row = db
+    .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+    .get(FREE_PROXY_SYNC_NAMESPACE, FREE_PROXY_SYNC_KEY) as { value?: string } | undefined;
+  return row?.value != null ? String(row.value) : null;
+}
+
 export async function getFreeProxyStats(): Promise<FreeProxyStats> {
   const db = getDbInstance();
   const totals = db
@@ -288,11 +317,16 @@ export async function getFreeProxyStats(): Promise<FreeProxyStats> {
     )
     .all() as DbRow[];
 
+  // Prefer the explicitly recorded sync timestamp (#4878); fall back to the
+  // newest last_validated only when no sync has ever been recorded.
+  const recordedSyncAt = getRecordedFreeProxySync(db);
+  const derivedSyncAt = totals.last_sync_at != null ? String(totals.last_sync_at) : null;
+
   return {
     total: Number(totals.total) || 0,
     inPool: Number(totals.in_pool_count) || 0,
     avgQuality: totals.avg_quality != null ? Math.round(Number(totals.avg_quality)) : null,
     bySource: bySource.map((r) => ({ source: String(r.source), count: Number(r.count) })),
-    lastSyncAt: totals.last_sync_at != null ? String(totals.last_sync_at) : null,
+    lastSyncAt: recordedSyncAt ?? derivedSyncAt,
   };
 }

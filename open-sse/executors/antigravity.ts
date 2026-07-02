@@ -45,6 +45,8 @@ import {
   stripCloudCodeThinkingConfig,
 } from "../services/cloudCodeThinking.ts";
 import { buildGeminiTools } from "../translator/helpers/geminiToolsSanitizer.ts";
+import { DEFAULT_SAFETY_SETTINGS } from "../translator/helpers/geminiHelper.ts";
+import { normalizeOpenAICompatibleFinishReasonString } from "../utils/finishReason.ts";
 import {
   applyAntigravityClientProfileHeaders,
   removeHeaderCaseInsensitive,
@@ -59,6 +61,26 @@ import * as prl from "../utils/providerRequestLogging.ts";
 const MAX_RETRY_AFTER_MS = 60_000;
 const LONG_RETRY_THRESHOLD_MS = 60_000;
 const CREDITS_EXHAUSTED_TTL_MS = 5 * 60 * 60 * 1000; // 5 hours
+// Cap for transient 5xx backoff — shorter than the 429 cap to avoid long stalls on
+// infra hiccups ("Agent execution terminated", "high traffic", capacity errors).
+const ANTIGRAVITY_TRANSIENT_RETRY_MAX_MS = 15_000;
+
+const ANTIGRAVITY_TRANSIENT_ERROR_PATTERNS: RegExp[] = [
+  /high\s+traffic/i,
+  /agent\s+(execution\s+)?terminated\s+due\s+to\s+error/i,
+  /capacity/i,
+  /temporarily\s+unavailable/i,
+  /timeout/i,
+  /stream\s+(ended|closed|terminated|interrupted)/i,
+  /empty\s+response/i,
+];
+
+const ANTIGRAVITY_TRANSIENT_STATUSES = new Set([
+  HTTP_STATUS.SERVER_ERROR,
+  HTTP_STATUS.BAD_GATEWAY,
+  HTTP_STATUS.SERVICE_UNAVAILABLE,
+  HTTP_STATUS.GATEWAY_TIMEOUT,
+]);
 // The upstream API uses plain model IDs (no -high/-low suffix).
 // Tier suffixes were speculative and caused 404 for gemini-3.x models — the
 // bare-Pro→Low normalization was retired (the set stayed empty, making the guard
@@ -381,10 +403,9 @@ export function processAntigravitySSEPayload(
       }
     }
     if (candidate?.finishReason) {
-      collected.finishReason =
-        candidate.finishReason.toLowerCase() === "stop"
-          ? "stop"
-          : candidate.finishReason.toLowerCase();
+      collected.finishReason = normalizeOpenAICompatibleFinishReasonString(
+        String(candidate.finishReason).toLowerCase()
+      );
     }
     if (parsed?.response?.usageMetadata) {
       const um = parsed.response.usageMetadata;
@@ -494,6 +515,17 @@ function getRequestTargetModel(body: Record<string, unknown>): string {
   return typeof target === "string" && target.length > 0 ? target : "unknown";
 }
 
+/**
+ * Hard ceiling on `generationConfig.maxOutputTokens` for Antigravity Cloud Code.
+ *
+ * Ports decolua/9router#779 (lukmanfauzie): VS Code GitHub Copilot Chat in
+ * Agent mode regularly requests 32K–65K output tokens, which the Antigravity
+ * backend rejects with HTTP 400 "Invalid Argument". 16384 matches the
+ * upstream-accepted ceiling confirmed via successful 200 OK runs with
+ * claude-sonnet-4-6 and gemini-3.1-pro-high across both Ask and Agent modes.
+ */
+export const MAX_ANTIGRAVITY_OUTPUT_TOKENS = 16384;
+
 function applyAntigravityGenerationDefaults(request: Record<string, unknown>): void {
   const generationConfig =
     request.generationConfig && typeof request.generationConfig === "object"
@@ -521,8 +553,22 @@ function applyAntigravityGenerationDefaults(request: Record<string, unknown>): v
     generationConfig.maxOutputTokens = Math.floor(thinkingBudget) + 1;
   }
 
+  // Final cap (after the thinkingBudget bump may have raised the value):
+  // GitHub Copilot Agent envelopes commonly carry oversized maxOutputTokens
+  // (32K–65K) that trigger upstream 400 "Invalid Argument". Clamp silently
+  // — the cap is provider-driven, not client-driven, and only matters when
+  // the request would otherwise be rejected outright.
+  const finalMax = Number(generationConfig.maxOutputTokens);
+  if (Number.isFinite(finalMax) && finalMax > MAX_ANTIGRAVITY_OUTPUT_TOKENS) {
+    generationConfig.maxOutputTokens = MAX_ANTIGRAVITY_OUTPUT_TOKENS;
+  }
+
   request.generationConfig = generationConfig;
 }
+
+// Test-only export so the unit suite can exercise the cap logic in isolation
+// without spinning up the full executor.
+export const __test_applyAntigravityGenerationDefaults = applyAntigravityGenerationDefaults;
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -557,6 +603,14 @@ function sanitizeAntigravityGeminiRequest(
 
   if (typeof request.sessionId === "string") {
     clean.sessionId = request.sessionId;
+  }
+
+  // #5003: preserve safetySettings through the Claude-path whitelist so the all-OFF
+  // default (or a caller-supplied value) actually reaches Google Cloud Code. Without
+  // this the field is dropped and Google applies its own safety defaults that
+  // false-flag benign technical prompts as `prohibited_content`.
+  if (Array.isArray(request.safetySettings)) {
+    clean.safetySettings = request.safetySettings;
   }
 
   return clean;
@@ -625,7 +679,7 @@ export class AntigravityExecutor extends BaseExecutor {
     // Auto-discover a missing projectId via loadCodeAssist before failing (#2334/#2541).
     // A freshly re-added Antigravity account can have an empty stored projectId even when
     // its Google account already owns a Cloud Code project (the OAuth-time loadCodeAssist
-    // returned empty/transiently failed). Mirror gemini-cli.ts's bootstrap to recover it
+    // returned empty/transiently failed). Mirror the Cloud Code bootstrap to recover it
     // here — the helper memoizes per access-token, so this is a one-time round-trip.
     if (!projectId && credentials?.accessToken) {
       const discovered = await ensureAntigravityProjectAssigned(credentials.accessToken);
@@ -729,7 +783,12 @@ export class AntigravityExecutor extends BaseExecutor {
         credentials,
         typeof normalizedRequest?.sessionId === "string" ? normalizedRequest.sessionId : undefined
       ),
-      safetySettings: undefined,
+      // #5003: default to all-OFF safety for parity with the native Gemini paths
+      // (claude-to-gemini / openai-to-gemini both default to DEFAULT_SAFETY_SETTINGS).
+      // Previously this was `undefined`, which JSON.stringify drops, so Google Cloud Code
+      // applied its server-side defaults that false-flag benign technical prompts as
+      // `prohibited_content` (HTTP 200 + blocked body → terminal combo failover).
+      safetySettings: normalizedRequest?.safetySettings ?? DEFAULT_SAFETY_SETTINGS,
       toolConfig:
         Array.isArray(normalizedRequest?.tools) && normalizedRequest.tools.length > 0
           ? { functionCallingConfig: { mode: "VALIDATED" } }
@@ -845,7 +904,7 @@ export class AntigravityExecutor extends BaseExecutor {
       return {
         accessToken: typeof tokens.access_token === "string" ? tokens.access_token : undefined,
         refreshToken:
-          typeof tokens.refresh_token === "string"
+          typeof tokens.refresh_token === "string" && tokens.refresh_token
             ? tokens.refresh_token
             : credentials.refreshToken,
         expiresIn: typeof tokens.expires_in === "number" ? tokens.expires_in : undefined,
@@ -916,6 +975,40 @@ export class AntigravityExecutor extends BaseExecutor {
     if (totalMs === 0) return 2_000; // 2s minimum burst-limit backoff
 
     return totalMs;
+  }
+
+  /**
+   * Flatten an Antigravity error JSON + raw body text into a single string so
+   * isTransientAntigravityError can match against body patterns.
+   */
+  extractErrorMessage(errorJson: unknown, bodyText = ""): string {
+    const candidates: string[] = [];
+    if (errorJson && typeof errorJson === "object") {
+      const obj = errorJson as Record<string, unknown>;
+      const errField = obj.error;
+      if (errField && typeof errField === "object") {
+        const msg = (errField as Record<string, unknown>).message;
+        if (typeof msg === "string") candidates.push(msg);
+        else if (msg != null) candidates.push(JSON.stringify(msg));
+      } else if (typeof errField === "string") {
+        candidates.push(errField);
+      }
+      if (typeof obj.message === "string") candidates.push(obj.message);
+    }
+    if (bodyText) candidates.push(bodyText);
+    return candidates.filter(Boolean).join("\n");
+  }
+
+  /**
+   * Return true when a status + error message combination should be retried
+   * with exponential backoff instead of immediately failing-over to the next URL.
+   * 429 is always transient. Transient 5xx statuses (500/502/503/504) are also
+   * retried when the body contains a known capacity/traffic/agent pattern.
+   */
+  isTransientAntigravityError(status: number, message: string): boolean {
+    if (status === HTTP_STATUS.RATE_LIMITED) return true;
+    if (ANTIGRAVITY_TRANSIENT_STATUSES.has(status)) return true;
+    return ANTIGRAVITY_TRANSIENT_ERROR_PATTERNS.some((p) => p.test(message || ""));
   }
 
   /**
@@ -1430,25 +1523,42 @@ export class AntigravityExecutor extends BaseExecutor {
             continue;
           }
 
-          // Auto retry only for 429 when retryMs is 0 or undefined
-          if (
-            response.status === HTTP_STATUS.RATE_LIMITED &&
-            (!retryMs || retryMs === 0) &&
-            retryAttemptsByUrl[urlIndex] < MAX_AUTO_RETRIES
-          ) {
-            retryAttemptsByUrl[urlIndex]++;
-            // Exponential backoff: 2s, 4s, 8s...
-            const backoffMs = Math.min(
-              1000 * 2 ** retryAttemptsByUrl[urlIndex],
-              MAX_RETRY_AFTER_MS
-            );
-            log?.debug?.(
-              "RETRY",
-              `429 auto retry ${retryAttemptsByUrl[urlIndex]}/${MAX_AUTO_RETRIES} after ${backoffMs / 1000}s`
-            );
-            await new Promise((resolve) => setTimeout(resolve, backoffMs));
-            urlIndex--;
-            continue;
+          // Auto retry for 429 (no Retry-After) or transient 5xx errors.
+          // For 5xx we read the body to detect known transient patterns
+          // ("Agent execution terminated due to error", "high traffic", "capacity").
+          if ((!retryMs || retryMs === 0) && retryAttemptsByUrl[urlIndex] < MAX_AUTO_RETRIES) {
+            let shouldAutoRetry = response.status === HTTP_STATUS.RATE_LIMITED;
+            if (!shouldAutoRetry && ANTIGRAVITY_TRANSIENT_STATUSES.has(response.status)) {
+              try {
+                const errBody = await response.clone().text();
+                let errJson: unknown = null;
+                try {
+                  errJson = errBody ? JSON.parse(errBody) : null;
+                } catch {
+                  // non-JSON body — fall through to pattern match against raw text
+                }
+                const errMsg = this.extractErrorMessage(errJson, errBody);
+                shouldAutoRetry = this.isTransientAntigravityError(response.status, errMsg);
+              } catch {
+                // ignore body read errors
+              }
+            }
+            if (shouldAutoRetry) {
+              retryAttemptsByUrl[urlIndex]++;
+              // Exponential backoff: 2s, 4s, 8s… capped per-status
+              const cap =
+                response.status === HTTP_STATUS.RATE_LIMITED
+                  ? MAX_RETRY_AFTER_MS
+                  : ANTIGRAVITY_TRANSIENT_RETRY_MAX_MS;
+              const backoffMs = Math.min(1000 * 2 ** retryAttemptsByUrl[urlIndex], cap);
+              log?.debug?.(
+                "RETRY",
+                `${response.status} transient auto retry ${retryAttemptsByUrl[urlIndex]}/${MAX_AUTO_RETRIES} after ${backoffMs / 1000}s`
+              );
+              await new Promise((resolve) => setTimeout(resolve, backoffMs));
+              urlIndex--;
+              continue;
+            }
           }
 
           log?.debug?.(

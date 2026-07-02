@@ -26,9 +26,30 @@ interface Connection {
   isActive?: boolean;
 }
 
+interface InlineProxy {
+  type: string;
+  host: string;
+  port: number;
+  username?: string;
+  password?: string;
+}
+
+// #5217 (Gap 1): an account proxy is now stored as EITHER a Proxy Pool reference
+// (`proxyId`, resolved server-side so a pool edit propagates to every account) OR
+// a one-off inline `proxy` (the "custom" escape hatch / legacy entries).
 interface AccountProxyConfig {
   fingerprint: string;
-  proxy: { type: string; host: string; port: number; username?: string; password?: string } | null;
+  proxy?: InlineProxy | null;
+  proxyId?: string | null;
+}
+
+interface SavedProxy {
+  id: string;
+  name?: string;
+  type?: string;
+  host?: string;
+  port?: number | string;
+  status?: string;
 }
 
 const PROXY_TYPES = [
@@ -41,8 +62,26 @@ function getAccountProxies(conn: Connection | undefined): AccountProxyConfig[] {
   return (conn?.providerSpecificData?.accountProxies as AccountProxyConfig[]) || [];
 }
 
-function getProxyForFingerprint(proxies: AccountProxyConfig[], fp: string) {
-  return proxies.find((p) => p.fingerprint === fp)?.proxy ?? null;
+function getEntryForFingerprint(proxies: AccountProxyConfig[], fp: string) {
+  return proxies.find((p) => p.fingerprint === fp) ?? null;
+}
+
+/**
+ * Resolve the proxy to DISPLAY for an account: a by-id reference is looked up in
+ * the Proxy Pool list, an inline proxy is shown directly. Returns null (direct)
+ * when there is no entry or the referenced pool proxy no longer exists.
+ */
+function getDisplayProxy(
+  entry: AccountProxyConfig | null,
+  savedProxies: SavedProxy[]
+): InlineProxy | null {
+  if (!entry) return null;
+  if (entry.proxyId) {
+    const found = savedProxies.find((p) => p.id === entry.proxyId);
+    if (!found || !found.host) return null;
+    return { type: found.type || "socks5", host: found.host, port: Number(found.port) || 0 };
+  }
+  return entry.proxy ?? null;
 }
 
 export default function NoAuthAccountCard({
@@ -60,6 +99,9 @@ export default function NoAuthAccountCard({
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [proxyAccountId, setProxyAccountId] = useState<string | null>(null);
+  const [proxyMode, setProxyMode] = useState<"saved" | "custom">("saved");
+  const [savedProxies, setSavedProxies] = useState<SavedProxy[]>([]);
+  const [selectedProxyId, setSelectedProxyId] = useState("");
   const [proxyType, setProxyType] = useState("socks5");
   const [proxyHost, setProxyHost] = useState("");
   const [proxyPort, setProxyPort] = useState("1080");
@@ -85,9 +127,22 @@ export default function NoAuthAccountCard({
     }
   }, [providerId]);
 
+  const fetchSavedProxies = useCallback(async () => {
+    try {
+      const res = await fetch("/api/settings/proxies");
+      if (res.ok) {
+        const data = await res.json();
+        setSavedProxies(Array.isArray(data?.items) ? data.items : []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch saved proxies:", err);
+    }
+  }, []);
+
   useEffect(() => {
     void fetchConnections();
-  }, [fetchConnections]);
+    void fetchSavedProxies();
+  }, [fetchConnections, fetchSavedProxies]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -162,19 +217,27 @@ export default function NoAuthAccountCard({
   };
 
   const openProxyConfig = (accountId: string) => {
-    const existing = getProxyForFingerprint(accountProxies, accountId);
-    if (existing) {
-      setProxyType(existing.type);
-      setProxyHost(existing.host);
-      setProxyPort(String(existing.port));
-      setProxyUsername(existing.username || "");
-      setProxyPassword(existing.password || "");
+    const existing = getEntryForFingerprint(accountProxies, accountId);
+    // Reset custom-form fields, then prefill from whichever shape was stored.
+    setProxyType("socks5");
+    setProxyHost("");
+    setProxyPort("1080");
+    setProxyUsername("");
+    setProxyPassword("");
+    setSelectedProxyId("");
+    if (existing?.proxyId) {
+      setProxyMode("saved");
+      setSelectedProxyId(existing.proxyId);
+    } else if (existing?.proxy?.host) {
+      setProxyMode("custom");
+      setProxyType(existing.proxy.type);
+      setProxyHost(existing.proxy.host);
+      setProxyPort(String(existing.proxy.port));
+      setProxyUsername(existing.proxy.username || "");
+      setProxyPassword(existing.proxy.password || "");
     } else {
-      setProxyType("socks5");
-      setProxyHost("");
-      setProxyPort("1080");
-      setProxyUsername("");
-      setProxyPassword("");
+      // New: default to the Proxy Pool dropdown when pool entries exist.
+      setProxyMode(savedProxies.length > 0 ? "saved" : "custom");
     }
     setProxyAccountId(accountId);
   };
@@ -183,21 +246,30 @@ export default function NoAuthAccountCard({
     if (!conn || !proxyAccountId) return;
     setSavingProxy(true);
     try {
-      const trimmedHost = proxyHost.trim();
-      const newProxy: AccountProxyConfig["proxy"] = trimmedHost
-        ? {
-            type: proxyType,
-            host: trimmedHost,
-            port: Number(proxyPort) || 1080,
-            ...(proxyUsername.trim() ? { username: proxyUsername.trim() } : {}),
-            ...(proxyPassword.trim() ? { password: proxyPassword.trim() } : {}),
-          }
-        : null;
+      const others = accountProxies.filter((p) => p.fingerprint !== proxyAccountId);
+      let newEntry: AccountProxyConfig | null = null;
+      if (proxyMode === "saved") {
+        // Store a REFERENCE (by id); server resolves it to a live proxy record.
+        newEntry = selectedProxyId
+          ? { fingerprint: proxyAccountId, proxyId: selectedProxyId }
+          : null;
+      } else {
+        const trimmedHost = proxyHost.trim();
+        newEntry = trimmedHost
+          ? {
+              fingerprint: proxyAccountId,
+              proxy: {
+                type: proxyType,
+                host: trimmedHost,
+                port: Number(proxyPort) || 1080,
+                ...(proxyUsername.trim() ? { username: proxyUsername.trim() } : {}),
+                ...(proxyPassword.trim() ? { password: proxyPassword.trim() } : {}),
+              },
+            }
+          : null;
+      }
 
-      const existing = accountProxies.filter((p) => p.fingerprint !== proxyAccountId);
-      const updatedProxies = newProxy
-        ? [...existing, { fingerprint: proxyAccountId, proxy: newProxy }]
-        : existing;
+      const updatedProxies = newEntry ? [...others, newEntry] : others;
 
       const res = await fetch(`/api/providers/${conn.id}`, {
         method: "PUT",
@@ -228,19 +300,12 @@ export default function NoAuthAccountCard({
       throw new Error("No saved proxies found. Add proxies in Settings → Proxy first.");
     }
 
-    const updatedProxies: AccountProxyConfig[] = allAccountIds.map((fp, i) => {
-      const proxy = savedProxies[i % savedProxies.length];
-      return {
-        fingerprint: fp,
-        proxy: {
-          type: proxy.type || "socks5",
-          host: proxy.host,
-          port: proxy.port,
-          ...(proxy.username ? { username: proxy.username } : {}),
-          ...(proxy.password ? { password: proxy.password } : {}),
-        },
-      };
-    });
+    // #5217 (Gap 1): distribute stores by-id references too, so editing a pool
+    // proxy later propagates to every account it was distributed to.
+    const updatedProxies: AccountProxyConfig[] = allAccountIds.map((fp, i) => ({
+      fingerprint: fp,
+      proxyId: savedProxies[i % savedProxies.length].id,
+    }));
 
     const res = await fetch(`/api/providers/${conn.id}`, {
       method: "PUT",
@@ -305,7 +370,7 @@ export default function NoAuthAccountCard({
             className="grid max-h-72 grid-cols-1 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3"
           >
             {allAccountIds.map((id, i) => {
-              const proxy = getProxyForFingerprint(accountProxies, id);
+              const proxy = getDisplayProxy(getEntryForFingerprint(accountProxies, id), savedProxies);
               return (
                 <div
                   key={id}
@@ -360,47 +425,95 @@ export default function NoAuthAccountCard({
                 Proxy for Account {allAccountIds.indexOf(proxyAccountId) + 1}
               </p>
               <div className="space-y-3">
-                <div className="flex gap-2">
-                  <select
-                    value={proxyType}
-                    onChange={(e) => setProxyType(e.target.value)}
-                    className="flex-shrink-0 rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
+                {/* #5217 (Gap 1): pick a pre-saved Proxy Pool entry by reference,
+                    or fall back to a one-off custom proxy. */}
+                <div className="flex gap-1 rounded-lg border border-border bg-bg-subtle p-1">
+                  <button
+                    type="button"
+                    onClick={() => setProxyMode("saved")}
+                    className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                      proxyMode === "saved"
+                        ? "bg-primary text-white"
+                        : "text-text-muted hover:text-text-main"
+                    }`}
                   >
-                    {PROXY_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>
-                        {t.label}
+                    Saved
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProxyMode("custom")}
+                    className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                      proxyMode === "custom"
+                        ? "bg-primary text-white"
+                        : "text-text-muted hover:text-text-main"
+                    }`}
+                  >
+                    Custom
+                  </button>
+                </div>
+
+                {proxyMode === "saved" ? (
+                  <select
+                    value={selectedProxyId}
+                    onChange={(e) => setSelectedProxyId(e.target.value)}
+                    className="w-full rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
+                  >
+                    <option value="">
+                      {savedProxies.length === 0
+                        ? "No saved proxies — add one in Settings → Proxy"
+                        : "Direct (no proxy)"}
+                    </option>
+                    {savedProxies.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {(p.name || p.host) ?? p.id} ({p.type || "socks5"}://{p.host}:{p.port})
                       </option>
                     ))}
                   </select>
-                  <input
-                    type="text"
-                    value={proxyHost}
-                    onChange={(e) => setProxyHost(e.target.value)}
-                    placeholder="Host"
-                    className="flex-1 rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
-                  />
-                  <input
-                    type="text"
-                    value={proxyPort}
-                    onChange={(e) => setProxyPort(e.target.value)}
-                    placeholder="Port"
-                    className="w-16 rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
-                  />
-                </div>
-                <input
-                  type="text"
-                  value={proxyUsername}
-                  onChange={(e) => setProxyUsername(e.target.value)}
-                  placeholder="Username (optional)"
-                  className="w-full rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
-                />
-                <input
-                  type="password"
-                  value={proxyPassword}
-                  onChange={(e) => setProxyPassword(e.target.value)}
-                  placeholder="Password (optional)"
-                  className="w-full rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
-                />
+                ) : (
+                  <>
+                    <div className="flex gap-2">
+                      <select
+                        value={proxyType}
+                        onChange={(e) => setProxyType(e.target.value)}
+                        className="flex-shrink-0 rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
+                      >
+                        {PROXY_TYPES.map((t) => (
+                          <option key={t.value} value={t.value}>
+                            {t.label}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="text"
+                        value={proxyHost}
+                        onChange={(e) => setProxyHost(e.target.value)}
+                        placeholder="Host"
+                        className="flex-1 rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
+                      />
+                      <input
+                        type="text"
+                        value={proxyPort}
+                        onChange={(e) => setProxyPort(e.target.value)}
+                        placeholder="Port"
+                        className="w-16 rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      value={proxyUsername}
+                      onChange={(e) => setProxyUsername(e.target.value)}
+                      placeholder="Username (optional)"
+                      className="w-full rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
+                    />
+                    <input
+                      type="password"
+                      value={proxyPassword}
+                      onChange={(e) => setProxyPassword(e.target.value)}
+                      placeholder="Password (optional)"
+                      className="w-full rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
+                    />
+                  </>
+                )}
                 <div className="flex justify-end gap-2 pt-1">
                   <button
                     onClick={() => setProxyAccountId(null)}

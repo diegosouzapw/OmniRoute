@@ -25,7 +25,7 @@ import { randomUUID } from "node:crypto";
 let clientPromise: Promise<unknown> | null = null;
 let exitHookInstalled = false;
 
-const GROK_PROFILE = "chrome_146"; // closest Chrome profile to the UA we send
+const GROK_PROFILE = "chrome_149"; // closest Chrome profile to the UA we send
 const DEFAULT_TIMEOUT_MS =
   Number.parseInt(process.env.OMNIROUTE_GROK_TLS_TIMEOUT_MS || "", 10) || 60_000;
 // Grace period added to the binding's wire-level timeout before our JS-level

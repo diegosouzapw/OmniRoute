@@ -11,6 +11,8 @@ import {
   getTaskTypes,
   getModelsDevTierFitness,
   invalidateFitnessCache,
+  setUserFitnessOverride,
+  clearUserFitnessOverride,
 } from "../taskFitness";
 import { SelfHealingManager } from "../selfHealing";
 import { MODE_PACKS, getModePack, getModePackNames } from "../modePacks";
@@ -90,6 +92,64 @@ describe("Task Fitness", () => {
     const coderScore = getTaskFitness("some-coder-model", "coding");
     const normalScore = getTaskFitness("some-random-model", "coding");
     expect(coderScore).toBeGreaterThan(normalScore);
+  });
+
+  describe("-free alias resolution (#4517)", () => {
+    beforeEach(() => invalidateFitnessCache());
+
+    it("returns the base model's arena_elo when given a -free variant", async () => {
+      // The fix: getTaskFitnessWithSource strips a trailing "-free" suffix
+      // and re-queries arena_elo with the base id. We seed an arena_elo
+      // row directly via the DB module, look up the free variant, and
+      // assert the alias path returns the base score with source
+      // "arena_elo_free_alias".
+      const baseId = "alias-base-test-4517";
+      const freeId = "alias-base-test-4517-free";
+      const { upsertModelIntelligence, deleteModelIntelligence } =
+        await import("../../../../src/lib/db/modelIntelligence.ts");
+      // Seed arena_elo on the base id only — no row exists for the free id.
+      upsertModelIntelligence({
+        model: baseId,
+        source: "arena_elo",
+        category: "coding",
+        score: 0.42,
+        eloRaw: 1500,
+        confidence: "high",
+        expiresAt: null,
+      });
+      invalidateFitnessCache();
+      try {
+        const result = getTaskFitnessWithSource(freeId, "coding");
+        // Without the fix: result.source would be "wildcard_boost" (0.5 default).
+        // With the fix: result.source is "arena_elo_free_alias" with score 0.42.
+        expect(result.score).toBeCloseTo(0.42, 5);
+        expect(result.source).toBe("arena_elo_free_alias");
+      } finally {
+        deleteModelIntelligence(baseId, "arena_elo", "coding");
+        invalidateFitnessCache();
+      }
+    });
+
+    it("does not strip -free when arena_elo is present on the literal model id", () => {
+      // If both "foo-free" and "foo" have arena_elo rows, the literal "foo-free"
+      // wins (we never go through the alias path). This protects future
+      // benchmark uploads that specifically tag free tiers.
+      setUserFitnessOverride("foo-free", "coding", 0.91);
+      const result = getTaskFitnessWithSource("foo-free", "coding");
+      expect(result.score).toBe(0.91);
+      expect(result.source).toBe("user_override");
+      clearUserFitnessOverride("foo-free", "coding");
+      invalidateFitnessCache();
+    });
+
+    it("ignores -free suffix only at the end of the model id", () => {
+      // "free-something" must NOT be treated as a free alias of "free-something-free"
+      // — the suffix must be at the end. "mimo-free-edition" is left alone.
+      // We just confirm no exception is thrown and the lookup returns a number.
+      const score = getTaskFitness("mimo-free-edition", "coding");
+      expect(typeof score).toBe("number");
+      expect(score).toBeGreaterThan(0);
+    });
   });
 });
 

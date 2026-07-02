@@ -28,6 +28,53 @@ function formatAutoRefreshCountdown(ms: number): string {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
+export function AutoRefreshButtonLabel({
+  autoRefreshIntervalMs,
+  lastRefreshAllAt,
+  refreshingAll,
+  tr,
+}: {
+  autoRefreshIntervalMs: number;
+  lastRefreshAllAt: number;
+  refreshingAll: boolean;
+  tr: (key: string, fallback: string) => string;
+}) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (autoRefreshIntervalMs <= 0 || refreshingAll) return;
+
+    const tick = () => setNow(Date.now());
+    tick();
+
+    const timer = window.setInterval(tick, 1000);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [autoRefreshIntervalMs, refreshingAll, lastRefreshAllAt]);
+
+  if (refreshingAll) {
+    return <>{tr("refreshing", "Refreshing")}</>;
+  }
+
+  if (autoRefreshIntervalMs <= 0) {
+    return <>{tr("refreshAll", "Refresh All")}</>;
+  }
+
+  return (
+    <>
+      {tr("autoRefreshing", "Auto-refreshing")}{" "}
+      {formatAutoRefreshCountdown(Math.max(0, autoRefreshIntervalMs - (now - lastRefreshAllAt)))}
+    </>
+  );
+}
+
 export default function ProviderQuotaWidget({ autoRefreshInterval = 0 }: ProviderQuotaWidgetProps) {
   const t = useTranslations("usage");
   const tr = useCallback(
@@ -42,8 +89,8 @@ export default function ProviderQuotaWidget({ autoRefreshInterval = 0 }: Provide
 
   const refreshingAllRef = useRef(false);
   const lastRefreshAllAtRef = useRef(Date.now());
+  const [lastRefreshAllAt, setLastRefreshAllAt] = useState(() => lastRefreshAllAtRef.current);
   const autoRefreshIntervalMs = autoRefreshInterval > 0 ? autoRefreshInterval * 1000 : 0;
-  const [autoRefreshClock, setAutoRefreshClock] = useState(() => Date.now());
 
   const fetchConnections = useCallback(async () => {
     try {
@@ -87,30 +134,12 @@ export default function ProviderQuotaWidget({ autoRefreshInterval = 0 }: Provide
     loadData();
   }, [loadData]);
 
-  useEffect(() => {
-    if (autoRefreshIntervalMs <= 0) return;
-
-    const tick = () => setAutoRefreshClock(Date.now());
-    tick();
-
-    const timer = window.setInterval(tick, 1000);
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") tick();
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      window.clearInterval(timer);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [autoRefreshIntervalMs]);
-
   const refreshAll = useCallback(async () => {
     if (refreshingAllRef.current) return;
     refreshingAllRef.current = true;
     const now = Date.now();
     lastRefreshAllAtRef.current = now;
-    setAutoRefreshClock(now);
+    setLastRefreshAllAt(now);
     setRefreshingAll(true);
 
     try {
@@ -120,31 +149,36 @@ export default function ProviderQuotaWidget({ autoRefreshInterval = 0 }: Provide
         throw new Error(err.error || "Refresh failed");
       }
       const data = await res.json();
-      // Re-fetch connections + caches to get fresh state
-      const [conns, caches] = await Promise.all([fetchConnections(), fetchCached()]);
-      const relevant = conns.filter(
-        (c) =>
-          USAGE_SUPPORTED_PROVIDERS.includes(c.provider) &&
-          (c.authType === "oauth" || c.authType === "apikey")
-      );
-      setConnections(relevant);
-      setQuotaData(caches || data.caches || {});
+      setQuotaData(data.caches || {});
     } catch (e) {
       console.error("ProviderQuotaWidget refreshAll error:", e);
     } finally {
       refreshingAllRef.current = false;
       setRefreshingAll(false);
     }
-  }, [fetchConnections, fetchCached]);
+  }, []);
 
   useEffect(() => {
     if (autoRefreshIntervalMs <= 0) return;
-    if (document.visibilityState !== "visible") return;
-    if (refreshingAllRef.current) return;
-    if (autoRefreshClock - lastRefreshAllAtRef.current >= autoRefreshIntervalMs) {
-      void refreshAll();
-    }
-  }, [autoRefreshClock, autoRefreshIntervalMs, refreshAll]);
+
+    const maybeRefresh = () => {
+      if (document.visibilityState !== "visible") return;
+      if (refreshingAllRef.current) return;
+      if (Date.now() - lastRefreshAllAtRef.current >= autoRefreshIntervalMs) {
+        void refreshAll();
+      }
+    };
+
+    maybeRefresh();
+    const timer = window.setInterval(maybeRefresh, 1000);
+    const handleVisibilityChange = () => maybeRefresh();
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [autoRefreshIntervalMs, refreshAll]);
 
   // Simple summary: group by provider for display
   const providerGroups = connections.reduce<Record<string, Connection[]>>((acc, conn) => {
@@ -187,16 +221,12 @@ export default function ProviderQuotaWidget({ autoRefreshInterval = 0 }: Provide
             {autoRefreshIntervalMs > 0 ? "schedule" : "refresh"}
           </span>
           <span>
-            {refreshingAll
-              ? tr("refreshing", "Refreshing")
-              : autoRefreshIntervalMs > 0
-                ? `${tr("autoRefreshing", "Auto-refreshing")} ${formatAutoRefreshCountdown(
-                    Math.max(
-                      0,
-                      autoRefreshIntervalMs - (autoRefreshClock - lastRefreshAllAtRef.current)
-                    )
-                  )}`
-                : tr("refreshAll", "Refresh All")}
+            <AutoRefreshButtonLabel
+              autoRefreshIntervalMs={autoRefreshIntervalMs}
+              lastRefreshAllAt={lastRefreshAllAt}
+              refreshingAll={refreshingAll}
+              tr={tr}
+            />
           </span>
         </button>
       </div>

@@ -50,11 +50,17 @@ export function mergeClientAnthropicBeta(
   clientBeta: string | null | undefined,
   allow: readonly string[] = FORWARDABLE_CLIENT_BETAS
 ): string {
-  const baseList = base.split(",").map((s) => s.trim()).filter(Boolean);
+  const baseList = base
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   if (typeof clientBeta !== "string" || !clientBeta.trim()) return baseList.join(",");
   const seen = new Set(baseList.map((s) => s.toLowerCase()));
   const allowSet = new Set(allow.map((s) => s.toLowerCase()));
-  for (const token of clientBeta.split(",").map((s) => s.trim()).filter(Boolean)) {
+  for (const token of clientBeta
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)) {
     const lower = token.toLowerCase();
     if (allowSet.has(lower) && !seen.has(lower)) {
       baseList.push(token);
@@ -64,7 +70,58 @@ export function mergeClientAnthropicBeta(
   return baseList.join(",");
 }
 
-export const CLAUDE_CLI_VERSION = "2.1.158";
+/**
+ * Collapse a list of comma-list header values into a deduped, trimmed token
+ * array. Empty/undefined/null entries are dropped. Used to reconcile the
+ * case-variant `anthropic-version` / `anthropic-beta` headers below.
+ */
+function uniqueCommaValues(values: Array<string | undefined | null>): string[] {
+  return [
+    ...new Set(
+      values
+        .filter((value) => value !== undefined && value !== null && value !== "")
+        .flatMap((value) => String(value).split(","))
+        .map((value) => value.trim())
+        .filter(Boolean)
+    ),
+  ];
+}
+
+/**
+ * Dedupe case-variant Anthropic headers in-place. Node/undici's fetch merges
+ * `anthropic-version` and `Anthropic-Version` into a single `"v, v"` value,
+ * which the Anthropic API rejects (#1475). Collapse both case variants down to
+ * one canonical lowercase header carrying a single value. Same for
+ * `anthropic-beta` (joined comma-list, deduped). Mutates `headers`.
+ */
+export function normalizeAnthropicHeaderVariants(headers: Record<string, string>): void {
+  // Only collapse when BOTH case variants are present simultaneously — that is the
+  // only situation undici merges into a rejected `"v, v"` value. A lone variant is
+  // sent fine on its own, so leave it untouched (preserving the caller's casing
+  // instead of silently rewriting it to lowercase).
+  if ("anthropic-version" in headers && "Anthropic-Version" in headers) {
+    const versionValues = uniqueCommaValues([
+      headers["anthropic-version"],
+      headers["Anthropic-Version"],
+    ]);
+    delete headers["Anthropic-Version"];
+    delete headers["anthropic-version"];
+    if (versionValues.length > 0) {
+      headers["anthropic-version"] = versionValues[0];
+    }
+  }
+
+  if ("anthropic-beta" in headers && "Anthropic-Beta" in headers) {
+    const betaValues = uniqueCommaValues([headers["anthropic-beta"], headers["Anthropic-Beta"]]);
+    delete headers["Anthropic-Beta"];
+    delete headers["anthropic-beta"];
+    if (betaValues.length > 0) {
+      headers["anthropic-beta"] = betaValues.join(",");
+    }
+  }
+}
+
+export const CLAUDE_CLI_VERSION = "2.1.195";
 export const CLAUDE_CLI_USER_AGENT = `claude-cli/${CLAUDE_CLI_VERSION} (external, cli)`;
 export const CLAUDE_CLI_STAINLESS_PACKAGE_VERSION = "0.94.0";
 export const CLAUDE_CLI_STAINLESS_RUNTIME_VERSION = "v24.3.0";

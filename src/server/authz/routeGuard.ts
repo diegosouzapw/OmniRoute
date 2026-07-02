@@ -22,6 +22,7 @@
  */
 
 import { getAuthzBypassSnapshot } from "@/lib/config/runtimeSettings";
+import { SPAWN_CAPABLE_PREFIXES } from "@/shared/constants/spawnCapablePrefixes";
 
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 
@@ -38,6 +39,9 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
   "/api/system/version", // auto-update: spawns git checkout + npm install — RCE-via-tunnel surface (Hard Rules #15 + #17, found by 6A.8 route-guard gate)
   "/api/db-backups/exportAll", // spawns tar for export archive (Hard Rules #15 + #17, found by 6A.8 route-guard gate)
   "/api/local/", // T-12: 1-click local service launchers (Redis today; spawns podman/docker) — loopback-enforced by isLocalRequestAllowed() in src/lib/security/localEndpoints.ts (Hard Rules #15 + #17)
+  "/api/headroom/start", // Headroom token-saver proxy lifecycle: spawns headroom-ai python CLI (Hard Rules #15 + #17)
+  "/api/headroom/stop", // Headroom token-saver proxy lifecycle: sends SIGTERM/SIGKILL to managed PID (Hard Rules #15 + #17)
+  "/api/oauth/cursor/auto-import", // spawns `execFile("which", ["cursor"])` to verify a local Cursor install before importing creds — RCE-via-tunnel surface (Hard Rules #15 + #17, found by 6A.8 route-guard gate). Specific path only: the rest of /api/oauth/ (browser redirect/callback flows) must stay remote-reachable.
 ];
 
 /**
@@ -56,29 +60,13 @@ export const LOCAL_ONLY_API_PATTERNS: ReadonlyArray<RegExp> = [
   /^\/api\/providers\/[^/]+\/login\/?$/,
 ];
 
-/**
- * Compile-time deny-list: route prefixes that can spawn arbitrary local
- * subprocesses on behalf of the caller. These MUST NEVER appear in the
- * manage-scope bypass list — regardless of DB state — because reaching them
- * from non-loopback would re-introduce the GHSA-fhh6-4qxv-rpqj surface that
- * the LOCAL_ONLY tier exists to close.
- *
- * Enforced at two layers:
- *   1. zod schema (`settingsSchemas.ts`): rejects `PATCH /api/settings` with
- *      error code `BYPASS_PREFIX_NOT_ALLOWED` if any entry in
- *      `localOnlyManageScopeBypassPrefixes` falls inside this set.
- *   2. runtime (`isLocalOnlyBypassableByManageScope` below): even if a
- *      malformed DB row somehow claims a spawn-capable path is bypassable,
- *      the policy still refuses to honour it.
- */
-export const SPAWN_CAPABLE_PREFIXES: ReadonlyArray<string> = [
-  "/api/cli-tools/runtime/",
-  "/api/services/", // T-10: can run npm install + spawn node processes
-  "/api/tools/agent-bridge/", // start/stop MITM server + DNS edits (Hard Rules #15 + #17)
-  "/api/tools/traffic-inspector/", // http-proxy listener + system proxy (Hard Rules #15 + #17)
-  "/api/plugins/", // plugins: load/execute via worker_threads + child_process (Hard Rules #15 + #17)
-  "/api/local/", // T-12: 1-click local service launchers (Redis today) — must never be whitelistable via manage-scope bypass (Hard Rules #15 + #17)
-];
+// `SPAWN_CAPABLE_PREFIXES` (the spawn-capable deny-list) now lives in the
+// server-free leaf module `@/shared/constants/spawnCapablePrefixes` so that
+// client-reachable validation schemas can import it without pulling this module's
+// server runtime (runtimeSettings → localDb → ioredis) into the browser bundle.
+// Imported above for the runtime check in `isLocalOnlyBypassableByManageScope`;
+// re-exported here so existing `@/server/authz/routeGuard` importers keep working.
+export { SPAWN_CAPABLE_PREFIXES };
 
 /**
  * Compile-time default of the manage-scope bypass list. Kept as an exported
@@ -134,6 +122,7 @@ export function classifyHostLocality(ip: string | null): "loopback" | "lan" | "r
  */
 const PRIVATE_LAN_PATTERNS: ReadonlyArray<RegExp> = [
   /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/,
+  /^100\.(6[4-9]|[78]\d|9\d|1[01]\d|12[0-7])\.\d{1,3}\.\d{1,3}$/,
   /^192\.168\.\d{1,3}\.\d{1,3}$/,
   /^172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}$/,
   /^f[cd][0-9a-f]{2}:/i, // IPv6 ULA fc00::/7
@@ -160,7 +149,46 @@ export function isPrivateLanHost(hostHeader: string | null): boolean {
   return PRIVATE_LAN_PATTERNS.some((re) => re.test(host));
 }
 
-export function isLocalOnlyPath(path: string): boolean {
+/**
+ * Paths that are LOCAL_ONLY for all write methods but may be accessed from
+ * non-loopback clients when the request method is GET, HEAD, or OPTIONS.
+ *
+ * Rule: a path belongs here only when the read methods perform NO child-process
+ * spawn and expose NO privileged mutation — only the write methods do.
+ *
+ * Current exemptions:
+ *   /api/system/version — GET reads package.json + npm registry; only POST
+ *   triggers the auto-update flow (spawns git checkout + npm install + pm2).
+ *   Hard Rules #15/#17 still apply to POST.
+ */
+export const LOCAL_ONLY_API_GET_EXEMPTIONS: ReadonlySet<string> = new Set([
+  "/api/system/version",
+]);
+
+/** Safe HTTP methods that can be exempted for read-only paths. */
+const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
+/**
+ * Returns true when `path` is a local-only route that must be blocked from
+ * non-loopback / non-LAN callers.
+ *
+ * @param path    Normalized request path (e.g. "/api/mcp/sse").
+ * @param method  Optional HTTP method. When provided and the method is a safe
+ *                read-only method (GET/HEAD/OPTIONS) AND the path exactly
+ *                matches an entry in `LOCAL_ONLY_API_GET_EXEMPTIONS`, this
+ *                function returns false — i.e. the path is NOT local-only for
+ *                that specific safe method.  With no method argument (e.g.
+ *                from security-scan scripts that test paths without a method),
+ *                the function returns true (safe default) to preserve the
+ *                conservative classification used by `check-route-guard-membership`.
+ */
+export function isLocalOnlyPath(path: string, method?: string): boolean {
+  // Method-aware GET exemption: only exact-match paths in the exemption set
+  // are eligible; prefix/wildcard matching is intentionally NOT used to avoid
+  // accidentally opening sub-paths of a spawn-capable route.
+  if (method && SAFE_METHODS.has(method.toUpperCase()) && LOCAL_ONLY_API_GET_EXEMPTIONS.has(path)) {
+    return false;
+  }
   return (
     LOCAL_ONLY_API_PREFIXES.some((p) => path === p || path.startsWith(p)) ||
     LOCAL_ONLY_API_PATTERNS.some((re) => re.test(path))

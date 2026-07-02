@@ -181,8 +181,7 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 1. Periksa statistik penggunaan di Dashboard → Penggunaan
 2. Beralih model utama ke GLM/MiniMax
-3. Gunakan tier gratis (Gemini CLI, Qoder) untuk tugas yang tidak kritis
-4. Atur anggaran biaya per API key: Dashboard → API Keys → Anggaran
+3. Atur anggaran biaya per API key: Dashboard → API Keys → Anggaran
 
 ---
 

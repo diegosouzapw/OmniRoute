@@ -20,13 +20,24 @@ import { randomUUID } from "crypto";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
-import type { WsClientMessage, WsServerMessage, WsAuthResult } from "./types";
+import type {
+  WsClientMessage,
+  WsServerMessage,
+  WsEventMessage,
+  WsAuthResult,
+} from "./types";
 
 import { emit, on, onAny, getEventHistory, type HistoryEntry } from "@/lib/events/eventBus";
 
 import type { DashboardEventName, DashboardEventMap, DashboardChannel } from "@/lib/events/types";
 
 import { CHANNEL_EVENTS, getChannelForEvent } from "@/lib/events/types";
+
+import {
+  buildAllowedOrigins,
+  buildAllowedHosts,
+  isOriginAllowed as isOriginAllowedPure,
+} from "./liveServerAllowList";
 
 // ── Config ────────────────────────────────────────────────────────────────
 
@@ -42,36 +53,21 @@ const MAX_EVENTS_PER_SECOND = 100;
 const MAX_PENDING_MESSAGES_PER_CLIENT = 32;
 const MAX_PENDING_MESSAGE_BYTES = 16_384;
 
-/**
- * Origins allowed to open a WebSocket. Defaults to the loopback dashboard
- * origins; admins can extend via LIVE_WS_ALLOWED_ORIGINS (comma-separated).
- *
- * WS does not honour CORS — a malicious page on origin X can otherwise open
- * a WebSocket to our server and ride the user's API key (if it lives in a
- * cookie or is reachable through the page). Browsers DO send the Origin
- * header on the WS upgrade, so checking it server-side is the standard
- * mitigation. Non-browser clients (CLI, MCP) omit Origin, which we accept.
- */
-function buildAllowedOrigins(): Set<string> {
-  const base = [`http://127.0.0.1:20128`, `http://localhost:20128`, `http://[::1]:20128`];
-  const extra = (process.env.LIVE_WS_ALLOWED_ORIGINS || "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-  return new Set([...base, ...extra]);
-}
-
 const ALLOWED_ORIGINS = buildAllowedOrigins();
+const ALLOWED_HOSTS = buildAllowedHosts();
 
+/**
+ * Whether the given Origin is acceptable for a WS upgrade.
+ *
+ * Delegates to `liveServerAllowList` for the actual policy; this wrapper
+ * exists so the connection handler can read the closure-bound allow-lists
+ * without re-parsing env on every connection.
+ */
 function isOriginAllowed(origin: string | undefined): boolean {
-  // Non-browser client (curl, native ws, MCP) — Origin header is omitted by
-  // spec. Allow only when the upstream listener is bound to loopback; if the
-  // operator opted into LAN exposure we require an explicit Origin.
-  if (!origin) {
-    const host = process.env.LIVE_WS_HOST || DEFAULT_HOST;
-    return host === "127.0.0.1" || host === "::1" || host === "localhost";
-  }
-  return ALLOWED_ORIGINS.has(origin);
+  return isOriginAllowedPure(origin, process.env, {
+    allowedOrigins: ALLOWED_ORIGINS,
+    allowedHosts: ALLOWED_HOSTS,
+  });
 }
 
 // ── Client State ──────────────────────────────────────────────────────────

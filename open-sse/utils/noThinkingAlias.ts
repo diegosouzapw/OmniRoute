@@ -6,7 +6,7 @@
  * thinking-capable model into a no-thinking mode purely by *model selection*, the
  * gateway exposes a synthetic catalog id:
  *
- *     claude-3-omniroute-no-thinking/<provider>/<model>
+ *     no-think/<provider>/<model>
  *
  * When such an id arrives on a request we strip the prefix back to the real
  * `<provider>/<model>` and suppress reasoning (`thinking:{type:"disabled"}` for the
@@ -21,7 +21,7 @@
  */
 import { getModelSpec } from "@/shared/constants/modelSpecs";
 
-export const NO_THINKING_PREFIX = "claude-3-omniroute-no-thinking/";
+export const NO_THINKING_PREFIX = "no-think/";
 
 /** True when `modelId` carries the no-thinking gateway prefix. */
 export function isNoThinkingAlias(modelId: unknown): modelId is string {

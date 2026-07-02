@@ -130,13 +130,6 @@ function isChatAutoComboNoAuthProvider(providerDef: NoAuthProviderDefinition): b
   return providerDef.serviceKinds.includes("llm");
 }
 
-function getFirstRegistryModelId(providerInfo: { models?: Array<{ id?: string }> } | undefined) {
-  const firstModel = Array.isArray(providerInfo?.models) ? providerInfo.models[0] : undefined;
-  return typeof firstModel?.id === "string" && firstModel.id.trim().length > 0
-    ? firstModel.id
-    : undefined;
-}
-
 function getNoAuthCandidates(
   excludedProviders: Set<string>,
   blockedProviders: Set<string>
@@ -156,8 +149,8 @@ function getNoAuthCandidates(
       continue;
 
     const providerInfo = registry[providerId];
-    const modelId = getFirstRegistryModelId(providerInfo);
-    if (!modelId) continue;
+    const registryModels = Array.isArray(providerInfo?.models) ? providerInfo.models : [];
+    if (registryModels.length === 0) continue;
 
     // No-auth providers do not have provider_connections rows. Use the same
     // synthetic connection id returned by getProviderCredentials() so the
@@ -169,13 +162,18 @@ function getNoAuthCandidates(
         ? providerInfo.alias
         : null;
     const routingPrefix = providerDef.alias || registryAlias || providerId;
-    candidates.push({
-      provider: providerId,
-      connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
-      model: modelId,
-      modelStr: `${routingPrefix}/${modelId}`,
-      costPer1MTokens: 0,
-    });
+
+    for (const model of registryModels) {
+      const modelId = typeof model?.id === "string" && model.id.trim().length > 0 ? model.id : null;
+      if (!modelId) continue;
+      candidates.push({
+        provider: providerId,
+        connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
+        model: modelId,
+        modelStr: `${routingPrefix}/${modelId}`,
+        costPer1MTokens: 0,
+      });
+    }
   }
 
   return candidates;
@@ -296,8 +294,14 @@ export async function createVirtualAutoCombo(
   }
 
   // #4235 Phase B: narrow the pool by the `auto/<category>:<tier>` overlay
-  // (vision/reasoning capability, free/premium model tier). Fall back to the full
-  // pool if the filter would empty it — never break routing, just lose the bias.
+  // (vision/reasoning capability, free/premium model tier).
+  //
+  // Default behavior: when the filter yields zero candidates, return an EMPTY
+  // pool — never silently fall back to the full pool. This makes
+  // `auto/coding:free` actually mean "free tier only" and prevents a paid
+  // expensive model from being picked just because no free provider is
+  // connected. Operators who want the old "never break routing, lose the bias"
+  // behavior can opt back in via the env var below.
   let effectivePool = candidatePool;
   const candidateFilter = spec ? buildAutoCandidateFilter(spec.category, spec.tier) : null;
   if (candidateFilter) {
@@ -306,11 +310,21 @@ export async function createVirtualAutoCombo(
     );
     if (narrowed.length > 0) {
       effectivePool = narrowed;
+    } else if (
+      process.env.OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL === "true" ||
+      process.env.OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL === "1"
+    ) {
+      // Opt-in legacy behavior: warn loudly, then keep the full pool.
+      log.warn(
+        "AUTO",
+        `auto/${spec?.category ?? ""}${spec?.tier ? `:${spec.tier}` : ""} matched no connected models; falling back to the full pool (OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL=true)`
+      );
     } else {
       log.warn(
         "AUTO",
-        `auto/${spec?.category ?? ""}${spec?.tier ? `:${spec.tier}` : ""} matched no connected models; using the full pool`
+        `auto/${spec?.category ?? ""}${spec?.tier ? `:${spec.tier}` : ""} matched no connected models; returning an empty pool. Set OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL=true to restore the legacy "use full pool" behavior.`
       );
+      effectivePool = [];
     }
   }
 

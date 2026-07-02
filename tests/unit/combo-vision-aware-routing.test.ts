@@ -41,10 +41,7 @@ test.after(() => {
 // --- Part A: capability resolution -----------------------------------------
 
 test("Pixtral resolves supportsVision=true via model-id heuristic (no synced data)", () => {
-  assert.equal(
-    getResolvedModelCapabilities("mistral/pixtral-12b-latest").supportsVision,
-    true
-  );
+  assert.equal(getResolvedModelCapabilities("mistral/pixtral-12b-latest").supportsVision, true);
 });
 
 test("a text-only Mistral model is NOT a vision false-positive", () => {
@@ -114,4 +111,15 @@ test("text-only request: targets are untouched by the vision filter", () => {
     noopLog
   );
   assert.equal(out.length, 1);
+});
+
+test("large output request: unknown maxOutputTokens does not filter a target", () => {
+  const out = filterTargetsByRequestCompatibility(
+    [target("openai-compatible-local/custom-large-output-model"), target("openai/gpt-4o-mini")],
+    { messages: [{ role: "user", content: "hello" }], max_tokens: 32000 },
+    noopLog
+  );
+  const ids = out.map((t) => t.modelStr);
+
+  assert.deepEqual(ids, ["openai-compatible-local/custom-large-output-model"]);
 });

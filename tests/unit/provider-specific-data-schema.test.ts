@@ -51,6 +51,7 @@ test("provider schemas accept boolean CC-compatible request defaults", () => {
       requestDefaults: {
         context1m: true,
         redactThinking: true,
+        summarizeThinking: true,
       },
     },
   });
@@ -59,6 +60,7 @@ test("provider schemas accept boolean CC-compatible request defaults", () => {
       requestDefaults: {
         context1m: false,
         redactThinking: false,
+        summarizeThinking: false,
       },
     },
   });
@@ -76,6 +78,7 @@ test("provider schemas reject non-boolean CC-compatible request defaults", () =>
       requestDefaults: {
         context1m: "yes",
         redactThinking: "yes",
+        summarizeThinking: "yes",
       },
     },
   });
@@ -84,6 +87,7 @@ test("provider schemas reject non-boolean CC-compatible request defaults", () =>
       requestDefaults: {
         context1m: 1,
         redactThinking: 1,
+        summarizeThinking: 1,
       },
     },
   });
@@ -169,6 +173,46 @@ test("provider schemas reject oversized OpenRouter preset values", () => {
   const updated = updateProviderConnectionSchema.safeParse({
     providerSpecificData: {
       preset: 123,
+    },
+  });
+
+  assert.equal(created.success, false);
+  assert.equal(updated.success, false);
+});
+
+test("provider schemas accept quota scraping provider-specific strings", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "opencode-go",
+    apiKey: "token",
+    name: "OpenCode Go",
+    providerSpecificData: {
+      opencodeGoWorkspaceId: "workspace-123",
+      opencodeGoAuthCookie: "auth=cookie-value",
+    },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      ollamaCloudUsageCookie: "__Secure-session=cookie-value",
+    },
+  });
+
+  assert.equal(created.success, true);
+  assert.equal(updated.success, true);
+});
+
+test("provider schemas reject malformed quota scraping provider-specific values", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "opencode-go",
+    apiKey: "token",
+    name: "OpenCode Go",
+    providerSpecificData: {
+      opencodeGoWorkspaceId: 123,
+      opencodeGoAuthCookie: "x".repeat(10001),
+    },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      ollamaCloudUsageCookie: 123,
     },
   });
 

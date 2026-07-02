@@ -1,9 +1,13 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
-import { mergeClientAnthropicBeta } from "../config/anthropicHeaders.ts";
+import {
+  mergeClientAnthropicBeta,
+  normalizeAnthropicHeaderVariants,
+} from "../config/anthropicHeaders.ts";
 import { applyContextEditingToBody } from "../config/contextEditing.ts";
 import { findOffendingField, stripGroqUnsupportedFields } from "../config/providerFieldStrips.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
+import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 import type { Session } from "../services/sessionPool/session.ts";
 import { SessionPool } from "../services/sessionPool/sessionPool.ts";
@@ -192,6 +196,50 @@ export function applyConfiguredUserAgent(
   }
 }
 
+/**
+ * Returns true when the outbound request targets an OpenAI-compatible endpoint
+ * (a `openai-compatible-*` provider, or a Chat Completions / Responses URL).
+ * Used to scope the X-Stainless strip narrowly so genuine SDK-spoofing paths
+ * (e.g. Claude Code compat, which legitimately ADDS X-Stainless-*) are untouched.
+ */
+export function isOpenAICompatibleEndpoint(provider: string, url: string): boolean {
+  if (provider?.startsWith?.("openai-compatible-")) return true;
+  return url.includes("/v1/chat/completions") || url.includes("/v1/responses");
+}
+
+/**
+ * Strip OpenAI SDK (`X-Stainless-*`) metadata headers and normalize an SDK-derived
+ * User-Agent for OpenAI-compatible passthrough requests. Some upstream gateways
+ * 403 on these SDK-identifying headers. Only applied to OpenAI-compatible endpoints —
+ * other providers (Claude/Claude Code compat) may legitimately send X-Stainless-*.
+ *
+ * Mutates `headers` in place and returns the list of stripped header keys (for logging).
+ */
+export function stripStainlessHeadersForOpenAICompat(
+  headers: Record<string, string>,
+  provider: string,
+  url: string
+): string[] {
+  if (!isOpenAICompatibleEndpoint(provider, url)) return [];
+
+  const strippedKeys: string[] = [];
+  for (const key of Object.keys(headers)) {
+    if (key.toLowerCase().startsWith("x-stainless-")) {
+      delete headers[key];
+      strippedKeys.push(key);
+    }
+  }
+
+  // Normalize User-Agent: SDK-based clients send verbose product strings that some
+  // upstreams block. Replace with a clean browser-like UA only when it looks SDK-derived.
+  const ua = (headers["User-Agent"] || headers["user-agent"] || "").toLowerCase();
+  if (ua.includes("openai") && (ua.includes("node") || ua.includes("axios") || ua.includes("undici"))) {
+    setUserAgentHeader(headers, "Mozilla/5.0 (compatible; OpenAI Compatible)");
+  }
+
+  return strippedKeys;
+}
+
 export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal): AbortSignal {
   const controller = new AbortController();
 
@@ -236,10 +284,10 @@ function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
  * provider. Apply provider-aware sanitation here (after transformRequest, so
  * reintroductions by per-provider transforms are also caught) before fetch.
  * xhigh support is opt-out: pass through unchanged unless the registry marks
- * a model as unsupported. Literal max support is Claude/CC-compatible only and
- * intentionally separate: older Opus/Sonnet models may support max even when
- * they do not support xhigh. For OpenAI-shape providers, max normalizes to
- * xhigh by default and falls back to high only for explicit xhigh opt-outs.
+ * a model as unsupported. Literal max support is provider-specific and
+ * intentionally separate: some upstreams accept max even when they do not
+ * accept xhigh. For OpenAI-shape providers, max normalizes to xhigh by default
+ * and falls back to high only for explicit xhigh opt-outs.
  */
 const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
 // GitHub Copilot Claude routing is granular (upstream port: decolua/9router#791):
@@ -252,15 +300,24 @@ const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
 //      models, and the `oswe-*` family (Raptor) which still rejects
 //      reasoning_effort.
 // Order matters: the opt-in check must run BEFORE the broad Claude/haiku/oswe strip.
-const GITHUB_REASONING_EFFORT_OPT_IN_PATTERN =
-  /claude[-_.]?(?:opus|sonnet)[-_.]?4[-_.]6/i;
+const GITHUB_REASONING_EFFORT_OPT_IN_PATTERN = /claude[-_.]?(?:opus|sonnet)[-_.]?4[-_.]6/i;
 const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;
 
 function supportsMaxEffortForProvider(provider: string, model: string): boolean {
-  return (
+  const isClaude =
     (provider === PROVIDER_CLAUDE || isClaudeCodeCompatible(provider)) &&
-    supportsClaudeMaxEffort(model)
-  );
+    supportsClaudeMaxEffort(model);
+  // opencode-go proxies DeepSeek with the native DeepSeek API contract, which
+  // accepts {high, max} literally. Without this opt-in, max would be
+  // normalized to xhigh (the OmniRoute-internal top tier) and rejected by the
+  // upstream. Scoped to opencode-go deliberately: OpenRouter's DeepSeek path
+  // (pi#4055) is the documented inverse and expects xhigh, not max.
+  // Ollama Cloud also accepts literal max (for example GLM 5.2 supports
+  // low|medium|high|max|none) and rejects xhigh.
+  const isOpencodeGoDeepSeek =
+    provider === "opencode-go" && model.toLowerCase().includes("deepseek");
+  const isOllamaCloud = provider === "ollama-cloud";
+  return isClaude || isOpencodeGoDeepSeek || isOllamaCloud;
 }
 
 export function sanitizeReasoningEffortForProvider(
@@ -522,6 +579,8 @@ export class BaseExecutor {
     }
 
     headers["Accept"] = stream ? "text/event-stream" : "application/json";
+
+    normalizeAnthropicHeaderVariants(headers);
 
     return headers;
   }
@@ -808,6 +867,16 @@ export class BaseExecutor {
       const headers = this.buildHeaders(activeCredentials, stream, clientHeaders, model);
       applyConfiguredUserAgent(headers, activeCredentials?.providerSpecificData);
 
+      // Strip OpenAI SDK (X-Stainless-*) metadata + normalize SDK-derived User-Agent
+      // on OpenAI-compatible passthrough requests — some upstream gateways 403 on them.
+      const strippedStainless = stripStainlessHeadersForOpenAICompat(headers, this.provider, url);
+      if (strippedStainless.length > 0) {
+        log?.debug?.(
+          "HEADERS",
+          `Stripped X-Stainless-* from OpenAI-compatible request: ${strippedStainless.join(", ")}`
+        );
+      }
+
       const ccRequestDefaults = isClaudeCodeCompatible(this.provider)
         ? getClaudeCodeCompatibleRequestDefaults(activeCredentials?.providerSpecificData)
         : {};
@@ -988,21 +1057,45 @@ export class BaseExecutor {
             delete tb.thinking;
             delete tb.context_management;
             appliedThinking = "off";
-          } else if (!effThinking && !headerEffort) {
-            // Default CC logic when no override headers are present
+          } else if (!effThinking && !headerEffort && isClaudeCodeClient) {
+            // Default Claude Code logic when no override headers are present.
+            // Generic OpenAI-compatible clients that route through native Claude OAuth
+            // must opt in with x-omniroute-thinking; force-injecting adaptive thinking
+            // leaks non-standard reasoning replay fields back into those clients.
             const isHaiku = typeof tb.model === "string" && tb.model.includes("haiku");
+            // #5312 RC-B: honor the operator's proxy-level Thinking-Budget mode.
+            // `auto` means "strip — let the provider decide", so suppress the default
+            // adaptive injection. Passthrough/no-config keeps the native Claude Code
+            // behavior (adaptive) so #4633 does not regress (request-side only).
+            const tbMode = getThinkingBudgetConfig().mode;
             if (isHaiku) {
               // Keep tb.thinking — real Claude Desktop keeps thinking enabled for Haiku
               // (issue #2454). Only strip output_config (effort) which Haiku rejects;
               // context_management is re-paired with the preserved thinking below.
               delete tb.output_config;
               delete tb.context_management;
+            } else if (tbMode === ThinkingMode.AUTO) {
+              delete tb.thinking;
+              delete tb.context_management;
+              delete tb.output_config;
             } else if (tb.thinking === undefined && tb.output_config === undefined) {
               tb.thinking = { type: "adaptive" };
               tb.context_management = {
                 edits: [{ type: "clear_thinking_20251015", keep: "all" }],
               };
               tb.output_config = { effort: "high" };
+            }
+            // #5312: Opus 4.7/4.8 accept only thinking.type="adaptive" ("enabled" → 400).
+            // When an operator budget (custom/adaptive mode) produced an enabled block
+            // upstream, remap it to adaptive + output_config.effort here.
+            const th = tb.thinking as Record<string, unknown> | undefined;
+            if (th?.type === "enabled" && tbMode !== ThinkingMode.PASSTHROUGH) {
+              const b = typeof th.budget_tokens === "number" ? th.budget_tokens : 0;
+              tb.thinking = { type: "adaptive" };
+              tb.output_config = {
+                effort: b <= 1024 ? "low" : b <= 10240 ? "medium" : b >= 131072 ? "max" : "high",
+              };
+              tb.context_management = { edits: [{ type: "clear_thinking_20251015", keep: "all" }] };
             }
           }
 

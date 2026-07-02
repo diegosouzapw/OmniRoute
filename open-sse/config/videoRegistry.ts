@@ -39,6 +39,23 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     ],
   },
 
+  googleflow: {
+    id: "googleflow",
+    alias: "flow",
+    // ⚠️ Wire host isolated for live HAR validation (Rule #18). The handler reuses
+    // the Google account OAuth credential (accessToken + Cloud Code projectId) that
+    // the Antigravity provider already establishes; no separate OAuth flow is added.
+    baseUrl: "https://aisandbox-pa.googleapis.com",
+    authType: "oauth",
+    authHeader: "bearer",
+    format: "google-flow",
+    models: [
+      { id: "veo-3.1-generate", name: "Veo 3.1 (Google Flow)" },
+      { id: "veo-3.1-fast-generate", name: "Veo 3.1 Fast (Google Flow)" },
+      { id: "veo-3.0-generate", name: "Veo 3.0 (Google Flow)" },
+    ],
+  },
+
   kie: {
     id: "kie",
     baseUrl: "https://api.kie.ai",
@@ -174,6 +191,19 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     authHeader: "Authorization",
     format: "runwayml",
     models: RUNWAYML_SUPPORTED_VIDEO_MODELS,
+  },
+
+  alibaba: {
+    id: "alibaba",
+    alias: "ali",
+    // DashScope (Alibaba Cloud Model Studio) async video-synthesis API. Reuses
+    // the stored alibaba provider Bearer apiKey — no separate credential flow.
+    baseUrl: "https://dashscope-intl.aliyuncs.com/api/v1",
+    statusUrl: "https://dashscope-intl.aliyuncs.com/api/v1/tasks",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "dashscope-video",
+    models: [{ id: "wan2.7-t2v", name: "Wan 2.7 T2V" }],
   },
 };
 

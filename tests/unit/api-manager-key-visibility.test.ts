@@ -17,6 +17,10 @@ describe("maskKey", () => {
     assert.equal(maskKey("sk-12345"), "sk-12345");
   });
 
+  it("does not double-mask API keys that are already masked by the server", () => {
+    assert.equal(maskKey("sk-live-****1002"), "sk-live-****1002");
+  });
+
   it("keeps the first 8 chars and appends an ellipsis when the key is longer", () => {
     const full = "sk-or-1234567890abcdef";
     const masked = maskKey(full);

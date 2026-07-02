@@ -11,84 +11,148 @@ import { handleChat } from "@/sse/handlers/chat";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { getRelayTokenByHash, checkRateLimit, recordRelayUsage } from "@/lib/db/relayProxies";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
-import { createHash } from "node:crypto";
+import {
+  checkIpRateLimit,
+  extractToken,
+  getClientIp,
+  hashToken,
+  sanitizeForensicHeader,
+} from "./relaySecurity";
+import {
+  getBifrostRoutingConfig,
+  getRoutingFallbackHeader,
+  resolveRelayRoutingBackend,
+  shouldTryBifrost,
+  type BifrostRoutingConfig,
+} from "./routingBackend";
+import { finalizeReadableStream } from "./streamFinalizer";
+import {
+  clearBifrostFailure,
+  getActiveBifrostCooldown,
+  recordBifrostFailure,
+} from "./bifrostCooldown";
+import type { RelayToken } from "@/lib/db/relayProxies";
 
 const JSON_CORS_HEADERS = { ...CORS_HEADERS, "Content-Type": "application/json" } as const;
 
-// Forensic-only sanitization: client IP / user-agent come from untrusted
-// headers and feed `recordRelayUsage()` rows. Strip CR/LF so a malicious
-// header cannot forge log lines, and cap length.
-function sanitizeForensicHeader(value: string | null, max = 256): string {
-  if (!value) return "unknown";
-  return value.replace(/[\r\n]+/g, " ").slice(0, max);
-}
-
-// ── In-memory per-(token,IP) rate limit ─────────────────────────────────────
-// Defence-in-depth on top of the DB-backed per-token limit: a leaked relay
-// token redistributed across N IPs would otherwise consume the per-token
-// quota in parallel. This second gate caps a *single* IP using a token to
-// `RELAY_IP_PER_MINUTE` req/min — legit clients keep working, distributed
-// abuse of one token hits the wall fast.
-//
-// In-memory by design: cheap, no DB round-trip, no extra migration. Per
-// instance only — if you run multiple relay replicas behind a load balancer,
-// the effective ceiling is `RELAY_IP_PER_MINUTE * replicas`, which is still
-// orders of magnitude tighter than no gate.
-const RELAY_IP_PER_MINUTE = Number(process.env.RELAY_IP_PER_MINUTE || "30");
-const ipBuckets = new Map<string, { count: number; windowStart: number }>();
-
-function checkIpRateLimit(tokenId: string, ip: string): { allowed: boolean; resetIn: number } {
-  if (!Number.isFinite(RELAY_IP_PER_MINUTE) || RELAY_IP_PER_MINUTE <= 0) {
-    return { allowed: true, resetIn: 0 };
-  }
-  const now = Math.floor(Date.now() / 1000);
-  const windowStart = Math.floor(now / 60) * 60;
-  const key = tokenId + "|" + ip;
-  const bucket = ipBuckets.get(key);
-  if (!bucket || bucket.windowStart !== windowStart) {
-    ipBuckets.set(key, { count: 1, windowStart });
-    if (ipBuckets.size > 10_000) {
-      // Bound memory: drop the oldest half when the table grows past 10k.
-      const cutoff = windowStart - 60;
-      for (const [k, b] of ipBuckets) {
-        if (b.windowStart < cutoff) ipBuckets.delete(k);
-      }
-    }
-    return { allowed: true, resetIn: 60 - (now % 60) };
-  }
-  if (bucket.count >= RELAY_IP_PER_MINUTE) {
-    return { allowed: false, resetIn: 60 - (now % 60) };
-  }
-  bucket.count++;
-  return { allowed: true, resetIn: 60 - (now % 60) };
-}
-
 const injectionGuard = createInjectionGuard();
+
+type RelayUsageStatus = "success" | "error";
+
+function recordUsage(
+  tokenId: string,
+  request: Request,
+  startTime: number,
+  clientIp: string,
+  userAgent: string | null,
+  status: RelayUsageStatus,
+  statusCode: number
+) {
+  recordRelayUsage(tokenId, {
+    requestId: request.headers.get("x-request-id") || undefined,
+    status,
+    statusCode,
+    latencyMs: Date.now() - startTime,
+    clientIp,
+    userAgent,
+  });
+}
+
+async function forwardToBifrost(
+  request: Request,
+  body: unknown,
+  token: RelayToken,
+  config: BifrostRoutingConfig,
+  startTime: number,
+  clientIp: string,
+  userAgent: string | null
+): Promise<Response> {
+  const wantsStream =
+    Boolean((body as { stream?: boolean } | null)?.stream) && config.streamingEnabled;
+  const upstreamHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+    "x-relay-token-id": token.id,
+    "x-relay-client-ip": clientIp,
+  };
+  if (config.apiKey) {
+    upstreamHeaders.Authorization = `Bearer ${config.apiKey}`;
+  }
+
+  const ac = new AbortController();
+  let timedOut = false;
+  const tid = setTimeout(() => {
+    timedOut = true;
+    ac.abort();
+  }, config.timeoutMs);
+
+  try {
+    const upstream = await fetch(`${config.baseUrl}/v1/chat/completions`, {
+      method: "POST",
+      headers: upstreamHeaders,
+      body: JSON.stringify(body),
+      signal: ac.signal,
+    });
+    clearTimeout(tid);
+
+    const headers = new Headers(upstream.headers);
+    headers.set("X-Routed-By", "bifrost");
+    headers.set("X-Routing-Backend", "bifrost");
+    headers.set("X-Relay-Token", token.tokenPrefix + "...");
+    if (!wantsStream) {
+      headers.set("Content-Type", upstream.headers.get("Content-Type") ?? "application/json");
+    }
+
+    if (wantsStream && upstream.body) {
+      const stream = finalizeReadableStream(upstream.body, (error) => {
+        recordUsage(
+          token.id,
+          request,
+          startTime,
+          clientIp,
+          userAgent,
+          error || upstream.status >= 500 ? "error" : "success",
+          upstream.status
+        );
+      });
+
+      return new Response(stream, {
+        status: upstream.status,
+        headers,
+      });
+    }
+
+    recordUsage(
+      token.id,
+      request,
+      startTime,
+      clientIp,
+      userAgent,
+      upstream.status < 500 ? "success" : "error",
+      upstream.status
+    );
+
+    return new Response(upstream.body, {
+      status: upstream.status,
+      headers,
+    });
+  } catch (error) {
+    clearTimeout(tid);
+    const isAbort = error instanceof Error && error.name === "AbortError";
+    throw new Error(
+      isAbort
+        ? `Bifrost sidecar timed out after ${config.timeoutMs}ms`
+        : `Bifrost sidecar unreachable: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
 
 export async function OPTIONS() {
   return handleCorsOptions();
 }
 
-function extractToken(request: Request): string | null {
-  const auth = request.headers.get("authorization") || "";
-  const match = auth.match(/^Bearer\s+(.+)$/i);
-  if (match) return match[1];
-
-  // Also check X-Relay-Token header
-  return request.headers.get("x-relay-token");
-}
-
-function hashToken(token: string): string {
-  return createHash("sha256").update(token).digest("hex");
-}
-
 export async function POST(request: Request) {
   const startTime = Date.now();
-  const clientIp = sanitizeForensicHeader(
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      request.headers.get("x-real-ip") ||
-      null
-  );
+  const clientIp = getClientIp(request);
   const userAgent = sanitizeForensicHeader(request.headers.get("user-agent"));
 
   try {
@@ -171,11 +235,13 @@ export async function POST(request: Request) {
     // 3. Clone request and forward to internal handler
     const cloned = request.clone();
 
+    let parsedBody: unknown = null;
+
     // Prompt injection guard (same as main endpoint)
     try {
-      const body = await cloned.json().catch(() => null);
-      if (body) {
-        const { blocked, result } = injectionGuard(body);
+      parsedBody = await cloned.json().catch(() => null);
+      if (parsedBody) {
+        const { blocked, result } = injectionGuard(parsedBody);
         if (blocked) {
           recordRelayUsage(token.id, {
             requestId: request.headers.get("x-request-id") || undefined,
@@ -201,7 +267,7 @@ export async function POST(request: Request) {
         // Check allowed models
         const allowedModels: string[] = JSON.parse(token.allowedModels);
         if (allowedModels.length > 0 && !allowedModels.includes("*")) {
-          const model = (body as { model?: string }).model || "";
+          const model = (parsedBody as { model?: string }).model || "";
           const allowed = allowedModels.some(
             (p) => model === p || (p.endsWith("*") && model.startsWith(p.slice(0, -1)))
           );
@@ -219,6 +285,45 @@ export async function POST(request: Request) {
       }
     } catch {
       // Continue even if guard fails
+    }
+
+    const backend = resolveRelayRoutingBackend();
+    const bifrostConfig = getBifrostRoutingConfig();
+    let bifrostFallbackReason: string | null = null;
+    if (shouldTryBifrost(backend, bifrostConfig)) {
+      const cooldown =
+        backend === "auto" ? getActiveBifrostCooldown(bifrostConfig.baseUrl) : null;
+      if (cooldown) {
+        bifrostFallbackReason = `bifrost-cooldown; remaining=${cooldown.remainingMs}`;
+      } else {
+        try {
+          const bifrostResponse = await forwardToBifrost(
+            request,
+            parsedBody,
+            token,
+            bifrostConfig,
+            startTime,
+            clientIp,
+            userAgent
+          );
+          clearBifrostFailure(bifrostConfig.baseUrl);
+          return bifrostResponse;
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          if (backend === "bifrost") {
+            recordUsage(token.id, request, startTime, clientIp, userAgent, "error", 502);
+            return new Response(JSON.stringify(buildErrorBody(502, message)), {
+              status: 502,
+              headers: {
+                ...JSON_CORS_HEADERS,
+                "X-Bifrost-Fallback": "/api/v1/relay/chat/completions",
+              },
+            });
+          }
+          recordBifrostFailure(bifrostConfig.baseUrl, message);
+          bifrostFallbackReason = "bifrost-error";
+        }
+      }
     }
 
     // 4. Proxy to internal handler
@@ -242,6 +347,13 @@ export async function POST(request: Request) {
     // Add relay headers
     const newHeaders = new Headers(response.headers);
     newHeaders.set("X-Relay-Token", token.tokenPrefix + "...");
+    newHeaders.set("X-Routing-Backend", "ts");
+    const routingFallback = getRoutingFallbackHeader(backend, bifrostConfig);
+    if (routingFallback) {
+      // #5526 helper gates emission (auto + enabled); #5519 dynamic cooldown/error
+      // reason wins as the value when set, else falls back to the static "bifrost".
+      newHeaders.set("X-Routing-Fallback", bifrostFallbackReason ?? routingFallback);
+    }
 
     return new Response(response.body, {
       status: response.status,

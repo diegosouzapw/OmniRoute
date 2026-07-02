@@ -19,6 +19,7 @@ export function buildFailureUsageRecord(opts: {
   statusCode: number;
   errorCode: string | null | undefined;
   latencyMs: number;
+  endpoint?: string | null | undefined;
 }) {
   return {
     provider: opts.provider || "unknown",
@@ -35,5 +36,6 @@ export function buildFailureUsageRecord(opts: {
     apiKeyName: opts.apiKeyInfo?.name || undefined,
     serviceTier: opts.effectiveServiceTier,
     comboStrategy: opts.isCombo ? opts.comboStrategy || undefined : undefined,
+    endpoint: opts.endpoint || undefined,
   };
 }

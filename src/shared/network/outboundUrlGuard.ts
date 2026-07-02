@@ -4,9 +4,18 @@ import { resolveFeatureFlag } from "@/shared/utils/featureFlags";
 const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
 
 export const PROVIDER_URL_BLOCKED_MESSAGE = "Blocked private or local provider URL";
+export const CLOUD_METADATA_BLOCKED_MESSAGE = "Blocked cloud-metadata endpoint";
 export const PRIVATE_PROVIDER_URLS_ENV = "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS";
+// #5066: scoped to provider validation/use. Allows local/private provider endpoints
+// (127.0.0.1, localhost, LAN) so local-first OpenAI-compatible providers validate, while
+// cloud-metadata endpoints stay blocked. Defaults ON (OmniRoute is local-first); operators
+// who only use public providers can disable it to restore strict SSRF blocking.
+export const LOCAL_PROVIDER_URLS_ENV = "OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS";
 
-export type OutboundUrlGuardMode = "none" | "public-only";
+// "block-metadata": allow private/LAN hosts but still reject cloud-metadata / link-local
+// endpoints (the SSRF→IAM-credential pivot). Used by the provider-validation path under the
+// local-first default; never relaxes the metadata block.
+export type OutboundUrlGuardMode = "none" | "public-only" | "block-metadata";
 export type OutboundUrlGuardErrorCode = "OUTBOUND_URL_GUARD_BLOCKED" | "OUTBOUND_URL_INVALID";
 
 type OutboundUrlGuardErrorInit = {
@@ -147,6 +156,26 @@ export function parseAndValidatePublicUrl(input: string | URL) {
 }
 
 /**
+ * #5066: provider-validation variant. Allows private/LAN hosts (so a local OpenAI-compatible
+ * provider at 127.0.0.1 validates) but ALWAYS rejects cloud-metadata / link-local endpoints —
+ * the classic SSRF→IAM-credential pivot, which is never a legitimate provider endpoint.
+ * Protocol and embedded-credential checks from {@link parseOutboundUrl} still apply.
+ */
+export function parseAndValidateNonMetadataUrl(input: string | URL) {
+  const url = parseOutboundUrl(input);
+
+  if (isCloudMetadataHost(url.hostname)) {
+    throw new OutboundUrlGuardError(CLOUD_METADATA_BLOCKED_MESSAGE, {
+      code: "OUTBOUND_URL_GUARD_BLOCKED",
+      url: url.toString(),
+      hostname: url.hostname || null,
+    });
+  }
+
+  return url;
+}
+
+/**
  * Webhook variant of {@link parseAndValidatePublicUrl}. Webhooks legitimately point at
  * internal services (n8n, Home Assistant, a LAN box) in Docker/self-hosted deployments,
  * so the private-host block is gated behind the same explicit opt-in used for private
@@ -213,4 +242,35 @@ export function arePrivateProviderUrlsAllowed() {
 
 export function getProviderOutboundGuard(): OutboundUrlGuardMode {
   return arePrivateProviderUrlsAllowed() ? "none" : "public-only";
+}
+
+/**
+ * #5066: whether provider endpoints on local/private addresses are permitted. Defaults ON
+ * (OmniRoute is local-first — local OpenAI-compatible providers should validate out of the
+ * box). Disable via the `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` flag (DB toggle or env) to
+ * restore strict public-only SSRF blocking. Cloud-metadata stays blocked regardless.
+ */
+export function areLocalProviderUrlsAllowed(): boolean {
+  try {
+    const dbValue = resolveFeatureFlag(LOCAL_PROVIDER_URLS_ENV);
+    if (dbValue !== undefined && dbValue !== "") return isTrueValue(dbValue);
+  } catch {
+    // DB not initialized yet — fall through to env / default.
+  }
+  const envValue = process.env[LOCAL_PROVIDER_URLS_ENV];
+  if (typeof envValue === "string" && envValue !== "") return isTrueValue(envValue);
+  // Default ON.
+  return true;
+}
+
+/**
+ * Guard mode for the provider VALIDATION/use path (not webhooks or remote images). Precedence:
+ *  1. explicit full opt-in (`arePrivateProviderUrlsAllowed`) → "none" (no checks; power users).
+ *  2. local-first default (`areLocalProviderUrlsAllowed`) → "block-metadata" (allow LAN, block IMDS).
+ *  3. otherwise → "public-only" (strict).
+ */
+export function getProviderValidationGuard(): OutboundUrlGuardMode {
+  if (arePrivateProviderUrlsAllowed()) return "none";
+  if (areLocalProviderUrlsAllowed()) return "block-metadata";
+  return "public-only";
 }

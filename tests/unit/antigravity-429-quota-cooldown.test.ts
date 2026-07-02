@@ -55,6 +55,17 @@ test("classify429: AG 'Individual quota reached' message → quota_exhausted", (
   assert.equal(classify429(msg), "quota_exhausted");
 });
 
+test("classify429: standard Gemini rate limit 'resource has been exhausted' -> rate_limited or unknown, not quota_exhausted", () => {
+  const msg =
+    "RESOURCE_EXHAUSTED: Resource has been exhausted (e.g. queries per minute limit was reached).";
+  const result = classify429(msg);
+  assert.notEqual(
+    result,
+    "quota_exhausted",
+    "RESOURCE_EXHAUSTED rate limit should not be classified as quota_exhausted"
+  );
+});
+
 // ── DB persistence (the missing wire — Bug #2) ───────────────────────────────
 
 test("markConnectionQuotaExhausted persists 24h cooldown; isConnectionRateLimited returns true", async () => {

@@ -38,7 +38,7 @@ curl -X POST https://localhost:20128/api/auth/logout \
 
 ## Payloads
 
-See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/reference/openapi.yaml` for detailed request/response schemas.
+See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.
 
 <!-- skill:custom-start -->
 <!-- Migrated from skills/omniroute/SKILL.md (preserved curated content) -->

@@ -309,7 +309,7 @@ describe("API Routes — dashboard and tool consumers", () => {
   it("keeps legacy usage history and raw request-log APIs explicitly classified", () => {
     const usageStats = readProjectFile("src/shared/components/UsageStats.tsx");
     const apiReference = readProjectFile("docs/reference/API_REFERENCE.md");
-    const openApi = readProjectFile("docs/reference/openapi.yaml");
+    const openApi = readProjectFile("docs/openapi.yaml");
 
     assert.ok(usageStats, "UsageStats compatibility component should exist");
     assert.ok(apiReference, "API reference should exist");
@@ -359,7 +359,7 @@ describe("Dashboard Wiring — T05 payload rules", () => {
   const payloadRulesTabSrc = readProjectFile(
     "src/app/(dashboard)/dashboard/settings/components/PayloadRulesTab.tsx"
   );
-  const openapiSrc = readProjectFile("docs/reference/openapi.yaml");
+  const openapiSrc = readProjectFile("docs/openapi.yaml");
 
   it.skip("settings page should surface payload rules inside advanced settings", () => {
     assert.ok(settingsPageSrc, "settings page source should exist");
@@ -379,7 +379,7 @@ describe("Dashboard Wiring — T05 payload rules", () => {
   });
 
   it("openapi should document the payload rules management surface", () => {
-    assert.ok(openapiSrc, "docs/reference/openapi.yaml should exist");
+    assert.ok(openapiSrc, "docs/openapi.yaml should exist");
     assert.match(openapiSrc, /\/api\/settings\/payload-rules:/);
     assert.match(openapiSrc, /summary:\s+Get payload rules configuration/);
     assert.match(openapiSrc, /ManagementSessionAuth:/);
@@ -602,18 +602,15 @@ describe("Page Integration — provider test results privacy", () => {
   });
 });
 
-describe("Page Integration — legacy provider create route retirement", () => {
-  const legacyProviderNewSrc = readProjectFile(
-    "src/app/(dashboard)/dashboard/providers/new/page.tsx"
-  );
+describe("Page Integration — provider create route renders the onboarding wizard (#5427)", () => {
+  const providerNewSrc = readProjectFile("src/app/(dashboard)/dashboard/providers/new/page.tsx");
 
-  it("should redirect legacy /dashboard/providers/new to the canonical providers flow", () => {
-    assert.ok(
-      legacyProviderNewSrc,
-      "src/app/(dashboard)/dashboard/providers/new/page.tsx should exist"
-    );
-    assert.match(legacyProviderNewSrc, /redirect\("\/dashboard\/providers"\)/);
-    assert.doesNotMatch(legacyProviderNewSrc, /authMethod:\s*"api_key"/);
-    assert.doesNotMatch(legacyProviderNewSrc, /displayName/);
+  it("renders ProviderOnboardingWizard instead of redirecting (#5427)", () => {
+    // #5427 reversed the earlier redirect-stub retirement: /dashboard/providers/new now
+    // renders the previously-orphaned ProviderOnboardingWizard directly (auth enforced by
+    // the (dashboard) layout). The dedicated guard is tests/unit/onboarding-wizard-route-5427.
+    assert.ok(providerNewSrc, "src/app/(dashboard)/dashboard/providers/new/page.tsx should exist");
+    assert.match(providerNewSrc, /ProviderOnboardingWizard/);
+    assert.doesNotMatch(providerNewSrc, /redirect\("\/dashboard\/providers"\)/);
   });
 });

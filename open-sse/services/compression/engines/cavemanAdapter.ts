@@ -1,7 +1,7 @@
 import { applyLiteCompression } from "../lite.ts";
 import { cavemanCompress } from "../caveman.ts";
 import { compressAggressive } from "../aggressive.ts";
-import { ultraCompress } from "../ultra.ts";
+import { ultraCompressHeuristic } from "../ultra.ts";
 import { createCompressionStats } from "../stats.ts";
 import { adaptBodyForCompression } from "../bodyAdapter.ts";
 import {
@@ -414,7 +414,7 @@ export const ultraEngine: CompressionEngine = {
       ...(options?.stepConfig ?? {}),
       preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
     };
-    const result = ultraCompress(messages, ultraConfig);
+    const result = ultraCompressHeuristic(messages, ultraConfig);
     const compressedBody = { ...adapter.body, messages: result.messages };
     return {
       body: adapter.restore(compressedBody),

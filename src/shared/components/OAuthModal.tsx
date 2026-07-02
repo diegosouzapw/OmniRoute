@@ -7,8 +7,9 @@ import Button from "./Button";
 import Input from "./Input";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { parseResponseBody, getErrorMessage } from "@/shared/utils/api";
+import { isCredentialBlob, submitCredentialBlob } from "@/shared/components/oauthBlobSubmit";
 
-const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy", "gemini-cli"]);
+const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy"]);
 
 /** Providers that use a local callback server on a random port (PKCE browser flow). */
 const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex"]);
@@ -17,9 +18,9 @@ const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex"]);
  * Phase 1 hotfix (2026-05-29): windsurf & devin-cli only support import-token.
  * Their PKCE flow targeting app.devin.ai/editor/signin returned 404 post-rebrand.
  * Phase 2 will reintroduce browser login via Firebase OAuth + RegisterUser.
- * Spec: docs/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
+ * Spec: _tasks/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
  */
-const IMPORT_TOKEN_ONLY_PROVIDERS = new Set(["windsurf", "devin-cli"]);
+const IMPORT_TOKEN_ONLY_PROVIDERS = new Set(["windsurf", "devin-cli", "grok-cli"]);
 
 type OAuthModalProps = {
   isOpen: boolean;
@@ -55,12 +56,13 @@ export default function OAuthModal({
   const [polling, setPolling] = useState(false);
   // API-key paste mode: for providers that accept a token directly (windsurf, devin-cli)
   const [showPasteToken, setShowPasteToken] = useState(
-    provider === "windsurf" || provider === "devin-cli"
+    provider === "windsurf" || provider === "devin-cli" || provider === "grok-cli"
   );
   const [pasteToken, setPasteToken] = useState("");
   const [savingToken, setSavingToken] = useState(false);
 
-  const supportsTokenPaste = provider === "windsurf" || provider === "devin-cli";
+  const supportsTokenPaste =
+    provider === "windsurf" || provider === "devin-cli" || provider === "grok-cli";
   // Phase 1 hotfix (2026-05-29): windsurf/devin-cli are import-token-only.
   // Hide the "Browser Login" tab — Phase 2 will restore it via Firebase OAuth.
   const importTokenOnly = IMPORT_TOKEN_ONLY_PROVIDERS.has(provider);
@@ -158,9 +160,7 @@ export default function OAuthModal({
           setError(
             "redirect_uri_mismatch: The default Google OAuth credentials only work on localhost. " +
               "For remote use, configure your own OAuth credentials via environment variables: " +
-              (provider === "antigravity"
-                ? "ANTIGRAVITY_OAUTH_CLIENT_ID and ANTIGRAVITY_OAUTH_CLIENT_SECRET"
-                : "GEMINI_CLI_OAUTH_CLIENT_ID and GEMINI_CLI_OAUTH_CLIENT_SECRET") +
+              "ANTIGRAVITY_OAUTH_CLIENT_ID and ANTIGRAVITY_OAUTH_CLIENT_SECRET" +
               ". See the README section 'OAuth on a Remote Server'."
           );
         } else {
@@ -269,7 +269,8 @@ export default function OAuthModal({
         provider === "kiro" ||
         provider === "amazon-q" ||
         provider === "kimi-coding" ||
-        provider === "kilocode"
+        provider === "kilocode" ||
+        provider === "codebuddy-cn"
       ) {
         setIsDeviceCode(true);
         setStep("waiting");
@@ -390,7 +391,7 @@ export default function OAuthModal({
       // - Codex/OpenAI: always port 1455 (registered in OAuth app)
       // - Windsurf/Devin CLI (remote fallback): use localhost with OmniRoute port + /auth/callback
       //   (on true localhost the callback server handles it; this is only reached on remote)
-      // - Google OAuth providers (antigravity, gemini-cli): default to loopback so the
+      // - Google OAuth providers (antigravity/agy): default to loopback so the
       //   bundled native/desktop credentials keep working. Prefer 127.0.0.1 over
       //   localhost for the Google native-app handoff; Google documents that localhost
       //   can run into local firewall/name-resolution edge cases. The authorize route
@@ -651,7 +652,10 @@ export default function OAuthModal({
   const handleManualSubmit = async () => {
     try {
       setError(null);
-
+      if (isCredentialBlob(callbackUrl)) {
+        await submitCredentialBlob(provider, callbackUrl, reauthConnection, setStep, onSuccess);
+        return;
+      }
       if (!authData) {
         throw new Error(
           "OAuth session not initialized. Restart the connection flow and try again."
@@ -730,14 +734,16 @@ export default function OAuthModal({
             <p className="text-sm text-text-muted">
               {provider === "windsurf"
                 ? 'In the Windsurf / VS Code IDE, run the "Windsurf: Provide Auth Token" command from the command palette (or click the Jupyter "Get Windsurf Authentication Token" button), then copy the shown token and paste it below. Opening windsurf.com/show-auth-token directly only shows a "Redirecting" page — the IDE must initiate the flow.'
-                : 'Provide your WINDSURF_API_KEY (obtained via `devin auth login`, or via the Windsurf IDE "Windsurf: Provide Auth Token" command).'}
+                : provider === "grok-cli"
+                  ? 'Paste your Grok Build JWT token from ~/.grok/auth.json (the "key" field value). You can get it by running `grok login` in your terminal.'
+                  : 'Provide your WINDSURF_API_KEY (obtained via `devin auth login`, or via the Windsurf IDE "Windsurf: Provide Auth Token" command).'}
             </p>
             <Input
               value={pasteToken}
               onChange={(e) => setPasteToken(e.target.value)}
-              placeholder="ws-..."
+              placeholder={provider === "grok-cli" ? "eyJ..." : "ws-..."}
               type="password"
-              label="API Key / Token"
+              label={provider === "grok-cli" ? "JWT Token" : "API Key / Token"}
             />
             {error && <p className="text-sm text-red-500">{error}</p>}
             <div className="flex gap-2">
@@ -845,8 +851,16 @@ export default function OAuthModal({
                       </strong>
                     </div>
                   )}
-                  {/* Generic remote info for other providers */}
-                  {!isTrueLocalhost && !GOOGLE_OAUTH_PROVIDERS.has(provider) && (
+                  {/* Actionable remote paste instruction — shown for ALL remote providers,
+                      including Google OAuth (antigravity/agy). The Google
+                      loopback creds redirect to 127.0.0.1:<port>/callback, which on a
+                      remotely-accessed dashboard lands on the operator's own machine and
+                      shows a "can't reach this page" error. That is expected: the URL bar
+                      still carries ?code=…, and pasting it below completes the login. Before
+                      this, Google providers only saw the discouraging loopback warning and
+                      never the "copy the URL and paste it" step, so remote login appeared to
+                      hang. */}
+                  {!isTrueLocalhost && (
                     <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-200">
                       <span className="material-symbols-outlined text-sm align-middle mr-1">
                         info
@@ -896,7 +910,7 @@ export default function OAuthModal({
                   <Button
                     onClick={handleManualSubmit}
                     fullWidth
-                    disabled={!callbackUrl || !authData}
+                    disabled={!callbackUrl || (!authData && !isCredentialBlob(callbackUrl))}
                   >
                     {t("connect")}
                   </Button>

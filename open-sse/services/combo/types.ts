@@ -117,6 +117,18 @@ export type AutoProviderCandidate = ProviderCandidate & {
   quotaCutoffBlocked?: boolean;
   /** Diagnostic reason for quotaCutoffBlocked. */
   quotaCutoffReason?: string;
+  /**
+   * #4540: True when this candidate's connection is in a terminal/transient
+   * unavailable status (credits_exhausted / rate_limited / banned / expired /
+   * future-dated unavailable) but the quota-preflight HARD cutoff is OFF (default).
+   * In that case the candidate is NOT hard-blocked — instead its auto-combo score
+   * is multiplied by STATUS_SOFT_DEPRIORITIZE_FACTOR so an exhausted provider ranks
+   * strictly below an otherwise-identical healthy one, without emitting a misleading
+   * "below quota cutoff" 429. Set by buildAutoCandidates from the connection testStatus.
+   */
+  statusPenalty?: boolean;
+  /** Diagnostic reason for statusPenalty (the connection testStatus that triggered it). */
+  statusPenaltyReason?: string;
 };
 
 export type ResolvedComboTarget = {

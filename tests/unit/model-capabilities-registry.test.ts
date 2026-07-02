@@ -137,6 +137,27 @@ test("canonical model capability resolver lets exact synced metadata override gl
   assert.equal(bareGpt55.contextWindow, 1050000);
 });
 
+test("unknown models keep maxOutputTokens null instead of using a generic default", () => {
+  const unknown = modelCapabilities.getResolvedModelCapabilities(
+    "openai-compatible-local/custom-large-output-model"
+  );
+
+  assert.equal(unknown.contextWindow, null);
+  assert.equal(unknown.maxInputTokens, null);
+  assert.equal(unknown.maxOutputTokens, null);
+  assert.equal(
+    modelCapabilities.capMaxOutputTokens(
+      "openai-compatible-local/custom-large-output-model",
+      32000
+    ),
+    32000
+  );
+  assert.equal(
+    modelCapabilities.capMaxOutputTokens("openai-compatible-local/custom-large-output-model"),
+    null
+  );
+});
+
 test("GPT OSS and DeepSeek Reasoner models support tool calling", () => {
   // GPT OSS models should not be blocked by the heuristic
   assert.equal(modelCapabilities.supportsToolCalling("fake-provider/gpt-oss-120b"), true);

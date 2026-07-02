@@ -112,7 +112,7 @@ test("checkFallbackError locks Antigravity quota-reached 429 for the full reset 
     "gemini-3-flash-agent",
     "antigravity",
     null,
-    makeProfile()
+    makeProfile({ useUpstreamRetryHints: true })
   );
 
   assert.equal(result.shouldFallback, true);
@@ -1149,6 +1149,9 @@ test("isCreditsExhausted returns true for actual credits-exhausted signals", () 
   assert.equal(isCreditsExhausted("payment required"), true);
   assert.equal(isCreditsExhausted("free tier of the model has been exhausted"), true);
   assert.equal(isCreditsExhausted("exceeded your current usage quota"), true);
+  // #5239: "Insufficient account balance" out-of-credit bodies
+  assert.equal(isCreditsExhausted("Insufficient account balance"), true);
+  assert.equal(isCreditsExhausted("insufficient_balance"), true);
 });
 
 test("CREDITS_EXHAUSTED_SIGNALS no longer contains generic gRPC resource-exhausted patterns", () => {

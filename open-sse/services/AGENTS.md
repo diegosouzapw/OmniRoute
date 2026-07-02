@@ -37,7 +37,7 @@
 
 - **`modelDeprecation.ts`** — Detects deprecated models (gpt-3.5, claude-2, etc.). Routes to successor models automatically.
 - **`modelFamilyFallback.ts`** — T5 intra-family fallback: if `gpt-4-turbo` unavailable, tries `gpt-4-1106-preview`, then `gpt-4`.
-- **`emergencyFallback.ts`** — Last-resort fallback when all combo targets fail. Routes to stable free provider (Qwen Code, Gemini CLI fallback).
+- **`emergencyFallback.ts`** — Last-resort fallback when all combo targets fail. Routes to stable free providers.
 
 ### State & Detection
 

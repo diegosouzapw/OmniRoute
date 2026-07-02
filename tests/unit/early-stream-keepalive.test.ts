@@ -1,7 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { withEarlyStreamKeepalive } from "../../open-sse/utils/earlyStreamKeepalive.ts";
+import {
+  withEarlyStreamKeepalive,
+  ANTHROPIC_PING_FRAME,
+} from "../../open-sse/utils/earlyStreamKeepalive.ts";
 
 async function readAll(response: Response): Promise<string> {
   const reader = response.body!.getReader();
@@ -54,6 +57,32 @@ test("slow handler emits early keepalive then forwards the real body (#2544)", a
   assert.match(body, /: omniroute-keepalive/, "should emit a keepalive comment before the body");
   assert.match(body, /event: response\.created/, "should forward the real upstream body");
   assert.match(body, /data: \[DONE\]/);
+});
+
+// Anthropic clients (Claude Code, the Anthropic SDK) ignore SSE comments for their
+// stream/first-token watchdog and abort+retry on a slow first token. The /v1/messages
+// route keeps the connection warm with a REAL `event: ping` instead of the comment frame.
+test("ANTHROPIC_PING_FRAME is a real Anthropic ping event (not a comment)", () => {
+  const decoded = new TextDecoder().decode(ANTHROPIC_PING_FRAME);
+  assert.equal(decoded, 'event: ping\ndata: {"type":"ping"}\n\n');
+  assert.doesNotMatch(decoded, /^:/, "must not be an SSE comment");
+});
+
+test("slow handler emits the custom keepaliveFrame (Anthropic ping) before the body", async () => {
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(() => resolve(sseResponse("event: message_start\ndata: {}\n\ndata: [DONE]\n\n")), 120);
+  });
+
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 25,
+    intervalMs: 20,
+    keepaliveFrame: ANTHROPIC_PING_FRAME,
+  });
+
+  const body = await readAll(result);
+  assert.match(body, /event: ping\ndata: {"type":"ping"}/, "should emit a real ping event");
+  assert.doesNotMatch(body, /: omniroute-keepalive/, "must not fall back to the comment frame");
+  assert.match(body, /event: message_start/, "should forward the real upstream body");
 });
 
 // #2544: a non-SSE error that arrives after we already committed to a 200 event-stream

@@ -20,7 +20,7 @@ import { randomUUID } from "node:crypto";
 let clientPromise: Promise<unknown> | null = null;
 let exitHookInstalled = false;
 
-const CLAUDE_PROFILE = "chrome_146"; // matches the Vivaldi/Chrome 146 UA we send
+const CLAUDE_PROFILE = "chrome_149"; // matches the Vivaldi/Chrome 149 UA we send
 const DEFAULT_TIMEOUT_MS =
   Number.parseInt(process.env.OMNIROUTE_CLAUDE_TLS_TIMEOUT_MS || "", 10) || 60_000;
 // Grace period added to the binding's wire-level timeout before our JS-level

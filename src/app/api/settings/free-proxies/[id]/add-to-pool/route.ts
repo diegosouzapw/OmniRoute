@@ -79,11 +79,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   try {
     const testResult = await _connectivityTester(freeProxy.host, freeProxy.port, freeProxy.type);
     if (!testResult.success) {
-      return Response.json({
-        success: false,
-        error: "Proxy test failed",
-        latencyMs: testResult.latencyMs,
-      });
+      // #4878: a failed connectivity probe must surface a non-2xx status so the
+      // frontend (which gates on res.ok) does NOT optimistically mark the proxy
+      // as "In Pool". 422 = the request was well-formed but the proxy is unusable.
+      return Response.json(
+        {
+          success: false,
+          error: "Proxy test failed",
+          latencyMs: testResult.latencyMs,
+        },
+        { status: 422 }
+      );
     }
 
     const newPoolProxyId = await promoteFreeProxyToPool(id, {

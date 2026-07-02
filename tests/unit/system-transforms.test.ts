@@ -353,7 +353,7 @@ test("setSystemTransformsConfig accepts per-provider shape and merges defaults f
     providers: {
       gemini: {
         enabled: true,
-        pipeline: [{ kind: "obfuscate_words", words: ["gemini-cli"] }],
+        pipeline: [{ kind: "obfuscate_words", words: ["gemini"] }],
       },
     },
   });

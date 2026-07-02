@@ -71,8 +71,11 @@ describe("Chat Pipeline — handleSingleModelChat decomposition", () => {
   });
 
   it("chatCore should record cost for both non-streaming and streaming responses", () => {
+    // Non-streaming cost is still recorded inline; streaming cost was extracted to
+    // the recordStreamingCost leaf (open-sse/handlers/chatCore/streamingCost.ts,
+    // #4790 / #3501), so chatCore now delegates streaming cost to it.
     assert.match(coreSrc, /if \(apiKeyInfo\?\.id && estimatedCost > 0\)/);
-    assert.match(coreSrc, /if \(apiKeyInfo\?\.id && streamUsage\)/);
+    assert.match(coreSrc, /recordStreamingCost\(/);
   });
 });
 
@@ -208,12 +211,22 @@ describe("Plugin Architecture — plugins/hooks.ts", () => {
 
   it("should run onRequest hooks in priority order", async () => {
     const order = [];
-    hooks.registerHook("onRequest", "first", () => {
-      order.push("first");
-    }, 1);
-    hooks.registerHook("onRequest", "second", () => {
-      order.push("second");
-    }, 2);
+    hooks.registerHook(
+      "onRequest",
+      "first",
+      () => {
+        order.push("first");
+      },
+      1
+    );
+    hooks.registerHook(
+      "onRequest",
+      "second",
+      () => {
+        order.push("second");
+      },
+      2
+    );
 
     const ctx = { requestId: "r1", body: {}, model: "test", metadata: {} };
     await hooks.runOnRequest(ctx);
@@ -221,13 +234,23 @@ describe("Plugin Architecture — plugins/hooks.ts", () => {
   });
 
   it("should support request blocking via emitHookBlocking", async () => {
-    hooks.registerHook("onRequest", "blocker", () => ({
-      blocked: true,
-      response: { error: "denied" },
-    }), 1);
-    hooks.registerHook("onRequest", "never-runs", () => {
-      throw new Error("should not run");
-    }, 2);
+    hooks.registerHook(
+      "onRequest",
+      "blocker",
+      () => ({
+        blocked: true,
+        response: { error: "denied" },
+      }),
+      1
+    );
+    hooks.registerHook(
+      "onRequest",
+      "never-runs",
+      () => {
+        throw new Error("should not run");
+      },
+      2
+    );
 
     const ctx = { requestId: "r2", body: {}, model: "test", metadata: {} };
     const result = await hooks.emitHookBlocking("onRequest", ctx);

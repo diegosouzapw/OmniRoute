@@ -30,6 +30,7 @@
 
 import crypto from "node:crypto";
 import { createCompressionStats } from "../../stats.ts";
+import { runFuzzyPass } from "./fuzzy.ts";
 import type {
   CompressionEngine,
   CompressionEngineApplyOptions,
@@ -258,6 +259,14 @@ const SESSION_DEDUP_SCHEMA: EngineConfigField[] = [
     min: 1,
     max: 100000,
   },
+  {
+    key: "fuzzy",
+    type: "boolean",
+    label: "Fuzzy near-duplicate dedup",
+    description:
+      "Opt-in: replace whole messages ~85%+ similar to an earlier one with a recoverable CCR marker.",
+    defaultValue: false,
+  },
 ];
 
 function validateSessionDedupConfig(config: Record<string, unknown>): EngineValidationResult {
@@ -269,6 +278,15 @@ function validateSessionDedupConfig(config: Record<string, unknown>): EngineVali
     const v = config["minBlockChars"];
     if (typeof v !== "number" || !Number.isFinite(v) || v < 1) {
       errors.push("minBlockChars must be a positive number");
+    }
+  }
+  if (config["fuzzy"] !== undefined) {
+    const f = config["fuzzy"];
+    if (typeof f === "object" && f !== null) {
+      const fe = (f as Record<string, unknown>)["enabled"];
+      if (fe !== undefined && typeof fe !== "boolean") errors.push("fuzzy.enabled must be a boolean");
+    } else if (typeof f !== "boolean") {
+      errors.push("fuzzy must be an object { enabled } or a boolean");
     }
   }
   return { valid: errors.length === 0, errors };
@@ -317,30 +335,30 @@ export const sessionDedupEngine: CompressionEngine = {
     }
 
     const start = performance.now();
-    const { messages: dedupedMessages, dedupCount } = processMessages(
+    const { messages: exactMessages, dedupCount } = processMessages(
       messages as MessageLike[],
       minBlockChars
     );
 
-    if (dedupCount === 0) {
+    const { messages: finalMessages, fuzzyCount } = runFuzzyPass(
+      exactMessages,
+      stepConfig,
+      minBlockChars,
+      options?.principalId
+    );
+
+    if (dedupCount + fuzzyCount === 0) {
       return { body, compressed: false, stats: null };
     }
 
-    const newBody: Record<string, unknown> = {
-      ...body,
-      messages: dedupedMessages,
-    };
-
+    const newBody: Record<string, unknown> = { ...body, messages: finalMessages };
     const durationMs = Math.round(performance.now() - start);
-    const stats = createCompressionStats(
-      body,
-      newBody,
-      "stacked",
-      ["session-dedup"],
-      [`deduplicated-${dedupCount}-blocks`],
-      durationMs
-    );
-
+    const techniques = ["session-dedup"];
+    if (fuzzyCount > 0) techniques.push("fuzzy-dedup");
+    const rules: string[] = [];
+    if (dedupCount > 0) rules.push(`deduplicated-${dedupCount}-blocks`);
+    if (fuzzyCount > 0) rules.push(`fuzzy-${fuzzyCount}-blocks`);
+    const stats = createCompressionStats(body, newBody, "stacked", techniques, rules, durationMs);
     return { body: newBody, compressed: true, stats };
   },
 

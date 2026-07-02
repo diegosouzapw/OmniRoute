@@ -341,7 +341,36 @@ export async function checkConnection(conn) {
   const intervalMin = conn.healthCheckInterval ?? DEFAULT_HEALTH_CHECK_INTERVAL_MIN;
   if (intervalMin <= 0) return;
   if (!conn.isActive) return;
-  if (!conn.refreshToken || typeof conn.refreshToken !== "string") return;
+  if (!conn.refreshToken || typeof conn.refreshToken !== "string") {
+    // #5326: a refresh-CAPABLE provider (e.g. antigravity/gemini) with no usable
+    // refresh token can never self-heal via the sweep — it genuinely needs re-auth.
+    // Silently skipping here left the row at testStatus="active" while the dashboard
+    // badge (which derives expiry from tokenExpiresAt||expiresAt) showed a confusing
+    // cosmetic "Token Expired". Surface reality as a terminal "expired" status instead.
+    // Guard tightly so we do NOT clobber:
+    //   - providers that simply don't use refresh tokens (supportsTokenRefresh=false)
+    //   - connections already in a terminal/specific state (expired/banned/credits_exhausted)
+    //   - transient cooldown state (unavailable) owned by the request path
+    const refreshCapableNeedsReauth =
+      supportsTokenRefresh(conn.provider) &&
+      (!conn.testStatus || conn.testStatus === "active");
+    if (refreshCapableNeedsReauth) {
+      const now = new Date().toISOString();
+      await updateProviderConnection(conn.id, {
+        testStatus: "expired",
+        lastHealthCheckAt: now,
+        lastError: "No refresh token available — re-authenticate this account.",
+        lastErrorAt: now,
+        lastErrorType: "no_refresh_token",
+        lastErrorSource: "oauth",
+        errorCode: "no_refresh_token",
+      });
+      log(
+        `${LOG_PREFIX} ${conn.provider}/${getConnectionLogLabel(conn)} has no refresh token; marking expired (needs re-auth)`
+      );
+    }
+    return;
+  }
 
   // Retry expired connections with exponential backoff up to EXPIRED_RETRY_MAX times.
   if (conn.testStatus === "expired") {
@@ -553,8 +582,8 @@ export async function checkConnection(conn) {
       isActive: false,
       // Only rotating-token providers (Codex/OpenAI/etc.) have single-use refresh
       // tokens that are genuinely consumed and worthless after a failed refresh, so
-      // clearing them is safe. For non-rotating providers (Google: gemini-cli /
-      // antigravity / gemini) the stored refresh_token is the user's only recovery
+      // clearing them is safe. For non-rotating providers (Google: antigravity /
+      // gemini) the stored refresh_token is the user's only recovery
       // artifact — nulling it caused #3679 (the connection reports "No valid refresh
       // token available" and can never recover even after re-activation). Preserve it.
       ...(isRotatingProvider ? { refreshToken: null } : {}),

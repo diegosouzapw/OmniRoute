@@ -1,13 +1,13 @@
 ---
 title: "Reasoning Replay Cache"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Reasoning Replay Cache
 
 > **Source of truth:** `src/lib/db/reasoningCache.ts`, `open-sse/services/reasoningCache.ts`
-> **Last updated:** 2026-05-13 — v3.8.0
+> **Last updated:** 2026-06-28 — v3.8.40
 
 OmniRoute captures assistant `reasoning_content` produced by thinking-mode models and replays it transparently on multi-turn requests when the upstream provider requires it. This eliminates the HTTP 400 errors that strict providers raise when a client's conversation history is missing the prior turn's reasoning.
 
@@ -96,6 +96,8 @@ Replay is enabled when `requiresReasoningReplay(provider, model)` returns `true`
 - `/deepseek-r1/i`
 - `/deepseek-reasoner/i`
 - `/deepseek-chat/i`
+- `/deepseek[-/]?v4[-.]flash/i` and `/deepseek[-/]?v4[-.]pro/i` (V4 Flash / Pro, optional `-free` suffix)
+- `/(deepseek|zen\/deepseek)-v4/i`
 - `/kimi-k2/i`
 - `/qwq/i`
 - `/qwen.*think/i`

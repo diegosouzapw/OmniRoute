@@ -17,13 +17,16 @@ interface CooldownEntry {
   lastFailureAt: number;
   /** Number of consecutive failures (resets on success) */
   failureCount: number;
+  /** How long this entry must be retained for cleanup purposes */
+  retentionMs: number;
 }
 
 // Global cooldown state: keyed by "provider:connectionId" or "provider"
 const cooldownMap = new Map<string, CooldownEntry>();
 
-// Evict entries older than this to prevent unbounded memory growth
-const MAX_ENTRY_AGE_MS = 30 * 60 * 1000; // 30 minutes
+// Evict entries older than their configured retention horizon to prevent
+// unbounded memory growth without shortening operator-configured cooldowns.
+const DEFAULT_ENTRY_RETENTION_MS = 30 * 60 * 1000; // 30 minutes
 const CLEANUP_INTERVAL_MS = 60 * 1000; // Cleanup every 60s
 
 let cleanupTimer: ReturnType<typeof setInterval> | null = null;
@@ -31,15 +34,30 @@ let cleanupTimer: ReturnType<typeof setInterval> | null = null;
 function startCleanupIfNeeded(): void {
   if (cleanupTimer) return;
   cleanupTimer = setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of cooldownMap) {
-      if (now - entry.lastFailureAt > MAX_ENTRY_AGE_MS) {
-        cooldownMap.delete(key);
-      }
-    }
+    cleanupExpiredCooldownEntries();
   }, CLEANUP_INTERVAL_MS);
   // Allow Node.js to exit even if the timer is running
   if (cleanupTimer.unref) cleanupTimer.unref();
+}
+
+function getEntryRetentionMs(settings?: ResilienceSettings): number {
+  const maxRetryCooldownMs =
+    settings?.providerCooldown?.maxRetryCooldownMs ??
+    DEFAULT_RESILIENCE_SETTINGS.providerCooldown.maxRetryCooldownMs;
+  return Math.max(DEFAULT_ENTRY_RETENTION_MS, maxRetryCooldownMs);
+}
+
+/**
+ * Remove expired cooldown entries using each entry's configured retention
+ * horizon. Exported for diagnostics and focused tests; normal runtime cleanup is
+ * still performed by the unref'd interval started on first cooldown record.
+ */
+export function cleanupExpiredCooldownEntries(now = Date.now()): void {
+  for (const [key, entry] of cooldownMap) {
+    if (now - entry.lastFailureAt > entry.retentionMs) {
+      cooldownMap.delete(key);
+    }
+  }
 }
 
 /**
@@ -66,12 +84,14 @@ export function recordProviderCooldown(
   const key = cooldownKey(provider, connectionId);
   const existing = cooldownMap.get(key);
   const now = Date.now();
+  const retentionMs = getEntryRetentionMs(settings);
 
   if (existing) {
     existing.lastFailureAt = now;
     existing.failureCount++;
+    existing.retentionMs = Math.max(existing.retentionMs, retentionMs);
   } else {
-    cooldownMap.set(key, { lastFailureAt: now, failureCount: 1 });
+    cooldownMap.set(key, { lastFailureAt: now, failureCount: 1, retentionMs });
   }
 
   startCleanupIfNeeded();

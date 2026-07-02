@@ -58,13 +58,9 @@ export const KNOWN_STALE_DOC_REFS = new Set([
   // existing guardrailRegistry); the fictional enable/disable/logs rows and the entire
   // shadow table were removed from the doc (shadow A-B comparison is combo-config +
   // /api/combos/metrics). No allowlist entries needed for these anymore.
-  // docs/research/DISCOVERY_TOOL_DESIGN.md — design doc de feature NÃO implementada
-  // (Phase 2). Refs INTENCIONAIS: o doc agora traz um banner "⚠️ Not yet implemented
-  // — Phase 2" acima da tabela de endpoints. Mantidos aqui até a feature existir. — #3498
-  "/api/discovery/results",
-  "/api/discovery/results/:id",
-  "/api/discovery/scan",
-  "/api/discovery/verify/:id",
+  // (DISCOVERY_TOOL_DESIGN.md saiu de docs/research/ para o repo isolado _tasks/research/
+  // — gitignored, fora do escopo deste gate. As 4 entradas /api/discovery/* viraram
+  // obsoletas e foram removidas para satisfazer o stale-enforcement da allowlist.)
   // docs/reference/ENVIRONMENT.md — endpoint UPSTREAM do provedor Blackbox Web,
   // citado na descrição de env var (não é rota do OmniRoute):
   "/api/chat",
@@ -85,9 +81,7 @@ function walk(dir, filter, acc = []) {
 
 export function collectRouteFiles() {
   return new Set(
-    walk(API, (n) => /^route\.tsx?$/.test(n)).map((p) =>
-      path.relative(ROOT, p).replace(/\\/g, "/")
-    )
+    walk(API, (n) => /^route\.tsx?$/.test(n)).map((p) => path.relative(ROOT, p).replace(/\\/g, "/"))
   );
 }
 

@@ -38,6 +38,7 @@
 
 import crypto from "node:crypto";
 import { createCompressionStats } from "../../stats.ts";
+import { queryBlock, type CcrQuery } from "./ccrQuery.ts";
 import type {
   CompressionEngine,
   CompressionEngineApplyOptions,
@@ -160,7 +161,7 @@ export function resetCcrStore(): void {
  * Returns the verbatim block for the given hash, or an error object.
  */
 export function handleCcrRetrieve(
-  args: { hash: string },
+  args: { hash: string } & CcrQuery,
   callerId?: string
 ): { content: string } | { error: string } {
   if (!args.hash || typeof args.hash !== "string") {
@@ -175,7 +176,8 @@ export function handleCcrRetrieve(
   }
 
   recordRetrieval(args.hash, callerId);
-  return { content: block };
+  if (!args.mode || args.mode === "full") return { content: block };
+  return queryBlock(block, args);
 }
 
 // ─── message content processing ──────────────────────────────────────────────

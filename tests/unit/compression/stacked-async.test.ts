@@ -27,8 +27,10 @@ const FA = "fake-async-engine";
  */
 function tag(id: string, body: Record<string, unknown>): CompressionResult {
   const messages = (body.messages as Array<{ role: string; content: string }>) ?? [];
+  // Tag the user message; drop any padding (non-user) content so the stacked body
+  // genuinely shrinks and the #5527 (T02) inflation guard does not revert it.
   const next = messages.map((m) =>
-    m.role === "user" ? { ...m, content: `${m.content}|${id}` } : m
+    m.role === "user" ? { ...m, content: `${m.content}|${id}` } : { ...m, content: "" }
   );
   return {
     body: { ...body, messages: next },
@@ -87,6 +89,20 @@ function pipeline(...ids: string[]): CompressionPipelineStep[] {
   return ids.map((engine) => ({ engine })) as unknown as CompressionPipelineStep[];
 }
 
+// Fixture body with a large droppable padding message: engines drop it (see `tag`) so the
+// final stacked body shrinks and the #5527 (T02) inflation guard keeps the tagged output
+// instead of reverting it. These tests assert engine ORDER/advancement, not compression
+// ratios, so the body must realistically shrink for the tag assertions to survive the guard.
+const PADDING = "padding tokens ".repeat(40);
+function mkBody(): { messages: Array<{ role: string; content: string }> } {
+  return {
+    messages: [
+      { role: "user", content: "hello" },
+      { role: "assistant", content: PADDING },
+    ],
+  };
+}
+
 describe("stacked compression — async interface (H10)", () => {
   before(() => {
     registerCompressionEngine(makeEngine(FS));
@@ -98,7 +114,7 @@ describe("stacked compression — async interface (H10)", () => {
   });
 
   it("runs a mixed sync+async pipeline in pipeline order", async () => {
-    const body = { messages: [{ role: "user", content: "hello" }] };
+    const body = mkBody();
     const result = await applyStackedCompressionAsync(body, pipeline(FS, FA));
 
     assert.equal(userContent(result), "hello|fake-sync-engine|fake-async-engine");
@@ -111,7 +127,7 @@ describe("stacked compression — async interface (H10)", () => {
   });
 
   it("preserves order when the async engine runs first", async () => {
-    const body = { messages: [{ role: "user", content: "hello" }] };
+    const body = mkBody();
     const result = await applyStackedCompressionAsync(body, pipeline(FA, FS));
 
     assert.equal(userContent(result), "hello|fake-async-engine|fake-sync-engine");
@@ -122,7 +138,7 @@ describe("stacked compression — async interface (H10)", () => {
   });
 
   it("async path yields the same result as sync path for sync-only engines", async () => {
-    const body = { messages: [{ role: "user", content: "hello" }] };
+    const body = mkBody();
     const asyncResult = await applyStackedCompressionAsync(body, pipeline(FS));
     const syncResult = applyStackedCompression(body, pipeline(FS));
 
@@ -131,7 +147,7 @@ describe("stacked compression — async interface (H10)", () => {
   });
 
   it("legacy sync path gracefully skips async-only work without crashing", () => {
-    const body = { messages: [{ role: "user", content: "hello" }] };
+    const body = mkBody();
     const result = applyStackedCompression(body, pipeline(FA));
 
     // The async-only engine's sync apply() is a pass-through: no transform.

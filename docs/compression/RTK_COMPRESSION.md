@@ -1,7 +1,7 @@
 ---
 title: "RTK Compression"
-version: 3.8.31
-lastUpdated: 2026-06-20
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # RTK Compression
@@ -109,7 +109,7 @@ them too, especially when they are shared across projects.
 RTK collapses duplicate lines at two independent layers:
 
 1. **Per-filter `deduplicate` (opt-in, default `false`).** A filter can set `rules.deduplicate: true`
-   to collapse consecutive duplicate lines *within that filter's matched output*, before truncation.
+   to collapse consecutive duplicate lines _within that filter's matched output_, before truncation.
    This runs inside `lineFilter.ts`. For legacy filters, it is auto-enabled when the filter defines
    `collapsePatterns`. Schema: `deduplicate: z.boolean().default(false)` in
    `open-sse/services/compression/engines/rtk/filterSchema.ts`.
@@ -124,7 +124,7 @@ output), so the two compose without double-counting.
 ## Line Grouping (`enableGrouping`)
 
 When `rtkConfig.enableGrouping` is `true` (default `false`), RTK runs an additional `groupSimilarLines`
-pass over the post-dedup result that collapses runs of *near-equivalent* (not byte-identical)
+pass over the post-dedup result that collapses runs of _near-equivalent_ (not byte-identical)
 consecutive lines. `rtkConfig.groupingThreshold` (default `3`) is the minimum run length that triggers
 grouping. This is the structural counterpart to `deduplicateThreshold`: dedup handles exact repeats,
 grouping handles "the same shape with small differences". Both flags are part of the `rtkConfig` JSON
@@ -201,13 +201,13 @@ the SQLite `key_value` table under `namespace = "compression"`, `key = "rtkConfi
 — including `enableGrouping`, `groupingThreshold`, `stripCodeComments`, and `preserveDocstrings` —
 round-trips through the same store and survives a restart.
 
-| Key                    | Default | Purpose                                                                       |
-| ---------------------- | ------- | ----------------------------------------------------------------------------- |
-| `deduplicateThreshold` | `3`     | Engine-wide: min consecutive identical lines to collapse (bounded 2–100)      |
-| `enableGrouping`       | `false` | Opt-in: collapse runs of near-equivalent consecutive lines                    |
-| `groupingThreshold`    | `3`     | Min consecutive similar-line run that triggers grouping                       |
-| `stripCodeComments`    | `false` | Opt-in: remove comments from fenced code blocks (needs `applyToCodeBlocks`)   |
-| `preserveDocstrings`   | `true`  | When stripping comments, keep JSDoc/`/** … */` blocks                         |
+| Key                    | Default | Purpose                                                                     |
+| ---------------------- | ------- | --------------------------------------------------------------------------- |
+| `deduplicateThreshold` | `3`     | Engine-wide: min consecutive identical lines to collapse (bounded 2–100)    |
+| `enableGrouping`       | `false` | Opt-in: collapse runs of near-equivalent consecutive lines                  |
+| `groupingThreshold`    | `3`     | Min consecutive similar-line run that triggers grouping                     |
+| `stripCodeComments`    | `false` | Opt-in: remove comments from fenced code blocks (needs `applyToCodeBlocks`) |
+| `preserveDocstrings`   | `true`  | When stripping comments, keep JSDoc/`/** … */` blocks                       |
 
 ## API
 
@@ -318,11 +318,11 @@ RTK supports **3 intensity levels** that trade off between **compression aggress
 
 ### The 3 Levels
 
-| Level | Truncation threshold | Token savings | Risk | Best for |
-|-------|---------------------|---------------|------|----------|
-| `minimal` | 24 lines per section | ~20-40% | Very low | Production with critical context |
-| `standard` (default) | 24 lines per section | ~50-70% | Low | Daily coding sessions |
-| `aggressive` | 16 lines per section | ~70-90% | Medium | Long sessions, max savings |
+| Level                | Truncation threshold | Token savings | Risk     | Best for                         |
+| -------------------- | -------------------- | ------------- | -------- | -------------------------------- |
+| `minimal`            | 24 lines per section | ~20-40%       | Very low | Production with critical context |
+| `standard` (default) | 24 lines per section | ~50-70%       | Low      | Daily coding sessions            |
+| `aggressive`         | 16 lines per section | ~70-90%       | Medium   | Long sessions, max savings       |
 
 ### Where the Truncation Happens
 
@@ -338,15 +338,15 @@ Both the **head** and **tail** of each section are preserved; middle content is 
 
 ### What Stays vs. What Gets Cut
 
-| Content | minimal | standard | aggressive |
-|---------|---------|----------|------------|
-| Errors / stack traces | ✅ preserved | ✅ preserved | ✅ preserved |
-| Test failures | ✅ preserved | ✅ preserved | ✅ preserved |
-| Build errors | ✅ preserved | ✅ preserved | ✅ preserved |
-| Test passes (verbose) | ✅ preserved | 🟡 collapsed | 🟡 collapsed |
-| Routine output (info logs) | 🟡 collapsed | 🟡 collapsed | ❌ dropped |
-| Progress bars | 🟡 collapsed | ❌ dropped | ❌ dropped |
-| Banner / ASCII art | 🟡 collapsed | ❌ dropped | ❌ dropped |
+| Content                    | minimal      | standard     | aggressive   |
+| -------------------------- | ------------ | ------------ | ------------ |
+| Errors / stack traces      | ✅ preserved | ✅ preserved | ✅ preserved |
+| Test failures              | ✅ preserved | ✅ preserved | ✅ preserved |
+| Build errors               | ✅ preserved | ✅ preserved | ✅ preserved |
+| Test passes (verbose)      | ✅ preserved | 🟡 collapsed | 🟡 collapsed |
+| Routine output (info logs) | 🟡 collapsed | 🟡 collapsed | ❌ dropped   |
+| Progress bars              | 🟡 collapsed | ❌ dropped   | ❌ dropped   |
+| Banner / ASCII art         | 🟡 collapsed | ❌ dropped   | ❌ dropped   |
 
 ### Choosing the Right Intensity
 
@@ -381,7 +381,9 @@ Both the **head** and **tail** of each section are preserved; middle content is 
 ```json
 {
   "combo": "my-coding-combo",
-  "routing": { /* ... */ },
+  "routing": {
+    /* ... */
+  },
   "compression": {
     "engine": "rtk",
     "intensity": "aggressive"
@@ -402,7 +404,9 @@ updateEngineConfig("rtk", { intensity: "aggressive" });
 ```
 
 ### Verifying the Effect
+
 Use the **Verify Gate** (see below) to confirm your filter is safe at your chosen intensity:
+
 ```ts
 import { runRtkFilterTests } from "omniroute/compression/engines/rtk/verify";
 
@@ -492,24 +496,15 @@ The `engines/rtk/filters/` directory contains **49+ built-in filter JSON files**
       "^\\s*[A-Z][a-zA-Z]+Error:",
       "^\\s*[A-Z][a-zA-Z]+Exception"
     ],
-    "dropPatterns": [
-      "site-packages/",
-      "^\\s+[a-z_]+\\([^)]*\\)$"
-    ],
+    "dropPatterns": ["site-packages/", "^\\s+[a-z_]+\\([^)]*\\)$"],
     "headLines": 5,
     "tailLines": 3,
     "maxLines": 25,
     "filterStderr": true
   },
   "preserve": {
-    "errorPatterns": [
-      "Error:",
-      "Exception:",
-      "Traceback"
-    ],
-    "summaryPatterns": [
-      "^[A-Z][a-zA-Z]+(?:Error|Exception):"
-    ]
+    "errorPatterns": ["Error:", "Exception:", "Traceback"],
+    "summaryPatterns": ["^[A-Z][a-zA-Z]+(?:Error|Exception):"]
   },
   "tests": [
     {
@@ -598,7 +593,7 @@ RTK compress (with rawOutput.enabled=true)
     "intensity": "aggressive",
     "rawOutput": {
       "enabled": true,
-      "maxBytes": 1048576  // 1MB cap
+      "maxBytes": 1048576 // 1MB cap
     }
   }
 }
@@ -608,11 +603,11 @@ RTK compress (with rawOutput.enabled=true)
 
 ### Storage Cost
 
-| Per-request | 1MB cap | 10MB cap |
-|-------------|---------|----------|
-| Average compressed output | ~5KB | ~5KB |
-| Raw output stored | ~50-500KB | ~500KB-5MB |
-| With 1000 requests/day | 50-500MB/day | 500MB-5GB/day |
+| Per-request               | 1MB cap      | 10MB cap      |
+| ------------------------- | ------------ | ------------- |
+| Average compressed output | ~5KB         | ~5KB          |
+| Raw output stored         | ~50-500KB    | ~500KB-5MB    |
+| With 1000 requests/day    | 50-500MB/day | 500MB-5GB/day |
 
 > **Recommendation**: Only enable raw output for **debugging sessions** or **sampled auditing**, not always-on.
 
@@ -621,7 +616,7 @@ RTK compress (with rawOutput.enabled=true)
 ```ts
 import { readRtkRawOutput } from "omniroute/compression/engines/rtk/rawOutput";
 
-const raw = readRtkRawOutput(pointerId);  // pointerId from compression stats
+const raw = readRtkRawOutput(pointerId); // pointerId from compression stats
 if (raw) {
   console.log("Original output:", raw);
 }
@@ -640,13 +635,17 @@ The **RTK Filter Verification** (`open-sse/services/compression/engines/rtk/veri
 import { runRtkFilterTests } from "open-sse/services/compression/engines/rtk/verify";
 
 const result = runRtkFilterTests();
-console.log(`Passed: ${result.outcomes.filter(o => o.passed).length}`);
-console.log(`Failed: ${result.outcomes.filter(o => !o.passed).length}`);
+console.log(`Passed: ${result.outcomes.filter((o) => o.passed).length}`);
+console.log(`Failed: ${result.outcomes.filter((o) => !o.passed).length}`);
 if (!result.passed) {
   console.error("Filters failed verification");
-  result.outcomes.filter(o => !o.passed).forEach(o => {
-    console.error(`  - ${o.filterId} / ${o.testName}: expected "${o.expected}", got "${o.actual}"`);
-  });
+  result.outcomes
+    .filter((o) => !o.passed)
+    .forEach((o) => {
+      console.error(
+        `  - ${o.filterId} / ${o.testName}: expected "${o.expected}", got "${o.actual}"`
+      );
+    });
 }
 ```
 

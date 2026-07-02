@@ -57,6 +57,8 @@ describe("compressionAnalytics", () => {
       byCompressionCombo: {},
       byProvider: {},
       last24h: summary.last24h,
+      totalSkipped: 0,
+      bySkipReason: {},
       validationFallbacks: 0,
       realUsage: {
         requestsWithReceipts: 0,
@@ -387,5 +389,66 @@ describe("compressionAnalytics", () => {
     assert.equal(summary.mcpDescriptionCompression.estimatedTokensSaved, 8);
     assert.equal(summary.realUsage.requestsWithReceipts, 0);
     assert.equal(summary.realUsage.bySource.mcp_metadata_estimate, undefined);
+  });
+
+  // #4268: attempted-but-no-op runs are recorded with skip_reason so Stacked is
+  // visible even when it saves nothing, while saving aggregates stay net-saving-only.
+  it("records skipped (no-op) runs separately without polluting saving aggregates", () => {
+    // One real saving run...
+    insertCompressionAnalyticsRow({
+      timestamp: new Date().toISOString(),
+      mode: "stacked",
+      original_tokens: 1000,
+      compressed_tokens: 600,
+      tokens_saved: 400,
+    });
+    // ...and two no-op stacked attempts (saved nothing).
+    insertCompressionAnalyticsRow({
+      timestamp: new Date().toISOString(),
+      mode: "stacked",
+      original_tokens: 500,
+      compressed_tokens: 500,
+      tokens_saved: 0,
+      skip_reason: "no_savings",
+    });
+    insertCompressionAnalyticsRow({
+      timestamp: new Date().toISOString(),
+      mode: "stacked",
+      original_tokens: 800,
+      compressed_tokens: 800,
+      tokens_saved: 0,
+      skip_reason: "no_savings",
+    });
+
+    const summary = getCompressionAnalyticsSummary();
+
+    // Saving aggregates count the net-saving run ONLY (skip rows excluded).
+    assert.equal(summary.totalRequests, 1, "totalRequests must exclude skip rows");
+    assert.equal(summary.totalTokensSaved, 400);
+    assert.equal(summary.byMode.stacked.count, 1, "byMode count excludes skip rows");
+    assert.equal(summary.byMode.stacked.tokensSaved, 400);
+
+    // ...but the skips are now visible instead of dropped.
+    assert.equal(summary.byMode.stacked.skipped, 2, "skipped attempts surfaced per mode");
+    assert.equal(summary.totalSkipped, 2);
+    assert.equal(summary.bySkipReason.no_savings, 2);
+  });
+
+  it("a mode with only no-op runs still appears (count 0, skipped > 0)", () => {
+    insertCompressionAnalyticsRow({
+      timestamp: new Date().toISOString(),
+      mode: "stacked",
+      original_tokens: 300,
+      compressed_tokens: 300,
+      tokens_saved: 0,
+      skip_reason: "no_savings",
+    });
+
+    const summary = getCompressionAnalyticsSummary();
+    assert.equal(summary.totalRequests, 0, "no net-saving runs");
+    assert.ok(summary.byMode.stacked, "stacked must appear even with only skip rows");
+    assert.equal(summary.byMode.stacked.count, 0);
+    assert.equal(summary.byMode.stacked.skipped, 1);
+    assert.equal(summary.totalSkipped, 1);
   });
 });

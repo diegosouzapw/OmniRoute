@@ -71,6 +71,33 @@ test("GithubExecutor.buildUrl keeps GitHub Claude Opus 4.6 on /chat/completions"
   assert.equal(url, "https://api.githubcopilot.com/chat/completions");
 });
 
+test("GithubExecutor.buildUrl routes unlisted Codex models to /responses (9router#102)", () => {
+  // Copilot Codex models advertise supported_endpoints: ["/responses"]. When such
+  // a model isn't in the curated gh registry, getModelTargetFormat returns null and
+  // the request fell through to /chat/completions -> upstream 400 "model <id> is not
+  // accessible via the /chat/completions endpoint". Any *-codex id must route to
+  // /responses regardless of whether it's explicitly registered.
+  const executor = new GithubExecutor();
+  for (const model of [
+    "gpt-5-codex",
+    "gpt-5.1-codex",
+    "gpt-5.1-codex-mini",
+    "gpt-5.1-codex-max",
+    "gpt-5.2-codex",
+  ]) {
+    assert.equal(
+      executor.buildUrl(model, true),
+      "https://api.githubcopilot.com/responses",
+      `${model} must route to /responses`
+    );
+  }
+  // Non-codex unlisted models keep the chat/completions default.
+  assert.equal(
+    executor.buildUrl("some-random-chat-model", true),
+    "https://api.githubcopilot.com/chat/completions"
+  );
+});
+
 test("GithubExecutor.transformRequest injects JSON response instructions for Claude and strips reasoning fields", () => {
   const executor = new GithubExecutor();
   const body = {
@@ -139,14 +166,22 @@ test("GithubExecutor.transformRequest sanitizes Anthropic-shape content parts (t
 
   // assistant: thinking + tool_use serialized to text type — no unknown type leaks to wire
   for (const part of result.messages[1].content) {
-    assert.ok(part.type === "text" || part.type === "image_url", `unsupported type leaked: ${part.type}`);
+    assert.ok(
+      part.type === "text" || part.type === "image_url",
+      `unsupported type leaked: ${part.type}`
+    );
   }
   assert.ok(result.messages[1].content.some((p: any) => /let me search/.test(p.text)));
-  assert.ok(result.messages[1].content.some((p: any) => /search/.test(p.text) && /"q":"X"/.test(p.text)));
+  assert.ok(
+    result.messages[1].content.some((p: any) => /search/.test(p.text) && /"q":"X"/.test(p.text))
+  );
 
   // tool message: tool_result serialized to text — no unknown type leaks
   for (const part of result.messages[2].content) {
-    assert.ok(part.type === "text" || part.type === "image_url", `unsupported type leaked: ${part.type}`);
+    assert.ok(
+      part.type === "text" || part.type === "image_url",
+      `unsupported type leaked: ${part.type}`
+    );
   }
 });
 
@@ -160,7 +195,9 @@ test("GithubExecutor.transformRequest collapses assistant content to null when e
       {
         role: "assistant",
         content: [{ type: "tool_use", id: "call_x", name: "noop", input: {} }],
-        tool_calls: [{ id: "call_x", type: "function", function: { name: "noop", arguments: "{}" } }],
+        tool_calls: [
+          { id: "call_x", type: "function", function: { name: "noop", arguments: "{}" } },
+        ],
       },
     ],
   };
@@ -184,7 +221,10 @@ test("GithubExecutor.transformRequest leaves string content and missing content 
   const body = {
     messages: [
       { role: "user", content: "plain string" },
-      { role: "assistant", tool_calls: [{ id: "c1", type: "function", function: { name: "f", arguments: "{}" } }] },
+      {
+        role: "assistant",
+        tool_calls: [{ id: "c1", type: "function", function: { name: "f", arguments: "{}" } }],
+      },
     ],
   };
   const result = executor.transformRequest("claude-sonnet-4.6", body, true, {});
@@ -205,10 +245,10 @@ test("GithubExecutor.buildHeaders prefers Copilot token and sets GitHub-specific
 
   assert.equal(headers.Authorization, "Bearer copilot-token");
   assert.equal(headers.Accept, "text/event-stream");
-  assert.equal(headers["editor-version"], "vscode/1.117.0");
-  assert.equal(headers["editor-plugin-version"], "copilot-chat/0.45.1");
-  assert.equal(headers["user-agent"], "GitHubCopilotChat/0.45.1");
-  assert.equal(headers["x-github-api-version"], "2025-04-01");
+  assert.equal(headers["editor-version"], "vscode/1.126.0");
+  assert.equal(headers["editor-plugin-version"], "copilot-chat/0.54.0");
+  assert.equal(headers["user-agent"], "GitHubCopilotChat/0.54.0");
+  assert.equal(headers["x-github-api-version"], "2026-06-01");
   assert.equal(headers["openai-intent"], "conversation-panel");
   assert.equal(headers["X-Initiator"], "user");
   assert.ok(headers["x-request-id"]);
@@ -424,6 +464,44 @@ test("GithubExecutor.execute preserves complete SSE responses including terminal
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("GithubExecutor.transformRequest strips temperature for gpt-5.4 (port from 9router#612 / closes upstream #536)", () => {
+  // GitHub Copilot's gpt-5.4 family rejects requests carrying `temperature` with HTTP 400:
+  //   "Unsupported parameter: 'temperature' is not supported with this model."
+  // OmniRoute's existing `stripGpt5SamplingWhenReasoning` guard only fires for
+  // provider==="openai" (raw api.openai.com Chat Completions) — Copilot requests run
+  // through GithubExecutor and never hit that guard. Strip temperature here so the
+  // 400 cannot reach the user. Other GitHub Copilot models keep temperature intact.
+  const executor = new GithubExecutor();
+
+  const stripped = executor.transformRequest(
+    "gpt-5.4",
+    { temperature: 0.7, messages: [{ role: "user", content: "hi" }] },
+    true,
+    {}
+  );
+  assert.equal(stripped.temperature, undefined, "temperature must be stripped for gpt-5.4");
+
+  const strippedMini = executor.transformRequest(
+    "gpt-5.4-mini",
+    { temperature: 0.3, messages: [{ role: "user", content: "hi" }] },
+    true,
+    {}
+  );
+  assert.equal(
+    strippedMini.temperature,
+    undefined,
+    "temperature must be stripped for gpt-5.4-mini"
+  );
+
+  const kept = executor.transformRequest(
+    "gpt-4.1",
+    { temperature: 0.7, messages: [{ role: "user", content: "hi" }] },
+    true,
+    {}
+  );
+  assert.equal(kept.temperature, 0.7, "temperature must be preserved for non-gpt-5.4 models");
 });
 
 test("GithubExecutor.transformRequest strips invalid synthetic Responses reasoning ids", () => {

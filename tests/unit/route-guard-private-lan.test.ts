@@ -23,6 +23,18 @@ test("isPrivateLanHost: accepts RFC1918 IPv4 (incl. :port and ::ffff: mapped)", 
   }
 });
 
+test("isPrivateLanHost: accepts Tailscale CGNAT IPv4 range", () => {
+  for (const h of [
+    "100.64.0.1",
+    "100.96.135.160",
+    "100.127.255.254",
+    "100.96.135.160:20128",
+    "::ffff:100.96.135.160",
+  ]) {
+    assert.equal(isPrivateLanHost(h), true, `expected Tailscale LAN: ${h}`);
+  }
+});
+
 test("isPrivateLanHost: accepts IPv6 ULA / link-local", () => {
   assert.equal(isPrivateLanHost("fd12:3456::1"), true);
   assert.equal(isPrivateLanHost("fe80::1"), true);
@@ -32,6 +44,8 @@ test("isPrivateLanHost: rejects public IPs, loopback and junk", () => {
   for (const h of [
     "8.8.8.8",
     "69.164.221.35", // public VPS
+    "100.63.255.255", // just outside Tailscale 100.64/10
+    "100.128.0.1", // just outside Tailscale 100.64/10
     "172.32.0.1", // just outside 172.16/12
     "127.0.0.1",
     "::1",

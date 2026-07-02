@@ -1,7 +1,4 @@
 import { getResolvedModelCapabilities } from "../../src/lib/modelCapabilities.ts";
-import { MODEL_SPECS } from "../../src/shared/constants/modelSpecs.ts";
-
-const DEFAULT_MAX_OUTPUT_TOKENS = MODEL_SPECS.__default__.maxOutputTokens;
 
 export function toPositiveInteger(value: unknown): number | null {
   const numericValue =
@@ -29,7 +26,7 @@ export function resolveReasoningBufferedMaxTokens(
   if (capabilities.supportsThinking !== true) return null;
 
   const maxOutputTokens = toPositiveInteger(capabilities.maxOutputTokens);
-  if (maxOutputTokens === null || maxOutputTokens === DEFAULT_MAX_OUTPUT_TOKENS) return null;
+  if (maxOutputTokens === null) return null;
   if (current > maxOutputTokens) return maxOutputTokens;
   if (current === maxOutputTokens) return current;
 

@@ -447,7 +447,10 @@ test("grok-web validator: full DevTools cookie blob is parsed for the sso value"
   const result = await validateProviderApiKey({ provider: "grok-web", apiKey: blob });
 
   assert.equal(result.valid, true);
-  assert.equal(capturedCookie, "sso=eyJTARGET.abc.def");
+  // #5350 — the outbound cookie now forwards the Cloudflare cookies too.
+  assert.match(capturedCookie, /(?:^|;\s*)sso=eyJTARGET\.abc\.def(?:;|$)/);
+  assert.match(capturedCookie, /(?:^|;\s*)cf_clearance=baz(?:;|$)/);
+  assert.match(capturedCookie, /(?:^|;\s*)__cf_bm=bar(?:;|$)/);
 });
 
 test("grok-web validator: empty/missing sso in input returns 'Missing sso cookie'", async () => {
@@ -592,6 +595,45 @@ test("grok-web validator: 403 with credential-rejection body is treated as auth-
   const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "bad-cookie" });
   assert.equal(result.valid, false);
   assert.match(result.error || "", /Invalid SSO cookie/i);
+});
+
+// #5350 — when the user DID supply a cf_clearance, an auth-shaped 401 / invalid-credentials 403
+// is almost always an IP-reputation block (cf_clearance is IP+TLS+UA-pinned and cannot be
+// replayed from a different machine), NOT a bad cookie. Surface the IP guidance instead of the
+// misleading "Invalid SSO cookie" verdict.
+test("grok-web validator: 401 WITH a cf_clearance maps to IP-reputation guidance, not 'invalid cookie' (#5350)", async () => {
+  __setGrokTlsFetchOverride(async () => {
+    return { status: 401, headers: new Headers(), text: "Unauthorized", body: null };
+  });
+
+  const blob = "sso=eyJTARGET.abc.def; sso-rw=RW; cf_clearance=CF; __cf_bm=BM";
+  const result = await validateProviderApiKey({ provider: "grok-web", apiKey: blob });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /residential IP|proxy/i);
+  assert.doesNotMatch(result.error || "", /invalid SSO cookie/i);
+});
+
+test("grok-web validator: invalid-credentials 403 WITH a cf_clearance maps to IP-reputation guidance (#5350)", async () => {
+  __setGrokTlsFetchOverride(async () => {
+    return {
+      status: 403,
+      headers: new Headers(),
+      text: JSON.stringify({
+        error: {
+          code: 16,
+          message: "Failed to look up session ID. [WKE=unauthenticated:invalid-credentials]",
+          details: [],
+        },
+      }),
+      body: null,
+    };
+  });
+
+  const blob = "sso=eyJTARGET.abc.def; cf_clearance=CF";
+  const result = await validateProviderApiKey({ provider: "grok-web", apiKey: blob });
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /residential IP|proxy/i);
+  assert.doesNotMatch(result.error || "", /invalid SSO cookie/i);
 });
 
 test("grok-web validator: TLS client unavailable surfaces actionable error", async () => {
@@ -2748,4 +2790,53 @@ test("isSecurityBlockError: a URL-guard block remains a security block", () => {
     isRetryable: false,
   });
   assert.equal(isSecurityBlockError(guardBlock), true);
+});
+
+// ─── huggingface validator (whoami-v2 auth probe) ────────────────────────────
+// Fine-grained HF Inference-Provider tokens are valid even when model/task
+// endpoints reject them. The validator must probe whoami-v2 as a pure auth
+// check: only 401/403 is invalid; any other non-OK status is transient.
+
+test("huggingface validator accepts a token whoami-v2 recognizes", async () => {
+  const calls: { url: string; headers: Record<string, string> }[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), headers: toPlainHeaders(init.headers) });
+    return new Response(JSON.stringify({ name: "hf-user", auth: { type: "access_token" } }), {
+      status: 200,
+    });
+  };
+
+  const result = await validateProviderApiKey({ provider: "huggingface", apiKey: "hf_validtoken" });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+  assert.equal(result.method, "huggingface_whoami");
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://huggingface.co/api/whoami-v2");
+  assert.equal(calls[0].headers.Authorization, "Bearer hf_validtoken");
+});
+
+test("huggingface validator treats 401/403 as an invalid token", async () => {
+  globalThis.fetch = async () => new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  const unauthorized = await validateProviderApiKey({ provider: "huggingface", apiKey: "hf_bad" });
+  assert.equal(unauthorized.valid, false);
+  assert.equal(unauthorized.error, "Invalid API key");
+
+  globalThis.fetch = async () => new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+  const forbidden = await validateProviderApiKey({ provider: "huggingface", apiKey: "hf_bad" });
+  assert.equal(forbidden.valid, false);
+  assert.equal(forbidden.error, "Invalid API key");
+});
+
+test("huggingface validator does NOT mark a fine-grained token invalid on a non-auth status", async () => {
+  // This is the false-negative the port fixes: a 503/404 from a model/task
+  // probe used to read as "invalid key". whoami-v2 returning a non-auth,
+  // non-OK status must surface as a transient error, never "Invalid API key".
+  globalThis.fetch = async () => new Response("upstream down", { status: 503 });
+
+  const result = await validateProviderApiKey({ provider: "huggingface", apiKey: "hf_finegrained" });
+
+  assert.equal(result.valid, false);
+  assert.notEqual(result.error, "Invalid API key");
+  assert.match(result.error || "", /HuggingFace token check returned 503/);
 });

@@ -1011,7 +1011,7 @@ test("provider-nodes validate route supports enabled CC validation and OpenAI-st
   assert.equal(openAiResponse.status, 200);
   assert.deepEqual(await openAiResponse.json(), {
     valid: false,
-    error: "Invalid API key",
+    error: "API key unauthorized",
   });
   assert.equal(calls[1].url, "https://proxy.example.com/models");
   assert.equal(calls[1].init.headers.Authorization, "Bearer sk-openai-test");
@@ -1086,7 +1086,7 @@ test("provider-nodes validate route covers default CC paths, null method, anthro
   assert.equal(anthropicResponse.status, 200);
   assert.deepEqual(await anthropicResponse.json(), {
     valid: false,
-    error: "Invalid API key",
+    error: "API key unauthorized",
   });
   assert.equal(anthropicCalls[0].url, "https://proxy.example.com/v1/models");
   assert.equal(anthropicCalls[0].init.method, "GET");

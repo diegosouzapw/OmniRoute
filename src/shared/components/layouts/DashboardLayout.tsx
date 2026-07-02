@@ -73,8 +73,8 @@ export default function DashboardLayout({ children }) {
         />
       )}
 
-      {/* Sidebar - Desktop */}
-      <div className="hidden min-h-0 lg:flex">
+      {/* Sidebar - Desktop: keep visibility independent from Tailwind hidden/lg:flex ordering. */}
+      <div className="dashboard-sidebar-desktop">
         <Sidebar
           collapsed={collapsed}
           onToggleCollapse={handleToggleCollapse}

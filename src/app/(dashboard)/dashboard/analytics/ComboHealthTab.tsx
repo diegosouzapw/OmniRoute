@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useProviderNodeMap, resolveProviderName } from "@/lib/display/useProviderNodeMap";
 import Card from "@/shared/components/Card";
 import Badge from "@/shared/components/Badge";
 import { Skeleton, Spinner } from "@/shared/components/Loading";
@@ -156,6 +157,7 @@ function DistributionBar({ label, value, meta }: { label: string; value: number;
 }
 
 function ComboForecastPanel({ forecast }: { forecast: ComboForecastMetrics }) {
+  const nodeMap = useProviderNodeMap();
   const topTargets = useMemo(
     () =>
       [...forecast.targets]
@@ -227,7 +229,8 @@ function ComboForecastPanel({ forecast }: { forecast: ComboForecastMetrics }) {
                     {target.label || target.model}
                   </div>
                   <div className="mt-1 text-xs text-text-muted">
-                    {target.provider} · traffic {formatShare(target.trafficShare)}
+                    {resolveProviderName(target.provider, nodeMap)} · traffic{" "}
+                    {formatShare(target.trafficShare)}
                   </div>
                 </div>
                 <Badge variant={getRiskVariant(target.quota.risk)} size="sm">
@@ -379,6 +382,7 @@ function ComboAutopilotPanel({ report }: { report: ComboAutopilotReport }) {
 }
 
 function ComboScoringInspectorPanel({ inspector }: { inspector: ComboScoringInspectorCombo }) {
+  const nodeMap = useProviderNodeMap();
   const topTargets = inspector.targets.slice(0, 3);
 
   return (
@@ -431,7 +435,8 @@ function ComboScoringInspectorPanel({ inspector }: { inspector: ComboScoringInsp
                       #{target.rank} {target.label || target.model}
                     </div>
                     <div className="mt-1 text-xs text-text-muted">
-                      {target.provider} · score {target.score.toFixed(3)}
+                      {resolveProviderName(target.provider, nodeMap)} · score{" "}
+                      {target.score.toFixed(3)}
                     </div>
                   </div>
                   <Badge variant={target.rank === 1 ? "success" : "default"} size="sm">
@@ -488,6 +493,7 @@ function ComboHealthCard({
   scoringInspector?: ComboScoringInspectorCombo;
 }) {
   const t = useTranslations("analytics");
+  const nodeMap = useProviderNodeMap();
 
   const sortedDistribution = useMemo(
     () =>
@@ -563,7 +569,9 @@ function ComboHealthCard({
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <div className="text-sm font-medium text-text-main">{provider.provider}</div>
+                      <div className="text-sm font-medium text-text-main">
+                        {resolveProviderName(provider.provider, nodeMap)}
+                      </div>
                       <div className="mt-1 text-xs text-text-muted">
                         Remaining quota {formatPercent(provider.remainingPct, 1)}
                       </div>

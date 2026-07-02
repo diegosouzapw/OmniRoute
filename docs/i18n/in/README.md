@@ -143,13 +143,6 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
         <sub>⭐ 67.3K</sub>
       </td>
       <td align="center" width="110">
-        <a href="https://github.com/google-gemini/gemini-cli">
-          <img src="./public/providers/gemini-cli.svg" alt="Gemini CLI" width="48"/><br/>
-          <b>Gemini CLI</b>
-        </a><br/>
-        <sub>⭐ 94.7K</sub>
-      </td>
-      <td align="center" width="110">
         <a href="https://github.com/Kilo-Org/kilocode">
           <img src="./public/providers/kilocode.svg" alt="Kilo Code" width="48"/><br/>
           <b>Kilo Code</b>
@@ -177,7 +170,6 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
 - ✅ **Maximize subscriptions** - Track quota, use every bit before reset
 - ✅ **Auto fallback** - Subscription → API Key → Cheap → Free, zero downtime
 - ✅ **Multi-account** - Round-robin between accounts per provider
-- ✅ **Universal** - Works with Claude Code, Codex, Gemini CLI, Cursor, Cline, OpenClaw, any CLI tool
 
 ---
 
@@ -207,7 +199,7 @@ This generates a `system-info.txt` with your Node.js version, OmniRoute version,
 
 ```
 ┌─────────────┐
-│  Your CLI   │  (Claude Code, Codex, Gemini CLI, OpenClaw, Cursor, Cline...)
+│  Your CLI   │  (Claude Code, Codex, OpenClaw, Cursor, Cline...)
 │   Tool      │
 └──────┬──────┘
        │ http://localhost:20128/v1
@@ -219,7 +211,7 @@ This generates a `system-info.txt` with your Node.js version, OmniRoute version,
 │  • Auto token refresh                   │
 └──────┬──────────────────────────────────┘
        │
-       ├─→ [Tier 1: SUBSCRIPTION] Claude Code, Codex, Gemini CLI
+       ├─→ [Tier 1: SUBSCRIPTION] Claude Code, Codex
        │   ↓ quota exhausted
        ├─→ [Tier 2: API KEY] DeepSeek, Groq, xAI, Mistral, NVIDIA NIM, etc.
        │   ↓ budget limit
@@ -294,9 +286,8 @@ Not everyone can pay $20–200/month for AI subscriptions. Students, devs from e
 
 **How OmniRoute solves it:**
 
-- **Free Tier Providers Built-in** — Native support for 100% free providers: Qoder (5 unlimited models via OAuth: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2), Qwen (4 unlimited models: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model), Kiro (Claude + AWS Builder ID for free), Gemini CLI (180K tokens/month free)
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
-- **Free-Only Combos** — Chain `gc/gemini-3-flash → if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/month with zero downtime
+- **Free-Only Combos** — Chain `if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/month with zero downtime
 - **NVIDIA NIM Free Access** — ~40 RPM dev-forever free access to 70+ models at build.nvidia.com (transitioning from credits to pure rate limits)
 - **Cost Optimized Strategy** — Routing strategy that automatically chooses the cheapest available provider
 
@@ -339,7 +330,6 @@ AI providers can become unstable, return 5xx errors, or hit temporary rate limit
 <details>
 <summary><b>🔧 7. "Configuring each AI tool is tedious and repetitive"</b></summary>
 
-Developers use Cursor, Claude Code, Codex CLI, OpenClaw, Gemini CLI, Kilo Code... Each tool needs a different config (API endpoint, key, model). Reconfiguring when switching providers or models is a waste of time.
 
 **How OmniRoute solves it:**
 
@@ -353,12 +343,12 @@ Developers use Cursor, Claude Code, Codex CLI, OpenClaw, Gemini CLI, Kilo Code..
 <details>
 <summary><b>🔑 8. "Managing OAuth tokens from multiple providers is hell"</b></summary>
 
-Claude Code, Codex, Gemini CLI, Copilot — all use OAuth 2.0 with expiring tokens. Developers need to re-authenticate constantly, deal with `client_secret is missing`, `redirect_uri_mismatch`, and failures on remote servers. OAuth on LAN/VPS is particularly problematic.
+Claude Code, Codex, Copilot — all use OAuth 2.0 with expiring tokens. Developers need to re-authenticate constantly, deal with `client_secret is missing`, `redirect_uri_mismatch`, and failures on remote servers. OAuth on LAN/VPS is particularly problematic.
 
 **How OmniRoute solves it:**
 
 - **Auto Token Refresh** — OAuth tokens refresh in background before expiration
-- **OAuth 2.0 (PKCE) Built-in** — Automatic flow for Claude Code, Codex, Gemini CLI, Copilot, Kiro, Qwen, Qoder
+- **OAuth 2.0 (PKCE) Built-in** — Automatic flow for Claude Code, Codex, Copilot, Kiro, Qwen, Qoder
 - **Multi-Account OAuth** — Multiple accounts per provider via JWT/ID token extraction
 - **OAuth LAN/Remote Fix** — Private IP detection for `redirect_uri` + manual URL mode for remote servers
 - **OAuth Behind Nginx** — Uses `window.location.origin` for reverse proxy compatibility
@@ -710,9 +700,8 @@ Outcome: higher quality, near-zero interruption
 
 ```txt
 Combo: "free-forever"
-  1. gc/gemini-3-flash
-  2. if/kimi-k2-thinking
-  3. qw/qwen3-coder-plus
+  1. if/kimi-k2-thinking       (unlimited free)
+  2. qw/qwen3-coder-plus       (unlimited free)
 
 Monthly cost: $0
 Outcome: stable free coding workflow
@@ -751,8 +740,7 @@ Outcome: deep fallback depth for deadline-critical workloads
 | 1    | Connect **Kiro** (AWS Builder ID OAuth)            | Claude Sonnet 4.5, Haiku 4.5 — **unlimited**                       |
 | 2    | Connect **Qoder** (Google OAuth)                   | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **unlimited** |
 | 3    | Connect **Qwen** (Device Code)                     | qwen3-coder-plus, qwen3-coder-flash... — **unlimited**             |
-| 4    | Connect **Gemini CLI** (Google OAuth)              | gemini-3-flash, gemini-2.5-pro — **180K/mo free**                  |
-| 5    | `/dashboard/combos` → **Free Stack ($0)** template | Round-robin all free providers automatically                       |
+| 4    | `/dashboard/combos` → **Free Stack ($0)** template | Round-robin all free providers automatically                       |
 
 **Point any IDE/CLI to:** `http://localhost:20128/v1` · API Key: `any-string` · Done.
 
@@ -857,7 +845,6 @@ API Key:  [copy from Endpoint page]
 Model:    if/kimi-k2-thinking (or any provider/model prefix)
 ```
 
-Works with Claude Code, Codex CLI, Gemini CLI, Cursor, Cline, OpenClaw, OpenCode, and OpenAI-compatible SDKs.
 
 ### 4) Enable and validate protocols (v2.0)
 
@@ -1143,7 +1130,6 @@ When minimized, OmniRoute lives in your system tray with quick actions:
 | ------------------- | --------------------------- | ------------------------- | ---------------- | --------------------------------- |
 | **💳 SUBSCRIPTION** | Claude Code (Pro)           | $20/mo                    | 5h + weekly      | Already subscribed                |
 |                     | Codex (Plus/Pro)            | $20-200/mo                | 5h + weekly      | OpenAI users                      |
-|                     | Gemini CLI                  | **FREE**                  | 180K/mo + 1K/day | Everyone!                         |
 |                     | GitHub Copilot              | $10-19/mo                 | Monthly          | GitHub users                      |
 | **🔑 API KEY**      | NVIDIA NIM                  | **FREE** (dev forever)    | ~40 RPM          | 70+ open models                   |
 |                     | Cerebras                    | **FREE** (1M tok/day)     | 60K TPM / 30 RPM | World's fastest                   |
@@ -1226,12 +1212,6 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `qwen3-coder-next`  | `qw/`  | **Unlimited** | No reported cap     |
 | `vision-model`      | `qw/`  | **Unlimited** | Multimodal (images) |
 
-### 🟣 GEMINI CLI (Google OAuth)
-
-| Model                    | Prefix | Limit                       | Rate Limit    |
-| ------------------------ | ------ | --------------------------- | ------------- |
-| `gemini-3-flash-preview` | `gc/`  | **180K tok/month** + 1K/day | Monthly reset |
-| `gemini-2.5-pro`         | `gc/`  | 180K/month (shared pool)    | High quality  |
 
 ### ⚫ NVIDIA NIM (Free API Key — build.nvidia.com)
 
@@ -1389,7 +1369,6 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 🎮 **Model Playground**                    | Dashboard page to test any model directly — provider/model/endpoint selectors, Monaco Editor, streaming, abort, timing                                                                                                                  |
 | 🔏 **CLI Fingerprint Matching**            | Per-provider header/body ordering to match native CLI signatures — toggle per provider in Settings > Security. **Your proxy IP is preserved**                                                                                           |
-| 🤝 **ACP Support (Agent Client Protocol)** | CLI agent discovery (Codex, Claude, Goose, Gemini CLI, OpenClaw + 9 more), process spawner, `/api/acp/agents` endpoint                                                                                                                  |
 | 🤖 **ACP Agents Dashboard**                | Debug › Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool. **OpenCode** users get a "Download opencode.json" button that auto-generates a ready-to-use config with all available models. |
 | 🔧 **Custom Model `apiFormat` Routing**    | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                                                                                                                         |
 | 🏢 **Codex Workspace Isolation**           | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                                                                                                             |
@@ -1691,19 +1670,7 @@ Scenarios:
 - `5h ON` + `Weekly OFF`: only 5-hour usage can block the account.
 - `resetAt` passed: account re-enters rotation automatically (no manual re-enable).
 
-### Gemini CLI (FREE 180K/month!)
 
-```bash
-Dashboard → Providers → Connect Gemini CLI
-→ Google OAuth
-→ 180K completions/month + 1K/day
-
-Models:
-  gc/gemini-3-flash-preview
-  gc/gemini-2.5-pro
-```
-
-**Best Value:** Huge free tier! Use this before paid tiers.
 
 ### GitHub Copilot
 
@@ -1867,9 +1834,8 @@ Use in CLI: premium-coding
 ```
 Name: free-combo
 Models:
-  1. gc/gemini-3-flash-preview (180K free/month)
-  2. if/kimi-k2-thinking (unlimited)
-  3. qw/qwen3-coder-plus (unlimited)
+  1. if/kimi-k2-thinking (unlimited)
+  2. qw/qwen3-coder-plus (unlimited)
 
 Cost: $0 forever!
 ```
@@ -2006,7 +1972,6 @@ opencode
 
 - Check usage stats in Dashboard → Costs
 - Switch primary model to GLM/MiniMax
-- Use free tier (Gemini CLI, Qoder) for non-critical tasks
 
 **Dashboard/API ports are wrong**
 
@@ -2048,9 +2013,7 @@ opencode
 
 > **⚠️ Important for users running OmniRoute on a VPS, Docker, or any remote server**
 
-#### Why does Antigravity / Gemini CLI OAuth fail on remote servers?
 
-The **Antigravity** and **Gemini CLI** providers use **Google OAuth 2.0**. Google requires the `redirect_uri` in the OAuth flow to exactly match one of the pre-registered URIs in the app's Google Cloud Console.
 
 The OAuth credentials bundled in OmniRoute are registered **for `localhost` only**. When you access OmniRoute on a remote server (e.g. `https://omniroute.myserver.com`), Google rejects the authentication with:
 
@@ -2097,10 +2060,8 @@ In your `.env` (or Docker environment variables):
 ANTIGRAVITY_OAUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
 ANTIGRAVITY_OAUTH_CLIENT_SECRET=GOCSPX-your-secret
 
-# For Gemini CLI:
 GEMINI_OAUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
 GEMINI_OAUTH_CLIENT_SECRET=GOCSPX-your-secret
-GEMINI_CLI_OAUTH_CLIENT_SECRET=GOCSPX-your-secret
 ```
 
 **6. Restart OmniRoute**
@@ -2115,7 +2076,6 @@ docker restart omniroute
 
 **7. Try connecting again**
 
-Dashboard → Providers → Antigravity (or Gemini CLI) → OAuth
 
 Google will now redirect correctly to `https://your-server.com/callback`.
 
@@ -2138,9 +2098,7 @@ If you don't want to set up your own credentials right now, you can still use th
 <details>
 <summary><b>🇧🇷 Versão em Português</b></summary>
 
-#### Por que o OAuth do Antigravity / Gemini CLI falha em servidores remotos?
 
-Os provedores **Antigravity** e **Gemini CLI** usam **Google OAuth 2.0** para autenticação. O Google exige que a `redirect_uri` usada no fluxo OAuth seja **exatamente** uma das URIs pré-cadastradas no Google Cloud Console do aplicativo.
 
 As credenciais OAuth embutidas no OmniRoute estão cadastradas **apenas para `localhost`**. Quando você acessa o OmniRoute em um servidor remoto (ex: `https://omniroute.meuservidor.com`), o Google rejeita a autenticação com:
 
@@ -2187,10 +2145,8 @@ No seu `.env` (ou nas variáveis de ambiente do Docker):
 ANTIGRAVITY_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
 ANTIGRAVITY_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
 
-# Para Gemini CLI:
 GEMINI_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
 GEMINI_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
-GEMINI_CLI_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
 ```
 
 **6. Reinicie o OmniRoute**
@@ -2205,7 +2161,6 @@ docker restart omniroute
 
 **7. Tente conectar novamente**
 
-Dashboard → Providers → Antigravity (ou Gemini CLI) → OAuth
 
 Agora o Google redirecionará corretamente para `https://seu-servidor.com/callback` e a autenticação funcionará.
 

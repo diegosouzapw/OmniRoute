@@ -136,7 +136,7 @@ expired DB doesn't silently downgrade to "deny".
 
 ## Documenting Security Tiers in OpenAPI
 
-When adding a new route to `docs/reference/openapi.yaml`, apply the corresponding
+When adding a new route to `docs/openapi.yaml`, apply the corresponding
 vendor extension if the route is classified by `routeGuard.ts`:
 
 | routeGuard.ts classification  | YAML annotation            | Enforcement                                     |

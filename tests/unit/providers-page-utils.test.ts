@@ -16,7 +16,7 @@ test("merged OAuth providers keep free-tier providers in the OAuth section", () 
   };
 
   const mockOauthProviders = { claude: { name: "Claude" } };
-  const mockFreeProviders = { "gemini-cli": { name: "Gemini CLI" } };
+  const mockFreeProviders = { qoder: { name: "Qoder" } };
 
   const entries = providerPageUtils.buildMergedOAuthProviderEntries(
     mockOauthProviders,
@@ -1000,4 +1000,52 @@ test("model search filter is case-insensitive and partial-match", () => {
     "minimax"
   );
   assert.equal(byPartial.length, 1, "partial model id 'minimax' should match 'minimax-m3'");
+});
+
+// #4613: buildCompatibleProviderGroups partitions provider nodes into the
+// openai-compatible / anthropic-compatible / claude-code-compatible buckets the
+// providers page renders. The memoization in page.tsx wraps this pure helper, so
+// guarding the partition logic here is the regression that matters (Rule #18).
+test("buildCompatibleProviderGroups partitions nodes by type + claude-code prefix", () => {
+  const labels = {
+    openaiCompatibleName: "OpenAI-compatible",
+    anthropicCompatibleName: "Anthropic-compatible",
+    claudeCodeCompatibleName: "Claude Code-compatible",
+  };
+
+  const groups = providerPageUtils.buildCompatibleProviderGroups(
+    [
+      { id: "my-oai", name: "My OAI", type: "openai-compatible", apiType: "responses" },
+      { id: "my-anthropic", name: "My Claude", type: "anthropic-compatible" },
+      { id: "anthropic-compatible-cc-acme", name: "Acme CC", type: "anthropic-compatible" },
+      { id: "ignored-node", name: "Ignored", type: "unsupported-provider" },
+      // name omitted → falls back to the provided label
+      { id: "anon-oai", type: "openai-compatible" },
+    ],
+    labels
+  );
+
+  assert.deepEqual(
+    groups.openai.map((p) => p.id),
+    ["my-oai", "anon-oai"],
+    "openai-compatible nodes land in the openai bucket"
+  );
+  assert.equal(groups.openai[0].apiType, "responses", "apiType is preserved");
+  assert.equal(
+    groups.openai[1].name,
+    labels.openaiCompatibleName,
+    "missing name falls back to the openai-compatible label"
+  );
+
+  assert.deepEqual(
+    groups.anthropic.map((p) => p.id),
+    ["my-anthropic"],
+    "plain anthropic-compatible nodes land in the anthropic bucket"
+  );
+
+  assert.deepEqual(
+    groups.claudeCode.map((p) => p.id),
+    ["anthropic-compatible-cc-acme"],
+    "anthropic-compatible nodes with the cc- prefix land in the claudeCode bucket"
+  );
 });

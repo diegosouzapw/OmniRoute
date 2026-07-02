@@ -205,12 +205,55 @@ jobs:
         uses: actions/checkout@v7
         with:
           persist-credentials: false
+          fetch-depth: 0
+          # Full history needed for auto-bump: git diff against previous release tag
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NPM_PUBLISH_NODE_VERSION }}
           registry-url: https://registry.npmjs.org
+
+      - name: Auto-bump plugin version if plugin changed since last release
+        id: bump
+        working-directory: "@omniroute/opencode-plugin"
+        env:
+          CURRENT_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          PKG_NAME=$(node -p "require('./package.json').name")
+
+          # 1) Skip if current version is not yet published (no bump needed)
+          PUBLISHED="$(npm view "${PKG_NAME}@${PKG_VERSION}" version 2>/dev/null || true)"
+          if [ "$PUBLISHED" != "$PKG_VERSION" ]; then
+            echo "✅ ${PKG_NAME}@${PKG_VERSION} is new — no bump needed."
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # 2) Find the previous release tag (exclude the current one)
+          PREV_TAG=$(git tag -l 'v*' --sort=-version:refname \
+            | grep -v "^${CURRENT_TAG}$" | head -1 || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            echo "No previous tag to compare — skipping bump."
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # 3) Check if plugin dir actually changed since that tag
+          if git diff --quiet "$PREV_TAG" -- "@omniroute/opencode-plugin/"; then
+            echo "⏭️ No plugin changes since $PREV_TAG — nothing to publish."
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # 4) Auto-bump patch version
+          npm version patch --no-git-tag-version --allow-same-version
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "bumped=true" >> "$GITHUB_OUTPUT"
+          echo "📦 Auto-bumped ${PKG_NAME} from ${PKG_VERSION} to ${NEW_VERSION}"
 
       - name: Install plugin dependencies
         working-directory: "@omniroute/opencode-plugin"

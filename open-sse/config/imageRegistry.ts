@@ -36,6 +36,15 @@ interface ImageModelAliasEntry {
   description?: string;
 }
 
+interface ImageCatalogModelEntry {
+  id: string;
+  name: string;
+  provider: string;
+  supportedSizes: string[];
+  inputModalities: string[];
+  description?: string;
+}
+
 const IMAGE_MODEL_ALIASES: Record<string, ImageModelAliasEntry> = {
   "gemini-3.1-flash-image-preview": {
     provider: "antigravity",
@@ -590,34 +599,47 @@ export function parseImageModel(modelStr) {
 /**
  * Get all image models as a flat list
  */
-export function getAllImageModels() {
-  const models = [];
-  for (const [providerId, config] of Object.entries(IMAGE_PROVIDERS)) {
-    for (const model of config.models) {
-      models.push({
-        id: `${providerId}/${model.id}`,
-        name: model.name,
-        provider: providerId,
-        supportedSizes: config.supportedSizes,
-        inputModalities: model.inputModalities || ["text"],
-        description: model.description || undefined,
-      });
-    }
-  }
-  for (const [alias, target] of Object.entries(IMAGE_MODEL_ALIASES)) {
-    if (!target.listInCatalog) continue;
-    const providerConfig = IMAGE_PROVIDERS[target.provider];
-    const modelConfig = findImageModelConfig(target.provider, target.model);
-    models.push({
-      id: alias,
-      name: target.name || modelConfig?.name || alias,
-      provider: target.provider,
-      supportedSizes: providerConfig?.supportedSizes || [],
-      inputModalities: target.inputModalities || modelConfig?.inputModalities || ["text"],
-      description: target.description || modelConfig?.description || undefined,
-    });
-  }
-  return models;
+function imageProviderCatalogEntries(
+  providerId: string,
+  config: ImageProviderConfig
+): ImageCatalogModelEntry[] {
+  return config.models.map((model) => ({
+    id: `${providerId}/${model.id}`,
+    name: model.name,
+    provider: providerId,
+    supportedSizes: config.supportedSizes,
+    inputModalities: model.inputModalities || ["text"],
+    description: model.description || undefined,
+  }));
+}
+
+function imageAliasCatalogEntry(
+  alias: string,
+  target: ImageModelAliasEntry
+): ImageCatalogModelEntry | null {
+  if (!target.listInCatalog) return null;
+
+  const providerConfig = IMAGE_PROVIDERS[target.provider];
+  const modelConfig = findImageModelConfig(target.provider, target.model);
+  return {
+    id: alias,
+    name: target.name || modelConfig?.name || alias,
+    provider: target.provider,
+    supportedSizes: providerConfig?.supportedSizes || [],
+    inputModalities: target.inputModalities || modelConfig?.inputModalities || ["text"],
+    description: target.description || modelConfig?.description || undefined,
+  };
+}
+
+export function getAllImageModels(): ImageCatalogModelEntry[] {
+  const providerModels = Object.entries(IMAGE_PROVIDERS).flatMap(([providerId, config]) =>
+    imageProviderCatalogEntries(providerId, config)
+  );
+  const aliasModels = Object.entries(IMAGE_MODEL_ALIASES).flatMap(([alias, target]) => {
+    const entry = imageAliasCatalogEntry(alias, target);
+    return entry ? [entry] : [];
+  });
+  return [...providerModels, ...aliasModels];
 }
 
 export function getImageModelAliases() {

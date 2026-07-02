@@ -8,9 +8,8 @@ vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
 }));
 
-const { default: AddApiKeyModal } = await import(
-  "../../../src/app/(dashboard)/dashboard/providers/[id]/components/modals/AddApiKeyModal"
-);
+const { default: AddApiKeyModal } =
+  await import("../../../src/app/(dashboard)/dashboard/providers/[id]/components/modals/AddApiKeyModal");
 
 const FREE_TOGGLE = 'button[role="switch"][aria-label="importFreeModelsOnlyLabel"]';
 
@@ -35,10 +34,7 @@ function render(props: Record<string, unknown>) {
 }
 
 function setInputValue(input: HTMLInputElement, value: string) {
-  const setter = Object.getOwnPropertyDescriptor(
-    window.HTMLInputElement.prototype,
-    "value"
-  )!.set!;
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")!.set!;
   act(() => {
     setter.call(input, value);
     input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -106,5 +102,60 @@ describe("AddApiKeyModal — import only free models", () => {
     await waitFor(() => onSave.mock.calls.length > 0);
     const payload = onSave.mock.calls[0][0];
     expect(payload.providerSpecificData?.importFreeModelsOnly).toBe(true);
+  });
+});
+
+describe("AddApiKeyModal — quota scraping fields", () => {
+  it("saves OpenCode Go workspace and auth cookie in providerSpecificData", async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const el = render({ provider: "opencode-go", providerName: "OpenCode Go", onSave });
+
+    const nameInput = el.querySelector<HTMLInputElement>('input[placeholder="productionKey"]')!;
+    const apiKeyInput = el.querySelector<HTMLInputElement>('input[type="password"]')!;
+    const workspaceInput = el.querySelector<HTMLInputElement>(
+      'input[name="opencodeGoWorkspaceId"]'
+    )!;
+    const cookieInput = el.querySelector<HTMLInputElement>('input[name="opencodeGoAuthCookie"]')!;
+    setInputValue(nameInput, "OpenCode Go");
+    setInputValue(apiKeyInput, "sk-opencode-go-test");
+    setInputValue(workspaceInput, "workspace-123");
+    setInputValue(cookieInput, "auth=opencode-cookie");
+
+    const saveBtn = Array.from(el.querySelectorAll("button")).find(
+      (b) => b.textContent?.trim() === "save"
+    )!;
+    act(() => {
+      saveBtn.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    await waitFor(() => onSave.mock.calls.length > 0);
+    const payload = onSave.mock.calls[0][0];
+    expect(payload.providerSpecificData?.opencodeGoWorkspaceId).toBe("workspace-123");
+    expect(payload.providerSpecificData?.opencodeGoAuthCookie).toBe("auth=opencode-cookie");
+  });
+
+  it("saves Ollama Cloud usage cookie in providerSpecificData", async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const el = render({ provider: "ollama-cloud", providerName: "Ollama Cloud", onSave });
+
+    const nameInput = el.querySelector<HTMLInputElement>('input[placeholder="productionKey"]')!;
+    const apiKeyInput = el.querySelector<HTMLInputElement>('input[type="password"]')!;
+    const cookieInput = el.querySelector<HTMLInputElement>('input[name="ollamaCloudUsageCookie"]')!;
+    setInputValue(nameInput, "Ollama Cloud");
+    setInputValue(apiKeyInput, "ollama-key");
+    setInputValue(cookieInput, "__Secure-session=ollama-cookie");
+
+    const saveBtn = Array.from(el.querySelectorAll("button")).find(
+      (b) => b.textContent?.trim() === "save"
+    )!;
+    act(() => {
+      saveBtn.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    await waitFor(() => onSave.mock.calls.length > 0);
+    const payload = onSave.mock.calls[0][0];
+    expect(payload.providerSpecificData?.ollamaCloudUsageCookie).toBe(
+      "__Secure-session=ollama-cookie"
+    );
   });
 });

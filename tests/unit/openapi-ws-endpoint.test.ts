@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 
 // Regression guard: the OpenAI-compatible chat WebSocket endpoint (/api/v1/ws)
 // must be documented in openapi.yaml so it shows up on the dashboard's
@@ -11,7 +11,7 @@ import yaml from "js-yaml";
 // in the spec, so it was invisible in the endpoints reference.
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
-const spec = yaml.load(readFileSync(ROOT + "docs/reference/openapi.yaml", "utf8")) as {
+const spec = yaml.load(readFileSync(ROOT + "docs/openapi.yaml", "utf8")) as {
   paths: Record<string, Record<string, { tags?: string[]; security?: unknown[]; responses?: Record<string, unknown> }>>;
 };
 

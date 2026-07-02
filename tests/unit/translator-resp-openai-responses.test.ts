@@ -112,11 +112,39 @@ test("OpenAI -> Responses: flush on null closes text content and emits response.
   assert.ok(events.some((event) => event.event === "response.completed"));
 });
 
-test("OpenAI -> Responses: <think> tags become reasoning events and normal text still streams", () => {
+test("OpenAI -> Responses: prompt-format <think> tags remain text by default", () => {
   const events = collectEvents([
     {
       id: "chatcmpl-3",
       model: "gpt-4.1",
+      choices: [
+        {
+          index: 0,
+          delta: { content: "<think>Plan it</think>Done." },
+          finish_reason: "stop",
+        },
+      ],
+    },
+  ]);
+
+  assert.equal(
+    events.some((event) => event.event === "response.reasoning_summary_text.delta"),
+    false
+  );
+  assert.ok(
+    events.some(
+      (event) =>
+        event.event === "response.output_text.delta" &&
+        event.data.delta === "<think>Plan it</think>Done."
+    )
+  );
+});
+
+test("OpenAI -> Responses: tag-native models still emit <think> text as reasoning", () => {
+  const events = collectEvents([
+    {
+      id: "chatcmpl-3b",
+      model: "Qwen/QwQ-32B",
       choices: [
         {
           index: 0,

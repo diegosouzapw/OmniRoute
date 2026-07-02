@@ -16,6 +16,7 @@ import {
   normalizeVersion,
   isNewer,
   resolveLatestVersion,
+  getLatestVersionFromGitHub,
 } from "@/lib/system/versionCheck";
 
 test("normalizeVersion strips v-prefix, pre-release/build, returns numeric tuple", () => {
@@ -68,10 +69,54 @@ test("resolveLatestVersion prefers the npm CLI when it succeeds", async () => {
   assert.equal(registryCalled, false);
 });
 
-test("resolveLatestVersion returns null when both sources fail (no silent crash)", async () => {
+test("resolveLatestVersion falls back to GitHub when npm CLI and registry both fail (#4100 — npm blocked, GitHub reachable)", async () => {
+  let githubCalled = false;
   const latest = await resolveLatestVersion({
     npmCli: async () => null,
     registry: async () => null,
+    github: async () => {
+      githubCalled = true;
+      return "v3.8.39"; // GitHub releases tag_name — v-prefix tolerated downstream
+    },
+  });
+  assert.equal(latest, "v3.8.39");
+  assert.equal(githubCalled, true);
+});
+
+test("resolveLatestVersion does NOT hit GitHub when the registry already answered", async () => {
+  let githubCalled = false;
+  const latest = await resolveLatestVersion({
+    npmCli: async () => null,
+    registry: async () => "3.8.39",
+    github: async () => {
+      githubCalled = true;
+      return "v3.8.40";
+    },
+  });
+  assert.equal(latest, "3.8.39");
+  assert.equal(githubCalled, false);
+});
+
+test("resolveLatestVersion returns null only when ALL three sources fail (no silent crash)", async () => {
+  const latest = await resolveLatestVersion({
+    npmCli: async () => null,
+    registry: async () => null,
+    github: async () => null,
   });
   assert.equal(latest, null);
+});
+
+test("getLatestVersionFromGitHub parses tag_name from the releases API", async () => {
+  const fakeFetch = (async () =>
+    new Response(JSON.stringify({ tag_name: "v3.8.39" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    })) as unknown as typeof fetch;
+  assert.equal(await getLatestVersionFromGitHub(fakeFetch), "v3.8.39");
+});
+
+test("getLatestVersionFromGitHub returns null on a non-OK response", async () => {
+  const fakeFetch = (async () =>
+    new Response("rate limited", { status: 403 })) as unknown as typeof fetch;
+  assert.equal(await getLatestVersionFromGitHub(fakeFetch), null);
 });

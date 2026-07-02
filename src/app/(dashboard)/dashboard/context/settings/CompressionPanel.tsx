@@ -13,7 +13,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 // Import Card/Toggle from their direct module paths rather than the @/shared/components
 // barrel: the barrel transitively pulls a heavy/Node-only module that hangs the
 // vitest/jsdom component test. Direct imports resolve identically under Next.js.
@@ -23,7 +23,16 @@ import {
   ENGINE_IDS,
   engineMeta,
 } from "../../../../../../open-sse/services/compression/engineCatalog.ts";
+import {
+  OUTPUT_STYLE_IDS,
+  outputStyleMeta,
+} from "../../../../../../open-sse/services/compression/outputStyles/catalog.ts";
 import { deriveDefaultPlan } from "../../../../../../open-sse/services/compression/deriveDefaultPlan.ts";
+import {
+  DEFAULT_CONTEXT_BUDGET,
+  type ContextBudgetConfig,
+} from "../../../../../../open-sse/services/compression/adaptiveCompression/types.ts";
+import { formatAdaptiveTarget } from "./adaptiveTargetLabel.ts";
 
 type CavemanIntensity = "lite" | "full" | "ultra";
 
@@ -45,6 +54,17 @@ interface CompressionConfig {
   engines: Record<string, EngineToggle>;
   activeComboId: string | null;
   cavemanOutputMode?: CavemanOutputModeConfig;
+  outputStyles?: Array<{ id: string; level: CavemanIntensity }>;
+  // Phase 4 (B): two-tier `ultra` mode controls.
+  // ultraEngine "heuristic" = Tier-A token pruner (default, byte-identical to pre-B);
+  // "slm" = Tier-B LLMLingua-2 ONNX worker when available, else fail-open to Tier-A.
+  ultraEngine?: "heuristic" | "slm";
+  // Best-effort pre-warm of the SLM model on enable / cold restart. Default false.
+  ultraSlmPrewarm?: boolean;
+  // Phase 4 (C): adaptive context-budget. Absent / mode:"off" = legacy auto-trigger.
+  // The panel currently surfaces the computed target read-only; mode/policy editors are a
+  // follow-up (the load/save path does not yet populate this field).
+  contextBudget?: ContextBudgetConfig;
 }
 
 const CAVEMAN_OUTPUT_LEVELS: CavemanIntensity[] = ["lite", "full", "ultra"];
@@ -56,6 +76,9 @@ const DEFAULT_CONFIG: CompressionConfig = {
   engines: {},
   activeComboId: null,
   cavemanOutputMode: { enabled: false, intensity: "full", autoClarity: true },
+  outputStyles: [],
+  ultraEngine: "heuristic",
+  ultraSlmPrewarm: false,
 };
 
 function normalizeEngines(raw: unknown): Record<string, EngineToggle> {
@@ -70,6 +93,9 @@ function normalizeEngines(raw: unknown): Record<string, EngineToggle> {
 
 export default function CompressionPanel() {
   const t = useTranslations("settings");
+  // D-A6/§7: locale-gated styles (e.g. terse-cjk → zh) are only OFFERED under their locale.
+  // Compare the UI language base ("zh-CN" → "zh") against the style's `locale`.
+  const uiLang = (useLocale() || "en").split("-")[0];
   const [config, setConfig] = useState<CompressionConfig>(DEFAULT_CONFIG);
   const [mcpAccessibility, setMcpAccessibility] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -86,6 +112,7 @@ export default function CompressionPanel() {
             ...data,
             engines: normalizeEngines(data.engines),
             cavemanOutputMode: data.cavemanOutputMode ?? DEFAULT_CONFIG.cavemanOutputMode,
+            outputStyles: data.outputStyles ?? DEFAULT_CONFIG.outputStyles,
           });
         }
       })
@@ -135,12 +162,24 @@ export default function CompressionPanel() {
     save({ engines });
   };
 
-  const setCavemanOutput = (patch: Partial<CavemanOutputModeConfig>) => {
-    const cavemanOutputMode: CavemanOutputModeConfig = {
-      ...(config.cavemanOutputMode ?? DEFAULT_CONFIG.cavemanOutputMode!),
-      ...patch,
-    };
-    save({ cavemanOutputMode });
+  const setOutputStyle = (id: string, patch: { enabled?: boolean; level?: CavemanIntensity }) => {
+    const current = config.outputStyles ?? [];
+    const existing = current.find((s) => s.id === id);
+    let next = current;
+    if (patch.enabled === false) {
+      next = current.filter((s) => s.id !== id);
+    } else {
+      const level = patch.level ?? existing?.level ?? "full";
+      next = existing
+        ? current.map((s) => (s.id === id ? { id, level } : s))
+        : [...current, { id, level }];
+    }
+    // Persist in catalog order so injection order is stable.
+    const ordered = OUTPUT_STYLE_IDS.flatMap((sid) => {
+      const hit = next.find((s) => s.id === sid);
+      return hit ? [hit] : [];
+    });
+    save({ outputStyles: ordered });
   };
 
   const toggleMcpAccessibility = async (enabled: boolean) => {
@@ -218,6 +257,14 @@ export default function CompressionPanel() {
         <span className="font-medium text-text-main">Effective pipeline:</span> {derivedText}
       </div>
 
+      {/* Adaptive context-budget — read-only computed target (Phase 4C, D-C1 transparency) */}
+      <div
+        data-testid="adaptive-target-preview"
+        className="mb-4 rounded-md border border-border/60 bg-bg-subtle px-3 py-2 text-xs text-text-muted"
+      >
+        {formatAdaptiveTarget(config.contextBudget ?? DEFAULT_CONTEXT_BUDGET, 200000)}
+      </div>
+
       {/* Engine grid */}
       <div className={`divide-y divide-border ${config.enabled ? "" : "opacity-60"}`}>
         {ENGINE_IDS.map((id) => {
@@ -273,40 +320,105 @@ export default function CompressionPanel() {
         })}
       </div>
 
-      {/* cavemanOutput — response-output instruction injection (separate from the input engine) */}
-      <div className="mt-2 flex flex-col gap-2 border-t border-border/30 py-3 sm:flex-row sm:items-center sm:justify-between">
+      {/* Output Styles — response-output instruction injection (Phase 4A, catalog-driven) */}
+      <div className="mt-2 flex flex-col gap-3 border-t border-border/30 py-3">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-text-main">
-            {t("compressionSettingsCavemanOutputMode")}
+            {t("compressionSettingsOutputStyles")}
           </p>
           <p className="mt-0.5 text-xs text-text-muted">
-            Injects terse response instructions without rewriting provider output.
+            Inject response-shaping instructions without rewriting provider output. Combine freely.
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <select
-            data-testid="caveman-output-intensity"
-            value={config.cavemanOutputMode?.intensity ?? "full"}
-            onChange={(e) => setCavemanOutput({ intensity: e.target.value as CavemanIntensity })}
-            disabled={!config.cavemanOutputMode?.enabled || saving}
-            className="w-28 rounded border border-border bg-surface px-2 py-1 text-xs text-text-main"
-          >
-            {CAVEMAN_OUTPUT_LEVELS.map((lvl) => (
-              <option key={lvl} value={lvl}>
-                {lvl}
-              </option>
-            ))}
-          </select>
-          <span data-testid="caveman-output-toggle">
-            <Toggle
-              size="sm"
-              checked={config.cavemanOutputMode?.enabled ?? false}
-              onChange={(enabled) => setCavemanOutput({ enabled })}
-              disabled={saving}
-              ariaLabel={t("compressionSettingsCavemanOutputMode")}
-            />
+        {OUTPUT_STYLE_IDS.filter((id) => {
+          const m = outputStyleMeta(id);
+          return !m?.locale || m.locale === uiLang;
+        }).map((id) => {
+          const meta = outputStyleMeta(id);
+          const sel = config.outputStyles?.find((s) => s.id === id);
+          return (
+            <div
+              key={id}
+              data-testid={`output-style-row-${id}`}
+              className="flex items-center justify-between gap-2"
+            >
+              <div className="min-w-0">
+                <p className="text-sm text-text-main">{meta.label}</p>
+                {meta.description && (
+                  <p className="text-xs text-text-muted">{meta.description}</p>
+                )}
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <select
+                  data-testid={`output-style-level-${id}`}
+                  value={sel?.level ?? "full"}
+                  onChange={(e) =>
+                    setOutputStyle(id, { level: e.target.value as CavemanIntensity })
+                  }
+                  disabled={!sel || saving}
+                  className="w-28 rounded border border-border bg-surface px-2 py-1 text-xs text-text-main"
+                >
+                  {CAVEMAN_OUTPUT_LEVELS.map((lvl) => (
+                    <option key={lvl} value={lvl}>
+                      {lvl}
+                    </option>
+                  ))}
+                </select>
+                <span data-testid={`output-style-toggle-${id}`}>
+                  <Toggle
+                    size="sm"
+                    checked={Boolean(sel)}
+                    onChange={(enabled) => setOutputStyle(id, { enabled })}
+                    disabled={saving}
+                    ariaLabel={meta.label}
+                  />
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Ultra SLM tier — Phase 4 (B): pick the `ultra`-mode engine (heuristic Tier-A
+          or the opt-in LLMLingua-2 SLM Tier-B) + best-effort pre-warm. */}
+      <div className="mt-2 flex flex-col gap-3 border-t border-border/30 py-3">
+        <label className="flex items-center justify-between">
+          <span className="text-sm font-medium text-text-main">
+            {t("compressionUltraEngine")}
           </span>
-        </div>
+          <select
+            data-testid="ultra-engine-select"
+            value={config.ultraEngine ?? "heuristic"}
+            onChange={(e) =>
+              save({ ultraEngine: e.target.value === "slm" ? "slm" : "heuristic" })
+            }
+            disabled={saving}
+            className="w-44 rounded border border-border bg-surface px-2 py-1 text-sm text-text-main"
+          >
+            <option value="heuristic">{t("compressionUltraEngineHeuristic")}</option>
+            <option value="slm">{t("compressionUltraEngineSlm")}</option>
+          </select>
+        </label>
+
+        {config.ultraEngine === "slm" && (
+          <>
+            <p className="text-xs text-text-muted">{t("compressionUltraSlmHint")}</p>
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-text-muted">
+                {t("compressionUltraSlmPrewarm")}
+              </span>
+              <span data-testid="ultra-slm-prewarm-toggle">
+                <Toggle
+                  size="sm"
+                  checked={config.ultraSlmPrewarm ?? false}
+                  onChange={(ultraSlmPrewarm) => save({ ultraSlmPrewarm })}
+                  disabled={saving}
+                  ariaLabel={t("compressionUltraSlmPrewarm")}
+                />
+              </span>
+            </label>
+          </>
+        )}
       </div>
 
       {/* mcpAccessibility — writes its own endpoint / separate store */}

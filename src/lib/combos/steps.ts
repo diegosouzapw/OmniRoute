@@ -142,14 +142,6 @@ function shouldTreatAsComboRef(
   return comboNames.has(target) || target === toTrimmedString(options.comboName);
 }
 
-export function isComboRefStep(value: unknown): value is ComboRefStep {
-  return isRecord(value) && value.kind === "combo-ref" && !!toTrimmedString(value.comboName);
-}
-
-export function isComboModelStep(value: unknown): value is ComboModelStep {
-  return isRecord(value) && value.kind === "model" && !!toTrimmedString(value.model);
-}
-
 export function getComboStepWeight(value: unknown): number {
   if (typeof value === "string") return 0;
   if (!isRecord(value)) return 0;

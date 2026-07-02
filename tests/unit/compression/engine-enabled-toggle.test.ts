@@ -53,8 +53,10 @@ function makeTaggingEngine(id: string): CompressionEngine {
     validateConfig: () => ({ valid: true, errors: [] }),
     apply: (body) => {
       const messages = (body.messages as Array<{ role: string; content: string }>) ?? [];
+      // Tag the user message; drop any padding (non-user) content so the body shrinks
+      // and the #5527 (T02) inflation guard keeps the tagged output instead of reverting.
       const next = messages.map((m) =>
-        m.role === "user" ? { ...m, content: m.content + "|tagged" } : m
+        m.role === "user" ? { ...m, content: m.content + "|tagged" } : { ...m, content: "" }
       );
       return {
         body: { ...body, messages: next },
@@ -83,7 +85,14 @@ function userContent(result: CompressionResult): string {
 }
 
 function freshBody() {
-  return { messages: [{ role: "user", content: "hi" }] };
+  // Includes a droppable padding message so an engine that runs nets a real token shrink
+  // (the engine empties non-user content), keeping the #5527 inflation guard from reverting.
+  return {
+    messages: [
+      { role: "user", content: "hi" },
+      { role: "assistant", content: "padding tokens ".repeat(40) },
+    ],
+  };
 }
 
 describe("registry enabled toggle — stacked loop honors setEngineEnabled", () => {

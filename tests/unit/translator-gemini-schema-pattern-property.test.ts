@@ -41,9 +41,10 @@ test("#1368: a property named 'pattern' survives Gemini schema sanitization", ()
   );
 });
 
-test("#1368: a string-level `pattern` CONSTRAINT is still stripped", () => {
-  // When `pattern` is an actual validation constraint on a string schema node,
-  // Gemini does not support it, so it must still be removed.
+test("#1368: a string-level `pattern` CONSTRAINT is preserved for antigravity", () => {
+  // Antigravity (Gemini-derived) DOES accept `pattern` on string constraints.
+  // Stripping it broke glob/grep/file-search tools that express their argument
+  // regex via `pattern`. The sanitizer must keep it. (Ported from 9router @ f6c2f7ca.)
   const schema = {
     type: "object",
     properties: {
@@ -58,8 +59,8 @@ test("#1368: a string-level `pattern` CONSTRAINT is still stripped", () => {
 
   assert.ok(cleaned.properties.code, "the `code` property itself survives");
   assert.equal(
-    Object.prototype.hasOwnProperty.call(cleaned.properties.code, "pattern"),
-    false,
-    "the string `pattern` constraint must be stripped"
+    (cleaned.properties.code as { pattern?: string }).pattern,
+    "^[A-Z]{3}$",
+    "the string `pattern` constraint must be preserved for antigravity"
   );
 });

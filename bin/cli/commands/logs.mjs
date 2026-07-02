@@ -1,5 +1,6 @@
 import { writeFileSync, appendFileSync, existsSync, unlinkSync } from "node:fs";
 import { t } from "../i18n.mjs";
+import { getBaseUrl, buildHeaders } from "../api.mjs";
 
 export function registerLogs(program) {
   program
@@ -9,7 +10,7 @@ export function registerLogs(program) {
     .option("--filter <level>", t("logs.filter"))
     .option("--lines <n>", t("logs.lines"), "100")
     .option("--timeout <ms>", t("logs.timeout"), "30000")
-    .option("--base-url <url>", t("logs.baseUrl"), "http://localhost:20128")
+    .option("--base-url <url>", t("logs.baseUrl"))
     .option("--request-id <id>", t("logs.requestId"))
     .option("--api-key <key>", t("logs.apiKey"))
     .option("--combo <name>", t("logs.combo"))
@@ -19,7 +20,14 @@ export function registerLogs(program) {
     .option("--export <path>", t("logs.export"))
     .action(async (opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
-      const exitCode = await runLogsCommand({ ...opts, output: globalOpts.output });
+      // `--context` and `--output` are global options, so forward them explicitly:
+      // runLogsCommand resolves the base URL via getBaseUrl({ context }), and without
+      // this a user's `--context` would be silently dropped.
+      const exitCode = await runLogsCommand({
+        ...opts,
+        context: globalOpts.context,
+        output: globalOpts.output,
+      });
       if (exitCode !== 0) process.exit(exitCode);
     });
 }
@@ -67,7 +75,10 @@ function buildLogFilter(opts) {
 }
 
 export async function runLogsCommand(opts = {}) {
-  const baseUrl = opts.baseUrl || opts["base-url"] || "http://localhost:20128";
+  // Resolve the base URL the same way every other CLI command does: an explicit
+  // --base-url wins, otherwise fall back to the active context / env / localhost.
+  // Without this, `logs` always hit localhost and ignored a connected remote.
+  const baseUrl = opts.baseUrl || opts["base-url"] || getBaseUrl({ context: opts.context });
   const follow = opts.follow ?? false;
   const timeout = parseInt(String(opts.timeout || "30000"), 10);
   const isJson = opts.output === "json";
@@ -82,8 +93,21 @@ export async function runLogsCommand(opts = {}) {
   // Pass only level filters to the stream (server-side); other filters are client-side
   const levelFilters = opts.filter ? opts.filter.split(",").map((f) => f.trim()) : [];
 
+  // Authenticate the log stream. The /api/cli-tools/logs endpoint requires the
+  // management token; build the same headers (scoped context token + CLI token)
+  // that apiFetch uses, so `logs` works against authenticated/remote servers.
+  // NOTE: --api-key here is a client-side log *filter* (see buildLogFilter), not
+  // an auth credential, so it is deliberately not forwarded to buildHeaders.
+  const headers = await buildHeaders({ baseUrl, context: opts.context });
+
   const { createLogStream } = await import("../../../src/lib/cli-helper/log-streamer.js");
-  const { stream, stop } = createLogStream({ baseUrl, filters: levelFilters, follow, timeout });
+  const { stream, stop } = createLogStream({
+    baseUrl,
+    filters: levelFilters,
+    follow,
+    timeout,
+    headers,
+  });
 
   const reader = stream.getReader();
   const decoder = new TextDecoder();

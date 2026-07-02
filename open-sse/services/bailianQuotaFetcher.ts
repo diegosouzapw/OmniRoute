@@ -19,7 +19,7 @@
  * Registration: call registerBailianCodingPlanQuotaFetcher() once at server startup.
  */
 
-import { registerQuotaFetcher, type QuotaInfo } from "./quotaPreflight.ts";
+import { registerQuotaFetcher, registerQuotaWindows, type QuotaInfo } from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
 
 // Bailian quota hosts (international / china fallback)
@@ -34,9 +34,15 @@ const BAILIAN_QUOTA_PATH =
 // Cache TTL — short enough to be reactive, long enough to avoid rate limits
 const CACHE_TTL_MS = 60_000; // 60 seconds
 
+// Window keys as surfaced to the dashboard and quota-window registry
+export const BAILIAN_WINDOW_5H = "window_5h";
+export const BAILIAN_WINDOW_WEEKLY = "window_weekly";
+export const BAILIAN_WINDOW_MONTHLY = "window_monthly";
+
 // Triple-window quota info (richer than QuotaInfo — includes all 3 windows)
 // [Oracle CONDITIONAL] bailian-coding-plan only — do not reuse for other providers
 export interface BailianTripleWindowQuota extends QuotaInfo {
+  windows: Record<string, { percentUsed: number; resetAt: string | null }>;
   window5h: { percentUsed: number; resetAt: string | null };
   windowWeekly: { percentUsed: number; resetAt: string | null };
   windowMonthly: { percentUsed: number; resetAt: string | null };
@@ -181,6 +187,11 @@ function parseBailianQuotaResponse(data: unknown): BailianTripleWindowQuota | nu
     percentUsed: pctMonthly,
     resetAt: resetAtMonthly > 0 ? new Date(resetAtMonthly * 1000).toISOString() : null,
   };
+  const windows = {
+    [BAILIAN_WINDOW_5H]: window5h,
+    [BAILIAN_WINDOW_WEEKLY]: windowWeekly,
+    [BAILIAN_WINDOW_MONTHLY]: windowMonthly,
+  };
 
   // Dominant reset = reset time of the most restrictive window
   const dominantResetAt =
@@ -195,6 +206,7 @@ function parseBailianQuotaResponse(data: unknown): BailianTripleWindowQuota | nu
     total: 100,
     percentUsed: worstPercentUsed,
     resetAt: dominantResetAt,
+    windows,
     window5h,
     windowWeekly,
     windowMonthly,
@@ -313,4 +325,9 @@ export function invalidateBailianQuotaCache(connectionId: string): void {
 export function registerBailianCodingPlanQuotaFetcher(): void {
   registerQuotaFetcher("bailian-coding-plan", fetchBailianQuota);
   registerMonitorFetcher("bailian-coding-plan", fetchBailianQuota);
+  registerQuotaWindows("bailian-coding-plan", [
+    BAILIAN_WINDOW_5H,
+    BAILIAN_WINDOW_WEEKLY,
+    BAILIAN_WINDOW_MONTHLY,
+  ]);
 }

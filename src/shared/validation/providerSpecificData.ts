@@ -151,7 +151,7 @@ export function validateProviderSpecificData(
         });
       }
 
-      for (const booleanKey of ["context1m", "redactThinking"] as const) {
+      for (const booleanKey of ["context1m", "redactThinking", "summarizeThinking"] as const) {
         const value = requestDefaultsRecord[booleanKey];
         if (value === undefined || value === null || typeof value === "boolean") continue;
         ctx.addIssue({
@@ -177,6 +177,50 @@ export function validateProviderSpecificData(
       message: "providerSpecificData.consoleApiKey must be at most 10000 characters",
       path: ["consoleApiKey"],
     });
+  }
+
+  for (const key of ["openCodeGoWorkspaceId", "opencodeGoWorkspaceId", "workspaceId"] as const) {
+    const value = data[key];
+    if (value !== undefined && value !== null && typeof value !== "string") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `providerSpecificData.${key} must be a string`,
+        path: [key],
+      });
+    }
+    if (typeof value === "string" && value.length > 1000) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `providerSpecificData.${key} must be at most 1000 characters`,
+        path: [key],
+      });
+    }
+  }
+
+  for (const key of [
+    "openCodeGoAuthCookie",
+    "opencodeGoAuthCookie",
+    "authCookie",
+    "ollamaUsageCookie",
+    "ollamaCloudUsageCookie",
+    "ollamaCloudCookie",
+    "usageCookie",
+  ] as const) {
+    const value = data[key];
+    if (value !== undefined && value !== null && typeof value !== "string") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `providerSpecificData.${key} must be a string`,
+        path: [key],
+      });
+    }
+    if (typeof value === "string" && value.length > 10000) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `providerSpecificData.${key} must be at most 10000 characters`,
+        path: [key],
+      });
+    }
   }
 
   const groupTag = data.tag;

@@ -209,6 +209,35 @@ describe("Settings API - persisted preferences", () => {
       assert.equal(settings.responsesPreviousResponseIdMode, "strip");
     });
 
+    test("GET /api/settings returns Cache-Control: no-store (ported from upstream #951)", async () => {
+      const response = await harness.settingsRoute.GET(
+        await makeManagementSessionRequest("http://localhost/api/settings", {
+          method: "GET",
+        })
+      );
+      assert.equal(response.status, 200);
+      assert.equal(
+        response.headers.get("Cache-Control"),
+        "no-store",
+        "GET /api/settings must return Cache-Control: no-store so persisted settings stay fresh after refresh/restart"
+      );
+    });
+
+    test("PATCH /api/settings returns Cache-Control: no-store (ported from upstream #951)", async () => {
+      const response = await harness.settingsRoute.PATCH(
+        await makeManagementSessionRequest("http://localhost/api/settings", {
+          method: "PATCH",
+          body: { debugMode: true },
+        })
+      );
+      assert.equal(response.status, 200);
+      assert.equal(
+        response.headers.get("Cache-Control"),
+        "no-store",
+        "PATCH /api/settings must return Cache-Control: no-store"
+      );
+    });
+
     test("PUT /api/settings reuses the PATCH update flow", async () => {
       const response = await harness.settingsRoute.PUT(
         await makeManagementSessionRequest("http://localhost/api/settings", {

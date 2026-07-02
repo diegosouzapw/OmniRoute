@@ -1,13 +1,13 @@
 ---
 title: "Repository Map"
-version: 3.8.26
-lastUpdated: 2026-06-15
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Repository Map
 
 > **One-line description for every directory and root file.**
-> Last updated: 2026-06-15 — OmniRoute v3.8.26
+> Last updated: 2026-06-28 — OmniRoute v3.8.40
 >
 > Use this map to navigate the codebase quickly. For deep dives, follow links to dedicated docs.
 
@@ -110,7 +110,6 @@ OmniRoute/
 > **Moved out of the root in v3.8.26 (declutter):**
 >
 > - **→ `config/quality/`:** `quality-baseline.json`, `complexity-baseline.json`, `duplication-baseline.json`, `file-size-baseline.json`, `test-discovery-baseline.json`, `dependency-allowlist.json`, `.license-allowlist.json`, and the generated `quality-metrics.json` (gitignored). See [`## config/`](#config--static-configs--quality-gate-state).
-> - **→ `docs/ops/`:** `DOCUMENTATION_AUDIT_REPORT.md`.
 
 ---
 
@@ -210,7 +209,7 @@ src/
 | `cacheLayer.ts`, `idempotencyLayer.ts`   | Request caching + idempotency                                                                                                                                                                                                                                                                                           |
 | (~30 more top-level files)               | Specialized helpers (logEnv, modelsDevSync, piiSanitizer, etc.)                                                                                                                                                                                                                                                         |
 
-### `src/db/` — Database (45+ modules + 55 migrations)
+### `src/db/` — Database (94 modules + 106 migrations)
 
 | Subdir                    | Purpose                                                                                                                                                                    |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -245,9 +244,9 @@ src/
 
 | Module                           | Purpose                                                                |
 | -------------------------------- | ---------------------------------------------------------------------- |
-| `constants/providers.ts`         | **226 providers** with Zod validation (source of truth)                |
+| `constants/providers.ts`         | **236 providers** with Zod validation (source of truth)                |
 | `constants/cliTools.ts`          | External CLI tool registry                                             |
-| `constants/routingStrategies.ts` | **14 routing strategies** with priorities                              |
+| `constants/routingStrategies.ts` | **17 routing strategies** with priorities                              |
 | `constants/publicApiRoutes.ts`   | Routes that require Bearer (vs management) auth                        |
 | `constants/upstreamHeaders.ts`   | Header denylist for upstream requests                                  |
 | `validation/schemas.ts`          | ~80 Zod schemas (single source of truth for API contracts)             |
@@ -266,12 +265,12 @@ Separate npm workspace (`@omniroute/open-sse`). Handles request processing + pro
 
 ```
 open-sse/
-├── handlers/            # 15 files (11 handlers + 4 helpers): chatCore, responsesHandler, embeddings, audio, image, video, music, rerank, moderations, search, etc.
-├── executors/           # 31 provider-specific executors (extend BaseExecutor)
-├── translator/          # Format converters (9 request, 8 response, 9 helpers)
+├── handlers/            # 16 files (12 handlers + 4 helpers): chatCore, responsesHandler, embeddings, audio, image, video, music, rerank, moderations, search, etc.
+├── executors/           # 67 provider-specific executors (extend BaseExecutor)
+├── translator/          # Format converters (9 request, 9 response, 9 helpers)
 ├── transformer/         # Responses API ↔ Chat Completions (TransformStream)
 ├── services/            # ~80+ service modules (combo, accountFallback, autoCombo, reasoningCache, claude code/chatgpt stealth, modelDeprecation, taskAwareRouter, workflowFSM, etc.)
-├── mcp-server/          # MCP server (87 tools, 3 transports, 30 scopes)
+├── mcp-server/          # MCP server (94 tools, 3 transports, 30 scopes)
 ├── config/              # Provider/model registries, header config, model aliases
 ├── utils/               # TLS client, proxy fetch/dispatcher, network helpers
 ├── index.ts             # Workspace entry
@@ -290,7 +289,7 @@ open-sse/
 | `scopeEnforcement.ts`       | Per-tool scope validation                                                      |
 | `runtimeHeartbeat.ts`       | Health heartbeat to `DATA_DIR/runtime/mcp-heartbeat.json`                      |
 | `descriptionCompressor.ts`  | Compress tool description metadata to save context                             |
-| `schemas/tools.ts`          | 30 base tool definitions + scopes                                              |
+| `schemas/tools.ts`          | 34 base tool definitions + scopes                                              |
 | `tools/advancedTools.ts`    | Advanced tool implementations                                                  |
 | `tools/memoryTools.ts`      | 3 memory tools (search/add/clear)                                              |
 | `tools/skillTools.ts`       | 4 skill tools (list/enable/execute/executions)                                 |
@@ -401,13 +400,13 @@ open-sse/
 | `CLI-TOOLS.md`              | External CLI integrations + Internal OmniRoute CLI                                    |
 | `I18N.md`                   | i18n architecture, adding a language, 30 locales                                      |
 | `UNINSTALL.md`              | Clean uninstall steps                                                                 |
-| `PROVIDER_REFERENCE.md`     | **Auto-generated** catalog of 226 providers (regen: `npm run gen:provider-reference`) |
+| `PROVIDER_REFERENCE.md`     | **Auto-generated** catalog of 236 providers (regen: `npm run gen:provider-reference`) |
 
 ### Subsystem deep-dives
 
 | Doc                        | Purpose                                                             |
 | -------------------------- | ------------------------------------------------------------------- |
-| `MCP-SERVER.md`            | MCP server: 87 tools, 3 transports, 30 scopes, REST endpoints      |
+| `MCP-SERVER.md`            | MCP server: 94 tools, 3 transports, 30 scopes, REST endpoints       |
 | `A2A-SERVER.md`            | A2A v0.3: JSON-RPC, 5 skills, REST helpers, agent card              |
 | `AGENT_PROTOCOLS_GUIDE.md` | Unified guide: A2A vs ACP vs Cloud Agents                           |
 | `CLOUD_AGENT.md`           | Codex Cloud / Devin / Jules orchestration                           |
@@ -448,12 +447,12 @@ open-sse/
 
 ### Subdirectories
 
-| Subdir                    | Purpose                                                                               |
-| ------------------------- | ------------------------------------------------------------------------------------- |
-| `docs/archive/`           | Archived/historical docs (e.g., `RFC-AUTO-ASSESSMENT-DRAFT.md` — superseded by EVALS) |
-| `docs/i18n/`              | Localized doc translations (~42 locales)                                              |
-| `docs/screenshots/`       | Image assets for guides                                                               |
-| `docs/superpowers/plans/` | Implementation plans (generated by `superpowers:writing-plans` skill)                 |
+| Subdir                | Purpose                                                                                                                                                                                        |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `docs/archive/`       | Archived/historical docs (e.g., `RFC-AUTO-ASSESSMENT-DRAFT.md` — superseded by EVALS)                                                                                                          |
+| `docs/i18n/`          | Localized doc translations (~42 locales)                                                                                                                                                       |
+| `docs/screenshots/`   | Image assets for guides                                                                                                                                                                        |
+| `_tasks/superpowers/` | Plans/specs from superpowers (`writing-plans`/`brainstorming`) + research — isolated, separately-versioned repo, gitignored by the main tree. See CLAUDE.md → "Planning & Research Artifacts". |
 
 ---
 

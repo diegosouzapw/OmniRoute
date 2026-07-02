@@ -75,7 +75,7 @@ const apiAuth = (key: string, baseURL?: string): unknown =>
 
 test("createOmniRouteProviderHook: default providerId is 'omniroute'", () => {
   const hook = createOmniRouteProviderHook(undefined, { combosFetcher: async () => [] });
-  assert.equal(hook.id, "omniroute");
+  assert.equal(hook.id, "opencode-omniroute");
 });
 
 test("createOmniRouteProviderHook: custom providerId binds to hook.id (multi-instance)", () => {
@@ -87,8 +87,8 @@ test("createOmniRouteProviderHook: custom providerId binds to hook.id (multi-ins
     { providerId: "omniroute-local" },
     { combosFetcher: async () => [] }
   );
-  assert.equal(a.id, "omniroute-preprod");
-  assert.equal(b.id, "omniroute-local");
+  assert.equal(a.id, "opencode-omniroute-preprod");
+  assert.equal(b.id, "opencode-omniroute-local");
 });
 
 test("models: extracts apiKey from ctx.auth (type=api) and calls fetcher with it", async () => {
@@ -101,7 +101,7 @@ test("models: extracts apiKey from ctx.auth (type=api) and calls fetcher with it
   assert.equal(fetcher.callCount(), 1);
   assert.deepEqual(fetcher.callsBy()[0], ["https://or.example.com/v1", "sk-abc"]);
   assert.equal(Object.keys(out).length, 3);
-  assert.ok(out["omniroute/claude-primary"]);
+  assert.ok(out["opencode-omniroute/claude-primary"]);
 });
 
 test("models: returns {} when ctx.auth is null/undefined/wrong-type/empty-key", async () => {
@@ -152,13 +152,13 @@ test("models: maps a sample /v1/models entry to ModelV2 (sanity)", async () => {
     { fetcher, combosFetcher: async () => [] }
   );
   const out = await hook.models!({} as never, { auth: apiAuth("sk-abc") as never });
-  const claude = out["omniroute/claude-primary"];
+  const claude = out["opencode-omniroute/claude-primary"];
   assert.ok(claude, "claude-primary present");
   // `mapRawModelToModelV2` stamps the provider prefix on the id so OC's
   // static-catalog reader resolves `(providerID, modelID)` from the key.
-  assert.equal(claude.id, "omniroute/claude-primary");
+  assert.equal(claude.id, "opencode-omniroute/claude-primary");
   assert.equal(claude.name, "claude-primary");
-  assert.equal(claude.providerID, "omniroute");
+  assert.equal(claude.providerID, "opencode-omniroute");
   assert.equal(claude.api.id, "openai-compatible");
   assert.equal(claude.api.url, "https://or.example.com/v1");
   assert.equal(claude.api.npm, "@ai-sdk/openai-compatible");

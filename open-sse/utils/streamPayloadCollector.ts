@@ -596,7 +596,6 @@ export function buildStreamSummaryFromEvents(
     case FORMATS.CLAUDE:
       return buildClaudeSummary(events, fallbackModel);
     case FORMATS.GEMINI:
-    case FORMATS.GEMINI_CLI:
     case FORMATS.ANTIGRAVITY:
       return buildGeminiSummary(events, fallbackModel);
     default:

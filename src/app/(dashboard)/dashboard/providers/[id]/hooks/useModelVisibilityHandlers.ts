@@ -26,10 +26,12 @@ import {
   providerText,
   testAllResultsText,
   evaluateTestAllEntry,
+  shouldSwitchToVisibleFilter,
   type ProviderMessageTranslator,
   type CompatByProtocolMap,
 } from "../providerPageHelpers";
 import { useNotificationStore } from "@/store/notificationStore";
+import { withDashboardCsrfHeader } from "@/shared/utils/dashboardCsrf";
 
 type NotifyStore = ReturnType<typeof useNotificationStore>;
 
@@ -289,7 +291,7 @@ export function useModelVisibilityHandlers({
     try {
       const res = await fetch("/api/models/test", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await withDashboardCsrfHeader({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           providerId: selectedConnection?.provider || providerNode?.id || providerId,
           modelId: fullModel,
@@ -355,7 +357,7 @@ export function useModelVisibilityHandlers({
               >;
             } = await fetch("/api/models/test-all", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: await withDashboardCsrfHeader({ "Content-Type": "application/json" }),
               body: JSON.stringify({
                 providerId: providerId,
                 connectionId: selectedConnection?.id,
@@ -391,6 +393,14 @@ export function useModelVisibilityHandlers({
     notify.info(testAllResultsText(t, ok, ok + error));
     if (hiddenCount > 0) {
       notify.info(providerText(t, "testAllFailedHidden", "{count} hidden", { count: hiddenCount }));
+      // Bug #4887: switch to "visible" so the models we just auto-hid disappear
+      // on-screen — parity with PassthroughModelsSection (#3610). Without this,
+      // failed models were hidden in the DB but stayed visible under the "All"
+      // filter, so on GLM (and other OAuth providers using this hook's handleTestAll)
+      // it looked like nothing was hidden.
+      if (shouldSwitchToVisibleFilter({ autoHideFailed, hiddenCount })) {
+        setVisibilityFilter("visible");
+      }
     }
     setTestingAll(false);
     setTestProgress(null);

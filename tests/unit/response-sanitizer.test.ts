@@ -6,6 +6,7 @@ const {
   sanitizeOpenAIResponse,
   sanitizeResponsesApiResponse,
   sanitizeStreamingChunk,
+  shouldParseTextualReasoningTags,
 } = await import("../../open-sse/handlers/responseSanitizer.ts");
 
 test("extractThinkingFromContent separates think blocks from visible content", () => {
@@ -39,6 +40,12 @@ test("extractThinkingFromContent does NOT treat <thoughtful> as a reasoning tag"
   assert.equal(parsed.thinking, null);
 });
 
+test("extractThinkingFromContent handles closing-only reasoning before content tag", () => {
+  const parsed = extractThinkingFromContent("planning\n</thinking>\n<content>visible</content>");
+  assert.equal(parsed.content, "<content>visible</content>");
+  assert.equal(parsed.thinking, "planning");
+});
+
 test("sanitizeOpenAIResponse strips non-standard fields and preserves required top-level fields", () => {
   const sanitized = sanitizeOpenAIResponse({
     id: "chatcmpl_existing",
@@ -59,7 +66,7 @@ test("sanitizeOpenAIResponse strips non-standard fields and preserves required t
   });
 });
 
-test("sanitizeOpenAIResponse extracts thinking, collapses newlines, preserves reasoning_content with tool_calls, and preserves tool calls", () => {
+test("sanitizeOpenAIResponse preserves prompt-format thinking tags by default", () => {
   const sanitized = sanitizeOpenAIResponse({
     id: "chatcmpl_test",
     model: "gpt-4.1",
@@ -69,7 +76,7 @@ test("sanitizeOpenAIResponse extracts thinking, collapses newlines, preserves re
         finish_reason: "tool_calls",
         message: {
           role: "assistant",
-          content: "Hello\n\n\n<think>internal chain</think>\n\nworld",
+          content: "Hello\n\n\n<think>visible protocol</think>\n\nworld",
           tool_calls: [{ id: "call_1" }],
           function_call: { name: "legacy" },
         },
@@ -79,44 +86,76 @@ test("sanitizeOpenAIResponse extracts thinking, collapses newlines, preserves re
 
   assert.equal((sanitized as any).choices[0].index, 2);
   assert.equal((sanitized as any).choices[0].finish_reason, "tool_calls");
-  (assert as any).equal((sanitized as any).choices[0].message.content, "Hello\n\nworld");
-  assert.equal((sanitized as any).choices[0].message.reasoning_content, "internal chain");
+  (assert as any).equal(
+    (sanitized as any).choices[0].message.content,
+    "Hello\n\n<think>visible protocol</think>\n\nworld"
+  );
+  assert.equal((sanitized as any).choices[0].message.reasoning_content, undefined);
   (assert as any).deepEqual((sanitized as any).choices[0].message.tool_calls, [{ id: "call_1" }]);
   assert.deepEqual((sanitized as any).choices[0].message.function_call, { name: "legacy" });
 });
 
-test("sanitizeOpenAIResponse extracts unclosed reasoning wrappers into reasoning_content", () => {
-  const sanitized = sanitizeOpenAIResponse({
-    model: "gpt-4.1",
-    choices: [
-      {
-        message: {
-          role: "assistant",
-          content: "§54§ <thought\ninternal planning\n",
+test("sanitizeOpenAIResponse extracts textual reasoning only when explicitly enabled", () => {
+  const sanitized = sanitizeOpenAIResponse(
+    {
+      model: "deepseek-r1",
+      choices: [
+        {
+          message: {
+            role: "assistant",
+            content: "Hello\n\n\n<think>internal chain</think>\n\nworld",
+          },
         },
-      },
-    ],
-  });
+      ],
+    },
+    { parseTextualReasoningTags: true }
+  );
 
-  assert.equal((sanitized as any).choices[0].message.content, "");
+  assert.equal((sanitized as any).choices[0].message.content, "Hello\n\nworld");
+  assert.equal((sanitized as any).choices[0].message.reasoning_content, "internal chain");
+});
+
+test("sanitizeOpenAIResponse extracts unclosed reasoning wrappers only when enabled", () => {
+  const sanitized = sanitizeOpenAIResponse(
+    {
+      model: "deepseek-r1",
+      choices: [
+        {
+          message: {
+            role: "assistant",
+            content: "§54§ <thought\ninternal planning\n",
+          },
+        },
+      ],
+    },
+    { parseTextualReasoningTags: true }
+  );
+
+  assert.equal(((sanitized as any).choices[0].message as any).content, "");
   assert.equal((sanitized as any).choices[0].message.reasoning_content, "internal planning");
 });
 
-test("sanitizeOpenAIResponse preserves native reasoning_content when no visible content remains", () => {
-  const sanitized = sanitizeOpenAIResponse({
-    model: "gpt-4.1",
-    choices: [
-      {
-        message: {
-          role: "assistant",
-          content: "<think>discard me</think>",
-          reasoning_content: "provider reasoning",
+test("sanitizeOpenAIResponse preserves native reasoning_content without stripping content tags", () => {
+  const sanitized = sanitizeOpenAIResponse(
+    {
+      model: "gpt-4.1",
+      choices: [
+        {
+          message: {
+            role: "assistant",
+            content: "<think>visible protocol</think>",
+            reasoning_content: "provider reasoning",
+          },
         },
-      },
-    ],
-  });
+      ],
+    },
+    { parseTextualReasoningTags: true }
+  );
 
-  assert.equal(((sanitized as any).choices[0].message as any).content, "");
+  assert.equal(
+    ((sanitized as any).choices[0].message as any).content,
+    "<think>visible protocol</think>"
+  );
   assert.equal((sanitized as any).choices[0].message.reasoning_content, "provider reasoning");
 });
 
@@ -139,7 +178,7 @@ test("sanitizeOpenAIResponse maps Claude-style usage fields and strips extras", 
   });
 });
 
-test("sanitizeOpenAIResponse strips reasoning_details-derived reasoning_content when visible text exists", () => {
+test("sanitizeOpenAIResponse preserves reasoning_details-derived reasoning_content with visible text", () => {
   const sanitized = sanitizeOpenAIResponse({
     model: "openrouter/model",
     choices: [
@@ -150,14 +189,18 @@ test("sanitizeOpenAIResponse strips reasoning_details-derived reasoning_content 
           reasoning_details: [
             { type: "reasoning.text", text: "first " },
             { type: "thinking", content: "second" },
-            { type: "other", text: "ignored" },
           ],
         },
       },
     ],
   });
 
-  assert.equal((sanitized as any).choices[0].message.reasoning_content, undefined);
+  assert.equal((sanitized as any).choices[0].message.content, "Visible");
+  assert.equal((sanitized as any).choices[0].message.reasoning_content, "first second");
+  assert.deepEqual((sanitized as any).choices[0].message.reasoning_details, [
+    { type: "reasoning.text", text: "first " },
+    { type: "thinking", content: "second" },
+  ]);
 });
 
 test("sanitizeOpenAIResponse preserves DeepSeek V4 reasoning_content with visible text", () => {
@@ -198,7 +241,7 @@ test("sanitizeOpenAIResponse preserves DeepSeek V4 reasoning_details with visibl
   assert.equal((sanitized as any).choices[0].message.reasoning_content, "first second");
 });
 
-test("sanitizeOpenAIResponse still strips non-DeepSeek reasoning_content with visible text", () => {
+test("sanitizeOpenAIResponse preserves non-DeepSeek reasoning_content with visible text", () => {
   const sanitized = sanitizeOpenAIResponse({
     model: "o3-mini",
     choices: [
@@ -212,7 +255,34 @@ test("sanitizeOpenAIResponse still strips non-DeepSeek reasoning_content with vi
     ],
   });
 
+  assert.equal((sanitized as any).choices[0].message.content, "Visible answer");
+  assert.equal((sanitized as any).choices[0].message.reasoning_content, "OpenAI reasoning");
+});
+
+test("sanitizeOpenAIResponse preserves OpenRouter native reasoning and signatures", () => {
+  const sanitized = sanitizeOpenAIResponse({
+    model: "moonshotai/kimi-k2.6",
+    choices: [
+      {
+        message: {
+          role: "assistant",
+          content: "<thinking>tag-derived</thinking><content>Visible answer</content>",
+          reasoning: "provider native reasoning",
+          reasoning_details: [{ type: "reasoning.encrypted", data: "sig" }],
+        },
+      },
+    ],
+  });
+
   assert.equal((sanitized as any).choices[0].message.reasoning_content, undefined);
+  assert.equal((sanitized as any).choices[0].message.reasoning, "provider native reasoning");
+  assert.deepEqual((sanitized as any).choices[0].message.reasoning_details, [
+    { type: "reasoning.encrypted", data: "sig" },
+  ]);
+  assert.equal(
+    (sanitized as any).choices[0].message.content,
+    "<thinking>tag-derived</thinking><content>Visible answer</content>"
+  );
 });
 
 test("sanitizeOpenAIResponse keeps reasoning_details-derived reasoning_content for reasoning-only messages", () => {
@@ -282,6 +352,35 @@ test("sanitizeResponsesApiResponse converts chat completions tool calls into Res
   assert.equal((sanitized as any).usage.output_tokens_details.reasoning_tokens, 2);
 });
 
+test("sanitizeResponsesApiResponse synthesizes an output[] message from output_text-only bodies (#4942 regression)", () => {
+  const sanitized = sanitizeResponsesApiResponse({
+    object: "response",
+    status: "completed",
+    model: "lmstudio/local",
+    output_text: "  I prefer TypeScript.  ",
+  }) as any;
+
+  assert.equal(sanitized.object, "response");
+  // output[] must be synthesized (was dropped before the fix → response flagged malformed)
+  assert.equal(sanitized.output.length, 1);
+  assert.equal(sanitized.output[0].type, "message");
+  assert.equal(sanitized.output[0].role, "assistant");
+  assert.equal(sanitized.output[0].content[0].type, "output_text");
+  assert.equal(sanitized.output[0].content[0].text, "I prefer TypeScript.");
+  // and output_text is re-derived (trimmed) from the synthesized item
+  assert.equal(sanitized.output_text, "I prefer TypeScript.");
+});
+
+test("sanitizeResponsesApiResponse leaves output[] empty when output_text is blank", () => {
+  const sanitized = sanitizeResponsesApiResponse({
+    object: "response",
+    status: "completed",
+    output_text: "   ",
+  }) as any;
+  assert.equal(sanitized.output.length, 0);
+  assert.equal(sanitized.output_text, undefined);
+});
+
 test("sanitizeResponsesApiResponse preserves native Responses payloads and usage details", () => {
   const sanitized = sanitizeResponsesApiResponse({
     id: "resp_native",
@@ -324,7 +423,7 @@ test("sanitizeResponsesApiResponse preserves native Responses payloads and usage
   assert.equal((sanitized as any).usage.output_tokens_details.reasoning_tokens, 3);
 });
 
-test("sanitizeStreamingChunk keeps only safe chunk fields and maps reasoning aliases", () => {
+test("sanitizeStreamingChunk keeps only safe chunk fields and preserves readable reasoning aliases", () => {
   const sanitized = sanitizeStreamingChunk({
     id: "chunk_1",
     object: "chat.completion.chunk",
@@ -359,7 +458,7 @@ test("sanitizeStreamingChunk keeps only safe chunk fields and maps reasoning ali
         delta: {
           role: "assistant",
           content: "Line 1\n\nLine 2",
-          reasoning_content: "stream reasoning",
+          reasoning: "stream reasoning",
           tool_calls: [{ id: "call_1" }],
         },
         finish_reason: "stop",
@@ -387,9 +486,28 @@ test("sanitizeStreamingChunk converts reasoning_details arrays in deltas", () =>
   });
 
   assert.equal((sanitized as any).choices[0].delta.reasoning_content, "alphabeta");
+  assert.deepEqual((sanitized as any).choices[0].delta.reasoning_details, [
+    { type: "reasoning.text", text: "alpha" },
+    { content: "beta" },
+  ]);
 });
 
-test("sanitizeStreamingChunk preserves Copilot reasoning_text deltas", () => {
+test("sanitizeStreamingChunk preserves client-readable reasoning deltas", () => {
+  const sanitized = sanitizeStreamingChunk({
+    choices: [
+      {
+        delta: {
+          reasoning: "readable reasoning",
+        },
+      },
+    ],
+  });
+
+  assert.equal((sanitized as any).choices[0].delta.reasoning, "readable reasoning");
+  assert.equal((sanitized as any).choices[0].delta.reasoning_content, undefined);
+});
+
+test("sanitizeStreamingChunk preserves and mirrors Copilot reasoning_text deltas", () => {
   const sanitized = sanitizeStreamingChunk({
     choices: [
       {
@@ -401,6 +519,7 @@ test("sanitizeStreamingChunk preserves Copilot reasoning_text deltas", () => {
   });
 
   assert.equal((sanitized as any).choices[0].delta.reasoning_text, "copilot reasoning");
+  assert.equal((sanitized as any).choices[0].delta.reasoning_content, "copilot reasoning");
 });
 
 test("sanitizeStreamingChunk strips commentary content from Responses completed events", () => {
@@ -486,9 +605,7 @@ test("sanitizeOpenAIResponse preserves reasoning_content when tool_calls are pre
   assert.equal(message.tool_calls[0].id, "call_search_1");
 });
 
-test("sanitizeOpenAIResponse still strips reasoning_content when no tool_calls exist", () => {
-  // When there are no tool_calls, the original behavior should remain:
-  // reasoning_content is stripped to avoid client rendering issues.
+test("sanitizeOpenAIResponse preserves reasoning_content when no tool_calls exist", () => {
   const sanitized = sanitizeOpenAIResponse({
     model: "gpt-4.1",
     choices: [
@@ -504,7 +621,7 @@ test("sanitizeOpenAIResponse still strips reasoning_content when no tool_calls e
 
   const message = (sanitized as any).choices[0].message;
   assert.equal(message.content, "Hello world");
-  assert.equal(message.reasoning_content, undefined);
+  assert.equal(message.reasoning_content, "Some internal reasoning");
 });
 
 test("sanitizeOpenAIResponse preserves reasoning_content when legacy function_call is present", () => {
@@ -535,6 +652,18 @@ test("sanitizeOpenAIResponse preserves reasoning_content when legacy function_ca
 test("sanitize functions return non-object inputs unchanged", () => {
   assert.equal(sanitizeOpenAIResponse(null), null);
   assert.equal(sanitizeStreamingChunk("raw text"), "raw text");
+});
+
+test("shouldParseTextualReasoningTags is limited to tag-native model families", () => {
+  assert.equal(shouldParseTextualReasoningTags("together", "deepseek-ai/DeepSeek-R1"), true);
+  assert.equal(shouldParseTextualReasoningTags("cloudflare-ai", "@cf/qwen/qwq-32b"), true);
+  assert.equal(shouldParseTextualReasoningTags("openrouter", "deepseek/deepseek-v4-pro"), false);
+  assert.equal(shouldParseTextualReasoningTags("antigravity", "deepseek-r1"), false);
+  assert.equal(shouldParseTextualReasoningTags(undefined, "antigravity/deepseek-r1"), false);
+  assert.equal(
+    shouldParseTextualReasoningTags("openai-compatible-custom", "claude-opus-4.7"),
+    false
+  );
 });
 
 test("sanitizeOpenAIResponse converts textual pseudo tool-call content into structured tool_calls", () => {

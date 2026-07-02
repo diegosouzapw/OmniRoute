@@ -6,16 +6,17 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 let cachedSpec: { data: any; mtime: number } | null = null;
 const OPENAPI_SPEC_CANDIDATES = [
-  path.join(/* turbopackIgnore: true */ process.cwd(), "docs", "reference", "openapi.yaml"),
-  path.join(/* turbopackIgnore: true */ process.cwd(), "app", "docs", "reference", "openapi.yaml"),
-  // Legacy locations kept as fallback for old standalone bundles.
   path.join(/* turbopackIgnore: true */ process.cwd(), "docs", "openapi.yaml"),
   path.join(/* turbopackIgnore: true */ process.cwd(), "app", "docs", "openapi.yaml"),
+  // Legacy locations kept as fallback for old standalone bundles (pre-#4781 move
+  // from docs/reference/openapi.yaml to the canonical docs/openapi.yaml).
+  path.join(/* turbopackIgnore: true */ process.cwd(), "docs", "reference", "openapi.yaml"),
+  path.join(/* turbopackIgnore: true */ process.cwd(), "app", "docs", "reference", "openapi.yaml"),
 ];
 
 /**

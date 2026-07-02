@@ -1,5 +1,5 @@
 /**
- * openapiParser.ts — parses docs/reference/openapi.yaml to extract endpoint info
+ * openapiParser.ts — parses docs/openapi.yaml to extract endpoint info
  * grouped by SkillArea. Used by the catalog and the generator.
  *
  * Reads the OpenAPI YAML synchronously at runtime (same pattern as
@@ -9,7 +9,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import type { SkillArea } from "./types";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -139,7 +139,7 @@ function extractOperations(pathsObj: Record<string, any>): OpenapiPath[] {
 }
 
 /**
- * Parses `docs/reference/openapi.yaml` and returns:
+ * Parses `docs/openapi.yaml` and returns:
  * - `paths`: all operations keyed by `"METHOD /path"`
  * - `areas`: operations grouped by SkillArea (api skills only)
  *
@@ -147,7 +147,7 @@ function extractOperations(pathsObj: Record<string, any>): OpenapiPath[] {
  * and standalone scripts without async machinery.
  */
 export function parseOpenapi(): ParsedOpenapi {
-  const yamlPath = path.resolve(process.cwd(), "docs", "reference", "openapi.yaml");
+  const yamlPath = path.resolve(process.cwd(), "docs", "openapi.yaml");
   let rawContent: string;
 
   try {
@@ -159,7 +159,6 @@ export function parseOpenapi(): ParsedOpenapi {
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const doc = yaml.load(rawContent) as Record<string, any>;
 
   if (!doc || typeof doc !== "object") {

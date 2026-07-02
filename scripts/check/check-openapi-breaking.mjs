@@ -2,7 +2,7 @@
 // scripts/check/check-openapi-breaking.mjs
 // Catraca de breaking-change na API pública (Fase 8 B.4 — backlog opcional).
 //
-// Diffa a spec do PR (docs/reference/openapi.yaml na working tree = HEAD) contra
+// Diffa a spec do PR (docs/openapi.yaml na working tree = HEAD) contra
 // a MESMA spec no branch base, via `oasdiff breaking`. Pega regressões de contrato:
 // endpoint removido, parâmetro novo obrigatório, campo de resposta removido, enum
 // estreitado, etc. — mudanças que quebram clientes existentes.
@@ -32,7 +32,7 @@
 //   • CI passa BASE_REF=${{ github.base_ref }} (ex.: "release/vX.Y.Z").
 //   • Local: default derivado da versão do package.json (releaseBranchForVersion),
 //     ex.: package 3.8.29 → "origin/release/v3.8.29" — nunca fica stale entre ciclos.
-// A spec base é extraída com `git show <BASE_REF>:docs/reference/openapi.yaml`.
+// A spec base é extraída com `git show <BASE_REF>:docs/openapi.yaml`.
 //
 // Uso:
 //   node scripts/check/check-openapi-breaking.mjs
@@ -52,8 +52,8 @@ const QUIET = process.argv.includes("--quiet");
 const PRINT_JSON = process.argv.includes("--json");
 const RATCHET = process.argv.includes("--ratchet");
 
-const SPEC_REL = "docs/reference/openapi.yaml";
-const SPEC_PATH = path.join(ROOT, "docs", "reference", "openapi.yaml");
+const SPEC_REL = "docs/openapi.yaml";
+const SPEC_PATH = path.join(ROOT, "docs", "openapi.yaml");
 
 /**
  * Deriva o branch base de release a partir de uma versão semver

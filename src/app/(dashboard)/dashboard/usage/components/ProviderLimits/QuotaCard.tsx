@@ -91,6 +91,7 @@ export default function QuotaCard({
         quotas={quotas}
         loading={loading}
         error={error}
+        message={quota?.message ?? null}
         refreshedAt={displayRefreshedAt}
         hasStaleData={hasStaleData}
         onRefresh={onRefresh}

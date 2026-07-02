@@ -8,6 +8,7 @@
 // matching `EngineConfigPage` / `CompressionHub`, both of which hydrate cleanly.
 
 import { useEffect, useState } from "react";
+import { STACKED_PIPELINE_ENGINE_INTENSITIES } from "@/shared/validation/compressionConfigSchemas";
 import CompressionHub from "./CompressionHub";
 
 type PipelineStep = { engine: string; intensity?: string };
@@ -29,17 +30,9 @@ const EMPTY_PIPELINE: PipelineStep[] = [
   { engine: "caveman", intensity: "full" },
 ];
 
-const ENGINE_INTENSITIES: Record<string, string[]> = {
-  rtk: ["minimal", "standard", "aggressive"],
-  caveman: ["lite", "full", "ultra"],
-  lite: ["lite"],
-  aggressive: ["standard"],
-  ultra: ["ultra"],
-  headroom: ["standard"],
-  "session-dedup": ["standard"],
-  ccr: ["standard"],
-  llmlingua: ["standard"],
-};
+// Engine list is sourced from the API schema so the dropdown can never offer an engine
+// the `PUT /api/context/combos/[id]` route would reject with HTTP 400 (#4955).
+const ENGINE_INTENSITIES: Record<string, readonly string[]> = STACKED_PIPELINE_ENGINE_INTENSITIES;
 
 function NamedCombosManager() {
   const [combos, setCombos] = useState<CompressionCombo[]>([]);
@@ -55,6 +48,7 @@ function NamedCombosManager() {
   const [assignmentIds, setAssignmentIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [activeComboId, setActiveComboId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const refresh = () => {
     fetch("/api/context/combos")
@@ -88,6 +82,7 @@ function NamedCombosManager() {
     setOutputMode(false);
     setOutputModeIntensity("full");
     setAssignmentIds([]);
+    setError(null);
   };
 
   const loadAssignments = async (id: string) => {
@@ -112,7 +107,15 @@ function NamedCombosManager() {
 
   const saveCombo = async () => {
     const trimmed = name.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      setError("Enter a combo name before saving.");
+      return;
+    }
+    if (pipeline.length === 0) {
+      setError("Add at least one pipeline step before saving.");
+      return;
+    }
+    setError(null);
     setSaving(true);
     try {
       const payload = {
@@ -131,7 +134,11 @@ function NamedCombosManager() {
           body: JSON.stringify(payload),
         }
       );
-      if (!res.ok) return;
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        setError(body?.error || `Failed to save combo (HTTP ${res.status}).`);
+        return;
+      }
       const combo = await res.json();
       await fetch(`/api/context/combos/${combo.id}/assignments`, {
         method: "PUT",
@@ -314,6 +321,12 @@ function NamedCombosManager() {
             </div>
           </div>
         </div>
+
+        {error && (
+          <p className="mt-4 text-sm text-danger" role="alert">
+            {error}
+          </p>
+        )}
 
         <div className="mt-4 flex flex-wrap gap-2">
           <button

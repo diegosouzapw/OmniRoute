@@ -8,6 +8,7 @@ import {
   computeRestartDelayMs,
   waitUntilPortFree,
 } from "./supervisorPolicy.mjs";
+import { buildNodeHeapArgs } from "../../../scripts/build/runtime-env.mjs";
 
 const CRASH_LOG_LINES = 50;
 
@@ -30,7 +31,11 @@ export class ServerSupervisor {
     this.crashLog = [];
 
     const showLog = process.env.OMNIROUTE_SHOW_LOG === "1";
-    this.child = spawn("node", [`--max-old-space-size=${this.memoryLimit}`, this.serverPath], {
+    // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
+    // heap via NODE_OPTIONS (a CLI arg would shadow/override their value). The
+    // calibrated heap is already carried by env.NODE_OPTIONS either way.
+    const heapArgs = buildNodeHeapArgs(process.env, this.memoryLimit);
+    this.child = spawn("node", [...heapArgs, this.serverPath], {
       cwd: dirname(this.serverPath),
       env: this.env,
       stdio: showLog ? "inherit" : ["ignore", "ignore", "pipe"],

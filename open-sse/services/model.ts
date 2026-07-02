@@ -60,10 +60,6 @@ const PROVIDER_MODEL_ALIASES: ProviderModelAliasMap = {
     "gemini-3.1-pro": "gemini-3.1-pro-preview",
     "gemini-3-1-pro": "gemini-3.1-pro-preview",
   },
-  "gemini-cli": {
-    "gemini-3.1-pro": "gemini-3.1-pro-preview",
-    "gemini-3-1-pro": "gemini-3.1-pro-preview",
-  },
   nvidia: {
     "gpt-oss-120b": "openai/gpt-oss-120b",
     "nvidia/gpt-oss-120b": "openai/gpt-oss-120b",
@@ -153,6 +149,34 @@ export function resolveProviderAlias(aliasOrId: string | null | undefined): stri
     current = next;
   }
   return current;
+}
+
+/**
+ * #474 — Resolve a bare model name to the selected connection's `defaultModel`.
+ *
+ * When the client requested a bare model name (no "/", e.g. an alias that
+ * resolved to "auto") and the chosen connection declares a `defaultModel`, the
+ * upstream provider must receive that concrete model ID instead of the
+ * placeholder. A "/"-qualified model name is an explicit provider/model choice
+ * and is always returned untouched.
+ *
+ * Pure function — `requestedModelStr` is the raw client-facing model string
+ * (used only to decide whether the name is "bare"); `resolvedModel` is the
+ * already-resolved model that would otherwise be sent upstream.
+ */
+export function resolveBareModelToConnectionDefault(
+  requestedModelStr: string | null | undefined,
+  resolvedModel: string | null | undefined,
+  connectionDefaultModel: string | null | undefined
+): string | null {
+  const fallback = typeof resolvedModel === "string" ? resolvedModel : null;
+  if (typeof requestedModelStr !== "string" || requestedModelStr.includes("/")) {
+    return fallback;
+  }
+  if (typeof connectionDefaultModel === "string" && connectionDefaultModel.length > 0) {
+    return connectionDefaultModel;
+  }
+  return fallback;
 }
 
 function isCrossProxyModelCompatEnabled() {

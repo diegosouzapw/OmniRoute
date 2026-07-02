@@ -19,6 +19,17 @@ import {
   QdrantHealthResultSchema,
 } from "../../src/shared/schemas/qdrant.ts";
 
+test("memory schema module keeps the runtime request/response schemas exported", () => {
+  assert.equal(typeof MemorySettingsExtendedSchema.safeParse, "function");
+  assert.equal(typeof MemoryUpdatePutSchema.safeParse, "function");
+  assert.equal(typeof RetrievePreviewSchema.safeParse, "function");
+  assert.equal(typeof MemoryReindexSchema.safeParse, "function");
+  assert.equal(typeof MemorySummarizeSchema.safeParse, "function");
+  assert.equal(typeof EmbeddingProviderListingSchema.safeParse, "function");
+  assert.equal(typeof MemoryEngineStatusSchema.safeParse, "function");
+  assert.equal(typeof RetrievePreviewResultSchema.safeParse, "function");
+});
+
 // ---------------------------------------------------------------------------
 // 1. MemorySettingsExtendedSchema
 // ---------------------------------------------------------------------------
@@ -66,6 +77,9 @@ test("MemorySettingsExtendedSchema: rejects invalid embeddingSource value", () =
 test("MemoryUpdatePutSchema: accepts valid partial update (content only)", () => {
   const result = MemoryUpdatePutSchema.safeParse({ content: "updated content" });
   assert.equal(result.success, true, "Should accept partial update with only content");
+  if (result.success) {
+    assert.equal(result.data.content, "updated content");
+  }
 });
 
 test("MemoryUpdatePutSchema: rejects extra field (strict)", () => {
@@ -325,6 +339,7 @@ test("QdrantSettingsSchema: accepts valid settings with defaults applied", () =>
   if (result.success) {
     assert.equal(result.data.port, 6333, "Default port should be 6333");
     assert.equal(result.data.collection, "omniroute_memory", "Default collection");
+    assert.equal(result.data.quantization, "none", "Default quantization should be none");
     assert.equal(result.data.hasApiKey, false, "Default hasApiKey should be false");
     assert.equal(result.data.apiKeyMasked, null, "Default apiKeyMasked should be null");
   }

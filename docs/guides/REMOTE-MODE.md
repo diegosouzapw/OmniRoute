@@ -1,7 +1,7 @@
 ---
 title: "Remote Mode — Drive a remote OmniRoute from your laptop"
-version: 3.8.29
-lastUpdated: 2026-06-19
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Remote Mode
@@ -84,11 +84,11 @@ The CLI validates it via `GET /api/cli/whoami` and saves it as the active contex
 
 Three levels, hierarchical (`admin ⊃ write ⊃ read`):
 
-| Scope | Can do |
-|-------|--------|
-| `read`  | list/inspect — `models list`, `providers status`, `logs`, `usage`, `cost` |
+| Scope   | Can do                                                                       |
+| ------- | ---------------------------------------------------------------------------- |
+| `read`  | list/inspect — `models list`, `providers status`, `logs`, `usage`, `cost`    |
 | `write` | read **+** configure/apply — `setup-codex`, `keys add`, `config set`, combos |
-| `admin` | write **+** manage — `tokens` CRUD, add providers, services, policy, oauth |
+| `admin` | write **+** manage — `tokens` CRUD, add providers, services, policy, oauth   |
 
 The server infers the scope each route requires from the HTTP method
 (`GET`→read, mutations→write) plus an admin allowlist for sensitive surfaces
@@ -97,6 +97,67 @@ A token with insufficient scope gets `403` with a clear message.
 
 > Routes that spawn processes (`/api/services/*`, `/api/mcp/*`, …) stay
 > **loopback-only** — a remote token can never reach them, regardless of scope.
+
+---
+
+## Connecting Antigravity on a remote install
+
+Antigravity uses Google's firstparty/nativeapp consent screen. Google only
+releases the authorization code when the **loopback redirect**
+(`http://127.0.0.1:<port>/callback`) is **reachable from the browser that
+approves the sign-in**. On a remote VPS install that loopback lives on the
+server, not on your machine, so the consent screen **hangs forever and never
+emits a code** — the normal "paste the callback URL" fallback has nothing to
+paste. (This is a Google-side constraint: the same hang happens in any proxy
+that uses the bundled Antigravity desktop client, not just OmniRoute.)
+
+There are two supported ways to connect Antigravity to a remote OmniRoute.
+
+### Option A — local login helper (recommended)
+
+Run the OAuth on **your own computer**, where `127.0.0.1` is reachable, and paste
+the result into the remote dashboard. The helper talks only to Google — it does
+**not** need network access to your VPS, so it works even behind firewalls.
+
+```bash
+# On your LOCAL machine (needs Node.js + a browser):
+npx omniroute login antigravity
+#   ↳ opens the Google consent in your browser, captures the callback on a local
+#     loopback port, exchanges it, and prints a one-line credential blob:
+#
+#   omniroute-cred-v1.eyJ2IjoxLCJ...
+```
+
+Then, in the **remote** dashboard: **Providers → Antigravity → Connect**, and
+paste the `omniroute-cred-v1.…` blob into the **Step 2** field (it accepts either
+a callback URL or a credential blob). OmniRoute decodes it, runs the Cloud Code
+onboarding server-side, and persists the connection.
+
+> The blob contains a refresh token — treat it like a password. It is sent once
+> over your dashboard connection and stored encrypted at rest.
+
+Flags: `--no-browser` (print the URL instead of auto-opening), `--port <n>`
+(pin the loopback port), `--timeout <ms>`.
+
+### Option B — SSH local-forward tunnel
+
+If you have SSH access to the VPS, forward the dashboard port so that the
+loopback callback resolves back to the server through the tunnel:
+
+```bash
+# On your LOCAL machine:
+ssh -L 20128:localhost:20128 user@your-vps
+# then open http://localhost:20128 in your LOCAL browser and connect Antigravity
+# normally — the 127.0.0.1:20128/callback redirect now reaches the VPS via SSH.
+```
+
+Because you reach the dashboard as `localhost:20128`, the Google consent
+completes and the callback is delivered to the server through the same tunnel —
+no blob needed. Keep the tunnel open until the connection shows as active.
+
+> A fully headless alternative (no helper, no tunnel) is to configure your **own**
+> Google OAuth web credentials + a public base URL; see the provider's OAuth
+> environment variables. The two options above need no extra Google setup.
 
 ---
 
@@ -156,7 +217,6 @@ context, or `--remote <url> --api-key <key>`):
 | Goose | `omniroute setup-goose` | `~/.config/goose/config.yaml` (`GOOSE_PROVIDER=openai` + `OPENAI_HOST` **without** `/v1` + `GOOSE_MODEL`) + env recipe |
 | Qwen Code | `omniroute setup-qwen` | `~/.qwen/settings.json` — openai `modelProvider`, `baseUrl` **with** `/v1`, key via `envKey` (OMNIROUTE_API_KEY) |
 | Aider | `omniroute setup-aider` | `~/.aider.conf.yml` (`openai-api-base` **without** `/v1` + `model: openai/<id>`) + env recipe (`aider --message --yes`) |
-| Gemini CLI | `omniroute setup-gemini` | **native** Gemini API (not OpenAI-compatible) → `GOOGLE_GEMINI_BASE_URL` (root, SDK appends `/v1beta`) + `GEMINI_API_KEY` + `~/.gemini/settings.json` (`model`). ⚠ a cached Google login can override the base URL — run API-key-only |
 
 ```bash
 # OpenCode (openai-compatible provider, all catalog models, remote VPS)
@@ -276,12 +336,12 @@ omniroute contexts remove 192-168-0-15 --yes   # drop the local context (even if
 
 ## API endpoints (reference)
 
-| Method | Route | Auth | Scope |
-|--------|-------|------|-------|
-| POST | `/api/cli/connect` | management password | — (public, password-gated) |
-| GET  | `/api/cli/whoami` | access token | read |
-| GET  | `/api/cli/tokens` | access token | admin |
-| POST | `/api/cli/tokens` | access token | admin |
-| DELETE | `/api/cli/tokens/:id` | access token | admin |
+| Method | Route                 | Auth                | Scope                      |
+| ------ | --------------------- | ------------------- | -------------------------- |
+| POST   | `/api/cli/connect`    | management password | — (public, password-gated) |
+| GET    | `/api/cli/whoami`     | access token        | read                       |
+| GET    | `/api/cli/tokens`     | access token        | admin                      |
+| POST   | `/api/cli/tokens`     | access token        | admin                      |
+| DELETE | `/api/cli/tokens/:id` | access token        | admin                      |
 
-See [openapi.yaml](../reference/openapi.yaml) for full schemas.
+See [openapi.yaml](../openapi.yaml) for full schemas.

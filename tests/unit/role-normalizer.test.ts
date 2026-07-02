@@ -99,6 +99,35 @@ test("normalizeSystemRole inserts a user message when no user exists and drops e
   ]);
 });
 
+test("normalizeSystemRole treats ZenMux z-ai/glm models as GLM even with vendor prefix", () => {
+  const messages = [
+    { role: "system", content: "[Context compressed: earlier messages removed]" },
+    {
+      role: "assistant",
+      content: null,
+      tool_calls: [
+        {
+          id: "call_1",
+          type: "function",
+          function: { name: "read", arguments: "{}" },
+        },
+      ],
+    },
+    { role: "tool", tool_call_id: "call_1", content: "ok" },
+  ];
+
+  const result = normalizeSystemRole(messages, "zenmux", "z-ai/glm-5.2");
+
+  assert.deepEqual(result, [
+    {
+      role: "user",
+      content: "[System Instructions]\n[Context compressed: earlier messages removed]",
+    },
+    messages[1],
+    messages[2],
+  ]);
+});
+
 test("normalizeRoles composes model, developer and system normalization in order", () => {
   const messages = [
     { role: "model", content: "first answer" },

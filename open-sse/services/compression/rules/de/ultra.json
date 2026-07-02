@@ -1,0 +1,107 @@
+{
+  "language": "de",
+  "category": "ultra",
+  "rules": [
+    {
+      "name": "de_articles",
+      "pattern": "\\b(?:[Dd]er|[Dd]ie|[Dd]as|[Dd]en|[Dd]em|[Dd]es|[Ee]in|[Ee]ine|[Ee]inen|[Ee]inem|[Ee]iner|[Ee]ines)\\s+(?=[a-zäöüß])",
+      "flags": "g",
+      "replacement": "",
+      "context": "all",
+      "category": "terse",
+      "minIntensity": "full"
+    },
+    {
+      "name": "de_leader_phrases",
+      "pattern": "^(?:ich werde|ich kann|ich würde|lass mich|wir werden|wir können|lass uns)\\s+(?=[a-zäöüß])",
+      "replacement": "",
+      "context": "all",
+      "category": "terse",
+      "minIntensity": "full"
+    },
+    {
+      "name": "de_ultra_database_abbreviation",
+      "pattern": "\\bDatenbank\\b",
+      "replacement": "DB",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "de_ultra_config_abbreviation",
+      "pattern": "\\bKonfiguration\\b",
+      "replacement": "Konfig",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "de_ultra_function_abbreviation",
+      "pattern": "\\bFunktion\\b",
+      "replacement": "Fn",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "de_ultra_request_abbreviation",
+      "pattern": "\\b(?:Anfrage|Anforderung)\\b",
+      "replacement": "Req",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "de_ultra_response_abbreviation",
+      "pattern": "\\bAntwort\\b",
+      "replacement": "Res",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "de_ultra_implementation_abbreviation",
+      "pattern": "\\bImplementierung\\b",
+      "replacement": "Impl",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "de_ultra_authentication_abbreviation",
+      "pattern": "\\bAuthentifizierung\\b",
+      "replacement": "Auth",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "de_ultra_authorization_abbreviation",
+      "pattern": "\\bAutorisierung\\b",
+      "replacement": "Authz",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "de_ultra_application_abbreviation",
+      "pattern": "\\b(?:Anwendung|Applikation)\\b",
+      "replacement": "App",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "de_ultra_dependency_abbreviation",
+      "pattern": "\\b(?:Abhängigkeit|Abhängigkeiten)\\b",
+      "replacement": "Dep",
+      "replacementMap": {
+        "Abhängigkeit": "Dep",
+        "Abhängigkeiten": "Deps"
+      },
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    }
+  ]
+}

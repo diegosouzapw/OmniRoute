@@ -1,0 +1,137 @@
+name: Nightly Release-Green
+
+# Solution D — continuous, NON-BLOCKING drift signal for the active release branch.
+#
+# WHY: the full gate (ci.yml) only runs on the release PR (PR → main), so reds
+# accrue silently on release/** and explode — in layers — at release time. This
+# nightly reproduces the release-equivalent validation on the active release branch
+# HEAD and, when there are HARD failures, opens/updates a single tracking issue.
+#
+# It is NOT a required status check and never touches a contributor PR — it only
+# reports. Ratchet drift (eslint warnings / cognitive-complexity / file-size) is
+# expected mid-cycle and is reported but never raises the alarm on its own; only
+# real defects (typecheck / lint errors / unit / vitest / db-rules / public-creds /
+# package-artifact) flip the issue open.
+
+on:
+  schedule:
+    - cron: "23 5 * * *" # 05:23 UTC daily — off-peak, distinct from other nightlies
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Release branch to validate (default: highest release/vX.Y.Z)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: nightly-release-green
+  cancel-in-progress: true
+
+jobs:
+  release-green:
+    name: Validate active release branch
+    runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ci-nightly-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-nightly-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve active release branch
+        id: branch
+        env:
+          INPUT_BRANCH: ${{ github.event.inputs.branch }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_BRANCH:-}" ]; then
+            TARGET="$INPUT_BRANCH"
+          else
+            # highest release/vX.Y.Z by semver among remote branches
+            TARGET=$(git for-each-ref --format='%(refname:short)' 'refs/remotes/origin/release/v*' \
+              | sed 's#origin/##' \
+              | sort -t/ -k2 -V \
+              | tail -1)
+          fi
+          if [ -z "$TARGET" ]; then echo "No release/v* branch found"; exit 1; fi
+          # Strict format guard — reject anything that isn't release/vX.Y.Z (blocks
+          # ref/command injection via the workflow_dispatch input).
+          if ! printf '%s' "$TARGET" | grep -qE '^release/v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Refusing non-canonical branch name: $TARGET"; exit 1
+          fi
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+          echo "Active release branch: $TARGET"
+
+      - name: Checkout the release branch
+        env:
+          TARGET: ${{ steps.branch.outputs.target }}
+        run: |
+          set -euo pipefail
+          git checkout "$TARGET"
+          git log -1 --oneline
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+
+      - uses: ./.github/actions/npm-ci-retry
+
+      - name: Release-green validation (full)
+        id: validate
+        run: |
+          set +e
+          node scripts/quality/validate-release-green.mjs --json --with-build \
+            1> release-green.json 2> release-green.log
+          echo "exit=$?" >> "$GITHUB_OUTPUT"
+          echo "------- report -------"
+          cat release-green.log
+
+      - name: Open / update tracking issue on HARD failure
+        if: steps.validate.outputs.exit != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET: ${{ steps.branch.outputs.target }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          TITLE="🔴 Release branch not green: ${TARGET}"
+          {
+            echo "The nightly **release-green** validation found HARD failures on \`${TARGET}\`."
+            echo "These are real defects that would block the release PR — fix them in the"
+            echo "originating PR branch (via co-authorship), not by demanding it from contributors."
+            echo ""
+            echo "**Run:** ${RUN_URL}"
+            echo ""
+            echo '```'
+            sed -n '/──────── verdict ────────/,$p' release-green.log || tail -40 release-green.log
+            echo '```'
+            echo ""
+            echo "_Ratchet drift (eslint warnings / cognitive-complexity / file-size) listed above is expected mid-cycle and is rebaselined at release — it is NOT a contributor concern and did not, on its own, open this issue._"
+          } > issue-body.md
+
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title $TITLE" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file issue-body.md
+            echo "Updated existing issue #$EXISTING"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body-file issue-body.md
+          fi
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-green-report
+          path: |
+            release-green.json
+            release-green.log
+          if-no-files-found: ignore

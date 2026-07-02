@@ -26,7 +26,7 @@ test("scaffold: default export is v1 plugin shape { id, server: OmniRoutePlugin 
 
 test("resolveOmniRoutePluginOptions: defaults", () => {
   const r = resolveOmniRoutePluginOptions();
-  assert.equal(r.providerId, "omniroute");
+  assert.equal(r.providerId, "opencode-omniroute");
   assert.equal(r.displayName, "OmniRoute");
   assert.equal(r.modelCacheTtl, 300_000);
   assert.equal(r.baseURL, undefined);
@@ -34,8 +34,8 @@ test("resolveOmniRoutePluginOptions: defaults", () => {
 
 test("resolveOmniRoutePluginOptions: custom providerId derives displayName", () => {
   const r = resolveOmniRoutePluginOptions({ providerId: "omniroute-preprod" });
-  assert.equal(r.providerId, "omniroute-preprod");
-  assert.equal(r.displayName, "OmniRoute (omniroute-preprod)");
+  assert.equal(r.providerId, "opencode-omniroute-preprod");
+  assert.equal(r.displayName, "OmniRoute (opencode-omniroute-preprod)");
 });
 
 test("resolveOmniRoutePluginOptions: explicit displayName wins", () => {

@@ -205,6 +205,41 @@ test("GLM quota rows are ordered by session, weekly, then monthly", () => {
   );
 });
 
+test("hidden provider models are filtered from per-model quota rows", () => {
+  const quotas = providerLimitUtils.parseQuotaData("antigravity", {
+    quotas: {
+      "gpt-oss-120b-medium": { used: 2, total: 100, remainingPercentage: 98 },
+      "gemini-3.5-pro": { used: 10, total: 100, remainingPercentage: 90 },
+      credits: { remaining: 42 },
+    },
+  });
+  const hidden = providerLimitUtils.collectHiddenQuotaModelIds("antigravity", {
+    models: [{ id: "antigravity/gpt-oss-120b-medium", isHidden: true }],
+    modelCompatOverrides: [{ id: "gemini-3.5-flash", isDeleted: true }],
+  });
+  const visible = providerLimitUtils.filterHiddenModelQuotas("antigravity", quotas, hidden);
+
+  assert.deepEqual(
+    visible.map((quota) => quota.modelKey || quota.name),
+    ["gemini-3.5-pro", "credits"]
+  );
+});
+
+test("hidden quota filtering keeps non-model provider quota rows", () => {
+  const quotas = [
+    { name: "weekly", used: 2, total: 100 },
+    { name: "credits", isCredits: true, remaining: 10 },
+  ];
+  const hidden = providerLimitUtils.collectHiddenQuotaModelIds("antigravity", {
+    modelCompatOverrides: [{ id: "weekly", isHidden: true }],
+  });
+
+  assert.deepEqual(
+    providerLimitUtils.filterHiddenModelQuotas("antigravity", quotas, hidden),
+    quotas
+  );
+});
+
 test("dashboard i18n keys used by OrFallback helpers exist in en.json", () => {
   const enPath = path.resolve("src/i18n/messages/en.json");
   const messages = JSON.parse(readFileSync(enPath, "utf8"));

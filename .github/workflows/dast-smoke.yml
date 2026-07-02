@@ -42,7 +42,7 @@ jobs:
       - run: pip install schemathesis
       - name: Schemathesis smoke (high-risk endpoints, blocking)
         run: |
-          schemathesis run docs/reference/openapi.yaml --url http://localhost:20128 \
+          schemathesis run docs/openapi.yaml --url http://localhost:20128 \
             --include-path-regex '^/v1/(chat/completions|models)$|^/api/(auth|keys)' \
             --max-examples 8 --workers 4 --checks all --max-response-time 30 \
             --request-timeout 20 --suppress-health-check all --no-color

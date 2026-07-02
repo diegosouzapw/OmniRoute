@@ -9,11 +9,11 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 
 const ROOT = process.cwd();
 const API_ROOT = path.join(ROOT, "src", "app", "api");
-const OPENAPI_PATH = path.join(ROOT, "docs", "reference", "openapi.yaml");
+const OPENAPI_PATH = path.join(ROOT, "docs", "openapi.yaml");
 // Floor recorded on 2026-05-26 for release/v3.8.4: 137/365 routes documented.
 // The original ≥99% target tracks the OpenAPI audit follow-up (#2701);
 // until the backlog (services, free-proxies, relay-tokens, key-groups,

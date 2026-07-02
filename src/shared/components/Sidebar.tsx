@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, type CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/shared/utils/cn";
@@ -24,6 +24,7 @@ import {
   normalizeHiddenSidebarItems,
   applySectionOrder,
   applyItemOrder,
+  getSidebarIconAccent,
   type SidebarSectionId,
   type SidebarItemDefinition,
   type SidebarItemGroup,
@@ -34,6 +35,11 @@ const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
 const DEFAULT_EXPANDED: SidebarSectionId = "omni-proxy";
 const EXPANDED_SECTIONS_KEY = "sidebar-expanded-sections";
 const PINNED_SECTIONS_KEY = "sidebar-pinned-sections";
+
+type SidebarGlyphStyle = CSSProperties & {
+  "--sidebar-icon-accent": string;
+  color: string;
+};
 
 type SidebarProps = {
   onClose?: () => void;
@@ -67,6 +73,13 @@ export default function Sidebar({
   onToggleCollapse,
   isMacElectron = false,
 }: SidebarProps) {
+  const getIconStyle = (itemId: string): SidebarGlyphStyle => {
+    const accent = getSidebarIconAccent(itemId);
+    return {
+      "--sidebar-icon-accent": accent,
+      color: accent,
+    };
+  };
   const pathname = usePathname();
   const t = useTranslations("sidebar");
   const tc = useTranslations("common");
@@ -377,7 +390,9 @@ export default function Sidebar({
     );
     const content = (
       <>
-        <span className={iconClassName}>{item.icon}</span>
+        <span className={iconClassName} style={getIconStyle(item.id)}>
+          {item.icon}
+        </span>
         {!collapsed && (
           <div className="flex min-w-0 flex-col">
             <span className="truncate text-sm font-medium">{item.label}</span>

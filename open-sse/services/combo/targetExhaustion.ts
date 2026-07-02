@@ -24,6 +24,16 @@ import type { ComboLogger, ResolvedComboTarget } from "./types.ts";
 // unreachable, proxy/gateway error), so remaining same-connection targets are skipped.
 const CONNECTION_LEVEL_ERROR_STATUSES = [408, 500, 502, 503, 504, 524];
 
+// #5085: an "empty content" 502 is the synthetic status chatCore assigns to a provider that
+// answered HTTP 200 with no usable completion (isEmptyContentResponse). The connection is
+// HEALTHY — it just returned an empty body — so this must NOT be classified as a connection
+// failure (which would exhaust the whole provider/connection and skip every remaining
+// same-provider leg via #1731v2). It is a model-level transient failure: advance to the next
+// leg, leaving the rest of that provider's legs eligible.
+function isEmptyContentFailure(status: number, errorText: string): boolean {
+  return status === 502 && /empty content/i.test(errorText);
+}
+
 export type ComboExhaustionSets = {
   exhaustedProviders: Set<string>;
   exhaustedConnections: Set<string>;
@@ -106,7 +116,11 @@ function markConnectionLevelExhaustion(
     !provider ||
     provider === "unknown" ||
     !CONNECTION_LEVEL_ERROR_STATUSES.includes(result.status) ||
-    isProviderCircuitOpenResult(result, errorText)
+    isProviderCircuitOpenResult(result, errorText) ||
+    // #5085: empty-content 502 is a healthy connection returning no body — model-level, not
+    // connection-level. Don't exhaust the provider; let the remaining legs (incl. same-provider)
+    // be tried in-request.
+    isEmptyContentFailure(result.status, errorText)
   ) {
     return;
   }

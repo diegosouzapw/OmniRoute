@@ -140,9 +140,7 @@ function resolveMinTime(override: number | undefined | null): number {
 
 // Resolve a maxConcurrent override. 0 or missing means "effectively infinite".
 function resolveMaxConcurrent(override: number | undefined | null): number {
-  return typeof override === "number" && override > 0
-    ? override
-    : EFFECTIVELY_INFINITE_CONCURRENCY;
+  return typeof override === "number" && override > 0 ? override : EFFECTIVELY_INFINITE_CONCURRENCY;
 }
 
 function buildLimiterDefaults() {
@@ -159,14 +157,9 @@ function buildLimiterDefaults() {
 }
 
 function updateAllLimiterSettings() {
+  const defaults = buildLimiterDefaults();
   for (const limiter of limiters.values()) {
-    limiter.updateSettings({
-      maxConcurrent: currentRequestQueueSettings.concurrentRequests,
-      minTime: currentRequestQueueSettings.minTimeBetweenRequestsMs,
-      reservoir: currentRequestQueueSettings.requestsPerMinute,
-      reservoirRefreshAmount: currentRequestQueueSettings.requestsPerMinute,
-      reservoirRefreshInterval: 60 * 1000,
-    });
+    limiter.updateSettings(defaults);
   }
 }
 
@@ -234,7 +227,9 @@ function watchdogTick() {
         limiters.delete(key);
         lastDispatchAt.delete(key);
         limiterLastUsed.delete(key);
-        logRateLimit(`🧹 [RATE-LIMIT] Evicting idle limiter: ${key} (inactive for ${Math.round((now - lastUsed) / 1000)}s)`);
+        logRateLimit(
+          `🧹 [RATE-LIMIT] Evicting idle limiter: ${key} (inactive for ${Math.round((now - lastUsed) / 1000)}s)`
+        );
         trackAsyncOperation(limiter.disconnect());
       }
     }
@@ -535,7 +530,12 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
 
   // Proactive sliding-window fallback for header-less providers with a declared cap
   // (Fase 8.2). No-op unless PROVIDER_DEFAULT_RATE_LIMITS has an entry for `provider`.
-  await awaitProviderDefaultSlot(provider, connectionId, signal, currentRequestQueueSettings.maxWaitMs);
+  await awaitProviderDefaultSlot(
+    provider,
+    connectionId,
+    signal,
+    currentRequestQueueSettings.maxWaitMs
+  );
 
   const limiter = getLimiter(provider, connectionId, model);
   const maxWaitMs = currentRequestQueueSettings.maxWaitMs;

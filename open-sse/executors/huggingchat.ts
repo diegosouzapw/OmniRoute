@@ -31,7 +31,7 @@ const CONVERSATION_URL = `${HUGGINGFACE_BASE}/chat/conversation`;
 const DEFAULT_COOKIE_NAME = "hf-chat";
 
 const USER_AGENT =
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
 const DEFAULT_MODEL = "meta-llama/Llama-3.3-70B-Instruct";
 
@@ -58,9 +58,10 @@ function extractTextFromContent(content: unknown): string {
     .trim();
 }
 
-function buildConversationPrompt(
-  messages: Array<Record<string, unknown>>
-): { inputs: string; systemPrompt: string | null } {
+function buildConversationPrompt(messages: Array<Record<string, unknown>>): {
+  inputs: string;
+  systemPrompt: string | null;
+} {
   const systemParts: string[] = [];
   const conversationParts: Array<{ role: string; content: string }> = [];
 
@@ -108,7 +109,12 @@ function estimateTokens(text: string): number {
   return Math.max(1, Math.ceil((text || "").length / 4));
 }
 
-function parseJsonlLine(line: string): { token?: string; done?: boolean; error?: string; text?: string } {
+function parseJsonlLine(line: string): {
+  token?: string;
+  done?: boolean;
+  error?: string;
+  text?: string;
+} {
   try {
     const event = JSON.parse(line);
 
@@ -340,7 +346,9 @@ export class HuggingChatExecutor extends BaseExecutor {
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return {
         response: new Response(
-          JSON.stringify({ error: { message: "Missing or empty messages array", type: "invalid_request" } }),
+          JSON.stringify({
+            error: { message: "Missing or empty messages array", type: "invalid_request" },
+          }),
           { status: 400, headers: { "Content-Type": "application/json" } }
         ),
         url: CONVERSATION_URL,
@@ -375,7 +383,9 @@ export class HuggingChatExecutor extends BaseExecutor {
     if (!inputs.trim()) {
       return {
         response: new Response(
-          JSON.stringify({ error: { message: "Empty prompt after processing messages", type: "invalid_request" } }),
+          JSON.stringify({
+            error: { message: "Empty prompt after processing messages", type: "invalid_request" },
+          }),
           { status: 400, headers: { "Content-Type": "application/json" } }
         ),
         url: CONVERSATION_URL,
@@ -434,7 +444,12 @@ export class HuggingChatExecutor extends BaseExecutor {
       if (!conversationId) {
         return {
           response: new Response(
-            JSON.stringify({ error: { message: "HuggingChat did not return a conversationId", type: "upstream_error" } }),
+            JSON.stringify({
+              error: {
+                message: "HuggingChat did not return a conversationId",
+                type: "upstream_error",
+              },
+            }),
             { status: 502, headers: { "Content-Type": "application/json" } }
           ),
           url: CONVERSATION_URL,
@@ -449,7 +464,9 @@ export class HuggingChatExecutor extends BaseExecutor {
       log?.error?.("HUGGINGCHAT", `Conversation creation failed: ${message}`);
       return {
         response: new Response(
-          JSON.stringify({ error: { message: `HuggingChat connection failed: ${message}`, type: "upstream_error" } }),
+          JSON.stringify({
+            error: { message: `HuggingChat connection failed: ${message}`, type: "upstream_error" },
+          }),
           { status: 502, headers: { "Content-Type": "application/json" } }
         ),
         url: CONVERSATION_URL,
@@ -484,7 +501,9 @@ export class HuggingChatExecutor extends BaseExecutor {
       log?.error?.("HUGGINGCHAT", `Message send failed: ${message}`);
       return {
         response: new Response(
-          JSON.stringify({ error: { message: `HuggingChat connection failed: ${message}`, type: "upstream_error" } }),
+          JSON.stringify({
+            error: { message: `HuggingChat connection failed: ${message}`, type: "upstream_error" },
+          }),
           { status: 502, headers: { "Content-Type": "application/json" } }
         ),
         url: messageUrl,
@@ -517,7 +536,9 @@ export class HuggingChatExecutor extends BaseExecutor {
     if (!upstreamResponse.body) {
       return {
         response: new Response(
-          JSON.stringify({ error: { message: "HuggingChat returned empty response body", type: "upstream_error" } }),
+          JSON.stringify({
+            error: { message: "HuggingChat returned empty response body", type: "upstream_error" },
+          }),
           { status: 502, headers: { "Content-Type": "application/json" } }
         ),
         url: messageUrl,
@@ -532,7 +553,13 @@ export class HuggingChatExecutor extends BaseExecutor {
 
     if (stream) {
       const encoder = new TextEncoder();
-      const jsonlStream = streamJsonlToOpenAi(upstreamResponse.body, resolvedModel, id, created, signal);
+      const jsonlStream = streamJsonlToOpenAi(
+        upstreamResponse.body,
+        resolvedModel,
+        id,
+        created,
+        signal
+      );
 
       const sseStream = new ReadableStream({
         async start(controller) {
@@ -573,11 +600,13 @@ export class HuggingChatExecutor extends BaseExecutor {
           object: "chat.completion",
           created,
           model: resolvedModel,
-          choices: [{
-            index: 0,
-            message: { role: "assistant", content: fullText },
-            finish_reason: "stop",
-          }],
+          choices: [
+            {
+              index: 0,
+              message: { role: "assistant", content: fullText },
+              finish_reason: "stop",
+            },
+          ],
           usage: {
             prompt_tokens: estimateTokens(inputs),
             completion_tokens: completionTokens,

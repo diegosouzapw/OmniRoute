@@ -2,13 +2,24 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { platform } from "node:os";
+import { platform, totalmem } from "node:os";
 import { t } from "../i18n.mjs";
 import { writePidFile, cleanupPidFile, waitForServer } from "../utils/pid.mjs";
 import { ServerSupervisor, detectMitmCrash } from "../runtime/processSupervisor.mjs";
 import { isTermux } from "../../../scripts/build/postinstallSupport.mjs";
+import {
+  resolveMaxOldSpaceMb,
+  calibrateHeapFallbackMb,
+  buildServerNodeOptions,
+  buildNodeHeapArgs,
+} from "../../../scripts/build/runtime-env.mjs";
+import { resolveTlsOptions } from "../../../scripts/dev/tls-options.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// URL scheme for the "OmniRoute is running" banner — flipped to https when
+// opt-in TLS (#5242) is active. Process-scoped: one `serve` run = one scheme.
+let urlScheme = "http";
 const ROOT = join(__dirname, "..", "..", "..");
 // The standalone bundle ships in `dist/` (since the build-output-isolation
 // refactor). Fall back to the legacy `app/` location so an upgrade over a
@@ -35,6 +46,14 @@ export function registerServe(program) {
     .option("--max-restarts <n>", t("serve.max_restarts"), parseInt, 2)
     .option("--tray", t("serve.tray") || "Show system tray icon (desktop only)")
     .option("--no-tray", t("serve.no_tray") || "Disable system tray icon")
+    .option(
+      "--tls-cert <path>",
+      t("serve.tls_cert") || "Path to a TLS certificate (PEM) to serve HTTPS (also OMNIROUTE_TLS_CERT)"
+    )
+    .option(
+      "--tls-key <path>",
+      t("serve.tls_key") || "Path to the TLS private key (PEM) to serve HTTPS (also OMNIROUTE_TLS_KEY)"
+    )
     .action(async (opts) => {
       await runServe(opts);
     });
@@ -126,9 +145,18 @@ export async function runServe(opts = {}) {
 
   console.log(`  \x1b[2m⏳ Starting server...\x1b[0m\n`);
 
-  const rawMemory = parseInt(process.env.OMNIROUTE_MEMORY_MB || "512", 10);
-  const memoryLimit =
-    Number.isFinite(rawMemory) && rawMemory >= 64 && rawMemory <= 16384 ? rawMemory : 512;
+  // #5172/#5160/#5152: default the V8 heap to ~35% of physical RAM (clamped
+  // [512, 4096]) instead of a fixed 512MB, which OOM-crashed boxes with plenty
+  // of RAM under load. An explicit OMNIROUTE_MEMORY_MB still wins.
+  const memoryLimit = resolveMaxOldSpaceMb(
+    process.env.OMNIROUTE_MEMORY_MB,
+    calibrateHeapFallbackMb(totalmem())
+  );
+
+  // #5242: opt-in native HTTPS. CLI flags take precedence over env; the child
+  // server (server-ws.mjs) reads these and terminates TLS on the same listener.
+  const tlsCert = opts.tlsCert ?? process.env.OMNIROUTE_TLS_CERT;
+  const tlsKey = opts.tlsKey ?? process.env.OMNIROUTE_TLS_KEY;
 
   const env = {
     ...process.env,
@@ -136,10 +164,20 @@ export async function runServe(opts = {}) {
     PORT: String(dashboardPort),
     DASHBOARD_PORT: String(dashboardPort),
     API_PORT: String(apiPort),
-    HOSTNAME: "0.0.0.0",
+    HOSTNAME: process.env.HOSTNAME || "0.0.0.0",
     NODE_ENV: "production",
-    NODE_OPTIONS: `--max-old-space-size=${memoryLimit}`,
+    // #5238: preserve a user-set NODE_OPTIONS (incl. their own
+    // `--max-old-space-size=…`) instead of clobbering it with the calibrated
+    // default — mirror the Electron/standalone launchers.
+    NODE_OPTIONS: buildServerNodeOptions(process.env, memoryLimit),
+    ...(tlsCert ? { OMNIROUTE_TLS_CERT: tlsCert } : {}),
+    ...(tlsKey ? { OMNIROUTE_TLS_KEY: tlsKey } : {}),
   };
+
+  // Validate the TLS pair up front so the operator sees a clear warning in the
+  // CLI (the child re-validates authoritatively). Drives the banner scheme;
+  // when null we fall through to identical plain-HTTP behavior as before.
+  urlScheme = resolveTlsOptions(env) ? "https" : "http";
 
   const isDaemon = opts.daemon === true;
   const useTray = opts.tray === true;
@@ -166,7 +204,9 @@ export async function runServe(opts = {}) {
 }
 
 function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
-  const server = spawn("node", [`--max-old-space-size=${memoryLimit}`, serverJs], {
+  // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
+  // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
+  const server = spawn("node", [...buildNodeHeapArgs(process.env, memoryLimit), serverJs], {
     cwd: APP_DIR,
     env,
     stdio: "ignore",
@@ -175,12 +215,14 @@ function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
   writePidFile("server", server.pid);
   server.unref();
   console.log(`\x1b[32m✔ OmniRoute started in background (PID: ${server.pid})\x1b[0m`);
-  console.log(`  \x1b[1mDashboard:\x1b[0m  http://localhost:${dashboardPort}`);
-  console.log(`  \x1b[1mAPI Base:\x1b[0m   http://localhost:${apiPort}/v1`);
+  console.log(`  \x1b[1mDashboard:\x1b[0m  ${urlScheme}://localhost:${dashboardPort}`);
+  console.log(`  \x1b[1mAPI Base:\x1b[0m   ${urlScheme}://localhost:${apiPort}/v1`);
 }
 
 function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, noOpen) {
-  const server = spawn("node", [`--max-old-space-size=${memoryLimit}`, serverJs], {
+  // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
+  // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
+  const server = spawn("node", [...buildNodeHeapArgs(process.env, memoryLimit), serverJs], {
     cwd: APP_DIR,
     env,
     stdio: "pipe",
@@ -304,8 +346,8 @@ async function maybeStartTray(port, apiPort, supervisor) {
     const { initTray, isTraySupported } = await import("../tray/index.mjs");
     if (!isTraySupported()) return;
     const { default: open } = await import("open").catch(() => ({ default: null }));
-    const dashboardUrl = `http://localhost:${port}`;
-    const tray = initTray({
+    const dashboardUrl = `${urlScheme}://localhost:${port}`;
+    const tray = await initTray({
       port,
       onQuit: () => {
         killTrayIfActive();
@@ -321,14 +363,18 @@ async function maybeStartTray(port, apiPort, supervisor) {
       const { killTray } = await import("../tray/index.mjs");
       _killTray = killTray;
     }
-  } catch {
-    // tray is optional — do not fail the server
+  } catch (err) {
+    // tray is optional — do not fail the server, but surface why it failed so
+    // "--tray shows nothing" is diagnosable instead of silent (#4605).
+    process.stderr.write(
+      `[omniroute][tray] failed to start: ${err?.message ?? String(err)}\n`
+    );
   }
 }
 
 async function onReady(dashboardPort, apiPort, noOpen) {
-  const dashboardUrl = `http://localhost:${dashboardPort}`;
-  const apiUrl = `http://localhost:${apiPort}`;
+  const dashboardUrl = `${urlScheme}://localhost:${dashboardPort}`;
+  const apiUrl = `${urlScheme}://localhost:${apiPort}`;
 
   console.log(`
   \x1b[32m✔ OmniRoute is running!\x1b[0m

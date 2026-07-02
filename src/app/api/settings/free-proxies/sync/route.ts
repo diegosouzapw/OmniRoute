@@ -3,6 +3,7 @@ import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/e
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { freeProxySyncSchema } from "@/shared/validation/freeProxySchemas";
 import { getEnabledProviders, getProvider } from "@/lib/freeProxyProviders";
+import { recordFreeProxySync } from "@/lib/localDb";
 import type { FreeProxySourceId } from "@/lib/freeProxyProviders/types";
 
 export async function POST(request: Request) {
@@ -45,7 +46,12 @@ export async function POST(request: Request) {
       results[provider.id] = await provider.sync();
     }
 
-    return Response.json({ success: true, results });
+    // #4878: persist the sync timestamp so the UI's "last sync" advances even
+    // when a sync returns zero new/updated proxies (otherwise it stayed frozen
+    // at MAX(last_validated)).
+    const lastSyncAt = await recordFreeProxySync();
+
+    return Response.json({ success: true, results, lastSyncAt });
   } catch (error) {
     return createErrorResponseFromUnknown(error, "Failed to sync free proxies");
   }

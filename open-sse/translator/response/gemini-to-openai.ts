@@ -8,6 +8,7 @@ import {
   parseTextualToolCallCandidate,
   containsTextualToolCallMarker,
 } from "../../utils/textualToolCall.ts";
+import { normalizeOpenAICompatibleFinishReasonString } from "../../utils/finishReason.ts";
 
 type GeminiToOpenAIState = {
   functionIndex: number;
@@ -296,6 +297,9 @@ export function geminiToOpenAIResponse(chunk, state) {
   const response = chunk.response || chunk;
   if (!response) return null;
 
+  const modelVersion =
+    typeof response.modelVersion === "string" ? response.modelVersion.toLowerCase() : "";
+  const parseTextualReasoningTags = !chunk.response && !modelVersion.startsWith("antigravity/");
   const results = [];
   const candidate = response.candidates?.[0];
 
@@ -437,16 +441,18 @@ export function geminiToOpenAIResponse(chunk, state) {
         }
 
         if (hasFunctionCall) {
-          // Flush any still-open textual reasoning wrapper as reasoning_content BEFORE
-          // the tool call. A signed native functionCall arriving while a `<thinking>`
-          // (etc.) tag opened in an earlier chunk is still buffered must not silently
-          // drop that buffered reasoning — flushOpenTextualReasoning emits it and clears
-          // the active-tag/content buffers. (LEDGER-4 / #3821-review)
-          flushOpenTextualReasoning(state, results);
-          // Also drop any partial open-tag fragment buffered at a chunk boundary
-          // (flushOpenTextualReasoning early-returns when only this is set), matching the
-          // pre-fix branch which cleared all three buffers. (#3821-review convergence)
-          state.textualReasoningTagBuffer = undefined;
+          if (parseTextualReasoningTags) {
+            // Flush any still-open textual reasoning wrapper as reasoning_content BEFORE
+            // the tool call. A signed native functionCall arriving while a `<thinking>`
+            // (etc.) tag opened in an earlier chunk is still buffered must not silently
+            // drop that buffered reasoning — flushOpenTextualReasoning emits it and clears
+            // the active-tag/content buffers. (LEDGER-4 / #3821-review)
+            flushOpenTextualReasoning(state, results);
+            // Also drop any partial open-tag fragment buffered at a chunk boundary
+            // (flushOpenTextualReasoning early-returns when only this is set), matching the
+            // pre-fix branch which cleared all three buffers. (#3821-review convergence)
+            state.textualReasoningTagBuffer = undefined;
+          }
           emitFunctionCallPart(part, state, results);
         }
         continue;
@@ -458,7 +464,9 @@ export function geminiToOpenAIResponse(chunk, state) {
       // back to a structured OpenAI tool call so clients/tools do not see it as
       // assistant prose.
       if (part.text !== undefined && part.text !== "") {
-        const afterReasoning = consumeTextualReasoningTags(part.text, state, results);
+        const afterReasoning = parseTextualReasoningTags
+          ? consumeTextualReasoningTags(part.text, state, results)
+          : part.text;
         if (!afterReasoning) continue;
 
         let accumulated = (state.textualToolCallBuffer || "") + afterReasoning;
@@ -676,7 +684,9 @@ export function geminiToOpenAIResponse(chunk, state) {
 
   // Finish reason - include usage in final chunk
   if (candidate.finishReason) {
-    flushOpenTextualReasoning(state, results);
+    if (parseTextualReasoningTags) {
+      flushOpenTextualReasoning(state, results);
+    }
 
     if (state.textualToolCallBuffer) {
       const remainingText = state.textualToolCallBuffer;
@@ -711,20 +721,12 @@ export function geminiToOpenAIResponse(chunk, state) {
       }
     }
 
-    let finishReason = candidate.finishReason.toLowerCase();
+    // normalizeOpenAICompatibleFinishReasonString lowercases, maps max_tokens→length,
+    // and folds Gemini safety reasons (safety/recitation/blocklist/...) → content_filter
+    // so downstream clients can distinguish a blocked completion from a normal stop.
+    let finishReason = normalizeOpenAICompatibleFinishReasonString(candidate.finishReason);
     if (finishReason === "stop" && state.toolCalls.size > 0) {
       finishReason = "tool_calls";
-    } else if (finishReason === "max_tokens") {
-      finishReason = "length";
-    }
-    // Content blocked by Gemini safety filters — pass through as "content_filter"
-    // so downstream clients can distinguish from normal completion.
-    if (
-      finishReason === "safety" ||
-      finishReason === "recitation" ||
-      finishReason === "blocklist"
-    ) {
-      finishReason = "content_filter";
     }
 
     const finalChunk: Record<string, unknown> = {
@@ -755,5 +757,4 @@ export function geminiToOpenAIResponse(chunk, state) {
 
 // Register
 register(FORMATS.GEMINI, FORMATS.OPENAI, null, geminiToOpenAIResponse);
-register(FORMATS.GEMINI_CLI, FORMATS.OPENAI, null, geminiToOpenAIResponse);
 register(FORMATS.ANTIGRAVITY, FORMATS.OPENAI, null, geminiToOpenAIResponse);

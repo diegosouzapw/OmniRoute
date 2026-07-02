@@ -121,6 +121,19 @@ test("Claude -> Gemini clamps maxOutputTokens to the model cap", () => {
   assert.equal(result.generationConfig.maxOutputTokens, 65536);
 });
 
+test("Claude -> Gemini preserves requested maxOutputTokens when the model cap is unknown", () => {
+  const result = claudeToGeminiRequest(
+    "gemini-2.5-pro",
+    {
+      messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
+      max_tokens: 32000,
+    },
+    false
+  );
+
+  assert.equal(result.generationConfig.maxOutputTokens, 32000);
+});
+
 test("Claude -> Gemini converts text and base64 images to Gemini parts", () => {
   const result = claudeToGeminiRequest(
     "gemini-2.5-flash",

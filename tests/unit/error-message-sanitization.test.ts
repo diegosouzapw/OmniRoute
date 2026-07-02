@@ -18,6 +18,9 @@ const mappingsRoute = await import("../../src/app/api/model-combo-mappings/route
 const mappingsIdRoute = await import("../../src/app/api/model-combo-mappings/[id]/route.ts");
 const syncTokens = await import("../../src/lib/sync/tokens.ts");
 
+const repoRoot = path.resolve(import.meta.dirname, "../..");
+const read = (relPath: string) => fs.readFileSync(path.join(repoRoot, relPath), "utf8");
+
 function makeRequest(url: string, options: { method?: string; body?: unknown } = {}) {
   const { method = "GET", body } = options;
   return new Request(url, {
@@ -240,6 +243,13 @@ test("buildErrorBody never exposes stack traces in its message", async () => {
   assert.ok(!body.error.message.includes("at /opt"));
 });
 
+test("types barrel keeps the model cooldown payload export only", async () => {
+  const src = await read("src/types/index.ts");
+  assert.match(src, /ModelCooldownErrorPayload/);
+  assert.doesNotMatch(src, /ProviderConnection/);
+  assert.doesNotMatch(src, /ProviderNode/);
+});
+
 // ── sanitizeUpstreamDetails ──────────────────────────────────────────────────
 
 test("sanitizeUpstreamDetails — basic pass-through for safe fields", async () => {
@@ -340,6 +350,21 @@ test("createErrorResult — exposes error code/type on the result object", async
   const result = createErrorResult(504, "upstream timeout", null, "UPSTREAM_TIMEOUT", "timeout");
   assert.equal(result.errorCode, "UPSTREAM_TIMEOUT");
   assert.equal(result.errorType, "timeout");
+});
+
+test("buildModelCooldownBody returns the public cooldown error payload shape", async () => {
+  const { buildModelCooldownBody } = await import("../../open-sse/utils/error.ts");
+  const body = buildModelCooldownBody({ model: "gpt-4o", retryAfterSec: 1.2 });
+
+  assert.deepEqual(body, {
+    error: {
+      message: "All credentials for model gpt-4o are cooling down",
+      type: "rate_limit_error",
+      code: "model_cooldown",
+      model: "gpt-4o",
+      reset_seconds: 2,
+    },
+  });
 });
 
 test("regression: upstream_details never contains stack trace text", async () => {

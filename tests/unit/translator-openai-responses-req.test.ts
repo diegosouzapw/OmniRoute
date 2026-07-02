@@ -229,7 +229,11 @@ test("Responses -> Chat strips safety_identifier (LobeHub #2770)", () => {
     null
   ) as Record<string, unknown>;
 
-  assert.equal(result.safety_identifier, undefined, "safety_identifier must be stripped before forwarding to Chat Completions");
+  assert.equal(
+    result.safety_identifier,
+    undefined,
+    "safety_identifier must be stripped before forwarding to Chat Completions"
+  );
   assert.ok(Array.isArray(result.messages), "translation must still produce messages");
 });
 
@@ -247,7 +251,11 @@ test("Responses -> Chat strips client_metadata (Mistral 422 fix)", () => {
     null
   ) as Record<string, unknown>;
 
-  assert.equal(result.client_metadata, undefined, "client_metadata must be stripped before forwarding to Chat Completions");
+  assert.equal(
+    result.client_metadata,
+    undefined,
+    "client_metadata must be stripped before forwarding to Chat Completions"
+  );
   assert.ok(Array.isArray(result.messages), "translation must still produce messages");
   assert.equal((result.messages as unknown[]).length, 1, "user message must be preserved");
 });
@@ -623,7 +631,10 @@ test("Chat -> Responses prefers max_completion_tokens over max_tokens when both 
   assert.equal((result as any).max_completion_tokens, undefined);
 });
 
-test("Responses -> Chat drops `reasoning` and does not synthesize reasoning_effort without Copilot marker", () => {
+test("Responses -> Chat drops `reasoning` and promotes effort to reasoning_effort even without Copilot marker", () => {
+  // Updated per upstream PR decolua/9router#1817 (ryanngit): the OpenAI-native
+  // `reasoning_effort` hint is always preserved across the Responses -> Chat
+  // hop; only the Copilot-specific `summary` -> Claude marker stays gated.
   const result = openaiResponsesToOpenAIRequest(
     "claude-opus-4-7",
     {
@@ -635,7 +646,7 @@ test("Responses -> Chat drops `reasoning` and does not synthesize reasoning_effo
   ) as Record<string, unknown>;
 
   assert.equal(result.reasoning, undefined);
-  assert.equal(result.reasoning_effort, undefined);
+  assert.equal(result.reasoning_effort, "high");
 });
 
 test("Responses -> Chat promotes reasoning.effort to reasoning_effort when _copilotClient is set", () => {
@@ -887,9 +898,6 @@ test("Responses -> Chat: image_generation is stripped from output tools array (i
 // --- Codex CLI: local_shell built-in should be mapped to a function tool ---
 
 test("Responses -> Chat: local_shell does not throw", () => {
-  // Recent Codex CLI releases inject local_shell as a Responses API built-in.
-  // Non-OpenAI upstreams do not support this tool type directly, so OmniRoute
-  // must translate it instead of rejecting the request with 400.
   assert.doesNotThrow(() =>
     openaiResponsesToOpenAIRequest(
       "gpt-4o",
@@ -938,7 +946,7 @@ test("Responses -> Chat: local_shell tool_choice maps to shell function choice",
   assert.deepEqual(result.tool_choice, { type: "function", function: { name: "shell" } });
 });
 
-test("Chat -> Responses: shell function maps back to local_shell", () => {
+test("Chat -> Responses: shell function stays caller-side and does not leak local_shell", () => {
   const result = openaiToOpenAIResponsesRequest(
     "gpt-4o",
     {
@@ -959,17 +967,16 @@ test("Chat -> Responses: shell function maps back to local_shell", () => {
     null
   ) as Record<string, unknown>;
 
-  assert.deepEqual(result.tools, [{ type: "local_shell" }]);
-  assert.deepEqual(result.tool_choice, { type: "local_shell" });
+  assert.equal((result.tools as any[])[0].type, "function");
+  assert.equal((result.tools as any[])[0].name, "shell");
+  assert.equal((result.tools as any[])[0].description, "Run a shell command");
+  assert.deepEqual((result.tools as any[])[0].parameters, { type: "object" });
+  assert.deepEqual(result.tool_choice, { type: "function", name: "shell" });
 });
 
 // --- Issue #2893: orphaned tool results from empty/missing call_id ---
 
 test("Responses -> Chat: function_call with empty call_id is dropped together with its output (issue #2893)", () => {
-  // Codex can emit a function_call without a usable call_id; its
-  // function_call_output then becomes an orphan tool message that the upstream
-  // rejects ("role 'tool' must be a response to a preceding message with
-  // 'tool_calls'"). Both must be dropped.
   const result = openaiResponsesToOpenAIRequest(
     "gpt-4o",
     {
@@ -984,13 +991,11 @@ test("Responses -> Chat: function_call with empty call_id is dropped together wi
   ) as Record<string, unknown>;
 
   const messages = result.messages as any[];
-  // No orphan tool message.
   assert.equal(
     messages.some((m) => m.role === "tool"),
     false,
     "tool result with empty tool_call_id must be dropped"
   );
-  // No dangling assistant tool_call with an empty id.
   const danglingEmptyId = messages.some(
     (m) =>
       m.role === "assistant" &&
@@ -1035,12 +1040,57 @@ test("Responses -> Chat: a valid function_call/output pair is preserved (issue #
   ) as Record<string, unknown>;
 
   const messages = result.messages as any[];
-  const assistant = messages.find(
-    (m) => m.role === "assistant" && Array.isArray(m.tool_calls)
-  );
+  const assistant = messages.find((m) => m.role === "assistant" && Array.isArray(m.tool_calls));
   assert.ok(assistant, "assistant message with tool_calls must be present");
   assert.equal(assistant.tool_calls[0].id, "c1");
   const toolMsg = messages.find((m) => m.role === "tool");
   assert.ok(toolMsg, "matching tool result must be preserved");
   assert.equal(toolMsg.tool_call_id, "c1");
+});
+
+// --- AI SDK image content part (#1330) ---
+test("Chat -> Responses converts AI SDK image content part to input_image", () => {
+  // AI SDK emits image parts as { type: "image", image: "data:...;base64,..." }
+  // rather than the OpenAI { type: "image_url", image_url: { url } } shape. The
+  // Responses translator must forward them as input_image (#1330).
+  const imageUrl = "data:image/png;base64,iVBORw0KGgo=";
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.2",
+    {
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Describe this image" },
+            { type: "image", image: imageUrl, detail: "high" },
+          ],
+        },
+      ],
+    },
+    true,
+    {}
+  ) as Record<string, unknown>;
+
+  const input = result.input as any[];
+  assert.deepEqual(input[0].content, [
+    { type: "input_text", text: "Describe this image" },
+    { type: "input_image", image_url: imageUrl, detail: "high" },
+  ]);
+});
+
+test("Chat -> Responses defaults AI SDK image detail to auto", () => {
+  const imageUrl = "data:image/jpeg;base64,/9j/4AAQ=";
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.2",
+    { messages: [{ role: "user", content: [{ type: "image", image: imageUrl }] }] },
+    true,
+    {}
+  ) as Record<string, unknown>;
+
+  const input = result.input as any[];
+  assert.deepEqual(input[0].content[0], {
+    type: "input_image",
+    image_url: imageUrl,
+    detail: "auto",
+  });
 });

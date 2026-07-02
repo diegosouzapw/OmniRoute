@@ -79,6 +79,7 @@ type CallLogSummaryRow = {
   request_summary: string | null;
   provider_node_prefix?: string | null;
   resolved_account?: string | null;
+  correlation_id?: string | null;
 };
 
 const RESOLVED_ACCOUNT_SQL = "COALESCE(NULLIF(pc.name, ''), NULLIF(pc.email, ''), cl.account)";
@@ -424,28 +425,40 @@ function listReferencedArtifacts() {
   );
 }
 
+// #5217: SQLite caps a statement at SQLITE_MAX_VARIABLE_NUMBER bound params
+// (~999 on many builds). Callers like trimCallLogsToMaxRows() passed up to 5000
+// ids in one `IN (...)` → "too many SQL variables" aborted trimming. Chunk well
+// under the limit so each DELETE/SELECT stays valid.
+const DELETE_ID_CHUNK_SIZE = 500;
+
 function deleteCallLogRowsByIds(ids: string[]): DeleteResult {
   if (ids.length === 0) {
     return { deletedRows: 0, deletedArtifacts: 0 };
   }
 
   const db = getDbInstance();
-  const placeholders = ids.map(() => "?").join(", ");
-  const rows = db
-    .prepare(`SELECT artifact_relpath FROM call_logs WHERE id IN (${placeholders})`)
-    .all(...ids) as Array<{ artifact_relpath: string | null }>;
-
-  const result = db.prepare(`DELETE FROM call_logs WHERE id IN (${placeholders})`).run(...ids);
+  let deletedRows = 0;
   let deletedArtifacts = 0;
-  for (const row of rows) {
-    if (deleteCallArtifact(row.artifact_relpath)) {
-      deletedArtifacts++;
+
+  for (let i = 0; i < ids.length; i += DELETE_ID_CHUNK_SIZE) {
+    const chunk = ids.slice(i, i + DELETE_ID_CHUNK_SIZE);
+    const placeholders = chunk.map(() => "?").join(", ");
+    const rows = db
+      .prepare(`SELECT artifact_relpath FROM call_logs WHERE id IN (${placeholders})`)
+      .all(...chunk) as Array<{ artifact_relpath: string | null }>;
+
+    const result = db.prepare(`DELETE FROM call_logs WHERE id IN (${placeholders})`).run(...chunk);
+    deletedRows += result.changes;
+    for (const row of rows) {
+      if (deleteCallArtifact(row.artifact_relpath)) {
+        deletedArtifacts++;
+      }
     }
   }
   cleanupEmptyCallLogDirs();
 
   return {
-    deletedRows: result.changes,
+    deletedRows,
     deletedArtifacts,
   };
 }
@@ -578,6 +591,7 @@ function mapSummaryRow(row: CallLogSummaryRow) {
     hasRequestBody: toNumber(row.has_request_body) === 1,
     hasResponseBody: toNumber(row.has_response_body) === 1,
     hasPipelineDetails: toNumber(row.has_pipeline_details) === 1,
+    correlationId: row.correlation_id || null,
   };
 }
 
@@ -659,6 +673,7 @@ export async function saveCallLog(entry: any) {
       comboStepId: toStringOrNull(entry.comboStepId),
       comboExecutionKey:
         toStringOrNull(entry.comboExecutionKey) || toStringOrNull(entry.comboStepId),
+      correlationId: entry.correlationId || null,
     };
 
     const requestSummary = noLogEnabled
@@ -705,7 +720,8 @@ export async function saveCallLog(entry: any) {
         cache_source, request_type, source_format, target_format, api_key_id, api_key_name,
         combo_name, combo_step_id, combo_execution_key, error_summary, detail_state,
         artifact_relpath, artifact_size_bytes, artifact_sha256,
-        has_request_body, has_response_body, has_pipeline_details, request_summary
+        has_request_body, has_response_body, has_pipeline_details, request_summary,
+        correlation_id
       )
       VALUES (
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
@@ -714,7 +730,8 @@ export async function saveCallLog(entry: any) {
         @cacheSource, @requestType, @sourceFormat, @targetFormat, @apiKeyId, @apiKeyName,
         @comboName, @comboStepId, @comboExecutionKey, @errorSummary, @detailState,
         @artifactRelPath, @artifactSizeBytes, @artifactSha256,
-        @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary
+        @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary,
+        @correlationId
       )
     `
     ).run({
@@ -831,6 +848,10 @@ export async function getCallLogs(filter: any = {}) {
     conditions.push("(cl.api_key_name LIKE @apiKeyQ OR cl.api_key_id LIKE @apiKeyQ)");
     params.apiKeyQ = `%${filter.apiKey}%`;
   }
+  if (filter.correlationId) {
+    conditions.push("cl.correlation_id = @correlationId");
+    params.correlationId = filter.correlationId;
+  }
   if (filter.combo) {
     conditions.push("cl.combo_name IS NOT NULL");
   }
@@ -851,6 +872,7 @@ export async function getCallLogs(filter: any = {}) {
       cl.combo_name LIKE @searchQ OR CAST(cl.status AS TEXT) LIKE @searchQ
       OR cl.combo_step_id LIKE @searchQ OR cl.combo_execution_key LIKE @searchQ
       OR cl.error_summary LIKE @searchQ
+      OR cl.correlation_id LIKE @searchQ
     )`);
     params.searchQ = `%${filter.search}%`;
   }

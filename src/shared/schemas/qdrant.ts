@@ -37,8 +37,3 @@ export const QdrantHealthResultSchema = z.object({
   latencyMs: z.number(),
   error: z.string().optional(),
 });
-
-export type QdrantSettings = z.infer<typeof QdrantSettingsSchema>;
-export type QdrantSettingsUpdate = z.infer<typeof QdrantSettingsUpdateSchema>;
-export type QdrantSearch = z.infer<typeof QdrantSearchSchema>;
-export type QdrantHealthResult = z.infer<typeof QdrantHealthResultSchema>;

@@ -38,6 +38,7 @@ export type PendingRequestMetadata = {
   errorCode?: string | null;
   stage?: string | null;
   stageUpdatedAt?: number | null;
+  correlationId?: string | null;
 };
 export type PendingRequestDetail = {
   id: string;
@@ -58,6 +59,7 @@ export type PendingRequestDetail = {
   durationMs?: number | null;
   stage?: string | null;
   stageUpdatedAt?: number | null;
+  correlationId?: string | null;
   streamChunks?: {
     provider?: string[];
     openai?: string[];
@@ -193,6 +195,9 @@ function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingReq
   if (metadata.errorCode !== undefined) {
     normalized.errorCode = toStringOrNull(metadata.errorCode) || null;
   }
+  if (metadata.correlationId !== undefined) {
+    normalized.correlationId = toStringOrNull(metadata.correlationId) || null;
+  }
 
   return normalized;
 }
@@ -215,25 +220,17 @@ const pendingRequests: {
  */
 const pendingById = new Map<string, PendingRequestDetail>();
 
-/**
- * Orphaned-pending-request reaper.
- *
- * Pending details are normally removed when a request finalizes (clean completion,
- * tracked error, client cancel). But a request that never finalizes cleanly — an
- * upstream/fetch error thrown before the finalize call, a client disconnect, or a
- * process-level timeout — leaves its detail in `pendingById` (and `pendingRequests.details`)
- * forever, each retaining truncated request/response payload previews. Under real proxy
- * traffic a steady fraction of requests terminate abnormally, so this grows monotonically
- * (previously only an admin reset via clearPendingRequests() could free it).
- *
- * The reaper drops entries whose `startedAt` is older than MAX_PENDING_REQUEST_AGE_MS — far
- * longer than any genuine request — so only truly-orphaned entries are evicted; a live
- * request always finalizes long before that. MAX_PENDING_DETAILS is a hard backstop.
- */
-const MAX_PENDING_REQUEST_AGE_MS = 15 * 60 * 1000;
+const DEFAULT_MAX_PENDING_REQUEST_AGE_MS = 60 * 60 * 1000;
 const MAX_PENDING_DETAILS = 5000;
 const PENDING_SWEEP_INTERVAL_MS = 5 * 60 * 1000;
 let _pendingSweepTimer: ReturnType<typeof setInterval> | null = null;
+
+export function getMaxPendingRequestAgeMs(
+  rawValue: string | undefined = process.env.MAX_PENDING_REQUEST_AGE_MS
+): number {
+  const parsed = Number.parseInt(rawValue ?? "", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_PENDING_REQUEST_AGE_MS;
+}
 
 function ensurePendingSweepTimer(): void {
   if (_pendingSweepTimer || typeof setInterval !== "function") return;
@@ -256,7 +253,7 @@ function ensurePendingSweepTimer(): void {
  */
 export function sweepStalePendingRequests(
   now: number = Date.now(),
-  maxAgeMs: number = MAX_PENDING_REQUEST_AGE_MS
+  maxAgeMs: number = getMaxPendingRequestAgeMs()
 ): number {
   let removed = 0;
 
@@ -347,12 +344,16 @@ export function trackPendingRequest(
       if (!pendingRequests.details[connectionId][modelKey]) {
         pendingRequests.details[connectionId][modelKey] = [];
       }
+      const now = Date.now();
       const newDetail = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        // crypto RNG (not Math.random) to satisfy CodeQL js/insecure-randomness —
+        // this pending-request id flows into attempt logging; it's a correlation
+        // id, not a security secret.
+        id: `${now}-${globalThis.crypto.randomUUID().slice(0, 6)}`,
         model,
         provider,
         connectionId,
-        startedAt: Date.now(),
+        startedAt: now,
         ...normalizedMetadata,
       };
       pendingRequests.details[connectionId][modelKey].push(newDetail);
@@ -641,41 +642,94 @@ export async function saveRequestUsage(entry: any) {
     const timestamp = entry.timestamp || new Date().toISOString();
     const serviceTier = normalizeServiceTier(entry.serviceTier ?? entry.service_tier);
 
-    db.prepare(
+    const tokensInput = getLoggedInputTokens(entry.tokens);
+    const tokensOutput = getLoggedOutputTokens(entry.tokens);
+
+    // Dedup guard: skip INSERT when an identical row already exists in the same
+    // second. This prevents double-counting when onRequestSuccess fires more
+    // than once (e.g. combo routing calling the callback from both the
+    // streaming and non-streaming paths for the same underlying request).
+    // Keyed on the natural identity of a request: timestamp + provider + model
+    // + connectionId + apiKeyId + token counts. If only the endpoint is missing
+    // on the existing row, fill it in rather than inserting a duplicate.
+    let inserted = false;
+
+    db.transaction(() => {
+      const existing = db
+        .prepare(
+          `SELECT id, endpoint FROM usage_history
+           WHERE timestamp = ?
+             AND COALESCE(provider, '')     = COALESCE(?, '')
+             AND COALESCE(model, '')        = COALESCE(?, '')
+             AND COALESCE(connection_id, '') = COALESCE(?, '')
+             AND COALESCE(api_key_id, '')   = COALESCE(?, '')
+             AND tokens_input  = ?
+             AND tokens_output = ?
+           ORDER BY id DESC LIMIT 1`
+        )
+        .get(
+          timestamp,
+          entry.provider || null,
+          entry.model || null,
+          entry.connectionId || null,
+          entry.apiKeyId || null,
+          tokensInput,
+          tokensOutput
+        ) as { id: number; endpoint: string | null } | undefined;
+
+      if (existing) {
+        // Back-fill endpoint if the original row missed it.
+        if (!existing.endpoint && entry.endpoint) {
+          db.prepare(`UPDATE usage_history SET endpoint = ? WHERE id = ?`).run(
+            entry.endpoint,
+            existing.id
+          );
+        }
+        return; // duplicate — do not insert
+      }
+
+      db.prepare(
+        `
+        INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name,
+          tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation, tokens_reasoning,
+          service_tier, status, success, latency_ms, ttft_ms, error_code, combo_strategy, endpoint, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
-      INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name,
-        tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation, tokens_reasoning,
-        service_tier, status, success, latency_ms, ttft_ms, error_code, combo_strategy, timestamp)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `
-    ).run(
-      entry.provider || null,
-      entry.model || null,
-      entry.connectionId || null,
-      entry.apiKeyId || null,
-      entry.apiKeyName || null,
-      getLoggedInputTokens(entry.tokens),
-      getLoggedOutputTokens(entry.tokens),
-      getPromptCacheReadTokens(entry.tokens),
-      getPromptCacheCreationTokens(entry.tokens),
-      getReasoningTokens(entry.tokens),
-      serviceTier,
-      entry.status || null,
-      entry.success === false ? 0 : 1,
-      Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
-      Number.isFinite(Number(entry.timeToFirstTokenMs))
-        ? Number(entry.timeToFirstTokenMs)
-        : Number.isFinite(Number(entry.latencyMs))
-          ? Number(entry.latencyMs)
-          : 0,
-      entry.errorCode || null,
-      entry.comboStrategy || entry.combo_strategy || null,
-      timestamp
-    );
+      ).run(
+        entry.provider || null,
+        entry.model || null,
+        entry.connectionId || null,
+        entry.apiKeyId || null,
+        entry.apiKeyName || null,
+        tokensInput,
+        tokensOutput,
+        getPromptCacheReadTokens(entry.tokens),
+        getPromptCacheCreationTokens(entry.tokens),
+        getReasoningTokens(entry.tokens),
+        serviceTier,
+        entry.status || null,
+        entry.success === false ? 0 : 1,
+        Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
+        Number.isFinite(Number(entry.timeToFirstTokenMs))
+          ? Number(entry.timeToFirstTokenMs)
+          : Number.isFinite(Number(entry.latencyMs))
+            ? Number(entry.latencyMs)
+            : 0,
+        entry.errorCode || null,
+        entry.comboStrategy || entry.combo_strategy || null,
+        entry.endpoint || null,
+        timestamp
+      );
+
+      inserted = true;
+    })();
 
     // Decoupled via the event bus so usageHistory never imports providerLimits
     // (which would pull the executors/translator graph into the type-check surface).
-    emitUsageRecorded(entry.provider, entry.connectionId);
+    // Only emit when a row was actually inserted — not on dedup no-ops.
+    if (inserted) {
+      emitUsageRecorded(entry.provider, entry.connectionId);
+    }
   } catch (error) {
     console.error("Failed to save usage stats:", error);
   }

@@ -10,13 +10,28 @@ export const ROUTING_STRATEGY_VALUES = [
   "cost-optimized",
   "reset-aware",
   "reset-window",
+  "headroom",
   "strict-random",
   "auto",
   "lkgp",
   "context-optimized",
+  "fusion",
 ] as const;
 
 export type RoutingStrategyValue = (typeof ROUTING_STRATEGY_VALUES)[number];
+
+/**
+ * Internal-only routing strategy values. These are used by system-generated
+ * combos (e.g. the auto-minted quota-share `qtSd/` combos) and are NEVER exposed
+ * in the UI or user-facing API — deliberately kept OUT of ROUTING_STRATEGY_VALUES
+ * and ROUTING_STRATEGIES so they never appear as a selectable option.
+ */
+export const INTERNAL_ROUTING_STRATEGY_VALUES = ["quota-share"] as const;
+
+export type InternalRoutingStrategyValue = (typeof INTERNAL_ROUTING_STRATEGY_VALUES)[number];
+
+/** Any routing strategy value, including internal ones. Used for combo dispatch. */
+export type AnyRoutingStrategyValue = RoutingStrategyValue | InternalRoutingStrategyValue;
 
 export const AUTO_ROUTING_STRATEGY_VALUES = [
   "rules",
@@ -45,12 +60,16 @@ export const ACCOUNT_FALLBACK_STRATEGY_VALUES = [
 
 export type AccountFallbackStrategyValue = (typeof ACCOUNT_FALLBACK_STRATEGY_VALUES)[number];
 
-export function normalizeRoutingStrategy(value: unknown): RoutingStrategyValue {
+export function normalizeRoutingStrategy(value: unknown): AnyRoutingStrategyValue {
   if (typeof value !== "string") return "priority";
   const normalized = value.trim().toLowerCase();
   if (normalized === "usage") return "least-used";
   if (normalized === "context") return "context-optimized";
   if (normalized === "weekly-reset" || normalized === "reset-window-order") return "reset-window";
+  // Internal strategies (e.g. quota-share) are preserved verbatim, never stripped
+  // to "priority", so system-minted combos resolve to their dedicated dispatch.
+  if ((INTERNAL_ROUTING_STRATEGY_VALUES as readonly string[]).includes(normalized))
+    return normalized as InternalRoutingStrategyValue;
   return (ROUTING_STRATEGY_VALUES as readonly string[]).includes(normalized)
     ? (normalized as RoutingStrategyValue)
     : "priority";
@@ -143,6 +162,13 @@ export const ROUTING_STRATEGIES: RoutingStrategyOption[] = [
     icon: "schedule",
   },
   {
+    value: "headroom",
+    labelKey: "headroom",
+    combosDescKey: "headroomDesc",
+    settingsDescKey: "headroomDesc",
+    icon: "battery_charging_full",
+  },
+  {
     value: "strict-random",
     labelKey: "strictRandom",
     combosDescKey: "strictRandomDesc",
@@ -169,6 +195,13 @@ export const ROUTING_STRATEGIES: RoutingStrategyOption[] = [
     combosDescKey: "contextOptimizedDesc",
     settingsDescKey: "contextOptDesc",
     icon: "text_snippet",
+  },
+  {
+    value: "fusion",
+    labelKey: "fusion",
+    combosDescKey: "fusionDesc",
+    settingsDescKey: "fusionDesc",
+    icon: "hub",
   },
 ];
 

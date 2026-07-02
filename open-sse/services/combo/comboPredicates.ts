@@ -151,6 +151,23 @@ export function resolveDelayMs(value: unknown, fallback: number): number {
   return numericValue;
 }
 
+/**
+ * Resolve the effective semaphore `maxConcurrency` for a round-robin combo
+ * target from its connection's per-account concurrency cap.
+ *
+ * `cap` is the connection's `maxConcurrent` (provider_connections.max_concurrent).
+ * A positive cap is honored (floored to a whole slot count); null / undefined /
+ * <= 0 / non-finite all mean "no per-connection limit" and fall back to the
+ * combo-level concurrency. This keeps subscription accounts with a tiny
+ * concurrency ceiling (e.g. GLM/MiniMax ≈ 1) from being flooded.
+ */
+export function effectiveMaxConcurrency(cap: number | null | undefined, fallback: number): number {
+  if (typeof cap === "number" && Number.isFinite(cap) && cap > 0) {
+    return Math.floor(cap);
+  }
+  return fallback;
+}
+
 export function comboModelNotFoundResponse(message: string) {
   return errorResponse(404, message);
 }

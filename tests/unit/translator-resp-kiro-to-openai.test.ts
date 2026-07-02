@@ -26,13 +26,14 @@ test("Kiro -> OpenAI: subsequent assistantResponseEvent omits role", () => {
   assert.equal(result.choices[0].delta.content, "lo");
 });
 
-test("Kiro -> OpenAI: reasoningContentEvent is wrapped as thinking tags", () => {
+test("Kiro -> OpenAI: reasoningContentEvent emits native reasoning_content", () => {
   const result = convertKiroToOpenAI(
     'event:reasoningContentEvent\ndata:{"content":"Need to inspect first"}\n\n',
     {}
   );
 
-  assert.equal(result.choices[0].delta.content, "<thinking>Need to inspect first</thinking>");
+  assert.equal(result.choices[0].delta.reasoning_content, "Need to inspect first");
+  assert.equal(result.choices[0].delta.content, undefined);
 });
 
 test("Kiro -> OpenAI: toolUseEvent becomes OpenAI tool_calls", () => {

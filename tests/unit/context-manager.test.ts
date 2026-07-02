@@ -122,6 +122,38 @@ test("compressContext: Layer 2 — compresses thinking in old messages", () => {
   }
 });
 
+test("compressContext: Layer 2 preserves prompt-format thinking tags in string content", () => {
+  const body = {
+    model: "test",
+    messages: [
+      { role: "user", content: "q1" },
+      {
+        role: "assistant",
+        content: "<thinking>visible prompt protocol</thinking><content>answer1</content>",
+      },
+      { role: "user", content: "q2" },
+      {
+        role: "assistant",
+        content: [
+          { type: "thinking", thinking: "lots of structured thinking here ".repeat(500) },
+          { type: "text", text: "answer2" },
+        ],
+      },
+      { role: "user", content: "q3" },
+      { role: "assistant", content: "answer3" },
+    ],
+  };
+  const result = compressContext(body, { maxTokens: 2000, reserveTokens: 500 });
+  const firstAssistant = (result.body as any).messages.find(
+    (m: any) => m.role === "assistant" && typeof m.content === "string"
+  );
+
+  assert.equal(
+    firstAssistant.content,
+    "<thinking>visible prompt protocol</thinking><content>answer1</content>"
+  );
+});
+
 test("compressContext: Layer 3 — drops old messages to fit", () => {
   const messages = [
     { role: "system", content: "You are helpful" },

@@ -9,9 +9,8 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-mem-skills-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const { getSkillsProviderForFormat, injectMemoryAndSkills } = await import(
-  "../../open-sse/handlers/chatCore/memorySkillsInjection.ts"
-);
+const { getSkillsProviderForFormat, injectMemoryAndSkills } =
+  await import("../../open-sse/handlers/chatCore/memorySkillsInjection.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 const core = await import("../../src/lib/db/core.ts");
 
@@ -33,7 +32,7 @@ test("getSkillsProviderForFormat maps GEMINI -> google", () => {
 test("getSkillsProviderForFormat maps OPENAI and any unknown format -> openai (default)", () => {
   assert.equal(getSkillsProviderForFormat(FORMATS.OPENAI), "openai");
   // any other / unknown format falls through to the default branch
-  assert.equal(getSkillsProviderForFormat("gemini-cli"), "openai");
+  assert.equal(getSkillsProviderForFormat("removed-google-cli"), "openai");
   assert.equal(getSkillsProviderForFormat("codex"), "openai");
   assert.equal(getSkillsProviderForFormat("totally-unknown"), "openai");
   assert.equal(getSkillsProviderForFormat(""), "openai");

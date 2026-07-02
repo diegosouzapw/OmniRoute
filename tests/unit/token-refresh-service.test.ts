@@ -438,6 +438,37 @@ test("refreshCodexToken recognizes refresh_token_reused responses", async () => 
   );
 });
 
+// Port from decolua/9router#1821 (sacwooky): a 401 from OpenAI's OAuth token
+// endpoint means the refresh credential itself was rejected (e.g. rotated away
+// or a payload whose error code we do not yet recognize). Retrying with the
+// same refresh token will never succeed — surface re-auth, do not loop.
+test("refreshCodexToken treats any 401 from the token endpoint as unrecoverable", async () => {
+  const log = createLog();
+
+  await withMockedFetch(
+    async () =>
+      textResponse(
+        JSON.stringify({
+          error: {
+            // A payload variant whose code/type are NOT in the existing
+            // unrecoverable set — only the 401 status proves the token is dead.
+            message: "Could not validate your token. Please try signing in again.",
+            type: "invalid_request_error",
+          },
+        }),
+        401
+      ),
+    async () => {
+      const result = await refreshCodexToken("codex-refresh", log);
+      assert.equal(
+        result?.error,
+        "unrecoverable_refresh_error",
+        "401 from OpenAI token endpoint must surface re-auth instead of returning null (which triggers retry)"
+      );
+    }
+  );
+});
+
 test("refreshKiroToken uses the AWS OIDC flow when client credentials are present", async () => {
   const log = createLog();
   const calls: any[] = [];

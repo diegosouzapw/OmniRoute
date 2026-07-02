@@ -18,6 +18,7 @@ import {
   DEFAULT_RESILIENCE_SETTINGS,
   resolveResilienceSettings,
 } from "../../src/lib/resilience/settings";
+import { resolveModelLockoutSettings } from "../../src/lib/resilience/modelLockoutSettings";
 import {
   getAllCircuitBreakerStatuses,
   getCircuitBreaker,
@@ -30,13 +31,14 @@ import {
 import { resolveProviderId } from "../../src/shared/constants/providers";
 import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
 import { getCodexModelScope } from "../config/codexQuotaScopes.ts";
+import { getQuotaScopedModelForProvider } from "./antigravityQuotaFamily.ts";
 import { isRpdExhausted, isRpmExhausted } from "./geminiRateLimitTracker.ts";
 
 export type ProviderProfile = {
   baseCooldownMs: number;
   useUpstreamRetryHints: boolean;
-  /** Issue #2100 follow-up. Stored override; undefined → per-provider default. */
   useUpstream429BreakerHints?: boolean;
+  maxCooldownMs: number;
   maxBackoffSteps: number;
   failureThreshold: number;
   resetTimeoutMs: number;
@@ -157,6 +159,12 @@ export const CREDITS_EXHAUSTED_SIGNALS = [
   "out of credits",
   "payment required",
   "free tier of the model has been exhausted",
+  // #5239: providers (e.g. DeepSeek/GLM-style) return "Insufficient account balance"
+  // on a depleted key. 402 is already terminalized by status, but catch non-402
+  // out-of-credit bodies here too.
+  "insufficient balance",
+  "insufficient_balance",
+  "insufficient account balance",
 ];
 
 // T11: Signals that indicate OAuth token is invalid/expired (not permanent deactivation)
@@ -251,6 +259,20 @@ const MALFORMED_REQUEST_PATTERNS = [
   /tool_call.*name.*(?:blank|empty|missing)/i,
 ];
 
+// Rate-limit text on a 400 — some providers (e.g. MiMoCode) signal throttling with a
+// non-standard 400 status whose body carries rate-limit semantics instead of a 429
+// (#4976). When detected, the request is fallback-worthy at connection-cooldown scope
+// (NOT a whole-provider breaker) so combo routing can fail over to another free target.
+// Bounded, non-overlapping patterns only (ReDoS-safe — no nested quantifiers).
+const RATE_LIMIT_TEXT_PATTERNS = [
+  /high.?frequency/i,
+  /non-compliant/i,
+  /too many requests/i,
+  /rate.?limit/i,
+  /频繁/, // "frequent" (zh) — high-frequency request throttling
+  /频率/, // "frequency" (zh) — request-frequency throttling
+];
+
 // Parameter validation errors — model-specific constraints (different models = different limits)
 const PARAM_VALIDATION_PATTERNS = [
   /max_tokens.*illegal/i,
@@ -309,9 +331,8 @@ function buildProviderProfile(
   return {
     baseCooldownMs: connectionCooldown.baseCooldownMs,
     useUpstreamRetryHints: connectionCooldown.useUpstreamRetryHints,
-    // Issue #2100 follow-up: propagate stored override (boolean | undefined)
-    // so the runtime resolver picks user setting first, then per-provider default.
     useUpstream429BreakerHints: connectionCooldown.useUpstream429BreakerHints,
+    maxCooldownMs: resolveModelLockoutSettings(settings).maxCooldownMs,
     maxBackoffSteps: connectionCooldown.maxBackoffSteps,
     failureThreshold: providerBreaker.failureThreshold,
     resetTimeoutMs: providerBreaker.resetTimeoutMs,
@@ -376,7 +397,10 @@ function getCanonicalLockProvider(provider: string): string {
 
 function getModelLockKey(provider: string, connectionId: string, model: string) {
   const canonicalProvider = getCanonicalLockProvider(provider);
-  const lockModel = canonicalProvider === "codex" ? getCodexModelScope(model) : model;
+  const lockModel =
+    canonicalProvider === "codex"
+      ? getCodexModelScope(model)
+      : getQuotaScopedModelForProvider(canonicalProvider, model) || model;
   return `${canonicalProvider}:${connectionId}:${lockModel}`;
 }
 
@@ -1436,13 +1460,11 @@ export function checkFallbackError(
     // "Usage Limit Reached" for the 5-hour subscription quota. The
     // pattern-based classifier now flags these as QUOTA_EXHAUSTED, but
     // without a dedicated branch the request would still fall through to
-    // the generic 429 retry path (~5s base cooldown). Honor any
-    // upstream retry hint (Retry-After header or ISO timestamp in the
-    // body) when present, otherwise apply a 1h cooldown so all Pro
-    // accounts on the same subscription tier stop cycling through tight
-    // retries until the window genuinely resets. Generic quota-reset text
-    // still follows the provider profile's upstream-hint policy; this
-    // branch is only for known Claude subscription quota messages. (We
+    // the generic 429 retry path (~5s base cooldown). Honor upstream
+    // Retry-After / reset hints only when the profile enables them;
+    // otherwise apply a local 1h cooldown so all Pro accounts on the same
+    // subscription tier stop cycling through tight retries without letting
+    // upstream-provided windows bypass the operator setting. (We
     // deliberately do not use COOLDOWN_MS.paymentRequired here — that
     // constant is 2 minutes, which is shorter than the recovery time of a
     // subscription quota.)
@@ -1452,13 +1474,9 @@ export function checkFallbackError(
       !isDailyQuotaExhausted(errorStr) &&
       isSubscriptionQuotaText(errorStr.toLowerCase())
     ) {
-      // For a subscription quota error an upstream reset hint is the most
-      // accurate wait. Header hints follow the profile policy via
-      // getUpstreamRetryHintMs(); precise body timestamps remain safe for
-      // this dedicated branch because it only handles known subscription
-      // quota messages. When no hint is available, keep the dedicated 1h
-      // cooldown instead of falling through to the generic short 429 backoff.
-      const hintMs = getUpstreamRetryHintMs() ?? parseRetryFromErrorText(errorStr) ?? null;
+      // getUpstreamRetryHintMs() gates both headers and body reset text on
+      // profile.useUpstreamRetryHints.
+      const hintMs = getUpstreamRetryHintMs();
       const SUBSCRIPTION_QUOTA_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
       return {
         shouldFallback: true,
@@ -1474,14 +1492,7 @@ export function checkFallbackError(
       quotaResetHintMs &&
       classifyErrorText(errorStr) === RateLimitReason.QUOTA_EXHAUSTED
     ) {
-      return {
-        shouldFallback: true,
-        cooldownMs: quotaResetHintMs,
-        baseCooldownMs: quotaResetHintMs,
-        newBackoffLevel: 0,
-        reason: RateLimitReason.QUOTA_EXHAUSTED,
-        usedUpstreamRetryHint: true,
-      };
+      return buildRetryableFallback(RateLimitReason.QUOTA_EXHAUSTED);
     }
 
     // #2929: A route-restriction 403 (e.g. Fireworks Fire Pass keys returning
@@ -1593,6 +1604,16 @@ export function checkFallbackError(
         cooldownMs: 0,
         reason: RateLimitReason.MODEL_CAPACITY,
       };
+    }
+
+    // Some providers (e.g. MiMoCode) signal throttling with a non-standard 400 whose
+    // body carries rate-limit semantics ("Detected high-frequency non-compliant
+    // requests from you.") instead of a 429. Detected here (AFTER malformed/overflow
+    // detection above, so a genuinely malformed 400 still wins and keeps its #2101
+    // zero-cooldown MODEL_CAPACITY classification), it is fallback-worthy at
+    // connection-cooldown scope so combo can fail over to another target (#4976).
+    if (RATE_LIMIT_TEXT_PATTERNS.some((p) => p.test(errorStr))) {
+      return buildRetryableFallback(RateLimitReason.RATE_LIMIT_EXCEEDED);
     }
 
     // Generic 400 is not account-fallback-worthy. Combo routing may still try a

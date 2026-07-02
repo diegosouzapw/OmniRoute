@@ -1,0 +1,86 @@
+{
+  "language": "ja",
+  "category": "ultra",
+  "rules": [
+    {
+      "name": "ja_ultra_database_abbreviation",
+      "pattern": "データベース",
+      "replacement": "DB",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "ja_ultra_config_abbreviation",
+      "pattern": "(?:コンフィギュレーション|設定)",
+      "replacement": "config",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "ja_ultra_function_abbreviation",
+      "pattern": "関数",
+      "replacement": "fn",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "ja_ultra_request_abbreviation",
+      "pattern": "リクエスト",
+      "replacement": "req",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "ja_ultra_response_abbreviation",
+      "pattern": "レスポンス",
+      "replacement": "res",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "ja_ultra_implementation_abbreviation",
+      "pattern": "実装",
+      "replacement": "impl",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "ja_ultra_authentication_abbreviation",
+      "pattern": "認証",
+      "replacement": "auth",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "ja_ultra_authorization_abbreviation",
+      "pattern": "認可",
+      "replacement": "authz",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "ja_ultra_application_abbreviation",
+      "pattern": "アプリケーション",
+      "replacement": "app",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "ja_ultra_dependency_abbreviation",
+      "pattern": "依存関係",
+      "replacement": "dep",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    }
+  ]
+}

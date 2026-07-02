@@ -614,8 +614,32 @@ function startNextServer() {
 
   const nodeExecutable = resolveNodeExecutable(serverEnv);
 
+  // #5172/#5160/#5152: the Electron-spawned server inherited the runtime's low
+  // default V8 heap (~512MB) and OOM-crashed on RAM-rich boxes under load
+  // (65 providers / 2600 models → "Ineffective mark-compacts near heap limit").
+  // Default the heap to ~35% of physical RAM (clamped [512, 4096]); an explicit
+  // OMNIROUTE_MEMORY_MB or a pre-set --max-old-space-size still wins. Mirrors
+  // scripts/build/runtime-env.mjs (CJS can't import the ESM helper).
+  const serverNodeOptions = (() => {
+    const existing = serverEnv.NODE_OPTIONS || "";
+    if (existing.includes("--max-old-space-size")) return existing;
+    const explicit = parseInt(serverEnv.OMNIROUTE_MEMORY_MB, 10);
+    let heapMb;
+    if (Number.isFinite(explicit) && explicit >= 64 && explicit <= 16384) {
+      heapMb = explicit;
+    } else {
+      const totalMb = require("os").totalmem() / (1024 * 1024);
+      heapMb =
+        Number.isFinite(totalMb) && totalMb > 0
+          ? Math.min(4096, Math.max(512, Math.floor(totalMb * 0.35)))
+          : 512;
+    }
+    return `${existing} --max-old-space-size=${heapMb}`.trim();
+  })();
+
   console.log("[Electron] Starting Next.js server on port", serverPort);
   console.log("[Electron] Using Node executable:", nodeExecutable);
+  console.log("[Electron] Server NODE_OPTIONS:", serverNodeOptions);
   sendToRenderer("server-status", { status: "starting", port: serverPort });
 
   // Fix #10: Use pipe instead of inherit for logging & readiness detection
@@ -630,6 +654,7 @@ function startNextServer() {
       NODE_ENV: "production",
       ELECTRON_RUN_AS_NODE: "1",
       NODE_PATH: resolveServerNodePath(serverEnv),
+      NODE_OPTIONS: serverNodeOptions,
     },
     stdio: "pipe",
     windowsHide: true,

@@ -113,14 +113,14 @@ PII_REDACTION_ENABLED=true
 
 ### 🌐 Network Security
 
-| Feature                  | Description                                                      |
-| ------------------------ | ---------------------------------------------------------------- |
-| **CORS**                 | Configurable origin control (`CORS_ORIGIN` env var, default `*`) |
-| **IP Filtering**         | Allowlist/blocklist IP ranges in dashboard                       |
-| **Rate Limiting**        | Per-provider rate limits with automatic backoff                  |
-| **Anti-Thundering Herd** | Mutex + per-connection locking prevents cascading 502s           |
-| **TLS Fingerprint**      | Browser-like TLS fingerprint spoofing to reduce bot detection    |
-| **CLI Fingerprint**      | Per-provider header/body ordering to match native CLI signatures |
+| Feature                  | Description                                                                    |
+| ------------------------ | ------------------------------------------------------------------------------ |
+| **CORS**                 | Explicit cross-origin allowlist (`CORS_ALLOWED_ORIGINS`; legacy `CORS_ORIGIN`) |
+| **IP Filtering**         | Allowlist/blocklist IP ranges in dashboard                                     |
+| **Rate Limiting**        | Per-provider rate limits with automatic backoff                                |
+| **Anti-Thundering Herd** | Mutex + per-connection locking prevents cascading 502s                         |
+| **TLS Fingerprint**      | Browser-like TLS fingerprint spoofing to reduce bot detection                  |
+| **CLI Fingerprint**      | Per-provider header/body ordering to match native CLI signatures               |
 
 ### 🔌 Resilience & Availability
 

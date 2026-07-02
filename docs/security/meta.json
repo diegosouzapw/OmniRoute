@@ -9,7 +9,6 @@
     "EGRESS_POLICY",
     "COMPLIANCE",
     "SOCKET_DEV_FINDINGS",
-    "CLI_TOKEN",
-    "CLI_TOKEN_AUTH"
+    "CLI_TOKEN"
   ]
 }

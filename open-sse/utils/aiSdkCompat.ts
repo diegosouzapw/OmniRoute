@@ -7,6 +7,13 @@ export type StreamDefaultMode = "legacy" | "json";
 export interface ResolveStreamFlagOptions {
   userAgent?: unknown;
   streamDefaultMode?: unknown;
+  /**
+   * When true, the provider rejects non-streaming requests (e.g. forceStream providers
+   * such as CodeBuddy). resolveStreamFlag will keep streaming even when the client sends
+   * Accept: application/json or stream:false; the caller is responsible for accumulating
+   * the stream and converting it to a JSON response for the client. (#2081)
+   */
+  providerRequiresStreaming?: boolean;
 }
 
 function normalizeResolveStreamFlagOptions(optionsOrUserAgent?: unknown): ResolveStreamFlagOptions {
@@ -34,8 +41,26 @@ export function clientWantsJsonResponse(acceptHeader: unknown): boolean {
 }
 
 /**
+ * Route-level Accept-header streaming opt-in (#302). A client that OMITS `stream`
+ * in the body but sends `Accept: text/event-stream` is asking for SSE (curl/httpx
+ * and similar non-SDK clients). But a client that ALSO lists `application/json`
+ * is using the OpenAI / Vercel AI SDK non-stream signature
+ * (`Accept: application/json, text/event-stream` with the body omitting `stream`)
+ * and expects a JSON object — do NOT force SSE for it (#5305). An explicit body
+ * `stream` value (true or false) always wins and is never overridden.
+ */
+export function acceptHeaderForcesStream(acceptHeader: unknown, bodyStream: unknown): boolean {
+  if (bodyStream !== undefined) return false;
+  if (typeof acceptHeader !== "string") return false;
+  const normalized = acceptHeader.toLowerCase();
+  return normalized.includes("text/event-stream") && !normalized.includes("application/json");
+}
+
+/**
  * Resolves stream behavior from request body + Accept header.
- * Priority: explicit `stream: true/false` in body wins.
+ * Priority: explicit `stream: true/false` in body wins, UNLESS the provider
+ * requires streaming (`providerRequiresStreaming: true`) — in that case the
+ * result is always `true` regardless of client preference (#2081).
  * Accept header only acts as fallback when stream is not explicitly set.
  * Fixes #656: clients sending both `stream: true` and `Accept: application/json`
  * should still get streaming responses — body intent takes precedence.
@@ -53,11 +78,18 @@ export function resolveStreamFlag(
   sourceFormat?: string,
   optionsOrUserAgent?: unknown
 ): boolean {
-  // Explicit body value always wins
+  const options = normalizeResolveStreamFlagOptions(optionsOrUserAgent);
+
+  // Stream-only providers must keep streaming even when the client asked for JSON;
+  // OmniRoute accumulates the provider stream and converts it to JSON for the client
+  // downstream (handleForcedSSEToJson). Sending stream:false to such a provider
+  // returns HTTP 400. (#2081)
+  if (options.providerRequiresStreaming) return true;
+
+  // Explicit body value always wins (for non-stream-only providers)
   if (bodyStream === true) return true;
   if (bodyStream === false) return false;
 
-  const options = normalizeResolveStreamFlagOptions(optionsOrUserAgent);
   const streamDefaultMode = normalizeStreamDefaultMode(options.streamDefaultMode);
 
   const acceptsEventStream =
@@ -84,6 +116,17 @@ export function resolveStreamFlag(
   // omit `stream`. This preserves legacy behavior by default while allowing an
   // API key to use the OpenAI-compatible JSON default unless SSE is explicit.
   if (streamDefaultMode === "json" && !acceptsEventStream) {
+    return false;
+  }
+
+  // An Accept header that explicitly lists `application/json` is a JSON opt-in,
+  // even when it ALSO lists `text/event-stream`. That is the OpenAI / Vercel AI
+  // SDK non-stream signature (`Accept: application/json, text/event-stream` with
+  // the body omitting `stream`): doGenerate()/generateText() send it and parse
+  // the response as JSON. Default such requests to non-stream so they don't get
+  // an SSE body they can't parse (#5305). Pure-SSE clients (text/event-stream
+  // with no application/json) and clients with no/`*/*` Accept still stream.
+  if (typeof acceptHeader === "string" && /application\/json/i.test(acceptHeader)) {
     return false;
   }
 

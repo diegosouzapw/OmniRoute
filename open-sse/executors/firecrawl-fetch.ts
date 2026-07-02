@@ -55,9 +55,12 @@ export async function firecrawlFetch(opts: FirecrawlScrapeOptions): Promise<WebF
     formats,
   };
 
-  if (includeMetadata) {
-    requestBody.includeTags = ["title", "description", "og:title", "og:description"];
-  }
+  // NOTE: Firecrawl returns metadata (title, description, og:title, etc.)
+  // automatically in response.data.metadata — no special request params needed.
+  // Sending the `includeTags` parameter with non-CSS-selector values like
+  // "og:title" or "description" causes Firecrawl's parser to crash (HTTP 500).
+  // The `includeMetadata` flag only controls whether we surface metadata
+  // in our response (see response parsing below).
 
   if (depth > 0) {
     requestBody.maxDepth = depth;

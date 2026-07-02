@@ -44,6 +44,13 @@ export const ENGINE_CATALOG: Record<string, EngineMeta> = {
     isSingleMode: false,
     description: "Tabular JSON compaction.",
   },
+  relevance: {
+    id: "relevance",
+    label: "Relevance",
+    stackPriority: 18,
+    isSingleMode: true,
+    description: "Extractive sentence scoring against the last user query.",
+  },
   caveman: {
     id: "caveman",
     label: "Caveman",

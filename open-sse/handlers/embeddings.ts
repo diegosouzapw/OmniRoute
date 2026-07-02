@@ -209,6 +209,8 @@ export async function handleEmbedding({
           apiKeyId,
           connectionId,
           provider,
+          // Per-(key,model) cap — resolved embedding model id (same scope used in logs/routing).
+          model: model || undefined,
         });
         if (quotaDecision.kind === "block") {
           return {
@@ -324,6 +326,8 @@ export async function handleEmbedding({
           apiKeyId,
           connectionId,
           provider,
+          // Per-(key,model) cap accounting — same resolved model id used at enforce time.
+          model: model || undefined,
           cost: {
             tokens: data.usage?.prompt_tokens || data.usage?.total_tokens || 0,
             requests: 1,

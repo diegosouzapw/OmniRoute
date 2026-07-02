@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardSkeleton, Badge, Button, CollapsibleSection } from "@/shared/components";
 import {
   AGGREGATOR_PROVIDER_IDS,
@@ -9,8 +9,8 @@ import {
   IDE_PROVIDER_IDS,
   IMAGE_ONLY_PROVIDER_IDS,
   VIDEO_PROVIDER_IDS,
-  isClaudeCodeCompatibleProvider,
 } from "@/shared/constants/providers";
+import { partitionNoAuthEntriesByBlocked } from "@/shared/utils/noAuthProviders";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
@@ -19,13 +19,16 @@ import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
 import {
   buildStaticProviderEntries,
+  buildCompatibleProviderGroups,
   filterConfiguredProviderEntries,
   shouldFilterProviderEntriesForDisplayMode,
   shouldShowFirstProviderHint,
+  upsertProviderNodeById,
 } from "./providerPageUtils";
 import type { ProviderEntry } from "./providerPageUtils";
 import {
   readProviderDisplayModePreference,
+  shouldSyncProviderDisplayMode,
   writeProviderDisplayModePreference,
   type ProviderDisplayMode,
 } from "./providerPageStorage";
@@ -36,6 +39,7 @@ import {
 } from "@/lib/providers/codexFastTier";
 import AddCompatibleProviderModal from "./components/AddCompatibleProviderModal";
 import { CategoryDot } from "./components/CategoryDot";
+import NoAuthProvidersSection from "./components/NoAuthProvidersSection";
 import ProviderCard from "./components/ProviderCard";
 import ProviderCountBadge from "./components/ProviderCountBadge";
 import ProviderSummaryCard from "./components/ProviderSummaryCard";
@@ -260,21 +264,21 @@ export default function ProvidersPage() {
   }, []);
 
   useEffect(() => {
-    if (!displayModePreferenceReady) return;
+    if (!shouldSyncProviderDisplayMode(displayModePreferenceReady, loading)) return;
 
     const storedDisplayMode =
       connections.length === 0 && providerDisplayMode === "configured"
         ? "all"
         : providerDisplayMode;
     writeProviderDisplayModePreference(storedDisplayMode);
-  }, [connections.length, displayModePreferenceReady, providerDisplayMode]);
+  }, [connections.length, displayModePreferenceReady, providerDisplayMode, loading]);
 
   useEffect(() => {
-    if (!displayModePreferenceReady) return;
+    if (!shouldSyncProviderDisplayMode(displayModePreferenceReady, loading)) return;
     if (connections.length === 0 && providerDisplayMode === "configured") {
       setProviderDisplayMode("all");
     }
-  }, [connections.length, displayModePreferenceReady, providerDisplayMode]);
+  }, [connections.length, displayModePreferenceReady, providerDisplayMode, loading]);
 
   const fetchOauthEnvRepairStatus = useCallback(async () => {
     try {
@@ -480,37 +484,18 @@ export default function ProvidersPage() {
     }
   };
 
-  const compatibleProviders = providerNodes
-    .filter((node) => node.type === "openai-compatible")
-    .map((node) => ({
-      id: node.id,
-      name: node.name || t("openaiCompatibleName"),
-      color: "#10A37F",
-      textIcon: "OC",
-      apiType: node.apiType,
-    }));
-
-  const anthropicCompatibleProviders = providerNodes
-    .filter(
-      (node) => node.type === "anthropic-compatible" && !isClaudeCodeCompatibleProvider(node.id)
-    )
-    .map((node) => ({
-      id: node.id,
-      name: node.name || t("anthropicCompatibleName"),
-      color: "#D97757",
-      textIcon: "AC",
-    }));
-
-  const ccCompatibleProviders = providerNodes
-    .filter(
-      (node) => node.type === "anthropic-compatible" && isClaudeCodeCompatibleProvider(node.id)
-    )
-    .map((node) => ({
-      id: node.id,
-      name: node.name || ccCompatibleLabel,
-      color: "#B45309",
-      textIcon: "CC",
-    }));
+  const compatibleProviderGroups = useMemo(
+    () =>
+      buildCompatibleProviderGroups(providerNodes, {
+        openaiCompatibleName: t("openaiCompatibleName"),
+        anthropicCompatibleName: t("anthropicCompatibleName"),
+        claudeCodeCompatibleName: ccCompatibleLabel,
+      }),
+    [ccCompatibleLabel, providerNodes, t]
+  );
+  const compatibleProviders = compatibleProviderGroups.openai;
+  const anthropicCompatibleProviders = compatibleProviderGroups.anthropic;
+  const ccCompatibleProviders = compatibleProviderGroups.claudeCode;
 
   const effectiveProviderDisplayMode =
     providerDisplayMode === "configured" && connections.length === 0 ? "all" : providerDisplayMode;
@@ -530,12 +515,14 @@ export default function ProvidersPage() {
     activeServiceKind
   );
 
-  const blockedProviderSet = new Set(blockedProviders);
   const rawNoAuthEntriesAll = buildStaticProviderEntries("no-auth", getProviderStats);
-  const noAuthEntriesAll = rawNoAuthEntriesAll.filter(({ providerId, provider }) => {
-    const alias = typeof provider.alias === "string" ? provider.alias : null;
-    return !blockedProviderSet.has(providerId) && !(alias && blockedProviderSet.has(alias));
-  });
+  // Partition rather than drop: blocked no-auth providers stay surfaced on the page
+  // (rendered with a "Disabled" badge + Enable button) instead of silently vanishing,
+  // which left users unable to find/restore a disabled no-auth provider (#5166/#5183).
+  // `noAuthEntriesAll` keeps only the visible (non-blocked) entries, so every downstream
+  // aggregate/count/model list that consumes it is unchanged.
+  const { visible: noAuthEntriesAll, blocked: blockedNoAuthEntries } =
+    partitionNoAuthEntriesByBlocked(rawNoAuthEntriesAll, blockedProviders);
   const noAuthEntries = filterConfiguredProviderEntries(
     noAuthEntriesAll,
     effectiveShowConfiguredOnly,
@@ -970,8 +957,10 @@ export default function ProvidersPage() {
                       }`}
                       title={t("testAllCompatible")}
                     >
-                      <span className="material-symbols-outlined text-[14px]">
-                        {testingMode === "compatible" ? "sync" : "play_arrow"}
+                      <span
+                        className={`material-symbols-outlined text-[14px]${testingMode === "compatible" ? " animate-spin" : ""}`}
+                      >
+                        play_arrow
                       </span>
                       {testingMode === "compatible" ? t("testing") : t("testAll")}
                     </button>
@@ -1065,8 +1054,10 @@ export default function ProvidersPage() {
                     title={t("testAllOAuth")}
                     aria-label={t("testAllOAuth")}
                   >
-                    <span className="material-symbols-outlined text-[14px]">
-                      {testingMode === "oauth" ? "sync" : "play_arrow"}
+                    <span
+                      className={`material-symbols-outlined text-[14px]${testingMode === "oauth" ? " animate-spin" : ""}`}
+                    >
+                      play_arrow
                     </span>
                     {testingMode === "oauth" ? t("testing") : t("testAll")}
                   </button>
@@ -1115,8 +1106,10 @@ export default function ProvidersPage() {
                   title={t("testAll")}
                   aria-label={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "ide" ? "sync" : "play_arrow"}
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "ide" ? " animate-spin" : ""}`}
+                  >
+                    play_arrow
                   </span>
                   {testingMode === "ide" ? t("testing") : t("testAll")}
                 </button>
@@ -1172,8 +1165,10 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "web-cookie" ? "sync" : "play_arrow"}
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "web-cookie" ? " animate-spin" : ""}`}
+                  >
+                    play_arrow
                   </span>
                   {testingMode === "web-cookie" ? t("testing") : t("testAll")}
                 </button>
@@ -1216,8 +1211,10 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "free" ? "sync" : "play_arrow"}
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "free" ? " animate-spin" : ""}`}
+                  >
+                    play_arrow
                   </span>
                   {testingMode === "free" ? t("testing") : t("testAll")}
                 </button>
@@ -1261,8 +1258,10 @@ export default function ProvidersPage() {
                   title={t("testAllApiKey")}
                   aria-label={t("testAllApiKey")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "apikey" ? "sync" : "play_arrow"}
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "apikey" ? " animate-spin" : ""}`}
+                  >
+                    play_arrow
                   </span>
                   {testingMode === "apikey" ? t("testing") : t("testAll")}
                 </button>
@@ -1295,45 +1294,21 @@ export default function ProvidersPage() {
           )}
 
           {/* No Auth Providers */}
-          {showSection("noauth") && !showFreeOnly && noAuthEntriesAll.length > 0 && (
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-                  {t("noAuthProviders")}{" "}
-                  <span className="size-2.5 rounded-full bg-stone-500" title={t("noAuthLabel")} />
-                  <ProviderCountBadge {...countConfigured(noAuthEntriesAll)} />
-                </h2>
-                <button
-                  onClick={() => handleBatchTest("no-auth")}
-                  disabled={!!testingMode}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                    testingMode === "no-auth"
-                      ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
-                      : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
-                  }`}
-                  title={t("testAll")}
-                >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "no-auth" ? "sync" : "play_arrow"}
-                  </span>
-                  {testingMode === "no-auth" ? t("testing") : t("testAll")}
-                </button>
-              </div>
-              <p className="text-sm text-text-muted -mt-2">{t("noAuthProvidersDesc")}</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
-                {noAuthEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
-                  <ProviderCard
-                    key={providerId}
-                    providerId={providerId}
-                    provider={provider}
-                    stats={stats}
-                    authType="no-auth"
-                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+          {showSection("noauth") &&
+            !showFreeOnly &&
+            (noAuthEntriesAll.length > 0 || blockedNoAuthEntries.length > 0) && (
+              <NoAuthProvidersSection
+                visibleEntries={noAuthEntries}
+                count={countConfigured(noAuthEntriesAll)}
+                blockedEntries={blockedNoAuthEntries}
+                blockedProviders={blockedProviders}
+                onBlockedChange={setBlockedProviders}
+                onError={(msg) => notify.error(msg)}
+                testingMode={testingMode}
+                onBatchTest={handleBatchTest}
+                onToggleProvider={handleToggleProvider}
+              />
+            )}
 
           {/* Upstream Proxy Providers */}
           {showSection("proxy") && upstreamProxyEntries.length > 0 && (
@@ -1357,8 +1332,10 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "upstream-proxy" ? "sync" : "play_arrow"}
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "upstream-proxy" ? " animate-spin" : ""}`}
+                  >
+                    play_arrow
                   </span>
                   {testingMode === "upstream-proxy" ? t("testing") : t("testAll")}
                 </button>
@@ -1500,8 +1477,10 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "cloud-agent" ? "sync" : "play_arrow"}
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "cloud-agent" ? " animate-spin" : ""}`}
+                  >
+                    play_arrow
                   </span>
                   {testingMode === "cloud-agent" ? t("testing") : t("testAll")}
                 </button>
@@ -1548,8 +1527,10 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "local" ? "sync" : "play_arrow"}
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "local" ? " animate-spin" : ""}`}
+                  >
+                    play_arrow
                   </span>
                   {testingMode === "local" ? t("testing") : t("testAll")}
                 </button>
@@ -1592,8 +1573,10 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "search" ? "sync" : "play_arrow"}
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "search" ? " animate-spin" : ""}`}
+                  >
+                    play_arrow
                   </span>
                   {testingMode === "search" ? t("testing") : t("testAll")}
                 </button>
@@ -1702,8 +1685,10 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {testingMode === "audio" ? "sync" : "play_arrow"}
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "audio" ? " animate-spin" : ""}`}
+                  >
+                    play_arrow
                   </span>
                   {testingMode === "audio" ? t("testing") : t("testAll")}
                 </button>
@@ -1764,7 +1749,7 @@ export default function ProvidersPage() {
         mode="openai"
         onClose={() => setShowAddCompatibleModal(false)}
         onCreated={(node) => {
-          setProviderNodes((prev) => [...prev, node]);
+          setProviderNodes((prev) => upsertProviderNodeById(prev, node));
           setShowAddCompatibleModal(false);
           router.push(`/dashboard/providers/${node.id}`);
         }}
@@ -1774,7 +1759,7 @@ export default function ProvidersPage() {
         mode="anthropic"
         onClose={() => setShowAddAnthropicCompatibleModal(false)}
         onCreated={(node) => {
-          setProviderNodes((prev) => [...prev, node]);
+          setProviderNodes((prev) => upsertProviderNodeById(prev, node));
           setShowAddAnthropicCompatibleModal(false);
           router.push(`/dashboard/providers/${node.id}`);
         }}
@@ -1786,7 +1771,7 @@ export default function ProvidersPage() {
           title={addCcCompatibleLabel}
           onClose={() => setShowAddCcCompatibleModal(false)}
           onCreated={(node) => {
-            setProviderNodes((prev) => [...prev, node]);
+            setProviderNodes((prev) => upsertProviderNodeById(prev, node));
             setShowAddCcCompatibleModal(false);
             router.push(`/dashboard/providers/${node.id}`);
           }}

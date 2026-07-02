@@ -93,6 +93,11 @@ const IGNORE_FROM_CODE = new Set([
   "PR_BODY",
   // CLI machine-id token opt-out (server-side flag; not user-configurable via .env).
   "OMNIROUTE_DISABLE_CLI_TOKEN",
+  // Gated combo live-smoke harness (scripts/test/_vpsClient.mjs) — override the VPS HTTP
+  // smoke target host/key. Test/CI-only signals with safe defaults
+  // ("http://192.168.0.15:20128" / null), never OmniRoute runtime config (#5151).
+  "COMBO_LIVE_BASE_URL",
+  "COMBO_LIVE_API_KEY",
   // update-notifier opt-out for the CLI binary.
   "OMNIROUTE_NO_UPDATE_NOTIFIER",
   // Headless CLI execution flag for Electron.
@@ -132,6 +137,10 @@ const IGNORE_FROM_CODE = new Set([
   // Test-only opt-out: instructs bin/omniroute.mjs to skip auto-loading the
   // repository .env so isolation tests get a deterministic environment.
   "OMNIROUTE_CLI_SKIP_REPO_ENV",
+  // Eval-harness only: operator-supplied provider credentials JSON read by the
+  // opt-in `npm run eval:compression` CLI (scripts/compression-eval/index.ts).
+  // A dev/ops measurement tool, never OmniRoute runtime config.
+  "OMNIROUTE_EVAL_CREDENTIALS",
   // Build-time only: set by `build:release` (git short SHA) and read by
   // write-build-sha.mjs to stamp dist/BUILD_SHA — injected by the build, never
   // configured by users in .env.

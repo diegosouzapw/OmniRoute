@@ -75,7 +75,7 @@ test("raw HTTP guard allows documented methods through", () => {
 });
 
 test("OpenAPI documents high-risk route auth and setup responses", () => {
-  const spec = readFileSync("docs/reference/openapi.yaml", "utf8");
+  const spec = readFileSync("docs/openapi.yaml", "utf8");
   const apiKeyDetailStart = spec.indexOf("  /api/keys/{id}:");
   const apiKeyDetailEnd = spec.indexOf("\n  /api/combos:", apiKeyDetailStart);
   const apiKeyDetail = spec.slice(apiKeyDetailStart, apiKeyDetailEnd);
