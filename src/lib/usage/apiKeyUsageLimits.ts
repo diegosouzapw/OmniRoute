@@ -11,6 +11,7 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 export interface ApiKeyUsageLimitMetadata {
   id: string;
   allowedConnections?: string[] | null;
+  preferredProvider?: string | null;
   usageLimitEnabled?: boolean;
   dailyUsageLimitUsd?: number | null;
   weeklyUsageLimitUsd?: number | null;
@@ -51,6 +52,7 @@ interface UsageCostRow {
 
 interface WeeklyResetCandidate {
   connectionId: string;
+  provider: string;
   resetAtIso: string;
   observedWindowStartIso: string | null;
 }
@@ -104,6 +106,11 @@ function formatUsagePercent(percent: number | null): string {
   return `${Math.round(percent)}%`;
 }
 
+function formatLeftPercent(percent: number | null): string {
+  if (percent === null || !Number.isFinite(percent)) return "Unavailable";
+  return `${Math.round(100 - clampPercent(percent))}% left`;
+}
+
 function formatResetIn(resetAt: string | null, now = Date.now()): string {
   if (!resetAt) return "unknown";
   const resetMs = Date.parse(resetAt);
@@ -113,12 +120,15 @@ function formatResetIn(resetAt: string | null, now = Date.now()): string {
   if (deltaMs <= 0) return "now";
 
   const minuteMs = 60_000;
-  const hourMs = 60 * minuteMs;
-  const dayMs = 24 * hourMs;
+  const totalMinutes = Math.max(1, Math.ceil(deltaMs / minuteMs));
+  const dayMinutes = 24 * 60;
+  const days = Math.floor(totalMinutes / dayMinutes);
+  const hours = Math.floor((totalMinutes % dayMinutes) / 60);
+  const minutes = totalMinutes % 60;
 
-  if (deltaMs < hourMs) return `${Math.max(1, Math.ceil(deltaMs / minuteMs))}m`;
-  if (deltaMs < dayMs) return `${Math.max(1, Math.ceil(deltaMs / hourMs))}h`;
-  return `${Math.max(1, Math.ceil(deltaMs / dayMs))}d`;
+  if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
 }
 
 function resetDay(value: string | null): string | null {
@@ -156,6 +166,13 @@ function normalizeQuotaName(value: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+}
+
+function normalizeProvider(value: unknown): string {
+  if (typeof value !== "string") return "";
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "cc" || normalized === "claude-code") return "claude";
+  return normalized;
 }
 
 function findWeeklyQuotaResetAt(quotas: unknown, nowMs: number): string | null {
@@ -307,7 +324,7 @@ async function getProviderWeeklyWindow(
   if (allowedConnections.length > 0) {
     for (const connectionId of allowedConnections) {
       const connection = connectionFromValue(await deps.getProviderConnectionById(connectionId));
-      if (!connection || connection.provider.toLowerCase() !== "claude") continue;
+      if (!connection) continue;
       const resetAt = findWeeklyQuotaResetAt(
         deps.getProviderLimitsCache(connection.id)?.quotas,
         nowMs
@@ -315,6 +332,7 @@ async function getProviderWeeklyWindow(
       if (resetAt) {
         resetCandidates.push({
           connectionId: connection.id,
+          provider: connection.provider,
           resetAtIso: resetAt,
           observedWindowStartIso: getWeeklyWindowStartIso(connection.id, resetAt, nowMs),
         });
@@ -325,11 +343,12 @@ async function getProviderWeeklyWindow(
     const connections = await deps.getProviderConnections({ isActive: true });
     for (const rawConnection of connections) {
       const connection = connectionFromValue(rawConnection);
-      if (!connection || connection.provider.toLowerCase() !== "claude") continue;
+      if (!connection) continue;
       const resetAt = findWeeklyQuotaResetAt(caches[connection.id]?.quotas, nowMs);
       if (resetAt) {
         resetCandidates.push({
           connectionId: connection.id,
+          provider: connection.provider,
           resetAtIso: resetAt,
           observedWindowStartIso: getWeeklyWindowStartIso(connection.id, resetAt, nowMs),
         });
@@ -337,8 +356,15 @@ async function getProviderWeeklyWindow(
     }
   }
 
+  const preferredProvider = normalizeProvider(metadata.preferredProvider);
+  const scopedCandidates = preferredProvider
+    ? resetCandidates.filter(
+        (candidate) => normalizeProvider(candidate.provider) === preferredProvider
+      )
+    : [];
+  const candidates = scopedCandidates.length > 0 ? scopedCandidates : resetCandidates;
   const selected =
-    resetCandidates
+    candidates
       .sort((left, right) => Date.parse(left.resetAtIso) - Date.parse(right.resetAtIso))
       .at(0) ?? null;
   return {
@@ -442,36 +468,64 @@ export function buildApiKeyUsageLimitText(
   now = Date.now()
 ): string {
   return [
-    "Cota diaria",
+    "Daily quota",
     formatUsd(status.dailyLimitUsd),
-    "Gasto diario",
+    "Daily spent",
     formatUsd(status.dailySpentUsd),
-    "Uso diario",
+    "Daily used",
     formatUsagePercent(getUsagePercent(status.dailySpentUsd, status.dailyLimitUsd)),
     `Resets in ${formatResetIn(status.dailyResetAtIso, now)}`,
     "",
-    "Cota semanal",
+    "Weekly quota",
     formatUsd(status.weeklyLimitUsd),
-    "Gasto semanal",
+    "Weekly spent",
     formatUsd(status.weeklySpentUsd),
-    "Uso semanal",
+    "Weekly used",
     formatUsagePercent(getUsagePercent(status.weeklySpentUsd, status.weeklyLimitUsd)),
     `Resets in ${formatResetIn(status.weeklyResetAtIso, now)}`,
   ].join("\n");
 }
 
-function buildUsageLimitExceededMessage(status: ApiKeyUsageLimitStatus, now = Date.now()): string {
+export function buildApiKeyUsageLimitPercentText(
+  status: ApiKeyUsageLimitStatus,
+  now = Date.now()
+): string {
+  return [
+    "Daily",
+    formatLeftPercent(getUsagePercent(status.dailySpentUsd, status.dailyLimitUsd)),
+    `⏱ reset in ${formatResetIn(status.dailyResetAtIso, now)}`,
+    "",
+    "Weekly",
+    formatLeftPercent(getUsagePercent(status.weeklySpentUsd, status.weeklyLimitUsd)),
+    `⏱ reset in ${formatResetIn(status.weeklyResetAtIso, now)}`,
+  ].join("\n");
+}
+
+function buildUsageLimitExceededMessage(
+  status: ApiKeyUsageLimitStatus,
+  now = Date.now(),
+  options: { showUsd?: boolean } = {}
+): string {
+  const showUsd = options.showUsd !== false;
   if (status.dailyExceeded && status.dailyLimitUsd !== null) {
     const percent = formatUsagePercent(getUsagePercent(status.dailySpentUsd, status.dailyLimitUsd));
+    if (!showUsd) {
+      return `This API key reached its daily usage quota (${percent}). Resets in ${formatResetIn(status.dailyResetAtIso, now)}. Choose another allowed model after reset.`;
+    }
     return `This API key reached its daily USD usage quota (${formatUsd(status.dailySpentUsd)} of ${formatUsd(status.dailyLimitUsd)}, ${percent}). Resets in ${formatResetIn(status.dailyResetAtIso, now)}. Choose another allowed model after reset.`;
   }
   if (status.weeklyExceeded && status.weeklyLimitUsd !== null) {
     const percent = formatUsagePercent(
       getUsagePercent(status.weeklySpentUsd, status.weeklyLimitUsd)
     );
+    if (!showUsd) {
+      return `This API key reached its weekly usage quota (${percent}). Resets in ${formatResetIn(status.weeklyResetAtIso, now)}. Choose another allowed model after reset.`;
+    }
     return `This API key reached its weekly USD usage quota (${formatUsd(status.weeklySpentUsd)} of ${formatUsd(status.weeklyLimitUsd)}, ${percent}). Resets in ${formatResetIn(status.weeklyResetAtIso, now)}. Choose another allowed model after reset.`;
   }
-  return "This API key reached its USD usage quota. Choose another allowed model or wait for quota reset.";
+  return showUsd
+    ? "This API key reached its USD usage quota. Choose another allowed model or wait for quota reset."
+    : "This API key reached its usage quota. Choose another allowed model or wait for quota reset.";
 }
 
 function isAnthropicMessagesRequest(request: Request): boolean {
@@ -486,9 +540,10 @@ function isAnthropicMessagesRequest(request: Request): boolean {
 export function buildApiKeyUsageLimitRejection(
   request: Request,
   status: ApiKeyUsageLimitStatus,
-  now = Date.now()
+  now = Date.now(),
+  options: { showUsd?: boolean } = {}
 ): Response {
-  const message = sanitizeErrorMessage(buildUsageLimitExceededMessage(status, now));
+  const message = sanitizeErrorMessage(buildUsageLimitExceededMessage(status, now, options));
   if (isAnthropicMessagesRequest(request)) {
     return new Response(
       JSON.stringify({
@@ -517,5 +572,7 @@ export async function buildApiKeyUsageLimitPolicyRejection(
 ): Promise<Response | null> {
   const status = await getApiKeyUsageLimitStatus(metadata);
   if (!status.enabled || (!status.dailyExceeded && !status.weeklyExceeded)) return null;
-  return buildApiKeyUsageLimitRejection(request, status);
+  return buildApiKeyUsageLimitRejection(request, status, Date.now(), {
+    showUsd: false,
+  });
 }

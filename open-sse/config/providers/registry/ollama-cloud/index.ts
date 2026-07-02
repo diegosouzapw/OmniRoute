@@ -10,7 +10,7 @@ export const ollama_cloudProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "bearer",
   // Note: rate limits vary by plan (free = "Light usage", Pro = more, Max = 5x Pro).
-  // Users can generate API keys at https://ollama.com/settings/api-keys
+  // Users can generate API keys at https://ollama.com/settings/keys
   models: [
     { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
     { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },

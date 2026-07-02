@@ -119,7 +119,7 @@ REQUIRE_API_KEY=false
 # === URLs (change to your domain) ===
 # Internal server-to-server base URL for scheduled jobs / self-fetches.
 BASE_URL=http://127.0.0.1:20128
-# Browser-facing URL used for OAuth callbacks, dashboard links, and same-origin checks.
+# Browser-facing URL used for OAuth callbacks, dashboard links, and generated public URLs.
 NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 # Optional explicit public origin override for generated public asset URLs.
 # OMNIROUTE_PUBLIC_BASE_URL=https://llms.seudominio.com
@@ -243,11 +243,13 @@ Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars.
 `FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
 above the same threshold.
 
-OmniRoute uses `NEXT_PUBLIC_BASE_URL` as the canonical browser-facing origin for OAuth,
-public links, and dashboard mutation origin checks. The `X-Forwarded-*` headers above are
-still useful routing metadata, but they are not a replacement for setting the explicit public
-URL. Only enable `OMNIROUTE_TRUST_PROXY` if OmniRoute is not directly reachable by clients and
-your proxy strips/rebuilds incoming forwarded headers.
+OmniRoute uses `NEXT_PUBLIC_BASE_URL` as the canonical browser-facing origin for OAuth
+callbacks and generated public links. Authenticated dashboard writes use same-origin requests
+plus session-bound CSRF protection, so they do not require a static public base URL. The
+`X-Forwarded-*` headers above are still useful routing metadata, but they are not a replacement
+for setting the explicit public URL when OAuth or generated browser links need one. Only enable
+`OMNIROUTE_TRUST_PROXY` if OmniRoute is not directly reachable by clients and your proxy
+strips/rebuilds incoming forwarded headers.
 
 ### 3.3 Enable and Test
 

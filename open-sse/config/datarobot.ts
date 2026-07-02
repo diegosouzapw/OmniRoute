@@ -1,14 +1,10 @@
-import { stripTrailingSlashes } from "../utils/urlSanitize.ts";
+import { stripTrailingSlashes, normalizeBaseUrl } from "../utils/urlSanitize.ts";
 
 const DATAROBOT_API_V2_SEGMENT = "/api/v2";
 const DATAROBOT_LLMGW_CHAT_PATH = "/genai/llmgw/chat/completions/";
 const DATAROBOT_LLMGW_CATALOG_PATH = "/genai/llmgw/catalog/";
 
 export const DATAROBOT_DEFAULT_BASE_URL = "https://app.datarobot.com";
-
-function normalizeBaseUrl(value: string | null | undefined): string {
-  return stripTrailingSlashes((value || "").trim());
-}
 
 export function normalizeDataRobotBaseUrl(value: string | null | undefined): string {
   const normalized = normalizeBaseUrl(value || DATAROBOT_DEFAULT_BASE_URL);

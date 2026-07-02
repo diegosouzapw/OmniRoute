@@ -38,8 +38,10 @@ async function apiFetch(path: string, options: RequestInit = {}): Promise<unknow
   const url = `${OMNIROUTE_BASE_URL}${path}`;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...getMcpHttpAuthHeadersForInternalFetch(),
+    // Static env key is only a fallback; the per-caller MCP identity forwarded via
+    // withMcpHttpAuthContext must win over it (#5819).
     ...(OMNIROUTE_API_KEY ? { Authorization: `Bearer ${OMNIROUTE_API_KEY}` } : {}),
+    ...getMcpHttpAuthHeadersForInternalFetch(),
     ...((options.headers as Record<string, string>) || {}),
   };
   const response = await fetch(url, { ...options, headers, signal: AbortSignal.timeout(30000) });

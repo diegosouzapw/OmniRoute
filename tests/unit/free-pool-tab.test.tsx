@@ -237,3 +237,45 @@ describe("FreePoolTab data loading", () => {
     expect(el.textContent).toMatch(/In pool: 2/);
   });
 });
+
+describe("FreePoolTab sync error surfacing (#5595)", () => {
+  it("renders the per-source errors the sync route returns instead of failing silently", async () => {
+    const mockFetch = vi.fn((url: string) => {
+      if (String(url).includes("/sync")) {
+        return okJson({
+          success: true,
+          results: {
+            proxifly: { fetched: 0, added: 0, updated: 0, errors: ["TLS handshake failed"] },
+            iplocate: { fetched: 0, added: 0, updated: 0, errors: ["http: HTTP 404"] },
+            "1proxy": { fetched: 5, added: 5, updated: 0, errors: [] },
+          },
+          lastSyncAt: "2026-06-30T00:00:00Z",
+        });
+      }
+      if (String(url).includes("/stats")) return okJson({ stats: defaultStats });
+      return okJson({ items: [] });
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const el = renderTab();
+    await waitForCondition(() => el.querySelector("[role='group']") !== null);
+
+    const syncBtn = Array.from(el.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("proxyFreePoolSyncAll")
+    )!;
+    expect(syncBtn).toBeTruthy();
+    act(() => {
+      syncBtn.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    // RED before the fix: handleSync discarded the response, so no error box appears.
+    await waitForCondition(
+      () => el.querySelector("[data-testid='free-pool-sync-errors']") !== null
+    );
+    const errBox = el.querySelector("[data-testid='free-pool-sync-errors']")!;
+    expect(errBox.textContent).toContain("TLS handshake failed");
+    expect(errBox.textContent).toContain("HTTP 404");
+    // A source with no errors must not be listed.
+    expect(errBox.textContent).not.toContain("1proxy");
+  });
+});

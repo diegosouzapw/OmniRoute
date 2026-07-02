@@ -28,6 +28,20 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
       "Use a Command Code API key. Requests are sent to Command Code's /alpha/generate endpoint.",
     apiHint: "Create or copy an API key from Command Code, then paste it here as a Bearer token.",
   },
+  clinepass: {
+    id: "clinepass",
+    alias: "clinepass",
+    name: "ClinePass",
+    icon: "vpn_key",
+    color: "#5B9BD5",
+    textIcon: "CP",
+    passthroughModels: true,
+    website: "https://cline.bot",
+    notice: {
+      text: "ClinePass is Cline's paid BYOK gateway ($9.99/mo). Bring your own Cline API key; requests hit api.cline.bot with the cline-pass/* model namespace.",
+      apiKeyUrl: "https://app.cline.bot/settings/api-keys",
+    },
+  },
   openrouter: {
     id: "openrouter",
     alias: "openrouter",
@@ -362,6 +376,11 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     website: "https://cablyai.com",
     authHint: "Bearer API key for the CablyAI OpenAI-compatible gateway.",
     passthroughModels: true,
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    deprecated: true,
+    deprecationReason:
+      "cablyai.com no longer resolves (DNS NXDOMAIN, verified 2026-06-30) — the domain is gone and every request fails with a DNS error (#5568).",
   },
   thebai: {
     id: "thebai",

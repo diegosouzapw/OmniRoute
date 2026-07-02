@@ -40,7 +40,6 @@ export default function Error({ error, reset }: ErrorProps) {
           aria-label="Error details"
         >
           {error.message}
-          {error.stack && `\n\n${error.stack}`}
         </pre>
       )}
       <div className="flex gap-3">

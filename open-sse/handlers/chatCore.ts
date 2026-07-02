@@ -37,6 +37,7 @@ import {
 import {
   buildStreamingResponseHeaders,
   materializeDeduplicatedExecutionResult,
+  stripNextMiddlewareControlHeaders,
   stripStaleForwardingHeaders,
 } from "./chatCore/responseHeaders.ts";
 import {
@@ -62,6 +63,7 @@ import { checkHeapPressureGuard } from "../utils/heapPressure.ts";
 import { normalizeHeaders } from "../utils/headers.ts";
 import { resolveChatCoreRequestFormat } from "./chatCore/requestFormat.ts";
 import { resolveChatCoreTargetFormat } from "./chatCore/targetFormat.ts";
+import { defaultClaudeToolType } from "./chatCore/claudeToolDefaults.ts";
 import { injectSystemPrompt, injectCustomSystemPrompt } from "../services/systemPrompt.ts";
 import { translateRequest, needsTranslation } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
@@ -74,11 +76,9 @@ import {
   withBodyTimeout,
 } from "../utils/stream.ts";
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
-import {
-  resolveSuppressThinkClose,
-  THINKING_MARKER_HEADER,
-} from "../utils/thinkCloseMarker.ts";
+import { resolveSuppressThinkClose, THINKING_MARKER_HEADER } from "../utils/thinkCloseMarker.ts";
 import { resolveStreamReadinessTimeout } from "../utils/streamReadinessPolicy.ts";
+import { resolveAgentGoalPolicy } from "../utils/agentGoalPolicy.ts";
 import { createStreamController } from "../utils/streamHandler.ts";
 import * as streamFailure from "../utils/streamFailureFinalization.ts";
 import { createSseHeartbeatTransform, shapeForClientFormat } from "../utils/sseHeartbeat.ts";
@@ -126,12 +126,16 @@ import {
   FETCH_BODY_TIMEOUT_MS,
   PROVIDER_MAX_TOKENS,
   STREAM_IDLE_TIMEOUT_MS,
+  STREAM_READINESS_MAX_TIMEOUT_MS,
   STREAM_READINESS_TIMEOUT_MS,
   ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
   STREAM_RECOVERY,
 } from "../config/constants.ts";
 import { createRecoverableStream, makeContinuationBody } from "../services/streamRecovery.ts";
-import { resolveResilienceSettings } from "@/lib/resilience/settings";
+import {
+  resolveResilienceSettings,
+  isStreamRecoveryExplicitlyConfigured,
+} from "@/lib/resilience/settings";
 import {
   classifyProviderError,
   PROVIDER_ERROR_TYPES,
@@ -208,6 +212,7 @@ import {
   type NonStreamingSseTerminalState,
 } from "./chatCore/nonStreamingSse.ts";
 import { parseNonStreamingResponseBody } from "./chatCore/nonStreamingResponseParse.ts";
+import { unwrapClinepassEnvelope } from "../utils/clinepassEnvelope.ts";
 import { recordNonStreamingUsageStats } from "./chatCore/nonStreamingUsageStats.ts";
 import {
   createBodyTimeoutError,
@@ -449,6 +454,13 @@ export async function handleChatCore({
   }
   if (pluginGate.body) {
     body = pluginGate.body;
+  }
+  const agentGoalPolicy = resolveAgentGoalPolicy(body, clientRawRequest?.headers ?? null);
+  if (agentGoalPolicy.detected) {
+    log?.debug?.(
+      "AGENT_GOAL",
+      `long-running goal mode enabled: readinessMax=${agentGoalPolicy.readinessMaxTimeoutMs}ms streamRecovery=${agentGoalPolicy.streamRecoveryEnabled}`
+    );
   }
 
   let effectiveServiceTier: EffectiveServiceTier = "standard";
@@ -1143,8 +1155,7 @@ export async function handleChatCore({
       }
       // Phase 4A: unified output styles (supersedes cavemanOutputMode via the back-compat shim).
       let outputStyleResult:
-        | import("../services/compression/outputStyles/apply.ts").OutputStylesResult
-        | null = null;
+        import("../services/compression/outputStyles/apply.ts").OutputStylesResult | null = null;
       if (config.enabled) {
         try {
           const { resolveOutputStyleSelection } =
@@ -1196,8 +1207,8 @@ export async function handleChatCore({
           ? ((compressionInputBody as Record<string, unknown>).max_tokens as number)
           : null;
       let adaptiveTelemetry:
-        | import("../services/compression/adaptiveCompression/types.ts").AdaptiveTelemetry
-        | null = null;
+        import("../services/compression/adaptiveCompression/types.ts").AdaptiveTelemetry | null =
+        null;
       const compressionPlan = selectCompressionPlan(
         config,
         compressionComboKey,
@@ -1876,6 +1887,16 @@ export async function handleChatCore({
     }
   }
 
+  // Claude: strict Anthropic-compatible gateways (e.g. MiniMax) reject tool
+  // definitions that omit the required `type` discriminator with HTTP 400. Default
+  // a missing `type` to "custom" before dispatch, mirroring Anthropic's own
+  // inference, so legacy Claude-format tool payloads survive strict gateways (#2195).
+  if (targetFormat === FORMATS.CLAUDE && Array.isArray(translatedBody.tools)) {
+    translatedBody.tools = defaultClaudeToolType(
+      translatedBody.tools
+    ) as typeof translatedBody.tools;
+  }
+
   // Extract toolNameMap for response translation (Claude OAuth)
   const translatedToolNameMap = translatedBody._toolNameMap;
   const nativeClaudeToolNameMap = isClaudePassthrough
@@ -2116,8 +2137,7 @@ export async function handleChatCore({
 
   let onPipelineStreamError: streamFailure.PipelineStreamErrorHandler | null = null;
   let onClientDisconnectFinalize:
-    | ((event: { reason: string; duration: number }) => boolean)
-    | null = null;
+    ((event: { reason: string; duration: number }) => boolean) | null = null;
 
   // Create stream controller for disconnect detection
   const streamController = createStreamController({
@@ -2442,8 +2462,21 @@ export async function handleChatCore({
                     // Reuse the request-consolidated settings read (see line ~2076) — no
                     // second DB/cache hit. Default OFF when the setting is absent.
                     const sr = resolveResilienceSettings(settings).streamRecovery;
-                    streamRecoveryEnabled = sr.enabled;
+                    // Fail-closed: the agent-goal-policy heuristic may only ADD recovery
+                    // when the operator has no explicit configuration. If the operator
+                    // explicitly configured stream recovery (env var or DB/settings
+                    // override), that value always wins — the goal policy must never
+                    // re-enable recovery the operator explicitly turned off.
+                    const operatorExplicit = isStreamRecoveryExplicitlyConfigured(settings);
+                    const goalOverride = !operatorExplicit && agentGoalPolicy.streamRecoveryEnabled;
+                    streamRecoveryEnabled = sr.enabled || goalOverride;
                     continueMidStreamEnabled = sr.continueMidStream === true;
+                    if (goalOverride && !sr.enabled) {
+                      log?.info?.(
+                        "AGENT_GOAL",
+                        `agentGoalPolicy override: stream recovery enabled for goal request requestId=${traceId} model=${modelToCall || model || requestedModel || "unknown"}`
+                      );
+                    }
                   } catch {
                     streamRecoveryEnabled = false;
                     continueMidStreamEnabled = false;
@@ -2587,6 +2620,7 @@ export async function handleChatCore({
         const headersObj = normalizeHeaders(rawResult.response.headers);
         const responseHeaders = new Headers(headersObj);
         stripStaleForwardingHeaders(responseHeaders);
+        stripNextMiddlewareControlHeaders(responseHeaders);
         const contentType = (responseHeaders.get("content-type") || "").toLowerCase();
         const payload = await readNonStreamingResponseBody(
           rawResult.response,
@@ -3484,6 +3518,63 @@ export async function handleChatCore({
     let responseBody = parsed.responseBody;
     let responsePayloadFormat = parsed.responsePayloadFormat;
 
+    // ── ClinePass {success,data} envelope unwrap (before translation) ──────────
+    // ClinePass wraps non-streaming JSON in a {success, data} envelope; errors
+    // use {success:false, error}. Transient {success:false, error:"empty..."}
+    // responses get one 2s retry before surfacing. CLINEPASS-GATED — untouched
+    // for every other provider. Envelope errors route through createErrorResult
+    // (→ buildErrorBody/sanitizeErrorMessage, Rule #12).
+    if (provider === "clinepass") {
+      let { body: unwrapped, error: envError } = unwrapClinepassEnvelope(responseBody, provider);
+      if (envError && /empty/i.test(envError.message || "")) {
+        log?.warn?.("RETRY", "clinepass returned empty content, retrying once after 2s");
+        await new Promise((r) => setTimeout(r, 2000));
+        try {
+          const retryResult = await executeProviderRequest(effectiveModel, false);
+          if (retryResult?.response?.ok) {
+            const retryParsed = await parseNonStreamingResponseBody({
+              providerResponse: retryResult.response,
+              upstreamStream: undefined,
+              providerHeaders: retryResult.headers,
+              finalBody: retryResult.transformedBody,
+              targetFormat,
+              model,
+              log,
+            });
+            if (retryParsed.kind !== "invalid_sse" && retryParsed.kind !== "invalid_json") {
+              providerResponse = retryResult.response;
+              providerUrl = retryResult.url;
+              providerHeaders = retryResult.headers;
+              finalBody = providerRequestCapture.body(retryResult.transformedBody);
+              ({ body: unwrapped, error: envError } = unwrapClinepassEnvelope(
+                retryParsed.responseBody,
+                provider
+              ));
+            }
+          }
+        } catch (retryErr) {
+          log?.warn?.(
+            "RETRY",
+            `clinepass retry failed: ${
+              retryErr instanceof Error ? retryErr.message : String(retryErr)
+            }`
+          );
+        }
+      }
+      if (envError) {
+        appendRequestLog({
+          model,
+          provider,
+          connectionId,
+          status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
+        }).catch(() => {});
+        persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "clinepass_envelope_error");
+        trackPendingRequest(model, provider, connectionId, false);
+        return createErrorResult(HTTP_STATUS.BAD_GATEWAY, envError.message);
+      }
+      responseBody = unwrapped;
+    }
+
     // Check for empty content response (fake success) - trigger fallback
     if (isEmptyContentResponse(responseBody)) {
       appendRequestLog({
@@ -3916,6 +4007,9 @@ export async function handleChatCore({
     provider,
     model,
     body: (finalBody || translatedBody) as Record<string, unknown> | null | undefined,
+    maxTimeoutMs: agentGoalPolicy.detected
+      ? Math.max(STREAM_READINESS_MAX_TIMEOUT_MS, agentGoalPolicy.readinessMaxTimeoutMs)
+      : STREAM_READINESS_MAX_TIMEOUT_MS,
   });
   if (streamReadinessPolicy.timeoutMs !== streamReadinessPolicy.baseTimeoutMs) {
     log?.debug?.(
@@ -4037,6 +4131,20 @@ export async function handleChatCore({
       }
     }
     effectiveServiceTier = resolveReportedServiceTier(streamResponseBody) ?? effectiveServiceTier;
+
+    // Context Editing telemetry (streaming): the reconstructed stream body now carries
+    // context_management.applied_edits from the final message_delta snapshot. Mirror the
+    // non-streaming hook so streaming context-clear savings also surface under engine
+    // "context-editing" in compression analytics. Best-effort, Claude-only.
+    if (normalizedStreamStatus === 200) {
+      recordContextEditingTelemetryHook({
+        contextEditingEnabled,
+        provider,
+        responseBody: streamResponseBody,
+        skillRequestId,
+        log,
+      });
+    }
 
     streamFailure.finalizeStreamRequestLog({
       pendingRequestId,

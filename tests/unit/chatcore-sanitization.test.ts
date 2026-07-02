@@ -437,17 +437,19 @@ test("chatCore sanitization normalizes mixed content blocks and removes unsuppor
     textBlocks.some((block) => block.text === "[draft.txt]\nDraft text"),
     true
   );
+  // Orphaned tool_result blocks (no matching tool_use anywhere in the request) are
+  // stripped by `stripOrphanedToolResults` (#5805) before reaching content normalization,
+  // to avoid strict-upstream 400s. They are therefore removed entirely — neither preserved
+  // as tool_result blocks nor inlined as "[Tool Result: …]" text.
   assert.equal(
-    textBlocks.some((block) => block.text === "[Tool Result: tool-1]\ndone"),
-    true
+    content.some((block) => block.type === "tool_result"),
+    false
   );
   assert.equal(
-    textBlocks.some((block) => block.text === "[Tool Result: tool-2]\nstructured result"),
-    true
-  );
-  assert.equal(
-    textBlocks.some((block) => block.text === '[Tool Result: tool-3]\n{"status":"ok","count":2}'),
-    true
+    textBlocks.some(
+      (block) => typeof block.text === "string" && block.text.includes("[Tool Result:")
+    ),
+    false
   );
 });
 

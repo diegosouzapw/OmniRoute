@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { platform, totalmem } from "node:os";
@@ -16,6 +16,7 @@ import {
 import { resolveTlsOptions } from "../../../scripts/dev/tls-options.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const _pkg = JSON.parse(readFileSync(join(__dirname, "..", "..", "..", "package.json"), "utf8"));
 
 // URL scheme for the "OmniRoute is running" banner — flipped to https when
 // opt-in TLS (#5242) is active. Process-scoped: one `serve` run = one scheme.
@@ -48,11 +49,13 @@ export function registerServe(program) {
     .option("--no-tray", t("serve.no_tray") || "Disable system tray icon")
     .option(
       "--tls-cert <path>",
-      t("serve.tls_cert") || "Path to a TLS certificate (PEM) to serve HTTPS (also OMNIROUTE_TLS_CERT)"
+      t("serve.tls_cert") ||
+        "Path to a TLS certificate (PEM) to serve HTTPS (also OMNIROUTE_TLS_CERT)"
     )
     .option(
       "--tls-key <path>",
-      t("serve.tls_key") || "Path to the TLS private key (PEM) to serve HTTPS (also OMNIROUTE_TLS_KEY)"
+      t("serve.tls_key") ||
+        "Path to the TLS private key (PEM) to serve HTTPS (also OMNIROUTE_TLS_KEY)"
     )
     .action(async (opts) => {
       await runServe(opts);
@@ -60,6 +63,8 @@ export function registerServe(program) {
 }
 
 export async function runServe(opts = {}) {
+  const startedAt = performance.now();
+
   const { isNativeBinaryCompatible } =
     await import("../../../scripts/build/native-binary-compat.mjs");
   const { getNodeRuntimeSupport, getNodeRuntimeWarning } =
@@ -78,6 +83,7 @@ export async function runServe(opts = {}) {
   | |__| | | | | | | | | | | | \\ \\ (_) | |_| | ||  __/
    \\____/|_| |_| |_|_| |_|_|_|  \\_\\___/ \\__,_|\\__\\___|
 \x1b[0m`);
+  console.log(`\x1b[2m  v${_pkg.version}\x1b[0m\n`);
 
   const nodeSupport = getNodeRuntimeSupport();
   if (!nodeSupport.nodeCompatible) {
@@ -187,7 +193,15 @@ export async function runServe(opts = {}) {
   }
 
   if (opts.noRecovery) {
-    return runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, noOpen);
+    return runWithoutRecovery(
+      serverJs,
+      env,
+      memoryLimit,
+      dashboardPort,
+      apiPort,
+      noOpen,
+      startedAt
+    );
   }
 
   return runWithSupervisor(
@@ -199,6 +213,7 @@ export async function runServe(opts = {}) {
     noOpen,
     opts.log === true,
     opts.maxRestarts ?? 2,
+    startedAt,
     useTray
   );
 }
@@ -219,7 +234,7 @@ function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
   console.log(`  \x1b[1mAPI Base:\x1b[0m   ${urlScheme}://localhost:${apiPort}/v1`);
 }
 
-function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, noOpen) {
+function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, noOpen, startedAt) {
   // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
   // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
   const server = spawn("node", [...buildNodeHeapArgs(process.env, memoryLimit), serverJs], {
@@ -240,7 +255,7 @@ function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, 
       (text.includes("Ready") || text.includes("started") || text.includes("listening"))
     ) {
       started = true;
-      onReady(dashboardPort, apiPort, noOpen);
+      onReady(dashboardPort, apiPort, noOpen, startedAt);
     }
   });
 
@@ -274,7 +289,7 @@ function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, 
   setTimeout(() => {
     if (!started) {
       started = true;
-      onReady(dashboardPort, apiPort, noOpen);
+      onReady(dashboardPort, apiPort, noOpen, startedAt);
     }
   }, 15000);
 }
@@ -288,6 +303,7 @@ async function runWithSupervisor(
   noOpen,
   showLog,
   maxRestarts,
+  startedAt,
   useTray = false
 ) {
   if (showLog) process.env.OMNIROUTE_SHOW_LOG = "1";
@@ -325,7 +341,7 @@ async function runWithSupervisor(
     waitForServer(dashboardPort, 60000).then(async (up) => {
       if (up) {
         if (useTray) await maybeStartTray(dashboardPort, apiPort, supervisor);
-        onReady(dashboardPort, apiPort, noOpen);
+        onReady(dashboardPort, apiPort, noOpen, startedAt);
       }
     });
   }
@@ -366,18 +382,20 @@ async function maybeStartTray(port, apiPort, supervisor) {
   } catch (err) {
     // tray is optional — do not fail the server, but surface why it failed so
     // "--tray shows nothing" is diagnosable instead of silent (#4605).
-    process.stderr.write(
-      `[omniroute][tray] failed to start: ${err?.message ?? String(err)}\n`
-    );
+    process.stderr.write(`[omniroute][tray] failed to start: ${err?.message ?? String(err)}\n`);
   }
 }
 
-async function onReady(dashboardPort, apiPort, noOpen) {
+async function onReady(dashboardPort, apiPort, noOpen, startedAt) {
   const dashboardUrl = `${urlScheme}://localhost:${dashboardPort}`;
   const apiUrl = `${urlScheme}://localhost:${apiPort}`;
+  const elapsed =
+    typeof startedAt === "number" && Number.isFinite(startedAt)
+      ? ((performance.now() - startedAt) / 1000).toFixed(1)
+      : "0.0";
 
   console.log(`
-  \x1b[32m✔ OmniRoute is running!\x1b[0m
+  \x1b[32m✔ OmniRoute is running!\x1b[0m \x1b[2m(started in ${elapsed}s)\x1b[0m
 
   \x1b[1m  Dashboard:\x1b[0m  ${dashboardUrl}
   \x1b[1m  API Base:\x1b[0m   ${apiUrl}/v1

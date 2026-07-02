@@ -5,11 +5,6 @@ import { DASHBOARD_CSRF_HEADER } from "@/shared/constants/dashboardCsrf";
 const TOKEN_VERSION = "v1";
 const TOKEN_TTL_SECONDS = 10 * 60;
 const TOKEN_CONTEXT = "omniroute-dashboard-csrf-v1";
-const TEST_MUTATION_PATHS = new Set([
-  "/api/combos/test",
-  "/api/models/test",
-  "/api/models/test-all",
-]);
 
 export interface DashboardCsrfToken {
   token: string;
@@ -65,18 +60,7 @@ export function issueDashboardCsrfToken(
   };
 }
 
-function requestPathname(request: Request): string | null {
-  try {
-    return new URL(request.url).pathname;
-  } catch {
-    return null;
-  }
-}
-
 export function validateDashboardCsrfToken(request: Request, nowMs: number = Date.now()): boolean {
-  const pathname = requestPathname(request);
-  if (!pathname || !TEST_MUTATION_PATHS.has(pathname)) return false;
-
   const secret = getJwtSecret();
   const authToken = getCookieValue(request, "auth_token");
   const rawToken = request.headers.get(DASHBOARD_CSRF_HEADER);
