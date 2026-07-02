@@ -75,18 +75,21 @@ export async function resolveSingleImageComboTarget(name: string): Promise<strin
  */
 export async function resolveImageRouteModel(modelStr: string): Promise<string> {
   if (typeof modelStr !== "string" || !modelStr.trim()) return modelStr;
+  const parsedModel = parseImageModel(modelStr);
+  const hasSlash = modelStr.includes("/");
 
-  // 1. Bare combo/alias name (no slash): resolve to its single image target, then
-  //    prefix-resolve that target (it may itself be a `prefix/model` custom id).
-  //    This intentionally precedes built-in aliases so user combos can shadow names
-  //    like `gpt-image-2`; explicit `provider/model` ids still bypass this branch.
-  if (!modelStr.includes("/")) {
+  // 1. Bare model name: resolve to its single combo target when safe.
+  //    Codex bare models are reserved to avoid shadowing `gpt-5.5`-style aliases used
+  //    across image + responses flows.
+  if (!hasSlash) {
+    if (parsedModel.provider === "codex") return modelStr;
+
     const target = await resolveSingleImageComboTarget(modelStr);
     if (target && target !== modelStr) return resolveImageModelPrefix(target);
   }
 
   // 2. Built-in image model (alias or provider/model) — leave untouched.
-  if (parseImageModel(modelStr).provider) return modelStr;
+  if (parsedModel.provider) return modelStr;
 
   if (!modelStr.includes("/")) return modelStr;
 
