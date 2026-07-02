@@ -16,7 +16,6 @@ import {
 } from "../../services/payloadRules.ts";
 import { getEffectiveToolLimit } from "../../services/toolLimitDetector.ts";
 import { providerSupportsCaching } from "../../utils/cacheControlPolicy.ts";
-import { MAX_TOOLS_LIMIT } from "../../config/constants.ts";
 import { FORMATS } from "../../translator/formats.ts";
 
 type LoggerLike = { debug?: (...args: unknown[]) => void } | null | undefined;
@@ -39,13 +38,13 @@ function buildAppliedRulesSummary(
     .join(", ");
 }
 
-function truncateToolList(bodyToSend: Body, provider: string | null | undefined, log?: LoggerLike): Body {
+function truncateToolList(
+  bodyToSend: Body,
+  provider: string | null | undefined,
+  log?: LoggerLike
+): Body {
   const effectiveToolLimit = getEffectiveToolLimit(provider);
-  if (
-    effectiveToolLimit < MAX_TOOLS_LIMIT &&
-    Array.isArray(bodyToSend.tools) &&
-    bodyToSend.tools.length > effectiveToolLimit
-  ) {
+  if (Array.isArray(bodyToSend.tools) && bodyToSend.tools.length > effectiveToolLimit) {
     const truncatedTools = bodyToSend.tools.slice(0, effectiveToolLimit);
     bodyToSend = { ...bodyToSend, tools: truncatedTools };
     log?.debug?.(
@@ -64,8 +63,7 @@ function backfillQwenOAuthUser(
   credentials: CredentialsLike,
   log?: LoggerLike
 ): Body {
-  const hasValidQwenUser =
-    typeof bodyToSend.user === "string" && bodyToSend.user.trim().length > 0;
+  const hasValidQwenUser = typeof bodyToSend.user === "string" && bodyToSend.user.trim().length > 0;
   const isQwenOAuthRequest =
     provider === "qwen" &&
     !credentials?.apiKey &&

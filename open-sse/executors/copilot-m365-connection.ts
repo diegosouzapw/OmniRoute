@@ -86,6 +86,38 @@ export function newChatSessionId(): string {
   return randomBytes(16).toString("hex");
 }
 
+function parsePastedCredential(
+  raw: string
+): Partial<Pick<M365ConnectionParams, "accessToken" | "chathubPath">> {
+  const value = raw.trim();
+  const parts: Record<string, string> = {};
+
+  for (const segment of value.split(/[;\n]/)) {
+    const separator = segment.indexOf("=");
+    if (separator <= 0) continue;
+    const key = segment.slice(0, separator).trim();
+    const partValue = segment.slice(separator + 1).trim();
+    if (key && partValue) parts[key] = partValue;
+  }
+
+  if (/^wss:\/\/substrate\.office\.com\/m365Copilot\/Chathub\//i.test(value)) {
+    try {
+      const url = new URL(value);
+      parts.access_token ||= url.searchParams.get("access_token") || "";
+      parts.chathubPath ||= decodeURIComponent(
+        url.pathname.split("/m365Copilot/Chathub/")[1] || ""
+      );
+    } catch {
+      // Keep any key/value fields already parsed from the pasted text.
+    }
+  }
+
+  return {
+    accessToken: parts.access_token || parts.accessToken,
+    chathubPath: parts.chathubPath || parts.userTenant,
+  };
+}
+
 /**
  * Read the pasted credential bits. The individual access_token is opaque (JWE),
  * so it is consumed verbatim. The Chathub path (`user@tenant`) is pasted
@@ -95,8 +127,14 @@ export function resolveConnectionParams(
   credentials: ProviderCredentials | undefined
 ): M365ConnectionParams | { error: string } {
   const psd = (credentials?.providerSpecificData ?? {}) as JsonRecord;
+  const parsedApiKey =
+    typeof credentials?.apiKey === "string" ? parsePastedCredential(credentials.apiKey) : {};
   const accessToken =
-    (typeof credentials?.apiKey === "string" && credentials.apiKey) ||
+    parsedApiKey.accessToken ||
+    (typeof credentials?.apiKey === "string" &&
+      credentials.apiKey &&
+      !credentials.apiKey.includes("access_token=") &&
+      credentials.apiKey) ||
     (typeof psd.accessToken === "string" && psd.accessToken) ||
     (typeof psd.access_token === "string" && psd.access_token) ||
     "";
@@ -104,6 +142,7 @@ export function resolveConnectionParams(
     return { error: "Missing M365 Copilot access_token. Paste it as the provider credential." };
   }
   const chathubPath =
+    parsedApiKey.chathubPath ||
     (typeof psd.chathubPath === "string" && psd.chathubPath) ||
     (typeof psd.userTenant === "string" && psd.userTenant) ||
     "";

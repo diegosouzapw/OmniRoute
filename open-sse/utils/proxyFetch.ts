@@ -107,6 +107,29 @@ export function describeFetchCause(err: unknown): string {
   return parts.join(" | ") || String(err);
 }
 
+
+function isStreamLikeBody(body: unknown): boolean {
+  return (
+    body !== null &&
+    body !== undefined &&
+    typeof body === "object" &&
+    (typeof (body as Record<string, unknown>).getReader === "function" ||
+      typeof (body as Record<string, unknown>).stream === "function")
+  );
+}
+
+function requestHasNonReplayableBody(
+  input: RequestInfo | URL,
+  options: FetchWithDispatcherOptions
+): boolean {
+  if (isStreamLikeBody(options.body as unknown)) return true;
+  if (typeof Request !== "undefined" && input instanceof Request) {
+    if (input.bodyUsed) return true;
+    if (input.body !== null) return true;
+  }
+  return false;
+}
+
 /** Injectable dependencies for testability (Approach B DI). */
 export type ProxyFetchDeps = {
   undiciFetch?: FetchWithDispatcher;
@@ -436,17 +459,13 @@ async function patchedFetch(
     // Falls back to original native fetch if dispatcher initialization fails (#1054).
     // Retries once on transient dispatcher errors before falling back (fix: proxyfetch-undici-retry).
     //
-    // ReadableStream/Blob body guard: if the body is non-replayable, skip the retry because
-    // the first attempt drains the stream; a second attempt would silently send an empty body.
-    // ReadableStream check: cast through unknown to avoid explicit-any budget (T11).
-    const _bodyUnknown = options.body as unknown;
-    const bodyIsStream =
-      _bodyUnknown !== null &&
-      _bodyUnknown !== undefined &&
-      typeof _bodyUnknown === "object" &&
-      (typeof (_bodyUnknown as Record<string, unknown>).getReader === "function" || // ReadableStream
-        typeof (_bodyUnknown as Record<string, unknown>).stream === "function"); // Blob
-    const maxAttempts = bodyIsStream ? 1 : 2;
+    // Non-replayable body guard: if the body is stream-like (ReadableStream/Blob)
+    // or the input is a Request that carries a body, the first dispatcher attempt
+    // owns that body. Retrying or falling back to native fetch would replay a
+    // consumed/locked body and can mask the original transport error with
+    // "Response body object should not be disturbed or locked".
+    const hasNonReplayableBody = requestHasNonReplayableBody(input, options);
+    const maxAttempts = hasNonReplayableBody ? 1 : 2;
     const _undiciDirect =
       deps.undiciFetch ?? (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>);
     const _nativeFallback =
@@ -492,6 +511,17 @@ async function patchedFetch(
             await new Promise((r) => setTimeout(r, 25 + Math.random() * 50));
             continue;
           }
+          if (hasNonReplayableBody) {
+            const detail = `dispatcher=[${describeFetchCause(dispatcherError)}] native=[skipped: non-replayable request body]`;
+            console.warn(
+              `[ProxyFetch] skipping native fetch fallback for non-replayable body: ${detail}`
+            );
+            if (dispatcherError instanceof Error) {
+              (dispatcherError as Error & { proxyFetchDetail?: string }).proxyFetchDetail = detail;
+            }
+            throw dispatcherError;
+          }
+
           // All attempts exhausted — try proxy fallback before native fetch
           if (source === "direct" && isFeatureFlagEnabled("PROXY_AUTO_SELECT_ENABLED")) {
             let targetHostname = "";

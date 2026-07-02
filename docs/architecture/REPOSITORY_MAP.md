@@ -98,7 +98,6 @@ OmniRoute/
 | **knip.json**                               | Knip config — unused files/exports/deps (feeds the dead-code gate)                       |
 | **stryker.conf.json**                       | Stryker mutation-testing config                                                          |
 | **.size-limit.json**                        | size-limit bundle budget config                                                          |
-| **semcheck.yaml**                           | semcheck (spec↔code drift) config                                                        |
 | **promptfooconfig.yaml**                    | promptfoo eval config                                                                    |
 | **.gitleaks.toml**                          | gitleaks secret-scan ruleset                                                             |
 | **.zizmor.yml**                             | zizmor GitHub-Actions security-lint config                                               |

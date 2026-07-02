@@ -6,6 +6,7 @@
  */
 
 import { MAX_TIMER_TIMEOUT_MS } from "../../src/shared/utils/runtimeTimeouts.ts";
+import type { ResponseValidationConfig } from "./combo/responseValidation.ts";
 
 /**
  * Maximum number of concurrent pre-screen checks (provider profile + availability)
@@ -63,6 +64,9 @@ const DEFAULT_COMBO_CONFIG = {
   resetAwareTieBandPercent: 5,
   resetAwareExhaustionGuardPercent: 10,
   failoverBeforeRetry: true,
+  // Feature 4985: configurable response-body validation predicate (per-combo). When set,
+  // a 200 OK whose body fails the predicate fails over to the next target.
+  responseValidation: undefined as ResponseValidationConfig | undefined,
   maxSetRetries: 0,
   setRetryDelayMs: 2000,
   // Zero-latency optimizations are opt-in because some modes can race targets or

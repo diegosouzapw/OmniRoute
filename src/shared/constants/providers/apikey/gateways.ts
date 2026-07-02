@@ -362,6 +362,11 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     website: "https://cablyai.com",
     authHint: "Bearer API key for the CablyAI OpenAI-compatible gateway.",
     passthroughModels: true,
+    subscriptionRisk: true,
+    riskNoticeVariant: "deprecated",
+    deprecated: true,
+    deprecationReason:
+      "cablyai.com no longer resolves (DNS NXDOMAIN, verified 2026-06-30) — the domain is gone and every request fails with a DNS error (#5568).",
   },
   thebai: {
     id: "thebai",

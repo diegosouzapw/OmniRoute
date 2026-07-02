@@ -188,6 +188,18 @@ export async function registerNodejs(): Promise<void> {
       console.log("[STARTUP] Global System Prompt restored from settings");
     }
 
+    // Restore the proxy-level Thinking-Budget config (#5312 RC-A). It lives in
+    // `settings.thinkingBudget` and is NOT covered by applyRuntimeSettings, so
+    // without this the dashboard mode (auto/custom/adaptive) silently reverts to
+    // the passthrough default on every restart. Previously this was only wired into
+    // the unused `server-init.ts`, so it never ran in production.
+    const { hydrateThinkingBudgetConfig } = await import(
+      "@omniroute/open-sse/services/thinkingBudget.ts"
+    );
+    if (hydrateThinkingBudgetConfig(settings)) {
+      console.log("[STARTUP] Thinking-Budget config restored from settings");
+    }
+
     const seededModelAliases = await seedDefaultModelAliases();
     console.log(
       `[STARTUP] Model alias seed: applied=${seededModelAliases.applied.length}, skipped=${seededModelAliases.skipped.length}, failed=${seededModelAliases.failed.length}`
@@ -322,6 +334,28 @@ export async function registerNodejs(): Promise<void> {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.warn("[STARTUP] models.dev sync failed to start (non-fatal):", msg);
+    }
+
+    // Context-window self-correction (5004): periodically reconcile provider-declared
+    // windows (from /models discovery) into auto:discovery overrides. Reuses already-synced
+    // data (no new fetch); disable via CONTEXT_WINDOW_RECONCILE_INTERVAL=0. Never fatal.
+    try {
+      const { startContextWindowReconcile } = await import("@/lib/contextWindowResolver");
+      startContextWindowReconcile();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] context-window reconcile failed to start (non-fatal):", msg);
+    }
+
+    // TV6 typed memory decay: optional periodic sweep of decayed episodic memories. Doubly
+    // opt-in (no-op unless MEMORY_TYPED_DECAY_ENABLED=true AND
+    // MEMORY_TYPED_DECAY_SWEEP_INTERVAL>0). Never deletes by default. Never fatal.
+    try {
+      const { startMemoryDecaySweep } = await import("@/lib/memory/typedDecay");
+      startMemoryDecaySweep();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
     }
   }
 }

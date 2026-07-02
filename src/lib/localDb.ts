@@ -93,6 +93,7 @@ export {
 export * from "./db/compressionCacheStats";
 export * from "./db/compressionCombos";
 export * from "./db/compressionRunTelemetry";
+export * from "./db/modelContextOverrides";
 
 export {
   // API Keys
@@ -290,12 +291,18 @@ export {
   countBatches,
   getPendingBatches,
   getTerminalBatches,
+  ensureBatchItemCheckpoints,
+  countBatchItemCheckpoints,
+  listBatchItemCheckpoints,
+  markBatchItemProcessing,
+  markBatchItemResult,
+  markBatchItemError,
   deleteBatch,
   deleteCompletedBatches,
 } from "./db/batches";
 
 export type { FileRecord } from "./db/files";
-export type { BatchRecord } from "./db/batches";
+export type { BatchItemCheckpoint, BatchRecord } from "./db/batches";
 
 export type { ModelComboMapping } from "./db/modelComboMappings";
 
@@ -578,12 +585,7 @@ export {
   listAllocationsForApiKey,
 } from "./db/quotaPools";
 // Quota per-(key, model) caps — Group B Fase 3 #7
-export {
-  getModelCap,
-  listModelCaps,
-  setModelCap,
-  deleteModelCap,
-} from "./db/quotaModelCaps";
+export { getModelCap, listModelCaps, setModelCap, deleteModelCap } from "./db/quotaModelCaps";
 
 export {
   // Quota Groups (B2)

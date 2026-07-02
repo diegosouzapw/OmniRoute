@@ -166,7 +166,7 @@ async function calculateAggregateCost(row: JsonRecord): Promise<number> {
       cacheCreation: toNumber(row.cost_tokens_cache_creation ?? row.tokens_cache_creation),
       reasoning: toNumber(row.cost_tokens_reasoning ?? row.tokens_reasoning),
     },
-    { serviceTier }
+    { provider, serviceTier, flatRateAsZero: true }
   );
   return storedCost + calculatedCost;
 }
@@ -272,7 +272,11 @@ export async function getConnectionSpendUsdSinceAdded(
       cacheCreation: Number(row.cacheCreation ?? 0),
       reasoning: Number(row.reasoning ?? 0),
     };
-    costUsd += await calculateCost(provider, model, tokens, { provider, model });
+    costUsd += await calculateCost(provider, model, tokens, {
+      provider,
+      model,
+      flatRateAsZero: true,
+    });
   }
 
   return { costUsd: Math.max(0, costUsd), requests };
