@@ -7,8 +7,7 @@ import {
   getProtocolColor,
 } from "@/shared/constants/colors";
 import { formatDuration, formatApiKeyLabel, maskAccount } from "@/shared/utils/formatting";
-
-// ─── Payload Code Block ─────────────────────────────────────────────────────
+import { RequestLoggerIssueAgentActions, RequestLoggerIssueAgentStatus } from "./RequestLoggerIssueAgentActions";
 
 function PayloadSection({ title, json, onCopy, collapsible = true, defaultOpen = true }) {
   const [copied, setCopied] = useState(false);
@@ -60,8 +59,6 @@ function PayloadSection({ title, json, onCopy, collapsible = true, defaultOpen =
     </div>
   );
 }
-
-// ─── Stream section + Detail Modal ───────────────────────────────────────────────────────────
 
 function StreamSection({ title, json, onCopy }) {
   const [copied, setCopied] = useState(false);
@@ -137,8 +134,6 @@ function StreamSection({ title, json, onCopy }) {
     </div>
   );
 }
-
-// ─── Detail Modal ───────────────────────────────────────────────────────────
 
 type StreamChunks = Record<string, string | string[]>;
 
@@ -351,37 +346,11 @@ export default function RequestLoggerDetail({
           </div>
           <div className="flex items-center gap-1">
             {showIssueAgentActions && (
-              <div className="flex items-center gap-1 mr-2">
-                <button
-                  onClick={() => onRunIssueAgent?.("triage")}
-                  disabled={issueAgentRunningMode !== null}
-                  className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
-                  aria-label="Explain issue"
-                  title="Explain issue"
-                >
-                  <span className="material-symbols-outlined text-[18px]">psychology</span>
-                </button>
-                <button
-                  onClick={() => onRunIssueAgent?.("fix")}
-                  disabled={!issueAgentFixEnabled || issueAgentRunningMode !== null}
-                  className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
-                  aria-label="Try fix"
-                  title={issueAgentFixEnabled ? "Try fix" : "Enable fix PRs in Advanced Settings"}
-                >
-                  <span className="material-symbols-outlined text-[18px]">build</span>
-                </button>
-                <button
-                  onClick={() => onRunIssueAgent?.("triage-and-fix")}
-                  disabled={!issueAgentFixEnabled || issueAgentRunningMode !== null}
-                  className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
-                  aria-label="Explain and fix"
-                  title={
-                    issueAgentFixEnabled ? "Explain and fix" : "Enable fix PRs in Advanced Settings"
-                  }
-                >
-                  <span className="material-symbols-outlined text-[18px]">auto_fix_high</span>
-                </button>
-              </div>
+              <RequestLoggerIssueAgentActions
+                fixEnabled={issueAgentFixEnabled}
+                runningMode={issueAgentRunningMode}
+                onRun={onRunIssueAgent}
+              />
             )}
             <button
               onClick={onPrevious}
@@ -411,9 +380,7 @@ export default function RequestLoggerDetail({
 
         <div className="p-6 flex flex-col gap-6">
           {showIssueAgentActions && issueAgentStatus && (
-            <div className="rounded-xl border border-border bg-bg-subtle px-4 py-3 text-sm text-text-muted">
-              {issueAgentStatus}
-            </div>
+            <RequestLoggerIssueAgentStatus status={issueAgentStatus} />
           )}
           {/* Metadata Grid */}
           {log.active ? (
