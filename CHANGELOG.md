@@ -12,7 +12,7 @@ _TBD_
 
 ### 🔧 Bug Fixes
 
-_TBD_
+- **fix(sse):** strip ANSI/VT100 escape codes from gemini-cli stream frames so ANSI-prefixed `data:` lines are no longer silently dropped. (thanks @anki1kr)
 
 ### 📝 Maintenance
 
