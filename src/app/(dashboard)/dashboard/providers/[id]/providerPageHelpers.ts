@@ -5,6 +5,7 @@
 // dependency. Extracting them here unblocks moving the heavier modals
 // (AddApiKeyModal / EditConnectionModal) out of the god-component in later phases.
 import { LOCAL_PROVIDERS, isSelfHostedChatProvider } from "@/shared/constants/providers";
+import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
 import {
   MODEL_COMPAT_PROTOCOL_KEYS,
   type ModelCompatProtocolKey,
@@ -752,6 +753,13 @@ export function compatProtocolLabelKey(protocol: string): string {
  * field is filled, it is returned verbatim so users can still paste a pre-combined
  * `id:secret` string into the single field.
  */
+// #5446 checklist item 4 — Modal is bring-your-own-deploy, but the server-side
+// validator probes a known public model; pre-fill the same id so the UI and the
+// probe never drift.
+export function defaultValidationModelIdForProvider(provider: string | undefined): string {
+  return provider === "modal" ? MODAL_DEFAULT_VALIDATION_MODEL_ID : "";
+}
+
 export function combineModalCredential(tokenId: string, tokenSecret: string): string {
   const id = tokenId.trim();
   const secret = tokenSecret.trim();

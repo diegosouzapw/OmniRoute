@@ -13,6 +13,7 @@ import {
 import { SAFE_OUTBOUND_FETCH_PRESETS, safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { resolveNvidiaValidationModel } from "@/lib/providers/nvidiaValidationModel";
+import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 import { validateImageProviderApiKey } from "@/lib/providers/imageValidation";
 
@@ -335,7 +336,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         apiKey,
         providerSpecificData,
         baseUrl: normalizeBaseUrl(providerSpecificData?.baseUrl || ""),
-        modelId: "Qwen/Qwen3-4B-Thinking-2507-FP8",
+        modelId: MODAL_DEFAULT_VALIDATION_MODEL_ID,
         isLocal,
       }),
     "nous-research": validateNousResearchProvider,

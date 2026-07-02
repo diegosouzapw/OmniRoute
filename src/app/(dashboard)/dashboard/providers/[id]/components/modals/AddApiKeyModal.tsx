@@ -19,6 +19,7 @@ import {
   normalizeAndValidateHttpBaseUrl,
   extractCommandCodeCredentialInput,
   combineModalCredential,
+  defaultValidationModelIdForProvider,
   providerText,
   validationBadgeProps,
   type CommandCodeAuthFlowState,
@@ -109,7 +110,7 @@ export default function AddApiKeyModal({
     cx: "",
     region: showsRegion ? defaultRegion : "",
     apiRegion: "international",
-    validationModelId: "",
+    validationModelId: defaultValidationModelIdForProvider(provider), // #5446 item 4 — Modal probe model pre-fill
     routingTags: "",
     excludedModels: "",
     customUserAgent: "",
