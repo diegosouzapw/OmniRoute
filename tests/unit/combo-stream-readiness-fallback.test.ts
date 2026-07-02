@@ -3,6 +3,18 @@ import assert from "node:assert/strict";
 
 import { handleComboChat, validateResponseQuality } from "../../open-sse/services/combo.ts";
 import { ensureStreamReadiness } from "../../open-sse/utils/streamReadiness.ts";
+import { resetAllCircuitBreakers } from "../../src/shared/utils/circuitBreaker.ts";
+
+// Test isolation: the combo-dispatch cases below deliberately fail `glm` (zombie
+// streams / 504s) several times in a row, which legitimately trips the per-provider
+// circuit breaker. That OPEN state is a module-level singleton, so without a reset it
+// leaks into the next test — combo.ts then SKIPS `glm/*` targets entirely (combo.ts
+// "Skipping … circuit breaker OPEN"), making e.g. "does not retry stream readiness
+// timeouts on the same model" never attempt glm/zombie. Reset before each test so every
+// scenario starts from a clean breaker slate (the breaker behavior itself is correct).
+test.beforeEach(() => {
+  resetAllCircuitBreakers();
+});
 
 const textEncoder = new TextEncoder();
 

@@ -14,6 +14,9 @@ import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/servi
 import { getProviderNodes, getComboByName, getCombos, getDatabaseSettings } from "@/lib/localDb";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
 import { findEmbeddingComboDimensionConflict } from "./familyGuard";
+import { calculateCost } from "@/lib/usage/costCalculator";
+import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import { generateRequestId } from "@/shared/utils/requestId";
 
 type ValidatedEmbeddingBody = Record<string, unknown> & { model: string };
 type ProviderCredentialsResult = Awaited<ReturnType<typeof getProviderCredentials>>;
@@ -34,6 +37,7 @@ export async function createEmbeddingResponse(
   options: EmbeddingHandlerOptions = {}
 ): Promise<Response> {
   const modelStr = body.model;
+  const startTime = Date.now();
 
   if (!modelStr.includes("/")) {
     try {
@@ -207,6 +211,16 @@ export async function createEmbeddingResponse(
   if (result.success) {
     if (credentials) await clearRecoveredProviderState(credentials);
     responseHeaders.set("Content-Type", "application/json");
+    const usage = (result.data as { usage?: Record<string, number> })?.usage ?? null;
+    const costUsd = usage ? await calculateCost(provider, resolvedModel ?? "", usage) : 0;
+    attachOmniRouteMetaHeaders(responseHeaders, {
+      provider,
+      model: resolvedModel,
+      usage,
+      costUsd,
+      latencyMs: Date.now() - startTime,
+      requestId: generateRequestId(),
+    });
     return new Response(JSON.stringify(result.data), {
       status: result.status,
       headers: responseHeaders,

@@ -7,8 +7,26 @@
 //   - extractSeverity()   — extracts severity from a vulnerability entry
 import test from "node:test";
 import assert from "node:assert/strict";
-// @ts-expect-error — .mjs helper has no type declarations; runtime shape is known.
-import { parseOsvJson, extractSeverity } from "../../../scripts/check/check-vuln-ratchet.mjs";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
+import {
+  parseOsvJson,
+  extractSeverity,
+  evaluateVulnRatchet,
+  readBaselineVulnValue,
+  // @ts-expect-error — .mjs helper has no type declarations; runtime shape is known.
+} from "../../../scripts/check/check-vuln-ratchet.mjs";
+
+type RatchetVerdict = { regressed: boolean; improved: boolean };
+const evaluate = evaluateVulnRatchet as (current: number, baseline: number) => RatchetVerdict;
+const readBaseline = readBaselineVulnValue as (p?: string) => number | null;
+
+const SCRIPT_PATH = fileURLToPath(
+  new URL("../../../scripts/check/check-vuln-ratchet.mjs", import.meta.url)
+);
 
 // ---------------------------------------------------------------------------
 // Fixtures — JSON sintético com formato do osv-scanner --format json
@@ -292,4 +310,98 @@ test("extractSeverity: severity[0] sem type retorna UNKNOWN", () => {
 test("extractSeverity: database_specific.severity vazia retorna UNKNOWN", () => {
   const vuln = { database_specific: { severity: "" } };
   assert.equal(extractSeverity(vuln), "UNKNOWN");
+});
+
+// ---------------------------------------------------------------------------
+// evaluateVulnRatchet — ratchet direction:down (cycle-end: flip to blocking)
+// Regression when measured > baseline; baseline=10 → 11+ blocks, 10 passes.
+// ---------------------------------------------------------------------------
+
+test("evaluateVulnRatchet: medida == baseline passa (10 vs 10)", () => {
+  const r = evaluate(10, 10);
+  assert.equal(r.regressed, false);
+  assert.equal(r.improved, false);
+});
+
+test("evaluateVulnRatchet: uma a mais que o baseline é regressão (11 vs 10)", () => {
+  const r = evaluate(11, 10);
+  assert.equal(r.regressed, true, "a single new vulnerability must block");
+  assert.equal(r.improved, false);
+});
+
+test("evaluateVulnRatchet: menos que o baseline é melhoria", () => {
+  const r = evaluate(5, 10);
+  assert.equal(r.regressed, false);
+  assert.equal(r.improved, true);
+});
+
+test("evaluateVulnRatchet: zero contra baseline não-zero é melhoria máxima", () => {
+  const r = evaluate(0, 13);
+  assert.equal(r.regressed, false);
+  assert.equal(r.improved, true);
+});
+
+test("evaluateVulnRatchet: comparação inteira estrita — qualquer aumento regride", () => {
+  assert.equal(evaluate(11, 10).regressed, true);
+  assert.equal(evaluate(10, 10).regressed, false);
+  assert.equal(evaluate(9, 10).regressed, false);
+});
+
+// ---------------------------------------------------------------------------
+// readBaselineVulnValue — leitura tolerante do quality-baseline.json
+// ---------------------------------------------------------------------------
+
+function withTmpBaseline(content: string | null, fn: (p: string) => void) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "vuln-baseline-"));
+  const p = path.join(dir, "quality-baseline.json");
+  if (content !== null) fs.writeFileSync(p, content);
+  try {
+    fn(p);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+test("readBaselineVulnValue: lê metrics.vulnCount.value", () => {
+  withTmpBaseline(JSON.stringify({ metrics: { vulnCount: { value: 10 } } }), (p) => {
+    assert.equal(readBaseline(p), 10);
+  });
+});
+
+test("readBaselineVulnValue: arquivo ausente retorna null (SKIP gracioso)", () => {
+  assert.equal(readBaseline("/tmp/does-not-exist-99999/quality-baseline.json"), null);
+});
+
+test("readBaselineVulnValue: métrica ausente retorna null", () => {
+  withTmpBaseline(JSON.stringify({ metrics: {} }), (p) => {
+    assert.equal(readBaseline(p), null);
+  });
+});
+
+test("readBaselineVulnValue: value não-numérico retorna null", () => {
+  withTmpBaseline(JSON.stringify({ metrics: { vulnCount: { value: "10" } } }), (p) => {
+    assert.equal(readBaseline(p), null);
+  });
+});
+
+test("readBaselineVulnValue: JSON inválido retorna null (não lança)", () => {
+  withTmpBaseline("{ not valid json", (p) => {
+    assert.equal(readBaseline(p), null);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// --ratchet end-to-end: binary-absent SKIP exits 0 (a missing measurement never
+// blocks). Runs the script with an empty PATH so osv-scanner is unresolvable.
+// ---------------------------------------------------------------------------
+
+test("--ratchet com osv-scanner ausente (PATH vazio) faz SKIP e sai 0", () => {
+  const res = spawnSync(process.execPath, [SCRIPT_PATH, "--ratchet", "--quiet"], {
+    encoding: "utf8",
+    // Empty PATH → `which`/`osv-scanner` unresolvable → findOsvScanner() returns null.
+    env: { ...process.env, PATH: "/nonexistent-bin-dir" },
+    timeout: 30_000,
+  });
+  assert.equal(res.status, 0, "binary-absent SKIP must exit 0 even with --ratchet");
+  assert.match(res.stdout, /vulnCount=SKIP reason=binary-absent/);
 });

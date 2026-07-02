@@ -2,6 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
 
+// #4425: the supervisor now waits for the listen port to free up before respawning.
+// Point that probe at the no-op port 0 so the restart tests don't open real sockets.
+process.env.PORT = "0";
+
 // Stub para o processSupervisor: testa a lógica de restart/backoff/MITM sem processos reais.
 
 class StubChild extends EventEmitter {
@@ -41,8 +45,12 @@ test("detectMitmCrash retorna false com menos de 2 sinais", async () => {
 
 // --- ServerSupervisor: lógica de restart ---
 
-test("ServerSupervisor.handleExit com code=0 chama process.exit(0)", async () => {
+test("ServerSupervisor.handleExit com code=0 espontâneo reinicia em vez de sair (#4425)", async () => {
   const { ServerSupervisor } = await import("../../bin/cli/runtime/processSupervisor.mjs");
+
+  // waitUntilPortFree no-ops on port 0, so the scheduled restart fires fast and leaks no timer.
+  const origPort = process.env.PORT;
+  process.env.PORT = "0";
 
   const exits: number[] = [];
   const origExit = process.exit.bind(process);
@@ -56,11 +64,27 @@ test("ServerSupervisor.handleExit com code=0 chama process.exit(0)", async () =>
     env: {},
     maxRestarts: 2,
   });
+  let started = 0;
+  // Stub start() so the scheduled restart never spawns the fake server.
+  supervisor.start = () => {
+    started++;
+    return null as any;
+  };
   supervisor.handleExit(0);
+
+  // #4425: a spontaneous code-0 exit (e.g. a systemd MemoryMax cgroup kill, which reports
+  // a clean exit) must NOT terminate the supervisor — it schedules a restart instead.
+  assert.equal(exits.length, 0, "must not process.exit on a spontaneous code-0 exit");
+  assert.equal(supervisor.restartCount, 1);
+
+  // Let the scheduled restart fire so no timer leaks past the test.
+  await new Promise((r) => setTimeout(r, 1100));
+  assert.equal(started, 1, "restart should fire after the backoff delay");
 
   // @ts-ignore
   process.exit = origExit;
-  assert.equal(exits[0], 0);
+  if (origPort === undefined) delete process.env.PORT;
+  else process.env.PORT = origPort;
 });
 
 test("ServerSupervisor.handleExit com isShuttingDown=true chama process.exit imediato", async () => {
@@ -125,6 +149,7 @@ test("ServerSupervisor.handleExit exibe crash log ao reiniciar", async () => {
 
   console.error = origErr;
   assert.ok(logs.some((l) => l.includes("line1") || l.includes("crash log")));
+  await new Promise((r) => setTimeout(r, 1100)); // drain the scheduled restart timer
 });
 
 test("ServerSupervisor chama onCrashCallback após maxRestarts atingido", async () => {
@@ -179,7 +204,7 @@ test("ServerSupervisor retorna 'disable-mitm-and-retry' chama start() novamente"
   assert.equal(supervisor.restartCount, 0); // foi resetado
 });
 
-test("ServerSupervisor reseta restartCount após processo viver >=30s", async () => {
+test("ServerSupervisor reseta restartCount após viver >= RESTART_RESET_MS (#4425: 60s)", async () => {
   const { ServerSupervisor } = await import("../../bin/cli/runtime/processSupervisor.mjs");
 
   const supervisor = new ServerSupervisor({
@@ -189,10 +214,11 @@ test("ServerSupervisor reseta restartCount após processo viver >=30s", async ()
   });
   supervisor.start = () => null as any;
   supervisor.restartCount = 2;
-  supervisor.startedAt = Date.now() - 31_000; // viveu 31s
+  supervisor.startedAt = Date.now() - 61_000; // #4425: reset window bumped 30s→60s
   supervisor.handleExit(1);
 
   assert.equal(supervisor.restartCount, 1); // reset p/ 0, depois incrementado p/ 1
+  await new Promise((r) => setTimeout(r, 1100)); // drain the scheduled restart timer
 });
 
 // --- Node.js v24 compat: process.exit() must receive a number (#3748) ---

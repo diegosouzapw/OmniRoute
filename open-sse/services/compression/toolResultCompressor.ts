@@ -9,6 +9,7 @@ export interface CompressionResult {
 const ANSI_RE = /\x1b\[[0-9;]*[a-zA-Z]/g;
 const SHELL_PROMPT_RE = /\$\s/;
 const JSON_PREFIX_RE = /^\s*[{[]/;
+const COMPRESSED_MARKER_RE = /^\[COMPRESSED:/;
 
 function isCodeLikeLine(rawLine: string): boolean {
   const line = rawLine.trimStart();
@@ -158,6 +159,68 @@ function compressErrorMessage(content: string): string | null {
 
 function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4);
+}
+
+/** Minimal shape of an Anthropic `tool_result` content block. */
+export interface AnthropicToolResultBlock {
+  type: "tool_result";
+  tool_use_id?: string;
+  content?: string | Array<{ type?: string; text?: string; [key: string]: unknown }>;
+  [key: string]: unknown;
+}
+
+export function isAnthropicToolResultBlock(value: unknown): value is AnthropicToolResultBlock {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    (value as { type?: unknown }).type === "tool_result"
+  );
+}
+
+/**
+ * Compress the text inside an Anthropic-shape `tool_result` content block,
+ * reusing the same per-type strategies as OpenAI-shape tool messages. The
+ * `tool_use_id` and block type are preserved exactly; only the inner text is
+ * compressed. Returns the (possibly unchanged) block plus tokens saved.
+ */
+export function compressAnthropicToolResultBlock(
+  block: AnthropicToolResultBlock,
+  opts: ToolStrategiesConfig
+): { block: AnthropicToolResultBlock; saved: number } {
+  const content = block.content;
+
+  if (typeof content === "string") {
+    if (!content || COMPRESSED_MARKER_RE.test(content)) return { block, saved: 0 };
+    const result = compressToolResult(content, opts);
+    if (result.strategy === "none" || result.saved <= 0) return { block, saved: 0 };
+    return { block: { ...block, content: result.compressed }, saved: result.saved };
+  }
+
+  if (Array.isArray(content)) {
+    let saved = 0;
+    let changed = false;
+    const nextContent = content.map((part) => {
+      if (
+        !part ||
+        typeof part !== "object" ||
+        part.type !== "text" ||
+        typeof part.text !== "string"
+      ) {
+        return part;
+      }
+      const text = part.text;
+      if (!text || COMPRESSED_MARKER_RE.test(text)) return part;
+      const result = compressToolResult(text, opts);
+      if (result.strategy === "none" || result.saved <= 0) return part;
+      saved += result.saved;
+      changed = true;
+      return { ...part, text: result.compressed };
+    });
+    if (!changed) return { block, saved: 0 };
+    return { block: { ...block, content: nextContent }, saved };
+  }
+
+  return { block, saved: 0 };
 }
 
 export function compressToolResult(content: string, opts: ToolStrategiesConfig): CompressionResult {

@@ -29,6 +29,12 @@ type SSEJsonPayload = Record<string, unknown> & {
   choices?: SSEChoicePayload[];
 };
 
+type GeminiStreamPart = Record<string, unknown> & {
+  executableCode?: unknown;
+  functionCall?: unknown;
+  text?: unknown;
+};
+
 type SSEDataLineNormalizer = {
   hasPending: () => boolean;
   normalize: (lines: string[]) => string[];
@@ -310,17 +316,19 @@ export function isKnownNonClaudeStreamPayload(
 }
 
 // Check if chunk has valuable content (not empty)
-export function hasValuableContent(chunk, format) {
+export function hasValuableContent(chunk: Record<string, unknown>, format: string): boolean {
   // OpenAI format
   if (format === FORMATS.OPENAI) {
-    if (!chunk.choices?.[0]?.delta) return false;
-    const delta = chunk.choices[0].delta;
+    const choices = Array.isArray(chunk.choices) ? chunk.choices : [];
+    const firstChoice = isRecord(choices[0]) ? choices[0] : null;
+    const delta = isRecord(firstChoice?.delta) ? firstChoice.delta : null;
+    if (!firstChoice || !delta) return false;
     if (typeof delta.content === "string" && delta.content.length > 0) return true;
     if (typeof delta.reasoning_content === "string" && delta.reasoning_content.length > 0)
       return true;
     if (typeof delta.reasoning_text === "string" && delta.reasoning_text.length > 0) return true;
     if (Array.isArray(delta.tool_calls) && delta.tool_calls.length > 0) return true;
-    if (chunk.choices[0].finish_reason) return true;
+    if (firstChoice.finish_reason) return true;
     if (typeof delta.role === "string" && delta.role.length > 0) return true;
     return false;
   }
@@ -329,28 +337,37 @@ export function hasValuableContent(chunk, format) {
   if (format === FORMATS.CLAUDE) {
     const isContentBlockDelta = chunk.type === "content_block_delta";
     if (isContentBlockDelta) {
-      const hasText = typeof chunk.delta?.text === "string" && chunk.delta.text.length > 0;
-      const hasThinking =
-        typeof chunk.delta?.thinking === "string" && chunk.delta.thinking.length > 0;
-      const hasInputJson =
-        typeof chunk.delta?.partial_json === "string" && chunk.delta.partial_json.length > 0;
+      const delta = isRecord(chunk.delta) ? chunk.delta : {};
+      const hasText = typeof delta.text === "string" && delta.text.length > 0;
+      const hasThinking = typeof delta.thinking === "string" && delta.thinking.length > 0;
+      const hasInputJson = typeof delta.partial_json === "string" && delta.partial_json.length > 0;
       if (!hasText && !hasThinking && !hasInputJson) return false;
     }
     return true;
   }
 
   // Gemini / Antigravity format: filter chunks with no actual content parts
-  if ((format === FORMATS.GEMINI || format === FORMATS.ANTIGRAVITY) && chunk.candidates?.[0]) {
-    const candidate = chunk.candidates[0];
+  if (
+    (format === FORMATS.GEMINI || format === FORMATS.ANTIGRAVITY) &&
+    Array.isArray(chunk.candidates) &&
+    chunk.candidates[0]
+  ) {
+    const candidate = isRecord(chunk.candidates[0]) ? chunk.candidates[0] : {};
     // Keep chunks with finish reason or safety ratings (they signal completion)
     if (candidate.finishReason) return true;
     // Filter out chunks where parts array is empty or missing
-    const parts = candidate.content?.parts;
+    const content = isRecord(candidate.content) ? candidate.content : null;
+    const parts = Array.isArray(content?.parts) ? content.parts : null;
     if (!parts || parts.length === 0) return false;
     // Filter out chunks where all parts have empty text
-    const hasContent = parts.some(
-      (p) => (typeof p.text === "string" && p.text.length > 0) || p.functionCall || p.executableCode
-    );
+    const hasContent = parts.some((p: unknown) => {
+      const part: GeminiStreamPart = isRecord(p) ? p : {};
+      return (
+        (typeof part.text === "string" && part.text.length > 0) ||
+        part.functionCall ||
+        part.executableCode
+      );
+    });
     return hasContent;
   }
 
@@ -362,18 +379,23 @@ export function hasValuableContent(chunk, format) {
  * The Cloud Code API wraps responses in { response: { candidates: [...] } }
  * while standard Gemini returns { candidates: [...] } directly.
  */
-export function unwrapGeminiChunk(parsed) {
-  if (!parsed.candidates && parsed.response) {
+export function unwrapGeminiChunk<T extends Record<string, unknown>>(
+  parsed: T
+): T | Record<string, unknown> {
+  if (!parsed.candidates && isRecord(parsed.response)) {
     return parsed.response;
   }
   return parsed;
 }
 
 // Fix invalid id (generic or too short)
-export function fixInvalidId(parsed) {
-  if (parsed.id && (parsed.id === "chat" || parsed.id === "completion" || parsed.id.length < 8)) {
-    const fallbackId =
-      parsed.extend_fields?.requestId || parsed.extend_fields?.traceId || Date.now().toString(36);
+export function fixInvalidId(parsed: Record<string, unknown>): boolean {
+  if (
+    typeof parsed.id === "string" &&
+    (parsed.id === "chat" || parsed.id === "completion" || parsed.id.length < 8)
+  ) {
+    const extendFields = isRecord(parsed.extend_fields) ? parsed.extend_fields : {};
+    const fallbackId = extendFields.requestId || extendFields.traceId || Date.now().toString(36);
     parsed.id = `chatcmpl-${fallbackId}`;
     return true;
   }
@@ -381,8 +403,8 @@ export function fixInvalidId(parsed) {
 }
 
 // Remove null perf_metrics from usage (common across formats)
-function cleanPerfMetrics(data) {
-  if (data?.usage && typeof data.usage === "object" && data.usage.perf_metrics === null) {
+function cleanPerfMetrics(data: unknown): unknown {
+  if (isRecord(data) && isRecord(data.usage) && data.usage.perf_metrics === null) {
     const { perf_metrics, ...usageWithoutPerf } = data.usage;
     return { ...data, usage: usageWithoutPerf };
   }
@@ -390,12 +412,12 @@ function cleanPerfMetrics(data) {
 }
 
 // Format output as SSE
-export function formatSSE(data, sourceFormat) {
+export function formatSSE(data: unknown, sourceFormat: string): string {
   if (data === null || data === undefined) return ""; // Skip null/undefined — never send `data: null` (#483)
-  if (data && data.done) return "data: [DONE]\n\n";
+  if (isRecord(data) && data.done) return "data: [DONE]\n\n";
 
   // OpenAI Responses API format
-  if (data && data.event && data.data) {
+  if (isRecord(data) && data.event && data.data) {
     return `event: ${data.event}\ndata: ${JSON.stringify(data.data)}\n\n`;
   }
 
@@ -403,7 +425,7 @@ export function formatSSE(data, sourceFormat) {
   data = cleanPerfMetrics(data);
 
   // Claude format
-  if (sourceFormat === FORMATS.CLAUDE && data && data.type) {
+  if (sourceFormat === FORMATS.CLAUDE && isRecord(data) && data.type) {
     return `event: ${data.type}\ndata: ${JSON.stringify(data)}\n\n`;
   }
 

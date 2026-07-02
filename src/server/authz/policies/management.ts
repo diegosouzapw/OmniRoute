@@ -7,6 +7,7 @@ import { allow, reject } from "../context";
 import { extractApiKey, isValidApiKey } from "../../../sse/services/auth";
 import { getApiKeyMetadata } from "../../../lib/db/apiKeys";
 import { hasManageScope } from "../../../lib/api/requireManagementAuth";
+import { evaluateAccessTokenAuth } from "../accessTokenAuth";
 import { CLI_TOKEN_HEADER, PEER_IP_HEADER } from "../headers";
 import { resolveStampedPeer } from "../peerStamp";
 import {
@@ -88,6 +89,12 @@ function isValidWsBridgeRequest(ctx: PolicyContext): boolean {
   const providedHash = createHash("sha256").update(provided).digest();
   return timingSafeEqual(expectedHash, providedHash);
 }
+
+// Loopback-only inspector ingest endpoint (D4). Token-gated in its own route
+// handler (INSPECTOR_INTERNAL_INGEST_TOKEN); exempt from management auth so the
+// standalone MITM proxy (server.cjs) can post captured traffic without a
+// dashboard cookie. See the carve-out in evaluate() below.
+const INSPECTOR_INGEST_PATH = "/api/tools/traffic-inspector/internal/ingest";
 
 export const managementPolicy: RoutePolicy = {
   routeClass: "MANAGEMENT",
@@ -172,6 +179,20 @@ export const managementPolicy: RoutePolicy = {
       return reject(403, "LOCAL_ONLY", "This endpoint requires localhost access");
     }
 
+    // Inspector ingest (D4): the standalone MITM proxy (server.cjs) posts
+    // captured AgentBridge traffic to this loopback-only endpoint. It carries
+    // its own shared-secret token (validated in the route handler), so it does
+    // not also need a dashboard session / management key. The LOCAL_ONLY gate
+    // above already rejected any non-loopback caller; we additionally require a
+    // strict loopback request here so a LAN peer cannot reach it without auth.
+    if (path === INSPECTOR_INGEST_PATH && isLoopbackRequest(ctx)) {
+      return allow({
+        kind: "management_key",
+        id: "inspector-ingest",
+        label: "inspector-ingest-token",
+      });
+    }
+
     if (isInternalModelSyncRequest(ctx)) {
       return allow({ kind: "management_key", id: "model-sync", label: "internal-model-sync" });
     }
@@ -200,6 +221,32 @@ export const managementPolicy: RoutePolicy = {
     // unhealthy, which is a 503, not a 403 — masking it as an auth failure
     // would tell callers their credentials are wrong when the real problem
     // is that the server cannot validate any credential right now.
+    // Scoped CLI access token (remote mode). Evaluated BEFORE the API-key branch
+    // because `oma_` tokens are management credentials, not inference API keys.
+    // Shared with `requireManagementAuth` (no drift). Scope enforced per the
+    // method+admin-allowlist policy (inferRequiredScope).
+    const accessVerdict = evaluateAccessTokenAuth(ctx.request as unknown as Request);
+    switch (accessVerdict.kind) {
+      case "ok":
+        return allow({
+          kind: "management_key",
+          id: accessVerdict.id,
+          label: `access-token:${accessVerdict.scope}`,
+        });
+      case "error":
+        return reject(503, "AUTH_BACKEND_UNAVAILABLE", "Service temporarily unavailable");
+      case "invalid":
+        return reject(401, "AUTH_001", "Invalid or expired access token");
+      case "insufficient":
+        return reject(
+          403,
+          "AUTH_SCOPE",
+          `Access token scope '${accessVerdict.have}' is insufficient; '${accessVerdict.need}' required.`
+        );
+      case "absent":
+        break; // no oma_ token → fall through to API-key auth
+    }
+
     // Management auth is header-only — a URL-borne token must not authenticate
     // a management route. See #3300 follow-up.
     const apiKey = extractApiKey(ctx.request as unknown as Request, { allowUrl: false });

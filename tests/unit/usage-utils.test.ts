@@ -60,6 +60,21 @@ describe("parseResetTime", () => {
   it("returns null for invalid date strings", () => {
     assert.equal(__testing.parseResetTime("not-a-date"), null);
   });
+
+  // Inspired-by upstream decolua/9router#768 — provider APIs sometimes return
+  // the reset timestamp as a numeric string. Without explicit detection,
+  // `new Date("1700000000")` returns Invalid Date and the value is lost.
+  it("parses a numeric string in seconds (value < 1e12)", () => {
+    const sec = "1700000000";
+    const out = __testing.parseResetTime(sec);
+    assert.equal(out, new Date(Number(sec) * 1000).toISOString());
+  });
+
+  it("parses a numeric string already in milliseconds (value >= 1e12)", () => {
+    const ms = "1700000000000";
+    const out = __testing.parseResetTime(ms);
+    assert.equal(out, new Date(Number(ms)).toISOString());
+  });
 });
 
 /* ------------------------------------------------------------------ */

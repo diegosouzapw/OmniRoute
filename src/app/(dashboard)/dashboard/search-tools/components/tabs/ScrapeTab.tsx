@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useScrapeFetch } from "../../hooks/useScrapeFetch";
 import ScrapeResult from "../ScrapeResult";
 import type { ConfigState } from "../SearchToolsConfigPane";
@@ -22,6 +23,7 @@ function isValidUrl(value: string): boolean {
 }
 
 export default function ScrapeTab({ configState, onMetrics }: ScrapeTabProps) {
+  const t = useTranslations("search");
   const [url, setUrl] = useState("");
   const [urlError, setUrlError] = useState<string | null>(null);
   const { result, loading, error, latencyMs, fetch: doFetch, reset } = useScrapeFetch();
@@ -29,11 +31,11 @@ export default function ScrapeTab({ configState, onMetrics }: ScrapeTabProps) {
   const handleSubmit = async () => {
     setUrlError(null);
     if (!url.trim()) {
-      setUrlError("URL é obrigatória");
+      setUrlError(t("scrapeUrlRequired"));
       return;
     }
     if (!isValidUrl(url)) {
-      setUrlError("URL inválida — deve começar com http:// ou https://");
+      setUrlError(t("scrapeUrlInvalid"));
       return;
     }
     reset();
@@ -41,7 +43,8 @@ export default function ScrapeTab({ configState, onMetrics }: ScrapeTabProps) {
       url: url.trim(),
       format: configState.fetchFormat,
       full_page: configState.fullPage,
-      provider: configState.provider && configState.provider !== "auto" ? configState.provider : undefined,
+      provider:
+        configState.provider && configState.provider !== "auto" ? configState.provider : undefined,
     });
   };
 
@@ -60,7 +63,7 @@ export default function ScrapeTab({ configState, onMetrics }: ScrapeTabProps) {
           htmlFor="scrape-url"
           className="block text-[10px] font-semibold text-text-muted uppercase tracking-wider"
         >
-          URL para extrair conteúdo
+          {t("scrapeUrl")}
         </label>
         <div className="flex gap-2">
           <input
@@ -84,7 +87,7 @@ export default function ScrapeTab({ configState, onMetrics }: ScrapeTabProps) {
             disabled={loading}
             data-testid="scrape-button"
           >
-            {loading ? "Extraindo..." : "Extrair"}
+            {loading ? t("scrapeExtracting") : t("scrapeExtract")}
           </button>
         </div>
 
@@ -97,17 +100,20 @@ export default function ScrapeTab({ configState, onMetrics }: ScrapeTabProps) {
         {/* Options summary */}
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-text-muted">
           <span>
-            Formato:{" "}
-            <span className="text-text-main font-medium">{configState.fetchFormat}</span>
+            Format: <span className="text-text-main font-medium">{configState.fetchFormat}</span>
           </span>
           <span>
             Full page:{" "}
-            <span className="text-text-main font-medium">{configState.fullPage ? "Sim" : "Não"}</span>
+            <span className="text-text-main font-medium">
+              {configState.fullPage ? "Yes" : "No"}
+            </span>
           </span>
           <span>
             Provider:{" "}
             <span className="text-text-main font-medium">
-              {configState.provider === "auto" || !configState.provider ? "auto" : configState.provider}
+              {configState.provider === "auto" || !configState.provider
+                ? "auto"
+                : configState.provider}
             </span>
           </span>
         </div>
@@ -125,10 +131,7 @@ export default function ScrapeTab({ configState, onMetrics }: ScrapeTabProps) {
 
       {/* Loading spinner */}
       {loading && (
-        <div
-          className="flex items-center justify-center py-12"
-          data-testid="scrape-loading"
-        >
+        <div className="flex items-center justify-center py-12" data-testid="scrape-loading">
           <span
             className="material-symbols-outlined text-[32px] text-primary animate-spin"
             aria-hidden="true"
@@ -139,9 +142,7 @@ export default function ScrapeTab({ configState, onMetrics }: ScrapeTabProps) {
       )}
 
       {/* Result */}
-      {result && !loading && (
-        <ScrapeResult result={result} latencyMs={latencyMs} />
-      )}
+      {result && !loading && <ScrapeResult result={result} latencyMs={latencyMs} />}
 
       {/* Empty state — no result yet */}
       {!result && !loading && !error && (
@@ -152,13 +153,11 @@ export default function ScrapeTab({ configState, onMetrics }: ScrapeTabProps) {
           <span className="text-3xl mb-3" aria-hidden="true">
             📄
           </span>
-          <p className="text-sm text-text-muted mb-1">
-            Digite uma URL para extrair o conteúdo
-          </p>
+          <p className="text-sm text-text-muted mb-1">{t("scrapeEmptyState")}</p>
           <p className="text-xs text-text-muted">
-            Providers disponíveis: Firecrawl, Jina Reader, Tavily.{" "}
+            {t("scrapeProvidersAvailable")}{" "}
             <Link href="/dashboard/providers" className="text-accent hover:underline">
-              Configurar →
+              {t("configureProvider")}
             </Link>
           </p>
         </div>

@@ -19,19 +19,27 @@
 //                                                 (arquivo não existia no base, ou
 //                                                  clone shallow sem o ref base)
 //
-// Esta versão é ADVISORY (sai 0 SEMPRE, mesmo com N>0). Promove a bloqueante
-// depois (mesma trajetória de todo gate novo neste repo: report → ratchet → block).
+// Por default é ADVISORY (sai 0 SEMPRE, mesmo com N>0). Passe --ratchet para
+// tornar BLOQUEANTE: lê metrics.openapiBreaking.value de
+// config/quality/quality-baseline.json, compara a contagem MEDIDA e SAI 1 SE — E
+// SOMENTE SE — a medida for MAIOR que o baseline (regressão real, direction:down).
+// Qualquer SKIP gracioso (oasdiff ausente do PATH, spec base não resolvível em
+// clone shallow, JSON inválido) SAI 0 MESMO com --ratchet — uma falha de MEDIÇÃO
+// nunca bloqueia, só uma regressão MEDIDA bloqueia (mesma trajetória de todo gate
+// neste repo: report → ratchet → block).
 //
 // Base ref:
-//   • CI passa BASE_REF=${{ github.base_ref }} (ex.: "release/v3.8.26").
-//   • Local: default origin/release/v3.8.26.
+//   • CI passa BASE_REF=${{ github.base_ref }} (ex.: "release/vX.Y.Z").
+//   • Local: default derivado da versão do package.json (releaseBranchForVersion),
+//     ex.: package 3.8.29 → "origin/release/v3.8.29" — nunca fica stale entre ciclos.
 // A spec base é extraída com `git show <BASE_REF>:docs/reference/openapi.yaml`.
 //
 // Uso:
 //   node scripts/check/check-openapi-breaking.mjs
-//   BASE_REF=origin/release/v3.8.26 node scripts/check/check-openapi-breaking.mjs
+//   BASE_REF=origin/release/vX.Y.Z node scripts/check/check-openapi-breaking.mjs
 //   node scripts/check/check-openapi-breaking.mjs --json    # imprime JSON bruto do oasdiff
 //   node scripts/check/check-openapi-breaking.mjs --quiet   # suprime logs de diagnóstico
+//   node scripts/check/check-openapi-breaking.mjs --ratchet # falha (exit 1) numa regressão
 
 import fs from "node:fs";
 import os from "node:os";
@@ -42,10 +50,40 @@ import { pathToFileURL } from "node:url";
 const ROOT = process.cwd();
 const QUIET = process.argv.includes("--quiet");
 const PRINT_JSON = process.argv.includes("--json");
+const RATCHET = process.argv.includes("--ratchet");
 
 const SPEC_REL = "docs/reference/openapi.yaml";
 const SPEC_PATH = path.join(ROOT, "docs", "reference", "openapi.yaml");
-const DEFAULT_BASE_REF = "origin/release/v3.8.26";
+
+/**
+ * Deriva o branch base de release a partir de uma versão semver
+ * (ex.: "3.8.29" → "origin/release/v3.8.29"). Mantém o default sincronizado com
+ * o ciclo de release SEM hard-code: o version-bump atualiza package.json a cada
+ * ciclo, então o default nunca fica stale (era "origin/release/v3.8.27" fixo).
+ * Ignora sufixos de prerelease/build (ex.: "3.8.29-dev.2" → v3.8.29).
+ *
+ * @param {string|null|undefined} version
+ * @returns {string|null} branch base (sem `origin/` ausente) ou null se não-semver
+ */
+export function releaseBranchForVersion(version) {
+  const m = String(version ?? "")
+    .trim()
+    .match(/^(\d+)\.(\d+)\.(\d+)/);
+  return m ? `origin/release/v${m[1]}.${m[2]}.${m[3]}` : null;
+}
+
+function readPackageVersion() {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8")).version;
+  } catch {
+    return null;
+  }
+}
+
+// CI sempre passa BASE_REF=${{ github.base_ref }} e vence; este default só vale
+// para runs locais. Derivado da versão para não re-driftar a cada release.
+const DEFAULT_BASE_REF = releaseBranchForVersion(readPackageVersion()) || "origin/release/v3.8.29";
+const BASELINE_PATH = path.join(ROOT, "config/quality/quality-baseline.json");
 
 // ---------------------------------------------------------------------------
 // Pure parsing function (exported for tests)
@@ -108,6 +146,52 @@ export function parseOasdiffBreaking(oasdiffJson) {
   }
 
   return { count, byId, byPath, items };
+}
+
+// ---------------------------------------------------------------------------
+// Ratchet (direction:down) — exported for tests
+// ---------------------------------------------------------------------------
+
+/**
+ * Avalia a contagem MEDIDA de breaking changes contra o baseline.
+ * Direction: down (a contagem só pode CAIR — mais breaking changes = regressão).
+ *
+ * Uma medição ausente (current null/undefined) OU um baseline ausente
+ * (baseline null/undefined) → { regressed:false, skipped:true }: sem uma das
+ * duas pontas não há ratchet possível, então o caller trata como SKIP gracioso
+ * (exit 0 mesmo com --ratchet). Uma falha de MEDIÇÃO nunca bloqueia.
+ *
+ * @param {object} args
+ * @param {number|null} args.current  - Breaking changes medidos agora (null = sem medição).
+ * @param {number|null} args.baseline - Contagem congelada em quality-baseline.json (null = sem baseline).
+ * @returns {{ regressed: boolean, skipped: boolean }}
+ */
+export function evaluateOpenapiRatchet({ current, baseline }) {
+  if (current === null || current === undefined || baseline === null || baseline === undefined) {
+    return { regressed: false, skipped: true };
+  }
+  return { regressed: current > baseline, skipped: false };
+}
+
+/**
+ * Lê metrics.openapiBreaking.value do quality-baseline.json.
+ * Retorna null se o arquivo ou a métrica estiverem ausentes/inválidos (sem
+ * baseline não há ratchet possível — o caller trata como SKIP gracioso, exit 0).
+ *
+ * @param {string} baselinePath
+ * @returns {number|null}
+ */
+export function readBaselineOpenapiValue(baselinePath = BASELINE_PATH) {
+  if (!fs.existsSync(baselinePath)) return null;
+  let baselineJson;
+  try {
+    baselineJson = JSON.parse(fs.readFileSync(baselinePath, "utf8"));
+  } catch {
+    return null;
+  }
+  const metric = baselineJson?.metrics?.openapiBreaking;
+  if (!metric || typeof metric.value !== "number") return null;
+  return metric.value;
 }
 
 // ---------------------------------------------------------------------------
@@ -331,10 +415,18 @@ function main() {
           .map(([p, n]) => `${p}(${n})`)
           .join(", ");
         process.stderr.write(`[openapi-breaking]   affected paths: ${topPaths}\n`);
-        process.stderr.write(
-          "[openapi-breaking] ADVISORY — promove a BLOQUEANTE depois. Se a quebra é\n" +
-            "[openapi-breaking] intencional (major bump), documente no PR; senão, ajuste a spec.\n"
-        );
+        if (RATCHET) {
+          process.stderr.write(
+            "[openapi-breaking] Se a quebra é intencional (major bump), documente no PR e\n" +
+              "[openapi-breaking] re-baseline metrics.openapiBreaking em config/quality/quality-baseline.json\n" +
+              "[openapi-breaking] com justificativa + issue de tracking; senão, ajuste a spec.\n"
+          );
+        } else {
+          process.stderr.write(
+            "[openapi-breaking] ADVISORY — passe --ratchet para BLOQUEAR uma regressão. Se a quebra é\n" +
+              "[openapi-breaking] intencional (major bump), documente no PR; senão, ajuste a spec.\n"
+          );
+        }
       } else {
         process.stderr.write(
           `[openapi-breaking] OK — nenhuma breaking change na spec vs '${baseRef}'.\n`
@@ -342,8 +434,8 @@ function main() {
       }
     }
 
-    // ADVISORY — sai 0 SEMPRE nesta versão, mesmo com count > 0.
-    process.exitCode = 0;
+    // Medição bem-sucedida → aplica o ratchet (bloqueante só com --ratchet).
+    applyRatchet(count);
   } finally {
     // Limpa o arquivo temp da spec base.
     try {
@@ -352,6 +444,54 @@ function main() {
       // best-effort
     }
   }
+}
+
+/**
+ * Aplica o ratchet (direction:down) sobre a contagem medida vs o baseline.
+ * Sem --ratchet: advisory (exit 0). Com --ratchet: exit 1 numa regressão real
+ * (medida > baseline). Baseline ausente → SKIP gracioso (exit 0).
+ *
+ * @param {number} count - Contagem MEDIDA de breaking changes (medição bem-sucedida).
+ */
+function applyRatchet(count) {
+  if (!RATCHET) {
+    process.exitCode = 0;
+    return;
+  }
+
+  const baselineValue = readBaselineOpenapiValue(BASELINE_PATH);
+  const { regressed, skipped } = evaluateOpenapiRatchet({
+    current: count,
+    baseline: baselineValue,
+  });
+
+  if (skipped) {
+    if (!QUIET) {
+      process.stderr.write(
+        "[openapi-breaking] baseline ausente (metrics.openapiBreaking) — SKIP gracioso, sai 0.\n"
+      );
+    }
+    process.exitCode = 0;
+    return;
+  }
+
+  if (regressed) {
+    process.stderr.write(
+      `[openapi-breaking] REGRESSÃO — ${count} breaking change(s) > baseline ${baselineValue}\n` +
+        "  → Ajuste a spec para não quebrar clientes existentes. Se a quebra é intencional\n" +
+        "    (major bump), re-baseline metrics.openapiBreaking em\n" +
+        "    config/quality/quality-baseline.json com justificativa + issue de tracking.\n"
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  if (!QUIET) {
+    process.stderr.write(
+      `[openapi-breaking] OK — sem regressão (${count} breaking change(s), baseline ${baselineValue}).\n`
+    );
+  }
+  process.exitCode = 0;
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || "").href) main();

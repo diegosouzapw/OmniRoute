@@ -45,14 +45,19 @@ async function deliverRaw(
     parseAndValidateWebhookUrl(url);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10_000);
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "User-Agent": "OmniRoute-Webhook/1.0" },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-    return { success: res.ok, status: res.status, latencyMs: Date.now() - start };
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "User-Agent": "OmniRoute-Webhook/1.0" },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+      return { success: res.ok, status: res.status, latencyMs: Date.now() - start };
+    } finally {
+      // Always clear the abort timer — on a non-timeout fetch error the previous code skipped
+      // clearTimeout, leaving a dangling 10s timer (and AbortController) per failed call.
+      clearTimeout(timeoutId);
+    }
   } catch (error: any) {
     return {
       success: false,
@@ -91,13 +96,19 @@ export async function deliverWebhook(
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10_000);
 
-      const res = await fetch(url, {
-        method: "POST",
-        headers,
-        body,
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
+      let res: Response;
+      try {
+        res = await fetch(url, {
+          method: "POST",
+          headers,
+          body,
+          signal: controller.signal,
+        });
+      } finally {
+        // Clear the abort timer on every path — a non-timeout fetch error previously skipped
+        // clearTimeout, leaking a dangling 10s timer + AbortController per failed attempt.
+        clearTimeout(timeoutId);
+      }
 
       if (res.ok || res.status < 500) {
         return { success: res.ok, status: res.status };

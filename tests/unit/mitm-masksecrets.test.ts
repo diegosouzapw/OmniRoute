@@ -61,3 +61,28 @@ test("maskSecret — short sk- key below 16 chars is NOT masked", () => {
   const shortKey = "sk-shortkey";
   assert.equal(maskSecret(shortKey), shortKey);
 });
+
+// Regression: sanitizeHeaders() masks header *values* ("Bearer <token>" with the
+// "authorization:" key already stripped). The previous prefix-anchored BEARER
+// regex never fired there, so short/opaque-<40 Bearer tokens leaked into the
+// Traffic Inspector (found by the AgentBridge live capture).
+test("maskSecret — Bearer token in a bare header value (no authorization: prefix) is masked", () => {
+  const result = maskSecret("Bearer sk-secret-TESTE");
+  assert.equal(result, "Bearer ***");
+});
+
+test("maskSecret — a short opaque Bearer token is still masked", () => {
+  assert.equal(maskSecret("Bearer abc123"), "Bearer ***");
+});
+
+test("maskSecret — a realistic Google OAuth Bearer value is masked whole", () => {
+  const result = maskSecret("Bearer ya29.a0AfH6SMxLONGTOKEN_1234567890-abcdefghij");
+  assert.equal(result, "Bearer ***");
+  assert.ok(!result.includes("LONGTOKEN"), "no part of the token should survive");
+});
+
+test("maskSecret — 'authorization: Bearer <token>' still masks (no regression)", () => {
+  const result = maskSecret("authorization: Bearer sk-proj-abcdefghijklmnop");
+  assert.ok(result.startsWith("authorization: Bearer ***"), `got: ${result}`);
+  assert.ok(!result.includes("abcdefghijklmnop"));
+});

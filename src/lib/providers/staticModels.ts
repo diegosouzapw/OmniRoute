@@ -50,6 +50,13 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "sonar-deep-research", name: "Sonar Deep Research (Expert Analysis)" },
   ],
   "bailian-coding-plan": () => [
+    // Keep in lock-step with the registry entry
+    // (open-sse/config/providers/registry/bailian-coding-plan/index.ts);
+    // bailian-coding-plan-provider.test.ts asserts static↔registry parity.
+    { id: "qwen3.7-plus", name: "Qwen3.7 Plus(vision)" },
+    { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
+    { id: "qwen3-coder-next", name: "Qwen3 Coder Next" },
+    { id: "glm-4.7", name: "GLM 4.7" },
     { id: "qwen3.6-plus", name: "Qwen3.6 Plus(vision)" },
     { id: "qwen3.5-plus", name: "Qwen3.5 Plus(vision)" },
     { id: "qwen3-max-2026-01-23", name: "Qwen3 Max" },

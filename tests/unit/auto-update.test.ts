@@ -248,12 +248,17 @@ test("ensureGitTagExists verifies refs/tags paths and throws a clear error when 
 test("auto update script builders generate npm, source, and docker-compose scripts with quoting and patch commits", () => {
   const npmScript = autoUpdate.buildNpmUpdateScript("3.6.0");
   assert.match(npmScript, /npm install -g omniroute@3.6.0/);
+  // Optional deps (better-sqlite3, keytar, tls-client, and the llmlingua SLM stack)
+  // must survive an update — install them explicitly so an `omit=optional` config
+  // cannot silently drop them.
+  assert.match(npmScript, /--include=optional/);
   assert.match(npmScript, /pm2 restart omniroute \|\| true/);
   assert.match(npmScript, /Successfully updated to v3.6.0/);
 
   const sourceScript = autoUpdate.buildSourceUpdateScript("3.6.0", "upstream");
   assert.match(sourceScript, /git fetch --tags 'upstream'/);
   assert.match(sourceScript, /git stash --include-untracked/);
+  assert.match(sourceScript, /npm install --include=optional --legacy-peer-deps/);
   assert.match(sourceScript, /node scripts\/dev\/sync-env\.mjs 2>\/dev\/null \|\| true/);
   assert.match(sourceScript, /Successfully updated to v3\.6\.0/);
 

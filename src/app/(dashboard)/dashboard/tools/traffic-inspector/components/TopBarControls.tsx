@@ -19,6 +19,8 @@ interface TopBarControlsProps {
   onHostChange: (h: string | undefined) => void;
   onAgentChange: (a: AgentId | undefined) => void;
   onStatusChange: (s: ListFilters["status"]) => void;
+  liveOnly: boolean;
+  onToggleLive: () => void;
   paused: boolean;
   onPause: () => void;
   onResume: () => void;
@@ -46,6 +48,8 @@ export function TopBarControls({
   onHostChange,
   onAgentChange,
   onStatusChange,
+  liveOnly,
+  onToggleLive,
   paused,
   onPause,
   onResume,
@@ -124,6 +128,25 @@ export function TopBarControls({
         <option value="5xx">5xx</option>
         <option value="error">error</option>
       </select>
+
+      {/* Live (in-flight) toggle — Gap 5 */}
+      <button
+        type="button"
+        onClick={onToggleLive}
+        aria-pressed={liveOnly}
+        title={t("liveOnly")}
+        className={cn(
+          "inline-flex items-center gap-1 rounded border px-2 py-1 text-xs focus-ring",
+          liveOnly
+            ? "border-green-500/50 bg-green-500/15 text-green-500"
+            : "border-border text-text-muted hover:text-text-main"
+        )}
+      >
+        <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+          sensors
+        </span>
+        {t("liveOnly")}
+      </button>
 
       {/* Action buttons */}
       <button

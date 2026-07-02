@@ -36,6 +36,41 @@ test("buildTelegramPayload — request.failed includes model and event label", (
   assert.equal(payload.parse_mode, "Markdown");
 });
 
+test("buildTelegramPayload — request.completed includes provider, account, combo, and metrics", () => {
+  const payload = buildTelegramPayload(
+    "request.completed",
+    {
+      model: "codex/gpt-5.5",
+      provider: "codex",
+      account: "Workspace Principal",
+      combo: "auto-fallback",
+      latencyMs: 1421,
+      fallbackCount: 2,
+    },
+    "-100123"
+  );
+
+  assert.ok(payload.text.includes("Model: `codex/gpt-5.5`"));
+  assert.ok(payload.text.includes("Provider: `codex`"));
+  assert.ok(payload.text.includes("Account: `Workspace Principal`"));
+  assert.ok(payload.text.includes("Combo: `auto-fallback`"));
+  assert.ok(payload.text.includes("Latency: `1421ms`"));
+  assert.ok(payload.text.includes("Fallbacks: `2`"));
+});
+
+test("buildTelegramPayload — accountId falls back to short account label", () => {
+  const payload = buildTelegramPayload(
+    "request.completed",
+    {
+      provider: "codex",
+      accountId: "12345678-abcd-efgh-ijkl-1234567890ab",
+    },
+    "-100123"
+  );
+
+  assert.ok(payload.text.includes("Account: `Account #123456`"));
+});
+
 test("buildTelegramPayload — chat_id matches provided value for groups", () => {
   const payload = buildTelegramPayload("test.ping", { message: "ping" }, "-1001234567890");
   assert.equal(payload.chat_id, "-1001234567890");

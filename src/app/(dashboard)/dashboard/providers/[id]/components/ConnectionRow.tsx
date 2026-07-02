@@ -10,6 +10,7 @@ import { Badge, Button, Toggle } from "@/shared/components";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
+import { shouldShowConnectionLastError } from "./connectionRowHelpers";
 import {
   getCodexEffectiveServiceTier,
   type CodexGlobalServiceMode,
@@ -589,7 +590,7 @@ export default function ConnectionRow({
                 {t(statusPresentation.errorBadge.labelKey)}
               </Badge>
             )}
-            {connection.lastError && connection.isActive !== false && (
+            {shouldShowConnectionLastError(connection) && (
               <span
                 className={`text-xs truncate max-w-[300px] ${statusPresentation.errorTextClass}`}
                 title={connection.lastError}

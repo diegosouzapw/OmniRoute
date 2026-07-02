@@ -101,6 +101,38 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
       const rec = toRecord(item);
       if (rec.type === "text") {
         parts.push({ text: rec.text });
+      } else if (rec.type === "input_audio" || rec.type === "audio") {
+        // OpenAI Chat Completions audio input shape (ports decolua/9router#912 + #913):
+        // { type:"input_audio", input_audio:{data,format} } — some clients use the
+        // { type:"audio", audio:{data,format} } shape — -> Gemini
+        // `inlineData: { mimeType: "audio/<format>", data }`. mp3 normalizes to the
+        // canonical `audio/mpeg`; a leading `data:<mime>;base64,` prefix is stripped so
+        // Gemini receives raw base64.
+        const audio = toRecord(rec.input_audio || rec.audio);
+        if (typeof audio.data === "string" && audio.data) {
+          const format = typeof audio.format === "string" && audio.format ? audio.format : "wav";
+          const mimeType = format === "mp3" ? "audio/mpeg" : `audio/${format}`;
+          parts.push({
+            inlineData: {
+              mimeType,
+              data: audio.data.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, ""),
+            },
+          });
+        }
+      } else if (rec.type === "audio_url") {
+        // OpenAI-style audio_url (data: URI). Mirrors the image_url data-URL
+        // parser below but produces an audio inlineData part (#913).
+        const audioUrl = toRecord(rec.audio_url);
+        const url = typeof audioUrl.url === "string" ? audioUrl.url : "";
+        if (url.startsWith("data:")) {
+          const commaIndex = url.indexOf(",");
+          if (commaIndex !== -1) {
+            const mimePart = url.substring(5, commaIndex); // skip "data:"
+            const data = url.substring(commaIndex + 1);
+            const mimeType = mimePart.split(";")[0] || "audio/wav";
+            parts.push({ inlineData: { mimeType, data } });
+          }
+        }
       } else {
         // 1. Handle Gemini native inline_data injected into OpenAI arrays (e.g. Cherry Studio)
         const geminiInline = toRecord(rec.inline_data || rec.inlineData);
@@ -158,6 +190,8 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
         // translation layers as an alternative to `rec.image_url` (#2807).
         const fileData =
           (typeof rec.file_url === "string" ? rec.file_url : undefined) ||
+          // AI SDK-style image part: { type: "image", image: "data:...;base64,..." } (#1330)
+          (typeof rec.image === "string" ? rec.image : undefined) ||
           imageUrl?.url ||
           imageObj?.url ||
           fileUrl?.url ||
@@ -175,24 +209,15 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
             });
           }
         } else if (typeof fileData === "string" && /^https?:\/\//i.test(fileData)) {
-          // Remote URLs cannot be passed directly to Gemini's inlineData (which
-          // requires base64). Fetching + encoding would require making this
-          // function async, which is a breaking change for sync callers (#2807).
-          // Until that refactor lands, warn loudly instead of silently dropping
-          // so users can see WHY their vision request failed.
-          // Strip query string before logging to avoid leaking auth tokens
-          // (signed URLs, SAS tokens, etc.) embedded in query parameters.
-          let safeUrl: string;
-          try {
-            const parsed = new URL(fileData);
-            safeUrl = parsed.origin + parsed.pathname;
-          } catch {
-            safeUrl = fileData.split("?")[0];
-          }
-          console.warn(
-            `[geminiHelper] Dropped remote image URL (Gemini inlineData requires base64): ${safeUrl}` +
-              ` - encode the image as a data: URI client-side until #2807 async fetch lands.`
-          );
+          // Remote URLs cannot be embedded as inlineData (which requires base64),
+          // but Gemini's Part schema natively accepts `fileData: { fileUri }` for
+          // HTTP/HTTPS sources — the model fetches the asset itself. Pass the URL
+          // through instead of dropping it (#2807; ported from upstream PR #344).
+          // The MIME type is intentionally `image/*` because we do not block on
+          // a HEAD request to sniff it; Gemini infers the concrete type on fetch.
+          parts.push({
+            fileData: { fileUri: fileData, mimeType: "image/*" },
+          });
         }
       }
     }
@@ -331,19 +356,29 @@ function removeUnsupportedKeywords(obj: unknown, keywords: Set<string>): void {
     for (const item of obj) {
       removeUnsupportedKeywords(item, keywords);
     }
-  } else {
-    const record = obj as JsonRecord;
-    // Delete unsupported keys at current level
-    for (const key of Object.keys(record)) {
-      if (keywords.has(key) || key.startsWith("x-")) {
-        delete record[key];
-      }
+    return;
+  }
+
+  const record = obj as JsonRecord;
+  // Delete unsupported *constraint* keywords at the current schema level.
+  for (const key of Object.keys(record)) {
+    if (keywords.has(key) || key.startsWith("x-")) {
+      delete record[key];
     }
-    // Recurse into remaining values
-    for (const value of Object.values(record)) {
-      if (value && typeof value === "object") {
-        removeUnsupportedKeywords(value, keywords);
+  }
+  // Recurse into remaining values. `properties` is a map keyed by arbitrary,
+  // user-defined property NAMES — a tool may legitimately declare a property
+  // called `pattern`, `enum`, `minLength`, etc. Descend into each property's
+  // subschema, but never run keyword-deletion against the property names
+  // themselves, or glob/grep-style tools lose their `pattern` argument (#1368).
+  for (const [key, value] of Object.entries(record)) {
+    if (!value || typeof value !== "object") continue;
+    if (key === "properties" && !Array.isArray(value)) {
+      for (const subSchema of Object.values(value as JsonRecord)) {
+        removeUnsupportedKeywords(subSchema, keywords);
       }
+    } else {
+      removeUnsupportedKeywords(value, keywords);
     }
   }
 }

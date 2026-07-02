@@ -1,4 +1,7 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { mergeClientAnthropicBeta } from "../config/anthropicHeaders.ts";
+import { applyContextEditingToBody } from "../config/contextEditing.ts";
+import { findOffendingField, stripGroqUnsupportedFields } from "../config/providerFieldStrips.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
@@ -34,6 +37,7 @@ import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
 import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { applySystemTransformPipeline, PROVIDER_CLAUDE } from "../services/systemTransforms.ts";
+import * as prl from "../utils/providerRequestLogging.ts";
 import {
   fixToolPairs,
   fixToolAdjacency,
@@ -132,6 +136,10 @@ export type ExecuteInput = {
   ) => Promise<void> | void;
   /** When true, skip the intra-URL 429 retry in execute() so the caller handles fallback. */
   skipUpstreamRetry?: boolean;
+  /** Delegated Context Editing (Claude only): when enabled, attach the
+   * `context_management.clear_tool_uses` strategy so the provider clears stale
+   * tool-use blocks server-side. Honored only on the genuine `claude` path. */
+  contextEditing?: { enabled: boolean } | null;
 };
 
 export type CountTokensInput = {
@@ -234,6 +242,18 @@ function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
  * xhigh by default and falls back to high only for explicit xhigh opt-outs.
  */
 const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
+// GitHub Copilot Claude routing is granular (upstream port: decolua/9router#791):
+//   ✅ Pass through — Claude Opus 4.6, Claude Sonnet 4.6. Copilot routes both to
+//      Anthropic's chat/completions surface, which honors reasoning_effort and
+//      emits visible reasoning tokens (verified upstream: 3× token increase
+//      between low/medium/high).
+//   ❌ Strip — Claude Haiku 4.5 and Claude Opus 4.7 (rejected upstream by
+//      Copilot's Claude backend), older Claude variants, all `haiku`-named
+//      models, and the `oswe-*` family (Raptor) which still rejects
+//      reasoning_effort.
+// Order matters: the opt-in check must run BEFORE the broad Claude/haiku/oswe strip.
+const GITHUB_REASONING_EFFORT_OPT_IN_PATTERN =
+  /claude[-_.]?(?:opus|sonnet)[-_.]?4[-_.]6/i;
 const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;
 
 function supportsMaxEffortForProvider(provider: string, model: string): boolean {
@@ -261,9 +281,11 @@ export function sanitizeReasoningEffortForProvider(
   const effortStr = typeof effort === "string" ? effort.toLowerCase() : "";
   const modelStr = model || "";
 
+  const githubOptIn =
+    provider === "github" && GITHUB_REASONING_EFFORT_OPT_IN_PATTERN.test(modelStr);
   const rejecting =
     (provider === "mistral" && MISTRAL_NO_REASONING_EFFORT_PATTERN.test(modelStr)) ||
-    (provider === "github" && GITHUB_NO_REASONING_EFFORT_PATTERN.test(modelStr));
+    (provider === "github" && !githubOptIn && GITHUB_NO_REASONING_EFFORT_PATTERN.test(modelStr));
   if (rejecting) {
     log?.info?.(
       "REASONING_SANITIZE",
@@ -278,6 +300,30 @@ export function sanitizeReasoningEffortForProvider(
       else next.reasoning = r;
     }
     return next;
+  }
+
+  // Native DeepSeek (api.deepseek.com) — V4 thinking mode accepts reasoning_effort
+  // ONLY as {high, max} (its own top tier is literally "max"). OmniRoute's internal
+  // scale is low|medium|high|xhigh where xhigh is the top, so map onto DeepSeek's
+  // vocabulary: xhigh → max (top→top), low|medium → high (below the enum floor).
+  // high/max pass through unchanged. Without this, the claude→openai translator's
+  // xhigh (and max-normalized-to-xhigh below) reaches DeepSeek as an unknown value,
+  // silently dropping the client's requested effort. This is the INVERSE of the
+  // OpenRouter-DeepSeek path, whose normalized API expects xhigh, not max (pi#4055).
+  if (provider === "deepseek") {
+    const mapped =
+      effortStr === "xhigh" ? "max" : effortStr === "low" || effortStr === "medium" ? "high" : null;
+    if (mapped && mapped !== effortStr) {
+      log?.info?.(
+        "REASONING_SANITIZE",
+        `deepseek/${modelStr}: normalized reasoning_effort ${effortStr} → ${mapped}`
+      );
+      const next: Record<string, unknown> = { ...b };
+      if (hasTopLevelReasoningEffort) next.reasoning_effort = mapped;
+      if (reasoning) next.reasoning = { ...reasoning, effort: mapped };
+      return next;
+    }
+    return body;
   }
 
   const supportsXHigh = supportsXHighEffort(provider, modelStr);
@@ -651,6 +697,7 @@ export class BaseExecutor {
       clientHeaders,
       skipUpstreamRetry = false,
       onCredentialsRefreshed,
+      contextEditing,
     } = input;
     const fallbackCount = this.getFallbackCount();
     let lastError: unknown = null;
@@ -747,6 +794,15 @@ export class BaseExecutor {
       }
     }
 
+    // Set by the Context Editing 400-fallback below: once an upstream rejects the
+    // `context_management` param, suppress its re-injection on every later
+    // retry/fallback URL (each iteration rebuilds a fresh `transformedBody`).
+    let contextEditingDisabled = false;
+    // Tracks which request fields have already been stripped via the generic 400
+    // field-downgrade below, so each known field is stripped at most once across
+    // all fallback URLs (bounded retry loop).
+    const strippedFields = new Set<string>();
+
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
       const url = this.buildUrl(model, stream, urlIndex, activeCredentials);
       const headers = this.buildHeaders(activeCredentials, stream, clientHeaders, model);
@@ -771,34 +827,49 @@ export class BaseExecutor {
         stream,
         activeCredentials
       );
-      const transformedBody = sanitizeReasoningEffortForProvider(
+      let transformedBody = sanitizeReasoningEffortForProvider(
         rawTransformedBody,
         this.provider,
         model,
         log
       );
+      if (this.provider === "groq") {
+        transformedBody = stripGroqUnsupportedFields(
+          transformedBody as Record<string, unknown>
+        ) as typeof transformedBody;
+      }
 
       try {
-        // Only enforce the timeout while waiting for the initial fetch() response.
-        // Once headers arrive, active streams must not be cut off by total elapsed time;
-        // post-start stalls are handled separately by STREAM_IDLE_TIMEOUT_MS / bodyTimeout.
+        // Timeout only covers response start; stream stalls are handled downstream.
         const fetchStartTimeoutMs = this.getTimeoutMs();
-        const timeoutController = fetchStartTimeoutMs > 0 ? new AbortController() : null;
-        let timeoutId: ReturnType<typeof setTimeout> | null = null;
-        if (timeoutController) {
-          timeoutId = setTimeout(() => {
-            const timeoutError = new Error(
-              `Fetch timeout after ${fetchStartTimeoutMs}ms on ${url}`
-            );
-            timeoutError.name = "TimeoutError";
-            timeoutController.abort(timeoutError);
-          }, fetchStartTimeoutMs);
-        }
-        const timeoutSignal = timeoutController?.signal ?? null;
-        const combinedSignal =
-          signal && timeoutSignal
-            ? mergeAbortSignals(signal, timeoutSignal)
-            : signal || timeoutSignal;
+        const fetchWithStartTimeout = async (requestUrl: string, requestOptions: RequestInit) => {
+          const timeoutController = fetchStartTimeoutMs > 0 ? new AbortController() : null;
+          let timeoutId: ReturnType<typeof setTimeout> | null = null;
+          if (timeoutController) {
+            timeoutId = setTimeout(() => {
+              const timeoutError = new Error(
+                `Fetch timeout after ${fetchStartTimeoutMs}ms on ${requestUrl}`
+              );
+              timeoutError.name = "TimeoutError";
+              timeoutController.abort(timeoutError);
+            }, fetchStartTimeoutMs);
+          }
+
+          const timeoutSignal = timeoutController?.signal ?? null;
+          const combinedSignal =
+            signal && timeoutSignal
+              ? mergeAbortSignals(signal, timeoutSignal)
+              : signal || timeoutSignal;
+          const optionsWithSignal = combinedSignal
+            ? { ...requestOptions, signal: combinedSignal }
+            : requestOptions;
+
+          try {
+            return await fetch(requestUrl, optionsWithSignal);
+          } finally {
+            if (timeoutId) clearTimeout(timeoutId);
+          }
+        };
 
         const isClaudeCodeClient =
           clientHeaders?.["x-app"] === "cli" ||
@@ -891,7 +962,19 @@ export class BaseExecutor {
             }
           }
 
-          if (headerThinking === "adaptive") {
+          // Anthropic rejects `thinking` (enabled/adaptive) when tool_choice forces a
+          // specific tool ({type:"any"|"tool"}): "Thinking may not be enabled when
+          // tool_choice forces tool use". Treat forced tool_choice as an implicit
+          // `thinking: off` so neither the explicit-adaptive branch nor the default CC
+          // injection below produces the invalid combination (incl. client-sent thinking).
+          const toolChoiceForced =
+            tb.tool_choice === "any" ||
+            (typeof tb.tool_choice === "object" &&
+              tb.tool_choice !== null &&
+              ((tb.tool_choice as Record<string, unknown>).type === "any" ||
+                (tb.tool_choice as Record<string, unknown>).type === "tool"));
+          const effThinking = toolChoiceForced ? "off" : headerThinking;
+          if (effThinking === "adaptive") {
             if (tb.thinking === undefined) {
               tb.thinking = { type: "adaptive" };
               appliedThinking = "adaptive";
@@ -901,11 +984,11 @@ export class BaseExecutor {
                 edits: [{ type: "clear_thinking_20251015", keep: "all" }],
               };
             }
-          } else if (headerThinking === "off") {
+          } else if (effThinking === "off") {
             delete tb.thinking;
             delete tb.context_management;
             appliedThinking = "off";
-          } else if (!headerThinking && !headerEffort) {
+          } else if (!effThinking && !headerEffort) {
             // Default CC logic when no override headers are present
             const isHaiku = typeof tb.model === "string" && tb.model.includes("haiku");
             if (isHaiku) {
@@ -1038,7 +1121,13 @@ export class BaseExecutor {
           const ccHeaders: Record<string, string> = {
             Accept: "application/json",
             "anthropic-version": "2023-06-01",
-            "anthropic-beta": selectBetaFlags(tb, null, clientAnthropicBeta),
+            // #3974: merge the client's allowlisted betas (e.g. tool-search-tool)
+            // on top of the shape-derived set so deferred-tool requests are not
+            // rejected; selectBetaFlags still gates thinking/effort per #3415.
+            "anthropic-beta": mergeClientAnthropicBeta(
+              selectBetaFlags(tb, null, clientAnthropicBeta),
+              clientAnthropicBeta
+            ),
             "anthropic-dangerous-direct-browser-access": "true",
             "x-app": "cli",
             "User-Agent": `claude-cli/${CLAUDE_CODE_VERSION} (external, cli)`,
@@ -1126,6 +1215,32 @@ export class BaseExecutor {
           enforceThinkingTemperature(transformedBody as Record<string, unknown>);
         }
 
+        // Delegated Context Editing (opt-in): attach the clear_tool_uses strategy so
+        // the provider clears stale tool-use blocks server-side. Runs at this same
+        // chokepoint, composing with the clear_thinking edit the fingerprint path may
+        // have already set. Scoped to genuine `claude` (real Anthropic key/OAuth) and
+        // `anthropic-compatible-cc-*` relays — the latter advertise Claude Code
+        // compatibility, so they are the relays most likely to accept the beta. A
+        // rejecting upstream is caught by the 400-fallback below. Deliberately
+        // EXCLUDED: `claude-web` (a browser relay with a `create_conversation_params`
+        // request shape that never sees `context_management`) and generic
+        // `anthropic-compatible-*` (third-party endpoints with uncertain beta support).
+        // `contextEditingDisabled` (set by the 400-fallback) suppresses re-injection
+        // when a fresh `transformedBody` is built for a retry/fallback URL.
+        if (
+          (this.provider === "claude" || isClaudeCodeCompatible(this.provider)) &&
+          contextEditing?.enabled &&
+          !contextEditingDisabled
+        ) {
+          applyContextEditingToBody(transformedBody as Record<string, unknown>, {
+            enabled: true,
+          });
+          log?.debug?.(
+            "CONTEXT_EDITING",
+            "Delegated context editing on — attached clear_tool_uses to the Claude request"
+          );
+        }
+
         let bodyString = JSON.stringify(transformedBody);
 
         const shouldFingerprint =
@@ -1144,21 +1259,99 @@ export class BaseExecutor {
         }
 
         mergeUpstreamExtraHeaders(finalHeaders, upstreamExtraHeaders);
-
+        const serializedBody = prl.parseBody(bodyString);
+        // #4307 — Preserve the non-enumerable tool-name cloak/remap reverse map
+        // (`_toolNameMap`, set on the live `transformedBody` by
+        // remapToolNamesInRequest / cloakThirdPartyToolNames) that the JSON
+        // round-trip above drops. chatCore's response-side un-cloak reads it off
+        // `result.transformedBody` to restore the client's original tool-name
+        // casing (e.g. `read`, not the cloaked `Read`). Without this re-attach the
+        // map is lost and the client receives the cloaked casing — a regression
+        // from #3941's serialized-body capture. Mirrors antigravity.ts's
+        // `attachToolNameMap`; non-enumerable so it never re-serializes upstream.
+        if (
+          transformedBody &&
+          typeof transformedBody === "object" &&
+          serializedBody &&
+          typeof serializedBody === "object"
+        ) {
+          const liveToolNameMap = (transformedBody as Record<string, unknown>)._toolNameMap;
+          if (
+            liveToolNameMap instanceof Map &&
+            liveToolNameMap.size > 0 &&
+            !((serializedBody as Record<string, unknown>)._toolNameMap instanceof Map)
+          ) {
+            Object.defineProperty(serializedBody, "_toolNameMap", {
+              value: liveToolNameMap,
+              enumerable: false,
+              configurable: true,
+              writable: true,
+            });
+          }
+        }
         const fetchOptions: RequestInit = {
           method: "POST",
           headers: finalHeaders,
           body: bodyString,
         };
-        if (combinedSignal) fetchOptions.signal = combinedSignal;
 
-        let response;
-        try {
-          response = await fetch(url, fetchOptions);
-        } finally {
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-            timeoutId = null;
+        let response = await fetchWithStartTimeout(url, fetchOptions);
+
+        // Context Editing 400-fallback for Claude-compatible relays.
+        if (
+          response.status === HTTP_STATUS.BAD_REQUEST &&
+          contextEditing?.enabled &&
+          !contextEditingDisabled &&
+          transformedBody &&
+          typeof transformedBody === "object" &&
+          (transformedBody as Record<string, unknown>).context_management !== undefined
+        ) {
+          const errText = await response
+            .clone()
+            .text()
+            .catch(() => "");
+          if (/context[_-]management|context editing/i.test(errText)) {
+            contextEditingDisabled = true;
+            delete (transformedBody as Record<string, unknown>).context_management;
+            let retryBody = JSON.stringify(transformedBody);
+            if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
+              retryBody = await signRequestBody(retryBody);
+            }
+            log?.debug?.(
+              "CONTEXT_EDITING",
+              `Upstream 400 rejected context_management on ${url} — retrying without it`
+            );
+            response = await fetchWithStartTimeout(url, { ...fetchOptions, body: retryBody });
+          }
+        }
+
+        // Generic reactive 400 field-downgrade; each field is stripped at most once.
+        if (
+          response.status === HTTP_STATUS.BAD_REQUEST &&
+          transformedBody &&
+          typeof transformedBody === "object"
+        ) {
+          const errText = await response
+            .clone()
+            .text()
+            .catch(() => "");
+          const offending = findOffendingField(errText);
+          if (
+            offending &&
+            !strippedFields.has(offending) &&
+            (transformedBody as Record<string, unknown>)[offending] !== undefined
+          ) {
+            strippedFields.add(offending);
+            delete (transformedBody as Record<string, unknown>)[offending];
+            let retryBody = JSON.stringify(transformedBody);
+            if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
+              retryBody = await signRequestBody(retryBody);
+            }
+            log?.debug?.(
+              "FIELD_400",
+              `Upstream 400 rejected ${offending} on ${url} — retrying without it`
+            );
+            response = await fetchWithStartTimeout(url, { ...fetchOptions, body: retryBody });
           }
         }
 
@@ -1190,7 +1383,7 @@ export class BaseExecutor {
           continue;
         }
 
-        return { response, url, headers: finalHeaders, transformedBody };
+        return { response, url, headers: finalHeaders, transformedBody: serializedBody };
       } catch (error) {
         // Distinguish timeout errors from other abort errors
         const err = error instanceof Error ? error : new Error(String(error));

@@ -18,7 +18,7 @@ test("xiaomi-mimo registry uses the current default base URL and MiMo V2.5 + V2 
   assert.equal(entry.baseUrl, "https://api.xiaomimimo.com/v1");
   assert.deepEqual(
     entry.models.map((model) => model.id),
-    ["mimo-v2.5-pro", "mimo-v2.5", "mimo-v2-omni", "mimo-v2-flash"]
+    ["mimo-v2.5-pro", "mimo-v2.5", "mimo-v2-pro", "mimo-v2-omni", "mimo-v2-flash"]
   );
 });
 
@@ -32,7 +32,7 @@ test("xiaomi-mimo TTS models are registered in the audio speech registry", () =>
   assert.equal(provider.format, "xiaomi-mimo-tts");
   assert.deepEqual(
     provider.models.map((model) => model.id),
-    ["mimo-v2.5-tts", "mimo-v2.5-tts-voicedesign", "mimo-v2.5-tts-voiceclone"]
+    ["mimo-v2.5-tts", "mimo-v2.5-tts-voicedesign", "mimo-v2.5-tts-voiceclone", "mimo-v2-tts"]
   );
   assert.ok(
     getAllAudioModels().some(
@@ -98,11 +98,14 @@ test("xiaomi-mimo update schema accepts custom regional baseUrl", () => {
   }
 });
 
-test("MiMo-V2.5, V2.5-Pro, and V2-Omni report vision capability", () => {
-  // Omnimodal models should have supportsVision
-  assert.equal(getModelSpec("mimo-v2.5-pro")?.supportsVision, true);
+test("only MiMo V2.5 and V2-Omni report vision; the *-pro/flash chat models are text-only", () => {
+  // Corrected: Xiaomi documents ONLY mimo-v2.5 and mimo-v2-omni as image-capable
+  // (mimo.mi.com .../image-understanding). models.dev mislabels the *-pro models
+  // (hermes-agent#18884); see the hard override in src/lib/modelCapabilities.ts.
   assert.equal(getModelSpec("mimo-v2.5")?.supportsVision, true);
   assert.equal(getModelSpec("mimo-v2-omni")?.supportsVision, true);
-  // Flash is text-only — should NOT have vision
+  // text-only chat models
+  assert.equal(getModelSpec("mimo-v2.5-pro")?.supportsVision, false);
+  assert.equal(getModelSpec("mimo-v2-pro")?.supportsVision, false);
   assert.equal(getModelSpec("mimo-v2-flash")?.supportsVision, undefined);
 });

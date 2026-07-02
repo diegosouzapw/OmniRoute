@@ -72,10 +72,42 @@ export function isCcCompatibleProviderEnabled(): boolean {
   return isFeatureFlagEnabled("ENABLE_CC_COMPATIBLE_PROVIDER");
 }
 
+export function isApiKeyRevealEnabledFlag(): boolean {
+  try {
+    return isFeatureFlagEnabled("ALLOW_API_KEY_REVEAL");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve ALLOW_API_KEY_REVEAL, defaulting to disabled:",
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
+}
+
 export function isModelCatalogNamesEnabled(): boolean {
   return isFeatureFlagEnabled("MODEL_CATALOG_INCLUDE_NAMES");
 }
 
+export type ModelsCatalogPrefixMode = "dual" | "alias" | "canonical";
+
+export function getModelsCatalogPrefixMode(): ModelsCatalogPrefixMode {
+  const value = resolveFeatureFlag("MODELS_CATALOG_PREFIX_MODE");
+  if (value === "alias" || value === "canonical") return value;
+  return "dual";
+}
+
 export function isArenaEloSyncEnabled(): boolean {
   return isFeatureFlagEnabled("ARENA_ELO_SYNC_ENABLED");
+}
+
+export function isControlPlaneProxyDirectFallbackEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK, defaulting to disabled:",
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
 }

@@ -45,19 +45,13 @@ test("endpoint page keeps APIs, MCP, and A2A as in-page tabs", () => {
   assert.ok(source.includes('activeEndpointTab === "a2a" ? <A2ADashboardPage /> : null'));
 });
 
-test("settings root renders the General, Appearance, and Resilience tab panel", () => {
+test("settings root redirects to section pages instead of rendering a tab shell", () => {
   const pageSource = readSource("src/app/(dashboard)/dashboard/settings/page.tsx");
-  const clientSource = readSource("src/app/(dashboard)/dashboard/settings/SettingsPageClient.tsx");
 
-  assert.ok(pageSource.includes("return <SettingsPageClient initialTab={normalizeTab(tab)} />"));
-  assert.ok(
-    clientSource.includes('export type SettingsTab = "general" | "appearance" | "resilience"')
-  );
-  for (const label of ["General", "Appearance", "Resilience"]) {
-    assert.ok(clientSource.includes('label: "' + label + '"'));
-  }
-  assert.ok(clientSource.includes('role="tabpanel"'));
-  assert.ok(clientSource.includes("aria-label={activeLabel}"));
+  assert.ok(pageSource.includes('import { redirect } from "next/navigation"'));
+  assert.ok(pageSource.includes('general: "/dashboard/settings/general"'));
+  assert.ok(pageSource.includes('resilience: "/dashboard/settings/resilience"'));
+  assert.ok(pageSource.includes("redirect(resolveSettingsRoute(tab))"));
 });
 
 test("provider limit status chips use English fallback labels", () => {

@@ -83,3 +83,18 @@ test("handleBypassRequest bypasses single-message count probes", async () => {
   assert.equal(payload.usage.total_tokens, 2);
   assert.equal(payload.choices[0].finish_reason, "stop");
 });
+
+test("bypass returns quota response for max_tokens=1 quota probe", () => {
+  const body = {
+    max_tokens: 1,
+    stream: false,
+    messages: [{ role: "user", content: "Please check the quota for this key" }],
+  };
+  const result = handleBypassRequest(body, "x", "claude-cli/2.1.0");
+  assert.ok(result?.success, "should bypass quota probe");
+});
+
+test("bypass does NOT trigger for normal requests", () => {
+  const body = { messages: [{ role: "user", content: "write a function" }] };
+  assert.equal(handleBypassRequest(body, "x", "claude-cli/2.1.0"), null);
+});

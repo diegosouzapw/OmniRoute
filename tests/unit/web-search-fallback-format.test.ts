@@ -114,6 +114,36 @@ test("bypass predicate: true for Claude -> Claude passthrough", () => {
   );
 });
 
+// #4481: MiniMax's Anthropic-compatible endpoint claims Claude format but does NOT
+// implement Anthropic's typed server tools, so forwarding web_search_20250305 untouched
+// (the Claude->Claude bypass) makes api.minimax.io return HTTP 400 "invalid params,
+// function name or parameters is empty (2013)". For such providers we must NOT bypass —
+// the tool has to be converted to the omniroute_web_search function fallback (which the
+// model accepts as a normal function tool).
+test("bypass predicate: false for Claude -> Claude when provider lacks Anthropic server tools (minimax, #4481)", () => {
+  assert.equal(
+    supportsNativeWebSearchFallbackBypass({
+      provider: "minimax",
+      sourceFormat: "claude",
+      targetFormat: "claude",
+      nativeCodexPassthrough: false,
+    }),
+    false
+  );
+});
+
+test("bypass predicate: still true for Claude -> Claude on a real Claude provider (regression guard, #4481)", () => {
+  assert.equal(
+    supportsNativeWebSearchFallbackBypass({
+      provider: "anthropic",
+      sourceFormat: "claude",
+      targetFormat: "claude",
+      nativeCodexPassthrough: false,
+    }),
+    true
+  );
+});
+
 test("bypass predicate: false for standard OpenAI -> OpenAI", () => {
   assert.equal(
     supportsNativeWebSearchFallbackBypass({

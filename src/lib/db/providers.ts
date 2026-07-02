@@ -4,6 +4,7 @@
 
 import { v4 as uuidv4 } from "uuid";
 import { getDbInstance, rowToCamel, cleanNulls } from "./core";
+import { selectProviderNodeForConnection } from "./providerNodeSelect";
 import { backupDbFile } from "./backup";
 import {
   encryptConnectionFields,
@@ -772,6 +773,18 @@ export async function getProviderNodeById(id: string) {
   const db = getDbInstance() as unknown as DbLike;
   const row = db.prepare("SELECT * FROM provider_nodes WHERE id = ?").get(id);
   return row ? rowToCamel(row) : null;
+}
+
+// #4421: resolve the provider node for a new connection from either its concrete id
+// (what the dashboard sends, "<type>-<uuid>") OR the bare derived type (what callers
+// using the /api/providers API directly often pass, e.g. "openai-compatible-responses").
+// Falls back to the sole node of that type only when unambiguous; otherwise null (so the
+// caller still surfaces the existing 404).
+export async function resolveProviderNodeForConnection(idOrType: string) {
+  const exact = await getProviderNodeById(idOrType);
+  if (exact) return exact;
+  const all = (await getProviderNodes()) as JsonRecord[];
+  return selectProviderNodeForConnection(idOrType, all);
 }
 
 export async function createProviderNode(data: JsonRecord) {

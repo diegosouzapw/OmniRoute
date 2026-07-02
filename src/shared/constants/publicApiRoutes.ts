@@ -10,6 +10,10 @@ const PUBLIC_API_ROUTE_PREFIXES = [
   // Public, ticket-gated Codex device-flow completion (validate + persist).
   // The handler enforces its own single-use ticket check; no dashboard auth.
   "/api/codex/connect/",
+  // Remote-mode bootstrap: exchange the management password for a scoped CLI
+  // access token. The handler enforces its own password check + lockout — there
+  // is no token yet at this point, so it cannot require management auth.
+  "/api/cli/connect",
 ];
 
 const PUBLIC_READONLY_API_ROUTE_PREFIXES = [

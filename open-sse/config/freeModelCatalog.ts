@@ -6,6 +6,7 @@ export type FreeModelFreeType =
   | "recurring-daily"
   | "recurring-monthly"
   | "recurring-credit"
+  | "recurring-uncapped"
   | "one-time-initial"
   | "keyless"
   | "discontinued";
@@ -22,9 +23,24 @@ export interface FreeModelBudget {
 }
 
 export interface FreeModelTotals {
+  /** Pool-deduped recurring tokens/month — the headline "steady" number. */
   steadyRecurringTokens: number;
+  /** Steady + recurring credit grants (e.g. monthly $-credit plans). */
   steadyWithRecurringCreditsTokens: number;
+  /** Steady + recurring + one-time signup credits — first-month only. */
   firstMonthRealisticTokens: number;
+  /**
+   * Extra recurring tokens/month unlocked by a one-time small deposit
+   * (e.g. OpenRouter: 50→1000 req/day after a $10 lifetime top-up).
+   * Reported separately so it never inflates the steady headline.
+   */
+  boostMonthlyTokens: number;
+  /**
+   * Providers that are permanently free but publish NO token cap
+   * (rate/concurrency-limited). Real access, but un-quantifiable — listed,
+   * never summed into the headline (avoids the rate-limit×24/7 inflation).
+   */
+  uncappedProviders: string[];
   modelCount: number;
   poolCount: number;
   perModel: FreeModelBudget[];
@@ -32,6 +48,22 @@ export interface FreeModelTotals {
 }
 
 const RECURRING = new Set<FreeModelFreeType>(["recurring-daily", "recurring-monthly", "keyless"]);
+
+/**
+ * Deposit-unlock boosts: a one-time small top-up that permanently raises a
+ * provider's recurring free quota. Kept OUT of the steady headline and surfaced
+ * as a separate "unlock more" figure. Keyed by the provider's recurring poolKey.
+ */
+export const FREE_TIER_BOOSTS: Record<
+  string,
+  { provider: string; boostMonthlyTokens: number; note: string }
+> = {
+  "openrouter-free": {
+    provider: "openrouter",
+    boostMonthlyTokens: 24_000_000,
+    note: "A one-time $10 lifetime top-up raises the free pool from 50 to 1000 requests/day (~24M tokens/month).",
+  },
+};
 
 function fmt(n: number): string {
   return n >= 1e9 ? (n / 1e9).toFixed(2) + "B" : Math.round(n / 1e6) + "M";
@@ -82,10 +114,26 @@ export function computeFreeModelTotals(opts: { excludeTosAvoid?: boolean } = {})
     models.filter((m) => RECURRING.has(m.freeType) && m.poolKey).map((m) => m.poolKey),
   ).size;
 
+  // Deposit-unlock boost: sum the FREE_TIER_BOOSTS whose pool still has a live
+  // recurring model in the (optionally ToS-filtered) set.
+  const livePools = new Set(
+    models.filter((m) => RECURRING.has(m.freeType) && m.poolKey).map((m) => m.poolKey),
+  );
+  const boostMonthlyTokens = Object.entries(FREE_TIER_BOOSTS)
+    .filter(([pool]) => livePools.has(pool))
+    .reduce((s, [, b]) => s + b.boostMonthlyTokens, 0);
+
+  // Permanently-free-but-uncapped providers (real access, no published cap).
+  const uncappedProviders = [
+    ...new Set(models.filter((m) => m.freeType === "recurring-uncapped").map((m) => m.provider)),
+  ].sort();
+
   return {
     steadyRecurringTokens,
     steadyWithRecurringCreditsTokens,
     firstMonthRealisticTokens,
+    boostMonthlyTokens,
+    uncappedProviders,
     modelCount: models.length,
     poolCount,
     perModel: models.slice().sort((a, b) => b.monthlyTokens - a.monthlyTokens),

@@ -1,3 +1,4 @@
+import { isVisionModelId } from "@/shared/constants/visionModels";
 import type { CompressionResult, CompressionMode } from "./types.ts";
 import { createCompressionStats } from "./stats.ts";
 
@@ -52,18 +53,13 @@ function normalizeMessageWhitespace(content: string): string {
   return collapseNewlineRuns(content).split("\n").map(trimTrailingHorizontalWhitespace).join("\n");
 }
 
+// Vision detection is centralized in `@/shared/constants/visionModels` (#4072) so
+// the lite image-strip gate, the /v1/models listing, and the routing fallback can
+// never disagree. The shared list keeps the #3328 MiniMax M3 carve-out and the
+// pixtral/llava/qwen-vl/glm-4v/kimi-vl/mistral-medium-3 families this gate used to
+// miss (stripping their images and blinding real vision models).
 function modelSupportsVision(model: string): boolean {
-  const normalized = model.toLowerCase();
-  return (
-    normalized.includes("vision") ||
-    normalized.includes("gpt-4") ||
-    normalized.includes("4o") ||
-    normalized.includes("claude-3") ||
-    normalized.includes("gemini") ||
-    // #3328: MiniMax M3 is multimodal — verified it describes images via the opencode
-    // upstream. Without this, compression strips the image and the model goes "blind".
-    normalized.includes("minimax-m3")
-  );
+  return isVisionModelId(model);
 }
 
 export function collapseWhitespace(

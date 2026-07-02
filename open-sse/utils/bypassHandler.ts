@@ -69,6 +69,18 @@ export function handleBypassRequest(body, model, userAgent = "") {
     }
   }
 
+  // Pattern 5: Quota probe — max_tokens=1 + "quota" keyword (FCC try_quota_mock).
+  if (!shouldBypass && body.max_tokens === 1) {
+    const userText = messages
+      .filter((m) => m.role === "user")
+      .map((m) => getText(m.content))
+      .join(" ")
+      .toLowerCase();
+    if (userText.includes("quota")) {
+      shouldBypass = true;
+    }
+  }
+
   if (!shouldBypass) return null;
 
   const sourceFormat = detectFormat(body);

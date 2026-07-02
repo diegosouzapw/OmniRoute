@@ -3,6 +3,7 @@ import { createErrorResponse } from "@/lib/api/errorResponse";
 import { extractApiKey, isValidApiKey } from "@/sse/services/auth";
 import { getApiKeyMetadata } from "@/lib/db/apiKeys";
 import { isCliTokenAuthValid } from "@/lib/middleware/cliTokenAuth";
+import { evaluateAccessTokenAuth } from "@/server/authz/accessTokenAuth";
 import {
   MANAGE_SCOPE,
   hasManageScope as hasManageScopeShared,
@@ -34,6 +35,37 @@ export async function requireManagementAuth(request: Request): Promise<Response 
     return null;
   }
 
+  // Scoped CLI access token (remote mode). Intercepted BEFORE the API-key branch:
+  // these `oma_` tokens are management/CLI credentials, not inference API keys,
+  // and would otherwise be rejected by isValidApiKey. Same shared evaluation the
+  // central managementPolicy uses (no drift). Dashboard JWT, the loopback CLI
+  // token, and manage-scope API keys remain full-access above/below.
+  const accessVerdict = evaluateAccessTokenAuth(request);
+  switch (accessVerdict.kind) {
+    case "ok":
+      return null;
+    case "error":
+      return createErrorResponse({
+        status: 503,
+        message: "Service temporarily unavailable",
+        type: "server_error",
+      });
+    case "invalid":
+      return createErrorResponse({
+        status: 401,
+        message: "Invalid or expired access token",
+        type: "invalid_request",
+      });
+    case "insufficient":
+      return createErrorResponse({
+        status: 403,
+        message: `Access token scope '${accessVerdict.have}' is insufficient; '${accessVerdict.need}' required.`,
+        type: "invalid_request",
+      });
+    case "absent":
+      break; // no oma_ token → fall through to API-key auth
+  }
+
   // Management auth never honours a URL-borne credential (header-only) — a token
   // in the path/query must not authenticate a management route. See #3300 follow-up.
   const apiKey = extractApiKey(request, { allowUrl: false });
@@ -60,7 +92,7 @@ export async function requireManagementAuth(request: Request): Promise<Response 
 
     return createErrorResponse({
       status: 403,
-      message: "API key lacks 'manage' scope. Enable it in the API Manager dashboard.",
+      message: "API key lacks 'manage' scope. Enable it in the API Keys dashboard.",
       type: "invalid_request",
     });
   }

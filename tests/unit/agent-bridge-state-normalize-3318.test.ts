@@ -48,6 +48,26 @@ test("normalizeAgentBridgeState falls back to safe defaults for empty/garbage in
   }
 });
 
+test("normalizeAgentBridgeState maps orphanedStateDetected + dnsConfigured from getMitmStatus (Gap 7 repair banner)", () => {
+  // getMitmStatus() returns these two flags; the maintenance card needs them in
+  // serverState to decide whether to surface the "orphaned state — repair" banner.
+  const routeShape = {
+    server: { running: false, dnsConfigured: true, certExists: true, orphanedStateDetected: true },
+    agents: [],
+  };
+  const result = normalizeAgentBridgeState(routeShape);
+  assert.equal(result.serverState.orphanedStateDetected, true, "orphanedStateDetected maps through");
+  assert.equal(result.serverState.dnsConfigured, true, "dnsConfigured maps through");
+});
+
+test("normalizeAgentBridgeState defaults orphanedStateDetected + dnsConfigured to false", () => {
+  for (const bad of [null, undefined, {}, { server: {} }]) {
+    const result = normalizeAgentBridgeState(bad);
+    assert.equal(result.serverState.orphanedStateDetected, false);
+    assert.equal(result.serverState.dnsConfigured, false);
+  }
+});
+
 test("normalizeAgentBridgeState passes a correctly-shaped payload through intact", () => {
   const correct = {
     ...DEFAULT_AGENT_BRIDGE_STATE,

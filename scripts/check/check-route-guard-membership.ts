@@ -48,6 +48,7 @@ export const SPAWN_CAPABLE_ROUTE_ROOTS: ReadonlyArray<string> = [
   "src/app/api/services",
   "src/app/api/mcp",
   "src/app/api/cli-tools/runtime",
+  "src/app/api/local", // T-12: 1-click local service launchers (Redis today) — every child here spawns podman/docker (Hard Rules #15 + #17)
 ];
 
 // Frozen pre-existing exceptions: spawn-capable routes NOT yet classified

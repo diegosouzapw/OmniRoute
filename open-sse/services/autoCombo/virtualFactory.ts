@@ -3,6 +3,7 @@ import { MODE_PACKS } from "./modePacks";
 import { DEFAULT_WEIGHTS, ScoringWeights } from "./scoring";
 import { AutoVariant } from "./autoPrefix";
 import { getProviderConnections } from "@/lib/db/providers";
+import { getSettings } from "@/lib/db/settings";
 import { getProviderRegistry } from "./providerRegistryAccessor";
 import type { ConnectionFields } from "@/lib/db/encryption";
 import { NOAUTH_PROVIDERS } from "@/shared/constants/providers";
@@ -10,6 +11,19 @@ import { hasUsableWebSessionCredential } from "@/shared/providers/webSessionCred
 import { defaultLogger as log } from "@omniroute/open-sse/utils/logger";
 import { getTokenLimit } from "../contextManager";
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
+import {
+  buildAutoCandidateFilter,
+  tierToWeightVariant,
+  type AutoCategory,
+  type AutoTier,
+} from "./suffixComposition";
+import { getHiddenModelsByProvider } from "@/models";
+
+/** #4235 Phase B: optional category/tier overlay for `auto/<category>:<tier>` combos. */
+export interface AutoComboSpec {
+  category?: AutoCategory;
+  tier?: AutoTier;
+}
 
 /** Minimal connection shape needed for virtual auto-combo factory */
 interface VirtualFactoryConn extends ConnectionFields {
@@ -123,7 +137,10 @@ function getFirstRegistryModelId(providerInfo: { models?: Array<{ id?: string }>
     : undefined;
 }
 
-function getNoAuthCandidates(excludedProviders: Set<string>): VirtualAutoComboCandidate[] {
+function getNoAuthCandidates(
+  excludedProviders: Set<string>,
+  blockedProviders: Set<string>
+): VirtualAutoComboCandidate[] {
   const registry = getProviderRegistry();
   const candidates: VirtualAutoComboCandidate[] = [];
 
@@ -132,6 +149,11 @@ function getNoAuthCandidates(excludedProviders: Set<string>): VirtualAutoComboCa
 
     const providerId = providerDef.id;
     if (!providerId || excludedProviders.has(providerId)) continue;
+    if (
+      blockedProviders.has(providerId) ||
+      (typeof providerDef.alias === "string" && blockedProviders.has(providerDef.alias))
+    )
+      continue;
 
     const providerInfo = registry[providerId];
     const modelId = getFirstRegistryModelId(providerInfo);
@@ -204,9 +226,17 @@ export function computeAdvertisedLimits(candidates: Array<{ provider: string; mo
 }
 
 export async function createVirtualAutoCombo(
-  variant: AutoVariant | undefined
+  variant: AutoVariant | undefined,
+  spec?: AutoComboSpec
 ): Promise<VirtualAutoCombo> {
-  const connections = (await getProviderConnections({ isActive: true })) as VirtualFactoryConn[];
+  const [connections, settings] = await Promise.all([
+    getProviderConnections({ isActive: true }) as Promise<VirtualFactoryConn[]>,
+    getSettings().catch(() => ({}) as Record<string, unknown>),
+  ]);
+  const blockedProviders = new Set(
+    Array.isArray(settings.blockedProviders) ? (settings.blockedProviders as string[]) : []
+  );
+  const hiddenModelsMap = getHiddenModelsByProvider();
 
   const validConnections = connections.filter(hasUsableConnectionCredential);
 
@@ -222,6 +252,10 @@ export async function createVirtualAutoCombo(
     }
     if (!modelId) continue; // Skip providers without a model
 
+    // Skip models that the user has hidden in the dashboard
+    const hiddenModels = hiddenModelsMap.get(conn.provider);
+    if (hiddenModels?.has(modelId)) continue;
+
     candidatePool.push({
       provider: conn.provider,
       connectionId: conn.id,
@@ -232,7 +266,7 @@ export async function createVirtualAutoCombo(
   }
 
   candidatePool.push(
-    ...getNoAuthCandidates(new Set(validConnections.map((conn) => conn.provider)))
+    ...getNoAuthCandidates(new Set(validConnections.map((conn) => conn.provider)), blockedProviders)
   );
 
   if (candidatePool.length === 0) {
@@ -259,6 +293,25 @@ export async function createVirtualAutoCombo(
       advertisedContextLength: null,
       advertisedMaxOutputTokens: null,
     };
+  }
+
+  // #4235 Phase B: narrow the pool by the `auto/<category>:<tier>` overlay
+  // (vision/reasoning capability, free/premium model tier). Fall back to the full
+  // pool if the filter would empty it — never break routing, just lose the bias.
+  let effectivePool = candidatePool;
+  const candidateFilter = spec ? buildAutoCandidateFilter(spec.category, spec.tier) : null;
+  if (candidateFilter) {
+    const narrowed = candidatePool.filter((c) =>
+      candidateFilter({ provider: c.provider, model: c.model })
+    );
+    if (narrowed.length > 0) {
+      effectivePool = narrowed;
+    } else {
+      log.warn(
+        "AUTO",
+        `auto/${spec?.category ?? ""}${spec?.tier ? `:${spec.tier}` : ""} matched no connected models; using the full pool`
+      );
+    }
   }
 
   let weights: ScoringWeights = { ...DEFAULT_WEIGHTS };
@@ -291,8 +344,26 @@ export async function createVirtualAutoCombo(
       break;
   }
 
-  const providerPool = [...new Set(candidatePool.map((c) => c.provider))];
-  const models = candidatePool.map((candidate, index) => ({
+  // #4235 Phase B: category/tier weight overlay. A non-chat category leans
+  // quality-first; the tier then refines toward latency (fast), cost (cheap/floor)
+  // or availability (reliable). free/pro keep the base weights — their bias is the
+  // candidate filter above (free → free-tier models, pro → premium models).
+  if (spec) {
+    if (spec.category && spec.category !== "chat") {
+      weights = { ...MODE_PACKS["quality-first"] };
+    }
+    const weightVariant = tierToWeightVariant(spec.tier);
+    if (weightVariant === "fast") {
+      weights = { ...MODE_PACKS["ship-fast"] };
+    } else if (weightVariant === "cheap") {
+      weights = { ...MODE_PACKS["cost-saver"] };
+    } else if (weightVariant === "reliability") {
+      weights = { ...MODE_PACKS["reliability-first"] };
+    }
+  }
+
+  const providerPool = [...new Set(effectivePool.map((c) => c.provider))];
+  const models = effectivePool.map((candidate, index) => ({
     id: `virtual-auto-${variant || "default"}-${index + 1}-${candidate.provider}`,
     kind: "model" as const,
     model: candidate.modelStr,
@@ -308,7 +379,7 @@ export async function createVirtualAutoCombo(
     routerStrategy,
   };
 
-  const advertisedLimits = computeAdvertisedLimits(candidatePool);
+  const advertisedLimits = computeAdvertisedLimits(effectivePool);
 
   return {
     id: `virtual-auto-${variant || "default"}`,

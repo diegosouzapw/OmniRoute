@@ -107,6 +107,7 @@
  * @property {string} [corsOrigins] - Allowed CORS origins
  * @property {boolean} [call_log_pipeline_enabled] - Whether per-request pipeline capture is enabled
  * @property {string[]} [hiddenSidebarItems] - Sidebar entry ids hidden for visual decluttering
+ * @property {string[]} [hiddenSidebarGroupLabels] - Sidebar group separator labels hidden from navigation
  */
 
 /**

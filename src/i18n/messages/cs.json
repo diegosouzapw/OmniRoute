@@ -5397,7 +5397,7 @@
     "claudeFastModeModelCheckbox": "Povolit rychlý režim pro {model}",
     "claudeFastModeSaveError": "Aktualizace nastavení rychlého režimu Claude se nezdařila",
     "authz": {
-      "title": "__MISSING__:Authz Inventory",
+      "title": "__MISSING__:Authorization Inventory",
       "description": "__MISSING__:5-tier route classification with live bypass policy. Read shows the full taxonomy; mutations re-prompt for the management password.",
       "loading": "__MISSING__:Loading inventory…",
       "loadError": "__MISSING__:Failed to load authz inventory",

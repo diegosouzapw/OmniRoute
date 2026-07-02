@@ -1,20 +1,37 @@
 import { pruneByScore } from "./ultraHeuristic.ts";
+import { extractPreservedBlocks } from "./preservation.ts";
 import { DEFAULT_ULTRA_CONFIG } from "./types.ts";
 import type { UltraConfig, CompressionStats, CompressionMode } from "./types.ts";
 import { extractTextContent, mapTextContent, type ChatMessageLike } from "./messageContent.ts";
 
 const COMPRESSED_PREFIX = "[COMPRESSED:";
 
-export interface SLMInterface {
-  compress(text: string, rate: number): Promise<string>;
-}
+/**
+ * Prune PROSE only. Fenced code, inline code, URLs, CONST_CASE, versions, etc. are
+ * tombstoned by `extractPreservedBlocks` and re-stitched verbatim, so the heuristic
+ * NEVER mangles structured content (mirrors caveman.ts / llmlingua/index.ts).
+ *
+ * Without this, `pruneByScore` tokenizes the whole text and drops low-score tokens
+ * (`b)`, `{`, `+`, …) inside code blocks, corrupting them while leaving the fence
+ * markers intact — output that looks like valid code but isn't (B-ULTRA-CODE).
+ */
+function pruneProseOnly(text: string, rate: number, minScore: number): string {
+  const { text: withPlaceholders, blocks } = extractPreservedBlocks(text);
+  if (blocks.length === 0) return pruneByScore(text, rate, minScore);
 
-export function createSLMStub(): SLMInterface {
-  return {
-    async compress(text: string, rate: number): Promise<string> {
-      return pruneByScore(text, rate);
-    },
-  };
+  const placeholderToContent = new Map(blocks.map((b) => [b.placeholder, b.content]));
+  const escaped = blocks.map((b) => b.placeholder.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const splitRe = new RegExp(`(${escaped.join("|")})`, "g");
+
+  return withPlaceholders
+    .split(splitRe)
+    .map((part) => {
+      if (!part) return "";
+      const preserved = placeholderToContent.get(part);
+      if (preserved !== undefined) return preserved; // verbatim — never pruned
+      return pruneByScore(part, rate, minScore); // prose only
+    })
+    .join("");
 }
 
 export interface UltraCompressResult {
@@ -52,7 +69,7 @@ export function ultraCompress(
     const next = mapTextContent(msg, (textPart) => {
       if (!textPart || textPart.startsWith(COMPRESSED_PREFIX)) return textPart;
       messageOriginalChars += textPart.length;
-      const pruned = pruneByScore(textPart, compressionRate, minScoreThreshold);
+      const pruned = pruneProseOnly(textPart, compressionRate, minScoreThreshold);
       messageCompressedChars += pruned.length;
       return pruned;
     }) as Message;

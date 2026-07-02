@@ -34,10 +34,12 @@ describe("resolveCacheAwareConfig (#3890)", () => {
   });
 
   it("leaves a non-caching request untouched (preserveSystemPrompt stays false)", () => {
+    // google has no prompt caching, so the prefix-protection guard does not apply.
+    // (openai/codex now count as automatic-cache providers per #3955.)
     const out = resolveCacheAwareConfig(
       cfg({ preserveSystemPrompt: false }),
       { messages: [{ role: "system", content: "x" }] },
-      { provider: "openai" }
+      { provider: "google" }
     );
     assert.equal(out.preserveSystemPrompt, false);
   });

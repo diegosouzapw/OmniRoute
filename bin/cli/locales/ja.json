@@ -25,5 +25,8 @@
     "base_url": "OmniRouteサーバーのベースURL",
     "context": "このコマンドで使用するサーバーコンテキスト/プロファイル",
     "lang": "CLI表示言語を設定（OMNIROUTE_LANGを上書き）"
+  },
+  "redis": {
+    "description": "OmniRouteのキャッシュとクォータ追跡用に、ローカルRedisコンテナー（PodmanまたはDocker）をワンクリックで起動"
   }
 }

@@ -6,6 +6,7 @@ import Modal from "./Modal";
 import Button from "./Button";
 import Input from "./Input";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+import { parseResponseBody, getErrorMessage } from "@/shared/utils/api";
 
 const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy", "gemini-cli"]);
 
@@ -125,7 +126,7 @@ export default function OAuthModal({
           }),
         });
 
-        const data = await res.json();
+        const data = (await parseResponseBody(res)) as Record<string, unknown>;
         if (!res.ok) {
           const errorObject =
             typeof data.error === "object" && data.error !== null
@@ -188,13 +189,9 @@ export default function OAuthModal({
           connectionId: reauthConnection?.id,
         }),
       });
-      const data = await res.json();
+      const data = (await parseResponseBody(res)) as Record<string, unknown>;
       if (!res.ok) {
-        const errMsg =
-          typeof data.error === "object" && data.error !== null
-            ? ((data.error as Record<string, unknown>).message as string) ||
-              JSON.stringify(data.error)
-            : data.error || "Save failed";
+        const errMsg = getErrorMessage(data, res.status, "Save failed");
         throw new Error(errMsg);
       }
       setStep("success");
@@ -228,7 +225,7 @@ export default function OAuthModal({
             }),
           });
 
-          const data = await res.json();
+          const data = (await parseResponseBody(res)) as Record<string, unknown>;
 
           if (data.success) {
             setStep("success");
@@ -293,13 +290,9 @@ export default function OAuthModal({
         }
 
         const res = await fetch(deviceCodeUrl.toString());
-        const data = await res.json();
+        const data = (await parseResponseBody(res)) as Record<string, unknown>;
         if (!res.ok) {
-          const errMsg =
-            typeof data.error === "object" && data.error !== null
-              ? ((data.error as Record<string, unknown>).message as string) ||
-                JSON.stringify(data.error)
-              : data.error || "Request failed";
+          const errMsg = getErrorMessage(data, res.status, "Request failed");
           throw new Error(errMsg);
         }
 
@@ -339,8 +332,11 @@ export default function OAuthModal({
         if (isTrueLocalhost) {
           try {
             const serverRes = await fetch(`/api/oauth/${provider}/start-callback-server`);
-            const serverData = await serverRes.json();
-            if (!serverRes.ok) throw new Error(serverData.error);
+            const serverData = (await parseResponseBody(serverRes)) as Record<string, unknown>;
+            if (!serverRes.ok)
+              throw new Error(
+                getErrorMessage(serverData, serverRes.status, "Failed to start callback server")
+              );
 
             setAuthData({ ...serverData, redirectUri: serverData.redirectUri });
             setStep("waiting");
@@ -361,7 +357,7 @@ export default function OAuthModal({
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ connectionId: reauthConnection?.id }),
               });
-              const pollData = await pollRes.json();
+              const pollData = (await parseResponseBody(pollRes)) as Record<string, unknown>;
 
               if (pollData.success) {
                 setStep("success");
@@ -432,13 +428,9 @@ export default function OAuthModal({
       const res = await fetch(
         `/api/oauth/${provider}/authorize?redirect_uri=${encodeURIComponent(redirectUri)}`
       );
-      const data = await res.json();
+      const data = (await parseResponseBody(res)) as Record<string, unknown>;
       if (!res.ok) {
-        const errMsg =
-          typeof data.error === "object" && data.error !== null
-            ? ((data.error as Record<string, unknown>).message as string) ||
-              JSON.stringify(data.error)
-            : data.error || "Authorization failed";
+        const errMsg = getErrorMessage(data, res.status, "Authorization failed");
         throw new Error(errMsg);
       }
 

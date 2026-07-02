@@ -5,7 +5,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { DetectionResult } from "../types";
+import type { DetectionResult } from "../types.ts";
 
 const HOME = os.homedir();
 const PATHS = [

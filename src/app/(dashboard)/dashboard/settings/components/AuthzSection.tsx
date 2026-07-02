@@ -241,64 +241,6 @@ export default function AuthzSection() {
 
   return (
     <>
-      {/* Authz header + tier inventory */}
-      <Card>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-info/10 text-info">
-            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-              shield_lock
-            </span>
-          </div>
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold">{t("authz.title")}</h3>
-            <p className="text-sm text-text-muted">{t("authz.description")}</p>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-4">
-          {inventory.tiers.map((tier) => (
-            <div
-              key={tier.name}
-              className="rounded-lg border border-border/50 bg-black/[0.02] dark:bg-white/[0.02] p-4"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <h4 className="font-semibold">{t(`authz.tier.${tier.name}`)}</h4>
-                  {tier.bypassable && (
-                    <Badge variant="warning" size="sm">
-                      {t("authz.badge.bypassable")}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-              <p className="text-sm text-text-muted mb-3">{tier.description}</p>
-              <ul className="flex flex-col gap-2">
-                {tier.prefixes.map((prefix) => {
-                  const badge = tierBadgeVariant(
-                    tier.name,
-                    prefix,
-                    inventory.spawnCapablePrefixes,
-                    inventory.bypassPrefixes,
-                    inventory.bypassEnabled
-                  );
-                  return (
-                    <li
-                      key={`${tier.name}:${prefix}`}
-                      className="flex items-center justify-between gap-3 rounded-md border border-border/40 bg-black/[0.02] dark:bg-white/[0.02] px-3 py-2"
-                    >
-                      <code className="text-xs font-mono">{prefix}</code>
-                      <Badge variant={badge.variant} size="sm">
-                        {t(`authz.badge.${badge.key}`)}
-                      </Badge>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </Card>
-
       {/* Bypass policy editor */}
       <Card>
         <div className="flex items-center gap-3 mb-4">
@@ -418,6 +360,64 @@ export default function AuthzSection() {
           <Button variant="primary" onClick={handleSaveRequest} disabled={!dirty || submitting}>
             {t("authz.save")}
           </Button>
+        </div>
+      </Card>
+
+      {/* Authorization tier inventory */}
+      <Card>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-info/10 text-info">
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+              shield_lock
+            </span>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold">{t("authz.title")}</h3>
+            <p className="text-sm text-text-muted">{t("authz.description")}</p>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          {inventory.tiers.map((tier) => (
+            <div
+              key={tier.name}
+              className="rounded-lg border border-border/50 bg-black/[0.02] dark:bg-white/[0.02] p-4"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <h4 className="font-semibold">{t(`authz.tier.${tier.name}`)}</h4>
+                  {tier.bypassable && (
+                    <Badge variant="warning" size="sm">
+                      {t("authz.badge.bypassable")}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <p className="text-sm text-text-muted mb-3">{tier.description}</p>
+              <ul className="flex flex-col gap-2">
+                {tier.prefixes.map((prefix) => {
+                  const badge = tierBadgeVariant(
+                    tier.name,
+                    prefix,
+                    inventory.spawnCapablePrefixes,
+                    inventory.bypassPrefixes,
+                    inventory.bypassEnabled
+                  );
+                  return (
+                    <li
+                      key={`${tier.name}:${prefix}`}
+                      className="flex items-center justify-between gap-3 rounded-md border border-border/40 bg-black/[0.02] dark:bg-white/[0.02] px-3 py-2"
+                    >
+                      <code className="text-xs font-mono">{prefix}</code>
+                      <Badge variant={badge.variant} size="sm">
+                        {t(`authz.badge.${badge.key}`)}
+                      </Badge>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
         </div>
       </Card>
 

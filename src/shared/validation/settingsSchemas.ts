@@ -8,6 +8,7 @@
 import { z } from "zod";
 import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
 import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/constants/bodySize";
+import { HIDEABLE_SIDEBAR_GROUP_IDS } from "@/shared/constants/sidebarGroupVisibility";
 import { HIDEABLE_SIDEBAR_ITEM_IDS, SIDEBAR_SECTIONS } from "@/shared/constants/sidebarVisibility";
 import { ACCOUNT_FALLBACK_STRATEGY_VALUES } from "@/shared/constants/routingStrategies";
 import { RESPONSES_PREVIOUS_RESPONSE_ID_MODES } from "@/shared/constants/responsesPreviousResponseId";
@@ -42,7 +43,6 @@ export const updateSettingsSchema = z.object({
   pinProviderQuotaToHome: z.boolean().optional(),
   showQuickStartOnHome: z.boolean().optional(),
   showProviderTopologyOnHome: z.boolean().optional(),
-  showTokenSaverOnEndpoint: z.boolean().optional(),
   localOnlyManageScopeBypassEnabled: z.boolean().optional(),
   // Layer 1 of the spawn-capable guard (Hard Rules #15/#17): reject any bypass
   // prefix that reaches a SPAWN_CAPABLE_PREFIXES path at PATCH time, with the
@@ -71,6 +71,7 @@ export const updateSettingsSchema = z.object({
   customBannedSignals: z.array(z.string().max(200)).optional(),
   debugMode: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
+  hiddenSidebarGroupLabels: z.array(z.enum(HIDEABLE_SIDEBAR_GROUP_IDS)).optional(),
   sidebarSectionOrder: z
     .array(z.enum(SIDEBAR_SECTIONS.map((s) => s.id) as [string, ...string[]]))
     .optional(),
@@ -289,6 +290,13 @@ export const updateSettingsSchema = z.object({
   visionBridgeMaxImages: z.number().int().min(1).max(20).optional(),
   // Missing settings
   lkgpEnabled: z.boolean().optional(),
+  // #1311: echo the requested alias/combo name in the response model field (opt-in)
+  echoRequestedModelName: z.boolean().optional(),
+  // #4481 layer 2: CCR-style Router.webSearch — when a request carries a native
+  // web_search server tool, route the whole request to this model/provider instead of
+  // the default (for providers that don't implement Anthropic's web_search server tool).
+  // Empty/unset = disabled. Value is a model string ("provider,model" / alias / combo).
+  webSearchRouteModel: z.string().max(200).optional(),
   backgroundDegradation: z.unknown().optional(),
   bruteForceProtection: z.boolean().optional(),
   // Auto-routing settings
@@ -332,8 +340,8 @@ export const updateSettingsSchema = z.object({
     .optional(),
 });
 
-export const databaseSettingsSchema = z.object(
-  {
+export const databaseSettingsSchema = z
+  .object({
     // Logs settings
     logs: z.object({
       detailedLogsEnabled: z.boolean(),
@@ -397,7 +405,8 @@ export const databaseSettingsSchema = z.object(
     }),
 
     // Skip location and stats as they're read-only
-}).strict();
+  })
+  .strict();
 
 export type DatabaseSettingsSchema = z.infer<typeof databaseSettingsSchema>;
 

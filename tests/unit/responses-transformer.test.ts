@@ -284,3 +284,80 @@ test("createResponsesApiTransformStream concatenates incremental tool argument f
     .join("");
   assert.equal(streamedArgs, '{"cmd":"ll -l"}');
 });
+
+test("createResponsesApiTransformStream clears the keepalive timer when the stream is cancelled (no timer leak)", async () => {
+  // Regression: the 3s keepalive interval used to be cleared ONLY in flush(), which
+  // does not run when the client disconnects mid-stream. The orphaned interval then
+  // fired (and threw on the closed controller) forever, leaking one live timer per
+  // aborted /v1/responses stream and burning CPU as they accumulated. Verify the timer
+  // is cleared when the readable side is cancelled.
+  const realSetInterval = globalThis.setInterval;
+  const realClearInterval = globalThis.clearInterval;
+  const live = new Set();
+  globalThis.setInterval = function (handler, timeout, ...args) {
+    const id = realSetInterval(handler, timeout, ...args);
+    live.add(id);
+    return id;
+  };
+  globalThis.clearInterval = function (id) {
+    live.delete(id);
+    return realClearInterval(id);
+  };
+
+  try {
+    const stream = createResponsesApiTransformStream(null, 10);
+    const writer = stream.writable.getWriter();
+    const reader = stream.readable.getReader();
+
+    // start() runs on construction and creates exactly one keepalive interval.
+    assert.equal(live.size, 1, "keepalive interval should be active while streaming");
+
+    await writer.write(
+      encoder.encode('data: {"choices":[{"index":0,"delta":{"content":"hi"}}]}\n\n')
+    );
+    await reader.read();
+
+    // Simulate a client disconnect mid-stream.
+    await reader.cancel();
+
+    assert.equal(live.size, 0, "keepalive interval must be cleared when the stream is cancelled");
+  } finally {
+    globalThis.setInterval = realSetInterval;
+    globalThis.clearInterval = realClearInterval;
+  }
+});
+
+test("createResponsesApiTransformStream keepalive self-clears when enqueue fails on a torn-down controller", async () => {
+  // Backstop for transports where neither flush() nor cancel() runs: the keepalive
+  // callback must clear its own interval the first time enqueue() throws, instead of
+  // re-throwing on every tick forever.
+  const realSetInterval = globalThis.setInterval;
+  const realClearInterval = globalThis.clearInterval;
+  let capturedCallback = null;
+  let capturedId = null;
+  let cleared = false;
+  globalThis.setInterval = function (handler, timeout, ...args) {
+    capturedCallback = handler;
+    capturedId = realSetInterval(() => {}, 1 << 30, ...args); // inert real timer as the id
+    return capturedId;
+  };
+  globalThis.clearInterval = function (id) {
+    if (id === capturedId) cleared = true;
+    return realClearInterval(id);
+  };
+
+  try {
+    const stream = createResponsesApiTransformStream(null, 10);
+    // Error the readable side so the controller can no longer accept enqueues.
+    await stream.readable.cancel();
+
+    assert.equal(typeof capturedCallback, "function", "keepalive callback should be captured");
+    // Manually invoke the keepalive tick: enqueue() will throw on the torn-down
+    // controller, and the callback must clear its own interval rather than rethrow.
+    assert.doesNotThrow(() => capturedCallback());
+    assert.equal(cleared, true, "keepalive interval should self-clear after a failed enqueue");
+  } finally {
+    globalThis.setInterval = realSetInterval;
+    globalThis.clearInterval = realClearInterval;
+  }
+});

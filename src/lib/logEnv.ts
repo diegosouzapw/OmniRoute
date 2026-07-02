@@ -71,6 +71,26 @@ export function getCallLogRetentionDays(): number {
   return parsePositiveInt(process.env.CALL_LOG_RETENTION_DAYS, DEFAULT_CALL_LOG_RETENTION_DAYS);
 }
 
+/**
+ * Returns the explicit operator-set retention override (a positive integer), or `null`
+ * when the env var is unset/empty/invalid. Callers give an explicit env var precedence
+ * over the dashboard's database retention, while falling back to the dashboard (not the
+ * hardcoded 7-day default) when the operator did not set the env var. (#4354)
+ */
+function parsePositiveIntOrNull(value: string | undefined): number | null {
+  if (value === undefined || value === "") return null;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+export function getAppLogRetentionDaysOverride(): number | null {
+  return parsePositiveIntOrNull(process.env.APP_LOG_RETENTION_DAYS);
+}
+
+export function getCallLogRetentionDaysOverride(): number | null {
+  return parsePositiveIntOrNull(process.env.CALL_LOG_RETENTION_DAYS);
+}
+
 export function getAppLogMaxFiles(): number {
   return parsePositiveInt(process.env.APP_LOG_MAX_FILES, DEFAULT_APP_LOG_MAX_FILES);
 }

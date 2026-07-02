@@ -66,6 +66,7 @@ test("getSettings exposes defaults and updateSettings persists typed values", as
   assert.equal(defaults.cloudEnabled, true);
   assert.equal(defaults.requireLogin, true);
   assert.deepEqual(defaults.hiddenSidebarItems, []);
+  assert.deepEqual(defaults.hiddenSidebarGroupLabels, []);
   assert.equal(defaults.idempotencyWindowMs, 5000);
   assert.equal(defaults.requestRetry, 3);
   assert.equal(defaults.maxRetryIntervalSec, 30);
@@ -599,7 +600,8 @@ test("proxy resolution matches combo proxies through aliased model entries", asy
     apiKey: "sk-claude-alias",
   });
   // Enable proxy on this connection so legacy combo/provider proxy checks work
-  core.getDbInstance()
+  core
+    .getDbInstance()
     .prepare("UPDATE provider_connections SET proxy_enabled = 1 WHERE id = ?")
     .run((connection as any).id);
 
@@ -644,10 +646,12 @@ test("proxy resolution prefers legacy key and provider proxies over registry glo
   await proxiesDb.assignProxyToScope("global", null, registryGlobal.id);
 
   // Enable proxy on both connections so legacy key/provider proxy checks work
-  core.getDbInstance()
+  core
+    .getDbInstance()
     .prepare("UPDATE provider_connections SET proxy_enabled = 1 WHERE id = ?")
     .run((keyConnection as any).id);
-  core.getDbInstance()
+  core
+    .getDbInstance()
     .prepare("UPDATE provider_connections SET proxy_enabled = 1 WHERE id = ?")
     .run((providerConnection as any).id);
 

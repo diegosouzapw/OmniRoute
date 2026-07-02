@@ -331,6 +331,7 @@ const LOBE_PROVIDER_ALIASES = {
   copilot: "GithubCopilot",
   coze: "Coze",
   cursor: "Cursor",
+  "cursor-cloud": "Cursor",
   databricks: "Dbrx",
   deepinfra: "DeepInfra",
   deepseek: "DeepSeek",

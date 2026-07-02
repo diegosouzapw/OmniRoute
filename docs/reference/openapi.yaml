@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OmniRoute API
-  version: 3.8.26
+  version: 3.8.33
   description: |
     OmniRoute is a local-first AI API proxy router. It provides an OpenAI-compatible
     endpoint that routes requests to multiple AI providers with load balancing,
@@ -1092,6 +1092,55 @@ paths:
       responses:
         "200":
           description: Chat completion response (or SSE stream)
+          headers:
+            X-OmniRoute-Response-Cost:
+              schema:
+                type: string
+              description: Request cost in USD, fixed 10 decimals (e.g. `0.0001234500`; `0.0000000000` for free/unpriced).
+            X-OmniRoute-Tokens-In:
+              schema:
+                type: string
+              description: Input (prompt) token count.
+            X-OmniRoute-Tokens-Out:
+              schema:
+                type: string
+              description: Output (completion) token count.
+            X-OmniRoute-Model:
+              schema:
+                type: string
+              description: Resolved model.
+            X-OmniRoute-Provider:
+              schema:
+                type: string
+              description: Resolved provider alias.
+            X-OmniRoute-Latency-Ms:
+              schema:
+                type: string
+              description: Handler latency in milliseconds.
+            X-OmniRoute-Cache-Hit:
+              schema:
+                type: string
+                enum: ["true", "false"]
+              description: Whether the response was served from cache.
+            X-OmniRoute-Fallback-Attempts:
+              schema:
+                type: string
+              description: Number of fallback attempts (only present when > 0).
+            X-OmniRoute-Request-Id:
+              schema:
+                type: string
+              description: Request correlation id (present when known).
+            X-OmniRoute-Version:
+              schema:
+                type: string
+              description: OmniRoute build version (always present).
+            X-OmniRoute-Cost-Saved:
+              schema:
+                type: string
+              description: >-
+                On a semantic-cache HIT, the original (would-have-been) cost in USD that
+                the cache avoided (fixed 10 decimals). Present only on cache hits;
+                X-OmniRoute-Response-Cost is 0 for the same response (incremental cost).
           content:
             application/json:
               schema:
@@ -1103,6 +1152,42 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "502":
           description: All upstream providers failed
+
+  /api/v1/ws:
+    get:
+      tags: [Chat]
+      summary: Chat completion over WebSocket (handshake + upgrade)
+      description: >-
+        OpenAI-compatible chat over a WebSocket connection. `GET` with
+        `?handshake=1` returns the connection descriptor (auth path, message
+        protocol and live-event channels) as JSON; a plain `GET` without an
+        Upgrade returns `426 Upgrade Required`. After upgrading, the client
+        exchanges JSON frames — `{type:"request", id, payload:{model, messages}}`
+        to start a completion and `{type:"cancel", id}` to abort it. A separate
+        live channel (default port `LIVE_WS_PORT=20129`, path `/live`) streams
+        dashboard events on the `requests`, `combo` and `credentials` topics with
+        a 15s heartbeat. Requires an API key.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: handshake
+          in: query
+          description: Set to `1` to receive the JSON connection descriptor instead of upgrading.
+          required: false
+          schema:
+            type: string
+            enum: ["1"]
+      responses:
+        "101":
+          description: WebSocket upgrade successful
+        "200":
+          description: Handshake descriptor (auth path, message protocol, live channels)
+        "401":
+          description: WebSocket auth required (no credential supplied)
+        "403":
+          description: Invalid WebSocket credential
+        "426":
+          description: Upgrade Required — connect via WebSocket or use `?handshake=1`
 
   /api/v1/providers/{provider}/chat/completions:
     post:
@@ -1161,7 +1246,11 @@ paths:
               $ref: "#/components/schemas/MessagesRequest"
       responses:
         "200":
-          description: Message response (or SSE stream)
+          description: >-
+            Message response (or SSE stream). Non-streaming success responses
+            carry the `X-OmniRoute-*` cost-telemetry headers (see
+            `POST /api/v1/chat/completions`), including `X-OmniRoute-Request-Id`
+            and `X-OmniRoute-Version`.
         "401":
           $ref: "#/components/responses/Unauthorized"
 
@@ -1196,7 +1285,11 @@ paths:
               type: object
       responses:
         "200":
-          description: Response object or SSE stream
+          description: >-
+            Response object or SSE stream. Non-streaming success responses carry
+            the `X-OmniRoute-*` cost-telemetry headers (see
+            `POST /api/v1/chat/completions`), including `X-OmniRoute-Request-Id`
+            and `X-OmniRoute-Version`.
         "401":
           $ref: "#/components/responses/Unauthorized"
 
@@ -1224,7 +1317,11 @@ paths:
                   type: string
       responses:
         "200":
-          description: Embedding vectors
+          description: >-
+            Embedding vectors. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`); media
+            cost is computed per modality when pricing is available, otherwise
+            `0` (fail-open).
 
   /api/v1/providers/{provider}/embeddings:
     post:
@@ -1274,7 +1371,11 @@ paths:
                   default: 1024x1024
       responses:
         "200":
-          description: Generated images
+          description: >-
+            Generated images. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`); image
+            cost is computed per image when pricing is available, otherwise `0`
+            (fail-open).
 
   /api/v1/providers/{provider}/images/generations:
     post:
@@ -1321,7 +1422,11 @@ paths:
                   type: string
       responses:
         "200":
-          description: Audio data
+          description: >-
+            Audio data. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`); speech
+            cost is computed per character when pricing is available, otherwise
+            `0` (fail-open).
 
   /api/v1/audio/transcriptions:
     post:
@@ -1345,7 +1450,11 @@ paths:
                   type: string
       responses:
         "200":
-          description: Transcription result
+          description: >-
+            Transcription result. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`);
+            transcription cost is computed per second when pricing is available,
+            otherwise `0` (fail-open).
 
   /api/v1/moderations:
     post:
@@ -1370,7 +1479,10 @@ paths:
                         type: string
       responses:
         "200":
-          description: Moderation result
+          description: >-
+            Moderation result. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`);
+            moderations are always cost `0` (free).
 
   /api/v1/rerank:
     post:
@@ -1397,7 +1509,11 @@ paths:
                   type: string
       responses:
         "200":
-          description: Reranked documents
+          description: >-
+            Reranked documents. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`); rerank
+            cost is computed per search-unit when pricing is available,
+            otherwise `0` (fail-open).
 
   /api/v1:
     get:
@@ -1702,6 +1818,8 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/ApiKey"
+        "401":
+          description: Authentication required
     post:
       tags: [API Keys]
       summary: Create API key
@@ -1718,8 +1836,43 @@ paths:
       responses:
         "201":
           description: Created API key (includes full key value)
+        "401":
+          description: Authentication required
 
   /api/keys/{id}:
+    get:
+      tags: [API Keys]
+      summary: Get API key
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: API key metadata
+        "401":
+          description: Authentication required
+        "404":
+          description: Key not found
+    patch:
+      tags: [API Keys]
+      summary: Update API key
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: API key settings updated
+        "400":
+          description: Invalid update request
+        "401":
+          description: Authentication required
+        "404":
+          description: Key not found
     delete:
       tags: [API Keys]
       summary: Delete API key
@@ -1728,6 +1881,10 @@ paths:
       responses:
         "200":
           description: Key deleted
+        "401":
+          description: Authentication required
+        "404":
+          description: Key not found
 
   /api/combos:
     get:
@@ -1888,6 +2045,52 @@ paths:
       responses:
         "200":
           description: Updated compression settings
+
+  /api/settings/compression/mcp-accessibility:
+    get:
+      tags: [Compression]
+      summary: Get the MCP tool-output accessibility (trimming) config
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Current mcpAccessibility config
+    put:
+      tags: [Compression]
+      summary: Update the MCP tool-output accessibility (trimming) config
+      description: >-
+        Partial-merge update. Numeric floors (e.g. a maxTextChars below the truncation-tail
+        reserve) are folded back to the safe defaults server-side, so the response reflects the
+        effective config.
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                maxTextChars:
+                  type: integer
+                  minimum: 1
+                collapseThreshold:
+                  type: integer
+                  minimum: 1
+                collapseKeepHead:
+                  type: integer
+                  minimum: 0
+                collapseKeepTail:
+                  type: integer
+                  minimum: 0
+                minLengthToProcess:
+                  type: integer
+                  minimum: 1
+      responses:
+        "200":
+          description: Updated mcpAccessibility config (numeric floors applied)
 
   /api/compression/preview:
     post:
@@ -2510,6 +2713,92 @@ paths:
       responses:
         "200":
           description: Translation history entries
+
+  # ─── CLI Remote Mode ───────────────────────────────────────────
+
+  /api/cli/connect:
+    post:
+      tags: [CLI Remote Mode]
+      summary: Exchange the management password for a scoped CLI access token
+      description: >
+        Remote-mode bootstrap. Public (password-gated) route: verifies the
+        management password with brute-force lockout, then mints an `oma_`
+        access token. The plaintext token is returned once.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string }
+                name: { type: string }
+                scope: { type: string, enum: [read, write, admin] }
+                expiresInDays: { type: integer, minimum: 1, maximum: 3650 }
+      responses:
+        "200":
+          description: Token minted (token returned once)
+        "401":
+          description: Invalid password
+        "429":
+          description: Too many failed attempts
+
+  /api/cli/whoami:
+    get:
+      tags: [CLI Remote Mode]
+      summary: Report the current credential (scope, name, expiry)
+      responses:
+        "200":
+          description: Authenticated; access-token details when applicable
+        "401":
+          description: Authentication required
+
+  /api/cli/tokens:
+    get:
+      tags: [CLI Remote Mode]
+      summary: List access tokens (masked) — admin scope
+      responses:
+        "200":
+          description: Masked token list
+        "403":
+          description: Insufficient scope
+    post:
+      tags: [CLI Remote Mode]
+      summary: Create a scoped access token — admin scope
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                scope: { type: string, enum: [read, write, admin] }
+                expiresInDays: { type: integer, minimum: 1, maximum: 3650 }
+      responses:
+        "200":
+          description: Token created (token returned once)
+        "403":
+          description: Insufficient scope
+
+  /api/cli/tokens/{id}:
+    delete:
+      tags: [CLI Remote Mode]
+      summary: Revoke an access token by id or display prefix — admin scope
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Token revoked
+        "403":
+          description: Insufficient scope
+        "404":
+          description: Token not found or already revoked
 
   # ─── CLI Tools ─────────────────────────────────────────────────
 
@@ -3444,11 +3733,18 @@ paths:
               properties:
                 password:
                   type: string
+                  minLength: 1
       responses:
         "200":
           description: JWT token returned
+        "400":
+          description: Invalid login request
         "401":
           description: Invalid password
+        "403":
+          description: Password setup required
+        "429":
+          description: Too many failed attempts
 
   /api/auth/logout:
     post:
@@ -3496,6 +3792,27 @@ paths:
       responses:
         "200":
           description: Backup created
+    patch:
+      tags: [System]
+      summary: Save database backup retention settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                keepLatest:
+                  type: integer
+                  minimum: 1
+                  maximum: 200
+                retentionDays:
+                  type: integer
+                  minimum: 0
+                  maximum: 3650
+      responses:
+        "200":
+          description: Backup retention settings saved
 
   /api/storage/health:
     get:

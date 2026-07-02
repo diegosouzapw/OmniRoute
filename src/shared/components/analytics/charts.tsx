@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import Card from "../Card";
 import { getModelColor } from "@/shared/constants/colors";
+import { PROVIDER_COLORS } from "./chartColors";
 import {
   fmtCompact as fmt,
   fmtFull,
@@ -15,21 +16,6 @@ import {
   translateCostText,
   type TranslationFn,
 } from "@/shared/utils/serviceTierLabels";
-import {
-  BarChart,
-  ComposedChart,
-  Bar,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  PieChart,
-  Pie,
-  AreaChart,
-  Area,
-} from "recharts";
 
 function createDateFormatter(locale: string, options: Intl.DateTimeFormatOptions) {
   try {
@@ -37,39 +23,6 @@ function createDateFormatter(locale: string, options: Intl.DateTimeFormatOptions
   } catch {
     return new Intl.DateTimeFormat(undefined, options);
   }
-}
-
-// ── Custom Tooltip for dark theme ──────────────────────────────────────────
-
-function DarkTooltip({
-  active,
-  payload,
-  label,
-  formatter,
-}: {
-  active?: boolean;
-  payload?: any[];
-  label?: any;
-  formatter?: Function;
-}) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="rounded-lg border border-white/10 bg-surface px-3 py-2 text-xs shadow-lg">
-      {label && <div className="font-semibold text-text-main mb-1">{label}</div>}
-      {payload.map((entry, i) => (
-        <div key={i} className="flex items-center gap-1.5 text-text-muted">
-          <span
-            className="w-2 h-2 rounded-full shrink-0"
-            style={{ backgroundColor: entry.color }}
-          />
-          <span>{entry.name}:</span>
-          <span className="font-mono font-medium text-text-main">
-            {formatter ? formatter(entry.value) : entry.value}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
 }
 
 // ── Sort Indicator (shared by tables) ──────────────────────────────────────
@@ -332,293 +285,6 @@ export function ActivityHeatmap({ activityMap }) {
   );
 }
 
-// ── DailyTrendChart (Recharts) ─────────────────────────────────────────────
-
-export function DailyTrendChart({ dailyTrend }) {
-  const t = useTranslations("analytics");
-  const chartData = useMemo(() => {
-    return (dailyTrend || []).map((d) => ({
-      date: d.date.slice(5),
-      [t("chartInput")]: d.promptTokens,
-      [t("chartOutput")]: d.completionTokens,
-      [t("chartCost")]: d.cost || 0,
-    }));
-  }, [dailyTrend, t]);
-
-  const hasCost = useMemo(() => chartData.some((d) => d[t("chartCost")] > 0), [chartData, t]);
-
-  if (!chartData.length) {
-    return (
-      <Card className="p-4">
-        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
-          {t("chartModelUsageOverTime")}
-        </h3>
-        <div className="text-center text-text-muted text-sm py-8">{t("chartNoData")}</div>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="p-4 flex-1">
-      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
-        {t("chartModelUsageOverTime")}
-      </h3>
-      <ResponsiveContainer width="100%" height={140}>
-        <ComposedChart
-          data={chartData}
-          margin={{ top: 0, right: hasCost ? 40 : 0, left: 0, bottom: 0 }}
-        >
-          <XAxis
-            dataKey="date"
-            tick={{ fontSize: 9, fill: "var(--color-text-muted)" }}
-            axisLine={false}
-            tickLine={false}
-            interval={Math.max(Math.floor(chartData.length / 6), 0)}
-          />
-          {hasCost && (
-            <YAxis
-              yAxisId="cost"
-              orientation="right"
-              tick={{ fontSize: 8, fill: "#f59e0b" }}
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={(v) => `$${v.toFixed(2)}`}
-              width={36}
-            />
-          )}
-          <Tooltip content={<CostTooltip />} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-          <Bar
-            dataKey={t("chartInput")}
-            stackId="a"
-            fill="var(--primary)"
-            opacity={0.7}
-            radius={[0, 0, 0, 0]}
-            animationDuration={600}
-          />
-          <Bar
-            dataKey={t("chartOutput")}
-            stackId="a"
-            fill="#10b981"
-            opacity={0.7}
-            radius={[3, 3, 0, 0]}
-            animationDuration={600}
-          />
-          {hasCost && (
-            <Line
-              yAxisId="cost"
-              type="monotone"
-              dataKey={t("chartCost")}
-              stroke="#f59e0b"
-              strokeWidth={2}
-              dot={false}
-              animationDuration={600}
-            />
-          )}
-        </ComposedChart>
-      </ResponsiveContainer>
-      <div className="flex items-center gap-4 mt-2 text-[10px] text-text-muted">
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-primary/70" /> {t("chartInput")}
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-emerald-500/70" /> {t("chartOutput")}
-        </span>
-        {hasCost && (
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-amber-500/70" /> {t("chartCost")} ($)
-          </span>
-        )}
-      </div>
-    </Card>
-  );
-}
-
-// ── Cost-aware Tooltip ─────────────────────────────────────────────────────
-
-function CostTooltip({
-  active,
-  payload,
-  label,
-}: {
-  active?: boolean;
-  payload?: any[];
-  label?: any;
-}) {
-  const t = useTranslations("analytics");
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="rounded-lg border border-white/10 bg-surface px-3 py-2 text-xs shadow-lg">
-      {label && <div className="font-semibold text-text-main mb-1">{label}</div>}
-      {payload.map((entry, i) => (
-        <div key={i} className="flex items-center gap-1.5 text-text-muted">
-          <span
-            className="w-2 h-2 rounded-full shrink-0"
-            style={{ backgroundColor: entry.color }}
-          />
-          <span>{entry.name}:</span>
-          <span className="font-mono font-medium text-text-main">
-            {entry.name === t("chartCost") ? fmtCost(entry.value) : fmt(entry.value)}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── AccountDonut (Recharts) ────────────────────────────────────────────────
-
-export function AccountDonut({ byAccount }) {
-  const t = useTranslations("analytics");
-  const data = useMemo(() => byAccount || [], [byAccount]);
-  const hasData = data.length > 0;
-
-  const pieData = useMemo(() => {
-    return data.slice(0, 8).map((item, i) => ({
-      name: item.account,
-      value: item.totalTokens,
-      fill: getModelColor(i),
-    }));
-  }, [data]);
-
-  if (!hasData) {
-    return (
-      <Card className="p-4 flex-1">
-        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
-          By Account
-        </h3>
-        <div className="text-center text-text-muted text-sm py-8">{t("chartNoData")}</div>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="p-4 flex-1">
-      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
-        By Account
-      </h3>
-      <div className="flex items-center gap-4">
-        <ResponsiveContainer width={120} height={120}>
-          <PieChart>
-            <Pie
-              data={pieData}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              innerRadius={28}
-              outerRadius={55}
-              paddingAngle={1}
-              animationDuration={600}
-            >
-              {pieData.map((entry, i) => (
-                <Cell key={i} fill={entry.fill} stroke="none" />
-              ))}
-            </Pie>
-            <Tooltip content={<DarkTooltip formatter={fmt} />} />
-          </PieChart>
-        </ResponsiveContainer>
-        <div className="flex flex-col gap-1 min-w-0 flex-1">
-          {pieData.map((seg, i) => (
-            <div key={i} className="flex items-center justify-between gap-2 text-xs">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{ backgroundColor: seg.fill }}
-                />
-                <span className="truncate text-text-main">{seg.name}</span>
-              </div>
-              <span className="font-mono font-medium text-text-muted shrink-0">
-                {fmt(seg.value)}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-// ── ApiKeyDonut (Recharts) ─────────────────────────────────────────────────
-
-export function ApiKeyDonut({ byApiKey }) {
-  const t = useTranslations("analytics");
-  const data = useMemo(() => byApiKey || [], [byApiKey]);
-  const hasData = data.length > 0;
-
-  const pieData = useMemo(() => {
-    return data.slice(0, 8).map((item, i) => ({
-      name: maskApiKeyLabel(item.apiKeyName, item.apiKeyId),
-      fullName: item.apiKeyName || item.apiKeyId || "unknown",
-      value: item.totalTokens,
-      fill: getModelColor(i),
-    }));
-  }, [data]);
-
-  if (!hasData) {
-    return (
-      <Card className="p-4 flex-1">
-        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
-          By API Key
-        </h3>
-        <div className="text-center text-text-muted text-sm py-8">{t("chartNoData")}</div>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="p-4 flex-1">
-      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
-        By API Key
-      </h3>
-      <div className="flex items-center gap-4">
-        <ResponsiveContainer width={120} height={120}>
-          <PieChart>
-            <Pie
-              data={pieData}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              innerRadius={28}
-              outerRadius={55}
-              paddingAngle={1}
-              animationDuration={600}
-            >
-              {pieData.map((entry, i) => (
-                <Cell key={i} fill={entry.fill} stroke="none" />
-              ))}
-            </Pie>
-            <Tooltip content={<DarkTooltip formatter={fmt} />} />
-          </PieChart>
-        </ResponsiveContainer>
-        <div className="flex flex-col gap-1 min-w-0 flex-1">
-          {pieData.map((seg, i) => (
-            <div
-              key={`${seg.fullName}-${i}`}
-              className="flex items-center justify-between gap-2 text-xs"
-            >
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{ backgroundColor: seg.fill }}
-                />
-                <span className="truncate text-text-main" title={seg.fullName}>
-                  {seg.name}
-                </span>
-              </div>
-              <span className="font-mono font-medium text-text-muted shrink-0">
-                {fmt(seg.value)}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-// ── ApiKeyTable ────────────────────────────────────────────────────────────
-
 export function ApiKeyTable({ byApiKey }) {
   const t = useTranslations("analytics");
   const [query, setQuery] = useState("");
@@ -776,49 +442,6 @@ export function ApiKeyTable({ byApiKey }) {
     </Card>
   );
 }
-
-// ── WeeklyPattern (Recharts) ───────────────────────────────────────────────
-
-export function WeeklyPattern({ weeklyPattern }) {
-  const t = useTranslations("analytics");
-  const chartData = useMemo(() => {
-    return (weeklyPattern || []).map((w) => ({
-      day: w.day.slice(0, 3),
-      Tokens: w.totalTokens,
-    }));
-  }, [weeklyPattern]);
-
-  return (
-    <Card className="px-4 py-3">
-      <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
-        {t("chartWeekly")}
-      </h3>
-      <ResponsiveContainer width="100%" height={48}>
-        <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-          <XAxis
-            dataKey="day"
-            tick={{ fontSize: 9, fill: "var(--color-text-muted)" }}
-            axisLine={false}
-            tickLine={false}
-          />
-          <Tooltip
-            content={<DarkTooltip formatter={fmt} />}
-            cursor={{ fill: "rgba(255,255,255,0.04)" }}
-          />
-          <Bar
-            dataKey="Tokens"
-            fill="var(--color-text-muted)"
-            opacity={0.3}
-            radius={[3, 3, 0, 0]}
-            animationDuration={400}
-          />
-        </BarChart>
-      </ResponsiveContainer>
-    </Card>
-  );
-}
-
-// ── MostActiveDay7d ────────────────────────────────────────────────────────
 
 export function MostActiveDay7d({ activityMap }) {
   const locale = useLocale();
@@ -1103,6 +726,28 @@ export function ModelTable({ byModel, summary }) {
   );
 }
 
+function getServiceTierIcon(serviceTier) {
+  if (serviceTier === "priority") return "bolt";
+  if (serviceTier === "flex") return "savings";
+  return "speed";
+}
+
+function getServiceTierIconClass(serviceTier) {
+  if (serviceTier === "priority") return "text-sky-500";
+  if (serviceTier === "flex") return "text-emerald-500";
+  return "text-text-muted";
+}
+
+function getServiceTierBarClass(serviceTier) {
+  if (serviceTier === "priority") return "bg-sky-500";
+  if (serviceTier === "flex") return "bg-emerald-500";
+  return "bg-text-muted/50";
+}
+
+function getServiceTierCostClass(serviceTier) {
+  return serviceTier === "flex" ? "text-emerald-500" : "text-amber-500";
+}
+
 export function ServiceTierBreakdown({ byServiceTier, summary }) {
   const t = useTranslations("costs") as TranslationFn;
   const data = useMemo(() => byServiceTier || [], [byServiceTier]);
@@ -1125,7 +770,6 @@ export function ServiceTierBreakdown({ byServiceTier, summary }) {
       </div>
       <div className="divide-y divide-border">
         {data.map((tier) => {
-          const isFast = tier.serviceTier === "priority";
           const isFlex = tier.serviceTier === "flex";
           const tierLabel = getServiceTierDisplayLabel(t, tier.serviceTier, tier.label);
           const requestPct =
@@ -1134,59 +778,54 @@ export function ServiceTierBreakdown({ byServiceTier, summary }) {
               : "0";
           const costPct =
             totalCost > 0 ? ((Number(tier.cost || 0) / totalCost) * 100).toFixed(1) : "0";
+          const usageSavings = Number(tier.usageSavingsTokens || 0);
+          const costSavings = Number(tier.savings || 0);
+          const usageSavingsText =
+            isFlex && usageSavings > 0
+              ? ` · ${fmt(usageSavings)} ${translateCostText(
+                  t,
+                  "serviceTierUsageSaved",
+                  "usage saved"
+                )}`
+              : "";
+          const costDetailText =
+            isFlex && costSavings > 0
+              ? `${fmtCost(costSavings)} ${translateCostText(t, "serviceTierCostSaved", "saved")}`
+              : `${costPct}% ${translateCostText(t, "serviceTierCostShareSuffix", "of cost")}`;
+
           return (
             <div key={tier.serviceTier} className="p-4 flex flex-col gap-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <span
-                    className={`material-symbols-outlined text-[18px] ${
-                      isFast ? "text-sky-500" : isFlex ? "text-emerald-500" : "text-text-muted"
-                    }`}
+                    className={`material-symbols-outlined text-[18px] ${getServiceTierIconClass(
+                      tier.serviceTier
+                    )}`}
                   >
-                    {isFast ? "bolt" : isFlex ? "savings" : "speed"}
+                    {getServiceTierIcon(tier.serviceTier)}
                   </span>
                   <div>
                     <div className="text-sm font-semibold text-text-main">{tierLabel}</div>
                     <div className="text-xs text-text-muted">
                       {fmtFull(tier.requests)} requests · {fmt(tier.totalTokens)} tokens
-                      {isFlex && Number(tier.usageSavingsTokens || 0) > 0
-                        ? ` · ${fmt(tier.usageSavingsTokens)} ${translateCostText(
-                            t,
-                            "serviceTierUsageSaved",
-                            "usage saved"
-                          )}`
-                        : ""}
+                      {usageSavingsText}
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div
-                    className={`font-mono text-sm font-semibold ${
-                      isFlex ? "text-emerald-500" : "text-amber-500"
-                    }`}
+                    className={`font-mono text-sm font-semibold ${getServiceTierCostClass(
+                      tier.serviceTier
+                    )}`}
                   >
                     {fmtCost(tier.cost)}
                   </div>
-                  <div className="text-xs text-text-muted">
-                    {isFlex && Number(tier.savings || 0) > 0
-                      ? `${fmtCost(tier.savings)} ${translateCostText(
-                          t,
-                          "serviceTierCostSaved",
-                          "saved"
-                        )}`
-                      : `${costPct}% ${translateCostText(
-                          t,
-                          "serviceTierCostShareSuffix",
-                          "of cost"
-                        )}`}
-                  </div>
+                  <div className="text-xs text-text-muted">{costDetailText}</div>
                 </div>
               </div>
               <div className="h-1.5 rounded-full bg-black/5 dark:bg-white/10 overflow-hidden">
                 <div
-                  className={`h-full rounded-full ${
-                    isFast ? "bg-sky-500" : isFlex ? "bg-emerald-500" : "bg-text-muted/50"
-                  }`}
+                  className={`h-full rounded-full ${getServiceTierBarClass(tier.serviceTier)}`}
                   style={{ width: `${requestPct}%` }}
                 />
               </div>
@@ -1219,179 +858,6 @@ export function UsageDetail({ summary }) {
             <span className={`text-sm ${item.color}`}>{item.label}</span>
             <span className="font-mono font-medium text-sm">{fmtFull(item.value)}</span>
           </div>
-        ))}
-      </div>
-    </Card>
-  );
-}
-
-// ── ProviderCostDonut ──────────────────────────────────────────────────────
-
-const PROVIDER_COLORS = [
-  "#f59e0b",
-  "#ef4444",
-  "#8b5cf6",
-  "#10b981",
-  "#06b6d4",
-  "#ec4899",
-  "#f97316",
-  "#6366f1",
-  "#14b8a6",
-  "#a855f7",
-];
-
-export function ProviderCostDonut({ byProvider }) {
-  const t = useTranslations("analytics");
-  const data = useMemo(() => byProvider || [], [byProvider]);
-  const hasData = data.length > 0 && data.some((p) => p.cost > 0);
-
-  const pieData = useMemo(() => {
-    return data
-      .filter((item) => item.cost > 0)
-      .sort((a, b) => b.cost - a.cost)
-      .slice(0, 8)
-      .map((item, i) => ({
-        name: item.provider,
-        value: item.cost,
-        fill: PROVIDER_COLORS[i % PROVIDER_COLORS.length],
-      }));
-  }, [data]);
-
-  if (!hasData) {
-    return (
-      <Card className="p-4 flex-1">
-        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
-          {t("chartCostByProvider")}
-        </h3>
-        <div className="text-center text-text-muted text-sm py-8">{t("chartNoCostData")}</div>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="p-4 flex-1">
-      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
-        {t("chartCostByProvider")}
-      </h3>
-      <div className="flex items-center gap-4">
-        <ResponsiveContainer width={120} height={120}>
-          <PieChart>
-            <Pie
-              data={pieData}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              innerRadius={28}
-              outerRadius={55}
-              paddingAngle={1}
-              animationDuration={600}
-            >
-              {pieData.map((entry, i) => (
-                <Cell key={i} fill={entry.fill} stroke="none" />
-              ))}
-            </Pie>
-            <Tooltip content={<DarkTooltip formatter={fmtCost} />} />
-          </PieChart>
-        </ResponsiveContainer>
-        <div className="flex flex-col gap-1 min-w-0 flex-1">
-          {pieData.map((seg, i) => (
-            <div key={i} className="flex items-center justify-between gap-2 text-xs">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{ backgroundColor: seg.fill }}
-                />
-                <span className="truncate text-text-main capitalize">{seg.name}</span>
-              </div>
-              <span className="font-mono font-medium text-amber-500 shrink-0">
-                {fmtCost(seg.value)}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-// ── ModelOverTimeChart (Stacked Area) ──────────────────────────────────────
-
-export function ModelOverTimeChart({ dailyByModel, modelNames }) {
-  const t = useTranslations("analytics");
-  const data = useMemo(() => dailyByModel || [], [dailyByModel]);
-  const models = useMemo(() => modelNames || [], [modelNames]);
-
-  // Prepare chart data — format dates (must be before early return for rules-of-hooks)
-  const chartData = useMemo(() => {
-    return data.map((d) => {
-      const row = { ...d };
-      // Short date label
-      if (d.date) {
-        const parts = d.date.split("-");
-        row.dateLabel = `${parts[1]}/${parts[2]}`;
-      }
-      return row;
-    });
-  }, [data]);
-
-  if (!data.length || !models.length) {
-    return (
-      <Card className="p-4">
-        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
-          {t("chartModelUsageOverTime")}
-        </h3>
-        <div className="text-center text-text-muted text-sm py-8">{t("chartNoData")}</div>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="p-4">
-      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
-        {t("chartModelUsageOverTime")}
-      </h3>
-      <ResponsiveContainer width="100%" height={240}>
-        <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-          <XAxis
-            dataKey="dateLabel"
-            tick={{ fontSize: 10, fill: "var(--color-text-muted)" }}
-            axisLine={false}
-            tickLine={false}
-            interval="preserveStartEnd"
-          />
-          <YAxis
-            tick={{ fontSize: 10, fill: "var(--color-text-muted)" }}
-            tickFormatter={(v) => fmt(v)}
-            axisLine={false}
-            tickLine={false}
-            width={50}
-          />
-          <Tooltip content={<DarkTooltip formatter={fmt} />} />
-          {models.map((m, i) => (
-            <Area
-              key={m}
-              type="monotone"
-              dataKey={m}
-              stackId="1"
-              stroke={getModelColor(i)}
-              fill={getModelColor(i)}
-              fillOpacity={0.4}
-              strokeWidth={1.5}
-              animationDuration={600}
-            />
-          ))}
-        </AreaChart>
-      </ResponsiveContainer>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[10px] text-text-muted">
-        {models.map((m, i) => (
-          <span key={m} className="flex items-center gap-1">
-            <span
-              className="w-2 h-2 rounded-full shrink-0"
-              style={{ backgroundColor: getModelColor(i) }}
-            />
-            {m}
-          </span>
         ))}
       </div>
     </Card>

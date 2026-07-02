@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getProviderConnectionById } from "@/models";
 import { getSyncedAvailableModelsForConnection } from "@/lib/db/models";
+import { selectModelsForImport } from "@/shared/utils/freeModels";
 import {
   importManagedModels,
   type ManagedModelImportMode,
@@ -473,7 +474,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       );
     }
 
-    const fetchedModels = modelsData.models || [];
+    const allFetchedModels = modelsData.models || [];
+    const importFreeOnly = Boolean(
+      (connection.providerSpecificData as Record<string, unknown> | undefined)
+        ?.importFreeModelsOnly
+    );
+    const { models: fetchedModels, freeFilterEmpty } = selectModelsForImport(
+      logProvider,
+      allFetchedModels,
+      importFreeOnly
+    );
     const {
       previousModels,
       previousSyncedAvailableModels,
@@ -541,6 +551,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       ok: true,
       provider: logProvider,
       mode,
+      importFreeOnly,
+      freeFilterEmpty,
       syncedModels: syncedModelsCount,
       availableModelsCount,
       syncedAliases,

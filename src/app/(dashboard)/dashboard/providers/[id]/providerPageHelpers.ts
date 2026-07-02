@@ -78,11 +78,31 @@ export type CompatModelRow = {
   isHidden?: boolean;
   upstreamHeaders?: Record<string, string>;
   compatByProtocol?: CompatByProtocolMap;
+  /** #2905: per-model upstream wire-format override. */ targetFormat?: string;
 };
 
 export type CompatModelMap = Map<string, CompatModelRow>;
 
 export type HeaderDraftRow = { id: string; name: string; value: string };
+
+// ---------------------------------------------------------------------------
+// #2905 — per-model targetFormat badge label mapping (pure, so it can be unit-tested
+// outside the .tsx). Returns the i18n key for a targetFormat value, or null when the
+// value is unknown (the caller then renders the raw value verbatim).
+// ---------------------------------------------------------------------------
+
+const TARGET_FORMAT_BADGE_I18N_KEYS: Record<string, string> = {
+  openai: "compatProtocolOpenAI",
+  "openai-responses": "compatProtocolOpenAIResponses",
+  claude: "compatProtocolClaude",
+  gemini: "targetFormatGemini",
+  "gemini-cli": "targetFormatGeminiCli",
+  antigravity: "targetFormatAntigravity",
+};
+
+export function targetFormatBadgeI18nKey(value: string): string | null {
+  return TARGET_FORMAT_BADGE_I18N_KEYS[value] ?? null;
+}
 
 // ---------------------------------------------------------------------------
 // Utility — message translation with fallback

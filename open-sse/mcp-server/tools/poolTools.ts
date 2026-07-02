@@ -147,6 +147,7 @@ export const poolTools = {
     name: "omniroute_pool_status",
     description:
       "Returns session pool status for a specific provider or all providers. Includes session counts by state (active/cooldown/dead), request totals, success rate, and throughput.",
+    scopes: ["read:health"],
     inputSchema: poolStatusInput,
     handler: (args: z.infer<typeof poolStatusInput>) => handlePoolStatus(args),
   },
@@ -154,6 +155,7 @@ export const poolTools = {
     name: "omniroute_pool_sessions",
     description:
       "Lists all sessions in a provider's pool with per-session details: fingerprint, status, request counts, inflight, cooldown remaining, and age.",
+    scopes: ["read:health"],
     inputSchema: poolSessionsInput,
     handler: (args: z.infer<typeof poolSessionsInput>) => handlePoolSessions(args),
   },
@@ -161,6 +163,7 @@ export const poolTools = {
     name: "omniroute_pool_reset",
     description:
       "Shuts down and removes all sessions for a provider's pool. A new pool will be created automatically on the next request.",
+    scopes: ["write:resilience"],
     inputSchema: poolResetInput,
     handler: (args: z.infer<typeof poolResetInput>) => handlePoolReset(args),
   },
@@ -168,6 +171,7 @@ export const poolTools = {
     name: "omniroute_pool_warm",
     description:
       "Warms a session pool to the specified session count (1–50). Sessions beyond the current count are created with fresh browser fingerprints.",
+    scopes: ["write:resilience"],
     inputSchema: poolWarmInput,
     handler: (args: z.infer<typeof poolWarmInput>) => handlePoolWarm(args),
   },
@@ -175,6 +179,7 @@ export const poolTools = {
     name: "omniroute_pool_health",
     description:
       "Returns aggregated web-session pool health: pool stats + circuit breaker state + per-session details + health status (healthy/degraded/down) + issues list.",
+    scopes: ["read:health"],
     inputSchema: poolHealthInput,
     handler: (args: z.infer<typeof poolHealthInput>) => handlePoolHealth(args),
   },

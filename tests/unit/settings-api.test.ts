@@ -108,6 +108,36 @@ describe("Settings API - persisted preferences", () => {
     });
   });
 
+  describe("hiddenSidebarGroupLabels", () => {
+    test("updateSettings with hiddenSidebarGroupLabels=['logs','audit'] succeeds", async () => {
+      const result = await harness.updateSettings({ hiddenSidebarGroupLabels: ["logs", "audit"] });
+      assert.ok(result, "updateSettings should return truthy result");
+
+      const settings = await harness.getSettings();
+      assert.deepStrictEqual(
+        settings.hiddenSidebarGroupLabels,
+        ["logs", "audit"],
+        "hiddenSidebarGroupLabels should contain logs and audit"
+      );
+    });
+
+    test("PATCH /api/settings persists hiddenSidebarGroupLabels", async () => {
+      const response = await harness.settingsRoute.PATCH(
+        await makeManagementSessionRequest("http://localhost/api/settings", {
+          method: "PATCH",
+          body: { hiddenSidebarGroupLabels: ["system"] },
+        })
+      );
+      const body = (await response.json()) as Record<string, unknown>;
+
+      assert.equal(response.status, 200);
+      assert.deepEqual(body.hiddenSidebarGroupLabels, ["system"]);
+
+      const settings = await harness.getSettings();
+      assert.deepEqual(settings.hiddenSidebarGroupLabels, ["system"]);
+    });
+  });
+
   describe("combined updates", () => {
     test("updateSettings with both debugMode and hiddenSidebarItems succeeds", async () => {
       const result = await harness.updateSettings({

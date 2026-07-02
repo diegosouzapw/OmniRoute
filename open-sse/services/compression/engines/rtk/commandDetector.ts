@@ -461,8 +461,4 @@ export function detectCommandType(text: string, command?: string | null): Comman
   );
 }
 
-export function listCommandTypes(): string[] {
-  return DETECTORS.map((detector) => detector.type);
-}
-
 export const detectCommandOutput = detectCommandType;

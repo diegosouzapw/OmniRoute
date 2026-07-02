@@ -297,6 +297,34 @@ export async function deleteModelAlias(alias: string) {
   backupDbFile("pre-write");
 }
 
+/**
+ * Cascade-delete every model-alias row that resolves to the given provider.
+ *
+ * Managed/imported aliases are stored as `key = <alias>`, `value = "<providerId>/<model>"`
+ * (e.g. `setModelAlias("x-fast", "providerX/fast-model")`). When a custom provider is
+ * removed, its connections and node are deleted but these alias rows are left behind,
+ * which then block re-importing the same provider ("already exists" / no new models) — see
+ * #1409. This removes every alias whose stored value begins with `<providerId>/`, so a
+ * fresh import is unblocked.
+ *
+ * Only string values starting with the exact `"<providerId>/"` prefix match, so unrelated
+ * providers and user-facing settings aliases (whose value is the bare alias, not a
+ * `<providerId>/<model>` string) are left untouched.
+ *
+ * @returns the list of alias keys that were removed.
+ */
+export async function deleteModelAliasesForProvider(providerId: string): Promise<string[]> {
+  const prefix = `${providerId}/`;
+  const aliases = await getModelAliases();
+  const removed: string[] = [];
+  for (const [alias, value] of Object.entries(aliases)) {
+    if (typeof value !== "string" || !value.startsWith(prefix)) continue;
+    await deleteModelAlias(alias);
+    removed.push(alias);
+  }
+  return removed;
+}
+
 // ──────────────── MITM Alias ────────────────
 
 export async function getMitmAlias(toolName?: string) {
@@ -380,7 +408,10 @@ export async function addCustomModel(
   // #2905: optional per-model wire format override (e.g. "claude" for an
   // opencode-go custom model). When unset, routing falls back to the provider
   // default format.
-  targetFormat?: string
+  targetFormat?: string,
+  // #1294: optional per-model token limits supplied from the "add custom model"
+  // form. Persisted under the same keys the /v1/models catalog reads back.
+  tokenLimits: { inputTokenLimit?: number; outputTokenLimit?: number } = {}
 ) {
   const db = getDbInstance();
   const row = db
@@ -399,6 +430,12 @@ export async function addCustomModel(
     apiFormat,
     supportedEndpoints,
     ...(targetFormat ? { targetFormat } : {}),
+    ...(tokenLimits.inputTokenLimit != null
+      ? { inputTokenLimit: tokenLimits.inputTokenLimit }
+      : {}),
+    ...(tokenLimits.outputTokenLimit != null
+      ? { outputTokenLimit: tokenLimits.outputTokenLimit }
+      : {}),
   };
   models.push(model);
   db.prepare(
@@ -565,6 +602,9 @@ export interface SyncedAvailableModel {
   outputTokenLimit?: number;
   description?: string;
   supportsThinking?: boolean;
+  // #4264: image-input capability captured at sync time (e.g. OpenRouter
+  // `architecture.input_modalities`/`modality`) so the catalog can surface vision.
+  supportsVision?: boolean;
 }
 
 type SyncedAvailableModelInput = Omit<SyncedAvailableModel, "source"> & {
@@ -608,6 +648,7 @@ function normalizeSyncedAvailableModel(model: unknown): SyncedAvailableModel | n
       : {}),
     ...(typeof record.description === "string" ? { description: record.description } : {}),
     ...(record.supportsThinking === true ? { supportsThinking: true } : {}),
+    ...(record.supportsVision === true ? { supportsVision: true } : {}),
   };
 }
 
@@ -1058,6 +1099,44 @@ export function getModelIsHidden(providerId: string, modelId: string): boolean {
   }
   const co = readCompatList(providerId).find((e) => e.id === modelId);
   return Boolean(co?.isHidden);
+}
+
+/**
+ * Get a map of provider ID → set of hidden model IDs from all modelCompatOverrides
+ * and customModels. Used by auto-combo candidate building to skip user-hidden models.
+ * Single bulk DB query — not N+1 per model.
+ */
+export function getHiddenModelsByProvider(): Map<string, Set<string>> {
+  const db = getDbInstance();
+  const result = new Map<string, Set<string>>();
+
+  // Query all rows from key_value for both namespaces
+  const rows = db
+    .prepare(
+      "SELECT key, value FROM key_value WHERE namespace IN ('modelCompatOverrides', 'customModels')"
+    )
+    .all() as Array<{ key: string; value: string | null }>;
+
+  for (const row of rows) {
+    if (!row.value) continue;
+    try {
+      const parsed = JSON.parse(row.value);
+      if (!Array.isArray(parsed)) continue;
+      for (const entry of parsed) {
+        if (entry && typeof entry === "object" && entry.isHidden) {
+          const modelId = entry.id;
+          if (typeof modelId === "string" && modelId.length > 0) {
+            if (!result.has(row.key)) result.set(row.key, new Set());
+            result.get(row.key)!.add(modelId);
+          }
+        }
+      }
+    } catch {
+      // Skip malformed entries
+    }
+  }
+
+  return result;
 }
 
 /**

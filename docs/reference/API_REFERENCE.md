@@ -63,6 +63,7 @@ Content-Type: application/json
 | Header                   | Direction | Description                                      |
 | ------------------------ | --------- | ------------------------------------------------ |
 | `X-OmniRoute-No-Cache`   | Request   | Set to `true` to bypass cache                    |
+| `x-omniroute-no-memory`  | Request   | Set to `true` to skip memory + skills injection for this request (mirrors no-cache; avoids the per-call token/cost overhead) |
 | `X-OmniRoute-Progress`   | Request   | Set to `true` for progress events                |
 | `X-Session-Id`           | Request   | Sticky session key for external session affinity |
 | `x_session_id`           | Request   | Underscore variant also accepted (direct HTTP)   |
@@ -72,8 +73,15 @@ Content-Type: application/json
 | `X-OmniRoute-Idempotent` | Response  | `true` if deduplicated                           |
 | `X-OmniRoute-Progress`   | Response  | `enabled` if progress tracking on                |
 | `X-OmniRoute-Session-Id` | Response  | Effective session ID used by OmniRoute           |
+| `X-OmniRoute-Request-Id` | Response  | Request correlation id (when known)              |
+| `X-OmniRoute-Version`    | Response  | OmniRoute build version (always present)         |
+| `X-OmniRoute-Cost-Saved` | Response  | USD the cache avoided on a HIT (cache hits only) |
 
 > Nginx note: if you rely on underscore headers (for example `x_session_id`), enable `underscores_in_headers on;`.
+
+> **Cost telemetry headers:** non-streaming success responses also carry the `X-OmniRoute-*` cost-telemetry set — `X-OmniRoute-Response-Cost` (USD, fixed 10 decimals; `0.0000000000` for free/unpriced), `X-OmniRoute-Tokens-In` / `X-OmniRoute-Tokens-Out`, `X-OmniRoute-Model`, `X-OmniRoute-Provider`, `X-OmniRoute-Latency-Ms`, `X-OmniRoute-Cache-Hit`, and `X-OmniRoute-Fallback-Attempts` (only when > 0), plus `X-OmniRoute-Request-Id` and `X-OmniRoute-Version`. These are emitted by chat completions, `/v1/responses`, `/v1/messages`, **and the media endpoints** — `/v1/embeddings`, `/v1/images/generations`, `/v1/audio/speech`, `/v1/audio/transcriptions`, `/v1/rerank`, `/v1/videos/generations`, `/v1/music/generations`, and `/v1/moderations` (always cost `0`). Media cost is computed per modality (per-image, per-second, per-character, per search-unit) when pricing is available, otherwise `0` (fail-open).
+
+> **Cache-hit cost semantics:** on a semantic-cache HIT (`X-OmniRoute-Cache-Hit: true`) no upstream call is made, so `X-OmniRoute-Response-Cost` is `0.0000000000` (the **incremental** cost of serving the hit). The original/would-have-been cost is reported separately in `X-OmniRoute-Cost-Saved`. Billing consumers should sum `X-OmniRoute-Response-Cost` (hits cost nothing); cache analytics can aggregate `X-OmniRoute-Cost-Saved`.
 
 ---
 
@@ -130,6 +138,16 @@ Authorization: Bearer your-api-key
 
 → Returns all chat, embedding, and image models + combos in OpenAI format
 ```
+
+### No-thinking model variants
+
+For thinking-capable Claude models, `/v1/models` also advertises a **no-thinking** variant whose id is prefixed with `claude-3-omniroute-no-thinking/`:
+
+```
+claude-3-omniroute-no-thinking/<provider>/<model>
+```
+
+Selecting this id (e.g. in a Claude Code config that always attaches a `thinking` block) resolves back to the real `<provider>/<model>` with reasoning suppressed — `thinking:{type:"disabled"}` on the `/v1/messages` path, or the `reasoning`/`reasoning_effort` fields dropped on the `/v1/chat/completions` path. The variant is only listed for Claude-family models that support thinking **and** honor `disabled` (so e.g. adaptive-only models that reject `disabled` are excluded). Operators can force the variant on or off per model via `ModelSpec.noThinkingAlias`.
 
 ---
 

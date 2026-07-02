@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { InterceptedRequest, ListFilters, WsEvent } from "@/mitm/inspector/types";
+import { matchesTrafficFilter } from "@/lib/inspector/matchesTrafficFilter";
 import type { FiltersState } from "./useTrafficFilters";
 
 const WS_PATH = "/api/tools/traffic-inspector/ws";
@@ -47,24 +48,7 @@ export function useTrafficStream(
   });
 
   const applyFilter = useCallback((req: InterceptedRequest): boolean => {
-    const f = filtersRef.current as FiltersState;
-    if (f.profile === "llm" && req.detectedKind !== "llm") return false;
-    if (f.profile === "custom" && req.source !== "custom-host") return false;
-    if (f.host && !req.host.includes(f.host)) return false;
-    if (f.agent && req.agent !== f.agent) return false;
-    if (f.source && req.source !== f.source) return false;
-    if (f.sessionId && req.sessionId !== f.sessionId) return false;
-    if (f.sameContextKey && req.contextKey !== f.sameContextKey) return false;
-    if (f.status) {
-      const s = req.status;
-      if (typeof s === "number") {
-        const cat = `${Math.floor(s / 100)}xx`;
-        if (cat !== f.status) return false;
-      } else if (f.status === "error" && s !== "error") {
-        return false;
-      }
-    }
-    return true;
+    return matchesTrafficFilter(req, filtersRef.current as FiltersState);
   }, []);
 
   useEffect(() => {

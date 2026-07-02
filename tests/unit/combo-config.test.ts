@@ -1,8 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { resolveComboConfig, getDefaultComboConfig, resolveComboTargetTimeoutMs } =
-  await import("../../open-sse/services/comboConfig.ts");
+const {
+  resolveComboConfig,
+  getDefaultComboConfig,
+  resolveComboTargetTimeoutMs,
+  DEFAULT_COMBO_TARGET_TIMEOUT_MS,
+  resolveComboQueueDepth,
+} = await import("../../open-sse/services/comboConfig.ts");
 const { createComboSchema, updateComboDefaultsSchema } =
   await import("../../src/shared/validation/schemas.ts");
 const { MAX_TIMER_TIMEOUT_MS } = await import("../../src/shared/utils/runtimeTimeouts.ts");
@@ -21,6 +26,7 @@ test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   assert.equal(first.handoffThreshold, 0.85);
   assert.equal(first.maxMessagesForSummary, 30);
   assert.deepEqual(first.handoffProviders, ["codex"]);
+  assert.equal(first.nestedComboMode, "flatten");
   assert.equal(first.failoverBeforeRetry, true);
   assert.equal(first.maxSetRetries, 0);
   assert.equal(first.setRetryDelayMs, 2000);
@@ -255,6 +261,24 @@ test("resolveComboTargetTimeoutMs inherits the upstream timeout and only shorten
     MAX_TIMER_TIMEOUT_MS
   );
   assert.equal(resolveComboTargetTimeoutMs({}, 999999999999), MAX_TIMER_TIMEOUT_MS);
+});
+
+test("resolveComboTargetTimeoutMs falls back to the saner combo default when unset", () => {
+  // The combo default is the documented 120s fallback-latency cap.
+  assert.equal(DEFAULT_COMBO_TARGET_TIMEOUT_MS, 120000);
+  // Unset config → use the default (capped at the ceiling), NOT the full upstream ceiling.
+  // This is what shortens a hung-target failover from 600s to 120s (escalated cmqlrhd7c).
+  assert.equal(resolveComboTargetTimeoutMs({}, 600000, 120000), 120000);
+  // Operators can still extend beyond the default, up to the ceiling.
+  assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 300000 }, 600000, 120000), 300000);
+  // Explicit config above the ceiling is still capped at the ceiling.
+  assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 900000 }, 600000, 120000), 600000);
+  // A default larger than the ceiling is clamped to the ceiling.
+  assert.equal(resolveComboTargetTimeoutMs({}, 100000, 120000), 100000);
+  // Backward-compat: omitting the default arg keeps the legacy inherit-the-ceiling behavior.
+  assert.equal(resolveComboTargetTimeoutMs({}, 600000), 600000);
+  // Disabled upstream timeout (0 = unbounded) stays unbounded even with a default present.
+  assert.equal(resolveComboTargetTimeoutMs({}, 0, 120000), 0);
 });
 
 test("combo timeout schema rejects values beyond the safe timer limit", () => {
@@ -508,6 +532,66 @@ test("createComboSchema accepts failoverBeforeRetry, maxSetRetries and setRetryD
   assert.equal(parsed.config.setRetryDelayMs, 1500);
 });
 
+test("createComboSchema accepts nestedComboMode and rejects invalid values", () => {
+  const parsed = createComboSchema.parse({
+    name: "nested-execute",
+    models: [{ kind: "combo-ref", comboName: "child" }],
+    strategy: "priority",
+    config: { nestedComboMode: "execute" },
+  });
+  assert.equal(parsed.config.nestedComboMode, "execute");
+
+  const flatten = createComboSchema.parse({
+    name: "nested-flatten",
+    models: ["openai/gpt-4o-mini"],
+    config: { nestedComboMode: "flatten" },
+  });
+  assert.equal(flatten.config.nestedComboMode, "flatten");
+
+  const invalid = createComboSchema.safeParse({
+    name: "nested-invalid",
+    models: ["openai/gpt-4o-mini"],
+    config: { nestedComboMode: "redirect" },
+  });
+  assert.equal(invalid.success, false);
+});
+
+test("createComboSchema accepts per-combo stickyRoundRobinLimit and rejects out-of-range", () => {
+  const parsed = createComboSchema.parse({
+    name: "sticky-override",
+    models: ["openai/gpt-4o-mini"],
+    strategy: "round-robin",
+    config: { stickyRoundRobinLimit: 2 },
+  });
+  assert.equal(parsed.config.stickyRoundRobinLimit, 2);
+
+  const tooHigh = createComboSchema.safeParse({
+    name: "sticky-too-high",
+    models: ["openai/gpt-4o-mini"],
+    strategy: "round-robin",
+    config: { stickyRoundRobinLimit: 1001 },
+  });
+  assert.equal(tooHigh.success, false);
+});
+
+test("createComboSchema accepts per-combo stickyWeightedLimit and rejects out-of-range", () => {
+  const parsed = createComboSchema.parse({
+    name: "sticky-weighted",
+    models: [{ model: "openai/gpt-4o-mini", weight: 100 }],
+    strategy: "weighted",
+    config: { stickyWeightedLimit: 2 },
+  });
+  assert.equal(parsed.config.stickyWeightedLimit, 2);
+
+  const tooHigh = createComboSchema.safeParse({
+    name: "sticky-weighted-too-high",
+    models: [{ model: "openai/gpt-4o-mini", weight: 100 }],
+    strategy: "weighted",
+    config: { stickyWeightedLimit: 1001 },
+  });
+  assert.equal(tooHigh.success, false);
+});
+
 test("createComboSchema coerces string numbers for maxSetRetries and setRetryDelayMs", () => {
   const parsed = createComboSchema.parse({
     name: "coerce-test",
@@ -559,6 +643,17 @@ test("createComboSchema rejects setRetryDelayMs out of range", () => {
   assert.equal(negative.success, false);
 });
 
+test("resolveComboConfig cascades nestedComboMode", () => {
+  const result = resolveComboConfig(
+    { config: { nestedComboMode: "execute" } },
+    { comboDefaults: { nestedComboMode: "flatten" } }
+  );
+  assert.equal(result.nestedComboMode, "execute");
+
+  const defaulted = resolveComboConfig({ config: {} }, { comboDefaults: {} });
+  assert.equal(defaulted.nestedComboMode, "flatten");
+});
+
 test("resolveComboConfig cascades failoverBeforeRetry, maxSetRetries and setRetryDelayMs", () => {
   const result = resolveComboConfig(
     {
@@ -580,4 +675,87 @@ test("resolveComboConfig cascades failoverBeforeRetry, maxSetRetries and setRetr
   assert.equal(result.failoverBeforeRetry, true);
   assert.equal(result.maxSetRetries, 2);
   assert.equal(result.setRetryDelayMs, 3000);
+});
+
+// Issue #3872: combo round-robin always queued ~20 deep before cascading on
+// semaphore saturation because handleRoundRobinCombo never threaded a queue depth
+// into accountSemaphore.acquire (it fell back to the hardcoded DEFAULT_MAX_QUEUE_SIZE
+// of 20). Expose `queueDepth` as combo config so operators can shrink the pre-cascade
+// queue (0 = fail over immediately) for faster failover, while keeping 20 as the
+// backward-compatible default.
+test("getDefaultComboConfig exposes the backward-compatible queueDepth default of 20", () => {
+  assert.equal(getDefaultComboConfig().queueDepth, 20);
+});
+
+test("resolveComboConfig cascades queueDepth from defaults through provider and combo overrides", () => {
+  const fromDefault = resolveComboConfig({ config: {} }, { comboDefaults: {} });
+  assert.equal(fromDefault.queueDepth, 20);
+
+  const cascaded = resolveComboConfig(
+    {
+      config: {
+        queueDepth: 1,
+      },
+    },
+    {
+      comboDefaults: {
+        queueDepth: 10,
+      },
+      providerOverrides: {
+        openai: {
+          queueDepth: 5,
+        },
+      },
+    },
+    "openai"
+  );
+
+  // Most specific (combo.config) wins over provider override and global default.
+  assert.equal(cascaded.queueDepth, 1);
+});
+
+test("resolveComboQueueDepth defaults to 20, honors configured values, and clamps the range", () => {
+  assert.equal(resolveComboQueueDepth(null), 20);
+  assert.equal(resolveComboQueueDepth({}), 20);
+  assert.equal(resolveComboQueueDepth({ queueDepth: 5 }), 5);
+  // 0 is a valid, meaningful value: queue nothing → fail over to the next member immediately.
+  assert.equal(resolveComboQueueDepth({ queueDepth: 0 }), 0);
+  // Invalid / negative inputs fall back to the safe default.
+  assert.equal(resolveComboQueueDepth({ queueDepth: -3 }), 20);
+  assert.equal(resolveComboQueueDepth({ queueDepth: Number.NaN }), 20);
+  // Out-of-range high values are clamped, not trusted.
+  assert.equal(resolveComboQueueDepth({ queueDepth: 99999 }), 100);
+  // Fractional values floor to an integer queue slot count.
+  assert.equal(resolveComboQueueDepth({ queueDepth: 3.9 }), 3);
+});
+
+test("createComboSchema accepts queueDepth, coerces strings, and allows 0 for immediate failover", () => {
+  const parsed = createComboSchema.parse({
+    name: "fast-failover",
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
+    strategy: "round-robin",
+    config: {
+      queueDepth: "0",
+    },
+  });
+
+  assert.equal(parsed.config.queueDepth, 0);
+});
+
+test("createComboSchema rejects queueDepth outside the supported range", () => {
+  const tooHigh = createComboSchema.safeParse({
+    name: "bad-queue-depth-high",
+    models: ["openai/gpt-4"],
+    strategy: "round-robin",
+    config: { queueDepth: 101 },
+  });
+  assert.equal(tooHigh.success, false);
+
+  const negative = createComboSchema.safeParse({
+    name: "bad-queue-depth-negative",
+    models: ["openai/gpt-4"],
+    strategy: "round-robin",
+    config: { queueDepth: -1 },
+  });
+  assert.equal(negative.success, false);
 });

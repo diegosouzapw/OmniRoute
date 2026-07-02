@@ -22,6 +22,9 @@ import {
   isAllRateLimitedCredentials,
   rateLimitedProviderResponse,
 } from "@/app/api/v1/_shared/rateLimit";
+import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import { calculateModalCost } from "@/lib/usage/costCalculator";
+import { generateRequestId } from "@/shared/utils/requestId";
 
 /**
  * Handle CORS preflight
@@ -74,6 +77,7 @@ async function postHandler(request, context) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
   }
   const body = validation.data;
+  const startTime = Date.now();
 
   if (typeof body.prompt !== "string" || body.prompt.trim().length === 0) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Prompt is required");
@@ -114,9 +118,20 @@ async function postHandler(request, context) {
 
   if (result.success) {
     await clearRecoveredProviderState(credentials);
-    return new Response(JSON.stringify((result as any).data), {
+    // Music is billed per-second like audio.
+    const seconds = Number(body.duration) || 0;
+    const costUsd = await calculateModalCost("audio", provider, body.model, { seconds });
+    const headers = new Headers({ "Content-Type": "application/json" });
+    attachOmniRouteMetaHeaders(headers, {
+      provider,
+      model: body.model,
+      costUsd,
+      latencyMs: Date.now() - startTime,
+      requestId: generateRequestId(),
+    });
+    return new Response(JSON.stringify((result as { data: unknown }).data), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers,
     });
   }
 

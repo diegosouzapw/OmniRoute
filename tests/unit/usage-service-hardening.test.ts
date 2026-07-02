@@ -782,6 +782,23 @@ test("usage service covers Codex, Kiro and Kimi usage parsing and error branches
               reset_after_seconds: 45,
             },
           },
+          additional_rate_limits: [
+            {
+              limit_id: "codex_bengalfox",
+              limit_name: "GPT-5.3-Codex-Spark",
+              metered_feature: "gpt_5_3_codex_spark",
+              rate_limit: {
+                primary_window: {
+                  used_percent: 90,
+                  reset_after_seconds: 60,
+                },
+                secondary_window: {
+                  used_percent: 20,
+                  reset_after_seconds: 600,
+                },
+              },
+            },
+          ],
         }),
         { status: 200 }
       );
@@ -848,6 +865,10 @@ test("usage service covers Codex, Kiro and Kimi usage parsing and error branches
   assert.equal(codex.quotas.session.remaining, 75);
   assert.equal(codex.quotas.weekly.remaining, 50);
   assert.equal(codex.quotas.code_review.remaining, 60);
+  assert.equal(codex.quotas.gpt_5_3_codex_spark_session.remaining, 10);
+  assert.equal(codex.quotas.gpt_5_3_codex_spark_session.displayName, "GPT-5.3-Codex-Spark");
+  assert.equal(codex.quotas.gpt_5_3_codex_spark_weekly.remaining, 80);
+  assert.equal(codex.quotas.gpt_5_3_codex_spark_weekly.displayName, "GPT-5.3-Codex-Spark Weekly");
 
   const kiroNoArn: any = await usageService.getUsageForProvider({
     provider: "kiro",

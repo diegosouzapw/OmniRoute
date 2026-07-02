@@ -22,8 +22,25 @@ const TOOL_SEARCH_TOOL_TYPES = /^tool_search/;
 // (even text-only ones); it has no Chat Completions equivalent and must be silently dropped (#2950).
 const IMAGE_GENERATION_TOOL_TYPES = /^image_generation/;
 
+// GPT-5 output verbosity: `verbosity` on Chat Completions, `text.verbosity` on the
+// Responses API. Only these three levels are valid upstream; anything else is dropped.
+const VERBOSITY_LEVELS = new Set(["low", "medium", "high"]);
+function normalizeVerbosity(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const level = value.toLowerCase();
+  return VERBOSITY_LEVELS.has(level) ? level : undefined;
+}
+
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
+}
+
+// The Responses API rejects call_id values longer than 64 characters (9router#396).
+// Clamp deterministically so a function_call and its matching function_call_output keep
+// the same id and stay paired through the orphaned-output filter below.
+const MAX_CALL_ID_LEN = 64;
+function clampCallId(id: string): string {
+  return id.length > MAX_CALL_ID_LEN ? id.slice(0, MAX_CALL_ID_LEN) : id;
 }
 
 function toArray(value: unknown): unknown[] {
@@ -107,6 +124,13 @@ export function openaiResponsesToOpenAIRequest(
 
   const result: JsonRecord = { ...root };
 
+  // GPT-5 verbosity: Responses `text.verbosity` → Chat Completions top-level `verbosity`.
+  // Chat has no `text` wrapper, so carry the level across and drop the Responses-only
+  // `text` object (a strict Chat endpoint 400s on unknown fields).
+  const responsesVerbosity = normalizeVerbosity(toRecord(result.text).verbosity);
+  if (responsesVerbosity) result.verbosity = responsesVerbosity;
+  delete result.text;
+
   // background: true requests a deferred Responses API run (the upstream
   // returns 202 with response_id and the client polls GET /responses/<id>).
   // OmniRoute is a forward proxy that streams responses synchronously —
@@ -139,7 +163,14 @@ export function openaiResponsesToOpenAIRequest(
   let currentAssistantMsg: JsonRecord | null = null;
   let pendingToolResults: JsonRecord[] = [];
 
-  const inputItems = toArray(root.input);
+  // Upstream providers reject messages:[] with "400: at least one message is required".
+  // When the client sends input:[] (empty), inject a placeholder user message — mirrors
+  // upstream 9router#419 (and the existing empty-string handling elsewhere in this file).
+  const rawInputItems = toArray(root.input);
+  const inputItems: unknown[] =
+    rawInputItems.length === 0
+      ? [{ type: "message", role: "user", content: [{ type: "input_text", text: "..." }] }]
+      : rawInputItems;
   for (const itemValue of inputItems) {
     const item = toRecord(itemValue);
 
@@ -291,10 +322,33 @@ export function openaiResponsesToOpenAIRequest(
           !TOOL_SEARCH_TOOL_TYPES.test(toolType) && !IMAGE_GENERATION_TOOL_TYPES.test(toolType)
         );
       })
-      .map((toolValue) => {
+      .flatMap((toolValue) => {
         const tool = toRecord(toolValue);
         if (tool.function) return toolValue;
         const toolType = toString(tool.type);
+        // MCP tool groups: Codex/OpenAI Responses clients declare each MCP server as a
+        // `namespace` tool — { type:"namespace", name, tools:[{name, description, parameters}] }.
+        // Non-Codex backends (Kiro/Claude) have no `namespace` type, so flatten each sub-tool
+        // into a standalone Chat function (#1534). Without this the whole group collapsed into
+        // one empty-schema function named `mcp__<server>__` and every MCP call failed with
+        // `unsupported call: mcp__<server>__`.
+        if (toolType === "namespace") {
+          const subTools = Array.isArray(tool.tools) ? tool.tools : [];
+          return subTools
+            .map((subValue) => toRecord(subValue))
+            .filter((sub) => toString(sub.name))
+            .map((sub) => ({
+              type: "function",
+              function: {
+                name: toString(sub.name),
+                description: toString(sub.description),
+                parameters: sub.parameters ?? sub.input_schema ?? {
+                  type: "object",
+                  properties: {},
+                },
+              },
+            }));
+        }
         // Pass web_search server tools through with their original type (versioned or plain).
         // These have no Chat Completions equivalent; preserve as-is so upstreams that understand
         // Anthropic-style web_search_YYYYMMDD naming receive the exact name they expect.
@@ -563,7 +617,7 @@ export function openaiToOpenAIResponsesRequest(
           }
           input.push({
             type: "function_call",
-            call_id: toString(toolCall.id).trim() || generateToolCallId(),
+            call_id: clampCallId(toString(toolCall.id).trim() || generateToolCallId()),
             name: fnName,
             arguments: toString(fn.arguments, "{}"),
           });
@@ -577,7 +631,7 @@ export function openaiToOpenAIResponsesRequest(
         if (fnName) {
           input.push({
             type: "function_call",
-            call_id: `call_${fnName}`,
+            call_id: clampCallId(`call_${fnName}`),
             name: fnName,
             arguments: toString(fc.arguments, "{}"),
           });
@@ -589,7 +643,7 @@ export function openaiToOpenAIResponsesRequest(
     if (role === "tool") {
       input.push({
         type: "function_call_output",
-        call_id: toString(msg.tool_call_id),
+        call_id: clampCallId(toString(msg.tool_call_id)),
         output:
           typeof msg.content === "string"
             ? msg.content
@@ -608,7 +662,7 @@ export function openaiToOpenAIResponsesRequest(
     if (role === "function") {
       input.push({
         type: "function_call_output",
-        call_id: `call_${toString(msg.name)}`,
+        call_id: clampCallId(`call_${toString(msg.name)}`),
         output: typeof msg.content === "string" ? msg.content : String(msg.content ?? ""),
       });
     }
@@ -702,6 +756,11 @@ export function openaiToOpenAIResponsesRequest(
     result.max_output_tokens = root.max_tokens;
   }
   if (root.top_p !== undefined) result.top_p = root.top_p;
+  // GPT-5 verbosity: Chat Completions `verbosity` → Responses `text.verbosity`.
+  const chatVerbosity = normalizeVerbosity(root.verbosity);
+  if (chatVerbosity) {
+    result.text = { ...toRecord(result.text), verbosity: chatVerbosity };
+  }
   if (root.reasoning !== undefined) {
     result.reasoning = root.reasoning;
   } else if (root.reasoning_effort !== undefined) {

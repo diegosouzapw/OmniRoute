@@ -242,8 +242,144 @@ test("Streaming: produces valid SSE chunks", async () => {
   }
 });
 
-// ─── Test: Thinking/reasoning content ───────────────────────────────────────
+// ─── Test: Schematized diff_block streaming (use_schematized_api) ───────────
 
+test("Schematized API: diff_block chunks reconstruct answer (non-streaming)", async () => {
+  // Mirrors the live www.perplexity.ai schematized API: the answer streams as
+  // RFC-6902 JSON-patch frames against markdown_block, a `final:true` flag
+  // arrives on a still-PENDING frame, then a COMPLETED frame materializes the
+  // full markdown_block. The parser must NOT stop on `final` and must apply
+  // the diff patches.
+  const pplxEvents = [
+    {
+      backend_uuid: "diff-uuid-1",
+      status: "PENDING",
+      blocks: [
+        {
+          intended_usage: "ask_text_0_markdown",
+          diff_block: {
+            field: "markdown_block",
+            patches: [
+              { op: "replace", path: "", value: { progress: "IN_PROGRESS", chunks: ["The "] } },
+            ],
+          },
+        },
+      ],
+    },
+    {
+      status: "PENDING",
+      blocks: [
+        {
+          intended_usage: "ask_text_0_markdown",
+          diff_block: { field: "markdown_block", patches: [{ op: "add", path: "/chunks/1", value: "answer " }] },
+        },
+      ],
+    },
+    {
+      status: "PENDING",
+      final: true,
+      blocks: [
+        {
+          intended_usage: "ask_text_0_markdown",
+          diff_block: { field: "markdown_block", patches: [{ op: "add", path: "/chunks/2", value: "is 42." }] },
+        },
+      ],
+    },
+    {
+      status: "COMPLETED",
+      final: true,
+      blocks: [
+        {
+          intended_usage: "ask_text_0_markdown",
+          markdown_block: { progress: "DONE", chunks: ["The answer is 42."], answer: "The answer is 42." },
+        },
+      ],
+    },
+  ];
+
+  const restore = mockFetch(200, pplxEvents);
+  try {
+    const executor = new PerplexityWebExecutor();
+    const result = await executor.execute({
+      model: "pplx-auto",
+      body: { messages: [{ role: "user", content: "what is the answer?" }], stream: false },
+      stream: false,
+      credentials: { apiKey: "test-cookie" },
+      signal: AbortSignal.timeout(10000),
+      log: null,
+    });
+
+    assert.equal(result.response.status, 200);
+    const json = JSON.parse(await result.response.text());
+    assert.equal(json.choices[0].message.content, "The answer is 42.");
+  } finally {
+    restore();
+  }
+});
+
+test("Schematized API: diff_block streams incremental deltas", async () => {
+  const pplxEvents = [
+    {
+      backend_uuid: "diff-uuid-2",
+      status: "PENDING",
+      blocks: [
+        {
+          intended_usage: "ask_text_0_markdown",
+          diff_block: { field: "markdown_block", patches: [{ op: "replace", path: "", value: { progress: "IN_PROGRESS", chunks: ["one, "] } }] },
+        },
+      ],
+    },
+    {
+      status: "PENDING",
+      blocks: [
+        {
+          intended_usage: "ask_text_0_markdown",
+          diff_block: { field: "markdown_block", patches: [{ op: "add", path: "/chunks/1", value: "two, " }] },
+        },
+      ],
+    },
+    {
+      status: "COMPLETED",
+      final: true,
+      blocks: [
+        {
+          intended_usage: "ask_text_0_markdown",
+          markdown_block: { progress: "DONE", chunks: ["one, two, three"], answer: "one, two, three" },
+        },
+      ],
+    },
+  ];
+
+  const restore = mockFetch(200, pplxEvents);
+  try {
+    const executor = new PerplexityWebExecutor();
+    const result = await executor.execute({
+      model: "pplx-auto",
+      body: { messages: [{ role: "user", content: "count" }], stream: true },
+      stream: true,
+      credentials: { apiKey: "test-cookie" },
+      signal: AbortSignal.timeout(10000),
+      log: null,
+    });
+
+    assert.equal(result.response.status, 200);
+    const text = await result.response.text();
+    let assembled = "";
+    for (const line of text.split("\n")) {
+      if (!line.startsWith("data: ")) continue;
+      const d = line.slice(6).trim();
+      if (d === "[DONE]") continue;
+      const o = JSON.parse(d);
+      const c = o.choices?.[0]?.delta?.content;
+      if (c) assembled += c;
+    }
+    assert.equal(assembled, "one, two, three");
+  } finally {
+    restore();
+  }
+});
+
+// ─── Test: Thinking/reasoning content ───────────────────────────────────────
 test("Streaming: thinking content emitted as reasoning_content", async () => {
   const pplxEvents = [
     {

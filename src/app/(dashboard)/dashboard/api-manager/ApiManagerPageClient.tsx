@@ -14,11 +14,16 @@ import {
   isRestricted as isKeyRestricted,
   classifyKeyStatus,
   computeApiKeyCounts,
+  formatUsdCost,
+  toLocalDateTimeInputValue,
+  maskKey,
+  toggleKeyVisibility,
 } from "./apiManagerPageUtils";
 import type { KeyStatus, KeyType } from "./apiManagerPageUtils";
 import { readActiveOnlyPreference, writeActiveOnlyPreference } from "./apiManagerPageStorage";
 import { buildApiKeyCreateScopes, mergeApiKeyPermissionScopes } from "./apiManagerScopes";
 import { SELF_ACCOUNT_QUOTA_SCOPE, SELF_USAGE_SCOPE } from "@/shared/constants/selfServiceScopes";
+import { UsageLimitSettings } from "./components/UsageLimitSettings";
 
 // Constants for validation
 const MAX_KEY_NAME_LENGTH = 200;
@@ -43,16 +48,6 @@ const CLAUDE_CODE_FAMILY_BLOCK_PATTERNS: Record<ClaudeCodeBlockableFamilyId, str
 const CLAUDE_CODE_BLOCK_PATTERN_SET = new Set(
   Object.values(CLAUDE_CODE_FAMILY_BLOCK_PATTERNS).flat()
 );
-
-function toLocalDateTimeInputValue(value: string | null | undefined): string {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
-    date.getHours()
-  )}:${pad(date.getMinutes())}`;
-}
 
 // Debounce hook for search optimization
 function useDebouncedValue<T>(value: T, delay: number): T {
@@ -128,6 +123,10 @@ interface ApiKey {
   allowedEndpoints?: string[];
   streamDefaultMode?: StreamDefaultMode;
   disableNonPublicModels?: boolean;
+  allowUsageCommand?: boolean;
+  usageLimitEnabled?: boolean;
+  dailyUsageLimitUsd?: number | null;
+  weeklyUsageLimitUsd?: number | null;
   allowedQuotas?: string[] | null;
   createdAt: string;
 }
@@ -143,16 +142,6 @@ interface KeyUsageStats {
   totalRequests: number;
   totalCost: number;
   lastUsed: string | null;
-}
-
-function formatUsdCost(value: number, locale: string): string {
-  const amount = Number.isFinite(value) ? value : 0;
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: amount > 0 && amount < 1 ? 4 : 2,
-    maximumFractionDigits: amount > 0 && amount < 1 ? 4 : 2,
-  }).format(amount);
 }
 
 interface Model {
@@ -221,6 +210,7 @@ export default function ApiManagerPageClient() {
   const [newKeyManageEnabled, setNewKeyManageEnabled] = useState(false);
   const [newKeySelfUsageEnabled, setNewKeySelfUsageEnabled] = useState(true);
   const [newKeyAccountQuotaEnabled, setNewKeyAccountQuotaEnabled] = useState(false);
+  const [newKeyAllowUsageCommand, setNewKeyAllowUsageCommand] = useState(false);
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [editingKey, setEditingKey] = useState<ApiKey | null>(null);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
@@ -232,6 +222,10 @@ export default function ApiManagerPageClient() {
   const [usageStats, setUsageStats] = useState<Record<string, KeyUsageStats>>({});
   const [sessionCounts, setSessionCounts] = useState<Record<string, number>>({});
   const [allowKeyReveal, setAllowKeyReveal] = useState(false);
+  // Per-row API key visibility toggle (eye / eye-off). Keys default to masked.
+  // Map id -> fully revealed key string fetched on demand from /api/keys/{id}/reveal.
+  const [revealedKeys, setRevealedKeys] = useState<Map<string, string>>(new Map());
+  const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
   const createKeyNameFieldRef = useRef<HTMLDivElement | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -542,6 +536,7 @@ export default function ApiManagerPageClient() {
             selfUsageEnabled: newKeySelfUsageEnabled,
             selfAccountQuotaEnabled: newKeyAccountQuotaEnabled,
           }),
+          allowUsageCommand: newKeyAllowUsageCommand,
         }),
       });
       const data = await res.json();
@@ -553,6 +548,7 @@ export default function ApiManagerPageClient() {
         setNewKeyManageEnabled(false);
         setNewKeySelfUsageEnabled(true);
         setNewKeyAccountQuotaEnabled(false);
+        setNewKeyAllowUsageCommand(false);
         setShowAddModal(false);
       } else {
         setCreateError(data.error || t("failedCreateKey"));
@@ -580,6 +576,14 @@ export default function ApiManagerPageClient() {
       const res = await fetch(`/api/keys/${encodeURIComponent(id)}`, { method: "DELETE" });
       if (res.ok) {
         setKeys((prev) => prev.filter((k) => k.id !== id));
+        // Clean up any cached reveal/visibility state for this key.
+        setRevealedKeys((prev) => {
+          if (!prev.has(id)) return prev;
+          const next = new Map(prev);
+          next.delete(id);
+          return next;
+        });
+        setVisibleKeys((prev) => (prev.has(id) ? toggleKeyVisibility(prev, id) : prev));
       } else {
         const data = await res.json();
         setPageError(data.error || t("failedDeleteKey"));
@@ -634,11 +638,50 @@ export default function ApiManagerPageClient() {
 
       const data = await res.json();
       if (typeof data?.key === "string") {
+        // Cache the revealed value so a subsequent show-toggle does not refetch.
+        setRevealedKeys((prev) => {
+          const next = new Map(prev);
+          next.set(keyId, data.key);
+          return next;
+        });
         await copy(data.key, `existing_key_${keyId}`);
       }
     } catch (error) {
       console.log("Error copying existing key:", error);
     }
+  };
+
+  /**
+   * Toggle the visibility of one key inline (eye / eye-off button).
+   * Lazy-fetches the full key from /api/keys/{id}/reveal on the FIRST show,
+   * then caches it in `revealedKeys` so re-toggling is instant. Hiding only
+   * flips the visibility set — the cached reveal stays so a re-show is free.
+   */
+  const handleToggleKeyVisibility = async (keyId: string) => {
+    if (!keyId) return;
+    const isCurrentlyVisible = visibleKeys.has(keyId);
+
+    if (!isCurrentlyVisible && !revealedKeys.has(keyId)) {
+      try {
+        const res = await fetch(`/api/keys/${encodeURIComponent(keyId)}/reveal`);
+        if (!res.ok) {
+          console.log("Error revealing key:", await res.text());
+          return;
+        }
+        const data = await res.json();
+        if (typeof data?.key !== "string") return;
+        setRevealedKeys((prev) => {
+          const next = new Map(prev);
+          next.set(keyId, data.key);
+          return next;
+        });
+      } catch (error) {
+        console.log("Error revealing key:", error);
+        return;
+      }
+    }
+
+    setVisibleKeys((prev) => toggleKeyVisibility(prev, keyId));
   };
 
   const handleUpdatePermissions = async (
@@ -659,6 +702,10 @@ export default function ApiManagerPageClient() {
     allowedEndpoints: string[],
     streamDefaultMode: StreamDefaultMode,
     disableNonPublicModels: boolean,
+    allowUsageCommand: boolean,
+    usageLimitEnabled: boolean,
+    dailyUsageLimitUsd: number | null,
+    weeklyUsageLimitUsd: number | null,
     blockedModels: string[]
   ) => {
     if (!editingKey || !editingKey.id) return;
@@ -726,6 +773,10 @@ export default function ApiManagerPageClient() {
           allowedEndpoints,
           streamDefaultMode,
           disableNonPublicModels,
+          allowUsageCommand,
+          usageLimitEnabled,
+          dailyUsageLimitUsd,
+          weeklyUsageLimitUsd,
         }),
       });
 
@@ -806,65 +857,6 @@ export default function ApiManagerPageClient() {
         </div>
       )}
 
-      {/* Stats Summary Cards */}
-      {keys.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center size-9 rounded-lg bg-primary/10">
-                <span className="material-symbols-outlined text-primary text-lg">vpn_key</span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{keys.length}</p>
-                <p className="text-xs text-text-muted">{t("totalKeys")}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center size-9 rounded-lg bg-amber-500/10">
-                <span className="material-symbols-outlined text-amber-500 text-lg">lock</span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {
-                    keys.filter((k) => Array.isArray(k.allowedModels) && k.allowedModels.length > 0)
-                      .length
-                  }
-                </p>
-                <p className="text-xs text-text-muted">{t("restricted")}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center size-9 rounded-lg bg-blue-500/10">
-                <span className="material-symbols-outlined text-blue-500 text-lg">bar_chart</span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {Object.values(usageStats).reduce((sum, s) => sum + s.totalRequests, 0)}
-                </p>
-                <p className="text-xs text-text-muted">{t("totalRequests")}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center size-9 rounded-lg bg-emerald-500/10">
-                <span className="material-symbols-outlined text-emerald-500 text-lg">
-                  model_training
-                </span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{allModels.length}</p>
-                <p className="text-xs text-text-muted">{t("modelsAvailable")}</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
-
       {/* Filter Bar — shown when there are keys */}
       {keys.length > 0 && (
         <ApiKeyFilterBar
@@ -902,7 +894,6 @@ export default function ApiManagerPageClient() {
                 )}
               </h3>
               <p className="text-xs text-text-muted">
-                {keys.length}{" "}
                 {keys.length === 1
                   ? t("keyRegistered", { count: keys.length })
                   : t("keysRegistered", { count: keys.length })}
@@ -968,6 +959,7 @@ export default function ApiManagerPageClient() {
               const hasThrottle = throttleDelayMs > 0;
               const hasManageScope = Array.isArray(key.scopes) && key.scopes.includes("manage");
               const hasJsonStreamDefault = key.streamDefaultMode === "json";
+              const hasLocalUsageCommand = key.allowUsageCommand === true;
               const maxSessions = typeof key.maxSessions === "number" ? key.maxSessions : 0;
               const hasSessionLimit = maxSessions > 0;
               const activeSessions = sessionCounts[key.id] || 0;
@@ -979,7 +971,7 @@ export default function ApiManagerPageClient() {
               return (
                 <div
                   key={key.id}
-                  className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-black/[0.03] dark:border-white/[0.03] last:border-b-0 hover:bg-surface/30 transition-colors group"
+                  className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-black/[0.03] dark:border-white/[0.03] last:border-b-0 hover:bg-surface/30 transition-colors group min-w-[760px]"
                 >
                   <div className="col-span-2 flex items-center gap-2">
                     <span
@@ -992,21 +984,38 @@ export default function ApiManagerPageClient() {
                     </span>
                   </div>
                   <div className="col-span-3 flex items-center gap-1.5">
-                    <code className="text-sm text-text-muted font-mono truncate">{key.key}</code>
+                    <code className="text-sm text-text-muted font-mono truncate">
+                      {visibleKeys.has(key.id)
+                        ? (revealedKeys.get(key.id) ?? key.key)
+                        : maskKey(key.key)}
+                    </code>
                     {allowKeyReveal ? (
-                      <button
-                        onClick={() => handleCopyExistingKey(key.id)}
-                        className="p-1 text-text-muted/60 hover:text-primary transition-colors shrink-0"
-                        title={tc("copy")}
-                        aria-label={tc("copy")}
-                      >
-                        <span className="material-symbols-outlined text-[14px]">
-                          {copied === `existing_key_${key.id}` ? "check" : "content_copy"}
-                        </span>
-                      </button>
+                      <>
+                        <button
+                          onClick={() => handleToggleKeyVisibility(key.id)}
+                          className="p-1 text-text-muted/60 hover:text-primary transition-colors shrink-0"
+                          title={visibleKeys.has(key.id) ? t("hideKey") : t("showKey")}
+                          aria-label={visibleKeys.has(key.id) ? t("hideKey") : t("showKey")}
+                          aria-pressed={visibleKeys.has(key.id)}
+                        >
+                          <span className="material-symbols-outlined text-[14px]">
+                            {visibleKeys.has(key.id) ? "visibility_off" : "visibility"}
+                          </span>
+                        </button>
+                        <button
+                          onClick={() => handleCopyExistingKey(key.id)}
+                          className="p-1 text-text-muted/60 hover:text-primary transition-colors shrink-0"
+                          title={tc("copy")}
+                          aria-label={tc("copy")}
+                        >
+                          <span className="material-symbols-outlined text-[14px]">
+                            {copied === `existing_key_${key.id}` ? "check" : "content_copy"}
+                          </span>
+                        </button>
+                      </>
                     ) : (
                       <span
-                        className="p-1 text-text-muted/40 opacity-0 group-hover:opacity-100 transition-all shrink-0 cursor-help"
+                        className="p-1 text-text-muted/40 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all shrink-0 cursor-help"
                         title={t("keyOnlyAvailableAtCreation")}
                       >
                         <span className="material-symbols-outlined text-[14px]">lock</span>
@@ -1093,6 +1102,18 @@ export default function ApiManagerPageClient() {
                           {t("streamDefaultBadge")}
                         </span>
                       )}
+                      {hasLocalUsageCommand && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-600 dark:text-slate-300 text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-[12px]">terminal</span>
+                          {t("localUsageCommandBadge")}
+                        </span>
+                      )}
+                      {key.usageLimitEnabled === true && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-[12px]">paid</span>
+                          USD quota
+                        </span>
+                      )}
                       {hasSessionLimit && (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[11px] font-medium">
                           <span className="material-symbols-outlined text-[12px]">group</span>
@@ -1163,7 +1184,7 @@ export default function ApiManagerPageClient() {
                   <div className="col-span-2 flex items-center justify-end gap-1">
                     <a
                       href={`/dashboard/costs?range=all&apiKeyIds=${encodeURIComponent(key.id)}&groupBy=model`}
-                      className="p-2 hover:bg-emerald-500/10 rounded text-text-muted hover:text-emerald-500 opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-2 hover:bg-emerald-500/10 rounded text-text-muted hover:text-emerald-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
                       title={`View costs for ${key.name}`}
                       aria-label={`View costs for ${key.name}`}
                     >
@@ -1171,21 +1192,21 @@ export default function ApiManagerPageClient() {
                     </a>
                     <button
                       onClick={() => handleRegenerateKey(key.id)}
-                      className="p-2 hover:bg-amber-500/10 rounded text-text-muted hover:text-amber-500 opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-2 hover:bg-amber-500/10 rounded text-text-muted hover:text-amber-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
                       title={t("regenerateKey")}
                     >
                       <span className="material-symbols-outlined text-[18px]">refresh</span>
                     </button>
                     <button
                       onClick={() => handleOpenPermissions(key)}
-                      className="p-2 hover:bg-primary/10 rounded text-text-muted hover:text-primary opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-2 hover:bg-primary/10 rounded text-text-muted hover:text-primary opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
                       title={t("editPermissions")}
                     >
                       <span className="material-symbols-outlined text-[18px]">tune</span>
                     </button>
                     <button
                       onClick={() => handleDeleteKey(key.id)}
-                      className="p-2 hover:bg-red-500/10 rounded text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-2 hover:bg-red-500/10 rounded text-red-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
                       title={t("deleteKey")}
                     >
                       <span className="material-symbols-outlined text-[18px]">delete</span>
@@ -1196,7 +1217,7 @@ export default function ApiManagerPageClient() {
             };
 
             const tableHeader = (
-              <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-surface/50 border-b border-border text-xs font-semibold text-text-muted uppercase tracking-wider">
+              <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-surface/50 border-b border-border text-xs font-semibold text-text-muted uppercase tracking-wider min-w-[760px]">
                 <div className="col-span-2">{t("name")}</div>
                 <div className="col-span-3">{t("key")}</div>
                 <div className="col-span-2">{t("permissions")}</div>
@@ -1222,9 +1243,11 @@ export default function ApiManagerPageClient() {
                         {normalKeys.length}
                       </span>
                     </div>
-                    <div className="flex flex-col border border-border rounded-lg overflow-hidden">
-                      {tableHeader}
-                      {normalKeys.map(renderKeyRow)}
+                    <div className="border border-border rounded-lg overflow-hidden">
+                      <div className="overflow-x-auto">
+                        {tableHeader}
+                        {normalKeys.map(renderKeyRow)}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -1245,9 +1268,11 @@ export default function ApiManagerPageClient() {
                         {t("quotaPill")}
                       </span>
                     </div>
-                    <div className="flex flex-col border border-border rounded-lg overflow-hidden">
-                      {tableHeader}
-                      {quotaKeys.map(renderKeyRow)}
+                    <div className="border border-border rounded-lg overflow-hidden">
+                      <div className="overflow-x-auto">
+                        {tableHeader}
+                        {quotaKeys.map(renderKeyRow)}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -1255,36 +1280,6 @@ export default function ApiManagerPageClient() {
             );
           })()
         )}
-      </Card>
-
-      {/* Usage Tips Card */}
-      <Card>
-        <div className="flex items-start gap-3">
-          <div className="flex items-center justify-center size-10 rounded-lg bg-blue-500/10 shrink-0">
-            <span className="material-symbols-outlined text-xl text-blue-500">lightbulb</span>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2">{t("usageTips")}</h3>
-            <ul className="text-sm text-text-muted space-y-1.5">
-              <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>{t("tipAuth")}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>{t("tipSecure")}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>{t("tipSeparate")}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>{t("tipRestrict")}</span>
-              </li>
-            </ul>
-          </div>
-        </div>
       </Card>
 
       {/* Add Key Modal */}
@@ -1298,6 +1293,7 @@ export default function ApiManagerPageClient() {
           setNewKeyManageEnabled(false);
           setNewKeySelfUsageEnabled(true);
           setNewKeyAccountQuotaEnabled(false);
+          setNewKeyAllowUsageCommand(false);
           setNameError(null);
           setCreateError(null);
         }}
@@ -1392,6 +1388,26 @@ export default function ApiManagerPageClient() {
                 {newKeyAccountQuotaEnabled ? tc("enabled") : tc("disabled")}
               </button>
             </div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-text-main">{t("localUsageCommand")}</p>
+                <p className="text-xs text-text-muted">{t("localUsageCommandDesc")}</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={newKeyAllowUsageCommand}
+                onClick={() => setNewKeyAllowUsageCommand((prev) => !prev)}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors shrink-0 ${
+                  newKeyAllowUsageCommand
+                    ? "bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30"
+                    : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[14px]">terminal</span>
+                {newKeyAllowUsageCommand ? tc("enabled") : tc("disabled")}
+              </button>
+            </div>
           </div>
           {createError && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30">
@@ -1407,6 +1423,7 @@ export default function ApiManagerPageClient() {
                 setNewKeyManageEnabled(false);
                 setNewKeySelfUsageEnabled(true);
                 setNewKeyAccountQuotaEnabled(false);
+                setNewKeyAllowUsageCommand(false);
                 setNameError(null);
                 setCreateError(null);
               }}
@@ -1523,6 +1540,10 @@ const PermissionsModal = memo(function PermissionsModal({
     allowedEndpoints: string[],
     streamDefaultMode: StreamDefaultMode,
     disableNonPublicModels: boolean,
+    allowUsageCommand: boolean,
+    usageLimitEnabled: boolean,
+    dailyUsageLimitUsd: number | null,
+    weeklyUsageLimitUsd: number | null,
     blockedModels: string[]
   ) => void;
 }) {
@@ -1602,6 +1623,20 @@ const PermissionsModal = memo(function PermissionsModal({
   const [allowAllEndpoints, setAllowAllEndpoints] = useState(initialEndpoints.length === 0);
   const [disableNonPublicModels, setDisableNonPublicModels] = useState(
     apiKey?.disableNonPublicModels === true
+  );
+  const [usageCommandEnabled, setUsageCommandEnabled] = useState(
+    apiKey?.allowUsageCommand === true
+  );
+  const [usageLimitEnabled, setUsageLimitEnabled] = useState(apiKey?.usageLimitEnabled === true);
+  const [dailyUsageLimitUsd, setDailyUsageLimitUsd] = useState(
+    typeof apiKey?.dailyUsageLimitUsd === "number" && apiKey.dailyUsageLimitUsd > 0
+      ? String(apiKey.dailyUsageLimitUsd)
+      : ""
+  );
+  const [weeklyUsageLimitUsd, setWeeklyUsageLimitUsd] = useState(
+    typeof apiKey?.weeklyUsageLimitUsd === "number" && apiKey.weeklyUsageLimitUsd > 0
+      ? String(apiKey.weeklyUsageLimitUsd)
+      : ""
   );
   const getModelDisplayName = useCallback(
     (modelId: string) =>
@@ -1721,6 +1756,11 @@ const PermissionsModal = memo(function PermissionsModal({
     [allowAllEndpoints]
   );
 
+  const parseUsdLimitInput = useCallback((value: string): number | null => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }, []);
+
   const handleSave = useCallback(() => {
     // Clear previous inline errors
     setNameError(null);
@@ -1786,6 +1826,10 @@ const PermissionsModal = memo(function PermissionsModal({
       allowAllEndpoints ? [] : selectedEndpoints,
       streamDefaultMode,
       disableNonPublicModels,
+      usageCommandEnabled,
+      usageLimitEnabled,
+      parseUsdLimitInput(dailyUsageLimitUsd),
+      parseUsdLimitInput(weeklyUsageLimitUsd),
       blockedModels
     );
   }, [
@@ -1817,6 +1861,11 @@ const PermissionsModal = memo(function PermissionsModal({
     selectedEndpoints,
     streamDefaultMode,
     disableNonPublicModels,
+    usageCommandEnabled,
+    usageLimitEnabled,
+    dailyUsageLimitUsd,
+    weeklyUsageLimitUsd,
+    parseUsdLimitInput,
     blockedClaudeCodeFamilies,
     initialBlockedModels,
     apiKey?.scopes,
@@ -2375,6 +2424,31 @@ const PermissionsModal = memo(function PermissionsModal({
             {selfAccountQuotaEnabled ? tc("enabled") : tc("disabled")}
           </button>
           <p className="text-xs text-text-muted">{t("sharedAccountQuotaVisibilityDesc")}</p>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={usageCommandEnabled}
+            onClick={() => setUsageCommandEnabled((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              usageCommandEnabled
+                ? "bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30"
+                : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">terminal</span>
+            {t("localUsageCommand")} - {usageCommandEnabled ? tc("enabled") : tc("disabled")}
+          </button>
+          <p className="text-xs text-text-muted">{t("localUsageCommandDesc")}</p>
+          <UsageLimitSettings
+            enabled={usageLimitEnabled}
+            dailyLimitUsd={dailyUsageLimitUsd}
+            weeklyLimitUsd={weeklyUsageLimitUsd}
+            enabledLabel={tc("enabled")}
+            disabledLabel={tc("disabled")}
+            onEnabledChange={setUsageLimitEnabled}
+            onDailyLimitUsdChange={setDailyUsageLimitUsd}
+            onWeeklyLimitUsdChange={setWeeklyUsageLimitUsd}
+          />
         </div>
 
         {/* Disable Non-Public Models Toggle */}

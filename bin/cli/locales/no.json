@@ -25,5 +25,8 @@
     "base_url": "OmniRoute-serverens basis-URL",
     "context": "Serverkontekst/profil for denne kommandoen",
     "lang": "Angi CLI-visningsspråk (overstyrer OMNIROUTE_LANG)"
+  },
+  "redis": {
+    "description": "Start en lokal Redis-beholder med ett klikk (Podman eller Docker) for OmniRoute-hurtigbufring og kvotesporing"
   }
 }

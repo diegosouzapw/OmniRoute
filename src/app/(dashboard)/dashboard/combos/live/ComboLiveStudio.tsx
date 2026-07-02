@@ -6,8 +6,12 @@ import { FlowCanvas } from "@/shared/components/flow/FlowCanvas";
 import {
   comboRunToFlow,
   reduceComboEvent,
+  enrichRunWithBreakers,
+  enrichRunWithConnectionCooldown,
   type ComboRunModel,
   type ComboEventInput,
+  type ProviderBreakerSnapshot,
+  type ConnectionCooldownSnapshot,
 } from "./comboFlowModel";
 import { aggregateComboEventsToSets } from "./fleetAggregation";
 import { StrategyNode } from "./nodes/StrategyNode";
@@ -179,6 +183,20 @@ export interface ComboLiveStudioProps {
    * When false, shows the "Live disabled" banner.
    */
   isConnected?: boolean;
+  /**
+   * Per-provider circuit-breaker snapshot (`providerHealth` from
+   * GET /api/monitoring/health). When supplied, the cascade overlays the REAL
+   * breaker state (CB: OPEN · 41s) onto each target — U1b enrichment. Optional;
+   * absent → no breaker badges (graceful).
+   */
+  providerHealth?: Record<string, ProviderBreakerSnapshot> | null;
+  /**
+   * Per-provider connection-cooldown snapshot (`connectionHealth` from
+   * GET /api/monitoring/health). When supplied, the cascade overlays the REAL
+   * cooldown state (cooldown 2/3 · 28s) onto each target — U1b Slice 2. Optional;
+   * absent → no cooldown badges (graceful).
+   */
+  connectionHealth?: Record<string, ConnectionCooldownSnapshot> | null;
 }
 
 // ── Main component ────────────────────────────────────────────────────────
@@ -203,6 +221,8 @@ export function ComboLiveStudio({
   comboEvents = [],
   combos: combosProp,
   isConnected = true,
+  providerHealth,
+  connectionHealth,
 }: ComboLiveStudioProps) {
   const [mode, setMode] = useState<"single" | "fleet">("single");
   const [selectedCombo, setSelectedCombo] = useState<string>("");
@@ -215,23 +235,33 @@ export function ComboLiveStudio({
     return [...seen];
   }, [combosProp, comboEvents]);
 
-  // Build the displayed run: static prop wins; otherwise fold live events
+  // Build the displayed run: static prop wins; otherwise fold live events.
+  // Finally overlay real circuit-breaker state (U1b) — a no-op when no health.
   const displayRun = useMemo<ComboRunModel | null>(() => {
-    if (runProp !== undefined) return runProp ?? null;
-
-    if (!selectedCombo) return null;
-
-    const eventsForCombo = comboEvents
-      .filter((e) => e.comboName === selectedCombo)
-      .sort((a, b) => a.timestamp - b.timestamp);
-
-    if (eventsForCombo.length === 0) return null;
-
-    return eventsForCombo.reduce<ComboRunModel | null>(
-      (acc, ev) => reduceComboEvent(acc, ev),
-      null
+    let baseRun: ComboRunModel | null;
+    if (runProp !== undefined) {
+      baseRun = runProp ?? null;
+    } else if (!selectedCombo) {
+      baseRun = null;
+    } else {
+      const eventsForCombo = comboEvents
+        .filter((e) => e.comboName === selectedCombo)
+        .sort((a, b) => a.timestamp - b.timestamp);
+      baseRun =
+        eventsForCombo.length === 0
+          ? null
+          : eventsForCombo.reduce<ComboRunModel | null>(
+              (acc, ev) => reduceComboEvent(acc, ev),
+              null
+            );
+    }
+    // Compose overlays: breaker state first, then connection cooldown. Both are
+    // pure no-ops when their health map is absent, and they touch disjoint fields.
+    return enrichRunWithConnectionCooldown(
+      enrichRunWithBreakers(baseRun, providerHealth),
+      connectionHealth
     );
-  }, [runProp, selectedCombo, comboEvents]);
+  }, [runProp, selectedCombo, comboEvents, providerHealth, connectionHealth]);
 
   // Build ReactFlow graph from the current run
   const { nodes, edges } = useMemo(() => {

@@ -29,6 +29,7 @@ import {
 } from "../../src/shared/utils/classify429";
 import { resolveProviderId } from "../../src/shared/constants/providers";
 import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
+import { getCodexModelScope } from "../config/codexQuotaScopes.ts";
 import { isRpdExhausted, isRpmExhausted } from "./geminiRateLimitTracker.ts";
 
 export type ProviderProfile = {
@@ -250,6 +251,15 @@ const MALFORMED_REQUEST_PATTERNS = [
   /tool_call.*name.*(?:blank|empty|missing)/i,
 ];
 
+// Parameter validation errors — model-specific constraints (different models = different limits)
+const PARAM_VALIDATION_PATTERNS = [
+  /max_tokens.*illegal/i,
+  /max_tokens.*must be/i,
+  /max_tokens.*range/i,
+  /parameter is illegal/i,
+  /is illegal.*range/i,
+];
+
 /**
  * T06: Returns true if response body indicates the account is permanently deactivated.
  */
@@ -365,7 +375,9 @@ function getCanonicalLockProvider(provider: string): string {
 }
 
 function getModelLockKey(provider: string, connectionId: string, model: string) {
-  return `${getCanonicalLockProvider(provider)}:${connectionId}:${model}`;
+  const canonicalProvider = getCanonicalLockProvider(provider);
+  const lockModel = canonicalProvider === "codex" ? getCodexModelScope(model) : model;
+  return `${canonicalProvider}:${connectionId}:${lockModel}`;
 }
 
 function getFailureWindowMs(profile: ProviderProfile | null = null, fallbackMs = 30 * 60 * 1000) {
@@ -476,6 +488,27 @@ export function lockModel(
   });
 }
 
+/**
+ * Pick the `exactCooldownMs` to apply to a model lockout (#1308).
+ *
+ * When the upstream response carried an explicit reset longer than the base
+ * cooldown — e.g. Antigravity "Resets in 160h", a `Retry-After` header, or a
+ * parseable reset text already extracted by `checkFallbackError`/`parseRetryFromErrorText`
+ * into `parsedCooldownMs` — honor it exactly so an exhausted model is not retried
+ * again within minutes. Otherwise preserve the previous behavior: return `0` to let
+ * `recordModelLockoutFailure` apply its exponential backoff, or the base cooldown when
+ * backoff is disabled.
+ */
+export function selectLockoutCooldownMs(
+  parsedCooldownMs: number,
+  settings: { baseCooldownMs: number; useExponentialBackoff: boolean }
+): number {
+  if (typeof parsedCooldownMs === "number" && parsedCooldownMs > settings.baseCooldownMs) {
+    return parsedCooldownMs;
+  }
+  return settings.useExponentialBackoff ? 0 : settings.baseCooldownMs;
+}
+
 export function recordModelLockoutFailure(
   provider: string,
   connectionId: string,
@@ -578,6 +611,7 @@ export function hasPerModelQuota(
     return connectionPassthroughModels;
   }
   if (!provider) return false;
+  if (getCanonicalLockProvider(provider) === "codex") return true;
   if (provider === "gemini" || provider === "github") return true;
   if (getPassthroughProviders().has(provider)) return true;
   if (isCompatibleProvider(provider)) return true;
@@ -1550,9 +1584,10 @@ export function checkFallbackError(
 
     const isOverflow = CONTEXT_OVERFLOW_PATTERNS.some((p) => p.test(errorStr));
     const isMalformed = MALFORMED_REQUEST_PATTERNS.some((p) => p.test(errorStr));
+    const isParamValidation = PARAM_VALIDATION_PATTERNS.some((p) => p.test(errorStr));
     const isModelAccessDenied = isModelAccessDeniedStructured || matchesModelAccessPattern;
 
-    if (isOverflow || isMalformed || isModelAccessDenied) {
+    if (isOverflow || isMalformed || isParamValidation || isModelAccessDenied) {
       return {
         shouldFallback: true,
         cooldownMs: 0,
@@ -1577,11 +1612,30 @@ export function checkFallbackError(
 // ─── Account State Management ───────────────────────────────────────────────
 
 /**
+ * Normalize a stored cooldown timestamp to epoch milliseconds.
+ *
+ * `rate_limited_until` is a TEXT column, but some write paths persist a raw
+ * epoch NUMBER (e.g. `setConnectionRateLimitUntil` on the Antigravity full-quota
+ * path). SQLite TEXT affinity coerces it to a numeric string like
+ * "1781696905131.0", which `new Date(...)` cannot parse (→ NaN). Accept numeric
+ * epoch strings/numbers as well as ISO strings and Date objects (#3954).
+ */
+export function cooldownUntilMs(value: string | number | Date | null | undefined): number {
+  if (value === null || value === undefined || value === "") return NaN;
+  if (value instanceof Date) return value.getTime();
+  if (typeof value === "number") return value;
+  const raw = value.trim();
+  if (/^\d+(\.\d+)?$/.test(raw)) return Number(raw);
+  return new Date(raw).getTime();
+}
+
+/**
  * Check if account is currently unavailable (cooldown not expired)
  */
 export function isAccountUnavailable(unavailableUntil: string | Date | null | undefined): boolean {
   if (!unavailableUntil) return false;
-  return new Date(unavailableUntil).getTime() > Date.now();
+  const ms = cooldownUntilMs(unavailableUntil);
+  return Number.isFinite(ms) && ms > Date.now();
 }
 
 /**
@@ -1601,8 +1655,8 @@ export function getEarliestRateLimitedUntil(
   const now = Date.now();
   for (const acc of accounts) {
     if (!acc.rateLimitedUntil) continue;
-    const until = new Date(acc.rateLimitedUntil).getTime();
-    if (until <= now) continue;
+    const until = cooldownUntilMs(acc.rateLimitedUntil);
+    if (!Number.isFinite(until) || until <= now) continue;
     if (!earliest || until < earliest) earliest = until;
   }
   if (!earliest) return null;
@@ -1640,8 +1694,8 @@ export function filterAvailableAccounts<T extends AccountState>(
   return accounts.filter((acc) => {
     if (excludeId && acc.id === excludeId) return false;
     if (acc.rateLimitedUntil) {
-      const until = new Date(acc.rateLimitedUntil).getTime();
-      if (until > now) return false;
+      const until = cooldownUntilMs(acc.rateLimitedUntil);
+      if (Number.isFinite(until) && until > now) return false;
     }
     return true;
   });

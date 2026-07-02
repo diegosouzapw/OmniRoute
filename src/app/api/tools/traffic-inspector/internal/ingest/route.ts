@@ -24,6 +24,8 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { randomUUID } from "node:crypto";
 import { InterceptedRequestSchema } from "@/mitm/inspector/types";
 import { globalTrafficBuffer } from "@/mitm/inspector/buffer";
+import { maskSecret } from "@/mitm/maskSecrets";
+import { sanitizeHeaders } from "@/mitm/sanitizeHeaders";
 
 // ── Token management ────────────────────────────────────────────────────────
 
@@ -101,11 +103,20 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
-    // Fill in any missing optional fields with sensible defaults.
+    // Fill in any missing optional fields with sensible defaults, then mask
+    // secrets and strip hop-by-hop headers before the entry enters the buffer.
+    // The proxy (server.cjs) sends bodies + headers raw over the token-gated
+    // loopback ingest; sanitization is centralized here so the inspector never
+    // stores bearer tokens / API keys (Hard Rule #12).
+    const data = parsed.data;
     const req = {
       requestBody: null,
       responseBody: null,
-      ...parsed.data,
+      ...data,
+      requestHeaders: sanitizeHeaders(data.requestHeaders || {}),
+      responseHeaders: sanitizeHeaders(data.responseHeaders || {}),
+      requestBody: data.requestBody != null ? maskSecret(data.requestBody) : null,
+      responseBody: data.responseBody != null ? maskSecret(data.responseBody) : null,
     };
     globalTrafficBuffer.push(req);
     return Response.json({ ok: true, id: req.id }, { status: 200 });

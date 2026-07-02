@@ -19,30 +19,79 @@
     }
   },
   "git.ignoreLimitWarning": true,
+
+  // ─── Git: não adicionar os ~44 repos aninhados (9 worktrees + _references/* +
+  // _mono_repo/* + _ideia/_tasks/.agents) ao Source Control. Era a causa do
+  // "validando muito": um git status + watcher por repo. Só o repo raiz fica. ───
+  "git.autoRepositoryDetection": false,
+  "git.repositoryScanMaxDepth": 0,
+  "git.detectSubmodules": false,
+  "git.autofetch": false,
+  "git.autorefresh": true,
+
+  // ─── Performance: não seguir o symlink de node_modules criado pelas worktrees ───
+  // As worktrees em .worktrees/ apontam node_modules para o checkout principal;
+  // sem isto a busca atravessa o symlink mesmo com node_modules excluído.
+  "search.followSymlinks": false,
+
+  // ─── TypeScript server (monorepo grande: ~6,6k arquivos rastreados, Next.js 16) ───
+  "typescript.tsserver.maxTsServerMemory": 4096,
+  "typescript.disableAutomaticTypeAcquisition": true,
+  "typescript.tsc.autoDetect": "off",
+  "npm.autoDetect": "off",
+  // O tsserver tem o próprio watcher (independente de files.watcherExclude).
+  // excludeDirectories evita que ele vigie as árvores pesadas.
+  "typescript.tsserver.watchOptions": {
+    "excludeDirectories": [
+      "**/node_modules",
+      "**/.next",
+      "**/.build",
+      "**/dist",
+      "**/coverage",
+      "**/.worktrees"
+    ]
+  },
+
+  // Para esconder os diretórios gerados da árvore do Explorer, descomente:
   // "files.exclude": {
+  //   "**/.worktrees": true,
+  //   "**/coverage": true,
+  //   "**/dist": true,
+  //   "**/.build": true,
+  //   "**/.next": true,
   //   "**/_references": true,
   //   "**/_mono_repo": true,
-  //   "**/electron": true,
-  //   "**/node_modules": true,
-  //   "**/.next": true,
-  //   "**/coverage": true,
-  //   "**/omniroute-*.tgz": true,
-  //   "**/_tasks": true
+  //   "**/_tasks": true,
+  //   "**/omniroute-*.tgz": true
   // },
   "files.watcherExclude": {
-    "**/_references/**": true,
-    "**/_mono_repo/**": true,
-    "**/electron/**": true,
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
     "**/node_modules/**": true,
     "**/.next/**": true,
-    "**/coverage/**": true,
-    "**/_tasks/**": true,
-    "**/.git/objects/**": true,
+    "**/.build/**": true,
     "**/dist/**": true,
     "**/build/**": true,
     "**/out/**": true,
+    "**/coverage/**": true,
+    "**/.coverage/**": true,
+    "**/.nyc_output/**": true,
     "**/.cache/**": true,
     "**/.turbo/**": true,
+    "**/.swc/**": true,
+    "**/.stryker-tmp/**": true,
+    "**/stryker-output-*/**": true,
+    "**/playwright-report/**": true,
+    "**/test-results/**": true,
+    "**/.worktrees/**": true,
+    "**/.claude/worktrees/**": true,
+    "**/electron/**": true,
+    "**/_references/**": true,
+    "**/_mono_repo/**": true,
+    "**/_tasks/**": true,
+    "**/logs/**": true,
+    "**/*.tgz": true,
+    "**/*.tsbuildinfo": true,
     "**/OmniRoute-*/**": true,
     "**/*-merge-*/**": true,
     "**/*-worktree-*/**": true,
@@ -50,16 +99,32 @@
     "**/*-reorg*/**": true
   },
   "search.exclude": {
-    "**/_references": true,
-    "**/_mono_repo": true,
-    "**/electron": true,
     "**/node_modules": true,
     "**/.next": true,
-    "**/coverage": true,
-    "**/_tasks": true,
+    "**/.build": true,
     "**/dist": true,
     "**/build": true,
     "**/out": true,
+    "**/coverage": true,
+    "**/.coverage": true,
+    "**/.nyc_output": true,
+    "**/.cache": true,
+    "**/.turbo": true,
+    "**/.swc": true,
+    "**/.stryker-tmp": true,
+    "**/stryker-output-*": true,
+    "**/playwright-report": true,
+    "**/test-results": true,
+    "**/.worktrees": true,
+    "**/.claude/worktrees": true,
+    "**/electron": true,
+    "**/_references": true,
+    "**/_mono_repo": true,
+    "**/_tasks": true,
+    "**/logs": true,
+    "**/*.tgz": true,
+    "**/*.tsbuildinfo": true,
+    "**/package-lock.json": true,
     "**/OmniRoute-*": true,
     "**/*-merge-*": true,
     "**/*-worktree-*": true,

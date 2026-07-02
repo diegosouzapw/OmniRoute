@@ -25,8 +25,14 @@ const INJECTION_PATTERNS = [
   },
   {
     name: "system_prompt_leak",
+    // #4041: require a system/initial/hidden/original qualifier before prompt|instructions.
+    // The old pattern matched a bare "instructions" after reveal/show/display/etc, so it
+    // tripped `high` on essentially all coding-agent traffic ("show the instructions",
+    // "display your instructions"), making the always-on guard a hot-path false-positive.
+    // Real leak attempts ("reveal your system prompt", "print the initial prompt") still
+    // match, and qualified instruction leaks ("display your system instructions") now do too.
     pattern:
-      /\b(reveal|show|display|print|output|repeat)\s+(your\s+)?(system\s+prompt|instructions?|initial\s+prompt|hidden\s+prompt)/i,
+      /\b(reveals?|shows?|displays?|prints?|outputs?|repeats?)\s+((your|the)\s+)?(system|initial|hidden|original)\s+(prompt|instructions?)/i,
     severity: "high",
   },
   {
@@ -46,6 +52,20 @@ const INJECTION_PATTERNS = [
     severity: "medium",
   },
 ];
+
+/**
+ * Maximum number of characters scanned for prompt-injection patterns.
+ *
+ * The guard joins every message/system string into one buffer and runs several
+ * regexes over it on every chat request. With no cap that is O(body) CPU on the
+ * hot path — at high concurrency with 300 KB bodies it is a self-inflicted
+ * latency/GC source. Injection directives sit near the top of a prompt, so
+ * scanning hundreds of KB of pasted code / RAG context buys only CPU. We bound
+ * the scan to the first 16 KB (generous: real directives are far shorter) before
+ * the regex loop. The 10 MB body-size cap that protects ingestion lives
+ * elsewhere; this constant only bounds the regex scan. Refs #3932 / #4041.
+ */
+export const MAX_INJECTION_SCAN_BYTES = 16 * 1024;
 
 // ─── PII Patterns ────────────────────────────────────────────────────
 
@@ -168,8 +188,13 @@ function extractMessageContents(body) {
  */
 function detectInjection(text) {
   const detections = [];
+  // Bound the regex scan to the first 16 KB — see MAX_INJECTION_SCAN_BYTES
+  // (hot-path perf, #3932 / #4041). Slice before the loop so each pattern only
+  // ever scans the capped prefix, never the full (possibly hundreds of KB) body.
+  const scanText =
+    text.length > MAX_INJECTION_SCAN_BYTES ? text.slice(0, MAX_INJECTION_SCAN_BYTES) : text;
   for (const rule of INJECTION_PATTERNS) {
-    const match = text.match(rule.pattern);
+    const match = scanText.match(rule.pattern);
     if (match) {
       detections.push({
         pattern: rule.name,

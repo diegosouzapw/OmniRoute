@@ -1,8 +1,113 @@
 import { NextResponse } from "next/server";
+import { access, constants, readFile } from "fs/promises";
 import { homedir } from "os";
 import { join } from "path";
-import { readFile } from "fs/promises";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
+
+/**
+ * Known key names Cursor IDE has used over time to persist the auth token
+ * and machine id in the local `state.vscdb`. Order matters — the first
+ * exact match wins.
+ */
+const ACCESS_TOKEN_KEYS = ["cursorAuth/accessToken", "cursorAuth/token"] as const;
+const MACHINE_ID_KEYS = [
+  "storage.serviceMachineId",
+  "storage.machineId",
+  "telemetry.machineId",
+] as const;
+
+/**
+ * Normalize a value read from Cursor's `state.vscdb`. Some entries are
+ * stored as JSON-encoded strings (e.g. `'"abc"'`) — unwrap one level when
+ * the decoded payload is itself a string. Anything else is returned as-is.
+ */
+export function normalizeVscDbValue<T>(value: T): T | string {
+  if (typeof value !== "string") return value;
+  try {
+    const parsed = JSON.parse(value);
+    return typeof parsed === "string" ? parsed : value;
+  } catch {
+    return value;
+  }
+}
+
+interface VscDbRow {
+  key: string;
+  value: string;
+}
+
+interface ExtractedCursorTokens {
+  accessToken?: string;
+  machineId?: string;
+}
+
+/**
+ * Pick the first matching access-token / machine-id from a set of rows.
+ * Pure function — easy to unit-test without a SQLite handle.
+ */
+export function extractCursorTokensFromRows(rows: VscDbRow[]): ExtractedCursorTokens {
+  const tokens: ExtractedCursorTokens = {};
+  for (const row of rows) {
+    if (!tokens.accessToken && (ACCESS_TOKEN_KEYS as readonly string[]).includes(row.key)) {
+      const v = normalizeVscDbValue(row.value);
+      if (typeof v === "string") tokens.accessToken = v;
+    } else if (!tokens.machineId && (MACHINE_ID_KEYS as readonly string[]).includes(row.key)) {
+      const v = normalizeVscDbValue(row.value);
+      if (typeof v === "string") tokens.machineId = v;
+    }
+  }
+  return tokens;
+}
+
+/**
+ * Fuzzy-match access-token / machine-id from any rows whose key vaguely
+ * resembles the expected pattern (e.g. `cursorAuth/someOtherAccessTokenKey`,
+ * `storage.someMachineId`). Used only when the exact-key lookup yielded
+ * nothing — guards against silent breakage when Cursor renames a key.
+ */
+export function fuzzyExtractCursorTokensFromRows(
+  rows: VscDbRow[],
+  existing: ExtractedCursorTokens = {}
+): ExtractedCursorTokens {
+  const tokens: ExtractedCursorTokens = { ...existing };
+  for (const row of rows) {
+    const key = row.key || "";
+    const lower = key.toLowerCase();
+    const value = normalizeVscDbValue(row.value);
+    if (typeof value !== "string") continue;
+    if (!tokens.accessToken && lower.includes("accesstoken")) tokens.accessToken = value;
+    if (!tokens.machineId && lower.includes("machineid")) tokens.machineId = value;
+  }
+  return tokens;
+}
+
+/**
+ * Resolve the candidate state.vscdb paths to probe for a given platform.
+ * macOS now probes both the standard install and the Insiders channel
+ * (port: 9router#161 — fixes false "Cursor database not found" on Macs
+ * that only have Cursor Insiders installed).
+ */
+export function cursorDbCandidatePaths(
+  platform: NodeJS.Platform,
+  env: { home: string; appdata?: string }
+): string[] {
+  if (platform === "darwin") {
+    return [
+      join(env.home, "Library/Application Support/Cursor/User/globalStorage/state.vscdb"),
+      join(
+        env.home,
+        "Library/Application Support/Cursor - Insiders/User/globalStorage/state.vscdb"
+      ),
+    ];
+  }
+  if (platform === "linux") {
+    return [join(env.home, ".config/Cursor/User/globalStorage/state.vscdb")];
+  }
+  if (platform === "win32") {
+    return [join(env.appdata || "", "Cursor/User/globalStorage/state.vscdb")];
+  }
+  return [];
+}
 
 /**
  * Try to read credentials from cursor-agent's auth.json
@@ -28,7 +133,16 @@ async function tryAgentAuth(): Promise<{
 }
 
 /**
- * Try to read credentials from Cursor IDE's state.vscdb
+ * Try to read credentials from Cursor IDE's state.vscdb.
+ *
+ * On macOS this probes both `Cursor/` and `Cursor - Insiders/`, returns a
+ * descriptive error if the DB exists but cannot be opened (e.g. WAL lock
+ * because Cursor is currently running), tries multiple known key names,
+ * normalizes JSON-encoded string values, and falls back to a fuzzy LIKE
+ * lookup if exact keys are missing — guards against silent breakage when
+ * Cursor renames a key in a future release.
+ *
+ * Linux and Windows code paths are unchanged.
  */
 async function tryIdeAuth(): Promise<{
   found: boolean;
@@ -38,39 +152,86 @@ async function tryIdeAuth(): Promise<{
   error?: string;
 }> {
   const platform = process.platform;
-  let dbPath;
+  const candidates = cursorDbCandidatePaths(platform, {
+    home: homedir(),
+    appdata: process.env.APPDATA,
+  });
 
-  if (platform === "darwin") {
-    dbPath = join(homedir(), "Library/Application Support/Cursor/User/globalStorage/state.vscdb");
-  } else if (platform === "linux") {
-    dbPath = join(homedir(), ".config/Cursor/User/globalStorage/state.vscdb");
-  } else if (platform === "win32") {
-    dbPath = join(process.env.APPDATA || "", "Cursor/User/globalStorage/state.vscdb");
-  } else {
+  if (candidates.length === 0) {
     return { found: false, error: "Unsupported platform" };
+  }
+
+  // Probe candidates (matters on macOS where there can be >1; on linux/win32
+  // there is exactly one and we skip the probe to preserve the original
+  // error message).
+  let dbPath: string | undefined;
+  if (platform === "darwin") {
+    for (const path of candidates) {
+      try {
+        await access(path, constants.R_OK);
+        dbPath = path;
+        break;
+      } catch {
+        // continue probing
+      }
+    }
+    if (!dbPath) {
+      return {
+        found: false,
+        error:
+          "Cursor database not found in known macOS locations. " +
+          "Make sure Cursor IDE is installed and opened at least once.",
+      };
+    }
+  } else {
+    dbPath = candidates[0];
   }
 
   let db;
   try {
     const { tryOpenSync } = await import("@/lib/db/adapters/driverFactory");
     db = tryOpenSync(dbPath, { readonly: true, fileMustExist: true });
-    if (!db) return { found: false, error: "Cursor IDE database driver unavailable" };
-  } catch {
+    if (!db) {
+      if (platform === "darwin") {
+        return {
+          found: false,
+          error: `Found Cursor database at ${dbPath} but could not open it (driver unavailable)`,
+        };
+      }
+      return { found: false, error: "Cursor IDE database driver unavailable" };
+    }
+  } catch (error) {
+    if (platform === "darwin") {
+      const message = error instanceof Error ? error.message : String(error);
+      return {
+        found: false,
+        error: `Found Cursor database at ${dbPath} but could not open it: ${message}`,
+      };
+    }
     return { found: false, error: "Cursor IDE database not found" };
   }
 
   try {
+    const desiredKeys = [...ACCESS_TOKEN_KEYS, ...MACHINE_ID_KEYS];
+    const placeholders = desiredKeys.map(() => "?").join(",");
     const rows = db
-      .prepare("SELECT key, value FROM itemTable WHERE key IN (?, ?)")
-      .all("cursorAuth/accessToken", "storage.serviceMachineId") as {
-      key: string;
-      value: string;
-    }[];
+      .prepare(`SELECT key, value FROM itemTable WHERE key IN (${placeholders})`)
+      .all(...desiredKeys) as VscDbRow[];
 
-    const tokens: Record<string, string> = {};
-    for (const row of rows) {
-      if (row.key === "cursorAuth/accessToken") tokens.accessToken = row.value;
-      else if (row.key === "storage.serviceMachineId") tokens.machineId = row.value;
+    let tokens = extractCursorTokensFromRows(rows);
+
+    // Fuzzy fallback: only on macOS — original report (and observed schema
+    // drift) is on darwin; other platforms keep exact-key behavior.
+    if (platform === "darwin" && (!tokens.accessToken || !tokens.machineId)) {
+      const fallbackRows = db
+        .prepare(
+          "SELECT key, value FROM itemTable " +
+            "WHERE key LIKE '%cursorAuth/%' " +
+            "OR key LIKE '%machineId%' " +
+            "OR key LIKE '%serviceMachineId%'"
+        )
+        .all() as VscDbRow[];
+      tokens = fuzzyExtractCursorTokensFromRows(fallbackRows, tokens);
     }
 
     db.close();

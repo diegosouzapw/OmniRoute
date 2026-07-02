@@ -136,6 +136,30 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
   // Fix missing tool responses - OpenAI requires every tool_call to have a response
   fixMissingToolResponses(result.messages);
 
+  // #4385: drop orphan tool results — a role:"tool" message whose tool_call_id has no
+  // matching assistant.tool_calls (e.g. history truncation / compression removed the
+  // assistant turn that issued the call but kept the tool_result). OpenAI-compatible
+  // upstreams reject these with 502 "Messages with role 'tool' must be a response to a
+  // preceding message with 'tool_calls'". Mirrors the filter already applied on the
+  // Responses->Chat path in openai-responses.ts (#2893). Run after fixMissingToolResponses
+  // so the inserted "[No response received]" placeholders (which DO match a tool_call)
+  // are kept, and only genuinely orphaned results are removed.
+  const assistantToolCallIds = new Set<string>();
+  for (const msg of result.messages) {
+    const calls = (msg as JsonRecord).tool_calls;
+    if (Array.isArray(calls)) {
+      for (const tc of calls as { id?: string }[]) {
+        if (tc.id) assistantToolCallIds.add(String(tc.id));
+      }
+    }
+  }
+  result.messages = result.messages.filter((msg) => {
+    if ((msg as JsonRecord).role === "tool") {
+      return assistantToolCallIds.has(String((msg as JsonRecord).tool_call_id ?? ""));
+    }
+    return true;
+  });
+
   const useNativeResponsesWebSearch = shouldUseNativeResponsesWebSearch(credentials);
 
   // Tools

@@ -53,31 +53,27 @@ function getFunctionDeclarationParameters(parameters: unknown) {
 }
 
 test("OpenAI -> Gemini helper converts text, images and files into Gemini parts", () => {
-  // Suppress warn emitted for the remote https://example.com/skip.png URL in the
-  // fixture below — that warn is expected and tested separately. Suppressing here
-  // keeps stderr clean so CI does not flag spurious output.
-  const originalWarn = console.warn;
-  console.warn = () => {};
-  try {
-    const parts = convertOpenAIContentToParts([
-      { type: "text", text: "Hello" },
-      { type: "image_url", image_url: { url: "data:image/png;base64,abc" } },
-      { type: "file_url", file_url: { url: "data:application/pdf;base64,Zm9v" } },
-      { type: "document", document: { url: "data:text/plain;base64,YmFy" } },
-      { type: "image_url", image_url: { url: "https://example.com/skip.png" } },
-      { type: "file_url", file_url: { url: "not-a-data-url" } },
-    ]);
+  const parts = convertOpenAIContentToParts([
+    { type: "text", text: "Hello" },
+    { type: "image_url", image_url: { url: "data:image/png;base64,abc" } },
+    { type: "file_url", file_url: { url: "data:application/pdf;base64,Zm9v" } },
+    { type: "document", document: { url: "data:text/plain;base64,YmFy" } },
+    { type: "image_url", image_url: { url: "https://example.com/skip.png" } },
+    { type: "file_url", file_url: { url: "not-a-data-url" } },
+  ]);
 
-    assert.deepEqual(parts, [
-      { text: "Hello" },
-      { inlineData: { mimeType: "image/png", data: "abc" } },
-      { inlineData: { mimeType: "application/pdf", data: "Zm9v" } },
-      { inlineData: { mimeType: "text/plain", data: "YmFy" } },
-    ]);
-    assert.deepEqual(convertOpenAIContentToParts("raw text"), [{ text: "raw text" }]);
-  } finally {
-    console.warn = originalWarn;
-  }
+  // Remote http(s) URLs are no longer dropped — they pass through as Gemini
+  // `fileData: { fileUri }` so the model fetches the asset itself (#4373, ported
+  // from upstream PR #344). A non-data, non-http string ("not-a-data-url") is
+  // still dropped (no inlineData/fileData part).
+  assert.deepEqual(parts, [
+    { text: "Hello" },
+    { inlineData: { mimeType: "image/png", data: "abc" } },
+    { inlineData: { mimeType: "application/pdf", data: "Zm9v" } },
+    { inlineData: { mimeType: "text/plain", data: "YmFy" } },
+    { fileData: { fileUri: "https://example.com/skip.png", mimeType: "image/*" } },
+  ]);
+  assert.deepEqual(convertOpenAIContentToParts("raw text"), [{ text: "raw text" }]);
 });
 
 test("OpenAI -> Gemini helper cleans complex JSON Schema structures for Gemini compatibility", () => {
@@ -1109,59 +1105,38 @@ test("convertOpenAIContentToParts handles rec.image with nested {url} as base64 
   assert.equal((inline as any).inlineData.mimeType, "image/png");
 });
 
-test("convertOpenAIContentToParts warns and drops remote http(s) URLs (#2807 - until async refactor)", () => {
-  const originalWarn = console.warn;
-  const warnings: string[] = [];
-  console.warn = (...args: unknown[]) => {
-    warnings.push(args.map(String).join(" "));
-  };
-  try {
-    const parts = convertOpenAIContentToParts([
-      { type: "image_url", image_url: { url: "https://example.com/cat.png" } },
-    ]);
-    const inline = parts.find((p) => (p as any).inlineData);
-    assert.equal(
-      inline,
-      undefined,
-      "remote URL still cannot be encoded into inlineData (sync function) - that's expected"
-    );
-    assert.ok(
-      warnings.some((w) => /Dropped remote image URL/i.test(w) && /example\.com\/cat\.png/.test(w)),
-      `expected a warning naming the dropped URL, got: ${JSON.stringify(warnings)}`
-    );
-  } finally {
-    console.warn = originalWarn;
-  }
+test("convertOpenAIContentToParts passes remote http(s) image_url URLs through as fileData (#4373; was warn-and-drop #2807)", () => {
+  const parts = convertOpenAIContentToParts([
+    { type: "image_url", image_url: { url: "https://example.com/cat.png" } },
+  ]);
+  // Remote URLs cannot be base64-inlined by this synchronous function, but Gemini's
+  // Part schema accepts `fileData: { fileUri }` for HTTP/HTTPS sources — so the URL
+  // is passed through (the model fetches it) instead of being dropped (#4373).
+  assert.equal(
+    parts.find((p) => (p as any).inlineData),
+    undefined,
+    "remote URL is not base64-inlined (sync function)"
+  );
+  assert.deepEqual(parts, [
+    { fileData: { fileUri: "https://example.com/cat.png", mimeType: "image/*" } },
+  ]);
 });
 
-test("convertOpenAIContentToParts warns and drops rec.image remote http(s) URLs (#2807)", () => {
+test("convertOpenAIContentToParts passes remote rec.image http(s) URLs through as fileData (#4373; was warn-and-drop #2807)", () => {
   // rec.image is the alternative content shape emitted by MCP tool wrappers and
-  // LangChain shim layers. Remote URLs in this shape must also hit the warn-and-drop
-  // branch rather than being silently ignored.
-  const originalWarn = console.warn;
-  const warnings: string[] = [];
-  console.warn = (...args: unknown[]) => {
-    warnings.push(args.map(String).join(" "));
-  };
-  try {
-    const parts = convertOpenAIContentToParts([
-      { type: "image", image: { url: "https://example.com/remote.png" } },
-    ]);
-    const inline = parts.find((p) => (p as any).inlineData);
-    assert.equal(
-      inline,
-      undefined,
-      "rec.image remote URL must not produce an inlineData part (sync function cannot fetch)"
-    );
-    assert.ok(
-      warnings.some(
-        (w) => /Dropped remote image URL/i.test(w) && /example\.com\/remote\.png/.test(w)
-      ),
-      `expected a warning naming the dropped rec.image URL, got: ${JSON.stringify(warnings)}`
-    );
-  } finally {
-    console.warn = originalWarn;
-  }
+  // LangChain shim layers. Remote URLs in this shape now also pass through as
+  // Gemini `fileData: { fileUri }` (#4373) instead of being dropped.
+  const parts = convertOpenAIContentToParts([
+    { type: "image", image: { url: "https://example.com/remote.png" } },
+  ]);
+  assert.equal(
+    parts.find((p) => (p as any).inlineData),
+    undefined,
+    "rec.image remote URL is not base64-inlined (sync function cannot fetch)"
+  );
+  assert.deepEqual(parts, [
+    { fileData: { fileUri: "https://example.com/remote.png", mimeType: "image/*" } },
+  ]);
 });
 
 // Regression for #2504: with credentials._signatureNamespace set, a previously-cached

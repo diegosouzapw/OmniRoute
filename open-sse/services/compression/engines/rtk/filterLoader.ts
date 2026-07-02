@@ -130,10 +130,19 @@ function collectFilterSources(options: RtkFilterLoadOptions = {}): FilterSource[
 
   const builtinDir = getFiltersDir();
   if (fs.existsSync(builtinDir)) {
-    for (const file of fs
-      .readdirSync(builtinDir)
-      .filter((entry) => entry.endsWith(".json"))
-      .sort()) {
+    let builtinFiles: string[] = [];
+    try {
+      builtinFiles = fs
+        .readdirSync(builtinDir)
+        .filter((entry) => entry.endsWith(".json"))
+        .sort();
+    } catch {
+      // A read failure on the builtin dir (lost permission, TOCTOU after existsSync, NFS
+      // timeout, read-only container) must not fail the request — degrade to the filters
+      // already collected. listRtkCommandSamples guards readdirSync the same way.
+      builtinFiles = [];
+    }
+    for (const file of builtinFiles) {
       sources.push({
         source: "builtin",
         path: path.join(builtinDir, file),

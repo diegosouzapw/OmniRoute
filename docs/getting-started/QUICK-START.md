@@ -131,5 +131,5 @@ OmniRoute automatically skips failed providers and tries the next one. You don't
 ## Need Help?
 
 - **[Troubleshooting](./TROUBLESHOOTING.md)** — Common issues and fixes
-- **[Discord](https://discord.gg/hmexnhgE)** — Community support
+- **[Discord](https://discord.gg/EkzRkpzKYt)** — Community support
 - **[GitHub Issues](https://github.com/diegosouzapw/OmniRoute/issues)** — Report bugs

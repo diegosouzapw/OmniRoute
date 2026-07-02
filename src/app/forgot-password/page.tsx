@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
   }, [isElectron]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary mb-2">{t("resetPassword")}</h1>

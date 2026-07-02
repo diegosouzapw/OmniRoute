@@ -9,7 +9,7 @@ import {
   createProviderConnection,
   deleteProviderConnections,
   updateProviderConnection,
-  getProviderNodeById,
+  resolveProviderNodeForConnection,
   isCloudEnabled,
 } from "@/models";
 import {
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
     }
 
     if (isOpenAICompatibleProvider(provider)) {
-      const node: any = await getProviderNodeById(provider);
+      const node: any = await resolveProviderNodeForConnection(provider);
       if (!node) {
         return NextResponse.json({ error: "OpenAI Compatible node not found" }, { status: 404 });
       }
@@ -129,7 +129,7 @@ export async function POST(request: Request) {
         ...(node.customHeaders ? { customHeaders: node.customHeaders } : {}),
       };
     } else if (isAnthropicCompatibleProvider(provider)) {
-      const node: any = await getProviderNodeById(provider);
+      const node: any = await resolveProviderNodeForConnection(provider);
       if (!node) {
         return NextResponse.json(
           {

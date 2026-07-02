@@ -23,7 +23,7 @@ describe("GLM Coding provider registry surfaces", () => {
     expect(entry?.authHeader).toBe("bearer");
     expect(entry?.headers?.["Anthropic-Version"]).toBeUndefined();
     expect(entry?.requestDefaults).toEqual({ maxTokens: 16384 });
-    expect(entry?.timeoutMs).toBe(900000);
+    expect(entry?.timeoutMs).toBe(3000000);
   });
 
   it("preserves custom GLM base URL query parameters while deriving transport endpoints", () => {
@@ -74,7 +74,7 @@ describe("GLM Coding provider registry surfaces", () => {
     expect(entry?.executor).toBe("glm");
     expect(entry?.baseUrl).toBe("https://open.bigmodel.cn/api/coding/paas/v4/chat/completions");
     expect(entry?.requestDefaults).toEqual({ maxTokens: 16384 });
-    expect(entry?.timeoutMs).toBe(900000);
+    expect(entry?.timeoutMs).toBe(3000000);
     expect(getProviderModels("glmcn").map((model) => model.id)).toEqual(
       getProviderModels("glm").map((model) => model.id)
     );

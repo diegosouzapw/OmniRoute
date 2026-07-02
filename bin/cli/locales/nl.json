@@ -25,5 +25,8 @@
     "base_url": "Basis-URL van de OmniRoute-server",
     "context": "Servercontext/profiel voor dit commando",
     "lang": "CLI-weergavetaal instellen (overschrijft OMNIROUTE_LANG)"
+  },
+  "redis": {
+    "description": "Start een lokale Redis-container met één klik (Podman of Docker) voor OmniRoute-caching en quotumtracking"
   }
 }

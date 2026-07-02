@@ -7,6 +7,8 @@ import {
   type ResolvedProviderCatalogEntry,
   type StaticProviderCatalogCategory,
 } from "@/lib/providers/catalog";
+import { getModelsByProviderId } from "@/shared/constants/models";
+import { providerHasServiceKind } from "@/lib/providers/serviceKindIndex";
 import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
 import type { ProviderDisplayMode } from "./providerPageStorage";
 
@@ -112,9 +114,21 @@ export function filterConfiguredProviderEntries<TProvider>(
   entries: ProviderEntry<TProvider>[],
   showConfiguredOnly: boolean,
   searchQuery?: string,
-  showFreeOnly?: boolean
+  showFreeOnly?: boolean,
+  modelSearchQuery?: string,
+  serviceKindFilter?: string | null
 ): ProviderEntry<TProvider>[] {
   let filtered = entries;
+
+  // #4240: category (serviceKind) filter — keep providers whose declared OR
+  // registry-derived serviceKinds include the selected kind. Composes with the
+  // configured-only / free / search predicates below.
+  if (serviceKindFilter) {
+    filtered = filtered.filter((entry) => {
+      const declared = (entry.provider as { serviceKinds?: string[] }).serviceKinds;
+      return providerHasServiceKind(entry.providerId, declared, serviceKindFilter);
+    });
+  }
 
   if (showConfiguredOnly) {
     // no-auth providers never create a DB connection row (stats.total === 0) but
@@ -139,6 +153,14 @@ export function filterConfiguredProviderEntries<TProvider>(
         matchesSearch(String(provider.name || ""), searchQuery) ||
         matchesSearch(entry.providerId, searchQuery)
       );
+    });
+  }
+
+  if (modelSearchQuery && modelSearchQuery.trim()) {
+    const q = modelSearchQuery.trim();
+    filtered = filtered.filter((entry) => {
+      const models = getModelsByProviderId(entry.providerId);
+      return models.some((m) => matchesSearch(m.id, q) || matchesSearch(m.name, q));
     });
   }
 

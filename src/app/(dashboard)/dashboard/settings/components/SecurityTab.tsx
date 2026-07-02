@@ -24,6 +24,8 @@ export default function SecurityTab() {
 
   const t = useTranslations("settings");
   const tc = useTranslations("common");
+  const getSettingsLabel = (key: string, fallback: string) =>
+    typeof t.has === "function" && t.has(key) ? t(key) : fallback;
 
   useEffect(() => {
     fetch("/api/settings")
@@ -281,6 +283,8 @@ export default function SecurityTab() {
         </div>
       </Card>
 
+      <IPFilterSection />
+
       {/* API Endpoint Protection */}
       <Card>
         <div className="flex items-center gap-3 mb-4">
@@ -380,24 +384,37 @@ export default function SecurityTab() {
         </div>
       </Card>
 
-      <SessionInfoCard />
-      <IPFilterSection />
-      <AuthzSection />
-
       {/* Custom Banned Keywords */}
       <Card>
-        <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+              report
+            </span>
+          </div>
           <div>
-            <p className="font-medium">{t("customBannedSignals", "Banned Keywords")}</p>
+            <h3 className="text-lg font-semibold">
+              {getSettingsLabel("customBannedSignals", "Banned Keywords")}
+            </h3>
             <p className="text-sm text-text-muted">
-              {t("customBannedSignalsDesc", "Additional keywords that trigger permanent account ban detection. Built-in keywords always apply.")}
+              {getSettingsLabel(
+                "customBannedSignalsDesc",
+                "Additional keywords that trigger permanent account ban detection. Built-in keywords always apply."
+              )}
             </p>
           </div>
-          <div className="flex gap-2">
+        </div>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input
-              placeholder={t("customBannedSignalsPlaceholder", "e.g. api key revoked")}
+              placeholder={getSettingsLabel(
+                "customBannedSignalsPlaceholder",
+                "e.g. api key revoked"
+              )}
               value={newBannedKeyword}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewBannedKeyword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setNewBannedKeyword(e.target.value)
+              }
               onKeyDown={(e: React.KeyboardEvent) => {
                 if (e.key === "Enter") addBannedKeyword();
               }}
@@ -409,7 +426,7 @@ export default function SecurityTab() {
               onClick={addBannedKeyword}
               disabled={!newBannedKeyword.trim()}
             >
-              {t("add", "Add")}
+              {getSettingsLabel("add", "Add")}
             </Button>
           </div>
           {customBannedSignals.length > 0 ? (
@@ -431,11 +448,17 @@ export default function SecurityTab() {
             </div>
           ) : (
             <p className="text-xs text-text-muted">
-              {t("noCustomBannedSignals", "No custom keywords. Only built-in keywords are active.")}
+              {getSettingsLabel(
+                "noCustomBannedSignals",
+                "No custom keywords. Only built-in keywords are active."
+              )}
             </p>
           )}
         </div>
       </Card>
+
+      <AuthzSection />
+      <SessionInfoCard />
     </div>
   );
 }

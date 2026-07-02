@@ -87,19 +87,30 @@ test("real scanned files produce ZERO violations with the frozen allowlist (gate
 });
 
 test("every frozen literal is actually present in a scanned file (no dead allowlist entries)", () => {
-  const scanned = [
+  // Anchor files for bare-value frozen entries. The registry was modularized into
+  // per-provider plugins (#3993), so providerRegistry.ts is now a re-export barrel;
+  // entries keyed by an explicit `file:line:value` are checked against the file named
+  // in the key (which is where the literal actually lives), not this anchor blob.
+  const anchorFiles = [
     "open-sse/config/providerRegistry.ts",
     "src/lib/oauth/constants/oauth.ts",
   ];
-  const blob = scanned
+  const anchorBlob = anchorFiles
     .map((rel) => fs.readFileSync(path.join(repoRoot, rel), "utf8") as string)
     .join("\n");
   for (const entry of KNOWN_LITERAL_CREDS) {
-    // Plain value entries (no file:line: prefix) must appear verbatim in the source.
-    const value = entry.includes(":") && /:\d+:/.test(entry)
-      ? entry.replace(/^.*?:\d+:/, "")
-      : entry;
-    assert.ok(blob.includes(value), `frozen literal not found in any scanned file: ${value}`);
+    const keyed = entry.includes(":") && /:\d+:/.test(entry);
+    const value = keyed ? entry.replace(/^.*?:\d+:/, "") : entry;
+    if (keyed) {
+      // `file:line:value` entry — the literal must still be present in its own source
+      // file (this is what makes the entry "not dead"). The line may have drifted, so
+      // match on file content rather than the exact line number.
+      const file = entry.replace(/:\d+:.*$/, "");
+      const src = fs.readFileSync(path.join(repoRoot, file), "utf8") as string;
+      assert.ok(src.includes(value), `frozen literal not found in its source file ${file}: ${value}`);
+    } else {
+      assert.ok(anchorBlob.includes(value), `frozen literal not found in any anchor file: ${value}`);
+    }
   }
 });
 

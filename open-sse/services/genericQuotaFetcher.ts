@@ -151,6 +151,7 @@ export function convertUsageToQuotaInfo(usage: unknown): QuotaInfo | null {
     percentUsed: worstPercent,
     resetAt: worstResetAt,
     windows,
+    limitReached: worstPercent >= 1 - 1e-9,
   };
 }
 

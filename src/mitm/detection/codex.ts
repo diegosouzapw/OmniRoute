@@ -5,7 +5,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { DetectionResult } from "../types";
+import type { DetectionResult } from "../types.ts";
 
 const HOME = os.homedir();
 const PATHS = [
@@ -14,11 +14,7 @@ const PATHS = [
   path.join(HOME, ".local", "bin", "codex"),
   path.join(HOME, ".npm-global", "bin", "codex"),
   path.join(HOME, "node_modules", ".bin", "codex"),
-  path.join(
-    process.env.APPDATA ?? path.join(HOME, "AppData", "Roaming"),
-    "npm",
-    "codex.cmd"
-  ),
+  path.join(process.env.APPDATA ?? path.join(HOME, "AppData", "Roaming"), "npm", "codex.cmd"),
 ];
 
 export function detectCodex(): DetectionResult {

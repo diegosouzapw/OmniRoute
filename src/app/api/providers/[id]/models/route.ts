@@ -9,8 +9,10 @@ import {
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import { getStaticModelsForProvider, type LocalCatalogModel } from "@/lib/providers/staticModels";
+import { isProviderBlockedByIdOrAlias } from "@/shared/utils/noAuthProviders";
 import {
   getProviderConnectionById,
+  getSettings,
   getModelIsHidden,
   resolveProxyForProvider,
 } from "@/lib/localDb";
@@ -141,6 +143,54 @@ const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   "nous-research",
   "poe",
   "siliconflow",
+  // #3976: these carry a real modelsUrl but were not classified by any live-fetch
+  // branch, so their hardcoded registry catalog was served instead of the live
+  // `<baseUrl>/models` list. Live fetch falls back to the local catalog on error.
+  "llm7",
+  "byteplus",
+  // #4202: zenmux is the same case — its free models (e.g. z-ai/glm-5.2-free,
+  // moonshotai/kimi-k2.7-code-free) live only on the upstream /models list.
+  "zenmux",
+  // #4249: vercel-ai-gateway carries a real baseUrl (.../v1/chat/completions) but
+  // was unclassified, so import served the 5-entry hardcoded catalog instead of the
+  // live `https://ai-gateway.vercel.sh/v1/models` list. Falls back to local on error.
+  "vercel-ai-gateway",
+  // #4239 / #4155 / #3841: OpenAI-compatible aggregators whose real catalog lives
+  // on the upstream `/v1/models` list — serve it live, fall back to the seeded
+  // registry catalog on error (same case as zenmux).
+  "openadapter",
+  "dit",
+  "tokenrouter",
+  // provider-model-sweep (2026-06-19): same class as #3976/#4202/#4249 — keyed
+  // openai-style providers with a real live `<baseUrl>/models` catalog, served
+  // their small hardcoded seed because unclassified. Seed stays as offline fallback.
+  "venice",
+  "deepinfra",
+  "wandb",
+  "pollinations",
+  "nscale",
+  "inference-net",
+  "moonshot",
+  // provider-model-sweep (2026-06-19) cont.: GPU-cloud / aggregator marketplaces
+  // hosting large, volatile OSS catalogs. The sweep confirmed each exposes a live
+  // `<baseUrl>/v1/models` endpoint (200 public or 401/403 = exists + keyed), so live
+  // fetch keeps the catalog fresh; the registry seed remains the offline fallback.
+  "crof",
+  "featherless-ai",
+  "ovhcloud",
+  "sambanova",
+  "orcarouter",
+  "uncloseai",
+  "opencode-go",
+  "baseten",
+  "hyperbolic",
+  "nebius",
+  "scaleway",
+  "together",
+  // escalated cmqlvxg4o: api-airforce has a live `https://api.airforce/v1/models` catalog
+  // but was left out of the sweep, so it served a stale hardcoded seed (grok-3, grok-2-1212,
+  // claude-3.7-sonnet …). Live fetch keeps it fresh; seed stays as the offline fallback.
+  "api-airforce",
 ]);
 
 function isNamedOpenAIStyleProvider(provider: string): boolean {
@@ -423,6 +473,25 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || [],
   },
+  // #3931: qwen-web (cookie provider) was missing here, so its discovery page
+  // showed nothing (the OAuth fallback above only fires for provider==="qwen").
+  // `chat.qwen.ai/api/v2/models` is public (no auth header configured/sent);
+  // shape `{ data: { data: [{ id, name, owned_by }] } }`, flatter `{ data: [] }` fallback.
+  "qwen-web": {
+    url: "https://chat.qwen.ai/api/v2/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    parseResponse: (data) => {
+      const innerData = data?.data?.data || data?.data || [];
+      return (Array.isArray(innerData) ? innerData : [])
+        .map((item: any) => ({
+          id: item.id || item.name,
+          name: item.name || item.id,
+          owned_by: item.owned_by || "qwen",
+        }))
+        .filter((m: any) => m.id);
+    },
+  },
   antigravity: {
     url: getAntigravityModelsDiscoveryUrls()[0],
     method: "POST",
@@ -631,7 +700,23 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     headers: { "Content-Type": "application/json" },
     authHeader: "Authorization",
     authPrefix: "Bearer ",
-    parseResponse: (data) => data.result || [],
+    // #4259: Cloudflare's `/ai/models/search` returns `{ id: "<uuid>", name: "@cf/..." }`.
+    // `name` is the usable model slug; `id` is an internal UUID. Map `name`→id so the
+    // dashboard/import surfaces callable model ids (`@cf/...`) instead of UUIDs.
+    parseResponse: (data) =>
+      (data.result || [])
+        .map((model: any) => {
+          const slug = typeof model?.name === "string" ? model.name : "";
+          if (!slug) return null;
+          return {
+            id: slug,
+            name: slug,
+            ...(typeof model?.description === "string" && model.description
+              ? { description: model.description }
+              : {}),
+          };
+        })
+        .filter(Boolean),
   },
   synthetic: {
     url: "https://api.synthetic.new/openai/v1/models",
@@ -718,19 +803,15 @@ export async function GET(
     const connection = await getProviderConnectionById(id);
 
     if (!connection) {
-      // #3047 — no-auth providers (e.g. OpenCode Free) have no connection rows,
-      // so the "Import from /models" button had no connection id to fetch from
-      // and silently no-op'd. When the route is called with a no-auth provider
-      // id, serve that provider's registry/static model catalog so the import
-      // flow can populate the custom model list.
+      // #3047 — no-auth providers have no connection rows; serve their catalog by provider id.
       const isNoAuthProvider =
         (NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean }>)[id]?.noAuth === true;
       if (isNoAuthProvider) {
-        // #3611 — if the registry entry has a modelsUrl, attempt a live fetch so
-        // the model picker shows the current catalog instead of the stale
-        // hardcoded list (opencode provider had 9 hardcoded models while the live
-        // endpoint exposes many more). No auth header is added because noAuth
-        // providers are genuinely public. Fall through to local_catalog on any error.
+        if (isProviderBlockedByIdOrAlias(id, (await getSettings()).blockedProviders)) {
+          return NextResponse.json({ error: "Provider is disabled" }, { status: 403 });
+        }
+
+        // #3611 — prefer the live public modelsUrl when present; fall back to local_catalog.
         const noAuthRegistryEntry = getRegistryEntry(id);
         const noAuthModelsUrl =
           typeof noAuthRegistryEntry?.modelsUrl === "string" &&
@@ -2380,6 +2461,26 @@ export async function GET(
 
     // Build request URL
     let url = config.url;
+    // VibeProxy: honor a user-configured custom base URL for the built-in
+    // `openai` provider (e.g. an OpenAI-compatible gateway / proxy). Without
+    // this, model discovery always hit the hardcoded api.openai.com and ignored
+    // the configured endpoint — returning the wrong catalog (or failing auth)
+    // for gateway users, and preventing instant access to gateway-served models.
+    // Falls back to config.url (api.openai.com) when no custom base URL is set.
+    if (provider === "openai") {
+      const customBaseUrl = getProviderBaseUrl(connection.providerSpecificData);
+      if (customBaseUrl) {
+        let base = customBaseUrl.replace(/\/$/, "");
+        if (base.endsWith("/chat/completions")) {
+          base = base.slice(0, -"/chat/completions".length);
+        } else if (base.endsWith("/completions")) {
+          base = base.slice(0, -"/completions".length);
+        } else if (base.endsWith("/v1")) {
+          base = base.slice(0, -"/v1".length);
+        }
+        url = `${base}/v1/models`;
+      }
+    }
     if (provider === "cloudflare-ai") {
       const pData = asRecord(connection.providerSpecificData);
       const accountId =

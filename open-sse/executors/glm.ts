@@ -63,6 +63,29 @@ function parseGlm52Effort(model: string): { baseModel: string; effort: "high" | 
   return null;
 }
 
+/**
+ * Detects GLM models that support deep thinking (5.2+).
+ * These models share a single max_tokens budget for reasoning + response
+ * (Z.AI does not document a separate thinking budget). When the client
+ * doesn't explicitly request max_tokens, we default to the model's full
+ * output capacity so reasoning isn't truncated by a low generic default.
+ *
+ * To add future models (e.g. glm-5.3, glm-5.4), just extend the regex.
+ * https://docs.z.ai/guides/overview/concept-param
+ */
+const GLM_THINKING_MODEL_PATTERN = /^glm-5\.(?:[2-9]|\d{2,})/i;
+
+function isGlmThinkingModel(model: string): boolean {
+  return GLM_THINKING_MODEL_PATTERN.test(model);
+}
+
+/**
+ * Z.AI's official max output for GLM-5.2+ is 131072 tokens (128K).
+ * This budget covers BOTH reasoning and the final response.
+ * https://z.ai/blog/glm-5.2
+ */
+const GLM_THINKING_DEFAULT_MAX_TOKENS = 131072;
+
 function applyGlmRequestDefaults(body: unknown, defaults?: JsonRecord | null): unknown {
   const record = asRecord(body);
   if (!record || !defaults) return body;
@@ -250,6 +273,21 @@ export class GlmExecutor extends DefaultExecutor {
     // Ensure upstream receives the base model ID, not the effort-suffixed alias
     if (record && effortTier) {
       record.model = effectiveModel;
+    }
+
+    // GLM-5.2+ models share a single max_tokens budget for reasoning + response.
+    // When the client doesn't explicitly set max_tokens, default to the model's
+    // full output capacity (131072) so deep reasoning isn't truncated by the
+    // generic translator defaults (64000 for Anthropic, 16384 for OpenAI).
+    // This acts as the "transparent proxy override" described in Z.AI's own
+    // Terminal-Bench evaluation methodology.
+    // https://huggingface.co/blog/zai-org/glm-52-blog
+    if (record && isGlmThinkingModel(effectiveModel)) {
+      const clientBody = asRecord(body);
+      const clientMaxTokens = clientBody?.max_tokens ?? clientBody?.max_completion_tokens;
+      if (!clientMaxTokens) {
+        record.max_tokens = GLM_THINKING_DEFAULT_MAX_TOKENS;
+      }
     }
 
     if (transport === "openai") {

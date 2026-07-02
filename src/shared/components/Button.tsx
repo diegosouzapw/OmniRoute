@@ -3,7 +3,8 @@
 import { cn } from "@/shared/utils/cn";
 
 const variants = {
-  primary: "bg-gradient-to-b from-primary to-primary-hover text-white shadow-sm",
+  primary: "bg-[image:var(--grad-brand)] text-white shadow-sm hover:brightness-105",
+  accent: "bg-accent text-white shadow-sm hover:bg-accent-hover",
   secondary:
     "bg-white dark:bg-white/10 border border-black/10 dark:border-white/10 text-text-main hover:bg-black/5 dark:hover:bg-white/5",
   outline: "border border-black/15 dark:border-white/15 text-text-main hover:bg-black/5",
@@ -12,9 +13,9 @@ const variants = {
 };
 
 const sizes = {
-  sm: "h-7 px-3 text-xs rounded-md",
-  md: "h-9 px-4 text-sm rounded-lg",
-  lg: "h-11 px-6 text-sm rounded-lg",
+  sm: "h-7 px-3 text-xs rounded-control",
+  md: "h-9 px-4 text-sm rounded-control",
+  lg: "h-11 px-6 text-sm rounded-control",
 };
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

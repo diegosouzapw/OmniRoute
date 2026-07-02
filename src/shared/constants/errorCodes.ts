@@ -47,6 +47,12 @@ export const ERROR_CODES: Record<string, ErrorCodeDef> = {
     httpStatus: 400,
     category: "AUTH",
   },
+  AUTH_007: {
+    code: "AUTH_007",
+    message: "Session expired (re-login required)",
+    httpStatus: 401,
+    category: "AUTH",
+  },
 
   // ── Proxy ──
   PROXY_001: {

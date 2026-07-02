@@ -111,6 +111,7 @@ export async function getSettings() {
     mcpEnabled: false,
     a2aEnabled: false,
     hiddenSidebarItems: [],
+    hiddenSidebarGroupLabels: [],
     sidebarSectionOrder: [],
     sidebarItemOrder: {},
     sidebarActivePreset: null,
@@ -1139,8 +1140,7 @@ export async function getCacheTrend(hours = 24): Promise<CacheTrendPoint[]> {
 }
 
 export async function resetCacheMetrics() {
-  // No-op: cannot delete historical usage data
-  // Cache metrics are computed from usage_history, so they reflect actual request history
+  // No-op: cache metrics are computed from usage_history.
   console.warn(
     "resetCacheMetrics is deprecated - cache metrics are now computed from usage_history"
   );

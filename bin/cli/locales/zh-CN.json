@@ -311,6 +311,9 @@
     "cleared": "缓存已清除。",
     "clearFailed": "清除缓存失败。"
   },
+  "redis": {
+    "description": "一键启动本地 Redis 容器（Podman 或 Docker），用于 OmniRoute 缓存和配额跟踪"
+  },
   "test": {
     "description": "测试提供商连接",
     "noServer": "服务器未运行。启动：omniroute serve",

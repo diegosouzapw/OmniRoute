@@ -1,0 +1,63 @@
+name: Mutation Redundancy (disableBail, on-demand)
+# One-off measurement to UNBLOCK R1 (test-redundancy prune). The nightly mutation run
+# (nightly-mutation.yml) bails on the first kill, so `killedBy` lists only the FIRST
+# killer — 🟠 redundant is understated and 🟢 unique overstated (see the caveat in
+# scripts/quality/mutation-radiography.mjs). This workflow re-runs the SAME combo +
+# chatCore leaf batches with stryker.disablebail.json (disableBail:true, incremental:false)
+# so `killedBy` lists EVERY killer. Feed the uploaded reports to
+# `node scripts/quality/mutation-radiography.mjs --candidates mutation-nobail-*/mutation.json`
+# to get the accurate R1 prune-candidate list (🔴 empty ∪ 🟠 redundant) for human review.
+#
+# Batches mirror the nightly's leaf decomposition (d/e/f/g/h/i) rather than 2 mega-batches:
+# disableBail is MORE expensive than bail (it never stops early), and Stryker only writes
+# mutation.json on a SUCCESSFUL finish — a batch cancelled at the cap produces NO data — so
+# smaller batches each fit the 300min headroom and run in parallel. auth/accountFallback and
+# the security quartet are out of scope: R1 targets the combo/chatCore leaves.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stryker-nobail:
+    name: Stryker disableBail (batch ${{ matrix.batch.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        batch:
+          - name: d
+            mutate: "open-sse/services/combo/comboStructure.ts,open-sse/services/combo/autoStrategy.ts,open-sse/services/combo/validateQuality.ts"
+          - name: e
+            mutate: "open-sse/services/combo/shadowRouting.ts,open-sse/services/combo/targetSorters.ts,open-sse/services/combo/comboPredicates.ts,open-sse/services/combo/rrState.ts,open-sse/services/combo/comboData.ts"
+          - name: f
+            mutate: "open-sse/services/combo/quotaScoring.ts,open-sse/services/combo/quotaStrategies.ts"
+          - name: g
+            mutate: "open-sse/handlers/chatCore/comboContextCache.ts,open-sse/handlers/chatCore/idempotency.ts,open-sse/handlers/chatCore/passthroughHelpers.ts,open-sse/handlers/chatCore/responseHeaders.ts,open-sse/handlers/chatCore/sanitization.ts,open-sse/handlers/chatCore/upstreamTimeouts.ts"
+          - name: h
+            mutate: "open-sse/handlers/chatCore/headers.ts,open-sse/handlers/chatCore/logTruncation.ts,open-sse/handlers/chatCore/memoryExtraction.ts,open-sse/handlers/chatCore/nonStreamingSse.ts,open-sse/handlers/chatCore/passthroughToolNames.ts,open-sse/handlers/chatCore/executorHelpers.ts"
+          - name: i
+            mutate: "open-sse/handlers/chatCore/telemetryHelpers.ts,open-sse/handlers/chatCore/memorySkillsInjection.ts,open-sse/handlers/chatCore/semanticCache.ts"
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - name: Run Stryker (disableBail)
+        env:
+          BATCH_MUTATE: ${{ matrix.batch.mutate }}
+        run: npx stryker run --config-file stryker.disablebail.json --mutate "$BATCH_MUTATE"
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutation-nobail-${{ matrix.batch.name }}
+          path: reports/mutation/
+          if-no-files-found: warn
+          retention-days: 14

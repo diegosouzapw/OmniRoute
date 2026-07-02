@@ -1,6 +1,8 @@
 // OpenAI helper functions for translator
 
 // Valid OpenAI content block types
+// `input_audio` / `audio_url` ported from upstream decolua/9router#913 so audio
+// parts survive `filterToOpenAIFormat()` on OpenAI-target passthrough routes.
 export const VALID_OPENAI_CONTENT_TYPES = [
   "text",
   "image_url",
@@ -8,6 +10,8 @@ export const VALID_OPENAI_CONTENT_TYPES = [
   "file_url",
   "file",
   "document",
+  "input_audio",
+  "audio_url",
 ];
 export const VALID_OPENAI_MESSAGE_TYPES = [
   "text",
@@ -17,6 +21,8 @@ export const VALID_OPENAI_MESSAGE_TYPES = [
   "file",
   "document",
   "image",
+  "input_audio",
+  "audio_url",
   "tool_calls",
   "tool_result",
 ];

@@ -309,7 +309,7 @@ describe("EndpointPageClient", () => {
     expect(requestPaths.every((path) => path === "/api/settings")).toBe(true);
   });
 
-  it("hides the Token Saver card when endpoint visibility is disabled", async () => {
+  it("does not load compression settings on the Endpoint page", async () => {
     fetchMock.mockImplementation((input: RequestInfo | URL) => {
       const path = getRequestPath(input);
       if (path === "/api/settings") {
@@ -320,7 +320,6 @@ describe("EndpointPageClient", () => {
             hideEndpointCloudflaredTunnel: true,
             hideEndpointTailscaleFunnel: true,
             hideEndpointNgrokTunnel: true,
-            showTokenSaverOnEndpoint: false,
           })
         );
       }

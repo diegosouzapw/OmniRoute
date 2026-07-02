@@ -46,7 +46,7 @@ function commandCodeStream(lines: unknown[], { sse = false } = {}) {
   return new Response(text, { status: 200, headers: { "Content-Type": "application/x-ndjson" } });
 }
 
-function toPlainHeaders(headers: any) {
+function toPlainHeaders(headers: Headers | Record<string, string>) {
   if (headers instanceof Headers) return Object.fromEntries(headers.entries());
   return Object.fromEntries(Object.entries(headers).map(([key, value]) => [key, String(value)]));
 }
@@ -90,8 +90,10 @@ test("getExecutor returns the specialized Command Code executor", () => {
   assert.ok(getExecutor("cmd") instanceof CommandCodeExecutor);
 });
 
+type FetchCall = { url: string; init: Record<string, unknown>; body?: unknown };
+
 test("Command Code executor posts wrapped body and required headers to /alpha/generate", async () => {
-  const calls: any[] = [];
+  const calls: FetchCall[] = [];
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
     return commandCodeStream([{ type: "text-delta", text: "hello" }, { type: "finish" }]);
@@ -141,8 +143,66 @@ test("Command Code executor posts wrapped body and required headers to /alpha/ge
   assert.equal(json.choices[0].message.content, "hello");
 });
 
+test("Command Code executor passes reasoning/thinking fields through to params (#2986 follow-up)", async () => {
+  const calls: FetchCall[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+    return commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }]);
+  };
+
+  await getExecutor("command-code").execute({
+    model: "deepseek/deepseek-v4-pro",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: {
+      stream: false,
+      messages: [{ role: "user", content: "Hi" }],
+      reasoning_effort: "high",
+      thinking: { type: "enabled" },
+      effort: "high",
+      output_config: { effort: "high" },
+      extra_body: { enable_thinking: true },
+    },
+  });
+
+  const posted = JSON.parse(String(calls[0].init.body));
+  assert.equal(posted.params.reasoning_effort, "high");
+  assert.deepEqual(posted.params.thinking, { type: "enabled" });
+  assert.equal(posted.params.effort, "high");
+  assert.deepEqual(posted.params.output_config, { effort: "high" });
+  assert.deepEqual(posted.params.extra_body, { enable_thinking: true });
+});
+
+test("Command Code executor honors body.model rewrite from payload rules", async () => {
+  const calls: FetchCall[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+    return commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }]);
+  };
+
+  // Simulate a payload-rule rewrite: combo resolves to "deepseek-v4-pro-max"
+  // (passed as the execute() model arg), but the payload rule overwrites
+  // body.model to "deepseek/deepseek-v4-pro" (the vendor-prefixed form
+  // Command Code's API expects).
+  await getExecutor("command-code").execute({
+    model: "deepseek-v4-pro-max",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: {
+      stream: false,
+      model: "deepseek/deepseek-v4-pro",
+      messages: [{ role: "user", content: "Hi" }],
+      reasoning_effort: "max",
+    },
+  });
+
+  const posted = JSON.parse(String(calls[0].init.body));
+  assert.equal(posted.params.model, "deepseek/deepseek-v4-pro");
+  assert.equal(posted.params.reasoning_effort, "max");
+});
+
 test("Command Code raw NDJSON stream becomes OpenAI chat SSE chunks", async () => {
-  const calls: any[] = [];
+  const calls: FetchCall[] = [];
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init, body: JSON.parse(String(init.body)) });
     return commandCodeStream([
@@ -232,6 +292,58 @@ test("Command Code executor surfaces upstream and streamed errors", async () => 
       body: { messages: [{ role: "user", content: "Hi" }] },
     });
   }, /boom/);
+});
+
+test("Command Code executor caps max_tokens to the registered per-model limit (GLM-5.x)", async () => {
+  const calls: FetchCall[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init, body: JSON.parse(String(init.body)) });
+    return commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }]);
+  };
+
+  // GLM-5 and GLM-5.1 are registered with maxOutputTokens: 131072.
+  // Without per-model capping, the upstream rejects with
+  // "限制数值范围[1,131072]".
+  await getExecutor("command-code").execute({
+    model: "zai-org/GLM-5.1",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: { messages: [{ role: "user", content: "Hi" }] },
+  });
+  assert.equal(calls[0].body.params.max_tokens, 131072);
+});
+
+test("Command Code executor caps max_tokens to the registered per-model limit (DeepSeek v4)", async () => {
+  const calls: FetchCall[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init, body: JSON.parse(String(init.body)) });
+    return commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }]);
+  };
+
+  // DeepSeek v4 pro is registered with maxOutputTokens: 384000.
+  await getExecutor("command-code").execute({
+    model: "deepseek/deepseek-v4-pro",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: { messages: [{ role: "user", content: "Hi" }] },
+  });
+  assert.equal(calls[0].body.params.max_tokens, 384000);
+});
+
+test("Command Code executor honors a smaller client-provided max_tokens under the per-model cap", async () => {
+  const calls: FetchCall[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init, body: JSON.parse(String(init.body)) });
+    return commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }]);
+  };
+
+  await getExecutor("command-code").execute({
+    model: "zai-org/GLM-5.1",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: { messages: [{ role: "user", content: "Hi" }], max_tokens: 2048 },
+  });
+  assert.equal(calls[0].body.params.max_tokens, 2048);
 });
 
 test("Command Code non-stream aggregation throws when the final error event lacks a trailing newline", async () => {

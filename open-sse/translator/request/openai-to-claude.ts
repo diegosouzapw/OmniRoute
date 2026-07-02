@@ -6,6 +6,11 @@ import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { capMaxOutputTokens } from "../../../src/lib/modelCapabilities.ts";
+import { isAdaptiveThinkingOnly } from "../../../src/shared/constants/modelSpecs.ts";
+
+// Reasoning-effort levels Anthropic accepts on `output_config.effort`. Used to steer
+// adaptive-only Claude models (Opus 4.7+/Fable 5) without ever emitting a manual budget.
+const ADAPTIVE_EFFORT_LEVELS = new Set(["low", "medium", "high", "xhigh", "max"]);
 
 // Prefix for Claude OAuth tool names to avoid conflicts
 // Can be disabled per-request via body._disableToolPrefix = true
@@ -458,7 +463,22 @@ export function openaiToClaudeRequest(model, body, stream) {
         : requestedEffort === "xhigh" && !supportsXHighEffort("claude", model)
           ? "high"
           : requestedEffort;
-    if (normalizedEffort === "max" || normalizedEffort === "xhigh") {
+    if (isAdaptiveThinkingOnly(model)) {
+      // Opus 4.7+/Fable 5 removed manual extended thinking: a fixed `budget_tokens`
+      // (or `type:"enabled"`) is a hard 400. Steer EVERY level via adaptive +
+      // output_config.effort instead of the budget buckets below. Unrecognized levels
+      // leave thinking unset so the model keeps its adaptive default rather than 400ing
+      // on an invalid effort value.
+      if (ADAPTIVE_EFFORT_LEVELS.has(normalizedEffort)) {
+        result.thinking = {
+          type: "adaptive",
+        };
+        result.output_config = {
+          ...(result.output_config || {}),
+          effort: normalizedEffort,
+        };
+      }
+    } else if (normalizedEffort === "max" || normalizedEffort === "xhigh") {
       result.thinking = {
         type: "adaptive",
       };
@@ -558,6 +578,18 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
           }
         } else if (part.type === "image" && part.source) {
           blocks.push({ type: "image", source: part.source });
+        } else if (part.type === "image" && typeof part.image === "string") {
+          // AI SDK-style image part: { type: "image", image: "data:...;base64,..." } (#1330)
+          const url = part.image;
+          const match = url.match(/^data:([^;]+);base64,(.+)$/);
+          if (match) {
+            blocks.push({
+              type: "image",
+              source: { type: "base64", media_type: match[1], data: match[2] },
+            });
+          } else if (url.trim()) {
+            blocks.push({ type: "image", source: { type: "url", url } });
+          }
         }
       }
     }

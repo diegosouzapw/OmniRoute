@@ -121,7 +121,7 @@ export default function LoginPage() {
 
   if (hasPassword === null || setupComplete === null) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-bg p-6">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6">
         {nodeWarningBanner}
         <div className="flex flex-col items-center gap-3">
           <div className="relative">
@@ -136,7 +136,7 @@ export default function LoginPage() {
 
   if (!hasPassword && !setupComplete) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-bg p-6">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6">
         {nodeWarningBanner}
         <div
           className={`w-full max-w-md transition-all duration-700 ease-out ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
@@ -174,7 +174,7 @@ export default function LoginPage() {
 
   if (!hasPassword && setupComplete) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-bg p-6">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6">
         {nodeWarningBanner}
         <div
           className={`w-full max-w-md transition-all duration-700 ease-out ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
@@ -213,11 +213,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg">
+    <div className="min-h-screen flex flex-col">
       {nodeWarningBanner && (
         <div className="flex justify-center pt-6 px-6">{nodeWarningBanner}</div>
       )}
-      <div className="flex-1 flex bg-bg">
+      <div className="flex-1 flex">
         <div className="flex-1 flex items-center justify-center p-6">
           <div
             className={`w-full max-w-sm transition-all duration-700 ease-out ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}

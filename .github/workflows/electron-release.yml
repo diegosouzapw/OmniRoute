@@ -27,8 +27,9 @@ jobs:
       version: ${{ steps.validate.outputs.version }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Validate version format
@@ -51,7 +52,7 @@ jobs:
             echo "Error: Invalid version format. Expected: v1.6.8"
             exit 1
           fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "✓ Valid version: $VERSION"
 
   build:
@@ -83,7 +84,9 @@ jobs:
             deb_ext: .deb
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
@@ -91,7 +94,7 @@ jobs:
           cache: npm
 
       - name: Cache node_modules
-        uses: actions/cache@v5
+        uses: actions/cache@v5.0.5
         with:
           path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
@@ -111,7 +114,7 @@ jobs:
           # that cause EPERM errors during Next.js standalone build glob scans.
           # Create a clean temp profile directory to avoid this.
           mkdir -p "$RUNNER_TEMP/home"
-          echo "USERPROFILE=$RUNNER_TEMP/home" >> $GITHUB_ENV
+          echo "USERPROFILE=$RUNNER_TEMP/home" >> "$GITHUB_ENV"
 
       - name: Build Next.js standalone
         env:
@@ -213,8 +216,9 @@ jobs:
       contents: write # softprops/action-gh-release creates the GitHub Release
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Download all artifacts

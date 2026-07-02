@@ -7,7 +7,9 @@ export default function SettingsResiliencePage() {
   const t = useTranslations("settings");
   return (
     <div className="space-y-6">
-      <p className="text-sm text-text-muted">{t("resilienceSettingsIntro")}</p>
+      <p className="text-sm text-text-muted">
+        {t("resilienceSettingsIntro")} {t("resilienceStructureDesc")}
+      </p>
       <ResilienceTab />
     </div>
   );

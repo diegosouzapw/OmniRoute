@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Button, Badge, Input, Modal, Toggle } from "@/shared/components";
 import { providerAllowsOptionalApiKey, supportsBulkApiKey } from "@/shared/constants/providers";
 import { parseBulkApiKeys } from "@/shared/utils/bulkApiKeyParser";
+import { providerHasFreeModels } from "@/shared/utils/freeModels";
 import {
   isBaseUrlConfigurableProvider,
   getProviderBaseUrlDefault,
@@ -65,6 +66,7 @@ export default function AddApiKeyModal({
   onClose,
 }: AddApiKeyModalProps) {
   const t = useTranslations("providers");
+  const showFreeModelsToggle = providerHasFreeModels(provider);
   const usesBaseUrl = isBaseUrlConfigurableProvider(provider);
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex" || provider === "vertex-partner";
@@ -113,6 +115,7 @@ export default function AddApiKeyModal({
     ccCompatibleContext1m: false,
     ccCompatibleRedactThinking: false,
     passthroughModels: false,
+    importFreeModelsOnly: false,
   });
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
@@ -294,6 +297,9 @@ export default function AddApiKeyModal({
       if (formData.passthroughModels) {
         providerSpecificData.passthroughModels = true;
       }
+      if (showFreeModelsToggle && formData.importFreeModelsOnly) {
+        providerSpecificData.importFreeModelsOnly = true;
+      }
       if (provider === "bailian-coding-plan" && formData.consoleApiKey.trim()) {
         providerSpecificData.consoleApiKey = formData.consoleApiKey.trim();
       }
@@ -350,6 +356,9 @@ export default function AddApiKeyModal({
         bulkProviderSpecificData.baseUrl = checked.value;
       }
       openRouterPreset.applyTo(bulkProviderSpecificData);
+      if (showFreeModelsToggle && formData.importFreeModelsOnly) {
+        bulkProviderSpecificData.importFreeModelsOnly = true;
+      }
       const providerSpecificData =
         Object.keys(bulkProviderSpecificData).length > 0 ? bulkProviderSpecificData : undefined;
 
@@ -383,6 +392,16 @@ export default function AddApiKeyModal({
   };
 
   if (!provider) return null;
+
+  const freeModelsToggle = showFreeModelsToggle ? (
+    <Toggle
+      size="sm"
+      checked={formData.importFreeModelsOnly}
+      onChange={(checked) => setFormData({ ...formData, importFreeModelsOnly: checked })}
+      label={t("importFreeModelsOnlyLabel")}
+      description={t("importFreeModelsOnlyHint")}
+    />
+  ) : null;
 
   return (
     <Modal
@@ -429,6 +448,7 @@ export default function AddApiKeyModal({
           <div className="flex flex-col gap-3">
             <p className="text-xs text-text-muted">{t("bulkAddFormatHint")}</p>
             {openRouterPreset.input}
+            {freeModelsToggle}
             <textarea
               className="w-full rounded border border-border bg-background p-2 text-sm font-mono resize-y min-h-[140px] focus:outline-none focus:ring-1 focus:ring-primary"
               placeholder={"name1|sk-key1\nname2|sk-key2\nsk-key-only-auto-named"}
@@ -689,6 +709,7 @@ export default function AddApiKeyModal({
                 {openRouterPreset.input}
               </div>
             )}
+            {freeModelsToggle}
             {isCompatible && !isCcCompatible && (
               <p className="text-xs text-text-muted">
                 {isAnthropic

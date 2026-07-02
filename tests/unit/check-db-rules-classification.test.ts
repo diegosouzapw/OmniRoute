@@ -99,7 +99,6 @@ const TYPE_ONLY = new Set(["_rowTypes"]);
 // They remain in INTENTIONALLY_INTERNAL for schema-reservation reasons.
 // Flag them but do NOT fail — a separate decision is needed to remove them.
 const DOCUMENTED_DEAD = new Set([
-  "compressionScheduler", // DEAD?: 0 production importers as of 2026-06-11
   "discovery", // DEAD?: 0 importers; lib/discovery/index.ts is independent
   "pluginMetrics", // DEAD? (production): write path not yet wired (self-documented)
   "prompts", // DEAD? (production): zero production callers; integration test only verifies interface shape
@@ -122,15 +121,17 @@ test("INTENTIONALLY_INTERNAL is exported from check-db-rules.mjs", () => {
   assert.ok(INTENTIONALLY_INTERNAL.size > 0, "INTENTIONALLY_INTERNAL must not be empty");
 });
 
-test("INTENTIONALLY_INTERNAL contains the expected 25 audited modules", () => {
+test("INTENTIONALLY_INTERNAL contains the expected 29 audited modules", () => {
   const expected = [
     "_rowTypes",
+    "accessTokens",
+    "apiKeyColumnFallbacks",
+    "apiKeyUsageLimitFields",
     "cleanup",
     "cliToolState",
     "comboForecast",
     "commandCodeAuth",
     "compression",
-    "compressionScheduler",
     "detailedLogs",
     "discovery",
     "domainState",
@@ -142,6 +143,7 @@ test("INTENTIONALLY_INTERNAL contains the expected 25 audited modules", () => {
     "obsidian",
     "pluginMetrics",
     "prompts",
+    "providerNodeSelect",
     "providerStats",
     "recovery",
     "secrets",
@@ -149,6 +151,7 @@ test("INTENTIONALLY_INTERNAL contains the expected 25 audited modules", () => {
     "stateReset",
     "stats",
     "tierConfig",
+    "vacuumScheduler",
   ];
   for (const mod of expected) {
     assert.ok(

@@ -45,14 +45,14 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("v1 search GET lists all 12 search providers", async () => {
+test("v1 search GET lists all 13 search providers", async () => {
   const response = await searchRoute.GET();
   const body = (await response.json()) as any;
   const ids = body.data.map((item: { id: string }) => item.id);
 
   assert.equal(response.status, 200);
   assert.equal(body.object, "list");
-  assert.equal(body.data.length, 12);
+  assert.equal(body.data.length, 13);
   assert.deepEqual(ids, [
     "serper-search",
     "brave-search",
@@ -66,6 +66,7 @@ test("v1 search GET lists all 12 search providers", async () => {
     "searxng-search",
     "ollama-search",
     "zai-search",
+    "duckduckgo-free",
   ]);
 });
 

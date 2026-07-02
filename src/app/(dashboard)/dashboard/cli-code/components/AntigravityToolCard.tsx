@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Card, Button, Badge, Modal, Input, ModelSelectModal } from "@/shared/components";
+import { MITM_TOOL_HOSTS } from "@/shared/constants/mitmToolHosts";
 import { useTranslations } from "next-intl";
 
 import ProviderIcon from "@/shared/components/ProviderIcon";
@@ -26,6 +27,10 @@ export default function AntigravityToolCard({
   const [modelMappings, setModelMappings] = useState({});
   const [modalOpen, setModalOpen] = useState(false);
   const [currentEditingAlias, setCurrentEditingAlias] = useState(null);
+  // Model aliases drive the API-Key-compatible / passthrough provider groups in
+  // ModelSelectModal — without them, custom OpenAI/Anthropic-compatible
+  // providers don't surface in the picker even when active.
+  const [modelAliases, setModelAliases] = useState({});
 
   // (#523) Store the key *id* (not the masked string) so the backend can
   // resolve the real secret from DB before writing to config files.
@@ -39,6 +44,7 @@ export default function AntigravityToolCard({
     if (isExpanded && !status) {
       fetchStatus();
       loadSavedMappings();
+      fetchModelAliases();
     }
   }, [isExpanded, status]);
 
@@ -71,11 +77,28 @@ export default function AntigravityToolCard({
     }
   };
 
-  // Windows uses UAC dialog, no sudo needed
-  const isWindows = typeof navigator !== "undefined" && navigator.userAgent?.includes("Windows");
+  const fetchModelAliases = async () => {
+    try {
+      const res = await fetch("/api/models/alias");
+      const data = await res.json();
+      if (res.ok) setModelAliases(data.aliases || {});
+    } catch (error) {
+      console.log("Error fetching model aliases:", error);
+    }
+  };
+
+  // MITM elevation is decided by the *server* OS, not by this browser's user
+  // agent. The server reports `isWin` and `needsSudoPassword` in GET status —
+  // a Windows browser hitting a Linux server still needs sudo, and a Linux
+  // browser hitting a Windows server does not (#822).
+  const serverIsWindows = status?.isWin === true;
+  const canRunWithoutPassword =
+    serverIsWindows ||
+    status?.hasCachedPassword === true ||
+    status?.needsSudoPassword === false;
 
   const handleStart = () => {
-    if (isWindows || status?.hasCachedPassword) {
+    if (canRunWithoutPassword) {
       doStart("");
     } else {
       setShowPasswordModal(true);
@@ -84,7 +107,7 @@ export default function AntigravityToolCard({
   };
 
   const handleStop = () => {
-    if (isWindows || status?.hasCachedPassword) {
+    if (canRunWithoutPassword) {
       doStop("");
     } else {
       setShowPasswordModal(true);
@@ -364,13 +387,11 @@ export default function AntigravityToolCard({
           {/* When stopped: how it works */}
           {!isRunning &&
             (() => {
-              // Dynamic MITM instructions per tool (#505)
-              const mitmDomains: Record<string, string> = {
-                antigravity: "daily-cloudcode-pa.googleapis.com",
-                kiro: "api.anthropic.com",
-              };
+              // Per-tool MITM hosts redirected to 127.0.0.1 (#505, 9router#788). List every
+              // host so users on locked-down machines can add the entries to their hosts file
+              // manually when the automatic (sudo-gated) edit isn't available.
               const toolName = tool.name || tool.id;
-              const domain = mitmDomains[tool.id] || mitmDomains.antigravity;
+              const hosts = MITM_TOOL_HOSTS[tool.id] ?? MITM_TOOL_HOSTS.antigravity;
               return (
                 <div className="flex flex-col gap-1.5 px-1">
                   <p className="text-xs text-text-muted">
@@ -379,11 +400,15 @@ export default function AntigravityToolCard({
                   </p>
                   <div className="flex flex-col gap-0.5 text-[11px] text-text-muted">
                     <span>{t("mitmStep1")}</span>
-                    <span>
-                      {t("mitmStep2Prefix")}{" "}
-                      <code className="text-[10px] bg-surface px-1 rounded">{domain}</code>{" "}
-                      {t("mitmStep2Suffix")}
-                    </span>
+                    <span>{t("mitmStep2Prefix")}</span>
+                    <ul className="list-none my-0.5 flex flex-col gap-0.5 font-mono text-[10px] text-text-muted break-all">
+                      {hosts.map((host) => (
+                        <li key={host}>
+                          <span className="text-primary">127.0.0.1</span> {host}
+                        </li>
+                      ))}
+                    </ul>
+                    <span>{t("mitmStep2Suffix")}</span>
                     <span>{t("mitmStep3", { toolName })}</span>
                   </div>
                 </div>
@@ -457,6 +482,7 @@ export default function AntigravityToolCard({
         onSelect={handleModelSelect}
         selectedModel={currentEditingAlias ? modelMappings[currentEditingAlias] : null}
         activeProviders={activeProviders}
+        modelAliases={modelAliases}
         title={t("selectModelForAlias", { alias: currentEditingAlias || "" })}
       />
     </Card>

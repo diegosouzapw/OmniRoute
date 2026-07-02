@@ -129,7 +129,7 @@ from the current `PlaygroundState`. API key placeholder is always `$OMNIROUTE_AP
 
 `PresetPicker.tsx` → `usePresets.ts` → `/api/playground/presets/*`:
 
-- Stored in `playground_presets` SQLite table (migration `076_playground_presets.sql`).
+- Stored in `playground_presets` SQLite table (migration `084_playground_presets.sql`).
 - Each preset stores: `name`, `endpoint`, `model`, `system`, `params_json`, `created_at`.
 - CRUD: `GET` list, `POST` create, `GET /:id`, `PUT /:id`, `DELETE /:id`.
 
@@ -186,7 +186,7 @@ Auth: optional (`REQUIRE_API_KEY`). Errors via `buildErrorBody()` (Hard Rule #12
 | `src/app/api/playground/improve-prompt/route.ts` | Improve-prompt REST route |
 | `src/app/api/playground/presets/route.ts` | Presets list + create |
 | `src/app/api/playground/presets/[id]/route.ts` | Presets get/update/delete |
-| `src/lib/db/migrations/076_playground_presets.sql` | DB migration |
+| `src/lib/db/migrations/084_playground_presets.sql` | DB migration |
 
 ---
 

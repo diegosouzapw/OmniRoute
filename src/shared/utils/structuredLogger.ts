@@ -109,8 +109,33 @@ function buildEntry(
 const _recentErrors = new Map<string, { count: number; firstSeen: number }>();
 const DEDUP_WINDOW_MS = 5_000;
 const MAX_WRITES_PER_SECOND = 50;
+// Hard cap on tracked distinct error messages. The age-based cleanup only removes entries
+// older than DEDUP_WINDOW_MS, so a burst of >100 *unique* messages within a single 5s window
+// (e.g. messages embedding request ids / urls / timestamps) could outpace it and grow the map.
+// This bound evicts the oldest entries (Map preserves insertion order) as a backstop.
+const MAX_TRACKED_ERRORS = 500;
 let _writeCount = 0;
 let _writeWindowStart = Date.now();
+
+function pruneRecentErrors(now: number): void {
+  // Age-based cleanup of expired entries.
+  if (_recentErrors.size > 100) {
+    for (const [key, entry] of _recentErrors) {
+      if (now - entry.firstSeen > DEDUP_WINDOW_MS) _recentErrors.delete(key);
+    }
+  }
+  // Hard size cap: evict oldest (insertion-order) entries if a unique-message burst outpaced
+  // the age-based cleanup.
+  if (_recentErrors.size >= MAX_TRACKED_ERRORS) {
+    const overflow = _recentErrors.size - MAX_TRACKED_ERRORS + 1;
+    let removed = 0;
+    for (const key of _recentErrors.keys()) {
+      if (removed >= overflow) break;
+      _recentErrors.delete(key);
+      removed++;
+    }
+  }
+}
 
 function shouldSuppressError(message: string): boolean {
   const now = Date.now();
@@ -129,17 +154,19 @@ function shouldSuppressError(message: string): boolean {
     return true;
   }
 
-  // Cleanup old entries
-  if (_recentErrors.size > 100) {
-    for (const [key, entry] of _recentErrors) {
-      if (now - entry.firstSeen > DEDUP_WINDOW_MS) _recentErrors.delete(key);
-    }
-  }
+  pruneRecentErrors(now);
 
   _recentErrors.set(message, { count: 1, firstSeen: now });
   _writeCount++;
   return false;
 }
+
+/** Test-only internals for verifying the dedup-map bound. */
+export const __structuredLoggerInternals = {
+  recentErrors: _recentErrors,
+  pruneRecentErrors,
+  MAX_TRACKED_ERRORS,
+};
 
 export function createLogger(component: string) {
   return {

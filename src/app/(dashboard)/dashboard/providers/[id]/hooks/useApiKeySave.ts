@@ -83,6 +83,20 @@ export function useApiKeySave({
                 return null;
               }
 
+              if (syncData.freeFilterEmpty) {
+                setImportProgress((prev) => ({
+                  ...prev,
+                  phase: "done",
+                  status: t("noFreeModelsFound"),
+                  total: 0,
+                  current: 0,
+                  importedCount: 0,
+                  logs: [],
+                }));
+                await fetchProviderModelMeta();
+                return null;
+              }
+
               const syncedCount = syncData.syncedModels || 0;
               const availableCount =
                 typeof syncData.availableModelsCount === "number"

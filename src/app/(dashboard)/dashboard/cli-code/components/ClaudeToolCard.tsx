@@ -335,16 +335,34 @@ export default function ClaudeToolCard({
                       : t("installCliPrompt", { tool: "Claude" })}
                   </p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowInstallGuide(!showInstallGuide)}
-                >
-                  <span className="material-symbols-outlined text-[18px] mr-1">
-                    {showInstallGuide ? "expand_less" : "help"}
-                  </span>
-                  {showInstallGuide ? t("hide") : t("howToInstall")}
-                </Button>
+                <div className="flex items-center gap-2">
+                  {/*
+                    Always surface Manual Config even when the CLI is not
+                    detected locally — typical of remote OmniRoute
+                    deployments where the CLI lives on the user's machine,
+                    not on the server. Upstream report: #589.
+                  */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowManualConfigModal(true)}
+                  >
+                    <span className="material-symbols-outlined text-[18px] mr-1">
+                      content_copy
+                    </span>
+                    {t("manualConfig")}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowInstallGuide(!showInstallGuide)}
+                  >
+                    <span className="material-symbols-outlined text-[18px] mr-1">
+                      {showInstallGuide ? "expand_less" : "help"}
+                    </span>
+                    {showInstallGuide ? t("hide") : t("howToInstall")}
+                  </Button>
+                </div>
               </div>
               {showInstallGuide && (
                 <div className="p-4 bg-surface border border-border rounded-lg">

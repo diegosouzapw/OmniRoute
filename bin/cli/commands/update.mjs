@@ -25,9 +25,13 @@ export async function getCurrentVersion() {
   }
 }
 
-async function getLatestVersion() {
+// `--prefer-online` forces npm to revalidate its HTTP cache against the registry.
+// Without it `npm view` can return a stale cached version (e.g. report 3.8.30 as
+// "latest" after 3.8.31 was published), so the updater told users on an old build
+// they were already on the latest version (#4376). `execFn` is injectable for tests.
+export async function getLatestVersion(execFn = execFileAsync) {
   try {
-    const { stdout } = await execFileAsync("npm", ["view", "omniroute", "version"], {
+    const { stdout } = await execFn("npm", ["view", "omniroute", "version", "--prefer-online"], {
       timeout: 15000,
     });
     return stdout.trim();
@@ -142,7 +146,7 @@ export async function runUpdateCommand(opts = {}) {
   }
 
   if (dryRun) {
-    console.log("\n  [DRY RUN] Would run: npm install -g omniroute@latest");
+    console.log("\n  [DRY RUN] Would run: npm install -g omniroute@latest --include=optional");
     if (!skipBackup) console.log("  [DRY RUN] Would create backup in ~/.omniroute/backups/");
     return 0;
   }
@@ -174,7 +178,9 @@ export async function runUpdateCommand(opts = {}) {
   printInfo("Updating OmniRoute...");
   try {
     const { execSync } = await import("child_process");
-    execSync("npm install -g omniroute@latest", { stdio: "inherit" });
+    // --include=optional keeps the optionalDependencies (better-sqlite3, keytar,
+    // tls-client, llmlingua SLM stack) on update so an omit=optional config can't drop them.
+    execSync("npm install -g omniroute@latest --include=optional", { stdio: "inherit" });
     printSuccess(`Updated to version ${latest}`);
     printInfo("Run `omniroute --version` to verify.");
     return 0;

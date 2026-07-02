@@ -10,6 +10,8 @@ import {
   checkTokensPerTaskGate,
   replayTranscripts,
   transcriptsToCorpus,
+  requestBodyToTranscript,
+  requestBodiesToTranscripts,
 } from "../../../open-sse/services/compression/harness/index.ts";
 
 const SAMPLE = "Call fetchUser() at https://api.example.com/v1 with MAX_RETRIES set to 3.0.0";
@@ -134,5 +136,47 @@ describe("compression harness — transcript replay (TV3)", () => {
     assert.equal(report.results.length, 2);
     assert.ok(report.results.every((r) => r.task === "t1"));
     assert.equal(report.meanRetention, 1);
+  });
+});
+
+describe("compression harness — transcript loader (TV3)", () => {
+  it("builds a transcript from a captured request body, flattening content blocks", () => {
+    const transcript = requestBodyToTranscript("req-1", {
+      model: "gpt-x",
+      messages: [
+        { role: "system", content: "You are helpful." },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "first block" },
+            { type: "image_url", image_url: { url: "data:..." } },
+            { type: "text", text: "second block" },
+          ],
+        },
+      ],
+    });
+    assert.equal(transcript.id, "req-1");
+    assert.equal(transcript.turns.length, 2);
+    assert.equal(transcript.turns[0].role, "system");
+    assert.equal(transcript.turns[0].content, "You are helpful.");
+    // multimodal content flattened to its text blocks (image dropped)
+    assert.equal(transcript.turns[1].content, "first block\nsecond block");
+  });
+
+  it("returns an empty transcript for a body without a messages array", () => {
+    assert.deepEqual(requestBodyToTranscript("empty", { foo: 1 }), { id: "empty", turns: [] });
+    assert.deepEqual(requestBodyToTranscript("nullish", null), { id: "nullish", turns: [] });
+  });
+
+  it("maps captured bodies into transcripts that feed the replay corpus", () => {
+    const transcripts = requestBodiesToTranscripts([
+      { id: "a", body: { messages: [{ role: "user", content: "hi" }] } },
+      { id: "b", body: { messages: [{ role: "user", content: "  " }] } }, // empty turn → skipped
+    ]);
+    assert.equal(transcripts.length, 2);
+    const corpus = transcriptsToCorpus(transcripts);
+    // transcript "a" contributes one case; "b" is all-blank so transcriptsToCorpus drops it
+    assert.equal(corpus.length, 1);
+    assert.equal(corpus[0].task, "a");
   });
 });

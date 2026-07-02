@@ -435,6 +435,31 @@ test("hasPerModelQuota returns true for GitHub Copilot provider (#1624)", () => 
   assert.equal(hasPerModelQuota("github", "gpt-5-mini"), true);
 });
 
+test("Codex Spark 429s are scoped away from normal Codex models", () => {
+  const connectionId = `codex-${Date.now()}`;
+  clearModelLock("codex", connectionId, "gpt-5.3-codex-spark");
+  clearModelLock("codex", connectionId, "gpt-5.3-codex");
+
+  assert.equal(hasPerModelQuota("codex", "gpt-5.3-codex-spark"), true);
+  assert.equal(shouldMarkAccountExhaustedFrom429("codex", "gpt-5.3-codex-spark"), false);
+  assert.equal(
+    lockModelIfPerModelQuota(
+      "codex",
+      connectionId,
+      "gpt-5.3-codex-spark",
+      RateLimitReason.RATE_LIMIT_EXCEEDED,
+      30_000
+    ),
+    true
+  );
+  assert.equal(isModelLocked("codex", connectionId, "gpt-5.3-codex-spark"), true);
+  assert.equal(isModelLocked("codex", connectionId, "codex-spark-mini"), true);
+  assert.equal(isModelLocked("codex", connectionId, "gpt-5.3-codex"), false);
+
+  clearModelLock("codex", connectionId, "gpt-5.3-codex-spark");
+  clearModelLock("codex", connectionId, "gpt-5.3-codex");
+});
+
 test("shouldMarkAccountExhaustedFrom429 skips connection-wide lockout for GitHub (#1624)", () => {
   assert.equal(shouldMarkAccountExhaustedFrom429("github", "gpt-5.1-codex-max"), false);
   assert.equal(shouldMarkAccountExhaustedFrom429("github", "gpt-5-mini"), false);

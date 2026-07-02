@@ -185,11 +185,21 @@ export default function FreePoolTab() {
 
       {stats && (
         <div className="text-xs text-text-muted flex gap-4 flex-wrap">
-          <span>{t("proxyFreePoolTotal")}: {stats.total}</span>
-          <span>{t("proxyFreePoolInPool")}: {stats.inPool}</span>
-          {stats.avgQuality != null && <span>{t("proxyFreePoolAvgQuality")}: {stats.avgQuality}</span>}
+          <span>
+            {t("proxyFreePoolTotal")}: {stats.total}
+          </span>
+          <span>
+            {t("proxyFreePoolInPool")}: {stats.inPool}
+          </span>
+          {stats.avgQuality != null && (
+            <span>
+              {t("proxyFreePoolAvgQuality")}: {stats.avgQuality}
+            </span>
+          )}
           {stats.lastSyncAt && (
-            <span>{t("lastSync")}: {new Date(stats.lastSyncAt).toLocaleTimeString()}</span>
+            <span>
+              {t("lastSync")}: {new Date(stats.lastSyncAt).toLocaleTimeString()}
+            </span>
           )}
         </div>
       )}
@@ -216,7 +226,7 @@ export default function FreePoolTab() {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded border border-border">
+      <div className="overflow-x-auto rounded border border-border bg-surface">
         <table className="w-full text-sm">
           <thead className="bg-surface-alt text-text-muted text-xs">
             <tr>

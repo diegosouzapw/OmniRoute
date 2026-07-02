@@ -75,6 +75,96 @@ test("applyToolCallShimToBuffer: Read removes empty pages but preserves valid ra
   assert.deepEqual(withValidPages, { file_path: "/tmp/a.pdf", pages: "1-5" });
 });
 
+// Port of decolua/9router#1144: non-Anthropic models (GPT-5.5, DeepSeek …) sometimes
+// emit absurd Read-tool args (e.g. limit: 99999999999) that Claude Code rejects and
+// retries, wasting tokens. The shim clamps/normalizes those args before re-emitting.
+test("applyToolCallShimToBuffer: Read clamps limit to 2000 (non-Anthropic models)", () => {
+  const out = JSON.parse(
+    applyToolCallShimToBuffer(
+      "Read",
+      JSON.stringify({ file_path: "/etc/hosts", limit: 99999999999 })
+    )
+  );
+  assert.equal(out.limit, 2000);
+});
+
+test("applyToolCallShimToBuffer: Read drops non-positive limit", () => {
+  const zero = JSON.parse(
+    applyToolCallShimToBuffer("Read", JSON.stringify({ file_path: "/etc/hosts", limit: 0 }))
+  );
+  assert.equal("limit" in zero, false);
+
+  const negative = JSON.parse(
+    applyToolCallShimToBuffer("Read", JSON.stringify({ file_path: "/etc/hosts", limit: -50 }))
+  );
+  assert.equal("limit" in negative, false);
+});
+
+test("applyToolCallShimToBuffer: Read clamps negative offset to 0", () => {
+  const out = JSON.parse(
+    applyToolCallShimToBuffer("Read", JSON.stringify({ file_path: "/etc/hosts", offset: -5 }))
+  );
+  assert.equal(out.offset, 0);
+});
+
+test("applyToolCallShimToBuffer: Read coerces numeric-string limit/offset", () => {
+  const out = JSON.parse(
+    applyToolCallShimToBuffer(
+      "Read",
+      JSON.stringify({ file_path: "/etc/hosts", limit: "100", offset: "5" })
+    )
+  );
+  assert.equal(out.limit, 100);
+  assert.equal(out.offset, 5);
+});
+
+test("applyToolCallShimToBuffer: Read strips pages for non-PDF files", () => {
+  const out = JSON.parse(
+    applyToolCallShimToBuffer(
+      "Read",
+      JSON.stringify({ file_path: "/etc/hosts", pages: "1-3" })
+    )
+  );
+  assert.equal("pages" in out, false);
+});
+
+test("applyToolCallShimToBuffer: Read strips malformed pages even on PDFs", () => {
+  const out = JSON.parse(
+    applyToolCallShimToBuffer(
+      "Read",
+      JSON.stringify({ file_path: "/tmp/doc.pdf", pages: "abc" })
+    )
+  );
+  assert.equal("pages" in out, false);
+});
+
+test("applyToolCallShimToBuffer: Read accepts a single page on PDFs", () => {
+  const out = JSON.parse(
+    applyToolCallShimToBuffer(
+      "Read",
+      JSON.stringify({ file_path: "/tmp/doc.PDF", pages: "7" })
+    )
+  );
+  assert.equal(out.pages, "7");
+});
+
+test("applyToolCallShimToBuffer: Read combined absurd args from non-Anthropic model", () => {
+  // Simulates the upstream issue exactly: GPT-5.5-style giant limit, negative offset,
+  // and a stray empty-string pages on a non-PDF.
+  const out = JSON.parse(
+    applyToolCallShimToBuffer(
+      "Read",
+      JSON.stringify({
+        file_path: "F:/repo/file.js",
+        offset: -5,
+        limit: 25999999999999999,
+        pages: "",
+      })
+    )
+  );
+  assert.deepEqual(out, { file_path: "F:/repo/file.js", offset: 0, limit: 2000 });
+});
+
 test("applyToolCallShimToBuffer: submit_pr_review with valid arrays preserved", () => {
   const raw = JSON.stringify({
     summary: "ok",

@@ -455,6 +455,11 @@ export class CircuitBreakerOpenError extends Error {
 const MAX_REGISTRY_SIZE = 500;
 const registry = new Map<string, CircuitBreaker>();
 
+/** Test-only: current number of registered circuit breakers. */
+export function __getCircuitRegistrySizeForTests(): number {
+  return registry.size;
+}
+
 const _registrySweep = setInterval(() => {
   const now = Date.now();
   for (const [name, breaker] of registry) {
@@ -475,8 +480,37 @@ if (typeof _registrySweep === "object" && "unref" in _registrySweep) {
   (_registrySweep as { unref?: () => void }).unref?.();
 }
 
+/**
+ * Enforce MAX_REGISTRY_SIZE before inserting a new breaker. The cap was previously declared
+ * but never used — the only bound was the 5-min sweep, which evicts a breaker only if it is
+ * CLOSED, has zero failures, AND has been idle for >30 min. With high-cardinality breaker
+ * names that cap could be exceeded for up to 30 min. Evict idle CLOSED breakers (oldest first)
+ * to make room; never evict OPEN/HALF_OPEN breakers, since those carry meaningful state. A
+ * CLOSED breaker with zero failures is behaviorally identical to a freshly-created one, so
+ * evicting and lazily recreating it later changes nothing.
+ */
+function evictColdBreakersIfNeeded(): void {
+  if (registry.size < MAX_REGISTRY_SIZE) return;
+  const candidates: { name: string; lastFailureTime: number }[] = [];
+  for (const [name, breaker] of registry) {
+    const status = breaker.getStatus();
+    if (status.state === STATE.CLOSED && status.failureCount === 0) {
+      candidates.push({ name, lastFailureTime: status.lastFailureTime || 0 });
+    }
+  }
+  candidates.sort((a, b) => a.lastFailureTime - b.lastFailureTime);
+  const target = registry.size - MAX_REGISTRY_SIZE + 1;
+  for (let i = 0; i < candidates.length && i < target; i++) {
+    registry.delete(candidates[i].name);
+    try {
+      deleteCircuitBreakerState(candidates[i].name);
+    } catch {}
+  }
+}
+
 export function getCircuitBreaker(name: string, options?: CircuitBreakerOptions): CircuitBreaker {
   if (!registry.has(name)) {
+    evictColdBreakersIfNeeded();
     registry.set(name, new CircuitBreaker(name, options));
   }
   const breaker = registry.get(name)!;

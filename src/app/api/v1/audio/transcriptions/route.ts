@@ -16,6 +16,8 @@ import {
   isAllRateLimitedCredentials,
   rateLimitedProviderResponse,
 } from "@/app/api/v1/_shared/rateLimit";
+import { attachOmniRouteMetaToResponse } from "@/domain/omnirouteResponseMeta";
+import { generateRequestId } from "@/shared/utils/requestId";
 
 /**
  * Handle CORS preflight
@@ -40,6 +42,8 @@ export async function POST(request) {
   } catch {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid multipart form data");
   }
+
+  const startTime = Date.now();
 
   const model = formData.get("model");
   if (!model) {
@@ -101,7 +105,7 @@ export async function POST(request) {
     }
   }
 
-  const response = await handleAudioTranscription({
+  let response = await handleAudioTranscription({
     formData,
     credentials,
     resolvedProvider: providerConfig,
@@ -109,6 +113,15 @@ export async function POST(request) {
   });
   if (response?.ok) {
     await clearRecoveredProviderState(credentials);
+    // No text body / playback duration available from the multipart upload, so
+    // per-second pricing cannot be applied → cost 0 (ADD-only headers, body intact).
+    response = attachOmniRouteMetaToResponse(response, {
+      provider,
+      model: resolvedModel,
+      costUsd: 0,
+      latencyMs: Date.now() - startTime,
+      requestId: generateRequestId(),
+    });
   }
   return response;
 }

@@ -1,15 +1,19 @@
 import { backupDbFile } from "./backup";
+import { getDefaultCompressionCombo } from "./compressionCombos";
 import { getDbInstance } from "./core";
 import { invalidateDbCache } from "./readCache";
 import {
+  ENGINE_IDS,
   DEFAULT_AGGRESSIVE_CONFIG,
   DEFAULT_CAVEMAN_CONFIG,
   DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG,
   DEFAULT_COMPRESSION_LANGUAGE_CONFIG,
   DEFAULT_COMPRESSION_CONFIG,
+  DEFAULT_CONTEXT_EDITING_CONFIG,
   DEFAULT_MCP_ACCESSIBILITY_CONFIG,
   DEFAULT_RTK_CONFIG,
   DEFAULT_ULTRA_CONFIG,
+  clampMcpAccessibilityConfig,
   type AggressiveConfig,
   type CavemanConfig,
   type CavemanOutputModeConfig,
@@ -17,6 +21,8 @@ import {
   type CompressionPipelineStep,
   type CompressionConfig,
   type CompressionMode,
+  type ContextEditingConfig,
+  type EngineToggle,
   type McpAccessibilityConfig,
   type RtkConfig,
   type UltraConfig,
@@ -169,6 +175,24 @@ function normalizeRtkConfig(value: unknown): RtkConfig {
       1024,
       10_000_000
     ),
+    enableGrouping:
+      typeof record.enableGrouping === "boolean"
+        ? record.enableGrouping
+        : (DEFAULT_RTK_CONFIG.enableGrouping ?? false),
+    groupingThreshold: boundedInt(
+      record.groupingThreshold,
+      DEFAULT_RTK_CONFIG.groupingThreshold ?? 3,
+      2,
+      100
+    ),
+    stripCodeComments:
+      typeof record.stripCodeComments === "boolean"
+        ? record.stripCodeComments
+        : (DEFAULT_RTK_CONFIG.stripCodeComments ?? false),
+    preserveDocstrings:
+      typeof record.preserveDocstrings === "boolean"
+        ? record.preserveDocstrings
+        : (DEFAULT_RTK_CONFIG.preserveDocstrings ?? true),
   };
 }
 
@@ -198,23 +222,41 @@ function normalizeLanguageConfig(value: unknown): CompressionLanguageConfig {
   };
 }
 
-function normalizeStackedPipeline(value: unknown): CompressionPipelineStep[] {
+function normalizeContextEditingConfig(value: unknown): ContextEditingConfig {
+  const record = toRecord(value);
+  return {
+    ...DEFAULT_CONTEXT_EDITING_CONFIG,
+    enabled:
+      typeof record.enabled === "boolean" ? record.enabled : DEFAULT_CONTEXT_EDITING_CONFIG.enabled,
+  };
+}
+
+// Engines allowed in the global stackedPipeline setting. MUST stay in sync with the
+// compression-combo KNOWN_ENGINE_IDS (src/lib/db/compressionCombos.ts) — otherwise the
+// global setting silently strips engines the combo path accepts (B-PIPELINE-DIVERGENCE).
+const STACKED_PIPELINE_ENGINE_IDS = new Set([
+  "lite",
+  "caveman",
+  "aggressive",
+  "ultra",
+  "rtk",
+  "headroom",
+  "session-dedup",
+  "ccr",
+  "llmlingua",
+]);
+
+export function normalizeStackedPipeline(value: unknown): CompressionPipelineStep[] {
   const source = Array.isArray(value) ? value : (DEFAULT_COMPRESSION_CONFIG.stackedPipeline ?? []);
   const pipeline: CompressionPipelineStep[] = [];
   for (const entry of source) {
     const record = toRecord(entry);
     const engine = record.engine;
-    if (
-      engine !== "lite" &&
-      engine !== "caveman" &&
-      engine !== "aggressive" &&
-      engine !== "ultra" &&
-      engine !== "rtk"
-    ) {
+    if (typeof engine !== "string" || !STACKED_PIPELINE_ENGINE_IDS.has(engine)) {
       continue;
     }
     pipeline.push({
-      engine,
+      engine: engine as CompressionPipelineStep["engine"],
       ...(typeof record.intensity === "string"
         ? { intensity: record.intensity as CompressionPipelineStep["intensity"] }
         : {}),
@@ -338,6 +380,121 @@ function normalizeUltraConfig(value: unknown): UltraConfig {
   };
 }
 
+// Single-mode → engine id mapping. Mirrors deriveDefaultPlan's SINGLE_MODE_OF: a legacy
+// install whose only signal is `defaultMode` should turn on the engine that mode runs, so the
+// derived engines map matches the old behavior. Keep conservative — these are the only modes
+// that map 1:1 to a single engine.
+const SINGLE_MODE_ENGINE: Partial<Record<CompressionMode, string>> = {
+  lite: "lite",
+  standard: "caveman",
+  aggressive: "aggressive",
+  ultra: "ultra",
+  rtk: "rtk",
+};
+
+function normalizeEngineToggle(value: unknown): EngineToggle | null {
+  const record = toRecord(value);
+  if (typeof record.enabled !== "boolean") return null;
+  return {
+    enabled: record.enabled,
+    ...(typeof record.level === "string" ? { level: record.level } : {}),
+  };
+}
+
+// Sanitize an engines map for persistence: keep only known engine ids with a well-formed
+// `{enabled, level?}` toggle. Mirrors the read-path validation so a malformed write can't poison
+// the stored row.
+function sanitizeEnginesForWrite(value: unknown): Record<string, EngineToggle> {
+  const record = toRecord(value);
+  const out: Record<string, EngineToggle> = {};
+  for (const id of ENGINE_IDS) {
+    const toggle = normalizeEngineToggle(record[id]);
+    if (toggle) out[id] = toggle;
+  }
+  return out;
+}
+
+// Read the stored `engines` JSON row, keeping only well-formed `{enabled, level?}` entries for
+// known engine ids. Returns null when no usable row exists so the caller falls back to deriving
+// the map from the legacy fields (B-backfill, migration 102).
+function parseStoredEnginesMap(value: unknown): Record<string, EngineToggle> | null {
+  if (!value || typeof value !== "object") return null;
+  const out: Record<string, EngineToggle> = {};
+  let any = false;
+  for (const id of ENGINE_IDS) {
+    const toggle = normalizeEngineToggle((value as JsonRecord)[id]);
+    if (toggle) {
+      out[id] = toggle;
+      any = true;
+    }
+  }
+  return any ? out : null;
+}
+
+// Derive the per-engine toggle map from the legacy compression fields so existing installs keep
+// their behavior before they ever write an `engines` row. Single-engine modes (caveman/rtk/ultra/
+// aggressive) come from their dedicated config blocks; structural engines (lite/headroom/
+// session-dedup/ccr/llmlingua) come from the default-combo pipeline. `defaultMode` is a last-resort
+// signal that turns on its single-mode engine when nothing else already did.
+function deriveEnginesMap(config: CompressionConfig): Record<string, EngineToggle> {
+  let defaultComboEngines = new Set<string>();
+  try {
+    const combo = getDefaultCompressionCombo();
+    if (combo) {
+      defaultComboEngines = new Set(combo.pipeline.map((step) => step.engine));
+    }
+  } catch {
+    defaultComboEngines = new Set<string>();
+  }
+
+  const engines: Record<string, EngineToggle> = {};
+  for (const id of ENGINE_IDS) {
+    let enabled = false;
+    let level: string | undefined;
+    switch (id) {
+      case "caveman":
+        enabled = config.cavemanConfig?.enabled === true;
+        if (typeof config.cavemanConfig?.intensity === "string") {
+          level = config.cavemanConfig.intensity;
+        }
+        break;
+      case "rtk":
+        enabled = config.rtkConfig?.enabled === true;
+        if (typeof config.rtkConfig?.intensity === "string") {
+          level = config.rtkConfig.intensity;
+        }
+        break;
+      case "ultra":
+        enabled = config.ultra?.enabled === true;
+        break;
+      case "aggressive":
+        enabled = aggressiveEnabled(config.aggressive);
+        break;
+      default:
+        // Structural engines (lite/headroom/session-dedup/ccr/llmlingua): on when present in the
+        // default-combo pipeline.
+        enabled = defaultComboEngines.has(id);
+        break;
+    }
+    engines[id] = { enabled, ...(level !== undefined ? { level } : {}) };
+  }
+
+  // Last-resort defaultMode signal: if the legacy install only set defaultMode (no engine config),
+  // turn on the engine that mode actually ran so the derived default matches the old behavior.
+  const fallbackEngine = SINGLE_MODE_ENGINE[config.defaultMode];
+  if (fallbackEngine && engines[fallbackEngine] && !engines[fallbackEngine].enabled) {
+    engines[fallbackEngine] = { ...engines[fallbackEngine], enabled: true };
+  }
+
+  return engines;
+}
+
+// `aggressive` config doesn't carry a top-level `enabled` flag in its type, but legacy installs may
+// have stored one. Read it defensively for the derived engines map.
+function aggressiveEnabled(value: AggressiveConfig | undefined): boolean {
+  return toRecord(value).enabled === true;
+}
+
 export async function getCompressionSettings(): Promise<CompressionConfig> {
   const db = getDbInstance();
   if (
@@ -360,7 +517,14 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     stackedPipeline: normalizeStackedPipeline(undefined),
     aggressive: normalizeAggressiveConfig(undefined),
     ultra: normalizeUltraConfig(undefined),
+    contextEditing: { ...DEFAULT_CONTEXT_EDITING_CONFIG },
+    engines: {},
+    activeComboId: null,
   };
+
+  // Tracks whether a usable stored `engines` row was found. When absent (pre-migration-102 install)
+  // we derive the engines map from the legacy fields below so behavior is preserved.
+  let storedEngines: Record<string, EngineToggle> | null = null;
 
   for (const row of rows) {
     const record = toRecord(row);
@@ -440,8 +604,32 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "ultraConfig":
         config.ultra = normalizeUltraConfig(parsed);
         break;
+      case "contextEditing":
+        config.contextEditing = normalizeContextEditingConfig(parsed);
+        break;
+      case "engines":
+        storedEngines = parseStoredEnginesMap(parsed);
+        break;
+      case "activeComboId":
+        config.activeComboId =
+          typeof parsed === "string" && parsed.trim() ? parsed.trim() : null;
+        break;
     }
   }
+
+  // Engines map: prefer the stored row; otherwise derive from the legacy fields (migration 102
+  // backfill on the read path). Always fill EVERY id in ENGINE_IDS so the shape matches
+  // DEFAULT_COMPRESSION_CONFIG.
+  const derived = storedEngines ?? deriveEnginesMap(config);
+  const engines: Record<string, EngineToggle> = {};
+  for (const id of ENGINE_IDS) {
+    engines[id] = derived[id] ?? { enabled: false };
+  }
+  config.engines = engines;
+  // Runtime-only marker: dispatch trusts the engines map only when it was explicitly stored
+  // (panel-saved). A backfilled map (no stored row) is display-only — dispatch stays on the
+  // legacy defaultMode/default-combo path so existing installs keep their behaviour.
+  config.enginesExplicit = storedEngines !== null;
 
   // Store in TTL cache (5s expiry)
   compressionSettingsCache = {
@@ -464,6 +652,12 @@ export async function updateCompressionSettings(
   const tx = db.transaction(() => {
     for (const [key, value] of Object.entries(updates)) {
       if (value === undefined) continue;
+      // Persist the engines map as ONE sanitized JSON row so the read path always gets
+      // well-formed { enabled, level? } toggles for known engine ids.
+      if (key === "engines") {
+        insert.run(NAMESPACE, key, JSON.stringify(sanitizeEnginesForWrite(value)));
+        continue;
+      }
       insert.run(NAMESPACE, key, JSON.stringify(value));
     }
   });
@@ -475,49 +669,11 @@ export async function updateCompressionSettings(
   return getCompressionSettings();
 }
 
-export function getDefaultAggressiveConfig(): AggressiveConfig {
-  return {
-    ...DEFAULT_AGGRESSIVE_CONFIG,
-    thresholds: { ...DEFAULT_AGGRESSIVE_CONFIG.thresholds },
-    toolStrategies: { ...DEFAULT_AGGRESSIVE_CONFIG.toolStrategies },
-  };
-}
-
-export function getDefaultUltraConfig(): UltraConfig {
-  return { ...DEFAULT_ULTRA_CONFIG };
-}
-
-export function getDefaultRtkConfig(): RtkConfig {
-  return { ...DEFAULT_RTK_CONFIG };
-}
-
 function normalizeMcpAccessibilityConfig(value: unknown): McpAccessibilityConfig {
-  const record = toRecord(value);
-  return {
-    ...DEFAULT_MCP_ACCESSIBILITY_CONFIG,
-    ...record,
-    enabled: record.enabled !== false,
-    maxTextChars:
-      typeof record.maxTextChars === "number" && record.maxTextChars > 0
-        ? Math.floor(record.maxTextChars)
-        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.maxTextChars,
-    collapseThreshold:
-      typeof record.collapseThreshold === "number" && record.collapseThreshold > 0
-        ? Math.floor(record.collapseThreshold)
-        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.collapseThreshold,
-    collapseKeepHead:
-      typeof record.collapseKeepHead === "number" && record.collapseKeepHead >= 0
-        ? Math.floor(record.collapseKeepHead)
-        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.collapseKeepHead,
-    collapseKeepTail:
-      typeof record.collapseKeepTail === "number" && record.collapseKeepTail >= 0
-        ? Math.floor(record.collapseKeepTail)
-        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.collapseKeepTail,
-    minLengthToProcess:
-      typeof record.minLengthToProcess === "number" && record.minLengthToProcess > 0
-        ? Math.floor(record.minLengthToProcess)
-        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.minLengthToProcess,
-  };
+  // clampMcpAccessibilityConfig (engine layer) owns the numeric floors so the DB normalizer and
+  // the live MCP-server read path agree — in particular it floors maxTextChars to a sane minimum
+  // (a value below the tail reservation would make smartFilterText truncate the whole text away).
+  return clampMcpAccessibilityConfig(value);
 }
 
 export async function getMcpAccessibilityConfig(): Promise<McpAccessibilityConfig> {

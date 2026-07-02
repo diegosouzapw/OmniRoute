@@ -65,11 +65,15 @@ try {
 // Format: { [pageLabel]: maxAllowedViolations }
 // ---------------------------------------------------------------------------
 
+// Frozen from the first real nightly measurement (run 27852779527, REQUIRE_AXE=1,
+// wcag2a/2aa/21a/21aa). Each value is the actual `axeViolationCount` for that page —
+// existing violations are grandfathered; a NEW violation (count grows) fails the gate.
+// Lower a value (and re-run) whenever a violation is fixed.
 const VIOLATION_BASELINES: Record<string, number> = {
-  "/login": 0,
-  "/dashboard": 0,
-  "/dashboard/providers": 0,
-  "/dashboard/settings": 0,
+  "/login": 1,
+  "/dashboard": 4,
+  "/dashboard/providers": 3,
+  "/dashboard/settings": 5,
 };
 
 // ---------------------------------------------------------------------------
@@ -128,8 +132,17 @@ test.describe("A11y — Dashboard key surfaces (@axe-core, nightly advisory)", (
   // /login — public auth gate
   // -------------------------------------------------------------------------
   test("/login — axe wcag2a/wcag2aa violations must not exceed baseline", async ({ page }) => {
-    if (!AxeBuilder) {
-      test.skip(true, "@axe-core/playwright not installed");
+    if (!AxeBuilder || process.env.REQUIRE_AXE !== "1") {
+      // Nightly-only: the real axe analysis (~10–20 s/page) runs in the nightly job
+      // (REQUIRE_AXE=1), NOT in the per-PR e2e shards — a11y.spec.ts is matched by the
+      // per-PR `tests/e2e/*.spec.ts` glob, so without this gate installing the package
+      // would silently flip axe on for every PR (and fail at baseline 0).
+      test.skip(
+        true,
+        AxeBuilder
+          ? "axe analysis runs in the nightly job only (set REQUIRE_AXE=1)"
+          : "@axe-core/playwright not installed"
+      );
       return;
     }
 
@@ -151,8 +164,17 @@ test.describe("A11y — Dashboard key surfaces (@axe-core, nightly advisory)", (
   // /dashboard — main overview
   // -------------------------------------------------------------------------
   test("/dashboard — axe wcag2a/wcag2aa violations must not exceed baseline", async ({ page }) => {
-    if (!AxeBuilder) {
-      test.skip(true, "@axe-core/playwright not installed");
+    if (!AxeBuilder || process.env.REQUIRE_AXE !== "1") {
+      // Nightly-only: the real axe analysis (~10–20 s/page) runs in the nightly job
+      // (REQUIRE_AXE=1), NOT in the per-PR e2e shards — a11y.spec.ts is matched by the
+      // per-PR `tests/e2e/*.spec.ts` glob, so without this gate installing the package
+      // would silently flip axe on for every PR (and fail at baseline 0).
+      test.skip(
+        true,
+        AxeBuilder
+          ? "axe analysis runs in the nightly job only (set REQUIRE_AXE=1)"
+          : "@axe-core/playwright not installed"
+      );
       return;
     }
 
@@ -174,8 +196,17 @@ test.describe("A11y — Dashboard key surfaces (@axe-core, nightly advisory)", (
   test("/dashboard/providers — axe wcag2a/wcag2aa violations must not exceed baseline", async ({
     page,
   }) => {
-    if (!AxeBuilder) {
-      test.skip(true, "@axe-core/playwright not installed");
+    if (!AxeBuilder || process.env.REQUIRE_AXE !== "1") {
+      // Nightly-only: the real axe analysis (~10–20 s/page) runs in the nightly job
+      // (REQUIRE_AXE=1), NOT in the per-PR e2e shards — a11y.spec.ts is matched by the
+      // per-PR `tests/e2e/*.spec.ts` glob, so without this gate installing the package
+      // would silently flip axe on for every PR (and fail at baseline 0).
+      test.skip(
+        true,
+        AxeBuilder
+          ? "axe analysis runs in the nightly job only (set REQUIRE_AXE=1)"
+          : "@axe-core/playwright not installed"
+      );
       return;
     }
 
@@ -197,8 +228,17 @@ test.describe("A11y — Dashboard key surfaces (@axe-core, nightly advisory)", (
   test("/dashboard/settings — axe wcag2a/wcag2aa violations must not exceed baseline", async ({
     page,
   }) => {
-    if (!AxeBuilder) {
-      test.skip(true, "@axe-core/playwright not installed");
+    if (!AxeBuilder || process.env.REQUIRE_AXE !== "1") {
+      // Nightly-only: the real axe analysis (~10–20 s/page) runs in the nightly job
+      // (REQUIRE_AXE=1), NOT in the per-PR e2e shards — a11y.spec.ts is matched by the
+      // per-PR `tests/e2e/*.spec.ts` glob, so without this gate installing the package
+      // would silently flip axe on for every PR (and fail at baseline 0).
+      test.skip(
+        true,
+        AxeBuilder
+          ? "axe analysis runs in the nightly job only (set REQUIRE_AXE=1)"
+          : "@axe-core/playwright not installed"
+      );
       return;
     }
 

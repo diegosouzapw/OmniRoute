@@ -708,7 +708,14 @@ export function mapRawModelToModelV2(
   const outMods = new Set(raw.output_modalities ?? ["text"]);
 
   return {
-    id: raw.id,
+    // OC's static-catalog reader parses the key on `/` to recover
+    // `(providerID, modelID)`. If the raw id is already provider-prefixed
+    // (e.g. `cc/claude-opus-4-7` from the `cc` Claude Code alias, or
+    // `nvidia/llama-3-70b` from a provider that ships prefixed ids), leave
+    // it as-is — double-prefixing breaks OC's lookup. Otherwise prefix with
+    // the resolved `providerId` so a bare key like `claude-opus-4` parses as
+    // `(omniroute, claude-opus-4)` and the credentials resolve correctly.
+    id: raw.id.includes("/") ? raw.id : `${ctx.providerId}/${raw.id}`,
     /**
      * Display name. Falls back to raw.id when no enrichment is available;
      * the caller (`createOmniRouteProviderHook`) overlays
@@ -1166,6 +1173,10 @@ export function mapAutoComboToStaticEntry(
     typeof autoCombo.max_output_tokens === "number" && autoCombo.max_output_tokens > 0
       ? autoCombo.max_output_tokens
       : AUTO_COMBO_FALLBACK_OUTPUT;
+  // No `providerID` field on static-catalog entries — OC ignores it on the static
+  // path, and stamping it on auto-combos but not on raw/combo entries was an
+  // internal inconsistency. The dynamic-hook path builds its ModelV2 from the
+  // individual fields below and never read this field either.
   return {
     name,
     attachment: false,
@@ -2248,26 +2259,38 @@ export function slugifyComboName(name: string): string {
 }
 
 /**
- * Build a combo's static-block key (`combo/<slug>`), guaranteeing uniqueness
- * across an entire static catalog. If `<slug>` is already present in `used`,
- * suffixes a short UUID-prefix disambiguator from `combo.id` so the second
- * combo doesn't silently overwrite the first. Mutates `used` in place by
- * recording the chosen key. Returns the final `combo/<...>` key.
+ * Build a combo's static-block key, provider-prefixed as `<providerId>/<slug>`
+ * (e.g. `omniroute/MASTER`, `omniroute/MASTER-LIGHT`), guaranteeing uniqueness
+ * across an entire static catalog. If `<providerId>/<slug>` is already present in
+ * `used`, suffixes a short UUID-prefix disambiguator from `combo.id` so the second
+ * combo doesn't silently overwrite the first. Mutates `used` in place by recording
+ * the chosen key. Returns the final `<providerId>/<slug>` key.
  *
- * Falls back to `combo/<id>` when the friendly name slugifies to the empty
+ * NOTE: the key MUST carry the OWNING provider prefix (`omniroute/…`), never a
+ * `combo/` namespace — OpenCode parses model IDs on `/` to extract the provider,
+ * so `combo/MASTER` would resolve provider=`combo` (no credentials) and fail with
+ * "Unable to determine provider", whereas `omniroute/MASTER` resolves provider=
+ * `omniroute` and the openai-compatible adapter strips the prefix and sends the
+ * bare slug upstream, which the server resolves via getComboByName. See PR #4184.
+ *
+ * Falls back to `<providerId>/<id>` when the friendly name slugifies to the empty
  * string (e.g. a combo named just punctuation).
  */
-export function buildComboKey(combo: OmniRouteRawCombo, used: Set<string>): string {
+export function buildComboKey(
+  combo: OmniRouteRawCombo,
+  used: Set<string>,
+  providerId: string
+): string {
   const friendlyName = combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
   let slug = slugifyComboName(friendlyName);
   if (slug.length === 0) slug = combo.id;
-  let key = `combo/${slug}`;
+  let key = `${providerId}/${slug}`;
   if (used.has(key)) {
     const tail = combo.id.split("-")[0] ?? combo.id;
-    key = `combo/${slug}-${tail}`;
+    key = `${providerId}/${slug}-${tail}`;
     // Defensive: in the (impossible) event the disambiguated key also
     // collides, append the full id.
-    if (used.has(key)) key = `combo/${slug}-${combo.id}`;
+    if (used.has(key)) key = `${providerId}/${slug}-${combo.id}`;
   }
   used.add(key);
   return key;
@@ -2651,7 +2674,12 @@ export function createOmniRouteProviderHook(
           );
           applyProviderTag(model, tagEntry);
         }
-        models[entry.id] = model;
+        // OC's static-catalog reader parses the key on `/` to recover
+        // (providerID, modelID). `mapRawModelToModelV2` already stamps the
+        // prefixed id on `model.id` (e.g. `omniroute/claude-primary`), so we
+        // must key by `model.id` — not by the raw `entry.id` which would be
+        // a bare slug and parse as `providerID=slug, modelID=""`.
+        models[model.id] = model;
       }
 
       // Default compression combo (used to decorate ALL combo names when
@@ -2801,18 +2829,6 @@ export function createOmniRouteProviderHook(
           // models with curated names).
           applyEnrichment(mapped, rawEnrichment.get(combo.id));
 
-          // `Combo: ` prefix surfaces the combo nature in OC's model picker.
-          // Idempotent guard covers the case where enrichment overwrote
-          // mapped.name with an already-prefixed string. Mirrors the
-          // static-hook Combo:-prefix decoration.
-          if (!mapped.name.startsWith("Combo: ")) {
-            mapped.name = `Combo: ${mapped.name}`;
-          }
-
-          // Optionally decorate combo name with its compression pipeline.
-          // Only fires when features.compressionMetadata: true, OmniRoute
-          // returned at least one default compression combo, AND the
-          // combo has resolvable members — claiming compression on an
           // unroutable combo would mislead the picker.
           if (hasMembers && defaultCompression && defaultCompression.pipeline.length > 0) {
             const tag = formatCompressionPipeline(defaultCompression.pipeline);
@@ -2821,18 +2837,37 @@ export function createOmniRouteProviderHook(
             }
           }
 
-          const comboKey = buildComboKey(combo, usedComboKeys);
+          const comboKey = buildComboKey(combo, usedComboKeys, resolved.providerId);
 
           // Collision policy: combos win. Warn ONCE per (cacheKey, comboKey)
           // when overwriting a same-key raw model so the operator can spot
-          // the unusual naming choice without log spam.
+          // the unusual naming choice without log spam. Suppress the warning
+          // when the collision is the intentional dedup pattern (combo.name
+          // exactly matches an existing raw model's id) — /v1/models
+          // pre-mirrors combos as raw entries and the operator's intent is
+          // always "combo wins" in that case.
           if (Object.prototype.hasOwnProperty.call(models, comboKey)) {
-            const dedupeKey = `${cacheKey}::${comboKey}`;
-            if (!collisionWarned.has(dedupeKey)) {
-              collisionWarned.add(dedupeKey);
-              console.warn(
-                `[omniroute-plugin] combo key "${comboKey}" collides with a model id; combo wins.`
-              );
+            const existing = models[comboKey];
+            // Intentional dedup: `/v1/models` pre-mirrors combos as raw
+            // entries, so the bare combo name appears as the model id in
+            // `rawModels`. After our prefixing the existing entry's id is
+            // `${providerId}/${raw.id}` — the combo name is a substring of
+            // that prefixed id (or, for already-prefixed raw models, the
+            // exact id). Use `endsWith` to avoid matching substrings of
+            // unrelated prefixed ids.
+            const isIntentionalDedup =
+              existing &&
+              combo.name &&
+              combo.name.trim().length > 0 &&
+              (existing.id === combo.name.trim() || existing.id.endsWith(`/${combo.name.trim()}`));
+            if (!isIntentionalDedup) {
+              const dedupeKey = `${cacheKey}::${comboKey}`;
+              if (!collisionWarned.has(dedupeKey)) {
+                collisionWarned.add(dedupeKey);
+                console.warn(
+                  `[omniroute-plugin] combo key "${comboKey}" collides with a model id; combo wins.`
+                );
+              }
             }
           }
           models[comboKey] = mapped;
@@ -3346,8 +3381,18 @@ function normaliseModalities(raw: unknown): OmniRouteModalityKind[] {
 }
 
 export interface OmniRouteStaticModelEntry {
+  /** Owning provider id. SHOULD match the parent `provider.<id>` key so OC's
+   * static-catalog reader resolves credentials via `providerID` instead of
+   * parsing the model key on `/`. Optional: OC's schema validator may
+   * reject the entire provider block when this field is present but the
+   * model KEY already carries the provider prefix (e.g. `omniroute/MASTER`),
+   * since the prefix makes the field redundant and the field is not part of
+   * OC's expected schema. We omit it from entries and rely on the prefix
+   * on the KEY alone. See PR #4184. */
+  providerID?: string;
   /** Display label rendered in OC's model picker. Defaults to the model id. */
   name: string;
+
   /** ISO date the model was released. Surfaces in OC's model card when present. */
   release_date?: string;
   /** Model accepts image / file attachments. */
@@ -3545,6 +3590,12 @@ export function buildStaticProviderEntry(
         if (!displayName.startsWith(prefix)) displayName = `${prefix}${displayName}`;
       }
     }
+    // OC's static-catalog schema doesn't expect a `providerID` field on
+    // individual entries — the parent block ID is the provider. Adding
+    // unknown fields here can cause OC's schema validator to reject the
+    // entire provider block, hiding ALL models. The provider prefix on the
+    // model KEY (e.g. `omniroute/claude-opus-4`) is what OC uses to recover
+    // (providerID, modelID) when the user selects a model.
     const entry: OmniRouteStaticModelEntry = { name: displayName };
 
     const attachment = caps.attachment ?? caps.vision;
@@ -3608,7 +3659,12 @@ export function buildStaticProviderEntry(
       entry.release_date = raw.release_date;
     }
 
-    models[raw.id] = entry;
+    // OC's static-catalog reader parses each key on `/` and rejects the
+    // entire provider block if ANY key resolves to a parsed providerID that
+    // has no corresponding provider block. So bare keys (no `/`) MUST be
+    // prefixed with the resolved providerId. Already-prefixed keys
+    // (e.g. `cc/claude-opus-4-7`) are left as-is to avoid double-prefixing.
+    models[raw.id.includes("/") ? raw.id : `${opts.providerId}/${raw.id}`] = entry;
   }
 
   // Combo entries → stripped LCD shape. Each combo is keyed as
@@ -3717,12 +3773,11 @@ export function buildStaticProviderEntry(
       const hasMembers = memberEntries.length > 0;
       const friendlyName =
         combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
-      // `Combo: ` prefix surfaces the combo nature in OC's model picker — the
-      // catalog key (`combo/<slug>`) is already namespaced, but the picker
-      // shows `name`, so prefix the display string too.
-      const prefixedName = `Combo: ${friendlyName}`;
       const displayName =
-        hasMembers && compressionSuffix ? `${prefixedName}${compressionSuffix}` : prefixedName;
+        hasMembers && compressionSuffix ? `${friendlyName} ${compressionSuffix}` : friendlyName;
+      // See the raw-model entry comment above — `providerID` on entries is
+      // not part of OC's static-catalog schema; the parent block ID is the
+      // provider and the KEY prefix (`omniroute/<slug>`) is what OC parses.
       const entry: OmniRouteStaticModelEntry = { name: displayName };
 
       if (hasMembers) {
@@ -3790,12 +3845,12 @@ export function buildStaticProviderEntry(
         entry.tool_call = false;
       }
 
-      // Key under `combo/<slug>` (e.g. `combo/claude-primary`) so the
-      // namespace cleanly separates combos from raw provider/model pairs
-      // and so the key is copy/paste-friendly. Slug collisions across
+      // Key under bare slug (e.g. `claude-primary`) — no `combo/` prefix
+      // because OpenCode parses model IDs on `/` and would treat
+      // `combo/MASTER` as provider=`combo`. Slug collisions across
       // combos are disambiguated with a short UUID-prefix suffix; see
       // `buildComboKey` for the policy.
-      models[buildComboKey(combo, usedComboKeys)] = entry;
+      models[buildComboKey(combo, usedComboKeys, opts.providerId)] = entry;
 
       // Make this combo's resolved entry available to parent combos
       // that reference it via combo-ref. Use the friendly name since

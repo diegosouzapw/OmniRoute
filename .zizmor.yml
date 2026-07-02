@@ -71,3 +71,34 @@ rules:
     # Accepted risk, re-review at the next release cycle (added 2026-06-15).
     ignore:
       - deploy-vps.yml
+
+  cache-poisoning:
+    # zizmor's cache-poisoning audit flags `actions/setup-node` (cache: npm) and
+    # `actions/cache` steps that populate a cache which a later artifact-publishing
+    # job could consume — the attack is: a fork PR seeds a poisoned cache that a
+    # trusted publish run then restores and ships. None of the four entries below
+    # are exploitable in that way:
+    #
+    #   • electron-release.yml / npm-publish.yml — PUBLISH workflows that trigger
+    #     ONLY on trusted events: `push: tags v*` + `workflow_dispatch` (electron)
+    #     and `release: [released]` + `workflow_dispatch` + `workflow_call`
+    #     (npm). They NEVER run on a `pull_request` from a fork, so an untrusted
+    #     ref can never populate the npm/node_modules cache they restore. The
+    #     cache key is `hashFiles('package-lock.json')` / `runner.os-node-…`, a
+    #     first-party, lockfile-pinned key on trusted events.
+    #
+    #   • opencode-plugin-ci.yml / opencode-provider-ci.yml — CI-only workflows
+    #     (lint/test of the two opencode packages). They DO run on `pull_request`,
+    #     but (a) they publish NO artifacts — there is no downstream publish job
+    #     that restores their cache, and (b) GitHub Actions cache is branch-scoped:
+    #     a fork-PR run writes to a PR-isolated cache that base-branch / release
+    #     runs cannot read. The `cache: npm` here only speeds up `npm ci` within
+    #     the same ephemeral CI run.
+    #
+    # Accepted risk (first-party caching on trusted/isolated events), re-review at
+    # the next release cycle (added 2026-06-16).
+    ignore:
+      - electron-release.yml
+      - npm-publish.yml
+      - opencode-plugin-ci.yml
+      - opencode-provider-ci.yml

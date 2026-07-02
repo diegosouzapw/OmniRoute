@@ -131,7 +131,60 @@ describe("CompressionHub", () => {
     // Inactive engines from the catalog render too
     expect(text).toContain("Caveman");
     // Active-pipeline callout shows when enabled && stacked
-    expect(text).toContain("Pipeline de camadas ativo");
+    expect(text).toContain("Layer pipeline is active");
+  });
+
+  it("INVARIANT #1: no per-layer control issues a PUT/POST to /api/context/combos/default", { timeout: 20000 }, async () => {
+    const comboWrites: { method: string }[] = [];
+    const json = (body: unknown, status = 200) =>
+      new Response(JSON.stringify(body), {
+        status,
+        headers: { "Content-Type": "application/json" },
+      });
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input.toString();
+        if (url.includes("/api/context/combos/default")) {
+          if (init?.method === "PUT" || init?.method === "POST") {
+            comboWrites.push({ method: init.method });
+          }
+          return json({ id: "default", name: "Default", pipeline: [{ engine: "rtk" }] });
+        }
+        if (url.includes("/api/settings/compression")) {
+          return json({ enabled: true, defaultMode: "stacked" });
+        }
+        if (url.includes("/api/compression/engines")) {
+          return json(enginePayload());
+        }
+        if (url.includes("/api/context/combos") || url.includes("/api/combos")) {
+          return json({ combos: [] });
+        }
+        if (url.includes("/api/compression/language-packs")) {
+          return json({ packs: [] });
+        }
+        return json({}, 404);
+      }
+    );
+
+    const { default: CompressionHub } =
+      await import("../../../src/app/(dashboard)/dashboard/context/combos/CompressionHub");
+
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<CompressionHub />);
+    });
+    await flush();
+
+    // Click every on/off switch in the Hub (master + any layer controls that remain).
+    const switches = Array.from(container.querySelectorAll('[role="switch"]'));
+    for (const sw of switches) {
+      await act(async () => {
+        (sw as HTMLElement).click();
+      });
+      await flush();
+    }
+
+    expect(comboWrites).toHaveLength(0);
   });
 
   it("shows the activation warning when Token Saver is off", async () => {
@@ -146,17 +199,16 @@ describe("CompressionHub", () => {
     await flush();
 
     const text = container.textContent ?? "";
-    expect(text).toContain("Ligar Token Saver");
-    expect(text).toContain("só rodam no modo Stacked");
+    expect(text).toContain("Enable Token Saver");
+    expect(text).toContain("only run in Stacked mode");
   });
 });
 
 describe("CompressionCombosPageClient", () => {
   it("renders the Hub on top and the named-combos manager below", async () => {
     setupFetchMock({ enabled: true, mode: "stacked", pipeline: [{ engine: "rtk" }] });
-    const { default: CompressionCombosPageClient } = await import(
-      "../../../src/app/(dashboard)/dashboard/context/combos/CompressionCombosPageClient"
-    );
+    const { default: CompressionCombosPageClient } =
+      await import("../../../src/app/(dashboard)/dashboard/context/combos/CompressionCombosPageClient");
 
     let container!: HTMLElement;
     await act(async () => {
@@ -166,6 +218,6 @@ describe("CompressionCombosPageClient", () => {
 
     const text = container.textContent ?? "";
     expect(text).toContain("Compression Hub");
-    expect(text).toContain("Combos nomeados");
+    expect(text).toContain("Named combos");
   });
 });

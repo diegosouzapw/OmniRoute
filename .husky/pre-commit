@@ -10,3 +10,4 @@ fi
 npx lint-staged
 node scripts/check/check-docs-sync.mjs
 npm run check:any-budget:t11
+node scripts/check/check-tracked-artifacts.mjs

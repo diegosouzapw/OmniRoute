@@ -61,12 +61,13 @@ test("permissions modal switch buttons declare button type", () => {
     selfServiceBlock.match(/<button\s+type="button"\s+role="switch"/g) ?? []
   ).length;
 
-  // Self-service Visibility block has 3 switches: own-usage visibility,
-  // shared-account quota visibility, and disable-non-public-models (#3041).
+  // Self-service Visibility block has 4 switches: own-usage visibility,
+  // shared-account quota visibility, disable-non-public-models (#3041), and the
+  // per-key local usage command allowance (#4034).
   // The invariant is that every switch declares type="button"
   // (typedSwitchButtonCount === switchButtonCount) to avoid implicit submit.
-  assert.equal(switchButtonCount, 3);
-  assert.equal(typedSwitchButtonCount, 3);
+  assert.equal(switchButtonCount, 4);
+  assert.equal(typedSwitchButtonCount, 4);
 });
 
 test("permissions modal exposes Claude Code default wildcard model", () => {

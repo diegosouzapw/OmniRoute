@@ -195,8 +195,7 @@ function BatchRowActions({
 
   const isTerminal = ["completed", "failed", "cancelled", "expired"].includes(batch.status);
   const canCancel = ["validating", "in_progress", "finalizing"].includes(batch.status);
-  const canRetry =
-    isTerminal && !!batch.errorFileId && (batch.requestCountsFailed ?? 0) > 0;
+  const canRetry = isTerminal && !!batch.errorFileId && (batch.requestCountsFailed ?? 0) > 0;
 
   return (
     <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
@@ -248,11 +247,7 @@ function BatchRowActions({
       {canRetry && (
         <button
           onClick={async () => {
-            if (
-              window.confirm(
-                t("batchActionRetryConfirm", { n: batch.requestCountsFailed }),
-              )
-            ) {
+            if (window.confirm(t("batchActionRetryConfirm", { n: batch.requestCountsFailed }))) {
               await actions.retry({
                 id: batch.id,
                 inputFileId: batch.inputFileId,
@@ -285,7 +280,7 @@ function BatchRowActions({
                 console.error(
                   "[BatchRowActions] DELETE returned non-ok status",
                   batch.id,
-                  res.status,
+                  res.status
                 );
               }
             } catch (err) {
@@ -336,7 +331,7 @@ export default function BatchListTab({
         console.error(
           "[BatchListTab] DELETE /batches/delete-completed returned",
           res.status,
-          await res.text().catch(() => ""),
+          await res.text().catch(() => "")
         );
       }
     } catch (err) {
@@ -363,9 +358,7 @@ export default function BatchListTab({
       {/* Filters */}
       <div className="flex flex-wrap gap-3 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
         <span className="text-sm text-[var(--color-text-muted)] self-center">
-          {batchesTotal
-            ? t("batchListCount", { count: batchesTotal })
-            : t("batchListTitle")}
+          {batchesTotal ? t("batchListCount", { count: batchesTotal }) : t("batchListTitle")}
         </span>
         <input
           type="text"
@@ -402,7 +395,7 @@ export default function BatchListTab({
       </div>
 
       {/* Table — 9 columns: Status | ID | Endpoint | Model | Progress | Cost | Created | Expires | Actions */}
-      <div className="overflow-x-auto overflow-y-hidden rounded-xl border border-[var(--color-border)]">
+      <div className="overflow-x-auto overflow-y-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]">
         <table className="w-full text-sm" role="table" aria-label={t("batchListBatchesTable")}>
           <thead>
             <tr className="bg-[var(--color-bg-alt)] border-b border-[var(--color-border)]">
@@ -509,7 +502,9 @@ export default function BatchListTab({
                     <td className="px-4 py-3 min-w-[140px]">
                       {batch.status === "validating" ? (
                         <div className="flex items-center gap-2 text-xs text-yellow-400">
-                          <span className="material-symbols-outlined text-[14px] animate-spin">hourglass_top</span>
+                          <span className="material-symbols-outlined text-[14px] animate-spin">
+                            hourglass_top
+                          </span>
                           {t("batchListValidating")}
                         </div>
                       ) : total > 0 ? (

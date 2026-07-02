@@ -53,8 +53,6 @@ const ENGINE_ID = "ccr";
 const DEFAULT_MIN_CHARS = 600;
 /** Number of retrievals before a block is flagged "do-not-compress" for that principal. */
 const RETRIEVAL_THRESHOLD = 3;
-/** Regex to match CCR markers for reconstruction. */
-const MARKER_RE = /\[CCR retrieve hash=([0-9a-f]{24}) chars=\d+\]/g;
 /**
  * Maximum number of entries in each bounded store.
  * When inserting beyond this cap, the oldest entry (Map insertion order) is evicted.
@@ -304,60 +302,6 @@ function validateCcrConfig(config: Record<string, unknown>): EngineValidationRes
     }
   }
   return { valid: errors.length === 0, errors };
-}
-
-// ─── reconstruction helper ────────────────────────────────────────────────────
-
-/**
- * Reconstruct a body by replacing all `[CCR retrieve hash=<24hex> chars=N]`
- * markers with the stored verbatim blocks for the given principal.
- *
- * Returns a new body object with markers restored to their original text.
- * Markers that do not belong to the given principal remain unchanged.
- */
-export function reconstructCcr(
-  body: Record<string, unknown>,
-  principalId?: string
-): Record<string, unknown> {
-  const messages = body["messages"];
-  if (!Array.isArray(messages)) return body;
-
-  type MsgLike = {
-    role?: string;
-    content?: string | Array<Record<string, unknown>>;
-    [key: string]: unknown;
-  };
-
-  const restored = (messages as MsgLike[]).map((msg) => {
-    const content = msg["content"];
-
-    if (typeof content === "string") {
-      const reconstructed = content.replace(MARKER_RE, (_m, hash: string) => {
-        return retrieveBlock(hash, principalId) ?? _m;
-      });
-      return reconstructed !== content ? { ...msg, content: reconstructed } : { ...msg };
-    }
-
-    if (Array.isArray(content)) {
-      let changed = false;
-      const newContent = content.map((part) => {
-        if (part["type"] !== "text" || typeof part["text"] !== "string") return part;
-        const reconstructed = (part["text"] as string).replace(MARKER_RE, (_m, hash: string) => {
-          return retrieveBlock(hash, principalId) ?? _m;
-        });
-        if (reconstructed !== part["text"]) {
-          changed = true;
-          return { ...part, text: reconstructed };
-        }
-        return part;
-      });
-      return changed ? { ...msg, content: newContent } : { ...msg };
-    }
-
-    return { ...msg };
-  });
-
-  return { ...body, messages: restored };
 }
 
 // ─── engine export ────────────────────────────────────────────────────────────

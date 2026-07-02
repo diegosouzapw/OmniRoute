@@ -29,8 +29,10 @@
 ## Phase 1: User-Facing Quick Start Docs (Highest Impact)
 
 ### 1.1 `docs/guides/QUICK-START.md` — NEW
+
 **Replaces**: Condensed version of README.md
 **Content**:
+
 - Install (npm, Docker, source)
 - Connect a free provider (3 steps)
 - Point your IDE to OmniRoute
@@ -38,8 +40,10 @@
 - "What's next?" → link to other guides
 
 ### 1.2 `docs/guides/AUTO-COMBO-GUIDE.md` — NEW
+
 **Complements**: `docs/routing/AUTO-COMBO.md`
 **Content**:
+
 - What auto-combo does (30-second version)
 - Which `auto` should I use? (table)
 - How it picks providers (simple version)
@@ -47,8 +51,10 @@
 - "Learn more" → link to technical reference
 
 ### 1.3 `docs/guides/PROVIDERS-GUIDE.md` — NEW
+
 **Complements**: `docs/reference/PROVIDER_REFERENCE.md`
 **Content**:
+
 - What is a provider? (analogy)
 - How to connect a provider (step-by-step)
 - Free vs paid providers (table)
@@ -57,8 +63,10 @@
 - "Learn more" → link to provider reference
 
 ### 1.4 `docs/guides/FREE-TIERS-GUIDE.md` — NEW
+
 **Complements**: `docs/reference/FREE_TIERS.md`
 **Content**:
+
 - What are free tiers? (analogy)
 - Best free providers (table with quotas)
 - How to stack free tiers for unlimited usage
@@ -66,9 +74,11 @@
 - "Learn more" → link to free tiers reference
 
 ### 1.5 `docs/guides/TROUBLESHOOTING.md` — REWRITE
+
 **Current**: Technical, code-heavy
 **New**: "I see X → Do Y" format
 **Content**:
+
 - Problem → Solution table
 - Common error messages (with screenshots)
 - "Still stuck?" → link to community
@@ -78,64 +88,84 @@
 ## Phase 2: Refine Existing User Docs
 
 ### 2.1 `docs/guides/USER_GUIDE.md` — UPDATE
+
 **Changes**:
+
 - Add "What you'll learn" section at top
 - Remove jargon, explain terms
 - Add step-by-step screenshots
 - Add "Common mistakes" section
 
 ### 2.2 `docs/guides/SETUP_GUIDE.md` — UPDATE
+
 **Changes**:
+
 - Add "Prerequisites" section
 - Simplify commands (one-liners)
 - Add "Verify it works" step
 - Add "Troubleshooting" section
 
 ### 2.3 `docs/guides/FEATURES.md` — UPDATE
+
 **Changes**:
+
 - Add "Why this matters" for each feature
 - Add use-case examples
 - Add "How to enable" for each feature
 - Add screenshots
 
 ### 2.4 `docs/guides/DOCKER_GUIDE.md` — UPDATE
+
 **Changes**:
+
 - Add "Docker for beginners" section
 - Simplify commands
 - Add "Common Docker issues" section
 - Add "What's next?" section
 
 ### 2.5 `docs/guides/ELECTRON_GUIDE.md` — UPDATE
+
 **Changes**:
+
 - Add "What is Electron?" explanation
 - Add screenshots
 - Add "Common issues" section
 
 ### 2.6 `docs/guides/TERMUX_GUIDE.md` — UPDATE
+
 **Changes**:
+
 - Add "What is Termux?" explanation
 - Add step-by-step with screenshots
 - Add "Common issues" section
 
 ### 2.7 `docs/guides/PWA_GUIDE.md` — UPDATE
+
 **Changes**:
+
 - Add "What is a PWA?" explanation
 - Add step-by-step with screenshots
 - Add "Common issues" section
 
 ### 2.8 `docs/guides/I18N.md` — UPDATE
+
 **Changes**:
+
 - Add "How to change language" (user perspective)
 - Add "How to contribute translations" (contributor perspective)
 
 ### 2.9 `docs/guides/KIRO_SETUP.md` — UPDATE
+
 **Changes**:
+
 - Add "What is Kiro?" explanation
 - Add step-by-step with screenshots
 - Add "Common issues" section
 
 ### 2.10 `docs/guides/UNINSTALL.md` — UPDATE
+
 **Changes**:
+
 - Add "Why uninstall?" section (common reasons)
 - Add "Before you uninstall" checklist
 - Simplify commands
@@ -145,7 +175,9 @@
 ## Phase 3: Technical Docs (Add Cross-Links, Keep As-Is)
 
 ### 3.1 `docs/architecture/` (6 files)
+
 **Changes**: Add "For Users" callout at top → link to user guide
+
 - ARCHITECTURE.md
 - AUTHZ_GUIDE.md
 - CODEBASE_DOCUMENTATION.md
@@ -154,7 +186,9 @@
 - RESILIENCE_GUIDE.md
 
 ### 3.2 `docs/frameworks/` (16 files)
+
 **Changes**: Add "For Users" callout at top → link to user guide
+
 - A2A-SERVER.md
 - AGENT-SKILLS.md
 - AGENTBRIDGE.md
@@ -173,7 +207,9 @@
 - WEBHOOKS.md
 
 ### 3.3 `docs/security/` (9 files)
+
 **Changes**: Add "For Users" callout at top → link to user guide
+
 - CLI_TOKEN.md
 - CLI_TOKEN_AUTH.md
 - COMPLIANCE.md
@@ -185,7 +221,9 @@
 - STEALTH_GUIDE.md
 
 ### 3.4 `docs/ops/` (8 files)
+
 **Changes**: Add "For Users" callout at top → link to user guide
+
 - COVERAGE_PLAN.md
 - E2E_DASHBOARD_SHAKEDOWN_v3.8.0.md
 - FLY_IO_DEPLOYMENT_GUIDE.md
@@ -196,7 +234,9 @@
 - VM_DEPLOYMENT_GUIDE.md
 
 ### 3.5 `docs/compression/` (5 files)
+
 **Changes**: Add "For Users" callout at top → link to user guide
+
 - COMPRESSION_ENGINES.md
 - COMPRESSION_GUIDE.md
 - COMPRESSION_LANGUAGE_PACKS.md
@@ -204,13 +244,17 @@
 - RTK_COMPRESSION.md
 
 ### 3.6 `docs/routing/` (3 files)
+
 **Changes**: Add "For Users" callout at top → link to user guide
+
 - AUTO-COMBO.md (→ link to AUTO-COMBO-GUIDE.md)
 - QUOTA_SHARE.md
 - REASONING_REPLAY.md
 
 ### 3.7 `docs/reference/` (5 files)
+
 **Changes**: Add "For Users" callout at top → link to user guide
+
 - API_REFERENCE.md
 - CLI-TOOLS.md
 - ENVIRONMENT.md
@@ -218,6 +262,7 @@
 - PROVIDER_REFERENCE.md (→ link to PROVIDERS-GUIDE.md)
 
 ### 3.8 Other Docs (keep as-is)
+
 - `docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md` — Already user-friendly
 - `docs/marketing/TIERS.md` — Already user-friendly
 - `docs/diagrams/README.md` — Keep as-is
@@ -239,6 +284,7 @@
 ## Phase 4: Update Main README.md
 
 **Changes**:
+
 - Add "Quick Start" section (3 steps)
 - Add "Which `auto` should I use?" table
 - Add "Free providers" table
@@ -250,6 +296,7 @@
 ## Execution Order
 
 ### Week 1: Phase 1 (User-Facing Quick Start Docs)
+
 1. `docs/guides/QUICK-START.md` — NEW
 2. `docs/guides/AUTO-COMBO-GUIDE.md` — NEW
 3. `docs/guides/PROVIDERS-GUIDE.md` — NEW
@@ -257,6 +304,7 @@
 5. `docs/guides/TROUBLESHOOTING.md` — REWRITE
 
 ### Week 2: Phase 2 (Refine Existing User Docs)
+
 1. `docs/guides/USER_GUIDE.md` — UPDATE
 2. `docs/guides/SETUP_GUIDE.md` — UPDATE
 3. `docs/guides/FEATURES.md` — UPDATE
@@ -269,6 +317,7 @@
 10. `docs/guides/UNINSTALL.md` — UPDATE
 
 ### Week 3: Phase 3 (Technical Docs Cross-Links)
+
 1. `docs/architecture/` — Add cross-links
 2. `docs/frameworks/` — Add cross-links
 3. `docs/security/` — Add cross-links
@@ -278,6 +327,7 @@
 7. `docs/reference/` — Add cross-links
 
 ### Week 4: Phase 4 (Update Main README.md)
+
 1. Update README.md with user-friendly sections
 
 ---
@@ -308,18 +358,23 @@
 # [Feature Name]: [One-Line Description]
 
 ## What It Does
+
 [2-3 sentences explaining what the feature does in plain language]
 
 ## Quick Start
+
 [Step-by-step instructions to get started]
 
 ## [Main Section]
+
 [Detailed explanation with tables, examples, screenshots]
 
 ## Common Questions
+
 [FAQ section with common questions and answers]
 
 ## What's Next?
+
 [Links to related guides and technical docs]
 ```
 

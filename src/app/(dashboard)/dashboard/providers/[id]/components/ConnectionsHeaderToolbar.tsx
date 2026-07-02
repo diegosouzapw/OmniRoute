@@ -102,9 +102,7 @@ export default function ConnectionsHeaderToolbar({
               "Route bare claude-* model IDs from Claude Code clients through the Claude Code account instead of asking for a provider prefix."
             )}
           >
-            <span className="material-symbols-outlined text-[14px] text-orange-500">
-              alt_route
-            </span>
+            <span className="material-symbols-outlined text-[14px] text-orange-500">alt_route</span>
             <span>
               {providerText(
                 t,
@@ -162,9 +160,7 @@ export default function ConnectionsHeaderToolbar({
               "Set a global Codex service mode, or leave accounts on their individual service-tier setting."
             )}
           >
-            <span>
-              {providerText(t, "providerDetailServiceModeLabel", "Global service mode:")}
-            </span>
+            <span>{providerText(t, "providerDetailServiceModeLabel", "Global service mode:")}</span>
             <select
               value={codexGlobalServiceMode}
               onChange={(event) =>
@@ -223,7 +219,9 @@ export default function ConnectionsHeaderToolbar({
       <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
         {connections.length > 0 && (
           <DistributeProxiesButton
-            onDistribute={async () => { await handleDistributeProxies(); }}
+            onDistribute={async () => {
+              await handleDistributeProxies();
+            }}
             disabled={batchTesting || !!retestingId}
           />
         )}
@@ -272,11 +270,7 @@ export default function ConnectionsHeaderToolbar({
               </>
             ) : (
               <>
-                <Button
-                  size="sm"
-                  icon="add"
-                  onClick={() => gateConnectionFlow(openPrimaryAddFlow)}
-                >
+                <Button size="sm" icon="add" onClick={() => gateConnectionFlow(openPrimaryAddFlow)}>
                   {providerSupportsPat ? "Add PAT" : t("add")}
                 </Button>
                 {providerId === "qoder" && (
@@ -295,7 +289,7 @@ export default function ConnectionsHeaderToolbar({
                     icon="menu_book"
                     onClick={() => onOpenCodexCliGuide()}
                   >
-                    Codex CLI Guide
+                    {providerText(t, "codexCliGuideButton", "Codex CLI Guide")}
                   </Button>
                 )}
                 {providerId === "codex" && (
@@ -305,7 +299,7 @@ export default function ConnectionsHeaderToolbar({
                     icon="share"
                     onClick={() => gateConnectionFlow(openExternalLinkFlow)}
                   >
-                    Adicionar Externo
+                    {providerText(t, "codexExternalLinkButton", "External Codex link")}
                   </Button>
                 )}
                 {providerId === "codex" && (
@@ -349,11 +343,7 @@ export default function ConnectionsHeaderToolbar({
           </>
         ) : (
           connections.length === 0 && (
-            <Button
-              size="sm"
-              icon="add"
-              onClick={() => gateConnectionFlow(openApiKeyAddFlow)}
-            >
+            <Button size="sm" icon="add" onClick={() => gateConnectionFlow(openApiKeyAddFlow)}>
               {t("add")}
             </Button>
           )

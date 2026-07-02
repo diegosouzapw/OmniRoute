@@ -83,6 +83,15 @@ const NATIVE_ASSET_ENTRIES = [
     src: ["node_modules", "better-sqlite3", "build"],
     dest: ["node_modules", "better-sqlite3", "build"],
   },
+  {
+    // TPROXY IP_TRANSPARENT addon (Fase 3 / Epic A). Built by build-tproxy-native
+    // before assembly; Linux-only + opt-in, so the source is absent on non-Linux
+    // builds → syncNativeAssetsToDir skips it gracefully. The runtime loader
+    // (transparentSocket.ts) resolves it cwd-relative to this same dest.
+    label: "TPROXY transparent-socket addon (Linux-only, opt-in)",
+    src: ["src", "mitm", "tproxy", "native", "build", "Release", "transparent.node"],
+    dest: ["src", "mitm", "tproxy", "native", "build", "Release", "transparent.node"],
+  },
 ];
 
 /** @type {{label:string, src:string[], dest:string[]}[]} */
@@ -124,6 +133,11 @@ const EXTRA_MODULE_ENTRIES = [
     label: "peer-stamp helper (server-ws.mjs dependency)",
     src: ["scripts", "dev", "peer-stamp.mjs"],
     dest: ["peer-stamp.mjs"],
+  },
+  {
+    label: "HTTP method guard (server-ws.mjs dependency)",
+    src: ["scripts", "dev", "http-method-guard.cjs"],
+    dest: ["http-method-guard.cjs"],
   },
   {
     label: "responses-ws-proxy (server-ws.mjs dependency)",

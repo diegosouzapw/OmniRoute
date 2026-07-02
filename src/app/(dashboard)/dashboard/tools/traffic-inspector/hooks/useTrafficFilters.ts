@@ -5,6 +5,8 @@ import type { ListFilters } from "@/mitm/inspector/types";
 
 export interface FiltersState extends ListFilters {
   sameContextKey?: string;
+  /** Show only in-flight (open) requests — Gap 5 "Live" filter. */
+  liveOnly?: boolean;
 }
 
 export function useTrafficFilters() {
@@ -38,6 +40,10 @@ export function useTrafficFilters() {
     setFilters((prev) => ({ ...prev, sameContextKey: contextKey }));
   }, []);
 
+  const toggleLive = useCallback(() => {
+    setFilters((prev) => ({ ...prev, liveOnly: !prev.liveOnly }));
+  }, []);
+
   const reset = useCallback(() => {
     setFilters({ profile: "llm" });
   }, []);
@@ -51,6 +57,7 @@ export function useTrafficFilters() {
     setSource,
     setSessionId,
     setSameContext,
+    toggleLive,
     reset,
   };
 }

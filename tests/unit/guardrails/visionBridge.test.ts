@@ -329,7 +329,7 @@ test("VB-S04: processes multiple images and concatenates descriptions", async ()
 
 // ── VB-S03: Fail-open on vision error ──────────────────────────────────────
 
-test("VB-S03: returns modified payload with unavailable text when vision API fails", async () => {
+test("VB-S03: preserves the original image when the vision API fails (#4012)", async () => {
   shouldVisionFail = true;
   const guardrail = createGuardrail();
 
@@ -352,9 +352,8 @@ test("VB-S03: returns modified payload with unavailable text when vision API fai
   const result = await guardrail.preCall(payload, createContext({ model: "minimax/minimax-01" }));
 
   assert.strictEqual(result.block, false);
-  assert.ok(result.modifiedPayload);
 
-  const modified = result.modifiedPayload as {
+  const modified = (result.modifiedPayload ?? payload) as {
     messages: Array<{ content: unknown[] }>;
   };
   const content = modified.messages[0].content as Array<{
@@ -362,9 +361,12 @@ test("VB-S03: returns modified payload with unavailable text when vision API fai
     text?: string;
   }>;
 
-  // Should have "unavailable" text instead of image
+  // #4012: a failed describe must NOT replace the image with an "(unavailable)"
+  // stub — the original image is preserved so a vision-capable upstream can see it.
+  const imagePart = content.find((p) => p.type === "image_url");
+  assert.ok(imagePart, "original image_url part must be preserved on describe failure");
   const unavailPart = content.find((p) => p.type === "text" && p.text?.includes("unavailable"));
-  assert.ok(unavailPart);
+  assert.strictEqual(unavailPart, undefined);
 });
 
 test("VB-S03: logs warning when vision API fails", async () => {

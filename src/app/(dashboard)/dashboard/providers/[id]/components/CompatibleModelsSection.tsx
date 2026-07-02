@@ -21,6 +21,7 @@ import {
   type CompatModelRow,
 } from "../providerPageHelpers";
 import { ModelVisibilityToolbar } from "./ModelRow";
+import { sortModelsFreeFirst, isFreeModel } from "@/shared/utils/freeModels";
 import PassthroughModelRow, { type PassthroughModelRowProps } from "./PassthroughModelRow";
 
 // ---------------------------------------------------------------------------
@@ -125,6 +126,8 @@ export default function CompatibleModelsSection({
   const [importing, setImporting] = useState(false);
   const [modelFilter, setModelFilter] = useState("");
   const [visibilityFilter, setVisibilityFilter] = useState<"all" | "visible" | "hidden">("all");
+  const [freeFilter, setFreeFilter] = useState<"all" | "free" | "paid">("all");
+  const [sortFreeFirst, setSortFreeFirst] = useState(false);
   const notify = useNotificationStore();
   const customModelMap = useMemo(() => buildCompatMap(customModels), [customModels]);
 
@@ -165,7 +168,8 @@ export default function CompatibleModelsSection({
         isFree:
           Boolean((model as any).free) ||
           model.id.endsWith(":free") ||
-          /\bgr[aá]tis\b|\bfree\b/i.test(model.name || ""),
+          /\bgr[aá]tis\b|\bfree\b/i.test(model.name || "") ||
+          isFreeModel(providerStorageAlias, { id: model.id }),
         isHidden: isModelHidden(model.id),
       });
       seenModelIds.add(model.id);
@@ -199,7 +203,8 @@ export default function CompatibleModelsSection({
         isFree:
           modelId.endsWith(":free") ||
           Boolean((customModel as any)?.free) ||
-          /\bgr[aá]tis\b|\bfree\b/i.test(customModel?.name || alias || ""),
+          /\bgr[aá]tis\b|\bfree\b/i.test(customModel?.name || alias || "") ||
+          isFreeModel(providerStorageAlias, { id: modelId }),
         isHidden: isModelHidden(modelId),
       });
       seenModelIds.add(modelId);
@@ -229,8 +234,13 @@ export default function CompatibleModelsSection({
         : visibilityFilter === "visible"
           ? !model.isHidden
           : model.isHidden;
-    return matchesQuery && matchesVisibility;
+    const matchesFreeFilter =
+      freeFilter === "all" ? true : freeFilter === "free" ? model.isFree : !model.isFree;
+    return matchesQuery && matchesVisibility && matchesFreeFilter;
   });
+  const displayModels = sortFreeFirst
+    ? sortModelsFreeFirst(filteredModels, { isFree: (m) => m.isFree, key: (m) => m.modelId })
+    : filteredModels;
   const activeCount = allModels.filter((model) => !model.isHidden).length;
   const hiddenFilteredCount = filteredModels.filter((model) => model.isHidden).length;
   const visibleFilteredCount = filteredModels.length - hiddenFilteredCount;
@@ -399,6 +409,10 @@ export default function CompatibleModelsSection({
             deselectAllDisabled={visibleFilteredCount === 0 || bulkTogglePending}
             visibilityFilter={visibilityFilter}
             onVisibilityFilterChange={setVisibilityFilter}
+            freeFilter={freeFilter}
+            onFreeFilterChange={setFreeFilter}
+            sortFreeFirst={sortFreeFirst}
+            onSortFreeFirstChange={setSortFreeFirst}
             onTestAll={() => {
               const targets = filteredModels
                 .filter((m) => !m.isHidden)
@@ -414,7 +428,7 @@ export default function CompatibleModelsSection({
             onAutoHideFailedChange={onAutoHideFailedChange}
           />
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-            {filteredModels.map(({ modelId, alias, isHidden, source, isFree }) => {
+            {displayModels.map(({ modelId, alias, isHidden, source, isFree }) => {
               const fullModel = `${providerDisplayAlias}/${modelId}`;
               return (
                 <PassthroughModelRow

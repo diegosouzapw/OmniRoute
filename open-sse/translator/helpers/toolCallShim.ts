@@ -27,16 +27,51 @@ function coerceToArray(v: unknown): unknown[] {
   return [];
 }
 
+// Claude Code's Read tool caps `limit` at 2000 lines per call. Non-Anthropic models
+// (GPT-5.5, DeepSeek …) occasionally emit absurd values (e.g. `limit: 25999999999999999`)
+// that Claude Code rejects, causing a retry loop that wastes tokens. Clamp here.
+const READ_MAX_LIMIT = 2000;
+
+// `pages` is only meaningful for PDFs and only as `"N"` or `"N-M"` (1-based).
+// Reference: claude-code-tools docs + upstream decolua/9router#1144.
+function isValidPdfPagesArg(filePath: unknown, pages: unknown): boolean {
+  return (
+    typeof filePath === "string" &&
+    filePath.toLowerCase().endsWith(".pdf") &&
+    typeof pages === "string" &&
+    /^\d+(?:-\d+)?$/.test(pages)
+  );
+}
+
+function sanitizeReadArgs(args: Record<string, unknown>): void {
+  // Coerce numeric-string limit/offset (some non-Anthropic models stringify everything).
+  if (typeof args.limit === "string" && /^\d+$/.test(args.limit)) {
+    args.limit = Number(args.limit);
+  }
+  if (typeof args.offset === "string" && /^-?\d+$/.test(args.offset)) {
+    args.offset = Number(args.offset);
+  }
+
+  if (typeof args.limit === "number") {
+    if (args.limit > READ_MAX_LIMIT) args.limit = READ_MAX_LIMIT;
+    if (args.limit < 1) delete args.limit;
+  }
+  if (typeof args.offset === "number" && args.offset < 0) args.offset = 0;
+
+  if ("pages" in args && !isValidPdfPagesArg(args.file_path, args.pages)) {
+    delete args.pages;
+  }
+}
+
 const TOOL_SHIMS: Record<string, ShimFn> = {
-  // Claude Code Read accepts `pages` only for PDFs and rejects an empty string.
-  // Some non-Anthropic models emit optional `pages: ""` for ordinary files.
-  // Buffer and emit one cleaned JSON delta so the client never sees the bad field.
+  // Claude Code Read rejects bad params and retries — wasting tokens with non-Anthropic
+  // models that emit oversized limits, negative offsets, stringified numbers, or stray
+  // `pages` on non-PDF files. Buffer and emit one cleaned JSON delta so the client never
+  // sees the bad fields. See `sanitizeReadArgs` for the per-field rules.
   Read: (input) => {
     if (typeof input !== "object" || input === null || Array.isArray(input)) return input;
     const patched = { ...(input as Record<string, unknown>) };
-    if (patched.pages === "" || (Array.isArray(patched.pages) && patched.pages.length === 0)) {
-      delete patched.pages;
-    }
+    sanitizeReadArgs(patched);
     return patched;
   },
   submit_pr_review: (input) => {

@@ -14,6 +14,7 @@ import {
 } from "../services/claudeCodeCompatible.ts";
 import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
+import { mergeClientAnthropicBeta } from "../config/anthropicHeaders.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import {
   detectFormat,
@@ -303,6 +304,21 @@ export class DefaultExecutor extends BaseExecutor {
         return `https://${resourceUrl || "portal.qwen.ai"}/v1/chat/completions`;
       }
       default: {
+        // Honor a user-supplied custom base URL (providerSpecificData.baseUrl) for
+        // OpenAI-format providers (e.g. the built-in "openai" provider pointed at a
+        // proxy/gateway). Without this, a configured custom base URL was silently
+        // ignored and requests always hit the hardcoded this.config.baseUrl
+        // (https://api.openai.com/v1/...). Scoped to openai-format providers so
+        // non-OpenAI default-branch providers keep their existing behavior.
+        const customBaseUrl =
+          typeof credentials?.providerSpecificData?.baseUrl === "string" &&
+          credentials.providerSpecificData.baseUrl.trim()
+            ? (credentials.providerSpecificData.baseUrl as string)
+            : null;
+        const isOpenAIFormat = !this.config.format || this.config.format === "openai";
+        if (customBaseUrl && isOpenAIFormat) {
+          return normalizeOpenAIChatUrl(customBaseUrl);
+        }
         const url = this.config.baseUrl;
         const entry = getRegistryEntry(this.provider);
         return entry?.urlSuffix ? `${url}${entry.urlSuffix}` : url;
@@ -514,6 +530,17 @@ export class DefaultExecutor extends BaseExecutor {
           headers[headerName] = value;
         }
       }
+
+      // #3974: merge the client's negotiated anthropic-beta (allowlisted) into the
+      // outbound set. The registry's static ANTHROPIC_BETA_CLAUDE_OAUTH lacks
+      // tool-search-tool-2025-10-19, so deferred-tool requests were rejected with
+      // 400 "Tool reference not found". Allowlist-merge preserves it without
+      // forwarding betas the backend rejects.
+      const clientBeta = clientHeaders["anthropic-beta"] ?? clientHeaders["Anthropic-Beta"] ?? null;
+      const betaKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
+      if (betaKey && clientBeta) {
+        headers[betaKey] = mergeClientAnthropicBeta(headers[betaKey], clientBeta);
+      }
     }
 
     return headers;
@@ -544,11 +571,31 @@ export class DefaultExecutor extends BaseExecutor {
           withDefaults = withoutStreamOptions;
         }
       } else if (stream && targetFormat === "openai" && requestFormat !== "openai-responses") {
-        if (!credentials?.providerSpecificData?.disableStreamOptions) {
+        // Port of decolua/9router#663 (closes upstream #557): Qwen rejects with
+        // 400 "'stream_options' only set this when you set stream: true" when the
+        // outgoing body carries `stream: false` (Claude Code / Claude-Code-
+        // compatible callers force the executor-level stream flag on via
+        // `upstreamStream = stream || isClaudeCodeCompatible`, but the body keeps
+        // the caller's original `stream: false`). Same upstream also rejects the
+        // injection when `thinking` / `enable_thinking` is set. Skip injection in
+        // those cases instead of unconditionally adding `stream_options`.
+        const defaultsRecord = withDefaults as Record<string, unknown>;
+        const qwenBlocksStreamOptions =
+          this.provider === "qwen" &&
+          (defaultsRecord.stream === false ||
+            Boolean(defaultsRecord.thinking) ||
+            Boolean(defaultsRecord.enable_thinking));
+        if (qwenBlocksStreamOptions) {
+          if (Object.prototype.hasOwnProperty.call(defaultsRecord, "stream_options")) {
+            const withoutStreamOptions = { ...defaultsRecord };
+            delete withoutStreamOptions.stream_options;
+            withDefaults = withoutStreamOptions;
+          }
+        } else if (!credentials?.providerSpecificData?.disableStreamOptions) {
           withDefaults = {
             ...withDefaults,
             stream_options: {
-              ...(((withDefaults as Record<string, unknown>).stream_options as object) || {}),
+              ...((defaultsRecord.stream_options as object) || {}),
               include_usage: true,
             },
           };
@@ -557,6 +604,14 @@ export class DefaultExecutor extends BaseExecutor {
           delete withoutStreamOptions.stream_options;
           withDefaults = withoutStreamOptions;
         }
+      } else if (!stream && Object.prototype.hasOwnProperty.call(withDefaults, "stream_options")) {
+        // #3884: stream_options is only valid on streaming requests. NVIDIA NIM
+        // (and the OpenAI spec) reject "Stream options can only be defined when
+        // stream=True" on non-streaming calls. Strip any client-sent
+        // stream_options when the outbound request is not streaming.
+        const withoutStreamOptions = { ...withDefaults } as Record<string, unknown>;
+        delete withoutStreamOptions.stream_options;
+        withDefaults = withoutStreamOptions;
       } else if (
         (targetFormat === "openai-responses" || requestFormat === "openai-responses") &&
         Object.prototype.hasOwnProperty.call(withDefaults, "stream_options")

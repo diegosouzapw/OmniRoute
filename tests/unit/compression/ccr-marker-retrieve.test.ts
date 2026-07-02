@@ -11,7 +11,6 @@ import assert from "node:assert/strict";
 
 import {
   ccrEngine,
-  reconstructCcr,
   retrieveBlock,
   recordRetrieval,
   shouldSkipCompression,
@@ -109,30 +108,6 @@ describe("ccr engine", () => {
     assert.equal(retrieved, LARGE_TEXT, "retrieved block must equal the original verbatim text");
   });
 
-  it("reconstructs the body to deep-equal the original (round-trip)", () => {
-    resetCcrStore();
-    const originalMessages = [
-      { role: "user", content: LARGE_TEXT },
-      { role: "assistant", content: "I understand your point." },
-    ];
-    const body = makeBody(originalMessages);
-    const result = ccrEngine.apply(body as Record<string, unknown>);
-
-    assert.equal(result.compressed, true, "should be compressed");
-
-    const reconstructed = reconstructCcr(result.body);
-    const reconstructedMessages = reconstructed.messages as Array<{
-      role: string;
-      content: string;
-    }>;
-
-    assert.deepEqual(
-      reconstructedMessages,
-      originalMessages,
-      "reconstructed messages must deep-equal original messages"
-    );
-  });
-
   it("does NOT compress small blocks (below minChars threshold)", () => {
     resetCcrStore();
     const body = makeBody([{ role: "user", content: SMALL_TEXT }]);
@@ -203,14 +178,6 @@ describe("ccr engine", () => {
     resetCcrStore();
     const result = retrieveBlock("000000000000000000000000");
     assert.equal(result, null, "unknown hash must return null");
-  });
-
-  it("reconstructCcr is idempotent when no markers are present", () => {
-    const body = makeBody([{ role: "user", content: SMALL_TEXT }]);
-    const reconstructed = reconstructCcr(body as Record<string, unknown>);
-    assert.deepEqual(reconstructed.messages as Array<{ role: string; content: string }>, [
-      { role: "user", content: SMALL_TEXT },
-    ]);
   });
 
   it("handles multipart content (type:text parts)", () => {

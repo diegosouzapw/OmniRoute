@@ -140,16 +140,67 @@ function convertMessages(messages: unknown): { system: string; messages: unknown
   return { system: system.join("\n\n"), messages: out };
 }
 
-function clampMaxTokens(value: unknown): number {
-  const numeric = numberValue(value) ?? MAX_COMMAND_CODE_TOKENS;
-  return Math.max(1, Math.min(Math.floor(numeric), MAX_COMMAND_CODE_TOKENS));
+function clampMaxTokens(value: unknown, cap: number = MAX_COMMAND_CODE_TOKENS): number {
+  const numeric = numberValue(value) ?? cap;
+  return Math.max(1, Math.min(Math.floor(numeric), cap));
 }
+
+// Resolve the per-model max_tokens cap for a given CommandCode model id.
+// Falls back to MAX_COMMAND_CODE_TOKENS when the model isn't registered or
+// when the registry entry omits maxOutputTokens. Without this, GLM-5.x
+// requests get capped at 200_000 and rejected with "限制数值范围[1,131072]".
+function getModelMaxTokensCap(modelId: string): number {
+  const entry = REGISTRY["command-code"];
+  if (!entry) return MAX_COMMAND_CODE_TOKENS;
+  const model = entry.models?.find((m: { id: string }) => m.id === modelId);
+  const registryCap = (model as { maxOutputTokens?: number } | undefined)?.maxOutputTokens;
+  return typeof registryCap === "number" && registryCap > 0
+    ? registryCap
+    : MAX_COMMAND_CODE_TOKENS;
+}
+
+// Reasoning/thinking fields that payload rules or clients may inject and that
+// CommandCode's upstream accepts inside `params`. Without this pass-through,
+// payload-rule overrides on these fields are silently dropped (#2986 follow-up).
+const COMMAND_CODE_PASSTHROUGH_FIELDS = [
+  "reasoning_effort",
+  "reasoning",
+  "thinking",
+  "effort",
+  "output_config",
+  "extra_body",
+] as const;
 
 function buildCommandCodeBody(model: string, body: unknown, stream = false): JsonRecord {
   const input = isRecord(body) ? body : {};
   const converted = convertMessages(input.messages);
   const explicitSystem = typeof input.system === "string" ? input.system : "";
   const system = [converted.system, explicitSystem].filter(Boolean).join("\n\n");
+
+  // Payload rules may rewrite `body.model` (e.g. deepseek-v4-pro-max →
+  // deepseek/deepseek-v4-pro for the command-code provider). Prefer the
+  // rewritten value if present; fall back to the resolved combo model arg.
+  const resolvedModel =
+    typeof input.model === "string" && input.model.trim().length > 0 ? input.model : model;
+
+  const params: JsonRecord = {
+    model: resolvedModel,
+    messages: converted.messages,
+    tools: convertTools(input.tools),
+    system,
+    max_tokens: clampMaxTokens(
+      input.max_tokens ?? input.max_completion_tokens,
+      getModelMaxTokensCap(resolvedModel)
+    ),
+    stream: true,
+  };
+
+  for (const field of COMMAND_CODE_PASSTHROUGH_FIELDS) {
+    const value = input[field];
+    if (value !== undefined && value !== null) {
+      params[field] = value;
+    }
+  }
 
   return {
     config: {
@@ -167,14 +218,7 @@ function buildCommandCodeBody(model: string, body: unknown, stream = false): Jso
     taste: "",
     skills: "",
     permissionMode: "standard",
-    params: {
-      model,
-      messages: converted.messages,
-      tools: convertTools(input.tools),
-      system,
-      max_tokens: clampMaxTokens(input.max_tokens ?? input.max_completion_tokens),
-      stream: true,
-    },
+    params,
   };
 }
 

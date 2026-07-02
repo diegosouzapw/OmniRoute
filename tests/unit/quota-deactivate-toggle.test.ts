@@ -27,6 +27,10 @@ test("QuotaCardHeader renders a toggle that flips the current active state", () 
   assert.match(header, /toggle_on/, "active state icon");
   assert.match(header, /toggle_off/, "inactive state icon");
   assert.match(header, /disabled=\{togglingActive\}/, "disabled while the PUT is in flight");
+  assert.doesNotMatch(header, /onOpenCutoff/, "cutoff control lives in the expanded footer");
+  assert.doesNotMatch(header, /onRefresh/, "refresh control lives in the expanded footer");
+  assert.doesNotMatch(header, />\s*tune\s*</, "top action rail should not render tune");
+  assert.doesNotMatch(header, />\s*refresh\s*</, "top action rail should not render refresh");
 });
 
 test("QuotaCard dims the card and threads the toggle props through", () => {

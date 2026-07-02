@@ -10,6 +10,8 @@ import {
   normalizePlanTier,
   resolvePlanValue,
   calculatePercentage,
+  matchesProviderFilter,
+  buildProviderOptions,
 } from "./utils";
 import Card from "@/shared/components/Card";
 import { CardSkeleton } from "@/shared/components/Loading";
@@ -25,6 +27,7 @@ import { compareTr } from "@/shared/utils/turkishText";
 const LS_PURCHASE_FILTER = "omniroute:limits:purchaseFilter";
 const LS_STATUS_FILTER = "omniroute:limits:statusFilter";
 const LS_ENV_FILTER = "omniroute:limits:envFilter";
+const LS_PROVIDER_FILTER = "omniroute:limits:providerFilter";
 
 const MIN_FETCH_INTERVAL_MS = 30000;
 const QUOTA_BAR_GREEN_THRESHOLD = 50;
@@ -259,6 +262,10 @@ export default function ProviderLimits({
   const [envFilter, setEnvFilter] = useState<string>(() => {
     if (typeof window === "undefined") return "all";
     return localStorage.getItem(LS_ENV_FILTER) || "all";
+  });
+  const [providerFilter, setProviderFilter] = useState<string>(() => {
+    if (typeof window === "undefined") return "all";
+    return localStorage.getItem(LS_PROVIDER_FILTER) || "all";
   });
 
   const lastFetchTimeRef = useRef<Record<string, number>>({});
@@ -663,6 +670,7 @@ export default function ProviderLimits({
 
   const visibleConnections = useMemo(() => {
     const filtered = sortedConnections.filter((conn) => {
+      if (!matchesProviderFilter(conn, providerFilter)) return false;
       const tierKey = tierByConnection[conn.id]?.key || "unknown";
       if (tierFilter !== "all" && tierKey !== tierFilter) return false;
       if (purchaseTypeFilter !== "all" && purchaseTypeByConnection[conn.id] !== purchaseTypeFilter)
@@ -702,8 +710,17 @@ export default function ProviderLimits({
     statusFilter,
     statusByConnection,
     envFilter,
+    providerFilter,
     quotaData,
   ]);
+
+  // Distinct provider keys present in the current connection set (after the
+  // upstream OAuth/api-key + USAGE_SUPPORTED_PROVIDERS filter), sorted via
+  // the i18n-aware comparator so the dropdown follows the locale's collation.
+  const providerOptions = useMemo(
+    () => buildProviderOptions(sortedConnections, compareTr),
+    [sortedConnections]
+  );
 
   // Auto-fetch LIVE quota on open for visible connections that have no cached
   // quota yet (e.g. a Codex account whose access_token expired — its per-connection
@@ -745,6 +762,15 @@ export default function ProviderLimits({
     setEnvFilter(value);
     try {
       localStorage.setItem(LS_ENV_FILTER, value);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const handleSetProviderFilter = useCallback((value: string) => {
+    setProviderFilter(value);
+    try {
+      localStorage.setItem(LS_PROVIDER_FILTER, value);
     } catch {
       /* ignore */
     }
@@ -950,6 +976,34 @@ export default function ProviderLimits({
               );
             })}
           </div>
+
+          {/* Provider filter — single-select dropdown of providers actually
+              present in the current account set. Auto-falls back to "all" if
+              the persisted choice no longer exists in this session. */}
+          {providerOptions.length > 1 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
+                {tr("filterProviderLabel", "Provider")}
+              </span>
+              <select
+                value={
+                  providerFilter === "all" || providerOptions.includes(providerFilter)
+                    ? providerFilter
+                    : "all"
+                }
+                onChange={(event) => handleSetProviderFilter(event.target.value)}
+                aria-label={tr("filterProviderAriaLabel", "Filter quota providers")}
+                className="h-8 rounded-full border border-border bg-transparent px-3 text-xs font-semibold text-text-muted cursor-pointer"
+              >
+                <option value="all">{tr("filterProviderAll", "All providers")}</option>
+                {providerOptions.map((provider) => (
+                  <option key={provider} value={provider}>
+                    {PROVIDER_LABEL[provider] || provider}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Env filter — only renders when at least one connection has a tag */}
           {envTags.length > 0 && (

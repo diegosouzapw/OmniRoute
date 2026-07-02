@@ -21,7 +21,18 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
+  useTranslations: () => {
+    const messages: Record<string, string> = {
+      "card.detected": "Detected",
+      "card.notDetected": "Not detected",
+      "card.configure": "Configure →",
+      "card.howToInstall": "How to install →",
+      "card.baseUrlPartial": "Partial Base URL",
+      "card.alsoAcp": "also ACP",
+      "card.connectProviderHint": "Connect a provider in Providers",
+    };
+    return (key: string) => messages[key] ?? key;
+  },
   useLocale: () => "en",
 }));
 
@@ -98,8 +109,9 @@ function renderCard(
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
-  (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
-    true;
+  (
+    globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+  ).IS_REACT_ACT_ENVIRONMENT = true;
 });
 
 afterEach(() => {
@@ -137,34 +149,34 @@ describe("CliToolCard", () => {
     expect(container.textContent).toContain("not found");
   });
 
-  it("shows 'Configurar →' footer when installed", () => {
+  it("shows configure footer when installed", () => {
     const container = renderCard(makeTool(), makeBatchStatus(), "/detail", true);
-    expect(container.textContent).toContain("Configurar →");
+    expect(container.textContent).toContain("Configure →");
   });
 
-  it("shows 'Como instalar →' footer when not installed", () => {
+  it("shows install footer when not installed", () => {
     const status = makeBatchStatus({
       detection: { installed: false, runnable: false },
     });
     const container = renderCard(makeTool(), status, "/detail", true);
-    expect(container.textContent).toContain("Como instalar →");
+    expect(container.textContent).toContain("How to install →");
   });
 
   it("shows partial baseUrl amber badge", () => {
     const tool = makeTool({ baseUrlSupport: "partial" });
     const container = renderCard(tool, makeBatchStatus(), "/detail", true);
-    expect(container.textContent).toContain("Base URL parcial");
+    expect(container.textContent).toContain("Partial Base URL");
   });
 
-  it("shows 'também ACP' badge when acpSpawnable is true", () => {
+  it("shows also ACP badge when acpSpawnable is true", () => {
     const tool = makeTool({ acpSpawnable: true });
     const container = renderCard(tool, makeBatchStatus(), "/detail", true);
-    expect(container.textContent).toContain("também ACP");
+    expect(container.textContent).toContain("also ACP");
   });
 
   it("shows provider tooltip text when hasActiveProviders is false", () => {
     const container = renderCard(makeTool(), makeBatchStatus(), "/detail", false);
-    expect(container.textContent).toContain("Conecte um provider em Providers");
+    expect(container.textContent).toContain("Connect a provider in Providers");
   });
 
   it("shows install chips when not installed and configType is not guide", () => {

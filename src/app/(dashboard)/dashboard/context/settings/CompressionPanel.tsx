@@ -1,0 +1,362 @@
+"use client";
+
+// CompressionPanel — the single-source engine-grid UI for compression.
+//
+// Renders the master on/off switch, one row per catalog engine (on/off + level +
+// link to its detail page), the cavemanOutput intensity row, the mcpAccessibility
+// toggle (its own endpoint / separate store), a read-only derived-pipeline preview,
+// and the general settings (auto-trigger tokens + preserve-system-prompt).
+//
+// Engine rows use the catalog label/description (hardcoded English) directly — NOT
+// i18n — so they stay deterministic. Human-facing chrome (master, general) keeps the
+// app's i18n via useTranslations("settings").
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+// Import Card/Toggle from their direct module paths rather than the @/shared/components
+// barrel: the barrel transitively pulls a heavy/Node-only module that hangs the
+// vitest/jsdom component test. Direct imports resolve identically under Next.js.
+import Card from "@/shared/components/Card";
+import Toggle from "@/shared/components/Toggle";
+import {
+  ENGINE_IDS,
+  engineMeta,
+} from "../../../../../../open-sse/services/compression/engineCatalog.ts";
+import { deriveDefaultPlan } from "../../../../../../open-sse/services/compression/deriveDefaultPlan.ts";
+
+type CavemanIntensity = "lite" | "full" | "ultra";
+
+interface EngineToggle {
+  enabled: boolean;
+  level?: string;
+}
+
+interface CavemanOutputModeConfig {
+  enabled: boolean;
+  intensity: CavemanIntensity;
+  autoClarity: boolean;
+}
+
+interface CompressionConfig {
+  enabled: boolean;
+  autoTriggerTokens: number;
+  preserveSystemPrompt: boolean;
+  engines: Record<string, EngineToggle>;
+  activeComboId: string | null;
+  cavemanOutputMode?: CavemanOutputModeConfig;
+}
+
+const CAVEMAN_OUTPUT_LEVELS: CavemanIntensity[] = ["lite", "full", "ultra"];
+
+const DEFAULT_CONFIG: CompressionConfig = {
+  enabled: false,
+  autoTriggerTokens: 0,
+  preserveSystemPrompt: true,
+  engines: {},
+  activeComboId: null,
+  cavemanOutputMode: { enabled: false, intensity: "full", autoClarity: true },
+};
+
+function normalizeEngines(raw: unknown): Record<string, EngineToggle> {
+  const engines: Record<string, EngineToggle> = {};
+  const source = (raw && typeof raw === "object" ? raw : {}) as Record<string, EngineToggle>;
+  for (const id of ENGINE_IDS) {
+    const cur = source[id];
+    engines[id] = cur ? { enabled: cur.enabled === true, ...(cur.level ? { level: cur.level } : {}) } : { enabled: false };
+  }
+  return engines;
+}
+
+export default function CompressionPanel() {
+  const t = useTranslations("settings");
+  const [config, setConfig] = useState<CompressionConfig>(DEFAULT_CONFIG);
+  const [mcpAccessibility, setMcpAccessibility] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<"" | "saved" | "error">("");
+
+  useEffect(() => {
+    fetch("/api/settings/compression")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: Partial<CompressionConfig> | null) => {
+        if (data) {
+          setConfig({
+            ...DEFAULT_CONFIG,
+            ...data,
+            engines: normalizeEngines(data.engines),
+            cavemanOutputMode: data.cavemanOutputMode ?? DEFAULT_CONFIG.cavemanOutputMode,
+          });
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+
+    fetch("/api/settings/compression/mcp-accessibility")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { enabled?: boolean } | null) => {
+        if (data && typeof data.enabled === "boolean") setMcpAccessibility(data.enabled);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Persist a merge-patch. The DB persists `engines` as one whole row, so callers that
+  // touch an engine pass the full engines map to avoid dropping the other engines.
+  const save = async (updates: Partial<CompressionConfig>) => {
+    const next = { ...config, ...updates };
+    setConfig(next);
+    setSaving(true);
+    setStatus("");
+    try {
+      const res = await fetch("/api/settings/compression", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      if (res.ok) {
+        setStatus("saved");
+        setTimeout(() => setStatus(""), 2000);
+      } else {
+        setStatus("error");
+      }
+    } catch {
+      setStatus("error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const setEngine = (id: string, patch: Partial<EngineToggle>) => {
+    const engines = {
+      ...config.engines,
+      [id]: { ...(config.engines[id] ?? { enabled: false }), ...patch },
+    };
+    // Send the full engines map — the persistence layer stores it as one JSON row.
+    save({ engines });
+  };
+
+  const setCavemanOutput = (patch: Partial<CavemanOutputModeConfig>) => {
+    const cavemanOutputMode: CavemanOutputModeConfig = {
+      ...(config.cavemanOutputMode ?? DEFAULT_CONFIG.cavemanOutputMode!),
+      ...patch,
+    };
+    save({ cavemanOutputMode });
+  };
+
+  const toggleMcpAccessibility = async (enabled: boolean) => {
+    setMcpAccessibility(enabled);
+    try {
+      await fetch("/api/settings/compression/mcp-accessibility", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled }),
+      });
+    } catch {
+      // Surface nothing — the row reflects optimistic local state; the next mount re-reads.
+    }
+  };
+
+  const derived = deriveDefaultPlan(config.engines, config.enabled);
+  const derivedText =
+    derived.mode === "off"
+      ? "off"
+      : derived.stackedPipeline.length > 0
+        ? `runs: ${derived.stackedPipeline.map((s) => s.engine).join(" → ")}`
+        : `mode: ${derived.mode}`;
+
+  if (loading) {
+    return (
+      <Card className="p-6">
+        <p className="text-sm text-text-muted">{t("loading")}</p>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="p-6" data-testid="compression-panel">
+      {/* Master */}
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="rounded-lg bg-blue-500/10 p-2 text-blue-500">
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+              compress
+            </span>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">{t("compressionTitle")}</h3>
+            <p className="text-sm text-text-muted">{t("compressionDesc")}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          {status === "saved" && (
+            <span className="flex items-center gap-1 text-xs font-medium text-emerald-500">
+              <span className="material-symbols-outlined text-[14px]">check_circle</span>{" "}
+              {t("saved")}
+            </span>
+          )}
+          {status === "error" && (
+            <span className="flex items-center gap-1 text-xs font-medium text-red-500">
+              <span className="material-symbols-outlined text-[14px]">error</span>{" "}
+              {t("saveFailed")}
+            </span>
+          )}
+          <Toggle
+            size="md"
+            checked={config.enabled}
+            onChange={(enabled) => save({ enabled })}
+            disabled={saving}
+            ariaLabel={t("compressionTitle")}
+          />
+        </div>
+      </div>
+
+      {/* Derived pipeline preview */}
+      <div
+        data-testid="derived-pipeline-preview"
+        className="mb-4 rounded-md border border-border/60 bg-bg-subtle px-3 py-2 text-xs text-text-muted"
+      >
+        <span className="font-medium text-text-main">Effective pipeline:</span> {derivedText}
+      </div>
+
+      {/* Engine grid */}
+      <div className={`divide-y divide-border ${config.enabled ? "" : "opacity-60"}`}>
+        {ENGINE_IDS.map((id) => {
+          const meta = engineMeta(id);
+          const engine = config.engines[id] ?? { enabled: false };
+          const levels = meta.levels;
+          const level = engine.level ?? levels?.[0] ?? "";
+          return (
+            <div
+              key={id}
+              data-testid={`engine-row-${id}`}
+              className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 text-sm font-medium text-text-main">
+                  {meta.label}
+                  <Link
+                    href={`/dashboard/context/${id}`}
+                    className="rounded border border-border bg-bg-subtle px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-text-muted hover:border-primary/40 hover:text-primary"
+                  >
+                    {id}
+                  </Link>
+                </div>
+                <p className="mt-0.5 text-xs text-text-muted">{meta.description}</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                {levels && (
+                  <select
+                    value={level}
+                    onChange={(e) => setEngine(id, { level: e.target.value })}
+                    disabled={!config.enabled || !engine.enabled || saving}
+                    className="w-28 rounded border border-border bg-surface px-2 py-1 text-xs text-text-main"
+                  >
+                    {levels.map((lvl) => (
+                      <option key={lvl} value={lvl}>
+                        {lvl}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <span data-testid={`engine-toggle-${id}`}>
+                  <Toggle
+                    size="sm"
+                    checked={engine.enabled}
+                    onChange={(enabled) => setEngine(id, { enabled })}
+                    disabled={!config.enabled || saving}
+                    ariaLabel={meta.label}
+                  />
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* cavemanOutput — response-output instruction injection (separate from the input engine) */}
+      <div className="mt-2 flex flex-col gap-2 border-t border-border/30 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-text-main">
+            {t("compressionSettingsCavemanOutputMode")}
+          </p>
+          <p className="mt-0.5 text-xs text-text-muted">
+            Injects terse response instructions without rewriting provider output.
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <select
+            data-testid="caveman-output-intensity"
+            value={config.cavemanOutputMode?.intensity ?? "full"}
+            onChange={(e) => setCavemanOutput({ intensity: e.target.value as CavemanIntensity })}
+            disabled={!config.cavemanOutputMode?.enabled || saving}
+            className="w-28 rounded border border-border bg-surface px-2 py-1 text-xs text-text-main"
+          >
+            {CAVEMAN_OUTPUT_LEVELS.map((lvl) => (
+              <option key={lvl} value={lvl}>
+                {lvl}
+              </option>
+            ))}
+          </select>
+          <span data-testid="caveman-output-toggle">
+            <Toggle
+              size="sm"
+              checked={config.cavemanOutputMode?.enabled ?? false}
+              onChange={(enabled) => setCavemanOutput({ enabled })}
+              disabled={saving}
+              ariaLabel={t("compressionSettingsCavemanOutputMode")}
+            />
+          </span>
+        </div>
+      </div>
+
+      {/* mcpAccessibility — writes its own endpoint / separate store */}
+      <div className="flex flex-col gap-2 border-t border-border/30 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-text-main">{t("mcpAccessibilityTitle")}</p>
+          <p className="mt-0.5 text-xs text-text-muted">
+            Scopes MCP tool outputs (separate store).
+          </p>
+        </div>
+        <span data-testid="mcp-accessibility-toggle">
+          <Toggle
+            size="sm"
+            checked={mcpAccessibility}
+            onChange={toggleMcpAccessibility}
+            ariaLabel={t("mcpAccessibilityTitle")}
+          />
+        </span>
+      </div>
+
+      {/* General */}
+      <div className="space-y-3 border-t border-border/30 pt-4">
+        <h4 className="text-sm font-medium text-text-main">{t("compressionGeneral")}</h4>
+        <label className="flex items-center justify-between">
+          <span className="text-sm text-text-muted">{t("compressionAutoTrigger")}</span>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={0}
+              max={100000}
+              value={config.autoTriggerTokens}
+              onChange={(e) => save({ autoTriggerTokens: parseInt(e.target.value) || 0 })}
+              className="w-24 rounded border border-border bg-surface px-2 py-1 text-sm text-text-main"
+            />
+            <span className="text-xs text-text-muted">{t("tokens")}</span>
+          </div>
+        </label>
+        <label className="flex items-center justify-between">
+          <span className="text-sm text-text-muted">{t("compressionPreserveSystem")}</span>
+          <span data-testid="preserve-system-toggle">
+            <Toggle
+              size="sm"
+              checked={config.preserveSystemPrompt}
+              onChange={(preserveSystemPrompt) => save({ preserveSystemPrompt })}
+              disabled={saving}
+              ariaLabel={t("compressionPreserveSystem")}
+            />
+          </span>
+        </label>
+      </div>
+    </Card>
+  );
+}

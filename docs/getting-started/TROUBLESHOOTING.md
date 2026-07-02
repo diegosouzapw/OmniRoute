@@ -30,7 +30,7 @@ Common problems and solutions for OmniRoute.
 | "401 Unauthorized" | Your credentials are wrong | Check your API key or re-authenticate with OAuth |
 | "429 Too Many Requests" | Rate limited | Wait 1 minute, or connect more providers |
 
-**Still stuck?** See the [Quick Fixes](#quick-fixes) below, or ask on [Discord](https://discord.gg/hmexnhgE).
+**Still stuck?** See the [Quick Fixes](#quick-fixes) below, or ask on [Discord](https://discord.gg/EkzRkpzKYt).
 
 ---
 

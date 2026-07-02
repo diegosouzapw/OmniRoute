@@ -12,7 +12,7 @@ export interface FeatureFlagDefinition {
 }
 
 export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
-  // ──────────────── Security (6) ────────────────
+  // ──────────────── Security (9) ────────────────
   {
     key: "REQUIRE_API_KEY",
     label: "Require API Key",
@@ -93,8 +93,19 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     requiresRestart: false,
     warningLevel: "info",
   },
-
-  // ──────────────── Network (5) ────────────────
+  {
+    key: "ALLOW_API_KEY_REVEAL",
+    label: "API Key Reveal",
+    description:
+      "Allow authenticated dashboard users to reveal stored API keys instead of only seeing masked values.",
+    descriptionI18nKey: "featureFlagAllowApiKeyRevealDescription",
+    category: "security",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "danger",
+  },
+  // ──────────────── Network (7) ────────────────
   {
     key: "ENABLE_TLS_FINGERPRINT",
     label: "TLS Fingerprint",
@@ -128,6 +139,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     type: "boolean",
     requiresRestart: false,
     warningLevel: "caution",
+  },
+  {
+    key: "OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK",
+    label: "Control-Plane Proxy Direct Fallback",
+    description:
+      "Allow OAuth and provider validation flows to bypass a pinned proxy and connect directly when proxy reachability pre-checks fail. Off by default because this can change account egress IP.",
+    descriptionI18nKey: "featureFlagOmnirouteControlPlaneProxyDirectFallbackDescription",
+    category: "network",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "danger",
   },
   {
     key: "MITM_DISABLE_TLS_VERIFY",
@@ -299,6 +322,19 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     category: "runtime",
     defaultValue: "true",
     type: "boolean",
+    requiresRestart: false,
+    warningLevel: "info",
+  },
+  {
+    key: "MODELS_CATALOG_PREFIX_MODE",
+    label: "Models Catalog Prefix Mode",
+    description:
+      "Controls how model IDs are prefixed in /v1/models. 'dual' (default) emits both alias and canonical provider-id prefixes for backward compatibility. 'alias' emits only the short alias prefix (e.g. ds-web/model, not deepseek-web/model). 'canonical' emits only the full provider-id prefix.",
+    descriptionI18nKey: "featureFlagModelsCatalogPrefixModeDescription",
+    category: "runtime",
+    defaultValue: "dual",
+    type: "enum",
+    enumValues: ["dual", "alias", "canonical"],
     requiresRestart: false,
     warningLevel: "info",
   },

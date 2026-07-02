@@ -25,5 +25,8 @@
     "base_url": "Base URL ของ OmniRoute server",
     "context": "บริบท/โปรไฟล์ของเซิร์ฟเวอร์สำหรับคำสั่งนี้",
     "lang": "ตั้งค่าภาษาแสดงผล CLI (แทนที่ OMNIROUTE_LANG)"
+  },
+  "redis": {
+    "description": "เปิดใช้คอนเทนเนอร์ Redis ในเครื่องด้วยการคลิกเดียว (Podman หรือ Docker) สำหรับการแคชและการติดตามโควตาของ OmniRoute"
   }
 }

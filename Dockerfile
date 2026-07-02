@@ -38,8 +38,24 @@ RUN --mount=type=cache,target=/root/.npm \
   && npm rebuild better-sqlite3 \
   && node -e "require('better-sqlite3')(':memory:').close()"
 
-# Use Turbopack for significant build speedup
-ENV OMNIROUTE_USE_TURBOPACK=1
+# Build with webpack (stable). Turbopack hit a non-recoverable internal panic on this
+# Next.js version during the v3.8.27 release build — TurbopackInternalError "entered
+# unreachable code: there must be a path to a root" in ImportTracer::get_traces, on both
+# linux/amd64 and linux/arm64. Webpack is the proven engine (build:release / VPS / CI Build
+# all green). Re-enable Turbopack (=1) once the upstream tracer bug is fixed.
+# See docs/ops/QUALITY_GATE_PLAYBOOK.md Parte 6.
+ENV OMNIROUTE_USE_TURBOPACK=0
+
+# Raise the V8 heap ceiling for the build. The webpack production optimization
+# pass (forced above since Turbopack panics) needs more than V8's default ceiling
+# (~2 GB) for a codebase this size; a memory-constrained Docker build otherwise
+# dies with "FATAL ERROR: ... JavaScript heap out of memory" at `[builder] npm run
+# build` (#4076). NODE_OPTIONS propagates to the spawned `next build` child
+# (build-next-isolated.mjs → resolveNextBuildEnv spreads process.env). Build-only;
+# the runtime heap is set separately on the runner stage (OMNIROUTE_MEMORY_MB).
+# Override for hosts with more/less RAM: `--build-arg OMNIROUTE_BUILD_MEMORY_MB=6144`.
+ARG OMNIROUTE_BUILD_MEMORY_MB=4096
+ENV NODE_OPTIONS="--max-old-space-size=${OMNIROUTE_BUILD_MEMORY_MB}"
 
 COPY . ./
 RUN --mount=type=cache,target=/app/.build/next/cache \

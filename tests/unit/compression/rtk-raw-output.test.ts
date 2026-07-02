@@ -128,4 +128,40 @@ describe("RTK raw output retention", () => {
     assert.ok(pointer);
     assert.ok(readRtkRawOutput(pointer.id)?.includes("[REDACTED"));
   });
+
+  it("never throws when the raw-output write fails (disk error → null pointer)", () => {
+    // Point DATA_DIR underneath a regular FILE so mkdirSync(recursive) throws ENOTDIR.
+    // maybePersistRtkRawOutput is best-effort capture: a write failure must degrade to a
+    // skipped capture (null), never propagate into the compression pipeline (F5.3).
+    const blocker = path.join(os.tmpdir(), `omniroute-rtk-blocked-${process.pid}-${Date.now()}`);
+    fs.writeFileSync(blocker, "x");
+    process.env.DATA_DIR = path.join(blocker, "nested");
+
+    let pointer: ReturnType<typeof maybePersistRtkRawOutput> | undefined;
+    assert.doesNotThrow(() => {
+      pointer = maybePersistRtkRawOutput("error: boom\n" + "noise\n".repeat(8), {
+        retention: "always",
+      });
+    });
+    assert.equal(pointer, null);
+    fs.rmSync(blocker, { force: true });
+  });
+
+  it("redacts Basic/Proxy auth headers and key fields the base patterns miss", () => {
+    const basic = redactRtkRawOutput("> Authorization: Basic dXNlcjpwYXNzd29yZA==");
+    assert.equal(basic.redacted, true);
+    assert.ok(!basic.text.includes("dXNlcjpwYXNzd29yZA=="), "Authorization: Basic base64 redacted");
+
+    const proxy = redactRtkRawOutput("Proxy-Authorization: Basic c2VjcmV0OnBhc3M=");
+    assert.equal(proxy.redacted, true);
+    assert.ok(!proxy.text.includes("c2VjcmV0OnBhc3M="), "Proxy-Authorization redacted");
+
+    const pkey = redactRtkRawOutput("private_key=abc123def456ghi");
+    assert.equal(pkey.redacted, true);
+    assert.ok(!pkey.text.includes("abc123def456ghi"), "private_key value redacted");
+
+    const cred = redactRtkRawOutput("credential: my-credential-value-x");
+    assert.equal(cred.redacted, true);
+    assert.ok(!cred.text.includes("my-credential-value-x"), "credential value redacted");
+  });
 });

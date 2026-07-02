@@ -360,7 +360,6 @@ open-sse/
 | `check-supported-node-runtime.ts`   | Validate current Node version is supported                                 |
 | `check-pr-test-policy.mjs`          | Enforce "tests required" rule on production code changes                   |
 | **`gen-provider-reference.ts`**     | NEW: auto-generate `docs/reference/PROVIDER_REFERENCE.md` from catalog     |
-| `generate-docs-index.mjs`           | Build `src/app/docs/lib/docs-auto-generated.ts` from `docs/*.md`           |
 | `i18n/generate-multilang.mjs`       | Translate UI strings + docs via Google Translate                           |
 | `i18n_autotranslate.py`             | LLM-based doc translation pipeline                                         |
 | `validate_translation.py`           | Per-locale translation validation                                          |

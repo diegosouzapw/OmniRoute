@@ -22,6 +22,7 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "catalog-test-secret"
 const core = await import("../../src/lib/db/core.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 
 async function resetStorage() {
@@ -45,7 +46,12 @@ test("#3200 imported model on a noAuth provider (theoldllm) appears in /api/v1/m
   // theoldllm is a noAuth provider (alias "tllm") — it never creates a DB connection row.
   // Import a model that is NOT a built-in theoldllm model, so its presence is solely due
   // to the custom/imported path (the path the bug breaks).
-  await modelsDb.addCustomModel("theoldllm", "my-imported-model-3200", "My Imported Model", "imported");
+  await modelsDb.addCustomModel(
+    "theoldllm",
+    "my-imported-model-3200",
+    "My Imported Model",
+    "imported"
+  );
 
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
@@ -79,5 +85,28 @@ test("#3200 custom/imported models on auth providers still appear (no regression
     ids.has("kiro/custom-kiro-3200"),
     false,
     "auth-provider custom model must stay gated behind an eligible connection"
+  );
+});
+
+test("#3200 imported models on noAuth providers are hidden when the provider is disabled", async () => {
+  await settingsDb.updateSettings({ blockedProviders: ["theoldllm"] });
+  await modelsDb.addCustomModel(
+    "theoldllm",
+    "my-imported-model-disabled",
+    "Hidden Imported Model",
+    "imported"
+  );
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as { data: Array<{ id: string }> };
+  const ids = new Set(body.data.map((m) => m.id));
+
+  assert.equal(response.status, 200);
+  assert.equal(
+    ids.has("tllm/my-imported-model-disabled"),
+    false,
+    "imported noAuth provider models must stay hidden while the provider is disabled"
   );
 });

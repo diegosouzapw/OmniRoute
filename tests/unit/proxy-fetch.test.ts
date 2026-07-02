@@ -176,30 +176,47 @@ test("runWithProxyContext throws PROXY_UNREACHABLE for an unreachable proxy by d
 });
 
 test("runWithProxyContext degrades to a direct connection when directFallbackOnUnreachable is set", async () => {
-  let ran = false;
-  const result = await runWithProxyContext(
-    { type: "http", host: "127.0.0.1", port: "9" },
-    async () => {
-      ran = true;
-      return "direct-ok";
-    },
-    { directFallbackOnUnreachable: true }
-  );
+  await withEnv({ OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK: "true" }, async () => {
+    let ran = false;
+    const result = await runWithProxyContext(
+      { type: "http", host: "127.0.0.1", port: "9" },
+      async () => {
+        ran = true;
+        return "direct-ok";
+      },
+      { directFallbackOnUnreachable: true }
+    );
 
-  assert.equal(ran, true, "callback must still run via a direct connection");
-  assert.equal(result, "direct-ok");
+    assert.equal(ran, true, "callback must still run via a direct connection");
+    assert.equal(result, "direct-ok");
+  });
+});
+
+test("runWithProxyContext keeps strict pinning when the direct fallback feature flag is off", async () => {
+  await withEnv({ OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK: "false" }, async () => {
+    await assert.rejects(
+      runWithProxyContext(
+        { type: "http", host: "127.0.0.1", port: "9" },
+        async () => "unreachable",
+        { directFallbackOnUnreachable: true }
+      ),
+      /Proxy unreachable/
+    );
+  });
 });
 
 test("runWithProxyContextOrDirect runs the callback directly when the proxy is unreachable", async () => {
-  let ran = false;
-  const result = await runWithProxyContextOrDirect(
-    { type: "http", host: "127.0.0.1", port: "9" },
-    async () => {
-      ran = true;
-      return "ok";
-    }
-  );
+  await withEnv({ OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK: "true" }, async () => {
+    let ran = false;
+    const result = await runWithProxyContextOrDirect(
+      { type: "http", host: "127.0.0.1", port: "9" },
+      async () => {
+        ran = true;
+        return "ok";
+      }
+    );
 
-  assert.equal(ran, true);
-  assert.equal(result, "ok");
+    assert.equal(ran, true);
+    assert.equal(result, "ok");
+  });
 });

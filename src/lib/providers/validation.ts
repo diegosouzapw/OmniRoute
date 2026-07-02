@@ -20,6 +20,7 @@ import {
   isOpenAICompatibleProvider,
   isSelfHostedChatProvider,
   providerAllowsOptionalApiKey,
+  WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
@@ -189,6 +190,10 @@ function normalizeGigachatChatUrl(baseUrl: string) {
   if (!normalized) return "";
   return `${normalized}/chat/completions`;
 }
+
+// Standardized desktop Chrome UA for web-cookie/no-auth session probes (minimizes anti-bot detection).
+const STANDARD_USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
 function getCustomUserAgent(providerSpecificData: any = {}) {
   if (typeof providerSpecificData?.customUserAgent !== "string") return null;
@@ -2678,6 +2683,28 @@ const SEARCH_VALIDATOR_CONFIGS: Record<
       },
     };
   },
+  // ── Web-fetch providers (#4401) ──
+  // firecrawl / jina-reader were added as webFetch-kind providers in #2645 with their
+  // own executors but no validator, so the dashboard "Validate" step returned
+  // "Provider validation not supported" and accounts could not be added through the UI.
+  // Probe each provider's real fetch endpoint with the same Bearer auth the executor
+  // uses; validateSearchProvider maps 200/<500 → valid, 401/403 → invalid key,
+  // >=500 → failure (a credit-exhausted / rate-limited key still validates).
+  firecrawl: (apiKey) => ({
+    url: "https://api.firecrawl.dev/v1/scrape",
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ url: "https://example.com", formats: ["markdown"] }),
+    },
+  }),
+  "jina-reader": (apiKey) => ({
+    url: "https://r.jina.ai/https://example.com",
+    init: {
+      method: "GET",
+      headers: { Authorization: `Bearer ${apiKey}` },
+    },
+  }),
 };
 
 // See open-sse/executors/muse-spark-web.ts for the rationale: Meta migrated
@@ -2912,6 +2939,27 @@ async function validateQwenWebProvider({ apiKey }: any) {
     if (!resp.ok) {
       return { valid: false, error: `Qwen returned HTTP ${resp.status}` };
     }
+
+    // Parse JSON response and verify we have a real user object
+    // Qwen returns HTTP 200 even for invalid tokens, so we must check the body
+    try {
+      const data = await resp.json();
+      const user = data?.user || data?.data?.user;
+
+      if (!user) {
+        return {
+          valid: false,
+          error:
+            "Qwen session token is invalid or expired — re-login at https://chat.qwen.ai and paste a fresh full Cookie header",
+        };
+      }
+    } catch (parseError) {
+      return {
+        valid: false,
+        error: "Qwen returned invalid JSON response",
+      };
+    }
+
     return { valid: true, error: null };
   } catch (error) {
     return toValidationErrorResult(error);
@@ -3889,6 +3937,60 @@ async function validateInnerAiProvider({ apiKey, providerSpecificData = {} }: an
     return toValidationErrorResult(error);
   }
 }
+/**
+ * Validates web-cookie providers by performing a ping request to check if the session is still valid.
+ * Returns SESSION_EXPIRED error code if the upstream returns 401/403.
+ */
+export async function validateWebCookieProvider({
+  provider,
+  apiKey,
+  providerSpecificData = {},
+}: any) {
+  try {
+    const entry = getRegistryEntry(provider);
+    if (!entry) {
+      return { valid: false, error: "Provider not found in registry", unsupported: true };
+    }
+
+    // For web-cookie providers, apiKey contains the cookie string
+    const cookie = (apiKey || "").trim();
+    if (!cookie) {
+      return { valid: false, error: "Cookie required for web-cookie provider", unsupported: false };
+    }
+
+    // Attempt a minimal request to check if the session is valid
+    // Use /models endpoint or a minimal completion request depending on the provider
+    const baseUrl = entry.baseUrl || "";
+    const testUrl = `${baseUrl}/models`;
+
+    const res = await directHttpsRequest(
+      testUrl,
+      {
+        method: "GET",
+        headers: {
+          "User-Agent": STANDARD_USER_AGENT,
+        },
+      },
+      10_000
+    );
+
+    if (res.status === 401 || res.status === 403) {
+      return {
+        valid: false,
+        error: "SESSION_EXPIRED",
+        errorCode: "AUTH_007",
+        unsupported: false,
+      };
+    }
+
+    // Any other response (200, 404, 405, 429, ...) means the cookie was accepted —
+    // a 401/403 from the /models probe is the only definitive "session expired" signal
+    // for web-cookie auth, so a non-auth status is treated as a valid session.
+    return { valid: true, error: null, unsupported: false };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
 
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   const requiresApiKey = !providerAllowsOptionalApiKey(provider);
@@ -4301,6 +4403,19 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
   if (SPECIALTY_VALIDATORS[provider]) {
     try {
       return await SPECIALTY_VALIDATORS[provider]({ apiKey, providerSpecificData });
+    } catch (error: any) {
+      return toValidationErrorResult(error);
+    }
+  }
+
+  // Web-cookie providers WITHOUT a dedicated specialty validator above fall back to the generic
+  // session-ping check (AUTH_007 SESSION_EXPIRED on 401/403). Providers that DO have a rich
+  // per-provider validator (grok-web, chatgpt-web, claude-web, …) are handled by
+  // SPECIALTY_VALIDATORS first and must not be shadowed by this generic probe (issue: the
+  // #4023 dispatch was placed too early and intercepted every web-cookie provider).
+  if (WEB_COOKIE_PROVIDERS[provider]) {
+    try {
+      return await validateWebCookieProvider({ provider, apiKey, providerSpecificData });
     } catch (error: any) {
       return toValidationErrorResult(error);
     }

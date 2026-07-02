@@ -468,3 +468,131 @@ test("pipeWithDisconnect does not double-clear transform errors already accounte
   assert.equal(pending.byModel[modelKey], 1);
   assert.equal(pending.byAccount[connectionId][modelKey], 1);
 });
+
+// Stall detection: tied to RAW upstream byte activity, not transform output.
+// Ports decolua/9router#1243 — reasoning models (Claude thinking, Kiro
+// EventStream binary frames) can stream raw bytes for long stretches while
+// the SSE transform produces zero output as it accumulates a frame. The
+// stall watchdog must NOT fire on those slow-but-progressing streams.
+test("pipeWithDisconnect does NOT flag a slow but progressing upstream as stalled (no false positive)", async () => {
+  // Upstream emits 3 small chunks 30ms apart (90ms total). The transform
+  // never forwards any output (simulates a translator buffering a frame
+  // boundary that has not yet completed). The stall budget is 200ms — well
+  // above the 30ms gap between upstream bytes, so a byte-activity watchdog
+  // should never fire. A transform-output-activity watchdog would
+  // false-stall here.
+  const source = new ReadableStream({
+    async start(controller) {
+      controller.enqueue(encoder.encode("a"));
+      await new Promise((r) => setTimeout(r, 30));
+      controller.enqueue(encoder.encode("b"));
+      await new Promise((r) => setTimeout(r, 30));
+      controller.enqueue(encoder.encode("c"));
+      await new Promise((r) => setTimeout(r, 30));
+      controller.close();
+    },
+  });
+
+  // Black-hole transform — consumes every byte, emits nothing until flush.
+  const swallowingTransform = new TransformStream({
+    transform() {
+      /* drop chunk — output stream is silent */
+    },
+    flush(controller) {
+      controller.enqueue(encoder.encode("done"));
+    },
+  });
+
+  let onErrorCalled = false;
+  const streamController = createStreamController({
+    onError() {
+      onErrorCalled = true;
+      return true;
+    },
+  });
+
+  const stream = pipeWithDisconnect(
+    new Response(source),
+    swallowingTransform,
+    streamController,
+    { stallTimeoutMs: 200 }
+  );
+
+  const text = await readStreamText(stream);
+
+  // No stall error — final flush output reaches the client cleanly.
+  assert.equal(text, "done");
+  assert.equal(onErrorCalled, false, "stall watchdog must NOT fire on a slow but progressing upstream");
+  assert.doesNotMatch(text, /stall/i);
+  assert.doesNotMatch(text, /"finish_reason":"error"/);
+});
+
+test("pipeWithDisconnect flags a truly stalled upstream (no bytes for the full stall budget)", async () => {
+  // Upstream emits one byte and then goes silent forever. Stall budget is
+  // 80ms — the watchdog must fire and surface a stream-stall error.
+  const source = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encoder.encode("x"));
+      // never enqueue again, never close — simulate a truly hung upstream
+    },
+    cancel() {
+      // upstream cancel hook so the stall abort path can release the source
+    },
+  });
+
+  let onErrorEvent = null;
+  const streamController = createStreamController({
+    onError(event) {
+      onErrorEvent = event;
+      return true;
+    },
+  });
+
+  const stream = pipeWithDisconnect(
+    new Response(source),
+    new TransformStream(),
+    streamController,
+    { stallTimeoutMs: 80 }
+  );
+
+  const text = await readStreamText(stream);
+
+  assert.ok(onErrorEvent !== null, "stall watchdog must fire when upstream stops sending bytes");
+  assert.match(onErrorEvent.message, /stall/i);
+  assert.match(text, /stall/i);
+  assert.match(text, /"finish_reason":"error"/);
+});
+
+test("pipeWithDisconnect stall watchdog does not fire after normal stream completion", async () => {
+  // Upstream completes quickly. The stall timer must be cleared on
+  // completion so a stale abort cannot fire after the request has ended.
+  const source = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encoder.encode("ok"));
+      controller.close();
+    },
+  });
+
+  let onErrorCalled = false;
+  const streamController = createStreamController({
+    onError() {
+      onErrorCalled = true;
+      return true;
+    },
+  });
+
+  const stream = pipeWithDisconnect(
+    new Response(source),
+    new TransformStream(),
+    streamController,
+    { stallTimeoutMs: 50 }
+  );
+
+  const text = await readStreamText(stream);
+
+  // Wait past the stall budget — no late stall error must surface.
+  await new Promise((r) => setTimeout(r, 120));
+
+  assert.equal(text, "ok");
+  assert.equal(onErrorCalled, false, "stall watchdog must be cleared on stream completion");
+});

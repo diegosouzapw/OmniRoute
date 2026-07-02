@@ -32,6 +32,16 @@ test("summary returns per-model totals, used-this-month and remaining", async ()
   assert.ok(!JSON.stringify(body).includes("at /")); // no stack-trace leak
 });
 
+test("summary surfaces the uncapped providers and the deposit-unlock boost", async () => {
+  const res = await GET(new Request("http://localhost/api/free-tier/summary"));
+  const body = await res.json();
+  assert.ok(Array.isArray(body.uncappedProviders) && body.uncappedProviders.length >= 3);
+  assert.equal(typeof body.boostMonthlyTokens, "number");
+  assert.ok(body.boostMonthlyTokens >= 24_000_000);
+  // the boost is reported, not folded into steady
+  assert.ok(body.boostMonthlyTokens < body.steadyRecurringTokens);
+});
+
 test("GET /api/free-tier/summary excludeTosAvoid filters models", async () => {
   const res = await GET(new Request("http://localhost/api/free-tier/summary?excludeTosAvoid=1"));
   assert.equal(res.status, 200);

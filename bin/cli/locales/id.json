@@ -25,5 +25,8 @@
     "base_url": "URL dasar server OmniRoute",
     "context": "Konteks/profil server untuk perintah ini",
     "lang": "Atur bahasa tampilan CLI (menggantikan OMNIROUTE_LANG)"
+  },
+  "redis": {
+    "description": "Luncurkan kontainer Redis lokal dengan satu klik (Podman atau Docker) untuk caching dan pelacakan kuota OmniRoute"
   }
 }

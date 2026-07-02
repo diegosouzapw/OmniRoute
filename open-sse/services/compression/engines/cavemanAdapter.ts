@@ -211,6 +211,29 @@ function validateUltraConfig(config: Record<string, unknown>): EngineValidationR
   return { valid: errors.length === 0, errors };
 }
 
+// Lite only honors `preserveSystemPrompt` (model/vision are runtime, not user config).
+// Previously this engine wrongly exposed AGGRESSIVE_SCHEMA, surfacing irrelevant
+// summarizer/threshold fields in the per-engine config UI.
+const LITE_SCHEMA: EngineConfigField[] = [
+  {
+    key: "preserveSystemPrompt",
+    type: "boolean",
+    label: "Preserve system prompt",
+    defaultValue: true,
+  },
+];
+
+function validateLiteConfig(config: Record<string, unknown>): EngineValidationResult {
+  const errors: string[] = [];
+  if (
+    config.preserveSystemPrompt !== undefined &&
+    typeof config.preserveSystemPrompt !== "boolean"
+  ) {
+    errors.push("preserveSystemPrompt must be a boolean");
+  }
+  return { valid: errors.length === 0, errors };
+}
+
 export const liteEngine: CompressionEngine = {
   id: "lite",
   name: "Lite",
@@ -240,10 +263,10 @@ export const liteEngine: CompressionEngine = {
     return this.apply(body, { stepConfig: config });
   },
   getConfigSchema() {
-    return AGGRESSIVE_SCHEMA;
+    return LITE_SCHEMA;
   },
   validateConfig(config) {
-    return validateAggressiveConfig(config);
+    return validateLiteConfig(config);
   },
 };
 

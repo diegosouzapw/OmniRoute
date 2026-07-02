@@ -448,7 +448,12 @@ export interface RequestBody {
  * Replace image content parts with text descriptions.
  * Concatenates descriptions with labels: "[Image 1]: ..."
  */
-export function replaceImageParts(body: RequestBody, descriptions: string[]): RequestBody {
+export function replaceImageParts(
+  body: RequestBody,
+  // #4012: a `null` entry means the describe call failed for that image — keep
+  // the original image part instead of dropping it / stubbing "(unavailable)".
+  descriptions: (string | null)[]
+): RequestBody {
   if (!descriptions || descriptions.length === 0) {
     return body;
   }
@@ -472,11 +477,15 @@ export function replaceImageParts(body: RequestBody, descriptions: string[]): Re
     for (const part of message.content) {
       if (part?.type === "image_url" || part?.type === "image") {
         if (descriptionIndex < descriptions.length) {
-          newContent.push({
-            type: "text",
-            text: descriptions[descriptionIndex],
-          });
+          const description = descriptions[descriptionIndex];
           descriptionIndex++;
+          if (description == null) {
+            // #4012: describe failed for this image — preserve the original
+            // image so a vision-capable upstream can still process it.
+            newContent.push(part as RequestContentPart);
+          } else {
+            newContent.push({ type: "text", text: description });
+          }
         }
       } else {
         newContent.push(part as RequestContentPart);

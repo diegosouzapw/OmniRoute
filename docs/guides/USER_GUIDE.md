@@ -225,6 +225,10 @@ Models:
 
 ### 🆓 FREE Providers
 
+No-auth free providers have a switch beside **No authentication required** on their provider page.
+Turning it off disables that provider, removes it from Providers configured/compact views, and
+removes its models from `/v1/models`.
+
 #### Qoder (8 FREE models)
 
 ```bash
@@ -560,7 +564,7 @@ post_install() {
 | `NEXT_PUBLIC_CLOUD_URL`                 | `https://omniroute.dev`              | Cloud sync endpoint base URL (replaces legacy `CLOUD_URL`)                                                |
 | `API_KEY_SECRET`                        | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                                                                        |
 | `REQUIRE_API_KEY`                       | `false`                              | Enforce Bearer API key on `/v1/*`                                                                         |
-| `ALLOW_API_KEY_REVEAL`                  | `false`                              | Allow Api Manager to copy full API keys on demand                                                         |
+| `ALLOW_API_KEY_REVEAL`                  | `false`                              | Allow authenticated dashboard users to reveal full stored API key values on demand                        |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`                                 | Server-side refresh cadence for cached Provider Limits data; UI refresh buttons still trigger manual sync |
 | `DISABLE_SQLITE_AUTO_BACKUP`            | `false`                              | Disable automatic SQLite snapshots before writes/import/restore; manual backups still work                |
 | `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
@@ -893,6 +897,11 @@ The settings page is organized into **7 tabs** for easy navigation:
 | **Resilience** | Request queue, connection cooldown, provider breaker config, and wait-for-cooldown behavior                                                              |
 | **Advanced**   | Global proxy configuration (HTTP/SOCKS5), per-provider proxy overrides                                                                                   |
 
+General no longer duplicates read-only logging and cache notes. Database retention and
+optimization settings are persisted through `/api/settings/database`; manual cache clearing uses
+`DELETE /api/cache`. Request and proxy log row caps are controlled by
+`CALL_LOGS_TABLE_MAX_ROWS` and `PROXY_LOGS_TABLE_MAX_ROWS`.
+
 ---
 
 ### Costs & Budget Management
@@ -1072,7 +1081,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
 
 ### Connect Cursor / Continue / VS Code MCP
 
-Use the SSE URL `http://localhost:20128/api/mcp/sse` and a Bearer API key generated in **Dashboard → API Manager**.
+Use the SSE URL `http://localhost:20128/api/mcp/sse` and a Bearer API key generated in **Dashboard → API Keys**.
 
 ### Scopes
 
@@ -1134,7 +1143,7 @@ Full reference: [CLOUD_AGENT.md](../frameworks/CLOUD_AGENT.md).
 
 You can manage every OmniRoute resource (providers, combos, keys, settings) over HTTP using a **Bearer key with the `manage` scope**.
 
-Generate the key in **Dashboard → API Manager → New Key → Scope: manage**, then:
+Generate the key in **Dashboard → API Keys → New Key → Scope: manage**, then:
 
 ```bash
 # List providers

@@ -11,12 +11,56 @@ import { normalizeCodeLanguage, stripCode } from "./codeStripper.ts";
 import { maybePersistRtkRawOutput, type RtkRawOutputPointer } from "./rawOutput.ts";
 import { isTextBlock } from "../../messageContent.ts";
 import { adaptBodyForCompression } from "../../bodyAdapter.ts";
+import { isAnthropicToolResultBlock } from "../../toolResultCompressor.ts";
 
 type Message = {
   role: string;
   content?: string | Array<{ type?: string; text?: string; [key: string]: unknown }>;
   [key: string]: unknown;
 };
+
+type ToolMeta = { toolName: string; command: string | null };
+
+// Same terminal-tool pattern as grok-web.ts isTerminalTool(): RTK's command-aware filters
+// only apply to bash/shell tool results. Non-shell tools (read, glob, grep, edit, write…)
+// skip filter matching to avoid content-based false positives (e.g. a .ts file matching
+// the build-typescript filter).
+const SHELL_TOOL_NAME_RE = /\b(bash|shell|terminal|run_command|execute_command|exec|command)\b/;
+
+/**
+ * A content block (or text sub-block) carrying `cache_control` is an explicit upstream
+ * prompt-cache breakpoint — the provider caches the prefix up to and INCLUDING it. Rewriting
+ * such a block's text invalidates that cached prefix every turn (guaranteed cache miss), the
+ * "provider cache broken" regression once RTK started compressing Anthropic tool_result blocks.
+ * So we preserve any cache_control-marked block byte-for-byte. (#3936: under caching, only ever
+ * preserve more of the prefix — never rewrite a client-declared breakpoint.)
+ */
+function hasCacheControlMarker(part: unknown): boolean {
+  return (
+    !!part &&
+    typeof part === "object" &&
+    (part as Record<string, unknown>).cache_control !== undefined &&
+    (part as Record<string, unknown>).cache_control !== null
+  );
+}
+
+/**
+ * Resolve the shell command + whether to skip RTK filters for a tool result, given the
+ * tool id (OpenAI `tool_call_id` / Anthropic `tool_use_id`) and the lookup built from the
+ * preceding assistant tool calls. A missing entry runs filters with text-based command
+ * detection; a non-shell tool name skips filters.
+ */
+function resolveToolMeta(
+  toolId: string | null,
+  lookup: Map<string, ToolMeta>
+): { command: string | null; skipFilters: boolean } {
+  const meta = toolId ? lookup.get(toolId) : null;
+  if (!meta) return { command: null, skipFilters: false };
+  if (SHELL_TOOL_NAME_RE.test(meta.toolName.toLowerCase())) {
+    return { command: meta.command, skipFilters: false };
+  }
+  return { command: null, skipFilters: true };
+}
 
 const RTK_SCHEMA: EngineConfigField[] = [
   {
@@ -188,6 +232,14 @@ function mergeRtkConfig(base?: Partial<RtkConfig>, override?: Record<string, unk
 }
 
 function shouldCompressMessage(message: Message, config: RtkConfig): boolean {
+  // Anthropic-shape tool results live in (typically role:"user") messages as `tool_result`
+  // content blocks — treat them like OpenAI tool messages (gated by applyToToolResults).
+  if (
+    config.applyToToolResults &&
+    Array.isArray(message.content) &&
+    message.content.some(isAnthropicToolResultBlock)
+  )
+    return true;
   if (message.role === "tool")
     return config.applyToToolResults || (config.applyToCodeBlocks && hasCodeFence(message.content));
   if (message.role === "assistant")
@@ -289,7 +341,7 @@ export function processRtkText(
       if (config.enabledFilters.length === 0 || config.enabledFilters.includes(filter.id)) {
         const filtered = applyLineFilter(result, {
           ...filter,
-          maxLines: filter.maxLines || config.maxLinesPerResult,
+          maxLines: effectiveMaxLines(filter.maxLines || config.maxLinesPerResult, config.intensity),
         });
         result = filtered.text;
         if (filtered.appliedRules.length > 0) {
@@ -306,7 +358,12 @@ export function processRtkText(
     result = result.replace(
       /```([A-Za-z0-9_+.-]*)\r?\n([\s\S]*?)```/g,
       (match, languageHint: string, code: string) => {
-        const stripped = stripCode(code, normalizeCodeLanguage(languageHint));
+        const stripped = stripCode(code, normalizeCodeLanguage(languageHint), {
+          // Opt-in comment removal (default off = no silent production change). Docstrings/JSDoc
+          // are preserved unless explicitly disabled.
+          removeComments: config.stripCodeComments === true,
+          preserveDocstrings: config.preserveDocstrings !== false,
+        });
         if (stripped.strippedLines <= 0 && stripped.text === code.trim()) return match;
         strippedCodeBlocks++;
         const fenceLanguage = languageHint?.trim() || stripped.language;
@@ -347,7 +404,7 @@ export function processRtkText(
     }
   });
   const truncated = smartTruncate(result, {
-    maxLines: config.maxLinesPerResult,
+    maxLines: effectiveMaxLines(config.maxLinesPerResult, config.intensity),
     maxChars: config.maxCharsPerResult,
     preserveHead: config.intensity === "aggressive" ? 16 : 24,
     preserveTail: config.intensity === "aggressive" ? 16 : 24,
@@ -380,6 +437,82 @@ export function processRtkText(
     techniquesUsed: [...new Set(techniquesUsed)],
     rulesApplied: [...new Set(rulesApplied)],
     ...(rawOutputPointers.length > 0 ? { rawOutputPointers } : {}),
+  };
+}
+
+/**
+ * Compress the text inside Anthropic-shape `tool_result` content blocks (string or nested
+ * text-block content), resolving the shell command per block from its `tool_use_id`. The
+ * block type and `tool_use_id` are preserved exactly — only the inner text is rewritten.
+ */
+function processToolResultBlocks(
+  content: Message["content"],
+  config: RtkConfig,
+  toolCallLookup: Map<string, ToolMeta>
+): {
+  content: Message["content"];
+  compressed: boolean;
+  techniquesUsed: string[];
+  rulesApplied: string[];
+  rawOutputPointers: RtkRawOutputPointer[];
+} {
+  const techniquesUsed: string[] = [];
+  const rulesApplied: string[] = [];
+  const rawOutputPointers: RtkRawOutputPointer[] = [];
+
+  if (!Array.isArray(content)) {
+    return { content, compressed: false, techniquesUsed, rulesApplied, rawOutputPointers };
+  }
+
+  const collect = (processed: RtkProcessResult) => {
+    techniquesUsed.push(...processed.techniquesUsed);
+    rulesApplied.push(...processed.rulesApplied);
+    if (processed.rawOutputPointers) rawOutputPointers.push(...processed.rawOutputPointers);
+  };
+
+  let compressed = false;
+  const nextContent = content.map((part) => {
+    if (!isAnthropicToolResultBlock(part)) return part;
+    // The block itself is a cache breakpoint — preserve it byte-for-byte.
+    if (hasCacheControlMarker(part)) return part;
+    const toolUseId = typeof part.tool_use_id === "string" ? part.tool_use_id : null;
+    const { command, skipFilters } = resolveToolMeta(toolUseId, toolCallLookup);
+    const inner = part.content;
+
+    if (typeof inner === "string") {
+      if (!inner) return part;
+      const processed = processRtkText(inner, { config, command, skipFilters });
+      collect(processed);
+      if (!processed.compressed) return part;
+      compressed = true;
+      return { ...part, content: processed.text };
+    }
+
+    if (Array.isArray(inner)) {
+      let blockChanged = false;
+      const nextInner = inner.map((sub) => {
+        if (!isTextBlock(sub) || !sub.text) return sub;
+        // A text sub-block can carry its own cache breakpoint — preserve it byte-for-byte.
+        if (hasCacheControlMarker(sub)) return sub;
+        const processed = processRtkText(sub.text, { config, command, skipFilters });
+        collect(processed);
+        if (!processed.compressed) return sub;
+        blockChanged = true;
+        compressed = true;
+        return { ...sub, text: processed.text };
+      });
+      return blockChanged ? { ...part, content: nextInner } : part;
+    }
+
+    return part;
+  });
+
+  return {
+    content: compressed ? nextContent : content,
+    compressed,
+    techniquesUsed,
+    rulesApplied,
+    rawOutputPointers,
   };
 }
 
@@ -453,6 +586,18 @@ function processRtkContent(
   };
 }
 
+/**
+ * Scale a line budget by intensity so minimal / standard / aggressive produce
+ * meaningfully different output on truncation-based filters (B-RTK-INTENSITY).
+ * Truncation always runs through smartTruncate with priorityPatterns, so error /
+ * failure lines survive at EVERY intensity. (Include/collapse filters like docker-logs
+ * compress by content, not line budget, so they are intensity-independent by nature.)
+ */
+export function effectiveMaxLines(base: number, intensity: string | undefined): number {
+  const factor = intensity === "aggressive" ? 0.5 : intensity === "minimal" ? 1.5 : 1;
+  return Math.max(1, Math.round(base * factor));
+}
+
 export function applyRtkCompression(
   body: Record<string, unknown>,
   options: { config?: Partial<RtkConfig>; stepConfig?: Record<string, unknown> } = {}
@@ -480,57 +625,79 @@ export function applyRtkCompression(
   // Build tool_call_id → tool metadata lookup from assistant messages.
   // This lets us distinguish bash tool results (which RTK filters are designed for)
   // from non-shell tool results (read, grep, glob, etc.) that should skip filters.
-  const toolCallLookup = new Map<string, { toolName: string; command: string | null }>();
+  const toolCallLookup = new Map<string, ToolMeta>();
   for (const msg of messages) {
     if (msg.role !== "assistant") continue;
+    // OpenAI-shape: assistant.tool_calls[].function.{name, arguments(JSON).command}
     const toolCalls = msg.tool_calls;
-    if (!Array.isArray(toolCalls)) continue;
-    for (const tc of toolCalls as Array<Record<string, unknown>>) {
-      if (!tc || typeof tc !== "object") continue;
-      const id = typeof tc.id === "string" ? tc.id : null;
-      if (!id) continue;
-      const fn = tc.function as Record<string, unknown> | undefined;
-      if (!fn || typeof fn !== "object") continue;
-      const toolName = typeof fn.name === "string" ? fn.name : "";
-      let command: string | null = null;
-      if (typeof fn.arguments === "string") {
-        try {
-          const args = JSON.parse(fn.arguments);
-          command =
-            typeof args.command === "string"
-              ? args.command
-              : typeof args.cmd === "string"
-                ? args.cmd
-                : null;
-        } catch {
-          // non-JSON arguments
+    if (Array.isArray(toolCalls)) {
+      for (const tc of toolCalls as Array<Record<string, unknown>>) {
+        if (!tc || typeof tc !== "object") continue;
+        const id = typeof tc.id === "string" ? tc.id : null;
+        if (!id) continue;
+        const fn = tc.function as Record<string, unknown> | undefined;
+        if (!fn || typeof fn !== "object") continue;
+        const toolName = typeof fn.name === "string" ? fn.name : "";
+        let command: string | null = null;
+        if (typeof fn.arguments === "string") {
+          try {
+            const args = JSON.parse(fn.arguments);
+            command =
+              typeof args.command === "string"
+                ? args.command
+                : typeof args.cmd === "string"
+                  ? args.cmd
+                  : null;
+          } catch {
+            // non-JSON arguments
+          }
         }
+        toolCallLookup.set(id, { toolName, command });
       }
-      toolCallLookup.set(id, { toolName, command });
+    }
+    // Anthropic-shape: assistant.content[] holds { type:"tool_use", id, name, input.command }.
+    if (Array.isArray(msg.content)) {
+      for (const part of msg.content as Array<Record<string, unknown>>) {
+        if (!part || typeof part !== "object" || part.type !== "tool_use") continue;
+        const id = typeof part.id === "string" ? part.id : null;
+        if (!id) continue;
+        const toolName = typeof part.name === "string" ? part.name : "";
+        const input = part.input as Record<string, unknown> | undefined;
+        let command: string | null = null;
+        if (input && typeof input === "object") {
+          command =
+            typeof input.command === "string"
+              ? input.command
+              : typeof input.cmd === "string"
+                ? input.cmd
+                : null;
+        }
+        toolCallLookup.set(id, { toolName, command });
+      }
     }
   }
 
   const compressedMessages = messages.map((message) => {
     if (!shouldCompressMessage(message, config)) return message;
 
-    // Resolve tool metadata from the preceding assistant tool_calls entry.
+    // Anthropic-shape tool results: `tool_result` content blocks inside a (typically
+    // role:"user") message. Compress each block's inner text, resolving the shell command
+    // per block from the matching assistant `tool_use` (mirrors the OpenAI tool path).
+    if (Array.isArray(message.content) && message.content.some(isAnthropicToolResultBlock)) {
+      const processed = processToolResultBlocks(message.content, config, toolCallLookup);
+      allTechniques.push(...processed.techniquesUsed);
+      allRules.push(...processed.rulesApplied);
+      rawOutputPointers.push(...processed.rawOutputPointers);
+      if (!processed.compressed) return message;
+      return { ...message, content: processed.content };
+    }
+
+    // OpenAI-shape tool message: resolve metadata from the preceding assistant tool_calls.
     let command: string | null = null;
     let skipFilters = false;
     if (message.role === "tool") {
       const callId = typeof message.tool_call_id === "string" ? message.tool_call_id : null;
-      const meta = callId ? toolCallLookup.get(callId) : null;
-      if (meta) {
-        const name = meta.toolName.toLowerCase();
-        // Match the same terminal tool pattern used in grok-web.ts isTerminalTool().
-        // Only apply RTK filters to bash/shell tool results.
-        // Non-shell tools (read, glob, grep, edit, write, etc.) skip filter matching
-        // to prevent content-based false positives (e.g. a TS file matching build-typescript).
-        if (/\b(bash|shell|terminal|run_command|execute_command|exec|command)\b/.test(name)) {
-          command = meta.command;
-        } else {
-          skipFilters = true;
-        }
-      }
+      ({ command, skipFilters } = resolveToolMeta(callId, toolCallLookup));
     }
 
     const processed = processRtkContent(message.content, config, { command, skipFilters });
@@ -604,4 +771,12 @@ export {
   detectCommandType,
 } from "./commandDetector.ts";
 export { runRtkFilterTests } from "./verify.ts";
-export { maybePersistRtkRawOutput, readRtkRawOutput, redactRtkRawOutput } from "./rawOutput.ts";
+export {
+  maybePersistRtkRawOutput,
+  readRtkRawOutput,
+  redactRtkRawOutput,
+  listRtkCommandSamples,
+} from "./rawOutput.ts";
+// RTK learn/discover: the sample-source adapter (rawOutput) feeds these pure miners.
+export { discoverRepeatedNoise, type NoiseCandidate, type CommandSample } from "./discover.ts";
+export { suggestFilter, commandToId, type SuggestedFilter } from "./learn.ts";

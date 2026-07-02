@@ -29,6 +29,13 @@ type ModelSelectModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (model: unknown) => void;
+  /**
+   * Optional toggle callback — when set, clicking a model already in
+   * `addedModelValues` invokes this instead of `onSelect`, so the modal acts
+   * as an in-place add/remove toggle. Ported from upstream PR
+   * decolua/9router#889 (Fajar Hidayat).
+   */
+  onDeselect?: (model: unknown) => void;
   selectedModel?: string;
   selectedModels?: string[];
   activeProviders?: Array<{ provider: string }>;
@@ -38,12 +45,23 @@ type ModelSelectModalProps = {
   multiSelect?: boolean;
   showCombos?: boolean;
   alwaysIncludeProviders?: string[] | null;
+  /**
+   * When true, picking a model does NOT auto-close the modal — the caller must close
+   * explicitly. A "Done" button is rendered in the modal footer so the user has a clear
+   * way to confirm they are finished adding entries. Useful in combo creation, where the
+   * user typically adds several models in a row. Mutually exclusive with `multiSelect`
+   * (which renders its own Clear + Done footer driven by `selectedModels`).
+   * Inspired by upstream PR decolua/9router#1031. Combined with `onDeselect`, this also
+   * enables the toggle-style deselection from upstream PR decolua/9router#889.
+   */
+  keepOpenOnSelect?: boolean;
 };
 
 export default function ModelSelectModal({
   isOpen,
   onClose,
   onSelect,
+  onDeselect,
   selectedModel,
   selectedModels = [],
   activeProviders = [],
@@ -53,6 +71,7 @@ export default function ModelSelectModal({
   multiSelect = false,
   showCombos = true,
   alwaysIncludeProviders = [],
+  keepOpenOnSelect = false,
 }: ModelSelectModalProps) {
   const t = useTranslations("common");
   const resolvedTitle = title ?? t("selectModel");
@@ -327,12 +346,49 @@ export default function ModelSelectModal({
   const isValueSelected = (value: string) => resolvedSelectedModels.includes(value);
 
   const handleSelect = (model: any) => {
-    onSelect(model);
-    if (!multiSelect) {
+    // Upstream PR decolua/9router#889: when the model is already in
+    // `addedModelValues` AND a deselect callback was supplied, the click acts
+    // as an in-place remove instead of a duplicate add.
+    const candidateValue =
+      typeof model?.value === "string"
+        ? model.value
+        : typeof model?.name === "string"
+          ? model.name
+          : typeof model === "string"
+            ? model
+            : "";
+    const isAdded = candidateValue ? addedModelValues.includes(candidateValue) : false;
+
+    if (isAdded && onDeselect) {
+      onDeselect(model);
+    } else {
+      onSelect(model);
+    }
+
+    // Legacy single-pick auto-closes; multiSelect or keepOpenOnSelect keep the
+    // modal open so the user can toggle several entries in a row.
+    if (!multiSelect && !keepOpenOnSelect) {
       onClose();
       setSearchQuery("");
     }
   };
+
+  // Footer "Done" button for single-select callers that opted out of auto-close
+  // (e.g. combo creation, where users add several models in a row). Skipped when
+  // `multiSelect` is on — that mode renders its own Clear + Done footer below the body.
+  const doneFooter =
+    keepOpenOnSelect && !multiSelect ? (
+      <button
+        type="button"
+        onClick={() => {
+          onClose();
+          setSearchQuery("");
+        }}
+        className="w-full px-3 py-2 text-sm font-medium rounded border border-primary bg-primary text-white hover:bg-primary/90 transition-colors"
+      >
+        {t("done")}
+      </button>
+    ) : null;
 
   return (
     <Modal
@@ -344,6 +400,7 @@ export default function ModelSelectModal({
       title={resolvedTitle}
       size="md"
       className="p-4!"
+      footer={doneFooter}
     >
       {/* Search - compact */}
       <div className="mb-3">

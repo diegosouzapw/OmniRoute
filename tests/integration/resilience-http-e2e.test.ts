@@ -524,6 +524,7 @@ test.before(async () => {
     resilienceSettings: buildResilienceConfig(),
     requestRetry: 0,
     maxRetryIntervalSec: 0,
+    stickyRoundRobinLimit: 1,
     requireLogin: false,
     setupComplete: true,
   });

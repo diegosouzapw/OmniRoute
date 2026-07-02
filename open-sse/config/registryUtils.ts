@@ -23,6 +23,29 @@ export interface BaseProvider<M extends BaseModel = BaseModel> {
 }
 
 /**
+ * Per-registry ``modelId → providerId`` index for the bare-model lookup below.
+ * The media registries (image/video/audio/music) are static module-level objects, so the
+ * index is built once per registry and reused. First-wins insertion preserves the original
+ * Object.entries() iteration order (the same provider the linear scan would have returned).
+ */
+const registryModelIndexCache = new WeakMap<object, Map<string, string>>();
+function getRegistryModelIndex<P extends BaseProvider>(
+  registry: Record<string, P>
+): Map<string, string> {
+  let index = registryModelIndexCache.get(registry);
+  if (!index) {
+    index = new Map<string, string>();
+    for (const [providerId, config] of Object.entries(registry)) {
+      for (const model of config.models) {
+        if (!index.has(model.id)) index.set(model.id, providerId);
+      }
+    }
+    registryModelIndexCache.set(registry, index);
+  }
+  return index;
+}
+
+/**
  * Parse a "provider/model" string against a registry.
  * Supports both "provider/model" prefix and bare "model" lookup.
  */
@@ -42,11 +65,11 @@ export function parseModelFromRegistry<P extends BaseProvider>(
     }
   }
 
-  // No provider prefix — try to find the model in every provider
-  for (const [providerId, config] of Object.entries(registry)) {
-    if (config.models.some((m) => m.id === modelStr)) {
-      return { provider: providerId, model: modelStr };
-    }
+  // No provider prefix — find the model via the precomputed index (was an O(providers × models)
+  // scan on every call).
+  const providerId = getRegistryModelIndex(registry).get(modelStr);
+  if (providerId) {
+    return { provider: providerId, model: modelStr };
   }
 
   return { provider: null, model: modelStr };

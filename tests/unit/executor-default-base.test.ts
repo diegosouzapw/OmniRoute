@@ -17,6 +17,7 @@ import {
   CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA,
   CONTEXT_1M_BETA_HEADER,
 } from "../../open-sse/services/claudeCodeCompatible.ts";
+import { runWithCapture } from "../../open-sse/utils/providerRequestLogging.ts";
 
 class TestExecutor extends BaseExecutor {
   constructor(config = {}) {
@@ -105,6 +106,40 @@ test("DefaultExecutor.buildUrl uses full chat endpoints for hosted OpenAI-compat
     "https://bazaarlink.ai/api/v1/chat/completions"
   );
   assert.equal(crof.buildUrl("gpt-4.1", true), "https://crof.ai/v1/chat/completions");
+});
+
+test("DefaultExecutor.buildUrl honors a custom providerSpecificData.baseUrl for the built-in openai provider", () => {
+  const openai = new DefaultExecutor("openai");
+
+  // No override → hardcoded OpenAI endpoint (unchanged behavior).
+  assert.equal(
+    openai.buildUrl("gpt-4o", true),
+    "https://api.openai.com/v1/chat/completions"
+  );
+
+  // Custom base URL (e.g. a proxy/gateway) must be used instead of api.openai.com.
+  assert.equal(
+    openai.buildUrl("gpt-4o", true, 0, {
+      providerSpecificData: { baseUrl: "https://api.contactboxtools.me/v1" },
+    }),
+    "https://api.contactboxtools.me/v1/chat/completions"
+  );
+
+  // Trailing slash is normalized.
+  assert.equal(
+    openai.buildUrl("gpt-4o", true, 0, {
+      providerSpecificData: { baseUrl: "https://proxy.example/v1/" },
+    }),
+    "https://proxy.example/v1/chat/completions"
+  );
+
+  // A base URL already pointing at the chat endpoint is kept as-is.
+  assert.equal(
+    openai.buildUrl("gpt-4o", true, 0, {
+      providerSpecificData: { baseUrl: "https://proxy.example/v1/chat/completions" },
+    }),
+    "https://proxy.example/v1/chat/completions"
+  );
 });
 
 test("DefaultExecutor.buildUrl handles openai-compatible and anthropic-compatible providers", () => {
@@ -606,6 +641,73 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
     true
   );
   assert.equal(calls[2].headers["anthropic-beta"], undefined);
+});
+
+test("DefaultExecutor.execute reports the exact serialized provider request before fetch", async () => {
+  const originalFetch = globalThis.fetch;
+  let fetchStarted = false;
+  let fetchBody: any = null;
+  let prepared: any = null;
+  let preparedBeforeFetch = false;
+
+  globalThis.fetch = async (_url, init = {}) => {
+    fetchStarted = true;
+    fetchBody = JSON.parse(String(init.body || "{}"));
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const cc = new DefaultExecutor("anthropic-compatible-cc-test");
+    const requestCapture = {
+      capture(request) {
+        preparedBeforeFetch = !fetchStarted;
+        prepared = request;
+      },
+      body(fallback) {
+        return prepared?.body ?? fallback;
+      },
+      latest() {
+        return prepared;
+      },
+    };
+    const result = await runWithCapture(requestCapture, () =>
+      cc.execute({
+        model: "claude-sonnet-4-6",
+        body: {
+          model: "claude-sonnet-4-6",
+          system: [
+            {
+              type: "text",
+              text: "x-anthropic-billing-header: cc_version=1.0.0; cc_entrypoint=sdk-cli; cch=00000;",
+            },
+          ],
+          messages: [{ role: "user", content: "hi" }],
+          max_tokens: 1,
+          reasoning_effort: "xhigh",
+        },
+        stream: false,
+        credentials: {
+          apiKey: "cc-key",
+          providerSpecificData: {
+            ccSessionId: "session-1",
+          },
+        },
+      })
+    );
+
+    assert.ok(prepared, "prepared request hook should fire before fetch");
+    assert.equal(preparedBeforeFetch, true);
+    assert.deepEqual(prepared.body, fetchBody);
+    assert.deepEqual(result.transformedBody, fetchBody);
+    assert.equal(prepared.body.reasoning_effort, "high");
+    assert.equal(fetchBody.reasoning_effort, "high");
+    assert.match(JSON.stringify(fetchBody), /\bcch=(?!00000)[0-9a-f]{5};/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("DefaultExecutor.execute only injects adaptive thinking defaults for Claude models that support x-high effort", async () => {

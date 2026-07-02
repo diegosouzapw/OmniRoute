@@ -10,6 +10,7 @@ const harness = await createChatPipelineHarness("memory-pipeline");
 // The harness sets DATA_DIR before importing DB modules, so these must resolve after that.
 const { extractFactsFromText } = await import("../../src/lib/memory/extraction.ts");
 const { retrieveMemories } = await import("../../src/lib/memory/retrieval.ts");
+const { invalidateMemorySettingsCache } = await import("../../src/lib/memory/settings.ts");
 const { injectMemory, formatMemoryContext } = await import("../../src/lib/memory/injection.ts");
 const {
   BaseExecutor,
@@ -45,12 +46,14 @@ function dropFts5Artifacts() {
 test.beforeEach(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = 0;
   await resetStorage();
+  invalidateMemorySettingsCache();
   dropFts5Artifacts();
 });
 
 test.afterEach(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = harness.originalRetryDelayMs;
   await resetStorage();
+  invalidateMemorySettingsCache();
 });
 
 test.after(async () => {

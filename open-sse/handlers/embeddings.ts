@@ -15,6 +15,7 @@
 
 import {
   getEmbeddingProvider,
+  getEmbeddingModelDefaultParams,
   parseEmbeddingModel,
   type EmbeddingProvider,
 } from "../config/embeddingRegistry.ts";
@@ -140,6 +141,33 @@ export async function handleEmbedding({
   for (const [key, value] of Object.entries(body)) {
     if (!KNOWN_FIELDS.has(key) && value !== undefined) {
       upstreamBody[key] = value;
+    }
+  }
+
+  // Gemini embedding models (gemini-embedding-001 / -2-preview / text-embedding-004)
+  // default to 3072-dim vectors. Clients targeting pgvector-style schemas typically
+  // request a smaller size (e.g. 1536) via OpenAI's `dimensions` field, but Google's
+  // OpenAI-compatibility shim at /v1beta/openai/embeddings does not document the
+  // `dimensions` → `outputDimensionality` translation. Mirror the request value into
+  // the Gemini-native `outputDimensionality` field so the upstream actually returns
+  // the requested vector size. Ported from upstream decolua/9router#1366.
+  if (provider === "gemini" && upstreamBody.outputDimensionality === undefined) {
+    const outputDimensionality = Number(body.dimensions);
+    if (Number.isFinite(outputDimensionality) && outputDimensionality > 0) {
+      upstreamBody.outputDimensionality = outputDimensionality;
+    }
+  }
+
+  // Inject model-level default params (e.g. NVIDIA NIM asymmetric models require
+  // `input_type`) only for keys the client did not already supply, so a
+  // client-sent value is never overwritten. Symmetric models carry no defaults
+  // and are unaffected. See issue #1378.
+  const defaultParams = getEmbeddingModelDefaultParams(providerConfig, model);
+  if (defaultParams) {
+    for (const [key, value] of Object.entries(defaultParams)) {
+      if (upstreamBody[key] === undefined) {
+        upstreamBody[key] = value;
+      }
     }
   }
 

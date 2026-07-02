@@ -88,10 +88,11 @@ describe("tabular encoder round-trip", () => {
     assert.deepEqual(decoded, original);
   });
 
-  it("encoded form contains an explicit [N rows] count marker", async () => {
+  it("encoded form contains an explicit [N] count marker with field declaration", async () => {
     const original = makeRows(25);
     const encoded = encodeTabular(original);
-    assert.match(encoded, /\[25 rows\]/);
+    // GCF uses [N]{fields} format (e.g. [25]{id,name,value,active})
+    assert.match(encoded, /\[25\]\{/);
   });
 });
 
@@ -144,7 +145,7 @@ describe("headroomEngine.apply — compression", () => {
     );
   });
 
-  it("compressed body contains the [N rows] count marker", async () => {
+  it("compressed body contains the [N] count marker with field declaration", async () => {
     const n = 22;
     const rows = makeRows(n);
     const body = makeBody(rows);
@@ -153,7 +154,8 @@ describe("headroomEngine.apply — compression", () => {
     assert.equal(result.compressed, true);
 
     const bodyStr = JSON.stringify(result.body);
-    assert.match(bodyStr, /\[22 rows\]/, "compressed body must contain [N rows] marker");
+    // GCF uses [N]{fields} format
+    assert.match(bodyStr, /\[22\]\{/, "compressed body must contain [N]{fields} marker");
   });
 
   it("also compresses when the array is inside a ```json fence in message content", async () => {
@@ -175,16 +177,16 @@ describe("headroomEngine.apply — compression", () => {
 // ─── 3. Conservative guards — nested/flat should NOT regress ─────────────────
 
 describe("headroomEngine.apply — conservative guards (no regression)", () => {
-  it("does NOT compress a heterogeneous array (objects with different key sets)", async () => {
-    // Objects have different keys — not homogeneous
+  it("compresses a heterogeneous array (objects with different key sets) via GCF", async () => {
+    // GCF handles heterogeneous arrays natively: missing fields become ~ (absent)
     const rows: Record<string, unknown>[] = [
       ...Array.from({ length: 10 }, (_, i) => ({ id: i, name: `n${i}` })),
       ...Array.from({ length: 10 }, (_, i) => ({ key: i, label: `l${i}`, extra: true })),
     ];
     const body = makeBody(rows);
     const result = headroomEngine.apply(body);
-    assert.equal(result.compressed, false, "heterogeneous array should NOT be compressed");
-    assert.deepEqual(result.body, body);
+    // GCF encodes heterogeneous arrays with union of all keys
+    assert.equal(result.compressed, true, "heterogeneous array should be compressed by GCF");
   });
 
   it("does NOT compress a tiny array below minRows (< default 8)", async () => {
@@ -303,5 +305,142 @@ describe("headroomEngine — losslessness on mixed-type columns (regression)", (
     const result = headroomEngine.apply(body);
     const restored = await reconstruct(result.body);
     assert.deepEqual(restored, body, "mixed-type column must round-trip without data loss");
+  });
+});
+
+// ─── 6. GCF encoding: capabilities beyond legacy omni-tabular ──────────────
+
+describe("GCF encoding — advanced capabilities", () => {
+  async function reconstruct(body: Record<string, unknown>) {
+    const mod = await import("../../../open-sse/services/compression/engines/headroom/index.ts");
+    return mod.reconstructHeadroom(body);
+  }
+
+  it("compresses heterogeneous arrays (different key sets) losslessly", async () => {
+    const rows: Record<string, unknown>[] = [
+      ...Array.from({ length: 10 }, (_, i) => ({ id: i, name: `user-${i}` })),
+      ...Array.from({ length: 10 }, (_, i) => ({
+        id: i + 10,
+        email: `u${i}@test.com`,
+        verified: true,
+      })),
+    ];
+    const body = makeBody(rows);
+    const result = headroomEngine.apply(body);
+    assert.equal(result.compressed, true, "heterogeneous array should be compressed");
+    const restored = await reconstruct(result.body);
+    assert.deepEqual(restored, body, "heterogeneous array must round-trip losslessly");
+  });
+
+  it("compresses arrays with nested objects losslessly", async () => {
+    const rows = Array.from({ length: 15 }, (_, i) => ({
+      id: i,
+      name: `item-${i}`,
+      metadata: { category: `cat-${i % 3}`, priority: i % 5 },
+    }));
+    const body = makeBody(rows);
+    const result = headroomEngine.apply(body);
+    assert.equal(result.compressed, true, "nested objects should be compressed");
+    const restored = await reconstruct(result.body);
+    assert.deepEqual(restored, body, "nested objects must round-trip losslessly");
+  });
+
+  it("compresses arrays with nested arrays losslessly", async () => {
+    // Use enough rows with enough data to overcome GCF overhead on nested arrays
+    const rows = Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      name: `item-${i}-with-longer-name-for-savings`,
+      tags: ["alpha", "beta", `tag-${i}`],
+      scores: [i * 10, i * 20, i * 30],
+    }));
+    const body = makeBody(rows);
+    const result = headroomEngine.apply(body);
+    assert.equal(result.compressed, true, "nested arrays should be compressed");
+    const restored = await reconstruct(result.body);
+    assert.deepEqual(restored, body, "nested arrays must round-trip losslessly");
+  });
+
+  it("uses gcf-generic fence marker (not omni-tabular)", async () => {
+    const rows = makeRows(20);
+    const encoded = encodeTabular(rows);
+    assert.ok(encoded.includes("```gcf-generic"), "must use gcf-generic fence marker");
+    assert.ok(!encoded.includes("omni-tabular"), "must not use legacy omni-tabular marker");
+  });
+
+  it("still decodes legacy omni-tabular encoded content (backward compat)", async () => {
+    // Import legacy encoder
+    const mod = await import("../../../open-sse/services/compression/engines/headroom/tabular.ts");
+    const legacyEncode = mod.encodeTabularBlockLegacy;
+
+    const rows = makeRows(10);
+    const legacyBlock = `\`\`\`omni-tabular\n${legacyEncode(rows)}\n\`\`\``;
+    const decoded = decodeTabular(legacyBlock);
+    assert.deepEqual(decoded, rows, "legacy omni-tabular content must still decode correctly");
+  });
+});
+
+// ─── 7. GCF vs legacy benchmark comparison ─────────────────────────────────
+
+describe("GCF vs legacy omni-tabular — compression comparison", () => {
+  it("GCF achieves comparable or better compression on homogeneous arrays", async () => {
+    const rows = makeRows(50);
+    const jsonStr = JSON.stringify(rows);
+
+    // Legacy omni-tabular
+    const mod = await import("../../../open-sse/services/compression/engines/headroom/tabular.ts");
+    const legacyBlock = `\`\`\`omni-tabular\n${mod.encodeTabularBlockLegacy(rows)}\n\`\`\``;
+    const legacySavings = ((jsonStr.length - legacyBlock.length) / jsonStr.length) * 100;
+
+    // GCF
+    const gcfEncoded = encodeTabular(rows);
+    const gcfSavings = ((jsonStr.length - gcfEncoded.length) / jsonStr.length) * 100;
+
+    // GCF should achieve at least as much savings as legacy on homogeneous data
+    assert.ok(
+      gcfSavings >= legacySavings * 0.8, // allow 20% tolerance
+      `GCF savings (${gcfSavings.toFixed(1)}%) should be within 80% of legacy (${legacySavings.toFixed(1)}%)`
+    );
+  });
+
+  it("GCF compresses cases that legacy omni-tabular skips entirely", async () => {
+    // Heterogeneous: legacy would skip, GCF handles it
+    const heteroRows: Record<string, unknown>[] = [
+      ...Array.from({ length: 10 }, (_, i) => ({ id: i, name: `user-${i}`, role: "admin" })),
+      ...Array.from({ length: 10 }, (_, i) => ({ id: i + 10, email: `u${i}@test.com` })),
+    ];
+    const jsonStr = JSON.stringify(heteroRows);
+
+    // Legacy encoder would produce nothing useful for heterogeneous data
+    // (detectHomogeneous returns null)
+    const { detectHomogeneous } =
+      await import("../../../open-sse/services/compression/engines/headroom/smartcrusher.ts");
+    assert.equal(detectHomogeneous(heteroRows), null, "legacy should reject heterogeneous arrays");
+
+    // GCF compresses it
+    const gcfEncoded = encodeTabular(heteroRows);
+    const gcfSavings = ((jsonStr.length - gcfEncoded.length) / jsonStr.length) * 100;
+    assert.ok(
+      gcfSavings > 0,
+      `GCF should compress heterogeneous arrays (savings: ${gcfSavings.toFixed(1)}%)`
+    );
+  });
+
+  it("GCF compresses nested objects that legacy omni-tabular JSON-stringifies", async () => {
+    const nestedRows = Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      user: {
+        name: `user-${i}`,
+        email: `user${i}@example.com`,
+        tier: i % 3 === 0 ? "premium" : "free",
+      },
+      value: i * 100,
+    }));
+    const jsonStr = JSON.stringify(nestedRows);
+    const gcfEncoded = encodeTabular(nestedRows);
+    const gcfSavings = ((jsonStr.length - gcfEncoded.length) / jsonStr.length) * 100;
+    assert.ok(
+      gcfSavings >= 30,
+      `GCF should achieve >=30% savings on nested objects (got ${gcfSavings.toFixed(1)}%)`
+    );
   });
 });

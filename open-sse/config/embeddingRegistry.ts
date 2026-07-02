@@ -8,12 +8,25 @@
  * keyed by provider ID (e.g. "nebius", "openai").
  */
 
+export interface EmbeddingModel {
+  id: string;
+  name: string;
+  dimensions?: number;
+  /**
+   * Model-level default request parameters injected into the upstream body when
+   * the client did not already supply them. Used for asymmetric embedding models
+   * that require a mandatory parameter — e.g. NVIDIA NIM `nv-embedqa-*` models
+   * reject requests without `input_type` ("query" | "passage"). See issue #1378.
+   */
+  defaultParams?: Record<string, unknown>;
+}
+
 export interface EmbeddingProvider {
   id: string;
   baseUrl: string;
   authType: string;
   authHeader: string;
-  models: { id: string; name: string; dimensions?: number }[];
+  models: EmbeddingModel[];
 }
 
 export interface EmbeddingProviderNodeRow {
@@ -130,7 +143,17 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     baseUrl: "https://integrate.api.nvidia.com/v1/embeddings",
     authType: "apikey",
     authHeader: "bearer",
-    models: [{ id: "nvidia/nv-embedqa-e5-v5", name: "NV EmbedQA E5 v5", dimensions: 1024 }],
+    // nv-embedqa-* are asymmetric models: NVIDIA NIM rejects requests without an
+    // `input_type` ("query" | "passage") with 400 "'input_type' parameter is
+    // required". Default to "query" when the client omits it (issue #1378).
+    models: [
+      {
+        id: "nvidia/nv-embedqa-e5-v5",
+        name: "NV EmbedQA E5 v5",
+        dimensions: 1024,
+        defaultParams: { input_type: "query" },
+      },
+    ],
   },
 
   // Issue #2298: Adding DeepInfra to the embedding registry so custom
@@ -357,6 +380,20 @@ export function detectEmbeddingDimensionConflict(modelStrs: string[]): {
   }
   const distinct = [...new Set(Object.values(dimensions))].sort((a, b) => a - b);
   return { conflict: distinct.length > 1, dimensions, distinct };
+}
+
+/**
+ * Resolve the model-level default request params for a given provider config and
+ * model id. Returns undefined when the model has no defaults (the common case),
+ * so callers only inject for models that actually carry one (e.g. NVIDIA NIM
+ * asymmetric embedders requiring `input_type`). See issue #1378.
+ */
+export function getEmbeddingModelDefaultParams(
+  providerConfig: EmbeddingProvider | null,
+  modelId: string | null
+): Record<string, unknown> | undefined {
+  if (!providerConfig || !modelId) return undefined;
+  return providerConfig.models.find((m) => m.id === modelId)?.defaultParams;
 }
 
 /**

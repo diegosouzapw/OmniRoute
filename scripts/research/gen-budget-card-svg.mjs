@@ -39,8 +39,9 @@ for (const r of recs) {
 }
 const oneTime = [...otMap.values()].sort((a, b) => b.v - a.v);
 const oneTimeSum = oneTime.reduce((s, r) => s + r.v, 0);
-const firstMonth = steady + oneTimeSum + 1_000_000;
+const firstMonth = steady + oneTimeSum;
 const avoidProviders = [...new Set(recs.filter((r) => r.tos === "avoid").map((r) => r.provider))].length;
+const uncappedProviders = [...new Set(recs.filter((r) => r.freeType === "recurring-uncapped").map((r) => r.provider))];
 
 const GRID = pools.slice(0, 28);
 const STRIP = oneTime.slice(0, 9);
@@ -62,7 +63,7 @@ const segs = GRID.map((r, i) => {
 const B = []; // body elements
 // title
 B.push(`<text x="32" y="50" fill="#e6edf3" font-size="18" font-weight="700">Monthly free-token budget</text>`);
-B.push(`<text x="868" y="50" fill="#7d8590" font-size="13" text-anchor="end">${pools.length} free pools · 530 models · one endpoint</text>`);
+B.push(`<text x="868" y="50" fill="#7d8590" font-size="13" text-anchor="end">${pools.length} free pools · ${recs.length} models · one endpoint</text>`);
 // stats
 const stat = (sx, label, val, vc) => {
   B.push(`<text x="${sx}" y="84" fill="#7d8590" font-size="11.5">${label}</text>`);
@@ -103,7 +104,8 @@ for (const r of STRIP) {
 y += 26;
 // ToS note (softened)
 B.push(`<rect x="32" y="${y}" width="836" height="34" rx="8" fill="#1c2230" stroke="#30363d"/>`);
-B.push(`<text x="46" y="${(y + 22).toFixed(0)}" fill="#7d8590" font-size="12">Some providers' terms suggest personal-use only — we flag them so you can decide. Figures are pool-deduped: no inflated rate-limit ceilings.</text>`);
+B.push(`<text x="46" y="${(y + 14).toFixed(0)}" fill="#7d8590" font-size="12">Pool-deduped, honest counting — no inflated rate-limit ceilings. Some terms suggest personal-use only; we flag them so you decide.</text>`);
+B.push(`<text x="46" y="${(y + 28).toFixed(0)}" fill="#7d8590" font-size="11.5">+ ${uncappedProviders.length} permanently-free, no-cap providers (e.g. ${uncappedProviders.slice(0, 3).join(", ")}) · OpenRouter $10 → +24M/mo.</text>`);
 y += 34;
 const H = y + 24; // card content bottom
 const CANVAS = H + 16;

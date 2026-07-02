@@ -28,6 +28,7 @@ import { fileURLToPath } from "node:url";
 
 import { PUBLISHED_BUILD_ARCH, PUBLISHED_BUILD_PLATFORM } from "./native-binary-compat.mjs";
 import { hasStandaloneAppBundle, isTermux } from "./postinstallSupport.mjs";
+import { colocateLlmlinguaOptionals } from "./colocateOptionals.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -327,9 +328,24 @@ async function syncProjectEnv() {
   }
 }
 
+/**
+ * Co-locate the LLMLingua-2 SLM optional dependency closure into dist/node_modules so the
+ * compression "ultra" SLM tier (PR #4257) resolves a single @huggingface/transformers instance at
+ * runtime. No-op unless the optionals were installed (`--include=optional`). See colocateOptionals.mjs.
+ */
+async function ensureLlmlinguaOptionals() {
+  try {
+    colocateLlmlinguaOptionals({ rootDir: ROOT, log: (m) => console.log(m) });
+  } catch (err) {
+    // Best-effort: the SLM tier is itself fail-open, so a co-location hiccup never fails the install.
+    console.warn(`  ⚠️  LLMLingua optional co-location skipped: ${err.message}`);
+  }
+}
+
 await fixBetterSqliteBinary();
 await fixWreqJsBinary();
 await ensureSwcHelpers();
+await ensureLlmlinguaOptionals();
 await syncProjectEnv();
 
 // Warm up native runtimes (better-sqlite3 in ~/.omniroute/runtime/).

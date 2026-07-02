@@ -415,7 +415,10 @@ test("local sqlite configuration enables WAL and sane pragmas", serial, async ()
       const db = core.getDbInstance();
 
       assert.equal(db.pragma("journal_mode", { simple: true }), "wal");
-      assert.equal(db.pragma("busy_timeout", { simple: true }), 5000);
+      // v3.8.32 intentionally capped busy_timeout at 2s (was 5s) so a contended
+      // synchronous write cannot park the Node event loop past the host watchdog's
+      // 6s liveness probe — see src/lib/db/core.ts.
+      assert.equal(db.pragma("busy_timeout", { simple: true }), 2000);
       assert.equal(db.pragma("synchronous", { simple: true }), 1);
       assert.equal(core.closeDbInstance({ checkpointMode: null }), true);
     });

@@ -110,3 +110,72 @@ test("Every Kiro registry model resolves a non-zero pricing row (no $0.00 usage)
   assert.equal(sonnet46?.input, 3.0);
   assert.equal(sonnet46?.output, 15.0);
 });
+
+test("Every OpenAI registry model resolves a non-zero pricing row (alias: openai)", async () => {
+  const { getPricingForModel } = await import("../../src/shared/constants/pricing.ts");
+  const models = getModelsByProviderId("openai");
+  assert.ok(models.length > 0, "openai must expose models");
+
+  for (const model of models) {
+    const pricing = getPricingForModel("openai", model.id) as {
+      input?: number;
+      output?: number;
+    } | null;
+    assert.ok(pricing, `openai pricing must include "${model.id}"`);
+    assert.equal(
+      typeof pricing?.input === "number" && typeof pricing?.output === "number",
+      true,
+      `openai pricing for "${model.id}" must have numeric input/output`
+    );
+  }
+});
+
+test("Every Codex registry model resolves a non-zero pricing row (alias: cx)", async () => {
+  const { getPricingForModel } = await import("../../src/shared/constants/pricing.ts");
+  const models = getModelsByProviderId("codex");
+  assert.ok(models.length > 0, "codex must expose models");
+
+  for (const model of models) {
+    // Codex pricing lives under the "cx" alias (its DEFAULT_PRICING key).
+    const pricing = getPricingForModel("cx", model.id) as {
+      input?: number;
+      output?: number;
+    } | null;
+    assert.ok(pricing, `cx pricing must include codex model "${model.id}"`);
+    assert.equal(
+      typeof pricing?.input === "number" && typeof pricing?.output === "number",
+      true,
+      `cx pricing for "${model.id}" must have numeric input/output`
+    );
+  }
+});
+
+test("Every Qwen registry model resolves a non-zero pricing row (alias: qw)", async () => {
+  const { getPricingForModel } = await import("../../src/shared/constants/pricing.ts");
+  const models = getModelsByProviderId("qwen");
+  assert.ok(models.length > 0, "qwen must expose models");
+
+  for (const model of models) {
+    // Qwen pricing lives under the "qw" alias (its DEFAULT_PRICING key).
+    const pricing = getPricingForModel("qw", model.id) as {
+      input?: number;
+      output?: number;
+    } | null;
+    assert.ok(pricing, `qw pricing must include qwen model "${model.id}"`);
+    assert.equal(
+      typeof pricing?.input === "number" && typeof pricing?.output === "number",
+      true,
+      `qw pricing for "${model.id}" must have numeric input/output`
+    );
+  }
+
+  // Regression guard: the "coder-model" id (Qwen3.5/3.6 Coder Model, ported from
+  // upstream 9router PR #156) must be priced like the other Qwen coder tier.
+  const coderModel = getPricingForModel("qw", "coder-model") as {
+    input: number;
+    output: number;
+  } | null;
+  assert.ok(coderModel, "qw pricing must include coder-model");
+  assert.equal(typeof coderModel?.input, "number");
+  assert.equal(typeof coderModel?.output, "number");
+});

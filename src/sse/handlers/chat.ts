@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { resolveChatRequestBody } from "./requestBody";
 import {
   getProviderCredentialsWithQuotaPreflight,
   markAccountUnavailable,
@@ -16,6 +17,7 @@ import {
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { getModelInfo, getComboForModel } from "../services/model";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
 import { injectHandoffIntoBody } from "@omniroute/open-sse/services/contextHandoff.ts";
@@ -29,6 +31,15 @@ import {
   PROVIDER_ID_TO_ALIAS,
 } from "@omniroute/open-sse/config/providerModels.ts";
 import type { AutoVariant } from "@omniroute/open-sse/services/autoCombo/autoPrefix.ts";
+import {
+  AUTO_TEMPLATE_VARIANTS,
+  VALID_AUTO_VARIANTS,
+} from "@omniroute/open-sse/services/autoCombo/builtinCatalog.ts";
+import {
+  parseAutoSuffix,
+  type AutoCategory,
+  type AutoTier,
+} from "@omniroute/open-sse/services/autoCombo/suffixComposition.ts";
 import * as log from "../utils/logger";
 import { checkAndRefreshToken } from "../services/tokenRefresh";
 import { createHookContext, runHooks, initPreRequestRegistry } from "@/lib/middleware/registry";
@@ -55,6 +66,7 @@ import {
   safeLogEvents,
   shouldRetryStreamEarlyEof,
   withSessionHeader,
+  withSelectedConnectionHeader,
 } from "./chatHelpers";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 
@@ -68,10 +80,15 @@ import { generateRequestId } from "../../shared/utils/requestId";
 import { logAuditEvent } from "../../lib/compliance/index";
 import { enforceApiKeyPolicy } from "../../shared/utils/apiKeyPolicy";
 import { cloneLogPayload } from "@/lib/logPayloads";
+import { handleInternalUsageCommand } from "@/lib/usage/internalUsageCommand";
 import {
   applyTaskAwareRouting,
   getTaskRoutingConfig,
 } from "@omniroute/open-sse/services/taskAwareRouter.ts";
+import {
+  hasNativeWebSearchTool,
+  resolveWebSearchRouteOverride,
+} from "@omniroute/open-sse/services/webSearchRouting.ts";
 import {
   generateSessionId as generateStableSessionId,
   touchSession,
@@ -179,7 +196,11 @@ const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
  * Supports: OpenAI, Claude, Gemini, OpenAI Responses API formats
  * Format detection and translation handled by translator
  */
-export async function handleChat(request: any, clientRawRequest: any = null) {
+export async function handleChat(
+  request: any,
+  clientRawRequest: any = null,
+  preParsedBody: any = null
+) {
   // Pipeline: Start request telemetry
   const reqId = generateRequestId();
   const telemetry = new RequestTelemetry(reqId);
@@ -187,7 +208,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
   let body;
   try {
     telemetry.startPhase("parse");
-    body = await request.json();
+    body = await resolveChatRequestBody(request, preParsedBody);
     telemetry.endPhase();
   } catch {
     log.warn("CHAT", "Invalid JSON body");
@@ -221,6 +242,18 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
 
   // Log request endpoint and model
   const url = new URL(request.url);
+
+  // No-thinking gateway alias (Fase 8.1): `claude-3-omniroute-no-thinking/<provider>/<model>`
+  // resolves back to the real model with reasoning suppressed in place, before any
+  // model resolution / combo routing sees it. Claude/Messages path forces
+  // `thinking:{type:"disabled"}`; OpenAI path drops the reasoning fields.
+  const noThinking = applyNoThinkingAlias(body, {
+    claudeFormat: url.pathname.includes("/messages"),
+  });
+  if (noThinking.applied) {
+    log.debug("NO_THINKING", `Resolved no-thinking alias → ${noThinking.realModel}`);
+  }
+
   let modelStr = body.model;
 
   // Count messages (support both messages[] and input[] formats)
@@ -239,6 +272,12 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     log.debug("AUTH", `API Key: ${log.maskKey(apiKey)}`);
   } else {
     log.debug("AUTH", "No API key provided (local mode)");
+  }
+
+  const internalUsageCommandResponse = await handleInternalUsageCommand(request, body);
+  if (internalUsageCommandResponse) {
+    recordTelemetry(telemetry);
+    return internalUsageCommandResponse;
   }
 
   const isComboLiveTest = request.headers?.get?.("x-internal-test") === "combo-health-check";
@@ -367,11 +406,48 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     telemetry.endPhase();
   }
 
+  // #4481 layer 2 — Web-Search Routing (CCR-style Router.webSearch): a native web_search
+  // server tool + a configured `webSearchRouteModel` routes the whole request to that
+  // model (some providers don't implement Anthropic's web_search_20250305 server tool).
+  // Settings are read only when a web-search tool is present; the override lands before
+  // auto/combo resolution and the layer-1 fallback so the target's own handling applies.
+  if (hasNativeWebSearchTool(body)) {
+    const wsSettings = await getCachedSettings().catch(() => ({}) as Record<string, unknown>);
+    const wsRoute = resolveWebSearchRouteOverride(resolvedModelStr, body, wsSettings);
+    if (wsRoute.wasRouted) {
+      log.info(
+        "WEBSEARCH-ROUTE",
+        `web_search tool → model override: ${resolvedModelStr} → ${wsRoute.model}`
+      );
+      resolvedModelStr = wsRoute.model;
+      body = { ...body, model: wsRoute.model };
+    }
+  }
+
   // ── Zero-Config Auto-Routing (auto and auto/ prefix) ────────────────────────
   // If the model ID is "auto" or starts with "auto/", bypass DB combo lookup
   // entirely and generate a virtual auto-combo on-the-fly from connected providers.
   let autoVariant: AutoVariant | undefined;
+  // #4235 Phase B: `auto/<category>:<tier>` overlay (e.g. auto/coding:fast, auto/vision).
+  let autoSpec: { category?: AutoCategory; tier?: AutoTier } | undefined;
   let isAutoRouting = resolvedModelStr === "auto" || resolvedModelStr.startsWith("auto/");
+  let recognizedBuiltInAuto = resolvedModelStr === "auto";
+  if (Object.prototype.hasOwnProperty.call(AUTO_TEMPLATE_VARIANTS, resolvedModelStr)) {
+    recognizedBuiltInAuto = true;
+    autoVariant = AUTO_TEMPLATE_VARIANTS[resolvedModelStr];
+  } else if (resolvedModelStr.startsWith("auto/")) {
+    const suffix = resolvedModelStr.slice(5);
+    if (VALID_AUTO_VARIANTS.has(suffix as AutoVariant)) {
+      recognizedBuiltInAuto = true;
+    } else {
+      const parsedSuffix = parseAutoSuffix(suffix);
+      if (parsedSuffix.valid) {
+        recognizedBuiltInAuto = true;
+        autoSpec = { category: parsedSuffix.category, tier: parsedSuffix.tier };
+      }
+    }
+  }
+
   if (isAutoRouting) {
     // C2: Enforce autoRoutingEnabled setting.
     // Issue #2346: `getSettings` was never imported in this module; only
@@ -391,16 +467,22 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
         await import("@omniroute/open-sse/services/autoCombo/autoPrefix.ts");
       const parsed = parseAutoPrefix(resolvedModelStr);
       if (parsed.valid) {
-        autoVariant = parsed.variant;
+        if (!Object.prototype.hasOwnProperty.call(AUTO_TEMPLATE_VARIANTS, resolvedModelStr)) {
+          autoVariant = parsed.variant;
+        }
         // C3: Apply autoRoutingDefaultVariant from settings when bare "auto" is used
-        if (autoVariant === undefined && settings?.autoRoutingDefaultVariant) {
+        if (
+          resolvedModelStr === "auto" &&
+          autoVariant === undefined &&
+          settings?.autoRoutingDefaultVariant
+        ) {
           autoVariant = settings.autoRoutingDefaultVariant as AutoVariant;
         }
         log.info(
           "AUTO",
           `Zero-config routing variant: ${autoVariant || "default"} (model=${resolvedModelStr})`
         );
-      } else {
+      } else if (!autoSpec) {
         log.warn("AUTO", `Invalid auto prefix format: ${resolvedModelStr}`);
       }
     } catch (err) {
@@ -426,12 +508,19 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     }
   }
 
-  // Auto-prefix short-circuit: if auto/ prefix was detected, replace combo with virtual one
+  // Auto-prefix short-circuit: if a recognized auto/ prefix was detected, replace combo with virtual one
   if (isAutoRouting && combo === null) {
+    if (!recognizedBuiltInAuto) {
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        `Model '${resolvedModelStr}' is not a valid combo or provider. Unknown built-in auto combo.`
+      );
+    }
+
     try {
       const { createVirtualAutoCombo } =
         await import("@omniroute/open-sse/services/autoCombo/virtualFactory.ts");
-      const virtualCombo = await createVirtualAutoCombo(autoVariant);
+      const virtualCombo = await createVirtualAutoCombo(autoVariant, autoSpec);
       virtualCombo.name = resolvedModelStr;
       virtualCombo.id = resolvedModelStr;
       combo = virtualCombo;
@@ -548,6 +637,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
           allowedConnectionIds?: string[] | null;
           failoverBeforeRetry?: boolean;
           providerId?: string | null;
+          effectiveComboStrategy?: string | null;
         }
       ) =>
         handleSingleModelChat(
@@ -574,7 +664,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
             cachedSettings: settings,
             providerId: target?.providerId ?? null,
           },
-          combo.strategy,
+          target?.effectiveComboStrategy ?? combo.strategy,
           true
         ),
       isModelAvailable: checkModelAvailable,
@@ -737,6 +827,7 @@ async function handleSingleModelChat(
           failoverBeforeRetry?: boolean;
           allowRateLimitedConnection?: boolean;
           providerId?: string | null;
+          effectiveComboStrategy?: string | null;
         }
       ) =>
         handleSingleModelChat(
@@ -758,7 +849,7 @@ async function handleSingleModelChat(
             allowRateLimitedConnection: target?.allowRateLimitedConnection === true,
             providerId: target?.providerId ?? null,
           },
-          redirectCombo.strategy ?? "priority",
+          target?.effectiveComboStrategy ?? redirectCombo.strategy ?? "priority",
           false
         ),
       isModelAvailable: async () => true,
@@ -1129,7 +1220,7 @@ async function handleSingleModelChat(
 
         // Stream readiness timeout is an upstream stall after an HTTP response was received,
         // not an account/quota failure. Do NOT mark the account unavailable here.
-        return result.response;
+        return withSelectedConnectionHeader(result.response, credentials?.connectionId);
       }
 
       if (isAntigravityStreamReadinessFailure) {
@@ -1173,7 +1264,7 @@ async function handleSingleModelChat(
           continue;
         }
 
-        return result.response;
+        return withSelectedConnectionHeader(result.response, credentials?.connectionId);
       }
 
       const isAntigravityPreResponseTimeout =
@@ -1223,14 +1314,14 @@ async function handleSingleModelChat(
           continue;
         }
 
-        return result.response;
+        return withSelectedConnectionHeader(result.response, credentials?.connectionId);
       }
 
       if (result.errorType === "account_semaphore_capacity") {
         // Local concurrency pressure is not an upstream quota failure. Prefer another
         // account when possible; pinned combo steps fall through to combo orchestration.
         if (hasForcedConnection) {
-          return result.response;
+          return withSelectedConnectionHeader(result.response, credentials?.connectionId);
         }
 
         log.warn(
@@ -1418,7 +1509,7 @@ async function handleSingleModelChat(
         breaker._onFailure();
       }
 
-      return result.response;
+      return withSelectedConnectionHeader(result.response, credentials?.connectionId);
     }
   }
 }

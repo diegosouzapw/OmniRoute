@@ -81,8 +81,12 @@ test("T38: modelSpecs exposes centralized helpers with alias and prefix lookup",
   assert.equal(capThinkingBudget("gemini-3.1-pro-low", 50000), 16000);
 });
 
-test("T38: MiMo V2.5 and V2 Omni models support vision", () => {
-  assert.equal(MODEL_SPECS["mimo-v2.5-pro"].supportsVision, true);
+test("T38: only MiMo V2.5 and V2 Omni support vision; the *-pro/flash are text-only", () => {
+  // Corrected: Xiaomi documents ONLY mimo-v2.5 and mimo-v2-omni as image-capable
+  // (mimo.mi.com .../image-understanding). The *-pro chat models are text-only;
+  // models.dev mislabels them (hermes-agent#18884).
+  assert.equal(MODEL_SPECS["mimo-v2.5-pro"].supportsVision, false);
+  assert.equal(MODEL_SPECS["mimo-v2-pro"].supportsVision, false);
   assert.equal(MODEL_SPECS["mimo-v2.5"].supportsVision, true);
   assert.equal(MODEL_SPECS["mimo-v2-omni"].supportsVision, true);
   assert.equal(MODEL_SPECS["mimo-v2-flash"].supportsVision, undefined);

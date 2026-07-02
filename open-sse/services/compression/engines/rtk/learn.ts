@@ -106,7 +106,7 @@ const SUMMARY_PATTERN =
  *   "npm install"  → "npm-install"
  *   "pip install"  → "pip-install"
  */
-function commandToId(command: string): string {
+export function commandToId(command: string): string {
   return command
     .trim()
     .toLowerCase()

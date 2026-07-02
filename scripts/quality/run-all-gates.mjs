@@ -28,6 +28,7 @@ const GATES = [
 
   // Group B — fast (<5s)
   { name: "check:provider-consistency", cmd: ["node", "--import", "tsx", "scripts/check/check-provider-consistency.ts"] },
+  { name: "check:provider-assets", cmd: ["node", "scripts/check/check-provider-assets.mjs"] },
   { name: "check:public-creds", cmd: ["node", "scripts/check/check-public-creds.mjs"] },
   { name: "check:error-helper", cmd: ["node", "scripts/check/check-error-helper.mjs"] },
   { name: "check:fetch-targets", cmd: ["node", "scripts/check/check-fetch-targets.mjs"] },

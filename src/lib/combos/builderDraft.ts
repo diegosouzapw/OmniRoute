@@ -61,18 +61,31 @@ export function buildPrecisionComboModelStep({
   modelId,
   connectionId = null,
   connectionLabel,
+  allowedConnectionIds = null,
   weight = 0,
 }: {
   providerId: string;
   modelId: string;
   connectionId?: string | null;
   connectionLabel?: string | null;
+  /** #3266: account allowlist scoping round-robin to a subset of connections. */
+  allowedConnectionIds?: string[] | null;
   weight?: number;
 }): ComboModelStep {
   const normalizedProviderId = toTrimmedString(providerId) || "provider";
   const normalizedModelId = toTrimmedString(modelId) || "model";
   const normalizedConnectionId = toTrimmedString(connectionId);
   const normalizedConnectionLabel = toTrimmedString(connectionLabel);
+  // A pinned single connection wins over an allowlist, so only carry the allowlist
+  // when the step is auto-selecting (no forced connectionId).
+  const normalizedAllowed =
+    !normalizedConnectionId && Array.isArray(allowedConnectionIds)
+      ? Array.from(
+          new Set(
+            allowedConnectionIds.map((id) => toTrimmedString(id)).filter((id): id is string => !!id)
+          )
+        )
+      : [];
 
   return {
     kind: "model",
@@ -80,6 +93,7 @@ export function buildPrecisionComboModelStep({
     model: `${normalizedProviderId}/${normalizedModelId}`,
     ...(normalizedConnectionId ? { connectionId: normalizedConnectionId } : {}),
     ...(normalizedConnectionLabel ? { label: normalizedConnectionLabel } : {}),
+    ...(normalizedAllowed.length > 0 ? { allowedConnectionIds: normalizedAllowed } : {}),
     weight: Number.isFinite(weight) ? Math.max(0, Math.min(100, Number(weight))) : 0,
   };
 }

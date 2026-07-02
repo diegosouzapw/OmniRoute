@@ -12,6 +12,7 @@ import {
   toClientAntigravityQuotaModelId,
 } from "../config/antigravityModelAliases.ts";
 import { isUserCallableAgyModelId } from "../config/agyModels.ts";
+import { buildCodexUsageQuotas } from "./codexUsageQuotas.ts";
 import { getGlmQuotaUrl } from "../config/glmProvider.ts";
 import { getGitHubCopilotInternalUserHeaders } from "../config/providerHeaderProfiles.ts";
 import { safePercentage } from "@/shared/utils/formatting";
@@ -316,6 +317,41 @@ function shouldDisplayGitHubQuota(quota: UsageQuota | null): quota is UsageQuota
   if (!quota) return false;
   if (quota.unlimited && quota.total <= 0) return false;
   return quota.total > 0 || quota.remainingPercentage !== undefined;
+}
+
+function isKiroOverageEnabled(data: JsonRecord): boolean {
+  const overageConfiguration = toRecord(data.overageConfiguration);
+  const overageStatus = String(overageConfiguration.overageStatus || "")
+    .trim()
+    .toUpperCase();
+
+  return (
+    overageStatus === "ENABLED" ||
+    data.overageEnabled === true ||
+    overageConfiguration.overageEnabled === true
+  );
+}
+
+function buildKiroQuota(
+  used: number,
+  total: number,
+  resetAt: string | null,
+  overageEnabled: boolean
+): UsageQuota {
+  const remaining = total - used;
+
+  if (!overageEnabled) {
+    return { used, total, remaining, resetAt, unlimited: false };
+  }
+
+  return {
+    used,
+    total,
+    remaining,
+    remainingPercentage: 100,
+    resetAt,
+    unlimited: true,
+  };
 }
 
 function pickFirstNonEmptyString(...values: unknown[]): string | undefined {
@@ -1475,6 +1511,7 @@ export const USAGE_FETCHER_PROVIDERS = [
   "kiro",
   "amazon-q",
   "kimi-coding",
+  "kimi-coding-apikey",
   "qwen",
   "qoder",
   "glm",
@@ -1537,6 +1574,8 @@ export async function getUsageForProvider(
       return await getVertexUsage(id || "", provider);
     case "kimi-coding":
       return await getKimiUsage(accessToken);
+    case "kimi-coding-apikey":
+      return await getKimiUsage(undefined, apiKey);
     case "qwen":
       return await getQwenUsage(accessToken, providerSpecificData);
     case "qoder":
@@ -1586,7 +1625,14 @@ function parseResetTime(resetValue: unknown): string | null {
     } else if (typeof resetValue === "number") {
       date = new Date(resetValue < 1e12 ? resetValue * 1000 : resetValue);
     } else if (typeof resetValue === "string") {
-      date = new Date(resetValue);
+      // Numeric strings are Unix timestamps too (seconds or milliseconds).
+      // `new Date("1700000000")` otherwise returns Invalid Date.
+      if (/^\d+$/.test(resetValue)) {
+        const ts = Number(resetValue);
+        date = new Date(ts < 1e12 ? ts * 1000 : ts);
+      } else {
+        date = new Date(resetValue);
+      }
     } else {
       return null;
     }
@@ -1812,6 +1858,23 @@ const _geminiCliSubCache = new Map<string, SubscriptionCacheEntry>();
 const GEMINI_CLI_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 /**
+ * Normalize a Cloud Code project value into a trimmed string (or null).
+ * The upstream `loadCodeAssist` endpoint returns the project either as a bare
+ * string or as an object of the form `{ id: "..." }`, and stored connection
+ * project ids can carry stray whitespace. Centralized here so the Gemini CLI
+ * usage path matches the executor/oauth normalization already shipped in
+ * `open-sse/executors/gemini-cli.ts` and `src/lib/oauth/services/gemini.ts`.
+ */
+function normalizeCloudCodeProjectId(project: unknown): string | null {
+  if (typeof project === "string") return project.trim() || null;
+  if (project && typeof project === "object") {
+    const candidate = (project as { id?: unknown }).id;
+    if (typeof candidate === "string") return candidate.trim() || null;
+  }
+  return null;
+}
+
+/**
  * Gemini CLI Usage — fetch per-model quota from Cloud Code Assist API.
  * Gemini CLI and Antigravity share the same upstream (cloudcode-pa.googleapis.com),
  * so this follows the same pattern as getAntigravityUsage().
@@ -1826,17 +1889,28 @@ async function getGeminiUsage(
   }
 
   try {
-    const subscriptionInfo = await getGeminiCliSubscriptionInfoCached(accessToken);
-    const projectId =
-      connectionProjectId ||
-      providerSpecificData?.projectId ||
-      toRecord(subscriptionInfo).cloudaicompanionProject ||
-      null;
-
-    const plan = getGeminiCliPlanLabel(subscriptionInfo);
+    // #1271: the OAuth save path stores `projectId` on the connection (not always in
+    // `providerSpecificData`), and `loadCodeAssist` may return the project either as a
+    // bare string or wrapped in `{ id: "..." }`. Normalize both so the quota lookup
+    // reuses the stored project id and skips a redundant `loadCodeAssist` round-trip
+    // when it is already known.
+    let projectId =
+      normalizeCloudCodeProjectId(connectionProjectId) ||
+      normalizeCloudCodeProjectId(providerSpecificData?.projectId);
+    let plan = "Free";
 
     if (!projectId) {
-      return { plan, message: "Gemini CLI project ID not available." };
+      const subscriptionInfo = await getGeminiCliSubscriptionInfoCached(accessToken);
+      projectId = normalizeCloudCodeProjectId(toRecord(subscriptionInfo).cloudaicompanionProject);
+      plan = getGeminiCliPlanLabel(subscriptionInfo);
+    }
+
+    if (!projectId) {
+      return {
+        plan,
+        message:
+          "Gemini CLI project ID not available. Reconnect Gemini CLI, or configure a Google Cloud project with Gemini Code Assist access before checking quota.",
+      };
     }
 
     // Use retrieveUserQuota (same endpoint as Gemini CLI /stats command).
@@ -2880,80 +2954,7 @@ async function getCodexUsage(
 
     const data = await response.json();
 
-    // Parse rate limit info (supports both snake_case and camelCase)
-    const rateLimit = toRecord(getFieldValue(data, "rate_limit", "rateLimit"));
-    const primaryWindow = toRecord(getFieldValue(rateLimit, "primary_window", "primaryWindow"));
-    const secondaryWindow = toRecord(
-      getFieldValue(rateLimit, "secondary_window", "secondaryWindow")
-    );
-
-    // Parse reset times (reset_at is Unix timestamp in seconds)
-    const parseWindowReset = (window: unknown) => {
-      const resetAt = toNumber(getFieldValue(window, "reset_at", "resetAt"), 0);
-      const resetAfterSeconds = toNumber(
-        getFieldValue(window, "reset_after_seconds", "resetAfterSeconds"),
-        0
-      );
-      if (resetAt > 0) return parseResetTime(resetAt * 1000);
-      if (resetAfterSeconds > 0) return parseResetTime(Date.now() + resetAfterSeconds * 1000);
-      return null;
-    };
-
-    // Build quota windows
-    const quotas: Record<string, UsageQuota> = {};
-
-    // Primary window (5-hour)
-    if (Object.keys(primaryWindow).length > 0) {
-      const usedPercent = toNumber(getFieldValue(primaryWindow, "used_percent", "usedPercent"), 0);
-      quotas.session = {
-        used: usedPercent,
-        total: 100,
-        remaining: 100 - usedPercent,
-        resetAt: parseWindowReset(primaryWindow),
-        unlimited: false,
-      };
-    }
-
-    // Secondary window (weekly)
-    if (Object.keys(secondaryWindow).length > 0) {
-      const usedPercent = toNumber(
-        getFieldValue(secondaryWindow, "used_percent", "usedPercent"),
-        0
-      );
-      quotas.weekly = {
-        used: usedPercent,
-        total: 100,
-        remaining: 100 - usedPercent,
-        resetAt: parseWindowReset(secondaryWindow),
-        unlimited: false,
-      };
-    }
-
-    // Code review rate limit (3rd window — differs per plan: Plus/Pro/Team)
-    const codeReviewRateLimit = toRecord(
-      getFieldValue(data, "code_review_rate_limit", "codeReviewRateLimit")
-    );
-    const codeReviewWindow = toRecord(
-      getFieldValue(codeReviewRateLimit, "primary_window", "primaryWindow")
-    );
-
-    // Only include code review quota if the API returned data for it
-    const codeReviewUsedRaw = getFieldValue(codeReviewWindow, "used_percent", "usedPercent");
-    const codeReviewRemainingRaw = getFieldValue(
-      codeReviewWindow,
-      "remaining_count",
-      "remainingCount"
-    );
-    if (codeReviewUsedRaw !== null || codeReviewRemainingRaw !== null) {
-      const codeReviewUsedPercent = toNumber(codeReviewUsedRaw, 0);
-      quotas.code_review = {
-        used: codeReviewUsedPercent,
-        total: 100,
-        remaining: 100 - codeReviewUsedPercent,
-        resetAt: parseWindowReset(codeReviewWindow),
-        unlimited: false,
-      };
-    }
+    const { rateLimit, quotas } = buildCodexUsageQuotas(data);
 
     return {
       plan: String(getFieldValue(data, "plan_type", "planType") || "unknown"),
@@ -2977,6 +2978,7 @@ export function buildKiroUsageResult(
   const usageList = Array.isArray(data.usageBreakdownList) ? data.usageBreakdownList : [];
   const quotaInfo: Record<string, UsageQuota> = {};
   const resetAt = parseResetTime(data.nextDateReset || data.resetDate);
+  const overageEnabled = isKiroOverageEnabled(data);
 
   usageList.forEach((breakdownValue: unknown) => {
     const breakdown = toRecord(breakdownValue);
@@ -2985,19 +2987,18 @@ export function buildKiroUsageResult(
     const used = toNumber(breakdown.currentUsageWithPrecision, 0);
     const total = toNumber(breakdown.usageLimitWithPrecision, 0);
 
-    quotaInfo[resourceType] = { used, total, remaining: total - used, resetAt, unlimited: false };
+    quotaInfo[resourceType] = buildKiroQuota(used, total, resetAt, overageEnabled);
 
     const freeTrialInfo = toRecord(breakdown.freeTrialInfo);
     if (Object.keys(freeTrialInfo).length > 0) {
       const freeUsed = toNumber(freeTrialInfo.currentUsageWithPrecision, 0);
       const freeTotal = toNumber(freeTrialInfo.usageLimitWithPrecision, 0);
-      quotaInfo[`${resourceType}_freetrial`] = {
-        used: freeUsed,
-        total: freeTotal,
-        remaining: freeTotal - freeUsed,
+      quotaInfo[`${resourceType}_freetrial`] = buildKiroQuota(
+        freeUsed,
+        freeTotal,
         resetAt,
-        unlimited: false,
-      };
+        overageEnabled
+      );
     }
   });
 
@@ -3111,6 +3112,18 @@ async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRec
     });
 
     if (!response.ok) {
+      // Social-auth Kiro accounts (added via /api/oauth/kiro/social-exchange with provider
+      // Google or GitHub) use a different token format that AWS CodeWhisperer's GetUsageLimits
+      // routinely rejects with 401/403, even when /messages still works. Surface a clear
+      // "auth expired, chat may still work" message instead of a generic upstream-error blob
+      // so the quota card matches what users with legacy social-auth accounts already see.
+      // Inspired by https://github.com/decolua/9router/pull/620.
+      if ((response.status === 401 || response.status === 403) && isSocialAuthKiroAccount(providerSpecificData)) {
+        return {
+          message: "Kiro quota API authentication expired. Chat may still work.",
+          quotas: {},
+        };
+      }
       const errorText = await response.text();
       throw new Error(`Kiro API error (${response.status}): ${errorText}`);
     }
@@ -3120,6 +3133,22 @@ async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRec
   } catch (error) {
     throw new Error(`Failed to fetch Kiro usage: ${error.message}`);
   }
+}
+
+/**
+ * Was this Kiro connection added via the Google/GitHub social-auth device flow
+ * (POST /api/oauth/kiro/social-exchange)? That route persists
+ * `{ authMethod: "imported", provider: "Google" | "Github" }` on the connection.
+ * Builder-ID / IDC / kiro-cli imports use different markers and should keep the
+ * existing throw-on-failure behavior.
+ */
+function isSocialAuthKiroAccount(providerSpecificData?: JsonRecord): boolean {
+  if (!providerSpecificData || providerSpecificData.authMethod !== "imported") return false;
+  const provider =
+    typeof providerSpecificData.provider === "string"
+      ? providerSpecificData.provider.toLowerCase()
+      : "";
+  return provider === "google" || provider === "github";
 }
 
 /**
@@ -3195,7 +3224,7 @@ function getKimiPlanName(level: unknown): string {
  * Kimi Coding Usage - Fetch quota from Kimi API
  * Uses the official /v1/usages endpoint with custom X-Msh-* headers
  */
-async function getKimiUsage(accessToken?: string) {
+async function getKimiUsage(accessToken?: string, apiKey?: string) {
   // Generate device info for headers (same as OAuth flow)
   const deviceId = "kimi-usage-" + Date.now();
   const platform = "omniroute";
@@ -3203,16 +3232,28 @@ async function getKimiUsage(accessToken?: string) {
   const deviceModel =
     typeof process !== "undefined" ? `${process.platform} ${process.arch}` : "unknown";
 
-  try {
-    const response = await fetch(KIMI_CONFIG.usageUrl, {
-      method: "GET",
-      headers: {
+  // API key auth takes precedence — Kimi's /usages endpoint accepts the same
+  // API key used for /messages (verified live: responds with
+  // authentication.method = METHOD_API_KEY). OAuth flow falls through to the
+  // Bearer + device-headers shape used by Kimi Coding OAuth.
+  const useApiKey = typeof apiKey === "string" && apiKey.length > 0;
+
+  const authHeaders: Record<string, string> = useApiKey
+    ? { "x-api-key": apiKey as string }
+    : {
         Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
         "X-Msh-Platform": platform,
         "X-Msh-Version": version,
         "X-Msh-Device-Model": deviceModel,
         "X-Msh-Device-Id": deviceId,
+      };
+
+  try {
+    const response = await fetch(KIMI_CONFIG.usageUrl, {
+      method: "GET",
+      headers: {
+        ...authHeaders,
+        "Content-Type": "application/json",
       },
     });
 
@@ -3404,4 +3445,5 @@ export const __testing = {
   mapCodeAssistTierIdToLabel,
   mapSubscriptionTierStringToPlanLabel,
   toDisplayLabel,
+  getKiroUsage,
 };

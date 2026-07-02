@@ -66,10 +66,41 @@ export function evaluateDeletedFiles(deletedPaths) {
   const flags = [];
   for (const f of deletedPaths) {
     if (TEST_RE.test(f)) {
-      flags.push(`${f}: arquivo de teste deletado — revisão humana obrigatória (mascaramento alto-sinal)`);
+      flags.push(
+        `${f}: arquivo de teste deletado — revisão humana obrigatória (mascaramento alto-sinal)`
+      );
     }
   }
   return flags;
+}
+
+/**
+ * Parse `git diff --name-status -M --diff-filter=DR` output, separating TRUE
+ * test-file deletions ("D\tpath") from RENAMES ("R<score>\told\tnew").
+ *
+ * A rename whose destination is still a test file is a *relocation* (the test
+ * was substituted at a new path, not removed) — per this file's subcheck-1
+ * contract it must NOT be treated as a deletion; the assert-reduction check
+ * still runs across the rename to catch gutting-via-rename. A rename that lands
+ * OUTSIDE test scope (test → non-test) removes the test and is treated as a
+ * deletion. Returns test-file paths only.
+ */
+export function partitionDeletedRenamed(nameStatusOutput) {
+  const deletedTests = [];
+  const renames = [];
+  for (const line of (nameStatusOutput || "").split("\n")) {
+    if (!line.trim()) continue;
+    const parts = line.split("\t").map((s) => s.trim());
+    const status = parts[0] || "";
+    if (status.startsWith("D")) {
+      if (TEST_RE.test(parts[1] || "")) deletedTests.push(parts[1]);
+    } else if (status.startsWith("R")) {
+      const from = parts[1] || "";
+      const to = parts[2] || "";
+      if (TEST_RE.test(from)) renames.push({ from, to });
+    }
+  }
+  return { deletedTests, renames };
 }
 
 /**
@@ -83,7 +114,7 @@ export function evaluateDeletedFiles(deletedPaths) {
  * Os campos de skip e extTaut são opcionais (default 0) para compatibilidade
  * com chamadas legadas que só passam baseAsserts/headAsserts/baseTaut/headTaut.
  */
-export function evaluateMasking(perFile) {
+export function evaluateMasking(perFile, assertReductionAllowlist = new Set()) {
   const flags = [];
   for (const f of perFile) {
     const baseSkips = f.baseSkips ?? 0;
@@ -91,14 +122,23 @@ export function evaluateMasking(perFile) {
     const baseExtTaut = f.baseExtTaut ?? 0;
     const headExtTaut = f.headExtTaut ?? 0;
 
-    if (f.headAsserts < f.baseAsserts)
-      flags.push(`${f.file}: asserts ${f.baseAsserts} → ${f.headAsserts} (REMOÇÃO de ${f.baseAsserts - f.headAsserts} — enfraquecimento?)`);
+    // The net-assert-REDUCTION signal can be allowlisted per file when the reduction is a
+    // verified-legitimate refactor/field-removal (config/quality/test-masking-allowlist.json).
+    // The tautology / skip / deletion signals below are NEVER allowlisted.
+    if (f.headAsserts < f.baseAsserts && !assertReductionAllowlist.has(f.file))
+      flags.push(
+        `${f.file}: asserts ${f.baseAsserts} → ${f.headAsserts} (REMOÇÃO de ${f.baseAsserts - f.headAsserts} — enfraquecimento?)`
+      );
     if (f.headTaut > f.baseTaut)
       flags.push(`${f.file}: nova(s) ${f.headTaut - f.baseTaut} tautologia(s) assert.ok(true)`);
     if (headSkips > baseSkips)
-      flags.push(`${f.file}: ${headSkips - baseSkips} novo(s) .skip/.todo/.only (asserts silenciados sem remoção)`);
+      flags.push(
+        `${f.file}: ${headSkips - baseSkips} novo(s) .skip/.todo/.only (asserts silenciados sem remoção)`
+      );
     if (headExtTaut > baseExtTaut)
-      flags.push(`${f.file}: nova(s) ${headExtTaut - baseExtTaut} tautologia(s) estendida(s) (expect(true).toBe(true) / assert.equal(1,1))`);
+      flags.push(
+        `${f.file}: nova(s) ${headExtTaut - baseExtTaut} tautologia(s) estendida(s) (expect(true).toBe(true) / assert.equal(1,1))`
+      );
   }
   return flags;
 }
@@ -124,16 +164,40 @@ function main() {
     return;
   }
 
-  // (6A.10 subcheck 1) Arquivos de teste deletados/renomeados via MDR filter
-  const deletedAndRenamed = git([
-    "diff", "--name-only", "--diff-filter=DR", "-M",
-    `${base}...HEAD`,
-  ])
-    .split("\n")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  // (6A.10 subcheck 1) Arquivos de teste deletados/renomeados via MDR filter.
+  // Renames test→test são RELOCAÇÕES (substituição) e passam pela verificação de
+  // redução de asserts abaixo (gutting-via-rename ainda flaga); só deleções reais
+  // e renames test→não-teste contam como remoção de teste.
+  const { deletedTests, renames } = partitionDeletedRenamed(
+    git(["diff", "--name-status", "-M", "--diff-filter=DR", `${base}...HEAD`])
+  );
 
-  const deletedFlags = evaluateDeletedFiles(deletedAndRenamed);
+  const relocatedOutOfTest = [];
+  const renamePerFile = [];
+  for (const { from, to } of renames) {
+    if (!TEST_RE.test(to)) {
+      // test → non-test: the test was removed from coverage.
+      relocatedOutOfTest.push(from);
+      continue;
+    }
+    // test → test: compare the original (base) against the relocated (head) file so
+    // a clean relocation passes but a rename that drops asserts/adds tautologies fires.
+    const baseSrc = git(["show", `${base}:${from}`]);
+    const headSrc = fs.existsSync(to) ? fs.readFileSync(to, "utf8") : "";
+    renamePerFile.push({
+      file: to,
+      baseAsserts: countAssertions(baseSrc),
+      headAsserts: countAssertions(headSrc),
+      baseTaut: countTautologies(baseSrc),
+      headTaut: countTautologies(headSrc),
+      baseSkips: countSkips(baseSrc),
+      headSkips: countSkips(headSrc),
+      baseExtTaut: countExtendedTautologies(baseSrc),
+      headExtTaut: countExtendedTautologies(headSrc),
+    });
+  }
+
+  const deletedFlags = evaluateDeletedFiles([...deletedTests, ...relocatedOutOfTest]);
 
   // Arquivos de teste modificados (subcheck original + skips + extTaut)
   const changed = git(["diff", "--name-only", "--diff-filter=M", `${base}...HEAD`])
@@ -141,7 +205,7 @@ function main() {
     .map((s) => s.trim())
     .filter((f) => TEST_RE.test(f) && fs.existsSync(f));
 
-  const perFile = [];
+  const perFile = [...renamePerFile];
   for (const file of changed) {
     const baseSrc = git(["show", `${base}:${file}`]);
     const headSrc = fs.readFileSync(file, "utf8");
@@ -158,7 +222,17 @@ function main() {
     });
   }
 
-  const maskingFlags = evaluateMasking(perFile);
+  // Per-file allowlist for verified-legitimate net-assert reductions (refactor/field-removal).
+  // Only exempts the reduction signal; tautology/skip/deletion signals still fire.
+  let assertReductionAllowlist = new Set();
+  try {
+    const raw = JSON.parse(fs.readFileSync("config/quality/test-masking-allowlist.json", "utf8"));
+    assertReductionAllowlist = new Set(Object.keys(raw).filter((k) => !k.startsWith("_")));
+  } catch {
+    // no allowlist file — treat as empty
+  }
+
+  const maskingFlags = evaluateMasking(perFile, assertReductionAllowlist);
   const allFlags = [...deletedFlags, ...maskingFlags];
 
   if (allFlags.length) {
@@ -170,8 +244,8 @@ function main() {
     process.exit(1);
   }
   console.log(
-    `[test-masking] OK — ${changed.length} arquivo(s) de teste modificado(s), ` +
-    `${deletedAndRenamed.length > 0 ? deletedAndRenamed.length + " deletado(s)/renomeado(s) OK" : "nenhum deletado"} — sem enfraquecimento`
+    `[test-masking] OK — ${changed.length} modificado(s), ${renames.length} renomeado(s) (relocação), ` +
+      `${deletedTests.length} deletado(s) — sem enfraquecimento`
   );
 }
 

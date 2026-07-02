@@ -8,6 +8,8 @@
 #    cli   → CLIs installed inside the container (portable)
 #    host  → runner-base + host-mounted CLI binaries (Linux-first)
 #    cliproxyapi → CLIProxyAPI sidecar on port 8317
+#    memory  → Qdrant sidecar on port 6333 (semantic memory offload)
+#    bifrost → Bifrost Go sidecar on port 8080 (Tier-1 LLM router)
 #
 #  Usage:
 #    docker compose --profile base up -d
@@ -16,6 +18,11 @@
 #    docker compose --profile host up -d
 #    docker compose --profile cliproxyapi up -d
 #    docker compose --profile cli --profile cliproxyapi up -d
+#    docker compose --profile base --profile memory up -d   # adds Qdrant sidecar
+#    docker compose --profile base --profile bifrost up -d  # adds Bifrost sidecar
+#
+#  See docs/architecture/cluster-decisions.md for the per-component rationale
+#  (Qdrant=opt-in, Bifrost=opt-in, Caddy=upstream LB, no Dragonfly/NATS/PG/Neo4j/MinIO).
 #
 #  Before first run, copy .env.example → .env and edit your secrets.
 # ──────────────────────────────────────────────────────────────────────
@@ -149,6 +156,60 @@ services:
     profiles:
       - host
 
+  # ── Profile: memory (Qdrant semantic-memory sidecar) ─────────────
+  # Off by default. SQLite + sqlite-vec + FTS5 (RRF) is the primary vector
+  # store (see src/lib/memory/vectorStore.ts). Enable only when you need
+  # cross-instance memory sharing or >1M points — at which point the
+  # QDRANT_ENABLED=true flag activates the dual-write path in
+  # src/lib/memory/qdrant.ts:37. See docs/architecture/cluster-decisions.md
+  # for the workload analysis behind this profile.
+  qdrant:
+    image: docker.io/qdrant/qdrant:v1.12.4
+    container_name: omniroute-qdrant
+    restart: unless-stopped
+    ports:
+      - "${QDRANT_PORT:-6333}:6333"
+      - "${QDRANT_GRPC_PORT:-6334}:6334"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:6333/readyz"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    profiles:
+      - memory
+
+  # ── Profile: bifrost (Bifrost Go LLM-router sidecar) ─────────────
+  # Off by default. Bifrost is the Tier-1 LLM router (per ADR-031 and
+  # open-sse/executors/bifrost.ts). When BIFROST_ENABLED=true is set in
+  # .env, OmniRoute delegates /v1/chat/completions, /v1/responses, and
+  # /v1/embeddings to this sidecar instead of handling them in chatCore.
+  # The kill switch is the BIFROST_ENABLED env var — flip to false to
+  # fall back to the chatCore path with zero code changes. See
+  # docs/architecture/cluster-decisions.md for the activation plan.
+  bifrost:
+    image: ghcr.io/maximhq/bifrost:1.5.21
+    container_name: omniroute-bifrost
+    restart: unless-stopped
+    ports:
+      - "${BIFROST_PORT:-8080}:8080"
+    volumes:
+      - bifrost-data:/data
+    environment:
+      - BIFROST_LOG_LEVEL=${BIFROST_LOG_LEVEL:-info}
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8080/v1/models"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    profiles:
+      - bifrost
+
   # ── Profile: cliproxyapi (CLIProxyAPI as sidecar) ─────────────────
   cliproxyapi:
     container_name: cliproxyapi
@@ -176,3 +237,7 @@ volumes:
     name: cliproxyapi-data
   redis-data:
     name: omniroute-redis-data
+  qdrant-data:
+    name: omniroute-qdrant-data
+  bifrost-data:
+    name: omniroute-bifrost-data

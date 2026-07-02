@@ -1,5 +1,10 @@
 import { BaseGuardrail, type GuardrailContext, type GuardrailResult } from "./base";
-import { extractMessageContents, sanitizeRequest } from "@/shared/utils/inputSanitizer";
+import {
+  MAX_INJECTION_SCAN_BYTES,
+  extractMessageContents,
+  sanitizeRequest,
+} from "@/shared/utils/inputSanitizer";
+import { getFeatureFlagOverride } from "@/lib/db/featureFlags";
 
 type Detection = {
   match: string;
@@ -127,7 +132,20 @@ function emitGuardrailLog(
 }
 
 function getMode(options: PromptInjectionGuardrailOptions) {
+  // A dashboard-set DB override for INJECTION_GUARD_MODE wins over env vars, so the
+  // Feature Flags UI actually controls this guard (DB > ENV > default, matching
+  // resolveFeatureFlag). Read DB-only here to preserve the existing env fallback
+  // chain and "warn" default when no override is set — i.e. behavior is unchanged
+  // for every deployment that has not explicitly set the flag. Fail-safe: any DB
+  // read error falls back to the env-based behavior.
+  let dbOverride: string | undefined;
+  try {
+    dbOverride = getFeatureFlagOverride("INJECTION_GUARD_MODE");
+  } catch {
+    dbOverride = undefined;
+  }
   return (options.mode ||
+    dbOverride ||
     process.env.INJECTION_GUARD_MODE ||
     process.env.INPUT_SANITIZER_MODE ||
     "warn") as "block" | "warn" | "log";
@@ -169,7 +187,15 @@ export function evaluatePromptInjection(
     warn() {},
   } as Console);
   const contents = extractMessageContents(body);
-  const customDetections = detectWithPatterns(contents.join("\n"), patterns);
+  // Bound the custom-pattern scan to the first 16 KB, matching detectInjection's
+  // cap inside sanitizeRequest above (hot-path perf, #3932 / #4041). Injection
+  // directives sit near the top; scanning the full join buys only CPU/GC.
+  const joinedContents = contents.join("\n");
+  const scanText =
+    joinedContents.length > MAX_INJECTION_SCAN_BYTES
+      ? joinedContents.slice(0, MAX_INJECTION_SCAN_BYTES)
+      : joinedContents;
+  const customDetections = detectWithPatterns(scanText, patterns);
   const existingDetections = new Set(
     sanitizerResult.detections.map((d: Detection) => `${d.pattern}:${d.match}:${d.severity}`)
   );

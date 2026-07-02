@@ -1,10 +1,16 @@
+import { isApiKeyRevealEnabledFlag } from "@/shared/utils/featureFlags";
+
 const ENABLED_VALUES = new Set(["1", "true", "yes", "on"]);
 
 export function isApiKeyRevealEnabled(): boolean {
-  const raw = String(process.env.ALLOW_API_KEY_REVEAL || "")
-    .trim()
-    .toLowerCase();
-  return ENABLED_VALUES.has(raw);
+  try {
+    return isApiKeyRevealEnabledFlag();
+  } catch {
+    const raw = String(process.env.ALLOW_API_KEY_REVEAL || "")
+      .trim()
+      .toLowerCase();
+    return ENABLED_VALUES.has(raw);
+  }
 }
 
 export function maskStoredApiKey(key: unknown): string | null {

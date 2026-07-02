@@ -1,10 +1,12 @@
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
+import { mock } from "node:test";
 import {
   checkLoginGuard,
   clearLoginAttempts,
   recordLoginFailure,
   resetLoginGuardForTests,
+  getLoginGuardSizeForTests,
   LOGIN_GUARD_TUNABLES,
 } from "../../../src/server/auth/loginGuard";
 
@@ -61,5 +63,50 @@ describe("loginGuard", () => {
       recordLoginFailure(null, { enabled: true });
     }
     assert.equal(checkLoginGuard(undefined, { enabled: true }).allowed, false);
+  });
+
+  it("prunes expired, unlocked entries so the attempts map does not grow without bound", () => {
+    mock.timers.enable({ apis: ["Date"] });
+    try {
+      // Many distinct IPs each fail once (single, unlocked attempts).
+      for (let i = 0; i < 300; i++) {
+        recordLoginFailure(`9.${Math.floor(i / 256)}.${i % 256}.1`, { enabled: true });
+      }
+      assert.ok(getLoginGuardSizeForTests() > 256, "entries should accumulate before pruning");
+
+      // Advance past the sliding window so all those entries are expired + unlocked.
+      mock.timers.tick(LOGIN_GUARD_TUNABLES.WINDOW_MS + 1000);
+
+      // The next failure (map size > threshold) triggers the opportunistic prune.
+      recordLoginFailure("1.1.1.1", { enabled: true });
+
+      // Only the fresh entry should remain; the stale ones were reaped.
+      assert.equal(getLoginGuardSizeForTests(), 1);
+    } finally {
+      mock.timers.reset();
+    }
+  });
+
+  it("never prunes a still-locked entry", () => {
+    mock.timers.enable({ apis: ["Date"] });
+    try {
+      const lockedIp = "5.5.5.5";
+      for (let i = 0; i < LOGIN_GUARD_TUNABLES.FAILURE_THRESHOLD; i++) {
+        recordLoginFailure(lockedIp, { enabled: true });
+      }
+      assert.equal(checkLoginGuard(lockedIp, { enabled: true }).allowed, false);
+
+      // Fill past the prune threshold with unlocked entries, then trigger a prune
+      // while still inside the lockout window.
+      for (let i = 0; i < 300; i++) {
+        recordLoginFailure(`8.${Math.floor(i / 256)}.${i % 256}.1`, { enabled: true });
+      }
+      recordLoginFailure("2.2.2.2", { enabled: true });
+
+      // The locked IP must still be locked (not reaped).
+      assert.equal(checkLoginGuard(lockedIp, { enabled: true }).allowed, false);
+    } finally {
+      mock.timers.reset();
+    }
   });
 });

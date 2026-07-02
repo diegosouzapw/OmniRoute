@@ -5,9 +5,52 @@ import { cavemanCompress } from "./caveman.ts";
 import { extractTextContent, replaceTextContent, type ChatMessageLike } from "./messageContent.ts";
 
 const COMPRESSED_MARKER_RE = /^\[COMPRESSED:/;
+const JSON_PREFIX_RE = /^\s*[{[]/;
+const FENCE_RE = /^\s*```/;
 
 function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4);
+}
+
+/**
+ * Structured content that an inline `[COMPRESSED:...]` prefix would corrupt:
+ * a pure-JSON payload (parses as JSON) or a fenced code block (B-AGG-JSONTAG).
+ */
+type StructuredKind = "json" | "fenced" | null;
+
+function structuredKind(text: string): StructuredKind {
+  const trimmed = text.trim();
+  if (FENCE_RE.test(trimmed) && trimmed.endsWith("```")) return "fenced";
+  if (JSON_PREFIX_RE.test(trimmed)) {
+    try {
+      JSON.parse(trimmed);
+      return "json";
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+/**
+ * Build the aged content for a message, keeping structured payloads intact:
+ * - pure JSON: leave verbatim and untagged (stays JSON.parse-able). Aging engines
+ *   (lite/caveman) do not shrink JSON anyway, so nothing is lost; tracked in stats
+ *   via the unchanged content. The recursion guard relies on structuredKind() on the
+ *   next pass, so re-running aging is a no-op (idempotent).
+ * - fenced code block: place the tag on its own line BEFORE the fence so the block
+ *   stays valid and the content still starts with `[COMPRESSED:` (recursion guard).
+ * - everything else: inline-prepend the tag as before.
+ */
+function tagAged(tier: string, originalText: string, compressed: string): string {
+  const kind = structuredKind(originalText);
+  if (kind === "json") {
+    return originalText;
+  }
+  if (kind === "fenced") {
+    return `[COMPRESSED:aging:${tier}]\n${originalText}`;
+  }
+  return `[COMPRESSED:aging:${tier}] ${compressed}`;
 }
 
 type ChatMessage = ChatMessageLike;
@@ -62,7 +105,7 @@ export function applyAging(
           typeof compressed.body.messages[0].content === "string"
             ? compressed.body.messages[0].content
             : extractTextContent(compressed.body.messages[0].content);
-        const tagged = `[COMPRESSED:aging:light] ${newContent}`;
+        const tagged = tagAged("light", text, newContent);
         saved += estimateTokens(text) - estimateTokens(tagged);
         result.push(setContent(msg, tagged));
       } else {
@@ -75,7 +118,7 @@ export function applyAging(
           typeof compressed.body.messages[0].content === "string"
             ? compressed.body.messages[0].content
             : extractTextContent(compressed.body.messages[0].content);
-        const tagged = `[COMPRESSED:aging:moderate] ${newContent}`;
+        const tagged = tagAged("moderate", text, newContent);
         saved += estimateTokens(text) - estimateTokens(tagged);
         result.push(setContent(msg, tagged));
       } else {
@@ -84,12 +127,12 @@ export function applyAging(
     } else {
       if (msg.role === "assistant") {
         const summary = sum.summarize([msg]);
-        const tagged = `[COMPRESSED:aging:fullSummary] ${summary}`;
+        const tagged = tagAged("fullSummary", text, summary);
         saved += estimateTokens(text) - estimateTokens(tagged);
         result.push(setContent(msg, tagged));
       } else if (msg.role === "user") {
         const firstLine = text.split("\n")[0]?.slice(0, 120) ?? "";
-        const tagged = `[COMPRESSED:aging:fullSummary] ${firstLine}`;
+        const tagged = tagAged("fullSummary", text, firstLine);
         saved += estimateTokens(text) - estimateTokens(tagged);
         result.push(setContent(msg, tagged));
       } else {

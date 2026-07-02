@@ -12,10 +12,7 @@ interface FlowNodeProps {
   tooltipContent?: string;
 }
 
-const COLOR_MAP: Record<
-  FlowNodeProps["color"],
-  { border: string; bg: string; text: string }
-> = {
+const COLOR_MAP: Record<FlowNodeProps["color"], { border: string; bg: string; text: string }> = {
   primary: { border: "border-primary/30", bg: "bg-primary/5", text: "text-primary" },
   orange: { border: "border-orange-500/30", bg: "bg-orange-500/5", text: "text-orange-500" },
   blue: { border: "border-blue-500/30", bg: "bg-blue-500/5", text: "text-blue-500" },
@@ -66,9 +63,7 @@ function FlowArrow({ label }: { label?: string }) {
       >
         arrow_forward
       </span>
-      {label && (
-        <span className="text-[9px] uppercase tracking-wide mt-0.5">{label}</span>
-      )}
+      {label && <span className="text-[9px] uppercase tracking-wide mt-0.5">{label}</span>}
     </div>
   );
 }
@@ -84,7 +79,7 @@ export default function TranslateFlowDiagram() {
         return fallback;
       }
     },
-    [t],
+    [t]
   );
 
   return (
@@ -92,18 +87,18 @@ export default function TranslateFlowDiagram() {
       <FlowNode
         icon="smart_toy"
         color="primary"
-        title={tr("conceptDiagramAppLabel", "Sua app")}
+        title={tr("conceptDiagramAppLabel", "Your app")}
         example={tr("conceptDiagramExampleApp", "ex: SDK Anthropic")}
       />
-      <FlowArrow label={tr("conceptDiagramArrow1", "fala")} />
+      <FlowArrow label={tr("conceptDiagramArrow1", "speaks")} />
       <FlowNode
         icon="psychology"
         color="orange"
-        title={tr("conceptDiagramSourceLabel", "Formato origem")}
+        title={tr("conceptDiagramSourceLabel", "Source format")}
         example={tr("conceptDiagramExampleSource", "claude")}
         tooltipContent={tr(
           "conceptDiagramSourceTooltip",
-          "Formato do protocolo de API que sua app fala (ex: Anthropic Messages, OpenAI Chat Completions, Gemini).",
+          "The API protocol format your app speaks (for example Anthropic Messages, OpenAI Chat Completions, or Gemini)."
         )}
       />
       <FlowArrow label={tr("conceptDiagramArrow2", "Translator")} />
@@ -111,21 +106,21 @@ export default function TranslateFlowDiagram() {
         icon="hub"
         color="emerald"
         title={tr("conceptDiagramHubLabel", "OpenAI (hub)")}
-        example={tr("conceptDiagramExampleHub", "formato pivô")}
+        example={tr("conceptDiagramExampleHub", "pivot format")}
         tooltipContent={tr(
           "conceptDiagramHubTooltip",
-          "Hub intermediário usado pelo translator para converter entre formatos não-compatíveis diretamente. Todos os formatos passam por OpenAI como pivô.",
+          "Intermediate hub used by the translator to convert between formats that are not directly compatible. All formats pass through OpenAI as the pivot."
         )}
       />
       <FlowArrow label={tr("conceptDiagramArrow3", "→")} />
       <FlowNode
         icon="auto_awesome"
         color="blue"
-        title={tr("conceptDiagramTargetLabel", "Provider destino")}
+        title={tr("conceptDiagramTargetLabel", "Target provider")}
         example={tr("conceptDiagramExampleTarget", "Gemini")}
         tooltipContent={tr(
           "conceptDiagramTargetTooltip",
-          "Provider conectado em OmniRoute que vai responder de verdade (ex: Google Gemini, Anthropic, etc).",
+          "The provider connected in OmniRoute that actually responds, such as Google Gemini or Anthropic."
         )}
       />
     </div>

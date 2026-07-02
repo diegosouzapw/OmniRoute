@@ -12,12 +12,15 @@ import { ConfirmModal } from "./Modal";
 import CloudSyncStatus from "./CloudSyncStatus";
 import { useTranslations } from "next-intl";
 import {
+  HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY,
+  normalizeHiddenSidebarGroupLabels,
+} from "@/shared/constants/sidebarGroupVisibility";
+import {
   HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
   SIDEBAR_SETTINGS_UPDATED_EVENT,
   SIDEBAR_SECTION_ORDER_KEY,
   SIDEBAR_ITEM_ORDER_KEY,
   SIDEBAR_SECTIONS,
-  getSectionItems,
   normalizeHiddenSidebarItems,
   applySectionOrder,
   applyItemOrder,
@@ -75,6 +78,7 @@ export default function Sidebar({
   const [isDisconnected, setIsDisconnected] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [hiddenSidebarItems, setHiddenSidebarItems] = useState<string[]>([]);
+  const [hiddenSidebarGroupLabels, setHiddenSidebarGroupLabels] = useState<string[]>([]);
   const [sidebarSectionOrder, setSidebarSectionOrder] = useState<SidebarSectionId[]>([]);
   const [sidebarItemOrder, setSidebarItemOrder] = useState<SidebarItemOrder>({});
   const [customAppName, setCustomAppName] = useState<string | null>(null);
@@ -117,6 +121,9 @@ export default function Sidebar({
     const applySettings = (data) => {
       setShowDebug(data?.debugMode === true);
       setHiddenSidebarItems(normalizeHiddenSidebarItems(data?.[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]));
+      setHiddenSidebarGroupLabels(
+        normalizeHiddenSidebarGroupLabels(data?.[HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY])
+      );
       setCustomAppName(data?.instanceName || null);
       setCustomLogo(data?.customLogoBase64 || data?.customLogoUrl || null);
     };
@@ -140,6 +147,11 @@ export default function Sidebar({
       if (HIDDEN_SIDEBAR_ITEMS_SETTING_KEY in detail) {
         setHiddenSidebarItems(
           normalizeHiddenSidebarItems(detail[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY])
+        );
+      }
+      if (HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY in detail) {
+        setHiddenSidebarGroupLabels(
+          normalizeHiddenSidebarGroupLabels(detail[HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY])
         );
       }
       if (SIDEBAR_SECTION_ORDER_KEY in detail && Array.isArray(detail[SIDEBAR_SECTION_ORDER_KEY])) {
@@ -184,6 +196,7 @@ export default function Sidebar({
   };
 
   const hiddenSidebarSet = new Set(hiddenSidebarItems);
+  const hiddenSidebarGroupLabelsSet = new Set(hiddenSidebarGroupLabels);
 
   const orderedSections = applySectionOrder(
     SIDEBAR_SECTIONS.filter((section) => section.visibility !== "debug" || showDebug),
@@ -209,9 +222,11 @@ export default function Sidebar({
             return {
               ...child,
               title: getSidebarLabel(child.titleKey, child.titleFallback),
+              separatorHidden: hiddenSidebarGroupLabelsSet.has(child.id),
               items,
             } as SidebarItemGroup & {
               title: string;
+              separatorHidden: boolean;
               items: (SidebarItemDefinition & { label: string })[];
             };
           }
@@ -578,15 +593,17 @@ export default function Sidebar({
                     {section.children.map((child: any) => {
                       if (child.type === "group") {
                         if (child.items.length === 0) return null;
+                        const separatorHidden = child.separatorHidden === true;
                         return (
-                          <div key={child.id} className="mt-2">
-                            {/* Visual sub-group separator */}
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 mb-0.5">
-                              <div className="h-px flex-1 bg-black/8 dark:bg-white/8" />
-                              <span className="text-[8px] font-semibold text-text-muted/40 uppercase tracking-widest">
-                                {child.title}
-                              </span>
-                            </div>
+                          <div key={child.id} className={separatorHidden ? "mt-0.5" : "mt-2"}>
+                            {!separatorHidden && (
+                              <div className="flex items-center gap-1.5 px-2 py-0.5 mb-0.5">
+                                <div className="h-px flex-1 bg-black/8 dark:bg-white/8" />
+                                <span className="text-[8px] font-semibold text-text-muted/40 uppercase tracking-widest">
+                                  {child.title}
+                                </span>
+                              </div>
+                            )}
                             {child.items.map(renderNavLink)}
                           </div>
                         );

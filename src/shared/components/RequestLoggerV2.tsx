@@ -30,8 +30,8 @@ import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import {
   computeLogsSignature,
-  resolveInitialVisibility,
   shouldAutoRefresh,
+  shouldTriggerInfiniteScroll,
 } from "./requestLoggerSignature";
 import {
   DEFAULT_REFRESH_INTERVAL_SEC,
@@ -39,6 +39,14 @@ import {
   readSavedRefreshIntervalSec,
   writeSavedRefreshIntervalSec,
 } from "./requestLoggerPreferences";
+import {
+  LOG_TABLE_CLASS,
+  LOG_TABLE_HEAD_CLASS,
+  LOG_TABLE_HEADER_BG_STYLE,
+  LOG_TABLE_HEADER_CELL_CLASS,
+  LOG_TABLE_HEADER_CELL_RIGHT_CLASS,
+  LOG_TABLE_ROW_CLASS,
+} from "./logTableStyles";
 
 // Number of call-log rows fetched per page. The viewer grows its window by this
 // amount on "Load more" / infinite scroll so users can browse past the first
@@ -144,8 +152,17 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
     const logsSignatureRef = useRef("");
     const scrollContainerRef = useRef(null);
     const loadMoreSentinelRef = useRef(null);
+    // #4269: gates the infinite-scroll observer so a "ghost" loadMore can't fire on
+    // mount (sentinel visible when the first page doesn't fill the viewport), which
+    // grew the window past PAGE_SIZE and permanently paused auto-refresh.
+    const hasScrolledRef = useRef(false);
     const [providerNodes, setProviderNodes] = useState([]);
-    const visibleRef = useRef(resolveInitialVisibility());
+    // #4054: fail-open. The auto-refresh pause is event-driven — we start assuming
+    // the tab is visible (poll) and only flip to paused on a real `visibilitychange`
+    // → hidden transition. Seeding from a static `document.visibilityState` read froze
+    // polling forever in embedded/proxied hosts that report a permanent non-"visible"
+    // state without ever dispatching the event (Docker dashboard wrappers, webviews).
+    const visibleRef = useRef(true);
 
     // Column visibility with localStorage persistence
     const [visibleColumns, setVisibleColumns] = useState(() => {
@@ -275,15 +292,41 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
           fetchLogs(false);
         }
       };
+      // #4133: re-arm on window focus. Embedded / proxied hosts (Docker dashboard
+      // wrappers, webviews) can fire a one-shot `visibilitychange` → hidden and
+      // then keep reporting "hidden" — or recover without firing the event again —
+      // which left `visibleRef` stuck `false` and froze auto-refresh permanently
+      // (the "still not refreshing on 3.8.28, works on 3.8.24" report). A window
+      // `focus` is a reliable signal the page is actively viewed, so re-arm and
+      // poll. A genuinely backgrounded tab never receives focus, so this does not
+      // defeat the perf pause.
+      const onFocus = () => {
+        visibleRef.current = true;
+        if (!selectedLog && shouldAutoRefresh(recording, limit, PAGE_SIZE)) {
+          fetchLogs(false);
+        }
+      };
       document.addEventListener("visibilitychange", onVisibility);
-      return () => document.removeEventListener("visibilitychange", onVisibility);
+      window.addEventListener("focus", onFocus);
+      return () => {
+        document.removeEventListener("visibilitychange", onVisibility);
+        window.removeEventListener("focus", onFocus);
+      };
     }, [recording, limit, fetchLogs, selectedLog]);
 
     useEffect(() => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (!selectedLog && shouldAutoRefresh(recording, limit, PAGE_SIZE)) {
         intervalRef.current = setInterval(() => {
-          if (visibleRef.current) fetchLogs(false);
+          // #3972/#4054/#4133: poll while the page is plausibly viewed — the
+          // event-tracked `visibleRef` (fail-open) OR a *live* `visibilityState`
+          // read. A real background tab has both false → pause (perf); an
+          // embedded host that misreports "hidden" keeps polling instead of
+          // freezing. The window-`focus` re-arm above covers a host pinned
+          // "hidden" while focused.
+          if (visibleRef.current || document.visibilityState === "visible") {
+            fetchLogs(false);
+          }
         }, refreshIntervalSec * 1000);
       }
       return () => {
@@ -295,21 +338,47 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
     // so switching filters doesn't keep fetching a large expanded window.
     useEffect(() => {
       setLimit(PAGE_SIZE);
+      // #4269: a filter change is a fresh first-page view — re-arm the ghost-load-more
+      // guard so auto-refresh resumes until the user scrolls again.
+      hasScrolledRef.current = false;
     }, [search, activeFilter, selectedModel, selectedAccount, selectedProvider, selectedApiKey]);
 
     const loadMore = useCallback(() => {
       setLimit((prev) => prev + PAGE_SIZE);
     }, []);
 
+    // #4269: record the first genuine user scroll of the log list. Until then, the
+    // infinite-scroll observer below must NOT grow the window (see
+    // shouldTriggerInfiniteScroll) — otherwise a sentinel that is already visible on
+    // mount fires a "ghost" loadMore and permanently pauses auto-refresh.
+    useEffect(() => {
+      const root = scrollContainerRef.current;
+      if (!root) return;
+      const onScroll = () => {
+        if (root.scrollTop > 0) hasScrolledRef.current = true;
+      };
+      root.addEventListener("scroll", onScroll, { passive: true });
+      return () => root.removeEventListener("scroll", onScroll);
+    }, []);
+
     // Infinite scroll: grow the window when the sentinel near the bottom of the
-    // scroll container becomes visible.
+    // scroll container becomes visible — but only after a real user scroll (#4269).
     useEffect(() => {
       const sentinel = loadMoreSentinelRef.current;
       const root = scrollContainerRef.current;
       if (!sentinel || !hasMore) return;
       const observer = new IntersectionObserver(
         (entries) => {
-          if (entries[0]?.isIntersecting && !loading) loadMore();
+          if (
+            shouldTriggerInfiniteScroll({
+              isIntersecting: !!entries[0]?.isIntersecting,
+              hasMore,
+              loading,
+              hasScrolled: hasScrolledRef.current,
+            })
+          ) {
+            loadMore();
+          }
         },
         { root, rootMargin: "200px" }
       );
@@ -910,10 +979,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
         </div>
 
         {/* Table */}
-        <Card
-          padding="none"
-          className="min-h-[460px] resize-y overflow-auto bg-black/5 dark:bg-black/20"
-        >
+        <Card padding="none" className="min-h-[460px] resize-y overflow-auto bg-surface">
           <div
             ref={scrollContainerRef}
             className="p-0 overflow-x-auto overflow-y-auto h-full min-h-[460px]"
@@ -930,79 +996,47 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
             ) : sortedLogs.length === 0 ? (
               <div className="p-8 text-center text-text-muted">{t("noMatchingLogs")}</div>
             ) : (
-              <table className="w-full text-left border-collapse text-xs">
-                <thead
-                  className="sticky top-0 z-10"
-                  style={{ backgroundColor: "var(--color-bg, #fff)" }}
-                >
-                  <tr
-                    className="border-b border-border"
-                    style={{ backgroundColor: "var(--color-bg, #fff)" }}
-                  >
+              <table className={LOG_TABLE_CLASS}>
+                <thead className={LOG_TABLE_HEAD_CLASS} style={LOG_TABLE_HEADER_BG_STYLE}>
+                  <tr className={LOG_TABLE_ROW_CLASS} style={LOG_TABLE_HEADER_BG_STYLE}>
                     {visibleColumns.status && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                        {t("columns.status")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.status")}</th>
                     )}
                     {visibleColumns.cacheSource && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                        {t("columns.cacheSource")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.cacheSource")}</th>
                     )}
                     {visibleColumns.model && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                        {t("columns.model")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.model")}</th>
                     )}
                     {visibleColumns.requestedModel && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                        {t("columns.requested")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.requested")}</th>
                     )}
                     {visibleColumns.provider && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                        {t("columns.provider")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.provider")}</th>
                     )}
                     {visibleColumns.protocol && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                        {t("columns.protocol")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.protocol")}</th>
                     )}
                     {visibleColumns.account && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                        {t("columns.account")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.account")}</th>
                     )}
                     {visibleColumns.apiKey && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                        {t("columns.apiKey")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.apiKey")}</th>
                     )}
                     {visibleColumns.combo && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                        {t("columns.combo")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.combo")}</th>
                     )}
                     {visibleColumns.tokens && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px] text-right">
-                        {t("columns.tokens")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_RIGHT_CLASS}>{t("columns.tokens")}</th>
                     )}
                     {visibleColumns.tps && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px] text-right">
-                        {t("columns.tps")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_RIGHT_CLASS}>{t("columns.tps")}</th>
                     )}
                     {visibleColumns.duration && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px] text-right">
-                        {t("columns.duration")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_RIGHT_CLASS}>{t("columns.duration")}</th>
                     )}
                     {visibleColumns.time && (
-                      <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px] text-right">
-                        {t("columns.time")}
-                      </th>
+                      <th className={LOG_TABLE_HEADER_CELL_RIGHT_CLASS}>{t("columns.time")}</th>
                     )}
                   </tr>
                 </thead>

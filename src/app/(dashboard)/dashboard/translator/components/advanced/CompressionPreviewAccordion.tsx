@@ -61,9 +61,7 @@ function CompressionPreviewContent({ inputContent = "" }: { inputContent?: strin
   const t = useTranslations("translator");
 
   const [compressionMode, setCompressionMode] = useState<string>("standard");
-  const [compressionResult, setCompressionResult] = useState<CompressionPreviewResult | null>(
-    null,
-  );
+  const [compressionResult, setCompressionResult] = useState<CompressionPreviewResult | null>(null);
   const [compressionLoading, setCompressionLoading] = useState(false);
   const [compressionError, setCompressionError] = useState<string | null>(null);
 
@@ -111,7 +109,7 @@ function CompressionPreviewContent({ inputContent = "" }: { inputContent?: strin
           </span>
           <span>
             {t("compressionEmptyHint") ||
-              "Preencha o campo de entrada na aba Translate (Simple Controls ou Raw JSON) para habilitar o preview."}
+              "Fill in the input field on the Translate tab (Simple Controls or Raw JSON) to enable the preview."}
           </span>
         </div>
       )}
@@ -123,7 +121,7 @@ function CompressionPreviewContent({ inputContent = "" }: { inputContent?: strin
           onChange={(e) => setCompressionMode(e.target.value)}
           options={COMPRESSION_MODES}
           className="text-sm"
-          aria-label={t("compressionModeLabel") || "Modo de compressão"}
+          aria-label={t("compressionModeLabel") || "Compression mode"}
         />
         <Button
           icon="play_arrow"
@@ -256,7 +254,7 @@ export default function CompressionPreviewAccordion({
       <div
         className={cn(
           "flex items-center gap-3 p-4 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors",
-          open && "border-b border-black/5 dark:border-white/5",
+          open && "border-b border-black/5 dark:border-white/5"
         )}
       >
         <button

@@ -1,0 +1,29 @@
+name: npm ci with retry
+description: Run npm ci with retries for transient registry/network failures.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        set -euo pipefail
+
+        max_attempts=3
+        delay_seconds=20
+
+        for attempt in $(seq 1 "$max_attempts"); do
+          if [ "$attempt" -gt 1 ]; then
+            echo "npm ci attempt $attempt/$max_attempts after transient failure"
+          fi
+
+          if npm ci; then
+            exit 0
+          fi
+
+          exit_code=$?
+          if [ "$attempt" -eq "$max_attempts" ]; then
+            exit "$exit_code"
+          fi
+
+          sleep "$delay_seconds"
+          delay_seconds=$((delay_seconds * 2))
+        done

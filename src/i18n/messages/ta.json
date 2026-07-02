@@ -868,7 +868,7 @@
     "issues": "Issues",
     "endpoints": "Endpoints",
     "endpointsSubtitle": "உங்கள் AI இணைப்பு URLகள்",
-    "apiManager": "API Key Manager",
+    "apiManager": "API Keys",
     "apiManagerSubtitle": "API விசைகள் மற்றும் அணுகலை நிர்வகிக்கவும்",
     "embeddedServices": "உட்பொதிக்கப்பட்ட சேவைகள்",
     "embeddedServicesSubtitle": "உள்ளூர் proxy சேவைகளை நிர்வகிக்கவும்",
@@ -5397,7 +5397,7 @@
     "claudeFastModeModelCheckbox": "{model}க்கு வேகமான பயன்முறையை இயக்கு",
     "claudeFastModeSaveError": "Claude Fast Mode அமைப்பைப் புதுப்பிக்க முடியவில்லை",
     "authz": {
-      "title": "__MISSING__:Authz Inventory",
+      "title": "__MISSING__:Authorization Inventory",
       "description": "__MISSING__:5-tier route classification with live bypass policy. Read shows the full taxonomy; mutations re-prompt for the management password.",
       "loading": "__MISSING__:Loading inventory…",
       "loadError": "__MISSING__:Failed to load authz inventory",

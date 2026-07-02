@@ -30,6 +30,8 @@ export default async function AgentBridgePage() {
       lastStartedAt: null,
       activeConns: 0,
       interceptedCount: 0,
+      dnsConfigured: false,
+      orphanedStateDetected: false,
     },
     agentStates: [],
     bypassPatterns: [],

@@ -232,7 +232,10 @@ export async function ensureGitTagExists(
 export function buildNpmUpdateScript(latest: string): string {
   return [
     "set -eu",
-    `npm install -g omniroute@${latest} --ignore-scripts --legacy-peer-deps`,
+    // --include=optional keeps the optionalDependencies (better-sqlite3, keytar,
+    // tls-client, and the llmlingua SLM stack) installed on every update so an
+    // `omit=optional` config / .npmrc cannot silently drop them.
+    `npm install -g omniroute@${latest} --include=optional --ignore-scripts --legacy-peer-deps`,
     "if command -v pm2 >/dev/null 2>&1; then",
     "  pm2 restart omniroute || true",
     "fi",
@@ -254,7 +257,7 @@ export function buildSourceUpdateScript(latest: string, gitRemote = "origin"): s
     'backup_branch="pre-update/$(git rev-parse --short HEAD)-$(date +%Y%m%d-%H%M%S)"',
     'git branch "$backup_branch" 2>/dev/null || true',
     `git checkout "${targetTag}"`,
-    "npm install --legacy-peer-deps",
+    "npm install --include=optional --legacy-peer-deps",
     "node scripts/dev/sync-env.mjs 2>/dev/null || true",
     "npm run build",
     "if command -v pm2 >/dev/null 2>&1; then",

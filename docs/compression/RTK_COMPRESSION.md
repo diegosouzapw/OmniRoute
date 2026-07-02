@@ -1,7 +1,7 @@
 ---
 title: "RTK Compression"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.31
+lastUpdated: 2026-06-20
 ---
 
 # RTK Compression
@@ -96,12 +96,64 @@ Important fields:
 | `rules.dropPatterns`         | Remove noisy lines                                             |
 | `rules.includePatterns`      | Prefer actionable lines                                        |
 | `rules.collapsePatterns`     | Collapse repeated matching lines                               |
+| `rules.deduplicate`          | Per-filter opt-in: collapse consecutive duplicate lines        |
 | `rules.truncateLineAt`       | Unicode-safe per-line truncation                               |
 | `rules.onEmpty`              | Fallback message if all lines are filtered out                 |
 | `tests[]`                    | Inline samples used by the verify gate                         |
 
 Built-in filters are expected to include inline `tests[]` samples. Custom filters should include
 them too, especially when they are shared across projects.
+
+## Line Deduplication (two layers)
+
+RTK collapses duplicate lines at two independent layers:
+
+1. **Per-filter `deduplicate` (opt-in, default `false`).** A filter can set `rules.deduplicate: true`
+   to collapse consecutive duplicate lines *within that filter's matched output*, before truncation.
+   This runs inside `lineFilter.ts`. For legacy filters, it is auto-enabled when the filter defines
+   `collapsePatterns`. Schema: `deduplicate: z.boolean().default(false)` in
+   `open-sse/services/compression/engines/rtk/filterSchema.ts`.
+2. **Engine-wide `deduplicateThreshold` (default `3`).** After all filters run, the engine collapses
+   any run of `>= deduplicateThreshold` identical consecutive lines across the whole result
+   (`deduplicateRepeatedLines`, applied in `engines/rtk/index.ts`). The value is bounded to 2–100 on
+   normalization.
+
+The per-filter pass runs first (inside the filter), the engine-wide pass runs last (over the joined
+output), so the two compose without double-counting.
+
+## Line Grouping (`enableGrouping`)
+
+When `rtkConfig.enableGrouping` is `true` (default `false`), RTK runs an additional `groupSimilarLines`
+pass over the post-dedup result that collapses runs of *near-equivalent* (not byte-identical)
+consecutive lines. `rtkConfig.groupingThreshold` (default `3`) is the minimum run length that triggers
+grouping. This is the structural counterpart to `deduplicateThreshold`: dedup handles exact repeats,
+grouping handles "the same shape with small differences". Both flags are part of the `rtkConfig` JSON
+persisted in the `key_value` table (see Configuration above), so the setting survives restarts.
+
+## Code Comment Stripping (`stripCodeComments` / `preserveDocstrings`)
+
+When `rtkConfig.applyToCodeBlocks` is enabled, RTK can also strip comments from fenced code blocks:
+
+- `stripCodeComments` (default `false`) — opt-in. When `true`, RTK removes comments from JavaScript
+  and TypeScript fenced blocks. The flag was historically read but never applied, so the default stays
+  at "preserve" to avoid a silent production change.
+- `preserveDocstrings` (default `true`) — when stripping comments, JSDoc/`/** … */` block comments are
+  kept (they carry API documentation worth more than the bytes they cost). Set to `false` to strip
+  those too.
+
+Comment removal is implemented in `open-sse/services/compression/engines/rtk/codeStripper.ts`. It uses
+the **TypeScript parser** (not a regex) so that string, template, and regex literals are never mistaken
+for comments, and it bails out entirely when JSX is detected (so JSX expression-container comments are
+never corrupted). Comment stripping currently applies to **JavaScript and TypeScript only** — other
+languages in the stripper's `CodeLanguage` set (Python, Rust, Go, Ruby, Java) have empty-line and
+whitespace collapse but no comment removal. The stripped-block run is tagged `rtk:code-strip` in
+`rulesApplied`.
+
+> **Note — GCF / tabular encoding is a separate engine.** RTK does **not** contain the "GCF"
+> (Graph Compact Format) tabular/columnar JSON encoder. That encoder — which replaced an older
+> `omni-tabular` encoder — lives in the **headroom** engine
+> (`open-sse/services/compression/engines/headroom/`, with the vendored codec under
+> `headroom/gcf/`). It is unrelated to the RTK filter pipeline documented here.
 
 ## Configuration
 
@@ -131,12 +183,31 @@ available through `/api/context/rtk/config`.
     "customFiltersEnabled": true,
     "trustProjectFilters": false,
     "rawOutputRetention": "never",
-    "rawOutputMaxBytes": 1048576
+    "rawOutputMaxBytes": 1048576,
+    "enableGrouping": false,
+    "groupingThreshold": 3,
+    "stripCodeComments": false,
+    "preserveDocstrings": true
   }
 }
 ```
 
 `enabledFilters` and `disabledFilters` use filter ids, for example `test-vitest` or `git-diff`.
+
+The full `rtkConfig` shape is defined by `RtkConfig` / `DEFAULT_RTK_CONFIG` in
+`open-sse/services/compression/types.ts`. The whole object is persisted as a single JSON value in
+the SQLite `key_value` table under `namespace = "compression"`, `key = "rtkConfig"`
+(`src/lib/db/compression.ts`), and normalized on read by `normalizeRtkConfig`. So every field below
+— including `enableGrouping`, `groupingThreshold`, `stripCodeComments`, and `preserveDocstrings` —
+round-trips through the same store and survives a restart.
+
+| Key                    | Default | Purpose                                                                       |
+| ---------------------- | ------- | ----------------------------------------------------------------------------- |
+| `deduplicateThreshold` | `3`     | Engine-wide: min consecutive identical lines to collapse (bounded 2–100)      |
+| `enableGrouping`       | `false` | Opt-in: collapse runs of near-equivalent consecutive lines                    |
+| `groupingThreshold`    | `3`     | Min consecutive similar-line run that triggers grouping                       |
+| `stripCodeComments`    | `false` | Opt-in: remove comments from fenced code blocks (needs `applyToCodeBlocks`)   |
+| `preserveDocstrings`   | `true`  | When stripping comments, keep JSDoc/`/** … */` blocks                         |
 
 ## API
 
