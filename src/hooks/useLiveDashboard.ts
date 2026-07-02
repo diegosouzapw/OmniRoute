@@ -18,6 +18,8 @@ import type { DashboardChannel, DashboardEventName } from "@/lib/events/types";
 
 const WS_RECONNECT_DELAYS = [1000, 2000, 4000, 8000, 16000, 30000];
 function getDefaultWsUrl(): string {
+  const publicUrl = process.env.NEXT_PUBLIC_LIVE_WS_PUBLIC_URL;
+  if (publicUrl) return publicUrl;
   if (typeof window === "undefined") return "ws://localhost:20129";
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const { hostname } = window.location;

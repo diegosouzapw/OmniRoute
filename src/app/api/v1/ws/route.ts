@@ -15,6 +15,7 @@ const WS_PROTOCOL = {
   cancel: { type: "cancel", id: "req-1" },
   live: {
     port: parseInt(process.env.LIVE_WS_PORT || "20129", 10),
+    publicUrl: process.env.NEXT_PUBLIC_LIVE_WS_PUBLIC_URL || null,
     path: "/live",
     protocol: "json",
     channels: ["requests", "combo", "credentials"],
@@ -69,6 +70,7 @@ export async function GET(request: Request) {
         protocol: WS_PROTOCOL,
         live: {
           port: parseInt(process.env.LIVE_WS_PORT || "20129", 10),
+          publicUrl: process.env.NEXT_PUBLIC_LIVE_WS_PUBLIC_URL || null,
           path: "/live",
           protocol: "json",
           channels: ["requests", "combo", "credentials"],
