@@ -11,6 +11,7 @@
 
 import { randomUUID } from "node:crypto";
 import { createMcpServer } from "./server.ts";
+import { withMcpHttpAuthContext } from "./httpAuthContext.ts";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -173,7 +174,9 @@ async function handleStreamableRequest(request: Request): Promise<Response> {
 
     try {
       session.lastActivityAt = Date.now();
-      const response = await session.transport.handleRequest(request);
+      const response = await withMcpHttpAuthContext(request, () =>
+        session.transport.handleRequest(request)
+      );
       if (request.method === "DELETE") {
         closeStreamableSession(sessionId);
       }
@@ -197,7 +200,9 @@ async function handleStreamableRequest(request: Request): Promise<Response> {
   const session = createStreamableSession();
 
   try {
-    const response = await session.transport.handleRequest(request);
+    const response = await withMcpHttpAuthContext(request, () =>
+      session.transport.handleRequest(request)
+    );
     return withSessionHeader(response, session.sessionId);
   } catch (err) {
     closeStreamableSession(session.sessionId);
@@ -226,7 +231,7 @@ export async function handleMcpSSE(request: Request): Promise<Response> {
   const { transport } = ensureSseServer();
 
   try {
-    return await transport.handleRequest(request);
+    return await withMcpHttpAuthContext(request, () => transport.handleRequest(request));
   } catch (err) {
     console.error("[MCP] SSE error:", err);
     return new Response(JSON.stringify({ error: "MCP SSE transport error" }), {
