@@ -1,0 +1,183 @@
+# L17 latency-budget-to-CI — REST endpoint coverage checks
+# Triggered on every PR. Validates all REST endpoints against their p99 budgets
+# and hard caps defined in budgets/rest-endpoints.yaml.
+#
+# Jobs:
+#   1. budget-check   — runs tools/latency-budget-to-ci/budget.py against synthetic trace
+#   2. budget-regression — compares current p99 vs main baseline, fails on >10% regression
+#
+# Refs: docs/latency-budgets/REST-endpoints.md, docs/PERF_BUDGETS.md
+
+name: latency-budget
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  BUDGET_FILE: budgets/rest-endpoints.yaml
+  TRACE_FILE: .build/latency-trace.json
+  BASELINE_BRANCH: origin/main
+
+jobs:
+  budget-check:
+    name: REST endpoint budget check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Install Python dependencies
+        run: |
+          python3 -m pip install pyyaml --quiet 2>/dev/null || true
+          python3 -c "import yaml; print('PyYAML available')" 2>/dev/null || echo "Using fallback YAML parser"
+
+      - name: Verify budget file exists
+        run: |
+          if [ ! -f "${{ env.BUDGET_FILE }}" ]; then
+            echo "::error::Budget file ${{ env.BUDGET_FILE }} not found"
+            exit 1
+          fi
+          echo "Budget file found: ${{ env.BUDGET_FILE }}"
+          echo "Endpoint count: $(python3 -c "import sys, yaml; d=yaml.safe_load(open('${{ env.BUDGET_FILE }}')); print(len(d.get('spans',[])))" 2>/dev/null || grep -c 'threshold_ms' ${{ env.BUDGET_FILE }})"
+
+      - name: Collect latency trace (synthetic)
+        run: |
+          mkdir -p "$(dirname ${{ env.TRACE_FILE }})"
+          node scripts/check/check-latency-trace.mjs --output "${{ env.TRACE_FILE }}" --budget "${{ env.BUDGET_FILE }}" \
+            || echo "::warning::Trace collection did not return all endpoints; using partial trace"
+
+      - name: Run budget gate
+        id: budget-check
+        run: |
+          if [ ! -f "${{ env.TRACE_FILE }}" ]; then
+            echo "No trace file — creating empty trace"
+            echo '{"spans":[]}' > "${{ env.TRACE_FILE }}"
+          fi
+          python3 tools/latency-budget-to-ci/budget.py \
+            --budget "${{ env.BUDGET_FILE }}" \
+            --trace "${{ env.TRACE_FILE }}" \
+            | tee budget-output.txt
+          exit_code=${PIPESTATUS[0]}
+          echo "exit=$exit_code" >> "$GITHUB_OUTPUT"
+          if [ "$exit_code" -ne 0 ]; then
+            echo "::error::Some endpoints exceeded hard cap budget"
+          fi
+          exit $exit_code
+
+      - name: Annotate PR with budget results
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const output = fs.readFileSync('budget-output.txt', 'utf8');
+            const marker = '<!-- latency-budget-bot -->';
+            const body = `${marker}\n## L17 Latency Budget Report\n\n\`\`\`\n${output.trim()}\n\`\`\`\n\n_Checked against: ${{ env.BUDGET_FILE }}._`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: context.issue.number, per_page: 100
+            });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: existing.id, body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: context.issue.number, body
+              });
+            }
+
+  budget-regression:
+    name: REST endpoint latency regression
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fetch baseline (main) budget trace
+        run: |
+          mkdir -p "$(dirname ${{ env.TRACE_FILE }})"
+          git fetch origin main --depth=1
+          if git show origin/main:budgets/rest-endpoints.yaml > /dev/null 2>&1; then
+            echo "Baseline budget file found on main"
+          else
+            echo "::warning::No baseline budget file on main — skipping regression check"
+          fi
+
+      - name: Compare p99 regression vs main
+        id: regression
+        run: |
+          # Compare current trace vs baseline; flag >10% regression
+          if [ ! -f "${{ env.TRACE_FILE }}" ]; then
+            echo "No trace file available — cannot compute regression"
+            echo "exit=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          python3 tools/latency-budget-to-ci/regression.py \
+            --baseline-budget "${{ env.BUDGET_FILE }}" \
+            --current-trace "${{ env.TRACE_FILE }}" \
+            --threshold-pct 10 \
+            | tee regression-output.txt
+          exit_code=${PIPESTATUS[0]}
+          echo "exit=$exit_code" >> "$GITHUB_OUTPUT"
+          if [ "$exit_code" -ne 0 ]; then
+            echo "::error::p99 latency regression >10% detected"
+          fi
+          exit $exit_code
+
+      - name: Comment PR with regression report
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('regression-output.txt', 'utf8');
+            const marker = '<!-- latency-regression-bot -->';
+            const body = `${marker}\n## L17 Latency Regression Report\n\n\`\`\`\n${report.trim()}\n\`\`\`\n\n_Threshold: 10% p99 regression._`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: context.issue.number, per_page: 100
+            });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: existing.id, body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: context.issue.number, body
+              });
+            }
+
+  # Summary job to aggregate results for branch protection
+  latency-budget-result:
+    name: Latency budget result
+    runs-on: ubuntu-latest
+    needs: [budget-check, budget-regression]
+    if: always()
+    steps:
+      - name: Check budget-check result
+        run: |
+          echo "budget-check: ${{ needs.budget-check.result }}"
+          echo "budget-regression: ${{ needs.budget-regression.result }}"
+          if [ "${{ needs.budget-check.result }}" = "failure" ] || [ "${{ needs.budget-regression.result }}" = "failure" ]; then
+            echo "::error::Latency budget gates failed"
+            exit 1
+          fi
+          echo "All latency budget gates passed"

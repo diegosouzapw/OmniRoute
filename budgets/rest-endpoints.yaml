@@ -1,0 +1,194 @@
+# L17 REST endpoint latency budgets — consumed by tools/latency-budget-to-ci/budget.py
+version: 1
+spans:
+  # Inference endpoints (hot path)
+  - name: "/v1/responses/non-stream"
+    method: POST
+    threshold_ms: 3500
+    hard_cap_ms: 5000
+  - name: "/v1/responses/stream"
+    method: POST
+    threshold_ms: 1800
+    hard_cap_ms: 3000
+  - name: "/v1/relay/chat/completions/non-stream"
+    method: POST
+    threshold_ms: 4000
+    hard_cap_ms: 6000
+  - name: "/v1/relay/chat/completions/stream"
+    method: POST
+    threshold_ms: 2000
+    hard_cap_ms: 3500
+  - name: "/v1/embeddings"
+    method: POST
+    threshold_ms: 1400
+    hard_cap_ms: 2500
+  - name: "/v1/rerank"
+    method: POST
+    threshold_ms: 2800
+    hard_cap_ms: 4000
+  - name: "/v1/moderations"
+    method: POST
+    threshold_ms: 1200
+    hard_cap_ms: 2000
+  - name: "/v1/audio/speech"
+    method: POST
+    threshold_ms: 6000
+    hard_cap_ms: 10000
+  - name: "/v1/audio/transcriptions"
+    method: POST
+    threshold_ms: 10000
+    hard_cap_ms: 15000
+  - name: "/v1/images/generations"
+    method: POST
+    threshold_ms: 15000
+    hard_cap_ms: 20000
+  - name: "/v1/videos/generations"
+    method: POST
+    threshold_ms: 3000
+    hard_cap_ms: 5000
+  - name: "/v1/music/generations"
+    method: POST
+    threshold_ms: 12000
+    hard_cap_ms: 18000
+
+  # Files + batches
+  - name: "/v1/files/list"
+    method: GET
+    threshold_ms: 400
+    hard_cap_ms: 800
+  - name: "/v1/files/upload"
+    method: POST
+    threshold_ms: 2500
+    hard_cap_ms: 4000
+  - name: "/v1/files/{id}/get"
+    method: GET
+    threshold_ms: 300
+    hard_cap_ms: 600
+  - name: "/v1/files/{id}/delete"
+    method: DELETE
+    threshold_ms: 400
+    hard_cap_ms: 800
+  - name: "/v1/files/{id}/content"
+    method: GET
+    threshold_ms: 600
+    hard_cap_ms: 1200
+  - name: "/v1/batches/list"
+    method: GET
+    threshold_ms: 800
+    hard_cap_ms: 1500
+  - name: "/v1/batches/create"
+    method: POST
+    threshold_ms: 1000
+    hard_cap_ms: 2000
+  - name: "/v1/batches/{id}/get"
+    method: GET
+    threshold_ms: 600
+    hard_cap_ms: 1200
+  - name: "/v1/batches/{id}/delete"
+    method: DELETE
+    threshold_ms: 600
+    hard_cap_ms: 1200
+  - name: "/v1/batches/delete-completed"
+    method: POST
+    threshold_ms: 2000
+    hard_cap_ms: 4000
+
+  # Agents
+  - name: "/v1/agents/health"
+    method: GET
+    threshold_ms: 5000
+    hard_cap_ms: 8000
+  - name: "/v1/agents/credentials"
+    method: GET
+    threshold_ms: 500
+    hard_cap_ms: 1000
+  - name: "/v1/agents/tasks/list"
+    method: GET
+    threshold_ms: 800
+    hard_cap_ms: 1500
+  - name: "/v1/agents/tasks/create"
+    method: POST
+    threshold_ms: 1200
+    hard_cap_ms: 2000
+  - name: "/v1/agents/tasks/{id}/get"
+    method: GET
+    threshold_ms: 600
+    hard_cap_ms: 1200
+  - name: "/v1/agents/tasks/{id}/delete"
+    method: DELETE
+    threshold_ms: 800
+    hard_cap_ms: 1500
+
+  # Combos / me / providers
+  - name: "/v1/combos"
+    method: GET
+    threshold_ms: 400
+    hard_cap_ms: 800
+  - name: "/v1/me/status"
+    method: GET
+    threshold_ms: 300
+    hard_cap_ms: 600
+  - name: "/v1/providers/{provider}/models"
+    method: GET
+    threshold_ms: 500
+    hard_cap_ms: 1000
+
+  # Web / search
+  - name: "/v1/web/fetch"
+    method: POST
+    threshold_ms: 8000
+    hard_cap_ms: 12000
+  - name: "/v1/search"
+    method: POST
+    threshold_ms: 4000
+    hard_cap_ms: 6000
+
+  # VSCode-CLI shim
+  - name: "/v1/vscode/{token}/v1/chat/completions"
+    method: POST
+    threshold_ms: 3000
+    hard_cap_ms: 5000
+  - name: "/v1/vscode/{token}/v1/models"
+    method: GET
+    threshold_ms: 300
+    hard_cap_ms: 600
+  - name: "/v1/vscode/{token}/combos"
+    method: GET
+    threshold_ms: 400
+    hard_cap_ms: 800
+  - name: "/v1/vscode/{token}/responses"
+    method: POST
+    threshold_ms: 3500
+    hard_cap_ms: 5000
+
+  # Management / settings
+  - name: "/api/settings/get"
+    method: GET
+    threshold_ms: 600
+    hard_cap_ms: 1200
+  - name: "/api/settings/write"
+    method: POST
+    threshold_ms: 1000
+    hard_cap_ms: 2000
+  - name: "/api/keys"
+    method: POST
+    threshold_ms: 800
+    hard_cap_ms: 1500
+  - name: "/api/quota"
+    method: POST
+    threshold_ms: 800
+    hard_cap_ms: 1500
+  - name: "/api/monitoring/health"
+    method: GET
+    threshold_ms: 3000
+    hard_cap_ms: 5000
+
+  # Public probes
+  - name: "/api/health/ping"
+    method: GET
+    threshold_ms: 50
+    hard_cap_ms: 100
+  - name: "/api/version"
+    method: GET
+    threshold_ms: 50
+    hard_cap_ms: 100
