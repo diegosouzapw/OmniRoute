@@ -52,7 +52,10 @@ test("serializes truncated payloads as valid JSON objects", () => {
 });
 
 test("structured SSE collector preserves event order and marks truncation", () => {
-  const collector = createStructuredSSECollector({ maxEvents: 2, maxBytes: 200 });
+  // Each collected event now also carries an ISO `timestamp` field (#5834 observability),
+  // which enlarges per-event bytes. Give the byte budget enough headroom so truncation
+  // here is driven by maxEvents (drop 1 of 3), which is what this test verifies.
+  const collector = createStructuredSSECollector({ maxEvents: 2, maxBytes: 2000 });
 
   collector.push({ type: "response.created", id: "r1" });
   collector.push({ type: "response.output_text.delta", delta: "hi" });

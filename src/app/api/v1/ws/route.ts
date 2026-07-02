@@ -6,22 +6,36 @@ const WS_HANDSHAKE_HEADERS = {
   "Cache-Control": "no-store",
 };
 
-const WS_PROTOCOL = {
-  request: {
-    type: "request",
-    id: "req-1",
-    payload: { model: "openai/gpt-4.1-mini", messages: [] },
-  },
-  cancel: { type: "cancel", id: "req-1" },
-  live: {
-    port: parseInt(process.env.LIVE_WS_PORT || "20129", 10),
-    path: "/live",
-    protocol: "json",
-    channels: ["requests", "combo", "credentials"],
-    auth: "api-key",
-    heartbeatMs: 15000,
-  },
-};
+/**
+ * Public URL for the live dashboard WebSocket (reverse proxy / Cloudflare
+ * Tunnel setups). Read lazily at request time (not module load) so runtime
+ * env changes are honored, and only echoed when it is a ws:// or wss:// URL.
+ */
+function getLivePublicUrl(): string | null {
+  const publicUrl = process.env.NEXT_PUBLIC_LIVE_WS_PUBLIC_URL;
+  if (!publicUrl) return null;
+  return publicUrl.startsWith("ws://") || publicUrl.startsWith("wss://") ? publicUrl : null;
+}
+
+function getWsProtocol() {
+  return {
+    request: {
+      type: "request",
+      id: "req-1",
+      payload: { model: "openai/gpt-4.1-mini", messages: [] },
+    },
+    cancel: { type: "cancel", id: "req-1" },
+    live: {
+      port: parseInt(process.env.LIVE_WS_PORT || "20129", 10),
+      publicUrl: getLivePublicUrl(),
+      path: "/live",
+      protocol: "json",
+      channels: ["requests", "combo", "credentials"],
+      auth: "api-key",
+      heartbeatMs: 15000,
+    },
+  };
+}
 
 export async function OPTIONS() {
   return new Response(null, {
@@ -66,9 +80,10 @@ export async function GET(request: Request) {
         wsAuth: auth.wsAuth,
         authenticated: auth.authenticated,
         authType: auth.authType,
-        protocol: WS_PROTOCOL,
+        protocol: getWsProtocol(),
         live: {
           port: parseInt(process.env.LIVE_WS_PORT || "20129", 10),
+          publicUrl: getLivePublicUrl(),
           path: "/live",
           protocol: "json",
           channels: ["requests", "combo", "credentials"],
@@ -91,7 +106,7 @@ export async function GET(request: Request) {
       },
       path: auth.wsPath,
       wsAuth: auth.wsAuth,
-      protocol: WS_PROTOCOL,
+      protocol: getWsProtocol(),
     },
     {
       status: 426,

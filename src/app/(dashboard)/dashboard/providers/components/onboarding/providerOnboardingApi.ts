@@ -161,10 +161,18 @@ export async function validateOnboardingApiKey(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  const data = await expectOk<Record<string, unknown>>(
-    response,
-    "Provider credentials are not valid"
-  );
+  const data = await parseJson(response);
+  // #5565/#5567: providers with no live validator (lmarena, piapi, …) return
+  // HTTP 400 + { unsupported: true }. Treat "validation not supported" as a
+  // non-blocking "can't verify" and let the wizard proceed to save — mirror
+  // AddApiKeyModal. Without this short-circuit `expectOk` threw on the 400 and
+  // the onboarding wizard never created the connection (#5692).
+  if (data.unsupported === true) {
+    return data;
+  }
+  if (!response.ok) {
+    throw new Error(extractError(data, "Provider credentials are not valid"));
+  }
   if (data.valid === false) {
     throw new Error(extractError(data, "Provider credentials are not valid"));
   }

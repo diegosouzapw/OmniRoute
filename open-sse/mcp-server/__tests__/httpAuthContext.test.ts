@@ -108,6 +108,44 @@ describe("MCP HTTP auth context", () => {
     }
   });
 
+  it("forwarded caller auth wins over the OMNIROUTE_API_KEY env fallback (#5819)", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ combos: [] }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    vi.stubEnv("OMNIROUTE_API_KEY", "env-fallback-key");
+
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const server = createMcpServer();
+    await server.connect(serverTransport);
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    await client.connect(clientTransport);
+
+    try {
+      const request = new Request("http://localhost/api/mcp/stream", {
+        headers: { Authorization: "Bearer manage-key" },
+      });
+      await withMcpHttpAuthContext(request, () =>
+        client.callTool({ name: "omniroute_list_combos", arguments: {} })
+      );
+
+      // The per-caller forwarded identity must win over the static env fallback.
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining("/api/combos"),
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: "Bearer manage-key" }),
+        })
+      );
+      const sentHeaders = fetchMock.mock.calls[0][1].headers as Record<string, string>;
+      expect(sentHeaders.Authorization).not.toBe("Bearer env-fallback-key");
+    } finally {
+      await client.close();
+      vi.unstubAllEnvs();
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("forwards request auth through advanced tool apiFetch", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,

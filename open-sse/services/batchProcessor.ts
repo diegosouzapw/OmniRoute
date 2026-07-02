@@ -1,14 +1,20 @@
 import { v4 as uuidv4 } from "uuid";
-import type { BatchRecord } from "@/lib/localDb";
+import type { BatchItemCheckpoint, BatchRecord } from "@/lib/localDb";
 import {
+  countBatchItemCheckpoints,
   createFile,
   deleteFile,
+  ensureBatchItemCheckpoints,
   getApiKeyById,
   getBatch,
   getFileContent,
   getPendingBatches,
   getTerminalBatches,
+  listBatchItemCheckpoints,
   listFiles,
+  markBatchItemError,
+  markBatchItemProcessing,
+  markBatchItemResult,
   updateBatch,
 } from "@/lib/localDb";
 import { dispatch } from "@/lib/batches/dispatch";
@@ -67,28 +73,12 @@ export async function processPendingBatches(): Promise<void> {
   const pending = getPendingBatches();
 
   // Phase 1: Stale recovery — in_progress/finalizing batches not in activeBatches
-  // are from a previous session; reset them to validating so they get picked up fresh
+  // are from a previous session; reset checkpointed batches to validating so they
+  // can be completed without replaying already-dispatched items.
   for (const batch of pending) {
     if (batch.status === "in_progress" || batch.status === "finalizing") {
       if (!activeBatches.has(batch.id)) {
-        console.log(`[BATCH] Recovering stale batch ${batch.id} (${batch.status}) → validating`);
-
-        if (batch.outputFileId) {
-          deleteFile(batch.outputFileId);
-        }
-        if (batch.errorFileId) {
-          deleteFile(batch.errorFileId);
-        }
-
-        updateBatch(batch.id, {
-          status: "validating",
-          inProgressAt: null,
-          finalizingAt: null,
-          outputFileId: null,
-          errorFileId: null,
-          requestCountsCompleted: 0,
-          requestCountsFailed: 0,
-        });
+        recoverStaleBatch(batch);
       }
     }
   }
@@ -114,6 +104,49 @@ export async function processPendingBatches(): Promise<void> {
 
   // Cleanup task: delete files for batches completed more than completionWindow ago
   await cleanupExpiredBatches();
+}
+
+function recoverStaleBatch(batch: BatchRecord): void {
+  const checkpointCount = countBatchItemCheckpoints(batch.id);
+  const hasPotentialExternalEffects =
+    batch.requestCountsTotal > 0 ||
+    batch.requestCountsCompleted > 0 ||
+    batch.requestCountsFailed > 0 ||
+    batch.status === "finalizing";
+
+  if (checkpointCount === 0 && hasPotentialExternalEffects) {
+    console.warn(
+      `[BATCH] Stale batch ${batch.id} has no item checkpoints; failing instead of replaying provider calls`
+    );
+    failBatch(
+      batch.id,
+      "Cannot safely recover stale batch because item checkpoints are unavailable; create a new batch to retry intentionally."
+    );
+    return;
+  }
+
+  console.log(`[BATCH] Recovering stale batch ${batch.id} (${batch.status}) → validating`);
+
+  if (batch.outputFileId) {
+    deleteFile(batch.outputFileId);
+  }
+  if (batch.errorFileId) {
+    deleteFile(batch.errorFileId);
+  }
+
+  updateBatch(batch.id, {
+    status: "validating",
+    inProgressAt: null,
+    finalizingAt: null,
+    outputFileId: null,
+    errorFileId: null,
+    ...(checkpointCount === 0
+      ? {
+          requestCountsCompleted: 0,
+          requestCountsFailed: 0,
+        }
+      : {}),
+  });
 }
 
 function parseBatchWindowSeconds(window: string | null | undefined): number {
@@ -285,6 +318,8 @@ async function startBatch(batch: any): Promise<void> {
 
     console.log(`[BATCH] Batch ${batch.id} contains (${total} items)`);
 
+    ensureBatchItemCheckpoints(batch.id, parsedItems.items);
+
     updateBatch(batch.id, {
       status: "in_progress",
       inProgressAt: Math.floor(Date.now() / 1000),
@@ -316,11 +351,20 @@ const HEADERS_CACHE_TTL_MS = 60_000;
 
 async function processBatchItems(batch: BatchRecord, items: BatchRequestItem[]): Promise<void> {
   const state = createBatchState(batch);
+  const checkpoints = new Map<number, BatchItemCheckpoint>(
+    listBatchItemCheckpoints(batch.id).map((checkpoint) => [checkpoint.lineNumber, checkpoint])
+  );
 
   const apiKey = await resolveApiKey(batch);
 
   for (const item of items) {
     if (isBatchCancelled(batch.id)) break;
+
+    const checkpoint = checkpoints.get(item.lineNumber);
+    if (checkpoint && applyRecoveredCheckpoint(batch.id, item, checkpoint, state)) {
+      maybePersistProgress(batch.id, state);
+      continue;
+    }
 
     const cachedHeaders =
       prevHeaders && Date.now() - prevHeadersTimestamp < HEADERS_CACHE_TTL_MS ? prevHeaders : null;
@@ -330,6 +374,8 @@ async function processBatchItems(batch: BatchRecord, items: BatchRequestItem[]):
         await sleep(delay);
       }
     }
+
+    markBatchItemProcessing(batch.id, item);
 
     try {
       const response = await processSingleItemWithRetry(item, apiKey);
@@ -352,13 +398,17 @@ async function processBatchItems(batch: BatchRecord, items: BatchRequestItem[]):
         },
       };
 
+      markBatchItemResult(batch.id, item, wrapped);
       state.results.push(wrapped);
       applyItemResult(state, response.status, responseBody);
       prevHeaders = response.headers;
       prevHeadersTimestamp = Date.now();
     } catch (exception) {
       // Track processing-level errors separately (items that failed to be processed)
-      state.errors.push({ custom_id: item.customId ?? null, error: String(exception) });
+      const error = { custom_id: item.customId ?? null, error: String(exception) };
+      markBatchItemError(batch.id, item, error);
+      state.errors.push(error);
+      state.failed++;
       prevHeaders = null;
       prevHeadersTimestamp = 0;
     }
@@ -367,6 +417,43 @@ async function processBatchItems(batch: BatchRecord, items: BatchRequestItem[]):
   }
 
   return finalizeBatch(batch.id, state.results, state.errors);
+}
+
+function applyRecoveredCheckpoint(
+  batchId: string,
+  item: BatchRequestItem,
+  checkpoint: BatchItemCheckpoint,
+  state: ReturnType<typeof createBatchState>
+): boolean {
+  if (checkpoint.status === "completed" && checkpoint.result) {
+    state.results.push(checkpoint.result);
+    applyItemResult(
+      state,
+      checkpoint.result.response?.status_code ?? 500,
+      checkpoint.result.response?.body
+    );
+    return true;
+  }
+
+  if (checkpoint.status === "errored" && checkpoint.error) {
+    state.errors.push(checkpoint.error);
+    state.failed++;
+    return true;
+  }
+
+  if (checkpoint.status === "processing") {
+    const error = {
+      custom_id: item.customId ?? null,
+      error:
+        "Batch item was interrupted before its provider response was recorded; it was not replayed to avoid duplicate provider work.",
+    };
+    markBatchItemError(batchId, item, error);
+    state.errors.push(error);
+    state.failed++;
+    return true;
+  }
+
+  return false;
 }
 
 function isBatchCancelled(batchId: string): boolean {

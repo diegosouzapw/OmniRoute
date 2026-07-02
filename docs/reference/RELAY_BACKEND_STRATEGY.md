@@ -45,6 +45,20 @@ If you are currently comparing 9router/CLIPROXYAPI:
 - If a workflow needs strict sidecar behavior and lower per-request variance, use `OMNIROUTE_RELAY_BACKEND=bifrost`.
 - If you need sidecar resilience with graceful degradation under incident conditions, use `OMNIROUTE_RELAY_BACKEND=auto`.
 
+## Backend boundary contract
+
+The stable product boundary is the OmniRoute relay API, not the dashboard implementation. The Next.js dashboard may install, configure, and supervise local services, but request routing should enter through the relay API and hand off behind that boundary.
+
+Long-term backend choices:
+
+- Keep the TypeScript relay as the in-process policy and fallback path. Auth, allowlists, request normalization, accounting, and safety checks stay here before any backend handoff.
+- Use Bifrost as the preferred high-throughput Tier-1 sidecar when the deployment needs lower routing variance, centralized provider rotation, or scale-out across multiple OmniRoute replicas.
+- Keep 9router and CLIPROXYAPI as embedded compatibility services. They run as supervised local processes and are useful when their provider/CLI behavior is the desired adapter, but they should not become the default Tier-1 routing engine.
+- Do not make the dashboard pass arbitrary service URLs into the hot path. UI-provided URLs are configuration inputs; routing code should resolve registered, health-checked backends from server-side settings and supervisor state.
+- Prefer loopback HTTP for supervised services today because the managed processes already expose HTTP-compatible APIs, the route guard can audit the boundary, and failure/fallback behavior is visible in request logs. A future SDK or socket transport is only worth adding if it measurably reduces p99 routing latency without weakening isolation or fallback semantics.
+
+For a very high-throughput deployment, the default answer is therefore `auto` with Bifrost enabled: use the Go sidecar on the hot path while preserving the TypeScript fallback for success rate. Use `bifrost` only when strict sidecar-only behavior is more important than graceful degradation.
+
 ## High-throughput guidance
 
 For sustained high RPM/RPS and strict success SLO:

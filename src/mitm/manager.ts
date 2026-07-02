@@ -309,26 +309,86 @@ export async function repairMitm(sudoPassword: string): Promise<{ repaired: stri
 
 /**
  * Best-effort JS surrogate for ProxyBridge's library destructor + crash signal
- * handler. On SIGINT/SIGTERM we terminate the spawned child and warn that
- * privileged cleanup (DNS/CA/proxy) still requires a Repair — we have no sudo
- * password in a signal handler. Idempotent; never blocks process exit. (Gap 7.)
+ * handler. On SIGINT/SIGTERM we terminate the spawned child and, when a sudo
+ * password is already cached for this session (getCachedPassword()), also
+ * best-effort revert the privileged /etc/hosts entries — so a clean Ctrl+C /
+ * tray-quit does not always leave orphaned state for a manual Repair. Without
+ * a cached password we cannot prompt for one inside a signal handler, so we
+ * fall back to flagging `_orphanedStateDetected`, exactly as before.
+ * Idempotent; never blocks process exit. (Gap 7.)
  */
 export function installCleanupHandlers(): void {
   if (_cleanupHandlersInstalled) return;
   _cleanupHandlersInstalled = true;
   const onSignal = (signal: string) => {
-    try {
-      if (serverProcess && !serverProcess.killed) serverProcess.kill("SIGTERM");
-    } catch {
-      // ignore
-    }
-    log.warn(
-      { signal },
-      "MITM parent received signal — child terminated; run Repair if DNS/CA/proxy were applied."
-    );
+    void handleExitCleanup(signal);
   };
   process.once("SIGINT", () => onSignal("SIGINT"));
   process.once("SIGTERM", () => onSignal("SIGTERM"));
+}
+
+/**
+ * Exit-cleanup body extracted from installCleanupHandlers() so it is directly
+ * unit-testable (no real OS signal needs to be delivered to the test
+ * process). Terminates the spawned MITM child, then:
+ *   - if a sudo password is cached in this session, best-effort reverts every
+ *     managed /etc/hosts entry via the same `removeDNSEntry` +
+ *     `removeDNSEntries(collectManagedHosts())` pair stopMitm() uses, so the
+ *     hosts file does not stay spoofed after a clean signal-driven exit;
+ *   - otherwise flags `_orphanedStateDetected` (surfaced by getMitmStatus()
+ *     for the dashboard's one-click Repair) — we have no way to prompt for a
+ *     password inside a signal handler. (Gap 7.)
+ * @param _depsOverride - optional dependency override, used in tests for DI.
+ */
+export async function handleExitCleanup(
+  signal: string,
+  _depsOverride?: {
+    getCachedPassword?: () => string | null;
+    removeDNSEntry?: (sudoPassword: string) => Promise<void>;
+    removeDNSEntries?: (hosts: string[], sudoPassword: string) => Promise<void>;
+    collectManagedHosts?: () => string[];
+  }
+): Promise<void> {
+  const deps = {
+    getCachedPassword: _depsOverride?.getCachedPassword ?? getCachedPassword,
+    removeDNSEntry: _depsOverride?.removeDNSEntry ?? removeDNSEntry,
+    removeDNSEntries: _depsOverride?.removeDNSEntries ?? removeDNSEntries,
+    collectManagedHosts: _depsOverride?.collectManagedHosts ?? collectManagedHosts,
+  };
+
+  try {
+    if (serverProcess && !serverProcess.killed) serverProcess.kill("SIGTERM");
+  } catch {
+    // ignore
+  }
+
+  const sudoPassword = deps.getCachedPassword();
+  if (!sudoPassword) {
+    _orphanedStateDetected = true;
+    log.warn(
+      { signal },
+      "MITM parent received signal — child terminated; no cached sudo password, run Repair if DNS/CA/proxy were applied."
+    );
+    return;
+  }
+
+  try {
+    await deps.removeDNSEntry(sudoPassword);
+    const managed = deps.collectManagedHosts();
+    if (managed.length > 0) {
+      await deps.removeDNSEntries(managed, sudoPassword);
+    }
+    log.info(
+      { signal },
+      "MITM parent received signal — child terminated and privileged /etc/hosts entries reverted."
+    );
+  } catch (err) {
+    _orphanedStateDetected = true;
+    log.error(
+      { err, signal },
+      "MITM parent received signal — hosts cleanup failed; run Repair if DNS/CA/proxy were applied."
+    );
+  }
 }
 
 /**

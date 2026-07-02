@@ -193,14 +193,13 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
   config(
     "kimi-web",
     "Kimi (Moonshot)",
-    "https://kimi.moonshot.cn/",
-    "https://kimi.moonshot.cn",
+    "https://www.kimi.com/",
+    "https://www.kimi.com",
     [
-      { type: "cookie", name: "kimi_token", domain: ".kimi.moonshot.cn" },
-      { type: "localStorage", key: "kimi_token" },
+      { type: "cookie", name: "kimi-auth", domain: ".kimi.com" },
     ],
-    "Log in to Kimi at kimi.moonshot.cn via phone/WeChat. The session token will be extracted.",
-    { cookieDomain: ".kimi.moonshot.cn" }
+    "Log in to Kimi at www.kimi.com (international). The kimi-auth JWT cookie will be extracted.",
+    { cookieDomain: ".kimi.com" }
   ),
 
   // ── Blackbox Web ──────────────────────────────────────────
