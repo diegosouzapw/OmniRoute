@@ -996,3 +996,48 @@ test("buildKiroPayload accepts kr/* model ids without the [1m] suffix", () => {
     "model ids without [1m] must continue to build normally"
   );
 });
+
+// Regression for upstream decolua/9router PR #2270: the dash->dot normalization's
+// trailing minor-version group must be bounded (1-2 digits), otherwise a
+// date-suffixed Claude model id (e.g. claude-opus-4-20250514) gets corrupted into
+// "claude-opus-4.20250514" because the unbounded `-(\d+)$` group swallows the
+// 8-digit date as if it were a minor version.
+test("buildKiroPayload normalizes short dash-suffixed minor versions to dots", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  const opus = buildKiroPayload("claude-opus-4-8", body, false, null);
+  assert.equal(
+    opus.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-opus-4.8",
+    "1-digit minor version should normalize dash to dot"
+  );
+
+  const sonnet = buildKiroPayload("claude-sonnet-4-6", body, false, null);
+  assert.equal(
+    sonnet.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-sonnet-4.6",
+    "1-digit minor version should normalize dash to dot (sonnet)"
+  );
+});
+
+test("buildKiroPayload does not corrupt date-suffixed Claude model ids (#2270)", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  const result = buildKiroPayload("claude-opus-4-20250514", body, false, null);
+  assert.equal(
+    result.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-opus-4-20250514",
+    "date-suffixed model ids (3+ digit trailing group) must NOT be dash->dot normalized"
+  );
+});
+
+test("buildKiroPayload leaves already-two-dash Claude ids unchanged (#2270)", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  const result = buildKiroPayload("claude-opus-4-1-20250805", body, false, null);
+  assert.equal(
+    result.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-opus-4-1-20250805",
+    "two-dash form (patch + date) must remain unchanged"
+  );
+});
