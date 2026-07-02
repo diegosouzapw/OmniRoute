@@ -8,7 +8,7 @@
 
 ### ✨ New Features
 
-_TBD_
+- **feat(cli-tools):** add Crush CLI tool to the dashboard with one-click configuration. (thanks @dopaemon)
 
 ### 🔧 Bug Fixes
 
