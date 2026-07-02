@@ -184,6 +184,35 @@ export default function ProxyRegistryManager() {
     failed: number;
   } | null>(null);
 
+  // Selection state for batch operations
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [batchDeleting, setBatchDeleting] = useState(false);
+  const [autoTesting, setAutoTesting] = useState(false);
+
+  const allSelected = items.length > 0 && items.every((item) => selectedIds.has(item.id));
+  const someSelected = items.some((item) => selectedIds.has(item.id)) && !allSelected;
+
+  const toggleSelectAll = useCallback(() => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(items.map((item) => item.id)));
+    }
+  }, [allSelected, items]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
+
   const editingId = useMemo(() => form.id || "", [form.id]);
 
   const loadHealth = useCallback(async () => {
@@ -247,8 +276,9 @@ export default function ProxyRegistryManager() {
       const ids = loaded.map((p) => p.id).filter(Boolean);
       void loadHealth();
       void loadAllUsage(ids);
-    } catch (e: any) {
-      setError(e?.message || t("errorLoadFailed"));
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(msg || t("errorLoadFailed"));
       setItems([]);
     } finally {
       setLoading(false);
@@ -258,6 +288,77 @@ export default function ProxyRegistryManager() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const handleBatchDelete = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    setBatchDeleting(true);
+    try {
+      const res = await fetch("/api/settings/proxies/batch-delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds) }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const msg =
+          typeof data === "object" && data !== null && "error" in data
+            ? (data.error as Record<string, unknown>)?.message
+            : undefined;
+        setError(typeof msg === "string" ? msg : t("errorDeleteFailed"));
+      } else {
+        setSelectedIds(new Set());
+        await load();
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(msg || t("errorDeleteFailed"));
+    } finally {
+      setBatchDeleting(false);
+    }
+  }, [selectedIds, load, t]);
+
+  const handleAutoTestAll = useCallback(async () => {
+    setAutoTesting(true);
+    try {
+      const res = await fetch("/api/settings/proxies/auto-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const msg =
+          typeof data === "object" && data !== null && "error" in data
+            ? (data.error as Record<string, unknown>)?.message
+            : undefined;
+        setError(typeof msg === "string" ? msg : t("errorTestFailed"));
+      } else {
+        const data = await res.json().catch(() => ({}));
+        if (typeof data === "object" && data !== null && "results" in data) {
+          const results = Array.isArray(data.results) ? data.results : [];
+          setTestById((prev) => {
+            const next = { ...prev };
+            for (const r of results) {
+              if (
+                typeof r === "object" &&
+                r !== null &&
+                "proxyId" in r &&
+                typeof r.proxyId === "string"
+              ) {
+                next[r.proxyId] = r as TestResult;
+              }
+            }
+            return next;
+          });
+        }
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(msg || t("errorTestFailed"));
+    } finally {
+      setAutoTesting(false);
+    }
+  }, [t]);
 
   useEffect(() => {
     if (items.length > 0 && !bulkProxyId) {
@@ -604,6 +705,32 @@ export default function ProxyRegistryManager() {
             >
               {t("bulkAssign")}
             </Button>
+            {selectedIds.size > 0 && (
+              <>
+                <span className="text-xs text-text-muted">{selectedIds.size} selected</span>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  icon="delete"
+                  onClick={handleBatchDelete}
+                  loading={batchDeleting}
+                  className="!text-red-400 !border-red-500/30"
+                  data-testid="proxy-registry-batch-delete"
+                >
+                  {`Delete ${selectedIds.size} selected`}
+                </Button>
+              </>
+            )}
+            <Button
+              size="sm"
+              variant="secondary"
+              icon="network_check"
+              onClick={handleAutoTestAll}
+              loading={autoTesting}
+              data-testid="proxy-registry-test-all"
+            >
+              {t("testAll")}
+            </Button>
             <Button
               size="sm"
               icon="add"
@@ -630,6 +757,18 @@ export default function ProxyRegistryManager() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-text-muted border-b border-border">
+                  <th className="py-2 pr-2 w-8">
+                    <input
+                      type="checkbox"
+                      className="accent-blue-500 w-4 h-4 cursor-pointer"
+                      checked={allSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = someSelected;
+                      }}
+                      onChange={toggleSelectAll}
+                      aria-label="Select all proxies"
+                    />
+                  </th>
                   <th className="py-2 pr-3">{t("tableName")}</th>
                   <th className="py-2 pr-3">{t("tableEndpoint")}</th>
                   <th className="py-2 pr-3">{t("tableStatus")}</th>
@@ -644,6 +783,15 @@ export default function ProxyRegistryManager() {
                   const health = healthById[item.id];
                   return (
                     <tr key={item.id} className="border-b border-border/60">
+                      <td className="py-2 pr-2 w-8">
+                        <input
+                          type="checkbox"
+                          className="accent-blue-500 w-4 h-4 cursor-pointer"
+                          checked={selectedIds.has(item.id)}
+                          onChange={() => toggleSelect(item.id)}
+                          aria-label={`Select ${item.name}`}
+                        />
+                      </td>
                       <td className="py-2 pr-3">
                         <div className="font-medium text-text-main">{item.name}</div>
                         {item.region && (
@@ -654,7 +802,14 @@ export default function ProxyRegistryManager() {
                         {item.type}://{item.host}:{item.port}
                       </td>
                       <td className="py-2 pr-3">
-                        <span className="text-xs px-2 py-1 rounded border border-border bg-bg-subtle">
+                        <span className={`inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded border ${
+                          item.status === "inactive"
+                            ? "border-red-500/30 bg-red-500/10 text-red-400"
+                            : "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            item.status === "inactive" ? "bg-red-400" : "bg-emerald-400"
+                          }`} />
                           {item.status === "inactive" ? t("statusInactive") : t("statusActive")}
                         </span>
                       </td>
@@ -663,11 +818,14 @@ export default function ProxyRegistryManager() {
                           {testById[item.id] ? (
                             testById[item.id]!.success ? (
                               <>
-                                <span className="text-emerald-400">
-                                  ✓ {testById[item.id]!.publicIp}
-                                </span>
+                                <span className="text-emerald-400">✓ OK</span>
                                 {testById[item.id]!.latencyMs && (
-                                  <span>{testById[item.id]!.latencyMs}ms</span>
+                                  <span className={
+                                    testById[item.id]!.latencyMs! < 1000 ? "text-emerald-400" :
+                                    testById[item.id]!.latencyMs! < 3000 ? "text-amber-400" : "text-red-400"
+                                  }>
+                                    {testById[item.id]!.latencyMs}ms
+                                  </span>
                                 )}
                               </>
                             ) : (

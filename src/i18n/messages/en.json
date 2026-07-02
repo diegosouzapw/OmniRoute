@@ -981,7 +981,7 @@
     "analyticsCompression": "Compression",
     "costsBudget": "Budget",
     "costsFreeTiers": "Free-Tier Budget",
-    "costsFreeTiersSubtitle": "Track aggregated free tier quotas across 50+ providers",
+    "costsFreeTiersSubtitle": "Monthly free-token allowances",
     "freeProviderRankings": "Free Provider Rankings",
     "freeProviderRankingsSubtitle": "Best free providers ranked by model ELO scores",
     "costsQuotaShare": "Quota Sharing",
@@ -1054,7 +1054,6 @@
     "healthSubtitle": "System health check",
     "costsPricingSubtitle": "Per-model pricing rules",
     "costsBudgetSubtitle": "Budget limits",
-    "costsFreeTiersSubtitle": "Monthly free-token allowances",
     "costsQuotaShareSubtitle": "Share provider quotas across keys",
     "auditLogSubtitle": "Authorization audit",
     "auditMcpSubtitle": "MCP server audit",
@@ -7683,7 +7682,9 @@
     "bulkImportMaxExceeded": "Maximum 100 proxies per import",
     "bulkImportPreview": "Preview",
     "clearAssignment": "(clear assignment)",
-    "bulkProxyAssignment": "Bulk Proxy Assignment"
+    "bulkProxyAssignment": "Bulk Proxy Assignment",
+    "testAll": "Test All",
+    "errorTestFailed": "Failed to test proxies"
   },
   "playground": {
     "title": "Model Playground",

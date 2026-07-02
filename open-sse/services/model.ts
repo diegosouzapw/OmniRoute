@@ -32,11 +32,6 @@ for (const [id, alias] of Object.entries(PROVIDER_ID_TO_ALIAS)) {
 // or backward-compatible slug changes, not a single provider's display name.
 // opencode/ → opencode-zen (the main free/open tier; opencode-go is a separate paid tier)
 ALIAS_TO_PROVIDER_ID["opencode"] = "opencode-zen";
-
-// Manual aliases for external compatibility not covered by PROVIDER_ID_TO_ALIAS.
-// OpenCode's Zen provider now uses the "opencode" slug, but OmniRoute registers
-// it as "opencode-zen". This alias ensures `opencode/<model>` resolves correctly.
-ALIAS_TO_PROVIDER_ID["opencode"] = "opencode-zen";
 // xiaomi/ is the user-visible prefix for MiMo models; register it so
 // parseModel("xiaomi/mimo-v2-flash") resolves provider = "xiaomi-mimo" instead
 // of falling through to the identity fallback ("xiaomi").
@@ -141,11 +136,23 @@ interface ProviderConnectionLike {
 }
 
 /**
- * Resolve provider alias to provider ID
+ * Resolve provider alias to provider ID.
+ * Follows the alias chain transitively so that intermediate aliases
+ * (e.g. "oc" -> "opencode" -> "opencode-zen") resolve to the final target.
+ * Guards against infinite loops with a depth limit.
  */
 export function resolveProviderAlias(aliasOrId: string | null | undefined): string | null {
   if (typeof aliasOrId !== "string") return null;
-  return ALIAS_TO_PROVIDER_ID[aliasOrId] || aliasOrId;
+  let current = aliasOrId;
+  const seen = new Set<string>();
+  for (let i = 0; i < 10; i++) {
+    const next = ALIAS_TO_PROVIDER_ID[current];
+    if (!next || next === current) return current;
+    if (seen.has(next)) return next;
+    seen.add(next);
+    current = next;
+  }
+  return current;
 }
 
 function isCrossProxyModelCompatEnabled() {
