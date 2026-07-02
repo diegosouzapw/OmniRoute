@@ -41,6 +41,7 @@ import { yiProvider } from "./registry/yi/index.ts";
 import { deepseekProvider } from "./registry/deepseek/index.ts";
 import { deepseek_webProvider } from "./registry/deepseek/web/index.ts";
 import { dgridProvider } from "./registry/dgrid/index.ts";
+import { qiniuProvider } from "./registry/qiniu/index.ts";
 import { kimi_coding_apikeyProvider } from "./registry/kimi/coding-apikey/index.ts";
 import { kimi_codingProvider } from "./registry/kimi/coding/index.ts";
 import { kimiProvider } from "./registry/kimi/index.ts";
@@ -213,6 +214,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   deepseek: deepseekProvider,
   "deepseek-web": deepseek_webProvider,
   dgrid: dgridProvider,
+  qiniu: qiniuProvider,
   "kimi-coding-apikey": kimi_coding_apikeyProvider,
   "kimi-coding": kimi_codingProvider,
   kimi: kimiProvider,

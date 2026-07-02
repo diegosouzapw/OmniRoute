@@ -71,6 +71,20 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
       "Create a DGrid API key at https://dgrid.ai, then use https://api.dgrid.ai/v1 " +
       "as the OpenAI-compatible base URL.",
   },
+  qiniu: {
+    id: "qiniu",
+    alias: "qiniu",
+    name: "Qiniu",
+    icon: "cloud",
+    color: "#1E88E5",
+    textIcon: "QN",
+    passthroughModels: true,
+    website: "https://www.qiniu.com",
+    apiHint:
+      "Create a Qiniu AI inference API key at https://portal.qiniu.com/ai-inference/api-key, " +
+      "then paste it here as a Bearer token. OpenAI-compatible endpoint " +
+      "at https://api.qnaigc.com/v1, proxying DeepSeek, Claude, Kimi and more behind one key.",
+  },
   orcarouter: {
     id: "orcarouter",
     alias: "orcarouter",
