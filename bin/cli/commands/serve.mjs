@@ -124,6 +124,7 @@ export async function runServe(opts = {}) {
     process.exit(1);
   }
 
+  const serveStartedAt = Date.now();
   console.log(`  \x1b[2m⏳ Starting server...\x1b[0m\n`);
 
   const rawMemory = parseInt(process.env.OMNIROUTE_MEMORY_MB || "512", 10);
@@ -149,7 +150,7 @@ export async function runServe(opts = {}) {
   }
 
   if (opts.noRecovery) {
-    return runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, noOpen);
+    return runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, noOpen, serveStartedAt);
   }
 
   return runWithSupervisor(
@@ -161,7 +162,8 @@ export async function runServe(opts = {}) {
     noOpen,
     opts.log === true,
     opts.maxRestarts ?? 2,
-    useTray
+    useTray,
+    serveStartedAt
   );
 }
 
@@ -179,7 +181,7 @@ function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
   console.log(`  \x1b[1mAPI Base:\x1b[0m   http://localhost:${apiPort}/v1`);
 }
 
-function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, noOpen) {
+function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, noOpen, startedAt) {
   const server = spawn("node", [`--max-old-space-size=${memoryLimit}`, serverJs], {
     cwd: APP_DIR,
     env,
@@ -198,7 +200,7 @@ function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, 
       (text.includes("Ready") || text.includes("started") || text.includes("listening"))
     ) {
       started = true;
-      onReady(dashboardPort, apiPort, noOpen);
+      onReady(dashboardPort, apiPort, noOpen, startedAt);
     }
   });
 
@@ -232,7 +234,7 @@ function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, 
   setTimeout(() => {
     if (!started) {
       started = true;
-      onReady(dashboardPort, apiPort, noOpen);
+      onReady(dashboardPort, apiPort, noOpen, startedAt);
     }
   }, 15000);
 }
@@ -246,7 +248,8 @@ async function runWithSupervisor(
   noOpen,
   showLog,
   maxRestarts,
-  useTray = false
+  useTray = false,
+  startedAt = Date.now()
 ) {
   if (showLog) process.env.OMNIROUTE_SHOW_LOG = "1";
 
@@ -283,7 +286,7 @@ async function runWithSupervisor(
     waitForServer(dashboardPort, 60000).then(async (up) => {
       if (up) {
         if (useTray) await maybeStartTray(dashboardPort, apiPort, supervisor);
-        onReady(dashboardPort, apiPort, noOpen);
+        onReady(dashboardPort, apiPort, noOpen, startedAt);
       }
     });
   }
@@ -326,12 +329,15 @@ async function maybeStartTray(port, apiPort, supervisor) {
   }
 }
 
-async function onReady(dashboardPort, apiPort, noOpen) {
+async function onReady(dashboardPort, apiPort, noOpen, startedAt) {
   const dashboardUrl = `http://localhost:${dashboardPort}`;
   const apiUrl = `http://localhost:${apiPort}`;
+  const elapsedSuffix = startedAt
+    ? ` \x1b[2m(started in ${((Date.now() - startedAt) / 1000).toFixed(1)}s)\x1b[0m`
+    : "";
 
   console.log(`
-  \x1b[32m✔ OmniRoute is running!\x1b[0m
+  \x1b[32m✔ OmniRoute is running!\x1b[0m${elapsedSuffix}
 
   \x1b[1m  Dashboard:\x1b[0m  ${dashboardUrl}
   \x1b[1m  API Base:\x1b[0m   ${apiUrl}/v1
