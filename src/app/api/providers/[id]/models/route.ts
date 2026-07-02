@@ -1216,7 +1216,12 @@ export async function GET(
         base = base.slice(0, -17);
       } else if (base.endsWith("/completions")) {
         base = base.slice(0, -12);
-      } else if (base.endsWith("/v1")) {
+      }
+      // Strip trailing /v1 unconditionally so the next step re-adds it exactly once.
+      // Without this, baseUrls that embed /v1 (e.g. "https://api.airforce/v1/chat/completions")
+      // become "…/v1" after stripping "/chat/completions", and then appending "/v1/models"
+      // produces "…/v1/v1/models" — a 308 redirect that blocked model fetch (#5899).
+      if (base.endsWith("/v1")) {
         base = base.slice(0, -3);
       }
 
