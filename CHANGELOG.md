@@ -8,7 +8,7 @@
 
 ### ✨ New Features
 
-_TBD_
+- **feat(providers):** support Vercel AI Gateway embeddings and image generation. (thanks @newnol)
 
 ### 🔧 Bug Fixes
 
