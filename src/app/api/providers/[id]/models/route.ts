@@ -1213,7 +1213,7 @@ export async function GET(
         base = base.slice(0, -12);
       }
 
-      if (base.endsWith("/v1")) {
+      if (base.endsWith("/v1") && !base.endsWith("://v1")) {
         base = base.slice(0, -3);
       }
 
