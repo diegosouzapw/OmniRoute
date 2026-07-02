@@ -212,6 +212,7 @@ import {
   type NonStreamingSseTerminalState,
 } from "./chatCore/nonStreamingSse.ts";
 import { parseNonStreamingResponseBody } from "./chatCore/nonStreamingResponseParse.ts";
+import { unwrapClinepassEnvelope } from "../utils/clinepassEnvelope.ts";
 import { recordNonStreamingUsageStats } from "./chatCore/nonStreamingUsageStats.ts";
 import {
   createBodyTimeoutError,
@@ -3516,6 +3517,63 @@ export async function handleChatCore({
 
     let responseBody = parsed.responseBody;
     let responsePayloadFormat = parsed.responsePayloadFormat;
+
+    // ── ClinePass {success,data} envelope unwrap (before translation) ──────────
+    // ClinePass wraps non-streaming JSON in a {success, data} envelope; errors
+    // use {success:false, error}. Transient {success:false, error:"empty..."}
+    // responses get one 2s retry before surfacing. CLINEPASS-GATED — untouched
+    // for every other provider. Envelope errors route through createErrorResult
+    // (→ buildErrorBody/sanitizeErrorMessage, Rule #12).
+    if (provider === "clinepass") {
+      let { body: unwrapped, error: envError } = unwrapClinepassEnvelope(responseBody, provider);
+      if (envError && /empty/i.test(envError.message || "")) {
+        log?.warn?.("RETRY", "clinepass returned empty content, retrying once after 2s");
+        await new Promise((r) => setTimeout(r, 2000));
+        try {
+          const retryResult = await executeProviderRequest(effectiveModel, false);
+          if (retryResult?.response?.ok) {
+            const retryParsed = await parseNonStreamingResponseBody({
+              providerResponse: retryResult.response,
+              upstreamStream: undefined,
+              providerHeaders: retryResult.headers,
+              finalBody: retryResult.transformedBody,
+              targetFormat,
+              model,
+              log,
+            });
+            if (retryParsed.kind !== "invalid_sse" && retryParsed.kind !== "invalid_json") {
+              providerResponse = retryResult.response;
+              providerUrl = retryResult.url;
+              providerHeaders = retryResult.headers;
+              finalBody = providerRequestCapture.body(retryResult.transformedBody);
+              ({ body: unwrapped, error: envError } = unwrapClinepassEnvelope(
+                retryParsed.responseBody,
+                provider
+              ));
+            }
+          }
+        } catch (retryErr) {
+          log?.warn?.(
+            "RETRY",
+            `clinepass retry failed: ${
+              retryErr instanceof Error ? retryErr.message : String(retryErr)
+            }`
+          );
+        }
+      }
+      if (envError) {
+        appendRequestLog({
+          model,
+          provider,
+          connectionId,
+          status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
+        }).catch(() => {});
+        persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "clinepass_envelope_error");
+        trackPendingRequest(model, provider, connectionId, false);
+        return createErrorResult(HTTP_STATUS.BAD_GATEWAY, envError.message);
+      }
+      responseBody = unwrapped;
+    }
 
     // Check for empty content response (fake success) - trigger fallback
     if (isEmptyContentResponse(responseBody)) {

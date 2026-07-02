@@ -8,7 +8,7 @@
 
 ### ✨ New Features
 
-_TBD_
+- **feat(providers):** add ClinePass as a first-class API-key provider (Cline's BYOK gateway). (thanks @adentdk)
 
 ### 🔧 Bug Fixes
 
