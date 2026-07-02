@@ -13,7 +13,8 @@ import {
   TlsClientUnavailableError,
   type TlsFetchResult,
 } from "../services/perplexityTlsClient.ts";
-import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
+import { prepareToolMessages } from "../translator/webTools.ts";
+import { buildToolModeResponse } from "./chatgptWebTools.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 
 const PPLX_SSE_ENDPOINT = "https://www.perplexity.ai/rest/sse/perplexity_ask";
@@ -965,8 +966,29 @@ export class PerplexityWebExecutor extends BaseExecutor {
     const cid = `chatcmpl-pplx-${crypto.randomUUID().slice(0, 12)}`;
     const created = Math.floor(Date.now() / 1000);
 
+    // Tool mode buffers the full completion (no live token streaming) and
+    // converts <tool> text into real tool_calls — even when the caller asked
+    // for a streaming response — mirroring chatgpt-web's toolMode (#5240,
+    // #5927). Without this, streaming requests (the default for agentic
+    // coding clients) never emitted a tool_calls SSE delta.
     let finalResponse: Response;
-    if (stream) {
+    if (hasTools) {
+      const bufferedJson = await buildNonStreamingResponse(
+        response.body,
+        model,
+        cid,
+        created,
+        parsed.history,
+        parsed.currentMsg,
+        signal
+      );
+      finalResponse = await buildToolModeResponse(bufferedJson, requestedTools, stream, {
+        cid,
+        created,
+        model,
+        idSeed: "pplx",
+      });
+    } else if (stream) {
       const sseStream = buildStreamingResponse(
         response.body,
         model,
@@ -994,31 +1016,6 @@ export class PerplexityWebExecutor extends BaseExecutor {
         parsed.currentMsg,
         signal
       );
-    }
-
-    if (hasTools && !stream) {
-      const bodyText = await (finalResponse as Response).text();
-      try {
-        const json = JSON.parse(bodyText);
-        const rawContent = json?.choices?.[0]?.message?.content || "";
-        const { content, toolCalls, finishReason } = buildToolAwareResult(
-          rawContent,
-          requestedTools,
-          "pplx"
-        );
-        if (toolCalls) {
-          json.choices[0].message = { role: "assistant", content: null, tool_calls: toolCalls };
-          json.choices[0].finish_reason = finishReason;
-        } else {
-          json.choices[0].message.content = content;
-        }
-        finalResponse = new Response(JSON.stringify(json), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
-      } catch {
-        /* keep original response */
-      }
     }
 
     return {

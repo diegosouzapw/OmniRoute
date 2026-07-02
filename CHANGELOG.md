@@ -4,6 +4,22 @@
 
 ---
 
+## [3.8.44] — TBD
+
+### ✨ New Features
+
+- **feat(api):** add `/v1/ocr` endpoint (Mistral OCR), an OCR provider category, and Mistral moderation support. (thanks @waguriagentic)
+
+### 🔧 Bug Fixes
+
+_TBD_
+
+### 📝 Maintenance
+
+- **API validation:** add a `validatedJsonBody(request, schema)` helper in `src/shared/validation/helpers.ts` that fuses JSON body parsing and Zod validation into a single call, returning either the type-narrowed data or a ready-to-return 400 `NextResponse` with the standard error envelope. Salvaged from the closed refactor PR #5075 (Tier 1 portable helper) with a focused 6-case regression test. Co-authored-by: KooshaPari <KooshaPari@users.noreply.github.com>
+
+---
+
 ## [3.8.43] — 2026-07-02
 
 ### ✨ New Features
