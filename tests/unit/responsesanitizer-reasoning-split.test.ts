@@ -22,8 +22,10 @@ import assert from "node:assert/strict";
 
 import {
   extractThinkingFromContent,
+  isTextualReasoningTagNativeRoute,
   shouldParseTextualReasoningTags,
 } from "../../open-sse/handlers/responseSanitizer/reasoning.ts";
+import { sanitizeOpenAIResponse } from "../../open-sse/handlers/responseSanitizer.ts";
 
 describe("responseSanitizer/reasoning — extractThinkingFromContent", () => {
   it("leaves tag-free content untouched (thinking = null)", () => {
@@ -47,6 +49,84 @@ describe("responseSanitizer/reasoning — shouldParseTextualReasoningTags", () =
   });
   it("returns false when provider/model are missing", () => {
     assert.equal(shouldParseTextualReasoningTags(undefined, undefined), false);
+  });
+});
+
+// ── MiniMax M3 textual reasoning-tag route (9router#2231) ──────────────────────
+//
+// MiniMax M3 leaks raw <think>...</think> into `content` instead of a separate
+// reasoning_content field on the 8 OpenAI-format provider tiers below. The two
+// direct minimax/minimax-cn tiers stay on Anthropic's Messages format
+// (targetFormat: "claude") and already surface reasoning natively — they must
+// stay unaffected.
+describe("responseSanitizer/reasoning — MiniMax M3 textual reasoning-tag route", () => {
+  const affectedRoutes: Array<[string, string]> = [
+    ["trae", "minimax-m3"],
+    ["huggingchat", "minimaxai/minimax-m3"],
+    ["bazaarlink", "minimax-m3"],
+    ["ollama-cloud", "minimax-m3"],
+    ["opencode", "minimax-m3-free"],
+    ["cline", "minimax/minimax-m3"],
+    ["opencode-zen", "minimax-m3"],
+    ["codebuddy-cn", "minimax-m3"],
+  ];
+
+  for (const [provider, model] of affectedRoutes) {
+    it(`isTextualReasoningTagNativeRoute("${provider}", "${model}") === true`, () => {
+      assert.equal(isTextualReasoningTagNativeRoute(provider, model), true);
+    });
+  }
+
+  it("shouldParseTextualReasoningTags is true for a mixed-case MiniMax M3 model id (huggingchat)", () => {
+    assert.equal(shouldParseTextualReasoningTags("huggingchat", "MiniMaxAI/MiniMax-M3"), true);
+  });
+
+  it("extracts <think>...</think> from delta.content into reasoning_content on an affected route", () => {
+    const chunk = {
+      choices: [{ index: 0, delta: { content: "<think>reasoning here</think>final answer" } }],
+    };
+    const sanitized = sanitizeOpenAIResponse(chunk, {
+      parseTextualReasoningTags: shouldParseTextualReasoningTags("trae", "minimax-m3"),
+    }) as { choices: Array<{ delta: { content: string; reasoning_content?: string } }> };
+
+    const delta = sanitized.choices[0].delta;
+    assert.equal(delta.content, "final answer");
+    assert.equal(delta.reasoning_content, "reasoning here");
+  });
+
+  it("leaves <think> tags untouched in content when the route is not tag-native (pre-fix behavior)", () => {
+    const chunk = {
+      choices: [{ index: 0, delta: { content: "<think>reasoning here</think>final answer" } }],
+    };
+    const sanitized = sanitizeOpenAIResponse(chunk, {
+      parseTextualReasoningTags: shouldParseTextualReasoningTags("openai", "gpt-4"),
+    }) as { choices: Array<{ delta: { content: string; reasoning_content?: string } }> };
+
+    const delta = sanitized.choices[0].delta;
+    assert.equal(delta.content, "<think>reasoning here</think>final answer");
+    assert.equal(delta.reasoning_content, undefined);
+  });
+});
+
+describe("responseSanitizer/reasoning — MiniMax M3 fix regression guards", () => {
+  it("direct minimax tier (claude format) stays unaffected", () => {
+    assert.equal(isTextualReasoningTagNativeRoute("minimax", "minimax-m3"), false);
+    assert.equal(shouldParseTextualReasoningTags("minimax", "MiniMax-M3"), false);
+  });
+
+  it("direct minimax-cn tier (claude format) stays unaffected", () => {
+    assert.equal(isTextualReasoningTagNativeRoute("minimax-cn", "minimax-m3"), false);
+    assert.equal(shouldParseTextualReasoningTags("minimax-cn", "MiniMax-M3"), false);
+  });
+
+  it("MiniMax M2.x (non-M3) models on OpenAI-format tiers stay unaffected", () => {
+    assert.equal(isTextualReasoningTagNativeRoute("trae", "minimax-m2.7"), false);
+  });
+
+  it("existing deepseek-r1 / qwq textual-reasoning routes are unaffected", () => {
+    assert.equal(shouldParseTextualReasoningTags("together", "deepseek-ai/DeepSeek-R1"), true);
+    assert.equal(shouldParseTextualReasoningTags("cloudflare-ai", "@cf/qwen/qwq-32b"), true);
+    assert.equal(shouldParseTextualReasoningTags("openrouter", "deepseek/deepseek-v4-pro"), false);
   });
 });
 
