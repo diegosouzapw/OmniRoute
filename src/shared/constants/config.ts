@@ -18,6 +18,8 @@ export const PROVIDER_ENDPOINTS = {
   openadapter: "https://api.openadapter.in/v1/chat/completions",
   dit: "https://api.dit.ai/v1/chat/completions",
   tokenrouter: "https://api.tokenrouter.com/v1/chat/completions",
+  sumopod: "https://ai.sumopod.com/v1/chat/completions",
+  x5lab: "https://api.x5lab.dev/v1/chat/completions",
   openai: "https://api.openai.com/v1/chat/completions",
   anthropic: "https://api.anthropic.com/v1/messages",
   gemini: "https://generativelanguage.googleapis.com/v1beta/models",

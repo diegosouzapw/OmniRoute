@@ -9,6 +9,7 @@
 ### ✨ New Features
 
 - **feat(api):** add `/v1/ocr` endpoint (Mistral OCR), an OCR provider category, and Mistral moderation support. (thanks @waguriagentic)
+- **feat(providers):** add SumoPod and X5Lab as OpenAI-compatible (API-key) providers. (thanks @rigelra15)
 
 ### 🔧 Bug Fixes
 
