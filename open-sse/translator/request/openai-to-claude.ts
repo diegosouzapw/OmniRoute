@@ -165,6 +165,97 @@ export function openaiToClaudeRequest(model, body, stream) {
     result.stop_sequences = Array.isArray(body.stop) ? body.stop : [body.stop];
   }
 
+  // Thinking configuration
+  // NOTE: computed BEFORE message-block conversion (below) so that
+  // `getContentBlocksFromMessage` knows whether the outbound request actually has
+  // extended thinking enabled — required to correctly gate the `redacted_thinking`
+  // replay-placeholder injection (#5945). This block has no dependency on
+  // `result.messages`/`toolNameMap`, so moving it earlier is safe.
+  if (body.thinking) {
+    result.thinking = {
+      type: body.thinking.type || "enabled",
+      ...(body.thinking.budget_tokens && { budget_tokens: body.thinking.budget_tokens }),
+      ...(body.thinking.max_tokens && { max_tokens: body.thinking.max_tokens }),
+    };
+  } else if (body.reasoning_effort) {
+    // Convert OpenAI reasoning_effort to Claude thinking format (#627)
+    // Clients like OpenCode send reasoning_effort via @ai-sdk/openai-compatible
+    const requestedEffort = String(body.reasoning_effort).toLowerCase();
+    const normalizedEffort =
+      requestedEffort === "max" && !supportsClaudeMaxEffort(model)
+        ? "high"
+        : requestedEffort === "xhigh" && !supportsXHighEffort("claude", model)
+          ? "high"
+          : requestedEffort;
+    if (isAdaptiveThinkingOnly(model)) {
+      // Opus 4.7+/Fable 5 removed manual extended thinking: a fixed `budget_tokens`
+      // (or `type:"enabled"`) is a hard 400. Steer EVERY level via adaptive +
+      // output_config.effort instead of the budget buckets below. Unrecognized levels
+      // leave thinking unset so the model keeps its adaptive default rather than 400ing
+      // on an invalid effort value.
+      if (ADAPTIVE_EFFORT_LEVELS.has(normalizedEffort)) {
+        result.thinking = {
+          type: "adaptive",
+        };
+        result.output_config = {
+          ...(result.output_config || {}),
+          effort: normalizedEffort,
+        };
+      }
+    } else if (normalizedEffort === "max" || normalizedEffort === "xhigh") {
+      result.thinking = {
+        type: "adaptive",
+      };
+      result.output_config = {
+        ...(result.output_config || {}),
+        effort: normalizedEffort,
+      };
+    } else {
+      const effortBudgetMap: Record<string, number> = {
+        low: 1024,
+        medium: 10240,
+        high: 131072,
+        max: 131072,
+      };
+      const budget = effortBudgetMap[normalizedEffort];
+      if (budget !== undefined && budget > 0) {
+        result.thinking = {
+          type: "enabled",
+          budget_tokens: budget,
+        };
+      }
+    }
+  }
+
+  // Fit thinking budget within the model's output cap and ensure
+  // max_tokens > budget_tokens for all thinking configurations (#627).
+  // Replaces the previous unconditional `budget + 8192` inflation, which
+  // could exceed model caps (e.g. Opus 4.7's 128000 ceiling) and trigger
+  // HTTP 400 from Anthropic.
+  const fitted = fitThinkingToMaxTokens(model, Number(result.max_tokens) || 0, result.thinking);
+  result.max_tokens = fitted.maxTokens;
+  if (fitted.thinking === undefined) {
+    delete result.thinking;
+  } else {
+    result.thinking = applyCopilotSummarizedThinkingDisplay(fitted.thinking, body);
+  }
+
+  delete result[COPILOT_REASONING_SUMMARY_MARKER];
+
+  // Final guard: Claude rejects `temperature` whenever extended thinking is
+  // enabled. If `result.thinking` was set above from `body.thinking` or
+  // `body.reasoning_effort` (manual budget or adaptive effort), drop temperature
+  // defensively. The model-name strip earlier already covers Claude OAuth's
+  // forced-thinking case (claude-opus-4.x / claude-sonnet-4.x).
+  if (result.thinking && result.temperature !== undefined) {
+    delete result.temperature;
+  }
+
+  // Whether the OUTBOUND request actually has extended thinking enabled. Anthropic's
+  // schema only requires a precursor thinking/redacted_thinking block before a tool_use
+  // block when thinking mode is active for THIS request — never unconditionally (#5945).
+  const thinkingEnabledForRequest = Boolean(result.thinking) && result.thinking.type !== "disabled";
+
   // Messages
   const systemParts = [];
 
@@ -199,7 +290,12 @@ export function openaiToClaudeRequest(model, body, stream) {
 
     for (const msg of nonSystemMessages) {
       const newRole = msg.role === "user" || msg.role === "tool" ? "user" : "assistant";
-      const blocks = getContentBlocksFromMessage(msg, toolNameMap, disableToolPrefix);
+      const blocks = getContentBlocksFromMessage(
+        msg,
+        toolNameMap,
+        disableToolPrefix,
+        thinkingEnabledForRequest
+      );
       const hasToolUse = blocks.some((b) => b.type === "tool_use");
       const hasToolResult = blocks.some((b) => b.type === "tool_result");
 
@@ -387,87 +483,6 @@ export function openaiToClaudeRequest(model, body, stream) {
       : [{ type: "text", text: String(body.system) }];
   }
 
-  // Thinking configuration
-  if (body.thinking) {
-    result.thinking = {
-      type: body.thinking.type || "enabled",
-      ...(body.thinking.budget_tokens && { budget_tokens: body.thinking.budget_tokens }),
-      ...(body.thinking.max_tokens && { max_tokens: body.thinking.max_tokens }),
-    };
-  } else if (body.reasoning_effort) {
-    // Convert OpenAI reasoning_effort to Claude thinking format (#627)
-    // Clients like OpenCode send reasoning_effort via @ai-sdk/openai-compatible
-    const requestedEffort = String(body.reasoning_effort).toLowerCase();
-    const normalizedEffort =
-      requestedEffort === "max" && !supportsClaudeMaxEffort(model)
-        ? "high"
-        : requestedEffort === "xhigh" && !supportsXHighEffort("claude", model)
-          ? "high"
-          : requestedEffort;
-    if (isAdaptiveThinkingOnly(model)) {
-      // Opus 4.7+/Fable 5 removed manual extended thinking: a fixed `budget_tokens`
-      // (or `type:"enabled"`) is a hard 400. Steer EVERY level via adaptive +
-      // output_config.effort instead of the budget buckets below. Unrecognized levels
-      // leave thinking unset so the model keeps its adaptive default rather than 400ing
-      // on an invalid effort value.
-      if (ADAPTIVE_EFFORT_LEVELS.has(normalizedEffort)) {
-        result.thinking = {
-          type: "adaptive",
-        };
-        result.output_config = {
-          ...(result.output_config || {}),
-          effort: normalizedEffort,
-        };
-      }
-    } else if (normalizedEffort === "max" || normalizedEffort === "xhigh") {
-      result.thinking = {
-        type: "adaptive",
-      };
-      result.output_config = {
-        ...(result.output_config || {}),
-        effort: normalizedEffort,
-      };
-    } else {
-      const effortBudgetMap: Record<string, number> = {
-        low: 1024,
-        medium: 10240,
-        high: 131072,
-        max: 131072,
-      };
-      const budget = effortBudgetMap[normalizedEffort];
-      if (budget !== undefined && budget > 0) {
-        result.thinking = {
-          type: "enabled",
-          budget_tokens: budget,
-        };
-      }
-    }
-  }
-
-  // Fit thinking budget within the model's output cap and ensure
-  // max_tokens > budget_tokens for all thinking configurations (#627).
-  // Replaces the previous unconditional `budget + 8192` inflation, which
-  // could exceed model caps (e.g. Opus 4.7's 128000 ceiling) and trigger
-  // HTTP 400 from Anthropic.
-  const fitted = fitThinkingToMaxTokens(model, Number(result.max_tokens) || 0, result.thinking);
-  result.max_tokens = fitted.maxTokens;
-  if (fitted.thinking === undefined) {
-    delete result.thinking;
-  } else {
-    result.thinking = applyCopilotSummarizedThinkingDisplay(fitted.thinking, body);
-  }
-
-  delete result[COPILOT_REASONING_SUMMARY_MARKER];
-
-  // Final guard: Claude rejects `temperature` whenever extended thinking is
-  // enabled. If `result.thinking` was set above from `body.thinking` or
-  // `body.reasoning_effort` (manual budget or adaptive effort), drop temperature
-  // defensively. The model-name strip earlier already covers Claude OAuth's
-  // forced-thinking case (claude-opus-4.x / claude-sonnet-4.x).
-  if (result.thinking && result.temperature !== undefined) {
-    delete result.temperature;
-  }
-
   // Attach toolNameMap to result for response translation
   if (toolNameMap.size > 0) {
     result._toolNameMap = toolNameMap;
@@ -488,7 +503,12 @@ export function openaiToClaudeRequest(model, body, stream) {
 }
 
 // Get content blocks from single message
-function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPrefix = false) {
+function getContentBlocksFromMessage(
+  msg,
+  toolNameMap = new Map(),
+  disableToolPrefix = false,
+  thinkingEnabledForRequest = false
+) {
   const blocks = [];
 
   if (msg.role === "tool") {
@@ -555,22 +575,6 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
       }
     }
   } else if (msg.role === "assistant") {
-    // Add reasoning_content as a replay placeholder (OpenAI extended thinking format).
-    // #5312 RC-D: reasoning_content carries NO real Claude signature. Emitting a
-    // `thinking` block with the fabricated DEFAULT signature makes Anthropic reject the
-    // replay with 400 "Invalid signature in thinking block" — and claudeHelper's
-    // latest-assistant guard (prepareClaudeRequest) preserves it verbatim, so the fake
-    // signature leaks upstream. Emit a signature-less redacted_thinking block instead
-    // (the same shape prepareClaudeRequest produces for Anthropic-native replay);
-    // Anthropic accepts it without signature validation and non-Anthropic Claude-shape
-    // upstreams re-hydrate the real text downstream from reasoningCache.
-    if (msg.reasoning_content) {
-      blocks.push({
-        type: "redacted_thinking",
-        data: DEFAULT_THINKING_CLAUDE_SIGNATURE,
-      });
-    }
-
     if (Array.isArray(msg.content)) {
       for (const part of msg.content) {
         if (part.type === "text" && part.text) {
@@ -618,6 +622,37 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
           });
         }
       }
+    }
+
+    // Add reasoning_content as a replay placeholder (OpenAI extended thinking format) —
+    // ONLY when Anthropic's schema actually requires a precursor thinking block: the
+    // outbound request has extended thinking enabled AND this assistant turn contains a
+    // tool_use block (Anthropic rejects a tool_use turn without a preceding
+    // thinking/redacted_thinking block when thinking is active). #5312 RC-D:
+    // reasoning_content carries NO real Claude signature. Emitting a `thinking` block
+    // with the fabricated DEFAULT signature makes Anthropic reject the replay with 400
+    // "Invalid signature in thinking block" — and claudeHelper's latest-assistant guard
+    // (prepareClaudeRequest) preserves it verbatim, so the fake signature leaks
+    // upstream. Emit a signature-less redacted_thinking block instead (the same shape
+    // prepareClaudeRequest produces for Anthropic-native replay, gated the same way at
+    // claudeHelper.ts `thinkingEnabled && !hasThinking && hasToolUse`); Anthropic
+    // accepts it without signature validation and non-Anthropic Claude-shape upstreams
+    // re-hydrate the real text downstream from reasoningCache.
+    // #5945: injecting this unconditionally — for ANY assistant turn carrying
+    // reasoning_content, regardless of tool_use or thinking state — fabricates a content
+    // block the client never sent. Some upstream clients (reported: Claude Sonnet 5 via
+    // the "Pi" harness) detect the extra block and refuse the turn as prompt injection.
+    // Drop reasoning_content silently when it is not required by the schema, mirroring
+    // how other echo-only fields are dropped (see OPENAI_INCOMPATIBLE_ECHO_FIELDS).
+    const hasThinkingBlock = blocks.some(
+      (b) => b.type === "thinking" || b.type === "redacted_thinking"
+    );
+    const hasToolUseBlock = blocks.some((b) => b.type === "tool_use");
+    if (msg.reasoning_content && thinkingEnabledForRequest && hasToolUseBlock && !hasThinkingBlock) {
+      blocks.unshift({
+        type: "redacted_thinking",
+        data: DEFAULT_THINKING_CLAUDE_SIGNATURE,
+      });
     }
   }
 
