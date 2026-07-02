@@ -8,7 +8,6 @@
  * Uses same env vars as tests/manual/gemini.http:
  *   OMNIROUTE_URL             — base URL (default http://localhost:20128)
  *   OMNIROUTE_API_KEY         — API key for auth
- *   TEST_GEMINI_MODEL         — model override (default gemini/gemma-4-31b-it)
  *   TEST_THINKING_GEMINI_MODEL — thinking model override, skipped if unset
  */
 
@@ -17,7 +16,7 @@ import assert from "node:assert/strict";
 
 const API_KEY = process.env.OMNIROUTE_API_KEY;
 const BASE_URL = process.env.OMNIROUTE_URL || "http://localhost:20128";
-const MODEL = process.env.TEST_GEMINI_MODEL || "gemini/gemma-4-31b-it";
+const MODEL = "default";
 const THINKING_MODEL = process.env.TEST_THINKING_GEMINI_MODEL || "gemini/gemini-2.5-flash";
 const NUM_HISTORICAL_ROUNDS = 15;
 

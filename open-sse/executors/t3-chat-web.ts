@@ -14,7 +14,7 @@
  */
 
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
-import { sanitizeErrorMessage } from "../utils/error.ts";
+import { errorResponse } from "../utils/error.ts";
 import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -110,16 +110,7 @@ export function validateT3Credentials(creds: T3ChatCredentials | null | undefine
 }
 
 function buildErrorResponse(status: number, message: string): Response {
-  return new Response(
-    JSON.stringify({
-      error: {
-        message: sanitizeErrorMessage(message),
-        type: "upstream_error",
-        code: `HTTP_${status}`,
-      },
-    }),
-    { status, headers: { "Content-Type": "application/json" } }
-  );
+  return errorResponse(status, message);
 }
 
 /**

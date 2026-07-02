@@ -63,6 +63,14 @@ export function cloneBoundedChatLogPayload(value: unknown, depth = 0): unknown {
  * MAX_LOG_BODY_CHARS, return a lightweight summary instead of the full clone.
  * This prevents persistAttemptLogs from holding multi-MB references to
  * translatedBody across 17 call sites per request.
+ *
+ * When the summarized object carries a `tools` definition, re-attach it
+ * (bounded via `cloneBoundedChatLogPayload`) so the request-details view can
+ * still show which tools were available even though the rest of the payload
+ * — including the message history that triggered this summary — is dropped.
+ * The reused helper already caps array length, object keys, nesting depth,
+ * and string length, so this stays a small, bounded addition rather than a
+ * separately-budgeted multi-KB/MB re-clone.
  */
 export function truncateForLog(value: unknown): Record<string, unknown> | null | undefined {
   if (value === null || value === undefined) return value as null | undefined;
@@ -80,5 +88,6 @@ export function truncateForLog(value: unknown): Record<string, unknown> | null |
   if (Array.isArray(obj.messages)) summary.messageCount = obj.messages.length;
   if (Array.isArray(obj.contents)) summary.contentCount = obj.contents.length;
   if (typeof obj.stream === "boolean") summary.stream = obj.stream;
+  if (Array.isArray(obj.tools)) summary.tools = cloneBoundedChatLogPayload(obj.tools);
   return summary;
 }

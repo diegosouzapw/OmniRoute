@@ -20,6 +20,21 @@ function toHex(bytes: Uint8Array): string {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+/**
+ * Rename a Node process title so OmniRoute is identifiable in `ps`/`htop`
+ * instead of the generic Next.js standalone server name.
+ *
+ * Only rewrites titles that start with "next-server", preserving any
+ * trailing suffix (e.g. " (v16.2.9)"). Every other title — including one
+ * that has already been renamed, or one that merely contains
+ * "next-server" elsewhere — passes through unchanged. Empty/undefined-safe.
+ */
+export function renameProcessTitle(currentTitle: string): string {
+  if (!currentTitle) return currentTitle;
+  if (!currentTitle.startsWith("next-server")) return currentTitle;
+  return `omniroute${currentTitle.slice("next-server".length)}`;
+}
+
 function isBackgroundServicesDisabled(): boolean {
   const raw = process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
   if (!raw) return false;
@@ -69,6 +84,10 @@ async function ensureSecrets(): Promise<void> {
 }
 
 export async function registerNodejs(): Promise<void> {
+  // Rename the process title so OmniRoute is identifiable in ps/htop instead
+  // of the generic "next-server" standalone server name.
+  process.title = renameProcessTitle(process.title);
+
   // Initialize proxy fetch patch FIRST (before any HTTP requests)
   await import("@omniroute/open-sse/index.ts");
   console.log("[STARTUP] Global fetch proxy patch initialized");
@@ -186,6 +205,18 @@ export async function registerNodejs(): Promise<void> {
         await import("@omniroute/open-sse/services/systemPrompt.ts");
       setSystemPromptConfig(settings.systemPrompt);
       console.log("[STARTUP] Global System Prompt restored from settings");
+    }
+
+    // Restore the proxy-level Thinking-Budget config (#5312 RC-A). It lives in
+    // `settings.thinkingBudget` and is NOT covered by applyRuntimeSettings, so
+    // without this the dashboard mode (auto/custom/adaptive) silently reverts to
+    // the passthrough default on every restart. Previously this was only wired into
+    // the unused `server-init.ts`, so it never ran in production.
+    const { hydrateThinkingBudgetConfig } = await import(
+      "@omniroute/open-sse/services/thinkingBudget.ts"
+    );
+    if (hydrateThinkingBudgetConfig(settings)) {
+      console.log("[STARTUP] Thinking-Budget config restored from settings");
     }
 
     const seededModelAliases = await seedDefaultModelAliases();
@@ -322,6 +353,28 @@ export async function registerNodejs(): Promise<void> {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.warn("[STARTUP] models.dev sync failed to start (non-fatal):", msg);
+    }
+
+    // Context-window self-correction (5004): periodically reconcile provider-declared
+    // windows (from /models discovery) into auto:discovery overrides. Reuses already-synced
+    // data (no new fetch); disable via CONTEXT_WINDOW_RECONCILE_INTERVAL=0. Never fatal.
+    try {
+      const { startContextWindowReconcile } = await import("@/lib/contextWindowResolver");
+      startContextWindowReconcile();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] context-window reconcile failed to start (non-fatal):", msg);
+    }
+
+    // TV6 typed memory decay: optional periodic sweep of decayed episodic memories. Doubly
+    // opt-in (no-op unless MEMORY_TYPED_DECAY_ENABLED=true AND
+    // MEMORY_TYPED_DECAY_SWEEP_INTERVAL>0). Never deletes by default. Never fatal.
+    try {
+      const { startMemoryDecaySweep } = await import("@/lib/memory/typedDecay");
+      startMemoryDecaySweep();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
     }
   }
 }

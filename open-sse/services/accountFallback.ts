@@ -1296,6 +1296,7 @@ export function checkFallbackError(
    * provider itself). Callers should apply connection cooldown only — do NOT record a provider
    * circuit-breaker failure when this flag is set. */
   skipProviderBreaker?: boolean;
+  quotaResetHintMs?: number;
 } {
   // G-02: detect embedded service supervisor failures (X-Omni-Fallback-Hint: connection_cooldown).
   // These are NOT upstream AI provider failures — they are local supervisor state changes.
@@ -1478,11 +1479,13 @@ export function checkFallbackError(
       // profile.useUpstreamRetryHints.
       const hintMs = getUpstreamRetryHintMs();
       const SUBSCRIPTION_QUOTA_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
+      const bodyHint = parseRetryFromErrorText(errorStr);
       return {
         shouldFallback: true,
         cooldownMs: hintMs ?? SUBSCRIPTION_QUOTA_COOLDOWN_MS,
         reason: RateLimitReason.QUOTA_EXHAUSTED,
         usedUpstreamRetryHint: Boolean(hintMs),
+        quotaResetHintMs: bodyHint ?? undefined,
       };
     }
 
@@ -1492,7 +1495,11 @@ export function checkFallbackError(
       quotaResetHintMs &&
       classifyErrorText(errorStr) === RateLimitReason.QUOTA_EXHAUSTED
     ) {
-      return buildRetryableFallback(RateLimitReason.QUOTA_EXHAUSTED);
+      const fallbackResult = buildRetryableFallback(RateLimitReason.QUOTA_EXHAUSTED);
+      return {
+        ...fallbackResult,
+        quotaResetHintMs,
+      };
     }
 
     // #2929: A route-restriction 403 (e.g. Fireworks Fire Pass keys returning

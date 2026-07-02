@@ -215,8 +215,10 @@ async function omniRouteFetch(path: string, options: RequestInit = {}): Promise<
   const apiKey = getOmniRouteApiKey();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...getMcpHttpAuthHeadersForInternalFetch(),
+    // Static env key is only a fallback; the per-caller MCP identity forwarded via
+    // withMcpHttpAuthContext must win over it (#5819).
     ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+    ...getMcpHttpAuthHeadersForInternalFetch(),
     ...((options.headers as Record<string, string>) || {}),
   };
 

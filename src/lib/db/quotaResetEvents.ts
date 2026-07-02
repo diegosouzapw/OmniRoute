@@ -36,6 +36,17 @@ interface QuotaSnapshotObservationRow {
   remainingPercentage: number | null;
 }
 
+interface QuotaSnapshotWindowRow {
+  nextResetAt: string | null;
+  remainingPercentage: number | null;
+  createdAt: string | null;
+}
+
+export interface ProviderQuotaWindowStart {
+  windowStartIso: string;
+  source: "recorded_reset_event" | "observed_snapshot_reset";
+}
+
 function toNumberOrNull(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string" && value.trim()) {
@@ -53,6 +64,17 @@ function clampPercent(value: number | null): number | null {
 function usedPercent(remainingPercentage: number | null): number | null {
   const remaining = clampPercent(remainingPercentage);
   return remaining === null ? null : Math.max(0, Math.min(100, 100 - remaining));
+}
+
+function isResetDrop(
+  previousUsedPercentage: number | null,
+  currentUsedPercentage: number
+): boolean {
+  if (previousUsedPercentage === null) return false;
+  const droppedToResetFloor =
+    currentUsedPercentage <= 1 && previousUsedPercentage > currentUsedPercentage;
+  const significantDrop = previousUsedPercentage - currentUsedPercentage >= 5;
+  return droppedToResetFloor || significantDrop;
 }
 
 function parseResetIso(value: string | null): string | null {
@@ -127,12 +149,22 @@ export function recordProviderQuotaResetEventIfChanged(input: ResetEventInput): 
   const previousResetMs = Date.parse(previousResetIso);
   const currentResetMs = Date.parse(currentResetIso);
   if (!Number.isFinite(previousResetMs) || !Number.isFinite(currentResetMs)) return;
-  if (currentResetMs <= previousResetMs) return;
-  if (resetDay(previousResetIso) === resetDay(currentResetIso)) return;
 
   const previousRemaining = clampPercent(toNumberOrNull(previous?.remainingPercentage));
   const currentRemaining = clampPercent(toNumberOrNull(input.currentRemainingPercentage));
   const observedAt = parseResetIso(input.observedAt ?? null) ?? new Date().toISOString();
+  const previousUsed = usedPercent(previousRemaining);
+  const currentUsed = usedPercent(currentRemaining);
+  const resetMovedForward =
+    currentResetMs > previousResetMs && resetDay(previousResetIso) !== resetDay(currentResetIso);
+  const resetObservedWithinSameResetAt =
+    resetDay(previousResetIso) === resetDay(currentResetIso) &&
+    currentUsed !== null &&
+    isResetDrop(previousUsed, currentUsed);
+
+  if (!resetMovedForward && !resetObservedWithinSameResetAt) return;
+
+  const windowStartedAt = resetMovedForward ? previousResetIso : observedAt;
 
   try {
     const db = getDbInstance() as unknown as DbLike;
@@ -148,13 +180,13 @@ export function recordProviderQuotaResetEventIfChanged(input: ResetEventInput): 
       input.provider,
       input.connectionId,
       input.windowKey,
-      previousResetIso,
+      windowStartedAt,
       currentResetIso,
       observedAt,
       previousRemaining,
       currentRemaining,
-      usedPercent(previousRemaining),
-      usedPercent(currentRemaining),
+      previousUsed,
+      currentUsed,
       null
     );
   } catch (error: unknown) {
@@ -163,7 +195,7 @@ export function recordProviderQuotaResetEventIfChanged(input: ResetEventInput): 
   }
 }
 
-export function getProviderQuotaWindowStartIso(
+function getRecordedQuotaWindowStartIso(
   connectionId: string,
   targetResetAtIso: string,
   nowMs = Date.now()
@@ -203,4 +235,100 @@ export function getProviderQuotaWindowStartIso(
     if (error instanceof Error && error.message.includes("no such table")) return null;
     throw error;
   }
+}
+
+function getObservedQuotaWindowStartIso(
+  connectionId: string,
+  targetResetAtIso: string,
+  nowMs = Date.now()
+): { windowStartIso: string; resetDrop: boolean } | null {
+  if (!connectionId || !targetResetAtIso) return null;
+  const targetDay = resetDay(targetResetAtIso);
+  if (!targetDay) return null;
+
+  const db = getDbInstance() as unknown as DbLike;
+  const nowIso = new Date(nowMs).toISOString();
+
+  try {
+    const rows = db
+      .prepare<QuotaSnapshotWindowRow>(
+        `
+        SELECT
+          next_reset_at as nextResetAt,
+          remaining_percentage as remainingPercentage,
+          created_at as createdAt
+        FROM quota_snapshots
+        WHERE connection_id = @connectionId
+          AND LOWER(window_key) LIKE '%weekly%'
+          AND LOWER(window_key) NOT LIKE '%sonnet%'
+          AND created_at <= @nowIso
+        ORDER BY created_at ASC, id ASC
+      `
+      )
+      .all({ connectionId, nowIso });
+
+    let firstObservedIso: string | null = null;
+    let resetDropIso: string | null = null;
+    let previousUsedPercentage: number | null = null;
+
+    for (const row of rows) {
+      const createdIso = parseResetIso(row.createdAt);
+      if (!createdIso || resetDay(row.nextResetAt) !== targetDay) continue;
+
+      if (!firstObservedIso) firstObservedIso = createdIso;
+
+      const currentUsedPercentage = usedPercent(clampPercent(row.remainingPercentage));
+      if (currentUsedPercentage !== null) {
+        if (isResetDrop(previousUsedPercentage, currentUsedPercentage)) {
+          resetDropIso = createdIso;
+        }
+        previousUsedPercentage = currentUsedPercentage;
+      }
+    }
+
+    if (resetDropIso) return { windowStartIso: resetDropIso, resetDrop: true };
+    if (firstObservedIso) return { windowStartIso: firstObservedIso, resetDrop: false };
+    return null;
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes("no such table")) return null;
+    throw error;
+  }
+}
+
+export function getProviderQuotaWindowStart(
+  connectionId: string,
+  targetResetAtIso: string,
+  nowMs = Date.now()
+): ProviderQuotaWindowStart | null {
+  const recordedIso = getRecordedQuotaWindowStartIso(connectionId, targetResetAtIso, nowMs);
+  const observed = getObservedQuotaWindowStartIso(connectionId, targetResetAtIso, nowMs);
+
+  if (!recordedIso && !observed) return null;
+  if (!recordedIso && observed) {
+    return { windowStartIso: observed.windowStartIso, source: "observed_snapshot_reset" };
+  }
+  if (recordedIso && !observed) {
+    return { windowStartIso: recordedIso, source: "recorded_reset_event" };
+  }
+
+  const recordedMs = Date.parse(recordedIso!);
+  const observedMs = Date.parse(observed!.windowStartIso);
+  if (
+    observed!.resetDrop &&
+    Number.isFinite(recordedMs) &&
+    Number.isFinite(observedMs) &&
+    observedMs > recordedMs
+  ) {
+    return { windowStartIso: observed!.windowStartIso, source: "observed_snapshot_reset" };
+  }
+
+  return { windowStartIso: recordedIso!, source: "recorded_reset_event" };
+}
+
+export function getProviderQuotaWindowStartIso(
+  connectionId: string,
+  targetResetAtIso: string,
+  nowMs = Date.now()
+): string | null {
+  return getProviderQuotaWindowStart(connectionId, targetResetAtIso, nowMs)?.windowStartIso ?? null;
 }

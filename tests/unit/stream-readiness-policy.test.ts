@@ -120,6 +120,19 @@ test("caps adaptive timeout at maxTimeoutMs", () => {
   assert.ok(result.reasons.includes("very_large_payload"));
 });
 
+test("uses a 180s adaptive cap by default for very large agent requests", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "codex",
+    model: "gpt-5.5",
+    body: { input: items(500), tools: tools(20), instructions: "x".repeat(800_000) },
+  });
+
+  assert.equal(result.timeoutMs, 180_000);
+  assert.ok(result.reasons.includes("very_large_history"));
+  assert.ok(result.reasons.includes("very_large_payload"));
+});
+
 test("preserves zero timeout so readiness checks can be disabled", () => {
   const result = resolveStreamReadinessTimeout({
     baseTimeoutMs: 0,

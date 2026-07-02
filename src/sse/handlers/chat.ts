@@ -87,6 +87,7 @@ import { RequestTelemetry, recordTelemetry } from "../../shared/utils/requestTel
 import { generateRequestId } from "../../shared/utils/requestId";
 import { logAuditEvent } from "../../lib/compliance/index";
 import { enforceApiKeyPolicy } from "../../shared/utils/apiKeyPolicy";
+import { hasProviderQuotaBypassScope } from "../../shared/constants/apiKeyPolicyScopes";
 import { cloneLogPayload } from "@/lib/logPayloads";
 import { handleInternalUsageCommand } from "@/lib/usage/internalUsageCommand";
 import {
@@ -224,8 +225,6 @@ export async function handleChat(
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
   }
 
-  const rawClientBody = cloneLogPayload(body);
-
   // Early guard: an explicitly empty `messages` array is invalid for every
   // upstream (Anthropic/OpenAI both reject "at least one message is required").
   // Forwarding it produced a confusing raw upstream 400/502; reject it here with
@@ -240,9 +239,10 @@ export async function handleChat(
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
   }
 
-  // Build clientRawRequest for logging (if not provided)
+  // buildClientRawRequest already deep-clones the body, so pass `body` directly — the
+  // prior local clone was a redundant second full-body copy on the hot path (#5152).
   if (!clientRawRequest) {
-    clientRawRequest = buildClientRawRequest(request, rawClientBody);
+    clientRawRequest = buildClientRawRequest(request, body);
   }
 
   // T01 — Accept-header streaming opt-in (#302 / #5305). A bare `Accept:
@@ -331,6 +331,7 @@ export async function handleChat(
     return policy.rejection;
   }
   const apiKeyInfo = policy.apiKeyInfo;
+  const bypassProviderQuotaPolicy = hasProviderQuotaBypassScope(apiKeyInfo?.scopes);
   telemetry.endPhase();
 
   // Guardrail pre-call pipeline — prompt injection, PII masking, and future custom rules.
@@ -628,6 +629,7 @@ export async function handleChat(
           sessionKey: sessionAffinityKey,
           ...(target?.allowRateLimitedConnection ? { allowRateLimitedConnections: true } : {}),
           ...(target?.connectionId ? { forcedConnectionId: target.connectionId } : {}),
+          ...(bypassProviderQuotaPolicy ? { bypassQuotaPolicy: true } : {}),
         }
       );
       if (!creds || creds.allRateLimited) return false;
@@ -643,6 +645,18 @@ export async function handleChat(
     ]);
     const relayConfig =
       combo.strategy === "context-relay" ? resolveComboConfig(combo, settings) : null;
+    const relayOptions =
+      combo.strategy === "context-relay" || bypassProviderQuotaPolicy
+        ? {
+            ...(combo.strategy === "context-relay"
+              ? {
+                  sessionId,
+                  config: relayConfig,
+                }
+              : {}),
+            ...(bypassProviderQuotaPolicy ? { bypassProviderQuotaPolicy: true } : {}),
+          }
+        : undefined;
     telemetry.endPhase();
 
     // Context-relay keeps generation in combo.ts, but handoff injection lives here
@@ -707,13 +721,7 @@ export async function handleChat(
       settings,
       allCombos,
       apiKeyAllowedConnections: apiKeyInfo?.allowedConnections ?? null,
-      relayOptions:
-        combo.strategy === "context-relay"
-          ? {
-              sessionId,
-              config: relayConfig,
-            }
-          : undefined,
+      relayOptions,
       signal: request?.signal ?? null,
       correlationId: reqId,
     });
@@ -957,6 +965,7 @@ async function handleSingleModelChat(
     return runtimeOptions.providerId;
   })();
   const forceLiveComboTest = runtimeOptions.forceLiveComboTest === true;
+  const bypassProviderQuotaPolicy = hasProviderQuotaBypassScope(apiKeyInfo?.scopes);
   const hasForcedConnection =
     typeof runtimeOptions.forcedConnectionId === "string" &&
     runtimeOptions.forcedConnectionId.trim().length > 0;
@@ -1099,6 +1108,9 @@ async function handleSingleModelChat(
                       allowSuppressedConnections: true,
                       bypassQuotaPolicy: true,
                     }
+                  : {}),
+                ...(!forceLiveComboTest && bypassProviderQuotaPolicy
+                  ? { bypassQuotaPolicy: true }
                   : {}),
                 ...(runtimeOptions.forcedConnectionId
                   ? { forcedConnectionId: runtimeOptions.forcedConnectionId }

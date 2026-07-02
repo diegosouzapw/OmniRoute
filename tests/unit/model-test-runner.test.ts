@@ -1,6 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseRetryAfterHeader, detectTestKind } from "@/lib/api/modelTestRunner.ts";
+import {
+  parseRetryAfterHeader,
+  detectTestKind,
+  extractProviderErrorMessage,
+} from "@/lib/api/modelTestRunner.ts";
 
 // ---------------------------------------------------------------------------
 // parseRetryAfterHeader — Retry-After is either delta-seconds or an HTTP-date.
@@ -85,4 +89,19 @@ test("detectTestKind detects rerank by id and by metadata, and rerank wins over 
   const both = detectTestKind("vendor/rerank-embedding-hybrid", null);
   assert.equal(both.isRerank, true);
   assert.equal(both.isEmbedding, false);
+});
+
+test("extractProviderErrorMessage includes upstream details when generic error is unhelpful", () => {
+  const body = {
+    error: { message: "HuggingChat returned HTTP 500" },
+    upstream_details: {
+      message: "Model is temporarily overloaded",
+      status: "error",
+    },
+  };
+
+  assert.equal(
+    extractProviderErrorMessage(body, "Internal Server Error"),
+    "HuggingChat returned HTTP 500: Model is temporarily overloaded"
+  );
 });

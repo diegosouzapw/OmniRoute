@@ -1,25 +1,22 @@
 /**
- * Tests for useSystemProxyExitGuard — beforeunload listener + sendBeacon revert.
+ * Tests for useSystemProxyExitGuard — beforeunload listener + keepalive fetch revert.
  *
  * Strategy: test the hook logic directly without React — we exercise the same
  * branches as the hook by simulating mount/unmount via the cleanup pattern.
  * This matches how use-traffic-stream.test.tsx tests hook logic (pure logic,
  * no React renderer needed).
  */
-import { describe, it, before, after, beforeEach, afterEach, mock } from "node:test";
+import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 
 // ---------------------------------------------------------------------------
 // Minimal beforeunload event simulation
 // ---------------------------------------------------------------------------
 
-type BeforeUnloadListener = (e: {
-  preventDefault: () => void;
-  returnValue: string;
-}) => void;
+type BeforeUnloadListener = (e: { preventDefault: () => void; returnValue: string }) => void;
 
 let registeredListeners: Array<{ type: string; fn: BeforeUnloadListener }> = [];
-let beaconCalls: Array<{ url: string; body: string }> = [];
+let fetchCalls: Array<{ url: string; init: RequestInit }> = [];
 
 const mockWindow = {
   addEventListener(type: string, fn: BeforeUnloadListener) {
@@ -30,20 +27,9 @@ const mockWindow = {
   },
 };
 
-const mockNavigator = {
-  sendBeacon(url: string, data: Blob | string | null) {
-    let body = "";
-    if (typeof data === "string") {
-      body = data;
-    } else if (data instanceof Blob) {
-      // In Node test env, Blob is available (Node 18+). We synchronously read
-      // the content by constructing from JSON directly via the known test data.
-      // We store the URL for assertion — exact body checked separately.
-      body = "<blob>";
-    }
-    beaconCalls.push({ url, body });
-    return true;
-  },
+const mockFetch = (url: string, init: RequestInit) => {
+  fetchCalls.push({ url, init });
+  return Promise.resolve(new Response("{}"));
 };
 
 // ---------------------------------------------------------------------------
@@ -59,18 +45,21 @@ interface GuardOpts {
 function mountGuard(opts: GuardOpts): () => void {
   let appliedRef = opts.applied;
 
-  const endpoint =
-    opts.endpoint ?? "/api/tools/traffic-inspector/capture-modes/system-proxy";
+  const endpoint = opts.endpoint ?? "/api/tools/traffic-inspector/capture-modes/system-proxy";
   const body = JSON.stringify({ action: "revert" });
-  const blob = new Blob([body], { type: "application/json" });
+
+  const revertSystemProxy = () => {
+    void mockFetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+      keepalive: true,
+    }).catch(() => {});
+  };
 
   const beforeUnload: BeforeUnloadListener = (e) => {
     if (!appliedRef) return;
-    try {
-      mockNavigator.sendBeacon(endpoint, blob);
-    } catch {
-      /* ignore */
-    }
+    revertSystemProxy();
     e.preventDefault();
     e.returnValue = "System-wide proxy still active — leave page anyway?";
   };
@@ -81,11 +70,7 @@ function mountGuard(opts: GuardOpts): () => void {
   const cleanup = () => {
     mockWindow.removeEventListener("beforeunload", beforeUnload);
     if (appliedRef) {
-      try {
-        mockNavigator.sendBeacon(endpoint, blob);
-      } catch {
-        /* ignore */
-      }
+      revertSystemProxy();
     }
   };
 
@@ -104,7 +89,7 @@ function mountGuard(opts: GuardOpts): () => void {
 describe("useSystemProxyExitGuard hook logic", () => {
   beforeEach(() => {
     registeredListeners = [];
-    beaconCalls = [];
+    fetchCalls = [];
   });
 
   it("adds beforeunload listener on mount", () => {
@@ -114,7 +99,7 @@ describe("useSystemProxyExitGuard hook logic", () => {
     cleanup();
   });
 
-  it("fires sendBeacon with correct endpoint and body when applied=true on beforeunload", () => {
+  it("fires keepalive fetch with correct endpoint and body when applied=true on beforeunload", () => {
     const endpoint = "/api/tools/traffic-inspector/capture-modes/system-proxy";
     const cleanup = mountGuard({ applied: true, endpoint });
 
@@ -122,18 +107,21 @@ describe("useSystemProxyExitGuard hook logic", () => {
     const fakeEvent = { preventDefault: () => {}, returnValue: "" };
     registeredListeners[0].fn(fakeEvent);
 
-    assert.equal(beaconCalls.length, 1);
-    assert.equal(beaconCalls[0].url, endpoint);
+    assert.equal(fetchCalls.length, 1);
+    assert.equal(fetchCalls[0].url, endpoint);
+    assert.equal(fetchCalls[0].init.method, "POST");
+    assert.equal(fetchCalls[0].init.body, JSON.stringify({ action: "revert" }));
+    assert.equal(fetchCalls[0].init.keepalive, true);
     cleanup();
   });
 
-  it("does NOT fire sendBeacon on beforeunload when applied=false", () => {
+  it("does NOT fire keepalive fetch on beforeunload when applied=false", () => {
     const cleanup = mountGuard({ applied: false });
 
     const fakeEvent = { preventDefault: () => {}, returnValue: "" };
     registeredListeners[0].fn(fakeEvent);
 
-    assert.equal(beaconCalls.length, 0);
+    assert.equal(fetchCalls.length, 0);
     cleanup();
   });
 
@@ -144,30 +132,27 @@ describe("useSystemProxyExitGuard hook logic", () => {
     assert.equal(registeredListeners.length, 0);
   });
 
-  it("fires sendBeacon on unmount when applied=true (SPA navigation revert)", () => {
+  it("fires keepalive fetch on unmount when applied=true (SPA navigation revert)", () => {
     const cleanup = mountGuard({ applied: true });
 
     // No beforeunload triggered — just unmount (SPA navigation)
     cleanup();
 
-    assert.equal(beaconCalls.length, 1);
-    assert.equal(
-      beaconCalls[0].url,
-      "/api/tools/traffic-inspector/capture-modes/system-proxy"
-    );
+    assert.equal(fetchCalls.length, 1);
+    assert.equal(fetchCalls[0].url, "/api/tools/traffic-inspector/capture-modes/system-proxy");
   });
 
-  it("does NOT fire sendBeacon on unmount when applied=false", () => {
+  it("does NOT fire keepalive fetch on unmount when applied=false", () => {
     const cleanup = mountGuard({ applied: false });
     cleanup();
-    assert.equal(beaconCalls.length, 0);
+    assert.equal(fetchCalls.length, 0);
   });
 
   it("uses custom endpoint when provided", () => {
     const customEndpoint = "/api/custom/system-proxy";
     const cleanup = mountGuard({ applied: true, endpoint: customEndpoint });
     cleanup();
-    assert.equal(beaconCalls[0].url, customEndpoint);
+    assert.equal(fetchCalls[0].url, customEndpoint);
   });
 
   it("sets returnValue on beforeunload event when applied=true", () => {

@@ -106,6 +106,38 @@ export function extractQwenToken(rawValue: string): string {
   return match ? match[1] : "";
 }
 
+/**
+ * Pull the `kimi-auth` JWT out of whatever the user pasted for the
+ * international Kimi consumer chat (www.kimi.com).
+ *
+ * Accepts (all return the same JWT string):
+ *   - bare JWT                       `eyJhbGci...sig`
+ *   - full Cookie header             `_ga=...; kimi-auth=eyJ...; theme=dark`
+ *   - `Cookie:` / `Authorization: Bearer` prefixed forms
+ *   - stray `Bearer eyJ...` without a header label
+ *
+ * Returns "" if no JWT can be located.
+ */
+export function extractKimiJwt(rawValue: string): string {
+  const trimmed = stripCookieInputPrefix(rawValue);
+  if (!trimmed) return "";
+
+  // Bare JWT — three base64url segments separated by dots.
+  if (/^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  // Cookie-style pair: pull `kimi-auth=<value>` out of the blob.
+  const match = trimmed.match(/(?:^|[\s;])kimi-auth=([^;\s]+)/);
+  if (match) return match[1];
+
+  // Last resort: a `Bearer <jwt>` pasted without the header label.
+  const bearer = trimmed.match(/bearer\s+(eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/i);
+  if (bearer) return bearer[1];
+
+  return "";
+}
+
 export function normalizeSessionCookieHeaders(
   rawValues: Array<string | null | undefined>,
   defaultCookieName: string

@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Card from "@/shared/components/Card";
+import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import { normalizePlanTier, resolvePlanValue, worstStatus, type CardStatus } from "./utils";
 import QuotaCardHeader from "./parts/QuotaCardHeader";
 import QuotaCardExpanded from "./parts/QuotaCardExpanded";
+import ProviderUsdCostModal from "./ProviderUsdCostModal";
 
 const STATUS_BORDER: Record<CardStatus, string> = {
   critical: "#ef4444",
@@ -50,6 +52,7 @@ export default function QuotaCard({
   togglingActive,
 }: QuotaCardProps) {
   const isActive = connection.isActive ?? true;
+  const [costModalOpen, setCostModalOpen] = useState(false);
   const quotas = quota?.quotas ?? EMPTY_QUOTAS;
   const cardStatus = useMemo<CardStatus>(() => worstStatus(quotas), [quotas]);
   const tierMeta = useMemo(
@@ -62,6 +65,17 @@ export default function QuotaCard({
   const resolvedPlan = useMemo(
     () => resolvePlanValue(quota?.plan ?? null, connection.providerSpecificData ?? null),
     [quota?.plan, connection.providerSpecificData]
+  );
+  const accountLabel = useMemo(
+    () =>
+      pickDisplayValue(
+        [connection.name, connection.displayName, connection.email],
+        emailsVisible,
+        connection.provider
+      ) ||
+      connection.id ||
+      connection.provider,
+    [connection, emailsVisible]
   );
 
   const overrides = (connection.quotaWindowThresholds as Record<string, number> | null) || null;
@@ -96,8 +110,16 @@ export default function QuotaCard({
         hasStaleData={hasStaleData}
         onRefresh={onRefresh}
         onOpenCutoff={onOpenCutoff}
+        onOpenCost={() => setCostModalOpen(true)}
         canEditCutoff={canEditCutoff}
         hasCutoffOverrides={hasOverrides}
+      />
+      <ProviderUsdCostModal
+        isOpen={costModalOpen}
+        onClose={() => setCostModalOpen(false)}
+        connection={connection}
+        providerLabel={providerLabel}
+        accountLabel={accountLabel}
       />
     </Card>
   );

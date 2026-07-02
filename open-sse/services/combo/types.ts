@@ -63,6 +63,7 @@ export type IsModelAvailable = (
 export type ComboRelayOptions = {
   sessionId?: string | null;
   config?: Record<string, unknown> | null;
+  bypassProviderQuotaPolicy?: boolean;
   [key: string]: unknown;
 };
 

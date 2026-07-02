@@ -225,8 +225,8 @@ export function openaiToClaudeResponse(chunk, state) {
     }
   }
 
-  // Finish
-  if (choice.finish_reason) {
+  // Finish — guard against duplicate finish_reason chunks (common with OpenAI-compatible models)
+  if (choice.finish_reason && !state.finishReason) {
     stopThinkingBlock(state, results);
     stopTextBlock(state, results);
 

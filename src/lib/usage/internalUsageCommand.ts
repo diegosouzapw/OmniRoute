@@ -1,13 +1,15 @@
 import type { ProviderLimitsCacheEntry } from "@/lib/db/providerLimits";
 import {
-  buildApiKeyUsageLimitText,
+  buildApiKeyUsageLimitPercentText,
   type ApiKeyUsageLimitStatus,
 } from "@/lib/usage/apiKeyUsageLimits";
+import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
 export const INTERNAL_USAGE_COMMAND = "@@om-usage";
 export const USAGE_COMMAND_DISABLED_MESSAGE = "Usage command is disabled for this API key.";
 const USAGE_COMMAND_AUTH_REQUIRED_MESSAGE = "Usage command requires an authenticated API key.";
 const LOCAL_USAGE_MODEL = "omniroute/local-usage";
+const TEXT_PLAIN_HEADERS = { "Content-Type": "text/plain; charset=utf-8" } as const;
 
 type JsonRecord = Record<string, unknown>;
 
@@ -15,6 +17,7 @@ interface UsageCommandApiKeyMetadata {
   id: string;
   name?: string;
   allowedConnections?: string[] | null;
+  preferredProvider?: string | null;
   allowUsageCommand?: boolean;
   usageLimitEnabled?: boolean;
   dailyUsageLimitUsd?: number | null;
@@ -25,6 +28,7 @@ interface ProviderConnectionLike {
   id: string;
   provider: string;
   isActive?: boolean;
+  quotaWindowThresholds?: Record<string, number> | null;
 }
 
 interface UsageSnapshot {
@@ -32,6 +36,17 @@ interface UsageSnapshot {
   provider: string;
   plan: unknown;
   quotas: JsonRecord;
+  quotaWindowThresholds?: Record<string, number> | null;
+}
+
+interface UsageCommandSelection {
+  preferredProvider?: string | null;
+  preferredConnectionId?: string | null;
+}
+
+interface UsageCommandQuotaPolicy {
+  defaultThresholdPercent: number;
+  providerWindowDefaults: Record<string, Record<string, number>>;
 }
 
 export interface InternalUsageCommandDeps {
@@ -46,6 +61,7 @@ export interface InternalUsageCommandDeps {
     metadata: UsageCommandApiKeyMetadata,
     deps?: { now?: () => number }
   ) => Promise<ApiKeyUsageLimitStatus>;
+  getQuotaPolicy?: () => Promise<UsageCommandQuotaPolicy>;
 }
 
 type RequiredDeps = Required<InternalUsageCommandDeps>;
@@ -77,6 +93,19 @@ async function normalizeDeps(deps: InternalUsageCommandDeps = {}): Promise<Requi
       deps.getAllProviderLimitsCache ?? providerLimits!.getAllProviderLimitsCache,
     getApiKeyUsageLimitStatus:
       deps.getApiKeyUsageLimitStatus ?? usageLimits!.getApiKeyUsageLimitStatus,
+    getQuotaPolicy: deps.getQuotaPolicy ?? getDefaultUsageCommandQuotaPolicy,
+  };
+}
+
+async function getDefaultUsageCommandQuotaPolicy(): Promise<UsageCommandQuotaPolicy> {
+  const [{ getCachedSettings }, { resolveResilienceSettings }] = await Promise.all([
+    import("@/lib/localDb"),
+    import("@/lib/resilience/settings"),
+  ]);
+  const resilience = resolveResilienceSettings(await getCachedSettings());
+  return {
+    defaultThresholdPercent: resilience.quotaPreflight.defaultThresholdPercent,
+    providerWindowDefaults: resilience.quotaPreflight.providerWindowDefaults,
   };
 }
 
@@ -190,12 +219,29 @@ export function isInternalUsageCommand(text: string | null | undefined): boolean
   return typeof text === "string" && text.trim() === INTERNAL_USAGE_COMMAND;
 }
 
+function readThresholdMap(value: unknown): Record<string, number> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const out: Record<string, number> = {};
+  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+    const numeric = Number(raw);
+    if (key && Number.isFinite(numeric) && numeric >= 0 && numeric <= 100) {
+      out[key] = numeric;
+    }
+  }
+  return Object.keys(out).length > 0 ? out : null;
+}
+
 function connectionFromValue(value: unknown): ProviderConnectionLike | null {
   if (!isRecord(value)) return null;
   const id = typeof value.id === "string" ? value.id : "";
   const provider = typeof value.provider === "string" ? value.provider : "";
   if (!id || !provider || value.isActive === false) return null;
-  return { id, provider, isActive: value.isActive === true };
+  return {
+    id,
+    provider,
+    isActive: value.isActive === true,
+    quotaWindowThresholds: readThresholdMap(value.quotaWindowThresholds),
+  };
 }
 
 function snapshotFromConnection(
@@ -208,6 +254,7 @@ function snapshotFromConnection(
     provider: connection.provider,
     plan: cache.plan,
     quotas: cache.quotas,
+    quotaWindowThresholds: connection.quotaWindowThresholds ?? null,
   };
 }
 
@@ -252,27 +299,35 @@ function normalizeQuotaKey(key: string): string {
     .trim();
 }
 
-function findQuota(quotas: JsonRecord, kind: "session" | "weekly" | "weekly-sonnet") {
+interface QuotaMatch {
+  key: string;
+  quota: JsonRecord;
+}
+
+function findQuota(
+  quotas: JsonRecord,
+  kind: "session" | "weekly" | "weekly-sonnet"
+): QuotaMatch | null {
   const entries = Object.entries(quotas).filter(([, value]) => isRecord(value));
 
   for (const [key, value] of entries) {
     const normalized = normalizeQuotaKey(key);
     if (kind === "session" && (normalized.includes("session") || normalized.includes("5h"))) {
-      return value as JsonRecord;
+      return { key, quota: value as JsonRecord };
     }
     if (
       kind === "weekly-sonnet" &&
       normalized.includes("weekly") &&
       normalized.includes("sonnet")
     ) {
-      return value as JsonRecord;
+      return { key, quota: value as JsonRecord };
     }
     if (
       kind === "weekly" &&
       (normalized === "weekly" || normalized.includes("weekly") || normalized.includes("7d")) &&
       !normalized.includes("sonnet")
     ) {
-      return value as JsonRecord;
+      return { key, quota: value as JsonRecord };
     }
   }
 
@@ -313,9 +368,9 @@ function getResetAt(quota: JsonRecord | null): string | null {
   return typeof quota.resetAt === "string" && quota.resetAt.trim() ? quota.resetAt : null;
 }
 
-function formatPercent(percent: number | null): string {
+function formatLeftPercent(percent: number | null): string {
   if (percent === null || !Number.isFinite(percent)) return "Unavailable";
-  return `${Math.round(percent)}%`;
+  return `${Math.round(Math.max(0, Math.min(100, percent)))}% left`;
 }
 
 export function formatResetIn(resetAt: string | null, now = Date.now()): string {
@@ -327,12 +382,15 @@ export function formatResetIn(resetAt: string | null, now = Date.now()): string 
   if (deltaMs <= 0) return "now";
 
   const minuteMs = 60_000;
-  const hourMs = 60 * minuteMs;
-  const dayMs = 24 * hourMs;
+  const totalMinutes = Math.max(1, Math.ceil(deltaMs / minuteMs));
+  const dayMinutes = 24 * 60;
+  const days = Math.floor(totalMinutes / dayMinutes);
+  const hours = Math.floor((totalMinutes % dayMinutes) / 60);
+  const minutes = totalMinutes % 60;
 
-  if (deltaMs < hourMs) return `${Math.max(1, Math.ceil(deltaMs / minuteMs))}m`;
-  if (deltaMs < dayMs) return `${Math.max(1, Math.ceil(deltaMs / hourMs))}h`;
-  return `${Math.max(1, Math.ceil(deltaMs / dayMs))}d`;
+  if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
 }
 
 function formatPlan(plan: unknown): string {
@@ -350,7 +408,7 @@ function snapshotScore(snapshot: UsageSnapshot): number {
   return score;
 }
 
-function selectUsageSnapshot(snapshots: UsageSnapshot[]): UsageSnapshot | null {
+function selectBestUsageSnapshot(snapshots: UsageSnapshot[]): UsageSnapshot | null {
   let selected: UsageSnapshot | null = null;
   let bestScore = -1;
   for (const snapshot of snapshots) {
@@ -363,44 +421,175 @@ function selectUsageSnapshot(snapshots: UsageSnapshot[]): UsageSnapshot | null {
   return selected;
 }
 
-function appendQuotaBlock(lines: string[], label: string, quota: JsonRecord | null, now: number) {
+function normalizeProviderId(provider: string | null | undefined): string | null {
+  const normalized = provider?.trim().toLowerCase().replace(/_/g, "-");
+  if (!normalized) return null;
+  if (normalized === "cc" || normalized === "claude-code" || normalized === "claudecode") {
+    return "claude";
+  }
+  return normalized;
+}
+
+function quotaWindowLookupNames(provider: string, windowName: string): string[] {
+  const names = [windowName];
+  const lower = windowName.toLowerCase();
+  if (lower !== windowName) names.push(lower);
+
+  const normalized = normalizeQuotaKey(windowName);
+  if (normalized.includes("session") || normalized.includes("5h")) {
+    names.push("session", "session (5h)");
+  }
+  if (normalized.includes("weekly") || normalized.includes("7d")) {
+    if (normalized.includes("sonnet")) {
+      names.push("weekly sonnet", "weekly sonnet (7d)");
+    } else {
+      names.push("weekly", "weekly (7d)");
+    }
+  }
+  if (provider === "codex" && (normalized.includes("monthly") || normalized.includes("30d"))) {
+    names.push("monthly");
+  }
+
+  return [...new Set(names)];
+}
+
+function resolveQuotaCutoffPercent(
+  snapshot: UsageSnapshot,
+  windowName: string,
+  policy: UsageCommandQuotaPolicy
+): number {
+  const provider = normalizeProviderId(snapshot.provider) ?? snapshot.provider;
+  const providerDefaults =
+    policy.providerWindowDefaults[snapshot.provider] ||
+    policy.providerWindowDefaults[provider] ||
+    {};
+  const overrides = snapshot.quotaWindowThresholds ?? {};
+
+  for (const lookupName of quotaWindowLookupNames(provider, windowName)) {
+    const override = overrides[lookupName];
+    if (typeof override === "number") return override;
+    const providerDefault = providerDefaults[lookupName];
+    if (typeof providerDefault === "number") return providerDefault;
+  }
+
+  return policy.defaultThresholdPercent;
+}
+
+function effectiveRemainingPercent(
+  realRemaining: number | null,
+  cutoffPercent: number
+): number | null {
+  if (realRemaining === null || !Number.isFinite(realRemaining)) return null;
+  const remaining = Math.max(0, Math.min(100, realRemaining));
+  const cutoff = Math.max(0, Math.min(99, cutoffPercent));
+  if (remaining <= cutoff) return 0;
+  return ((remaining - cutoff) / (100 - cutoff)) * 100;
+}
+
+function selectUsageSnapshot(
+  snapshots: UsageSnapshot[],
+  selection: UsageCommandSelection = {}
+): UsageSnapshot | null {
+  const preferredConnectionId = selection.preferredConnectionId?.trim();
+  if (preferredConnectionId) {
+    const snapshot = snapshots.find((entry) => entry.connectionId === preferredConnectionId);
+    if (snapshot) return snapshot;
+  }
+
+  const preferredProvider = normalizeProviderId(selection.preferredProvider);
+  if (preferredProvider) {
+    return selectBestUsageSnapshot(
+      snapshots.filter((entry) => normalizeProviderId(entry.provider) === preferredProvider)
+    );
+  }
+
+  return selectBestUsageSnapshot(snapshots);
+}
+
+function appendQuotaBlock(
+  lines: string[],
+  label: string,
+  match: QuotaMatch | null,
+  snapshot: UsageSnapshot,
+  policy: UsageCommandQuotaPolicy,
+  now: number
+) {
   lines.push(label);
-  lines.push(formatPercent(getQuotaUsedPercent(quota)));
-  lines.push(`Resets in ${formatResetIn(getResetAt(quota), now)}`);
+  const usedPercent = getQuotaUsedPercent(match?.quota ?? null);
+  const realRemaining =
+    usedPercent === null || !Number.isFinite(usedPercent)
+      ? null
+      : 100 - Math.max(0, Math.min(100, usedPercent));
+  const cutoff = match ? resolveQuotaCutoffPercent(snapshot, match.key, policy) : 0;
+  lines.push(formatLeftPercent(effectiveRemainingPercent(realRemaining, cutoff)));
+  lines.push(`⏱ reset in ${formatResetIn(getResetAt(match?.quota ?? null), now)}`);
 }
 
 export async function buildUsageCommandText(
   metadata: UsageCommandApiKeyMetadata,
-  deps: InternalUsageCommandDeps = {}
+  deps: InternalUsageCommandDeps = {},
+  selection: UsageCommandSelection = {}
 ): Promise<string> {
   const resolvedDeps = await normalizeDeps(deps);
+  const sections: string[] = [];
   if (metadata.usageLimitEnabled === true) {
-    return buildApiKeyUsageLimitText(
-      await resolvedDeps.getApiKeyUsageLimitStatus(metadata, { now: resolvedDeps.now }),
-      resolvedDeps.now()
-    );
+    const usageMetadata: UsageCommandApiKeyMetadata = {
+      ...metadata,
+      preferredProvider: selection.preferredProvider ?? metadata.preferredProvider ?? null,
+    };
+    const status = await resolvedDeps.getApiKeyUsageLimitStatus(usageMetadata, {
+      now: resolvedDeps.now,
+    });
+    const now = resolvedDeps.now();
+    sections.push(["Personal quota", buildApiKeyUsageLimitPercentText(status, now)].join("\n"));
   }
 
-  const snapshot = selectUsageSnapshot(await collectUsageSnapshots(metadata, resolvedDeps));
+  const snapshot = selectUsageSnapshot(
+    await collectUsageSnapshots(metadata, resolvedDeps),
+    selection
+  );
 
   if (!snapshot) {
-    return ["Plan", "Unavailable", "", "Usage", "No cached usage data available."].join("\n");
+    sections.push(["Provider quota", "No cached usage data available."].join("\n"));
+    return sections.join("\n\n");
   }
 
   const now = resolvedDeps.now();
-  const lines = ["Plan", formatPlan(snapshot.plan), "", "Usage"];
-  appendQuotaBlock(lines, "Session (5hr)", findQuota(snapshot.quotas, "session"), now);
+  const policy = await resolvedDeps.getQuotaPolicy();
+  const lines = ["Provider quota"];
+  appendQuotaBlock(lines, "Session", findQuota(snapshot.quotas, "session"), snapshot, policy, now);
   lines.push("");
-  appendQuotaBlock(lines, "Weekly (7 day)", findQuota(snapshot.quotas, "weekly"), now);
-  lines.push("");
-  appendQuotaBlock(lines, "Weekly Sonnet", findQuota(snapshot.quotas, "weekly-sonnet"), now);
-  return lines.join("\n");
+  appendQuotaBlock(lines, "Weekly", findQuota(snapshot.quotas, "weekly"), snapshot, policy, now);
+  sections.push(lines.join("\n"));
+  return sections.join("\n\n");
 }
 
 function getResponseModel(body: unknown): string {
   return isRecord(body) && typeof body.model === "string" && body.model.trim()
     ? body.model
     : LOCAL_USAGE_MODEL;
+}
+
+function inferHttpUsageCommandSelection(request: Request): UsageCommandSelection {
+  try {
+    const url = new URL(request.url, "http://localhost");
+    return {
+      preferredConnectionId:
+        url.searchParams.get("connectionId")?.trim() ||
+        readHeader(request, "x-omniroute-connection")?.trim() ||
+        null,
+      preferredProvider: url.searchParams.get("provider")?.trim() || null,
+    };
+  } catch {
+    return {
+      preferredConnectionId: readHeader(request, "x-omniroute-connection")?.trim() || null,
+      preferredProvider: null,
+    };
+  }
+}
+
+function createPlainUsageCommandResponse(text: string, status = 200): Response {
+  return new Response(text, { status, headers: TEXT_PLAIN_HEADERS });
 }
 
 function isAnthropicRequest(request: Request): boolean {
@@ -567,4 +756,33 @@ export async function handleInternalUsageCommand(
     body,
     await buildUsageCommandText(metadata, resolvedDeps)
   );
+}
+
+export async function handleInternalUsageCommandHttpRequest(
+  request: Request,
+  deps: InternalUsageCommandDeps = {}
+): Promise<Response> {
+  try {
+    const resolvedDeps = await normalizeDeps(deps);
+    const apiKey = extractUsageCommandApiKey(request);
+    if (!apiKey || !(await resolvedDeps.isValidApiKey(apiKey))) {
+      return createPlainUsageCommandResponse(USAGE_COMMAND_AUTH_REQUIRED_MESSAGE, 401);
+    }
+
+    const metadata = await resolvedDeps.getApiKeyMetadata(apiKey);
+    if (!metadata?.id) {
+      return createPlainUsageCommandResponse(USAGE_COMMAND_AUTH_REQUIRED_MESSAGE, 401);
+    }
+
+    if (metadata.allowUsageCommand !== true) {
+      return createPlainUsageCommandResponse(USAGE_COMMAND_DISABLED_MESSAGE, 403);
+    }
+
+    return createPlainUsageCommandResponse(
+      await buildUsageCommandText(metadata, resolvedDeps, inferHttpUsageCommandSelection(request))
+    );
+  } catch (err) {
+    const body = buildErrorBody(500, err instanceof Error ? err.message : String(err));
+    return Response.json(body, { status: 500 });
+  }
 }
