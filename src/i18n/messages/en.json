@@ -6689,6 +6689,8 @@
     "autoRefresh": "Auto-refresh",
     "refreshAll": "Refresh All",
     "loadingQuotas": "Loading...",
+    "showMoreQuotas": "Show {count} more",
+    "showLessQuotas": "Show less",
     "account": "Account",
     "modelQuotas": "Model Quotas",
     "lastUsed": "Last Refreshed",

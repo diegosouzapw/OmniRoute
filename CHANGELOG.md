@@ -8,7 +8,7 @@
 
 ### ✨ New Features
 
-_TBD_
+- **feat(dashboard):** collapse quota rows and sort by remaining quota in the usage view. (thanks @j2-cuong)
 
 ### 🔧 Bug Fixes
 
