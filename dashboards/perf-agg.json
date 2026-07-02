@@ -1,0 +1,10 @@
+{
+  "title": "Performance Aggregate — P0/P1/P2 Endpoints",
+  "uid": "perf-agg-v30",
+  "panels": [
+    {"type":"graph","title":"p50 Latency Trend (7d)","targets":[{"expr":"avg by(endpoint,category)(latency_seconds{quantile=\"0.5\"}[5m])"}]},
+    {"type":"graph","title":"p99 Latency Trend (7d)","targets":[{"expr":"avg by(endpoint,category)(latency_seconds{quantile=\"0.99\"}[5m])"}]},
+    {"type":"stat","title":"Throughput (rps)","targets":[{"expr":"sum(rate(latency_seconds_count[5m]))"}],"unit":"rps"},
+    {"type":"table","title":"Top-10 Slowest Endpoints","targets":[{"expr":"topk(10, avg by(endpoint)(latency_seconds{quantile=\"0.99\"}[1h]))"}]}
+  ]
+}

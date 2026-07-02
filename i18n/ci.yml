@@ -1,0 +1,15 @@
+name: i18n-locale-ci
+on:
+  pull_request:
+    paths: ['src/i18n/messages/**']
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          total=$(ls src/i18n/messages/*.json | wc -l)
+          echo "Total locales: $total"
+          echo "Expected per 42-locale standard: >= 42"
+          [ "$total" -ge 42 ] || { echo "FAIL: only $total locales"; exit 1; }
+          echo "Locale count: PASS ($total)"
