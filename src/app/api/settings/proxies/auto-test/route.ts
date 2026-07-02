@@ -1,12 +1,20 @@
+import { z } from "zod";
 import { deleteProxyById, listProxies, updateProxy } from "@/lib/localDb";
 import { createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createProxyDispatcher } from "@omniroute/open-sse/utils/proxyDispatcher";
 import { fetch as undiciFetch } from "undici";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { createErrorResponse } from "@/lib/api/errorResponse";
 
 const TEST_TIMEOUT_MS = 5000;
 const TEST_URL = "https://httpbin.org/ip";
 const CONCURRENCY = 10;
+
+const autoTestSchema = z.object({
+  ids: z.array(z.string()).optional(),
+  autoRemove: z.boolean().optional().default(false),
+});
 
 interface TestResult {
   proxyId: string;
@@ -20,25 +28,21 @@ interface TestResult {
 async function testSingleProxy(proxy: { id: string; type: string; host: string; port: number }): Promise<TestResult> {
   const proxyUrl = `${proxy.type}://${proxy.host}:${proxy.port}`;
   const start = Date.now();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), TEST_TIMEOUT_MS);
 
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), TEST_TIMEOUT_MS);
-    try {
-      const dispatcher = createProxyDispatcher(proxyUrl);
-      const resp = await undiciFetch(TEST_URL, {
-        method: "HEAD",
-        signal: controller.signal,
-        dispatcher,
-        headers: { "User-Agent": "OmniRoute/1.0" },
-      });
-      const latencyMs = Date.now() - start;
-      const alive = resp.status < 500;
-      await updateProxy(proxy.id, { status: alive ? "active" : "inactive" }).catch(() => {});
-      return { proxyId: proxy.id, host: proxy.host, port: proxy.port, alive, latencyMs };
-    } finally {
-      clearTimeout(timeout);
-    }
+    const dispatcher = createProxyDispatcher(proxyUrl);
+    const resp = await undiciFetch(TEST_URL, {
+      method: "HEAD",
+      signal: controller.signal,
+      dispatcher,
+      headers: { "User-Agent": "OmniRoute/1.0" },
+    });
+    const latencyMs = Date.now() - start;
+    const alive = resp.status < 500;
+    await updateProxy(proxy.id, { status: alive ? "active" : "inactive" }).catch(() => {});
+    return { proxyId: proxy.id, host: proxy.host, port: proxy.port, alive, latencyMs };
   } catch (err) {
     const latencyMs = Date.now() - start;
     await updateProxy(proxy.id, { status: "inactive" }).catch(() => {});
@@ -50,13 +54,13 @@ async function testSingleProxy(proxy: { id: string; type: string; host: string; 
       latencyMs,
       error: err instanceof Error ? err.message : "Connection failed",
     };
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
 /**
  * POST /api/settings/proxies/auto-test
- * Body: { ids?: string[], autoRemove?: boolean }
- *
  * Tests proxy reachability. If autoRemove is true, removes dead proxies.
  */
 export async function POST(request: Request) {
@@ -70,11 +74,12 @@ export async function POST(request: Request) {
     rawBody = {};
   }
 
-  const body = (rawBody || {}) as { ids?: unknown; autoRemove?: unknown };
-  const specificIds = Array.isArray(body.ids)
-    ? body.ids.filter((id): id is string => typeof id === "string")
-    : null;
-  const autoRemove = body.autoRemove === true;
+  const validation = validateBody(autoTestSchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return createErrorResponse({ status: 400, message: validation.error.message, type: "invalid_request" });
+  }
+
+  const { ids: specificIds, autoRemove } = validation.data;
 
   try {
     const allProxies = await listProxies({ includeSecrets: false });
