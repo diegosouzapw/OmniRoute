@@ -12,7 +12,7 @@ _TBD_
 
 ### 🔧 Bug Fixes
 
-_TBD_
+- **fix(resilience):** honor Retry-After / retry_after_ms hints from 429 response bodies for precise account cooldown. (thanks @anuragg-saxenaa)
 
 ### 📝 Maintenance
 
