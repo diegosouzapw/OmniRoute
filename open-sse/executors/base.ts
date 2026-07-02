@@ -6,7 +6,6 @@ import {
 import { applyContextEditingToBody } from "../config/contextEditing.ts";
 import { findOffendingField, stripGroqUnsupportedFields } from "../config/providerFieldStrips.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
-import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 import type { Session } from "../services/sessionPool/session.ts";
@@ -41,6 +40,9 @@ import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
 import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { applySystemTransformPipeline, PROVIDER_CLAUDE } from "../services/systemTransforms.ts";
+import {
+  sanitizeReasoningEffortForProvider,
+} from "./reasoningEffortMaps.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
 import {
   fixToolPairs,
@@ -907,16 +909,6 @@ export class BaseExecutor {
       const url = this.buildUrl(model, stream, urlIndex, requestCredentials);
       const headers = this.buildHeaders(requestCredentials, stream, clientHeaders, model);
       applyConfiguredUserAgent(headers, requestCredentials?.providerSpecificData);
-
-      // Strip OpenAI SDK (X-Stainless-*) metadata + normalize SDK-derived User-Agent
-      // on OpenAI-compatible passthrough requests — some upstream gateways 403 on them.
-      const strippedStainless = stripStainlessHeadersForOpenAICompat(headers, this.provider, url);
-      if (strippedStainless.length > 0) {
-        log?.debug?.(
-          "HEADERS",
-          `Stripped X-Stainless-* from OpenAI-compatible request: ${strippedStainless.join(", ")}`
-        );
-      }
 
       // Strip OpenAI SDK (X-Stainless-*) metadata + normalize SDK-derived User-Agent
       // on OpenAI-compatible passthrough requests — some upstream gateways 403 on them.
